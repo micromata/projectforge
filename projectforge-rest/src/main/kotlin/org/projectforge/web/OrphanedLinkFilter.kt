@@ -129,6 +129,12 @@ class OrphanedLinkFilter : Filter {
             val pollId = servletRequest.getParameter("pollId")?.toLongOrNull()
             val target = if (uri.contains("/react/pollResponse") && pollId != null) "poll/$pollId/answer" else "poll"
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}$target")
+        } else if (uri.endsWith("/react/response") || uri.contains("/react/response/")) {
+            // The answer page as the reminder mails of a poll ending soon linked it (8.0 and 8.1, PollCronJobs):
+            // react/response/dynamic/<pollId>. Only a number is passed on, as above.
+            val pollId = uri.substringAfter("/react/response/dynamic/", "").substringBefore('/').toLongOrNull()
+            val target = if (pollId != null) "poll/$pollId/answer" else "poll"
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}$target")
         } else if (uri.endsWith("/react/vacationAccount") || uri.contains("/react/vacationAccount/")) {
             // Old dynamic React page of the vacation account, migrated to projectforge-next. The React page was
             // removed, so there is no "classic version" escape hatch. The employee (HR staff, as path segment
@@ -190,10 +196,6 @@ class OrphanedLinkFilter : Filter {
             // Handled: a link to a page of projectforge-next that has moved to another route was redirected.
         } else if (redirectRemovedCalendarPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a removed Wicket calendar page was redirected.
-        } else if (redirectGoneReactPage(servletResponse, uri)) {
-            // Handled: a link to an old React page of a category without a React way back was redirected.
-        } else if (redirectAddressPage(servletRequest, servletResponse, uri)) {
-            // Handled: a link to the React view or import page of the addresses was redirected.
         } else if (redirectDataTransferPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a dynamic React page of the data transfer plugin was redirected.
         } else if (redirectPublicDataTransferPage(servletRequest, servletResponse, uri)) {
@@ -283,30 +285,6 @@ class OrphanedLinkFilter : Filter {
     }
 
     /**
-     * The old React pages (list and form) of [GONE_REACT_CATEGORIES], migrated to projectforge-next. Not
-     * covered by [redirectMigratedPage]: their legacy app is Wicket, the way back, or their React category isn't the
-     * one of the next pages (`addressCampaignValueLegacy`, `addressLegacy`). The React pages are gone
-     * (their EntityRest serves no layout), so there is no escape hatch to let through. The precise segment
-     * match keeps this from catching sibling pages like react/projectXyz or react/taskTree.
-     * react/<category>/edit/<id>; no id means the add page.
-     *
-     * @return true if the request was such a link and a redirect was sent.
-     */
-    private fun redirectGoneReactPage(response: ServletResponse, uri: String): Boolean {
-        val (reactCategory, category) = GONE_REACT_CATEGORIES.entries
-            .find { (it, _) -> uri.endsWith("/react/$it") || uri.contains("/react/$it/") } ?: return false
-        val isEdit = uri.endsWith("/react/$reactCategory/edit") || uri.contains("/react/$reactCategory/edit/")
-        val id = uri.substringAfter("/react/$reactCategory/edit/", "").substringBefore('/').toLongOrNull()
-        val target = when {
-            id != null -> NextMigration.nextEditPage(category)!!.replace(NextMigration.ID_PLACEHOLDER, "$id")
-            isEdit -> NextMigration.newEntryUrl(category)
-            else -> NextMigration.listUrl(category)
-        }
-        redirect(response, uri, "/$target")
-        return true
-    }
-
-    /**
      * The dynamic React pages of the data transfer plugin, migrated to projectforge-next: the file view of an
      * area (react/datatransferfiles/dynamic/<id>, linked by the notification mails, -1 is the own personal
      * box), its activities (react/datatransferaudit/dynamic/<id>, now a dialog of the file view) and the
@@ -362,39 +340,6 @@ class OrphanedLinkFilter : Filter {
             Constants.NEXT_APP_PATH
         }
         redirect(response, uri, "/$target")
-        return true
-    }
-
-    /**
-     * The dynamic React pages of the addresses, which have no category of their own in [NextMigration] (the list
-     * and the form are bent by [redirectMigratedPage]): the view `react/addressView/dynamic/<id>` (also `?id=`, and
-     * `react/calendar/addressView/...` as the React calendar opened it for a birthday) leads to the view of
-     * projectforge-next, the VCF import `react/addressImportUpload/dynamic` to its import page. Checked before
-     * [redirectMigratedPage], whose `calendar` entry would take the calendar variant for a calendar link. Ids are
-     * interpolated into the Location header, so only numbers are accepted.
-     *
-     * @return true if the request was such a link and a redirect was sent.
-     */
-    private fun redirectAddressPage(
-        request: HttpServletRequest,
-        response: ServletResponse,
-        uri: String,
-    ): Boolean {
-        val listUrl = "/${NextMigration.listUrl("address")}"
-        if (uri.endsWith("/react/addressImportUpload") || uri.contains("/react/addressImportUpload/")) {
-            redirect(response, uri, "$listUrl/import")
-            return true
-        }
-        val page = listOf("react/calendar/addressView", "react/addressView").find { containsPath(uri, it) }
-            ?: return false
-        val id = uri.substringAfter("/$page/dynamic/", "").substringBefore('/').toLongOrNull()
-            ?: request.getParameter("id")?.toLongOrNull()
-        val target = when {
-            id == null -> listUrl
-            page.startsWith("react/calendar/") -> "$listUrl/$id?returnTo=/calendar"
-            else -> "$listUrl/$id"
-        }
-        redirect(response, uri, target)
         return true
     }
 
@@ -499,7 +444,7 @@ class OrphanedLinkFilter : Filter {
                 } ?: return false
                 val id = request.getParameter("id")?.toLongOrNull()
                 when {
-                    isWicketPage(uri, "${category}List") -> NextMigration.listUrl(category) + listQuery(request, category)
+                    isWicketPage(uri, "${category}List") -> NextMigration.listUrl(category)
                     id != null -> NextMigration.nextEditPage(category)!!.replace(NextMigration.ID_PLACEHOLDER, "$id")
                     else -> NextMigration.newEntryUrl(category)
                 }
@@ -507,21 +452,6 @@ class OrphanedLinkFilter : Filter {
         }
         redirect(response, uri, "/$target")
         return true
-    }
-
-    /**
-     * The filter of a Wicket list link that next's list understands under the same name: the time sheet list's
-     * `taskId`, `userId` and `kost2Id` (TimesheetListPage's parameters, read by next's timesheet page). Only
-     * numbers are carried, as they end up in the Location header.
-     *
-     * @return e.g. `?taskId=42&userId=7`, or an empty string.
-     */
-    private fun listQuery(request: HttpServletRequest, category: String): String {
-        if (category != "timesheet") return ""
-        val query = TIMESHEET_LIST_PARAMS.mapNotNull { name ->
-            request.getParameter(name)?.toLongOrNull()?.let { "$name=$it" }
-        }
-        return if (query.isEmpty()) "" else "?${query.joinToString("&")}"
     }
 
     /**
@@ -580,18 +510,6 @@ class OrphanedLinkFilter : Filter {
         /** The system statistics, a tab of the system dashboard. */
         private const val SYSTEM_STATISTICS_ROUTE = "systemDashboard?tab=statistics"
 
-        /**
-         * The React categories whose pages are gone, by the category of their next pages, see [redirectGoneReactPage]:
-         * categories migrated from Wicket, and the React pages kept for a while under a category of their own (the
-         * address campaign values and the address form they opened as a modal).
-         */
-        private val GONE_REACT_CATEGORIES = mapOf(
-            "project" to "project",
-            "task" to "task",
-            "addressLegacy" to "address",
-            "addressCampaignValueLegacy" to "addressCampaignValue",
-        )
-
         /** The dynamic React pages of the data transfer plugin, see [redirectDataTransferPage]. */
         private val DATATRANSFER_DYNAMIC_PAGES =
             listOf("datatransferfiles", "datatransferaudit", "datatransferpersonalfiles")
@@ -603,9 +521,6 @@ class OrphanedLinkFilter : Filter {
          * Categories migrated from React whose Wicket list/edit pages (`wa/<category>List`, `wa/<category>Edit`)
          * are still mounted, see [redirectLastWicketPage].
          */
-        private val WICKET_PAGES_OF_REACT_CATEGORIES = listOf("timesheet", "group")
-
-        /** The filter parameters of Wicket's time sheet list that next's list reads under the same name. */
-        private val TIMESHEET_LIST_PARAMS = listOf("taskId", "userId", "kost2Id")
+        private val WICKET_PAGES_OF_REACT_CATEGORIES = listOf("group")
     }
 }

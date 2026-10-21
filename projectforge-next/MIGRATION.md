@@ -114,6 +114,15 @@ und next-Route dürfen abweichen (handgebaut: absichtlich gleich); die Menü-URL
 Entität unter abweichender Route nennt ihre Next-URL direkt im `MenuItemDefId` (Beispiel:
 Aufgabenbaum `next/taskTree` neben der Liste `next/task`).
 
+**Alte Links werden nur umgeleitet, wenn sie ProjectForge verlassen haben** – per Mail (Benachrichtigungen,
+Erinnerungen) oder Datentransfer. Dann behält der Eintrag in `MIGRATED` seine `legacyApp` (oder
+`OrphanedLinkFilter` bekommt eine eigene Regel für die gemailte Url); sonst ist `legacyApp = null`, auch wenn alte
+Lesezeichen dann nicht mehr auf next führen. Lesezeichen allein rechtfertigen keine Umleitung. Generisch umgeleitet
+werden nur noch Aufträge und To-dos (Änderungsmails), Urlaub (Urlaubsmails) und der Kalender (frühere Startseite
+nach dem Login), dazu die Seiten mit Rückweg (Gruppen, Termine). Eigene Regeln haben die
+gemailten Seiten des Datentransfers, der Umfrage-Antwort, des Urlaubskontos und der Fehlerübersicht.
+`NextMigrationTest` (`only links that left ProjectForge are redirected`) hält die Liste fest.
+
 ## Querschnittliche Fundamente (erledigt)
 
 Diese Schichten tragen jede migrierte Seite; neue Endpunkte/Seiten erben sie ohne Zutun.
@@ -400,7 +409,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `Kost2ListPage`, „exportAsXls") ist als `Kost1EntityRest`/`Kost2EntityRest.exportAsExcel` portiert
   (gleiche Spalten, gefilterte Liste, `.xlsx`); Knopf über `PageDef.listActions`. Die Wicket-Seiten
   (Kost1, Kost2, Kost2-Arten, `Kost2SelectPanel`) sind entfernt, der Rückweg ist zurückgezogen
-  (`offerLegacyLink = false`); `wa/cost1*`, `wa/cost2*`, `wa/cost2Type*` leitet `OrphanedLinkFilter` um.
+  (`offerLegacyLink = false`); alte Links werden nicht umgeleitet (`legacyApp = null`).
 - **DATEV-Import** – `next/datev-import` (`DATEV_IMPORT` umgeschaltet, Wicket-Seite gelöscht,
   `wa/datevImport` leitet per `OrphanedLinkFilter` hierher um; Upload-Grenze
   `projectforge.max-file-size.datev`, Default 10MB). Zwei Tabs über das gemeinsame
@@ -564,7 +573,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   (`/rs/leaveAccountEntry`, gleicher Pfad). Die Prüfung auf eine Nachkommastelle bleibt im Backend (`validate`);
   `newBaseDTO` setzt heute als Datum und den Mitarbeiter aus `?employee=`. Neu: HR (Schreibrecht) legt im
   Urlaubskonto direkt eine Korrektur für den angezeigten Mitarbeiter an (`newLeaveAccountEntryUrl`). Rückweg:
-  Liste, Urlaubskonto (`?returnTo=/vacationAccount`). `react/leaveAccountEntry/**` leitet `OrphanedLinkFilter` um.
+  Liste, Urlaubskonto (`?returnTo=/vacationAccount`). Alte Links werden nicht umgeleitet.
 - **Umfragen** (`poll`, Liste + Formular + Antwortseite, vorher React-UILayout `PollPageRest`, `PollResponsePageRest`,
   `PollInfoPageRest`, gelöscht; Azubi-Modul, dabei das Datenmodell aufgeräumt, Flyway `V9.0.12.1`–`V9_0_12_3`) –
   layoutfrei über `PollEntityRest` (`/rs/poll`: CRUD, `finish/{id}`, `exportAsExcel/{id}`, `templates`) und
@@ -574,8 +583,9 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `?tab=results`, Excel) nur mit Vollzugriff; beendet = schreibgeschützt (`EditDef.readOnlyWithoutWriteAccess`).
   Fragen-Editor mit Hoch/Runter (`useFieldArray().move`), Vorlagen: eingebaute neutrale Muster de/en
   (`poll/templates.json`) und Umfragen mit `template=true` (nie versendet, klonbar). Zeilenklick: Formular bei
-  Vollzugriff, sonst Antwortseite (`/poll/<id>/answer`). `react/poll/**` leitet `NextMigration` um,
-  `react/pollResponse/dynamic?pollId=` (Mail-Links) und `react/pollInfo` `OrphanedLinkFilter`. Neu im Suchindex:
+  Vollzugriff, sonst Antwortseite (`/poll/<id>/answer`). `react/pollResponse/dynamic?pollId=`,
+  `react/response/dynamic/<id>` (Mail-Links) und `react/pollInfo` leitet `OrphanedLinkFilter` um, Liste und
+  Formular nicht. Neu im Suchindex:
   Titel, Beschreibung und Ort (vorher `@Indexed` ohne Felder, die Listensuche fand nichts); bestehende Umfragen
   erst nach dem nächsten Re-Index. Antworten werden erst nach dem Löschen der Umfrage mitgelöscht
   (`onAfterMarkAsDeleted`, also nach der Zugriffsprüfung) und mit ihr wiederhergestellt (`onAfterUndelete`). Eine Vorlage,
@@ -587,7 +597,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Vertragsarten aus dem Konfigurationsparameter `orga.contractTypes` über `/rs/contract/types`; Titel,
   Vertragspartner, Ansprechpartner und Unterzeichner mit Autovervollständigung, JIRA-Links im Text, Anhänge,
   Klonen (ohne Nummer), Prüfung „kein Datum in der Zukunft“ im Backend. Entfallen: die aus der längsten Vertragsart
-  berechnete Breite der Typ-Spalte. `react/contract/**` leitet `OrphanedLinkFilter` um.
+  berechnete Breite der Typ-Spalte. Alte Links werden nicht umgeleitet.
 - **Währungspaare** (`currencyPair`, Liste + Formular, vorher React-UILayout `CurrencyPairPagesRest` und das Modal
   `CurrencyConversionRatePageRest`, beide gelöscht) – layoutfrei über `CurrencyPairEntityRest` (`/rs/currencyPair`,
   gleicher Pfad). Die Liste zeigt den heute gültigen Kurs beider Richtungen (berechnet, nicht sortierbar, mit den
@@ -598,7 +608,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   beim Öffnen und bei jeder Datumsänderung aus `GET currencyPair/rate/onlineRates` vorbelegt, samt Quellenhinweis.
   Anders als im React-Dialog überschreibt eine Datumsänderung an einem gespeicherten Kurs dessen Werte nicht mehr.
   Der Hinweis zu automatischen Kursen steht jetzt über den Kursen im Formular statt über der Liste. Ein neues Paar
-  bleibt nach dem ersten Speichern im Formular. Kein Weg zurück; `react/currencyPair/**` leitet `OrphanedLinkFilter` um.
+  bleibt nach dem ersten Speichern im Formular. Kein Weg zurück, keine Umleitung alter Links.
 - **Besucherbuch** (`visitorbook`, Liste + Formular, vorher React-UILayout `VisitorbookPagesRest` und das Modal
   `VisitorbookEntryPageRest`, beide gelöscht) – layoutfrei über `VisitorbookEntityRest` (`/rs/visitorbook`, gleicher
   Pfad). Die Liste zeigt den letzten Besuch (Datum, Kommen, Gehen) und die Zahl der Besuche, berechnet aus dem
@@ -609,8 +619,8 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   anderen Besucher zuordnen). Tabelle und Dialog sind `components/shared/validity-entries/` mit
   `markValidity={false}` (Besuche sind keine Gültigkeitszeiträume, nichts markiert/gedämpft); ein neuer Besuch ist mit
   heute und der aktuellen Uhrzeit als Kommen vorbelegt. Löschen des letzten Besuchs warf vorher im Cache eine
-  Exception. Ein neuer Besucher bleibt nach dem ersten Speichern im Formular. Kein Weg zurück;
-  `react/visitorbook/**` leitet `OrphanedLinkFilter` um.
+  Exception. Ein neuer Besucher bleibt nach dem ersten Speichern im Formular. Kein Weg zurück,
+  keine Umleitung alter Links.
 - **Skillmatrix** (`skillentry`, Plugin skillmatrix, Liste + Formular, vorher React-UILayout `SkillEntryPagesRest`,
   gelöscht) – layoutfrei über `SkillEntryEntityRest` (`/rs/skillentry`, gleicher Pfad). Filter „Meine Skills“
   (Default an) bleibt backendseitig; Selbsteinschätzung und Interesse als Sterne (`RatingField`, Nachfolger von
@@ -618,8 +628,8 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Statistik (`SkillMatrixServicesRest`) als Listenaktion. Kopie gehört dem angemeldeten Nutzer (`prepareClone`).
   Neu: Massenänderung (`SkillEntryMultiSelectedPageRest`, `/rs/skillentrySelected`) von Selbsteinschätzung und
   Interesse (Auswahl der Stufentexte, ohne Löschen, Stufe 0 ist eine Auswahl) und Kommentar; Skill (Dubletten) und
-  Besitzer nicht. Fremde Einträge scheitern pro Eintrag am `SkillRight`. `react/skillentry/**` leitet
-  `OrphanedLinkFilter` um.
+  Besitzer nicht. Fremde Einträge scheitern pro Eintrag am `SkillRight`. Alte Links werden nicht
+  umgeleitet.
 - **Posteingang / Postausgang** (`incomingMail`, `outgoingMail`, Liste + Formular, vorher React-UILayout
   `PosteingangPagesRest` / `PostausgangPagesRest`, gelöscht) – layoutfrei über `PosteingangEntityRest` /
   `PostausgangEntityRest` (`AbstractDOEntityRest`, ohne DTO, gleiche Pfade), beide in `components/features/post`.
@@ -633,7 +643,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Erinnerungen, QR-Code) reisen im Edit-DTO mit (`TeamCal.subscriptionInfo`, nur lesend), kein eigener Endpunkt.
   Die Abo-Url eines externen Kalenders bekommt nur das Formular von Nutzern mit Schreibrecht (sonst die
   anonymisierte), deshalb trägt das Formular jedes DTO-Feld zurück. `CalendarSubscriptionPanel` teilen sich
-  Kalender-Abo-Dialog und Formular. `react/teamCal/**` und die Wicket-Klassen-Urls leitet `OrphanedLinkFilter` um.
+  Kalender-Abo-Dialog und Formular. Die Wicket-Klassen-Urls leitet `OrphanedLinkFilter` um, `react/teamCal/**` nicht.
 - **Adressen** (`address`, Liste + Ansicht + Formular + VCF-Import, vorher React-UILayout `AddressPagesRest`,
   `AddressViewPageRest`, `AddressImportUploadPageRest`, gelöscht) – layoutfrei über `AddressEntityRest` (`/rs/address`).
   Ein Zeilenklick, ein Suchtreffer und ein Geburtstag im Kalender öffnen die **Ansicht** `next/address/{id}`
@@ -647,9 +657,9 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   importiert markiert. Der Favoriten-Stern schaltet direkt (`address/favorite/{id}`). Die Liste lädt die ganze Treffermenge
   (die Seitengrößen-Kürzung `limitResultSize` des React-Layouts entfällt). Das React-Formular, das die
   Adresskampagnen-Werte eine Zeit lang noch als Modal öffneten (`AddressLegacyPagesRest`,
-  `react/addressLegacy/edit/{id}?modal=true`), ist mit deren React-Seite entfernt.
-  `react/address/**`, `react/addressView/**`, `react/calendar/addressView/**`, `react/addressImportUpload/**` und
-  `react/addressLegacy/**` leitet `OrphanedLinkFilter` um.
+  `react/addressLegacy/edit/{id}?modal=true`), ist mit deren React-Seite entfernt. Alte Links (`react/address/**`,
+  `react/addressView/**`, `react/addressLegacy/**`) werden nicht umgeleitet. Der generische Routen-Platzhalter von
+  `[category]` heißt jetzt `generic` (war `address`).
 - **Adresskampagnen-Werte** (`addressCampaignValue`, Liste + Formular + Massenänderung, vorher React-UILayout
   `AddressCampaignValuePagesRest`) – layoutfrei `AddressCampaignValueEntityRest` +
   `AddressCampaignValueMultiSelectedPageRest` (`fieldDeclarations`: Wert als Auswahl der Kampagnenwerte, Kommentar),
@@ -664,8 +674,8 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   behalten. Wechselt die Kampagne, setzt das Backend `ResultSet.reloadUI`, und
   `useMagicFilterQuery` lädt die `listMeta` neu (Werte-Filter der neuen Kampagne) – generisch. Ohne Kampagne im
   Filter ist die Liste leer. Die React-Seite, die für eine laufende Kampagne als Weg zurück unter eigener Kategorie
-  `addressCampaignValueLegacy` blieb (samt Massenänderung und `NextPage.legacyCategory`), ist entfernt; ihre Urls
-  leitet `OrphanedLinkFilter` wie die alten `react/addressCampaignValue`-Urls nach next um.
+  `addressCampaignValueLegacy` blieb (samt Massenänderung und `NextPage.legacyCategory`), ist entfernt; alte Links
+  (`react/addressCampaignValue/**`, `react/addressCampaignValueLegacy/**`) werden nicht umgeleitet.
   **Vergleichskampagne** (Filter `comparisonCampaignId`, z. B. das Vorjahr): Spalten Vergleichswert/-bemerkung
   (`revealedByFilter`), Filter auf den Vergleichswert und „Nur Unterschiede“ (`ComparisonResultFilters.kt`), in der
   Massenänderung „Werte der Vergleichskampagne übernehmen“ (Custom-Feld `adoptComparison`, optional Bemerkungen /
@@ -675,7 +685,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
 - **Adressbücher** (`addressBook`, Liste + Formular, vorher React-UILayout `AddressBookPagesRest`, gelöscht) – layoutfrei
   über `AddressbookEntityRest` (`/rs/addressBook`), nach dem Muster der Teamkalender (Eigentümer:in, Voll-/Lesezugriff
   für Benutzer:innen und Gruppen als csv-Id-Listen, im DTO aufgelöst). Die Autovervollständigung `addressBook/ac` des
-  React-Adressformulars bleibt unverändert. `react/addressBook/**` leitet `OrphanedLinkFilter` über `NextMigration` um.
+  React-Adressformulars bleibt unverändert. Alte Links werden nicht umgeleitet.
 - **Mitarbeiter:innen** (`employee`, Liste + Formular, vorher React-UILayout `EmployeePagesRest` und das Modal
   `EmployeeValidSinceAttrPageRest`, beide gelöscht) – layoutfrei über `EmployeeEntityRest` (`/rs/employee`;
   `/rs/employee/autosearch` bleibt für alle Mitarbeiter-Auswahlen, Excel-Export der gefilterten Liste über
@@ -684,8 +694,8 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   dem Formular. Die Tabellen und der Dialog sind die generische Komponente
   `components/shared/validity-entries/` (Einträge mit Gültigkeitszeitraum, aktuell gültiger Eintrag markiert,
   künftige gedämpft), auch für die Kurse der Währungspaare und die Besuche des Besucherbuchs (siehe dort). Ein neuer
-  Eintrag bleibt nach dem ersten Speichern im Formular, damit die Einträge erfasst werden können. Kein Weg zurück;
-  `react/employee/**` leitet `OrphanedLinkFilter` um.
+  Eintrag bleibt nach dem ersten Speichern im Formular, damit die Einträge erfasst werden können. Kein Weg zurück,
+  keine Umleitung alter Links.
 - **Benutzer** (`user`, Liste + Formular, vorher React-UILayout `UserPagesRest`, gelöscht) – layoutfrei über
   `UserEntityRest` (`/rs/user`; `/rs/user/autosearch` bleibt für alle Benutzer-Auswahlen). Die Rechte hängen an den
   zugeordneten Gruppen: statt des Watch-Field-Re-Layouts fragt das Formular `POST user/rights` (Gruppen + aktuelle
@@ -693,8 +703,8 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Menge, sodass das Laden das Formular nicht verändert. Die Auswahllisten der Einstellungen kommen aus
   `user/settingsOptions` (`UserSettingsOptions`, wie Mein Konto), die Lesend-Flags (posix/samba/WLAN) reisen im
   Edit-DTO. Token-Erneuerung und „alle Geräte abmelden" sind Sofortaktionen außerhalb des Speicherns, die
-  Passwörter ändern `next/changePassword?userId=` bzw. `changeWlanPassword?userId=`. Kein Weg zurück;
-  `react/user/**` leitet `OrphanedLinkFilter` um.
+  Passwörter ändern `next/changePassword?userId=` bzw. `changeWlanPassword?userId=`. Kein Weg zurück,
+  keine Umleitung alter Links.
 - **Team-Urlaubskalender** (`/next/vacationExport`, vorher React-UILayout `VacationExportPageRest`, gelöscht) –
   eigenständige Seite auf `VacationExportRest` (`/rs/vacationExport`: `initial`, `view`, `exportExcel` und die
   Lookups `employees`/`groups`). Neu ist die Anzeige im Fenster: die Urlaube (genehmigt, in Abstimmung) der

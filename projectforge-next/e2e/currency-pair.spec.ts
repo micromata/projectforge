@@ -137,22 +137,6 @@ test.describe("currency pair", { tag: "@parallel" }, () => {
       page.locator('tr[data-validity="current"]', { hasText: "e2e rate" })
     ).toBeVisible();
   });
-
-  test("redirects the old React pages", async ({ loggedInPage: page }) => {
-    // The redirects are Spring's (OrphanedLinkFilter); the Next dev server doesn't proxy /react.
-    test.skip(
-      process.env.E2E_DEV_SERVER === "1",
-      "needs Spring, not the dev server"
-    );
-    await page.goto("/react/currencyPair");
-    await expect(page).toHaveURL(/\/next\/currencyPair$/);
-    const edit = await page.request.get("/react/currencyPair/edit/1", {
-      maxRedirects: 0,
-    });
-    expect(edit.status()).toBeGreaterThanOrEqual(300);
-    expect(edit.status()).toBeLessThan(400);
-    expect(edit.headers()["location"]).toMatch(/\/next\/currencyPair\/1$/);
-  });
 });
 
 /**
