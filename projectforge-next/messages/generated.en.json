@@ -2998,6 +2998,7 @@
     "fields": {
       "changed": "Changed fields"
     },
+    "info": "Please see the log viewer for checking what happened.",
     "mode": {
       "append": "Append",
       "delete": {

@@ -43,6 +43,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberFormatter
+import org.projectforge.rest.admin.LogViewerRest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
 import org.projectforge.ui.*
@@ -116,7 +117,8 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     protected lateinit var pagesRest: AbstractEntityRest<*, *, *>
 
     /**
-     * Create log subscription, if the user should view the log messages. At default it's disabled.
+     * Creates the log subscription of the user the mass update writes to, if the user should see its log
+     * messages; called when the meta is served (see [MultiSelectMetaData.logViewerUrl]). Disabled at default.
      */
     protected open fun ensureUserLogSubscription(): LogSubscription? {
         return null
@@ -158,6 +160,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             initialParams = initialParams(request, selectedIds).takeIf { it.isNotEmpty() },
             supportsDelete = supportsMassDeletion(),
             supportsRestore = supportsMassDeletion(),
+            logViewerUrl = ensureUserLogSubscription()?.let { LogViewerRest.viewerUrl(it.id) },
         )
     }
 

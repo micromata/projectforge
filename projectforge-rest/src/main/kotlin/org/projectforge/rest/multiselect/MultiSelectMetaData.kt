@@ -82,6 +82,12 @@ class MultiSelectMetaData(
      * on together with [supportsDelete], since a soft delete is only offered where it can be undone.
      */
     val supportsRestore: Boolean = false,
+    /**
+     * The log viewer of the user's log subscription the mass update writes to (e.g. `next/logViewer/7`), or null
+     * if the page has none (see [AbstractMultiSelectedPage.ensureUserLogSubscription]). The subscription is
+     * registered when the meta is served, so it already exists while the update runs.
+     */
+    val logViewerUrl: String? = null,
 )
 
 /**

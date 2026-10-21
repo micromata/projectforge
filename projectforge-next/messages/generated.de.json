@@ -2998,6 +2998,7 @@
     "fields": {
       "changed": "Geänderte Felder"
     },
+    "info": "Im Protokoll finden sich detaillierte Informationen zur Massenänderung.",
     "mode": {
       "append": "Anhängen",
       "delete": {

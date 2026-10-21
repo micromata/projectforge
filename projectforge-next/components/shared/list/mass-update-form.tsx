@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { FormActionBar } from "@/components/shared/form-action-bar";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { LogViewerLink } from "@/components/shared/log-viewer-link";
 import { MarkdownText } from "@/components/shared/markdown-text";
 import { Spinner } from "@/components/shared/spinner";
 import { useDocumentTitle } from "@/hooks/use-document-title";
@@ -249,7 +250,14 @@ export function MassUpdateForm({
                   {t("massUpdate.entriesFound", { arg0: meta.selectedCount })}
                 </p>
               </div>
-              {actions}
+              {/* The log the run writes to, where the page has one (the backend registers it with the meta). */}
+              <div className="flex shrink-0 items-center gap-2">
+                <LogViewerLink
+                  url={meta.logViewerUrl}
+                  hint={t("massUpdate.info")}
+                />
+                {actions}
+              </div>
             </div>
 
             {/* What the picked entries add up to, by the entity's own statistics line — the same

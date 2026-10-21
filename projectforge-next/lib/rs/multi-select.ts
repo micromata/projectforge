@@ -102,6 +102,11 @@ export interface MultiSelectMeta {
   supportsDelete?: boolean;
   /** Whether the page offers restoring selected, already deleted entries — the "restore" button. */
   supportsRestore?: boolean;
+  /**
+   * The log viewer of the user's log subscription the mass update writes to (`next/logViewer/<id>`), absent
+   * where the page has none. Registered by the `meta` call itself, so it is there while the update runs.
+   */
+  logViewerUrl?: string | null;
 }
 
 /**
