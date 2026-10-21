@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "The import of incoming invoices shows what changed in a modified row: the old and new value in every compared column, the gross amount included, and the changed fields without a column of their own (e.g. the paid date of a position-based file) in the status cell.",
+  "de": "Der Import der Eingangsrechnungen zeigt, was sich in einer geänderten Zeile geändert hat: alter und neuer Wert in jeder verglichenen Spalte, auch beim Bruttobetrag, und die geänderten Felder ohne eigene Spalte (z. B. das Bezahldatum einer Datei mit Positionen) in der Statuszelle."
+}

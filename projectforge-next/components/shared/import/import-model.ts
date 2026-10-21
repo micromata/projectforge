@@ -90,6 +90,49 @@ export function diffOf(entry: ImportEntry, column: ImportColumn): DiffValues {
   return { current, old, hasDiff };
 }
 
+/** A changed property that no visible column shows as a diff (see changesNotShownOf). */
+export interface HiddenChange {
+  /** The property path relative to `entry.read`, e.g. `bezahlDatum`. */
+  field: string;
+  /** The configured column (or diff-only field) of the property, if any — its label and format. */
+  column?: ImportColumn;
+  current: unknown;
+  old: unknown;
+}
+
+/**
+ * The changes of a MODIFIED row that the table doesn't show: every key of `oldDiffValues` without a visible
+ * diff column — a column gated off by `showIf` (e.g. the paid date of a position-based file), a column without
+ * `diff`, or a property without a column at all. Without them a row reads "modified" with nothing changed in
+ * sight. Ordered as the configured columns (`known`), unknown properties last.
+ */
+export function changesNotShownOf(
+  entry: ImportEntry,
+  shown: ImportColumn[],
+  known: ImportColumn[]
+): HiddenChange[] {
+  const oldDiffValues = entry.oldDiffValues;
+  if (!oldDiffValues) return [];
+  const displayed = new Set(
+    shown.filter((column) => column.diff).map((column) => column.field)
+  );
+  const order = (field: string) => {
+    const index = known.findIndex((column) => column.field === field);
+    return index < 0 ? known.length : index;
+  };
+  return Object.keys(oldDiffValues)
+    .filter((key) => key.startsWith("read."))
+    .map((key) => key.slice("read.".length))
+    .filter((field) => !displayed.has(field))
+    .sort((a, b) => order(a) - order(b))
+    .map((field) => ({
+      field,
+      column: known.find((column) => column.field === field),
+      current: getByPath(entry.read as DataObject | undefined, field),
+      old: oldDiffValues[`read.${field}`],
+    }));
+}
+
 /** The cell's tooltip text from `entry.read.<tooltipField>`, if the column declares one and it is set. */
 export function tooltipOf(
   entry: ImportEntry,

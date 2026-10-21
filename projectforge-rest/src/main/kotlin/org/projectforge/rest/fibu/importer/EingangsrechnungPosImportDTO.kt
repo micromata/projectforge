@@ -165,7 +165,7 @@ class EingangsrechnungPosImportDTO(
             EingangsrechnungDO::iban,
             EingangsrechnungDO::bic,
             EingangsrechnungDO::receiver,
-            EingangsrechnungDO::paymentType,
+            // paymentType: diffed as paymentTypeAsString (see buildOldDiffValues), the text the import page shows.
             EingangsrechnungDO::customernr,
             EingangsrechnungDO::bemerkung
         )
@@ -219,8 +219,9 @@ class EingangsrechnungPosImportDTO(
         // For header-only imports, skip grossSum and taxRate (they belong to positions)
         if (isPositionBasedImport) {
             // Compare netSum instead of grossSum to avoid rounding errors
-            // (grossSum is converted to netSum with potential rounding differences)
-            buildOldDiffValue(map, "netSum", this.netSum, old.netSum)
+            // (grossSum is converted to netSum with potential rounding differences), but report the old gross sum:
+            // that's the amount the import page shows.
+            buildOldDiffValue(map, "grossSum", this.netSum, old.netSum, oldDisplayValue = old.grossSum)
             buildOldDiffValue(map, "taxRate", this.taxRate, old.taxRate)
             buildOldDiffValue(map, "kost1.description", this.kost1?.description, old.kost1?.description)
             buildOldDiffValue(map, "kost2.description", this.kost2?.description, old.kost2?.description)
