@@ -2,8 +2,6 @@ import React, { Suspense, lazy } from 'react';
 import { Cell, flexRender } from '@tanstack/react-table';
 import { evaluateFieldExpression } from './tableUtils';
 import Formatter from '../../../../Formatter';
-import DynamicAgGridDiffCell from '../DynamicAgGridDiffCell';
-import ImportStatusCell from '../ImportStatusCell';
 import MultilineCell from '../MultilineCell';
 
 const DynamicAgGridCustomizedCell = lazy(() => import('../DynamicAgGridCustomizedCell'));
@@ -73,14 +71,6 @@ export default function CellRendererDispatch({ cell, components }: CellRendererD
                     {...params}
                 />
             );
-        case 'diffCell':
-            return (
-                <DynamicAgGridDiffCell
-                    value={value}
-                    data={data}
-                    colDef={{ field, cellRendererParams: params }}
-                />
-            );
         case 'customized':
             return (
                 <Suspense fallback={<span>...</span>}>
@@ -90,8 +80,6 @@ export default function CellRendererDispatch({ cell, components }: CellRendererD
                     />
                 </Suspense>
             );
-        case 'importStatusCell':
-            return <ImportStatusCell value={value as string} data={data} />;
         case 'multilineCell':
             return <MultilineCell value={value as string} />;
         default:

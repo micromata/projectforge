@@ -10,14 +10,12 @@ import type { AgGridColumnDef } from "./ag-grid-types";
  * Cell renderers of the backend that next doesn't implement yet. They fall back
  * to plain text, which is readable but incomplete — so say so once per name.
  *
- * `customized` (the address list's image preview, phone numbers and edit icon),
- * `diffCell` and `importStatusCell` all carry an `onClick` as JavaScript source,
- * which is why porting them means hand-writing the cell rather than adapting it.
+ * `customized` (the address list's image preview, phone numbers and edit icon)
+ * carries an `onClick` as JavaScript source, which is why porting it means
+ * hand-writing the cell rather than adapting it.
  */
 const DEFERRED_RENDERERS = new Set([
   "customized",
-  "diffCell",
-  "importStatusCell",
   "multilineCell",
 ]);
 

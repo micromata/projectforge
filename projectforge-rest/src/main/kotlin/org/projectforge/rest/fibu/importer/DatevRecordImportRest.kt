@@ -37,7 +37,6 @@ import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.BwaStatistics
-import org.projectforge.rest.importer.AbstractImportPageRest
 import org.projectforge.rest.importer.AbstractImportRest
 import org.projectforge.rest.importer.ImportPairEntry
 import org.springframework.beans.factory.annotation.Autowired
@@ -126,7 +125,7 @@ class DatevRecordImportRest : AbstractImportRest<DatevRecordImportDTO, DatevReco
         if (storage.readAccounts.isEmpty()) {
             return null
         }
-        stashStorage(request, AbstractImportPageRest.getSessionAttributeName(DatevAccountImportRest::class.java), storage)
+        stashStorage(request, getSessionAttributeName(DatevAccountImportRest::class.java), storage)
         log.info { "Chart of accounts of file '$filename' stashed for the accounts tab: #${storage.readAccounts.size}" }
         return listOf(translateMsg("fibu.datev.import.companion.accounts", storage.readAccounts.size))
     }

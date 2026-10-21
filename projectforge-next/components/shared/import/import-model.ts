@@ -26,7 +26,7 @@ import type {
 } from "./import-types";
 
 /**
- * The row tint per status, mirroring `AbstractImportPageRest.withGetRowClass`: a new row reads green, a
+ * The row tint per status, mirroring the retired `AbstractImportPageRest.withGetRowClass`: a new row reads green, a
  * changed one blue, and a deleted/faulty/unknown one red. Everything else (unmodified, imported) is plain.
  */
 export function rowClassForStatus(status: ImportStatus): string | undefined {

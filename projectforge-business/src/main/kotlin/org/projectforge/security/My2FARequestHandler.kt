@@ -26,12 +26,10 @@ package org.projectforge.security
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.web.WebUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -67,8 +65,6 @@ open class My2FARequestHandler {
    */
   private var entitiesAccessMap = mutableMapOf<String, My2FAExpiryPeriod?>()
 
-  private var my2FAPage: My2FAPage? = null
-
   /**
    * Gets the remaining period until the current 2FA is expired, or null if no 2FA is required.
    * @return Remaining period in ms before expiring or 0, if expired. null if no 2FA is required.
@@ -92,24 +88,15 @@ open class My2FARequestHandler {
   }
 
   /**
-   * Checks for the given request, if a 2FA is required and not expired. If a 2FA is required (because it's not yet given or expired
-   * for the requested url, then a redirection to a 2FA is forced (if [sendRedirect] is true). If [sendRedirect]
-   * is false, the caller has to proceed the redirection to the 2FA page.
-   * @param sendRedirect If true (default), a redirection is done, if 2FA is required.
+   * Checks for the given request, if a 2FA is required and not expired. If so, the caller has to deny the request
+   * (projectforge-next opens its 2FA dialog and repeats it afterwards).
    * @return null, if no 2FA is required (the http filter chain should be continued) or the expiry period in millis, if a 2FA is required
    * and the filter chain shouldn't be continued.
    */
-  @JvmOverloads
-  fun handleRequest(request: HttpServletRequest, response: HttpServletResponse, sendRedirect: Boolean = true): Long? {
+  fun handleRequest(request: HttpServletRequest): Long? {
     val expiryPeriod = matchesUri(request.requestURI) ?: return null // No expiryPeriod matches: return true.
     if (expiryPeriod.valid(request.requestURI, request)) {
       return null
-    }
-    if (my2FAPage == null) {
-      throw java.lang.Exception("my2FAPage not set (should be My2FAPageRest)!")
-    }
-    if (sendRedirect) {
-      my2FAPage!!.redirect(request, response, expiryPeriod.expiryMillis)
     }
     return expiryPeriod.expiryMillis
   }
@@ -179,7 +166,7 @@ open class My2FARequestHandler {
     var result: My2FAExpiryPeriod?
     val normalizedUri = WebUtils.normalizeUri(uri) ?: uri
     if (no2FAUrl(normalizedUri)) {
-      // /rs/userStatus and /rs/2FA/ should never require 2FA.
+      // /rs/userStatus, /rs/next2FA etc. should never require 2FA.
       return null
     }
     val paths = getParentPaths(normalizedUri)
@@ -319,21 +306,20 @@ open class My2FARequestHandler {
   }
 
   companion object {
-    @JvmField
-    val MY_2FA_URL = MenuItemDefId.MY_2FA.url!!
-
-    // /rs/next2FA is the 2FA of projectforge-next (org.projectforge.rest.my2fa.My2FANextRest).
+    // /rs/next2FA is the 2FA of projectforge-next (org.projectforge.rest.my2fa.My2FANextRest). The 2FA setup
+    // (/rs/2FASetup, My2FASetupRest) checks a fresh 2FA by its endpoints itself, otherwise a user without a valid
+    // 2FA couldn't set one up.
     // Matched by prefix (see no2FAUrl), so a new controller whose path merely starts with one of these entries
     // (e. g. /rs/next2FAsomething) would silently be exempt from 2FA as well. Keep new paths clearly distinct.
     private val NO_2FA_URLS =
-      arrayOf("/rs/menu", "/rs/userStatus", "/rs/2FA", "/rs/next2FA", "/rsPublic", "/rs/webauthn/webAuthn")
+      arrayOf("/rs/menu", "/rs/userStatus", "/rs/2FASetup", "/rs/next2FA", "/rsPublic", "/rs/webauthn/webAuthn")
 
     private val NO_2FA_URL_MATCHERS = arrayOf("^/rs/\\w*/autosearch".toRegex(), "^/rs/\\w*/autocomplete".toRegex())
 
     private fun no2FAUrl(normalizedUri: String): Boolean {
       NO_2FA_URLS.forEach { url ->
         if (normalizedUri.startsWith(url)) {
-          // /rs/userStatus, /rs/2FA/, /rs/menu etc. should never require 2FA.
+          // /rs/userStatus, /rs/next2FA, /rs/menu etc. should never require 2FA.
           return true
         }
       }
@@ -404,10 +390,6 @@ open class My2FARequestHandler {
 
   fun getShortCutResolved(shortCut: My2FAShortCut): String? {
     return shortCuts[shortCut.name]
-  }
-
-  fun register(page: My2FAPage) {
-    my2FAPage = page
   }
 
   fun internalSet4UnitTests(configuration: My2FARequestConfiguration) {

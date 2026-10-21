@@ -744,6 +744,20 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Liste, die sich nicht erstellen lässt (keine Geburtstage im Monat, …), ist ein 400 mit dem übersetzten Grund als
   Text. Behoben: „keine Geburtstage" verwies auf einen nicht existierenden i18n-Schlüssel. Rechte unverändert
   (ORGA-Team oder HR-Gruppe). `react/birthdayButler/**` leitet `OrphanedLinkFilter` um.
+- **Banking** (`bankAccount`, `bankAccountRecord`, Plugin, Liste + Formular, vorher React-UILayout `BankAccountPagesRest`,
+  `BankAccountRecordPagesRest`, gelöscht) – layoutfrei über `BankAccountEntityRest` / `BankAccountRecordEntityRest`
+  (gleiche Pfade). Zugriff wie bisher nur Finanzgruppe, je Konto Voll-/Lesezugriff für Benutzer und Gruppen; die
+  Hilfe zu den Importeinstellungen reist im Edit-DTO (`importSettingsHelp`, `ImportSettingsHelp`). Die Umsatzliste
+  zeigt Einnahmen/Ausgaben/Cashflow als `ResultSet.statistics`, der Konto-Sprung aus dem Formular ist ein transienter
+  Filter (`?bankAccountId=`); der Kontenfilter nimmt jetzt alle gewählten Konten. Ein gespeicherter Umsatz behält
+  Konto und Prüfsumme aus der Datenbank. **Umsatz-Import** `next/bankAccount/import` (`BankAccountRecordImportRest`
+  über das gemeinsame `ImportFeature`, ersetzt `BankAccountRecordImportPageRest` und den Upload `BankingServicesRest`):
+  Konto vor dem Upload gewählt (die Datei wird mit dessen Einstellungen gelesen, danach nicht mehr änderbar), nur
+  mit Schreibrecht auf das Konto (vorher reichte Lesen). Achtung: Umsätze im Zeitraum der Datei, die in ihr fehlen,
+  werden als gelöscht angeboten. Umsätze ohne Datum, Wertstellung oder Betrag (in der Datenbank Pflicht) sind schon in der
+  Vorschau fehlerhaft, statt zu entfallen oder den Job scheitern zu lassen. Damit hatte `AbstractImportPageRest` keine Unterklasse mehr und ist gelöscht
+  (samt `diffCell`/`importStatusCell` im Webapp); `getSessionAttributeName` liegt jetzt an `AbstractImportRest`.
+  Keine Weiterleitung alter React-Links (`legacyApp = null`).
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

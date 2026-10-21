@@ -15,7 +15,6 @@ import CostNumberComponent from './components/CostNumberComponent';
 import AccessTableComponent from './components/AccessTableComponent';
 import InvoicePositionsComponent from './components/OutgoingInvoicePositionsComponent';
 import IncomingInvoicePositionsComponent from './components/IncomingInvoicePositionsComponent';
-import WebAuthnAuthenticate from './components/WebAuthnAuthenticate';
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
@@ -65,9 +64,6 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'timesheet.edit.templatesAndRecent':
             Tag = TimesheetTemplatesAndRecent;
-            break;
-        case 'webauthn.authenticate':
-            Tag = WebAuthnAuthenticate;
             break;
         default:
             return <span>{`Customized field '${id}' not found!`}</span>;

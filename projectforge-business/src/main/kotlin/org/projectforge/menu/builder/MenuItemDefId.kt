@@ -26,8 +26,6 @@ package org.projectforge.menu.builder
 import org.projectforge.Constants
 import org.projectforge.NextMigration
 
-private const val TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV = "2FA"
-
 enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = null) {
     // Main menus in alphabetical order
     ADMINISTRATION("menu.administration"), //
@@ -86,8 +84,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // Migrated to projectforge-next (FeedbackPageRest); the Wicket page (wa/feedback) was removed.
     FEEDBACK("menu.gear.feedback", "next/feedback"), //
     GANTT("menu.gantt", getListUrl("gantt")), //
-    // Migrated to projectforge-next, list and form; react/group stays reachable through the escape hatch,
-    // see NextMigration.legacyListUrl.
+    // Migrated to projectforge-next, list and form; react/group is redirected by OrphanedLinkFilter.
     GROUP_LIST("menu.groupList", getListUrl("group")), //
     HR_PLANNING_LIST("menu.hrPlanningList", getListUrl("hrPlanning")), //
     HR_VIEW("menu.hrList", "next/hrList"), //
@@ -105,7 +102,6 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // OrphanedLinkFilter.
     MY_ACCOUNT("menu.myAccount", "next/myAccount"), //
     CUSTOMIZE_MENU("menu.customizeMenu", "${Constants.NEXT_APP_PATH}customizeMenu"), //
-    MY_2FA("menu.2FA", getReactDynamicPageUrl(TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV)), //
     // Migrated to projectforge-next (My2FASetupRest); react/2FASetup and react/WebAuthnSetup are redirected by
     // OrphanedLinkFilter.
     MY_2FA_SETUP("menu.2FASetup", "next/2FASetup"), //
@@ -152,10 +148,6 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
      */
     val id: String
         get() = name
-
-    companion object {
-        const val TWO_FACTOR_AUTHENTIFICATION_SUB_URL = TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV
-    }
 }
 
 /**
@@ -173,8 +165,4 @@ private fun getListUrl(category: String): String {
 
 private fun getReactListUrl(name: String): String {
     return "${Constants.REACT_APP_PATH}$name"
-}
-
-fun getReactDynamicPageUrl(name: String): String {
-    return "${Constants.REACT_APP_PATH}$name/dynamic"
 }

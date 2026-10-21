@@ -243,6 +243,22 @@ object NextMigration {
             legacyApp = LegacyApp.REACT,
             offerLegacyLink = false,
         ),
+        // The bank accounts and their transactions of the banking plugin (BankAccountEntityRest,
+        // BankAccountRecordEntityRest, components/features/bank-account*): hand built, the React pages are removed, so
+        // there is no way back and no redirect of old links (legacyApp = null). The import of the transactions is the
+        // page `bankAccount/import` (no category of its own).
+        "bankAccount" to NextPage(
+            route = "bankAccount",
+            editRoute = "bankAccount/$ID_PLACEHOLDER",
+            newEntryRoute = "bankAccount/new",
+            legacyApp = null,
+        ),
+        "bankAccountRecord" to NextPage(
+            route = "bankAccountRecord",
+            editRoute = "bankAccountRecord/$ID_PLACEHOLDER",
+            newEntryRoute = "bankAccountRecord/new",
+            legacyApp = null,
+        ),
         // Hand built feature, so its routes are /book, /book/new and /book/<id>. The React page it was
         // migrated from is removed (its layout is gone with BookEntityRest.createListLayout), so there is
         // no way back: legacyApp = null.
@@ -377,13 +393,15 @@ object NextMigration {
             legacyApp = LegacyApp.WICKET,
             offerLegacyLink = false,
         ),
-        // Migrated from the React app (MenuItemDefId.GROUP_LIST pointed at react/group), which is where the
-        // way back leads. The React list has a filter of its own (the group type) and an Excel export.
+        // Migrated from the React app (MenuItemDefId.GROUP_LIST pointed at react/group). The React pages are gone
+        // (GroupEntityRest serves no UILayout), so there is no way back; the legacy app is kept for the redirect of
+        // bookmarked React links only.
         "group" to NextPage(
             route = "group",
             editRoute = "group/$ID_PLACEHOLDER",
             newEntryRoute = "group/new",
             legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
         ),
         // The liquidity-planning plugin, the first plugin migrated (from Wicket, list and forecast, form
         // included). Hand built (LiquidityEntityRest, no layout). The legacy routes are the plugin's Wicket
@@ -570,8 +588,9 @@ object NextMigration {
         // Hand built *edit* page only (next/teamEvent/:id, next/teamEvent/new), alongside the timesheet
         // editor: the two most-used calendar editors are being migrated ahead of any list. There is no team
         // event list of this app - the event is reached through the calendar (see use-calendar-action.ts) -
-        // so this repoints only the edit routes. The way back leads to the React app, whose team event form
-        // was rendered from a server side UILayout under calendar/teamEvent (no longer served).
+        // so this repoints only the edit routes. The React team event form was rendered from a server side UILayout
+        // under calendar/teamEvent, which is no longer served, so there is no way back; the legacy routes are kept
+        // for the redirect of bookmarked React links only.
         "teamEvent" to NextPage(
             route = "teamEvent",
             editRoute = "teamEvent/$ID_PLACEHOLDER",
@@ -579,6 +598,7 @@ object NextMigration {
             legacyApp = LegacyApp.REACT,
             legacyEditRoute = "calendar/teamEvent/edit/$ID_PLACEHOLDER",
             legacyNewEntryRoute = "calendar/teamEvent/edit",
+            offerLegacyLink = false,
         ),
         // The to-dos (plugin todo) are migrated straight from Wicket and their Wicket pages are removed, as the
         // licenses. The legacy edit route is the link of the notification mails sent before.

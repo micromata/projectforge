@@ -14,6 +14,9 @@ tasks.withType<KotlinCompile> {
 dependencies {
     api(project(":projectforge-rest"))
     testImplementation(project(":projectforge-business"))
+    testImplementation(project(":projectforge-commons-test"))
+    testImplementation(testFixtures(project(":projectforge-business")))
+    testImplementation(libs.org.springframework.boot.starter.test)
 }
 
 description = "org.projectforge.plugins.banking"

@@ -52,8 +52,8 @@ import org.springframework.web.bind.annotation.RestController
  * Second factor of an already logged-in user of projectforge-next, required by [org.projectforge.security.My2FARequestHandler]
  * for protected actions.
  *
- * Same purpose as [My2FAPageRest] / [My2FAServicesRest], but with plain JSON: next shows its own dialog instead of the
- * UILayout based page.
+ * Successor of the UILayout based 2FA dialog of the React app (react/2FA/dynamic, removed), with plain JSON: next
+ * shows its own dialog. The checks of the codes are shared with [My2FAServicesRest].
  *
  * This path has to be part of My2FARequestHandler.NO_2FA_URLS, otherwise the 2FA would require a 2FA itself.
  */
@@ -67,8 +67,7 @@ open class My2FANextRest {
     private lateinit var twoFactorSupport: NextTwoFactorSupport
 
     /**
-     * @param expiryMillis The expiry period of the protected action (only for the message shown to the user), see
-     * [My2FAPageRest.getForm].
+     * @param expiryMillis The expiry period of the protected action (only for the message shown to the user).
      */
     @AccessChecked("Own user only (2FA of the logged-in user)")
     @GetMapping("status")
