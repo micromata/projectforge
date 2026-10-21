@@ -29,6 +29,10 @@ export interface ChecklistProps {
   onChange: (values: string[]) => void;
   loading?: boolean;
   autoFocus?: boolean;
+  /** A note under the search, e.g. where the options come from. */
+  hint?: string;
+  /** Shown instead of the generic "no options" if there are none at all (not if the search matches none). */
+  emptyText?: string;
   "aria-label"?: string;
   className?: string;
 }
@@ -46,6 +50,8 @@ export function Checklist({
   onChange,
   loading,
   autoFocus,
+  hint,
+  emptyText,
   "aria-label": ariaLabel,
   className,
 }: ChecklistProps) {
@@ -74,11 +80,12 @@ export function Checklist({
         autoFocus={autoFocus}
         className="h-8"
       />
+      {hint && <p className="px-1 text-xs text-muted-foreground">{hint}</p>}
       {loading ? (
         <p className="px-1 text-xs text-muted-foreground">{t("loading")}</p>
       ) : matches.length === 0 ? (
         <p className="px-1 text-xs text-muted-foreground">
-          {t("select.noOptions")}
+          {(options.length === 0 && emptyText) || t("select.noOptions")}
         </p>
       ) : (
         <div className="rounded-md border">

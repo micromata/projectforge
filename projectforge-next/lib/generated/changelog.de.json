@@ -7,7 +7,10 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "improved",
-      "items" : [ "Benutzerliste: Deaktivierte Benutzer:innen werden durchgestrichen angezeigt." ]
+      "items" : [ "Listenfilter mit Checkliste (Kunde, Projekt, Business Unit): Sie weisen darauf hin, dass sie nur das aktuelle Ergebnis weiter einschränken, berücksichtigen auch den Suchbegriff der Liste und bieten „Aus allen wählen“, um auch Werte außerhalb des aktuellen Ergebnisses auszuwählen. In den Zeitberichten bieten sie auch ohne Zeitraum Werte an.", "Benutzerliste: Deaktivierte Benutzer:innen werden durchgestrichen angezeigt." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Telefonanruf: Anrufe von einem externen Telefon ohne zugeordnete Rufnummer wurden von sipgate abgelehnt." ]
     } ]
   },
   "groups" : [ {

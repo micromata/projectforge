@@ -7,7 +7,10 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "improved",
-      "items" : [ "User list: deactivated users are shown struck through." ]
+      "items" : [ "List filters with a checklist (customer, project, business unit): they say that they only narrow the current result, are narrowed by the list's search term as well, and offer \"choose from all\" to pick values the current result doesn't contain. In the time sheet list they offer values without a period, too.", "User list: deactivated users are shown struck through." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Phone call: calls from an external phone without an assigned number were refused by sipgate." ]
     } ]
   },
   "groups" : [ {

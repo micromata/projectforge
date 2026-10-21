@@ -4482,6 +4482,10 @@
     "_": "Auswählen",
     "checklist": {
       "andMore": "und {arg0} weitere",
+      "fromAll": "Aus allen wählen",
+      "fromAllHint": "Alle Werte, auch solche, die nicht im aktuellen Ergebnis sind.",
+      "narrowsHint": "Nur Werte der Einträge, auf die die übrigen Filter passen: schränkt das aktuelle Ergebnis weiter ein.",
+      "noneForOtherFilters": "Die übrigen Filter treffen keine Einträge. Erst diese setzen oder erweitern (z. B. den Zeitraum) oder aus allen wählen.",
       "selectedOf": "{arg0} von {arg1} ausgewählt",
       "truncated": "{arg0} von {arg1} Einträgen angezeigt; die Suche verfeinern, um die übrigen zu sehen."
     },

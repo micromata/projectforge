@@ -4482,6 +4482,10 @@
     "_": "Select",
     "checklist": {
       "andMore": "and {arg0} more",
+      "fromAll": "Choose from all",
+      "fromAllHint": "All values, also those not in the current result.",
+      "narrowsHint": "Only values of the entries the other filters match: narrows the current result.",
+      "noneForOtherFilters": "No entries match the other filters. Set or widen them first (e.g. the period), or choose from all.",
       "selectedOf": "{arg0} of {arg1} selected",
       "truncated": "Showing {arg0} of {arg1} entries; refine the search to see the rest."
     },
