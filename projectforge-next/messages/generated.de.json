@@ -3858,7 +3858,12 @@
     "memo": {
       "memo": "Memo",
       "owner": "Eigner",
-      "subject": "Betreff"
+      "subject": "Betreff",
+      "title": {
+        "add": "Memo hinzufügen",
+        "heading": "Memos",
+        "list": "Memoliste"
+      }
     },
     "merlin": {
       "fileNamePattern": {

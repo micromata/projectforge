@@ -21,47 +21,35 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+
 package org.projectforge.plugins.memo.rest
 
-import org.projectforge.framework.persistence.api.MagicFilter
+import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.memo.MemoDO
 import org.projectforge.plugins.memo.MemoDao
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDOPagesRest
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UITable
+import org.projectforge.rest.core.AbstractDOEntityRest
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import jakarta.servlet.http.HttpServletRequest
 
+/**
+ * The layout-free REST endpoint of the memos, serving the hand-built projectforge-next page (see
+ * components/features/memo). Replaces the retired `MemoPagesRest`, whose server-side `UILayout` (React) moved
+ * onto the frontend; the path `/rs/memo` is unchanged.
+ *
+ * Memos are personal: everybody reads and writes only the own ones ([org.projectforge.plugins.memo.MemoRight]),
+ * and [MemoDao] always stores the logged-in user as owner.
+ */
 @RestController
 @RequestMapping("${Rest.URL}/memo")
-class MemoPagesRest() : AbstractDOPagesRest<MemoDO, MemoDao>(MemoDao::class.java, "plugins.memo.title") {
+class MemoEntityRest : AbstractDOEntityRest<MemoDO, MemoDao>(MemoDao::class.java, "plugins.memo.title") {
     /**
-     * Initializes new memos for adding.
+     * A new memo belongs to the logged-in user.
      */
     override fun newBaseDO(request: HttpServletRequest?): MemoDO {
         val memo = super.newBaseDO(request)
         memo.owner = ThreadLocalUserContext.loggedInUser
         return memo
-    }
-
-    /**
-     * LAYOUT List page
-     */
-    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-        layout.add(UITable.createUIResultSetTable()
-                        .add(lc, "created", "lastUpdate", "subject", "memo"))
-    }
-
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: MemoDO, userAccess: UILayout.UserAccess): UILayout {
-        val layout = super.createEditLayout(dto, userAccess)
-                .add(lc, "subject", "memo")
-        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

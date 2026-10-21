@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { cancelJob, fetchJobs, type JobInfo } from "@/lib/rs/jobs";
+import { JobProgress } from "./job-progress";
 
 /**
  * Body of the toast that shows a running backend job (see JobToasts).
@@ -14,8 +14,8 @@ import { cancelJob, fetchJobs, type JobInfo } from "@/lib/rs/jobs";
  * once and keeps that element, so a second `toast.custom` under the same id would not bring in newer
  * numbers. Subscribing here makes every poll of JobToasts move the bar.
  *
- * Everything but the cancel button is text the server already translated: `title` names the job,
- * `progressTitle` carries status and counters ("#3, Running: 1.200/5.000").
+ * Everything but the cancel button is text the server already translated: `title` names the job, the
+ * bar and the counters below it are JobProgress.
  */
 export function JobProgressToast({ initialJob }: { initialJob: JobInfo }) {
   const t = useTranslations();
@@ -31,7 +31,6 @@ export function JobProgressToast({ initialJob }: { initialJob: JobInfo }) {
   });
   const job =
     data?.find((candidate) => candidate.id === initialJob.id) ?? initialJob;
-  const percentage = Math.min(100, Math.max(0, job.progressPercentage ?? 0));
 
   async function cancel() {
     setCancelling(true);
@@ -60,23 +59,7 @@ export function JobProgressToast({ initialJob }: { initialJob: JobInfo }) {
           </Button>
         )}
       </div>
-      <Progress
-        value={percentage}
-        aria-label={job.progressTitle ?? job.title}
-        className="h-1.5"
-      />
-      <div className="flex items-baseline justify-between gap-3 text-xs text-muted-foreground">
-        {/* Status and counters, already translated by the server. */}
-        <span>{job.progressTitle}</span>
-        {/* The bar alone doesn't say how far along it is — a long run needs a readable number. */}
-        <span className="shrink-0 tabular-nums">{percentage}%</span>
-      </div>
-      {/* Which entity the counters above belong to — a re-index covers the entity and its history. */}
-      {job.progressDetails && (
-        <span className="text-xs text-muted-foreground">
-          {job.progressDetails}
-        </span>
-      )}
+      <JobProgress job={job} />
     </div>
   );
 }

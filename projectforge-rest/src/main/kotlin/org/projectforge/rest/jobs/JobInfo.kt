@@ -30,7 +30,11 @@ import org.projectforge.rest.dto.User
 import org.projectforge.ui.UIColor
 
 /**
- * @param cancelId If given, a cancel button is displayed.
+ * @param cancelId If given, a cancel button is displayed: only while the job is running or waiting, and only for a
+ * user allowed to cancel it ([AbstractJob.writeAccess]; [org.projectforge.framework.jobs.JobHandler.cancelJob]
+ * refuses the others anyway).
+ * @param terminated True once the job is over (finished, failed, cancelled or refused). The clients must not derive
+ * this from [cancelId], which is also missing for a running job the user may only read.
  */
 class JobInfo(
   var id: Int? = null,
@@ -48,6 +52,7 @@ class JobInfo(
   var infoColor: UIColor? = null,
   var animated: Boolean? = false,
   var cancelId: Int? = null,
+  var terminated: Boolean = false,
   /**
    * Why the job failed or was refused, translated. The counters of [progressTitle] say nothing in that
    * case (a refused job never ran), so this is the only text explaining the outcome.
@@ -70,17 +75,19 @@ class JobInfo(
       when (job?.status) {
         AbstractJob.Status.RUNNING -> {
           info.animated = true
-          info.cancelId = job.id
+          info.cancelId = job.id.takeIf { job.writeAccess() }
           info.progressBarColor = UIColor.SUCCESS
         }
         AbstractJob.Status.WAITING -> {
-          info.cancelId = job.id
+          info.cancelId = job.id.takeIf { job.writeAccess() }
           info.progressBarColor = UIColor.LIGHT
         }
         AbstractJob.Status.FINISHED -> {
+          info.terminated = true
           info.progressBarColor = UIColor.INFO
         }
         AbstractJob.Status.FAILED, AbstractJob.Status.CANCELLED, AbstractJob.Status.REFUSED -> {
+          info.terminated = true
           info.infoColor = UIColor.DANGER
           info.progressBarColor = UIColor.DANGER
         }
