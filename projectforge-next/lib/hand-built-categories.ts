@@ -43,6 +43,7 @@ export const HAND_BUILT_CATEGORIES = [
   "license",
   "notificationRule",
   "liquidity",
+  "memo",
   "myscript",
   "order",
   "outgoingInvoice",

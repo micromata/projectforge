@@ -656,6 +656,11 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Interesse (Auswahl der Stufentexte, ohne Löschen, Stufe 0 ist eine Auswahl) und Kommentar; Skill (Dubletten) und
   Besitzer nicht. Fremde Einträge scheitern pro Eintrag am `SkillRight`. `react/skillentry/**` leitet
   `OrphanedLinkFilter` um.
+- **Memos** (`memo`, Plugin memo, Liste + Formular, vorher React-UILayout `MemoPagesRest`, gelöscht) – layoutfrei
+  über `MemoEntityRest` (`AbstractDOEntityRest`, ohne DTO, `/rs/memo`, gleicher Pfad). Spalten und Felder wie
+  bisher (Betreff, Text). Ein Memo gehört dem angemeldeten Nutzer (`MemoDao.onInsertOrModify`) und ist nur für
+  diesen sichtbar (`MemoRight`, `MemoEntityRestTest`). Ohne Historie, daher löscht „Löschen“ endgültig
+  (`/rs/memo/delete`). `react/memo/**` leitet `OrphanedLinkFilter` um.
 - **Posteingang / Postausgang** (`incomingMail`, `outgoingMail`, Liste + Formular, vorher React-UILayout
   `PosteingangPagesRest` / `PostausgangPagesRest`, gelöscht) – layoutfrei über `PosteingangEntityRest` /
   `PostausgangEntityRest` (`AbstractDOEntityRest`, ohne DTO, gleiche Pfade), beide in `components/features/post`.

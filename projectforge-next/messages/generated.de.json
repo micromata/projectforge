@@ -3415,6 +3415,11 @@
     "visitorbook": {
       "company": "Firma",
       "contactPersons": "Kontaktpersonen",
+      "existing": {
+        "hint": "Bereits erfasst – zum Eintragen des Besuchs auswählen:",
+        "lastVisit": "Letzter Besuch: {arg0} (Besuche: {arg1})",
+        "noVisit": "Noch kein Besuch"
+      },
       "firstname": "Vorname",
       "lastVisit": {
         "_": "Letzer Besuch",
@@ -3853,7 +3858,12 @@
     "memo": {
       "memo": "Memo",
       "owner": "Eigner",
-      "subject": "Betreff"
+      "subject": "Betreff",
+      "title": {
+        "add": "Memo hinzufügen",
+        "heading": "Memos",
+        "list": "Memoliste"
+      }
     },
     "merlin": {
       "fileNamePattern": {

@@ -720,6 +720,16 @@ object NextMigration {
             legacyApp = LegacyApp.REACT,
             offerLegacyLink = false,
         ),
+        // Hand built list and edit page of the memos (plugin memo, MemoEntityRest, components/features/memo), migrated
+        // from React. The React pages are gone (no UILayout served any more), so there is no way back; the legacy app
+        // is kept for the redirect of bookmarked React links only.
+        "memo" to NextPage(
+            route = "memo",
+            editRoute = "memo/$ID_PLACEHOLDER",
+            newEntryRoute = "memo/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
         // The availability entries (AvailabilityEntityRest, components/features/availability): hand built, migrated
         // from React before they were ever released, so no way back is offered; the legacy app is kept for the
         // redirect of React links only.
