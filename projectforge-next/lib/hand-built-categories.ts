@@ -21,6 +21,8 @@ export const HAND_BUILT_CATEGORIES = [
   "addressCampaign",
   "addressCampaignValue",
   "availability",
+  "bankAccount",
+  "bankAccountRecord",
   "book",
   "calendar",
   "configuration",

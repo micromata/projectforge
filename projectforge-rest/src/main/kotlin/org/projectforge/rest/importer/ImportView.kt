@@ -26,14 +26,13 @@ package org.projectforge.rest.importer
 /**
  * The layout-free wire shape of an import in progress, returned by [AbstractImportRest]'s endpoints.
  *
- * It is the JSON analog of what the UILayout based [AbstractImportPageRest] renders into an ag-grid: the
- * filename and title of the upload, whether the data has already been reconciled with the database, the
- * aggregated counts ([info]), the entries to display, and any subclass specific view metadata ([meta]).
+ * It carries the filename and title of the upload, whether the data has already been reconciled with the
+ * database, the aggregated counts ([info]), the entries to display, and any subclass specific view metadata ([meta]).
  *
  * A `null` [info] together with an empty [entries] and a `null` [filename] is how the frontend reads
  * "no import in progress".
  *
- * @param O The import DTO, reusing the same serializable [ImportEntry] shape the UILayout page emits.
+ * @param O The import DTO, serialized as part of each [ImportEntry].
  */
 class ImportView<O : ImportPairEntry.Modified<O>>(
     /** The name of the uploaded file, or `null` if no import is in progress. */

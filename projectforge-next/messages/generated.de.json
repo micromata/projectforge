@@ -3415,6 +3415,11 @@
     "visitorbook": {
       "company": "Firma",
       "contactPersons": "Kontaktpersonen",
+      "existing": {
+        "hint": "Bereits erfasst – zum Eintragen des Besuchs auswählen:",
+        "lastVisit": "Letzter Besuch: {arg0} (Besuche: {arg1})",
+        "noVisit": "Noch kein Besuch"
+      },
       "firstname": "Vorname",
       "lastVisit": {
         "_": "Letzer Besuch",
@@ -3505,26 +3510,56 @@
         "_": "Bankkonto",
         "bank": "Bank",
         "bic": "BIC",
+        "fullAccessGroups": "Vollzugriff (Gruppen)",
+        "fullAccessUsers": "Vollzugriff (Benutzer)",
         "iban": "IBAN",
         "importSettings": "Importeinstellungen",
         "name": "Name",
+        "readonlyAccessGroups": "Lesezugriff (Gruppen)",
+        "readonlyAccessUsers": "Lesezugriff (Benutzer)",
         "record": {
+          "accountIban": "Konto-IBAN",
+          "accountName": "Kontoname",
           "amount": "Betrag",
+          "cashflow": "Geldfluss",
           "checksum": {
             "_": "Checksumme",
             "info": "Diese Checksumme wird beim Import berechnet und soll spätere Änderungen an Feldern, wie Datum, Betrag, IBAN, Empfänger etc. erkennbar machen."
           },
+          "checksumErrors": "Falsche Prüfsumme",
           "collectionReference": "Sammlerreferenz",
           "currency": "Währung",
           "customerReference": "Kundenreferenz",
           "date": "Datum",
           "debteeId": "Gläubiger-ID",
+          "doublets": "Dupletten",
+          "import": {
+            "description": "Die Umsätze eines Bankkontos werden als csv-Datei hochgeladen, wie sie das Online-Banking exportiert. Die Spalten werden über die Importeinstellungen des Kontos zugeordnet. Bereits importierte Umsätze werden aktualisiert, nicht gedoppelt; Dateien mit überlappenden Zeiträumen können also mehrfach importiert werden.\n\n**Umsätze aus dem Zeitraum der Datei, die in der Datei fehlen, werden als gelöscht angeboten.** Sollen sie bleiben, vor dem Import abwählen.",
+            "error": {
+              "noBankAccountGiven": "Kein Bankkonto für den Import hinterlegt. Vorgang abgebrochen."
+            },
+            "title": "Kontoumsätze importieren"
+          },
+          "income": "Einnahmen",
           "info": "Info",
           "mandateReference": "Mandatsreferenz",
+          "outgo": "Ausgaben",
           "receiverSender": "Empfänger/Zahlungspflichtiger",
+          "references": "Referenzen",
           "subject": "Verwendungszweck",
+          "title": {
+            "add": "Neuer Kontoumsatz",
+            "edit": "Kontoumsatz editieren",
+            "list": "Kontoumsätze"
+          },
+          "transaction": "Umsatz",
           "type": "Typ",
           "valueDate": "Wertstellung"
+        },
+        "title": {
+          "add": "Neues Bankkonto",
+          "edit": "Bankkonto editieren",
+          "list": "Bankkonten"
         }
       }
     },
