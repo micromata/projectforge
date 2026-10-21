@@ -8,6 +8,9 @@
     "sections" : [ {
       "type" : "improved",
       "items" : [ "Benutzerliste: Deaktivierte Benutzer:innen werden durchgestrichen angezeigt." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Nummernkreise: Ein Nummernkreis mit Kunden ohne konfigurierte Segmente zeigt Projekt- und Kostenträgernummern nach seinen Stellen (z. B. 7.0001.0 bei einer Projektstelle) statt 7.000.10.", "Projektassistent: Tabs und feststehende Aktionsleiste wie auf den Editseiten; der Schritt Aktion zeigt, was eingerichtet wird (neuer Kunde, neues Projekt, Pfad der neuen Strukturelemente, Zugriffsrechte) und was noch fehlt; der Abschluss-Button ist immer anklickbar." ]
     } ]
   },
   "groups" : [ {

@@ -22,7 +22,6 @@ import {
 import { PROJECT_LIST_QUERY_KEY } from "@/components/features/project/project.page";
 import type { ProjectDetail } from "@/components/features/project/types";
 import { GROUP_STEPS } from "@/components/features/task/wizard/types";
-import { WizardActionStep } from "@/components/features/task/wizard/wizard-action-step";
 import { defaultGroupNameSuffix } from "@/components/features/task/wizard/wizard-group-step";
 import { WizardPreview } from "@/components/features/task/wizard/wizard-preview";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
@@ -51,6 +50,11 @@ import {
   type RoleState,
   type RoleStates,
 } from "./types";
+import { WizardActionSummary } from "./wizard-action-summary";
+import {
+  ProjectWizardShell,
+  type ProjectWizardStep,
+} from "./project-wizard-shell";
 import { WizardCustomerStep, type CustomerMode } from "./wizard-customer-step";
 import { WizardParentTaskStep } from "./wizard-parent-task-step";
 import { WizardProjectStep } from "./wizard-project-step";
@@ -319,18 +323,22 @@ export function ProjectWizard() {
   };
 
   if (init.isPending) {
-    return <Spinner />;
+    return (
+      <div className="p-4">
+        <Spinner />
+      </div>
+    );
   }
   if (!allowed) {
     return (
-      <div className="flex max-w-6xl flex-col">
+      <div className="flex max-w-6xl flex-col p-4">
         <FormAlert tone="error">{t("project.wizard.notAllowed")}</FormAlert>
       </div>
     );
   }
   if (result) {
     return (
-      <div className="flex max-w-6xl flex-col gap-4">
+      <div className="flex max-w-6xl flex-col gap-4 overflow-y-auto p-4">
         <WizardProjectResult result={result} onAgain={reset} />
       </div>
     );
@@ -344,18 +352,11 @@ export function ProjectWizard() {
     );
   // The steps are numbered as they are shown: the project's only for users who may create projects.
   const parentStepNumber = projectAllowed ? 3 : 2;
-  return (
-    <div className="flex flex-col gap-4">
-      {/* As wide as an edit page: the steps carry the three-column grids of the customer and project forms. */}
-      <div className="flex max-w-6xl flex-col gap-4">
-        {executeErrors.map((message) => (
-          <FormAlert key={message} tone="error">
-            {message}
-          </FormAlert>
-        ))}
-        <p className="max-w-3xl text-sm text-muted-foreground">
-          {t("project.wizard.intro")}
-        </p>
+  const steps: ProjectWizardStep[] = [
+    {
+      id: "customer",
+      label: t("fibu.kunde._"),
+      content: (
         <WizardCustomerStep
           mode={customerMode}
           modes={customerModes}
@@ -365,16 +366,30 @@ export function ProjectWizard() {
           form={customerForm}
           errors={errors}
         />
-        {projectAllowed && (
-          <WizardProjectStep
-            form={projectForm}
-            number={2}
-            withProject={withProject}
-            onWithProjectChange={
-              customerMode === "new" ? setWantsProject : undefined
-            }
-          />
-        )}
+      ),
+    },
+    ...(projectAllowed
+      ? [
+          {
+            id: "project",
+            label: t("fibu.projekt._"),
+            content: (
+              <WizardProjectStep
+                form={projectForm}
+                number={2}
+                withProject={withProject}
+                onWithProjectChange={
+                  customerMode === "new" ? setWantsProject : undefined
+                }
+              />
+            ),
+          },
+        ]
+      : []),
+    {
+      id: "parentTask",
+      label: t("task._"),
+      content: (
         <WizardParentTaskStep
           number={parentStepNumber}
           newCustomer={customerMode === "new"}
@@ -386,42 +401,89 @@ export function ProjectWizard() {
           projectName={projectName}
           errors={errors}
         />
-        {withProject &&
-          GROUP_STEPS.map((step, index) => (
-            <WizardRoleStep
-              key={step.key}
-              step={step}
-              number={parentStepNumber + 1 + index}
-              value={roles[step.key]}
-              onChange={(value: RoleState) =>
-                setRoles((previous) => ({ ...previous, [step.key]: value }))
-              }
-              suggestedName={suggestedNames[step.key]}
-              nomenclatureDescription={nomenclature?.description}
-              errors={errors}
-            />
-          ))}
-      </div>
-      {preview && anyGroup && (
-        <div className="flex max-w-6xl flex-col">
-          <WizardPreview preview={preview} isFetching={validation.isFetching} />
-        </div>
-      )}
-      <div className="flex max-w-6xl flex-col">
-        <WizardActionStep
-          hasAction={anyGroup}
-          canFinish={!withProject || parentTaskId != null}
-          isPending={execute.isPending}
-          onCancel={() => navigateInGesture(router, "/project")}
-          onFinish={() => execute.mutate()}
-          finishLabel={
-            withProject
-              ? t("project.wizard.finish._")
-              : t("project.wizard.finish.customer")
+      ),
+    },
+    // The three groups under one tab: they are one question, who works on the project and how.
+    ...(withProject
+      ? [
+          {
+            id: "groups",
+            label: t("group.groups"),
+            content: (
+              <div className="flex flex-col gap-4">
+                {GROUP_STEPS.map((step, index) => (
+                  <WizardRoleStep
+                    key={step.key}
+                    step={step}
+                    number={parentStepNumber + 1 + index}
+                    value={roles[step.key]}
+                    onChange={(value: RoleState) =>
+                      setRoles((previous) => ({
+                        ...previous,
+                        [step.key]: value,
+                      }))
+                    }
+                    suggestedName={suggestedNames[step.key]}
+                    nomenclatureDescription={nomenclature?.description}
+                    errors={errors}
+                  />
+                ))}
+              </div>
+            ),
+          },
+        ]
+      : []),
+    {
+      id: "action",
+      label: t("task.wizard.action._"),
+      content: (
+        <WizardActionSummary
+          customerNumber={customerValues.nummer ?? null}
+          projectNumber={withProject ? projectValues.projektnummer : null}
+          anyGroup={anyGroup}
+          errors={validation.data?.validationErrors ?? []}
+          parentTaskId={parentTaskId}
+          newCustomer={customerMode === "new"}
+          customerOnly={!withProject}
+          customerName={customerValues.name?.trim() ?? ""}
+          projectName={projectName}
+          rootTaskId={init.data?.rootTaskId}
+          preview={
+            preview && anyGroup ? (
+              <WizardPreview
+                preview={preview}
+                isFetching={validation.isFetching}
+              />
+            ) : null
           }
         />
-      </div>
-    </div>
+      ),
+    },
+  ];
+  return (
+    <ProjectWizardShell
+      steps={steps}
+      aboveSteps={
+        <div className="flex flex-col gap-4">
+          {executeErrors.map((message) => (
+            <FormAlert key={message} tone="error">
+              {message}
+            </FormAlert>
+          ))}
+          <p className="max-w-3xl text-sm text-muted-foreground">
+            {t("project.wizard.intro")}
+          </p>
+        </div>
+      }
+      isPending={execute.isPending}
+      onCancel={() => navigateInGesture(router, "/project")}
+      onFinish={() => execute.mutate()}
+      finishLabel={
+        withProject
+          ? t("project.wizard.finish._")
+          : t("project.wizard.finish.customer")
+      }
+    />
   );
 }
 

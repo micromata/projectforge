@@ -4239,6 +4239,13 @@
   },
   "project": {
     "wizard": {
+      "action": {
+        "customerNotCreated": "Der Kunde wird noch nicht angelegt: {arg0}",
+        "newCustomer": "Der Kunde {arg0} wird angelegt.",
+        "newProject": "Das Projekt {arg0} wird angelegt.",
+        "noGroups": "Keine Gruppen ausgewählt, daher werden keine Zugriffsrechte angelegt.",
+        "projectNotCreated": "Das Projekt wird noch nicht angelegt: {arg0}"
+      },
       "customer": {
         "intro": "Der Kunde des Projekts: ein vorhandener oder ein neuer, der zusammen mit dem Projekt angelegt wird – oder auch allein."
       },

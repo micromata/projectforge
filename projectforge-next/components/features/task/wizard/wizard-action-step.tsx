@@ -1,12 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Tick02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/shared/form-alert";
 import { SectionCard } from "@/components/shared/section-card";
-import { Spinner } from "@/components/shared/spinner";
+import { WizardFinishButton } from "./wizard-finish-button";
 
 export interface WizardActionStepProps {
   /** Whether an element is picked and at least one group with it, i.e. whether there is anything to do. */
@@ -44,23 +42,12 @@ export function WizardActionStep({
         <Button type="button" variant="outline" onClick={onCancel}>
           {t("cancel")}
         </Button>
-        <Button
-          type="button"
-          disabled={!canFinish || isPending}
-          onClick={onFinish}
-          className="gap-1.5"
-          aria-busy={isPending}
-        >
-          {/* In place of the icon, not next to it, so the label doesn't move (see EntityEditActions).
-              The grant itself is a handful of rows and thus quick, but it writes them one by one over
-              the whole path up to the root. */}
-          {isPending ? (
-            <Spinner className="h-3.5 w-3.5 border-2" />
-          ) : (
-            <HugeiconsIcon icon={Tick02Icon} size={14} />
-          )}
-          {finishLabel ?? t("task.wizard.finish")}
-        </Button>
+        <WizardFinishButton
+          disabled={!canFinish}
+          isPending={isPending}
+          onFinish={onFinish}
+          label={finishLabel}
+        />
       </div>
     </SectionCard>
   );
