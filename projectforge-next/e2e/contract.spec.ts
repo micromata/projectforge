@@ -216,13 +216,6 @@ test.describe("contract", { tag: "@parallel" }, () => {
       page.getByRole("combobox", { name: label(format, "title") }).first()
     ).toHaveValue(contract.title!);
   });
-
-  test("redirects the old React pages", async ({ loggedInPage: page }) => {
-    await page.goto("/react/contract");
-    await expect(page).toHaveURL(/\/next\/contract$/);
-    await page.goto("/react/contract/edit");
-    await expect(page).toHaveURL(/\/next\/contract\/new$/);
-  });
 });
 
 function escape(text: string): string {

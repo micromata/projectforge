@@ -26,8 +26,6 @@ package org.projectforge.menu.builder
 import org.projectforge.Constants
 import org.projectforge.NextMigration
 
-private const val TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV = "2FA"
-
 enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = null) {
     // Main menus in alphabetical order
     ADMINISTRATION("menu.administration"), //
@@ -41,24 +39,23 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     REPORTING("menu.reporting"), //
 
     // Sub menus in alphabetical order:
-    // Migrated to projectforge-next (hand built, GroupAccessEntityRest); wa/accessList is redirected by
-    // OrphanedLinkFilter.
+    // Migrated to projectforge-next (hand built, GroupAccessEntityRest).
     ACCESS_LIST("menu.accessList", getListUrl("access")), //
     ACCOUNT_LIST("menu.fibu.konten", getListUrl("account")), //
-    // Migrated to projectforge-next; wa/accountingRecordList is redirected by OrphanedLinkFilter.
+    // Migrated to projectforge-next.
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", getListUrl("accountingRecord")), //
     ADDRESSBOOK_LIST("menu.addressbookList", getListUrl("addressBook")), //
     ADDRESS_LIST("menu.addressList", getListUrl("address")), //
     AVAILABILITY("menu.availability", getListUrl("availability")), //
     ADMIN_ERRORS("system.dashboard.title", "next/systemDashboard"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
-    // Migrated to projectforge-next (BirthdayButlerRest); react/birthdayButler is redirected by OrphanedLinkFilter.
+    // Migrated to projectforge-next (BirthdayButlerRest); the React page was removed.
     BIRTHDAY_BUTLER("menu.birthdayButler", "next/birthdayButler"), //
     BOOK_LIST("menu.bookList", getListUrl("book")), //
     CALENDAR("menu.calendar", getListUrl("calendar")), //
     CALENDAR_LIST("menu.plugins.teamcal", getListUrl("teamCal")), //
-    // Migrated to projectforge-next (ChangePasswordPageRest, ChangeWlanPasswordPageRest); the react pages are
-    // redirected by OrphanedLinkFilter.
+    // Migrated to projectforge-next (ChangePasswordPageRest, ChangeWlanPasswordPageRest); react/changePassword, linked
+    // by the "password not changed" mails of 9.0.5, is redirected by OrphanedLinkFilter.
     CHANGE_PASSWORD("menu.changePassword", "next/changePassword"), //
     CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", "next/changeWlanPassword"), //
     CONFIGURATION("menu.configuration", getListUrl("configuration")), //
@@ -67,7 +64,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     COST1_LIST("menu.fibu.kost1", getListUrl("cost1")), //
     COST2_LIST("menu.fibu.kost2", getListUrl("cost2")), //
     COST2_TYPE_LIST("menu.fibu.kost2arten", getListUrl("cost2Type")), //
-    // Migrated to projectforge-next (CostSearchPageRest); the react page is redirected by OrphanedLinkFilter.
+    // Migrated to projectforge-next (CostSearchPageRest); the React page was removed.
     COST_SEARCH("menu.fibu.kostSearch", "next/costSearch"), //
 
     // Migrated to projectforge-next; the Wicket pages (wa/customerList) were removed.
@@ -75,7 +72,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     CUSTOMER_GROUPS("menu.fibu.customerGroups", "next/customerGroups"), //
 
     DATEV_IMPORT("menu.fibu.datevImport", "next/datev-import"), //
-    // Migrated to projectforge-next (EInvoiceCheckerRest); react/eInvoiceChecker is redirected by OrphanedLinkFilter.
+    // Migrated to projectforge-next (EInvoiceCheckerRest); the React page was removed.
     E_INVOICE_CHECKER("menu.fibu.eInvoiceChecker", "next/eInvoiceChecker"), //
     // Migrated to projectforge-next; the React pages were removed.
     EMPLOYEE_LIST("menu.fibu.employees", getListUrl("employee")), //
@@ -86,28 +83,24 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // Migrated to projectforge-next (FeedbackPageRest); the Wicket page (wa/feedback) was removed.
     FEEDBACK("menu.gear.feedback", "next/feedback"), //
     GANTT("menu.gantt", getListUrl("gantt")), //
-    // Migrated to projectforge-next, list and form; react/group stays reachable through the escape hatch,
-    // see NextMigration.legacyListUrl.
+    // Migrated to projectforge-next, list and form; the React pages were removed.
     GROUP_LIST("menu.groupList", getListUrl("group")), //
     HR_PLANNING_LIST("menu.hrPlanningList", getListUrl("hrPlanning")), //
     HR_VIEW("menu.hrList", "next/hrList"), //
-    // Migrated to projectforge-next, list and form; react/incomingMail is redirected by OrphanedLinkFilter.
+    // Migrated to projectforge-next, list and form.
     INBOX_LIST("menu.orga.posteingang", getListUrl("incomingMail")), //
     // Migrated to projectforge-next, list and form; the Wicket pages (wa/incomingInvoiceList/Edit) were removed.
     INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", getListUrl("incomingInvoice")), //
     // Migrated to projectforge-next; the React pages were removed.
     CURRENCY_PAIR_LIST("menu.fibu.currencyPair", getListUrl("currencyPair")), //
-    // Migrated to projectforge-next; react/jobsMonitor is redirected by OrphanedLinkFilter.
+    // Migrated to projectforge-next; the React page was removed.
     JOB_MONITOR("jobs.monitor.title", "next/jobsMonitor"), //
     LOGOUT("menu.logout", url = "logout"), //
     MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "next/monthlyEmployeeReport"), //
-    // Migrated to projectforge-next (MyAccountRest); react/myAccount and react/tokenInfo are redirected by
-    // OrphanedLinkFilter.
+    // Migrated to projectforge-next (MyAccountRest); the React pages were removed.
     MY_ACCOUNT("menu.myAccount", "next/myAccount"), //
     CUSTOMIZE_MENU("menu.customizeMenu", "${Constants.NEXT_APP_PATH}customizeMenu"), //
-    MY_2FA("menu.2FA", getReactDynamicPageUrl(TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV)), //
-    // Migrated to projectforge-next (My2FASetupRest); react/2FASetup and react/WebAuthnSetup are redirected by
-    // OrphanedLinkFilter.
+    // Migrated to projectforge-next (My2FASetupRest); the React pages were removed.
     MY_2FA_SETUP("menu.2FASetup", "next/2FASetup"), //
     MY_SCRIPT_LIST("menu.myScriptList", getListUrl("myscript")), //
     // Next only: the rules of the notification system (NotificationRuleEntityRest).
@@ -116,12 +109,13 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ORDER_LIST("menu.fibu.orderbook", getListUrl("order")), //
     // Next only: forecast and contribution margin of the order book, with a filter of their own.
     ORDER_STATISTICS("menu.fibu.orderStatistics", "next/finance/statistics"), //
-    // Migrated to projectforge-next, list and form; react/outgoingMail is redirected by OrphanedLinkFilter.
+    // Migrated to projectforge-next, list and form.
     OUTBOX_LIST("menu.orga.postausgang", getListUrl("outgoingMail")), //
     // Migrated to projectforge-next, list and form; the Wicket pages (wa/outgoingInvoiceList) were removed.
     OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", getListUrl("outgoingInvoice")), //
     PERSONAL_STATISTICS("menu.personalStatistics", "next/personalStatistics"), //
-    // Migrated to projectforge-next (PhoneCallRest); wa/phoneCall is redirected by OrphanedLinkFilter.
+    // Migrated to projectforge-next (PhoneCallRest); wa/phoneCall (meant to be called by url) is redirected by
+    // OrphanedLinkFilter.
     PHONE_CALL("menu.phoneCall", "next/phoneCall"), //
     // Migrated to projectforge-next (PollEntityRest, PollAnswerRest); the React pages were removed.
     POLL("menu.poll", getListUrl("poll")), //
@@ -131,17 +125,16 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // Migrated to projectforge-next (SendTextMessageRest); the Wicket page (wa/sendSms) was removed.
     SEND_SMS("menu.sendSms", "next/sendTextMessage"), //
     SCRIPT_LIST("menu.scriptList", getListUrl("script")), //
-    // Migrated to projectforge-next (SearchRest); the Wicket search page was removed. A bookmarked
-    // /wa/search is still redirected to next by OrphanedLinkFilter.
+    // Migrated to projectforge-next (SearchRest); the Wicket search page was removed.
     SEARCH("menu.search", "${Constants.NEXT_APP_PATH}search"), //
-    // Migrated to projectforge-next; wa/taskTree is redirected by OrphanedLinkFilter. The tree and not the
+    // Migrated to projectforge-next; the Wicket page was removed. The tree and not the
     // category's list (next/task, NextMigration.listUrl): the entity has two perspectives in projectforge-next.
     TASK_TREE("menu.taskTree", "${Constants.NEXT_APP_PATH}taskTree"), //
     TIMESHEET_LIST("menu.timesheetList", getListUrl("timesheet")), //
     USER_LIST("menu.userList", getListUrl("user")), //
     VACATION("menu.vacation", getListUrl("vacation")), //
     VACATION_ACCOUNT("menu.vacation.leaveaccount", "next/vacationAccount"), //
-    // Migrated to projectforge-next, list and form; react/visitorbook is redirected by OrphanedLinkFilter.
+    // Migrated to projectforge-next, list and form.
     VISITORBOOK("menu.orga.visitorbook", getListUrl("visitorbook")), //
 
     PLUGIN_ADMIN("menu.pluginAdmin", "next/plugins"), //
@@ -152,10 +145,6 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
      */
     val id: String
         get() = name
-
-    companion object {
-        const val TWO_FACTOR_AUTHENTIFICATION_SUB_URL = TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV
-    }
 }
 
 /**
@@ -173,8 +162,4 @@ private fun getListUrl(category: String): String {
 
 private fun getReactListUrl(name: String): String {
     return "${Constants.REACT_APP_PATH}$name"
-}
-
-fun getReactDynamicPageUrl(name: String): String {
-    return "${Constants.REACT_APP_PATH}$name/dynamic"
 }

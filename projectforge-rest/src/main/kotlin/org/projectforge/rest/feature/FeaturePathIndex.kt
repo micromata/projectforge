@@ -218,7 +218,6 @@ class FeaturePathIndex {
          * attachments): always reachable.
          */
         val CORE_REST = setOf(
-            "2FA",
             "attachment",
             ATTACHMENTS,
             "historyEntries",

@@ -222,7 +222,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>> getListPage(
 4. `ResultSet(page, totalSize = ids.size, offset, limit, ...)`.
 
 Two caveats: `getListByIds` ignores `queryFilter.entityGraphName`, so a page may N+1 where the full
-query fetch-joined (acceptable at 50 rows; note it). And `AddressCampaignValuePagesRest` overrides
+query fetch-joined (acceptable at 50 rows; note it). And `AddressCampaignValueEntityRest` overrides
 `getListByIds` — check before enabling paging there.
 
 **Contract: a new path, not an extension of `POST list`.** `POST /rs/{entity}/listPage` with a wrapper

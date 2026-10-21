@@ -85,37 +85,22 @@ class NextMigrationTest {
     }
 
     /**
-     * The address campaign values offer the way back to their React page, which is kept under a category of its
-     * own for the running campaign; a new value has no React url of its own (it needs a row of the list).
+     * The address campaign values: list, form and mass update are next's, the React page is gone, so there is no
+     * way back, and as no link of them ever left ProjectForge, none is redirected.
      */
     @Test
-    fun `the address campaign values lead back to the legacy category`() {
+    fun `the address campaign values are next's and offer no way back`() {
         Assertions.assertEquals("next/address-campaign-value", NextMigration.listUrl("addressCampaignValue"))
-        Assertions.assertEquals("react/addressCampaignValueLegacy", NextMigration.legacyListUrl("addressCampaignValue"))
-        Assertions.assertEquals(
-            "react/addressCampaignValueLegacy/edit/:id",
-            NextMigration.legacyEditPage("addressCampaignValue"),
-        )
-        Assertions.assertEquals("react/addressCampaignValueLegacy", NextMigration.legacyNewEntryUrl("addressCampaignValue"))
-        Assertions.assertFalse(NextMigration.isMigrated("addressCampaignValueLegacy"))
-        // The old urls are next's, the legacy category's pages show no hint (and aren't redirected, see
-        // OrphanedLinkFilterTest).
-        Assertions.assertTrue(NextMigration.hasNextVersion(NextMigration.LegacyApp.REACT, "addressCampaignValue"))
-        Assertions.assertFalse(NextMigration.hasNextVersion(NextMigration.LegacyApp.REACT, "addressCampaignValueLegacy"))
-        Assertions.assertFalse(
-            NextMigration.hasNextVersion(NextMigration.LegacyApp.REACT, "addressCampaignValueLegacy/edit/42")
-        )
-        val link = NextMigration.orphanedLinks().single { it.category == "addressCampaignValue" }
-        Assertions.assertEquals("react/addressCampaignValue", link.legacyListPath)
-        Assertions.assertEquals("react/addressCampaignValue/edit", link.legacyEditPath)
+        Assertions.assertNull(NextMigration.legacyListUrl("addressCampaignValue"))
+        Assertions.assertNull(NextMigration.legacyEditPage("addressCampaignValue"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("addressCampaignValue"))
+        Assertions.assertFalse(NextMigration.hasNextVersion(NextMigration.LegacyApp.REACT, "addressCampaignValue"))
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "addressCampaignValue" })
     }
 
     /**
-     * The invoices and timesheets no longer offer the way back (see NextPage.offerLegacyLink): neither the
-     * creditor, the debtor nor the timesheet page shows a "classic version" link, so every escape-hatch
-     * accessor answers null. The
-     * legacyApp stays all the same, so a bookmarked Wicket link is still redirected onto next - asserted in
-     * `orphaned links...` below.
+     * The invoices and timesheets no longer offer the way back: neither the creditor, the debtor nor the
+     * timesheet page shows a "classic version" link, so every escape-hatch accessor answers null.
      */
     @Test
     fun `the invoices and timesheets offer no way back`() {
@@ -129,21 +114,15 @@ class NextMigrationTest {
 
     /**
      * Wicket is no way back any more (it is being removed): no page migrated from Wicket offers a "classic
-     * version" link, and NextPage refuses one that would. Their legacyApp stays, so a bookmarked Wicket link is
-     * still redirected onto next.
+     * version" link, and NextPage refuses one that would.
      */
     @Test
     fun `no page offers a way back to Wicket`() {
-        val wicketLinks = NextMigration.orphanedLinks().filter { it.legacyApp == NextMigration.LegacyApp.WICKET }
-        for (category in listOf("access", "account", "accountingRecord", "gantt", "task")) {
+        for (category in listOf("access", "account", "accountingRecord", "gantt", "task", "order", "todo")) {
             Assertions.assertNull(NextMigration.legacyListUrl(category), category)
             Assertions.assertNull(NextMigration.legacyEditPage(category), category)
             Assertions.assertNull(NextMigration.legacyNewEntryUrl(category), category)
             Assertions.assertFalse(NextMigration.legacyListInMenu(category), category)
-            Assertions.assertTrue(
-                wicketLinks.any { it.nextListUrl == "/${NextMigration.listUrl(category)}" },
-                "A bookmarked Wicket link of $category must still be redirected.",
-            )
         }
         NextMigration.categories.forEach { category ->
             listOfNotNull(
@@ -161,8 +140,8 @@ class NextMigrationTest {
 
     /**
      * The data transfer areas: the row click leads to the file view (`datatransfer/:id`), the admin form is a
-     * sub route of it. The React pages are gone, so there is no way back, but a bookmarked React link of the
-     * list or the form is still redirected onto next.
+     * sub route of it. The React pages are gone, so there is no way back, and as no link of the list or the form
+     * ever left ProjectForge, none is redirected (the mailed links of the file view are, by OrphanedLinkFilter).
      */
     @Test
     fun `the data transfer pages are next's and offer no way back`() {
@@ -172,15 +151,13 @@ class NextMigrationTest {
         Assertions.assertNull(NextMigration.legacyListUrl("datatransfer"))
         Assertions.assertNull(NextMigration.legacyEditPage("datatransfer"))
         Assertions.assertNull(NextMigration.legacyNewEntryUrl("datatransfer"))
-        val link = NextMigration.orphanedLinks().single { it.category == "datatransfer" }
-        Assertions.assertEquals("react/datatransfer", link.legacyListPath)
-        Assertions.assertEquals("react/datatransfer/edit", link.legacyEditPath)
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "datatransfer" })
     }
 
     /**
      * The scripts: the row click leads to the execution (`script/:id`, `myscript/:id`), the form of a script
      * is a sub route of it, the user's own script list has none. The React pages are gone, so there is no
-     * way back, but a bookmarked React link of the lists or the form is still redirected onto next.
+     * way back, and as no link of them ever left ProjectForge (no mail, no data transfer), none is redirected.
      */
     @Test
     fun `the script pages are next's and offer no way back`() {
@@ -193,15 +170,12 @@ class NextMigrationTest {
             Assertions.assertNull(NextMigration.legacyListUrl(category), category)
             Assertions.assertNull(NextMigration.legacyEditPage(category), category)
             Assertions.assertNull(NextMigration.legacyNewEntryUrl(category), category)
-            val link = NextMigration.orphanedLinks().single { it.category == category }
-            Assertions.assertEquals("react/$category", link.legacyListPath)
-            Assertions.assertEquals("react/$category/edit", link.legacyEditPath)
+            Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == category })
         }
     }
 
     /**
-     * The address books: list and form are next's, the React pages are gone, so there is no way back, but a
-     * bookmarked React link is still redirected onto next.
+     * The address books: list and form are next's, the React pages are gone, so there is no way back, and as no link of them ever left ProjectForge, none is redirected.
      */
     @Test
     fun `the address book pages are next's and offer no way back`() {
@@ -210,15 +184,12 @@ class NextMigrationTest {
         Assertions.assertEquals("next/addressBook/new", NextMigration.newEntryUrl("addressBook"))
         Assertions.assertNull(NextMigration.legacyListUrl("addressBook"))
         Assertions.assertNull(NextMigration.legacyEditPage("addressBook"))
-        val link = NextMigration.orphanedLinks().single { it.category == "addressBook" }
-        Assertions.assertEquals("react/addressBook", link.legacyListPath)
-        Assertions.assertEquals("react/addressBook/edit", link.legacyEditPath)
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "addressBook" })
     }
 
     /**
-     * The addresses: list, view and form are next's, the form a sub route of the view. There is no way back (the
-     * React form left for the address campaigns has a category of its own, `addressLegacy`), but a bookmarked React
-     * link is still redirected onto next.
+     * The addresses: list, view and form are next's, the form a sub route of the view. There is no way back, and as
+     * no link of them ever left ProjectForge, none is redirected.
      */
     @Test
     fun `the address pages are next's and offer no way back`() {
@@ -227,17 +198,11 @@ class NextMigrationTest {
         Assertions.assertEquals("next/address/new", NextMigration.newEntryUrl("address"))
         Assertions.assertNull(NextMigration.legacyListUrl("address"))
         Assertions.assertNull(NextMigration.legacyEditPage("address"))
-        Assertions.assertFalse(NextMigration.isMigrated("addressLegacy"))
-        Assertions.assertEquals("react/addressLegacy/edit/:id", NextMigration.standardEditPage("addressLegacy"))
-        val link = NextMigration.orphanedLinks().single { it.category == "address" }
-        Assertions.assertEquals("react/address", link.legacyListPath)
-        Assertions.assertEquals("react/address/edit", link.legacyEditPath)
-        Assertions.assertEquals("/next/address/:id/edit", link.nextEditUrl)
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "address" })
     }
 
     /**
-     * The team calendars: list and form are next's, the React pages are gone, so there is no way back, but a
-     * bookmarked React link is still redirected onto next.
+     * The team calendars: list and form are next's, the React pages are gone, so there is no way back, and as no link of them ever left ProjectForge, none is redirected.
      */
     @Test
     fun `the team calendar pages are next's and offer no way back`() {
@@ -246,14 +211,11 @@ class NextMigrationTest {
         Assertions.assertEquals("next/teamCal/new", NextMigration.newEntryUrl("teamCal"))
         Assertions.assertNull(NextMigration.legacyListUrl("teamCal"))
         Assertions.assertNull(NextMigration.legacyEditPage("teamCal"))
-        val link = NextMigration.orphanedLinks().single { it.category == "teamCal" }
-        Assertions.assertEquals("react/teamCal", link.legacyListPath)
-        Assertions.assertEquals("react/teamCal/edit", link.legacyEditPath)
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "teamCal" })
     }
 
     /**
-     * The users: list and form are next's, the React pages are gone, so there is no way back, but a bookmarked
-     * React link is still redirected onto next.
+     * The users: list and form are next's, the React pages are gone, so there is no way back, and as no link of them ever left ProjectForge, none is redirected.
      */
     @Test
     fun `the user pages are next's and offer no way back`() {
@@ -262,14 +224,12 @@ class NextMigrationTest {
         Assertions.assertEquals("next/user/new", NextMigration.newEntryUrl("user"))
         Assertions.assertNull(NextMigration.legacyListUrl("user"))
         Assertions.assertNull(NextMigration.legacyEditPage("user"))
-        val link = NextMigration.orphanedLinks().single { it.category == "user" }
-        Assertions.assertEquals("react/user", link.legacyListPath)
-        Assertions.assertEquals("react/user/edit", link.legacyEditPath)
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "user" })
     }
 
     /**
      * The vacation entries: list and form are next's, the React pages are gone, so there is no way back, but a
-     * bookmarked React link or one of an old notification mail is still redirected onto next.
+     * link of an old vacation mail (react/vacation/edit/<id>) is still redirected onto next.
      */
     @Test
     fun `the vacation pages are next's and offer no way back`() {
@@ -285,8 +245,7 @@ class NextMigrationTest {
     }
 
     /**
-     * The leave account entries: list and form are next's, the React pages are gone, so there is no way back, but a
-     * bookmarked React link is still redirected onto next.
+     * The leave account entries: list and form are next's, the React pages are gone, so there is no way back, and as no link of them ever left ProjectForge, none is redirected.
      */
     @Test
     fun `the leave account entry pages are next's and offer no way back`() {
@@ -296,14 +255,11 @@ class NextMigrationTest {
         Assertions.assertNull(NextMigration.legacyListUrl("leaveAccountEntry"))
         Assertions.assertNull(NextMigration.legacyEditPage("leaveAccountEntry"))
         Assertions.assertNull(NextMigration.legacyNewEntryUrl("leaveAccountEntry"))
-        val link = NextMigration.orphanedLinks().single { it.category == "leaveAccountEntry" }
-        Assertions.assertEquals("react/leaveAccountEntry", link.legacyListPath)
-        Assertions.assertEquals("react/leaveAccountEntry/edit", link.legacyEditPath)
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "leaveAccountEntry" })
     }
 
     /**
-     * The contracts: list and form are next's, the React pages are gone, so there is no way back, but a bookmarked
-     * React link is still redirected onto next.
+     * The contracts: list and form are next's, the React pages are gone, so there is no way back, and as no link of them ever left ProjectForge, none is redirected.
      */
     @Test
     fun `the contract pages are next's and offer no way back`() {
@@ -313,14 +269,13 @@ class NextMigrationTest {
         Assertions.assertNull(NextMigration.legacyListUrl("contract"))
         Assertions.assertNull(NextMigration.legacyEditPage("contract"))
         Assertions.assertNull(NextMigration.legacyNewEntryUrl("contract"))
-        val link = NextMigration.orphanedLinks().single { it.category == "contract" }
-        Assertions.assertEquals("react/contract", link.legacyListPath)
-        Assertions.assertEquals("react/contract/edit", link.legacyEditPath)
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "contract" })
     }
 
     /**
      * The Word® templates of Merlin: the row click leads to the execution (`merlin/:id`), the form is a sub route
-     * of it. The React pages are gone, so there is no way back, but a bookmarked React link is still redirected.
+     * of it. The React pages are gone, so there is no way back, and as no link of
+     * them ever left ProjectForge, none is redirected.
      */
     @Test
     fun `the merlin pages are next's and offer no way back`() {
@@ -330,14 +285,12 @@ class NextMigrationTest {
         Assertions.assertNull(NextMigration.legacyListUrl("merlin"))
         Assertions.assertNull(NextMigration.legacyEditPage("merlin"))
         Assertions.assertNull(NextMigration.legacyNewEntryUrl("merlin"))
-        val link = NextMigration.orphanedLinks().single { it.category == "merlin" }
-        Assertions.assertEquals("react/merlin", link.legacyListPath)
-        Assertions.assertEquals("react/merlin/edit", link.legacyEditPath)
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "merlin" })
     }
 
     /**
-     * The memos: list and form are next's, the React pages are gone, so there is no way back, but a bookmarked
-     * React link is still redirected onto next.
+     * The memos: list and form are next's, the React pages are gone, so there is no way back, and as no link of
+     * them ever left ProjectForge, none is redirected.
      */
     @Test
     fun `the memo pages are next's and offer no way back`() {
@@ -347,14 +300,12 @@ class NextMigrationTest {
         Assertions.assertNull(NextMigration.legacyListUrl("memo"))
         Assertions.assertNull(NextMigration.legacyEditPage("memo"))
         Assertions.assertNull(NextMigration.legacyNewEntryUrl("memo"))
-        val link = NextMigration.orphanedLinks().single { it.category == "memo" }
-        Assertions.assertEquals("react/memo", link.legacyListPath)
-        Assertions.assertEquals("react/memo/edit", link.legacyEditPath)
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "memo" })
     }
 
     /**
-     * The skill matrix: list and form are next's, the React pages are gone, so there is no way back, but a
-     * bookmarked React link is still redirected onto next.
+     * The skill matrix: list and form are next's, the React pages are gone, so there is no way back, and as no
+     * link of them ever left ProjectForge, none is redirected.
      */
     @Test
     fun `the skill matrix pages are next's and offer no way back`() {
@@ -364,14 +315,28 @@ class NextMigrationTest {
         Assertions.assertNull(NextMigration.legacyListUrl("skillentry"))
         Assertions.assertNull(NextMigration.legacyEditPage("skillentry"))
         Assertions.assertNull(NextMigration.legacyNewEntryUrl("skillentry"))
-        val link = NextMigration.orphanedLinks().single { it.category == "skillentry" }
-        Assertions.assertEquals("react/skillentry", link.legacyListPath)
-        Assertions.assertEquals("react/skillentry/edit", link.legacyEditPath)
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "skillentry" })
     }
 
     /**
-     * The polls: list, form and answer page are next's, the React pages are gone, so there is no way back, but a
-     * bookmarked React link is still redirected onto next (the answer page by OrphanedLinkFilter).
+     * The bank accounts and their transactions (banking plugin): list and form are next's, the React pages are gone,
+     * so there is no way back and no redirect of old links.
+     */
+    @Test
+    fun `the banking pages are next's and offer no way back`() {
+        listOf("bankAccount", "bankAccountRecord").forEach { category ->
+            Assertions.assertEquals("next/$category", NextMigration.listUrl(category))
+            Assertions.assertEquals("next/$category/:id", NextMigration.standardEditPage(category))
+            Assertions.assertEquals("next/$category/new", NextMigration.newEntryUrl(category))
+            Assertions.assertNull(NextMigration.legacyListUrl(category))
+            Assertions.assertNull(NextMigration.legacyEditPage(category))
+            Assertions.assertNull(NextMigration.legacyNewEntryUrl(category))
+            Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == category })
+        }
+    }
+
+    /**
+     * The polls: list, form and answer page are next's, the React pages are gone, so there is no way back, and as no link of them ever left ProjectForge, none is redirected (the links of the poll mails to the answer page are, by OrphanedLinkFilter).
      */
     @Test
     fun `the poll pages are next's and offer no way back`() {
@@ -381,14 +346,12 @@ class NextMigrationTest {
         Assertions.assertNull(NextMigration.legacyListUrl("poll"))
         Assertions.assertNull(NextMigration.legacyEditPage("poll"))
         Assertions.assertNull(NextMigration.legacyNewEntryUrl("poll"))
-        val link = NextMigration.orphanedLinks().single { it.category == "poll" }
-        Assertions.assertEquals("react/poll", link.legacyListPath)
-        Assertions.assertEquals("react/poll/edit", link.legacyEditPath)
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "poll" })
     }
 
     /**
-     * The inbox and the outbox: list and form are next's, the React pages are gone, so there is no way back, but a
-     * bookmarked React link is still redirected onto next.
+     * The inbox and the outbox: list and form are next's, the React pages are gone, so there is no way back, and as
+     * no link of them ever left ProjectForge (no mail, no data transfer), none is redirected.
      */
     @Test
     fun `the inbox and outbox pages are next's and offer no way back`() {
@@ -399,15 +362,13 @@ class NextMigrationTest {
             Assertions.assertNull(NextMigration.legacyListUrl(category))
             Assertions.assertNull(NextMigration.legacyEditPage(category))
             Assertions.assertNull(NextMigration.legacyNewEntryUrl(category))
-            val link = NextMigration.orphanedLinks().single { it.category == category }
-            Assertions.assertEquals("react/$category", link.legacyListPath)
-            Assertions.assertEquals("react/$category/edit", link.legacyEditPath)
+            Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == category })
         }
     }
 
     /**
      * The visitor book: list and form (the visits included) are next's, the React pages are gone, so there is no
-     * way back, but a bookmarked React link is still redirected onto next.
+     * way back, and as no link of them ever left ProjectForge, none is redirected.
      */
     @Test
     fun `the visitorbook pages are next's and offer no way back`() {
@@ -417,14 +378,12 @@ class NextMigrationTest {
         Assertions.assertNull(NextMigration.legacyListUrl("visitorbook"))
         Assertions.assertNull(NextMigration.legacyEditPage("visitorbook"))
         Assertions.assertNull(NextMigration.legacyNewEntryUrl("visitorbook"))
-        val link = NextMigration.orphanedLinks().single { it.category == "visitorbook" }
-        Assertions.assertEquals("react/visitorbook", link.legacyListPath)
-        Assertions.assertEquals("react/visitorbook/edit", link.legacyEditPath)
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "visitorbook" })
     }
 
     /**
      * The employees: list and form (time-dependent attributes included) are next's, the React pages are gone, so
-     * there is no way back, but a bookmarked React link is still redirected onto next.
+     * there is no way back, and as no link of them ever left ProjectForge, none is redirected.
      */
     @Test
     fun `the employee pages are next's and offer no way back`() {
@@ -434,14 +393,12 @@ class NextMigrationTest {
         Assertions.assertNull(NextMigration.legacyListUrl("employee"))
         Assertions.assertNull(NextMigration.legacyEditPage("employee"))
         Assertions.assertNull(NextMigration.legacyNewEntryUrl("employee"))
-        val link = NextMigration.orphanedLinks().single { it.category == "employee" }
-        Assertions.assertEquals("react/employee", link.legacyListPath)
-        Assertions.assertEquals("react/employee/edit", link.legacyEditPath)
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "employee" })
     }
 
     /**
      * The currency pairs: list and form (conversion rates included) are next's, the React pages are gone, so there
-     * is no way back, but a bookmarked React link is still redirected onto next.
+     * is no way back, and as no link of them ever left ProjectForge, none is redirected.
      */
     @Test
     fun `the currency pair pages are next's and offer no way back`() {
@@ -451,9 +408,7 @@ class NextMigrationTest {
         Assertions.assertNull(NextMigration.legacyListUrl("currencyPair"))
         Assertions.assertNull(NextMigration.legacyEditPage("currencyPair"))
         Assertions.assertNull(NextMigration.legacyNewEntryUrl("currencyPair"))
-        val link = NextMigration.orphanedLinks().single { it.category == "currencyPair" }
-        Assertions.assertEquals("react/currencyPair", link.legacyListPath)
-        Assertions.assertEquals("react/currencyPair/edit", link.legacyEditPath)
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "currencyPair" })
     }
 
     /**
@@ -473,16 +428,42 @@ class NextMigrationTest {
     /**
      * The group is the page the task wizard needs: it creates a group in a dialog around the *next* form
      * (see `wizard-group-step.tsx`), so the routes of that form are part of the contract. Migrated from the
-     * React app, which is where the escape hatch leads.
+     * React app, whose pages are gone: there is no way back, and as no link of them ever left ProjectForge, none
+     * is redirected.
      */
     @Test
-    fun `the group page is next's, and its way back leads to the React app`() {
+    fun `the group page is next's, without a way back`() {
         Assertions.assertEquals("next/group", NextMigration.listUrl("group"))
         Assertions.assertEquals("next/group/:id", NextMigration.nextEditPage("group"))
         Assertions.assertEquals("next/group/:id", NextMigration.standardEditPage("group"))
         Assertions.assertEquals("next/group/new", NextMigration.newEntryUrl("group"))
-        Assertions.assertEquals("react/group", NextMigration.legacyListUrl("group"))
-        Assertions.assertEquals("react/group/edit/:id", NextMigration.legacyEditPage("group"))
+        Assertions.assertNull(NextMigration.legacyListUrl("group"))
+        Assertions.assertNull(NextMigration.legacyEditPage("group"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("group"))
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "group" })
+    }
+
+    /** The team event form is next's, the React form is gone: no way back, and the invitation mails never linked it. */
+    @Test
+    fun `the team event form is next's, without a way back`() {
+        Assertions.assertEquals("next/teamEvent/:id", NextMigration.standardEditPage("teamEvent"))
+        Assertions.assertEquals("next/teamEvent/new", NextMigration.newEntryUrl("teamEvent"))
+        Assertions.assertNull(NextMigration.legacyEditPage("teamEvent"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("teamEvent"))
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "teamEvent" })
+    }
+
+    /**
+     * Old links are only redirected where they have left ProjectForge (see NextPage.legacyApp): the order and to-do
+     * change mails and the vacation mails linked the legacy forms. Next to them only the calendar, the former page
+     * after login.
+     */
+    @Test
+    fun `only links that left ProjectForge are redirected`() {
+        Assertions.assertEquals(
+            setOf("order", "todo", "vacation", "calendar"),
+            NextMigration.orphanedLinks().map { it.category }.toSet(),
+        )
     }
 
     /**
@@ -520,18 +501,16 @@ class NextMigrationTest {
         Assertions.assertEquals("/next/order/:id", order.nextEditUrl)
         Assertions.assertEquals("/next/order/new", order.nextNewEntryUrl)
 
-        val group = byList["react/group"]
-        Assertions.assertNotNull(group, "The group page was migrated from the React app and must be redirected.")
-        Assertions.assertEquals(NextMigration.LegacyApp.REACT, group!!.legacyApp)
-        Assertions.assertEquals("react/group/edit", group.legacyEditPath) // Id is a path segment.
-        Assertions.assertEquals("/next/group", group.nextListUrl)
+        val vacation = byList["react/vacation"]
+        Assertions.assertNotNull(vacation, "The vacation page was migrated from the React app and must be redirected.")
+        Assertions.assertEquals(NextMigration.LegacyApp.REACT, vacation!!.legacyApp)
+        Assertions.assertEquals("react/vacation/edit", vacation.legacyEditPath) // Id is a path segment.
+        Assertions.assertEquals("/next/vacation", vacation.nextListUrl)
 
-        // The invoices offer no way back any more (offerLegacyLink = false), but their legacyApp stays, so a
-        // bookmarked Wicket link is still bent onto next.
-        val incomingInvoice = byList["wa/incomingInvoiceList"]
-        Assertions.assertNotNull(incomingInvoice, "A bookmarked incoming invoice link must still be redirected.")
-        Assertions.assertEquals("/next/creditor-invoice", incomingInvoice!!.nextListUrl)
-        Assertions.assertEquals("wa/incomingInvoiceEdit", incomingInvoice.legacyEditPath)
+        // The to-dos: the bookmarkable url of the Wicket form, the link of the notification mails.
+        val todo = NextMigration.orphanedLinks().single { it.category == "todo" }
+        Assertions.assertEquals("wa/wicket/bookmarkable/org.projectforge.plugins.todo.ToDoEditPage", todo.legacyEditPath)
+        Assertions.assertEquals("/next/todo/:id", todo.nextEditUrl)
 
         // The book's legacy form was removed (legacyApp == null), so there is no legacy link to bend.
         Assertions.assertTrue(

@@ -12,7 +12,6 @@ import {
     dismissCurrentError,
     fetchCurrentList,
     exportCurrentList,
-    startMultiSelection,
     renameListFavorite,
     selectListFavorite,
     updateListFavorite,
@@ -41,7 +40,6 @@ function SearchFilter(props) {
         onSearchStringDelete,
         onSyncButtonClick,
         onExportButtonClick,
-        onMultiSelectionButtonClick,
     } = props;
 
     const {
@@ -114,17 +112,6 @@ function SearchFilter(props) {
                             {ui.translations.exportAsXls}
                         </Button>
                     )}
-                    {ui && ui.multiSelectionSupported && (
-                        <Button
-                            id="multiSelection"
-                            color="primary"
-                            onClick={onMultiSelectionButtonClick}
-                            outline
-                        >
-                            {/* eslint-disable-next-line react/prop-types */}
-                            {ui.translations['multiselection.button']}
-                        </Button>
-                    )}
                     {isFetching && <Spinner className={styles.loadingSpinner} />}
                 </div>
                 <TextAutoCompletion
@@ -189,7 +176,6 @@ SearchFilter.propTypes = {
             title: PropTypes.string,
             pageMenu: PropTypes.arrayOf(PropTypes.shape({})),
             excelExportSupported: PropTypes.bool,
-            multiSelectionSupported: PropTypes.bool,
         }),
         filter: PropTypes.shape({
             id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -214,7 +200,6 @@ SearchFilter.propTypes = {
     onSearchStringDelete: PropTypes.func.isRequired,
     onSyncButtonClick: PropTypes.func.isRequired,
     onExportButtonClick: PropTypes.func.isRequired,
-    onMultiSelectionButtonClick: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = ({ list }) => {
@@ -240,7 +225,6 @@ const actions = (dispatch) => ({
     onSearchStringDelete: () => dispatch(changeSearchString('')),
     onSyncButtonClick: () => dispatch(fetchCurrentList(true)),
     onExportButtonClick: () => dispatch(exportCurrentList()),
-    onMultiSelectionButtonClick: () => dispatch(startMultiSelection()),
 });
 
 export default connect(mapStateToProps, actions)(SearchFilter);

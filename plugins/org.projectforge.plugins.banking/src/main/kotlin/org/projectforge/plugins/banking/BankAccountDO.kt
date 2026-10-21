@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.banking
 
-import org.bouncycastle.asn1.x500.style.RFC4519Style.title
 import org.projectforge.Constants
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsBridge
@@ -61,7 +60,7 @@ open class BankAccountDO : BaseUserGroupRightsDO(), DisplayNameCapable {
           sb.append(it).append(" ")
         }
       }
-      sb.append(title)
+      sb.append(name ?: "")
       return sb.toString()
     }
 

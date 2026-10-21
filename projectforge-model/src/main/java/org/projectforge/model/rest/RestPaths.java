@@ -36,8 +36,6 @@ public class RestPaths
 
   public static final String REST_PDF_SUB_PATH = "exportAsPdf";
 
-  public static final String REST_START_MULTI_SELECTION = "startMultiSelection";
-
   public static final String TASK = "task";
 
   public static final String TIMESHEET_TEMPLATE = "timesheetTemplate";
@@ -47,8 +45,6 @@ public class RestPaths
   public static final String LIST_PAGE = "listPage";
 
   public static final String CANCEL = "cancel";
-
-  public static final String CANCEL_MULTI_SELECTION = "cancelMultiSelection";
 
   public static final String EDIT = "edit";
 

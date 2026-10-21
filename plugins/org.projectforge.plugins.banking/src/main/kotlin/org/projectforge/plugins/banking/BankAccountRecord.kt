@@ -49,6 +49,12 @@ class BankAccountRecord(
   var iban: String? = null,
   var bic: String? = null,
 ) : BaseDTO<BankAccountRecordDO>(), ImportPairEntry.Modified<BankAccountRecord> {
+  /**
+   * Read only: true, if the stored checksum doesn't match the record (modified after its import), see
+   * [BankAccountRecordDO.buildCheckSum]. Not set for the records of an import.
+   */
+  var checksumError: Boolean? = null
+
   override fun copyFrom(src: BankAccountRecordDO) {
     super.copyFrom(src)
     src.bankAccount?.let { bankAccountDO ->

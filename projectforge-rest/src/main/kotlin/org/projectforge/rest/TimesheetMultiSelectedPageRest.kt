@@ -115,14 +115,6 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
     }
 
     /**
-     * The selection's statistics as pre-rendered markdown: the same summed duration / AI-savings line the
-     * list footer shows, over the selected time sheets (see [getStatisticsData] for the typed values).
-     */
-    override fun getStatistics(selectedIds: Collection<Serializable>?): String {
-        return timesheetEntityRest.buildStatisticsMarkdown(buildStatistics(selectedIds))
-    }
-
-    /**
      * The selection's statistics as typed values for the hand-built next page, which renders them with the
      * same [org.projectforge.rest.dto.Timesheet] statistics line the list uses (reusing
      * [TimesheetEntityRest.TimesheetListStatistics] so both pages show the identical line).

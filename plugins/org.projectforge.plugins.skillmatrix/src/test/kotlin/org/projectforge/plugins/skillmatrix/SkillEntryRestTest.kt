@@ -103,6 +103,12 @@ class SkillEntryRestTest : AbstractTestBase() {
     }
 
     @Test
+    fun `the mass update of the skills links no log viewer`() {
+        logon(TEST_USER)
+        assertNull(skillEntryMultiSelectedPageRest.requestMeta(MockHttpServletRequest()).logViewerUrl)
+    }
+
+    @Test
     fun `the mass update sets the levels and the comment of the own skills, the others' fail per entry`() {
         val own = getUser(TEST_USER)
         val other = getUser(TEST_USER2)

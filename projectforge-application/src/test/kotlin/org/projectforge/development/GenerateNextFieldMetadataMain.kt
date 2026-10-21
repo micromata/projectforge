@@ -25,10 +25,12 @@ package org.projectforge.development
 
 import jakarta.persistence.Entity
 import org.projectforge.common.i18n.I18nEnum
+import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.history.HistoryServiceUtils
 import org.projectforge.framework.utils.SourcesUtils
 import org.projectforge.ui.ElementInfo
 import org.projectforge.ui.ElementsRegistry
+import org.projectforge.ui.UIDataType
 import org.projectforge.ui.UIDataTypeUtils
 import org.reflections.Reflections
 import java.io.File
@@ -194,8 +196,15 @@ object GenerateNextFieldMetadataMain {
   private fun buildField(elementInfo: ElementInfo): List<Pair<String, String>>? {
     val propertyClass = elementInfo.propertyClass
     val isEnum = propertyClass.isEnum
-    // Enums travel as their constant name, so the frontend treats them as strings.
-    val dataType = if (isEnum) "STRING" else UIDataTypeUtils.getDataType(elementInfo)?.name ?: return null
+    val dataType = when {
+      // Enums travel as their constant name, so the frontend treats them as strings.
+      isEnum -> "STRING"
+      // Money (`@PropertyInfo(type = CURRENCY)`), not a plain quantity: the forms write it with two digits
+      // and the user's currency, the lists as currency. Not in [UIDataTypeUtils], which also types the
+      // inputs of the remaining UILayout pages and knows nothing of an AMOUNT.
+      elementInfo.propertyType == PropertyType.CURRENCY -> UIDataType.AMOUNT.name
+      else -> UIDataTypeUtils.getDataType(elementInfo)?.name ?: return null
+    }
     val properties = mutableListOf<Pair<String, String>>()
     properties.add("dataType" to quote(dataType))
     elementInfo.i18nKey?.let { properties.add("i18nKey" to quote(it)) }

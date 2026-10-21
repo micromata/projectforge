@@ -94,11 +94,6 @@ test.describe("memo", { tag: "@parallel" }, () => {
       .click();
     expect((await deleted).url()).toMatch(/\/rs\/memo\/delete$/);
   });
-
-  test("redirects the old React list", async ({ loggedInPage: page }) => {
-    await page.goto("/react/memo");
-    await expect(page).toHaveURL(/\/next\/memo$/);
-  });
 });
 
 function escape(text: string): string {

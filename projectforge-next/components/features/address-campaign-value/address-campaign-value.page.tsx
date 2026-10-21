@@ -44,8 +44,7 @@ export const ADDRESS_CAMPAIGN_VALUE_ROUTE = "/address-campaign-value";
  * Replaces the server-laid-out React page (`AddressCampaignValuePagesRest`), which it follows: one row per
  * address of the campaign selected in the campaign filter, with the value and comment the address has in it.
  * An address without a value yet is a row as well (synthetic negative id); its click opens the form for a new
- * value of that address in that campaign. The React page stays reachable as the way back while a campaign is
- * running (category `addressCampaignValueLegacy`, see NextMigration).
+ * value of that address in that campaign. The React page is gone, there is no way back.
  *
  * Every column is sorted by the backend in memory (`AddressCampaignValueEntityRest.computedSortProperties`):
  * the query runs on the addresses.

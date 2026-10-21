@@ -1,9 +1,5 @@
 # Legacy REST endpoints without @AccessChecked, see RestEndpointAccessCheckTest.
 # May only shrink: never add new endpoints here, annotate them.
-org.projectforge.plugins.banking.BankAccountRecordImportPageRest#getForm
-org.projectforge.plugins.banking.BankingServicesRest#import
-org.projectforge.plugins.marketing.rest.AddressCampaignValuePagesRest#exportAsExcel
-org.projectforge.plugins.marketing.rest.AddressCampaignValuePagesRest#getItemAndLayout
 org.projectforge.plugins.skillmatrix.SkillMatrixServicesRest#exportFavoritesExcel
 org.projectforge.rest.AddressImageServicesRest#deleteImage
 org.projectforge.rest.AddressImageServicesRest#getImage
@@ -55,10 +51,6 @@ org.projectforge.rest.calendar.CalendarSettingsPageRest#watchFields
 org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest#getLayout
 org.projectforge.rest.calendar.TeamEventEntityRest#switch2Timesheet
 org.projectforge.rest.calendar.VacationServicesRest#getVacationUserObjects
-org.projectforge.rest.core.AbstractPagesRest#getItemAndLayout
-org.projectforge.rest.core.AbstractPagesRest#requestInitialList
-org.projectforge.rest.core.AbstractPagesRest#resetGridState
-org.projectforge.rest.core.AbstractPagesRest#watchFields
 org.projectforge.rest.fibu.EingangsrechnungMultiSelectedPageRest#exportTransfers
 org.projectforge.rest.GroupEntityRest#createGid
 org.projectforge.rest.GroupEntityRest#exportAsExcel
@@ -66,18 +58,8 @@ org.projectforge.rest.HistoryEntryUserCommentModalRest#append
 org.projectforge.rest.HistoryEntryUserCommentModalRest#cancel
 org.projectforge.rest.HistoryEntryUserCommentModalRest#getItem
 org.projectforge.rest.HistoryEntryUserCommentModalRest#getItemAndLayout
-org.projectforge.rest.importer.AbstractImportPageRest#cancel
-org.projectforge.rest.importer.AbstractImportPageRest#cancelAndGetUrl
-org.projectforge.rest.importer.AbstractImportPageRest#import
-org.projectforge.rest.importer.AbstractImportPageRest#reconcile
-org.projectforge.rest.importer.AbstractImportPageRest#watchFields
 org.projectforge.rest.IndexRest#getTranslations
 org.projectforge.rest.LogoutRest#logout
-org.projectforge.rest.my2fa.My2FAPageRest#getForm
-org.projectforge.rest.my2fa.My2FAServicesRest#checkOTP
-org.projectforge.rest.my2fa.My2FAServicesRest#sendMailCode
-org.projectforge.rest.my2fa.My2FAServicesRest#sendSmsCode
-org.projectforge.rest.my2fa.My2FAServicesRest#webAuthnFinish
 org.projectforge.rest.pub.AuthenticationPublicServicesRest#getAuthenticationCredentials
 org.projectforge.rest.pub.CalendarSubscriptionServiceRest#exportCalendar
 org.projectforge.rest.pub.LogoServiceRest#getGifLogo

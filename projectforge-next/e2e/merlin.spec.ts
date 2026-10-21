@@ -100,19 +100,6 @@ test.describe("merlin", { tag: "@parallel" }, () => {
       await deleteTemplate(page.request, id);
     }
   });
-
-  test("redirects the old React pages", async ({ loggedInPage: page }) => {
-    // OrphanedLinkFilter lives in Spring; the Next dev server does not serve /react at all.
-    const port = new URL(test.info().project.use.baseURL ?? "").port;
-    test.skip(
-      process.env.E2E_DEV_SERVER === "1" || port === "3000",
-      "needs Spring"
-    );
-    await page.goto("/react/merlin");
-    await expect(page).toHaveURL(/\/next\/merlin$/);
-    await page.goto("/react/merlinexecution/dynamic/42");
-    await expect(page).toHaveURL(/\/next\/merlin\/42$/);
-  });
 });
 
 function field(page: Page, variable: string) {

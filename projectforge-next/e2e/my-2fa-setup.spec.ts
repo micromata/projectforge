@@ -77,17 +77,4 @@ test.describe("2FA setup", { tag: "@parallel" }, () => {
       .click();
     await expect(page).toHaveURL(/\/next\/2FASetup$/);
   });
-
-  test("redirects the old React pages", async ({ loggedInPage: page }) => {
-    // OrphanedLinkFilter lives in Spring; the Next dev server does not serve /react at all.
-    const port = new URL(test.info().project.use.baseURL ?? "").port;
-    test.skip(
-      process.env.E2E_DEV_SERVER === "1" || port === "3000",
-      "needs Spring"
-    );
-    await page.goto("/react/2FASetup/dynamic");
-    await expect(page).toHaveURL(/\/next\/2FASetup$/);
-    await page.goto("/react/WebAuthnSetup/dynamic?id=1");
-    await expect(page).toHaveURL(/\/next\/2FASetup$/);
-  });
 });

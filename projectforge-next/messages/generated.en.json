@@ -2998,6 +2998,7 @@
     "fields": {
       "changed": "Changed fields"
     },
+    "info": "Please see the log viewer for checking what happened.",
     "mode": {
       "append": "Append",
       "delete": {
@@ -3510,26 +3511,56 @@
         "_": "Bank account",
         "bank": "Bank",
         "bic": "BIC",
+        "fullAccessGroups": "Full access (groups)",
+        "fullAccessUsers": "Full access (users)",
         "iban": "IBAN",
         "importSettings": "Settings for import of transactions",
         "name": "Name",
+        "readonlyAccessGroups": "Read-only access (groups)",
+        "readonlyAccessUsers": "Read-only access (users)",
         "record": {
+          "accountIban": "IBAN of account",
+          "accountName": "Name of account",
           "amount": "Amount",
+          "cashflow": "Cash flow",
           "checksum": {
             "_": "Checksum",
             "info": "The checksum is calculated while importing records for detecting any later manipulation of date, amount, iban of receiver/sender etc."
           },
+          "checksumErrors": "Checksum error",
           "collectionReference": "Collection reference",
           "currency": "Currency",
           "customerReference": "Customer reference",
           "date": "Date",
           "debteeId": "Debtee id",
+          "doublets": "Doublets",
+          "import": {
+            "description": "Upload the transactions of a bank account as a csv file, as the online banking exports it. The columns are mapped by the import settings of the account. A transaction imported before is updated, not doubled, so files with overlapping periods may be imported several times.\n\n**Transactions of the file's period missing in the file are offered as deleted.** Deselect them before the import if they are to be kept.",
+            "error": {
+              "noBankAccountGiven": "No bank account given. Import cancelled."
+            },
+            "title": "Import bank account records"
+          },
+          "income": "Income",
           "info": "Info",
           "mandateReference": "Mandate reference",
+          "outgo": "Outgo",
           "receiverSender": "Receiver/Payer",
+          "references": "References",
           "subject": "Subject",
+          "title": {
+            "add": "New transaction",
+            "edit": "Edit transaction",
+            "list": "List of transactions"
+          },
+          "transaction": "Transaction",
           "type": "Type",
           "valueDate": "Value date"
+        },
+        "title": {
+          "add": "New bank account",
+          "edit": "Edit bank account",
+          "list": "Bank accounts"
         }
       }
     },
@@ -5564,20 +5595,17 @@
       },
       "lastSuccessful2FA": "Last successful 2 FA",
       "password": {
-        "info": "The password is only needed as an additional factor if you received the code via e-mail.",
         "wrong": "Password check failed."
       },
       "sendCode": {
         "mail": {
           "_": "Request mail code",
-          "info": "Send code as e-mail. The code will be valid up to 2 minutes and your password is required when validating the sent code.",
           "message": "Your code is: {arg0}",
           "sentSuccessfully": "Mail was successfully sent to Your e-mail address at {arg0}",
           "title": "Message from ProjectForge"
         },
         "sms": {
           "_": "Request SMS code",
-          "info": "Request code as text message to your mobile phone. The code will be valid up to 2 minutes.",
           "sentSuccessfully": "Message successfully sent to Your mobile phone at {arg0}."
         }
       },

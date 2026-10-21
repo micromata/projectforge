@@ -34,9 +34,7 @@ import org.springframework.stereotype.Service
 /**
  * Determines which second factors are usable for a user.
  *
- * The old React app doesn't need this: the server builds the buttons for available methods only
- * (My2FAServicesRest.fillCodeCol). projectforge-next builds its form by hand and therefore has to ask.
- * The conditions here must stay in sync with fillCodeCol.
+ * projectforge-next builds its 2FA form by hand and therefore has to ask, which methods to offer.
  */
 @Service
 class NextTwoFactorMethodsService {

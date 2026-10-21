@@ -411,10 +411,9 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
     /**
      * The footer markdown for a client that renders no typed statistics itself: the summed duration and —
      * where the installation tracks it — the AI share of the given [stats], in the same two-column layout the
-     * legacy React list reads. Shared with the mass-update page ([TimesheetMultiSelectedPageRest.getStatistics])
-     * so both render the identical line.
+     * legacy React list reads.
      */
-    internal fun buildStatisticsMarkdown(stats: TimesheetListStatistics): String {
+    private fun buildStatisticsMarkdown(stats: TimesheetListStatistics): String {
         val md = MarkdownBuilder()
         md.appendPipedValue("timesheet.totalDuration", stats.totalDuration, MarkdownBuilder.Color.BLUE)
         if (stats.aiEnabled) {

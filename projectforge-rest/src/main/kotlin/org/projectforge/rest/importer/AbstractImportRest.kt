@@ -40,18 +40,14 @@ import java.io.InputStream
 private val log = KotlinLogging.logger {}
 
 /**
- * The layout-free, JSON returning analog of the UILayout based [AbstractImportPageRest].
- *
- * Where the legacy page answers with `UILayout` / `ResponseAction` objects a React page rehydrates, this base
- * answers with plain [ImportView] JSON that a hand built page reads directly. The legacy class stays in
- * place — banking still uses it; this base is only the reusable foundation for the newer,
- * hand built import pages, starting with the incoming-invoice (Kreditor) CSV import.
+ * The layout-free, JSON returning base of the hand built import pages (projectforge-next, `ImportFeature`): it
+ * answers with plain [ImportView] JSON that the page reads directly. It replaced the UILayout based
+ * `AbstractImportPageRest` of the React app, whose last subclass (banking) moved to next.
  *
  * The import storage lives in the user's session under a per-controller key (see [sessionAttributeName]),
- * reusing the same [ExpiringSessionAttributes] mechanism and [AbstractImportPageRest.getSessionAttributeName]
- * scheme the upload page uses, so the two never collide.
+ * using [ExpiringSessionAttributes] (see [getSessionAttributeName]).
  *
- * The endpoint contract mirrors [AbstractImportPageRest]'s actions:
+ * The endpoint contract:
  *  - `POST upload` parses the file and stashes the storage, then answers the [ImportView].
  *  - `GET state` answers the current [ImportView] (an empty, `null`-storage one if nothing is in progress).
  *  - `POST reconcile` reconciles with the database, then answers the [ImportView].
@@ -175,7 +171,7 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
 
     /**
      * Filters the stashed entries to the ids the user selected — keeping only the importable states (NEW,
-     * MODIFIED, DELETED), exactly as [AbstractImportPageRest]'s import action does — and enqueues the import
+     * MODIFIED, DELETED) — and enqueues the import
      * job. Answers `{ jobId }` on success, a `400` with an `error` message otherwise.
      */
     @PostMapping("commit")
@@ -266,11 +262,10 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
     }
 
     /**
-     * The per-controller session key, reusing [AbstractImportPageRest]'s scheme so it never collides with a
-     * legacy import page's key.
+     * The per-controller session key, see [getSessionAttributeName].
      */
     protected val sessionAttributeName: String
-        get() = AbstractImportPageRest.getSessionAttributeName(this::class.java)
+        get() = getSessionAttributeName(this::class.java)
 
     /**
      * The request body of [commit]: the ids of the selected entries and the display options.
@@ -281,6 +276,14 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
     )
 
     companion object {
+        /**
+         * The session key of the import storage of the given import controller, e.g. for an import that fills the
+         * stash of a related one (see [stashStorage]).
+         */
+        fun getSessionAttributeName(importRest: Class<*>): String {
+            return "${importRest.name}.importStorage"
+        }
+
         /** Session TTL of a stashed import, in minutes (matching the legacy upload page). */
         private const val TTL_MINUTES = 20
     }

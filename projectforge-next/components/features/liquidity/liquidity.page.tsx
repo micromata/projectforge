@@ -58,16 +58,8 @@ export const LIQUIDITY_PAGE = definePage<
   titleKey: "plugins.liquidityplanning.entry.title.list",
   columns: [
     { name: "dateOfPayment", size: 130, pinned: "left" },
-    {
-      // The amount is a `DECIMAL` field, but it is money and reads as money (right-aligned, in the user's
-      // currency) — a computed column over the field so it can carry the `AMOUNT` data type the field's
-      // metadata doesn't.
-      id: "amount",
-      labelKey: "fibu.common.betrag",
-      accessor: (row) => row.amount ?? null,
-      dataType: "AMOUNT",
-      size: 140,
-    },
+    // Money (`AMOUNT` in the metadata): right-aligned, in the user's currency.
+    { name: "amount", size: 140 },
     {
       // The paid status the entry is actually judged by: the manual override, or — while it is
       // "automatic" — the autoSetPaid rule the backend applied (`effectivePaid`). A computed column so

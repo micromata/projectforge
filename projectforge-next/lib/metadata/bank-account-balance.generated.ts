@@ -9,7 +9,7 @@ export const BANK_ACCOUNT_BALANCE_METADATA = {
   historizable: true,
   fields: {
     amount: {
-      dataType: "DECIMAL",
+      dataType: "AMOUNT",
       i18nKey: "plugins.banking.account.record.amount",
       required: false,
     },

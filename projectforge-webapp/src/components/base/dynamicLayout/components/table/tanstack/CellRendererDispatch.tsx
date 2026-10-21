@@ -2,10 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { Cell, flexRender } from '@tanstack/react-table';
 import { evaluateFieldExpression } from './tableUtils';
 import Formatter from '../../../../Formatter';
-import DynamicAgGridDiffCell from '../DynamicAgGridDiffCell';
-import ImportStatusCell from '../ImportStatusCell';
 import MultilineCell from '../MultilineCell';
-import OpenModalLinkCell from '../../customized/components/OpenModalLinkCell';
 
 const DynamicAgGridCustomizedCell = lazy(() => import('../DynamicAgGridCustomizedCell'));
 
@@ -74,14 +71,6 @@ export default function CellRendererDispatch({ cell, components }: CellRendererD
                     {...params}
                 />
             );
-        case 'diffCell':
-            return (
-                <DynamicAgGridDiffCell
-                    value={value}
-                    data={data}
-                    colDef={{ field, cellRendererParams: params }}
-                />
-            );
         case 'customized':
             return (
                 <Suspense fallback={<span>...</span>}>
@@ -91,20 +80,8 @@ export default function CellRendererDispatch({ cell, components }: CellRendererD
                     />
                 </Suspense>
             );
-        case 'importStatusCell':
-            return <ImportStatusCell value={value as string} data={data} />;
         case 'multilineCell':
             return <MultilineCell value={value as string} />;
-        case 'OpenModalLinkCell':
-            return (
-                <OpenModalLinkCell
-                    value={value as any}
-                    data={data as any}
-                    urlPattern={params.urlPattern}
-                    multiline={params.multiline}
-                    placeholder={params.placeholder}
-                />
-            );
         default:
             return <>{flexRender(cell.column.columnDef.cell, cell.getContext())}</>;
     }

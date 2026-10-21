@@ -37,6 +37,9 @@ private val log = KotlinLogging.logger {}
 
 /*
  * Redirect orphaned links from former versions of ProjectForge (e. g. if link in e-mails were changed due to migrations or refactoring.
+ * Only links that left ProjectForge (sent by mail or shared by a data transfer area) get a redirect of their own, and the
+ * former start pages (login, calendar), which browsers offer and users keep; any other old Wicket link lands on the next
+ * start page (catch-all), an old React link isn't redirected.
  */
 class OrphanedLinkFilter : Filter {
     /**
@@ -56,120 +59,32 @@ class OrphanedLinkFilter : Filter {
             return
         }
         val uri = servletRequest.requestURI ?: ""
-        if (uri.contains("/wa/login")) { // Old Wicket login page, bookmarked by some users.
+        if (uri.contains("/wa/login")) { // Old Wicket login page, the former start page.
             redirect(servletResponse, uri, "/")
-        } else if (uri.contains("/wa/calendar") || uri.contains("/wa/teamCalendar")) { // Old Wicket calendars, bookmarked by some users.
+        } else if (uri.contains("/wa/calendar") || uri.contains("/wa/teamCalendar")) { // Old Wicket calendars, the
+            // former page after login.
             redirect(servletResponse, uri, "/${NextMigration.listUrl("calendar")}")
-        } else if (uri.contains("/wa/search")) { // Old Wicket global search, migrated to projectforge-next.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}search")
-        } else if (uri.contains("/wa/personalStatistics")) { // Old Wicket personal statistics, migrated to
-            // projectforge-next. The Wicket page was removed, so there is no "classic version" escape hatch.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}personalStatistics")
-        } else if (uri.contains("/wa/feedback")) { // Old Wicket feedback page, migrated to projectforge-next.
-            // The Wicket page was removed, so there is no "classic version" escape hatch.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}feedback")
-        } else if (uri.contains("/wa/monthlyEmployeeReport")) { // Old Wicket monthly report, migrated to
-            // projectforge-next. The Wicket page was removed, so there is no "classic version" escape hatch.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}monthlyEmployeeReport")
-        } else if (uri.contains("/wa/wicket/bookmarkable/org.projectforge.plugins.ihk.IHKPage")) { // Old Wicket
-            // IHK report of the IHK plugin, migrated to projectforge-next. The Wicket page was removed, so there is
-            // no "classic version" escape hatch.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}ihk")
-        } else if (uri.endsWith("/wa/hrList") || uri.contains("/wa/hrList/")) { // Old Wicket HR view, migrated to
-            // projectforge-next. The Wicket page was removed, so there is no "classic version" escape hatch. The
-            // precise segment match keeps this from catching sibling pages.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}hrList")
-        } else if (uri.endsWith("/wa/datevImport") || uri.contains("/wa/datevImport/")) { // Old Wicket DATEV import,
-            // migrated to projectforge-next. The Wicket page was removed, so there is no "classic version" escape hatch.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}datev-import")
-        } else if (uri.endsWith("/wa/admin") || uri.contains("/wa/admin/")) {
-            // Old Wicket System (administration) page, migrated to projectforge-next. The Wicket page was removed,
-            // so there is no "classic version" escape hatch. The precise segment match keeps this from catching
-            // sibling pages like /wa/adminLogViewer.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}system")
-        } else if (uri.endsWith("/react/systemStatistics") || uri.contains("/react/systemStatistics/")) {
-            // Old dynamic React page of the system statistics, migrated to projectforge-next. The React page was
-            // removed, so there is no "classic version" escape hatch.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}$SYSTEM_STATISTICS_ROUTE")
-        } else if (uri.endsWith("/react/myAccount") || uri.contains("/react/myAccount/")
-            || uri.endsWith("/react/tokenInfo") || uri.contains("/react/tokenInfo/")
-        ) {
-            // Old dynamic React pages of my account and of a token's usage (a modal of my account), migrated to
-            // projectforge-next. The React pages were removed, so there is no "classic version" escape hatch. The
-            // precise segment match keeps this from catching sibling pages like /react/myScript.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}myAccount")
-        } else if (uri.endsWith("/react/2FASetup") || uri.contains("/react/2FASetup/")
-            || uri.endsWith("/react/WebAuthnSetup") || uri.contains("/react/WebAuthnSetup/")
-        ) {
-            // Old dynamic React pages of the 2FA setup and of a WebAuthn key (a dialog of the setup now), migrated to
-            // projectforge-next. The React pages were removed, so there is no "classic version" escape hatch. The
-            // precise segment match keeps this from catching the 2FA page /react/2FA. No parameters are passed on.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}2FASetup")
-        } else if (uri.endsWith("/react/changePassword") || uri.contains("/react/changePassword/")
-            || uri.endsWith("/react/changeWlanPassword") || uri.contains("/react/changeWlanPassword/")
-        ) {
-            // Old dynamic React pages for changing the (WLAN) password, migrated to projectforge-next. The React
-            // pages were removed, so there is no "classic version" escape hatch. The user id (admins changing
-            // another user's password) is interpolated into the Location header, so only a number is passed on.
-            val page = if (uri.contains("/react/changeWlanPassword")) "changeWlanPassword" else "changePassword"
+        } else if (uri.endsWith("/react/changePassword") || uri.contains("/react/changePassword/")) {
+            // Old dynamic React page for changing the password, linked by the "password not changed" mails of 9.0.5
+            // (react/changePassword/dynamic) and migrated to projectforge-next. The React page was removed, so there is
+            // no "classic version" escape hatch. The user id (admins changing another user's password) is
+            // interpolated into the Location header, so only a number is passed on.
             val userId = servletRequest.getParameter("userId")?.toLongOrNull()
             val query = if (userId != null) "?userId=$userId" else ""
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}$page$query")
-        } else if (uri.endsWith("/react/pollResponse") || uri.contains("/react/pollResponse/")
-            || uri.endsWith("/react/pollInfo") || uri.contains("/react/pollInfo/")
-        ) {
-            // Old dynamic React pages of the polls: the answer page (linked by the mails of a poll) and the guide,
-            // migrated to projectforge-next. The React pages were removed, so there is no "classic version" escape
-            // hatch. The poll id is interpolated into the Location header, so only a number is passed on.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}changePassword$query")
+        } else if (uri.endsWith("/react/pollResponse") || uri.contains("/react/pollResponse/")) {
+            // Old dynamic React page answering a poll, linked by the mails of a poll and migrated to
+            // projectforge-next. The React page was removed, so there is no "classic version" escape hatch. The
+            // poll id is interpolated into the Location header, so only a number is passed on.
             val pollId = servletRequest.getParameter("pollId")?.toLongOrNull()
-            val target = if (uri.contains("/react/pollResponse") && pollId != null) "poll/$pollId/answer" else "poll"
+            val target = if (pollId != null) "poll/$pollId/answer" else "poll"
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}$target")
-        } else if (uri.endsWith("/react/vacationAccount") || uri.contains("/react/vacationAccount/")) {
-            // Old dynamic React page of the vacation account, migrated to projectforge-next. The React page was
-            // removed, so there is no "classic version" escape hatch. The employee (HR staff, as path segment
-            // react/vacationAccount/dynamic/<id> or as `?id=`) is interpolated into the Location header, so only a
-            // number is passed on.
-            val employeeId = uri.substringAfter("/react/vacationAccount/dynamic/", "").substringBefore('/')
-                .toLongOrNull() ?: servletRequest.getParameter("id")?.toLongOrNull()
-            val query = if (employeeId != null) "?employeeId=$employeeId" else ""
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}vacationAccount$query")
-        } else if (uri.endsWith("/react/costSearch") || uri.contains("/react/costSearch/")) {
-            // Old dynamic React page of the cost search, migrated to projectforge-next (removed, so no "classic
-            // version" escape hatch). It took no parameters.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}costSearch")
-        } else if (uri.endsWith("/react/customizeMenu") || uri.contains("/react/customizeMenu/")) {
-            // Old React menu customizer, migrated to projectforge-next (removed, so no "classic version" escape
-            // hatch). It took no parameters. Also reached by favorites menus still holding the old url.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}customizeMenu")
-        } else if (uri.endsWith("/react/birthdayButler") || uri.contains("/react/birthdayButler/")) {
-            // Old dynamic React page of the birthday butler, migrated to projectforge-next (removed, so no
-            // "classic version" escape hatch). It took no parameters.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}birthdayButler")
-        } else if (uri.endsWith("/react/eInvoiceChecker") || uri.contains("/react/eInvoiceChecker/")) {
-            // Old dynamic React page of the e-invoice checker, migrated to projectforge-next (removed, so no
-            // "classic version" escape hatch). It took no parameters.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}eInvoiceChecker")
-        } else if (uri.endsWith("/react/sipgate") || uri.contains("/react/sipgate/")) {
-            // Old dynamic React page of the Sipgate actions, removed: they are a menu of the System page in
-            // projectforge-next (no "classic version" escape hatch). It took no parameters.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}system")
-        } else if (uri.endsWith("/react/vacationExport") || uri.contains("/react/vacationExport/")) {
-            // Old dynamic React page of the team vacation export, migrated to projectforge-next (removed, so no
-            // "classic version" escape hatch). It took no parameters.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}vacationExport")
-        } else if (uri.endsWith("/react/jobsMonitor") || uri.contains("/react/jobsMonitor/")) {
-            // Old dynamic React page of the job monitor, migrated to projectforge-next (removed, so no "classic
-            // version" escape hatch). The job id is interpolated into the Location header, so only a number is
-            // passed on; the caller (a url) is not, a bookmarked link has nothing to return to.
-            val jobId = servletRequest.getParameter("jobId")?.toIntOrNull()
-            val query = if (jobId != null) "?jobId=$jobId" else ""
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}jobsMonitor$query")
-        } else if (uri.endsWith("/wa/userPrefList") || uri.contains("/wa/userPrefList/")
-            || uri.endsWith("/wa/userPrefEdit") || uri.contains("/wa/userPrefEdit/")
-        ) {
-            // Old Wicket user preferences (favorites/templates), removed without a replacement page: the task
-            // favorites and the timesheet templates are managed where they are used. Lands on the next start page.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}")
+        } else if (uri.endsWith("/react/response") || uri.contains("/react/response/")) {
+            // The answer page as the reminder mails of a poll ending soon linked it (8.0 and 8.1, PollCronJobs):
+            // react/response/dynamic/<pollId>. Only a number is passed on, as above.
+            val pollId = uri.substringAfter("/react/response/dynamic/", "").substringBefore('/').toLongOrNull()
+            val target = if (pollId != null) "poll/$pollId/answer" else "poll"
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}$target")
         } else if (uri.contains("/wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage")) {
             // /wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage?id=26422747
             // The id is interpolated into the Location header, so only accept what an id can be: anything else is
@@ -183,22 +98,20 @@ class OrphanedLinkFilter : Filter {
             }
         } else if (redirectRenamedNextPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a page of projectforge-next that has moved to another route was redirected.
-        } else if (redirectRemovedCalendarPage(servletRequest, servletResponse, uri)) {
+        } else if (redirectRemovedCalendarPage(servletResponse, uri)) {
             // Handled: a link to a removed Wicket calendar page was redirected.
-        } else if (redirectGoneReactPage(servletResponse, uri)) {
-            // Handled: a link to an old React page of a category whose way back is Wicket was redirected.
-        } else if (redirectAddressPage(servletRequest, servletResponse, uri)) {
-            // Handled: a link to the React view or import page of the addresses was redirected.
         } else if (redirectDataTransferPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a dynamic React page of the data transfer plugin was redirected.
         } else if (redirectPublicDataTransferPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to the React external access of a data transfer area was redirected.
-        } else if (redirectExecutePage(servletRequest, servletResponse, uri)) {
-            // Handled: a link to a React script or Merlin template execution page was redirected.
         } else if (redirectMigratedPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a legacy page that has moved to projectforge-next was redirected.
-        } else if (redirectLastWicketPage(servletRequest, servletResponse, uri)) {
-            // Handled: a link to one of the last Wicket pages outside NextMigration's conventions was redirected.
+        } else if (isWicketPage(uri, "phoneCall")) {
+            // The Wicket direct call, the one page meant to be called by url from outside: its deep link parameters
+            // (addressId, number, callerPage) mean the same on the next page; Wicket also accepted the short aliases
+            // address, no and cp.
+            val query = wicketQuery(servletRequest, mapOf("address" to "addressId", "no" to "number", "cp" to "callerPage"))
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}phoneCall$query")
         } else if (uri.endsWith("/wa") || uri.contains("/wa/")) {
             // Catch-all: no request reaches Wicket any more. Every old link not mapped above (and any Wicket
             // internal url, e.g. wa/wicket/page?3) lands on the next start page instead of an error page.
@@ -209,8 +122,8 @@ class OrphanedLinkFilter : Filter {
     }
 
     /**
-     * The pages of projectforge-next that moved to another route ([RENAMED_NEXT_PAGES]), e.g. bookmarked or
-     * linked by an error digest mail (`next/problemDashboard?id=42`). The query (the problem's id, the tab) means the
+     * The pages of projectforge-next that moved to another route and were linked by the error digest mail
+     * ([RENAMED_NEXT_PAGES], e.g. `next/problemDashboard?id=42`). The query (the problem's id, the tab) means the
      * same on the new route and is carried over. The precise segment match keeps this from catching sibling
      * pages and the payloads (`.txt`) of the client router.
      *
@@ -232,73 +145,18 @@ class OrphanedLinkFilter : Filter {
     }
 
     /**
-     * The removed Wicket calendar pages: the old calendars (wa/oldCalendar, wa/oldTeamCalendar), the team event
-     * list (dropped, the events are reached through the calendar) and edit page, the team calendar
-     * administration and the ICS import (both next). All but the old calendars were bookmarkable pages only
-     * (wa/wicket/bookmarkable/<class>), taking their id as the parameter `id` (the import: `teamCalId`). Ids are
-     * interpolated into the Location header, so only numbers are accepted.
+     * The removed Wicket calendars as the former page after login (bookmarkable pages only,
+     * wa/wicket/bookmarkable/<class>) lead to the next calendar.
      *
      * @return true if the request was such a link and a redirect was sent.
      */
-    private fun redirectRemovedCalendarPage(
-        request: HttpServletRequest,
-        response: ServletResponse,
-        uri: String,
-    ): Boolean {
-        val id = request.getParameter("id")?.toLongOrNull()
-        val target = when {
-            uri.endsWith("/wa/oldCalendar") || uri.endsWith("/wa/oldTeamCalendar")
-                || uri.contains("$BOOKMARKABLE.calendar.CalendarPage")
-                || uri.contains("$BOOKMARKABLE.teamcal.integration.TeamCalCalendarPage")
-                || uri.contains("$BOOKMARKABLE.teamcal.event.TeamEventListPage") ->
-                NextMigration.listUrl("calendar")
-
-            uri.contains("$BOOKMARKABLE.teamcal.event.TeamEventEditPage") ->
-                if (id != null) {
-                    NextMigration.nextEditPage("teamEvent")!!.replace(NextMigration.ID_PLACEHOLDER, "$id")
-                } else {
-                    NextMigration.newEntryUrl("teamEvent")
-                }
-
-            uri.contains("$BOOKMARKABLE.teamcal.admin.TeamCalListPage") -> NextMigration.listUrl("teamCal")
-            uri.contains("$BOOKMARKABLE.teamcal.admin.TeamCalEditPage") ->
-                if (id != null) {
-                    NextMigration.standardEditPage("teamCal").replace(NextMigration.ID_PLACEHOLDER, "$id")
-                } else {
-                    NextMigration.newEntryUrl("teamCal")
-                }
-
-            uri.contains("$BOOKMARKABLE.teamcal.event.importics.TeamCalImportPage") -> {
-                val teamCalId = request.getParameter("teamCalId")?.toLongOrNull()
-                "${Constants.NEXT_APP_PATH}teamCalImport" + (teamCalId?.let { "?teamCalId=$it" } ?: "")
-            }
-
-            else -> return false
+    private fun redirectRemovedCalendarPage(response: ServletResponse, uri: String): Boolean {
+        if (!uri.contains("$BOOKMARKABLE.calendar.CalendarPage")
+            && !uri.contains("$BOOKMARKABLE.teamcal.integration.TeamCalCalendarPage")
+        ) {
+            return false
         }
-        redirect(response, uri, "/$target")
-        return true
-    }
-
-    /**
-     * The old React pages (list and form) of [GONE_REACT_CATEGORIES], migrated to projectforge-next. Not
-     * covered by [redirectMigratedPage]: their legacy app is Wicket, the way back. The React pages are gone
-     * (their EntityRest serves no layout), so there is no escape hatch to let through. The precise segment
-     * match keeps this from catching sibling pages like react/projectXyz or react/taskTree.
-     * react/<category>/edit/<id>; no id means the add page.
-     *
-     * @return true if the request was such a link and a redirect was sent.
-     */
-    private fun redirectGoneReactPage(response: ServletResponse, uri: String): Boolean {
-        val category = GONE_REACT_CATEGORIES.find { uri.endsWith("/react/$it") || uri.contains("/react/$it/") }
-            ?: return false
-        val isEdit = uri.endsWith("/react/$category/edit") || uri.contains("/react/$category/edit/")
-        val id = uri.substringAfter("/react/$category/edit/", "").substringBefore('/').toLongOrNull()
-        val target = when {
-            id != null -> NextMigration.nextEditPage(category)!!.replace(NextMigration.ID_PLACEHOLDER, "$id")
-            isEdit -> NextMigration.newEntryUrl(category)
-            else -> NextMigration.listUrl(category)
-        }
-        redirect(response, uri, "/$target")
+        redirect(response, uri, "/${NextMigration.listUrl("calendar")}")
         return true
     }
 
@@ -358,70 +216,6 @@ class OrphanedLinkFilter : Filter {
             Constants.NEXT_APP_PATH
         }
         redirect(response, uri, "/$target")
-        return true
-    }
-
-    /**
-     * The React execution pages, migrated to projectforge-next: react/scriptExecute/dynamic/<id> (a stored
-     * script, without an id the ad-hoc editor, `?example=<n>` with an example script),
-     * react/myScriptExecute/dynamic/<id> and react/merlinexecution/dynamic/<id> (a Merlin template). The lists
-     * and the forms are covered by [redirectMigratedPage] - which must come after this, because react/script and
-     * react/merlin are prefixes of these urls. The pages are gone, so there is no escape hatch. Id and example are interpolated into the Location header, so only numbers are
-     * accepted; the React app took the id as path segment or as parameter.
-     *
-     * @return true if the request was such a link and a redirect was sent.
-     */
-    private fun redirectExecutePage(
-        request: HttpServletRequest,
-        response: ServletResponse,
-        uri: String,
-    ): Boolean {
-        val (page, category) = EXECUTE_PAGES.entries
-            .find { (page, _) -> uri.contains("/react/$page/") || uri.endsWith("/react/$page") }
-            ?.toPair() ?: return false
-        val listUrl = NextMigration.listUrl(category)
-        val id = uri.substringAfter("/react/$page/dynamic/", "").substringBefore('/').toLongOrNull()
-            ?: request.getParameter("id")?.toLongOrNull()
-        val target = when {
-            id != null -> "$listUrl/$id"
-            category == "script" ->
-                "$listUrl/execute" + (request.getParameter("example")?.toIntOrNull()?.let { "?example=$it" } ?: "")
-            else -> listUrl
-        }
-        redirect(response, uri, "/$target")
-        return true
-    }
-
-    /**
-     * The dynamic React pages of the addresses, which have no category of their own in [NextMigration] (the list
-     * and the form are bent by [redirectMigratedPage]): the view `react/addressView/dynamic/<id>` (also `?id=`, and
-     * `react/calendar/addressView/...` as the React calendar opened it for a birthday) leads to the view of
-     * projectforge-next, the VCF import `react/addressImportUpload/dynamic` to its import page. Checked before
-     * [redirectMigratedPage], whose `calendar` entry would take the calendar variant for a calendar link. Ids are
-     * interpolated into the Location header, so only numbers are accepted.
-     *
-     * @return true if the request was such a link and a redirect was sent.
-     */
-    private fun redirectAddressPage(
-        request: HttpServletRequest,
-        response: ServletResponse,
-        uri: String,
-    ): Boolean {
-        val listUrl = "/${NextMigration.listUrl("address")}"
-        if (uri.endsWith("/react/addressImportUpload") || uri.contains("/react/addressImportUpload/")) {
-            redirect(response, uri, "$listUrl/import")
-            return true
-        }
-        val page = listOf("react/calendar/addressView", "react/addressView").find { containsPath(uri, it) }
-            ?: return false
-        val id = uri.substringAfter("/$page/dynamic/", "").substringBefore('/').toLongOrNull()
-            ?: request.getParameter("id")?.toLongOrNull()
-        val target = when {
-            id == null -> listUrl
-            page.startsWith("react/calendar/") -> "$listUrl/$id?returnTo=/calendar"
-            else -> "$listUrl/$id"
-        }
-        redirect(response, uri, target)
         return true
     }
 
@@ -497,61 +291,6 @@ class OrphanedLinkFilter : Filter {
     }
 
     /**
-     * The Wicket pages still mounted until the module is deleted that [redirectMigratedPage] doesn't cover:
-     * the task tree, the direct call and the task wizard (no category of their own), and the list/edit pages
-     * of [WICKET_PAGES_OF_REACT_CATEGORIES], whose legacy app in [NextMigration] is React. The precise
-     * segment match keeps this from catching sibling pages. Ids are interpolated into the Location header,
-     * so only numbers are accepted.
-     *
-     * @return true if the request was such a link and a redirect was sent.
-     */
-    private fun redirectLastWicketPage(
-        request: HttpServletRequest,
-        response: ServletResponse,
-        uri: String,
-    ): Boolean {
-        val target = when {
-            // Wicket's highlighted row (AbstractListPage.PARAMETER_HIGHLIGHTED_ROW) is next's highlightId.
-            isWicketPage(uri, "taskTree") ->
-                "${Constants.NEXT_APP_PATH}taskTree${wicketQuery(request, mapOf("row" to "highlightId"))}"
-            uri.contains("$BOOKMARKABLE.admin.TaskWizardPage") -> "${Constants.NEXT_APP_PATH}taskWizard"
-            // The deep link parameters (addressId, number, callerPage) mean the same on the next page; Wicket also
-            // accepted the short aliases address, no and cp.
-            isWicketPage(uri, "phoneCall") -> "${Constants.NEXT_APP_PATH}phoneCall" +
-                    wicketQuery(request, mapOf("address" to "addressId", "no" to "number", "cp" to "callerPage"))
-
-            else -> {
-                val category = WICKET_PAGES_OF_REACT_CATEGORIES.find {
-                    isWicketPage(uri, "${it}List") || isWicketPage(uri, "${it}Edit")
-                } ?: return false
-                val id = request.getParameter("id")?.toLongOrNull()
-                when {
-                    isWicketPage(uri, "${category}List") -> NextMigration.listUrl(category) + listQuery(request, category)
-                    id != null -> NextMigration.nextEditPage(category)!!.replace(NextMigration.ID_PLACEHOLDER, "$id")
-                    else -> NextMigration.newEntryUrl(category)
-                }
-            }
-        }
-        redirect(response, uri, "/$target")
-        return true
-    }
-
-    /**
-     * The filter of a Wicket list link that next's list understands under the same name: the time sheet list's
-     * `taskId`, `userId` and `kost2Id` (TimesheetListPage's parameters, read by next's timesheet page). Only
-     * numbers are carried, as they end up in the Location header.
-     *
-     * @return e.g. `?taskId=42&userId=7`, or an empty string.
-     */
-    private fun listQuery(request: HttpServletRequest, category: String): String {
-        if (category != "timesheet") return ""
-        val query = TIMESHEET_LIST_PARAMS.mapNotNull { name ->
-            request.getParameter(name)?.toLongOrNull()?.let { "$name=$it" }
-        }
-        return if (query.isEmpty()) "" else "?${query.joinToString("&")}"
-    }
-
-    /**
      * The query string of a Wicket link to carry over onto next, without the escape hatch marker (meaningless
      * there).
      *
@@ -568,7 +307,7 @@ class OrphanedLinkFilter : Filter {
         return if (query.isNullOrEmpty()) "" else "?$query"
     }
 
-    /** Whether [uri] is the Wicket mount point [mountPoint] (e.g. `/wa/taskTree`, `/wa/taskTree/...`). */
+    /** Whether [uri] is the Wicket mount point [mountPoint] (e.g. `/wa/phoneCall`, `/wa/phoneCall/...`). */
     private fun isWicketPage(uri: String, mountPoint: String): Boolean {
         return uri.endsWith("/wa/$mountPoint") || uri.contains("/wa/$mountPoint/")
     }
@@ -594,21 +333,14 @@ class OrphanedLinkFilter : Filter {
         /** Prefix of the bookmarkable urls of the Wicket pages in org.projectforge.web. */
         private const val BOOKMARKABLE = "/wa/wicket/bookmarkable/org.projectforge.web"
 
-        /** Former route -> current route of renamed next pages (without `next/`), see [redirectRenamedNextPage]. */
+        /**
+         * Former route -> current route of renamed next pages (without `next/`) linked by the error digest mail
+         * (LogGroupAdminService.DASHBOARD_PATH), see [redirectRenamedNextPage].
+         */
         private val RENAMED_NEXT_PAGES = mapOf(
-            "orderStatistics" to "finance/statistics",
             "adminErrors" to "systemDashboard",
             "problemDashboard" to "systemDashboard",
-            "systemStatistics" to SYSTEM_STATISTICS_ROUTE,
-            // The admin log viewer, a tab of the system dashboard; its query (?source=, ?search=, ?incident=) is kept.
-            "adminLogViewer" to "systemDashboard?tab=logs",
         )
-
-        /** The system statistics, a tab of the system dashboard. */
-        private const val SYSTEM_STATISTICS_ROUTE = "systemDashboard?tab=statistics"
-
-        /** Categories migrated from Wicket whose old React pages are gone, see [redirectGoneReactPage]. */
-        private val GONE_REACT_CATEGORIES = listOf("project", "task")
 
         /** The dynamic React pages of the data transfer plugin, see [redirectDataTransferPage]. */
         private val DATATRANSFER_DYNAMIC_PAGES =
@@ -616,21 +348,5 @@ class OrphanedLinkFilter : Filter {
 
         /** The external access token of a data transfer area, see [redirectPublicDataTransferPage]. */
         private val ACCESS_TOKEN_REGEX = Regex("[A-Za-z0-9]+")
-
-        /** The React execution pages (scripts, Merlin templates) and their category, see [redirectExecutePage]. */
-        private val EXECUTE_PAGES = mapOf(
-            "scriptExecute" to "script",
-            "myScriptExecute" to "myscript",
-            "merlinexecution" to "merlin",
-        )
-
-        /**
-         * Categories migrated from React whose Wicket list/edit pages (`wa/<category>List`, `wa/<category>Edit`)
-         * are still mounted, see [redirectLastWicketPage].
-         */
-        private val WICKET_PAGES_OF_REACT_CATEGORIES = listOf("timesheet", "group")
-
-        /** The filter parameters of Wicket's time sheet list that next's list reads under the same name. */
-        private val TIMESHEET_LIST_PARAMS = listOf("taskId", "userId", "kost2Id")
     }
 }

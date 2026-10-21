@@ -2998,6 +2998,7 @@
     "fields": {
       "changed": "Geänderte Felder"
     },
+    "info": "Im Protokoll finden sich detaillierte Informationen zur Massenänderung.",
     "mode": {
       "append": "Anhängen",
       "delete": {
@@ -3510,26 +3511,56 @@
         "_": "Bankkonto",
         "bank": "Bank",
         "bic": "BIC",
+        "fullAccessGroups": "Vollzugriff (Gruppen)",
+        "fullAccessUsers": "Vollzugriff (Benutzer)",
         "iban": "IBAN",
         "importSettings": "Importeinstellungen",
         "name": "Name",
+        "readonlyAccessGroups": "Lesezugriff (Gruppen)",
+        "readonlyAccessUsers": "Lesezugriff (Benutzer)",
         "record": {
+          "accountIban": "Konto-IBAN",
+          "accountName": "Kontoname",
           "amount": "Betrag",
+          "cashflow": "Geldfluss",
           "checksum": {
             "_": "Checksumme",
             "info": "Diese Checksumme wird beim Import berechnet und soll spätere Änderungen an Feldern, wie Datum, Betrag, IBAN, Empfänger etc. erkennbar machen."
           },
+          "checksumErrors": "Falsche Prüfsumme",
           "collectionReference": "Sammlerreferenz",
           "currency": "Währung",
           "customerReference": "Kundenreferenz",
           "date": "Datum",
           "debteeId": "Gläubiger-ID",
+          "doublets": "Dupletten",
+          "import": {
+            "description": "Die Umsätze eines Bankkontos werden als csv-Datei hochgeladen, wie sie das Online-Banking exportiert. Die Spalten werden über die Importeinstellungen des Kontos zugeordnet. Bereits importierte Umsätze werden aktualisiert, nicht gedoppelt; Dateien mit überlappenden Zeiträumen können also mehrfach importiert werden.\n\n**Umsätze aus dem Zeitraum der Datei, die in der Datei fehlen, werden als gelöscht angeboten.** Sollen sie bleiben, vor dem Import abwählen.",
+            "error": {
+              "noBankAccountGiven": "Kein Bankkonto für den Import hinterlegt. Vorgang abgebrochen."
+            },
+            "title": "Kontoumsätze importieren"
+          },
+          "income": "Einnahmen",
           "info": "Info",
           "mandateReference": "Mandatsreferenz",
+          "outgo": "Ausgaben",
           "receiverSender": "Empfänger/Zahlungspflichtiger",
+          "references": "Referenzen",
           "subject": "Verwendungszweck",
+          "title": {
+            "add": "Neuer Kontoumsatz",
+            "edit": "Kontoumsatz editieren",
+            "list": "Kontoumsätze"
+          },
+          "transaction": "Umsatz",
           "type": "Typ",
           "valueDate": "Wertstellung"
+        },
+        "title": {
+          "add": "Neues Bankkonto",
+          "edit": "Bankkonto editieren",
+          "list": "Bankkonten"
         }
       }
     },
@@ -5564,20 +5595,17 @@
       },
       "lastSuccessful2FA": "Letzte erfolgreiche 2. Faktorauthentifizierung",
       "password": {
-        "info": "Das Password wird nur beim Versenden des Einmalpassworts per E-Mail aus Sicherheitsgründen verlangt.",
         "wrong": "Passwortprüfung fehlgeschlagen."
       },
       "sendCode": {
         "mail": {
           "_": "E-Mail-Code anfordern",
-          "info": "Code per E-Mail anfordern. Dieser Code ist bis zu 2 Minuten gültig.",
           "message": "Der Code lautet: {arg0}",
           "sentSuccessfully": "Der 2. Faktor wurde erfolgreich per E-Mail versendet um {arg0}",
           "title": "Nachricht von ProjectForge"
         },
         "sms": {
           "_": "SMS-Code anfordern",
-          "info": "Coder per SMS anfordern. Dieser Code ist bis zu 2 Minuten gültig.",
           "sentSuccessfully": "Der 2. Faktor wurde erfolgreich per SMS versendet um {arg0}."
         }
       },

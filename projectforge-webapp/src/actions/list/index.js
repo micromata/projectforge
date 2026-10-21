@@ -1,5 +1,5 @@
 import history from '../../utilities/history';
-import { fetchJsonPost, getObjectFromQuery, getServiceURL, handleHTTPErrors } from '../../utilities/rest';
+import { getObjectFromQuery, getServiceURL, handleHTTPErrors } from '../../utilities/rest';
 
 export const LIST_DISMISS_ERROR = 'LIST_DISMISS_ERROR';
 export const LIST_SWITCH_CATEGORY = 'LIST_SWITCH_CATEGORY';
@@ -192,17 +192,4 @@ export const exportCurrentList = () => (dispatch, getState) => {
             });
         })
         .catch((error) => dispatch(fetchFailure(category, error.message)));
-};
-
-export const startMultiSelection = () => (dispatch, getState) => {
-    const { list } = getState();
-    const category = list.currentCategory;
-    return fetchJsonPost(
-        `${category}/startMultiSelection`,
-        list.categories[category].filter,
-        (json) => {
-            const { url } = json;
-            history.push(url);
-        },
-    );
 };
