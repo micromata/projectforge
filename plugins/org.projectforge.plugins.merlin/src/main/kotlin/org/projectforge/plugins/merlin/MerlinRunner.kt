@@ -56,6 +56,8 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.math.RoundingMode
+import java.time.DateTimeException
+import java.time.LocalDate
 import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -502,7 +504,7 @@ open class MerlinRunner {
             val variable = dto.findVariableByName(varname)
             if (variable != null) {
                 if (variable.type == VariableType.DATE && value != null && value is String) {
-                    val date = RestHelper.parseJSDateTime(value)?.sqlDate
+                    val date = parseDate(value)?.let { java.sql.Date.valueOf(it) }
                     if (date != null) {
                         val formattedDate = DateTimeFormatter.instance().getFormattedDate(date)
                         result.putFormatted(varname, formattedDate)
@@ -552,6 +554,27 @@ open class MerlinRunner {
             "#PersonalBoxAsPdf" // This string is also used in MerlinI18nResources.properties.
         private const val PERSONAL_BOX_VARIABLE_AS_PDF_DESC =
             "#PersonalBoxAsPdf_Description" // This string is also used in MerlinI18nResources.properties.
+
+        /**
+         * The day of a date variable: "yyyy-MM-dd" as the execution form of projectforge-next sends it, or a
+         * timestamp in UTC (an older user pref of the React form stored the user's midnight, e.g.
+         * "2026-10-21T22:00:00.000Z"), which is taken in the user's time zone.
+         */
+        fun parseDate(value: String): LocalDate? {
+            val trimmed = value.trim()
+            return try {
+                if (isoDateRegex.matches(trimmed)) {
+                    LocalDate.parse(trimmed)
+                } else {
+                    RestHelper.parseJSDateTime(trimmed)?.localDate
+                }
+            } catch (ex: DateTimeException) {
+                log.warn { "Can't parse date value '$value': ${ex.message}" }
+                null
+            }
+        }
+
+        private val isoDateRegex = Regex("""\d{4}-\d{2}-\d{2}""")
 
         fun initTemplateRunContext(templateRunContext: TemplateRunContext) {
             val locale = ThreadLocalUserContext.locale

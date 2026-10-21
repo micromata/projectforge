@@ -35,29 +35,29 @@ export function useMerlinVariables() {
   );
 
   /**
-   * Takes over the variables (and, after an analysis, the file names and conditionals). Marks the form
-   * dirty, as a change of a variable is saved with the form.
+   * Takes over the variables (and, after an analysis, the file names and conditionals). A change of a
+   * variable marks the form dirty, as it is saved with the form. An analysis doesn't: it shows what the
+   * stored template has (its attachments are saved at once), as loading the form does.
    */
   const apply = useCallback(
     (result: MerlinVariablesResult, analysis = false) => {
-      form.setFieldValue("variables", result.variables);
-      form.setFieldValue("dependentVariables", result.dependentVariables);
+      const set = (name: string, value: unknown) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        form.setFieldValue(name as any, value as any, {
+          dontUpdateMeta: analysis,
+        });
+      set("variables", result.variables);
+      set("dependentVariables", result.dependentVariables);
       if (result.lastVariableUpdate !== undefined) {
-        form.setFieldValue("lastVariableUpdate", result.lastVariableUpdate);
+        set("lastVariableUpdate", result.lastVariableUpdate);
       }
       if (analysis) {
-        form.setFieldValue(
-          "wordTemplateFileName",
-          result.wordTemplateFileName ?? null
-        );
-        form.setFieldValue(
+        set("wordTemplateFileName", result.wordTemplateFileName ?? null);
+        set(
           "excelTemplateDefinitionFileName",
           result.excelTemplateDefinitionFileName ?? null
         );
-        form.setFieldValue(
-          "conditionalsMarkdown",
-          result.conditionalsMarkdown ?? null
-        );
+        set("conditionalsMarkdown", result.conditionalsMarkdown ?? null);
       }
     },
     [form]

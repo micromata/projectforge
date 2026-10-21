@@ -23,20 +23,24 @@
 
 package org.projectforge.plugins.merlin.rest
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.jcr.RepoService
 import org.projectforge.plugins.merlin.*
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
+import org.projectforge.ui.ResponseAction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -44,6 +48,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  * The Word® templates (list and admin form) of projectforge-next, layout free. The execution of a template is
@@ -88,11 +94,33 @@ class MerlinEntityRest :
     @Autowired
     private lateinit var merlinTemplateDefinitionHandler: MerlinTemplateDefinitionHandler
 
+    @Autowired
+    private lateinit var repoService: RepoService
+
     @PostConstruct
     private fun postConstruct() {
         enableJcr()
         merlinHandler.attachmentsAccessChecker = attachmentsAccessChecker
         merlinHandler.jcrPath = jcrPath!!
+    }
+
+    /**
+     * A template has no history, so its deletion is final: its attachments (Word® template, Excel template
+     * definition) are removed as well, after the deletion succeeded.
+     */
+    override fun onAfterEdit(
+        request: HttpServletRequest,
+        obj: MerlinTemplateDO,
+        postData: PostData<MerlinTemplate>,
+        event: RestButtonEvent,
+    ): ResponseAction {
+        if (event == RestButtonEvent.DELETE) {
+            obj.id?.let { id ->
+                val files = repoService.deleteAllFilesBelow(attachmentsService.getPath(jcrPath!!, id))
+                log.info { "Merlin template #$id deleted with its ${files.size} attachment(s)." }
+            }
+        }
+        return super.onAfterEdit(request, obj, postData, event)
     }
 
     /**

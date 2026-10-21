@@ -137,7 +137,7 @@ class MerlinExecuteRest {
             name = dbObj.name,
             description = dbObj.description,
             variables = inputVariables,
-            inputVariables = userPref.inputVariables,
+            inputVariables = normalizeDates(userPref.inputVariables, inputVariables),
             pdfFormat = userPref.pdfFormat,
             wordTemplateFileName = analysis.wordTemplateFilename,
             serialFills = serialFills,
@@ -206,6 +206,21 @@ class MerlinExecuteRest {
         val zipFilename = result.first
         val zipByteArray = result.second
         return RestUtils.downloadFile(zipFilename, zipByteArray)
+    }
+
+    /**
+     * The date values of the user pref as the date field of the form expects them ("yyyy-MM-dd"): the React form
+     * stored timestamps.
+     */
+    private fun normalizeDates(values: Map<String, Any>?, variables: List<InputVariable>): Map<String, Any>? {
+        values ?: return null
+        return values.mapValues { (name, value) ->
+            if (value is String && variables.any { it.name == name && it.type == VariableType.DATE }) {
+                MerlinRunner.parseDate(value)?.toString() ?: value
+            } else {
+                value
+            }
+        }
     }
 
     private fun validate(data: MerlinExecutionData): List<ValidationError>? {

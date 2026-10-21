@@ -33,20 +33,29 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.jcr.RepoService
 import org.projectforge.plugins.merlin.MerlinExecutionData
+import org.projectforge.plugins.merlin.MerlinHandler
+import org.projectforge.plugins.merlin.MerlinRunner
 import org.projectforge.plugins.merlin.MerlinTemplate
 import org.projectforge.plugins.merlin.MerlinTemplateDO
 import org.projectforge.plugins.merlin.MerlinTemplateDao
 import org.projectforge.plugins.merlin.MerlinVariable
+import org.projectforge.rest.core.SessionCsrfService
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
 import org.projectforge.ui.ResponseAction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
+import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockMultipartFile
+import java.time.LocalDate
+import java.util.TimeZone
 
 /**
  * The Word® templates behind the next pages ([MerlinEntityRest], [MerlinExecuteRest]): a template is read and
@@ -67,6 +76,15 @@ class MerlinEntityRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var repoService: RepoService
+
+    @Autowired
+    private lateinit var attachmentsService: AttachmentsService
+
+    @Autowired
+    private lateinit var merlinHandler: MerlinHandler
+
+    @Autowired
+    private lateinit var sessionCsrfService: SessionCsrfService
 
     init {
         MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(MerlinTemplateDO::class.java.canonicalName)
@@ -194,6 +212,51 @@ class MerlinEntityRestTest : AbstractTestBase() {
         val subject = withNew.variables.single { it.name == "Subject" }
         assertTrue(subject.id!! > 0)
         assertTrue(subject.input, "A new variable is an input variable.")
+    }
+
+    @Test
+    fun `deleting a template deletes its attachments, too`() {
+        logon(TEST_USER)
+        val id = createLetter()
+        val stored = { attachmentsService.internalGetAttachments(merlinHandler.jcrPath, id) }
+        assertTrue(stored().isNotEmpty(), "The Word® template of the example.")
+        val dto = merlinEntityRest.getItem(id).body as MerlinTemplate
+        val request = MockHttpServletRequest()
+        request.getSession(true)
+        val serverData = sessionCsrfService.createServerData(request)
+        val response = merlinEntityRest.delete(request, PostData(dto, watchFieldsTriggered = null, serverData = serverData))
+        assertEquals(HttpStatus.OK, response.statusCode)
+        assertEquals(null, merlinTemplateDao.find(id, checkAccess = false))
+        assertTrue(stored().isEmpty(), "No attachment is left behind.")
+    }
+
+    @Test
+    fun `the Excel template definition of a new, unsaved template is created from its variables`() {
+        logon(TEST_USER)
+        val dto = MerlinTemplate()
+        dto.name = "new"
+        val variable = MerlinVariable()
+        variable.name = "Receiver"
+        dto.variables.add(variable)
+        val response = merlinEntityRest.exportExcelTemplate(post(dto))
+        assertEquals(HttpStatus.OK, response.statusCode)
+    }
+
+    @Test
+    fun `a date is the day of the form, also west of UTC, and a timestamp of the React form is the user's day`() {
+        val user = PFUserDO()
+        user.username = "merlin-new-york"
+        user.timeZone = TimeZone.getTimeZone("America/New_York")
+        val previous = ThreadLocalUserContext.loggedInUser
+        ThreadLocalUserContext.setUser(user)
+        try {
+            assertEquals(LocalDate.of(2026, 10, 22), MerlinRunner.parseDate("2026-10-22"))
+            // Midnight in New York, as the React form stored it:
+            assertEquals(LocalDate.of(2026, 10, 22), MerlinRunner.parseDate("2026-10-22T04:00:00.000Z"))
+            assertEquals(null, MerlinRunner.parseDate("2026-13-45"))
+        } finally {
+            ThreadLocalUserContext.setUser(previous)
+        }
     }
 
     private fun createLetter(): Long {
