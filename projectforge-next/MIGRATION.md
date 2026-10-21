@@ -532,8 +532,8 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   (`variable/update`/`delete`), gespeichert wird mit dem Formular. Nach Upload/Löschen eines Anhangs analysiert
   `merlin/analyze` die Word®-Vorlage neu, ungespeicherte Eingaben bleiben. Die Beispiele (`example/contract`,
   `example/letter`) legen Daten an und sind deshalb POST statt GET. Zahlen der Ausführung werden jetzt auch formatiert,
-  wenn sie als Zahl statt als Text kommen (`MerlinRunner.formatVariables`). Kein Rückweg und keine
-  Umleitung alter Links (`legacyApp = null`): Kein Link der Merlin-Seiten ging je nach draußen.
+  wenn sie als Zahl statt als Text kommen (`MerlinRunner.formatVariables`). Kein Rückweg und keine Umleitung
+  alter Links (`legacyApp = null`): Kein Link der Merlin-Seiten ging je nach draußen (Mail, Datentransfer).
 - **Mein Zugang** (`next/myAccount`, vorher React-UILayout `MyAccountPageRest` + Modal `TokenInfoPageRest`,
   beide gelöscht) – layoutfrei über `MyAccountRest` (`/rs/myAccount`: `GET` Daten + Auswahllisten, `save`,
   `renewToken`, `tokenInfo`, `logoutDevice`, `logoutAllDevices`; 2FA-Kurzbefehl `MY_ACCOUNT`). Die

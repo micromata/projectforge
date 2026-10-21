@@ -274,8 +274,8 @@ class NextMigrationTest {
 
     /**
      * The Word® templates of Merlin: the row click leads to the execution (`merlin/:id`), the form is a sub route
-     * of it. The React pages are gone, so there is no way back, and as no link of
-     * them ever left ProjectForge, none is redirected.
+     * of it. The React pages are gone, so there is no way back, and as no link of them ever left ProjectForge, none
+     * is redirected.
      */
     @Test
     fun `the merlin pages are next's and offer no way back`() {
