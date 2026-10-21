@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "Visitor book: while a new visitor is entered, the name offers the visitors already recorded with it; picking one adds the visit to that visitor instead of creating a duplicate. The company names in use are completed, and the dialog of the first visit opens right after a new visitor is saved.",
-  "de": "Besucherbuch: Beim Erfassen eines neuen Besuchers schlägt der Name die bereits erfassten Besucher vor; mit der Auswahl wird der Besuch dort eingetragen, statt eine Dublette anzulegen. Bereits verwendete Firmennamen werden vervollständigt, und nach dem Speichern eines neuen Besuchers öffnet sich gleich der Dialog für den ersten Besuch."
-}

@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Job monitor: the cancel button of a job is only offered to users allowed to cancel it; others saw a button without effect.",
-  "de": "Jobmonitor: Den Abbrechen-Button eines Jobs sieht nur, wer ihn abbrechen darf; andere sahen einen Button ohne Wirkung."
-}

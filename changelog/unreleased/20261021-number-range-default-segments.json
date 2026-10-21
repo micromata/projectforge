@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Number ranges: a range with customers and without configured segments shows its project and cost unit numbers by its digits (e.g. 7.0001.0 for one project digit) instead of 7.000.10.",
-  "de": "Nummernkreise: Ein Nummernkreis mit Kunden ohne konfigurierte Segmente zeigt Projekt- und Kostenträgernummern nach seinen Stellen (z. B. 7.0001.0 bei einer Projektstelle) statt 7.000.10."
-}
