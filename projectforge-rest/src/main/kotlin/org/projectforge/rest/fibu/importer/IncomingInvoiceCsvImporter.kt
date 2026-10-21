@@ -188,7 +188,8 @@ class IncomingInvoiceCsvImporter(
     /**
      * Drops the credit-card payment offsets (credit note on a clearing account): they aren't documents of their own but the
      * payment of the invoice with the same RENR. Their date is taken as paid date of that invoice, if it has none
-     * (the paid date of the invoice row wins).
+     * (the paid date of the invoice rows wins: a row without one takes that of another row of the same invoice first,
+     * otherwise its positions would get different paid dates).
      */
     override fun filterRecords(
         records: List<EingangsrechnungPosImportDTO>,
@@ -202,9 +203,14 @@ class IncomingInvoiceCsvImporter(
             .filter { it.datum != null }
             .groupBy { invoiceKeyWithoutDate(it) }
             .mapValues { (_, list) -> list.minOf { it.datum!! } }
+        val ownDateByInvoice = accepted
+            .filter { it.bezahlDatum != null }
+            .groupBy { "${invoiceKeyWithoutDate(it)}|${it.datum}" }
+            .mapValues { (_, list) -> list.minOf { it.bezahlDatum!! } }
         accepted.forEach { record ->
             if (record.bezahlDatum == null) {
-                offsetDateByInvoice[invoiceKeyWithoutDate(record)]?.let { record.bezahlDatum = it }
+                (ownDateByInvoice["${invoiceKeyWithoutDate(record)}|${record.datum}"]
+                    ?: offsetDateByInvoice[invoiceKeyWithoutDate(record)])?.let { record.bezahlDatum = it }
             }
         }
         val msg = "${offsets.size} Zahlungs-Gegenbuchungen (Gutschrift auf Konto " +

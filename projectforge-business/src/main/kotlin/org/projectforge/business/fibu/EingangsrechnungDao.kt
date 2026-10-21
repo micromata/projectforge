@@ -36,6 +36,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.history.HistoryLoadContext
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -251,12 +252,32 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      * Used by EingangsrechnungImportStorage to match imported data with existing database entries.
      */
     fun getByDateRange(from: java.time.LocalDate, until: java.time.LocalDate): List<EingangsrechnungDO> {
-        return persistenceService.executeQuery(
-            "SELECT er FROM EingangsrechnungDO er WHERE er.datum >= :from AND er.datum <= :until AND er.deleted = false ORDER BY er.datum, er.kreditor",
-            EingangsrechnungDO::class.java,
-            Pair("from", from),
-            Pair("until", until)
-        )
+        // The reconciliation reads the account (by the field copy of the dto), the positions and their cost
+        // assignments of every invoice: fetch them up front, lazy loading would cost queries per invoice and per
+        // position (n+1). Two queries, as two fetched lists in one query are refused by Hibernate
+        // (MultipleBagFetchException).
+        return persistenceService.runReadOnly { context ->
+            val invoices = context.executeQuery(
+                "SELECT er FROM EingangsrechnungDO er LEFT JOIN FETCH er.konto LEFT JOIN FETCH er.positionen pos WHERE er.datum >= :from AND er.datum <= :until AND er.deleted = false ORDER BY er.datum, er.kreditor, er.id, pos.number",
+                EingangsrechnungDO::class.java,
+                Pair("from", from),
+                Pair("until", until),
+                attached = true,
+            ).distinct()
+            val positionIds = invoices.flatMap { it.positionen.orEmpty() }.mapNotNull { it.id }
+            positionIds.chunked(PfPersistenceService.IN_CLAUSE_MAX_BATCH_SIZE).forEach { ids ->
+                // Initializes kostZuweisungen of the positions above, they are the same instances in this context.
+                context.executeQuery(
+                    "SELECT pos FROM EingangsrechnungsPositionDO pos LEFT JOIN FETCH pos.kostZuweisungen kz WHERE pos.id IN :ids ORDER BY pos.id, kz.index",
+                    EingangsrechnungsPositionDO::class.java,
+                    Pair("ids", ids),
+                    attached = true,
+                )
+            }
+            // Detached like the other queries, cascading to positions and cost assignments.
+            invoices.forEach { context.detach(it) }
+            invoices
+        }
     }
 
     override fun isAutocompletionPropertyEnabled(property: String?): Boolean {
