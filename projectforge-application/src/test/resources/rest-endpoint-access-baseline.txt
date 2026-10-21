@@ -1,17 +1,5 @@
 # Legacy REST endpoints without @AccessChecked, see RestEndpointAccessCheckTest.
 # May only shrink: never add new endpoints here, annotate them.
-org.projectforge.plugins.merlin.rest.MerlinExecutionPageRest#downloadSerialExecutionTemplate
-org.projectforge.plugins.merlin.rest.MerlinExecutionPageRest#execute
-org.projectforge.plugins.merlin.rest.MerlinExecutionPageRest#getForm
-org.projectforge.plugins.merlin.rest.MerlinExecutionPageRest#serialExecution
-org.projectforge.plugins.merlin.rest.MerlinPagesRest#exportExcelTemplate
-org.projectforge.plugins.merlin.rest.MerlinTestServicesRest#contract
-org.projectforge.plugins.merlin.rest.MerlinTestServicesRest#letter
-org.projectforge.plugins.merlin.rest.MerlinVariablePageRest#delete
-org.projectforge.plugins.merlin.rest.MerlinVariablePageRest#getForm
-org.projectforge.plugins.merlin.rest.MerlinVariablePageRest#openEditModal
-org.projectforge.plugins.merlin.rest.MerlinVariablePageRest#update
-org.projectforge.plugins.merlin.rest.MerlinVariablePageRest#watchFields
 org.projectforge.plugins.skillmatrix.SkillMatrixServicesRest#exportFavoritesExcel
 org.projectforge.rest.AddressImageServicesRest#deleteImage
 org.projectforge.rest.AddressImageServicesRest#getImage
@@ -63,10 +51,6 @@ org.projectforge.rest.calendar.CalendarSettingsPageRest#watchFields
 org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest#getLayout
 org.projectforge.rest.calendar.TeamEventEntityRest#switch2Timesheet
 org.projectforge.rest.calendar.VacationServicesRest#getVacationUserObjects
-org.projectforge.rest.core.AbstractPagesRest#getItemAndLayout
-org.projectforge.rest.core.AbstractPagesRest#requestInitialList
-org.projectforge.rest.core.AbstractPagesRest#resetGridState
-org.projectforge.rest.core.AbstractPagesRest#watchFields
 org.projectforge.rest.fibu.EingangsrechnungMultiSelectedPageRest#exportTransfers
 org.projectforge.rest.GroupEntityRest#createGid
 org.projectforge.rest.GroupEntityRest#exportAsExcel

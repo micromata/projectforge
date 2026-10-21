@@ -3897,6 +3897,23 @@
       }
     },
     "merlin": {
+      "accessGroups": {
+        "_": "Gruppen mit Zugriff",
+        "info": "Mitglieder dieser Gruppe (wenn angegeben) können diese Vorlage benutzen."
+      },
+      "accessUsers": {
+        "_": "Benutzer mit Zugriff",
+        "info": "Diese Benutzer (wenn angegeben) können diese Vorlage benutzen."
+      },
+      "admins": {
+        "_": "Admins",
+        "info": "Admins haben vollen Zugriff auf diese Vorlage (inkl. Änderung)."
+      },
+      "documentation": "Dokumentation der Vorlagen",
+      "exportExcelTemplate": {
+        "_": "Export Konfigurations-Vorlage",
+        "info": "Über diese Excel-Datei kann die Word®-Vorlage konfiguriert werden (Variablentypen, abhängige Variablen etc.)"
+      },
       "fileNamePattern": {
         "_": "Dateinamenmuster",
         "info": "Dateinamenmuster generierter Dateien (kann Variablennamen enthalten, wie ${user} oder ${date}), z. B. '${date}-contract-${user}'."
@@ -3911,12 +3928,107 @@
           "info": "Das Format und der Inhalt der erzeugten PDF-Datei kann abweichen, bitte sorgfältig überprüfen!"
         }
       },
+      "menu": {
+        "examples": {
+          "_": "Merlin-Beispiele",
+          "contract": "Ein Vertragsbeispiel",
+          "letter": "Ein Briefbeispiel"
+        }
+      },
       "name": "Name der Vorlage",
+      "serial": {
+        "template": {
+          "download": {
+            "_": "Excel® für Serienausführung",
+            "base": "Leere Excel®-Datei",
+            "employees": "Excel®-Datei mit allen aktiven Mitarbeitern",
+            "info": "Über diese Excel-Datei könenn einfach Seriendokumente erstellt werden.",
+            "users": "Excel®-Datei mit allen aktiven Usern"
+          }
+        }
+      },
       "template": {
         "dataTransferUsage": {
           "_": "Persönliche Boxen nutzen",
-          "info": "Die per Serienausführung generierten Dokumente können direkt in die persönlichen Boxen der Benutzer geschrieben werden (DataTransfer-Plugin). Bitte nach Auswahl die Excelvorlage für die Serienausführung auf der Ausführen-Seite herunterlagen, um die Variablen #PersonalBox... zu erhalten."
+          "info": "Die per Serienausführung generierten Dokumente können direkt in die persönlichen Boxen der Benutzer geschrieben werden (DataTransfer-Plugin). Bitte nach Auswahl die Excelvorlage für die Serienausführung auf der Ausführen-Seite herunterlagen, um die Variablen #PersonalBox... zu erhalten.",
+          "resultZip": "Ergebnisarchiv der Merlin-Serienausführung."
         }
+      },
+      "templateConfigurationFile": {
+        "_": "Vorlage-Konfiguration",
+        "info": "Die neueste Excel-Datei aus den Anhängen wird verwendet."
+      },
+      "templateExecutor": {
+        "execute": "Ausführen",
+        "heading": "Ausführung einer Word®-Vorlage"
+      },
+      "title": {
+        "add": "Neue Word-Vorlage anlegen",
+        "heading": "Word-Vorlage",
+        "list": "Liste aller Word-Vorlagen"
+      },
+      "upload": {
+        "serialExecution": {
+          "_": "Serienausführungsdatei (xlsx)",
+          "info": "Hochladen einer Serienausführungsdatei im Excel®-Format."
+        }
+      },
+      "variable": {
+        "add": "Neue Variable anlegen",
+        "allowedValues": {
+          "_": "Erlaubte Werte",
+          "info": "Erlaubte Werte werden als komma-separierte Werte angegeben: \"eins\", \"zwei\", \"drei\" oder: eins, zwei, drei."
+        },
+        "dependsOn": "Abhängig von",
+        "edit": "Variable bearbeiten",
+        "mapping": {
+          "_": "Zuordnung",
+          "info": "Die Zuordnung wird kommasepariert, z. B. eins, zwei, drei..."
+        },
+        "master": {
+          "_": "Mastervariable",
+          "info": "Von Mastervariablen hängen andere Variablen ab, bzw. sie werden in Konditionalausdrücken (if-Anweisungen) verwendet.",
+          "values": "Masterwerte"
+        },
+        "maxValue": "Maximalwert",
+        "minValue": "Minimalwert",
+        "name": "Name",
+        "required": "Erforderlich",
+        "scale": {
+          "_": "Nachkommastellen",
+          "info": "Diese Zahl von Nachkommastellen werden angezeigt. Wenn nicht gegeben, werden alle Nachkommastellen angezeigt."
+        },
+        "sortName": {
+          "_": "Sortiername",
+          "info": "Eingabevariablen werden zur Benutzung in alphabetischer Reihenfolge angezeigt (sortiert nach dem Variablennamen). Wenn dieser Sortiername angegeben ist, wird dieser anstelle des Variablennamens zur Sortierung benutzt."
+        },
+        "type": {
+          "_": "Typ",
+          "DATE": "Datum (date)",
+          "FLOAT": "Fließkommazahl (float)",
+          "INT": "Ganzzahl (int)",
+          "STRING": "Text (string)",
+          "dependent": "Abhängig"
+        },
+        "unique": "Eindeutig",
+        "used": "Benutzt"
+      },
+      "variables": {
+        "_": "Variables",
+        "conditionals": "Bedingte Ausdrücke",
+        "dependant": {
+          "_": "Abhängige Variablen",
+          "info": "Unbenutze Variablen in der Vorlage werden in hellgrau visualisiert."
+        },
+        "input": {
+          "_": "Eingabe-Variablen",
+          "info": "Master-Variablen, von denen andere Variablen abhängen oder die in bedingten Ausdrücken (if-Ausdrücke) verwendet werden, werden rot hervorgehoben."
+        }
+      },
+      "viewLogs": "Protokolldatei anzeigen",
+      "wordTemplateFile": {
+        "_": "Word®-Vorlage",
+        "info": "Die neueste Word®-Datei (docx) der Anhänge wird verwendet."
       }
     },
     "skillmatrix": {
