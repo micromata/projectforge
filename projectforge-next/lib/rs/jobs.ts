@@ -29,16 +29,18 @@ export interface JobInfo {
   animated?: boolean;
   /** Set only while the job can still be cancelled, and only for a user allowed to (writeAccess). */
   cancelId?: number;
+  /** True once the job is over: finished, failed, cancelled or refused. */
+  terminated?: boolean;
   /** Translated reason of a failed or refused job — the counters of `progressTitle` explain nothing there. */
   errorMessage?: string;
 }
 
 /**
- * A job is over once the backend stops offering to cancel it: `cancelId` is set for RUNNING and
- * WAITING only (see JobInfo.create). The status itself isn't part of the DTO.
+ * A job is over once it finished, failed, was cancelled or refused (JobInfo.create). Not derived from
+ * `cancelId`: a running job the user may only read has none either.
  */
 export function isJobTerminated(job: JobInfo): boolean {
-  return job.cancelId == null;
+  return job.terminated === true;
 }
 
 /** A terminated job that didn't finish successfully is marked DANGER by the backend. */
