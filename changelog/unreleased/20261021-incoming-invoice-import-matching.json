@@ -34,6 +34,10 @@
     {
       "en": "The comparison with the stored invoices is much faster, and the preview of a large file shows without a long wait.",
       "de": "Der Abgleich mit den gespeicherten Rechnungen ist deutlich schneller, und die Vorschau einer großen Datei erscheint ohne lange Wartezeit."
+    },
+    {
+      "en": "DATEV files: tax rates and payment amounts in German format (e.g. \"5,50\", \"1.234,56\") are read correctly; a tax rate of 5.5 % was taken as 5 %.",
+      "de": "DATEV-Dateien: Steuersätze und Zahlbeträge im deutschen Format (z. B. „5,50“, „1.234,56“) werden korrekt gelesen; ein Steuersatz von 5,5 % wurde als 5 % übernommen."
     }
   ]
 }
