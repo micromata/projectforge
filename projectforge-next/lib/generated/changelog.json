@@ -6,11 +6,17 @@
     "date" : "2026-10-21",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Project groups: projects belonging together under a common parent project can be combined into a group on the customer groups page. The project filters of the order book, invoices, projects, cost 2, timesheets and order statistics offer the group like a single project; forecast, contribution margin and the Excel exports of the forecast, order book and invoice list show a project group column as soon as one of their projects belongs to a group." ]
+    }, {
       "type" : "improved",
       "items" : [ "List filters with a checklist (customer, project, business unit): they say that they only narrow the current result, are narrowed by the list's search term as well, and offer \"choose from all\" to pick values the current result doesn't contain. In the time sheet list they offer values without a period, too.", "User list: deactivated users are shown struck through." ]
     }, {
       "type" : "fixed",
-      "items" : [ "Phone call: calls from an external phone without an assigned number were refused by sipgate." ]
+      "items" : [ {
+        "title" : "Import of incoming invoices",
+        "items" : [ "An imported invoice no longer overwrites another stored invoice of the same creditor (number, date and currency of an older invoice were replaced).", "Credit-card payment offsets (credit note on a credit-card clearing account) are skipped; their date becomes the paid date of the invoice if it has none. Other credit notes are imported with a negative amount.", "A header-only import no longer offers stored invoices for deletion; a position import only those within its periods.", "Warnings for a paid date before the invoice date and for invoices with EUR and another currency (EUR is taken)." ]
+      }, "Number ranges: a range with customers and without configured segments shows its project and cost unit numbers by its digits (e.g. 7.0001.0 for one project digit) instead of 7.000.10.", "Project wizard: tabs and a pinned action bar as on the edit pages; the action step lists what will be set up (new customer, new project, path of the new structure elements, access rights) and what is still missing; the finish button is always clickable.", "Phone call: calls from an external phone without an assigned number were refused by sipgate." ]
     } ]
   },
   "groups" : [ {

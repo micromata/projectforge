@@ -29,6 +29,7 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.OrderAccessFacts
 import org.projectforge.business.fibu.OrderSelectAccess
+import org.projectforge.business.fibu.customergroup.CustomerGroupService
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungCache
@@ -251,6 +252,7 @@ open class ContributionMarginService {
           kost = info?.kost,
           customer = customer,
           project = info?.project,
+          projectGroup = info?.projectGroup,
           subject = invoice.betreff,
           netSum = pos.netSum,
           status = status,
@@ -467,6 +469,7 @@ open class ContributionMarginService {
       kost = project.kost,
       customer = caches.getKundeIfNotInitialized(project.kunde)?.name,
       project = project.name,
+      projectGroup = CustomerGroupService.instanceOrNull?.projectGroupNameOf(projectId),
     )
   }
 

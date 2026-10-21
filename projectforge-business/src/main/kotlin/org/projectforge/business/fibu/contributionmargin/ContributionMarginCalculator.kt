@@ -63,7 +63,13 @@ class ContributionMarginEntry(
 )
 
 /** What a row of the project table shows of a project beside its amounts. */
-class ContributionMarginProjectInfo(val kost: String?, val customer: String?, val project: String?)
+class ContributionMarginProjectInfo(
+  val kost: String?,
+  val customer: String?,
+  val project: String?,
+  /** The project group the project belongs to, see `CustomerGroupService.projectGroupNameOf`. */
+  val projectGroup: String? = null,
+)
 
 /**
  * The calculation of [ContributionMarginData], free of any data base access (see [ContributionMarginService]
@@ -142,6 +148,7 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
         kost = info?.kost,
         customer = info?.customer,
         project = info?.project,
+        projectGroup = info?.projectGroup,
         revenue = amount.revenue,
         costs = -amount.costs,
         prevYearProfit = prevByProject[projectId]?.profit ?: BigDecimal.ZERO,
@@ -214,6 +221,7 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
           kost = info?.kost,
           customer = info?.customer,
           project = info?.project,
+          projectGroup = info?.projectGroup,
           revenue = amount.revenue,
           costs = -amount.costs,
           profit = amount.profit,
@@ -235,6 +243,7 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
           kost2 = kost2Id?.let(kost2Number),
           customer = info?.customer,
           project = info?.project,
+          projectGroup = info?.projectGroup,
           hours = hourlyRate?.takeIf { it.signum() != 0 }?.let { costs.divide(it, 2, RoundingMode.HALF_UP) },
           costs = costs,
         )

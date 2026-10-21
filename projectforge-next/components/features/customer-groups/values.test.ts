@@ -82,6 +82,30 @@ describe("toFormValues", () => {
     });
     expect(usedKeys(values)).toEqual(new Set(["acmeg1", "grant1"]));
   });
+  it("fills in a project group and counts its key as used", () => {
+    const values = toFormValues({
+      groups: [{ key: "acmeg1", name: "ACME" }],
+      projectGroups: [
+        { key: "prjgr1", projects: [{ id: 17, displayName: "Part 1" }] },
+        { name: "New" },
+      ],
+    });
+    expect(values.projectGroups[0]).toEqual({
+      key: "prjgr1",
+      name: "",
+      projects: [{ id: 17, displayName: "Part 1" }],
+    });
+    expect(values.projectGroups[1]).toMatchObject({
+      name: "New",
+      projects: [],
+    });
+    expect(values.projectGroups[1].key).toMatch(/^[a-z0-9]{6}$/);
+    expect(usedKeys(values).size).toBe(3);
+    // The schema covers the project groups: the first one has no name yet.
+    expect(customerGroupsSchema.safeParse(toPayload(values)).success).toBe(
+      false
+    );
+  });
 });
 
 describe("toFormValues with a format", () => {

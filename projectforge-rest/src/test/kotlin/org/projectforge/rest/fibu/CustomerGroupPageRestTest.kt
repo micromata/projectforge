@@ -30,6 +30,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.projectforge.business.fibu.KundeDO
+import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
 import org.projectforge.rest.core.SessionCsrfService
@@ -39,10 +41,13 @@ import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpSession
 
-/** The order access grants of the customer-groups editor ([CustomerGroupPageRest]). */
+/** The order access grants and project groups of the customer-groups editor ([CustomerGroupPageRest]). */
 class CustomerGroupPageRestTest : AbstractTestBase() {
     @Autowired
     private lateinit var customerGroupPageRest: CustomerGroupPageRest
+
+    @Autowired
+    private lateinit var kundeDao: KundeDao
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper
@@ -90,6 +95,61 @@ class CustomerGroupPageRestTest : AbstractTestBase() {
         assertEquals(
             listOf("orderAccess[0].customers"),
             customerGroupPageRest.validate(data).map { it.fieldId },
+        )
+    }
+
+    @Test
+    fun `project groups are saved and read back, an unknown project is refused`() {
+        var projektIds = listOf<Long>()
+        persistenceService.runInTransaction { _ ->
+            logon(getUser(TEST_FINANCE_USER))
+            val kunde = KundeDO().also {
+                it.name = "Project group customer"
+                it.id = 671
+            }
+            kundeDao.insert(kunde)
+            projektIds = listOf(
+                initTestDB.addProjekt(kunde, 1, "Project group part 1").id!!,
+                initTestDB.addProjekt(kunde, 2, "Project group part 2").id!!,
+            )
+        }
+        val request = MockHttpServletRequest().also { it.setSession(MockHttpSession()) }
+        val serverData = sessionCsrfService.createServerData(request)
+        val group = CustomerGroupPageRest.ProjectGroupData(
+            key = "prjgr1",
+            name = "Parent project",
+            projects = projektIds.map { CustomerGroupPageRest.EntityRef(it, "posted") }.toMutableList(),
+        )
+
+        logon(TEST_USER)
+        assertThrows<AccessException> {
+            customerGroupPageRest.save(
+                request, PostData(CustomerGroupPageRest.CustomerGroupsData(projectGroups = mutableListOf(group)), null, serverData),
+            )
+        }
+
+        logon(TEST_FINANCE_USER)
+        val data = customerGroupPageRest.getData().also { it.projectGroups = mutableListOf(group) }
+        val response = customerGroupPageRest.save(request, PostData(data, null, serverData))
+        assertEquals(HttpStatus.OK, response.statusCode)
+        assertTrue(response.body!!.validationErrors.isNullOrEmpty())
+        val saved = customerGroupPageRest.getData().projectGroups.single()
+        assertEquals("prjgr1", saved.key)
+        assertEquals("Parent project", saved.name)
+        assertEquals(projektIds, saved.projects.map { it.id })
+        // The names come from the projects, not from what was posted:
+        assertTrue(saved.projects.none { it.displayName == "posted" })
+
+        val unknown = customerGroupPageRest.getData().also {
+            it.projectGroups.single().projects.add(CustomerGroupPageRest.EntityRef(-4711, "gone"))
+        }
+        assertEquals(
+            listOf("projectGroups[0].projects"),
+            customerGroupPageRest.validate(unknown).mapNotNull { it.fieldId }.sorted(),
+        )
+        // Shared by all tests of the test DB:
+        customerGroupPageRest.save(
+            request, PostData(CustomerGroupPageRest.CustomerGroupsData(lastUpdate = customerGroupPageRest.getData().lastUpdate), null, serverData),
         )
     }
 

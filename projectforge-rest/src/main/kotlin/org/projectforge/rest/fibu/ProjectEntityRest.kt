@@ -234,7 +234,7 @@ class ProjectEntityRest
         // The customer as the list's cell shows it, picked from those of the projects (see
         // customerFilterValues), as on the order list, replacing the free-text pills on the customer's fields.
         elements.removeTextFilters("kunde")
-        elements.addLeading(businessUnitFilter.element(), customerFilter.element())
+        elements.addLeading(businessUnitFilter.element(), customerFilter.element(), projectFilter.element())
         // The cost 2 types the projects have active, and the gaps (non-active or missing ones); both pinned,
         // consumed in preProcessMagicFilter.
         val kost2Arts = kostCache.getKost2Arts()
@@ -274,6 +274,7 @@ class ProjectEntityRest
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<ProjektDO>>? {
         viaProject.addCriterion(target, source, CustomerChecklistFilter.FIELD, customerFilter::projectMatch)
         viaProject.addCriterion(target, source, BusinessUnitChecklistFilter.FIELD, businessUnitFilter::projectMatch)
+        projectFilter.addCriterion(target, source)
         addKost2ArtCriterion(target, source)
         addKost2ArtsNotActiveCriterion(target, source)
         val entry = source.entries.find { it.field == LIST_TYPE_FIELD } ?: return null
@@ -401,6 +402,16 @@ class ProjectEntityRest
         )
     }
 
+    /**
+     * The projects to choose from in the project filter ([ProjectChecklistFilter]), as [customerFilterValues]:
+     * mainly for picking a project group, which then lists its projects.
+     */
+    @AccessChecked("DAO: select access (checklistFilter + getResultList)")
+    @PostMapping("projectFilterValues")
+    fun projectFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+        return ProjectChecklistFilter.valuesOf(getResultIds(checklistFilter(filter, ProjectChecklistFilter.FIELD)).asSequence())
+    }
+
     /** The customers of the projects of a checklist: their own, else those of their orders ([projectCustomersOf]). */
     private fun customerRefs(filter: MagicFilter?, ownField: String): Sequence<CustomerRow> {
         val projektIds = getResultIds(checklistFilter(filter, ownField))
@@ -437,5 +448,6 @@ class ProjectEntityRest
         private val customerFilter = CustomerChecklistFilter("project/customerFilterValues", kundeTextPath = null)
         private val businessUnitFilter =
             BusinessUnitChecklistFilter("project/businessUnitFilterValues", kundeTextPath = null, projektIdPath = "id")
+        private val projectFilter = ProjectChecklistFilter("project/projectFilterValues", path = "id")
     }
 }

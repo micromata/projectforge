@@ -9,7 +9,9 @@ import type {
   ContributionMarginMonthRow,
 } from "@/lib/rs/order";
 import {
+  hasProjectGroup,
   moneyColumn,
+  projectGroupColumns,
   textColumn,
 } from "../statistics/statistics-table-columns";
 import { StatisticsTable } from "../statistics/statistics-table";
@@ -34,6 +36,7 @@ export function ContributionMarginMonthTable({
 }) {
   const t = useStatisticsLabels();
   const ctx = useFormatContext();
+  const withProjectGroup = hasProjectGroup(rows);
   const focusIndex = useProjectFocus(
     rows,
     focusProjectId,
@@ -58,6 +61,7 @@ export function ContributionMarginMonthTable({
       },
       textColumn<Row>("customer", t.customer, (row) => row.customer, 180),
       textColumn<Row>("project", t.project, (row) => row.project, 220),
+      ...projectGroupColumns<Row>(withProjectGroup, t.projectGroup),
       textColumn<Row>("kost", t.kost, (row) => row.kost, 90),
       moneyColumn<Row>("revenue", t.revenue, (row) => row.revenue, ctx, {
         className: preliminary,
@@ -85,7 +89,7 @@ export function ContributionMarginMonthTable({
         ),
       },
     ];
-  }, [t, ctx, data]);
+  }, [t, ctx, data, withProjectGroup]);
   return (
     <StatisticsTable<Row>
       columns={columns}

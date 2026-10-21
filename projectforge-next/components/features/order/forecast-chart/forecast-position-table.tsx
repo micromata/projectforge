@@ -6,9 +6,11 @@ import { useFormatContext } from "@/hooks/use-format";
 import { formatDateRange, formatPercentageDecimal } from "@/lib/format";
 import type { ForecastPositionRow, ForecastTables } from "@/lib/rs/order";
 import {
+  hasProjectGroup,
   linkColumn,
   moneyColumn,
   numberColumn,
+  projectGroupColumns,
   textColumn,
 } from "../statistics/statistics-table-columns";
 import {
@@ -44,6 +46,7 @@ export function ForecastPositionTable({
   const t = useStatisticsLabels();
   const ctx = useFormatContext();
   const rows = tables.positions;
+  const withProjectGroup = hasProjectGroup(rows);
   const { months } = tables;
   const focusIndex = useProjectFocus(
     rows,
@@ -87,6 +90,7 @@ export function ForecastPositionTable({
         t.total
       ),
       textColumn<Row>("project", t.project, (row) => row.project, 180),
+      ...projectGroupColumns<Row>(withProjectGroup, t.projectGroup),
       textColumn<Row>(
         "title",
         t.title,
@@ -188,7 +192,7 @@ export function ForecastPositionTable({
           ) : null,
       },
     ];
-  }, [t, ctx, months, onOpenForecast]);
+  }, [t, ctx, months, onOpenForecast, withProjectGroup]);
   return (
     <StatisticsTable<Row>
       columns={columns}

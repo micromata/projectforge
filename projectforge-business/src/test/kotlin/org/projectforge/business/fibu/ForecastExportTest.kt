@@ -32,6 +32,9 @@ import org.apache.poi.ss.util.CellReference
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.customergroup.CustomerGroupConfig
+import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.projectGroup
+import org.projectforge.business.fibu.customergroup.CustomerGroupService
 import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -66,6 +69,9 @@ class ForecastExportTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var orderbookSnapshotsService: OrderbookSnapshotsService
+
+    @Autowired
+    private lateinit var customerGroupService: CustomerGroupService
 
     /**
      * The order analysis shows both cases of projectforge.fibu.forecast.distributeUnusedBudget, but only if they
@@ -417,6 +423,80 @@ class ForecastExportTest : AbstractTestBase() {
                 visibleTrueFound,
                 "The invoice of the completed order (project $projektId) must evaluate visible = TRUE."
             )
+        }
+    }
+
+    /**
+     * The project group column is appended behind the template's columns, but only if project groups exist: the
+     * template's formulas address columns by letter. The web tables carry the group as well.
+     */
+    @Test
+    fun projectGroupColumnTest() {
+        logon(TEST_FINANCE_USER)
+        val today = PFDay.now()
+        val baseDate = today.plusMonths(-4)
+        val projekt = ProjektDO()
+        projekt.nummer = 7
+        projekt.name = "ForecastExportTest - project group"
+        val projektId = projektDao.insert(projekt, checkAccess = false)
+        val order = createOrder(baseDate, AuftragsStatus.BEAUFTRAGT, baseDate, baseDate.plusMonths(4))
+        order.projekt = projektDao.find(projektId, checkAccess = false, attached = true)
+        addPosition(order, 1, AuftragsStatus.BEAUFTRAGT, 4000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
+        val orderId = auftragDao.insert(order)
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        val invoice = createInvoice(baseDate.plusMonths(1))
+        addPosition(invoice, 700.0, auftragDao.find(orderId)!!.getPosition(1))
+        rechnungDao.insert(invoice)
+
+        val filter = AuftragFilter()
+        filter.periodOfPerformanceStartDate = baseDate.localDate
+        fun headers(ba: ByteArray?, sheetTitle: String): List<String> = XSSFWorkbook(ByteArrayInputStream(ba)).use {
+            val sheet = it.getSheet(sheetTitle)!!
+            findHeadRow(sheet, "Kunde").mapNotNull { cell -> cell.takeIf { c -> c.cellType == CellType.STRING }?.stringCellValue }
+        }
+        Assertions.assertFalse(
+            ForecastExportContext.PROJECT_GROUP_HEADER in headers(forecastExport.xlsExport(filter), ForecastExportContext.Sheet.FORECAST.title),
+            "No project groups, no column.",
+        )
+        try {
+            val errors = customerGroupService.save(
+                CustomerGroupConfig(projectGroups = mutableListOf(projectGroup(null, "Parent", listOf(projektId!!)))),
+                customerGroupService.lastUpdate,
+            )
+            Assertions.assertEquals(emptyList<String>(), errors.map { it.messageKey })
+            val ba = forecastExport.xlsExport(filter)
+            XSSFWorkbook(ByteArrayInputStream(ba)).use { workbook ->
+                listOf(ForecastExportContext.Sheet.FORECAST, ForecastExportContext.Sheet.INVOICES).forEach { sheetEnum ->
+                    val sheet = workbook.getSheet(sheetEnum.title)!!
+                    val idHeader = if (sheetEnum == ForecastExportContext.Sheet.FORECAST) {
+                        ForecastExportContext.ForecastCol.PROJECT_ID.header
+                    } else {
+                        ForecastExportContext.InvoicesCol.PROJECT_ID.header
+                    }
+                    // The last head row (the forecast sheet has two) is the one the rows follow.
+                    val headRow = (0..sheet.lastRowNum).mapNotNull { sheet.getRow(it) }.last { row ->
+                        row.any { it.cellType == CellType.STRING && it.stringCellValue == idHeader }
+                    }
+                    val groupCol = findColumn(headRow, ForecastExportContext.PROJECT_GROUP_HEADER)
+                    Assertions.assertTrue(groupCol > findColumn(headRow, idHeader), "Appended behind the template's columns.")
+                    val idCol = findColumn(headRow, idHeader)
+                    val groups = (headRow.rowNum + 1..sheet.lastRowNum).mapNotNull { sheet.getRow(it) }
+                        .filter { row -> row.getCell(idCol)?.takeIf { it.cellType == CellType.NUMERIC }?.numericCellValue?.toLong() == projektId }
+                        .map { it.getCell(groupCol)?.stringCellValue }
+                    Assertions.assertTrue(groups.isNotEmpty(), "${sheetEnum.title}: rows of the project expected.")
+                    Assertions.assertEquals(listOf("Parent"), groups.distinct(), sheetEnum.title)
+                    Assertions.assertFalse(sheet.isColumnHidden(groupCol), sheetEnum.title)
+                }
+            }
+            val orders = auftragDao.select(forecastExport.buildQueryFilter(filter, baseDate.beginOfMonth, true))
+            val tables = forecastExport.statistics(orders, baseDate.localDate, unfiltered = true)!!.tables
+            Assertions.assertEquals(setOf("Parent"), tables.positions.filter { it.projectId == projektId }.map { it.projectGroup }.toSet())
+            Assertions.assertEquals("Parent", tables.projects.single { it.projectId == projektId }.projectGroup)
+            Assertions.assertEquals(setOf("Parent"), tables.invoices.filter { it.projectId == projektId }.map { it.projectGroup }.toSet())
+            Assertions.assertTrue(tables.positions.filter { it.projectId != projektId }.all { it.projectGroup == null })
+        } finally {
+            customerGroupService.save(CustomerGroupConfig(), customerGroupService.lastUpdate)
         }
     }
 

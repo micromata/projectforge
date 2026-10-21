@@ -43,11 +43,23 @@ export interface OrderAccessData {
   businessUnits?: string[];
 }
 
+/**
+ * Mirror of `CustomerGroupPageRest.ProjectGroupData`: projects offered as one entry in the project
+ * filters of the lists.
+ */
+export interface ProjectGroupData {
+  /** Stable key the filters refer to (`pg:<key>`). */
+  key?: string | null;
+  name?: string | null;
+  projects?: EntityRef[];
+}
+
 /** Mirror of `CustomerGroupPageRest.CustomerGroupsData` (GET `/rs/customerGroups`). */
 export interface CustomerGroupsData {
   groups?: CustomerGroupData[];
   businessUnits?: BusinessUnitData[];
   orderAccess?: OrderAccessData[];
+  projectGroups?: ProjectGroupData[];
   /** Free text about the definition as a whole: how the groups and business units are drawn. */
   remark?: string | null;
   /** Epoch millis of the stored value, sent back on save for the optimistic lock. */
@@ -83,10 +95,17 @@ export interface OrderAccessValues extends ArrayRow {
   businessUnits: string[];
 }
 
+export interface ProjectGroupValues extends ArrayRow {
+  key: string;
+  name: string;
+  projects: EntityRef[];
+}
+
 export interface CustomerGroupsValues {
   groups: CustomerSetValues[];
   businessUnits: BusinessUnitValues[];
   orderAccess: OrderAccessValues[];
+  projectGroups: ProjectGroupValues[];
   remark: string;
   lastUpdate: number | null;
 }

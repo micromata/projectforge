@@ -33,6 +33,7 @@ import org.projectforge.business.fibu.customergroup.CustomerGroupError
 import org.projectforge.business.fibu.customergroup.CustomerGroupService
 import org.projectforge.business.fibu.customergroup.CustomerSet
 import org.projectforge.business.fibu.customergroup.OrderAccessGrant
+import org.projectforge.business.fibu.customergroup.ProjectGroup
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserRightId
@@ -57,7 +58,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * The editor of the customer groups, business units and order access grants (next page `/customerGroups`), for
+ * The editor of the customer groups, business units, order access grants and project groups (next page
+ * `/customerGroups`), for
  * finance and controlling only — admins included only if they are members of one of these groups.
  */
 @RestController
@@ -101,6 +103,13 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
         var businessUnits: MutableList<String> = mutableListOf(),
     )
 
+    /** A project group ([ProjectGroup]), its projects as the multi-autocomplete holds them. */
+    class ProjectGroupData(
+        var key: String? = null,
+        var name: String? = null,
+        var projects: MutableList<EntityRef> = mutableListOf(),
+    )
+
     /** A user named by a grant that has no effect for them, see [orderAccessInfo]. */
     class IneffectiveGrantee(val name: String, val reason: IneffectiveReason)
 
@@ -113,6 +122,7 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
         var groups: MutableList<GroupData> = mutableListOf(),
         var businessUnits: MutableList<BusinessUnitData> = mutableListOf(),
         var orderAccess: MutableList<OrderAccessData> = mutableListOf(),
+        var projectGroups: MutableList<ProjectGroupData> = mutableListOf(),
         /** The stored row's last update (epoch millis), sent back on save for the optimistic lock. */
         var lastUpdate: Long? = null,
         /** Free text about the definition as a whole, see [CustomerGroupConfig.remark]. */
@@ -264,6 +274,14 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
                 businessUnits = grant.businessUnits.toMutableList(),
             )
         }.toMutableList(),
+        projectGroups = config.projectGroups.map { group ->
+            ProjectGroupData(
+                key = group.key,
+                name = group.name,
+                projects = group.projects.map { EntityRef(it, PfCaches.instance.getProjekt(it)?.displayName ?: "$it") }
+                    .toMutableList(),
+            )
+        }.toMutableList(),
         remark = config.remark,
         lastUpdate = customerGroupService.lastUpdate,
         id = customerGroupService.entryId,
@@ -297,6 +315,13 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
                 dest.customers = src.customers.mapNotNull { it.id }.toMutableList()
                 dest.groups = src.groups.toMutableList()
                 dest.businessUnits = src.businessUnits.toMutableList()
+            }
+        }.toMutableList(),
+        projectGroups = data.projectGroups.map { src ->
+            ProjectGroup().also { dest ->
+                dest.key = src.key?.takeIf { it.isNotBlank() }
+                dest.name = src.name
+                dest.projects = src.projects.mapNotNull { it.id }.toMutableList()
             }
         }.toMutableList(),
         remark = data.remark,

@@ -1594,7 +1594,7 @@
         "invalidText": "Weder ein Name noch ein gültiges Muster."
       },
       "groups": "Kundengruppen",
-      "intro": "Zusammengehörende Kunden (ACME Germany, ACME Logistics, ACME Holding) bilden eine Gruppe, die die Kundenfilter von Auftragsbuch, Rechnungen, Projekten und Kost2 wie einen einzelnen Kunden anbieten. Business Units fassen Gruppen und Kunden zusammen und erhalten einen eigenen Filter. Ein Kunde gehört zu höchstens einer Gruppe, eine Gruppe oder ein Kunde zu höchstens einer Business Unit.",
+      "intro": "Zusammengehörende Kunden (ACME Germany, ACME Logistics, ACME Holding) bilden eine Gruppe, die die Kundenfilter von Auftragsbuch, Rechnungen, Projekten und Kost2 wie einen einzelnen Kunden anbieten. Business Units fassen Gruppen und Kunden zusammen und erhalten einen eigenen Filter. Ein Kunde gehört zu höchstens einer Gruppe, eine Gruppe oder ein Kunde zu höchstens einer Business Unit. Projektgruppen leisten dasselbe für die Projekte der Projektfilter.",
       "matches": "Trifft {arg0} Kunden",
       "matchesNone": "Trifft noch keinen Kunden",
       "name": "Name",
@@ -2031,6 +2031,15 @@
       }
     },
     "probabilityOfOccurrence": "Eintrittswahrsch. in %",
+    "projectGroup": "Projektgruppe",
+    "projectGroups": {
+      "add": "Projektgruppe hinzufügen",
+      "empty": "Noch keine Projektgruppen.",
+      "intro": "Zusammengehörende Projekte eines gemeinsamen Oberprojekts bilden eine Projektgruppe, die die Projektfilter von Auftragsbuch, Rechnungen, Projekten, Kost2, Zeitberichten und Auftragsstatistik wie ein einzelnes Projekt anbieten. Ein Projekt gehört zu höchstens einer Projektgruppe.",
+      "projects": "Projekte",
+      "remove": "Projektgruppe {arg0} entfernen",
+      "title": "Projektgruppen"
+    },
     "projectManager": "Projektmanagement",
     "projekt": {
       "_": "Projekt",
@@ -4239,6 +4248,13 @@
   },
   "project": {
     "wizard": {
+      "action": {
+        "customerNotCreated": "Der Kunde wird noch nicht angelegt: {arg0}",
+        "newCustomer": "Der Kunde {arg0} wird angelegt.",
+        "newProject": "Das Projekt {arg0} wird angelegt.",
+        "noGroups": "Keine Gruppen ausgewählt, daher werden keine Zugriffsrechte angelegt.",
+        "projectNotCreated": "Das Projekt wird noch nicht angelegt: {arg0}"
+      },
       "customer": {
         "intro": "Der Kunde des Projekts: ein vorhandener oder ein neuer, der zusammen mit dem Projekt angelegt wird – oder auch allein."
       },

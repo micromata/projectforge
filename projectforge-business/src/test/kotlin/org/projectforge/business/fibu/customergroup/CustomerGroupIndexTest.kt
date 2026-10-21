@@ -25,9 +25,11 @@ package org.projectforge.business.fibu.customergroup
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.businessUnit
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.group
+import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.projectGroup
 
 class CustomerGroupIndexTest {
     private val directory = CustomerDirectory(
@@ -58,6 +60,25 @@ class CustomerGroupIndexTest {
     )
 
     private val index = CustomerGroupIndex(config, directory)
+
+    @Test
+    fun `a project group resolves to its projects, a project to its group`() {
+        val withProjectGroups = CustomerGroupIndex(
+            CustomerGroupConfig(
+                projectGroups = mutableListOf(projectGroup("prjgr1", "Parent", listOf(1, 3)), projectGroup("prjgr2", "Other", listOf(4))),
+            ),
+            directory,
+        )
+        assertEquals(setOf(1L, 3L), withProjectGroups.resolveProjectGroup("prjgr1"))
+        assertNull(withProjectGroups.resolveProjectGroup("gone01"))
+        assertNull(withProjectGroups.resolveProjectGroup(null))
+        assertEquals("Parent", withProjectGroups.projectGroupOf(3)?.name)
+        assertEquals("Other", withProjectGroups.projectGroupOf(4)?.name)
+        assertNull(withProjectGroups.projectGroupOf(2))
+        assertNull(withProjectGroups.projectGroupOf(null))
+        // Project groups alone are no customer groups: the customer filters stay as they are.
+        assertTrue(withProjectGroups.isEmpty)
+    }
 
     @Test
     fun `a name pattern matches customer entities by name and free texts`() {

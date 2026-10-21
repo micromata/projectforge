@@ -58,6 +58,16 @@ class CustomerGroupConfigTest {
     }
 
     @Test
+    fun `project groups survive a round trip, a version 2 config without them still reads`() {
+        val config = CustomerGroupConfig(projectGroups = mutableListOf(projectGroup("prjgr1", "Parent", listOf(1, 2))))
+        val parsed = CustomerGroupConfig.parse(config.toJson()).projectGroups.single()
+        assertEquals("prjgr1", parsed.key)
+        assertEquals("Parent", parsed.name)
+        assertEquals(listOf(1L, 2L), parsed.projects)
+        assertTrue(CustomerGroupConfig.parse("""{"version":2,"groups":[{"name":"A"}]}""").projectGroups.isEmpty())
+    }
+
+    @Test
     fun `blank or broken json yields an empty config`() {
         listOf(null, "", "  ", "{no json", "[1,2]").forEach {
             val config = CustomerGroupConfig.parse(it)
@@ -160,6 +170,13 @@ class CustomerGroupConfigTest {
                 grant("grant1", "BU Logistics", listOf(7), listOf(8), listOf(101), listOf("othrg2"), listOf("logbu1")),
             ),
         )
+
+        fun projectGroup(key: String?, name: String?, projects: List<Long> = emptyList()) =
+            ProjectGroup().also {
+                it.key = key
+                it.name = name
+                it.projects = projects.toMutableList()
+            }
 
         fun grant(
             key: String?,

@@ -708,6 +708,42 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         get() = getNextNumber(null)
 
     /**
+     * The given orders reloaded with their positions, payment schedules, project and customers, for an export reading
+     * all of them ([OrderExport]): lazily loaded order by order (lazy loading without transaction), each order costs
+     * one query per association.
+     *
+     * In the order of [orders]. An order not found (not stored) is taken as it is. The access was checked when
+     * [orders] were selected.
+     */
+    fun selectForExport(orders: List<AuftragDO>): List<AuftragDO> {
+        val ids = orders.mapNotNull { it.id }.distinct()
+        if (ids.isEmpty()) {
+            return orders
+        }
+        val byId = persistenceService.runReadOnly { context ->
+            ids.chunked(IN_CLAUSE_CHUNK_SIZE).flatMap { chunk ->
+                val loaded = context.executeQuery(
+                    "select distinct a from AuftragDO a left join fetch a.positionen left join fetch a.kunde" +
+                            " left join fetch a.projekt p left join fetch p.kunde where a.id in :ids",
+                    AuftragDO::class.java,
+                    "ids" to chunk,
+                    attached = true,
+                )
+                // Two bags can't be fetched by one query (MultipleBagFetchException). In the same persistence
+                // context, this query initializes the schedules of the very instances loaded above.
+                context.executeQuery(
+                    "select distinct a from AuftragDO a left join fetch a.paymentSchedules where a.id in :ids",
+                    AuftragDO::class.java,
+                    "ids" to chunk,
+                    attached = true,
+                )
+                loaded
+            }
+        }.associateBy { it.id }
+        return orders.map { byId[it.id] ?: it }
+    }
+
+    /**
      * Gets the highest Auftragsnummer.
      *
      * @param auftrag wird benötigt, damit geschaut werden kann, ob dieser Auftrag ggf. schon existiert. Wenn er schon
