@@ -18,6 +18,18 @@
     {
       "en": "Warnings for a paid date before the invoice date and for invoices with EUR and another currency (EUR is taken).",
       "de": "Warnungen bei einem Zahldatum vor dem Rechnungsdatum und bei Rechnungen mit EUR und einer anderen Währung (EUR wird übernommen)."
+    },
+    {
+      "en": "An import with fewer positions than the stored invoice removes only the surplus positions; it deleted the whole invoice before.",
+      "de": "Ein Import mit weniger Positionen als die gespeicherte Rechnung entfernt nur die überzähligen Positionen; zuvor wurde die ganze Rechnung gelöscht."
+    },
+    {
+      "en": "A position without paid date takes that of the other positions of its invoice before that of a credit-card payment offset (the invoice was faulty with different paid dates).",
+      "de": "Eine Position ohne Zahldatum übernimmt das der anderen Positionen ihrer Rechnung vor dem einer Kreditkarten-Gegenbuchung (die Rechnung war mit unterschiedlichen Zahldaten fehlerhaft)."
+    },
+    {
+      "en": "The comparison with the stored invoices is much faster, and the preview of a large file shows without a long wait.",
+      "de": "Der Abgleich mit den gespeicherten Rechnungen ist deutlich schneller, und die Vorschau einer großen Datei erscheint ohne lange Wartezeit."
     }
   ]
 }

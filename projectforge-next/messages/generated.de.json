@@ -3407,10 +3407,22 @@
       "company": "Firma",
       "contactPersons": "Kontaktpersonen",
       "firstname": "Vorname",
+      "lastVisit": {
+        "_": "Letzer Besuch",
+        "arrived": "Letze Ankunftszeit",
+        "departed": "Letze Abreisezeit"
+      },
       "lastname": "Nachname",
+      "numberOfVisits": "Anzahl der Besuche",
       "timeofvisit": {
+        "_": "Besuchszeit",
         "arrive": "Ankunftszeit (HH:MM)",
         "depart": "Abreisezeit (HH:MM)"
+      },
+      "title": {
+        "add": "Besuch hinzufügen",
+        "heading": "Besuchsbuch",
+        "list": "Besuchsbuch Übersicht"
       },
       "visitortype": {
         "_": "Ausweistyp",
@@ -3419,7 +3431,8 @@
         "normal": "Normal",
         "supplier": "Lieferant:in",
         "workman": "Handwerker:in"
-      }
+      },
+      "visits": "Besuche"
     }
   },
   "organization": "Firma",
@@ -4311,6 +4324,10 @@
         "existing": "vorhanden",
         "projectElement": "Strukturelement des Projekts",
         "title": "Was der Assistent eingerichtet hat"
+      },
+      "running": {
+        "_": "Projekt wird eingerichtet …",
+        "customer": "Kunde wird angelegt …"
       }
     }
   },
@@ -4325,7 +4342,7 @@
     "deleteRowQuestion": "Soll dieser Eintrag wirklich entfernt werden? Er wird beim Speichern des Formulars gelöscht.",
     "forceDeleteQuestion": "ACHTUNG!!! Soll das Object tatsächlich uwiderruflich gelöscht werden? Es werden auch alle Einträge aus der Änderungshistorie zu diesem Object unwiderruflich gelöscht!!!!!!",
     "leaveUnsavedChanges": "Es gibt ungespeicherte Änderungen. Soll die Seite trotzdem verlassen werden?",
-    "markAsDeletedQuestion": "Soll das Objekt als gelöscht markiert werden?"
+    "markAsDeletedQuestion": "Soll das Objekt als gelöscht markiert werden? Es kann später wiederhergestellt werden."
   },
   "rating": "Bewertung",
   "recursive": "rekursiv",
