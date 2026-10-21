@@ -1603,7 +1603,7 @@
         "invalidText": "Neither a name nor a valid pattern."
       },
       "groups": "Customer groups",
-      "intro": "Customers that belong together (ACME Germany, ACME Logistics, ACME Holding) form a group, which the customer filters of the order book, the invoices, the projects and the cost 2 offer like a single customer. Business units combine groups and customers and get a filter of their own. A customer belongs to at most one group, a group or customer to at most one business unit.",
+      "intro": "Customers that belong together (ACME Germany, ACME Logistics, ACME Holding) form a group, which the customer filters of the order book, the invoices, the projects and the cost 2 offer like a single customer. Business units combine groups and customers and get a filter of their own. A customer belongs to at most one group, a group or customer to at most one business unit. Project groups do the same for the projects of the project filters.",
       "matches": "Matches {arg0} customers",
       "matchesNone": "Matches no customer yet",
       "name": "Name",
@@ -2040,6 +2040,15 @@
       }
     },
     "probabilityOfOccurrence": "Probability of occurrence in %",
+    "projectGroup": "Project group",
+    "projectGroups": {
+      "add": "Add project group",
+      "empty": "No project groups yet.",
+      "intro": "Projects that belong together under a common parent project form a project group, which the project filters of the order book, the invoices, the projects, the cost 2, the timesheets and the order statistics offer like a single project. A project belongs to at most one project group.",
+      "projects": "Projects",
+      "remove": "Remove project group {arg0}",
+      "title": "Project groups"
+    },
     "projectManager": "Project manager",
     "projekt": {
       "_": "Project",
@@ -3407,10 +3416,22 @@
       "company": "Company",
       "contactPersons": "Contact persons",
       "firstname": "Firstname",
+      "lastVisit": {
+        "_": "Last visit",
+        "arrived": "Last arrival time",
+        "departed": "Last departure time"
+      },
       "lastname": "Lastname",
+      "numberOfVisits": "Number of visits",
       "timeofvisit": {
+        "_": "Time of visit",
         "arrive": "Arrivaltime (HH:MM)",
         "depart": "Departuretime (HH:MM)"
+      },
+      "title": {
+        "add": "Add visitor",
+        "heading": "Visitorbook",
+        "list": "Visitorbook list"
       },
       "visitortype": {
         "_": "Visitor type",
@@ -3419,7 +3440,8 @@
         "normal": "Normal",
         "supplier": "Supplier",
         "workman": "Workman"
-      }
+      },
+      "visits": "Visits"
     }
   },
   "organization": "Organization",
@@ -4502,6 +4524,10 @@
     "_": "Select",
     "checklist": {
       "andMore": "and {arg0} more",
+      "fromAll": "Choose from all",
+      "fromAllHint": "All values, also those not in the current result.",
+      "narrowsHint": "Only values of the entries the other filters match: narrows the current result.",
+      "noneForOtherFilters": "No entries match the other filters. Set or widen them first (e.g. the period), or choose from all.",
       "selectedOf": "{arg0} of {arg1} selected",
       "truncated": "Showing {arg0} of {arg1} entries; refine the search to see the rest."
     },

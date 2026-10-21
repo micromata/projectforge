@@ -1603,7 +1603,7 @@
         "invalidText": "Weder ein Name noch ein gültiges Muster."
       },
       "groups": "Kundengruppen",
-      "intro": "Zusammengehörende Kunden (ACME Germany, ACME Logistics, ACME Holding) bilden eine Gruppe, die die Kundenfilter von Auftragsbuch, Rechnungen, Projekten und Kost2 wie einen einzelnen Kunden anbieten. Business Units fassen Gruppen und Kunden zusammen und erhalten einen eigenen Filter. Ein Kunde gehört zu höchstens einer Gruppe, eine Gruppe oder ein Kunde zu höchstens einer Business Unit.",
+      "intro": "Zusammengehörende Kunden (ACME Germany, ACME Logistics, ACME Holding) bilden eine Gruppe, die die Kundenfilter von Auftragsbuch, Rechnungen, Projekten und Kost2 wie einen einzelnen Kunden anbieten. Business Units fassen Gruppen und Kunden zusammen und erhalten einen eigenen Filter. Ein Kunde gehört zu höchstens einer Gruppe, eine Gruppe oder ein Kunde zu höchstens einer Business Unit. Projektgruppen leisten dasselbe für die Projekte der Projektfilter.",
       "matches": "Trifft {arg0} Kunden",
       "matchesNone": "Trifft noch keinen Kunden",
       "name": "Name",
@@ -2040,6 +2040,15 @@
       }
     },
     "probabilityOfOccurrence": "Eintrittswahrsch. in %",
+    "projectGroup": "Projektgruppe",
+    "projectGroups": {
+      "add": "Projektgruppe hinzufügen",
+      "empty": "Noch keine Projektgruppen.",
+      "intro": "Zusammengehörende Projekte eines gemeinsamen Oberprojekts bilden eine Projektgruppe, die die Projektfilter von Auftragsbuch, Rechnungen, Projekten, Kost2, Zeitberichten und Auftragsstatistik wie ein einzelnes Projekt anbieten. Ein Projekt gehört zu höchstens einer Projektgruppe.",
+      "projects": "Projekte",
+      "remove": "Projektgruppe {arg0} entfernen",
+      "title": "Projektgruppen"
+    },
     "projectManager": "Projektmanagement",
     "projekt": {
       "_": "Projekt",
@@ -3407,10 +3416,22 @@
       "company": "Firma",
       "contactPersons": "Kontaktpersonen",
       "firstname": "Vorname",
+      "lastVisit": {
+        "_": "Letzer Besuch",
+        "arrived": "Letze Ankunftszeit",
+        "departed": "Letze Abreisezeit"
+      },
       "lastname": "Nachname",
+      "numberOfVisits": "Anzahl der Besuche",
       "timeofvisit": {
+        "_": "Besuchszeit",
         "arrive": "Ankunftszeit (HH:MM)",
         "depart": "Abreisezeit (HH:MM)"
+      },
+      "title": {
+        "add": "Besuch hinzufügen",
+        "heading": "Besuchsbuch",
+        "list": "Besuchsbuch Übersicht"
       },
       "visitortype": {
         "_": "Ausweistyp",
@@ -3419,7 +3440,8 @@
         "normal": "Normal",
         "supplier": "Lieferant:in",
         "workman": "Handwerker:in"
-      }
+      },
+      "visits": "Besuche"
     }
   },
   "organization": "Firma",
@@ -4502,6 +4524,10 @@
     "_": "Auswählen",
     "checklist": {
       "andMore": "und {arg0} weitere",
+      "fromAll": "Aus allen wählen",
+      "fromAllHint": "Alle Werte, auch solche, die nicht im aktuellen Ergebnis sind.",
+      "narrowsHint": "Nur Werte der Einträge, auf die die übrigen Filter passen: schränkt das aktuelle Ergebnis weiter ein.",
+      "noneForOtherFilters": "Die übrigen Filter treffen keine Einträge. Erst diese setzen oder erweitern (z. B. den Zeitraum) oder aus allen wählen.",
       "selectedOf": "{arg0} von {arg1} ausgewählt",
       "truncated": "{arg0} von {arg1} Einträgen angezeigt; die Suche verfeinern, um die übrigen zu sehen."
     },
