@@ -203,8 +203,15 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       My2FAShortCut.ORGA,
       PostausgangEntityRest::class.java,
       PosteingangEntityRest::class.java,
-      VisitorbookPagesRest::class.java,
+      VisitorbookEntityRest::class.java,
       ContractEntityRest::class.java,
+    )
+    // The visits of a visitor are written by their own endpoints, which WRITE:visitorbook doesn't catch:
+    registerShortCutMethods(
+      My2FAShortCut.ORGA_WRITE,
+      VisitorbookEntityRest::insertEntry,
+      VisitorbookEntityRest::updateEntry,
+      VisitorbookEntityRest::deleteEntry,
     )
 
     my2FARequestHandler.registerShortCutValues(

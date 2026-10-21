@@ -9,6 +9,9 @@
       "type" : "improved",
       "items" : [ "Structure element fields: a click on the selected structure element opens the tree, like the pencil button. Order positions show the consumption bar of their structure element, which leads to its time sheets.", "User list: deactivated users are shown struck through." ]
     }, {
+      "type" : "changed",
+      "items" : [ "Visitor book migrated to the new interface: list with the latest visit and the number of visits, form with the contact persons, visits entered in a dialog (preset with today and the current time). Deleting the last visit of a visitor no longer fails, and a visit can no longer be assigned to another visitor. Old links are redirected." ]
+    }, {
       "type" : "fixed",
       "items" : [ {
         "title" : "Import of incoming invoices",

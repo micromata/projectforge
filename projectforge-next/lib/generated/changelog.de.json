@@ -9,6 +9,9 @@
       "type" : "improved",
       "items" : [ "Strukturelement-Felder: Ein Klick auf das gewählte Strukturelement öffnet den Baum, wie der Stift-Button. Auftragspositionen zeigen den Verbrauchsbalken ihres Strukturelements, der zu dessen Zeitberichten führt.", "Benutzerliste: Deaktivierte Benutzer:innen werden durchgestrichen angezeigt." ]
     }, {
+      "type" : "changed",
+      "items" : [ "Besucherbuch auf die neue Oberfläche migriert: Liste mit dem letzten Besuch und der Zahl der Besuche, Formular mit den Ansprechpartnern, Besuche im Dialog erfasst (vorbelegt mit heute und der aktuellen Uhrzeit). Das Löschen des letzten Besuchs schlägt nicht mehr fehl, und ein Besuch lässt sich keinem anderen Besucher mehr zuordnen. Alte Links werden umgeleitet." ]
+    }, {
       "type" : "fixed",
       "items" : [ {
         "title" : "Import der Eingangsrechnungen",

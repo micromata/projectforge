@@ -635,6 +635,18 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Anders als im React-Dialog überschreibt eine Datumsänderung an einem gespeicherten Kurs dessen Werte nicht mehr.
   Der Hinweis zu automatischen Kursen steht jetzt über den Kursen im Formular statt über der Liste. Ein neues Paar
   bleibt nach dem ersten Speichern im Formular. Kein Weg zurück; `react/currencyPair/**` leitet `OrphanedLinkFilter` um.
+- **Besucherbuch** (`visitorbook`, Liste + Formular, vorher React-UILayout `VisitorbookPagesRest` und das Modal
+  `VisitorbookEntryPageRest`, beide gelöscht) – layoutfrei über `VisitorbookEntityRest` (`/rs/visitorbook`, gleicher
+  Pfad). Die Liste zeigt den letzten Besuch (Datum, Kommen, Gehen) und die Zahl der Besuche, berechnet aus dem
+  `VisitorbookCache` und über `computedSortProperties` sortierbar; Default-Sortierung letzter Besuch absteigend wie
+  bisher. Ansprechpartner als Mitarbeiter-Mehrfachauswahl. Die Besuche lädt das Edit-DTO mit; geschrieben werden sie
+  sofort über `POST visitorbook/entry/{insert,update,delete}` (Antwort: alle Besuche), der Besucher eines Besuchs kommt
+  beim Ändern/Löschen aus der Datenbank, nie aus dem Request (vorher konnte ein Update einen Besuch per Id einem
+  anderen Besucher zuordnen). Tabelle und Dialog sind `components/shared/validity-entries/` mit
+  `markValidity={false}` (Besuche sind keine Gültigkeitszeiträume, nichts markiert/gedämpft); ein neuer Besuch ist mit
+  heute und der aktuellen Uhrzeit als Kommen vorbelegt. Löschen des letzten Besuchs warf vorher im Cache eine
+  Exception. Ein neuer Besucher bleibt nach dem ersten Speichern im Formular. Kein Weg zurück;
+  `react/visitorbook/**` leitet `OrphanedLinkFilter` um.
 - **Skillmatrix** (`skillentry`, Plugin skillmatrix, Liste + Formular, vorher React-UILayout `SkillEntryPagesRest`,
   gelöscht) – layoutfrei über `SkillEntryEntityRest` (`/rs/skillentry`, gleicher Pfad). Filter „Meine Skills“
   (Default an) bleibt backendseitig; Selbsteinschätzung und Interesse als Sterne (`RatingField`, Nachfolger von
@@ -710,7 +722,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   sie sofort über `POST employee/validSinceAttr/{insert,update,delete}` (Antwort: alle Einträge des Typs), nicht mit
   dem Formular. Die Tabellen und der Dialog sind die generische Komponente
   `components/shared/validity-entries/` (Einträge mit Gültigkeitszeitraum, aktuell gültiger Eintrag markiert,
-  künftige gedämpft), auch für die Kurse der Währungspaare (siehe dort). Ein neuer
+  künftige gedämpft), auch für die Kurse der Währungspaare und die Besuche des Besucherbuchs (siehe dort). Ein neuer
   Eintrag bleibt nach dem ersten Speichern im Formular, damit die Einträge erfasst werden können. Kein Weg zurück;
   `react/employee/**` leitet `OrphanedLinkFilter` um.
 - **Benutzer** (`user`, Liste + Formular, vorher React-UILayout `UserPagesRest`, gelöscht) – layoutfrei über

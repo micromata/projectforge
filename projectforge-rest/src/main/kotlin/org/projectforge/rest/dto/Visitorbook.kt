@@ -40,7 +40,10 @@ class Visitorbook(
     var contactPersonsAsString: String? = null,
     var comment: String? = null,
     var visitortype: VisitorType? = null
-) : BaseDTO<VisitorbookDO>() {
+) : BaseDTO<VisitorbookDO>(), EntityAccessSupport {
+    override var writeAccess: Boolean? = null
+    override var deleteAccess: Boolean? = null
+
     var lastDateOfVisit: LocalDate? = null
 
     var latestArrived: String? = null

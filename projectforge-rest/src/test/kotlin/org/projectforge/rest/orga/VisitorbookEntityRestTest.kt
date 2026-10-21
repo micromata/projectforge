@@ -1,0 +1,182 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.rest.orga
+
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.projectforge.business.orga.VisitorType
+import org.projectforge.business.orga.VisitorbookDO
+import org.projectforge.business.orga.VisitorbookDao
+import org.projectforge.business.orga.VisitorbookService
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.user.GroupDao
+import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightValue
+import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.user.entities.UserRightDO
+import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.Visitorbook
+import org.projectforge.rest.dto.VisitorbookEntry
+import org.projectforge.ui.ResponseAction
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.mock.web.MockHttpServletRequest
+import java.time.LocalDate
+
+/**
+ * The visitor book of the next pages ([VisitorbookEntityRest]): access, and the visits written through
+ * `visitorbook/entry/...` - the visitor a visit belongs to and the checks of a visit.
+ */
+class VisitorbookEntityRestTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var groupDao: GroupDao
+
+    @Autowired
+    private lateinit var visitorbookDao: VisitorbookDao
+
+    @Autowired
+    private lateinit var visitorbookEntityRest: VisitorbookEntityRest
+
+    @Autowired
+    private lateinit var visitorbookService: VisitorbookService
+
+    /** The visitors and their visits are for the users with the visitor book right only. */
+    @Test
+    fun `visitors and visits are for users with the visitor book right only`() {
+        val orgaUser = createOrgaUser()
+        logon(orgaUser)
+        val visitorbookId = createVisitor("Access")
+        val entry = entry(visitorbookId, LocalDate.of(2026, 10, 1))
+        logon(TEST_USER)
+        assertThrows<AccessException> { visitorbookEntityRest.getList(MockHttpServletRequest(), MagicFilter()) }
+        assertThrows<AccessException> { visitorbookEntityRest.getNewEntry(MockHttpServletRequest()) }
+        assertThrows<AccessException> { visitorbookEntityRest.insertEntry(post(entry)) }
+
+        logon(orgaUser)
+        val stored = entries(visitorbookEntityRest.insertEntry(post(entry))).single()
+        assertEquals("09:00", stored.arrived)
+        val detail = visitorbookEntityRest.getItem(visitorbookId).body as Visitorbook
+        assertEquals(listOf(stored.id), detail.entries.map { it.id })
+        assertEquals(1, detail.numberOfVisits)
+        assertEquals(true, detail.writeAccess)
+
+        stored.comment = "changed"
+        logon(TEST_USER)
+        assertThrows<AccessException> { visitorbookEntityRest.updateEntry(post(stored)) }
+        assertThrows<AccessException> { visitorbookEntityRest.deleteEntry(post(stored)) }
+        logon(orgaUser)
+        assertEquals("changed", entries(visitorbookEntityRest.updateEntry(post(stored))).single().comment)
+    }
+
+    /** The visitor of a visit comes from the database: a posted visitor id doesn't move the visit. */
+    @Test
+    fun `an update keeps the stored visitor of the visit`() {
+        logon(createOrgaUser())
+        val visitorbookId = createVisitor("Owner")
+        val otherVisitorbookId = createVisitor("Other")
+        val stored = entries(
+            visitorbookEntityRest.insertEntry(post(entry(visitorbookId, LocalDate.of(2026, 10, 1))))
+        ).single()
+        stored.visitorbookId = otherVisitorbookId
+        stored.comment = "moved?"
+        val entries = entries(visitorbookEntityRest.updateEntry(post(stored)))
+        assertEquals(visitorbookId, entries.single().visitorbookId)
+        assertEquals("moved?", entries.single().comment)
+        assertTrue(visitorbookService.selectAllVisitorbookEntries(otherVisitorbookId, deleted = false).isEmpty())
+    }
+
+    /** Deleting the last visit leaves a visitor without visits (the info of the list emptied, no error). */
+    @Test
+    fun `the last visit can be deleted`() {
+        logon(createOrgaUser())
+        val visitorbookId = createVisitor("Last")
+        val stored = entries(
+            visitorbookEntityRest.insertEntry(post(entry(visitorbookId, LocalDate.of(2026, 10, 1))))
+        ).single()
+        assertEquals(LocalDate.of(2026, 10, 1), visitorbookService.getVisitorbookInfo(visitorbookId)?.lastDateOfVisit)
+        assertTrue(entries(visitorbookEntityRest.deleteEntry(post(stored))).isEmpty())
+        val info = visitorbookService.getVisitorbookInfo(visitorbookId)
+        assertNull(info?.lastDateOfVisit)
+        assertEquals(0, info?.numberOfVisits ?: 0)
+    }
+
+    /** A visit needs its date. */
+    @Test
+    fun `a visit without date is refused at its field`() {
+        logon(createOrgaUser())
+        val visitorbookId = createVisitor("Date")
+        assertEquals(
+            listOf("dateOfVisit"),
+            validationFields(visitorbookEntityRest.insertEntry(post(entry(visitorbookId, null)))),
+        )
+    }
+
+    /** A member of the organization team with the visitor book right, as the right is granted in production. */
+    private fun createOrgaUser(): PFUserDO {
+        val username = "${javaClass.simpleName}.orgaUser"
+        logon(TEST_ADMIN_USER)
+        userService.getInternalByUsername(username)?.let { return it }
+        val user = PFUserDO().also {
+            it.firstname = "Orga"
+            it.lastname = "User"
+            it.username = username
+            it.addRight(UserRightDO(UserRightId.ORGA_VISITORBOOK, UserRightValue.READWRITE))
+        }
+        initTestDB.addUser(user)
+        val group = getGroup(ProjectForgeGroup.ORGA_TEAM.toString())
+        group.assignedUsers!!.add(user)
+        groupDao.update(group)
+        return user
+    }
+
+    private fun createVisitor(lastname: String): Long {
+        return visitorbookDao.insert(VisitorbookDO().also {
+            it.firstname = "Visitor"
+            it.lastname = lastname
+            it.visitortype = VisitorType.NORMAL
+        })
+    }
+
+    private fun post(entry: VisitorbookEntry) = PostData(entry, watchFieldsTriggered = null, serverData = null)
+
+    private fun entry(visitorbookId: Long, dateOfVisit: LocalDate?) =
+        VisitorbookEntry(dateOfVisit = dateOfVisit, arrived = "09:00", visitorbookId = visitorbookId)
+
+    private fun entries(response: ResponseEntity<*>): List<VisitorbookEntry> {
+        assertEquals(HttpStatus.OK, response.statusCode)
+        return (response.body as VisitorbookEntityRest.Entries).entries
+    }
+
+    private fun validationFields(response: ResponseEntity<*>): List<String> {
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.statusCode)
+        return (response.body as ResponseAction).validationErrors!!.mapNotNull { it.fieldId }.sorted()
+    }
+}

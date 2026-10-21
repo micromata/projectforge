@@ -3398,10 +3398,22 @@
       "company": "Firma",
       "contactPersons": "Kontaktpersonen",
       "firstname": "Vorname",
+      "lastVisit": {
+        "_": "Letzer Besuch",
+        "arrived": "Letze Ankunftszeit",
+        "departed": "Letze Abreisezeit"
+      },
       "lastname": "Nachname",
+      "numberOfVisits": "Anzahl der Besuche",
       "timeofvisit": {
+        "_": "Besuchszeit",
         "arrive": "Ankunftszeit (HH:MM)",
         "depart": "Abreisezeit (HH:MM)"
+      },
+      "title": {
+        "add": "Besuch hinzufügen",
+        "heading": "Besuchsbuch",
+        "list": "Besuchsbuch Übersicht"
       },
       "visitortype": {
         "_": "Ausweistyp",
@@ -3410,7 +3422,8 @@
         "normal": "Normal",
         "supplier": "Lieferant:in",
         "workman": "Handwerker:in"
-      }
+      },
+      "visits": "Besuche"
     }
   },
   "organization": "Firma",
