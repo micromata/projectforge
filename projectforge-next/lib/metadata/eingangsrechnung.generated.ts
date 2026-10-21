@@ -156,7 +156,7 @@ export const EINGANGSRECHNUNG_METADATA = {
       readOnly: true,
     },
     zahlBetrag: {
-      dataType: "DECIMAL",
+      dataType: "AMOUNT",
       i18nKey: "fibu.rechnung.zahlBetrag",
       required: false,
     },
