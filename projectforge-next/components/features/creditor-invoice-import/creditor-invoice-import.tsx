@@ -4,7 +4,10 @@ import { useMemo } from "react";
 import { ImportFeature } from "@/components/shared/import/import-feature";
 import type { ImportConfig } from "@/components/shared/import/import-types";
 import { ENTITY } from "@/lib/rs/creditor-invoice-import";
-import { CREDITOR_INVOICE_IMPORT_COLUMNS } from "./columns";
+import {
+  CREDITOR_INVOICE_IMPORT_COLUMNS,
+  CREDITOR_INVOICE_IMPORT_DIFF_ONLY_FIELDS,
+} from "./columns";
 
 /**
  * The incoming-invoice (Kreditor) CSV/DATEV import. A thin consumer of the generic {@link ImportFeature}:
@@ -20,6 +23,7 @@ export function CreditorInvoiceImport() {
       descriptionKey: "fibu.eingangsrechnung.import.description",
       helpKey: "fibu.eingangsrechnung.import.templateInfo",
       columns: CREDITOR_INVOICE_IMPORT_COLUMNS,
+      diffOnlyFields: CREDITOR_INVOICE_IMPORT_DIFF_ONLY_FIELDS,
       fileAccept: ".csv",
       returnRoute: "/creditor-invoice",
       stayAfterCommit: true,

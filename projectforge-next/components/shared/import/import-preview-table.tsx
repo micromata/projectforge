@@ -13,6 +13,7 @@ import {
 import { ImportDiffCell } from "./import-diff-cell";
 import { ImportStatusCell } from "./import-status-cell";
 import {
+  changesNotShownOf,
   isNumericKind,
   isSelectable,
   rowClassForStatus,
@@ -55,6 +56,10 @@ export function ImportPreviewTable({
     () => visibleColumns(config.columns, meta),
     [config.columns, meta]
   );
+  const knownDiffFields = useMemo(
+    () => [...config.columns, ...(config.diffOnlyFields ?? [])],
+    [config.columns, config.diffOnlyFields]
+  );
 
   // The same interaction the list's mass update uses (see useRowSelection): a click selects the row,
   // Ctrl/Cmd+click toggles it, Shift+click and Shift+Arrow extend a range, Space toggles the focused
@@ -94,7 +99,16 @@ export function ImportPreviewTable({
       size: 150,
       enableSorting: false,
       meta: { label: t("status"), wrap: true },
-      cell: ({ row }) => <ImportStatusCell entry={row.original} />,
+      cell: ({ row }) => (
+        <ImportStatusCell
+          entry={row.original}
+          hiddenChanges={changesNotShownOf(
+            row.original,
+            shown,
+            knownDiffFields
+          )}
+        />
+      ),
     };
     const fieldColumns = shown.map<ColumnDef<ImportEntry, unknown>>(
       (column: ImportColumn) => {
@@ -117,7 +131,7 @@ export function ImportPreviewTable({
       }
     );
     return [selectionColumn<ImportEntry>(), statusColumn, ...fieldColumns];
-  }, [shown, t]);
+  }, [shown, knownDiffFields, t]);
 
   return (
     <DataTable<ImportEntry>

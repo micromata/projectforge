@@ -521,6 +521,19 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `ScriptExecuteRest` (`allowAdHoc`) Code ohne Id an; ein gespeichertes Script läuft immer wie gespeichert,
   vom Client kommen nur die Parameterwerte (`prepareScript`). Kein Rückweg und keine Umleitung alter Links
   (`legacyApp = null`): Kein Link der Script-Seiten ging je nach draußen (Mail, Datentransfer).
+- **Merlin** (`merlin`, Plugin merlin, Word®-Vorlagen; vorher React-UILayout `MerlinPagesRest`,
+  `MerlinExecutionPageRest`, `MerlinVariablePageRest`, alle gelöscht) – aufgebaut wie die Scripte: ein Zeilenklick
+  führt zur Ausführung (`merlin/{id}`), das Verwaltungsformular ist `merlin/{id}/edit`, neu `merlin/new`. Liste +
+  Formular über `MerlinEntityRest` (`/rs/merlin`, gleicher Pfad, Klonen ohne Anhänge); die Ausführung über
+  `MerlinExecuteRest` (`/rs/merlinexecution`: `load/{id}`, `execute` mit 406 an `inputVariables.<name>`,
+  `serialExecution/{id}`, `downloadSerialExecutionTemplate/{id}`), jeder Endpunkt prüft das Leserecht der Vorlage
+  selbst (`MerlinEntityRestTest`). Die Variablen bearbeitet ein Dialog; das alte Modal hielt das Formular in der
+  Session (`ExpiringSessionAttributes`), jetzt rechnen zustandslose Endpunkte die geposteten Variablen um
+  (`variable/update`/`delete`), gespeichert wird mit dem Formular. Nach Upload/Löschen eines Anhangs analysiert
+  `merlin/analyze` die Word®-Vorlage neu, ungespeicherte Eingaben bleiben. Die Beispiele (`example/contract`,
+  `example/letter`) legen Daten an und sind deshalb POST statt GET. Zahlen der Ausführung werden jetzt auch formatiert,
+  wenn sie als Zahl statt als Text kommen (`MerlinRunner.formatVariables`). Kein Rückweg und keine Umleitung
+  alter Links (`legacyApp = null`): Kein Link der Merlin-Seiten ging je nach draußen (Mail, Datentransfer).
 - **Mein Zugang** (`next/myAccount`, vorher React-UILayout `MyAccountPageRest` + Modal `TokenInfoPageRest`,
   beide gelöscht) – layoutfrei über `MyAccountRest` (`/rs/myAccount`: `GET` Daten + Auswahllisten, `save`,
   `renewToken`, `tokenInfo`, `logoutDevice`, `logoutAllDevices`; 2FA-Kurzbefehl `MY_ACCOUNT`). Die

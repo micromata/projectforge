@@ -28,6 +28,7 @@ import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO
+import org.projectforge.rest.dto.EntityAccessSupport
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
 import java.util.*
@@ -50,13 +51,23 @@ class MerlinTemplate(
   var wordTemplateFileName: String? = null,
   var excelTemplateDefinitionFileName: String? = null,
   /**
-   * Used by [org.projectforge.plugins.merlinMerlinVariablePageRest]
+   * The variable to update or delete, see [org.projectforge.plugins.merlin.rest.MerlinEntityRest.updateVariable].
    */
   var currentVariable: MerlinVariable? = null,
   var lastVariableUpdate: Date? = null,
   override var attachmentsCounter: Int? = null,
   override var attachmentsSize: Long? = null,
-) : BaseDTO<MerlinTemplateDO>(id), AttachmentsSupport {
+  /**
+   * The conditionals of the Word® template as Markdown, for displaying only.
+   */
+  var conditionalsMarkdown: String? = null,
+  /**
+   * True, if the data transfer plugin is available (otherwise [dataTransferUsage] isn't offered). For displaying only.
+   */
+  var dataTransferAvailable: Boolean? = null,
+  override var writeAccess: Boolean? = null,
+  override var deleteAccess: Boolean? = null,
+) : BaseDTO<MerlinTemplateDO>(id), AttachmentsSupport, EntityAccessSupport {
   override var attachments: List<Attachment>? = null
 
   var variables = mutableListOf<MerlinVariable>()

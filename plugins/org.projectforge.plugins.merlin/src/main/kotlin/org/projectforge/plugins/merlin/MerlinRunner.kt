@@ -49,7 +49,6 @@ import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.utils.NumberFormatter
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -57,6 +56,8 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.math.RoundingMode
+import java.time.DateTimeException
+import java.time.LocalDate
 import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -109,7 +110,8 @@ open class MerlinRunner {
     /**
      * @param id Id of the MerlinTemplateDO
      * @param istream Inputstream of Excel serial file.
-     * @return Pair of filename and byte array representing the zip file containing all generated word documents.
+     * @return Pair of filename and byte array representing the zip file containing all generated word documents,
+     * or null, if the file isn't an Excel® file for a serial execution of this template.
      */
     fun serialExecuteTemplate(id: Long, filename: String, istream: InputStream): Pair<String, ByteArray>? {
         if (!filename.endsWith("xlsx") && !filename.endsWith(".xls")) {
@@ -128,7 +130,8 @@ open class MerlinRunner {
                 excelByteArray = it.readAllBytes()
             }
             ByteArrayInputStream(excelByteArray).use { xlsIstream ->
-                ExcelWorkbook(xlsIstream, filename).use { workbook ->
+                val excelWorkbook = openWorkbook(xlsIstream, filename) ?: return null
+                excelWorkbook.use { workbook ->
                     if (!SerialDataExcelReader.isMerlinSerialRunDefinition(workbook)) {
                         return null
                     }
@@ -187,6 +190,19 @@ open class MerlinRunner {
                 )
             }
             return Pair(runner.zipFilename, zipByteArray)
+        }
+    }
+
+    /**
+     * @return The workbook, or null, if the file can't be read as an Excel® file (e.g. a pdf uploaded by mistake).
+     * Only the opening is caught: what goes wrong while executing the template is no wrong file.
+     */
+    private fun openWorkbook(istream: InputStream, filename: String): ExcelWorkbook? {
+        return try {
+            ExcelWorkbook(istream, filename)
+        } catch (ex: Exception) {
+            log.error { "Can't read serial execution file '$filename' as Excel® file: ${ex.message}" }
+            null
         }
     }
 
@@ -488,29 +504,28 @@ open class MerlinRunner {
             val variable = dto.findVariableByName(varname)
             if (variable != null) {
                 if (variable.type == VariableType.DATE && value != null && value is String) {
-                    val date = RestHelper.parseJSDateTime(value)?.sqlDate
+                    val date = parseDate(value)?.let { java.sql.Date.valueOf(it) }
                     if (date != null) {
                         val formattedDate = DateTimeFormatter.instance().getFormattedDate(date)
                         result.putFormatted(varname, formattedDate)
                     }
                 } else if (variable.type.isIn(VariableType.INT, VariableType.FLOAT)) {
-                    if (value != null && value is String) {
-                        NumberHelper.parseBigDecimal(value)?.let { bd ->
-                            if (variable.type == VariableType.INT) {
+                    // A number of the execution form, or a string of an Excel® file of a serial execution:
+                    variable.asBigDecimal(value)?.let { bd ->
+                        if (variable.type == VariableType.INT) {
+                            result.putFormatted(
+                                varname,
+                                NumberFormatter.format(bd.setScale(0, RoundingMode.HALF_UP), 0)
+                            )
+                        } else {
+                            val scale = variable.scale
+                            if (scale != null) {
                                 result.putFormatted(
                                     varname,
-                                    NumberFormatter.format(bd.setScale(0, RoundingMode.HALF_UP), 0)
+                                    NumberFormatter.format(bd.setScale(scale, RoundingMode.HALF_UP), scale)
                                 )
                             } else {
-                                val scale = variable.scale
-                                if (scale != null) {
-                                    result.putFormatted(
-                                        varname,
-                                        NumberFormatter.format(bd.setScale(scale, RoundingMode.HALF_UP), scale)
-                                    )
-                                } else {
-                                    result.putFormatted(varname, NumberFormatter.format(bd))
-                                }
+                                result.putFormatted(varname, NumberFormatter.format(bd))
                             }
                         }
                     }
@@ -539,6 +554,27 @@ open class MerlinRunner {
             "#PersonalBoxAsPdf" // This string is also used in MerlinI18nResources.properties.
         private const val PERSONAL_BOX_VARIABLE_AS_PDF_DESC =
             "#PersonalBoxAsPdf_Description" // This string is also used in MerlinI18nResources.properties.
+
+        /**
+         * The day of a date variable: "yyyy-MM-dd" as the execution form of projectforge-next sends it, or a
+         * timestamp in UTC (an older user pref of the React form stored the user's midnight, e.g.
+         * "2026-10-21T22:00:00.000Z"), which is taken in the user's time zone.
+         */
+        fun parseDate(value: String): LocalDate? {
+            val trimmed = value.trim()
+            return try {
+                if (isoDateRegex.matches(trimmed)) {
+                    LocalDate.parse(trimmed)
+                } else {
+                    RestHelper.parseJSDateTime(trimmed)?.localDate
+                }
+            } catch (ex: DateTimeException) {
+                log.warn { "Can't parse date value '$value': ${ex.message}" }
+                null
+            }
+        }
+
+        private val isoDateRegex = Regex("""\d{4}-\d{2}-\d{2}""")
 
         fun initTemplateRunContext(templateRunContext: TemplateRunContext) {
             val locale = ThreadLocalUserContext.locale

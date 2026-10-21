@@ -127,6 +127,11 @@ export interface ImportConfig {
   /** i18n key of a markdown guide shown below the drop area (file sources, steps, supported columns). */
   helpKey?: string;
   columns: ImportColumn[];
+  /**
+   * Properties the backend diffs that have no column of their own, e.g. the receiver of an invoice: their label
+   * and format for the list of changes in the status cell (see changesNotShownOf). Never rendered as columns.
+   */
+  diffOnlyFields?: ImportColumn[];
   /** `<input accept>` value for the drop step, e.g. `.csv`. */
   fileAccept: string;
   /** Where committing returns to, e.g. `/creditor-invoice`. Unused with [stayAfterCommit]. */

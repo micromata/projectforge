@@ -3897,6 +3897,23 @@
       }
     },
     "merlin": {
+      "accessGroups": {
+        "_": "Groups with file access",
+        "info": "Members of these groups (if given) will have access to the files of this area."
+      },
+      "accessUsers": {
+        "_": "Users with file access",
+        "info": "These users (if given) will have access to the files of this area."
+      },
+      "admins": {
+        "_": "Admins",
+        "info": "Admins have full access to this area and its settings. They are also allowed to change admins, enabling external access and deleting this area."
+      },
+      "documentation": "Documentation of the templates",
+      "exportExcelTemplate": {
+        "_": "Export configuration template",
+        "info": "Use this template for configuring your Word® template (defining dependent variables etc.)"
+      },
       "fileNamePattern": {
         "_": "File pattern",
         "info": "File pattern of generated files (may contain variables such as ${user} or ${date}), e.g., '${date}-contract-${user}'."
@@ -3911,12 +3928,107 @@
           "info": "If selected, Word® documents will be converted to PDF. The layout and content of the resulting PDF file may differ, please check carefully!"
         }
       },
+      "menu": {
+        "examples": {
+          "_": "Merlin examples",
+          "contract": "A contract example",
+          "letter": "A letter example"
+        }
+      },
       "name": "Template name",
+      "serial": {
+        "template": {
+          "download": {
+            "_": "Excel® for serial execution",
+            "base": "Empty Excel® sheet",
+            "employees": "Excel® sheet with all active employees",
+            "info": "Download of a template sheet (Excel®) for easy generation of serial letters.",
+            "users": "Excel® sheet with all active users"
+          }
+        }
+      },
       "template": {
         "dataTransferUsage": {
           "_": "Enable personal box",
-          "info": "You may send the generated documents (serial execution) directly to the user's personal inboxes of the plugin DataTransfer. Please download the Excel template on the execution page for usage of #PersonalBox...."
+          "info": "You may send the generated documents (serial execution) directly to the user's personal inboxes of the plugin DataTransfer. Please download the Excel template on the execution page for usage of #PersonalBox....",
+          "resultZip": "Result archive of your Merlin run."
         }
+      },
+      "templateConfigurationFile": {
+        "_": "Template configuration",
+        "info": "The latest xlsx file of the attachments is used."
+      },
+      "templateExecutor": {
+        "execute": "Execute",
+        "heading": "Execution of Word® template"
+      },
+      "title": {
+        "add": "Add new Word® template",
+        "heading": "Word® template",
+        "list": "List of Word® templates"
+      },
+      "upload": {
+        "serialExecution": {
+          "_": "Serial execution file (xlsx)",
+          "info": "Upload of a serial execution Excel® file to execute."
+        }
+      },
+      "variable": {
+        "add": "Add new variable",
+        "allowedValues": {
+          "_": "Allowed values",
+          "info": "Allowed values should be given as csv or one per line: \"one\", \"two\", \"three\" or: one, two, three."
+        },
+        "dependsOn": "Depends on",
+        "edit": "Edit variable",
+        "mapping": {
+          "_": "Mapping",
+          "info": "Mapping values may be given in comma separated form, e.g., one, two, three..."
+        },
+        "master": {
+          "_": "Master variable",
+          "info": "Master variables are those with variables depends on or use in conditional expressions (if-expressions).",
+          "values": "Master values"
+        },
+        "maxValue": "Maximum value",
+        "minValue": "Minimum value",
+        "name": "Name",
+        "required": "Required",
+        "scale": {
+          "_": "Scale",
+          "info": "Float numbers will be rounded, scale is the number of fraction digits. If not given, all fraction digits will be shown."
+        },
+        "sortName": {
+          "_": "Name for sorting",
+          "info": "Input variables are displayed for usage in alphabetical order (ordered by name). If this name for sorting is given, it will be used for sorting instead of the variable's name."
+        },
+        "type": {
+          "_": "Type",
+          "DATE": "DATE",
+          "FLOAT": "FLOAT",
+          "INT": "INTEGER (INT)",
+          "STRING": "STRING",
+          "dependent": "Dependent"
+        },
+        "unique": "Unique",
+        "used": "Used"
+      },
+      "variables": {
+        "_": "Variables",
+        "conditionals": "Conditionals",
+        "dependant": {
+          "_": "Dependent variables",
+          "info": "Unused variables in the template are displayed in light gray color."
+        },
+        "input": {
+          "_": "Input Variables",
+          "info": "Master variables with dependent variables or used by conditional expressions are highlighted in red."
+        }
+      },
+      "viewLogs": "View logs",
+      "wordTemplateFile": {
+        "_": "Word® template",
+        "info": "The latest docx file of the attachments is used."
       }
     },
     "skillmatrix": {
