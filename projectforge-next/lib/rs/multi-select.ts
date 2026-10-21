@@ -102,11 +102,6 @@ export interface MultiSelectMeta {
   supportsDelete?: boolean;
   /** Whether the page offers restoring selected, already deleted entries — the "restore" button. */
   supportsRestore?: boolean;
-  /**
-   * The log viewer of the user's log subscription the mass update writes to (`next/logViewer/<id>`), absent
-   * where the page has none. Registered by the `meta` call itself, so it is there while the update runs.
-   */
-  logViewerUrl?: string | null;
 }
 
 /**
@@ -155,6 +150,11 @@ export interface MassUpdateResult {
   downloadUrl?: string;
   /** The fields the update acted on, translated. */
   changedFields: string[];
+  /**
+   * The log viewer of the user's log subscription the run wrote to (`next/logViewer/<id>`), absent where
+   * the page has none. Registered by the run itself, right before it starts.
+   */
+  logViewerUrl?: string | null;
 }
 
 /** Answer of a run: either it went through, or the server rejected it with something to fix. */
@@ -196,7 +196,8 @@ export type MassUpdatePreviewOutcome =
 
 /** Where the client goes next — the backend's `MultiSelectNavigation`. */
 export interface MultiSelectNavigation {
-  url: string;
+  /** Where a cancel returns to (the list the selection came from); absent for the other calls. */
+  url?: string | null;
   selectedCount: number;
   /**
    * What the ticked entries add up to, in the same shape `MultiSelectMeta.statisticsData` carries
