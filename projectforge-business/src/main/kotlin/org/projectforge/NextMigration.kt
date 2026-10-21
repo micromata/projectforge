@@ -373,14 +373,13 @@ object NextMigration {
             legacyApp = null,
         ),
         // Migrated from the React app (MenuItemDefId.GROUP_LIST pointed at react/group). The React pages are gone
-        // (GroupEntityRest serves no UILayout), so there is no way back; the legacy app is kept for the redirect of
-        // bookmarked React links only.
+        // (GroupEntityRest serves no UILayout): no way back and no redirect of old links (legacyApp = null), as no
+        // link of them ever left ProjectForge.
         "group" to NextPage(
             route = "group",
             editRoute = "group/$ID_PLACEHOLDER",
             newEntryRoute = "group/new",
-            legacyApp = LegacyApp.REACT,
-            offerLegacyLink = false,
+            legacyApp = null,
         ),
         // The HR planning ("Wochenplanung"), migrated from Wicket (MenuItemDefId.HR_PLANNING_LIST pointed at
         // wa/hrPlanningList) with its weekly form. Hand built: the list shows the entries of the planned weeks
@@ -527,16 +526,13 @@ object NextMigration {
         // editor: the two most-used calendar editors are being migrated ahead of any list. There is no team
         // event list of this app - the event is reached through the calendar (see use-calendar-action.ts) -
         // so this repoints only the edit routes. The React team event form was rendered from a server side UILayout
-        // under calendar/teamEvent, which is no longer served, so there is no way back; the legacy routes are kept
-        // for the redirect of bookmarked React links only.
+        // under calendar/teamEvent, which is no longer served: no way back and no redirect of old links
+        // (legacyApp = null), as no link of it ever left ProjectForge (the invitation mails link the /cal servlet).
         "teamEvent" to NextPage(
             route = "teamEvent",
             editRoute = "teamEvent/$ID_PLACEHOLDER",
             newEntryRoute = "teamEvent/new",
-            legacyApp = LegacyApp.REACT,
-            legacyEditRoute = "calendar/teamEvent/edit/$ID_PLACEHOLDER",
-            legacyNewEntryRoute = "calendar/teamEvent/edit",
-            offerLegacyLink = false,
+            legacyApp = null,
         ),
         // The to-dos (plugin todo) are migrated straight from Wicket and their Wicket pages are removed, as the
         // licenses. legacyApp and the legacy routes stay: the legacy edit route is the link of the notification

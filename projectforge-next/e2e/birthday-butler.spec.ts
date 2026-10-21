@@ -61,9 +61,4 @@ test.describe("birthday butler", { tag: "@parallel" }, () => {
       expect((await download)?.suggestedFilename()).toMatch(/\.docx$/);
     }
   });
-
-  test("the old React page leads here", async ({ loggedInPage: page }) => {
-    await page.goto("/react/birthdayButler/dynamic");
-    await expect(page).toHaveURL(/\/next\/birthdayButler\/?$/);
-  });
 });

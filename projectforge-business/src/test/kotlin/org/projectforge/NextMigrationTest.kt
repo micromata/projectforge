@@ -427,7 +427,8 @@ class NextMigrationTest {
     /**
      * The group is the page the task wizard needs: it creates a group in a dialog around the *next* form
      * (see `wizard-group-step.tsx`), so the routes of that form are part of the contract. Migrated from the
-     * React app, whose pages are gone: there is no way back.
+     * React app, whose pages are gone: there is no way back, and as no link of them ever left ProjectForge, none
+     * is redirected.
      */
     @Test
     fun `the group page is next's, without a way back`() {
@@ -438,18 +439,28 @@ class NextMigrationTest {
         Assertions.assertNull(NextMigration.legacyListUrl("group"))
         Assertions.assertNull(NextMigration.legacyEditPage("group"))
         Assertions.assertNull(NextMigration.legacyNewEntryUrl("group"))
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "group" })
+    }
+
+    /** The team event form is next's, the React form is gone: no way back, and the invitation mails never linked it. */
+    @Test
+    fun `the team event form is next's, without a way back`() {
+        Assertions.assertEquals("next/teamEvent/:id", NextMigration.standardEditPage("teamEvent"))
+        Assertions.assertEquals("next/teamEvent/new", NextMigration.newEntryUrl("teamEvent"))
+        Assertions.assertNull(NextMigration.legacyEditPage("teamEvent"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("teamEvent"))
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "teamEvent" })
     }
 
     /**
      * Old links are only redirected where they have left ProjectForge (see NextPage.legacyApp): the order and to-do
-     * change mails and the vacation mails linked the legacy forms. Next to them only the pages that still offer
-     * their way back (and whose way back has to be told from a stale link: the group, the team event, the address
-     * campaign values) and the calendar, the former page after login.
+     * change mails and the vacation mails linked the legacy forms. Next to them only the address campaign values,
+     * which still offer their way back (to be told from a stale link), and the calendar, the former page after login.
      */
     @Test
     fun `only links that left ProjectForge are redirected`() {
         Assertions.assertEquals(
-            setOf("order", "todo", "vacation", "calendar", "group", "teamEvent", "addressCampaignValue"),
+            setOf("order", "todo", "vacation", "calendar", "addressCampaignValue"),
             NextMigration.orphanedLinks().map { it.category }.toSet(),
         )
     }
@@ -489,11 +500,11 @@ class NextMigrationTest {
         Assertions.assertEquals("/next/order/:id", order.nextEditUrl)
         Assertions.assertEquals("/next/order/new", order.nextNewEntryUrl)
 
-        val group = byList["react/group"]
-        Assertions.assertNotNull(group, "The group page was migrated from the React app and must be redirected.")
-        Assertions.assertEquals(NextMigration.LegacyApp.REACT, group!!.legacyApp)
-        Assertions.assertEquals("react/group/edit", group.legacyEditPath) // Id is a path segment.
-        Assertions.assertEquals("/next/group", group.nextListUrl)
+        val vacation = byList["react/vacation"]
+        Assertions.assertNotNull(vacation, "The vacation page was migrated from the React app and must be redirected.")
+        Assertions.assertEquals(NextMigration.LegacyApp.REACT, vacation!!.legacyApp)
+        Assertions.assertEquals("react/vacation/edit", vacation.legacyEditPath) // Id is a path segment.
+        Assertions.assertEquals("/next/vacation", vacation.nextListUrl)
 
         // The to-dos: the bookmarkable url of the Wicket form, the link of the notification mails.
         val todo = NextMigration.orphanedLinks().single { it.category == "todo" }

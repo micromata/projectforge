@@ -62,9 +62,4 @@ test.describe("e-invoice checker", { tag: "@parallel" }, () => {
     await refused;
     await expect(page.locator('[data-tone="error"]')).toBeVisible();
   });
-
-  test("the old React page leads here", async ({ loggedInPage: page }) => {
-    await page.goto("/react/eInvoiceChecker/dynamic");
-    await expect(page).toHaveURL(/\/next\/eInvoiceChecker\/?$/);
-  });
 });

@@ -4,8 +4,8 @@
   "de": "Links früherer Versionen",
   "items": [
     {
-      "en": "Old links to pages of the former interfaces are only forwarded to the new pages if they were sent by mail or shared: orders, to-dos, vacation entries, data transfer, poll answers and the vacation account. Bookmarks of other old pages no longer lead to the new ones and should be renewed.",
-      "de": "Alte Links auf Seiten der früheren Oberflächen werden nur noch auf die neuen Seiten weitergeleitet, wenn sie per Mail verschickt oder geteilt wurden: Aufträge, To-dos, Urlaubseinträge, Datentransfer, Umfrage-Antworten und das Urlaubskonto. Lesezeichen anderer alter Seiten führen nicht mehr auf die neuen und sollten erneuert werden."
+      "en": "Old links to pages of the former interfaces are only forwarded to the new pages if they were sent by mail or shared: orders, to-dos, vacation entries, data transfer, poll answers, the password change and the error overview of the system dashboard. The former start pages (login, calendar) and the direct call stay forwarded too. Bookmarks of other old pages no longer lead to the new ones and should be renewed.",
+      "de": "Alte Links auf Seiten der früheren Oberflächen werden nur noch auf die neuen Seiten weitergeleitet, wenn sie per Mail verschickt oder geteilt wurden: Aufträge, To-dos, Urlaubseinträge, Datentransfer, Umfrage-Antworten, die Passwortänderung und die Fehlerübersicht des System-Dashboards. Auch die früheren Startseiten (Login, Kalender) und der Direktanruf werden weiterhin weitergeleitet. Lesezeichen anderer alter Seiten führen nicht mehr auf die neuen und sollten erneuert werden."
     },
     {
       "en": "The links of the reminder mails of polls ending soon (versions 8.0 and 8.1) lead to the answer page again.",
