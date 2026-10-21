@@ -310,14 +310,6 @@ export interface MenuData {
 
 // --- Dynamic Layout ---
 
-export interface DynamicLayoutNode {
-  type: string;
-  key: string;
-  content?: DynamicLayoutNode[];
-  // Type-specific props are passed through
-  [prop: string]: unknown;
-}
-
 /**
  * A filter field the backend offers for a list page. Delivered inside the
  * `searchFilter` named container of a list layout, built by
@@ -410,19 +402,6 @@ export type UIColorName =
   | "success"
   | "warning";
 
-/** A button of the action group or of the layout (org.projectforge.ui.UIButton). */
-export interface ActionDef {
-  id: string;
-  title?: string;
-  color?: UIColorName;
-  outline?: boolean;
-  default?: boolean;
-  tooltip?: string;
-  disabled?: boolean;
-  confirmMessage?: string;
-  responseAction?: ResponseAction;
-}
-
 /** org.projectforge.ui.TargetType. */
 export type TargetType =
   | "REDIRECT"
@@ -475,47 +454,10 @@ export interface PostData<D = Record<string, unknown>> {
   serverData?: ServerData;
 }
 
-export interface AutoCompletion {
-  /** Number of characters before the lookup fires; UIInput/UISelect default it to 2. */
-  minChars?: number;
-  values?: { value: unknown; label: string; allSearchableFields?: string }[];
-  /** USER, EMPLOYEE, GROUP, CUSTOMER, PROJECT - set when the field stores whole entities. */
-  type?: string;
-  /** Contains a literal ":search" placeholder to substitute. */
-  url?: string;
-  urlParams?: Record<string, string>;
-}
-
 /** One offered option of a UISelect (org.projectforge.ui.UISelectValue). */
 export interface UISelectValue {
   id: unknown;
   displayName: string;
-}
-
-export interface NamedContainer {
-  id: string;
-  type: string;
-  content?: DynamicLayoutNode[];
-}
-
-export interface DynamicUIResponse {
-  /** Identifies this layout instance; used to keep dom ids unique (UILayout.uid). */
-  uid?: string;
-  layout: DynamicLayoutNode[];
-  layoutBelowActions?: DynamicLayoutNode[];
-  actions?: ActionDef[];
-  pageMenu?: DynamicLayoutNode[];
-  title?: string;
-  /**
-   * The same page in the legacy React app, e.g. `react/book/edit/42` — the escape hatch shown next
-   * to the title while the migration runs (see LegacyPageLink). Absent for pages with no legacy
-   * counterpart.
-   */
-  legacyUrl?: string;
-  translations?: Record<string, string>;
-  watchFields?: string[];
-  // An array, not a map: each container carries its own id (e.g. "searchFilter").
-  namedContainers?: NamedContainer[];
 }
 
 /** One saved filter, mirroring Favorites.FavoriteIdTitle. */
@@ -525,39 +467,11 @@ export interface FavoriteIdTitle {
 }
 
 /**
- * What `{entity}/initialList` and the `filter/*` endpoints return
- * (AbstractPagesRest.InitialListData).
- *
- * Beyond the layout it carries the filter state the backend keeps per user: the
- * current filter (stored on every list call, see saveCurrentFilter) and the list
- * of saved filters.
- */
-export interface InitialListData extends DynamicPageResponse {
-  filter?: MagicFilter;
-  filterFavorites?: FavoriteIdTitle[];
-  standardEditPage?: string;
-  /**
-   * The legacy edit page with `:id` for the id, e.g. `react/book/edit/:id` or `wa/cost1Edit?id=:id`.
-   * Read by the hand built edit pages, which have no `{entity}/edit` response of their own to take
-   * `ui.legacyUrl` from (see LegacyPageLink).
-   */
-  legacyEditPage?: string;
-  /**
-   * The legacy page for adding an entry, e.g. `react/book/edit` or `wa/cost1Edit`. Its own field,
-   * because dropping the id from `legacyEditPage` is a per-app rule (path segment vs. query
-   * parameter), not a suffix cut.
-   */
-  legacyNewEntryPage?: string;
-  quickSelectUrl?: string;
-  useModalEditDialog?: boolean;
-}
-
-/**
  * What `{entity}/listMeta` returns for a hand built list page (`rest/core/ListMetaData.kt`):
  * everything the page needs beside its rows.
  *
- * The layout free counterpart of {@link InitialListData} — no `ui`, no translations and no result
- * set, because the page renders itself and fetches its rows from `list`.
+ * No `ui`, no translations and no result set, because the page renders itself and fetches its rows
+ * from `list`.
  */
 export interface ListMetaData {
   /** The filter the user left this page with, restored from their user prefs. */
@@ -641,16 +555,4 @@ export interface UserAccess {
 export interface FilterFavoritesResponse {
   filter?: MagicFilter;
   filterFavorites?: FavoriteIdTitle[];
-}
-
-/**
- * Layout and data in one - see rest/dto/FormLayoutData.kt.
- *
- * The same shape doubles as the answer of an action endpoint, which is why it carries the
- * ResponseAction fields as well (the backend writes both into one JSON object).
- */
-export interface DynamicPageResponse extends ResponseAction {
-  ui: DynamicUIResponse;
-  data: Record<string, unknown>;
-  serverData?: ServerData;
 }

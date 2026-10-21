@@ -72,8 +72,7 @@ export interface SuggestInputProps {
  * this a different control from [EntityAutocomplete] — that one picks an *entity* and refuses everything
  * else, this one completes a string.
  *
- * Context-free on purpose, so both a hand-built form field ([StringSuggestField]) and the server
- * laid out one ([DynamicAutoCompleteInput]) render the same box.
+ * Context-free on purpose, so any form field ([StringSuggestField]) or filter can render the same box.
  */
 export function SuggestInput({
   value,

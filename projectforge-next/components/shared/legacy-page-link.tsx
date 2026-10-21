@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
  * finding the way back has to be obvious, not a discovery. Yellow and not the primary teal, so it
  * doesn't compete with the action the page is actually for — "add", "save".
  *
- * The url comes from the server (`UILayout.legacyUrl` / `InitialListData.legacyEditPage`), because
+ * The url comes from the server (`ListMetaData.legacyListPage` / `legacyEditPage`), because
  * it isn't derivable here: `books` is not `book`, and pages whose rows open something other than an
  * edit form point somewhere else entirely.
  *

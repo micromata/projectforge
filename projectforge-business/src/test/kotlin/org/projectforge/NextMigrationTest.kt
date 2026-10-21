@@ -29,33 +29,27 @@ import org.junit.jupiter.api.Test
 import java.io.File
 
 /**
- * Asserts that the two languages naming the migrated pages agree.
- *
- * The frontend choice per page is declared twice: [NextMigration.categories] decides which url the
- * menu and every server side redirect point to, and `HAND_BUILT_CATEGORIES` in projectforge-next
- * decides whether that url is served by a hand built page or by the generic UILayout renderer. A
- * category present in only one of them fails silently - the user lands on the generic page of an
- * entity that has a hand built one, or on a route that doesn't exist - so it is asserted here
- * instead of found in production.
+ * Asserts the migration registry [NextMigration]: its routes, redirects and legacy urls.
  *
  * @author Kai Reinhard
  */
 class NextMigrationTest {
+    /**
+     * The menu and every server side redirect of a migrated category point to its route in projectforge-next,
+     * so a route without a page there would be a dead link - asserted here instead of found in production.
+     */
     @Test
-    fun `migrated categories match the hand built categories of projectforge-next`() {
-        val file = handBuiltCategoriesFile()
+    fun `every migrated route has a page in projectforge-next`() {
+        val appDir = nextAppDir()
         // Not part of the Java build, so a build without the frontend sources is no failure here.
-        Assumptions.assumeTrue(file != null, "projectforge-next/lib/hand-built-categories.ts not found.")
-        val content = file!!.readText()
-        val array = Regex("""HAND_BUILT_CATEGORIES\s*=\s*\[([^]]*)]""").find(content)?.groupValues?.get(1)
-        Assertions.assertNotNull(array, "Can't parse HAND_BUILT_CATEGORIES in ${file.absolutePath}.")
-        val categories = Regex("""["']([^"']+)["']""").findAll(array!!).map { it.groupValues[1] }.toSet()
-        Assertions.assertEquals(
-            NextMigration.categories,
-            categories,
-            "NextMigration.MIGRATED and HAND_BUILT_CATEGORIES (${file.absolutePath}) disagree. " +
-                    "A migrated page has to be listed in both.",
-        )
+        Assumptions.assumeTrue(appDir != null, "projectforge-next/app/(authenticated) not found.")
+        NextMigration.categories.forEach { category ->
+            val route = NextMigration.nextPage(category)!!.route
+            Assertions.assertTrue(
+                File(appDir, route).isDirectory,
+                "Route '$route' of the migrated category '$category' has no page in ${appDir!!.absolutePath}.",
+            )
+        }
     }
 
     @Test
@@ -516,12 +510,12 @@ class NextMigrationTest {
      * The working directory of a test run is the module, not the repository, and both are valid
      * (Gradle vs. IDE), so the project root is searched upwards instead of assumed.
      */
-    private fun handBuiltCategoriesFile(): File? {
+    private fun nextAppDir(): File? {
         var dir: File? = File(System.getProperty("user.dir")).absoluteFile
         while (dir != null) {
-            val file = File(dir, "projectforge-next/lib/hand-built-categories.ts")
-            if (file.exists()) {
-                return file
+            val appDir = File(dir, "projectforge-next/app/(authenticated)")
+            if (appDir.isDirectory) {
+                return appDir
             }
             dir = dir.parentFile
         }

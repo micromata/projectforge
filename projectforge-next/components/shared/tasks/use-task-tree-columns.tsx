@@ -24,10 +24,8 @@ const JIRA_TREE_FIELDS = new Set(["shortDescription", "reference"]);
 /**
  * The tree's columns, from the `columnDefs` of the initial answer.
  *
- * Same shape as `useDynamicGridColumns` and for the same reasons — including the memoisation, which
- * keeps a header from remounting and closing its own popover. It is a hook of its own rather than
- * that one reused, because the structure tree has no DynamicLayout to take `translate` from: its
- * headers arrive already translated, so `next-intl` covers the rest.
+ * Memoised, which keeps a header from remounting and closing its own popover. The headers arrive
+ * already translated, so `next-intl` covers the rest.
  *
  * The one column that differs is the tree column: [TreeCell] gets an `onToggle` and the row's
  * `action`, which the generic `renderCell` has no channel for — expanding and adding below a node

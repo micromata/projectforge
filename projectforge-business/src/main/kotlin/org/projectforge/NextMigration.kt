@@ -86,10 +86,10 @@ object NextMigration {
      * @param route The route of the list page inside projectforge-next, without the `next/` prefix,
      * e.g. `book`. May differ from the REST category.
      * @param editRoute Route of the edit page with [ID_PLACEHOLDER] for the id, e.g. `book/:id`.
-     * Defaults to the shape of the generic UILayout routes (`<route>/edit/:id`), which mirrors the
-     * legacy React app. Hand built pages may deviate.
+     * Defaults to the shape of the legacy React app (`<route>/edit/:id`), which no page of
+     * projectforge-next serves: a page with an edit page sets it.
      * @param newEntryRoute Route for creating a new entry, e.g. `book/new`. Defaults to the
-     * generic shape `<route>/edit`.
+     * React shape `<route>/edit`, see [editRoute].
      * @param listOnly Only the list page is migrated, the form is still the legacy one: every url of
      * the edit page stays in [legacyApp], so a row click, the add button and every server side
      * redirect after a save lead there ([standardEditPage] and [newEntryUrl] answer the legacy url).
@@ -165,7 +165,7 @@ object NextMigration {
     private val MIGRATED = mapOf(
         // The access-rights management (group/task permission matrix), migrated from Wicket
         // (MenuItemDefId.ACCESS_LIST pointed at wa/accessList). Hand built (GroupAccessEntityRest, no
-        // layout) because the permission matrix is no field a generic UILayout page can render. Wicket's
+        // layout) because the permission matrix is no field a UILayout page can render. Wicket's
         // mount points follow the convention (DaoConst.ACCESS + List/Edit = accessList/accessEdit), so no
         // legacy route has to be spelled out. The way back to Wicket is no longer offered; legacyApp stays only
         // so OrphanedLinkFilter still redirects bookmarked wa/accessList / wa/accessEdit links.
@@ -394,8 +394,7 @@ object NextMigration {
             offerLegacyLink = false,
         ),
         // Migrated from the React app (MenuItemDefId.GROUP_LIST pointed at react/group), which is where the
-        // way back leads. Hand built rather than generic because the React list has a filter of its own
-        // (the group type) and an Excel export, neither of which the generic UILayout route renders.
+        // way back leads. The React list has a filter of its own (the group type) and an Excel export.
         "group" to NextPage(
             route = "group",
             editRoute = "group/$ID_PLACEHOLDER",
@@ -746,10 +745,8 @@ object NextMigration {
     /**
      * The REST categories served by projectforge-next.
      *
-     * Exposed for `NextMigrationTest`, which asserts that this set is the one
-     * `HAND_BUILT_CATEGORIES` in projectforge-next names: the two lists encode the same decision in
-     * two languages, and a category missing from either one fails silently - the frontend serves the
-     * generic UILayout page under `next/<category>`, or the menu points at a page that isn't there.
+     * Handed to projectforge-next by `UserStatusRest`; `NextMigrationTest` asserts that every route
+     * of these has a page there.
      */
     val categories: Set<String>
         get() = MIGRATED.keys
@@ -1034,9 +1031,8 @@ object NextMigration {
 
     /**
      * Marks a legacy url as the escape hatch, so `OrphanedLinkFilter` passes it through. Applied to the
-     * "way back" urls the server hands projectforge-next ([AbstractPagesRest]'s `legacyUrl`,
-     * `legacyEditPage`, `legacyNewEntryPage`), which is where every escape hatch - hand built pages
-     * included - reads them from.
+     * "way back" urls the server hands projectforge-next (`ListMetaData.legacyListPage`,
+     * `legacyEditPage`, `legacyNewEntryPage`), which is where every escape hatch reads them from.
      *
      * @return [legacyUrl] with [ESCAPE_HATCH_PARAM] appended, or null if [legacyUrl] is null.
      */

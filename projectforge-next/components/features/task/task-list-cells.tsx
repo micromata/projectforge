@@ -11,8 +11,8 @@ import type { TaskListRow } from "./types";
  * The three cells the task list shares with the task tree, adapted to a column declaration.
  *
  * The renderers live in `components/data-table/cells/` and are reached through [renderCell], which
- * takes the *dynamic grid's* shape: a column's render instruction arrives there as a serialisable
- * `CellSpec` from the layout response. A declared column has no such spec, so each wrapper writes the
+ * takes the shape of the task tree's grid: a column's render instruction arrives there as a
+ * serialisable `CellSpec` from the `columnDefs` of the response. A declared column has no such spec, so each wrapper writes the
  * literal its renderer needs and hands over the row. Adapting here rather than widening the renderers
  * keeps one implementation per cell — the two perspectives of a task cannot paint the same value
  * differently.

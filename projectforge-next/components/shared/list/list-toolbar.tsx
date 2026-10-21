@@ -25,7 +25,7 @@ export interface ListToolbarProps {
    * would not find a Wicket page.
    */
   addIsLegacy?: boolean;
-  /** The legacy list page (`ui.legacyUrl` of the list response), see LegacyPageLink. */
+  /** The legacy list page (`ListMetaData.legacyListPage`), see LegacyPageLink. */
   legacyUrl?: string;
   /** The list belongs to an unfinished feature, see PageDef.experimental. */
   experimental?: boolean;

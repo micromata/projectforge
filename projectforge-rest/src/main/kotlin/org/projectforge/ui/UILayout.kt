@@ -102,17 +102,6 @@ class UILayout(
    */
   var hideSearchFilter: Boolean? = null
 
-  /**
-   * The same page in the frontend this one was migrated from - the legacy React app or, for a page
-   * the React migration never reached, Wicket: the escape hatch offered next to the page title while
-   * the migration runs (`LegacyPageLink`).
-   *
-   * Only used by projectforge-next; the legacy React frontend ignores this field.
-   *
-   * @see org.projectforge.NextMigration.legacyListUrl
-   */
-  var legacyUrl: String? = null
-
   val layout: MutableList<UIElement> = mutableListOf()
   val namedContainers: MutableList<UINamedContainer> = mutableListOf()
 

@@ -159,16 +159,15 @@ public class WebApplicationConfig implements WebMvcConfigurer {
                 return shellDir == null ? null : tryResource(shellDir + "/index.html", location);
             }
             // The payload of a *static* route, which the export stores as that route's own index file
-            // ("/book.txt" → "book/index.txt"). Before any shell match: "/book" without the extension also matches the
-            // catch-all "/[category]", whose shell then answers a client side navigation to /next/book with the
-            // payload of a page that renders its own not-found for every route it does not own — the list would
-            // arrive as a 404 although its own prerender is right there.
+            // ("/book.txt" → "book/index.txt"). Before any shell match: a static route may match a dynamic one once
+            // the extension is stripped ("/liquidity/series" matches "/liquidity/[id]"), whose shell would then answer
+            // a client side navigation with the payload of another page.
             int extension = path.lastIndexOf('.');
             Resource own = tryResource(path.substring(1, extension) + "/index" + path.substring(extension), location);
             if (own != null) return own;
             // 3. before 2.: a file below the page, matching the route against the path without the file name. Tried
             // first because stripping the extension instead (below) can turn such a path into a match of a *different*
-            // route — "/book/5/__next._tree.txt" without ".txt" looks like "/[category]/[type]/[...params]".
+            // route — "/book/5/__next._tree.txt" without ".txt" may look like a deeper dynamic route.
             int lastSlash = path.lastIndexOf('/');
             String shellDir = matchShellDir(path.substring(0, lastSlash), location);
             if (shellDir != null) {

@@ -72,7 +72,7 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
   rowActions?: (row: TData) => React.ReactNode;
   /**
    * Highlight class for a whole row, e.g. "row-red" — the semantic classes in
-   * globals.css. Used by the dynamic grid to reproduce a list's row colours.
+   * globals.css (see lib/dynamic/grid/row-class.ts).
    */
   rowClassName?: (row: TData) => string | undefined;
   /**

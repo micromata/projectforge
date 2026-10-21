@@ -56,12 +56,10 @@ app/                      routes only; pages compose features, no business logic
   login/, password-*/     public routes
   (authenticated)/        everything behind AuthGuard + TwoFactorProvider + JobToasts
     book/, cost1/, order/ the hand-built entity pages
-    [category]/…          the provisional server-laid-out renderer's catch-alls
 components/ui/            shadcn primitives — CLI-managed, never edited
 components/data-table/    the generic table primitive: DataTable, filters, column state, paging
 components/shared/        app-wide reusables: shells, form fields, attachments, history, tasks, chrome
 components/features/<n>/  domain code per entity; no cross-feature imports
-components/dynamic/       provisional UILayout renderer (see docs/README.md)
 lib/                      pure TS: formatting, parsing, validation, page-def, metadata
 lib/rs/                   the SOLE entry point for Spring backend calls
 lib/metadata/*.generated  entity field metadata, generated from the backend entities
@@ -169,13 +167,10 @@ becomes a toast instead of vanishing.
 
 `app/(authenticated)/` holds everything behind `AuthGuard`. Inside it:
 
-- **Hand-built entities** own concrete routes: `/book`, `/book/new`, `/book/[id]`,
+- **Every page is hand-built** and owns concrete routes: `/book`, `/book/new`, `/book/[id]`,
   `/book/[id]/history`, and the same shape for `cost1` and `order` (plus `/order/[id]/forecast`).
-  Next resolves these before the generic catch-alls.
-- **`[category]/…`** is the provisional renderer for pages that still get their layout from the
-  server. `lib/hand-built-categories.ts` lists the hand-built categories so reaching one of them
-  through the catch-all is treated as a wrong URL rather than as a fallback — it must stay in sync
-  with `NextMigration.MIGRATED`.
+  There is no catch-all: a URL no route serves is a 404. Each route of `NextMigration.MIGRATED` needs
+  its directory here (asserted by `NextMigrationTest`).
 
 On the backend, `NextMigration` (projectforge-business) is the single place that decides which
 frontend a page belongs to. It has to be single, because a page's frontend URL is generated in two

@@ -7,7 +7,7 @@ import { parseValuePath } from "./value-path";
 
 /**
  * A column def without its rendered parts. `header` and `cell` need JSX and the
- * translation context, so `use-dynamic-grid-columns.tsx` adds them — everything
+ * translation context, so the caller (`use-task-tree-columns.tsx`) adds them — everything
  * that is pure data mapping happens here.
  */
 export type AdaptedColumn<TRow extends DataObject = DataObject> = Omit<

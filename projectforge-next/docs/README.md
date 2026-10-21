@@ -16,7 +16,3 @@ Related documents outside `docs/`:
 - `../MIGRATION.md` — the migration plan and its phases (German).
 - `../MIGRATION-list-paging.md` — server-side paging and the unified filter state.
 - `../MIGRATION-calendar.md` — the plan for the calendar page (German).
-
-Not documented here: `components/dynamic/` and `lib/dynamic/`, the renderer for server-laid-out
-(`UILayout`) pages. It is provisional — a bridge that keeps un-migrated pages reachable under
-`/next` until they get a real page of their own — and its shape is expected to change or disappear.

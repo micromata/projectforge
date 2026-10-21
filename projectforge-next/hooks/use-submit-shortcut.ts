@@ -10,7 +10,7 @@ import { isSubmitShortcut } from "@/lib/submit-shortcut";
  * Wicket pages do with `Form.setDefaultButton`, for every form of this app.
  *
  * Returns the `onKeyDown` handler for the element that wraps the form: the `<form>` of an edit page,
- * the `DialogContent` of a dialog, the container of a server-laid-out page. Deliberately not a
+ * the `DialogContent` of a dialog. Deliberately not a
  * `window` listener like the global shortcuts (`useAddEntryShortcut`): the shortcut belongs to the
  * form and not to the page, so a dialog open above an edit page must not save both.
  *

@@ -10,8 +10,7 @@ reaches (see [page-declarations.md](page-declarations.md)) and where the escape 
 | `cost1` | `Kost1EntityRest`                    | Wicket               | the minimum: what a page looks like with nothing special         |
 | `order` | `OrderEntityRest`                    | Wicket               | the hard case: nested collections, server-computed sums, exports |
 
-All three are registered in `NextMigration.MIGRATED` (backend) and in
-`lib/hand-built-categories.ts` (frontend).
+All three are registered in `NextMigration.MIGRATED` (backend).
 
 ---
 
