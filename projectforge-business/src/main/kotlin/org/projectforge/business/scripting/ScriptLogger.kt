@@ -25,7 +25,6 @@ package org.projectforge.business.scripting
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.logging.LogLevel
-import org.projectforge.common.logging.error
 import java.util.*
 import kotlin.script.experimental.api.ScriptDiagnostic
 
@@ -51,7 +50,8 @@ class ScriptLogger {
 
     fun error(msg: () -> Any?) {
         val message = msg()?.toString()
-        log.error(ScriptingLogEvents.SCRIPT_ERROR) { message }
+        // Only INFO on the server: the author of the script sees it in the script log, it is nothing for the dashboard.
+        log.info { message }
         messages.add(Message(message, LogLevel.ERROR))
     }
 

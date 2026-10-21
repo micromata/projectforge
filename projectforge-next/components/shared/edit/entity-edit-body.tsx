@@ -322,7 +322,8 @@ export function EntityEditBody<
 
   const regions: EditRegions = {
     title,
-    category: t(page.categoryKey),
+    // As the list (entity-list-page): a category that also has children (`menu.orga`) is exported as `<key>._`.
+    category: t(leafKeyOf(page.categoryKey, t.has)),
     // Only for a stored entry: every cross link names it in its url (see CrossLinkDef).
     crossLinks:
       edit.crossLinks && id != null ? (

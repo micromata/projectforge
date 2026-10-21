@@ -25,7 +25,6 @@ package org.projectforge.business.scripting.kotlin
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.scripting.*
-import org.projectforge.common.logging.error
 import org.projectforge.framework.i18n.translate
 import kotlin.script.experimental.api.*
 
@@ -79,13 +78,13 @@ internal object KotlinScriptUtils {
         }
         val returnValue = extractResult(result)
         if (returnValue is ResultValue.Error) {
-            log.error(ScriptingLogEvents.SCRIPT_ERROR) { "Script result with error: ${returnValue.error}" }
+            log.info { "Script result with error: ${returnValue.error}" }
             scriptExecutionResult.result = returnValue.error
             return
         }
         scriptExecutionResult.result = returnValue
         if (result !is ResultWithDiagnostics.Success) {
-            log.error(ScriptingLogEvents.SCRIPT_ERROR) { "Script result: ${result.valueOrNull()}" }
+            log.info { "Script result: ${result.valueOrNull()}" }
         }
     }
 

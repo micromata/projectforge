@@ -40,12 +40,11 @@ import java.io.InputStream
 private val log = KotlinLogging.logger {}
 
 /**
- * The layout-free, JSON returning analog of the UILayout based [AbstractImportPageRest] /
- * [AbstractImportUploadPageRest] pair.
+ * The layout-free, JSON returning analog of the UILayout based [AbstractImportPageRest].
  *
- * Where the legacy pages answer with `UILayout` / `ResponseAction` objects a React page rehydrates, this base
- * answers with plain [ImportView] JSON that a hand built page reads directly. The legacy classes stay in
- * place — address and banking still use them; this base is only the reusable foundation for the newer,
+ * Where the legacy page answers with `UILayout` / `ResponseAction` objects a React page rehydrates, this base
+ * answers with plain [ImportView] JSON that a hand built page reads directly. The legacy class stays in
+ * place — banking still uses it; this base is only the reusable foundation for the newer,
  * hand built import pages, starting with the incoming-invoice (Kreditor) CSV import.
  *
  * The import storage lives in the user's session under a per-controller key (see [sessionAttributeName]),

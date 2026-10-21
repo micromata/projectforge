@@ -5,7 +5,9 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Edit02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { fetchTaskInfo, type TaskNode } from "@/lib/rs/task";
+import { TaskConsumptionBar } from "./task-consumption-bar";
 import { TaskEditLink } from "./task-edit-link";
 import { TaskFavoritesMenu } from "./task-favorites-menu";
 import { TaskPath } from "./task-path";
@@ -32,8 +34,11 @@ export interface TaskSelectControlProps {
   openTreeOnAncestorClick?: boolean;
   /** Open the tree focused on the given node — the drill-down [openTreeOnAncestorClick] triggers (see [TaskPath]). */
   onDrillDown?: (task: TaskNode) => void;
-  /** Make the task segment of the path a link to its time sheets — see [TaskPath]. */
-  linkCurrentToTimesheets?: boolean;
+  /**
+   * Show what is booked on the task as the consumption bar after the buttons — which, as everywhere, leads
+   * to the time sheets behind it (see TaskConsumptionBar). The order position turns it on.
+   */
+  showConsumption?: boolean;
   /** The type-ahead finds only tasks a time sheet may be booked on (see TaskSearchPopover). */
   onlyBookable?: boolean;
 }
@@ -55,7 +60,7 @@ export function TaskSelectControl({
   onSelect,
   openTreeOnAncestorClick,
   onDrillDown,
-  linkCurrentToTimesheets,
+  showConsumption,
   onlyBookable,
 }: TaskSelectControlProps) {
   const t = useTranslations();
@@ -66,6 +71,9 @@ export function TaskSelectControl({
     queryFn: ({ signal }) => fetchTaskInfo(taskId!, signal),
     enabled: taskId != null,
     staleTime: Infinity,
+    // The consumption changes with every booking, and nothing invalidates the shared query on a saved or
+    // deleted time sheet: refetch it whenever the field mounts, so the bar isn't the first fetch's figure.
+    refetchOnMount: showConsumption ? "always" : false,
   });
 
   /**
@@ -91,7 +99,6 @@ export function TaskSelectControl({
           onOpen={onOpen}
           openTreeOnAncestorClick={openTreeOnAncestorClick}
           onDrillDown={onDrillDown}
-          linkCurrentToTimesheets={linkCurrentToTimesheets}
           disabled={disabled}
         />
       </div>
@@ -108,19 +115,26 @@ export function TaskSelectControl({
         disabled={disabled}
         onSelect={select}
       />
-      <Button
-        type="button"
-        variant="outline"
-        size="icon"
-        disabled={disabled}
-        aria-label={t("task.tree.title.select") + " " + ariaLabel}
-        onClick={onOpen}
-        className="size-7 shrink-0"
-      >
-        <HugeiconsIcon icon={Edit02Icon} size={14} />
-      </Button>
+      <HintTooltip text={t("task.tree.title.select")}>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          disabled={disabled}
+          aria-label={t("task.tree.title.select") + " " + ariaLabel}
+          onClick={onOpen}
+          className="size-7 shrink-0"
+        >
+          <HugeiconsIcon icon={Edit02Icon} size={14} />
+        </Button>
+      </HintTooltip>
       {/* Leads to the task itself, where its timesheets are — see TaskEditLink. */}
       {showEditLink && <TaskEditLink taskId={taskId} />}
+      {showConsumption && taskId != null && task && (
+        <div className="w-24 shrink-0">
+          <TaskConsumptionBar task={task} />
+        </div>
+      )}
     </div>
   );
 }

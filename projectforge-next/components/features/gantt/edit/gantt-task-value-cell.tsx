@@ -1,9 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/toast";
 import { saveGanttValueToTask, type GanttTaskField } from "@/lib/rs/gantt";
+import { TASK_STRUCTURE_QUERY_KEYS } from "@/lib/rs/task";
 import type { GanttObject } from "../types";
 import { isModified, rejectPatch } from "./gantt-task-fields";
 import { GanttValueCell } from "./gantt-value-cell";
@@ -27,9 +28,15 @@ export function GanttTaskValueCell({
   children: ReactNode;
 }) {
   const editor = useGanttEditorContext();
+  const queryClient = useQueryClient();
   const save = useMutation({
     mutationFn: () => saveGanttValueToTask(node, field),
-    onSuccess: (task) => editor.update(node.id, { task }),
+    onSuccess: (task) => {
+      editor.update(node.id, { task });
+      // A new title is the name every task picker shows in its cached path.
+      for (const key of TASK_STRUCTURE_QUERY_KEYS)
+        void queryClient.invalidateQueries({ queryKey: key });
+    },
     onError: (error: unknown) =>
       toast.error(error instanceof Error ? error.message : String(error)),
   });

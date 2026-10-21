@@ -243,6 +243,18 @@ export function fetchTaskTree(
 }
 
 /**
+ * The React Query roots of everything derived from the structure tree: the task infos every picker shows
+ * as a breadcrumb (`["taskInfo", id]`), the tree panels and the root. All of them are cached with
+ * `staleTime: Infinity`, so a write that renames, moves or deletes a structure element has to invalidate
+ * them — a move changes the path of every descendant, hence the whole roots rather than one id.
+ */
+export const TASK_STRUCTURE_QUERY_KEYS: readonly (readonly unknown[])[] = [
+  ["taskInfo"],
+  ["taskTree"],
+  ["taskRoot"],
+];
+
+/**
  * One task with its cost units and its ancestor path — what a select field needs to show a stored
  * id as a breadcrumb.
  */

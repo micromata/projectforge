@@ -16,8 +16,9 @@ interface TaskPathProps {
    */
   onSelect: (task: TaskNode | null) => void;
   /**
-   * Opens the tree, as the field's own button does. Given one, „please select" is a click target
-   * itself — it is the widest thing on the row and the first place a pointer goes.
+   * Opens the tree, as the field's own button does. Given one, „please select" — or the selected task,
+   * once there is one — is a click target itself: it is the widest thing on the row and the first place
+   * a pointer goes.
    */
   onOpen?: () => void;
   /**
@@ -57,11 +58,6 @@ interface TaskPathProps {
    * the same reason (the node the tree is rooted at). Pass `false` to render the last segment plain.
    */
   highlightCurrent?: boolean;
-  /**
-   * Make the last segment — the task itself, not its ancestors — a link to the time sheets booked on it
-   * (see [TaskPathCurrent]). Off by default; the order position turns it on.
-   */
-  linkCurrentToTimesheets?: boolean;
 }
 
 /**
@@ -69,7 +65,7 @@ interface TaskPathProps {
  *
  * The ancestors are buttons, since selecting one is how the timesheet moves a booking up the tree
  * without opening the whole panel. The last segment is the current selection: highlighted turquoise by
- * default and inert (see [highlightCurrent]) unless [linkCurrentToTimesheets] makes it a link.
+ * default (see [highlightCurrent]); it opens the tree when [onOpen] is given.
  */
 export function TaskPath({
   task,
@@ -83,7 +79,6 @@ export function TaskPath({
   ancestorTooltip,
   showPlaceholder = true,
   highlightCurrent = true,
-  linkCurrentToTimesheets = false,
 }: TaskPathProps) {
   const t = useTranslations();
   // `path` holds the ancestors root-first and excludes the task itself (TaskServicesRest.createTask).
@@ -138,7 +133,7 @@ export function TaskPath({
           <TaskPathCurrent
             task={task}
             highlight={highlightCurrent}
-            linkToTimesheets={linkCurrentToTimesheets}
+            onOpen={disabled ? undefined : onOpen}
           />
         </span>
       )}

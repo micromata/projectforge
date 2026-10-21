@@ -47,6 +47,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpSession
 import org.springframework.mock.web.MockMultipartFile
+import java.math.BigDecimal
 
 /**
  * Round-trips a tiny in-memory DATEV CSV through the layout-free [IncomingInvoiceImportRest]:
@@ -171,6 +172,19 @@ class IncomingInvoiceImportRestTest {
 
         val commitResponse = rest.commit(request, AbstractImportRest.CommitData(selectedIds = emptyList()))
         assertEquals(HttpStatus.BAD_REQUEST, commitResponse.statusCode, "Nothing selected -> 400.")
+    }
+
+    /** DATEV exports write numbers in German style ("19,00", "1.234,56"), the tax rates and payment amounts too. */
+    @Test
+    fun `DATEV settings parse German numbers`() {
+        val settings = EingangsrechnungImportStorage(IncomingInvoiceImportRest.DATEV_IMPORT_SETTINGS).importSettings
+        fun parse(header: String, value: String) = settings.getFieldSettings(header)!!.parseBigDecimal(value)
+
+        assertEquals(BigDecimal("19.00"), parse("Steuer in %", "19,00"))
+        assertEquals(BigDecimal("5.50"), parse("Steuer%", "5,50"))
+        assertEquals(BigDecimal("1234.56"), parse("Zahlbetrag", "1.234,56"))
+        assertEquals(BigDecimal("123.45"), parse("Zahlbetrag", "123,45"))
+        assertEquals(BigDecimal("1234.56"), parse("Rechnungsbetrag", "1.234,56"))
     }
 
     private fun setField(target: Any, name: String, value: Any) {

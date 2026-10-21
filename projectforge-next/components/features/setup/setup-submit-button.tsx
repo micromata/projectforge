@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useElapsedSeconds } from "@/hooks/use-elapsed-seconds";
 import { fetchSetupProgress } from "@/lib/rs/setup";
 
 interface SetupSubmitButtonProps {
@@ -65,22 +65,4 @@ export function SetupSubmitButton({
       </Button>
     </>
   );
-}
-
-/** Seconds since `running` became true, 0 while not running. */
-function useElapsedSeconds(running: boolean): number {
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    if (!running) return;
-    const start = Date.now();
-    const timer = window.setInterval(
-      () => setElapsed(Math.floor((Date.now() - start) / 1000)),
-      1_000
-    );
-    return () => {
-      window.clearInterval(timer);
-      setElapsed(0);
-    };
-  }, [running]);
-  return elapsed;
 }
