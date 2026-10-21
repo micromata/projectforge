@@ -13,13 +13,19 @@ fix didn't hold.
 Each entry lists the dashboard source (class:line or log event code) as it appeared, so a reappearing problem can
 be matched even if line numbers move.
 
-## 2026-10-21 (two problems from the dashboard)
+## 2026-10-21 (three problems from the dashboard)
 
 ### Fixed (main worktree, branch `fix/incoming-invoice-import-matching`)
 
 | Dashboard source | Cause | Fix | Watch |
 |---|---|---|---|
 | `support.loggedError` at `IncomingInvoiceCsvImporter:579` "RENR '…': Inkonsistente Werte für 'bezahlDatum'" / "… 'currency'" (6× and 3×, one user, three uploads) | Position export of DATEV: the column `Belegart` wasn't read, so a credit note on a credit-card clearing account (the payment: 806 on 1814, 66 on 1461 in 01–03/2026, of 945 credit notes) became a positive position of the invoice with the same number and date, or an invoice of its own. Behind it a worse bug: the fuzzy matching (stage 2/3 of `EingangsrechnungImportStorage`) accepted an equal creditor alone, the job then overwrote number, date, paid date, currency and subject of an older invoice of that creditor (proven by the history; a few hundred invoices since the import went live, plus ≈770 phantom invoices from payment offsets). | Offsets are dropped (`filterRecords`), their date fills a missing paid date; other credit notes negative. Candidates of stage 2/3 must be plausible (`isPlausibleMatch`: creditor similar, date ≤ 14 days apart, number similar or same amount); the job refuses implausible updates (`isPlausibleUpdateOf`). Header-only imports offer no deletions, position imports only within their periods. Inconsistencies log `warn` (shown in the import dialog anyway); warning for paid date before invoice date; EUR wins over another currency. | Repair of the overwritten invoices from the history and deletion of the phantom invoices on prod (SQL with the user, not a migration). Two invoice rows with the same number and date but different amounts (one case) remain an inconsistency error until corrected in DATEV. |
+
+### Fixed (main worktree, branch `fix/script-errors-not-on-dashboard`)
+
+| Dashboard source | Cause | Fix | Watch |
+|---|---|---|---|
+| `scripting.script.error` "org.codehaus.groovy.control.MultipleCompilationErrorsException: startup failed: … unable to resolve class org.projectforge.common.DateHolder" | A user's Groovy script imports a class removed long ago. The CLIENT event of 2026-10-19 kept script errors out of the digest, but they were still listed on the dashboard. | Script errors (`ScriptLogger.error`, `KotlinScriptUtils`) and the unresolvable `org.projectforge` classes of `GroovyExecutor` (was a plain ERROR, i.e. `support.loggedError`) are logged as INFO without an event, so they aren't collected at all. Event `scripting.script.error` removed. | Existing groups `scripting.script.error` don't get new occurrences: resolve them. The user sees the error in the script log as before. |
 
 ## 2026-10-19 (export 07:07, subsystem gatewayPush, plus two problems from the dashboard)
 

@@ -28,7 +28,6 @@ import org.projectforge.business.fibu.ExchangeRateLogEvents
 import org.projectforge.business.jobs.JobLogEvents
 import org.projectforge.business.lanesandplanes.LanesAndPlanesLogEvents
 import org.projectforge.business.notification.NotificationLogEvents
-import org.projectforge.business.scripting.ScriptingLogEvents
 import org.projectforge.business.user.UserLogEvents
 import org.projectforge.common.logging.CommonLogEvents
 import org.projectforge.common.logging.LogEventRegistry
@@ -65,7 +64,6 @@ class BusinessLogEventCatalog {
             ThirdPartyLogEvents,
             NotificationLogEvents,
             ConfigurationLogEvents,
-            ScriptingLogEvents,
         )
     }
 }

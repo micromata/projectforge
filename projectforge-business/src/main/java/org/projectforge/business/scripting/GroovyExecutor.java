@@ -112,7 +112,7 @@ public class GroovyExecutor {
                     loadClass = super.loadClass(name, lookupScriptFiles, preferClassOverScript, resolve);
                 } catch (ClassNotFoundException e) {
                     if (name.startsWith("org.projectforge")) {
-                        log.error("Error while resolving Class: " + name);
+                        log.info("Error while resolving Class: " + name); // A script error, shown to the user.
                     }
                 }
                 return loadClass;
