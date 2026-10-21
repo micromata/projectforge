@@ -21,3 +21,15 @@ export const FilterValuesProvider = FilterValuesContext.Provider;
 export function useFilterValuesContext(): FilterValues {
   return useContext(FilterValuesContext);
 }
+
+/**
+ * The list's search term, the criterion beside the filter values: a checklist narrowed by the other
+ * criteria is narrowed by it too, or it would offer what the list doesn't show. Without a provider none.
+ */
+const FilterSearchStringContext = createContext<string | undefined>(undefined);
+
+export const FilterSearchStringProvider = FilterSearchStringContext.Provider;
+
+export function useFilterSearchString(): string | undefined {
+  return useContext(FilterSearchStringContext);
+}

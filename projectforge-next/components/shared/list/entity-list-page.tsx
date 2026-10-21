@@ -415,6 +415,7 @@ function DeclaredList<
               elements={list.filters.elements}
               values={list.filters.values}
               onChange={list.applyValues}
+              searchString={list.filter.searchString}
               periodKinds={page.filterPeriodKinds}
               defaultPeriodKind={page.filterDefaultPeriodKind}
               trailing={

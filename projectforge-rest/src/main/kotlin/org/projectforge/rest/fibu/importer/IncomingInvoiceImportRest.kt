@@ -41,11 +41,11 @@ import java.io.InputStream
 private val log = KotlinLogging.logger {}
 
 /**
- * The layout-free, JSON returning incoming-invoice (Kreditor) CSV import, the hand built sibling of the
- * UILayout based [EingangsrechnungUploadPageRest] / [IncomingInvoicePosImportPageRest] pair.
+ * The layout-free, JSON returning incoming-invoice (Kreditor) CSV import of next/creditor-invoice-import. It
+ * replaced the UILayout based React upload (`uploadIncomingInvoices` → `importIncomingInvoicePos`).
  *
  * It is a thin concrete subclass of [AbstractImportRest]: the DATEV CSV parsing, the access right and the
- * job enqueueing are lifted from the two legacy classes and call the same collaborators; everything else —
+ * job enqueueing call the collaborators of the incoming-invoice import; everything else —
  * the endpoints and the [org.projectforge.rest.importer.ImportView] wire shape — lives in the base.
  *
  * @author Kai Reinhard
@@ -109,8 +109,7 @@ class IncomingInvoiceImportRest :
 
     companion object {
         /**
-         * DATEV CSV field mappings with German column names and formatting, lifted verbatim from
-         * [EingangsrechnungUploadPageRest].
+         * DATEV CSV field mappings with German column names and formatting.
          */
         internal val DATEV_IMPORT_SETTINGS = """
             encoding=UTF-8
@@ -128,9 +127,9 @@ class IncomingInvoiceImportRest :
             discountPercent=Skonto 1 in %|Skto_Proz|Skonto Prozent|Skonto in %|:#.##0,0#|:#0
             faelligkeit=Fällig_am|Fällig ohne Skonto|Fälligkeit|:dd.MM.yyyy|:dd.MM.yy
             grossSum=Rechnungsbetrag|Betrag|:#.##0,0#|:#0,0#
-            zahlBetrag=Zahlbetrag|g:#,##0.0#|:#0.0#
+            zahlBetrag=Zahlbetrag|:#.##0,0#|:#0,0#
             zahlungsZielInTagen=Zahlungsziel|:#0
-            taxRate=Steuer in %|Steuer%|#.##0,0#|:#0
+            taxRate=Steuer in %|Steuer%|:#.##0,0#|:#0
             iban=IBAN
             konto=LieferantKonto|Geschäftspartner-Konto
             kreditor=Geschäftspartner-Name|Kreditor|LieferantName
@@ -141,8 +140,6 @@ class IncomingInvoiceImportRest :
             kost1=KOST 1|KOST1
             kost2=KOST 2|KOST2
             periode=Periode
-            iban=IBAN
-            bic=BIC
         """.trimIndent()
     }
 }

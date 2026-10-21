@@ -46,6 +46,8 @@ class CustomerGroupConfig(
     var businessUnits: MutableList<BusinessUnit> = mutableListOf(),
     /** Read access to the orders of customers, groups and business units, see [OrderAccessGrant]. */
     var orderAccess: MutableList<OrderAccessGrant> = mutableListOf(),
+    /** Projects shown together as one in the project filters of the lists, see [ProjectGroup]. */
+    var projectGroups: MutableList<ProjectGroup> = mutableListOf(),
     /**
      * Free text of finance and controlling about the definition as a whole: how the groups and business units
      * are drawn, or why they were changed. Not evaluated; changes are traced through the history of the
@@ -56,8 +58,8 @@ class CustomerGroupConfig(
     fun toJson(): String = JsonUtils.toJson(this, ignoreNullableProps = true)
 
     companion object {
-        /** 2: [orderAccess] added. */
-        const val VERSION = 2
+        /** 2: [orderAccess] added. 3: [projectGroups] added. */
+        const val VERSION = 3
 
         /**
          * @return The parsed configuration, an empty one for a blank value. A value that can't be read is
@@ -143,4 +145,19 @@ class OrderAccessGrant {
 
     /** Keys of the business units ([BusinessUnit.key]). */
     var businessUnits: MutableList<String> = mutableListOf()
+}
+
+/**
+ * Projects belonging together under a common parent project: offered as one entry in the project filters of the
+ * lists (order book, invoices, cost 2, timesheets, order statistics), standing for all of its projects. Each
+ * project belongs to at most one project group (see [CustomerGroupValidator]).
+ */
+class ProjectGroup {
+    /** Stable key, assigned by the server on the first save (as [CustomerSet.key]); filters refer to it (`pg:<key>`). */
+    var key: String? = null
+
+    var name: String? = null
+
+    /** Ids of the projects ([org.projectforge.business.fibu.ProjektDO.id]). */
+    var projects: MutableList<Long> = mutableListOf()
 }

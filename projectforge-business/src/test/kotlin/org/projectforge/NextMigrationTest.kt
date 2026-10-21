@@ -378,6 +378,23 @@ class NextMigrationTest {
     }
 
     /**
+     * The visitor book: list and form (the visits included) are next's, the React pages are gone, so there is no
+     * way back, but a bookmarked React link is still redirected onto next.
+     */
+    @Test
+    fun `the visitorbook pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/visitorbook", NextMigration.listUrl("visitorbook"))
+        Assertions.assertEquals("next/visitorbook/:id", NextMigration.standardEditPage("visitorbook"))
+        Assertions.assertEquals("next/visitorbook/new", NextMigration.newEntryUrl("visitorbook"))
+        Assertions.assertNull(NextMigration.legacyListUrl("visitorbook"))
+        Assertions.assertNull(NextMigration.legacyEditPage("visitorbook"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("visitorbook"))
+        val link = NextMigration.orphanedLinks().single { it.category == "visitorbook" }
+        Assertions.assertEquals("react/visitorbook", link.legacyListPath)
+        Assertions.assertEquals("react/visitorbook/edit", link.legacyEditPath)
+    }
+
+    /**
      * The employees: list and form (time-dependent attributes included) are next's, the React pages are gone, so
      * there is no way back, but a bookmarked React link is still redirected onto next.
      */

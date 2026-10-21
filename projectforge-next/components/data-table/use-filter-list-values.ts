@@ -8,13 +8,16 @@ import type {
   MagicFilterEntry,
 } from "@/lib/rs/types";
 import { filterEntriesOf, type FilterValues } from "./filter-value";
-import { useFilterValuesContext } from "./filter-values-context";
+import {
+  useFilterSearchString,
+  useFilterValuesContext,
+} from "./filter-values-context";
 
 const NO_VALUES: FilterListValue[] = [];
 const NO_ENTRIES: MagicFilterEntry[] = [];
 
 /**
- * The query of a `valuesUrl`, narrowed by [entries] (see [fetchFilterListValues]). Kept for a few minutes,
+ * The query of a `valuesUrl`, narrowed by [entries] and [searchString] (see [fetchFilterListValues]). Kept for a few minutes,
  * so reopening the pill doesn't ask again: the set changes with the data (a new customer in the order
  * book) and the other criteria, not with the user's typing. The entries are in a stable order
  * ([filterEntriesOf]), so they key the query as they are.
@@ -22,12 +25,13 @@ const NO_ENTRIES: MagicFilterEntry[] = [];
 function valuesQuery(
   url: string | undefined,
   entries: MagicFilterEntry[],
-  enabled: boolean
+  enabled: boolean,
+  searchString?: string
 ) {
   return {
-    queryKey: ["filterListValues", url, entries],
+    queryKey: ["filterListValues", url, entries, searchString ?? ""],
     queryFn: ({ signal }: { signal: AbortSignal }) =>
-      fetchFilterListValues(url as string, entries, signal),
+      fetchFilterListValues(url as string, entries, signal, searchString),
     enabled: !!url && enabled,
     staleTime: 5 * 60 * 1000,
   };
@@ -45,20 +49,29 @@ export function otherFilterEntries(
  * The values a LIST filter offers: shipped with the element, or fetched from its `valuesUrl` while
  * [enabled] — the open picker, or a field that has to name what is selected.
  *
- * Fetched values are those of the rows the row's *other* criteria match ([useFilterValuesContext]), as
- * Excel's autofilter offers them. The field's own picks are not part of the query, so ticking one doesn't
+ * Fetched values are those of the rows the row's *other* criteria match ([useFilterValuesContext], and the
+ * list's search term, [useFilterSearchString]), as
+ * Excel's autofilter offers them; with [fromAll] those of every row the user may see, so a value can be
+ * picked that the current result doesn't reach. The field's own picks are not part of the query, so ticking one doesn't
  * reload the list under the cursor; a pick the others no longer reach is put in front instead, named from
  * the unfiltered answer, so nothing can be ticked but out of sight.
  */
 export function useFilterListValues(
   element: FilterElement | undefined,
-  enabled = true
+  enabled = true,
+  fromAll = false
 ): { values: FilterListValue[]; loading: boolean } {
   const url = element?.valuesUrl;
   const filterValues = useFilterValuesContext();
-  const entries = element ? otherFilterEntries(filterValues, element.id) : [];
+  const search = useFilterSearchString()?.trim() || undefined;
+  const entries =
+    element && !fromAll
+      ? otherFilterEntries(filterValues, element.id)
+      : NO_ENTRIES;
   const picks = (element && filterValues[element.id]?.values) || [];
-  const query = useQuery(valuesQuery(url, entries, enabled));
+  const query = useQuery(
+    valuesQuery(url, entries, enabled, fromAll ? undefined : search)
+  );
   const offered = query.data ?? NO_VALUES;
   const missing = query.data
     ? picks.filter((key) => !offered.some((it) => it.id === key))

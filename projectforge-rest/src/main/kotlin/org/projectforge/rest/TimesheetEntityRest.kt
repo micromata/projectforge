@@ -793,9 +793,18 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
     /**
      * The projects of the sheets, via the caches, once each; null for the sheets of none. Only the sheets' cost 2
      * ids are selected, not the sheets.
+     *
+     * Without any other criterion (the checklist's "choose from all", and the naming of the picks) these are the
+     * projects of every sheet the user may read: queried past [preProcessMagicFilter], whose [needsMoreFilter]
+     * guard would otherwise answer nothing at all.
      */
     private fun projektIdsOf(filter: MagicFilter?, ownField: String): Sequence<Long?> {
-        val kost2Ids = getResultDistinct(checklistFilter(filter, ownField), "kost2.id")
+        val others = checklistFilter(filter, ownField)
+        val kost2Ids = if (others.entries.isEmpty() && others.searchString.isNullOrBlank()) {
+            baseDao.selectDistinct(QueryFilter().also { it.deleted = false }, null, "kost2.id")
+        } else {
+            getResultDistinct(others, "kost2.id")
+        }
         return kost2Ids.asSequence().map { caches.getKost2(it as Long?)?.projekt?.id }.distinct()
     }
 

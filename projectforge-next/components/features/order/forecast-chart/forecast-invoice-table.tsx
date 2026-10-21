@@ -6,8 +6,10 @@ import { useFormatContext } from "@/hooks/use-format";
 import type { ForecastInvoiceRow } from "@/lib/rs/order";
 import {
   dateColumn,
+  hasProjectGroup,
   linkColumn,
   moneyColumn,
+  projectGroupColumns,
   textColumn,
 } from "../statistics/statistics-table-columns";
 import {
@@ -33,6 +35,7 @@ export function ForecastInvoiceTable({
 }) {
   const t = useStatisticsLabels();
   const ctx = useFormatContext();
+  const withProjectGroup = hasProjectGroup(rows);
   const columns = useMemo<ColumnDef<Row, unknown>[]>(
     () => [
       linkColumn<Row>(
@@ -54,6 +57,7 @@ export function ForecastInvoiceTable({
         t.total
       ),
       textColumn<Row>("project", t.project, (row) => row.project, 200),
+      ...projectGroupColumns<Row>(withProjectGroup, t.projectGroup),
       textColumn<Row>("subject", t.subject, (row) => row.subject, 240),
       textColumn<Row>(
         "positionText",
@@ -78,7 +82,7 @@ export function ForecastInvoiceTable({
       ),
       moneyColumn<Row>("netSum", t.net, (row) => row.netSum, ctx),
     ],
-    [t, ctx, onOpenForecast]
+    [t, ctx, onOpenForecast, withProjectGroup]
   );
   return (
     <StatisticsTable<Row>

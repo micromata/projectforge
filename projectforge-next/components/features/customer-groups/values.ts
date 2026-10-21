@@ -6,6 +6,7 @@ import type {
   CustomerSetData,
   CustomerSetValues,
   OrderAccessValues,
+  ProjectGroupValues,
 } from "./types";
 
 const KEY_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -25,12 +26,18 @@ export function newKey(used: ReadonlySet<string>): string {
   }
 }
 
-/** The keys of the groups, business units and order access grants: one key space on the server. */
+/**
+ * The keys of the groups, business units, order access grants and project groups: one key space on
+ * the server.
+ */
 export function usedKeys(values: CustomerGroupsValues): Set<string> {
   return new Set(
-    [...values.groups, ...values.businessUnits, ...values.orderAccess].map(
-      (row) => row.key
-    )
+    [
+      ...values.groups,
+      ...values.businessUnits,
+      ...values.orderAccess,
+      ...values.projectGroups,
+    ].map((row) => row.key)
   );
 }
 
@@ -88,6 +95,17 @@ export function toFormValues(
         };
       })
     ),
+    projectGroups: byName(
+      (data.projectGroups ?? []).map((group): ProjectGroupValues => {
+        const key = group.key || newKey(used);
+        used.add(key);
+        return {
+          key,
+          name: group.name ?? "",
+          projects: group.projects ?? [],
+        };
+      })
+    ),
     remark: data.remark ?? "",
     lastUpdate: data.lastUpdate ?? null,
   };
@@ -97,6 +115,7 @@ export const EMPTY_VALUES: CustomerGroupsValues = {
   groups: [],
   businessUnits: [],
   orderAccess: [],
+  projectGroups: [],
   remark: "",
   lastUpdate: null,
 };

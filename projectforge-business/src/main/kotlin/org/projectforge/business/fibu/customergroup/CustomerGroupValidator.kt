@@ -55,7 +55,61 @@ class CustomerGroupValidator(private val directory: CustomerDirectory) {
             businessUnitClaims(config, buOfGroup), BUSINESS_UNITS, ERROR_MEMBER_IN_TWO_BUSINESS_UNITS, errors,
         )
         checkOrderAccess(config, errors)
+        checkProjectGroups(config, errors)
         return errors
+    }
+
+    /**
+     * A unique name, at least one project, all of them known, and none in two project groups. Reported on both
+     * groups, as a customer in two groups.
+     */
+    private fun checkProjectGroups(config: CustomerGroupConfig, errors: MutableList<CustomerGroupError>) {
+        val otherKeys = (config.groups + config.businessUnits).mapNotNull { it.key } + config.orderAccess.mapNotNull { it.key }
+        val keys = otherKeys.toMutableSet()
+        val firstByName = mutableMapOf<String, Int>()
+        val duplicates = sortedSetOf<Int>()
+        val groupOfProject = mutableMapOf<Long, Int>()
+        config.projectGroups.forEachIndexed { i, group ->
+            val prefix = "$PROJECT_GROUPS[$i]"
+            val name = group.name?.trim()
+            if (name.isNullOrEmpty()) {
+                errors.add(CustomerGroupError("$prefix.name", ERROR_NAME_REQUIRED))
+            } else {
+                firstByName.putIfAbsent(name.lowercase(), i)?.let { first -> duplicates += listOf(first, i) }
+            }
+            group.key?.let { key ->
+                if (!KEY_REGEX.matches(key) || !keys.add(key)) {
+                    errors.add(CustomerGroupError("$prefix.name", ERROR_INVALID_KEY, listOf(key)))
+                }
+            }
+            if (group.projects.isEmpty()) {
+                errors.add(CustomerGroupError("$prefix.projects", ERROR_PROJECT_GROUP_EMPTY))
+            }
+            group.projects.distinct().forEach { projektId ->
+                if (!directory.projects.containsKey(projektId)) {
+                    errors.add(CustomerGroupError("$prefix.projects", ERROR_UNKNOWN_PROJECT, listOf(projektId)))
+                    return@forEach
+                }
+                groupOfProject.putIfAbsent(projektId, i)?.let { other ->
+                    val project = projectName(projektId)
+                    errors.add(
+                        CustomerGroupError(
+                            "$prefix.projects", ERROR_PROJECT_IN_TWO_GROUPS, listOf(project, config.projectGroups[other].name),
+                        )
+                    )
+                    errors.add(
+                        CustomerGroupError(
+                            "$PROJECT_GROUPS[$other].projects", ERROR_PROJECT_IN_TWO_GROUPS, listOf(project, group.name),
+                        )
+                    )
+                }
+            }
+        }
+        duplicates.forEach { i ->
+            errors.add(
+                CustomerGroupError("$PROJECT_GROUPS[$i].name", ERROR_DUPLICATE_NAME, listOf(config.projectGroups[i].name?.trim()))
+            )
+        }
     }
 
     /**
@@ -300,12 +354,15 @@ class CustomerGroupValidator(private val directory: CustomerDirectory) {
 
     private fun customerName(id: Long): String = directory.customers[id]?.let { "$id $it" } ?: "$id"
 
+    private fun projectName(id: Long): String = directory.projectName(id) ?: "$id"
+
     private fun taskTitle(id: Long): String = directory.taskTitle(id) ?: "$id"
 
     companion object {
         const val GROUPS = "groups"
         const val BUSINESS_UNITS = "businessUnits"
         const val ORDER_ACCESS = "orderAccess"
+        const val PROJECT_GROUPS = "projectGroups"
 
         /** Keys are assigned by the server (or a client for a group a business unit refers to in the same save). */
         val KEY_REGEX = Regex("^[a-z0-9]{4,20}$")
@@ -332,6 +389,9 @@ class CustomerGroupValidator(private val directory: CustomerDirectory) {
         const val ERROR_UNKNOWN_USER = "fibu.customerGroups.error.unknownUser"
         const val ERROR_UNKNOWN_USER_GROUP = "fibu.customerGroups.error.unknownUserGroup"
         const val ERROR_UNKNOWN_BUSINESS_UNIT = "fibu.customerGroups.error.unknownBusinessUnit"
+        const val ERROR_PROJECT_GROUP_EMPTY = "fibu.projectGroups.error.empty"
+        const val ERROR_UNKNOWN_PROJECT = "fibu.projectGroups.error.unknownProject"
+        const val ERROR_PROJECT_IN_TWO_GROUPS = "fibu.projectGroups.error.projectInTwoGroups"
         const val ERROR_TOO_LARGE = "fibu.customerGroups.error.tooLarge"
         const val ERROR_MODIFIED_MEANWHILE = "fibu.customerGroups.error.modifiedMeanwhile"
     }

@@ -353,6 +353,10 @@ class ContributionMarginCalculatorTest {
     assertEquals(listOf("2026-02", "2026-03", "2026-07"), details.months.map { it.month })
     val february = details.months.first()
     assertEquals("Project A", february.project)
+    // The project group travels with the project's labels into every row:
+    assertEquals("Group A", february.projectGroup)
+    assertEquals(listOf("Group A", null), data.projects.map { it.projectGroup })
+    assertEquals(setOf("Group A"), details.timesheets.map { it.projectGroup }.toSet())
     assertEquals(BigDecimal("700"), february.profit)
     assertEquals(BigDecimal("70.0"), february.percentage)
     assertEquals(listOf(false, false, true), details.months.map { it.preliminary })
@@ -378,7 +382,7 @@ class ContributionMarginCalculatorTest {
     ContributionMarginCalculator(LocalDate.of(2026, 1, 15), bookingImportEnd, today)
 
   private fun info(projectId: Long) = when (projectId) {
-    PROJECT_A -> ContributionMarginProjectInfo("5.001.01", "Customer A", "Project A")
+    PROJECT_A -> ContributionMarginProjectInfo("5.001.01", "Customer A", "Project A", projectGroup = "Group A")
     else -> ContributionMarginProjectInfo("5.002.01", "Customer B", "Project B")
   }
 

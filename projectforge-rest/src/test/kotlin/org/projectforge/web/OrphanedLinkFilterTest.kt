@@ -287,6 +287,14 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/contract/new", redirectOf("/react/contract/edit"))
     }
 
+    /** The old React visitor book pages are gone, list and form (the visits included) are next's. */
+    @Test
+    fun `the old react visitorbook pages are redirected to next`() {
+        Assertions.assertEquals("/next/visitorbook", redirectOf("/react/visitorbook"))
+        Assertions.assertEquals("/next/visitorbook/42", redirectOf("/react/visitorbook/edit/42"))
+        Assertions.assertEquals("/next/visitorbook/new", redirectOf("/react/visitorbook/edit"))
+    }
+
     /** The old React 2FA setup and its WebAuthn key page are gone, the 2FA page itself stays. */
     @Test
     fun `the old react 2FA setup is redirected to next`() {

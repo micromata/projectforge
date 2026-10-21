@@ -77,6 +77,15 @@ class SipgateDirectCallServiceTest {
                 "1111111", "55555"
             )
         )
+        // External phone without an assigned number: the device id is the caller, not the display string.
+        val externalDevice = SipgateDevice("x17", "External phone of Berta")
+        assert(
+            callerId = "0123456789", caller = "x17", callee = "55555", deviceId = "x17",
+            SipgateDirectCallService.getCallerData(
+                listOf(externalDevice), numbers, "default", "012345", user, "External phone of Berta (x17)",
+                "0123456789", "55555"
+            )
+        )
         var callData: SipgateDirectCallService.CallData? = null
         TestUtils.suppressErrorLogs {
             callData = SipgateDirectCallService.getCallerData(

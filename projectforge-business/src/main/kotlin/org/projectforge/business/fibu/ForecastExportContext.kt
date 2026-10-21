@@ -27,6 +27,7 @@ import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.projectforge.business.excel.ExcelDateFormats
+import org.projectforge.business.fibu.customergroup.CustomerGroupIndex
 import org.projectforge.business.excel.XlsContentProvider
 import org.projectforge.common.DateFormatType
 import org.projectforge.excel.ExcelUtils
@@ -65,6 +66,11 @@ internal class ForecastExportContext(
      * If false, it is shown as a negative difference (more conservative). See [ForecastOrderPosInfo.distributeUnusedBudget].
      */
     val distributeUnusedBudget: Boolean = true,
+    /**
+     * The configured project groups, null if there are none: only then the sheets get the column
+     * [PROJECT_GROUP_HEADER] (appended by [ForecastExport]) and the web tables a project group.
+     */
+    val projectGroupIndex: CustomerGroupIndex? = null,
 ) {
     enum class Sheet(val title: String) {
         FORECAST("Forecast_Data"),
@@ -186,6 +192,11 @@ internal class ForecastExportContext(
 
     var hasUnitColEntries = false
 
+    var hasProjectGroupEntries = false
+
+    /** The name of the project's group, null for none (or no project groups configured). */
+    fun projectGroupNameOf(projectId: Long?): String? = projectGroupIndex?.projectGroupOf(projectId)?.name
+
     // Excel row (1-based) of the last data row written to the forecast sheet, set by ForecastExport.fillOrderPositions.
     // The visible-column COUNTIF formulas of the invoice and planning sheets bound their Forecast_Data!visibleID range
     // to this row (instead of a fixed 100000), so POI/Excel only scan the rows that actually exist. Defaults to the
@@ -217,5 +228,11 @@ internal class ForecastExportContext(
          * forecast sheet is propagated to the invoice sheets by project id only (see visible/visibleID columns).
          */
         const val PROJECT_ID_NONE = -1L
+
+        /**
+         * Header of the project group column. Not part of the template (its formulas address columns by letter, so
+         * no column may be inserted): appended behind the last column of each sheet, if project groups exist.
+         */
+        const val PROJECT_GROUP_HEADER = "Projektgruppe"
     }
 }

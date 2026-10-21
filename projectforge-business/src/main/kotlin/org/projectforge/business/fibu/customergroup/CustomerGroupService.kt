@@ -134,6 +134,9 @@ class CustomerGroupService {
     fun businessUnitNameOf(kundeId: Long?, kundeText: String? = null, projektId: Long? = null): String? =
         index.businessUnitOf(kundeId, kundeText, projektId)?.name
 
+    /** The name of the project group the project belongs to, null for none. */
+    fun projectGroupNameOf(projektId: Long?): String? = index.projectGroupOf(projektId)?.name
+
     /** By the project's customers (its own, else those of its orders), else by its task. */
     fun businessUnitNameOf(projekt: ProjektDO?): String? {
         projekt ?: return null
@@ -298,6 +301,7 @@ class CustomerGroupService {
             },
             taskPath = { taskId -> taskPath(taskId) },
             taskTitle = { taskTree.getTaskById(it)?.title },
+            projectName = { projects[it]?.displayName },
             userExists = { userGroupCache.getUser(it) != null },
             groupExists = { userGroupCache.getGroup(it) != null },
         )
@@ -403,7 +407,10 @@ class CustomerGroupService {
             }
             entry.stringValue = json
             configurationDao.update(entry, checkAccess = false)
-            log.info { "Customer groups saved: ${config.groups.size} groups, ${config.businessUnits.size} business units." }
+            log.info {
+                "Customer groups saved: ${config.groups.size} groups, ${config.businessUnits.size} business units, " +
+                        "${config.projectGroups.size} project groups."
+            }
         }
         Configuration.instance.forceReload()
         OrderAccessGrantService.instanceOrNull?.invalidate()
@@ -419,8 +426,8 @@ class CustomerGroupService {
     private fun normalize(config: CustomerGroupConfig) {
         config.version = CustomerGroupConfig.VERSION
         config.remark = config.remark?.trim()?.ifEmpty { null }
-        val usedKeys = ((config.groups + config.businessUnits).mapNotNull { it.key } + config.orderAccess.mapNotNull { it.key })
-            .toMutableSet()
+        val usedKeys = ((config.groups + config.businessUnits).mapNotNull { it.key } + config.orderAccess.mapNotNull { it.key } +
+                config.projectGroups.mapNotNull { it.key }).toMutableSet()
         (config.groups + config.businessUnits).forEach { set ->
             set.name = set.name?.trim()
             set.customers = set.customers.distinct().toMutableList()
@@ -441,6 +448,13 @@ class CustomerGroupService {
             grant.businessUnits = grant.businessUnits.distinct().toMutableList()
             if (grant.key.isNullOrBlank()) {
                 grant.key = newKey(usedKeys)
+            }
+        }
+        config.projectGroups.forEach { group ->
+            group.name = group.name?.trim()
+            group.projects = group.projects.distinct().toMutableList()
+            if (group.key.isNullOrBlank()) {
+                group.key = newKey(usedKeys)
             }
         }
     }

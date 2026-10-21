@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.businessUnit
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.grant
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.group
+import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.projectGroup
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.sample
 import org.projectforge.business.fibu.customergroup.CustomerGroupValidator.Companion as V
 
@@ -255,6 +256,48 @@ class CustomerGroupValidatorTest {
             "orderAccess[1].businessUnits" to V.ERROR_UNKNOWN_BUSINESS_UNIT,
             "orderAccess[2].name" to V.ERROR_INVALID_KEY,
         )
+    }
+
+    @Test
+    fun `project groups need a unique name, known projects, and no project in two groups`() {
+        val withProjects = CustomerGroupValidator(
+            CustomerDirectory(projects = mapOf(1L to ProjectRef(null, null), 2L to ProjectRef(null, null), 3L to ProjectRef(null, null)))
+        )
+        assertTrue(
+            withProjects.validate(
+                CustomerGroupConfig(projectGroups = mutableListOf(projectGroup("prjgr1", "A", listOf(1, 2)), projectGroup("prjgr2", "B", listOf(3))))
+            ).isEmpty()
+        )
+        val config = CustomerGroupConfig(
+            projectGroups = mutableListOf(
+                projectGroup("prjgr1", "A", listOf(1, 2)),
+                projectGroup("prjgr2", "a", listOf(2, 4711)),
+                projectGroup("prjgr3", " "),
+            ),
+        )
+        val order = compareBy<Pair<String, String>>({ it.first }, { it.second })
+        assertEquals(
+            listOf(
+                "projectGroups[0].name" to V.ERROR_DUPLICATE_NAME,
+                "projectGroups[0].projects" to V.ERROR_PROJECT_IN_TWO_GROUPS,
+                "projectGroups[1].name" to V.ERROR_DUPLICATE_NAME,
+                "projectGroups[1].projects" to V.ERROR_PROJECT_IN_TWO_GROUPS,
+                "projectGroups[1].projects" to V.ERROR_UNKNOWN_PROJECT,
+                "projectGroups[2].name" to V.ERROR_NAME_REQUIRED,
+                "projectGroups[2].projects" to V.ERROR_PROJECT_GROUP_EMPTY,
+            ).sortedWith(order),
+            withProjects.validate(config).map { it.fieldId to it.messageKey }.sortedWith(order),
+        )
+    }
+
+    @Test
+    fun `a project group's key must not be taken by a customer group`() {
+        val config = CustomerGroupConfig(
+            groups = mutableListOf(group("abcd", "A")),
+            projectGroups = mutableListOf(projectGroup("abcd", "P", listOf(1))),
+        )
+        val errors = CustomerGroupValidator(CustomerDirectory(projects = mapOf(1L to ProjectRef(null, null)))).validate(config)
+        assertEquals(listOf("projectGroups[0].name" to V.ERROR_INVALID_KEY), errors.map { it.fieldId to it.messageKey })
     }
 
     private fun config(groups: List<CustomerGroup> = emptyList(), businessUnits: List<BusinessUnit> = emptyList()) =

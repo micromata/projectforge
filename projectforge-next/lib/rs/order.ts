@@ -291,6 +291,8 @@ export interface ForecastProjectRow {
   projectId: number;
   customer: string | null;
   project: string | null;
+  /** The project group the project belongs to; omitted for none. */
+  projectGroup?: string | null;
   /** Remaining forecast plus the invoices (IST) of the 12 months. */
   forecast: number;
   /** Null if no planning date was given. */
@@ -319,6 +321,8 @@ export interface ForecastPositionRow {
   projectId: number | null;
   customer: string | null;
   project: string | null;
+  /** The project group the project belongs to; omitted for none. */
+  projectGroup?: string | null;
   title: string | null;
   /** Only given if it differs from the order's title. */
   positionTitle: string | null;
@@ -359,6 +363,8 @@ export interface ForecastInvoiceRow {
   projectId: number;
   customer: string | null;
   project: string | null;
+  /** The project group the project belongs to; omitted for none. */
+  projectGroup?: string | null;
   subject: string | null;
   positionText: string | null;
   orderId: number | null;
@@ -429,6 +435,8 @@ export interface ContributionMarginProject extends ContributionMarginSums {
   kost: string | null;
   customer: string | null;
   project: string | null;
+  /** The project group the project belongs to; omitted for none. */
+  projectGroup?: string | null;
 }
 
 /**
@@ -513,6 +521,8 @@ export interface ContributionMarginMonthRow {
   kost: string | null;
   customer: string | null;
   project: string | null;
+  /** The project group the project belongs to; omitted for none. */
+  projectGroup?: string | null;
   revenue: number;
   /** Positive amounts. */
   costs: number;
@@ -532,6 +542,8 @@ export interface ContributionMarginInvoiceRow {
   kost: string | null;
   customer: string | null;
   project: string | null;
+  /** The project group the project belongs to; omitted for none. */
+  projectGroup?: string | null;
   subject: string | null;
   netSum: number;
   status: string | null;
@@ -552,6 +564,8 @@ export interface ContributionMarginTimesheetRow {
   kost2: string | null;
   customer: string | null;
   project: string | null;
+  /** The project group the project belongs to; omitted for none. */
+  projectGroup?: string | null;
   hours: number | null;
   /** Positive amount. */
   costs: number;

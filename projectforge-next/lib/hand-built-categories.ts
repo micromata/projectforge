@@ -58,6 +58,7 @@ export const HAND_BUILT_CATEGORIES = [
   "todo",
   "user",
   "vacation",
+  "visitorbook",
 ];
 
 export function isHandBuilt(category: string | undefined): boolean {

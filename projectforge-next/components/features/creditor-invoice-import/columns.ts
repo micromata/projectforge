@@ -9,8 +9,8 @@ const headerOnly = (meta: Record<string, unknown>): boolean =>
   meta.isPositionBasedImport === false;
 
 /**
- * The preview columns of the creditor-invoice import, in the order and with the gating of the legacy
- * `IncomingInvoicePosImportPageRest`: the position number, cost centres and cost accounts only for a
+ * The preview columns of the creditor-invoice import, in the order and with the gating of the former
+ * React import page (`importIncomingInvoicePos`): the position number, cost centres and cost accounts only for a
  * position-based file; the payment date, amount, type and bank details only for a header-only one. The
  * diffed columns are those the reconcile can change against an existing invoice.
  */

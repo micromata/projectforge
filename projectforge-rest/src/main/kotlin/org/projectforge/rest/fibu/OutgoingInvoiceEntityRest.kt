@@ -48,6 +48,7 @@ import org.projectforge.business.fibu.RechnungStatus
 import org.projectforge.business.fibu.RechnungTyp
 import org.projectforge.business.fibu.RechnungsStatistik
 import org.projectforge.business.fibu.SearchFilterWithPeriodOfPerformance
+import org.projectforge.business.fibu.customergroup.CustomerGroupService
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostZuweisungExport
 import org.projectforge.business.fibu.kost.KundeCache
@@ -1343,6 +1344,11 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         if (invoices.isEmpty()) {
             return ResponseEntity.notFound().build<Any>()
         }
+        // Only a few projects belong to a project group: the column is only there if one of the invoices has one.
+        // The index taken once: CustomerGroupService.index checks its sources on each call.
+        val groupIndex = CustomerGroupService.instanceOrNull?.index?.takeIf { it.projectGroups.isNotEmpty() }
+        val projectGroupOf = { invoice: RechnungDO -> groupIndex?.projectGroupOf(invoice.projekt?.id)?.name }
+        val withProjectGroup = invoices.any { projectGroupOf(it) != null }
         ExcelUtils.prepareWorkbook().use { workbook ->
             val sheet = workbook.createOrGetSheet(translate("fibu.rechnungen"))
             val currencyStyle = workbook.createOrGetCellStyle("currency")
@@ -1350,6 +1356,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             ExcelUtils.registerColumn(sheet, RechnungDO::nummer, 10)
             sheet.registerColumn(translate("fibu.kunde"), COL_CUSTOMER).withSize(30)
             sheet.registerColumn(translate("fibu.projekt"), COL_PROJECT).withSize(30)
+            if (withProjectGroup) {
+                sheet.registerColumn(translate("fibu.projectGroup"), COL_PROJECT_GROUP).withSize(25)
+            }
             ExcelUtils.registerColumn(sheet, RechnungDO::betreff, 40)
             ExcelUtils.registerColumn(sheet, RechnungDO::datum)
             ExcelUtils.registerColumn(sheet, RechnungDO::faelligkeit)
@@ -1376,6 +1385,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
                 )
                 row.getCell(COL_PROJECT)
                     ?.setCellValue(PfCaches.instance.getProjektIfNotInitialized(invoice.projekt)?.displayName)
+                if (withProjectGroup) {
+                    row.getCell(COL_PROJECT_GROUP)?.setCellValue(projectGroupOf(invoice))
+                }
                 row.getCell(COL_STATUS)?.setCellValue(invoice.status?.let { translate(it.i18nKey) })
                 val info = invoice.ensuredInfo
                 row.getCell(COL_NET_SUM)?.setCellValue(info.netSum)?.setCellStyle(currencyStyle)
@@ -1773,6 +1785,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         /** Aliases of the Excel columns that are no property of [RechnungDO]. */
         private const val COL_CUSTOMER = "customer"
         private const val COL_PROJECT = "project"
+        private const val COL_PROJECT_GROUP = "projectGroup"
         private const val COL_STATUS = "statusAsString"
         private const val COL_NET_SUM = "netSum"
         private const val COL_GROSS_SUM = "grossSum"

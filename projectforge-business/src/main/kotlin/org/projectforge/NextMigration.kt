@@ -690,6 +690,16 @@ object NextMigration {
             legacyApp = LegacyApp.REACT,
             offerLegacyLink = false,
         ),
+        // Hand built list and edit page of the visitor book (VisitorbookEntityRest, components/features/visitorbook),
+        // the visits in a dialog of the edit page, migrated from React. The React pages are gone (no UILayout served
+        // any more), so there is no way back; the legacy app is kept for the redirect of bookmarked React links only.
+        "visitorbook" to NextPage(
+            route = "visitorbook",
+            editRoute = "visitorbook/$ID_PLACEHOLDER",
+            newEntryRoute = "visitorbook/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
         // Hand built list and edit page of the skill matrix (plugin skillmatrix, SkillEntryEntityRest,
         // components/features/skill-entry), migrated from React. The React pages are gone (no UILayout served any
         // more), so there is no way back; the legacy app is kept for the redirect of bookmarked React links only.

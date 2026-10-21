@@ -140,7 +140,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     USER_LIST("menu.userList", getListUrl("user")), //
     VACATION("menu.vacation", getListUrl("vacation")), //
     VACATION_ACCOUNT("menu.vacation.leaveaccount", "next/vacationAccount"), //
-    VISITORBOOK("menu.orga.visitorbook", getReactListUrl("visitorbook")), //
+    // Migrated to projectforge-next, list and form; react/visitorbook is redirected by OrphanedLinkFilter.
+    VISITORBOOK("menu.orga.visitorbook", getListUrl("visitorbook")), //
 
     PLUGIN_ADMIN("menu.pluginAdmin", "next/plugins"), //
     SYSTEM("menu.system", "next/system");

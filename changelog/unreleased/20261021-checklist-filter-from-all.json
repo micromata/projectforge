@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "List filters with a checklist (customer, project, business unit): they say that they only narrow the current result, are narrowed by the list's search term as well, and offer \"choose from all\" to pick values the current result doesn't contain. In the time sheet list they offer values without a period, too.",
+  "de": "Listenfilter mit Checkliste (Kunde, Projekt, Business Unit): Sie weisen darauf hin, dass sie nur das aktuelle Ergebnis weiter einschränken, berücksichtigen auch den Suchbegriff der Liste und bieten „Aus allen wählen“, um auch Werte außerhalb des aktuellen Ergebnisses auszuwählen. In den Zeitberichten bieten sie auch ohne Zeitraum Werte an."
+}

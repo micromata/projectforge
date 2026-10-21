@@ -35,6 +35,16 @@ export const ORDER_ACCESS_METADATA: EntityMetadata = {
   },
 };
 
+/** The metadata of a project group's fields, bound per row as [CUSTOMER_SET_METADATA]. */
+export const PROJECT_GROUP_METADATA: EntityMetadata = {
+  entity: "ProjectGroup",
+  historizable: false,
+  fields: {
+    name: { dataType: "STRING", required: true, maxLength: 255 },
+    projects: { dataType: "CUSTOMIZED", required: false },
+  },
+};
+
 /** The fields of the form level: only the remark, everything else lives in the rows. */
 export const FORM_METADATA: EntityMetadata = {
   entity: "CustomerGroupConfig",
@@ -80,6 +90,13 @@ export const customerGroupsSchema = z.object({
       businessUnits: z.array(z.string()),
     })
   ),
+  projectGroups: z.array(
+    z.object({
+      key: z.string(),
+      name: z.string().trim().min(1, REQUIRED).max(255),
+      projects: z.array(entityRef),
+    })
+  ),
   remark: z.string(),
   lastUpdate: z.number().nullable(),
 });
@@ -88,4 +105,5 @@ export const CUSTOMER_GROUPS_FIELDS = [
   "groups",
   "businessUnits",
   "orderAccess",
+  "projectGroups",
 ] as const;

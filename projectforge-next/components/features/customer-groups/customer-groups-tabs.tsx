@@ -10,6 +10,7 @@ import { SectionHeader } from "@/components/shared/section-header";
 import { BusinessUnitList } from "./business-unit-list";
 import { GroupList } from "./group-list";
 import { OrderAccessList } from "./order-access-list";
+import { ProjectGroupList } from "./project-group-list";
 
 /**
  * REST category of the stored value: the customer groups are one `ConfigurationDO` row, so their
@@ -37,6 +38,11 @@ export function useCustomerGroupsTabs(id: number | null | undefined): {
       id: "businessUnits",
       label: t("fibu.businessUnits.title"),
       content: <BusinessUnitList />,
+    },
+    {
+      id: "projectGroups",
+      label: t("fibu.projectGroups.title"),
+      content: <ProjectGroupList />,
     },
     {
       id: "orderAccess",

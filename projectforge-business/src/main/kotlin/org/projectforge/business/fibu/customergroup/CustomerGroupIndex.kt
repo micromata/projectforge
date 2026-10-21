@@ -69,6 +69,10 @@ class CustomerGroupIndex(
 ) {
     private val groupsByKey = config.groups.filter { it.key != null }.associateBy { it.key!! }
     private val businessUnitsByKey = config.businessUnits.filter { it.key != null }.associateBy { it.key!! }
+    private val projectGroupsByKey = config.projectGroups.filter { it.key != null }.associateBy { it.key!! }
+    private val projectGroupByProjektId: Map<Long, ProjectGroup> = buildMap {
+        config.projectGroups.forEach { group -> group.projects.forEach { putIfAbsent(it, group) } }
+    }
     private val groupMembers = Members(config.groups, directory.customers)
     private val businessUnitMembers = Members(config.businessUnits, directory.customers)
     private val businessUnitByGroupKey = buildMap {
@@ -99,6 +103,10 @@ class CustomerGroupIndex(
     val businessUnits: List<BusinessUnit>
         get() = config.businessUnits
 
+    val projectGroups: List<ProjectGroup>
+        get() = config.projectGroups
+
+    /** No customer groups and no business units; project groups don't count, see [projectGroups]. */
     val isEmpty: Boolean
         get() = config.groups.isEmpty() && config.businessUnits.isEmpty()
 
@@ -122,6 +130,14 @@ class CustomerGroupIndex(
     fun getBusinessUnit(key: String?): BusinessUnit? = key?.let { businessUnitsByKey[it] }
 
     fun groupOf(kundeId: Long?, kundeText: String?): CustomerGroup? = groupMembers.of(kundeId, kundeText)
+
+    fun getProjectGroup(key: String?): ProjectGroup? = key?.let { projectGroupsByKey[it] }
+
+    /** The project group the project belongs to, null for none. */
+    fun projectGroupOf(projektId: Long?): ProjectGroup? = projektId?.let { projectGroupByProjektId[it] }
+
+    /** @return The ids of the group's projects, or null for an unknown key (a deleted group in a saved filter). */
+    fun resolveProjectGroup(key: String?): Set<Long>? = getProjectGroup(key)?.projects?.toSet()
 
     /**
      * The business unit the customer belongs to directly, else the one of its group, else, if the row has a
