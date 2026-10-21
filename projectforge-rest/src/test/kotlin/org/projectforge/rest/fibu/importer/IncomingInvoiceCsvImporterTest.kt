@@ -197,6 +197,28 @@ class IncomingInvoiceCsvImporterTest {
     }
 
     @Test
+    fun `period with an en dash limits the deletions too`() {
+        databaseInvoices = listOf(dbInvoice(1, "2026-99999", "Other Ltd.", LocalDate.of(2026, 8, 10)))
+        val storage = parsePositions(
+            """"01.09.2026 – 30.09.2026";"R";"1.134,35";"EUR";"04.09.";"2026-14171";"OpsGenie Inc.";"6837";"04.09.2026"""",
+        )
+        assertEquals(LocalDate.of(2026, 9, 1), storage.periodFrom)
+        storage.reconcileImportStorage()
+        assertTrue(storage.pairEntries.none { it.read == null }, "Outside the period: not offered for deletion.")
+    }
+
+    @Test
+    fun `unparsable period offers no deletions`() {
+        databaseInvoices = listOf(dbInvoice(1, "2026-99999", "Other Ltd.", LocalDate.of(2026, 9, 10)))
+        val storage = parsePositions(
+            """"September 2026";"R";"1.134,35";"EUR";"04.09.";"2026-14171";"OpsGenie Inc.";"6837";"04.09.2026"""",
+        )
+        assertNull(storage.periodFrom)
+        storage.reconcileImportStorage()
+        assertTrue(storage.pairEntries.none { it.read == null }, "Without a period nothing is offered for deletion.")
+    }
+
+    @Test
     fun `similar invoice number within days is still matched`() {
         databaseInvoices = listOf(dbInvoice(1, "3251246-10 / Az.: IS-0017-10/KSR", "ISICO GmbH", LocalDate.of(2025, 5, 2)))
         val storage = parsePositions(

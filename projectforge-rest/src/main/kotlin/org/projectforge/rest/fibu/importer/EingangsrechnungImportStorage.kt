@@ -234,16 +234,17 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
     /**
      * Only a position-based import (all positions of the periods) can tell that a stored invoice is gone; a
      * header-only export isn't a complete snapshot. Only stored invoices within the periods of the import qualify:
-     * a single row with an old date mustn't offer all invoices since then for deletion.
+     * a single row with an old date mustn't offer all invoices since then for deletion. Without a parsed period
+     * (unknown format of the column "Periode") nothing is offered.
      */
     private fun isDeletionCandidate(dbInvoice: EingangsrechnungDO): Boolean {
         if (!isPositionBasedImport) {
             return false
         }
         val datum = dbInvoice.datum ?: return false
-        periodFrom?.let { if (datum < it) return false }
-        periodUntil?.let { if (datum > it) return false }
-        return true
+        val from = periodFrom ?: return false
+        val until = periodUntil ?: return false
+        return datum in from..until
     }
 
     /**

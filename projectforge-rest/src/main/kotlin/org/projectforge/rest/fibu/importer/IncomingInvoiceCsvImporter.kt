@@ -291,13 +291,13 @@ class IncomingInvoiceCsvImporter(
     }
 
     /**
-     * Parses a period like "01.04.2026-30.04.2026".
+     * Parses a period like "01.04.2026-30.04.2026" (also with an en dash or blanks around the separator).
      */
     private fun parsePeriod(
         periodString: String,
         rowContext: CsvRowContext<EingangsrechnungPosImportDTO>
     ): Pair<java.time.LocalDate, java.time.LocalDate>? {
-        val parts = periodString.split("-")
+        val parts = periodString.split("-", "–")
         if (parts.size != 2) {
             return null
         }

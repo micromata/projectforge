@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController
 /**
  * The background jobs of the logged-in user, polled by projectforge-next: by the job monitor page
  * (`/next/jobsMonitor`) and by the progress toasts of every page. The dynamic React page it served formerly
- * (`react/jobsMonitor/dynamic`) is gone, its links are redirected by OrphanedLinkFilter.
+ * (`react/jobsMonitor/dynamic`) is gone without a redirect: it was never linked from outside ProjectForge.
  *
  * Nobody is refused as a whole: [JobHandler] answers only the jobs the user may read and cancels only the ones
  * the user may write ([org.projectforge.framework.jobs.AbstractJob.readAccess] / `writeAccess`).
