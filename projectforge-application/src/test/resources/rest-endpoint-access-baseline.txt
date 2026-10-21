@@ -1,7 +1,5 @@
 # Legacy REST endpoints without @AccessChecked, see RestEndpointAccessCheckTest.
 # May only shrink: never add new endpoints here, annotate them.
-org.projectforge.plugins.banking.BankAccountRecordImportPageRest#getForm
-org.projectforge.plugins.banking.BankingServicesRest#import
 org.projectforge.plugins.marketing.rest.AddressCampaignValuePagesRest#exportAsExcel
 org.projectforge.plugins.marketing.rest.AddressCampaignValuePagesRest#getItemAndLayout
 org.projectforge.plugins.merlin.rest.MerlinExecutionPageRest#downloadSerialExecutionTemplate
@@ -78,11 +76,6 @@ org.projectforge.rest.HistoryEntryUserCommentModalRest#append
 org.projectforge.rest.HistoryEntryUserCommentModalRest#cancel
 org.projectforge.rest.HistoryEntryUserCommentModalRest#getItem
 org.projectforge.rest.HistoryEntryUserCommentModalRest#getItemAndLayout
-org.projectforge.rest.importer.AbstractImportPageRest#cancel
-org.projectforge.rest.importer.AbstractImportPageRest#cancelAndGetUrl
-org.projectforge.rest.importer.AbstractImportPageRest#import
-org.projectforge.rest.importer.AbstractImportPageRest#reconcile
-org.projectforge.rest.importer.AbstractImportPageRest#watchFields
 org.projectforge.rest.IndexRest#getTranslations
 org.projectforge.rest.LogoutRest#logout
 org.projectforge.rest.my2fa.My2FAPageRest#getForm

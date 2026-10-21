@@ -50,6 +50,9 @@ class BankingImportStorage(importSettings: String? = null, targetEntity: BankAcc
   val bankAccountNormalizedIban = StringHelper.removeNonDigitsAndNonASCIILetters(targetEntity?.iban)
 
   var readTransactions = mutableListOf<BankAccountRecord>()
+
+  /** The records of the file without a date (see [analyzeReadTransactions]). */
+  private var undatedTransactions = listOf<BankAccountRecord>()
   var databaseTransactions: List<BankAccountRecordDO>? = null
 
   override val targetEntityTitle: String?
@@ -61,28 +64,60 @@ class BankingImportStorage(importSettings: String? = null, targetEntity: BankAcc
 
 
   override fun doReconcileImportStorage(rereadDatabaseEntries: Boolean) {
+    clearEntries()
     val from = fromDate
     val until = untilDate
-    if (from == null || until == null || from > until) {
-      return // Shouldn't occur
-    }
-    if (rereadDatabaseEntries) {
-      (targetEntity as? BankAccount)?.id?.let { id ->
-        databaseTransactions =
-          ApplicationContextProvider.getApplicationContext().getBean(BankAccountRecordDao::class.java)
-            .getByTimePeriod(id, from, until)
+    if (from != null && until != null && from <= until) {
+      if (rereadDatabaseEntries) {
+        (targetEntity as? BankAccount)?.id?.let { id ->
+          databaseTransactions =
+            ApplicationContextProvider.getApplicationContext().getBean(BankAccountRecordDao::class.java)
+              .getByTimePeriod(id, from, until)
+        }
+      }
+      var date: LocalDate = from
+      for (i in 0..999999) { // Paranoia counter, max 1 mio records.
+        val readByDay = readTransactions.filter { it.date == date }
+        val dbRecordsByDay = databaseTransactions?.filter { it.date == date } ?: emptyList()
+        buildMatchingPairs(readByDay, dbRecordsByDay)
+        date = date.plusDays(1)
+        if (date > until) {
+          break
+        }
       }
     }
-    clearEntries()
-    var date = fromDate!!
-    for (i in 0..999999) { // Paranoia counter, max 1 mio records.
-      val readByDay = readTransactions.filter { it.date == date }
-      val dbRecordsByDay = databaseTransactions?.filter { it.date == date } ?: emptyList()
-      buildMatchingPairs(readByDay, dbRecordsByDay)
-      date = date.plusDays(1)
-      if (date > untilDate) {
-        break
-      }
+    // Without a date a record can't be paired with a stored one; it is shown as faulty (see checkReadRecord).
+    undatedTransactions.forEach { addEntry(ImportPairEntry(it, null)) }
+    pairEntries.forEach { entry ->
+      entry.read?.let { checkReadRecord(entry, it) }
+    }
+  }
+
+  /**
+   * Marks a record of the file as faulty (not importable), if it belongs to another account or misses a value the
+   * database requires (date, amount, value date): its insert would fail in the import job, after the records before it
+   * were written.
+   */
+  private fun checkReadRecord(entry: ImportPairEntry<BankAccountRecord>, read: BankAccountRecord) {
+    if (read.bankAccount?.iban.isNullOrBlank()
+      || !bankAccountNormalizedIban.contains(StringHelper.removeNonDigitsAndNonASCIILetters(read.bankAccount?.iban))
+    ) {
+      entry.addError(
+        translateMsg(
+          "plugins.banking.import.error.recordWithWrongBankAccount",
+          read.bankAccount?.iban,
+          (targetEntity as BankAccount).iban
+        )
+      )
+    }
+    if (read.date == null) {
+      entry.addError(translateMsg("validation.error.fieldRequired", translate("plugins.banking.account.record.date")))
+    }
+    if (read.valueDate == null) {
+      entry.addError(translateMsg("validation.error.fieldRequired", translate("plugins.banking.account.record.valueDate")))
+    }
+    if (read.amount == null) {
+      entry.addError(translateMsg("validation.error.fieldRequired", translate("plugins.banking.account.record.amount")))
     }
   }
 
@@ -143,22 +178,11 @@ class BankingImportStorage(importSettings: String? = null, targetEntity: BankAcc
       }
       addEntry(ImportPairEntry(null, createRecord(dbRecordsByDay[l])))
     }
-    pairEntries.forEach { entry ->
-      entry.read?.let { read ->
-        if (read.bankAccount?.iban.isNullOrBlank()
-          || !bankAccountNormalizedIban.contains(StringHelper.removeNonDigitsAndNonASCIILetters(read.bankAccount?.iban))
-        ) {
-          entry.addError(translateMsg(
-            "plugins.banking.import.error.recordWithWrongBankAccount",
-            read.bankAccount?.iban,
-            (targetEntity as BankAccount).iban
-          ))
-        }
-      }
-    }
   }
 
   internal fun analyzeReadTransactions() {
+    // Kept apart (not silently dropped): they are offered as faulty entries of the preview.
+    undatedTransactions = readTransactions.filter { it.date == null }
     readTransactions.removeIf { it.date == null }
     readTransactions.sortBy { it.date }
     if (readTransactions.isEmpty()) {

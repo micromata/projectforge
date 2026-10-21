@@ -259,6 +259,22 @@ object NextMigration {
             legacyApp = LegacyApp.REACT,
             offerLegacyLink = false,
         ),
+        // The bank accounts and their transactions of the banking plugin (BankAccountEntityRest,
+        // BankAccountRecordEntityRest, components/features/bank-account*): hand built, the React pages are removed, so
+        // there is no way back and no redirect of old links (legacyApp = null). The import of the transactions is the
+        // page `bankAccount/import` (no category of its own).
+        "bankAccount" to NextPage(
+            route = "bankAccount",
+            editRoute = "bankAccount/$ID_PLACEHOLDER",
+            newEntryRoute = "bankAccount/new",
+            legacyApp = null,
+        ),
+        "bankAccountRecord" to NextPage(
+            route = "bankAccountRecord",
+            editRoute = "bankAccountRecord/$ID_PLACEHOLDER",
+            newEntryRoute = "bankAccountRecord/new",
+            legacyApp = null,
+        ),
         // Hand built feature, so its routes are /book, /book/new and /book/<id>. The React page it was
         // migrated from is removed (its layout is gone with BookEntityRest.createListLayout), so there is
         // no way back: legacyApp = null.

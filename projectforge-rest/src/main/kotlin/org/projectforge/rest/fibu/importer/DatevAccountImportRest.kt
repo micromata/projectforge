@@ -33,7 +33,6 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.importer.AbstractImportPageRest
 import org.projectforge.rest.importer.AbstractImportRest
 import org.projectforge.rest.importer.ImportPairEntry
 import org.springframework.beans.factory.annotation.Autowired
@@ -103,7 +102,7 @@ class DatevAccountImportRest : AbstractImportRest<DatevAccountImportDTO, DatevAc
         if (storage.readRecords.isEmpty()) {
             return null
         }
-        stashStorage(request, AbstractImportPageRest.getSessionAttributeName(DatevRecordImportRest::class.java), storage)
+        stashStorage(request, getSessionAttributeName(DatevRecordImportRest::class.java), storage)
         log.info { "Accounting records of file '$filename' stashed for the records tab: #${storage.readRecords.size}" }
         return listOf(translateMsg("fibu.datev.import.companion.records", storage.readRecords.size))
     }

@@ -193,9 +193,7 @@ class NextMigrationTest {
             Assertions.assertNull(NextMigration.legacyListUrl(category), category)
             Assertions.assertNull(NextMigration.legacyEditPage(category), category)
             Assertions.assertNull(NextMigration.legacyNewEntryUrl(category), category)
-            val link = NextMigration.orphanedLinks().single { it.category == category }
-            Assertions.assertEquals("react/$category", link.legacyListPath)
-            Assertions.assertEquals("react/$category/edit", link.legacyEditPath)
+            Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == category })
         }
     }
 
@@ -353,6 +351,23 @@ class NextMigrationTest {
     }
 
     /**
+     * The bank accounts and their transactions (banking plugin): list and form are next's, the React pages are gone,
+     * so there is no way back and no redirect of old links.
+     */
+    @Test
+    fun `the banking pages are next's and offer no way back`() {
+        listOf("bankAccount", "bankAccountRecord").forEach { category ->
+            Assertions.assertEquals("next/$category", NextMigration.listUrl(category))
+            Assertions.assertEquals("next/$category/:id", NextMigration.standardEditPage(category))
+            Assertions.assertEquals("next/$category/new", NextMigration.newEntryUrl(category))
+            Assertions.assertNull(NextMigration.legacyListUrl(category))
+            Assertions.assertNull(NextMigration.legacyEditPage(category))
+            Assertions.assertNull(NextMigration.legacyNewEntryUrl(category))
+            Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == category })
+        }
+    }
+
+    /**
      * The polls: list, form and answer page are next's, the React pages are gone, so there is no way back, but a
      * bookmarked React link is still redirected onto next (the answer page by OrphanedLinkFilter).
      */
@@ -382,9 +397,7 @@ class NextMigrationTest {
             Assertions.assertNull(NextMigration.legacyListUrl(category))
             Assertions.assertNull(NextMigration.legacyEditPage(category))
             Assertions.assertNull(NextMigration.legacyNewEntryUrl(category))
-            val link = NextMigration.orphanedLinks().single { it.category == category }
-            Assertions.assertEquals("react/$category", link.legacyListPath)
-            Assertions.assertEquals("react/$category/edit", link.legacyEditPath)
+            Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == category })
         }
     }
 
