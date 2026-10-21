@@ -2,17 +2,14 @@
  * The mass update of a list selection (`AbstractMultiSelectedPage`), layout free.
  *
  * Two REST bases are involved and they are not the same: the selection is *started* on the list's own
- * entity (`{entity}/startMultiSelection`), everything after that happens on the mass update page
+ * entity (`{entity}/startSelection`), everything after that happens on the mass update page
  * (`{page}/meta`, `/select`, `/update`, `/download`, `/cancel`) — and its path is not derivable from
  * the entity's (`invoiceSelected` for `outgoingInvoice`), so a page declares it.
  *
  * The state lives in the HTTP session, keyed by the backend's `*Rest` class
- * (`MultiSelectionSupport.SessionContext`, 60 minutes): `startMultiSelection` registers every id the
+ * (`MultiSelectionSupport.SessionContext`, 60 minutes): `startSelection` registers every id the
  * filter matched, `select` narrows that to the ticked ones, and `meta`/`update` read them from there.
  * Nothing carries ids in a url, and a deployment behind a load balancer needs sticky sessions.
- *
- * The `dynamic`/`massUpdate`/`selected` endpoints of the same page answer the same information as a
- * `UILayout` and are deprecated; they are deliberately not wrapped here.
  */
 
 import { rawRequest, request, RsError } from "./client";
@@ -88,10 +85,7 @@ export interface MultiSelectMeta {
    * (`InvoiceStatistics` for the invoice) — rendered by the component the page declares, see
    * `MassUpdateDef.statisticsLine`.
    *
-   * `unknown` because the shape is the entity's and nothing generic reads it. The deprecated
-   * `statistics` field of the same response is that summary pre-rendered as markdown for the
-   * `UILayout` form, and is not read here: its amounts are formatted server side and its colours are
-   * raw HTML spans.
+   * `unknown` because the shape is the entity's and nothing generic reads it.
    */
   statisticsData?: unknown;
   /**
@@ -108,6 +102,11 @@ export interface MultiSelectMeta {
   supportsDelete?: boolean;
   /** Whether the page offers restoring selected, already deleted entries — the "restore" button. */
   supportsRestore?: boolean;
+  /**
+   * The log viewer of the user's log subscription the mass update writes to (`next/logViewer/<id>`), absent
+   * where the page has none. Registered by the `meta` call itself, so it is there while the update runs.
+   */
+  logViewerUrl?: string | null;
 }
 
 /**

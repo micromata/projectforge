@@ -46,10 +46,9 @@ import org.springframework.stereotype.Service
 private val log = KotlinLogging.logger {}
 
 /**
- * What saving an address involves besides the entity itself, shared by the form of projectforge-next
- * ([AddressEntityRest]) and the React form the address campaigns still open ([AddressLegacyPagesRest]): the
- * favorite flag of the logged-in user, the image uploaded to (or deleted in) the session, and the entry of a running
- * VCF import the form was opened for.
+ * What saving an address involves besides the entity itself, as done by the form of projectforge-next
+ * ([AddressEntityRest]): the favorite flag of the logged-in user, the image uploaded to (or deleted in) the session,
+ * and the entry of a running VCF import the form was opened for.
  */
 @Service
 class AddressSaveSupport {

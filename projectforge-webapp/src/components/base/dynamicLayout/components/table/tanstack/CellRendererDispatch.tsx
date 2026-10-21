@@ -3,7 +3,6 @@ import { Cell, flexRender } from '@tanstack/react-table';
 import { evaluateFieldExpression } from './tableUtils';
 import Formatter from '../../../../Formatter';
 import MultilineCell from '../MultilineCell';
-import OpenModalLinkCell from '../../customized/components/OpenModalLinkCell';
 
 const DynamicAgGridCustomizedCell = lazy(() => import('../DynamicAgGridCustomizedCell'));
 
@@ -83,16 +82,6 @@ export default function CellRendererDispatch({ cell, components }: CellRendererD
             );
         case 'multilineCell':
             return <MultilineCell value={value as string} />;
-        case 'OpenModalLinkCell':
-            return (
-                <OpenModalLinkCell
-                    value={value as any}
-                    data={data as any}
-                    urlPattern={params.urlPattern}
-                    multiline={params.multiline}
-                    placeholder={params.placeholder}
-                />
-            );
         default:
             return <>{flexRender(cell.column.columnDef.cell, cell.getContext())}</>;
     }

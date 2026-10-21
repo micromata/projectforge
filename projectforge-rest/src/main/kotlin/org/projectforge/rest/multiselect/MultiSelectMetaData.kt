@@ -60,17 +60,7 @@ class MultiSelectMetaData(
      */
     val info: String? = null,
     /**
-     * What the selected entries add up to, as markdown - the invoice statistics
-     * (`RechnungsStatistik.asMarkdown`).
-     *
-     * For the `UILayout` form, which has nowhere to put a number but a `UIAlert`. A hand built page reads
-     * [statisticsData] instead: this text carries `<span style="color:blue">` for its colours and its
-     * amounts are formatted server side, neither of which a next page can use.
-     */
-    @Deprecated("Use statisticsData, which serves the same numbers as values.")
-    val statistics: String? = null,
-    /**
-     * The same summary as values, in the shape the entity's list already serves it in
+     * What the selected entries add up to, as values in the shape the entity's list already serves it in
      * (`InvoiceStatistics`) - so the mass update page renders it with the statistics line of that list
      * and formats the amounts in the user's locale and currency.
      */
@@ -92,6 +82,12 @@ class MultiSelectMetaData(
      * on together with [supportsDelete], since a soft delete is only offered where it can be undone.
      */
     val supportsRestore: Boolean = false,
+    /**
+     * The log viewer of the user's log subscription the mass update writes to (e.g. `next/logViewer/7`), or null
+     * if the page has none (see [AbstractMultiSelectedPage.ensureUserLogSubscription]). The subscription is
+     * registered when the meta is served, so it already exists while the update runs.
+     */
+    val logViewerUrl: String? = null,
 )
 
 /**

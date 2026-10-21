@@ -119,10 +119,10 @@ Erinnerungen) oder Datentransfer. Dann behält der Eintrag in `MIGRATED` seine `
 `OrphanedLinkFilter` bekommt eine eigene Regel für die gemailte Url); sonst ist `legacyApp = null`, auch wenn alte
 Lesezeichen dann nicht mehr auf next führen. Lesezeichen allein rechtfertigen keine Umleitung. Generisch umgeleitet
 werden nur noch Aufträge und To-dos (Änderungsmails), Urlaub (Urlaubsmails) und der Kalender (frühere Startseite
-nach dem Login), dazu die Adresskampagnen-Werte (mit Rückweg). Eigene Regeln haben die gemailten Seiten des
-Datentransfers, der Umfrage-Antwort, der Passwortänderung (Mail „Passwort nicht geändert“ von 9.0.5) und der
-Fehlerübersicht (`next/adminErrors`, `next/problemDashboard` aus der Fehler-Sammelmail), dazu die früheren
-Startseiten (`wa/login`, die Wicket-Kalender) und der Direktanruf `wa/phoneCall` (für den Aufruf per Url gedacht).
+nach dem Login). Eigene Regeln haben die gemailten Seiten des Datentransfers, der Umfrage-Antwort, der
+Passwortänderung (Mail „Passwort nicht geändert“ von 9.0.5) und der Fehlerübersicht (`next/adminErrors`,
+`next/problemDashboard` aus der Fehler-Sammelmail), dazu die früheren Startseiten (`wa/login`, die Wicket-Kalender)
+und der Direktanruf `wa/phoneCall` (für den Aufruf per Url gedacht).
 Jede andere `wa/`-Url landet auf der next-Startseite, eine alte `react/`-Url wird nicht umgeleitet.
 `NextMigrationTest` (`only links that left ProjectForge are redirected`) hält die Liste fest.
 
@@ -313,9 +313,9 @@ Lösch-Bestätigung, Aktionsleiste liegen in `hooks/use-entity-edit-form.ts` und
   `PageDef.massUpdate`): Zustand liegt in der HTTP-Session (Schlüssel = Klasse der
   `*EntityRest`, TTL 60 min) → **Sticky Sessions**. Next spricht nur das layoutfreie Protokoll
   (`meta`/`preview`/`update`/`select`/`selectedList`/`cancel`); die Felder deklariert
-  `fieldDeclarations()`. `fillForm` und die deprecated UILayout-Endpunkte (`dynamic`, `massUpdate`,
-  `selected`) bedienen nur noch die für die laufende Kampagne behaltene React-Seite der
-  Adresskampagnen-Werte (`addressCampaignValueLegacySelected`).
+  `fieldDeclarations()`. Das UILayout-Protokoll (`dynamic`, `massUpdate`, `selected`, `fillForm`, das
+  Markdown-`statistics` der `meta`, `{entity}/startMultiSelection`/`cancelMultiSelection`) ist mit der letzten
+  React-Seite (Adresskampagnen-Werte) entfernt.
 - **Excel-Export** generisch: `lib/rs/list-export.ts` (`downloadListExcel`).
 - **JIRA-Issues als Links** (`components/shared/jira/`): Config reist einmalig über
   `userStatus` (`JiraClientConfig`, nicht über die öffentliche `SystemData`). `JiraLinkedText`
@@ -658,11 +658,11 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `applyVcfImage`). Der **VCF-Import** `next/address/import` (`AddressImportRest`) ist kein Bulk-Commit: jede Zeile öffnet
   das Formular mit `?importIndex=`, das den Vergleich lädt (`addressImport/entry/{n}`) und den Eintrag beim Speichern als
   importiert markiert. Der Favoriten-Stern schaltet direkt (`address/favorite/{id}`). Die Liste lädt die ganze Treffermenge
-  (die Seitengrößen-Kürzung `limitResultSize` des React-Layouts entfällt). **Weiterhin in React:** das Formular für die
-  Adresskampagnen-Werte (die React-Seite `AddressCampaignValuePagesRest` öffnet es als Modal) – unter eigener Kategorie
-  `addressLegacy` (`AddressLegacyPagesRest`, `react/addressLegacy/edit/{id}?modal=true`), damit
-  React-Legacy-Banner und `PagesResolver` es nicht nach next biegen; fällt mit der React-Seite der Kampagnen-Werte weg.
-  Alte Links (`react/address/**`, `react/addressView/**`) werden nicht umgeleitet. Der generische Routen-Platzhalter von `[category]` heißt jetzt `generic` (war `address`).
+  (die Seitengrößen-Kürzung `limitResultSize` des React-Layouts entfällt). Das React-Formular, das die
+  Adresskampagnen-Werte eine Zeit lang noch als Modal öffneten (`AddressLegacyPagesRest`,
+  `react/addressLegacy/edit/{id}?modal=true`), ist mit deren React-Seite entfernt. Alte Links (`react/address/**`,
+  `react/addressView/**`, `react/addressLegacy/**`) werden nicht umgeleitet. Der generische Routen-Platzhalter von
+  `[category]` heißt jetzt `generic` (war `address`).
 - **Adresskampagnen-Werte** (`addressCampaignValue`, Liste + Formular + Massenänderung, vorher React-UILayout
   `AddressCampaignValuePagesRest`) – layoutfrei `AddressCampaignValueEntityRest` +
   `AddressCampaignValueMultiSelectedPageRest` (`fieldDeclarations`: Wert als Auswahl der Kampagnenwerte, Kommentar),
@@ -675,18 +675,16 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Adresse wird aktualisiert statt doppelt eingefügt (Unique-Constraint). Die Filter-Id der Kampagne ist die der
   React-Seite (`AddressCampaignValuePagesRest.campaignId`), damit gespeicherte Filter/Favoriten ihre Kampagne
   behalten. Wechselt die Kampagne, setzt das Backend `ResultSet.reloadUI`, und
-  `useMagicFilterQuery` lädt die `listMeta` neu (Werte-Filter der neuen Kampagne) – generisch. **Weiterhin in React**
-  für die laufende Kampagne, als Weg zurück: dieselbe Seite unter eigener Kategorie `addressCampaignValueLegacy`
-  (`NextPage.legacyCategory`: der Weg zurück führt dorthin, `OrphanedLinkFilter`/`hasNextVersion` bleiben bei den alten
-  `react/addressCampaignValue`-Urls); React zeigt die zuletzt in next gewählte Kampagne (User-Pref-Bereich `addressCampaignValue`), next selbst nur die seines Filters – ohne Kampagne im Filter ist die Liste leer.
+  `useMagicFilterQuery` lädt die `listMeta` neu (Werte-Filter der neuen Kampagne) – generisch. Ohne Kampagne im
+  Filter ist die Liste leer. Die React-Seite, die für eine laufende Kampagne als Weg zurück unter eigener Kategorie
+  `addressCampaignValueLegacy` blieb (samt Massenänderung und `NextPage.legacyCategory`), ist entfernt; alte Links
+  (`react/addressCampaignValue/**`, `react/addressCampaignValueLegacy/**`) werden nicht umgeleitet.
   **Vergleichskampagne** (Filter `comparisonCampaignId`, z. B. das Vorjahr): Spalten Vergleichswert/-bemerkung
   (`revealedByFilter`), Filter auf den Vergleichswert und „Nur Unterschiede“ (`ComparisonResultFilters.kt`), in der
   Massenänderung „Werte der Vergleichskampagne übernehmen“ (Custom-Feld `adoptComparison`, optional Bemerkungen /
   nur leere), im Formular ein Hinweis mit „Übernehmen“. **Inaktive Kampagnen** (`AddressCampaignDO.active`,
   Plugin-Flyway `flyway/marketing/migrate/common/V9.0.8.1__…`): `AddressCampaignValueRight` verweigert Schreiben
-  (auch React-Legacy), Formular schreibgeschützt, Massenänderung mit klarer Meldung abgewiesen.
-  Nach der Kampagne löschen: `AddressCampaignValuePagesRest`, `AddressCampaignValueLegacyMultiSelectedPageRest`,
-  `AddressLegacyPagesRest`, `legacyCategory` am Eintrag.
+  Formular schreibgeschützt, Massenänderung mit klarer Meldung abgewiesen.
 - **Adressbücher** (`addressBook`, Liste + Formular, vorher React-UILayout `AddressBookPagesRest`, gelöscht) – layoutfrei
   über `AddressbookEntityRest` (`/rs/addressBook`), nach dem Muster der Teamkalender (Eigentümer:in, Voll-/Lesezugriff
   für Benutzer:innen und Gruppen als csv-Id-Listen, im DTO aufgelöst). Die Autovervollständigung `addressBook/ac` des

@@ -62,7 +62,11 @@ class OrphanedLinkFilterTest {
      */
     @Test
     fun `links that never left ProjectForge are not redirected`() {
-        for (category in listOf("project", "task", "teamCal", "user", "contract", "visitorbook", "address", "datatransfer")) {
+        val categories = listOf(
+            "project", "task", "teamCal", "user", "contract", "visitorbook", "address", "addressLegacy",
+            "addressCampaignValue", "addressCampaignValueLegacy", "datatransfer",
+        )
+        for (category in categories) {
             Assertions.assertNull(redirectOf("/react/$category"), category)
             Assertions.assertNull(redirectOf("/react/$category/edit/42"), category)
         }
@@ -241,24 +245,6 @@ class OrphanedLinkFilterTest {
             redirectOf("/wa/phoneCall", mapOf("address" to "7", "no" to "0123", "cp" to "addressView")),
         )
         Assertions.assertEquals("/next/", redirectOf("/wa/phoneCallXyz"), "Not the direct call: the catch-all.")
-    }
-
-    /** The React form the address campaigns open as a modal lives under `addressLegacy` and is left alone. */
-    @Test
-    fun `the form of the address campaigns is not redirected`() {
-        Assertions.assertNull(redirectOf("/react/addressLegacy/edit/5", mapOf("modal" to "true")))
-    }
-
-    /**
-     * The address campaign values are next's, but their React page is kept for the running campaign under a
-     * category of its own (`addressCampaignValueLegacy`), which is left alone.
-     */
-    @Test
-    fun `address campaign value links are redirected to next, the legacy page is not`() {
-        Assertions.assertEquals("/next/address-campaign-value", redirectOf("/react/addressCampaignValue"))
-        Assertions.assertEquals("/next/address-campaign-value/42", redirectOf("/react/addressCampaignValue/edit/42"))
-        Assertions.assertNull(redirectOf("/react/addressCampaignValueLegacy"))
-        Assertions.assertNull(redirectOf("/react/addressCampaignValueLegacy/edit/42"))
     }
 
     /** Every other Wicket url lands on the next start page: no request reaches Wicket any more. */

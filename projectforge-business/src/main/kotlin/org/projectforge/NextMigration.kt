@@ -124,12 +124,6 @@ object NextMigration {
      * [legacyApp] so [orphanedLinks] still bends a bookmarked or emailed legacy url onto next - only the
      * *offer* of the way back is withdrawn, not the redirect of stale links. Always effectively true for a
      * page that isn't migrated - it is served by the legacy app itself.
-     * @param legacyCategory The legacy page is still served, but under a REST category of its own that is not
-     * migrated (kept alongside next for a while, as the address campaign values during a running campaign). The
-     * way back ([legacyListUrl] & co.) leads there - [legacyRoute], [legacyEditRoute] and [legacyNewEntryRoute]
-     * then describe the routes of that category, defaulting to its convention - whereas [orphanedLinks] and
-     * [hasNextVersion] keep to the conventional routes of the migrated category itself: the old urls are bent
-     * onto next, the legacy category works as before (no redirect, no hint, legacy urls from `PagesResolver`).
      */
     class NextPage(
         val route: String,
@@ -142,7 +136,6 @@ object NextMigration {
         val legacyNewEntryRoute: String? = null,
         val legacyListInMenu: Boolean = false,
         val offerLegacyLink: Boolean = true,
-        val legacyCategory: String? = null,
     ) {
         val editRoute: String = editRoute ?: "$route/edit/$ID_PLACEHOLDER"
         val newEntryRoute: String = newEntryRoute ?: "$route/edit"
@@ -150,9 +143,6 @@ object NextMigration {
         init {
             require(!listOnly || legacyApp != null) {
                 "A list only page keeps its form in the legacy app, so legacyApp must be given: route=$route"
-            }
-            require(legacyCategory == null || (legacyApp != null && !listOnly)) {
-                "A legacy category is the way back of a fully migrated page, so legacyApp must be given: route=$route"
             }
             require(legacyApp != LegacyApp.WICKET || !offerLegacyLink) {
                 "Wicket is no way back any more (it is being removed), so offerLegacyLink must be false: route=$route"
@@ -208,26 +198,19 @@ object NextMigration {
         // The values of the address campaigns (marketing plugin), migrated from React: hand built list, form and mass
         // update (AddressCampaignValueEntityRest, components/features/address-campaign-value). A row of an address
         // without a value yet has a synthetic (negative) id and opens the form for a new value
-        // (`address-campaign-value/new?campaignId=&addressId=`). The React page is kept for the running campaign, as
-        // the way back, under a category of its own (AddressCampaignValuePagesRest, `react/addressCampaignValueLegacy`),
-        // so neither OrphanedLinkFilter nor PagesResolver bend it onto next; bookmarked react/addressCampaignValue
-        // links are redirected to the next page. Both share the selected campaign.
+        // (`address-campaign-value/new?campaignId=&addressId=`). The React page is gone (no UILayout served any more):
+        // no way back and no redirect of old links (legacyApp = null), as no link of them ever left ProjectForge.
         "addressCampaignValue" to NextPage(
             route = "address-campaign-value",
             editRoute = "address-campaign-value/$ID_PLACEHOLDER",
             newEntryRoute = "address-campaign-value/new",
-            legacyApp = LegacyApp.REACT,
-            legacyCategory = "addressCampaignValueLegacy",
-            // A new value needs its campaign and address, which only a row of the list gives.
-            legacyNewEntryRoute = "addressCampaignValueLegacy",
+            legacyApp = null,
         ),
         // Hand built list, view and form of the addresses (AddressEntityRest, components/features/address), migrated
         // from React together with the VCF import (next/address/import, AddressImportRest). A row, a search hit and a
         // calendar birthday open the view (`address/:id`, see AddressEntityRest.getStandardEditPage); the form is a sub
-        // route of it, as for `script`. The React form is still served, but under a category of its own
-        // (AddressLegacyPagesRest, `react/addressLegacy/edit/:id`), for the address campaign values only, which open it
-        // as a modal. Otherwise no way back and no redirect of old links (legacyApp = null), as no link of them ever
-        // left ProjectForge.
+        // route of it, as for `script`. No way back and no redirect of old links (legacyApp = null), as no link of them
+        // ever left ProjectForge.
         "address" to NextPage(
             route = "address",
             editRoute = "address/$ID_PLACEHOLDER/edit",
@@ -713,10 +696,8 @@ object NextMigration {
         val normalized = path.removePrefix("/").removePrefix(legacyApp.appPath).substringBefore('?').trimEnd('/')
         return MIGRATED.any { (category, page) ->
             if (page.legacyApp != legacyApp) return@any false
-            // The routes of a legacy category of its own are the way back, not the old urls (see legacyCategory).
-            val ownRoutes = page.legacyCategory == null
-            val listRoute = ((if (ownRoutes) page.legacyRoute else null) ?: legacyApp.listRoute(category)).trimEnd('/')
-            val editRoute = ((if (ownRoutes) page.legacyEditRoute else null) ?: legacyApp.editRoute(category))
+            val listRoute = (page.legacyRoute ?: legacyApp.listRoute(category)).trimEnd('/')
+            val editRoute = (page.legacyEditRoute ?: legacyApp.editRoute(category))
                 .substringBefore('?').substringBefore(ID_PLACEHOLDER).trimEnd('/')
             normalized == listRoute || normalized == editRoute || normalized.startsWith("$editRoute/")
         }
@@ -870,7 +851,7 @@ object NextMigration {
      */
     fun legacyListUrl(category: String): String? {
         if (!offersLegacyLink(category)) return null
-        return legacyListUrlRaw(category, wayBack = true)
+        return legacyListUrlRaw(category)
     }
 
     /**
@@ -878,11 +859,10 @@ object NextMigration {
      * [offerLegacyLink]): the raw counterpart of [legacyListUrl], for [orphanedLinks], which must keep
      * bending bookmarked legacy urls onto next even for a page whose escape hatch has been withdrawn.
      */
-    private fun legacyListUrlRaw(category: String, wayBack: Boolean = false): String? {
+    private fun legacyListUrlRaw(category: String): String? {
         val page = nextPage(category)
         val app = legacyApp(category) ?: return null
-        if (!wayBack && page?.legacyCategory != null) return "${app.appPath}${app.listRoute(category)}"
-        return "${app.appPath}${page?.legacyRoute ?: app.listRoute(page?.legacyCategory ?: category)}"
+        return "${app.appPath}${page?.legacyRoute ?: app.listRoute(category)}"
     }
 
     /**
@@ -924,7 +904,7 @@ object NextMigration {
      */
     fun legacyEditPage(category: String): String? {
         if (!offersLegacyLink(category)) return null
-        return legacyEditPageRaw(category, wayBack = true)
+        return legacyEditPageRaw(category)
     }
 
     /**
@@ -933,11 +913,10 @@ object NextMigration {
      * [NextPage.listOnly] page (whose form is the legacy one and must stay reachable even with the escape
      * hatch withdrawn).
      */
-    private fun legacyEditPageRaw(category: String, wayBack: Boolean = false): String? {
+    private fun legacyEditPageRaw(category: String): String? {
         val page = nextPage(category)
         val app = legacyApp(category) ?: return null
-        if (!wayBack && page?.legacyCategory != null) return "${app.appPath}${app.editRoute(category)}"
-        return "${app.appPath}${page?.legacyEditRoute ?: app.editRoute(page?.legacyCategory ?: category)}"
+        return "${app.appPath}${page?.legacyEditRoute ?: app.editRoute(category)}"
     }
 
     /**
@@ -946,7 +925,7 @@ object NextMigration {
      */
     fun legacyNewEntryUrl(category: String): String? {
         if (!offersLegacyLink(category)) return null
-        return legacyNewEntryUrlRaw(category, wayBack = true)
+        return legacyNewEntryUrlRaw(category)
     }
 
     /**
@@ -954,11 +933,10 @@ object NextMigration {
      * raw counterpart of [legacyNewEntryUrl], for the add destination of a [NextPage.listOnly] page, whose
      * form is the legacy one and must stay reachable even with the escape hatch withdrawn.
      */
-    private fun legacyNewEntryUrlRaw(category: String, wayBack: Boolean = false): String? {
+    private fun legacyNewEntryUrlRaw(category: String): String? {
         val page = nextPage(category)
         val app = legacyApp(category) ?: return null
-        if (!wayBack && page?.legacyCategory != null) return "${app.appPath}${app.newEntryRoute(category)}"
-        return "${app.appPath}${page?.legacyNewEntryRoute ?: app.newEntryRoute(page?.legacyCategory ?: category)}"
+        return "${app.appPath}${page?.legacyNewEntryRoute ?: app.newEntryRoute(category)}"
     }
 
     /**

@@ -966,21 +966,9 @@ constructor(
     }
 
     /**
-     * Starts multi selection by registering current result list.
-     */
-    @PostMapping(RestPaths.REST_START_MULTI_SELECTION)
-    fun startMultiSelections(request: HttpServletRequest, @RequestBody filter: MagicFilter): ResponseAction {
-        val count = registerForSelection(request, filter)
-        log.info { "User wants to start multiselection of $count entries." }
-        return ResponseAction(url = PagesResolver.getMultiSelectionPageUrl(this::class.java, absolute = true))
-    }
-
-    /**
-     * Starts multi selection and answers how many entries the filter matched.
-     *
-     * The layout free counterpart of [startMultiSelections], whose answer is a redirect to the mass
-     * update page of the legacy frontend - a hand built page routes itself and only needs to know that
-     * the session now holds the ids (see `MultiSelectMetaData`).
+     * Starts multi selection by registering the current result list and answers how many entries the filter
+     * matched: a hand built page routes itself and only needs to know that the session now holds the ids (see
+     * `MultiSelectMetaData`).
      */
     @PostMapping("startSelection")
     fun startSelection(
@@ -1000,17 +988,6 @@ constructor(
         val ids = getList(request, filter).resultSet.mapNotNull { getId(it) }
         MultiSelectionSupport.registerEntityIdsForSelection(request, this::class.java, ids)
         return ids.size
-    }
-
-    /**
-     * This rest service will be called on multi selection list pages, if the user wants to cancel the multi selection.
-     * @return redirect url
-     */
-    // State changing: POST only.
-    @PostMapping(RestPaths.CANCEL_MULTI_SELECTION)
-    fun handleCancelUrl(request: HttpServletRequest): String {
-        return MultiSelectionSupport.clear(request, this)
-            ?: PagesResolver.getListPageUrl(this::class.java, absolute = true)
     }
 
     // ------------------------------------------------------------------------------------------

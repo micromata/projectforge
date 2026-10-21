@@ -24,7 +24,6 @@ export {
     loadList,
     fetchCurrentList,
     exportCurrentList,
-    startMultiSelection,
 } from './list';
 
 export {

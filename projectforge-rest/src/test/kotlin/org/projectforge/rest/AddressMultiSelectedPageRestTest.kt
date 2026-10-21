@@ -98,6 +98,16 @@ class AddressMultiSelectedPageRestTest : AbstractTestBase() {
         assertFalse(fields["organization"]!!.replaceOption)
     }
 
+    /** The meta registers the user's log subscription of the address mass update and links its log viewer. */
+    @Test
+    fun `meta should link the log viewer of the mass update`() {
+        logon(ADMIN)
+        val url = addressMultiSelectedPageRest.requestMeta(MockHttpServletRequest()).logViewerUrl
+        assertTrue(url?.matches(Regex("next/logViewer/\\d+")) == true, "url=$url")
+        // The same subscription on every visit, not a new one each time.
+        assertEquals(url, addressMultiSelectedPageRest.requestMeta(MockHttpServletRequest()).logViewerUrl)
+    }
+
     @Test
     fun `getTitleKey should return correct i18n key`() {
         assertEquals("multiselection.button", addressMultiSelectedPageRest.getTitleKey())

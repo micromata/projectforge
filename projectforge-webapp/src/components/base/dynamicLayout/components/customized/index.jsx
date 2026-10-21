@@ -1,16 +1,10 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import AddressImportDialogWrapper from './components/AddressImportDialogWrapper';
-import AddressImportReconciler from './components/AddressImportReconciler';
 import CalendarEventRecurrency from './components/CalendarEventRecurrence';
-import CustomizedAddressImage from './components/CustomizedAddressImage';
-import CustomizedAddressPhoneNumbers from './components/CustomizedAddressPhoneNumbers';
-import CustomizedAddressPhoneNumber from './components/CustomizedAddressPhoneNumber';
 import CustomizedColorChooser from './components/CustomizedColorChooser';
 import CustomizedConsumptionBar from './components/CustomizedConsumptionBar';
 import CustomizedEMail from './components/CustomizedEMail';
 import DayRange from './components/DayRange';
-import CustomizedImageDataPreview from './components/ImageDataPreview';
 import JiraIssuesLinks from './components/JiraIssuesLinks';
 import TimesheetEditTaskAndKost2 from './components/timesheet/TimesheetEditTaskAndKost2';
 import TimesheetTemplatesAndRecent from './components/timesheet/TimesheetTemplatesAndRecent';
@@ -28,24 +22,6 @@ function DynamicCustomized({ id, ...props }) {
     switch (id) {
         case 'access.table':
             Tag = AccessTableComponent;
-            break;
-        case 'address.edit.image':
-            Tag = CustomizedAddressImage;
-            break;
-        case 'address.imagePreview':
-            Tag = CustomizedImageDataPreview;
-            break;
-        case 'address.import.dialogWrapper':
-            Tag = AddressImportDialogWrapper;
-            break;
-        case 'address.phoneNumbers':
-            Tag = CustomizedAddressPhoneNumbers;
-            break;
-        case 'address.phoneNumber':
-            Tag = CustomizedAddressPhoneNumber;
-            break;
-        case 'address.textParser':
-            Tag = AddressImportReconciler;
             break;
         case 'email':
             Tag = CustomizedEMail;

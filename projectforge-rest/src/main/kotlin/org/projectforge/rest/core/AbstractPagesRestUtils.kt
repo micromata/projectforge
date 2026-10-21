@@ -116,7 +116,7 @@ internal fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>> buildQueryFil
  * [AbstractEntityRest.getListByIds] loads by `IN (…)` via [BaseDao.select]; that path applies the DAO's list
  * entity graph (`createQueryFilter().entityGraphName`), so a page of a graph-fetching entity (e.g.
  * GroupTaskAccessDO.accessEntries) does not N+1. Do not enable paging for a page that overrides `getListByIds`
- * with id semantics of its own (e.g. `AddressCampaignValuePagesRest`'s synthetic negative ids).
+ * with id semantics of its own (e.g. `AddressCampaignValueEntityRest`'s synthetic negative ids).
  *
  * @param offset Index of the first row of the requested page within the whole result.
  * @param limit Page size.
