@@ -172,7 +172,7 @@ class SystemRest {
 
     /**
      * The id of the started job ([ReindexJob], [JcrBackupZipJob], [org.projectforge.framework.jcr.RepoMigrationJob]), which the frontend polls (see
-     * JobsMonitorPageRest) for the progress.
+     * JobsMonitorRest) for the progress.
      */
     class JobResponse(val jobId: Int)
 

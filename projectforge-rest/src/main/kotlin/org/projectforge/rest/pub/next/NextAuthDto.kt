@@ -29,7 +29,7 @@ import org.projectforge.security.dto.WebAuthnFinishRequest
  * Plain JSON DTOs for the authentication of projectforge-next.
  *
  * The classical login pages ([org.projectforge.rest.pub.LoginPageRest],
- * [org.projectforge.rest.pub.PasswordResetPageRest], [org.projectforge.rest.my2fa.My2FAPageRest]) describe themselves
+ * [org.projectforge.rest.pub.PasswordResetPageRest], the former 2FA dialog react/2FA/dynamic) describe themselves
  * as UILayout for the backend driven renderer of the old React app. projectforge-next builds its forms by hand, so it
  * needs the plain state instead of a layout: which 2FA methods are usable at all, why a login failed etc.
  */

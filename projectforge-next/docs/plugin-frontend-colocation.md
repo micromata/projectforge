@@ -93,7 +93,7 @@ plugins/org.projectforge.plugins.liquidityplanning/
 
 ### Switch/2FA stay in the backend (unchanged)
 
-`NextMigration.MIGRATED`, `HAND_BUILT_CATEGORIES` (kept in sync by `NextMigrationTest`),
+`NextMigration.MIGRATED` (whose routes `NextMigrationTest` checks against `app/(authenticated)/`),
 `MenuItemDefId.url` and `ProjectForge2FAInitialization` (`NextMigration2FATest`) stay where they
 are. They are not part of the move — only the TSX/TS sources migrate.
 
@@ -109,7 +109,6 @@ Remaining in / adapted in projectforge-next:
 - `app/(authenticated)/liquidity/page.tsx`, `.../[id]/page.tsx`, `.../[id]/page-client.tsx`
   → reduced to thin re-export/composition stubs
 - `package.json` (workspaces), `tsconfig.json` (paths), possibly `next.config.ts` (turbopack root)
-- `lib/hand-built-categories.ts` stays (must stay in sync with the backend)
 
 New in the plugin:
 

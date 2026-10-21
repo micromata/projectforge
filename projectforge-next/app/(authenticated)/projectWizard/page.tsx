@@ -10,8 +10,7 @@ import { ProjectWizard } from "@/components/features/project/wizard/project-wiza
  * rights in one go, shown as the customer wizard ("Kundenassistent"). New in this app, there is no
  * Wicket predecessor.
  *
- * A concrete route like `taskWizard`: `projectWizard` is no REST category, and the directory here
- * shadows the `[category]` catch-all.
+ * A route of its own like `taskWizard`: `projectWizard` is no REST category.
  *
  * For the users who may create customers, projects and structure elements. Enforced by the endpoints
  * behind it (`ProjectWizardRest`) — this page and the entries that lead here merely don't offer what

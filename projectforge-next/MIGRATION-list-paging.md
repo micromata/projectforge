@@ -412,7 +412,7 @@ for.
 
 ## Stage 6 — roll out — open
 
-`book`, `cost1`, `taskTree`, the `components/dynamic/` grids. Then retire client paging from
+`book`, `cost1`, `taskTree`. Then retire client paging from
 `use-data-table`.
 
 ---

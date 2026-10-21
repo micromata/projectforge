@@ -99,8 +99,7 @@ export interface EntitySearchListProps<T extends EntityRef = EntityRef> {
  *
  * It owns the term and the query alone: what a pick *means* is the caller's business, and the term is of
  * no interest once the entry is found. Which entries there are to offer — the first page as soon as the
- * popover opens, a longer one while the user scrolls — is [useEntityLookup]'s, shared in turn with the
- * picker of a server-laid-out form (DynamicSelect), so both behave the same.
+ * popover opens, a longer one while the user scrolls — is [useEntityLookup]'s.
  */
 export function EntitySearchList<T extends EntityRef = EntityRef>({
   url,

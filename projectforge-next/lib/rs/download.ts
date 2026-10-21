@@ -1,7 +1,7 @@
 /**
  * Fetching a file from the backend and handing it to the browser as a download.
  *
- * Shared by every endpoint that answers with a file instead of JSON: the actions of the dynamic pages
+ * Shared by every endpoint that answers with a file instead of JSON: the action calls
  * (see ./dynamic.ts), the exports of the order book and the invoice list, and the protocol of a mass
  * update run.
  */

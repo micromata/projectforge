@@ -105,6 +105,11 @@ class OrphanedLinkFilter : Filter {
             // projectforge-next. The React pages were removed, so there is no "classic version" escape hatch. The
             // precise segment match keeps this from catching the 2FA page /react/2FA. No parameters are passed on.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}2FASetup")
+        } else if (uri.endsWith("/react/2FA") || uri.contains("/react/2FA/")) {
+            // Old React dialog for a second factor before a protected action, removed: projectforge-next asks for
+            // it in a dialog of its own. Its target (the React page asking for it) is not passed on, a bookmarked
+            // link lands on the next start page.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}")
         } else if (uri.endsWith("/react/changePassword") || uri.contains("/react/changePassword/")
             || uri.endsWith("/react/changeWlanPassword") || uri.contains("/react/changeWlanPassword/")
         ) {
@@ -163,6 +168,13 @@ class OrphanedLinkFilter : Filter {
             // Old dynamic React page of the team vacation export, migrated to projectforge-next (removed, so no
             // "classic version" escape hatch). It took no parameters.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}vacationExport")
+        } else if (uri.endsWith("/react/jobsMonitor") || uri.contains("/react/jobsMonitor/")) {
+            // Old dynamic React page of the job monitor, migrated to projectforge-next (removed, so no "classic
+            // version" escape hatch). The job id is interpolated into the Location header, so only a number is
+            // passed on; the caller (a url) is not, a bookmarked link has nothing to return to.
+            val jobId = servletRequest.getParameter("jobId")?.toIntOrNull()
+            val query = if (jobId != null) "?jobId=$jobId" else ""
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}jobsMonitor$query")
         } else if (uri.endsWith("/wa/userPrefList") || uri.contains("/wa/userPrefList/")
             || uri.endsWith("/wa/userPrefEdit") || uri.contains("/wa/userPrefEdit/")
         ) {

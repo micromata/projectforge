@@ -310,10 +310,10 @@ class EingangsrechnungImportJob(
                     kost2.id = read.kost2!!.id
                     kostZuweisung.kost2 = kost2
                 }
-            } else {
-                // Clear KostZuweisung if no kost1/kost2 in import
-                position.kostZuweisungen?.clear()
             }
+            // Without kost1/kost2 in the import the stored cost assignments are kept: the import has none to
+            // offer, and a cleared collection wouldn't delete them anyway (no orphan removal), they would be read
+            // again by the next reconcile.
 
             positions.add(position)
         }

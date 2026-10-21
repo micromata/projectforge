@@ -41,15 +41,12 @@ import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.core.RestCsrfProtection
-import org.projectforge.rest.my2fa.My2FAPageRest
 import org.projectforge.rest.pub.next.RestError
 import org.projectforge.rest.pub.next.TwoFactorRequired
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.My2FARequestHandler
 import org.projectforge.security.RegisterUser4Thread
 import org.projectforge.security.SecurityLogging
-import org.projectforge.ui.ResponseAction
-import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -300,15 +297,14 @@ open class RestAuthenticationUtils {
       if (!restCsrfProtection.checkRequest(request, response, authInfo)) {
         return // Cross-site request: the error response was already written.
       }
-      val expiryMillis = my2FARequestHandler.handleRequest(authInfo.request, authInfo.response, false)
+      val expiryMillis = my2FARequestHandler.handleRequest(authInfo.request)
       if (expiryMillis != null) {
         log.info { "2FA is required for this request: ${authInfo.request.requestURI}" }
         if (authInfo.loggedInByAuthenticationToken) {
           // A client authenticated by an authentication token can't do a 2FA at all: it has no session, so
           // registerUser creates a fresh UserContext for every request and UserContext.lastSuccessful2FA is always
           // null (My2FAExpiryPeriod.valid). Such a request is therefore permanently denied and the client only needs
-          // to be told so in a way it can evaluate: without this branch it got the ResponseAction below with status
-          // 200 and had to read a login page url as if it were the requested payload.
+          // to be told so in a way it can evaluate.
           // Checked before isNextClient, because that one is only a hint given by the client itself.
           val msg =
             "2FA is required for ${request.requestURI}, but the request was authenticated by an authentication token: " +
@@ -319,8 +315,7 @@ open class RestAuthenticationUtils {
           return
         }
         if (isNextClient(request)) {
-          // projectforge-next doesn't know the UILayout based ResponseAction protocol: it opens its own 2FA dialog
-          // and repeats the request afterwards (see lib/rs/client.ts).
+          // projectforge-next opens its own 2FA dialog and repeats the request afterwards (see lib/rs/client.ts).
           response.status = HttpStatus.FORBIDDEN.value()
           response.setContentType(MediaType.APPLICATION_JSON_VALUE)
           response.writer.write(
@@ -328,26 +323,10 @@ open class RestAuthenticationUtils {
           )
           return
         }
-        response.status = HttpStatus.OK.value()
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE)
-        val url = request.requestURI
-        // /rs/2FA/dynamic
-        // /rs/group/edit
-        val targetType = if (
-          url.matches("""^/rs/.*/dynamic.*""".toRegex()) ||
-          url.matches("""^/rs/.*/edit.*""".toRegex()) ||
-          url.matches("""^/rs/.*/initialList.*""".toRegex())
-        ) {
-          TargetType.REDIRECT
-        } else {
-          TargetType.MODAL
-        }
-        val my2FAUrl = My2FAPageRest.getUrl(request, expiryMillis, targetType == TargetType.MODAL)
-        val json = JsonUtils.toJson(
-          ResponseAction(my2FAUrl, targetType = targetType),
-          ignoreNullableProps = true,
-        )
-        response.writer.write(json)
+        // Any other client (the remaining pages of the legacy React app) has no 2FA dialog any more: the React
+        // dialog (react/2FA/dynamic) is gone, a second factor is only given in projectforge-next.
+        logWarn(authInfo, "2FA is required for ${request.requestURI}, but the request wasn't sent by projectforge-next.")
+        sendError(response, HttpStatus.FORBIDDEN.value(), "Access denied: 2FA required, only available in projectforge-next.")
       } else {
         doFilter()
       }

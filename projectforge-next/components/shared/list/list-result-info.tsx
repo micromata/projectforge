@@ -13,7 +13,7 @@ interface ListResultInfoProps {
    * the backend attaches without knowing its shape.
    */
   info: string;
-  /** Wrapper classes — the caller owns the box (sky note on a dynamic page, plain strip under a table). */
+  /** Wrapper classes — the caller owns the box (e.g. a plain strip under a table). */
   className?: string;
 }
 
@@ -33,8 +33,7 @@ const SANITIZE_SCHEMA = {
 };
 
 /**
- * Renders the backend's `resultInfo` markdown. Shared by the server-laid-out list page (its sky note)
- * and the hand built lists (a strip under the table), so both render the same server text the same way.
+ * Renders the backend's `resultInfo` markdown, the strip under the table of a list page.
  *
  * `rehypeRaw` on purpose: `resultInfo` contains raw HTML from the backend (the truncation `<span>`),
  * which plain markdown would escape into visible tags. Sanitized afterwards anyway: the texts may

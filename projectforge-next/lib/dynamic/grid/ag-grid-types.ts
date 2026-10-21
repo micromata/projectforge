@@ -57,13 +57,6 @@ export interface AgGridNode {
   id?: string;
   columnDefs?: AgGridColumnDef[];
   sortModel?: AgGridSortModelEntry[];
-  rowClickPostUrl?: string;
-  rowClickRedirectUrl?: string;
-  rowClickOpenModal?: boolean;
-  /** A JavaScript function name — deliberately ignored, see rowClickTargetFor. */
-  rowClickFunction?: string;
-  /** A JavaScript source string — translated by row-class.ts, never executed. */
-  getRowClass?: string;
   onColumnStatesChangedUrl?: string;
   resetGridStateUrl?: string;
   paginationPageSize?: number;

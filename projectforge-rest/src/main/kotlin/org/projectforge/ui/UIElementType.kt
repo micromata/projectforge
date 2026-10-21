@@ -52,7 +52,6 @@ enum class UIElementType {
     LABEL,
     LIST,
     NAMED_CONTAINER,
-    PROGRESS,
     RADIOBUTTON,
     READONLY_FIELD,
     RATING,

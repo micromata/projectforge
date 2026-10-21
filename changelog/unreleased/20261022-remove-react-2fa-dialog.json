@@ -1,0 +1,5 @@
+{
+  "type": "removed",
+  "en": "The 2FA dialog of the old interface was removed: a second factor for protected actions is only asked for in the new interface. Pages of the old interface get an access denial instead, old links lead to the start page.",
+  "de": "Der 2FA-Dialog der alten Oberfläche wurde entfernt: Ein zweiter Faktor für geschützte Aktionen wird nur noch in der neuen Oberfläche abgefragt. Seiten der alten Oberfläche erhalten stattdessen eine Zugriffsverweigerung, alte Links führen auf die Startseite."
+}

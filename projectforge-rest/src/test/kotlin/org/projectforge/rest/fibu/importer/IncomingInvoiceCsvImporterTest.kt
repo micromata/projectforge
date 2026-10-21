@@ -108,6 +108,46 @@ class IncomingInvoiceCsvImporterTest {
         assertTrue(storage.errorList.isEmpty(), "No inconsistent paid dates, got ${storage.errorList}")
     }
 
+    /** Positions paid on different days: the invoice is paid with the last one, a warning, no error. */
+    @Test
+    fun `differing paid dates of the positions take the latest`() {
+        val storage = parsePositions(
+            """"01.04.2026-30.04.2026";"R";"100,00";"EUR";"07.04.";"EX-42";"Example Ltd";"6837";"02.06.2026"""",
+            """"01.04.2026-30.04.2026";"R";"20,00";"EUR";"07.04.";"EX-42";"Example Ltd";"6837";"07.04.2026"""",
+        )
+        assertTrue(storage.errorList.isEmpty(), "${storage.errorList}")
+        assertTrue(storage.readInvoices.all { it.getErrors().isEmpty() }, "No position is faulty.")
+        assertEquals(listOf(LocalDate.of(2026, 6, 2)), storage.readInvoices.map { it.bezahlDatum }.distinct())
+        assertTrue(storage.warningList.any { it.contains("Unterschiedliche Zahldaten") }, "${storage.warningList}")
+    }
+
+    /** The paid date of a position-based import is taken, the amount paid is the gross sum of the invoice. */
+    @Test
+    fun `new invoice is paid with its gross sum`() {
+        val storage = parsePositions(
+            """"01.04.2026-30.04.2026";"R";"100,00";"EUR";"07.04.";"EX-42";"Example Ltd";"6837";"02.06.2026"""",
+            """"01.04.2026-30.04.2026";"R";"20,50";"EUR";"07.04.";"EX-42";"Example Ltd";"6837";"02.06.2026"""",
+        )
+        storage.reconcileImportStorage()
+        val reads = storage.pairEntries.mapNotNull { it.read }
+        assertEquals(2, reads.size)
+        assertTrue(reads.all { it.bezahlDatum == LocalDate.of(2026, 6, 2) }, "Paid date of the import is kept.")
+        assertTrue(reads.all { BigDecimal("120.50").compareTo(it.zahlBetrag) == 0 }, "${reads.map { it.zahlBetrag }}")
+    }
+
+    /** Booked and cancelled: nothing to pay, and a paid date without amount would be refused by the dao. */
+    @Test
+    fun `invoice with a gross sum of zero gets no paid date`() {
+        val storage = parsePositions(
+            """"01.04.2026-30.04.2026";"G";"50,00";"EUR";"07.04.";"EX-43";"Example Ltd";"6837";"07.04.2026"""",
+            """"01.04.2026-30.04.2026";"R";"50,00";"EUR";"07.04.";"EX-43";"Example Ltd";"6837";"07.04.2026"""",
+        )
+        storage.reconcileImportStorage()
+        val reads = storage.pairEntries.mapNotNull { it.read }
+        assertEquals(2, reads.size)
+        assertTrue(reads.all { it.bezahlDatum == null && it.zahlBetrag == null }, "${reads.map { it.bezahlDatum }}")
+    }
+
     @Test
     fun `credit note on an expense account is an invoice with a negative amount`() {
         val storage = parsePositions(

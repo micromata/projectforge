@@ -884,28 +884,20 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
     /**
      * Enriches read objects with stored values that are not present in the import data.
      * This prevents the frontend from showing deletions for fields that are simply not
-     * included in the import (e.g., bezahlDatum and zahlBetrag in position-based imports).
+     * included in the import (e.g., bemerkung or iban in position-based imports).
      * Also calculates zahlBetrag if bezahlDatum is set but zahlBetrag is missing.
      */
     private fun enrichReadWithStoredValues() {
+        if (isPositionBasedImport) {
+            enrichPaymentOfPositionBasedImport()
+        }
         pairEntries.forEach { pairEntry ->
             val read = pairEntry.read
             val stored = pairEntry.stored
 
             if (read != null) {
-                // For position-based imports: Ignore bezahlDatum and zahlBetrag (header fields, not position fields)
-                // For header-only imports: Allow importing/updating these fields
-                if (read.isPositionBasedImport) {
-                    if (stored == null) {
-                        // New invoice: clear these header fields to avoid validation errors
-                        read.bezahlDatum = null
-                        read.zahlBetrag = null
-                    } else {
-                        // Update existing invoice: preserve DB values
-                        read.bezahlDatum = stored.bezahlDatum
-                        read.zahlBetrag = stored.zahlBetrag
-                    }
-                } else if (stored != null) {
+                // Position-based imports: see enrichPaymentOfPositionBasedImport.
+                if (!read.isPositionBasedImport && stored != null) {
                     // Header-only: preserve only if not in import
                     if (read.bezahlDatum == null && stored.bezahlDatum != null) {
                         read.bezahlDatum = stored.bezahlDatum
@@ -938,6 +930,13 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 if (read.paymentType == null && stored.paymentType != null) {
                     read.paymentType = stored.paymentType
                 }
+
+                // A row without cost units (e.g. the reversal on the clearing account) keeps the stored ones, as
+                // the job does: else the position would show as modified after every import.
+                if (read.isPositionBasedImport && read.kost1 == null && read.kost2 == null) {
+                    read.kost1 = stored.kost1
+                    read.kost2 = stored.kost2
+                }
             }
 
             // Calculate zahlBetrag if bezahlDatum is set but zahlBetrag is missing
@@ -951,13 +950,57 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
     }
 
     /**
+     * Paid date and amount of a position-based import, per invoice (the job copies the header from its first
+     * position, so all positions of an invoice get the same values):
+     * - The paid date of the import is taken, a missing one never clears the stored one.
+     * - The amount paid is the stored one if the invoice was paid before (it may have been entered by hand, e.g.
+     *   the converted amount of a foreign currency), otherwise the gross sum of the invoice, less the discount.
+     * - An invoice with a gross sum of zero (e.g. booked and cancelled) has nothing to pay: it keeps its stored values,
+     *   a paid date without amount would be refused.
+     */
+    private fun enrichPaymentOfPositionBasedImport() {
+        pairEntries.filter { it.read != null }.groupBy { entry ->
+            val read = entry.read!!
+            "${read.referenz?.trim()}|${read.datum}|${read.kreditor?.trim()}"
+        }.values.forEach { entries ->
+            val reads = entries.map { it.read!! }
+            // The minimal dto of a new position of a stored invoice has no datum: only full dtos carry the header.
+            val stored = entries.mapNotNull { it.stored }.firstOrNull { it.datum != null }
+            val bezahlDatum = reads.mapNotNull { it.bezahlDatum }.maxOrNull() ?: stored?.bezahlDatum
+            val grossSum = reads.mapNotNull { it.grossSum }.fold(BigDecimal.ZERO, BigDecimal::add)
+            var zahlBetrag = if (stored?.bezahlDatum != null && stored.zahlBetrag.isNonZero()) {
+                stored.zahlBetrag
+            } else if (bezahlDatum != null && grossSum.signum() != 0) {
+                calculateZahlBetrag(reads.first(), grossSum = grossSum, bezahlDatum = bezahlDatum)
+            } else {
+                null
+            }
+            var paidOn = bezahlDatum
+            if (paidOn != null && !zahlBetrag.isNonZero()) {
+                paidOn = stored?.bezahlDatum
+                zahlBetrag = stored?.zahlBetrag
+            }
+            reads.forEach {
+                it.bezahlDatum = paidOn
+                it.zahlBetrag = zahlBetrag
+            }
+        }
+    }
+
+    private fun BigDecimal?.isNonZero(): Boolean = this != null && this.signum() != 0
+
+    /**
      * Calculates zahlBetrag based on bezahlDatum, grossSum, and discount settings.
      * If bezahlDatum <= discountMaturity: zahlBetrag = grossSum - discount
      * Otherwise: zahlBetrag = grossSum
      */
-    private fun calculateZahlBetrag(dto: EingangsrechnungPosImportDTO): BigDecimal? {
-        val grossSum = dto.grossSum ?: return null
-        val bezahlDatum = dto.bezahlDatum ?: return null
+    private fun calculateZahlBetrag(
+        dto: EingangsrechnungPosImportDTO,
+        grossSum: BigDecimal? = dto.grossSum,
+        bezahlDatum: LocalDate? = dto.bezahlDatum,
+    ): BigDecimal? {
+        grossSum ?: return null
+        bezahlDatum ?: return null
 
         val shouldApplyDiscount = dto.discountMaturity != null &&
                 dto.discountPercent != null &&

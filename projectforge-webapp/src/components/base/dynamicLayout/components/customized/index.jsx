@@ -11,7 +11,6 @@ import CustomizedConsumptionBar from './components/CustomizedConsumptionBar';
 import CustomizedEMail from './components/CustomizedEMail';
 import DayRange from './components/DayRange';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
-import CustomizedJobsMonitor from './components/CustomizedJobsMonitor';
 import JiraIssuesLinks from './components/JiraIssuesLinks';
 import TimesheetEditTaskAndKost2 from './components/timesheet/TimesheetEditTaskAndKost2';
 import TimesheetTemplatesAndRecent from './components/timesheet/TimesheetTemplatesAndRecent';
@@ -22,7 +21,6 @@ import CostNumberComponent from './components/CostNumberComponent';
 import AccessTableComponent from './components/AccessTableComponent';
 import InvoicePositionsComponent from './components/OutgoingInvoicePositionsComponent';
 import IncomingInvoicePositionsComponent from './components/IncomingInvoicePositionsComponent';
-import WebAuthnAuthenticate from './components/WebAuthnAuthenticate';
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
@@ -82,9 +80,6 @@ function DynamicCustomized({ id, ...props }) {
         case 'jira.issuesLinks':
             Tag = JiraIssuesLinks;
             break;
-        case 'jobs.monitor':
-            Tag = CustomizedJobsMonitor;
-            break;
         case 'task.consumption':
             Tag = CustomizedConsumptionBar;
             break;
@@ -93,9 +88,6 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'timesheet.edit.templatesAndRecent':
             Tag = TimesheetTemplatesAndRecent;
-            break;
-        case 'webauthn.authenticate':
-            Tag = WebAuthnAuthenticate;
             break;
         default:
             return <span>{`Customized field '${id}' not found!`}</span>;

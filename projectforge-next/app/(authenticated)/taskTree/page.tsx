@@ -20,9 +20,8 @@ import { navigateInGesture } from "@/lib/navigate-in-gesture";
 /**
  * The structure tree page (`/next/taskTree`), the migration of Wicket's `wa/taskTree`.
  *
- * A concrete route rather than a category of the generic list page: the tree is served by
- * `TaskServicesRest`, not by a list layout, and `taskTree` is no REST category — the entity behind it
- * is `task`. Hence the directory here, which shadows the `[category]` catch-all.
+ * Its own route: the tree is served by `TaskServicesRest`, not by a list endpoint, and `taskTree` is no
+ * REST category — the entity behind it is `task`.
  *
  * Header and actions are the ones of the list perspective on the same tasks, down to the component
  * (see PageTitleRow and TaskTreeActionBar): the two pages differ in their table and in nothing else.

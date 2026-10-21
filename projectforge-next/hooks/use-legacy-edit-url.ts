@@ -6,9 +6,8 @@ import { useListMeta } from "./use-list-meta";
  * The legacy edit page of one entry, for the escape hatch of a hand built edit page
  * (see LegacyPageLink).
  *
- * The server-laid-out pages read `ui.legacyUrl` straight from their own response; a hand built page
- * has no such response, so it takes the template (`wa/orderBookEdit?id=:id`) from `listMeta`, which
- * it already loads for the filter fields — this is a cache read, not a second call.
+ * The template (`wa/orderBookEdit?id=:id`) comes from `listMeta`, which the page already loads for the
+ * filter fields — this is a cache read, not a second call.
  *
  * The add page comes from the server too, because it isn't derivable from the template: the legacy
  * page may live in the React app or in Wicket, which carries the id as a query parameter rather than

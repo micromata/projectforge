@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 /**
  * The last row of a picker's list while its next page is on its way (see useEntityLookup).
  *
- * Shared by both pickers — EntityAutocomplete and DynamicSelect — so the wait looks the same in a
- * hand-built form as in a server-laid-out one. No "load more" button: the page is asked for by
+ * Shared by the pickers (EntitySearchList, the cost unit filter), so the wait looks the same
+ * everywhere. No "load more" button: the page is asked for by
  * scrolling, and this row is what says so is happening.
  */
 export function LookupLoadingRow() {

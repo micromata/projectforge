@@ -77,15 +77,7 @@ org.projectforge.rest.HistoryEntryUserCommentModalRest#cancel
 org.projectforge.rest.HistoryEntryUserCommentModalRest#getItem
 org.projectforge.rest.HistoryEntryUserCommentModalRest#getItemAndLayout
 org.projectforge.rest.IndexRest#getTranslations
-org.projectforge.rest.jobs.JobsMonitorPageRest#cancelJob
-org.projectforge.rest.jobs.JobsMonitorPageRest#getForm
-org.projectforge.rest.jobs.JobsMonitorPageRest#getJobs
 org.projectforge.rest.LogoutRest#logout
-org.projectforge.rest.my2fa.My2FAPageRest#getForm
-org.projectforge.rest.my2fa.My2FAServicesRest#checkOTP
-org.projectforge.rest.my2fa.My2FAServicesRest#sendMailCode
-org.projectforge.rest.my2fa.My2FAServicesRest#sendSmsCode
-org.projectforge.rest.my2fa.My2FAServicesRest#webAuthnFinish
 org.projectforge.rest.pub.AuthenticationPublicServicesRest#getAuthenticationCredentials
 org.projectforge.rest.pub.CalendarSubscriptionServiceRest#exportCalendar
 org.projectforge.rest.pub.LogoServiceRest#getGifLogo

@@ -234,13 +234,13 @@ class OrphanedLinkFilterTest {
         Assertions.assertNotEquals("/next/vacation", redirectOf("/react/vacationExport/dynamic"))
     }
 
-    /** The old React 2FA setup and its WebAuthn key page are gone, the 2FA page itself stays. */
+    /** The old React 2FA setup, its WebAuthn key page and the React 2FA dialog are gone. */
     @Test
     fun `the old react 2FA setup is redirected to next`() {
         Assertions.assertEquals("/next/2FASetup", redirectOf("/react/2FASetup/dynamic"))
         Assertions.assertEquals("/next/2FASetup", redirectOf("/react/2FASetup"))
         Assertions.assertEquals("/next/2FASetup", redirectOf("/react/WebAuthnSetup/dynamic", mapOf("id" to "42")))
-        Assertions.assertNotEquals("/next/2FASetup", redirectOf("/react/2FA/dynamic"))
+        Assertions.assertEquals("/next/", redirectOf("/react/2FA/dynamic", mapOf("target" to "L3JlYWN0L2dyb3Vw")))
     }
 
     /** The old React cost search is gone. */
@@ -284,6 +284,21 @@ class OrphanedLinkFilterTest {
     fun `the old react vacation export is redirected to next`() {
         Assertions.assertEquals("/next/vacationExport", redirectOf("/react/vacationExport/dynamic"))
         Assertions.assertEquals("/next/vacationExport", redirectOf("/react/vacationExport"))
+    }
+
+    /** The old React job monitor is gone; only a numeric job id is passed on, never the caller url. */
+    @Test
+    fun `the old react job monitor is redirected to next`() {
+        Assertions.assertEquals("/next/jobsMonitor", redirectOf("/react/jobsMonitor/dynamic"))
+        Assertions.assertEquals("/next/jobsMonitor", redirectOf("/react/jobsMonitor"))
+        Assertions.assertEquals(
+            "/next/jobsMonitor?jobId=42",
+            redirectOf("/react/jobsMonitor/dynamic", mapOf("jobId" to "42", "caller" to "https://evil.example")),
+        )
+        Assertions.assertEquals(
+            "/next/jobsMonitor",
+            redirectOf("/react/jobsMonitor/dynamic", mapOf("jobId" to "42%0d%0aSet-Cookie:x")),
+        )
     }
 
     /**

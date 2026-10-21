@@ -11,7 +11,7 @@ export interface PageTitleRowProps {
   category?: string;
   /** Heading of the page, e.g. "List view". */
   title: string;
-  /** The legacy page this one replaces (`ui.legacyUrl` of a list response), see LegacyPageLink. */
+  /** The legacy page this one replaces (`ListMetaData.legacyListPage`), see LegacyPageLink. */
   legacyUrl?: string;
   /** The page belongs to an unfinished feature: a large red badge beside the title (see ExperimentalBadge). */
   experimental?: boolean;

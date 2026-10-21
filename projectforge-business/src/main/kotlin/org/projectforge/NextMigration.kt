@@ -86,10 +86,10 @@ object NextMigration {
      * @param route The route of the list page inside projectforge-next, without the `next/` prefix,
      * e.g. `book`. May differ from the REST category.
      * @param editRoute Route of the edit page with [ID_PLACEHOLDER] for the id, e.g. `book/:id`.
-     * Defaults to the shape of the generic UILayout routes (`<route>/edit/:id`), which mirrors the
-     * legacy React app. Hand built pages may deviate.
+     * Defaults to the shape of the legacy React app (`<route>/edit/:id`), which no page of
+     * projectforge-next serves: a page with an edit page sets it.
      * @param newEntryRoute Route for creating a new entry, e.g. `book/new`. Defaults to the
-     * generic shape `<route>/edit`.
+     * React shape `<route>/edit`, see [editRoute].
      * @param listOnly Only the list page is migrated, the form is still the legacy one: every url of
      * the edit page stays in [legacyApp], so a row click, the add button and every server side
      * redirect after a save lead there ([standardEditPage] and [newEntryUrl] answer the legacy url).
@@ -372,14 +372,15 @@ object NextMigration {
             newEntryRoute = "gantt/new",
             legacyApp = null,
         ),
-        // Migrated from the React app (MenuItemDefId.GROUP_LIST pointed at react/group), which is where the
-        // way back leads. Hand built rather than generic because the React list has a filter of its own
-        // (the group type) and an Excel export, neither of which the generic UILayout route renders.
+        // Migrated from the React app (MenuItemDefId.GROUP_LIST pointed at react/group). The React pages are gone
+        // (GroupEntityRest serves no UILayout), so there is no way back; the legacy app is kept for the redirect of
+        // bookmarked React links only.
         "group" to NextPage(
             route = "group",
             editRoute = "group/$ID_PLACEHOLDER",
             newEntryRoute = "group/new",
             legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
         ),
         // The HR planning ("Wochenplanung"), migrated from Wicket (MenuItemDefId.HR_PLANNING_LIST pointed at
         // wa/hrPlanningList) with its weekly form. Hand built: the list shows the entries of the planned weeks
@@ -525,8 +526,9 @@ object NextMigration {
         // Hand built *edit* page only (next/teamEvent/:id, next/teamEvent/new), alongside the timesheet
         // editor: the two most-used calendar editors are being migrated ahead of any list. There is no team
         // event list of this app - the event is reached through the calendar (see use-calendar-action.ts) -
-        // so this repoints only the edit routes. The way back leads to the React app, whose team event form
-        // was rendered from a server side UILayout under calendar/teamEvent (no longer served).
+        // so this repoints only the edit routes. The React team event form was rendered from a server side UILayout
+        // under calendar/teamEvent, which is no longer served, so there is no way back; the legacy routes are kept
+        // for the redirect of bookmarked React links only.
         "teamEvent" to NextPage(
             route = "teamEvent",
             editRoute = "teamEvent/$ID_PLACEHOLDER",
@@ -534,6 +536,7 @@ object NextMigration {
             legacyApp = LegacyApp.REACT,
             legacyEditRoute = "calendar/teamEvent/edit/$ID_PLACEHOLDER",
             legacyNewEntryRoute = "calendar/teamEvent/edit",
+            offerLegacyLink = false,
         ),
         // The to-dos (plugin todo) are migrated straight from Wicket and their Wicket pages are removed, as the
         // licenses. legacyApp and the legacy routes stay: the legacy edit route is the link of the notification
@@ -653,6 +656,15 @@ object NextMigration {
             newEntryRoute = "skillentry/new",
             legacyApp = null,
         ),
+        // Hand built list and edit page of the memos (plugin memo, MemoEntityRest, components/features/memo), migrated
+        // from React. The React pages are gone (no UILayout served any more): no way back and no redirect of old
+        // links (legacyApp = null), as no link of them ever left ProjectForge.
+        "memo" to NextPage(
+            route = "memo",
+            editRoute = "memo/$ID_PLACEHOLDER",
+            newEntryRoute = "memo/new",
+            legacyApp = null,
+        ),
         // The availability entries (AvailabilityEntityRest, components/features/availability): hand built, migrated
         // from React before they were ever released: no way back and no redirect of old links (legacyApp = null), as no
         // link of them ever left ProjectForge.
@@ -677,10 +689,8 @@ object NextMigration {
     /**
      * The REST categories served by projectforge-next.
      *
-     * Exposed for `NextMigrationTest`, which asserts that this set is the one
-     * `HAND_BUILT_CATEGORIES` in projectforge-next names: the two lists encode the same decision in
-     * two languages, and a category missing from either one fails silently - the frontend serves the
-     * generic UILayout page under `next/<category>`, or the menu points at a page that isn't there.
+     * Handed to projectforge-next by `UserStatusRest`; `NextMigrationTest` asserts that every route
+     * of these has a page there.
      */
     val categories: Set<String>
         get() = MIGRATED.keys
@@ -965,9 +975,8 @@ object NextMigration {
 
     /**
      * Marks a legacy url as the escape hatch, so `OrphanedLinkFilter` passes it through. Applied to the
-     * "way back" urls the server hands projectforge-next ([AbstractPagesRest]'s `legacyUrl`,
-     * `legacyEditPage`, `legacyNewEntryPage`), which is where every escape hatch - hand built pages
-     * included - reads them from.
+     * "way back" urls the server hands projectforge-next (`ListMetaData.legacyListPage`,
+     * `legacyEditPage`, `legacyNewEntryPage`), which is where every escape hatch reads them from.
      *
      * @return [legacyUrl] with [ESCAPE_HATCH_PARAM] appended, or null if [legacyUrl] is null.
      */

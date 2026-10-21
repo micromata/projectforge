@@ -68,8 +68,8 @@ export interface EntityLookup<T> {
 
 /**
  * The entries a picker offers: the first page as soon as it opens, a longer one while the user
- * scrolls, and the matches of whatever they type (see EntityAutocomplete and DynamicSelect, which
- * both use this).
+ * scrolls, and the matches of whatever they type (see EntitySearchList, the body of the
+ * entity pickers).
  *
  * Opening asks with an empty term, which `{category}/autosearch` answers with the beginning of the
  * whole list — "show me what there is" without typing. Only for a short list, though: of a long one (the

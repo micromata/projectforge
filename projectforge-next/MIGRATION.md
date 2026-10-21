@@ -47,9 +47,9 @@ backend-gesteuerte Renderer prinzipiell an seine Grenzen.
    entscheidet pro Seite, welches Frontend geladen wird → parallele Releases pro Seite.
 2. **Prod = Static Export.** `next build` mit `output: 'export'` erzeugt statische
    Assets, per Gradle in die Spring-Boot-Jar gepackt, same-origin unter `/next`.
-3. **Dynamic-Renderer Dual-Track.** Der UILayout-Renderer in `components/dynamic/` wird
-   zum vollwertigen Port ausgebaut (bringt die ~36 Seiten in der Masse); komplexe Seiten
-   werden zusätzlich handgebaut (Muster: `book`).
+3. **Alles handgebaut.** Jede Seite wird in next handgebaut (Muster: `book`), layoutfrei
+   über `*EntityRest`. Ein UILayout-Renderer in next (`components/dynamic/` mit
+   `[category]`-Catch-alls) war angefangen, ging nie live und ist entfernt.
 
 ## Zwei Betriebsmodi (tragender Constraint)
 
@@ -75,7 +75,7 @@ Feature-Code darf **keine** Features nutzen, die einen laufenden Node-Server vor
   (relativer Basis-Pfad, `credentials: "include"`; Dev-`rewrites()` mit `basePath: false`).
 - **i18n** läuft client-seitig (Cookie / `userStatus.locale`, `i18n/config.ts`,
   `i18n/locale-provider.tsx`). `NextIntlClientProvider` braucht eine explizite `timeZone`.
-- **Routen:** dynamische Segmente (`[category]`, `[id]`) müssen statisch exportierbar sein
+- **Routen:** dynamische Segmente (`[id]`) müssen statisch exportierbar sein
   – `generateStaticParams` (Platzhalter) + Client-Component, ID via `useParams`. Wer
   `useSearchParams` nutzt, braucht eine `<Suspense>`-Grenze.
 
@@ -109,9 +109,8 @@ sobald eine Seite nach `MIGRATED` wandert, ohne dass ihr 2FA-Teil mitgezogen wur
 `/react` vs. `/next` entscheidet. `PagesResolver`, `AbstractPagesRest`,
 `MenuItemDefId` fragen dort. Eine Seite umschalten = ein Eintrag in `MIGRATED`. Kategorie
 und next-Route dürfen abweichen (handgebaut: absichtlich gleich); die Menü-URL muss die
-**Next-Route** nennen. `HAND_BUILT_CATEGORIES` (`lib/hand-built-categories.ts`) hält die
-konkreten Routen synchron mit `MIGRATED` (Route-Shadowing: konkrete Routen vor dem
-Catch-all). `NextMigrationTest` erzwingt die Gleichheit. Eine zweite Perspektive einer
+**Next-Route** nennen; `NextMigrationTest` prüft, dass jede Route unter
+`app/(authenticated)/` existiert (einen Catch-all gibt es nicht). Eine zweite Perspektive einer
 Entität unter abweichender Route nennt ihre Next-URL direkt im `MenuItemDefId` (Beispiel:
 Aufgabenbaum `next/taskTree` neben der Liste `next/task`).
 
@@ -244,11 +243,11 @@ Klartext.
   Fallen: `create` **ohne** `id`; `update` ersetzt den ganzen Favoriten (Name muss
   mitreisen), Antwort leere Map; nur `select` liefert volle `InitialListData`. Die
   Filter-Referenz (`id`+`name`) muss bei **jedem** Listenaufruf mitgehen (`getList` speichert
-  ihn als „aktuellen"). Eine Quelle der Wahrheit: der `["initialList", entity]`-Cache wird
-  gepatcht (`useInitialList`), nicht eigener State. Änderungsmarker über `filterFingerprint`.
-- **Gemerkter Filter:** `getList` ruft `saveCurrentFilter`; `initialList.filter` gibt ihn
+  ihn als „aktuellen"). Eine Quelle der Wahrheit: der `["listMeta", entity]`-Cache wird
+  gepatcht (`useFilterFavorites`), nicht eigener State. Änderungsmarker über `filterFingerprint`.
+- **Gemerkter Filter:** `getList` ruft `saveCurrentFilter`; `listMeta.filter` gibt ihn
   zurück (`useRememberedFilter`/`useRememberFilter`). Werte müssen beim ersten Render dastehen
-  (Liste hinter Spinner bis `initialList` **und** `columnStates` da sind). Nicht
+  (Liste hinter Spinner bis `listMeta` **und** `columnStates` da sind). Nicht
   wiederhergestellt: Seitengröße, Sortierung (kommt aus `columnStates`), Spalten-Filter.
 - **Spalten-Vokabeln** am `ColumnBase`: `visible?: (ctx) => boolean` (Spalte existiert für
   diesen Nutzer/diese Installation nicht – Kontext ist `listMeta.variables`; **nicht**
@@ -259,7 +258,7 @@ Klartext.
 ### Datumseingabe international
 
 Genau eine Komponente (`components/shared/date-input.tsx` + `date-input-calendar.tsx`),
-bedient alle Aufrufstellen (`DynamicDateInput`, `RangeField`, `ComparisonFilter`,
+bedient alle Aufrufstellen (`RangeField`, `ComparisonFilter`,
 `InputField type="date"`). **Es gibt kein `type="date"` mehr** – das ist die Prüfung. Wert
 ist immer der ISO-String `yyyy-MM-dd`, nie ein `Date` (`Date`↔ISO nur in `dateOf`/`isoOf`,
 `lib/date-parse.ts`, aus den drei Zahlen in lokaler Zone). Feldreihenfolge, Trennzeichen,
@@ -361,45 +360,12 @@ gefunden und behoben (`EInvoiceCheckerPageRest` ohne Prüfung, jetzt `FIBU_ORGA_
 (KDoc, `BirthdayButlerPageRest` als Vorbild). `userAccess` ist ein UI-Hinweis, keine
 Autorisierung.
 
-### Phase 2 – Dynamic-Renderer in Next vervollständigen (Bulk)
+### Phase 2 – Dynamic-Renderer in Next (verworfen)
 
-Port von `projectforge-webapp/src/components/base/dynamicLayout/` nach
-`components/dynamic/`. Fundament steht (nachgewiesen an `address/edit`); kein Menü zeigt
-bislang auf eine dynamische next-Seite.
-
-- **`ResponseAction`-Interpreter** vollständig (`use-dynamic-actions.ts`): REDIRECT,
-  UPDATE (inkl. `merge`), GET/POST/PUT/DELETE mit rekursivem Feedback, RELOAD
-  (`invalidateQueries`), CHECK_AUTHENTICATION, DOWNLOAD, NOTHING, Toasts, 406.
-  MODAL/CLOSE_MODAL sind Notlösungen.
-- **`watchFields`**, **CSRF** (`serverData` pro Seite im Layout-State),
-  **Form-Handling** kontextgetrieben ohne Form-Library (`data`/`setData`/
-  `validationErrors`) – s. CLAUDE.md.
-- **Listen** rendern mit der echten `DataTable` (Adapter `lib/dynamic/grid/`,
-  Zell-Formatter-Registry `components/data-table/cells/`). **Kein `Function()`/`eval`:**
-  `valueGetter`/`valueFormatter` strikt als Punktpfad; `getRowClass` deklarativ aus den
-  Prädikat-Formen der Sender. Verifiziert (`e2e/dynamic-grid.spec.ts`: `outgoingMail`, zuvor `contract`,
-  `employee`, `vacation`, `skillentry`, `address`).
-
-**Verbliebene Lücken:**
-
-1. Fehlende UIElement-Typen (`UIElementType.kt`): Entity-Picker (USER/GROUP/EMPLOYEE/
-   COST1/COST2/KONTO/LOCALE/TIMEZONE/PICTURE – TASK ist über `TaskSelectField` da),
-   RATING (da), EDITOR, ATTACHMENT_LIST, DROP_AREA, PROGRESS, `pageMenu`.
-2. `MODAL`/`CLOSE_MODAL` richtig (Modal-Stack in `store/ui-store.ts`; kein teilbarer
-   Modal-Deep-Link – Konsequenz des Static-Exports).
-3. `UICustomized`-Escape-Hatch als Registry (~30 String-IDs → bespoke Komponenten,
-   manuelle Ports).
-4. Row-Renderer `customized` (Kontrakt mit `onClick`-JS),
-   TREE_NAVIGATION-Klappen, Mehrfachauswahl, `?modal=true`, `highlightRowId`,
-   serverseitige Sortierung.
-
-**Nicht mitportieren – Altlasten der Vorlage:** `getRowClass`/`rowClickFunction` als
-JS-Strings via `Function(...)` (Codeausführung aus Server-Response, CSP-problematisch) →
-deklarativ ersetzen; AG-Grid-Params-Hüllen → `{ row, value, columnId }`; `filterModel`
-(nie gelesen); `FilterPortal.tsx` (Radix `Popover` deckt es ab); `modifyRedirectUrl` auf
-explizites `{id}`/`:id`-Matching reduzieren. **Die richtige Lösung für `getRowClass` ist
-serverseitig:** ein strukturiertes `rowHighlights` in `UIAgGrid.kt` – die Mustertabelle im
-Client ist die Brücke bis dahin.
+Ein Port des UILayout-Renderers der React-App nach next (`components/dynamic/`, Catch-all-Routen
+`[category]/…`) ging nie live und ist entfernt; alle Seiten werden handgebaut (Phase 3). Geblieben
+sind die Teile, die handgebaute Seiten mitnutzen: der Spalten-Adapter `lib/dynamic/grid/` des
+Aufgabenbaums, `getByPath`, `callDynamicAction`/`fetchAutoCompletion` (`lib/rs/dynamic.ts`).
 
 ### Phase 3 – Komplexe Wicket-Seiten handbauen
 
@@ -496,9 +462,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Legacy-URLs, umgestellt seit der Timesheet-Migration). Die
   Aufgaben-Favoriten (`UserPrefArea.TASK_FAVORITE`) pflegt das Auswahlfeld selbst
   (`TaskFavoritesMenu`), keine eigene Seite.
-- **Gruppen** – vierter Fall, obwohl `GroupEntityRest` ein `UILayout` liefert (die
-  generische Route rendert nur den Grid-Knoten, ohne Filterzeile/Favoriten/Zahnrad/Excel
-  wäre der Schalter ein Rückschritt). LDAP-Feld über das Anzeige-Flag
+- **Gruppen** – vierter Fall (Filterzeile, Favoriten, Zahnrad und Excel-Export der React-Liste). LDAP-Feld über das Anzeige-Flag
   `Group.ldapPosixConfigured`, generische Mehrfach-Entity-Auswahl
   (`entity-multi-autocomplete-field.tsx`), der Assistent legt seine Gruppe über den neuen
   `EntityEditDialog` an. `dynamic-form-dialog.tsx` damit gelöscht.
@@ -820,14 +784,13 @@ gelöscht.
   `/react`-Serving/Filter entfernen, ggf. `NEXT_APP_PATH` → `/` als Default.
 - Aufräumen: `lib/api-client.ts` (unbenutzter Zweit-Client),
   `components/features/book/mock-data.ts` (oder für `msw`-Tests nutzen – bislang **keine**
-  Tests; `filter-fns.ts`/`lib/menu-url.ts` wären ein guter Anfang), `_parked/[category]/`
-  reaktivieren, `app/(authenticated)/page.tsx`/`demo/` sind Vorlagen, kein Produktivziel.
+  Tests; `filter-fns.ts`/`lib/menu-url.ts` wären ein guter Anfang),
+  `app/(authenticated)/page.tsx`/`demo/` sind Vorlagen, kein Produktivziel.
 
 ## Kritische Dateien (Referenz)
 
 - **Serving/Routing:** `WebApplicationConfig.java`, `WebXMLInitializer.java`, `Constants.kt`
-- **Umschalten:** `NextMigration.kt` (`MIGRATED`),
-  `lib/hand-built-categories.ts`, `NextMigrationTest`/`NextMigration2FATest`,
+- **Umschalten:** `NextMigration.kt` (`MIGRATED`), `NextMigrationTest`/`NextMigration2FATest`,
   `ProjectForge2FAInitialization`
 - **Auth/Session:** `SpringSecurityConfig.kt`, `LoginService.kt`,
   `RestUserFilter.kt`; next `rest/pub/next/*`, `rest/my2fa/My2FANextRest.kt`, `lib/webauthn.ts`
@@ -847,10 +810,6 @@ gelöscht.
   `BaseDao.kt` (`supportsHistoryUserComments`); `lib/rs/history.ts`, `hooks/use-history.ts`,
   `components/shared/history/*`, `components/shared/edit/entity-tabs.ts`
 - **Menü:** `MenuItemDefId.kt`, `MenuCreator.kt`, `MenuRest.kt`
-- **Dynamic-Renderer:** Backend `projectforge-rest/.../ui/` (`UILayout.kt`,
-  `UIElementType.kt`, `ResponseAction.kt`, `UICustomized.kt`), `AbstractPagesRest.kt`,
-  `PagesResolver.kt`; Vorlage `projectforge-webapp/src/components/base/dynamicLayout/`; neu
-  `components/dynamic/*`, `lib/rs/{client,types}.ts`, `lib/dynamic/grid/*`
 - **Tabelle:** `components/data-table/*`; Backend `core/aggrid/AGGridSupport.kt`,
   `GridState.kt`, `rest/dto/datatable/DataTableStateRequest.kt`
 - **i18n:** `I18nResources[_de].properties`, `GenerateNextI18nMessagesMain.kt`,
@@ -863,31 +822,24 @@ gelöscht.
 ## Stand & nächste Schritte
 
 **Erledigt:** Phase 0, 1, 1.5 (inkl. Auth, CSRF, Metadaten, Datumseingabe, History,
-Anhänge, Zugriffsrechte – s. Fundamente); Phase 2-Fundament + Listen auf der echten
-`DataTable`; Phase 3 bis auf den Kalender (Auftragsbuch, Deb./Kred.-Rechnungen,
+Anhänge, Zugriffsrechte – s. Fundamente); Listen auf der echten `DataTable`; Phase 3 bis auf den Kalender (Auftragsbuch, Deb./Kred.-Rechnungen,
 Strukturelemente/Aufgabenbaum, Gruppen, Wochenplanung).
 
 **Als nächstes:**
 
 1. **Kalenderseite** – zweiter handgebauter Härtefall und Standard-Startseite; Detailplan
-   [MIGRATION-calendar.md](MIGRATION-calendar.md) (Phasen A/B/D umgesetzt, C offen). Zieht
-   zwei Phase-2-Stücke mit: die 2-Segment-Route `[category]/[type]` (Neuanlage ohne id,
-   `dynamic-form-page.tsx`) und den Query-String in `fetchDynamic` (bis in den Query-Key),
-   dazu `COLOR_CHOOSER` in der `UICustomized`-Registry.
-2. **Phase 2 in der Breite** – Dynamic-Renderer ausbauen (bringt die ~36 UILayout-Seiten in
-   der Masse). Offen: restliche Entity-Picker-Elementtypen, `UICustomized`-Registry,
-   tragfähiger MODAL-Stack. Hinter dem Kalender, der die Hälfte davon mitzieht.
-3. **Serverseitiges Paging** – [MIGRATION-list-paging.md](MIGRATION-list-paging.md); reine
+   [MIGRATION-calendar.md](MIGRATION-calendar.md) (Phasen A/B/D umgesetzt, C offen).
+2. **Serverseitiges Paging** – [MIGRATION-list-paging.md](MIGRATION-list-paging.md); reine
    Performance-Arbeit (Auftragsliste 7132 Zeilen, 2,68 s, der Rest sitzt im Server). Erst
    den schnellen Pfad aus Stufe 5 messen, bevor der Id-Listen-Cache aus Stufe 2 gebaut wird.
-4. **Mehrere Testkonten** – erledigt (`E2ETestAccountsService` legt vier Rollen an, s.
+3. **Mehrere Testkonten** – erledigt (`E2ETestAccountsService` legt vier Rollen an, s.
    CLAUDE.md „Testing against the running system"). Verbleibende Restarbeit: Specs für die
    Ablehnungsfälle, die vorher nur als Erfolg prüfbar waren – 403 des E-Rechnungs-Prüfers,
    `useReadAccessGuard`, der `rejected`-Schreibpfad, der englische Locale-Pfad, die
    Gegenprobe zu `book-list-gear.spec.ts` (voller Reindex nur als Admin).
-5. **Ein Spec für Favoriten umbenennen/löschen** (nur Anwenden/Speichern/Änderungsmarker
+4. **Ein Spec für Favoriten umbenennen/löschen** (nur Anwenden/Speichern/Änderungsmarker
    sind abgedeckt).
-6. **Auth-Restprüfungen mit echtem zweiten Faktor** – der Legacy-Login ist gelöscht, keine
+5. **Auth-Restprüfungen mit echtem zweiten Faktor** – der Legacy-Login ist gelöscht, keine
    Rückfallebene. Offen: WebAuthn-Token (`toPublicKeyOptions`/`extensions`), OTP/SMS/Mail-2FA
    nach dem Login, der Reset-Mail-Token-Link, „angemeldet bleiben", der In-Session-2FA-Dialog.
 

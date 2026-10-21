@@ -37,7 +37,6 @@ import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.my2fa.My2FAServicesRest
 import org.projectforge.security.dto.*
 import org.projectforge.security.webauthn.WebAuthnSupport
-import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -140,7 +139,7 @@ class WebAuthnServicesRest {
 
   /**
    * Step 5: Browser Creates Final Data, Application sends response to Server
-   * Rest service is defined in [My2FAServicesRest]
+   * Rest service is defined in [org.projectforge.rest.my2fa.My2FANextRest]
    */
   fun doWebAuthnFinish(
     request: HttpServletRequest,
@@ -227,13 +226,6 @@ class WebAuthnServicesRest {
     get() = webAuthnSupport.allLoggedInUserCredentials.map { WebAuthnCredential(it.credentialId) }.toTypedArray()
 
   companion object {
-    fun addAuthenticateTranslations(layout: UILayout) {
-      layout.addTranslations(
-        "webauthn.registration.button.authenticate",
-        "webauthn.registration.button.authenticate.info",
-      )
-    }
-
     private val SESSSION_ATTRIBUTE_CHALLENGE = "${WebAuthnServicesRest::class.java.name}:challenge"
   }
 }
