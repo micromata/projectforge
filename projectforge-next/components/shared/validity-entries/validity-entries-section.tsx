@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
@@ -57,6 +57,13 @@ export interface ValidityEntriesSectionProps<T extends ValidityEntry> {
    * validity periods but just dated, e.g. the visits of a visitor.
    */
   markValidity?: boolean;
+  /**
+   * Opens the add dialog right away, with [newEntry] (not without write access): for a page reached to enter an
+   * entry, e.g. a visitor picked while a new visit was being entered.
+   */
+  openNewOnMount?: boolean;
+  /** After an entry was added or changed (not deleted) and [onChanged] was called: e.g. to leave the page. */
+  onSaved?: (entries: T[]) => void;
 }
 
 /**
@@ -80,10 +87,16 @@ export function ValidityEntriesSection<T extends ValidityEntry>({
   onChanged,
   prefill,
   markValidity = true,
+  openNewOnMount,
+  onSaved,
 }: ValidityEntriesSectionProps<T>) {
   const t = useTranslations();
   const ctx = useFormatContext();
-  const [editing, setEditing] = useState<T | null>(null);
+  const [editing, setEditing] = useState<T | null>(() =>
+    openNewOnMount && !readOnly ? newEntry() : null
+  );
+  // Whether the dialog's last write was a save rather than a delete, for [onSaved].
+  const saved = useRef(false);
   const dateOf = (entry: T) => entry[dateField] as string | null | undefined;
   const today = todayOf(ctx);
   const sorted = useMemo(
@@ -207,13 +220,24 @@ export function ValidityEntriesSection<T extends ValidityEntry>({
           dateField={dateField}
           dateLabelKey={dateLabelKey}
           valueFields={valueFields}
-          onSave={(entry) =>
-            entry.id == null ? adapter.insert(entry) : adapter.update(entry)
+          onSave={(entry) => {
+            saved.current = true;
+            return entry.id == null
+              ? adapter.insert(entry)
+              : adapter.update(entry);
+          }}
+          onDelete={
+            editing.id == null
+              ? undefined
+              : (entry) => {
+                  saved.current = false;
+                  return adapter.remove(entry);
+                }
           }
-          onDelete={editing.id == null ? undefined : adapter.remove}
           onDone={(fresh) => {
             setEditing(null);
             onChanged(fresh);
+            if (saved.current) onSaved?.(fresh);
           }}
           onClose={() => setEditing(null)}
           prefill={prefill}

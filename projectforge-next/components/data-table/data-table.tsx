@@ -1,7 +1,12 @@
 "use client";
 
 import { Fragment, useEffect, useRef } from "react";
-import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
+import {
+  flexRender,
+  type Row,
+  type Table as TanstackTable,
+} from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { useTranslations } from "next-intl";
 import { useDataTable, type UseDataTableOptions } from "./use-data-table";
 import {
@@ -39,6 +44,11 @@ const ROW_ACTIONS_WIDTH = 80;
 // the non-pinned columns stay reachable instead of being stuck behind a full-width pinned block.
 const MIN_SCROLL_RATIO = 0.4;
 const MIN_SCROLL_WIDTH = 160;
+// The row height the virtualizer assumes before a row is measured (a one-line row, see the cell padding).
+const ESTIMATED_ROW_HEIGHT = 29;
+const ESTIMATED_DENSE_ROW_HEIGHT = 22;
+// Rows rendered beyond the visible ones, so a fast scroll doesn't show the empty spacer first.
+const VIRTUAL_OVERSCAN = 20;
 
 export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
   /** Pass a table created by useDataTable to share it with a toolbar; otherwise
@@ -175,6 +185,15 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
   renderRowDetail?: (row: TData) => React.ReactNode | null;
   /** Without the header row, for a table embedded in another one's [renderRowDetail]. */
   hideHeader?: boolean;
+  /**
+   * Only the rows in view (and a few around them) are in the document, for a table showing thousands of
+   * rows on one page: the import preview rendered 2,847 rows with 23 cells each at once and froze the
+   * browser for many seconds. Spacer rows above and below keep the scroll height.
+   *
+   * Only for a bounded table (not [autoHeight]) without [renderRowDetail], [highlightRowId] and [viewScope]:
+   * those look for rows in the document, which an off-screen row isn't.
+   */
+  virtualizeRows?: boolean;
 }
 
 export function DataTable<TData>({
@@ -202,6 +221,7 @@ export function DataTable<TData>({
   columnLines = false,
   renderRowDetail,
   hideHeader = false,
+  virtualizeRows = false,
   ...tableOptions
 }: DataTableProps<TData>) {
   const t = useTranslations("table");
@@ -240,6 +260,8 @@ export function DataTable<TData>({
       : null;
   }, [autoHeight]);
   const containerRef = autoHeight ? scrollParentRef : scrollRef;
+  const rows = table.getRowModel().rows;
+  const virtual = virtualizeRows && !autoHeight;
   // Entering the selection mode puts the keyboard on the table: the arrow keys are handled by the body
   // below, so without this they do nothing until a click happens to focus it — which is what made
   // "↑/↓ only work after I marked a row" the way the mode used to behave.
@@ -269,9 +291,11 @@ export function DataTable<TData>({
   // scrollRowIntoView). The row must be in the document first, hence an effect and not the key handler.
   const keyboardFocusedRowId = keyboardNav?.focusedRowId;
   useEffect(() => {
-    if (keyboardFocusedRowId == null) return;
+    if (keyboardFocusedRowId == null || virtual) return;
     scrollRowIntoView(containerRef.current, keyboardFocusedRowId);
-  }, [keyboardFocusedRowId, containerRef]);
+  }, [keyboardFocusedRowId, containerRef, virtual]);
+  // Virtualized, the focused row may not be in the document: VirtualRows scrolls to it by index.
+  const focusedRowId = selection?.focusedRowId ?? keyboardFocusedRowId;
   // Both work on the same container and the same settled rows, and the highlight has the last word —
   // hence the flag between them rather than two hooks scrolling independently.
   const highlightPending = useHighlightedRow({
@@ -297,6 +321,69 @@ export function DataTable<TData>({
   const markedRowId =
     (highlightPending ? undefined : recallMarkedRowId(viewScope)) ??
     (highlightRowId != null ? String(highlightRowId) : undefined);
+
+  /** One row (and its detail); [measure] is the virtualizer's, see VirtualRows. */
+  const renderRow = (
+    row: Row<TData>,
+    measure?: {
+      ref: (element: HTMLTableRowElement | null) => void;
+      index: number;
+    }
+  ) => {
+    const detail = renderRowDetail?.(row.original);
+    return (
+      <Fragment key={row.id}>
+        <DataTableRow
+          row={row}
+          measureRef={measure?.ref}
+          virtualIndex={measure?.index}
+          onRowClick={
+            onRowClick &&
+            ((original: TData) => {
+              // Noted here rather than in the caller's handler: the id is the table's own,
+              // so every list that remembers its view marks the opened entry for free.
+              rememberMarkedRow(viewScope, row.id);
+              onRowClick(original);
+            })
+          }
+          onCellClick={onCellClick}
+          onSelectClick={selection?.onRowClick}
+          rowActions={rowActions}
+          suspendPinning={pinningSuspended}
+          columnLines={columnLines}
+          // The row's colour and the marker are two layers, so both classes apply — see
+          // `row-highlighted` in globals.css, which is why it is no background.
+          className={cn(
+            rowClassName?.(row.original),
+            row.id === markedRowId && "row-highlighted",
+            selection && row.getIsSelected() && "row-selected",
+            (selection?.focusedRowId ?? keyboardNav?.focusedRowId) === row.id &&
+              "row-focused"
+          )}
+        />
+        {detail != null && (
+          <TableRow
+            data-row-detail-of={row.id}
+            // The keys and clicks of the detail (e.g. an embedded table) aren't the body's
+            // keyboard navigation or selection.
+            onKeyDown={(event) => event.stopPropagation()}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <TableCell colSpan={cols} className="border-b p-0!">
+              <div
+                className="sticky left-0"
+                style={{
+                  width: containerWidth > 0 ? containerWidth : undefined,
+                }}
+              >
+                {detail}
+              </div>
+            </TableCell>
+          </TableRow>
+        )}
+      </Fragment>
+    );
+  };
 
   return (
     <div
@@ -466,7 +553,7 @@ export function DataTable<TData>({
                     <TableCell aria-hidden />
                   </TableRow>
                 ))
-              ) : table.getRowModel().rows.length === 0 ? (
+              ) : rows.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={cols}
@@ -475,68 +562,21 @@ export function DataTable<TData>({
                     {emptyState ?? t("empty")}
                   </TableCell>
                 </TableRow>
+              ) : virtual ? (
+                <VirtualRows
+                  rows={rows}
+                  scrollRef={scrollRef}
+                  dense={dense}
+                  cols={cols}
+                  focusedRowId={focusedRowId}
+                  renderRow={renderRow}
+                />
               ) : (
-                table.getRowModel().rows.map((row) => {
-                  const detail = renderRowDetail?.(row.original);
-                  return (
-                    <Fragment key={row.id}>
-                      <DataTableRow
-                        row={row}
-                        onRowClick={
-                          onRowClick &&
-                          ((original: TData) => {
-                            // Noted here rather than in the caller's handler: the id is the table's own,
-                            // so every list that remembers its view marks the opened entry for free.
-                            rememberMarkedRow(viewScope, row.id);
-                            onRowClick(original);
-                          })
-                        }
-                        onCellClick={onCellClick}
-                        onSelectClick={selection?.onRowClick}
-                        rowActions={rowActions}
-                        suspendPinning={pinningSuspended}
-                        columnLines={columnLines}
-                        // The row's colour and the marker are two layers, so both classes apply — see
-                        // `row-highlighted` in globals.css, which is why it is no background.
-                        className={cn(
-                          rowClassName?.(row.original),
-                          row.id === markedRowId && "row-highlighted",
-                          selection && row.getIsSelected() && "row-selected",
-                          (selection?.focusedRowId ??
-                            keyboardNav?.focusedRowId) === row.id &&
-                            "row-focused"
-                        )}
-                      />
-                      {detail != null && (
-                        <TableRow
-                          data-row-detail-of={row.id}
-                          // The keys and clicks of the detail (e.g. an embedded table) aren't the body's
-                          // keyboard navigation or selection.
-                          onKeyDown={(event) => event.stopPropagation()}
-                          onMouseDown={(event) => event.stopPropagation()}
-                        >
-                          <TableCell colSpan={cols} className="border-b p-0!">
-                            <div
-                              className="sticky left-0"
-                              style={{
-                                width:
-                                  containerWidth > 0
-                                    ? containerWidth
-                                    : undefined,
-                              }}
-                            >
-                              {detail}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </Fragment>
-                  );
-                })
+                rows.map((row) => renderRow(row))
               )}
             </TableBody>
             {!showSkeleton &&
-              table.getRowModel().rows.length > 0 &&
+              rows.length > 0 &&
               visibleColumns.some((c) => c.columnDef.footer != null) && (
                 <DataTableFooterRow
                   table={table}
@@ -554,5 +594,75 @@ export function DataTable<TData>({
         <DataTablePagination table={table} pageSizeOptions={pageSizeOptions} />
       )}
     </div>
+  );
+}
+
+/**
+ * The rows of a virtualized table (see DataTable.virtualizeRows): only those in view and [VIRTUAL_OVERSCAN] around
+ * them, between two spacer rows of the height of the others. A component of its own, as the React Compiler skips
+ * memoizing whatever calls useVirtualizer, which shall not be every DataTable.
+ */
+function VirtualRows<TData>({
+  rows,
+  scrollRef,
+  dense,
+  cols,
+  focusedRowId,
+  renderRow,
+}: {
+  rows: Row<TData>[];
+  scrollRef: React.RefObject<HTMLDivElement | null>;
+  dense: boolean;
+  cols: number;
+  focusedRowId: string | null | undefined;
+  renderRow: (
+    row: Row<TData>,
+    measure: {
+      ref: (element: HTMLTableRowElement | null) => void;
+      index: number;
+    }
+  ) => React.ReactNode;
+}) {
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () =>
+      dense ? ESTIMATED_DENSE_ROW_HEIGHT : ESTIMATED_ROW_HEIGHT,
+    overscan: VIRTUAL_OVERSCAN,
+    getItemKey: (index) => rows[index]?.id ?? index,
+  });
+  // The focused row (arrow keys) may be out of the document: scrolled to by index.
+  useEffect(() => {
+    if (focusedRowId == null) return;
+    const index = rows.findIndex((row) => row.id === focusedRowId);
+    if (index >= 0) virtualizer.scrollToIndex(index, { align: "auto" });
+  }, [focusedRowId, rows, virtualizer]);
+  const items = virtualizer.getVirtualItems();
+  const paddingTop = items[0]?.start ?? 0;
+  const paddingBottom = items.length
+    ? virtualizer.getTotalSize() - items[items.length - 1].end
+    : 0;
+  return (
+    <>
+      {paddingTop > 0 && <VirtualSpacerRow height={paddingTop} cols={cols} />}
+      {items.map((item) =>
+        renderRow(rows[item.index], {
+          ref: virtualizer.measureElement,
+          index: item.index,
+        })
+      )}
+      {paddingBottom > 0 && (
+        <VirtualSpacerRow height={paddingBottom} cols={cols} />
+      )}
+    </>
+  );
+}
+
+/** Stands in for the rows scrolled out of the document by the virtualizer (see VirtualRows). */
+function VirtualSpacerRow({ height, cols }: { height: number; cols: number }) {
+  return (
+    <tr aria-hidden style={{ height }}>
+      <td colSpan={cols} className="border-0 p-0!" />
+    </tr>
   );
 }

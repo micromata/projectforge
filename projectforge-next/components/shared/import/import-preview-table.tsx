@@ -143,6 +143,8 @@ export function ImportPreviewTable({
       rowSelection={rowSelection.state}
       onRowSelectionChange={rowSelection.setState}
       rowClassName={(row) => rowClassForStatus(row.status)}
+      // Thousands of rows on the one page: only those in view are rendered.
+      virtualizeRows
       className="flex-1"
     />
   );
