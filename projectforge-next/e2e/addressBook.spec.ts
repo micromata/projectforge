@@ -66,11 +66,6 @@ test.describe("addressBook", { tag: "@lane-addressBook" }, () => {
       .poll(() => saveAttempted, { message: "the save reaches the backend" })
       .toBe(true);
   });
-
-  test("redirects the old React list", async ({ loggedInPage: page }) => {
-    await page.goto("/react/addressBook");
-    await expect(page).toHaveURL(/\/next\/addressBook$/);
-  });
 });
 
 /**

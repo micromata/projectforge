@@ -248,22 +248,6 @@ test.describe("visitorbook", { tag: "@parallel" }, () => {
     await page.getByRole("option", { name: "e2e Company GmbH" }).click();
     await expect(company).toHaveValue("e2e Company GmbH");
   });
-
-  test("redirects the old React pages", async ({ loggedInPage: page }) => {
-    // The redirects are Spring's (OrphanedLinkFilter); the Next dev server doesn't proxy /react.
-    test.skip(
-      process.env.E2E_DEV_SERVER === "1",
-      "needs Spring, not the dev server"
-    );
-    await page.goto("/react/visitorbook");
-    await expect(page).toHaveURL(/\/next\/visitorbook$/);
-    const edit = await page.request.get("/react/visitorbook/edit/1", {
-      maxRedirects: 0,
-    });
-    expect(edit.status()).toBeGreaterThanOrEqual(300);
-    expect(edit.status()).toBeLessThan(400);
-    expect(edit.headers()["location"]).toMatch(/\/next\/visitorbook\/1$/);
-  });
 });
 
 /**

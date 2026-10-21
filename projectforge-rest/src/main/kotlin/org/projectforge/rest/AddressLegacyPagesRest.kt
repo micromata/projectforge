@@ -49,8 +49,8 @@ import org.springframework.web.bind.annotation.RestController
  * (`AddressCampaignValuePagesRest`, still React) opens it as a modal under `react/addressLegacy/edit/<id>?modal=true`.
  * Everything else about addresses is served layout-free by [AddressEntityRest] to projectforge-next.
  *
- * A category of its own (`addressLegacy`), not `address`: `address` is migrated, so its React urls are bent onto
- * next by `OrphanedLinkFilter`, the React app marks its pages as legacy, and `PagesResolver` answers next urls for it.
+ * A category of its own (`addressLegacy`), not `address`: `address` is migrated, so the React app marks its pages
+ * as legacy, and `PagesResolver` answers next urls for it.
  * This category is none of that, so the modal keeps working - reload included - without any exception elsewhere.
  *
  * To be removed (together with the React address components) once the address campaign values are migrated.

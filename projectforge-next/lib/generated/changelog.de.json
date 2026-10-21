@@ -3,7 +3,7 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.0.12",
-    "date" : "2026-10-21",
+    "date" : "2026-10-22",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
@@ -19,13 +19,19 @@
       "items" : [ {
         "title" : "Banking",
         "items" : [ "Bankkonten, Kontoumsätze und der Umsatz-Import in die neue Oberfläche migriert. Der Import ist eine eigene Seite: Konto wählen, csv-Datei ablegen, die Vorschau mit den Unterschieden zu den gespeicherten Umsätzen prüfen.", "Kontoumsätze: Der Filter der Bankkonten berücksichtigt alle gewählten Konten, nicht nur das erste.", "Bankkonten: Die Auswahl eines Kontos zeigt dessen Namen.", "Der Import von Umsätzen wird für ein Konto ohne Schreibrecht abgelehnt, und das Konto eines gespeicherten Umsatzes lässt sich nicht mehr ändern.", "Umsatz-Import: Ein Umsatz ohne Datum, Wertstellung oder Betrag wird in der Vorschau als fehlerhaft markiert, statt stillschweigend zu entfallen (ohne Datum) oder den Import scheitern zu lassen, und der Fehler eines Umsatzes eines anderen Kontos erscheint nur einmal." ]
-      }, "Kreditorenrechnungen: Die alte Upload-Seite des CSV-Imports ist entfernt; der Import läuft in der neuen Oberfläche.", "Besucherbuch auf die neue Oberfläche migriert: Liste mit dem letzten Besuch und der Zahl der Besuche, Formular mit den Ansprechpartnern, Besuche im Dialog erfasst (vorbelegt mit heute und der aktuellen Uhrzeit). Das Löschen des letzten Besuchs schlägt nicht mehr fehl, und ein Besuch lässt sich keinem anderen Besucher mehr zuordnen. Alte Links werden umgeleitet." ]
+      }, "Kreditorenrechnungen: Die alte Upload-Seite des CSV-Imports ist entfernt; der Import läuft in der neuen Oberfläche.", "Besucherbuch auf die neue Oberfläche migriert: Liste mit dem letzten Besuch und der Zahl der Besuche, Formular mit den Ansprechpartnern, Besuche im Dialog erfasst (vorbelegt mit heute und der aktuellen Uhrzeit). Das Löschen des letzten Besuchs schlägt nicht mehr fehl, und ein Besuch lässt sich keinem anderen Besucher mehr zuordnen. Alte Links werden umgeleitet.", {
+        "title" : "Links früherer Versionen",
+        "items" : [ "Alte Links auf Seiten der früheren Oberflächen werden nur noch auf die neuen Seiten weitergeleitet, wenn sie per Mail verschickt oder geteilt wurden: Aufträge, To-dos, Urlaubseinträge, Datentransfer, Umfrage-Antworten und das Urlaubskonto. Lesezeichen anderer alter Seiten führen nicht mehr auf die neuen und sollten erneuert werden.", "Die Links der Erinnerungsmails zu bald endenden Umfragen (Versionen 8.0 und 8.1) führen wieder auf die Antwortseite." ]
+      } ]
     }, {
       "type" : "fixed",
       "items" : [ {
         "title" : "Import der Eingangsrechnungen",
         "items" : [ "Eine importierte Rechnung überschreibt keine andere gespeicherte Rechnung desselben Kreditors mehr (Nummer, Datum und Währung einer älteren Rechnung wurden ersetzt).", "Gegenbuchungen von Kreditkartenzahlungen (Gutschrift auf einem Kreditkarten-Verrechnungskonto) werden übersprungen; ihr Datum wird Zahldatum der Rechnung, falls diese keines hat. Andere Gutschriften werden mit negativem Betrag importiert.", "Ein Import nur mit Rechnungsköpfen bietet keine gespeicherten Rechnungen mehr zum Löschen an, ein Positions-Import nur solche innerhalb seiner Perioden.", "Warnungen bei einem Zahldatum vor dem Rechnungsdatum und bei Rechnungen mit EUR und einer anderen Währung (EUR wird übernommen).", "Ein Import mit weniger Positionen als die gespeicherte Rechnung entfernt nur die überzähligen Positionen; zuvor wurde die ganze Rechnung gelöscht.", "Eine Position ohne Zahldatum übernimmt das der anderen Positionen ihrer Rechnung vor dem einer Kreditkarten-Gegenbuchung (die Rechnung war mit unterschiedlichen Zahldaten fehlerhaft).", "Der Abgleich mit den gespeicherten Rechnungen ist deutlich schneller, und die Vorschau einer großen Datei erscheint ohne lange Wartezeit." ]
-      }, "Nummernkreise: Ein Nummernkreis mit Kunden ohne konfigurierte Segmente zeigt Projekt- und Kostenträgernummern nach seinen Stellen (z. B. 7.0001.0 bei einer Projektstelle) statt 7.000.10.", "Projektassistent: Tabs und feststehende Aktionsleiste wie auf den Editseiten; der Schritt Aktion zeigt, was eingerichtet wird (neuer Kunde, neues Projekt, Pfad der neuen Strukturelemente, Zugriffsrechte) und was noch fehlt; der Abschluss-Button ist immer anklickbar, und während der Einrichtung zeigt ein Fortschrittsbalken, dass sie läuft.", "Telefonanruf: Anrufe von einem externen Telefon ohne zugeordnete Rufnummer wurden von sipgate abgelehnt.", "Strukturelement-Felder zeigen nach dem Umbenennen oder Verschieben eines Strukturelements sofort den neuen Namen und Pfad, ohne Neuladen." ]
+      }, "Nummernkreise: Ein Nummernkreis mit Kunden ohne konfigurierte Segmente zeigt Projekt- und Kostenträgernummern nach seinen Stellen (z. B. 7.0001.0 bei einer Projektstelle) statt 7.000.10.", "Projektassistent: Tabs und feststehende Aktionsleiste wie auf den Editseiten; der Schritt Aktion zeigt, was eingerichtet wird (neuer Kunde, neues Projekt, Pfad der neuen Strukturelemente, Zugriffsrechte) und was noch fehlt; der Abschluss-Button ist immer anklickbar, und während der Einrichtung zeigt ein Fortschrittsbalken, dass sie läuft.", "Telefonanruf: Anrufe von einem externen Telefon ohne zugeordnete Rufnummer wurden von sipgate abgelehnt.", "Strukturelement-Felder zeigen nach dem Umbenennen oder Verschieben eines Strukturelements sofort den neuen Namen und Pfad, ohne Neuladen.", {
+        "title" : "Beträge",
+        "items" : [ "Die Beträge von Kontoumsätzen sowie von Liquiditätseinträgen und -serien werden in den Formularen mit zwei Nachkommastellen und der Währung angezeigt." ]
+      } ]
     } ]
   },
   "groups" : [ {
