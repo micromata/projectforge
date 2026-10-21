@@ -5482,20 +5482,17 @@
       },
       "lastSuccessful2FA": "Letzte erfolgreiche 2. Faktorauthentifizierung",
       "password": {
-        "info": "Das Password wird nur beim Versenden des Einmalpassworts per E-Mail aus Sicherheitsgründen verlangt.",
         "wrong": "Passwortprüfung fehlgeschlagen."
       },
       "sendCode": {
         "mail": {
           "_": "E-Mail-Code anfordern",
-          "info": "Code per E-Mail anfordern. Dieser Code ist bis zu 2 Minuten gültig.",
           "message": "Der Code lautet: {arg0}",
           "sentSuccessfully": "Der 2. Faktor wurde erfolgreich per E-Mail versendet um {arg0}",
           "title": "Nachricht von ProjectForge"
         },
         "sms": {
           "_": "SMS-Code anfordern",
-          "info": "Coder per SMS anfordern. Dieser Code ist bis zu 2 Minuten gültig.",
           "sentSuccessfully": "Der 2. Faktor wurde erfolgreich per SMS versendet um {arg0}."
         }
       },

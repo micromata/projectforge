@@ -84,8 +84,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // Migrated to projectforge-next (FeedbackPageRest); the Wicket page (wa/feedback) was removed.
     FEEDBACK("menu.gear.feedback", "next/feedback"), //
     GANTT("menu.gantt", getListUrl("gantt")), //
-    // Migrated to projectforge-next, list and form; react/group stays reachable through the escape hatch,
-    // see NextMigration.legacyListUrl.
+    // Migrated to projectforge-next, list and form; react/group is redirected by OrphanedLinkFilter.
     GROUP_LIST("menu.groupList", getListUrl("group")), //
     HR_PLANNING_LIST("menu.hrPlanningList", getListUrl("hrPlanning")), //
     HR_VIEW("menu.hrList", "next/hrList"), //

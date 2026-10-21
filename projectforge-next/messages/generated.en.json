@@ -5482,20 +5482,17 @@
       },
       "lastSuccessful2FA": "Last successful 2 FA",
       "password": {
-        "info": "The password is only needed as an additional factor if you received the code via e-mail.",
         "wrong": "Password check failed."
       },
       "sendCode": {
         "mail": {
           "_": "Request mail code",
-          "info": "Send code as e-mail. The code will be valid up to 2 minutes and your password is required when validating the sent code.",
           "message": "Your code is: {arg0}",
           "sentSuccessfully": "Mail was successfully sent to Your e-mail address at {arg0}",
           "title": "Message from ProjectForge"
         },
         "sms": {
           "_": "Request SMS code",
-          "info": "Request code as text message to your mobile phone. The code will be valid up to 2 minutes.",
           "sentSuccessfully": "Message successfully sent to Your mobile phone at {arg0}."
         }
       },

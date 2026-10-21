@@ -3,7 +3,7 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.0.12",
-    "date" : "2026-10-21",
+    "date" : "2026-10-22",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
@@ -28,7 +28,10 @@
       "items" : [ {
         "title" : "Import der Eingangsrechnungen",
         "items" : [ "Eine importierte Rechnung überschreibt keine andere gespeicherte Rechnung desselben Kreditors mehr (Nummer, Datum und Währung einer älteren Rechnung wurden ersetzt).", "Gegenbuchungen von Kreditkartenzahlungen (Gutschrift auf einem Kreditkarten-Verrechnungskonto) werden übersprungen; ihr Datum wird Zahldatum der Rechnung, falls diese keines hat. Andere Gutschriften werden mit negativem Betrag importiert.", "Ein Import nur mit Rechnungsköpfen bietet keine gespeicherten Rechnungen mehr zum Löschen an, ein Positions-Import nur solche innerhalb seiner Perioden.", "Warnungen bei einem Zahldatum vor dem Rechnungsdatum und bei Rechnungen mit EUR und einer anderen Währung (EUR wird übernommen).", "Ein Import mit weniger Positionen als die gespeicherte Rechnung entfernt nur die überzähligen Positionen; zuvor wurde die ganze Rechnung gelöscht.", "Der Positions-Import übernimmt das Zahldatum (bei unterschiedlichen Daten der Positionen das späteste, mit Warnung) und setzt den Zahlbetrag auf die Bruttosumme der Rechnung abzüglich Skonto; ein fehlendes Zahldatum lässt das gespeicherte stehen, ebenso einen gespeicherten Zahlbetrag. Bisher setzte nur der Kopfdaten-Import das Zahldatum.", "Eine Position ohne Kostenstellen im Import behält ihre gespeicherte Kostenzuweisung; sie wurde nach jedem Import als modifiziert angezeigt.", "Der Abgleich mit den gespeicherten Rechnungen ist deutlich schneller, und die Vorschau einer großen Datei erscheint ohne lange Wartezeit." ]
-      }, "Nummernkreise: Ein Nummernkreis mit Kunden ohne konfigurierte Segmente zeigt Projekt- und Kostenträgernummern nach seinen Stellen (z. B. 7.0001.0 bei einer Projektstelle) statt 7.000.10.", "Projektassistent: Tabs und feststehende Aktionsleiste wie auf den Editseiten; der Schritt Aktion zeigt, was eingerichtet wird (neuer Kunde, neues Projekt, Pfad der neuen Strukturelemente, Zugriffsrechte) und was noch fehlt; der Abschluss-Button ist immer anklickbar, und während der Einrichtung zeigt ein Fortschrittsbalken, dass sie läuft.", "Telefonanruf: Anrufe von einem externen Telefon ohne zugeordnete Rufnummer wurden von sipgate abgelehnt.", "Strukturelement-Felder zeigen nach dem Umbenennen oder Verschieben eines Strukturelements sofort den neuen Namen und Pfad, ohne Neuladen." ]
+      }, "Nummernkreise: Ein Nummernkreis mit Kunden ohne konfigurierte Segmente zeigt Projekt- und Kostenträgernummern nach seinen Stellen (z. B. 7.0001.0 bei einer Projektstelle) statt 7.000.10.", "Projektassistent: Tabs und feststehende Aktionsleiste wie auf den Editseiten; der Schritt Aktion zeigt, was eingerichtet wird (neuer Kunde, neues Projekt, Pfad der neuen Strukturelemente, Zugriffsrechte) und was noch fehlt; der Abschluss-Button ist immer anklickbar, und während der Einrichtung zeigt ein Fortschrittsbalken, dass sie läuft.", "Telefonanruf: Anrufe von einem externen Telefon ohne zugeordnete Rufnummer wurden von sipgate abgelehnt.", "Strukturelement-Felder zeigen nach dem Umbenennen oder Verschieben eines Strukturelements sofort den neuen Namen und Pfad, ohne Neuladen.", "Gruppen und Termine bieten keinen Link mehr auf die alte Oberfläche an: Deren Seiten funktionierten nicht mehr. Alte Links werden umgeleitet." ]
+    }, {
+      "type" : "removed",
+      "items" : [ "Der 2FA-Dialog der alten Oberfläche wurde entfernt: Ein zweiter Faktor für geschützte Aktionen wird nur noch in der neuen Oberfläche abgefragt. Seiten der alten Oberfläche erhalten stattdessen eine Zugriffsverweigerung, alte Links führen auf die Startseite." ]
     } ]
   },
   "groups" : [ {

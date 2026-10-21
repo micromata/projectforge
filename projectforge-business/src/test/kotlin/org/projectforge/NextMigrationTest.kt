@@ -469,16 +469,17 @@ class NextMigrationTest {
     /**
      * The group is the page the task wizard needs: it creates a group in a dialog around the *next* form
      * (see `wizard-group-step.tsx`), so the routes of that form are part of the contract. Migrated from the
-     * React app, which is where the escape hatch leads.
+     * React app, whose pages are gone: there is no way back.
      */
     @Test
-    fun `the group page is next's, and its way back leads to the React app`() {
+    fun `the group page is next's, without a way back`() {
         Assertions.assertEquals("next/group", NextMigration.listUrl("group"))
         Assertions.assertEquals("next/group/:id", NextMigration.nextEditPage("group"))
         Assertions.assertEquals("next/group/:id", NextMigration.standardEditPage("group"))
         Assertions.assertEquals("next/group/new", NextMigration.newEntryUrl("group"))
-        Assertions.assertEquals("react/group", NextMigration.legacyListUrl("group"))
-        Assertions.assertEquals("react/group/edit/:id", NextMigration.legacyEditPage("group"))
+        Assertions.assertNull(NextMigration.legacyListUrl("group"))
+        Assertions.assertNull(NextMigration.legacyEditPage("group"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("group"))
     }
 
     /**

@@ -166,7 +166,7 @@ open class My2FARequestHandler {
     var result: My2FAExpiryPeriod?
     val normalizedUri = WebUtils.normalizeUri(uri) ?: uri
     if (no2FAUrl(normalizedUri)) {
-      // /rs/userStatus and /rs/2FA/ should never require 2FA.
+      // /rs/userStatus, /rs/next2FA etc. should never require 2FA.
       return null
     }
     val paths = getParentPaths(normalizedUri)
@@ -306,18 +306,20 @@ open class My2FARequestHandler {
   }
 
   companion object {
-    // /rs/next2FA is the 2FA of projectforge-next (org.projectforge.rest.my2fa.My2FANextRest).
+    // /rs/next2FA is the 2FA of projectforge-next (org.projectforge.rest.my2fa.My2FANextRest). The 2FA setup
+    // (/rs/2FASetup, My2FASetupRest) checks a fresh 2FA by its endpoints itself, otherwise a user without a valid
+    // 2FA couldn't set one up.
     // Matched by prefix (see no2FAUrl), so a new controller whose path merely starts with one of these entries
     // (e. g. /rs/next2FAsomething) would silently be exempt from 2FA as well. Keep new paths clearly distinct.
     private val NO_2FA_URLS =
-      arrayOf("/rs/menu", "/rs/userStatus", "/rs/2FA", "/rs/next2FA", "/rsPublic", "/rs/webauthn/webAuthn")
+      arrayOf("/rs/menu", "/rs/userStatus", "/rs/2FASetup", "/rs/next2FA", "/rsPublic", "/rs/webauthn/webAuthn")
 
     private val NO_2FA_URL_MATCHERS = arrayOf("^/rs/\\w*/autosearch".toRegex(), "^/rs/\\w*/autocomplete".toRegex())
 
     private fun no2FAUrl(normalizedUri: String): Boolean {
       NO_2FA_URLS.forEach { url ->
         if (normalizedUri.startsWith(url)) {
-          // /rs/userStatus, /rs/2FA/, /rs/menu etc. should never require 2FA.
+          // /rs/userStatus, /rs/next2FA, /rs/menu etc. should never require 2FA.
           return true
         }
       }
