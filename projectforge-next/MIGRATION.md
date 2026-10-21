@@ -508,8 +508,8 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   **Sicherheitsfix:** `MyScriptExecutePageRest.execute` führte ein Script ohne Id so aus, wie es gepostet
   wurde (samt `executableByUsers`) – beliebiger Code für jeden Benutzer. Jetzt nimmt nur
   `ScriptExecuteRest` (`allowAdHoc`) Code ohne Id an; ein gespeichertes Script läuft immer wie gespeichert,
-  vom Client kommen nur die Parameterwerte (`prepareScript`). Kein Rückweg (`offerLegacyLink = false`);
-  `react/scriptExecute/dynamic/{id}` und `react/myScriptExecute/dynamic/{id}` leitet `OrphanedLinkFilter` um.
+  vom Client kommen nur die Parameterwerte (`prepareScript`). Kein Rückweg und keine Umleitung alter Links
+  (`legacyApp = null`): Kein Link der Script-Seiten ging je nach draußen (Mail, Datentransfer).
 - **Mein Zugang** (`next/myAccount`, vorher React-UILayout `MyAccountPageRest` + Modal `TokenInfoPageRest`,
   beide gelöscht) – layoutfrei über `MyAccountRest` (`/rs/myAccount`: `GET` Daten + Auswahllisten, `save`,
   `renewToken`, `tokenInfo`, `logoutDevice`, `logoutAllDevices`; 2FA-Kurzbefehl `MY_ACCOUNT`). Die
@@ -625,8 +625,8 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `PostausgangEntityRest` (`AbstractDOEntityRest`, ohne DTO, gleiche Pfade), beide in `components/features/post`.
   `newBaseDO` setzt heute als Datum und den Typ (E-Mail bzw. Brief), `validate` lehnt ein Datum in der Zukunft ab.
   Die Freitexte vervollständigen über `StringSuggestField` aus `/rs/<entity>/autocomplete?property=` (die Properties,
-  die `isAutocompletionPropertyEnabled` der DAOs freigibt). `react/incomingMail/**` und `react/outgoingMail/**`
-  leitet `OrphanedLinkFilter` um.
+  die `isAutocompletionPropertyEnabled` der DAOs freigibt). Keine Umleitung alter Links (`legacyApp = null`): Kein
+  Link der Seiten ging je nach draußen (Mail, Datentransfer).
 - **Teamkalender** (`teamCal`, Liste + Formular, vorher React-UILayout `TeamCalPagesRest`, gelöscht) – layoutfrei
   über `TeamCalEntityRest` (`/rs/teamCal`). Die Custom-Komponenten `calendar.editExternalSubscription` und
   `calendar.subscriptionInfo` sind handgebaut; die Abo-Infos eines gespeicherten Kalenders (Feed-Url mit/ohne

@@ -100,7 +100,9 @@ object NextMigration {
      * migrated now - so this stays for the next list whose form follows a release later.
      * @param legacyApp The frontend this page was migrated from, i.e. the one its way back leads to,
      * or null once that page is gone: a page whose legacy implementation has been removed has no way
-     * back, and [legacyListUrl] & co. answer null for it.
+     * back, and [legacyListUrl] & co. answer null for it. Kept for a removed page only if its links have left
+     * ProjectForge (sent by mail, e.g. a vacation notification, or shared by a data transfer area), so
+     * [orphanedLinks] still bends them onto next; a page only ever linked from within ProjectForge gets null.
      * @param legacyRoute Route of the same list page in [legacyApp], without the app prefix. Only
      * needed if the page doesn't follow that app's mount point convention.
      * @param legacyEditRoute Route of the legacy edit page with [ID_PLACEHOLDER], without the app
@@ -647,15 +649,13 @@ object NextMigration {
         // The scripts of financial and controlling staff (ScriptEntityRest, ScriptExecuteRest), migrated from
         // React and hand built. As in React, the row click leads to the execution (`script/:id`); the form is a
         // sub route of it, the ad-hoc editor is `script/execute`. The React pages are gone (no UILayout served
-        // any more), so there is no way back; the legacy app is kept for the redirect of bookmarked React links
-        // only. The links of the execution pages (react/scriptExecute/dynamic/<id>) are redirected by
-        // OrphanedLinkFilter.redirectScriptExecutePage.
+        // any more), so there is no way back, and no link of them ever left ProjectForge (no mail, no data
+        // transfer): old links are not redirected (legacyApp = null).
         "script" to NextPage(
             route = "script",
             editRoute = "script/$ID_PLACEHOLDER/edit",
             newEntryRoute = "script/new",
-            legacyApp = LegacyApp.REACT,
-            offerLegacyLink = false,
+            legacyApp = null,
         ),
         // Hand built list and edit page of the vacation entries (VacationEntityRest, components/features/vacation),
         // migrated from React. The live statistics of the form (working days, days left, conflicts with the
@@ -693,21 +693,19 @@ object NextMigration {
         ),
         // Hand built list and edit pages of the inbox and the outbox ("Posteingang", "Postausgang",
         // PosteingangEntityRest, PostausgangEntityRest, components/features/post), migrated from React. The React
-        // pages are gone (no UILayout served any more), so there is no way back; the legacy app is kept for the
-        // redirect of bookmarked React links only.
+        // pages are gone (no UILayout served any more), so there is no way back, and no link of them ever left
+        // ProjectForge (no mail, no data transfer): old links are not redirected (legacyApp = null).
         "incomingMail" to NextPage(
             route = "incomingMail",
             editRoute = "incomingMail/$ID_PLACEHOLDER",
             newEntryRoute = "incomingMail/new",
-            legacyApp = LegacyApp.REACT,
-            offerLegacyLink = false,
+            legacyApp = null,
         ),
         "outgoingMail" to NextPage(
             route = "outgoingMail",
             editRoute = "outgoingMail/$ID_PLACEHOLDER",
             newEntryRoute = "outgoingMail/new",
-            legacyApp = LegacyApp.REACT,
-            offerLegacyLink = false,
+            legacyApp = null,
         ),
         // Hand built list and edit page of the visitor book (VisitorbookEntityRest, components/features/visitorbook),
         // the visits in a dialog of the edit page, migrated from React. The React pages are gone (no UILayout served
@@ -767,8 +765,7 @@ object NextMigration {
             editRoute = "myscript/$ID_PLACEHOLDER",
             // No form to add one: an old add link lands on the list.
             newEntryRoute = "myscript",
-            legacyApp = LegacyApp.REACT,
-            offerLegacyLink = false,
+            legacyApp = null,
         ),
     )
 
