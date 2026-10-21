@@ -64,7 +64,7 @@ class OrphanedLinkFilterTest {
     fun `links that never left ProjectForge are not redirected`() {
         val categories = listOf(
             "project", "task", "teamCal", "user", "contract", "visitorbook", "address", "addressLegacy",
-            "addressCampaignValue", "addressCampaignValueLegacy", "datatransfer",
+            "addressCampaignValue", "addressCampaignValueLegacy", "datatransfer", "merlin",
         )
         for (category in categories) {
             Assertions.assertNull(redirectOf("/react/$category"), category)
@@ -73,7 +73,7 @@ class OrphanedLinkFilterTest {
         for (page in listOf(
             "addressView", "myAccount", "tokenInfo", "2FASetup", "WebAuthnSetup", "2FA", "changeWlanPassword", "pollInfo",
             "vacationAccount", "vacationExport", "costSearch", "customizeMenu", "birthdayButler", "eInvoiceChecker",
-            "sipgate", "jobsMonitor", "systemStatistics",
+            "sipgate", "jobsMonitor", "systemStatistics", "merlinexecution",
         )) {
             Assertions.assertNull(redirectOf("/react/$page/dynamic"), page)
         }

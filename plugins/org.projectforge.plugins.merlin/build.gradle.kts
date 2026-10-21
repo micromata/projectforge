@@ -15,6 +15,9 @@ dependencies {
     api(project(":projectforge-rest"))
     api(libs.fr.opensagres.xdocrepor.poi.xwpf.converter.pdf)
     testImplementation(project(":projectforge-business"))
+    testImplementation(testFixtures(project(":projectforge-business")))
+    testImplementation(project(":projectforge-commons-test"))
+    testImplementation(libs.org.springframework.boot.starter.test)
 }
 
 description = "org.projectforge.plugins.merlin"

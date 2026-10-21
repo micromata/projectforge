@@ -273,6 +273,22 @@ class NextMigrationTest {
     }
 
     /**
+     * The Word® templates of Merlin: the row click leads to the execution (`merlin/:id`), the form is a sub route
+     * of it. The React pages are gone, so there is no way back, and as no link of them ever left ProjectForge, none
+     * is redirected.
+     */
+    @Test
+    fun `the merlin pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/merlin", NextMigration.listUrl("merlin"))
+        Assertions.assertEquals("next/merlin/:id/edit", NextMigration.standardEditPage("merlin"))
+        Assertions.assertEquals("next/merlin/new", NextMigration.newEntryUrl("merlin"))
+        Assertions.assertNull(NextMigration.legacyListUrl("merlin"))
+        Assertions.assertNull(NextMigration.legacyEditPage("merlin"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("merlin"))
+        Assertions.assertTrue(NextMigration.orphanedLinks().none { it.category == "merlin" })
+    }
+
+    /**
      * The memos: list and form are next's, the React pages are gone, so there is no way back, and as no link of
      * them ever left ProjectForge, none is redirected.
      */
