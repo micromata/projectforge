@@ -54,9 +54,19 @@ class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
     var reconciled: Boolean = false
 
     interface Modified<O> {
-        fun buildOldDiffValue(map: MutableMap<String, Any>, property: String, value: Any?, old: Any?) {
+        /**
+         * @param oldDisplayValue The old value to report, if the values compared aren't the displayed ones (e.g. net
+         * sums are compared, but the gross sum is shown).
+         */
+        fun buildOldDiffValue(
+            map: MutableMap<String, Any>,
+            property: String,
+            value: Any?,
+            old: Any?,
+            oldDisplayValue: Any? = old,
+        ) {
             if (isModified(value, old)) {
-                var useOldValue: Any = old ?: ""
+                var useOldValue: Any = oldDisplayValue ?: ""
                 // Keep numbers as numbers for frontend formatting
                 // Only trim strings
                 if (useOldValue is String) {

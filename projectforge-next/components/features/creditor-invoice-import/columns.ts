@@ -11,8 +11,9 @@ const headerOnly = (meta: Record<string, unknown>): boolean =>
 /**
  * The preview columns of the creditor-invoice import, in the order and with the gating of the former
  * React import page (`importIncomingInvoicePos`): the position number, cost centres and cost accounts only for a
- * position-based file; the payment date, amount, type and bank details only for a header-only one. The
- * diffed columns are those the reconcile can change against an existing invoice.
+ * position-based file; the payment date, amount, type and bank details only for a header-only one. Every column
+ * the reconcile compares with the stored invoice shows its changes; those of a column not shown (e.g. the paid
+ * date of a position-based file) are listed in the status cell.
  */
 export const CREDITOR_INVOICE_IMPORT_COLUMNS: ImportColumn[] = [
   {
@@ -27,26 +28,40 @@ export const CREDITOR_INVOICE_IMPORT_COLUMNS: ImportColumn[] = [
     field: "referenz",
     headerKey: "fibu.common.reference",
     kind: "text",
+    diff: true,
     width: 130,
   },
   {
     field: "kreditor",
     headerKey: "fibu.common.creditor",
     kind: "text",
+    diff: true,
     width: 180,
   },
-  { field: "datum", headerKey: "fibu.rechnung.datum", kind: "date" },
-  { field: "grossSum", headerKey: "fibu.common.brutto", kind: "currency" },
+  {
+    field: "datum",
+    headerKey: "fibu.rechnung.datum",
+    kind: "date",
+    diff: true,
+  },
+  {
+    field: "grossSum",
+    headerKey: "fibu.common.brutto",
+    kind: "currency",
+    diff: true,
+  },
   {
     field: "currency",
     headerKey: "fibu.rechnung.currency",
     kind: "text",
+    diff: true,
     width: 80,
   },
   {
     field: "betreff",
     headerKey: "fibu.rechnung.betreff",
     kind: "text",
+    diff: true,
     width: 180,
   },
   {
@@ -76,17 +91,20 @@ export const CREDITOR_INVOICE_IMPORT_COLUMNS: ImportColumn[] = [
     field: "faelligkeit",
     headerKey: "fibu.rechnung.faelligkeit",
     kind: "date",
+    diff: true,
   },
   {
     field: "bezahlDatum",
     headerKey: "fibu.rechnung.bezahlDatum",
     kind: "date",
+    diff: true,
     showIf: headerOnly,
   },
   {
     field: "zahlBetrag",
     headerKey: "fibu.rechnung.zahlBetrag",
     kind: "currency",
+    diff: true,
     showIf: headerOnly,
   },
   {
@@ -101,12 +119,20 @@ export const CREDITOR_INVOICE_IMPORT_COLUMNS: ImportColumn[] = [
     field: "taxRate",
     headerKey: "fibu.rechnung.mehrwertSteuerSatz",
     kind: "number",
+    diff: true,
   },
-  { field: "bemerkung", headerKey: "comment", kind: "text", width: 150 },
+  {
+    field: "bemerkung",
+    headerKey: "comment",
+    kind: "text",
+    diff: true,
+    width: 150,
+  },
   {
     field: "customernr",
     headerKey: "fibu.rechnung.customernr",
     kind: "text",
+    diff: true,
     width: 150,
   },
   {
@@ -123,12 +149,19 @@ export const CREDITOR_INVOICE_IMPORT_COLUMNS: ImportColumn[] = [
     field: "iban",
     headerKey: "fibu.rechnung.iban",
     kind: "text",
+    diff: true,
     showIf: headerOnly,
   },
   {
     field: "bic",
     headerKey: "fibu.rechnung.bic",
     kind: "text",
+    diff: true,
     showIf: headerOnly,
   },
+];
+
+/** Compared by the reconcile, but without a column: listed in the status cell of a changed row only. */
+export const CREDITOR_INVOICE_IMPORT_DIFF_ONLY_FIELDS: ImportColumn[] = [
+  { field: "receiver", headerKey: "fibu.rechnung.receiver", kind: "text" },
 ];

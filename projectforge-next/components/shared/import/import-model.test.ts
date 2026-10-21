@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { formatCurrency, formatDate, type FormatContext } from "@/lib/format";
 import {
+  changesNotShownOf,
   diffOf,
   filterEntriesByStatus,
   formatByKind,
@@ -183,6 +184,57 @@ describe("diffOf", () => {
       diff: true,
     };
     expect(diffOf(modified, col).hasDiff).toBe(false);
+  });
+});
+
+describe("changesNotShownOf", () => {
+  const datum: ImportColumn = {
+    field: "datum",
+    headerKey: "fibu.rechnung.datum",
+    kind: "date",
+    diff: true,
+  };
+  const bezahlDatum: ImportColumn = {
+    field: "bezahlDatum",
+    headerKey: "fibu.rechnung.bezahlDatum",
+    kind: "date",
+    diff: true,
+  };
+  const betreff: ImportColumn = {
+    field: "betreff",
+    headerKey: "fibu.rechnung.betreff",
+    kind: "text",
+  };
+  const known = [datum, bezahlDatum, betreff];
+
+  it("lists the changes no visible diff column shows, in column order, unknown properties last", () => {
+    const modified = entry("MODIFIED", {
+      read: { datum: "2026-01-02", bezahlDatum: "2026-02-01", receiver: "B" },
+      oldDiffValues: {
+        "read.receiver": "A",
+        "read.datum": "2026-01-01",
+        "read.bezahlDatum": "",
+        "read.betreff": "Old",
+      },
+    });
+    // datum is shown with its diff; bezahlDatum is gated off, betreff has no diff, receiver no column.
+    const changes = changesNotShownOf(modified, [datum, betreff], known);
+    expect(changes.map((change) => change.field)).toEqual([
+      "bezahlDatum",
+      "betreff",
+      "receiver",
+    ]);
+    expect(changes[0]).toEqual({
+      field: "bezahlDatum",
+      column: bezahlDatum,
+      current: "2026-02-01",
+      old: "",
+    });
+    expect(changes[2].column).toBeUndefined();
+  });
+
+  it("is empty for a row without old values", () => {
+    expect(changesNotShownOf(entry("NEW", {}), [datum], known)).toEqual([]);
   });
 });
 
