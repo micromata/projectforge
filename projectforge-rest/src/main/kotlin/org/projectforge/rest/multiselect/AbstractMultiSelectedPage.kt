@@ -437,8 +437,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     }
 
     /**
-     * Drops the selection and answers where the user came from - the layout free counterpart of
-     * [handleCancelUrl].
+     * Drops the selection and answers where the user came from.
      */
     // State changing: POST only.
     @PostMapping("cancel")

@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController
 
 /**
  * A server laid out page of the addresses for [UILayoutTest] only: no address page of projectforge-rest serves a
- * `UILayout` any more, but the layout framework is still in use (plugins banking and merlin). The address fits,
+ * `UILayout` any more, but the layout framework is still in use (plugin merlin). The address fits,
  * because its DAO supports force deletion and the page declares [CloneSupport], so every action button appears.
  */
 @RestController

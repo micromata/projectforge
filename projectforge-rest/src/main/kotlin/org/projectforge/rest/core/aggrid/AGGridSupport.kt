@@ -29,12 +29,9 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.model.rest.RestPaths
-import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.datatable.DataTableStateRequest
-import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
-import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -122,47 +119,6 @@ class AGGridSupport {
         agGrid.resetGridStateUrl =
             RestResolver.getRestUrl(pagesRest::class.java, "resetGridState")
         return agGrid
-    }
-
-    fun prepareUIGrid4MultiSelectionListPage(
-        request: HttpServletRequest,
-        layout: UILayout,
-        agGrid: UIAgGrid,
-        callerRest: Any,
-    ) {
-        MultiSelectionSupport.getSessionContext(
-            request,
-            callerRest::class.java
-        )?.paginationPageSize?.let { paginationPageSize ->
-            agGrid.paginationPageSize = paginationPageSize
-        }
-        agGrid.selectionColumnDef = UIAgGridColumnDef().also {
-            it.pinned = "left"
-            it.resizable = false
-            it.sortable = false
-            it.filter = false
-            it.width = 10
-        }
-        layout
-            .add(
-                UIAlert(
-                    message = "multiselection.aggrid.selection.info.message",
-                    title = "multiselection.aggrid.selection.info.title",
-                    color = UIColor.INFO,
-                    markdown = true,
-                )
-            )
-        agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(callerRest::class.java, RestPaths.SET_COLUMN_STATES)
-        agGrid.resetGridStateUrl = RestResolver.getRestUrl(callerRest::class.java, "resetGridState")
-        // Translations used by the multi-selection action bar (selection count, show/deselect controls).
-        layout.addTranslations(
-            "cancel",
-            "multiselection.selectedCount",
-            "multiselection.showSelected",
-            "multiselection.deselectAll",
-            "multiselection.selected.title",
-            "multiselection.selected.empty",
-        )
     }
 
     fun restoreColumnsFromUserPref(category: String, agGrid: UIAgGrid) {
