@@ -25,7 +25,9 @@ package org.projectforge.business.fibu;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.projectforge.business.excel.*;
+import org.projectforge.business.fibu.customergroup.CustomerGroupIndex;
 import org.projectforge.business.fibu.customergroup.CustomerGroupService;
+import org.projectforge.business.fibu.customergroup.ProjectGroup;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
@@ -127,13 +129,17 @@ public class OrderExport {
         throw new IllegalArgumentException("Column " + col + " not found.");
     }
 
-    private static String projectGroupOf(final AuftragDO order) {
-        final CustomerGroupService service = CustomerGroupService.getInstanceOrNull();
+    /**
+     * @param groupIndex Taken once per export ([CustomerGroupService.getIndex] checks its sources on each call), null if
+     *                   there are no project groups.
+     */
+    private static String projectGroupOf(final CustomerGroupIndex groupIndex, final AuftragDO order) {
         final ProjektDO project = order.getProjekt();
-        return service != null && project != null ? service.projectGroupNameOf(project.getId()) : null;
+        final ProjectGroup group = groupIndex != null && project != null ? groupIndex.projectGroupOf(project.getId()) : null;
+        return group != null ? group.getName() : null;
     }
 
-    private void addOrderMapping(final PropertyMapping mapping, final AuftragDO order) {
+    private void addOrderMapping(final PropertyMapping mapping, final AuftragDO order, final CustomerGroupIndex groupIndex) {
         var orderInfo = auftragsCache.getOrderInfo(order);
         mapping.add(OrderCol.NUMMER, order.getNummer());
         mapping.add(OrderCol.NUMBER_OF_POSITIONS,
@@ -147,7 +153,7 @@ public class OrderExport {
                         ? ThreadLocalUserContext.getLocalizedString(order.getStatus().getI18nKey()) : "");
         mapping.add(OrderCol.STATUS_COMMENT, order.getStatusBeschreibung());
         mapping.add(OrderCol.PROJECT, order.getProjektAsString());
-        mapping.add(OrderCol.PROJECT_GROUP, projectGroupOf(order));
+        mapping.add(OrderCol.PROJECT_GROUP, projectGroupOf(groupIndex, order));
         final ProjektDO project = order.getProjekt();
         final String projectCustomer = KundeFormatter.formatKundeAsString(project != null ? project.getKunde() : null,
                 order.getKundeText());
@@ -206,14 +212,15 @@ public class OrderExport {
                 new I18nExportColumn(PosCol.COMMENT, "comment", MyXlsContentProvider.LENGTH_COMMENT)});
     }
 
-    private void addPosMapping(final PropertyMapping mapping, final AuftragDO order, final AuftragsPositionDO pos) {
+    private void addPosMapping(final PropertyMapping mapping, final AuftragDO order, final AuftragsPositionDO pos,
+                               final CustomerGroupIndex groupIndex) {
         mapping.add(PosCol.NUMBER, order.getNummer());
         mapping.add(PosCol.POS_NUMBER, "#" + pos.getNumber());
         mapping.add(PosCol.DATE_OF_OFFER, order.getAngebotsDatum());
         mapping.add(PosCol.DATE_OF_ENTRY, order.getErfassungsDatum());
         mapping.add(PosCol.DATE_OF_DESICION, ensureErfassungsDatum(order));
         mapping.add(PosCol.PROJECT, order.getProjektAsString());
-        mapping.add(PosCol.PROJECT_GROUP, projectGroupOf(order));
+        mapping.add(PosCol.PROJECT_GROUP, projectGroupOf(groupIndex, order));
         mapping.add(PosCol.ORDER_TITLE, order.getTitel());
         mapping.add(PosCol.TITLE, pos.getTitel());
         mapping.add(PosCol.TYPE,
@@ -254,7 +261,9 @@ public class OrderExport {
         }
         mapping.add(OrderCol.PROBABILITY_OF_OCCURRENCE, order.getProbabilityOfOccurrence());
         mapping.add(OrderCol.FORECAST_TYPE, ForecastUtils.getForecastType(order, pos));
-        mapping.add(OrderCol.CONTACT_PERSON, order.getContactPerson() != null ? order.getContactPerson().getFullname() : "");
+        // From the cache: the detached order's lazy user would be loaded by its own query.
+        final PFUserDO contactPerson = UserGroupCache.getInstance().getUserIfNotInitialized(order.getContactPerson());
+        mapping.add(OrderCol.CONTACT_PERSON, contactPerson != null ? contactPerson.getFullname() : "");
         final TaskDO task = pos.getTask();
         final TaskNode node = task != null ? taskTree.getTaskNodeById(task.getId()) : null;
         mapping.add(PosCol.TASK, node != null ? node.getTask().getTitle() : "");
@@ -326,7 +335,10 @@ public class OrderExport {
         // create a default Date format and currency column
         xls.setContentProvider(contentProvider);
 
-        final boolean withProjectGroup = list.stream().anyMatch(order -> projectGroupOf(order) != null);
+        final CustomerGroupService groupService = CustomerGroupService.getInstanceOrNull();
+        final CustomerGroupIndex groupIndex = groupService != null && !groupService.getIndex().getProjectGroups().isEmpty()
+                ? groupService.getIndex() : null;
+        final boolean withProjectGroup = list.stream().anyMatch(order -> projectGroupOf(groupIndex, order) != null);
         ExportColumn[] columns = createOrderColumns(withProjectGroup);
         String sheetTitle = ThreadLocalUserContext.getLocalizedString("fibu.auftrag.auftraege");
         ExportSheet sheet = xls.addSheet(sheetTitle);
@@ -338,7 +350,7 @@ public class OrderExport {
         sheet.setColumns(columns);
         for (final AuftragDO order : list) {
             final PropertyMapping mapping = new PropertyMapping();
-            addOrderMapping(mapping, order);
+            addOrderMapping(mapping, order, groupIndex);
             sheet.addRow(mapping.getMapping(), 0);
         }
         sheet.setAutoFilter();
@@ -359,7 +371,7 @@ public class OrderExport {
         for (final AuftragDO order : list) {
             for (final AuftragsPositionDO pos : order.getPositionenExcludingDeleted()) {
                 final PropertyMapping mapping = new PropertyMapping();
-                addPosMapping(mapping, order, pos);
+                addPosMapping(mapping, order, pos, groupIndex);
                 sheet.addRow(mapping.getMapping(), 0);
             }
         }

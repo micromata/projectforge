@@ -1345,7 +1345,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             return ResponseEntity.notFound().build<Any>()
         }
         // Only a few projects belong to a project group: the column is only there if one of the invoices has one.
-        val projectGroupOf = { invoice: RechnungDO -> CustomerGroupService.instanceOrNull?.projectGroupNameOf(invoice.projekt?.id) }
+        // The index taken once: CustomerGroupService.index checks its sources on each call.
+        val groupIndex = CustomerGroupService.instanceOrNull?.index?.takeIf { it.projectGroups.isNotEmpty() }
+        val projectGroupOf = { invoice: RechnungDO -> groupIndex?.projectGroupOf(invoice.projekt?.id)?.name }
         val withProjectGroup = invoices.any { projectGroupOf(it) != null }
         ExcelUtils.prepareWorkbook().use { workbook ->
             val sheet = workbook.createOrGetSheet(translate("fibu.rechnungen"))
