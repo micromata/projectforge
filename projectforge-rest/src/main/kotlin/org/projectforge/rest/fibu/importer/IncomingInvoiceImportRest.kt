@@ -112,8 +112,10 @@ class IncomingInvoiceImportRest :
          * DATEV CSV field mappings with German column names and formatting, lifted verbatim from
          * [EingangsrechnungUploadPageRest].
          */
-        private val DATEV_IMPORT_SETTINGS = """
+        internal val DATEV_IMPORT_SETTINGS = """
             encoding=UTF-8
+            belegart=Belegart
+            gegenkonto=Konto
             bemerkung=Bemerkung|Freier Text|Notiz
             besonderheiten=Besonderheiten
             betreff=Betreff|Ware/Leistung

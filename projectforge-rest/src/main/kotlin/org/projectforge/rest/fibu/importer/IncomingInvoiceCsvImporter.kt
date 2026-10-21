@@ -125,6 +125,11 @@ class IncomingInvoiceCsvImporter(
                 }
             }
 
+            "periode" -> {
+                parsePeriod(value, rowContext)?.let { (from, until) -> storage.addPeriod(from, until) }
+                false // Let standard processing handle the field normally
+            }
+
             "paymentType" -> {
                 // Parse payment type from various text variations
                 parsePaymentType(value, entity, rowContext.importStorage)
@@ -160,11 +165,61 @@ class IncomingInvoiceCsvImporter(
             }
         }
 
+        // A credit note is an invoice with a negative amount (the position export has positive amounts, the header
+        // export negative ones). Payment offsets on the credit-card account are dropped in filterRecords.
+        if (entity.isCreditNote && !entity.isCreditCardPaymentOffset) {
+            entity.grossSum?.let { if (it.signum() > 0) entity.grossSum = it.negate() }
+        }
+
+        // Day and month swapped in DATEV (e.g. paid on 09.04. for an invoice of 04.09.):
+        if (!entity.isCreditCardPaymentOffset) {
+            val datum = entity.datum
+            val bezahlDatum = entity.bezahlDatum
+            if (datum != null && bezahlDatum != null && bezahlDatum < datum) {
+                importStorage.addWarning(
+                    "RENR '${entity.referenz}': Bezahlt am $bezahlDatum liegt vor dem Rechnungsdatum $datum."
+                )
+            }
+        }
+
         // Calculate netSum from grossSum to avoid rounding errors in comparison
         // Use CurrencyHelper for consistent calculation with DB logic
         entity.netSum = org.projectforge.framework.utils.CurrencyHelper.getNetAmount(entity.grossSum, entity.taxRate)
 
         // KOST1 and KOST2 are now parsed during CSV processing in processField method
+    }
+
+    /**
+     * Drops the credit-card payment offsets (credit note on a clearing account): they aren't documents of their own but the
+     * payment of the invoice with the same RENR. Their date is taken as paid date of that invoice, if it has none
+     * (the paid date of the invoice row wins).
+     */
+    override fun filterRecords(
+        records: List<EingangsrechnungPosImportDTO>,
+        importStorage: ImportStorage<EingangsrechnungPosImportDTO>
+    ): List<EingangsrechnungPosImportDTO> {
+        val (offsets, accepted) = records.partition { it.isCreditCardPaymentOffset }
+        if (offsets.isEmpty()) {
+            return records
+        }
+        val offsetDateByInvoice = offsets
+            .filter { it.datum != null }
+            .groupBy { invoiceKeyWithoutDate(it) }
+            .mapValues { (_, list) -> list.minOf { it.datum!! } }
+        accepted.forEach { record ->
+            if (record.bezahlDatum == null) {
+                offsetDateByInvoice[invoiceKeyWithoutDate(record)]?.let { record.bezahlDatum = it }
+            }
+        }
+        val msg = "${offsets.size} Zahlungs-Gegenbuchungen (Gutschrift auf Konto " +
+                "${EingangsrechnungPosImportDTO.CREDIT_CARD_CLEARING_ACCOUNTS.joinToString("/")}) übersprungen."
+        log.info { msg }
+        importStorage.addWarning(msg)
+        return accepted
+    }
+
+    private fun invoiceKeyWithoutDate(dto: EingangsrechnungPosImportDTO): String {
+        return "${dto.referenz?.trim()?.lowercase()}|${dto.kreditor?.trim()?.lowercase()}"
     }
 
     override fun finalizeImport(
@@ -230,6 +285,28 @@ class IncomingInvoiceCsvImporter(
         }
 
         return null
+    }
+
+    /**
+     * Parses a period like "01.04.2026-30.04.2026".
+     */
+    private fun parsePeriod(
+        periodString: String,
+        rowContext: CsvRowContext<EingangsrechnungPosImportDTO>
+    ): Pair<java.time.LocalDate, java.time.LocalDate>? {
+        val parts = periodString.split("-")
+        if (parts.size != 2) {
+            return null
+        }
+        val fieldSettings = rowContext.getFieldSettingsByProperty("datum") ?: return null
+        return try {
+            val from = fieldSettings.parseLocalDate(parts[0].trim()) ?: return null
+            val until = fieldSettings.parseLocalDate(parts[1].trim()) ?: return null
+            if (from <= until) from to until else null
+        } catch (e: Exception) {
+            log.debug(e) { "Could not parse period '$periodString'" }
+            null
+        }
     }
 
     private fun extractYearFromPeriodString(rowContext: CsvRowContext<EingangsrechnungPosImportDTO>): Int? {
@@ -574,9 +651,19 @@ class IncomingInvoiceCsvImporter(
             .distinct()
 
         if (distinctValues.size > 1) {
+            if (fieldName == "currency" && distinctValues.contains(EUR)) {
+                // Credit-card documents come in EUR (as charged) and in the currency of the invoice: EUR wins.
+                positions.forEach { it.currency = EUR }
+                val warningMessage =
+                    "RENR '$renr': Unterschiedliche Währungen ${distinctValues.joinToString(", ")}, $EUR übernommen."
+                log.info { warningMessage }
+                importStorage.addWarning(warningMessage)
+                return
+            }
+            // A data error of the export, shown in the import dialog: no error of the application.
             val errorMessage =
                 "RENR '$renr': Inkonsistente Werte für '$fieldName': ${distinctValues.joinToString(", ")}"
-            log.error { errorMessage }
+            log.warn { errorMessage }
             importStorage.addError(errorMessage)
 
             positions.forEach { position ->
@@ -620,6 +707,8 @@ class IncomingInvoiceCsvImporter(
     }
 
     companion object {
+        private const val EUR = "EUR"
+
         /**
          * Mapping of PaymentType enum values to their text variations (aliases).
          * All aliases are in lowercase for case-insensitive matching.

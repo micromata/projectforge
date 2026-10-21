@@ -115,6 +115,27 @@ class EingangsrechnungPosImportDTO(
         get() = if (paymentType != null) translate(paymentType) else ""
 
     /**
+     * DATEV Belegart: "R" (invoice) or "G" (credit note). Import only, not stored.
+     */
+    var belegart: String? = null
+
+    /**
+     * DATEV column "Konto" (contra account of the booking, e.g. 6837 or 1814). Import only, not stored.
+     */
+    var gegenkonto: String? = null
+
+    val isCreditNote: Boolean
+        get() = belegart?.trim().equals("G", ignoreCase = true)
+
+    /**
+     * A credit note on the credit-card clearing account isn't a document of its own: it's the payment of the
+     * invoice with the same RENR (booked as credit note by DATEV). Real credit notes, also from the credit card,
+     * are booked on an expense account.
+     */
+    val isCreditCardPaymentOffset: Boolean
+        get() = isCreditNote && gegenkonto?.trim() in CREDIT_CARD_CLEARING_ACCOUNTS
+
+    /**
      * Import errors that occurred during parsing.
      * Stored in DTO to survive the reconcile process (which recreates PairEntries).
      */
@@ -266,6 +287,37 @@ class EingangsrechnungPosImportDTO(
     }
 
     /**
+     * May this import entry overwrite the given stored invoice? Only if it's the same creditor and the invoice date
+     * differs by [MAX_MATCH_DAYS] at most: DATEV corrects numbers and dates of an invoice, but an invoice never
+     * moves by weeks. Without this check, the import overwrote older invoices of the same creditor (number, date,
+     * currency) with new ones.
+     */
+    fun isPlausibleUpdateOf(dbInvoice: EingangsrechnungDO): Boolean {
+        val thisDatum = datum ?: return false
+        val dbDatum = dbInvoice.datum ?: return false
+        if (kotlin.math.abs(java.time.temporal.ChronoUnit.DAYS.between(thisDatum, dbDatum)) > MAX_MATCH_DAYS) {
+            return false
+        }
+        return StringMatchUtils.calculateCompanySimilarity(kreditor, dbInvoice.kreditor) >= MIN_KREDITOR_SIMILARITY
+    }
+
+    /**
+     * Candidate check for the fuzzy matching stages: [isPlausibleUpdateOf] and a similar invoice number or the same
+     * amount. [matchScore] only ranks the plausible candidates.
+     */
+    fun isPlausibleMatch(dbInvoice: EingangsrechnungDO): Boolean {
+        if (!isPlausibleUpdateOf(dbInvoice)) {
+            return false
+        }
+        if (referenz.equals(dbInvoice.referenz, ignoreCase = true) ||
+            StringMatchUtils.calculateSimilarity(referenz, dbInvoice.referenz) >= MIN_REFERENZ_SIMILARITY
+        ) {
+            return true
+        }
+        return calculateAmountMatchScore(dbInvoice) > 0
+    }
+
+    /**
      * Calculate referenz (invoice number) match score.
      * Uses multi-level matching: exact, normalized, and similarity-based.
      */
@@ -361,5 +413,30 @@ class EingangsrechnungPosImportDTO(
                 0
             }
         } else 0
+    }
+
+    companion object {
+        /**
+         * DATEV credit-card clearing accounts: credit notes on them are payment offsets. 1814 (Pliant); 1461
+         * ("Kreditkartenabrechnung") was used for the same offsets in 01-03/2026.
+         */
+        val CREDIT_CARD_CLEARING_ACCOUNTS = setOf("1814", "1461")
+
+        /**
+         * Maximum distance of the invoice dates of an import entry and the stored invoice it may update. Below the
+         * shortest month, so the invoice of the previous month of a monthly billing creditor is never taken.
+         */
+        const val MAX_MATCH_DAYS = 14L
+
+        /**
+         * Minimum creditor similarity (as in [StringMatchUtils.calculateCompanySimilarity]): "ISICO GmbH" and
+         * "ISICO Datenschutz GmbH" are the same creditor.
+         */
+        const val MIN_KREDITOR_SIMILARITY = 0.6
+
+        /**
+         * Minimum invoice number similarity: "325124610" and "3251246-10 / Az.: IS-0017-10/KSR" are the same invoice.
+         */
+        const val MIN_REFERENZ_SIMILARITY = 0.35
     }
 }
