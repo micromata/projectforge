@@ -50,7 +50,7 @@ object CoreFeatures {
     private val PROJECT_WIZARD = listOf("projectWizard")
 
     private val EXTRAS = mapOf(
-        MenuItemDefId.ADDRESS_LIST to Extras(rest = listOf("addressImport", "addressLegacy", "cardDAVInfo")),
+        MenuItemDefId.ADDRESS_LIST to Extras(rest = listOf("addressImport", "cardDAVInfo")),
         MenuItemDefId.ADMIN_ERRORS to Extras(rest = listOf("adminErrors")),
         // The subscription dialog (with its QR code) is offered by the calendar, the calendar list and the timesheets.
         MenuItemDefId.CALENDAR to Extras(rest = listOf("calendarSettings", "teamEvent") + CALENDAR_SUBSCRIPTION),

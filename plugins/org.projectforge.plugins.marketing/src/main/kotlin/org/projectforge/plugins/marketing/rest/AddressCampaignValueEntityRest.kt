@@ -78,10 +78,6 @@ private val log = KotlinLogging.logger {}
  * (see components/features/address-campaign-value). The list shows one row per address of the selected campaign:
  * an address without a value of its own yet comes as a transient value with the negative address id as synthetic
  * id (see [AddressCampaignValueDao.selectAddressesForCampaign]), opened as a new entry via `newEntry?campaignId=&addressId=`.
- *
- * The successor of [AddressCampaignValuePagesRest], which is still served under `addressCampaignValueLegacy` for the
- * running campaign and shows the campaign last selected here. Everything but the layout is taken over from
- * there; the copy goes away with the legacy page.
  */
 @RestController
 @RequestMapping("${Rest.URL}/addressCampaignValue")
@@ -120,16 +116,9 @@ class AddressCampaignValueEntityRest :
 
     companion object {
         /**
-         * The user pref area of the last selected campaign, which the React page ([AddressCampaignValuePagesRest])
-         * falls back to without a campaign in its filter: a campaign selected here is the one the way back shows.
-         * The former category of the React page, so its users keep their selection. Not read by this page.
-         */
-        internal const val USER_PREF_AREA = "addressCampaignValue"
-        internal const val USER_PREF_SELECTED_CAMPAIGN_ID = "AddressCampaignValuePagesRest.selectedCampaignId"
-        /**
-         * The id of the React page's campaign filter: the stored current filter and the filter favorites of the
-         * users are kept under the category `addressCampaignValue`, which is this page's now, so they keep
-         * selecting their campaign.
+         * The id of the former React page's campaign filter, kept: the stored current filter and the filter
+         * favorites of the users are kept under the category `addressCampaignValue`, so they keep selecting their
+         * campaign.
          */
         private const val FILTER_CAMPAIGN_ID = "AddressCampaignValuePagesRest.campaignId"
         private const val EMPTY_VALUE = "__EMPTY__"
@@ -353,8 +342,6 @@ class AddressCampaignValueEntityRest :
      * The selected campaign is the one of the campaign filter, stored in the extended map for the DAO. Without one
      * the list is empty ("no campaign selected"), as the filter shows: unlike the React page, there is no fallback
      * to the remembered campaign, which would list a campaign the filter doesn't name.
-     *
-     * The selection is still remembered as user pref for the React page, which falls back to it.
      */
     override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
         super.postProcessMagicFilter(target, source)
@@ -368,7 +355,6 @@ class AddressCampaignValueEntityRest :
             source.extended["reloadUI"] = true
         }
         if (campaignId != null) {
-            userPrefService.putEntry(USER_PREF_AREA, USER_PREF_SELECTED_CAMPAIGN_ID, campaignId)
             source.extended["campaignId"] = campaignId
         }
         comparisonCampaignId?.let { source.extended["comparisonCampaignId"] = it }
@@ -476,9 +462,9 @@ class AddressCampaignValueEntityRest :
             }
             return dbObj
         }
-        // A value of the address may have been created meanwhile (by another user, on the React page, from a stale
-        // list): it is updated then, as the mass update does, instead of inserted a second time, which the unique
-        // constraint on address and campaign would refuse.
+        // A value of the address may have been created meanwhile (by another user, from a stale list): it is updated
+        // then, as the mass update does, instead of inserted a second time, which the unique constraint on address
+        // and campaign would refuse.
         val addressId = dto.addressId
         val campaignId = dto.addressCampaign?.id
         if (addressId != null && campaignId != null) {

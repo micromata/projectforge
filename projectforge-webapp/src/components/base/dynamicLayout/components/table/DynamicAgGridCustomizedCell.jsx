@@ -1,17 +1,9 @@
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import history from '../../../../../utilities/history';
 
-// Lazy load customized components to avoid circular dependencies
-const CustomizedImageDataPreview = lazy(() => import('../customized/components/ImageDataPreview'));
-const CustomizedAddressPhoneNumbers = lazy(() => import('../customized/components/CustomizedAddressPhoneNumbers'));
-
 /**
- * Custom AG Grid cell renderer for customized fields.
- * This component handles special field types that require custom rendering.
- *
- * Note: We use React.lazy to load customized components dynamically
- * to prevent circular dependencies with DynamicAgGrid.
+ * Custom AG Grid cell renderer for customized fields: an icon button with an onClick handler.
  */
 function DynamicAgGridCustomizedCell(props) {
     const {
@@ -57,24 +49,7 @@ function DynamicAgGridCustomizedCell(props) {
         );
     }
 
-    // Dispatch to the appropriate customized component based on field ID
-    let Component;
-    switch (field) {
-        case 'address.imagePreview':
-            Component = CustomizedImageDataPreview;
-            break;
-        case 'address.phoneNumbers':
-            Component = CustomizedAddressPhoneNumbers;
-            break;
-        default:
-            return <span>{`Customized field '${field}' not supported in AG Grid!`}</span>;
-    }
-
-    return (
-        <Suspense fallback={<span>...</span>}>
-            <Component data={data} />
-        </Suspense>
-    );
+    return <span>{`Customized field '${field}' not supported in AG Grid!`}</span>;
 }
 
 DynamicAgGridCustomizedCell.propTypes = {

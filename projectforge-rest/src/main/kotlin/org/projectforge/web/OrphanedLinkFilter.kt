@@ -186,7 +186,7 @@ class OrphanedLinkFilter : Filter {
         } else if (redirectRemovedCalendarPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a removed Wicket calendar page was redirected.
         } else if (redirectGoneReactPage(servletResponse, uri)) {
-            // Handled: a link to an old React page of a category whose way back is Wicket was redirected.
+            // Handled: a link to an old React page of a category without a React way back was redirected.
         } else if (redirectAddressPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to the React view or import page of the addresses was redirected.
         } else if (redirectDataTransferPage(servletRequest, servletResponse, uri)) {
@@ -281,7 +281,8 @@ class OrphanedLinkFilter : Filter {
 
     /**
      * The old React pages (list and form) of [GONE_REACT_CATEGORIES], migrated to projectforge-next. Not
-     * covered by [redirectMigratedPage]: their legacy app is Wicket, the way back. The React pages are gone
+     * covered by [redirectMigratedPage]: their legacy app is Wicket, the way back, or their React category isn't the
+     * one of the next pages (`addressCampaignValueLegacy`, `addressLegacy`). The React pages are gone
      * (their EntityRest serves no layout), so there is no escape hatch to let through. The precise segment
      * match keeps this from catching sibling pages like react/projectXyz or react/taskTree.
      * react/<category>/edit/<id>; no id means the add page.
@@ -289,10 +290,10 @@ class OrphanedLinkFilter : Filter {
      * @return true if the request was such a link and a redirect was sent.
      */
     private fun redirectGoneReactPage(response: ServletResponse, uri: String): Boolean {
-        val category = GONE_REACT_CATEGORIES.find { uri.endsWith("/react/$it") || uri.contains("/react/$it/") }
-            ?: return false
-        val isEdit = uri.endsWith("/react/$category/edit") || uri.contains("/react/$category/edit/")
-        val id = uri.substringAfter("/react/$category/edit/", "").substringBefore('/').toLongOrNull()
+        val (reactCategory, category) = GONE_REACT_CATEGORIES.entries
+            .find { (it, _) -> uri.endsWith("/react/$it") || uri.contains("/react/$it/") } ?: return false
+        val isEdit = uri.endsWith("/react/$reactCategory/edit") || uri.contains("/react/$reactCategory/edit/")
+        val id = uri.substringAfter("/react/$reactCategory/edit/", "").substringBefore('/').toLongOrNull()
         val target = when {
             id != null -> NextMigration.nextEditPage(category)!!.replace(NextMigration.ID_PLACEHOLDER, "$id")
             isEdit -> NextMigration.newEntryUrl(category)
@@ -607,8 +608,17 @@ class OrphanedLinkFilter : Filter {
         /** The system statistics, a tab of the system dashboard. */
         private const val SYSTEM_STATISTICS_ROUTE = "systemDashboard?tab=statistics"
 
-        /** Categories migrated from Wicket whose old React pages are gone, see [redirectGoneReactPage]. */
-        private val GONE_REACT_CATEGORIES = listOf("project", "task")
+        /**
+         * The React categories whose pages are gone, by the category of their next pages, see [redirectGoneReactPage]:
+         * categories migrated from Wicket, and the React pages kept for a while under a category of their own (the
+         * address campaign values and the address form they opened as a modal).
+         */
+        private val GONE_REACT_CATEGORIES = mapOf(
+            "project" to "project",
+            "task" to "task",
+            "addressLegacy" to "address",
+            "addressCampaignValueLegacy" to "addressCampaignValue",
+        )
 
         /** The dynamic React pages of the data transfer plugin, see [redirectDataTransferPage]. */
         private val DATATRANSFER_DYNAMIC_PAGES =

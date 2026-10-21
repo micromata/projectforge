@@ -2,8 +2,6 @@
 # May only shrink: never add new endpoints here, annotate them.
 org.projectforge.plugins.banking.BankAccountRecordImportPageRest#getForm
 org.projectforge.plugins.banking.BankingServicesRest#import
-org.projectforge.plugins.marketing.rest.AddressCampaignValuePagesRest#exportAsExcel
-org.projectforge.plugins.marketing.rest.AddressCampaignValuePagesRest#getItemAndLayout
 org.projectforge.plugins.merlin.rest.MerlinExecutionPageRest#downloadSerialExecutionTemplate
 org.projectforge.plugins.merlin.rest.MerlinExecutionPageRest#execute
 org.projectforge.plugins.merlin.rest.MerlinExecutionPageRest#getForm

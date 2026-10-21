@@ -58,8 +58,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * The layout-free REST endpoint of the addresses, serving the hand-built list, view and form of projectforge-next
- * (see components/features/address). Replaces the React UILayout `AddressPagesRest`; the React form is still served
- * for the address campaigns by [AddressLegacyPagesRest].
+ * (see components/features/address). Replaces the React UILayout `AddressPagesRest`.
  *
  * The services around an address (image, vCard, text parser, CardDAV) are served by [AddressServicesRest] and
  * [AddressImageServicesRest] under the same path, the VCF import by

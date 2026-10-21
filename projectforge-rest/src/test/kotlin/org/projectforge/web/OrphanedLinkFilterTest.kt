@@ -542,11 +542,11 @@ class OrphanedLinkFilterTest {
 
     /**
      * The addresses are next's: list and form by the generic redirect of a migrated React page, the view and the
-     * VCF import (dynamic React pages without a category of their own) by their own rule. The React form the
-     * address campaigns open as a modal lives under `addressLegacy` and is left alone, reload included.
+     * VCF import (dynamic React pages without a category of their own) by their own rule, the removed React form the
+     * address campaigns opened as a modal (`addressLegacy`) as a gone React page.
      */
     @Test
-    fun `address links are redirected to next, the form of the address campaigns is not`() {
+    fun `address links are redirected to next`() {
         Assertions.assertEquals("/next/address", redirectOf("/react/address"))
         Assertions.assertEquals("/next/address/42/edit", redirectOf("/react/address/edit/42"))
         Assertions.assertEquals("/next/address/42/edit", redirectOf("/react/address/edit/42", mapOf("modal" to "true")))
@@ -559,21 +559,29 @@ class OrphanedLinkFilterTest {
             redirectOf("/react/calendar/addressView/dynamic/42", mapOf("returnToCaller" to "/react/calendar")),
         )
         Assertions.assertEquals("/next/address/import", redirectOf("/react/addressImportUpload/dynamic"))
-        Assertions.assertNull(redirectOf("/react/addressLegacy/edit/5", mapOf("modal" to "true")))
+        Assertions.assertEquals("/next/address/5/edit", redirectOf("/react/addressLegacy/edit/5", mapOf("modal" to "true")))
         // Siblings sharing the prefix are pages of their own.
         Assertions.assertEquals("/next/addressBook", redirectOf("/react/addressBook"))
     }
 
     /**
-     * The address campaign values are next's, but their React page is kept for the running campaign under a
-     * category of its own (`addressCampaignValueLegacy`), which is left alone.
+     * The address campaign values are next's: the links of the former React page, under the original category and
+     * under the one it was kept under for a while (`addressCampaignValueLegacy`), are redirected.
      */
     @Test
-    fun `address campaign value links are redirected to next, the legacy page is not`() {
+    fun `address campaign value links are redirected to next`() {
         Assertions.assertEquals("/next/address-campaign-value", redirectOf("/react/addressCampaignValue"))
         Assertions.assertEquals("/next/address-campaign-value/42", redirectOf("/react/addressCampaignValue/edit/42"))
-        Assertions.assertNull(redirectOf("/react/addressCampaignValueLegacy"))
-        Assertions.assertNull(redirectOf("/react/addressCampaignValueLegacy/edit/42"))
+        Assertions.assertEquals("/next/address-campaign-value", redirectOf("/react/addressCampaignValueLegacy"))
+        Assertions.assertEquals(
+            "/next/address-campaign-value/42",
+            redirectOf("/react/addressCampaignValueLegacy/edit/42"),
+        )
+        // The escape hatch marker of the former way back leads to next as well: there is no React page any more.
+        Assertions.assertEquals(
+            "/next/address-campaign-value",
+            redirectOf("/react/addressCampaignValueLegacy", mapOf(NextMigration.ESCAPE_HATCH_PARAM to "1")),
+        )
     }
 
     /** Every other Wicket url lands on the next start page: no request reaches Wicket any more. */

@@ -3,7 +3,7 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.0.12",
-    "date" : "2026-10-21",
+    "date" : "2026-10-22",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
@@ -19,7 +19,7 @@
       "items" : [ {
         "title" : "Import der Eingangsrechnungen",
         "items" : [ "Nach dem Übernehmen bleibt die Importseite offen: Der Fortschritt wird dort angezeigt, und nach dem Import wird die Vorschau erneut abgeglichen." ]
-      }, "Kreditorenrechnungen: Die alte Upload-Seite des CSV-Imports ist entfernt; der Import läuft in der neuen Oberfläche.", "Jobmonitor auf die neue Oberfläche migriert: laufende und kürzlich beendete Hintergrundjobs mit ihrem Fortschritt, das Abbrechen wird vorher bestätigt. Nach einem Import geht es zurück zum Import, sobald sein Job fertig ist, aber nur auf eine Seite desselben Servers. Alte Links werden umgeleitet.", "Memos auf die neue Oberfläche migriert: Liste und Formular. Ein Memo sieht weiterhin nur, wem es gehört. Alte Links werden umgeleitet.", "Besucherbuch auf die neue Oberfläche migriert: Liste mit dem letzten Besuch und der Zahl der Besuche, Formular mit den Ansprechpartnern, Besuche im Dialog erfasst (vorbelegt mit heute und der aktuellen Uhrzeit). Das Löschen des letzten Besuchs schlägt nicht mehr fehl, und ein Besuch lässt sich keinem anderen Besucher mehr zuordnen. Alte Links werden umgeleitet." ]
+      }, "Kreditorenrechnungen: Die alte Upload-Seite des CSV-Imports ist entfernt; der Import läuft in der neuen Oberfläche.", "Jobmonitor auf die neue Oberfläche migriert: laufende und kürzlich beendete Hintergrundjobs mit ihrem Fortschritt, das Abbrechen wird vorher bestätigt. Nach einem Import geht es zurück zum Import, sobald sein Job fertig ist, aber nur auf eine Seite desselben Servers. Alte Links werden umgeleitet.", "Memos auf die neue Oberfläche migriert: Liste und Formular. Ein Memo sieht weiterhin nur, wem es gehört. Alte Links werden umgeleitet.", "Besucherbuch auf die neue Oberfläche migriert: Liste mit dem letzten Besuch und der Zahl der Besuche, Formular mit den Ansprechpartnern, Besuche im Dialog erfasst (vorbelegt mit heute und der aktuellen Uhrzeit). Das Löschen des letzten Besuchs schlägt nicht mehr fehl, und ein Besuch lässt sich keinem anderen Besucher mehr zuordnen. Alte Links werden umgeleitet.", "Die klassische Version der Adresskampagnen-Werte (Liste, Massenänderung und das von dort geöffnete Adressformular) wurde entfernt, die neue Oberfläche deckt alles ab. Alte Links werden umgeleitet." ]
     }, {
       "type" : "fixed",
       "items" : [ {

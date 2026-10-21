@@ -3,7 +3,7 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.0.12",
-    "date" : "2026-10-21",
+    "date" : "2026-10-22",
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
@@ -19,7 +19,7 @@
       "items" : [ {
         "title" : "Import of incoming invoices",
         "items" : [ "After committing, the import page stays open: the progress is shown there and the preview is reconciled again once the import is done." ]
-      }, "Creditor invoices: the old upload page of the CSV import has been removed; the import runs in the new interface.", "Job monitor migrated to the new interface: running and recently terminated background jobs with their progress, cancelling asks for confirmation first. After an import the page returns to the import once its job has finished, but only to a page of the same server. Old links are redirected.", "Memos migrated to the new interface: list and form. A memo stays visible to its owner only. Old links are redirected.", "Visitor book migrated to the new interface: list with the latest visit and the number of visits, form with the contact persons, visits entered in a dialog (preset with today and the current time). Deleting the last visit of a visitor no longer fails, and a visit can no longer be assigned to another visitor. Old links are redirected." ]
+      }, "Creditor invoices: the old upload page of the CSV import has been removed; the import runs in the new interface.", "Job monitor migrated to the new interface: running and recently terminated background jobs with their progress, cancelling asks for confirmation first. After an import the page returns to the import once its job has finished, but only to a page of the same server. Old links are redirected.", "Memos migrated to the new interface: list and form. A memo stays visible to its owner only. Old links are redirected.", "Visitor book migrated to the new interface: list with the latest visit and the number of visits, form with the contact persons, visits entered in a dialog (preset with today and the current time). Deleting the last visit of a visitor no longer fails, and a visit can no longer be assigned to another visitor. Old links are redirected.", "The classic version of the address campaign values (list, mass update and the address form opened from it) has been removed; the new interface covers everything. Old links are redirected." ]
     }, {
       "type" : "fixed",
       "items" : [ {

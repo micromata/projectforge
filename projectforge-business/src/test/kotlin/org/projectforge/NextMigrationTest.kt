@@ -85,26 +85,17 @@ class NextMigrationTest {
     }
 
     /**
-     * The address campaign values offer the way back to their React page, which is kept under a category of its
-     * own for the running campaign; a new value has no React url of its own (it needs a row of the list).
+     * The address campaign values: list, form and mass update are next's, the React page is gone, so there is no
+     * way back, but a bookmarked React link is still redirected onto next.
      */
     @Test
-    fun `the address campaign values lead back to the legacy category`() {
+    fun `the address campaign values are next's and offer no way back`() {
         Assertions.assertEquals("next/address-campaign-value", NextMigration.listUrl("addressCampaignValue"))
-        Assertions.assertEquals("react/addressCampaignValueLegacy", NextMigration.legacyListUrl("addressCampaignValue"))
-        Assertions.assertEquals(
-            "react/addressCampaignValueLegacy/edit/:id",
-            NextMigration.legacyEditPage("addressCampaignValue"),
-        )
-        Assertions.assertEquals("react/addressCampaignValueLegacy", NextMigration.legacyNewEntryUrl("addressCampaignValue"))
-        Assertions.assertFalse(NextMigration.isMigrated("addressCampaignValueLegacy"))
-        // The old urls are next's, the legacy category's pages show no hint (and aren't redirected, see
-        // OrphanedLinkFilterTest).
+        Assertions.assertNull(NextMigration.legacyListUrl("addressCampaignValue"))
+        Assertions.assertNull(NextMigration.legacyEditPage("addressCampaignValue"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("addressCampaignValue"))
         Assertions.assertTrue(NextMigration.hasNextVersion(NextMigration.LegacyApp.REACT, "addressCampaignValue"))
-        Assertions.assertFalse(NextMigration.hasNextVersion(NextMigration.LegacyApp.REACT, "addressCampaignValueLegacy"))
-        Assertions.assertFalse(
-            NextMigration.hasNextVersion(NextMigration.LegacyApp.REACT, "addressCampaignValueLegacy/edit/42")
-        )
+        Assertions.assertTrue(NextMigration.hasNextVersion(NextMigration.LegacyApp.REACT, "addressCampaignValue/edit/42"))
         val link = NextMigration.orphanedLinks().single { it.category == "addressCampaignValue" }
         Assertions.assertEquals("react/addressCampaignValue", link.legacyListPath)
         Assertions.assertEquals("react/addressCampaignValue/edit", link.legacyEditPath)
@@ -216,9 +207,8 @@ class NextMigrationTest {
     }
 
     /**
-     * The addresses: list, view and form are next's, the form a sub route of the view. There is no way back (the
-     * React form left for the address campaigns has a category of its own, `addressLegacy`), but a bookmarked React
-     * link is still redirected onto next.
+     * The addresses: list, view and form are next's, the form a sub route of the view. There is no way back, but a
+     * bookmarked React link is still redirected onto next.
      */
     @Test
     fun `the address pages are next's and offer no way back`() {
@@ -227,8 +217,6 @@ class NextMigrationTest {
         Assertions.assertEquals("next/address/new", NextMigration.newEntryUrl("address"))
         Assertions.assertNull(NextMigration.legacyListUrl("address"))
         Assertions.assertNull(NextMigration.legacyEditPage("address"))
-        Assertions.assertFalse(NextMigration.isMigrated("addressLegacy"))
-        Assertions.assertEquals("react/addressLegacy/edit/:id", NextMigration.standardEditPage("addressLegacy"))
         val link = NextMigration.orphanedLinks().single { it.category == "address" }
         Assertions.assertEquals("react/address", link.legacyListPath)
         Assertions.assertEquals("react/address/edit", link.legacyEditPath)
