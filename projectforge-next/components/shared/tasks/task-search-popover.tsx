@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Search01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import {
   Popover,
   PopoverContent,
@@ -59,18 +60,21 @@ export function TaskSearchPopover({
     // allow-list, so its wheel events were swallowed (the keyboard still scrolled it via
     // scrollIntoView). A modal popover owns the lock while open and allows its own content to scroll.
     <Popover open={open} onOpenChange={setOpen} modal>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          disabled={disabled}
-          aria-label={`${t("search._")} ${ariaLabel}`}
-          className="size-7 shrink-0"
-        >
-          <HugeiconsIcon icon={Search01Icon} size={14} />
-        </Button>
-      </PopoverTrigger>
+      {/* Wrapping the trigger, not wrapped by it — `asChild` has to reach a DOM element. */}
+      <HintTooltip text={t("search._")}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            disabled={disabled}
+            aria-label={`${t("search._")} ${ariaLabel}`}
+            className="size-7 shrink-0"
+          >
+            <HugeiconsIcon icon={Search01Icon} size={14} />
+          </Button>
+        </PopoverTrigger>
+      </HintTooltip>
       {/* A hit is a whole task path, unreadable at the one-icon trigger's width: open wide so the
           path reads on one or two lines, but clamp to the space Radix has toward the viewport edge
           so it never runs off-screen when the field sits near the right border. */}

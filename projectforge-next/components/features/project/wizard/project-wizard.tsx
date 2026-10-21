@@ -483,6 +483,11 @@ export function ProjectWizard() {
           ? t("project.wizard.finish._")
           : t("project.wizard.finish.customer")
       }
+      runningLabel={
+        withProject
+          ? t("project.wizard.running._")
+          : t("project.wizard.running.customer")
+      }
     />
   );
 }

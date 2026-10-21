@@ -4302,6 +4302,10 @@
         "existing": "existing",
         "projectElement": "Structure element of the project",
         "title": "What the wizard set up"
+      },
+      "running": {
+        "_": "Setting up the project …",
+        "customer": "Creating the customer …"
       }
     }
   },
@@ -4316,7 +4320,7 @@
     "deleteRowQuestion": "Do you really want to remove this entry? It is deleted when the form is saved.",
     "forceDeleteQuestion": "ATTENTION!!! Do you really want to destroy this object including all history entries? This option is irrevocable!!!!!",
     "leaveUnsavedChanges": "There are unsaved changes. Do you really want to leave this page?",
-    "markAsDeletedQuestion": "Do you want to mark this object as deleted?"
+    "markAsDeletedQuestion": "Do you want to mark this object as deleted? It can be restored later."
   },
   "rating": "Rating",
   "recursive": "recursive",

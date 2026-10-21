@@ -93,7 +93,17 @@ test.describe("project wizard", { tag: "@lane-task" }, () => {
       })
     ).toBeVisible({ timeout: 20_000 });
     // Nothing is filled in, so nothing is created: the server names the missing element at step 3.
+    // The answer is held back a little, so the overlay of the running request can be seen.
+    await page.route("**/rs/projectWizard/execute", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1_500));
+      await route.continue();
+    });
     await finish.click();
+    const running = page
+      .getByRole("status")
+      .filter({ hasText: format.t("project.wizard.running._") });
+    await expect(running).toBeVisible();
+    await expect(running).toBeHidden({ timeout: 20_000 });
     await expect(
       page
         .getByRole("alert")

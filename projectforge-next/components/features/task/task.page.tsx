@@ -6,6 +6,7 @@ import {
   taskWizardHref,
 } from "@/components/shared/tasks/task-routes";
 import { TASK_METADATA } from "@/lib/metadata/task.generated";
+import { TASK_STRUCTURE_QUERY_KEYS } from "@/lib/rs/task";
 import { definePage } from "@/lib/page-def/define-page";
 import { accessListHref } from "@/lib/access-links";
 import { timesheetAddHref, timesheetListHref } from "@/lib/timesheet-links";
@@ -71,6 +72,8 @@ export const TASK_PAGE = definePage<
   metadata: TASK_METADATA,
   route: TASK_ROUTE,
   queryKey: TASK_LIST_QUERY_KEY,
+  // A rename or move changes the breadcrumb of every task picker showing this task or a descendant.
+  extraInvalidateKeys: TASK_STRUCTURE_QUERY_KEYS,
   categoryKey: "menu.taskTree",
   // „List view", as the tree page is headed „Tree view": the two perspectives name themselves the
   // same way they name each other (see TaskPerspectiveLink).
