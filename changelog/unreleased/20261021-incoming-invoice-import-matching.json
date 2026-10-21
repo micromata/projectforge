@@ -24,8 +24,12 @@
       "de": "Ein Import mit weniger Positionen als die gespeicherte Rechnung entfernt nur die überzähligen Positionen; zuvor wurde die ganze Rechnung gelöscht."
     },
     {
-      "en": "A position without paid date takes that of the other positions of its invoice before that of a credit-card payment offset (the invoice was faulty with different paid dates).",
-      "de": "Eine Position ohne Zahldatum übernimmt das der anderen Positionen ihrer Rechnung vor dem einer Kreditkarten-Gegenbuchung (die Rechnung war mit unterschiedlichen Zahldaten fehlerhaft)."
+      "en": "The position import takes the paid date (the latest one if the positions differ, with a warning) and sets the amount paid to the gross sum of the invoice, less discount; a missing paid date keeps the stored one, as does a stored amount paid. Before, only the header import set the paid date.",
+      "de": "Der Positions-Import übernimmt das Zahldatum (bei unterschiedlichen Daten der Positionen das späteste, mit Warnung) und setzt den Zahlbetrag auf die Bruttosumme der Rechnung abzüglich Skonto; ein fehlendes Zahldatum lässt das gespeicherte stehen, ebenso einen gespeicherten Zahlbetrag. Bisher setzte nur der Kopfdaten-Import das Zahldatum."
+    },
+    {
+      "en": "A position without cost units in the import keeps its stored cost assignment; it was shown as modified after every import.",
+      "de": "Eine Position ohne Kostenstellen im Import behält ihre gespeicherte Kostenzuweisung; sie wurde nach jedem Import als modifiziert angezeigt."
     },
     {
       "en": "The comparison with the stored invoices is much faster, and the preview of a large file shows without a long wait.",
