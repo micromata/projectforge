@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
+import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.rest.importer.ImportPairEntry
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,7 +40,8 @@ import java.time.LocalDate
 /**
  * The deletions of [EingangsrechnungImportJob]: an import with fewer positions than the stored invoice selects only
  * the surplus positions (the others are unmodified). They must be removed from the invoice; the job deleted the
- * whole invoice before, so it was missing after the import.
+ * whole invoice before, so it was missing after the import. And an import row without cost units keeps the stored
+ * cost assignments.
  */
 class EingangsrechnungImportJobTest : AbstractTestBase() {
     @Autowired
@@ -72,7 +74,25 @@ class EingangsrechnungImportJobTest : AbstractTestBase() {
         assertTrue(eingangsrechnungDao.find(id)!!.deleted)
     }
 
-    private fun insertInvoice(positions: Int): Long {
+    @Test
+    fun `position without cost units in the import keeps its cost assignment`() {
+        logon(TEST_FINANCE_USER)
+        val id = insertInvoice(positions = 1, withKostZuweisung = true)
+        val read = EingangsrechnungPosImportDTO().also {
+            it.isPositionBasedImport = true
+            it.positionNummer = 1
+            it.kreditor = "Import job test"
+            it.datum = LocalDate.now()
+            it.netSum = BigDecimal("20.00")
+            it.taxRate = BigDecimal.ZERO
+        }
+        newJob().importInvoiceGroup(listOf(ImportPairEntry(read = read, stored = storedPosition(id, 1).stored)))
+        val position = eingangsrechnungDao.find(id)!!.positionen!!.single()
+        assertEquals(0, BigDecimal("20.00").compareTo(position.einzelNetto), "The position itself is updated.")
+        assertEquals(1, position.kostZuweisungen?.size, "The stored cost assignment is kept.")
+    }
+
+    private fun insertInvoice(positions: Int, withKostZuweisung: Boolean = false): Long {
         val invoice = EingangsrechnungDO()
         invoice.datum = LocalDate.now()
         invoice.faelligkeit = LocalDate.now()
@@ -81,6 +101,9 @@ class EingangsrechnungImportJobTest : AbstractTestBase() {
             invoice.addPosition(EingangsrechnungsPositionDO().also { pos ->
                 pos.menge = BigDecimal.ONE
                 pos.einzelNetto = BigDecimal.TEN
+                if (withKostZuweisung) {
+                    pos.addKostZuweisung(KostZuweisungDO().also { it.netto = BigDecimal.TEN })
+                }
             })
         }
         return eingangsrechnungDao.insert(invoice)

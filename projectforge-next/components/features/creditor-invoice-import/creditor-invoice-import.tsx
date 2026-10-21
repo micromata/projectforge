@@ -8,8 +8,8 @@ import { CREDITOR_INVOICE_IMPORT_COLUMNS } from "./columns";
 
 /**
  * The incoming-invoice (Kreditor) CSV/DATEV import. A thin consumer of the generic {@link ImportFeature}:
- * it only supplies the [ImportConfig] — the REST base (`incomingInvoiceImport`), the column layout and
- * where a commit returns to. Every screen, mutation and job handoff lives in the shared module, so the
+ * it only supplies the [ImportConfig] — the REST base (`incomingInvoiceImport`) and the column layout. A commit
+ * stays on the page, so the next file can be reconciled right away. Every screen, mutation and job handoff lives in the shared module, so the
  * address and banking imports will be the same handful of lines with their own config.
  */
 export function CreditorInvoiceImport() {
@@ -22,6 +22,7 @@ export function CreditorInvoiceImport() {
       columns: CREDITOR_INVOICE_IMPORT_COLUMNS,
       fileAccept: ".csv",
       returnRoute: "/creditor-invoice",
+      stayAfterCommit: true,
     }),
     []
   );

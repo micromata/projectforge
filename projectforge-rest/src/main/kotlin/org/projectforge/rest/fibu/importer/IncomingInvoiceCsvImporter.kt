@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.dto.Konto
 import org.projectforge.rest.importer.*
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
@@ -630,9 +631,10 @@ class IncomingInvoiceCsvImporter(
             return
         }
 
+        // Not zahlBetrag: it's calculated per invoice (EingangsrechnungImportStorage.enrichPaymentOfPositionBasedImport).
         val invoiceHeaderFields = listOf(
             "kreditor", "konto", "referenz", "datum", "faelligkeit",
-            "bezahlDatum", "currency", "zahlBetrag", "discountMaturity",
+            "bezahlDatum", "currency", "discountMaturity",
             "discountPercent", "iban", "bic", "receiver", "paymentType",
             "customernr", "bemerkung"
         )
@@ -658,6 +660,16 @@ class IncomingInvoiceCsvImporter(
                 positions.forEach { it.currency = EUR }
                 val warningMessage =
                     "RENR '$renr': Unterschiedliche Währungen ${distinctValues.joinToString(", ")}, $EUR übernommen."
+                log.info { warningMessage }
+                importStorage.addWarning(warningMessage)
+                return
+            }
+            if (fieldName == "bezahlDatum") {
+                // Positions paid on different days: the invoice is paid with the last one.
+                val latest = distinctValues.maxOf { it as LocalDate }
+                positions.forEach { it.bezahlDatum = latest }
+                val warningMessage =
+                    "RENR '$renr': Unterschiedliche Zahldaten ${distinctValues.joinToString(", ")}, $latest übernommen."
                 log.info { warningMessage }
                 importStorage.addWarning(warningMessage)
                 return

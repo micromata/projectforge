@@ -1,0 +1,11 @@
+{
+  "type": "changed",
+  "en": "Import of incoming invoices",
+  "de": "Import der Eingangsrechnungen",
+  "items": [
+    {
+      "en": "After committing, the import page stays open: the progress is shown there and the preview is reconciled again once the import is done.",
+      "de": "Nach dem Übernehmen bleibt die Importseite offen: Der Fortschritt wird dort angezeigt, und nach dem Import wird die Vorschau erneut abgeglichen."
+    }
+  ]
+}
