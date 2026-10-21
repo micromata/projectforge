@@ -37,7 +37,6 @@ import org.projectforge.rest.fibu.importer.DatevAccountImportRest
 import org.projectforge.rest.fibu.importer.DatevRecordImportRest
 import org.projectforge.rest.fibu.importer.EmployeeSalaryImportRest
 import org.projectforge.rest.fibu.importer.IncomingInvoiceImportRest
-import org.projectforge.rest.fibu.importer.IncomingInvoicePosImportPageRest
 import org.projectforge.rest.fibu.kost.Kost1EntityRest
 import org.projectforge.rest.fibu.kost.Kost2EntityRest
 import org.projectforge.rest.hr.HRPlanningEntityRest
@@ -152,8 +151,6 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       DatevAccountImportRest::class.java,
       EmployeeSalaryImportRest::class.java,
       IncomingInvoiceImportRest::class.java,
-      IncomingInvoicePosImportPageRest::class.java,
-      EingangsrechnungUploadPageRest::class.java,
     )
     // The project wizard creates customer, project, groups and their access rights in one go:
     registerShortCutMethods(
@@ -190,8 +187,6 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       RechnungMultiSelectedPageRest::class.java,
       EmployeeSalaryImportRest::class.java,
       IncomingInvoiceImportRest::class.java,
-      IncomingInvoicePosImportPageRest::class.java,
-      EingangsrechnungUploadPageRest::class.java,
       CurrencyPairEntityRest::class.java,
     )
 

@@ -72,7 +72,6 @@ org.projectforge.rest.core.AbstractPagesRest#requestInitialList
 org.projectforge.rest.core.AbstractPagesRest#resetGridState
 org.projectforge.rest.core.AbstractPagesRest#watchFields
 org.projectforge.rest.fibu.EingangsrechnungMultiSelectedPageRest#exportTransfers
-org.projectforge.rest.fibu.importer.IncomingInvoicePosImportPageRest#getForm
 org.projectforge.rest.GroupEntityRest#createGid
 org.projectforge.rest.GroupEntityRest#exportAsExcel
 org.projectforge.rest.HistoryEntryUserCommentModalRest#append
@@ -84,9 +83,6 @@ org.projectforge.rest.importer.AbstractImportPageRest#cancelAndGetUrl
 org.projectforge.rest.importer.AbstractImportPageRest#import
 org.projectforge.rest.importer.AbstractImportPageRest#reconcile
 org.projectforge.rest.importer.AbstractImportPageRest#watchFields
-org.projectforge.rest.importer.AbstractImportUploadPageRest#cancel
-org.projectforge.rest.importer.AbstractImportUploadPageRest#getForm
-org.projectforge.rest.importer.AbstractImportUploadPageRest#upload
 org.projectforge.rest.IndexRest#getTranslations
 org.projectforge.rest.jobs.JobsMonitorPageRest#cancelJob
 org.projectforge.rest.jobs.JobsMonitorPageRest#getForm

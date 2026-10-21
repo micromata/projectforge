@@ -429,7 +429,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Mehrfachauswahl (`incomingInvoiceSelected/exportTransfers`) – eine eigene SEPA-Seite hatte auch
   Wicket nie. Der CSV-Import läuft über `next/creditor-invoice-import` (`IncomingInvoiceImportRest`,
   `ImportFeature`); der alte React-Upload (`EingangsrechnungUploadPageRest` →
-  `IncomingInvoicePosImportPageRest`) ist nur noch als Rückweg verlinkt.
+  `IncomingInvoicePosImportPageRest`) ist entfernt.
 - **Kostenträger 1/2** (`cost1`, `cost2`) – der Excel-Export der Wicket-Listen (`Kost1ListPage`/
   `Kost2ListPage`, „exportAsXls") ist als `Kost1EntityRest`/`Kost2EntityRest.exportAsExcel` portiert
   (gleiche Spalten, gefilterte Liste, `.xlsx`); Knopf über `PageDef.listActions`. Die Wicket-Seiten

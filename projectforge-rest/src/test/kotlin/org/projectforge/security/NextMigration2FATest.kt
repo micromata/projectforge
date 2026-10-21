@@ -89,15 +89,14 @@ class NextMigration2FATest {
    * and the finance and admin pages added later.
    */
   private val sensitiveOnRead = listOf(
-    "/rs/importIncomingInvoicePos/upload", "/rs/uploadIncomingInvoices/upload",
+    "/rs/incomingInvoiceImport/state",
     "/rs/currencyPair/list", "/rs/currencyPair/rate/onlineRates",
     "/rs/adminCaches/list", "/rs/sipgate/dynamic", "/rs/taskWizard/execute",
   )
 
   /** As [sensitiveOnRead], gated on writing. */
   private val sensitiveOnWrite = listOf(
-    "/rs/employeeSalaryImport/upload", "/rs/incomingInvoiceImport/upload", "/rs/importIncomingInvoicePos/upload",
-    "/rs/uploadIncomingInvoices/upload",
+    "/rs/employeeSalaryImport/upload", "/rs/incomingInvoiceImport/upload",
     "/rs/currencyPair/${RestPaths.SAVE_OR_UDATE}", "/rs/currencyPair/rate/update",
     "/rs/customerGroups/save", "/rs/projectWizard/execute",
     "/rs/taskWizard/execute", "/rs/adminCaches/refresh", "/rs/adminCaches/terminate", "/rs/adminCaches/refreshAll",

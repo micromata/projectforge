@@ -9,6 +9,9 @@
       "type" : "improved",
       "items" : [ "Strukturelement-Felder: Ein Klick auf das gewählte Strukturelement öffnet den Baum, wie der Stift-Button. Auftragspositionen zeigen den Verbrauchsbalken ihres Strukturelements, der zu dessen Zeitberichten führt.", "Benutzerliste: Deaktivierte Benutzer:innen werden durchgestrichen angezeigt." ]
     }, {
+      "type" : "changed",
+      "items" : [ "Kreditorenrechnungen: Die alte Upload-Seite des CSV-Imports ist entfernt; der Import läuft in der neuen Oberfläche." ]
+    }, {
       "type" : "fixed",
       "items" : [ {
         "title" : "Import der Eingangsrechnungen",

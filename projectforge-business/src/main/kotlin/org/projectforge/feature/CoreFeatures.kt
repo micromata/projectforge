@@ -64,7 +64,7 @@ object CoreFeatures {
         MenuItemDefId.GANTT to Extras(rest = listOf("ganttServices")),
         MenuItemDefId.HR_VIEW to Extras(rest = listOf("hrView")),
         MenuItemDefId.INCOMING_INVOICE_LIST to Extras(
-            rest = listOf("incomingInvoiceImport", "importIncomingInvoicePos", "uploadIncomingInvoices"),
+            rest = listOf("incomingInvoiceImport"),
             next = listOf("creditor-invoice-import"),
         ),
         // The job monitor's jobs are polled by every page (toasts of the running jobs).

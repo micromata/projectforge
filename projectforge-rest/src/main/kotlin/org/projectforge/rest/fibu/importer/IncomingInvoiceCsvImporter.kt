@@ -23,13 +23,10 @@
 
 package org.projectforge.rest.fibu.importer
 
-import jakarta.servlet.http.HttpServletRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.rest.core.ExpiringSessionAttributes
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.Konto
 import org.projectforge.rest.importer.*
 
@@ -43,7 +40,6 @@ private val log = KotlinLogging.logger {}
  * - Custom field processing during CSV parsing (periods, DATEV accounts, etc.)
  * - Post-processing for each row (KOST lookups, VAT calculations)
  * - Final consolidation and validation by invoice number
- * - Session storage for web navigation
  */
 class IncomingInvoiceCsvImporter(
     private val kostCache: KostCache,
@@ -742,31 +738,5 @@ class IncomingInvoiceCsvImporter(
                 "credit note", "credit"
             )
         )
-
-        /**
-         * Stores the import storage in session and returns URL to navigate to import page.
-         * Moved from IncomingInvoicePosCsvParser for consolidation.
-         */
-        fun storeInSessionAndGetNavigationUrl(
-            request: HttpServletRequest,
-            storage: EingangsrechnungImportStorage
-        ): String {
-            val sessionAttributeName =
-                AbstractImportPageRest.getSessionAttributeName(IncomingInvoicePosImportPageRest::class.java)
-            log.info { "Storing import storage in session with key: $sessionAttributeName" }
-            log.info { "Storage contains ${storage.readInvoices.size} invoices, ${storage.pairEntries.size} pair entries" }
-
-            ExpiringSessionAttributes.setAttribute(
-                request,
-                sessionAttributeName,
-                storage,
-                20 // TTL in minutes
-            )
-
-            val navigationUrl =
-                PagesResolver.getDynamicPageUrl(IncomingInvoicePosImportPageRest::class.java, absolute = true)
-            log.info { "Generated navigation URL: $navigationUrl" }
-            return navigationUrl
-        }
     }
 }

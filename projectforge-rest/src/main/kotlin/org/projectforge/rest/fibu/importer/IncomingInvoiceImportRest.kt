@@ -41,11 +41,11 @@ import java.io.InputStream
 private val log = KotlinLogging.logger {}
 
 /**
- * The layout-free, JSON returning incoming-invoice (Kreditor) CSV import, the hand built sibling of the
- * UILayout based [EingangsrechnungUploadPageRest] / [IncomingInvoicePosImportPageRest] pair.
+ * The layout-free, JSON returning incoming-invoice (Kreditor) CSV import of next/creditor-invoice-import. It
+ * replaced the UILayout based React upload (`uploadIncomingInvoices` → `importIncomingInvoicePos`).
  *
  * It is a thin concrete subclass of [AbstractImportRest]: the DATEV CSV parsing, the access right and the
- * job enqueueing are lifted from the two legacy classes and call the same collaborators; everything else —
+ * job enqueueing call the collaborators of the incoming-invoice import; everything else —
  * the endpoints and the [org.projectforge.rest.importer.ImportView] wire shape — lives in the base.
  *
  * @author Kai Reinhard
@@ -109,8 +109,7 @@ class IncomingInvoiceImportRest :
 
     companion object {
         /**
-         * DATEV CSV field mappings with German column names and formatting, lifted verbatim from
-         * [EingangsrechnungUploadPageRest].
+         * DATEV CSV field mappings with German column names and formatting.
          */
         internal val DATEV_IMPORT_SETTINGS = """
             encoding=UTF-8

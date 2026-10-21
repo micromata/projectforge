@@ -9,6 +9,9 @@
       "type" : "improved",
       "items" : [ "Structure element fields: a click on the selected structure element opens the tree, like the pencil button. Order positions show the consumption bar of their structure element, which leads to its time sheets.", "User list: deactivated users are shown struck through." ]
     }, {
+      "type" : "changed",
+      "items" : [ "Creditor invoices: the old upload page of the CSV import has been removed; the import runs in the new interface." ]
+    }, {
       "type" : "fixed",
       "items" : [ {
         "title" : "Import of incoming invoices",
