@@ -225,11 +225,11 @@ open class SipgateDirectCallService {
           callerId = NumberHelper.formatPhonenumber(callerString)
         }
       }
-      val caller = if (number?.endpointId != null) {
-        number.endpointId!!
-      } else {
-        getFullNumber(basePhoneNumber = basePhoneNumber, number = callerString) ?: defaultDevice
-      }
+      // sipgate expects a phoneline/device id or a phone number as caller, never the display string
+      // "<alias> (<id>)": a device without an assigned number (e.g. an external phone) calls via its own id.
+      val caller = number?.endpointId
+        ?: device?.id
+        ?: getFullNumber(basePhoneNumber = basePhoneNumber, number = callerString) ?: defaultDevice
       if (callerId == null) {
         log.error { "No caller-id found for user '${user.username}' and callerId='$callerId'." }
         return null
