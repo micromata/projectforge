@@ -33,12 +33,12 @@ import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.core.ValidationUtils
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Visitorbook
 import org.projectforge.rest.dto.VisitorbookEntry
 import org.projectforge.ui.ResponseAction
-import org.projectforge.rest.core.ValidationUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
