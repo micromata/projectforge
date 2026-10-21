@@ -7,10 +7,13 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "improved",
-      "items" : [ "User list: deactivated users are shown struck through." ]
+      "items" : [ "Structure element fields: a click on the selected structure element opens the tree, like the pencil button. Order positions show the consumption bar of their structure element, which leads to its time sheets.", "User list: deactivated users are shown struck through." ]
     }, {
       "type" : "fixed",
-      "items" : [ "Number ranges: a range with customers and without configured segments shows its project and cost unit numbers by its digits (e.g. 7.0001.0 for one project digit) instead of 7.000.10.", "Project wizard: tabs and a pinned action bar as on the edit pages; the action step lists what will be set up (new customer, new project, path of the new structure elements, access rights) and what is still missing; the finish button is always clickable, and a progress bar shows while the setup runs." ]
+      "items" : [ {
+        "title" : "Import of incoming invoices",
+        "items" : [ "An imported invoice no longer overwrites another stored invoice of the same creditor (number, date and currency of an older invoice were replaced).", "Credit-card payment offsets (credit note on a credit-card clearing account) are skipped; their date becomes the paid date of the invoice if it has none. Other credit notes are imported with a negative amount.", "A header-only import no longer offers stored invoices for deletion; a position import only those within its periods.", "Warnings for a paid date before the invoice date and for invoices with EUR and another currency (EUR is taken)." ]
+      }, "Number ranges: a range with customers and without configured segments shows its project and cost unit numbers by its digits (e.g. 7.0001.0 for one project digit) instead of 7.000.10.", "Project wizard: tabs and a pinned action bar as on the edit pages; the action step lists what will be set up (new customer, new project, path of the new structure elements, access rights) and what is still missing; the finish button is always clickable, and a progress bar shows while the setup runs.", "Structure element fields show the new name and path right after a task was renamed or moved, without a reload." ]
     } ]
   },
   "groups" : [ {

@@ -4320,7 +4320,7 @@
     "deleteRowQuestion": "Soll dieser Eintrag wirklich entfernt werden? Er wird beim Speichern des Formulars gelöscht.",
     "forceDeleteQuestion": "ACHTUNG!!! Soll das Object tatsächlich uwiderruflich gelöscht werden? Es werden auch alle Einträge aus der Änderungshistorie zu diesem Object unwiderruflich gelöscht!!!!!!",
     "leaveUnsavedChanges": "Es gibt ungespeicherte Änderungen. Soll die Seite trotzdem verlassen werden?",
-    "markAsDeletedQuestion": "Soll das Objekt als gelöscht markiert werden?"
+    "markAsDeletedQuestion": "Soll das Objekt als gelöscht markiert werden? Es kann später wiederhergestellt werden."
   },
   "rating": "Bewertung",
   "recursive": "rekursiv",
