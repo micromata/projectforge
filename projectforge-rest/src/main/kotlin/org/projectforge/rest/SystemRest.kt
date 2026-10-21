@@ -33,6 +33,7 @@ import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookDao
 import org.projectforge.business.book.BookStatus
 import org.projectforge.business.jobs.CronSanityCheckJob
+import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.system.SystemService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
@@ -122,6 +123,9 @@ class SystemRest {
     @Autowired
     private lateinit var fileStoreMigrationService: FileStoreMigrationService
 
+    @Autowired
+    private lateinit var sipgateConfiguration: SipgateConfiguration
+
     /**
      * The only implementation ([org.projectforge.i18n.I18nKeysUsage]) lives in projectforge-application, which is not
      * on the classpath of every (plugin/wicket) test context. Autowire it optionally so those Spring test contexts can
@@ -155,6 +159,8 @@ class SystemRest {
         val alertMessageSampleRelease: String,
         /** True, if all files are stored by the file store (projectforge.files.store=db), false: JCR. */
         val allFilesInFileStore: Boolean,
+        /** True, if Sipgate is configured: the System page offers its actions then (SipgateAdminRest). */
+        val sipgateConfigured: Boolean,
     )
 
     /** A plain result message, shown by the frontend as a success toast. */
@@ -190,6 +196,7 @@ class SystemRest {
                 nextRelease(),
             ),
             allFilesInFileStore = fileStoreMigrationService.allFilesInFileStore,
+            sipgateConfigured = sipgateConfiguration.isConfigured(),
         )
     }
 

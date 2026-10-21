@@ -29,6 +29,7 @@ import org.projectforge.common.StringHelper
 import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
@@ -217,6 +218,14 @@ open class SipgateService {
         }
         log.info { "Got ${result.size} entries of $entityName from Sipgate." }
         return result
+      } catch (ex: SipgateClient.HttpException) {
+        if ((ex.httpStatus as? HttpStatusCode)?.value() == HttpStatus.FORBIDDEN.value()) {
+          // Expected if the token lacks the scope of this entity type (e.g. addresses): no stack trace.
+          log.warn { "No access to entries of type $entityName in Sipgate (403 Forbidden, missing scope of the token?)." }
+        } else {
+          log.error(ex) { "Can't read entries of type $entityName: ${ex.message}" }
+        }
+        return mutableListOf()
       } catch (ex: Exception) {
         log.error(ex) { "Can't read entries of type $entityName (may-be no access): ${ex.message}" }
         return mutableListOf()

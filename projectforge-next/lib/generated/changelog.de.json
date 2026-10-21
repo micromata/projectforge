@@ -9,11 +9,11 @@
       "type" : "added",
       "items" : [ {
         "title" : "Konfigurationsparameter mit JSON-Werten",
-        "items" : [ "Umschalter zwischen Formular und JSON-Text, der auch direkt bearbeitet werden kann.", "Versionen vergleichen: gespeicherter, bearbeiteter und jeder frühere Wert aus der Historie, zeilenweise.", "JSON-Werte werden kompakt gespeichert; Werte bis 100.000 Zeichen lassen das Speichern nicht mehr an der Historie scheitern." ]
+        "items" : [ "Umschalter zwischen Formular und JSON-Text, der auch direkt bearbeitet werden kann.", "Versionen vergleichen: gespeicherter, bearbeiteter und jeder frühere Wert aus der Historie, zeilenweise.", "Kundengruppen und Business Units: ebenfalls Versionen vergleichen (im gespeicherten Format, mit IDs).", "JSON-Werte werden kompakt gespeichert; Werte bis 100.000 Zeichen lassen das Speichern nicht mehr an der Historie scheitern." ]
       } ]
     }, {
       "type" : "improved",
-      "items" : [ "Strukturelement-Felder: Ein Klick auf das gewählte Strukturelement öffnet den Baum, wie der Stift-Button. Auftragspositionen zeigen den Verbrauchsbalken ihres Strukturelements, der zu dessen Zeitberichten führt.", "Benutzerliste: Deaktivierte Benutzer:innen werden durchgestrichen angezeigt." ]
+      "items" : [ "Sipgate: Konfiguration herunterladen, Synchronisieren und Kontakte zurücksetzen sind jetzt ein Menü der System-Seite (sichtbar, wenn Sipgate konfiguriert ist); die eigene Sipgate-Seite und ihr Menüeintrag entfallen. Während eine Aktion der System-Seite läuft, wird ein Fortschrittsbalken angezeigt; der Kontaktabgleich lädt nicht mehr alle synchronisierten Adressen erneut.", "Strukturelement-Felder: Ein Klick auf das gewählte Strukturelement öffnet den Baum, wie der Stift-Button. Auftragspositionen zeigen den Verbrauchsbalken ihres Strukturelements, der zu dessen Zeitberichten führt.", "Benutzerliste: Deaktivierte Benutzer:innen werden durchgestrichen angezeigt." ]
     }, {
       "type" : "fixed",
       "items" : [ {

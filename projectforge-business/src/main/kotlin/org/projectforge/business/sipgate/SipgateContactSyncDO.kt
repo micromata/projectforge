@@ -151,8 +151,10 @@ open class SipgateContactSyncDO {
 
   /**
    * Id of the local address connected to this remote contact of Sipgate.
+   * Lazy: the sync only needs its id (the addresses are loaded on their own), an eager reference loaded all
+   * addresses of all sync entries again in batches of 128.
    */
-  @get:ManyToOne
+  @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "address_id")
   @get:JsonIgnore
   @JsonSerialize(using = IdOnlySerializer::class)

@@ -49,7 +49,7 @@ import org.projectforge.rest.scripting.MyScriptEntityRest
 import org.projectforge.rest.scripting.MyScriptExecuteRest
 import org.projectforge.rest.scripting.ScriptEntityRest
 import org.projectforge.rest.scripting.ScriptExecuteRest
-import org.projectforge.rest.sipgate.SipgatePageRest
+import org.projectforge.rest.sipgate.SipgateAdminRest
 import org.projectforge.rest.task.TaskWizardRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
@@ -96,9 +96,9 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       AdminCachesRest::refresh,
       AdminCachesRest::terminate,
       AdminCachesRest::refreshAll,
-      SipgatePageRest::downloadConfiguration,
-      SipgatePageRest::synchronize,
-      SipgatePageRest::resetContacts,
+      SipgateAdminRest::downloadConfiguration,
+      SipgateAdminRest::synchronize,
+      SipgateAdminRest::resetContacts,
     )
     registerShortCutPaths(My2FAShortCut.ADMIN, SystemRest::class.java)
     registerShortCutClasses(
@@ -112,7 +112,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       PluginAdminRest::class.java,
       ConfigurationEntityRest::class.java,
       AdminCachesRest::class.java,
-      SipgatePageRest::class.java,
+      SipgateAdminRest::class.java,
       TaskWizardRest::class.java,
     )
 

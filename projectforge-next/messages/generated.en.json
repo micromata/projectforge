@@ -4770,6 +4770,21 @@
           "tooltip": "Export the database schema (tables, constraints etc.). The database dialect of the currently used database is used."
         },
         "setAlertMessage": "Set system alert message",
+        "sipgate": {
+          "downloadConfiguration": {
+            "_": "Download Sipgate configuration",
+            "tooltip": "Downloads the configuration of Sipgate (users, devices, numbers etc.) as Excel file."
+          },
+          "resetContacts": {
+            "_": "Reset Sipgate contacts",
+            "question": "Do you really want to reset the Sipgate contacts? They are synchronized again with the local addresses afterwards.",
+            "tooltip": "Synchronizes and resets the Sipgate contacts. May be used for re-organizing contacts in Sipgate with duplicated numbers."
+          },
+          "synchronize": {
+            "_": "Synchronize Sipgate",
+            "tooltip": "Synchronizes the contacts of Sipgate with the local addresses and reloads the remote configuration (users, devices, numbers etc.)."
+          }
+        },
         "testDatabase": {
           "_": "Test database",
           "tooltip": "Runs a database load test (development mode only, see the log files)."
@@ -4788,6 +4803,7 @@
           "misc": {
             "logEntries": "Format log entries"
           },
+          "sipgate": "Sipgate",
           "systemChecksAndFunctionality": {
             "configuration": "Configuration"
           }

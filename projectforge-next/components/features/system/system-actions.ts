@@ -7,8 +7,11 @@ import {
   downloadExport2FAConfiguration,
   downloadExportSchema,
   downloadOptimizeAddressImages,
+  downloadSipgateConfiguration,
   rereadConfiguration,
   resetIdpPasswordSync,
+  resetSipgateContacts,
+  synchronizeSipgate,
   testDatabase,
   type SystemMessageResponse,
 } from "@/lib/rs/system";
@@ -31,21 +34,23 @@ export interface SystemAction {
 
 /** A top-level menu of the menu bar. */
 export interface SystemActionMenu {
-  id: "configuration" | "checks" | "database" | "development";
+  id: "configuration" | "checks" | "database" | "sipgate" | "development";
   titleKey: string;
   actions: SystemAction[];
 }
 
 /**
  * All one-click administration actions, grouped into the menus of the menu bar as the classic page
- * grouped them. The dev-only actions are appended only in development mode.
+ * grouped them. The dev-only actions are appended only in development mode, the Sipgate menu only if
+ * Sipgate is configured.
  *
  * The label keys carry the trailing `._`: each has a `.tooltip` (or `.question`)
  * sibling, so the bundle nests the base value under `_` (see the generator's `._` convention, as in
  * `t("fibu.auftrag.position._")`). Without it `t()` would return the namespace object and show the key.
  */
 export function systemActionMenus(
-  developmentMode: boolean
+  developmentMode: boolean,
+  sipgateConfigured: boolean
 ): SystemActionMenu[] {
   const development: SystemAction[] = [
     {
@@ -79,6 +84,32 @@ export function systemActionMenus(
       }
     );
   }
+
+  const sipgate: SystemActionMenu = {
+    id: "sipgate",
+    titleKey: "system.admin.group.title.sipgate",
+    actions: [
+      {
+        key: "sipgateDownloadConfiguration",
+        labelKey: "system.admin.button.sipgate.downloadConfiguration._",
+        tooltipKey: "system.admin.button.sipgate.downloadConfiguration.tooltip",
+        run: downloadSipgateConfiguration,
+      },
+      {
+        key: "sipgateSynchronize",
+        labelKey: "system.admin.button.sipgate.synchronize._",
+        tooltipKey: "system.admin.button.sipgate.synchronize.tooltip",
+        run: synchronizeSipgate,
+      },
+      {
+        key: "sipgateResetContacts",
+        labelKey: "system.admin.button.sipgate.resetContacts._",
+        tooltipKey: "system.admin.button.sipgate.resetContacts.tooltip",
+        confirmKey: "system.admin.button.sipgate.resetContacts.question",
+        run: resetSipgateContacts,
+      },
+    ],
+  };
 
   return [
     {
@@ -145,6 +176,7 @@ export function systemActionMenus(
         },
       ],
     },
+    ...(sipgateConfigured ? [sipgate] : []),
     {
       id: "development",
       titleKey: "system.admin.group.title.development",

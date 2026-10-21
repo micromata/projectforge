@@ -324,6 +324,14 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/eInvoiceChecker", redirectOf("/react/eInvoiceChecker"))
     }
 
+    /** The old React Sipgate page is gone, its actions are a menu of the System page. */
+    @Test
+    fun `the old react sipgate page is redirected to the system page`() {
+        Assertions.assertEquals("/next/system", redirectOf("/react/sipgate/dynamic"))
+        Assertions.assertEquals("/next/system", redirectOf("/react/sipgate"))
+        Assertions.assertNull(redirectOf("/react/sipgateXyz"))
+    }
+
     /** The old React team vacation export is gone. */
     @Test
     fun `the old react vacation export is redirected to next`() {

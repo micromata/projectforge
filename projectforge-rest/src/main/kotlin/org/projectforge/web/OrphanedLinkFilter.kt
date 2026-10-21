@@ -149,6 +149,10 @@ class OrphanedLinkFilter : Filter {
             // Old dynamic React page of the e-invoice checker, migrated to projectforge-next (removed, so no
             // "classic version" escape hatch). It took no parameters.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}eInvoiceChecker")
+        } else if (uri.endsWith("/react/sipgate") || uri.contains("/react/sipgate/")) {
+            // Old dynamic React page of the Sipgate actions, removed: they are a menu of the System page in
+            // projectforge-next (no "classic version" escape hatch). It took no parameters.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}system")
         } else if (uri.endsWith("/react/vacationExport") || uri.contains("/react/vacationExport/")) {
             // Old dynamic React page of the team vacation export, migrated to projectforge-next (removed, so no
             // "classic version" escape hatch). It took no parameters.

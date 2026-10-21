@@ -9,11 +9,11 @@
       "type" : "added",
       "items" : [ {
         "title" : "Configuration parameters with JSON values",
-        "items" : [ "Switch between the form and the JSON text, which can be edited directly as well.", "Compare versions: the stored, the edited and every former value from the history, line by line.", "JSON values are stored compact; values of up to 100,000 characters no longer make the save fail at the history." ]
+        "items" : [ "Switch between the form and the JSON text, which can be edited directly as well.", "Compare versions: the stored, the edited and every former value from the history, line by line.", "Customer groups and business units: compare versions as well (the stored format, with ids).", "JSON values are stored compact; values of up to 100,000 characters no longer make the save fail at the history." ]
       } ]
     }, {
       "type" : "improved",
-      "items" : [ "Structure element fields: a click on the selected structure element opens the tree, like the pencil button. Order positions show the consumption bar of their structure element, which leads to its time sheets.", "User list: deactivated users are shown struck through." ]
+      "items" : [ "Sipgate: downloading the configuration, synchronizing and resetting the contacts are now a menu of the System page (shown if Sipgate is configured); the separate Sipgate page and its menu entry are gone. While an action of the System page runs, a progress bar shows; the contact sync no longer reloads all synchronized addresses.", "Structure element fields: a click on the selected structure element opens the tree, like the pencil button. Order positions show the consumption bar of their structure element, which leads to its time sheets.", "User list: deactivated users are shown struck through." ]
     }, {
       "type" : "fixed",
       "items" : [ {

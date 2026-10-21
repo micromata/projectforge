@@ -91,7 +91,7 @@ class NextMigration2FATest {
   private val sensitiveOnRead = listOf(
     "/rs/importIncomingInvoicePos/upload", "/rs/uploadIncomingInvoices/upload",
     "/rs/currencyPair/list", "/rs/currencyPair/rate/onlineRates",
-    "/rs/adminCaches/list", "/rs/sipgate/dynamic", "/rs/taskWizard/execute",
+    "/rs/adminCaches/list", "/rs/taskWizard/execute",
   )
 
   /** As [sensitiveOnRead], gated on writing. */
