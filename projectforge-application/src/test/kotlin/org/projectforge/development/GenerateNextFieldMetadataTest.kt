@@ -73,4 +73,20 @@ class GenerateNextFieldMetadataTest {
           " Delete them and run DevelopmentMainForRelease."
     )
   }
+
+  /**
+   * Money (`@PropertyInfo(type = CURRENCY)`) is an AMOUNT, which next's forms write with two digits and the
+   * user's currency; any other `BigDecimal` stays a DECIMAL.
+   */
+  @Test
+  fun currencyPropertiesAreAmounts() {
+    val files = GenerateNextFieldMetadataMain.generate(GenerateNextFieldMetadataMain.resolveRootDir())
+    fun dataTypeOf(fileName: String, property: String): String? {
+      val content = files[fileName] ?: return null
+      return Regex("""\n    $property: \{\n      dataType: "(\w+)"""").find(content)?.groupValues?.get(1)
+    }
+    assertEquals("AMOUNT", dataTypeOf("rechnung.generated.ts", "zahlBetrag"))
+    assertEquals("AMOUNT", dataTypeOf("bank-account-record.generated.ts", "amount"))
+    assertEquals("DECIMAL", dataTypeOf("auftrags-position.generated.ts", "nettoSumme"))
+  }
 }

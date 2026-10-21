@@ -82,11 +82,6 @@ for (const book of BOOKS) {
         expect(posted?.[field]).toBe(text);
       }
     });
-
-    test("redirects the old React list", async ({ loggedInPage: page }) => {
-      await page.goto(`/react/${book.entity}`);
-      await expect(page).toHaveURL(new RegExp(`/next/${book.entity}$`));
-    });
   });
 }
 

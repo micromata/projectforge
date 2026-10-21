@@ -157,22 +157,6 @@ test.describe("employee", { tag: "@parallel" }, () => {
     );
     expect(formSaved, "the employee form must not be saved").toBe(false);
   });
-
-  test("redirects the old React pages", async ({ loggedInPage: page }) => {
-    // The redirects are Spring's (OrphanedLinkFilter); the Next dev server doesn't proxy /react.
-    test.skip(
-      process.env.E2E_DEV_SERVER === "1",
-      "needs Spring, not the dev server"
-    );
-    await page.goto("/react/employee");
-    await expect(page).toHaveURL(/\/next\/employee$/);
-    const edit = await page.request.get("/react/employee/edit/1", {
-      maxRedirects: 0,
-    });
-    expect(edit.status()).toBeGreaterThanOrEqual(300);
-    expect(edit.status()).toBeLessThan(400);
-    expect(edit.headers()["location"]).toMatch(/\/next\/employee\/1$/);
-  });
 });
 
 /**

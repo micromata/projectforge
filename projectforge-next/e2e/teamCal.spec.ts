@@ -115,11 +115,6 @@ test.describe("teamCal", { tag: "@lane-teamCal" }, () => {
       "REACHABLE_IF_NEEDED",
     ]);
   });
-
-  test("redirects the old React list", async ({ loggedInPage: page }) => {
-    await page.goto("/react/teamCal");
-    await expect(page).toHaveURL(/\/next\/teamCal$/);
-  });
 });
 
 /**

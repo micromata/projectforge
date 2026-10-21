@@ -65,25 +65,24 @@ class OrphanedLinkFilterTest {
     }
 
     /**
-     * The old React project list is gone, although the project's legacy app is Wicket: a bookmarked link to
-     * it, list or form, is bent onto next. A sibling path isn't caught.
+     * The links of pages that never left ProjectForge (no mail, no data transfer) are not redirected, see
+     * NextMigration.NextPage.legacyApp: the old React pages are left to the React app, the Wicket ones land on the
+     * next start page as any other Wicket url.
      */
     @Test
-    fun `the old react project pages are redirected to next`() {
-        Assertions.assertEquals("/next/project", redirectOf("/react/project"))
-        Assertions.assertEquals("/next/project", redirectOf("/react/project/"))
-        Assertions.assertEquals("/next/project/42", redirectOf("/react/project/edit/42"))
-        Assertions.assertEquals("/next/project/new", redirectOf("/react/project/edit"))
-        Assertions.assertNull(redirectOf("/react/projectXyz"))
-    }
-
-    /** The same for the old React task pages: the task's way back is Wicket, its React pages are gone. */
-    @Test
-    fun `the old react task pages are redirected to next`() {
-        Assertions.assertEquals("/next/task", redirectOf("/react/task"))
-        Assertions.assertEquals("/next/task/42", redirectOf("/react/task/edit/42"))
-        Assertions.assertEquals("/next/task/new", redirectOf("/react/task/edit"))
-        Assertions.assertNull(redirectOf("/react/taskTree"))
+    fun `links that never left ProjectForge are not redirected`() {
+        val categories = listOf(
+            "project", "task", "teamCal", "user", "contract", "visitorbook", "address", "addressLegacy",
+            "addressCampaignValue", "addressCampaignValueLegacy", "datatransfer",
+        )
+        for (category in categories) {
+            Assertions.assertNull(redirectOf("/react/$category"), category)
+            Assertions.assertNull(redirectOf("/react/$category/edit/42"), category)
+        }
+        Assertions.assertNull(redirectOf("/react/addressView/dynamic/42"))
+        Assertions.assertEquals("/next/", redirectOf("/wa/accessList"))
+        Assertions.assertEquals("/next/", redirectOf("/wa/timesheetList", mapOf("taskId" to "42")))
+        Assertions.assertEquals("/next/", redirectOf("/wa/incomingInvoiceEdit", mapOf("id" to "42")))
     }
 
     /**
@@ -193,7 +192,7 @@ class OrphanedLinkFilterTest {
 
     /**
      * The dynamic React pages of the data transfer plugin are gone; the links of the notification mails (file
-     * view, -1 = own personal box) and bookmarks are bent onto the next pages.
+     * view, -1 = own personal box) are bent onto the next pages.
      */
     @Test
     fun `the old react data transfer pages are redirected to next`() {
@@ -202,9 +201,6 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/datatransfer/42", redirectOf("/react/datatransferaudit/dynamic/42"))
         Assertions.assertEquals("/next/datatransfer/personal-box", redirectOf("/react/datatransferpersonalfiles/dynamic"))
         Assertions.assertEquals("/next/datatransfer", redirectOf("/react/datatransferfiles/dynamic/foo"))
-        Assertions.assertEquals("/next/datatransfer", redirectOf("/react/datatransfer"))
-        Assertions.assertEquals("/next/datatransfer/42/edit", redirectOf("/react/datatransfer/edit/42"))
-        Assertions.assertEquals("/next/datatransfer/new", redirectOf("/react/datatransfer/edit"))
     }
 
     /**
@@ -227,22 +223,6 @@ class OrphanedLinkFilterTest {
     }
 
     /** The Wicket page of the IHK plugin has moved to projectforge-next; there is no way back to it. */
-    /** The React team calendar list and form are gone: bookmarked links are bent onto the next pages. */
-    @Test
-    fun `the old react team calendar pages are redirected to next`() {
-        Assertions.assertEquals("/next/teamCal", redirectOf("/react/teamCal"))
-        Assertions.assertEquals("/next/teamCal/42", redirectOf("/react/teamCal/edit/42"))
-        Assertions.assertEquals("/next/teamCal/new", redirectOf("/react/teamCal/edit"))
-    }
-
-    /** The React user list and form are gone: bookmarked links are bent onto the next pages. */
-    @Test
-    fun `the old react user pages are redirected to next`() {
-        Assertions.assertEquals("/next/user", redirectOf("/react/user"))
-        Assertions.assertEquals("/next/user/42", redirectOf("/react/user/edit/42"))
-        Assertions.assertEquals("/next/user/new", redirectOf("/react/user/edit"))
-    }
-
     /**
      * The React vacation list and form are gone: bookmarked links and those of old notification mails are bent onto
      * the next pages. The vacation account and the vacation export, whose React routes start with the same name,
@@ -256,22 +236,6 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/vacation/new", redirectOf("/react/vacation/edit"))
         Assertions.assertNotEquals("/next/vacation", redirectOf("/react/vacationAccount/dynamic"))
         Assertions.assertNotEquals("/next/vacation", redirectOf("/react/vacationExport/dynamic"))
-    }
-
-    /** The old React contract pages are gone, list and form are next's. */
-    @Test
-    fun `the old react contract pages are redirected to next`() {
-        Assertions.assertEquals("/next/contract", redirectOf("/react/contract"))
-        Assertions.assertEquals("/next/contract/42", redirectOf("/react/contract/edit/42"))
-        Assertions.assertEquals("/next/contract/new", redirectOf("/react/contract/edit"))
-    }
-
-    /** The old React visitor book pages are gone, list and form (the visits included) are next's. */
-    @Test
-    fun `the old react visitorbook pages are redirected to next`() {
-        Assertions.assertEquals("/next/visitorbook", redirectOf("/react/visitorbook"))
-        Assertions.assertEquals("/next/visitorbook/42", redirectOf("/react/visitorbook/edit/42"))
-        Assertions.assertEquals("/next/visitorbook/new", redirectOf("/react/visitorbook/edit"))
     }
 
     /** The old React 2FA setup, its WebAuthn key page and the React 2FA dialog are gone. */
@@ -441,7 +405,7 @@ class OrphanedLinkFilterTest {
 
     /**
      * The old React answer page of a poll (linked by its mails) and its guide are gone; only a numeric poll id is
-     * passed on. The list and form of the polls are redirected by their [NextMigration] entry.
+     * passed on. The list and form of the polls were never linked from outside and are not redirected.
      */
     @Test
     fun `the old react poll answer and guide pages are redirected to next`() {
@@ -451,6 +415,10 @@ class OrphanedLinkFilterTest {
         )
         Assertions.assertEquals("/next/poll", redirectOf("/react/pollResponse/dynamic", mapOf("pollId" to "4x")))
         Assertions.assertEquals("/next/poll", redirectOf("/react/pollInfo/dynamic"))
+        // The reminder mails of a poll ending soon (8.0, 8.1) linked react/response/dynamic/<pollId>.
+        Assertions.assertEquals("/next/poll/42/answer", redirectOf("/react/response/dynamic/42"))
+        Assertions.assertEquals("/next/poll", redirectOf("/react/response/dynamic/4x"))
+        Assertions.assertNull(redirectOf("/react/responseXyz"))
         Assertions.assertNull(redirectOf("/rs/pollAnswer/42"))
     }
 
@@ -471,20 +439,15 @@ class OrphanedLinkFilterTest {
      */
     @Test
     fun `a wicket page is redirected to next even with the escape marker`() {
-        Assertions.assertEquals("/next/access", redirectOf("/wa/accessList", NextMigration.ESCAPE_HATCH_PARAM))
+        Assertions.assertEquals("/next/order", redirectOf("/wa/orderBookList", NextMigration.ESCAPE_HATCH_PARAM))
         Assertions.assertEquals(
-            "/next/access?taskId=42",
-            redirectOf("/wa/accessList", mapOf("taskId" to "42", NextMigration.ESCAPE_HATCH_PARAM to "")),
-            "The task preset of the list is carried over, the escape marker is dropped.",
+            "/next/order/5",
+            redirectOf("/wa/orderBookEdit", mapOf("id" to "5", NextMigration.ESCAPE_HATCH_PARAM to "")),
         )
-        Assertions.assertEquals("/next/gantt/new?task=7", redirectOf("/wa/ganttEdit", mapOf("task" to "7")))
         Assertions.assertEquals(
-            "/next/task/5",
-            redirectOf("/wa/taskEdit", mapOf("id" to "5", NextMigration.ESCAPE_HATCH_PARAM to "")),
+            "/next/todo/7",
+            redirectOf("/wa/wicket/bookmarkable/org.projectforge.plugins.todo.ToDoEditPage", mapOf("id" to "7")),
         )
-        Assertions.assertEquals("/next/account", redirectOf("/wa/accountList"))
-        Assertions.assertEquals("/next/accounting-record/3", redirectOf("/wa/accountingRecordEdit", mapOf("id" to "3")))
-        Assertions.assertEquals("/next/gantt", redirectOf("/wa/ganttList"))
         Assertions.assertNull(redirectOf("/react/group", NextMigration.ESCAPE_HATCH_PARAM))
     }
 
@@ -506,61 +469,8 @@ class OrphanedLinkFilterTest {
             "/next/phoneCall?addressId=7&number=0123&callerPage=addressView",
             redirectOf("/wa/phoneCall", mapOf("address" to "7", "no" to "0123", "cp" to "addressView")),
         )
-        Assertions.assertEquals("/next/timesheet", redirectOf("/wa/timesheetList"))
-        Assertions.assertEquals(
-            "/next/timesheet?taskId=42&userId=7&kost2Id=3",
-            redirectOf("/wa/timesheetList", mapOf("userId" to "7", "taskId" to "42", "kost2Id" to "3", "searchString" to "x")),
-        )
-        Assertions.assertEquals("/next/timesheet?userId=7", redirectOf("/wa/timesheetList", mapOf("userId" to "7", "taskId" to "4x")))
-        Assertions.assertEquals("/next/timesheet/42", redirectOf("/wa/timesheetEdit", mapOf("id" to "42")))
-        Assertions.assertEquals("/next/timesheet/new", redirectOf("/wa/timesheetEdit"))
-        Assertions.assertEquals("/next/timesheet/new", redirectOf("/wa/timesheetEdit", mapOf("id" to "42&x=y")))
         Assertions.assertEquals("/next/group", redirectOf("/wa/groupList"))
         Assertions.assertEquals("/next/group/8", redirectOf("/wa/groupEdit", mapOf("id" to "8")))
-    }
-
-    /**
-     * The addresses are next's: list and form by the generic redirect of a migrated React page, the view and the
-     * VCF import (dynamic React pages without a category of their own) by their own rule, the removed React form the
-     * address campaigns opened as a modal (`addressLegacy`) as a gone React page.
-     */
-    @Test
-    fun `address links are redirected to next`() {
-        Assertions.assertEquals("/next/address", redirectOf("/react/address"))
-        Assertions.assertEquals("/next/address/42/edit", redirectOf("/react/address/edit/42"))
-        Assertions.assertEquals("/next/address/42/edit", redirectOf("/react/address/edit/42", mapOf("modal" to "true")))
-        Assertions.assertEquals("/next/address/new", redirectOf("/react/address/edit"))
-        Assertions.assertEquals("/next/address/42", redirectOf("/react/addressView/dynamic/42"))
-        Assertions.assertEquals("/next/address/42", redirectOf("/react/addressView/dynamic", mapOf("id" to "42")))
-        Assertions.assertEquals("/next/address", redirectOf("/react/addressView/dynamic/4x"))
-        Assertions.assertEquals(
-            "/next/address/42?returnTo=/calendar",
-            redirectOf("/react/calendar/addressView/dynamic/42", mapOf("returnToCaller" to "/react/calendar")),
-        )
-        Assertions.assertEquals("/next/address/import", redirectOf("/react/addressImportUpload/dynamic"))
-        Assertions.assertEquals("/next/address/5/edit", redirectOf("/react/addressLegacy/edit/5", mapOf("modal" to "true")))
-        // Siblings sharing the prefix are pages of their own.
-        Assertions.assertEquals("/next/addressBook", redirectOf("/react/addressBook"))
-    }
-
-    /**
-     * The address campaign values are next's: the links of the former React page, under the original category and
-     * under the one it was kept under for a while (`addressCampaignValueLegacy`), are redirected.
-     */
-    @Test
-    fun `address campaign value links are redirected to next`() {
-        Assertions.assertEquals("/next/address-campaign-value", redirectOf("/react/addressCampaignValue"))
-        Assertions.assertEquals("/next/address-campaign-value/42", redirectOf("/react/addressCampaignValue/edit/42"))
-        Assertions.assertEquals("/next/address-campaign-value", redirectOf("/react/addressCampaignValueLegacy"))
-        Assertions.assertEquals(
-            "/next/address-campaign-value/42",
-            redirectOf("/react/addressCampaignValueLegacy/edit/42"),
-        )
-        // The escape hatch marker of the former way back leads to next as well: there is no React page any more.
-        Assertions.assertEquals(
-            "/next/address-campaign-value",
-            redirectOf("/react/addressCampaignValueLegacy", mapOf(NextMigration.ESCAPE_HATCH_PARAM to "1")),
-        )
     }
 
     /** Every other Wicket url lands on the next start page: no request reaches Wicket any more. */

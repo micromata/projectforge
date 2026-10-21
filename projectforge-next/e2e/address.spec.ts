@@ -241,24 +241,6 @@ test.describe("address", { tag: "@lane-address" }, () => {
     await page.getByRole("button", { name: format.t("cancel") }).click();
     await expect(page.locator('input[type="file"]')).toHaveCount(1);
   });
-
-  test("redirects the old React pages", async ({ loggedInPage: page }) => {
-    // The redirects are Spring's (OrphanedLinkFilter); the Next dev server doesn't proxy /react.
-    test.skip(
-      process.env.E2E_DEV_SERVER === "1",
-      "needs Spring, not the dev server"
-    );
-    await page.goto("/react/address");
-    await expect(page).toHaveURL(/\/next\/address$/);
-    // The redirect only, not the page it leads to: address 1 need not exist or be visible to the account
-    // (a forbidden view sends the app to the start page).
-    const view = await page.request.get("/react/addressView/dynamic/1", {
-      maxRedirects: 0,
-    });
-    expect(view.status()).toBeGreaterThanOrEqual(300);
-    expect(view.status()).toBeLessThan(400);
-    expect(view.headers()["location"]).toMatch(/\/next\/address\/1$/);
-  });
 });
 
 /**

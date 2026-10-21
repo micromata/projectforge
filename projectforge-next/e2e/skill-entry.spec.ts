@@ -210,11 +210,6 @@ test.describe("skillentry", { tag: "@parallel" }, () => {
       await cancelSelection(page);
     }
   });
-
-  test("redirects the old React list", async ({ loggedInPage: page }) => {
-    await page.goto("/react/skillentry");
-    await expect(page).toHaveURL(/\/next\/skillentry$/);
-  });
 });
 
 async function cancelSelection(page: Page): Promise<void> {
