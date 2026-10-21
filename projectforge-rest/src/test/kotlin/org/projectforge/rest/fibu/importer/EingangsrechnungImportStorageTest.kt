@@ -95,4 +95,34 @@ class EingangsrechnungImportStorageTest {
         // Expected: referenz(25) + kreditor(20) + date(20) = 65
         assertTrue(headerScore >= 60, "ISICO invoices should header match with score >= 60, got $headerScore")
     }
+
+    @Test
+    fun `no update of an invoice of another date or creditor`() {
+        val read = EingangsrechnungPosImportDTO(
+            referenz = "2026-14171",
+            kreditor = "OpsGenie Inc.",
+            datum = LocalDate.of(2026, 9, 4),
+        )
+        val sameCreditorYearBefore = EingangsrechnungDO().apply {
+            referenz = "2025-10654"
+            kreditor = "OpsGenie Inc."
+            datum = LocalDate.of(2025, 9, 4)
+        }
+        assertFalse(read.isPlausibleUpdateOf(sameCreditorYearBefore), "A year apart: another invoice.")
+        assertFalse(read.isPlausibleMatch(sameCreditorYearBefore))
+
+        val otherCreditor = EingangsrechnungDO().apply {
+            referenz = "2026-14171"
+            kreditor = "Gather Presence, Inc"
+            datum = LocalDate.of(2026, 9, 4)
+        }
+        assertFalse(read.isPlausibleUpdateOf(otherCreditor), "Another creditor: another invoice.")
+
+        val corrected = EingangsrechnungDO().apply {
+            referenz = "2026-14171"
+            kreditor = "OpsGenie Inc."
+            datum = LocalDate.of(2026, 9, 9)
+        }
+        assertTrue(read.isPlausibleMatch(corrected), "Date corrected by some days: same invoice.")
+    }
 }

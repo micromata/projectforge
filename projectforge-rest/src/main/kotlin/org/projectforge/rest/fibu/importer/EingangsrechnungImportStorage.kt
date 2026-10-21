@@ -94,6 +94,14 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
      */
     var databaseInvoices: List<EingangsrechnungDO>? = null
 
+    /**
+     * Periods covered by a position-based import (column "Periode"), see [addPeriod].
+     */
+    var periodFrom: LocalDate? = null
+        private set
+    var periodUntil: LocalDate? = null
+        private set
+
     private var fromDate: LocalDate? = null
     private var untilDate: LocalDate? = null
 
@@ -223,6 +231,29 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         }
     }
 
+    /**
+     * Only a position-based import (all positions of the periods) can tell that a stored invoice is gone; a
+     * header-only export isn't a complete snapshot. Only stored invoices within the periods of the import qualify:
+     * a single row with an old date mustn't offer all invoices since then for deletion.
+     */
+    private fun isDeletionCandidate(dbInvoice: EingangsrechnungDO): Boolean {
+        if (!isPositionBasedImport) {
+            return false
+        }
+        val datum = dbInvoice.datum ?: return false
+        periodFrom?.let { if (datum < it) return false }
+        periodUntil?.let { if (datum > it) return false }
+        return true
+    }
+
+    /**
+     * Extends the covered periods (column "Periode" of a position-based import) by the given period.
+     */
+    fun addPeriod(from: LocalDate, until: LocalDate) {
+        periodFrom = periodFrom?.let { minOf(it, from) } ?: from
+        periodUntil = periodUntil?.let { maxOf(it, until) } ?: until
+    }
+
     private fun analyzeReadInvoices() {
         readInvoices.removeIf { it.datum == null }
         readInvoices.sortBy { it.datum }
@@ -309,7 +340,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
     ) {
         if (readPositions.isEmpty()) {
             // Only database entries exist - mark as deleted
-            dbInvoices.forEach { dbInvoice ->
+            dbInvoices.filter { isDeletionCandidate(it) }.forEach { dbInvoice ->
                 addEntry(createPairEntryWithErrors(null, createImportDTO(dbInvoice)))
             }
             return
@@ -339,7 +370,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
     ) {
         if (readByDate.isEmpty()) {
             // Only database entries exist - mark as deleted (header-only, so just the header)
-            dbInvoicesByDate.forEach { dbInvoice ->
+            dbInvoicesByDate.filter { isDeletionCandidate(it) }.forEach { dbInvoice ->
                 addEntry(createPairEntryWithErrors(null, createImportDTO(dbInvoice)))
             }
             return
@@ -397,7 +428,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
             // Add unmatched database entries as deleted (header-only)
             dbInvoices.forEachIndexed { index, invoice ->
-                if (!matchedDbIndices.contains(index)) {
+                if (!matchedDbIndices.contains(index) && isDeletionCandidate(invoice)) {
                     addEntry(createPairEntryWithErrors(null, createImportDTO(invoice)))
                 }
             }
@@ -501,7 +532,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
         // Add unmatched database invoices as deleted
         dbInvoices.forEachIndexed { index, invoice ->
-            if (!matchedDbIndices.contains(index)) {
+            if (!matchedDbIndices.contains(index) && isDeletionCandidate(invoice)) {
                 log.debug { "  Deleted: DB invoice '${invoice.referenz}' → DELETED" }
                 addEntry(createPairEntryWithErrors(null, createImportDTO(invoice)))
             }
@@ -555,8 +586,12 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         // Calculate scores
         for (i in unmatchedRead.indices) {
             for (j in unmatchedDb.indices) {
-                val score = unmatchedRead[i].matchScore(unmatchedDb[j], logErrors = true)
-                scoreMatrix[i][j] = score
+                // Implausible candidates (other creditor, date weeks apart) stay at score 0, never matched:
+                scoreMatrix[i][j] = if (unmatchedRead[i].isPlausibleMatch(unmatchedDb[j])) {
+                    unmatchedRead[i].matchScore(unmatchedDb[j], logErrors = true)
+                } else {
+                    0
+                }
             }
         }
 
@@ -623,7 +658,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         }
 
         // Copy konto from header using cache to handle lazy loading
-        val initializedKonto = PfCaches.instance.getKontoIfNotInitialized(eingangsrechnungDO.konto)
+        val initializedKonto = eingangsrechnungDO.konto?.let { PfCaches.instance.getKontoIfNotInitialized(it) }
         initializedKonto?.let { dto.konto = Konto(it.id, it.nummer) }
 
         return dto
@@ -655,7 +690,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
         dto.copyFrom(eingangsrechnungDO)
 
         // Copy konto from header using cache to handle lazy loading
-        val initializedKonto = PfCaches.instance.getKontoIfNotInitialized(eingangsrechnungDO.konto)
+        val initializedKonto = eingangsrechnungDO.konto?.let { PfCaches.instance.getKontoIfNotInitialized(it) }
         initializedKonto?.let { dto.konto = Konto(it.id, it.nummer) }
 
         // Ensure invoice info is calculated (this also calculates all position info)
@@ -780,6 +815,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
             candidateGroup.forEach { (dbIndex, dbInvoice) ->
                 if (matchedDbIndices.contains(dbIndex)) return@forEach
+                if (!readInvoice.isPlausibleMatch(dbInvoice)) return@forEach
 
                 val score = readInvoice.matchScore(dbInvoice)
                 if (score > bestScore) {
@@ -826,6 +862,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
 
             candidateGroup.forEach { (dbIndex, dbInvoice) ->
                 if (matchedDbIndices.contains(dbIndex)) return@forEach
+                if (!readInvoice.isPlausibleMatch(dbInvoice)) return@forEach
 
                 val score = readInvoice.matchScore(dbInvoice)
                 if (score > bestScore) {

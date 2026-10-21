@@ -157,6 +157,11 @@ class EingangsrechnungImportJob(
 
         // Copy header from first entry
         val firstRead = entries.firstOrNull()?.read
+        entries.firstNotNullOfOrNull { it.read }?.let { read ->
+            if (isImplausibleUpdate(read, existingEntity)) {
+                return
+            }
+        }
         firstRead?.copyTo(existingEntity)
 
         // Set betreff (subject) from first position's betreff for position-based imports
@@ -274,10 +279,16 @@ class EingangsrechnungImportJob(
             positions.add(position)
         }
 
+        // Positions only in the DB that were selected (read == null) are removed from the invoice:
+        val removedPositionNumbers = entries
+            .filter { it.read == null }
+            .mapNotNull { it.stored?.positionNummer?.toShort() }
+            .toSet()
+
         // Preserve existing positions that are not in the import (for partial updates)
         // This ensures that when only some positions are selected for update, the others remain unchanged
         existingPositionsById.values.forEach { existingPos ->
-            if (!positions.any { it.number == existingPos.number }) {
+            if (!positions.any { it.number == existingPos.number } && existingPos.number !in removedPositionNumbers) {
                 positions.add(existingPos)
             }
         }
@@ -341,6 +352,9 @@ class EingangsrechnungImportJob(
                 // Update existing invoice (header only, preserve positions)
                 val existingEntity = eingangsrechnungDao.find(storedId)
                 if (existingEntity != null) {
+                    if (isImplausibleUpdate(readEntry, existingEntity)) {
+                        continue
+                    }
                     readEntry.copyTo(existingEntity)
                     // Positions remain unchanged (already loaded from DB)
                     val modStatus = eingangsrechnungDao.update(existingEntity)
@@ -358,6 +372,23 @@ class EingangsrechnungImportJob(
                 log.debug { "Skipping new invoice: referenz=${readEntry.referenz}, datum=${readEntry.datum}, kreditor=${readEntry.kreditor}" }
             }
         }
+    }
+
+    /**
+     * Last line of defense against a wrong match: an import entry never overwrites a stored invoice of another
+     * creditor or with a date weeks apart (see [EingangsrechnungPosImportDTO.isPlausibleUpdateOf]).
+     * @return true if the update is refused (reported as error of the job).
+     */
+    private fun isImplausibleUpdate(read: EingangsrechnungPosImportDTO, existing: EingangsrechnungDO): Boolean {
+        if (read.isPlausibleUpdateOf(existing)) {
+            return false
+        }
+        val msg = "RENR '${read.referenz}' vom ${read.datum} (${read.kreditor}) nicht übernommen: " +
+                "die gespeicherte Rechnung '${existing.referenz}' vom ${existing.datum} (${existing.kreditor}) " +
+                "ist eine andere."
+        log.warn { "Refused update of incoming invoice ${existing.id}: $msg" }
+        result.errorMessages = (result.errorMessages ?: emptyList()) + msg
+        return true
     }
 
     /**
