@@ -118,10 +118,15 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
 
     /**
      * Creates the log subscription of the user the mass update writes to, if the user should see its log
-     * messages; called when the meta is served (see [MultiSelectMetaData.logViewerUrl]). Disabled at default.
+     * messages; called right before a run (see [MassUpdateResult.logViewerUrl]). Disabled at default.
      */
     protected open fun ensureUserLogSubscription(): LogSubscription? {
         return null
+    }
+
+    /** Ensures the log subscription before a run (POST only) and answers its log viewer, if the page has one. */
+    private fun ensureLogViewerUrl(): String? {
+        return ensureUserLogSubscription()?.let { LogViewerRest.viewerUrl(it.id) }
     }
 
     private val downloadFileSupport =
@@ -160,7 +165,6 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             initialParams = initialParams(request, selectedIds).takeIf { it.isNotEmpty() },
             supportsDelete = supportsMassDeletion(),
             supportsRestore = supportsMassDeletion(),
-            logViewerUrl = ensureUserLogSubscription()?.let { LogViewerRest.viewerUrl(it.id) },
         )
     }
 
@@ -213,6 +217,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             }
         }
         handleClientMassUpdateCall(request, massUpdateContext)
+        val logViewerUrl = ensureLogViewerUrl()
         massUpdate(request, selectedIds, massUpdateContext)?.let { return it }
         val changedFields = changedFieldsOf(massUpdateContext)
         storeProtocol(request, massUpdateContext, changedFields)
@@ -225,6 +230,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
                 errors = massUpdateContext.errorMessages.map { MassUpdateError(it.identifier, it.message) },
                 downloadUrl = "${getRestPath()}/download",
                 changedFields = changedFields,
+                logViewerUrl = logViewerUrl,
             )
         )
     }
@@ -291,6 +297,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
                 return this@AbstractMultiSelectedPage.getId(obj)
             }
         }
+        val logViewerUrl = ensureLogViewerUrl()
         if (delete) {
             proceedMassDelete(request, selectedIds, massUpdateContext)
         } else {
@@ -310,6 +317,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
                 errors = massUpdateContext.errorMessages.map { MassUpdateError(it.identifier, it.message) },
                 downloadUrl = "${getRestPath()}/download",
                 changedFields = changedFields,
+                logViewerUrl = logViewerUrl,
             )
         )
     }
@@ -419,15 +427,13 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     }
 
     /**
-     * Stores the ticked subset of the registered ids and answers where the mass update page lives. A hand
-     * built client knows its own route, but posts here all the same: the selection is session state, and
-     * [requestMeta] reads it from there.
+     * Stores the ticked subset of the registered ids and answers how many those are: the selection is session
+     * state, and [requestMeta] reads it from there.
      */
     @PostMapping("select")
     fun select(request: HttpServletRequest, @RequestBody selection: MultiSelection?): MultiSelectNavigation {
         MultiSelectionSupport.registerSelectedEntityIds(request, pagesRest::class.java, selection?.selectedIds)
         return MultiSelectNavigation(
-            url = PagesResolver.getDynamicPageUrl(this::class.java, absolute = true),
             selectedCount = selection?.selectedIds?.size ?: 0,
             // So the list can render the statistics live while the user selects - the same values the mass
             // update page's `meta` serves, computed here over the ids just registered (null where the page

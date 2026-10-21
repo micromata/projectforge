@@ -7,6 +7,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Download04Icon } from "@hugeicons/core-free-icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { LogViewerLink } from "@/components/shared/log-viewer-link";
 import { Spinner } from "@/components/shared/spinner";
 import {
   downloadMassUpdateProtocol,
@@ -14,7 +15,7 @@ import {
 } from "@/lib/rs/multi-select";
 
 /**
- * What a run did: the counters, the fields it touched, whatever failed, and the Excel protocol.
+ * What a run did: the counters, the fields it touched, whatever failed, the Excel protocol and the log.
  *
  * The protocol is offered rather than pushed, although the backend also puts it into the user's data
  * transfer box: the box is where it is found tomorrow, this is where it is found now.
@@ -60,23 +61,27 @@ export function MassUpdateResultPanel({
         </div>
       )}
 
-      {result.downloadUrl && (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          disabled={download.isPending}
-          onClick={() => download.mutate(result.downloadUrl!)}
-        >
-          {download.isPending ? (
-            <Spinner className="h-3.5 w-3.5 border-2" />
-          ) : (
-            <HugeiconsIcon icon={Download04Icon} size={14} aria-hidden />
-          )}
-          {t("massUpdate.excel.download")}
-        </Button>
-      )}
+      <div className="flex flex-wrap items-center gap-2">
+        {result.downloadUrl && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={download.isPending}
+            onClick={() => download.mutate(result.downloadUrl!)}
+          >
+            {download.isPending ? (
+              <Spinner className="h-3.5 w-3.5 border-2" />
+            ) : (
+              <HugeiconsIcon icon={Download04Icon} size={14} aria-hidden />
+            )}
+            {t("massUpdate.excel.download")}
+          </Button>
+        )}
+        {/* What the run logged, where the page keeps a log (the backend registered it for this run). */}
+        <LogViewerLink url={result.logViewerUrl} hint={t("massUpdate.info")} />
+      </div>
     </div>
   );
 }
