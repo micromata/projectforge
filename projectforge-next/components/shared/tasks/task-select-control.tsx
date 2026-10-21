@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Edit02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { fetchTaskInfo, type TaskNode } from "@/lib/rs/task";
 import { TaskEditLink } from "./task-edit-link";
 import { TaskFavoritesMenu } from "./task-favorites-menu";
@@ -108,17 +109,19 @@ export function TaskSelectControl({
         disabled={disabled}
         onSelect={select}
       />
-      <Button
-        type="button"
-        variant="outline"
-        size="icon"
-        disabled={disabled}
-        aria-label={t("task.tree.title.select") + " " + ariaLabel}
-        onClick={onOpen}
-        className="size-7 shrink-0"
-      >
-        <HugeiconsIcon icon={Edit02Icon} size={14} />
-      </Button>
+      <HintTooltip text={t("task.tree.title.select")}>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          disabled={disabled}
+          aria-label={t("task.tree.title.select") + " " + ariaLabel}
+          onClick={onOpen}
+          className="size-7 shrink-0"
+        >
+          <HugeiconsIcon icon={Edit02Icon} size={14} />
+        </Button>
+      </HintTooltip>
       {/* Leads to the task itself, where its timesheets are — see TaskEditLink. */}
       {showEditLink && <TaskEditLink taskId={taskId} />}
     </div>

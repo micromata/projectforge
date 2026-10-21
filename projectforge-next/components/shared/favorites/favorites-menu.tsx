@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Bookmark02Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -88,24 +89,28 @@ export function FavoritesMenu<T extends FavoriteIdTitle = FavoriteIdTitle>({
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={modal}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          aria-label={triggerLabel}
-          className={cn("relative gap-1.5", className)}
-        >
-          <HugeiconsIcon icon={Bookmark02Icon} size={14} aria-hidden />
-          {showLabel && <span className="truncate">{triggerLabel}</span>}
-          {isModified && (
-            <span
-              className="absolute -top-1 -right-1 size-2 rounded-full bg-primary"
-              aria-hidden
-            />
-          )}
-        </Button>
-      </PopoverTrigger>
+      {/* An icon-only trigger says what it is on hover; one with its label shown needs no tooltip.
+          Wrapping the trigger, not wrapped by it — `asChild` has to reach a DOM element. */}
+      <HintTooltip text={showLabel ? undefined : triggerLabel}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            aria-label={triggerLabel}
+            className={cn("relative gap-1.5", className)}
+          >
+            <HugeiconsIcon icon={Bookmark02Icon} size={14} aria-hidden />
+            {showLabel && <span className="truncate">{triggerLabel}</span>}
+            {isModified && (
+              <span
+                className="absolute -top-1 -right-1 size-2 rounded-full bg-primary"
+                aria-hidden
+              />
+            )}
+          </Button>
+        </PopoverTrigger>
+      </HintTooltip>
       <PopoverContent
         align="start"
         className="flex max-h-[var(--radix-popover-content-available-height)] w-96 flex-col p-2"
