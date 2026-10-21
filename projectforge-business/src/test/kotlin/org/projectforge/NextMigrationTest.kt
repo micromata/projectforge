@@ -319,6 +319,23 @@ class NextMigrationTest {
     }
 
     /**
+     * The Word® templates of Merlin: the row click leads to the execution (`merlin/:id`), the form is a sub route
+     * of it. The React pages are gone, so there is no way back, but a bookmarked React link is still redirected.
+     */
+    @Test
+    fun `the merlin pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/merlin", NextMigration.listUrl("merlin"))
+        Assertions.assertEquals("next/merlin/:id/edit", NextMigration.standardEditPage("merlin"))
+        Assertions.assertEquals("next/merlin/new", NextMigration.newEntryUrl("merlin"))
+        Assertions.assertNull(NextMigration.legacyListUrl("merlin"))
+        Assertions.assertNull(NextMigration.legacyEditPage("merlin"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("merlin"))
+        val link = NextMigration.orphanedLinks().single { it.category == "merlin" }
+        Assertions.assertEquals("react/merlin", link.legacyListPath)
+        Assertions.assertEquals("react/merlin/edit", link.legacyEditPath)
+    }
+
+    /**
      * The memos: list and form are next's, the React pages are gone, so there is no way back, but a bookmarked
      * React link is still redirected onto next.
      */

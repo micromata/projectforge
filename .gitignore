@@ -45,6 +45,7 @@ projectforge-repository/jackrabbit
 projectforge-jcr/test/out
 projectforge-rest/test/out
 plugins/org.projectforge.plugins.datatransfer/test
+plugins/org.projectforge.plugins.merlin/test
 .DS_Store
 projectforge-application/src/main/kotlin/local
 .gradle

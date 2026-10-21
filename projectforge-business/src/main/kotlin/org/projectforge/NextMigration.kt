@@ -637,6 +637,19 @@ object NextMigration {
             legacyApp = LegacyApp.REACT,
             offerLegacyLink = false,
         ),
+        // The Word® templates of the plugin merlin (MerlinEntityRest, MerlinExecuteRest, components/features/merlin),
+        // migrated from React and hand built like "script": the row click leads to the execution (`merlin/:id`), the
+        // admin form is a sub route of it. The React pages are gone (no UILayout served any more), so there is no
+        // way back; the legacy app is kept for the redirect of bookmarked React links only. The links of the
+        // execution page (react/merlinexecution/dynamic/<id>) are redirected by
+        // OrphanedLinkFilter.redirectExecutePage.
+        "merlin" to NextPage(
+            route = "merlin",
+            editRoute = "merlin/$ID_PLACEHOLDER/edit",
+            newEntryRoute = "merlin/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
         // Hand built list and edit page of the vacation entries (VacationEntityRest, components/features/vacation),
         // migrated from React. The live statistics of the form (working days, days left, conflicts with the
         // replacements, the allowed statuses) come from `vacation/stats`, the replacement of the React watch

@@ -193,8 +193,8 @@ class OrphanedLinkFilter : Filter {
             // Handled: a link to a dynamic React page of the data transfer plugin was redirected.
         } else if (redirectPublicDataTransferPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to the React external access of a data transfer area was redirected.
-        } else if (redirectScriptExecutePage(servletRequest, servletResponse, uri)) {
-            // Handled: a link to a React script execution page was redirected.
+        } else if (redirectExecutePage(servletRequest, servletResponse, uri)) {
+            // Handled: a link to a React script or Merlin template execution page was redirected.
         } else if (redirectMigratedPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a legacy page that has moved to projectforge-next was redirected.
         } else if (redirectLastWicketPage(servletRequest, servletResponse, uri)) {
@@ -362,21 +362,21 @@ class OrphanedLinkFilter : Filter {
     }
 
     /**
-     * The React script execution pages, migrated to projectforge-next: react/scriptExecute/dynamic/<id> (a
-     * stored script, without an id the ad-hoc editor, `?example=<n>` with an example script) and
-     * react/myScriptExecute/dynamic/<id>. The lists and the form are covered by [redirectMigratedPage] - which
-     * must come after this, because react/script is a prefix of these urls. The pages are gone, so there is
-     * no escape hatch. Id and example are interpolated into the Location header, so only numbers are
+     * The React execution pages, migrated to projectforge-next: react/scriptExecute/dynamic/<id> (a stored
+     * script, without an id the ad-hoc editor, `?example=<n>` with an example script),
+     * react/myScriptExecute/dynamic/<id> and react/merlinexecution/dynamic/<id> (a Merlin template). The lists
+     * and the forms are covered by [redirectMigratedPage] - which must come after this, because react/script and
+     * react/merlin are prefixes of these urls. The pages are gone, so there is no escape hatch. Id and example are interpolated into the Location header, so only numbers are
      * accepted; the React app took the id as path segment or as parameter.
      *
      * @return true if the request was such a link and a redirect was sent.
      */
-    private fun redirectScriptExecutePage(
+    private fun redirectExecutePage(
         request: HttpServletRequest,
         response: ServletResponse,
         uri: String,
     ): Boolean {
-        val (page, category) = SCRIPT_EXECUTE_PAGES.entries
+        val (page, category) = EXECUTE_PAGES.entries
             .find { (page, _) -> uri.contains("/react/$page/") || uri.endsWith("/react/$page") }
             ?.toPair() ?: return false
         val listUrl = NextMigration.listUrl(category)
@@ -617,8 +617,12 @@ class OrphanedLinkFilter : Filter {
         /** The external access token of a data transfer area, see [redirectPublicDataTransferPage]. */
         private val ACCESS_TOKEN_REGEX = Regex("[A-Za-z0-9]+")
 
-        /** The React script execution pages and their category, see [redirectScriptExecutePage]. */
-        private val SCRIPT_EXECUTE_PAGES = mapOf("scriptExecute" to "script", "myScriptExecute" to "myscript")
+        /** The React execution pages (scripts, Merlin templates) and their category, see [redirectExecutePage]. */
+        private val EXECUTE_PAGES = mapOf(
+            "scriptExecute" to "script",
+            "myScriptExecute" to "myscript",
+            "merlinexecution" to "merlin",
+        )
 
         /**
          * Categories migrated from React whose Wicket list/edit pages (`wa/<category>List`, `wa/<category>Edit`)

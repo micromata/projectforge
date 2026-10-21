@@ -25,9 +25,8 @@ package org.projectforge.plugins.merlin.rest
 
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.word.templating.VariableType
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.validation.Valid
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.validation.Valid
 import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserPrefService
@@ -35,18 +34,13 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.menu.MenuItem
-import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.plugins.merlin.*
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
-import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.PagesResolver
-import org.projectforge.rest.core.RestResolver
-import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.PostData
-import org.projectforge.ui.*
+import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -55,9 +49,47 @@ import org.springframework.web.multipart.MultipartFile
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * The execution of a Word® template (single document or serial execution by an Excel file), layout free for
+ * projectforge-next. Every user with select access to the template (admins and users/groups with access) may
+ * execute it.
+ */
 @RestController
 @RequestMapping("${Rest.URL}/merlinexecution")
-class MerlinExecutionPageRest : AbstractDynamicPageRest() {
+class MerlinExecuteRest {
+    /**
+     * An input variable of the template, as the execution form needs it.
+     */
+    class InputVariable(
+        val name: String,
+        val type: VariableType,
+        val required: Boolean,
+        val allowedValues: List<String>?,
+        val description: String?,
+        val minimumValue: Any?,
+        val maximumValue: Any?,
+        val scale: Int?,
+    )
+
+    /**
+     * Everything the execution page shows: the template, its input variables and the values the user entered last
+     * time.
+     * @param serialFills The kinds of the Excel templates for the serial execution: `base` and, for admins and HR,
+     * `employees` and `users` (prefilled with them).
+     * @param editAccess True, if the user may edit the template (admins of it).
+     */
+    class ExecutionData(
+        val id: Long,
+        val name: String?,
+        val description: String?,
+        val variables: List<InputVariable>,
+        val inputVariables: Map<String, Any>?,
+        val pdfFormat: Boolean,
+        val wordTemplateFileName: String?,
+        val serialFills: List<String>,
+        val editAccess: Boolean,
+        val logViewerUrl: String,
+    )
 
     @Autowired
     private lateinit var merlinTemplateDao: MerlinTemplateDao
@@ -69,9 +101,6 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     private lateinit var merlinRunner: MerlinRunner
 
     @Autowired
-    private lateinit var merlinPagesRest: MerlinPagesRest
-
-    @Autowired
     private lateinit var userPrefService: UserPrefService
 
     @Autowired
@@ -80,13 +109,52 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var employeeService: EmployeeService
 
+    @AccessChecked("DAO: find of MerlinTemplateDao (admins and users/groups with access)")
+    @GetMapping("load/{id}")
+    fun load(@PathVariable("id", required = true) id: Long): ExecutionData {
+        val dbObj = getTemplate(id)
+        val analysis = merlinHandler.analyze(id)
+        val inputVariables = analysis.statistics.variables.filter { it.input }.map {
+            InputVariable(
+                name = it.name,
+                type = it.type,
+                required = it.required,
+                allowedValues = it.allowedValues,
+                description = it.description,
+                minimumValue = it.minimumValue,
+                maximumValue = it.maximumValue,
+                scale = it.scale,
+            )
+        }
+        val serialFills = mutableListOf("base")
+        if (isAdminOrHR()) {
+            serialFills.add("employees")
+            serialFills.add("users")
+        }
+        val userPref = getUserPref(id)
+        return ExecutionData(
+            id = id,
+            name = dbObj.name,
+            description = dbObj.description,
+            variables = inputVariables,
+            inputVariables = userPref.inputVariables,
+            pdfFormat = userPref.pdfFormat,
+            wordTemplateFileName = analysis.wordTemplateFilename,
+            serialFills = serialFills,
+            editAccess = merlinTemplateDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false),
+            logViewerUrl = MerlinPlugin.logViewerUrl(),
+        )
+    }
+
     /**
-     * Will be called, if the user wants to change his/her observeStatus.
+     * Creates the document of the template filled with the given variables (Word® or PDF).
      */
+    @AccessChecked("DAO: find of MerlinTemplateDao (admins and users/groups with access)")
     @PostMapping("execute")
     fun execute(@Valid @RequestBody postData: PostData<MerlinExecutionData>): ResponseEntity<*> {
         MerlinPlugin.ensureUserLogSubscription()
         val executionData = postData.data
+        getTemplate(executionData.id)
         log.info { "User wants to execute '${executionData.name}'..." }
         // Save input values as user preference:
         val userPref = getUserPref(executionData.id)
@@ -113,12 +181,17 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         return RestUtils.downloadFile(filename, download)
     }
 
+    /**
+     * Creates the documents of all rows of the uploaded Excel file, as zip archive.
+     */
+    @AccessChecked("DAO: find of MerlinTemplateDao (admins and users/groups with access)")
     @PostMapping("serialExecution/{id}")
     fun serialExecution(
         @PathVariable("id", required = true) id: Long,
         @RequestParam("file") file: MultipartFile
     ): ResponseEntity<*> {
         MerlinPlugin.ensureUserLogSubscription()
+        getTemplate(id)
         val filename = file.originalFilename
         log.info {
             "User tries to upload serial execution file: id='$id', filename='$filename', size=${
@@ -129,8 +202,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         }
         val result = file.inputStream.use { inputStream ->
             merlinRunner.serialExecuteTemplate(id, filename ?: "untitled.xlsx", inputStream)
-                ?: throw IllegalArgumentException("Can't execute serial Excel file.")
-        }
+        } ?: return ResponseEntity.badRequest().body(translate("plugins.merlin.serial.unsupportedFile"))
         val zipFilename = result.first
         val zipByteArray = result.second
         return RestUtils.downloadFile(zipFilename, zipByteArray)
@@ -140,23 +212,26 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         val validationErrors = mutableListOf<ValidationError>()
         val stats = merlinHandler.analyze(data.id).statistics
         val inputVariables = stats.variables.filter { it.input }
-        val inputData = data.inputVariables
-        if (inputData != null) {
-            inputVariables.forEach { variable ->
-                variable.validate(inputData[variable.name])
-                    ?.let { validationErrors.add(ValidationError(it, getFieldId(variable.name))) }
-            }
+        val inputData = data.inputVariables ?: emptyMap()
+        inputVariables.forEach { variable ->
+            variable.validate(inputData[variable.name])
+                ?.let { validationErrors.add(ValidationError(it, getFieldId(variable.name))) }
         }
         return if (validationErrors.isEmpty()) null else validationErrors
     }
 
+    /**
+     * The Excel file for a serial execution, `fill=users` or `fill=employees` prefills it with them (admins and HR
+     * only).
+     */
+    @AccessChecked("DAO: find of MerlinTemplateDao (admins and users/groups with access); users/employees for admins/HR only")
     @GetMapping("downloadSerialExecutionTemplate/{id}")
     fun downloadSerialExecutionTemplate(
         @PathVariable("id", required = true) id: Long,
         @RequestParam("fill") fill: String? = null
-    )
-            : ResponseEntity<*> {
+    ): ResponseEntity<*> {
         MerlinPlugin.ensureUserLogSubscription()
+        getTemplate(id)
         val result = merlinRunner.createSerialExcelTemplate(id) { sheet: ExcelSheet ->
             if (fill == "users") {
                 addUsers(sheet)
@@ -169,158 +244,17 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         return RestUtils.downloadFile(filename, excel)
     }
 
-    @GetMapping("dynamic")
-    fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
-        val logViewerMenuItem = MerlinPlugin.createUserLogSubscriptionMenuItem()
-        val id = NumberHelper.parseLong(idString) ?: throw IllegalAccessException("Parameter id not an int.")
-        val dbObj = merlinTemplateDao.find(id)!!
-        val dto = merlinPagesRest.transformFromDB(dbObj)
-        val stats = merlinHandler.analyze(dto).statistics
-        val col1 = UICol(md = 6)
-        val col2 = UICol(md = 6)
-        val inputVariables = stats.variables.filter { it.input }
-        val size = inputVariables.size
-        var counter = 0
-        // Place input variables in two columns
-        inputVariables.forEach {
-            if (counter < size) {
-                col1.add(createInputElement(it))
-            } else {
-                col2.add(createInputElement(it))
-            }
-            counter += 2
-        }
-        val layout = UILayout("plugins.merlin.templateExecutor.heading")
-            .add(
-                UIDropArea(
-                    "plugins.merlin.upload.serialExecution",
-                    tooltip = "plugins.merlin.upload.serialExecution.info",
-                    uploadUrl = RestResolver.getRestUrl(this::class.java, "serialExecution/$id"),
-                )
-            )
-        val variablesFieldset = UIFieldset(title = "'${dto.name}")
-        if (!dbObj.description.isNullOrBlank()) {
-            variablesFieldset.add(UIAlert(message = "'${dbObj.description}", color = UIColor.LIGHT))
-        }
-        variablesFieldset.add(
-            UIRow()
-                .add(col1)
-                .add(col2)
-        )
-            .add(
-                UIRow()
-                    .add(
-                        UICol(md = 6)
-                            .add(
-                                UICheckbox(
-                                    "pdfFormat",
-                                    label = "plugins.merlin.format.pdf",
-                                    tooltip = "plugins.merlin.format.pdf.info"
-                                )
-                            )
-                    )
-            )
-        layout.add(variablesFieldset)
-        layout.add(
-            UIButton.createBackButton(
-                responseAction = ResponseAction(
-                    PagesResolver.getListPageUrl(
-                        MerlinPagesRest::class.java,
-                        absolute = true
-                    ), targetType = TargetType.REDIRECT
-                ),
-            )
-        ).add(
-            UIButton.createDefaultButton(
-                "execute",
-                title = "plugins.merlin.templateExecutor.execute",
-                responseAction = ResponseAction(
-                    RestResolver.getRestUrl(
-                        this::class.java,
-                        subPath = "execute"
-                    ), targetType = TargetType.POST
-                ),
-            )
-        )
-
-        layout.add(logViewerMenuItem)
-        val serialExceutionMenu = MenuItem(
-            "serialExceutionMenu",
-            title = translate("plugins.merlin.serial.template.download"),
-        )
-        serialExceutionMenu.add(createSerialExcelDownloadMenu(id, "base"))
-        if (UserGroupCache.getInstance().isUserMemberOfAdminGroup(ThreadLocalUserContext.loggedInUserId)
-            || UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.loggedInUserId)
-        ) {
-            serialExceutionMenu.add(createSerialExcelDownloadMenu(id, "employees"))
-            serialExceutionMenu.add(createSerialExcelDownloadMenu(id, "users"))
-        }
-        layout.add(serialExceutionMenu)
-
-        if (hasEditAccess(dbObj)) {
-            layout.add(
-                MenuItem(
-                    "EDIT",
-                    i18nKey = "plugins.merlin.title.edit",
-                    url = PagesResolver.getEditPageUrl(MerlinPagesRest::class.java, dto.id),
-                    type = MenuItemTargetType.REDIRECT
-                )
-            )
-        }
-        LayoutUtils.process(layout)
-
-        val executionData = MerlinExecutionData(dto.id!!, dto.name ?: "???")
-        val userPref = getUserPref(id)
-        executionData.inputVariables = userPref.inputVariables
-        executionData.pdfFormat = userPref.pdfFormat
-        return FormLayoutData(executionData, layout, createServerData(request))
-    }
-
-    private fun createSerialExcelDownloadMenu(id: Long, type: String): MenuItem {
-        val fill = if (type == "base") {
-            ""
-        } else {
-            "?fill=$type"
-        }
-        return MenuItem(
-            "serialExecution",
-            i18nKey = "plugins.merlin.serial.template.download.$type",
-            tooltip = "plugins.merlin.serial.template.download.info",
-            url = RestResolver.getRestUrl(
-                this.javaClass,
-                "downloadSerialExecutionTemplate/$id$fill"
-            ),
-            type = MenuItemTargetType.DOWNLOAD,
-        )
-    }
-
-    private fun createInputElement(variable: MerlinVariable): UIElement {
-        val dataType = when (variable.type) {
-            VariableType.DATE -> UIDataType.DATE
-            VariableType.FLOAT -> UIDataType.DECIMAL
-            VariableType.INT -> UIDataType.INT
-            else -> UIDataType.STRING
-        }
-        val allowedValues = variable.allowedValues
-        val name = variable.name
-        if (allowedValues.isNullOrEmpty()) {
-            return UIInput(
-                getFieldId(name),
-                label = "'$name",
-                dataType = dataType,
-                required = variable.required,
-                tooltip = "'${variable.description}",
-            )
-        }
-        val values = allowedValues.map { UISelectValue(it, it) }
-        return UISelect(getFieldId(name), label = "'$name", required = variable.required, values = values)
-    }
-
     /**
-     * @return true, if the area isn't a personal box and the user has write access.
+     * The template, if the logged-in user may read (and execute) it, otherwise an access exception is thrown.
      */
-    private fun hasEditAccess(dbObj: MerlinTemplateDO): Boolean {
-        return merlinTemplateDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false)
+    private fun getTemplate(id: Long): MerlinTemplateDO {
+        return merlinTemplateDao.find(id) ?: throw IllegalArgumentException("Template #$id not found.")
+    }
+
+    private fun isAdminOrHR(): Boolean {
+        val userId = ThreadLocalUserContext.loggedInUserId
+        return UserGroupCache.getInstance().isUserMemberOfAdminGroup(userId)
+                || UserGroupCache.getInstance().isUserMemberOfHRGroup(userId)
     }
 
     private fun getUserPref(id: Long): MerlinExecutionData {

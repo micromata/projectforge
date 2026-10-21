@@ -247,6 +247,20 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/myscript", redirectOf("/react/myscript"))
     }
 
+    /**
+     * The React Merlin pages are gone: the execution page of a template, the list and the form are bent onto the
+     * next pages.
+     */
+    @Test
+    fun `the old react merlin pages are redirected to next`() {
+        Assertions.assertEquals("/next/merlin/42", redirectOf("/react/merlinexecution/dynamic/42"))
+        Assertions.assertEquals("/next/merlin/42", redirectOf("/react/merlinexecution/dynamic", mapOf("id" to "42")))
+        Assertions.assertEquals("/next/merlin", redirectOf("/react/merlinexecution/dynamic/foo"))
+        Assertions.assertEquals("/next/merlin", redirectOf("/react/merlin"))
+        Assertions.assertEquals("/next/merlin/42/edit", redirectOf("/react/merlin/edit/42"))
+        Assertions.assertEquals("/next/merlin/new", redirectOf("/react/merlin/edit"))
+    }
+
     /** The Wicket page of the IHK plugin has moved to projectforge-next; there is no way back to it. */
     /** The React team calendar list and form are gone: bookmarked links are bent onto the next pages. */
     @Test

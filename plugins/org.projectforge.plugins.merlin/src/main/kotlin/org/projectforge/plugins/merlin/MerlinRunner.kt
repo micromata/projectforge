@@ -49,7 +49,6 @@ import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.utils.NumberFormatter
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -109,7 +108,8 @@ open class MerlinRunner {
     /**
      * @param id Id of the MerlinTemplateDO
      * @param istream Inputstream of Excel serial file.
-     * @return Pair of filename and byte array representing the zip file containing all generated word documents.
+     * @return Pair of filename and byte array representing the zip file containing all generated word documents,
+     * or null, if the file isn't an Excel® file for a serial execution of this template.
      */
     fun serialExecuteTemplate(id: Long, filename: String, istream: InputStream): Pair<String, ByteArray>? {
         if (!filename.endsWith("xlsx") && !filename.endsWith(".xls")) {
@@ -128,7 +128,8 @@ open class MerlinRunner {
                 excelByteArray = it.readAllBytes()
             }
             ByteArrayInputStream(excelByteArray).use { xlsIstream ->
-                ExcelWorkbook(xlsIstream, filename).use { workbook ->
+                val excelWorkbook = openWorkbook(xlsIstream, filename) ?: return null
+                excelWorkbook.use { workbook ->
                     if (!SerialDataExcelReader.isMerlinSerialRunDefinition(workbook)) {
                         return null
                     }
@@ -187,6 +188,19 @@ open class MerlinRunner {
                 )
             }
             return Pair(runner.zipFilename, zipByteArray)
+        }
+    }
+
+    /**
+     * @return The workbook, or null, if the file can't be read as an Excel® file (e.g. a pdf uploaded by mistake).
+     * Only the opening is caught: what goes wrong while executing the template is no wrong file.
+     */
+    private fun openWorkbook(istream: InputStream, filename: String): ExcelWorkbook? {
+        return try {
+            ExcelWorkbook(istream, filename)
+        } catch (ex: Exception) {
+            log.error { "Can't read serial execution file '$filename' as Excel® file: ${ex.message}" }
+            null
         }
     }
 
@@ -494,23 +508,22 @@ open class MerlinRunner {
                         result.putFormatted(varname, formattedDate)
                     }
                 } else if (variable.type.isIn(VariableType.INT, VariableType.FLOAT)) {
-                    if (value != null && value is String) {
-                        NumberHelper.parseBigDecimal(value)?.let { bd ->
-                            if (variable.type == VariableType.INT) {
+                    // A number of the execution form, or a string of an Excel® file of a serial execution:
+                    variable.asBigDecimal(value)?.let { bd ->
+                        if (variable.type == VariableType.INT) {
+                            result.putFormatted(
+                                varname,
+                                NumberFormatter.format(bd.setScale(0, RoundingMode.HALF_UP), 0)
+                            )
+                        } else {
+                            val scale = variable.scale
+                            if (scale != null) {
                                 result.putFormatted(
                                     varname,
-                                    NumberFormatter.format(bd.setScale(0, RoundingMode.HALF_UP), 0)
+                                    NumberFormatter.format(bd.setScale(scale, RoundingMode.HALF_UP), scale)
                                 )
                             } else {
-                                val scale = variable.scale
-                                if (scale != null) {
-                                    result.putFormatted(
-                                        varname,
-                                        NumberFormatter.format(bd.setScale(scale, RoundingMode.HALF_UP), scale)
-                                    )
-                                } else {
-                                    result.putFormatted(varname, NumberFormatter.format(bd))
-                                }
+                                result.putFormatted(varname, NumberFormatter.format(bd))
                             }
                         }
                     }
