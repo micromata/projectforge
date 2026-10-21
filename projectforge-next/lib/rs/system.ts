@@ -61,6 +61,16 @@ export const downloadCheckI18nProperties = () =>
 export const downloadDebugUserGroupCache = () =>
   downloadFile("/rs/system/debugUserGroupCache");
 
+// The Sipgate actions (SipgateAdminRest), offered by the System page if Sipgate is configured.
+export const downloadSipgateConfiguration = () =>
+  downloadFile("/rs/sipgate/downloadConfiguration");
+export const synchronizeSipgate = () =>
+  request<SystemMessageResponse>("/rs/sipgate/synchronize", { method: "POST" });
+export const resetSipgateContacts = () =>
+  request<SystemMessageResponse>("/rs/sipgate/resetContacts", {
+    method: "POST",
+  });
+
 /** Body of a reindex run: an optional entry limit and an optional "modified since" date (yyyy-MM-dd). */
 export interface ReindexRequestBody {
   newestNEntries?: number | null;

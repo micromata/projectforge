@@ -15,7 +15,7 @@ import { SystemMenuBar } from "./system-menu-bar";
 /**
  * The System (administration) page ("/next/system"), successor of Wicket's `wa/admin`. A standalone,
  * action-driven admin page: a menu bar on top with the one-click actions (configuration incl. the
- * projectforge.properties editor, checks, database, development), below it the cards that need input or
+ * projectforge.properties editor, checks, database, Sipgate if configured, development), below it the cards that need input or
  * show progress: the site-wide alert message, reindexing the search indices, the JCR replacement and
  * formatting log entries. Admin-group only — every endpoint self-checks. The Wicket page is gone; old
  * `wa/admin` links are redirected here.
@@ -52,7 +52,10 @@ export function SystemPage() {
         )}
         {query.data && (
           <>
-            <SystemMenuBar developmentMode={query.data.developmentMode} />
+            <SystemMenuBar
+              developmentMode={query.data.developmentMode}
+              sipgateConfigured={query.data.sipgateConfigured}
+            />
             <AlertMessageCard data={query.data} />
             <ReindexCard data={query.data} />
             <JcrCard data={query.data} />

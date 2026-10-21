@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Sipgate: downloading the configuration, synchronizing and resetting the contacts are now a menu of the System page (shown if Sipgate is configured); the separate Sipgate page and its menu entry are gone. While an action of the System page runs, a progress bar shows; the contact sync no longer reloads all synchronized addresses.",
+  "de": "Sipgate: Konfiguration herunterladen, Synchronisieren und Kontakte zurücksetzen sind jetzt ein Menü der System-Seite (sichtbar, wenn Sipgate konfiguriert ist); die eigene Sipgate-Seite und ihr Menüeintrag entfallen. Während eine Aktion der System-Seite läuft, wird ein Fortschrittsbalken angezeigt; der Kontaktabgleich lädt nicht mehr alle synchronisierten Adressen erneut."
+}

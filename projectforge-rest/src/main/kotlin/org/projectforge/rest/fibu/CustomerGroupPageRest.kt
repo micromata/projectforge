@@ -129,7 +129,12 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
         var remark: String? = null,
         /** The stored `ConfigurationDO` row, for its change history (`/rs/configuration/history/{id}`). */
         var id: Long? = null,
+        /** The value as stored (JSON), the base of the editor's diff. */
+        var storedJson: String? = null,
     )
+
+    /** The configuration as JSON text, as it is stored (ids only), see [toJson]. */
+    class JsonValue(var json: String? = null)
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
@@ -180,6 +185,17 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
     fun validate(@RequestBody data: CustomerGroupsData): List<ValidationError> {
         checkAccess()
         return customerGroupService.check(toConfig(data)).map { toValidationError(it) }
+    }
+
+    /**
+     * The given unsaved configuration as it would be stored (ids only, no display names), for the editor's diff
+     * against the stored value and the former ones of the history, which are of the same format. Nothing is stored.
+     */
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
+    @PostMapping("toJson")
+    fun toJson(@RequestBody data: CustomerGroupsData): JsonValue {
+        checkAccess()
+        return JsonValue(customerGroupService.toStoredJson(toConfig(data)))
     }
 
     /**
@@ -285,6 +301,7 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
         remark = config.remark,
         lastUpdate = customerGroupService.lastUpdate,
         id = customerGroupService.entryId,
+        storedJson = customerGroupService.storedJson,
     )
 
     private fun <T : CustomerSetData> fill(dest: T, src: CustomerSet): T {

@@ -19,7 +19,7 @@ import {
 } from "@/lib/rs/configuration";
 import type { ConfigurationValues } from "../schema";
 import type { ConfigurationDetail, ConfigurationType } from "../types";
-import { JSON_EDITORS } from "./json-editors";
+import { ConfigurationJsonValueField } from "./configuration-json-value-field";
 
 /**
  * The one editable value of a configuration parameter, rendered as the input its `configurationType`
@@ -47,9 +47,20 @@ export function ConfigurationValueField({ className }: { className?: string }) {
       : undefined;
 
   const readOnly = data?.writeAccess === false || !!data?.editPage;
+  if (configurationType === "JSON") {
+    // Disables its values itself: its switch of the view and its diff stay at hand when read-only.
+    return (
+      <ConfigurationJsonValueField
+        parameter={parameter}
+        label={label}
+        hint={hint}
+        className={className}
+        readOnly={readOnly}
+      />
+    );
+  }
   const field = renderValueField(
     configurationType,
-    parameter,
     label,
     hint,
     className,
@@ -70,7 +81,6 @@ export function ConfigurationValueField({ className }: { className?: string }) {
 /** Picks the input for the value slot the type stores in (see Configuration.copyTo). */
 function renderValueField(
   type: ConfigurationType | null,
-  parameter: string | null,
   label: string,
   hint: string | undefined,
   className: string | undefined,
@@ -78,23 +88,6 @@ function renderValueField(
   readOnly: boolean
 ) {
   switch (type) {
-    case "JSON": {
-      // A JSON parameter brings its own editor; one without is edited as text, checked by the backend.
-      const Editor = parameter ? JSON_EDITORS[parameter] : undefined;
-      if (Editor) {
-        return <Editor label={label} hint={hint} className={className} />;
-      }
-      return (
-        <TextAreaField
-          name="stringValue"
-          label={label}
-          hint={hint}
-          className={className}
-          rows={10}
-          metadataLess
-        />
-      );
-    }
     case "TEXT":
       // The fieldset doesn't reach the editor's contenteditable, so it is disabled itself.
       if (richText) {

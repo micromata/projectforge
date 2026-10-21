@@ -29,12 +29,6 @@ import io.netty.handler.timeout.WriteTimeoutHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.codec.binary.Base64
 import org.projectforge.business.sipgate.SipgateConfiguration
-import org.projectforge.business.user.ProjectForgeGroup
-import org.projectforge.framework.access.AccessChecker
-import org.projectforge.menu.builder.MenuCreator
-import org.projectforge.menu.builder.MenuItemDef
-import org.projectforge.menu.builder.MenuItemDefId
-import org.projectforge.menu.builder.getReactDynamicPageUrl
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -66,12 +60,6 @@ class SipgateClient {
   @Autowired
   internal lateinit var sipgateConfiguration: SipgateConfiguration
 
-  @Autowired
-  private lateinit var accessChecker: AccessChecker
-
-  @Autowired
-  private lateinit var menuCreator: MenuCreator
-
   private var debugConsoleOutForTesting = false
 
   private val timeoutMillis = 30000
@@ -90,11 +78,7 @@ class SipgateClient {
   class HttpException(val httpStatus: Any, message: String) : RuntimeException(message)
 
   @PostConstruct
-  private fun postConstruct() {
-    postConstruct(true)
-  }
-
-  internal fun postConstruct(useMenuCreator: Boolean) {
+  internal fun postConstruct() {
     val baseUri = sipgateConfiguration.baseUri
     val token = sipgateConfiguration.token
     val tokenId = sipgateConfiguration.tokenId
@@ -118,15 +102,6 @@ class SipgateClient {
       .defaultHeader("Authorization", "Basic $base64")
       .defaultUriVariables(Collections.singletonMap("url", "baseUri"))
       .build()
-
-    if (useMenuCreator && sipgateConfiguration.isConfigured()) {
-      menuCreator
-        .register(
-          MenuItemDefId.ADMINISTRATION,
-          MenuItemDef(id = "Sipgate", i18nKey = "sipgate.title", url = getReactDynamicPageUrl("sipgate"),
-            checkAccess = { accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.ADMIN_GROUP) })
-        )
-    }
   }
 
   /**
@@ -153,7 +128,8 @@ class SipgateClient {
           }
           return@exchangeToMono response.bodyToMono(expectedReturnClass)
         } else {
-          log.error { "Error while calling $headersSpec." }
+          // The caller logs (or swallows) the HttpException, so a warning is enough here.
+          log.warn { "Sipgate answered ${response.statusCode()} instead of $successStatus: ${response.request().method} ${response.request().uri.path}" }
           if (debugConsoleOutForTesting) {
             println("Error: ${response.statusCode()}")
           }

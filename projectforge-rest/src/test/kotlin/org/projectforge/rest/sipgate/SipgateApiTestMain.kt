@@ -52,7 +52,7 @@ fun main() {
   config.tokenId = tokenId
   config.token = token
   sipgateClient.sipgateConfiguration = config
-  sipgateClient.postConstruct(useMenuCreator = false)
+  sipgateClient.postConstruct()
   // readSipgateConfiguration(sipgateClient)
   // contactService(sipgateClient)
   // getLists(sipgateClient)

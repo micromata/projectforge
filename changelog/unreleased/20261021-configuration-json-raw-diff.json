@@ -1,0 +1,23 @@
+{
+  "type": "added",
+  "en": "Configuration parameters with JSON values",
+  "de": "Konfigurationsparameter mit JSON-Werten",
+  "items": [
+    {
+      "en": "Switch between the form and the JSON text, which can be edited directly as well.",
+      "de": "Umschalter zwischen Formular und JSON-Text, der auch direkt bearbeitet werden kann."
+    },
+    {
+      "en": "Compare versions: the stored, the edited and every former value from the history, line by line.",
+      "de": "Versionen vergleichen: gespeicherter, bearbeiteter und jeder frühere Wert aus der Historie, zeilenweise."
+    },
+    {
+      "en": "Customer groups and business units: compare versions as well (the stored format, with ids).",
+      "de": "Kundengruppen und Business Units: ebenfalls Versionen vergleichen (im gespeicherten Format, mit IDs)."
+    },
+    {
+      "en": "JSON values are stored compact; values of up to 100,000 characters no longer make the save fail at the history.",
+      "de": "JSON-Werte werden kompakt gespeichert; Werte bis 100.000 Zeichen lassen das Speichern nicht mehr an der Historie scheitern."
+    }
+  ]
+}

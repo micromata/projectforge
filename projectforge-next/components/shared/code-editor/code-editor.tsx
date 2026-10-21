@@ -12,7 +12,7 @@ export interface CodeEditorProps {
   onChange?: (value: string) => void;
   onBlur?: () => void;
   /** The syntax to highlight; plain text without one. */
-  language?: "kotlin" | "groovy" | "properties";
+  language?: "kotlin" | "groovy" | "properties" | "json";
   readOnly?: boolean;
   /** CSS height the editor starts with; it grows with its content. */
   minHeight?: string;

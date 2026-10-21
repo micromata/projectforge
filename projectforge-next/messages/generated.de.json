@@ -424,7 +424,14 @@
       },
       "json": {
         "invalid": "Kein gültiges JSON.",
-        "notReadable": "Nicht lesbar: {arg0}"
+        "mode": {
+          "_": "Ansicht",
+          "form": "Formular",
+          "json": "JSON"
+        },
+        "notReadable": "Nicht lesbar: {arg0}",
+        "switchInvalid": "Kein gültiges JSON: zum Wechsel ins Formular erst korrigieren.",
+        "unknownFields": "Felder, die das Formular nicht kennt, entfallen, sobald der Wert im Formular geändert wird."
       },
       "param": {
         "calendarDomain": {
@@ -958,8 +965,10 @@
       "backupWithoutDate": "Letztes Backup (Datenbank)",
       "copyAll": "Alles kopieren",
       "edited": "Bearbeitet (nicht gespeichert)",
+      "historyVersion": "Vor der Änderung vom {arg0} ({arg1})",
       "left": "Linke Version",
       "noBackups": "Es gibt noch keine Backups.",
+      "noHistory": "Der Wert wurde noch nicht geändert.",
       "none": "Keine Änderungen.",
       "right": "Rechte Version",
       "showAll": "Alle Zeilen anzeigen",
@@ -4787,6 +4796,21 @@
           "tooltip": "Export the database schema (tables, constraints etc.). The database dialect of the currently used database is used."
         },
         "setAlertMessage": "Set system alert message",
+        "sipgate": {
+          "downloadConfiguration": {
+            "_": "Sipgate-Konfiguration herunterladen",
+            "tooltip": "Lädt die Konfiguration von Sipgate (Benutzer, Geräte, Nummern usw.) als Excel-Datei herunter."
+          },
+          "resetContacts": {
+            "_": "Sipgate-Kontakte zurücksetzen",
+            "question": "Sollen die Sipgate-Kontakte wirklich zurückgesetzt werden? Die Kontakte werden danach erneut mit den lokalen Adressen synchronisiert.",
+            "tooltip": "Synchronisiert die Sipgate-Kontakte und setzt sie zurück, z. B. um Kontakte in Sipgate mit doppelten Nummern neu zu ordnen."
+          },
+          "synchronize": {
+            "_": "Sipgate synchronisieren",
+            "tooltip": "Synchronisiert die Kontakte von Sipgate mit den lokalen Adressen und lädt die entfernte Konfiguration (Benutzer, Geräte, Nummern usw.) neu."
+          }
+        },
         "testDatabase": {
           "_": "Datenbank testen",
           "tooltip": "Führt einen Datenbank-Lasttest aus (nur im Entwicklungsmodus, siehe Logdateien)."
@@ -4805,6 +4829,7 @@
           "misc": {
             "logEntries": "Format log entries"
           },
+          "sipgate": "Sipgate",
           "systemChecksAndFunctionality": {
             "configuration": "Konfiguration"
           }

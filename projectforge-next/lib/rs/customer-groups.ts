@@ -25,6 +25,22 @@ export function saveCustomerGroups(
   return postEntityAction("customerGroups", "save", values);
 }
 
+/**
+ * The unsaved configuration as it would be stored (JSON, ids only): what the diff compares with the stored
+ * value and the former ones of the history. Nothing is stored.
+ */
+export async function customerGroupsToJson(
+  values: CustomerGroupsValues,
+  signal?: AbortSignal
+): Promise<string> {
+  const result = await request<{ json?: string | null }>(
+    "/rs/customerGroups/toJson",
+    { method: "POST", body: JSON.stringify(values) },
+    signal
+  );
+  return result.json ?? "";
+}
+
 /** Mirror of `CustomerGroupService.CustomerMatches`; Spring omits an empty list (`NON_NULL`). */
 export interface CustomerMatches {
   /** Customer entities matched, as "number name". */

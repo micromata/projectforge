@@ -99,6 +99,25 @@ class CustomerGroupPageRestTest : AbstractTestBase() {
     }
 
     @Test
+    fun `the unsaved definition is serialized as it would be stored, for finance and controlling only`() {
+        val data = read(
+            """{"groups":[{"key":"grp1","name":" ACME ","customers":[],"texts":["ACME*"," ",""]}],
+              "orderAccess":[{"key":"grant1","name":"Test","remark":"","users":[{"id":1,"displayName":"U"},
+              {"id":1,"displayName":"U"}],"customers":[],"groups":[],"businessUnits":[]}],"remark":""}"""
+        )
+        logon(TEST_USER)
+        assertThrows<AccessException> { customerGroupPageRest.toJson(data) }
+
+        logon(TEST_FINANCE_USER)
+        val json = customerGroupPageRest.toJson(data).json!!
+        // Trimmed, empty texts and duplicates dropped, empty remarks left out: as the history holds it.
+        assertTrue(json.contains("\"name\":\"ACME\""), json)
+        assertTrue(json.contains("\"texts\":[\"ACME*\"]"), json)
+        assertTrue(json.contains("\"userIds\":[1]"), json)
+        assertTrue(!json.contains("remark"), json)
+    }
+
+    @Test
     fun `project groups are saved and read back, an unknown project is refused`() {
         var projektIds = listOf<Long>()
         persistenceService.runInTransaction { _ ->
