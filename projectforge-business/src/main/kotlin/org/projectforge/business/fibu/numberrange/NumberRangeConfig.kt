@@ -44,7 +44,8 @@ package org.projectforge.business.fibu.numberrange
  * projectforge.fibu.number-ranges.ranges[2].project-digits=1
  * projectforge.fibu.number-ranges.ranges[2].segments=1,4,1,2
  * ```
- * See [NumberRange] for the meaning of the fields. Bound by [NumberRangeService] from the environment (prefix
+ * The `segments` line may be left out: without it, a range with customers is segmented by its digits (1,4,1,2 for
+ * 1 project digit, 1,3,2,2 for 2). See [NumberRange] for the meaning of the fields. Bound by [NumberRangeService] from the environment (prefix
  * [PREFIX]).
  */
 class NumberRangeConfig {
