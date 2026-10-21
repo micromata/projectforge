@@ -1,6 +1,11 @@
 import { VISITORBOOK_METADATA } from "@/lib/metadata/visitorbook.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { VisitorbookCompanyField } from "./edit/visitorbook-company-field";
 import { VisitorbookContactPersonsField } from "./edit/visitorbook-contact-persons-field";
+import {
+  VisitorbookFirstnameField,
+  VisitorbookLastnameField,
+} from "./edit/visitorbook-name-field";
 import { VisitorbookVisitsSection } from "./edit/visitorbook-visits-section";
 import { VISITORBOOK_LIST_QUERY_KEY } from "./visitorbook-query-key";
 import {
@@ -87,9 +92,10 @@ export const VISITORBOOK_PAGE = definePage<
         id: "general",
         titleKey: "orga.visitorbook.title.heading",
         fields: [
-          { name: "firstname" },
-          { name: "lastname" },
-          { name: "company" },
+          // A new visitor's name offers the stored ones, so the visit goes to the existing visitor.
+          { custom: VisitorbookFirstnameField },
+          { custom: VisitorbookLastnameField },
+          { custom: VisitorbookCompanyField },
           { name: "visitortype" },
           { custom: VisitorbookContactPersonsField, span: 2 },
           { name: "comment", span: 3, rows: 4 },

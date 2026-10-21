@@ -22,13 +22,15 @@ export function VisitorbookEditPageClient() {
         page={VISITORBOOK_PAGE}
         id={isNew ? null : id}
         // A new visitor stays in the form: the visits can only be entered once the visitor is stored (as the
-        // legacy page did).
+        // legacy page did). The dialog of the first visit opens right away, the reason the visitor was added.
         outcome={
           isNew
             ? {
                 afterSave: (savedId) =>
                   router.push(
-                    savedId != null ? `/visitorbook/${savedId}` : "/visitorbook"
+                    savedId != null
+                      ? `/visitorbook/${savedId}?addVisit=1`
+                      : "/visitorbook"
                   ),
               }
             : undefined

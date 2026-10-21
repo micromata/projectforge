@@ -96,6 +96,18 @@ class IncomingInvoiceCsvImporterTest {
         assertEquals(LocalDate.of(2026, 9, 5), storage.readInvoices.single().bezahlDatum)
     }
 
+    /** A position without paid date takes that of another position, not the offset's: else they would differ. */
+    @Test
+    fun `paid date of another position wins over the offset`() {
+        val storage = parsePositions(
+            """"01.04.2026-30.04.2026";"R";"100,00";"EUR";"07.04.";"EX-42";"Example Ltd";"6837";"07.04.2026"""",
+            """"01.04.2026-30.04.2026";"R";"20,00";"EUR";"07.04.";"EX-42";"Example Ltd";"6837";""""",
+            """"01.06.2026-30.06.2026";"G";"120,00";"EUR";"02.06.";"EX-42";"Example Ltd";"1814";"02.06.2026"""",
+        )
+        assertEquals(listOf(LocalDate.of(2026, 4, 7)), storage.readInvoices.map { it.bezahlDatum }.distinct())
+        assertTrue(storage.errorList.isEmpty(), "No inconsistent paid dates, got ${storage.errorList}")
+    }
+
     @Test
     fun `credit note on an expense account is an invoice with a negative amount`() {
         val storage = parsePositions(

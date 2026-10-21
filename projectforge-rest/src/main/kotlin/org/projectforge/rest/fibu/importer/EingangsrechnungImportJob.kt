@@ -87,37 +87,76 @@ class EingangsrechnungImportJob(
         // Group entries by invoice (same stored.id for updates, same referenz+datum+kreditor for new invoices)
         val invoiceGroups = groupEntriesByInvoice()
 
-        for ((invoiceKey, entries) in invoiceGroups) {
+        for ((_, entries) in invoiceGroups) {
             if (!isActive) {
                 return
             }
+            importInvoiceGroup(entries)
+        }
+    }
 
-            // Find the stored invoice ID from any entry that has stored data
-            // All entries with stored data should belong to the same invoice
-            val storedId = entries.firstNotNullOfOrNull { it.stored?.id }
+    /**
+     * Imports the selected entries of one invoice (see [groupEntriesByInvoice]): deletes, updates or inserts it.
+     */
+    internal fun importInvoiceGroup(entries: List<ImportPairEntry<EingangsrechnungPosImportDTO>>) {
+        // Find the stored invoice ID from any entry that has stored data
+        // All entries with stored data should belong to the same invoice
+        val storedId = entries.firstNotNullOfOrNull { it.stored?.id }
 
-            // Check if this is a deletion (all entries have read=null)
-            if (entries.all { it.read == null }) {
-                if (storedId != null) {
-                    val existingEntity = eingangsrechnungDao.find(storedId)
-                    if (existingEntity != null && !existingEntity.deleted) {
-                        eingangsrechnungDao.markAsDeleted(existingEntity)
-                        result.deleted += entries.size  // Count positions, not invoices
-                        processedNumber += entries.size
-                    }
-                }
-                continue
-            }
-
-            // Create or update invoice with positions
+        // Check if this is a deletion (all entries have read=null)
+        if (entries.all { it.read == null }) {
             if (storedId != null) {
-                updateInvoiceWithPositions(storedId, entries)
-            } else {
-                insertInvoiceWithPositions(entries)
+                if (entries.any { it.stored?.positionNummer == null }) {
+                    // The stored invoice is missing in the import (header dto without position number).
+                    markAsDeleted(storedId, entries)
+                } else {
+                    // Only positions the import doesn't have any more. The other positions of the invoice are
+                    // unmodified and therefore not selected: remove these positions, never the whole invoice.
+                    removePositions(storedId, entries)
+                }
             }
+            return
+        }
 
+        // Create or update invoice with positions
+        if (storedId != null) {
+            updateInvoiceWithPositions(storedId, entries)
+        } else {
+            insertInvoiceWithPositions(entries)
+        }
+
+        processedNumber += entries.size
+    }
+
+    private fun markAsDeleted(storedId: Long, entries: List<ImportPairEntry<EingangsrechnungPosImportDTO>>) {
+        val existingEntity = eingangsrechnungDao.find(storedId)
+        if (existingEntity != null && !existingEntity.deleted) {
+            eingangsrechnungDao.markAsDeleted(existingEntity)
+            result.deleted += entries.size  // Count positions, not invoices
             processedNumber += entries.size
         }
+    }
+
+    /**
+     * Removes the given positions (read=null) from the stored invoice. If no position would be left, the invoice
+     * is deleted instead (an invoice without positions is refused).
+     */
+    private fun removePositions(storedId: Long, entries: List<ImportPairEntry<EingangsrechnungPosImportDTO>>) {
+        val existingEntity = eingangsrechnungDao.find(storedId) ?: return
+        if (existingEntity.deleted) {
+            return
+        }
+        val removedNumbers = entries.mapNotNull { it.stored?.positionNummer?.toShort() }.toSet()
+        val positions = existingEntity.positionen ?: return
+        if (positions.none { !it.deleted && it.number !in removedNumbers }) {
+            markAsDeleted(storedId, entries)
+            return
+        }
+        // Removed from the collection, the update marks them as deleted (soft delete, see createPositions).
+        positions.removeIf { it.number in removedNumbers }
+        eingangsrechnungDao.update(existingEntity)
+        result.deleted += entries.size  // Count positions, not invoices
+        processedNumber += entries.size
     }
 
     /**

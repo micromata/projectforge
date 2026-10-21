@@ -105,6 +105,7 @@ open class VisitorbookCache : AbstractCache() {
         visitorbookInfo.latestArrived = lastEntry?.arrived
         visitorbookInfo.latestDeparted = lastEntry?.departed
         visitorbookInfo.numberOfVisits = entries.size
+        visitorbookInfo.incompleteVisits = entries.count { it.arrived.isNullOrBlank() || it.departed.isNullOrBlank() }
     }
 
     companion object {

@@ -8,6 +8,7 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 import { todayOf } from "../lib/user-zone";
 import type { Page } from "@playwright/test";
 import { writeHeaders } from "./fixtures/seed";
+import { filterElements } from "./fixtures/filter-pill";
 
 /**
  * The visitor book against the live backend (see VISITORBOOK_PAGE and VisitorbookEntityRest).
@@ -45,6 +46,41 @@ test.describe("visitorbook", { tag: "@parallel" }, () => {
         // The first list call of a session pays for the route being compiled and the caches being filled.
       ).toHaveCount(1, { timeout: 20_000 });
     }
+  });
+
+  test("offers the incomplete visits filter as a pinned toggle pill", async ({
+    loggedInPage: page,
+  }) => {
+    // The label is the backend's (VisitorbookEntityRest.addMagicFilterElements), so it is asked for first.
+    const element = (await filterElements(page, "visitorbook")).find(
+      (e) => e.id === "incompleteVisits"
+    );
+    expect(element?.filterType).toBe("BOOLEAN");
+    expect(element?.defaultFilter).toBe(true);
+    const posted: unknown[] = [];
+    page.on("request", (request) => {
+      if (/\/rs\/visitorbook\/list/.test(request.url())) {
+        posted.push(request.postDataJSON());
+      }
+    });
+
+    await goto(page, "/visitorbook");
+    const pill = page.getByRole("button", {
+      name: element?.label ?? "",
+      exact: true,
+    });
+    await expect(pill).toBeVisible({ timeout: 20_000 });
+    await expect(pill).toHaveAttribute("aria-pressed", "false");
+    await pill.click();
+    await expect(pill).toHaveAttribute("aria-pressed", "true");
+    await expect
+      .poll(() => JSON.stringify(posted.at(-1) ?? null), {
+        message: "the list is asked with the filter",
+      })
+      .toMatch(/"field":"incompleteVisits".*"value":"true"/);
+    // Toggled back, so the stored filter is left as it was found.
+    await pill.click();
+    await expect(pill).toHaveAttribute("aria-pressed", "false");
   });
 
   test("posts a new visitor on save", async ({ loggedInPage: page }) => {
@@ -87,7 +123,7 @@ test.describe("visitorbook", { tag: "@parallel" }, () => {
     });
   });
 
-  test("proposes today and now for a new visit and shows the backend's answer", async ({
+  test("proposes today and now for a new visit and returns to the list after saving it", async ({
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
@@ -139,10 +175,78 @@ test.describe("visitorbook", { tag: "@parallel" }, () => {
         visitorbookId: id,
       },
     });
-    // The section shows what the backend answered; a visit is no validity period, none is marked as current.
-    const row = page.locator("tr", { hasText: "e2e visit" });
-    await expect(row).toBeVisible();
-    await expect(row).not.toHaveAttribute("data-validity", /.*/);
+    // A saved visit is done: the list is shown again, for the next visitor.
+    await expect(page).toHaveURL(/\/visitorbook$/, { timeout: 20_000 });
+  });
+
+  test("offers a stored visitor for a new one's name and opens its visit dialog", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const id = await openFirstVisitor(page);
+    const asked: string[] = [];
+    await page.route("**/rs/visitorbook/existing*", (route) => {
+      asked.push(route.request().url());
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([
+          {
+            id,
+            firstname: "e2e",
+            lastname: "Existing",
+            company: "e2e Company",
+            lastDateOfVisit: "2000-01-03",
+            numberOfVisits: 3,
+          },
+        ]),
+      });
+    });
+
+    await goto(page, "/visitorbook/new");
+    await page
+      .getByLabel(label(format, "orga.visitorbook.lastname"))
+      .first()
+      .fill("Exi");
+    const option = page.getByRole("option", { name: /Existing, e2e/ });
+    await expect(option).toBeVisible({ timeout: 20_000 });
+    expect(asked.at(-1)).toContain("lastname=Exi");
+    await option.click();
+
+    // The visitor opens with the dialog of a new visit; the parameter is dropped from the url.
+    await expect(page).toHaveURL(new RegExp(`/visitorbook/${id}$`), {
+      timeout: 20_000,
+    });
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByRole("heading")).toHaveText(
+      label(format, "orga.visitorbook.timeofvisit")
+    );
+    await expect(
+      dialog.getByLabel(label(format, "calendar.day"), { exact: true })
+    ).toHaveValue(formatDateInput(todayOf(format.context), format.context));
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+  });
+
+  test("completes the company from the ones in use", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    await page.route("**/rs/visitorbook/autocomplete*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(["e2e Company GmbH"]),
+      })
+    );
+
+    await goto(page, "/visitorbook/new");
+    const company = page
+      .getByLabel(label(format, "orga.visitorbook.company"))
+      .first();
+    await company.fill("e2e");
+    await page.getByRole("option", { name: "e2e Company GmbH" }).click();
+    await expect(company).toHaveValue("e2e Company GmbH");
   });
 
   test("redirects the old React pages", async ({ loggedInPage: page }) => {

@@ -69,6 +69,13 @@ class VisitorbookDao protected constructor() : BaseDao<VisitorbookDO>(Visitorboo
     }
 
     /**
+     * The company names already in use are offered while typing the company of a visitor (`autocomplete?property=company`).
+     */
+    override fun isAutocompletionPropertyEnabled(property: String?): Boolean {
+        return property == "company"
+    }
+
+    /**
      * There is no addOwnHistoryEntries here: the entries reach the display through the generic @OneToMany walk of
      * HistoryService (see getHistoryPropertyPrefix below). Their history rows carry entityName=VisitorbookEntryDO all
      * the same, so a partial re-index has to name them.

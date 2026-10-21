@@ -78,17 +78,13 @@ class Employee(
         }
 
         /**
-         * Converts csv of group ids to list of groups (only with id and displayName = "???", no other content).
+         * The employees with id and display name only. The name comes from the [EmployeeCache], not from the given
+         * (usually lazy) employees: their user would be loaded one by one otherwise (N+1 selects of `T_PF_USER`).
          */
         fun toEmployeeList(employees: Collection<EmployeeDO>?): List<Employee>? {
             employees ?: return null
-            val result = mutableListOf<Employee>()
-            employees.forEach {
-                val employee = Employee()
-                employee.copyFromMinimal(it)
-                result.add(employee)
-            }
-            return result.sortedBy { it.displayName }
+            return employees.map { Employee(it.id, displayName = employeeCache.getEmployee(it.id)?.displayName) }
+                .sortedBy { it.displayName }
         }
 
         fun toEmployeeDOList(employees: Collection<Employee>?): MutableSet<EmployeeDO>? {
