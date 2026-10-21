@@ -4302,6 +4302,10 @@
         "existing": "existing",
         "projectElement": "Structure element of the project",
         "title": "What the wizard set up"
+      },
+      "running": {
+        "_": "Setting up the project …",
+        "customer": "Creating the customer …"
       }
     }
   },

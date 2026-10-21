@@ -1,5 +1,5 @@
 {
   "type": "fixed",
-  "en": "Project wizard: tabs and a pinned action bar as on the edit pages; the action step lists what will be set up (new customer, new project, path of the new structure elements, access rights) and what is still missing; the finish button is always clickable.",
-  "de": "Projektassistent: Tabs und feststehende Aktionsleiste wie auf den Editseiten; der Schritt Aktion zeigt, was eingerichtet wird (neuer Kunde, neues Projekt, Pfad der neuen Strukturelemente, Zugriffsrechte) und was noch fehlt; der Abschluss-Button ist immer anklickbar."
+  "en": "Project wizard: tabs and a pinned action bar as on the edit pages; the action step lists what will be set up (new customer, new project, path of the new structure elements, access rights) and what is still missing; the finish button is always clickable, and a progress bar shows while the setup runs.",
+  "de": "Projektassistent: Tabs und feststehende Aktionsleiste wie auf den Editseiten; der Schritt Aktion zeigt, was eingerichtet wird (neuer Kunde, neues Projekt, Pfad der neuen Strukturelemente, Zugriffsrechte) und was noch fehlt; der Abschluss-Button ist immer anklickbar, und während der Einrichtung zeigt ein Fortschrittsbalken, dass sie läuft."
 }

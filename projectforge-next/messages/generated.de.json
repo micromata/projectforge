@@ -4302,6 +4302,10 @@
         "existing": "vorhanden",
         "projectElement": "Strukturelement des Projekts",
         "title": "Was der Assistent eingerichtet hat"
+      },
+      "running": {
+        "_": "Projekt wird eingerichtet …",
+        "customer": "Kunde wird angelegt …"
       }
     }
   },
