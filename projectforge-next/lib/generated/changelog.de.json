@@ -6,6 +6,9 @@
     "date" : "2026-10-21",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Besucherbuch: Beim Erfassen eines neuen Besuchers schlägt der Name die bereits erfassten Besucher vor; mit der Auswahl wird der Besuch dort eingetragen, statt eine Dublette anzulegen. Bereits verwendete Firmennamen werden vervollständigt, und nach dem Speichern eines neuen Besuchers öffnet sich gleich der Dialog für den ersten Besuch.", "Besucherbuch: Ein angepinnter Filter zeigt die Besucher mit unvollständigen Besuchszeiten, z. B. mit noch fehlender Abreise. Nach dem Speichern eines Besuchs erscheint wieder die Liste." ]
+    }, {
       "type" : "improved",
       "items" : [ "Strukturelement-Felder: Ein Klick auf das gewählte Strukturelement öffnet den Baum, wie der Stift-Button. Auftragspositionen zeigen den Verbrauchsbalken ihres Strukturelements, der zu dessen Zeitberichten führt.", "Benutzerliste: Deaktivierte Benutzer:innen werden durchgestrichen angezeigt." ]
     }, {

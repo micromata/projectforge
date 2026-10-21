@@ -33,4 +33,7 @@ class VisitorbookInfo() {
     var latestArrived: String? = null
     var latestDeparted: String? = null
     var numberOfVisits: Int = 0
+
+    /** The visits without arrival or departure time, e.g. of a visitor whose departure isn't entered yet. */
+    var incompleteVisits: Int = 0
 }

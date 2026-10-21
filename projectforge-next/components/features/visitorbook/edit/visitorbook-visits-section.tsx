@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { ValidityEntriesSection } from "@/components/shared/validity-entries/validity-entries-section";
@@ -42,13 +44,21 @@ const VALUE_FIELDS: ValidityValueField[] = [
  * The visits of a stored visitor, newest first. Written through `visitorbook/entry/...` right away, not with the
  * form (see ValidityEntriesSection); a visit is no validity period, so none is marked as the current one. The
  * answer of a write replaces the visits of the cached visitor (no refetch: it already is what the backend has);
- * the list, which shows the latest visit, and the history are refreshed.
+ * the list, which shows the latest visit, and the history are refreshed. With `?addVisit=1` the dialog of a new
+ * visit opens right away; after a visit is saved, the list is shown again.
  */
 export function VisitorbookVisitsSection({ id }: { id: number }) {
   const t = useTranslations();
   const queryClient = useQueryClient();
   const ctx = useFormatContext();
+  const router = useRouter();
   const visitor = useEntityDetail<VisitorbookDetail>("visitorbook", id).data;
+  // `?addVisit=1`: reached to enter a visit (a stored visitor picked in a new one's name, or a visitor just added).
+  // Dropped from the url once read, so a reload or the way back doesn't open the dialog again.
+  const addVisit = useSearchParams().get("addVisit") === "1";
+  useEffect(() => {
+    if (addVisit) router.replace(`/visitorbook/${id}`);
+  }, [addVisit, id, router]);
 
   return (
     <ValidityEntriesSection<VisitorbookEntry>
@@ -59,6 +69,7 @@ export function VisitorbookVisitsSection({ id }: { id: number }) {
       valueFields={VALUE_FIELDS}
       dialogTitle={t("orga.visitorbook.timeofvisit._")}
       markValidity={false}
+      openNewOnMount={addVisit}
       // Today and now, as the legacy dialog did: a visit is usually entered as the visitor arrives.
       newEntry={() => ({
         id: null,
@@ -84,6 +95,8 @@ export function VisitorbookVisitsSection({ id }: { id: number }) {
           queryKey: historyQueryKey("visitorbook", id),
         });
       }}
+      // Entering a visit is done once it is saved: back to the list, ready for the next visitor.
+      onSaved={() => router.push("/visitorbook")}
     />
   );
 }

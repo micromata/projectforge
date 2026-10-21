@@ -6,6 +6,9 @@
     "date" : "2026-10-21",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Visitor book: while a new visitor is entered, the name offers the visitors already recorded with it; picking one adds the visit to that visitor instead of creating a duplicate. The company names in use are completed, and the dialog of the first visit opens right after a new visitor is saved.", "Visitor book: a pinned filter shows the visitors with incomplete times of visit, e.g. a departure not entered yet. After a visit is saved, the list is shown again." ]
+    }, {
       "type" : "improved",
       "items" : [ "Structure element fields: a click on the selected structure element opens the tree, like the pencil button. Order positions show the consumption bar of their structure element, which leads to its time sheets.", "User list: deactivated users are shown struck through." ]
     }, {

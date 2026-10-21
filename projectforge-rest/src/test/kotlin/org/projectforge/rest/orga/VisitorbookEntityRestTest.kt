@@ -24,6 +24,7 @@
 package org.projectforge.rest.orga
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -39,6 +40,7 @@ import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.rest.dto.PostData
@@ -139,6 +141,68 @@ class VisitorbookEntityRestTest : AbstractTestBase() {
         )
     }
 
+    /** A new visitor offers the stored ones with the typed name, so the visit goes to the existing one. */
+    @Test
+    fun `existing visitors are found by the start of their names`() {
+        val orgaUser = createOrgaUser()
+        logon(orgaUser)
+        val id = createVisitor("Existingperson", firstname = "Maxi", company = "Existing Company GmbH")
+        val deletedId = createVisitor("Existingperson", firstname = "Mara")
+        visitorbookDao.markAsDeleted(visitorbookDao.find(deletedId)!!)
+        visitorbookEntityRest.insertEntry(post(entry(id, LocalDate.of(2026, 10, 1))))
+
+        val found = visitorbookEntityRest.getExisting(firstname = "ma", lastname = "existingp")
+        assertEquals(listOf(id), found.map { it.id }, "Prefix of both names, case-insensitive, no deleted visitor.")
+        assertEquals("Existing Company GmbH", found.first().company)
+        assertEquals(LocalDate.of(2026, 10, 1), found.first().lastDateOfVisit)
+        assertEquals(1, found.first().numberOfVisits)
+        assertEquals(listOf(id), visitorbookEntityRest.getExisting(firstname = null, lastname = "Existingp").map { it.id })
+        assertTrue(visitorbookEntityRest.getExisting(firstname = "Maxi", lastname = "Other").isEmpty())
+        assertTrue(visitorbookEntityRest.getExisting(firstname = "M", lastname = "").isEmpty(), "Too short.")
+
+        logon(TEST_USER)
+        assertThrows<AccessException> { visitorbookEntityRest.getExisting(firstname = null, lastname = "Existingp") }
+    }
+
+    /** The company names in use are completed; no other property is. */
+    @Test
+    fun `company names are completed`() {
+        logon(createOrgaUser())
+        createVisitor("Companyperson", company = "Completed Company AG")
+        assertEquals(
+            listOf("Completed Company AG"),
+            visitorbookEntityRest.getAutoCompletionForProperty("company", "completed comp"),
+        )
+        assertTrue(visitorbookEntityRest.getAutoCompletionForProperty("lastname", "Companyp").isEmpty())
+    }
+
+    /** The pinned filter shows the visitors with a visit lacking its arrival or departure time. */
+    @Test
+    fun `the incomplete visits filter shows visitors with a visit lacking a time`() {
+        logon(createOrgaUser())
+        val completeId = createVisitor("Complete")
+        val openId = createVisitor("Departureopen")
+        visitorbookEntityRest.insertEntry(post(entry(completeId, LocalDate.of(2026, 10, 1), departed = "17:00")))
+        visitorbookEntityRest.insertEntry(post(entry(openId, LocalDate.of(2026, 10, 1), departed = "17:00")))
+        // An older visit counts as well, not only the latest one.
+        visitorbookEntityRest.insertEntry(post(entry(openId, LocalDate.of(2026, 9, 1))))
+
+        val incomplete = listedIds(incompleteVisits = true)
+        assertTrue(incomplete.contains(openId))
+        assertFalse(incomplete.contains(completeId))
+        assertTrue(listedIds(incompleteVisits = false).containsAll(listOf(openId, completeId)), "Unticked: all.")
+    }
+
+    /** The ids of the visitors listed with the incomplete visits filter (ticked or not). */
+    private fun listedIds(incompleteVisits: Boolean): List<Long?> {
+        val filter = MagicFilter()
+        filter.entries.add(MagicFilterEntry(VisitorbookEntityRest.INCOMPLETE_VISITS_FILTER).also {
+            it.value.value = incompleteVisits.toString()
+        })
+        return visitorbookEntityRest.getList(MockHttpServletRequest(), filter, doNotStore = true)
+            .resultSet.map { (it as Visitorbook).id }
+    }
+
     /** A member of the organization team with the visitor book right, as the right is granted in production. */
     private fun createOrgaUser(): PFUserDO {
         val username = "${javaClass.simpleName}.orgaUser"
@@ -157,18 +221,19 @@ class VisitorbookEntityRestTest : AbstractTestBase() {
         return user
     }
 
-    private fun createVisitor(lastname: String): Long {
+    private fun createVisitor(lastname: String, firstname: String = "Visitor", company: String? = null): Long {
         return visitorbookDao.insert(VisitorbookDO().also {
-            it.firstname = "Visitor"
+            it.firstname = firstname
             it.lastname = lastname
+            it.company = company
             it.visitortype = VisitorType.NORMAL
         })
     }
 
     private fun post(entry: VisitorbookEntry) = PostData(entry, watchFieldsTriggered = null, serverData = null)
 
-    private fun entry(visitorbookId: Long, dateOfVisit: LocalDate?) =
-        VisitorbookEntry(dateOfVisit = dateOfVisit, arrived = "09:00", visitorbookId = visitorbookId)
+    private fun entry(visitorbookId: Long, dateOfVisit: LocalDate?, departed: String? = null) =
+        VisitorbookEntry(dateOfVisit = dateOfVisit, arrived = "09:00", departed = departed, visitorbookId = visitorbookId)
 
     private fun entries(response: ResponseEntity<*>): List<VisitorbookEntry> {
         assertEquals(HttpStatus.OK, response.statusCode)
