@@ -127,9 +127,9 @@ class IncomingInvoiceImportRest :
             discountPercent=Skonto 1 in %|Skto_Proz|Skonto Prozent|Skonto in %|:#.##0,0#|:#0
             faelligkeit=Fällig_am|Fällig ohne Skonto|Fälligkeit|:dd.MM.yyyy|:dd.MM.yy
             grossSum=Rechnungsbetrag|Betrag|:#.##0,0#|:#0,0#
-            zahlBetrag=Zahlbetrag|g:#,##0.0#|:#0.0#
+            zahlBetrag=Zahlbetrag|:#.##0,0#|:#0,0#
             zahlungsZielInTagen=Zahlungsziel|:#0
-            taxRate=Steuer in %|Steuer%|#.##0,0#|:#0
+            taxRate=Steuer in %|Steuer%|:#.##0,0#|:#0
             iban=IBAN
             konto=LieferantKonto|Geschäftspartner-Konto
             kreditor=Geschäftspartner-Name|Kreditor|LieferantName
@@ -140,8 +140,6 @@ class IncomingInvoiceImportRest :
             kost1=KOST 1|KOST1
             kost2=KOST 2|KOST2
             periode=Periode
-            iban=IBAN
-            bic=BIC
         """.trimIndent()
     }
 }
