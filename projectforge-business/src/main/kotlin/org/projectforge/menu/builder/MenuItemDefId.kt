@@ -88,7 +88,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     GROUP_LIST("menu.groupList", getListUrl("group")), //
     HR_PLANNING_LIST("menu.hrPlanningList", getListUrl("hrPlanning")), //
     HR_VIEW("menu.hrList", "next/hrList"), //
-    // Migrated to projectforge-next, list and form; react/incomingMail is redirected by OrphanedLinkFilter.
+    // Migrated to projectforge-next, list and form; old react/incomingMail links are not redirected.
     INBOX_LIST("menu.orga.posteingang", getListUrl("incomingMail")), //
     // Migrated to projectforge-next, list and form; the Wicket pages (wa/incomingInvoiceList/Edit) were removed.
     INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", getListUrl("incomingInvoice")), //
@@ -112,7 +112,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ORDER_LIST("menu.fibu.orderbook", getListUrl("order")), //
     // Next only: forecast and contribution margin of the order book, with a filter of their own.
     ORDER_STATISTICS("menu.fibu.orderStatistics", "next/finance/statistics"), //
-    // Migrated to projectforge-next, list and form; react/outgoingMail is redirected by OrphanedLinkFilter.
+    // Migrated to projectforge-next, list and form; old react/outgoingMail links are not redirected.
     OUTBOX_LIST("menu.orga.postausgang", getListUrl("outgoingMail")), //
     // Migrated to projectforge-next, list and form; the Wicket pages (wa/outgoingInvoiceList) were removed.
     OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", getListUrl("outgoingInvoice")), //

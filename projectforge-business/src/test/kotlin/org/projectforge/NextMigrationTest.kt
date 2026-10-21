@@ -171,7 +171,7 @@ class NextMigrationTest {
     /**
      * The scripts: the row click leads to the execution (`script/:id`, `myscript/:id`), the form of a script
      * is a sub route of it, the user's own script list has none. The React pages are gone, so there is no
-     * way back, but a bookmarked React link of the lists or the form is still redirected onto next.
+     * way back, and as no link of them ever left ProjectForge (no mail, no data transfer), none is redirected.
      */
     @Test
     fun `the script pages are next's and offer no way back`() {
@@ -373,8 +373,8 @@ class NextMigrationTest {
     }
 
     /**
-     * The inbox and the outbox: list and form are next's, the React pages are gone, so there is no way back, but a
-     * bookmarked React link is still redirected onto next.
+     * The inbox and the outbox: list and form are next's, the React pages are gone, so there is no way back, and as
+     * no link of them ever left ProjectForge (no mail, no data transfer), none is redirected.
      */
     @Test
     fun `the inbox and outbox pages are next's and offer no way back`() {

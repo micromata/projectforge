@@ -226,27 +226,6 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/", redirectOf("/react/public/datatransfer"))
     }
 
-    /**
-     * The React script pages are gone: the execution pages (stored script, ad-hoc editor with its examples, the
-     * user's own scripts), the lists and the form are bent onto the next pages.
-     */
-    @Test
-    fun `the old react script pages are redirected to next`() {
-        Assertions.assertEquals("/next/script/42", redirectOf("/react/scriptExecute/dynamic/42"))
-        Assertions.assertEquals("/next/script/execute", redirectOf("/react/scriptExecute/dynamic/"))
-        Assertions.assertEquals(
-            "/next/script/execute?example=1",
-            redirectOf("/react/scriptExecute/dynamic/", mapOf("example" to "1")),
-        )
-        Assertions.assertEquals("/next/script/execute", redirectOf("/react/scriptExecute/dynamic/", mapOf("example" to "x")))
-        Assertions.assertEquals("/next/myscript/42", redirectOf("/react/myScriptExecute/dynamic/42"))
-        Assertions.assertEquals("/next/myscript", redirectOf("/react/myScriptExecute/dynamic/foo"))
-        Assertions.assertEquals("/next/script", redirectOf("/react/script"))
-        Assertions.assertEquals("/next/script/42/edit", redirectOf("/react/script/edit/42"))
-        Assertions.assertEquals("/next/script/new", redirectOf("/react/script/edit"))
-        Assertions.assertEquals("/next/myscript", redirectOf("/react/myscript"))
-    }
-
     /** The Wicket page of the IHK plugin has moved to projectforge-next; there is no way back to it. */
     /** The React team calendar list and form are gone: bookmarked links are bent onto the next pages. */
     @Test
