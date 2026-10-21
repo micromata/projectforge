@@ -54,6 +54,8 @@ export interface CustomerGroupsData {
   lastUpdate?: number | null;
   /** The stored `ConfigurationDO` row, whose change history the page shows; null before the first save. */
   id?: number | null;
+  /** The value as stored (JSON, ids only), the base of the diff (CustomerGroupsDiffButton). */
+  storedJson?: string | null;
 }
 
 /**

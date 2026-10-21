@@ -11,10 +11,12 @@ import { ConfigurationAccessNote } from "./edit/configuration-access-note";
 import { ConfigurationValueField } from "./edit/configuration-value-field";
 import { ConfigurationValueCell } from "./list/configuration-value-cell";
 import { ParamLabelCell } from "./list/param-label-cell";
-import type { ConfigurationDetail, ConfigurationRow } from "./types";
+import {
+  CONFIGURATION_ENTITY,
+  type ConfigurationDetail,
+  type ConfigurationRow,
+} from "./types";
 
-/** REST category of the configuration entity — `ConfigurationEntityRest` is mapped to "configuration". */
-export const CONFIGURATION_ENTITY = "configuration";
 /** React Query key of the list, so a write from the edit page refreshes it. */
 export const CONFIGURATION_LIST_QUERY_KEY = ["configuration"] as const;
 /** Route of the list; the edit page hangs below it as `/configuration/{id}`. */

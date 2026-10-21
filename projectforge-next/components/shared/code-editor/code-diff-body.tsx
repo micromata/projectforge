@@ -53,7 +53,8 @@ export function CodeDiffBody({
       ) : leftCode === rightCode ? (
         <p className="flex-1 text-sm text-muted-foreground">
           {t("codeEditor.diff.none")}
-          {v.noBackups && ` ${t("codeEditor.diff.noBackups")}`}
+          {v.noBackups &&
+            ` ${versions?.emptyText ?? t("codeEditor.diff.noBackups")}`}
         </p>
       ) : (
         <Suspense

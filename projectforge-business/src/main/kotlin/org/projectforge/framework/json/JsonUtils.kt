@@ -107,6 +107,34 @@ object JsonUtils {
         }
     }
 
+    /**
+     * The JSON text without the whitespace between its tokens, everything else as it is: numbers keep their
+     * spelling, keys their order (unlike a round trip through a tree). Whitespace inside strings is kept.
+     * Meant for valid JSON; of an invalid text only whitespace outside of what looks like a string is
+     * removed.
+     */
+    fun minify(json: String): String {
+        val sb = StringBuilder(json.length)
+        var inString = false
+        var escaped = false
+        for (ch in json) {
+            if (inString) {
+                sb.append(ch)
+                when {
+                    escaped -> escaped = false
+                    ch == '\\' -> escaped = true
+                    ch == '"' -> inString = false
+                }
+            } else if (ch == '"') {
+                inString = true
+                sb.append(ch)
+            } else if (ch != ' ' && ch != '\t' && ch != '\n' && ch != '\r') {
+                sb.append(ch)
+            }
+        }
+        return sb.toString()
+    }
+
     fun initializeMapper(module: SimpleModule) {
         module.addSerializer(LocalDate::class.java, LocalDateSerializer())
         module.addDeserializer(LocalDate::class.java, LocalDateDeserializer())

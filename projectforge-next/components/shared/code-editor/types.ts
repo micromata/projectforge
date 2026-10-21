@@ -4,6 +4,8 @@ export interface CodeVersion {
   key: string;
   /** When it was replaced, in epoch millis; null where that is not known. */
   timestamp: number | null;
+  /** How the version pickers name it, instead of "backup of …" (a history entry, say). */
+  label?: string;
 }
 
 /**
@@ -16,4 +18,6 @@ export interface CodeVersionSource {
   /** The versions, newest first. */
   list: (signal?: AbortSignal) => Promise<CodeVersion[]>;
   load: (key: string, signal?: AbortSignal) => Promise<string>;
+  /** Told where there are none, instead of "there are no backups yet". */
+  emptyText?: string;
 }

@@ -6,6 +6,12 @@
     "date" : "2026-10-21",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ {
+        "title" : "Configuration parameters with JSON values",
+        "items" : [ "Switch between the form and the JSON text, which can be edited directly as well.", "Compare versions: the stored, the edited and every former value from the history, line by line.", "JSON values are stored compact; values of up to 100,000 characters no longer make the save fail at the history." ]
+      } ]
+    }, {
       "type" : "improved",
       "items" : [ "Structure element fields: a click on the selected structure element opens the tree, like the pencil button. Order positions show the consumption bar of their structure element, which leads to its time sheets.", "User list: deactivated users are shown struck through." ]
     }, {

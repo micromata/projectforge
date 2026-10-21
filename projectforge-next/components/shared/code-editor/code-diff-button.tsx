@@ -13,14 +13,19 @@ import type { CodeVersionSource } from "./types";
 /**
  * The editor toolbar's "show changes": opens the diff of the editor's code against the stored one
  * ([CodeDiffDialog]). Without former versions to compare as well, disabled as long as nothing was
- * changed — there would be nothing to see.
+ * changed — there would be nothing to see. [labelled] outside of a toolbar, where an icon alone would
+ * be overlooked: an outlined button saying "compare versions".
  */
 export function CodeDiffButton({
   original,
   current,
   language,
   versions,
-}: Omit<CodeDiffViewProps, "className"> & { versions?: CodeVersionSource }) {
+  labelled,
+}: Omit<CodeDiffViewProps, "className"> & {
+  versions?: CodeVersionSource;
+  labelled?: boolean;
+}) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
   const label = t("codeEditor.diff._");
@@ -28,19 +33,24 @@ export function CodeDiffButton({
   const button = (
     <Button
       type="button"
-      variant="ghost"
-      size="icon-sm"
-      aria-label={label}
+      variant={labelled ? "outline" : "ghost"}
+      size={labelled ? "default" : "icon-sm"}
+      aria-label={labelled ? undefined : label}
       disabled={unchanged}
       onClick={() => setOpen(true)}
     >
-      <HugeiconsIcon icon={GitCompareIcon} strokeWidth={2} />
+      <HugeiconsIcon
+        icon={GitCompareIcon}
+        strokeWidth={2}
+        data-icon={labelled ? "inline-start" : undefined}
+      />
+      {labelled && t("codeEditor.diff.title")}
     </Button>
   );
   return (
     <>
       <HintTooltip
-        title={label}
+        title={labelled ? undefined : label}
         text={unchanged ? t("codeEditor.diff.none") : undefined}
       >
         {/* Wrapped while disabled: a disabled button receives no hover, and the tooltip is what tells

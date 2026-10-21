@@ -424,7 +424,14 @@
       },
       "json": {
         "invalid": "No valid JSON.",
-        "notReadable": "Not readable: {arg0}"
+        "mode": {
+          "_": "View",
+          "form": "Form",
+          "json": "JSON"
+        },
+        "notReadable": "Not readable: {arg0}",
+        "switchInvalid": "No valid JSON: correct it first to switch to the form.",
+        "unknownFields": "Fields the form doesn't know are dropped as soon as the value is changed in the form."
       },
       "param": {
         "calendarDomain": {
@@ -958,8 +965,10 @@
       "backupWithoutDate": "Last backup (database)",
       "copyAll": "Copy all",
       "edited": "Edited (not saved)",
+      "historyVersion": "Before the change of {arg0} ({arg1})",
       "left": "Left version",
       "noBackups": "There are no backups yet.",
+      "noHistory": "The value hasn't been changed yet.",
       "none": "No changes.",
       "right": "Right version",
       "showAll": "Show all lines",

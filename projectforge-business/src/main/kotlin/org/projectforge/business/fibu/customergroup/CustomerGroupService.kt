@@ -259,6 +259,10 @@ class CustomerGroupService {
     val entryId: Long?
         get() = configurationDao.getEntry(ConfigurationParam.CUSTOMER_GROUPS)?.id
 
+    /** The value as stored (JSON), the base of the editor's diff; null if none yet. */
+    val storedJson: String?
+        get() = configurationDao.getEntry(ConfigurationParam.CUSTOMER_GROUPS)?.stringValue
+
     /** The stored row's last update (epoch millis) for the optimistic lock of [save], null if none yet. */
     val lastUpdate: Long?
         get() = configurationDao.getEntry(ConfigurationParam.CUSTOMER_GROUPS)?.lastUpdate?.time
@@ -405,6 +409,12 @@ class CustomerGroupService {
         OrderAccessGrantService.instanceOrNull?.invalidate()
         return emptyList()
     }
+
+    /**
+     * The configuration as [save] would store it (trimmed, duplicates and empty texts dropped, missing keys
+     * assigned), without storing or validating it: what it is compared with the stored value as.
+     */
+    fun toStoredJson(config: CustomerGroupConfig): String = config.also { normalize(it) }.toJson()
 
     private fun normalize(config: CustomerGroupConfig) {
         config.version = CustomerGroupConfig.VERSION

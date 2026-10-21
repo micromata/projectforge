@@ -50,6 +50,7 @@ function useVersionLabel(storedLabel?: string) {
     if (option.value === EDITED) return t("codeEditor.diff.edited");
     if (option.value === STORED)
       return storedLabel ?? t("codeEditor.diff.stored");
+    if (option.backup?.label) return option.backup.label;
     const timestamp = option.backup?.timestamp;
     return timestamp == null
       ? t("codeEditor.diff.backupWithoutDate")
