@@ -65,9 +65,9 @@ function eventClickUrl(event: EventClickArg["event"]): string | null {
       // A birthday opens the view of the address, whose "back" returns to the calendar (see AddressView).
       return id != null ? `/address/${id}?returnTo=/calendar` : null;
     default:
-      return category && id != null
-        ? `/${category}/edit/${id}?startDate=${start ?? ""}&endDate=${end ?? ""}`
-        : null;
+      // No other category has an edit page in this app (`calEvent` only exists with
+      // `calendar.useNewCalendarEvents`), so the click opens nothing.
+      return null;
   }
 }
 

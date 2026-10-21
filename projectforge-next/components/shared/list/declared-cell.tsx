@@ -53,7 +53,7 @@ export function declaredCell(
   }
 
   switch (field.dataType) {
-    // A tick for true, nothing for false — the same visual language the dynamic grid's BooleanCell
+    // A tick for true, nothing for false — the same visual language the grid's BooleanCell
     // and the legacy Wicket lists use, rather than a raw "true"/"false" string.
     case "BOOLEAN":
       return (

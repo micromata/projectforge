@@ -92,9 +92,7 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
  * Picks one entity by searching the backend for it — a user, a project, a customer.
  *
  * Context-free on purpose: it takes a url and a value, so both the filter row and any hand-built
- * form can use it. Several entities at once are [EntityMultiAutocomplete]'s business; the form fields of
- * a server-laid-out page are served by DynamicSelect instead, which does the same lookup but
- * additionally handles multi-select, CREATABLE and writing through DynamicLayoutProvider.
+ * form can use it. Several entities at once are [EntityMultiAutocomplete]'s business.
  */
 export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   url,

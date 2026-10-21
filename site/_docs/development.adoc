@@ -111,8 +111,8 @@ There are two kinds of entity REST classes:
   filter metadata, favorites, history and the write operations; the page itself is hand-built in
   `projectforge-next`. This is the pattern for every new or migrated page, e. g. `BookEntityRest`.
 * `*PagesRest` (base classes `AbstractPagesRest`, `AbstractDTOPagesRest`): additionally generates the page
-  layout on the server (`UILayout` JSON), which the legacy React app and the dynamic renderer of
-  `projectforge-next` (`components/dynamic/`) display. These pages are migrated step by step to the
+  layout on the server (`UILayout` JSON), which only the legacy React app displays. These pages are
+  migrated step by step to the
   `*EntityRest` pattern.
 
 ==== Frontend (projectforge-next)

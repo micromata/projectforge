@@ -46,8 +46,8 @@ object PagesResolver {
 
     /**
      * The url of the edit page. For pages migrated to projectforge-next the route registered in
-     * [NextMigration] is used, because a hand built page may deviate from the generic
-     * `<route>/edit/<id>` shape of the UILayout pages (book e.g. uses `book/<id>` and `book/new`).
+     * [NextMigration] is used, because it differs from the `<route>/edit/<id>` shape of the legacy
+     * React app (book e.g. uses `book/<id>` and `book/new`).
      */
     @JvmStatic
     fun getEditPageUrl(

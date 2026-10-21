@@ -33,7 +33,7 @@ export interface EditPageShellProps {
    * the entity: the change comment of a historizable entry (see HistoryUserCommentField).
    *
    * No tab of its own and no section: it is not part of the form the tabs navigate, which is exactly
-   * why the server laid out pages keep it in `layoutBelowActions` instead of in a fieldset.
+   * why the legacy React pages keep it in `layoutBelowActions` instead of in a fieldset.
    */
   belowSections?: ReactNode;
   actions?: ReactNode;

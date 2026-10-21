@@ -13,7 +13,7 @@ import { matchRoute, type RouteParams } from "@/lib/route-params";
  * so the params are parsed from it against the route's own pattern.
  *
  * @param pattern the route pattern as it appears in `app/`, without the route group and basePath,
- *   e.g. `/book/[id]/history` or `/[category]/[type]/[...params]`.
+ *   e.g. `/book/[id]/history`.
  * @returns the params, or `null` while the pathname doesn't match the pattern (during the
  *   prerender pass, and for the instant a client-side navigation is still on the old URL).
  */

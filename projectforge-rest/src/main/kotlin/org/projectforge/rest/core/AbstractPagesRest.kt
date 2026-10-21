@@ -53,8 +53,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The `UILayout` half of an entity rest service: it serves the list page and the edit form of an entity
  * as data, so that a generic renderer can build the page from it. That renderer is the legacy React app
- * (`projectforge-webapp`), and projectforge-next brings its own for the entities not yet migrated
- * (`components/dynamic/`).
+ * (`projectforge-webapp`); projectforge-next has none, its pages are hand built.
  *
  * Everything that isn't page layout lives in [AbstractEntityRest]. A page that is hand built in
  * projectforge-next extends that class directly and stops producing a layout no client renders.
@@ -110,21 +109,6 @@ constructor(
     class InitialListData(
         val ui: UILayout?,
         val standardEditPage: String,
-        /**
-         * The legacy edit page with [NextMigration.ID_PLACEHOLDER] for the id, e.g.
-         * `react/book/edit/:id` or `wa/accountEdit?id=:id`.
-         *
-         * Needed by the hand built pages of projectforge-next: their edit page doesn't call
-         * `{entity}/edit`, so it can't read [UILayout.legacyUrl] from there and takes the template
-         * from the list response instead.
-         */
-        val legacyEditPage: String?,
-        /**
-         * The legacy page for adding an entry, e.g. `react/book/edit` or `wa/accountEdit`. Served next
-         * to [legacyEditPage], because it isn't derivable from it: the Wicket edit page carries the
-         * id as a query parameter, so dropping the placeholder is a per-app rule, not a suffix cut.
-         */
-        val legacyNewEntryPage: String?,
         val data: ResultSet<*>,
         val filterFavorites: List<Favorites.FavoriteIdTitle>,
         val filter: MagicFilter,
@@ -282,10 +266,8 @@ constructor(
     /**
      * Whether this response may leave the rows out, i.e. whether the client asking fetches them itself.
      *
-     * Being a next client is not enough: projectforge-next serves the pages of the not yet migrated
-     * entities from the very same `UILayout` the React app gets, and that renderer
-     * (`components/dynamic/components/grid/`) has nothing but this response to render from - it never
-     * calls `list`. Only a page listed in [NextMigration] is hand built and does.
+     * That is a hand built projectforge-next page, i.e. a next client on a category listed in
+     * [NextMigration] (next reaches this response via `filter/select` and `resetGridState`).
      */
     private fun skipResultSet(request: HttpServletRequest): Boolean {
         return RestAuthenticationUtils.isNextClient(request) && NextMigration.isMigrated(category)
@@ -311,9 +293,6 @@ constructor(
                 "searchFilter",
                 "nothingFound"
             )
-        // The way back to the legacy list page, shown by projectforge-next next to the page title. The
-        // marker keeps OrphanedLinkFilter from bouncing this escape hatch straight back to next.
-        ui.legacyUrl = NextMigration.withEscapeHatchMarker(NextMigration.legacyListUrl(category))
         if (isMultiSelectionMode(request, filter)) {
             // Don't show search filter in multi selection mode (it isn't supported). The user
             // should use the AG-Grid filter instead.
@@ -342,9 +321,6 @@ constructor(
         return InitialListData(
             ui = ui,
             standardEditPage = getEditPage(request),
-            // Escape hatches, marked so OrphanedLinkFilter lets them reach the legacy page (see above).
-            legacyEditPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyEditPage(category)),
-            legacyNewEntryPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyNewEntryUrl(category)),
             quickSelectUrl = quickSelectUrl,
             useModalEditDialog = useModalEditDialog,
             data = resultSet,
@@ -458,16 +434,6 @@ constructor(
     ): FormLayoutData {
         val ui = createEditLayout(dto, userAccess)
         ui.addTranslations("changes", "history.userComment.edit", "tooltip.selectMe")
-        // The way back to the legacy edit page of this very entry, shown by projectforge-next next to
-        // the page title. A new entry has no id yet, so it leads to the legacy add page instead. The
-        // marker keeps OrphanedLinkFilter from bouncing this escape hatch straight back to next.
-        ui.legacyUrl = NextMigration.withEscapeHatchMarker(getId(dto).let { id ->
-            if (id != null) {
-                NextMigration.legacyEditPage(category)?.replace(NextMigration.ID_PLACEHOLDER, "$id")
-            } else {
-                NextMigration.legacyNewEntryUrl(category)
-            }
-        })
         val serverData = sessionCsrfService.createServerData(request)
         val result = FormLayoutData(dto, ui, serverData)
         onGetItemAndLayout(request, dto, result)

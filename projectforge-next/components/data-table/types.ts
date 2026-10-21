@@ -24,8 +24,8 @@ declare module "@tanstack/react-table" {
     /** Right-align numeric columns. */
     align?: "left" | "right";
     /**
-     * How the cell renders its value. Set by the dynamic (UILayout) adapter;
-     * hand-built columns write their `cell` directly and leave this empty.
+     * How the cell renders its value. Set by the adapter of server column defs
+     * (lib/dynamic/grid); hand-built columns write their `cell` directly and leave this empty.
      */
     cellSpec?: CellSpec;
     /** Which filter UI the header offers. */
