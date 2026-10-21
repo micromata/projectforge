@@ -86,13 +86,13 @@ class FeatureDerivationTest {
     @Test
     fun `react url and extras`() {
         val definition = FeatureDerivation.derive(
-            "MY_2FA",
-            "react/2FA/dynamic",
+            "MERLIN",
+            "react/merlinexecution/dynamic",
             restPaths = listOf("task/tree", "rsPublic/foo"),
             sharedRestPaths = listOf("task/tree"),
         )
-        Assertions.assertTrue("rs/2FA" in definition.paths)
-        Assertions.assertTrue("next/2FA" in definition.paths, "The generic page of next.")
+        Assertions.assertTrue("rs/merlinexecution" in definition.paths)
+        Assertions.assertTrue("next/merlinexecution" in definition.paths, "The generic page of next.")
         Assertions.assertTrue("rs/task/tree" in definition.paths)
         Assertions.assertFalse("rs/task/treeSelected" in definition.paths)
         Assertions.assertTrue("rsPublic/foo" in definition.paths)
