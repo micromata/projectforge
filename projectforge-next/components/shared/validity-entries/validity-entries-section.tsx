@@ -52,13 +52,19 @@ export interface ValidityEntriesSectionProps<T extends ValidityEntry> {
   onChanged: (entries: T[]) => void;
   /** Values proposed for a new entry, see [ValidityEntryDialogProps.prefill]. */
   prefill?: ValidityEntryDialogProps<T>["prefill"];
+  /**
+   * Marks the entry in force today and mutes the ones still ahead (default). Off for entries that are no
+   * validity periods but just dated, e.g. the visits of a visitor.
+   */
+  markValidity?: boolean;
 }
 
 /**
  * The entries of something that changes over time, each valid from its date on until the next one starts
  * (see validity-entries-model): an employee's weekly hours or annual leave, a currency pair's rates.
  *
- * Newest first; the entry in force today is marked, the ones still ahead are muted. A row opens the
+ * Newest first; the entry in force today is marked, the ones still ahead are muted (unless [markValidity] is off,
+ * for dated entries like a visitor's visits). A row opens the
  * [ValidityEntryDialog], which writes the entry right away through its own endpoint ([adapter]) — not with
  * the form around it — and the section shows what the backend answered.
  */
@@ -73,6 +79,7 @@ export function ValidityEntriesSection<T extends ValidityEntry>({
   readOnly,
   onChanged,
   prefill,
+  markValidity = true,
 }: ValidityEntriesSectionProps<T>) {
   const t = useTranslations();
   const ctx = useFormatContext();
@@ -135,7 +142,9 @@ export function ValidityEntriesSection<T extends ValidityEntry>({
             </TableHeader>
             <TableBody>
               {sorted.map((entry, index) => {
-                const validity = validityOf(entry, current, dateOf, today);
+                const validity = markValidity
+                  ? validityOf(entry, current, dateOf, today)
+                  : undefined;
                 return (
                   <TableRow
                     key={entry.id ?? `new-${index}`}

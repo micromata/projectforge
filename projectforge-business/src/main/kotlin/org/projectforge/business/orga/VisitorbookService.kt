@@ -203,6 +203,11 @@ class VisitorbookService : IDao<VisitorbookDO?> {
         if (checkAccess) {
             visitorbookDao.checkLoggedInUserUpdateAccess(visitorbook, visitorbook)
         }
+        // The stored entry, not the posted one, tells whose visit it is: the posted visitorbook comes from the
+        // client, and an update must not move a visit to another visitor.
+        val dbEntry = findVisitorbookEntry(entry.id, checkAccess = checkAccess)
+        requireNotNull(dbEntry) { "Can't update VisitorbookEntry entry without existing id." }
+        require(dbEntry.visitorbook?.id == visitorbook.id) { "VisitorbookEntry entry belongs to another visitor." }
         val result = baseDOPersistenceService.update(entry, checkAccess = checkAccess)
         visitorbookCache.setExpired(visitorbook.id)
         return result
@@ -237,6 +242,7 @@ class VisitorbookService : IDao<VisitorbookDO?> {
         entry: VisitorbookEntryDO,
         checkAccess: Boolean = true,
     ) {
+        require(entry.visitorbook?.id == visitorbook.id) { "Visitorbook id of entry does not match visitorbook id." }
         if (checkAccess) {
             visitorbookDao.checkLoggedInUserUpdateAccess(visitorbook, visitorbook)
         }

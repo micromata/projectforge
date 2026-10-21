@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Visitor book migrated to the new interface: list with the latest visit and the number of visits, form with the contact persons, visits entered in a dialog (preset with today and the current time). Deleting the last visit of a visitor no longer fails, and a visit can no longer be assigned to another visitor. Old links are redirected.",
+  "de": "Besucherbuch auf die neue Oberfläche migriert: Liste mit dem letzten Besuch und der Zahl der Besuche, Formular mit den Ansprechpartnern, Besuche im Dialog erfasst (vorbelegt mit heute und der aktuellen Uhrzeit). Das Löschen des letzten Besuchs schlägt nicht mehr fehl, und ein Besuch lässt sich keinem anderen Besucher mehr zuordnen. Alte Links werden umgeleitet."
+}

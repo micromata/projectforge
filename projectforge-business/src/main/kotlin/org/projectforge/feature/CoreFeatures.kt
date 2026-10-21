@@ -92,7 +92,6 @@ object CoreFeatures {
         ),
         MenuItemDefId.TIMESHEET_LIST to Extras(rest = CALENDAR_SUBSCRIPTION),
         MenuItemDefId.VACATION to Extras(rest = listOf("vacationExport")),
-        MenuItemDefId.VISITORBOOK to Extras(rest = listOf("visitorbookEntry")),
     )
 
     /** The features of all [MenuItemDefId]s (also of the main menu groups, which have no paths). */
