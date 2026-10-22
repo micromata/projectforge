@@ -1020,6 +1020,9 @@
   "color": {
     "error": {
       "unknownFormat": "Farbcode kann nicht verarbeitet werden. Unterstützte Hex-Farbformate: #abc or #abcdef"
+    },
+    "picker": {
+      "custom": "Eigene Farbe"
     }
   },
   "columns": {
@@ -1197,6 +1200,34 @@
       "contributionMargin": {
         "_": "Deckungsbeitrag",
         "bookingImportEnd": "Buchungssätze sind bis {arg0} importiert. Die späteren Monate (heller) sind vorläufig: Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
+        "bubbles": {
+          "_": "Deckungsbeitrag-Bubbles",
+          "anonymous": "Andere Projekte (anonym)",
+          "grouping": {
+            "_": "Eine Bubble je",
+            "CUSTOMER": "Kunde",
+            "CUSTOMER_GROUP": "Kundengruppe",
+            "PROJECT": "Projekt",
+            "PROJECT_GROUP": "Projektgruppe",
+            "tooltip": "Projekte ohne Projekt- bzw. Kundengruppe bekommen eine eigene Bubble (Kundengruppe: eine je Kunde)."
+          },
+          "legend": {
+            "anonymous": "blass: andere Projekte (anonym)",
+            "default": "ohne Farbe der Business Unit"
+          },
+          "noRevenue": "kein Umsatz",
+          "others": {
+            "_": "Andere Projekte anonym anzeigen",
+            "tooltip": "Zeigt zum Vergleich auch die Projekte, die der Filter auswählt (z. B. alle einer Business Unit), deren Deckungsbeitrag sonst nicht sichtbar ist: blass, ohne Namen, gleich gruppiert."
+          },
+          "own": "Eigene Projekte",
+          "projectCount": "Projekte",
+          "projects": {
+            "_": "Titel einblenden",
+            "tooltip": "Beschriftet alle Bubbles (auch wenn es viele sind) nur mit ihrem Kurztitel statt mit Name und DB %: dem Namen der Gruppe bzw. des Kunden, bei einem einzelnen Projekt mit dem Kurzbezeichner (sonst dem Namen)."
+          },
+          "size": "Bubble-Größe: Kosten"
+        },
         "config": {
           "addAssignment": "Zuordnung hinzufügen",
           "bands": "Rot unter {arg0} %, gelb unter {arg1} %, grün ab {arg1} %.",
@@ -1536,6 +1567,11 @@
     },
     "businessUnits": {
       "add": "Business Unit hinzufügen",
+      "color": {
+        "_": "Farbe",
+        "remove": "Farbe entfernen",
+        "tooltip": "Die Farbe der Bubbles der Business Unit im Deckungsbeitrags-Bubble-Diagramm der Statistik. Bubbles mehrerer oder nicht eingefärbter Business Units behalten die Standardfarbe."
+      },
       "empty": "Noch keine Business Units.",
       "groups": "Kundengruppen",
       "members": "Umfasst ({arg0})",
@@ -5479,6 +5515,8 @@
     "icsExport": "ics-Export",
     "location": "Ort",
     "massupdate": {
+      "remapKost2": "Kost2 nach Kostenart umschlüsseln (Strukturelement bleibt)",
+      "remapKost2Info": "Jeder Zeitbericht behält sein Strukturelement. Eine Kost2, die das Strukturelement nicht mehr anbietet, wird durch dessen Kost2 derselben Kostenart (letzte beiden Ziffern) ersetzt, z. B. 5.999.11.02 -> 7.001.01.02 nach Verlinkung eines Projekts.",
       "taskNotApplied": "Das Strukturelement ist nicht ausgewählt (Checkbox) und wird daher nicht geändert.",
       "updateTask": "Strukturelement für alle Zeitberichte ändern"
     },

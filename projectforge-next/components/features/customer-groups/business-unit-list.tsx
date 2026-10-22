@@ -8,6 +8,7 @@ import {
   NestedFieldMetadata,
   useEntityEditForm,
 } from "@/components/shared/form/form-context";
+import { ColorField } from "@/components/shared/form/color-field";
 import { RepeatableList } from "@/components/shared/form/repeatable-list";
 import { TaskMultiSelectField } from "@/components/shared/tasks/task-multi-select-field";
 import { useFieldArray } from "@/hooks/use-field-array";
@@ -56,6 +57,7 @@ export function BusinessUnitList() {
           name: "",
           groups: [],
           tasks: [],
+          color: "",
           customers: [],
           texts: [],
         });
@@ -72,11 +74,29 @@ export function BusinessUnitList() {
               set={bu}
               groupNames={bu.groups.flatMap((key) => groupName.get(key) || [])}
               tasks={bu.tasks}
+              leading={
+                bu.color
+                  ? [
+                      <span
+                        key="color"
+                        aria-hidden
+                        className="inline-block size-3 shrink-0 rounded-full border"
+                        style={{ background: bu.color }}
+                      />,
+                    ]
+                  : []
+              }
               isNew={added.has(bu.key)}
               onRemove={() => array.remove(index)}
               removeLabel={t("fibu.businessUnits.remove", { arg0: bu.name })}
             >
               <CustomerSetFields prefix={prefix} />
+              <ColorField
+                name={`${prefix}color`}
+                label={t("fibu.businessUnits.color._")}
+                hint={t("fibu.businessUnits.color.tooltip")}
+                removeLabel={t("fibu.businessUnits.color.remove")}
+              />
               <GroupsSelectField
                 name={`${prefix}groups`}
                 label={t("fibu.businessUnits.groups")}

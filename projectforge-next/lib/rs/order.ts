@@ -513,6 +513,85 @@ export function fetchContributionMargin(
   );
 }
 
+/** What one bubble of the contribution margin bubble chart stands for (`ContributionMarginBubbleGrouping`). */
+export type ContributionMarginBubbleGrouping =
+  | "PROJECT"
+  | "PROJECT_GROUP"
+  | "CUSTOMER"
+  | "CUSTOMER_GROUP";
+
+/** The grouping and the switch of the bubble chart, remembered per user. */
+export interface ContributionMarginBubbleSettings {
+  grouping: ContributionMarginBubbleGrouping;
+  /** Whether the projects the user may not see are shown as well, anonymous. */
+  includeOthers: boolean;
+  /** Whether all bubbles are labelled with their short title (instead of name and DB %). */
+  showProjects: boolean;
+}
+
+/**
+ * One bubble: revenue (x), DB % (y) and costs (size) of a group of projects in the period. A bubble of other
+ * projects (`own` false) is anonymous: neither label nor project count.
+ */
+export interface ContributionMarginBubble {
+  label: string | null;
+  own: boolean;
+  revenue: number;
+  /** Positive amount. */
+  costs: number;
+  profit: number;
+  /** 0 for a loss, null without positive revenue. */
+  percentage: number | null;
+  projectCount: number | null;
+  /** The colour of the business unit all its projects belong to; omitted for mixed or uncoloured ones. */
+  color?: string | null;
+  /** The short names (identifier, else name) of the projects of an own bubble. */
+  projects?: string[] | null;
+  /** The short title: the group name, for a project by itself its identifier (else its name). */
+  title?: string | null;
+}
+
+/** A business unit of the legend with its colour. */
+export interface ContributionMarginBubbleUnit {
+  name: string;
+  color: string;
+}
+
+export interface ContributionMarginBubbles {
+  bubbles: ContributionMarginBubble[];
+  targetPercentage: number;
+  redThreshold: number;
+  /** The business units whose colour occurs in the bubbles. */
+  businessUnits?: ContributionMarginBubbleUnit[];
+}
+
+/** The stored grouping and switch of the bubble chart, or the backend's defaults. */
+export function fetchContributionMarginBubbleSettings(
+  signal?: AbortSignal
+): Promise<ContributionMarginBubbleSettings> {
+  return request<ContributionMarginBubbleSettings>(
+    "/rs/order/contributionMargin/bubbles/settings",
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * The bubbles of the projects of the filtered orders; with `includeOthers` also those of the projects the user
+ * may not see, anonymous. Stores grouping and switch, not the filter.
+ */
+export function fetchContributionMarginBubbles(
+  filter: MagicFilter,
+  settings: ContributionMarginSettings & ContributionMarginBubbleSettings,
+  signal?: AbortSignal
+): Promise<ContributionMarginBubbles> {
+  return request<ContributionMarginBubbles>(
+    "/rs/order/contributionMargin/bubbles",
+    { method: "POST", body: JSON.stringify({ filter, ...settings }) },
+    signal
+  );
+}
+
 /** The sums of a project in a month of the period (`ContributionMarginMonthRow`). */
 export interface ContributionMarginMonthRow {
   /** `yyyy-MM`. */

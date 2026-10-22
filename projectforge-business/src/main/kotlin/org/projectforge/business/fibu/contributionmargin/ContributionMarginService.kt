@@ -29,6 +29,7 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.OrderAccessFacts
 import org.projectforge.business.fibu.OrderSelectAccess
+import org.projectforge.business.fibu.customergroup.BusinessUnit
 import org.projectforge.business.fibu.customergroup.CustomerGroupService
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.RechnungDO
@@ -173,6 +174,37 @@ open class ContributionMarginService {
    */
   open fun calculate(projectIds: Collection<Long>, startDate: LocalDate): ContributionMarginData {
     return calculate(projectIds, startDate, withDetails = false).data
+  }
+
+  /**
+   * The bubbles of the contribution margin bubble chart: those of [own] (the user's projects, see
+   * [allowedProjectIds]) with labels, and those of [others] (projects the user may not see) anonymous, see
+   * [ContributionMarginBubbleBuilder.bubbles]. Own and other projects never share a bubble, so the sums of the
+   * others can't be derived from a bubble and the user's own projects.
+   */
+  open fun bubbles(
+    own: ContributionMarginData,
+    others: ContributionMarginData?,
+    grouping: ContributionMarginBubbleGrouping,
+  ): ContributionMarginBubbles {
+    val customerGroups = CustomerGroupService.instanceOrNull
+    val customerGroupOf: (Long) -> String? = { projectId -> customerGroups?.groupNameOf(caches.getProjekt(projectId)) }
+    val unitOf: (Long) -> BusinessUnit? = { projectId -> customerGroups?.businessUnitOfProject(projectId) }
+    val colorOf: (Long) -> String? = { projectId -> unitOf(projectId)?.color?.takeIf { it.isNotBlank() } }
+    val ownProjectIds = own.projects.map { it.projectId }.toSet()
+    val otherProjects = others?.projects?.filter { it.projectId !in ownProjectIds }.orEmpty()
+    val bubbles = ContributionMarginBubbleBuilder.bubbles(own.projects, true, grouping, customerGroupOf, colorOf) +
+        ContributionMarginBubbleBuilder.bubbles(otherProjects, false, grouping, customerGroupOf, colorOf)
+    val usedColors = bubbles.mapNotNull { it.color }.toSet()
+    val units = (own.projects + otherProjects)
+      .mapNotNull { unitOf(it.projectId) }
+      .distinctBy { it.key }
+      .mapNotNull { unit ->
+        val color = unit.color?.takeIf { it in usedColors } ?: return@mapNotNull null
+        ContributionMarginBubbleUnit(unit.name ?: unit.key ?: "", color)
+      }
+      .sortedBy { it.name.lowercase() }
+    return ContributionMarginBubbles(bubbles, own.targetPercentage, own.redThreshold, units)
   }
 
   /** As [calculate], plus the rows behind it ([ContributionMarginDetails]). */
@@ -470,6 +502,7 @@ open class ContributionMarginService {
       customer = caches.getKundeIfNotInitialized(project.kunde)?.name,
       project = project.name,
       projectGroup = CustomerGroupService.instanceOrNull?.projectGroupNameOf(projectId),
+      identifier = project.identifier?.takeIf { it.isNotBlank() },
     )
   }
 

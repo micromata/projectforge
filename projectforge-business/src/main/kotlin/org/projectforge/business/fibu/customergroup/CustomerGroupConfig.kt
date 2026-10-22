@@ -58,8 +58,8 @@ class CustomerGroupConfig(
     fun toJson(): String = JsonUtils.toJson(this, ignoreNullableProps = true)
 
     companion object {
-        /** 2: [orderAccess] added. 3: [projectGroups] added. */
-        const val VERSION = 3
+        /** 2: [orderAccess] added. 3: [projectGroups] added. 4: [BusinessUnit.color] added. */
+        const val VERSION = 4
 
         /**
          * @return The parsed configuration, an empty one for a blank value. A value that can't be read is
@@ -114,6 +114,12 @@ class BusinessUnit : CustomerSet() {
      * its customer leads to none (see [CustomerGroupIndex.businessUnitOf]).
      */
     var tasks: MutableList<Long> = mutableListOf()
+
+    /**
+     * The colour of the business unit as lower-case hex code (e.g. `#ffcb00`), used for its bubbles in the
+     * contribution margin bubble chart; none: the default colour.
+     */
+    var color: String? = null
 }
 
 /**

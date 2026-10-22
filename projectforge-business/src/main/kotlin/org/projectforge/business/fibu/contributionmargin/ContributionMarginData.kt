@@ -136,4 +136,6 @@ class ContributionMarginProject(
   prevPrevYearRevenue: BigDecimal,
   /** The project group the project belongs to, null for none. */
   val projectGroup: String? = null,
+  /** The short name of the project (`ProjektDO.identifier`), null for none. */
+  val identifier: String? = null,
 ) : ContributionMarginSums(revenue, costs, prevYearProfit, prevPrevYearProfit, prevYearRevenue, prevPrevYearRevenue)

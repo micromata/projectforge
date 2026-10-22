@@ -86,6 +86,9 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
 
         /** Tasks with their path as label, as the task type-ahead (`task/tree/autosearch`) gives them. */
         var tasks: MutableList<EntityRef> = mutableListOf()
+
+        /** Hex code, e.g. `#ffcb00`, see [BusinessUnit.color]. */
+        var color: String? = null
     }
 
     /** An order access grant ([OrderAccessGrant]), users, groups and customers as the multi-autocomplete holds them. */
@@ -274,6 +277,7 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
             fill(BusinessUnitData(), bu).also { data ->
                 data.groups = bu.groups.toMutableList()
                 data.tasks = bu.tasks.map { EntityRef(it, TaskServicesRest.formatPath(it)) }.toMutableList()
+                data.color = bu.color
             }
         }.toMutableList(),
         orderAccess = config.orderAccess.map { grant ->
@@ -320,6 +324,7 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
             copy(bu, BusinessUnit()).also { dest ->
                 dest.groups = bu.groups.toMutableList()
                 dest.tasks = bu.tasks.mapNotNull { it.id }.distinct().toMutableList()
+                dest.color = bu.color?.trim()?.lowercase()?.takeIf { it.isNotEmpty() }
             }
         }.toMutableList(),
         orderAccess = data.orderAccess.map { src ->

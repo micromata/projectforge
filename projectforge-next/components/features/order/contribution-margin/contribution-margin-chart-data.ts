@@ -32,6 +32,9 @@ const YEAR_COLOR = {
   prevYear: "var(--brand-green-dark)",
 };
 
+/** The colour of the current period's DB, also of the own bubbles of the bubble chart. */
+export const CONTRIBUTION_MARGIN_CURRENT_COLOR = YEAR_COLOR.current;
+
 export interface ContributionMarginChartRow {
   month: string;
   revenue: number;

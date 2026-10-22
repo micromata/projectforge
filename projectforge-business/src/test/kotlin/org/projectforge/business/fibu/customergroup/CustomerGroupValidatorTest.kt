@@ -226,6 +226,14 @@ class CustomerGroupValidatorTest {
         assertTrue(validator.validate(config(businessUnits = listOf(withTasks("bu01", "X", 10, 11), withTasks("bu02", "Y", 20)))).isEmpty())
     }
 
+    @Test
+    fun `a business unit's colour is a hex code`() {
+        val units = listOf("#FFCB00", "gelb", " ", null).mapIndexed { i, color ->
+            businessUnit("bu0$i", "BU $i").also { it.color = color }
+        }
+        assertErrors(config(businessUnits = units), "businessUnits[1].color" to V.ERROR_INVALID_COLOR)
+    }
+
     private fun withTasks(key: String, name: String, vararg tasks: Long) =
         businessUnit(key, name).also { it.tasks = tasks.toMutableList() }
 

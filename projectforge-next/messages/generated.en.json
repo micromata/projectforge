@@ -1020,6 +1020,9 @@
   "color": {
     "error": {
       "unknownFormat": "Color code in unsupported format. Supported hex formats: #abc or #abcdef"
+    },
+    "picker": {
+      "custom": "Custom colour"
     }
   },
   "columns": {
@@ -1197,6 +1200,34 @@
       "contributionMargin": {
         "_": "Contribution margin",
         "bookingImportEnd": "Accounting records are imported up to {arg0}. The later months (lighter) are preliminary: invoices as revenue, time sheets × hourly rate as costs.",
+        "bubbles": {
+          "_": "Contribution margin bubbles",
+          "anonymous": "Other projects (anonymous)",
+          "grouping": {
+            "_": "One bubble per",
+            "CUSTOMER": "Customer",
+            "CUSTOMER_GROUP": "Customer group",
+            "PROJECT": "Project",
+            "PROJECT_GROUP": "Project group",
+            "tooltip": "Projects without a project or customer group get a bubble of their own (customer group: one per customer)."
+          },
+          "legend": {
+            "anonymous": "pale: other projects (anonymous)",
+            "default": "without business unit colour"
+          },
+          "noRevenue": "no revenue",
+          "others": {
+            "_": "Show other projects anonymously",
+            "tooltip": "Also shows, for comparison, the projects the filter selects (e.g. all of a business unit) whose contribution margin you may not see: pale, without names, grouped the same way."
+          },
+          "own": "Own projects",
+          "projectCount": "Projects",
+          "projects": {
+            "_": "Show titles",
+            "tooltip": "Labels all bubbles (even if there are many) with their short title only, instead of name and DB %: the name of the group or customer, for a single project its short name (else its name)."
+          },
+          "size": "Bubble size: costs"
+        },
         "config": {
           "addAssignment": "Add assignment",
           "bands": "Red below {arg0} %, yellow below {arg1} %, green from {arg1} %.",
@@ -1536,6 +1567,11 @@
     },
     "businessUnits": {
       "add": "Add business unit",
+      "color": {
+        "_": "Colour",
+        "remove": "Remove colour",
+        "tooltip": "The colour of the bubbles of the business unit in the contribution margin bubble chart of the statistics. Bubbles of several or uncoloured business units keep the default colour."
+      },
       "empty": "No business units yet.",
       "groups": "Customer groups",
       "members": "Covers ({arg0})",
@@ -5479,6 +5515,8 @@
     "icsExport": "ics export",
     "location": "Location",
     "massupdate": {
+      "remapKost2": "Remap cost unit by type (structure element stays)",
+      "remapKost2Info": "Each time sheet keeps its structure element. A cost unit the structure element no longer offers is replaced by its cost unit of the same type (last 2 digits), e.g. 5.999.11.02 -> 7.001.01.02 after a project was linked.",
       "taskNotApplied": "The structure element is not selected (checkbox) and will therefore not be changed.",
       "updateTask": "Update structure element for all time sheets."
     },
