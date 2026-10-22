@@ -28,7 +28,7 @@ export const POLL_METADATA = {
     deadline: {
       dataType: "DATE",
       i18nKey: "poll.deadline",
-      required: true,
+      required: false,
     },
     deleted: {
       dataType: "BOOLEAN",
@@ -92,6 +92,10 @@ export const POLL_METADATA = {
         {
           value: "FINISHED",
           i18nKey: "poll.state.finished",
+        },
+        {
+          value: "TEMPLATE",
+          i18nKey: "poll.state.template",
         },
       ],
     },

@@ -29,7 +29,7 @@ export type PollAnswer = {
   optionUids: string[];
 };
 
-export type PollState = "RUNNING" | "FINISHED";
+export type PollState = "RUNNING" | "FINISHED" | "TEMPLATE";
 
 /** org.projectforge.rest.poll.Poll. */
 export interface PollDetail {
