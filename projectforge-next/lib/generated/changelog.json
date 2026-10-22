@@ -1,5 +1,21 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.13",
+    "date" : "2026-10-22",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "Time sheet mass update: remap the cost unit by type while every time sheet keeps its structure element, e.g. after a project was linked to it." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ {
+        "title" : "Import of incoming invoices",
+        "items" : [ "Positions of one invoice in different currencies are converted to EUR by the rate of the invoice date instead of being taken as EUR; without a rate the invoice is marked as faulty.", "Stored invoices between two periods of the export (e.g. March for an export of January and June) are no longer offered for deletion.", "Header-only export: the rows of one invoice (one per booking line) are merged into one invoice with the total amount, instead of being offered as new invoices on every import.", "Header-only export: the internal note (column \"Interne Re.-Nr.\") is no longer appended to the invoice number, which changed back and forth with every import of the two files." ]
+      }, "Mass updates: the log window shows the updated entries again.", "Order book: the edit page no longer jumps while a field is changed." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

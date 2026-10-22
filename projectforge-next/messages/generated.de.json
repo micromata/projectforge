@@ -5478,6 +5478,8 @@
     "icsExport": "ics-Export",
     "location": "Ort",
     "massupdate": {
+      "remapKost2": "Kost2 nach Kostenart umschlüsseln (Strukturelement bleibt)",
+      "remapKost2Info": "Jeder Zeitbericht behält sein Strukturelement. Eine Kost2, die das Strukturelement nicht mehr anbietet, wird durch dessen Kost2 derselben Kostenart (letzte beiden Ziffern) ersetzt, z. B. 5.999.11.02 -> 7.001.01.02 nach Verlinkung eines Projekts.",
       "taskNotApplied": "Das Strukturelement ist nicht ausgewählt (Checkbox) und wird daher nicht geändert.",
       "updateTask": "Strukturelement für alle Zeitberichte ändern"
     },

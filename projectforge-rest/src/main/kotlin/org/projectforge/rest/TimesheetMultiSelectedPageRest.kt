@@ -31,6 +31,7 @@ import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
+import org.projectforge.common.i18n.UserException
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
@@ -216,6 +217,9 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         if (field == "taskAndKost2") {
             return param.change == true && (params["task"]?.id != null || params["kost2"]?.id != null)
         }
+        if (field == KOST2_REMAP) {
+            return param.change == true
+        }
         return super.checkParamHasAction(params, param, field)
     }
 
@@ -224,6 +228,15 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         massUpdateContext: MassUpdateContext<TimesheetDO>
     ) {
         val params = massUpdateContext.massUpdateParams
+        if (params[KOST2_REMAP]?.change == true) {
+            // A mode of its own: every sheet keeps its task, so a picked task or cost unit is not applied.
+            params.remove("task")
+            params.remove("kost2")
+            params.remove("taskAndKost2")
+            // The preview shows the value as-is; without one it would read "set to <empty>".
+            params[KOST2_REMAP]?.textValue = translate("timesheet.massupdate.remapKost2Info")
+            return
+        }
         val kost2Id = params["kost2"]?.id
         val taskId = params["task"]?.id
         if (taskId != null) {
@@ -259,6 +272,9 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
             // Both may change, and either alone, so the label names both rather than only the task.
             return "${translate("task")} / ${translate("fibu.kost2")}"
         }
+        if (field == KOST2_REMAP) {
+            return translate("timesheet.massupdate.remapKost2")
+        }
         return super.getFieldTranslation(field)
     }
 
@@ -276,7 +292,8 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         val project = taskTree.getProjekt(taskId)
         val availableKost2s = taskTree.getKost2List(taskId)
         val kost2Id = params["kost2"]?.id
-        massUpdateContext.ignoreFieldsForModificationCheck = listOf("taskAndKost2")
+        val remapKost2 = params[KOST2_REMAP]?.change == true
+        massUpdateContext.ignoreFieldsForModificationCheck = listOf("taskAndKost2", KOST2_REMAP)
         timesheets.forEach { timesheet ->
             massUpdateContext.startUpdate(timesheet)
             TextFieldModification.processTextParameter(timesheet, "bemerkung", params)
@@ -321,13 +338,50 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
                     }
                 }
             }
+            val remapError = if (remapKost2) remapKost2(timesheet, massUpdateContext) else null
             massUpdateContext.commitUpdate(
                 identifier4Message = "${timesheet.user?.getFullname()} ${timesheet.timePeriod.formattedString}",
                 timesheet,
-                update = { timesheetDao.update(timesheet) },
+                update = {
+                    remapError?.let { throw it }
+                    timesheetDao.update(timesheet)
+                },
             )
         }
         return null
+    }
+
+    /**
+     * Moves the cost unit of the given sheet to the cost unit of the same type (kost2Art, the last two digits)
+     * among those of the sheet's *own* task, leaving the task as it is. Needed after the cost units of a task
+     * changed (e. g. a project was linked to it, 5.999.11.02 -> 7.0001.02), as the sheets booked before keep
+     * their old ones.
+     *
+     * A sheet without cost unit, or with one its task still offers, is left alone. A remapped cost unit is
+     * recorded as modification of the field `kost2`, which no param names (the run posts only [KOST2_REMAP]),
+     * so the result counts the sheet as modified and the Excel export shows the old and new cost unit.
+     * @return The error to report for this sheet, if its task offers no cost unit of the same type. It names
+     * the cost units the task offers instead, as the cause is in the task's settings (a project without that
+     * type, or a black/white list of the old cost units left at the task, which filters the new ones out).
+     */
+    private fun remapKost2(timesheet: TimesheetDO, massUpdateContext: MassUpdateContext<TimesheetDO>): UserException? {
+        val kost2 = timesheet.kost2 ?: return null
+        val availableKost2s = taskTree.getKost2List(timesheet.taskId)
+        if (availableKost2s?.any { it.id == kost2.id } == true) {
+            return null
+        }
+        availableKost2s?.find { it.kost2Art?.id == kost2.kost2Art?.id }?.let { newKost2 ->
+            timesheet.kost2 = newKost2
+            massUpdateContext.recordCurrentModification("kost2", kost2.formattedNumber, newKost2.formattedNumber)
+            return null
+        }
+        val taskTitle = taskTree.getTaskById(timesheet.taskId)?.title
+        if (availableKost2s.isNullOrEmpty()) {
+            return UserException("timesheet.massupdate.remapKost2NoKost2", kost2.formattedNumber, taskTitle)
+        }
+        val offered = availableKost2s.take(MAX_OFFERED_KOST2_IN_MESSAGE).joinToString { it.formattedNumber } +
+                if (availableKost2s.size > MAX_OFFERED_KOST2_IN_MESSAGE) ", ..." else ""
+        return UserException("timesheet.massupdate.remapKost2NoMatch", kost2.formattedNumber, taskTitle, offered)
     }
 
     override fun ensureUserLogSubscription(): LogSubscription {
@@ -342,8 +396,8 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
                     title,
                     user,
                     LogEventLoggerNameMatcher(
-                        "de.micromata.fibu.TimesheetDao",
-                        "org.projectforge.framework.persistence.api.BaseDaoSupport|TimesheetDO"
+                        "org.projectforge.business.timesheet.TimesheetDao",
+                        "org.projectforge.framework.persistence.api.BaseDOPersistenceService|TimesheetDO"
                     ),
                     maxSize = 10000,
                     displayTitle = displayTitle
@@ -358,5 +412,12 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
     override fun getExcelIdentifierCells(massUpdateObject: MassUpdateObject<TimesheetDO>): List<Any?> {
         val timesheet = massUpdateObject.modifiedObj
         return listOf(timesheet!!.user?.getFullname(), timesheet.timePeriod.formattedString)
+    }
+
+    companion object {
+        /** The mode that moves each sheet's cost unit to the same type of its own task, see [remapKost2]. */
+        internal const val KOST2_REMAP = "kost2Remap"
+
+        private const val MAX_OFFERED_KOST2_IN_MESSAGE = 10
     }
 }

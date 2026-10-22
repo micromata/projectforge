@@ -1,5 +1,21 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.13",
+    "date" : "2026-10-22",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "Massenänderung von Zeitberichten: Kost2 nach Kostenart umschlüsseln, ohne dass ein Zeitbericht sein Strukturelement wechselt, z. B. nach Verlinkung eines Projekts." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ {
+        "title" : "Import von Eingangsrechnungen",
+        "items" : [ "Positionen einer Rechnung in unterschiedlichen Währungen werden zum Kurs des Rechnungsdatums in EUR umgerechnet, statt als EUR übernommen zu werden; ohne Kurs wird die Rechnung als fehlerhaft markiert.", "Gespeicherte Rechnungen zwischen zwei Perioden des Exports (z. B. März bei einem Export von Januar und Juni) werden nicht mehr zum Löschen angeboten.", "Export ohne Positionen: Die Zeilen einer Rechnung (eine je Buchungszeile) werden zu einer Rechnung mit dem Gesamtbetrag zusammengefasst, statt bei jedem Import als neue Rechnungen angeboten zu werden.", "Export ohne Positionen: Die interne Notiz (Spalte „Interne Re.-Nr.“) wird nicht mehr an die Rechnungsnummer angehängt, die sich sonst bei jedem Import der beiden Dateien hin- und herändert." ]
+      }, "Massenänderungen: Das Protokollfenster zeigt die geänderten Einträge wieder an.", "Auftragsbuch: Die Bearbeitungsseite springt beim Ändern eines Feldes nicht mehr." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {
