@@ -82,7 +82,7 @@ export const EMPLOYEE_SALARY_PAGE = definePage<
     { name: "lastUpdate", size: 130, hiddenByDefault: true },
   ],
   listActions: EmployeeSalaryListActions,
-  // Payment type and comment of several salaries at once (EmployeeSalaryMultiSelectedPageRest).
+  // Payment type and comment of several salaries at once (EmployeeSalaryMassUpdateRest).
   massUpdate: {
     endpoint: "employeeSalarySelected",
     route: "/employeeSalary/mass-update",

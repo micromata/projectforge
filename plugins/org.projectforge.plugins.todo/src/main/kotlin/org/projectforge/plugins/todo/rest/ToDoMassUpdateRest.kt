@@ -34,7 +34,7 @@ import org.projectforge.plugins.todo.ToDoPlugin
 import org.projectforge.plugins.todo.ToDoStatus
 import org.projectforge.plugins.todo.ToDoType
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
+import org.projectforge.rest.multiselect.AbstractMassUpdateRest
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
 import org.projectforge.rest.multiselect.MassUpdateParameter
@@ -57,8 +57,8 @@ private val log = KotlinLogging.logger {}
  * ([ToDoEntityRest.sendNotification]).
  */
 @RestController
-@RequestMapping("${Rest.URL}/${ToDoPlugin.CATEGORY}${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class ToDoMultiSelectedPageRest : AbstractMultiSelectedPage<ToDoDO>() {
+@RequestMapping("${Rest.URL}/${ToDoPlugin.CATEGORY}${AbstractMassUpdateRest.URL_SUFFIX_SELECTED}")
+class ToDoMassUpdateRest : AbstractMassUpdateRest<ToDoDO>() {
 
     @Autowired
     private lateinit var toDoDao: ToDoDao

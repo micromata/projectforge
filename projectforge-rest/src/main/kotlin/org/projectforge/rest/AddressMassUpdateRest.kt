@@ -48,8 +48,8 @@ import java.util.*
  * Mass update after selection for addresses.
  */
 @RestController
-@RequestMapping("${Rest.URL}/address${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
+@RequestMapping("${Rest.URL}/address${AbstractMassUpdateRest.URL_SUFFIX_SELECTED}")
+class AddressMassUpdateRest : AbstractMassUpdateRest<AddressDO>() {
     @Autowired
     private lateinit var addressDao: AddressDao
 

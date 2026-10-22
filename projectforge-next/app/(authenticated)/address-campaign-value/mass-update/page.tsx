@@ -19,7 +19,7 @@ export default function AddressCampaignValueMassUpdatePage() {
       listRoute={ADDRESS_CAMPAIGN_VALUE_PAGE.route}
       listQueryKey={ADDRESS_CAMPAIGN_VALUE_PAGE.queryKey}
       // Adopting the values of the comparison campaign, declared by the backend only while the list has one
-      // (AddressCampaignValueMultiSelectedPageRest.ADOPT_COMPARISON): no entity property behind it.
+      // (AddressCampaignValueMassUpdateRest.ADOPT_COMPARISON): no entity property behind it.
       customFields={{
         adoptComparison: (setParam, meta) => (
           <AddressCampaignValueAdoptMassUpdateField

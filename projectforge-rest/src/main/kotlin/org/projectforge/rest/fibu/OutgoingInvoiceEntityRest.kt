@@ -117,7 +117,7 @@ private val log = KotlinLogging.logger {}
  * which proxies it (`RechnungEditForm` reads the attachment settings and the access checker from here).
  *
  * Answers the list, its statistics, its two exports, the multi selection the mass update page runs on
- * ([RechnungMultiSelectedPageRest]) and the read/write path of the hand built edit page of
+ * ([OutgoingInvoiceMassUpdateRest]) and the read/write path of the hand built edit page of
  * `/next/invoice/[id]` — including its [recalculate]. It carries no `createEditLayout` any more, and with it
  * the legacy React page of this entity is gone: it only ever showed a read only header plus the attachment
  * list. Wicket's edit page is still reachable and writes through the same [RechnungDao].

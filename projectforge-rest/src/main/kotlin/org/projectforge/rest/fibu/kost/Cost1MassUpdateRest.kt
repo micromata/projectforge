@@ -28,7 +28,7 @@ import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.fibu.kost.KostentraegerStatus
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
+import org.projectforge.rest.multiselect.AbstractMassUpdateRest
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
 import org.projectforge.ui.LayoutContext
@@ -44,8 +44,8 @@ import jakarta.servlet.http.HttpServletRequest
  * Mass update after selection of cost 1 entries: status and description.
  */
 @RestController
-@RequestMapping("${Rest.URL}/cost1${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class Kost1MultiSelectedPageRest : AbstractMultiSelectedPage<Kost1DO>() {
+@RequestMapping("${Rest.URL}/cost1${AbstractMassUpdateRest.URL_SUFFIX_SELECTED}")
+class Cost1MassUpdateRest : AbstractMassUpdateRest<Kost1DO>() {
 
   @Autowired
   private lateinit var kost1Dao: Kost1Dao

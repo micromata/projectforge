@@ -132,7 +132,7 @@ export function fetchBusinessUnitMembers(
   );
 }
 
-/** Mirror of `CustomerGroupPageRest.IneffectiveGrantee`. */
+/** Mirror of `CustomerGroupRest.IneffectiveGrantee`. */
 export interface IneffectiveGrantee {
   /** The user's full name. */
   name: string;

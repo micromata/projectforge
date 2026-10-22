@@ -45,12 +45,12 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
- * Comprehensive tests for AddressMultiSelectedPageRest covering form generation,
+ * Comprehensive tests for AddressMassUpdateRest covering form generation,
  * mass update logic, and field processing.
  */
-class AddressMultiSelectedPageRestTest : AbstractTestBase() {
+class AddressMassUpdateRestTest : AbstractTestBase() {
     @Autowired
-    private lateinit var addressMultiSelectedPageRest: AddressMultiSelectedPageRest
+    private lateinit var addressMassUpdateRest: AddressMassUpdateRest
 
     @Autowired
     private lateinit var addressDao: AddressDao
@@ -70,7 +70,7 @@ class AddressMultiSelectedPageRestTest : AbstractTestBase() {
     @Test
     fun `meta should declare the fields of the next form in their order`() {
         logon(ADMIN)
-        val meta = addressMultiSelectedPageRest.requestMeta(MockHttpServletRequest())
+        val meta = addressMassUpdateRest.requestMeta(MockHttpServletRequest())
         val fields = meta.fields.map { it.field }
         assertEquals(
             listOf(
@@ -86,7 +86,7 @@ class AddressMultiSelectedPageRestTest : AbstractTestBase() {
     @Test
     fun `meta should offer the statuses as selects that can't be emptied`() {
         logon(ADMIN)
-        val fields = addressMultiSelectedPageRest.requestMeta(MockHttpServletRequest()).fields.associateBy { it.field }
+        val fields = addressMassUpdateRest.requestMeta(MockHttpServletRequest()).fields.associateBy { it.field }
         listOf("addressStatus", "contactStatus").forEach { name ->
             val field = fields[name]!!
             assertEquals("textValue", field.valueProperty, name)
@@ -114,18 +114,18 @@ class AddressMultiSelectedPageRestTest : AbstractTestBase() {
         MultiSelectionSupport.registerEntityIdsForSelection(request, AddressEntityRest::class.java, ids)
         MultiSelectionSupport.registerSelectedEntityIds(request, AddressEntityRest::class.java, ids)
         val params = mapOf("addressStatus" to MassUpdateParameter().apply { textValue = AddressStatus.OUTDATED.name })
-        val result = addressMultiSelectedPageRest.update(request, params).body as MassUpdateResult
+        val result = addressMassUpdateRest.update(request, params).body as MassUpdateResult
         assertEquals(1, result.modifiedCounter)
         val url = result.logViewerUrl
         assertTrue(url?.matches(Regex("next/logViewer/\\d+")) == true, "url=$url")
         // The same subscription on every run, not a new one each time.
         val back = mapOf("addressStatus" to MassUpdateParameter().apply { textValue = AddressStatus.UPTODATE.name })
-        assertEquals(url, (addressMultiSelectedPageRest.update(request, back).body as MassUpdateResult).logViewerUrl)
+        assertEquals(url, (addressMassUpdateRest.update(request, back).body as MassUpdateResult).logViewerUrl)
     }
 
     @Test
     fun `getTitleKey should return correct i18n key`() {
-        assertEquals("multiselection.button", addressMultiSelectedPageRest.getTitleKey())
+        assertEquals("multiselection.button", addressMassUpdateRest.getTitleKey())
     }
 
     // =========================================================================
@@ -415,7 +415,7 @@ class AddressMultiSelectedPageRestTest : AbstractTestBase() {
 
     @Test
     fun `customizeExcelIdentifierHeadCells should return correct column headers`() {
-        val headers = addressMultiSelectedPageRest.customizeExcelIdentifierHeadCells()
+        val headers = addressMassUpdateRest.customizeExcelIdentifierHeadCells()
 
         assertEquals(3, headers.size)
         assertTrue(headers[0].contains("name") || headers[0].contains("Name"))
@@ -448,14 +448,14 @@ class AddressMultiSelectedPageRestTest : AbstractTestBase() {
         massUpdateContext: MassUpdateContext<AddressDO>
     ): org.springframework.http.ResponseEntity<*>? {
         // Use reflection to call protected method
-        val method = AddressMultiSelectedPageRest::class.java.getDeclaredMethod(
+        val method = AddressMassUpdateRest::class.java.getDeclaredMethod(
             "proceedMassUpdate",
             HttpServletRequest::class.java,
             Collection::class.java,
             MassUpdateContext::class.java
         )
         method.isAccessible = true
-        return method.invoke(addressMultiSelectedPageRest, mockRequest, selectedIds, massUpdateContext)
+        return method.invoke(addressMassUpdateRest, mockRequest, selectedIds, massUpdateContext)
             as org.springframework.http.ResponseEntity<*>?
     }
 }

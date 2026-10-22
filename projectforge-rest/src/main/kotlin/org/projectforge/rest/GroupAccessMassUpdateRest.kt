@@ -34,7 +34,7 @@ import org.projectforge.framework.access.GroupTaskAccessDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
+import org.projectforge.rest.multiselect.AbstractMassUpdateRest
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
 import org.projectforge.rest.multiselect.TextFieldModification
@@ -47,18 +47,18 @@ import java.io.Serializable
 
 /**
  * Mass update of access rights after selection in the next list (`access.page.tsx`), the counterpart of the
- * invoice ([org.projectforge.rest.fibu.RechnungMultiSelectedPageRest]) and liquidity mass updates.
+ * invoice ([org.projectforge.rest.fibu.OutgoingInvoiceMassUpdateRest]) and liquidity mass updates.
  *
  * Only the [GroupTaskAccessDO.description] may be changed here — the group, the structure element (task), the
  * recursive flag and the permission matrix are not mass-editable. Whole entries may additionally be
  * soft-deleted and restored ([supportsMassDeletion]); the delete/restore run over the generic default (see
- * [AbstractMultiSelectedPage.proceedMassDelete]/[AbstractMultiSelectedPage.proceedMassUndelete]), since access
+ * [AbstractMassUpdateRest.proceedMassDelete]/[AbstractMassUpdateRest.proceedMassUndelete]), since access
  * has no virtual rows to resolve first. [AccessDao] keeps the task tree in sync through its afterDelete /
  * afterUndelete hooks.
  */
 @RestController
-@RequestMapping("${Rest.URL}/access${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class GroupAccessMultiSelectedPageRest : AbstractMultiSelectedPage<GroupTaskAccessDO>() {
+@RequestMapping("${Rest.URL}/access${AbstractMassUpdateRest.URL_SUFFIX_SELECTED}")
+class GroupAccessMassUpdateRest : AbstractMassUpdateRest<GroupTaskAccessDO>() {
 
     @Autowired
     private lateinit var accessDao: AccessDao

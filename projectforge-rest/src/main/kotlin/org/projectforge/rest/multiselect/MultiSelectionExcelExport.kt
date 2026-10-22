@@ -42,7 +42,7 @@ private val log = KotlinLogging.logger {}
  */
 object MultiSelectionExcelExport {
   private class Context<T>(
-    val multiSelectedPage: AbstractMultiSelectedPage<T>,
+    val massUpdateRest: AbstractMassUpdateRest<T>,
     val wrapStyle: CellStyle,
     val boldStyle: CellStyle,
     val amountStyle: CellStyle,
@@ -50,7 +50,7 @@ object MultiSelectionExcelExport {
 
   fun <T> export(
     massUpdateContext: MassUpdateContext<T>,
-    multiSelectedPage: AbstractMultiSelectedPage<T>
+    massUpdateRest: AbstractMassUpdateRest<T>
   ): ByteArray {
     log.info { "Exporting results of mass update as Excel file." }
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale).use { workbook ->
@@ -64,9 +64,9 @@ object MultiSelectionExcelExport {
       decimalStyle.dataFormat = workbook.createDataFormat().getFormat("0.0")
       val wrapStyle = workbook.createOrGetCellStyle("wrapText")
       wrapStyle.wrapText = true
-      val context = Context(multiSelectedPage, wrapStyle, boldStyle, amountStyle)
+      val context = Context(massUpdateRest, wrapStyle, boldStyle, amountStyle)
       val firstRow = sheet.createRow() // First row
-      val identifierHeadCols = multiSelectedPage.customizeExcelIdentifierHeadCells()
+      val identifierHeadCols = massUpdateRest.customizeExcelIdentifierHeadCells()
       for (i in 0 until identifierHeadCols.size) {
         firstRow.createCell().setCellStyle(boldStyle) // empty cells (identifier cells, default is "Element").
       }
@@ -78,7 +78,7 @@ object MultiSelectionExcelExport {
       // Column order of the modified fields, also used for the rows (an object may lack a field's modification).
       val columnFields = columnFields(massUpdateContext)
       columnFields.forEach { field ->
-        val colNumber = firstRow.createCell().setCellValue(multiSelectedPage.getFieldTranslation(field)).colNumber
+        val colNumber = firstRow.createCell().setCellValue(massUpdateRest.getFieldTranslation(field)).colNumber
         firstRow.createCell()
         firstRow.addMergeRegion(colNumber, colNumber + 1)
         headRow.createCell().setCellValue(translate("massUpdate.excel.column.old"))
@@ -91,7 +91,7 @@ object MultiSelectionExcelExport {
       sheet.setAutoFilter()
       massUpdateContext.massUpdateObjects.forEach { massUpdateObject ->
         val row = sheet.createRow()
-        multiSelectedPage.getExcelIdentifierCells(massUpdateObject).forEach {
+        massUpdateRest.getExcelIdentifierCells(massUpdateObject).forEach {
           row.createCell().setCellValue(it)
         }
         columnFields.forEach { field ->
@@ -142,7 +142,7 @@ object MultiSelectionExcelExport {
     field: String,
     value: Any?,
   ) {
-    if (context.multiSelectedPage.handleValue(cell, field, value)) {
+    if (context.massUpdateRest.handleValue(cell, field, value)) {
       // Value already handled by multi page.
       return
     }
@@ -153,8 +153,8 @@ object MultiSelectionExcelExport {
       else -> {}
     }
     cell.setCellValue(cellValue)
-    if (!context.multiSelectedPage.handleCellStyle(cell, field, value, cellValue)) {
-      context.multiSelectedPage.layoutContext?.let { lc ->
+    if (!context.massUpdateRest.handleCellStyle(cell, field, value, cellValue)) {
+      context.massUpdateRest.layoutContext?.let { lc ->
         ElementsRegistry.getElementInfo(lc, field)?.let { elementInfo ->
           when (elementInfo.propertyType) {
             PropertyType.CURRENCY, PropertyType.CURRENCY_PLAIN -> cell.setCellStyle(context.amountStyle)

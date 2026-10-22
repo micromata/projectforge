@@ -704,7 +704,7 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
  */
 export interface MassUpdateDef {
   /**
-   * REST base of the mass update page, e.g. `invoiceSelected` (`AbstractMultiSelectedPage`).
+   * REST base of the mass update page, e.g. `invoiceSelected` (`AbstractMassUpdateRest`).
    *
    * Not `${entity}Selected`: the backend mounts these pages under the *entity's* legacy name, which
    * for the outgoing invoice is `invoice` and not `outgoingInvoice`.

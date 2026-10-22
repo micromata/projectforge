@@ -86,7 +86,7 @@ export const COST2_PAGE = definePage<
     { name: "lastUpdate", size: 130, hiddenByDefault: true },
   ],
   listActions: Cost2ListActions,
-  // Mass update of a selection: status, shared cost, description and comment (Kost2MultiSelectedPageRest, /cost2Selected).
+  // Mass update of a selection: status, shared cost, description and comment (Cost2MassUpdateRest, /cost2Selected).
   massUpdate: {
     endpoint: "cost2Selected",
     route: "/cost2/mass-update",

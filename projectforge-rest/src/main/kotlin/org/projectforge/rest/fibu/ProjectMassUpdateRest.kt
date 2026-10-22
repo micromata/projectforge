@@ -37,7 +37,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
+import org.projectforge.rest.multiselect.AbstractMassUpdateRest
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
 import org.projectforge.rest.multiselect.MassUpdateFieldMeta
 import org.projectforge.rest.multiselect.MassUpdateContext
@@ -57,8 +57,8 @@ import jakarta.servlet.http.HttpServletRequest
  * Mass update after selection.
  */
 @RestController
-@RequestMapping("${Rest.URL}/project${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
+@RequestMapping("${Rest.URL}/project${AbstractMassUpdateRest.URL_SUFFIX_SELECTED}")
+class ProjectMassUpdateRest : AbstractMassUpdateRest<ProjektDO>() {
 
   @Autowired
   private lateinit var projektDao: ProjektDao

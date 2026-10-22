@@ -259,7 +259,7 @@ export const TIMESHEET_PAGE = definePage<
   // The list's exports, in the toolbar: the filtered sheets as Excel or PDF, and the ics subscription url
   // (see TimesheetListActions). The PDF is built with OpenPDF in the backend now, no longer the wicket FOP.
   listActions: TimesheetListActions,
-  // "Mehrfachauswahl" — the legacy list's mass select and update, backed by TimesheetMultiSelectedPageRest
+  // "Mehrfachauswahl" — the legacy list's mass select and update, backed by TimesheetMassUpdateRest
   // (mounted under `timesheetSelected`, the entity's own name + URL_SUFFIX_SELECTED, not `${entity}Selected`).
   // The selection column and mode toggle appear only for a user with update access; the mass-update form
   // itself is the backend's UILayout, rendered by the generic MassUpdatePage under the route below.
@@ -267,7 +267,7 @@ export const TIMESHEET_PAGE = definePage<
     endpoint: "timesheetSelected",
     route: "/timesheet/mass-update",
     // The same summed-duration / AI-savings line the list footer shows, over the selected sheets — fed by
-    // the typed statistics the backend attaches to the mass-update meta (TimesheetMultiSelectedPageRest
+    // the typed statistics the backend attaches to the mass-update meta (TimesheetMassUpdateRest
     // .getStatisticsData). Reuses the list's statistics-line component so both read identically.
     statisticsLine: ({ statistics }) => (
       <TimesheetStatisticsLine

@@ -34,7 +34,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
+import org.projectforge.rest.multiselect.AbstractMassUpdateRest
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
 import org.projectforge.ui.LayoutContext
@@ -50,8 +50,8 @@ import jakarta.servlet.http.HttpServletRequest
  * Mass update after selection.
  */
 @RestController
-@RequestMapping("${Rest.URL}/invoice${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
+@RequestMapping("${Rest.URL}/invoice${AbstractMassUpdateRest.URL_SUFFIX_SELECTED}")
+class OutgoingInvoiceMassUpdateRest : AbstractMassUpdateRest<RechnungDO>() {
 
   @Autowired
   private lateinit var rechnungDao: RechnungDao

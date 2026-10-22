@@ -375,7 +375,7 @@ class AddressCampaignValueEntityRest :
         return baseDao.getAddressCampaignValuesByAddressId(mutableMapOf(), campaignId)
     }
 
-    /** The comparison campaign of the user's current filter, if any (see [AddressCampaignValueMultiSelectedPageRest]). */
+    /** The comparison campaign of the user's current filter, if any (see [AddressCampaignValueMassUpdateRest]). */
     internal fun getComparisonCampaignDO(): AddressCampaignDO? {
         return comparisonCampaignIdOf(getCurrentFilter())?.let { addressCampaignDao.find(it) }
     }

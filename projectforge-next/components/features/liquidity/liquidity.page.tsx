@@ -122,7 +122,7 @@ export const LIQUIDITY_PAGE = definePage<
   listActions: LiquidityListActions,
   // Served under `liquiditySelected` — the mass-update endpoint of this category (URL_SUFFIX_SELECTED =
   // "Selected", no dash), the counterpart of the invoice's `invoiceSelected` (see
-  // LiquidityMultiSelectedPageRest). Its presence turns on the selection UI in the generic list.
+  // LiquidityMassUpdateRest). Its presence turns on the selection UI in the generic list.
   massUpdate: {
     endpoint: "liquiditySelected",
     route: `${LIQUIDITY_ROUTE}/mass-update`,
