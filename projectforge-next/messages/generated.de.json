@@ -1142,6 +1142,11 @@
   "edit": "Bearbeiten",
   "email": "E-Mail",
   "emptyInBrackets": "<leer>",
+  "entityRefs": {
+    "paste": {
+      "foreign": "Die Zwischenablage enthält keine Einträge dieser Art."
+    }
+  },
   "error": {
     "_": "Ein Fehler trat auf: {arg0}",
     "endDateBeforeBeginDate": "Das Endedatum darf nicht vor dem Anfangsdatum liegen.",

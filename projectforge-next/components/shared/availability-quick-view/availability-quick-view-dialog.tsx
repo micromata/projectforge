@@ -82,6 +82,7 @@ export function AvailabilityQuickViewDialog({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <EntityMultiAutocomplete
             url={VACATION_EXPORT_USERS_URL}
+            refType="user"
             value={users}
             onChange={setUsers}
             selectMe={me}

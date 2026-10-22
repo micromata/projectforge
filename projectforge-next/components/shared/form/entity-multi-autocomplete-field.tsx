@@ -84,6 +84,7 @@ export function EntityMultiAutocompleteField({
               // The trigger is a button, which a <label htmlFor> cannot name — same as SelectField.
               aria-label={label}
               url={`${entity}/autosearch?search=:search`}
+              refType={entity}
               value={(field.state.value as EntityRef[] | null) ?? []}
               onChange={(next) => {
                 field.handleChange(next);

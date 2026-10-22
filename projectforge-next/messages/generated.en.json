@@ -1142,6 +1142,11 @@
   "edit": "Edit",
   "email": "E-mail",
   "emptyInBrackets": "<empty>",
+  "entityRefs": {
+    "paste": {
+      "foreign": "The clipboard holds no entries of this kind."
+    }
+  },
   "error": {
     "_": "An error occurs: {arg0}",
     "endDateBeforeBeginDate": "End date can't be before begin date.",
