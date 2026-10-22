@@ -260,6 +260,28 @@ class PollAccessTest : AbstractTestBase() {
     }
 
     @Test
+    fun `a template needs no deadline, a poll does, and is in state template`() {
+        logon(TEST_HR_USER)
+        // A clone comes without deadline (see PollEntityRest.prepareClone).
+        val dto = pollEntityRest.prepareClone(Poll().also { it.copyFrom(createPoll()) })
+        assertNull(dto.deadline)
+
+        dto.template = true
+        val postData = PostData(dto, null, null)
+        assertNull(pollEntityRest.validate(pollEntityRest.transformForDB(dto), postData))
+        val obj = pollEntityRest.transformForDB(dto)
+        pollEntityRest.onBeforeSaveOrUpdate(MockHttpServletRequest(), obj, postData)
+        // None is made up either:
+        assertNull(obj.deadline)
+        // Neither running nor finished:
+        assertEquals(PollDO.State.TEMPLATE, obj.state)
+
+        dto.template = false
+        val errors = pollEntityRest.validate(pollEntityRest.transformForDB(dto), postData)!!
+        assertEquals(listOf("deadline"), errors.map { it.fieldId })
+    }
+
+    @Test
     fun `answers to unknown questions and options are dropped`() {
         val sanitized = PollAnswerRest.sanitize(
             listOf(single, text),

@@ -43,7 +43,6 @@ import org.projectforge.rest.dto.User
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.ValidationError
-import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
@@ -123,6 +122,7 @@ class PollEntityRest :
             }
         }
         if (dto.template) {
+            // Never answered: no deadline needed.
             return
         }
         if (dto.attendeeUsers.isNullOrEmpty() && dto.attendeeGroups.isNullOrEmpty()) {
@@ -144,7 +144,7 @@ class PollEntityRest :
 
     /**
      * Owner, state and the uids of the questions are decided here, not by the posted data: a new poll belongs to its
-     * creator and runs, a stored one keeps its owner (see [finish] for the end).
+     * creator and runs (a template is in state template), a stored one keeps its owner (see [finish] for the end).
      */
     override fun onBeforeSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
         val dbObj = obj.id?.let { baseDao.find(it, checkAccess = false) }
@@ -158,11 +158,7 @@ class PollEntityRest :
                 request.setAttribute(INVITE_ATTRIBUTE, true)
             }
         }
-        obj.state = PollDO.State.RUNNING
-        if (obj.template) {
-            // Never answered: no deadline needed (the column is mandatory though).
-            obj.deadline = obj.deadline ?: LocalDate.now()
-        }
+        obj.state = if (obj.template) PollDO.State.TEMPLATE else PollDO.State.RUNNING
         val questions = PollJson.questions(obj.questions)
         questions.forEach { question ->
             if (question.uid.isNullOrBlank()) question.uid = PollJson.newUid()
@@ -210,9 +206,6 @@ class PollEntityRest :
             UIFilterListElement("state", label = translate("poll.state"), defaultFilter = true)
                 .buildValues(PollDO.State::class.java)
         )
-        elements.add(
-            UIFilterElement("template", UIFilterElement.FilterType.BOOLEAN, translate("poll.filter.templates"), defaultFilter = true)
-        )
     }
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<PollDO>>? {
@@ -224,17 +217,17 @@ class PollEntityRest :
                 filters.add(PollAssignmentFilter(values, baseDao))
             }
         }
-        source.entries.find { it.field == "state" }?.let { entry ->
+        // Nothing chosen: all of them, the templates included (in state template, see onBeforeSaveOrUpdate).
+        val states = source.entries.find { it.field == "state" }?.let { entry ->
             entry.synthetic = true
-            val values = entry.value.values?.mapNotNull { value -> PollDO.State.entries.find { it.name == value } }
-            if (values?.size == 1) {
-                target.add(QueryFilter.eq("state", values.first()))
-            }
+            entry.value.values?.mapNotNull { value -> PollDO.State.entries.find { it.name == value } }
+        }.orEmpty().toSet()
+        // The former filter "templates" (a boolean), still in the stored filters of some users: ignored, the state
+        // filter has taken its place (and the user couldn't remove it anymore).
+        source.entries.find { it.field == "template" }?.synthetic = true
+        if (states.isNotEmpty() && states.size < PollDO.State.entries.size) {
+            target.add(QueryFilter.isIn("state", states))
         }
-        // The templates on their own: they aren't polls anybody answers.
-        val templates = source.entries.find { it.field == "template" }
-        templates?.synthetic = true
-        target.add(QueryFilter.eq("template", templates?.isTrueValue == true))
         return filters
     }
 

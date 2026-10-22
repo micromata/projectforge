@@ -43,7 +43,7 @@ import java.time.LocalDate
  * as csv lists of ids. Groups are resolved when checked ([PollDao]), so a later member of a group takes part, too.
  *
  * A [template] is a poll nobody answers: no invitation, no reminders, it is only cloned or its questions taken into
- * another poll.
+ * another poll. Its [state] is [State.TEMPLATE].
  */
 @Entity
 @Indexed
@@ -72,8 +72,9 @@ open class PollDO : DefaultBaseDO() {
     @get:Column(name = "location", length = 1000)
     open var location: String? = null
 
+    /** Mandatory for a poll (see PollEntityRest.validate), a template has none. */
     @get:PropertyInfo(i18nKey = "poll.deadline")
-    @get:Column(name = "deadline", nullable = false)
+    @get:Column(name = "deadline")
     open var deadline: LocalDate? = null
 
     @get:PropertyInfo(i18nKey = "poll.attendees")
@@ -110,9 +111,12 @@ open class PollDO : DefaultBaseDO() {
     @get:Column(name = "template", nullable = false)
     open var template: Boolean = false
 
-    /** Answers are taken until the poll is finished: by hand, or the day after its deadline (see PollCronJobs). */
+    /**
+     * Answers are taken until the poll is finished: by hand, or the day after its deadline (see PollCronJobs). A
+     * [template] is neither, it is never answered (set on save, see PollEntityRest).
+     */
     enum class State(val key: String) : I18nEnum {
-        RUNNING("running"), FINISHED("finished");
+        RUNNING("running"), FINISHED("finished"), TEMPLATE("template");
 
         override val i18nKey: String
             get() = "poll.state.$key"
