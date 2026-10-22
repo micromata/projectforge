@@ -89,8 +89,6 @@ class AutoCompletion<T>(
   companion object {
     const val AUTOCOMPLETE_TEXT = "autocomplete"
     const val AUTOCOMPLETE_OBJECT = "autosearch"
-    /** Legacy alias of [SHOW_INACTIVE_PARAM], still sent by the UILayout based clients. */
-    const val SHOW_ALL_PARAM = "showAll"
 
     /**
      * Request parameter of `autosearch`: also offer inactive entries (deactivated users, employees who left
@@ -120,17 +118,15 @@ class AutoCompletion<T>(
     /**
      * @return category/autosearch?search=:search
      */
-    fun getAutoCompletion4Users(showOnlyActiveUsers: Boolean = true): AutoCompletion<Int> {
-      val additionalParamString = if (showOnlyActiveUsers) "" else "$SHOW_ALL_PARAM=true&"
-      return AutoCompletion(url = getAutoCompletionUrl("user", additionalParamString), type = Type.USER.name)
+    fun getAutoCompletion4Users(): AutoCompletion<Int> {
+      return AutoCompletion(url = getAutoCompletionUrl("user"), type = Type.USER.name)
     }
 
     /**
      * @return category/autosearch?search=:search
      */
-    fun getAutoCompletion4Employees(showOnlyActiveEmployees: Boolean = true): AutoCompletion<Int> {
-      val additionalParamString = if (showOnlyActiveEmployees) "" else "$SHOW_ALL_PARAM=true&"
-      return AutoCompletion(url = getAutoCompletionUrl("employee", additionalParamString), type = Type.EMPLOYEE.name)
+    fun getAutoCompletion4Employees(): AutoCompletion<Int> {
+      return AutoCompletion(url = getAutoCompletionUrl("employee"), type = Type.EMPLOYEE.name)
     }
 
 

@@ -25,9 +25,6 @@ package org.projectforge.ui
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.business.fibu.EmployeeService
-import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.user.service.UserService
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.json.UISelectTypeSerializer
@@ -89,91 +86,4 @@ class UISelect<T>(
 
     // fun getEnumValues(enumClass: KClass<out Enum<*>>): Array<out Enum<*>> = enumClass.java.enumConstants
     private fun getEnumValues(enumClass: Class<out Enum<*>>): Array<out Enum<*>> = enumClass.enumConstants
-
-    companion object {
-        fun createUserSelect(
-            lc: LayoutContext? = null,
-            id: String,
-            multi: Boolean = false,
-            label: String? = null,
-            additionalLabel: String? = null,
-            tooltip: String? = null,
-            showOnlyActiveUsers: Boolean = true,
-            required: Boolean? = null,
-        ): UISelect<Long> {
-            return UISelect(
-                id,
-                lc,
-                values = UserService.getInstance().getSortedUsers().map { UISelectValue(it.id!!, it.displayName) },
-                multi = multi,
-                label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
-                additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
-                autoCompletion = AutoCompletion.getAutoCompletion4Users(showOnlyActiveUsers).also { it.minChars = 1 },
-                tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey,
-                required = required,
-            )
-        }
-
-        fun createEmployeeSelect(
-            lc: LayoutContext? = null,
-            id: String,
-            multi: Boolean = false,
-            label: String? = null,
-            additionalLabel: String? = null,
-            tooltip: String? = null,
-            showOnlyActiveEmployees: Boolean = true,
-            required: Boolean? = null,
-        ): UISelect<Long> {
-            return UISelect(
-                id,
-                lc,
-                values = EmployeeService.instance.selectAllActive(false).map { UISelectValue(it.id!!, it.displayName) },
-                multi = multi,
-                label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
-                additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
-                autoCompletion = AutoCompletion.getAutoCompletion4Employees(showOnlyActiveEmployees),
-                tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey,
-                required = required,
-            )
-        }
-
-        fun createGroupSelect(
-            lc: LayoutContext,
-            id: String,
-            multi: Boolean,
-            label: String? = null,
-            additionalLabel: String? = null,
-            tooltip: String? = null
-        ): UISelect<Long> {
-            return UISelect(
-                id,
-                lc,
-                values = GroupService.getInstance().getSortedGroups().map { UISelectValue(it.id!!, it.displayName) },
-                multi = multi,
-                label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
-                additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
-                autoCompletion = AutoCompletion.getAutoCompletion4Groups().also { it.minChars = 1 },
-                tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey
-            )
-        }
-
-        fun createCustomerSelect(
-            lc: LayoutContext,
-            id: String,
-            multi: Boolean,
-            label: String? = null,
-            additionalLabel: String? = null,
-            tooltip: String? = null
-        ): UISelect<Long> {
-            return UISelect(
-                id,
-                lc,
-                multi = multi,
-                label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
-                additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
-                autoCompletion = AutoCompletion.getAutoCompletion4Customers(),
-                tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey
-            )
-        }
-    }
 }
