@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@tanstack/react-form";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { recalculateOrder, type OrderPositionSums } from "@/lib/rs/order";
@@ -79,6 +79,10 @@ export function useOrderSums(): OrderSumsState {
     queryFn: ({ signal }) => recalculateOrder(JSON.parse(key), signal),
     // The answer is a pure function of what was sent, so it stays valid while the user edits elsewhere.
     staleTime: 60_000,
+    // The previous answer stays until the new one arrives (dimmed via `isFetching`): blanking it would
+    // drop the conditional entries of the sticky sums line and of the position rows, and the page would
+    // jump on every change.
+    placeholderData: keepPreviousData,
   });
 
   const byNumber = new Map(
