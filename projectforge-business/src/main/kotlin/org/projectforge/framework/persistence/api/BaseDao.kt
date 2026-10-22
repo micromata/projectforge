@@ -40,7 +40,6 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.api.impl.DBQuery
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta
 import org.projectforge.framework.persistence.database.DatabaseDao
-import org.projectforge.framework.persistence.database.DatabaseDao.Companion.createReindexSettings
 import org.projectforge.framework.persistence.database.EntityCountCache
 import org.projectforge.framework.persistence.entities.HistoryUserCommentSupport
 import org.projectforge.framework.persistence.history.*
@@ -1103,28 +1102,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      */
     open fun isFullReindexSmall(): Boolean {
         return countReindexEntries() < FULL_REINDEX_MAX_ENTRIES_FOR_NON_ADMINS
-    }
-
-    /**
-     * Re-indexes the entries of the last day.
-     *
-     * @see DatabaseDao.createReindexSettings
-     */
-    open fun rebuildDatabaseIndex4NewestEntries() {
-        val settings = createReindexSettings(true, historyEntityNames)
-        reindexClasses4NewestEntries.forEach { clazz ->
-            databaseDao.rebuildDatabaseSearchIndices(clazz, settings)
-        }
-    }
-
-    /**
-     * Re-indexes all entries (full re-index).
-     */
-    open fun rebuildDatabaseIndex() {
-        val settings = createReindexSettings(false)
-        reindexClasses.forEach { clazz ->
-            databaseDao.rebuildDatabaseSearchIndices(clazz, settings)
-        }
     }
 
     /**

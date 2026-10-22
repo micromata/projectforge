@@ -112,7 +112,7 @@ export function login(
 export function cancelLogin(signal?: AbortSignal): Promise<ActionResult> {
   return request<ActionResult>(
     `${LOGIN_PATH}/cancel`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
@@ -238,7 +238,7 @@ export function cancelPasswordReset(
 ): Promise<ActionResult> {
   return request<ActionResult>(
     `${RESET_PATH}/cancel`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }

@@ -1357,13 +1357,11 @@ constructor(
 
     /**
      * Rebuilds the index by the search engine for the newest entries.
-     * @see [BaseDao.rebuildDatabaseIndex4NewestEntries]
+     * @see [DatabaseDao.createReindexSettings]
      */
     @PostMapping("reindexNewest")
-    fun reindexNewest(request: HttpServletRequest): ResponseAction {
-        startReindexOrRunIt(request, full = false, adminRequired = false)?.let { return it }
-        baseDao.rebuildDatabaseIndex4NewestEntries()
-        return UIToast.createToast(translate("administration.reindexNewest.successful"), color = UIColor.SUCCESS)
+    fun reindexNewest(): ResponseAction {
+        return startReindexJob(full = false, adminRequired = false)
     }
 
     /**
@@ -1372,30 +1370,21 @@ constructor(
      * Below [BaseDao.FULL_REINDEX_MAX_ENTRIES_FOR_NON_ADMINS] entries it takes seconds, so every user may start it
      * (see [BaseDao.isFullReindexAllowedForLoggedInUser]). The clients merely hide the menu entry, the check has to
      * be here.
-     * @see [BaseDao.rebuildDatabaseIndex]
      */
     @PostMapping("reindexFull")
-    fun reindexFull(request: HttpServletRequest): ResponseAction {
+    fun reindexFull(): ResponseAction {
         // An admin's run stays admin-only to watch and cancel; a regular user's (small) run is their own.
         val adminRequired = accessChecker.isLoggedInUserMemberOfAdminGroup
         if (!adminRequired && !baseDao.isFullReindexSmall()) {
             accessChecker.checkIsLoggedInUserMemberOfAdminGroup() // Throws the AccessException.
         }
-        startReindexOrRunIt(request, full = true, adminRequired = adminRequired)?.let { return it }
-        baseDao.rebuildDatabaseIndex()
-        return UIToast.createToast(translate("administration.reindexFull.successful"), color = UIColor.SUCCESS)
+        return startReindexJob(full = true, adminRequired = adminRequired)
     }
 
     /**
-     * projectforge-next shows a progress toast, so it gets the id of a job to poll (see JobsMonitorRest).
-     * The classic clients have no such display and keep waiting for the toast of the finished run.
-     *
-     * @return The response for projectforge-next, or null if the caller has to do the run synchronously.
+     * Runs the reindex as a job: the client gets its id and polls it for the progress (see JobsMonitorRest).
      */
-    private fun startReindexOrRunIt(request: HttpServletRequest, full: Boolean, adminRequired: Boolean): ResponseAction? {
-        if (!RestAuthenticationUtils.isNextClient(request)) {
-            return null
-        }
+    private fun startReindexJob(full: Boolean, adminRequired: Boolean): ResponseAction {
         val i18nKey = if (full) "administration.reindexFull.job.title" else "administration.reindexNewest.job.title"
         val job = jobHandler.addJob(
             ReindexJob(

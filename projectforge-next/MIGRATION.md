@@ -151,15 +151,14 @@ Detail steht im Code – hier nur die Regeln und die Fallen, die wiederkehren.
   Mapping auf die Felder: `lib/validation/server-errors.ts` legt sie per `fieldId` in den
   `onServer`-Slot von `@tanstack/react-form` (form-core leert ihn beim nächsten
   `change`/`blur`). Fehler ohne `fieldId` → `unassigned` (Toast) + `onServer.form`.
-- **Fallen der Antwortform:** ein abgelaufenes CSRF-Token antwortet **HTTP 200** mit
-  `ResponseAction` + `validationErrors` (`errorpage.csrfError`) – `write()` prüft
-  `validationErrors` auch im Erfolgsfall. Eine `AccessException` sieht als **HTTP 200 mit
-  reinem Toast** wie ein Erfolg aus: die vier CRUD-Endpunkte machen daraus über
-  `handleException` ein **406**; eigene Endpunkte (`postEntityAction`) liefern `kind:
+- **Fallen der Antwortform:** ein abgelaufenes CSRF-Token fängt schon der Filter ab (**403**
+  `{csrfTokenRequired}`, siehe CSRF); `write()` prüft `validationErrors` trotzdem auch im
+  Erfolgsfall. Eine `AccessException` aus einem Endpunkt mit eigenem `handleException` ist ein
+  **406** (die vier CRUD-Endpunkte); eigene Endpunkte (`postEntityAction`) liefern `kind:
 "rejected"` (unterschieden vom Erfolg-mit-Warnung am `targetType`: Ablehnung ist `TOAST`,
-  Erfolg trägt `REDIRECT`); lesende Aufrufe bekommen für next-Clients **403** + `RestError`
-  (`useReadAccessGuard`). `isNextClient` wählt nur die Antwortform, ist keine
-  Vertrauensgrenze.
+  Erfolg trägt `REDIRECT`); sonst antwortet `GlobalDefaultExceptionHandler` mit **403** +
+  `RestError` (`useReadAccessGuard`). `isNextClient` wählt nur die schlanken Listenzeilen
+  (`useListRow`), ist keine Vertrauensgrenze.
 - **`FormData`-Body:** `Content-Type` **nicht** setzen (der Browser setzt die Boundary).
 
 ### CSRF (querschnittlich, `RestCsrfProtection.kt`)
@@ -167,9 +166,9 @@ Detail steht im Code – hier nur die Regeln und die Fallen, die wiederkehren.
 Zwei Schranken in `RestAuthenticationUtils.doFilter`, zentral für alle `/rs/*`; neue
 Endpunkte erben den Schutz:
 
-1. **`Sec-Fetch-Site`** (alle Clients, alle Methoden): nur `same-origin`/`none`; deckt auch
-   zustandsändernde `@GetMapping`s. `same-site` wird bewusst abgelehnt.
-2. **Session-Token im Header `X-PF-CSRF-Token`** (next-Clients, nicht-`GET`): aus
+1. **`Sec-Fetch-Site`** (alle Clients, alle Methoden): nur `same-origin`/`none`.
+   `same-site` wird bewusst abgelehnt.
+2. **Session-Token im Header `X-PF-CSRF-Token`** (jede Session, nicht-`GET`): aus
    `userStatus`, im Client in Modul-State (nicht `localStorage`), zentral in `rawRequest`
    gesetzt. Veraltet (Stay-logged-in rotiert die Session) → `403 {csrfTokenRequired}` →
    `client.ts` holt `userStatus` und wiederholt **einmal**.
@@ -805,9 +804,10 @@ gelöscht.
   `ElementsRegistry` (Validierung, Massenänderung, Metadaten-Generator).
 - ✅ Zustandsändernde Endpunkte, die GET nur für die React-App annahmen (Filter, Kalenderfilter, Vorlagen,
   Reindex, Logout, Grid-Reset des Aufgabenbaums), sind POST-only; die GET-Dubletten in `TaskFavoritesRest` sind weg.
-- Offen: die öffentlichen `cancel`-Endpunkte (`nextLogin`, `next2FALogin`, Passwort-Reset) melden per GET ab, und
-  `RestCsrfProtection`/`RestAuthenticationUtils` unterscheiden noch next von „UILayout-Clients“; ggf.
-  `NEXT_APP_PATH` → `/` als Default.
+- ✅ Die öffentlichen `cancel`-Endpunkte (`nextLogin`, `next2FALogin`, Passwort-Reset) sind POST-only.
+  `RestCsrfProtection` prüft das Token für jede Session, nicht nur für Clients mit `X-PF-Frontend`; 2FA-Anforderung,
+  `AccessException` (403) und Reindex (als Job) antworten allen Clients gleich.
+- Offen: ggf. `NEXT_APP_PATH` → `/` als Default.
 - Aufräumen: `lib/api-client.ts` (unbenutzter Zweit-Client),
   `components/features/book/mock-data.ts` (oder für `msw`-Tests nutzen – bislang **keine**
   Tests; `filter-fns.ts`/`lib/menu-url.ts` wären ein guter Anfang),

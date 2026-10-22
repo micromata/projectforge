@@ -15,7 +15,7 @@ import type { ResponseAction } from "./types";
  * Re-indexes the entries modified since yesterday. The history is not part of it — only a full run
  * rebuilds that (see BaseDao.reindexClasses4NewestEntries).
  *
- * Answers this client with `variables.jobId`, the id of the background job doing the work; the
+ * Answers with `variables.jobId`, the id of the background job doing the work; the
  * progress is then polled via ./jobs.ts (see useReindex).
  */
 export function reindexNewest(

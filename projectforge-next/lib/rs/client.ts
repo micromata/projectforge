@@ -128,8 +128,8 @@ export async function rawRequest(
       ...(init.body instanceof FormData
         ? {}
         : { "Content-Type": "application/json" }),
-      // Tells the backend to answer with plain JSON instead of a UILayout
-      // ResponseAction (RestAuthenticationUtils.isNextClient).
+      // Identifies this app (RestAuthenticationUtils.isNextClient): lists answer with the lean rows of
+      // the page instead of the full DTO. Not a security feature, the backend checks every client alike.
       "X-PF-Frontend": "next",
       // Central CSRF protection: no call site can forget it. Only sent where the
       // backend checks it, so a stale token can't break a read.

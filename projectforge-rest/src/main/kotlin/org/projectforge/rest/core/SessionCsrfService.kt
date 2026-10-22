@@ -60,11 +60,10 @@ open class SessionCsrfService {
   fun validateCsrfToken(
     request: HttpServletRequest, postData: PostData<*>, logAction: String = "Modification"
   ): ResponseEntity<ResponseAction>? {
-    // projectforge-next has no PostData/ServerData envelope and sends the token as a header instead.
-    // For next clients this check is a formality: [RestCsrfProtection] already validated that header in
-    // the filter, so a next call that gets here has a valid token. Reading it anyway is what keeps that
-    // true - otherwise every next save would fail here with a ResponseAction the client cannot read
-    // (see the class comment of RestCsrfProtection).
+    // projectforge-next sends the token as a header, not in PostData.serverData. This check is a formality:
+    // [RestCsrfProtection] already validated that header in the filter for every state changing call of a
+    // session, so a call that gets here has a valid token. Reading the header anyway is what keeps that true -
+    // otherwise every save would fail here with a ResponseAction the client cannot read.
     val csrfToken = postData.serverData?.csrfToken ?: request.getHeader(RestCsrfProtection.CSRF_TOKEN_HEADER)
     if (csrfToken.isNullOrBlank() && ThreadLocalUserContext.userContext?.loggedInByAuthenticationToken == true) {
       if (log.isDebugEnabled()) {

@@ -1,0 +1,5 @@
+{
+  "type": "security",
+  "en": "The CSRF token is checked for every changing request of a logged-in browser session, no longer only for requests identifying themselves as the new interface; cancelling a login or password reset is accepted as POST only.",
+  "de": "Das CSRF-Token wird für jede ändernde Anfrage einer angemeldeten Browser-Sitzung geprüft, nicht mehr nur für Anfragen, die sich als neue Oberfläche ausweisen; das Abbrechen einer Anmeldung oder Passwort-Zurücksetzung wird nur noch als POST angenommen."
+}
