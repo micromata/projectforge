@@ -24,8 +24,10 @@
 package org.projectforge.rest.fibu.importer
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.fibu.CurrencyConversionService
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.framework.utils.CurrencyHelper
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.dto.Konto
 import org.projectforge.rest.importer.*
@@ -45,6 +47,7 @@ private val log = KotlinLogging.logger {}
 class IncomingInvoiceCsvImporter(
     private val kostCache: KostCache,
     private val kontoCache: KontoCache,
+    private val currencyConversionService: CurrencyConversionService,
 ) : AbstractCsvImporter<EingangsrechnungPosImportDTO>() {
     override val logErrorOnPropertyParsing: Boolean = false
 
@@ -181,7 +184,7 @@ class IncomingInvoiceCsvImporter(
 
         // Calculate netSum from grossSum to avoid rounding errors in comparison
         // Use CurrencyHelper for consistent calculation with DB logic
-        entity.netSum = org.projectforge.framework.utils.CurrencyHelper.getNetAmount(entity.grossSum, entity.taxRate)
+        entity.netSum = CurrencyHelper.getNetAmount(entity.grossSum, entity.taxRate)
 
         // KOST1 and KOST2 are now parsed during CSV processing in processField method
     }
@@ -657,11 +660,7 @@ class IncomingInvoiceCsvImporter(
         if (distinctValues.size > 1) {
             if (fieldName == "currency" && distinctValues.contains(EUR)) {
                 // Credit-card documents come in EUR (as charged) and in the currency of the invoice: EUR wins.
-                positions.forEach { it.currency = EUR }
-                val warningMessage =
-                    "RENR '$renr': Unterschiedliche Währungen ${distinctValues.joinToString(", ")}, $EUR übernommen."
-                log.info { warningMessage }
-                importStorage.addWarning(warningMessage)
+                convertPositionsToEur(renr, positions, distinctValues, importStorage)
                 return
             }
             if (fieldName == "bezahlDatum") {
@@ -684,6 +683,46 @@ class IncomingInvoiceCsvImporter(
                 addError(position, "Inkonsistente Rechnungsheader-Daten für $fieldName", importStorage)
             }
         }
+    }
+
+    /**
+     * An invoice has one currency: positions in another one than EUR are converted by the rate valid at the
+     * invoice date (currency pairs of ProjectForge). Without a rate the amount can't be taken: the positions get
+     * an error.
+     */
+    private fun convertPositionsToEur(
+        renr: String,
+        positions: List<EingangsrechnungPosImportDTO>,
+        distinctValues: List<Any?>,
+        importStorage: EingangsrechnungImportStorage
+    ) {
+        val missingRates = mutableSetOf<String>()
+        positions.filter { it.currency != EUR }.forEach { position ->
+            val currency = position.currency ?: return@forEach
+            val converted = position.datum?.let {
+                currencyConversionService.convert(position.grossSum, EUR, currency, validAtDate = it)
+            }
+            if (converted == null && position.grossSum != null) {
+                missingRates.add(currency)
+                return@forEach
+            }
+            position.grossSum = converted
+            position.netSum = CurrencyHelper.getNetAmount(converted, position.taxRate)
+            position.currency = EUR
+        }
+        val currencies = distinctValues.joinToString(", ")
+        if (missingRates.isNotEmpty()) {
+            val errorMessage = "RENR '$renr': Unterschiedliche Währungen $currencies, " +
+                    "kein Umrechnungskurs ${missingRates.joinToString(", ")} → $EUR zum Rechnungsdatum."
+            log.warn { errorMessage }
+            importStorage.addError(errorMessage)
+            positions.forEach { addError(it, "Kein Umrechnungskurs nach $EUR", importStorage) }
+            return
+        }
+        val warningMessage =
+            "RENR '$renr': Unterschiedliche Währungen $currencies, zum Kurs des Rechnungsdatums in $EUR umgerechnet."
+        log.info { warningMessage }
+        importStorage.addWarning(warningMessage)
     }
 
     private fun getFieldValue(dto: EingangsrechnungPosImportDTO, fieldName: String): Any? {

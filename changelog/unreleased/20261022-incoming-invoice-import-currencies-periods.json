@@ -1,0 +1,15 @@
+{
+  "type": "fixed",
+  "en": "Import of incoming invoices",
+  "de": "Import von Eingangsrechnungen",
+  "items": [
+    {
+      "en": "Positions of one invoice in different currencies are converted to EUR by the rate of the invoice date instead of being taken as EUR; without a rate the invoice is marked as faulty.",
+      "de": "Positionen einer Rechnung in unterschiedlichen Währungen werden zum Kurs des Rechnungsdatums in EUR umgerechnet, statt als EUR übernommen zu werden; ohne Kurs wird die Rechnung als fehlerhaft markiert."
+    },
+    {
+      "en": "Stored invoices between two periods of the export (e.g. March for an export of January and June) are no longer offered for deletion.",
+      "de": "Gespeicherte Rechnungen zwischen zwei Perioden des Exports (z. B. März bei einem Export von Januar und Juni) werden nicht mehr zum Löschen angeboten."
+    }
+  ]
+}

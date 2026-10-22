@@ -24,6 +24,7 @@
 package org.projectforge.rest.fibu.importer
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.fibu.CurrencyConversionService
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.kost.KostCache
@@ -68,6 +69,9 @@ class IncomingInvoiceImportRest :
     private lateinit var jobHandler: JobHandler
 
     @Autowired
+    private lateinit var currencyConversionService: CurrencyConversionService
+
+    @Autowired
     private lateinit var eingangsrechnungDao: EingangsrechnungDao
 
     override val fileExtensions = arrayOf("csv")
@@ -85,7 +89,8 @@ class IncomingInvoiceImportRest :
         val storage = EingangsrechnungImportStorage(DATEV_IMPORT_SETTINGS)
         storage.filename = filename
         // Parse the CSV with the consolidated importer that handles all processing in one step.
-        IncomingInvoiceCsvImporter(kostCache, kontoCache).parse(inputStream, storage, storage.importSettings.charSet)
+        IncomingInvoiceCsvImporter(kostCache, kontoCache, currencyConversionService)
+            .parse(inputStream, storage, storage.importSettings.charSet)
         return storage
     }
 

@@ -95,12 +95,18 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
     var databaseInvoices: List<EingangsrechnungDO>? = null
 
     /**
-     * Periods covered by a position-based import (column "Periode"), see [addPeriod].
+     * Periods covered by a position-based import (column "Periode"), see [addPeriod]. Kept one by one: a gap between
+     * two periods (e.g. January and June) isn't covered.
      */
-    var periodFrom: LocalDate? = null
-        private set
-    var periodUntil: LocalDate? = null
-        private set
+    private val periods = mutableSetOf<ClosedRange<LocalDate>>()
+
+    /** Begin of the earliest period, null if no period was parsed. */
+    val periodFrom: LocalDate?
+        get() = periods.minOfOrNull { it.start }
+
+    /** End of the latest period, null if no period was parsed. */
+    val periodUntil: LocalDate?
+        get() = periods.maxOfOrNull { it.endInclusive }
 
     private var fromDate: LocalDate? = null
     private var untilDate: LocalDate? = null
@@ -234,25 +240,22 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
     /**
      * Only a position-based import (all positions of the periods) can tell that a stored invoice is gone; a
      * header-only export isn't a complete snapshot. Only stored invoices within the periods of the import qualify:
-     * a single row with an old date mustn't offer all invoices since then for deletion. Without a parsed period
-     * (unknown format of the column "Periode") nothing is offered.
+     * a single row with an old date mustn't offer all invoices since then for deletion, nor may the months between
+     * two periods. Without a parsed period (unknown format of the column "Periode") nothing is offered.
      */
     private fun isDeletionCandidate(dbInvoice: EingangsrechnungDO): Boolean {
         if (!isPositionBasedImport) {
             return false
         }
         val datum = dbInvoice.datum ?: return false
-        val from = periodFrom ?: return false
-        val until = periodUntil ?: return false
-        return datum in from..until
+        return periods.any { datum in it }
     }
 
     /**
-     * Extends the covered periods (column "Periode" of a position-based import) by the given period.
+     * Adds the given period to the covered periods (column "Periode" of a position-based import).
      */
     fun addPeriod(from: LocalDate, until: LocalDate) {
-        periodFrom = periodFrom?.let { minOf(it, from) } ?: from
-        periodUntil = periodUntil?.let { maxOf(it, until) } ?: until
+        periods.add(from..until)
     }
 
     private fun analyzeReadInvoices() {

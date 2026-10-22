@@ -49,6 +49,9 @@ import org.springframework.web.multipart.MultipartFile
 
 private val log = KotlinLogging.logger {}
 
+/** User pref area of the last input values of a template, by its id. */
+private const val USER_PREF_AREA = "merlin-template"
+
 /**
  * The execution of a Word® template (single document or serial execution by an Excel file), layout free for
  * projectforge-next. Every user with select access to the template (admins and users/groups with access) may
@@ -131,7 +134,9 @@ class MerlinExecuteRest {
             serialFills.add("employees")
             serialFills.add("users")
         }
-        val userPref = getUserPref(id)
+        // Read only: a GET mustn't write the user pref, execute (POST) stores it.
+        val userPref = userPrefService.getEntry(USER_PREF_AREA, "$id", MerlinExecutionData::class.java)
+            ?: MerlinExecutionData(id, "")
         return ExecutionData(
             id = id,
             name = dbObj.name,
@@ -273,7 +278,7 @@ class MerlinExecuteRest {
     }
 
     private fun getUserPref(id: Long): MerlinExecutionData {
-        return userPrefService.ensureEntry("merlin-template", "$id", MerlinExecutionData(id, ""))
+        return userPrefService.ensureEntry(USER_PREF_AREA, "$id", MerlinExecutionData(id, ""))
     }
 
     private fun getFieldId(variableName: String): String {
