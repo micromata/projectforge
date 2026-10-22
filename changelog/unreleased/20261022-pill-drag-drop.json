@@ -1,5 +1,5 @@
 {
   "type": "added",
-  "en": "Fields with several entries (users, groups, employees, …): entries can be selected and dragged into another field of the same kind, or copied and pasted with Ctrl/Cmd+C and Ctrl/Cmd+V.",
-  "de": "Felder mit mehreren Einträgen (Benutzer, Gruppen, Mitarbeitende, …): Einträge lassen sich markieren und in ein anderes Feld derselben Art ziehen oder mit Strg/Cmd+C und Strg/Cmd+V kopieren und einfügen."
+  "en": "Fields with several entries (users, groups, employees, …): entries can be selected by sweeping over them with the mouse or by clicking, then copied and pasted into another field of the same kind with Ctrl/Cmd+C and Ctrl/Cmd+V, or dragged there.",
+  "de": "Felder mit mehreren Einträgen (Benutzer, Gruppen, Mitarbeitende, …): Einträge lassen sich mit der Maus aufziehend oder per Klick markieren und dann mit Strg/Cmd+C und Strg/Cmd+V in ein anderes Feld derselben Art kopieren oder dorthin ziehen."
 }

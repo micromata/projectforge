@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * Chips of a multi picker dragged into another picker (see useChipTransfer): taken by a picker of the
@@ -77,5 +78,86 @@ test.describe("entity chip transfer", { tag: "@parallel" }, () => {
     await minimalUsers.focus();
     await page.keyboard.press("ControlOrMeta+V");
     await expect(minimalUsers.getByRole("option")).toHaveCount(1);
+  });
+
+  test("sweeps over chips in both directions and copies just those", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    // A group of at least three members; a database without one has nothing to sweep over.
+    const response = await page.request.post("/rs/group/list", {
+      headers: await writeHeaders(page.request),
+      data: { searchString: "" },
+    });
+    const { resultSet = [] } = (await response.json()) as {
+      resultSet?: { id?: number; assignedUsers?: unknown[] }[];
+    };
+    const group = resultSet.find(
+      (row) => (row.assignedUsers?.length ?? 0) >= 3
+    );
+    test.skip(!group?.id, "no group with three members");
+
+    await goto(page, `/group/${group!.id}`);
+    const members = page.getByRole("listbox", {
+      name: t("group.assignedUsers"),
+      exact: true,
+    });
+    const chips = members.getByRole("option");
+    await expect(chips.nth(2)).toBeVisible();
+    const boxRect = (await members.boundingBox())!;
+    const second = (await chips.nth(1).boundingBox())!;
+    const first = (await chips.nth(0).boundingBox())!;
+
+    // Backwards, from behind the last chip — on the trigger filling the rest of the line — to the
+    // middle of the second last: those two, and the search stays closed.
+    const count = await chips.count();
+    const lastRect = (await chips.nth(count - 1).boundingBox())!;
+    const secondLast = (await chips.nth(count - 2).boundingBox())!;
+    await page.mouse.move(
+      lastRect.x + lastRect.width + 12,
+      lastRect.y + lastRect.height / 2
+    );
+    await page.mouse.down();
+    await page.mouse.move(
+      secondLast.x + secondLast.width / 2,
+      secondLast.y + secondLast.height / 2,
+      { steps: 5 }
+    );
+    await page.mouse.up();
+    await expect(chips.nth(count - 1)).toHaveAttribute("aria-selected", "true");
+    await expect(chips.nth(count - 2)).toHaveAttribute("aria-selected", "true");
+    await expect(chips.nth(count - 3)).toHaveAttribute(
+      "aria-selected",
+      "false"
+    );
+    await expect(members.getByRole("combobox")).toHaveAttribute(
+      "aria-expanded",
+      "false"
+    );
+
+    // From the padding left of the first chip to the middle of the second.
+    await page.mouse.move(boxRect.x + 3, first.y + first.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(
+      second.x + second.width / 2,
+      second.y + second.height / 2,
+      {
+        steps: 5,
+      }
+    );
+    await page.mouse.up();
+    await expect(chips.nth(0)).toHaveAttribute("aria-selected", "true");
+    await expect(chips.nth(1)).toHaveAttribute("aria-selected", "true");
+    await expect(chips.nth(2)).toHaveAttribute("aria-selected", "false");
+
+    await page.keyboard.press("ControlOrMeta+C");
+    await goto(page, "/teamCal/new");
+    const fullUsers = page.getByRole("listbox", {
+      name: `${t("plugins.teamcal.fullAccess")} (${t("plugins.teamcal.access.users")})`,
+      exact: true,
+    });
+    await fullUsers.focus();
+    await page.keyboard.press("ControlOrMeta+V");
+    await expect(fullUsers.getByRole("option")).toHaveCount(2);
   });
 });

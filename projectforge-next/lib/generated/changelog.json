@@ -7,7 +7,7 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Fields with several entries (users, groups, employees, …): entries can be selected and dragged into another field of the same kind, or copied and pasted with Ctrl/Cmd+C and Ctrl/Cmd+V.", "Structure tree and structure element list: column with the groups having access rights on an element (administrators only). Hovering shows the rights of each group, a click opens the access rights of this element.", "Time sheet mass update: remap the cost unit by type while every time sheet keeps its structure element, e.g. after a project was linked to it." ]
+      "items" : [ "Fields with several entries (users, groups, employees, …): entries can be selected by sweeping over them with the mouse or by clicking, then copied and pasted into another field of the same kind with Ctrl/Cmd+C and Ctrl/Cmd+V, or dragged there.", "Structure tree and structure element list: column with the groups having access rights on an element (administrators only). Hovering shows the rights of each group, a click opens the access rights of this element.", "Time sheet mass update: remap the cost unit by type while every time sheet keeps its structure element, e.g. after a project was linked to it." ]
     }, {
       "type" : "improved",
       "items" : [ {

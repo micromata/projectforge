@@ -50,6 +50,12 @@ export function useChipSelection(order: readonly number[]) {
 
   const selectAll = useCallback(() => setSelected(new Set(order)), [order]);
 
+  /** Selects exactly these ids — what a sweep over the chips covers; a Shift+click then goes on from the first. */
+  const setRange = useCallback((ids: readonly number[]) => {
+    anchor.current = ids[0] ?? null;
+    setSelected(new Set(ids));
+  }, []);
+
   const live = order.filter((id) => selected.has(id));
   return {
     isSelected: (id: number) => selected.has(id) && order.includes(id),
@@ -58,5 +64,6 @@ export function useChipSelection(order: readonly number[]) {
     select,
     clear,
     selectAll,
+    setRange,
   };
 }

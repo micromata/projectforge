@@ -39,6 +39,8 @@ export function EntityChip({
     <span
       role="option"
       aria-selected={selected}
+      // Found by the sweep over the chips, see [useChipSweep].
+      data-chip-id={entry.id}
       draggable
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}

@@ -893,8 +893,7 @@
           "info": "This color is used for vacations chosen in view settings (gear).\n\nIf you wish different colors for different vacations of people and/or teams, please simply create a new vacation calendar with groups and people [here](/next/teamCal/new)."
         }
       },
-      "intro": "Please note: You may customize the colors of other calendars by simply clicking one calendar pill in the calendar chooser at the top of the calendar page.",
-      "title": "Calendar settings"
+      "intro": "Please note: You may customize the colors of other calendars by simply clicking one calendar pill in the calendar chooser at the top of the calendar page."
     },
     "short": {
       "yearToDate": "Y→"

@@ -14,10 +14,11 @@ import { carriesRefs, readRefs, writeRefs } from "@/lib/entity-ref-transfer";
 import { toast } from "@/lib/toast";
 import type { EntityRef } from "./entity-autocomplete";
 import type { EntityChipProps } from "./entity-chip";
+import { useChipSweep } from "./use-chip-sweep";
 
 /**
  * Moves picked entities between the pickers of [EntityMultiAutocomplete] of the same kind (`refType`):
- * chips are selected by click (see [useChipSelection]), then dragged onto another picker, or copied
+ * chips are selected by click (see [useChipSelection]) or by sweeping over them ([useChipSweep]), then dragged onto another picker, or copied
  * with Ctrl/Cmd+C and pasted into one with Ctrl/Cmd+V — on another page or in another tab too.
  * Dropping and pasting add; the source keeps its chips. What is there already is skipped silently, as a
  * second pick of the same entry is.
@@ -39,6 +40,7 @@ export function useChipTransfer({
   const t = useTranslations();
   const boxRef = useRef<HTMLDivElement>(null);
   const selection = useChipSelection(chips.map((chip) => chip.id));
+  const sweep = useChipSweep(selection);
   const [dropTarget, setDropTarget] = useState(false);
   // Set while a drag starts here: dropping the chips back onto their own box would add nothing.
   const draggingFromHere = useRef(false);
@@ -75,6 +77,7 @@ export function useChipTransfer({
     tabIndex: -1,
     role: "listbox",
     "aria-multiselectable": true,
+    ...sweep,
     // From anywhere in the box — the box itself, the trigger, a removing button: none of them is a text
     // field these keys would mean something else in.
     onKeyDown: (event: KeyboardEvent) => {

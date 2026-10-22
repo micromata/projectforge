@@ -7,7 +7,7 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Felder mit mehreren Einträgen (Benutzer, Gruppen, Mitarbeitende, …): Einträge lassen sich markieren und in ein anderes Feld derselben Art ziehen oder mit Strg/Cmd+C und Strg/Cmd+V kopieren und einfügen.", "Strukturbaum und Strukturelementliste: Spalte mit den Gruppen, die Zugriffsrechte auf ein Element haben (nur für Administratoren). Beim Darüberfahren werden die Rechte jeder Gruppe angezeigt, ein Klick öffnet die Zugriffsrechte dieses Elements.", "Massenänderung von Zeitberichten: Kost2 nach Kostenart umschlüsseln, ohne dass ein Zeitbericht sein Strukturelement wechselt, z. B. nach Verlinkung eines Projekts." ]
+      "items" : [ "Felder mit mehreren Einträgen (Benutzer, Gruppen, Mitarbeitende, …): Einträge lassen sich mit der Maus aufziehend oder per Klick markieren und dann mit Strg/Cmd+C und Strg/Cmd+V in ein anderes Feld derselben Art kopieren oder dorthin ziehen.", "Strukturbaum und Strukturelementliste: Spalte mit den Gruppen, die Zugriffsrechte auf ein Element haben (nur für Administratoren). Beim Darüberfahren werden die Rechte jeder Gruppe angezeigt, ein Klick öffnet die Zugriffsrechte dieses Elements.", "Massenänderung von Zeitberichten: Kost2 nach Kostenart umschlüsseln, ohne dass ein Zeitbericht sein Strukturelement wechselt, z. B. nach Verlinkung eines Projekts." ]
     }, {
       "type" : "improved",
       "items" : [ {
