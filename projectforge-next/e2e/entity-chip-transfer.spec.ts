@@ -80,6 +80,45 @@ test.describe("entity chip transfer", { tag: "@parallel" }, () => {
     await expect(minimalUsers.getByRole("option")).toHaveCount(1);
   });
 
+  test("cuts the chips, pastes them elsewhere and undoes both, each in its field", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    await goto(page, "/teamCal/new");
+    const users = t("plugins.teamcal.access.users");
+    const box = (access: string) =>
+      page.getByRole("listbox", {
+        name: `${t(access)} (${users})`,
+        exact: true,
+      });
+    const fullUsers = box("plugins.teamcal.fullAccess");
+    const minimalUsers = box("plugins.teamcal.minimalAccess._");
+
+    await page
+      .getByRole("button", { name: new RegExp(`^${t("select._")}: `) })
+      .first()
+      .click();
+    await expect(fullUsers.getByRole("option")).toHaveCount(1);
+
+    await fullUsers.focus();
+    await page.keyboard.press("ControlOrMeta+X");
+    await expect(fullUsers.getByRole("option")).toHaveCount(0);
+    await minimalUsers.focus();
+    await page.keyboard.press("ControlOrMeta+V");
+    await expect(minimalUsers.getByRole("option")).toHaveCount(1);
+
+    // Undo in the field pasted into takes the paste back, and only that.
+    await page.keyboard.press("ControlOrMeta+Z");
+    await expect(minimalUsers.getByRole("option")).toHaveCount(0);
+    await expect(fullUsers.getByRole("option")).toHaveCount(0);
+    // Undo in the field cut from brings the chip back, redo cuts it again.
+    await fullUsers.focus();
+    await page.keyboard.press("ControlOrMeta+Z");
+    await expect(fullUsers.getByRole("option")).toHaveCount(1);
+    await page.keyboard.press("ControlOrMeta+Shift+Z");
+    await expect(fullUsers.getByRole("option")).toHaveCount(0);
+  });
+
   test("sweeps over chips in both directions and copies just those", async ({
     loggedInPage: page,
   }) => {

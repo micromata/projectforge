@@ -95,7 +95,7 @@ export function EntityMultiAutocomplete({
         compareText(a.displayName, b.displayName, format)
       )
     : value;
-  const { boxProps, chipProps, dropTarget } = useChipTransfer({
+  const { boxProps, chipProps, dropTarget, change } = useChipTransfer({
     refType: refType ?? refTypeOfUrl(url),
     value,
     chips,
@@ -154,7 +154,7 @@ export function EntityMultiAutocomplete({
         {selectMe && !value.some((picked) => picked.id === selectMe.id) && (
           <SelectMeButton
             me={selectMe}
-            onPick={() => onChange([...value, selectMe])}
+            onPick={() => change([...value, selectMe])}
           />
         )}
       </div>
@@ -178,7 +178,7 @@ export function EntityMultiAutocomplete({
             // Silently ignored rather than reported: the same entry twice is no error, the search
             // simply answers what is already there — and its chip says so.
             if (value.some((picked) => picked.id === entry.id)) return;
-            onChange([...value, entry]);
+            change([...value, entry]);
           }}
         />
       </PopoverContent>
