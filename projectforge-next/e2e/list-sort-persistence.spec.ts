@@ -11,7 +11,7 @@ import { writeHeaders } from "./fixtures/seed";
  * The sort order a user set survives leaving the list and coming back.
  *
  * Worth its own spec because the sorting is stored in two places that can drift apart: the backend
- * keeps it (`AbstractPagesRest.setColumnStates`) and the list seeds itself from it, but the read is
+ * keeps it (`AbstractEntityRest`, `setColumnStates`) and the list seeds itself from it, but the read is
  * cached for the whole session (`staleTime: Infinity`), so what a *second* mount starts from is the
  * cache entry — and that one used to hold the state as of the first page load. The column state is
  * therefore held in step with what is written (see useRememberColumnState); this asserts the effect.

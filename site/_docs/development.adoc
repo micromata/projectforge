@@ -75,10 +75,6 @@ of the pages not yet hand-built.
 |The frontend: Next.js 16, React 19, TypeScript, TanStack Table/Query/Form, Tailwind CSS 4. Built as a static
 export and served by Spring Boot under `/next` -- no Node.js process in production.
 
-|`projectforge-webapp`
-|The legacy React app under `/react`, still bundled for the pages that are not yet migrated to
-`projectforge-next`.
-
 |`projectforge-jcr`, `projectforge-carddav`, `projectforge-idp`
 |The JCR document store (Apache Jackrabbit Oak) of existing installations, CardDAV for addresses, user and group
 sync with an identity provider (Keycloak, authentik). Attachments are stored by the file store configured with

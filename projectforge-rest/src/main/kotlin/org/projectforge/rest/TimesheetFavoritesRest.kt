@@ -112,16 +112,14 @@ class TimesheetFavoritesRest {
   /**
    * Deletes the given timesheet template/favorite.
    */
-  // State changing: POST. GET only for the legacy React app, drop it together with the app.
-  @RequestMapping("delete", method = [RequestMethod.POST, RequestMethod.GET])
+  @PostMapping("delete")
   fun delete(@RequestParam("id", required = true) id: Long): Map<String, Any> {
     timsheetFavoritesService.deleteFavorite(id)
     timsheetFavoritesService.refreshMigrationCache(ThreadLocalUserContext.loggedInUserId!!)
     return mapOf("timesheetFavorites" to getList())
   }
 
-  // State changing: POST. GET only for the legacy React app, drop it together with the app.
-  @RequestMapping("rename", method = [RequestMethod.POST, RequestMethod.GET])
+  @PostMapping("rename")
   fun rename(
     @RequestParam("id", required = true) id: Long,
     @RequestParam("newName", required = true) newName: String
@@ -131,8 +129,7 @@ class TimesheetFavoritesRest {
     return mapOf("timesheetFavorites" to getList())
   }
 
-  // State changing: POST. GET only for the legacy React app, drop it together with the app.
-  @RequestMapping("migrateOldTemplates", method = [RequestMethod.POST, RequestMethod.GET])
+  @PostMapping("migrateOldTemplates")
   fun migrateOldTemplates(): Map<String, Any> {
     timsheetFavoritesService.migrateFromLegacyFavorites(timsheetFavoritesService.getFavorites())
     return mapOf("timesheetFavorites" to getList())

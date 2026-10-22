@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginBubbleGrouping
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginLevel
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -72,6 +73,10 @@ class OrderStatisticsRestTest : AbstractTestBase() {
         val bubbleRequest = OrderEntityRest.ContributionMarginBubbleRequest(MagicFilter(), includeOthers = true)
         assertThrows<AccessException> { orderEntityRest.contributionMarginBubbles(bubbleRequest) }
         assertThrows<AccessException> { orderEntityRest.getContributionMarginBubbleSettings() }
+        ContributionMarginLevel.entries.forEach { level ->
+            val request = OrderEntityRest.ContributionMarginRequest(MagicFilter(), level = level)
+            assertThrows<AccessException> { orderEntityRest.contributionMarginBreakdown(request) }
+        }
     }
 
     @Test
@@ -93,6 +98,17 @@ class OrderStatisticsRestTest : AbstractTestBase() {
         val settings = orderEntityRest.getContributionMarginBubbleSettings()
         assertEquals(ContributionMarginBubbleGrouping.CUSTOMER, settings.grouping)
         assertEquals(true, settings.includeOthers)
+    }
+
+    @Test
+    fun `finance gets the contribution margin broken down by orders and by tasks`() {
+        logon(TEST_FINANCE_USER)
+        ContributionMarginLevel.entries.forEach { level ->
+            val request = OrderEntityRest.ContributionMarginRequest(MagicFilter(), level = level)
+            val breakdown = orderEntityRest.contributionMarginBreakdown(request)
+            assertEquals(level, breakdown.level)
+            assertEquals(12, breakdown.months.size)
+        }
     }
 
     @Test

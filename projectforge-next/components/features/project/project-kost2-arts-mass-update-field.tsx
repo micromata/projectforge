@@ -15,7 +15,7 @@ type Kost2ArtsAction = "activate" | "deactivate";
 /**
  * The cost 2 types (Kost2-Arten) of the project mass update: pick types, then create/activate their cost 2
  * units on every selected project, or deactivate them — a project without an active unit of a type is left
- * alone. Neither touches an ended project (`ProjectMultiSelectedPageRest.proceedMassUpdate`).
+ * alone. Neither touches an ended project (`ProjectMassUpdateRest.proceedMassUpdate`).
  *
  * A custom field because the generic renderer offers one value per field, not several. The options are the
  * field's `values` ("04: Name"); the picks travel as comma-separated ids in `textValue`, the action as

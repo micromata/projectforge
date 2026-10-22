@@ -76,7 +76,7 @@ interface UseMagicFilterQueryOptions {
 
 interface UseMagicFilterQueryResult<O> {
   /**
-   * The whole result set, not a single page: AbstractPagesRest.getList returns
+   * The whole result set, not a single page: AbstractEntityRest.getList returns
    * everything up to maxRows. Paging is left to the table, which has to filter
    * before it pages — slicing here would filter the visible page only.
    */
@@ -180,7 +180,7 @@ export function useMagicFilterQuery<O>({
   // fresh array each render must not trigger a refetch.
   const serializedEntries = JSON.stringify(filterEntries ?? []);
 
-  // The page index is deliberately not part of the filter: AbstractPagesRest.getList
+  // The page index is deliberately not part of the filter: AbstractEntityRest.getList
   // returns the whole result list (capped by maxRows) rather than a single page, so
   // paging happens on the client below. Only the page size is sent, as the entry the
   // backend expects.

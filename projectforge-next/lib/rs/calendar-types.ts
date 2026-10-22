@@ -269,7 +269,7 @@ export interface CalendarActionParams {
   firstHour?: number;
 }
 
-/** The `GET /rs/calendar/refresh` answer: whether the client should reload its subscriptions. */
+/** The `POST /rs/calendar/refresh` answer: whether the client should reload its subscriptions. */
 export interface CalendarRefreshResult {
   reload: boolean;
 }

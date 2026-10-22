@@ -49,7 +49,7 @@ private val log = KotlinLogging.logger {}
  * Reading follows the [Configuration] cache: the index is rebuilt whenever its raw value changes, so a save on
  * this or (after the cache's expiry) another node is picked up without a listener of its own.
  *
- * Saving is reserved to finance and controlling, checked by the caller (`CustomerGroupPageRest`): the parameter
+ * Saving is reserved to finance and controlling, checked by the caller (`CustomerGroupRest`): the parameter
  * is read-only on the generic configuration page for everyone ([ConfigurationDao.hasAccess]), so [save] writes
  * without the dao's access check.
  */

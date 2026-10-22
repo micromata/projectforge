@@ -118,7 +118,7 @@ export async function storeCalendarState(
   );
 }
 
-// --- Colour settings (persisted apart from the filter; served by CalendarSettingsPageRest) ---
+// --- Colour settings (persisted apart from the filter; served by CalendarSettingsRest) ---
 
 /** The current colour settings (`GET /rs/calendarSettings/settings`); every colour comes filled with its default. */
 export function fetchCalendarSettings(

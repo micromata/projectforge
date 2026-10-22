@@ -1,0 +1,865 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.rest.multiselect
+
+import com.fasterxml.jackson.annotation.JsonProperty
+import de.micromata.merlin.excel.ExcelCell
+import de.micromata.merlin.utils.ReplaceUtils
+import jakarta.servlet.http.HttpServletRequest
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.task.TaskTree
+import org.projectforge.business.user.service.UserService
+import org.projectforge.common.extensions.capitalize
+import org.projectforge.common.logging.LogSubscription
+import org.projectforge.datatransfer.DataTransferBridge
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.utils.NumberFormatter
+import org.projectforge.rest.admin.LogViewerRest
+import org.projectforge.rest.config.RestUtils
+import org.projectforge.rest.core.*
+import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import java.io.Serializable
+import kotlin.reflect.KMutableProperty
+
+private val log = KotlinLogging.logger {}
+
+/**
+ * Base class of mass updates after multi selection.
+ */
+@AccessChecked("Subclasses: proceedMassUpdate/proceedMassDelete/getStatisticsData have to check (DAO)")
+abstract class AbstractMassUpdateRest<T> : AbstractDynamicPageRest() {
+    @Autowired
+    protected lateinit var userService: UserService
+
+    @Autowired
+    private lateinit var dataTransferBridge: DataTransferBridge
+
+    @Autowired
+    private lateinit var groupService: GroupService
+
+    class MultiSelection {
+        private var _selectedIds: Collection<Serializable>? = null
+
+        @get:JsonProperty
+        var selectedIds: Collection<Serializable>?
+            get() = _selectedIds
+            set(value) {
+                // Convert all numeric types (Int, Integer, etc.) to Long for consistency
+                // ProjectForge entity IDs are always Long
+                // Jackson may deserialize numbers as Int by default
+                _selectedIds = value?.map { id ->
+                    when (id) {
+                        is Long -> id
+                        is Number -> id.toLong()  // Handles Int, Integer, Short, etc.
+                        is String -> id.toLongOrNull() ?: id
+                        else -> id
+                    }
+                }
+            }
+    }
+
+    protected open fun getId(obj: T): Long {
+        if (obj is IdObject<*>) {
+            return obj.id as Long
+        }
+        throw NotImplementedError("Please override getId(T).")
+    }
+
+    /**
+     * If not a standard react page (e. g. Wicket-Page), modify this variable. The standard list and multi-selection-page
+     * is auto-detected by [PagesResolver] with parameter [pageRestClass].
+     */
+    protected open val listPageUrl: String
+        get() = PagesResolver.getListPageUrl(pagesRest::class.java, absolute = true)
+
+    /**
+     * Title of the mass update page (and name of its Excel export). The same generic title for every entity,
+     * override only if an entity really needs its own.
+     */
+    open fun getTitleKey(): String {
+        return "multiselection.button"
+    }
+
+    protected lateinit var pagesRest: AbstractEntityRest<*, *, *>
+
+    /**
+     * Creates the log subscription of the user the mass update writes to, if the user should see its log
+     * messages; called right before a run (see [MassUpdateResult.logViewerUrl]). Disabled at default.
+     */
+    protected open fun ensureUserLogSubscription(): LogSubscription? {
+        return null
+    }
+
+    /** Ensures the log subscription before a run (POST only) and answers its log viewer, if the page has one. */
+    private fun ensureLogViewerUrl(): String? {
+        return ensureUserLogSubscription()?.let { LogViewerRest.viewerUrl(it.id) }
+    }
+
+    private val downloadFileSupport =
+        DownloadFileSupport(
+            expiringSessionAttribute = "${this::class.java.name}.downloadFile",
+            downloadExpiryMinutes = 5
+        )
+
+    /**
+     * Should be set for i18n translations of Excel-Export.
+     */
+    open val layoutContext: LayoutContext? = null
+
+    // ------------------------------------------------------------------------------------------
+    // The layout free protocol, for a client that renders the page itself
+    // ------------------------------------------------------------------------------------------
+
+    /**
+     * Everything a hand built mass update page needs: which fields it may change, how many entries are
+     * selected, and what those add up to (see [MultiSelectMetaData]).
+     */
+    @GetMapping("meta")
+    fun requestMeta(request: HttpServletRequest): MultiSelectMetaData {
+        val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java)
+        val registeredIds = MultiSelectionSupport.getRegisteredEntityIds(request, pagesRest::class.java)
+        val lc = layoutContext ?: LayoutContext(pagesRest.baseDao.doClass)
+        return MultiSelectMetaData(
+            title = translate(getTitleKey()),
+            selectedCount = selectedIds?.size ?: 0,
+            registeredCount = registeredIds?.size ?: 0,
+            fields = fieldDeclarations().map { resolveFieldMeta(lc, it) },
+            listPage = listPageUrl,
+            maxMassUpdate = BaseDao.MAX_MASS_UPDATE,
+            info = infoMessageKey()?.let { translate(it) },
+            statisticsData = getStatisticsData(selectedIds),
+            initialParams = initialParams(request, selectedIds).takeIf { it.isNotEmpty() },
+            supportsDelete = supportsMassDeletion(),
+            supportsRestore = supportsMassDeletion(),
+        )
+    }
+
+    /**
+     * Per-selection start values for a hand built client, keyed by field name (a shared task/kost2 the
+     * selection has in common, say). Empty at default; a page computes them from the selected entries (which it can load
+     * here, the ids are the same [requestMeta] passes on). These are a *presentation* preset for the page's
+     * own controls, not an action - the generic renderer does not seed its declared fields from them, so a
+     * value left untouched contributes nothing to the run (see `TimesheetMassUpdateRest`).
+     */
+    protected open fun initialParams(
+        request: HttpServletRequest,
+        selectedIds: Collection<Serializable>?,
+    ): Map<String, MassUpdateParameter> {
+        return emptyMap()
+    }
+
+    /**
+     * The selected entries themselves, as the rows of the entity's list.
+     *
+     * So a hand built page can *show* what a mass update is about to change, not only how many entries
+     * that is ([requestMeta] answers the count). The client cannot answer this itself: the ids are kept
+     * across a change of the list's filter, so the selection is the union over several filter runs while
+     * the list only ever holds what the current filter matched.
+     *
+     * Read only, and no session state of its own - the ids come from where [select] put them, the rows
+     * from the list rest (see [AbstractEntityRest.getResultSetByIds]). Nothing selected answers an empty
+     * result set.
+     */
+    @GetMapping("selectedList")
+    fun requestSelectedList(request: HttpServletRequest): ResultSet<*> {
+        val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java)
+        return pagesRest.getResultSetByIds(request, selectedIds)
+    }
+
+    /**
+     * Runs the mass update and answers what it did. A failure the user can fix - nothing selected, nothing to do, two
+     * actions on one field - stays an HTTP 406 with `validationErrors`, exactly as everywhere else in
+     * this app.
+     */
+    @PostMapping("update")
+    fun update(
+        request: HttpServletRequest,
+        @RequestBody params: Map<String, MassUpdateParameter>,
+    ): ResponseEntity<*> {
+        val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java)
+        val massUpdateContext = object : MassUpdateContext<T>(params.toMutableMap()) {
+            override fun getId(obj: T): Long {
+                return this@AbstractMassUpdateRest.getId(obj)
+            }
+        }
+        handleClientMassUpdateCall(request, massUpdateContext)
+        val logViewerUrl = ensureLogViewerUrl()
+        massUpdate(request, selectedIds, massUpdateContext)?.let { return it }
+        val changedFields = changedFieldsOf(massUpdateContext)
+        storeProtocol(request, massUpdateContext, changedFields)
+        return ResponseEntity.ok(
+            MassUpdateResult(
+                modifiedCounter = massUpdateContext.modifiedCounter,
+                unmodifiedCounter = massUpdateContext.unmodifiedCounter,
+                errorCounter = massUpdateContext.errorCounter,
+                resultMessage = massUpdateContext.resultMessage,
+                errors = massUpdateContext.errorMessages.map { MassUpdateError(it.identifier, it.message) },
+                downloadUrl = "${getRestPath()}/download",
+                changedFields = changedFields,
+                logViewerUrl = logViewerUrl,
+            )
+        )
+    }
+
+    /**
+     * Whether this page also offers deleting whole selected entries (soft delete via
+     * [BaseDao.markAsDeleted]) and restoring them again ([BaseDao.undelete]) - the [deleteSelected] and
+     * [undeleteSelected] endpoints and, through the meta flags, the two buttons of the hand built page.
+     *
+     * Off by default: the generic infrastructure is available to every page, but each opts in explicitly
+     * (see [MultiSelectMetaData.supportsDelete]). Delete and restore are turned on together, since a soft
+     * delete only makes sense when it can be undone. A page that opts in either relies on the generic
+     * default over [pagesRest]'s [BaseDao] or overrides [proceedMassDelete]/[proceedMassUndelete].
+     */
+    protected open fun supportsMassDeletion(): Boolean = false
+
+    /**
+     * Soft-deletes the selected entries as one action - the entry level counterpart of [update], which
+     * only changes fields.
+     *
+     * Not routed through the field parameters (the "nothing to do" guard is about them, and there is no
+     * field here): it runs the same [MassUpdateContext] loop and writes the same Excel protocol as
+     * [update], but calls [BaseDao.markAsDeleted] instead of `update`. The result's [MassUpdateResult.changedFields]
+     * and the protocol name the *action* ("Deleted"), so both say what was done, not only how many.
+     */
+    @PostMapping("deleteSelected")
+    fun deleteSelected(request: HttpServletRequest): ResponseEntity<*> {
+        return massDeletion(request, delete = true)
+    }
+
+    /**
+     * Restores (undeletes) the selected, already soft-deleted entries - the counterpart of [deleteSelected].
+     * The user reaches the deleted rows by filtering the list on `deleted`, then picks them here.
+     */
+    @PostMapping("undeleteSelected")
+    fun undeleteSelected(request: HttpServletRequest): ResponseEntity<*> {
+        return massDeletion(request, delete = false)
+    }
+
+    /**
+     * The shared body of [deleteSelected]/[undeleteSelected]: the same selection, size and result handling
+     * as [update], but the run is a delete/restore rather than a field change.
+     */
+    private fun massDeletion(request: HttpServletRequest, delete: Boolean): ResponseEntity<*> {
+        if (!supportsMassDeletion()) {
+            return showValidationErrors(ValidationError(translate("massUpdate.error.deletionNotSupported")))
+        }
+        val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java)
+        if (selectedIds.isNullOrEmpty()) {
+            return showNoEntriesValidationError()
+        }
+        if (selectedIds.size > BaseDao.MAX_MASS_UPDATE) {
+            return showValidationErrors(
+                ValidationError(translateMsg(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, BaseDao.MAX_MASS_UPDATE))
+            )
+        }
+        // A synthetic "deleted" field so the run is tracked as a modification: this makes the result
+        // counters, the changed-fields line and the Excel protocol all name the delete/restore as the
+        // action taken (its displayName is the action's i18n key, translated by changedFieldsOf).
+        val actionKey = if (delete) "massUpdate.action.deleted" else "massUpdate.action.restored"
+        val param = MassUpdateParameter(name = "deleted", displayName = actionKey).apply { booleanValue = delete }
+        val massUpdateContext = object : MassUpdateContext<T>(mutableMapOf("deleted" to param)) {
+            override fun getId(obj: T): Long {
+                return this@AbstractMassUpdateRest.getId(obj)
+            }
+        }
+        val logViewerUrl = ensureLogViewerUrl()
+        if (delete) {
+            proceedMassDelete(request, selectedIds, massUpdateContext)
+        } else {
+            proceedMassUndelete(request, selectedIds, massUpdateContext)
+        }
+        if (massUpdateContext.nothingDone) {
+            return showNoEntriesValidationError()
+        }
+        val changedFields = changedFieldsOf(massUpdateContext)
+        storeProtocol(request, massUpdateContext, changedFields)
+        return ResponseEntity.ok(
+            MassUpdateResult(
+                modifiedCounter = massUpdateContext.modifiedCounter,
+                unmodifiedCounter = massUpdateContext.unmodifiedCounter,
+                errorCounter = massUpdateContext.errorCounter,
+                resultMessage = massUpdateContext.resultMessage,
+                errors = massUpdateContext.errorMessages.map { MassUpdateError(it.identifier, it.message) },
+                downloadUrl = "${getRestPath()}/download",
+                changedFields = changedFields,
+                logViewerUrl = logViewerUrl,
+            )
+        )
+    }
+
+    /**
+     * Soft-deletes the selected entries. Default over [pagesRest]'s [BaseDao.markAsDeleted]; a page
+     * overrides it when the ids need resolving first (e.g. the liquidity plugin materializes its virtual
+     * series rows). Access is checked per entry, so a missing right becomes a per-entry error in the
+     * result rather than a failed run.
+     */
+    protected open fun proceedMassDelete(
+        request: HttpServletRequest,
+        selectedIds: Collection<Serializable>,
+        massUpdateContext: MassUpdateContext<T>,
+    ) {
+        runMassDeletion(selectedIds, massUpdateContext, delete = true)
+    }
+
+    /**
+     * Restores the selected entries. Default over [pagesRest]'s [BaseDao.undelete]; overridable like
+     * [proceedMassDelete].
+     */
+    protected open fun proceedMassUndelete(
+        request: HttpServletRequest,
+        selectedIds: Collection<Serializable>,
+        massUpdateContext: MassUpdateContext<T>,
+    ) {
+        runMassDeletion(selectedIds, massUpdateContext, delete = false)
+    }
+
+    /**
+     * The generic delete/restore loop over [pagesRest]'s [BaseDao]. The cast is unchecked because `T` is
+     * unbounded here, but `BaseDao`'s type parameter is bounded to [ExtendedBaseDO], so every entry has a
+     * `deleted` flag and can be marked/undeleted.
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun runMassDeletion(
+        selectedIds: Collection<Serializable>,
+        massUpdateContext: MassUpdateContext<T>,
+        delete: Boolean,
+    ) {
+        val dao = pagesRest.baseDao as BaseDao<ExtendedBaseDO<Long>>
+        val entries = dao.select(selectedIds) ?: return
+        entries.forEach { entry ->
+            val obj = entry as T
+            massUpdateContext.startUpdate(obj)
+            // Pre-set the flag so the modification snapshot (read before the persist lambda runs) already
+            // reflects the action; markAsDeleted/undelete set it again when they persist.
+            entry.deleted = delete
+            massUpdateContext.commitUpdate(
+                identifier4Message = "#${entry.id}",
+                modifiedObj = obj,
+                update = { if (delete) dao.markAsDeleted(entry) else dao.undelete(entry) },
+            )
+        }
+    }
+
+    /**
+     * Answers what an update *would* do, without writing anything - what the confirmation dialog lists
+     * before the user commits.
+     *
+     * Runs the same checks as [update] (nothing selected, too many, two actions on one field), so a
+     * combination the real run would reject stays an HTTP 406 with `validationErrors` here too, in the
+     * dialog rather than after the write. Read only: no [proceedMassUpdate], no protocol, no session
+     * change. See [MassUpdatePreview].
+     */
+    @PostMapping("preview")
+    fun preview(
+        request: HttpServletRequest,
+        @RequestBody params: Map<String, MassUpdateParameter>,
+    ): ResponseEntity<*> {
+        val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java)
+        val massUpdateContext = object : MassUpdateContext<T>(params.toMutableMap()) {
+            override fun getId(obj: T): Long {
+                return this@AbstractMassUpdateRest.getId(obj)
+            }
+        }
+        handleClientMassUpdateCall(request, massUpdateContext)
+        val massUpdateData = massUpdateContext.massUpdateParams
+        if (selectedIds.isNullOrEmpty()) {
+            return showNoEntriesValidationError()
+        }
+        if (selectedIds.size > BaseDao.MAX_MASS_UPDATE) {
+            return showValidationErrors(
+                ValidationError(translateMsg(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, BaseDao.MAX_MASS_UPDATE))
+            )
+        }
+        val validationErrors = mutableListOf<ValidationError>()
+        val activeParams = massUpdateData.filter { checkParamHasAction(massUpdateData, it.value, it.key, validationErrors) }
+        if (validationErrors.isNotEmpty()) {
+            return showValidationErrors(*validationErrors.toTypedArray())
+        }
+        if (activeParams.isEmpty()) {
+            return showNothingToDoValidationError()
+        }
+        val lc = layoutContext ?: LayoutContext(pagesRest.baseDao.doClass)
+        val declarations = fieldDeclarations()
+        val metaByField = declarations.associate { it.field to resolveFieldMeta(lc, it) }
+        val order = declarations.withIndex().associate { (i, d) -> d.field to i }
+        // In the order the fields are declared (the order the form shows them), not the order the client
+        // happened to post the map in. A field the page does not declare (a helper param a subclass adds,
+        // e. g. the invoice's `zahlBetrag`) has no meta and is appended after the declared ones.
+        val changes = activeParams.entries
+            .sortedBy { order[it.key] ?: Int.MAX_VALUE }
+            .map { (field, param) -> previewChangeOf(field, param, metaByField[field]) }
+        return ResponseEntity.ok(MassUpdatePreview(selectedCount = selectedIds.size, changes = changes))
+    }
+
+    /**
+     * Stores the ticked subset of the registered ids and answers how many those are: the selection is session
+     * state, and [requestMeta] reads it from there.
+     */
+    @PostMapping("select")
+    fun select(request: HttpServletRequest, @RequestBody selection: MultiSelection?): MultiSelectNavigation {
+        MultiSelectionSupport.registerSelectedEntityIds(request, pagesRest::class.java, selection?.selectedIds)
+        return MultiSelectNavigation(
+            selectedCount = selection?.selectedIds?.size ?: 0,
+            // So the list can render the statistics live while the user selects - the same values the mass
+            // update page's `meta` serves, computed here over the ids just registered (null where the page
+            // has no statistics, see getStatisticsData).
+            statisticsData = getStatisticsData(selection?.selectedIds),
+        )
+    }
+
+    /**
+     * Drops the selection and answers where the user came from.
+     */
+    // State changing: POST only.
+    @PostMapping("cancel")
+    fun cancel(request: HttpServletRequest): MultiSelectNavigation {
+        return MultiSelectNavigation(url = MultiSelectionSupport.clear(request, pagesRest) ?: listPageUrl)
+    }
+
+    /**
+     * The fields the update acted on, translated - what the Excel protocol is described by.
+     *
+     * Only the ones with exactly one action: a field the user filled but combined with a second action is
+     * an error the run never got past (see [checkParamHasAction]).
+     */
+    private fun changedFieldsOf(massUpdateContext: MassUpdateContext<T>): List<String> {
+        val params = massUpdateContext.massUpdateParams
+        return params.filter { checkParamHasAction(params, it.value, it.key) }
+            .map { (field, param) ->
+                // A displayName (an i18n key) set by the page wins. The client's params carry none - falling
+                // back to the field's own translation keeps the changed fields from rendering as "???" (see
+                // [getFieldTranslation]).
+                param.displayName?.takeIf { it.isNotBlank() }?.let { translate(it) } ?: getFieldTranslation(field)
+            }
+    }
+
+    /**
+     * Describes what one field's parameter would do, for the confirmation dialog (see [preview]).
+     *
+     * The action is read from the same flags [MassUpdateParameter] uses, in the order the run applies
+     * them; the value is formatted the way the field's type is shown (an enum's label, a localized date
+     * or amount) so the dialog reads what the user picked, not the raw id or ISO string that was posted.
+     */
+    private fun previewChangeOf(
+        field: String,
+        param: MassUpdateParameter,
+        meta: MassUpdateFieldMeta?,
+    ): MassUpdatePreviewChange {
+        val label = meta?.label?.takeIf { it.isNotBlank() }
+            ?: param.displayName?.takeIf { it.isNotBlank() }?.let { translate(it) }
+            ?: getFieldTranslation(field)
+        val value = formatPreviewValue(param, meta)
+        val action = when {
+            param.delete == true && !param.textValue.isNullOrBlank() -> MassUpdateAction.DELETE_OCCURRENCES
+            param.delete == true -> MassUpdateAction.DELETE
+            !param.replaceText.isNullOrEmpty() -> MassUpdateAction.REPLACE
+            param.append == true -> MassUpdateAction.APPEND
+            else -> MassUpdateAction.SET
+        }
+        val description = describePreviewChange(field, param, label, value)
+        return when (action) {
+            MassUpdateAction.DELETE -> MassUpdatePreviewChange(field, label, action, description = description)
+            MassUpdateAction.REPLACE -> MassUpdatePreviewChange(
+                field, label, action, value = value, replaceValue = param.replaceText, description = description,
+            )
+            else -> MassUpdatePreviewChange(field, label, action, value = value, description = description)
+        }
+    }
+
+    /**
+     * The confirmation sentence of a field whose change doesn't read as the generic text of its action
+     * ([MassUpdatePreviewChange.description]), or null for the generic one. Open for a custom field.
+     *
+     * @param label The field's translated label.
+     * @param value The value as [formatPreviewValue] formats it.
+     */
+    protected open fun describePreviewChange(
+        field: String,
+        param: MassUpdateParameter,
+        label: String,
+        value: String?,
+    ): String? = null
+
+    /**
+     * The value of a parameter as it is shown, not as it is posted: an enum's [UISelectValue.displayName]
+     * rather than its id, a date and an amount in the user's locale. Null when the field carries no value
+     * (a plain delete). Open for a custom field whose posted value is no single option (a list of ids).
+     */
+    protected open fun formatPreviewValue(param: MassUpdateParameter, meta: MassUpdateFieldMeta?): String? {
+        meta?.values?.let { values ->
+            val id = param.textValue
+            return values.firstOrNull { it.id == id }?.displayName ?: id
+        }
+        return when (meta?.valueProperty) {
+            "localDateValue" -> param.localDateValue?.let { PFDay.from(it).format() }
+            "timestampValue" -> param.timestampValue?.let { PFDateTime.from(it).format() }
+            "decimalValue" -> param.decimalValue?.let { NumberFormatter.format(it) }
+            "longValue" -> param.longValue?.toString()
+            "timeValue" -> param.timeValue?.toString()
+            "booleanValue" -> param.booleanValue?.let { translate(if (it) "yes" else "no") }
+            "id" -> param.id?.let { id ->
+                when (meta.dataType) {
+                    UIDataType.USER -> userService.find(id, false)?.displayName
+                    UIDataType.GROUP -> groupService.getGroup(id)?.displayName
+                    UIDataType.TASK -> TaskTree.instance.getTaskById(id)?.title
+                    else -> null
+                } ?: "#$id"
+            }
+            else -> param.textValue
+        }
+    }
+
+    /**
+     * Writes the Excel protocol of a run into the download slot and into the user's data transfer box -
+     * what the run is documented by, no matter which of the two endpoints triggered it.
+     */
+    private fun storeProtocol(
+        request: HttpServletRequest,
+        massUpdateContext: MassUpdateContext<T>,
+        changedFields: List<String>,
+    ) {
+        val excel = MultiSelectionExcelExport.export(massUpdateContext, this)
+        // The entity name tells the protocols of different entities apart in the data transfer box.
+        val entityName = translate("${pagesRest.i18nKeyPrefix}.heading")
+        val filename = ReplaceUtils.encodeFilename(
+            "${translate(getTitleKey())}_${entityName}_${PFDateTime.now().format4Filenames()}.xlsx",
+            true,
+        )
+        downloadFileSupport.storeDownloadFile(request, filename, excel)
+        val message = StringBuilder()
+        message.appendLine(massUpdateContext.resultMessage)
+        message.append(translate("massUpdate.fields.changed")).append(": ")
+        message.append(changedFields.joinToString())
+        dataTransferBridge.putFileInUsersInBox(filename, excel, description = message.toString())
+    }
+
+    /**
+     * The fields this page may update, in the order they are shown - the single source of the field set.
+     */
+    protected open fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
+        return emptyList()
+    }
+
+    /**
+     * Message key of the note above the fields, as markdown.
+     */
+    protected open fun infoMessageKey(): String? {
+        return null
+    }
+
+    /**
+     * What the selected entries add up to, as values - for a client that renders its own statistics line
+     * (only values can be formatted in the user's locale and currency). Null at default.
+     *
+     * Typed as [Any] because the shape is the entity's own (`InvoiceStatistics` for the invoice) and this
+     * class has nothing in common to say about it; the page that declares the field set also knows what
+     * its statistics look like (see `PageDef.massUpdate`).
+     */
+    protected open fun getStatisticsData(selectedIds: Collection<Serializable>?): Any? {
+        return null
+    }
+
+    /**
+     * Resolves what a declaration leaves out from the entity itself (the element the layout context builds for
+     * the field).
+     *
+     * The value property in particular must not be derived by the client: which property of a
+     * [MassUpdateParameter] a value goes into is this class's mapping (see [valuePropertyOf]), and a
+     * second copy of it in the frontend would silently drop values the day a type is added.
+     */
+    private fun resolveFieldMeta(lc: LayoutContext, declaration: MassUpdateFieldDeclaration): MassUpdateFieldMeta {
+        val field = declaration.field
+        if (declaration.custom) {
+            // No entity property behind it (the task/cost-unit picker): the registry has nothing to resolve,
+            // so only name, label and the page's own options (the project's cost 2 types) travel and the client
+            // renders its own control at this position.
+            return MassUpdateFieldMeta(
+                field = field,
+                valueProperty = "",
+                label = getFieldTranslation(field),
+                dataType = null,
+                values = declaration.values,
+                custom = true,
+            )
+        }
+        val el = LayoutUtils.buildLabelInputElement(lc, field, declaration.minLengthOfTextArea)
+        val elementInfo = ElementsRegistry.getElementInfo(lc, field)
+        val dataType = (el as? UIInput)?.dataType
+        // A select of runtime values (a campaign's values, the time sheet's tags) is a choice, not a text: it is
+        // set or deleted, never appended to or searched and replaced in, whatever element the entity property has.
+        val isString = declaration.values == null &&
+            (el is UITextArea || (el is UIInput && el.dataType == UIDataType.STRING))
+        @Suppress("UNCHECKED_CAST")
+        // Values a page supplies at runtime (the tag list) win over the element: the entity knows "tag"
+        // as a plain string, so the element is a text input, but the field is meant to be a select of
+        // those values - posted as `textValue`, exactly as a select's value goes (see [valuePropertyOf]).
+        val values = declaration.values ?: (el as? UISelect<String>)?.values
+        return MassUpdateFieldMeta(
+            field = field,
+            valueProperty = if (declaration.values != null) "textValue" else valuePropertyOf(el, dataType),
+            // Translated here: `LayoutUtils.setLabels` puts the *key* into `element.label`.
+            label = ((el as? UILabelledElement)?.label ?: elementInfo?.i18nKey)?.let { translate(it) },
+            dataType = dataType ?: if (el is UISelect<*>) UIDataType.STRING else null,
+            maxLength = elementInfo?.maxLength,
+            rows = (el as? UITextArea)?.rows,
+            values = values,
+            // A field the entity requires cannot be emptied.
+            deleteOption = declaration.showDeleteOption ?: (elementInfo?.required != true),
+            replaceOption = declaration.showReplaceOption != false && isString,
+            // A text area offers appending; so does any field a page explicitly presets it for
+            // (`showAppendOption`), even where the entity lost its length and the element fell back to a
+            // single line input (e. g. `bemerkung`, mapped on a superclass) - otherwise the preset would
+            // arm an action the form never offers.
+            appendOption = isString && (el is UITextArea || declaration.showAppendOption == true),
+            appendPreset = declaration.showAppendOption == true,
+        )
+    }
+
+    /**
+     * Which property of the [MassUpdateParameter] a value goes into - the same mapping
+     * [createInputFieldRow] applies to the element's id, and the reason it is answered rather than
+     * derived by the client.
+     */
+    private fun valuePropertyOf(el: UIElement, dataType: UIDataType?): String {
+        if (el !is UIInput) {
+            // A select posts its value as text; an entity picker (task, user) posts an id.
+            return "textValue"
+        }
+        return when (dataType) {
+            UIDataType.DATE -> "localDateValue"
+            UIDataType.AMOUNT, UIDataType.DECIMAL -> "decimalValue"
+            // `longValue`, although [createInputFieldRow] says `intValue` for the same type: that is the
+            // property [MassUpdateParameter] actually has, and the name in the deprecated path reaches
+            // nothing. Not corrected there - the legacy frontend is the only caller and no page of it has
+            // an integer field, so changing its element ids would be a risk with no gain.
+            UIDataType.INT -> "longValue"
+            UIDataType.KONTO, UIDataType.USER, UIDataType.TASK, UIDataType.GROUP, UIDataType.EMPLOYEE -> "id"
+            UIDataType.BOOLEAN -> "booleanValue"
+            UIDataType.TIMESTAMP -> "timestampValue"
+            UIDataType.TIME -> "timeValue"
+            else -> "textValue"
+        }
+    }
+
+    @GetMapping("download")
+    fun download(request: HttpServletRequest): ResponseEntity<*> {
+        val downloadFile = downloadFileSupport.getDownloadFile(request)
+            ?: return RestUtils.badRequest(translate("download.expired"))
+        log.info { "Downloading '${downloadFile.filename}' of size ${downloadFile.sizeHumanReadable}." }
+        return RestUtils.downloadFile(downloadFile.filename, downloadFile.bytes)
+    }
+
+    /**
+     * Used by [org.projectforge.rest.TimesheetMassUpdateRest] for fixing kost2 issues. Does nothing at default.
+     */
+    protected open fun handleClientMassUpdateCall(
+        request: HttpServletRequest,
+        massUpdateContext: MassUpdateContext<T>
+    ) {
+    }
+
+    /**
+     * First excel columns for identification. Default is "Element|30", means db id of column width 11 and
+     * identifier of length 30. Must match [getExcelIdentifierCells].
+     */
+    open fun customizeExcelIdentifierHeadCells(): Array<String> {
+        return arrayOf("Element|30")
+    }
+
+    /**
+     * First excel columns for identification. Default is id and identifier. Must match [customizeExcelIdentifierHeadCells].
+     */
+    open fun getExcelIdentifierCells(massUpdateObject: MassUpdateObject<T>): List<Any?> {
+        return mutableListOf(massUpdateObject.identifier)
+    }
+
+    open fun handleValue(
+        cell: ExcelCell,
+        field: String,
+        value: Any?,
+    ): Boolean {
+        return false
+    }
+
+    /**
+     * @param cellValue may differ from value (e. g. this is the displayValue).
+     * @return true, if the cell style was set or false, if nothing was done and the cell style could be set by [MultiSelectionExcelExport].
+     */
+    open fun handleCellStyle(cell: ExcelCell, field: String, value: Any?, cellValue: Any?): Boolean {
+        return false
+    }
+
+    /**
+     * Field translation is used by Excel export. Returns translation of field from LayoutContext, if available in this
+     * class, or capitalized field name itself at default.
+     * You may use [getFieldTranslation] with param [LayoutContext] for auto translation of known fields in your derived fun.
+     */
+    open fun getFieldTranslation(field: String): String {
+        ElementsRegistry.getElementInfo(layoutContext, field)?.i18nKey?.let {
+            return translate(it)
+        }
+        return field.capitalize()
+    }
+
+    fun massUpdate(
+        request: HttpServletRequest,
+        selectedIds: Collection<Serializable>?,
+        massUpdateContext: MassUpdateContext<T>
+    ): ResponseEntity<*>? {
+        if (selectedIds.isNullOrEmpty()) {
+            return showNoEntriesValidationError()
+        }
+        if (selectedIds.size > BaseDao.MAX_MASS_UPDATE) {
+            return showValidationErrors(
+                ValidationError(
+                    translateMsg(
+                        BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N,
+                        BaseDao.MAX_MASS_UPDATE
+                    )
+                )
+            )
+        }
+        val massUpdateData = massUpdateContext.massUpdateParams
+        var nothingToDo = true
+        val validationErrors = mutableListOf<ValidationError>()
+        massUpdateData.forEach { (field, param) ->
+            if (checkParamHasAction(massUpdateData, param, field, validationErrors)) {
+                nothingToDo = false
+            }
+        }
+        if (!validationErrors.isEmpty()) {
+            return showValidationErrors(*validationErrors.toTypedArray())
+        }
+        if (nothingToDo) {
+            return showNothingToDoValidationError()
+        }
+
+        proceedMassUpdate(request, selectedIds, massUpdateContext)?.let { responseEntity ->
+            return responseEntity
+        }
+        if (massUpdateContext.nothingDone) {
+            return showNoEntriesValidationError()
+        }
+        return null
+    }
+
+    protected fun checkParamHasAction(
+        params: Map<String, MassUpdateParameter>,
+        param: MassUpdateParameter,
+        field: String,
+        validationErrors: MutableList<ValidationError>
+    ): Boolean {
+        param.error?.let { message ->
+            validationErrors.add(ValidationError(translate(message), "$field.textValue"))
+            validationErrors.add(ValidationError("${translate(message)}: $field"))
+            return false
+        }
+        return checkParamHasAction(params, param, field)
+    }
+
+    /**
+     * @params Supply all params for complexer checks (e.g. taskAndKost2 has to look at parameter task and kost2).
+     */
+    protected open fun checkParamHasAction(
+        params: Map<String, MassUpdateParameter>,
+        param: MassUpdateParameter,
+        field: String,
+    ): Boolean {
+        return param.hasAction
+    }
+
+    /**
+     * @return null to handle ResponseEntity result by this class. If ResponseEntity is returned, it will be used.
+     */
+    protected abstract fun proceedMassUpdate(
+        request: HttpServletRequest,
+        selectedIds: Collection<Serializable>,
+        massUpdateContext: MassUpdateContext<T>,
+    ): ResponseEntity<*>?
+
+    /**
+     * Calls #proceedMassUpdateUserField
+     * @param params The param is get by property name of this given map.
+     */
+    protected fun proceedMassUpdateUserField(
+        params: Map<String, MassUpdateParameter>,
+        property: KMutableProperty<PFUserDO?>,
+        obj: Any,
+    ) {
+        proceedMassUpdateUserField(params[property.name], property, obj)
+    }
+
+    protected fun proceedMassUpdateUserField(
+        param: MassUpdateParameter?,
+        property: KMutableProperty<PFUserDO?>,
+        obj: Any,
+    ) {
+        param ?: return
+        if (param.delete == true) {
+            param.id.let { userId ->
+                if (userId == null || property.getter.call(obj)?.id == userId) {
+                    property.setter.call(obj, null)
+                }
+            }
+        } else {
+            param.id?.let { userId ->
+                property.setter.call(obj, userService.find(userId, false))
+            }
+        }
+    }
+
+    protected fun showNoEntriesValidationError(): ResponseEntity<ResponseAction> {
+        return showValidationErrors(ValidationError(translate("massUpdate.error.noEntriesSelected")))
+    }
+
+    protected fun showNothingToDoValidationError(): ResponseEntity<ResponseAction> {
+        return showValidationErrors(ValidationError(translate("massUpdate.error.nothingToDo")))
+    }
+
+    companion object {
+        const val URL_SUFFIX_SELECTED = "Selected"
+
+        fun processTextParameter(
+            data: Any,
+            property: String,
+            params: Map<String, MassUpdateParameter>,
+        ) {
+            TextFieldModification.processTextParameter(data, property, params)
+        }
+    }
+}

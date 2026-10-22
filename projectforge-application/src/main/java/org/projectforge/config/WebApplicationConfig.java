@@ -47,7 +47,6 @@ public class WebApplicationConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addViewController("/" + Constants.REACT_APP_PATH + "**").setViewName("forward:/react-app.html");
         // Root of the Next.js app: an empty resource path isn't resolved by the resource handler below, so map the
         // bare base path explicitly. These patterns match exactly and therefore don't interfere with asset requests.
         registry.addViewController("/" + Constants.NEXT).setViewName("redirect:/" + Constants.NEXT_APP_PATH);
@@ -55,10 +54,9 @@ public class WebApplicationConfig implements WebMvcConfigurer {
     }
 
     /**
-     * projectforge-next (Next.js static export) is served side-by-side with the legacy React app during the migration.
+     * projectforge-next (Next.js static export) is the web frontend.
      * <p>
-     * Unlike the legacy React app (whose assets live at the root, so a plain view-controller forward suffices), the
-     * Next.js export places its assets under the base path ({@code /next/_next/**}). A naive forward of {@code /next/**}
+     * The Next.js export places its assets under the base path ({@code /next/_next/**}). A naive forward of {@code /next/**}
      * to the SPA shell would therefore swallow asset requests. This resource handler instead serves real files first
      * (assets, per-route {@code index.html}) and only then falls back to the shell of the matching dynamic route for
      * deep links such as {@code /next/book/5}. Missing assets still yield a real 404.

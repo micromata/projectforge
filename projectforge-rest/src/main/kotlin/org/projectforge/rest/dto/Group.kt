@@ -63,7 +63,7 @@ class Group(
      * only, while every user may *read* a group (for checking who is a member of what).
      *
      * So this is the entity where the two differ most, and the hand built next page needs the answer:
-     * the server side layouts of the legacy frontends got it as `UILayout.UserAccess`,
+     * the server side layouts of the legacy frontends got it as `UserAccess`,
      * a form without a layout takes it from here — filled
      * by [org.projectforge.rest.core.AbstractEntityRest.getById] from the same DAO calls.
      */

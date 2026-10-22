@@ -62,11 +62,11 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
             // A new poll belongs to the user creating it (an id is an undelete, decided by the stored poll).
             operationType == OperationType.INSERT && obj.id == null -> obj.owner?.id == userId
             // Decided by the stored poll, never by the posted one: otherwise anybody could add themselves to the
-            // users with full access. A finished poll isn't changed anymore (but deleted).
+            // users with full access. A finished poll isn't changed anymore (but deleted), a template is.
             else -> {
                 val dbObj = oldObj ?: obj.id?.let { find(it, checkAccess = false) }
                 dbObj != null && hasFullAccess(dbObj, userId)
-                        && (operationType != OperationType.UPDATE || dbObj.state == PollDO.State.RUNNING)
+                        && (operationType != OperationType.UPDATE || dbObj.state != PollDO.State.FINISHED)
             }
         }
         if (!result && throwException) {

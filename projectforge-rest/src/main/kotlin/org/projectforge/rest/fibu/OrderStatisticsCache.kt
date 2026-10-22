@@ -64,7 +64,7 @@ class OrderStatisticsCache {
   /** The current time in millis, replaceable by tests. */
   internal var clock: () -> Long = System::currentTimeMillis
 
-  enum class Kind { FORECAST, CONTRIBUTION_MARGIN, CONTRIBUTION_MARGIN_OTHERS }
+  enum class Kind { FORECAST, CONTRIBUTION_MARGIN, CONTRIBUTION_MARGIN_OTHERS, CONTRIBUTION_MARGIN_BY_ORDER, CONTRIBUTION_MARGIN_BY_TASK }
 
   data class Key(
     val userId: Long?,

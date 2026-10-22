@@ -167,7 +167,7 @@ export function MassUpdateForm({
   });
 
   // Delete and restore act on whole entries, not fields, so they skip the preview/"nothing to do" path
-  // and post straight to their own endpoints after a confirmation (see AbstractMultiSelectedPage).
+  // and post straight to their own endpoints after a confirmation (see AbstractMassUpdateRest).
   const deleteRun = useMutation({
     mutationFn: () => deleteSelected(endpoint),
     onSuccess: applyOutcome,

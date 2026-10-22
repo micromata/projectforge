@@ -31,7 +31,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The customer groups and business units, stored as JSON in the configuration parameter
  * [org.projectforge.framework.configuration.ConfigurationParam.CUSTOMER_GROUPS] and maintained by finance and
- * controlling on a page of their own (`CustomerGroupPageRest`).
+ * controlling on a page of their own (`CustomerGroupRest`).
  *
  * A group combines customers that belong together (ACME Germany, ACME Logistics, ACME Holding -> ACME); a
  * business unit combines groups and single customers. Each customer belongs to at most one group, each group

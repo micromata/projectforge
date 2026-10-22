@@ -2,7 +2,7 @@
  * Puts the server's validation errors onto the fields of a `@tanstack/react-form` form.
  *
  * The server is the authority on validation (see MIGRATION.md): a hand built form's Zod schema only
- * anticipates the rules for faster feedback, while `AbstractPagesRest` answers HTTP 406 with
+ * anticipates the rules for faster feedback, while `AbstractEntityRest` answers HTTP 406 with
  * `validationErrors` whenever it disagrees — including rules the client cannot know at all, such as
  * "signature already exists". Without this the stricter server rule stays invisible: the save fails
  * and the form looks fine.

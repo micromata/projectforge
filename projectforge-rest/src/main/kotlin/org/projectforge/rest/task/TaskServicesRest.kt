@@ -1044,8 +1044,7 @@ class TaskServicesRest {
      * Resets the AG Grid state to defaults and returns fresh column definitions for task tree.
      */
     @AccessChecked("Own user only (logged-in user's data/prefs)")
-    // State changing: POST. GET only for the legacy React app, drop it together with the app.
-    @RequestMapping("tree/resetGridState", method = [RequestMethod.POST, RequestMethod.GET])
+    @PostMapping("tree/resetGridState")
     fun resetGridState(@RequestParam("select") select: Boolean?): ResponseAction {
         val selectMode = select == true
         agGridSupport.resetGridState(gridCategory(selectMode))

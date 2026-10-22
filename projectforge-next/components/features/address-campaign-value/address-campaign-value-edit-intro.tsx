@@ -62,7 +62,7 @@ export function AddressCampaignValueEditIntro() {
 /**
  * The comparison campaign's value and comment of the address. "Adopt" takes the value (if this campaign
  * offers it) and appends the comment on a new line to the form's own — the same rule as the mass update
- * (`AddressCampaignValueMultiSelectedPageRest.appendComment`).
+ * (`AddressCampaignValueMassUpdateRest.appendComment`).
  */
 function ComparisonLine({ data }: { data: AddressCampaignValueDetail }) {
   const t = useTranslations();

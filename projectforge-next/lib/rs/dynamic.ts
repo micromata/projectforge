@@ -17,13 +17,13 @@ import type {
   ValidationError,
 } from "./types";
 
-/** HTTP status Spring answers with when the entity failed validation (see AbstractPagesRest). */
+/** HTTP status Spring answers with when the entity failed validation (see AbstractEntityRest). */
 export const NOT_ACCEPTABLE = 406;
 
 type DynamicMethod = "GET" | "POST" | "PUT" | "DELETE";
 
 export type ActionResult =
-  /** The backend answered with a ResponseAction (possibly inside a FormLayoutData envelope). */
+  /** The backend answered with a ResponseAction. */
   | { kind: "action"; response: ResponseAction }
   /** HTTP 406: the entity was rejected, the errors belong on the fields. */
   | { kind: "validationErrors"; validationErrors: ValidationError[] }

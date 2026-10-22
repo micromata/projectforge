@@ -25,12 +25,11 @@ package org.projectforge
 
 /**
  * Single source of truth for the per-page frontend choice during the migration of the web frontend
- * from the legacy React app (`projectforge-webapp`, served under [Constants.REACT_APP_PATH]) to
+ * from the legacy React app (`projectforge-webapp`, served under [Constants.REACT_APP_PATH], removed) to
  * projectforge-next (served under [Constants.NEXT_APP_PATH]).
  *
- * Both frontends render the same server side generated `UILayout`, so a page can be switched
- * independently of all others. Switching one page means adding a single entry to [MIGRATED];
- * rolling it back means removing that entry again.
+ * Every page was switched on its own by adding a single entry to [MIGRATED]. The entries stay: they
+ * hold the routes of the next pages and the redirects of old links (see [NextPage.legacyApp]).
  *
  * Why this has to be the only place deciding: the frontend url of a page is generated in two
  * unrelated places - the menu (`MenuItemDefId`) and every `ResponseAction(url = ...)` redirect
@@ -814,38 +813,6 @@ object NextMigration {
         }
         val route = page?.newEntryRoute ?: "$category/edit"
         return "${appPath(category)}$route"
-    }
-
-    /**
-     * The generic React url of the edit page, for a list request that came from the legacy React app
-     * itself (see `AbstractPagesRest.getEditPage`).
-     *
-     * Not [legacyEditPage]: that one names the page the *way back* leads to, which may be a Wicket
-     * page. Wicket renders its own pages server side and never asks this REST for a layout, so the
-     * only non-next caller is the React app - and a user clicking a row there stays there.
-     *
-     * @return e.g. `react/book/edit/:id` or `react/cost1/edit/:id`.
-     */
-    fun reactEditPage(category: String): String {
-        return "${Constants.REACT_APP_PATH}${LegacyApp.REACT.editRoute(category)}"
-    }
-
-    /**
-     * The generic React url for adding an entry, for a request from the React app itself.
-     *
-     * @return e.g. `react/book/edit`.
-     */
-    fun reactNewEntryUrl(category: String): String {
-        return "${Constants.REACT_APP_PATH}${LegacyApp.REACT.newEntryRoute(category)}"
-    }
-
-    /**
-     * The generic React url of the list page, for a request from the React app itself.
-     *
-     * @return e.g. `react/book`.
-     */
-    fun reactListUrl(category: String): String {
-        return "${Constants.REACT_APP_PATH}${LegacyApp.REACT.listRoute(category)}"
     }
 
     /**

@@ -141,12 +141,15 @@ class My2FAHttpService {
       log.error(ex) { "Can't send the OTP mail to '${mail.to}': ${ex.message}" }
       false
     }
+    val successMessage = translateMsg("user.My2FACode.sendCode.mail.sentSuccessfully", PFDateTime.now().format())
     if (response) {
       ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_MAIL_OTP, code, TTL_MINUTES)
-      return Result(
-        true,
-        translateMsg("user.My2FACode.sendCode.mail.sentSuccessfully", PFDateTime.now().format())
-      )
+      return Result(true, successMessage)
+    }
+    if (SystemStatus.isDevelopmentMode()) {
+      // Like for text messages: without a mail server the code logged above has to be usable in a test system.
+      ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_MAIL_OTP, code, TTL_MINUTES)
+      return Result(true, "Test system: $successMessage")
     }
     return Result(false, translate("mail.error.exception"))
   }

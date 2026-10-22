@@ -38,8 +38,8 @@ private val log = KotlinLogging.logger {}
 /*
  * Redirect orphaned links from former versions of ProjectForge (e. g. if link in e-mails were changed due to migrations or refactoring.
  * Only links that left ProjectForge (sent by mail or shared by a data transfer area) get a redirect of their own, and the
- * former start pages (login, calendar), which browsers offer and users keep; any other old Wicket link lands on the next
- * start page (catch-all), an old React link isn't redirected.
+ * former start pages (login, calendar), which browsers offer and users keep; any other old Wicket or React link lands on
+ * the next start page (catch-all), as neither frontend exists any more.
  */
 class OrphanedLinkFilter : Filter {
     /**
@@ -112,8 +112,8 @@ class OrphanedLinkFilter : Filter {
             // address, no and cp.
             val query = wicketQuery(servletRequest, mapOf("address" to "addressId", "no" to "number", "cp" to "callerPage"))
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}phoneCall$query")
-        } else if (uri.endsWith("/wa") || uri.contains("/wa/")) {
-            // Catch-all: no request reaches Wicket any more. Every old link not mapped above (and any Wicket
+        } else if (uri.endsWith("/wa") || uri.contains("/wa/") || uri.endsWith("/react") || uri.contains("/react/")) {
+            // Catch-all: the Wicket and the React app are gone. Every old link not mapped above (and any Wicket
             // internal url, e.g. wa/wicket/page?3) lands on the next start page instead of an error page.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}")
         } else {
@@ -223,10 +223,8 @@ class OrphanedLinkFilter : Filter {
      * Bends a bookmarked or emailed link to a legacy list/edit/add page that has moved to
      * projectforge-next onto its new url (see [NextMigration.orphanedLinks]).
      *
-     * The escape hatch - the "way back" link projectforge-next shows on a page migrated from React - points
-     * at the very same legacy urls, so it carries [NextMigration.ESCAPE_HATCH_PARAM] to be let through
-     * instead of being bounced straight back to next. Wicket is no way back any more: a Wicket url is
-     * redirected even with the marker (e.g. a bookmarked escape hatch link).
+     * A bookmarked escape hatch link (the former "way back" link, marked with [NextMigration.ESCAPE_HATCH_PARAM])
+     * is redirected as well: neither Wicket nor React is left to go back to.
      *
      * @return true if the request was a migrated legacy link and a redirect was sent.
      */
@@ -235,11 +233,7 @@ class OrphanedLinkFilter : Filter {
         response: ServletResponse,
         uri: String,
     ): Boolean {
-        val escapeHatch = request.getParameter(NextMigration.ESCAPE_HATCH_PARAM) != null
         for (link in NextMigration.orphanedLinks()) {
-            if (escapeHatch && link.legacyApp == NextMigration.LegacyApp.REACT) {
-                continue // The escape hatch: let it reach the legacy React page.
-            }
             // The edit page first: its path (e.g. wa/orderBookEdit) is more specific than the list path,
             // and for the React app the list path is even a prefix of it (react/group vs react/group/edit).
             if (containsPath(uri, link.legacyEditPath)) {

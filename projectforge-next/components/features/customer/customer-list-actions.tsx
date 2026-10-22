@@ -19,7 +19,7 @@ const CUSTOMER_GROUPS_MENU_ID = "CUSTOMER_GROUPS";
  * are grouped.
  *
  * The editor is shown only if the main menu offers it: the menu is the server's answer to who may open
- * it (finance and controlling, see CustomerGroupPageRest), so a link that could only answer 403 is
+ * it (finance and controlling, see CustomerGroupRest), so a link that could only answer 403 is
  * not offered.
  */
 export function CustomerListActions() {

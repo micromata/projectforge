@@ -31,8 +31,10 @@ import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginBubbleGrouping
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginBubbles
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginBreakdown
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginData
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginDetails
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginLevel
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginResult
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginService
 import org.projectforge.business.user.ProjectForgeGroup
@@ -1287,6 +1289,27 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     return contributionMarginResult(magicFilter, startDate).details
   }
 
+  /**
+   * The contribution margin of the same request as [contributionMargin] broken down by orders or tasks
+   * ([ContributionMarginService.calculateBreakdown]), for the same projects. Stores neither filter nor start date.
+   */
+  @AccessChecked("contributionMarginService.checkAccess + allowed projects + DAO select; cache key includes the user")
+  @PostMapping("contributionMargin/breakdown")
+  fun contributionMarginBreakdown(@RequestBody request: ContributionMarginRequest): ContributionMarginBreakdown {
+    contributionMarginService.checkAccess()
+    val startDate = request.startDate ?: PFDay.now().beginOfYear.localDate
+    val magicFilter = OrderStatisticsFilterService.statisticsFilter(request.filter)
+    val level = request.level ?: ContributionMarginLevel.ORDER
+    val kind = when (level) {
+      ContributionMarginLevel.ORDER -> OrderStatisticsCache.Kind.CONTRIBUTION_MARGIN_BY_ORDER
+      ContributionMarginLevel.TASK -> OrderStatisticsCache.Kind.CONTRIBUTION_MARGIN_BY_TASK
+    }
+    return orderStatisticsCache.get(statisticsCacheKey(kind, magicFilter, startDate)) {
+      val orders = forecastOrders(magicFilter, startDate)
+      contributionMarginService.calculateBreakdown(contributionMarginService.allowedProjectIds(orders), startDate, level)
+    }
+  }
+
   /** The contribution margin of the order statistics, cached per user, filter and start date. */
   private fun contributionMarginResult(magicFilter: MagicFilter, startDate: LocalDate): ContributionMarginResult {
     val key = statisticsCacheKey(OrderStatisticsCache.Kind.CONTRIBUTION_MARGIN, magicFilter, startDate)
@@ -1385,6 +1408,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   class ContributionMarginRequest(
     var filter: MagicFilter? = null,
     var startDate: LocalDate? = null,
+    /** The breakdown of [contributionMarginBreakdown], orders by default. */
+    var level: ContributionMarginLevel? = null,
   )
 
   /** Whether the list page offers the contribution margin tab (see [ContributionMarginService.hasAccess]). */

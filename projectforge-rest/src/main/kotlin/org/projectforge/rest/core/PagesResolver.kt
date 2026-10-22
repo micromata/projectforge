@@ -110,30 +110,10 @@ object PagesResolver {
     @JvmStatic
     @JvmOverloads
     fun getMultiSelectionPageUrl(
-        multiSelectedPageClass: Class<out AbstractEntityRest<*, *, *>>,
+        massUpdateRestClass: Class<out AbstractEntityRest<*, *, *>>,
         absolute: Boolean = false
     ): String {
-        return getBasePageUrl(multiSelectedPageClass, null, MultiSelectionSupport.getMultiSelectionParamMap(), absolute)
-    }
-
-    /**
-     * @param trailingSlash Only effect if id is null: return .../dynamic/ (default) or .../dynamic if param is false.
-     * @return Path of react page.
-     */
-    @JvmStatic
-    @JvmOverloads
-    fun getDynamicPageUrl(
-        pageRestClass: Class<*>,
-        params: Map<String, Any?>? = null,
-        id: Any? = null,
-        absolute: Boolean = false,
-        trailingSlash: Boolean = true,
-        returnToCaller: String? = null,
-    ): String {
-        val path = getRequestMappingPath(pageRestClass, "/dynamic") ?: return "NOT_FOUND"
-        val prefix = if (absolute) "/" else ""
-        val idPart = if (id != null) "/$id" else if (trailingSlash) "/" else ""
-        return "$prefix$path$idPart${getQueryString(params, returnToCaller)}"
+        return getBasePageUrl(massUpdateRestClass, null, MultiSelectionSupport.getMultiSelectionParamMap(), absolute)
     }
 
     /**

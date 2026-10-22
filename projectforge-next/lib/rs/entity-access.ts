@@ -1,10 +1,9 @@
 /**
  * What the logged-in user may do with the entity being edited, as its own DTO reports it.
  *
- * Not `UILayout.UserAccess`: that one travels with the *layout*, and `GET /rs/{entity}/{id}` of a hand
- * built page passes none. So the flags are fields of the entity — of every entity whose DTO implements
- * `EntityAccessSupport`, filled once in `AbstractEntityRest.getById` from the same DAO calls that fill
- * the `UserAccess` of the layout driven pages. An entity that doesn't carry them says nothing, which is
+ * Not `UserAccess`: that one travels with `listMeta`, and `GET /rs/{entity}/{id}` passes none. So the
+ * flags are fields of the entity — of every entity whose DTO implements `EntityAccessSupport`, filled
+ * once in `AbstractEntityRest.getById` from the same DAO calls that fill the `UserAccess`. An entity that doesn't carry them says nothing, which is
  * read as "allowed" here, exactly as before these flags existed; a list row carries none either, since
  * only the edit page is asked for.
  *

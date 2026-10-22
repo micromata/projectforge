@@ -30,12 +30,7 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.dto.BaseDTO
 
 /**
- * The layout free base class of an entity page whose data travels as its own DTO, see
- * [AbstractEntityRest].
- *
- * The counterpart of [AbstractDTOPagesRest], whose body this repeats: Kotlin has no multiple
- * inheritance, so the DTO half cannot be shared between the layout free hierarchy and the deprecated
- * one. The duplication ends with [AbstractPagesRest].
+ * The base class of an entity page whose data travels as its own DTO, see [AbstractEntityRest].
  *
  * @author Kai Reinhard
  */

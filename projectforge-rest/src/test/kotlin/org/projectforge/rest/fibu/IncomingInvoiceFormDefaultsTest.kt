@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired
  * [IncomingInvoiceEntityRest.getFormDefaults].
  *
  * It writes nothing, so what has to be tested is that it checks the read access itself — a `@GetMapping` on an
- * entity rest class gets none of `AbstractPagesRest`'s checks for free. Unlike the outgoing invoice there is
+ * entity rest class gets no check of the base class for free. Unlike the outgoing invoice there is
  * no `activeKost2`/`kost2Check` pair: the incoming invoice has no project or customer, so there is nothing a
  * cost unit could be compared against.
  */

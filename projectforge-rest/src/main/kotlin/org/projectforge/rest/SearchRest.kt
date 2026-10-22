@@ -166,8 +166,7 @@ class SearchRest {
     }
     // Where "more in <area>" leads: the area's own native list page, so the whole area is searched there
     // with the term pre-filled (the frontend appends `?q=<term>`). A next list seeds its search box from
-    // `?q=` client-side (see the next EntityListPage); a React/generic list is seeded server-side in
-    // AbstractPagesRest.requestInitialList, which the React app feeds the url's query params. Keyed by the
+    // `?q=` client-side (see the next EntityListPage). Keyed by the
     // rest category, not the registry id, so the `orderBook` → `order` route difference is resolved right.
     val listUrl = NextMigration.listUrl(rest.category)
     return SearchAreaResult(entry.id, translate(entry.i18nTitleHeading), hasMore, hits, listUrl)

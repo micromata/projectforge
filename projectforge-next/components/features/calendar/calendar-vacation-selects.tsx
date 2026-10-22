@@ -76,6 +76,7 @@ export function CalendarVacationSelects({
         <EntityMultiAutocomplete
           id="calendar-vacation-users"
           url="vacation/users?search=:search"
+          refType="user"
           value={userRefs}
           onChange={(next) => {
             setUserRefs(next);

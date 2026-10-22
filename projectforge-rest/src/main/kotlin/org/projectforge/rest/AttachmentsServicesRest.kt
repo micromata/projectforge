@@ -364,7 +364,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     }
 
     /**
-     * Upload service e. g. for [UIAttachmentList].
+     * Upload service of the attachment lists.
      * @param id Object id where the uploaded file should belong to.
      * @param listId Usable for handling different upload areas for one page. If only one attachment list is needed, you may
      * ignore this value.

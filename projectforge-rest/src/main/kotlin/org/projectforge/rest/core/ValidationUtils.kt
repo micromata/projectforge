@@ -53,8 +53,8 @@ object ValidationUtils {
      * restated here.
      *
      * The properties come from [ElementsRegistry.listProperties], i.e. from the annotations of the
-     * class, **not** from [ElementsRegistry.getProperties]: that one only returns what a UILayout
-     * happened to put into the registry's cache before. Validating from the cache made the outcome
+     * class, **not** from [ElementsRegistry.getProperties]: that one only returns what happened to be put
+     * into the registry's cache before. Validating from the cache made the outcome
      * depend on which pages the JVM had served since its start, and left every field of a
      * hand-built page (projectforge-next builds no edit layout) unvalidated.
      *

@@ -112,7 +112,7 @@ class OrderPositionAutosearchTest : AbstractTestBase() {
     @Test
     fun `a user without the order right may not search at all`() {
         logon(TEST_USER)
-        // A plain `@GetMapping` gets none of `AbstractPagesRest`'s checks, so the endpoint has to ask itself.
+        // A plain `@GetMapping` gets no check of the base class, so the endpoint has to ask itself.
         assertThrows<AccessException> { orderEntityRest.positionAutosearch("1.1", maxResults = null) }
     }
 

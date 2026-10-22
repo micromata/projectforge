@@ -63,8 +63,27 @@ export function contributionMarginChartConfig(
   };
 }
 
+/**
+ * What the monthly chart draws: the contribution margin of all projects, or one row of the breakdown by orders
+ * or tasks (its series with the months and limits of the breakdown).
+ */
+export type ContributionMarginChartSource = Pick<
+  ContributionMarginData,
+  | "months"
+  | "revenue"
+  | "costs"
+  | "profit"
+  | "percentage"
+  | "preliminary"
+  | "lastMonth"
+  | "prevYear"
+  | "prevYearPercentage"
+  | "targetPercentage"
+  | "redThreshold"
+>;
+
 export function contributionMarginChartRows(
-  data: ContributionMarginData
+  data: ContributionMarginChartSource
 ): ContributionMarginChartRow[] {
   // The DB1 lines are cumulated from the first month on, like the DB % the backend sends; the bars stay monthly.
   let profit = 0;

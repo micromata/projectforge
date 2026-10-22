@@ -50,13 +50,14 @@ class RechnungPosInfo(@JsonIgnore val rechnungInfo: RechnungInfo?, position: Abs
     var kostZuweisungen: List<KostZuweisungInfo>? = null
 
     /**
-     * False if the invoice of this position is planned (GEPLANT) or cancelled (STORNIERT), same as
-     * [RechnungDO.isValid]. Such an invoice stays linked to its order positions, but its amounts must not count as
-     * invoiced.
+     * False if the invoice of this position is planned (GEPLANT), cancelled (STORNIERT) or a cancellation, same
+     * as [RechnungDO.isValid]. Such an invoice stays linked to its order positions, but its amounts must not
+     * count as invoiced: a cancelled invoice and its cancellation count 0 together.
      */
     @get:JsonIgnore
     val isInvoiced: Boolean
-        get() = rechnungInfo?.status?.isIn(RechnungStatus.GEPLANT, RechnungStatus.STORNIERT) != true
+        get() = rechnungInfo?.status?.isIn(RechnungStatus.GEPLANT, RechnungStatus.STORNIERT) != true &&
+                rechnungInfo?.typ != RechnungTyp.CANCELLATION
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -73,12 +74,19 @@ class RechnungPosInfo(@JsonIgnore val rechnungInfo: RechnungInfo?, position: Abs
         return result
     }
 
+    /**
+     * By invoice number (a cancellation right after the invoice it cancels, see [RechnungInfo.sortNummer]), then
+     * position number. The invoice id makes it a total order: the cache keeps these in TreeSets, where two
+     * positions comparing equal (e.g. of two cancellations, which have no number of their own) would be merged.
+     */
     override fun compareTo(other: RechnungPosInfo): Int {
-        val thisNummer = this.rechnungInfo?.nummer ?: -1
-        val otherNummer = other.rechnungInfo?.nummer ?: -1
-        if (thisNummer != otherNummer) {
-            return thisNummer.compareTo(otherNummer)
-        }
-        return number.compareTo(other.number)
+        return comparator.compare(this, other)
+    }
+
+    companion object {
+        private val comparator = compareBy<RechnungPosInfo> { it.rechnungInfo?.sortNummer ?: -1 }
+            .thenBy { it.rechnungInfo?.typ == RechnungTyp.CANCELLATION }
+            .thenBy { it.rechnungInfo?.id ?: -1 }
+            .thenBy { it.number }
     }
 }

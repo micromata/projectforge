@@ -27,12 +27,10 @@ import org.projectforge.ui.UIDataType
 import org.projectforge.ui.UISelectValue
 
 /**
- * Everything a hand built mass update page needs, served by [AbstractMultiSelectedPage.requestMeta].
+ * Everything a hand built mass update page needs, served by [AbstractMassUpdateRest.requestMeta].
  *
- * The layout free counterpart of `{page}/dynamic`, which answers the same information as a `UILayout`
- * of rows, columns, inputs and alerts. The relation is the same one [org.projectforge.rest.core.ListMetaData]
- * has to `initialList`: a client that renders the page itself needs the *rules* (which fields, of which
- * type, with which options), not a tree of components describing how the legacy frontend draws them.
+ * The *rules* of the page (which fields, of which type, with which options), not a tree of components:
+ * the page renders itself, like the list pages do from [org.projectforge.rest.core.ListMetaData].
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -67,14 +65,14 @@ class MultiSelectMetaData(
     val statisticsData: Any? = null,
     /**
      * Start values for the page's own controls, keyed by field name - a task and cost unit the selected
-     * time sheets have in common, say (see [AbstractMultiSelectedPage.initialParams]). Only a presentation
+     * time sheets have in common, say (see [AbstractMassUpdateRest.initialParams]). Only a presentation
      * preset: the generic renderer does not seed its declared fields from it, and a value the user leaves
      * untouched must not be posted as a change. Null when the page computes none.
      */
     val initialParams: Map<String, MassUpdateParameter>? = null,
     /**
      * Whether the page offers deleting whole selected entries as one action (soft delete) - the "delete
-     * selected" button. Off unless the page opts in (see [AbstractMultiSelectedPage.supportsMassDeletion]).
+     * selected" button. Off unless the page opts in (see [AbstractMassUpdateRest.supportsMassDeletion]).
      */
     val supportsDelete: Boolean = false,
     /**
@@ -85,7 +83,7 @@ class MultiSelectMetaData(
 )
 
 /**
- * The answer of [AbstractMultiSelectedPage.select] and [AbstractMultiSelectedPage.cancel]: where the
+ * The answer of [AbstractMassUpdateRest.select] and [AbstractMassUpdateRest.cancel]: where the
  * client goes next.
  *
  * The layout free counterpart of the `ResponseAction(targetType = REDIRECT)` both endpoints answer for
@@ -102,7 +100,7 @@ class MultiSelectNavigation(
      * What the selected entries add up to, in the same shape [MultiSelectMetaData.statisticsData] carries
      * (the entity's own, e.g. `InvoiceStatistics`) - so a list can show the statistics live while the user
      * is still selecting, without opening the mass update page. Null where the page serves no statistics or
-     * on a cancel (see [AbstractMultiSelectedPage.getStatisticsData]).
+     * on a cancel (see [AbstractMassUpdateRest.getStatisticsData]).
      */
     val statisticsData: Any? = null,
 )
@@ -111,8 +109,8 @@ class MultiSelectNavigation(
  * One field of a mass update: which property, how its value is entered, and which of the four actions
  * (set, delete, replace, append) it offers.
  *
- * Resolved by the base class from the same [org.projectforge.ui.ElementsRegistry] entry the `UILayout`
- * path reads, so both say the same thing about a field and a declaration names only what it decides
+ * Resolved by the base class from the same [org.projectforge.ui.ElementsRegistry] entry the validation
+ * reads, so both say the same thing about a field and a declaration names only what it decides
  * (see [MassUpdateFieldDeclaration]).
  */
 class MassUpdateFieldMeta(
@@ -175,14 +173,14 @@ class MassUpdateFieldDeclaration(
     /**
      * The field has no entity property behind it and is rendered by the client itself - the time sheet's
      * task/cost-unit picker (`taskAndKost2`). Declared here only to give it a position in the field order;
-     * [AbstractMultiSelectedPage.resolveFieldMeta] skips the registry lookup and emits a bare
+     * [AbstractMassUpdateRest.resolveFieldMeta] skips the registry lookup and emits a bare
      * [MassUpdateFieldMeta] with `custom = true`.
      */
     val custom: Boolean = false,
 )
 
 /**
- * What a mass update (or a mass deletion/restore) did, served by [AbstractMultiSelectedPage.update].
+ * What a mass update (or a mass deletion/restore) did, served by [AbstractMassUpdateRest.update].
  */
 class MassUpdateResult(
     val modifiedCounter: Int,
@@ -207,7 +205,7 @@ class MassUpdateResult(
     val changedFields: List<String> = emptyList(),
     /**
      * The log viewer of the user's log subscription the run wrote to (e.g. `next/logViewer/7`), or null if the
-     * page has none (see [AbstractMultiSelectedPage.ensureUserLogSubscription]). Registered by the run itself,
+     * page has none (see [AbstractMassUpdateRest.ensureUserLogSubscription]). Registered by the run itself,
      * right before it starts, so its log events are caught and the link is fresh.
      */
     val logViewerUrl: String? = null,
@@ -217,7 +215,7 @@ class MassUpdateResult(
 class MassUpdateError(val identifier: String, val message: String)
 
 /**
- * What a mass update *would* do, served by [AbstractMultiSelectedPage.preview] before anything is
+ * What a mass update *would* do, served by [AbstractMassUpdateRest.preview] before anything is
  * written.
  *
  * Answered by the server rather than composed in the frontend on purpose: the same

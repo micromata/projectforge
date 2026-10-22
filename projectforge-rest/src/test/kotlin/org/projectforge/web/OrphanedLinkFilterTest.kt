@@ -43,41 +43,36 @@ class OrphanedLinkFilterTest {
     }
 
     /**
-     * The escape hatch: a request carrying [NextMigration.ESCAPE_HATCH_PARAM] is let through to the legacy
-     * page, which is how a "classic version" link reaches it without being bounced back. The calendar serves
-     * as the example; next itself no longer links there.
+     * The React app is gone, so a bookmarked escape hatch link (the former "classic version" link) is bent onto
+     * next as well instead of being let through.
      */
     @Test
-    fun `the react calendar with the escape marker stays in the legacy app`() {
-        Assertions.assertNull(
-            redirectOf("/react/calendar", NextMigration.ESCAPE_HATCH_PARAM),
-            "A request with the escape marker must stay in React.",
-        )
+    fun `the react calendar with the escape marker is redirected to next`() {
+        Assertions.assertEquals("/next/calendar", redirectOf("/react/calendar", NextMigration.ESCAPE_HATCH_PARAM))
     }
 
     /**
-     * The links of pages that never left ProjectForge (no mail, no data transfer) are not redirected, see
-     * NextMigration.NextPage.legacyApp: the old React pages are left to the React app, the Wicket ones land on the
-     * next start page as any other Wicket url.
+     * The links of pages that never left ProjectForge (no mail, no data transfer) get no redirect of their own, see
+     * NextMigration.NextPage.legacyApp: they land on the next start page as any other old React or Wicket url.
      */
     @Test
-    fun `links that never left ProjectForge are not redirected`() {
+    fun `links that never left ProjectForge land on the next start page`() {
         val categories = listOf(
             "project", "task", "teamCal", "user", "contract", "visitorbook", "address", "addressLegacy",
             "addressCampaignValue", "addressCampaignValueLegacy", "datatransfer", "merlin",
         )
         for (category in categories) {
-            Assertions.assertNull(redirectOf("/react/$category"), category)
-            Assertions.assertNull(redirectOf("/react/$category/edit/42"), category)
+            Assertions.assertEquals("/next/", redirectOf("/react/$category"), category)
+            Assertions.assertEquals("/next/", redirectOf("/react/$category/edit/42"), category)
         }
         for (page in listOf(
             "addressView", "myAccount", "tokenInfo", "2FASetup", "WebAuthnSetup", "2FA", "changeWlanPassword", "pollInfo",
             "vacationAccount", "vacationExport", "costSearch", "customizeMenu", "birthdayButler", "eInvoiceChecker",
             "sipgate", "jobsMonitor", "systemStatistics", "merlinexecution",
         )) {
-            Assertions.assertNull(redirectOf("/react/$page/dynamic"), page)
+            Assertions.assertEquals("/next/", redirectOf("/react/$page/dynamic"), page)
         }
-        Assertions.assertNull(redirectOf("/react/group"))
+        Assertions.assertEquals("/next/", redirectOf("/react/group"))
         for (page in listOf(
             "search", "personalStatistics", "feedback", "monthlyEmployeeReport", "hrList", "datevImport", "admin",
             "userPrefList", "taskTree", "groupList", "groupEdit", "oldCalendar", "oldTeamCalendar",
@@ -210,16 +205,16 @@ class OrphanedLinkFilterTest {
         // The reminder mails of a poll ending soon (8.0, 8.1) linked react/response/dynamic/<pollId>.
         Assertions.assertEquals("/next/poll/42/answer", redirectOf("/react/response/dynamic/42"))
         Assertions.assertEquals("/next/poll", redirectOf("/react/response/dynamic/4x"))
-        Assertions.assertNull(redirectOf("/react/responseXyz"))
+        Assertions.assertEquals("/next/", redirectOf("/react/responseXyz"))
         Assertions.assertNull(redirectOf("/rs/pollAnswer/42"))
     }
 
     /**
-     * Wicket is no way back any more: a Wicket url is redirected even with the escape marker (a bookmarked
-     * "classic version" link of a page migrated from Wicket), while a React one is still let through.
+     * There is no way back any more: a Wicket or React url is redirected even with the escape marker (a bookmarked
+     * "classic version" link).
      */
     @Test
-    fun `a wicket page is redirected to next even with the escape marker`() {
+    fun `a legacy page is redirected to next even with the escape marker`() {
         Assertions.assertEquals("/next/order", redirectOf("/wa/orderBookList", NextMigration.ESCAPE_HATCH_PARAM))
         Assertions.assertEquals(
             "/next/order/5",
@@ -229,7 +224,7 @@ class OrphanedLinkFilterTest {
             "/next/todo/7",
             redirectOf("/wa/wicket/bookmarkable/org.projectforge.plugins.todo.ToDoEditPage", mapOf("id" to "7")),
         )
-        Assertions.assertNull(redirectOf("/react/vacation", NextMigration.ESCAPE_HATCH_PARAM))
+        Assertions.assertEquals("/next/vacation", redirectOf("/react/vacation", NextMigration.ESCAPE_HATCH_PARAM))
     }
 
     /** The Wicket direct call, meant to be called by url, keeps its deep link parameters on next. */
@@ -247,14 +242,16 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/", redirectOf("/wa/phoneCallXyz"), "Not the direct call: the catch-all.")
     }
 
-    /** Every other Wicket url lands on the next start page: no request reaches Wicket any more. */
+    /** Every other Wicket or React url lands on the next start page: neither app exists any more. */
     @Test
-    fun `any other wicket url is redirected to the next start page`() {
+    fun `any other wicket or react url is redirected to the next start page`() {
         Assertions.assertEquals("/next/", redirectOf("/wa"))
         Assertions.assertEquals("/next/", redirectOf("/wa/anything"))
         Assertions.assertEquals("/next/", redirectOf("/wa/wicket/page", mapOf("3" to "")))
-        // A React url of no migrated page (a category no page has) is left alone:
-        Assertions.assertNull(redirectOf("/react/notMigratedCategory"))
+        Assertions.assertEquals("/next/", redirectOf("/react"))
+        Assertions.assertEquals("/next/", redirectOf("/react/"))
+        Assertions.assertEquals("/next/", redirectOf("/react/notMigratedCategory"))
+        Assertions.assertNull(redirectOf("/reactor"))
         Assertions.assertNull(redirectOf("/next/task"))
         Assertions.assertNull(redirectOf("/water"))
     }

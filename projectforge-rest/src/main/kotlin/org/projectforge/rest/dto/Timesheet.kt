@@ -55,8 +55,7 @@ class Timesheet(
 
     /**
      * Whether AI time-savings tracking is enabled in this installation (transient, server set). The
-     * hand-built edit page has no UILayout to hide the AI fields from, so it reads this flag from the
-     * DTO to gate the section (mirrors `baseDao.timeSavingsByAIEnabled`).
+     * edit page reads this flag from the DTO to gate the AI section (mirrors `baseDao.timeSavingsByAIEnabled`).
      */
     var timeSavingsByAIEnabled: Boolean = false
 

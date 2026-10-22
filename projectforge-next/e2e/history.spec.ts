@@ -6,7 +6,7 @@ import { createBookWithHistory, type SeededBook } from "./fixtures/seed";
  * The change history, against the live backend. Read-only: it opens a history and toggles rows, it
  * never writes.
  *
- * Nothing here is book-specific — `components/shared/history/` serves every `AbstractPagesRest`
+ * Nothing here is book-specific — `components/shared/history/` serves every `AbstractEntityRest`
  * entity, the endpoint is `/rs/{entity}/history/{id}` for all of them, and the tab comes from the
  * entity's own `@WithHistory` through the generated metadata, so all four hand-built entities have
  * one. Books are merely the vehicle: they are the entity a history is cheapest to *produce* for (one

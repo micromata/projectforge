@@ -31,8 +31,8 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -49,10 +49,9 @@ open class LogoutRest {
   private lateinit var loginService: LoginService
 
   /**
-   * POST for projectforge-next. GET only for the legacy React app (menu item of type RESTCALL, see MenuRest): drop it
-   * together with the app.
+   * POST only: a GET would let any link or `<img>` log the user out.
    */
-  @RequestMapping(method = [RequestMethod.POST, RequestMethod.GET])
+  @PostMapping
   fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseAction {
     loginService.logout(request, response)
     return ResponseAction(

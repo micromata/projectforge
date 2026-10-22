@@ -30,7 +30,6 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.jcr.FileInfo
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
-import org.projectforge.ui.UILayout
 import org.springframework.http.ResponseEntity
 
 /**
@@ -97,33 +96,6 @@ open class AttachmentsActionListener(
                 ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
                     .addVariable("data", createResponseData(obj, jcrPath, attachmentsAccessChecker, listId))
             )
-    }
-
-    /**
-     * Calls [AttachmentPageRest.createAttachmentLayout] at default. Override this, if you want to manipulate the layout.
-     * As an example MerlinAttachmentsActionListener disables encryptionSupport.
-     */
-    open fun createAttachmentLayout(
-        id: Long,
-        category: String,
-        fileId: String,
-        listId: String?,
-        attachment: Attachment,
-        writeAccess: Boolean = true,
-        restClass: Class<*> = AttachmentsServicesRest::class.java,
-        encryptionSupport: Boolean = false,
-        data: AttachmentsServicesRest.AttachmentData? = null,
-    ): UILayout {
-        return AttachmentPageRest.createAttachmentLayout(
-            id = id,
-            category = category,
-            listId = listId,
-            attachment = attachment,
-            writeAccess = writeAccess,
-            restClass = restClass,
-            encryptionSupport = encryptionSupport,
-            data = data
-        )
     }
 
     open fun createResponseData(

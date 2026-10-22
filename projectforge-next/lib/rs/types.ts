@@ -530,7 +530,7 @@ export interface ListMetaData {
 }
 
 /**
- * What the logged-in user may do with an entity (`UILayout.UserAccess`). Every flag is optional:
+ * What the logged-in user may do with an entity (`org.projectforge.rest.dto.UserAccess`, served with `listMeta`). Every flag is optional:
  * Spring omits the ones the backend left null (`JsonInclude.NON_NULL`).
  */
 export interface UserAccess {

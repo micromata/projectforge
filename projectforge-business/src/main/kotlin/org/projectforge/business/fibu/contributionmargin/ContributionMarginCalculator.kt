@@ -60,7 +60,22 @@ class ContributionMarginEntry(
   val account: Int? = null,
   /** A description of the invoice or time sheet. */
   val text: String? = null,
-)
+  /**
+   * The order position the amount is assigned to (invoice position or time sheet, see
+   * [ContributionMarginAllocator]); null if none. Only set for the breakdown by orders and tasks.
+   */
+  val orderPositionId: Long? = null,
+  /**
+   * The task (Strukturelement) of the time sheet or of the invoiced order position; null if none. Only set for
+   * the breakdown by orders and tasks.
+   */
+  val taskId: Long? = null,
+) {
+  /** The same amount with the opposite sign (revenue and costs), e.g. to subtract it from a residual. */
+  fun negate(): ContributionMarginEntry = ContributionMarginEntry(
+    projectId, date, revenue.negate(), costs.negate(), type, kost2Id, account, text, orderPositionId, taskId,
+  )
+}
 
 /** What a row of the project table shows of a project beside its amounts. */
 class ContributionMarginProjectInfo(
@@ -253,6 +268,44 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
       }
       .sortedWith(compareBy({ it.month }, { it.customer ?: "" }, { it.project ?: "" }, { it.kost2 ?: "" }))
     return ContributionMarginDetails(months = monthRows, invoices = emptyList(), timesheets = timesheetRows)
+  }
+
+  /**
+   * The monthly values of the period and the sums of the period and the comparison years of the given entries
+   * (of any projects), as [calculate] has them for all projects, e.g. for one row of the breakdown by orders.
+   */
+  fun series(entries: Collection<ContributionMarginEntry>): ContributionMarginSeries {
+    // yearsBack (0..2) → month → sums
+    val sums = Array(3) { mutableMapOf<YearMonth, Amount>() }
+    entries.forEach { entry ->
+      val month = YearMonth.from(entry.date)
+      val yearsBack = (0..2).firstOrNull { month.plusYears(it.toLong()) in months } ?: return@forEach
+      sums[yearsBack].getOrPut(month.plusYears(yearsBack.toLong())) { Amount() }.add(entry)
+    }
+    fun monthly(yearsBack: Int) = months.map { sums[yearsBack][it] ?: Amount() }
+    fun total(yearsBack: Int) = sums[yearsBack].values.fold(Amount()) { acc, amount -> acc.add(amount) }
+    val current = monthly(0)
+    val prevYear = monthly(1)
+    val hasValues = months.map { it.atDay(1) <= periodValuesEnd }
+    val total = total(0)
+    val prevYearTotal = total(1)
+    val prevPrevYearTotal = total(2)
+    return ContributionMarginSeries(
+      revenue = current.map { it.revenue },
+      costs = current.map { -it.costs },
+      profit = current.map { it.profit },
+      percentage = cumulativePercentage(current).mapIndexed { i, percentage -> percentage.takeIf { hasValues[i] } },
+      prevYear = prevYear.map { it.profit },
+      prevYearPercentage = cumulativePercentage(prevYear),
+      sums = ContributionMarginSums(
+        revenue = total.revenue,
+        costs = -total.costs,
+        prevYearProfit = prevYearTotal.profit,
+        prevPrevYearProfit = prevPrevYearTotal.profit,
+        prevYearRevenue = prevYearTotal.revenue,
+        prevPrevYearRevenue = prevPrevYearTotal.revenue,
+      ),
+    )
   }
 
   /**

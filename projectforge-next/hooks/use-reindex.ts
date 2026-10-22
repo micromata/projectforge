@@ -9,7 +9,7 @@ import { useJobStore } from "@/store/job-store";
  * Starts a re-index run of the search index and puts its progress on screen.
  *
  * The endpoints answer right away with the id of a background job (see startReindexOrRunIt in
- * AbstractPagesRest) — a full run takes minutes, so waiting for it would block the page. Handing the
+ * AbstractEntityRest) — a full run takes minutes, so waiting for it would block the page. Handing the
  * id to the job store is all there is to do; the toast itself belongs to `JobToasts`, which is
  * mounted for the whole authenticated area and therefore survives leaving this page.
  */

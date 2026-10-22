@@ -29,6 +29,12 @@ export interface InputFieldProps extends BaseFieldProps {
    * group's `emails` — is no `@PropertyInfo` field of its DO (see [useFieldMetadata]).
    */
   metadataLess?: boolean;
+  /**
+   * Mandatory or not, instead of what the metadata says: only for a rule depending on other values of the form,
+   * which the backend checks (a poll's deadline, not needed for a template). Not a second declaration of the
+   * entity's rules — those stay in the metadata.
+   */
+  required?: boolean;
   /** Something to heed about the value, shown under a valid field (see FieldShell's `warning`). */
   warning?: string;
 }
@@ -42,13 +48,16 @@ export function InputField({
   placeholder,
   disabled,
   metadataLess,
+  required: requiredOverride,
   emphasized,
   warning,
 }: InputFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
-  const { required, maxLength } = useFieldMetadata(name, metadataLess);
+  const metadata = useFieldMetadata(name, metadataLess);
+  const required = requiredOverride ?? metadata.required;
+  const { maxLength } = metadata;
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}

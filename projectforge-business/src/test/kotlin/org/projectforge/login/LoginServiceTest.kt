@@ -141,7 +141,7 @@ class LoginServiceTest : AbstractTestBase() {
             }
             // Fetched after the logins: they expire the cache (last login), which then holds a new user object.
             userGroupCache.getUser(getUser(TEST_USER).id)!!.lastPasswordChange = Date()
-            // The session of the change keeps going (ChangePasswordPageRest), the other one ends:
+            // The session of the change keeps going (ChangePasswordRest), the other one ends:
             LoginService.getUserContext(request)!!.acceptOwnPasswordChange()
             Assertions.assertNotNull(loginService.checkLogin(request, response))
             Assertions.assertNull(loginService.checkLogin(otherRequest, response))

@@ -66,7 +66,7 @@ export interface SuggestInputProps {
 /**
  * A free-text box that suggests values the backend has already seen for it — a time sheet's location, its
  * reference, the properties a `{category}/autocomplete?property=…` answers for
- * (`AbstractPagesRest.getAutoCompletionForProperty`).
+ * (`AbstractEntityRest.getAutoCompletionForProperty`).
  *
  * The suggestions are a convenience only: anything the user types is a valid value, which is what makes
  * this a different control from [EntityAutocomplete] — that one picks an *entity* and refuses everything

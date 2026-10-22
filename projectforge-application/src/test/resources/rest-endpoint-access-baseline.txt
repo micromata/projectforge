@@ -14,8 +14,6 @@ org.projectforge.rest.AddressServicesRest#getUsedLanguages
 org.projectforge.rest.AddressServicesRest#getVcfImagePreview
 org.projectforge.rest.AddressServicesRest#parseVcf
 org.projectforge.rest.admin.AdminRest#extractSerializedSettings
-org.projectforge.rest.AttachmentPageRest#getForm
-org.projectforge.rest.AttachmentPageRest#watchFields
 org.projectforge.rest.AttachmentsServicesRest#delete
 org.projectforge.rest.AttachmentsServicesRest#download
 org.projectforge.rest.AttachmentsServicesRest#encrypt
@@ -45,20 +43,10 @@ org.projectforge.rest.calendar.CalendarServicesRest#action
 org.projectforge.rest.calendar.CalendarServicesRest#getEvents
 org.projectforge.rest.calendar.CalendarServicesRest#refresh
 org.projectforge.rest.calendar.CalendarServicesRest#storeState
-org.projectforge.rest.calendar.CalendarSettingsPageRest#getForm
-org.projectforge.rest.calendar.CalendarSettingsPageRest#save
-org.projectforge.rest.calendar.CalendarSettingsPageRest#watchFields
-org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest#getLayout
 org.projectforge.rest.calendar.TeamEventEntityRest#switch2Timesheet
 org.projectforge.rest.calendar.VacationServicesRest#getVacationUserObjects
-org.projectforge.rest.fibu.EingangsrechnungMultiSelectedPageRest#exportTransfers
 org.projectforge.rest.GroupEntityRest#createGid
 org.projectforge.rest.GroupEntityRest#exportAsExcel
-org.projectforge.rest.HistoryEntryUserCommentModalRest#append
-org.projectforge.rest.HistoryEntryUserCommentModalRest#cancel
-org.projectforge.rest.HistoryEntryUserCommentModalRest#getItem
-org.projectforge.rest.HistoryEntryUserCommentModalRest#getItemAndLayout
-org.projectforge.rest.IndexRest#getTranslations
 org.projectforge.rest.LogoutRest#logout
 org.projectforge.rest.pub.AuthenticationPublicServicesRest#getAuthenticationCredentials
 org.projectforge.rest.pub.CalendarSubscriptionServiceRest#exportCalendar
@@ -69,7 +57,6 @@ org.projectforge.rest.pub.MessagingServiceRest#post
 org.projectforge.rest.pub.MessagingServiceRest#send
 org.projectforge.rest.pub.PhoneLookupRest#phoneLookup
 org.projectforge.rest.pub.SystemStatusRest#getSystemStatus
-org.projectforge.rest.task.TaskFavoritesRest#select
 org.projectforge.rest.task.TaskServicesRest#getTaskInfo
 org.projectforge.rest.task.TaskServicesRest#getTree
 org.projectforge.rest.TimesheetFavoritesRest#delete

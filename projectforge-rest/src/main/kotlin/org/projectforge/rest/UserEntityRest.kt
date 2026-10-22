@@ -558,7 +558,7 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
     override fun onAfterSave(request: HttpServletRequest, obj: PFUserDO, postData: PostData<User>): ResponseAction {
         val dto = postData.data
         if (dto.id != null) {
-            // Not a new user: its passwords are changed by ChangePasswordPageRest only (own checks and 2FA period).
+            // Not a new user: its passwords are changed by ChangePasswordRest only (own checks and 2FA period).
             return super.onAfterSave(request, obj, postData)
         }
         val password = dto.password

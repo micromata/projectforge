@@ -165,7 +165,7 @@ class Rechnung(
     var kostZuweisungenFehlbetrag: BigDecimal? = null
 
     /**
-     * Access flags, so the hand built next form knows what to offer. The `UILayout.UserAccess` the legacy
+     * Access flags, so the hand built next form knows what to offer. The `UserAccess` the legacy
      * frontends use doesn't reach it: `GET /rs/outgoingInvoice/{id}` passes no user access, and the next
      * pages read none. The DAO stays the authority in every case — these only decide what is shown.
      */

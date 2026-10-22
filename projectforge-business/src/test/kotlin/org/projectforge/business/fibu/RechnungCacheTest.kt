@@ -261,6 +261,67 @@ class RechnungCacheTest : AbstractTestBase() {
     }
 
     /**
+     * A cancellation invoice has no number of its own, but stays assigned to the order positions of the invoice it
+     * cancels: listed right after it (e.g. 17400, 17400-S), and counting 0 together with it. Two cancellations on
+     * the same order position must both be kept (they used to compare equal in the cache's TreeSet).
+     */
+    @Test
+    fun cancellationAssignedToOrderPosition() {
+        logon(getUser(TEST_FINANCE_USER))
+        val auftrag = createOrder().also {
+            it.addPosition(createOrderPos().also { pos -> pos.titel = "Pos 1" })
+            it.nummer = auftragDao.getNextNumber(it)
+        }
+        auftragDao.insert(auftrag)
+        val auftragsPosId = auftrag.getPosition(1.toShort())!!.id
+        val projekt = initTestDB.addProjekt(null, 1, "cancellationTest")
+        fun newInvoice(amount: String, original: RechnungDO? = null): RechnungDO {
+            return RechnungDO().also {
+                it.addPosition(RechnungsPositionDO().also { pos ->
+                    pos.auftragsPosition = auftrag.getPosition(1.toShort())
+                    pos.einzelNetto = BigDecimal(amount)
+                    pos.text = amount
+                })
+                if (original != null) {
+                    it.typ = RechnungTyp.CANCELLATION
+                    it.originalRechnung = original
+                } else {
+                    it.nummer = rechnungDao.getNextNumber(it)
+                }
+                it.datum = now().localDate
+                it.faelligkeit = LocalDate.now()
+                it.projekt = projekt
+                rechnungDao.insert(it)
+            }
+        }
+        val first = newInvoice("100")
+        val second = newInvoice("400")
+        newInvoice("-100", first)
+        newInvoice("-400", second)
+        val third = newInvoice("400")
+
+        fun check(msg: String) {
+            val posInfos = rechnungCache.getRechnungsPosInfosByAuftragsPositionId(auftragsPosId)
+            Assertions.assertEquals(
+                listOf("${first.nummer}", "${first.nummer}-S", "${second.nummer}", "${second.nummer}-S", "${third.nummer}"),
+                posInfos?.map { it.rechnungInfo?.belegNummer },
+                msg,
+            )
+            Assertions.assertEquals(0, BigDecimal("400").compareTo(getNettoSumme(posInfos)), msg)
+            Assertions.assertEquals(
+                0,
+                BigDecimal("400").compareTo(auftragsCache.getOrderPositionInfo(auftragsPosId)!!.invoicedSum),
+                "$msg: a cancelled invoice and its cancellation count 0 together.",
+            )
+        }
+        check("Updated by the inserts")
+        // The caches as filled on startup (RechnungJdbcService), where the original of a cancellation is resolved
+        // by the same query.
+        rechnungCache.forceReload()
+        check("After a reload")
+    }
+
+    /**
      * Planned and cancelled invoices must not be summed up as invoiced, even if they have a number.
      */
     @Test

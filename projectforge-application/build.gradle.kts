@@ -60,7 +60,6 @@ dependencies {
     implementation(project(":projectforge-rest"))
     implementation(project(":projectforge-carddav"))
     implementation(project(":projectforge-idp"))
-    implementation(project(":projectforge-webapp"))
     implementation(project(":org.projectforge.plugins.datatransfer"))
     implementation(project(":org.projectforge.plugins.ihk"))
     implementation(project(":org.projectforge.plugins.licensemanagement"))
@@ -240,7 +239,6 @@ dependencies {
 sourceSets {
     named("main") {
         resources {
-            srcDir(project(":projectforge-webapp").layout.buildDirectory.dir("resources/main"))
             srcDir(project(":projectforge-next").layout.buildDirectory.dir("resources/main"))
         }
     }
@@ -262,18 +260,12 @@ tasks.named<Test>("test") {
 }
 
 tasks.named("processResources") {
-    dependsOn(":projectforge-webapp:npmBuild", ":projectforge-webapp:copyReactBuild")
     dependsOn(":projectforge-next:npmBuild", ":projectforge-next:copyNextBuild")
 }
 
 tasks.named<BootJar>("bootJar") {
-    dependsOn(":projectforge-webapp:webAppJar")
     dependsOn(":projectforge-next:nextAppJar")
     dependsOn(tasks.named("jar")) // Ensure the plain JAR is built before bootJar
-    val webAppJarProvider = project(":projectforge-webapp").layout.buildDirectory.file("libs/projectforge-webapp-${project.version}.jar")
-    from(webAppJarProvider) {
-        into("BOOT-INF/lib") // Insert the webapp jar into the boot jar.
-    }
     val nextAppJarProvider = project(":projectforge-next").layout.buildDirectory.file("libs/projectforge-next-${project.version}.jar")
     from(nextAppJarProvider) {
         into("BOOT-INF/lib") // Insert the next.js app jar into the boot jar.

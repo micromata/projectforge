@@ -42,8 +42,6 @@ Or simply use the fastest way: https://projectforge.org/docs/installation/[Insta
 5. Open your browser:
    http://localhost:8080
 
-Remark: If you have any trouble regarding `projectforge-webapp`, try to delete the sub directory `node_modules` and repeat `./gradlew clean build -x test`.
-
 === Configuration of ProjectForge
 
 No configuration needed. After starting ProjectForge a first time, a console or desktop based wizard is provided for doing
@@ -65,7 +63,7 @@ ProjectForge is compiled for Java 17 and runs in production on Java 21 (the Dock
 
 1. Launch IntelliJ IDEA
 2. Import new project as Gradle project
-3. Run ./gradle clean build -x test (to build React stuff in projectforge-webapp)
+3. Run ./gradle clean build -x test (builds the Next.js frontend in projectforge-next as well)
 4. Start by simply running main (in `projectforge-application/src/main/java`): +
    `org.projectforge.start.ProjectForgeApplication.java`
 

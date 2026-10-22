@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 
 /**
  * The opt-in of the time sheet mass update that remaps every sheet's cost unit to the one of the same type
- * its *own* task offers, leaving the task untouched (`TimesheetMultiSelectedPageRest.remapKost2`) — the fix
+ * its *own* task offers, leaving the task untouched (`TimesheetMassUpdateRest.remapKost2`) — the fix
  * for sheets booked before the task's cost units changed, e.g. after a project was linked to it.
  */
 export function Kost2RemapCheckbox({

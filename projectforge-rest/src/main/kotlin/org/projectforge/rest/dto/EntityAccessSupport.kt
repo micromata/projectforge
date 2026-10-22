@@ -27,9 +27,8 @@ package org.projectforge.rest.dto
  * A DTO whose hand built next page asks it what may be done with it: whether the form may be saved and
  * whether the entry may be marked as deleted.
  *
- * The same two answers [org.projectforge.ui.UILayout.UserAccess] carries for the layout driven frontends
- * - but that one travels with the *layout*, and a hand built page fetches `GET /rs/{entity}/{id}` and no
- * layout at all. So the flags ride on the entity, filled in one place
+ * The same two answers [UserAccess] carries for a list (`listMeta`) - but an edit page fetches
+ * `GET /rs/{entity}/{id}` only. So the flags ride on the entity, filled in one place
  * ([org.projectforge.rest.core.AbstractEntityRest.getById] via `checkUserAccess`) from the very same DAO
  * calls that fill the `UserAccess` - implement this interface and there is nothing to do per rest class.
  *

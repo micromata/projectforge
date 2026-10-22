@@ -349,7 +349,7 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         }
         // Carry the paging fields through: for a server-side paged result (POST listPage) totalSize is the
         // size of the whole result, not of this page, and offset being set is what tells the client it holds
-        // one page (see ResultSet, AbstractDTOPagesRest.postProcessResultSet). For the non-paged POST list
+        // one page (see ResultSet, AbstractDTOEntityRest.postProcessResultSet). For the non-paged POST list
         // offset stays null and totalSize is this page, which is the whole result.
         val myResultSet = ResultSet(
             list,

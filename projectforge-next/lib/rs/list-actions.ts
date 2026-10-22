@@ -1,12 +1,10 @@
 /**
- * Maintenance actions every list page of an entity offers (`AbstractPagesRest`).
+ * Maintenance actions every list page of an entity offers (`AbstractEntityRest`).
  *
- * These are the endpoints behind the gear menu the legacy frontend built from `UILayout.pageMenu`
- * (see AbstractPagesRest.createListLayout). This app declares the menu itself (see ListGearMenu), so
- * the urls live here rather than coming from the layout.
+ * This app declares the gear menu itself (see ListGearMenu), so the urls live here.
  *
- * Both are GETs answering with a plain `ResponseAction` - no `PostData` body and no HTTP 406 -
- * so they go through `request()` instead of the raw protocol of ./dynamic.ts. The two re-index calls
+ * Both are POSTs without a body answering with a plain `ResponseAction` - no `PostData` and no
+ * HTTP 406 - so they go through `request()` instead of the raw protocol of ./dynamic.ts. The two re-index calls
  * answer this client with a job id instead of a finished run; ./jobs.ts covers the rest.
  */
 

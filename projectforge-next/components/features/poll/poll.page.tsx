@@ -6,6 +6,7 @@ import {
   PollFullAccessGroupsField,
   PollFullAccessUsersField,
 } from "./poll-access-fields";
+import { PollDeadlineField } from "./poll-deadline-field";
 import { PollEditIntro } from "./poll-edit-intro";
 import { PollHeaderActions, POLL_LIST_QUERY_KEY } from "./poll-header-actions";
 import {
@@ -14,6 +15,7 @@ import {
 } from "./poll-invitation-fields";
 import { PollQuestionsEditor } from "./poll-questions-editor";
 import { PollResultsPanel, RESULTS_TAB_ID } from "./poll-results-panel";
+import { PollTitleCell } from "./poll-title-cell";
 import { pollSchema, POLL_FIELDS, type PollValues } from "./poll-schema";
 import { emptyPollValues, toFormValues } from "./poll-values";
 import type { PollDetail, PollListRow, PollRef } from "./types";
@@ -48,7 +50,12 @@ export const POLL_PAGE = definePage<
   onRowClick: (row) =>
     row.fullAccess || row.template ? undefined : `/poll/${row.id}/answer`,
   columns: [
-    { name: "title", size: 260, className: "font-semibold" },
+    {
+      name: "title",
+      size: 260,
+      className: "font-semibold",
+      cell: ({ row }) => <PollTitleCell row={row.original} />,
+    },
     { name: "location", size: 160 },
     {
       name: "owner",
@@ -99,7 +106,7 @@ export const POLL_PAGE = definePage<
           { name: "title", span: 2 },
           { name: "owner", readOnly: true },
           { name: "location", span: 2 },
-          { name: "deadline", hintKey: "poll.deadline.tooltip" },
+          { custom: PollDeadlineField },
           { name: "description", span: 3, rows: 3 },
           { name: "template" },
         ],

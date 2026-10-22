@@ -17,7 +17,7 @@ export const INVOICE_PDF_MARKER = "__INVOICE_PDF__";
  * The attachments of an invoice — which are also what gets embedded into a ZUGFeRD document
  * (`EInvoiceExportService.embedAttachmentsInPdf`).
  *
- * Nothing but the entity name: attachments are not an invoice feature, every `AbstractPagesRest` entity can
+ * Nothing but the entity name: attachments are not an invoice feature, every `AbstractEntityRest` entity can
  * have them (see components/shared/attachments/).
  *
  * The invoice PDF is among them ([INVOICE_PDF_MARKER]): it is one of the files of this invoice, so it is

@@ -244,7 +244,7 @@ export function fetchReferenceSuggestions(
 }
 
 /**
- * The locations this user has booked before (`AbstractPagesRest.getAutoCompletionForProperty`, which
+ * The locations this user has booked before (`AbstractEntityRest.getAutoCompletionForProperty`, which
  * the entity opts into per property — `isAutocompletionPropertyEnabled("location")`).
  *
  * The generic property autocompletion, not one of the time sheet's own endpoints, hence the

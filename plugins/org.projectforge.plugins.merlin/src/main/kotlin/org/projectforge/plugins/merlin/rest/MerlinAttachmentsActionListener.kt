@@ -31,7 +31,6 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.jcr.FileInfo
 import org.projectforge.plugins.merlin.MerlinTemplateDao
 import org.projectforge.rest.AttachmentsActionListener
-import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.ui.*
 import org.springframework.http.ResponseEntity
 
@@ -124,29 +123,5 @@ class MerlinAttachmentsActionListener(
         ResponseAction(targetType = targetType, merge = true)
           .addVariable("data", data)
       )
-  }
-
-  override fun createAttachmentLayout(
-    id: Long,
-    category: String,
-    fileId: String,
-    listId: String?,
-    attachment: Attachment,
-    writeAccess: Boolean,
-    restClass: Class<*>,
-    encryptionSupport: Boolean,
-    data: AttachmentsServicesRest.AttachmentData?
-  ): UILayout {
-    return super.createAttachmentLayout(
-      id,
-      category,
-      fileId,
-      listId,
-      attachment,
-      writeAccess,
-      restClass,
-      encryptionSupport = false,
-      data = data,
-    )
   }
 }
