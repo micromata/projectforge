@@ -25,7 +25,7 @@
       "items" : [ "The former React interface is removed: all its pages are part of the new interface, and old links (`/react/...`) lead there." ]
     }, {
       "type" : "security",
-      "items" : [ "Requests that change something (list and calendar filters, templates, search index, logout) are accepted as POST only; the GET variants of the former React interface are removed." ]
+      "items" : [ "The CSRF token is checked for every changing request of a logged-in browser session, no longer only for requests identifying themselves as the new interface; cancelling a login or password reset is accepted as POST only.", "Requests that change something (list and calendar filters, templates, search index, logout) are accepted as POST only; the GET variants of the former React interface are removed." ]
     } ]
   },
   "groups" : [ {

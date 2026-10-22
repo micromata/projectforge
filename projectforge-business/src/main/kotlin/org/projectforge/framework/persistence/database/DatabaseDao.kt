@@ -89,7 +89,7 @@ open class DatabaseDao {
     }
 
     /**
-     * Blocking re-index run, used by the classic clients (Wicket admin page, cron job, synchronous REST calls).
+     * Blocking re-index run (admin page, cron job).
      * For a cancellable run inside a coroutine use [reindexSuspending].
      */
     private fun <T> reindexObjects(clazz: Class<T>, settings: ReindexSettings) {

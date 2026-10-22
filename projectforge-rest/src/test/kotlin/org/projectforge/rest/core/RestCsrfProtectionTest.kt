@@ -24,9 +24,14 @@
 package org.projectforge.rest.core
 
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpSession
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.projectforge.web.rest.RestAuthenticationInfo
+import java.io.PrintWriter
+import java.io.StringWriter
 
 class RestCsrfProtectionTest {
     /**
@@ -58,10 +63,76 @@ class RestCsrfProtectionTest {
         )
     }
 
+    /**
+     * The token is checked for every state changing call of a session, whatever the client claims to be: a
+     * request without the `X-PF-Frontend` header used to skip the check.
+     */
+    @Test
+    fun tokenIsRequiredForEveryStateChangingCallOfASession() {
+        val protection = createProtection()
+        Assertions.assertFalse(
+            protection.checkRequest(mockSessionRequest("POST", token = null), mockResponse(), authInfo()),
+            "POST without token and without the X-PF-Frontend header must be denied.",
+        )
+        Assertions.assertFalse(
+            protection.checkRequest(mockSessionRequest("DELETE", token = "x".repeat(TOKEN.length)), mockResponse(), authInfo()),
+            "Wrong token must be denied.",
+        )
+        Assertions.assertTrue(
+            protection.checkRequest(mockSessionRequest("POST", token = TOKEN), mockResponse(), authInfo()),
+            "POST with the token of the session is allowed.",
+        )
+        Assertions.assertTrue(
+            protection.checkRequest(mockSessionRequest("GET", token = null), mockResponse(), authInfo()),
+            "A GET carries no token (and must change nothing).",
+        )
+        Assertions.assertTrue(
+            protection.checkRequest(
+                mockSessionRequest("POST", token = null), mockResponse(),
+                authInfo().also { it.loggedInByAuthenticationToken = true },
+            ),
+            "A rest client authenticated by an access token doesn't rely on the session cookie.",
+        )
+    }
+
+    private fun createProtection(): RestCsrfProtection {
+        val protection = RestCsrfProtection()
+        RestCsrfProtection::class.java.getDeclaredField("sessionCsrfService").let {
+            it.isAccessible = true
+            it.set(protection, SessionCsrfService())
+        }
+        return protection
+    }
+
+    private fun mockSessionRequest(method: String, token: String?): HttpServletRequest {
+        val session = Mockito.mock(HttpSession::class.java)
+        Mockito.`when`(session.getAttribute(Mockito.anyString())).thenReturn(TOKEN)
+        val request = mockRequest("same-origin")
+        Mockito.`when`(request.method).thenReturn(method)
+        Mockito.`when`(request.requestURI).thenReturn("/rs/book/saveorupdate")
+        Mockito.`when`(request.getSession(false)).thenReturn(session)
+        Mockito.`when`(request.getHeader(Mockito.eq(RestCsrfProtection.CSRF_TOKEN_HEADER))).thenReturn(token)
+        return request
+    }
+
+    private fun mockResponse(): HttpServletResponse {
+        val response = Mockito.mock(HttpServletResponse::class.java)
+        Mockito.`when`(response.writer).thenReturn(PrintWriter(StringWriter()))
+        return response
+    }
+
+    private fun authInfo(): RestAuthenticationInfo {
+        return RestAuthenticationInfo(Mockito.mock(HttpServletRequest::class.java), mockResponse())
+    }
+
     private fun mockRequest(secFetchSite: String?): HttpServletRequest {
         val request = Mockito.mock(HttpServletRequest::class.java)
         Mockito.`when`(request.getHeader(Mockito.eq(RestCsrfProtection.SEC_FETCH_SITE_HEADER)))
             .thenReturn(secFetchSite)
         return request
+    }
+
+    companion object {
+        private val TOKEN = "a".repeat(SessionCsrfService.TOKEN_LENGTH)
     }
 }
