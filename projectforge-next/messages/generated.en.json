@@ -893,8 +893,7 @@
           "info": "This color is used for vacations chosen in view settings (gear).\n\nIf you wish different colors for different vacations of people and/or teams, please simply create a new vacation calendar with groups and people [here](/next/teamCal/new)."
         }
       },
-      "intro": "Please note: You may customize the colors of other calendars by simply clicking one calendar pill in the calendar chooser at the top of the calendar page.",
-      "title": "Calendar settings"
+      "intro": "Please note: You may customize the colors of other calendars by simply clicking one calendar pill in the calendar chooser at the top of the calendar page."
     },
     "short": {
       "yearToDate": "Y→"
@@ -1145,6 +1144,11 @@
   "edit": "Edit",
   "email": "E-mail",
   "emptyInBrackets": "<empty>",
+  "entityRefs": {
+    "paste": {
+      "foreign": "The clipboard holds no entries of this kind."
+    }
+  },
   "error": {
     "_": "An error occurs: {arg0}",
     "endDateBeforeBeginDate": "End date can't be before begin date.",
@@ -1200,6 +1204,29 @@
       "contributionMargin": {
         "_": "Contribution margin",
         "bookingImportEnd": "Accounting records are imported up to {arg0}. The later months (lighter) are preliminary: invoices as revenue, time sheets × hourly rate as costs.",
+        "breakdown": {
+          "calculated": "The values of orders and structure elements are calculated, as the accounting records know the project (kost2) only: revenue from the invoice positions of the order positions, costs from the time sheets × hourly rate ({arg0}). Time sheets go to the order positions of the nearest structure element upwards. What can''t be assigned, and the difference to the accounting records, stays with the project as residual, so the rows of a project add up to its contribution margin.",
+          "chart": "Contribution margin monthly: {arg0}",
+          "column": {
+            "order": "Project / order",
+            "task": "Project / structure element"
+          },
+          "empty": "No revenue or costs found.",
+          "hourlyRateMissing": "No hourly rate is configured (Administration → Configuration), so the orders and structure elements have no costs of time sheets.",
+          "orders": "Orders",
+          "residual": {
+            "_": "Not assignable",
+            "accounting": {
+              "_": "Difference to accounting: {arg0}",
+              "tooltip": "E.g. other costs on the cost units of the project (external services, travel expenses), salaries instead of the hourly rate, invoices booked on other projects."
+            },
+            "invoices": "Invoices without order: {arg0}",
+            "invoicesTask": "Invoices without structure element: {arg0}",
+            "timesheets": "Time sheets without order: {arg0}"
+          },
+          "selectRow": "Select a row to see its months in the chart.",
+          "tasks": "Structure elements"
+        },
         "bubbles": {
           "_": "Contribution margin bubbles",
           "anonymous": "Other projects (anonymous)",
@@ -1222,7 +1249,7 @@
           },
           "own": "Own projects",
           "projectCount": "Projects",
-          "projects": {
+          "showTitles": {
             "_": "Show titles",
             "tooltip": "Labels all bubbles (even if there are many) with their short title only, instead of name and DB %: the name of the group or customer, for a single project its short name (else its name)."
           },
@@ -4434,7 +4461,8 @@
     "state": {
       "_": "State",
       "finished": "Finished",
-      "running": "Running"
+      "running": "Running",
+      "template": "Template"
     },
     "template": {
       "_": "Template",

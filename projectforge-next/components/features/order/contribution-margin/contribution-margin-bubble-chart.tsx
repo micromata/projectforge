@@ -41,17 +41,18 @@ const MAX_LABELLED_BUBBLES = 15;
 /**
  * The contribution margin bubble chart, as controlling built it in Excel: revenue on the x axis, DB % on the y
  * axis over the red/yellow bands and the target line, the costs as the size of the bubble, coloured by business
- * unit. The own bubbles carry "name; DB %" (if not too many) or, on request, their short title
- * (always); the anonymous ones of the other projects are pale and unlabelled. A bubble without (or with negative) revenue sits on the 0 line, its tooltip has the real value.
+ * unit. The own bubbles carry "name; DB %" (if not too many) or, on request, their short title (always); the
+ * anonymous ones of the other projects are pale and unlabelled. A bubble without (or with negative) revenue sits
+ * on the 0 line, its tooltip has the real value.
  */
 export function ContributionMarginBubbleChart({
   data,
-  showProjects = false,
+  showTitles = false,
   className = "h-[30rem] w-full",
 }: {
   data: ContributionMarginBubbles;
   /** Whether the labels are the short titles (instead of name and DB %), even for many bubbles. */
-  showProjects?: boolean;
+  showTitles?: boolean;
   className?: string;
 }) {
   const t = useTranslations("fibu.auftrag.contributionMargin");
@@ -67,12 +68,12 @@ export function ContributionMarginBubbleChart({
     [t]
   );
   const rows = useMemo(
-    () => bubbleRows(data.bubbles, ctx, showProjects),
-    [data, ctx, showProjects]
+    () => bubbleRows(data.bubbles, ctx, showTitles),
+    [data, ctx, showTitles]
   );
   const own = rows.filter((row) => row.own);
   const others = rows.filter((row) => !row.own);
-  const labelled = showProjects || own.length <= MAX_LABELLED_BUBBLES;
+  const labelled = showTitles || own.length <= MAX_LABELLED_BUBBLES;
   const xScale = useMemo(() => niceScale(rows.map((row) => row.x)), [rows]);
   const yScale = useMemo(
     () => bubbleYScale(rows, data.targetPercentage),
