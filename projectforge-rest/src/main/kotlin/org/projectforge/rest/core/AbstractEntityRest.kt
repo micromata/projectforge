@@ -537,8 +537,7 @@ constructor(
      *
      * @return [ListMetaData].
      */
-    // State changing: POST. GET only for the legacy React app, drop it together with the app.
-    @RequestMapping("filter/select", method = [RequestMethod.POST, RequestMethod.GET])
+    @PostMapping("filter/select")
     open fun selectFavoriteFilter(
         request: HttpServletRequest,
         @RequestParam("id", required = true) id: Long
@@ -567,8 +566,7 @@ constructor(
     /**
      * @return new filterFavorites
      */
-    // State changing: POST. GET only for the legacy React app, drop it together with the app.
-    @RequestMapping("filter/rename", method = [RequestMethod.POST, RequestMethod.GET])
+    @PostMapping("filter/rename")
     fun renameFavoriteFilter(
         @RequestParam("id", required = true) id: Long,
         @RequestParam("newName", required = true) newName: String
@@ -609,8 +607,7 @@ constructor(
     /**
      * @return The new list of filterFavorites (id's with titles) without the deleted filter.
      */
-    // State changing: POST. GET only for the legacy React app, drop it together with the app.
-    @RequestMapping("filter/delete", method = [RequestMethod.POST, RequestMethod.GET])
+    @PostMapping("filter/delete")
     fun deleteFavoriteFilter(@RequestParam("id", required = true) id: Long): Map<String, Any> {
         val favorites = getFilterFavorites()
         favorites.remove(id)
@@ -620,8 +617,7 @@ constructor(
     /**
      * Resets the current filter from the server.
      */
-    // State changing: POST. GET only for the legacy React app, drop it together with the app.
-    @RequestMapping("filter/reset", method = [RequestMethod.POST, RequestMethod.GET])
+    @PostMapping("filter/reset")
     fun resetListFilter(): ResponseAction {
         saveCurrentFilter(newMagicFilter())
         agGridSupport.resetGridState(category)
@@ -632,8 +628,7 @@ constructor(
     /**
      * The current filter will be reset and returned.
      */
-    // State changing: POST. GET only for the legacy React app, drop it together with the app.
-    @RequestMapping(RestPaths.FILTER_RESET, method = [RequestMethod.POST, RequestMethod.GET])
+    @PostMapping(RestPaths.FILTER_RESET)
     fun filterReset(): MagicFilter {
         val filter = getCurrentFilter()
         filter.reset()
@@ -1364,8 +1359,7 @@ constructor(
      * Rebuilds the index by the search engine for the newest entries.
      * @see [BaseDao.rebuildDatabaseIndex4NewestEntries]
      */
-    // State changing: POST. GET only for the legacy React app, drop it together with the app.
-    @RequestMapping("reindexNewest", method = [RequestMethod.POST, RequestMethod.GET])
+    @PostMapping("reindexNewest")
     fun reindexNewest(request: HttpServletRequest): ResponseAction {
         startReindexOrRunIt(request, full = false, adminRequired = false)?.let { return it }
         baseDao.rebuildDatabaseIndex4NewestEntries()
@@ -1380,8 +1374,7 @@ constructor(
      * be here.
      * @see [BaseDao.rebuildDatabaseIndex]
      */
-    // State changing: POST. GET only for the legacy React app, drop it together with the app.
-    @RequestMapping("reindexFull", method = [RequestMethod.POST, RequestMethod.GET])
+    @PostMapping("reindexFull")
     fun reindexFull(request: HttpServletRequest): ResponseAction {
         // An admin's run stays admin-only to watch and cancel; a regular user's (small) run is their own.
         val adminRequired = accessChecker.isLoggedInUserMemberOfAdminGroup

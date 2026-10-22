@@ -72,7 +72,6 @@ class RestAccessCheckTest : AbstractTestBase() {
         logon(user)
         assertFalse(taskServicesRest.selectRecent(taskId).any { it.id == taskId })
         assertThrows<AccessException> { taskFavoritesRest.createPost(taskId, "fav") }
-        assertThrows<AccessException> { taskFavoritesRest.new(taskId, "fav") }
         assertThrows<AccessException> { taskFavoritesRest.updatePost(-1L, taskId) }
     }
 }

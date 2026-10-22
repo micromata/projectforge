@@ -66,7 +66,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.bind.annotation.RequestMethod
 
 private val log = KotlinLogging.logger {}
 
@@ -344,16 +343,14 @@ class ToDoEntityRest : AbstractDTOEntityRest<ToDoDO, ToDo, ToDoDao>(
     }
 
     @AccessChecked("own user only (user prefs of the logged-in user)")
-    // State changing: POST. GET only for the legacy React app, drop it together with the app.
-    @RequestMapping("$TEMPLATES_PATH/delete", method = [RequestMethod.POST, RequestMethod.GET])
+    @PostMapping("$TEMPLATES_PATH/delete")
     fun deleteTemplate(@RequestParam("id") id: Long): Map<String, Any> {
         toDoFavoritesService.delete(id)
         return getTemplates()
     }
 
     @AccessChecked("own user only (user prefs of the logged-in user)")
-    // State changing: POST. GET only for the legacy React app, drop it together with the app.
-    @RequestMapping("$TEMPLATES_PATH/rename", method = [RequestMethod.POST, RequestMethod.GET])
+    @PostMapping("$TEMPLATES_PATH/rename")
     fun renameTemplate(@RequestParam("id") id: Long, @RequestParam("newName") newName: String): Map<String, Any> {
         toDoFavoritesService.rename(id, newName)
         return getTemplates()

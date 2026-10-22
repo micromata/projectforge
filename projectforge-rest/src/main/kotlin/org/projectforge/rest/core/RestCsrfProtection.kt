@@ -46,9 +46,8 @@ private val log = KotlinLogging.logger {}
  * including one triggered by a foreign site. Two independent barriers guard against that:
  *
  * 1. **[checkSameSite] (all clients, all methods).** `Sec-Fetch-Site` is set by the browser itself and
- *    cannot be forged by the calling page, so it is the only barrier that also covers the legacy
- *    state-changing `@GetMapping`s (`filter/delete`, `filter/rename`, `filterReset`, `cancel`, …),
- *    which are triggerable by a plain `<img src>` and carry no token anywhere.
+ *    cannot be forged by the calling page, so it also covers a GET, which carries no token. State changing
+ *    endpoints are POST/PUT/DELETE only; a GET triggerable by a plain `<img src>` must change nothing.
  * 2. **[checkToken] (projectforge-next, state-changing methods).** The session's token from
  *    [SessionCsrfService], sent by projectforge-next in the [CSRF_TOKEN_HEADER]. Covers browsers too old
  *    to send `Sec-Fetch-Site`. A header is used rather than a body field: it also works for calls
@@ -100,10 +99,8 @@ open class RestCsrfProtection {
      * browsers) - those fall through to the token check, which is why this must not be the only barrier.
      *
      * Residual risk: a browser too old to send the header and not identifying itself as next
-     * (`X-PF-Frontend`) passes both barriers. The `SameSite=Lax` session cookie covers that for POSTs;
-     * what stays open are the legacy state-changing `@GetMapping`s (`filter/delete`, `filter/rename`,
-     * `filterReset`, `cancel`), which the cookie's Lax mode lets through. Fixing that means turning them
-     * into POSTs, which touches the React frontend as well.
+     * (`X-PF-Frontend`) passes both barriers. The `SameSite=Lax` session cookie covers that for POSTs,
+     * which is why a state changing endpoint must not accept GET (Lax lets a top-level GET through).
      */
     private fun checkSameSite(request: HttpServletRequest): Boolean {
         return isSameSiteRequest(request)

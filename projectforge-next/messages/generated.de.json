@@ -1141,6 +1141,11 @@
   "edit": "Bearbeiten",
   "email": "E-Mail",
   "emptyInBrackets": "<leer>",
+  "entityRefs": {
+    "paste": {
+      "foreign": "Die Zwischenablage enthält keine Einträge dieser Art."
+    }
+  },
   "error": {
     "_": "Ein Fehler trat auf: {arg0}",
     "endDateBeforeBeginDate": "Das Endedatum darf nicht vor dem Anfangsdatum liegen.",
@@ -1196,6 +1201,29 @@
       "contributionMargin": {
         "_": "Deckungsbeitrag",
         "bookingImportEnd": "Buchungssätze sind bis {arg0} importiert. Die späteren Monate (heller) sind vorläufig: Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
+        "breakdown": {
+          "calculated": "Die Werte der Aufträge und Strukturelemente sind kalkulatorisch, weil die Buchungssätze nur das Projekt (Kost2) kennen: Erlöse aus den Rechnungspositionen der Auftragspositionen, Kosten aus den Zeitberichten × Stundensatz ({arg0}). Zeitberichte gehen an die Auftragspositionen des nächsten Strukturelements darüber. Was sich nicht zuordnen lässt, und die Abweichung zur Buchhaltung, bleiben als Rest beim Projekt; die Zeilen eines Projekts ergeben so dessen Deckungsbeitrag.",
+          "chart": "Deckungsbeitrag monatlich: {arg0}",
+          "column": {
+            "order": "Projekt / Auftrag",
+            "task": "Projekt / Strukturelement"
+          },
+          "empty": "Keine Erlöse oder Kosten gefunden.",
+          "hourlyRateMissing": "Es ist kein Stundensatz konfiguriert (Administration → Konfiguration), daher haben Aufträge und Strukturelemente keine Kosten aus Zeitberichten.",
+          "orders": "Aufträge",
+          "residual": {
+            "_": "Nicht zuordenbar",
+            "accounting": {
+              "_": "Abweichung zur Buchhaltung: {arg0}",
+              "tooltip": "Z. B. sonstige Kosten auf den Kostenträgern des Projekts (Fremdleistungen, Reisekosten), Gehälter statt Stundensatz, auf andere Projekte gebuchte Rechnungen."
+            },
+            "invoices": "Rechnungen ohne Auftrag: {arg0}",
+            "invoicesTask": "Rechnungen ohne Strukturelement: {arg0}",
+            "timesheets": "Zeitberichte ohne Auftrag: {arg0}"
+          },
+          "selectRow": "Eine Zeile auswählen, um ihre Monate im Diagramm zu sehen.",
+          "tasks": "Strukturelemente"
+        },
         "config": {
           "addAssignment": "Zuordnung hinzufügen",
           "bands": "Rot unter {arg0} %, gelb unter {arg1} %, grün ab {arg1} %.",

@@ -47,9 +47,9 @@ export function useGridStateReset(
     }
     try {
       await suspendPersistence(async () => {
-        // A GET carries no body at all (see callDynamicAction), so the postData is
-        // only there to satisfy the signature.
-        const result = await callDynamicAction("GET", url, { data: {} });
+        // POST, as it drops a stored preference; the endpoint reads no body, the postData
+        // is only there to satisfy the signature.
+        const result = await callDynamicAction("POST", url, { data: {} });
         if (result.kind !== "action") return;
         const variables = result.response.variables ?? {};
         // Applied inside the suspension: the state update it triggers must not queue a write of its

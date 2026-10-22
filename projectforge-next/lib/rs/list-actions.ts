@@ -3,8 +3,8 @@
  *
  * This app declares the gear menu itself (see ListGearMenu), so the urls live here.
  *
- * Both are GETs answering with a plain `ResponseAction` - no `PostData` body and no HTTP 406 -
- * so they go through `request()` instead of the raw protocol of ./dynamic.ts. The two re-index calls
+ * Both are POSTs without a body answering with a plain `ResponseAction` - no `PostData` and no
+ * HTTP 406 - so they go through `request()` instead of the raw protocol of ./dynamic.ts. The two re-index calls
  * answer this client with a job id instead of a finished run; ./jobs.ts covers the rest.
  */
 

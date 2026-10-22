@@ -803,8 +803,11 @@ gelöscht.
   `projectforge-rest/.../ui` bleibt, ist Wire-Format für next (`ResponseAction`, `ValidationError`, Filter-Elemente,
   `UISelectValue`, `AutoCompletion`, AG-Grid-Spalten des Aufgabenbaums) und die Feldbeschreibung aus
   `ElementsRegistry` (Validierung, Massenänderung, Metadaten-Generator).
-- Offen: zustandsändernde Endpunkte, die GET nur noch für die React-App annehmen („drop it together with the
-  app“), auf POST beschränken; ggf. `NEXT_APP_PATH` → `/` als Default.
+- ✅ Zustandsändernde Endpunkte, die GET nur für die React-App annahmen (Filter, Kalenderfilter, Vorlagen,
+  Reindex, Logout, Grid-Reset des Aufgabenbaums), sind POST-only; die GET-Dubletten in `TaskFavoritesRest` sind weg.
+- Offen: die öffentlichen `cancel`-Endpunkte (`nextLogin`, `next2FALogin`, Passwort-Reset) melden per GET ab, und
+  `RestCsrfProtection`/`RestAuthenticationUtils` unterscheiden noch next von „UILayout-Clients“; ggf.
+  `NEXT_APP_PATH` → `/` als Default.
 - Aufräumen: `lib/api-client.ts` (unbenutzter Zweit-Client),
   `components/features/book/mock-data.ts` (oder für `msw`-Tests nutzen – bislang **keine**
   Tests; `filter-fns.ts`/`lib/menu-url.ts` wären ein guter Anfang),
