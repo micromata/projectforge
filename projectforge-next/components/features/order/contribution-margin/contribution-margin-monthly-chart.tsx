@@ -22,11 +22,11 @@ import { SeriesLegendContent } from "@/components/shared/chart/series-legend-con
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency, formatPercentage } from "@/lib/format";
 import { CHART_BAR_FILL_OPACITY } from "@/lib/charts/series";
-import type { ContributionMarginData } from "@/lib/rs/order";
 import { formatChartMonth } from "../forecast-chart/order-forecast-series";
 import {
   amountScale,
   BAR_KEYS,
+  type ContributionMarginChartSource,
   contributionMarginChartConfig,
   contributionMarginChartRows,
   PERCENT_DASH,
@@ -49,10 +49,13 @@ import { ContributionMarginTargetBands } from "./contribution-margin-target-band
 export function ContributionMarginMonthlyChart({
   data,
   className = "h-[27rem] w-full",
+  ariaLabel,
 }: {
-  data: ContributionMarginData;
+  data: ContributionMarginChartSource;
   /** Size of the chart, e.g. a dashboard tile's height step. */
   className?: string;
+  /** The accessible name, the title of the monthly tile by default. */
+  ariaLabel?: string;
 }) {
   const t = useTranslations("fibu.auftrag.contributionMargin");
   const ctx = useFormatContext();
@@ -84,7 +87,7 @@ export function ContributionMarginMonthlyChart({
       config={config}
       className={className}
       role="img"
-      aria-label={t("monthly")}
+      aria-label={ariaLabel ?? t("monthly")}
     >
       <ComposedChart
         data={rows}

@@ -27,6 +27,10 @@ import jakarta.annotation.PostConstruct
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AuftragDO
+import org.projectforge.business.fibu.AuftragsCache
+import org.projectforge.business.fibu.AuftragsStatus
+import org.projectforge.business.fibu.KontoDO
+import org.projectforge.business.fibu.OrderPositionInfo
 import org.projectforge.business.fibu.OrderAccessFacts
 import org.projectforge.business.fibu.OrderSelectAccess
 import org.projectforge.business.fibu.customergroup.CustomerGroupService
@@ -37,8 +41,10 @@ import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.fibu.RechnungStatus
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.BuchungssatzDao
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginAllocator.GroupKey
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.scripting.support.BookedInvoices
+import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserGroupCache
@@ -79,6 +85,9 @@ private val log = KotlinLogging.logger {}
 @Service
 open class ContributionMarginService {
   @Autowired
+  private lateinit var auftragsCache: AuftragsCache
+
+  @Autowired
   private lateinit var buchungssatzDao: BuchungssatzDao
 
   @Autowired
@@ -98,6 +107,9 @@ open class ContributionMarginService {
 
   @Autowired
   private lateinit var rechnungDao: RechnungDao
+
+  @Autowired
+  private lateinit var taskTree: TaskTree
 
   @Autowired
   private lateinit var timesheetDao: TimesheetDao
@@ -188,14 +200,7 @@ open class ContributionMarginService {
     val config = config()
     val bookingImportEnd = bookingImportEnd()
     val calculator = ContributionMarginCalculator(startDate, bookingImportEnd, PFDay.now().localDate)
-    val context = ContributionMarginCache.Context(
-      startMonth = calculator.start,
-      today = calculator.today,
-      bookingImportEnd = bookingImportEnd,
-      config = Configuration.instance.getStringValue(ConfigurationParam.FIBU_CONTRIBUTION_MARGIN),
-      zoneId = ThreadLocalUserContext.zoneId,
-      locale = ThreadLocalUserContext.locale,
-    )
+    val context = context(calculator, bookingImportEnd)
     val parts = contributionMarginCache.get(context, projectIds.toSet()) { missing ->
       loadParts(missing, calculator, bookingImportEnd, config)
     }.values
@@ -210,6 +215,218 @@ open class ContributionMarginService {
       .sortedWith(compareBy({ it.date }, { it.number }, { it.positionNumber }))
     return ContributionMarginResult(data, ContributionMarginDetails(details.months, invoices, details.timesheets))
   }
+
+  /**
+   * The contribution margin of the given projects broken down by orders or tasks (Strukturelemente), for the same
+   * period and comparison years as [calculate]: the calculated values of the orders or tasks
+   * ([allocatedEntries]) and the residual of each project ([ContributionMarginAllocator.breakdown]). The access to
+   * the projects must be checked by the caller ([allowedProjectIds]).
+   */
+  open fun calculateBreakdown(
+    projectIds: Collection<Long>,
+    startDate: LocalDate,
+    level: ContributionMarginLevel,
+  ): ContributionMarginBreakdown {
+    val config = config()
+    val bookingImportEnd = bookingImportEnd()
+    val calculator = ContributionMarginCalculator(startDate, bookingImportEnd, PFDay.now().localDate)
+    val context = context(calculator, bookingImportEnd)
+    val ids = projectIds.toSet()
+    val projectEntries = contributionMarginCache.get(context, ids) { missing ->
+      loadParts(missing, calculator, bookingImportEnd, config)
+    }.values.flatMap { it.entries }
+    val allocatedEntries = contributionMarginCache.get(context.copy(breakdown = true), ids) { missing ->
+      val entries = allocatedEntries(missing, calculator.prevPrevYearBegin, calculator.periodValuesEnd, config)
+        .groupBy { it.projectId }
+      missing.associateWith { ContributionMarginCache.ProjectPart(entries[it].orEmpty(), emptyList()) }
+    }.values.flatMap { it.entries }
+    val data = calculator.calculate(projectEntries, ::projectInfo, config.effectiveHourlyRate, config)
+    // Many entries share their task (time sheets), so the paths are looked up once per task and project.
+    val paths = mutableMapOf<Pair<Long?, Long>, List<GroupKey>>()
+    val path: (ContributionMarginEntry) -> List<GroupKey> = when (level) {
+      ContributionMarginLevel.ORDER -> { entry -> orderPath(entry.orderPositionId) }
+      ContributionMarginLevel.TASK -> { entry ->
+        paths.getOrPut(entry.taskId to entry.projectId) { taskPath(entry.taskId, entry.projectId) }
+      }
+    }
+    val rows = ContributionMarginAllocator.breakdown(
+      calculator, projectEntries, allocatedEntries, path, ::projectInfo, ::groupLabel, ::groupSortKey,
+    )
+    return ContributionMarginBreakdown(
+      level = level,
+      months = data.months,
+      preliminary = data.preliminary,
+      lastMonth = data.lastMonth,
+      valuesEnd = data.valuesEnd,
+      hourlyRate = data.hourlyRate,
+      targetPercentage = data.targetPercentage,
+      redThreshold = data.redThreshold,
+      rows = rows,
+    )
+  }
+
+  private fun context(calculator: ContributionMarginCalculator, bookingImportEnd: LocalDate?) =
+    ContributionMarginCache.Context(
+      startMonth = calculator.start,
+      today = calculator.today,
+      bookingImportEnd = bookingImportEnd,
+      config = Configuration.instance.getStringValue(ConfigurationParam.FIBU_CONTRIBUTION_MARGIN),
+      zoneId = ThreadLocalUserContext.zoneId,
+      locale = ThreadLocalUserContext.locale,
+    )
+
+  /**
+   * The calculated amounts of the given projects in [from]..[until] with their order positions and tasks:
+   * - revenue: the positions of the issued invoices, at the booking date if booked (possibly in another month than
+   *   the invoice's date, as in the accounting records), else at the invoice's date; with the invoiced order
+   *   position and its task,
+   * - costs: the time sheets × the configured hourly rate (none without one), assigned to the order positions of
+   *   the nearest task upwards ([ContributionMarginAllocator.nearestPositions]).
+   */
+  private fun allocatedEntries(
+    projectIds: Collection<Long>,
+    from: LocalDate,
+    until: LocalDate,
+    config: ContributionMarginConfig,
+  ): List<ContributionMarginEntry> {
+    if (until < from) {
+      return emptyList()
+    }
+    // An invoice may be booked into a month before or after its date.
+    val bookedInvoices = bookedInvoices(from.minusMonths(2), until, config.isRevenueAccount)
+    val invoiceEntries = selectInvoices(projectIds, from.minusMonths(1), until.plusMonths(1))
+      .filter { it.status != RechnungStatus.GEPLANT }
+      .flatMap { invoice ->
+        val projectId = invoice.projekt?.id ?: return@flatMap emptyList()
+        val date = bookedInvoices.bookedDate(invoice)?.localDate ?: invoice.datum ?: return@flatMap emptyList()
+        if (date < from || date > until) {
+          return@flatMap emptyList()
+        }
+        rechnungCache.getRechnungInfo(invoice.id)?.positions.orEmpty().filter { !it.deleted }.map { pos ->
+          val orderPosition = rechnungCache.getOrderPositionInfoOfInvoicePos(pos.id)
+          ContributionMarginEntry(
+            projectId,
+            date,
+            revenue = pos.netSum,
+            type = ContributionMarginEntryType.INVOICE,
+            text = "Invoice #${invoice.nummer}.${pos.number}",
+            orderPositionId = orderPosition?.id,
+            taskId = orderPosition?.taskId,
+          )
+        }
+      }
+    val hourlyRate = config.effectiveHourlyRate ?: return invoiceEntries
+    val positionsOfTask = mutableMapOf<Long, List<ContributionMarginAllocator.Position>>()
+    val nearest = mutableMapOf<Pair<Long?, Long>, List<ContributionMarginAllocator.Position>>()
+    val timesheetEntries = timesheetEntries(kost2ToProject(projectIds, config), from, until, hourlyRate)
+      .flatMap { entry ->
+        val positions = nearest.getOrPut(entry.taskId to entry.projectId) {
+          ContributionMarginAllocator.nearestPositions(
+            entry.taskId,
+            entry.projectId,
+            parentOf = { taskTree.getTaskNodeById(it)?.parentId },
+            positionsOf = { taskId ->
+              positionsOfTask.getOrPut(taskId) {
+                taskTree.getOrderPositionEntries(taskId).orEmpty().mapNotNull(::position)
+              }
+            },
+          )
+        }
+        ContributionMarginAllocator.allocate(entry, positions)
+      }
+    log.info {
+      "Contribution margin breakdown of ${projectIds.size} projects in $from..$until: ${invoiceEntries.size} invoice positions, ${timesheetEntries.size} time sheet entries."
+    }
+    return invoiceEntries + timesheetEntries
+  }
+
+  private fun position(info: OrderPositionInfo): ContributionMarginAllocator.Position? {
+    val id = info.id ?: return null
+    val order = info.auftrag
+    return ContributionMarginAllocator.Position(
+      id = id,
+      orderId = info.auftragId,
+      projectId = order?.projektId,
+      personDays = info.personDays,
+      netSum = info.dbNetSum,
+      inactive = info.deleted || order?.deleted == true || info.status in INACTIVE_STATUS
+          || order?.status in INACTIVE_STATUS,
+    )
+  }
+
+  /**
+   * The invoices booked on revenue accounts in the booking periods of [from]..[until] (of all projects, see
+   * [load]). Only the few columns needed are loaded, as these are the records of more than two years.
+   */
+  private fun bookedInvoices(from: LocalDate, until: LocalDate, isRevenueAccount: (Int) -> Boolean): BookedInvoices {
+    val records = persistenceService.executeQuery(
+      "select t.beleg, t.year, t.month, t.datum, k.nummer from BuchungssatzDO t join t.konto k" +
+          " where t.deleted = false and t.year * 100 + t.month between :from and :until",
+      Array<Any?>::class.java,
+      "from" to from.year * 100 + from.monthValue,
+      "until" to until.year * 100 + until.monthValue,
+    ).map { row ->
+      BuchungssatzDO().also { record ->
+        record.beleg = row[0] as String?
+        record.year = row[1] as Int?
+        record.month = row[2] as Int?
+        record.datum = row[3] as LocalDate?
+        record.konto = KontoDO().also { it.nummer = row[4] as Int? }
+      }
+    }
+    return BookedInvoices(records, isRevenueAccount)
+  }
+
+  /** The order and the order position of the entry; empty without an order position. */
+  private fun orderPath(orderPositionId: Long?): List<GroupKey> {
+    val position = auftragsCache.getOrderPositionInfo(orderPositionId ?: return emptyList()) ?: return emptyList()
+    val orderId = position.auftragId ?: return emptyList()
+    return listOf(
+      GroupKey(ContributionMarginRowType.ORDER, orderId),
+      GroupKey(ContributionMarginRowType.ORDER_POSITION, position.id ?: return emptyList()),
+    )
+  }
+
+  /**
+   * The tasks from the task of the project down to [taskId]; from the top of the task tree on if the task isn't
+   * below the project's one (or the project has none). Empty without a task.
+   */
+  private fun taskPath(taskId: Long?, projectId: Long): List<GroupKey> {
+    taskId ?: return emptyList()
+    val projectTaskId = caches.getProjekt(projectId)?.task?.id
+    // Below the ancestor: the path starts with its child; otherwise with a child of the root.
+    val path = taskTree.getPath(taskId, projectTaskId).mapNotNull { it.id }
+    val ids = when {
+      projectTaskId == null -> path
+      taskId == projectTaskId -> listOf(projectTaskId)
+      path.firstOrNull()?.let { taskTree.getTaskNodeById(it)?.parentId } == projectTaskId -> listOf(projectTaskId) + path
+      else -> path
+    }
+    return ids.map { GroupKey(ContributionMarginRowType.TASK, it) }
+  }
+
+  private fun groupLabel(key: GroupKey): String? = when (key.type) {
+    ContributionMarginRowType.ORDER -> auftragsCache.getOrderInfo(key.id)?.let { order ->
+      listOfNotNull(order.nummer?.toString(), order.titel).joinToString(" ")
+    }
+
+    ContributionMarginRowType.ORDER_POSITION -> auftragsCache.getOrderPositionInfo(key.id)?.let { position ->
+      listOfNotNull("${position.auftragNummer}.${position.number}", position.titel).joinToString(" ")
+    }
+
+    ContributionMarginRowType.TASK -> taskTree.getTaskById(key.id)?.title
+    else -> null
+  }
+
+  /** Orders and positions by their numbers, tasks by their titles. */
+  private fun groupSortKey(key: GroupKey): String = when (key.type) {
+    ContributionMarginRowType.ORDER -> auftragsCache.getOrderInfo(key.id)?.nummer?.let { "%010d".format(it) }
+    ContributionMarginRowType.ORDER_POSITION -> auftragsCache.getOrderPositionInfo(key.id)?.number
+      ?.let { "%05d".format(it) }
+
+    ContributionMarginRowType.TASK -> taskTree.getTaskById(key.id)?.title?.lowercase()
+    else -> null
+  } ?: ""
 
   /** The entries and invoice rows of [projectIds], one part per project (empty ones too). */
   private fun loadParts(
@@ -429,6 +646,7 @@ open class ContributionMarginService {
           type = ContributionMarginEntryType.TIMESHEET,
           kost2Id = kost2Id,
           text = "Timesheet ${user?.getFullname()}: ${PFDay.from(date).format()}",
+          taskId = timesheet.task?.id,
         )
       }
     }
@@ -495,5 +713,8 @@ open class ContributionMarginService {
     private const val CHUNK_SIZE = 1000
 
     private const val MAX_ROWS = 1_000_000
+
+    /** Order positions of these (or of orders with these) get time sheets only if a task has no others. */
+    private val INACTIVE_STATUS = setOf(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT)
   }
 }

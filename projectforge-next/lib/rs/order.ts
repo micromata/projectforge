@@ -594,6 +594,91 @@ export function fetchContributionMarginDetails(
   );
 }
 
+/** What the contribution margin is broken down by below the projects (`ContributionMarginLevel`). */
+export type ContributionMarginLevel = "ORDER" | "TASK";
+
+export type ContributionMarginRowType =
+  | "PROJECT"
+  | "ORDER"
+  | "ORDER_POSITION"
+  | "TASK"
+  | "RESIDUAL";
+
+/** The monthly values of a row of the breakdown, as in ContributionMarginData, and its sums. */
+export interface ContributionMarginSeries {
+  revenue: number[];
+  /** Positive amounts. */
+  costs: number[];
+  profit: number[];
+  percentage: (number | null)[];
+  prevYear: number[];
+  prevYearPercentage: (number | null)[];
+  sums: ContributionMarginSums;
+}
+
+/**
+ * What the residual of a project consists of in the period (`ContributionMarginResidual`): the contribution
+ * margin of the project less the calculated values of its orders or tasks.
+ */
+export interface ContributionMarginResidual {
+  invoicesWithoutAssignment: number;
+  /** Positive amount; always 0 by tasks. */
+  timesheetsWithoutAssignment: number;
+  /** The difference between the accounting records and the calculated values. */
+  accountingDifference: number;
+}
+
+/** One row of the breakdown, in tree order (`ContributionMarginBreakdownRow`). */
+export interface ContributionMarginBreakdownRow {
+  id: string;
+  parentId: string | null;
+  type: ContributionMarginRowType;
+  depth: number;
+  hasChildren: boolean;
+  projectId: number;
+  orderId?: number | null;
+  orderPositionId?: number | null;
+  taskId?: number | null;
+  /** Null for the residual. */
+  label?: string | null;
+  kost?: string | null;
+  customer?: string | null;
+  projectGroup?: string | null;
+  series: ContributionMarginSeries;
+  residual?: ContributionMarginResidual | null;
+}
+
+/** The contribution margin broken down by orders or tasks (`ContributionMarginBreakdown`). */
+export interface ContributionMarginBreakdown {
+  level: ContributionMarginLevel;
+  months: string[];
+  preliminary: boolean[];
+  lastMonth: string | null;
+  valuesEnd: string | null;
+  /** Null if no hourly rate is configured: the orders and tasks have no time sheet costs at all. */
+  hourlyRate: number | null;
+  targetPercentage: number;
+  redThreshold: number;
+  rows: ContributionMarginBreakdownRow[];
+}
+
+/**
+ * The contribution margin of the same filter and start date as {@link fetchContributionMargin}, broken down
+ * by orders or tasks. Stores neither filter nor start date.
+ */
+export function fetchContributionMarginBreakdown(
+  filter: MagicFilter,
+  settings: ContributionMarginSettings,
+  level: ContributionMarginLevel,
+  signal?: AbortSignal
+): Promise<ContributionMarginBreakdown> {
+  return request<ContributionMarginBreakdown>(
+    "/rs/order/contributionMargin/breakdown",
+    { method: "POST", body: JSON.stringify({ filter, ...settings, level }) },
+    signal
+  );
+}
+
 /** React Query key of whether the logged-in user may refresh the order caches. */
 export const REFRESH_CACHE_ACCESS_QUERY_KEY = [
   "order",
