@@ -65,11 +65,11 @@ export function ContributionMarginBubbleToolbar({
         </Select>
       </div>
       <ToolbarSwitch
-        id="contributionMarginBubbleProjects"
+        id="contributionMarginBubbleTitles"
         checked={value.showProjects}
         onChange={(showProjects) => onChange({ ...value, showProjects })}
-        label={t("projects._")}
-        tooltip={t("projects.tooltip")}
+        label={t("showTitles._")}
+        tooltip={t("showTitles.tooltip")}
       />
       <ToolbarSwitch
         id="contributionMarginBubbleOthers"

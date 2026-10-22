@@ -32,7 +32,7 @@ export function ContributionMarginBubbleLegend({
       )}
       {anonymous && (
         <Item
-          color={units[0]?.color ?? BUBBLE_OTHERS_DEFAULT_COLOR}
+          color={BUBBLE_OTHERS_DEFAULT_COLOR}
           label={t("legend.anonymous")}
           pale
         />

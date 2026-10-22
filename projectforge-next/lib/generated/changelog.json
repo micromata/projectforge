@@ -3,17 +3,29 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.0.13",
-    "date" : "2026-10-22",
+    "date" : "2026-10-23",
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Order statistics, contribution margin: bubble chart of revenue, DB % and costs (size) per project, project group, customer or customer group. On request, the other projects of the selection (e.g. of the whole business unit) are shown for comparison, anonymously and without names. The bubbles take the colours of the business units, set with the business units (customer groups page). A switch labels all bubbles with their short title instead (the group name, for a single project its short name).", "Structure tree and structure element list: column with the groups having access rights on an element (administrators only). Hovering shows the rights of each group, a click opens the access rights of this element.", "Time sheet mass update: remap the cost unit by type while every time sheet keeps its structure element, e.g. after a project was linked to it." ]
+      "items" : [ "Order statistics, contribution margin: bubble chart of revenue, DB % and costs (size) per project, project group, customer or customer group. On request, the other projects of the selection (e.g. of the whole business unit) are shown for comparison, anonymously and without names. The bubbles take the colours of the business units, set with the business units (customer groups page). A switch labels all bubbles with their short title instead (the group name, for a single project its short name).", "Fields with several entries (users, groups, employees, …): entries can be selected by sweeping over them with the mouse or by clicking, then copied (Ctrl/Cmd+C) or cut (Ctrl/Cmd+X) and pasted into another field of the same kind with Ctrl/Cmd+V, or dragged there. Ctrl/Cmd+Z undoes a change of the field.", "Structure tree and structure element list: column with the groups having access rights on an element (administrators only). Hovering shows the rights of each group, a click opens the access rights of this element.", "Time sheet mass update: remap the cost unit by type while every time sheet keeps its structure element, e.g. after a project was linked to it.", "Order statistics: the contribution margin broken down by orders and by structure elements, as a tree with a monthly chart per row. The values are calculated from the invoice positions and the time sheets × hourly rate; what can't be assigned stays with the project as residual." ]
+    }, {
+      "type" : "improved",
+      "items" : [ {
+        "title" : "Polls",
+        "items" : [ "Templates have no deadline: none is required, and none is set when saving.", "Templates have the state \"Template\" instead of \"Running\", are listed without a filter and marked with a badge; the state filter replaces the \"Templates\" filter." ]
+      } ]
     }, {
       "type" : "fixed",
       "items" : [ {
         "title" : "Import of incoming invoices",
         "items" : [ "Positions of one invoice in different currencies are converted to EUR by the rate of the invoice date instead of being taken as EUR; without a rate the invoice is marked as faulty.", "Stored invoices between two periods of the export (e.g. March for an export of January and June) are no longer offered for deletion.", "Header-only export: the rows of one invoice (one per booking line) are merged into one invoice with the total amount, instead of being offered as new invoices on every import.", "Header-only export: the internal note (column \"Interne Re.-Nr.\") is no longer appended to the invoice number, which changed back and forth with every import of the two files." ]
-      }, "Mass updates: the log window shows the updated entries again.", "Order book: the edit page no longer jumps while a field is changed." ]
+      }, "Mass updates: the log window shows the updated entries again.", "Cancellation invoices are listed with the order positions they cancel, right after the cancelled invoice (e.g. 17400 and 17400-S), also in the order and forecast exports. On the order page both are struck through; together they still count 0 as invoiced.", "Order book: the edit page no longer jumps while a field is changed." ]
+    }, {
+      "type" : "removed",
+      "items" : [ "The former React interface is removed: all its pages are part of the new interface, and old links (`/react/...`) lead there." ]
+    }, {
+      "type" : "security",
+      "items" : [ "The CSRF token is checked for every changing request of a logged-in browser session, no longer only for requests identifying themselves as the new interface; cancelling a login or password reset is accepted as POST only.", "Requests that change something (list and calendar filters, templates, search index, logout) are accepted as POST only; the GET variants of the former React interface are removed." ]
     } ]
   },
   "groups" : [ {

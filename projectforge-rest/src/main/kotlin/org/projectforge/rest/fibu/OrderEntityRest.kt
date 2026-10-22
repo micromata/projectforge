@@ -1387,7 +1387,10 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     var grouping: ContributionMarginBubbleGrouping? = null,
     /** Whether the projects the user may not see are shown as well, anonymous. */
     var includeOthers: Boolean? = null,
-    /** Whether the labels of group bubbles name their projects (only the client uses it, remembered here). */
+    /**
+     * Whether all bubbles are labelled with their short title only, "show titles" (only the client uses it,
+     * remembered here; the name is kept for the stored preferences).
+     */
     var showProjects: Boolean? = null,
   )
 

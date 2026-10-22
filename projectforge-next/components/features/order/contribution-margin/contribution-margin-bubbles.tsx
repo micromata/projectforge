@@ -105,7 +105,7 @@ function BubblesWithSettings({
         >
           <ContributionMarginBubbleChart
             data={query.data}
-            showProjects={settings.showProjects}
+            showTitles={settings.showProjects}
             className={className}
           />
         </div>
