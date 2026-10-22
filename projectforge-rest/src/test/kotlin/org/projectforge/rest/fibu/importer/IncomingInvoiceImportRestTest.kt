@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.projectforge.business.fibu.CurrencyConversionService
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.kost.KostCache
@@ -100,6 +101,7 @@ class IncomingInvoiceImportRestTest {
         setField(rest, "accessChecker", Mockito.mock(AccessChecker::class.java))
         setField(rest, "kostCache", Mockito.mock(KostCache::class.java))
         setField(rest, "kontoCache", Mockito.mock(KontoCache::class.java))
+        setField(rest, "currencyConversionService", Mockito.mock(CurrencyConversionService::class.java))
         setField(rest, "jobHandler", jobHandler)
         setField(rest, "eingangsrechnungDao", eingangsrechnungDao)
 
@@ -158,6 +160,7 @@ class IncomingInvoiceImportRestTest {
         setField(rest, "accessChecker", Mockito.mock(AccessChecker::class.java))
         setField(rest, "kostCache", Mockito.mock(KostCache::class.java))
         setField(rest, "kontoCache", Mockito.mock(KontoCache::class.java))
+        setField(rest, "currencyConversionService", Mockito.mock(CurrencyConversionService::class.java))
         setField(rest, "jobHandler", Mockito.mock(JobHandler::class.java))
         setField(rest, "eingangsrechnungDao", eingangsrechnungDao)
 

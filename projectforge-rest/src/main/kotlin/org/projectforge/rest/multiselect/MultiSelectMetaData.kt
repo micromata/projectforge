@@ -82,12 +82,6 @@ class MultiSelectMetaData(
      * on together with [supportsDelete], since a soft delete is only offered where it can be undone.
      */
     val supportsRestore: Boolean = false,
-    /**
-     * The log viewer of the user's log subscription the mass update writes to (e.g. `next/logViewer/7`), or null
-     * if the page has none (see [AbstractMultiSelectedPage.ensureUserLogSubscription]). The subscription is
-     * registered when the meta is served, so it already exists while the update runs.
-     */
-    val logViewerUrl: String? = null,
 )
 
 /**
@@ -100,7 +94,8 @@ class MultiSelectMetaData(
  * (see `MultiSelectionSupport.clear`).
  */
 class MultiSelectNavigation(
-    val url: String,
+    /** Where a cancel returns to (the list the selection came from); null for the other calls. */
+    val url: String? = null,
     /** How many entries the session holds after the call - zero after a cancel. */
     val selectedCount: Int = 0,
     /**
@@ -187,10 +182,7 @@ class MassUpdateFieldDeclaration(
 )
 
 /**
- * What a mass update did, served by [AbstractMultiSelectedPage.update].
- *
- * The layout free counterpart of the `UIAlert`s the `massUpdate` endpoint answers with: the same
- * counters and errors, as values rather than as a markdown table built server side.
+ * What a mass update (or a mass deletion/restore) did, served by [AbstractMultiSelectedPage.update].
  */
 class MassUpdateResult(
     val modifiedCounter: Int,
@@ -213,6 +205,12 @@ class MassUpdateResult(
     val downloadUrl: String? = null,
     /** The fields the update acted on, translated - what the Excel protocol is named after. */
     val changedFields: List<String> = emptyList(),
+    /**
+     * The log viewer of the user's log subscription the run wrote to (e.g. `next/logViewer/7`), or null if the
+     * page has none (see [AbstractMultiSelectedPage.ensureUserLogSubscription]). Registered by the run itself,
+     * right before it starts, so its log events are caught and the link is fresh.
+     */
+    val logViewerUrl: String? = null,
 )
 
 /** One entry a mass update failed for: how it is identified, and why it failed. */

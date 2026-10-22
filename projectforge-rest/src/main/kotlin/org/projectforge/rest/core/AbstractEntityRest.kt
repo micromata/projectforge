@@ -977,10 +977,7 @@ constructor(
     ): MultiSelectNavigation {
         val count = registerForSelection(request, filter)
         log.info { "User wants to start multiselection of $count entries." }
-        return MultiSelectNavigation(
-            url = PagesResolver.getMultiSelectionPageUrl(this::class.java, absolute = true),
-            selectedCount = count,
-        )
+        return MultiSelectNavigation(selectedCount = count)
     }
 
     /** Registers every id the filter matches as selectable and returns how many those are. */

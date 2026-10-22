@@ -1,0 +1,23 @@
+{
+  "type": "fixed",
+  "en": "Import of incoming invoices",
+  "de": "Import von Eingangsrechnungen",
+  "items": [
+    {
+      "en": "Positions of one invoice in different currencies are converted to EUR by the rate of the invoice date instead of being taken as EUR; without a rate the invoice is marked as faulty.",
+      "de": "Positionen einer Rechnung in unterschiedlichen Währungen werden zum Kurs des Rechnungsdatums in EUR umgerechnet, statt als EUR übernommen zu werden; ohne Kurs wird die Rechnung als fehlerhaft markiert."
+    },
+    {
+      "en": "Stored invoices between two periods of the export (e.g. March for an export of January and June) are no longer offered for deletion.",
+      "de": "Gespeicherte Rechnungen zwischen zwei Perioden des Exports (z. B. März bei einem Export von Januar und Juni) werden nicht mehr zum Löschen angeboten."
+    },
+    {
+      "en": "Header-only export: the rows of one invoice (one per booking line) are merged into one invoice with the total amount, instead of being offered as new invoices on every import.",
+      "de": "Export ohne Positionen: Die Zeilen einer Rechnung (eine je Buchungszeile) werden zu einer Rechnung mit dem Gesamtbetrag zusammengefasst, statt bei jedem Import als neue Rechnungen angeboten zu werden."
+    },
+    {
+      "en": "Header-only export: the internal note (column \"Interne Re.-Nr.\") is no longer appended to the invoice number, which changed back and forth with every import of the two files.",
+      "de": "Export ohne Positionen: Die interne Notiz (Spalte „Interne Re.-Nr.“) wird nicht mehr an die Rechnungsnummer angehängt, die sich sonst bei jedem Import der beiden Dateien hin- und herändert."
+    }
+  ]
+}
