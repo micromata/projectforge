@@ -1,0 +1,38 @@
+{
+  "summary": {
+    "en": [
+      "**Contribution margin** per order and structure element, bubble chart",
+      "**Former React interface** removed",
+      "**Security**: CSRF check for every session, changing requests as POST only",
+      "Fields with several entries: copy, paste and drag entries",
+      "Import of incoming invoices: currencies and header-only exports corrected"
+    ],
+    "de": [
+      "**Deckungsbeitrag** je Auftrag und Strukturelement, Bubble-Diagramm",
+      "**Frühere React-Oberfläche** entfernt",
+      "**Sicherheit**: CSRF-Prüfung für jede Sitzung, ändernde Anfragen nur noch als POST",
+      "Felder mit mehreren Einträgen: Einträge kopieren, einfügen und ziehen",
+      "Import der Eingangsrechnungen: Währungen und Exporte ohne Positionen korrigiert"
+    ]
+  },
+  "overview": {
+    "en": [
+      "**Contribution margin:** the order statistics break it down by orders and structure elements (a tree with a monthly chart per row) and show a bubble chart of revenue, contribution margin % and costs per project, project group, customer or customer group, in the colors of the business units.",
+      "**Former React interface removed:** all its pages are part of the new interface, old links (`/react/...`) lead there.",
+      "**Security:** the CSRF token is checked for every changing request of a logged-in session; changing requests (filters, templates, search index, logout, cancelling a login) are accepted as POST only; history comments need update access; npm dependencies updated.",
+      "**Fields with several entries:** entries can be selected, copied, cut, pasted and dragged into another field of the same kind; Ctrl/Cmd+Z undoes a change.",
+      "**Administration:** structure tree and list show the groups with access rights on an element; the time sheet mass update remaps the cost unit by type, keeping the structure element.",
+      "**Polls:** templates have the state \"Template\" and no deadline.",
+      "**Fixed:** import of incoming invoices (currencies, periods, header-only exports); cancellation invoices listed with the positions they cancel; the order edit page no longer jumps; the mass update log shows the updated entries again."
+    ],
+    "de": [
+      "**Deckungsbeitrag:** Die Auftragsstatistik schlüsselt ihn nach Aufträgen und Strukturelementen auf (Baum mit Monatsdiagramm je Zeile) und zeigt ein Bubble-Diagramm aus Umsatz, DB % und Kosten je Projekt, Projektgruppe, Kunde oder Kundengruppe, in den Farben der Business Units.",
+      "**Frühere React-Oberfläche entfernt:** Alle ihre Seiten sind Teil der neuen Oberfläche, alte Links (`/react/...`) führen dorthin.",
+      "**Sicherheit:** Das CSRF-Token wird für jede ändernde Anfrage einer angemeldeten Sitzung geprüft; ändernde Anfragen (Filter, Vorlagen, Suchindex, Abmelden, Abbrechen einer Anmeldung) werden nur noch als POST angenommen; Historienkommentare erfordern Schreibrecht; npm-Abhängigkeiten aktualisiert.",
+      "**Felder mit mehreren Einträgen:** Einträge lassen sich markieren, kopieren, ausschneiden, einfügen und in ein anderes Feld derselben Art ziehen; Strg/Cmd+Z macht eine Änderung rückgängig.",
+      "**Administration:** Strukturbaum und -liste zeigen die Gruppen mit Zugriffsrechten auf ein Element; die Massenänderung von Zeitberichten schlüsselt Kost2 nach Kostenart um, ohne das Strukturelement zu wechseln.",
+      "**Umfragen:** Vorlagen haben den Status „Vorlage“ und keine Antwortfrist.",
+      "**Behoben:** Import der Eingangsrechnungen (Währungen, Perioden, Exporte ohne Positionen); Stornorechnungen bei den Positionen, die sie stornieren; die Auftrags-Bearbeitungsseite springt nicht mehr; das Protokoll der Massenänderung zeigt die geänderten Einträge wieder."
+    ]
+  }
+}
