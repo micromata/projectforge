@@ -1,0 +1,15 @@
+{
+  "type": "added",
+  "en": "Ad hoc bookings",
+  "de": "Ad-hoc-Buchungen",
+  "items": [
+    {
+      "en": "Who may edit the time sheets of others on a structure element (e.g. project management, finance) may grant a colleague the booking of own time sheets on it for a period, without group membership: directly or as an invitation link, which only this colleague may accept.",
+      "de": "Wer auf einem Strukturelement fremde Zeitberichte bearbeiten darf (z. B. Projektleitung, Finanzen), kann einer Kollegin oder einem Kollegen für einen Zeitraum das Buchen eigener Zeitberichte darauf freigeben, ohne Gruppenzuordnung: direkt oder per Einladungslink, den nur diese Person annehmen kann."
+    },
+    {
+      "en": "The colleague sees only this structure element and the titles of its ancestors in the structure tree: no other structure elements, consumption, time sheets of others or statistics. After the period or a revocation the own time sheets stay readable.",
+      "de": "Im Strukturbaum sieht die Person nur dieses Strukturelement und die Titel der übergeordneten Elemente: keine anderen Strukturelemente, keinen Verbrauch, keine fremden Zeitberichte und keine Statistiken. Nach Ablauf oder Widerruf bleiben die eigenen Zeitberichte lesbar."
+    }
+  ]
+}

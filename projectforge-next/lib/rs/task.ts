@@ -115,6 +115,11 @@ export interface TaskNode {
    * tinted and struck through (see deletedRowClass); `statusAsString` reads "gelöscht".
    */
   deleted?: boolean;
+  /**
+   * Set for a node the user sees by an ad hoc booking grant only (`TaskServicesRest.BookingGrantNode`): the
+   * granted task (`GRANT`, bookable) or one of its ancestors (`PATH`, shown by its title, not selectable).
+   */
+  bookingGrant?: "GRANT" | "PATH";
   consumption?: unknown;
   /** Index signature so the node can be read as a table row (see DataObject). */
   [field: string]: unknown;
@@ -124,12 +129,13 @@ export interface TaskNode {
  * Whether a node may be picked as the task of *another* entity — a timesheet, an order position, an
  * access entry.
  *
- * Only the root is not: it is the tree's anchor, not a task anyone books against (Wicket leaves it out
- * of the select panel's path for the same reason, and never offers it for selection). The structure
+ * The root is not: it is the tree's anchor, not a task anyone books against (Wicket leaves it out
+ * of the select panel's path for the same reason, and never offers it for selection). Neither is an
+ * ancestor the user sees only on the way to a booking grant (`bookingGrant: "PATH"`). The structure
  * tree page itself is exempt — there a click opens the task's own edit page, which the root has.
  */
 export function isSelectableTask(task: TaskNode): boolean {
-  return task.root !== true;
+  return task.root !== true && task.bookingGrant !== "PATH";
 }
 
 /** The status filter of the tree, `TaskFilter`. Names are the request's parameter names. */

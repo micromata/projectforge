@@ -1,0 +1,211 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.rest.task
+
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import org.projectforge.business.task.TaskDO
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.framework.access.AccessDao
+import org.projectforge.framework.access.AccessType
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDay
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.mock.web.MockHttpServletRequest
+
+/**
+ * What a user booking by an ad hoc booking grant sees of the structure tree (the granted task and the titles of its
+ * ancestors, nothing else), and who manages the grants of a task.
+ */
+class TaskBookingGrantRestTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var accessDao: AccessDao
+
+    @Autowired
+    private lateinit var taskServicesRest: TaskServicesRest
+
+    @Autowired
+    private lateinit var taskBookingGrantRest: TaskBookingGrantRest
+
+    private class Fixture(
+        val project: TaskDO,
+        val granted: TaskDO,
+        val sibling: TaskDO,
+        val manager: PFUserDO,
+        val helper: PFUserDO,
+        val other: PFUserDO,
+    )
+
+    private fun createFixture(prefix: String): Fixture {
+        logon(TEST_ADMIN_USER)
+        return persistenceService.runInTransaction { _ ->
+            val project = initTestDB.addTask(prefix, "root")
+            val granted = initTestDB.addTask("$prefix.granted", prefix)
+            val sibling = initTestDB.addTask("$prefix.sibling", prefix)
+            val manager = initTestDB.addUser("$prefix-manager")
+            val helper = initTestDB.addUser("$prefix-helper")
+            val other = initTestDB.addUser("$prefix-other")
+            val access = initTestDB.createGroupTaskAccess(initTestDB.addGroup("$prefix-managers", manager.username!!), project)
+            AccessType.entries.filter { it != AccessType.GROUP }.forEach { type ->
+                access.ensureAndGetAccessEntry(type).setAccess(true, true, true, true)
+            }
+            access.recursive = true
+            accessDao.update(access, checkAccess = false)
+            Fixture(project, granted, sibling, manager, helper, other)
+        }
+    }
+
+    private fun grant(fixture: Fixture, asInvitation: Boolean = false): TaskBookingGrantRest.Result {
+        return taskBookingGrantRest.grant(
+            TaskBookingGrantRest.GrantRequest(
+                taskId = fixture.granted.id,
+                userId = fixture.helper.id,
+                validFrom = PFDay.now().minusDays(1).localDate,
+                validUntil = PFDay.now().plusDays(10).localDate,
+                comment = "Helping out",
+                asInvitation = asInvitation,
+            )
+        )
+    }
+
+    @Test
+    fun `the helper sees the granted task and the titles of its ancestors only`() {
+        val fixture = createFixture("bgrest-tree")
+        logon(fixture.manager)
+        assertTrue(grant(fixture).success)
+
+        logon(fixture.helper)
+        val nodes = tree().nodes
+        assertEquals(listOf(fixture.project.id, fixture.granted.id), nodes.map { it.id })
+        nodes.single { it.id == fixture.project.id }.let {
+            assertEquals(TaskServicesRest.BookingGrantNode.PATH, it.bookingGrant)
+            assertNull(it.consumption)
+            assertEquals(TaskServicesRest.TreeStatus.OPENED, it.treeStatus, "Opened on the way to the grant.")
+        }
+        nodes.single { it.id == fixture.granted.id }.let {
+            assertEquals(TaskServicesRest.BookingGrantNode.GRANT, it.bookingGrant)
+            assertNull(it.consumption)
+            assertEquals(TaskServicesRest.TreeStatus.LEAF, it.treeStatus)
+        }
+
+        // The info: reduced for the granted task and its ancestors, nothing of the sibling.
+        info(fixture.granted).let {
+            assertEquals(HttpStatus.OK, it.statusCode)
+            assertEquals(TaskServicesRest.BookingGrantNode.GRANT, it.body!!.bookingGrant)
+            assertNull(it.body!!.consumption)
+            assertNull(it.body!!.projekt)
+            assertEquals(listOf(fixture.project.id), it.body!!.path?.map { node -> node.id })
+        }
+        assertEquals(TaskServicesRest.BookingGrantNode.PATH, info(fixture.project).body!!.bookingGrant)
+        assertEquals(HttpStatus.NOT_FOUND, info(fixture.sibling).statusCode)
+
+        // The type-ahead of the time sheet form offers the granted task.
+        val found = taskServicesRest.autosearch(search = null, maxResults = 10, onlyBookable = true)
+        assertEquals(listOf(fixture.granted.id), found.map { it.id })
+
+        // Somebody else sees nothing of it.
+        logon(fixture.other)
+        assertTrue(tree().nodes.none { it.id == fixture.project.id || it.id == fixture.granted.id })
+        assertEquals(HttpStatus.NOT_FOUND, info(fixture.granted).statusCode)
+        assertEquals(HttpStatus.NOT_FOUND, info(fixture.project).statusCode)
+
+        // The manager sees the whole task info, as before.
+        logon(fixture.manager)
+        info(fixture.granted).let {
+            assertEquals(HttpStatus.OK, it.statusCode)
+            assertNull(it.body!!.bookingGrant)
+            // Only the full info carries the references (createTask).
+            assertNotNull(it.body!!.timesheetReferenceList)
+        }
+    }
+
+    @Test
+    fun `grants are managed by who may edit foreign time sheets on the task only`() {
+        val fixture = createFixture("bgrest-manage")
+        // Refused for an ordinary user (TEST_USER) and for the helper: no grants sent, none given.
+        for (user in listOf(getUser(TEST_USER), fixture.helper)) {
+            logon(user)
+            taskBookingGrantRest.getInfo(fixture.granted.id!!).let {
+                assertFalse(it.mayGrant)
+                assertNull(it.grants)
+            }
+            assertFalse(grant(fixture).success)
+        }
+
+        logon(fixture.manager)
+        val result = grant(fixture)
+        assertTrue(result.success)
+        assertNull(result.invitationUrl)
+        val entry = result.info!!.grants!!.single()
+        assertEquals(TaskBookingGrantRest.Status.ACTIVE, entry.status)
+        assertEquals(fixture.helper.id, entry.userId)
+
+        // The helper may not revoke it, the manager may.
+        logon(fixture.helper)
+        assertFalse(taskBookingGrantRest.revoke(entry.id).success)
+        logon(fixture.manager)
+        taskBookingGrantRest.revoke(entry.id).let {
+            assertTrue(it.success)
+            assertEquals(TaskBookingGrantRest.Status.REVOKED, it.info!!.grants!!.single().status)
+        }
+        // Revoked: the tree shows the helper nothing any more.
+        logon(fixture.helper)
+        assertTrue(tree().nodes.none { it.id == fixture.project.id })
+    }
+
+    @Test
+    fun `the invitation is shown to and accepted by its user only`() {
+        val fixture = createFixture("bgrest-invite")
+        logon(fixture.manager)
+        val result = grant(fixture, asInvitation = true)
+        assertEquals(TaskBookingGrantRest.Status.PENDING, result.info!!.grants!!.single().status)
+        val token = result.invitationUrl!!.substringAfter("token=")
+
+        logon(fixture.other)
+        assertEquals(HttpStatus.NOT_FOUND, taskBookingGrantRest.getInvitation(token).statusCode)
+        assertFalse(taskBookingGrantRest.accept(TaskBookingGrantRest.AcceptRequest(token)).success)
+
+        logon(fixture.helper)
+        assertTrue(tree().nodes.none { it.id == fixture.granted.id }, "Nothing before accepting.")
+        taskBookingGrantRest.getInvitation(token).let {
+            assertEquals(HttpStatus.OK, it.statusCode)
+            assertEquals(fixture.granted.id, it.body!!.taskId)
+        }
+        taskBookingGrantRest.accept(TaskBookingGrantRest.AcceptRequest(token)).let {
+            assertTrue(it.success)
+            assertEquals(fixture.granted.id, it.taskId)
+        }
+        assertTrue(tree().nodes.any { it.id == fixture.granted.id })
+        assertFalse(taskBookingGrantRest.accept(TaskBookingGrantRest.AcceptRequest(token)).success, "Used once.")
+    }
+
+    private fun info(task: TaskDO) = taskServicesRest.getTaskInfo(task.id)
+
+    private fun tree() = taskServicesRest.getTree(
+        MockHttpServletRequest(), initial = true, open = null, close = null, highlightedTaskId = null,
+        table = true, searchString = null, opened = null, notOpened = null, closed = null, deleted = null,
+        showRootForAdmins = null, select = null, rootTaskId = null,
+    )
+}

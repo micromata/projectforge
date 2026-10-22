@@ -13,6 +13,7 @@ import { timesheetAddHref, timesheetListHref } from "@/lib/timesheet-links";
 import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
 import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
 import { TaskGroupAccessCell } from "@/components/shared/tasks/task-group-access-cell";
+import { BookingGrantsSection } from "./edit/booking-grants-section";
 import { FinanceSection } from "./edit/finance-section";
 import { FinanceSummary } from "./edit/finance-summary";
 import { GanttSummary } from "./edit/gantt-summary";
@@ -346,6 +347,14 @@ export const TASK_PAGE = definePage<
         // Folded, the same values as chips (see FinanceSummary): the cost prefix and booking status the
         // element is effectively governed by, plus anything set that deviates from the default.
         collapsedSummary: FinanceSummary,
+      },
+      {
+        id: "bookingGrants",
+        titleKey: "task.bookingGrants._",
+        collapsed: true,
+        // Only for who may grant on the task (see BookingGrantsSection), and only for a stored task.
+        visible: ({ data }) => data?.bookingGrantAccess === true,
+        render: ({ id }) => <BookingGrantsSection id={id} />,
       },
     ],
   },

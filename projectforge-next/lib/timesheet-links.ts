@@ -97,3 +97,8 @@ export function timesheetAddHref(taskId: number): string {
   });
   return `next/timesheet/new?${params.toString()}`;
 }
+
+/** [timesheetAddHref] as a route of this app, for the router (which adds the base path itself). */
+export function timesheetAddRoute(taskId: number): string {
+  return `/${timesheetAddHref(taskId).replace(/^next\//, "")}`;
+}

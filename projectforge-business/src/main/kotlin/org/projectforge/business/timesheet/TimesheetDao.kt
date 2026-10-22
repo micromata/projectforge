@@ -37,6 +37,7 @@ import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
+import org.projectforge.business.task.bookinggrant.TaskBookingGrantCache
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserDao
 import org.projectforge.common.extensions.isZeroOrNull
@@ -97,6 +98,9 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
 
     @Autowired
     private lateinit var taskTree: TaskTree
+
+    @Autowired
+    private lateinit var taskBookingGrantCache: TaskBookingGrantCache
 
     @PostConstruct
     fun init() {
@@ -689,11 +693,13 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     ): Boolean {
         require(obj != null) { "Given timesheet as obj parameter mustn't be null." }
         if (accessChecker.userEquals(user, obj.user)) {
-            // Own time sheet
-            if (!accessChecker.hasPermission(
-                    user, obj.taskId, AccessType.OWN_TIMESHEETS, operationType, throwException
-                )
+            // Own time sheet: by the groups or by an ad hoc booking grant on the task.
+            if (!accessChecker.hasPermission(user, obj.taskId, AccessType.OWN_TIMESHEETS, operationType, false) &&
+                !isAllowedByBookingGrant(user, obj, oldObj, operationType)
             ) {
+                if (throwException) {
+                    throw AccessException(obj.taskId, AccessType.OWN_TIMESHEETS, operationType)
+                }
                 return false
             }
         } else {
@@ -712,6 +718,43 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             // UPDATE and INSERT is already checked, SELECT will be ignored.
             checkTimesheetProtection(user, obj, null, operationType, throwException)
         } else true
+    }
+
+    /**
+     * Whether the user may book (or read) the own time sheet by an ad hoc booking grant on its task (see
+     * [TaskBookingGrantCache.allows]): the grant is for exactly this task, not for its descendants. On an update, the
+     * stored version must be allowed as well, a sheet can't be moved into the period of a grant.
+     */
+    private fun isAllowedByBookingGrant(
+        user: PFUserDO, obj: TimesheetDO, oldObj: TimesheetDO?, operationType: OperationType,
+    ): Boolean {
+        fun allows(sheet: TimesheetDO): Boolean {
+            if (!accessChecker.userEquals(user, sheet.user)) {
+                return false
+            }
+            val zone = ThreadLocalUserContext.timeZone
+            return taskBookingGrantCache.allows(
+                user.id, sheet.taskId, operationType,
+                startDay = sheet.startTime?.let { from(it, zone).localDate },
+                stopDay = sheet.stopTime?.let { from(it, zone).localDate },
+                kost2Id = sheet.kost2Id,
+            )
+        }
+        return allows(obj) && (oldObj == null || oldObj.taskId != obj.taskId || allows(oldObj))
+    }
+
+    /**
+     * Whether the user may edit the time sheets of others on the given task: a member of the finance group, an admin
+     * or a member of a group with the right to update foreign time sheets ([AccessType.TIMESHEETS]) on it — as
+     * [hasAccess] decides for the time sheet of another user. Who may grant ad hoc bookings on the task, too
+     * ([org.projectforge.business.task.bookinggrant.TaskBookingGrantDao]).
+     */
+    open fun hasForeignTimesheetWriteAccess(user: PFUserDO, taskId: Long?): Boolean {
+        taskId ?: return false
+        if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
+            return true
+        }
+        return accessChecker.hasPermission(user, taskId, AccessType.TIMESHEETS, OperationType.UPDATE, false)
     }
 
     /**

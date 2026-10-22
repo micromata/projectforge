@@ -5268,6 +5268,63 @@
       "tooltip": "If checked (also inherited by sub elements) time sheets booked here may overlap in time with time sheets of other projects (shared costs). Overlapping time is counted proportionally in attendance and monthly reports (e.g. 1h + overlapping 1h = 0.5h each). Overlapping time sheets on the same cost 2 or within the same project or overlap group (configuration) remain unsupported. A setting of the cost 2 takes precedence."
     },
     "assignedUser": "Responsible user",
+    "bookingGrant": {
+      "acceptedAt": "Accepted",
+      "add": "Grant booking",
+      "asInvitation": {
+        "_": "As invitation link",
+        "tooltip": "The grant takes effect once the colleague accepts the link after logging in. The link is valid for 7 days and only for this user."
+      },
+      "error": {
+        "endBeforeStart": "The end of the period is before its start.",
+        "invalidKost2": "The cost unit isn't one of the structure element.",
+        "invitationInvalid": "This invitation is invalid, expired or not meant for you.",
+        "periodNotSet": "Please enter the period.",
+        "taskNotBookable": "No time sheets can be booked on this structure element.",
+        "taskOrUserChanged": "The structure element and the user of a grant can't be changed.",
+        "userNotSet": "Please select the user."
+      },
+      "grantedBy": "Granted by",
+      "invitation": {
+        "accept": "Accept invitation",
+        "accepted": "Invitation accepted: you can book your time sheets on this structure element now.",
+        "bookNow": "Book time sheet",
+        "text": "You are invited to book your own time sheets on this structure element.",
+        "title": "Invitation to book time sheets"
+      },
+      "invitationExpiresAt": "Invitation valid until",
+      "invitationUrl": "Invitation link (also sent by mail)",
+      "kost2": {
+        "all": "All cost units of the structure element"
+      },
+      "mail": {
+        "greeting": "Hello {arg0},",
+        "invitation": "Please accept the invitation by this link (after logging in):",
+        "link": "You can book your time sheets here:",
+        "subject": "Booking time sheets on {arg0}",
+        "text": "{arg0} has granted you the booking of own time sheets on \"{arg1}\" for the period {arg2}."
+      },
+      "none": "No ad hoc bookings granted.",
+      "revoke": {
+        "_": "Revoke",
+        "confirm": "Revoke this grant? The time sheets booked so far are kept."
+      },
+      "status": {
+        "_": "Status",
+        "ACTIVE": "Active",
+        "EXPIRED": "Expired",
+        "INVITATION_EXPIRED": "Invitation expired",
+        "PENDING": "Invitation open",
+        "REVOKED": "Revoked",
+        "UPCOMING": "Upcoming"
+      },
+      "validFrom": "Valid from",
+      "validUntil": "Valid until"
+    },
+    "bookingGrants": {
+      "_": "Ad hoc bookings",
+      "info": "Colleagues helping out may book their own time sheets on this structure element for a period, without being member of a group. They see nothing else of the project: only this structure element and the titles of its ancestors."
+    },
     "consumption": "Consumption",
     "deleted": "deleted",
     "edit": {
@@ -5574,6 +5631,11 @@
   "user": {
     "_": "User",
     "My2FA": {
+      "expired": "For the requested action a 2FA is required not older than {arg0}.",
+      "required": {
+        "_": "A (new) two-factor authentication is required for proceeding.",
+        "extended": "A (new) two-factor authentication is required for proceeding due to security reasons. You may request a code (see link below code field) or, if configured, use Your authenticator app."
+      },
       "setup": {
         "authenticator": {
           "info": "### Setup your smart phone\n\n1. Scan this barcode in Your Authenticator-App.\n2. Done.\n\nEvery time ProjectForge requests a code, enter the displayed code in your Authenticator app.\n\nYou may setup others Authenticator apps on different devices as a backup, if you want.\n\nThe code displayed in your Authenticator app is valid for up to 30 seconds after disappearing in your app.",
@@ -5581,6 +5643,9 @@
           "title": "Authenticator apps"
         },
         "authenticatorKey": "Authenticator key",
+        "check": {
+          "fail": "Code check failed."
+        },
         "check2FA": "Check 2FA now",
         "disableAuthenticatorApp": {
           "_": "Disable Authenticator app",
@@ -5642,8 +5707,16 @@
       },
       "title": "Two-factor authentication"
     },
+    "activated": {
+      "_": "Activated",
+      "tooltip": "Deactivated users have no system access."
+    },
     "add": {
       "optionalPassword": "You may set an initial password."
+    },
+    "adminUsers": {
+      "_": "Admin users",
+      "none": "Non-admin users"
     },
     "alternativeEmails": {
       "_": "Alternative e-mail addresses",
@@ -5690,6 +5763,14 @@
       }
     },
     "changePassword": {
+      "error": {
+        "noCharacter": "Password must have at minimum one letter.",
+        "noNonCharacter": "Password must have at minimum one non-letter.",
+        "notMinLength": "Password must have at least {arg0} characters.",
+        "oldPasswdEqualsNew": "New password should not be the same as the old one.",
+        "oldPasswordWrong": "Old password does not match.",
+        "passwordQualityCheck": "Password must have at least {arg0} characters and at minimum one letter and one non-letter character."
+      },
       "msg": {
         "passwordSuccessfullyChanged": "Password successfully changed."
       },
@@ -5698,21 +5779,44 @@
       "oldPassword": "Old password",
       "password": {
         "lastChange": "Last change of password"
-      }
+      },
+      "title": "Change own password"
     },
     "changeWlanPassword": {
+      "error": {
+        "loginPasswordWrong": "The login password is not correct."
+      },
       "lastChange": "Last change of WLAN/Samba password",
       "loginPassword": "Login password",
-      "newPassword": "New WLAN password"
+      "newPassword": "New WLAN password",
+      "title": "Change WLAN/Samba password"
     },
     "deactivated": "deactivated",
     "defaultLocale": "Default (browser)",
+    "error": {
+      "emailUsedByOtherUser": "{arg0} is already used by the user {arg1}.",
+      "invalidEmail": "Invalid e-mail address: {arg0}",
+      "passwordAndRepeatDoesNotMatch": "Password and password repeat does not match.",
+      "usernameAlreadyExists": "User name already exists."
+    },
+    "filter": {
+      "hrPlanning": "HR planning",
+      "privileged": "Privileged users",
+      "restricted": "Restricted users",
+      "status": "State",
+      "syncStatus": "Sync state",
+      "type": "Type"
+    },
     "formerEmails": {
       "_": "Former e-mail addresses",
       "info": "E-mail addresses of the user no longer in use (e.g. after a change of name), comma separated. They may be needed by the synchronization runs of external systems (e.g. Lanes & Planes)."
     },
     "gpgPublicKey": "GPG public key",
-    "hrPlanningEnabled": "HR planning",
+    "hrPlanningEnabled": {
+      "_": "HR planning",
+      "not": "No HR planning",
+      "tooltip": "Should the user be available in HR planning?"
+    },
     "jiraUsername": {
       "_": "JIRA user name",
       "tooltip": "Only needed, if the ProjectForge user name differs from the JIRA user name and the user want to work with JIRA inside ProjectForge."
@@ -5721,12 +5825,20 @@
     "legend": {
       "deactivated": "Deactivated"
     },
+    "list": {
+      "select": {
+        "title": "Select user"
+      }
+    },
     "localUser": {
       "_": "Local user",
       "not": "Common user",
       "tooltip": "Local users will not be synchronized with an external user management system (such as LDAP)."
     },
     "locale": "Language",
+    "menu": {
+      "editRights": "User rights"
+    },
     "mobilePhone": {
       "_": "Mobile phone",
       "info": "Mobile phone usable as a 2nd factor (required e.g. for password reset or other services).\n\nYou may configure this field by any admin or by configuring your two-factor-authentication.",
@@ -5741,6 +5853,7 @@
         "settings": "Settings",
         "tokens": "Access tokens"
       },
+      "teamcalwhitelist": "Calendar whitelist for calendar software",
       "title": {
         "edit": "Edit my account"
       }
@@ -5753,17 +5866,29 @@
         "title": "Direct call"
       }
     },
+    "restricted": {
+      "_": "restricted",
+      "not": "not restricted"
+    },
     "restrictedUser": {
       "_": "Restricted user",
       "tooltip": "A restricted user has only the ability to log-in and to change his password, but the user is synchronized with the external user management system."
     },
     "rights": {
-      "none": "No right is configurable with the assigned groups."
+      "none": "No right is configurable with the assigned groups.",
+      "title": {
+        "edit": "Edit user rights"
+      }
     },
     "sshPublicKey": "SSH public key",
     "title": {
       "add": "Add new user",
-      "list": "List of users"
+      "edit": "Edit user",
+      "heading": "Users",
+      "list": {
+        "_": "List of users",
+        "select": "Select user"
+      }
     },
     "tooltip": {
       "assignedGroups": "The groups determine the rights. They are assigned by the administration.",
@@ -5776,7 +5901,9 @@
       "timeZone": "All times (time sheets, calendar events) are shown and entered in this time zone.",
       "username": "The login name. Only the administration can change it."
     },
-    "username": "User name"
+    "unassignedGroups": "Unassigned groups",
+    "username": "User name",
+    "users": "Users"
   },
   "username": "User name",
   "vacation": {
