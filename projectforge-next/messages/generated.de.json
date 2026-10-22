@@ -893,7 +893,8 @@
           "info": "Diese Farbe wird für Urlaube verwendet, die in den Ansichtseinstellungen über das Zahnrad ausgewählt wurden.\n\nWenn verschiedene Farben für verschiedene Urlaube von Teams und/oder Personen gewünscht sind, dann kann leicht ein Urlaubskalender für Gruppen/Personen [hier](/next/teamCal/new) eingerichtet werden."
         }
       },
-      "intro": "Beachte: Die Farben von anderen Kalendern kann einfach durch Klicken auf die Pillen in der Kalenderauswahl oben in der Zeile der Kalenderseite verändert werden."
+      "intro": "Beachte: Die Farben von anderen Kalendern kann einfach durch Klicken auf die Pillen in der Kalenderauswahl oben in der Zeile der Kalenderseite verändert werden.",
+      "title": "Kalendereinstellungen"
     },
     "short": {
       "yearToDate": "J→"
@@ -1019,6 +1020,9 @@
   "color": {
     "error": {
       "unknownFormat": "Farbcode kann nicht verarbeitet werden. Unterstützte Hex-Farbformate: #abc or #abcdef"
+    },
+    "picker": {
+      "custom": "Eigene Farbe"
     }
   },
   "columns": {
@@ -1141,11 +1145,6 @@
   "edit": "Bearbeiten",
   "email": "E-Mail",
   "emptyInBrackets": "<leer>",
-  "entityRefs": {
-    "paste": {
-      "foreign": "Die Zwischenablage enthält keine Einträge dieser Art."
-    }
-  },
   "error": {
     "_": "Ein Fehler trat auf: {arg0}",
     "endDateBeforeBeginDate": "Das Endedatum darf nicht vor dem Anfangsdatum liegen.",
@@ -1201,28 +1200,33 @@
       "contributionMargin": {
         "_": "Deckungsbeitrag",
         "bookingImportEnd": "Buchungssätze sind bis {arg0} importiert. Die späteren Monate (heller) sind vorläufig: Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
-        "breakdown": {
-          "calculated": "Die Werte der Aufträge und Strukturelemente sind kalkulatorisch, weil die Buchungssätze nur das Projekt (Kost2) kennen: Erlöse aus den Rechnungspositionen der Auftragspositionen, Kosten aus den Zeitberichten × Stundensatz ({arg0}). Zeitberichte gehen an die Auftragspositionen des nächsten Strukturelements darüber. Was sich nicht zuordnen lässt, und die Abweichung zur Buchhaltung, bleiben als Rest beim Projekt; die Zeilen eines Projekts ergeben so dessen Deckungsbeitrag.",
-          "chart": "Deckungsbeitrag monatlich: {arg0}",
-          "column": {
-            "order": "Projekt / Auftrag",
-            "task": "Projekt / Strukturelement"
+        "bubbles": {
+          "_": "Deckungsbeitrag-Bubbles",
+          "anonymous": "Andere Projekte (anonym)",
+          "grouping": {
+            "_": "Eine Bubble je",
+            "CUSTOMER": "Kunde",
+            "CUSTOMER_GROUP": "Kundengruppe",
+            "PROJECT": "Projekt",
+            "PROJECT_GROUP": "Projektgruppe",
+            "tooltip": "Projekte ohne Projekt- bzw. Kundengruppe bekommen eine eigene Bubble (Kundengruppe: eine je Kunde)."
           },
-          "empty": "Keine Erlöse oder Kosten gefunden.",
-          "hourlyRateMissing": "Es ist kein Stundensatz konfiguriert (Administration → Konfiguration), daher haben Aufträge und Strukturelemente keine Kosten aus Zeitberichten.",
-          "orders": "Aufträge",
-          "residual": {
-            "_": "Nicht zuordenbar",
-            "accounting": {
-              "_": "Abweichung zur Buchhaltung: {arg0}",
-              "tooltip": "Z. B. sonstige Kosten auf den Kostenträgern des Projekts (Fremdleistungen, Reisekosten), Gehälter statt Stundensatz, auf andere Projekte gebuchte Rechnungen."
-            },
-            "invoices": "Rechnungen ohne Auftrag: {arg0}",
-            "invoicesTask": "Rechnungen ohne Strukturelement: {arg0}",
-            "timesheets": "Zeitberichte ohne Auftrag: {arg0}"
+          "legend": {
+            "anonymous": "blass: andere Projekte (anonym)",
+            "default": "ohne Farbe der Business Unit"
           },
-          "selectRow": "Eine Zeile auswählen, um ihre Monate im Diagramm zu sehen.",
-          "tasks": "Strukturelemente"
+          "noRevenue": "kein Umsatz",
+          "others": {
+            "_": "Andere Projekte anonym anzeigen",
+            "tooltip": "Zeigt zum Vergleich auch die Projekte, die der Filter auswählt (z. B. alle einer Business Unit), deren Deckungsbeitrag sonst nicht sichtbar ist: blass, ohne Namen, gleich gruppiert."
+          },
+          "own": "Eigene Projekte",
+          "projectCount": "Projekte",
+          "projects": {
+            "_": "Titel einblenden",
+            "tooltip": "Beschriftet alle Bubbles (auch wenn es viele sind) nur mit ihrem Kurztitel statt mit Name und DB %: dem Namen der Gruppe bzw. des Kunden, bei einem einzelnen Projekt mit dem Kurzbezeichner (sonst dem Namen)."
+          },
+          "size": "Bubble-Größe: Kosten"
         },
         "config": {
           "addAssignment": "Zuordnung hinzufügen",
@@ -1563,6 +1567,11 @@
     },
     "businessUnits": {
       "add": "Business Unit hinzufügen",
+      "color": {
+        "_": "Farbe",
+        "remove": "Farbe entfernen",
+        "tooltip": "Die Farbe der Bubbles der Business Unit im Deckungsbeitrags-Bubble-Diagramm der Statistik. Bubbles mehrerer oder nicht eingefärbter Business Units behalten die Standardfarbe."
+      },
       "empty": "Noch keine Business Units.",
       "groups": "Kundengruppen",
       "members": "Umfasst ({arg0})",
@@ -4425,8 +4434,7 @@
     "state": {
       "_": "Status",
       "finished": "Beendet",
-      "running": "Laufend",
-      "template": "Vorlage"
+      "running": "Laufend"
     },
     "template": {
       "_": "Vorlage",

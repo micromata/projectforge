@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginBubbleGrouping
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginLevel
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
@@ -69,10 +70,34 @@ class OrderStatisticsRestTest : AbstractTestBase() {
         assertThrows<AccessException> { orderEntityRest.forecastTables(forecastRequest) }
         assertThrows<AccessException> { orderEntityRest.contributionMargin(marginRequest) }
         assertThrows<AccessException> { orderEntityRest.contributionMarginDetails(marginRequest) }
+        val bubbleRequest = OrderEntityRest.ContributionMarginBubbleRequest(MagicFilter(), includeOthers = true)
+        assertThrows<AccessException> { orderEntityRest.contributionMarginBubbles(bubbleRequest) }
+        assertThrows<AccessException> { orderEntityRest.getContributionMarginBubbleSettings() }
         ContributionMarginLevel.entries.forEach { level ->
             val request = OrderEntityRest.ContributionMarginRequest(MagicFilter(), level = level)
             assertThrows<AccessException> { orderEntityRest.contributionMarginBreakdown(request) }
         }
+    }
+
+    @Test
+    fun `finance gets the bubbles with the others, and grouping and switch are remembered`() {
+        logon(TEST_FINANCE_USER)
+        assertEquals(
+            ContributionMarginBubbleGrouping.PROJECT_GROUP,
+            orderEntityRest.getContributionMarginBubbleSettings().grouping,
+            "Default.",
+        )
+        val request = OrderEntityRest.ContributionMarginBubbleRequest(
+            MagicFilter(),
+            grouping = ContributionMarginBubbleGrouping.CUSTOMER,
+            includeOthers = true,
+        )
+        val bubbles = orderEntityRest.contributionMarginBubbles(request)
+        // Finance may see all projects, so there are no others.
+        assertTrue(bubbles.bubbles.all { it.own })
+        val settings = orderEntityRest.getContributionMarginBubbleSettings()
+        assertEquals(ContributionMarginBubbleGrouping.CUSTOMER, settings.grouping)
+        assertEquals(true, settings.includeOthers)
     }
 
     @Test

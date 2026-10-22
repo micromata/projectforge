@@ -23,6 +23,8 @@
 
 package org.projectforge.business.fibu.customergroup
 
+import org.projectforge.business.calendar.CalendarStyle
+
 data class CustomerGroupError(val fieldId: String, val messageKey: String, val params: List<Any?> = emptyList())
 
 /**
@@ -50,6 +52,7 @@ class CustomerGroupValidator(private val directory: CustomerDirectory) {
         checkSets(config.businessUnits, BUSINESS_UNITS, errors)
         val buOfGroup = checkBusinessUnitGroups(config, errors)
         checkTasks(config.businessUnits, errors)
+        checkColors(config.businessUnits, errors)
         checkClaims(groupClaims(config.groups), GROUPS, ERROR_CUSTOMER_IN_TWO_GROUPS, errors)
         checkClaims(
             businessUnitClaims(config, buOfGroup), BUSINESS_UNITS, ERROR_MEMBER_IN_TWO_BUSINESS_UNITS, errors,
@@ -246,6 +249,16 @@ class CustomerGroupValidator(private val directory: CustomerDirectory) {
         }
     }
 
+    /** A colour, if any, is a hex code as the calendars have them. */
+    private fun checkColors(businessUnits: List<BusinessUnit>, errors: MutableList<CustomerGroupError>) {
+        businessUnits.forEachIndexed { i, bu ->
+            val color = bu.color?.takeIf { it.isNotBlank() } ?: return@forEachIndexed
+            if (!CalendarStyle.validateHexCode(color.trim().lowercase())) {
+                errors.add(CustomerGroupError("$BUSINESS_UNITS[$i].color", ERROR_INVALID_COLOR, listOf(color)))
+            }
+        }
+    }
+
     /** What one group or business unit claims, each member with the field of the editor it comes from. */
     private class Claims(val index: Int, val set: CustomerSet) {
         val customers = mutableMapOf<Long, String>()
@@ -381,6 +394,7 @@ class CustomerGroupValidator(private val directory: CustomerDirectory) {
         const val ERROR_UNKNOWN_GROUP = "fibu.customerGroups.error.unknownGroup"
         const val ERROR_GROUP_IN_TWO_BUSINESS_UNITS = "fibu.customerGroups.error.groupInTwoBusinessUnits"
         const val ERROR_MEMBER_IN_TWO_BUSINESS_UNITS = "fibu.customerGroups.error.memberInTwoBusinessUnits"
+        const val ERROR_INVALID_COLOR = "fibu.customerGroups.error.invalidColor"
         const val ERROR_UNKNOWN_TASK = "fibu.customerGroups.error.unknownTask"
         const val ERROR_TASK_OVERLAP = "fibu.customerGroups.error.taskOverlap"
         const val ERROR_TASK_CONTAINS = "fibu.customerGroups.error.taskContains"

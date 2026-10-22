@@ -144,6 +144,9 @@ class CustomerGroupService {
         return index.businessUnitOfProject(projektId)?.name
     }
 
+    /** The business unit of the project, see [businessUnitNameOf]. */
+    fun businessUnitOfProject(projektId: Long): BusinessUnit? = index.businessUnitOfProject(projektId)
+
     /**
      * The customer entities and free-text customers the given names and patterns match, sorted by name: the
      * editor shows them, so a pattern catching more than it should is noticed before saving. Only customers

@@ -893,7 +893,8 @@
           "info": "This color is used for vacations chosen in view settings (gear).\n\nIf you wish different colors for different vacations of people and/or teams, please simply create a new vacation calendar with groups and people [here](/next/teamCal/new)."
         }
       },
-      "intro": "Please note: You may customize the colors of other calendars by simply clicking one calendar pill in the calendar chooser at the top of the calendar page."
+      "intro": "Please note: You may customize the colors of other calendars by simply clicking one calendar pill in the calendar chooser at the top of the calendar page.",
+      "title": "Calendar settings"
     },
     "short": {
       "yearToDate": "Y→"
@@ -1019,6 +1020,9 @@
   "color": {
     "error": {
       "unknownFormat": "Color code in unsupported format. Supported hex formats: #abc or #abcdef"
+    },
+    "picker": {
+      "custom": "Custom colour"
     }
   },
   "columns": {
@@ -1141,11 +1145,6 @@
   "edit": "Edit",
   "email": "E-mail",
   "emptyInBrackets": "<empty>",
-  "entityRefs": {
-    "paste": {
-      "foreign": "The clipboard holds no entries of this kind."
-    }
-  },
   "error": {
     "_": "An error occurs: {arg0}",
     "endDateBeforeBeginDate": "End date can't be before begin date.",
@@ -1201,28 +1200,33 @@
       "contributionMargin": {
         "_": "Contribution margin",
         "bookingImportEnd": "Accounting records are imported up to {arg0}. The later months (lighter) are preliminary: invoices as revenue, time sheets × hourly rate as costs.",
-        "breakdown": {
-          "calculated": "The values of orders and structure elements are calculated, as the accounting records know the project (kost2) only: revenue from the invoice positions of the order positions, costs from the time sheets × hourly rate ({arg0}). Time sheets go to the order positions of the nearest structure element upwards. What can''t be assigned, and the difference to the accounting records, stays with the project as residual, so the rows of a project add up to its contribution margin.",
-          "chart": "Contribution margin monthly: {arg0}",
-          "column": {
-            "order": "Project / order",
-            "task": "Project / structure element"
+        "bubbles": {
+          "_": "Contribution margin bubbles",
+          "anonymous": "Other projects (anonymous)",
+          "grouping": {
+            "_": "One bubble per",
+            "CUSTOMER": "Customer",
+            "CUSTOMER_GROUP": "Customer group",
+            "PROJECT": "Project",
+            "PROJECT_GROUP": "Project group",
+            "tooltip": "Projects without a project or customer group get a bubble of their own (customer group: one per customer)."
           },
-          "empty": "No revenue or costs found.",
-          "hourlyRateMissing": "No hourly rate is configured (Administration → Configuration), so the orders and structure elements have no costs of time sheets.",
-          "orders": "Orders",
-          "residual": {
-            "_": "Not assignable",
-            "accounting": {
-              "_": "Difference to accounting: {arg0}",
-              "tooltip": "E.g. other costs on the cost units of the project (external services, travel expenses), salaries instead of the hourly rate, invoices booked on other projects."
-            },
-            "invoices": "Invoices without order: {arg0}",
-            "invoicesTask": "Invoices without structure element: {arg0}",
-            "timesheets": "Time sheets without order: {arg0}"
+          "legend": {
+            "anonymous": "pale: other projects (anonymous)",
+            "default": "without business unit colour"
           },
-          "selectRow": "Select a row to see its months in the chart.",
-          "tasks": "Structure elements"
+          "noRevenue": "no revenue",
+          "others": {
+            "_": "Show other projects anonymously",
+            "tooltip": "Also shows, for comparison, the projects the filter selects (e.g. all of a business unit) whose contribution margin you may not see: pale, without names, grouped the same way."
+          },
+          "own": "Own projects",
+          "projectCount": "Projects",
+          "projects": {
+            "_": "Show titles",
+            "tooltip": "Labels all bubbles (even if there are many) with their short title only, instead of name and DB %: the name of the group or customer, for a single project its short name (else its name)."
+          },
+          "size": "Bubble size: costs"
         },
         "config": {
           "addAssignment": "Add assignment",
@@ -1563,6 +1567,11 @@
     },
     "businessUnits": {
       "add": "Add business unit",
+      "color": {
+        "_": "Colour",
+        "remove": "Remove colour",
+        "tooltip": "The colour of the bubbles of the business unit in the contribution margin bubble chart of the statistics. Bubbles of several or uncoloured business units keep the default colour."
+      },
       "empty": "No business units yet.",
       "groups": "Customer groups",
       "members": "Covers ({arg0})",
@@ -4425,8 +4434,7 @@
     "state": {
       "_": "State",
       "finished": "Finished",
-      "running": "Running",
-      "template": "Template"
+      "running": "Running"
     },
     "template": {
       "_": "Template",

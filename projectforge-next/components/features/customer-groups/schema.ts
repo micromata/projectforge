@@ -17,6 +17,7 @@ export const CUSTOMER_SET_METADATA: EntityMetadata = {
     texts: { dataType: "CUSTOMIZED", required: false },
     groups: { dataType: "CUSTOMIZED", required: false },
     tasks: { dataType: "CUSTOMIZED", required: false },
+    color: { dataType: "STRING", required: false },
   },
 };
 
@@ -76,6 +77,8 @@ export const customerGroupsSchema = z.object({
       ...customerSet,
       groups: z.array(z.string()),
       tasks: z.array(entityRef),
+      // Picked, never typed: whether it is a hex code is the server's check.
+      color: z.string(),
     })
   ),
   orderAccess: z.array(
