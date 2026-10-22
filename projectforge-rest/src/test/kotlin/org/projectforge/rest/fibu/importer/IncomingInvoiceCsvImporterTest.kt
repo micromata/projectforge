@@ -288,6 +288,31 @@ class IncomingInvoiceCsvImporterTest {
         assertTrue(storage.pairEntries.none { it.stored != null }, "Nothing matches the invoice of 2025.")
     }
 
+    @Test
+    fun `rows of one invoice in a header-only export are merged and matched as one`() {
+        databaseInvoices = listOf(dbInvoice(1, "5512049949", "Google Ireland Limited", LocalDate.of(2026, 2, 28)))
+        val storage = parse(
+            "Belegart;Geschäftspartner-Name;Rechnungsbetrag;WKZ;Rechnungs-Nr.;Rechnungsdatum;Konto;BezahltAm",
+            """"G";"Google Ireland Limited";"-487,71";"EUR";"5512049949";"02.03.2026";"1814";"02.03.2026"""",
+            """"R";"Google Ireland Limited";"500,00";"EUR";"5512049949";"28.02.2026";"6810";"28.02.2026"""",
+            """"R";"Google Ireland Limited";"500,00";"EUR";"5512049949";"28.02.2026";"6810";"28.02.2026"""",
+            """"R";"Google Ireland Limited";"487,71";"EUR";"5512049949";"28.02.2026";"6810";"28.02.2026"""",
+        )
+        val invoice = storage.readInvoices.single()
+        assertEquals(0, BigDecimal("1487.71").compareTo(invoice.grossSum))
+        storage.reconcileImportStorage()
+        assertEquals(1L, storage.pairEntries.single().stored?.id, "Matched, nothing offered as new.")
+    }
+
+    @Test
+    fun `internal note of the header export isn't part of the invoice number`() {
+        val storage = parse(
+            "Belegart;Geschäftspartner-Name;Rechnungsbetrag;WKZ;Rechnungs-Nr.;Interne Re.-Nr.;Rechnungsdatum;Konto",
+            """"R";"Amazon";"9.692,33";"EUR";"IINDE26-41702";"BBK";"01.08.2026";"6810"""",
+        )
+        assertEquals("IINDE26-41702", storage.readInvoices.single().referenz)
+    }
+
     private fun parsePositions(vararg rows: String): EingangsrechnungImportStorage {
         return parse("Periode;Belegart;Betrag;Währung;Datum;RENR;LieferantName;Konto;gezahlt_am", *rows)
     }

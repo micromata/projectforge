@@ -31,6 +31,7 @@ import org.projectforge.framework.utils.CurrencyHelper
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.dto.Konto
 import org.projectforge.rest.importer.*
+import java.math.BigDecimal
 import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
@@ -194,8 +195,35 @@ class IncomingInvoiceCsvImporter(
      * payment of the invoice with the same RENR. Their date is taken as paid date of that invoice, if it has none
      * (the paid date of the invoice rows wins: a row without one takes that of another row of the same invoice first,
      * otherwise its positions would get different paid dates).
+     * A header-only export has one row per booking line of an invoice; these rows are merged, see [mergeHeaderRows].
      */
     override fun filterRecords(
+        records: List<EingangsrechnungPosImportDTO>,
+        importStorage: ImportStorage<EingangsrechnungPosImportDTO>
+    ): List<EingangsrechnungPosImportDTO> {
+        val accepted = skipPaymentOffsets(records, importStorage)
+        return if (storage.isPositionBasedImport) accepted else mergeHeaderRows(accepted)
+    }
+
+    /**
+     * Merges the rows of one invoice (RENR, creditor and date) of a header-only export into its first row with the
+     * total amount, as the position-based import does. Otherwise only one row matched the stored invoice, all others
+     * were offered as new invoices on every import (and a header-only import never creates invoices).
+     */
+    private fun mergeHeaderRows(records: List<EingangsrechnungPosImportDTO>): List<EingangsrechnungPosImportDTO> {
+        return records.groupBy { "${invoiceKeyWithoutDate(it)}|${it.datum}" }.values.map { rows ->
+            val first = rows.first()
+            if (rows.size > 1) {
+                first.grossSum = rows.mapNotNull { it.grossSum }.reduceOrNull(BigDecimal::add)
+                first.netSum = rows.mapNotNull { it.netSum }.reduceOrNull(BigDecimal::add)
+                rows.drop(1).flatMap { it.getErrors() }.distinct().filter { it !in first.getErrors() }
+                    .forEach { first.addError(it) }
+            }
+            first
+        }
+    }
+
+    private fun skipPaymentOffsets(
         records: List<EingangsrechnungPosImportDTO>,
         importStorage: ImportStorage<EingangsrechnungPosImportDTO>
     ): List<EingangsrechnungPosImportDTO> {

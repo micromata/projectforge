@@ -140,7 +140,7 @@ class IncomingInvoiceImportRest :
             kreditor=Geschäftspartner-Name|Kreditor|LieferantName
             paymentType=Zahlungsart|Belegtyp
             receiver=Empfänger
-            referenz=Rechnungs-Nr.|Referenz|Interne Re.-Nr.|RENR
+            referenz=Rechnungs-Nr.|Referenz|RENR
             leistungsdatum=Leistungsdatum|:dd.MM.yyyy|:dd.MM.yy
             kost1=KOST 1|KOST1
             kost2=KOST 2|KOST2
