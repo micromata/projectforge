@@ -12,7 +12,7 @@ import {
 import { narrowToSeeded, resetTreeState } from "./fixtures/task-tree";
 
 /**
- * The structure wizard — step 4b of projectforge-next/MIGRATION.md.
+ * The structure wizard (`/next/taskWizard`).
  *
  * What it does is Wicket's `TaskWizardPage.create`, now `TaskWizardService`: the picked element gets
  * the group's role recursively, every ancestor below the root read access on the tasks alone. The rules

@@ -10,7 +10,7 @@ import type { ListMetaData, MagicFilter } from "../lib/rs/types";
 import type { SeededTask } from "./fixtures/seed";
 
 /**
- * The task list — step 4 of projectforge-next/MIGRATION.md, the second perspective on the same tasks
+ * The task list — the second perspective on the same tasks
  * the structure tree shows.
  *
  * Its inventory is `TaskListPage.createColumns`: ten columns, three of which show a value that is not

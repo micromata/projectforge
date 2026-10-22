@@ -7,7 +7,7 @@ import { narrowToSeeded, resetTreeState } from "./fixtures/task-tree";
 import { luceneQueryDocsUrl } from "../lib/docs-links";
 
 /**
- * The action bar of the structure tree page — step 3 of projectforge-next/MIGRATION.md.
+ * The action bar of the structure tree page.
  *
  * The inventory under test is Wicket's `TaskTreePage` content menu plus the reset button of its form:
  * add a task, add a *subtask* per row, re-index, reset the filter (a button of the filter row, not a
@@ -256,7 +256,10 @@ test.describe("task tree actions", { tag: "@lane-task" }, () => {
     const help = page.getByRole("link", {
       name: format.t("tooltip.lucene.link"),
     });
-    await expect(help).toHaveAttribute("href", luceneQueryDocsUrl(format.locale));
+    await expect(help).toHaveAttribute(
+      "href",
+      luceneQueryDocsUrl(format.locale)
+    );
     await expect(help).toHaveAttribute("target", "_blank");
   });
 

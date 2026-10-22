@@ -7,9 +7,8 @@ import type {
 } from "@/lib/rs/task";
 
 /**
- * `POST /rs/task/kost2Preview` against the tree's own numbers — the acceptance criterion
- * projectforge-next/MIGRATION.md names for the kost2 block of step 2: *the preview equals what Wicket
- * shows*.
+ * `POST /rs/task/kost2Preview` against the tree's own numbers — the acceptance criterion of the kost2
+ * block of the task edit page: *the preview equals what Wicket showed*.
  *
  * Wicket's tooltip is not scraped here, and it does not have to be: its content comes from
  * `TaskTree.getKost2List` through `KostHelper.getFormattedNumberLines`, and so does the tree's

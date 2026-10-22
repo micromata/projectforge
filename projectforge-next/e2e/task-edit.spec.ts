@@ -6,8 +6,7 @@ import { waitForRows } from "./fixtures/list-table";
 import { resetTreeState } from "./fixtures/task-tree";
 
 /**
- * The task edit page (`/next/task/:id`) against the live backend — the hand-built page of step 2 of
- * projectforge-next/MIGRATION.md.
+ * The task edit page (`/next/task/:id`) against the live backend.
  *
  * Three things here exist nowhere else and are what these cases are about: the two sections that start
  * folded and unfold when their tab is clicked, the return to the *caller* (`?returnTo=`, the tree

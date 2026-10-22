@@ -27,7 +27,7 @@ import { CALENDAR_INIT_KEY, useInitPatchRunner } from "./use-calendar-init";
 
 /**
  * Every `change*` mutation the toolbar and settings dialog trigger, each wired to the effect the
- * backend's answer calls for (see the trigger→effect table in MIGRATION-calendar.md):
+ * backend's answer calls for:
  *
  * - style / visibility carry colour and visibility in their payload → apply the patch and refetch events;
  * - timesheet-user / show-breaks / vacations answer with only `isFilterModified`, so the new value is

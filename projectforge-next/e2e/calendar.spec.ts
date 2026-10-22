@@ -15,7 +15,7 @@ import type {
 
 /**
  * The hand-built calendar (`/next/calendar`, the default page after login), against the live backend.
- * The cases below cover the eight regressions from MIGRATION-calendar.md: it loads and honours a
+ * The cases below cover the regressions found while migrating it: it loads and honours a
  * `?gotoDate`; the view, grid size and calendar visibility survive a reload (they are persisted server
  * side); an event's hover-card shows its data; a filter favourite can be created and deleted; and the
  * two navigation paths a click produces resolve to the migrated timesheet routes.

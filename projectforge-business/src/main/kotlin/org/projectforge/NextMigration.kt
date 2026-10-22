@@ -439,8 +439,7 @@ object NextMigration {
         ),
         // Migrated from Wicket, list and form. The route is `creditor-invoice`, not the category: `invoice` is the
         // outgoing side, and this is the incoming (creditor) one - which side the category names is what the menu says.
-        // Nothing is left behind on Wicket: the SEPA transfer export sits on the edit page and the mass update, the CSV
-        // import is next/creditor-invoice-import (see MIGRATION.md). The Wicket pages have been removed: no way back
+        // Nothing is left behind on Wicket: the SEPA transfer export sits on the edit page and the mass update, the CSV        // import is next/creditor-invoice-import. The Wicket pages have been removed: no way back
         // and no redirect of old links (legacyApp = null), as no link of them ever left ProjectForge.
         "incomingInvoice" to NextPage(
             route = "creditor-invoice",

@@ -88,7 +88,13 @@ export function isWebAuthnSupported(): boolean {
   );
 }
 
-/** Turns the backend's base64url options into the ArrayBuffers the browser API wants. */
+/**
+ * Turns the backend's base64url options into the ArrayBuffers the browser API wants.
+ *
+ * `extensions` is left out on purpose: the backend sends the same `appidExclude`/`credProps` as for a
+ * registration (`WebAuthnServicesRest.webAuthn`), and both are registration extensions without meaning for
+ * `navigator.credentials.get`.
+ */
 function toPublicKeyOptions(
   options: WebAuthnRequestOptions
 ): PublicKeyCredentialRequestOptions {

@@ -20,7 +20,7 @@ export interface Credentials {
 /**
  * The roles a spec may ask for. One account cannot carry them all, and that is the point: with only
  * the full-access one, every rights rule is testable in its success half alone — the refusal, which
- * is the half that matters, is unreachable (see MIGRATION.md, "Mehrere Testkonten statt einem").
+ * is the half that matters, is unreachable.
  */
 export type Role =
   /** Every group and every right: sees everything, may write everything. */

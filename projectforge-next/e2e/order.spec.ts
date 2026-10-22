@@ -9,7 +9,7 @@ import { findProjectWithCustomer, ownUserSearchTerm } from "./fixtures/seed";
 import type { Page } from "@playwright/test";
 
 /**
- * The order book against the live backend — the hard case of the migration (see MIGRATION.md): two
+ * The order book against the live backend — the hard case of the migration: two
  * nested collections of unbounded length, sums the server computes from unsaved form state, and a
  * project that fills other fields in.
  *

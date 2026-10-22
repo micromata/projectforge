@@ -1,11 +1,10 @@
 /**
  * Rewrites the calendar backend's legacy time sheet edit urls onto this app's route shape.
  *
- * The `/rs/calendar/action` endpoint is shared with the team-event and cal-event editors and with the
- * legacy React calendar, so its output must not be changed server-side (see MIGRATION notes): it still
- * answers `/timesheet/edit` for a new sheet and `/timesheet/edit/<id>` for an existing one. This app
- * routes them as `/timesheet/new` and `/timesheet/<id>` (see the `[id]` route), so the translation
- * happens here, on the way to the router.
+ * The `/rs/calendar/action` endpoint (shared with the team-event and cal-event editors) still answers the
+ * url shape of the removed React calendar: `/timesheet/edit` for a new sheet and `/timesheet/edit/<id>`
+ * for an existing one. This app routes them as `/timesheet/new` and `/timesheet/<id>` (see the `[id]`
+ * route), so the translation happens here, on the way to the router.
  *
  * Pure and total: a url that is not a time sheet edit url — a team event's, an absolute one, anything
  * unexpected — is returned unchanged, so this can wrap every action url without a second thought.

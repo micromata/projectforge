@@ -129,7 +129,7 @@ open class DBQuery {
     /**
      * Same result as [select], but returns only the ids of the matching objects (in the same order).
      *
-     * Used by server-side paging (see `MIGRATION-list-paging.md`): the ordered id list is materialized
+     * Used by server-side paging (see `projectforge-next/docs/list-paging.md`): the ordered id list is materialized
      * once per (user, filter), so the expensive per-row work of [select] — DTO mapping, currency
      * formatting, Jackson serialization — runs on one page of ids instead of on every row.
      *
