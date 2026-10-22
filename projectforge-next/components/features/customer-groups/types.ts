@@ -22,6 +22,8 @@ export interface BusinessUnitData extends CustomerSetData {
   groups?: string[];
   /** Tasks whose projects count to the business unit if their customer leads to none. */
   tasks?: EntityRef[];
+  /** Hex code of the business unit's bubbles in the contribution margin chart, e.g. `#ffcb00`. */
+  color?: string | null;
 }
 
 /**
@@ -84,6 +86,8 @@ export interface CustomerSetValues extends ArrayRow {
 export interface BusinessUnitValues extends CustomerSetValues {
   groups: string[];
   tasks: EntityRef[];
+  /** `""`: none. */
+  color: string;
 }
 
 export interface OrderAccessValues extends ArrayRow {

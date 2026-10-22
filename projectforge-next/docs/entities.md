@@ -1,6 +1,6 @@
-# The three implemented entities
+# The first three entities
 
-`book`, `cost1` and `order` are the pages migrated so far. They were picked in that order on purpose:
+`book`, `cost1` and `order` were the first pages migrated, and they remain the reference implementations. They were picked in that order on purpose:
 each one is a step up in difficulty, and together they define how far the declarative page concept
 reaches (see [page-declarations.md](page-declarations.md)) and where the escape hatches are needed.
 

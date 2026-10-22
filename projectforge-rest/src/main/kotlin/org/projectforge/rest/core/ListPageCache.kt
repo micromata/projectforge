@@ -39,7 +39,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * The materialized ordered id list of a server-side paged list, cached per (session, filter). See
- * [ListPageCache] and `MIGRATION-list-paging.md`.
+ * [ListPageCache] and `projectforge-next/docs/list-paging.md`.
  *
  * @param fingerprint [org.projectforge.framework.persistence.api.MagicFilter.resultFingerprint] the list was built for.
  * @param ids The ordered ids the filter selected (already access-checked and sorted).
@@ -103,8 +103,8 @@ class ListPageChangeCounter {
 }
 
 /**
- * Session cache of the ordered id list materialized for a server-side paged list (Stage 2 of
- * `MIGRATION-list-paging.md`).
+ * Session cache of the ordered id list materialized for a server-side paged list
+ * (see `projectforge-next/docs/list-paging.md`).
  *
  * Stored via [ExpiringSessionAttributes] (per session, sliding TTL, swept by a background timer) — the same
  * store [org.projectforge.rest.multiselect.MultiSelectionSupport] uses, deliberately not [UserPrefService]:

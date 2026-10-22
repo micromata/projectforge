@@ -76,6 +76,7 @@ export function toFormValues(
           ...toSetValues(bu, used),
           groups: bu.groups ?? [],
           tasks: bu.tasks ?? [],
+          color: bu.color ?? "",
         })
       )
     ),

@@ -17,8 +17,8 @@ function epochSeconds(date: Date | null): number | undefined {
 }
 
 /**
- * Where a click on an existing event navigates, by `extendedProps.category` (see the routing table in
- * MIGRATION-calendar.md). `timesheet-stats` goes nowhere; a break opens a new timesheet for its span;
+ * Where a click on an existing event navigates, by `extendedProps.category`:
+ * `timesheet-stats` goes nowhere; a break opens a new timesheet for its span;
  * vacation and birthday open their own views; everything else opens `/<category>/edit/<id>`. The urls
  * are unprefixed frontend paths, so `resolveMenuUrl` maps them onto this app under its base path.
  */

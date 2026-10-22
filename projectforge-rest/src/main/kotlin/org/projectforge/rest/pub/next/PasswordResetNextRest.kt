@@ -253,7 +253,7 @@ open class PasswordResetNextRest : AbstractDynamicPageRest() {
      * is cleared.
      */
     @AccessChecked("PUBLIC: drops the own reset token/session data")
-    @GetMapping("cancel")
+    @PostMapping("cancel")
     fun cancel(request: HttpServletRequest, response: HttpServletResponse): NextActionResult {
         getSessionData(request)?.let {
             passwordResetService.deleteToken(it.token)

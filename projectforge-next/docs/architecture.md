@@ -2,19 +2,14 @@
 
 ## What this package is
 
-`projectforge-next` is a Next.js App Router application that replaces, page by page, the legacy
-Wicket and React frontends of ProjectForge. All three run side by side inside the one Spring Boot
-application:
+`projectforge-next` is a Next.js App Router application and the only frontend of ProjectForge. It
+replaced, page by page, the Wicket and React frontends, which are removed. It is served by the Spring
+Boot application under `/next` (`Constants.NEXT_APP_PATH`). Old `/wa/…` and `/react/…` URLs are answered
+by `OrphanedLinkFilter`: links that left ProjectForge (mails, data transfer) land on their page here,
+everything else on the start page.
 
-| Frontend                      | Path     | Constant                            |
-| ----------------------------- | -------- | ----------------------------------- |
-| Wicket (legacy)               | `/wa`    | `Constants.WICKET_APPLICATION_PATH` |
-| React (removed)               | `/react` | `Constants.REACT_APP_PATH`          |
-| This app                      | `/next`  | `Constants.NEXT_APP_PATH`           |
-
-A page is migrated by moving it here and registering it on the backend; nothing else has to move with
-it. Which frontend serves a page is decided in exactly one place, `NextMigration` in
-projectforge-business (see [Routing and the migration switch](#routing-and-the-migration-switch)).
+Which pages exist and how the backend links to them is decided in one place, `NextMigration` in
+projectforge-business (see [Routing](#routing)).
 
 ## Two operating modes
 
@@ -55,7 +50,7 @@ app/                      routes only; pages compose features, no business logic
   layout.tsx              html shell: fonts, theme, LocaleProvider, QueryProvider, TooltipProvider, Toaster
   login/, password-*/     public routes
   (authenticated)/        everything behind AuthGuard + TwoFactorProvider + JobToasts
-    book/, cost1/, order/ the hand-built entity pages
+    <route>/              one directory per page (book/, order/, calendar/, …)
 components/ui/            shadcn primitives — CLI-managed, never edited
 components/data-table/    the generic table primitive: DataTable, filters, column state, paging
 components/shared/        app-wide reusables: shells, form fields, attachments, history, tasks, chrome
@@ -88,9 +83,9 @@ Every call to Spring goes through this folder; feature code never calls `fetch`.
   `fetchUserStatus`, `fetchMenu`, the filter-favorite calls, …
 - `entity.ts` — the writes of an entity page (`AbstractEntityRest`): `saveOrUpdateEntity`,
   `markEntityAsDeleted`, `undeleteEntity`, `cancelEntityEdit`, `postEntityAction`. These speak the
-  `PostData`/`ResponseAction` protocol of the former UILayout pages rather than plain JSON: the body is a `PostData` envelope (`{ data }`), the answer
-  is a `ResponseAction` (the new id arrives only as `variables.id`, so a caller re-reads the entity),
-  and **HTTP 406 is a regular answer** carrying `validationErrors`.
+  `PostData`/`ResponseAction` protocol rather than plain JSON: the body is a `PostData` envelope
+  (`{ data }`), the answer is a `ResponseAction` (the new id arrives only as `variables.id`, so a caller
+  re-reads the entity), and **HTTP 406 is a regular answer** carrying `validationErrors`.
 - `types.ts` — the wire contracts: `MagicFilter`, `MagicFilterEntry`, `ResultSet`, `ListMetaData`,
   `ResponseAction`, `ValidationError`, `UserStatus`, …
 - Further modules per concern: `attachments.ts`, `auth.ts`, `column-state.ts`, `download.ts`,
@@ -163,26 +158,70 @@ feedback; a rejected entity comes back as HTTP 406 with `validationErrors`, and
 (`positionen[0].periodOfPerformanceEnd`) included. An error naming a field the form does not render
 becomes a toast instead of vanishing.
 
-## Routing and the migration switch
+### Pitfalls of the backend contract
 
-`app/(authenticated)/` holds everything behind `AuthGuard`. Inside it:
+Each of these cost a debugging session once.
 
-- **Every page is hand-built** and owns concrete routes: `/book`, `/book/new`, `/book/[id]`,
-  `/book/[id]/history`, and the same shape for `cost1` and `order` (plus `/order/[id]/forecast`).
-  There is no catch-all: a URL no route serves is a 404. Each route of `NextMigration.MIGRATED` needs
-  its directory here (asserted by `NextMigrationTest`).
+- **Answers of a write.** An `AccessException` from one of the four CRUD endpoints is a **406**; an
+  own endpoint (`postEntityAction`) answers a refusal as `kind: "rejected"` (a `TOAST`, while success
+  carries `REDIRECT`); anything else that refuses answers **403** + `RestError` (`useReadAccessGuard`).
+  An expired CSRF token is a `403 csrfTokenRequired`, retried once by `client.ts`.
+- **A form posts its values as the DTO.** Schema and `toFormValues` must carry **every** field the
+  page does not edit through unchanged (recurrence, attendees, reminders, `deleted`, …), or a save
+  silently erases it.
+- **Access flags on the DTO** (`writeAccess`/`deleteAccess`, `EntityAccessSupport`, filled in
+  `AbstractEntityRest.getById`): a missing flag means allowed. Buttons without the right are left out,
+  field-level rights render the field read-only with the backend's refusal as hint.
+- **`MagicFilter`** carries only fields the Kotlin class can deserialize (HTTP 400 otherwise); the page
+  size is a filter entry (`paginationPageSizeEntry()`), not a top-level field. Range bounds are
+  `from`/`to` on the wire. A STRING filter is a `LIKE` over the whole field, so the client sets the
+  wildcards.
+- **Filter favorites** (`filter/select|create|update|rename|delete`): `create` without `id`; `update`
+  replaces the whole favorite (send the name along) and answers an empty map; only `select` answers
+  full `InitialListData`. The current filter reference (`id` + `name`) goes with every list call,
+  because `getList` stores it as the remembered filter. The `["listMeta", entity]` cache is patched,
+  not mirrored in own state.
+- **Remembered list state:** `getList` stores the filter, `listMeta.filter` returns it; the list stays
+  behind a spinner until `listMeta` **and** `columnStates` are there. Column filters are deliberately
+  not restored (a hidden filter would silently narrow a reopened list).
+- **Attachments:** every write answers the entity's **whole** new list (`setQueryData`, no re-read); a
+  refusal is HTTP 200 with a `TOAST`.
+- **Multi-selection / mass update** keeps its state in the HTTP session (keyed by the `*EntityRest`
+  class, 60 min), like the paged id lists — multi-node needs sticky sessions.
+- **`FormData` bodies:** don't set `Content-Type`, the browser adds the boundary.
+- **Calendar** (`CalendarServicesRest`, `CalendarFilterServicesRest`): the changing endpoints answer
+  _subsets_ of `CalendarInit` (`selectFilter` the whole of it, `changeStyle` no `isFilterModified`);
+  event `start`/`end` are passed to FullCalendar unchanged (ISO instant or `yyyy-MM-dd`), or all-day
+  events shift by the zone offset; `vacationGroupIds`/`vacationUserIds` are overwritten by the server
+  and belong in the query key, not the body; a range over 50 days is a 400.
 
-On the backend, `NextMigration` (projectforge-business) is the single place that decides which
-frontend a page belongs to. It has to be single, because a page's frontend URL is generated in two
-unrelated places — the menu (`MenuItemDefId`) and every `ResponseAction(url = …)` redirect after
-save/cancel/delete (via `PagesResolver`) — and if they disagree, the user is thrown from one frontend
-into the other mid-workflow. One entry in `MIGRATED` switches a page over; removing it rolls the
-switch back.
+## Routing
 
-It also records the _way back_: a page may have been migrated straight from Wicket, which the React
-migration never reached (`cost1`, `order`), so `legacyListUrl` / `legacyEditPage` are their own
-mapping rather than derivable from the next URL. That is what feeds the `LegacyPageLink` escape hatch
-beside every page title, and it answers `null` once the legacy page is gone (as for `book`).
+`app/(authenticated)/` holds everything behind `AuthGuard`. **Every page is hand-built** and owns
+concrete routes (`/book`, `/book/new`, `/book/[id]`, …). There is no catch-all: a URL no route serves
+is a 404. The history of an entry is a tab of its edit page (`?tab=history`), not a route.
+
+On the backend, `NextMigration` (projectforge-business) is the single place that knows the pages: a
+page's URL is generated in two unrelated places — the menu (`MenuItemDefId`) and every
+`ResponseAction(url = …)` redirect after save/cancel/delete (via `PagesResolver`) — and both ask it.
+It also records which old `/wa` or `/react` URLs are redirected (`legacyApp`).
+
+### Adding a page
+
+- **An entry in `NextMigration.MIGRATED`** (REST category → next route) and its directory under
+  `app/(authenticated)/`; `NextMigrationTest` checks that every route exists. A second perspective of
+  an entity under another route names its URL directly in `MenuItemDefId` (task tree `next/taskTree`
+  beside the list `next/task`).
+- **The second factor is checked on the REST call**, not on the page URL (a static file passes no
+  filter): register the `*Rest` class in `ProjectForge2FAInitialization` for reading
+  (`registerShortCutClasses`) and `WRITE:<category>` in the matching `*_WRITE` shortcut for writing. The
+  category is the REST path, not the DAO identifier (`order`, not `auftrag`). Both are needed, because
+  each shortcut can be configured on its own. `NextMigration2FATest` enforces it.
+- **Access is checked by the endpoint** (`@AccessChecked`, see the security rules in the root
+  `CLAUDE.md`); `userAccess` and the DTO's access flags only decide what the page shows.
+- **Old links are redirected only if they left ProjectForge** — in a mail (notifications, reminders) or
+  a data transfer. Bookmarks alone don't justify a redirect (`NextMigrationTest`, "only links that left
+  ProjectForge are redirected").
 
 ## Page composition
 
@@ -205,44 +244,12 @@ What goes into them for an entity is not written per page but declared once — 
 - `npm run test` — Vitest, for the pure logic (`lib/page-def/*`, `lib/format`, `lib/validation`,
   filter and column-order derivations). Deliberately DOM-free: what is worth asserting is the
   derivation, not the JSX around it.
-- `npm run e2e` — Playwright against the **running** system. Credentials of the local test accounts
-  are in `$PROJECTFORGE_HOME/testAccounts.txt`, one line per role (`role=username/password`, see
-  `e2e/fixtures/credentials.ts`); the suite logs in via `POST /rsPublic/nextLogin` and takes the
-  `csrfToken` from `GET /rs/userStatus`. Seeing a real response settles at once whether a field is
-  missing, null or merely displayed wrong. A spec about a rights rule asks for the role that makes
-  the refusal reachable (`normalo-user`, `admin-user`, `finance-user`) and skips via `hasRole` where
-  the instance has no such account.
-- The four accounts need no setup: in development mode the backend creates the ones it doesn't find
-  (`e2e-full-access`, `e2e-finance`, `e2e-admin`, `e2e-normalo`) with a random password per instance
-  and writes that file itself — see `E2ETestAccountsService` in `projectforge-business`. A stale
-  password is fixed by deleting its line and restarting.
-
-### Which server the E2E suite runs against
-
-`E2E_BASE_URL` picks the target; the default is the dev server on `:3000`.
-
-```bash
-npm run e2e                                          # dev server on :3000 (default)
-E2E_BASE_URL=http://localhost:8080 npm run e2e       # the static export Spring serves
-E2E_BASE_URL=http://localhost:8080 npx playwright test e2e/order.spec.ts
-```
-
-**Against `:8080` — the faster and steadier one.** Spring serves the build from the classpath
-(`classpath:/static/next/`, see `WebApplicationConfig`), so nothing is compiled during the run and
-**editing sources while the suite runs cannot disturb it**. Measured on the same machine: ten tests in
-14 s against `:8080` versus minutes against `:3000`, a full suite in ~4 min. Use this whenever the
-frontend is being worked on in parallel.
-
-The trade: `:8080` shows the **last build copied there by Gradle**, not the working tree. `out/` is not
-read live — after `npm run build` the files reach the classpath only via `copyNextBuild` (or
-`./gradlew build`), and because the resource chain caches and the shell map is read once per JVM,
-a new dynamic route needs Spring restarted.
-
-**Against `:3000`** — the default, and the only way to test uncommitted frontend changes. But a run
-competes with the dev server: the first navigation to a route compiles it, and an edit made mid-run
-invalidates modules under the test's feet. That is why a _different_ handful goes red each time, all
-with "element(s) not found" on a page that was still being built — the reason `expect.timeout` is 20 s
-and `timeout` 90 s in `playwright.config.ts`. Two habits make it bearable: restart `next dev` before a
-full run (it grew to 18 GB RSS at 400–700 % CPU over a long session, and at that size the process
-spends its time in GC while browser contexts die), and request every route once to warm it up before
-the first test. Don't edit while it runs.
+- `npm run e2e` — Playwright against the **running** system, see "Testing against the running
+  system" in `../CLAUDE.md` for the test accounts (written by `E2ETestAccountsService` in development
+  mode), the targets (`npm run e2e` → the static export on :8080, `npm run e2e:dev` → the dev server),
+  the slots of `bin/pfDev.sh` and the spec tags (`@parallel`, `@lane-*`, `@isolated`). A spec about a
+  rights rule asks for the role that makes the refusal reachable and skips via `hasRole` where the
+  instance has no such account.
+- Against the dev server a run competes with compiling: the first visit of a route compiles it, and an
+  edit made mid-run invalidates modules under the test's feet. Restart `next dev` before a long run and
+  don't edit while it runs; for a full run use the static export.

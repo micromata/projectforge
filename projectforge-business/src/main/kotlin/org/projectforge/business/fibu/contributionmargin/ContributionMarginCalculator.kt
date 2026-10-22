@@ -84,6 +84,8 @@ class ContributionMarginProjectInfo(
   val project: String?,
   /** The project group the project belongs to, see `CustomerGroupService.projectGroupNameOf`. */
   val projectGroup: String? = null,
+  /** The short name of the project (`ProjektDO.identifier`), null for none. */
+  val identifier: String? = null,
 )
 
 /**
@@ -164,6 +166,7 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
         customer = info?.customer,
         project = info?.project,
         projectGroup = info?.projectGroup,
+        identifier = info?.identifier,
         revenue = amount.revenue,
         costs = -amount.costs,
         prevYearProfit = prevByProject[projectId]?.profit ?: BigDecimal.ZERO,

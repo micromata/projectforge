@@ -21,8 +21,7 @@ import type { Page } from "@playwright/test";
 
 /**
  * The edit form of an outgoing invoice against the live backend — the deepest form of the migration:
- * positions, and inside each of them the cost assignments its net sum is split across (see
- * MIGRATION.md).
+ * positions, and inside each of them the cost assignments its net sum is split across.
  *
  * Every case works on an invoice it created itself and marks as deleted afterwards, whatever happened
  * in between. Two reasons it cannot read one of the database instead: the list here is a production
@@ -61,8 +60,8 @@ test.describe("outgoing invoice edit", { tag: "@lane-invoice" }, () => {
       // invoice has to be among them (see invoice-selection.spec.ts, which resets it for the same reason).
       await page.request
         .post(`/rs/${INVOICE_PAGE.entity}/filter/reset`, {
-        headers: await writeHeaders(page.request),
-      })
+          headers: await writeHeaders(page.request),
+        })
         .catch(() => undefined);
       await goto(page, "/invoice");
 

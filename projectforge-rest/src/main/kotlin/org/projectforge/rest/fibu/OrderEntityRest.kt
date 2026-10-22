@@ -29,6 +29,8 @@ import org.projectforge.SystemStatus
 import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.fibu.*
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginBubbleGrouping
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginBubbles
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginBreakdown
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginData
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginDetails
@@ -59,6 +61,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.core.buildQueryFilter
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.ValidationUtils
@@ -629,7 +632,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   /**
    * The whole-result statistics of a server-side paged order list: computed over the full id list, not over
    * the single page [postProcessResultSet] sees, so the footer shows the sums of every matching order (see
-   * `MIGRATION-list-paging.md`). Each id's [OrderInfo] is a cache lookup, so this stays cheap for the whole
+   * `projectforge-next/docs/list-paging.md`). Each id's [OrderInfo] is a cache lookup, so this stays cheap for the whole
    * result. The non-paged `POST list` keeps computing the same statistics over its (complete) result set in
    * [postProcessResultSet].
    */
@@ -1321,6 +1324,84 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     }
   }
 
+  /** The grouping and the switches of the bubble chart of the contribution margin tab, remembered per user. */
+  @AccessChecked("contributionMarginService.checkAccess (fibu, project manager/assistant)")
+  @GetMapping("contributionMargin/bubbles/settings")
+  fun getContributionMarginBubbleSettings(): ContributionMarginBubbleSettings {
+    contributionMarginService.checkAccess()
+    val stored = userPrefService.getEntry(
+      category,
+      USER_PREF_PARAM_CONTRIBUTION_MARGIN_BUBBLES,
+      ContributionMarginBubbleSettings::class.java
+    )
+    return ContributionMarginBubbleSettings(
+      grouping = stored?.grouping ?: ContributionMarginBubbleGrouping.PROJECT_GROUP,
+      includeOthers = stored?.includeOthers ?: false,
+      showProjects = stored?.showProjects ?: false,
+    )
+  }
+
+  /**
+   * The bubble chart of the contribution margin tab ([ContributionMarginService.bubbles]): the projects of
+   * [contributionMargin], grouped by the requested grouping. With `includeOthers`, also the projects of the orders
+   * the filter selects regardless of the user's access (all of a business unit, a customer, …), but anonymous:
+   * their bubbles have neither label nor project count, and no id or name of them leaves the server. Grouping and
+   * switch are remembered for the next time, the filter isn't (it's stored by [contributionMargin]).
+   */
+  @AccessChecked("contributionMarginService.checkAccess + allowed projects; the others only anonymous sums")
+  @PostMapping("contributionMargin/bubbles")
+  fun contributionMarginBubbles(@RequestBody request: ContributionMarginBubbleRequest): ContributionMarginBubbles {
+    contributionMarginService.checkAccess()
+    val startDate = request.startDate ?: PFDay.now().beginOfYear.localDate
+    val settings = ContributionMarginBubbleSettings(
+      grouping = request.grouping ?: ContributionMarginBubbleGrouping.PROJECT_GROUP,
+      includeOthers = request.includeOthers == true,
+      showProjects = request.showProjects == true,
+    )
+    userPrefService.putEntry(category, USER_PREF_PARAM_CONTRIBUTION_MARGIN_BUBBLES, settings, true)
+    val magicFilter = OrderStatisticsFilterService.statisticsFilter(request.filter)
+    val own = contributionMarginResult(magicFilter, startDate).data
+    val others = if (settings.includeOthers == true) otherProjectsContributionMargin(magicFilter, startDate) else null
+    return contributionMarginService.bubbles(own, others, settings.grouping!!)
+  }
+
+  /**
+   * The contribution margin of the projects of the orders [magicFilter] selects, but the user may not see: the
+   * orders are selected without access check. Only for anonymous comparison ([contributionMarginBubbles]).
+   */
+  private fun otherProjectsContributionMargin(magicFilter: MagicFilter, startDate: LocalDate): ContributionMarginData {
+    val key = statisticsCacheKey(OrderStatisticsCache.Kind.CONTRIBUTION_MARGIN_OTHERS, magicFilter, startDate)
+    return orderStatisticsCache.get(key) {
+      val filter = forecastFilter(magicFilter, startDate)
+      filter.autoWildcardSearch = true
+      fixMagicFilterFromClient(filter)
+      val (queryFilter, customResultFilters) = buildQueryFilter(this, baseDao, filter)
+      val allProjectIds = baseDao.select(queryFilter, customResultFilters, checkAccess = false)
+        .mapNotNull { it.projekt?.id }.toSet()
+      val ownProjectIds = contributionMarginService.allowedProjectIds(forecastOrders(magicFilter, startDate))
+      contributionMarginService.calculate(allProjectIds - ownProjectIds, startDate)
+    }
+  }
+
+  class ContributionMarginBubbleSettings(
+    var grouping: ContributionMarginBubbleGrouping? = null,
+    /** Whether the projects the user may not see are shown as well, anonymous. */
+    var includeOthers: Boolean? = null,
+    /**
+     * Whether all bubbles are labelled with their short title only, "show titles" (only the client uses it,
+     * remembered here; the name is kept for the stored preferences).
+     */
+    var showProjects: Boolean? = null,
+  )
+
+  class ContributionMarginBubbleRequest(
+    var filter: MagicFilter? = null,
+    var startDate: LocalDate? = null,
+    var grouping: ContributionMarginBubbleGrouping? = null,
+    var includeOthers: Boolean? = null,
+    var showProjects: Boolean? = null,
+  )
+
   /** What the contribution margin tab asks for, and what is remembered of it per user. */
   class ContributionMarginSettings(
     /** The first month of the 12 months shown (any day of it). */
@@ -1516,7 +1597,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
      * [filterList] sorts the loaded order list (each order's info via the cache) for the non-paged `POST
      * list`, and [sortIds] sorts the materialized id list (each id's info via the cache) for server-side
      * paging — the paged result must be the same rows in the same order as `POST list` (see
-     * `MIGRATION-list-paging.md`).
+     * `projectforge-next/docs/list-paging.md`).
      *
      * The customer and the project sort by the very string the cell shows — the `displayName` of the cached
      * [org.projectforge.business.fibu.kunde.KundeDO]/[org.projectforge.business.fibu.ProjektDO], formatted by
@@ -1580,5 +1661,6 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     private const val USER_PREF_PARAM_FORECAST_EXPORT = "forecastExport"
     private const val USER_PREF_PARAM_FORECAST_CHART = "forecastChart"
     private const val USER_PREF_PARAM_CONTRIBUTION_MARGIN = "contributionMargin"
+    private const val USER_PREF_PARAM_CONTRIBUTION_MARGIN_BUBBLES = "contributionMarginBubbles"
   }
 }

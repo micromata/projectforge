@@ -421,7 +421,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
 
     /**
      * The whole-result statistics of a server-side paged invoice list: computed over the full id list, not
-     * over the single page [postProcessResultSet] sees (see `MIGRATION-list-paging.md`).
+     * over the single page [postProcessResultSet] sees (see `projectforge-next/docs/list-paging.md`).
      * [EingangsrechnungsStatistik] converts foreign currencies from the loaded [EingangsrechnungDO], which no
      * cache holds, so the matching invoices are loaded here. See [OutgoingInvoiceEntityRest.aggregate].
      */

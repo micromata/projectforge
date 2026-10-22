@@ -121,7 +121,7 @@ open class TwoFactorLoginNextRest {
      * Cancels the login process (clears the user's session as well as the stay-logged-in cookie).
      */
     @AccessChecked("PUBLIC: logout of the own session")
-    @GetMapping("cancel")
+    @PostMapping("cancel")
     fun cancel(request: HttpServletRequest, response: HttpServletResponse): NextActionResult {
         loginServiceRest.logout(request, response)
         return NextActionResult(success = true)

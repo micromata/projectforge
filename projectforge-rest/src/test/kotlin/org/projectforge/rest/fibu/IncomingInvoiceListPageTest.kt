@@ -45,7 +45,7 @@ import java.math.BigDecimal
 /**
  * The invariant server-side paging rests on, for the incoming invoice (creditor) list: a paged result
  * ([getListPage]) is the same result the non-paged `POST list` ([getList]) returns, only cut into pages. See
- * [IncomingInvoiceEntityRest.sortIds] / [IncomingInvoiceEntityRest.aggregate] and `MIGRATION-list-paging.md`.
+ * [IncomingInvoiceEntityRest.sortIds] / [IncomingInvoiceEntityRest.aggregate] and `projectforge-next/docs/list-paging.md`.
  */
 class IncomingInvoiceListPageTest : AbstractTestBase() {
     @Autowired

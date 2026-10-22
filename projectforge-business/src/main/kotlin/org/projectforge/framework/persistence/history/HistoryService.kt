@@ -29,6 +29,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.ClassUtils
 import org.projectforge.common.StringHelper2
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -39,7 +40,6 @@ import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.registry.Registry
 import org.springframework.beans.factory.annotation.Autowired
@@ -116,18 +116,9 @@ class HistoryService {
                 baseDao.checkLoggedInUserSelectAccess()
             }
             info.entity = baseDao.find(hist.entityId, checkAccess = checkAccess)?.also {
-                try {
-                    val method = baseDao::class.java.getMethod(
-                        "hasUpdateAccess",
-                        PFUserDO::class.java,
-                        ExtendedBaseDO::class.java,
-                        ExtendedBaseDO::class.java,
-                        Boolean::class.java
-                    )
-                    info.writeAccess = method.invoke(baseDao, requiredLoggedInUser, it, null, false) as Boolean
-                } catch (ex: Exception) {
-                    log.error(ex) { "Can't check write access for entity: ${entityClass.name}: ${ex.message}" }
-                }
+                @Suppress("UNCHECKED_CAST")
+                baseDao as BaseDao<ExtendedBaseDO<Long>>
+                info.writeAccess = baseDao.hasUpdateAccess(requiredLoggedInUser, it, it, false)
             }
         }
         return info
@@ -135,8 +126,9 @@ class HistoryService {
 
     /**
      * Appends the given user comment to the history entry with the given id.
-     * If checkAccess is true, the access rights of the logged-in user are checked.
-     * The access check is done by [BaseDao.checkLoggedInUserSelectAccess].
+     * If checkAccess is true, the access rights of the logged-in user are checked: a comment changes the
+     * entity's history, so it needs update access to the entity ([EntryInfo.writeAccess]), not only read
+     * access, and the entity must support comments ([BaseDao.supportsHistoryUserComments]).
      * @param id The id of the history entry.
      * @param userComment The user comment to append.
      * @param checkAccess If true, the access rights of the logged-in user are checked.
@@ -148,6 +140,9 @@ class HistoryService {
             return null
         }
         val info = findEntryAndEntityById(id, checkAccess) ?: return null
+        if (checkAccess && (!info.writeAccess || info.baseDao?.supportsHistoryUserComments != true)) {
+            throw AccessException(requiredLoggedInUser, "access.exception.userHasNotRight")
+        }
         log.info { "Appending user comment to history entry #$id of entity ${info.entity?.javaClass?.name}#${info.entity?.id}: $userComment" }
         persistenceService.runInTransaction { context ->
             val entry = info.entry!!

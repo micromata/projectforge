@@ -305,7 +305,6 @@ open class RestAuthenticationUtils {
           // registerUser creates a fresh UserContext for every request and UserContext.lastSuccessful2FA is always
           // null (My2FAExpiryPeriod.valid). Such a request is therefore permanently denied and the client only needs
           // to be told so in a way it can evaluate.
-          // Checked before isNextClient, because that one is only a hint given by the client itself.
           val msg =
             "2FA is required for ${request.requestURI}, but the request was authenticated by an authentication token: " +
                 "a rest client can't do a 2FA. Either exclude this url from projectforge.2fa.expiryPeriod.* or use " +
@@ -314,19 +313,12 @@ open class RestAuthenticationUtils {
           sendError(response, HttpStatus.FORBIDDEN.value(), "Access denied: 2FA required, not available for rest clients.")
           return
         }
-        if (isNextClient(request)) {
-          // projectforge-next opens its own 2FA dialog and repeats the request afterwards (see lib/rs/client.ts).
-          response.status = HttpStatus.FORBIDDEN.value()
-          response.setContentType(MediaType.APPLICATION_JSON_VALUE)
-          response.writer.write(
-            JsonUtils.toJson(TwoFactorRequired(expiryMillis = expiryMillis), ignoreNullableProps = true)
-          )
-          return
-        }
-        // Any other client (the remaining pages of the legacy React app) has no 2FA dialog any more: the React
-        // dialog (react/2FA/dynamic) is gone, a second factor is only given in projectforge-next.
-        logWarn(authInfo, "2FA is required for ${request.requestURI}, but the request wasn't sent by projectforge-next.")
-        sendError(response, HttpStatus.FORBIDDEN.value(), "Access denied: 2FA required, only available in projectforge-next.")
+        // projectforge-next opens its own 2FA dialog and repeats the request afterwards (see lib/rs/client.ts).
+        response.status = HttpStatus.FORBIDDEN.value()
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE)
+        response.writer.write(
+          JsonUtils.toJson(TwoFactorRequired(expiryMillis = expiryMillis), ignoreNullableProps = true)
+        )
       } else {
         doFilter()
       }
@@ -461,10 +453,10 @@ open class RestAuthenticationUtils {
 
     /**
      * Both the header and the Referer are under the client's control, so this is **not** a trust boundary and must
-     * never gate access: it only picks the shape of the response. Every caller uses it in a branch that denies the
-     * request either way (JSON for next, ResponseAction for the UILayout clients).
+     * never gate access or a security check: it only picks the shape of a response (the lean list rows of
+     * [org.projectforge.rest.core.AbstractEntityRest.useListRow], while a pure rest client gets the full DTO).
      *
-     * @return true, if the request was sent by projectforge-next (which can't handle UILayout based ResponseActions).
+     * @return true, if the request was sent by projectforge-next.
      */
     fun isNextClient(request: HttpServletRequest): Boolean {
       if (request.getHeader(NEXT_CLIENT_HEADER) == Constants.NEXT) {

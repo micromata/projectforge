@@ -1,0 +1,5 @@
+{
+  "type": "security",
+  "en": "Appending a comment to a history entry needs update access to the entry's object, and is only possible for objects supporting comments (users, groups).",
+  "de": "Einen Kommentar an einen Historieneintrag anzuhängen erfordert Schreibrecht auf das zugehörige Objekt und ist nur bei Objekten möglich, die Kommentare unterstützen (Benutzer, Gruppen)."
+}

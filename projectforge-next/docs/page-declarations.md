@@ -104,7 +104,7 @@ Three kinds, told apart structurally:
   For a value no SQL `ORDER BY` can express (a transient sum, `kunde.displayName`), the entity's REST
   class declares it in `AbstractEntityRest.computedSortProperties` under this same `id`; the base then
   drops it from the query and sorts the result in Kotlin, so the order the client picked drives both the
-  list and every export. See `MIGRATION-list-paging.md` (Stage 3) for the mechanism.
+  list and every export (on a server-paged list via `sortIds`, see [list-paging.md](list-paging.md)).
 - **`PeriodColumn`** — `{ periodLabelKey, begin, end }`, two date fields shown as the one value they
   are. A period is deliberately _not_ a data type of its own: the entity has two properties, the
   metadata reports two dates, and the backend sorts by `begin` (which is therefore the column's id).
@@ -195,8 +195,9 @@ and hands everything to `useEntityListPage`, which owns:
 - `resetColumns()` / `resetFilter()`.
 
 Note the deliberate split: sorting and the search string go to Spring, while the header's column
-filters and the paging work on the client, because `getList` returns the whole result set at once (up
-to `maxRows`). `MIGRATION-list-paging.md` tracks moving paging to the server.
+filters and, by default, the paging work on the client, because `getList` returns the whole result set
+at once (up to `maxRows`). A page with `serverPaging` fetches one page at a time instead, see
+[list-paging.md](list-paging.md).
 
 Two behaviours worth knowing because they are invisible in the declaration:
 
