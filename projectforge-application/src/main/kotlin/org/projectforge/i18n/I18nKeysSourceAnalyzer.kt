@@ -106,12 +106,6 @@ internal class I18nKeysSourceAnalyzer {
             parseHtmlMailTemplates(path)
             parseReact(path)
         }
-        // Also parse projectforge-webapp/src directory (not following src/main structure)
-        val webappSrcDir = File(SourcesUtils.getBasePath().toFile(), "projectforge-webapp/src")
-        if (webappSrcDir.exists() && webappSrcDir.isDirectory) {
-            log.info { "Parsing projectforge-webapp/src for React files..." }
-            parseReact(webappSrcDir)
-        }
         getI18nEnums()
         getPropertyInfos()
         // Now, add all found occurrences of all i18n keys detected:

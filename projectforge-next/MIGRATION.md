@@ -19,7 +19,7 @@ Alle Frontends werden von der einen Spring-Boot-App auf `:8080` serviert:
 | Frontend              | Modul                     | Pfad        | Technik                                                                                |
 | --------------------- | ------------------------- | ----------- | -------------------------------------------------------------------------------------- |
 | ~~Wicket (Legacy)~~   | ~~`projectforge-wicket`~~ | `/wa/*`     | entfernt (`doc/wicket-removal.md`); alte Urls landen über `OrphanedLinkFilter` auf next |
-| Alte React-App        | `projectforge-webapp`     | `/react/**` | backend-getriebener „Dynamic Renderer" (UILayout-JSON), CRA→Vite                       |
+| ~~Alte React-App~~    | ~~`projectforge-webapp`~~ | `/react/**` | entfernt; alte Urls landen über `OrphanedLinkFilter` auf next                          |
 | **projectforge-next** | `projectforge-next`       | `/next/**`  | Next.js 16 App Router, statisch exportiert                                             |
 
 **Geteilte Authentifizierung.** Spring Security ist `permitAll`
@@ -794,8 +794,11 @@ gelöscht.
 - Pro migrierter Seite: Menü auf `next/`, alte Route deaktivieren.
 - ✅ `projectforge-wicket` ist entfernt (Modul, Bibliotheken, `/wa`-Filter; `doc/wicket-removal.md`).
   `/wa`-Urls landen weiterhin über `OrphanedLinkFilter` auf next (gemailte auf ihrer Seite, sonst auf der Startseite).
-- Wenn alle Seiten migriert: `projectforge-webapp` aus `settings.gradle.kts` + Build entfernen,
-  `/react`-Serving/Filter entfernen, ggf. `NEXT_APP_PATH` → `/` als Default.
+- ✅ `projectforge-webapp` ist entfernt (Modul, Build, `/react`-Serving; die Root-Icons liegen jetzt in
+  `projectforge-application/src/main/resources/static/`). `/react`-Urls landen über `OrphanedLinkFilter` auf next
+  (gemailte auf ihrer Seite, sonst auf der Startseite).
+- Offen: UILayout-Reste im Backend (`projectforge-rest/.../ui`, `AbstractPagesRest`, `FormLayoutData`,
+  `*PageRest`) abbauen, ggf. `NEXT_APP_PATH` → `/` als Default.
 - Aufräumen: `lib/api-client.ts` (unbenutzter Zweit-Client),
   `components/features/book/mock-data.ts` (oder für `msw`-Tests nutzen – bislang **keine**
   Tests; `filter-fns.ts`/`lib/menu-url.ts` wären ein guter Anfang),

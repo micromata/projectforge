@@ -9,11 +9,20 @@
       "type" : "added",
       "items" : [ "Strukturbaum und Strukturelementliste: Spalte mit den Gruppen, die Zugriffsrechte auf ein Element haben (nur für Administratoren). Beim Darüberfahren werden die Rechte jeder Gruppe angezeigt, ein Klick öffnet die Zugriffsrechte dieses Elements.", "Massenänderung von Zeitberichten: Kost2 nach Kostenart umschlüsseln, ohne dass ein Zeitbericht sein Strukturelement wechselt, z. B. nach Verlinkung eines Projekts." ]
     }, {
+      "type" : "improved",
+      "items" : [ {
+        "title" : "Umfragen",
+        "items" : [ "Vorlagen haben keine Antwortfrist: Beim Speichern wird keine verlangt und keine gesetzt.", "Vorlagen haben den Status „Vorlage“ statt „Laufend“, werden ohne Filter mit aufgelistet und mit einem Badge gekennzeichnet; der Statusfilter ersetzt den Filter „Vorlagen“." ]
+      } ]
+    }, {
       "type" : "fixed",
       "items" : [ {
         "title" : "Import von Eingangsrechnungen",
         "items" : [ "Positionen einer Rechnung in unterschiedlichen Währungen werden zum Kurs des Rechnungsdatums in EUR umgerechnet, statt als EUR übernommen zu werden; ohne Kurs wird die Rechnung als fehlerhaft markiert.", "Gespeicherte Rechnungen zwischen zwei Perioden des Exports (z. B. März bei einem Export von Januar und Juni) werden nicht mehr zum Löschen angeboten.", "Export ohne Positionen: Die Zeilen einer Rechnung (eine je Buchungszeile) werden zu einer Rechnung mit dem Gesamtbetrag zusammengefasst, statt bei jedem Import als neue Rechnungen angeboten zu werden.", "Export ohne Positionen: Die interne Notiz (Spalte „Interne Re.-Nr.“) wird nicht mehr an die Rechnungsnummer angehängt, die sich sonst bei jedem Import der beiden Dateien hin- und herändert." ]
       }, "Massenänderungen: Das Protokollfenster zeigt die geänderten Einträge wieder an.", "Stornorechnungen werden bei den Auftragspositionen aufgeführt, die sie stornieren, direkt nach der stornierten Rechnung (z. B. 17400 und 17400-S), auch im Auftrags- und Forecast-Export. Im Auftrag sind beide durchgestrichen; zusammen zählen sie weiterhin 0 als fakturiert.", "Auftragsbuch: Die Bearbeitungsseite springt beim Ändern eines Feldes nicht mehr." ]
+    }, {
+      "type" : "removed",
+      "items" : [ "Die frühere React-Oberfläche ist entfernt: Alle ihre Seiten sind Teil der neuen Oberfläche, und alte Links (`/react/...`) führen dorthin." ]
     } ]
   },
   "groups" : [ {

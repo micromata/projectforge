@@ -1,0 +1,5 @@
+{
+  "type": "removed",
+  "en": "The former React interface is removed: all its pages are part of the new interface, and old links (`/react/...`) lead there.",
+  "de": "Die frühere React-Oberfläche ist entfernt: Alle ihre Seiten sind Teil der neuen Oberfläche, und alte Links (`/react/...`) führen dorthin."
+}

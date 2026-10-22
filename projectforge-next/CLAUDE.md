@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # ProjectForge Next.js — Project Conventions
 
-This is the in-progress migration of the legacy `projectforge-webapp` (CRA + React) into a modern Next.js App Router app. The legacy code is a **reference for capabilities and domain logic only** — never copy its structure, styling, or patterns. Everything written here must be clean, structured, and maintainable for the long term.
+This is the Next.js App Router frontend of ProjectForge, the successor of the removed legacy React app (`projectforge-webapp`, still in the git history) and of Wicket. Legacy code is a **reference for capabilities and domain logic only** — never copy its structure, styling, or patterns. Everything written here must be clean, structured, and maintainable for the long term.
 
 ## Reuse first — always
 
@@ -18,7 +18,7 @@ This is the in-progress migration of the legacy `projectforge-webapp` (CRA + Rea
 
 1. `grep`/`find` `components/`, `lib/`, `hooks/` for similar names and purposes. Read at least one match.
 2. For any UI primitive (button, input, dialog, dropdown, etc.) check if shadcn provides it. If yes, install via `npx shadcn@latest add <name>` — never hand-roll. Never edit anything in `components/ui/`.
-3. For domain features, check `projectforge-webapp/` (legacy) to understand existing capabilities and naming. Do **not** port its code; reimplement cleanly.
+3. For domain features, check the backend (`projectforge-rest`, `projectforge-business`) and, if needed, the removed legacy `projectforge-webapp/` in the git history to understand existing capabilities and naming. Do **not** port its code; reimplement cleanly.
 4. If you find a near-match that needs extension, extend or generalize it rather than forking. Big or duplicated components should be picked up and split.
 
 If you create something that could plausibly be reused, put it in the right tier (see below) so the next agent finds it.

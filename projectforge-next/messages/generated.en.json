@@ -4397,7 +4397,8 @@
     "state": {
       "_": "State",
       "finished": "Finished",
-      "running": "Running"
+      "running": "Running",
+      "template": "Template"
     },
     "template": {
       "_": "Template",

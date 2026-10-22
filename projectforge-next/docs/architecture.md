@@ -9,7 +9,7 @@ application:
 | Frontend                      | Path     | Constant                            |
 | ----------------------------- | -------- | ----------------------------------- |
 | Wicket (legacy)               | `/wa`    | `Constants.WICKET_APPLICATION_PATH` |
-| React (`projectforge-webapp`) | `/react` | `Constants.REACT_APP_PATH`          |
+| React (removed)               | `/react` | `Constants.REACT_APP_PATH`          |
 | This app                      | `/next`  | `Constants.NEXT_APP_PATH`           |
 
 A page is migrated by moving it here and registering it on the backend; nothing else has to move with
