@@ -90,6 +90,10 @@ export interface TaskNode {
   kost2WildCard?: string;
   /** All cost 2 numbers, one per line, for the column's tooltip. */
   kost2ListAsLines?: string;
+  /** The groups with explicit access rights on this task, comma separated — sent to admins only. */
+  groupAccess?: string;
+  /** The rights of every group of [groupAccess], for the column's tooltip — sent to admins only. */
+  groupAccessList?: TaskGroupAccess[];
   /** Only sent by `info/{id}`; the tree omits it to save bandwidth. */
   kost2List?: TaskKost2[];
   /** Only sent by `info/{id}`: the ancestors, root first, *excluding* the task itself. */
@@ -497,6 +501,16 @@ export interface AccessRight {
   insert: boolean;
   update: boolean;
   delete: boolean;
+}
+
+/** `TaskServicesRest.GroupAccess`: one group's explicit access entry on a task. */
+export interface TaskGroupAccess {
+  groupName: string;
+  /** Whether the rights hold for the sub elements as well. */
+  recursive: boolean;
+  description?: string | null;
+  /** All four access types, in the order the access management lists them. */
+  rights: AccessRight[];
 }
 
 /** `TaskWizardRest.AccessEntry`: one access entry the wizard looked at. */

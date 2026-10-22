@@ -29,6 +29,7 @@ import org.projectforge.business.gantt.GanttRelationType
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskFormatter
 import org.projectforge.business.task.TaskTree
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.common.task.TimesheetBookingStatus
@@ -129,6 +130,14 @@ class Task(id: Long? = null,
     var orderList: List<TaskServicesRest.Order>? = null
 
     /**
+     * The groups with explicit access rights on this task and its tooltip, for the list's `Groups` column.
+     * Only filled by [copyFrom4ListRow] and only for admins, see [TaskServicesRest.addGroupAccess].
+     */
+    var groupAccess: String? = null
+
+    var groupAccessList: List<TaskServicesRest.GroupAccess>? = null
+
+    /**
      * @see copyFromMinimal
      */
     constructor(src: TaskDO): this() {
@@ -181,6 +190,11 @@ class Task(id: Long? = null,
         kost2WildCard = serviceTask.kost2WildCard
         kost2ListAsLines = serviceTask.kost2ListAsLines
         orderList = serviceTask.orderList
+        if (UserGroupCache.getInstance().isUserMemberOfAdminGroup) {
+            TaskServicesRest.addGroupAccess(serviceTask)
+            groupAccess = serviceTask.groupAccess
+            groupAccessList = serviceTask.groupAccessList
+        }
         // The whole path including this task, as the Wicket list shows it in the title cell's tooltip
         // (`WicketTaskFormatter.appendFormattedTask(..., showPathAsTooltip = true)`).
         path = TaskFormatter.getTaskPath(id)

@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Structure tree and structure element list: column with the groups having access rights on an element (administrators only). Hovering shows the rights of each group, a click opens the access rights of this element.",
+  "de": "Strukturbaum und Strukturelementliste: Spalte mit den Gruppen, die Zugriffsrechte auf ein Element haben (nur für Administratoren). Beim Darüberfahren werden die Rechte jeder Gruppe angezeigt, ein Klick öffnet die Zugriffsrechte dieses Elements."
+}

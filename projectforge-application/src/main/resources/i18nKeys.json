@@ -157,7 +157,7 @@
   {"i18nKey":"access.exception.violation","bundleName":"I18nResources","translation":"Access violation: {0}.","translationDE":"Zugriffsverletzung: {0}.","usedInClasses":["org.projectforge.business.scripting.GroovyExecutor","org.projectforge.business.user.UserAuthenticationsDao","org.projectforge.business.user.UserPasswordDao"],"usedInFiles":[]},
   {"i18nKey":"access.filter.includeAncestorTasks","bundleName":"I18nResources","translation":"ancestors","translationDE":"Strukturoberelemente","usedInClasses":["org.projectforge.rest.GroupAccessEntityRest"],"usedInFiles":[]},
   {"i18nKey":"access.filter.includeDescendentTasks","bundleName":"I18nResources","translation":"descendants","translationDE":"Strukturunterelemente","usedInClasses":["org.projectforge.rest.GroupAccessEntityRest"],"usedInFiles":[]},
-  {"i18nKey":"access.groups","bundleName":"I18nResources","translation":"Groups","translationDE":"Gruppen","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"access.groups","bundleName":"I18nResources","translation":"Groups","translationDE":"Gruppen","usedInClasses":["org.projectforge.rest.task.TaskServicesRest"],"usedInFiles":[]},
   {"i18nKey":"access.permission.denied","bundleName":"I18nResources","translation":"not granted","translationDE":"nicht erlaubt","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"access.permission.granted","bundleName":"I18nResources","translation":"granted","translationDE":"erlaubt","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"access.read","bundleName":"I18nResources","translation":"Read access","translationDE":"Lesezugriff","usedInClasses":[],"usedInFiles":[]},

@@ -420,6 +420,15 @@ public class TaskNode implements IdObject<Long>, Serializable {
   }
 
   /**
+   * @return A copy of the explicit group accesses of this very task (not the inherited ones).
+   */
+  public List<GroupTaskAccessDO> getGroupTaskAccessList() {
+    synchronized (groupTaskAccessList) {
+      return new ArrayList<>(groupTaskAccessList);
+    }
+  }
+
+  /**
    * Gets the GroupTaskAccessDO for the given group.
    *
    * @param groupId

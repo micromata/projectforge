@@ -12,6 +12,7 @@ import { accessListHref } from "@/lib/access-links";
 import { timesheetAddHref, timesheetListHref } from "@/lib/timesheet-links";
 import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
 import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
+import { TaskGroupAccessCell } from "@/components/shared/tasks/task-group-access-cell";
 import { FinanceSection } from "./edit/finance-section";
 import { FinanceSummary } from "./edit/finance-summary";
 import { GanttSummary } from "./edit/gantt-summary";
@@ -173,6 +174,25 @@ export const TASK_PAGE = definePage<
       labelKey: TASK_METADATA.fields.responsibleUser.i18nKey,
       accessor: (row) => row.responsibleUser?.displayName ?? "",
       size: 160,
+    },
+    {
+      // The groups with access rights set on this very task (not the inherited ones), for admins only:
+      // the backend sends the gate and the values to them alone (TaskColumnVisibility.groupAccess).
+      id: "groupAccess",
+      labelKey: "access.groups",
+      accessor: (row) => row.groupAccess ?? "",
+      cell: ({ row }) => (
+        <TaskGroupAccessCell
+          taskId={row.original.id}
+          taskTitle={row.original.title}
+          text={row.original.groupAccess}
+          groups={row.original.groupAccessList}
+        />
+      ),
+      size: 200,
+      sortable: false,
+      filterKind: null,
+      visible: ({ variables }) => variables?.groupAccess === true,
     },
   ],
   // The switch to the structure tree, Wicket's "tree view" button.

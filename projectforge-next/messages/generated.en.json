@@ -8,6 +8,7 @@
       "noAccess": "No access.",
       "noEmployeeToUser": "The user has no employee assigned"
     },
+    "groups": "Groups",
     "permission": {
       "denied": "not granted",
       "granted": "granted"

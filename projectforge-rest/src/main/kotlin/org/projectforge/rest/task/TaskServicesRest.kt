@@ -37,6 +37,7 @@ import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
@@ -200,6 +201,10 @@ class TaskServicesRest {
         var path: List<Task>? = null,
         var consumption: Consumption? = null,
         var orderList: MutableList<Order>? = null,
+        /** The groups with explicit access rights on this task, comma separated. Admins only, see [addGroupAccess]. */
+        var groupAccess: String? = null,
+        /** The tooltip of [groupAccess]: the rights of every group, shown as the access management shows them. */
+        var groupAccessList: List<GroupAccess>? = null,
         /**
          * True for the tree's root node, which is only ever sent to admins and financial staff and only
          * for display (see `showRootForAdmins`). The client cannot derive this: `parentTask` is not part
@@ -246,6 +251,19 @@ class TaskServicesRest {
         )
     }
 
+    /**
+     * One group's explicit access entry on a task, for the tooltip of the admins' groups column
+     * (see [addGroupAccess]).
+     *
+     * @param rights The permissions in the order the access management lists them.
+     */
+    class GroupAccess(
+        val groupName: String,
+        val recursive: Boolean,
+        val description: String?,
+        val rights: List<TaskWizardRest.AccessRight>,
+    )
+
     class Result(
         val nodes: MutableList<Task> = mutableListOf(),
         var initFilter: TaskFilter? = null,
@@ -288,6 +306,11 @@ class TaskServicesRest {
          * the title and `taskpath`, the class bridge holding the titles of all ancestors
          * ([org.projectforge.business.task.HibernateSearchTaskPathBridge]).
          */
+        /** The access types in the order the access management lists them (`GroupTaskAccessDO.orderedEntries`). */
+        private val GROUP_ACCESS_TYPES = listOf(
+            AccessType.TASK_ACCESS_MANAGEMENT, AccessType.TASKS, AccessType.TIMESHEETS, AccessType.OWN_TIMESHEETS,
+        )
+
         private val AUTOCOMPLETE_SEARCH_FIELDS = arrayOf("title", "taskpath")
 
         /**
@@ -407,6 +430,45 @@ class TaskServicesRest {
             task.orderList = orderList.toMutableList()
         }
 
+        /**
+         * The groups having an access entry on this very task, for the admins' `Groups` column of the tree
+         * and the list. Only the task's own entries, not the inherited ones of its ancestors. The tree holds
+         * them in memory ([TaskNode.getGroupTaskAccessList]), so this costs no query per node.
+         *
+         * The caller checks that the user is an admin: the values are only sent to them.
+         */
+        fun addGroupAccess(task: Task) {
+            val accessList = TaskTree.instance.getTaskNodeById(task.id)?.groupTaskAccessList
+            if (accessList.isNullOrEmpty()) {
+                return
+            }
+            val entries = accessList.mapNotNull { access ->
+                PfCaches.instance.getGroup(access.groupId)?.name?.let { name -> name to access }
+            }.sortedBy { it.first.lowercase() }
+            if (entries.isEmpty()) {
+                return
+            }
+            task.groupAccess = entries.joinToString(", ") { it.first }
+            task.groupAccessList = entries.map { (name, access) ->
+                GroupAccess(
+                    groupName = name,
+                    recursive = access.recursive,
+                    description = access.description?.takeIf { it.isNotBlank() },
+                    // All four types, a missing one as all denied, so every matrix of the tooltip has four lines.
+                    rights = GROUP_ACCESS_TYPES.map { type ->
+                        val entry = access.getAccessEntry(type)
+                        TaskWizardRest.AccessRight(
+                            accessType = type.name,
+                            select = entry?.accessSelect == true,
+                            insert = entry?.accessInsert == true,
+                            update = entry?.accessUpdate == true,
+                            delete = entry?.accessDelete == true,
+                        )
+                    },
+                )
+            }
+        }
+
         fun addTimesheetReferenceList(task: Task) {
             val timesheetReferenceList = listOf("Uni Kassel", "Uni Göttingen")
             task.timesheetReferenceList =
@@ -421,6 +483,8 @@ class TaskServicesRest {
         val openedNodes: MutableSet<Long>,
         /** Whether the answer carries each node's orders, i. e. whether the user may see them at all. */
         val withOrders: Boolean = false,
+        /** Whether the answer carries each node's groups with access rights, i. e. whether the user is an admin. */
+        val withGroupAccess: Boolean = false,
     )
 
     private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
@@ -556,6 +620,17 @@ class TaskServicesRest {
         columnDefs.add(
             UIAgGridColumnDef.createCol(lc, "responsibleUser", sortable = false, filter = false)
         )
+        if (columns.groupAccess) {
+            columnDefs.add(
+                UIAgGridColumnDef.createCol(
+                    "groupAccess",
+                    headerName = translate("access.groups"),
+                    // Rendered by the client's own cell, whose tooltip shows each group's rights as icons.
+                    sortable = false,
+                    filter = false,
+                )
+            )
+        }
 
         return columnDefs
     }
@@ -635,6 +710,7 @@ class TaskServicesRest {
             // (TaskTreePage.onInitialize): orders for project staff and above.
             withOrders = !selectMode && taskTree.hasOrderPositionsEntries() &&
                     accessChecker.isLoggedInUserMemberOfGroup(*TaskColumnVisibility.ORDER_GROUPS),
+            withGroupAccess = !selectMode && accessChecker.isLoggedInUserMemberOfAdminGroup,
         )
         openTask(ctx, open)
         closeTask(ctx, close)
@@ -918,6 +994,9 @@ class TaskServicesRest {
     private fun completeVisible(ctx: BuildContext, task: Task) {
         if (ctx.withOrders) {
             addOrderList(task)
+        }
+        if (ctx.withGroupAccess) {
+            addGroupAccess(task)
         }
     }
 
