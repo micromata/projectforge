@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu.contributionmargin
 
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -42,6 +43,17 @@ class ContributionMarginServiceTest : AbstractTestBase() {
       val source = contributionMarginService.load(projectIds, from, from.plusYears(1))
       assertTrue(source.entries.isEmpty())
       assertNull(source.preliminaryBegin)
+    }
+  }
+
+  @Test
+  fun `the breakdown of a past period runs its queries`() {
+    // The accounting records, invoices and time sheets of three years are queried (the test data base has none).
+    val startDate = LocalDate.now().minusYears(1).withDayOfMonth(1)
+    ContributionMarginLevel.entries.forEach { level ->
+      val breakdown = contributionMarginService.calculateBreakdown(listOf(1L), startDate, level)
+      assertEquals(level, breakdown.level)
+      assertEquals(12, breakdown.months.size)
     }
   }
 }

@@ -80,6 +80,7 @@ export function VacationExportFilterRow({
         <EntityMultiAutocomplete
           id="vacation-export-users"
           url={VACATION_EXPORT_USERS_URL}
+          refType="user"
           value={users}
           onChange={onUsersChange}
           removeLabel={remove}
@@ -91,6 +92,7 @@ export function VacationExportFilterRow({
         <EntityMultiAutocomplete
           id="vacation-export-groups"
           url={VACATION_EXPORT_GROUPS_URL}
+          refType="group"
           value={groups}
           onChange={onGroupsChange}
           removeLabel={remove}

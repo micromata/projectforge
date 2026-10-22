@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { Spinner } from "@/components/shared/spinner";
 import { cn } from "@/lib/utils";
 import {
@@ -11,6 +12,7 @@ import {
 } from "@/lib/rs/order";
 import type { MagicFilter } from "@/lib/rs/types";
 import { StatisticsTableTabs } from "../statistics/statistics-table-tabs";
+import { ContributionMarginBreakdownView } from "./contribution-margin-breakdown";
 import { ContributionMarginInvoiceTable } from "./contribution-margin-invoice-table";
 import { ContributionMarginMonthTable } from "./contribution-margin-month-table";
 import { ContributionMarginPreliminaryLegend } from "./contribution-margin-preliminary";
@@ -23,7 +25,8 @@ import { useStatisticsLabels } from "../statistics/use-statistics-labels";
  * Monats-DB, Rechnungen and DB-Zeitberichte of the DB Excel). The rows are asked for once `data` of the
  * same filter and start date is there (`enabled`): the backend has cached that calculation by then.
  *
- * A click on a row of the project table opens Monats-DB at the project's first month.
+ * A click on a row of the project table opens Monats-DB at the project's first month. The tabs Orders and
+ * Structure elements break the projects down (ContributionMarginBreakdownView), loaded when opened.
  */
 export function ContributionMarginTables({
   data,
@@ -40,6 +43,7 @@ export function ContributionMarginTables({
   enabled: boolean;
 }) {
   const t = useStatisticsLabels();
+  const tm = useTranslations("fibu.auftrag.contributionMargin");
   const [tab, setTab] = useState("projects");
   /** The project Monats-DB was opened for from the project table; cleared by any other tab change. */
   const [focusProjectId, setFocusProjectId] = useState<number | null>(null);
@@ -97,6 +101,32 @@ export function ContributionMarginTables({
                   setFocusProjectId(projectId);
                   setTab("months");
                 }}
+              />
+            ),
+          },
+          {
+            value: "orders",
+            label: tm("breakdown.orders"),
+            content: (
+              <ContributionMarginBreakdownView
+                level="ORDER"
+                filter={filter}
+                filterKey={filterKey}
+                params={params}
+                enabled={enabled && tab === "orders"}
+              />
+            ),
+          },
+          {
+            value: "tasks",
+            label: tm("breakdown.tasks"),
+            content: (
+              <ContributionMarginBreakdownView
+                level="TASK"
+                filter={filter}
+                filterKey={filterKey}
+                params={params}
+                enabled={enabled && tab === "tasks"}
               />
             ),
           },

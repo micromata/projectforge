@@ -26,6 +26,8 @@ package org.projectforge.business.fibu.contributionmargin
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
+import org.projectforge.business.fibu.AuftragDO
+import org.projectforge.business.fibu.AuftragDao
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.RechnungDO
@@ -54,9 +56,9 @@ private val log = KotlinLogging.logger {}
  * business unit, then all of them) only loads the projects not calculated yet. The parts don't depend on the
  * user: the access to the projects is checked before ([ContributionMarginService.allowedProjectIds]).
  *
- * Any change of invoices, accounting records, projects or kost2 clears the whole cache, as does a reload of the
- * invoice or cost cache (e.g. "refresh caches" of the administration). Time sheets aren't
- * watched, the parts expire after [TTL_MILLIS] anyway.
+ * Any change of invoices, accounting records, projects, kost2 or orders (the breakdown by orders) clears the whole
+ * cache, as does a reload of the invoice or cost cache (e.g. "refresh caches" of the administration). Time sheets
+ * and tasks aren't watched, the parts expire after [TTL_MILLIS] anyway.
  */
 @Service
 class ContributionMarginCache {
@@ -77,6 +79,11 @@ class ContributionMarginCache {
     val zoneId: ZoneId,
     /** The texts of the time sheets and the status of the invoices are translated. */
     val locale: Locale?,
+    /**
+     * True for the parts of the breakdown by orders and tasks ([ContributionMarginService.calculateBreakdown]):
+     * their entries are the calculated ones (invoice positions, time sheets of all three years).
+     */
+    val breakdown: Boolean = false,
   )
 
   /** The entries and invoice rows of one project. */
@@ -95,6 +102,9 @@ class ContributionMarginCache {
 
   /** Incremented whenever the cache is cleared, so parts calculated before aren't stored afterwards. */
   private var generation = 0
+
+  @Autowired
+  private lateinit var auftragDao: AuftragDao
 
   @Autowired
   private lateinit var rechnungDao: RechnungDao
@@ -123,6 +133,7 @@ class ContributionMarginCache {
 
   @PostConstruct
   private fun postConstruct() {
+    auftragDao.register(listener<AuftragDO>())
     rechnungDao.register(listener<RechnungDO>())
     buchungssatzDao.register(listener<BuchungssatzDO>())
     projektDao.register(listener<ProjektDO>())
