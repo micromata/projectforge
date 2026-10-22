@@ -29,10 +29,8 @@ import org.projectforge.ui.UISelectValue
 /**
  * Everything a hand built mass update page needs, served by [AbstractMassUpdateRest.requestMeta].
  *
- * The layout free counterpart of `{page}/dynamic`, which answers the same information as a `UILayout`
- * of rows, columns, inputs and alerts. The relation is the same one [org.projectforge.rest.core.ListMetaData]
- * has to `initialList`: a client that renders the page itself needs the *rules* (which fields, of which
- * type, with which options), not a tree of components describing how the legacy frontend draws them.
+ * The *rules* of the page (which fields, of which type, with which options), not a tree of components:
+ * the page renders itself, like the list pages do from [org.projectforge.rest.core.ListMetaData].
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -111,8 +109,8 @@ class MultiSelectNavigation(
  * One field of a mass update: which property, how its value is entered, and which of the four actions
  * (set, delete, replace, append) it offers.
  *
- * Resolved by the base class from the same [org.projectforge.ui.ElementsRegistry] entry the `UILayout`
- * path reads, so both say the same thing about a field and a declaration names only what it decides
+ * Resolved by the base class from the same [org.projectforge.ui.ElementsRegistry] entry the validation
+ * reads, so both say the same thing about a field and a declaration names only what it decides
  * (see [MassUpdateFieldDeclaration]).
  */
 class MassUpdateFieldMeta(

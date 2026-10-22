@@ -117,26 +117,6 @@ object PagesResolver {
     }
 
     /**
-     * @param trailingSlash Only effect if id is null: return .../dynamic/ (default) or .../dynamic if param is false.
-     * @return Path of react page.
-     */
-    @JvmStatic
-    @JvmOverloads
-    fun getDynamicPageUrl(
-        pageRestClass: Class<*>,
-        params: Map<String, Any?>? = null,
-        id: Any? = null,
-        absolute: Boolean = false,
-        trailingSlash: Boolean = true,
-        returnToCaller: String? = null,
-    ): String {
-        val path = getRequestMappingPath(pageRestClass, "/dynamic") ?: return "NOT_FOUND"
-        val prefix = if (absolute) "/" else ""
-        val idPart = if (id != null) "/$id" else if (trailingSlash) "/" else ""
-        return "$prefix$path$idPart${getQueryString(params, returnToCaller)}"
-    }
-
-    /**
      * @return the default url (calendar url).
      */
     fun getDefaultUrl(): String {

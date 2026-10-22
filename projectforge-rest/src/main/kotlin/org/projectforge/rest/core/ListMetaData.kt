@@ -28,15 +28,14 @@ import org.projectforge.favorites.Favorites
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.ui.UILabelledElement
-import org.projectforge.ui.UILayout
 import java.io.Serializable
+import org.projectforge.rest.dto.UserAccess
 
 /**
  * Everything a hand built list page needs beside its rows, served by
  * [AbstractEntityRest.requestListMeta].
  *
- * The counterpart of `AbstractPagesRest.InitialListData` for a client that renders the page itself: no
- * layout, no page menu, no translations and no result set - the page fetches the rows from `list`
+ * No layout, no page menu, no translations and no result set: the page fetches the rows from `list`
  * itself, which is the only call it needs on every filter change.
  *
  * @author Kai Reinhard
@@ -103,7 +102,7 @@ class ListMetaData(
      * `throwException = false`. The DAO stays the authority — a client that offers a button on the
      * strength of a flag here still gets an `AccessException` from the write it triggers.
      */
-    val userAccess: UILayout.UserAccess,
+    val userAccess: UserAccess,
     /**
      * The entries this user had ticked for a mass update, so a reload or a detour through the legacy
      * app restores them ([org.projectforge.rest.multiselect.MultiSelectionSupport.SessionContext]).

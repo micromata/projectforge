@@ -49,7 +49,7 @@ class ValidationUtilsTest {
 
   @Test
   fun `required fields are found without a layout having been built`() {
-    // Nothing built a UILayout for BookDO in this JVM, so the ElementsRegistry cache is empty for it.
+    // Nothing asked the ElementsRegistry for BookDO in this JVM, so its cache is empty for it.
     val errors = ValidationUtils.validateFields(BookDO())
     assertTrue(
       errors.any { it.fieldId == "status" },

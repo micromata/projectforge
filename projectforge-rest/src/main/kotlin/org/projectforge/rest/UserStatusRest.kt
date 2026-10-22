@@ -135,17 +135,14 @@ open class UserStatusRest {
     /**
      * CSRF token of the user's session, sent by projectforge-next in every state-changing call
      * (header [org.projectforge.rest.core.RestCsrfProtection.CSRF_TOKEN_HEADER]).
-     *
-     * The UILayout based clients get it per page inside `FormLayoutData.serverData` instead; next has no
-     * such envelope, so it takes the token from here - the one call it makes on every app start.
+     * Taken from here because it is the one call next makes on every app start.
      */
     val csrfToken: String? = null,
     /**
      * True if the user is a member of the admin group.
      *
      * Needed by projectforge-next, which declares its menus in the frontend and therefore has to decide itself
-     * whether to offer an admin only action (e. g. rebuilding the whole search index). The UILayout based clients
-     * don't need it: there the server omits such entries from the page menu (see AbstractPagesRest).
+     * whether to offer an admin only action (e. g. rebuilding the whole search index).
      */
     val adminUser: Boolean = false,
     /**
@@ -156,8 +153,7 @@ open class UserStatusRest {
     val showInactivePersons: Boolean = false,
     /**
      * The JIRA configuration projectforge-next needs to turn issue keys into links itself (see
-     * [JiraUtils.getClientConfig]), sent only where JIRA is configured. The UILayout based clients don't need it:
-     * there the server emits the finished links (see JiraSupport / JiraIssuesPanel).
+     * [JiraUtils.getClientConfig]), sent only where JIRA is configured.
      */
     val jira: JiraUtils.JiraClientConfig? = null,
     /**

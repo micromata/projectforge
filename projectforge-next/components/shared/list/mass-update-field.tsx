@@ -31,8 +31,7 @@ const MODE_LABEL: Record<MassUpdateMode, string> = {
  * needs. The action is mutually exclusive by construction, so the illegal combinations the backend
  * would reject (`massUpdate.error.invalidOptionMix`) can't be expressed.
  *
- * No form library and no Zod schema, for the same reason a `UILayout` page has none: the field set
- * only exists at runtime (the backend answers it) and the rules are the backend's. The state is one
+ * No form library and no Zod schema: the field set only exists at runtime (the backend answers it) and the rules are the backend's. The state is one
  * [MassUpdateParameter] per field, owned by the page.
  */
 export function MassUpdateField({

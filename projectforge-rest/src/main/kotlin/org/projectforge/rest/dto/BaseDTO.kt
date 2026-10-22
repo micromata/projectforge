@@ -104,7 +104,7 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
      * rest off the wire.
      *
      * Overriding it is what opts an entity into the lean row (see
-     * [org.projectforge.rest.core.AbstractPagesRest.createListRow], which calls it for a next client). The
+     * [org.projectforge.rest.core.AbstractEntityRest.createListRow], which calls it for a next client). The
      * default is the full copy, so an entity whose DTO is small enough — a book, a cost unit — needs nothing.
      *
      * Why not a row class of its own (as `ListAddress` is): the client's row type stays one projection of

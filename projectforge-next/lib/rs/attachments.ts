@@ -171,7 +171,7 @@ export const DEFAULT_ATTACHMENT_SERVICE: AttachmentService = {
 /**
  * The current list of an entity's attachments.
  *
- * There is no read endpoint of its own: `AbstractPagesRest` puts them into the entity itself
+ * There is no read endpoint of its own: `AbstractEntityRest` puts them into the entity itself
  * (see its `getItemAndLayout`), so this reads the entity and picks the field out. Kept here so a
  * caller doesn't have to know that, and so the entity's own type stays free of it.
  */
@@ -453,7 +453,7 @@ const NOT_ACCEPTABLE = 406;
 
 function refData(ref: AttachmentRef) {
   return {
-    // The backend's `category` is the entity's rest path (`AbstractPagesRest.category`).
+    // The backend's `category` is the entity's rest path (`AbstractEntityRest.category`).
     category: ref.entity,
     id: ref.id,
     fileId: ref.fileId,

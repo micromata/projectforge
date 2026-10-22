@@ -190,9 +190,6 @@ class FeaturePathIndexTest {
             String(bodyChain.request!!.inputStream.readAllBytes()),
             "The body reaches the controller.",
         )
-        // The dialog of an attachment names the category as query parameter:
-        Assertions.assertEquals(404, filter.call("/rs/attachment/dynamic?id=1&category=address&fileId=x").first)
-        Assertions.assertEquals(200, filter.call("/rs/attachment/dynamic?id=1&category=addressBook&fileId=x").first)
     }
 
     @Test

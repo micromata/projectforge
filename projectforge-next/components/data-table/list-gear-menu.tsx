@@ -42,9 +42,8 @@ export interface ListGearMenuProps {
  * Maintenance menu of a list page: re-index the search index — in full for a small entity, else the
  * newest entries (and in full for admins).
  *
- * The entries are the ones the backend put into the gear menu of the legacy list pages
- * (AbstractPagesRest.createListLayout), but declared here instead of read from `UILayout.pageMenu`:
- * they are the same for every entity, and this app builds its list pages itself. A page with extra
+ * The entries are the ones of the gear menu of the legacy list pages, declared here: they are the
+ * same for every entity, and this app builds its list pages itself. A page with extra
  * actions passes them as children.
  */
 export function ListGearMenu({

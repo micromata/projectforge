@@ -15,7 +15,7 @@ describe("withMaxResults", () => {
   });
 
   it("replaces the cap the backend put there, wherever it stands", () => {
-    // AbstractPagesRest.quickSelectUrl, verbatim.
+    // The quick select url of the former list layouts, verbatim.
     expect(
       withMaxResults("customer/autosearch?maxResults=30&search=:search", 100)
     ).toBe("customer/autosearch?maxResults=100&search=:search");

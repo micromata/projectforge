@@ -28,9 +28,6 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
-import org.projectforge.rest.core.PagesResolver
-import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -39,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/calendarSubscription")
-class CalendarSubscriptionInfoPageRest {
+class CalendarSubscriptionInfoRest {
 
     @Autowired
     private lateinit var calendarFeedService: CalendarFeedService
@@ -53,22 +50,6 @@ class CalendarSubscriptionInfoPageRest {
     @GetMapping("info")
     fun getInfo(@RequestParam("type") type: String?): CalendarSubscriptionInfo {
         return createInfo(type)
-    }
-
-    @GetMapping("dynamic")
-    fun getLayout(@RequestParam("type") type: String?): FormLayoutData {
-        val subscriptionInfo = createInfo(type)
-        val layout = UILayout("plugins.teamcal.subscription")
-        layout.addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
-        layout.add(UIFieldset(UILength(md = 12, lg = 12))
-                .add(UIRow()
-                        .add(UICol()
-                                .add(UICustomized("calendar.subscriptionInfo",
-                                        values = mutableMapOf("subscriptionInfo" to subscriptionInfo))))))
-
-        LayoutUtils.process(layout);
-
-        return FormLayoutData(null, layout, null)
     }
 
     private fun createInfo(type: String?): CalendarSubscriptionInfo {
@@ -85,19 +66,5 @@ class CalendarSubscriptionInfoPageRest {
             subscriptionInfo.headline = translate("timesheet.timesheets")
         }
         return subscriptionInfo
-    }
-
-    companion object {
-        fun getTimesheetUserUrl(): String {
-            return PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, mapOf("type" to "TIMESHEETS"))
-        }
-
-        fun getHolidaysUrl(): String {
-            return PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, mapOf("type" to "HOLIDAYS"))
-        }
-
-        fun getWeekOfYearUrl(): String {
-            return PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, mapOf("type" to "WEEK_OF_YEAR"))
-        }
     }
 }

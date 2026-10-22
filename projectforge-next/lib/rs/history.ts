@@ -1,8 +1,8 @@
 /**
- * Change history of an entity — the same endpoints for every `AbstractPagesRest` page.
+ * Change history of an entity — the same endpoints for every `AbstractEntityRest` page.
  *
- * Reading goes through `request()` (plain JSON), appending a comment through the UILayout modal's
- * endpoint, which speaks the `PostData`/`ResponseAction` protocol (see ./entity.ts). The CSRF token
+ * Reading goes through `request()` (plain JSON), appending a comment through
+ * `HistoryEntryUserCommentRest`, which speaks the `PostData`/`ResponseAction` protocol (see ./entity.ts). The CSRF token
  * is not passed here: `rawRequest` sets the header for every state changing call.
  */
 
@@ -59,7 +59,7 @@ export interface HistoryEntry {
   attributes: HistoryEntryAttr[];
 }
 
-/** AbstractPagesRest.HistoryInfo: the entries plus what the client may do with them. */
+/** AbstractEntityRest.HistoryInfo: the entries plus what the client may do with them. */
 export interface HistoryInfo {
   entries: HistoryEntry[];
   /**
@@ -84,8 +84,9 @@ export function fetchHistory(
 /**
  * Appends a comment to one history entry.
  *
- * The endpoint belongs to the UILayout modal of the legacy frontend, hence the `PostData` envelope
- * and the `ResponseAction` answer (`CLOSE_MODAL`), which carries nothing this client needs.
+ * The endpoint (`HistoryEntryUserCommentRest.append`) was the one of a modal of the legacy frontend,
+ * hence the `PostData` envelope and the `ResponseAction` answer (`CLOSE_MODAL`), which carries nothing
+ * this client needs.
  * Comments are append-only: the backend prefixes each with a timestamp and the user's name.
  */
 export async function appendHistoryComment(

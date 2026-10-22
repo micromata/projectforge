@@ -78,13 +78,8 @@ private val log = KotlinLogging.logger {}
 /**
  * The layout free base class of all entity rest services: query, autocompletion, history, filter
  * favorites, the writes and the attachment support of one entity - everything a client needs that
- * builds its pages itself.
- *
- * The counterpart is [AbstractPagesRest], which adds the server side generated `UILayout` on top for
- * the legacy React app (and for the pages of projectforge-next that are still rendered from it). A
- * page migrated to a hand built projectforge-next page extends this class instead and stops
- * producing that layout altogether: for such a page the layout was built, serialized and dropped by
- * the client.
+ * builds its pages itself. Plain JSON, no server side generated layout: projectforge-next builds every
+ * page by hand.
  *
  * "Layout free" doesn't mean free of [org.projectforge.ui]: the filter fields of a list page are
  * derived from the DAO's search fields ([LayoutListFilterUtils.createNamedSearchFilterContainer]) and
@@ -340,7 +335,7 @@ constructor(
     }
 
     protected fun getListMeta(request: HttpServletRequest, filter: MagicFilter): ListMetaData {
-        val userAccess = UILayout.UserAccess()
+        val userAccess = UserAccess()
         checkUserAccess(null, userAccess)
         // Assumed rather than checked, because it is not a question about the *list*: whether an entry
         // may be written is asked per entry and travels on its DTO (EntityAccessSupport, filled in
@@ -364,10 +359,7 @@ constructor(
             userAccess.insert = false
         }
         // Whether a write may carry a comment for the history entry it produces, which is a property of
-        // the entity and not of the user: the same answer AbstractPagesRest puts into the layout's
-        // userAccess, from where the server laid out edit page adds its comment field
-        // (LayoutUtils.processEditPage). A hand built form has no layout to read it from, so it takes it
-        // from here (see useHistoryCommentSupport).
+        // the entity and not of the user. The form takes it from here (see useHistoryCommentSupport).
         userAccess.editHistoryComments = baseDao.supportsHistoryUserComments
         val searchFilterContainer = LayoutListFilterUtils.createNamedSearchFilterContainer(this, lc)
         val elements = searchFilterContainer.content.filterIsInstance<UILabelledElement>()
@@ -543,8 +535,7 @@ constructor(
     /**
      * Applies a saved filter and returns the state of the list page for it.
      *
-     * @return [ListMetaData]. [AbstractPagesRest] answers with its `InitialListData` instead, which is
-     * why the return type is [Any]: the two clients need a different payload for the same action.
+     * @return [ListMetaData].
      */
     // State changing: POST. GET only for the legacy React app, drop it together with the app.
     @RequestMapping("filter/select", method = [RequestMethod.POST, RequestMethod.GET])
@@ -905,8 +896,7 @@ constructor(
      * Whether the rows of this response should be the lean ones of [createListRow].
      *
      * Only a hand built projectforge-next page knows which columns it renders, so only for that page is
-     * a partly filled DTO the complete answer. Every other client renders from `UILayout`, whose
-     * columns bind to fields a lean row leaves empty.
+     * a partly filled DTO the complete answer; every other caller of `list` gets the full DTO.
      *
      * A page that offers no lean row is unaffected - [createListRow] falls back to the full DTO.
      */
@@ -1005,10 +995,8 @@ constructor(
      * The user's stored grid state (column order, width, visibility, pinning, sorting), or an empty
      * state if there is none yet.
      *
-     * Counterpart to [updateColumnStates] for pages that aren't built from a `UILayout`: those get
-     * the state folded into their column definitions instead (see
-     * AGGridSupport.restoreColumnsFromUserPref), which a hand-built page has no equivalent of.
-     * The format is TanStack Table's own state, so the frontend can apply it as is.
+     * Counterpart to [updateColumnStates]. The format is TanStack Table's own state, so the frontend can
+     * apply it as is.
      */
     @GetMapping(RestPaths.COLUMN_STATES)
     fun getColumnStates(): GridState {
@@ -1035,13 +1023,13 @@ constructor(
     protected open fun getById(
         idString: String?,
         editMode: Boolean = false,
-        userAccess: UILayout.UserAccess? = null
+        userAccess: UserAccess? = null
     ): DTO? {
         if (idString == null) return null
         return getById(idString.toLong(), editMode, userAccess)
     }
 
-    protected fun getById(id: Long?, editMode: Boolean = false, userAccess: UILayout.UserAccess? = null): DTO? {
+    protected fun getById(id: Long?, editMode: Boolean = false, userAccess: UserAccess? = null): DTO? {
         id ?: return null
         val item = baseDao.find(id) ?: return null
         checkUserAccess(item, userAccess)
@@ -1075,7 +1063,7 @@ constructor(
      * server laid out grid makes its rows clickable with it (`AGGridSupport`), a hand built list wires
      * its row click with it (see useEditTargets in projectforge-next).
      *
-     * Not authorization, like the rest of [UILayout.UserAccess]: the DAO refuses the write regardless.
+     * Not authorization, like the rest of [UserAccess]: the DAO refuses the write regardless.
      */
     protected open fun listUpdateAccess(): Boolean = true
 
@@ -1086,14 +1074,14 @@ constructor(
      * value belongs to an address and a campaign, so it is only ever created from the row of its address
      * (`AddressCampaignValueEntityRest`) - a blank form could not be saved.
      *
-     * Not authorization, like the rest of [UILayout.UserAccess]: the DAO refuses the insert regardless.
+     * Not authorization, like the rest of [UserAccess]: the DAO refuses the insert regardless.
      */
     protected open fun listInsertAccess(): Boolean = true
 
-    protected fun checkUserAccess(obj: O?, userAccess: UILayout.UserAccess?) {
+    protected fun checkUserAccess(obj: O?, userAccess: UserAccess?) {
         if (userAccess != null) {
             // Every flag here is a UI hint, not authorization - the DAO refuses the actual write or read
-            // regardless (see UILayout.UserAccess). So none of these probes may be the thing that breaks a
+            // regardless (see UserAccess). So none of these probes may be the thing that breaks a
             // layout or the list meta data: a DAO whose user right is not resolvable throws when asked -
             // either UnsupportedOperationException (no userRightId and no override, BaseDao.hasAccess) or a
             // NullPointerException on a right that isn't registered (yet), e.g. a plugin whose rights bind
@@ -1147,7 +1135,6 @@ constructor(
      * If the save fails (an overlapping time period is the typical case) or the entity doesn't autosave,
      * the prepared clone is answered as `ResponseAction(UPDATE)` with the clone under `variables.data`:
      * not saved, the client stays on the form with it (see `cloneAndSaveEntity` in projectforge-next).
-     * `AbstractPagesRest` overrides this to re-serve its layout as well.
      *
      * @return HTTP 501 if this entity has no clone support.
      */
@@ -1342,7 +1329,7 @@ constructor(
     /**
      * The history items of the given entity, along with the capabilities a client needs to render them.
      *
-     * [supportsUserComments] is also part of the edit layout (`UILayout.UserAccess.editHistoryComments`),
+     * [supportsUserComments] is also part of the edit layout (`UserAccess.editHistoryComments`),
      * but the hand built pages of projectforge-next have no layout to read it from, so the history
      * answers it as well.
      */
@@ -1712,8 +1699,7 @@ constructor(
     }
 
     /**
-     * The list page to return to after an edit. Overridden by [AbstractPagesRest], whose page exists in
-     * the legacy React app as well and has to return the caller to the frontend they came from.
+     * The list page to return to after an edit.
      */
     protected open fun getListPageUrlAfterEdit(request: HttpServletRequest): String {
         return PagesResolver.getListPageUrl(

@@ -42,8 +42,7 @@ import java.nio.charset.StandardCharsets
  *
  * The declaration in the backend is the single source of truth: `@PropertyInfo` (i18nKey, required,
  * tooltip) at the property and the JPA `@Column` (length, nullable) at its getter. Both are merged by
- * [ElementsRegistry.getElementInfo] — the very same call the UILayout of `/react` and Wicket's fields
- * go through. This generator derives no rule of its own; it only writes down what that call answers.
+ * [ElementsRegistry.getElementInfo] — the very same call the backend validation goes through. This generator derives no rule of its own; it only writes down what that call answers.
  * A changed column length therefore reaches the hand-written next forms instead of leaving them
  * silently wrong.
  *
@@ -51,7 +50,7 @@ import java.nio.charset.StandardCharsets
  * `lib/metadata/<entity>.generated.ts`, exporting a single `<ENTITY>_METADATA` constant. One file per
  * entity and no barrel: nothing imports what it doesn't name, so the bundle only carries the entities
  * a page actually uses. Nested DOs (e.g. `AuftragsPositionDO`) are covered as well although they have
- * no `AbstractPagesRest` of their own — a "only what has a PagesRest" rule would need a hand-kept
+ * no `AbstractEntityRest` of their own — a "only what has an EntityRest" rule would need a hand-kept
  * exception list, which is exactly the staleness this generator removes.
  *
  * The generated files are never edited by hand — [GenerateNextFieldMetadataTest] fails if they differ
@@ -201,7 +200,7 @@ object GenerateNextFieldMetadataMain {
       isEnum -> "STRING"
       // Money (`@PropertyInfo(type = CURRENCY)`), not a plain quantity: the forms write it with two digits
       // and the user's currency, the lists as currency. Not in [UIDataTypeUtils], which also types the
-      // inputs of the remaining UILayout pages and knows nothing of an AMOUNT.
+      // filter and mass update fields and knows nothing of an AMOUNT.
       elementInfo.propertyType == PropertyType.CURRENCY -> UIDataType.AMOUNT.name
       else -> UIDataTypeUtils.getDataType(elementInfo)?.name ?: return null
     }

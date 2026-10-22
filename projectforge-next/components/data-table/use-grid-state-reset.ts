@@ -11,7 +11,7 @@ import { initialStateFrom } from "@/lib/dynamic/grid/initial-state";
 /**
  * "Reset columns" for a grid laid out by the server (the task tree).
  *
- * The endpoint (`AbstractPagesRest.resetGridState`) drops the user's stored grid
+ * The endpoint (`TaskServicesRest.resetGridState`) drops the user's stored grid
  * preference and answers with an UPDATE action carrying the default `columnDefs`
  * and `sortModel`. That answer is applied to the table state here.
  *

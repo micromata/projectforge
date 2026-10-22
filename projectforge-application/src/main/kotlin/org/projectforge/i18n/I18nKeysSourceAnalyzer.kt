@@ -104,7 +104,6 @@ internal class I18nKeysSourceAnalyzer {
             parseJava(path)
             parseKotlin(path)
             parseHtmlMailTemplates(path)
-            parseReact(path)
         }
         getI18nEnums()
         getPropertyInfos()
@@ -288,48 +287,15 @@ internal class I18nKeysSourceAnalyzer {
             find(file, content, "translateMsg\\([a-zA-Z_]+,\\s*\"([a-zA-Z0-9\\.]+)\"") // translateMsg(locale, "i18nKey") or translateMsg(locale, "i18nKey", params...)
             // UI component constructors with i18n keys
             // Note: Patterns require at least one dot to avoid matching simple strings like "Merlin", "Projects", etc.
-            find(file, content, "UILayout\\(\"([a-zA-Z0-9]+\\.[a-zA-Z0-9\\.]+)\"") // UILayout("i18nKey") - requires at least one dot
             find(file, content, "title\\s*=\\s*\"([a-zA-Z0-9]+\\.[a-zA-Z0-9\\.]+)\"") // title = "i18nKey" in UI components - requires at least one dot
-            find(file, content, "UIFieldset\\(\\d+,\\s*\"([a-zA-Z0-9]+\\.[a-zA-Z0-9\\.]+)\"") // UIFieldset(12, "i18nKey") - requires at least one dot
             find(file, content, "UIAlert\\(\"([a-zA-Z0-9]+\\.[a-zA-Z0-9\\.]+)\"") // UIAlert("i18nKey") - requires at least one dot
             // Property assignments with i18n keys (not in annotations, those are handled by getPropertyInfos())
             find(file, content, "\\bi18nKey\\s*=\\s*\"([a-zA-Z0-9]+\\.[a-zA-Z0-9\\.]+)\"") // i18nKey = "i18nKey"
             // Note: addTranslations("key1", "key2", ...) keys are already captured by parseStringConstants() above
 
-            // Abstract*PagesRest constructors that use i18nKeyPrefix parameter
+            // Abstract*EntityRest constructors that use i18nKeyPrefix parameter
             // These constructors automatically generate derived keys with suffixes: .add, .edit, .list, .heading
-            findAbstractPagesRestKeys(file, content)
-        }
-    }
-
-    @Throws(IOException::class)
-    private fun parseReact(path: File) {
-        // Parse TypeScript React files (*.tsx)
-        val tsxFiles = SourcesUtils.listFiles(path, "tsx")
-        for (file in tsxFiles) {
-            if (shouldExcludeFile(file)) continue
-            val content = getContent(file)
-            // Note: No parseStringConstants() for React files - we search for specific patterns only
-            find(file, content, "translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // translations['i18nKey'] or translations["i18nKey"]
-            find(file, content, "ui\\.translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // ui.translations['i18nKey'] or ui.translations["i18nKey"]
-        }
-        // Parse JSX files (*.jsx)
-        val jsxFiles = SourcesUtils.listFiles(path, "jsx")
-        for (file in jsxFiles) {
-            if (shouldExcludeFile(file)) continue
-            val content = getContent(file)
-            // Note: No parseStringConstants() for React files - we search for specific patterns only
-            find(file, content, "translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // translations['i18nKey'] or translations["i18nKey"]
-            find(file, content, "ui\\.translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // ui.translations['i18nKey'] or ui.translations["i18nKey"]
-        }
-        // Parse JavaScript files (*.js)
-        val jsFiles = SourcesUtils.listFiles(path, "js")
-        for (file in jsFiles) {
-            if (shouldExcludeFile(file)) continue
-            val content = getContent(file)
-            // Note: No parseStringConstants() for React files - we search for specific patterns only
-            find(file, content, "translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // translations['i18nKey'] or translations["i18nKey"]
-            find(file, content, "ui\\.translations\\[['\"]([a-zA-Z0-9\\.]+)['\"]\\]") // ui.translations['i18nKey'] or ui.translations["i18nKey"]
+            findAbstractEntityRestKeys(file, content)
         }
     }
 
@@ -350,15 +316,14 @@ internal class I18nKeysSourceAnalyzer {
     }
 
     /**
-     * Finds i18nKeyPrefix parameters passed to Abstract*PagesRest constructors.
+     * Finds i18nKeyPrefix parameters passed to Abstract*EntityRest constructors.
      * These constructors automatically generate derived keys with suffixes: .add, .edit, .list, .heading
-     * Example: AbstractDTOPagesRest(EmployeeDao::class.java, "fibu.employee.title")
+     * Example: AbstractDTOEntityRest(EmployeeDao::class.java, "fibu.employee.title")
      * -> registers usage for fibu.employee.title.add, .edit, .list, .heading
      */
-    private fun findAbstractPagesRestKeys(file: File, content: String) {
-        // Pattern matches: AbstractDTOPagesRest<...>(..., "i18nKeyPrefix") or AbstractDOPagesRest or
-        // AbstractPagesRest, and their layout free counterparts Abstract(DTO|DO)?EntityRest.
-        val pattern = "Abstract(?:DTO|DO)?(?:Pages|Entity)Rest<[^>]+>\\s*\\([^,]+,\\s*\"([a-zA-Z0-9\\.]+)\""
+    private fun findAbstractEntityRestKeys(file: File, content: String) {
+        // Pattern matches: AbstractDTOEntityRest<...>(..., "i18nKeyPrefix"), AbstractDOEntityRest or AbstractEntityRest.
+        val pattern = "Abstract(?:DTO|DO)?EntityRest<[^>]+>\\s*\\([^,]+,\\s*\"([a-zA-Z0-9\\.]+)\""
         val baseKeys = find(content, pattern)
 
         // For each base key, register the 4 derived keys

@@ -86,9 +86,9 @@ Every call to Spring goes through this folder; feature code never calls `fetch`.
   (`components/shared/two-factor-provider.tsx`), so the interrupted call can simply be repeated after
   the second factor. Read helpers: `fetchList`, `fetchOne`, `fetchNew`, `fetchListMeta`,
   `fetchUserStatus`, `fetchMenu`, the filter-favorite calls, …
-- `entity.ts` — the writes of an entity page (`AbstractPagesRest`): `saveOrUpdateEntity`,
+- `entity.ts` — the writes of an entity page (`AbstractEntityRest`): `saveOrUpdateEntity`,
   `markEntityAsDeleted`, `undeleteEntity`, `cancelEntityEdit`, `postEntityAction`. These speak the
-  UILayout protocol rather than plain JSON: the body is a `PostData` envelope (`{ data }`), the answer
+  `PostData`/`ResponseAction` protocol of the former UILayout pages rather than plain JSON: the body is a `PostData` envelope (`{ data }`), the answer
   is a `ResponseAction` (the new id arrives only as `variables.id`, so a caller re-reads the entity),
   and **HTTP 406 is a regular answer** carrying `validationErrors`.
 - `types.ts` — the wire contracts: `MagicFilter`, `MagicFilterEntry`, `ResultSet`, `ListMetaData`,
@@ -106,7 +106,7 @@ input.
 
 `*.generated.ts` is written by `GenerateNextFieldMetadataMain` (part of `DevelopmentMainForRelease`)
 from the backend entities' `@PropertyInfo` and JPA `@Column`, merged by
-`ElementsRegistry.getElementInfo` — the same source Wicket and the UILayout pages read. Per field:
+`ElementsRegistry.getElementInfo` — the same source the backend validation reads. Per field:
 `dataType` (mirror of the backend's `UIDataType`), `i18nKey`, `required`, `maxLength`, `readOnly`,
 `enumValues`. Per entity: the class name and `historizable`.
 
@@ -152,8 +152,8 @@ logged-in user, so an assertion does not silently only pass for a German account
   unrelated trees — currently `ui-store` (sidebar) and `job-store` (background job toasts, which must
   outlive the page that started the job).
 - **Forms:** hand-built pages use `@tanstack/react-form` + a Zod schema built from the metadata. The
-  provisional UILayout renderer deliberately uses no form library (its field set only exists at
-  runtime and validation is the server's).
+  mass update form deliberately uses no form library (its field set only exists at runtime and
+  validation is the server's).
 
 ### Forms and validation, in short
 

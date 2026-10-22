@@ -32,7 +32,6 @@ import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.projectforge.rest.config.AttachmentCategoryRequests
-import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.ObjectProvider
 
 private val log = KotlinLogging.logger {}
@@ -53,14 +52,6 @@ class FeatureFilter(private val featurePathIndexProvider: ObjectProvider<Feature
         if (featurePathIndex.isBlocked(path)) {
             notFound(path, response)
             return
-        }
-        if (path.startsWith(ATTACHMENT_PAGE_URL) && httpRequest.method == "GET") {
-            // The dialog of an attachment (AttachmentPageRest) names the entity as query parameter.
-            val category = httpRequest.getParameter("category")
-            if (category != null && featurePathIndex.isCategoryBlocked(category)) {
-                notFound("$path ($category)", response)
-                return
-            }
         }
         if (path in AttachmentCategoryRequests.BODY_CATEGORY_URLS &&
             httpRequest.contentType?.startsWith("multipart/") != true && featurePathIndex.anythingBlocked()
@@ -89,6 +80,5 @@ class FeatureFilter(private val featurePathIndexProvider: ObjectProvider<Feature
     }
 
     companion object {
-        private const val ATTACHMENT_PAGE_URL = "${Rest.URL}/attachment/"
     }
 }

@@ -2,7 +2,7 @@
  * Background jobs of the backend (`JobsMonitorRest`, `org.projectforge.framework.jobs`).
  *
  * Long-running operations answer with a job id instead of blocking (see startReindexOrRunIt in
- * AbstractPagesRest); the client polls this controller for the progress. The endpoints are shared with
+ * AbstractEntityRest); the client polls this controller for the progress. The endpoints are shared with
  * the legacy frontend and answer with a `ResponseAction` whose variables carry the payload, so the
  * unwrapping happens here and nowhere else.
  */

@@ -301,13 +301,13 @@ export async function logout(signal?: AbortSignal): Promise<unknown> {
   }
 }
 
-// --- Saved list filters (AbstractPagesRest "filter/*", stored in the user's prefs) ---
+// --- Saved list filters (AbstractEntityRest "filter/*", stored in the user's prefs) ---
 
 /**
  * Applies a saved filter and returns the list page state for it.
  *
  * The endpoint also makes it the user's current filter server-side, so the answer is the same payload
- * the page loaded initially (see `AbstractPagesRest.selectFavoriteFilter`). Only the filter fields are
+ * the page loaded initially (see `AbstractEntityRest.selectFavoriteFilter`). Only the filter fields are
  * read here.
  */
 export function selectFilterFavorite(

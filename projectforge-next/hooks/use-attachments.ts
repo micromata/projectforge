@@ -31,7 +31,7 @@ export function attachmentsQueryKey(
 }
 
 /**
- * The attachments of one entity. Generic on purpose: every `AbstractPagesRest` page can have them,
+ * The attachments of one entity. Generic on purpose: every `AbstractEntityRest` page can have them,
  * so nothing here belongs to a feature.
  *
  * @param id null or 0 for an unsaved entity — there is nothing to attach to yet, so the query stays

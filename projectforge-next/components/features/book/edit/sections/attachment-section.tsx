@@ -12,7 +12,7 @@ interface Props {
  * `attachment.list` the section declares).
  *
  * Everything but this line lives in `components/shared/attachments/`: attachments are not a book
- * feature, every `AbstractPagesRest` entity can have them. What remains is the entity name — hence a
+ * feature, every `AbstractEntityRest` entity can have them. What remains is the entity name — hence a
  * section body of the book's own rather than a declared field.
  */
 export function AttachmentSection({ bookId }: Props) {

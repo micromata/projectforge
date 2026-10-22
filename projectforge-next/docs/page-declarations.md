@@ -178,7 +178,7 @@ left free.
 cannot be replaced afterwards without fighting the user's own edits:
 
 1. `useStoredColumnState(entity)` — order, sizing, visibility, pinning, sorting, page size
-   (`AbstractPagesRest.columnStates`).
+   (`AbstractEntityRest`, `columnStates`).
 2. `useRememberedFilter(entity)` — the filter the user last used, including the link to a saved
    filter favorite.
 

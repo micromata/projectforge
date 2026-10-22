@@ -632,8 +632,7 @@ abstract class AbstractMassUpdateRest<T> : AbstractDynamicPageRest() {
         return MassUpdateFieldMeta(
             field = field,
             valueProperty = if (declaration.values != null) "textValue" else valuePropertyOf(el, dataType),
-            // Translated here, not passed on: `LayoutUtils.setLabels` puts the *key* into `element.label`,
-            // which only a `UILayout` translates on its way out (`processAllElements`).
+            // Translated here: `LayoutUtils.setLabels` puts the *key* into `element.label`.
             label = ((el as? UILabelledElement)?.label ?: elementInfo?.i18nKey)?.let { translate(it) },
             dataType = dataType ?: if (el is UISelect<*>) UIDataType.STRING else null,
             maxLength = elementInfo?.maxLength,

@@ -1,5 +1,5 @@
 /**
- * The subscription links of ProjectForge's own calendar feeds (`CalendarSubscriptionInfoPageRest.getInfo`):
+ * The subscription links of ProjectForge's own calendar feeds (`CalendarSubscriptionInfoRest.getInfo`):
  * the logged-in user's time sheets, the holidays and the weeks of year. Each url carries the user's
  * personal, encrypted token, hence the security advice that comes with it.
  */

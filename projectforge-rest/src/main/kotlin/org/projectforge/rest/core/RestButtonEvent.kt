@@ -24,7 +24,7 @@
 package org.projectforge.rest.core
 
 /**
- * Button type used by AbstractPagesRest.redirectTo
+ * The action of an edit page that finished, see `AbstractEntityRest.onAfterEdit`.
  */
 enum class RestButtonEvent() {
   CANCEL, SAVE, UPDATE, DELETE, UN_DELETE

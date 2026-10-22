@@ -39,7 +39,7 @@ import java.time.LocalDate
 /**
  * One position of an order, as the edit form of `/next/order` sends and receives it.
  *
- * A position is never edited on its own — it has no `AbstractPagesRest` and no url. It travels as part
+ * A position is never edited on its own — it has no `AbstractEntityRest` and no url. It travels as part
  * of [Auftrag.positionen], and [number] is what identifies it there: the collection handler of the
  * persistence layer matches a posted position against the database row by `number` (see
  * [AuftragsPositionDO.equals]), not only by [id]. A position the client sends without a number would

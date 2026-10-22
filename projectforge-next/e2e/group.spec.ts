@@ -246,8 +246,8 @@ test.describe("group page", { tag: "@parallel" }, () => {
  * The same list for a user who may read it but not add to it — the rights case of every hand-built list
  * (see useEditTargets), with `group` as the entity that has it: `GroupDao.hasUserSelectAccess` answers
  * true for everyone, while inserting is the admin group's (`GroupDao.hasAccess`), so `listMeta` answers
- * `userAccess.insert: false` for a plain user. Legacy leaves the create entry out of the page menu in
- * that case (`AbstractPagesRest.createListLayout`); next offered its "+" to everyone.
+ * `userAccess.insert: false` for a plain user. Legacy left the create entry out of the page menu in
+ * that case; next offered its "+" to everyone.
  *
  * The row click goes with it (`userAccess.update`, which `GroupEntityRest.listUpdateAccess` answers for
  * administrators only — Wicket's `GroupListPage` renders the name as a plain label without it). That one

@@ -18,8 +18,7 @@ export interface EditTargets {
   legacy: boolean;
   /**
    * Whether this user may add an entry at all — false leaves the button (and with it its shortcut) out
-   * of the toolbar, as `AbstractPagesRest.createListLayout` leaves the create entry out of the legacy
-   * page's menu.
+   * of the toolbar, as the legacy list page left the create entry out of its menu.
    */
   canAdd: boolean;
   /**
@@ -66,7 +65,7 @@ export function useEditTargets(
   const meta = useListMeta(entity).data;
   // `!== false` rather than `=== true`: a flag the entity's rest class fills with nothing means "not
   // restricted" — the same reading `entityAccess` gives a missing flag of an entry, and the one
-  // `AbstractPagesRest` writes down itself (`if (ui.userAccess.insert != false)`). It also covers the
+  // the legacy list layout used (`if (ui.userAccess.insert != false)`). It also covers the
   // moment before `listMeta` is there, which is no moment for a hand-built list: its shell waits for
   // that response anyway (see useReadAccessGuard).
   const access = {

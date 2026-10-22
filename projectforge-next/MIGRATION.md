@@ -797,8 +797,14 @@ gelöscht.
 - ✅ `projectforge-webapp` ist entfernt (Modul, Build, `/react`-Serving; die Root-Icons liegen jetzt in
   `projectforge-application/src/main/resources/static/`). `/react`-Urls landen über `OrphanedLinkFilter` auf next
   (gemailte auf ihrer Seite, sonst auf der Startseite).
-- Offen: UILayout-Reste im Backend (`projectforge-rest/.../ui`, `AbstractPagesRest`, `FormLayoutData`,
-  `*PageRest`) abbauen, ggf. `NEXT_APP_PATH` → `/` als Default.
+- ✅ UILayout im Backend entfernt: `AbstractPagesRest` (+ DTO/DO), `UILayout`, `FormLayoutData`, die
+  Layout-Endpunkte (`attachment/dynamic`, `calendarSubscription/dynamic`, `historyEntries/edit`, `index`) und die
+  nur dafür gebrauchten Elementklassen. `UserAccess` ist eigenständig (`rest/dto`, gleiches JSON). Was in
+  `projectforge-rest/.../ui` bleibt, ist Wire-Format für next (`ResponseAction`, `ValidationError`, Filter-Elemente,
+  `UISelectValue`, `AutoCompletion`, AG-Grid-Spalten des Aufgabenbaums) und die Feldbeschreibung aus
+  `ElementsRegistry` (Validierung, Massenänderung, Metadaten-Generator).
+- Offen: zustandsändernde Endpunkte, die GET nur noch für die React-App annehmen („drop it together with the
+  app“), auf POST beschränken; ggf. `NEXT_APP_PATH` → `/` als Default.
 - Aufräumen: `lib/api-client.ts` (unbenutzter Zweit-Client),
   `components/features/book/mock-data.ts` (oder für `msw`-Tests nutzen – bislang **keine**
   Tests; `filter-fns.ts`/`lib/menu-url.ts` wären ein guter Anfang),

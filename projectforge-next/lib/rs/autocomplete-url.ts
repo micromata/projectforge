@@ -18,8 +18,8 @@ export const EMPTY_TERM_MAX_ENTRIES = 30;
 /**
  * The url template with `maxResults` set to [maxResults], replacing one that is already there.
  *
- * Replacing rather than appending: the backend hands out urls that carry their own cap
- * (`AbstractPagesRest.quickSelectUrl` is `…/autosearch?maxResults=30&search=:search`), and a second
+ * Replacing rather than appending: an url may carry its own cap
+ * (e.g. `…/autosearch?maxResults=30&search=:search`), and a second
  * occurrence of the parameter would not bind to Spring's `Int`. The `:search` placeholder is left
  * untouched — fetchAutoCompletion fills it in.
  */

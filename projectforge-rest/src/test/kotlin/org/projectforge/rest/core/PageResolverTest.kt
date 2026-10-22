@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.NextMigration
 import org.projectforge.rest.BookEntityRest
-import org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest
 import org.projectforge.rest.orga.PostausgangEntityRest
 
 class PageResolverTest {
@@ -58,10 +57,6 @@ class PageResolverTest {
         assertTrue(result.contains("p2=test2"))
         assertTrue(result.startsWith("next/outgoingMail/42?"))
         assertTrue(result.contains("&"))
-
-        assertEquals("react/calendarSubscription/dynamic", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, trailingSlash = false))
-        assertEquals("react/calendarSubscription/dynamic/", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java))
-        assertEquals("react/calendarSubscription/dynamic/123", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, id = 123))
     }
 
     /**
@@ -98,7 +93,7 @@ class PageResolverTest {
         assertNotEquals(
             "${NextMigration.newEntryUrl("book")}/:id",
             NextMigration.standardEditPage("book"),
-            "The new entry url is not a template of the edit url - see AGGridSupport.prepareUIGrid4ListPage."
+            "The new entry url is not a template of the edit url."
         )
         assertEquals("react/$NOT_MIGRATED/edit/:id", NextMigration.standardEditPage(NOT_MIGRATED))
         // group has been hand built in projectforge-next since, and follows book's shape.

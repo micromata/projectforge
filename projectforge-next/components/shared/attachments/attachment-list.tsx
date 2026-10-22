@@ -17,7 +17,7 @@ import { useAttachmentService } from "./attachment-service";
 import { AttachmentUploadRow } from "./attachment-upload-row";
 
 export interface AttachmentListProps {
-  /** Rest path of the entity, i.e. `AbstractPagesRest.category` — "book", "contract", … */
+  /** Rest path of the entity, i.e. `AbstractEntityRest.category` — "book", "contract", … */
   entity: string;
   /** null for an entity that isn't saved yet: the JCR needs a persisted id to attach to. */
   id: number | null;
@@ -101,7 +101,7 @@ export interface AttachmentListProps {
  * The attachments of one entity: upload, download, rename, delete, and the same on a whole
  * selection (download as one ZIP, delete at once — see AttachmentFiles).
  *
- * Generic, not tied to a feature: every `AbstractPagesRest` page may have attachments (books,
+ * Generic, not tied to a feature: every `AbstractEntityRest` page may have attachments (books,
  * contracts, orders, invoices, scripts), so this is the shared counterpart of the legacy
  * `UIAttachmentList` and its `DynamicAttachmentList.jsx`.
  *
