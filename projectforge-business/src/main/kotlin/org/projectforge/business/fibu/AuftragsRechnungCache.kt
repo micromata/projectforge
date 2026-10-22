@@ -138,7 +138,7 @@ class AuftragsRechnungCache : AbstractCache() {
         checkRefresh()
         val posIds = invoicePositionMapByAuftragId[auftragId]
         return posIds?.map { rechnungCache.getRechnungPosInfo(it) }?.filterNotNull()
-            ?.sortedWith(compareBy<RechnungPosInfo> { it.rechnungInfo?.nummer }.thenBy { it.number })
+            ?.sorted()
     }
 
     fun getRechnungsPosInfosByAuftragsPositionId(
@@ -178,8 +178,9 @@ class AuftragsRechnungCache : AbstractCache() {
                 invoiceResolutionIncomplete = true
                 continue
             }
-            if (pos.deleted || rechnungInfo.deleted || rechnungInfo.nummer == null) {
-                // Invoice position or invoice is deleted.
+            if (pos.deleted || rechnungInfo.deleted || rechnungInfo.belegNummer == null) {
+                // Invoice position or invoice is deleted, or the invoice has no number yet (planned). A
+                // cancellation has no number of its own, but a belegNummer (e.g. 17400-S).
                 continue
             }
             val auftrag = auftragsCache.getOrderInfoByPositionId(auftragsPositionId)

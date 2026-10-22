@@ -53,8 +53,12 @@ export type EntityRefDto = {
 export interface InvoiceRef {
   id?: number | null;
   nummer?: number | null;
+  /** The number as printed, e.g. `17400-S` for a cancellation, which has no `nummer` of its own. */
+  belegNummer?: string | null;
   date?: string | null;
   netSum?: number | null;
+  /** A cancelled invoice or its cancellation: they count 0 together and are shown struck through. */
+  cancelled?: boolean;
 }
 
 /**

@@ -3,12 +3,12 @@
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Invoice01Icon } from "@hugeicons/core-free-icons";
-import { GuardedLink } from "@/components/shared/guarded-link";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { PositionInvoiceInfo } from "../types";
+import { InvoiceNumber } from "./invoice-number";
 
 export interface PositionInvoicesProps {
   invoiceInfo: PositionInvoiceInfo;
@@ -83,31 +83,17 @@ export function PositionInvoices({
         // lets every row's cells take part in the one grid (a nested table would align nothing).
         <ul className="mt-1 grid w-fit grid-cols-[auto_auto_auto_auto] items-center gap-x-2 gap-y-0.5 text-sm tabular-nums">
           {invoices.map((invoice) => (
-            <li key={invoice.id ?? invoice.nummer} className="contents">
+            <li key={invoice.id ?? invoice.belegNummer} className="contents">
               <HugeiconsIcon
                 icon={Invoice01Icon}
                 size={12}
                 className="shrink-0 text-muted-foreground"
               />
-              {canOpenInvoice ? (
-                /* The invoice's own edit page, hand-built like this one — not the generic
-                   `/outgoingInvoice/edit/…` route, which answers `notFound()` for exactly the
-                   entities that are hand-built (see the generic route's page-client). Guarded, since
-                   this link leaves an order form that may hold unsaved changes. */
-                <GuardedLink
-                  href={`/invoice/${invoice.id}`}
-                  className="text-primary underline-offset-2 hover:underline"
-                  // The number alone doesn't say what the link opens, and there are several of them.
-                  aria-label={`${t("fibu.rechnung._")} ${invoice.nummer}`}
-                >
-                  {`#${invoice.nummer}`}
-                </GuardedLink>
-              ) : (
-                /* No select access on outgoing invoices: the number is still shown (a reader of the
-                   order sees which invoices bill it), but not as a link the invoice page would refuse
-                   to open — the same as Wicket's InvoicePositionsPanel renders for a non-finance user. */
-                <span>{`#${invoice.nummer}`}</span>
-              )}
+              <InvoiceNumber
+                invoice={invoice}
+                canOpenInvoice={canOpenInvoice}
+                prefix="#"
+              />
               <span className="text-muted-foreground">
                 {invoice.date ? formatDate(invoice.date, format) : ""}
               </span>

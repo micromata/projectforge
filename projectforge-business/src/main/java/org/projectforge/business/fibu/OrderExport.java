@@ -303,7 +303,7 @@ public class OrderExport {
         if (invoicePositions != null) {
             String delimiter = "";
             for (final RechnungPosInfo invoicePos : invoicePositions) {
-                sb.append(delimiter).append(invoicePos.getRechnungInfo().getNummer());
+                sb.append(delimiter).append(invoicePos.getRechnungInfo().getBelegNummer());
                 delimiter = ", ";
             }
         }

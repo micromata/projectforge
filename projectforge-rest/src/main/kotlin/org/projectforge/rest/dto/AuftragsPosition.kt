@@ -121,13 +121,23 @@ class AuftragsPosition(
     class InvoiceRef(
         var id: Long? = null,
         /**
-         * The invoice number, i.e. what the link shows. Null for a planned invoice without a number,
-         * which is why such invoices are left out.
+         * The invoice number. Null for a cancellation, which has no number of its own (see [belegNummer]).
          */
         var nummer: Int? = null,
+        /**
+         * The number as printed on the document, i.e. what the link shows: [nummer], or e.g. `17400-S`
+         * for a cancellation. Null for a planned invoice without a number, which is why such invoices are
+         * left out.
+         */
+        var belegNummer: String? = null,
         var date: LocalDate? = null,
         /** Net sum of this invoice's positions pointing at the order position. */
         var netSum: BigDecimal? = null,
+        /**
+         * True for a cancelled invoice and for its cancellation: they settle each other and count 0
+         * together ([org.projectforge.business.fibu.RechnungInfo.isSettledByCancellation]), so both are shown struck through.
+         */
+        var cancelled: Boolean = false,
     )
 
     override fun copyFrom(src: AuftragsPositionDO) {
@@ -139,7 +149,10 @@ class AuftragsPosition(
         invoicedElsewhere = !invoicePositions.isNullOrEmpty()
         invoicedSum = RechnungDao.getNettoSumme(invoicePositions)
         invoices = invoicePositions
-            ?.filter { it.rechnungInfo?.nummer != null }
+            ?.filter { it.rechnungInfo?.belegNummer != null }
+            // By invoice number, a cancellation right after the invoice it cancels (RechnungPosInfo.compareTo);
+            // groupBy keeps this order.
+            ?.sorted()
             // One entry per invoice, so an invoice holding two positions of this order position is
             // listed once with their sum — same as Wicket's InvoicePositionsPanel does.
             ?.groupBy { it.rechnungInfo!!.id }
@@ -148,11 +161,12 @@ class AuftragsPosition(
                 InvoiceRef(
                     id = info.id,
                     nummer = info.nummer,
+                    belegNummer = info.belegNummer,
                     date = info.date,
                     netSum = positions.sumOf { it.netSum },
+                    cancelled = info.isSettledByCancellation,
                 )
             }
-            ?.sortedBy { it.nummer }
     }
 
     /**

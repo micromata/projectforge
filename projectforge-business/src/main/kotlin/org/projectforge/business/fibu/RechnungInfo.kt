@@ -36,6 +36,21 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
     val id = invoice.id ?: -1
     val deleted = invoice.deleted
     val nummer = if (invoice is RechnungDO) invoice.nummer else null
+
+    /**
+     * The number as printed on the document ([RechnungDO.belegNummer]): [nummer] for an invoice and e.g.
+     * `17400-S` for a cancellation, which has no number of its own. Null for a creditor invoice and for an
+     * invoice without number (planned).
+     */
+    val belegNummer: String? = (invoice as? RechnungDO)?.belegNummer
+
+    /**
+     * The number to sort by: [nummer], or the number of the cancelled invoice for a cancellation, so that a
+     * cancellation is listed right after the invoice it cancels.
+     */
+    val sortNummer: Int? = (invoice as? RechnungDO)?.let {
+        if (it.typ == RechnungTyp.CANCELLATION) it.originalRechnung?.nummer else it.nummer
+    }
     var positions: List<RechnungPosInfo>? = null
         internal set
 

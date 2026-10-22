@@ -286,7 +286,7 @@ object ForecastUtils { // open needed by Wicket.
     @JvmStatic
     fun getInvoices(invoicePositions: Collection<RechnungPosInfo>?): String {
         return invoicePositions?.sortedByDescending { it.number }
-            ?.joinToString(", ") { it.rechnungInfo?.nummer?.toString() ?: "" } ?: ""
+            ?.joinToString(", ") { it.rechnungInfo?.belegNummer ?: "" } ?: ""
     }
 
     @JvmStatic
