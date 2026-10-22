@@ -64,7 +64,7 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 @RequestMapping("${Rest.URL}/customerGroups")
-class CustomerGroupPageRest : AbstractDynamicPageRest() {
+class CustomerGroupRest : AbstractDynamicPageRest() {
     /**
      * A customer, task, user or group as the multi-autocomplete holds it; its further flags (`deactivated`, …)
      * are ignored, also where unknown properties are refused (development).

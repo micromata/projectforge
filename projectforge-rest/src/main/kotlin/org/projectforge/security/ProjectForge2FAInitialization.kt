@@ -157,7 +157,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       My2FAShortCut.FINANCE_WRITE,
       ReportObjectivesPageRest::upload,
       ReportObjectivesPageRest::paste,
-      CustomerGroupPageRest::save,
+      CustomerGroupRest::save,
       ProjectWizardRest::execute,
       CurrencyPairEntityRest::insertRate,
       CurrencyPairEntityRest::updateRate,
@@ -181,10 +181,10 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       IncomingInvoiceEntityRest::class.java,
       OutgoingInvoiceEntityRest::class.java,
       CustomerPagesRest::class.java,
-      ProjectEntityRest::class.java, ProjectMultiSelectedPageRest::class.java,
+      ProjectEntityRest::class.java, ProjectMassUpdateRest::class.java,
       OrderEntityRest::class.java,
-      EingangsrechnungMultiSelectedPageRest::class.java,
-      RechnungMultiSelectedPageRest::class.java,
+      IncomingInvoiceMassUpdateRest::class.java,
+      OutgoingInvoiceMassUpdateRest::class.java,
       EmployeeSalaryImportRest::class.java,
       IncomingInvoiceImportRest::class.java,
       CurrencyPairEntityRest::class.java,
@@ -233,8 +233,8 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     )
     registerShortCutClasses(
       My2FAShortCut.PASSWORD,
-      ChangePasswordPageRest::class.java,
-      ChangeWlanPasswordPageRest::class.java
+      ChangePasswordRest::class.java,
+      ChangeWlanPasswordRest::class.java
     )
   }
 

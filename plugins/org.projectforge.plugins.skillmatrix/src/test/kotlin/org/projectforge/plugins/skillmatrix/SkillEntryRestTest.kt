@@ -46,7 +46,7 @@ import org.springframework.mock.web.MockHttpServletRequest
 
 /**
  * The skill matrix behind the next page: [SkillEntryEntityRest] (owner of new and cloned skills, filter
- * "my skills") and the mass update of [SkillEntryMultiSelectedPageRest].
+ * "my skills") and the mass update of [SkillEntryMassUpdateRest].
  */
 class SkillEntryRestTest : AbstractTestBase() {
     @Autowired
@@ -56,7 +56,7 @@ class SkillEntryRestTest : AbstractTestBase() {
     private lateinit var skillEntryEntityRest: SkillEntryEntityRest
 
     @Autowired
-    private lateinit var skillEntryMultiSelectedPageRest: SkillEntryMultiSelectedPageRest
+    private lateinit var skillEntryMassUpdateRest: SkillEntryMassUpdateRest
 
     init {
         MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(SkillEntryDO::class.java.canonicalName)
@@ -90,7 +90,7 @@ class SkillEntryRestTest : AbstractTestBase() {
     @Test
     fun `the mass update offers the levels by their texts, without a delete option`() {
         logon(TEST_USER)
-        val fields = skillEntryMultiSelectedPageRest.requestMeta(MockHttpServletRequest()).fields.associateBy { it.field }
+        val fields = skillEntryMassUpdateRest.requestMeta(MockHttpServletRequest()).fields.associateBy { it.field }
         listOf("rating", "interest").forEach { name ->
             val field = fields[name]!!
             assertEquals(listOf("0", "1", "2", "3"), field.values?.map { it.id }, name)
@@ -119,7 +119,7 @@ class SkillEntryRestTest : AbstractTestBase() {
         val context = object : MassUpdateContext<SkillEntryDO>(params) {
             override fun getId(obj: SkillEntryDO): Long = obj.id!!
         }
-        val result = skillEntryMultiSelectedPageRest.massUpdate(
+        val result = skillEntryMassUpdateRest.massUpdate(
             MockHttpServletRequest(),
             listOf(first.id!!, second.id!!, colleagues.id!!),
             context,

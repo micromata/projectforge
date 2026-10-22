@@ -110,10 +110,10 @@ object PagesResolver {
     @JvmStatic
     @JvmOverloads
     fun getMultiSelectionPageUrl(
-        multiSelectedPageClass: Class<out AbstractEntityRest<*, *, *>>,
+        massUpdateRestClass: Class<out AbstractEntityRest<*, *, *>>,
         absolute: Boolean = false
     ): String {
-        return getBasePageUrl(multiSelectedPageClass, null, MultiSelectionSupport.getMultiSelectionParamMap(), absolute)
+        return getBasePageUrl(massUpdateRestClass, null, MultiSelectionSupport.getMultiSelectionParamMap(), absolute)
     }
 
     /**

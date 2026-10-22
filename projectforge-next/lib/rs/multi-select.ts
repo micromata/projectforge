@@ -1,5 +1,5 @@
 /**
- * The mass update of a list selection (`AbstractMultiSelectedPage`), layout free.
+ * The mass update of a list selection (`AbstractMassUpdateRest`), layout free.
  *
  * Two REST bases are involved and they are not the same: the selection is *started* on the list's own
  * entity (`{entity}/startSelection`), everything after that happens on the mass update page
@@ -90,14 +90,14 @@ export interface MultiSelectMeta {
   statisticsData?: unknown;
   /**
    * Start values for the page's own custom controls, keyed by field name — the task and cost unit the
-   * selected time sheets share, say (see `AbstractMultiSelectedPage.initialParams`). Advisory prefill
+   * selected time sheets share, say (see `AbstractMassUpdateRest.initialParams`). Advisory prefill
    * only: the declared fields above are not seeded from it, and a control must not post a value the user
    * left at its preset (that would be a change they never made). Consumed by a `customFields` control.
    */
   initialParams?: Record<string, MassUpdateParameter>;
   /**
    * Whether the page offers deleting whole selected entries as one action (soft delete) — the "delete
-   * selected" button. Off unless the backend page opts in (`AbstractMultiSelectedPage.supportsMassDeletion`).
+   * selected" button. Off unless the backend page opts in (`AbstractMassUpdateRest.supportsMassDeletion`).
    */
   supportsDelete?: boolean;
   /** Whether the page offers restoring selected, already deleted entries — the "restore" button. */

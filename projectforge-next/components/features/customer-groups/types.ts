@@ -2,7 +2,7 @@ import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import type { ArrayRow } from "@/lib/field-array";
 
 /**
- * Mirror of `CustomerGroupPageRest.CustomerSetData`: the members a group and a business unit share.
+ * Mirror of `CustomerGroupRest.CustomerSetData`: the members a group and a business unit share.
  * Spring omits empty fields (`NON_NULL`), hence the optional ones; [toFormValues] fills them in.
  */
 export interface CustomerSetData {
@@ -25,7 +25,7 @@ export interface BusinessUnitData extends CustomerSetData {
 }
 
 /**
- * Mirror of `CustomerGroupPageRest.OrderAccessData`: read access to all orders of the customers, groups
+ * Mirror of `CustomerGroupRest.OrderAccessData`: read access to all orders of the customers, groups
  * and business units for the users and the members of the user groups (project managers and assistants
  * only).
  */
@@ -44,7 +44,7 @@ export interface OrderAccessData {
 }
 
 /**
- * Mirror of `CustomerGroupPageRest.ProjectGroupData`: projects offered as one entry in the project
+ * Mirror of `CustomerGroupRest.ProjectGroupData`: projects offered as one entry in the project
  * filters of the lists.
  */
 export interface ProjectGroupData {
@@ -54,7 +54,7 @@ export interface ProjectGroupData {
   projects?: EntityRef[];
 }
 
-/** Mirror of `CustomerGroupPageRest.CustomerGroupsData` (GET `/rs/customerGroups`). */
+/** Mirror of `CustomerGroupRest.CustomerGroupsData` (GET `/rs/customerGroups`). */
 export interface CustomerGroupsData {
   groups?: CustomerGroupData[];
   businessUnits?: BusinessUnitData[];

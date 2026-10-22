@@ -33,7 +33,7 @@ import org.projectforge.plugins.liquidityplanning.LiquidityEntryDO
 import org.projectforge.plugins.liquidityplanning.LiquidityEntryDao
 import org.projectforge.plugins.liquidityplanning.LiquidityMaterializationService
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
+import org.projectforge.rest.multiselect.AbstractMassUpdateRest
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
 import org.projectforge.rest.multiselect.TextFieldModification
@@ -47,7 +47,7 @@ import java.io.Serializable
 
 /**
  * Mass update of liquidity entries after selection in the next list (`liquidity.page.tsx`), the counterpart
- * of the invoice mass update ([org.projectforge.rest.fibu.EingangsrechnungMultiSelectedPageRest]). Editable
+ * of the invoice mass update ([org.projectforge.rest.fibu.IncomingInvoiceMassUpdateRest]). Editable
  * fields: amount, subject, the paid status and comment.
  *
  * The paid status is a boolean the metadata path does not carry natively (a boolean builds a checkbox, for
@@ -61,8 +61,8 @@ import java.io.Serializable
  * @author Kai Reinhard
  */
 @RestController
-@RequestMapping("${Rest.URL}/liquidity${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class LiquidityMultiSelectedPageRest : AbstractMultiSelectedPage<LiquidityEntryDO>() {
+@RequestMapping("${Rest.URL}/liquidity${AbstractMassUpdateRest.URL_SUFFIX_SELECTED}")
+class LiquidityMassUpdateRest : AbstractMassUpdateRest<LiquidityEntryDO>() {
 
     @Autowired
     private lateinit var liquidityEntryDao: LiquidityEntryDao

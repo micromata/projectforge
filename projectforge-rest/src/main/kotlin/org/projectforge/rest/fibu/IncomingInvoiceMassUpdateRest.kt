@@ -36,6 +36,7 @@ import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.multiselect.*
 import org.projectforge.ui.LayoutContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -53,8 +54,8 @@ private val log = KotlinLogging.logger {}
  * Mass update after selection and SEPA transfer export.
  */
 @RestController
-@RequestMapping("${Rest.URL}/incomingInvoice${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<EingangsrechnungDO>() {
+@RequestMapping("${Rest.URL}/incomingInvoice${AbstractMassUpdateRest.URL_SUFFIX_SELECTED}")
+class IncomingInvoiceMassUpdateRest : AbstractMassUpdateRest<EingangsrechnungDO>() {
   @Autowired
   private lateinit var SEPATransferGenerator: SEPATransferGenerator
 
@@ -99,7 +100,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   /**
    * The picked invoices summed up, as the values the hand built next mass-update page renders its
    * statistics line from — the counterpart of [getStatistics]'s markdown. See
-   * [RechnungMultiSelectedPageRest.getStatisticsData].
+   * [OutgoingInvoiceMassUpdateRest.getStatisticsData].
    */
   override fun getStatisticsData(selectedIds: Collection<Serializable>?): Any {
     val stats = EingangsrechnungsStatistik()
@@ -175,6 +176,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   /**
    * SEPA export as xml.
    */
+  @AccessChecked("DAO: select access (eingangsrechnungDao.select checks and filters the selected ids)")
   @GetMapping("exportTransfers")
   fun exportTransfers(request: HttpServletRequest): ResponseEntity<*> {
     val invoices =

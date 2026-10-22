@@ -76,7 +76,7 @@ export const TO_DO_PAGE = definePage<
     row.recentForMe && !row.deleted ? "row-red" : undefined,
   // The Wicket list's order: the latest change first.
   defaultSort: { id: "lastUpdate", desc: true },
-  // Mass update of status, priority, type, assignee, dates, task, group and texts (ToDoMultiSelectedPageRest).
+  // Mass update of status, priority, type, assignee, dates, task, group and texts (ToDoMassUpdateRest).
   massUpdate: {
     endpoint: "todoSelected",
     route: "/todo/mass-update",

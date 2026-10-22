@@ -75,7 +75,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
     private lateinit var projektDao: ProjektDao
 
     @Autowired
-    private lateinit var timesheetMultiSelectedPageRest: TimesheetMultiSelectedPageRest
+    private lateinit var timesheetMassUpdateRest: TimesheetMassUpdateRest
 
     private var date: PFDateTime? = null
 
@@ -96,7 +96,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
             tagsEntry.stringValue = "Meeting;Travel"
             configurationDao.update(tagsEntry, checkAccess = false)
             logon(getUser(TEST_FINANCE_USER))
-            val fields = timesheetMultiSelectedPageRest.requestMeta(MockHttpServletRequest())
+            val fields = timesheetMassUpdateRest.requestMeta(MockHttpServletRequest())
                 .fields.associateBy { it.field }
             val tag = fields["tag"]!!
             Assertions.assertEquals(listOf("Meeting", "Travel"), tag.values?.map { it.id })
@@ -567,8 +567,8 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         }
         logon(getUser(TEST_ADMIN_USER))
         val params = mutableMapOf(
-            TimesheetMultiSelectedPageRest.KOST2_REMAP to MassUpdateParameter(
-                TimesheetMultiSelectedPageRest.KOST2_REMAP,
+            TimesheetMassUpdateRest.KOST2_REMAP to MassUpdateParameter(
+                TimesheetMassUpdateRest.KOST2_REMAP,
             ).also { it.change = true },
         )
         var massUpdateContext: MassUpdateContext<TimesheetDO>? = null
@@ -622,7 +622,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
                 )
             )
         }
-        val (taskId, kost2Id) = timesheetMultiSelectedPageRest.sharedTaskAndKost2(list)
+        val (taskId, kost2Id) = timesheetMassUpdateRest.sharedTaskAndKost2(list)
         // The two sheets sit on siblings 1.1 and 1.2, so their deepest common ancestor is task 1.
         Assertions.assertEquals(getTask(prefix + "1").id, taskId)
         Assertions.assertNull(kost2Id) // No cost unit booked on either sheet.
@@ -772,7 +772,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         }
         val selectedIds = list.map { it.id!! }
         val request = Mockito.mock(HttpServletRequest::class.java)
-        timesheetMultiSelectedPageRest.massUpdate(request, selectedIds, massUpdateContext)?.let {
+        timesheetMassUpdateRest.massUpdate(request, selectedIds, massUpdateContext)?.let {
             throw UserException(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N)
         }
         return massUpdateContext

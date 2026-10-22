@@ -125,7 +125,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     /**
      * The invoice statistics of the given ids, straight from [RechnungCache] - no entity is loaded and no
      * position is touched, so it is cheap enough for a live-during-selection call (see
-     * `RechnungMultiSelectedPageRest`). Every value [AbstractRechnungsStatistik.add] reads is already in the
+     * `OutgoingInvoiceMassUpdateRest`). Every value [AbstractRechnungsStatistik.add] reads is already in the
      * cached [RechnungInfo], keyed by id.
      */
     fun buildStatistikByIds(ids: Collection<Serializable>?): RechnungsStatistik {

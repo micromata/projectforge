@@ -1,5 +1,5 @@
 /**
- * The change password pages (`ChangePasswordPageRest`, `/rs/changePassword`, and `ChangeWlanPasswordPageRest`,
+ * The change password pages (`ChangePasswordRest`, `/rs/changePassword`, and `ChangeWlanPasswordRest`,
  * `/rs/changeWlanPassword`). All calls are behind the 2FA shortcut PASSWORD, which `rawRequest` answers with
  * its own dialog. Another user's password (`userId`) may be changed by admins only.
  */

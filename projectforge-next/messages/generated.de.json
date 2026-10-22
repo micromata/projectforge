@@ -893,8 +893,7 @@
           "info": "Diese Farbe wird für Urlaube verwendet, die in den Ansichtseinstellungen über das Zahnrad ausgewählt wurden.\n\nWenn verschiedene Farben für verschiedene Urlaube von Teams und/oder Personen gewünscht sind, dann kann leicht ein Urlaubskalender für Gruppen/Personen [hier](/next/teamCal/new) eingerichtet werden."
         }
       },
-      "intro": "Beachte: Die Farben von anderen Kalendern kann einfach durch Klicken auf die Pillen in der Kalenderauswahl oben in der Zeile der Kalenderseite verändert werden.",
-      "title": "Kalendereinstellungen"
+      "intro": "Beachte: Die Farben von anderen Kalendern kann einfach durch Klicken auf die Pillen in der Kalenderauswahl oben in der Zeile der Kalenderseite verändert werden."
     },
     "short": {
       "yearToDate": "J→"
@@ -5479,6 +5478,8 @@
     "icsExport": "ics-Export",
     "location": "Ort",
     "massupdate": {
+      "remapKost2": "Kost2 nach Kostenart umschlüsseln (Strukturelement bleibt)",
+      "remapKost2Info": "Jeder Zeitbericht behält sein Strukturelement. Eine Kost2, die das Strukturelement nicht mehr anbietet, wird durch dessen Kost2 derselben Kostenart (letzte beiden Ziffern) ersetzt, z. B. 5.999.11.02 -> 7.001.01.02 nach Verlinkung eines Projekts.",
       "taskNotApplied": "Das Strukturelement ist nicht ausgewählt (Checkbox) und wird daher nicht geändert.",
       "updateTask": "Strukturelement für alle Zeitberichte ändern"
     },

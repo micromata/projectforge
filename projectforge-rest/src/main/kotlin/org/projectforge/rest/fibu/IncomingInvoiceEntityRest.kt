@@ -79,7 +79,7 @@ private val log = KotlinLogging.logger {}
  * The list of incoming invoices (Kreditorenrechnungen), layout free — the incoming sibling of
  * [OutgoingInvoiceEntityRest] and modelled on it.
  *
- * `open` for the same reason the outgoing one is: it is autowired by [EingangsrechnungMultiSelectedPageRest]
+ * `open` for the same reason the outgoing one is: it is autowired by [IncomingInvoiceMassUpdateRest]
  * and named by Wicket's `EingangsrechnungListPage.addNewMassSelect`.
  *
  * Answers the list, its statistics, its two exports, and the read/write path of the hand built edit page of
@@ -511,7 +511,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
 
     /**
      * The SEPA bank transfer of a single invoice as a pain.001.003.03 xml, the single-invoice counterpart of
-     * [EingangsrechnungMultiSelectedPageRest.exportTransfers] and of Wicket's `EingangsrechnungEditPage`
+     * [IncomingInvoiceMassUpdateRest.exportTransfers] and of Wicket's `EingangsrechnungEditPage`
      * "Export bank transfers" button. A validation failure (missing IBAN/BIC/receiver/…) is returned as a
      * downloadable `error.txt` listing the missing fields, exactly as the multi-select export does.
      */

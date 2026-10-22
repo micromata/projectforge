@@ -29,7 +29,7 @@ import org.projectforge.NextMigration
 import org.projectforge.business.PfCaches
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
+import org.projectforge.rest.multiselect.AbstractMassUpdateRest
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
 import org.projectforge.rest.multiselect.TextFieldModification
@@ -55,8 +55,8 @@ import java.io.Serializable
  * with the access error of the dao and is reported per entry.
  */
 @RestController
-@RequestMapping("${Rest.URL}/${SkillMatrixPlugin.CATEGORY}${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class SkillEntryMultiSelectedPageRest : AbstractMultiSelectedPage<SkillEntryDO>() {
+@RequestMapping("${Rest.URL}/${SkillMatrixPlugin.CATEGORY}${AbstractMassUpdateRest.URL_SUFFIX_SELECTED}")
+class SkillEntryMassUpdateRest : AbstractMassUpdateRest<SkillEntryDO>() {
 
     @Autowired
     private lateinit var caches: PfCaches

@@ -40,7 +40,7 @@ import org.projectforge.NextMigration
  * generic page `next/<category>`) and its multi-selection (`<category>Selected`).
  */
 object FeatureDerivation {
-    /** `AbstractMultiSelectedPage.URL_SUFFIX_SELECTED` (projectforge-rest). */
+    /** `AbstractMassUpdateRest.URL_SUFFIX_SELECTED` (projectforge-rest). */
     private const val URL_SUFFIX_SELECTED = "Selected"
 
     /**
