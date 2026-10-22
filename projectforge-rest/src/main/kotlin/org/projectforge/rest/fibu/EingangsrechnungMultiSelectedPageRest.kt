@@ -240,8 +240,8 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
           title,
           user,
           LogEventLoggerNameMatcher(
-            "de.micromata.fibu.EingangsrechnungDao",
-            "org.projectforge.framework.persistence.api.BaseDaoSupport|EingangsrechnungDO"
+            "org.projectforge.business.fibu.EingangsrechnungDao",
+            "org.projectforge.framework.persistence.api.BaseDOPersistenceService|EingangsrechnungDO"
           ),
           maxSize = 10000,
           displayTitle = displayTitle

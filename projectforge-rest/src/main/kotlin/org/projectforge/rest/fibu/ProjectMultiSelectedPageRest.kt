@@ -245,8 +245,8 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
           title,
           user,
           LogEventLoggerNameMatcher(
-            "de.micromata.fibu.ProjektDao",
-            "org.projectforge.framework.persistence.api.BaseDaoSupport|ProjektDO"
+            "org.projectforge.business.fibu.ProjektDao",
+            "org.projectforge.framework.persistence.api.BaseDOPersistenceService|ProjektDO"
           ),
           maxSize = 10000,
           displayTitle = displayTitle

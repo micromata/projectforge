@@ -250,7 +250,7 @@ class LiquidityMultiSelectedPageRest : AbstractMultiSelectedPage<LiquidityEntryD
                     user,
                     LogEventLoggerNameMatcher(
                         "org.projectforge.plugins.liquidityplanning.LiquidityEntryDao",
-                        "org.projectforge.framework.persistence.api.BaseDaoSupport|LiquidityEntryDO",
+                        "org.projectforge.framework.persistence.api.BaseDOPersistenceService|LiquidityEntryDO",
                     ),
                     maxSize = 10000,
                     displayTitle = displayTitle,

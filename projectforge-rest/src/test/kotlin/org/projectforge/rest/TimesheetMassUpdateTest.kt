@@ -47,6 +47,7 @@ import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.withDate
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateParameter
+import org.projectforge.rest.multiselect.MultiSelectionExcelExport
 import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpServletRequest
@@ -507,6 +508,100 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
     }
 
     @Test
+    fun massUpdateKost2RemapKeepsTask() {
+        val prefix = "ts-mu55-"
+        val list = mutableListOf<TimesheetDO>()
+        lateinit var projekt1: ProjektDO
+        persistenceService.runInTransaction { _ ->
+            logon(getUser(TEST_FINANCE_USER))
+            val kunde = KundeDO()
+            kunde.name = "ACME Kost2Remap"
+            kunde.id = 55
+            kundeDao.insert(kunde)
+            projekt1 = createProjekt(kunde, 1, "Old", 0, 1, 2)
+            val projekt2 = createProjekt(kunde, 2, "Other", 0, 1)
+            val t1 = initTestDB.addTask(prefix + "1", "root")
+            projektDao.setTask(projekt1, t1.id)
+            projektDao.update(projekt1)
+            initTestDB.addTask(prefix + "1.1", prefix + "1")
+            initTestDB.addTask(prefix + "1.2", prefix + "1")
+            val t2 = initTestDB.addTask(prefix + "2", "root")
+            projektDao.setTask(projekt2, t2.id)
+            projektDao.update(projekt2)
+            initTestDB.addUser(prefix + "user1")
+            logon(getUser(TEST_ADMIN_USER))
+            list.add(
+                createTimesheet(
+                    prefix, "1.1", "user1", 2009, Month.NOVEMBER, 21, 3, 0, 3, 15, "Office",
+                    "TS#0", 5, 55, 1, 0,
+                )
+            )
+            list.add(
+                createTimesheet(
+                    prefix, "1.2", "user1", 2009, Month.NOVEMBER, 21, 3, 15, 3, 30, "Office",
+                    "TS#1", 5, 55, 1, 1,
+                )
+            )
+            list.add(
+                createTimesheet(
+                    prefix, "1.2", "user1", 2009, Month.NOVEMBER, 21, 3, 30, 3, 45, "Office",
+                    "TS#2", 5, 55, 1, 2,
+                )
+            )
+            list.add(
+                createTimesheet(
+                    prefix, "2", "user1", 2009, Month.NOVEMBER, 21, 3, 45, 4, 0, "Office",
+                    "TS#3", 5, 55, 2, 1,
+                )
+            )
+        }
+        // The task's cost units change: another project (without type 2) is linked instead of the old one.
+        persistenceService.runInTransaction { _ ->
+            logon(getUser(TEST_FINANCE_USER))
+            val kunde = kundeDao.find(55L)!!
+            projektDao.setTask(projekt1, null)
+            projektDao.update(projekt1)
+            val projekt3 = createProjekt(kunde, 3, "New", 0, 1)
+            projektDao.setTask(projekt3, getTask(prefix + "1").id)
+            projektDao.update(projekt3)
+        }
+        logon(getUser(TEST_ADMIN_USER))
+        val params = mutableMapOf(
+            TimesheetMultiSelectedPageRest.KOST2_REMAP to MassUpdateParameter(
+                TimesheetMultiSelectedPageRest.KOST2_REMAP,
+            ).also { it.change = true },
+        )
+        var massUpdateContext: MassUpdateContext<TimesheetDO>? = null
+        var dbList = listOf<TimesheetDO>()
+        suppressErrorLogs {
+            massUpdateContext = runMassUpdate(list, params)
+            dbList = timesheetDao.select(list.map { it.id!! })!!
+        }
+        val ts0 = dbList.find { it.description == "TS#0" }!!
+        val ts1 = dbList.find { it.description == "TS#1" }!!
+        val ts2 = dbList.find { it.description == "TS#2" }!!
+        val ts3 = dbList.find { it.description == "TS#3" }!!
+        // Remapped to the same type of the new project, each on its own task.
+        Assertions.assertEquals(getTask(prefix + "1.1").id, ts0.taskId)
+        assertKost2(ts0, 5, 55, 3, 0)
+        Assertions.assertEquals(getTask(prefix + "1.2").id, ts1.taskId)
+        assertKost2(ts1, 5, 55, 3, 1)
+        // No type 2 in the new project: reported as error and left as it is.
+        Assertions.assertEquals(getTask(prefix + "1.2").id, ts2.taskId)
+        assertKost2(ts2, 5, 55, 1, 2)
+        Assertions.assertEquals(1, massUpdateContext!!.errorCounter)
+        // The remapped ones count as modified, with the old and new cost unit for the Excel export.
+        Assertions.assertEquals(2, massUpdateContext!!.modifiedCounter)
+        Assertions.assertTrue(MultiSelectionExcelExport.columnFields(massUpdateContext!!).contains("kost2"))
+        // The message names what the task offers instead, the cause being in the task's settings.
+        val message = massUpdateContext!!.errorMessages.first().message
+        Assertions.assertTrue(message.contains("5.055.03.00") && message.contains("5.055.03.01"), message)
+        // Still valid at its task: unchanged.
+        Assertions.assertEquals(getTask(prefix + "2").id, ts3.taskId)
+        assertKost2(ts3, 5, 55, 2, 1)
+    }
+
+    @Test
     fun sharedTaskAndKost2LowestCommonAncestor() {
         val prefix = "ts-shared-"
         val list = mutableListOf<TimesheetDO>()
@@ -661,6 +756,15 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
                 }
             }
         }
+        runMassUpdate(list, massUpdateData)
+        val dbList = timesheetDao.select(list.map { it.id!! })
+        return dbList!!
+    }
+
+    private fun runMassUpdate(
+        list: List<TimesheetDO>,
+        massUpdateData: MutableMap<String, MassUpdateParameter>,
+    ): MassUpdateContext<TimesheetDO> {
         val massUpdateContext = object : MassUpdateContext<TimesheetDO>(massUpdateData) {
             override fun getId(obj: TimesheetDO): Long {
                 return obj.id!!
@@ -671,8 +775,6 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         timesheetMultiSelectedPageRest.massUpdate(request, selectedIds, massUpdateContext)?.let {
             throw UserException(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N)
         }
-
-        val dbList = timesheetDao.select(selectedIds)
-        return dbList!!
+        return massUpdateContext
     }
 }

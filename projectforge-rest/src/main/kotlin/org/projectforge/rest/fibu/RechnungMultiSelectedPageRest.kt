@@ -150,8 +150,8 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
           title,
           user,
           LogEventLoggerNameMatcher(
-            "de.micromata.fibu.RechnungDao",
-            "org.projectforge.framework.persistence.api.BaseDaoSupport|RechnungDO"
+            "org.projectforge.business.fibu.RechnungDao",
+            "org.projectforge.framework.persistence.api.BaseDOPersistenceService|RechnungDO"
           ),
           maxSize = 10000,
           displayTitle = displayTitle

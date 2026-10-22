@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Time sheet mass update: remap the cost unit by type while every time sheet keeps its structure element, e.g. after a project was linked to it.",
+  "de": "Massenänderung von Zeitberichten: Kost2 nach Kostenart umschlüsseln, ohne dass ein Zeitbericht sein Strukturelement wechselt, z. B. nach Verlinkung eines Projekts."
+}

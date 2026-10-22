@@ -132,7 +132,7 @@ class GroupAccessMultiSelectedPageRest : AbstractMultiSelectedPage<GroupTaskAcce
                     user,
                     LogEventLoggerNameMatcher(
                         "org.projectforge.framework.access.AccessDao",
-                        "org.projectforge.framework.persistence.api.BaseDaoSupport|GroupTaskAccessDO",
+                        "org.projectforge.framework.persistence.api.BaseDOPersistenceService|GroupTaskAccessDO",
                     ),
                     maxSize = 10000,
                     displayTitle = displayTitle,
