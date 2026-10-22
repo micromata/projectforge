@@ -211,7 +211,7 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
                     user,
                     LogEventLoggerNameMatcher(
                         "org.projectforge.business.address.AddressDao",
-                        "org.projectforge.framework.persistence.api.BaseDaoSupport|AddressDO"
+                        "org.projectforge.framework.persistence.api.BaseDOPersistenceService|AddressDO"
                     ),
                     maxSize = 10000,
                     displayTitle = displayTitle

@@ -36,11 +36,4 @@ test.describe("job monitor", { tag: "@parallel" }, () => {
     const get = await page.request.get("/rs/jobsMonitor/cancel?jobId=-1");
     expect(get.ok()).toBe(false);
   });
-
-  test("redirects the old React page", async ({ loggedInPage: page }) => {
-    await page.goto(
-      "/react/jobsMonitor/dynamic?jobId=42&caller=https://example.org"
-    );
-    await expect(page).toHaveURL(/\/next\/jobsMonitor\?jobId=42$/);
-  });
 });

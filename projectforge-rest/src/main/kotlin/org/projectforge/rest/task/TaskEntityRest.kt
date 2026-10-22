@@ -136,6 +136,7 @@ class TaskEntityRest
             "kost2Configured" to Configuration.instance.isCostConfigured,
             "orders" to columns.orders,
             "protectTimesheetsUntil" to columns.protectTimesheetsUntil,
+            "groupAccess" to columns.groupAccess,
         )
     }
 

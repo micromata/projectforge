@@ -36,6 +36,8 @@ import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateParameter
+import org.projectforge.rest.multiselect.MassUpdateResult
+import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpServletRequest
 import java.util.*
@@ -98,14 +100,27 @@ class AddressMultiSelectedPageRestTest : AbstractTestBase() {
         assertFalse(fields["organization"]!!.replaceOption)
     }
 
-    /** The meta registers the user's log subscription of the address mass update and links its log viewer. */
+    /**
+     * The run (a POST, not the meta) registers the user's log subscription of the address mass update right before
+     * it starts and links its log viewer in the result.
+     */
     @Test
-    fun `meta should link the log viewer of the mass update`() {
+    fun `the result of a run links the log viewer`() {
         logon(ADMIN)
-        val url = addressMultiSelectedPageRest.requestMeta(MockHttpServletRequest()).logViewerUrl
+        val address = createTestAddress("Log viewer address")
+        addressDao.insert(address, checkAccess = false)
+        val request = MockHttpServletRequest()
+        val ids = listOf<java.io.Serializable>(address.id!!)
+        MultiSelectionSupport.registerEntityIdsForSelection(request, AddressEntityRest::class.java, ids)
+        MultiSelectionSupport.registerSelectedEntityIds(request, AddressEntityRest::class.java, ids)
+        val params = mapOf("addressStatus" to MassUpdateParameter().apply { textValue = AddressStatus.OUTDATED.name })
+        val result = addressMultiSelectedPageRest.update(request, params).body as MassUpdateResult
+        assertEquals(1, result.modifiedCounter)
+        val url = result.logViewerUrl
         assertTrue(url?.matches(Regex("next/logViewer/\\d+")) == true, "url=$url")
-        // The same subscription on every visit, not a new one each time.
-        assertEquals(url, addressMultiSelectedPageRest.requestMeta(MockHttpServletRequest()).logViewerUrl)
+        // The same subscription on every run, not a new one each time.
+        val back = mapOf("addressStatus" to MassUpdateParameter().apply { textValue = AddressStatus.UPTODATE.name })
+        assertEquals(url, (addressMultiSelectedPageRest.update(request, back).body as MassUpdateResult).logViewerUrl)
     }
 
     @Test

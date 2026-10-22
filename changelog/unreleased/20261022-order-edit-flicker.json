@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Order book: the edit page no longer jumps while a field is changed.",
+  "de": "Auftragsbuch: Die Bearbeitungsseite springt beim Ändern eines Feldes nicht mehr."
+}

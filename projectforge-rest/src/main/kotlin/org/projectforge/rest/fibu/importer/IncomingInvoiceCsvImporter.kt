@@ -24,11 +24,14 @@
 package org.projectforge.rest.fibu.importer
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.fibu.CurrencyConversionService
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.framework.utils.CurrencyHelper
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.dto.Konto
 import org.projectforge.rest.importer.*
+import java.math.BigDecimal
 import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
@@ -45,6 +48,7 @@ private val log = KotlinLogging.logger {}
 class IncomingInvoiceCsvImporter(
     private val kostCache: KostCache,
     private val kontoCache: KontoCache,
+    private val currencyConversionService: CurrencyConversionService,
 ) : AbstractCsvImporter<EingangsrechnungPosImportDTO>() {
     override val logErrorOnPropertyParsing: Boolean = false
 
@@ -181,7 +185,7 @@ class IncomingInvoiceCsvImporter(
 
         // Calculate netSum from grossSum to avoid rounding errors in comparison
         // Use CurrencyHelper for consistent calculation with DB logic
-        entity.netSum = org.projectforge.framework.utils.CurrencyHelper.getNetAmount(entity.grossSum, entity.taxRate)
+        entity.netSum = CurrencyHelper.getNetAmount(entity.grossSum, entity.taxRate)
 
         // KOST1 and KOST2 are now parsed during CSV processing in processField method
     }
@@ -191,8 +195,35 @@ class IncomingInvoiceCsvImporter(
      * payment of the invoice with the same RENR. Their date is taken as paid date of that invoice, if it has none
      * (the paid date of the invoice rows wins: a row without one takes that of another row of the same invoice first,
      * otherwise its positions would get different paid dates).
+     * A header-only export has one row per booking line of an invoice; these rows are merged, see [mergeHeaderRows].
      */
     override fun filterRecords(
+        records: List<EingangsrechnungPosImportDTO>,
+        importStorage: ImportStorage<EingangsrechnungPosImportDTO>
+    ): List<EingangsrechnungPosImportDTO> {
+        val accepted = skipPaymentOffsets(records, importStorage)
+        return if (storage.isPositionBasedImport) accepted else mergeHeaderRows(accepted)
+    }
+
+    /**
+     * Merges the rows of one invoice (RENR, creditor and date) of a header-only export into its first row with the
+     * total amount, as the position-based import does. Otherwise only one row matched the stored invoice, all others
+     * were offered as new invoices on every import (and a header-only import never creates invoices).
+     */
+    private fun mergeHeaderRows(records: List<EingangsrechnungPosImportDTO>): List<EingangsrechnungPosImportDTO> {
+        return records.groupBy { "${invoiceKeyWithoutDate(it)}|${it.datum}" }.values.map { rows ->
+            val first = rows.first()
+            if (rows.size > 1) {
+                first.grossSum = rows.mapNotNull { it.grossSum }.reduceOrNull(BigDecimal::add)
+                first.netSum = rows.mapNotNull { it.netSum }.reduceOrNull(BigDecimal::add)
+                rows.drop(1).flatMap { it.getErrors() }.distinct().filter { it !in first.getErrors() }
+                    .forEach { first.addError(it) }
+            }
+            first
+        }
+    }
+
+    private fun skipPaymentOffsets(
         records: List<EingangsrechnungPosImportDTO>,
         importStorage: ImportStorage<EingangsrechnungPosImportDTO>
     ): List<EingangsrechnungPosImportDTO> {
@@ -291,13 +322,13 @@ class IncomingInvoiceCsvImporter(
     }
 
     /**
-     * Parses a period like "01.04.2026-30.04.2026".
+     * Parses a period like "01.04.2026-30.04.2026" (also with an en dash or blanks around the separator).
      */
     private fun parsePeriod(
         periodString: String,
         rowContext: CsvRowContext<EingangsrechnungPosImportDTO>
     ): Pair<java.time.LocalDate, java.time.LocalDate>? {
-        val parts = periodString.split("-")
+        val parts = periodString.split("-", "–")
         if (parts.size != 2) {
             return null
         }
@@ -657,11 +688,7 @@ class IncomingInvoiceCsvImporter(
         if (distinctValues.size > 1) {
             if (fieldName == "currency" && distinctValues.contains(EUR)) {
                 // Credit-card documents come in EUR (as charged) and in the currency of the invoice: EUR wins.
-                positions.forEach { it.currency = EUR }
-                val warningMessage =
-                    "RENR '$renr': Unterschiedliche Währungen ${distinctValues.joinToString(", ")}, $EUR übernommen."
-                log.info { warningMessage }
-                importStorage.addWarning(warningMessage)
+                convertPositionsToEur(renr, positions, distinctValues, importStorage)
                 return
             }
             if (fieldName == "bezahlDatum") {
@@ -684,6 +711,46 @@ class IncomingInvoiceCsvImporter(
                 addError(position, "Inkonsistente Rechnungsheader-Daten für $fieldName", importStorage)
             }
         }
+    }
+
+    /**
+     * An invoice has one currency: positions in another one than EUR are converted by the rate valid at the
+     * invoice date (currency pairs of ProjectForge). Without a rate the amount can't be taken: the positions get
+     * an error.
+     */
+    private fun convertPositionsToEur(
+        renr: String,
+        positions: List<EingangsrechnungPosImportDTO>,
+        distinctValues: List<Any?>,
+        importStorage: EingangsrechnungImportStorage
+    ) {
+        val missingRates = mutableSetOf<String>()
+        positions.filter { it.currency != EUR }.forEach { position ->
+            val currency = position.currency ?: return@forEach
+            val converted = position.datum?.let {
+                currencyConversionService.convert(position.grossSum, EUR, currency, validAtDate = it)
+            }
+            if (converted == null && position.grossSum != null) {
+                missingRates.add(currency)
+                return@forEach
+            }
+            position.grossSum = converted
+            position.netSum = CurrencyHelper.getNetAmount(converted, position.taxRate)
+            position.currency = EUR
+        }
+        val currencies = distinctValues.joinToString(", ")
+        if (missingRates.isNotEmpty()) {
+            val errorMessage = "RENR '$renr': Unterschiedliche Währungen $currencies, " +
+                    "kein Umrechnungskurs ${missingRates.joinToString(", ")} → $EUR zum Rechnungsdatum."
+            log.warn { errorMessage }
+            importStorage.addError(errorMessage)
+            positions.forEach { addError(it, "Kein Umrechnungskurs nach $EUR", importStorage) }
+            return
+        }
+        val warningMessage =
+            "RENR '$renr': Unterschiedliche Währungen $currencies, zum Kurs des Rechnungsdatums in $EUR umgerechnet."
+        log.info { warningMessage }
+        importStorage.addWarning(warningMessage)
     }
 
     private fun getFieldValue(dto: EingangsrechnungPosImportDTO, fieldName: String): Any? {

@@ -25,6 +25,12 @@ const DELAY = 400;
  */
 export const TOOLTIP_ATTR = "data-tooltip";
 
+/**
+ * Marks a cell renderer that shows a tooltip of its own (a hover card the pointer can move into and
+ * scroll, e.g. TaskGroupAccessCell), so the cell's clipped text doesn't raise a second one beside it.
+ */
+export const OWN_TOOLTIP_ATTR = "data-own-tooltip";
+
 interface OverflowTarget {
   /** Viewport rect of the clipped element; the tooltip is anchored to it. */
   rect: DOMRect;
@@ -121,6 +127,7 @@ export function useOverflowTooltip() {
     ): { anchor: HTMLElement; text: string } | null => {
       const cell = node?.closest?.<HTMLElement>("th,td");
       if (!cell) return null;
+      if (cell.querySelector(`[${OWN_TOOLTIP_ATTR}]`)) return null;
       // A declared tooltip wins over the clipped text, and is anchored to the
       // element that declares it: the sort indicator explains itself, not the
       // column label beside it.

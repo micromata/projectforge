@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.projectforge.business.fibu.CurrencyConversionService
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.KontoCache
@@ -37,6 +38,7 @@ import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.springframework.context.ApplicationContext
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 
 /**
@@ -49,6 +51,9 @@ class IncomingInvoiceCsvImporterTest {
     private var previousApplicationContext: ApplicationContext? = null
 
     private var databaseInvoices = listOf<EingangsrechnungDO>()
+
+    /** Rates to EUR by source currency, answered by the mocked [CurrencyConversionService]. */
+    private var ratesToEur = mapOf<String, BigDecimal>()
 
     @BeforeEach
     fun setUp() {
@@ -168,14 +173,40 @@ class IncomingInvoiceCsvImporterTest {
     }
 
     @Test
-    fun `currency mixed with EUR is taken as EUR with a warning`() {
+    fun `currency mixed with EUR is converted to EUR with a warning`() {
+        ratesToEur = mapOf("USD" to BigDecimal("0.9"))
         val storage = parsePositions(
             """"01.04.2026-30.04.2026";"R";"105,24";"USD";"07.04.";"4633DE7-0007";"Gather Presence, Inc";"6837";"02.06.2026"""",
             """"01.04.2026-30.04.2026";"R";"169,33";"EUR";"07.04.";"4633DE7-0007";"Gather Presence, Inc";"6837";"02.06.2026"""",
         )
         assertTrue(storage.readInvoices.all { it.currency == "EUR" })
+        assertEquals(
+            listOf(BigDecimal("94.72"), BigDecimal("169.33")),
+            storage.readInvoices.map { it.grossSum!!.setScale(2) },
+            "The USD amount is converted, not relabelled."
+        )
         assertTrue(storage.errorList.isEmpty(), "${storage.errorList}")
-        assertTrue(storage.warningList.any { it.contains("EUR übernommen") }, "${storage.warningList}")
+        assertTrue(storage.warningList.any { it.contains("in EUR umgerechnet") }, "${storage.warningList}")
+    }
+
+    @Test
+    fun `currency mixed with EUR without a rate is an error`() {
+        val storage = parsePositions(
+            """"01.04.2026-30.04.2026";"R";"105,24";"USD";"07.04.";"4633DE7-0007";"Gather Presence, Inc";"6837";"02.06.2026"""",
+            """"01.04.2026-30.04.2026";"R";"169,33";"EUR";"07.04.";"4633DE7-0007";"Gather Presence, Inc";"6837";"02.06.2026"""",
+        )
+        assertTrue(storage.errorList.any { it.contains("kein Umrechnungskurs USD") }, "${storage.errorList}")
+        assertTrue(storage.readInvoices.all { it.getErrors().isNotEmpty() }, "Not importable without a rate.")
+    }
+
+    @Test
+    fun `invoice in a single foreign currency keeps it`() {
+        val storage = parsePositions(
+            """"01.04.2026-30.04.2026";"R";"105,24";"USD";"07.04.";"4633DE7-0007";"Gather Presence, Inc";"6837";"02.06.2026"""",
+        )
+        val invoice = storage.readInvoices.single()
+        assertEquals("USD", invoice.currency)
+        assertEquals(0, BigDecimal("105.24").compareTo(invoice.grossSum), "Converted at runtime, not on import.")
     }
 
     @Test
@@ -194,6 +225,42 @@ class IncomingInvoiceCsvImporterTest {
             storage.pairEntries.any { it.read == null && it.stored?.id == 2L },
             "Unmatched invoice within the periods is offered for deletion."
         )
+    }
+
+    @Test
+    fun `period with an en dash limits the deletions too`() {
+        databaseInvoices = listOf(dbInvoice(1, "2026-99999", "Other Ltd.", LocalDate.of(2026, 8, 10)))
+        val storage = parsePositions(
+            """"01.09.2026 – 30.09.2026";"R";"1.134,35";"EUR";"04.09.";"2026-14171";"OpsGenie Inc.";"6837";"04.09.2026"""",
+        )
+        assertEquals(LocalDate.of(2026, 9, 1), storage.periodFrom)
+        storage.reconcileImportStorage()
+        assertTrue(storage.pairEntries.none { it.read == null }, "Outside the period: not offered for deletion.")
+    }
+
+    @Test
+    fun `gap between two periods isn't offered for deletion`() {
+        val inGap = dbInvoice(1, "2026-11111", "Other Ltd.", LocalDate.of(2026, 3, 10))
+        val inPeriod = dbInvoice(2, "2026-22222", "Other Ltd.", LocalDate.of(2026, 6, 10))
+        databaseInvoices = listOf(inGap, inPeriod)
+        val storage = parsePositions(
+            """"01.01.2026-31.01.2026";"R";"10,00";"EUR";"05.01.";"EX-1";"Example Ltd";"6837";"05.01.2026"""",
+            """"01.06.2026-30.06.2026";"R";"20,00";"EUR";"05.06.";"EX-2";"Example Ltd";"6837";"05.06.2026"""",
+        )
+        storage.reconcileImportStorage()
+        val deletions = storage.pairEntries.filter { it.read == null }.map { it.stored?.id }
+        assertEquals(listOf(2L), deletions, "Only the invoice within a period is offered, not that of March.")
+    }
+
+    @Test
+    fun `unparsable period offers no deletions`() {
+        databaseInvoices = listOf(dbInvoice(1, "2026-99999", "Other Ltd.", LocalDate.of(2026, 9, 10)))
+        val storage = parsePositions(
+            """"September 2026";"R";"1.134,35";"EUR";"04.09.";"2026-14171";"OpsGenie Inc.";"6837";"04.09.2026"""",
+        )
+        assertNull(storage.periodFrom)
+        storage.reconcileImportStorage()
+        assertTrue(storage.pairEntries.none { it.read == null }, "Without a period nothing is offered for deletion.")
     }
 
     @Test
@@ -221,6 +288,31 @@ class IncomingInvoiceCsvImporterTest {
         assertTrue(storage.pairEntries.none { it.stored != null }, "Nothing matches the invoice of 2025.")
     }
 
+    @Test
+    fun `rows of one invoice in a header-only export are merged and matched as one`() {
+        databaseInvoices = listOf(dbInvoice(1, "5512049949", "Google Ireland Limited", LocalDate.of(2026, 2, 28)))
+        val storage = parse(
+            "Belegart;Geschäftspartner-Name;Rechnungsbetrag;WKZ;Rechnungs-Nr.;Rechnungsdatum;Konto;BezahltAm",
+            """"G";"Google Ireland Limited";"-487,71";"EUR";"5512049949";"02.03.2026";"1814";"02.03.2026"""",
+            """"R";"Google Ireland Limited";"500,00";"EUR";"5512049949";"28.02.2026";"6810";"28.02.2026"""",
+            """"R";"Google Ireland Limited";"500,00";"EUR";"5512049949";"28.02.2026";"6810";"28.02.2026"""",
+            """"R";"Google Ireland Limited";"487,71";"EUR";"5512049949";"28.02.2026";"6810";"28.02.2026"""",
+        )
+        val invoice = storage.readInvoices.single()
+        assertEquals(0, BigDecimal("1487.71").compareTo(invoice.grossSum))
+        storage.reconcileImportStorage()
+        assertEquals(1L, storage.pairEntries.single().stored?.id, "Matched, nothing offered as new.")
+    }
+
+    @Test
+    fun `internal note of the header export isn't part of the invoice number`() {
+        val storage = parse(
+            "Belegart;Geschäftspartner-Name;Rechnungsbetrag;WKZ;Rechnungs-Nr.;Interne Re.-Nr.;Rechnungsdatum;Konto",
+            """"R";"Amazon";"9.692,33";"EUR";"IINDE26-41702";"BBK";"01.08.2026";"6810"""",
+        )
+        assertEquals("IINDE26-41702", storage.readInvoices.single().referenz)
+    }
+
     private fun parsePositions(vararg rows: String): EingangsrechnungImportStorage {
         return parse("Periode;Belegart;Betrag;Währung;Datum;RENR;LieferantName;Konto;gezahlt_am", *rows)
     }
@@ -228,8 +320,20 @@ class IncomingInvoiceCsvImporterTest {
     private fun parse(header: String, vararg rows: String): EingangsrechnungImportStorage {
         val storage = EingangsrechnungImportStorage(IncomingInvoiceImportRest.DATEV_IMPORT_SETTINGS)
         val csv = (listOf(header) + rows).joinToString("\n")
-        IncomingInvoiceCsvImporter(Mockito.mock(KostCache::class.java), Mockito.mock(KontoCache::class.java))
-            .parse(csv.byteInputStream(), storage, Charsets.UTF_8)
+        // convert(amount, targetCurrency, sourceCurrency, ...) answers by ratesToEur, null without a rate.
+        val currencyConversionService = Mockito.mock(CurrencyConversionService::class.java) { invocation ->
+            if (invocation.method.name == "convert") {
+                val amount = invocation.arguments[0] as BigDecimal?
+                ratesToEur[invocation.arguments[2]]?.let { amount?.multiply(it)?.setScale(2, RoundingMode.HALF_UP) }
+            } else {
+                Mockito.RETURNS_DEFAULTS.answer(invocation)
+            }
+        }
+        IncomingInvoiceCsvImporter(
+            Mockito.mock(KostCache::class.java),
+            Mockito.mock(KontoCache::class.java),
+            currencyConversionService,
+        ).parse(csv.byteInputStream(), storage, Charsets.UTF_8)
         return storage
     }
 

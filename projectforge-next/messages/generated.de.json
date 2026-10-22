@@ -8,6 +8,7 @@
       "noAccess": "Kein Zugriff.",
       "noEmployeeToUser": "Angemeldete:r Benutzer:in hat keinen zugehörige:n Mitarbeiter:in"
     },
+    "groups": "Gruppen",
     "permission": {
       "denied": "nicht erlaubt",
       "granted": "erlaubt"

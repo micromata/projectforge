@@ -1,5 +1,5 @@
 {
-  "type": "improved",
-  "en": "Mass updates of time sheets, invoices, incoming invoices, projects, addresses, access rights and liquidity entries link their log again: the log viewer shows what the run changed.",
-  "de": "Massenänderungen von Zeitberichten, Rechnungen, Eingangsrechnungen, Projekten, Adressen, Zugriffsrechten und Liquiditätseinträgen verlinken wieder ihr Protokoll: Der Log-Viewer zeigt, was der Lauf geändert hat."
+  "type": "fixed",
+  "en": "Mass updates: the log window shows the updated entries again.",
+  "de": "Massenänderungen: Das Protokollfenster zeigt die geänderten Einträge wieder an."
 }

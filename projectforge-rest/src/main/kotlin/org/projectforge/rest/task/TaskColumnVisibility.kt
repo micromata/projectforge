@@ -48,6 +48,8 @@ class TaskColumnVisibility(
     val protectTimesheetsUntil: Boolean = false,
     val reference: Boolean = false,
     val priority: Boolean = false,
+    /** The groups with explicit access rights on a task: for admins only, whether any task has some or not. */
+    val groupAccess: Boolean = false,
 ) {
     companion object {
         /** The groups that may see which orders are booked against a task, as `TaskTreePage` has it. */
@@ -75,6 +77,7 @@ class TaskColumnVisibility(
                 protectTimesheetsUntil = maySeeProtection && tasks.any { it.protectTimesheetsUntil != null },
                 reference = tasks.any { !it.reference.isNullOrBlank() },
                 priority = tasks.any { it.priority != null },
+                groupAccess = accessChecker.isLoggedInUserMemberOfAdminGroup,
             )
         }
 

@@ -24,6 +24,8 @@
 package org.projectforge.rest.task
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.ProjektDO
@@ -32,7 +34,10 @@ import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.business.task.TaskTree
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.rest.dto.Task
+import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -154,6 +159,55 @@ class TaskServicesRestTest : AbstractTestBase() {
         // The child has no project of its own, so it reports its ancestor's - that is where its cost
         // units come from (TaskTree.getProjekt walks up).
         assertEquals("4.235.08", TaskServicesRest.createTask(child.id)!!.projekt?.kost)
+    }
+
+    /**
+     * The groups column of the tree and the list: the groups with an access entry on the task itself, for
+     * admins only. An ordinary user gets neither the column nor the values - the server is the gate.
+     */
+    @Test
+    fun `the groups with access rights are shown to admins only`() {
+        val task = persistenceService.runInTransaction { _ ->
+            logon(ADMIN)
+            val task = initTestDB.addTask("groupAccessColumn", "root")
+            val child = initTestDB.addTask("groupAccessColumnChild", "groupAccessColumn")
+            initTestDB.createGroupTaskAccess(initTestDB.addGroup("groupAccessColumnB"), task)
+            initTestDB.createGroupTaskAccess(initTestDB.addGroup("groupAccessColumnA"), task)
+            // Only the task's own entries, not the ones of its children or ancestors.
+            initTestDB.createGroupTaskAccess(initTestDB.addGroup("groupAccessColumnChildGroup"), child)
+            task
+        }
+
+        logon(ADMIN)
+        tree().let { result ->
+            assertTrue(result.columnDefs.any { it.field == "groupAccess" }, "Admins get the groups column.")
+            val node = result.nodes.single { it.id == task.id }
+            assertEquals("groupAccessColumnA, groupAccessColumnB", node.groupAccess)
+            assertEquals(listOf("groupAccessColumnA", "groupAccessColumnB"), node.groupAccessList?.map { it.groupName })
+            // All four access types, so the tooltip shows the whole matrix of each group.
+            assertEquals(4, node.groupAccessList!!.first().rights.size)
+        }
+        listRow(task.id!!).let { assertEquals("groupAccessColumnA, groupAccessColumnB", it.groupAccess) }
+
+        logon(TEST_USER)
+        tree().let { result ->
+            assertFalse(result.columnDefs.any { it.field == "groupAccess" }, "Not for an ordinary user.")
+            assertTrue(result.nodes.all { it.groupAccess == null && it.groupAccessList == null })
+        }
+        listRow(task.id!!).let {
+            assertNull(it.groupAccess)
+            assertNull(it.groupAccessList)
+        }
+    }
+
+    private fun tree() = taskServicesRest.getTree(
+        MockHttpServletRequest(), initial = true, open = null, close = null, highlightedTaskId = null,
+        table = true, searchString = null, opened = null, notOpened = null, closed = null, deleted = null,
+        showRootForAdmins = null, select = null, rootTaskId = null,
+    )
+
+    private fun listRow(taskId: Long) = Task().also {
+        it.copyFrom4ListRow(TaskTree.instance.getTaskById(taskId)!!)
     }
 
     private fun insertKost2(projekt: ProjektDO, kost2Art: Long): Kost2DO {

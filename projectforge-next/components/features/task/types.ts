@@ -6,7 +6,11 @@
 // normalises that away (see task-values.ts).
 
 import type { TASK_METADATA } from "@/lib/metadata/task.generated";
-import type { TaskConsumption, TaskOrder } from "@/lib/rs/task";
+import type {
+  TaskConsumption,
+  TaskGroupAccess,
+  TaskOrder,
+} from "@/lib/rs/task";
 
 /**
  * Parameters of `/task/new` the backend reads for its preset: the parent of a new subtask, which
@@ -131,6 +135,10 @@ export interface TaskListRow {
   /** All cost 2 numbers, one per line — the kost2 column's tooltip. */
   kost2ListAsLines?: string | null;
   orderList?: TaskOrder[] | null;
+  /** The groups with explicit access rights on this task, comma separated — sent to admins only. */
+  groupAccess?: string | null;
+  /** The rights of every group of `groupAccess` — the groups column's tooltip. */
+  groupAccessList?: TaskGroupAccess[] | null;
   created?: string | null;
   lastUpdate?: string | null;
 }
