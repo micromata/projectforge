@@ -1269,13 +1269,12 @@ constructor(
     }
 
     /**
-     * Whether the caller asked `autosearch` for inactive entries too (param [AutoCompletion.SHOW_INACTIVE_PARAM]
-     * or its legacy alias [AutoCompletion.SHOW_ALL_PARAM]) and may get them ([isShowInactiveAllowed]).
+     * Whether the caller asked `autosearch` for inactive entries too (param [AutoCompletion.SHOW_INACTIVE_PARAM])
+     * and may get them ([isShowInactiveAllowed]).
      * Evaluated by the overrides of [queryAutocompleteObjects] of entities with an inactive state.
      */
     protected fun showInactive(request: HttpServletRequest): Boolean {
-        val asked = request.getParameter(AutoCompletion.SHOW_INACTIVE_PARAM) == "true" ||
-                request.getParameter(AutoCompletion.SHOW_ALL_PARAM) == "true"
+        val asked = request.getParameter(AutoCompletion.SHOW_INACTIVE_PARAM) == "true"
         return asked && isShowInactiveAllowed()
     }
 
@@ -1330,7 +1329,10 @@ constructor(
      */
     class HistoryInfo(
         val entries: List<DisplayHistoryEntry>,
-        /** [BaseDao.supportsHistoryUserComments]: only then may the client append comments. */
+        /**
+         * [BaseDao.supportsHistoryUserComments] and update access to the entity: only then may the client
+         * append comments (checked again by HistoryService.appendUserComment).
+         */
         val supportsUserComments: Boolean,
     )
 
@@ -1346,7 +1348,11 @@ constructor(
         val item = baseDao.find(id) ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
         val entries = historyFormatService.selectAsDisplayEntries(baseDao, item)
         return ResponseEntity(
-            HistoryInfo(entries, supportsUserComments = baseDao.supportsHistoryUserComments),
+            HistoryInfo(
+                entries,
+                supportsUserComments = baseDao.supportsHistoryUserComments &&
+                        baseDao.hasLoggedInUserUpdateAccess(item, item, false),
+            ),
             HttpStatus.OK,
         )
     }
