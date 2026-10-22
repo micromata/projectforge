@@ -1330,7 +1330,10 @@ constructor(
      */
     class HistoryInfo(
         val entries: List<DisplayHistoryEntry>,
-        /** [BaseDao.supportsHistoryUserComments]: only then may the client append comments. */
+        /**
+         * [BaseDao.supportsHistoryUserComments] and update access to the entity: only then may the client
+         * append comments (checked again by HistoryService.appendUserComment).
+         */
         val supportsUserComments: Boolean,
     )
 
@@ -1346,7 +1349,11 @@ constructor(
         val item = baseDao.find(id) ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
         val entries = historyFormatService.selectAsDisplayEntries(baseDao, item)
         return ResponseEntity(
-            HistoryInfo(entries, supportsUserComments = baseDao.supportsHistoryUserComments),
+            HistoryInfo(
+                entries,
+                supportsUserComments = baseDao.supportsHistoryUserComments &&
+                        baseDao.hasLoggedInUserUpdateAccess(item, item, false),
+            ),
             HttpStatus.OK,
         )
     }

@@ -25,7 +25,7 @@
       "items" : [ "Die frühere React-Oberfläche ist entfernt: Alle ihre Seiten sind Teil der neuen Oberfläche, und alte Links (`/react/...`) führen dorthin." ]
     }, {
       "type" : "security",
-      "items" : [ "Das CSRF-Token wird für jede ändernde Anfrage einer angemeldeten Browser-Sitzung geprüft, nicht mehr nur für Anfragen, die sich als neue Oberfläche ausweisen; das Abbrechen einer Anmeldung oder Passwort-Zurücksetzung wird nur noch als POST angenommen.", "Anfragen, die etwas ändern (Listen- und Kalenderfilter, Vorlagen, Suchindex, Abmelden), werden nur noch als POST angenommen; die GET-Varianten der früheren React-Oberfläche sind entfernt." ]
+      "items" : [ "Das CSRF-Token wird für jede ändernde Anfrage einer angemeldeten Browser-Sitzung geprüft, nicht mehr nur für Anfragen, die sich als neue Oberfläche ausweisen; das Abbrechen einer Anmeldung oder Passwort-Zurücksetzung wird nur noch als POST angenommen.", "Einen Kommentar an einen Historieneintrag anzuhängen erfordert Schreibrecht auf das zugehörige Objekt und ist nur bei Objekten möglich, die Kommentare unterstützen (Benutzer, Gruppen).", "Anfragen, die etwas ändern (Listen- und Kalenderfilter, Vorlagen, Suchindex, Abmelden), werden nur noch als POST angenommen; die GET-Varianten der früheren React-Oberfläche sind entfernt." ]
     } ]
   },
   "groups" : [ {

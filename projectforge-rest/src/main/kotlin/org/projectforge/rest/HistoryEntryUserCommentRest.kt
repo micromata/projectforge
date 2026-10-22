@@ -60,7 +60,7 @@ class HistoryEntryUserCommentRest {
     /**
      * Appends [HistoryData.appendComment] to the comment of the history entry [HistoryData.id].
      */
-    @AccessChecked("DAO: history and select access (HistoryService.findEntryAndEntityById with checkAccess)")
+    @AccessChecked("DAO: history, select and update access (HistoryService.appendUserComment with checkAccess)")
     @PutMapping("append")
     fun append(
         request: HttpServletRequest,

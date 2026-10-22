@@ -63,8 +63,9 @@ export interface HistoryEntry {
 export interface HistoryInfo {
   entries: HistoryEntry[];
   /**
-   * Whether comments may be appended (`BaseDao.supportsHistoryUserComments`). Only entities
-   * implementing `HistoryUserCommentSupport` — e.g. user, group — do.
+   * Whether comments may be appended (`BaseDao.supportsHistoryUserComments`) by this user: only
+   * entities implementing `HistoryUserCommentSupport` — e.g. user, group — and only with update
+   * access to the entity, which the backend checks again on append.
    */
   supportsUserComments: boolean;
 }

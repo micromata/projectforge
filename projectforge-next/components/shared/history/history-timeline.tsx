@@ -14,7 +14,7 @@ export interface HistoryTimelineProps {
   entries: HistoryEntry[];
   /**
    * Whether comments may be appended (`HistoryInfo.supportsUserComments`). Only entities
-   * implementing `HistoryUserCommentSupport` — e.g. user, group — allow it.
+   * implementing `HistoryUserCommentSupport` — e.g. user, group — and only with update access.
    */
   supportsUserComments: boolean;
   /** Entity the entries belong to, e.g. "book" — the comment dialog re-reads its history. */
