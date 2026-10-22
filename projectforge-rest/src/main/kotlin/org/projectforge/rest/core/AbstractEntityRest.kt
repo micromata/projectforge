@@ -1269,13 +1269,12 @@ constructor(
     }
 
     /**
-     * Whether the caller asked `autosearch` for inactive entries too (param [AutoCompletion.SHOW_INACTIVE_PARAM]
-     * or its legacy alias [AutoCompletion.SHOW_ALL_PARAM]) and may get them ([isShowInactiveAllowed]).
+     * Whether the caller asked `autosearch` for inactive entries too (param [AutoCompletion.SHOW_INACTIVE_PARAM])
+     * and may get them ([isShowInactiveAllowed]).
      * Evaluated by the overrides of [queryAutocompleteObjects] of entities with an inactive state.
      */
     protected fun showInactive(request: HttpServletRequest): Boolean {
-        val asked = request.getParameter(AutoCompletion.SHOW_INACTIVE_PARAM) == "true" ||
-                request.getParameter(AutoCompletion.SHOW_ALL_PARAM) == "true"
+        val asked = request.getParameter(AutoCompletion.SHOW_INACTIVE_PARAM) == "true"
         return asked && isShowInactiveAllowed()
     }
 
