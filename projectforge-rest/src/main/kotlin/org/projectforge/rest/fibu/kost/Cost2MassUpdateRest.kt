@@ -29,7 +29,7 @@ import org.projectforge.business.fibu.kost.KostentraegerStatus
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
+import org.projectforge.rest.multiselect.AbstractMassUpdateRest
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
 import org.projectforge.ui.LayoutContext
@@ -46,8 +46,8 @@ import jakarta.servlet.http.HttpServletRequest
  * Mass update after selection of cost 2 entries: status, shared cost, description and comment.
  */
 @RestController
-@RequestMapping("${Rest.URL}/cost2${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class Kost2MultiSelectedPageRest : AbstractMultiSelectedPage<Kost2DO>() {
+@RequestMapping("${Rest.URL}/cost2${AbstractMassUpdateRest.URL_SUFFIX_SELECTED}")
+class Cost2MassUpdateRest : AbstractMassUpdateRest<Kost2DO>() {
 
   @Autowired
   private lateinit var kost2Dao: Kost2Dao

@@ -61,7 +61,7 @@ private val log = KotlinLogging.logger {}
  * Base class of mass updates after multi selection.
  */
 @AccessChecked("Subclasses: proceedMassUpdate/proceedMassDelete/getStatisticsData have to check (DAO)")
-abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
+abstract class AbstractMassUpdateRest<T> : AbstractDynamicPageRest() {
     @Autowired
     protected lateinit var userService: UserService
 
@@ -173,7 +173,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
      * selection has in common, say). Empty at default; a page computes them from the selected entries (which it can load
      * here, the ids are the same [requestMeta] passes on). These are a *presentation* preset for the page's
      * own controls, not an action - the generic renderer does not seed its declared fields from them, so a
-     * value left untouched contributes nothing to the run (see `TimesheetMultiSelectedPageRest`).
+     * value left untouched contributes nothing to the run (see `TimesheetMassUpdateRest`).
      */
     protected open fun initialParams(
         request: HttpServletRequest,
@@ -213,7 +213,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java)
         val massUpdateContext = object : MassUpdateContext<T>(params.toMutableMap()) {
             override fun getId(obj: T): Long {
-                return this@AbstractMultiSelectedPage.getId(obj)
+                return this@AbstractMassUpdateRest.getId(obj)
             }
         }
         handleClientMassUpdateCall(request, massUpdateContext)
@@ -294,7 +294,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         val param = MassUpdateParameter(name = "deleted", displayName = actionKey).apply { booleanValue = delete }
         val massUpdateContext = object : MassUpdateContext<T>(mutableMapOf("deleted" to param)) {
             override fun getId(obj: T): Long {
-                return this@AbstractMultiSelectedPage.getId(obj)
+                return this@AbstractMassUpdateRest.getId(obj)
             }
         }
         val logViewerUrl = ensureLogViewerUrl()
@@ -392,7 +392,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java)
         val massUpdateContext = object : MassUpdateContext<T>(params.toMutableMap()) {
             override fun getId(obj: T): Long {
-                return this@AbstractMultiSelectedPage.getId(obj)
+                return this@AbstractMassUpdateRest.getId(obj)
             }
         }
         handleClientMassUpdateCall(request, massUpdateContext)
@@ -686,7 +686,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     }
 
     /**
-     * Used by TimesheetMultiSelectedPage for fixing kost2 issues. Does nothing at default.
+     * Used by [org.projectforge.rest.TimesheetMassUpdateRest] for fixing kost2 issues. Does nothing at default.
      */
     protected open fun handleClientMassUpdateCall(
         request: HttpServletRequest,

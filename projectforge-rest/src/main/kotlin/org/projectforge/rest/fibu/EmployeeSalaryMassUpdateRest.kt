@@ -30,7 +30,7 @@ import org.projectforge.business.fibu.EmployeeSalaryDao
 import org.projectforge.business.fibu.EmployeeSalaryType
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
+import org.projectforge.rest.multiselect.AbstractMassUpdateRest
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
 import org.projectforge.ui.LayoutContext
@@ -46,8 +46,8 @@ import jakarta.servlet.http.HttpServletRequest
  * Mass update after selection of salaries: payment type and comment.
  */
 @RestController
-@RequestMapping("${Rest.URL}/employeeSalary${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class EmployeeSalaryMultiSelectedPageRest : AbstractMultiSelectedPage<EmployeeSalaryDO>() {
+@RequestMapping("${Rest.URL}/employeeSalary${AbstractMassUpdateRest.URL_SUFFIX_SELECTED}")
+class EmployeeSalaryMassUpdateRest : AbstractMassUpdateRest<EmployeeSalaryDO>() {
 
     @Autowired
     private lateinit var caches: PfCaches

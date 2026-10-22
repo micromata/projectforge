@@ -54,7 +54,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     BOOK_LIST("menu.bookList", getListUrl("book")), //
     CALENDAR("menu.calendar", getListUrl("calendar")), //
     CALENDAR_LIST("menu.plugins.teamcal", getListUrl("teamCal")), //
-    // Migrated to projectforge-next (ChangePasswordPageRest, ChangeWlanPasswordPageRest); react/changePassword, linked
+    // Migrated to projectforge-next (ChangePasswordRest, ChangeWlanPasswordRest); react/changePassword, linked
     // by the "password not changed" mails of 9.0.5, is redirected by OrphanedLinkFilter.
     CHANGE_PASSWORD("menu.changePassword", "next/changePassword"), //
     CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", "next/changeWlanPassword"), //

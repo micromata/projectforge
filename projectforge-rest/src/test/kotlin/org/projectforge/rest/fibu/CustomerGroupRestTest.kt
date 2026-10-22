@@ -41,10 +41,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpSession
 
-/** The order access grants and project groups of the customer-groups editor ([CustomerGroupPageRest]). */
-class CustomerGroupPageRestTest : AbstractTestBase() {
+/** The order access grants and project groups of the customer-groups editor ([CustomerGroupRest]). */
+class CustomerGroupRestTest : AbstractTestBase() {
     @Autowired
-    private lateinit var customerGroupPageRest: CustomerGroupPageRest
+    private lateinit var customerGroupRest: CustomerGroupRest
 
     @Autowired
     private lateinit var kundeDao: KundeDao
@@ -58,16 +58,16 @@ class CustomerGroupPageRestTest : AbstractTestBase() {
     @Test
     fun `only finance and controlling read and save the definition`() {
         logon(TEST_USER)
-        assertThrows<AccessException> { customerGroupPageRest.getData() }
+        assertThrows<AccessException> { customerGroupRest.getData() }
         val request = MockHttpServletRequest().also { it.setSession(MockHttpSession()) }
         val serverData = sessionCsrfService.createServerData(request)
         assertThrows<AccessException> {
-            customerGroupPageRest.save(request, PostData(CustomerGroupPageRest.CustomerGroupsData(), null, serverData))
+            customerGroupRest.save(request, PostData(CustomerGroupRest.CustomerGroupsData(), null, serverData))
         }
 
         logon(TEST_FINANCE_USER)
-        val data = customerGroupPageRest.getData()
-        val response = customerGroupPageRest.save(request, PostData(data, null, serverData))
+        val data = customerGroupRest.getData()
+        val response = customerGroupRest.save(request, PostData(data, null, serverData))
         assertEquals(HttpStatus.OK, response.statusCode)
         // Also a failed CSRF check answers OK, with a validation error:
         assertTrue(response.body!!.validationErrors.isNullOrEmpty())
@@ -83,18 +83,18 @@ class CustomerGroupPageRestTest : AbstractTestBase() {
               "customers":[],"groups":[],"businessUnits":[]}]}"""
         )
         logon(TEST_USER)
-        assertThrows<AccessException> { customerGroupPageRest.orderAccessInfo(data) }
+        assertThrows<AccessException> { customerGroupRest.orderAccessInfo(data) }
 
         logon(TEST_FINANCE_USER)
-        val info = customerGroupPageRest.orderAccessInfo(data)
+        val info = customerGroupRest.orderAccessInfo(data)
         assertEquals(setOf("grant1"), info.keys)
         val ineffective = info["grant1"]!!.single()
         assertEquals(other.getFullname(), ineffective.name)
-        assertEquals(CustomerGroupPageRest.IneffectiveReason.NO_PROJECT_MANAGER, ineffective.reason)
+        assertEquals(CustomerGroupRest.IneffectiveReason.NO_PROJECT_MANAGER, ineffective.reason)
         // Nothing granted: the only error, the project manager isn't refused.
         assertEquals(
             listOf("orderAccess[0].customers"),
-            customerGroupPageRest.validate(data).map { it.fieldId },
+            customerGroupRest.validate(data).map { it.fieldId },
         )
     }
 
@@ -106,10 +106,10 @@ class CustomerGroupPageRestTest : AbstractTestBase() {
               {"id":1,"displayName":"U"}],"customers":[],"groups":[],"businessUnits":[]}],"remark":""}"""
         )
         logon(TEST_USER)
-        assertThrows<AccessException> { customerGroupPageRest.toJson(data) }
+        assertThrows<AccessException> { customerGroupRest.toJson(data) }
 
         logon(TEST_FINANCE_USER)
-        val json = customerGroupPageRest.toJson(data).json!!
+        val json = customerGroupRest.toJson(data).json!!
         // Trimmed, empty texts and duplicates dropped, empty remarks left out: as the history holds it.
         assertTrue(json.contains("\"name\":\"ACME\""), json)
         assertTrue(json.contains("\"texts\":[\"ACME*\"]"), json)
@@ -134,48 +134,48 @@ class CustomerGroupPageRestTest : AbstractTestBase() {
         }
         val request = MockHttpServletRequest().also { it.setSession(MockHttpSession()) }
         val serverData = sessionCsrfService.createServerData(request)
-        val group = CustomerGroupPageRest.ProjectGroupData(
+        val group = CustomerGroupRest.ProjectGroupData(
             key = "prjgr1",
             name = "Parent project",
-            projects = projektIds.map { CustomerGroupPageRest.EntityRef(it, "posted") }.toMutableList(),
+            projects = projektIds.map { CustomerGroupRest.EntityRef(it, "posted") }.toMutableList(),
         )
 
         logon(TEST_USER)
         assertThrows<AccessException> {
-            customerGroupPageRest.save(
-                request, PostData(CustomerGroupPageRest.CustomerGroupsData(projectGroups = mutableListOf(group)), null, serverData),
+            customerGroupRest.save(
+                request, PostData(CustomerGroupRest.CustomerGroupsData(projectGroups = mutableListOf(group)), null, serverData),
             )
         }
 
         logon(TEST_FINANCE_USER)
-        val data = customerGroupPageRest.getData().also { it.projectGroups = mutableListOf(group) }
-        val response = customerGroupPageRest.save(request, PostData(data, null, serverData))
+        val data = customerGroupRest.getData().also { it.projectGroups = mutableListOf(group) }
+        val response = customerGroupRest.save(request, PostData(data, null, serverData))
         assertEquals(HttpStatus.OK, response.statusCode)
         assertTrue(response.body!!.validationErrors.isNullOrEmpty())
-        val saved = customerGroupPageRest.getData().projectGroups.single()
+        val saved = customerGroupRest.getData().projectGroups.single()
         assertEquals("prjgr1", saved.key)
         assertEquals("Parent project", saved.name)
         assertEquals(projektIds, saved.projects.map { it.id })
         // The names come from the projects, not from what was posted:
         assertTrue(saved.projects.none { it.displayName == "posted" })
 
-        val unknown = customerGroupPageRest.getData().also {
-            it.projectGroups.single().projects.add(CustomerGroupPageRest.EntityRef(-4711, "gone"))
+        val unknown = customerGroupRest.getData().also {
+            it.projectGroups.single().projects.add(CustomerGroupRest.EntityRef(-4711, "gone"))
         }
         assertEquals(
             listOf("projectGroups[0].projects"),
-            customerGroupPageRest.validate(unknown).mapNotNull { it.fieldId }.sorted(),
+            customerGroupRest.validate(unknown).mapNotNull { it.fieldId }.sorted(),
         )
         // Shared by all tests of the test DB:
-        customerGroupPageRest.save(
-            request, PostData(CustomerGroupPageRest.CustomerGroupsData(lastUpdate = customerGroupPageRest.getData().lastUpdate), null, serverData),
+        customerGroupRest.save(
+            request, PostData(CustomerGroupRest.CustomerGroupsData(lastUpdate = customerGroupRest.getData().lastUpdate), null, serverData),
         )
     }
 
     /** As the frontend posts it: the references carry flags of their own, which must not fail the request. */
-    private fun read(json: String): CustomerGroupPageRest.CustomerGroupsData {
+    private fun read(json: String): CustomerGroupRest.CustomerGroupsData {
         val strict = objectMapper.copy().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
-        return strict.readValue(json, CustomerGroupPageRest.CustomerGroupsData::class.java).also {
+        return strict.readValue(json, CustomerGroupRest.CustomerGroupsData::class.java).also {
             assertTrue(it.orderAccess.single().users.size == 2)
         }
     }

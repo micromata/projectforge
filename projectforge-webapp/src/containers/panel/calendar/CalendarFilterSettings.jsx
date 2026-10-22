@@ -22,7 +22,6 @@ import { fetchJsonGet, fetchJsonPost, getServiceURL } from '../../../utilities/r
 import prefix from '../../../utilities/prefix';
 import { CalendarContext } from '../../page/calendar/CalendarContext';
 import { Nav } from '../../../components/design';
-import history from '../../../utilities/history';
 
 /**
  * Settings of a calendar view: time sheet user, default calendar for new events, show holidays etc.
@@ -237,17 +236,6 @@ function CalendarFilterSettings({
                             </UncontrolledTooltip>
                         </DropdownToggle>
                         <DropdownMenu end>
-                            <DropdownItem
-                                key="entry-item-calendar-settings"
-                            >
-                                <NavLink
-                                    id="calendarSettings"
-                                    onClick={() => history.push(`${prefix}calendar/calendarSettings/dynamic`)}
-                                    rel="noopener noreferrer"
-                                >
-                                    {translations['calendar.settings'] || '[Calendar settings]'}
-                                </NavLink>
-                            </DropdownItem>
                             <DropdownItem
                                 key="entry-item-calendar-refresh"
                             >

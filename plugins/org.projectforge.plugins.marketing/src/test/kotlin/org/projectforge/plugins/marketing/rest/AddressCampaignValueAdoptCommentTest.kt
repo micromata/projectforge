@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test
 
 class AddressCampaignValueAdoptCommentTest {
     private fun append(own: String?, comparison: String?) =
-        AddressCampaignValueMultiSelectedPageRest.appendComment(own, comparison)
+        AddressCampaignValueMassUpdateRest.appendComment(own, comparison)
 
     @Test
     fun `the comparison comment is taken as it is without one of the row's own`() {

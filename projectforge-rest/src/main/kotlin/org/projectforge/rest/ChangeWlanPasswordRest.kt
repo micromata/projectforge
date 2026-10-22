@@ -37,16 +37,16 @@ import org.springframework.web.bind.annotation.*
 private val log = KotlinLogging.logger {}
 
 /**
- * Changes the WLAN (Samba) password (projectforge-next page `/next/changeWlanPassword`), see [ChangePasswordPageRest].
+ * Changes the WLAN (Samba) password (projectforge-next page `/next/changeWlanPassword`), see [ChangePasswordRest].
  */
 @RestController
 @RequestMapping("${Rest.URL}/changeWlanPassword")
-class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
+class ChangeWlanPasswordRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var userService: UserService
 
   @Autowired
-  private lateinit var changePasswordPageRest: ChangePasswordPageRest
+  private lateinit var changePasswordRest: ChangePasswordRest
 
   /**
    * @param userIdString is optional, so admins (only) are able to change passwords of other users.
@@ -54,14 +54,14 @@ class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
   @AccessChecked("Own user only; another user (userId): ADMIN_GROUP")
   @GetMapping("init")
   fun getInit(@RequestParam("userId", required = false) userIdString: String?): ChangePasswordInit {
-    return changePasswordPageRest.internalGetInit(userIdString, ChangePasswordPageRest.PasswordType.WLAN)
+    return changePasswordRest.internalGetInit(userIdString, ChangePasswordRest.PasswordType.WLAN)
   }
 
   @AccessChecked("Own user only; another user (userId): ADMIN_GROUP. CSRF token required")
   @PostMapping("change")
   fun change(request: HttpServletRequest, @RequestBody postData: PostData<ChangePasswordData>): ResponseEntity<*> {
-    return changePasswordPageRest.internalChange(
-      request, postData.data, ChangePasswordPageRest.PasswordType.WLAN,
+    return changePasswordRest.internalChange(
+      request, postData.data, ChangePasswordRest.PasswordType.WLAN,
     ) { data, changeOwn ->
       if (changeOwn) {
         log.info { "The user wants to change his WLAN/Samba password." }

@@ -10,19 +10,24 @@ import {
 import { useTranslations } from "next-intl";
 import { useChipSelection } from "@/hooks/use-chip-selection";
 import { useFocusedClipboard } from "@/hooks/use-focused-clipboard";
+import { useUndoHistory } from "@/hooks/use-undo-history";
 import { carriesRefs, readRefs, writeRefs } from "@/lib/entity-ref-transfer";
 import { toast } from "@/lib/toast";
 import type { EntityRef } from "./entity-autocomplete";
 import type { EntityChipProps } from "./entity-chip";
+import { useChipSweep } from "./use-chip-sweep";
 
 /**
  * Moves picked entities between the pickers of [EntityMultiAutocomplete] of the same kind (`refType`):
- * chips are selected by click (see [useChipSelection]), then dragged onto another picker, or copied
- * with Ctrl/Cmd+C and pasted into one with Ctrl/Cmd+V — on another page or in another tab too.
- * Dropping and pasting add; the source keeps its chips. What is there already is skipped silently, as a
- * second pick of the same entry is.
+ * chips are selected by click (see [useChipSelection]) or by sweeping over them ([useChipSweep]), then
+ * dragged onto another picker, or copied (Ctrl/Cmd+C) or cut (Ctrl/Cmd+X) and pasted into one with
+ * Ctrl/Cmd+V — on another page or in another tab too. Dropping and pasting add; the source keeps its
+ * chips unless they were cut. What is there already is skipped silently, as a second pick of the same
+ * entry is. Ctrl/Cmd+Z undoes a change of the box, Ctrl/Cmd+Shift+Z and Ctrl+Y redo it ([useUndoHistory]);
+ * each box has its own history.
  *
- * Returns the props of the box (focusable, so the keys are its own) and of each chip.
+ * Returns the props of the box (focusable, so the keys are its own) and of each chip, and `change`,
+ * through which the picker's own picks go, so they can be undone as well.
  */
 export function useChipTransfer({
   refType,
@@ -39,6 +44,9 @@ export function useChipTransfer({
   const t = useTranslations();
   const boxRef = useRef<HTMLDivElement>(null);
   const selection = useChipSelection(chips.map((chip) => chip.id));
+  const sweep = useChipSweep(selection);
+  const history = useUndoHistory(value, onChange, sameIds);
+  const change = history.change;
   const [dropTarget, setDropTarget] = useState(false);
   // Set while a drag starts here: dropping the chips back onto their own box would add nothing.
   const draggingFromHere = useRef(false);
@@ -51,15 +59,25 @@ export function useChipTransfer({
       known.add(ref.id);
       added.push(ref);
     }
-    if (added.length > 0) onChange([...value, ...added]);
+    if (added.length > 0) change([...value, ...added]);
   };
   const selectedOrAll = () =>
     selection.selectedIds.length > 0
       ? chips.filter((chip) => selection.isSelected(chip.id))
       : chips;
 
+  const remove = (ids: Iterable<number>) => {
+    const gone = new Set(ids);
+    if (gone.size > 0) change(value.filter((picked) => !gone.has(picked.id)));
+  };
+
   useFocusedClipboard(boxRef, {
     onCopy: (data) => writeRefs(data, refType, selectedOrAll()),
+    onCut: (data) => {
+      const cut = selectedOrAll();
+      writeRefs(data, refType, cut);
+      remove(cut.map((chip) => chip.id));
+    },
     onPaste: (data) => {
       const refs = readRefs(data, refType);
       if (refs.length === 0) toast(t("entityRefs.paste.foreign"));
@@ -75,6 +93,7 @@ export function useChipTransfer({
     tabIndex: -1,
     role: "listbox",
     "aria-multiselectable": true,
+    ...sweep,
     // From anywhere in the box — the box itself, the trigger, a removing button: none of them is a text
     // field these keys would mean something else in.
     onKeyDown: (event: KeyboardEvent) => {
@@ -82,12 +101,14 @@ export function useChipTransfer({
         event.stopPropagation();
         selection.clear();
       } else if (event.key === "Delete" || event.key === "Backspace") {
-        const gone = new Set(selection.selectedIds);
-        if (gone.size > 0)
-          onChange(value.filter((picked) => !gone.has(picked.id)));
-      } else if (event.key === "a" && (event.ctrlKey || event.metaKey)) {
+        remove(selection.selectedIds);
+      } else if (event.ctrlKey || event.metaKey) {
+        const key = event.key.toLowerCase();
+        if (key === "a") selection.selectAll();
+        else if (key === "z" && !event.shiftKey) history.undo();
+        else if ((key === "z" && event.shiftKey) || key === "y") history.redo();
+        else return;
         event.preventDefault();
-        selection.selectAll();
       }
     },
     onBlur: (event: FocusEvent) => {
@@ -119,7 +140,7 @@ export function useChipTransfer({
     removeLabel,
     selected: selection.isSelected(entry.id),
     onSelect: (modifiers) => selection.select(entry.id, modifiers),
-    onRemove: () => onChange(value.filter((e) => e.id !== entry.id)),
+    onRemove: () => remove([entry.id]),
     onDragStart: (event) => {
       // A selected chip takes the whole selection along, an unselected one only itself.
       const dragged = selection.isSelected(entry.id)
@@ -134,5 +155,9 @@ export function useChipTransfer({
     },
   });
 
-  return { boxProps, chipProps, dropTarget };
+  return { boxProps, chipProps, dropTarget, change };
+}
+
+function sameIds(a: readonly EntityRef[], b: readonly EntityRef[]) {
+  return a.length === b.length && a.every((entry, i) => entry.id === b[i].id);
 }

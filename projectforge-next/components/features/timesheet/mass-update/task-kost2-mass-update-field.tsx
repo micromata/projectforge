@@ -17,7 +17,7 @@ import { Kost2RemapCheckbox } from "./kost2-remap-checkbox";
  * declared fields do not model), so it renders through the `customFields` slot at the position the backend
  * declares for `taskAndKost2` (below the activity report) and contributes its parameters under
  * the keys the backend expects: `task`/`kost2` carry the chosen ids and `taskAndKost2` is the synthetic
- * field the run gates the change on (`TimesheetMultiSelectedPageRest.checkParamHasAction`).
+ * field the run gates the change on (`TimesheetMassUpdateRest.checkParamHasAction`).
  *
  * The task control is *always* usable: a task must be pickable to load its cost units, and picking one
  * when no shared task is pre-filled is how a cost-unit-only change starts. The checkbox is a separate

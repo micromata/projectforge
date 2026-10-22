@@ -309,7 +309,7 @@ Lösch-Bestätigung, Aktionsleiste liegen in `hooks/use-entity-edit-form.ts` und
   Download, Verschlüsseln (`encrypt`, Modus AES-256/ZIP-Standard) und Entschlüsselung testen
   (`testDecryption`); ein abgelehntes Passwort ist HTTP 406 am Passwortfeld (`PasswordRefused`).
   `encryptionSupport={false}` für Merlin/DataTransfer-Public, die es im Backend auch nicht haben.
-- **Mehrfachauswahl/Massenupdate** (`AbstractMultiSelectedPage`, `MultiSelectionSupport`,
+- **Mehrfachauswahl/Massenupdate** (`AbstractMassUpdateRest`, `MultiSelectionSupport`,
   `PageDef.massUpdate`): Zustand liegt in der HTTP-Session (Schlüssel = Klasse der
   `*EntityRest`, TTL 60 min) → **Sticky Sessions**. Next spricht nur das layoutfreie Protokoll
   (`meta`/`preview`/`update`/`select`/`selectedList`/`cancel`); die Felder deklariert
@@ -555,7 +555,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   verbraucht ist. Der WebAuthn-Eintrag wird im Dialog umbenannt/gelöscht; neu: Löschen verlangt ebenfalls die
   frische 2FA. Alte Links werden nicht umgeleitet.
 - **Passwort / WLAN-Passwort ändern** (`next/changePassword`, `next/changeWlanPassword`, vorher React-UILayout
-  derselben Klassen) – layoutfrei über `ChangePasswordPageRest` / `ChangeWlanPasswordPageRest` (`GET init`,
+  derselben Klassen) – layoutfrei über `ChangePasswordRest` / `ChangeWlanPasswordRest` (`GET init`,
   `POST change`; 2FA-Kurzbefehl `PASSWORD`), eine Seite mit `variant`. Der CSRF-Token wird im Endpunkt selbst
   geprüft (nicht nur im Filter, der nur next-Clients prüft); ohne Session keine Änderung. Fehler kommen mit
   `fieldId` (altes/Login-Passwort, neues Passwort, Wiederholung). Neu gegenüber React: Ob die Änderung möglich ist
@@ -642,7 +642,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   (Default an) bleibt backendseitig; Selbsteinschätzung und Interesse als Sterne (`RatingField`, Nachfolger von
   `UIRatingStars`, Klick auf den aktuellen Stern setzt auf 0), Skill mit Autovervollständigung, Excel-Export der
   Statistik (`SkillMatrixServicesRest`) als Listenaktion. Kopie gehört dem angemeldeten Nutzer (`prepareClone`).
-  Neu: Massenänderung (`SkillEntryMultiSelectedPageRest`, `/rs/skillentrySelected`) von Selbsteinschätzung und
+  Neu: Massenänderung (`SkillEntryMassUpdateRest`, `/rs/skillentrySelected`) von Selbsteinschätzung und
   Interesse (Auswahl der Stufentexte, ohne Löschen, Stufe 0 ist eine Auswahl) und Kommentar; Skill (Dubletten) und
   Besitzer nicht. Fremde Einträge scheitern pro Eintrag am `SkillRight`. Alte Links werden nicht
   umgeleitet.
@@ -678,7 +678,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `[category]` heißt jetzt `generic` (war `address`).
 - **Adresskampagnen-Werte** (`addressCampaignValue`, Liste + Formular + Massenänderung, vorher React-UILayout
   `AddressCampaignValuePagesRest`) – layoutfrei `AddressCampaignValueEntityRest` +
-  `AddressCampaignValueMultiSelectedPageRest` (`fieldDeclarations`: Wert als Auswahl der Kampagnenwerte, Kommentar),
+  `AddressCampaignValueMassUpdateRest` (`fieldDeclarations`: Wert als Auswahl der Kampagnenwerte, Kommentar),
   Frontend `components/features/address-campaign-value`. Eine Zeile je Adresse der im Filter gewählten Kampagne;
   Adressen ohne Wert haben eine synthetische (negative) Id und öffnen `address-campaign-value/new?campaignId=&addressId=`
   (`newBaseDO`). Sortiert wird komplett im Speicher (`computedSortProperties`), weil die Abfrage auf den Adressen läuft.

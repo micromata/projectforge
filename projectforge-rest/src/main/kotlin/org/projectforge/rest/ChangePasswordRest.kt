@@ -58,14 +58,14 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Changes the login password of the logged-in user, or - admins only - of another user (projectforge-next page
- * `/next/changePassword`). [ChangeWlanPasswordPageRest] does the same for the WLAN password.
+ * `/next/changePassword`). [ChangeWlanPasswordRest] does the same for the WLAN password.
  *
  * Both classes are registered for the second factor ([org.projectforge.security.ProjectForge2FAInitialization],
  * shortcut PASSWORD), so every call needs a recent 2FA.
  */
 @RestController
 @RequestMapping("${Rest.URL}/changePassword")
-class ChangePasswordPageRest : AbstractDynamicPageRest() {
+class ChangePasswordRest : AbstractDynamicPageRest() {
 
   @Autowired
   private lateinit var accessChecker: AccessChecker

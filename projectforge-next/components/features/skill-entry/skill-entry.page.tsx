@@ -62,7 +62,7 @@ export const SKILL_ENTRY_PAGE = definePage<
     { name: "comment", size: 400 },
   ],
   listActions: SkillEntryListActions,
-  // Mass update of rating, interest and comment (SkillEntryMultiSelectedPageRest).
+  // Mass update of rating, interest and comment (SkillEntryMassUpdateRest).
   massUpdate: {
     endpoint: "skillentrySelected",
     route: "/skillentry/mass-update",

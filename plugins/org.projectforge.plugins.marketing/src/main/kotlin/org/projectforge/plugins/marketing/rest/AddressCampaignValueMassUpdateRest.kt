@@ -31,7 +31,7 @@ import org.projectforge.plugins.marketing.AddressCampaignValueDO
 import org.projectforge.plugins.marketing.AddressCampaignValueDao
 import org.projectforge.plugins.marketing.dto.AddressCampaignValue
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
+import org.projectforge.rest.multiselect.AbstractMassUpdateRest
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
 import org.projectforge.framework.i18n.translateMsg
@@ -53,8 +53,8 @@ import java.io.Serializable
  * without a value in the selected campaign yet: their values are created.
  */
 @RestController
-@RequestMapping("${Rest.URL}/addressCampaignValue${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<AddressCampaignValue>() {
+@RequestMapping("${Rest.URL}/addressCampaignValue${AbstractMassUpdateRest.URL_SUFFIX_SELECTED}")
+class AddressCampaignValueMassUpdateRest : AbstractMassUpdateRest<AddressCampaignValue>() {
     @Autowired
     private lateinit var addressDao: AddressDao
 

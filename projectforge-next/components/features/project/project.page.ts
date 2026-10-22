@@ -151,7 +151,7 @@ export const PROJECT_PAGE = definePage<
   // The project wizard, for those who may create customers, projects and structure elements.
   listActions: ProjectListActions,
   // Mass update of a selection: the contact person, the description and the cost 2 types
-  // (ProjectMultiSelectedPageRest, /projectSelected).
+  // (ProjectMassUpdateRest, /projectSelected).
   massUpdate: {
     endpoint: "projectSelected",
     route: "/project/mass-update",

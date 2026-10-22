@@ -50,8 +50,8 @@ import java.io.Serializable
  * Mass update after selection.
  */
 @RestController
-@RequestMapping("${Rest.URL}/timesheet${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() {
+@RequestMapping("${Rest.URL}/timesheet${AbstractMassUpdateRest.URL_SUFFIX_SELECTED}")
+class TimesheetMassUpdateRest : AbstractMassUpdateRest<TimesheetDO>() {
     @Autowired
     private lateinit var kost2Dao: Kost2Dao
 

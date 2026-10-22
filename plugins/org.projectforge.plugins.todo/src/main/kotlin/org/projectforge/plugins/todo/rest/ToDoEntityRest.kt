@@ -268,7 +268,7 @@ class ToDoEntityRest : AbstractDTOEntityRest<ToDoDO, ToDo, ToDoDao>(
     /**
      * Notifies assignee and reporter of the written to-do. A failing notification must never fail the write,
      * which is committed already, nor stay silent: the warning is returned for the response (see
-     * `OrderEntityRest`). Also used by the mass update ([ToDoMultiSelectedPageRest]).
+     * `OrderEntityRest`). Also used by the mass update ([ToDoMassUpdateRest]).
      *
      * @return The translated warning of a failed notification, or null.
      */

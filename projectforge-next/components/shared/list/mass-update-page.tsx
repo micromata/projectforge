@@ -84,7 +84,7 @@ export function MassUpdatePage({
 
   // The entity of the list this came from, not the mass update endpoint: a user who may not see the
   // entries may not update them in bulk either, and `{page}/meta` performs no rights check of its own
-  // (AbstractMultiSelectedPage.requestMeta).
+  // (AbstractMassUpdateRest.requestMeta).
   const readAccess = useReadAccessGuard(entity);
 
   if (readAccess.denied) {

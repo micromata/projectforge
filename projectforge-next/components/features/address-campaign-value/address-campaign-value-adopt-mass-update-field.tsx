@@ -8,7 +8,7 @@ import type { MassUpdateParameter } from "@/lib/rs/multi-select";
 
 /**
  * Adopts the values of the comparison campaign the list shows (e.g. last year's) for the selected rows — each row
- * the value its address has there (`AddressCampaignValueMultiSelectedPageRest.Adoption`). Optionally the comments
+ * the value its address has there (`AddressCampaignValueMassUpdateRest.Adoption`). Optionally the comments
  * as well (appended to a row's own) and only for rows without a value of their own.
  *
  * A custom field because it has no entity property behind it. The choices travel as the comma separated

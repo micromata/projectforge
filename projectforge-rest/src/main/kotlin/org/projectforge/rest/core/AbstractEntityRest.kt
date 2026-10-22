@@ -824,7 +824,7 @@ constructor(
     /**
      * The given entries as list rows, for a page that holds a selection as ids only.
      *
-     * Lives here rather than at the caller because `O` is only in scope here: [AbstractMultiSelectedPage]
+     * Lives here rather than at the caller because `O` is only in scope here: [AbstractMassUpdateRest]
      * knows its list rest as `AbstractEntityRest<*, *, *>` and could not build the [ResultSet] of `O`
      * that [postProcessResultSet] takes. And going through that method is the point of this one - it is
      * where [AbstractDTOEntityRest] turns the database objects into the lean rows of a hand built next

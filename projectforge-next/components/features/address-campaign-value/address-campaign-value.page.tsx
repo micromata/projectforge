@@ -196,7 +196,7 @@ export const ADDRESS_CAMPAIGN_VALUE_PAGE = definePage<
     />
   ),
   listActions: AddressCampaignValueListActions,
-  // Served under `addressCampaignValueSelected` (AddressCampaignValueMultiSelectedPageRest): the value of the
+  // Served under `addressCampaignValueSelected` (AddressCampaignValueMassUpdateRest): the value of the
   // selected campaign and the comment, for the selected rows — addresses without a value get one.
   massUpdate: {
     endpoint: "addressCampaignValueSelected",
