@@ -74,3 +74,9 @@ venv
 # from projectforge-next (whose own .gitignore covers the same directories).
 /test-results/
 /playwright-report/
+
+# Local MCP demo: generated databases, dependencies and logs.
+/.local/
+
+# Share the token-free local Claude Code server configuration.
+!/.mcp.json

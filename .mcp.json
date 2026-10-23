@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "projectforge-local": {
+      "type": "http",
+      "url": "http://localhost:18080/mcp"
+    }
+  }
+}

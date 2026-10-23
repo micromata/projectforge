@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Opt-in read-only MCP prototype with OAuth consent using the existing ProjectForge browser session, selectable permission-limited scopes, PKCE and logout-bound access.",
+  "de": "Optionaler MCP-Prototyp für Lesezugriffe mit OAuth-Freigabe über die bestehende ProjectForge-Browsersitzung, auswählbaren und durch Benutzerrechte begrenzten Scopes, PKCE und an die Sitzung gebundenem Zugriff."
+}

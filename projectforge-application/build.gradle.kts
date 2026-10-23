@@ -71,6 +71,7 @@ dependencies {
     implementation(project(":org.projectforge.plugins.skillmatrix"))
     implementation(project(":org.projectforge.plugins.todo"))
     testImplementation(project(":projectforge-commons-test"))
+    testImplementation(libs.org.springframework.spring.test)
     testImplementation(libs.org.mockito.core)
     testImplementation(libs.org.mockito.junit.jupiter)
     testImplementation(libs.org.mockito.kotlin)
