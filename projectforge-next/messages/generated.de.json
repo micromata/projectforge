@@ -1251,7 +1251,7 @@
           "projectCount": "Projekte",
           "showTitles": {
             "_": "Titel einblenden",
-            "tooltip": "Beschriftet alle Bubbles (auch wenn es viele sind) nur mit ihrem Kurztitel statt mit Name und DB %: dem Namen der Gruppe bzw. des Kunden, bei einem einzelnen Projekt mit dem Kurzbezeichner (sonst dem Namen)."
+            "tooltip": "Beschriftet die eigenen Bubbles mit Kurztitel und DB %: dem Namen der Gruppe bzw. des Kunden, bei einem einzelnen Projekt mit dem Kurzbezeichner (sonst dem Namen). Ausgeschaltet stehen die Namen nur im Tooltip."
           },
           "size": "Bubble-Größe: Kosten"
         },

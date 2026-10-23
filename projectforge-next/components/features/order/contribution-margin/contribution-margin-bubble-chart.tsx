@@ -35,13 +35,10 @@ import { ContributionMarginTargetBands } from "./contribution-margin-target-band
 /** The area range of the bubbles in px²: the highest costs get the biggest one, the others scale with it. */
 const BUBBLE_RANGE: [number, number] = [40, 2500];
 
-/** Above this many own bubbles their labels would overlap: the name is in the tooltip only (unless asked for). */
-const MAX_LABELLED_BUBBLES = 15;
-
 /**
  * The contribution margin bubble chart, as controlling built it in Excel: revenue on the x axis, DB % on the y
  * axis over the red/yellow bands and the target line, the costs as the size of the bubble, coloured by business
- * unit. The own bubbles carry "name; DB %" (if not too many) or, on request, their short title (always); the
+ * unit. On request, the own bubbles carry "short title; DB %" (else the name is in the tooltip only); the
  * anonymous ones of the other projects are pale and unlabelled. A bubble without (or with negative) revenue sits
  * on the 0 line, its tooltip has the real value.
  */
@@ -51,7 +48,7 @@ export function ContributionMarginBubbleChart({
   className = "h-[30rem] w-full",
 }: {
   data: ContributionMarginBubbles;
-  /** Whether the labels are the short titles (instead of name and DB %), even for many bubbles. */
+  /** Whether the own bubbles are labelled with their short title and DB %. */
   showTitles?: boolean;
   className?: string;
 }) {
@@ -67,13 +64,9 @@ export function ContributionMarginBubbleChart({
     }),
     [t]
   );
-  const rows = useMemo(
-    () => bubbleRows(data.bubbles, ctx, showTitles),
-    [data, ctx, showTitles]
-  );
+  const rows = useMemo(() => bubbleRows(data.bubbles, ctx), [data, ctx]);
   const own = rows.filter((row) => row.own);
   const others = rows.filter((row) => !row.own);
-  const labelled = showTitles || own.length <= MAX_LABELLED_BUBBLES;
   const xScale = useMemo(() => niceScale(rows.map((row) => row.x)), [rows]);
   const yScale = useMemo(
     () => bubbleYScale(rows, data.targetPercentage),
@@ -160,7 +153,7 @@ export function ContributionMarginBubbleChart({
               const color = row.color ?? "var(--color-own)";
               return <Cell key={index} fill={color} stroke={color} />;
             })}
-            {labelled && (
+            {showTitles && (
               <LabelList
                 dataKey="text"
                 position="right"

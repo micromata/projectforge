@@ -635,13 +635,16 @@ export async function findProjectWithCustomer(
   });
   if (!res.ok()) return null;
   const body = (await res.json()) as {
-    resultSet?: { name?: string; customer?: unknown }[];
+    resultSet?: { name?: string; customer?: unknown; status?: string }[];
   };
   // Not one of the tests' own: the customer lane marks its seeded project deleted while other
-  // lanes run, so the pick could vanish from the autocomplete between search and click.
+  // lanes run, so the pick could vanish from the autocomplete between search and click. Not an ended
+  // one either: the autocomplete leaves those out unless asked for inactive entries
+  // (`ProjectEntityRest.isInactiveAutoCompleteEntry`).
   const project = (body.resultSet ?? []).find(
     (row) =>
       row.customer != null &&
+      row.status !== "ENDED" &&
       (row.name?.length ?? 0) >= 2 &&
       !row.name!.startsWith(MARKER)
   );
