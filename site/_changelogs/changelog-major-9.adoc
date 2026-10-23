@@ -1,13 +1,83 @@
 ---
 title: "ProjectForge 9"
-date: 2026-10-22
-sort_key: "2026-10-22 0042"
+date: 2026-10-23
+sort_key: "2026-10-23 0043"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-0-14.changelog-release]
+=== ProjectForge 9.0.14 released
+
+[.changelog-source]
+__2026-10-23, tag https://github.com/micromata/projectforge/tree/9.0.14-RELEASE[9.0.14-RELEASE]__ +++{% include release-pills.html tag="9.0.14-RELEASE" docker="9.0.14" mini=true %}+++
+
+- **Contribution margin** per order and structure element, bubble chart
+- **Former React interface** removed
+- **Security**: CSRF check for every session, changing requests as POST only
+- Fields with several entries: copy, paste and drag entries
+- Import of incoming invoices: currencies and header-only exports corrected
+
+.Overview
+[%collapsible]
+====
+- **Contribution margin:** the order statistics break it down by orders and structure elements (a tree with a monthly chart per row) and show a bubble chart of revenue, contribution margin % and costs per project, project group, customer or customer group, in the colors of the business units.
+- **Former React interface removed:** all its pages are part of the new interface, old links (`+/react/...+`) lead there.
+- **Security:** the CSRF token is checked for every changing request of a logged-in session; changing requests (filters, templates, search index, logout, cancelling a login) are accepted as POST only; history comments need update access; npm dependencies updated.
+- **Fields with several entries:** entries can be selected, copied, cut, pasted and dragged into another field of the same kind; Ctrl/Cmd+Z undoes a change.
+- **Administration:** structure tree and list show the groups with access rights on an element; the time sheet mass update remaps the cost unit by type, keeping the structure element.
+- **Polls:** templates have the state "Template" and no deadline.
+- **Fixed:** import of incoming invoices (currencies, periods, header-only exports); cancellation invoices listed with the positions they cancel; the order edit page no longer jumps; the mass update log shows the updated entries again.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Order statistics, contribution margin: bubble chart of revenue, contribution margin % and costs (size) per project, project group, customer or customer group. On request, the other projects of the selection (e.g. of the whole business unit) are shown for comparison, anonymously. The bubbles take the colors of the business units, set with the business units (customer groups page). A switch labels all bubbles with their short title instead (the group name, for a single project its short name).
+- Fields with several entries (users, groups, employees, …): entries can be selected by sweeping over them with the mouse or by clicking, then copied (Ctrl/Cmd+C) or cut (Ctrl/Cmd+X) and pasted into another field of the same kind with Ctrl/Cmd+V, or dragged there. Ctrl/Cmd+Z undoes a change of the field.
+- Structure tree and structure element list: column with the groups having access rights on an element (administrators only). Hovering shows the rights of each group, a click opens the access rights of this element.
+- Time sheet mass update: remap the cost unit by type while every time sheet keeps its structure element, e.g. after a project was linked to it.
+- Order statistics: the contribution margin broken down by orders and by structure elements, as a tree with a monthly chart per row. The values are calculated from the invoice positions and the time sheets × hourly rate; what can't be assigned stays with the project as residual.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- **Polls**
+  * Templates have no deadline: none is required, and none is set when saving.
+  * Templates have the state "Template" instead of "Running", are listed without a filter and marked with a badge; the state filter replaces the "Templates" filter.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- **Import of incoming invoices**
+  * Positions of one invoice in different currencies are converted to EUR by the rate of the invoice date instead of being taken as EUR; without a rate the invoice is marked as faulty.
+  * Stored invoices between two periods of the export (e.g. March for an export of January and June) are no longer offered for deletion.
+  * Header-only export: the rows of one invoice (one per booking line) are merged into one invoice with the total amount, instead of being offered as new invoices on every import.
+  * Header-only export: the internal note (column "Interne Re.-Nr.") is no longer appended to the invoice number, which changed back and forth with every import of the two files.
+- Mass updates: the log window shows the updated entries again.
+- Cancellation invoices are listed with the order positions they cancel, right after the cancelled invoice (e.g. 17400 and 17400-S), also in the order and forecast exports. On the order page both are struck through; together they still count 0 as invoiced.
+- Order book: the edit page no longer jumps while a field is changed.
+
+++++
+{% include tag.html tag="removed" %}
+++++
+- The former React interface is removed: all its pages are part of the new interface, and old links (`+/react/...+`) lead there.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- The CSRF token is checked for every changing request of a logged-in browser session, no longer only for requests identifying themselves as the new interface; cancelling a login or password reset is accepted as POST only.
+- Appending a comment to a history entry needs update access to the entry's object, and is only possible for objects supporting comments (users, groups).
+- npm vulnerabilities in projectforge-next fixed: next 16.4.2, dompurify 3.4.17 and vitest 4.1.12.
+- Requests that change something (list and calendar filters, templates, search index, logout) are accepted as POST only; the GET variants of the former React interface are removed.
+====
 
 [discrete#release-9-0-13.changelog-release]
 === ProjectForge 9.0.13 released
