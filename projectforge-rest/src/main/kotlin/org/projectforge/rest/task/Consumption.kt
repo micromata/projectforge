@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
@@ -36,7 +37,7 @@ import java.math.RoundingMode
 
 class Consumption(
   /**
-   * 350PT/188PT
+   * 188PT/350PT (54%), Rest: 162PT (01.02.2026–30.09.2026)
    */
   val title: String,
   val status: Status,
@@ -119,7 +120,15 @@ class Consumption(
       val unitStr = translate("projectmanagement.personDays.short")
       val maxValueStr =
         if (maxDays != null) {
-          "/${NumberHelper.getNumberFractionFormat(locale, maxDays.scale()).format(maxDays)}$unitStr ($percentage%)"
+          // What is left of the budget (or how far it is overbooked), so nobody has to subtract in their head.
+          val remaining = NumberHelper.setDefaultScale(maxDays.subtract(usage))!!
+          val remainingStr = NumberHelper.getNumberFractionFormat(locale, remaining.scale()).format(remaining.abs()) + unitStr
+          val remainingMsg = if (remaining.signum() >= 0) {
+            translateMsg("task.consumption.remaining", remainingStr)
+          } else {
+            translateMsg("task.consumption.overbooked", remainingStr)
+          }
+          "/${NumberHelper.getNumberFractionFormat(locale, maxDays.scale()).format(maxDays)}$unitStr ($percentage%), $remainingMsg"
         } else {
           ""
         }

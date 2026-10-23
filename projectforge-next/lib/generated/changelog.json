@@ -6,6 +6,9 @@
     "date" : "2026-10-23",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Consumption bar (structure tree, task list, time sheet form): the tooltip also shows the remaining person days of the budget, or by how much it is overbooked.", "Time sheet form: the recently used entries show the consumption of their budget, and the search also matches it." ]
+    }, {
       "type" : "changed",
       "items" : [ "Order statistics, contribution margin bubble chart: the size of a bubble shows its contribution margin instead of its costs. The switch \"Show titles\" labels the own bubbles with their short title and contribution margin %; switched off, the names are in the tooltip only." ]
     } ]

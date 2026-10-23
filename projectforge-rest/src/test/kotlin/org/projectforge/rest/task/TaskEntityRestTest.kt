@@ -33,10 +33,15 @@ import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
+import org.projectforge.business.task.TaskTree
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.access.AccessType
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.core.ValidationUtils
 import org.projectforge.rest.dto.Task
 import org.projectforge.ui.ValidationError
@@ -188,6 +193,31 @@ class TaskEntityRestTest : AbstractTestBase() {
         assertFalse(row.kost2AndBookingStatusWriteAccess, "The access flags are the edit page's.")
         assertFalse(row.protectTimesheetsUntilWriteAccess)
         assertNotNull(parent.id) // The parent exists, so `parentTask` being null is the override's doing.
+    }
+
+    /**
+     * The tooltip of the consumption bar tells what is left of the budget, so nobody has to subtract
+     * the booked days from the planned ones in their head.
+     */
+    @Test
+    fun `the consumption title shows the remaining person days`() {
+        val task = persistenceService.runInTransaction { _ ->
+            logon(TEST_FINANCE_USER)
+            val task = initTestDB.addTask("taskConsumptionRemaining", "root")
+            task.maxHours = 16 // 2 person days, nothing booked yet.
+            taskDao.update(task, checkAccess = false)
+            task
+        }
+        logon(TEST_FINANCE_USER)
+
+        val title = Consumption.create(TaskTree.instance.getTaskNodeById(task.id)!!)!!.title
+
+        val days = NumberHelper.getNumberFractionFormat(ThreadLocalUserContext.locale, 2).format(BigDecimal(2))
+        val unit = translate("projectmanagement.personDays.short")
+        assertTrue(
+            title.contains(translateMsg("task.consumption.remaining", "$days$unit")),
+            "The remaining days follow the percentage: $title",
+        )
     }
 
     /**
