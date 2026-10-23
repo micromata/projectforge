@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Cancellation invoices are listed with the order positions they cancel, right after the cancelled invoice (e.g. 17400 and 17400-S), also in the order and forecast exports. On the order page both are struck through; together they still count 0 as invoiced.",
-  "de": "Stornorechnungen werden bei den Auftragspositionen aufgeführt, die sie stornieren, direkt nach der stornierten Rechnung (z. B. 17400 und 17400-S), auch im Auftrags- und Forecast-Export. Im Auftrag sind beide durchgestrichen; zusammen zählen sie weiterhin 0 als fakturiert."
-}

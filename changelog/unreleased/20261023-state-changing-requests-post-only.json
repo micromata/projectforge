@@ -1,5 +1,0 @@
-{
-  "type": "security",
-  "en": "Requests that change something (list and calendar filters, templates, search index, logout) are accepted as POST only; the GET variants of the former React interface are removed.",
-  "de": "Anfragen, die etwas ändern (Listen- und Kalenderfilter, Vorlagen, Suchindex, Abmelden), werden nur noch als POST angenommen; die GET-Varianten der früheren React-Oberfläche sind entfernt."
-}

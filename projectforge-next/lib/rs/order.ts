@@ -525,7 +525,7 @@ export interface ContributionMarginBubbleSettings {
   grouping: ContributionMarginBubbleGrouping;
   /** Whether the projects the user may not see are shown as well, anonymous. */
   includeOthers: boolean;
-  /** Whether all bubbles are labelled with their short title (instead of name and DB %). */
+  /** Whether the own bubbles are labelled with their short title and DB %. */
   showProjects: boolean;
 }
 

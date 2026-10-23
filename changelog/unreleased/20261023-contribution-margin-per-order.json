@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "Order statistics: the contribution margin broken down by orders and by structure elements, as a tree with a monthly chart per row. The values are calculated from the invoice positions and the time sheets × hourly rate; what can't be assigned stays with the project as residual.",
-  "de": "Auftragsstatistik: Deckungsbeitrag aufgeschlüsselt nach Aufträgen und nach Strukturelementen, als Baum mit Monatsdiagramm je Zeile. Die Werte sind kalkulatorisch aus den Rechnungspositionen und den Zeitberichten × Stundensatz; was sich nicht zuordnen lässt, bleibt als Rest beim Projekt."
-}

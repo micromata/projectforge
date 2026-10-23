@@ -39,9 +39,10 @@ test.describe("field hint", { tag: "@parallel" }, () => {
 
     // The ⓘ is not part of the label: clicking it must not open the select it explains.
     await hint.click();
-    await expect(
-      page.getByRole("combobox", { name: forecastType })
-    ).toBeVisible();
-    await expect(page.getByRole("listbox")).toHaveCount(0);
+    const select = page.getByRole("combobox", { name: forecastType });
+    await expect(select).toBeVisible();
+    // Asked of this select rather than of the page: a multi picker's box of chosen entries is a listbox
+    // too (see use-chip-transfer.ts), open or not.
+    await expect(select).toHaveAttribute("aria-expanded", "false");
   });
 });

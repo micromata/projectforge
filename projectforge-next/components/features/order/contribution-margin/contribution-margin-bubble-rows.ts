@@ -7,13 +7,12 @@ import type { BubbleRow } from "./contribution-margin-bubble-tooltip";
 const Y_HEADROOM = 8;
 
 /**
- * The bubbles as plotted, see [BubbleRow]: the label is "name; DB %" or, with [showTitles], only the short
- * title (the group name, the identifier of a project by itself).
+ * The bubbles as plotted, see [BubbleRow]: the label is "short title; DB %" (the short title is the group
+ * name, the identifier of a project by itself), none for the anonymous bubbles.
  */
 export function bubbleRows(
   bubbles: ContributionMarginBubble[],
-  ctx: FormatContext,
-  showTitles = false
+  ctx: FormatContext
 ): BubbleRow[] {
   return bubbles.map((bubble) => ({
     ...bubble,
@@ -22,9 +21,7 @@ export function bubbleRows(
     text:
       bubble.label == null
         ? null
-        : showTitles
-          ? (bubble.title ?? bubble.label)
-          : `${bubble.label}; ${formatNumber(bubble.percentage ?? 0, ctx, 0)}`,
+        : `${bubble.title ?? bubble.label}; ${formatNumber(bubble.percentage ?? 0, ctx, 0)} %`,
   }));
 }
 
