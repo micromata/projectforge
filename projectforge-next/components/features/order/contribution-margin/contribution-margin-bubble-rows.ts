@@ -18,6 +18,7 @@ export function bubbleRows(
     ...bubble,
     x: Math.max(0, bubble.revenue),
     y: bubble.percentage ?? 0,
+    z: Math.max(0, bubble.profit),
     text:
       bubble.label == null
         ? null

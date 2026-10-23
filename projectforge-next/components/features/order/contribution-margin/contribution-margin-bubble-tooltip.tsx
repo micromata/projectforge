@@ -6,12 +6,13 @@ import { formatCurrency, formatPercentage } from "@/lib/format";
 import type { ContributionMarginBubble } from "@/lib/rs/order";
 
 /**
- * A bubble as plotted: `x` its revenue (0 if negative), `y` its DB % (0 without revenue), `text` its label with
- * the DB %, null if anonymous.
+ * A bubble as plotted: `x` its revenue (0 if negative), `y` its DB % (0 without revenue), `z` its DB1 as size (0
+ * for a loss), `text` its label with the DB %, null if anonymous.
  */
 export interface BubbleRow extends ContributionMarginBubble {
   x: number;
   y: number;
+  z: number;
   text: string | null;
 }
 

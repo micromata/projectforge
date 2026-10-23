@@ -530,7 +530,7 @@ export interface ContributionMarginBubbleSettings {
 }
 
 /**
- * One bubble: revenue (x), DB % (y) and costs (size) of a group of projects in the period. A bubble of other
+ * One bubble: revenue (x), DB % (y) and DB1 (size) of a group of projects in the period. A bubble of other
  * projects (`own` false) is anonymous: neither label nor project count.
  */
 export interface ContributionMarginBubble {
