@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Order statistics, contribution margin bubble chart: the size of a bubble shows its contribution margin instead of its costs. The switch \"Show titles\" labels the own bubbles with their short title and contribution margin %; switched off, the names are in the tooltip only.",
+  "de": "Auftragsstatistik, Deckungsbeitrag-Bubbles: Die Größe einer Bubble zeigt ihren DB1 statt ihrer Kosten. Der Schalter „Titel einblenden“ beschriftet die eigenen Bubbles mit Kurztitel und DB %; ausgeschaltet stehen die Namen nur im Tooltip."
+}

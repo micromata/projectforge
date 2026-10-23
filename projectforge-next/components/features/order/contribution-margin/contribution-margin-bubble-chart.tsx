@@ -32,12 +32,12 @@ import {
 import { PERCENT_AXIS } from "./contribution-margin-chart-data";
 import { ContributionMarginTargetBands } from "./contribution-margin-target-bands";
 
-/** The area range of the bubbles in px²: the highest costs get the biggest one, the others scale with it. */
+/** The area range of the bubbles in px²: the highest DB1 gets the biggest one (a loss the smallest), the others scale with it. */
 const BUBBLE_RANGE: [number, number] = [40, 2500];
 
 /**
  * The contribution margin bubble chart, as controlling built it in Excel: revenue on the x axis, DB % on the y
- * axis over the red/yellow bands and the target line, the costs as the size of the bubble, coloured by business
+ * axis over the red/yellow bands and the target line, the DB1 as the size of the bubble, coloured by business
  * unit. On request, the own bubbles carry "short title; DB %" (else the name is in the tooltip only); the
  * anonymous ones of the other projects are pale and unlabelled. A bubble without (or with negative) revenue sits
  * on the 0 line, its tooltip has the real value.
@@ -72,7 +72,7 @@ export function ContributionMarginBubbleChart({
     () => bubbleYScale(rows, data.targetPercentage),
     [rows, data.targetPercentage]
   );
-  const maxCosts = Math.max(1, ...rows.map((row) => row.costs));
+  const maxSize = Math.max(1, ...rows.map((row) => row.z));
   return (
     <div>
       <ChartContainer
@@ -111,8 +111,8 @@ export function ContributionMarginBubbleChart({
           />
           <ZAxis
             type="number"
-            dataKey="costs"
-            domain={[0, maxCosts]}
+            dataKey="z"
+            domain={[0, maxSize]}
             range={BUBBLE_RANGE}
           />
           <ContributionMarginTargetBands
