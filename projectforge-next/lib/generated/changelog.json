@@ -25,7 +25,7 @@
       "items" : [ "The former React interface is removed: all its pages are part of the new interface, and old links (`/react/...`) lead there." ]
     }, {
       "type" : "security",
-      "items" : [ "The CSRF token is checked for every changing request of a logged-in browser session, no longer only for requests identifying themselves as the new interface; cancelling a login or password reset is accepted as POST only.", "Requests that change something (list and calendar filters, templates, search index, logout) are accepted as POST only; the GET variants of the former React interface are removed." ]
+      "items" : [ "The CSRF token is checked for every changing request of a logged-in browser session, no longer only for requests identifying themselves as the new interface; cancelling a login or password reset is accepted as POST only.", "Appending a comment to a history entry needs update access to the entry's object, and is only possible for objects supporting comments (users, groups).", "npm vulnerabilities in projectforge-next fixed: next 16.4.2, dompurify 3.4.17 and vitest 4.1.12.", "Requests that change something (list and calendar filters, templates, search index, logout) are accepted as POST only; the GET variants of the former React interface are removed." ]
     } ]
   },
   "groups" : [ {

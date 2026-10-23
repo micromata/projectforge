@@ -1251,7 +1251,7 @@
           "projectCount": "Projects",
           "showTitles": {
             "_": "Show titles",
-            "tooltip": "Labels all bubbles (even if there are many) with their short title only, instead of name and DB %: the name of the group or customer, for a single project its short name (else its name)."
+            "tooltip": "Labels the own bubbles with their short title and DB %: the name of the group or customer, for a single project its short name (else its name). Switched off, the names are in the tooltip only."
           },
           "size": "Bubble size: costs"
         },

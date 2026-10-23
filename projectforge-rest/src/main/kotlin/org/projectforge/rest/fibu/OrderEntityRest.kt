@@ -1337,7 +1337,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     return ContributionMarginBubbleSettings(
       grouping = stored?.grouping ?: ContributionMarginBubbleGrouping.PROJECT_GROUP,
       includeOthers = stored?.includeOthers ?: false,
-      showProjects = stored?.showProjects ?: false,
+      showProjects = stored?.showProjects ?: true,
     )
   }
 
@@ -1388,8 +1388,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     /** Whether the projects the user may not see are shown as well, anonymous. */
     var includeOthers: Boolean? = null,
     /**
-     * Whether all bubbles are labelled with their short title only, "show titles" (only the client uses it,
-     * remembered here; the name is kept for the stored preferences).
+     * Whether the own bubbles are labelled with their short title and DB %, "show titles", on by default (only
+     * the client uses it, remembered here; the name is kept for the stored preferences).
      */
     var showProjects: Boolean? = null,
   )
