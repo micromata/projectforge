@@ -5306,8 +5306,16 @@
     "assignedUser": "Verantwortliche:r",
     "consumption": {
       "_": "Verbrauch",
-      "overbooked": "{arg0} überbucht",
-      "remaining": "Rest: {arg0}"
+      "booked": "Gebucht",
+      "budget": "Budget",
+      "overbooked": {
+        "_": "{arg0} überbucht",
+        "label": "Überbucht"
+      },
+      "remaining": {
+        "_": "Rest: {arg0}",
+        "label": "Rest"
+      }
     },
     "deleted": "gelöscht",
     "edit": {

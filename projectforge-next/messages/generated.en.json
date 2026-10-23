@@ -5306,8 +5306,16 @@
     "assignedUser": "Responsible user",
     "consumption": {
       "_": "Consumption",
-      "overbooked": "{arg0} overbooked",
-      "remaining": "remaining: {arg0}"
+      "booked": "Booked",
+      "budget": "Budget",
+      "overbooked": {
+        "_": "{arg0} overbooked",
+        "label": "Overbooked"
+      },
+      "remaining": {
+        "_": "remaining: {arg0}",
+        "label": "Remaining"
+      }
     },
     "deleted": "deleted",
     "edit": {

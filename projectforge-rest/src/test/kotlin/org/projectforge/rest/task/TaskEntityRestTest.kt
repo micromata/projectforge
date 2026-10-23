@@ -210,7 +210,8 @@ class TaskEntityRestTest : AbstractTestBase() {
         }
         logon(TEST_FINANCE_USER)
 
-        val title = Consumption.create(TaskTree.instance.getTaskNodeById(task.id)!!)!!.title
+        val consumption = Consumption.create(TaskTree.instance.getTaskNodeById(task.id)!!)!!
+        val title = consumption.title
 
         val days = NumberHelper.getNumberFractionFormat(ThreadLocalUserContext.locale, 2).format(BigDecimal(2))
         val unit = translate("projectmanagement.personDays.short")
@@ -218,6 +219,13 @@ class TaskEntityRestTest : AbstractTestBase() {
             title.contains(translateMsg("task.consumption.remaining", "$days$unit")),
             "The remaining days follow the percentage: $title",
         )
+        // The parts of the tooltip's calculation: budget − booked = remaining.
+        val zero = NumberHelper.getNumberFractionFormat(ThreadLocalUserContext.locale, 2).format(BigDecimal.ZERO)
+        assertEquals("$days $unit", consumption.budget)
+        assertEquals("$zero $unit", consumption.booked)
+        assertEquals("$days $unit", consumption.remaining)
+        assertFalse(consumption.overbooked)
+        assertNull(consumption.period, "Nothing booked, so there is no period.")
     }
 
     /**
