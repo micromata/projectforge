@@ -43,4 +43,4 @@ ALTER TABLE t_task_booking_grant
 
 -- Rollback (the grants are gone for good, the time sheets booked by them stay):
 -- DROP TABLE IF EXISTS t_task_booking_grant;
--- DELETE FROM t_flyway_schema_version WHERE version = '9.0.14.3';
+-- DELETE FROM t_flyway_schema_version WHERE version = '9.0.15.1';
