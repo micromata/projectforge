@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "Order statistics, contribution margin: bubble chart of revenue, DB % and DB1 (size) per project, project group, customer or customer group. On request, the other projects of the selection (e.g. of the whole business unit) are shown for comparison, anonymously and without names. The bubbles take the colours of the business units, set with the business units (customer groups page). A switch labels the own bubbles with their short title and DB % (the group name, for a single project its short name).",
-  "de": "Auftragsstatistik, Deckungsbeitrag: Bubble-Diagramm mit Umsatz, DB % und DB1 (Größe) je Projekt, Projektgruppe, Kunde oder Kundengruppe. Auf Wunsch werden zum Vergleich auch die übrigen Projekte der Auswahl (z. B. der ganzen Business Unit) anonym und ohne Namen angezeigt. Die Bubbles erscheinen in den Farben der Business Units, die bei den Business Units (Seite Kundengruppen) hinterlegt werden. Ein Schalter beschriftet die eigenen Bubbles mit Kurztitel und DB % (dem Namen der Gruppe, bei einem einzelnen Projekt mit dem Kurzbezeichner)."
-}
