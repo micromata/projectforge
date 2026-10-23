@@ -20,8 +20,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { HighlightedText } from "@/components/shared/highlighted-text";
+import { TaskConsumptionBar } from "@/components/shared/tasks/task-consumption-bar";
 import type { TimesheetDetail } from "../../types";
+import {
+  RecentRow,
+  consumptionTitle,
+  searchText,
+  taskName,
+  type RecentColumn,
+} from "./recent-timesheets-row";
 
 export interface RecentTimesheetsPopoverProps {
   entries: TimesheetDetail[];
@@ -41,6 +48,9 @@ export interface RecentTimesheetsPopoverProps {
  * searchable recent list of the legacy form (`TimesheetTemplatesAndRecent`), which a scrolling row of
  * chips had flattened to one truncated line each. A popover, not an inline unfold: the bar sits above
  * the fields in a height-bounded modal, where a table opening in place would push them off screen.
+ *
+ * Each entry shows the consumption of its budget (the task's, or the first ancestor's with one), so a
+ * reader booking time and material positions sees at a glance which one still has room.
  *
  * Kunde and Projekt sit beside the cost unit, on the same `cost2Visible` gate as the legacy table:
  * `getRecentList` resolves both from the entry's cost unit, so a reader who books on cost units gets
@@ -83,15 +93,28 @@ export function RecentTimesheetsPopover({
       width: "w-[12%]",
       cell: (e: TimesheetDetail) => e.kost2?.project?.name ?? "",
     },
-    { head: t("task._"), width: "w-[17%]", cell: taskName },
+    { head: t("task._"), width: "w-[15%]", cell: taskName },
+    {
+      // The budget's bar, as the form shows it once the entry is picked; not a link here, the row picks.
+      head: t("task.consumption"),
+      width: "w-[8%]",
+      cell: consumptionTitle,
+      render: (e: TimesheetDetail) =>
+        e.task ? (
+          <TaskConsumptionBar
+            task={{ consumption: e.task.consumption, title: taskName(e) }}
+            linkEnabled={false}
+          />
+        ) : null,
+    },
     {
       head: t("timesheet.location"),
-      width: "w-[11%]",
+      width: "w-[10%]",
       cell: (e: TimesheetDetail) => e.location ?? "",
     },
     {
       head: t("description"),
-      width: "w-[16%]",
+      width: "w-[13%]",
       cell: (e: TimesheetDetail) => e.description ?? "",
     },
     {
@@ -101,7 +124,7 @@ export function RecentTimesheetsPopover({
     },
     {
       head: t("timesheet.reference"),
-      width: "w-[12%]",
+      width: "w-[10%]",
       cell: (e: TimesheetDetail) => e.reference ?? "",
     },
   ].filter(Boolean) as RecentColumn[];
@@ -194,75 +217,4 @@ export function RecentTimesheetsPopover({
       </PopoverContent>
     </Popover>
   );
-}
-
-/** One column of the recent table: its heading, its share of the fixed width and the value it reads. */
-interface RecentColumn {
-  head: string;
-  width: string;
-  cell: (entry: TimesheetDetail) => string;
-}
-
-/** One recent entry as a clickable row — every cell truncates to its column, full text on hover. */
-function RecentRow({
-  entry,
-  columns,
-  query,
-  onSelect,
-}: {
-  entry: TimesheetDetail;
-  columns: RecentColumn[];
-  /** The search term, highlighted in each cell (see HighlightedText). */
-  query: string;
-  onSelect: () => void;
-}) {
-  return (
-    <TableRow
-      role="button"
-      tabIndex={0}
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
-      className="cursor-pointer"
-    >
-      {columns.map((col) => {
-        const value = col.cell(entry);
-        return (
-          <TableCell
-            key={col.head}
-            className="truncate px-2 py-1"
-            title={value || undefined}
-          >
-            <HighlightedText text={value} query={query} />
-          </TableCell>
-        );
-      })}
-    </TableRow>
-  );
-}
-
-/** The structure element's name without its trailing task id — "Neukundenakquise (#25207467)" → "Neukundenakquise". */
-function taskName(entry: TimesheetDetail): string {
-  return (entry.task?.displayName ?? "").replace(/\s*\(#\d+\)\s*$/, "");
-}
-
-/** The one lower-cased string a row is matched against — every field it shows (see filterRecent, legacy). */
-function searchText(entry: TimesheetDetail): string {
-  return [
-    entry.task?.displayName,
-    entry.kost2?.displayName,
-    entry.kost2?.project?.customer?.name,
-    entry.kost2?.project?.name,
-    entry.location,
-    entry.tag,
-    entry.reference,
-    entry.description,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
 }

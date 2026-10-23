@@ -65,6 +65,7 @@ import org.projectforge.rest.fibu.ViaProjectCriteria
 import org.projectforge.rest.fibu.customerRowsOf
 import org.projectforge.rest.fibu.projectCustomersOf
 import org.projectforge.rest.fibu.removeTextFilters
+import org.projectforge.rest.task.Consumption
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.Kost2FilterUtils
@@ -503,6 +504,11 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
             if (task != null) {
                 ts.task = Task()
                 ts.task!!.copyFromMinimal(task)
+                // The bar the form shows once the entry is picked (selectRecent): a work package without a
+                // budget of its own is booked against its parent's, see TaskServicesRest.createTask.
+                taskTree.getTaskNodeById(it.taskId)?.let { node ->
+                    ts.task!!.consumption = Consumption.create(taskTree.getPersonDaysNode(node) ?: node)
+                }
             }
             it.timeSavedByAIUnit?.let {
                 ts.timeSavedByAIUnit = it
