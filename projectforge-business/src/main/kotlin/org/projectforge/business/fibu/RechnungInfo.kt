@@ -114,6 +114,12 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
 
     var isUeberfaellig = false
 
+    /**
+     * For display only (the red row of the list, the state of the edit form): overdue, or a creditor invoice due
+     * within [RechnungCalculator.CREDITOR_OVERDUE_WORKING_DAYS] working days. Filters and sums use [isUeberfaellig].
+     */
+    var isMarkedOverdue = false
+
     @get:PropertyInfo(i18nKey = "fibu.rechnung.faelligkeit", type = PropertyType.CURRENCY_PLAIN)
     var faelligkeitOrDiscountMaturity: LocalDate? = null
 

@@ -1745,6 +1745,7 @@
           "positions": "Rechnungspositionen"
         }
       },
+      "markedOverdue": "Überfällig oder in 2 Werktagen fällig",
       "multiselected": {
         "title": "Mehrfachauswahl Kreditorrechnungen"
       },
@@ -3282,6 +3283,7 @@
     "open": "Öffnen",
     "params": {
       "daysBeforeExpiry": "Tage vor dem Verfall",
+      "dueWorkingDays": "Werktage vor Fälligkeit (inkl. bis zu 90 Tage überfälliger Rechnungen)",
       "kost2MissingMonths": "Betrachtete Monate (inkl. aktuellem Monat)",
       "passwordMaxAgeDays": "Passwort älter als (Tage)",
       "referredMonth": {
@@ -3323,9 +3325,11 @@
         "dayOfWeek": "Ein Wochentag ist erforderlich.",
         "daysBeforeExpiry": "Die Anzahl der Tage darf nicht negativ sein.",
         "delay": "Die Zeit eines Zustellungsschritts darf nicht negativ sein.",
+        "dueWorkingDays": "Die Anzahl der Werktage muss zwischen 0 und 30 liegen.",
         "kost2MissingMonths": "Die Anzahl der Monate muss zwischen 1 und 12 liegen.",
         "noDeliveryStep": "Mindestens ein Zustellungsschritt ist erforderlich.",
-        "passwordMaxAgeDays": "Die Anzahl der Tage muss mindestens 1 sein."
+        "passwordMaxAgeDays": "Die Anzahl der Tage muss mindestens 1 sein.",
+        "recipientsRequired": "Empfänger sind erforderlich: Eine Rechnung betrifft keinen Benutzer."
       },
       "lastRun": "Letzter Lauf",
       "legend": {
@@ -3361,6 +3365,7 @@
     },
     "ruleName": "Regel",
     "ruleTypes": {
+      "CREDITOR_INVOICES_DUE": "Fällige Kreditorenrechnungen",
       "MANUAL": "Manuell (ohne Bedingung)",
       "PASSWORD_NOT_CHANGED": "Passwort lange nicht geändert",
       "TIMESHEETS_MISSING": "Fehlende Zeitberichte",
@@ -3410,7 +3415,12 @@
     "triggerErrors": "{arg0} Fehler: {arg1}",
     "triggerResult": "{arg0} Benachrichtigung(en) für {arg1} Empfänger erstellt.",
     "variable": {
+      "creditorInvoiceLink": "Link zu den Kreditorenrechnungen",
+      "creditorInvoicesDueCount": "Anzahl fälliger Kreditorenrechnungen",
+      "creditorInvoicesDueList": "Fällige Kreditorenrechnungen (Kreditor, Referenz, Fälligkeit, Betrag)",
+      "creditorInvoicesDueSum": "Bruttosumme der fälligen Kreditorenrechnungen",
       "daysLeft": "Verbleibende Urlaubstage",
+      "dueWorkingDays": "Werktage vor Fälligkeit",
       "expiryDate": "Verfallsdatum",
       "firstName": "Vorname",
       "fullName": "Vollständiger Name",

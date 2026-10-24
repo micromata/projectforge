@@ -60,6 +60,7 @@ export const notificationRuleSchema = z.object({
   daysBeforeExpiry: count,
   passwordMaxAgeDays: count,
   kost2MissingMonths: count,
+  dueWorkingDays: count,
   recipientGroups: z.array(ref),
   recipientUsers: z.array(ref),
   allEmployees: z.boolean(),

@@ -62,6 +62,7 @@ class NotificationRule(
     var daysBeforeExpiry: Int = 30,
     var passwordMaxAgeDays: Int = 90,
     var kost2MissingMonths: Int = 2,
+    var dueWorkingDays: Int = 2,
     var recipientGroups: List<Group> = emptyList(),
     var recipientUsers: List<User> = emptyList(),
     var allEmployees: Boolean = false,
@@ -101,6 +102,7 @@ class NotificationRule(
         daysBeforeExpiry = params.daysBeforeExpiry
         passwordMaxAgeDays = params.passwordMaxAgeDays
         kost2MissingMonths = params.kost2MissingMonths
+        dueWorkingDays = params.dueWorkingDays
         linkMode = params.linkMode
         linkMenuItem = params.linkMenuItem
         val recipients = src.readRecipients()
@@ -119,8 +121,8 @@ class NotificationRule(
         dest.schedule = JsonUtils.toJson(schedule)
         dest.params = JsonUtils.toJson(
             NotificationParams(
-                referredMonth, vacationExpiry, daysBeforeExpiry, passwordMaxAgeDays, kost2MissingMonths, linkMode,
-                linkMenuItem = linkMenuItem?.takeIf { linkMode == NotificationParams.LinkMode.MENU_ITEM && it.isNotBlank() },
+                referredMonth, vacationExpiry, daysBeforeExpiry, passwordMaxAgeDays, kost2MissingMonths, dueWorkingDays,
+                linkMode, linkMenuItem = linkMenuItem?.takeIf { linkMode == NotificationParams.LinkMode.MENU_ITEM && it.isNotBlank() },
             )
         )
         dest.recipients = JsonUtils.toJson(

@@ -183,6 +183,15 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         if (dto.ruleType == NotificationRuleType.TIMESHEETS_WITHOUT_KOST2 && dto.kost2MissingMonths !in 1..12) {
             validationErrors += ValidationError(translate("notification.rule.error.kost2MissingMonths"), fieldId = "kost2MissingMonths")
         }
+        if (dto.ruleType == NotificationRuleType.CREDITOR_INVOICES_DUE) {
+            if (dto.dueWorkingDays !in 0..30) {
+                validationErrors += ValidationError(translate("notification.rule.error.dueWorkingDays"), fieldId = "dueWorkingDays")
+            }
+            // Nobody is concerned by an invoice, so "only those concerned" without recipients would notify nobody.
+            if (dto.recipientGroups.isEmpty() && dto.recipientUsers.isEmpty() && !dto.allEmployees && dto.employeeStatus.isEmpty()) {
+                validationErrors += ValidationError(translate("notification.rule.error.recipientsRequired"), fieldId = "recipientGroups")
+            }
+        }
     }
 
     /** A rule of time sheets without cost 2 unit notifies nobody, as long as these aren't reported at all. */

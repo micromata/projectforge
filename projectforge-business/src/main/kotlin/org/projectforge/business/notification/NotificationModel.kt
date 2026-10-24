@@ -47,6 +47,9 @@ enum class NotificationRuleType : I18nEnum {
     /** Time sheets without cost 2 unit in the last months (missing in the salary export). */
     TIMESHEETS_WITHOUT_KOST2,
 
+    /** Unpaid creditor invoices due within some working days or overdue (to be paid in time). */
+    CREDITOR_INVOICES_DUE,
+
     /** No condition: all recipients get the notification when it is triggered (by hand or by the schedule). */
     MANUAL;
 
@@ -229,6 +232,12 @@ class NotificationParams(
     var passwordMaxAgeDays: Int = 90,
     /** [NotificationRuleType.TIMESHEETS_WITHOUT_KOST2]: the months looked at, the current month included. */
     var kost2MissingMonths: Int = 2,
+    /**
+     * [NotificationRuleType.CREDITOR_INVOICES_DUE]: unpaid creditor invoices due within these working days (0: from the
+     * due date on), overdue ones included. Independent of the red marking of the list
+     * ([org.projectforge.business.fibu.RechnungCalculator.CREDITOR_OVERDUE_WORKING_DAYS]).
+     */
+    var dueWorkingDays: Int = 2,
     /** All rule types: the link of the notifications ("Open" in the app). */
     var linkMode: LinkMode = LinkMode.DEFAULT,
     /** [LinkMode.MENU_ITEM]: the id of the menu item (`MenuItemDefId`) linked to. */

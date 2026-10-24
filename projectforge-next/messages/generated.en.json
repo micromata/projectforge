@@ -1745,6 +1745,7 @@
           "positions": "invoice positions"
         }
       },
+      "markedOverdue": "Overdue or due within 2 working days",
       "multiselected": {
         "title": "Multiple selection incoming invoices"
       },
@@ -3282,6 +3283,7 @@
     "open": "Open",
     "params": {
       "daysBeforeExpiry": "Days before expiry",
+      "dueWorkingDays": "Working days before the due date (invoices overdue for up to 90 days included)",
       "kost2MissingMonths": "Months looked at (current month included)",
       "passwordMaxAgeDays": "Password older than (days)",
       "referredMonth": {
@@ -3323,9 +3325,11 @@
         "dayOfWeek": "A weekday is required.",
         "daysBeforeExpiry": "The number of days must not be negative.",
         "delay": "The time of a delivery step must not be negative.",
+        "dueWorkingDays": "The number of working days must be between 0 and 30.",
         "kost2MissingMonths": "The number of months must be between 1 and 12.",
         "noDeliveryStep": "At least one delivery step is required.",
-        "passwordMaxAgeDays": "The number of days must be at least 1."
+        "passwordMaxAgeDays": "The number of days must be at least 1.",
+        "recipientsRequired": "Recipients are required: no user is concerned by an invoice."
       },
       "lastRun": "Last run",
       "legend": {
@@ -3361,6 +3365,7 @@
     },
     "ruleName": "Rule",
     "ruleTypes": {
+      "CREDITOR_INVOICES_DUE": "Creditor invoices due",
       "MANUAL": "Manual (no condition)",
       "PASSWORD_NOT_CHANGED": "Password not changed for a long time",
       "TIMESHEETS_MISSING": "Missing time sheets",
@@ -3410,7 +3415,12 @@
     "triggerErrors": "{arg0} error(s): {arg1}",
     "triggerResult": "{arg0} notification(s) created for {arg1} recipient(s).",
     "variable": {
+      "creditorInvoiceLink": "Link to the creditor invoices",
+      "creditorInvoicesDueCount": "Number of creditor invoices due",
+      "creditorInvoicesDueList": "Creditor invoices due (creditor, reference, due date, amount)",
+      "creditorInvoicesDueSum": "Gross sum of the creditor invoices due",
       "daysLeft": "Vacation days left",
+      "dueWorkingDays": "Working days before the due date",
       "expiryDate": "Expiry date",
       "firstName": "First name",
       "fullName": "Full name",

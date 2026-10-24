@@ -58,6 +58,7 @@ export interface NotificationRuleDetail {
   daysBeforeExpiry?: number;
   passwordMaxAgeDays?: number;
   kost2MissingMonths?: number;
+  dueWorkingDays?: number;
   recipientGroups?: Ref[];
   recipientUsers?: Ref[];
   allEmployees?: boolean;

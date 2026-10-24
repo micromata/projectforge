@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.CurrencyHelper
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.utils.NumberHelper.HUNDRED
@@ -39,6 +40,12 @@ object RechnungCalculator {
      * If true, the net sum of each position will be rounded before summing up the net sums. This is compliant to the German law.
      */
     private const val roundPositionsBeforeSum = true
+
+    /**
+     * A creditor invoice is marked as overdue ([RechnungInfo.isMarkedOverdue]) already these working days before
+     * its due date, so it is paid in time.
+     */
+    const val CREDITOR_OVERDUE_WORKING_DAYS = 2
 
     /**
      * Calculates the net sum, vat amount sum and gross sum of the given invoice.
@@ -114,7 +121,23 @@ object RechnungCalculator {
         if (!info.isSettledByCancellation &&!info.isBezahlt && info.faelligkeit?.isBefore(PFDay.today().localDate) == true) {
             info.isUeberfaellig = true
         }
+        info.isMarkedOverdue = info.isUeberfaellig || (rechnung is EingangsrechnungDO &&
+                isDueWithinWorkingDays(info, CREDITOR_OVERDUE_WORKING_DAYS, PFDay.today().localDate))
         return info
+    }
+
+    /**
+     * Is the invoice still to be paid and due within the given working days (holidays aware), an overdue one
+     * included? With 0 working days: due today or overdue. A cancelled invoice and its cancellation are never due.
+     * @param info The calculated invoice ([isBezahlt][RechnungInfo.isBezahlt] already set).
+     */
+    fun isDueWithinWorkingDays(info: RechnungInfo, workingDays: Int, today: LocalDate): Boolean {
+        val faelligkeit = info.faelligkeit ?: return false
+        if (info.isSettledByCancellation || info.isBezahlt) {
+            return false
+        }
+        val markFrom = PFDayUtils.addWorkingDays(PFDay.from(faelligkeit), -workingDays.coerceAtLeast(0)).localDate
+        return !today.isBefore(markFrom)
     }
 
     /**

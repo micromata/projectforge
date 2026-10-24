@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { InvoiceSumsLine } from "@/components/shared/invoice/invoice-sums-line";
 import { paidState } from "@/components/shared/invoice/paid-state";
+import { useInvoiceSums } from "@/components/shared/invoice/use-invoice-sums";
 import { StatusPill } from "@/components/shared/status-pill";
 import { EINGANGSRECHNUNG_METADATA } from "@/lib/metadata/eingangsrechnung.generated";
 import { fromMetadata } from "@/lib/validation/from-metadata";
@@ -45,7 +46,10 @@ export function CreditorInvoiceEditBanner() {
     );
 
   const identifier = [kreditor, referenz].filter(Boolean).join(" · ");
-  const paid = paidState(bezahlDatum, faelligkeit);
+  // The same query as the sums line below (one request): overdue already 2 working days before the due
+  // date, which needs the holidays only the server knows.
+  const { sums } = useInvoiceSums("incomingInvoice");
+  const paid = paidState(bezahlDatum, faelligkeit, sums?.markedOverdue);
   const paymentTypeLabel = m
     .enumOptions("paymentType", t)
     .find((o) => o.value === paymentType)?.label;

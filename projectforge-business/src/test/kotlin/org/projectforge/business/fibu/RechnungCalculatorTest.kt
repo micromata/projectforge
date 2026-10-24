@@ -28,6 +28,8 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.time.PFDayUtils
 import java.math.BigDecimal
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
@@ -85,6 +87,55 @@ class RechnungCalculatorTest : AbstractTestBase() {
             assertEquals(BigDecimal("124.56"), info.grossSumWithDiscount, "grossSumWithDiscount")
             assertEquals(future5Days, info.faelligkeitOrDiscountMaturity, "faelligkeitOrDiscountMaturity")
         }
+    }
+
+    @Test
+    fun `a creditor invoice is marked as overdue 2 working days before its due date`() {
+        val today = PFDay.today()
+        fun creditorInvoice(dueDate: LocalDate) = EingangsrechnungDO().also {
+            it.addPosition(EingangsrechnungsPositionDO().also { pos ->
+                pos.menge = BigDecimal.ONE
+                pos.einzelNetto = BigDecimal("100")
+            })
+            it.faelligkeit = dueDate
+        }
+        val inTwoWorkingDays = PFDayUtils.addWorkingDays(today, 2).localDate
+        val inThreeWorkingDays = PFDayUtils.addWorkingDays(today, 3).localDate
+        RechnungCalculator.calculate(creditorInvoice(inTwoWorkingDays), useCaches = false).also {
+            assertTrue(it.isMarkedOverdue, "due in 2 working days")
+            assertFalse(it.isUeberfaellig, "not yet overdue: filters and sums unchanged")
+        }
+        assertFalse(RechnungCalculator.calculate(creditorInvoice(inThreeWorkingDays), useCaches = false).isMarkedOverdue)
+        assertTrue(RechnungCalculator.calculate(creditorInvoice(today.localDate.minusDays(1)), useCaches = false).isMarkedOverdue)
+        creditorInvoice(inTwoWorkingDays).also {
+            it.bezahlDatum = today.localDate
+            it.zahlBetrag = BigDecimal("100")
+            assertFalse(RechnungCalculator.calculate(it, useCaches = false).isMarkedOverdue, "paid")
+        }
+        // An outgoing invoice is marked only when overdue.
+        RechnungDO().also {
+            it.addPosition(createPositionInfo("1", "100"))
+            it.faelligkeit = inTwoWorkingDays
+            assertFalse(RechnungCalculator.calculate(it, useCaches = false).isMarkedOverdue)
+        }
+    }
+
+    @Test
+    fun `due within working days skips weekends and holidays`() {
+        fun info(dueDate: LocalDate?) = RechnungInfo(EingangsrechnungDO().also { it.faelligkeit = dueDate })
+        // Monday, March 8th 2032: 2 working days before is Thursday.
+        val monday = LocalDate.of(2032, 3, 8)
+        assertTrue(RechnungCalculator.isDueWithinWorkingDays(info(monday), 2, LocalDate.of(2032, 3, 4)))
+        assertFalse(RechnungCalculator.isDueWithinWorkingDays(info(monday), 2, LocalDate.of(2032, 3, 3)))
+        assertTrue(RechnungCalculator.isDueWithinWorkingDays(info(monday), 2, LocalDate.of(2032, 3, 20)), "overdue")
+        assertFalse(RechnungCalculator.isDueWithinWorkingDays(info(monday), 0, LocalDate.of(2032, 3, 5)))
+        assertTrue(RechnungCalculator.isDueWithinWorkingDays(info(monday), 0, monday))
+        assertTrue(RechnungCalculator.isDueWithinWorkingDays(info(monday), 5, LocalDate.of(2032, 3, 1)))
+        // Tuesday after Easter 2032: Easter Monday and Good Friday are holidays, so 2 working days before is Wednesday.
+        val afterEaster = LocalDate.of(2032, 3, 30)
+        assertTrue(RechnungCalculator.isDueWithinWorkingDays(info(afterEaster), 2, LocalDate.of(2032, 3, 24)))
+        assertFalse(RechnungCalculator.isDueWithinWorkingDays(info(afterEaster), 2, LocalDate.of(2032, 3, 23)))
+        assertFalse(RechnungCalculator.isDueWithinWorkingDays(info(null), 2, monday), "no due date")
     }
 
     @Test
