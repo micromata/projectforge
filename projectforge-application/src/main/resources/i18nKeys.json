@@ -132,6 +132,7 @@
   {"i18nKey":"plugins.cveradar.dashboard.trend.open","bundleName":"CveRadarI18nResources","translation":"open","translationDE":"offen","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.dashboard.trend.title","bundleName":"CveRadarI18nResources","translation":"Findings of the last 30 days","translationDE":"Befunde der letzten 30 Tage","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.dashboard.triageOverdue","bundleName":"CveRadarI18nResources","translation":"Triage overdue","translationDE":"Triage überfällig","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"plugins.cveradar.demo","bundleName":"CveRadarI18nResources","translation":"Demo","translationDE":"Demo","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.deviation","bundleName":"CveRadarI18nResources","translation":"deviation","translationDE":"Abweichung","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.discussion.newPost","bundleName":"CveRadarI18nResources","translation":"New post (Markdown)","translationDE":"Neuer Beitrag (Markdown)","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.discussion.post","bundleName":"CveRadarI18nResources","translation":"Post","translationDE":"Beitrag senden","usedInClasses":[],"usedInFiles":[]},

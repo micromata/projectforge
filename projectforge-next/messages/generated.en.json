@@ -3748,6 +3748,7 @@
         },
         "triageOverdue": "Triage overdue"
       },
+      "demo": "Demo",
       "deviation": "deviation",
       "discussion": {
         "newPost": "New post (Markdown)",

@@ -3748,6 +3748,7 @@
         },
         "triageOverdue": "Triage überfällig"
       },
+      "demo": "Demo",
       "deviation": "Abweichung",
       "discussion": {
         "newPost": "Neuer Beitrag (Markdown)",
