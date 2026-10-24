@@ -242,6 +242,27 @@ class AbstractCacheTest {
 
     @Test
     @Timeout(30)
+    fun `cache expired during a refresh stays expired`() {
+        val cache = TestCache()
+        cache.accessData()
+        var expireOnce = true
+        cache.refreshAction = {
+            if (expireOnce) {
+                expireOnce = false
+                // E.g. a change the refresh has read was rolled back meanwhile.
+                cache.setExpired()
+            }
+        }
+        cache.forceReload()
+        Assertions.assertEquals(2, cache.refreshCount.get())
+        Assertions.assertTrue(cache.status().expired, "setExpired during the refresh isn't wiped by its end.")
+        cache.accessData()
+        Assertions.assertEquals(3, cache.refreshCount.get(), "Next access refreshes again.")
+        Assertions.assertFalse(cache.status().expired)
+    }
+
+    @Test
+    @Timeout(30)
     fun `exceptions while refreshing don't escape and don't break the cache`() {
         val cache = TestCache()
         cache.throwExceptionOnRefresh = true

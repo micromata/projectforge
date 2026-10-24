@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Structure tree: a structure element created or moved while the tree was being reloaded in the background could vanish from the tree until the next reload, so no sub-element could be created below it (\"Parent structure element is required but not found\").",
+  "de": "Strukturbaum: Ein Strukturelement, das während des Neuladens des Baums im Hintergrund angelegt oder verschoben wurde, konnte bis zum nächsten Neuladen aus dem Baum verschwinden; darunter ließ sich dann kein Unterelement anlegen („Übergeordnetes Strukturelement wird benötigt, konnte aber nicht gefunden werden“)."
+}
