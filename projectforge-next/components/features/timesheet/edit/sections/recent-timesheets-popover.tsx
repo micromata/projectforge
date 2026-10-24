@@ -1,34 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Clock01Icon, Search01Icon } from "@hugeicons/core-free-icons";
+import { Clock01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { TaskConsumptionBar } from "@/components/shared/tasks/task-consumption-bar";
 import type { TimesheetDetail } from "../../types";
-import {
-  RecentRow,
-  consumptionTitle,
-  searchText,
-  taskName,
-  type RecentColumn,
-} from "./recent-timesheets-row";
+import { RecentTimesheetsTable } from "./recent-timesheets-table";
 
 export interface RecentTimesheetsPopoverProps {
   entries: TimesheetDetail[];
@@ -55,6 +39,10 @@ export interface RecentTimesheetsPopoverProps {
  * Kunde and Projekt sit beside the cost unit, on the same `cost2Visible` gate as the legacy table:
  * `getRecentList` resolves both from the entry's cost unit, so a reader who books on cost units gets
  * the same customer/project context they had in the classic form.
+ *
+ * The table is the shared grid: sortable and filterable per column, its columns reorderable, resizable,
+ * pinnable and hideable. The layout and the sort order are stored in the user's prefs; the column filters
+ * are not, like the search they are gone once the box closes (see useTableState).
  */
 export function RecentTimesheetsPopover({
   entries,
@@ -64,70 +52,6 @@ export function RecentTimesheetsPopover({
 }: RecentTimesheetsPopoverProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-
-  // Filtered over the same fields the row shows, so what a reader types matches what they read.
-  const filtered = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) return entries;
-    return entries.filter((entry) => searchText(entry).includes(needle));
-  }, [entries, query]);
-
-  // The columns, in reading order — cost unit, its customer and project (all on the same `cost2Visible`
-  // gate as the legacy table, since all three only exist for a cost-unit booking), then task, location,
-  // description, tag and reference. `width` is a share of the fixed-layout table, so every cell truncates
-  // to its column and the table never grows past the popover (no horizontal scroll, whatever the values).
-  const columns: RecentColumn[] = [
-    cost2Visible && {
-      head: t("fibu.kost2._"),
-      width: "w-[11%]",
-      cell: (e: TimesheetDetail) => e.kost2?.displayName ?? "",
-    },
-    cost2Visible && {
-      head: t("fibu.kunde._"),
-      width: "w-[12%]",
-      cell: (e: TimesheetDetail) => e.kost2?.project?.customer?.name ?? "",
-    },
-    cost2Visible && {
-      head: t("fibu.projekt._"),
-      width: "w-[12%]",
-      cell: (e: TimesheetDetail) => e.kost2?.project?.name ?? "",
-    },
-    { head: t("task._"), width: "w-[15%]", cell: taskName },
-    {
-      // The budget's bar, as the form shows it once the entry is picked; not a link here, the row picks.
-      head: t("task.consumption"),
-      width: "w-[8%]",
-      cell: consumptionTitle,
-      render: (e: TimesheetDetail) =>
-        e.task ? (
-          <TaskConsumptionBar
-            task={{ consumption: e.task.consumption, title: taskName(e) }}
-            linkEnabled={false}
-          />
-        ) : null,
-    },
-    {
-      head: t("timesheet.location"),
-      width: "w-[10%]",
-      cell: (e: TimesheetDetail) => e.location ?? "",
-    },
-    {
-      head: t("description"),
-      width: "w-[13%]",
-      cell: (e: TimesheetDetail) => e.description ?? "",
-    },
-    {
-      head: t("timesheet.tag"),
-      width: "w-[9%]",
-      cell: (e: TimesheetDetail) => e.tag ?? "",
-    },
-    {
-      head: t("timesheet.reference"),
-      width: "w-[10%]",
-      cell: (e: TimesheetDetail) => e.reference ?? "",
-    },
-  ].filter(Boolean) as RecentColumn[];
 
   return (
     // `modal`, because this popover is opened from inside the edit dialog: a non-modal layer stays
@@ -150,70 +74,21 @@ export function RecentTimesheetsPopover({
       <PopoverContent
         align="start"
         // A fixed, viewport-bounded box with overflow-hidden so the table can't push it wider than
-        // the screen; the scroll region below then scrolls both ways within it.
+        // the screen; the table's own scroller below then scrolls both ways within it.
         className={cn(
           "flex max-h-[min(28rem,70vh)] w-[92vw] flex-col gap-0 overflow-hidden p-0",
           compact ? "sm:w-[min(46rem,85vw)]" : "sm:w-[min(72rem,92vw)]"
         )}
       >
-        <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2">
-          <HugeiconsIcon
-            icon={Search01Icon}
-            size={14}
-            aria-hidden
-            className="shrink-0 text-muted-foreground"
-          />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t("search._")}
-            aria-label={t("search._")}
-            className="h-7 border-0 p-0 shadow-none focus-visible:ring-0"
-          />
-        </div>
-        <div className="min-h-0 flex-1 overflow-auto">
-          {/* `table-fixed` and the smaller type let all columns show at once; each cell truncates to
-              its share above, so a long structure element or reference no longer widens the table. */}
-          <Table className="table-fixed text-[11px]">
-            <TableHeader>
-              <TableRow>
-                {columns.map((col) => (
-                  <TableHead
-                    key={col.head}
-                    className={cn(col.width, "h-8 px-2 py-1")}
-                  >
-                    {col.head}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="py-6 text-center text-muted-foreground"
-                  >
-                    {t("nothingFound")}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filtered.map((entry) => (
-                  <RecentRow
-                    key={entry.counter ?? searchText(entry)}
-                    entry={entry}
-                    columns={columns}
-                    query={query}
-                    onSelect={() => {
-                      onSelect(entry);
-                      setOpen(false);
-                    }}
-                  />
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        {/* Mounted while open only: the stored layout is read on the first opening, cached afterwards. */}
+        <RecentTimesheetsTable
+          entries={entries}
+          cost2Visible={cost2Visible}
+          onSelect={(entry) => {
+            onSelect(entry);
+            setOpen(false);
+          }}
+        />
       </PopoverContent>
     </Popover>
   );

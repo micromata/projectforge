@@ -55,8 +55,10 @@ import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.core.aggrid.GridState
 import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.*
+import org.projectforge.rest.dto.datatable.DataTableStateRequest
 import org.projectforge.rest.fibu.BusinessUnitChecklistFilter
 import org.projectforge.rest.fibu.CustomerChecklistFilter
 import org.projectforge.rest.fibu.CustomerRow
@@ -542,6 +544,24 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
             ts
         }
         return RecentTimesheets(timesheets, SystemInfoCache.instance().isCost2EntriesExists())
+    }
+
+    /**
+     * Stores the column state of the recent entries' table (order, width, visibility, pinning, sorting) in the
+     * user's prefs — in a slot of its own, apart from the time sheet list's ([updateColumnStates]).
+     */
+    @AccessChecked("Own user prefs of the logged-in user only")
+    @PostMapping("recentList/${RestPaths.SET_COLUMN_STATES}")
+    fun updateRecentColumnStates(@Valid @RequestBody request: DataTableStateRequest): String {
+        agGridSupport.storeGridState(USER_PREF_AREA_RECENT_GRID, request)
+        return "OK"
+    }
+
+    /** The user's stored column state of the recent entries' table, or an empty one if there is none yet. */
+    @AccessChecked("Own user prefs of the logged-in user only")
+    @GetMapping("recentList/${RestPaths.COLUMN_STATES}")
+    fun getRecentColumnStates(): GridState {
+        return agGridSupport.getGridState(USER_PREF_AREA_RECENT_GRID) ?: GridState()
     }
 
     @PostMapping("selectRecent")
@@ -1135,6 +1155,9 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
 
         /** User-pref name the chosen PDF-export options are stored under, in this entity's category. */
         private const val USER_PREF_PARAM_PDF_EXPORT = "pdfExport"
+
+        /** User-pref area of the recent entries' table layout, see [updateRecentColumnStates]. */
+        private const val USER_PREF_AREA_RECENT_GRID = "timesheetRecent"
 
         /**
          * The legacy list's guard (`TimesheetListForm`'s validator, `TimesheetListPage.buildList`): without a period
