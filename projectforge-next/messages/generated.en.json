@@ -3444,6 +3444,12 @@
       "unbookedWorkingDays": "Working days without time sheets (no vacation)",
       "unbookedWorkingDaysCount": "Number of working days without time sheets (no vacation)",
       "vacationLink": "Link to the vacation"
+    },
+    "variables": {
+      "common": "General",
+      "info": "In subject and text the variables are replaced by their values.",
+      "ruleType": "For this rule type",
+      "title": "Available variables"
     }
   },
   "operation": {
@@ -4686,7 +4692,6 @@
         "pageContext": "Started from: {arg0}. The script gets the current filter of this page as variable `pageContext`."
       },
       "includes": "Embedded scripts",
-      "input": "Input",
       "name": "Name",
       "output": "Output",
       "pageButtons": "Page buttons",
