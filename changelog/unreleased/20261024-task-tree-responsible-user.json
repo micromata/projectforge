@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Structure tree: after a structure element was changed, its responsible person was missing in the tree until the next reload.",
+  "de": "Strukturbaum: Nach dem Ändern eines Strukturelements fehlte dessen Verantwortliche:r im Baum bis zum nächsten Neuladen."
+}

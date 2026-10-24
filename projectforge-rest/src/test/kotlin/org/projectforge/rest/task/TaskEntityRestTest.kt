@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.task
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -33,6 +34,7 @@ import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
+import org.projectforge.business.task.TaskTree
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
@@ -61,6 +63,12 @@ class TaskEntityRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var taskDao: TaskDao
+
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
+
+    @Autowired
+    private lateinit var taskTree: TaskTree
 
     @Test
     fun `the flags mirror what the DAO would accept`() {
@@ -188,6 +196,48 @@ class TaskEntityRestTest : AbstractTestBase() {
         assertFalse(row.kost2AndBookingStatusWriteAccess, "The access flags are the edit page's.")
         assertFalse(row.protectTimesheetsUntilWriteAccess)
         assertNotNull(parent.id) // The parent exists, so `parentTask` being null is the override's doing.
+    }
+
+    /**
+     * The responsible user through the edit form (load, the wire, save) and into the tree afterwards: the
+     * update puts the *posted* task into the task tree, whose user is an id-only stub without a name, and
+     * the tree's column showed nothing until the next refresh.
+     */
+    @Test
+    fun `the responsible user survives the edit form and is shown in the tree`() {
+        val task = persistenceService.runInTransaction { _ ->
+            logon(TEST_ADMIN_USER)
+            initTestDB.addTask("taskResponsibleParent", "root")
+            val task = initTestDB.addTask("taskResponsible", "taskResponsibleParent")
+            task.responsibleUser = getUser(TEST_FINANCE_USER)
+            taskDao.update(task, checkAccess = false)
+            task
+        }
+        logon(TEST_ADMIN_USER)
+        val userId = getUser(TEST_FINANCE_USER).id
+
+        val dto = transformFromDB(taskDao.find(task.id, checkAccess = false)!!)
+        assertEquals(userId, dto.responsibleUser?.id)
+        assertEquals(getUser(TEST_FINANCE_USER).displayName, dto.responsibleUser?.displayName)
+        assertEquals("taskResponsibleParent", dto.parentTask?.title)
+
+        // The way over the wire: the form posts the values it was filled with.
+        val json = objectMapper.writeValueAsString(dto)
+        val posted = objectMapper.readValue(json, Task::class.java)
+        assertEquals(userId, posted.responsibleUser?.id, json)
+
+        // DTO -> DO: the user arrives from the client as a reference, the id is what counts.
+        val taskDO = taskEntityRest.transformForDB(posted)
+        assertEquals(userId, taskDO.responsibleUserId)
+
+        taskDO.title = "taskResponsibleRenamed"
+        taskDao.update(taskDO)
+        val reloaded = taskDao.find(task.id, checkAccess = false)!!
+        assertEquals("taskResponsibleRenamed", reloaded.title)
+        assertEquals(userId, reloaded.responsibleUserId)
+
+        val treeRow = TaskServicesRest.Task(taskTree.getTaskNodeById(task.id)!!)
+        assertEquals(getUser(TEST_FINANCE_USER).displayName, treeRow.responsibleUser?.displayName)
     }
 
     /**
