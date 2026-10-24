@@ -7,7 +7,7 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Verbrauchsbalken (Strukturbaum, Strukturliste, Zeitbericht-Formular): Der Tooltip zeigt zusätzlich die restlichen Personentage des Budgets bzw. wie weit es überbucht ist.", "Zeitbericht-Formular: Die zuletzt verwendeten Einträge zeigen den Verbrauch ihres Budgets, die Suche findet ihn auch." ]
+      "items" : [ "Verbrauchsbalken (Strukturbaum, Strukturliste, Zeitbericht-Formular): Der Tooltip zeigt Budget, gebuchte und restliche Personentage als Rechnung, ein überbuchtes Budget in Rot.", "Zeitbericht-Formular: Die zuletzt verwendeten Einträge zeigen den Verbrauch ihres Budgets, die Suche findet ihn auch." ]
     }, {
       "type" : "changed",
       "items" : [ "Auftragsstatistik, Deckungsbeitrag-Bubbles: Die Größe einer Bubble zeigt ihren DB1 statt ihrer Kosten. Der Schalter „Titel einblenden“ beschriftet die eigenen Bubbles mit Kurztitel und DB %; ausgeschaltet stehen die Namen nur im Tooltip." ]

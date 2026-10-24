@@ -216,7 +216,7 @@ class TaskEntityRestTest : AbstractTestBase() {
         val days = NumberHelper.getNumberFractionFormat(ThreadLocalUserContext.locale, 2).format(BigDecimal(2))
         val unit = translate("projectmanagement.personDays.short")
         assertTrue(
-            title.contains(translateMsg("task.consumption.remaining", "$days$unit")),
+            title.contains(translateMsg("task.consumptionTooltip.remainingTitle", "$days$unit")),
             "The remaining days follow the percentage: $title",
         )
         // The parts of the tooltip's calculation: budget − booked = remaining.

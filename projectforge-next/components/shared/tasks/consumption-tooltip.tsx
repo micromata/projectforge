@@ -34,13 +34,13 @@ export function ConsumptionTooltip({
       <span className="grid grid-cols-[auto_auto_auto_auto] gap-x-2 tabular-nums">
         {budget && (
           <>
-            <span>{t("task.consumption.budget")}</span>
+            <span>{t("task.consumptionTooltip.budget")}</span>
             <span />
             <span className="text-right">{budget}</span>
             <span />
           </>
         )}
-        <span>{t("task.consumption.booked")}</span>
+        <span>{t("task.consumptionTooltip.booked")}</span>
         <span className="text-right">{budget ? "−" : ""}</span>
         <span className="text-right">{booked}</span>
         <span className="text-right">
@@ -58,8 +58,8 @@ export function ConsumptionTooltip({
             >
               {t(
                 overbooked
-                  ? "task.consumption.overbooked.label"
-                  : "task.consumption.remaining.label"
+                  ? "task.consumptionTooltip.overbooked"
+                  : "task.consumptionTooltip.remaining"
               )}
             </span>
             <span />

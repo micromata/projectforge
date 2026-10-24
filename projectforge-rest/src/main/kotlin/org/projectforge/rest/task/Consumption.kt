@@ -139,9 +139,9 @@ class Consumption(
       val maxValueStr =
         if (maxDays != null) {
           val remainingMsg = if (overbooked) {
-            translateMsg("task.consumption.overbooked", "$remainingStr$unitStr")
+            translateMsg("task.consumptionTooltip.overbookedTitle", "$remainingStr$unitStr")
           } else {
-            translateMsg("task.consumption.remaining", "$remainingStr$unitStr")
+            translateMsg("task.consumptionTooltip.remainingTitle", "$remainingStr$unitStr")
           }
           "/$maxDaysStr$unitStr ($percentage%), $remainingMsg"
         } else {
