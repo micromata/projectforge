@@ -78,7 +78,7 @@ export function ScriptExecuteBody({
     >
       <TabsList>
         <TabsTrigger value="execute">
-          {t("scripting.script.execute")}
+          {t("scripting.script.input")}
         </TabsTrigger>
         {hasOutput && (
           <TabsTrigger value="output">
