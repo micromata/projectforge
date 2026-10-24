@@ -207,12 +207,13 @@ class TaskBookingGrantRest {
         val mayGrant = taskBookingGrantDao.mayGrant(user, taskId)
         val descendantIds = node.descendantIds
         val subtree = descendantIds.toSet() + taskId
-        val candidates = listOf(node) + descendantIds.mapNotNull { taskTree.getTaskNodeById(it) }
+        val candidates = sequenceOf(node) + descendantIds.asSequence().mapNotNull { taskTree.getTaskNodeById(it) }
+        // One more than sent: tells whether there are more (tasksTruncated), without checking the whole subtree.
         val grantable = if (mayGrant) {
             candidates.filter { isGrantable(user, it) }
         } else {
             candidates.filter { !it.task.deleted && taskBookingGrantDao.mayPropose(user, it.taskId) }
-        }
+        }.take(MAX_GRANTABLE_TASKS + 1).toList()
         if (!mayGrant && grantable.isEmpty()) {
             return Info(mayGrant = false)
         }

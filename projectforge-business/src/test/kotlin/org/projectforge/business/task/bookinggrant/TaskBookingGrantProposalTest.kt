@@ -78,6 +78,7 @@ class TaskBookingGrantProposalTest : AbstractTestBase() {
         /** Books own time sheets on the project by the groups, no right to grant. */
         val employee: PFUserDO,
         val helper: PFUserDO,
+        val former: PFUserDO,
     )
 
     private fun createFixture(prefix: String, withProject: Boolean = false): Fixture {
@@ -90,7 +91,13 @@ class TaskBookingGrantProposalTest : AbstractTestBase() {
             val manager = initTestDB.addUser("$prefix-manager")
             val employee = initTestDB.addUser("$prefix-employee")
             val helper = initTestDB.addUser("$prefix-helper")
-            val managers = initTestDB.addGroup("$prefix-managers", manager.username!!)
+            // A former manager, deactivated: still a member of the group.
+            val former = initTestDB.addUser(PFUserDO().also {
+                it.username = "$prefix-former"
+                it.email = "devnull@localhost"
+                it.deactivated = true
+            })
+            val managers = initTestDB.addGroup("$prefix-managers", manager.username!!, former.username!!)
             initTestDB.createGroupTaskAccess(managers, project).let { access ->
                 AccessType.entries.filter { it != AccessType.GROUP }.forEach { type ->
                     access.ensureAndGetAccessEntry(type).setAccess(true, true, true, true)
@@ -114,7 +121,7 @@ class TaskBookingGrantProposalTest : AbstractTestBase() {
                 }
                 projektDao.insert(projekt, checkAccess = false)
             }
-            Fixture(project, granted, sibling, foreign, manager, employee, helper)
+            Fixture(project, granted, sibling, foreign, manager, employee, helper, former)
         }
     }
 
@@ -341,6 +348,7 @@ class TaskBookingGrantProposalTest : AbstractTestBase() {
         Assertions.assertEquals(1, concerned[fixture.manager.id]?.size)
         Assertions.assertNull(concerned[fixture.employee.id])
         Assertions.assertNull(concerned[fixture.helper.id])
+        Assertions.assertNull(concerned[fixture.former.id], "Deactivated.")
         logon(fixture.manager)
         timesheetDao.accept(timesheetDao.find(sheet.id)!!)
         Assertions.assertNull(timesheetsToAcceptRuleHandler.timesheetsToAccept()[fixture.manager.id])

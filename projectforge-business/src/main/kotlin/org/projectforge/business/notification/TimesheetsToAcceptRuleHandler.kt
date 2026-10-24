@@ -129,7 +129,7 @@ class TimesheetsToAcceptRuleHandler : NotificationRuleHandler {
             candidates += projekt.additionalContactUserIdList
             candidates.forEach { userId ->
                 val user = caches.getUser(userId) ?: return@forEach
-                if (!user.deleted && timesheetDao.hasForeignTimesheetWriteAccess(user, taskId)) {
+                if (user.hasSystemAccess() && timesheetDao.hasForeignTimesheetWriteAccess(user, taskId)) {
                     result.getOrPut(userId) { mutableListOf() }.addAll(taskSheets)
                 }
             }
