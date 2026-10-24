@@ -2,33 +2,21 @@
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
   "unreleased" : {
     "id" : "unreleased",
-    "version" : "9.0.13",
+    "version" : "9.0.14",
     "date" : "2026-10-23",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Felder mit mehreren Einträgen (Benutzer, Gruppen, Mitarbeitende, …): Einträge lassen sich mit der Maus aufziehend oder per Klick markieren, dann kopieren (Strg/Cmd+C) oder ausschneiden (Strg/Cmd+X) und mit Strg/Cmd+V in ein anderes Feld derselben Art einfügen oder dorthin ziehen. Strg/Cmd+Z macht eine Änderung des Felds rückgängig.", "Strukturbaum und Strukturelementliste: Spalte mit den Gruppen, die Zugriffsrechte auf ein Element haben (nur für Administratoren). Beim Darüberfahren werden die Rechte jeder Gruppe angezeigt, ein Klick öffnet die Zugriffsrechte dieses Elements.", "Massenänderung von Zeitberichten: Kost2 nach Kostenart umschlüsseln, ohne dass ein Zeitbericht sein Strukturelement wechselt, z. B. nach Verlinkung eines Projekts.", {
-        "title" : "Ad-hoc-Buchungen",
-        "items" : [ "Wer auf einem Strukturelement fremde Zeitberichte bearbeiten darf (z. B. Projektleitung, Finanzen), kann einer Kollegin oder einem Kollegen für einen Zeitraum das Buchen eigener Zeitberichte darauf freigeben, ohne Gruppenzuordnung: direkt oder per Einladungslink, den nur diese Person annehmen kann.", "Im Strukturbaum sieht die Person nur dieses Strukturelement und die Titel der übergeordneten Elemente: keine anderen Strukturelemente, keinen Verbrauch, keine fremden Zeitberichte und keine Statistiken. Nach Ablauf oder Widerruf bleiben die eigenen Zeitberichte lesbar." ]
-      }, "Auftragsstatistik: Deckungsbeitrag aufgeschlüsselt nach Aufträgen und nach Strukturelementen, als Baum mit Monatsdiagramm je Zeile. Die Werte sind kalkulatorisch aus den Rechnungspositionen und den Zeitberichten × Stundensatz; was sich nicht zuordnen lässt, bleibt als Rest beim Projekt." ]
-    }, {
-      "type" : "improved",
       "items" : [ {
-        "title" : "Umfragen",
-        "items" : [ "Vorlagen haben keine Antwortfrist: Beim Speichern wird keine verlangt und keine gesetzt.", "Vorlagen haben den Status „Vorlage“ statt „Laufend“, werden ohne Filter mit aufgelistet und mit einem Badge gekennzeichnet; der Statusfilter ersetzt den Filter „Vorlagen“." ]
+        "title" : "Ad-hoc-Buchungen",
+        "items" : [ "Wer auf einem Strukturelement fremde Zeitberichte bearbeiten darf (z. B. Projektleitung, Finanzen), kann Kolleg:innen für einen Zeitraum das Buchen eigener Zeitberichte freigeben, ohne Gruppenzuordnung: mehreren Personen auf einmal, auf dem Strukturelement und beliebigen Unterelementen, jeweils optional nur auf einige ihrer Kost2. Die Freigabe gilt sofort, jede Person bekommt eine Mail mit den Links zum Buchen.", "Im Strukturbaum sehen die Personen nur die freigegebenen Strukturelemente und die Titel der übergeordneten Elemente: keine anderen Strukturelemente, keinen Verbrauch, keine fremden Zeitberichte und keine Statistiken. Nach Ablauf oder Widerruf bleiben die eigenen Zeitberichte lesbar.", "Im Strukturbaum markiert ein Badge die Strukturelemente mit Ad-hoc-Buchungen; sein Tooltip nennt die Personen und ihre Zeiträume. Sichtbar nur für die, die auf dem Strukturelement freigeben dürfen." ]
       } ]
     }, {
+      "type" : "changed",
+      "items" : [ "Auftragsstatistik, Deckungsbeitrag-Bubbles: Die Größe einer Bubble zeigt ihren DB1 statt ihrer Kosten. Der Schalter „Titel einblenden“ beschriftet die eigenen Bubbles mit Kurztitel und DB %; ausgeschaltet stehen die Namen nur im Tooltip." ]
+    }, {
       "type" : "fixed",
-      "items" : [ {
-        "title" : "Import von Eingangsrechnungen",
-        "items" : [ "Positionen einer Rechnung in unterschiedlichen Währungen werden zum Kurs des Rechnungsdatums in EUR umgerechnet, statt als EUR übernommen zu werden; ohne Kurs wird die Rechnung als fehlerhaft markiert.", "Gespeicherte Rechnungen zwischen zwei Perioden des Exports (z. B. März bei einem Export von Januar und Juni) werden nicht mehr zum Löschen angeboten.", "Export ohne Positionen: Die Zeilen einer Rechnung (eine je Buchungszeile) werden zu einer Rechnung mit dem Gesamtbetrag zusammengefasst, statt bei jedem Import als neue Rechnungen angeboten zu werden.", "Export ohne Positionen: Die interne Notiz (Spalte „Interne Re.-Nr.“) wird nicht mehr an die Rechnungsnummer angehängt, die sich sonst bei jedem Import der beiden Dateien hin- und herändert." ]
-      }, "Massenänderungen: Das Protokollfenster zeigt die geänderten Einträge wieder an.", "Stornorechnungen werden bei den Auftragspositionen aufgeführt, die sie stornieren, direkt nach der stornierten Rechnung (z. B. 17400 und 17400-S), auch im Auftrags- und Forecast-Export. Im Auftrag sind beide durchgestrichen; zusammen zählen sie weiterhin 0 als fakturiert.", "Auftragsbuch: Die Bearbeitungsseite springt beim Ändern eines Feldes nicht mehr.", "Die Infos eines Strukturelements (Titel, Pfad, Projekt, Kunde, Verbrauch) wurden jedem eingeloggten Nutzer geliefert; jetzt nur noch an Nutzer, die das Strukturelement sehen dürfen." ]
-    }, {
-      "type" : "removed",
-      "items" : [ "Die frühere React-Oberfläche ist entfernt: Alle ihre Seiten sind Teil der neuen Oberfläche, und alte Links (`/react/...`) führen dorthin." ]
-    }, {
-      "type" : "security",
-      "items" : [ "Anfragen, die etwas ändern (Listen- und Kalenderfilter, Vorlagen, Suchindex, Abmelden), werden nur noch als POST angenommen; die GET-Varianten der früheren React-Oberfläche sind entfernt." ]
+      "items" : [ "Die Infos eines Strukturelements (Titel, Pfad, Projekt, Kunde, Verbrauch) wurden jedem eingeloggten Nutzer geliefert; jetzt nur noch an Nutzer, die das Strukturelement sehen dürfen." ]
     } ]
   },
   "groups" : [ {
@@ -83,6 +71,37 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-0-14",
+      "version" : "9.0.14",
+      "date" : "2026-10-23",
+      "title" : "ProjectForge 9.0.14 veröffentlicht",
+      "tag" : "9.0.14-RELEASE",
+      "published" : false,
+      "summary" : [ "**Deckungsbeitrag** je Auftrag und Strukturelement, Bubble-Diagramm", "**Frühere React-Oberfläche** entfernt", "**Sicherheit**: CSRF-Prüfung für jede Sitzung, ändernde Anfragen nur noch als POST", "Felder mit mehreren Einträgen: Einträge kopieren, einfügen und ziehen", "Import der Eingangsrechnungen: Währungen und Exporte ohne Positionen korrigiert" ],
+      "overview" : [ "**Deckungsbeitrag:** Die Auftragsstatistik schlüsselt ihn nach Aufträgen und Strukturelementen auf (Baum mit Monatsdiagramm je Zeile) und zeigt ein Bubble-Diagramm aus Umsatz, DB % und Kosten je Projekt, Projektgruppe, Kunde oder Kundengruppe, in den Farben der Business Units.", "**Frühere React-Oberfläche entfernt:** Alle ihre Seiten sind Teil der neuen Oberfläche, alte Links (`/react/...`) führen dorthin.", "**Sicherheit:** Das CSRF-Token wird für jede ändernde Anfrage einer angemeldeten Sitzung geprüft; ändernde Anfragen (Filter, Vorlagen, Suchindex, Abmelden, Abbrechen einer Anmeldung) werden nur noch als POST angenommen; Historienkommentare erfordern Schreibrecht; npm-Abhängigkeiten aktualisiert.", "**Felder mit mehreren Einträgen:** Einträge lassen sich markieren, kopieren, ausschneiden, einfügen und in ein anderes Feld derselben Art ziehen; Strg/Cmd+Z macht eine Änderung rückgängig.", "**Administration:** Strukturbaum und -liste zeigen die Gruppen mit Zugriffsrechten auf ein Element; die Massenänderung von Zeitberichten schlüsselt Kost2 nach Kostenart um, ohne das Strukturelement zu wechseln.", "**Umfragen:** Vorlagen haben den Status „Vorlage“ und keine Antwortfrist.", "**Behoben:** Import der Eingangsrechnungen (Währungen, Perioden, Exporte ohne Positionen); Stornorechnungen bei den Positionen, die sie stornieren; die Auftrags-Bearbeitungsseite springt nicht mehr; das Protokoll der Massenänderung zeigt die geänderten Einträge wieder." ],
+      "sections" : [ {
+        "type" : "added",
+        "items" : [ "Auftragsstatistik, Deckungsbeitrag: Bubble-Diagramm mit Umsatz, DB % und Kosten (Größe) je Projekt, Projektgruppe, Kunde oder Kundengruppe. Auf Wunsch werden zum Vergleich auch die übrigen Projekte der Auswahl (z. B. der ganzen Business Unit) anonym und ohne Namen angezeigt. Die Bubbles erscheinen in den Farben der Business Units, die bei den Business Units (Seite Kundengruppen) hinterlegt werden. Ein Schalter beschriftet stattdessen alle Bubbles mit ihrem Kurztitel (dem Namen der Gruppe, bei einem einzelnen Projekt mit dem Kurzbezeichner).", "Felder mit mehreren Einträgen (Benutzer, Gruppen, Mitarbeitende, …): Einträge lassen sich mit der Maus aufziehend oder per Klick markieren, dann kopieren (Strg/Cmd+C) oder ausschneiden (Strg/Cmd+X) und mit Strg/Cmd+V in ein anderes Feld derselben Art einfügen oder dorthin ziehen. Strg/Cmd+Z macht eine Änderung des Felds rückgängig.", "Strukturbaum und Strukturelementliste: Spalte mit den Gruppen, die Zugriffsrechte auf ein Element haben (nur für Administratoren). Beim Darüberfahren werden die Rechte jeder Gruppe angezeigt, ein Klick öffnet die Zugriffsrechte dieses Elements.", "Massenänderung von Zeitberichten: Kost2 nach Kostenart umschlüsseln, ohne dass ein Zeitbericht sein Strukturelement wechselt, z. B. nach Verlinkung eines Projekts.", "Auftragsstatistik: Deckungsbeitrag aufgeschlüsselt nach Aufträgen und nach Strukturelementen, als Baum mit Monatsdiagramm je Zeile. Die Werte sind kalkulatorisch aus den Rechnungspositionen und den Zeitberichten × Stundensatz; was sich nicht zuordnen lässt, bleibt als Rest beim Projekt." ]
+      }, {
+        "type" : "improved",
+        "items" : [ {
+          "title" : "Umfragen",
+          "items" : [ "Vorlagen haben keine Antwortfrist: Beim Speichern wird keine verlangt und keine gesetzt.", "Vorlagen haben den Status „Vorlage“ statt „Laufend“, werden ohne Filter mit aufgelistet und mit einem Badge gekennzeichnet; der Statusfilter ersetzt den Filter „Vorlagen“." ]
+        } ]
+      }, {
+        "type" : "fixed",
+        "items" : [ {
+          "title" : "Import von Eingangsrechnungen",
+          "items" : [ "Positionen einer Rechnung in unterschiedlichen Währungen werden zum Kurs des Rechnungsdatums in EUR umgerechnet, statt als EUR übernommen zu werden; ohne Kurs wird die Rechnung als fehlerhaft markiert.", "Gespeicherte Rechnungen zwischen zwei Perioden des Exports (z. B. März bei einem Export von Januar und Juni) werden nicht mehr zum Löschen angeboten.", "Export ohne Positionen: Die Zeilen einer Rechnung (eine je Buchungszeile) werden zu einer Rechnung mit dem Gesamtbetrag zusammengefasst, statt bei jedem Import als neue Rechnungen angeboten zu werden.", "Export ohne Positionen: Die interne Notiz (Spalte „Interne Re.-Nr.“) wird nicht mehr an die Rechnungsnummer angehängt, die sich sonst bei jedem Import der beiden Dateien hin- und herändert." ]
+        }, "Massenänderungen: Das Protokollfenster zeigt die geänderten Einträge wieder an.", "Stornorechnungen werden bei den Auftragspositionen aufgeführt, die sie stornieren, direkt nach der stornierten Rechnung (z. B. 17400 und 17400-S), auch im Auftrags- und Forecast-Export. Im Auftrag sind beide durchgestrichen; zusammen zählen sie weiterhin 0 als fakturiert.", "Auftragsbuch: Die Bearbeitungsseite springt beim Ändern eines Feldes nicht mehr." ]
+      }, {
+        "type" : "removed",
+        "items" : [ "Die frühere React-Oberfläche ist entfernt: Alle ihre Seiten sind Teil der neuen Oberfläche, und alte Links (`/react/...`) führen dorthin." ]
+      }, {
+        "type" : "security",
+        "items" : [ "Das CSRF-Token wird für jede ändernde Anfrage einer angemeldeten Browser-Sitzung geprüft, nicht mehr nur für Anfragen, die sich als neue Oberfläche ausweisen; das Abbrechen einer Anmeldung oder Passwort-Zurücksetzung wird nur noch als POST angenommen.", "Einen Kommentar an einen Historieneintrag anzuhängen erfordert Schreibrecht auf das zugehörige Objekt und ist nur bei Objekten möglich, die Kommentare unterstützen (Benutzer, Gruppen).", "npm-Sicherheitslücken in projectforge-next behoben: next 16.4.2, dompurify 3.4.17 und vitest 4.1.12.", "Anfragen, die etwas ändern (Listen- und Kalenderfilter, Vorlagen, Suchindex, Abmelden), werden nur noch als POST angenommen; die GET-Varianten der früheren React-Oberfläche sind entfernt." ]
+      } ]
+    }, {
       "id" : "9-0-13",
       "version" : "9.0.13",
       "date" : "2026-10-22",

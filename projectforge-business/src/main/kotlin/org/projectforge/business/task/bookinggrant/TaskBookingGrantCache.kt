@@ -25,6 +25,7 @@ package org.projectforge.business.task.bookinggrant
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
+import org.hibernate.Hibernate
 import org.projectforge.business.task.TaskTree
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
@@ -38,7 +39,8 @@ private val log = KotlinLogging.logger {}
 
 /**
  * The booking grants ([TaskBookingGrantDO]) of all users, for the access checks of time sheets and for what the task
- * tree shows a user booking by a grant only: the granted tasks and their ancestors, titles only.
+ * tree shows: a user booking by a grant only sees the granted tasks and their ancestors, titles only; who may grant
+ * sees the grants on a task.
  *
  * Holds [Grant] values, not the entities: read on every access check of a time sheet, they need no session. Revoked
  * (deleted) grants are kept, they still give read access to the own time sheets.
@@ -47,23 +49,18 @@ private val log = KotlinLogging.logger {}
 open class TaskBookingGrantCache : AbstractCache(), BaseDOModifiedListener<TaskBookingGrantDO> {
     /**
      * The values of a grant the access checks need.
+     * @param positions The tasks of the grant, each with the cost units it may be booked on (null for all).
      */
     data class Grant(
         val id: Long,
-        val taskId: Long,
         val userId: Long,
         val validFrom: LocalDate,
         val validUntil: LocalDate,
-        val kost2Id: Long?,
-        val accepted: Boolean,
+        val positions: Map<Long, Set<Long>?>,
         val deleted: Boolean,
     ) {
-        /** Accepted and not revoked: the user may book on the task within the period. */
-        val active: Boolean
-            get() = accepted && !deleted
-
-        /** Active and not expired: the task is shown to the user (period not yet begun included). */
-        fun isCurrent(today: LocalDate): Boolean = active && !validUntil.isBefore(today)
+        /** Not revoked and not expired: the tasks are shown to the user (period not yet begun included). */
+        fun isCurrent(today: LocalDate): Boolean = !deleted && !validUntil.isBefore(today)
 
         fun isValidAt(day: LocalDate): Boolean = !day.isBefore(validFrom) && !day.isAfter(validUntil)
     }
@@ -88,13 +85,16 @@ open class TaskBookingGrantCache : AbstractCache(), BaseDOModifiedListener<TaskB
     @Volatile
     private var grantsByUser = mapOf<Long, List<Grant>>() // Thread safe
 
+    @Volatile
+    private var grantsByTask = mapOf<Long, List<Grant>>() // Thread safe
+
     @PostConstruct
     private fun postConstruct() {
         taskBookingGrantDao.register(this)
     }
 
     /**
-     * All grants of the user, also the revoked, expired and not yet accepted ones.
+     * All grants of the user, also the revoked and expired ones.
      */
     open fun getGrants(userId: Long?): List<Grant> {
         userId ?: return emptyList()
@@ -107,7 +107,18 @@ open class TaskBookingGrantCache : AbstractCache(), BaseDOModifiedListener<TaskB
      */
     open fun getCurrentTaskIds(userId: Long?): Set<Long> {
         val today = PFDay.now().localDate
-        return getGrants(userId).filter { it.isCurrent(today) }.mapTo(mutableSetOf()) { it.taskId }
+        return getGrants(userId).filter { it.isCurrent(today) }.flatMapTo(mutableSetOf()) { it.positions.keys }
+    }
+
+    /**
+     * The current grants ([Grant.isCurrent]) with a position on the given task, of all users: what the task tree shows
+     * who may grant on the task.
+     */
+    open fun getCurrentGrantsOnTask(taskId: Long?): List<Grant> {
+        taskId ?: return emptyList()
+        checkRefresh()
+        val today = PFDay.now().localDate
+        return grantsByTask[taskId]?.filter { it.isCurrent(today) } ?: emptyList()
     }
 
     /**
@@ -125,10 +136,10 @@ open class TaskBookingGrantCache : AbstractCache(), BaseDOModifiedListener<TaskB
     /**
      * Whether the user may do the given operation on an own time sheet of the given task by a grant.
      *
-     * - [OperationType.SELECT]: there is an accepted grant on the task, even a revoked or expired one: the own time
-     *   sheets stay readable.
-     * - Any other operation: there is an active grant on the task, today is within its period and so is the time
-     *   sheet ([startDay], [stopDay]); a grant with a cost unit allows only this one ([kost2Id]).
+     * - [OperationType.SELECT]: there is a grant with the task, even a revoked or expired one: the own time sheets
+     *   stay readable.
+     * - Any other operation: there is a grant with the task, not revoked, today is within its period and so is the
+     *   time sheet ([startDay], [stopDay]); a position with cost units allows only these ([kost2Id]).
      */
     open fun allows(
         userId: Long?,
@@ -139,38 +150,41 @@ open class TaskBookingGrantCache : AbstractCache(), BaseDOModifiedListener<TaskB
         kost2Id: Long?,
     ): Boolean {
         taskId ?: return false
-        val grants = getGrants(userId).filter { it.taskId == taskId && it.accepted }
+        val grants = getGrants(userId).filter { it.positions.containsKey(taskId) }
         if (operationType == OperationType.SELECT) {
             return grants.isNotEmpty()
         }
         val today = PFDay.now().localDate
         return grants.any { grant ->
-            grant.active && grant.isValidAt(today) &&
+            val kost2Ids = grant.positions[taskId]
+            !grant.deleted && grant.isValidAt(today) &&
                     startDay != null && grant.isValidAt(startDay) &&
                     (stopDay == null || grant.isValidAt(stopDay)) &&
-                    (grant.kost2Id == null || grant.kost2Id == kost2Id)
+                    (kost2Ids == null || kost2Id in kost2Ids)
         }
     }
 
     /**
-     * The cost unit the user is bound to on the task by the grant valid today, or null if the grant allows every
-     * cost unit of the task (or there is none).
+     * The cost units the user may book on the task by the current grants, or null if one of them allows every cost
+     * unit of the task (or there is none).
      */
-    open fun getFixedKost2Id(userId: Long?, taskId: Long?): Long? {
+    open fun getAllowedKost2Ids(userId: Long?, taskId: Long?): Set<Long>? {
+        taskId ?: return null
         val today = PFDay.now().localDate
-        val grants = getGrants(userId).filter { it.taskId == taskId && it.isCurrent(today) }
-        if (grants.isEmpty() || grants.any { it.kost2Id == null }) {
+        val grants = getGrants(userId).filter { it.positions.containsKey(taskId) && it.isCurrent(today) }
+        if (grants.isEmpty() || grants.any { it.positions[taskId] == null }) {
             return null
         }
-        return grants.first().kost2Id
+        return grants.flatMapTo(mutableSetOf()) { it.positions[taskId]!! }
     }
 
     override fun afterInsertOrModify(obj: TaskBookingGrantDO, operationType: OperationType) {
-        val grant = toGrant(obj) ?: return
         synchronized(lock) {
+            // The positions of a grant only revoked (loaded without them) are the cached ones.
+            val grant = toGrant(obj, grantMap[obj.id]?.positions) ?: return
             modifiedDuringRefresh?.put(grant.id, grant)
             grantMap[grant.id] = grant
-            grantsByUser = groupByUser(grantMap.values)
+            index(grantMap.values)
         }
     }
 
@@ -182,13 +196,13 @@ open class TaskBookingGrantCache : AbstractCache(), BaseDOModifiedListener<TaskB
         try {
             runReadOnlyForCacheMaintenance {
                 val map = mutableMapOf<Long, Grant>()
-                taskBookingGrantDao.selectAll(checkAccess = false).forEach { obj ->
-                    toGrant(obj)?.let { map[it.id] = it }
+                taskBookingGrantDao.selectAllWithPositions().forEach { obj ->
+                    toGrant(obj, null)?.let { map[it.id] = it }
                 }
                 synchronized(lock) {
                     modifiedDuringRefresh?.values?.forEach { map[it.id] = it }
                     grantMap = map
-                    grantsByUser = groupByUser(map.values)
+                    index(map.values)
                 }
             }
         } finally {
@@ -199,22 +213,30 @@ open class TaskBookingGrantCache : AbstractCache(), BaseDOModifiedListener<TaskB
         log.info { "Refreshing of TaskBookingGrantCache done." }
     }
 
-    private fun groupByUser(grants: Collection<Grant>): Map<Long, List<Grant>> {
-        return grants.groupBy { it.userId }
+    /** Called with [lock] held. */
+    private fun index(grants: Collection<Grant>) {
+        grantsByUser = grants.groupBy { it.userId }
+        val byTask = mutableMapOf<Long, MutableList<Grant>>()
+        grants.forEach { grant -> grant.positions.keys.forEach { byTask.getOrPut(it) { mutableListOf() }.add(grant) } }
+        grantsByTask = byTask
     }
 
     /**
      * The ids of the lazy associations are read without initializing them.
+     * @param knownPositions The positions to take if those of the object aren't loaded.
      */
-    private fun toGrant(obj: TaskBookingGrantDO): Grant? {
+    private fun toGrant(obj: TaskBookingGrantDO, knownPositions: Map<Long, Set<Long>?>?): Grant? {
+        val positions = if (Hibernate.isInitialized(obj.positions) && obj.positions != null) {
+            obj.positions!!.filter { !it.deleted }.mapNotNull { pos -> pos.task?.id?.let { it to pos.kost2IdSet } }.toMap()
+        } else {
+            knownPositions ?: return null
+        }
         return Grant(
             id = obj.id ?: return null,
-            taskId = obj.task?.id ?: return null,
             userId = obj.user?.id ?: return null,
             validFrom = obj.validFrom ?: return null,
             validUntil = obj.validUntil ?: return null,
-            kost2Id = obj.kost2?.id,
-            accepted = obj.accepted,
+            positions = positions,
             deleted = obj.deleted,
         )
     }

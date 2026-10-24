@@ -37,7 +37,7 @@ import org.springframework.mock.web.MockHttpServletRequest
 
 /**
  * What a user booking by an ad hoc booking grant sees of the structure tree (the granted task and the titles of its
- * ancestors, nothing else), and who manages the grants of a task.
+ * ancestors, nothing else), who manages the grants of a task, and who sees the grants as badge in the tree.
  */
 class TaskBookingGrantRestTest : AbstractTestBase() {
     @Autowired
@@ -77,15 +77,15 @@ class TaskBookingGrantRestTest : AbstractTestBase() {
         }
     }
 
-    private fun grant(fixture: Fixture, asInvitation: Boolean = false): TaskBookingGrantRest.Result {
+    private fun grant(fixture: Fixture, tasks: List<TaskDO> = listOf(fixture.granted)): TaskBookingGrantRest.Result {
         return taskBookingGrantRest.grant(
             TaskBookingGrantRest.GrantRequest(
-                taskId = fixture.granted.id,
-                userId = fixture.helper.id,
+                taskId = fixture.project.id,
+                userIds = listOf(fixture.helper.id!!),
+                positions = tasks.map { TaskBookingGrantRest.PositionRequest(it.id) },
                 validFrom = PFDay.now().minusDays(1).localDate,
                 validUntil = PFDay.now().plusDays(10).localDate,
                 comment = "Helping out",
-                asInvitation = asInvitation,
             )
         )
     }
@@ -155,18 +155,34 @@ class TaskBookingGrantRestTest : AbstractTestBase() {
         }
 
         logon(fixture.manager)
-        val result = grant(fixture)
-        assertTrue(result.success)
-        assertNull(result.invitationUrl)
+        // The project offers itself and its work packages to grant on.
+        taskBookingGrantRest.getInfo(fixture.project.id!!).let {
+            assertTrue(it.mayGrant)
+            assertEquals(
+                setOf(fixture.project.id, fixture.granted.id, fixture.sibling.id),
+                it.tasks!!.map { task -> task.taskId }.toSet(),
+            )
+        }
+        val result = grant(fixture, tasks = listOf(fixture.granted, fixture.sibling))
+        assertTrue(result.success, result.message)
         val entry = result.info!!.grants!!.single()
         assertEquals(TaskBookingGrantRest.Status.ACTIVE, entry.status)
         assertEquals(fixture.helper.id, entry.userId)
+        assertTrue(entry.revocable)
+        // Who granted comes from the history of the insert.
+        assertEquals(fixture.manager.getFullname(), entry.grantedByName)
+        assertEquals(
+            listOf("bgrest-manage | bgrest-manage.granted", "bgrest-manage | bgrest-manage.sibling"),
+            entry.positions.map { it.path }.sorted(),
+        )
+        // Listed on each of its tasks as well.
+        assertEquals(entry.id, taskBookingGrantRest.getInfo(fixture.sibling.id!!).grants!!.single().id)
 
         // The helper may not revoke it, the manager may.
         logon(fixture.helper)
-        assertFalse(taskBookingGrantRest.revoke(entry.id).success)
+        assertFalse(taskBookingGrantRest.revoke(entry.id, fixture.project.id!!).success)
         logon(fixture.manager)
-        taskBookingGrantRest.revoke(entry.id).let {
+        taskBookingGrantRest.revoke(entry.id, fixture.project.id!!).let {
             assertTrue(it.success)
             assertEquals(TaskBookingGrantRest.Status.REVOKED, it.info!!.grants!!.single().status)
         }
@@ -176,36 +192,32 @@ class TaskBookingGrantRestTest : AbstractTestBase() {
     }
 
     @Test
-    fun `the invitation is shown to and accepted by its user only`() {
-        val fixture = createFixture("bgrest-invite")
+    fun `the badge of the grants is shown to who may grant only`() {
+        val fixture = createFixture("bgrest-badge")
         logon(fixture.manager)
-        val result = grant(fixture, asInvitation = true)
-        assertEquals(TaskBookingGrantRest.Status.PENDING, result.info!!.grants!!.single().status)
-        val token = result.invitationUrl!!.substringAfter("token=")
+        assertTrue(grant(fixture).success)
+        val nodes = tree(highlighted = fixture.granted).nodes
+        nodes.single { it.id == fixture.granted.id }.let {
+            assertEquals(1, it.bookingGrants?.size)
+            assertFalse(it.bookingGrants!!.single().upcoming)
+        }
+        assertNull(nodes.single { it.id == fixture.sibling.id }.bookingGrants)
+        // Not in the select popover.
+        tree(select = true, highlighted = fixture.granted).nodes.find { it.id == fixture.granted.id }?.let { assertNull(it.bookingGrants) }
 
-        logon(fixture.other)
-        assertEquals(HttpStatus.NOT_FOUND, taskBookingGrantRest.getInvitation(token).statusCode)
-        assertFalse(taskBookingGrantRest.accept(TaskBookingGrantRest.AcceptRequest(token)).success)
-
+        // Neither the helper nor an ordinary user (who may see the task) get it.
         logon(fixture.helper)
-        assertTrue(tree().nodes.none { it.id == fixture.granted.id }, "Nothing before accepting.")
-        taskBookingGrantRest.getInvitation(token).let {
-            assertEquals(HttpStatus.OK, it.statusCode)
-            assertEquals(fixture.granted.id, it.body!!.taskId)
-        }
-        taskBookingGrantRest.accept(TaskBookingGrantRest.AcceptRequest(token)).let {
-            assertTrue(it.success)
-            assertEquals(fixture.granted.id, it.taskId)
-        }
-        assertTrue(tree().nodes.any { it.id == fixture.granted.id })
-        assertFalse(taskBookingGrantRest.accept(TaskBookingGrantRest.AcceptRequest(token)).success, "Used once.")
+        assertNull(tree().nodes.single { it.id == fixture.granted.id }.bookingGrants)
+        logon(getUser(TEST_USER))
+        tree(highlighted = fixture.granted).nodes.find { it.id == fixture.granted.id }?.let { assertNull(it.bookingGrants) }
     }
 
     private fun info(task: TaskDO) = taskServicesRest.getTaskInfo(task.id)
 
-    private fun tree() = taskServicesRest.getTree(
-        MockHttpServletRequest(), initial = true, open = null, close = null, highlightedTaskId = null,
+    /** @param highlighted Opens the ancestors of this task. */
+    private fun tree(select: Boolean? = null, highlighted: TaskDO? = null) = taskServicesRest.getTree(
+        MockHttpServletRequest(), initial = true, open = null, close = null, highlightedTaskId = highlighted?.id,
         table = true, searchString = null, opened = null, notOpened = null, closed = null, deleted = null,
-        showRootForAdmins = null, select = null, rootTaskId = null,
+        showRootForAdmins = null, select = select, rootTaskId = null,
     )
 }

@@ -15,6 +15,7 @@ import type { AgGridNode } from "@/lib/dynamic/grid/ag-grid-types";
 import { adaptColumnDefs } from "@/lib/dynamic/grid/column-def-adapter";
 import type { TaskNode } from "@/lib/rs/task";
 import { TaskGroupAccessCell } from "./task-group-access-cell";
+import { TaskBookingGrantBadge } from "./task-booking-grant-badge";
 
 /**
  * The tree's free-text columns whose values may carry JIRA issue keys, linked as Wicket links its list
@@ -105,6 +106,11 @@ export function useTaskTreeColumns(
               {...props}
               onToggle={() => onToggle(row.original)}
               action={rowAction?.(row.original)}
+              badge={
+                row.original.bookingGrants ? (
+                  <TaskBookingGrantBadge grants={row.original.bookingGrants} />
+                ) : undefined
+              }
             />
           ) : (
             renderCell(props)

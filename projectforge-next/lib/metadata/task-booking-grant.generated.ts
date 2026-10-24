@@ -8,11 +8,6 @@ export const TASK_BOOKING_GRANT_METADATA = {
   entity: "TaskBookingGrantDO",
   historizable: true,
   fields: {
-    acceptedAt: {
-      dataType: "TIMESTAMP",
-      i18nKey: "task.bookingGrant.acceptedAt",
-      required: false,
-    },
     comment: {
       dataType: "STRING",
       i18nKey: "comment",
@@ -29,34 +24,14 @@ export const TASK_BOOKING_GRANT_METADATA = {
       i18nKey: "deleted",
       required: false,
     },
-    grantedBy: {
-      dataType: "USER",
-      i18nKey: "task.bookingGrant.grantedBy",
-      required: false,
-    },
     id: {
       dataType: "LONG",
       i18nKey: "id",
       required: false,
     },
-    invitationExpiresAt: {
-      dataType: "TIMESTAMP",
-      i18nKey: "task.bookingGrant.invitationExpiresAt",
-      required: false,
-    },
-    kost2: {
-      dataType: "COST2",
-      i18nKey: "fibu.kost2",
-      required: false,
-    },
     lastUpdate: {
       dataType: "TIMESTAMP",
       i18nKey: "modified",
-      required: false,
-    },
-    task: {
-      dataType: "TASK",
-      i18nKey: "task",
       required: false,
     },
     user: {

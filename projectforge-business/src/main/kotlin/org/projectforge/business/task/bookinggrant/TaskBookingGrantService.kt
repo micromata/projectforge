@@ -25,39 +25,40 @@ package org.projectforge.business.task.bookinggrant
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
+import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.UserGroupCache
-import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.I18nHelper
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
-import java.util.*
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
 /**
- * Grants ad hoc bookings ([TaskBookingGrantDO]) directly or as an invitation link, and accepts such a link.
- *
- * An invitation link is bound to the user of the grant: only this user may accept it, after logging in. Its token is
- * random, used once and valid for [INVITATION_VALIDITY_DAYS] days at most; only its hash is stored.
+ * Grants ad hoc bookings ([TaskBookingGrantDO]) to several users at once and informs each of them by mail, with the
+ * links to book on the tasks. No token is needed: the right is the user's grant, so a forwarded link is of no use to
+ * anybody else.
  */
 @Service
 open class TaskBookingGrantService {
     /**
-     * A grant just inserted, and the url of its invitation link (null for a grant given directly). The url is only
-     * known now: the token isn't stored.
+     * A task of the grants to give, with the cost units it may be booked on (null or empty for all).
      */
-    class GrantResult(val grant: TaskBookingGrantDO, val invitationUrl: String?)
+    class Position(val taskId: Long, val kost2Ids: Set<Long>? = null)
+
+    @Autowired
+    private lateinit var kostCache: KostCache
+
+    @Autowired
+    private lateinit var persistenceService: PfPersistenceService
 
     @Autowired
     private lateinit var taskBookingGrantDao: TaskBookingGrantDao
@@ -72,132 +73,102 @@ open class TaskBookingGrantService {
     private lateinit var sendMail: SendMail
 
     /**
-     * Inserts the grant for the logged-in user as granting user (access checked by the DAO) and informs the user of
-     * the grant by mail.
-     * @param asInvitation If true, the grant gives no access until its user accepts the invitation link; otherwise it
-     * is accepted right away.
+     * Inserts one grant per user, each with all positions, for the logged-in user as granting user, and mails it to
+     * its user. All or nothing: every grant is validated and access checked (by the DAO) before the first is inserted.
+     * @throws org.projectforge.common.i18n.UserException if a grant isn't valid or the logged-in user may not grant
+     * on one of the tasks.
      */
-    open fun grant(obj: TaskBookingGrantDO, asInvitation: Boolean): GrantResult {
+    open fun grant(
+        userIds: Collection<Long>,
+        positions: List<Position>,
+        validFrom: LocalDate?,
+        validUntil: LocalDate?,
+        comment: String?,
+    ): List<TaskBookingGrantDO> {
         val loggedInUser = ThreadLocalUserContext.requiredLoggedInUser
-        obj.grantedBy = loggedInUser
-        var token: String? = null
-        if (asInvitation) {
-            token = NumberHelper.getSecureRandomAlphanumeric(TOKEN_LENGTH)
-            obj.acceptedAt = null
-            obj.invitationTokenHash = hash(token)
-            val expires = PFDay.now().plusDays(INVITATION_VALIDITY_DAYS)
-                .let { if (obj.validUntil != null && it.localDate.isAfter(obj.validUntil)) PFDay.from(obj.validUntil!!) else it }
-            obj.invitationExpiresAt = PFDateTime.from(expires.localDate).endOfDay.utilDate
-        } else {
-            obj.acceptedAt = Date()
-            obj.invitationTokenHash = null
-            obj.invitationExpiresAt = null
+        val users = userIds.distinct().map { userGroupCache.getUser(it) }
+        val grants = (users.ifEmpty { listOf(null) }).map { user ->
+            TaskBookingGrantDO().also { grant ->
+                grant.user = user
+                grant.validFrom = validFrom
+                grant.validUntil = validUntil
+                grant.comment = comment?.trim()?.takeIf { it.isNotEmpty() }
+                positions.forEach { position ->
+                    grant.addPosition(TaskBookingGrantTaskDO().also {
+                        it.task = taskTree.getTaskById(position.taskId)
+                        it.kost2IdSet = position.kost2Ids
+                    })
+                }
+            }
         }
-        taskBookingGrantDao.insert(obj)
-        val invitationUrl = token?.let { buildInvitationUrl(it) }
-        sendGrantMail(obj, invitationUrl)
-        return GrantResult(obj, invitationUrl)
+        grants.forEach {
+            taskBookingGrantDao.hasLoggedInUserInsertAccess(it, throwException = true)
+            taskBookingGrantDao.validate(it)
+        }
+        persistenceService.runInTransaction { _ ->
+            grants.forEach { taskBookingGrantDao.insert(it) }
+        }
+        grants.forEach { sendGrantMail(it, loggedInUser) }
+        return grants
     }
 
-    /**
-     * The grant of the given invitation token, if the logged-in user is its user and it may still be accepted.
-     * Otherwise null: nobody else learns anything of the grant (the attempt of another user is logged).
-     */
-    open fun getInvitation(token: String?): TaskBookingGrantDO? {
-        token ?: return null
-        val grant = taskBookingGrantDao.selectByInvitationTokenHash(hash(token)) ?: return null
-        val loggedInUserId = ThreadLocalUserContext.loggedInUserId
-        if (grant.user?.id != loggedInUserId) {
-            log.warn { "User #$loggedInUserId tried to use the booking invitation #${grant.id} of user #${grant.user?.id}." }
-            return null
-        }
-        if (grant.deleted || grant.accepted || grant.invitationExpiresAt?.before(Date()) != false) {
-            return null
-        }
-        return grant
-    }
-
-    /**
-     * Accepts the invitation of the given token for the logged-in user: from now on the grant gives access.
-     * @throws UserException if the token isn't valid (any more) or isn't the logged-in user's.
-     */
-    open fun accept(token: String?): TaskBookingGrantDO {
-        val grant = getInvitation(token) ?: throw UserException(ERROR_INVITATION_INVALID)
-        grant.acceptedAt = Date()
-        grant.invitationTokenHash = null
-        grant.invitationExpiresAt = null
-        // Not by TaskBookingGrantDao.update: its user may read, but not change the grant; and onUpdate keeps the
-        // invitation fields as stored.
-        taskBookingGrantDao.internalUpdateAccepted(grant)
-        return grant
-    }
-
-    private fun sendGrantMail(grant: TaskBookingGrantDO, invitationUrl: String?) {
+    private fun sendGrantMail(grant: TaskBookingGrantDO, grantedBy: PFUserDO) {
         val recipient = userGroupCache.getUser(grant.user?.id) ?: return
         if (recipient.email.isNullOrBlank()) {
             log.info { "User #${recipient.id} has no mail address, the booking grant #${grant.id} isn't mailed." }
             return
         }
         try {
-            sendMail.send(prepareMail(grant, recipient, invitationUrl))
+            sendMail.send(prepareMail(grant, recipient, grantedBy))
         } catch (ex: Exception) {
-            // The grant is given anyway, the link is shown to the granting user.
+            // The grant is given anyway, its user finds the tasks in the structure tree.
             log.error(ex) { "Couldn't mail the booking grant #${grant.id} to user #${recipient.id}: ${ex.message}" }
         }
     }
 
     /**
-     * A plain text mail: no user data needs escaping.
+     * A plain text mail: no user data needs escaping. Each task with its path, its cost units and the link to book on
+     * it.
      */
-    internal fun prepareMail(grant: TaskBookingGrantDO, recipient: PFUserDO, invitationUrl: String?): Mail {
-        val grantedBy = userGroupCache.getUser(grant.grantedBy?.id)?.getFullname() ?: ""
-        val taskPath = taskTree.getPathToRoot(grant.task?.id).joinToString(" | ") { it.task.title ?: "" }
+    internal fun prepareMail(grant: TaskBookingGrantDO, recipient: PFUserDO, grantedBy: PFUserDO): Mail {
         val period = "${PFDay.from(grant.validFrom!!).isoString} - ${PFDay.from(grant.validUntil!!).isoString}"
-        val url = invitationUrl ?: sendMail.buildUrl(
-            "${Constants.NEXT_APP_PATH}timesheet/new?taskId=${grant.task?.id}"
-        )
+        val positions = grant.positions ?: emptyList()
+        val paths = positions.map { formatPath(it.task?.id) }
         val mail = Mail()
         mail.contentType = Mail.CONTENTTYPE_TEXT
-        mail.subject = translate(recipient, "task.bookingGrant.mail.subject", taskPath)
+        mail.subject = if (paths.size == 1) {
+            translate(recipient, "task.bookingGrant.mail.subject", paths.first())
+        } else {
+            translate(recipient, "task.bookingGrant.mail.subject.multiple", paths.size)
+        }
         mail.setTo(recipient)
         mail.content = buildString {
             appendLine(translate(recipient, "task.bookingGrant.mail.greeting", recipient.firstname ?: ""))
             appendLine()
-            appendLine(translate(recipient, "task.bookingGrant.mail.text", grantedBy, taskPath, period))
+            appendLine(translate(recipient, "task.bookingGrant.mail.text", grantedBy.getFullname(), period))
             grant.comment?.takeIf { it.isNotBlank() }?.let {
                 appendLine()
                 appendLine(it)
             }
-            appendLine()
-            appendLine(
-                translate(
-                    recipient,
-                    if (invitationUrl != null) "task.bookingGrant.mail.invitation" else "task.bookingGrant.mail.link"
-                )
-            )
-            appendLine(url)
+            positions.forEachIndexed { index, position ->
+                appendLine()
+                appendLine("- ${paths[index]}")
+                position.kost2IdSet?.let { kost2Ids ->
+                    val kost2 = kost2Ids.mapNotNull { kostCache.getKost2(it) }
+                        .joinToString(", ") { KostFormatter.instance.formatKost2(it, KostFormatter.FormatType.TEXT, 80) }
+                    appendLine("  ${translate(recipient, "fibu.kost2")}: $kost2")
+                }
+                appendLine("  ${sendMail.buildUrl("${Constants.NEXT_APP_PATH}timesheet/new?taskId=${position.task?.id}")}")
+            }
         }
         return mail
     }
 
-    private fun buildInvitationUrl(token: String): String {
-        return sendMail.buildUrl(
-            "${Constants.NEXT_APP_PATH}bookingInvitation?token=${URLEncoder.encode(token, StandardCharsets.UTF_8)}"
-        )
+    private fun formatPath(taskId: Long?): String {
+        return taskTree.getPathToRoot(taskId).joinToString(" | ") { it.task.title ?: "" }
     }
 
     private fun translate(recipient: PFUserDO, i18nKey: String, vararg params: Any): String {
         return I18nHelper.getLocalizedMessage(recipient, i18nKey, *params)
-    }
-
-    companion object {
-        const val ERROR_INVITATION_INVALID = "task.bookingGrant.error.invitationInvalid"
-        const val INVITATION_VALIDITY_DAYS = 7L
-        private const val TOKEN_LENGTH = 32
-
-        internal fun hash(token: String): String {
-            val digest = MessageDigest.getInstance("SHA-256").digest(token.toByteArray(StandardCharsets.UTF_8))
-            return digest.joinToString("") { "%02x".format(it) }
-        }
     }
 }

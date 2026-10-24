@@ -23,6 +23,7 @@
 
 package org.projectforge.business.task.bookinggrant
 
+import org.hibernate.Hibernate
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.user.ProjectForgeGroup
@@ -32,6 +33,7 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.api.SortProperty
+import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -39,10 +41,10 @@ import org.springframework.stereotype.Service
 /**
  * DAO of the ad hoc booking grants ([TaskBookingGrantDO]).
  *
- * Who may edit the time sheets of others on a task ([TimesheetDao.hasForeignTimesheetWriteAccess]) grants, changes and
- * revokes (deletes) bookings on it and reads its grants. The user of a grant reads it, but changes nothing: accepting
- * an invitation is done by [TaskBookingGrantService.accept]. The task of a grant is always the stored one, so a
- * posted task id moves no grant to a task the user may not grant on.
+ * Who may edit the time sheets of others on all tasks of a grant ([TimesheetDao.hasForeignTimesheetWriteAccess])
+ * grants, changes and revokes (deletes) it and reads it. The user of a grant reads it, but changes nothing. On an
+ * update, the stored tasks count as well as the posted ones, so a grant can't be moved to a task the user may not
+ * grant on.
  */
 @Service
 open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO::class.java) {
@@ -51,9 +53,6 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
 
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
-
-    /** Only within [internalUpdateAccepted]: the invitation fields may change. */
-    private val acceptingInvitation = ThreadLocal<Boolean>()
 
     override val defaultSortProperties: Array<SortProperty>
         get() = DEFAULT_SORT_PROPERTIES
@@ -85,9 +84,8 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
         throwException: Boolean,
     ): Boolean {
         requireNotNull(obj) { "Given TaskBookingGrantDO as obj parameter mustn't be null." }
-        // The stored task, if there is one: the posted one may differ.
-        val taskId = oldObj?.task?.id ?: obj.task?.id
-        val allowed = mayGrant(user, taskId) ||
+        // The stored tasks as well: the posted ones may differ.
+        val allowed = mayGrantAll(user, taskIdsOf(obj) + taskIdsOf(oldObj)) ||
                 (operationType == OperationType.SELECT && obj.user?.id != null && obj.user?.id == user.id)
         if (!allowed && throwException) {
             throw AccessException("access.exception.noAccess")
@@ -96,7 +94,7 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
     }
 
     override fun hasHistoryAccess(user: PFUserDO, obj: TaskBookingGrantDO, throwException: Boolean): Boolean {
-        val allowed = mayGrant(user, obj.task?.id)
+        val allowed = mayGrantAll(user, taskIdsOf(obj))
         if (!allowed && throwException) {
             throw AccessException("access.exception.noAccess")
         }
@@ -110,88 +108,144 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
         return timesheetDao.hasForeignTimesheetWriteAccess(user, taskId)
     }
 
+    /**
+     * Whether the user may grant on every given task; false for none.
+     */
+    open fun mayGrantAll(user: PFUserDO, taskIds: Collection<Long>): Boolean {
+        return taskIds.isNotEmpty() && taskIds.all { mayGrant(user, it) }
+    }
+
+    /**
+     * The tasks of the grant; of a grant loaded without its positions from the database.
+     */
+    private fun taskIdsOf(obj: TaskBookingGrantDO?): Set<Long> {
+        obj ?: return emptySet()
+        val positions = obj.positions
+        if (positions != null && Hibernate.isInitialized(positions)) {
+            return positions.mapNotNullTo(mutableSetOf()) { it.task?.id }
+        }
+        val id = obj.id ?: return emptySet()
+        return persistenceService.executeQuery(
+            "SELECT p.task.id FROM TaskBookingGrantTaskDO p WHERE p.grant.id = :id",
+            java.lang.Long::class.java,
+            Pair("id", id),
+        ).mapTo(mutableSetOf()) { it.toLong() }
+    }
+
     override fun onInsert(obj: TaskBookingGrantDO) {
         validate(obj)
     }
 
     override fun onUpdate(obj: TaskBookingGrantDO, dbObj: TaskBookingGrantDO) {
-        if (obj.task?.id != dbObj.task?.id || obj.user?.id != dbObj.user?.id) {
-            // Another task or user is another grant.
-            throw UserException(ERROR_TASK_OR_USER_CHANGED)
+        if (obj.user?.id != dbObj.user?.id) {
+            // Another user is another grant.
+            throw UserException(ERROR_USER_CHANGED)
         }
-        obj.grantedBy = dbObj.grantedBy // Set by the insert only.
-        if (acceptingInvitation.get() != true) {
-            // Set by the insert and by accepting the invitation only.
-            obj.acceptedAt = dbObj.acceptedAt
-            obj.invitationTokenHash = dbObj.invitationTokenHash
-            obj.invitationExpiresAt = dbObj.invitationExpiresAt
-        }
-        validate(obj)
-    }
-
-    /**
-     * Stores the accepted invitation, see [TaskBookingGrantService.accept], which checks that the grant is the
-     * logged-in user's: the user of a grant may not change it otherwise.
-     */
-    internal fun internalUpdateAccepted(obj: TaskBookingGrantDO) {
-        acceptingInvitation.set(true)
-        try {
-            update(obj, checkAccess = false)
-        } finally {
-            acceptingInvitation.remove()
+        if (!obj.deleted) {
+            // Revoking is always possible, also when a task is closed in the meantime.
+            validate(obj)
         }
     }
 
     /**
-     * The task must be bookable, the period complete and the cost unit, if any, one of the task.
+     * The user and the period must be set, there must be at least one task, none twice, each bookable, and the cost
+     * units of each, if any, must be ones of its task.
      */
     open fun validate(obj: TaskBookingGrantDO) {
-        val node = taskTree.getTaskNodeById(obj.task?.id) ?: throw UserException(ERROR_TASK_NOT_BOOKABLE)
         val validFrom = obj.validFrom
         val validUntil = obj.validUntil
+        val positions = obj.positions ?: emptyList()
+        val taskIds = positions.map { it.task?.id }
         val error = when {
             obj.user?.id == null -> ERROR_USER_NOT_SET
-            !node.isBookableForTimesheets || taskTree.isRootNode(node) -> ERROR_TASK_NOT_BOOKABLE
             validFrom == null || validUntil == null -> ERROR_PERIOD_NOT_SET
             validUntil.isBefore(validFrom) -> ERROR_END_BEFORE_START
-            obj.kost2?.id != null && taskTree.getKost2List(node.taskId)?.none { it.id == obj.kost2?.id } != false ->
-                ERROR_INVALID_KOST2
-
-            else -> null
+            positions.isEmpty() -> ERROR_NO_TASK
+            taskIds.toSet().size != taskIds.size -> ERROR_TASK_TWICE
+            else -> positions.firstNotNullOfOrNull { validatePosition(it) }
         }
         if (error != null) {
             throw UserException(error)
         }
     }
 
-    /**
-     * The grants on the given task, revoked ones included (newest first). The caller checks the access.
-     */
-    open fun selectByTask(taskId: Long): List<TaskBookingGrantDO> {
-        return persistenceService.executeQuery(
-            "SELECT g FROM TaskBookingGrantDO g WHERE g.task.id = :taskId ORDER BY g.validUntil DESC, g.id DESC",
-            TaskBookingGrantDO::class.java,
-            Pair("taskId", taskId),
-        )
+    private fun validatePosition(position: TaskBookingGrantTaskDO): String? {
+        val node = taskTree.getTaskNodeById(position.task?.id) ?: return ERROR_TASK_NOT_BOOKABLE
+        if (!node.isBookableForTimesheets || taskTree.isRootNode(node)) {
+            return ERROR_TASK_NOT_BOOKABLE
+        }
+        val kost2Ids = position.kost2IdSet ?: return null
+        val allowed = taskTree.getKost2List(node.taskId)?.mapNotNullTo(mutableSetOf()) { it.id } ?: emptySet()
+        return if (allowed.containsAll(kost2Ids)) null else ERROR_INVALID_KOST2
     }
 
     /**
-     * The grant of the given invitation token hash, if any. The caller checks the access.
+     * The grants with a position on one of the given tasks, revoked ones included (newest first). The caller checks
+     * the access.
      */
-    open fun selectByInvitationTokenHash(hash: String): TaskBookingGrantDO? {
-        return persistenceService.selectSingleResult(
-            "SELECT g FROM TaskBookingGrantDO g WHERE g.invitationTokenHash = :hash",
+    open fun selectByTasks(taskIds: Collection<Long>): List<TaskBookingGrantDO> {
+        val ids = persistenceService.executeQueryBatched(
+            "SELECT DISTINCT p.grant.id FROM TaskBookingGrantTaskDO p WHERE p.task.id IN :taskIds",
+            java.lang.Long::class.java,
+            batchParam = "taskIds",
+            batchValues = taskIds,
+        ).mapTo(mutableSetOf()) { it.toLong() }
+        return persistenceService.executeQueryBatched(
+            "SELECT DISTINCT g FROM TaskBookingGrantDO g LEFT JOIN FETCH g.positions WHERE g.id IN :ids",
             TaskBookingGrantDO::class.java,
-            Pair("hash", hash),
+            batchParam = "ids",
+            batchValues = ids,
+        ).sortedWith(compareByDescending<TaskBookingGrantDO> { it.validUntil }.thenByDescending { it.id })
+    }
+
+    /**
+     * Who granted, by grant id: the user of the insert in the history. The caller checks the access to the grants.
+     */
+    open fun selectGrantedByUserIds(grantIds: Collection<Long>): Map<Long, Long> {
+        return persistenceService.executeQueryBatched(
+            "SELECT h.entityId, h.modifiedBy FROM HistoryEntryDO h WHERE h.entityName = :entityName" +
+                    " AND h.entityOpType = :opType AND h.entityId IN :ids",
+            Array<Any?>::class.java,
+            batchParam = "ids",
+            batchValues = grantIds,
+            Pair("entityName", TaskBookingGrantDO::class.java.name),
+            Pair("opType", EntityOpType.Insert),
+        ).mapNotNull { row ->
+            val grantId = (row[0] as? Number)?.toLong() ?: return@mapNotNull null
+            val userId = (row[1] as? String)?.toLongOrNull() ?: return@mapNotNull null
+            grantId to userId
+        }.toMap()
+    }
+
+    /**
+     * The grant with its positions, if any. The caller checks the access.
+     */
+    open fun selectWithPositions(id: Long): TaskBookingGrantDO? {
+        return persistenceService.executeQuery(
+            "SELECT g FROM TaskBookingGrantDO g LEFT JOIN FETCH g.positions WHERE g.id = :id",
+            TaskBookingGrantDO::class.java,
+            Pair("id", id),
+        ).firstOrNull()
+    }
+
+    /**
+     * All grants with their positions, for [TaskBookingGrantCache]. No access check.
+     */
+    internal fun selectAllWithPositions(): List<TaskBookingGrantDO> {
+        return persistenceService.executeQuery(
+            "SELECT DISTINCT g FROM TaskBookingGrantDO g LEFT JOIN FETCH g.positions",
+            TaskBookingGrantDO::class.java,
         )
     }
 
     companion object {
         const val ERROR_END_BEFORE_START = "task.bookingGrant.error.endBeforeStart"
         const val ERROR_INVALID_KOST2 = "task.bookingGrant.error.invalidKost2"
+        const val ERROR_NO_TASK = "task.bookingGrant.error.noTask"
         const val ERROR_PERIOD_NOT_SET = "task.bookingGrant.error.periodNotSet"
         const val ERROR_TASK_NOT_BOOKABLE = "task.bookingGrant.error.taskNotBookable"
-        const val ERROR_TASK_OR_USER_CHANGED = "task.bookingGrant.error.taskOrUserChanged"
+        const val ERROR_TASK_TWICE = "task.bookingGrant.error.taskTwice"
+        const val ERROR_USER_CHANGED = "task.bookingGrant.error.userChanged"
         const val ERROR_USER_NOT_SET = "task.bookingGrant.error.userNotSet"
 
         private val DEFAULT_SORT_PROPERTIES = arrayOf(SortProperty("validUntil", SortOrder.DESCENDING))

@@ -34,15 +34,15 @@ import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessDao
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.AccessType
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
- * Ad hoc booking grants: the user of a grant books own time sheets on exactly the granted task within the period,
- * without any group; who may edit the time sheets of others on the task grants; an invitation link is accepted by
- * its user only.
+ * Ad hoc booking grants: the users of a grant book own time sheets on exactly its tasks within the period, without
+ * any group; who may edit the time sheets of others on all of its tasks grants.
  */
 class TaskBookingGrantTest : AbstractTestBase() {
     @Autowired
@@ -63,25 +63,32 @@ class TaskBookingGrantTest : AbstractTestBase() {
     private class Fixture(
         val project: TaskDO,
         val granted: TaskDO,
+        val second: TaskDO,
         val sibling: TaskDO,
+        /** Not below the project: its manager may not grant on it. */
+        val foreign: TaskDO,
         val manager: PFUserDO,
         val helper: PFUserDO,
+        val helper2: PFUserDO,
         val other: PFUserDO,
     )
 
     /**
-     * A project with two work packages, a manager with all rights on it (foreign time sheets included), and two
-     * users without any group: the helper and somebody else.
+     * A project with three work packages, a manager with all rights on it (foreign time sheets included), and three
+     * users without any group: two helpers and somebody else.
      */
     private fun createFixture(prefix: String): Fixture {
         lateinit var fixture: Fixture
         logon(TEST_ADMIN_USER)
         persistenceService.runInTransaction { _ ->
-            val project = initTestDB.addTask("$prefix", "root")
+            val project = initTestDB.addTask(prefix, "root")
             val granted = initTestDB.addTask("$prefix.granted", prefix)
+            val second = initTestDB.addTask("$prefix.second", prefix)
             val sibling = initTestDB.addTask("$prefix.sibling", prefix)
+            val foreign = initTestDB.addTask("$prefix-foreign", "root")
             val manager = initTestDB.addUser("$prefix-manager")
             val helper = initTestDB.addUser("$prefix-helper")
+            val helper2 = initTestDB.addUser("$prefix-helper2")
             val other = initTestDB.addUser("$prefix-other")
             val group = initTestDB.addGroup("$prefix-managers", manager.username!!)
             val access = initTestDB.createGroupTaskAccess(group, project)
@@ -90,25 +97,27 @@ class TaskBookingGrantTest : AbstractTestBase() {
             }
             access.recursive = true
             accessDao.update(access, checkAccess = false)
-            fixture = Fixture(project, granted, sibling, manager, helper, other)
+            fixture = Fixture(project, granted, second, sibling, foreign, manager, helper, helper2, other)
         }
         return fixture
     }
 
     private fun grant(
         fixture: Fixture,
-        asInvitation: Boolean = false,
+        users: List<PFUserDO> = listOf(fixture.helper),
+        tasks: List<TaskDO> = listOf(fixture.granted),
         validFrom: PFDay = PFDay.now().minusDays(5),
         validUntil: PFDay = PFDay.now().plusDays(5),
         grantedBy: PFUserDO = fixture.manager,
-    ): TaskBookingGrantService.GrantResult {
+    ): List<TaskBookingGrantDO> {
         logon(grantedBy)
-        val obj = TaskBookingGrantDO()
-        obj.task = fixture.granted
-        obj.user = fixture.helper
-        obj.validFrom = validFrom.localDate
-        obj.validUntil = validUntil.localDate
-        return taskBookingGrantService.grant(obj, asInvitation)
+        return taskBookingGrantService.grant(
+            userIds = users.map { it.id!! },
+            positions = tasks.map { TaskBookingGrantService.Position(it.id!!) },
+            validFrom = validFrom.localDate,
+            validUntil = validUntil.localDate,
+            comment = null,
+        )
     }
 
     /** A sheet of the given user, the given number of days ago, 8:00 - 9:00. */
@@ -169,21 +178,101 @@ class TaskBookingGrantTest : AbstractTestBase() {
     }
 
     @Test
+    fun `several users and tasks give one grant per user with all tasks`() {
+        val fixture = createFixture("bg-multi")
+        val grants = grant(
+            fixture,
+            users = listOf(fixture.helper, fixture.helper2),
+            tasks = listOf(fixture.granted, fixture.second),
+        )
+        Assertions.assertEquals(2, grants.size)
+        Assertions.assertEquals(setOf(fixture.helper.id, fixture.helper2.id), grants.map { it.user?.id }.toSet())
+        listOf(fixture.helper, fixture.helper2).forEach { user ->
+            Assertions.assertTrue(mayInsert(user, sheet(user, fixture.granted)))
+            Assertions.assertTrue(mayInsert(user, sheet(user, fixture.second)))
+            Assertions.assertFalse(mayInsert(user, sheet(user, fixture.sibling)))
+        }
+        val stored = taskBookingGrantDao.selectByTasks(listOf(fixture.second.id!!))
+        Assertions.assertEquals(2, stored.size)
+        stored.forEach { grant ->
+            Assertions.assertEquals(
+                setOf(fixture.granted.id, fixture.second.id),
+                grant.positions!!.map { it.task?.id }.toSet(),
+            )
+        }
+        val badges = taskBookingGrantCache.getCurrentGrantsOnTask(fixture.second.id)
+        Assertions.assertEquals(setOf(fixture.helper.id, fixture.helper2.id), badges.map { it.userId }.toSet())
+        Assertions.assertTrue(taskBookingGrantCache.getCurrentGrantsOnTask(fixture.sibling.id).isEmpty())
+    }
+
+    @Test
+    fun `nothing is granted if one task may not be granted on`() {
+        val fixture = createFixture("bg-all")
+        assertThrows<AccessException> {
+            grant(fixture, users = listOf(fixture.helper, fixture.helper2), tasks = listOf(fixture.granted, fixture.foreign))
+        }
+        Assertions.assertTrue(taskBookingGrantDao.selectByTasks(listOf(fixture.granted.id!!)).isEmpty())
+        Assertions.assertFalse(mayInsert(fixture.helper, sheet(fixture.helper, fixture.granted)))
+        // No task, no user, a task twice: refused as well.
+        assertThrows<UserException> { grant(fixture, tasks = emptyList()) }
+        assertThrows<UserException> { grant(fixture, users = emptyList()) }
+        assertThrows<UserException> { grant(fixture, tasks = listOf(fixture.granted, fixture.granted)) }
+    }
+
+    @Test
+    fun `cost units of a task restrict its bookings`() {
+        val today = PFDay.now().localDate
+        // In memory only: the cache's rule, without a project with cost units in the test data.
+        val grant = TaskBookingGrantDO().also {
+            it.id = 987654321L
+            it.user = PFUserDO().also { user -> user.id = 987654321L }
+            it.validFrom = today.minusDays(1)
+            it.validUntil = today.plusDays(1)
+            it.addPosition(TaskBookingGrantTaskDO().also { pos ->
+                pos.task = TaskDO().also { task -> task.id = 1001L }
+                pos.kost2IdSet = setOf(1L, 2L)
+            })
+            it.addPosition(TaskBookingGrantTaskDO().also { pos ->
+                pos.task = TaskDO().also { task -> task.id = 1002L }
+            })
+        }
+        // Loaded first: a later first load would replace the grant only known in memory.
+        taskBookingGrantCache.getCurrentGrantsOnTask(1001L)
+        taskBookingGrantCache.afterInsertOrModify(grant, OperationType.INSERT)
+        fun allows(taskId: Long, kost2Id: Long?) =
+            taskBookingGrantCache.allows(987654321L, taskId, OperationType.INSERT, today, today, kost2Id)
+        Assertions.assertTrue(allows(1001L, 1L))
+        Assertions.assertTrue(allows(1001L, 2L))
+        Assertions.assertFalse(allows(1001L, 3L), "Not a cost unit of the position.")
+        Assertions.assertFalse(allows(1001L, null))
+        Assertions.assertTrue(allows(1002L, 3L), "No cost units: every one of the task.")
+        Assertions.assertFalse(allows(1003L, 1L), "Not a task of the grant.")
+        Assertions.assertEquals(setOf(1L, 2L), taskBookingGrantCache.getAllowedKost2Ids(987654321L, 1001L))
+        Assertions.assertNull(taskBookingGrantCache.getAllowedKost2Ids(987654321L, 1002L))
+        // Revoked: nothing to book any more.
+        grant.deleted = true
+        taskBookingGrantCache.afterInsertOrModify(grant, OperationType.UPDATE)
+        Assertions.assertFalse(allows(1002L, 3L))
+    }
+
+    @Test
     fun `revoked or expired grant keeps the own time sheets readable only`() {
         val fixture = createFixture("bg-revoke")
-        val result = grant(fixture)
+        val granted = grant(fixture, tasks = listOf(fixture.granted, fixture.second)).single()
         logon(fixture.helper)
         val own = sheet(fixture.helper, fixture.granted)
         timesheetDao.insert(own)
 
         logon(fixture.manager)
-        taskBookingGrantDao.markAsDeleted(taskBookingGrantDao.find(result.grant.id)!!)
+        taskBookingGrantDao.markAsDeleted(taskBookingGrantDao.selectWithPositions(granted.id!!)!!)
 
         val stored = timesheetDao.find(own.id, checkAccess = false)!!
         Assertions.assertTrue(timesheetDao.hasUserSelectAccess(fixture.helper, stored, false))
         Assertions.assertFalse(mayInsert(fixture.helper, sheet(fixture.helper, fixture.granted, hour = 12)))
+        Assertions.assertFalse(mayInsert(fixture.helper, sheet(fixture.helper, fixture.second, hour = 12)))
         stored.description = "changed"
         Assertions.assertFalse(timesheetDao.hasUpdateAccess(fixture.helper, stored, own, false))
+        Assertions.assertTrue(taskBookingGrantCache.getCurrentGrantsOnTask(fixture.granted.id).isEmpty())
 
         // An expired grant: nothing to book, not even within its former period.
         val expired = createFixture("bg-expired")
@@ -193,88 +282,64 @@ class TaskBookingGrantTest : AbstractTestBase() {
     }
 
     @Test
-    fun `only who may edit foreign time sheets on the task grants`() {
+    fun `only who may edit foreign time sheets on all tasks grants and revokes`() {
         val fixture = createFixture("bg-right")
         // Refused for an ordinary user, even one with groups (TEST_USER), and for the helper itself.
         assertThrows<AccessException> { grant(fixture, grantedBy = getUser(TEST_USER)) }
         assertThrows<AccessException> { grant(fixture, grantedBy = fixture.helper) }
         // Allowed for the manager of the project and the finance group.
-        Assertions.assertNotNull(grant(fixture).grant.id)
-        Assertions.assertNotNull(grant(fixture, grantedBy = getUser(TEST_FINANCE_USER)).grant.id)
+        val byManager = grant(fixture).single()
+        Assertions.assertNotNull(byManager.id)
+        val byFinance = grant(fixture, tasks = listOf(fixture.granted, fixture.foreign), grantedBy = getUser(TEST_FINANCE_USER))
+            .single()
+        // Who granted is the user of the insert in the history.
+        Assertions.assertEquals(
+            mapOf(byManager.id to fixture.manager.id, byFinance.id to getUser(TEST_FINANCE_USER).id),
+            taskBookingGrantDao.selectGrantedByUserIds(listOf(byManager.id!!, byFinance.id!!)),
+        )
+
+        // The manager may not revoke a grant with a task outside the project.
+        logon(fixture.manager)
+        assertThrows<AccessException> {
+            taskBookingGrantDao.markAsDeleted(taskBookingGrantDao.selectWithPositions(byFinance.id!!)!!)
+        }
 
         // The helper reads the own grant, but doesn't change it.
         logon(fixture.helper)
-        val own = taskBookingGrantDao.find(taskBookingGrantDao.selectByTask(fixture.granted.id!!).first().id)!!
+        val ownId = taskBookingGrantDao.selectByTasks(listOf(fixture.granted.id!!)).first().id
+        val own = taskBookingGrantDao.find(ownId)!!
         own.validUntil = PFDay.now().plusDays(100).localDate
         assertThrows<AccessException> { taskBookingGrantDao.update(own) }
         assertThrows<AccessException> { taskBookingGrantDao.markAsDeleted(own) }
         // The other user doesn't even read it.
         logon(fixture.other)
-        assertThrows<AccessException> { taskBookingGrantDao.find(own.id) }
+        assertThrows<AccessException> { taskBookingGrantDao.find(ownId) }
     }
 
     @Test
-    fun `grant on a task can't be moved to another task or user`() {
-        val fixture = createFixture("bg-move")
-        val result = grant(fixture)
-        logon(fixture.manager)
-        val stored = taskBookingGrantDao.find(result.grant.id)!!
-        stored.task = fixture.sibling
-        assertThrows<UserException> { taskBookingGrantDao.update(stored) }
-    }
-
-    @Test
-    fun `invitation link is accepted by its user only, once`() {
-        val fixture = createFixture("bg-invite")
-        val result = grant(fixture, asInvitation = true)
-        val url = result.invitationUrl!!
-        val token = url.substringAfter("token=")
-        Assertions.assertTrue(token.length >= 32)
-        Assertions.assertNull(result.grant.acceptedAt)
-        Assertions.assertNotEquals(token, result.grant.invitationTokenHash, "Only the hash is stored.")
-        Assertions.assertFalse(
-            mayInsert(fixture.helper, sheet(fixture.helper, fixture.granted)),
-            "No access before the invitation is accepted.",
-        )
-
-        // Somebody else (who got the forwarded link) learns nothing and accepts nothing.
-        logon(fixture.other)
-        Assertions.assertNull(taskBookingGrantService.getInvitation(token))
-        assertThrows<UserException> { taskBookingGrantService.accept(token) }
-        Assertions.assertFalse(mayInsert(fixture.other, sheet(fixture.other, fixture.granted)))
-
-        logon(fixture.helper)
-        Assertions.assertNotNull(taskBookingGrantService.getInvitation(token))
-        taskBookingGrantService.accept(token)
-        Assertions.assertTrue(mayInsert(fixture.helper, sheet(fixture.helper, fixture.granted)))
-        // Used once.
-        assertThrows<UserException> { taskBookingGrantService.accept(token) }
-        assertThrows<UserException> { taskBookingGrantService.accept("unknown-token") }
-    }
-
-    @Test
-    fun `the mail names the task path, the period and the link`() {
+    fun `the mail names the task paths, the period and the links`() {
         val fixture = createFixture("bg-mail")
-        val direct = grant(fixture)
-        taskBookingGrantService.prepareMail(direct.grant, fixture.helper, null).let { mail ->
+        val single = grant(fixture).single()
+        taskBookingGrantService.prepareMail(single, fixture.helper, fixture.manager).let { mail ->
             Assertions.assertEquals(fixture.helper.email, mail.to.single().address)
             Assertions.assertTrue(mail.subject!!.contains("bg-mail | bg-mail.granted"), mail.subject)
             Assertions.assertTrue(mail.content!!.contains("next/timesheet/new?taskId=${fixture.granted.id}"), mail.content)
             Assertions.assertTrue(mail.content!!.contains(PFDay.now().minusDays(5).isoString), mail.content)
         }
-        val invitation = grant(fixture, asInvitation = true)
-        taskBookingGrantService.prepareMail(invitation.grant, fixture.helper, invitation.invitationUrl).let { mail ->
-            Assertions.assertTrue(mail.content!!.contains(invitation.invitationUrl!!), mail.content)
+        val multi = grant(fixture, tasks = listOf(fixture.granted, fixture.second)).single()
+        taskBookingGrantService.prepareMail(multi, fixture.helper, fixture.manager).let { mail ->
+            Assertions.assertTrue(mail.content!!.contains("bg-mail | bg-mail.second"), mail.content)
+            Assertions.assertTrue(mail.content!!.contains("next/timesheet/new?taskId=${fixture.second.id}"), mail.content)
         }
     }
 
     @Test
-    fun `the tree shows the granted task and its ancestors only`() {
+    fun `the tree shows the granted tasks and their ancestors only`() {
         val fixture = createFixture("bg-tree")
         Assertions.assertTrue(taskBookingGrantCache.getVisiblePathTaskIds(fixture.helper.id).isEmpty())
-        grant(fixture)
+        grant(fixture, tasks = listOf(fixture.granted, fixture.second))
         val visible = taskBookingGrantCache.getVisiblePathTaskIds(fixture.helper.id)
-        Assertions.assertEquals(setOf(fixture.project.id, fixture.granted.id), visible)
+        Assertions.assertEquals(setOf(fixture.project.id, fixture.granted.id, fixture.second.id), visible)
         Assertions.assertTrue(taskBookingGrantCache.getVisiblePathTaskIds(fixture.other.id).isEmpty())
     }
 }

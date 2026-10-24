@@ -19,6 +19,9 @@ type TreeStatus = "OPENED" | "CLOSED" | "LEAF";
  * subtask". Here rather than in DataTable's `rowActions`, which is a slot after the *last* column:
  * this cell is the tree's own, usually pinned, so the button stays beside the title it belongs to
  * instead of sitting ten columns away and scrolling out of sight.
+ *
+ * [badge] stands right behind the title as well, but always visible: a mark of the node, not something to
+ * do with it — the task tree's ad hoc booking grants.
  */
 export function TreeCell({
   spec,
@@ -28,7 +31,12 @@ export function TreeCell({
   highlight,
   onToggle,
   action,
-}: CellRenderProps & { onToggle?: () => void; action?: React.ReactNode }) {
+  badge,
+}: CellRenderProps & {
+  onToggle?: () => void;
+  action?: React.ReactNode;
+  badge?: React.ReactNode;
+}) {
   const declared = spec.tooltipPath
     ? getByPath(row, spec.tooltipPath)
     : undefined;
@@ -63,6 +71,12 @@ export function TreeCell({
       <span className="min-w-0 flex-1 truncate" data-tooltip={tooltip}>
         <HighlightedText text={String(value ?? "")} query={highlight} />
       </span>
+      {badge ? (
+        // stopPropagation: a tap on the badge opens its explanation, not the node.
+        <span className="shrink-0" onClick={(e) => e.stopPropagation()}>
+          {badge}
+        </span>
+      ) : null}
       {action ? (
         // Revealed on hover of the row, whose <tr> is the `group` (see DataTableRow) — the same
         // reveal the trailing actions column had. stopPropagation, or the click would reach this

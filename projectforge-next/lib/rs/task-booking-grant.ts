@@ -2,9 +2,10 @@ import { request } from "./client";
 import type { TaskKost2 } from "./task";
 
 /**
- * Ad hoc booking grants of a task, `TaskBookingGrantRest`: a user may book own time sheets on exactly this
- * task for a period, without being member of a group. Who may grant is the server's decision (who may edit
- * the time sheets of others on the task); every endpoint checks it itself.
+ * Ad hoc booking grants of a task and its descendants, `TaskBookingGrantRest`: a user may book own time
+ * sheets on some tasks for a period, without being member of a group. Who may grant is the server's
+ * decision (who may edit the time sheets of others on all tasks of a grant); every endpoint checks it
+ * itself.
  */
 
 /** `TaskBookingGrantRest.Status`. */
@@ -12,9 +13,16 @@ export type TaskBookingGrantStatus =
   | "ACTIVE"
   | "UPCOMING"
   | "EXPIRED"
-  | "PENDING"
-  | "INVITATION_EXPIRED"
   | "REVOKED";
+
+/** A task of a grant, `TaskBookingGrantRest.Position`. */
+export interface TaskBookingGrantPosition {
+  taskId: number;
+  /** From the task of the form down to this task. */
+  path: string;
+  /** The cost units it may be booked on, absent for all. */
+  kost2Titles?: string[];
+}
 
 /** One grant, `TaskBookingGrantRest.Entry`. Dates as ISO `yyyy-MM-dd`. */
 export interface TaskBookingGrant {
@@ -23,57 +31,54 @@ export interface TaskBookingGrant {
   userName?: string;
   validFrom?: string;
   validUntil?: string;
-  kost2Id?: number;
-  kost2Title?: string;
+  positions: TaskBookingGrantPosition[];
+  /** Tasks of the grant the logged-in user doesn't see. */
+  hiddenPositions: number;
   comment?: string;
   grantedByName?: string;
   status: TaskBookingGrantStatus;
   /** Already translated by the backend. */
   statusAsString: string;
+  revocable: boolean;
+}
+
+/** A task a grant may be given on, `TaskBookingGrantRest.GrantableTask`. */
+export interface TaskBookingGrantableTask {
+  taskId: number;
+  path: string;
+  kost2List?: TaskKost2[];
 }
 
 /** `TaskBookingGrantRest.Info`: without `mayGrant` nothing else is sent. */
 export interface TaskBookingGrantInfo {
   mayGrant: boolean;
-  /** Whether time sheets may be booked on the task at all. */
-  bookable?: boolean;
-  kost2List?: TaskKost2[];
+  /** The task itself first (if bookable), then its bookable descendants. */
+  tasks?: TaskBookingGrantableTask[];
+  tasksTruncated?: boolean;
   grants?: TaskBookingGrant[];
 }
 
-export interface TaskBookingGrantRequest {
+export interface TaskBookingGrantPositionRequest {
   taskId: number;
-  userId: number | null;
+  /** Empty or absent for all cost units of the task. */
+  kost2Ids: number[];
+}
+
+export interface TaskBookingGrantRequest {
+  /** The task of the form: the answer is its info. */
+  taskId: number;
+  userIds: number[];
+  positions: TaskBookingGrantPositionRequest[];
   validFrom: string | null;
   validUntil: string | null;
-  kost2Id: number | null;
   comment: string | null;
-  asInvitation: boolean;
 }
 
 /** `TaskBookingGrantRest.Result`: a refusal comes with its translated message, not as an HTTP error. */
 export interface TaskBookingGrantResult {
   success: boolean;
   message?: string;
-  /** The link of an invitation, only known in this answer (the token isn't stored). */
-  invitationUrl?: string;
   info?: TaskBookingGrantInfo;
-}
-
-/** What the invited user sees of the grant before accepting it, `TaskBookingGrantRest.Invitation`. */
-export interface TaskBookingInvitation {
-  taskId: number;
-  taskPath: string;
-  validFrom?: string;
-  validUntil?: string;
-  grantedByName?: string;
-  comment?: string;
-}
-
-export interface TaskBookingInvitationAcceptResult {
-  success: boolean;
-  message?: string;
-  taskId?: number;
 }
 
 export function fetchTaskBookingGrants(
@@ -96,32 +101,13 @@ export function grantTaskBooking(
   });
 }
 
+/** @param taskId The task of the form: the answer is its info. */
 export function revokeTaskBookingGrant(
-  id: number
+  id: number,
+  taskId: number
 ): Promise<TaskBookingGrantResult> {
   return request<TaskBookingGrantResult>(
-    `/rs/taskBookingGrant/revoke?id=${id}`,
+    `/rs/taskBookingGrant/revoke?id=${id}&taskId=${taskId}`,
     { method: "POST" }
-  );
-}
-
-/** A 404 for an invalid, expired or somebody else's token: the caller shows that one message. */
-export function fetchTaskBookingInvitation(
-  token: string,
-  signal?: AbortSignal
-): Promise<TaskBookingInvitation> {
-  return request<TaskBookingInvitation>(
-    `/rs/taskBookingGrant/invitation?token=${encodeURIComponent(token)}`,
-    { method: "GET" },
-    signal
-  );
-}
-
-export function acceptTaskBookingInvitation(
-  token: string
-): Promise<TaskBookingInvitationAcceptResult> {
-  return request<TaskBookingInvitationAcceptResult>(
-    "/rs/taskBookingGrant/accept",
-    { method: "POST", body: JSON.stringify({ token }) }
   );
 }

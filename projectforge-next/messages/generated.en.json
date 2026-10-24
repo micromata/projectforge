@@ -1019,6 +1019,9 @@
   "color": {
     "error": {
       "unknownFormat": "Color code in unsupported format. Supported hex formats: #abc or #abcdef"
+    },
+    "picker": {
+      "custom": "Custom colour"
     }
   },
   "columns": {
@@ -1223,6 +1226,34 @@
           },
           "selectRow": "Select a row to see its months in the chart.",
           "tasks": "Structure elements"
+        },
+        "bubbles": {
+          "_": "Contribution margin bubbles",
+          "anonymous": "Other projects (anonymous)",
+          "grouping": {
+            "_": "One bubble per",
+            "CUSTOMER": "Customer",
+            "CUSTOMER_GROUP": "Customer group",
+            "PROJECT": "Project",
+            "PROJECT_GROUP": "Project group",
+            "tooltip": "Projects without a project or customer group get a bubble of their own (customer group: one per customer)."
+          },
+          "legend": {
+            "anonymous": "pale: other projects (anonymous)",
+            "default": "without business unit colour"
+          },
+          "noRevenue": "no revenue",
+          "others": {
+            "_": "Show other projects anonymously",
+            "tooltip": "Also shows, for comparison, the projects the filter selects (e.g. all of a business unit) whose contribution margin you may not see: pale, without names, grouped the same way."
+          },
+          "own": "Own projects",
+          "projectCount": "Projects",
+          "showTitles": {
+            "_": "Show titles",
+            "tooltip": "Labels the own bubbles with their short title and DB %: the name of the group or customer, for a single project its short name (else its name). Switched off, the names are in the tooltip only."
+          },
+          "size": "Bubble size: DB1"
         },
         "config": {
           "addAssignment": "Add assignment",
@@ -1563,6 +1594,11 @@
     },
     "businessUnits": {
       "add": "Add business unit",
+      "color": {
+        "_": "Colour",
+        "remove": "Remove colour",
+        "tooltip": "The colour of the bubbles of the business unit in the contribution margin bubble chart of the statistics. Bubbles of several or uncoloured business units keep the default colour."
+      },
       "empty": "No business units yet.",
       "groups": "Customer groups",
       "members": "Covers ({arg0})",
@@ -5269,61 +5305,59 @@
     },
     "assignedUser": "Responsible user",
     "bookingGrant": {
-      "acceptedAt": "Accepted",
       "add": "Grant booking",
-      "asInvitation": {
-        "_": "As invitation link",
-        "tooltip": "The grant takes effect once the colleague accepts the link after logging in. The link is valid for 7 days and only for this user."
+      "badge": {
+        "_": "{arg0} ad hoc booking(s)",
+        "upcoming": "from {arg0}"
       },
       "error": {
         "endBeforeStart": "The end of the period is before its start.",
-        "invalidKost2": "The cost unit isn't one of the structure element.",
-        "invitationInvalid": "This invitation is invalid, expired or not meant for you.",
+        "invalidKost2": "A cost unit isn't one of its structure element.",
+        "noTask": "Please select at least one structure element.",
         "periodNotSet": "Please enter the period.",
         "taskNotBookable": "No time sheets can be booked on this structure element.",
-        "taskOrUserChanged": "The structure element and the user of a grant can't be changed.",
-        "userNotSet": "Please select the user."
+        "taskTwice": "A structure element is selected twice.",
+        "userChanged": "The user of a grant can't be changed.",
+        "userNotSet": "Please select at least one user."
       },
       "grantedBy": "Granted by",
-      "invitation": {
-        "accept": "Accept invitation",
-        "accepted": "Invitation accepted: you can book your time sheets on this structure element now.",
-        "bookNow": "Book time sheet",
-        "text": "You are invited to book your own time sheets on this structure element.",
-        "title": "Invitation to book time sheets"
-      },
-      "invitationExpiresAt": "Invitation valid until",
-      "invitationUrl": "Invitation link (also sent by mail)",
       "kost2": {
-        "all": "All cost units of the structure element"
+        "all": "All cost units",
+        "selected": "{arg0} cost unit(s)"
       },
       "mail": {
         "greeting": "Hello {arg0},",
-        "invitation": "Please accept the invitation by this link (after logging in):",
-        "link": "You can book your time sheets here:",
-        "subject": "Booking time sheets on {arg0}",
-        "text": "{arg0} has granted you the booking of own time sheets on \"{arg1}\" for the period {arg2}."
+        "subject": {
+          "_": "Booking time sheets on {arg0}",
+          "multiple": "Booking time sheets on {arg0} structure elements"
+        },
+        "text": "{arg0} has granted you the booking of own time sheets for the period {arg1} on the following structure elements. You can book your time sheets by the links:"
       },
       "none": "No ad hoc bookings granted.",
+      "positions": {
+        "_": "Structure elements",
+        "add": "Add sub element",
+        "hidden": "and {arg0} more structure element(s)",
+        "truncated": "Only the first {arg0} sub elements are offered. For a deeper one, open its own structure element."
+      },
       "revoke": {
         "_": "Revoke",
-        "confirm": "Revoke this grant? The time sheets booked so far are kept."
+        "confirm": "Revoke this grant on all its structure elements? The time sheets booked so far are kept."
       },
       "status": {
         "_": "Status",
         "ACTIVE": "Active",
         "EXPIRED": "Expired",
-        "INVITATION_EXPIRED": "Invitation expired",
-        "PENDING": "Invitation open",
         "REVOKED": "Revoked",
         "UPCOMING": "Upcoming"
       },
+      "users": "Users",
       "validFrom": "Valid from",
       "validUntil": "Valid until"
     },
     "bookingGrants": {
       "_": "Ad hoc bookings",
-      "info": "Colleagues helping out may book their own time sheets on this structure element for a period, without being member of a group. They see nothing else of the project: only this structure element and the titles of its ancestors."
+      "info": "Colleagues helping out may book their own time sheets on this structure element or its sub elements for a period, without being member of a group. They see nothing else of the project: only the granted structure elements and the titles of their ancestors."
     },
     "consumption": "Consumption",
     "deleted": "deleted",

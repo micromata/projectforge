@@ -120,9 +120,23 @@ export interface TaskNode {
    * granted task (`GRANT`, bookable) or one of its ancestors (`PATH`, shown by its title, not selectable).
    */
   bookingGrant?: "GRANT" | "PATH";
+  /**
+   * The current ad hoc booking grants on the node (`TaskServicesRest.BookingGrantBadge`), only for who may
+   * grant on it and not in the select popover.
+   */
+  bookingGrants?: TaskBookingGrantBadgeEntry[];
   consumption?: unknown;
   /** Index signature so the node can be read as a table row (see DataObject). */
   [field: string]: unknown;
+}
+
+/** A current booking grant on a tree node. Dates as ISO `yyyy-MM-dd`. */
+export interface TaskBookingGrantBadgeEntry {
+  userName?: string;
+  validFrom: string;
+  validUntil: string;
+  /** Its period hasn't begun yet. */
+  upcoming: boolean;
 }
 
 /**

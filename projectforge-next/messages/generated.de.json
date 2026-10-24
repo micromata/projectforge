@@ -1019,6 +1019,9 @@
   "color": {
     "error": {
       "unknownFormat": "Farbcode kann nicht verarbeitet werden. Unterstützte Hex-Farbformate: #abc or #abcdef"
+    },
+    "picker": {
+      "custom": "Eigene Farbe"
     }
   },
   "columns": {
@@ -1223,6 +1226,34 @@
           },
           "selectRow": "Eine Zeile auswählen, um ihre Monate im Diagramm zu sehen.",
           "tasks": "Strukturelemente"
+        },
+        "bubbles": {
+          "_": "Deckungsbeitrag-Bubbles",
+          "anonymous": "Andere Projekte (anonym)",
+          "grouping": {
+            "_": "Eine Bubble je",
+            "CUSTOMER": "Kunde",
+            "CUSTOMER_GROUP": "Kundengruppe",
+            "PROJECT": "Projekt",
+            "PROJECT_GROUP": "Projektgruppe",
+            "tooltip": "Projekte ohne Projekt- bzw. Kundengruppe bekommen eine eigene Bubble (Kundengruppe: eine je Kunde)."
+          },
+          "legend": {
+            "anonymous": "blass: andere Projekte (anonym)",
+            "default": "ohne Farbe der Business Unit"
+          },
+          "noRevenue": "kein Umsatz",
+          "others": {
+            "_": "Andere Projekte anonym anzeigen",
+            "tooltip": "Zeigt zum Vergleich auch die Projekte, die der Filter auswählt (z. B. alle einer Business Unit), deren Deckungsbeitrag sonst nicht sichtbar ist: blass, ohne Namen, gleich gruppiert."
+          },
+          "own": "Eigene Projekte",
+          "projectCount": "Projekte",
+          "showTitles": {
+            "_": "Titel einblenden",
+            "tooltip": "Beschriftet die eigenen Bubbles mit Kurztitel und DB %: dem Namen der Gruppe bzw. des Kunden, bei einem einzelnen Projekt mit dem Kurzbezeichner (sonst dem Namen). Ausgeschaltet stehen die Namen nur im Tooltip."
+          },
+          "size": "Bubble-Größe: DB1"
         },
         "config": {
           "addAssignment": "Zuordnung hinzufügen",
@@ -1563,6 +1594,11 @@
     },
     "businessUnits": {
       "add": "Business Unit hinzufügen",
+      "color": {
+        "_": "Farbe",
+        "remove": "Farbe entfernen",
+        "tooltip": "Die Farbe der Bubbles der Business Unit im Deckungsbeitrags-Bubble-Diagramm der Statistik. Bubbles mehrerer oder nicht eingefärbter Business Units behalten die Standardfarbe."
+      },
       "empty": "Noch keine Business Units.",
       "groups": "Kundengruppen",
       "members": "Umfasst ({arg0})",
@@ -5269,61 +5305,59 @@
     },
     "assignedUser": "Verantwortliche:r",
     "bookingGrant": {
-      "acceptedAt": "Angenommen",
       "add": "Buchung freigeben",
-      "asInvitation": {
-        "_": "Als Einladungslink",
-        "tooltip": "Die Freigabe gilt erst, wenn der Link nach dem Login angenommen wurde. Der Link ist 7 Tage gültig und nur für die eingeladene Person verwendbar."
+      "badge": {
+        "_": "{arg0} Ad-hoc-Buchung(en)",
+        "upcoming": "ab {arg0}"
       },
       "error": {
         "endBeforeStart": "Das Ende des Zeitraums liegt vor seinem Beginn.",
-        "invalidKost2": "Die Kost2 gehört nicht zu diesem Strukturelement.",
-        "invitationInvalid": "Diese Einladung ist ungültig, abgelaufen oder nicht für dich bestimmt.",
+        "invalidKost2": "Eine Kost2 gehört nicht zu ihrem Strukturelement.",
+        "noTask": "Bitte mindestens ein Strukturelement auswählen.",
         "periodNotSet": "Bitte den Zeitraum angeben.",
         "taskNotBookable": "Auf dieses Strukturelement können keine Zeitberichte gebucht werden.",
-        "taskOrUserChanged": "Strukturelement und Person einer Freigabe können nicht geändert werden.",
-        "userNotSet": "Bitte die Person auswählen."
+        "taskTwice": "Ein Strukturelement ist doppelt ausgewählt.",
+        "userChanged": "Die Person einer Freigabe kann nicht geändert werden.",
+        "userNotSet": "Bitte mindestens eine Person auswählen."
       },
       "grantedBy": "Freigegeben von",
-      "invitation": {
-        "accept": "Einladung annehmen",
-        "accepted": "Einladung angenommen: Auf diesem Strukturelement können jetzt eigene Zeitberichte gebucht werden.",
-        "bookNow": "Zeitbericht buchen",
-        "text": "Einladung, eigene Zeitberichte auf diesem Strukturelement zu buchen.",
-        "title": "Einladung zum Buchen von Zeitberichten"
-      },
-      "invitationExpiresAt": "Einladung gültig bis",
-      "invitationUrl": "Einladungslink (auch per Mail verschickt)",
       "kost2": {
-        "all": "Alle Kost2 des Strukturelements"
+        "all": "Alle Kost2",
+        "selected": "{arg0} Kost2"
       },
       "mail": {
         "greeting": "Hallo {arg0},",
-        "invitation": "Bitte nimm die Einladung über diesen Link an (nach dem Login):",
-        "link": "Hier kannst du deine Zeitberichte buchen:",
-        "subject": "Zeitberichte buchen auf {arg0}",
-        "text": "{arg0} hat dir das Buchen eigener Zeitberichte auf \"{arg1}\" für den Zeitraum {arg2} freigegeben."
+        "subject": {
+          "_": "Zeitberichte buchen auf {arg0}",
+          "multiple": "Zeitberichte buchen auf {arg0} Strukturelementen"
+        },
+        "text": "{arg0} hat dir das Buchen eigener Zeitberichte für den Zeitraum {arg1} auf den folgenden Strukturelementen freigegeben. Über die Links kannst du deine Zeitberichte buchen:"
       },
       "none": "Keine Ad-hoc-Buchungen freigegeben.",
+      "positions": {
+        "_": "Strukturelemente",
+        "add": "Unterelement hinzufügen",
+        "hidden": "und {arg0} weitere(s) Strukturelement(e)",
+        "truncated": "Angeboten werden nur die ersten {arg0} Unterelemente. Ein tieferes Unterelement über sein eigenes Strukturelement freigeben."
+      },
       "revoke": {
         "_": "Widerrufen",
-        "confirm": "Diese Freigabe widerrufen? Die bisher gebuchten Zeitberichte bleiben erhalten."
+        "confirm": "Diese Freigabe auf allen ihren Strukturelementen widerrufen? Die bisher gebuchten Zeitberichte bleiben erhalten."
       },
       "status": {
         "_": "Status",
         "ACTIVE": "Aktiv",
         "EXPIRED": "Abgelaufen",
-        "INVITATION_EXPIRED": "Einladung abgelaufen",
-        "PENDING": "Einladung offen",
         "REVOKED": "Widerrufen",
         "UPCOMING": "Anstehend"
       },
+      "users": "Personen",
       "validFrom": "Gültig ab",
       "validUntil": "Gültig bis"
     },
     "bookingGrants": {
       "_": "Ad-hoc-Buchungen",
-      "info": "Aushelfende Kolleg:innen können hier für einen Zeitraum eigene Zeitberichte buchen, ohne Mitglied einer Gruppe zu sein. Sie sehen nichts weiter vom Projekt: nur dieses Strukturelement und die Titel der übergeordneten Elemente."
+      "info": "Aushelfende Kolleg:innen können hier für einen Zeitraum eigene Zeitberichte auf diesem Strukturelement oder seinen Unterelementen buchen, ohne Mitglied einer Gruppe zu sein. Sie sehen nichts weiter vom Projekt: nur die freigegebenen Strukturelemente und die Titel der übergeordneten Elemente."
     },
     "consumption": "Verbrauch",
     "deleted": "gelöscht",

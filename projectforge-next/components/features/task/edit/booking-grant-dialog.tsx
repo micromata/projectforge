@@ -13,63 +13,68 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
+import { EntityMultiAutocomplete } from "@/components/shared/entity-multi-autocomplete";
 import { DateInput } from "@/components/shared/date-input";
 import { FormAlert } from "@/components/shared/form-alert";
-import { PersonSelect } from "@/components/shared/person-select";
 import { Spinner } from "@/components/shared/spinner";
 import { useFormatContext } from "@/hooks/use-format";
 import { plusDays } from "@/lib/date-period-math";
-import type { TaskKost2 } from "@/lib/rs/task";
 import {
   grantTaskBooking,
+  type TaskBookingGrantInfo,
   type TaskBookingGrantResult,
 } from "@/lib/rs/task-booking-grant";
 import { todayOf } from "@/lib/user-zone";
+import { BookingGrantField } from "./booking-grant-field";
 import {
-  BookingGrantField,
-  BookingGrantInvitationCheckbox,
-} from "./booking-grant-field";
-import { BookingGrantKost2Select } from "./booking-grant-kost2-select";
+  BookingGrantPositions,
+  type BookingGrantPositionValue,
+} from "./booking-grant-positions";
 
 /**
- * Grants a user the booking of own time sheets on the task: the user, the period, optionally one cost unit
- * and a comment, directly or as an invitation link only this user may accept.
+ * Grants users the booking of own time sheets: any number of users, the structure elements (the task and
+ * any of its sub elements, each with its own cost units), the period and a comment. One grant per user,
+ * active right away; each user is informed by mail.
  *
  * Written right away through its own endpoint, not with the task form around it. What is wrong is the
  * backend's to say: its message is shown above the fields.
  */
 export function BookingGrantDialog({
   taskId,
-  kost2List,
+  info,
   onDone,
   onClose,
 }: {
   taskId: number;
-  kost2List: TaskKost2[];
+  info: TaskBookingGrantInfo;
   onDone: (result: TaskBookingGrantResult) => void;
   onClose: () => void;
 }) {
   const t = useTranslations();
   const ctx = useFormatContext();
   const today = todayOf(ctx);
-  const [user, setUser] = useState<EntityRef | null>(null);
+  const tasks = info.tasks ?? [];
+  const [users, setUsers] = useState<EntityRef[]>([]);
+  // The task of the form, if it may be booked on: what a grant is about in most cases.
+  const [positions, setPositions] = useState<BookingGrantPositionValue[]>(() =>
+    tasks.some((task) => task.taskId === taskId)
+      ? [{ taskId, kost2Ids: [] }]
+      : []
+  );
   const [validFrom, setValidFrom] = useState<string | null>(today);
   const [validUntil, setValidUntil] = useState<string | null>(
     plusDays(today, 13)
   );
-  const [kost2Id, setKost2Id] = useState<number | null>(null);
   const [comment, setComment] = useState("");
-  const [asInvitation, setAsInvitation] = useState(false);
   const grant = useMutation({
     mutationFn: () =>
       grantTaskBooking({
         taskId,
-        userId: user?.id ?? null,
+        userIds: users.map((user) => user.id),
+        positions,
         validFrom,
         validUntil,
-        kost2Id,
         comment: comment.trim() || null,
-        asInvitation,
       }),
     onSuccess: (result) => result.success && onDone(result),
   });
@@ -84,19 +89,39 @@ export function BookingGrantDialog({
     // Keeps Return inside the dialog from saving the task form around it (see ValidityEntryDialog).
     <div className="contents" onKeyDown={(event) => event.stopPropagation()}>
       <Dialog open onOpenChange={(open) => !open && onClose()}>
-        <DialogContent onOpenAutoFocus={(event) => event.preventDefault()}>
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+          onOpenAutoFocus={(event) => event.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>{t("task.bookingGrant.add")}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4">
             {rejected && <FormAlert tone="error">{rejected}</FormAlert>}
-            <BookingGrantField label={t("user._")} required>
+            <BookingGrantField label={t("task.bookingGrant.users")} required>
               {(ids) => (
-                <PersonSelect
+                <EntityMultiAutocomplete
                   id={ids.controlId}
-                  value={user}
-                  onChange={setUser}
-                  selectMe={false}
+                  url="user/autosearch?search=:search"
+                  value={users}
+                  onChange={setUsers}
+                  removeLabel={(entry) =>
+                    `${t("delete")}: ${entry.displayName}`
+                  }
+                  sorted
+                />
+              )}
+            </BookingGrantField>
+            <BookingGrantField
+              label={t("task.bookingGrant.positions._")}
+              required
+            >
+              {() => (
+                <BookingGrantPositions
+                  tasks={tasks}
+                  truncated={info.tasksTruncated === true}
+                  value={positions}
+                  onChange={setPositions}
                 />
               )}
             </BookingGrantField>
@@ -126,18 +151,6 @@ export function BookingGrantDialog({
                 )}
               </BookingGrantField>
             </div>
-            {kost2List.length > 0 && (
-              <BookingGrantField label={t("fibu.kost2._")}>
-                {(ids) => (
-                  <BookingGrantKost2Select
-                    ids={ids}
-                    kost2List={kost2List}
-                    value={kost2Id}
-                    onChange={setKost2Id}
-                  />
-                )}
-              </BookingGrantField>
-            )}
             <BookingGrantField label={t("comment")}>
               {(ids) => (
                 <Textarea
@@ -148,10 +161,6 @@ export function BookingGrantDialog({
                 />
               )}
             </BookingGrantField>
-            <BookingGrantInvitationCheckbox
-              checked={asInvitation}
-              onChange={setAsInvitation}
-            />
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>

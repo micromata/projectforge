@@ -24,7 +24,8 @@
 package org.projectforge.rest.task
 
 import org.projectforge.business.fibu.KostFormatter
-import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.business.fibu.kost.Kost2DO
+import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.task.bookinggrant.TaskBookingGrantDO
 import org.projectforge.business.task.bookinggrant.TaskBookingGrantDao
@@ -35,27 +36,34 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.util.*
 
 /**
- * Ad hoc booking grants ([TaskBookingGrantDO]) of a task, for the task form of projectforge-next, and the invitation
- * page a granted user accepts a link on.
+ * Ad hoc booking grants ([TaskBookingGrantDO]) of a task and its descendants, for the task form of projectforge-next.
  *
  * Who may grant on a task is the DAO's decision ([TaskBookingGrantDao.mayGrant]): who may edit the time sheets of
- * others on it. Checked by every endpoint for the task stored in the database.
+ * others on it. Checked by every endpoint for the tasks stored in the database, a grant with several tasks needs it on
+ * all of them.
  */
 @RestController
 @RequestMapping("${Rest.URL}/taskBookingGrant")
 class TaskBookingGrantRest {
-    enum class Status { ACTIVE, UPCOMING, EXPIRED, PENDING, INVITATION_EXPIRED, REVOKED }
+    enum class Status { ACTIVE, UPCOMING, EXPIRED, REVOKED }
+
+    /**
+     * A task of a grant.
+     * @param path The titles from the task the info is asked for down to this task, or the whole path for a task
+     * outside of it.
+     * @param kost2Titles The cost units it may be booked on, null for all.
+     */
+    class Position(val taskId: Long, val path: String, val kost2Titles: List<String>?)
 
     class Entry(
         val id: Long,
@@ -63,63 +71,56 @@ class TaskBookingGrantRest {
         val userName: String?,
         val validFrom: LocalDate?,
         val validUntil: LocalDate?,
-        val kost2Id: Long?,
-        val kost2Title: String?,
+        val positions: List<Position>,
+        /** The number of tasks of the grant the logged-in user doesn't see: outside the subtree, not grantable. */
+        val hiddenPositions: Int,
         val comment: String?,
         val grantedByName: String?,
         val created: Date?,
         val status: Status,
         val statusAsString: String,
+        /** Not revoked or expired, and the logged-in user may grant on all of its tasks. */
+        val revocable: Boolean,
     )
 
     /**
+     * A task a grant may be given on: the task the info is asked for or one of its descendants, bookable.
+     * @param path See [Position.path].
+     */
+    class GrantableTask(val taskId: Long, val path: String, val kost2List: List<TaskServicesRest.Kost2>?)
+
+    /**
      * @param mayGrant Whether the logged-in user may grant on the task; if not, nothing else is sent.
-     * @param bookable Whether time sheets may be booked on the task at all (a grant on it is refused otherwise).
+     * @param tasks The tasks a grant may be given on, the task itself first (if bookable).
+     * @param tasksTruncated Whether there are more than [MAX_GRANTABLE_TASKS] such tasks, the others aren't sent.
      */
     class Info(
         val mayGrant: Boolean,
-        val bookable: Boolean = false,
-        val kost2List: List<TaskServicesRest.Kost2>? = null,
+        val tasks: List<GrantableTask>? = null,
+        val tasksTruncated: Boolean? = null,
         val grants: List<Entry>? = null,
     )
 
+    class PositionRequest(val taskId: Long? = null, val kost2Ids: List<Long>? = null)
+
     class GrantRequest(
+        /** The task whose form the grant is given in: the answer is its info. */
         val taskId: Long? = null,
-        val userId: Long? = null,
+        val userIds: List<Long>? = null,
+        val positions: List<PositionRequest>? = null,
         val validFrom: LocalDate? = null,
         val validUntil: LocalDate? = null,
-        val kost2Id: Long? = null,
         val comment: String? = null,
-        val asInvitation: Boolean? = null,
     )
 
     /**
      * @param message The translated error, if [success] is false.
-     * @param invitationUrl The link of an invitation, only known now (its token isn't stored).
      */
     class Result(
         val success: Boolean,
         val message: String? = null,
-        val invitationUrl: String? = null,
         val info: Info? = null,
     )
-
-    /** What the invited user sees of the grant before accepting it. */
-    class Invitation(
-        val taskId: Long,
-        val taskPath: String,
-        val validFrom: LocalDate?,
-        val validUntil: LocalDate?,
-        val grantedByName: String?,
-        val comment: String?,
-    )
-
-    class AcceptRequest(val token: String? = null)
-
-    class AcceptResult(val success: Boolean, val message: String? = null, val taskId: Long? = null)
-
-    @Autowired
-    private lateinit var kostCache: KostCache
 
     @Autowired
     private lateinit var taskBookingGrantDao: TaskBookingGrantDao
@@ -139,111 +140,138 @@ class TaskBookingGrantRest {
         return buildInfo(taskId)
     }
 
-    @AccessChecked("TaskBookingGrantDao: insert access on the task (mayGrant)")
+    /**
+     * One grant per user, each with all positions. All or nothing.
+     */
+    @AccessChecked("TaskBookingGrantDao: insert access on all tasks of the grants (mayGrant)")
     @PostMapping("grant")
     fun grant(@RequestBody request: GrantRequest): Result {
-        val taskId = request.taskId ?: return Result(false, translate("task.bookingGrant.error.taskNotBookable"))
-        val obj = TaskBookingGrantDO()
-        obj.task = taskTree.getTaskById(taskId) ?: return Result(false, translate("task.bookingGrant.error.taskNotBookable"))
-        obj.user = userGroupCache.getUser(request.userId)
-        obj.validFrom = request.validFrom
-        obj.validUntil = request.validUntil
-        obj.kost2 = request.kost2Id?.let { kostCache.getKost2(it) }
-        obj.comment = request.comment?.trim()?.takeIf { it.isNotEmpty() }
+        val taskId = request.taskId ?: return Result(false, translate("task.bookingGrant.error.noTask"))
         return runCatchingUserException {
-            val result = taskBookingGrantService.grant(obj, asInvitation = request.asInvitation == true)
-            Result(true, invitationUrl = result.invitationUrl, info = buildInfo(taskId))
-        }
-    }
-
-    /**
-     * Revokes the grant (marks it as deleted): the user books no more on the task, but keeps reading the own time
-     * sheets. Access checked by the DAO for the stored task.
-     */
-    @AccessChecked("TaskBookingGrantDao: delete access on the stored task (mayGrant)")
-    @PostMapping("revoke")
-    fun revoke(@RequestParam("id") id: Long): Result {
-        return runCatchingUserException {
-            val obj = taskBookingGrantDao.find(id) ?: throw AccessException("access.exception.noAccess")
-            taskBookingGrantDao.markAsDeleted(obj)
-            Result(true, info = buildInfo(obj.task?.id!!))
-        }
-    }
-
-    /**
-     * The grant of an invitation link, only for its user and only as long as it may be accepted. Anybody else gets
-     * a 404, nothing of the grant.
-     */
-    @AccessChecked("Token and the logged-in user must be the grant's (TaskBookingGrantService.getInvitation)")
-    @GetMapping("invitation")
-    fun getInvitation(@RequestParam("token") token: String): ResponseEntity<Invitation> {
-        val grant = taskBookingGrantService.getInvitation(token) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        val taskId = grant.task?.id!!
-        return ResponseEntity.ok(
-            Invitation(
-                taskId = taskId,
-                taskPath = TaskServicesRest.formatPath(taskId),
-                validFrom = grant.validFrom,
-                validUntil = grant.validUntil,
-                grantedByName = userGroupCache.getUser(grant.grantedBy?.id)?.getFullname(),
-                comment = grant.comment,
+            taskBookingGrantService.grant(
+                userIds = request.userIds ?: emptyList(),
+                positions = (request.positions ?: emptyList()).mapNotNull { position ->
+                    position.taskId?.let { TaskBookingGrantService.Position(it, position.kost2Ids?.toSet()) }
+                },
+                validFrom = request.validFrom,
+                validUntil = request.validUntil,
+                comment = request.comment,
             )
-        )
+            Result(true, info = buildInfo(taskId))
+        }
     }
 
-    @AccessChecked("Token and the logged-in user must be the grant's (TaskBookingGrantService.accept)")
-    @PostMapping("accept")
-    fun accept(@RequestBody request: AcceptRequest): AcceptResult {
-        return try {
-            val grant = taskBookingGrantService.accept(request.token)
-            AcceptResult(true, taskId = grant.task?.id)
-        } catch (ex: UserException) {
-            AcceptResult(false, translateMsg(ex))
+    /**
+     * Revokes the grant (marks it as deleted): the user books no more on its tasks, but keeps reading the own time
+     * sheets. Access checked by the DAO for the stored tasks.
+     * @param taskId The task whose form the grant is revoked in: the answer is its info.
+     */
+    @AccessChecked("TaskBookingGrantDao: delete access on all stored tasks of the grant (mayGrant)")
+    @PostMapping("revoke")
+    fun revoke(@RequestParam("id") id: Long, @RequestParam("taskId") taskId: Long): Result {
+        return runCatchingUserException {
+            val obj = taskBookingGrantDao.selectWithPositions(id) ?: throw AccessException("access.exception.noAccess")
+            taskBookingGrantDao.markAsDeleted(obj)
+            Result(true, info = buildInfo(taskId))
         }
     }
 
     private fun buildInfo(taskId: Long): Info {
         val user = ThreadLocalUserContext.requiredLoggedInUser
-        if (!taskBookingGrantDao.mayGrant(user, taskId)) {
+        val node = taskTree.getTaskNodeById(taskId)
+        if (node == null || !taskBookingGrantDao.mayGrant(user, taskId)) {
             return Info(mayGrant = false)
         }
-        val node = taskTree.getTaskNodeById(taskId) ?: return Info(mayGrant = false)
-        val kost2List = taskTree.getKost2List(taskId)?.map {
-            TaskServicesRest.Kost2(it.id!!, KostFormatter.instance.formatKost2(it, formatType = KostFormatter.FormatType.TEXT, 80))
-        }
+        val descendantIds = node.descendantIds
+        val subtree = descendantIds.toSet() + taskId
+        val grantable = (listOf(node) + descendantIds.mapNotNull { taskTree.getTaskNodeById(it) })
+            .filter { isGrantable(user, it) }
         val today = PFDay.now().localDate
-        val now = Date()
-        val grants = taskBookingGrantDao.selectByTask(taskId).map { grant ->
-            val status = when {
-                grant.deleted -> Status.REVOKED
-                !grant.accepted && grant.invitationExpiresAt?.before(now) != false -> Status.INVITATION_EXPIRED
-                !grant.accepted -> Status.PENDING
-                grant.validUntil?.isBefore(today) == true -> Status.EXPIRED
-                grant.validFrom?.isAfter(today) == true -> Status.UPCOMING
-                else -> Status.ACTIVE
-            }
-            val kost2 = grant.kost2?.id?.let { kostCache.getKost2(it) }
-            Entry(
-                id = grant.id!!,
-                userId = grant.user?.id,
-                userName = userGroupCache.getUser(grant.user?.id)?.getFullname(),
-                validFrom = grant.validFrom,
-                validUntil = grant.validUntil,
-                kost2Id = kost2?.id,
-                kost2Title = kost2?.let { KostFormatter.instance.formatKost2(it, formatType = KostFormatter.FormatType.TEXT, 80) },
-                comment = grant.comment,
-                grantedByName = userGroupCache.getUser(grant.grantedBy?.id)?.getFullname(),
-                created = grant.created,
-                status = status,
-                statusAsString = translate("task.bookingGrant.status.${status.name}"),
-            )
-        }
+        val grantDOs = taskBookingGrantDao.selectByTasks(subtree)
+        val grantedBy = taskBookingGrantDao.selectGrantedByUserIds(grantDOs.mapNotNull { it.id })
+        val grants = grantDOs.map { toEntry(user, it, taskId, subtree, today, grantedBy[it.id]) }
         return Info(
             mayGrant = true,
-            bookable = node.isBookableForTimesheets && !taskTree.isRootNode(node),
-            kost2List = kost2List,
+            tasks = grantable.take(MAX_GRANTABLE_TASKS).map { task ->
+                GrantableTask(
+                    taskId = task.taskId,
+                    path = formatPath(task.taskId, taskId, subtree),
+                    kost2List = taskTree.getKost2List(task.taskId)?.map { TaskServicesRest.Kost2(it.id!!, format(it)) },
+                )
+            },
+            tasksTruncated = grantable.size > MAX_GRANTABLE_TASKS,
             grants = grants,
         )
+    }
+
+    private fun isGrantable(user: PFUserDO, node: TaskNode): Boolean {
+        return node.isBookableForTimesheets && !taskTree.isRootNode(node) && !node.task.deleted &&
+                taskBookingGrantDao.mayGrant(user, node.taskId)
+    }
+
+    /**
+     * A task of the grant outside of the subtree is only shown if the user may grant on it: otherwise the user may
+     * not even know its title ([Entry.hiddenPositions]).
+     */
+    private fun toEntry(
+        user: PFUserDO,
+        grant: TaskBookingGrantDO,
+        baseTaskId: Long,
+        subtree: Set<Long>,
+        today: LocalDate,
+        grantedByUserId: Long?,
+    ): Entry {
+        val status = when {
+            grant.deleted -> Status.REVOKED
+            grant.validUntil?.isBefore(today) == true -> Status.EXPIRED
+            grant.validFrom?.isAfter(today) == true -> Status.UPCOMING
+            else -> Status.ACTIVE
+        }
+        val positions = grant.positions ?: emptyList()
+        val shown = positions.filter { position ->
+            position.task?.id?.let { it in subtree || taskBookingGrantDao.mayGrant(user, it) } == true
+        }
+        return Entry(
+            id = grant.id!!,
+            userId = grant.user?.id,
+            userName = userGroupCache.getUser(grant.user?.id)?.getFullname(),
+            validFrom = grant.validFrom,
+            validUntil = grant.validUntil,
+            positions = shown.mapNotNull { position ->
+                val positionTaskId = position.task?.id ?: return@mapNotNull null
+                Position(
+                    taskId = positionTaskId,
+                    path = formatPath(positionTaskId, baseTaskId, subtree),
+                    kost2Titles = position.kost2IdSet?.map { kost2Id ->
+                        taskTree.getKost2List(positionTaskId)?.find { it.id == kost2Id }?.let { format(it) } ?: "#$kost2Id"
+                    },
+                )
+            },
+            hiddenPositions = positions.size - shown.size,
+            comment = grant.comment,
+            grantedByName = userGroupCache.getUser(grantedByUserId)?.getFullname(),
+            created = grant.created,
+            status = status,
+            statusAsString = translate("task.bookingGrant.status.${status.name}"),
+            revocable = (status == Status.ACTIVE || status == Status.UPCOMING) &&
+                    taskBookingGrantDao.mayGrantAll(user, positions.mapNotNull { it.task?.id }),
+        )
+    }
+
+    /**
+     * The path from the base task down to the task, the base task included. The whole path for a task outside of it.
+     */
+    private fun formatPath(taskId: Long, baseTaskId: Long, subtree: Set<Long>): String {
+        val node = taskTree.getTaskNodeById(taskId) ?: return ""
+        val base = taskTree.getTaskNodeById(baseTaskId)
+        if (base == null || taskId !in subtree) {
+            return TaskServicesRest.formatPath(taskId)
+        }
+        return (listOf(base) + node.getPathToAncestor(baseTaskId)).joinToString(" | ") { it.task.title ?: "" }
+    }
+
+    private fun format(kost2: Kost2DO): String {
+        return KostFormatter.instance.formatKost2(kost2, formatType = KostFormatter.FormatType.TEXT, 80)
     }
 
     /**
@@ -256,5 +284,9 @@ class TaskBookingGrantRest {
         } catch (ex: UserException) { // AccessException included
             Result(false, translateMsg(ex))
         }
+    }
+
+    companion object {
+        const val MAX_GRANTABLE_TASKS = 200
     }
 }

@@ -13,22 +13,14 @@ import {
 } from "@/components/ui/table";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatDate } from "@/lib/format";
-import type {
-  TaskBookingGrant,
-  TaskBookingGrantStatus,
-} from "@/lib/rs/task-booking-grant";
+import type { TaskBookingGrant } from "@/lib/rs/task-booking-grant";
 import { cn } from "@/lib/utils";
-
-/** The grants that still count: they may be revoked. */
-const REVOCABLE: ReadonlySet<TaskBookingGrantStatus> = new Set([
-  "ACTIVE",
-  "UPCOMING",
-  "PENDING",
-]);
+import { BookingGrantPositionList } from "./booking-grant-position-list";
 
 /**
- * The ad hoc booking grants of a task, newest period first, as the backend sorted them. Revoked, expired and
- * lapsed ones are muted and kept: they say who booked on the task by a grant.
+ * The ad hoc booking grants of a task and its sub elements, newest period first, as the backend sorted them.
+ * Revoked and expired ones are muted and kept: they say who booked on the tasks by a grant. Whether a grant
+ * may be revoked is the backend's to say (`revocable`: current, and grantable on all of its tasks).
  */
 export function BookingGrantsTable({
   grants,
@@ -47,7 +39,7 @@ export function BookingGrantsTable({
             <TableHead>{t("user._")}</TableHead>
             <TableHead>{t("task.bookingGrant.validFrom")}</TableHead>
             <TableHead>{t("task.bookingGrant.validUntil")}</TableHead>
-            <TableHead>{t("fibu.kost2._")}</TableHead>
+            <TableHead>{t("task.bookingGrant.positions._")}</TableHead>
             <TableHead>{t("task.bookingGrant.status._")}</TableHead>
             <TableHead>{t("task.bookingGrant.grantedBy")}</TableHead>
             <TableHead>{t("comment")}</TableHead>
@@ -58,11 +50,12 @@ export function BookingGrantsTable({
         </TableHeader>
         <TableBody>
           {grants.map((grant) => {
-            const revocable = REVOCABLE.has(grant.status);
+            const current =
+              grant.status === "ACTIVE" || grant.status === "UPCOMING";
             return (
               <TableRow
                 key={grant.id}
-                className={cn(!revocable && "text-muted-foreground")}
+                className={cn(!current && "text-muted-foreground")}
               >
                 <TableCell>{grant.userName}</TableCell>
                 <TableCell className="whitespace-nowrap">
@@ -71,8 +64,8 @@ export function BookingGrantsTable({
                 <TableCell className="whitespace-nowrap">
                   {formatDate(grant.validUntil, ctx)}
                 </TableCell>
-                <TableCell>
-                  {grant.kost2Title ?? t("task.bookingGrant.kost2.all")}
+                <TableCell className="whitespace-normal">
+                  <BookingGrantPositionList grant={grant} />
                 </TableCell>
                 <TableCell>
                   <Badge
@@ -88,7 +81,7 @@ export function BookingGrantsTable({
                   {grant.comment}
                 </TableCell>
                 <TableCell className="text-right">
-                  {revocable && (
+                  {grant.revocable && (
                     <Button
                       type="button"
                       variant="outline"

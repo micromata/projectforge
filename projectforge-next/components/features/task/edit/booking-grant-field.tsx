@@ -1,10 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useTranslations } from "next-intl";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { HintTooltip } from "@/components/shared/hint-tooltip";
 import {
   FieldShell,
   useFieldIds,
@@ -35,32 +31,5 @@ export function BookingGrantField({
     >
       {children(ids)}
     </FieldShell>
-  );
-}
-
-/**
- * Whether the grant is an invitation link, which takes effect once its user accepts it.
- */
-export function BookingGrantInvitationCheckbox({
-  checked,
-  onChange,
-}: {
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}) {
-  const t = useTranslations();
-  return (
-    <HintTooltip text={t("task.bookingGrant.asInvitation.tooltip")}>
-      <div className="flex items-center gap-2">
-        <Checkbox
-          id="booking-grant-invitation"
-          checked={checked}
-          onCheckedChange={(value) => onChange(value === true)}
-        />
-        <Label htmlFor="booking-grant-invitation">
-          {t("task.bookingGrant.asInvitation._")}
-        </Label>
-      </div>
-    </HintTooltip>
   );
 }

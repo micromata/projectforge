@@ -33,7 +33,9 @@ import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostHelper
 import org.projectforge.business.task.*
 import org.projectforge.business.task.bookinggrant.TaskBookingGrantCache
+import org.projectforge.business.task.bookinggrant.TaskBookingGrantDao
 import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
@@ -63,6 +65,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * For serving the task tree as tree or table..
@@ -158,6 +161,18 @@ class TaskServicesRest {
 
     enum class TreeStatus { LEAF, OPENED, CLOSED }
     enum class BookingGrantNode { GRANT, PATH }
+
+    /**
+     * A current ad hoc booking grant with a position on a node, for the badge in the tree (see
+     * [Task.bookingGrants]).
+     * @param upcoming Whether its period hasn't begun yet.
+     */
+    class BookingGrantBadge(
+        val userName: String?,
+        val validFrom: LocalDate,
+        val validUntil: LocalDate,
+        val upcoming: Boolean,
+    )
     class Task(
         val id: Long,
         /**
@@ -230,6 +245,12 @@ class TaskServicesRest {
          * shown, not selectable). Nothing else of such a node is sent but its title.
          */
         var bookingGrant: BookingGrantNode? = null
+
+        /**
+         * The current ad hoc booking grants on this node, of all users: only for who may grant on it (the names are
+         * nobody else's business), and not in the select popover. Null if there are none.
+         */
+        var bookingGrants: List<BookingGrantBadge>? = null
         /**
          * The status as the user reads it. `deleted` wins over the status itself: a deleted task is
          * gone, and its last status says nothing worth reading (Wicket shows the status struck
@@ -498,6 +519,8 @@ class TaskServicesRest {
         val grantTaskIds: Set<Long> = emptySet(),
         /** [grantTaskIds] and their ancestors: shown to the user by title only, if not visible anyway. */
         val grantPathTaskIds: Set<Long> = emptySet(),
+        /** Whether the answer carries the booking grants on each node ([Task.bookingGrants]), not in select mode. */
+        val withBookingGrants: Boolean = false,
     )
 
     private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
@@ -528,6 +551,12 @@ class TaskServicesRest {
 
     @Autowired
     private lateinit var taskBookingGrantCache: TaskBookingGrantCache
+
+    @Autowired
+    private lateinit var taskBookingGrantDao: TaskBookingGrantDao
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
 
     /**
      * The columns of the task tree, in the order the Wicket page shows them.
@@ -730,6 +759,7 @@ class TaskServicesRest {
             withGroupAccess = !selectMode && accessChecker.isLoggedInUserMemberOfAdminGroup,
             grantTaskIds = taskBookingGrantCache.getCurrentTaskIds(ThreadLocalUserContext.loggedInUserId),
             grantPathTaskIds = taskBookingGrantCache.getVisiblePathTaskIds(ThreadLocalUserContext.loggedInUserId),
+            withBookingGrants = !selectMode,
         )
         openTask(ctx, open)
         closeTask(ctx, close)
@@ -848,8 +878,8 @@ class TaskServicesRest {
         if (bookable) {
             addKost2List(task)
             if (granted) {
-                taskBookingGrantCache.getFixedKost2Id(userId, node.taskId)?.let { kost2Id ->
-                    task.kost2List = task.kost2List?.filter { it.id == kost2Id }
+                taskBookingGrantCache.getAllowedKost2Ids(userId, node.taskId)?.let { kost2Ids ->
+                    task.kost2List = task.kost2List?.filter { it.id in kost2Ids }
                 }
                 task.bookingGrant = BookingGrantNode.GRANT
             }
@@ -1101,6 +1131,25 @@ class TaskServicesRest {
         }
         if (ctx.withGroupAccess) {
             addGroupAccess(task)
+        }
+        if (ctx.withBookingGrants) {
+            addBookingGrants(ctx.user, task)
+        }
+    }
+
+    private fun addBookingGrants(user: PFUserDO, task: Task) {
+        val grants = taskBookingGrantCache.getCurrentGrantsOnTask(task.id)
+        if (grants.isEmpty() || !taskBookingGrantDao.mayGrant(user, task.id)) {
+            return
+        }
+        val today = PFDay.now().localDate
+        task.bookingGrants = grants.sortedWith(compareBy({ it.validFrom }, { it.id })).map {
+            BookingGrantBadge(
+                userName = userGroupCache.getUser(it.userId)?.getFullname(),
+                validFrom = it.validFrom,
+                validUntil = it.validUntil,
+                upcoming = it.validFrom.isAfter(today),
+            )
         }
     }
 

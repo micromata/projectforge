@@ -23,47 +23,34 @@
 
 package org.projectforge.business.task.bookinggrant
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
-import org.projectforge.business.fibu.kost.Kost2DO
-import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.persistence.history.NoHistory
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate
-import java.util.*
 
 /**
- * An ad hoc booking grant: the given user may book own time sheets on exactly this task (not on its descendants)
- * within the period, without being member of a group with access to the task. For a colleague helping out for a
- * short time, who mustn't see anything else of the project (see [TaskBookingGrantCache]).
+ * An ad hoc booking grant: the given user may book own time sheets on the tasks of its [positions] (each exactly
+ * this task, not its descendants, optionally on some of its cost units only) within the period, without being member
+ * of a group with access to them. For a colleague helping out for a short time, who mustn't see anything else of the
+ * project (see [TaskBookingGrantCache]).
  *
- * Granted by somebody who may edit the time sheets of others on the task (project management, finance), either
- * directly or as an invitation link that only the given user may accept ([acceptedAt]). A revoked grant is marked as
- * deleted: the user keeps reading the own time sheets booked on the task, but books no more.
+ * Granted by somebody who may edit the time sheets of others on all of its tasks (project management, finance), and
+ * active right away. Who granted is the user of its insert in the history (see
+ * [TaskBookingGrantDao.selectGrantedByUserIds]). A revoked grant is marked as deleted: the user keeps reading the own
+ * time sheets booked by it, but books no more.
  */
 @Entity
 @Table(
     name = "t_task_booking_grant",
     indexes = [
-        jakarta.persistence.Index(name = "idx_fk_t_task_booking_grant_task_id", columnList = "task_id"),
         jakarta.persistence.Index(name = "idx_fk_t_task_booking_grant_user_id", columnList = "user_id"),
     ]
 )
 open class TaskBookingGrantDO : DefaultBaseDO() {
-
-    @PropertyInfo(i18nKey = "task")
-    @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "task_id", nullable = false)
-    @JsonSerialize(using = IdOnlySerializer::class)
-    open var task: TaskDO? = null
-
-    /**
-     * The user the grant is for, also of an invitation link not yet accepted: nobody else may accept it.
-     */
     @PropertyInfo(i18nKey = "user")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_id", nullable = false)
@@ -78,48 +65,25 @@ open class TaskBookingGrantDO : DefaultBaseDO() {
     @get:Column(name = "valid_until", nullable = false)
     open var validUntil: LocalDate? = null
 
-    /**
-     * Optional: the only cost unit the user may book on. Otherwise every cost unit of the task.
-     */
-    @PropertyInfo(i18nKey = "fibu.kost2")
-    @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "kost2_id")
-    @JsonSerialize(using = IdOnlySerializer::class)
-    open var kost2: Kost2DO? = null
-
     @PropertyInfo(i18nKey = "comment")
     @get:Column(name = "comment", length = 4000)
     open var comment: String? = null
 
-    @PropertyInfo(i18nKey = "task.bookingGrant.grantedBy")
-    @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "granted_by_user_id", nullable = false)
-    @JsonSerialize(using = IdOnlySerializer::class)
-    open var grantedBy: PFUserDO? = null
-
     /**
-     * Null as long as an invitation link isn't accepted by [user]: the grant gives no access until then. Set on
-     * insert for a grant given directly.
+     * The tasks the user may book on, at least one.
      */
-    @PropertyInfo(i18nKey = "task.bookingGrant.acceptedAt")
-    @get:Column(name = "accepted_at")
-    open var acceptedAt: Date? = null
+    @PropertyInfo(i18nKey = "task.bookingGrant.positions")
+    @PersistenceBehavior(autoUpdateCollectionEntries = true)
+    @get:OneToMany(
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
+        orphanRemoval = false,
+        fetch = FetchType.LAZY, mappedBy = "grant",
+    )
+    @get:OrderBy("id")
+    open var positions: MutableList<TaskBookingGrantTaskDO>? = null
 
-    /**
-     * The SHA-256 hash (hex) of the token of the invitation link, null for a grant given directly and after the
-     * link is accepted. The token itself is never stored.
-     */
-    @JsonIgnore
-    @NoHistory
-    @get:Column(name = "invitation_token_hash", length = 64, unique = true)
-    open var invitationTokenHash: String? = null
-
-    @PropertyInfo(i18nKey = "task.bookingGrant.invitationExpiresAt")
-    @NoHistory
-    @get:Column(name = "invitation_expires_at")
-    open var invitationExpiresAt: Date? = null
-
-    open val accepted: Boolean
-        @Transient
-        get() = acceptedAt != null
+    fun addPosition(position: TaskBookingGrantTaskDO) {
+        position.grant = this
+        positions = (positions ?: mutableListOf()).also { it.add(position) }
+    }
 }
