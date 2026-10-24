@@ -5305,6 +5305,14 @@
     },
     "assignedUser": "Verantwortliche:r",
     "consumption": "Verbrauch",
+    "consumptionTooltip": {
+      "booked": "Gebucht",
+      "budget": "Budget",
+      "overbooked": "Überbucht",
+      "overbookedTitle": "{arg0} überbucht",
+      "remaining": "Rest",
+      "remainingTitle": "Rest: {arg0}"
+    },
     "deleted": "gelöscht",
     "edit": {
       "maxHoursIngoredDueToAssignedOrders": "Diesem Strukturelement oder einem Strukturunterelement wurden Aufträge zugeordnet. Standardmäßig wird deren Personentage-Summe verwendet; die eingetragenen Maximalstunden werden nur berücksichtigt, wenn die Option \"Maximalstunden haben Vorrang\" gesetzt ist. Die Angabe einer Null verhindert die Anzeige des Maximalwerts in den Verbrauchsbalken."

@@ -39,6 +39,10 @@ import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.access.AccessType
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.core.ValidationUtils
 import org.projectforge.rest.dto.Task
 import org.projectforge.ui.ValidationError
@@ -238,6 +242,39 @@ class TaskEntityRestTest : AbstractTestBase() {
 
         val treeRow = TaskServicesRest.Task(taskTree.getTaskNodeById(task.id)!!)
         assertEquals(getUser(TEST_FINANCE_USER).displayName, treeRow.responsibleUser?.displayName)
+    }
+
+    /**
+     * The tooltip of the consumption bar tells what is left of the budget, so nobody has to subtract
+     * the booked days from the planned ones in their head.
+     */
+    @Test
+    fun `the consumption title shows the remaining person days`() {
+        val task = persistenceService.runInTransaction { _ ->
+            logon(TEST_FINANCE_USER)
+            val task = initTestDB.addTask("taskConsumptionRemaining", "root")
+            task.maxHours = 16 // 2 person days, nothing booked yet.
+            taskDao.update(task, checkAccess = false)
+            task
+        }
+        logon(TEST_FINANCE_USER)
+
+        val consumption = Consumption.create(TaskTree.instance.getTaskNodeById(task.id)!!)!!
+        val title = consumption.title
+
+        val days = NumberHelper.getNumberFractionFormat(ThreadLocalUserContext.locale, 2).format(BigDecimal(2))
+        val unit = translate("projectmanagement.personDays.short")
+        assertTrue(
+            title.contains(translateMsg("task.consumptionTooltip.remainingTitle", "$days$unit")),
+            "The remaining days follow the percentage: $title",
+        )
+        // The parts of the tooltip's calculation: budget − booked = remaining.
+        val zero = NumberHelper.getNumberFractionFormat(ThreadLocalUserContext.locale, 2).format(BigDecimal.ZERO)
+        assertEquals("$days $unit", consumption.budget)
+        assertEquals("$zero $unit", consumption.booked)
+        assertEquals("$days $unit", consumption.remaining)
+        assertFalse(consumption.overbooked)
+        assertNull(consumption.period, "Nothing booked, so there is no period.")
     }
 
     /**

@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
@@ -36,7 +37,7 @@ import java.math.RoundingMode
 
 class Consumption(
   /**
-   * 350PT/188PT
+   * 188PT/350PT (54%), Rest: 162PT (01.02.2026–30.09.2026)
    */
   val title: String,
   val status: Status,
@@ -47,6 +48,17 @@ class Consumption(
    */
   val barPercentage: Int?,
   val id: Long?,
+  /**
+   * The parts of [title] for the tooltip laid out as a calculation (budget − booked = remaining), each already
+   * formatted with its unit, e.g. "8,78 PT". [budget] and [remaining] are null for a task without a budget,
+   * [remaining] is the absolute value (see [overbooked]).
+   */
+  val booked: String? = null,
+  val budget: String? = null,
+  val remaining: String? = null,
+  val overbooked: Boolean = false,
+  /** Earliest start until latest stop of all time sheets of the task and its sub tasks, e.g. "03.08.2026–12.10.2026". */
+  val period: String? = null,
 ) {
 
   enum class Status {
@@ -117,23 +129,47 @@ class Consumption(
       val locale = ThreadLocalUserContext.locale
       val usageStr = NumberHelper.getNumberFractionFormat(locale, usage.scale()).format(usage)
       val unitStr = translate("projectmanagement.personDays.short")
+      val maxDaysStr = maxDays?.let { NumberHelper.getNumberFractionFormat(locale, it.scale()).format(it) }
+      // What is left of the budget (or how far it is overbooked), so nobody has to subtract in their head.
+      val remaining = maxDays?.let { NumberHelper.setDefaultScale(it.subtract(usage))!! }
+      val remainingStr = remaining?.let {
+        NumberHelper.getNumberFractionFormat(locale, it.scale()).format(it.abs())
+      }
+      val overbooked = remaining != null && remaining.signum() < 0
       val maxValueStr =
         if (maxDays != null) {
-          "/${NumberHelper.getNumberFractionFormat(locale, maxDays.scale()).format(maxDays)}$unitStr ($percentage%)"
+          val remainingMsg = if (overbooked) {
+            translateMsg("task.consumptionTooltip.overbookedTitle", "$remainingStr$unitStr")
+          } else {
+            translateMsg("task.consumptionTooltip.remainingTitle", "$remainingStr$unitStr")
+          }
+          "/$maxDaysStr$unitStr ($percentage%), $remainingMsg"
         } else {
           ""
         }
       // Append the date range (earliest start until latest stop) of all time sheets of this task and its sub tasks.
       val earliest = node.getEarliestTimesheetStartDate(taskTree, true)
       val latest = node.getLatestTimesheetStopDate(taskTree, true)
-      val rangeStr = if (earliest != null && latest != null) {
+      val period = if (earliest != null && latest != null) {
         val dateTimeFormatter = DateTimeFormatter.instance()
-        " (${dateTimeFormatter.getFormattedDate(earliest)}–${dateTimeFormatter.getFormattedDate(latest)})"
+        "${dateTimeFormatter.getFormattedDate(earliest)}–${dateTimeFormatter.getFormattedDate(latest)}"
       } else {
-        ""
+        null
       }
+      val rangeStr = period?.let { " ($it)" } ?: ""
       val title = "$usageStr$unitStr$maxValueStr$rangeStr"
-      return Consumption(title, status, percentage = percentage, barPercentage = barPercentage, id = node.taskId)
+      return Consumption(
+        title,
+        status,
+        percentage = percentage,
+        barPercentage = barPercentage,
+        id = node.taskId,
+        booked = "$usageStr $unitStr",
+        budget = maxDaysStr?.let { "$it $unitStr" },
+        remaining = remainingStr?.let { "$it $unitStr" },
+        overbooked = overbooked,
+        period = period,
+      )
     }
   }
 }
