@@ -3908,6 +3908,7 @@
       "ratings": {
         "binding": "Verbindliche Priorität {arg0}: {arg1}",
         "deviates": "Weicht von der verbindlichen Priorität ab",
+        "deviatesSuggestion": "Weicht vom Vorschlag ab",
         "exploitability": "Ausnutzbarkeit bei uns",
         "noBinding": "Noch keine verbindliche Priorität; Vorschlag {arg0}.",
         "none": "Noch keine Bewertungen.",

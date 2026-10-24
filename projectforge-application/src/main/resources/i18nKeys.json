@@ -231,6 +231,7 @@
   {"i18nKey":"plugins.cveradar.qa.title","bundleName":"CveRadarI18nResources","translation":"Questions & answers","translationDE":"Fragen & Antworten","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.ratings.binding","bundleName":"CveRadarI18nResources","translation":"Binding priority {0}: {1}","translationDE":"Verbindliche Priorität {0}: {1}","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.ratings.deviates","bundleName":"CveRadarI18nResources","translation":"Deviates from the binding priority","translationDE":"Weicht von der verbindlichen Priorität ab","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"plugins.cveradar.ratings.deviatesSuggestion","bundleName":"CveRadarI18nResources","translation":"Deviates from the suggestion","translationDE":"Weicht vom Vorschlag ab","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.ratings.exploitability","bundleName":"CveRadarI18nResources","translation":"Exploitability here","translationDE":"Ausnutzbarkeit bei uns","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.ratings.noBinding","bundleName":"CveRadarI18nResources","translation":"No binding priority yet; suggestion {0}.","translationDE":"Noch keine verbindliche Priorität; Vorschlag {0}.","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.ratings.none","bundleName":"CveRadarI18nResources","translation":"No ratings yet.","translationDE":"Noch keine Bewertungen.","usedInClasses":[],"usedInFiles":[]},

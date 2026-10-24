@@ -3908,6 +3908,7 @@
       "ratings": {
         "binding": "Binding priority {arg0}: {arg1}",
         "deviates": "Deviates from the binding priority",
+        "deviatesSuggestion": "Deviates from the suggestion",
         "exploitability": "Exploitability here",
         "noBinding": "No binding priority yet; suggestion {arg0}.",
         "none": "No ratings yet.",
