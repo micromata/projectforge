@@ -24,6 +24,7 @@ export type NotificationRuleType =
   | "VACATION_LEFT"
   | "PASSWORD_NOT_CHANGED"
   | "TIMESHEETS_WITHOUT_KOST2"
+  | "TIMESHEETS_TO_ACCEPT"
   | "MANUAL";
 
 /** `NotificationDao.Summary`, sent with the user status (see useAuth). */

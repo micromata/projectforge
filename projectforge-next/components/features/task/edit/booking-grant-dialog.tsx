@@ -34,7 +34,8 @@ import {
 /**
  * Grants users the booking of own time sheets: any number of users, the structure elements (the task and
  * any of its sub elements, each with its own cost units), the period and a comment. One grant per user,
- * active right away; each user is informed by mail.
+ * active right away; each user is informed by mail. Who may only propose (`mayPropose`) gives the same, but
+ * the time sheets are to be accepted by the project management.
  *
  * Written right away through its own endpoint, not with the task form around it. What is wrong is the
  * backend's to say: its message is shown above the fields.
@@ -54,6 +55,11 @@ export function BookingGrantDialog({
   const ctx = useFormatContext();
   const today = todayOf(ctx);
   const tasks = info.tasks ?? [];
+  // Who may only propose: the backend checks the limit of 31 days, the dialog only says so.
+  const proposing = info.mayPropose === true;
+  const actionKey = proposing
+    ? "task.bookingGrant.propose"
+    : "task.bookingGrant.add";
   const [users, setUsers] = useState<EntityRef[]>([]);
   // The task of the form, if it may be booked on: what a grant is about in most cases.
   const [positions, setPositions] = useState<BookingGrantPositionValue[]>(() =>
@@ -94,9 +100,14 @@ export function BookingGrantDialog({
           onOpenAutoFocus={(event) => event.preventDefault()}
         >
           <DialogHeader>
-            <DialogTitle>{t("task.bookingGrant.add")}</DialogTitle>
+            <DialogTitle>{t(actionKey)}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4">
+            {proposing && (
+              <FormAlert tone="info">
+                {t("task.bookingGrant.proposal.info")}
+              </FormAlert>
+            )}
             {rejected && <FormAlert tone="error">{rejected}</FormAlert>}
             <BookingGrantField label={t("task.bookingGrant.users")} required>
               {(ids) => (
@@ -172,7 +183,7 @@ export function BookingGrantDialog({
               onClick={() => grant.mutate()}
             >
               {grant.isPending && <Spinner className="h-4 w-4 border-2" />}
-              {t("task.bookingGrant.add")}
+              {t(actionKey)}
             </Button>
           </DialogFooter>
         </DialogContent>

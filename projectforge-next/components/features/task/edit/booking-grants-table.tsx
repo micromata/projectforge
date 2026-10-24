@@ -1,8 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -15,18 +13,24 @@ import { useFormatContext } from "@/hooks/use-format";
 import { formatDate } from "@/lib/format";
 import type { TaskBookingGrant } from "@/lib/rs/task-booking-grant";
 import { cn } from "@/lib/utils";
+import {
+  BookingGrantActions,
+  BookingGrantStatus,
+} from "./booking-grant-actions";
 import { BookingGrantPositionList } from "./booking-grant-position-list";
 
 /**
  * The ad hoc booking grants of a task and its sub elements, newest period first, as the backend sorted them.
  * Revoked and expired ones are muted and kept: they say who booked on the tasks by a grant. Whether a grant
- * may be revoked is the backend's to say (`revocable`: current, and grantable on all of its tasks).
+ * may be revoked or confirmed is the backend's to say (`revocable`, `confirmable`).
  */
 export function BookingGrantsTable({
   grants,
+  onConfirm,
   onRevoke,
 }: {
   grants: TaskBookingGrant[];
+  onConfirm: (grant: TaskBookingGrant) => void;
   onRevoke: (grant: TaskBookingGrant) => void;
 }) {
   const t = useTranslations();
@@ -68,30 +72,18 @@ export function BookingGrantsTable({
                   <BookingGrantPositionList grant={grant} />
                 </TableCell>
                 <TableCell>
-                  <Badge
-                    variant={
-                      grant.status === "ACTIVE" ? "default" : "secondary"
-                    }
-                  >
-                    {grant.statusAsString}
-                  </Badge>
+                  <BookingGrantStatus grant={grant} />
                 </TableCell>
                 <TableCell>{grant.grantedByName}</TableCell>
                 <TableCell className="whitespace-normal">
                   {grant.comment}
                 </TableCell>
-                <TableCell className="text-right">
-                  {grant.revocable && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      aria-label={`${t("task.bookingGrant.revoke._")}: ${grant.userName ?? ""}`}
-                      onClick={() => onRevoke(grant)}
-                    >
-                      {t("task.bookingGrant.revoke._")}
-                    </Button>
-                  )}
+                <TableCell>
+                  <BookingGrantActions
+                    grant={grant}
+                    onConfirm={onConfirm}
+                    onRevoke={onRevoke}
+                  />
                 </TableCell>
               </TableRow>
             );

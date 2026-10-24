@@ -14,6 +14,14 @@
     {
       "en": "In the structure tree, a badge marks the structure elements with ad hoc bookings; its tooltip names the colleagues and their periods. Shown only to who may grant on the structure element.",
       "de": "Im Strukturbaum markiert ein Badge die Strukturelemente mit Ad-hoc-Buchungen; sein Tooltip nennt die Personen und ihre Zeiträume. Sichtbar nur für die, die auf dem Strukturelement freigeben dürfen."
+    },
+    {
+      "en": "Employees without this right may propose such a booking on the structure elements they book on themselves, for 31 days at most: the colleague books right away, the project management accepts the time sheets afterwards, unchanged or moved to another structure element or cost unit (time sheet form or mass update; list filter \"Only to be accepted\"). Until then they count like any other time sheet. The project management may confirm a proposal, so later bookings don't have to be accepted anymore.",
+      "de": "Mitarbeitende ohne dieses Recht können eine solche Buchung auf den Strukturelementen vorschlagen, auf die sie selbst buchen, für höchstens 31 Tage: Die aushelfende Person bucht sofort, die Projektleitung übernimmt die Zeitberichte anschließend, unverändert oder auf ein anderes Strukturelement bzw. eine andere Kost2 (Zeitberichtsformular oder Massenänderung; Listenfilter „Nur zu übernehmende“). Bis dahin zählen sie wie alle anderen Zeitberichte. Die Projektleitung kann einen Vorschlag bestätigen, dann müssen spätere Buchungen nicht mehr übernommen werden."
+    },
+    {
+      "en": "New notification rule \"Time sheets to be accepted\": reminds the project managers of the time sheets still to be accepted (in the app, and by mail if not acknowledged, as configured in the rule). The structure tree shows their number next to the badge.",
+      "de": "Neue Benachrichtigungsregel „Zu übernehmende Zeitberichte“: erinnert die Projektleitung an noch zu übernehmende Zeitberichte (in der App und, wenn nicht bestätigt, per Mail, wie in der Regel eingestellt). Der Strukturbaum zeigt ihre Anzahl neben dem Badge."
     }
   ]
 }

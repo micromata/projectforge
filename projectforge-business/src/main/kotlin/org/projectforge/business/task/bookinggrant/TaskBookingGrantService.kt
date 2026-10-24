@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -61,6 +62,9 @@ open class TaskBookingGrantService {
     private lateinit var persistenceService: PfPersistenceService
 
     @Autowired
+    private lateinit var taskBookingGrantCache: TaskBookingGrantCache
+
+    @Autowired
     private lateinit var taskBookingGrantDao: TaskBookingGrantDao
 
     @Autowired
@@ -87,12 +91,16 @@ open class TaskBookingGrantService {
     ): List<TaskBookingGrantDO> {
         val loggedInUser = ThreadLocalUserContext.requiredLoggedInUser
         val users = userIds.distinct().map { userGroupCache.getUser(it) }
+        // Who may not grant on all tasks proposes (if allowed, see TaskBookingGrantDao.mayPropose).
+        val acceptanceRequired = positions.isNotEmpty() &&
+                !taskBookingGrantDao.mayGrantAll(loggedInUser, positions.map { it.taskId })
         val grants = (users.ifEmpty { listOf(null) }).map { user ->
             TaskBookingGrantDO().also { grant ->
                 grant.user = user
                 grant.validFrom = validFrom
                 grant.validUntil = validUntil
                 grant.comment = comment?.trim()?.takeIf { it.isNotEmpty() }
+                grant.acceptanceRequired = acceptanceRequired
                 positions.forEach { position ->
                     grant.addPosition(TaskBookingGrantTaskDO().also {
                         it.task = taskTree.getTaskById(position.taskId)
@@ -101,15 +109,39 @@ open class TaskBookingGrantService {
                 }
             }
         }
-        grants.forEach {
-            taskBookingGrantDao.hasLoggedInUserInsertAccess(it, throwException = true)
-            taskBookingGrantDao.validate(it)
-        }
-        persistenceService.runInTransaction { _ ->
-            grants.forEach { taskBookingGrantDao.insert(it) }
+        // Validated first: an incomplete grant is told as such, not as missing access.
+        grants.forEach { taskBookingGrantDao.validate(it) }
+        grants.forEach { taskBookingGrantDao.hasLoggedInUserInsertAccess(it, throwException = true) }
+        try {
+            persistenceService.runInTransaction { _ ->
+                grants.forEach { taskBookingGrantDao.insert(it) }
+            }
+        } catch (ex: Exception) {
+            // The cache took the grants inserted before the failure, which are rolled back.
+            taskBookingGrantCache.setExpired()
+            throw ex
         }
         grants.forEach { sendGrantMail(it, loggedInUser) }
         return grants
+    }
+
+    /**
+     * Confirms a proposed grant ([TaskBookingGrantDO.acceptanceRequired]): the time sheets booked by it from now on
+     * aren't to be accepted anymore, those booked so far still are. By who may grant on all of its tasks only.
+     * @return false, if the grant is revoked or not proposed.
+     */
+    open fun confirm(grantId: Long): Boolean {
+        val grant = taskBookingGrantDao.selectWithPositions(grantId) ?: throw AccessException("access.exception.noAccess")
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        if (!taskBookingGrantDao.mayGrantAll(user, grant.positions?.mapNotNull { it.task?.id } ?: emptyList())) {
+            throw AccessException("access.exception.noAccess")
+        }
+        if (grant.deleted || !grant.acceptanceRequired) {
+            return false
+        }
+        grant.acceptanceRequired = false
+        taskBookingGrantDao.update(grant)
+        return true
     }
 
     private fun sendGrantMail(grant: TaskBookingGrantDO, grantedBy: PFUserDO) {
@@ -146,6 +178,9 @@ open class TaskBookingGrantService {
             appendLine(translate(recipient, "task.bookingGrant.mail.greeting", recipient.firstname ?: ""))
             appendLine()
             appendLine(translate(recipient, "task.bookingGrant.mail.text", grantedBy.getFullname(), period))
+            if (grant.acceptanceRequired) {
+                appendLine(translate(recipient, "task.bookingGrant.mail.acceptanceRequired"))
+            }
             grant.comment?.takeIf { it.isNotBlank() }?.let {
                 appendLine()
                 appendLine(it)

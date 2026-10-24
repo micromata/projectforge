@@ -58,6 +58,8 @@ open class TaskBookingGrantCache : AbstractCache(), BaseDOModifiedListener<TaskB
         val validUntil: LocalDate,
         val positions: Map<Long, Set<Long>?>,
         val deleted: Boolean,
+        /** See [TaskBookingGrantDO.acceptanceRequired]. */
+        val acceptanceRequired: Boolean = false,
     ) {
         /** Not revoked and not expired: the tasks are shown to the user (period not yet begun included). */
         fun isCurrent(today: LocalDate): Boolean = !deleted && !validUntil.isBefore(today)
@@ -87,6 +89,20 @@ open class TaskBookingGrantCache : AbstractCache(), BaseDOModifiedListener<TaskB
 
     @Volatile
     private var grantsByTask = mapOf<Long, List<Grant>>() // Thread safe
+
+    /**
+     * The number of time sheets to be accepted ([org.projectforge.business.timesheet.TimesheetDO.acceptancePending])
+     * per task: few, read for the badges of the task tree.
+     * @param loadStarted When the load began (millis).
+     */
+    private class PendingCounts(val byTask: Map<Long, Int>, val loadStarted: Long)
+
+    @Volatile
+    private var pendingCounts: PendingCounts? = null
+
+    /** The last change of a time sheet to be accepted (millis), see [pendingTimesheetsModified]. */
+    @Volatile
+    private var pendingModified = 0L
 
     @PostConstruct
     private fun postConstruct() {
@@ -149,18 +165,79 @@ open class TaskBookingGrantCache : AbstractCache(), BaseDOModifiedListener<TaskB
         stopDay: LocalDate?,
         kost2Id: Long?,
     ): Boolean {
-        taskId ?: return false
+        return findGrant(userId, taskId, operationType, startDay, stopDay, kost2Id) != null
+    }
+
+    /**
+     * The grant allowing the operation (see [allows]), null if there is none. Of several, one not requiring an
+     * acceptance first: a time sheet is only to be accepted, if no grant of the project management allows it.
+     */
+    open fun findGrant(
+        userId: Long?,
+        taskId: Long?,
+        operationType: OperationType,
+        startDay: LocalDate?,
+        stopDay: LocalDate?,
+        kost2Id: Long?,
+    ): Grant? {
+        taskId ?: return null
         val grants = getGrants(userId).filter { it.positions.containsKey(taskId) }
         if (operationType == OperationType.SELECT) {
-            return grants.isNotEmpty()
+            return grants.firstOrNull()
         }
         val today = PFDay.now().localDate
-        return grants.any { grant ->
+        return grants.filter { grant ->
             val kost2Ids = grant.positions[taskId]
             !grant.deleted && grant.isValidAt(today) &&
                     startDay != null && grant.isValidAt(startDay) &&
                     (stopDay == null || grant.isValidAt(stopDay)) &&
                     (kost2Ids == null || kost2Id in kost2Ids)
+        }.minByOrNull { it.acceptanceRequired }
+    }
+
+    /**
+     * The number of time sheets on the task to be accepted by the project management.
+     */
+    open fun getPendingTimesheetCount(taskId: Long?): Int {
+        taskId ?: return 0
+        val now = System.currentTimeMillis()
+        val counts = pendingCounts?.takeIf { isUpToDate(it, now) }
+            ?: PendingCounts(loadPendingTimesheets(), now).also { pendingCounts = it }
+        return counts.byTask[taskId] ?: 0
+    }
+
+    /**
+     * Loaded after the last change: the change is told before its commit, so loaded within [PENDING_SETTLE_MILLIS]
+     * after it, the counts are reused for [PENDING_PROVISIONAL_MILLIS] only (e.g. for one task tree), then reloaded.
+     * Loaded before the last change (also by another thread, stored after the change): to be reloaded.
+     */
+    private fun isUpToDate(counts: PendingCounts, now: Long): Boolean {
+        val modified = pendingModified
+        return when {
+            counts.loadStarted <= modified -> false
+            counts.loadStarted > modified + PENDING_SETTLE_MILLIS -> true
+            else -> now - counts.loadStarted < PENDING_PROVISIONAL_MILLIS
+        }
+    }
+
+    /**
+     * To be called on every change of a time sheet to be accepted (or accepted now): the counts are reloaded on the
+     * next read.
+     */
+    open fun pendingTimesheetsModified() {
+        pendingModified = System.currentTimeMillis()
+    }
+
+    private fun loadPendingTimesheets(): Map<Long, Int> {
+        return runReadOnlyForCacheMaintenance { context ->
+            context.executeQuery(
+                "SELECT t.task.id, COUNT(t) FROM TimesheetDO t WHERE t.acceptancePending = true AND t.deleted = false" +
+                        " GROUP BY t.task.id",
+                Array<Any?>::class.java,
+            ).mapNotNull { row ->
+                val taskId = (row[0] as? Number)?.toLong() ?: return@mapNotNull null
+                taskId to ((row[1] as? Number)?.toInt() ?: 0)
+            }.toMap()
         }
     }
 
@@ -238,6 +315,14 @@ open class TaskBookingGrantCache : AbstractCache(), BaseDOModifiedListener<TaskB
             validUntil = obj.validUntil ?: return null,
             positions = positions,
             deleted = obj.deleted,
+            acceptanceRequired = obj.acceptanceRequired,
         )
+    }
+
+    private companion object {
+        /** The longest time a change of a time sheet to be accepted takes until its commit, see [isUpToDate]. */
+        const val PENDING_SETTLE_MILLIS = 10_000L
+
+        const val PENDING_PROVISIONAL_MILLIS = 2_000L
     }
 }

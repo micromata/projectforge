@@ -76,7 +76,7 @@ class TaskEntityRest
             task.protectTimesheetsUntilWriteAccess =
                 accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)
             task.maxHoursIgnoredDueToOrders = obj.id != null && taskTree.hasOrderPositions(obj.id, true)
-            task.bookingGrantAccess = user != null && obj.id != null && taskBookingGrantDao.mayGrant(user, obj.id)
+            task.bookingGrantAccess = user != null && obj.id != null && taskBookingGrantDao.mayGrantOrPropose(user, obj.id)
         }
         return task
     }

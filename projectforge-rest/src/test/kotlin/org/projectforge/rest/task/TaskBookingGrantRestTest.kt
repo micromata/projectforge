@@ -27,9 +27,12 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.timesheet.TimesheetDO
+import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.framework.access.AccessDao
 import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -48,6 +51,9 @@ class TaskBookingGrantRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var taskBookingGrantRest: TaskBookingGrantRest
+
+    @Autowired
+    private lateinit var timesheetDao: TimesheetDao
 
     private class Fixture(
         val project: TaskDO,
@@ -210,6 +216,80 @@ class TaskBookingGrantRestTest : AbstractTestBase() {
         assertNull(tree().nodes.single { it.id == fixture.granted.id }.bookingGrants)
         logon(getUser(TEST_USER))
         tree(highlighted = fixture.granted).nodes.find { it.id == fixture.granted.id }?.let { assertNull(it.bookingGrants) }
+    }
+
+    @Test
+    fun `an employee proposes, sees the own proposals only, and the manager sees the sheets to accept`() {
+        val fixture = createFixture("bgrest-propose")
+        val employee = persistenceService.runInTransaction { _ ->
+            logon(TEST_ADMIN_USER)
+            val employee = initTestDB.addUser("bgrest-propose-employee")
+            val group = initTestDB.addGroup("bgrest-propose-employees", employee.username!!)
+            val access = initTestDB.createGroupTaskAccess(group, fixture.project)
+            access.ensureAndGetAccessEntry(AccessType.TASKS).setAccess(true, false, false, false)
+            access.ensureAndGetAccessEntry(AccessType.OWN_TIMESHEETS).setAccess(true, true, true, true)
+            access.recursive = true
+            accessDao.update(access, checkAccess = false)
+            employee
+        }
+        // A grant of the manager, which the employee doesn't see.
+        logon(fixture.manager)
+        assertTrue(grant(fixture, tasks = listOf(fixture.sibling)).success)
+
+        logon(employee)
+        taskBookingGrantRest.getInfo(fixture.project.id!!).let {
+            assertFalse(it.mayGrant)
+            assertTrue(it.mayPropose)
+            assertTrue(it.grants!!.isEmpty())
+        }
+        val result = grant(fixture)
+        assertTrue(result.success, result.message)
+        val entry = result.info!!.grants!!.single()
+        assertTrue(entry.acceptanceRequired)
+        assertTrue(entry.revocable)
+        assertFalse(entry.confirmable)
+
+        // The helper books, the manager sees the sheet to accept: in the info and as badge in the tree.
+        logon(fixture.helper)
+        val start = PFDateTime.now().minusDays(1).beginOfDay.withHour(8)
+        timesheetDao.insert(TimesheetDO().also {
+            it.user = fixture.helper
+            it.task = fixture.granted
+            it.startTime = start.utilDate
+            it.stopTime = start.plusHours(1).utilDate
+            it.description = "helping"
+        })
+        logon(fixture.manager)
+        taskBookingGrantRest.getInfo(fixture.project.id!!).grants!!.single { it.id == entry.id }.let {
+            assertEquals(1, it.pendingTimesheets)
+            assertTrue(it.confirmable)
+        }
+        assertEquals(1, tree(highlighted = fixture.granted).nodes.single { it.id == fixture.granted.id }.pendingTimesheets)
+        // Not for the employee (who may not grant).
+        logon(employee)
+        assertNull(tree(highlighted = fixture.granted).nodes.single { it.id == fixture.granted.id }.pendingTimesheets)
+    }
+
+    @Test
+    fun `grants of a part of the subtree without the right to grant are not listed`() {
+        val fixture = createFixture("bgrest-part")
+        // The manager edits no time sheets of others on the sibling: its own access overrides the project's.
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_ADMIN_USER)
+            initTestDB.createGroupTaskAccess(
+                initTestDB.getGroup("bgrest-part-managers"), fixture.sibling, AccessType.TIMESHEETS,
+                accessSelect = true, accessInsert = false, accessUpdate = false, accessDelete = false,
+            )
+        }
+        logon(getUser(TEST_FINANCE_USER))
+        assertTrue(grant(fixture, tasks = listOf(fixture.sibling)).success)
+        logon(fixture.manager)
+        assertTrue(grant(fixture).success)
+        val grants = taskBookingGrantRest.getInfo(fixture.project.id!!).grants!!
+        assertEquals(listOf(listOf(fixture.granted.id)), grants.map { entry -> entry.positions.map { it.taskId } })
+        // The finance group sees both.
+        logon(getUser(TEST_FINANCE_USER))
+        assertEquals(2, taskBookingGrantRest.getInfo(fixture.project.id!!).grants!!.size)
     }
 
     private fun info(task: TaskDO) = taskServicesRest.getTaskInfo(task.id)

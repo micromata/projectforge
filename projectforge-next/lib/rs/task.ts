@@ -125,6 +125,8 @@ export interface TaskNode {
    * grant on it and not in the select popover.
    */
   bookingGrants?: TaskBookingGrantBadgeEntry[];
+  /** The time sheets on the node to be accepted, for who may grant on it only (as `bookingGrants`). */
+  pendingTimesheets?: number;
   consumption?: unknown;
   /** Index signature so the node can be read as a table row (see DataObject). */
   [field: string]: unknown;
@@ -137,6 +139,8 @@ export interface TaskBookingGrantBadgeEntry {
   validUntil: string;
   /** Its period hasn't begun yet. */
   upcoming: boolean;
+  /** Proposed without the right to grant: its time sheets are to be accepted. */
+  acceptanceRequired?: boolean;
 }
 
 /**

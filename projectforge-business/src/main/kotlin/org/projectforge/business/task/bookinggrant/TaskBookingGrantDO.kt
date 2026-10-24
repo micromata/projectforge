@@ -42,6 +42,10 @@ import java.time.LocalDate
  * active right away. Who granted is the user of its insert in the history (see
  * [TaskBookingGrantDao.selectGrantedByUserIds]). A revoked grant is marked as deleted: the user keeps reading the own
  * time sheets booked by it, but books no more.
+ *
+ * An employee without the right to grant may propose a grant on tasks they book on themselves ([acceptanceRequired]):
+ * the time sheets booked by it are to be accepted by the project management
+ * ([org.projectforge.business.timesheet.TimesheetDO.acceptancePending]).
  */
 @Entity
 @Table(
@@ -64,6 +68,14 @@ open class TaskBookingGrantDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "task.bookingGrant.validUntil")
     @get:Column(name = "valid_until", nullable = false)
     open var validUntil: LocalDate? = null
+
+    /**
+     * Proposed by an employee without the right to grant: each time sheet booked by it is to be accepted by the project
+     * management. False once somebody who may grant confirmed it (see the history).
+     */
+    @PropertyInfo(i18nKey = "task.bookingGrant.acceptanceRequired")
+    @get:Column(name = "acceptance_required", nullable = false)
+    open var acceptanceRequired: Boolean = false
 
     @PropertyInfo(i18nKey = "comment")
     @get:Column(name = "comment", length = 4000)

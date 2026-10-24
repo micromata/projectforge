@@ -50,7 +50,8 @@ import java.util.*
  *
  * Who may grant on a task is the DAO's decision ([TaskBookingGrantDao.mayGrant]): who may edit the time sheets of
  * others on it. Checked by every endpoint for the tasks stored in the database, a grant with several tasks needs it on
- * all of them.
+ * all of them. An employee who may book on a task proposes grants ([TaskBookingGrantDao.mayPropose]) and sees and
+ * revokes the own proposals only.
  */
 @RestController
 @RequestMapping("${Rest.URL}/taskBookingGrant")
@@ -72,15 +73,21 @@ class TaskBookingGrantRest {
         val validFrom: LocalDate?,
         val validUntil: LocalDate?,
         val positions: List<Position>,
-        /** The number of tasks of the grant the logged-in user doesn't see: outside the subtree, not grantable. */
+        /** The number of tasks of the grant the logged-in user doesn't see: neither to grant nor to propose on. */
         val hiddenPositions: Int,
         val comment: String?,
         val grantedByName: String?,
         val created: Date?,
         val status: Status,
         val statusAsString: String,
-        /** Not revoked or expired, and the logged-in user may grant on all of its tasks. */
+        /** Not revoked or expired, and the logged-in user may grant on all of its tasks or proposed it. */
         val revocable: Boolean,
+        /** Proposed by an employee: its time sheets are to be accepted ([TaskBookingGrantDO.acceptanceRequired]). */
+        val acceptanceRequired: Boolean = false,
+        /** The number of its time sheets still to be accepted. */
+        val pendingTimesheets: Int = 0,
+        /** Proposed, not revoked or expired, and the logged-in user may grant on all of its tasks. */
+        val confirmable: Boolean = false,
     )
 
     /**
@@ -90,12 +97,17 @@ class TaskBookingGrantRest {
     class GrantableTask(val taskId: Long, val path: String, val kost2List: List<TaskServicesRest.Kost2>?)
 
     /**
-     * @param mayGrant Whether the logged-in user may grant on the task; if not, nothing else is sent.
+     * @param mayGrant Whether the logged-in user may grant on the task; if neither this nor [mayPropose], nothing else
+     * is sent.
+     * @param mayPropose Whether the logged-in user may only propose grants (on tasks of the subtree they book on): the
+     * time sheets are to be accepted, the period is [TaskBookingGrantDao.MAX_PROPOSAL_DAYS] days at most, [grants] are
+     * the own proposals only.
      * @param tasks The tasks a grant may be given on, the task itself first (if bookable).
      * @param tasksTruncated Whether there are more than [MAX_GRANTABLE_TASKS] such tasks, the others aren't sent.
      */
     class Info(
         val mayGrant: Boolean,
+        val mayPropose: Boolean = false,
         val tasks: List<GrantableTask>? = null,
         val tasksTruncated: Boolean? = null,
         val grants: List<Entry>? = null,
@@ -134,7 +146,7 @@ class TaskBookingGrantRest {
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
-    @AccessChecked("TaskBookingGrantDao.mayGrant: who may edit foreign time sheets on the task, otherwise only mayGrant=false")
+    @AccessChecked("TaskBookingGrantDao.mayGrant/mayPropose: who may edit foreign time sheets on the task (or propose: own proposals only), otherwise only mayGrant=false")
     @GetMapping("info")
     fun getInfo(@RequestParam("taskId") taskId: Long): Info {
         return buildInfo(taskId)
@@ -143,7 +155,7 @@ class TaskBookingGrantRest {
     /**
      * One grant per user, each with all positions. All or nothing.
      */
-    @AccessChecked("TaskBookingGrantDao: insert access on all tasks of the grants (mayGrant)")
+    @AccessChecked("TaskBookingGrantDao: insert access on all tasks of the grants (mayGrant, or mayPropose for a proposal)")
     @PostMapping("grant")
     fun grant(@RequestBody request: GrantRequest): Result {
         val taskId = request.taskId ?: return Result(false, translate("task.bookingGrant.error.noTask"))
@@ -166,7 +178,7 @@ class TaskBookingGrantRest {
      * sheets. Access checked by the DAO for the stored tasks.
      * @param taskId The task whose form the grant is revoked in: the answer is its info.
      */
-    @AccessChecked("TaskBookingGrantDao: delete access on all stored tasks of the grant (mayGrant)")
+    @AccessChecked("TaskBookingGrantDao: delete access on all stored tasks of the grant (mayGrant), or the own proposal")
     @PostMapping("revoke")
     fun revoke(@RequestParam("id") id: Long, @RequestParam("taskId") taskId: Long): Result {
         return runCatchingUserException {
@@ -176,22 +188,51 @@ class TaskBookingGrantRest {
         }
     }
 
+    /**
+     * Confirms a proposed grant: the time sheets booked by it from now on aren't to be accepted anymore.
+     * @param taskId The task whose form the grant is confirmed in: the answer is its info.
+     */
+    @AccessChecked("TaskBookingGrantService.confirm: who may grant on all stored tasks of the grant (mayGrantAll)")
+    @PostMapping("confirm")
+    fun confirm(@RequestParam("id") id: Long, @RequestParam("taskId") taskId: Long): Result {
+        return runCatchingUserException {
+            taskBookingGrantService.confirm(id)
+            Result(true, info = buildInfo(taskId))
+        }
+    }
+
     private fun buildInfo(taskId: Long): Info {
         val user = ThreadLocalUserContext.requiredLoggedInUser
-        val node = taskTree.getTaskNodeById(taskId)
-        if (node == null || !taskBookingGrantDao.mayGrant(user, taskId)) {
-            return Info(mayGrant = false)
-        }
+        val node = taskTree.getTaskNodeById(taskId) ?: return Info(mayGrant = false)
+        val mayGrant = taskBookingGrantDao.mayGrant(user, taskId)
         val descendantIds = node.descendantIds
         val subtree = descendantIds.toSet() + taskId
-        val grantable = (listOf(node) + descendantIds.mapNotNull { taskTree.getTaskNodeById(it) })
-            .filter { isGrantable(user, it) }
+        val candidates = listOf(node) + descendantIds.mapNotNull { taskTree.getTaskNodeById(it) }
+        val grantable = if (mayGrant) {
+            candidates.filter { isGrantable(user, it) }
+        } else {
+            candidates.filter { !it.task.deleted && taskBookingGrantDao.mayPropose(user, it.taskId) }
+        }
+        if (!mayGrant && grantable.isEmpty()) {
+            return Info(mayGrant = false)
+        }
         val today = PFDay.now().localDate
-        val grantDOs = taskBookingGrantDao.selectByTasks(subtree)
-        val grantedBy = taskBookingGrantDao.selectGrantedByUserIds(grantDOs.mapNotNull { it.id })
-        val grants = grantDOs.map { toEntry(user, it, taskId, subtree, today, grantedBy[it.id]) }
+        val allGrantDOs = taskBookingGrantDao.selectByTasks(subtree)
+        val grantedBy = taskBookingGrantDao.selectGrantedByUserIds(allGrantDOs.mapNotNull { it.id })
+        // Who only proposes sees the own proposals only; who may grant those with a task of the subtree they may grant
+        // on (the rights may be withdrawn in a part of it), and the own proposals.
+        val grantDOs = allGrantDOs.filter { grant ->
+            grantedBy[grant.id] == user.id || mayGrant && grant.positions.orEmpty().any { position ->
+                position.task?.id?.let { it in subtree && taskBookingGrantDao.mayGrant(user, it) } == true
+            }
+        }
+        val pending = taskBookingGrantDao.selectPendingTimesheetCounts(grantDOs.mapNotNull { it.id })
+        val grants = grantDOs.map {
+            toEntry(user, it, taskId, subtree, today, grantedBy[it.id], pending[it.id] ?: 0)
+        }
         return Info(
-            mayGrant = true,
+            mayGrant = mayGrant,
+            mayPropose = !mayGrant,
             tasks = grantable.take(MAX_GRANTABLE_TASKS).map { task ->
                 GrantableTask(
                     taskId = task.taskId,
@@ -210,8 +251,8 @@ class TaskBookingGrantRest {
     }
 
     /**
-     * A task of the grant outside of the subtree is only shown if the user may grant on it: otherwise the user may
-     * not even know its title ([Entry.hiddenPositions]).
+     * A task of the grant is only shown if the user may grant or propose on it: otherwise the user may not even know
+     * its title ([Entry.hiddenPositions]).
      */
     private fun toEntry(
         user: PFUserDO,
@@ -220,6 +261,7 @@ class TaskBookingGrantRest {
         subtree: Set<Long>,
         today: LocalDate,
         grantedByUserId: Long?,
+        pendingTimesheets: Int,
     ): Entry {
         val status = when {
             grant.deleted -> Status.REVOKED
@@ -229,8 +271,13 @@ class TaskBookingGrantRest {
         }
         val positions = grant.positions ?: emptyList()
         val shown = positions.filter { position ->
-            position.task?.id?.let { it in subtree || taskBookingGrantDao.mayGrant(user, it) } == true
+            position.task?.id?.let {
+                taskBookingGrantDao.mayGrant(user, it) || taskBookingGrantDao.mayPropose(user, it)
+            } == true
         }
+        val taskIds = positions.mapNotNull { it.task?.id }
+        val open = status == Status.ACTIVE || status == Status.UPCOMING
+        val mayGrantAll = taskBookingGrantDao.mayGrantAll(user, taskIds)
         return Entry(
             id = grant.id!!,
             userId = grant.user?.id,
@@ -253,8 +300,10 @@ class TaskBookingGrantRest {
             created = grant.created,
             status = status,
             statusAsString = translate("task.bookingGrant.status.${status.name}"),
-            revocable = (status == Status.ACTIVE || status == Status.UPCOMING) &&
-                    taskBookingGrantDao.mayGrantAll(user, positions.mapNotNull { it.task?.id }),
+            revocable = open && (mayGrantAll || grantedByUserId == user.id),
+            acceptanceRequired = grant.acceptanceRequired,
+            pendingTimesheets = pendingTimesheets,
+            confirmable = open && grant.acceptanceRequired && mayGrantAll,
         )
     }
 

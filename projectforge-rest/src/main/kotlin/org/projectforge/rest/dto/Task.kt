@@ -92,8 +92,8 @@ class Task(id: Long? = null,
 
     /**
      * Whether the user may grant ad hoc bookings on this task (`TaskBookingGrantDao.mayGrant`: who may edit the
-     * time sheets of others on it). Only the section's visibility: every endpoint of `TaskBookingGrantRest` checks
-     * it itself.
+     * time sheets of others on it) or propose them on it or a sub task (`TaskBookingGrantDao.mayPropose`). Only the
+     * section's visibility: every endpoint of `TaskBookingGrantRest` checks it itself.
      */
     var bookingGrantAccess: Boolean = false
 

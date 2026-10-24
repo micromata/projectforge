@@ -3364,6 +3364,7 @@
       "MANUAL": "Manuell (ohne Bedingung)",
       "PASSWORD_NOT_CHANGED": "Passwort lange nicht geändert",
       "TIMESHEETS_MISSING": "Fehlende Zeitberichte",
+      "TIMESHEETS_TO_ACCEPT": "Zu übernehmende Zeitberichte",
       "TIMESHEETS_WITHOUT_KOST2": "Zeitberichte ohne Kost2",
       "VACATION_LEFT": "Verfallender Resturlaub"
     },
@@ -3424,6 +3425,10 @@
       "passwordMaxAgeDays": "Maximales Alter des Passworts (Tage)",
       "period": "Zeitraum",
       "timesheetLink": "Link zu den Zeitberichten",
+      "timesheetsToAcceptCount": "Anzahl der zu übernehmenden Zeitberichte",
+      "timesheetsToAcceptHours": "Zu übernehmende Stunden",
+      "timesheetsToAcceptLink": "Link zu den zu übernehmenden Zeitberichten",
+      "timesheetsToAcceptTasks": "Strukturelemente mit zu übernehmenden Zeitberichten",
       "timesheetsWithoutKost2Count": "Anzahl der Zeitberichte ohne Kost2",
       "timesheetsWithoutKost2Hours": "Ohne Kost2 gebuchte Stunden",
       "timesheetsWithoutKost2Tasks": "Ohne Kost2 bebuchte Strukturelemente",
@@ -5305,16 +5310,22 @@
     },
     "assignedUser": "Verantwortliche:r",
     "bookingGrant": {
+      "acceptanceRequired": "Zu übernehmen",
       "add": "Buchung freigeben",
       "badge": {
         "_": "{arg0} Ad-hoc-Buchung(en)",
         "upcoming": "ab {arg0}"
+      },
+      "confirm": {
+        "_": "Bestätigen",
+        "confirm": "Diese vorgeschlagene Freigabe bestätigen? Ab jetzt damit gebuchte Zeitberichte müssen nicht mehr übernommen werden, die bisher gebuchten weiterhin."
       },
       "error": {
         "endBeforeStart": "Das Ende des Zeitraums liegt vor seinem Beginn.",
         "invalidKost2": "Eine Kost2 gehört nicht zu ihrem Strukturelement.",
         "noTask": "Bitte mindestens ein Strukturelement auswählen.",
         "periodNotSet": "Bitte den Zeitraum angeben.",
+        "periodTooLong": "Eine vorgeschlagene Freigabe gilt höchstens 31 Tage.",
         "taskNotBookable": "Auf dieses Strukturelement können keine Zeitberichte gebucht werden.",
         "taskTwice": "Ein Strukturelement ist doppelt ausgewählt.",
         "userChanged": "Die Person einer Freigabe kann nicht geändert werden.",
@@ -5326,6 +5337,7 @@
         "selected": "{arg0} Kost2"
       },
       "mail": {
+        "acceptanceRequired": "Deine Zeitberichte werden von der Projektleitung geprüft und übernommen, ggf. auf ein anderes Strukturelement oder eine andere Kost2.",
         "greeting": "Hallo {arg0},",
         "subject": {
           "_": "Zeitberichte buchen auf {arg0}",
@@ -5334,11 +5346,23 @@
         "text": "{arg0} hat dir das Buchen eigener Zeitberichte für den Zeitraum {arg1} auf den folgenden Strukturelementen freigegeben. Über die Links kannst du deine Zeitberichte buchen:"
       },
       "none": "Keine Ad-hoc-Buchungen freigegeben.",
+      "pending": {
+        "_": "{arg0} zu übernehmen",
+        "tooltip": "{arg0} über eine vorgeschlagene Freigabe gebuchte(r) Zeitbericht(e) zu übernehmen"
+      },
       "positions": {
         "_": "Strukturelemente",
         "add": "Unterelement hinzufügen",
         "hidden": "und {arg0} weitere(s) Strukturelement(e)",
         "truncated": "Angeboten werden nur die ersten {arg0} Unterelemente. Ein tieferes Unterelement über sein eigenes Strukturelement freigeben."
+      },
+      "proposal": {
+        "info": "Hier kann keine Freigabe erteilt, aber eine vorgeschlagen werden: Die aushelfende Person bucht sofort, die Projektleitung übernimmt die Zeitberichte anschließend (ggf. auf ein anderes Strukturelement oder eine andere Kost2). Höchstens 31 Tage gültig."
+      },
+      "propose": "Buchung vorschlagen",
+      "proposed": {
+        "_": "Vorgeschlagen",
+        "tooltip": "Ohne Freigaberecht vorgeschlagen: Die damit gebuchten Zeitberichte übernimmt die Projektleitung."
       },
       "revoke": {
         "_": "Widerrufen",
@@ -5549,6 +5573,12 @@
   },
   "timesheet": {
     "_": "Zeitbericht",
+    "acceptance": {
+      "accept": "Übernehmen",
+      "acceptOnSave": "Beim Speichern übernehmen",
+      "info": "Über eine von {arg0} vorgeschlagene Ad-hoc-Buchung gebucht: von der Projektleitung zu übernehmen, ggf. auf ein anderes Strukturelement oder eine andere Kost2."
+    },
+    "acceptancePending": "Zu übernehmen",
     "ai": {
       "timeSavedByAI": {
         "_": "KI-Ersparnis",
@@ -5592,12 +5622,16 @@
       "vacationNotConfigured": "Keine Urlaubs-Kost2 konfiguriert: Strukturelement und Kost2 bitte selbst wählen.",
       "vacationPlaceholder": "Urlaub auswählen"
     },
+    "bookingGrant": "Ad-hoc-Buchung",
     "description": "Tätigkeitsbericht",
     "duration": "Dauer",
     "iCalSubscription": "Zeitberichte im iCal-Format für den/die angemeldete:n Benutzer:in exportieren (*.ics).",
     "icsExport": "ics-Export",
     "location": "Ort",
     "massupdate": {
+      "acceptPending": {
+        "info": "Übernimmt die ausgewählten, über eine vorgeschlagene Ad-hoc-Buchung gebuchten Zeitberichte, ggf. mit dem oben gewählten Strukturelement und der Kost2. Für die übrigen ändert sich daran nichts."
+      },
       "remapKost2": "Kost2 nach Kostenart umschlüsseln (Strukturelement bleibt)",
       "remapKost2Info": "Jeder Zeitbericht behält sein Strukturelement. Eine Kost2, die das Strukturelement nicht mehr anbietet, wird durch dessen Kost2 derselben Kostenart (letzte beiden Ziffern) ersetzt, z. B. 5.999.11.02 -> 7.001.01.02 nach Verlinkung eines Projekts.",
       "taskNotApplied": "Das Strukturelement ist nicht ausgewählt (Checkbox) und wird daher nicht geändert.",

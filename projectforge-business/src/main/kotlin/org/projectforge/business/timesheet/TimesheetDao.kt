@@ -38,6 +38,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.task.bookinggrant.TaskBookingGrantCache
+import org.projectforge.business.task.bookinggrant.TaskBookingGrantDO
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserDao
 import org.projectforge.common.extensions.isZeroOrNull
@@ -101,6 +102,9 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
 
     @Autowired
     private lateinit var taskBookingGrantCache: TaskBookingGrantCache
+
+    /** Set by [runAccepting] only: [onUpdate] keeps the stored [TimesheetDO.acceptancePending] otherwise. */
+    private val accepting = ThreadLocal<Boolean>()
 
     @PostConstruct
     fun init() {
@@ -344,6 +348,66 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      */
     override fun afterInsertOrModify(obj: TimesheetDO, operationType: OperationType) {
         taskTree.resetTotalDuration(obj.taskId!!)
+        if (obj.bookingGrant != null) {
+            // Booked by a grant: maybe to be accepted, or accepted now.
+            taskBookingGrantCache.pendingTimesheetsModified()
+        }
+    }
+
+    /**
+     * A time sheet booked by the user on an own task without group access to it, only by an ad hoc booking grant,
+     * refers to the grant; it is to be accepted by the project management, if the grant was proposed by an employee
+     * (see [TaskBookingGrantDO.acceptanceRequired]). Never taken from the client.
+     */
+    override fun onInsert(obj: TimesheetDO) {
+        obj.bookingGrant = null
+        obj.acceptancePending = false
+        val grant = findOwnBookingGrant(obj, OperationType.INSERT) ?: return
+        obj.bookingGrant = TaskBookingGrantDO().also { it.id = grant.id }
+        obj.acceptancePending = grant.acceptanceRequired
+    }
+
+    /**
+     * The grant the logged-in user books the own time sheet by: without group access to its task, only by an ad hoc
+     * booking grant. Null otherwise.
+     */
+    private fun findOwnBookingGrant(obj: TimesheetDO, operationType: OperationType): TaskBookingGrantCache.Grant? {
+        val user = ThreadLocalUserContext.loggedInUser ?: return null
+        if (!accessChecker.userEquals(user, obj.user) ||
+            accessChecker.hasPermission(user, obj.taskId, AccessType.OWN_TIMESHEETS, operationType, false)
+        ) {
+            return null
+        }
+        val zone = ThreadLocalUserContext.timeZone
+        return taskBookingGrantCache.findGrant(
+            user.id, obj.taskId, operationType,
+            startDay = obj.startTime?.let { from(it, zone).localDate },
+            stopDay = obj.stopTime?.let { from(it, zone).localDate },
+            kost2Id = obj.kost2Id,
+        )
+    }
+
+    /**
+     * Marking as deleted and undeleting copy the posted time sheet without [onUpdate]: the grant and the acceptance
+     * are the stored ones as well, not the posted ones.
+     */
+    override fun onDelete(obj: TimesheetDO) {
+        keepStoredBookingGrant(obj)
+    }
+
+    override fun onUndelete(obj: TimesheetDO) {
+        keepStoredBookingGrant(obj)
+    }
+
+    private fun keepStoredBookingGrant(obj: TimesheetDO) {
+        val id = obj.id ?: return
+        val row = persistenceService.executeQuery(
+            "SELECT g.id, t.acceptancePending FROM TimesheetDO t LEFT JOIN t.bookingGrant g WHERE t.id = :id",
+            Array<Any?>::class.java,
+            Pair("id", id),
+        ).firstOrNull() ?: return
+        obj.bookingGrant = (row[0] as? Number)?.toLong()?.let { grantId -> TaskBookingGrantDO().also { it.id = grantId } }
+        obj.acceptancePending = row[1] == true
     }
 
     /**
@@ -372,12 +436,35 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     }
 
     override fun onUpdate(obj: TimesheetDO, dbObj: TimesheetDO) {
+        // Never changed by the client: the grant stays, the acceptance is done by runAccepting only.
+        obj.bookingGrant = dbObj.bookingGrant
+        obj.acceptancePending = dbObj.acceptancePending
+        if (accepting.get() == true && dbObj.acceptancePending) {
+            if (!hasForeignTimesheetWriteAccess(ThreadLocalUserContext.requiredLoggedInUser, dbObj.taskId)) {
+                throw AccessException("access.exception.noAccess")
+            }
+            obj.acceptancePending = false
+        } else if (isBookingChanged(obj, dbObj)) {
+            // Booked anew by a grant (moved onto its task, or an accepted time sheet changed): to be accepted again.
+            findOwnBookingGrant(obj, OperationType.UPDATE)?.let { grant ->
+                obj.bookingGrant = TaskBookingGrantDO().also { it.id = grant.id }
+                if (grant.acceptanceRequired) {
+                    obj.acceptancePending = true
+                }
+            }
+        }
         if (compareValues(obj.taskId, dbObj.taskId) != 0) {
             taskTree.resetTotalDuration(dbObj.taskId!!)
         }
         if (compareValues(obj.taskId, dbObj.taskId) != 0 || compareValues(obj.kost2Id, dbObj.kost2Id) != 0) {
             validateKost2(obj)
         }
+    }
+
+    /** Whether the booking itself changes: task, cost unit or time. */
+    private fun isBookingChanged(obj: TimesheetDO, dbObj: TimesheetDO): Boolean {
+        return compareValues(obj.taskId, dbObj.taskId) != 0 || compareValues(obj.kost2Id, dbObj.kost2Id) != 0 ||
+                obj.startTime?.time != dbObj.startTime?.time || obj.stopTime?.time != dbObj.stopTime?.time
     }
 
     /**
@@ -603,6 +690,26 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         return result
     }
 
+    /** A time sheet to be accepted, see [getTimesheetsToAccept]. */
+    class TimesheetToAccept(val userId: Long, val taskId: Long, val durationMillis: Long)
+
+    /**
+     * The time sheets to be accepted by the project management ([TimesheetDO.acceptancePending]) of all users (deleted
+     * ones ignored). One `SELECT` of four columns, no access check: for jobs (e.g. the notification rule).
+     */
+    open fun getTimesheetsToAccept(): List<TimesheetToAccept> {
+        val sql = "SELECT t.user.id AS userId, t.task.id AS taskId, t.startTime AS startTime, t.stopTime AS stopTime" +
+                " FROM TimesheetDO t WHERE t.deleted = false AND t.acceptancePending = true"
+        return persistenceService.executeQuery(sql, Tuple::class.java).mapNotNull { tuple ->
+            val userId = tuple.get("userId") as Long? ?: return@mapNotNull null
+            val taskId = tuple.get("taskId") as Long? ?: return@mapNotNull null
+            val startTime = tuple.get("startTime") as Date?
+            val stopTime = tuple.get("stopTime") as Date?
+            val duration = if (startTime != null && stopTime != null) (stopTime.time - startTime.time).coerceAtLeast(0) else 0
+            TimesheetToAccept(userId, taskId, duration)
+        }
+    }
+
     /**
      * The ids of the given user's time sheets (deleted ones ignored) that collide in time with another of the user's
      * time sheets — the forbidden overlaps [hasTimeOverlap] refuses on save; an overlap released by a shared cost
@@ -695,7 +802,9 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         if (accessChecker.userEquals(user, obj.user)) {
             // Own time sheet: by the groups or by an ad hoc booking grant on the task.
             if (!accessChecker.hasPermission(user, obj.taskId, AccessType.OWN_TIMESHEETS, operationType, false) &&
-                !isAllowedByBookingGrant(user, obj, oldObj, operationType)
+                !isAllowedByBookingGrant(user, obj, oldObj, operationType) &&
+                // Booked by a grant and moved by the project management: still readable.
+                !(operationType == OperationType.SELECT && obj.bookingGrant != null)
             ) {
                 if (throwException) {
                     throw AccessException(obj.taskId, AccessType.OWN_TIMESHEETS, operationType)
@@ -755,6 +864,30 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             return true
         }
         return accessChecker.hasPermission(user, taskId, AccessType.TIMESHEETS, OperationType.UPDATE, false)
+    }
+
+    /**
+     * Runs the block accepting the updated time sheets booked by a grant proposed by an employee
+     * ([TimesheetDO.acceptancePending]), with the changes given (e.g. another task or cost unit). Accepts who may edit
+     * the time sheets of others on the stored task ([hasForeignTimesheetWriteAccess]), see [onUpdate]; a move is
+     * checked like any update (the new task included). The history shows who accepted. A time sheet not to be accepted
+     * is just updated.
+     */
+    open fun <T> runAccepting(block: () -> T): T {
+        accepting.set(true)
+        try {
+            return block()
+        } finally {
+            accepting.remove()
+        }
+    }
+
+    /**
+     * Accepts the time sheet, see [runAccepting].
+     * @param obj The time sheet to store, its id is the one of the stored one.
+     */
+    open fun accept(obj: TimesheetDO) {
+        runAccepting { update(obj) }
     }
 
     /**

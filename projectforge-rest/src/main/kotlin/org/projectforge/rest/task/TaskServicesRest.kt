@@ -166,12 +166,14 @@ class TaskServicesRest {
      * A current ad hoc booking grant with a position on a node, for the badge in the tree (see
      * [Task.bookingGrants]).
      * @param upcoming Whether its period hasn't begun yet.
+     * @param acceptanceRequired Proposed by an employee: its time sheets are to be accepted.
      */
     class BookingGrantBadge(
         val userName: String?,
         val validFrom: LocalDate,
         val validUntil: LocalDate,
         val upcoming: Boolean,
+        val acceptanceRequired: Boolean = false,
     )
     class Task(
         val id: Long,
@@ -251,6 +253,12 @@ class TaskServicesRest {
          * nobody else's business), and not in the select popover. Null if there are none.
          */
         var bookingGrants: List<BookingGrantBadge>? = null
+
+        /**
+         * The number of time sheets on this node to be accepted by the project management (booked by a grant an
+         * employee proposed), for who may grant on it only, as [bookingGrants]. Null if there are none.
+         */
+        var pendingTimesheets: Int? = null
         /**
          * The status as the user reads it. `deleted` wins over the status itself: a deleted task is
          * gone, and its last status says nothing worth reading (Wicket shows the status struck
@@ -1139,7 +1147,9 @@ class TaskServicesRest {
 
     private fun addBookingGrants(user: PFUserDO, task: Task) {
         val grants = taskBookingGrantCache.getCurrentGrantsOnTask(task.id)
-        if (grants.isEmpty() || !taskBookingGrantDao.mayGrant(user, task.id)) {
+        // Also after the end of the grants: time sheets may still be to be accepted.
+        val pending = taskBookingGrantCache.getPendingTimesheetCount(task.id)
+        if ((grants.isEmpty() && pending == 0) || !taskBookingGrantDao.mayGrant(user, task.id)) {
             return
         }
         val today = PFDay.now().localDate
@@ -1149,8 +1159,10 @@ class TaskServicesRest {
                 validFrom = it.validFrom,
                 validUntil = it.validUntil,
                 upcoming = it.validFrom.isAfter(today),
+                acceptanceRequired = it.acceptanceRequired,
             )
-        }
+        }.ifEmpty { null }
+        task.pendingTimesheets = pending.takeIf { it > 0 }
     }
 
     private fun openTask(ctx: BuildContext, taskId: Long?) {

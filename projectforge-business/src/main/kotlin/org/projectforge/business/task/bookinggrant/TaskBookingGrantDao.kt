@@ -29,6 +29,7 @@ import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.SortOrder
@@ -37,6 +38,7 @@ import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.time.temporal.ChronoUnit
 
 /**
  * DAO of the ad hoc booking grants ([TaskBookingGrantDO]).
@@ -45,6 +47,10 @@ import org.springframework.stereotype.Service
  * grants, changes and revokes (deletes) it and reads it. The user of a grant reads it, but changes nothing. On an
  * update, the stored tasks count as well as the posted ones, so a grant can't be moved to a task the user may not
  * grant on.
+ *
+ * An employee without this right proposes a grant ([TaskBookingGrantDO.acceptanceRequired]) on tasks they may book own
+ * time sheets on by their groups ([mayPropose]), for [MAX_PROPOSAL_DAYS] days at most, and reads and revokes the own
+ * proposals (who proposed is the user of the insert in the history).
  */
 @Service
 open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO::class.java) {
@@ -86,7 +92,8 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
         requireNotNull(obj) { "Given TaskBookingGrantDO as obj parameter mustn't be null." }
         // The stored tasks as well: the posted ones may differ.
         val allowed = mayGrantAll(user, taskIdsOf(obj) + taskIdsOf(oldObj)) ||
-                (operationType == OperationType.SELECT && obj.user?.id != null && obj.user?.id == user.id)
+                (operationType == OperationType.SELECT && obj.user?.id != null && obj.user?.id == user.id) ||
+                isProposalAccess(user, obj, operationType)
         if (!allowed && throwException) {
             throw AccessException("access.exception.noAccess")
         }
@@ -94,7 +101,7 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
     }
 
     override fun hasHistoryAccess(user: PFUserDO, obj: TaskBookingGrantDO, throwException: Boolean): Boolean {
-        val allowed = mayGrantAll(user, taskIdsOf(obj))
+        val allowed = mayGrantAll(user, taskIdsOf(obj)) || isProposalAccess(user, obj, OperationType.SELECT)
         if (!allowed && throwException) {
             throw AccessException("access.exception.noAccess")
         }
@@ -106,6 +113,45 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
      */
     open fun mayGrant(user: PFUserDO, taskId: Long?): Boolean {
         return timesheetDao.hasForeignTimesheetWriteAccess(user, taskId)
+    }
+
+    /**
+     * Whether the user may propose a grant on the given task ([TaskBookingGrantDO.acceptanceRequired]): who may book
+     * own time sheets on it by the groups, it's bookable. A grant of the user doesn't count, a grant isn't passed on.
+     */
+    open fun mayPropose(user: PFUserDO, taskId: Long?): Boolean {
+        val node = taskTree.getTaskNodeById(taskId) ?: return false
+        return !taskTree.isRootNode(node) && node.isBookableForTimesheets &&
+                accessChecker.hasPermission(user, taskId, AccessType.OWN_TIMESHEETS, OperationType.INSERT, false) &&
+                timesheetDao.checkTaskBookable(node, false)
+    }
+
+    /**
+     * Whether the user may grant on the task, or propose a grant on it or one of its descendants: the section of the
+     * grants in the task form.
+     */
+    open fun mayGrantOrPropose(user: PFUserDO, taskId: Long?): Boolean {
+        if (mayGrant(user, taskId)) {
+            return true
+        }
+        val node = taskTree.getTaskNodeById(taskId) ?: return false
+        return (sequenceOf(node.taskId) + node.descendantIds.asSequence()).any { mayPropose(user, it) }
+    }
+
+    /**
+     * Proposing (insert of a grant requiring the acceptance on tasks the user may propose on), reading and revoking
+     * the own proposals: proposed by the user (the insert in the history).
+     */
+    private fun isProposalAccess(user: PFUserDO, obj: TaskBookingGrantDO, operationType: OperationType): Boolean {
+        return when (operationType) {
+            OperationType.INSERT -> obj.acceptanceRequired && taskIdsOf(obj).let { taskIds ->
+                taskIds.isNotEmpty() && taskIds.all { mayPropose(user, it) }
+            }
+
+            OperationType.SELECT, OperationType.DELETE -> obj.id?.let { selectGrantedByUserIds(listOf(it))[it] } == user.id
+
+            else -> false
+        }
     }
 
     /**
@@ -163,6 +209,9 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
             positions.isEmpty() -> ERROR_NO_TASK
             taskIds.toSet().size != taskIds.size -> ERROR_TASK_TWICE
             else -> positions.firstNotNullOfOrNull { validatePosition(it) }
+                ?: ERROR_PERIOD_TOO_LONG.takeIf {
+                    obj.acceptanceRequired && ChronoUnit.DAYS.between(validFrom, validUntil) >= MAX_PROPOSAL_DAYS
+                }
         }
         if (error != null) {
             throw UserException(error)
@@ -218,6 +267,23 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
     }
 
     /**
+     * The number of time sheets to be accepted per grant id (grants without any are missing). The caller checks the
+     * access to the grants.
+     */
+    open fun selectPendingTimesheetCounts(grantIds: Collection<Long>): Map<Long, Int> {
+        return persistenceService.executeQueryBatched(
+            "SELECT t.bookingGrant.id, COUNT(t) FROM TimesheetDO t WHERE t.acceptancePending = true" +
+                    " AND t.deleted = false AND t.bookingGrant.id IN :ids GROUP BY t.bookingGrant.id",
+            Array<Any?>::class.java,
+            batchParam = "ids",
+            batchValues = grantIds,
+        ).mapNotNull { row ->
+            val grantId = (row[0] as? Number)?.toLong() ?: return@mapNotNull null
+            grantId to ((row[1] as? Number)?.toInt() ?: 0)
+        }.toMap()
+    }
+
+    /**
      * The grant with its positions, if any. The caller checks the access.
      */
     open fun selectWithPositions(id: Long): TaskBookingGrantDO? {
@@ -243,10 +309,14 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
         const val ERROR_INVALID_KOST2 = "task.bookingGrant.error.invalidKost2"
         const val ERROR_NO_TASK = "task.bookingGrant.error.noTask"
         const val ERROR_PERIOD_NOT_SET = "task.bookingGrant.error.periodNotSet"
+        const val ERROR_PERIOD_TOO_LONG = "task.bookingGrant.error.periodTooLong"
         const val ERROR_TASK_NOT_BOOKABLE = "task.bookingGrant.error.taskNotBookable"
         const val ERROR_TASK_TWICE = "task.bookingGrant.error.taskTwice"
         const val ERROR_USER_CHANGED = "task.bookingGrant.error.userChanged"
         const val ERROR_USER_NOT_SET = "task.bookingGrant.error.userNotSet"
+
+        /** The longest period of a proposed grant ([TaskBookingGrantDO.acceptanceRequired]), in days. */
+        const val MAX_PROPOSAL_DAYS = 31L
 
         private val DEFAULT_SORT_PROPERTIES = arrayOf(SortProperty("validUntil", SortOrder.DESCENDING))
     }

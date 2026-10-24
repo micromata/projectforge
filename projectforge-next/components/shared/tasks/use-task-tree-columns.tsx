@@ -107,8 +107,11 @@ export function useTaskTreeColumns(
               onToggle={() => onToggle(row.original)}
               action={rowAction?.(row.original)}
               badge={
-                row.original.bookingGrants ? (
-                  <TaskBookingGrantBadge grants={row.original.bookingGrants} />
+                row.original.bookingGrants || row.original.pendingTimesheets ? (
+                  <TaskBookingGrantBadge
+                    grants={row.original.bookingGrants}
+                    pendingTimesheets={row.original.pendingTimesheets}
+                  />
                 ) : undefined
               }
             />

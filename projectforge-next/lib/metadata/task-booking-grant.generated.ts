@@ -8,6 +8,11 @@ export const TASK_BOOKING_GRANT_METADATA = {
   entity: "TaskBookingGrantDO",
   historizable: true,
   fields: {
+    acceptanceRequired: {
+      dataType: "BOOLEAN",
+      i18nKey: "task.bookingGrant.acceptanceRequired",
+      required: false,
+    },
     comment: {
       dataType: "STRING",
       i18nKey: "comment",

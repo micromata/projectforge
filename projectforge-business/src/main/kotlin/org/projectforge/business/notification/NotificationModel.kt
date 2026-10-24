@@ -47,6 +47,9 @@ enum class NotificationRuleType : I18nEnum {
     /** Time sheets without cost 2 unit in the last months (missing in the salary export). */
     TIMESHEETS_WITHOUT_KOST2,
 
+    /** Time sheets booked by a grant an employee proposed, to be accepted by the project management. */
+    TIMESHEETS_TO_ACCEPT,
+
     /** No condition: all recipients get the notification when it is triggered (by hand or by the schedule). */
     MANUAL;
 

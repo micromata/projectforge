@@ -3364,6 +3364,7 @@
       "MANUAL": "Manual (no condition)",
       "PASSWORD_NOT_CHANGED": "Password not changed for a long time",
       "TIMESHEETS_MISSING": "Missing time sheets",
+      "TIMESHEETS_TO_ACCEPT": "Time sheets to be accepted",
       "TIMESHEETS_WITHOUT_KOST2": "Time sheets without Kost2",
       "VACATION_LEFT": "Expiring vacation days"
     },
@@ -3424,6 +3425,10 @@
       "passwordMaxAgeDays": "Maximum age of the password (days)",
       "period": "Period",
       "timesheetLink": "Link to the time sheets",
+      "timesheetsToAcceptCount": "Number of time sheets to be accepted",
+      "timesheetsToAcceptHours": "Hours to be accepted",
+      "timesheetsToAcceptLink": "Link to the time sheets to be accepted",
+      "timesheetsToAcceptTasks": "Structure elements with time sheets to be accepted",
       "timesheetsWithoutKost2Count": "Number of time sheets without Kost2",
       "timesheetsWithoutKost2Hours": "Hours booked without Kost2",
       "timesheetsWithoutKost2Tasks": "Structure elements booked without Kost2",
@@ -5305,16 +5310,22 @@
     },
     "assignedUser": "Responsible user",
     "bookingGrant": {
+      "acceptanceRequired": "To be accepted",
       "add": "Grant booking",
       "badge": {
         "_": "{arg0} ad hoc booking(s)",
         "upcoming": "from {arg0}"
+      },
+      "confirm": {
+        "_": "Confirm",
+        "confirm": "Confirm this proposed grant? The time sheets booked by it from now on don't have to be accepted anymore, the ones booked so far still do."
       },
       "error": {
         "endBeforeStart": "The end of the period is before its start.",
         "invalidKost2": "A cost unit isn't one of its structure element.",
         "noTask": "Please select at least one structure element.",
         "periodNotSet": "Please enter the period.",
+        "periodTooLong": "A proposed grant is valid for 31 days at most.",
         "taskNotBookable": "No time sheets can be booked on this structure element.",
         "taskTwice": "A structure element is selected twice.",
         "userChanged": "The user of a grant can't be changed.",
@@ -5326,6 +5337,7 @@
         "selected": "{arg0} cost unit(s)"
       },
       "mail": {
+        "acceptanceRequired": "Your time sheets will be checked and accepted by the project management, maybe on another structure element or cost unit.",
         "greeting": "Hello {arg0},",
         "subject": {
           "_": "Booking time sheets on {arg0}",
@@ -5334,11 +5346,23 @@
         "text": "{arg0} has granted you the booking of own time sheets for the period {arg1} on the following structure elements. You can book your time sheets by the links:"
       },
       "none": "No ad hoc bookings granted.",
+      "pending": {
+        "_": "{arg0} to accept",
+        "tooltip": "{arg0} time sheet(s) booked by a proposed grant to be accepted"
+      },
       "positions": {
         "_": "Structure elements",
         "add": "Add sub element",
         "hidden": "and {arg0} more structure element(s)",
         "truncated": "Only the first {arg0} sub elements are offered. For a deeper one, open its own structure element."
+      },
+      "proposal": {
+        "info": "A grant can't be given here, but proposed: the colleague helping out books right away, the project management accepts the time sheets afterwards (maybe on another structure element or cost unit). Valid for 31 days at most."
+      },
+      "propose": "Propose booking",
+      "proposed": {
+        "_": "Proposed",
+        "tooltip": "Proposed without the right to grant: the time sheets booked by it are to be accepted by the project management."
       },
       "revoke": {
         "_": "Revoke",
@@ -5549,6 +5573,12 @@
   },
   "timesheet": {
     "_": "Time-sheet",
+    "acceptance": {
+      "accept": "Accept",
+      "acceptOnSave": "Accept on save",
+      "info": "Booked by an ad hoc booking proposed by {arg0}: to be accepted by the project management, maybe on another structure element or cost unit."
+    },
+    "acceptancePending": "To be accepted",
     "ai": {
       "timeSavedByAI": {
         "_": "Time savings AI",
@@ -5592,12 +5622,16 @@
       "vacationNotConfigured": "No vacation cost unit is configured: please choose structure element and cost unit yourself.",
       "vacationPlaceholder": "Choose a vacation"
     },
+    "bookingGrant": "Ad hoc booking",
     "description": "Activity report",
     "duration": "Duration",
     "iCalSubscription": "Subscribe time sheets in iCal format (*.ics) for the logged-in user.",
     "icsExport": "ics export",
     "location": "Location",
     "massupdate": {
+      "acceptPending": {
+        "info": "Accepts the selected time sheets booked by a proposed ad hoc booking, with the structure element and cost unit chosen above, if any. Nothing changes about this for the others."
+      },
       "remapKost2": "Remap cost unit by type (structure element stays)",
       "remapKost2Info": "Each time sheet keeps its structure element. A cost unit the structure element no longer offers is replaced by its cost unit of the same type (last 2 digits), e.g. 5.999.11.02 -> 7.001.01.02 after a project was linked.",
       "taskNotApplied": "The structure element is not selected (checkbox) and will therefore not be changed.",
