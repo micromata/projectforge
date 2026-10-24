@@ -387,6 +387,13 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         )
     }
 
+    /** The own time sheet of the logged-in user, on a task they book on by their groups. */
+    private fun isBookedByOwnGroups(obj: TimesheetDO): Boolean {
+        val user = ThreadLocalUserContext.loggedInUser ?: return false
+        return accessChecker.userEquals(user, obj.user) &&
+                accessChecker.hasPermission(user, obj.taskId, AccessType.OWN_TIMESHEETS, OperationType.UPDATE, false)
+    }
+
     /**
      * Marking as deleted and undeleting copy the posted time sheet without [onUpdate]: the grant and the acceptance
      * are the stored ones as well, not the posted ones.
@@ -445,12 +452,17 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             }
             obj.acceptancePending = false
         } else if (isBookingChanged(obj, dbObj)) {
-            // Booked anew by a grant (moved onto its task, or an accepted time sheet changed): to be accepted again.
-            findOwnBookingGrant(obj, OperationType.UPDATE)?.let { grant ->
+            val grant = findOwnBookingGrant(obj, OperationType.UPDATE)
+            if (grant != null) {
+                // Booked anew by a grant (moved onto its task, or an accepted time sheet changed): maybe to be
+                // accepted again.
                 obj.bookingGrant = TaskBookingGrantDO().also { it.id = grant.id }
                 if (grant.acceptanceRequired) {
                     obj.acceptancePending = true
                 }
+            } else if (isBookedByOwnGroups(obj)) {
+                // Moved to a task the user books on anyway: nothing to accept (the grant stays, for reading).
+                obj.acceptancePending = false
             }
         }
         if (compareValues(obj.taskId, dbObj.taskId) != 0) {

@@ -10,9 +10,16 @@ import { timesheetsToAcceptRoute } from "@/lib/timesheet-links";
 
 /**
  * The status of a grant, for a proposed one (`acceptanceRequired`) with a mark and the number of its time
- * sheets still to be accepted, linked to the list of them.
+ * sheets still to be accepted on the task of the form and its sub elements (`taskId`), linked to the list of
+ * them.
  */
-export function BookingGrantStatus({ grant }: { grant: TaskBookingGrant }) {
+export function BookingGrantStatus({
+  grant,
+  taskId,
+}: {
+  grant: TaskBookingGrant;
+  taskId: number;
+}) {
   const t = useTranslations();
   return (
     <div className="flex flex-wrap items-center gap-1">
@@ -26,7 +33,7 @@ export function BookingGrantStatus({ grant }: { grant: TaskBookingGrant }) {
       )}
       {grant.pendingTimesheets > 0 && (
         <Link
-          href={timesheetsToAcceptRoute(grant.userId, grant.userName)}
+          href={timesheetsToAcceptRoute(grant.userId, grant.userName, taskId)}
           className="text-xs underline underline-offset-2"
         >
           {t("task.bookingGrant.pending._", { arg0: grant.pendingTimesheets })}

@@ -15,6 +15,7 @@ import {
   type TaskBookingGrant,
   type TaskBookingGrantResult,
 } from "@/lib/rs/task-booking-grant";
+import { TASK_STRUCTURE_QUERY_KEYS } from "@/lib/rs/task";
 import { BookingGrantDialog } from "./booking-grant-dialog";
 import { BookingGrantsTable } from "./booking-grants-table";
 
@@ -47,6 +48,11 @@ export function BookingGrantsSection({ id }: { id: number | null }) {
   const apply = (result: TaskBookingGrantResult) => {
     if (result.info) queryClient.setQueryData(queryKey, result.info);
     setRejected(result.success ? null : (result.message ?? null));
+    if (result.success) {
+      // The badges of the structure tree (grants, time sheets to accept) are cached as well.
+      for (const key of TASK_STRUCTURE_QUERY_KEYS)
+        void queryClient.invalidateQueries({ queryKey: key });
+    }
   };
 
   const run = async (call: () => Promise<TaskBookingGrantResult>) => {
@@ -73,6 +79,7 @@ export function BookingGrantsSection({ id }: { id: number | null }) {
       {info.grants && info.grants.length > 0 ? (
         <BookingGrantsTable
           grants={info.grants}
+          taskId={id}
           onConfirm={setConfirming}
           onRevoke={setRevoking}
         />

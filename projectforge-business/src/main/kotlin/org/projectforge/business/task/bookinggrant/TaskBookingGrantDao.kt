@@ -36,6 +36,7 @@ import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.temporal.ChronoUnit
@@ -139,8 +140,9 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
     }
 
     /**
-     * Proposing (insert of a grant requiring the acceptance on tasks the user may propose on), reading and revoking
-     * the own proposals: proposed by the user (the insert in the history).
+     * Proposing (insert of a grant requiring the acceptance on tasks the user may propose on), reading the own
+     * proposals and revoking them until confirmed: proposed by the user (the insert in the history). Confirmed, the
+     * grant is one of the project management.
      */
     private fun isProposalAccess(user: PFUserDO, obj: TaskBookingGrantDO, operationType: OperationType): Boolean {
         return when (operationType) {
@@ -148,10 +150,15 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
                 taskIds.isNotEmpty() && taskIds.all { mayPropose(user, it) }
             }
 
-            OperationType.SELECT, OperationType.DELETE -> obj.id?.let { selectGrantedByUserIds(listOf(it))[it] } == user.id
+            OperationType.SELECT -> isProposedBy(user, obj)
+            OperationType.DELETE -> obj.acceptanceRequired && isProposedBy(user, obj)
 
             else -> false
         }
+    }
+
+    private fun isProposedBy(user: PFUserDO, obj: TaskBookingGrantDO): Boolean {
+        return obj.id?.let { selectGrantedByUserIds(listOf(it))[it] } == user.id
     }
 
     /**
@@ -187,15 +194,22 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
             // Another user is another grant.
             throw UserException(ERROR_USER_CHANGED)
         }
-        if (!obj.deleted) {
-            // Revoking is always possible, also when a task is closed in the meantime.
+        // Revoking and confirming are always possible, also when a task is closed in the meantime.
+        if (!obj.deleted && !isConfirmation(obj, dbObj)) {
             validate(obj)
         }
     }
 
+    /** Only the acceptance is no longer required ([TaskBookingGrantService.confirm]), nothing else changes. */
+    private fun isConfirmation(obj: TaskBookingGrantDO, dbObj: TaskBookingGrantDO): Boolean {
+        return dbObj.acceptanceRequired && !obj.acceptanceRequired && obj.validFrom == dbObj.validFrom &&
+                obj.validUntil == dbObj.validUntil && taskIdsOf(obj) == taskIdsOf(dbObj)
+    }
+
     /**
      * The user and the period must be set, there must be at least one task, none twice, each bookable, and the cost
-     * units of each, if any, must be ones of its task.
+     * units of each, if any, must be ones of its task. A proposal ([TaskBookingGrantDO.acceptanceRequired]) is valid for
+     * [MAX_PROPOSAL_DAYS] days at most and ends within them from today: proposals can't be chained.
      */
     open fun validate(obj: TaskBookingGrantDO) {
         val validFrom = obj.validFrom
@@ -209,8 +223,14 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
             positions.isEmpty() -> ERROR_NO_TASK
             taskIds.toSet().size != taskIds.size -> ERROR_TASK_TWICE
             else -> positions.firstNotNullOfOrNull { validatePosition(it) }
-                ?: ERROR_PERIOD_TOO_LONG.takeIf {
-                    obj.acceptanceRequired && ChronoUnit.DAYS.between(validFrom, validUntil) >= MAX_PROPOSAL_DAYS
+                ?: if (!obj.acceptanceRequired) {
+                    null
+                } else if (ChronoUnit.DAYS.between(validFrom, validUntil) >= MAX_PROPOSAL_DAYS) {
+                    ERROR_PERIOD_TOO_LONG
+                } else if (ChronoUnit.DAYS.between(PFDay.now().localDate, validUntil) >= MAX_PROPOSAL_DAYS) {
+                    ERROR_PROPOSAL_TOO_FAR_AHEAD
+                } else {
+                    null
                 }
         }
         if (error != null) {
@@ -267,20 +287,25 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
     }
 
     /**
-     * The number of time sheets to be accepted per grant id (grants without any are missing). The caller checks the
-     * access to the grants.
+     * The number of time sheets to be accepted per grant id (grants without any are missing), counting only those on
+     * the given tasks. The caller checks the access to the grants.
      */
-    open fun selectPendingTimesheetCounts(grantIds: Collection<Long>): Map<Long, Int> {
-        return persistenceService.executeQueryBatched(
-            "SELECT t.bookingGrant.id, COUNT(t) FROM TimesheetDO t WHERE t.acceptancePending = true" +
-                    " AND t.deleted = false AND t.bookingGrant.id IN :ids GROUP BY t.bookingGrant.id",
+    open fun selectPendingTimesheetCounts(grantIds: Collection<Long>, taskIds: Set<Long>): Map<Long, Int> {
+        val result = mutableMapOf<Long, Int>()
+        persistenceService.executeQueryBatched(
+            "SELECT t.bookingGrant.id, t.task.id, COUNT(t) FROM TimesheetDO t WHERE t.acceptancePending = true" +
+                    " AND t.deleted = false AND t.bookingGrant.id IN :ids GROUP BY t.bookingGrant.id, t.task.id",
             Array<Any?>::class.java,
             batchParam = "ids",
             batchValues = grantIds,
-        ).mapNotNull { row ->
-            val grantId = (row[0] as? Number)?.toLong() ?: return@mapNotNull null
-            grantId to ((row[1] as? Number)?.toInt() ?: 0)
-        }.toMap()
+        ).forEach { row ->
+            val grantId = (row[0] as? Number)?.toLong() ?: return@forEach
+            val taskId = (row[1] as? Number)?.toLong() ?: return@forEach
+            if (taskId in taskIds) {
+                result.merge(grantId, (row[2] as? Number)?.toInt() ?: 0, Int::plus)
+            }
+        }
+        return result
     }
 
     /**
@@ -310,6 +335,7 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
         const val ERROR_NO_TASK = "task.bookingGrant.error.noTask"
         const val ERROR_PERIOD_NOT_SET = "task.bookingGrant.error.periodNotSet"
         const val ERROR_PERIOD_TOO_LONG = "task.bookingGrant.error.periodTooLong"
+        const val ERROR_PROPOSAL_TOO_FAR_AHEAD = "task.bookingGrant.error.proposalTooFarAhead"
         const val ERROR_TASK_NOT_BOOKABLE = "task.bookingGrant.error.taskNotBookable"
         const val ERROR_TASK_TWICE = "task.bookingGrant.error.taskTwice"
         const val ERROR_USER_CHANGED = "task.bookingGrant.error.userChanged"

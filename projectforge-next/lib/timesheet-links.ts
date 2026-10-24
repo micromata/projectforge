@@ -110,15 +110,20 @@ export function timesheetAddRoute(taskId: number): string {
  */
 export const TIMESHEET_ACCEPTANCE_PENDING_PARAM = "acceptancePending";
 
-/** The time sheets to be accepted, of one user if given, as a route of this app. */
+/**
+ * The time sheets to be accepted, of one user and one task (with its sub-tasks) if given, as a route of this
+ * app.
+ */
 export function timesheetsToAcceptRoute(
   userId?: number,
-  userName?: string
+  userName?: string,
+  taskId?: number
 ): string {
   const params = new URLSearchParams({
     [TIMESHEET_ACCEPTANCE_PENDING_PARAM]: "true",
   });
   if (userId) params.set(TIMESHEET_USER_ID_PARAM, String(userId));
   if (userId && userName) params.set(TIMESHEET_USER_NAME_PARAM, userName);
+  if (taskId) params.set(TIMESHEET_TASK_ID_PARAM, String(taskId));
   return `/timesheet?${params.toString()}`;
 }

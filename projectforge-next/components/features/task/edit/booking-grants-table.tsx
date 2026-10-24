@@ -26,10 +26,13 @@ import { BookingGrantPositionList } from "./booking-grant-position-list";
  */
 export function BookingGrantsTable({
   grants,
+  taskId,
   onConfirm,
   onRevoke,
 }: {
   grants: TaskBookingGrant[];
+  /** The task of the form: the time sheets to accept are counted and listed of its subtree. */
+  taskId: number;
   onConfirm: (grant: TaskBookingGrant) => void;
   onRevoke: (grant: TaskBookingGrant) => void;
 }) {
@@ -72,7 +75,7 @@ export function BookingGrantsTable({
                   <BookingGrantPositionList grant={grant} />
                 </TableCell>
                 <TableCell>
-                  <BookingGrantStatus grant={grant} />
+                  <BookingGrantStatus grant={grant} taskId={taskId} />
                 </TableCell>
                 <TableCell>{grant.grantedByName}</TableCell>
                 <TableCell className="whitespace-normal">

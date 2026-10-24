@@ -30,10 +30,12 @@ import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.notification.TimesheetsToAcceptRuleHandler
 import org.projectforge.business.task.TaskDO
+import org.projectforge.business.task.TaskDao
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.common.i18n.UserException
+import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.access.AccessDao
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.AccessType
@@ -52,6 +54,9 @@ class TaskBookingGrantProposalTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var projektDao: ProjektDao
+
+    @Autowired
+    private lateinit var taskDao: TaskDao
 
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
@@ -128,6 +133,7 @@ class TaskBookingGrantProposalTest : AbstractTestBase() {
     private fun propose(
         fixture: Fixture,
         tasks: List<TaskDO> = listOf(fixture.granted),
+        validFrom: PFDay = PFDay.now().minusDays(5),
         validUntil: PFDay = PFDay.now().plusDays(5),
         by: PFUserDO = fixture.employee,
         user: PFUserDO = fixture.helper,
@@ -136,7 +142,7 @@ class TaskBookingGrantProposalTest : AbstractTestBase() {
         return taskBookingGrantService.grant(
             userIds = listOf(user.id!!),
             positions = tasks.map { TaskBookingGrantService.Position(it.id!!) },
-            validFrom = PFDay.now().minusDays(5).localDate,
+            validFrom = validFrom.localDate,
             validUntil = validUntil.localDate,
             comment = null,
         ).single()
@@ -164,6 +170,10 @@ class TaskBookingGrantProposalTest : AbstractTestBase() {
         assertThrows<AccessException> { propose(fixture, by = getUser(TEST_USER)) }
         assertThrows<AccessException> { propose(fixture, tasks = listOf(fixture.granted, fixture.foreign)) }
         assertThrows<UserException> { propose(fixture, validUntil = PFDay.now().plusDays(40)) }
+        // Not chained either: 21 days, but ending later than 31 days from today.
+        assertThrows<UserException> {
+            propose(fixture, validFrom = PFDay.now().plusDays(20), validUntil = PFDay.now().plusDays(40))
+        }.let { Assertions.assertEquals(TaskBookingGrantDao.ERROR_PROPOSAL_TOO_FAR_AHEAD, it.i18nKey) }
 
         val grant = propose(fixture)
         Assertions.assertTrue(grant.acceptanceRequired)
@@ -277,6 +287,51 @@ class TaskBookingGrantProposalTest : AbstractTestBase() {
             Assertions.assertTrue(it.acceptancePending)
             Assertions.assertNotEquals(byManager.id, it.bookingGrant?.id)
         }
+    }
+
+    @Test
+    fun `a sheet moved by the helper to a task of the own groups is not to be accepted anymore`() {
+        val fixture = createFixture("bgp-own-group")
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_ADMIN_USER)
+            val group = initTestDB.addGroup("bgp-own-group-helpers", fixture.helper.username!!)
+            initTestDB.createGroupTaskAccess(group, fixture.sibling).let { access ->
+                access.ensureAndGetAccessEntry(AccessType.TASKS).setAccess(true, false, false, false)
+                access.ensureAndGetAccessEntry(AccessType.OWN_TIMESHEETS).setAccess(true, true, true, true)
+                accessDao.update(access, checkAccess = false)
+            }
+        }
+        propose(fixture)
+        val sheet = book(fixture, fixture.granted)
+        Assertions.assertTrue(sheet.acceptancePending)
+        logon(fixture.helper)
+        timesheetDao.update(timesheetDao.find(sheet.id)!!.also { it.task = fixture.sibling })
+        timesheetDao.find(sheet.id, checkAccess = false)!!.let {
+            Assertions.assertEquals(fixture.sibling.id, it.taskId)
+            Assertions.assertFalse(it.acceptancePending)
+        }
+    }
+
+    @Test
+    fun `a confirmed proposal is revoked by the project management only, confirmed also on a closed task`() {
+        val fixture = createFixture("bgp-confirmed")
+        val grant = propose(fixture)
+        // The task is closed after the proposal: confirming works anyway.
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_ADMIN_USER)
+            taskDao.update(taskDao.find(fixture.granted.id)!!.also { it.status = TaskStatus.C }, checkAccess = false)
+        }
+        logon(fixture.manager)
+        Assertions.assertTrue(taskBookingGrantService.confirm(grant.id!!))
+        // The proposer reads, but doesn't revoke it anymore.
+        logon(fixture.employee)
+        Assertions.assertNotNull(taskBookingGrantDao.find(grant.id))
+        assertThrows<AccessException> {
+            taskBookingGrantDao.markAsDeleted(taskBookingGrantDao.selectWithPositions(grant.id!!)!!)
+        }
+        logon(fixture.manager)
+        taskBookingGrantDao.markAsDeleted(taskBookingGrantDao.selectWithPositions(grant.id!!)!!)
+        Assertions.assertTrue(taskBookingGrantDao.find(grant.id, checkAccess = false)!!.deleted)
     }
 
     @Test

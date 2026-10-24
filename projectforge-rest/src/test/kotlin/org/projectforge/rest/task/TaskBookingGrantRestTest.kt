@@ -271,6 +271,52 @@ class TaskBookingGrantRestTest : AbstractTestBase() {
     }
 
     @Test
+    fun `a revoked proposal isn't confirmed, a confirmed one isn't revoked by the proposer, pending of the subtree`() {
+        val fixture = createFixture("bgrest-confirm")
+        val employee = persistenceService.runInTransaction { _ ->
+            logon(TEST_ADMIN_USER)
+            val employee = initTestDB.addUser("bgrest-confirm-employee")
+            val access = initTestDB.createGroupTaskAccess(initTestDB.addGroup("bgrest-confirm-employees", employee.username!!), fixture.project)
+            access.ensureAndGetAccessEntry(AccessType.TASKS).setAccess(true, false, false, false)
+            access.ensureAndGetAccessEntry(AccessType.OWN_TIMESHEETS).setAccess(true, true, true, true)
+            access.recursive = true
+            accessDao.update(access, checkAccess = false)
+            employee
+        }
+        logon(employee)
+        val proposal = grant(fixture, tasks = listOf(fixture.granted, fixture.sibling)).info!!.grants!!.single()
+        // A sheet on the granted task: counted for the project and the granted task, not for the sibling.
+        logon(fixture.helper)
+        val start = PFDateTime.now().minusDays(1).beginOfDay.withHour(8)
+        timesheetDao.insert(TimesheetDO().also {
+            it.user = fixture.helper
+            it.task = fixture.granted
+            it.startTime = start.utilDate
+            it.stopTime = start.plusHours(1).utilDate
+            it.description = "helping"
+        })
+        logon(fixture.manager)
+        assertEquals(1, taskBookingGrantRest.getInfo(fixture.project.id!!).grants!!.single().pendingTimesheets)
+        assertEquals(0, taskBookingGrantRest.getInfo(fixture.sibling.id!!).grants!!.single().pendingTimesheets)
+
+        // Confirmed: the proposer may revoke it no more.
+        assertTrue(taskBookingGrantRest.confirm(proposal.id, fixture.project.id!!).success)
+        assertFalse(taskBookingGrantRest.confirm(proposal.id, fixture.project.id!!).success, "Confirmed already.")
+        logon(employee)
+        assertFalse(taskBookingGrantRest.getInfo(fixture.project.id!!).grants!!.single().revocable)
+        assertFalse(taskBookingGrantRest.revoke(proposal.id, fixture.project.id!!).success)
+
+        // Revoked: not to be confirmed.
+        val second = grant(fixture).info!!.grants!!.single { it.id != proposal.id }
+        assertTrue(taskBookingGrantRest.revoke(second.id, fixture.project.id!!).success)
+        logon(fixture.manager)
+        taskBookingGrantRest.confirm(second.id, fixture.project.id!!).let {
+            assertFalse(it.success)
+            assertNotNull(it.message)
+        }
+    }
+
+    @Test
     fun `grants of a part of the subtree without the right to grant are not listed`() {
         val fixture = createFixture("bgrest-part")
         // The manager edits no time sheets of others on the sibling: its own access overrides the project's.
