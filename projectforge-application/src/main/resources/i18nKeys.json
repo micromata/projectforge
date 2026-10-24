@@ -3437,6 +3437,7 @@
   {"i18nKey":"scripting.script.execution.log.terminatedWithErrors","bundleName":"I18nResources","translation":"Script execution terminated with errors.","translationDE":"Scriptausführung mit Fehlern beendet.","usedInClasses":["org.projectforge.rest.scripting.AbstractScriptExecuteRest"],"usedInFiles":[]},
   {"i18nKey":"scripting.script.execution.pageContext","bundleName":"I18nResources","translation":"Started from: {0}. The script gets the current filter of this page as variable `pageContext`.","translationDE":"Gestartet von: {0}. Das Script erhält den aktuellen Filter dieser Seite als Variable `pageContext`.","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"scripting.script.includes","bundleName":"I18nResources","translation":"Embedded scripts","translationDE":"Eingebundene Scripts","usedInClasses":["org.projectforge.business.scripting.ScriptDO"],"usedInFiles":[]},
+  {"i18nKey":"scripting.script.input","bundleName":"I18nResources","translation":"Input","translationDE":"Eingabe","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"scripting.script.name","bundleName":"I18nResources","translation":"Name","translationDE":"Name","usedInClasses":["org.projectforge.business.scripting.ScriptDO"],"usedInFiles":[]},
   {"i18nKey":"scripting.script.output","bundleName":"I18nResources","translation":"Output","translationDE":"Ausgabe","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"scripting.script.pageButtons","bundleName":"I18nResources","translation":"Page buttons","translationDE":"Seiten-Buttons","usedInClasses":[],"usedInFiles":[]},

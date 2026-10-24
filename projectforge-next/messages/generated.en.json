@@ -4686,6 +4686,7 @@
         "pageContext": "Started from: {arg0}. The script gets the current filter of this page as variable `pageContext`."
       },
       "includes": "Embedded scripts",
+      "input": "Input",
       "name": "Name",
       "output": "Output",
       "pageButtons": "Page buttons",

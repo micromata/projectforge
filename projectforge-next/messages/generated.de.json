@@ -4686,6 +4686,7 @@
         "pageContext": "Gestartet von: {arg0}. Das Script erhält den aktuellen Filter dieser Seite als Variable `pageContext`."
       },
       "includes": "Eingebundene Scripts",
+      "input": "Eingabe",
       "name": "Name",
       "output": "Ausgabe",
       "pageButtons": "Seiten-Buttons",
