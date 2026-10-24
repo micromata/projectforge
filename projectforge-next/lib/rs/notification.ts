@@ -80,6 +80,8 @@ export function markNotificationDone(id: number): Promise<AppNotification> {
 export interface NotificationVariable {
   key: string;
   label: string;
+  /** Available for every rule type (the names of the recipient), otherwise only for the given one. */
+  common?: boolean;
 }
 
 export interface MenuBadgeOption {

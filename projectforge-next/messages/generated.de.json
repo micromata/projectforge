@@ -3444,6 +3444,12 @@
       "unbookedWorkingDays": "Arbeitstage ohne Zeitberichte (ohne Urlaub)",
       "unbookedWorkingDaysCount": "Anzahl der Arbeitstage ohne Zeitberichte (ohne Urlaub)",
       "vacationLink": "Link zum Urlaub"
+    },
+    "variables": {
+      "common": "Allgemein",
+      "info": "In Betreff und Text werden die Variablen durch ihre Werte ersetzt.",
+      "ruleType": "Für diesen Regeltyp",
+      "title": "Verfügbare Variablen"
     }
   },
   "operation": {

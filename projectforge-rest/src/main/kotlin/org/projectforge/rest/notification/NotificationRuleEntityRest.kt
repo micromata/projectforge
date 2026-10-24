@@ -75,7 +75,8 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     NotificationRuleDao::class.java, "notification.rule",
 ) {
     /** A variable `{{key}}` of the rule texts with its translated label. */
-    class Variable(val key: String, val label: String)
+    /** [common]: available for every rule type (names of the recipient), otherwise only for the given one. */
+    class Variable(val key: String, val label: String, val common: Boolean)
 
     /** A menu item a rule may show its notifications on as a counter. */
     class MenuBadgeOption(val id: String, val label: String)
@@ -214,7 +215,9 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     @GetMapping("variables")
     fun getVariables(@RequestParam("ruleType", required = false) ruleType: NotificationRuleType?): List<Variable> {
         checkInsertAccess()
-        return notificationService.variables(ruleType).map { Variable(it, translate("notification.variable.$it")) }
+        return notificationService.variables(ruleType).map {
+            Variable(it, translate("notification.variable.$it"), it in NotificationService.COMMON_VARIABLES)
+        }
     }
 
     /** The menu items selectable as menu badge, sorted by their translated labels. */
