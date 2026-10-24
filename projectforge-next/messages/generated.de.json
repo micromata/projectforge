@@ -3628,6 +3628,399 @@
         }
       }
     },
+    "cveradar": {
+      "advisories": {
+        "none": "Aktuell keine Client-Hinweise.",
+        "todo": "Was ist zu tun?"
+      },
+      "ai": {
+        "content": "KI-Texte",
+        "import": {
+          "apply": "Importieren",
+          "file": "Datei wählen…",
+          "info": "JSON-Datei hierher ziehen, auswählen oder den Text einfügen.",
+          "invalid": "Ungültige Antwort",
+          "title": "KI-Antwort importieren",
+          "valid": "Die Antwort entspricht dem Schema."
+        },
+        "longDescription": "Langbeschreibung",
+        "marker": {
+          "released": "KI-generiert, freigegeben",
+          "unreleased": "KI-generiert, nicht freigegeben"
+        },
+        "none": "Noch keine KI-Antwort importiert.",
+        "prompt": {
+          "approvedOnly": "Diesen Prompt nur verwenden mit: {arg0}",
+          "copied": "Prompt kopiert.",
+          "copy": "Prompt kopieren",
+          "instruction": "Analysiere die folgende Schwachstelle für ein IT-Unternehmen. Antworte auf Deutsch, ausschließlich mit JSON genau im Format des Beispiels am Ende.",
+          "title": "Prompt für ein freigegebenes KI-System",
+          "withInventory": "Eingesetzte Technologien und Versionen mitgeben (nie Namen oder Kürzel von Systemen)"
+        },
+        "release": "Für Mitarbeitende freigeben",
+        "risk": "Risikoeinschätzung",
+        "shortDescription": "Kurzbeschreibung"
+      },
+      "apply": "Übernehmen",
+      "back": "Zurück",
+      "baseline": {
+        "edit": {
+          "info": "Wirkt sofort in allen Instanzen ohne Abweichung. Deren dadurch gelöste Befunde gehen auf „Behebung geplant“, bis jede Instanz die Behebung bestätigt.",
+          "title": "Version von {arg0} ändern"
+        },
+        "info": "Komponenten und Technologien, einmal für alle Instanzen gepflegt; Instanzen erfassen nur Abweichungen.",
+        "newVersion": "Neue Version (bisher {arg0})",
+        "preview": {
+          "deviating": "Unverändert (eigene Version)",
+          "fixPlanned": "Befunde auf „Behebung geplant“",
+          "inheriting": "Wirkt in"
+        },
+        "title": "Baseline",
+        "version": "Basis {arg0}"
+      },
+      "campaign": {
+        "answer": "Antworten",
+        "answerFor": "Antwort für {arg0}",
+        "answered": "{arg0} von {arg1} beantwortet",
+        "deadline": "Frist {arg0}",
+        "hiddenInstances": "+{arg0} Instanzen anderer Teams, nicht sichtbar",
+        "info": "Jedes Team antwortet je Instanz; die Antwort setzt den Status der Befunde dieser Instanz.",
+        "mandatory": "verpflichtend",
+        "open": "offen",
+        "target": {
+          "CLIENTS": "Alle Mitarbeitenden",
+          "TEAMS": "Teams"
+        },
+        "title": "Feedback {arg0}"
+      },
+      "clientAnswer": {
+        "DONE": "Erledigt",
+        "NOT_AFFECTED": "Nicht betroffen",
+        "QUESTION": "Frage/Problem"
+      },
+      "column": {
+        "assignee": "Bearbeitung",
+        "code": "Kürzel",
+        "component": "Komponente",
+        "confidentiality": "Vertraulichkeit",
+        "cve": "CVE",
+        "cvss": "CVSS",
+        "deviations": "Abweichungen",
+        "due": "Fällig",
+        "epss": "EPSS",
+        "exposed": "Internet",
+        "group": "Zuständige Gruppe",
+        "instance": "Instanz",
+        "instances": "Instanzen",
+        "name": "Name",
+        "openFindings": "Offene Befunde",
+        "priority": "Prio",
+        "published": "Veröffentlicht",
+        "site": "Standort",
+        "stage": "Stage",
+        "status": "Status",
+        "technologies": "Technologien",
+        "technology": "Technologie",
+        "title": "Beschreibung"
+      },
+      "confidentiality": {
+        "CONFIDENTIAL": "Vertraulich",
+        "INTERNAL": "Intern",
+        "STRICTLY_CONFIDENTIAL": "Streng vertraulich"
+      },
+      "criticality": {
+        "HIGH": "Hoch",
+        "LOW": "Niedrig",
+        "MEDIUM": "Mittel",
+        "VERY_HIGH": "Sehr hoch"
+      },
+      "dashboard": {
+        "acknowledged": "Kenntnisnahmen: {arg0}",
+        "campaigns": "Laufende Kampagnen",
+        "escalations": "Eskalationen",
+        "newToday": "Neu (24 h)",
+        "openPriority": "Offen {arg0}",
+        "overdue": "Überfällig",
+        "trend": {
+          "closed": "erledigt",
+          "open": "offen",
+          "title": "Befunde der letzten 30 Tage"
+        },
+        "triageOverdue": "Triage überfällig"
+      },
+      "deviation": "Abweichung",
+      "discussion": {
+        "newPost": "Neuer Beitrag (Markdown)",
+        "post": "Beitrag senden",
+        "scope": {
+          "INTERNAL": "Intern",
+          "PUBLIC": "Öffentliche Diskussion",
+          "label": "Sichtbar für"
+        },
+        "title": "Diskussion"
+      },
+      "error": {
+        "noAccess": "Für diese Rolle nicht erlaubt.",
+        "reasonRequired": "Eine Begründung ist erforderlich."
+      },
+      "escalation": {
+        "acknowledgedBy": "Kenntnis genommen",
+        "active": "Eskaliert: SO und Geschäftsleitung sind hinzugezogen",
+        "start": {
+          "info": "Zieht Security Officer und Geschäftsleitung sofort hinzu, per Banner und Mail.",
+          "title": "Eskalieren"
+        },
+        "title": "Eskalation"
+      },
+      "exploitability": {
+        "HIGH": "hoch",
+        "LOW": "gering",
+        "MEDIUM": "mittel",
+        "NONE": "keine"
+      },
+      "filter": {
+        "all": "Alle",
+        "technology": {
+          "label": "Technologie",
+          "placeholder": "Technologie, z. B. spring boot < 3.5.7"
+        }
+      },
+      "findingStatus": {
+        "AFFECTED": "Betroffen",
+        "FIXED": "Behoben",
+        "FIX_PLANNED": "Behebung geplant",
+        "IN_REVIEW": "In Prüfung",
+        "MITIGATED": "Abgeschwächt",
+        "NEW": "Neu",
+        "NOT_AFFECTED": "Nicht betroffen",
+        "RISK_ACCEPTED": "Risiko akzeptiert"
+      },
+      "findings": {
+        "confirmFixed": "Behoben bestätigen…",
+        "fixedVersion": "Behobene Version",
+        "openOf": "{arg0} von {arg1} offen",
+        "openOnly": "Nur offene",
+        "riskAccepted": {
+          "info": "Risikoakzeptanz erfordert den Security Officer (ab P2 zusätzlich die Geschäftsleitung) und ein Ablaufdatum."
+        },
+        "setStatus": "Status setzen…"
+      },
+      "group": {
+        "overridden": "am System überschrieben"
+      },
+      "hiddenSystems": "+{arg0} weitere betroffene Systeme, nicht sichtbar",
+      "hiddenSystemsShort": "+{arg0} verborgen",
+      "inherited": {
+        "from": "von {arg0}"
+      },
+      "instance": {
+        "contact": "Ansprechpartner:in",
+        "default": "Standardinstanz",
+        "exposed": "aus dem Internet erreichbar",
+        "internal": "nur intern",
+        "openFindings": "{arg0} offen",
+        "raised": "an der Instanz angehoben",
+        "tenant": "Mandant"
+      },
+      "inventory": {
+        "hiddenSystems": "+{arg0} weitere Systeme, für diese Rolle nicht sichtbar"
+      },
+      "kev": {
+        "info": "Im CISA-Katalog bekannter ausgenutzter Schwachstellen: wird aktiv ausgenutzt.",
+        "label": "KEV"
+      },
+      "level": {
+        "AREA": "Bereich",
+        "COMPONENT": "Komponente",
+        "INSTANCE": "Instanz",
+        "SYSTEM": "System"
+      },
+      "masterDataOnly": {
+        "info": "Für diese Rolle sind nur die Stammdaten dieses Systems sichtbar (Kürzel, Name, Gruppe, Stufe). Komponenten und Befunde erfordern eine Freigabe.",
+        "short": "nur Stammdaten"
+      },
+      "matrix": {
+        "actions": "Abweichung von {arg0}",
+        "apply": "In Baseline übernehmen",
+        "info": "Technologie × Instanz. Farbige Zellen weichen von der Baseline ab; ein Klick darauf übernimmt sie in die Baseline oder setzt sie zurück.",
+        "kind": {
+          "ADDED": "zusätzlich",
+          "REMOVED": "fehlt",
+          "VERSION": "andere Version"
+        },
+        "reset": "Abweichung zurücksetzen"
+      },
+      "measures": {
+        "fixVersion": "Fix-Version",
+        "nonTechMeasures": "Maßnahmen für Nicht-Techies",
+        "none": "Noch nicht beschrieben.",
+        "remediation": "Behebung",
+        "techMeasures": "Maßnahmen für Techies",
+        "workaround": "Workaround"
+      },
+      "menu": "CVE-Radar",
+      "myAreas": {
+        "findings": "Offene Befunde meiner Systeme",
+        "groups": "Meine Gruppen: {arg0}",
+        "openFeedback": "Mein offenes Feedback",
+        "systems": "Meine Systeme"
+      },
+      "no": "nein",
+      "nobody": "niemand",
+      "none": "Keine.",
+      "notFound": "Nicht gefunden oder für diese Rolle nicht sichtbar.",
+      "origin": {
+        "CI": "CI-Pipeline",
+        "MANUAL": "manuell",
+        "SBOM": "SBOM-Datei"
+      },
+      "persona": "Ansicht als",
+      "possiblyAffected": {
+        "info": "Für diese Technologie ist keine genaue Version im Inventar, der Treffer ist daher unsicher.",
+        "label": "möglicherweise"
+      },
+      "priority": {
+        "binding": "Verbindliche Priorität",
+        "suggested": "Vorschlag {arg0}: {arg1}"
+      },
+      "priorityReason": {
+        "cvssP2": "CVSS ≥ 9 → P2",
+        "cvssP3": "CVSS ≥ 7 → P3",
+        "cvssP4": "CVSS < 7 → P4",
+        "epss": "EPSS ≥ 30 % +1",
+        "exposed": "kritische Instanz im Internet +1",
+        "kev": "KEV +1"
+      },
+      "prototype": {
+        "banner": "Prototyp für das Review der Spezifikation: nur Testdaten (fiktive CVEs), Änderungen bleiben nur in diesem Browser erhalten, bis „Testdaten zurücksetzen“. Oben die Rolle wechseln, um zu sehen, was jede Rolle sieht.",
+        "reset": {
+          "info": "Stellt die Testdaten im Auslieferungszustand wieder her; alle Änderungen gehen verloren.",
+          "label": "Testdaten zurücksetzen"
+        }
+      },
+      "qa": {
+        "audience": {
+          "NONTECH": "alle",
+          "TECH": "Techies"
+        },
+        "title": "Fragen & Antworten"
+      },
+      "ratings": {
+        "binding": "Verbindliche Priorität {arg0}: {arg1}",
+        "deviates": "Weicht von der verbindlichen Priorität ab",
+        "exploitability": "Ausnutzbarkeit bei uns",
+        "noBinding": "Noch keine verbindliche Priorität; Vorschlag {arg0}.",
+        "none": "Noch keine Bewertungen.",
+        "own": "Meine Bewertung",
+        "save": "Bewertung speichern"
+      },
+      "reason": "Begründung",
+      "role": {
+        "CA": "CVE-Radar-Admin",
+        "EMPLOYEE": "Mitarbeiter:in",
+        "MG": "Geschäftsleitung",
+        "SO": "Security Officer",
+        "ST": "Security-Team",
+        "TEAM": "Bereichs-/Systemteam"
+      },
+      "save": "Speichern",
+      "saved": "Gespeichert (nur Testdaten).",
+      "sbom": {
+        "change": {
+          "NEW": "neu",
+          "REMOVED": "entfernt",
+          "VERSION": "Version"
+        },
+        "import": "SBOM importieren…",
+        "noChange": "Kein Unterschied.",
+        "sample": "Beispieldatei: {arg0}",
+        "target": {
+          "baseline": {
+            "info": "Ersetzt die Technologien der Komponente in der Baseline; alle Instanzen ohne Abweichung folgen."
+          },
+          "instance": {
+            "info": "Die Unterschiede zur Baseline werden Abweichungen dieser Instanz."
+          },
+          "label": "Ziel"
+        }
+      },
+      "selected": "Ausgewählt: {arg0}",
+      "system": {
+        "criticality": "Kritikalität",
+        "grants": "Freigaben",
+        "tab": {
+          "findings": "Befunde",
+          "matrix": "Vergleich",
+          "overview": "Stammdaten & Instanzen"
+        },
+        "type": "Typ"
+      },
+      "systemType": {
+        "APPLICATION": "Anwendung",
+        "CLIENT": "Client",
+        "NETWORK": "Netzwerkgerät",
+        "SAAS": "SaaS",
+        "SERVER": "Server"
+      },
+      "tab": {
+        "advisories": "Client-Hinweise",
+        "dashboard": "Dashboard",
+        "feedback": "Feedback",
+        "findings": "Befunde",
+        "inventory": "Inventar",
+        "myAreas": "Meine Bereiche",
+        "triage": "Triage"
+      },
+      "teamAnswer": {
+        "FIXED": "Betroffen – behoben",
+        "IN_PROGRESS": "Betroffen – in Arbeit",
+        "NOT_AFFECTED": "Nicht betroffen",
+        "RISK_ACCEPTED": "Risiko akzeptiert (Freigabe durch SO)",
+        "planned": "geplant bis {arg0}",
+        "plannedInDays": "Geplant in Tagen",
+        "version": "Version {arg0}"
+      },
+      "title": "CVE-Radar",
+      "tree": {
+        "collapse": "Zuklappen",
+        "expand": "Aufklappen"
+      },
+      "triage": {
+        "assign": "Zuweisen…",
+        "notRelevant": "Nicht relevant…",
+        "priority": "Priorität setzen",
+        "setPriority": "Priorität setzen…",
+        "takeOver": "Ich übernehme"
+      },
+      "triageStatus": {
+        "CLOSED": "Abgeschlossen",
+        "IN_REMEDIATION": "In Behebung",
+        "IN_TRIAGE": "In Triage",
+        "NEW": "Neu",
+        "NOT_RELEVANT": "Nicht relevant",
+        "RATED": "Bewertet"
+      },
+      "unknown": "unbekannt",
+      "versionNowUnaffected": "Inventar hat bereits eine unkritische Version – bitte bestätigen",
+      "vuln": {
+        "affectedRanges": "Betroffene Konfigurationen",
+        "cwe": "CWE",
+        "description": "Beschreibung (NVD)",
+        "modified": "Geändert",
+        "nvdStatus": "NVD-Status",
+        "references": "Weitere Referenzen",
+        "remediationHints": "Hinweise zur Behebung",
+        "tab": {
+          "ai": "KI",
+          "discussion": "Diskussion & Q&A",
+          "findingsCount": "Befunde ({arg0})",
+          "measures": "Maßnahmen",
+          "overview": "Überblick",
+          "ratings": "Bewertungen"
+        }
+      },
+      "yes": "ja"
+    },
     "datatransfer": {
       "access": {
         "title": "Zugriff"

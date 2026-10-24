@@ -3628,6 +3628,399 @@
         }
       }
     },
+    "cveradar": {
+      "advisories": {
+        "none": "No client advisories right now.",
+        "todo": "What to do"
+      },
+      "ai": {
+        "content": "AI texts",
+        "import": {
+          "apply": "Import",
+          "file": "Choose file…",
+          "info": "Drop the JSON file here, choose it or paste the text.",
+          "invalid": "Invalid response",
+          "title": "Import AI response",
+          "valid": "The response matches the schema."
+        },
+        "longDescription": "Long description",
+        "marker": {
+          "released": "AI-generated, released",
+          "unreleased": "AI-generated, not released"
+        },
+        "none": "No AI response imported yet.",
+        "prompt": {
+          "approvedOnly": "Use this prompt only with: {arg0}",
+          "copied": "Prompt copied.",
+          "copy": "Copy prompt",
+          "instruction": "Analyse the following vulnerability for an IT company. Answer in German, only with JSON exactly in the format of the example at the end.",
+          "title": "Prompt for an approved AI system",
+          "withInventory": "Include technologies and versions in use (never names or codes of systems)"
+        },
+        "release": "Release for employees",
+        "risk": "Risk assessment",
+        "shortDescription": "Short description"
+      },
+      "apply": "Apply",
+      "back": "Back",
+      "baseline": {
+        "edit": {
+          "info": "Takes effect immediately in all instances without a deviation. Their findings resolved by it go to \"fix planned\" until each instance confirms the fix.",
+          "title": "Change version of {arg0}"
+        },
+        "info": "Components and technologies maintained once for all instances; instances only record deviations.",
+        "newVersion": "New version (now {arg0})",
+        "preview": {
+          "deviating": "Unchanged (own version)",
+          "fixPlanned": "Findings set to \"fix planned\"",
+          "inheriting": "Takes effect in"
+        },
+        "title": "Baseline",
+        "version": "baseline {arg0}"
+      },
+      "campaign": {
+        "answer": "Answer",
+        "answerFor": "Answer for {arg0}",
+        "answered": "{arg0} of {arg1} answered",
+        "deadline": "deadline {arg0}",
+        "hiddenInstances": "+{arg0} instances of other teams, not visible",
+        "info": "Every team answers for each of its instances; the answer sets the status of the instance's findings.",
+        "mandatory": "mandatory",
+        "open": "open",
+        "target": {
+          "CLIENTS": "All employees",
+          "TEAMS": "Teams"
+        },
+        "title": "Feedback {arg0}"
+      },
+      "clientAnswer": {
+        "DONE": "Done",
+        "NOT_AFFECTED": "Not affected",
+        "QUESTION": "Question/problem"
+      },
+      "column": {
+        "assignee": "Assignee",
+        "code": "Code",
+        "component": "Component",
+        "confidentiality": "Confidentiality",
+        "cve": "CVE",
+        "cvss": "CVSS",
+        "deviations": "Deviations",
+        "due": "Due",
+        "epss": "EPSS",
+        "exposed": "Internet",
+        "group": "Responsible group",
+        "instance": "Instance",
+        "instances": "Instances",
+        "name": "Name",
+        "openFindings": "Open findings",
+        "priority": "Prio",
+        "published": "Published",
+        "site": "Site",
+        "stage": "Stage",
+        "status": "Status",
+        "technologies": "Technologies",
+        "technology": "Technology",
+        "title": "Description"
+      },
+      "confidentiality": {
+        "CONFIDENTIAL": "Confidential",
+        "INTERNAL": "Internal",
+        "STRICTLY_CONFIDENTIAL": "Strictly confidential"
+      },
+      "criticality": {
+        "HIGH": "High",
+        "LOW": "Low",
+        "MEDIUM": "Medium",
+        "VERY_HIGH": "Very high"
+      },
+      "dashboard": {
+        "acknowledged": "acknowledged: {arg0}",
+        "campaigns": "Running campaigns",
+        "escalations": "Escalations",
+        "newToday": "New (24 h)",
+        "openPriority": "Open {arg0}",
+        "overdue": "Overdue",
+        "trend": {
+          "closed": "closed",
+          "open": "open",
+          "title": "Findings of the last 30 days"
+        },
+        "triageOverdue": "Triage overdue"
+      },
+      "deviation": "deviation",
+      "discussion": {
+        "newPost": "New post (Markdown)",
+        "post": "Post",
+        "scope": {
+          "INTERNAL": "Internal",
+          "PUBLIC": "Public discussion",
+          "label": "Visible for"
+        },
+        "title": "Discussion"
+      },
+      "error": {
+        "noAccess": "Not allowed for this role.",
+        "reasonRequired": "A reason is required."
+      },
+      "escalation": {
+        "acknowledgedBy": "Acknowledged by",
+        "active": "Escalated: SO and management are called in",
+        "start": {
+          "info": "Calls in the security officer and the management immediately, by banner and mail.",
+          "title": "Escalate"
+        },
+        "title": "Escalation"
+      },
+      "exploitability": {
+        "HIGH": "high",
+        "LOW": "low",
+        "MEDIUM": "medium",
+        "NONE": "none"
+      },
+      "filter": {
+        "all": "All",
+        "technology": {
+          "label": "Technology",
+          "placeholder": "Technology, e.g. spring boot < 3.5.7"
+        }
+      },
+      "findingStatus": {
+        "AFFECTED": "Affected",
+        "FIXED": "Fixed",
+        "FIX_PLANNED": "Fix planned",
+        "IN_REVIEW": "In review",
+        "MITIGATED": "Mitigated",
+        "NEW": "New",
+        "NOT_AFFECTED": "Not affected",
+        "RISK_ACCEPTED": "Risk accepted"
+      },
+      "findings": {
+        "confirmFixed": "Confirm fixed…",
+        "fixedVersion": "Fixed version",
+        "openOf": "{arg0} of {arg1} open",
+        "openOnly": "Open only",
+        "riskAccepted": {
+          "info": "Risk acceptance needs the security officer (from P2 on also the management) and an expiry date."
+        },
+        "setStatus": "Set status…"
+      },
+      "group": {
+        "overridden": "overridden on the system"
+      },
+      "hiddenSystems": "+{arg0} more affected systems, not visible",
+      "hiddenSystemsShort": "+{arg0} hidden",
+      "inherited": {
+        "from": "from {arg0}"
+      },
+      "instance": {
+        "contact": "Contact",
+        "default": "default instance",
+        "exposed": "reachable from the internet",
+        "internal": "internal only",
+        "openFindings": "{arg0} open",
+        "raised": "raised on the instance",
+        "tenant": "Tenant"
+      },
+      "inventory": {
+        "hiddenSystems": "+{arg0} more systems, not visible for this role"
+      },
+      "kev": {
+        "info": "Listed in the CISA catalogue of known exploited vulnerabilities: actively exploited.",
+        "label": "KEV"
+      },
+      "level": {
+        "AREA": "Area",
+        "COMPONENT": "Component",
+        "INSTANCE": "Instance",
+        "SYSTEM": "System"
+      },
+      "masterDataOnly": {
+        "info": "Only the master data of this system is visible for this role (code, name, group, level). Components and findings require a grant.",
+        "short": "master data only"
+      },
+      "matrix": {
+        "actions": "Deviation of {arg0}",
+        "apply": "Apply to the baseline",
+        "info": "Technology × instance. Coloured cells deviate from the baseline; click one to apply it to the baseline or to reset it.",
+        "kind": {
+          "ADDED": "additional",
+          "REMOVED": "missing",
+          "VERSION": "other version"
+        },
+        "reset": "Reset deviation"
+      },
+      "measures": {
+        "fixVersion": "Fix version",
+        "nonTechMeasures": "Measures for non-techies",
+        "none": "Not yet described.",
+        "remediation": "Remediation",
+        "techMeasures": "Measures for techies",
+        "workaround": "Workaround"
+      },
+      "menu": "CVE-Radar",
+      "myAreas": {
+        "findings": "Open findings of my systems",
+        "groups": "My groups: {arg0}",
+        "openFeedback": "My open feedback",
+        "systems": "My systems"
+      },
+      "no": "no",
+      "nobody": "nobody",
+      "none": "None.",
+      "notFound": "Not found or not visible for this role.",
+      "origin": {
+        "CI": "CI pipeline",
+        "MANUAL": "manual",
+        "SBOM": "SBOM file"
+      },
+      "persona": "Act as",
+      "possiblyAffected": {
+        "info": "The inventory has no exact version of this technology, so the match is uncertain.",
+        "label": "possibly"
+      },
+      "priority": {
+        "binding": "Binding priority",
+        "suggested": "Suggestion {arg0}: {arg1}"
+      },
+      "priorityReason": {
+        "cvssP2": "CVSS ≥ 9 → P2",
+        "cvssP3": "CVSS ≥ 7 → P3",
+        "cvssP4": "CVSS < 7 → P4",
+        "epss": "EPSS ≥ 30 % +1",
+        "exposed": "critical instance on the internet +1",
+        "kev": "KEV +1"
+      },
+      "prototype": {
+        "banner": "Prototype for the review of the specification: test data only (fictitious CVEs), changes are kept in this browser only, until \"Reset test data\". Switch the role above to see what each role sees.",
+        "reset": {
+          "info": "Restores the test data as delivered; all changes are lost.",
+          "label": "Reset test data"
+        }
+      },
+      "qa": {
+        "audience": {
+          "NONTECH": "everybody",
+          "TECH": "techies"
+        },
+        "title": "Questions & answers"
+      },
+      "ratings": {
+        "binding": "Binding priority {arg0}: {arg1}",
+        "deviates": "Deviates from the binding priority",
+        "exploitability": "Exploitability here",
+        "noBinding": "No binding priority yet; suggestion {arg0}.",
+        "none": "No ratings yet.",
+        "own": "My rating",
+        "save": "Save rating"
+      },
+      "reason": "Reason",
+      "role": {
+        "CA": "CVE-Radar admin",
+        "EMPLOYEE": "Employee",
+        "MG": "Management",
+        "SO": "Security officer",
+        "ST": "Security team",
+        "TEAM": "Area/system team"
+      },
+      "save": "Save",
+      "saved": "Saved (test data only).",
+      "sbom": {
+        "change": {
+          "NEW": "new",
+          "REMOVED": "removed",
+          "VERSION": "version"
+        },
+        "import": "Import SBOM…",
+        "noChange": "No difference.",
+        "sample": "Sample file: {arg0}",
+        "target": {
+          "baseline": {
+            "info": "Replaces the technologies of the component in the baseline; all instances without a deviation follow."
+          },
+          "instance": {
+            "info": "The differences from the baseline become deviations of this instance."
+          },
+          "label": "Into"
+        }
+      },
+      "selected": "Selected: {arg0}",
+      "system": {
+        "criticality": "Criticality",
+        "grants": "Grants",
+        "tab": {
+          "findings": "Findings",
+          "matrix": "Comparison",
+          "overview": "Master data & instances"
+        },
+        "type": "Type"
+      },
+      "systemType": {
+        "APPLICATION": "Application",
+        "CLIENT": "Client",
+        "NETWORK": "Network device",
+        "SAAS": "SaaS",
+        "SERVER": "Server"
+      },
+      "tab": {
+        "advisories": "Client advisories",
+        "dashboard": "Dashboard",
+        "feedback": "Feedback",
+        "findings": "Findings",
+        "inventory": "Inventory",
+        "myAreas": "My areas",
+        "triage": "Triage"
+      },
+      "teamAnswer": {
+        "FIXED": "Affected – fixed",
+        "IN_PROGRESS": "Affected – in progress",
+        "NOT_AFFECTED": "Not affected",
+        "RISK_ACCEPTED": "Risk accepted (needs SO approval)",
+        "planned": "planned for {arg0}",
+        "plannedInDays": "Planned in days",
+        "version": "version {arg0}"
+      },
+      "title": "CVE-Radar",
+      "tree": {
+        "collapse": "Collapse",
+        "expand": "Expand"
+      },
+      "triage": {
+        "assign": "Assign…",
+        "notRelevant": "Not relevant…",
+        "priority": "Set priority",
+        "setPriority": "Set priority…",
+        "takeOver": "I'm on it"
+      },
+      "triageStatus": {
+        "CLOSED": "Closed",
+        "IN_REMEDIATION": "In remediation",
+        "IN_TRIAGE": "In triage",
+        "NEW": "New",
+        "NOT_RELEVANT": "Not relevant",
+        "RATED": "Rated"
+      },
+      "unknown": "unknown",
+      "versionNowUnaffected": "Inventory already has an unaffected version — please confirm",
+      "vuln": {
+        "affectedRanges": "Affected configurations",
+        "cwe": "CWE",
+        "description": "Description (NVD)",
+        "modified": "Modified",
+        "nvdStatus": "NVD status",
+        "references": "Other references",
+        "remediationHints": "Remediation hints",
+        "tab": {
+          "ai": "AI",
+          "discussion": "Discussion & Q&A",
+          "findingsCount": "Findings ({arg0})",
+          "measures": "Measures",
+          "overview": "Overview",
+          "ratings": "Ratings"
+        }
+      },
+      "yes": "yes"
+    },
     "datatransfer": {
       "access": {
         "title": "Access"

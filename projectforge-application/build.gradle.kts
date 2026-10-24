@@ -60,6 +60,7 @@ dependencies {
     implementation(project(":projectforge-rest"))
     implementation(project(":projectforge-carddav"))
     implementation(project(":projectforge-idp"))
+    implementation(project(":org.projectforge.plugins.cveradar"))
     implementation(project(":org.projectforge.plugins.datatransfer"))
     implementation(project(":org.projectforge.plugins.ihk"))
     implementation(project(":org.projectforge.plugins.licensemanagement"))
