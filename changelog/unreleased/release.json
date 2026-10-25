@@ -5,14 +5,16 @@
       "**Notifications**: SMS delivery, creditor invoices due, variables with examples",
       "Time sheet form: recently used entries with consumption, sortable and filterable",
       "Customer wizard reuses existing structure elements",
-      "Structure tree: lost and incomplete elements after a background reload fixed"
+      "Structure tree: lost and incomplete elements after a background reload fixed",
+      "Password forgotten: reset mail limited against mail bombing"
     ],
     "de": [
       "**Ad-hoc-Buchungen**: Zeitbuchungen ohne Gruppenzuordnung freigeben oder vorschlagen",
       "**Benachrichtigungen**: Zustellung per SMS, fällige Kreditorenrechnungen, Variablen mit Beispielen",
       "Zeitbericht-Formular: zuletzt verwendete Einträge mit Verbrauch, sortier- und filterbar",
       "Kundenassistent verwendet vorhandene Strukturelemente",
-      "Strukturbaum: verlorene und unvollständige Elemente nach Neuladen im Hintergrund behoben"
+      "Strukturbaum: verlorene und unvollständige Elemente nach Neuladen im Hintergrund behoben",
+      "Passwort vergessen: Rücksetz-Mail gegen Mail-Bombing begrenzt"
     ]
   },
   "overview": {
@@ -23,7 +25,7 @@
       "**Time sheet form:** the recently used entries show the consumption of their budget and can be sorted, filtered and arranged per column (remembered per user); the consumption bar tooltip shows budget, booked and remaining person days.",
       "**Customer wizard:** existing structure elements of the customer and the project can be used instead of new ones, picked from the tree or found by the same title.",
       "**Order statistics:** the bubble size of the contribution margin chart shows the contribution margin; titles can be switched on.",
-      "**Fixed:** structure elements created or moved during a background reload could vanish from the structure tree, the responsible person was missing after a change; an invalid search syntax shows a hint instead of an empty list; the info of a structure element is only answered to users who may see it."
+      "**Fixed:** structure elements created or moved during a background reload could vanish from the structure tree, the responsible person was missing after a change; an invalid search syntax shows a hint instead of an empty list; the info of a structure element is only answered to users who may see it; the password reset mail is limited per user, per client and in total, so it can no longer be requested over and over."
     ],
     "de": [
       "**Ad-hoc-Buchungen:** Wer auf einem Strukturelement fremde Zeitberichte bearbeiten darf, gibt Kolleg:innen für einen Zeitraum das Buchen eigener Zeitberichte frei, optional nur auf einige Kost2; die Personen sehen nur die freigegebenen Strukturelemente. Mitarbeitende ohne dieses Recht können eine solche Buchung vorschlagen, die Projektleitung übernimmt die Zeitberichte anschließend (erinnert durch eine neue Benachrichtigungsregel).",
@@ -32,7 +34,7 @@
       "**Zeitbericht-Formular:** Die zuletzt verwendeten Einträge zeigen den Verbrauch ihres Budgets und lassen sich pro Spalte sortieren, filtern und anordnen (pro Benutzer gespeichert); der Tooltip des Verbrauchsbalkens zeigt Budget, gebuchte und restliche Personentage.",
       "**Kundenassistent:** Vorhandene Strukturelemente des Kunden und des Projekts können statt neuer verwendet werden, aus dem Baum gewählt oder über den gleichen Titel gefunden.",
       "**Auftragsstatistik:** Die Bubble-Größe des Deckungsbeitrag-Diagramms zeigt den DB1; Titel lassen sich einblenden.",
-      "**Behoben:** Während des Neuladens im Hintergrund angelegte oder verschobene Strukturelemente konnten aus dem Strukturbaum verschwinden, nach einer Änderung fehlte die/der Verantwortliche; eine ungültige Suchsyntax zeigt einen Hinweis statt einer leeren Liste; die Infos eines Strukturelements erhalten nur Nutzer, die es sehen dürfen."
+      "**Behoben:** Während des Neuladens im Hintergrund angelegte oder verschobene Strukturelemente konnten aus dem Strukturbaum verschwinden, nach einer Änderung fehlte die/der Verantwortliche; eine ungültige Suchsyntax zeigt einen Hinweis statt einer leeren Liste; die Infos eines Strukturelements erhalten nur Nutzer, die es sehen dürfen; die Rücksetz-Mail bei „Passwort vergessen“ ist pro Benutzer:in, pro Client und insgesamt begrenzt und kann nicht mehr beliebig oft angefordert werden."
     ]
   }
 }

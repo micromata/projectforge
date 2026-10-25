@@ -3553,7 +3553,8 @@
       },
       "mailSentTo": "Mail with reset link mailed to ''{arg0}''. Please check also Your spam folder and check, if Your username or e-mail is correct.",
       "request": "Request reset",
-      "title": "Forgotten password"
+      "title": "Forgotten password",
+      "tooManyRequests": "Too many password reset requests. Please try again later."
     },
     "reset": {
       "error": "No valid password reset session found. The session is already used, expired, or non-existing. Please retry.",
