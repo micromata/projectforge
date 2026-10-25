@@ -71,6 +71,9 @@ class NotificationService {
     @Autowired
     private lateinit var senderList: List<NotificationChannelSender>
 
+    @Autowired
+    private lateinit var smsNotificationSender: SmsNotificationSender
+
     /** The result of a rule run. */
     class RunResult(val recipients: Int = 0, val created: Int = 0, val errors: Int = 0, val lastError: String? = null)
 
@@ -87,6 +90,9 @@ class NotificationService {
         /** Subject and text rendered with the [exampleVariables] (if the own values are empty, e.g. no unbooked days). */
         val exampleSubject: String,
         val exampleText: String,
+        /** The SMS as sent to the given user and with the example values, null if the cascade has no SMS step. */
+        val sms: String? = null,
+        val exampleSms: String? = null,
     )
 
     /** The result of [sendTestToMe]: the channels delivered and the reasons of the ones not delivered. */
@@ -222,7 +228,21 @@ class NotificationService {
             text = NotificationTemplate.renderText(rule.text, variables),
             exampleSubject = NotificationTemplate.renderSubject(rule.subject, examples),
             exampleText = NotificationTemplate.renderText(rule.text, examples),
+            sms = smsPreview(rule, variables, linkOf(rule, evaluation, user)),
+            exampleSms = smsPreview(rule, examples, linkOf(rule, evaluation, user)),
         )
+    }
+
+    private fun smsPreview(rule: NotificationRuleDO, variables: Map<String, String>, link: String?): String? {
+        if (rule.readDelivery().steps.none { it.channel == NotificationChannel.SMS }) {
+            return null
+        }
+        return smsNotificationSender.buildMessage(NotificationDO().also {
+            it.title = NotificationTemplate.renderSubject(rule.subject, variables)
+            it.smsText = rule.smsText?.takeIf { text -> text.isNotBlank() }
+                ?.let { text -> NotificationTemplate.renderSubject(text, variables) }
+            it.link = link
+        })
     }
 
     /**
@@ -431,6 +451,11 @@ class NotificationService {
             it.menuBadge = rule.menuBadge?.takeIf { badge -> badge.isNotBlank() }
             it.title = NotificationTemplate.renderSubject(rule.subject, variables)
             it.body = NotificationTemplate.renderText(rule.text, variables)
+            if (delivery.steps.any { step -> step.channel == NotificationChannel.SMS } && !rule.smsText.isNullOrBlank()) {
+                it.smsText = SmsNotificationSender.truncate(
+                    NotificationTemplate.renderSubject(rule.smsText, variables), NotificationDO.SMS_TEXT_LENGTH,
+                )
+            }
             it.link = linkOf(rule, evaluation, user)
             it.periodKey = evaluation?.periodKeyFor(user)
             it.status = NotificationStatus.OPEN

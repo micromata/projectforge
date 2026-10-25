@@ -116,7 +116,7 @@ enum class NotificationChannel : I18nEnum {
     IN_APP,
     MAIL,
 
-    /** Not yet supported (phase 2): such steps are skipped. */
+    /** To the mobile phone of the user, if SMS is configured ([NotificationRuleDO.smsText] or subject and link). */
     SMS;
 
     override val i18nKey: String

@@ -3244,7 +3244,7 @@
     "channels": {
       "IN_APP": "In the app",
       "MAIL": "E-mail",
-      "SMS": "SMS (not yet supported)"
+      "SMS": "SMS"
     },
     "created": "Created",
     "delivery": {
@@ -3254,6 +3254,7 @@
       "info": "The steps are delivered after the given time since the notification was created. A step \"only if not confirmed\" is skipped once the recipient has confirmed the notification or its cause is resolved.",
       "onlyIfUnacknowledged": "Only if not confirmed",
       "removeStep": "Remove step",
+      "smsNotConfigured": "not configured",
       "unit": {
         "days": "days",
         "hours": "hours",
@@ -3303,6 +3304,7 @@
       "period": "Period",
       "recipients": "{arg0} recipient(s)",
       "sample": "Sample for you",
+      "sms": "SMS ({arg0} characters)",
       "withExamples": "With example values"
     },
     "recipient": "Recipient",
@@ -3330,7 +3332,8 @@
         "kost2MissingMonths": "The number of months must be between 1 and 12.",
         "noDeliveryStep": "At least one delivery step is required.",
         "passwordMaxAgeDays": "The number of days must be at least 1.",
-        "recipientsRequired": "Recipients are required: no user is concerned by an invoice."
+        "recipientsRequired": "Recipients are required: no user is concerned by an invoice.",
+        "smsTextLength": "The SMS text must not be longer than {arg0} characters."
       },
       "lastRun": "Last run",
       "legend": {
@@ -3370,6 +3373,7 @@
       "MANUAL": "Manual (no condition)",
       "PASSWORD_NOT_CHANGED": "Password not changed for a long time",
       "TIMESHEETS_MISSING": "Missing time sheets",
+      "TIMESHEETS_TO_ACCEPT": "Time sheets to be accepted",
       "TIMESHEETS_WITHOUT_KOST2": "Time sheets without Kost2",
       "VACATION_LEFT": "Expiring vacation days"
     },
@@ -3392,6 +3396,8 @@
       "URGENT": "Urgent"
     },
     "severity": "Severity",
+    "smsText": "SMS text",
+    "smsTextInfo": "Plain text with the same variables as the text, sent to the mobile phone number of the recipients (users without one get no SMS). If empty, the subject and the link are sent. Cut to {arg0} characters.",
     "status": "Status",
     "statuses": {
       "ACKNOWLEDGED": "Confirmed",
@@ -3435,6 +3441,10 @@
       "passwordMaxAgeDays": "Maximum age of the password (days)",
       "period": "Period",
       "timesheetLink": "Link to the time sheets",
+      "timesheetsToAcceptCount": "Number of time sheets to be accepted",
+      "timesheetsToAcceptHours": "Hours to be accepted",
+      "timesheetsToAcceptLink": "Link to the time sheets to be accepted",
+      "timesheetsToAcceptTasks": "Structure elements with time sheets to be accepted",
       "timesheetsWithoutKost2Count": "Number of time sheets without Kost2",
       "timesheetsWithoutKost2Hours": "Hours booked without Kost2",
       "timesheetsWithoutKost2Tasks": "Structure elements booked without Kost2",
@@ -4729,6 +4739,7 @@
     "area": "Area",
     "durationOfSearch": "duration of search",
     "error": "Unfortunately an internal error occurred.",
+    "invalidSyntax": "The search term isn't a valid search syntax (e.g. a colon after a word or an unclosed quotation mark), so there is no result.",
     "lastDay": "Last day.",
     "lastDays": "Last {arg0} days.",
     "lastHour": "Last hour",
@@ -5323,6 +5334,82 @@
       "tooltip": "If checked (also inherited by sub elements) time sheets booked here may overlap in time with time sheets of other projects (shared costs). Overlapping time is counted proportionally in attendance and monthly reports (e.g. 1h + overlapping 1h = 0.5h each). Overlapping time sheets on the same cost 2 or within the same project or overlap group (configuration) remain unsupported. A setting of the cost 2 takes precedence."
     },
     "assignedUser": "Responsible user",
+    "bookingGrant": {
+      "acceptanceRequired": "To be accepted",
+      "add": "Grant booking",
+      "badge": {
+        "_": "{arg0} ad hoc booking(s)",
+        "upcoming": "from {arg0}"
+      },
+      "confirm": {
+        "_": "Confirm",
+        "confirm": "Confirm this proposed grant? The time sheets booked by it from now on don't have to be accepted anymore, the ones booked so far still do."
+      },
+      "error": {
+        "endBeforeStart": "The end of the period is before its start.",
+        "invalidKost2": "A cost unit isn't one of its structure element.",
+        "noTask": "Please select at least one structure element.",
+        "notConfirmable": "The grant is revoked or confirmed already.",
+        "periodNotSet": "Please enter the period.",
+        "periodTooLong": "A proposed grant is valid for 31 days at most.",
+        "proposalTooFarAhead": "A proposed grant ends 31 days from today at the latest.",
+        "taskNotBookable": "No time sheets can be booked on this structure element.",
+        "taskTwice": "A structure element is selected twice.",
+        "userChanged": "The user of a grant can't be changed.",
+        "userNotSet": "Please select at least one user."
+      },
+      "grantedBy": "Granted by",
+      "kost2": {
+        "all": "All cost units",
+        "selected": "{arg0} cost unit(s)"
+      },
+      "mail": {
+        "acceptanceRequired": "Your time sheets will be checked and accepted by the project management, maybe on another structure element or cost unit.",
+        "greeting": "Hello {arg0},",
+        "subject": {
+          "_": "Booking time sheets on {arg0}",
+          "multiple": "Booking time sheets on {arg0} structure elements"
+        },
+        "text": "{arg0} has granted you the booking of own time sheets for the period {arg1} on the following structure elements. You can book your time sheets by the links:"
+      },
+      "none": "No ad hoc bookings granted.",
+      "pending": {
+        "_": "{arg0} to accept",
+        "tooltip": "{arg0} time sheet(s) booked by a proposed grant to be accepted"
+      },
+      "positions": {
+        "_": "Structure elements",
+        "add": "Add sub element",
+        "hidden": "and {arg0} more structure element(s)",
+        "truncated": "Only the first {arg0} sub elements are offered. For a deeper one, open its own structure element."
+      },
+      "proposal": {
+        "info": "A grant can't be given here, but proposed: the colleague helping out books right away, the project management accepts the time sheets afterwards (maybe on another structure element or cost unit). Valid for 31 days at most."
+      },
+      "propose": "Propose booking",
+      "proposed": {
+        "_": "Proposed",
+        "tooltip": "Proposed without the right to grant: the time sheets booked by it are to be accepted by the project management."
+      },
+      "revoke": {
+        "_": "Revoke",
+        "confirm": "Revoke this grant on all its structure elements? The time sheets booked so far are kept."
+      },
+      "status": {
+        "_": "Status",
+        "ACTIVE": "Active",
+        "EXPIRED": "Expired",
+        "REVOKED": "Revoked",
+        "UPCOMING": "Upcoming"
+      },
+      "users": "Users",
+      "validFrom": "Valid from",
+      "validUntil": "Valid until"
+    },
+    "bookingGrants": {
+      "_": "Ad hoc bookings",
+      "info": "Colleagues helping out may book their own time sheets on this structure element or its sub elements for a period, without being member of a group. They see nothing else of the project: only the granted structure elements and the titles of their ancestors."
+    },
     "consumption": "Consumption",
     "consumptionTooltip": {
       "booked": "Booked",
@@ -5521,6 +5608,12 @@
   },
   "timesheet": {
     "_": "Time-sheet",
+    "acceptance": {
+      "accept": "Accept",
+      "acceptOnSave": "Accept on save",
+      "info": "Booked by an ad hoc booking proposed by {arg0}: to be accepted by the project management, maybe on another structure element or cost unit."
+    },
+    "acceptancePending": "To be accepted",
     "ai": {
       "timeSavedByAI": {
         "_": "Time savings AI",
@@ -5564,12 +5657,16 @@
       "vacationNotConfigured": "No vacation cost unit is configured: please choose structure element and cost unit yourself.",
       "vacationPlaceholder": "Choose a vacation"
     },
+    "bookingGrant": "Ad hoc booking",
     "description": "Activity report",
     "duration": "Duration",
     "iCalSubscription": "Subscribe time sheets in iCal format (*.ics) for the logged-in user.",
     "icsExport": "ics export",
     "location": "Location",
     "massupdate": {
+      "acceptPending": {
+        "info": "Accepts the selected time sheets booked by a proposed ad hoc booking, with the structure element and cost unit chosen above, if any. Nothing changes about this for the others."
+      },
       "remapKost2": "Remap cost unit by type (structure element stays)",
       "remapKost2Info": "Each time sheet keeps its structure element. A cost unit the structure element no longer offers is replaced by its cost unit of the same type (last 2 digits), e.g. 5.999.11.02 -> 7.001.01.02 after a project was linked.",
       "taskNotApplied": "The structure element is not selected (checkbox) and will therefore not be changed.",
@@ -5637,6 +5734,11 @@
   "user": {
     "_": "User",
     "My2FA": {
+      "expired": "For the requested action a 2FA is required not older than {arg0}.",
+      "required": {
+        "_": "A (new) two-factor authentication is required for proceeding.",
+        "extended": "A (new) two-factor authentication is required for proceeding due to security reasons. You may request a code (see link below code field) or, if configured, use Your authenticator app."
+      },
       "setup": {
         "authenticator": {
           "info": "### Setup your smart phone\n\n1. Scan this barcode in Your Authenticator-App.\n2. Done.\n\nEvery time ProjectForge requests a code, enter the displayed code in your Authenticator app.\n\nYou may setup others Authenticator apps on different devices as a backup, if you want.\n\nThe code displayed in your Authenticator app is valid for up to 30 seconds after disappearing in your app.",
@@ -5644,6 +5746,9 @@
           "title": "Authenticator apps"
         },
         "authenticatorKey": "Authenticator key",
+        "check": {
+          "fail": "Code check failed."
+        },
         "check2FA": "Check 2FA now",
         "disableAuthenticatorApp": {
           "_": "Disable Authenticator app",
@@ -5705,8 +5810,16 @@
       },
       "title": "Two-factor authentication"
     },
+    "activated": {
+      "_": "Activated",
+      "tooltip": "Deactivated users have no system access."
+    },
     "add": {
       "optionalPassword": "You may set an initial password."
+    },
+    "adminUsers": {
+      "_": "Admin users",
+      "none": "Non-admin users"
     },
     "alternativeEmails": {
       "_": "Alternative e-mail addresses",
@@ -5753,6 +5866,14 @@
       }
     },
     "changePassword": {
+      "error": {
+        "noCharacter": "Password must have at minimum one letter.",
+        "noNonCharacter": "Password must have at minimum one non-letter.",
+        "notMinLength": "Password must have at least {arg0} characters.",
+        "oldPasswdEqualsNew": "New password should not be the same as the old one.",
+        "oldPasswordWrong": "Old password does not match.",
+        "passwordQualityCheck": "Password must have at least {arg0} characters and at minimum one letter and one non-letter character."
+      },
       "msg": {
         "passwordSuccessfullyChanged": "Password successfully changed."
       },
@@ -5761,21 +5882,44 @@
       "oldPassword": "Old password",
       "password": {
         "lastChange": "Last change of password"
-      }
+      },
+      "title": "Change own password"
     },
     "changeWlanPassword": {
+      "error": {
+        "loginPasswordWrong": "The login password is not correct."
+      },
       "lastChange": "Last change of WLAN/Samba password",
       "loginPassword": "Login password",
-      "newPassword": "New WLAN password"
+      "newPassword": "New WLAN password",
+      "title": "Change WLAN/Samba password"
     },
     "deactivated": "deactivated",
     "defaultLocale": "Default (browser)",
+    "error": {
+      "emailUsedByOtherUser": "{arg0} is already used by the user {arg1}.",
+      "invalidEmail": "Invalid e-mail address: {arg0}",
+      "passwordAndRepeatDoesNotMatch": "Password and password repeat does not match.",
+      "usernameAlreadyExists": "User name already exists."
+    },
+    "filter": {
+      "hrPlanning": "HR planning",
+      "privileged": "Privileged users",
+      "restricted": "Restricted users",
+      "status": "State",
+      "syncStatus": "Sync state",
+      "type": "Type"
+    },
     "formerEmails": {
       "_": "Former e-mail addresses",
       "info": "E-mail addresses of the user no longer in use (e.g. after a change of name), comma separated. They may be needed by the synchronization runs of external systems (e.g. Lanes & Planes)."
     },
     "gpgPublicKey": "GPG public key",
-    "hrPlanningEnabled": "HR planning",
+    "hrPlanningEnabled": {
+      "_": "HR planning",
+      "not": "No HR planning",
+      "tooltip": "Should the user be available in HR planning?"
+    },
     "jiraUsername": {
       "_": "JIRA user name",
       "tooltip": "Only needed, if the ProjectForge user name differs from the JIRA user name and the user want to work with JIRA inside ProjectForge."
@@ -5784,12 +5928,20 @@
     "legend": {
       "deactivated": "Deactivated"
     },
+    "list": {
+      "select": {
+        "title": "Select user"
+      }
+    },
     "localUser": {
       "_": "Local user",
       "not": "Common user",
       "tooltip": "Local users will not be synchronized with an external user management system (such as LDAP)."
     },
     "locale": "Language",
+    "menu": {
+      "editRights": "User rights"
+    },
     "mobilePhone": {
       "_": "Mobile phone",
       "info": "Mobile phone usable as a 2nd factor (required e.g. for password reset or other services).\n\nYou may configure this field by any admin or by configuring your two-factor-authentication.",
@@ -5804,6 +5956,7 @@
         "settings": "Settings",
         "tokens": "Access tokens"
       },
+      "teamcalwhitelist": "Calendar whitelist for calendar software",
       "title": {
         "edit": "Edit my account"
       }
@@ -5816,17 +5969,29 @@
         "title": "Direct call"
       }
     },
+    "restricted": {
+      "_": "restricted",
+      "not": "not restricted"
+    },
     "restrictedUser": {
       "_": "Restricted user",
       "tooltip": "A restricted user has only the ability to log-in and to change his password, but the user is synchronized with the external user management system."
     },
     "rights": {
-      "none": "No right is configurable with the assigned groups."
+      "none": "No right is configurable with the assigned groups.",
+      "title": {
+        "edit": "Edit user rights"
+      }
     },
     "sshPublicKey": "SSH public key",
     "title": {
       "add": "Add new user",
-      "list": "List of users"
+      "edit": "Edit user",
+      "heading": "Users",
+      "list": {
+        "_": "List of users",
+        "select": "Select user"
+      }
     },
     "tooltip": {
       "assignedGroups": "The groups determine the rights. They are assigned by the administration.",
@@ -5839,7 +6004,9 @@
       "timeZone": "All times (time sheets, calendar events) are shown and entered in this time zone.",
       "username": "The login name. Only the administration can change it."
     },
-    "username": "User name"
+    "unassignedGroups": "Unassigned groups",
+    "username": "User name",
+    "users": "Users"
   },
   "username": "User name",
   "vacation": {

@@ -145,20 +145,30 @@ class TimesheetsToAcceptRuleHandler : NotificationRuleHandler {
         return result
     }
 
+    override fun exampleVariables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> {
+        val tasks = listOf("ACME -> Website -> Development", "ACME -> Support")
+        return variables(user, 3, 16_200_000L, tasks)
+    }
+
     private fun variables(user: PFUserDO, sheets: List<TimesheetDao.TimesheetToAccept>): Map<String, String> {
-        val locale = UserLocale.determineUserLocale(user)
-        val hours = BigDecimal(sheets.sumOf { it.durationMillis }).divide(BigDecimal(3_600_000), 2, RoundingMode.HALF_UP)
-        val numberFormat = NumberFormat.getNumberInstance(locale).also {
-            it.minimumFractionDigits = 0
-            it.maximumFractionDigits = 2
-        }
         val taskIds = sheets.map { it.taskId }.distinct()
         val tasks = taskIds.take(MAX_TASKS).mapNotNull { TaskFormatter.getTaskPath(it) }.toMutableList()
         if (taskIds.size > MAX_TASKS) {
             tasks += "…"
         }
+        return variables(user, sheets.size, sheets.sumOf { it.durationMillis }, tasks)
+    }
+
+    /** The variables of [count] time sheets of [durationMillis] in total, booked on the [tasks] (paths). */
+    private fun variables(user: PFUserDO, count: Int, durationMillis: Long, tasks: List<String>): Map<String, String> {
+        val locale = UserLocale.determineUserLocale(user)
+        val hours = BigDecimal(durationMillis).divide(BigDecimal(3_600_000), 2, RoundingMode.HALF_UP)
+        val numberFormat = NumberFormat.getNumberInstance(locale).also {
+            it.minimumFractionDigits = 0
+            it.maximumFractionDigits = 2
+        }
         return mapOf(
-            "timesheetsToAcceptCount" to sheets.size.toString(),
+            "timesheetsToAcceptCount" to count.toString(),
             "timesheetsToAcceptHours" to numberFormat.format(hours),
             "timesheetsToAcceptTasks" to tasks.joinToString("; ").ifEmpty { "–" },
             "timesheetsToAcceptLink" to notificationLinks.absolute(LIST_PATH),

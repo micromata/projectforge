@@ -3244,7 +3244,7 @@
     "channels": {
       "IN_APP": "In der App",
       "MAIL": "E-Mail",
-      "SMS": "SMS (noch nicht unterstützt)"
+      "SMS": "SMS"
     },
     "created": "Erstellt",
     "delivery": {
@@ -3254,6 +3254,7 @@
       "info": "Die Schritte werden nach der angegebenen Zeit seit dem Erstellen der Benachrichtigung zugestellt. Ein Schritt „nur wenn unbestätigt“ entfällt, sobald die Benachrichtigung bestätigt oder ihr Anlass erledigt ist.",
       "onlyIfUnacknowledged": "Nur wenn unbestätigt",
       "removeStep": "Schritt entfernen",
+      "smsNotConfigured": "nicht konfiguriert",
       "unit": {
         "days": "Tagen",
         "hours": "Stunden",
@@ -3303,6 +3304,7 @@
       "period": "Zeitraum",
       "recipients": "{arg0} Empfänger",
       "sample": "Beispiel mit den eigenen Werten",
+      "sms": "SMS ({arg0} Zeichen)",
       "withExamples": "Mit Beispielwerten"
     },
     "recipient": "Empfänger",
@@ -3330,7 +3332,8 @@
         "kost2MissingMonths": "Die Anzahl der Monate muss zwischen 1 und 12 liegen.",
         "noDeliveryStep": "Mindestens ein Zustellungsschritt ist erforderlich.",
         "passwordMaxAgeDays": "Die Anzahl der Tage muss mindestens 1 sein.",
-        "recipientsRequired": "Empfänger sind erforderlich: Eine Rechnung betrifft keinen Benutzer."
+        "recipientsRequired": "Empfänger sind erforderlich: Eine Rechnung betrifft keinen Benutzer.",
+        "smsTextLength": "Der SMS-Text darf höchstens {arg0} Zeichen lang sein."
       },
       "lastRun": "Letzter Lauf",
       "legend": {
@@ -3370,6 +3373,7 @@
       "MANUAL": "Manuell (ohne Bedingung)",
       "PASSWORD_NOT_CHANGED": "Passwort lange nicht geändert",
       "TIMESHEETS_MISSING": "Fehlende Zeitberichte",
+      "TIMESHEETS_TO_ACCEPT": "Zu übernehmende Zeitberichte",
       "TIMESHEETS_WITHOUT_KOST2": "Zeitberichte ohne Kost2",
       "VACATION_LEFT": "Verfallender Resturlaub"
     },
@@ -3392,6 +3396,8 @@
       "URGENT": "Dringend"
     },
     "severity": "Dringlichkeit",
+    "smsText": "SMS-Text",
+    "smsTextInfo": "Klartext mit denselben Variablen wie der Text, gesendet an die Mobilfunknummer der Empfänger (wer keine hinterlegt hat, bekommt keine SMS). Ist er leer, werden Betreff und Link gesendet. Gekürzt auf {arg0} Zeichen.",
     "status": "Status",
     "statuses": {
       "ACKNOWLEDGED": "Bestätigt",
@@ -3435,6 +3441,10 @@
       "passwordMaxAgeDays": "Maximales Alter des Passworts (Tage)",
       "period": "Zeitraum",
       "timesheetLink": "Link zu den Zeitberichten",
+      "timesheetsToAcceptCount": "Anzahl der zu übernehmenden Zeitberichte",
+      "timesheetsToAcceptHours": "Zu übernehmende Stunden",
+      "timesheetsToAcceptLink": "Link zu den zu übernehmenden Zeitberichten",
+      "timesheetsToAcceptTasks": "Strukturelemente mit zu übernehmenden Zeitberichten",
       "timesheetsWithoutKost2Count": "Anzahl der Zeitberichte ohne Kost2",
       "timesheetsWithoutKost2Hours": "Ohne Kost2 gebuchte Stunden",
       "timesheetsWithoutKost2Tasks": "Ohne Kost2 bebuchte Strukturelemente",
@@ -4729,6 +4739,7 @@
     "area": "Bereich",
     "durationOfSearch": "Suchdauer",
     "error": "Es trat leider ein interner Fehler auf.",
+    "invalidSyntax": "Der Suchbegriff ist keine gültige Suchsyntax (z. B. ein Doppelpunkt hinter einem Wort oder ein offenes Anführungszeichen), daher gibt es kein Ergebnis.",
     "lastDay": "Letzter Tag",
     "lastDays": "Letzte {arg0} Tage",
     "lastHour": "Letzte Stunde",
@@ -5323,6 +5334,82 @@
       "tooltip": "Wenn gewählt (wird auch an Unterelemente vererbt), dürfen sich hier gebuchte Zeitberichte zeitlich mit Zeitberichten anderer Projekte überlappen (geteilte Kosten). Überlappende Zeit wird in Anwesenheits- und Monatsberichten anteilig gezählt (z. B. 1h + überlappend 1h = je 0,5h). Überlappende Zeitberichte auf derselben Kost2 oder innerhalb desselben Projekts oder derselben Überlappungsgruppe (Konfiguration) werden nicht unterstützt. Eine Einstellung der Kost2 hat Vorrang."
     },
     "assignedUser": "Verantwortliche:r",
+    "bookingGrant": {
+      "acceptanceRequired": "Zu übernehmen",
+      "add": "Buchung freigeben",
+      "badge": {
+        "_": "{arg0} Ad-hoc-Buchung(en)",
+        "upcoming": "ab {arg0}"
+      },
+      "confirm": {
+        "_": "Bestätigen",
+        "confirm": "Diese vorgeschlagene Freigabe bestätigen? Ab jetzt damit gebuchte Zeitberichte müssen nicht mehr übernommen werden, die bisher gebuchten weiterhin."
+      },
+      "error": {
+        "endBeforeStart": "Das Ende des Zeitraums liegt vor seinem Beginn.",
+        "invalidKost2": "Eine Kost2 gehört nicht zu ihrem Strukturelement.",
+        "noTask": "Bitte mindestens ein Strukturelement auswählen.",
+        "notConfirmable": "Die Freigabe ist widerrufen oder schon bestätigt.",
+        "periodNotSet": "Bitte den Zeitraum angeben.",
+        "periodTooLong": "Eine vorgeschlagene Freigabe gilt höchstens 31 Tage.",
+        "proposalTooFarAhead": "Eine vorgeschlagene Freigabe endet spätestens 31 Tage nach heute.",
+        "taskNotBookable": "Auf dieses Strukturelement können keine Zeitberichte gebucht werden.",
+        "taskTwice": "Ein Strukturelement ist doppelt ausgewählt.",
+        "userChanged": "Die Person einer Freigabe kann nicht geändert werden.",
+        "userNotSet": "Bitte mindestens eine Person auswählen."
+      },
+      "grantedBy": "Freigegeben von",
+      "kost2": {
+        "all": "Alle Kost2",
+        "selected": "{arg0} Kost2"
+      },
+      "mail": {
+        "acceptanceRequired": "Deine Zeitberichte werden von der Projektleitung geprüft und übernommen, ggf. auf ein anderes Strukturelement oder eine andere Kost2.",
+        "greeting": "Hallo {arg0},",
+        "subject": {
+          "_": "Zeitberichte buchen auf {arg0}",
+          "multiple": "Zeitberichte buchen auf {arg0} Strukturelementen"
+        },
+        "text": "{arg0} hat dir das Buchen eigener Zeitberichte für den Zeitraum {arg1} auf den folgenden Strukturelementen freigegeben. Über die Links kannst du deine Zeitberichte buchen:"
+      },
+      "none": "Keine Ad-hoc-Buchungen freigegeben.",
+      "pending": {
+        "_": "{arg0} zu übernehmen",
+        "tooltip": "{arg0} über eine vorgeschlagene Freigabe gebuchte(r) Zeitbericht(e) zu übernehmen"
+      },
+      "positions": {
+        "_": "Strukturelemente",
+        "add": "Unterelement hinzufügen",
+        "hidden": "und {arg0} weitere(s) Strukturelement(e)",
+        "truncated": "Angeboten werden nur die ersten {arg0} Unterelemente. Ein tieferes Unterelement über sein eigenes Strukturelement freigeben."
+      },
+      "proposal": {
+        "info": "Hier kann keine Freigabe erteilt, aber eine vorgeschlagen werden: Die aushelfende Person bucht sofort, die Projektleitung übernimmt die Zeitberichte anschließend (ggf. auf ein anderes Strukturelement oder eine andere Kost2). Höchstens 31 Tage gültig."
+      },
+      "propose": "Buchung vorschlagen",
+      "proposed": {
+        "_": "Vorgeschlagen",
+        "tooltip": "Ohne Freigaberecht vorgeschlagen: Die damit gebuchten Zeitberichte übernimmt die Projektleitung."
+      },
+      "revoke": {
+        "_": "Widerrufen",
+        "confirm": "Diese Freigabe auf allen ihren Strukturelementen widerrufen? Die bisher gebuchten Zeitberichte bleiben erhalten."
+      },
+      "status": {
+        "_": "Status",
+        "ACTIVE": "Aktiv",
+        "EXPIRED": "Abgelaufen",
+        "REVOKED": "Widerrufen",
+        "UPCOMING": "Anstehend"
+      },
+      "users": "Personen",
+      "validFrom": "Gültig ab",
+      "validUntil": "Gültig bis"
+    },
+    "bookingGrants": {
+      "_": "Ad-hoc-Buchungen",
+      "info": "Aushelfende Kolleg:innen können hier für einen Zeitraum eigene Zeitberichte auf diesem Strukturelement oder seinen Unterelementen buchen, ohne Mitglied einer Gruppe zu sein. Sie sehen nichts weiter vom Projekt: nur die freigegebenen Strukturelemente und die Titel der übergeordneten Elemente."
+    },
     "consumption": "Verbrauch",
     "consumptionTooltip": {
       "booked": "Gebucht",
@@ -5521,6 +5608,12 @@
   },
   "timesheet": {
     "_": "Zeitbericht",
+    "acceptance": {
+      "accept": "Übernehmen",
+      "acceptOnSave": "Beim Speichern übernehmen",
+      "info": "Über eine von {arg0} vorgeschlagene Ad-hoc-Buchung gebucht: von der Projektleitung zu übernehmen, ggf. auf ein anderes Strukturelement oder eine andere Kost2."
+    },
+    "acceptancePending": "Zu übernehmen",
     "ai": {
       "timeSavedByAI": {
         "_": "KI-Ersparnis",
@@ -5564,12 +5657,16 @@
       "vacationNotConfigured": "Keine Urlaubs-Kost2 konfiguriert: Strukturelement und Kost2 bitte selbst wählen.",
       "vacationPlaceholder": "Urlaub auswählen"
     },
+    "bookingGrant": "Ad-hoc-Buchung",
     "description": "Tätigkeitsbericht",
     "duration": "Dauer",
     "iCalSubscription": "Zeitberichte im iCal-Format für den/die angemeldete:n Benutzer:in exportieren (*.ics).",
     "icsExport": "ics-Export",
     "location": "Ort",
     "massupdate": {
+      "acceptPending": {
+        "info": "Übernimmt die ausgewählten, über eine vorgeschlagene Ad-hoc-Buchung gebuchten Zeitberichte, ggf. mit dem oben gewählten Strukturelement und der Kost2. Für die übrigen ändert sich daran nichts."
+      },
       "remapKost2": "Kost2 nach Kostenart umschlüsseln (Strukturelement bleibt)",
       "remapKost2Info": "Jeder Zeitbericht behält sein Strukturelement. Eine Kost2, die das Strukturelement nicht mehr anbietet, wird durch dessen Kost2 derselben Kostenart (letzte beiden Ziffern) ersetzt, z. B. 5.999.11.02 -> 7.001.01.02 nach Verlinkung eines Projekts.",
       "taskNotApplied": "Das Strukturelement ist nicht ausgewählt (Checkbox) und wird daher nicht geändert.",
@@ -5637,6 +5734,11 @@
   "user": {
     "_": "Benutzer:in",
     "My2FA": {
+      "expired": "Für die angeforderte Aktion ist eine (erneute) Zwei-Faktor-Authentifizierung erforderlich, die nicht älter als {arg0} ist.",
+      "required": {
+        "_": "Eine (erneute) Zwei-Faktor-Authentifizierung ist erforderlich.",
+        "extended": "Eine (erneute) Zwei-Faktor-Authentifizierung ist aus Sicherheitsgründen erforderlich. Du kannst hierzu einen Code anfordern (s. Link unterhalb des Code-Feldes) oder, falls konfiguriert, deine Authenticator-App benutzen."
+      },
       "setup": {
         "authenticator": {
           "info": "Smartphone einrichten\n\n1. Einfach den Barcode in der Authenticator-App scannen.\n2. Fertig.\n\nJedesmal, wenn ProjectForge nach einem Code fragt, einfach den in der Authenticator-App eingeblendeten Code verwenden.\n\nEs können mehrere Authenticator-Apps gleichzeitig (auch als Backup) genutzt werden.\n\nCodes aus der Authenticator-App sind noch für ca. 30 Sekunden gültig, nachdem sie in der App erneuert wurden.\n\nDiese Barcode-Ansicht ist für ca. 10 Minuten einsehbar. Anschließend wird für die erneute Anzeige eine 2FA-Authentifizierung benötigt.",
@@ -5644,6 +5746,9 @@
           "title": "Authenticator-Apps"
         },
         "authenticatorKey": "Authenticator-Schlüssel",
+        "check": {
+          "fail": "Code-Prüfung fehlgeschlagen."
+        },
         "check2FA": "2FA jetzt prüfen",
         "disableAuthenticatorApp": {
           "_": "Authenticator-App entfernen",
@@ -5705,8 +5810,16 @@
       },
       "title": "Zweifaktor-Authentifizierung"
     },
+    "activated": {
+      "_": "Aktiviert",
+      "tooltip": "Deaktivierte Benutzer:innen haben keinen Systemzugang mehr."
+    },
     "add": {
       "optionalPassword": "Hier kann optional ein Erstpasswort vergeben werden."
+    },
+    "adminUsers": {
+      "_": "Administrator:innen",
+      "none": "Nichtadministrator:innen"
     },
     "alternativeEmails": {
       "_": "Alternative E-Mail-Adressen",
@@ -5753,6 +5866,14 @@
       }
     },
     "changePassword": {
+      "error": {
+        "noCharacter": "Passwort muss mindestens einen Buchstaben haben.",
+        "noNonCharacter": "Passwort muss mindestens einen Nicht-Buchstaben haben.",
+        "notMinLength": "Passwort muss mindestens {arg0} Zeichen haben.",
+        "oldPasswdEqualsNew": "Neues Passwort darf nicht dem alten entsprechen.",
+        "oldPasswordWrong": "Das alte Passwort wurde nicht korrekt eingegeben.",
+        "passwordQualityCheck": "Passwort muss mindestens {arg0} Zeichen und sowohl mindestens einen Buchstaben als auch einen Nicht-Buchstaben enthalten."
+      },
       "msg": {
         "passwordSuccessfullyChanged": "Passwort wurde erfolgreich geändert."
       },
@@ -5761,21 +5882,44 @@
       "oldPassword": "Altes Passwort",
       "password": {
         "lastChange": "Letzte Passwortänderung"
-      }
+      },
+      "title": "Eigenes Passwort ändern"
     },
     "changeWlanPassword": {
+      "error": {
+        "loginPasswordWrong": "Das Login-Passwort wurde nicht korrekt eingegeben."
+      },
       "lastChange": "Letzte WLAN/Samba-Passwortänderung",
       "loginPassword": "Login-Passwort",
-      "newPassword": "Neues WLAN-Passwort"
+      "newPassword": "Neues WLAN-Passwort",
+      "title": "WLAN/Samba Passwort ändern"
     },
     "deactivated": "Deaktiviert",
     "defaultLocale": "Default (Browser)",
+    "error": {
+      "emailUsedByOtherUser": "{arg0} wird schon von {arg1} verwendet.",
+      "invalidEmail": "Ungültige E-Mail-Adresse: {arg0}",
+      "passwordAndRepeatDoesNotMatch": "Passwort und Passwortwiederholung stimmen nicht überein.",
+      "usernameAlreadyExists": "Benutzer:inname ist bereits vergeben."
+    },
+    "filter": {
+      "hrPlanning": "Personalplanung",
+      "privileged": "Privilegierte Benutzer:innen",
+      "restricted": "Eingeschränkte Benutzer:innen",
+      "status": "Status",
+      "syncStatus": "Synchronisationsstatus",
+      "type": "Typ"
+    },
     "formerEmails": {
       "_": "Frühere E-Mail-Adressen",
       "info": "Nicht mehr genutzte E-Mail-Adressen (z. B. nach einer Namensänderung), durch Kommas getrennt. Diese Adressen werden ggf. für die Synchronisationsläufe von Fremdsystemen (z. B. Lanes & Planes) benötigt."
     },
     "gpgPublicKey": "GPG-Public-Key",
-    "hrPlanningEnabled": "Personalplanung",
+    "hrPlanningEnabled": {
+      "_": "Personalplanung",
+      "not": "keine Personalplanung",
+      "tooltip": "Soll der oder die Benutzer:in in der Personalplanung sichtbar sein?"
+    },
     "jiraUsername": {
       "_": "JIRA Benutzer:inname",
       "tooltip": "Wird nur gebraucht, wenn dieser von dem ProjectForge-Benutzer:innamen abweicht und der oder die Benutzer:in aus ProjectForge heraus mit JIRA arbeiten möchte."
@@ -5784,12 +5928,20 @@
     "legend": {
       "deactivated": "Deaktiviert"
     },
+    "list": {
+      "select": {
+        "title": "Benutzer:in auswählen"
+      }
+    },
     "localUser": {
       "_": "Lokale:r Benutzer:in",
       "not": "Allgemeine:r Benutzer:in",
       "tooltip": "Lokale Benutzer:innen werden nicht mit einem externen Benutzer:innensystem synchronisiert (z. B. LDAP)."
     },
     "locale": "Sprache",
+    "menu": {
+      "editRights": "Benutzer:innenrechte"
+    },
     "mobilePhone": {
       "_": "Mobilnummer",
       "info": "Die Nummer kann als 2. Faktor benutzt werden, um z. B. das Passwort zurückzusetzen oder andere sicherheitsrelevante Bereiche zu nutzen.\n\nDie Nummer kann im Bereich Zwei-Faktor-Authentifizierung geändert werden.",
@@ -5804,6 +5956,7 @@
         "settings": "Einstellungen",
         "tokens": "Zugangsschlüssel"
       },
+      "teamcalwhitelist": "Kalender Whitelist für Kalendersoftware",
       "title": {
         "edit": "Mein Zugang"
       }
@@ -5816,17 +5969,29 @@
         "title": "Direktwahl"
       }
     },
+    "restricted": {
+      "_": "eingeschränkt",
+      "not": "nicht eingeschränkt"
+    },
     "restrictedUser": {
       "_": "Eingeschränkte:r Nutzer:in",
       "tooltip": "Ein eingeschränkte:r (restricted) Nutzer:in darf sich lediglich anmelden und sein Passwort ändern.\n\nDer oder die Nutzer:in wird mit einem externen Usermanagementsystem synchronisiert."
     },
     "rights": {
-      "none": "Mit den zugeordneten Gruppen ist kein Recht konfigurierbar."
+      "none": "Mit den zugeordneten Gruppen ist kein Recht konfigurierbar.",
+      "title": {
+        "edit": "Benutzer:innenrechte bearbeiten"
+      }
     },
     "sshPublicKey": "SSH public key",
     "title": {
       "add": "Neue:r Benutzer:in",
-      "list": "Benutzer:in"
+      "edit": "Benutzer:in bearbeiten",
+      "heading": "Benutzer:in",
+      "list": {
+        "_": "Benutzer:in",
+        "select": "Benutzer:in auswählen"
+      }
     },
     "tooltip": {
       "assignedGroups": "Die Gruppen bestimmen die Rechte. Zugeordnet werden sie von der Administration.",
@@ -5839,7 +6004,9 @@
       "timeZone": "Alle Uhrzeiten (Zeitberichte, Kalendertermine) werden in dieser Zeitzone angezeigt und eingegeben.",
       "username": "Der Anmeldename. Ändern kann ihn nur die Administration."
     },
-    "username": "Benutzer:inname"
+    "unassignedGroups": "Nicht assoziierte Gruppen",
+    "username": "Benutzer:inname",
+    "users": "Benutzer:in"
   },
   "username": "Benutzer:innenname",
   "vacation": {

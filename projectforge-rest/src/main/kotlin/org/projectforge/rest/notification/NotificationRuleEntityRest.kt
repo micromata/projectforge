@@ -47,6 +47,7 @@ import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.dto.PostData
+import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.UIColor
 import org.projectforge.ui.ValidationError
@@ -95,7 +96,13 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         /** Subject and text rendered with example values. */
         val exampleSubject: String,
         val exampleText: String,
+        /** The SMS as sent (own values and example values), null if the cascade has no SMS step. */
+        val sms: String?,
+        val exampleSms: String?,
     )
+
+    /** Is SMS configured (otherwise SMS steps are skipped), and the max length of an SMS. */
+    class SmsInfo(val configured: Boolean, val maxLength: Int)
 
     class TestResult(val delivered: List<NotificationChannel>, val failed: Map<NotificationChannel, String>)
 
@@ -142,6 +149,9 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     @Autowired
     private lateinit var notificationService: NotificationService
 
+    @Autowired
+    private lateinit var smsSenderConfig: SmsSenderConfig
+
     override fun transformFromDB(obj: NotificationRuleDO, editMode: Boolean): NotificationRule {
         val rule = NotificationRule()
         rule.copyFrom(obj)
@@ -169,6 +179,11 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         }
         if (dto.text.isNullOrBlank()) {
             validationErrors += required("text", "notification.text")
+        }
+        if ((dto.smsText?.length ?: 0) > MAX_SMS_TEXT_LENGTH) {
+            validationErrors += ValidationError(
+                translateMsg("notification.rule.error.smsTextLength", MAX_SMS_TEXT_LENGTH), fieldId = "smsText",
+            )
         }
         if (dto.deliverySteps.isEmpty()) {
             validationErrors += ValidationError(translate("notification.rule.error.noDeliveryStep"), fieldId = "deliverySteps")
@@ -227,6 +242,14 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         }
     }
 
+    /** Is SMS configured? The editor offers SMS steps only then. */
+    @AccessChecked("DAO: NotificationRuleDao insert access (admin/finance, checkInsertAccess)")
+    @GetMapping("smsInfo")
+    fun getSmsInfo(): SmsInfo {
+        checkInsertAccess()
+        return SmsInfo(smsSenderConfig.isSmsConfigured(), smsSenderConfig.smsMaxMessageLength)
+    }
+
     /** The menu items selectable as menu badge, sorted by their translated labels. */
     @AccessChecked("DAO: NotificationRuleDao insert access (admin/finance, checkInsertAccess)")
     @GetMapping("menuBadges")
@@ -253,6 +276,8 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
             text = preview.text,
             exampleSubject = preview.exampleSubject,
             exampleText = preview.exampleText,
+            sms = preview.sms,
+            exampleSms = preview.exampleSms,
         )
     }
 
@@ -395,5 +420,6 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     companion object {
         private const val MAX_PREVIEW_RECIPIENTS = 50
         private const val MAX_LOG_ENTRIES = 500
+        private const val MAX_SMS_TEXT_LENGTH = 1000
     }
 }

@@ -106,6 +106,15 @@ export interface NotificationPreview {
   exampleSubject: string;
   /** Sanitized HTML, rendered with example values. */
   exampleText: string;
+  /** The SMS as sent (own and example values), absent if the cascade has no SMS step. */
+  sms?: string | null;
+  exampleSms?: string | null;
+}
+
+/** Is SMS configured (otherwise SMS steps are skipped), and the max length of an SMS. */
+export interface NotificationSmsInfo {
+  configured: boolean;
+  maxLength: number;
 }
 
 export interface NotificationTestResult {
@@ -164,6 +173,16 @@ export function fetchMenuBadgeOptions(
 ): Promise<MenuBadgeOption[]> {
   return request<MenuBadgeOption[]>(
     "/rs/notificationRule/menuBadges",
+    { method: "GET" },
+    signal
+  );
+}
+
+export function fetchNotificationSmsInfo(
+  signal?: AbortSignal
+): Promise<NotificationSmsInfo> {
+  return request<NotificationSmsInfo>(
+    "/rs/notificationRule/smsInfo",
     { method: "GET" },
     signal
   );

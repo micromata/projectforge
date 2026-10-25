@@ -56,6 +56,7 @@ export function RulePreviewDialog({
               </p>
               <p className="font-medium">{preview.subject}</p>
               <RichText html={preview.text} />
+              {preview.sms != null && <SmsPreview text={preview.sms} />}
             </div>
             <div className="space-y-2 rounded-md border p-3">
               <p className="text-xs text-muted-foreground">
@@ -63,10 +64,26 @@ export function RulePreviewDialog({
               </p>
               <p className="font-medium">{preview.exampleSubject}</p>
               <RichText html={preview.exampleText} />
+              {preview.exampleSms != null && (
+                <SmsPreview text={preview.exampleSms} />
+              )}
             </div>
           </div>
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** The SMS as sent: plain text, line breaks kept. */
+function SmsPreview({ text }: { text: string }) {
+  const t = useTranslations("notification");
+  return (
+    <div className="space-y-1 border-t pt-2">
+      <p className="text-xs text-muted-foreground">
+        {t("preview.sms", { arg0: text.length })}
+      </p>
+      <p className="whitespace-pre-wrap">{text}</p>
+    </div>
   );
 }

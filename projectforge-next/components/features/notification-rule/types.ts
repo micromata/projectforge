@@ -74,6 +74,7 @@ export interface NotificationRuleDetail {
   linkMenuItem?: string | null;
   subject?: string | null;
   text?: string | null;
+  smsText?: string | null;
   editableByGroups?: Ref[];
   /** Read-only: the last run by schedule. */
   lastRun?: string | null;

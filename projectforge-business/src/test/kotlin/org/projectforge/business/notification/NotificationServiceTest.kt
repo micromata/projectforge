@@ -46,6 +46,7 @@ import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.menu.builder.MenuItemDefId
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
@@ -221,7 +222,7 @@ class NotificationServiceTest : AbstractTestBase() {
             val third = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single { it.status.isPending }
             assertEquals("2032-03-05", third.periodKey)
             // No time sheet without cost 2 unit left: resolved.
-            timesheetDao.markAsDeleted(sheet, checkAccess = false)
+            asAdmin { timesheetDao.markAsDeleted(sheet, checkAccess = false) }
             notificationService.resolvePending(today.plusDays(2))
             assertEquals(NotificationStatus.RESOLVED, notificationDao.findById(third.id)!!.status)
             assertEquals(0, notificationService.runRule(rule, today.plusDays(3), now).created)
@@ -363,6 +364,36 @@ class NotificationServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun smsTest() {
+        val user = initTestDB.addUser("notification-sms-user")
+        val sms = NotificationDelivery(listOf(NotificationDeliveryStep(NotificationChannel.SMS, 0)))
+        val rule = insertRule(NotificationRuleType.MANUAL, user, sms) { it.smsText = "SMS for {{firstName}} <b>" }
+        notificationService.trigger(rule)
+        val notification = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single()
+        assertEquals("SMS for ${user.firstname ?: ""} <b>", notification.smsText, "Plain text, not escaped.")
+        val step = notification.readDeliveryState().steps.single()
+        assertTrue(step.skipped, "No SMS gateway configured in the tests.")
+        assertEquals("SMS isn't configured.", step.error)
+        // Without an SMS step, no SMS text:
+        val inApp = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery()) { it.smsText = "SMS" }
+        notificationService.trigger(inApp)
+        assertNull(notificationDao.select(NotificationDao.Filter(ruleId = inApp.id)).single().smsText)
+        // Variables make the text longer than its column: cut, the notification is created anyway.
+        val longUser = initTestDB.addUser(PFUserDO().also {
+            it.username = "notification-sms-long-user"
+            it.firstname = "Bartholomew-Maximilian"
+            it.email = "devnull@localhost"
+        })
+        val long = insertRule(NotificationRuleType.MANUAL, longUser, sms) {
+            it.smsText = "{{firstName}} ".repeat(1000 / 14)
+        }
+        notificationService.trigger(long)
+        val longText = notificationDao.select(NotificationDao.Filter(ruleId = long.id)).single().smsText!!
+        assertEquals(NotificationDO.SMS_TEXT_LENGTH, longText.length)
+        assertTrue(longText.endsWith("…"), longText)
+    }
+
+    @Test
     fun linkTest() {
         val user = initTestDB.addUser("notification-link-user")
         val rule = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery())
@@ -386,7 +417,7 @@ class NotificationServiceTest : AbstractTestBase() {
         val financeUser = initTestDB.getUser(TEST_FINANCE_USER)!!
         val adminUser = initTestDB.getUser(TEST_ADMIN_USER)!!
         val otherUser = initTestDB.getUser(TEST_USER)!!
-        val group = initTestDB.addGroup("notification-editors", TEST_USER)
+        val group = asAdmin { initTestDB.addGroup("notification-editors", TEST_USER) }
         val rule = NotificationRuleDO().also { it.editableByGroupIds = "${group.id}" }
         assertTrue(notificationRuleDao.hasAccess(financeUser, rule, null, OperationType.SELECT, false))
         assertFalse(notificationRuleDao.hasAccess(financeUser, rule, rule, OperationType.UPDATE, false))
@@ -395,7 +426,7 @@ class NotificationServiceTest : AbstractTestBase() {
         assertFalse(notificationRuleDao.hasInsertAccess(otherUser))
         assertTrue(notificationRuleDao.hasInsertAccess(financeUser))
         // A finance member of an editor group:
-        val financeGroup = initTestDB.addGroup("notification-finance-editors", TEST_FINANCE_USER)
+        val financeGroup = asAdmin { initTestDB.addGroup("notification-finance-editors", TEST_FINANCE_USER) }
         rule.editableByGroupIds = "${group.id},${financeGroup.id}"
         assertTrue(notificationRuleDao.hasAccess(financeUser, rule, rule, OperationType.UPDATE, false))
         // The notification of another user can't be acknowledged:
@@ -489,7 +520,21 @@ class NotificationServiceTest : AbstractTestBase() {
         sheet.startTime = Date.from(start.toInstant())
         sheet.stopTime = Date.from(start.plusHours(2).toInstant())
         sheet.description = "Notification test"
-        timesheetDao.insert(sheet, checkAccess = false)
+        asAdmin { timesheetDao.insert(sheet, checkAccess = false) }
         return sheet
+    }
+
+    /**
+     * Runs the given test setup logged in as admin: the overlap check of time sheets and the history of groups need a
+     * logged-in user. The notification service itself runs without one (as the job does).
+     */
+    private fun <T> asAdmin(block: () -> T): T {
+        val previous = ThreadLocalUserContext.loggedInUser
+        logon(TEST_ADMIN_USER)
+        try {
+            return block()
+        } finally {
+            ThreadLocalUserContext.setUser(previous)
+        }
     }
 }

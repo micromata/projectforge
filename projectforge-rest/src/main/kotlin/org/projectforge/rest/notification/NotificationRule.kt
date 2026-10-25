@@ -78,6 +78,8 @@ class NotificationRule(
     var linkMenuItem: String? = null,
     var subject: String? = null,
     var text: String? = null,
+    /** Plain text with variables for the delivery by SMS; blank: subject and link. */
+    var smsText: String? = null,
     var editableByGroups: List<Group> = emptyList(),
     /** Read-only: the last run by schedule. */
     var lastRun: Date? = null,

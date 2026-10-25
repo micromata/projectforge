@@ -159,6 +159,12 @@ export const NOTIFICATION_RULE_METADATA = {
         },
       ],
     },
+    smsText: {
+      dataType: "STRING",
+      i18nKey: "notification.smsText",
+      required: false,
+      maxLength: 1000,
+    },
     subject: {
       dataType: "STRING",
       i18nKey: "notification.subject",

@@ -42,6 +42,7 @@ export function toFormValues(
     linkMenuItem: rule.linkMenuItem ?? null,
     subject: rule.subject ?? "",
     text: rule.text ?? "",
+    smsText: rule.smsText ?? null,
     editableByGroups: rule.editableByGroups ?? [],
     lastRun: rule.lastRun ?? null,
   };
