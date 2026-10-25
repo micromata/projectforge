@@ -4948,6 +4948,13 @@
       "customer": {
         "intro": "The customer of the project: an existing one, or a new one that is created together with the project - or on its own."
       },
+      "element": {
+        "autoReuse": "An element of this title exists already, so it is used: {arg0}",
+        "customerIntro": "A new element below a picked one, titled with the name of the customer, or an existing element; its title may differ from the name.",
+        "existing": "Use an existing element",
+        "new": "Create a new element",
+        "projectIntro": "A new element below the customer's, titled with the name of the project, or an existing element below it that has no project yet; its title may differ. The element is linked to the project and gets the access rights of the groups."
+      },
       "existing": {
         "customer": "Existing customer",
         "group": "Existing group"
@@ -4973,23 +4980,23 @@
       "pageTitle": "Customer wizard",
       "parentTask": {
         "customerOnly": {
-          "intro": "Optional: the structure element of the new customer is created below this element, titled with the name of the customer. Without an element, only the customer is created."
+          "intro": "Optional: the structure element of the new customer, a new one below a picked element, titled with the name of the customer, or an existing one. Without an element, only the customer is created."
         },
         "existingCustomer": {
           "_": "Structure element of the customer",
-          "intro": "The element of the customer, preset from its projects where known. The structure element of the project is created below it, titled with the name of the project, and linked to the project."
+          "intro": "The element of the customer, preset from its projects where known. The structure element of the project lies below it."
         },
-        "newCustomer": {
-          "_": "Parent of the customer's structure element",
-          "intro": "The structure element of the new customer is created below this element, titled with the name of the customer, and the structure element of the project below that."
-        },
-        "newPath": "Path of the new structure elements:",
+        "heading": "Structure elements",
+        "intro": "The structure elements of the customer and the project: new ones, or existing ones.",
+        "newCustomer": "Parent of the customer's structure element",
+        "newPath": "Path of the structure elements:",
         "structure": {
           "_": "The element of a customer is the parent of the elements of all its projects. It may be placed below a customer group, a business unit or the like, or on the top level.",
           "title": "How the structure is meant"
         }
       },
       "preview": {
+        "existingElement": "existing",
         "newElement": "new"
       },
       "project": {

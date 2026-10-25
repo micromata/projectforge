@@ -4948,6 +4948,13 @@
       "customer": {
         "intro": "Der Kunde des Projekts: ein vorhandener oder ein neuer, der zusammen mit dem Projekt angelegt wird – oder auch allein."
       },
+      "element": {
+        "autoReuse": "Ein Element mit diesem Titel gibt es schon, es wird verwendet: {arg0}",
+        "customerIntro": "Ein neues Element unter einem gewählten, mit dem Namen des Kunden als Titel, oder ein vorhandenes Element; dessen Titel darf vom Namen abweichen.",
+        "existing": "Vorhandenes Element verwenden",
+        "new": "Neues Element anlegen",
+        "projectIntro": "Ein neues Element unter dem Element des Kunden, mit dem Namen des Projekts als Titel, oder ein vorhandenes Element darunter, das noch kein Projekt hat; dessen Titel darf abweichen. Das Element wird mit dem Projekt verknüpft und bekommt die Zugriffsrechte der Gruppen."
+      },
       "existing": {
         "customer": "Vorhandener Kunde",
         "group": "Vorhandene Gruppe"
@@ -4973,23 +4980,23 @@
       "pageTitle": "Kundenassistent",
       "parentTask": {
         "customerOnly": {
-          "intro": "Optional: Unterhalb dieses Elements wird das Strukturelement des neuen Kunden angelegt, mit dem Namen des Kunden als Titel. Ohne Element wird nur der Kunde angelegt."
+          "intro": "Optional: das Strukturelement des neuen Kunden, ein neues unterhalb eines gewählten Elements mit dem Namen des Kunden als Titel oder ein vorhandenes. Ohne Element wird nur der Kunde angelegt."
         },
         "existingCustomer": {
           "_": "Strukturelement des Kunden",
-          "intro": "Das Element des Kunden, soweit bekannt aus seinen Projekten vorbelegt. Darunter wird das Strukturelement des Projekts angelegt, mit dem Namen des Projekts als Titel, und mit dem Projekt verknüpft."
+          "intro": "Das Element des Kunden, soweit bekannt aus seinen Projekten vorbelegt. Darunter liegt das Strukturelement des Projekts."
         },
-        "newCustomer": {
-          "_": "Übergeordnetes Element des Kunden",
-          "intro": "Unterhalb dieses Elements wird das Strukturelement des neuen Kunden angelegt, mit dem Namen des Kunden als Titel, und darunter das Strukturelement des Projekts."
-        },
-        "newPath": "Pfad der neuen Strukturelemente:",
+        "heading": "Strukturelemente",
+        "intro": "Die Strukturelemente des Kunden und des Projekts: neue oder vorhandene.",
+        "newCustomer": "Übergeordnetes Element des Kunden",
+        "newPath": "Pfad der Strukturelemente:",
         "structure": {
           "_": "Das Element eines Kunden ist das übergeordnete Element aller seiner Projekte. Es kann einer Kundengruppe, einer Business-Unit o. ä. untergeordnet sein oder auf oberster Ebene liegen.",
           "title": "Wie der Aufbau gedacht ist"
         }
       },
       "preview": {
+        "existingElement": "vorhanden",
         "newElement": "neu"
       },
       "project": {
