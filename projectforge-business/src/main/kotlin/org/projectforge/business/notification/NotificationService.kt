@@ -30,6 +30,7 @@ import org.projectforge.common.logging.error
 import org.projectforge.common.logging.warn
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.json.JsonUtils
+import org.projectforge.framework.utils.HtmlSanitizer
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.menu.builder.MenuItemDefId
 import org.springframework.beans.factory.annotation.Autowired
@@ -284,6 +285,67 @@ class NotificationService {
             notificationDao.insert(notification)
         }
         return TestResult(delivered, failed)
+    }
+
+    /**
+     * Creates a notification without rule for the given recipient (e.g. of the chat) and delivers the due steps of its
+     * cascade at once. The recipient marks it as done, or the caller resolves it ([resolveByDedupPrefix]). Nothing is
+     * created if the dedup key exists already.
+     * @param body The text (HTML), sanitized here.
+     * @return The notification created, null if it exists already.
+     */
+    fun notifyDirect(
+        recipientId: Long,
+        title: String,
+        body: String?,
+        link: String?,
+        dedupKey: String,
+        delivery: NotificationDelivery,
+        display: NotificationDisplay = NotificationDisplay.TOAST,
+        severity: NotificationSeverity = NotificationSeverity.INFO,
+        menuBadge: MenuItemDefId? = null,
+    ): NotificationDO? {
+        lock.withLock {
+            if (notificationDao.findByDedupKey(dedupKey) != null) {
+                return null
+            }
+            val now = Date()
+            val notification = NotificationDO().also {
+                it.ruleId = null
+                it.recipientId = recipientId
+                it.severity = severity
+                it.display = display
+                it.manualDone = true
+                it.menuBadge = menuBadge?.id
+                it.title = title.take(1000)
+                it.body = HtmlSanitizer.sanitize(body)
+                it.link = link
+                it.dedupKey = dedupKey
+                it.status = NotificationStatus.OPEN
+                it.created = now
+                it.delivery = JsonUtils.toJson(delivery)
+                it.writeDeliveryState(NotificationDeliveryState.of(delivery, now))
+            }
+            notificationDao.insert(notification)
+            deliverDueSteps(notification, now)
+            return notification
+        }
+    }
+
+    /** Has the recipient a pending notification whose dedup key starts with the given prefix (see [notifyDirect])? */
+    fun hasPendingByDedupPrefix(recipientId: Long, prefix: String): Boolean {
+        return notificationDao.findPendingByDedupPrefix(recipientId, prefix).isNotEmpty()
+    }
+
+    /**
+     * Resolves the pending notifications of the recipient whose dedup key starts with the given prefix (see
+     * [notifyDirect]), e.g. when the recipient read the chat messages they are about.
+     * @return The number of notifications resolved.
+     */
+    fun resolveByDedupPrefix(recipientId: Long, prefix: String): Int {
+        val pending = notificationDao.findPendingByDedupPrefix(recipientId, prefix)
+        pending.forEach { notificationDao.finish(it, NotificationStatus.RESOLVED) }
+        return pending.size
     }
 
     /** Evaluates the rule and creates the notifications of the recipients not yet notified for the period. */

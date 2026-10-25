@@ -7,7 +7,7 @@
 | Status | Draft 0.3 (chat rooms and mentions added) |
 | Owner | Kai Reinhard |
 | Date | 2026-10-25 |
-| Stage | Specification only (release cut follows) |
+| Stage | R1 in implementation (ProjectForge 9.0.16) |
 | Used by | chat rooms (built-in first host, PF-CHAT-ROOM); [PF-CVR – CVE-Radar](PF-CVR_CVE-Radar_Vulnerability_Management.md); later invoices, orders and others |
 
 ---
@@ -249,7 +249,7 @@ None at the moment.
 
 ## 10. Next steps
 
-1. Release cut R1: chat core (CTX, MSG incl. mentions and reactions, THR, ATT, NOT-01 – NOT-07, SRCH-01, SEC) with
+1. Release cut R1 (ProjectForge 9.0.16): chat core (CTX, MSG incl. mentions and reactions, THR, ATT, NOT-01 – NOT-07, SRCH-01, SEC) with
    the chat room as first host and a minimal room list (ROOM-01 – ROOM-07, ROOM-09).
 2. R2: chat area (ROOM-08), search across conversations (SRCH-02), export (SEC-08), user guide.
 3. PF-CVR DISC on top of R1; the cleanup job (CTX-08) later.

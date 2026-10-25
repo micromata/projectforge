@@ -143,6 +143,21 @@ class NotificationDao {
             .groupingBy { it.menuBadge!! }.eachCount()
     }
 
+    /**
+     * The pending notifications of the given recipient whose dedup key starts with the given prefix, e.g. the ones of a
+     * chat conversation (`chat:new:4711:`).
+     */
+    fun findPendingByDedupPrefix(recipientId: Long, prefix: String): List<NotificationDO> {
+        require(prefix.isNotEmpty() && '%' !in prefix && '_' !in prefix) { "Invalid dedup key prefix: '$prefix'." }
+        return persistenceService.executeQuery(
+            "from NotificationDO n where n.recipientId = :recipientId and n.dedupKey like :prefix and n.status in :statuses",
+            NotificationDO::class.java,
+            Pair("recipientId", recipientId),
+            Pair("prefix", "$prefix%"),
+            Pair("statuses", NotificationStatus.PENDING),
+        )
+    }
+
     /** The pending notifications of the given rules. */
     fun findPendingByRules(ruleIds: Collection<Long>): List<NotificationDO> {
         return persistenceService.executeQueryBatched(

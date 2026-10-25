@@ -1,0 +1,221 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.business.chat
+
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.projectforge.business.notification.NotificationDao
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.access.AccessException
+import org.springframework.beans.factory.annotation.Autowired
+
+/**
+ * The chat with a room as host: access by the conversation from the database, own messages only, moderators,
+ * threads one level deep, the change sequence, reactions, mentions and their notifications.
+ */
+class ChatServiceTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var chatRoomDao: ChatRoomDao
+
+    @Autowired
+    private lateinit var chatService: ChatService
+
+    @Autowired
+    private lateinit var chatNotifier: ChatNotifier
+
+    @Autowired
+    private lateinit var notificationDao: NotificationDao
+
+    @BeforeEach
+    fun setUp() {
+        chatNotifier.executor = java.util.concurrent.Executor { it.run() }
+    }
+
+    /** A room of TEST_USER (owner) with TEST_USER2 as participant, its conversation opened by the owner. */
+    private fun createRoom(name: String): Long {
+        val owner = logon(TEST_USER)
+        val roomId = chatRoomDao.insert(ChatRoomDO().also {
+            it.name = name
+            it.ownerId = owner.id
+            it.participantUserIds = "${getUserId(TEST_USER2)}"
+        })
+        return chatService.open(ChatRoomChatHost.HOST_TYPE, roomId, ChatRoomChatHost.CHANNEL)!!.conversationId
+    }
+
+    @Test
+    fun `only participants read and write, only the author edits and deletes`() {
+        val conversationId = createRoom("chat access test")
+        val message = chatService.send(conversationId, null, "<p>Hello <b>all</b><script>alert(1)</script></p>", null)
+        assertEquals("<p>Hello <b>all</b></p>", message.content)
+
+        suppressErrorLogs {
+            logon(TEST_FINANCE_USER)
+            assertThrows(AccessException::class.java) { chatService.requireContext(conversationId) }
+            assertThrows(AccessException::class.java) { chatService.send(conversationId, null, "intruder", null) }
+            assertThrows(AccessException::class.java) { chatService.toggleReaction(message.id!!, "👍") }
+            logon(TEST_ADMIN_USER)
+            assertThrows(AccessException::class.java) { chatService.requireContext(conversationId) }
+            logon(TEST_USER2)
+            assertThrows(AccessException::class.java) { chatService.edit(message.id!!, "changed", null) }
+            assertThrows(AccessException::class.java) { chatService.delete(message.id!!) }
+            assertThrows(AccessException::class.java) { chatService.hide(message.id!!, true, "spam") }
+            assertThrows(UserException::class.java) { chatService.send(conversationId, null, "<p> </p>", null) }
+        }
+        val context = chatService.requireContext(conversationId)
+        assertFalse(context.isModerator)
+        val reply = chatService.send(conversationId, message.id, "a reply", null)
+
+        logon(TEST_USER)
+        val edited = chatService.edit(message.id!!, "Hello everybody", null)
+        assertEquals("Hello everybody", edited.content)
+        assertTrue(edited.editedAt != null)
+        chatService.hide(reply.id!!, true, "off topic") // The owner moderates.
+        chatService.delete(message.id!!)
+        val (root, replies) = chatService.selectThread(chatService.requireContext(conversationId), message.id!!)!!
+        assertTrue(root.deleted)
+        assertEquals(1, replies.size)
+        assertEquals(getUserId(TEST_USER), replies[0].hiddenById)
+    }
+
+    @Test
+    fun `a reply to a reply belongs to the thread of the message, changes are fetched by sequence`() {
+        val conversationId = createRoom("chat thread test")
+        val context = chatService.requireContext(conversationId)
+        val message = chatService.send(conversationId, null, "question", null)
+        val seq = chatService.currentSeq(conversationId)
+        logon(TEST_USER2)
+        val reply = chatService.send(conversationId, message.id, "answer", null)
+        val replyToReply = chatService.send(conversationId, reply.id, "more", null)
+        assertEquals(message.id, reply.threadRootId)
+        assertEquals(message.id, replyToReply.threadRootId)
+
+        val (root, replies) = chatService.selectThread(context, message.id!!)!!
+        assertEquals(2, root.replyCount)
+        assertEquals(listOf(reply.id, replyToReply.id), replies.map { it.id })
+        assertEquals(setOf(getUserId(TEST_USER), getUserId(TEST_USER2)), chatService.threadFollowers(root))
+        assertEquals(listOf(message.id), chatService.selectMessages(context, null, 50).map { it.id })
+
+        val changes = chatService.selectChanges(context, seq)
+        assertEquals(setOf(message.id, reply.id, replyToReply.id), changes.messages.map { it.id }.toSet())
+        assertEquals(chatService.currentSeq(conversationId), changes.changeSeq)
+        assertTrue(chatService.selectChanges(context, changes.changeSeq).messages.isEmpty())
+
+        chatService.setFollowing(message.id!!, false)
+        assertEquals(setOf(getUserId(TEST_USER)), chatService.threadFollowers(chatService.findMessage(message.id)!!))
+        // A message of another conversation isn't accepted as root or as read message.
+        val otherConversationId = createRoom("chat other room")
+        suppressErrorLogs {
+            assertThrows(AccessException::class.java) { chatService.send(otherConversationId, message.id, "moved", null) }
+            assertThrows(AccessException::class.java) { chatService.markRead(otherConversationId, message.id!!) }
+        }
+    }
+
+    @Test
+    fun `reactions are toggled per user`() {
+        val conversationId = createRoom("chat reaction test")
+        val message = chatService.send(conversationId, null, "react", null)
+        chatService.toggleReaction(message.id!!, "👍")
+        logon(TEST_USER2)
+        chatService.toggleReaction(message.id!!, "👍")
+        chatService.toggleReaction(message.id!!, "🎉")
+        assertEquals(
+            mapOf("👍" to listOf(getUserId(TEST_USER), getUserId(TEST_USER2)), "🎉" to listOf(getUserId(TEST_USER2))),
+            chatService.findMessage(message.id)!!.readReactions(),
+        )
+        chatService.toggleReaction(message.id!!, "👍")
+        chatService.toggleReaction(message.id!!, "🎉")
+        assertEquals(mapOf("👍" to listOf(getUserId(TEST_USER))), chatService.findMessage(message.id)!!.readReactions())
+        suppressErrorLogs {
+            assertThrows(UserException::class.java) { chatService.toggleReaction(message.id!!, "<b>") }
+        }
+    }
+
+    @Test
+    fun `mentions of readers are notified once, others become text, muting suppresses new messages only`() {
+        val conversationId = createRoom("chat mention test")
+        val user2 = getUserId(TEST_USER2)
+        val finance = getUserId(TEST_FINANCE_USER)
+        val html = """<p>Hi <span data-type="mention" data-id="$user2">@fake</span> and
+            |<span data-type="mention" data-id="$finance">@Finance</span></p>""".trimMargin()
+        val message = chatService.send(conversationId, null, html, null)
+        assertEquals("$user2", message.mentionedIds)
+        assertTrue(message.content!!.contains("""data-id="$user2""""))
+        assertTrue(message.content!!.contains("@${getUser(TEST_USER2).getFullname()}"))
+        assertFalse(message.content!!.contains("""data-id="$finance""""))
+        val mentionPrefix = ChatNotifier.mentionPrefix(conversationId, user2)
+        assertEquals(1, notificationDao.findPendingByDedupPrefix(user2, mentionPrefix).size)
+        assertTrue(notificationDao.findPendingByDedupPrefix(finance, ChatNotifier.mentionPrefix(conversationId, finance)).isEmpty())
+        // Mentioned: no further notification about the message itself.
+        assertTrue(notificationDao.findPendingByDedupPrefix(user2, ChatNotifier.newPrefix(conversationId, user2)).isEmpty())
+
+        // An edit doesn't notify the mention again.
+        chatService.edit(message.id!!, html.replace("Hi", "Hello"), null)
+        assertEquals(1, notificationDao.findPendingByDedupPrefix(user2, mentionPrefix).size)
+
+        // Reading resolves the notifications.
+        logon(TEST_USER2)
+        chatService.markRead(conversationId, message.id!!)
+        assertTrue(notificationDao.findPendingByDedupPrefix(user2, mentionPrefix).isEmpty())
+        assertEquals(0, chatService.countUnread(conversationId, user2))
+
+        chatService.setMuted(conversationId, true)
+        logon(TEST_USER)
+        chatService.send(conversationId, null, "nobody notified", null)
+        assertTrue(notificationDao.findPendingByDedupPrefix(user2, ChatNotifier.newPrefix(conversationId, user2)).isEmpty())
+        assertEquals(1, chatService.countUnread(conversationId, user2))
+        chatService.send(conversationId, null, """<span data-type="mention" data-id="$user2">x</span>""", null)
+        assertEquals(1, notificationDao.findPendingByDedupPrefix(user2, mentionPrefix).size, "mentions despite muting")
+
+        logon(TEST_USER2)
+        chatService.setMuted(conversationId, false)
+        logon(TEST_USER)
+        chatService.send(conversationId, null, "first", null)
+        chatService.send(conversationId, null, "second", null)
+        assertEquals(1, notificationDao.findPendingByDedupPrefix(user2, ChatNotifier.newPrefix(conversationId, user2)).size)
+        assertNull(chatService.getMemberState(conversationId, finance))
+    }
+
+    @Test
+    fun `deleting a room deletes its conversation`() {
+        val conversationId = createRoom("chat delete test")
+        chatService.send(conversationId, null, "bye", null)
+        val roomId = chatService.requireContext(conversationId).hostId
+        suppressErrorLogs {
+            logon(TEST_USER2)
+            assertThrows(AccessException::class.java) { chatService.deleteRoom(roomId) }
+        }
+        logon(TEST_USER)
+        chatService.deleteRoom(roomId)
+        suppressErrorLogs {
+            assertThrows(AccessException::class.java) { chatService.requireContext(conversationId) }
+        }
+        assertTrue(chatService.findConversations(ChatRoomChatHost.HOST_TYPE, listOf(roomId)).isEmpty())
+    }
+}
