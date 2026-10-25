@@ -4,11 +4,11 @@
 |---|---|
 | COMP-ID | PF-CHAT |
 | DOC-ID | PF-CHAT-REQ |
-| Status | Draft 0.2 (open points decided) |
+| Status | Draft 0.3 (chat rooms and mentions added) |
 | Owner | Kai Reinhard |
-| Date | 2026-10-24 |
+| Date | 2026-10-25 |
 | Stage | Specification only (release cut follows) |
-| Used by | [PF-CVR – CVE-Radar](PF-CVR_CVE-Radar_Vulnerability_Management.md) (first host); later invoices, orders and others |
+| Used by | chat rooms (built-in first host, PF-CHAT-ROOM); [PF-CVR – CVE-Radar](PF-CVR_CVE-Radar_Vulnerability_Management.md); later invoices, orders and others |
 
 ---
 
@@ -21,10 +21,13 @@ do not follow the access rules of the object.
 **Objective:** a generic chat module, modelled on Google Chat, that any module can embed for its objects:
 - conversations about an object, with replies to a single message as a thread of their own;
 - messages written and edited with the rich text editor of PF, with images attached;
-- access taken entirely from the object the conversation belongs to.
+- access taken entirely from the object the conversation belongs to;
+- chat rooms with participants (users and/or groups) for discussions that belong to no other object;
+- mentions with `@` and suggestions, notifying the mentioned users.
 
 The chat is a module of its own: it knows nothing about vulnerabilities or invoices. The embedding module (the
-*host*) tells it who may read and write. The first host is the CVE-Radar.
+*host*) tells it who may read and write. The first host is the chat room (PF-CHAT-ROOM), a small built-in host
+whose objects are rooms with participants; the CVE-Radar follows.
 
 **Measurable benefit (targets):**
 - Every discussion about an embedded object is found at the object, complete with images and threads.
@@ -38,18 +41,18 @@ The chat is a module of its own: it knows nothing about vulnerabilities or invoi
 | Participant | A user allowed by the host to read a conversation; may write if the host allows writing. |
 | Moderator | Defined by the host (e.g. the security team for vulnerabilities); may hide messages of others. |
 | Host developer | Integrates the chat into a module by implementing the chat context. |
-| PF administrator | Gets no access to conversations by his role alone; access comes from the host only. |
+| PF administrator | Gets no access to conversations by their role alone; access comes from the host only. |
 
 ## 3. System context
 
 ```
- Host module (CVE-Radar, invoices, orders …)
+ Host module (chat rooms, CVE-Radar, invoices, orders …)
    └ chat context: title, link, channels, read/write check, moderators, participants, retention
         │
         ▼
  ┌───────────────────────────┐ ── images ──▶ file storage of the data transfer module (JCR, AttachmentsService)
  │ PF-CHAT                   │ ── notify ──▶ notification system (in-app, mail, digest)
- │ conversations, messages,  │ ── live ────▶ browser via SSE (SseEmitterTool), polling as fallback
+ │ conversations, messages,  │ ── live ────▶ browser via SSE (SseEmitter), polling as fallback
  │ threads, read states      │
  └───────────────────────────┘
         ▲
@@ -57,8 +60,8 @@ The chat is a module of its own: it knows nothing about vulnerabilities or invoi
 ```
 
 **Scope boundaries:**
-- Conversations always belong to a host object. Free rooms, team rooms and direct messages are not part of this
-  version (see CTX-07).
+- Conversations always belong to a host object. Free discussions use a chat room (PF-CHAT-ROOM) as host object;
+  direct messages between two users are not part of this version (see CTX-07).
 - No video or voice calls, no screen sharing, no e-mail-to-chat, no integration of external messengers.
 - The chat has no access rules of its own; it never widens what the host allows.
 
@@ -73,7 +76,8 @@ The chat is a module of its own: it knows nothing about vulnerabilities or invoi
 | Conversation | The messages about one host object in one channel. |
 | Message | A post with author, time and rich text, optionally with images. |
 | Thread | The replies to one message, shown apart from the conversation; one level deep. |
-| Mention | `@user` in a message; notifies the user. |
+| Mention | `@user` in a message, chosen from suggestions; notifies the user. |
+| Chat room | A host object of the built-in host *chat room*: name, description, owner, moderators and participants (users and groups). |
 | Attachment | An image stored in the data transfer storage and shown with the message. |
 
 ## 5. Requirements
@@ -85,12 +89,12 @@ Priority by MoSCoW: **M** = Must, **S** = Should, **C** = Could, **W** = Won't (
 | ID | Requirement | Prio | Remark |
 |---|---|---|---|
 | CTX-01 | A host must be able to register a chat context for its object type, providing per host object: title, deep link, channels, read check, write check, moderators and the users to notify. | M | adapter interface, no change of the chat module per host |
-| CTX-02 | The system must keep exactly one conversation per host object and channel and create it on the first message; an unknown host object must be refused. | M | |
+| CTX-02 | The system must keep exactly one conversation per host object and channel and create it when a user with write access opens it the first time; opening without write access creates nothing; an unknown host object must be refused. | M | |
 | CTX-03 | The frontend must offer a chat panel component that a host page embeds (e.g. as a tab or side panel of the host object). | M | shared component in `projectforge-next` |
 | CTX-04 | Every conversation must also be reachable as a page of its own (`/next/chat/{id}`) showing the title of the host object with a link back to it. | M | links in notifications |
 | CTX-05 | A conversation must follow the life cycle of its host object: read-only when the host says so (e.g. closed vulnerability), archived and deleted together with it. | M | |
 | CTX-06 | A host should be able to show the number of conversations and unread messages per object in its lists (e.g. a chat column in the invoice list). | S | |
-| CTX-07 | Free rooms, team rooms and direct messages without a host object are not planned. | W | decision |
+| CTX-07 | Free rooms and team rooms are chat rooms of the built-in host PF-CHAT-ROOM; direct messages between two users without a room are not planned. | W | decisions 2, 9 |
 | CTX-08 | A cleanup job should remove conversations and images whose host object no longer exists (e.g. orphaned files in the data transfer storage) and apply the retention rule of a host. | S | later; CTX-05 stays the rule |
 
 ### 5.2 PF-CHAT-MSG – Messages
@@ -103,7 +107,7 @@ Priority by MoSCoW: **M** = Must, **S** = Should, **C** = Could, **W** = Won't (
 | MSG-04 | Authors must be able to delete their own messages; a deleted message leaves the placeholder "Message deleted" so threads stay readable. | M | soft delete |
 | MSG-05 | Every message must have a deep link that opens the conversation (or thread) at this message; the link can be copied. | M | |
 | MSG-06 | A conversation must open with the newest 50 messages and load older ones when scrolling up; long conversations stay fluent (virtualised list). | M | |
-| MSG-07 | Messages should be able to mention users (`@`, suggestions only from users with read access to the conversation); the mentioned user is notified. | S | NOT-03 |
+| MSG-07 | Messages must be able to mention users: typing `@` opens suggestions, completed while typing, only from users with read access to the conversation; the choice inserts a mention chip. The server checks the mentioned users against the readers and notifies each newly mentioned user once, also after an edit. | M | NOT-03, decision 10 |
 | MSG-08 | A message should be able to quote another message of the same conversation (with link to it). | S | |
 | MSG-09 | An unsent draft should be kept per user and conversation. | S | |
 | MSG-10 | Users should be able to react to messages and thread replies with emoji, as in Google Chat: quick choice of recently used emoji, per emoji the count and (on hover) who reacted; a second click takes the own reaction back. Reactions are not notified. | S | decision 7 |
@@ -145,7 +149,7 @@ own instead of interleaving with the conversation.
 | NOT-03 | Mentions must be notified at once and shown as a badge at the menu until read. | M | |
 | NOT-04 | The host must be able to add recipients per message type (e.g. the security team for every new message of a vulnerability). | M | CTX-01 |
 | NOT-05 | Notifications and mails must name only the conversation, its host title and the author; content goes to the mail only if the host allows it. | M | confidentiality (e.g. PF-CVR VIS-07) |
-| NOT-06 | New messages, edits, deletions and reactions must appear to the other participants without a reload, while a chat panel or page is open: via server-sent events (`SseEmitterTool`) with a heartbeat (default every 25 s) so proxies keep the connection; on reconnect, missed events since the last event id are delivered. After repeated failures of the SSE connection the client falls back to polling automatically (about every 3 s while the tab is active, every 30 s in the background). | M | NFR-03, decision 6 |
+| NOT-06 | New messages, edits, deletions and reactions must appear to the other participants without a reload, while a chat panel or page is open: via server-sent events (Spring `SseEmitter`, event id = change sequence of the conversation) with a heartbeat (default every 25 s) so proxies keep the connection; on reconnect, missed events since the last event id are delivered. After repeated failures of the SSE connection the client falls back to polling automatically (about every 3 s while the tab is active, every 30 s in the background). | M | NFR-03, decision 6 |
 | NOT-07 | Users should be able to mute a conversation (except mentions). | S | |
 | NOT-08 | WebSockets and presence or typing indicators ("is typing …") are not planned; sending goes via ordinary POST requests. | W | decision 6 |
 
@@ -169,7 +173,24 @@ own instead of interleaving with the conversation.
 | SEC-07 | Every access rule comes with a test (refused for an ordinary user, allowed for the user it is meant for). | M | |
 | SEC-08 | A conversation should be exportable (PDF or HTML incl. threads and images) by users with read access, for audits and evidence. | S | |
 
-### 5.8 Non-functional requirements
+### 5.8 PF-CHAT-ROOM – Chat rooms
+
+Chat rooms are the built-in first host: a room is a host object with one channel, its access comes from its
+participants.
+
+| ID | Requirement | Prio | Remark |
+|---|---|---|---|
+| ROOM-01 | Every user with system access must be able to create a chat room with name, description and participants (users and/or groups); the creator becomes its owner. | M | |
+| ROOM-02 | Participants of a room are its owner, its moderators, the users and the members of the groups listed; group membership is resolved at the time of access, so new group members take part at once. | M | `UserGroupCache` |
+| ROOM-03 | Participants may read and write in the room; owner and moderators may edit and delete it and are its moderators in the sense of SEC-05. | M | |
+| ROOM-04 | The owner of a room is taken from the database and the logged-in user; an edit must not change it. | M | SEC-02 |
+| ROOM-05 | Users and groups can be chosen as participants only as far as the user may see them in the user and group selection. | M | no widening of visibility |
+| ROOM-06 | A user must see a list of the rooms they take part in and open each one as conversation page (CTX-04). | M | minimal in R1 |
+| ROOM-07 | Deleting a room deletes its conversation, messages and images. | M | CTX-05 |
+| ROOM-08 | A chat area should show the rooms as a side bar with unread counts per room, as in Google Chat, and offer the room management there. | S | R2 |
+| ROOM-09 | The messages of rooms are not part of notification mails (NOT-05). | M | |
+
+### 5.9 Non-functional requirements
 
 | ID | Requirement | Prio |
 |---|---|---|
@@ -187,35 +208,40 @@ own instead of interleaving with the conversation.
 |---|---|
 | Rich text editing and rendering | `components/shared/rich-text-editor.tsx`, `components/shared/rich-text.tsx` (sanitized) |
 | File storage | `AttachmentsService` / JCR, file storage of `org.projectforge.plugins.datatransfer` |
-| Live updates | `projectforge-rest/.../core/SseEmitterTool.kt` |
+| Live updates | Spring `SseEmitter` (`SseEmitterTool` polls and has no event ids, so not reused) |
 | Notifications, digest, badge | `business/notification/` (`NotificationDO`, rule handler, in-app/mail senders) |
 | History of edits | `DefaultBaseDO` history, `HistoryUserCommentSupport` |
-| Users | `PFUserDO`, user cache for mentions |
+| Users | `PFUserDO`, `UserGroupCache` for mentions and room participants |
+| User and group selection | `user/autosearch`, `group/autosearch`, `EntityMultiAutocomplete` |
 
-To be built: chat context interface and registry, conversation/message/read-state entities, chat panel and page,
-thread side panel, image upload and viewer.
+To be built: chat context interface and registry, conversation/message/read-state entities, chat rooms, chat panel and
+page, thread side panel, mention suggestions, image upload and viewer.
 
 ## 7. Integration examples
 
 | Host | Channels | Read / write | Remark |
 |---|---|---|---|
+| Chat room | *main* | participants of the room (ROOM-02) | first host, built in |
 | CVE-Radar vulnerability | *internal*, *public* | internal: ST and affected groups; public: recipients of the client advisory | [PF-CVR-DISC](PF-CVR_CVE-Radar_Vulnerability_Management.md#511-pf-cvr-disc--discussion) |
 | CVE-Radar finding | *internal* | visibility of the finding (PF-CVR VIS-09) | system-specific discussion |
 | Invoice (later) | *internal* | as the invoice (`RechnungDao`) | questions about an invoice |
 | Order (later) | *internal* | as the order (`AuftragDao`) | discussion about an order |
 
-## 8. Decisions (as of 0.2)
+## 8. Decisions (as of 0.3)
 
 | # | Topic | Decision | Requirements |
 |---|---|---|---|
 | 1 | Module | Generic core module embedded by hosts; no access rules of its own | CTX-01, NFR-05 |
-| 2 | Scope | Conversations always belong to a host object; no free rooms or direct messages | CTX-07 |
+| 2 | Scope | Conversations always belong to a host object; free discussions take place in chat rooms; no direct messages | CTX-07 |
 | 3 | Threads | As in Google Chat: replies to a message, one level deep | THR-01, THR-02 |
 | 4 | Editing | Existing rich text editor, own messages editable and historised | MSG-01, MSG-03 |
 | 5 | Images | Data transfer storage, access from the conversation, no expiry | ATT-02 – ATT-04 |
 | 6 | Live updates | SSE with heartbeat, automatic fallback to polling; no WebSocket | NOT-06, NOT-08, NFR-07 |
 | 7 | Reactions | Emoji reactions as in Google Chat | MSG-10 |
 | 8 | Retention | Kept until the host object is deleted; a cleanup job follows later | CTX-05, CTX-08 |
+| 9 | Chat rooms | Built-in first host with participants (users and groups); the chat area follows in R2 | ROOM-01 – ROOM-09 |
+| 10 | Mentions | `@` with suggestions from the readers of the conversation; checked on the server; notified at once | MSG-07, NOT-03 |
+| 11 | Reactions storage | Stored with the message (emoji → user ids), not historised | MSG-10 |
 
 ## 9. Open points
 
@@ -223,5 +249,7 @@ None at the moment.
 
 ## 10. Next steps
 
-1. Review of this version 0.2 together with PF-CVR 0.8.
-2. Release cut: PF-CHAT R1 (CTX, MSG incl. reactions, THR, ATT, NOT-01 – NOT-06, SEC) before PF-CVR DISC; the cleanup job (CTX-08) later.
+1. Release cut R1: chat core (CTX, MSG incl. mentions and reactions, THR, ATT, NOT-01 – NOT-07, SRCH-01, SEC) with
+   the chat room as first host and a minimal room list (ROOM-01 – ROOM-07, ROOM-09).
+2. R2: chat area (ROOM-08), search across conversations (SRCH-02), export (SEC-08), user guide.
+3. PF-CVR DISC on top of R1; the cleanup job (CTX-08) later.
