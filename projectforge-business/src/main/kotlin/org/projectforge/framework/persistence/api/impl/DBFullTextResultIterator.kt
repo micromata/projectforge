@@ -31,6 +31,7 @@ import org.hibernate.search.mapper.orm.Search
 import org.hibernate.search.util.common.SearchException
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortPropertyComparator
 
@@ -51,6 +52,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
     private val fullTextPredicates: List<DBPredicate>,
     private val resultMatchers: List<DBPredicate>,
     val sortProperties: Array<SortProperty>,
+    private val queryFilter: QueryFilter,
 ) : DBResultIterator<O> {
     private var result: List<O>
     private var resultIndex = -1
@@ -122,14 +124,29 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
             return searchResult as List<O>
         } catch (ex: Exception) {
             val errorMsg = "Error in query execution for ${baseDao.doClass.simpleName}: ${ex.message}"
-            if (ex is SearchException && ex.message?.startsWith(QUERY_PARSE_ERROR) == true) {
+            if (isInvalidQuery(ex)) {
                 // The user's search term isn't valid query syntax (e.g. an unclosed '"' or a trailing '/'): no bug
-                // and no problem of the installation, the user just gets no result. Not collected by the dashboard.
+                // and no problem of the installation, the user gets no result and a hint (see
+                // QueryFilter.fulltextQueryInvalid). Not collected by the dashboard.
+                queryFilter.fulltextQueryInvalid = true
                 log.info { errorMsg }
             } else {
                 log.error(errorMsg)
             }
             return emptyList()
+        }
+    }
+
+    /**
+     * A parse error of the query string, or the NPE Hibernate Search throws instead for a word followed by a colon
+     * that isn't one of the searched fields (`Project: x`, `10:30`): it reads `project:x` as a field query and
+     * finds no state for the field `project` (`LuceneQueryStringPredicate.newFieldQuery`).
+     */
+    private fun isInvalidQuery(ex: Exception): Boolean {
+        return generateSequence<Throwable>(ex) { it.cause }.any {
+            (it is SearchException && it.message?.startsWith(QUERY_PARSE_ERROR) == true) ||
+                    (it is NullPointerException &&
+                            it.stackTrace.firstOrNull()?.className?.contains("QueryStringPredicate") == true)
         }
     }
     /*

@@ -3,7 +3,7 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.0.14",
-    "date" : "2026-10-24",
+    "date" : "2026-10-25",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
@@ -19,7 +19,7 @@
       "items" : [ "Auftragsstatistik, Deckungsbeitrag-Bubbles: Die Größe einer Bubble zeigt ihren DB1 statt ihrer Kosten. Der Schalter „Titel einblenden“ beschriftet die eigenen Bubbles mit Kurztitel und DB %; ausgeschaltet stehen die Namen nur im Tooltip." ]
     }, {
       "type" : "fixed",
-      "items" : [ "Strukturbaum: Ein Strukturelement, das während des Neuladens des Baums im Hintergrund angelegt oder verschoben wurde, konnte bis zum nächsten Neuladen aus dem Baum verschwinden; darunter ließ sich dann kein Unterelement anlegen („Übergeordnetes Strukturelement wird benötigt, konnte aber nicht gefunden werden“).", "Strukturbaum: Nach dem Ändern eines Strukturelements fehlte dessen Verantwortliche:r im Baum bis zum nächsten Neuladen." ]
+      "items" : [ "Strukturbaum: Ein Strukturelement, das während des Neuladens des Baums im Hintergrund angelegt oder verschoben wurde, konnte bis zum nächsten Neuladen aus dem Baum verschwinden; darunter ließ sich dann kein Unterelement anlegen („Übergeordnetes Strukturelement wird benötigt, konnte aber nicht gefunden werden“).", "Strukturbaum: Nach dem Ändern eines Strukturelements fehlte dessen Verantwortliche:r im Baum bis zum nächsten Neuladen.", "Listen: Ein Suchbegriff mit ungültiger Suchsyntax (z. B. „Projekt: Alpha“) zeigt jetzt einen Hinweis statt einer leeren Liste ohne Erklärung." ]
     } ]
   },
   "groups" : [ {
