@@ -180,6 +180,43 @@ class AutoCompleteObjectsTest : AbstractTestBase() {
     }
 
     /**
+     * A project is found by its number as the label shows it (`7.002.00`, or a prefix of it) and by its
+     * customer; projects named after the word come before those found only by their customer.
+     */
+    @Test
+    fun projectByNumberAndCustomerTest() {
+        logon(TEST_FINANCE_USER)
+        val word = "numcust${PREFIX!!.lowercase()}"
+        val customer = KundeDO().also {
+            it.name = "$word gmbh"
+            it.id = 4713L
+        }
+        kundeDao.insert(customer)
+        val byCustomer = ProjektDO().also {
+            it.name = "Allgemeine Softwareunterstuetzung"
+            it.kunde = customer
+            it.nummer = 3
+        }
+        projektDao.insert(byCustomer)
+        val byName = ProjektDO().also {
+            it.name = "$word portal"
+            it.internKost2_4 = 994
+            it.nummer = 94
+        }
+        projektDao.insert(byName)
+        val kost = projektDao.find(byCustomer.id)!!.kost
+        Assertions.assertFalse(kost.contains('?'), "Project without number: $kost")
+        listOf(kost, kost.dropLast(1), kost.substringBeforeLast('.'), word.take(6)).forEach { searchString ->
+            Assertions.assertTrue(
+                autoComplete(projectEntityRest, searchString).any { it.id == byCustomer.id },
+                "Project '$kost' not offered for '$searchString'.",
+            )
+        }
+        val ids = autoComplete(projectEntityRest, word).map { it.id }
+        Assertions.assertEquals(listOf(byName.id, byCustomer.id), ids)
+    }
+
+    /**
      * `KundeDO.name` is indexed by `customAnalyzer` (a whitespace tokenizer), i.e. `acme-pop` stays one term
      * (only whitespace splits) - so here it is the word as typed that matches, and the terms of the standard
      * analyzer would not. Both readings are offered, which is why this still works.
