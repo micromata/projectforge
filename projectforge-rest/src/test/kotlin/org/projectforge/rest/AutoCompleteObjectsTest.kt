@@ -160,6 +160,61 @@ class AutoCompleteObjectsTest : AbstractTestBase() {
         Assertions.assertEquals(byName.id, result.first(), "$result")
     }
 
+    /**
+     * Accents and German umlaut spellings are ignored, in both directions: "Andre" finds "André", "Mueller"
+     * finds "Müller" and vice versa (default analyzer of the user names, see MyAnalysisConfigurer).
+     */
+    @Test
+    fun userNameWithAccentsTest() {
+        logon(ADMIN_USER)
+        val user = initTestDB.addUser(PFUserDO().also {
+            it.username = "accents-$PREFIX"
+            it.firstname = "André"
+            it.lastname = "Müller"
+        })
+        listOf("Andre", "andré", "ANDRE", "Andre Mueller", "Muller", "Müller", "Mueller", "Mue", "Mül").forEach {
+            Assertions.assertTrue(
+                autoComplete(userEntityRest, it).any { hit -> hit.id == user.id },
+                "User 'André Müller' not offered for '$it'.",
+            )
+        }
+        val anotherUser = initTestDB.addUser(PFUserDO().also {
+            it.username = "accents2-$PREFIX"
+            it.firstname = "Andrea"
+            it.lastname = "Mueller"
+        })
+        Assertions.assertTrue(autoComplete(userEntityRest, "Müller").any { it.id == anotherUser.id })
+    }
+
+    /** Customer names (customAnalyzer) and project names (wordPartsAnalyzer) ignore accents as well. */
+    @Test
+    fun customerAndProjectWithAccentsTest() {
+        logon(TEST_FINANCE_USER)
+        val customer = KundeDO().also {
+            it.name = "Société Générale $PREFIX"
+            it.id = 4713L
+        }
+        kundeDao.insert(customer)
+        listOf("societe", "Société", "generale", "Gene").forEach {
+            Assertions.assertTrue(
+                autoComplete(customerPagesRest, it).any { hit -> hit.id == customer.id },
+                "Customer '${customer.name}' not offered for '$it'.",
+            )
+        }
+        val projekt = ProjektDO().also {
+            it.name = "Größenmessung_$PREFIX"
+            it.internKost2_4 = 994
+            it.nummer = 94
+        }
+        projektDao.insert(projekt)
+        listOf("groessenmessung", "grossen", "Größen", "Größenmessung_").forEach {
+            Assertions.assertTrue(
+                autoComplete(projectEntityRest, it).any { hit -> hit.id == projekt.id },
+                "Project '${projekt.name}' not offered for '$it'.",
+            )
+        }
+    }
+
     /** Project names and identifiers are found by a part of an underscore name, as group names. */
     @Test
     fun projectNameWithUnderscoreTest() {
@@ -177,6 +232,52 @@ class AutoCompleteObjectsTest : AbstractTestBase() {
                 "Project '${projekt.name}' not offered for '$searchString'.",
             )
         }
+    }
+
+    /**
+     * A project is found by its number as the label shows it (`7.002.00`, or a prefix of it) and by its
+     * customer; projects named after the word come before those found only by their customer.
+     */
+    @Test
+    fun projectByNumberAndCustomerTest() {
+        logon(TEST_FINANCE_USER)
+        val word = "numcust${PREFIX!!.lowercase()}"
+        val customer = KundeDO().also {
+            it.name = "$word gmbh"
+            it.id = 4713L
+        }
+        kundeDao.insert(customer)
+        val byCustomer = ProjektDO().also {
+            it.name = "Allgemeine Softwareunterstuetzung"
+            it.kunde = customer
+            it.nummer = 3
+        }
+        projektDao.insert(byCustomer)
+        val byName = ProjektDO().also {
+            it.name = "$word portal"
+            it.internKost2_4 = 994
+            it.nummer = 94
+        }
+        projektDao.insert(byName)
+        val kost = projektDao.find(byCustomer.id)!!.kost
+        Assertions.assertFalse(kost.contains('?'), "Project without number: $kost")
+        listOf(kost, kost.dropLast(1), kost.substringBeforeLast('.'), word.take(6)).forEach { searchString ->
+            Assertions.assertTrue(
+                autoComplete(projectEntityRest, searchString).any { it.id == byCustomer.id },
+                "Project '$kost' not offered for '$searchString'.",
+            )
+        }
+        val ids = autoComplete(projectEntityRest, word).map { it.id }
+        Assertions.assertEquals(listOf(byName.id, byCustomer.id), ids)
+        // Saved in the next app, the customer is an id-only stub (Project.copyTo): still found by it.
+        projektDao.update(projektDao.find(byCustomer.id)!!.also {
+            it.kunde = KundeDO().also { k -> k.nummer = customer.nummer }
+            it.description = "edited"
+        })
+        Assertions.assertTrue(
+            autoComplete(projectEntityRest, word.take(6)).any { it.id == byCustomer.id },
+            "Project not offered by its customer after an update with a customer stub.",
+        )
     }
 
     /**

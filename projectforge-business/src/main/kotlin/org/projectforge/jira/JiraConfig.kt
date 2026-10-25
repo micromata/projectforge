@@ -71,7 +71,7 @@ class JiraConfig(
             }
         }
 
-        private val PROJECT_REGEX = Regex("[A-Z][A-Z_0-9]*")
+        private val PROJECT_REGEX = Regex("[A-Z]{2}[A-Z_0-9]*")
 
         /**
          * The errors of the given settings (i18n), empty if they are valid: the urls must be http(s) urls, every

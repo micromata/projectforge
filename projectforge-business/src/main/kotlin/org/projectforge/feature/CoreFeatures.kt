@@ -85,8 +85,9 @@ object CoreFeatures {
             next = listOf("logViewer"),
         ),
         // The task picker of other pages (timesheets, orders, ...) uses the tree and the favorites.
+        // The ad hoc booking grants are managed in the task form.
         MenuItemDefId.TASK_TREE to Extras(
-            rest = listOf("task", "taskWizard") + PROJECT_WIZARD,
+            rest = listOf("task", "taskBookingGrant", "taskWizard") + PROJECT_WIZARD,
             next = listOf("task", "taskWizard") + PROJECT_WIZARD,
             shared = listOf("task/tree", "task/favorites", "task/recent", "task/info", "task/kost2Preview"),
         ),

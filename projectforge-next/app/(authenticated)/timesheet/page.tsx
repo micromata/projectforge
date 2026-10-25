@@ -71,7 +71,7 @@ function TimesheetListBody() {
       value: { id: kost2Id, displayName: kost2Label },
     });
   } else if (taskId > 0) {
-    // The `task` filter reads `value.id` and searches its sub-tasks too (recursive defaults to true).
+    // The `task` filter reads `value.id` and searches its sub-tasks too (unless `withoutSubTasks` is ticked).
     entries.push({
       field: "task",
       value: { id: taskId, displayName: taskName },

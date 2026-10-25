@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "JIRA links: an issue key needs at least two leading uppercase letters, so a postal code like \"D-34286\" in a text is no longer linked as an issue.",
+  "de": "JIRA-Links: Ein Issue-Schlüssel braucht mindestens zwei führende Großbuchstaben, sodass eine Postleitzahl wie „D-34286“ in einem Text nicht mehr als Issue verlinkt wird."
+}

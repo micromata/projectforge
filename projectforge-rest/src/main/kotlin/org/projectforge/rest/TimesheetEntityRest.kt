@@ -766,10 +766,12 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
                 ),
             ).also { it.defaultFilter = true }
         )
-        // The two options of the legacy list form (TimesheetListForm): search the picked task including its
-        // sub-tasks (on by default, see MagicFilterProcessor, and consumed in preProcessMagicFilter so the
-        // toggle can switch it off), and keep only sheets booked on a billable cost unit.
-        elements.add(UIFilterBooleanElement("recursive", label = translate("task.recursive"), defaultFilter = true))
+        // The two options of the legacy list form (TimesheetListForm): search the picked task without its
+        // sub-tasks (off by default, consumed in preProcessMagicFilter, see searchSubTasks), and keep only
+        // sheets booked on a billable cost unit.
+        elements.add(
+            UIFilterBooleanElement(WITHOUT_SUB_TASKS_FILTER, label = translate("task.withoutSubTasks"), defaultFilter = true)
+        )
         elements.add(UIFilterBooleanElement("onlyBillable", label = translate("task.onlyBillable")))
         // The sheets booked by a grant an employee proposed, still to be accepted by the project management.
         elements.add(UIFilterBooleanElement(ACCEPTANCE_PENDING_FILTER, label = translate("timesheet.filter.acceptancePending")))
@@ -893,9 +895,9 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
      *   add stay with the generic processor as plain bounds on their columns.
      * - `task` (a `defaultFilter` object picker): taken over here rather than left to the generic processor,
      *   because the picker sends the task as `value.id` while the generic `TaskDO` predicate reads
-     *   `value.value` (null then, which would match sheets *without* a task). The `recursive` toggle decides
-     *   whether the sub-tasks are searched too (default true, as the legacy list).
-     * - `recursive` (default true): see above; only consumed so it doesn't fall through as an unknown field.
+     *   `value.value` (null then, which would match sheets *without* a task). The sub-tasks are searched too,
+     *   unless `withoutSubTasks` is ticked (see [searchSubTasks]).
+     * - `withoutSubTasks` (default off) and the legacy `recursive` of saved filters: see above.
      * - `user` (a `defaultFilter` object picker): same `value.id` reason, filtered by `user.id` as
      *   `TimesheetDao.getList` does it.
      * - `onlyBillable`: a post filter over the result, as `TimesheetDao.internalGetList` does it.
@@ -921,9 +923,7 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
             periodStart?.let { target.add(QueryFilter.ge("stopTime", it)) }
             periodEnd?.let { target.add(QueryFilter.le("startTime", it)) }
         }
-        val recursiveEntry = source.entries.find { it.field == "recursive" }
-        recursiveEntry?.synthetic = true
-        val recursive = recursiveEntry?.value?.value != "false" // Default true, as the legacy list.
+        val recursive = searchSubTasks(source)
         source.entries.find { it.field == "task" }?.let { taskEntry ->
             taskEntry.synthetic = true
             val taskId = taskEntry.value.id ?: taskEntry.value.value?.toLongOrNull()
@@ -1202,6 +1202,23 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
 
         /** The list filter of the time sheets to be accepted ([TimesheetDO.acceptancePending]). */
         const val ACCEPTANCE_PENDING_FILTER = "acceptancePending"
+
+        /** The list filter searching the picked task only, without its sub-tasks (see [searchSubTasks]). */
+        const val WITHOUT_SUB_TASKS_FILTER = "withoutSubTasks"
+
+        /**
+         * Whether the `task` filter searches the sub-tasks too: yes, unless [WITHOUT_SUB_TASKS_FILTER] is ticked.
+         * The option is negated on purpose: a boolean filter of the list is either ticked (`"true"`) or absent,
+         * unticking it never sends `"false"`, so a filter on by default (the former `recursive`) couldn't be
+         * switched off. A `recursive` entry of a saved filter is ignored. Both entries are consumed (synthetic),
+         * so they don't fall through as unknown fields.
+         */
+        internal fun searchSubTasks(source: MagicFilter): Boolean {
+            source.entries.filter { it.field == "recursive" }.forEach { it.synthetic = true }
+            val withoutSubTasks = source.entries.find { it.field == WITHOUT_SUB_TASKS_FILTER }
+            withoutSubTasks?.synthetic = true
+            return withoutSubTasks?.value?.value != "true"
+        }
 
         /** User-pref name the chosen PDF-export options are stored under, in this entity's category. */
         private const val USER_PREF_PARAM_PDF_EXPORT = "pdfExport"

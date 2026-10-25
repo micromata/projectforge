@@ -372,7 +372,14 @@ class ProjectEntityRest
         projektKost2Service.deactivate(projektId, unselected.map { it.id!! })
     }
 
-    override val autoCompleteSearchFields = arrayOf("name", "identifier")
+    /**
+     * Number and customer, too: the label shows `7.002.00: name`, and a project is often looked up by its
+     * customer. `kost` is the formatted project number (keyword), matched by the prefix typed.
+     */
+    override val autoCompleteSearchFields = arrayOf("kost", "name", "identifier", "kunde.name", "kunde.identifier")
+
+    /** Number and name hits first: `mob` lists projects named Mob… before all projects of customer Mobilion. */
+    override val autoCompletePrimarySearchFields = arrayOf("kost", "name", "identifier")
 
     /** Ended projects only on request ([org.projectforge.ui.AutoCompletion.SHOW_INACTIVE_PARAM]). */
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<ProjektDO> {

@@ -36,7 +36,9 @@ class JiraUtilsTest {
     val nullString: String? = null
     Assertions.assertNull(JiraUtils.parseJiraIssues(nullString))
     Assertions.assertNull(JiraUtils.parseJiraIssues(""))
-    check(arrayOf("P-0"), JiraUtils.parseJiraIssues("P-0"))
+    Assertions.assertNull(JiraUtils.parseJiraIssues("P-0"))
+    Assertions.assertNull(JiraUtils.parseJiraIssues("D-34286 Spangenberg"))
+    check(arrayOf("XD-34286"), JiraUtils.parseJiraIssues("XD-34286 Spangenberg"))
     check(arrayOf("PF-0"), JiraUtils.parseJiraIssues("PF-0"))
     check(arrayOf("PF-222"), JiraUtils.parseJiraIssues("PF-222"))
     check(arrayOf("PF-1"), JiraUtils.parseJiraIssues("PF-1"))
@@ -77,7 +79,8 @@ class JiraUtilsTest {
   fun hasJiraIssues() {
     Assertions.assertFalse(JiraUtils.hasJiraIssues(null))
     Assertions.assertFalse(JiraUtils.hasJiraIssues(""))
-    Assertions.assertTrue(JiraUtils.hasJiraIssues("P-0"))
+    Assertions.assertFalse(JiraUtils.hasJiraIssues("P-0"))
+    Assertions.assertFalse(JiraUtils.hasJiraIssues("D-34286 Spangenberg"))
     Assertions.assertTrue(JiraUtils.hasJiraIssues("PF-0"))
     Assertions.assertTrue(JiraUtils.hasJiraIssues("PF-222"))
     Assertions.assertTrue(JiraUtils.hasJiraIssues("PF-1"))

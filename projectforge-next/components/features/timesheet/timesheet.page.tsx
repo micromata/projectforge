@@ -50,7 +50,7 @@ const ReferenceJiraLinks = makeJiraFieldLinks("reference");
  * The whole time sheet page as data (see lib/page-def/types.ts).
  *
  * The list is live and routed at `next/timesheet` (`MenuItemDefId.TIMESHEET_LIST` resolves there via
- * `listUrl`): the filter toggles recursive/onlyBillable, the summed-duration + AI-share footer
+ * `listUrl`): the filter toggles withoutSubTasks/onlyBillable, the summed-duration + AI-share footer
  * (`statistics`), the Excel/PDF/ics exports (`listActions`) and the mass update (`massUpdate`) match the
  * legacy list. Its Vorlagen (templates) live on the edit page, not the list — the templates/recent bar
  * the calendar's edit form carries (see `editBanner` below), so nothing of the legacy list is left behind.

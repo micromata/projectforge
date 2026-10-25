@@ -28,7 +28,7 @@ import org.projectforge.business.timesheet.TimesheetDO
 import java.util.regex.Pattern
 
 object JiraUtils {
-  private const val PATTERN = "([A-Z][A-Z_0-9]*-[0-9]+)"
+  private const val PATTERN = "([A-Z]{2}[A-Z_0-9]*-[0-9]+)"
   val isJiraConfigured: Boolean
     get() = JiraConfig.get().isConfigured
 
@@ -160,7 +160,7 @@ object JiraUtils {
   }
 
   /**
-   * Returns found matches for JIRA issues: UPPERCASE_LETTERS-###: [A-Z][A-Z_0-9]*-[0-9]+
+   * Returns found matches for JIRA issues: UPPERCASE_LETTERS-### (at least 2 leading letters): [A-Z]{2}[A-Z_0-9]*-[0-9]+
    *
    * @param text
    * @return
@@ -171,7 +171,7 @@ object JiraUtils {
   }
 
   /**
-   * Returns found matches for JIRA issues: UPPERCASE_LETTERS-###: [A-Z][A-Z_0-9]*-[0-9]+
+   * Returns found matches for JIRA issues: UPPERCASE_LETTERS-### (at least 2 leading letters): [A-Z]{2}[A-Z_0-9]*-[0-9]+
    *
    * @param project ID of Jira project (PROJECTFORGE, ...). (case-insensitive)
    * @param text
