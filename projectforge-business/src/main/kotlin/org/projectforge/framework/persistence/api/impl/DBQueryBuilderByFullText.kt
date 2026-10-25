@@ -28,6 +28,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.logging.LogUtils.logDebugFunCall
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import java.text.SimpleDateFormat
 import java.time.format.DateTimeFormatter
@@ -112,7 +113,8 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
      */
     fun createResultIterator(
         fullTextPredicates: List<DBPredicate>,
-        resultPredicates: List<DBPredicate>
+        resultPredicates: List<DBPredicate>,
+        queryFilter: QueryFilter,
     ): DBResultIterator<O> {
         return DBFullTextResultIterator(
             baseDao,
@@ -120,6 +122,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
             fullTextPredicates = fullTextPredicates,
             resultMatchers = resultPredicates,
             sortOrders.toTypedArray(),
+            queryFilter,
         )
     }
 

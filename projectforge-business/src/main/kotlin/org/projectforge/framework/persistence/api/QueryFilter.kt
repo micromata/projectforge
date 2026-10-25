@@ -114,6 +114,12 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
 
     var entityGraphName: String? = null
 
+    /**
+     * Result info, set by the query: true if [fulltextSearchString] isn't a valid search syntax (e.g. `Project: x`,
+     * an unclosed '"'). The result is empty then, and a list may show the user a hint.
+     */
+    var fulltextQueryInvalid: Boolean = false
+
     fun getExtendedBooleanValue(key: String): Boolean {
         val value = extended[key] ?: return false
         if (value is Boolean) {

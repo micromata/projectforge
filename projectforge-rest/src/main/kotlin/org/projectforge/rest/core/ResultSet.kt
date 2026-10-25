@@ -107,6 +107,8 @@ class ResultSet<O : Any>(
         if (origResultSet != null && selectedEntityIds == null) {
             selectedEntityIds = origResultSet.selectedEntityIds
         }
+        // E.g. the invalid search syntax of getList/getListPage, which a converted result set would lose.
+        resultWarning = origResultSet?.resultWarning
         // Only for the non-paged path: there the page equals the whole result, so a full page means the cap
         // was hit. For a paged result the truncation is known exactly (totalSizeExact), and a full 50-row page
         // is the normal case, not a truncation.
