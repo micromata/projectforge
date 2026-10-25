@@ -76,9 +76,11 @@ export function sanitizeRichText(html: string): string {
   return DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR });
 }
 
-/** The markup of a chat message (no headings, no tables), see ChatHtmlSanitizer in the backend. */
+/** The markup of a chat message (no headings, no tables, but code), see ChatHtmlSanitizer in the backend. */
 const CHAT_ALLOWED_TAGS = [
   "p",
+  "pre",
+  "code",
   "br",
   "strong",
   "b",
@@ -102,9 +104,10 @@ const CHAT_ALLOWED_ATTR = [
 ];
 
 /**
- * The HTML of a chat message, sanitized: the markup of [sanitizeRichText] without headings and tables, plus
- * mentions (`<span data-type="mention" data-id="…">`). The data attributes survive on such a span only. Kept in
- * line with ChatHtmlSanitizer of the backend, which sanitizes every message before storing it.
+ * The HTML of a chat message, sanitized: the markup of [sanitizeRichText] without headings and tables, plus code
+ * (`<code>` inline, `<pre><code>` as a block) and mentions (`<span data-type="mention" data-id="…">`). The data
+ * attributes survive on such a span only. Kept in line with ChatHtmlSanitizer of the backend, which sanitizes every
+ * message before storing it.
  */
 export function sanitizeChatHtml(html: string): string {
   if (!DOMPurify.isSupported) return "";
@@ -142,7 +145,7 @@ export const RICH_TEXT_MUTED_CLASSES =
   "text-muted-foreground [&_:is(h1,h2,h3,h4,th)]:text-foreground [&_b]:text-foreground [&_strong]:text-foreground [&_span[style]_b]:text-inherit [&_span[style]_strong]:text-inherit";
 
 /**
- * The text of a rich text without its markup, the blocks (paragraphs, list items, line breaks) joined
+ * The text of a rich text without its markup, the blocks (paragraphs, list items, code, line breaks) joined
  * by a space: for a one-line preview (a list cell). Empty where there is no DOM (prerendering).
  */
 export function richTextToPlainText(text: string): string {
@@ -150,7 +153,7 @@ export function richTextToPlainText(text: string): string {
   if (typeof DOMParser === "undefined") return "";
   // A parsed document runs no scripts and loads nothing, so it needs no sanitizing for its text.
   const spaced = toRichTextHtml(text).replace(
-    /<\/(p|li|h[1-4]|th|td)>|<br\s*\/?>/gi,
+    /<\/(p|li|h[1-4]|th|td|pre)>|<br\s*\/?>/gi,
     (tag) => `${tag} `
   );
   const plain = new DOMParser().parseFromString(spaced, "text/html").body
@@ -179,7 +182,7 @@ export function RichText({
     <div
       className={cn(
         // font-normal: the body is font-medium, against which bold text would hardly stand out.
-        "rich-text space-y-1.5 font-normal [&_a]:underline [&_li]:ml-1 [&_ol]:list-decimal [&_ol]:space-y-0.5 [&_ol]:pl-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:space-y-0.5 [&_ul]:pl-4",
+        "rich-text space-y-1.5 font-normal [&_a]:underline [&_li]:ml-1 [&_ol]:list-decimal [&_ol]:space-y-0.5 [&_ol]:pl-5 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:space-y-0.5 [&_ul]:pl-5",
         className
       )}
       dangerouslySetInnerHTML={{ __html: sanitized }}

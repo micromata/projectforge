@@ -16,7 +16,8 @@ async function userId(page: Page): Promise<number> {
  * The chat (PF-CHAT) with a room of the default test user and the normalo user as participant, in two browsers:
  * a message with a mention chosen from the suggestions appears live at the other one, who replies in the thread;
  * a user outside the room is refused. The room is deleted afterwards (with its conversation). Direct messages
- * between the two, with a file in the personal box of the recipient; files of a room in its data transfer area.
+ * between the two, with a file in the personal box of the recipient; files of a room in its data transfer area;
+ * a coloured text, inline code and code blocks of several lines (from the toolbar and by ```).
  */
 test.describe("chat", { tag: "@parallel" }, () => {
   test("mentions, live updates and threads between two participants", async ({
@@ -255,6 +256,78 @@ test.describe("chat", { tag: "@parallel" }, () => {
         await page.request.get(`/rs/chatRoom/${room.id}`)
       ).json()) as { fileExpiryDays: number };
       expect(stored.fileExpiryDays).toBe(7);
+    } finally {
+      await page.request.delete(`/rs/chatRoom/${room.id}`, {
+        headers: await writeHeaders(page.request),
+      });
+    }
+  });
+
+  test("colours, inline code and a code block of several lines", async ({
+    loggedInPage: page,
+  }) => {
+    const name = `ZZ e2e chat code ${uniqueSuffix()}`;
+    const saved = await page.request.post("/rs/chatRoom/save", {
+      headers: await writeHeaders(page.request),
+      data: { name, users: [] },
+    });
+    expect(saved.ok()).toBeTruthy();
+    const room = (await saved.json()) as { id: number; conversationId: number };
+    try {
+      const { t } = await userFormat(page);
+      await goto(page, `/chat/${room.conversationId}`);
+      const editor = page.getByRole("textbox", {
+        name: t("chat.message.placeholder"),
+      });
+      const toolbar = page.getByRole("toolbar", {
+        name: t("richTextEditor.toolbar"),
+      });
+      const marker = `colour ${uniqueSuffix()}`;
+      await editor.click();
+      await editor.pressSequentially(marker);
+      await page.keyboard.press("ControlOrMeta+a");
+      await toolbar
+        .getByRole("button", { name: t("richTextEditor.color._") })
+        .click();
+      await page
+        .getByRole("menuitem", { name: t("richTextEditor.color.red") })
+        .click();
+      await editor.press("End");
+      // Inline code by its markdown, then a code block from the toolbar: Enter is a new line there.
+      await editor.pressSequentially(" run `ls -la` now");
+      await editor.press("Shift+Enter");
+      await toolbar
+        .getByRole("button", { name: t("richTextEditor.codeBlock") })
+        .click();
+      await editor.pressSequentially("fun a() {");
+      await editor.press("Enter");
+      await editor.pressSequentially("    b()");
+      await editor.press("Enter");
+      await editor.pressSequentially("}");
+      await editor.press("ControlOrMeta+Enter");
+
+      const sent = page.locator("article").filter({ hasText: marker });
+      await expect(sent.locator('span[style*="color"]')).toContainText(marker);
+      await expect(sent.locator("p code")).toHaveText("ls -la");
+      // Exactly, with its lines and indentation (toHaveText would collapse the whitespace).
+      await expect(sent.locator("pre code")).toHaveJSProperty(
+        "textContent",
+        "fun a() {\n    b()\n}"
+      );
+      await expect(editor).toHaveText("");
+
+      // A code block by ``` and Enter, Tab indenting in it.
+      const fenced = `fenced${uniqueSuffix()}`;
+      await editor.pressSequentially("```");
+      await editor.press("Enter");
+      await editor.pressSequentially("if (x)");
+      await editor.press("Enter");
+      await editor.press("Tab");
+      await editor.pressSequentially(fenced);
+      await editor.press("ControlOrMeta+Enter");
+      await expect(
+        page.locator("article").filter({ hasText: fenced }).locator("pre code")
+      ).toHaveJSProperty("textContent", `if (x)\n    ${fenced}`);
     } finally {
       await page.request.delete(`/rs/chatRoom/${room.id}`, {
         headers: await writeHeaders(page.request),

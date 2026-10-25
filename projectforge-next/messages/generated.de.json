@@ -1000,6 +1000,7 @@
     },
     "message": {
       "cancel": "Abbrechen",
+      "codeBlock": "Codeblock mit mehreren Zeilen: Enter beginnt eine neue Zeile, Strg+Enter (Mac: ⌘+Enter) sendet.",
       "copyLink": "Link kopieren",
       "delete": {
         "_": "Löschen",
@@ -5139,6 +5140,8 @@
   "richTextEditor": {
     "bold": "Fett",
     "bulletList": "Aufzählung",
+    "code": "Code",
+    "codeBlock": "Codeblock",
     "color": {
       "_": "Textfarbe",
       "blue": "Blau",

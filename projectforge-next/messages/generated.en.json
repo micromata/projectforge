@@ -1000,6 +1000,7 @@
     },
     "message": {
       "cancel": "Cancel",
+      "codeBlock": "Code block of several lines: Enter starts a new line, Ctrl+Enter (Mac: ⌘+Enter) sends.",
       "copyLink": "Copy link",
       "delete": {
         "_": "Delete",
@@ -5139,6 +5140,8 @@
   "richTextEditor": {
     "bold": "Bold",
     "bulletList": "Bulleted list",
+    "code": "Code",
+    "codeBlock": "Code block",
     "color": {
       "_": "Text colour",
       "blue": "Blue",

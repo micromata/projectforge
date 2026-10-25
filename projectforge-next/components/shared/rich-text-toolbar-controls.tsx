@@ -29,17 +29,20 @@ export function promptLink(editor: Editor | null, prompt: string) {
 
 export function ToolbarToggle({
   label,
+  hint,
   pressed,
   onPressedChange,
   children,
 }: {
   label: string;
+  /** The tooltip, if it says more than the label. */
+  hint?: string;
   pressed: boolean | undefined;
   onPressedChange: () => void;
   children: ReactNode;
 }) {
   return (
-    <HintTooltip title={label}>
+    <HintTooltip title={hint ?? label}>
       <Toggle
         size="sm"
         aria-label={label}

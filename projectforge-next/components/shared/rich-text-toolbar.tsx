@@ -6,13 +6,13 @@ import {
   LeftToRightListBulletIcon,
   LeftToRightListNumberIcon,
   Link01Icon,
-  PaintBoardIcon,
   TextBoldIcon,
   TextItalicIcon,
   TextUnderlineIcon,
   VariableIcon,
 } from "@hugeicons/core-free-icons";
 import { useTranslations } from "next-intl";
+import { RichTextColorMenu } from "@/components/shared/rich-text-color-menu";
 import {
   HeadingMenu,
   TableMenu,
@@ -23,17 +23,6 @@ import {
   ToolbarToggle,
 } from "@/components/shared/rich-text-toolbar-controls";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-
-/**
- * The text colours offered. The value is written into the stored HTML (it must work in a mail as well,
- * so no CSS variable), the swatch shows the same colour.
- */
-const COLORS = [
-  { key: "red", value: "#dc2626", swatch: "bg-red-600" },
-  { key: "green", value: "#16a34a", swatch: "bg-green-600" },
-  { key: "blue", value: "#2563eb", swatch: "bg-blue-600" },
-] as const;
 
 /** A placeholder the caller resolves later, inserted as `{{key}}` (e.g. the fields of a mail). */
 export interface RichTextVariable {
@@ -131,30 +120,7 @@ export function RichTextToolbar({
       >
         <HugeiconsIcon icon={Link01Icon} />
       </ToolbarToggle>
-      <ToolbarMenu
-        label={t("color._")}
-        icon={PaintBoardIcon}
-        pressed={active?.color}
-      >
-        {COLORS.map((color) => (
-          <DropdownMenuItem
-            key={color.key}
-            onSelect={() => editor?.chain().focus().setColor(color.value).run()}
-          >
-            <span
-              className={cn("size-3 rounded-full", color.swatch)}
-              aria-hidden
-            />
-            {t(`color.${color.key}`)}
-          </DropdownMenuItem>
-        ))}
-        <DropdownMenuItem
-          onSelect={() => editor?.chain().focus().unsetColor().run()}
-        >
-          <span className="size-3 rounded-full border" aria-hidden />
-          {t("color.default")}
-        </DropdownMenuItem>
-      </ToolbarMenu>
+      <RichTextColorMenu editor={editor} pressed={active?.color} />
       <TableMenu editor={editor} inTable={active?.table} />
       {variables && variables.length > 0 && (
         <ToolbarMenu label={t("variable")} icon={VariableIcon}>

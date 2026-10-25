@@ -44,6 +44,19 @@ class ChatHtmlSanitizerTest {
     }
 
     @Test
+    fun `code is kept inline and as a block, with its lines and indentation, without a language`() {
+        val result = sanitize(
+            "<p>Run <code>ls -la</code> first</p>" +
+                "<pre class=\"x\"><code class=\"language-kotlin\" onclick=\"x()\">fun a() {\n    if (1 &lt; 2) b()\n}</code></pre>"
+        )
+        assertEquals(
+            "<p>Run <code>ls -la</code> first</p><pre><code>fun a() {\n    if (1 &lt; 2) b()\n}</code></pre>",
+            result.html,
+        )
+        assertEquals("Run ls -la first fun a() {\n    if (1 < 2) b()\n}", result.text)
+    }
+
+    @Test
     fun `mentions are kept for accepted users only, named by the caller`() {
         val result = sanitize(
             """<p><span data-type="mention" data-id="42" data-label="Fake" style="color: red">@Fake</span>

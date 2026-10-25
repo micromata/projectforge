@@ -4,14 +4,17 @@ import { useEditorState, type Editor } from "@tiptap/react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
+  CodeIcon,
   LeftToRightListBulletIcon,
   LeftToRightListNumberIcon,
   Link01Icon,
+  SourceCodeSquareIcon,
   TextBoldIcon,
   TextItalicIcon,
   TextStrikethroughIcon,
   TextUnderlineIcon,
 } from "@hugeicons/core-free-icons";
+import { RichTextColorMenu } from "@/components/shared/rich-text-color-menu";
 import {
   promptLink,
   ToolbarToggle,
@@ -23,7 +26,9 @@ type Format =
   | "underline"
   | "strike"
   | "bulletList"
-  | "orderedList";
+  | "orderedList"
+  | "code"
+  | "codeBlock";
 
 const FORMATS: {
   format: Format;
@@ -60,14 +65,25 @@ const FORMATS: {
     icon: LeftToRightListNumberIcon,
     toggle: (e) => e.chain().focus().toggleOrderedList().run(),
   },
+  {
+    format: "code",
+    icon: CodeIcon,
+    toggle: (e) => e.chain().focus().toggleCode().run(),
+  },
+  {
+    format: "codeBlock",
+    icon: SourceCodeSquareIcon,
+    toggle: (e) => e.chain().focus().toggleCodeBlock().run(),
+  },
 ];
 
 /**
  * The formatting of a chat message, a compact row above the editor: only what a message may contain
- * (see chatEditorExtensions and sanitizeChatHtml), no headings, colours or tables as in RichTextToolbar.
+ * (see chatEditorExtensions and sanitizeChatHtml): no headings or tables as in RichTextToolbar, but code.
  */
 export function ChatFormatToolbar({ editor }: { editor: Editor | null }) {
   const t = useTranslations("richTextEditor");
+  const tChat = useTranslations("chat.message");
   const active = useEditorState({
     editor,
     selector: ({ editor }) => ({
@@ -77,6 +93,9 @@ export function ChatFormatToolbar({ editor }: { editor: Editor | null }) {
       strike: editor?.isActive("strike") ?? false,
       bulletList: editor?.isActive("bulletList") ?? false,
       orderedList: editor?.isActive("orderedList") ?? false,
+      code: editor?.isActive("code") ?? false,
+      codeBlock: editor?.isActive("codeBlock") ?? false,
+      color: !!editor?.getAttributes("textStyle").color,
       link: editor?.isActive("link") ?? false,
     }),
   });
@@ -93,6 +112,7 @@ export function ChatFormatToolbar({ editor }: { editor: Editor | null }) {
         <ToolbarToggle
           key={format}
           label={t(format)}
+          hint={format === "codeBlock" ? tChat("codeBlock") : undefined}
           pressed={active?.[format]}
           onPressedChange={() => editor && toggle(editor)}
         >
@@ -106,6 +126,7 @@ export function ChatFormatToolbar({ editor }: { editor: Editor | null }) {
       >
         <HugeiconsIcon icon={Link01Icon} />
       </ToolbarToggle>
+      <RichTextColorMenu editor={editor} pressed={active?.color} />
     </div>
   );
 }

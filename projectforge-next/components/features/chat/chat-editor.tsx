@@ -2,7 +2,8 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { pasteMarkdown } from "@/components/shared/rich-text-extensions";
+import type { EditorView } from "@tiptap/pm/view";
+import { pasteMarkdownAs } from "@/components/shared/rich-text-extensions";
 import {
   RICH_TEXT_MUTED_CLASSES,
   sanitizeChatHtml,
@@ -16,14 +17,40 @@ import { useMentionSuggestion } from "./use-mention-suggestion";
 
 const EMPTY_DOCUMENT = "<p></p>";
 
-/** The images of a paste, if any. */
+/** Whether the selection is in a code block (several lines of code). */
+function isInCodeBlock(view: EditorView): boolean {
+  return view.state.selection.$from.parent.type.name === "codeBlock";
+}
+
+/**
+ * A paragraph of just ``` (a language after it is dropped, there is no highlighting) turned into a code block, as
+ * the input rule of TipTap does on a space after it: a new line (Enter) after ``` starts the block as well.
+ */
+function fenceToCodeBlock(view: EditorView): boolean {
+  const { $from, empty } = view.state.selection;
+  const paragraph = $from.parent;
+  if (!empty || paragraph.type.name !== "paragraph") return false;
+  if (!/^```[\w-]*$/.test(paragraph.textContent)) return false;
+  if ($from.parentOffset !== paragraph.content.size) return false;
+  const start = $from.start();
+  view.dispatch(
+    view.state.tr
+      .delete(start, $from.end())
+      .setBlockType(start, start, view.state.schema.nodes.codeBlock)
+  );
+  return true;
+}
+
+/** The files of a paste, if any. */
 function pastedFiles(data: DataTransfer | null): File[] {
   return Array.from(data?.files ?? []);
 }
 
 /**
  * The editor of a chat message (TipTap) with its formatting toolbar: bold, italic, underline, strike-through,
- * lists, links and mentions with suggestions (`@`). Enter submits, Shift+Enter starts a new line; pasted files go
+ * colours, lists, links, code and mentions with suggestions (`@`). Enter submits, Shift+Enter starts a new line
+ * (paragraph, list item); after ``` Enter starts a code block, in which Enter starts a new line as well and
+ * Ctrl/Cmd+Enter submits (which it does anywhere). Pasted files go
  * to [onFiles]. Dropped files are left to the drop zone around it (ChatComposer), the editor only keeps them
  * from being inserted. The content is handed out
  * via the ref ([ChatEditorHandle]) when submitting, not on every key stroke; [onChange] only reports whether
@@ -72,10 +99,16 @@ export const ChatEditor = forwardRef<
           RICH_TEXT_MUTED_CLASSES
         ),
       },
-      handleKeyDown: (_view, event) => {
-        if (event.key !== "Enter" || event.shiftKey || event.isComposing)
-          return false;
+      handleKeyDown: (view, event) => {
+        if (event.key !== "Enter" || event.isComposing) return false;
+        const send = event.ctrlKey || event.metaKey;
         if (mention.isOpen()) return false; // Enter chooses the suggestion.
+        if (!send && fenceToCodeBlock(view)) {
+          event.preventDefault();
+          return true;
+        }
+        // A new line (ChatNewLine), in a code block by Enter as well.
+        if (!send && (event.shiftKey || isInCodeBlock(view))) return false;
         event.preventDefault();
         propsRef.current.onSubmit();
         return true;
@@ -86,7 +119,10 @@ export const ChatEditor = forwardRef<
           propsRef.current.onFiles(files);
           return true;
         }
-        return pasteMarkdown(view, event);
+        // A text pasted into a code block is code, whatever it looks like.
+        return (
+          !isInCodeBlock(view) && pasteMarkdownAs(view, event, sanitizeChatHtml)
+        );
       },
       // Handled by the drop zone around the editor, which the drop still reaches.
       handleDrop: (_view, event) => (event.dataTransfer?.files.length ?? 0) > 0,

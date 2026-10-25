@@ -4,7 +4,7 @@
 |---|---|
 | COMP-ID | PF-CHAT |
 | DOC-ID | PF-CHAT-REQ |
-| Status | Draft 0.4 (direct messages, files of any type in the data transfer) |
+| Status | Draft 0.4 (direct messages, files of any type in the data transfer, colours and code in messages) |
 | Owner | Kai Reinhard |
 | Date | 2026-10-25 |
 | Stage | R1 in implementation (ProjectForge 9.0.16) |
@@ -102,7 +102,7 @@ Priority by MoSCoW: **M** = Must, **S** = Should, **C** = Could, **W** = Won't (
 
 | ID | Requirement | Prio | Remark |
 |---|---|---|---|
-| MSG-01 | Messages must be written in the existing rich text editor (`RichTextEditor`) and stored as sanitized HTML. | M | same editor as elsewhere in PF |
+| MSG-01 | Messages must be written in a rich text editor and stored as sanitized HTML: bold, italic, underline, strike-through, text colours, lists, links, inline code and code blocks of several lines (no headings or tables). Enter sends, Shift+Enter starts a new line (paragraph, list item); ``` followed by Enter or a space starts a code block, in which Enter starts a new line, Tab indents and Ctrl/Cmd+Enter sends. Pasted markdown is formatted, code fences included. | M | the TipTap editor of PF with the chat's markup (`ChatEditor`); code without highlighting |
 | MSG-02 | Every message must show author, time and, after a change, the mark "edited" with the time of the last change. | M | |
 | MSG-03 | Authors must be able to edit their own messages with the rich text editor; every version is historised and visible to moderators. | M | `DefaultBaseDO` history |
 | MSG-04 | Authors must be able to delete their own messages; a deleted message leaves the placeholder "Message deleted" so threads stay readable. | M | soft delete |

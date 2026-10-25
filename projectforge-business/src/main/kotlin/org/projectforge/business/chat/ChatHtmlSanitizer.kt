@@ -32,7 +32,8 @@ import org.projectforge.business.utils.HtmlHelper
 /**
  * Sanitizes the HTML of a chat message. Allows the same as [org.projectforge.framework.utils.HtmlSanitizer] (and
  * `sanitizeChatHtml` of `projectforge-next/components/features/chat/chat-html.ts`): paragraphs, line breaks, bold,
- * italic, underline, strike-through, lists, links (http, https, mailto) and text colours, plus mentions:
+ * italic, underline, strike-through, lists, links (http, https, mailto) and text colours, plus code (`<code>` inline,
+ * `<pre><code>` as a block of several lines, without a language) and mentions:
  * `<span data-type="mention" data-id="{userId}">@{name}</span>`.
  *
  * A mention is kept only for a user accepted by the caller (the readers of the conversation); its text is taken from
@@ -49,7 +50,7 @@ object ChatHtmlSanitizer {
     )
 
     private val safelist: Safelist = Safelist()
-        .addTags("p", "br", "strong", "b", "em", "i", "u", "s", "ul", "ol", "li", "a", "span")
+        .addTags("p", "br", "strong", "b", "em", "i", "u", "s", "ul", "ol", "li", "a", "span", "code", "pre")
         .addAttributes("a", "href")
         .addProtocols("a", "href", "http", "https", "mailto")
         .addAttributes("span", "style", "data-type", "data-id")

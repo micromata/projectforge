@@ -16,7 +16,7 @@ export function ChatHtml({
   return (
     <div
       className={cn(
-        "rich-text space-y-1 font-normal break-words [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-4",
+        "rich-text space-y-1 font-normal break-words [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-6 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-6",
         "[&_[data-type=mention]]:rounded-sm [&_[data-type=mention]]:font-semibold [&_[data-type=mention]]:text-primary",
         className
       )}
