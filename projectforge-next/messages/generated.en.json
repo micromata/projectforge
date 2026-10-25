@@ -3789,12 +3789,17 @@
         "title": "Discussion"
       },
       "error": {
+        "expiryRequired": "A risk acceptance needs a period of validity.",
         "noAccess": "Not allowed for this role.",
-        "reasonRequired": "A reason is required."
+        "notAssignee": "The binding priority is set by the assignee or the security officer.",
+        "openFindings": "Can be closed only when every finding is fixed, mitigated, not affected or accepted as a risk.",
+        "reasonRequired": "A reason is required.",
+        "riskNeedsManagement": "From P2 on, the management approves as well; the prototype does not show this."
       },
       "escalation": {
         "acknowledgedBy": "Acknowledged by",
         "active": "Escalated: SO and management are called in",
+        "automatic": "automatic by rule (P1, or KEV with an instance on the internet)",
         "start": {
           "info": "Calls in the security officer and the management immediately, by banner and mail.",
           "title": "Escalate"
@@ -3838,6 +3843,7 @@
         "riskAccepted": {
           "info": "Risk acceptance needs the security officer (from P2 on also the management) and an expiry date."
         },
+        "riskExpiresInDays": "Valid for (days)",
         "setStatus": "Set status…"
       },
       "group": {

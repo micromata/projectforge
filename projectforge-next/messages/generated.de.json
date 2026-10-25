@@ -3789,12 +3789,17 @@
         "title": "Diskussion"
       },
       "error": {
+        "expiryRequired": "Eine Risikoakzeptanz braucht eine Gültigkeitsdauer.",
         "noAccess": "Für diese Rolle nicht erlaubt.",
-        "reasonRequired": "Eine Begründung ist erforderlich."
+        "notAssignee": "Die verbindliche Priorität setzt, wer die Schwachstelle bearbeitet, oder der Security Officer.",
+        "openFindings": "Erst schließbar, wenn alle Befunde behoben, abgeschwächt, nicht betroffen oder als Risiko akzeptiert sind.",
+        "reasonRequired": "Eine Begründung ist erforderlich.",
+        "riskNeedsManagement": "Ab P2 genehmigt zusätzlich die Geschäftsleitung; das zeigt der Prototyp nicht."
       },
       "escalation": {
         "acknowledgedBy": "Kenntnis genommen",
         "active": "Eskaliert: SO und Geschäftsleitung sind hinzugezogen",
+        "automatic": "automatisch nach Regel (P1 oder KEV mit Instanz im Internet)",
         "start": {
           "info": "Zieht Security Officer und Geschäftsleitung sofort hinzu, per Banner und Mail.",
           "title": "Eskalieren"
@@ -3838,6 +3843,7 @@
         "riskAccepted": {
           "info": "Risikoakzeptanz erfordert den Security Officer (ab P2 zusätzlich die Geschäftsleitung) und ein Ablaufdatum."
         },
+        "riskExpiresInDays": "Gültig für (Tage)",
         "setStatus": "Status setzen…"
       },
       "group": {
