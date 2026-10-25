@@ -122,10 +122,33 @@ class OutgoingInvoiceSearchStatusTest : AbstractTestBase() {
         assertEquals(ids, listIds(search = "kwatt"), "A word inside the name (\"kwatt\") matches its customer.")
     }
 
+    @Test
+    fun `a prefix of the customer name finds its invoices, also via the project's customer`() {
+        val kunde = insertKunde(840, "Quorbilion GmbH")
+        val direct = insertInvoices(kunde, subject = "Lieferung", count = 1)
+        val freeText = insertInvoices(null, subject = "Lieferung", count = 1, kundeText = "Quorbiliion")
+        rebuildIndex()
+        assertEquals((direct + freeText).toSortedSet(), listIds(search = "quorbili"))
+        assertEquals((direct + freeText).toSortedSet(), listIds(search = "Quorbili"))
+        assertEquals(direct.toSortedSet(), listIds(search = "quorbilion"))
+    }
+
+    /**
+     * An invoice saved by the next app references its customer as an id-only stub (`Rechnung.copyTo`). It must be
+     * found by the customer's name right away, not only after the next reindex.
+     */
+    @Test
+    fun `an invoice saved with an id-only customer is found by the customer name without reindex`() {
+        val kunde = insertKunde(850, "Zarquonix GmbH")
+        val ids = insertInvoices(KundeDO().also { it.nummer = kunde.nummer }, subject = "Lieferung", count = 1)
+        assertEquals(ids.toSortedSet(), listIds(search = "zarquon"))
+    }
+
     /** Runs the list exactly as the `POST list` endpoint does (state filter as a custom result filter). */
     private fun listIds(search: String? = null, status: String? = null): Set<Long> {
         val filter = MagicFilter()
         filter.searchString = search
+        filter.autoWildcardSearch = true // As the list endpoints set it.
         if (status != null) {
             filter.entries.add(MagicFilterEntry(field = OutgoingInvoiceEntityRest.LIST_TYPE_FILTER).also {
                 it.value.values = arrayOf(status)
@@ -148,13 +171,14 @@ class OutgoingInvoiceSearchStatusTest : AbstractTestBase() {
         return kunde
     }
 
-    private fun insertInvoices(kunde: KundeDO, subject: String, count: Int): List<Long> {
+    private fun insertInvoices(kunde: KundeDO?, subject: String, count: Int, kundeText: String? = null): List<Long> {
         return (1..count).map {
             val invoice = RechnungDO().also {
                 it.datum = LocalDate.now()
                 it.faelligkeit = LocalDate.now()
                 it.status = RechnungStatus.GESTELLT
                 it.kunde = kunde
+                it.kundeText = kundeText
                 it.betreff = subject
                 it.addPosition(RechnungsPositionDO().also { pos ->
                     pos.menge = BigDecimal.ONE
