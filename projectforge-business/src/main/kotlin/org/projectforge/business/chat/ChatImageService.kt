@@ -187,6 +187,27 @@ open class ChatImageService {
 
         private val UNSAFE_CHARS = Regex("[^A-Za-z0-9._-]")
 
+        /** The maximum size of a PNG or JPEG image in pixels (about 160 MB decoded). */
+        internal const val MAX_PIXELS = 40_000_000L
+
+        /** The size of the image in pixels by its header (not decoded), null if not readable. */
+        internal fun pixels(content: ByteArray): Long? {
+            return try {
+                ImageIO.createImageInputStream(content.inputStream()).use { input ->
+                    val reader = ImageIO.getImageReaders(input).asSequence().firstOrNull() ?: return null
+                    try {
+                        reader.input = input
+                        reader.getWidth(0).toLong() * reader.getHeight(0)
+                    } finally {
+                        reader.dispose()
+                    }
+                }
+            } catch (ex: Exception) {
+                log.debug { "Size of chat image not readable: ${ex.message}" }
+                null
+            }
+        }
+
         /** The type of the image by its content (magic bytes), null for anything else. */
         fun detectType(content: ByteArray): ImageType? {
             fun startsWith(vararg bytes: Int, offset: Int = 0): Boolean {
@@ -205,10 +226,17 @@ open class ChatImageService {
         /**
          * The image encoded again without its metadata (JPEG, PNG). GIF and WebP are kept as they are (animations),
          * also an image that can't be decoded (e.g. a CMYK JPEG), which is logged.
+         *
+         * An image of more than [MAX_PIXELS] is refused before decoding: a small file may declare a huge size, whose
+         * decoding would need gigabytes of memory (decompression bomb).
          */
         internal fun stripMetadata(content: ByteArray, type: ImageType): ByteArray {
             if (type != ImageType.JPEG && type != ImageType.PNG) {
                 return content
+            }
+            val pixels = pixels(content)
+            if (pixels != null && pixels > MAX_PIXELS) {
+                throw UserException("chat.image.error.tooManyPixels", MAX_PIXELS / 1_000_000)
             }
             return try {
                 val image = ImageIO.read(content.inputStream()) ?: return content.also {

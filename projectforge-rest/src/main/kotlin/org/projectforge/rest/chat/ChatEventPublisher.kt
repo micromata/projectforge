@@ -33,7 +33,13 @@ import org.springframework.stereotype.Service
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArraySet
-import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadFactory
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 
 private val log = KotlinLogging.logger {}
 
@@ -45,6 +51,10 @@ private val log = KotlinLogging.logger {}
  *
  * The subscriptions are the only state of this singleton (no request or user state otherwise). The read access is
  * checked again before every push: a user who lost it gets no events anymore.
+ *
+ * Each subscription is sent to on its own (one send at a time, on a pool of [SEND_THREADS] threads): a client not
+ * reading (a stalled connection blocks the send until the write timeout of the servlet container) delays only its own
+ * events. Events not yet sent are merged (only the newest sequence counts, a heartbeat isn't queued behind an event).
  */
 @Service
 class ChatEventPublisher : ChatEventListener {
@@ -54,14 +64,25 @@ class ChatEventPublisher : ChatEventListener {
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
-    private class Subscription(val emitter: SseEmitter, val conversationId: Long, val userId: Long)
+    private class Subscription(val emitter: SseEmitter, val conversationId: Long, val userId: Long) {
+        /** The next thing to send: [NOTHING], [PING] or a sequence (the higher one wins). */
+        val pending = AtomicLong(NOTHING)
+
+        /** Is a task of the pool sending to this subscription (scheduled or running)? */
+        val sending = AtomicBoolean(false)
+    }
 
     private val subscriptions = ConcurrentHashMap<Long, CopyOnWriteArraySet<Subscription>>()
 
     // Sends outside of the request threads of the changes: a slow client mustn't delay sending a message.
-    private val executor = Executors.newSingleThreadExecutor { runnable ->
-        Thread(runnable, "ChatEventPublisher").also { it.isDaemon = true }
-    }
+    private val executor = ThreadPoolExecutor(
+        SEND_THREADS, SEND_THREADS, 60, TimeUnit.SECONDS, LinkedBlockingQueue(),
+        object : ThreadFactory {
+            private val counter = AtomicInteger()
+            override fun newThread(runnable: Runnable) =
+                Thread(runnable, "ChatEventPublisher-${counter.incrementAndGet()}").also { it.isDaemon = true }
+        },
+    ).also { it.allowCoreThreadTimeOut(true) }
 
     /**
      * Subscribes the user (checked by the caller: read access) to the conversation. Sends the current sequence at
@@ -74,23 +95,12 @@ class ChatEventPublisher : ChatEventListener {
         emitter.onCompletion { remove(subscription) }
         emitter.onTimeout { remove(subscription) }
         emitter.onError { remove(subscription) }
-        executor.execute { send(subscription, currentSeq) }
+        offer(subscription, currentSeq)
         return emitter
     }
 
     override fun onChange(conversationId: Long, changeSeq: Long) {
-        val subs = subscriptions[conversationId] ?: return
-        executor.execute {
-            subs.forEach { subscription ->
-                val user = userGroupCache.getUser(subscription.userId)
-                if (user == null || chatAccess.getContext(conversationId, user) == null) {
-                    subscription.emitter.complete()
-                    remove(subscription)
-                } else {
-                    send(subscription, changeSeq)
-                }
-            }
-        }
+        subscriptions[conversationId]?.forEach { offer(it, changeSeq) }
     }
 
     override fun isWatching(conversationId: Long, userId: Long): Boolean {
@@ -99,32 +109,61 @@ class ChatEventPublisher : ChatEventListener {
 
     @Scheduled(fixedRate = HEARTBEAT_MILLIS)
     fun heartbeat() {
-        if (subscriptions.isEmpty()) {
-            return
-        }
-        executor.execute {
-            subscriptions.values.flatten().forEach { subscription ->
-                try {
-                    subscription.emitter.send(SseEmitter.event().comment("ping"))
-                } catch (_: Exception) {
-                    remove(subscription)
-                }
-            }
-        }
+        subscriptions.values.forEach { set -> set.forEach { offer(it, PING) } }
     }
 
     /** The number of open connections, for the statistics. */
     val size: Int
         get() = subscriptions.values.sumOf { it.size }
 
-    private fun send(subscription: Subscription, changeSeq: Long) {
+    /** Merges [what] into the pending send of the subscription and starts a task, if none is sending to it. */
+    private fun offer(subscription: Subscription, what: Long) {
+        subscription.pending.accumulateAndGet(what, ::maxOf)
+        if (subscription.sending.compareAndSet(false, true)) {
+            executor.execute { drain(subscription) }
+        }
+    }
+
+    private fun drain(subscription: Subscription) {
+        while (true) {
+            val what = subscription.pending.getAndSet(NOTHING)
+            if (what == NOTHING) {
+                subscription.sending.set(false)
+                // Offered meanwhile, but the offer saw this task still sending: go on (if no other task started).
+                if (subscription.pending.get() == NOTHING || !subscription.sending.compareAndSet(false, true)) {
+                    return
+                }
+                continue
+            }
+            if (!deliver(subscription, what)) {
+                subscription.pending.set(NOTHING)
+                subscription.sending.set(false)
+                return
+            }
+        }
+    }
+
+    /** Sends the heartbeat or the event; false if the subscription is closed. */
+    private fun deliver(subscription: Subscription, what: Long): Boolean {
         try {
+            if (what == PING) {
+                subscription.emitter.send(SseEmitter.event().comment("ping"))
+                return true
+            }
+            val user = userGroupCache.getUser(subscription.userId)
+            if (user == null || chatAccess.getContext(subscription.conversationId, user) == null) {
+                subscription.emitter.complete()
+                remove(subscription)
+                return false
+            }
             subscription.emitter.send(
-                SseEmitter.event().id("$changeSeq").name(EVENT_NAME).data("{\"changeSeq\":$changeSeq}")
+                SseEmitter.event().id("$what").name(EVENT_NAME).data("{\"changeSeq\":$what}")
             )
+            return true
         } catch (ex: Exception) {
             log.debug { "Chat event to user #${subscription.userId} not sent (connection closed?): ${ex.message}" }
             remove(subscription)
+            return false
         }
     }
 
@@ -139,5 +178,11 @@ class ChatEventPublisher : ChatEventListener {
         const val EVENT_NAME = "change"
         const val HEARTBEAT_MILLIS = 25_000L
         const val TIMEOUT_MILLIS = 60 * 60_000L
+
+        /** Clients sent to at the same time (a stalled one occupies a thread until the write timeout). */
+        private const val SEND_THREADS = 8
+
+        private const val NOTHING = Long.MIN_VALUE
+        private const val PING = -1L
     }
 }

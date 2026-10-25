@@ -83,6 +83,7 @@ class ChatRoomRest {
         val userId = ThreadLocalUserContext.requiredLoggedInUserId
         val rooms = chatRoomDao.selectAllNotDeleted()
         val conversations = chatService.findConversations(ChatRoomChatHost.HOST_TYPE, rooms.mapNotNull { it.id })
+        val unread = chatService.countUnread(conversations.values.mapNotNull { it.id }, userId)
         return rooms.map { room ->
             val conversation = conversations[room.id]
             ChatRoomEntry(
@@ -91,7 +92,7 @@ class ChatRoomRest {
                 description = room.description,
                 conversationId = conversation?.id,
                 participantCount = chatRoomDao.getParticipantIds(room).size,
-                unread = conversation?.id?.let { chatService.countUnread(it, userId) } ?: 0,
+                unread = conversation?.id?.let { unread[it] } ?: 0,
                 lastMessageAt = conversation?.lastMessageAt,
                 canEdit = chatRoomDao.isModerator(room, userId),
             )

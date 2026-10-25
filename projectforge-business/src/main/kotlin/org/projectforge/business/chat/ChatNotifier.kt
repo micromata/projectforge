@@ -24,6 +24,7 @@
 package org.projectforge.business.chat
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.apache.commons.text.StringEscapeUtils
 import org.projectforge.business.notification.NotificationChannel
 import org.projectforge.business.notification.NotificationDelivery
 import org.projectforge.business.notification.NotificationDeliveryStep
@@ -116,6 +117,21 @@ class ChatNotifier {
         }
     }
 
+    /**
+     * Resolves the notifications of all users about the conversation (deleted): their delayed mails are sent no more.
+     * After the notifications of messages still queued (single thread).
+     */
+    fun resolveAll(conversationId: Long) {
+        executor.execute {
+            try {
+                notificationService.resolveByDedupPrefix(null, "chat:new:$conversationId:")
+                notificationService.resolveByDedupPrefix(null, "chat:mention:$conversationId:")
+            } catch (ex: Exception) {
+                log.error(ex) { "Resolving chat notifications of conversation #$conversationId failed: ${ex.message}" }
+            }
+        }
+    }
+
     internal fun notify(info: MessageInfo) {
         val host = hostRegistry.get(info.hostType) ?: return
         val author = userGroupCache.getUser(info.authorId)
@@ -180,9 +196,13 @@ class ChatNotifier {
             }
     }
 
+    /**
+     * The text of the notification (HTML): the names are user data (e.g. the room name chosen by anybody), escaped,
+     * so they can't bring markup (a link) into the notification.
+     */
     private fun body(user: PFUserDO, i18nKey: String, authorName: String, info: MessageInfo, withContent: Boolean): String {
-        val text = I18nHelper.getLocalizedMessage(user, i18nKey, authorName, info.title)
-        return if (withContent && info.html.isNotBlank()) "<p>$text</p>${info.html}" else text
+        val text = StringEscapeUtils.escapeHtml4(I18nHelper.getLocalizedMessage(user, i18nKey, authorName, info.title))
+        return if (withContent && info.html.isNotBlank()) "<p>$text</p>${info.html}" else "<p>$text</p>"
     }
 
     private fun mutedUserIds(conversationId: Long): Set<Long> {

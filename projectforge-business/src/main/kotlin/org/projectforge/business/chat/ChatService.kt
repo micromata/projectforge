@@ -164,8 +164,20 @@ open class ChatService {
             maxResults = MAX_CHANGES + 1,
         )
         if (messages.size > MAX_CHANGES) {
-            val page = messages.take(MAX_CHANGES)
-            return Changes(page, page.last().changeSeq, complete = false)
+            // One change may write several messages with the same sequence (a reply and its thread root): the page
+            // ends before the sequence of the first message left out, the next one starts with it.
+            val boundary = messages[MAX_CHANGES].changeSeq
+            val page = messages.take(MAX_CHANGES).filter { it.changeSeq < boundary }
+            if (page.isNotEmpty()) {
+                return Changes(page, page.last().changeSeq, complete = false)
+            }
+            val sameSeq = persistenceService.executeQuery(
+                "from ChatMessageDO m where m.conversationId = :conversationId and m.changeSeq = :seq",
+                ChatMessageDO::class.java,
+                Pair("conversationId", context.conversationId),
+                Pair("seq", boundary),
+            )
+            return Changes(sameSeq, boundary, complete = false)
         }
         return Changes(messages, maxOf(currentSeq, messages.lastOrNull()?.changeSeq ?: 0), complete = true)
     }
@@ -451,17 +463,35 @@ open class ChatService {
         )?.toLong() ?: 0
     }
 
+    /** [countUnread] of the given conversations in one query, by conversation id (missing: none unread). */
+    open fun countUnread(conversationIds: Collection<Long>, userId: Long): Map<Long, Long> {
+        if (conversationIds.isEmpty()) {
+            return emptyMap()
+        }
+        return persistenceService.executeQueryBatched(
+            "select m.conversationId, count(m) from ChatMessageDO m left join ChatMemberStateDO s" +
+                    " on s.conversationId = m.conversationId and s.userId = :userId" +
+                    " where m.conversationId in :conversationIds and m.authorId <> :userId and m.deleted = false" +
+                    " and m.id > coalesce(s.lastReadMessageId, 0) group by m.conversationId",
+            Array<Any?>::class.java,
+            batchParam = "conversationIds",
+            batchValues = conversationIds,
+            Pair("userId", userId),
+        ).associate { row -> (row[0] as Number).toLong() to (row[1] as Number).toLong() }
+    }
+
     /** The messages and replies containing the text (and of the author, if given), newest first (SRCH-01). */
     open fun search(context: ChatAccess.Context, text: String?, authorId: Long?): List<ChatMessageDO> {
-        val term = text?.replace(Regex("[%_\\\\]"), "")?.trim()?.lowercase().orEmpty()
+        val term = text?.trim()?.lowercase().orEmpty()
         if (term.isEmpty() && authorId == null) {
             return emptyList()
         }
         val where = StringBuilder("m.conversationId = :conversationId and m.deleted = false and m.hiddenById is null")
         val params = mutableListOf<Pair<String, Any?>>(Pair("conversationId", context.conversationId))
         if (term.isNotEmpty()) {
-            where.append(" and lower(m.contentText) like :term")
-            params += Pair("term", "%$term%")
+            // The wildcards of the term are searched as text.
+            where.append(" and lower(m.contentText) like :term escape '!'")
+            params += Pair("term", "%${term.replace(LIKE_SPECIAL_CHARS, "!$1")}%")
         }
         if (authorId != null) {
             where.append(" and m.authorId = :authorId")
@@ -550,14 +580,28 @@ open class ChatService {
     }
 
     /**
-     * Deletes the conversations of the host object with their messages, read states and images, e.g. with the
-     * deletion of the host object (CTX-05). No access check: the caller decides.
+     * Deletes the conversations of the host object with their messages (also their history, which holds former texts),
+     * read states and images, e.g. with the deletion of the host object (CTX-05). The notifications about them are
+     * resolved. No access check: the caller decides.
      */
     open fun deleteConversations(hostType: String, hostId: Long) {
         findConversations(hostType, listOf(hostId)).values.forEach { conversation ->
             val conversationId = conversation.id!!
             persistenceService.runInTransaction { pc ->
                 val params = Pair("conversationId", conversationId)
+                val entityName = Pair("entityName", ChatMessageDO::class.java.name)
+                val historyOfMessages = "select h.id from HistoryEntryDO h where h.entityName = :entityName and" +
+                        " h.entityId in (select m.id from ChatMessageDO m where m.conversationId = :conversationId)"
+                pc.executeUpdate(
+                    "delete from HistoryEntryAttrDO a where a.parent.id in ($historyOfMessages)",
+                    params,
+                    entityName,
+                )
+                pc.executeUpdate(
+                    "delete from HistoryEntryDO h where h.id in ($historyOfMessages)",
+                    params,
+                    entityName,
+                )
                 pc.executeUpdate("delete from ChatMemberStateDO s where s.conversationId = :conversationId", params)
                 pc.executeUpdate(
                     "delete from ChatMessageDO m where m.conversationId = :conversationId and m.threadRootId is not null",
@@ -567,6 +611,7 @@ open class ChatService {
                 pc.executeUpdate("delete from ChatConversationDO c where c.id = :conversationId", params)
             }
             imageService.deleteAll(conversationId)
+            notifier.resolveAll(conversationId)
             log.info { "Chat conversation #$conversationId of $hostType #$hostId deleted." }
         }
     }
@@ -690,6 +735,9 @@ open class ChatService {
         const val MAX_SEARCH_RESULTS = 100
         const val MAX_EMOJI_LENGTH = 16
         const val MAX_EMOJIS_PER_MESSAGE = 20
+
+        /** The wildcards of LIKE and its escape character (`!`, see [search]). */
+        private val LIKE_SPECIAL_CHARS = Regex("([%_!])")
 
         const val ERROR_EMPTY = "chat.message.error.empty"
         const val ERROR_EMOJI = "chat.reaction.error.invalid"

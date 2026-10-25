@@ -184,12 +184,14 @@ class ChatServiceTest : AbstractTestBase() {
         chatService.markRead(conversationId, message.id!!)
         assertTrue(notificationDao.findPendingByDedupPrefix(user2, mentionPrefix).isEmpty())
         assertEquals(0, chatService.countUnread(conversationId, user2))
+        assertEquals(emptyMap<Long, Long>(), chatService.countUnread(listOf(conversationId), user2))
 
         chatService.setMuted(conversationId, true)
         logon(TEST_USER)
         chatService.send(conversationId, null, "nobody notified", null)
         assertTrue(notificationDao.findPendingByDedupPrefix(user2, ChatNotifier.newPrefix(conversationId, user2)).isEmpty())
         assertEquals(1, chatService.countUnread(conversationId, user2))
+        assertEquals(mapOf(conversationId to 1L), chatService.countUnread(listOf(conversationId), user2))
         chatService.send(conversationId, null, """<span data-type="mention" data-id="$user2">x</span>""", null)
         assertEquals(1, notificationDao.findPendingByDedupPrefix(user2, mentionPrefix).size, "mentions despite muting")
 
@@ -203,9 +205,24 @@ class ChatServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun `the search finds wildcards as text`() {
+        val conversationId = createRoom("chat search test")
+        val context = chatService.requireContext(conversationId)
+        val literal = chatService.send(conversationId, null, "rename foo_bar to 100%", null)
+        chatService.send(conversationId, null, "rename fooXbar to 1000", null)
+        assertEquals(listOf(literal.id), chatService.search(context, "foo_bar", null).map { it.id })
+        assertEquals(listOf(literal.id), chatService.search(context, "100%", null).map { it.id })
+        assertTrue(chatService.search(context, "!", null).isEmpty())
+    }
+
+    @Test
     fun `deleting a room deletes its conversation`() {
         val conversationId = createRoom("chat delete test")
-        chatService.send(conversationId, null, "bye", null)
+        val user2 = getUserId(TEST_USER2)
+        val message = chatService.send(conversationId, null, "bye", null)
+        chatService.edit(message.id!!, """bye <span data-type="mention" data-id="$user2">x</span>""", null)
+        assertEquals(1, notificationDao.findPendingByDedupPrefix(null, "chat:mention:$conversationId:").size)
+        assertTrue(historyCount(message.id!!) > 0)
         val roomId = chatService.requireContext(conversationId).hostId
         suppressErrorLogs {
             logon(TEST_USER2)
@@ -217,5 +234,18 @@ class ChatServiceTest : AbstractTestBase() {
             assertThrows(AccessException::class.java) { chatService.requireContext(conversationId) }
         }
         assertTrue(chatService.findConversations(ChatRoomChatHost.HOST_TYPE, listOf(roomId)).isEmpty())
+        // No delayed mail about a deleted conversation, no former texts in the history.
+        assertTrue(notificationDao.findPendingByDedupPrefix(null, "chat:mention:$conversationId:").isEmpty())
+        assertTrue(notificationDao.findPendingByDedupPrefix(null, "chat:new:$conversationId:").isEmpty())
+        assertEquals(0, historyCount(message.id!!))
+    }
+
+    private fun historyCount(messageId: Long): Long {
+        return persistenceService.selectSingleResult(
+            "select count(h) from HistoryEntryDO h where h.entityName = :entityName and h.entityId = :id",
+            java.lang.Long::class.java,
+            Pair("entityName", ChatMessageDO::class.java.name),
+            Pair("id", messageId),
+        )!!.toLong()
     }
 }

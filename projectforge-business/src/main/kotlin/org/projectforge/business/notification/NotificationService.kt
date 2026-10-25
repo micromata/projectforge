@@ -290,7 +290,11 @@ class NotificationService {
     /**
      * Creates a notification without rule for the given recipient (e.g. of the chat) and delivers the due steps of its
      * cascade at once. The recipient marks it as done, or the caller resolves it ([resolveByDedupPrefix]). Nothing is
-     * created if the dedup key exists already.
+     * created if the dedup key exists already (unique, also against a concurrent call).
+     *
+     * Not serialized by the lock of the jobs: a rule run or a slow mail server would hold up the caller. The delivery
+     * job leaves the new notification alone for [DIRECT_DELIVERY_GRACE_MILLIS] (its next delivery time), so its due
+     * steps aren't delivered twice; it catches up on them, if the delivery here fails.
      * @param body The text (HTML), sanitized here.
      * @return The notification created, null if it exists already.
      */
@@ -305,31 +309,30 @@ class NotificationService {
         severity: NotificationSeverity = NotificationSeverity.INFO,
         menuBadge: MenuItemDefId? = null,
     ): NotificationDO? {
-        lock.withLock {
-            if (notificationDao.findByDedupKey(dedupKey) != null) {
-                return null
-            }
-            val now = Date()
-            val notification = NotificationDO().also {
-                it.ruleId = null
-                it.recipientId = recipientId
-                it.severity = severity
-                it.display = display
-                it.manualDone = true
-                it.menuBadge = menuBadge?.id
-                it.title = title.take(1000)
-                it.body = HtmlSanitizer.sanitize(body)
-                it.link = link
-                it.dedupKey = dedupKey
-                it.status = NotificationStatus.OPEN
-                it.created = now
-                it.delivery = JsonUtils.toJson(delivery)
-                it.writeDeliveryState(NotificationDeliveryState.of(delivery, now))
-            }
-            notificationDao.insert(notification)
-            deliverDueSteps(notification, now)
-            return notification
+        if (notificationDao.findByDedupKey(dedupKey) != null) {
+            return null
         }
+        val now = Date()
+        val notification = NotificationDO().also {
+            it.ruleId = null
+            it.recipientId = recipientId
+            it.severity = severity
+            it.display = display
+            it.manualDone = true
+            it.menuBadge = menuBadge?.id
+            it.title = title.take(1000)
+            it.body = HtmlSanitizer.sanitize(body)
+            it.link = link
+            it.dedupKey = dedupKey
+            it.status = NotificationStatus.OPEN
+            it.created = now
+            it.delivery = JsonUtils.toJson(delivery)
+            it.writeDeliveryState(NotificationDeliveryState.of(delivery, now))
+            it.nextDeliveryAt = Date(now.time + DIRECT_DELIVERY_GRACE_MILLIS)
+        }
+        notificationDao.insert(notification)
+        deliverDueSteps(notification, now)
+        return notification
     }
 
     /** Has the recipient a pending notification whose dedup key starts with the given prefix (see [notifyDirect])? */
@@ -339,10 +342,11 @@ class NotificationService {
 
     /**
      * Resolves the pending notifications of the recipient whose dedup key starts with the given prefix (see
-     * [notifyDirect]), e.g. when the recipient read the chat messages they are about.
+     * [notifyDirect]), e.g. when the recipient read the chat messages they are about; of all recipients, if null (e.g.
+     * the conversation is deleted). Their delayed steps (a mail) are sent no more.
      * @return The number of notifications resolved.
      */
-    fun resolveByDedupPrefix(recipientId: Long, prefix: String): Int {
+    fun resolveByDedupPrefix(recipientId: Long?, prefix: String): Int {
         val pending = notificationDao.findPendingByDedupPrefix(recipientId, prefix)
         pending.forEach { notificationDao.finish(it, NotificationStatus.RESOLVED) }
         return pending.size
@@ -545,6 +549,9 @@ class NotificationService {
     companion object {
         const val RULE_JOB_TYPE = "notification-rules"
         const val DELIVERY_JOB_TYPE = "notification-delivery"
+
+        /** See [notifyDirect]. */
+        internal const val DIRECT_DELIVERY_GRACE_MILLIS = 5 * 60_000L
 
         /** The variables of all rule types. */
         val COMMON_VARIABLES = listOf("firstName", "lastName", "fullName", "nickname")
