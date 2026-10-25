@@ -3709,11 +3709,11 @@
         "due": "Fällig",
         "epss": "EPSS",
         "exposed": "Internet",
+        "findingStatus": "Befunde nach Status",
         "group": "Zuständige Gruppe",
         "instance": "Instanz",
         "instances": "Instanzen",
         "name": "Name",
-        "openFindings": "Offene Befunde",
         "priority": "Prio",
         "published": "Veröffentlicht",
         "site": "Standort",
@@ -3784,7 +3784,13 @@
         "technology": {
           "label": "Technologie",
           "placeholder": "Technologie, z. B. spring boot < 3.5.7"
-        }
+        },
+        "withVulns": "Nur mit CVEs"
+      },
+      "findingBucket": {
+        "done": "{arg0} erledigt",
+        "inProgress": "{arg0} in Arbeit",
+        "open": "{arg0} offen"
       },
       "findingStatus": {
         "AFFECTED": "Betroffen",
@@ -3824,7 +3830,8 @@
         "tenant": "Mandant"
       },
       "inventory": {
-        "hiddenSystems": "+{arg0} weitere Systeme, für diese Rolle nicht sichtbar"
+        "hiddenSystems": "+{arg0} weitere Systeme, für diese Rolle nicht sichtbar",
+        "vulnCount": "{arg0} CVE(s)"
       },
       "kev": {
         "info": "Im CISA-Katalog bekannter ausgenutzter Schwachstellen: wird aktiv ausgenutzt.",
@@ -3893,7 +3900,7 @@
         "kev": "KEV +1"
       },
       "prototype": {
-        "banner": "Prototyp für das Review der Spezifikation: nur Testdaten (fiktive CVEs), Änderungen bleiben nur in diesem Browser erhalten, bis „Testdaten zurücksetzen“. Oben die Rolle wechseln, um zu sehen, was jede Rolle sieht.",
+        "banner": "Demo mit fiktiven Testdaten; Änderungen bleiben nur in diesem Browser.",
         "reset": {
           "info": "Stellt die Testdaten im Auslieferungszustand wieder her; alle Änderungen gehen verloren.",
           "label": "Testdaten zurücksetzen"
@@ -3969,9 +3976,18 @@
         "dashboard": "Dashboard",
         "feedback": "Feedback",
         "findings": "Befunde",
-        "inventory": "Inventar",
         "myAreas": "Meine Bereiche",
-        "triage": "Triage"
+        "systems": "Systeme & Komponenten",
+        "vulnerabilities": "Schwachstellen (CVEs)"
+      },
+      "tabHint": {
+        "advisories": "Hinweise für Mitarbeitende zum Standard-Client mit Anleitung und Bestätigung.",
+        "dashboard": "Lage auf einen Blick: offene Befunde je Priorität, Überfälliges, Eskalationen und Rücklauf der Kampagnen.",
+        "feedback": "Laufende und abgeschlossene Feedback-Kampagnen mit Rücklaufquote.",
+        "findings": "Jeder Befund einzeln: Schwachstelle × Komponente × Instanz, mit Status und Frist. Hier lassen sich viele Befunde auf einmal bearbeiten, z. B. „behoben“ über mehrere Instanzen bestätigen.",
+        "myAreas": "Die eigenen Bereiche und Systeme mit ihren offenen Befunden.",
+        "systems": "Alle Systeme mit Instanzen und Komponenten. Je Zeile ist zu sehen, welche Schwachstellen sie betreffen und wie weit deren Bearbeitung ist. Ein Klick auf das Kürzel klappt auf und zu, ein Klick daneben öffnet das System.",
+        "vulnerabilities": "Alle importierten Schwachstellen mit Bearbeitungsstatus, Priorität und Status der zugehörigen Befunde. Ein Klick öffnet die Schwachstelle; mehrere angehakte lassen sich gemeinsam bearbeiten."
       },
       "teamAnswer": {
         "FIXED": "Betroffen – behoben",
@@ -4020,6 +4036,9 @@
           "overview": "Überblick",
           "ratings": "Bewertungen"
         }
+      },
+      "vulnerabilities": {
+        "withFindingsOnly": "Nur mit Befunden"
       },
       "yes": "ja"
     },

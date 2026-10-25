@@ -3709,11 +3709,11 @@
         "due": "Due",
         "epss": "EPSS",
         "exposed": "Internet",
+        "findingStatus": "Findings by status",
         "group": "Responsible group",
         "instance": "Instance",
         "instances": "Instances",
         "name": "Name",
-        "openFindings": "Open findings",
         "priority": "Prio",
         "published": "Published",
         "site": "Site",
@@ -3784,7 +3784,13 @@
         "technology": {
           "label": "Technology",
           "placeholder": "Technology, e.g. spring boot < 3.5.7"
-        }
+        },
+        "withVulns": "Only with CVEs"
+      },
+      "findingBucket": {
+        "done": "{arg0} done",
+        "inProgress": "{arg0} in progress",
+        "open": "{arg0} open"
       },
       "findingStatus": {
         "AFFECTED": "Affected",
@@ -3824,7 +3830,8 @@
         "tenant": "Tenant"
       },
       "inventory": {
-        "hiddenSystems": "+{arg0} more systems, not visible for this role"
+        "hiddenSystems": "+{arg0} more systems, not visible for this role",
+        "vulnCount": "{arg0} CVE(s)"
       },
       "kev": {
         "info": "Listed in the CISA catalogue of known exploited vulnerabilities: actively exploited.",
@@ -3893,7 +3900,7 @@
         "kev": "KEV +1"
       },
       "prototype": {
-        "banner": "Prototype for the review of the specification: test data only (fictitious CVEs), changes are kept in this browser only, until \"Reset test data\". Switch the role above to see what each role sees.",
+        "banner": "Demo with fictitious test data; changes are kept in this browser only.",
         "reset": {
           "info": "Restores the test data as delivered; all changes are lost.",
           "label": "Reset test data"
@@ -3969,9 +3976,18 @@
         "dashboard": "Dashboard",
         "feedback": "Feedback",
         "findings": "Findings",
-        "inventory": "Inventory",
         "myAreas": "My areas",
-        "triage": "Triage"
+        "systems": "Systems & components",
+        "vulnerabilities": "Vulnerabilities (CVEs)"
+      },
+      "tabHint": {
+        "advisories": "Advisories for employees about the standard client, with instructions and confirmation.",
+        "dashboard": "The situation at a glance: open findings per priority, overdue items, escalations and the response rate of the campaigns.",
+        "feedback": "Running and finished feedback campaigns with their response rate.",
+        "findings": "Every finding on its own: vulnerability × component × instance, with status and deadline. Many findings can be worked on at once here, e.g. confirmed fixed across several instances.",
+        "myAreas": "The own areas and systems with their open findings.",
+        "systems": "All systems with their instances and components. Each row shows which vulnerabilities affect it and how far their processing is. A click on the code expands or collapses a node, a click elsewhere opens the system.",
+        "vulnerabilities": "All imported vulnerabilities with their processing status, priority and the status of their findings. A click opens the vulnerability; several ticked ones can be worked on together."
       },
       "teamAnswer": {
         "FIXED": "Affected – fixed",
@@ -4020,6 +4036,9 @@
           "overview": "Overview",
           "ratings": "Ratings"
         }
+      },
+      "vulnerabilities": {
+        "withFindingsOnly": "Only with findings"
       },
       "yes": "yes"
     },
