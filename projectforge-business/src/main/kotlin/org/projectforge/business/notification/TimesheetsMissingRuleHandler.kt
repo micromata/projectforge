@@ -97,6 +97,13 @@ class TimesheetsMissingRuleHandler : NotificationRuleHandler {
         return variables(user, month, days.cut(month, today))
     }
 
+    override fun exampleVariables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> {
+        val month = rule.readParams().referredMonth.of(today)
+        // Three working days of the month unbooked, the first of them in a vacation.
+        val days = UnbookedDaysCalculator.unbookedDays(month, emptySet(), emptySet()).all.take(3)
+        return variables(user, month, UnbookedDaysCalculator.UnbookedDays(days, days.take(1)))
+    }
+
     override fun isRelevant(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Boolean {
         val employee = caches.getEmployeeByUserId(user.id) ?: return true // Not an employee, e.g. a single user.
         return isEmployedIn(employee, rule.readParams().referredMonth.of(today))

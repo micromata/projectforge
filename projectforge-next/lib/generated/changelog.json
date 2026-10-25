@@ -12,7 +12,7 @@
         "items" : [ "Marked as overdue (red) already 2 working days before the due date, so they are paid in time.", "New notification rule \"Creditor invoices due\": reports unpaid creditor invoices due within a configurable number of working days (overdue ones of the last 90 days included) to the recipients of the rule." ]
       }, {
         "title" : "Notifications",
-        "items" : [ "The rule editor lists the variables available for subject and text (general ones and those of the rule type), each with a button to copy it." ]
+        "items" : [ "The rule editor lists the variables available for subject and text (general ones and those of the rule type), each with a button to copy it.", "The variables come with an example value each, so it is visible how e.g. a list of invoices looks; the preview also shows the texts with example values." ]
       }, "Time sheet form: the table of recently used entries can be sorted and filtered per column, its columns can be reordered, resized, pinned and hidden; the layout is remembered per user." ]
     }, {
       "type" : "changed",

@@ -122,27 +122,44 @@ class TimesheetsWithoutKost2RuleHandler : NotificationRuleHandler {
         return timesheetDao.getTimesheetsWithoutKost2(from, to)
     }
 
+    override fun exampleVariables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> {
+        val tasks = listOf("ACME -> Website -> Development", "ACME -> Support")
+        return variables(user, rule.readParams().kost2MissingMonths, today, 3, 16_200_000L, tasks)
+    }
+
     private fun variables(
         user: PFUserDO,
         months: Int,
         today: LocalDate,
         sheets: List<TimesheetDao.TimesheetWithoutKost2>,
     ): Map<String, String> {
-        val locale = UserLocale.determineUserLocale(user)
-        val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)
-        val hours = BigDecimal(sheets.sumOf { it.durationMillis }).divide(BigDecimal(3_600_000), 2, RoundingMode.HALF_UP)
-        val numberFormat = NumberFormat.getNumberInstance(locale).also {
-            it.minimumFractionDigits = 0
-            it.maximumFractionDigits = 2
-        }
         val taskIds = sheets.mapNotNull { it.taskId }.distinct()
         val tasks = taskIds.take(MAX_TASKS).mapNotNull { TaskFormatter.getTaskPath(it) }.toMutableList()
         if (taskIds.size > MAX_TASKS) {
             tasks += "…"
         }
+        return variables(user, months, today, sheets.size, sheets.sumOf { it.durationMillis }, tasks)
+    }
+
+    /** The variables of [count] time sheets of [durationMillis] in total, booked on the [tasks] (paths). */
+    private fun variables(
+        user: PFUserDO,
+        months: Int,
+        today: LocalDate,
+        count: Int,
+        durationMillis: Long,
+        tasks: List<String>,
+    ): Map<String, String> {
+        val locale = UserLocale.determineUserLocale(user)
+        val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)
+        val hours = BigDecimal(durationMillis).divide(BigDecimal(3_600_000), 2, RoundingMode.HALF_UP)
+        val numberFormat = NumberFormat.getNumberInstance(locale).also {
+            it.minimumFractionDigits = 0
+            it.maximumFractionDigits = 2
+        }
         return mapOf(
             "period" to "${firstDay(months, today).format(dateFormatter)} – ${today.format(dateFormatter)}",
-            "timesheetsWithoutKost2Count" to sheets.size.toString(),
+            "timesheetsWithoutKost2Count" to count.toString(),
             "timesheetsWithoutKost2Hours" to numberFormat.format(hours),
             "timesheetsWithoutKost2Tasks" to tasks.joinToString("; ").ifEmpty { "–" },
             "timesheetLink" to notificationLinks.absolute(TimesheetsMissingRuleHandler.TIMESHEET_PATH),

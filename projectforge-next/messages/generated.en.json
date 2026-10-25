@@ -3302,7 +3302,8 @@
       "none": "Nobody to notify today.",
       "period": "Period",
       "recipients": "{arg0} recipient(s)",
-      "sample": "Sample for you"
+      "sample": "Sample for you",
+      "withExamples": "With example values"
     },
     "recipient": "Recipient",
     "recipients": {
@@ -3447,6 +3448,7 @@
     },
     "variables": {
       "common": "General",
+      "example": "e.g.",
       "info": "In subject and text the variables are replaced by their values.",
       "ruleType": "For this rule type",
       "title": "Available variables"
@@ -4692,6 +4694,7 @@
         "pageContext": "Started from: {arg0}. The script gets the current filter of this page as variable `pageContext`."
       },
       "includes": "Embedded scripts",
+      "input": "Input",
       "name": "Name",
       "output": "Output",
       "pageButtons": "Page buttons",

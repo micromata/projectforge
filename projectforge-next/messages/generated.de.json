@@ -3302,7 +3302,8 @@
       "none": "Heute ist niemand zu benachrichtigen.",
       "period": "Zeitraum",
       "recipients": "{arg0} Empfänger",
-      "sample": "Beispiel mit den eigenen Werten"
+      "sample": "Beispiel mit den eigenen Werten",
+      "withExamples": "Mit Beispielwerten"
     },
     "recipient": "Empfänger",
     "recipients": {
@@ -3447,6 +3448,7 @@
     },
     "variables": {
       "common": "Allgemein",
+      "example": "z. B.",
       "info": "In Betreff und Text werden die Variablen durch ihre Werte ersetzt.",
       "ruleType": "Für diesen Regeltyp",
       "title": "Verfügbare Variablen"
@@ -4692,6 +4694,7 @@
         "pageContext": "Gestartet von: {arg0}. Das Script erhält den aktuellen Filter dieser Seite als Variable `pageContext`."
       },
       "includes": "Eingebundene Scripts",
+      "input": "Eingabe",
       "name": "Name",
       "output": "Ausgabe",
       "pageButtons": "Seiten-Buttons",

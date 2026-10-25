@@ -85,6 +85,12 @@ interface NotificationRuleHandler {
      */
     fun variables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String>
 
+    /**
+     * Example values of the [variables] for the editor of a rule, formatted for the given user as the real ones
+     * (e.g. a list of two invoices): from synthetic data, without database access.
+     */
+    fun exampleVariables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> = emptyMap()
+
     /** May the user be a recipient of the run at all (e.g. employed in the referred month)? */
     fun isRelevant(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Boolean = true
 
