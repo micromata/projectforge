@@ -72,7 +72,7 @@ export function TreeCell({
         <HighlightedText text={String(value ?? "")} query={highlight} />
       </span>
       {badge ? (
-        // stopPropagation: a tap on the badge opens its explanation, not the node.
+        // stopPropagation: a tap on the badge opens its explanation (or its link), not the node.
         <span className="shrink-0" onClick={(e) => e.stopPropagation()}>
           {badge}
         </span>

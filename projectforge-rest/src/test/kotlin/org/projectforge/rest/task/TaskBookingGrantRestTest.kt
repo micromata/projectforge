@@ -25,15 +25,29 @@ package org.projectforge.rest.task
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.fibu.ProjektDao
+import org.projectforge.business.fibu.kost.Kost2ArtDO
+import org.projectforge.business.fibu.kost.Kost2ArtDao
+import org.projectforge.business.fibu.kost.Kost2DO
+import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.framework.access.AccessDao
 import org.projectforge.framework.access.AccessType
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
+import org.projectforge.rest.TimesheetEntityRest
+import org.projectforge.rest.core.saveOrUpdate
+import org.projectforge.rest.dto.Kost2
+import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.Task
+import org.projectforge.rest.dto.Timesheet
+import org.projectforge.rest.dto.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockHttpServletRequest
@@ -54,6 +68,18 @@ class TaskBookingGrantRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
+
+    @Autowired
+    private lateinit var timesheetEntityRest: TimesheetEntityRest
+
+    @Autowired
+    private lateinit var projektDao: ProjektDao
+
+    @Autowired
+    private lateinit var kost2Dao: Kost2Dao
+
+    @Autowired
+    private lateinit var kost2ArtDao: Kost2ArtDao
 
     private class Fixture(
         val project: TaskDO,
@@ -336,6 +362,80 @@ class TaskBookingGrantRestTest : AbstractTestBase() {
         // The finance group sees both.
         logon(getUser(TEST_FINANCE_USER))
         assertEquals(2, taskBookingGrantRest.getInfo(fixture.project.id!!).grants!!.size)
+    }
+
+    @Test
+    fun `the helper books through the time sheet form on a cost unit of the grant`() {
+        val fixture = createFixture("bgrest-kost2")
+        val kost2s = persistenceService.runInTransaction { _ ->
+            logon(TEST_ADMIN_USER)
+            val projekt = ProjektDO().also {
+                it.name = "bgrest-kost2"
+                it.nummer = 78
+                it.task = fixture.project
+            }
+            projektDao.insert(projekt, checkAccess = false)
+            val nummer = projekt.projektnummer!!
+            (94L..96L).map { artId ->
+                val art = kost2ArtDao.find(artId, checkAccess = false) ?: Kost2ArtDO().also {
+                    it.id = artId
+                    it.name = "bgrest-kost2-$artId"
+                    kost2ArtDao.insert(it, checkAccess = false)
+                }
+                Kost2DO().also {
+                    it.nummernkreis = nummer / 100_000
+                    it.bereich = nummer % 100_000 / 100
+                    it.teilbereich = nummer % 100
+                    it.kost2Art = art
+                    it.projekt = projekt
+                    kost2Dao.insert(it, checkAccess = false)
+                }
+            }
+        }
+        logon(fixture.manager)
+        val result = taskBookingGrantRest.grant(
+            TaskBookingGrantRest.GrantRequest(
+                taskId = fixture.project.id,
+                userIds = listOf(fixture.helper.id!!),
+                positions = listOf(TaskBookingGrantRest.PositionRequest(fixture.granted.id, listOf(kost2s[0].id!!, kost2s[1].id!!))),
+                validFrom = PFDay.now().minusDays(1).localDate,
+                validUntil = PFDay.now().plusDays(10).localDate,
+            )
+        )
+        assertTrue(result.success, result.message)
+
+        logon(fixture.helper)
+        // The form offers the cost units of the grant only.
+        assertEquals(
+            setOf(kost2s[0].id, kost2s[1].id),
+            info(fixture.granted).body!!.kost2List!!.map { it.id }.toSet(),
+        )
+        // Posted as the form does: references by id.
+        val start = PFDateTime.now().minusDays(1).beginOfDay.withHour(8)
+        val dto = Timesheet(
+            task = Task(id = fixture.granted.id),
+            user = User().also { it.id = fixture.helper.id },
+            kost2 = Kost2(id = kost2s[1].id),
+            startTime = start.utilDate,
+            stopTime = start.plusHours(1).utilDate,
+            description = "helping",
+        )
+        fun insert(dto: Timesheet): org.springframework.http.ResponseEntity<org.projectforge.ui.ResponseAction> {
+            val postData = PostData(dto, watchFieldsTriggered = null, serverData = null)
+            val obj = timesheetEntityRest.transformForDB(dto)
+            return saveOrUpdate(
+                MockHttpServletRequest(), timesheetDao, obj, postData, timesheetEntityRest,
+                timesheetEntityRest.validate(obj, postData), OperationType.INSERT,
+            )
+        }
+        // Without a cost unit: asked for at the field, not refused as access violation.
+        insert(Timesheet(task = dto.task, user = dto.user, startTime = dto.startTime, stopTime = dto.stopTime)).let {
+            assertEquals(HttpStatus.NOT_ACCEPTABLE, it.statusCode)
+            assertEquals(listOf("kost2"), it.body?.validationErrors?.map { error -> error.fieldId })
+        }
+        insert(dto).let {
+            assertEquals(HttpStatus.OK, it.statusCode, "${it.body?.validationErrors?.map { error -> error.message }}")
+        }
     }
 
     private fun info(task: TaskDO) = taskServicesRest.getTaskInfo(task.id)

@@ -3,6 +3,7 @@ import {
   TASK_TREE_ROUTE,
   TASK_WIZARD_ROUTE,
   HIGHLIGHT_ID_PARAM,
+  TASK_BOOKING_GRANTS_SECTION,
   taskWizardHref,
 } from "@/components/shared/tasks/task-routes";
 import { TASK_METADATA } from "@/lib/metadata/task.generated";
@@ -349,7 +350,7 @@ export const TASK_PAGE = definePage<
         collapsedSummary: FinanceSummary,
       },
       {
-        id: "bookingGrants",
+        id: TASK_BOOKING_GRANTS_SECTION,
         titleKey: "task.bookingGrants._",
         collapsed: true,
         // Only for who may grant on the task (see BookingGrantsSection), and only for a stored task.

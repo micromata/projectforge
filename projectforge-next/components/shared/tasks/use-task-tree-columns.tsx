@@ -16,6 +16,7 @@ import { adaptColumnDefs } from "@/lib/dynamic/grid/column-def-adapter";
 import type { TaskNode } from "@/lib/rs/task";
 import { TaskGroupAccessCell } from "./task-group-access-cell";
 import { TaskBookingGrantBadge } from "./task-booking-grant-badge";
+import { TASK_TREE_ROUTE, taskBookingGrantsHref } from "./task-routes";
 
 /**
  * The tree's free-text columns whose values may carry JIRA issue keys, linked as Wicket links its list
@@ -111,6 +112,13 @@ export function useTaskTreeColumns(
                   <TaskBookingGrantBadge
                     grants={row.original.bookingGrants}
                     pendingTimesheets={row.original.pendingTimesheets}
+                    href={
+                      linkEnabled
+                        ? taskBookingGrantsHref(row.original.id, {
+                            returnTo: TASK_TREE_ROUTE,
+                          })
+                        : undefined
+                    }
                   />
                 ) : undefined
               }

@@ -25,6 +25,7 @@ package org.projectforge.framework.i18n
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.projectforge.Constants
@@ -79,5 +80,12 @@ class UserExceptionMessageTest {
             translateMsg("validation.required.valueNotPresent", "4711"),
             translateMsg(ex),
         )
+    }
+
+    @Test
+    fun `an id goes into the message without thousands separator`() {
+        val message = translateMsg("access.exception.standardWithTask", 62938251L, "a", "b")
+        assertFalse(message.contains("62.938.251") || message.contains("62,938,251"), message)
+        assertTrue(message.contains("62938251"), message)
     }
 }

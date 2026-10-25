@@ -26,6 +26,12 @@ package org.projectforge.business.task.bookinggrant
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.fibu.ProjektDao
+import org.projectforge.business.fibu.kost.Kost2ArtDO
+import org.projectforge.business.fibu.kost.Kost2ArtDao
+import org.projectforge.business.fibu.kost.Kost2DO
+import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.timesheet.TimesheetDO
@@ -47,6 +53,15 @@ import org.springframework.beans.factory.annotation.Autowired
 class TaskBookingGrantTest : AbstractTestBase() {
     @Autowired
     private lateinit var accessDao: AccessDao
+
+    @Autowired
+    private lateinit var kost2ArtDao: Kost2ArtDao
+
+    @Autowired
+    private lateinit var kost2Dao: Kost2Dao
+
+    @Autowired
+    private lateinit var projektDao: ProjektDao
 
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
@@ -253,6 +268,55 @@ class TaskBookingGrantTest : AbstractTestBase() {
         grant.deleted = true
         taskBookingGrantCache.afterInsertOrModify(grant, OperationType.UPDATE)
         Assertions.assertFalse(allows(1002L, 3L))
+    }
+
+    @Test
+    fun `a grant restricted to cost units books on these, stored and booked`() {
+        val fixture = createFixture("bg-kost2")
+        val kost2s = persistenceService.runInTransaction { _ ->
+            logon(TEST_ADMIN_USER)
+            val projekt = ProjektDO().also {
+                it.name = "bg-kost2"
+                it.nummer = 77
+                it.task = fixture.project
+            }
+            projektDao.insert(projekt, checkAccess = false)
+            (91L..93L).map { artId ->
+                val art = kost2ArtDao.find(artId, checkAccess = false) ?: Kost2ArtDO().also {
+                    it.id = artId
+                    it.name = "bg-kost2-$artId"
+                    kost2ArtDao.insert(it, checkAccess = false)
+                }
+                // The digits of the project number, as computed on its insert.
+                val nummer = projekt.projektnummer!!
+                Kost2DO().also {
+                    it.nummernkreis = nummer / 100_000
+                    it.bereich = nummer % 100_000 / 100
+                    it.teilbereich = nummer % 100
+                    it.kost2Art = art
+                    it.projekt = projekt
+                    kost2Dao.insert(it, checkAccess = false)
+                }
+            }
+        }
+        logon(fixture.manager)
+        taskBookingGrantService.grant(
+            userIds = listOf(fixture.helper.id!!),
+            positions = listOf(
+                TaskBookingGrantService.Position(fixture.granted.id!!, setOf(kost2s[0].id!!, kost2s[1].id!!)),
+            ),
+            validFrom = PFDay.now().minusDays(5).localDate,
+            validUntil = PFDay.now().plusDays(5).localDate,
+            comment = null,
+        )
+        fun sheetWith(kost2: Kost2DO?, hour: Int) = sheet(fixture.helper, fixture.granted, hour = hour).also { it.kost2 = kost2 }
+        Assertions.assertTrue(mayInsert(fixture.helper, sheetWith(kost2s[0], 8)), "A cost unit of the grant.")
+        Assertions.assertFalse(mayInsert(fixture.helper, sheetWith(kost2s[2], 8)), "Not a cost unit of the grant.")
+        // Booked as the form does: the cost unit only as id.
+        logon(fixture.helper)
+        val booked = sheetWith(Kost2DO().also { it.id = kost2s[1].id }, 10)
+        timesheetDao.insert(booked)
+        Assertions.assertEquals(kost2s[1].id, timesheetDao.find(booked.id, checkAccess = false)!!.kost2Id)
     }
 
     @Test

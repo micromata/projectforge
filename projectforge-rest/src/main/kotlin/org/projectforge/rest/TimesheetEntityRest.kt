@@ -289,6 +289,12 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         // TimesheetDao.hasUpdateAccess fails with an IllegalArgumentException (500 instead of a field error).
         if (dto.task?.id == null) {
             validationErrors.add(ValidationError.createFieldRequired(TimesheetDO::class.java, "task"))
+        } else if (dto.kost2?.id == null && Configuration.instance.isCostConfigured &&
+            !taskTree.getKost2List(dto.task?.id).isNullOrEmpty()
+        ) {
+            // As TimesheetDao.validateKost2, but as field error and before the access check: a user booking by an ad
+            // hoc grant restricted to cost units would otherwise get an access violation for the missing cost unit.
+            validationErrors.add(ValidationError(translate("timesheet.error.kost2Required"), fieldId = "kost2"))
         }
         if (baseDao.timeSavingsByAIEnabled) {
             timesheetDao.validateTimeSavingsByAI(dto.timeSavedByAI, dto.timeSavedByAIUnit)?.let {

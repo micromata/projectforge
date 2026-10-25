@@ -100,7 +100,18 @@ object I18nHelper {
         return if (localized.startsWith("???")) {
             // I18n-key not found (e.g. in test cases).
             "$localized (${params.joinToString { it.toString() }})???"
-        } else MessageFormat.format(localized, *params)
+        } else if (localized.contains(",number") || localized.contains(",choice")) {
+            // A pattern formatting the number itself needs the number.
+            MessageFormat.format(localized, *params)
+        } else MessageFormat.format(localized, *params.map { plainIfId(it) }.toTypedArray())
+    }
+
+    /**
+     * A [Long] is an id (pk) in the messages, a quantity would be an [Int] or a [java.math.BigDecimal]: its bare
+     * digits, not grouped by thousands as [MessageFormat] would do ("62938251", not "62.938.251").
+     */
+    private fun plainIfId(param: Any?): Any? {
+        return if (param is Long) param.toString() else param
     }
 
     @JvmStatic
