@@ -57,8 +57,6 @@ org.projectforge.rest.pub.MessagingServiceRest#post
 org.projectforge.rest.pub.MessagingServiceRest#send
 org.projectforge.rest.pub.PhoneLookupRest#phoneLookup
 org.projectforge.rest.pub.SystemStatusRest#getSystemStatus
-org.projectforge.rest.task.TaskServicesRest#getTaskInfo
-org.projectforge.rest.task.TaskServicesRest#getTree
 org.projectforge.rest.TimesheetFavoritesRest#delete
 org.projectforge.rest.TimesheetFavoritesRest#getList
 org.projectforge.rest.TimesheetFavoritesRest#migrateOldTemplates

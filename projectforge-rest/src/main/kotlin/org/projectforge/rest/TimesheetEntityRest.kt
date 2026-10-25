@@ -31,6 +31,7 @@ import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.task.TaskTree
+import org.projectforge.business.task.bookinggrant.TaskBookingGrantDao
 import org.projectforge.business.timesheet.*
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.OperationType
@@ -57,6 +58,7 @@ import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.aggrid.GridState
 import org.projectforge.rest.core.getObjectList
+import org.projectforge.rest.core.saveOrUpdate
 import org.projectforge.rest.dto.*
 import org.projectforge.rest.dto.datatable.DataTableStateRequest
 import org.projectforge.rest.fibu.BusinessUnitChecklistFilter
@@ -120,6 +122,9 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
 
     @Autowired
     private lateinit var timesheetRecentService: TimesheetRecentService
+
+    @Autowired
+    private lateinit var taskBookingGrantDao: TaskBookingGrantDao
 
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
@@ -187,6 +192,16 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         timesheet.timeSavingsByAIEnabled = baseDao.timeSavingsByAIEnabled
         timesheet.timeSavingsByAINote = timeSavingsByAINote()
         timesheet.tags = timesheetDao.getTags(timesheet.tag)
+        if (editMode && obj.acceptancePending) {
+            val user = ThreadLocalUserContext.requiredLoggedInUser
+            val proposedBy = obj.bookingGrant?.id?.let { taskBookingGrantDao.selectGrantedByUserIds(listOf(it))[it] }
+            timesheet.acceptance = Timesheet.Acceptance(
+                proposedByName = caches.getUser(proposedBy)?.getFullname(),
+                mayAccept = timesheetDao.hasForeignTimesheetWriteAccess(user, obj.taskId),
+            )
+        } else if (obj.acceptancePending) {
+            timesheet.acceptance = Timesheet.Acceptance()
+        }
         // PFDay.fromOrNull(timesheet.startTime)
         return timesheet
     }
@@ -277,6 +292,12 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         // TimesheetDao.hasUpdateAccess fails with an IllegalArgumentException (500 instead of a field error).
         if (dto.task?.id == null) {
             validationErrors.add(ValidationError.createFieldRequired(TimesheetDO::class.java, "task"))
+        } else if (dto.kost2?.id == null && Configuration.instance.isCostConfigured &&
+            !taskTree.getKost2List(dto.task?.id).isNullOrEmpty()
+        ) {
+            // As TimesheetDao.validateKost2, but as field error and before the access check: a user booking by an ad
+            // hoc grant restricted to cost units would otherwise get an access violation for the missing cost unit.
+            validationErrors.add(ValidationError(translate("timesheet.error.kost2Required"), fieldId = "kost2"))
         }
         if (baseDao.timeSavingsByAIEnabled) {
             timesheetDao.validateTimeSavingsByAI(dto.timeSavedByAI, dto.timeSavedByAIUnit)?.let {
@@ -547,6 +568,24 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
     }
 
     /**
+     * The save of the edit form accepting a time sheet booked by a grant an employee proposed (see
+     * [TimesheetDao.runAccepting]), with the changes of the form (e.g. another task or cost unit). By who may edit the
+     * time sheets of others on its stored task.
+     */
+    @AccessChecked("TimesheetDao.runAccepting/onUpdate: hasForeignTimesheetWriteAccess on the stored task, update access")
+    @PostMapping("accept")
+    fun accept(
+        request: HttpServletRequest,
+        @Valid @RequestBody postData: PostData<Timesheet>,
+    ): ResponseEntity<ResponseAction> {
+        sessionCsrfService.validateCsrfToken(request, postData, "Accept time sheet")?.let { return it }
+        val obj = transformForDB(postData.data)
+        return timesheetDao.runAccepting {
+            saveOrUpdate(request, baseDao, obj, postData, this, validate(obj, postData), OperationType.UPDATE)
+        }
+    }
+
+    /**
      * Stores the column state of the recent entries' table (order, width, visibility, pinning, sorting) in the
      * user's prefs — in a slot of its own, apart from the time sheet list's ([updateColumnStates]).
      */
@@ -732,6 +771,8 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         // toggle can switch it off), and keep only sheets booked on a billable cost unit.
         elements.add(UIFilterBooleanElement("recursive", label = translate("task.recursive"), defaultFilter = true))
         elements.add(UIFilterBooleanElement("onlyBillable", label = translate("task.onlyBillable")))
+        // The sheets booked by a grant an employee proposed, still to be accepted by the project management.
+        elements.add(UIFilterBooleanElement(ACCEPTANCE_PENDING_FILTER, label = translate("timesheet.filter.acceptancePending")))
         // The legacy form's "only collisions" option: the sheets that overlap in time with another sheet of the
         // same user (see TimesheetCollisionFilter).
         elements.add(
@@ -922,6 +963,12 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
             entry.synthetic = true
             if (entry.value.value == "true") {
                 filters.add(TimesheetBillableFilter())
+            }
+        }
+        source.entries.find { it.field == ACCEPTANCE_PENDING_FILTER }?.let { entry ->
+            entry.synthetic = true
+            if (entry.value.value == "true") {
+                target.add(QueryFilter.eq("acceptancePending", true))
             }
         }
         source.entries.find { it.field == "hasJiraIssues" }?.let { entry ->
@@ -1153,6 +1200,9 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         /** The list columns showing the start pre-formatted (see [postProcessMagicFilter]). */
         private val START_TIME_SORT_ALIASES = setOf("weekOfYear", "dayName")
 
+        /** The list filter of the time sheets to be accepted ([TimesheetDO.acceptancePending]). */
+        const val ACCEPTANCE_PENDING_FILTER = "acceptancePending"
+
         /** User-pref name the chosen PDF-export options are stored under, in this entity's category. */
         private const val USER_PREF_PARAM_PDF_EXPORT = "pdfExport"
 
@@ -1172,7 +1222,9 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
                     !it.fromValue.isNullOrBlank() || !it.toValue.isNullOrBlank() || !it.value.isNullOrBlank() || it.id != null
                 }
             }
-            return listOf("period", "startTime", "stopTime", "task").none { hasValue(it) }
+            // The sheets to accept are few: no period needed.
+            val toAccept = filter.entries.any { it.field == ACCEPTANCE_PENDING_FILTER && it.value.value == "true" }
+            return !toAccept && listOf("period", "startTime", "stopTime", "task").none { hasValue(it) }
         }
     }
 }

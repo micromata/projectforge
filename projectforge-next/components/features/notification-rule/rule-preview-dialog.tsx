@@ -10,7 +10,10 @@ import {
 import { RichText } from "@/components/shared/rich-text";
 import type { NotificationPreview } from "@/lib/rs/notification";
 
-/** Who the rule would notify today, and its texts rendered with the values of the logged-in user. */
+/**
+ * Who the rule would notify today, and its texts rendered with the values of the logged-in user and with example
+ * values.
+ */
 export function RulePreviewDialog({
   preview,
   onOpenChange,
@@ -53,6 +56,13 @@ export function RulePreviewDialog({
               </p>
               <p className="font-medium">{preview.subject}</p>
               <RichText html={preview.text} />
+            </div>
+            <div className="space-y-2 rounded-md border p-3">
+              <p className="text-xs text-muted-foreground">
+                {t("preview.withExamples")}
+              </p>
+              <p className="font-medium">{preview.exampleSubject}</p>
+              <RichText html={preview.exampleText} />
             </div>
           </div>
         )}

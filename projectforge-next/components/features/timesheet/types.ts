@@ -93,6 +93,8 @@ export interface TimesheetDetail {
    * reads the text from here (see TIMESHEET_PAGE `editFooter`).
    */
   timeSavingsByAINote?: string | null;
+  /** Set if the sheet is to be accepted by the project management (transient, server set). */
+  acceptance?: TimesheetAcceptance | null;
   /** Position in the recent list — the backend's key for an entry that has no id (see RecentTimesheets). */
   counter?: number | null;
   deleted?: boolean;
@@ -130,4 +132,15 @@ export interface TimesheetListRow {
   tag?: string | null;
   description?: string | null;
   created?: string | null;
+  /** Set if the sheet is to be accepted by the project management (see TimesheetAcceptance). */
+  acceptance?: TimesheetAcceptance | null;
+}
+
+/**
+ * `Timesheet.Acceptance`: the sheet was booked by an ad hoc booking grant proposed without the right to
+ * grant and is to be accepted by the project management. The two fields are sent by the edit only.
+ */
+export interface TimesheetAcceptance {
+  proposedByName?: string | null;
+  mayAccept?: boolean | null;
 }

@@ -83,15 +83,23 @@ class CreditorInvoicesDueRuleHandler : NotificationRuleHandler {
         // invoices are loaded once per run, not per recipient.
         return NotificationRuleHandler.Evaluation(
             today.toString(), emptyMap(), CREDITOR_INVOICE_PATH, restrictsRecipients = false,
-            variablesFor = { user -> variables(rule, invoices, user) },
+            variablesFor = { user -> variables(rule, invoices.map { it.toRow() }, user) },
         )
     }
 
     override fun variables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> {
-        return variables(rule, dueInvoices(rule, today), user)
+        return variables(rule, dueInvoices(rule, today).map { it.toRow() }, user)
     }
 
-    private fun variables(rule: NotificationRuleDO, invoices: List<DueInvoice>, user: PFUserDO): Map<String, String> {
+    override fun exampleVariables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> {
+        val rows = listOf(
+            InvoiceRow("Beispiel AG", "2026-0815", today, BigDecimal("89.90"), null),
+            InvoiceRow("Muster GmbH", "RE-4711", today.plusDays(2), BigDecimal("1234.50"), null),
+        )
+        return variables(rule, rows, user)
+    }
+
+    private fun variables(rule: NotificationRuleDO, invoices: List<InvoiceRow>, user: PFUserDO): Map<String, String> {
         val workingDays = rule.readParams().dueWorkingDays
         val locale = UserLocale.determineUserLocale(user)
         val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)
@@ -101,14 +109,14 @@ class CreditorInvoicesDueRuleHandler : NotificationRuleHandler {
         }
         val systemCurrency = configurationService.currency ?: "EUR"
         // One sum per currency: amounts of different currencies don't add up.
-        val sums = invoices.groupBy { it.invoice.currency ?: systemCurrency }
-            .map { (currency, list) -> "${numberFormat.format(list.sumOf { it.info.grossSum })} $currency" }
-        val list = invoices.take(MAX_INVOICES).map { (invoice, info) ->
+        val sums = invoices.groupBy { it.currency ?: systemCurrency }
+            .map { (currency, list) -> "${numberFormat.format(list.sumOf { it.grossSum })} $currency" }
+        val list = invoices.take(MAX_INVOICES).map { row ->
             listOfNotNull(
-                invoice.kreditor,
-                invoice.referenz,
-                info.faelligkeit?.format(dateFormatter),
-                "${numberFormat.format(info.grossSum)} ${invoice.currency ?: systemCurrency}",
+                row.kreditor,
+                row.referenz,
+                row.faelligkeit?.format(dateFormatter),
+                "${numberFormat.format(row.grossSum)} ${row.currency ?: systemCurrency}",
             ).joinToString(", ")
         }.toMutableList()
         if (invoices.size > MAX_INVOICES) {
@@ -152,7 +160,18 @@ class CreditorInvoicesDueRuleHandler : NotificationRuleHandler {
         return result
     }
 
-    internal data class DueInvoice(val invoice: EingangsrechnungDO, val info: RechnungInfo)
+    internal data class DueInvoice(val invoice: EingangsrechnungDO, val info: RechnungInfo) {
+        fun toRow() = InvoiceRow(invoice.kreditor, invoice.referenz, info.faelligkeit, info.grossSum, invoice.currency)
+    }
+
+    /** What the variables show of an invoice (a real one or an example). */
+    internal class InvoiceRow(
+        val kreditor: String?,
+        val referenz: String?,
+        val faelligkeit: LocalDate?,
+        val grossSum: BigDecimal,
+        val currency: String?,
+    )
 
     /** The invoices due, the earliest due date first. */
     internal fun dueInvoices(rule: NotificationRuleDO, today: LocalDate): List<DueInvoice> {

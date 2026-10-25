@@ -275,6 +275,26 @@ class NotificationServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun exampleVariablesTest() {
+        val user = initTestDB.addUser("notification-examples-user")
+        NotificationRuleType.entries.filter { it != NotificationRuleType.MANUAL }.forEach { type ->
+            val examples = notificationService.exampleVariables(type, user)
+            notificationService.variables(type).forEach { key ->
+                assertTrue(!examples[key].isNullOrBlank(), "Example of $key ($type) missing.")
+            }
+        }
+        val rule = NotificationRuleDO().also {
+            it.ruleType = NotificationRuleType.CREDITOR_INVOICES_DUE
+            it.subject = "{{creditorInvoicesDueCount}} invoices"
+            it.text = "<p>{{creditorInvoicesDueList}}</p>"
+        }
+        val preview = notificationService.preview(rule, user)
+        assertEquals("2 invoices", preview.exampleSubject)
+        assertTrue(preview.exampleText.contains("RE-4711"), preview.exampleText)
+        assertFalse(preview.exampleText.contains("{{"), preview.exampleText)
+    }
+
+    @Test
     fun expireOfDeletedRuleTest() {
         val user = initTestDB.addUser("notification-deleted-rule-user")
         val rule = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery())

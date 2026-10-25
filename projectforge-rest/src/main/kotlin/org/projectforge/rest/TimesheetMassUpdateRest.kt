@@ -91,6 +91,9 @@ class TimesheetMassUpdateRest : AbstractMassUpdateRest<TimesheetDO>() {
             // here only for its position - right below the activity report (description) - in the field
             // order the client shows and the preview sorts by.
             MassUpdateFieldDeclaration("taskAndKost2", custom = true),
+            // Accepting the sheets booked by a grant an employee proposed (see TimesheetDao.runAccepting), together
+            // with a move by the picker above, if chosen: a checkbox the next page renders itself.
+            MassUpdateFieldDeclaration(ACCEPT_PENDING, custom = true),
         )
         // Only where tags are configured at all - no timesheet is known here, so the current tag of one
         // cannot be added (see [TimesheetDao.getTags]); without any tag the field is left out entirely.
@@ -217,7 +220,7 @@ class TimesheetMassUpdateRest : AbstractMassUpdateRest<TimesheetDO>() {
         if (field == "taskAndKost2") {
             return param.change == true && (params["task"]?.id != null || params["kost2"]?.id != null)
         }
-        if (field == KOST2_REMAP) {
+        if (field == KOST2_REMAP || field == ACCEPT_PENDING) {
             return param.change == true
         }
         return super.checkParamHasAction(params, param, field)
@@ -228,6 +231,8 @@ class TimesheetMassUpdateRest : AbstractMassUpdateRest<TimesheetDO>() {
         massUpdateContext: MassUpdateContext<TimesheetDO>
     ) {
         val params = massUpdateContext.massUpdateParams
+        // The preview shows the value as-is; without one it would read "set to <empty>".
+        params[ACCEPT_PENDING]?.takeIf { it.change == true }?.textValue = translate("yes")
         if (params[KOST2_REMAP]?.change == true) {
             // A mode of its own: every sheet keeps its task, so a picked task or cost unit is not applied.
             params.remove("task")
@@ -275,6 +280,9 @@ class TimesheetMassUpdateRest : AbstractMassUpdateRest<TimesheetDO>() {
         if (field == KOST2_REMAP) {
             return translate("timesheet.massupdate.remapKost2")
         }
+        if (field == ACCEPT_PENDING) {
+            return translate("timesheet.acceptance.accept")
+        }
         return super.getFieldTranslation(field)
     }
 
@@ -293,7 +301,8 @@ class TimesheetMassUpdateRest : AbstractMassUpdateRest<TimesheetDO>() {
         val availableKost2s = taskTree.getKost2List(taskId)
         val kost2Id = params["kost2"]?.id
         val remapKost2 = params[KOST2_REMAP]?.change == true
-        massUpdateContext.ignoreFieldsForModificationCheck = listOf("taskAndKost2", KOST2_REMAP)
+        val accept = params[ACCEPT_PENDING]?.change == true
+        massUpdateContext.ignoreFieldsForModificationCheck = listOf("taskAndKost2", KOST2_REMAP, ACCEPT_PENDING)
         timesheets.forEach { timesheet ->
             massUpdateContext.startUpdate(timesheet)
             TextFieldModification.processTextParameter(timesheet, "bemerkung", params)
@@ -339,12 +348,21 @@ class TimesheetMassUpdateRest : AbstractMassUpdateRest<TimesheetDO>() {
                 }
             }
             val remapError = if (remapKost2) remapKost2(timesheet, massUpdateContext) else null
+            val accepting = accept && timesheet.acceptancePending
+            if (accepting) {
+                // Recorded, so a sheet only accepted counts as modified (no param names the field).
+                massUpdateContext.recordCurrentModification("acceptancePending", translate("yes"), translate("no"))
+            }
             massUpdateContext.commitUpdate(
                 identifier4Message = "${timesheet.user?.getFullname()} ${timesheet.timePeriod.formattedString}",
                 timesheet,
                 update = {
                     remapError?.let { throw it }
-                    timesheetDao.update(timesheet)
+                    if (accepting) {
+                        timesheetDao.accept(timesheet)
+                    } else {
+                        timesheetDao.update(timesheet)
+                    }
                 },
             )
         }
@@ -417,6 +435,9 @@ class TimesheetMassUpdateRest : AbstractMassUpdateRest<TimesheetDO>() {
     companion object {
         /** The mode that moves each sheet's cost unit to the same type of its own task, see [remapKost2]. */
         internal const val KOST2_REMAP = "kost2Remap"
+
+        /** Accepts the sheets to be accepted (see [TimesheetDao.runAccepting]). */
+        internal const val ACCEPT_PENDING = "acceptPending"
 
         private const val MAX_OFFERED_KOST2_IN_MESSAGE = 10
     }

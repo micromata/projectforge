@@ -75,8 +75,11 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     NotificationRuleDao::class.java, "notification.rule",
 ) {
     /** A variable `{{key}}` of the rule texts with its translated label. */
-    /** [common]: available for every rule type (names of the recipient), otherwise only for the given one. */
-    class Variable(val key: String, val label: String, val common: Boolean)
+    /**
+     * [common]: available for every rule type (names of the recipient), otherwise only for the given one. [example]:
+     * how a value looks (e.g. a list of invoices), from synthetic data.
+     */
+    class Variable(val key: String, val label: String, val common: Boolean, val example: String?)
 
     /** A menu item a rule may show its notifications on as a counter. */
     class MenuBadgeOption(val id: String, val label: String)
@@ -89,6 +92,9 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         val periodKey: String?,
         val subject: String,
         val text: String,
+        /** Subject and text rendered with example values. */
+        val exampleSubject: String,
+        val exampleText: String,
     )
 
     class TestResult(val delivered: List<NotificationChannel>, val failed: Map<NotificationChannel, String>)
@@ -215,8 +221,9 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     @GetMapping("variables")
     fun getVariables(@RequestParam("ruleType", required = false) ruleType: NotificationRuleType?): List<Variable> {
         checkInsertAccess()
+        val examples = notificationService.exampleVariables(ruleType, ThreadLocalUserContext.requiredLoggedInUser)
         return notificationService.variables(ruleType).map {
-            Variable(it, translate("notification.variable.$it"), it in NotificationService.COMMON_VARIABLES)
+            Variable(it, translate("notification.variable.$it"), it in NotificationService.COMMON_VARIABLES, examples[it])
         }
     }
 
@@ -244,6 +251,8 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
             periodKey = preview.periodKey,
             subject = preview.subject,
             text = preview.text,
+            exampleSubject = preview.exampleSubject,
+            exampleText = preview.exampleText,
         )
     }
 

@@ -32,12 +32,16 @@ import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostHelper
 import org.projectforge.business.task.*
+import org.projectforge.business.task.bookinggrant.TaskBookingGrantCache
+import org.projectforge.business.task.bookinggrant.TaskBookingGrantDao
 import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessType
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
@@ -61,6 +65,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * For serving the task tree as tree or table..
@@ -155,6 +160,21 @@ class TaskServicesRest {
     )
 
     enum class TreeStatus { LEAF, OPENED, CLOSED }
+    enum class BookingGrantNode { GRANT, PATH }
+
+    /**
+     * A current ad hoc booking grant with a position on a node, for the badge in the tree (see
+     * [Task.bookingGrants]).
+     * @param upcoming Whether its period hasn't begun yet.
+     * @param acceptanceRequired Proposed by an employee: its time sheets are to be accepted.
+     */
+    class BookingGrantBadge(
+        val userName: String?,
+        val validFrom: LocalDate,
+        val validUntil: LocalDate,
+        val upcoming: Boolean,
+        val acceptanceRequired: Boolean = false,
+    )
     class Task(
         val id: Long,
         /**
@@ -221,6 +241,24 @@ class TaskServicesRest {
          */
         val deleted: Boolean = false,
     ) {
+        /**
+         * Set for a node the user sees only by an ad hoc booking grant ([TaskBookingGrantCache]): a granted task
+         * ([BookingGrantNode.GRANT], which may be booked on) or one of its ancestors ([BookingGrantNode.PATH], only
+         * shown, not selectable). Nothing else of such a node is sent but its title.
+         */
+        var bookingGrant: BookingGrantNode? = null
+
+        /**
+         * The current ad hoc booking grants on this node, of all users: only for who may grant on it (the names are
+         * nobody else's business), and not in the select popover. Null if there are none.
+         */
+        var bookingGrants: List<BookingGrantBadge>? = null
+
+        /**
+         * The number of time sheets on this node to be accepted by the project management (booked by a grant an
+         * employee proposed), for who may grant on it only, as [bookingGrants]. Null if there are none.
+         */
+        var pendingTimesheets: Int? = null
         /**
          * The status as the user reads it. `deleted` wins over the status itself: a deleted task is
          * gone, and its last status says nothing worth reading (Wicket shows the status struck
@@ -487,6 +525,12 @@ class TaskServicesRest {
         val withOrders: Boolean = false,
         /** Whether the answer carries each node's groups with access rights, i. e. whether the user is an admin. */
         val withGroupAccess: Boolean = false,
+        /** The tasks the user has a current booking grant for. */
+        val grantTaskIds: Set<Long> = emptySet(),
+        /** [grantTaskIds] and their ancestors: shown to the user by title only, if not visible anyway. */
+        val grantPathTaskIds: Set<Long> = emptySet(),
+        /** Whether the answer carries the booking grants on each node ([Task.bookingGrants]), not in select mode. */
+        val withBookingGrants: Boolean = false,
     )
 
     private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
@@ -514,6 +558,15 @@ class TaskServicesRest {
 
     @Autowired
     private lateinit var recentTaskService: RecentTaskService
+
+    @Autowired
+    private lateinit var taskBookingGrantCache: TaskBookingGrantCache
+
+    @Autowired
+    private lateinit var taskBookingGrantDao: TaskBookingGrantDao
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
 
     /**
      * The columns of the task tree, in the order the Wicket page shows them.
@@ -649,6 +702,7 @@ class TaskServicesRest {
      * @param deleted Show deleted tasks. For initial = true, this value is ignored.
      * @return json
      */
+    @AccessChecked("Nodes filtered by TaskDao select access; nodes of the user's booking grants by title only")
     @GetMapping("tree")
     fun getTree(
         request: HttpServletRequest,
@@ -713,11 +767,16 @@ class TaskServicesRest {
             withOrders = !selectMode && taskTree.hasOrderPositionsEntries() &&
                     accessChecker.isLoggedInUserMemberOfGroup(*TaskColumnVisibility.ORDER_GROUPS),
             withGroupAccess = !selectMode && accessChecker.isLoggedInUserMemberOfAdminGroup,
+            grantTaskIds = taskBookingGrantCache.getCurrentTaskIds(ThreadLocalUserContext.loggedInUserId),
+            grantPathTaskIds = taskBookingGrantCache.getVisiblePathTaskIds(ThreadLocalUserContext.loggedInUserId),
+            withBookingGrants = !selectMode,
         )
         openTask(ctx, open)
         closeTask(ctx, close)
         if (initial == true) {
             openTask(ctx, highlightedTaskId) // Only open on initial call.
+            // The granted tasks are what the user came for, and their ancestors are nothing to browse in.
+            ctx.grantTaskIds.forEach { openTask(ctx, taskTree.getTaskNodeById(it)?.parentId) }
         }
         // openNodes is mutated in place above and is the instance held in UserPrefCache, so it is persisted
         // to the DB on the next flush (periodic refresh or graceful shutdown) — no explicit putEntry here.
@@ -728,7 +787,9 @@ class TaskServicesRest {
         // real root's would. buildTree only recurses into the real root or an opened node, so the pseudo-root
         // is opened first (openTask). A node the user may not select is ignored, falling back to the full tree.
         val rerootNode = rootTaskId?.let { taskTree.getTaskNodeById(it) }
-            ?.takeIf { taskDao.hasUserSelectAccess(ctx.user, it.getTask(), false) }
+            ?.takeIf {
+                taskDao.hasUserSelectAccess(ctx.user, it.getTask(), false) || it.taskId in ctx.grantPathTaskIds
+            }
         val rootNode = rerootNode ?: taskTree.rootTaskNode
         if (rerootNode != null) {
             openTask(ctx, rerootNode.taskId)
@@ -790,11 +851,56 @@ class TaskServicesRest {
      * @param id Task id.
      * @return json
      */
+    @AccessChecked("TaskDao select access; reduced info for own time sheet or booking grant access only")
     @GetMapping("info/{id}")
     fun getTaskInfo(@PathVariable("id") id: Long?): ResponseEntity<Task> {
-        // The info feeds the time sheet form's task picker (and the select fields, which show no consumption).
-        val task = createTask(id, budgetConsumption = true) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        val node = taskTree.getTaskNodeById(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        if (taskDao.hasUserSelectAccess(user, node.task, false)) {
+            // The info feeds the time sheet form's task picker (and the select fields, which show no consumption).
+            val task = createTask(id, budgetConsumption = true) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+            return ResponseEntity(task, HttpStatus.OK)
+        }
+        // Not found rather than forbidden: whoever may not see the task doesn't learn that it exists.
+        val task = createRestrictedTask(user, node) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         return ResponseEntity(task, HttpStatus.OK)
+    }
+
+    /**
+     * What a user sees of a task without select access, but booking on it: by an ad hoc booking grant or by the
+     * right to book own time sheets ([AccessType.OWN_TIMESHEETS]) only. The title, the titles of the ancestors and the
+     * bookable cost units (of a grant with a cost unit only this one), nothing of the project, its customer or the
+     * consumption. An ancestor of a granted task only by its title and path.
+     *
+     * @return null, if the user may see nothing of the task.
+     */
+    private fun createRestrictedTask(user: PFUserDO, node: TaskNode): Task? {
+        val userId = user.id
+        val granted = node.taskId in taskBookingGrantCache.getCurrentTaskIds(userId)
+        val bookable = granted ||
+                accessChecker.hasPermission(user, node.taskId, AccessType.OWN_TIMESHEETS, OperationType.SELECT, false)
+        val onGrantPath = node.taskId in taskBookingGrantCache.getVisiblePathTaskIds(userId)
+        if (!bookable && !onGrantPath) {
+            return null
+        }
+        val task = Task(id = node.taskId, title = node.task.title, deleted = node.task.deleted)
+        task.path = taskTree.getPathToRoot(node.parentId).map { Task(id = it.task.id!!, title = it.task.title) }
+        if (bookable) {
+            addKost2List(task)
+            if (granted) {
+                taskBookingGrantCache.getAllowedKost2Ids(userId, node.taskId)?.let { kost2Ids ->
+                    task.kost2List = task.kost2List?.filter { it.id in kost2Ids }
+                }
+                task.bookingGrant = BookingGrantNode.GRANT
+            }
+            // Not the wild card and lines of all cost units: the list above may be reduced.
+            task.kost2WildCard = null
+            task.kost2ListAsLines = null
+            task.costConfigured = Configuration.instance.isCostConfigured
+        } else {
+            task.bookingGrant = BookingGrantNode.PATH
+        }
+        return task
     }
 
     /**
@@ -830,16 +936,24 @@ class TaskServicesRest {
         filter.searchFields = AUTOCOMPLETE_SEARCH_FIELDS
         filter.searchString = search
         val taskTree = TaskTree.instance
-        if (onlyBookable != true) {
+        // The tasks of the user's booking grants first: not found by the query, which drops what the user may not see.
+        val granted = taskBookingGrantCache.getCurrentTaskIds(ThreadLocalUserContext.loggedInUserId)
+            .map { AbstractEntityRest.DisplayObject(it, formatPath(it)) }
+            .filter { search.isNullOrBlank() || it.displayName?.contains(search.trim(), ignoreCase = true) == true }
+            .sortedBy { it.displayName?.lowercase() }
+        val found = if (onlyBookable != true) {
             maxResults?.let { filter.maxRows = it }
-            return taskDao.select(filter).map { AbstractEntityRest.DisplayObject(it.id, formatPath(it.id)) }
+            taskDao.select(filter).map { AbstractEntityRest.DisplayObject(it.id, formatPath(it.id)) }
+        } else {
+            // The limit after the bookable filter, not in the query: most matches may be closed or otherwise not
+            // bookable, and a limited query would leave only a few of them.
+            taskDao.select(filter)
+                .filter { taskTree.getTaskNodeById(it.id)?.isBookableForTimesheets == true }
+                .map { AbstractEntityRest.DisplayObject(it.id, formatPath(it.id)) }
         }
-        // The limit after the bookable filter, not in the query: most matches may be closed or otherwise not
-        // bookable, and a limited query would leave only a few of them.
-        return taskDao.select(filter)
-            .filter { taskTree.getTaskNodeById(it.id)?.isBookableForTimesheets == true }
+        val grantedIds = granted.map { it.id }.toSet()
+        return (granted + found.filter { it.id !in grantedIds })
             .let { list -> maxResults?.let { list.take(it) } ?: list }
-            .map { AbstractEntityRest.DisplayObject(it.id, formatPath(it.id)) }
     }
 
     /**
@@ -894,9 +1008,13 @@ class TaskServicesRest {
         return getRecentList()
     }
 
+    /**
+     * Select access, or a current booking grant on the task: the task the user books on by it is a pick like any other.
+     */
     private fun hasSelectAccess(taskId: Long): Boolean {
         val node = TaskTree.instance.getTaskNodeById(taskId) ?: return false
-        return taskDao.hasLoggedInUserSelectAccess(node.task, false)
+        return taskDao.hasLoggedInUserSelectAccess(node.task, false) ||
+                taskId in taskBookingGrantCache.getCurrentTaskIds(ThreadLocalUserContext.loggedInUserId)
     }
 
     /**
@@ -947,7 +1065,8 @@ class TaskServicesRest {
      * @param indent null for tree view, int for table view.
      */
     private fun buildTree(ctx: BuildContext, task: Task, taskNode: TaskNode, indent: Int? = null) {
-        if (!taskNode.hasChildren()) {
+        if (!taskNode.hasChildren() || (task.bookingGrant != null && !hasVisibleChildren(ctx, taskNode))) {
+            // A node shown by a booking grant only has the children the user may see otherwise or by a grant.
             task.treeStatus = TreeStatus.LEAF
             return
         }
@@ -957,12 +1076,26 @@ class TaskServicesRest {
             // Case-insensitive, as Wicket's TaskTreeBuilder sorted ("alpha" before "Zeta").
             children.sortBy { it.task.title?.lowercase() ?: "" }
             children.forEach { node ->
-                if (ctx.taskFilter.match(node, taskDao, ctx.user) &&
-                    taskDao.hasUserSelectAccess(ctx.user, node.getTask(), false)
-                ) {
-                    val child = Task(node)
-                    addKost2List(child, includeKost2ObjectList = false, recursive = false)
-                    child.consumption = Consumption.create(node)
+                val visible = ctx.taskFilter.match(node, taskDao, ctx.user) &&
+                        taskDao.hasUserSelectAccess(ctx.user, node.getTask(), false)
+                // A granted task or an ancestor of it the user may not see otherwise: its title only, whatever the
+                // filter says (a few nodes, and the only ones such a user has).
+                val grantOnly = !visible && node.taskId in ctx.grantPathTaskIds
+                if (visible || grantOnly) {
+                    val child = if (visible) {
+                        Task(node).also {
+                            addKost2List(it, includeKost2ObjectList = false, recursive = false)
+                            it.consumption = Consumption.create(node)
+                            if (node.taskId in ctx.grantTaskIds) {
+                                it.bookingGrant = BookingGrantNode.GRANT
+                            }
+                        }
+                    } else {
+                        Task(id = node.taskId, title = node.task.title, deleted = node.task.deleted).also {
+                            it.bookingGrant =
+                                if (node.taskId in ctx.grantTaskIds) BookingGrantNode.GRANT else BookingGrantNode.PATH
+                        }
+                    }
                     if (indent != null) {
                         // Flat (table) view: every visible node is a row of its own, carrying its depth as
                         // `indent`. The whole tree is returned down to the opened nodes — the select popover
@@ -970,20 +1103,29 @@ class TaskServicesRest {
                         // the row client-side, rather than hiding the rest of the tree around it.
                         ctx.result.nodes.add(child)
                         child.indent = indent
-                        completeVisible(ctx, child)
+                        if (visible) completeVisible(ctx, child)
                         buildTree(ctx, child, node, indent + 1)
                     } else {
                         // TaskNode has children and is opened:
                         if (task.children == null)
                             task.children = mutableListOf()
                         task.children!!.add(child)
-                        completeVisible(ctx, child)
+                        if (visible) completeVisible(ctx, child)
                         buildTree(ctx, child, node, null) // Build as tree
                     }
                 }
             }
         } else {
             task.treeStatus = TreeStatus.CLOSED
+        }
+    }
+
+    /**
+     * Whether any child of the node is shown to the user: by select access or as a node of a booking grant.
+     */
+    private fun hasVisibleChildren(ctx: BuildContext, taskNode: TaskNode): Boolean {
+        return taskNode.children.any {
+            it.taskId in ctx.grantPathTaskIds || taskDao.hasUserSelectAccess(ctx.user, it.getTask(), false)
         }
     }
 
@@ -1000,6 +1142,29 @@ class TaskServicesRest {
         if (ctx.withGroupAccess) {
             addGroupAccess(task)
         }
+        if (ctx.withBookingGrants) {
+            addBookingGrants(ctx.user, task)
+        }
+    }
+
+    private fun addBookingGrants(user: PFUserDO, task: Task) {
+        val grants = taskBookingGrantCache.getCurrentGrantsOnTask(task.id)
+        // Also after the end of the grants: time sheets may still be to be accepted.
+        val pending = taskBookingGrantCache.getPendingTimesheetCount(task.id)
+        if ((grants.isEmpty() && pending == 0) || !taskBookingGrantDao.mayGrant(user, task.id)) {
+            return
+        }
+        val today = PFDay.now().localDate
+        task.bookingGrants = grants.sortedWith(compareBy({ it.validFrom }, { it.id })).map {
+            BookingGrantBadge(
+                userName = userGroupCache.getUser(it.userId)?.getFullname(),
+                validFrom = it.validFrom,
+                validUntil = it.validUntil,
+                upcoming = it.validFrom.isAfter(today),
+                acceptanceRequired = it.acceptanceRequired,
+            )
+        }.ifEmpty { null }
+        task.pendingTimesheets = pending.takeIf { it > 0 }
     }
 
     private fun openTask(ctx: BuildContext, taskId: Long?) {

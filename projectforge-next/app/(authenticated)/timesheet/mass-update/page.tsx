@@ -4,6 +4,7 @@ import { MassUpdatePage } from "@/components/shared/list/mass-update-page";
 import { SelectedEntriesPanel } from "@/components/shared/list/selected-entries-panel";
 import { TIMESHEET_PAGE } from "@/components/features/timesheet/timesheet.page";
 import { TaskKost2MassUpdateField } from "@/components/features/timesheet/mass-update/task-kost2-mass-update-field";
+import { AcceptPendingCheckbox } from "@/components/features/timesheet/mass-update/accept-pending-checkbox";
 
 /**
  * Reached from the list, never linked directly: the selection this changes lives in the HTTP session,
@@ -29,6 +30,10 @@ export default function TimesheetMassUpdatePage() {
             initialTaskId={meta.initialParams?.task?.id ?? null}
             initialKost2Id={meta.initialParams?.kost2?.id ?? null}
           />
+        ),
+        // Accepting the sheets to be accepted (booked by a proposed grant), with the move above, if any.
+        acceptPending: (setParam) => (
+          <AcceptPendingCheckbox setParam={setParam} />
         ),
       }}
       // Built here rather than inside the generic page, because it renders the timesheet list's own

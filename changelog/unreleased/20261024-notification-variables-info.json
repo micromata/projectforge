@@ -6,6 +6,10 @@
     {
       "en": "The rule editor lists the variables available for subject and text (general ones and those of the rule type), each with a button to copy it.",
       "de": "Der Regel-Editor listet die für Betreff und Text verfügbaren Variablen auf (allgemeine und die des Regeltyps), jede mit einem Button zum Kopieren."
+    },
+    {
+      "en": "The variables come with an example value each, so it is visible how e.g. a list of invoices looks; the preview also shows the texts with example values.",
+      "de": "Zu jeder Variablen wird ein Beispielwert gezeigt, so ist z. B. erkennbar, wie eine Liste von Rechnungen aussieht; die Vorschau zeigt die Texte auch mit Beispielwerten."
     }
   ]
 }

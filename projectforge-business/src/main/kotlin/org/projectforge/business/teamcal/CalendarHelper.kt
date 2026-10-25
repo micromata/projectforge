@@ -53,6 +53,16 @@ object CalendarHelper {
     return buf.toString()
   }
 
+  /**
+   * The title of the time sheet's task (abbreviated): the event title of the calendar, matching the task of its
+   * tooltip. [getTitle] (the project of the cost unit) stays for the subscription and the vacation bookings.
+   */
+  @JvmStatic
+  fun getTaskTitle(timesheet: TimesheetDO): String {
+    PfCaches.instance.initialize(timesheet)
+    return StringUtils.abbreviate(timesheet.task?.title ?: "", 60)
+  }
+
   @JvmStatic
   fun getDescription(timesheet: TimesheetDO): String {
     val location = timesheet.location

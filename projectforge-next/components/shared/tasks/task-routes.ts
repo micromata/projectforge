@@ -83,6 +83,22 @@ export function taskHref(id: number, options?: { returnTo?: string }): string {
 }
 
 /**
+ * The id of the task form's section of the ad hoc booking grants, the anchor a link to it carries (the
+ * form opens the section the url's hash names, see EditPageShell).
+ */
+export const TASK_BOOKING_GRANTS_SECTION = "bookingGrants";
+
+/**
+ * The url of a task's form opened at its ad hoc booking grants — where the tree's badge of them leads.
+ */
+export function taskBookingGrantsHref(
+  id: number,
+  options?: { returnTo?: string }
+): string {
+  return `${taskHref(id, options)}#${TASK_BOOKING_GRANTS_SECTION}`;
+}
+
+/**
  * The url that adds a task.
  *
  * `parentTaskId` is not a value of the form but a parameter of the *preset*: the backend resolves the

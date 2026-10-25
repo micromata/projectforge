@@ -84,6 +84,9 @@ class NotificationService {
         /** Subject and text rendered for the given user. */
         val subject: String,
         val text: String,
+        /** Subject and text rendered with the [exampleVariables] (if the own values are empty, e.g. no unbooked days). */
+        val exampleSubject: String,
+        val exampleText: String,
     )
 
     /** The result of [sendTestToMe]: the channels delivered and the reasons of the ones not delivered. */
@@ -117,6 +120,17 @@ class NotificationService {
     /** The keys of the variables of the given rule type (`{{key}}`), the common ones first. */
     fun variables(ruleType: NotificationRuleType?): List<String> {
         return COMMON_VARIABLES + (ruleType?.let { handlers[it]?.variables }.orEmpty())
+    }
+
+    /** Example values of the [variables] of the given rule type (with its default params), formatted for the user. */
+    fun exampleVariables(ruleType: NotificationRuleType?, user: PFUserDO): Map<String, String> {
+        return exampleVariables(NotificationRuleDO().also { it.ruleType = ruleType }, user)
+    }
+
+    /** Example values of the [variables] of the given rule (maybe unsaved), formatted for the user. */
+    fun exampleVariables(rule: NotificationRuleDO, user: PFUserDO): Map<String, String> {
+        val handler = rule.ruleType?.let { handlers[it] }
+        return EXAMPLE_COMMON_VARIABLES + handler?.exampleVariables(rule, today(), user).orEmpty()
     }
 
     /** Runs the due rules, then checks the pending notifications for resolution. */
@@ -199,12 +213,15 @@ class NotificationService {
             recipients.count { notificationDao.findByDedupKey(dedupKey(rule, it, evaluation.periodKeyFor(it))) != null }
         } else 0
         val variables = variablesOf(rule, handler, evaluation, today, user)
+        val examples = exampleVariables(rule, user)
         return Preview(
             recipients = recipients,
             alreadyNotified = alreadyNotified,
             periodKey = evaluation?.periodKey,
             subject = NotificationTemplate.renderSubject(rule.subject, variables),
             text = NotificationTemplate.renderText(rule.text, variables),
+            exampleSubject = NotificationTemplate.renderSubject(rule.subject, examples),
+            exampleText = NotificationTemplate.renderText(rule.text, examples),
         )
     }
 
@@ -444,6 +461,14 @@ class NotificationService {
 
         /** The variables of all rule types. */
         val COMMON_VARIABLES = listOf("firstName", "lastName", "fullName", "nickname")
+
+        /** Example values of the [COMMON_VARIABLES]. */
+        private val EXAMPLE_COMMON_VARIABLES = mapOf(
+            "firstName" to "Erika",
+            "lastName" to "Mustermann",
+            "fullName" to "Erika Mustermann",
+            "nickname" to "Erika",
+        )
 
         /** HTML tags, removed to check whether a rich text is empty (e.g. `<p></p>`). */
         private val TAG_REGEX = Regex("<[^>]*>")

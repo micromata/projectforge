@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { EntityListPage } from "@/components/shared/list/entity-list-page";
 import {
+  TIMESHEET_ACCEPTANCE_PENDING_PARAM,
   TIMESHEET_END_DATE_PARAM,
   TIMESHEET_KOST2_ID_PARAM,
   TIMESHEET_KOST2_LABEL_PARAM,
@@ -33,6 +34,8 @@ export default function TimesheetListPage() {
  * - a task's consumption bar (`?taskId=…&taskName=…`, see consumption-cell.tsx) — just the task;
  * - a monthly-employee-report row (see lib/timesheet-links.ts) — the reported user, the exact cost unit
  *   (`kost2.id`) or task, and the month range (`?userId=…&kost2Id=…|taskId=…&startDate=…&endDate=…`).
+ * - the time sheets to be accepted (`?acceptancePending=true`, optionally of one user), from a grant in the
+ *   task form or the notification of the rule `TIMESHEETS_TO_ACCEPT`.
  */
 function TimesheetListBody() {
   const params = useSearchParams();
@@ -44,6 +47,8 @@ function TimesheetListBody() {
   const kost2Label = params.get(TIMESHEET_KOST2_LABEL_PARAM) ?? undefined;
   const startDate = params.get(TIMESHEET_START_DATE_PARAM) ?? undefined;
   const endDate = params.get(TIMESHEET_END_DATE_PARAM) ?? undefined;
+  const acceptancePending =
+    params.get(TIMESHEET_ACCEPTANCE_PENDING_PARAM) === "true";
 
   const entries: MagicFilterEntry[] = [];
   if (userId > 0) {
@@ -70,6 +75,14 @@ function TimesheetListBody() {
     entries.push({
       field: "task",
       value: { id: taskId, displayName: taskName },
+    });
+  }
+
+  if (acceptancePending) {
+    // A boolean filter of the backend (TimesheetEntityRest.ACCEPTANCE_PENDING_FILTER), enough without a period.
+    entries.push({
+      field: TIMESHEET_ACCEPTANCE_PENDING_PARAM,
+      value: { value: "true" },
     });
   }
 

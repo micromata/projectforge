@@ -24,6 +24,7 @@ export type NotificationRuleType =
   | "VACATION_LEFT"
   | "PASSWORD_NOT_CHANGED"
   | "TIMESHEETS_WITHOUT_KOST2"
+  | "TIMESHEETS_TO_ACCEPT"
   | "CREDITOR_INVOICES_DUE"
   | "MANUAL";
 
@@ -82,6 +83,8 @@ export interface NotificationVariable {
   label: string;
   /** Available for every rule type (the names of the recipient), otherwise only for the given one. */
   common?: boolean;
+  /** How a value looks (e.g. a list of invoices), from synthetic data. */
+  example?: string | null;
 }
 
 export interface MenuBadgeOption {
@@ -99,6 +102,10 @@ export interface NotificationPreview {
   subject: string;
   /** Sanitized HTML, rendered with the values of the logged-in user. */
   text: string;
+  /** Rendered with example values (the own ones may be empty, e.g. no unbooked days). */
+  exampleSubject: string;
+  /** Sanitized HTML, rendered with example values. */
+  exampleText: string;
 }
 
 export interface NotificationTestResult {
