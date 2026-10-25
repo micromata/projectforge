@@ -9,13 +9,14 @@ import {
 } from "@/components/shared/rich-text";
 import { cn } from "@/lib/utils";
 import { chatEditorExtensions } from "./chat-editor-extensions";
+import { ChatFormatToolbar } from "./chat-format-toolbar";
 import { MentionSuggestionList } from "./mention-suggestion-list";
 import type { ChatEditorHandle } from "./types";
 import { useMentionSuggestion } from "./use-mention-suggestion";
 
 const EMPTY_DOCUMENT = "<p></p>";
 
-/** The images of a paste or a drop, if any. */
+/** The images of a paste, if any. */
 function imageFiles(data: DataTransfer | null): File[] {
   return Array.from(data?.files ?? []).filter((file) =>
     file.type.startsWith("image/")
@@ -23,8 +24,10 @@ function imageFiles(data: DataTransfer | null): File[] {
 }
 
 /**
- * The editor of a chat message (TipTap): bold, italic, lists, links and mentions with suggestions (`@`). Enter
- * submits, Shift+Enter starts a new line; pasted or dropped images go to [onImages]. The content is handed out
+ * The editor of a chat message (TipTap) with its formatting toolbar: bold, italic, underline, strike-through,
+ * lists, links and mentions with suggestions (`@`). Enter submits, Shift+Enter starts a new line; pasted images go
+ * to [onImages]. Dropped files are left to the drop zone around it (ChatComposer), the editor only keeps them
+ * from being inserted. The content is handed out
  * via the ref ([ChatEditorHandle]) when submitting, not on every key stroke; [onChange] only reports whether
  * there is any.
  */
@@ -87,13 +90,8 @@ export const ChatEditor = forwardRef<
         }
         return pasteMarkdown(view, event);
       },
-      handleDrop: (_view, event) => {
-        const files = imageFiles(event.dataTransfer);
-        if (files.length === 0 || !propsRef.current.onImages) return false;
-        event.preventDefault();
-        propsRef.current.onImages(files);
-        return true;
-      },
+      // Handled by the drop zone around the editor, which the drop still reaches.
+      handleDrop: (_view, event) => (event.dataTransfer?.files.length ?? 0) > 0,
     },
   });
   useEffect(() => {
@@ -116,6 +114,7 @@ export const ChatEditor = forwardRef<
 
   return (
     <div className={cn("min-w-0 flex-1", props.className)}>
+      <ChatFormatToolbar editor={editor} />
       <EditorContent editor={editor} />
       <MentionSuggestionList
         state={mention.state}

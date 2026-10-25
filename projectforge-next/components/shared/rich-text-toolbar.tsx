@@ -18,6 +18,7 @@ import {
   TableMenu,
 } from "@/components/shared/rich-text-block-menus";
 import {
+  promptLink,
   ToolbarMenu,
   ToolbarToggle,
 } from "@/components/shared/rich-text-toolbar-controls";
@@ -104,18 +105,7 @@ export function RichTextToolbar({
     }),
   });
 
-  const editLink = () => {
-    if (!editor) return;
-    const previous = editor.getAttributes("link").href as string | undefined;
-    const url = window.prompt(t("link.prompt"), previous ?? "https://")?.trim();
-    if (url === undefined) return;
-    const chain = editor.chain().focus().extendMarkRange("link");
-    if (url === "" || url === "https://") {
-      chain.unsetLink().run();
-    } else {
-      chain.setLink({ href: url }).run();
-    }
-  };
+  const editLink = () => promptLink(editor, t("link.prompt"));
 
   return (
     <div

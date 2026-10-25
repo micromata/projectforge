@@ -5136,6 +5136,7 @@
     },
     "orderedList": "Numbered list",
     "paragraph": "Normal text",
+    "strike": "Strikethrough",
     "table": {
       "_": "Table",
       "addColumnAfter": "Insert column to the right",

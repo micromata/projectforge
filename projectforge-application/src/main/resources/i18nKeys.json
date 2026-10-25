@@ -3767,6 +3767,7 @@
   {"i18nKey":"richTextEditor.link.prompt","bundleName":"I18nResources","translation":"Link address (empty to remove the link):","translationDE":"Link-Adresse (leer, um den Link zu entfernen):","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"richTextEditor.orderedList","bundleName":"I18nResources","translation":"Numbered list","translationDE":"Nummerierte Liste","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"richTextEditor.paragraph","bundleName":"I18nResources","translation":"Normal text","translationDE":"Normaler Text","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"richTextEditor.strike","bundleName":"I18nResources","translation":"Strikethrough","translationDE":"Durchgestrichen","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"richTextEditor.table","bundleName":"I18nResources","translation":"Table","translationDE":"Tabelle","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"richTextEditor.table.addColumnAfter","bundleName":"I18nResources","translation":"Insert column to the right","translationDE":"Spalte rechts einfügen","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"richTextEditor.table.addRowAfter","bundleName":"I18nResources","translation":"Insert row below","translationDE":"Zeile darunter einfügen","usedInClasses":[],"usedInFiles":[]},

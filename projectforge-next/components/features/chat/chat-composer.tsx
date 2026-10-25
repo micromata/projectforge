@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Image01Icon, SentIcon } from "@hugeicons/core-free-icons";
+import { AttachmentDropZone } from "@/components/shared/attachments/attachment-drop-zone";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
 import { sendChatMessage } from "@/lib/rs/chat";
@@ -16,8 +17,8 @@ import { useChatDraft } from "./use-chat-draft";
 import { useImageUploads } from "./use-image-uploads";
 
 /**
- * Writing a message of the conversation or a reply in a thread: the editor, the images (paste, drop or the file
- * dialog) and the send button. The draft is kept until sent.
+ * Writing a message of the conversation or a reply in a thread: the editor, the images (paste, the file dialog or
+ * dropped anywhere on the composer) and the send button. The draft is kept until sent.
  */
 export function ChatComposer({
   conversation,
@@ -63,60 +64,62 @@ export function ChatComposer({
     : t("chat.message.placeholder");
 
   return (
-    <div className="shrink-0 border-t bg-background">
-      <PendingImages images={uploads.images} onRemove={uploads.remove} />
-      <div className="flex items-end gap-1 p-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={t("chat.image.add")}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <HugeiconsIcon icon={Image01Icon} />
-        </Button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/png,image/jpeg,image/gif,image/webp"
-          multiple
-          className="sr-only"
-          tabIndex={-1}
-          aria-hidden
-          onChange={(event) => {
-            uploads.add(Array.from(event.target.files ?? []));
-            event.target.value = "";
-          }}
-        />
-        <ChatEditor
-          ref={editorRef}
-          conversationId={conversation.id}
-          initialHtml={draft.initial}
-          placeholder={placeholder}
-          ariaLabel={placeholder}
-          autoFocus={autoFocus}
-          onSubmit={submit}
-          onImages={uploads.add}
-          onChange={(html) => {
-            setHasText(!!html);
-            draft.save(html);
-          }}
-          className="rounded-md border border-input focus-within:border-ring"
-        />
-        <Button
-          type="button"
-          size="icon"
-          aria-label={t("chat.message.send")}
-          disabled={
-            send.isPending ||
-            uploads.uploading ||
-            (!hasText && uploads.fileIds.length === 0)
-          }
-          onClick={submit}
-        >
-          <HugeiconsIcon icon={SentIcon} />
-        </Button>
+    <AttachmentDropZone onFiles={uploads.add}>
+      <div className="shrink-0 border-t bg-background">
+        <PendingImages images={uploads.images} onRemove={uploads.remove} />
+        <div className="flex items-end gap-1 p-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t("chat.image.add")}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <HugeiconsIcon icon={Image01Icon} />
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/gif,image/webp"
+            multiple
+            className="sr-only"
+            tabIndex={-1}
+            aria-hidden
+            onChange={(event) => {
+              uploads.add(Array.from(event.target.files ?? []));
+              event.target.value = "";
+            }}
+          />
+          <ChatEditor
+            ref={editorRef}
+            conversationId={conversation.id}
+            initialHtml={draft.initial}
+            placeholder={placeholder}
+            ariaLabel={placeholder}
+            autoFocus={autoFocus}
+            onSubmit={submit}
+            onImages={uploads.add}
+            onChange={(html) => {
+              setHasText(!!html);
+              draft.save(html);
+            }}
+            className="rounded-md border border-input focus-within:border-ring"
+          />
+          <Button
+            type="button"
+            size="icon"
+            aria-label={t("chat.message.send")}
+            disabled={
+              send.isPending ||
+              uploads.uploading ||
+              (!hasText && uploads.fileIds.length === 0)
+            }
+            onClick={submit}
+          >
+            <HugeiconsIcon icon={SentIcon} />
+          </Button>
+        </div>
       </div>
-    </div>
+    </AttachmentDropZone>
   );
 }

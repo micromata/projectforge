@@ -5136,6 +5136,7 @@
     },
     "orderedList": "Nummerierte Liste",
     "paragraph": "Normaler Text",
+    "strike": "Durchgestrichen",
     "table": {
       "_": "Tabelle",
       "addColumnAfter": "Spalte rechts einfügen",
