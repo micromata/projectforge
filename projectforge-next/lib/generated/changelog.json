@@ -18,6 +18,9 @@
         "items" : [ "The rule editor lists the variables available for subject and text (general ones and those of the rule type), each with a button to copy it.", "The variables come with an example value each, so it is visible how e.g. a list of invoices looks; the preview also shows the texts with example values." ]
       }, "Time sheet form: the table of recently used entries can be sorted and filtered per column, its columns can be reordered, resized, pinned and hidden; the layout is remembered per user.", "Notifications: delivery steps by SMS to the mobile phone number of the recipients (if SMS is configured), with an own SMS text of the rule or otherwise the subject and the link." ]
     }, {
+      "type" : "improved",
+      "items" : [ "Customer wizard: existing structure elements of the customer and the project can be used instead of new ones, picked from the tree (the title may differ, e.g. \"ACME\" for \"ACME Inc.\") or found automatically by the same title." ]
+    }, {
       "type" : "changed",
       "items" : [ "Order statistics, contribution margin bubble chart: the size of a bubble shows its contribution margin instead of its costs. The switch \"Show titles\" labels the own bubbles with their short title and contribution margin %; switched off, the names are in the tooltip only." ]
     }, {

@@ -49,13 +49,21 @@ export interface ProjectWizardGroup {
 
 /**
  * `ProjectWizardService.Data`. The field ids of the validation errors are the paths into it:
- * `customer.nummer`, `project.name`, `parentTaskId`, `teamGroup.name`, ...
+ * `customer.nummer`, `project.name`, `parentTaskId`, `customerTaskId`, `projectTaskId`, `teamGroup.name`, ...
  */
 export interface ProjectWizardRequest {
   customer: ProjectWizardCustomer;
   /** Null for a new customer only, without project, groups and access rights. */
   project: ProjectWizardProject | null;
   parentTaskId?: number | null;
+  /** New customer only: an existing element to be the customer's, instead of a new one below `parentTaskId`. */
+  customerTaskId?: number | null;
+  /** An existing element is meant for the new customer, so a missing `customerTaskId` is reported. */
+  customerTaskExisting?: boolean;
+  /** An existing element below the customer's to be the project's, instead of a new one. */
+  projectTaskId?: number | null;
+  /** An existing element is meant for the project, so a missing `projectTaskId` is reported. */
+  projectTaskExisting?: boolean;
   managerGroup?: ProjectWizardGroup | null;
   teamGroup?: ProjectWizardGroup | null;
   externalGroup?: ProjectWizardGroup | null;
@@ -66,6 +74,15 @@ export interface ProjectWizardValidation {
   validationErrors: ValidationError[];
   /** The access rights the wizard would write, null as long as no parent element is picked. */
   preview?: TaskWizardResult | null;
+  /**
+   * For a new customer, the existing element that becomes the customer's — picked, or found below the parent
+   * by the customer's name —, absent if a new one is created.
+   */
+  customerTaskId?: number | null;
+  /** The existing element that becomes the project's, picked or found by its title; absent if a new one is created. */
+  projectTaskId?: number | null;
+  /** Why the picked element of a new customer may not be a good choice, which doesn't keep from finishing. */
+  customerTaskWarning?: string | null;
 }
 
 /** `ProjectWizardRest.ResultGroup`. */
@@ -83,10 +100,18 @@ export interface ProjectWizardResult {
   customerCreated: boolean;
   /** The customer's structure element, the parent of the project's; null for a customer only without one. */
   customerTaskId?: number | null;
+  /** Whether the customer's element was created, not an existing one used. */
+  customerTaskCreated: boolean;
+  /** The title of the customer's element, which may differ from its name if it existed. */
+  customerTaskTitle?: string | null;
   /** Null, as `taskId` and `access`, for a new customer only. */
   projectId?: number | null;
   projectName?: string | null;
   taskId?: number | null;
+  /** Whether the project's element was created, not an existing one used. */
+  taskCreated: boolean;
+  /** The title of the project's element, see `customerTaskTitle`. */
+  taskTitle?: string | null;
   groups: ProjectWizardResultGroup[];
   access?: TaskWizardResult | null;
 }

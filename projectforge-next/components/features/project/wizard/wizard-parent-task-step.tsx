@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { InformationCircleIcon } from "@hugeicons/core-free-icons";
+import { Label } from "@/components/ui/label";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
-import { TaskSelectControl } from "@/components/shared/tasks/task-select-control";
-import { TaskSelectModal } from "@/components/shared/tasks/task-select-modal";
 import { WizardStepCard } from "@/components/features/task/wizard/wizard-step-card";
 import type { ValidationError } from "@/lib/rs/types";
-import { WizardFieldError } from "./wizard-field-error";
+import type { ElementChoice } from "./use-wizard-elements";
+import { WizardElementPick } from "./wizard-element-pick";
 import { WizardStructurePath } from "./wizard-structure-path";
+import { WizardTaskPicker } from "./wizard-task-picker";
 
 interface WizardParentTaskStepProps {
   number: number;
@@ -18,8 +18,21 @@ interface WizardParentTaskStepProps {
   newCustomer: boolean;
   /** A new customer without project: the element is optional, without it only the customer is created. */
   customerOnly: boolean;
+  /** Existing customer: its element; new customer: the parent of its new element. */
   parentTaskId: number | null;
   onChange: (taskId: number | null) => void;
+  /** The parent the request takes: none while an existing element of a new customer is chosen. */
+  pathParentTaskId: number | null;
+  /** New customer only: a new element or an existing one. */
+  customerElement: ElementChoice;
+  onCustomerElementChange: (choice: ElementChoice) => void;
+  projectElement: ElementChoice;
+  onProjectElementChange: (choice: ElementChoice) => void;
+  /** The existing elements the server uses (`ProjectWizardRest.ValidateResponse`), picked or found by title. */
+  reusedCustomerTaskId: number | null;
+  reusedProjectTaskId: number | null;
+  /** Why the picked element of a new customer may not be a good choice (`ValidateResponse.customerTaskWarning`). */
+  customerTaskWarning: string | null;
   /** The title of the customer's new element, the customer's name. */
   customerName: string;
   /** The title of the project's new element, the project's name. */
@@ -31,18 +44,14 @@ interface WizardParentTaskStepProps {
 
 /**
  * Step 3: where the project goes in the structure. A customer has an element of its own, the parent of
- * the elements of all its projects (see ProjectWizardService), so what is picked here depends on the
- * customer:
+ * the elements of all its projects (see ProjectWizardService):
  *
- * - an existing one: its element, preset from its projects where they tell — the project's element is
- *   created below it;
- * - a new one: the element its own element is created below (a customer group, a business unit or the
- *   top level), and the project's below that.
+ * - an existing customer: its element, preset from its projects where they tell;
+ * - a new customer: a new element below a picked one (a customer group, a business unit or the top level),
+ *   or an existing element;
+ * - the project: a new element below the customer's, or an existing one below it.
  *
- * - a new customer only, without project: optionally the element its own element is created below.
- *
- * Built like the first step of the structure wizard (WizardTaskStep), from the select control and
- * dialog directly, as this is no entity form.
+ * A new customer only, without project: optionally its element.
  */
 export function WizardParentTaskStep({
   number,
@@ -50,26 +59,29 @@ export function WizardParentTaskStep({
   customerOnly,
   parentTaskId,
   onChange,
+  pathParentTaskId,
+  customerElement,
+  onCustomerElementChange,
+  projectElement,
+  onProjectElementChange,
+  reusedCustomerTaskId,
+  reusedProjectTaskId,
+  customerTaskWarning,
   customerName,
   projectName,
   rootTaskId,
   errors,
 }: WizardParentTaskStepProps) {
   const t = useTranslations();
-  const [open, setOpen] = useState(false);
-  const heading = newCustomer
-    ? t("project.wizard.parentTask.newCustomer._")
-    : t("project.wizard.parentTask.existingCustomer._");
+  const parentLabel = t("project.wizard.parentTask.newCustomer");
   return (
     <WizardStepCard
       number={number}
-      heading={heading}
+      heading={t("project.wizard.parentTask.heading")}
       intro={
         customerOnly
           ? t("project.wizard.parentTask.customerOnly.intro")
-          : newCustomer
-            ? t("project.wizard.parentTask.newCustomer.intro")
-            : t("project.wizard.parentTask.existingCustomer.intro")
+          : t("project.wizard.parentTask.intro")
       }
     >
       <HintTooltip
@@ -83,25 +95,76 @@ export function WizardParentTaskStep({
           {t("project.wizard.parentTask.structure.title")}
         </span>
       </HintTooltip>
-      <TaskSelectControl
-        taskId={parentTaskId}
-        ariaLabel={heading}
-        onOpen={() => setOpen(true)}
-        onSelect={(task) => onChange(task?.id ?? null)}
-      />
-      <TaskSelectModal
-        value={parentTaskId}
-        onChange={(task) => onChange(task?.id ?? null)}
-        open={open}
-        onOpenChange={setOpen}
-      />
-      <WizardFieldError errors={errors} fieldId="parentTaskId" />
+      {newCustomer ? (
+        <WizardElementPick
+          id="wizard-customer-element"
+          label={t("project.wizard.result.customerElement")}
+          intro={t("project.wizard.element.customerIntro")}
+          mode={customerElement.mode}
+          onModeChange={(mode) =>
+            onCustomerElementChange({ ...customerElement, mode })
+          }
+          taskId={customerElement.taskId}
+          onTaskChange={(taskId) =>
+            onCustomerElementChange({ ...customerElement, taskId })
+          }
+          reusedTaskId={reusedCustomerTaskId}
+          warning={customerTaskWarning}
+          fieldId="customerTaskId"
+          errors={errors}
+        >
+          <Label className="text-xs">{parentLabel}</Label>
+          <WizardTaskPicker
+            taskId={parentTaskId}
+            onChange={onChange}
+            ariaLabel={parentLabel}
+            errors={errors}
+            fieldId="parentTaskId"
+          />
+        </WizardElementPick>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <h3 className="text-sm font-medium">
+            {t("project.wizard.parentTask.existingCustomer._")}
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            {t("project.wizard.parentTask.existingCustomer.intro")}
+          </p>
+          <WizardTaskPicker
+            taskId={parentTaskId}
+            onChange={onChange}
+            ariaLabel={t("project.wizard.parentTask.existingCustomer._")}
+            errors={errors}
+            fieldId="parentTaskId"
+          />
+        </div>
+      )}
+      {!customerOnly && (
+        <WizardElementPick
+          id="wizard-project-element"
+          label={t("project.wizard.result.projectElement")}
+          intro={t("project.wizard.element.projectIntro")}
+          mode={projectElement.mode}
+          onModeChange={(mode) =>
+            onProjectElementChange({ ...projectElement, mode })
+          }
+          taskId={projectElement.taskId}
+          onTaskChange={(taskId) =>
+            onProjectElementChange({ ...projectElement, taskId })
+          }
+          reusedTaskId={reusedProjectTaskId}
+          fieldId="projectTaskId"
+          errors={errors}
+        />
+      )}
       <WizardStructurePath
-        parentTaskId={parentTaskId}
+        parentTaskId={pathParentTaskId}
         newCustomer={newCustomer}
         customerOnly={customerOnly}
         customerName={customerName}
         projectName={projectName}
+        reusedCustomerTaskId={reusedCustomerTaskId}
+        reusedProjectTaskId={reusedProjectTaskId}
         rootTaskId={rootTaskId}
       />
     </WizardStepCard>

@@ -353,6 +353,149 @@ class ProjectWizardServiceTest : AbstractTestBase() {
         }
     }
 
+    @Test
+    fun `a picked element of another title becomes the new customer's`() {
+        val parent = createParent("pickedCustomer")
+        val customerTask = createTask("$PREFIX pickedCustomer element", parent)
+        logon(TEST_FINANCE_USER)
+        val result = projectWizardService.execute(
+            ProjectWizardService.Data(
+                customer = ProjectWizardService.CustomerData(nummer = 18512L, name = "$PREFIX pickedCustomer Inc."),
+                project = ProjectWizardService.ProjectData(nummer = 1, name = "$PREFIX-pickedCustomer-project"),
+                customerTaskExisting = true,
+                customerTaskId = customerTask.id,
+            )
+        )
+        Assertions.assertEquals(customerTask.id, result.customerTaskId)
+        Assertions.assertFalse(result.customerTaskCreated)
+        Assertions.assertEquals("$PREFIX pickedCustomer element", result.customerTaskTitle)
+        Assertions.assertTrue(result.taskCreated)
+        Assertions.assertEquals(customerTask.id, taskTree.getTaskNodeById(result.taskId)?.parent?.id)
+        Assertions.assertEquals(1, taskTree.getTaskNodeById(parent.id)!!.children.size, "No second customer element.")
+    }
+
+    @Test
+    fun `elements of the same titles are used instead of new ones`() {
+        val parent = createParent("sameTitles")
+        val customerTask = createTask("$PREFIX sameTitles", parent)
+        val projectTask = createTask("$PREFIX-sameTitles-project", customerTask)
+        logon(TEST_FINANCE_USER)
+        val result = projectWizardService.execute(
+            ProjectWizardService.Data(
+                customer = ProjectWizardService.CustomerData(nummer = 18513L, name = " $PREFIX sameTitles "),
+                project = ProjectWizardService.ProjectData(nummer = 1, name = "$PREFIX-sameTitles-project"),
+                parentTaskId = parent.id,
+                teamGroup = ProjectWizardService.GroupData(name = "$PREFIX-sameTitles"),
+            )
+        )
+        Assertions.assertEquals(customerTask.id, result.customerTaskId)
+        Assertions.assertFalse(result.customerTaskCreated)
+        Assertions.assertEquals(projectTask.id, result.taskId)
+        Assertions.assertFalse(result.taskCreated)
+        Assertions.assertEquals(projectTask.id, projektDao.find(result.projectId, checkAccess = false)!!.task?.id)
+        Assertions.assertEquals(result.projectId, taskTree.getProjekt(projectTask.id)?.id)
+        Assertions.assertTrue(taskTree.getTaskNodeById(projectTask.id)!!.children.isNullOrEmpty())
+        val team = result.groups.single()
+        val access = accessDao.getEntry(projectTask, GroupDO().also { it.id = team.id }, checkAccess = false)!!
+        Assertions.assertTrue(access.recursive, "The existing element gets the rights of a new one.")
+    }
+
+    @Test
+    fun `an existing element of the project must be free, below the customer's and writable`() {
+        val parent = createParent("refusedElement")
+        val customerTask = createTask("$PREFIX refusedElement", parent)
+        val outside = createTask("$PREFIX-refusedElement-outside", parent)
+        val taken = createTask("$PREFIX-refusedElement-taken", customerTask)
+        val free = createTask("$PREFIX-refusedElement-free", customerTask)
+        // Free itself, but inside the element of another project:
+        val nested = createTask("$PREFIX-refusedElement-nested", taken)
+        logon(TEST_FINANCE_USER)
+        val kunde = KundeDO().also {
+            it.nummer = 18514L
+            it.name = "$PREFIX refusedElement"
+        }
+        kundeDao.insert(kunde)
+        projektDao.insert(ProjektDO().also {
+            it.name = "$PREFIX-refusedElement-taken"
+            it.kunde = kunde
+            it.nummer = 1
+            it.task = taken
+        })
+        val data = { projectTaskId: Long? ->
+            ProjectWizardService.Data(
+                customer = ProjectWizardService.CustomerData(existing = true, id = 18514L),
+                project = ProjectWizardService.ProjectData(nummer = 2, name = "$PREFIX-refusedElement-project"),
+                parentTaskId = customerTask.id,
+                projectTaskExisting = true,
+                projectTaskId = projectTaskId,
+            )
+        }
+        for (taskId in listOf(outside.id, taken.id, nested.id, null)) {
+            Assertions.assertThrows(IllegalArgumentException::class.java, {
+                projectWizardService.execute(data(taskId))
+            }, "Task #$taskId")
+        }
+        // Who may create projects, but not write the element, may not grant rights on it:
+        logon(addUser("ProjectWizardServiceTest.noTaskAccess", ORGA_GROUP, UserRightId.PM_PROJECT))
+        Assertions.assertTrue(projectWizardService.projectAllowed())
+        Assertions.assertThrows(AccessException::class.java) {
+            projectWizardService.execute(data(free.id))
+        }
+        logon(TEST_FINANCE_USER)
+        val result = projectWizardService.execute(data(free.id))
+        Assertions.assertEquals(free.id, result.taskId)
+        Assertions.assertFalse(result.taskCreated)
+    }
+
+    @Test
+    fun `an element found by the new customer's name that holds another customer's projects is refused, a picked one warned about`() {
+        val parent = createParent("otherCustomer")
+        val customerTask = createTask("$PREFIX otherCustomer", parent)
+        val projectTask = createTask("$PREFIX-otherCustomer-project", customerTask)
+        val free = createTask("$PREFIX otherCustomer free", parent)
+        logon(TEST_FINANCE_USER)
+        val kunde = KundeDO().also {
+            it.nummer = 18515L
+            it.name = "$PREFIX otherCustomer old"
+        }
+        kundeDao.insert(kunde)
+        projektDao.insert(ProjektDO().also {
+            it.name = "$PREFIX-otherCustomer-project"
+            it.kunde = kunde
+            it.nummer = 1
+            it.task = projectTask
+        })
+        val data = ProjectWizardService.Data(
+            customer = ProjectWizardService.CustomerData(nummer = 18516L, name = "$PREFIX otherCustomer"),
+            project = ProjectWizardService.ProjectData(nummer = 1, name = "$PREFIX-otherCustomer-new"),
+            parentTaskId = parent.id,
+        )
+        val problem = projectWizardService.customerTaskProblem(data, projectWizardService.elementsOf(data))
+        Assertions.assertEquals(ProjectWizardService.TaskProblem.Type.OTHER_CUSTOMER, problem?.type)
+        Assertions.assertEquals("$PREFIX otherCustomer old", problem?.detail)
+        Assertions.assertThrows(IllegalArgumentException::class.java) { projectWizardService.execute(data) }
+        // Refused, not warned about:
+        Assertions.assertNull(projectWizardService.customerTaskWarning(data, projectWizardService.elementsOf(data)))
+        // Picked on purpose, the element may be shared, with a warning; as one of another project:
+        data.customerTaskExisting = true
+        data.customerTaskId = projectTask.id
+        projectWizardService.customerTaskWarning(data, projectWizardService.elementsOf(data)).let {
+            Assertions.assertEquals(ProjectWizardService.TaskProblem.Type.HAS_PROJECT, it?.type)
+            Assertions.assertEquals("$PREFIX-otherCustomer-project", it?.detail)
+        }
+        data.customerTaskId = customerTask.id
+        projectWizardService.customerTaskWarning(data, projectWizardService.elementsOf(data)).let {
+            Assertions.assertEquals(ProjectWizardService.TaskProblem.Type.OTHER_CUSTOMER, it?.type)
+            Assertions.assertEquals("$PREFIX otherCustomer old", it?.detail)
+        }
+        // No warning for a free element:
+        data.customerTaskId = free.id
+        Assertions.assertNull(projectWizardService.customerTaskWarning(data, projectWizardService.elementsOf(data)))
+        data.customerTaskId = customerTask.id
+        val result = projectWizardService.execute(data)
+        Assertions.assertEquals(customerTask.id, result.customerTaskId)
+    }
+
     /** A new user in the given group, with read and write access of the given rights. */
     private fun addUser(username: String, groupName: String, vararg rightIds: UserRightId): PFUserDO {
         logon(TEST_ADMIN_USER)
@@ -374,6 +517,16 @@ class ProjectWizardServiceTest : AbstractTestBase() {
         parent.parentTask = taskTree.rootTaskNode.task
         taskDao.insert(parent)
         return parent
+    }
+
+    /** A structure element below [parent], created by the admin. */
+    private fun createTask(title: String, parent: TaskDO): TaskDO {
+        logon(ADMIN_USER)
+        return TaskDO().also {
+            it.title = title
+            it.parentTask = parent
+            taskDao.insert(it)
+        }
     }
 
     private fun kost2Art(): Kost2ArtDO = kost2ArtDao.find(2L, checkAccess = false) ?: Kost2ArtDO().also {

@@ -17,7 +17,7 @@ import type { ProjectWizardResult } from "@/lib/rs/project-wizard";
 
 /**
  * What the project wizard set up: customer, project, structure element and groups, each a link to its
- * own page and marked whether it is new, and below it the access rights as the structure wizard reports
+ * own page and marked whether it is new (an element may have existed, picked or found by its title), and below it the access rights as the structure wizard reports
  * them (WizardResult). A customer created alone has neither project nor rights, and maybe no element.
  */
 export function WizardProjectResult({
@@ -52,10 +52,10 @@ export function WizardProjectResult({
           {result.customerTaskId != null && (
             <Row
               label={t("project.wizard.result.customerElement")}
-              name={result.customerName}
+              name={result.customerTaskTitle ?? result.customerName}
               href={`${TASK_TREE_ROUTE}?${HIGHLIGHT_ID_PARAM}=${result.customerTaskId}`}
-              status={result.customerCreated ? created : existing}
-              isNew={result.customerCreated}
+              status={result.customerTaskCreated ? created : existing}
+              isNew={result.customerTaskCreated}
             />
           )}
           {result.projectId != null && (
@@ -69,10 +69,10 @@ export function WizardProjectResult({
               />
               <Row
                 label={t("project.wizard.result.projectElement")}
-                name={result.projectName}
+                name={result.taskTitle ?? result.projectName}
                 href={treeHref}
-                status={created}
-                isNew
+                status={result.taskCreated ? created : existing}
+                isNew={result.taskCreated}
               />
             </>
           )}

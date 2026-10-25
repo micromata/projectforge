@@ -31,8 +31,8 @@ interface WizardActionSummaryProps extends WizardStructurePathProps {
  * are granted. A part that can't be created yet says why, from the live validation, before Finish is
  * pressed: the customer and anything else in red, the project (still being entered) as a plain note.
  *
- * The parent element belongs to the customer's line for a new customer (its element is created below
- * it), otherwise to the project's.
+ * The parent element and the customer's element belong to the customer's line for a new customer (its
+ * element is created below the parent, or an existing one used), otherwise to the project's.
  */
 export function WizardActionSummary({
   customerNumber,
@@ -48,10 +48,12 @@ export function WizardActionSummary({
   const isCustomerError = (error: ValidationError) =>
     path.newCustomer &&
     (error.fieldId?.startsWith("customer.") ||
-      error.fieldId === "parentTaskId");
+      error.fieldId === "parentTaskId" ||
+      error.fieldId === "customerTaskId");
   const isProjectError = (error: ValidationError) =>
     withProject &&
     (error.fieldId?.startsWith("project.") ||
+      error.fieldId === "projectTaskId" ||
       (!path.newCustomer && error.fieldId === "parentTaskId"));
   const customerErrors = messages(errors.filter(isCustomerError));
   const projectErrors = messages(errors.filter(isProjectError));
