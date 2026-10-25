@@ -25,6 +25,7 @@ package org.projectforge.rest
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.NextMigration
+import org.projectforge.business.user.PFUserFilter
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.DaoConst
@@ -142,7 +143,7 @@ class SearchRest {
 
   private fun searchArea(entry: RegistryEntry, searchString: String, limit: Int): SearchAreaResult? {
     val rest = restByDoClass[entry.getDOClass()] ?: return null
-    val filter = BaseSearchFilter().also {
+    val filter = searchFilter(entry).also {
       it.searchString = searchString
       it.maxRows = limit
     }
@@ -171,6 +172,13 @@ class SearchRest {
     val listUrl = NextMigration.listUrl(rest.category)
     return SearchAreaResult(entry.id, translate(entry.i18nTitleHeading), hasMore, hits, listUrl)
   }
+
+  /**
+   * Users only if active (deleted ones are left out by every area's filter): the search looks for whom to reach, a
+   * deactivated user is still found in the user list.
+   */
+  private fun searchFilter(entry: RegistryEntry): BaseSearchFilter =
+    if (entry.id == DaoConst.USER) PFUserFilter().setDeactivatedUser(false) else BaseSearchFilter()
 
   /**
    * The Registry areas the logged-in user may search, ordered by [PRIORITY_AREAS] then registration order.

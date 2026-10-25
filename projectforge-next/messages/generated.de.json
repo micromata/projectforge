@@ -402,7 +402,7 @@
         "error": {
           "browseBaseUrl": "Standard-Browse-URL {arg0}: keine http(s)-URL.",
           "duplicate": "Projekt {arg0} ist auf Server {arg1} und Server {arg2} eingetragen.",
-          "project": "Server {arg0}: {arg1} ist kein gültiges Projektkürzel (Buchstaben, Ziffern, Unterstrich; beginnend mit einem Buchstaben).",
+          "project": "Server {arg0}: {arg1} ist kein gültiges Projektkürzel (Buchstaben, Ziffern, Unterstrich; beginnend mit mindestens zwei Buchstaben).",
           "projectsMissing": "Server {arg0}: die Projekte fehlen.",
           "serverUrl": "Server {arg0}: {arg1} ist keine http(s)-URL.",
           "serverUrlMissing": "Server {arg0}: die Browse-URL fehlt."
@@ -3697,7 +3697,8 @@
       },
       "mailSentTo": "E-Mail mit dem Passwortrücksetzen-Link wurde gesendet an ''{arg0}''. Bitte im Spam-Ordner schauen bzw. überprüfen, ob der Benutzer:innenname bzw. E-Mail korrekt ist.",
       "request": "Rücksetzen anfordern",
-      "title": "Passwort vergessen"
+      "title": "Passwort vergessen",
+      "tooManyRequests": "Zu viele Anfragen zum Zurücksetzen des Passworts. Bitte später erneut versuchen."
     },
     "reset": {
       "error": "Es wurde keine gültige Passwortreset-Sitzung gefunden. Entweder ist sie schon verbraucht, abgelaufen oder nicht vorhanden. Bitte erneut versuchen.",
@@ -3933,12 +3934,17 @@
         "title": "Diskussion"
       },
       "error": {
+        "expiryRequired": "Eine Risikoakzeptanz braucht eine Gültigkeitsdauer.",
         "noAccess": "Für diese Rolle nicht erlaubt.",
-        "reasonRequired": "Eine Begründung ist erforderlich."
+        "notAssignee": "Die verbindliche Priorität setzt, wer die Schwachstelle bearbeitet, oder der Security Officer.",
+        "openFindings": "Erst schließbar, wenn alle Befunde behoben, abgeschwächt, nicht betroffen oder als Risiko akzeptiert sind.",
+        "reasonRequired": "Eine Begründung ist erforderlich.",
+        "riskNeedsManagement": "Ab P2 genehmigt zusätzlich die Geschäftsleitung; das zeigt der Prototyp nicht."
       },
       "escalation": {
         "acknowledgedBy": "Kenntnis genommen",
         "active": "Eskaliert: SO und Geschäftsleitung sind hinzugezogen",
+        "automatic": "automatisch nach Regel (P1 oder KEV mit Instanz im Internet)",
         "start": {
           "info": "Zieht Security Officer und Geschäftsleitung sofort hinzu, per Banner und Mail.",
           "title": "Eskalieren"
@@ -3982,6 +3988,7 @@
         "riskAccepted": {
           "info": "Risikoakzeptanz erfordert den Security Officer (ab P2 zusätzlich die Geschäftsleitung) und ein Ablaufdatum."
         },
+        "riskExpiresInDays": "Gültig für (Tage)",
         "setStatus": "Status setzen…"
       },
       "group": {
@@ -4069,6 +4076,7 @@
         "cvssP4": "CVSS < 7 → P4",
         "epss": "EPSS ≥ 30 % +1",
         "exposed": "kritische Instanz im Internet +1",
+        "instances": "betroffene Instanzen +1",
         "kev": "KEV +1"
       },
       "prototype": {
@@ -4092,6 +4100,7 @@
         "exploitability": "Ausnutzbarkeit bei uns",
         "noBinding": "Noch keine verbindliche Priorität; Vorschlag {arg0}.",
         "none": "Noch keine Bewertungen.",
+        "notRelevant": "Als nicht relevant geschlossen: {arg0}",
         "own": "Meine Bewertung",
         "save": "Bewertung speichern"
       },
@@ -5087,6 +5096,13 @@
       "customer": {
         "intro": "Der Kunde des Projekts: ein vorhandener oder ein neuer, der zusammen mit dem Projekt angelegt wird – oder auch allein."
       },
+      "element": {
+        "autoReuse": "Ein Element mit diesem Titel gibt es schon, es wird verwendet: {arg0}",
+        "customerIntro": "Ein neues Element unter einem gewählten, mit dem Namen des Kunden als Titel, oder ein vorhandenes Element; dessen Titel darf vom Namen abweichen.",
+        "existing": "Vorhandenes Element verwenden",
+        "new": "Neues Element anlegen",
+        "projectIntro": "Ein neues Element unter dem Element des Kunden, mit dem Namen des Projekts als Titel, oder ein vorhandenes Element darunter, das noch kein Projekt hat; dessen Titel darf abweichen. Das Element wird mit dem Projekt verknüpft und bekommt die Zugriffsrechte der Gruppen."
+      },
       "existing": {
         "customer": "Vorhandener Kunde",
         "group": "Vorhandene Gruppe"
@@ -5112,23 +5128,23 @@
       "pageTitle": "Kundenassistent",
       "parentTask": {
         "customerOnly": {
-          "intro": "Optional: Unterhalb dieses Elements wird das Strukturelement des neuen Kunden angelegt, mit dem Namen des Kunden als Titel. Ohne Element wird nur der Kunde angelegt."
+          "intro": "Optional: das Strukturelement des neuen Kunden, ein neues unterhalb eines gewählten Elements mit dem Namen des Kunden als Titel oder ein vorhandenes. Ohne Element wird nur der Kunde angelegt."
         },
         "existingCustomer": {
           "_": "Strukturelement des Kunden",
-          "intro": "Das Element des Kunden, soweit bekannt aus seinen Projekten vorbelegt. Darunter wird das Strukturelement des Projekts angelegt, mit dem Namen des Projekts als Titel, und mit dem Projekt verknüpft."
+          "intro": "Das Element des Kunden, soweit bekannt aus seinen Projekten vorbelegt. Darunter liegt das Strukturelement des Projekts."
         },
-        "newCustomer": {
-          "_": "Übergeordnetes Element des Kunden",
-          "intro": "Unterhalb dieses Elements wird das Strukturelement des neuen Kunden angelegt, mit dem Namen des Kunden als Titel, und darunter das Strukturelement des Projekts."
-        },
-        "newPath": "Pfad der neuen Strukturelemente:",
+        "heading": "Strukturelemente",
+        "intro": "Die Strukturelemente des Kunden und des Projekts: neue oder vorhandene.",
+        "newCustomer": "Übergeordnetes Element des Kunden",
+        "newPath": "Pfad der Strukturelemente:",
         "structure": {
           "_": "Das Element eines Kunden ist das übergeordnete Element aller seiner Projekte. Es kann einer Kundengruppe, einer Business-Unit o. ä. untergeordnet sein oder auf oberster Ebene liegen.",
           "title": "Wie der Aufbau gedacht ist"
         }
       },
       "preview": {
+        "existingElement": "vorhanden",
         "newElement": "neu"
       },
       "project": {
@@ -6047,7 +6063,6 @@
       "_": "Datenschutz",
       "tooltip": "Wenn diese Option gewählt wird, dann kann nicht auf die Zeitberichte anderer Benutzer:innen unterhalb dieses Strukturelements zugegriffen werden."
     },
-    "recursive": "inkl. aller Strukturunterelemente",
     "reference": "Referenz",
     "selectPanel": {
       "info": "Ordnerelement können ausgewählt werden, indem in eine andere Spalte geklickt wird (außer der ersten).\\\n**Tastatur:** **↑ / ↓** – zwischen den Elementen bewegen · **→ / ←** – fokussiertes Element auf- und zuklappen · **Eingabetaste** – fokussiertes Element auswählen",
@@ -6098,6 +6113,7 @@
         "select": "Strukturelement auswählen"
       }
     },
+    "withoutSubTasks": "ohne Strukturunterelemente",
     "wizard": {
       "action": {
         "_": "Aktion",
