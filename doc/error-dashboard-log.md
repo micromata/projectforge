@@ -13,6 +13,39 @@ fix didn't hold.
 Each entry lists the dashboard source (class:line or log event code) as it appeared, so a reappearing problem can
 be matched even if line numbers move.
 
+## 2026-10-25 (export 20:09, 36 problems OPEN, last 7 days, running version 9.0.14)
+
+9.0.14 went live ~2026-10-23. Most groups are fixes that already held or are not deployed yet.
+
+### Fixed (develop, after 9.0.14)
+
+| Dashboard source | Cause | Fix | Watch |
+|---|---|---|---|
+| `support.requestError` at `AbstractScriptExecuteRest:276` `ConcurrentModificationException` on `GET /rs/scriptExecute/refresh` (1×) | The script runs in the request of `execute` and logs into the `ScriptLogger` kept in the session; the client polls `refresh` in a second request, which iterated the plain list while the script added to it. Line 276 is beyond EOF: inlined `map` in `refresh`. | `ScriptLogger` adds under a lock, `messages` returns a copy (`ScriptLoggerTest`). | |
+
+### Already fixed, resolve in the dashboard
+
+| Dashboard source | Assessment |
+|---|---|
+| `GroovyExecutor.1:115` "Error while resolving Class: org.projectforge…" (24 groups, REGRESSION) | Fixed in `6875dc7063` (9.0.13); last seen before that deploy. |
+| `ScriptLogger:53`, `KotlinScriptUtils:87` (script compile error of a user) | Same fix (9.0.13). |
+| `DBQueryBuilderByCriteria:125` "Can't add order for property 'KundeDO.kost'" (20×, REGRESSION) | Fixed in `bbf1647dbb` (9.0.12); last seen before that deploy. |
+
+### Fixed on develop, not deployed yet
+
+| Dashboard source | Assessment | Watch |
+|---|---|---|
+| `support.loggedError` at `KLogger.DefaultImpls:764` "Error in query execution for AuftragDO: … `state` is null" (2×) | Search term with `word:` read as a field query; INFO and a hint for the user since `c749b51cd3`. | |
+| `AccessCheckerImpl:88` "Task with … not found." (2×, same second) | No stack trace in the export. Most likely the task created while the task tree was refreshed, which then lost it (`e33ee1f450`). **Cause assumed.** | If it reappears after the deploy: another path to a task id unknown to the tree (deleted task, stale client). |
+
+### Not a code problem
+
+| Dashboard source | Assessment |
+|---|---|
+| `support.requestError` at `AbstractRestUserFilter:90` `NoSuchFileException` for the application jar (3× within seconds, at a deploy) | The jar was replaced under the running server during the deploy (kotlin-reflect loading builtins from it). |
+| `gateway.push.unreachable` + `integration.sync.runFailed` (~1400/24h each) | Unchanged, see 2026-10-19 (gateway shut down, 1-minute interval, no back-off). |
+| `rest.noCredentials` | Expired session tabs, notify NONE. |
+
 ## 2026-10-21 (three problems from the dashboard)
 
 ### Fixed (main worktree, branch `fix/incoming-invoice-import-matching`)

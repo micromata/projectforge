@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Scripts: showing the log of a running script could fail with an error.",
+  "de": "Scripte: Das Anzeigen des Logs eines laufenden Scripts konnte mit einem Fehler abbrechen."
+}

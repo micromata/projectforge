@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "Notifications: delivery steps by SMS to the mobile phone number of the recipients (if SMS is configured), with an own SMS text of the rule or otherwise the subject and the link.",
-  "de": "Benachrichtigungen: Zustellungsschritte per SMS an die Mobilfunknummer der Empfänger (sofern SMS konfiguriert ist), mit eigenem SMS-Text der Regel oder sonst Betreff und Link."
-}

@@ -13,6 +13,7 @@ import { Spinner } from "@/components/shared/spinner";
 import type { EntityWithId, NewEntryParams } from "@/hooks/use-entity-detail";
 import { confirmLeaveUnsavedChanges } from "@/hooks/use-unsaved-changes-warning";
 import type { ListRow } from "@/hooks/use-entity-list-page";
+import { leafKeyOf } from "@/lib/leaf-key";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { EditablePageDef } from "@/lib/page-def/types";
 import { EntityEditBody } from "./entity-edit-body";
@@ -155,7 +156,8 @@ export function EntityEditModal<
   }, [onClose, onOpenChange]);
 
   // Known before the entry loads; names the dialog for the a11y label while the spinner shows.
-  const loadingTitle = id == null ? t(page.edit.newTitleKey) : t(page.titleKey);
+  const loadingTitle =
+    id == null ? t(page.edit.newTitleKey) : t(leafKeyOf(page.titleKey, t.has));
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Lists: a search term that isn't a valid search syntax (e.g. \"Project: Alpha\") now shows a hint instead of an empty list without explanation.",
-  "de": "Listen: Ein Suchbegriff mit ungültiger Suchsyntax (z. B. „Projekt: Alpha“) zeigt jetzt einen Hinweis statt einer leeren Liste ohne Erklärung."
-}

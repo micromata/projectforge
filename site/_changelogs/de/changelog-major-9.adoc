@@ -1,13 +1,82 @@
 ---
 title: "ProjectForge 9"
-date: 2026-10-23
-sort_key: "2026-10-23 0043"
+date: 2026-10-25
+sort_key: "2026-10-25 0044"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json and changelog/changelog.de.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 Neu in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-0-15.changelog-release]
+=== ProjectForge 9.0.15 veröffentlicht
+
+[.changelog-source]
+__2026-10-25, Tag https://github.com/micromata/projectforge/tree/9.0.15-RELEASE[9.0.15-RELEASE]__ +++{% include release-pills.html tag="9.0.15-RELEASE" docker="9.0.15" mini=true %}+++
+
+- **Ad-hoc-Buchungen**: Zeitbuchungen ohne Gruppenzuordnung freigeben oder vorschlagen
+- **Benachrichtigungen**: Zustellung per SMS, fällige Kreditorenrechnungen, Variablen mit Beispielen
+- Zeitbericht-Formular: zuletzt verwendete Einträge mit Verbrauch, sortier- und filterbar
+- Kundenassistent verwendet vorhandene Strukturelemente
+- Strukturbaum: verlorene und unvollständige Elemente nach Neuladen im Hintergrund behoben
+- Passwort vergessen: Rücksetz-Mail gegen Mail-Bombing begrenzt
+
+.Überblick
+[%collapsible]
+====
+- **Ad-hoc-Buchungen:** Wer auf einem Strukturelement fremde Zeitberichte bearbeiten darf, gibt Kolleg:innen für einen Zeitraum das Buchen eigener Zeitberichte frei, optional nur auf einige Kost2; die Personen sehen nur die freigegebenen Strukturelemente. Mitarbeitende ohne dieses Recht können eine solche Buchung vorschlagen, die Projektleitung übernimmt die Zeitberichte anschließend (erinnert durch eine neue Benachrichtigungsregel).
+- **Benachrichtigungen:** Zustellungsschritte per SMS; neue Regel „Fällige Kreditorenrechnungen“; der Regel-Editor listet die Variablen für Betreff und Text mit Beispielwerten und Kopier-Button, die Vorschau zeigt die Texte mit Beispielwerten.
+- **Kreditorenrechnungen:** bereits 2 Werktage vor Fälligkeit als überfällig markiert.
+- **Zeitbericht-Formular:** Die zuletzt verwendeten Einträge zeigen den Verbrauch ihres Budgets und lassen sich pro Spalte sortieren, filtern und anordnen (pro Benutzer gespeichert); der Tooltip des Verbrauchsbalkens zeigt Budget, gebuchte und restliche Personentage.
+- **Kundenassistent:** Vorhandene Strukturelemente des Kunden und des Projekts können statt neuer verwendet werden, aus dem Baum gewählt oder über den gleichen Titel gefunden.
+- **Auftragsstatistik:** Die Bubble-Größe des Deckungsbeitrag-Diagramms zeigt den DB1; Titel lassen sich einblenden.
+- **Behoben:** Während des Neuladens im Hintergrund angelegte oder verschobene Strukturelemente konnten aus dem Strukturbaum verschwinden, nach einer Änderung fehlte die/der Verantwortliche; eine ungültige Suchsyntax zeigt einen Hinweis statt einer leeren Liste; die Infos eines Strukturelements erhalten nur Nutzer, die es sehen dürfen; die Rücksetz-Mail bei „Passwort vergessen“ ist pro Benutzer:in, pro Client und insgesamt begrenzt und kann nicht mehr beliebig oft angefordert werden.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **Ad-hoc-Buchungen**
+  * Wer auf einem Strukturelement fremde Zeitberichte bearbeiten darf (z. B. Projektleitung, Finanzen), kann Kolleg:innen für einen Zeitraum das Buchen eigener Zeitberichte freigeben, ohne Gruppenzuordnung: mehreren Personen auf einmal, auf dem Strukturelement und beliebigen Unterelementen, jeweils optional nur auf einige ihrer Kost2. Die Freigabe gilt sofort, jede Person bekommt eine Mail mit den Links zum Buchen.
+  * Im Strukturbaum sehen die Personen nur die freigegebenen Strukturelemente und die Titel der übergeordneten Elemente: keine anderen Strukturelemente, keinen Verbrauch, keine fremden Zeitberichte und keine Statistiken. Nach Ablauf oder Widerruf bleiben die eigenen Zeitberichte lesbar.
+  * Im Strukturbaum markiert ein Badge die Strukturelemente mit Ad-hoc-Buchungen; sein Tooltip nennt die Personen und ihre Zeiträume. Sichtbar nur für die, die auf dem Strukturelement freigeben dürfen.
+  * Mitarbeitende ohne dieses Recht können eine solche Buchung auf den Strukturelementen vorschlagen, auf die sie selbst buchen, für höchstens 31 Tage: Die aushelfende Person bucht sofort, die Projektleitung übernimmt die Zeitberichte anschließend, unverändert oder auf ein anderes Strukturelement bzw. eine andere Kost2 (Zeitberichtsformular oder Massenänderung; Listenfilter „Nur zu übernehmende“). Bis dahin zählen sie wie alle anderen Zeitberichte. Die Projektleitung kann einen Vorschlag bestätigen, dann müssen spätere Buchungen nicht mehr übernommen werden.
+  * Neue Benachrichtigungsregel „Zu übernehmende Zeitberichte“: erinnert die Projektleitung an noch zu übernehmende Zeitberichte (in der App und, wenn nicht bestätigt, per Mail, wie in der Regel eingestellt). Der Strukturbaum zeigt ihre Anzahl neben dem Badge.
+- Verbrauchsbalken (Strukturbaum, Strukturliste, Zeitbericht-Formular): Der Tooltip zeigt Budget, gebuchte und restliche Personentage als Rechnung, ein überbuchtes Budget in Rot.
+- Zeitbericht-Formular: Die zuletzt verwendeten Einträge zeigen den Verbrauch ihres Budgets, die Suche findet ihn auch.
+- **Kreditorenrechnungen**
+  * Bereits 2 Werktage vor Fälligkeit als überfällig (rot) markiert, damit sie rechtzeitig bezahlt werden.
+  * Neue Benachrichtigungsregel „Fällige Kreditorenrechnungen“: meldet den Empfängern der Regel unbezahlte Kreditorenrechnungen, die innerhalb einer einstellbaren Anzahl von Werktagen fällig sind (inkl. bis zu 90 Tage überfälliger).
+- **Benachrichtigungen**
+  * Der Regel-Editor listet die für Betreff und Text verfügbaren Variablen auf (allgemeine und die des Regeltyps), jede mit einem Button zum Kopieren.
+  * Zu jeder Variablen wird ein Beispielwert gezeigt, so ist z. B. erkennbar, wie eine Liste von Rechnungen aussieht; die Vorschau zeigt die Texte auch mit Beispielwerten.
+- Zeitbericht-Formular: Die Tabelle der zuletzt verwendeten Einträge lässt sich pro Spalte sortieren und filtern, ihre Spalten lassen sich verschieben, in der Breite ändern, fixieren und ausblenden; das Layout wird pro Benutzer gespeichert.
+- Benachrichtigungen: Zustellungsschritte per SMS an die Mobilfunknummer der Empfänger (sofern SMS konfiguriert ist), mit eigenem SMS-Text der Regel oder sonst Betreff und Link.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Kundenassistent: Vorhandene Strukturelemente des Kunden und des Projekts können statt neuer verwendet werden, aus dem Baum gewählt (der Titel darf abweichen, z. B. „ACME“ für „ACME Inc.“) oder automatisch über den gleichen Titel gefunden.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- Auftragsstatistik, Deckungsbeitrag-Bubbles: Die Größe einer Bubble zeigt ihren DB1 statt ihrer Kosten. Der Schalter „Titel einblenden“ beschriftet die eigenen Bubbles mit Kurztitel und DB %; ausgeschaltet stehen die Namen nur im Tooltip.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Die Infos eines Strukturelements (Titel, Pfad, Projekt, Kunde, Verbrauch) wurden jedem eingeloggten Nutzer geliefert; jetzt nur noch an Nutzer, die das Strukturelement sehen dürfen.
+- Strukturbaum: Ein Strukturelement, das während des Neuladens des Baums im Hintergrund angelegt oder verschoben wurde, konnte bis zum nächsten Neuladen aus dem Baum verschwinden; darunter ließ sich dann kein Unterelement anlegen („Übergeordnetes Strukturelement wird benötigt, konnte aber nicht gefunden werden“).
+- Strukturbaum: Nach dem Ändern eines Strukturelements fehlte dessen Verantwortliche:r im Baum bis zum nächsten Neuladen.
+- Passwort vergessen: Die Rücksetz-Mail ist pro Benutzer:in, pro Client und insgesamt begrenzt und kann nicht mehr beliebig oft angefordert werden (Mail-Bombing, Ungültigmachen eines offenen Rücksetz-Links).
+- Listen: Ein Suchbegriff mit ungültiger Suchsyntax (z. B. „Projekt: Alpha“) zeigt jetzt einen Hinweis statt einer leeren Liste ohne Erklärung.
+====
 
 [discrete#release-9-0-14.changelog-release]
 === ProjectForge 9.0.14 veröffentlicht
