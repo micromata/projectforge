@@ -214,6 +214,15 @@ class AutoCompleteObjectsTest : AbstractTestBase() {
         }
         val ids = autoComplete(projectEntityRest, word).map { it.id }
         Assertions.assertEquals(listOf(byName.id, byCustomer.id), ids)
+        // Saved in the next app, the customer is an id-only stub (Project.copyTo): still found by it.
+        projektDao.update(projektDao.find(byCustomer.id)!!.also {
+            it.kunde = KundeDO().also { k -> k.nummer = customer.nummer }
+            it.description = "edited"
+        })
+        Assertions.assertTrue(
+            autoComplete(projectEntityRest, word.take(6)).any { it.id == byCustomer.id },
+            "Project not offered by its customer after an update with a customer stub.",
+        )
     }
 
     /**
