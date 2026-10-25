@@ -223,5 +223,5 @@ None at the moment.
 
 ## 10. Next steps
 
-1. Review of this version 0.2 together with PF-CVR 0.6.
+1. Review of this version 0.2 together with PF-CVR 0.7.
 2. Release cut: PF-CHAT R1 (CTX, MSG incl. reactions, THR, ATT, NOT-01 – NOT-06, SEC) before PF-CVR DISC; the cleanup job (CTX-08) later.
