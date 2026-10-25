@@ -46,6 +46,10 @@ class CveRadarPlugin : AbstractPlugin(ID, "CVE-Radar", "Vulnerability management
         addResourceBundle(RESOURCE_BUNDLE_NAME)
     }
 
+    /** The prototype's pages have no REST category to derive them from. */
+    override val featureNextRoutes: List<String>
+        get() = listOf("cveradar")
+
     companion object {
         const val ID = PluginAdminService.PLUGIN_CVE_RADAR_ID
         const val RESOURCE_BUNDLE_NAME = "CveRadarI18nResources"
