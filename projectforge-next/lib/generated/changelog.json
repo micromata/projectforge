@@ -3,11 +3,23 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.0.14",
-    "date" : "2026-10-23",
+    "date" : "2026-10-24",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Consumption bar (structure tree, task list, time sheet form): the tooltip shows the budget, the booked and the remaining person days as a calculation, an overbooked budget in red.", "Time sheet form: the recently used entries show the consumption of their budget, and the search also matches it.", {
+        "title" : "Creditor invoices",
+        "items" : [ "Marked as overdue (red) already 2 working days before the due date, so they are paid in time.", "New notification rule \"Creditor invoices due\": reports unpaid creditor invoices due within a configurable number of working days (overdue ones of the last 90 days included) to the recipients of the rule." ]
+      }, {
+        "title" : "Notifications",
+        "items" : [ "The rule editor lists the variables available for subject and text (general ones and those of the rule type), each with a button to copy it." ]
+      }, "Time sheet form: the table of recently used entries can be sorted and filtered per column, its columns can be reordered, resized, pinned and hidden; the layout is remembered per user." ]
+    }, {
       "type" : "changed",
       "items" : [ "Order statistics, contribution margin bubble chart: the size of a bubble shows its contribution margin instead of its costs. The switch \"Show titles\" labels the own bubbles with their short title and contribution margin %; switched off, the names are in the tooltip only." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Structure tree: a structure element created or moved while the tree was being reloaded in the background could vanish from the tree until the next reload, so no sub-element could be created below it (\"Parent structure element is required but not found\").", "Structure tree: after a structure element was changed, its responsible person was missing in the tree until the next reload." ]
     } ]
   },
   "groups" : [ {

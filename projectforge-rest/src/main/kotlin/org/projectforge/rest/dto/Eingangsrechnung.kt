@@ -46,6 +46,8 @@ class Eingangsrechnung(
   var faelligkeit: LocalDate? = null,
   var faelligkeitOrDiscountMaturity: LocalDate? = null,
   var ueberfaellig: Boolean? = null,
+  /** Overdue, or due within 2 working days: the red row and the state of the form ([RechnungInfo.isMarkedOverdue]). */
+  var markedOverdue: Boolean? = null,
   var zahlungsZielInTagen: Int? = null,
   var discountZahlungsZielInTagen: Int? = null,
   var bezahlDatum: LocalDate? = null,
@@ -112,6 +114,7 @@ class Eingangsrechnung(
     // which is every invoice the recalculate endpoint and newBaseDTO build.
     val info = src.ensuredInfo
     ueberfaellig = info.isUeberfaellig
+    markedOverdue = info.isMarkedOverdue
     ibanFormatted = src.ibanFormatted
     this.faelligkeitOrDiscountMaturity = info.faelligkeitOrDiscountMaturity
     this.netSum = info.netSum
@@ -150,8 +153,10 @@ class Eingangsrechnung(
     faelligkeitOrDiscountMaturity = info.faelligkeitOrDiscountMaturity
     netSum = info.netSum
     grossSumWithDiscount = info.grossSumWithDiscount
-    // Row colours rather than columns: overdue reads red, unpaid blue (see creditor-invoice.page.tsx).
+    // Row colours rather than columns: overdue (or due within 2 working days) reads red, unpaid blue (see
+    // creditor-invoice.page.tsx); ueberfaellig itself is summed up by the statistics.
     ueberfaellig = info.isUeberfaellig
+    markedOverdue = info.isMarkedOverdue
     val kost1Sorted = info.sortedKost1
     kost1List = RechnungInfo.numbersAsString(kost1Sorted)
     kost1Info = RechnungInfo.detailsAsString(kost1Sorted)

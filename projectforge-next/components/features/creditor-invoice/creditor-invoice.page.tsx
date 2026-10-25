@@ -145,14 +145,18 @@ export const CREDITOR_INVOICE_PAGE = definePage<
       tooltip: (row) => row.kost2Info,
     },
   ],
-  // Mirrors the legacy grid's `withGetRowClass` (first match wins): overdue and unpaid reads red, anything
-  // else not yet paid blue.
+  // Mirrors the legacy grid's `withGetRowClass` (first match wins): overdue and unpaid reads red — a
+  // creditor invoice already 2 working days before its due date, so it is paid in time —, anything else
+  // not yet paid blue.
   legend: [
-    { className: "row-red", labelKey: "fibu.rechnung.filter.ueberfaellig" },
+    {
+      className: "row-red",
+      labelKey: "fibu.eingangsrechnung.markedOverdue",
+    },
     { className: "row-blue", labelKey: "fibu.rechnung.offen" },
   ],
   rowClassName: (row) => {
-    if (row.ueberfaellig) return "row-red";
+    if (row.markedOverdue) return "row-red";
     if (!row.bezahlDatum) return "row-blue";
     return undefined;
   },

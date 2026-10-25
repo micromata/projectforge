@@ -24,6 +24,7 @@ export type NotificationRuleType =
   | "VACATION_LEFT"
   | "PASSWORD_NOT_CHANGED"
   | "TIMESHEETS_WITHOUT_KOST2"
+  | "CREDITOR_INVOICES_DUE"
   | "MANUAL";
 
 /** `NotificationDao.Summary`, sent with the user status (see useAuth). */
@@ -79,6 +80,8 @@ export function markNotificationDone(id: number): Promise<AppNotification> {
 export interface NotificationVariable {
   key: string;
   label: string;
+  /** Available for every rule type (the names of the recipient), otherwise only for the given one. */
+  common?: boolean;
 }
 
 export interface MenuBadgeOption {

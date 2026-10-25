@@ -1,15 +1,13 @@
 import { MenuLink } from "@/components/shared/menu-link";
+import { ConsumptionTooltip } from "@/components/shared/tasks/consumption-tooltip";
 import { timesheetListHref } from "@/lib/timesheet-links";
 import { cn } from "@/lib/utils";
+import type { TaskConsumption } from "@/lib/rs/task";
+import { setTooltipContent } from "../use-overflow-tooltip";
 import type { CellRenderProps } from "./cell-types";
 
 /** The Consumption DTO the backend puts into the cell (rest/task/Consumption.kt). */
-interface Consumption {
-  /** Pre-rendered, already localised, e.g. "350PT/188PT (186%)". */
-  title?: string;
-  /** One of the "progress-*" names of Consumption.Status. */
-  status?: string;
-  barPercentage?: number;
+interface Consumption extends TaskConsumption {
   /** The task the effort was booked against — the bar's link target. */
   id?: number;
 }
@@ -41,7 +39,8 @@ export function ConsumptionCell({
   linkEnabled = true,
 }: CellRenderProps) {
   if (!value || typeof value !== "object") return null;
-  const { title, status, barPercentage, id } = value as Consumption;
+  const consumption = value as Consumption;
+  const { title, status, barPercentage, id } = consumption;
   // The task's name for the filter pill: the consumption value carries the id, but the row it sits on is
   // the task, so its title is the name to show. Both the task list row and the tree node carry `title`.
   const taskName = typeof row?.title === "string" ? row.title : undefined;
@@ -59,6 +58,13 @@ export function ConsumptionCell({
         STATUS_CLASS[status ?? ""] ?? "consumption-none"
       )}
       data-tooltip={title}
+      // The calculation instead of the one-line title, shown by the table's delegated tooltip.
+      ref={(el) =>
+        setTooltipContent(
+          el,
+          <ConsumptionTooltip consumption={consumption} t={t} />
+        )
+      }
     >
       <span className="consumption-bar" style={{ width: `${percentage}%` }} />
     </span>

@@ -3,11 +3,23 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.0.14",
-    "date" : "2026-10-23",
+    "date" : "2026-10-24",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Verbrauchsbalken (Strukturbaum, Strukturliste, Zeitbericht-Formular): Der Tooltip zeigt Budget, gebuchte und restliche Personentage als Rechnung, ein überbuchtes Budget in Rot.", "Zeitbericht-Formular: Die zuletzt verwendeten Einträge zeigen den Verbrauch ihres Budgets, die Suche findet ihn auch.", {
+        "title" : "Kreditorenrechnungen",
+        "items" : [ "Bereits 2 Werktage vor Fälligkeit als überfällig (rot) markiert, damit sie rechtzeitig bezahlt werden.", "Neue Benachrichtigungsregel „Fällige Kreditorenrechnungen“: meldet den Empfängern der Regel unbezahlte Kreditorenrechnungen, die innerhalb einer einstellbaren Anzahl von Werktagen fällig sind (inkl. bis zu 90 Tage überfälliger)." ]
+      }, {
+        "title" : "Benachrichtigungen",
+        "items" : [ "Der Regel-Editor listet die für Betreff und Text verfügbaren Variablen auf (allgemeine und die des Regeltyps), jede mit einem Button zum Kopieren." ]
+      }, "Zeitbericht-Formular: Die Tabelle der zuletzt verwendeten Einträge lässt sich pro Spalte sortieren und filtern, ihre Spalten lassen sich verschieben, in der Breite ändern, fixieren und ausblenden; das Layout wird pro Benutzer gespeichert." ]
+    }, {
       "type" : "changed",
       "items" : [ "Auftragsstatistik, Deckungsbeitrag-Bubbles: Die Größe einer Bubble zeigt ihren DB1 statt ihrer Kosten. Der Schalter „Titel einblenden“ beschriftet die eigenen Bubbles mit Kurztitel und DB %; ausgeschaltet stehen die Namen nur im Tooltip." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Strukturbaum: Ein Strukturelement, das während des Neuladens des Baums im Hintergrund angelegt oder verschoben wurde, konnte bis zum nächsten Neuladen aus dem Baum verschwinden; darunter ließ sich dann kein Unterelement anlegen („Übergeordnetes Strukturelement wird benötigt, konnte aber nicht gefunden werden“).", "Strukturbaum: Nach dem Ändern eines Strukturelements fehlte dessen Verantwortliche:r im Baum bis zum nächsten Neuladen." ]
     } ]
   },
   "groups" : [ {

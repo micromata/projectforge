@@ -53,6 +53,11 @@ interface NotificationRuleHandler {
          * again after the next change got too old.
          */
         val userPeriodKeys: Map<Long, String> = emptyMap(),
+        /**
+         * The variables of a recipient not in [affected], computed from the data of this run (instead of
+         * [NotificationRuleHandler.variables], which would load them again for every recipient).
+         */
+        val variablesFor: ((PFUserDO) -> Map<String, String>)? = null,
     ) {
         /** The link for the given recipient. */
         fun linkFor(user: PFUserDO): String? = link?.replace(USER_ID, "${user.id}")

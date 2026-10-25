@@ -29,6 +29,7 @@ import { RuleActions } from "./rule-actions";
 import { RuleLogTab } from "./rule-log-tab";
 import { RuleParamsField } from "./rule-params-field";
 import { RuleTextField } from "./rule-text-field";
+import { RuleVariablesField } from "./rule-variables-field";
 import { ScheduleField } from "./schedule-field";
 import type { NotificationRuleDetail, NotificationRuleListRow } from "./types";
 
@@ -127,6 +128,7 @@ export const NOTIFICATION_RULE_PAGE = definePage<
         fields: [
           { name: "subject", span: 4 },
           { custom: RuleTextField, span: 4 },
+          { custom: RuleVariablesField, span: 4 },
         ],
       },
       {

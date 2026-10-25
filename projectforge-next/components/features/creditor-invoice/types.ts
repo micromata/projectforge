@@ -118,6 +118,11 @@ export interface CreditorInvoiceListRow extends ListRow {
    * the row's colour, so it travels as data rather than being derived from the dates here.
    */
   ueberfaellig?: boolean;
+  /**
+   * Overdue, or due within 2 working days (`RechnungInfo.isMarkedOverdue`): what reads red. [ueberfaellig]
+   * stays the plain "past its due date", the one the statistics count.
+   */
+  markedOverdue?: boolean;
   /** The cost 1 units the invoice is assigned to, as numbers ("5.100.01, 5.100.02"). */
   kost1List?: string;
   /** The same with names and amounts, for the cell's tooltip. */

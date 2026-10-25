@@ -260,6 +260,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
             kostZuweisungenFehlbetrag = if (costConfigured) info.kostZuweisungenFehlbetrag else null,
             bezahlt = info.isBezahlt,
             ueberfaellig = info.isUeberfaellig,
+            markedOverdue = info.isMarkedOverdue,
             positions = info.positions?.map { position ->
                 PositionSums(
                     number = position.number,
@@ -286,6 +287,8 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
         val kostZuweisungenFehlbetrag: BigDecimal?,
         val bezahlt: Boolean,
         val ueberfaellig: Boolean,
+        /** Overdue, or due within 2 working days ([org.projectforge.business.fibu.RechnungInfo.isMarkedOverdue]). */
+        val markedOverdue: Boolean,
         val positions: List<PositionSums>?,
     )
 
