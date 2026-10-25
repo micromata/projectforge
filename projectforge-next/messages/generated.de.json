@@ -4692,6 +4692,7 @@
         "pageContext": "Gestartet von: {arg0}. Das Script erhält den aktuellen Filter dieser Seite als Variable `pageContext`."
       },
       "includes": "Eingebundene Scripts",
+      "input": "Eingabe",
       "name": "Name",
       "output": "Ausgabe",
       "pageButtons": "Seiten-Buttons",
@@ -4726,6 +4727,7 @@
     "area": "Bereich",
     "durationOfSearch": "Suchdauer",
     "error": "Es trat leider ein interner Fehler auf.",
+    "invalidSyntax": "Der Suchbegriff ist keine gültige Suchsyntax (z. B. ein Doppelpunkt hinter einem Wort oder ein offenes Anführungszeichen), daher gibt es kein Ergebnis.",
     "lastDay": "Letzter Tag",
     "lastDays": "Letzte {arg0} Tage",
     "lastHour": "Letzte Stunde",

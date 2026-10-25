@@ -4692,6 +4692,7 @@
         "pageContext": "Started from: {arg0}. The script gets the current filter of this page as variable `pageContext`."
       },
       "includes": "Embedded scripts",
+      "input": "Input",
       "name": "Name",
       "output": "Output",
       "pageButtons": "Page buttons",
@@ -4726,6 +4727,7 @@
     "area": "Area",
     "durationOfSearch": "duration of search",
     "error": "Unfortunately an internal error occurred.",
+    "invalidSyntax": "The search term isn't a valid search syntax (e.g. a colon after a word or an unclosed quotation mark), so there is no result.",
     "lastDay": "Last day.",
     "lastDays": "Last {arg0} days.",
     "lastHour": "Last hour",
