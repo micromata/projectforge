@@ -105,7 +105,8 @@ export const MessageItem = memo(function MessageItem({
         )}
       </div>
       {!editing && (
-        <div className="absolute -top-3 right-3 hidden group-focus-within:flex group-hover:flex pointer-coarse:flex">
+        // Stays visible while its emoji picker or menu is open (outside, in a portal): they are anchored to it.
+        <div className="absolute -top-3 right-3 hidden group-focus-within:flex group-hover:flex has-data-[state=open]:flex pointer-coarse:flex">
           <MessageActions
             message={message}
             inThread={inThread}

@@ -6,6 +6,7 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { EntityMultiAutocomplete } from "@/components/shared/entity-multi-autocomplete";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
+import { FieldDescription } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +14,8 @@ import type { ChatRef, ChatRoom } from "@/lib/rs/chat-types";
 
 /**
  * The fields of a chat room. Participants are chosen from the users and groups the user may see (ROOM-05); the
- * owner takes part anyway and is set by the server.
+ * owner takes part anyway and is set by the server. Hints explain what moderators do and that the owner always
+ * takes part and moderates (it isn't preset as participant: it couldn't be removed anyway).
  */
 export function ChatRoomForm({
   room,
@@ -92,7 +94,7 @@ export function ChatRoomForm({
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="chatRoomModerators">
-            {t("chat.room.moderators")}
+            {t("chat.room.moderators._")}
           </Label>
           <EntityMultiAutocomplete
             id="chatRoomModerators"
@@ -101,15 +103,19 @@ export function ChatRoomForm({
             onChange={(moderators) => set({ moderators })}
             removeLabel={removeLabel}
             sorted
-            aria-label={t("chat.room.moderators")}
+            aria-label={t("chat.room.moderators._")}
           />
+          <FieldDescription>{t("chat.room.moderators.info")}</FieldDescription>
         </div>
       </fieldset>
-      {room.owner && (
-        <p className="text-xs text-muted-foreground">
-          {t("chat.room.owner")}: {room.owner.displayName}
-        </p>
-      )}
+      <FieldDescription>
+        {room.owner && (
+          <>
+            {t("chat.room.owner._")}: {room.owner.displayName}.{" "}
+          </>
+        )}
+        {t("chat.room.owner.info")}
+      </FieldDescription>
       <DialogFooter className="items-center">
         {onDelete && (
           <Button

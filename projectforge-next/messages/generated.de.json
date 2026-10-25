@@ -1012,10 +1012,16 @@
       },
       "description": "Beschreibung",
       "edit": "Chatraum bearbeiten",
-      "moderators": "Moderation",
+      "moderators": {
+        "_": "Moderation",
+        "info": "Wer moderiert, nimmt am Raum teil, bearbeitet und löscht ihn, blendet Nachrichten anderer mit Begründung aus (z. B. themenfremd oder vertraulich) und sieht die Historie bearbeiteter Nachrichten – wie die Person, die den Raum angelegt hat."
+      },
       "name": "Name",
       "new": "Neuer Chatraum",
-      "owner": "Angelegt von",
+      "owner": {
+        "_": "Angelegt von",
+        "info": "Wer den Raum anlegt, nimmt immer teil und moderiert ihn."
+      },
       "participantGroups": "Teilnehmende Gruppen",
       "participantUsers": "Teilnehmende Personen",
       "participants": "{arg0} Teilnehmende",

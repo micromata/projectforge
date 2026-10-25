@@ -1012,10 +1012,16 @@
       },
       "description": "Description",
       "edit": "Edit chat room",
-      "moderators": "Moderators",
+      "moderators": {
+        "_": "Moderators",
+        "info": "Moderators take part in the room. Like the owner, they edit and delete the room, hide messages of others with a reason (e.g. off-topic or confidential content) and see the history of edited messages."
+      },
       "name": "Name",
       "new": "New chat room",
-      "owner": "Owner",
+      "owner": {
+        "_": "Owner",
+        "info": "Whoever creates the room always takes part and moderates it."
+      },
       "participantGroups": "Participating groups",
       "participantUsers": "Participating users",
       "participants": "{arg0} participants",
