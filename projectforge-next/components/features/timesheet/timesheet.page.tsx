@@ -4,6 +4,7 @@ import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
 import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
 import { TimesheetListActions } from "./timesheet-list-actions";
 import { TimesheetStatisticsLine } from "./timesheet-statistics-line";
+import { TimesheetAcceptancePill } from "./timesheet-acceptance-pill";
 import type { TimesheetStatistics } from "./timesheet-statistics";
 import { AiNoteFooter } from "./edit/sections/ai-note-footer";
 import { TaskKost2Section } from "./edit/sections/task-kost2-section";
@@ -11,6 +12,7 @@ import { DayRangeSection } from "./edit/sections/day-range-section";
 import { LocationField } from "./edit/sections/location-field";
 import { ReferenceField } from "./edit/sections/reference-field";
 import { TagField } from "./edit/sections/tag-field";
+import { AcceptanceField } from "./edit/sections/acceptance-field";
 import { TemplatesRecentBar } from "./edit/sections/templates-recent-bar";
 import {
   timesheetEditSchema,
@@ -142,10 +144,14 @@ export const TIMESHEET_PAGE = definePage<
       name: "task",
       size: 240,
       // The plain task title (the backend drops the "(#id)" of its display name), with the path to the
-      // root as the tooltip — the Wicket column shows exactly this (`TaskPropertyColumn`).
+      // root as the tooltip — the Wicket column shows exactly this (`TaskPropertyColumn`). A sheet booked by
+      // a grant proposed without the right to grant is marked as to be accepted (see TimesheetAcceptancePill).
       cell: ({ row }) => (
-        <span className="font-medium">
-          {row.original.task?.title ?? row.original.task?.displayName ?? null}
+        <span className="inline-flex flex-wrap items-center gap-1.5">
+          <span className="font-medium">
+            {row.original.task?.title ?? row.original.task?.displayName ?? null}
+          </span>
+          {row.original.acceptance && <TimesheetAcceptancePill />}
         </span>
       ),
       tooltip: (row) => row.task?.path ?? undefined,
@@ -301,6 +307,10 @@ export const TIMESHEET_PAGE = definePage<
     // dialog closes back onto the calendar. Where the copy overlaps another sheet the backend can't
     // save it and the form is simply left standing to adjust (see runClone / cloneAndSaveEntity).
     clone: "autosave",
+    // A sheet booked by a grant proposed without the right to grant is accepted by its save, if the project
+    // management ticks it (see AcceptanceField): routed to `TimesheetEntityRest.accept` then.
+    actions: ["accept"],
+    submitAction: (values) => (values.acceptOnSave ? "accept" : undefined),
     // "Als Termin bearbeiten" — build a calendar event from this sheet's span and texts and open it as a
     // new event (TimesheetEntityRest.switch2CalendarEvent → TeamEventEntityRest.cloneFromTimesheet). The
     // team event is named, not imported, so the two features don't depend on each other in a circle.
@@ -333,6 +343,8 @@ export const TIMESHEET_PAGE = definePage<
         id: "general",
         titleKey: "timesheet",
         fields: [
+          // Shown only for a sheet to be accepted (see AcceptanceField).
+          { custom: AcceptanceField, span: 3 },
           // Task, its cost unit and the task's consumption in one block — the task decides the other two
           // (see TaskKost2Section). A full row, so its own three columns line up with the grid's.
           { custom: TaskKost2Section, span: 3 },

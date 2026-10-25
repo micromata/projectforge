@@ -24,6 +24,7 @@ export type NotificationRuleType =
   | "VACATION_LEFT"
   | "PASSWORD_NOT_CHANGED"
   | "TIMESHEETS_WITHOUT_KOST2"
+  | "TIMESHEETS_TO_ACCEPT"
   | "CREDITOR_INVOICES_DUE"
   | "MANUAL";
 

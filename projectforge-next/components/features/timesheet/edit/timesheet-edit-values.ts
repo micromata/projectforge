@@ -43,6 +43,7 @@ export function toFormValues(timesheet: TimesheetDetail): TimesheetEditValues {
     timeSavedByAIUnit: timesheet.timeSavedByAIUnit ?? "PERCENTAGE",
     timeSavedByAIDescription: timesheet.timeSavedByAIDescription ?? null,
     created: timesheet.created ?? null,
+    acceptOnSave: false,
   };
 }
 
@@ -108,5 +109,6 @@ export function emptyTimesheetValues(): TimesheetEditValues {
     timeSavedByAIUnit: "PERCENTAGE",
     timeSavedByAIDescription: null,
     created: null,
+    acceptOnSave: false,
   };
 }

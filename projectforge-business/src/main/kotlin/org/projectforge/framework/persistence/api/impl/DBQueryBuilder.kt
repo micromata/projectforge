@@ -144,7 +144,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
     fun result(): DBResultIterator<O> {
         if (fullTextSearch && fullTextPredicates.isNotEmpty()) {
             logDebugFunCall(log) { it.mtd("result()").msg("fullTextSearch") }
-            return dbQueryBuilderByFullText.createResultIterator(fullTextPredicates, resultPredicates)
+            return dbQueryBuilderByFullText.createResultIterator(fullTextPredicates, resultPredicates, queryFilter)
         }
         logDebugFunCall(log) { it.mtd("result()").msg("criteriaSearch") }
         return dbQueryBuilderByCriteria.createResultIterator(resultPredicates, queryFilter)

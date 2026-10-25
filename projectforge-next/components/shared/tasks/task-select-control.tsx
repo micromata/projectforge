@@ -128,8 +128,11 @@ export function TaskSelectControl({
           <HugeiconsIcon icon={Edit02Icon} size={14} />
         </Button>
       </HintTooltip>
-      {/* Leads to the task itself, where its timesheets are — see TaskEditLink. */}
-      {showEditLink && <TaskEditLink taskId={taskId} />}
+      {/* Leads to the task itself, where its timesheets are — see TaskEditLink. Not for a task the user
+          sees by a booking grant only: its page is not theirs to open. */}
+      {showEditLink && task?.bookingGrant == null && (
+        <TaskEditLink taskId={taskId} />
+      )}
       {showConsumption && taskId != null && task && (
         <div className="w-24 shrink-0">
           <TaskConsumptionBar task={task} />

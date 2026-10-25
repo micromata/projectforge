@@ -47,6 +47,9 @@ enum class NotificationRuleType : I18nEnum {
     /** Time sheets without cost 2 unit in the last months (missing in the salary export). */
     TIMESHEETS_WITHOUT_KOST2,
 
+    /** Time sheets booked by a grant an employee proposed, to be accepted by the project management. */
+    TIMESHEETS_TO_ACCEPT,
+
     /** Unpaid creditor invoices due within some working days or overdue (to be paid in time). */
     CREDITOR_INVOICES_DUE,
 

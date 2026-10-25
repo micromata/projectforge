@@ -466,7 +466,15 @@ open class UIAgGridColumnDef(
                 }
                 if (type == null && useFormatter == null) {
                     // Try to determine the formatter by type and propertyInfo (defined on DO-field):
-                    if (Number::class.java.isAssignableFrom(elementInfo.propertyClass)) {
+                    if (lcField == "id" || lcField.endsWith(".id")) {
+                        // An identifier, not a quantity: its bare digits (no formatter), not grouped by thousands.
+                        if (width == null) {
+                            col.width = NUMBER_WIDTH
+                        }
+                        col.type = AG_TYPE.NUMERIC_COLUMN.agType
+                        col.filter = "agNumberColumnFilter"
+                        col.setApplyAndResetButton()
+                    } else if (Number::class.java.isAssignableFrom(elementInfo.propertyClass)) {
                         if (elementInfo.propertyType == PropertyType.CURRENCY) {
                             useFormatter = Formatter.CURRENCY
                         } else if (elementInfo.propertyType == PropertyType.CURRENCY_PLAIN) {
