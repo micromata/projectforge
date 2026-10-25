@@ -14,7 +14,8 @@ import {
  *
  * An area with external access via the gateway has its files there: a note links to it, and there's no
  * upload here (files stored before stay downloadable and deletable). On the gateway, an area pushed by the
- * main instance is administered there, which a note says.
+ * main instance is administered there, which a note says. A synthetic area (e.g. of a chat conversation) gets
+ * its files only from there: no upload, a note says so.
  */
 export function DataTransferFilesTab({ view }: { view: DataTransferView }) {
   const t = useTranslations();
@@ -41,8 +42,13 @@ export function DataTransferFilesTab({ view }: { view: DataTransferView }) {
           {t("plugins.datatransfer.gateway.managedByMainInstance")}
         </FormAlert>
       )}
+      {view.syntheticArea && (
+        <FormAlert tone="info">
+          {t("plugins.datatransfer.syntheticArea.readOnly")}
+        </FormAlert>
+      )}
       <AttachmentList
-        noUpload={!!view.gatewayUrl}
+        noUpload={!!view.gatewayUrl || !!view.syntheticArea}
         entity="datatransfer"
         id={id}
         // An area may hold many files: sortable and searchable like the legacy grid.

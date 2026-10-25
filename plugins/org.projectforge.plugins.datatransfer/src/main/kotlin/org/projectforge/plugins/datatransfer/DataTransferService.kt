@@ -132,7 +132,7 @@ class DataTransferService : DataTransferInterface {
         area.areaName = name.take(100)
         area.expiryDays = expiryDays?.takeIf { it in DataTransferAreaDao.EXPIRY_DAYS_VALUES } ?: area.expiryDays
                 ?: SYNTHETIC_AREA_EXPIRY_DAYS
-        DataTransferAreaDao.secureSyntheticArea(area)
+        dataTransferAreaDao.secureSyntheticArea(area)
         return if (area.id == null) {
             dataTransferAreaDao.insert(area, checkAccess = false)
         } else {

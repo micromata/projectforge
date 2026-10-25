@@ -4296,6 +4296,9 @@
         "select": "Choose the user whose personal box you want to open.",
         "title": "Personal box of {arg0}"
       },
+      "syntheticArea": {
+        "readOnly": "The files of this area are added and changed only where they belong (e.g. in the chat)."
+      },
       "tab": {
         "files": "Files",
         "info": "Info"

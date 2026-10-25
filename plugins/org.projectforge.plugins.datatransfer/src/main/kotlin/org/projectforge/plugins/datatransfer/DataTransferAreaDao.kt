@@ -168,6 +168,22 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     }
 
     /**
+     * A synthetic area (see [DataTransferAreaHost]) has no admins, observers and access lists of its own, no
+     * external access and, as a personal box, the upload limit of Spring's multipart configuration.
+     */
+    open fun secureSyntheticArea(obj: DataTransferAreaDO) {
+        obj.adminIds = null
+        obj.observerIds = null
+        obj.accessGroupIds = null
+        obj.accessUserIds = null
+        obj.externalDownloadEnabled = false
+        obj.externalUploadEnabled = false
+        obj.externalPassword = null
+        obj.externalAccessToken = null
+        obj.maxUploadSizeKB = (configurationChecker.springServletMultipartMaxFileSize.toBytes() / 1024).toInt()
+    }
+
+    /**
      * Prevents changing some base values due to security reasons (such as don't allow external access and access to
      * other users/groups).
      * Sets also default values (expiry days to 30, and max upload size to max value).
@@ -403,22 +419,6 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
         fun generateExternalPassword(): String {
             return NumberHelper.getSecureRandomReducedAlphanumericWithSpecialChars(PASSWORD_LENGTH)
-        }
-
-        /**
-         * A synthetic area (see [DataTransferAreaHost]) has no admins, observers and access lists of its own, no
-         * external access and the global upload limit.
-         */
-        fun secureSyntheticArea(obj: DataTransferAreaDO) {
-            obj.adminIds = null
-            obj.observerIds = null
-            obj.accessGroupIds = null
-            obj.accessUserIds = null
-            obj.externalDownloadEnabled = false
-            obj.externalUploadEnabled = false
-            obj.externalPassword = null
-            obj.externalAccessToken = null
-            obj.maxUploadSizeKB = (globalMaxFileSize.toBytes() / 1024).toInt()
         }
 
         fun ensureSecureExternalAccess(obj: IDataTransferArea) {
