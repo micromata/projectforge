@@ -138,6 +138,8 @@ class ChatNotifier {
         val authorName = author?.getFullname() ?: "?"
         val link = "/chat/${info.conversationId}?message=${info.messageId}"
         val withContent = host.mailContentAllowed(info.hostId, info.channel)
+        // As seen by the recipient: the name of the author for a direct message.
+        fun titleFor(user: PFUserDO): String = host.title(info.hostId, info.channel, user) ?: info.title
         fun mayRead(user: PFUserDO?): Boolean {
             return user != null && !user.deleted && user.hasSystemAccess() &&
                     host.hasReadAccess(user, info.hostId, info.channel)
@@ -152,8 +154,8 @@ class ChatNotifier {
             mentioned += userId
             notificationService.notifyDirect(
                 recipientId = userId,
-                title = I18nHelper.getLocalizedMessage(user, "chat.notification.mention.title", authorName, info.title),
-                body = body(user!!, "chat.notification.mention.text", authorName, info, withContent),
+                title = I18nHelper.getLocalizedMessage(user, "chat.notification.mention.title", authorName, titleFor(user!!)),
+                body = body(user, "chat.notification.mention.text", authorName, titleFor(user), info, withContent),
                 link = link,
                 dedupKey = "${mentionPrefix(info.conversationId, userId)}${info.messageId}",
                 delivery = MENTION_DELIVERY,
@@ -182,15 +184,20 @@ class ChatNotifier {
                 if (notificationService.hasPendingByDedupPrefix(userId, prefix)) {
                     return@forEach // Already notified about this conversation, not read since.
                 }
-                val i18nKey = if (info.threadRootId == null) "chat.notification.new" else "chat.notification.reply"
+                val direct = info.hostType == ChatDirectChatHost.HOST_TYPE
+                val i18nKey = when {
+                    info.threadRootId != null -> "chat.notification.reply"
+                    direct -> "chat.notification.direct" // The title is the recipient's own name for the author.
+                    else -> "chat.notification.new"
+                }
                 notificationService.notifyDirect(
                     recipientId = userId,
-                    title = I18nHelper.getLocalizedMessage(user, "$i18nKey.title", authorName, info.title),
-                    body = body(user!!, "$i18nKey.text", authorName, info, withContent),
+                    title = I18nHelper.getLocalizedMessage(user, "$i18nKey.title", authorName, titleFor(user!!)),
+                    body = body(user, "$i18nKey.text", authorName, titleFor(user), info, withContent),
                     link = link,
                     dedupKey = "$prefix${info.messageId}",
                     delivery = NEW_MESSAGE_DELIVERY,
-                    display = NotificationDisplay.TOAST,
+                    display = if (direct) NotificationDisplay.BANNER else NotificationDisplay.TOAST,
                     menuBadge = MenuItemDefId.CHAT,
                 )
             }
@@ -200,8 +207,15 @@ class ChatNotifier {
      * The text of the notification (HTML): the names are user data (e.g. the room name chosen by anybody), escaped,
      * so they can't bring markup (a link) into the notification.
      */
-    private fun body(user: PFUserDO, i18nKey: String, authorName: String, info: MessageInfo, withContent: Boolean): String {
-        val text = StringEscapeUtils.escapeHtml4(I18nHelper.getLocalizedMessage(user, i18nKey, authorName, info.title))
+    private fun body(
+        user: PFUserDO,
+        i18nKey: String,
+        authorName: String,
+        title: String,
+        info: MessageInfo,
+        withContent: Boolean,
+    ): String {
+        val text = StringEscapeUtils.escapeHtml4(I18nHelper.getLocalizedMessage(user, i18nKey, authorName, title))
         return if (withContent && info.html.isNotBlank()) "<p>$text</p>${info.html}" else "<p>$text</p>"
     }
 

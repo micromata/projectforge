@@ -53,13 +53,16 @@ export function chatEventsUrl(conversationId: number) {
   return `${BASE}/conversation/${conversationId}/events`;
 }
 
-/** The url of an image of a conversation; `download` asks for an attachment instead of inline. */
-export function chatImageUrl(
+/**
+ * The url of a file of a conversation: an image inline (thumbnail, lightbox) unless `download`, any other file is
+ * always a download.
+ */
+export function chatFileUrl(
   conversationId: number,
   fileId: string,
   download = false
 ) {
-  return `${BASE}/conversation/${conversationId}/image/${encodeURIComponent(fileId)}${download ? "?download=true" : ""}`;
+  return `${BASE}/conversation/${conversationId}/file/${encodeURIComponent(fileId)}${download ? "?download=true" : ""}`;
 }
 
 export function openChatConversation(
@@ -119,27 +122,36 @@ export function fetchChatChanges(
   );
 }
 
+/**
+ * Sends a message; with files as multipart (the part `message` as JSON, the parts `files`): the files are stored
+ * in the data transfer together with the message, not before.
+ */
 export function sendChatMessage(
   id: number,
   html: string,
   threadRootId: number | null,
-  imageIds: string[]
+  files: File[] = []
 ) {
-  return chatPost<ChatMessage>(`${BASE}/conversation/${id}/messages`, {
-    html,
-    threadRootId,
-    imageIds,
-  });
+  const path = `${BASE}/conversation/${id}/messages`;
+  if (files.length === 0) {
+    return chatPost<ChatMessage>(path, { html, threadRootId });
+  }
+  const body = new FormData();
+  body.append(
+    "message",
+    new Blob([JSON.stringify({ html, threadRootId })], {
+      type: "application/json",
+    })
+  );
+  files.forEach((file) => body.append("files", file, file.name));
+  return chatRequest<ChatMessage>(path, { method: "POST", body });
 }
 
-export function editChatMessage(
-  messageId: number,
-  html: string,
-  imageIds: string[]
-) {
+/** Changes the text of an own message, its files stay. */
+export function editChatMessage(messageId: number, html: string) {
   return chatRequest<ChatMessage>(`${BASE}/message/${messageId}`, {
     method: "PUT",
-    body: JSON.stringify({ html, imageIds }),
+    body: JSON.stringify({ html }),
   });
 }
 
@@ -206,13 +218,4 @@ export function searchChatMessages(
     { method: "GET" },
     signal
   );
-}
-
-export function uploadChatImage(id: number, file: File) {
-  const body = new FormData();
-  body.append("file", file);
-  return chatRequest<{ fileId: string }>(`${BASE}/conversation/${id}/image`, {
-    method: "POST",
-    body,
-  });
 }

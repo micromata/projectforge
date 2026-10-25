@@ -35,27 +35,27 @@ import java.util.zip.CRC32
 import javax.imageio.ImageIO
 
 /** The images of the chat: the type by content, metadata removed, huge images refused before decoding. */
-class ChatImageServiceTest {
+class ChatFileServiceTest {
     @Test
     fun `the type is detected by the content`() {
-        assertEquals(ChatImageService.ImageType.PNG, ChatImageService.detectType(png(4, 3)))
-        assertEquals(null, ChatImageService.detectType("<svg onload=alert(1)>".toByteArray()))
+        assertEquals(ChatFileService.ImageType.PNG, ChatFileService.detectType(png(4, 3)))
+        assertEquals(null, ChatFileService.detectType("<svg onload=alert(1)>".toByteArray()))
     }
 
     @Test
     fun `an image is encoded again, a huge one is refused without decoding`() {
         val small = png(4, 3)
-        assertEquals(12L, ChatImageService.pixels(small))
-        val stripped = ChatImageService.stripMetadata(small, ChatImageService.ImageType.PNG)
+        assertEquals(12L, ChatFileService.pixels(small))
+        val stripped = ChatFileService.stripMetadata(small, ChatFileService.ImageType.PNG)
         assertEquals(4, ImageIO.read(stripped.inputStream()).width)
 
         // A header only, declaring 50000 x 50000 pixels (about 10 GB decoded).
         val bomb = pngHeader(50_000, 50_000)
-        assertEquals(2_500_000_000L, ChatImageService.pixels(bomb))
+        assertEquals(2_500_000_000L, ChatFileService.pixels(bomb))
         assertThrows(UserException::class.java) {
-            ChatImageService.stripMetadata(bomb, ChatImageService.ImageType.PNG)
+            ChatFileService.stripMetadata(bomb, ChatFileService.ImageType.PNG)
         }
-        assertFalse(ChatImageService.pixels("no image".toByteArray()) != null)
+        assertFalse(ChatFileService.pixels("no image".toByteArray()) != null)
     }
 
     private fun png(width: Int, height: Int): ByteArray {

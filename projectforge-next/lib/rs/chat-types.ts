@@ -4,6 +4,18 @@ export interface ChatRef {
   displayName: string;
 }
 
+/** A file of a message, stored in the data transfer (ChatFileService). */
+export interface ChatFile {
+  fileId: string;
+  name: string;
+  size: number;
+  sizeFormatted: string;
+  /** A PNG, JPEG, GIF or WebP image (checked by its content): shown as thumbnail. */
+  image: boolean;
+  /** False if it expired or was deleted in the data transfer. */
+  available: boolean;
+}
+
 export interface ChatReaction {
   emoji: string;
   count: number;
@@ -27,7 +39,7 @@ export interface ChatMessage {
   hiddenBy: string | null;
   hiddenReason: string | null;
   content: string | null;
-  imageIds: string[];
+  files: ChatFile[];
   reactions: ChatReaction[];
   replyCount: number;
   lastReplyAt: string | null;
@@ -53,8 +65,16 @@ export interface ChatConversation {
   newestMessageId: number | null;
   changeSeq: number;
   me: ChatRef;
-  maxImagesPerMessage: number;
-  maxImageSize: number;
+  /** The other one of a direct message, null for other conversations. */
+  directPartner: ChatRef | null;
+  /** Can files be attached (data transfer plugin active)? */
+  filesEnabled: boolean;
+  maxFilesPerMessage: number;
+  /** The largest file the conversation takes now (bytes), null if unknown: the server checks it anyway. */
+  maxFileSize: number | null;
+  maxFileSizeFormatted: string | null;
+  /** The largest request (bytes): all files of a message together. */
+  maxRequestSize: number;
 }
 
 export interface ChatMessagesPage {
@@ -95,4 +115,31 @@ export interface ChatRoom {
   users: ChatRef[];
   groups: ChatRef[];
   canEdit?: boolean;
+  /** The days the files of the room are kept in its data transfer area. */
+  fileExpiryDays?: number | null;
+  fileExpiryDaysChoices?: ChatChoice[];
+  filesEnabled?: boolean;
+}
+
+/** A choice of a select with its translated label. */
+export interface ChatChoice {
+  value: number;
+  label: string;
+}
+
+/** Defaults of a new room (ChatRoomRest.defaults). */
+export interface ChatRoomDefaults {
+  fileExpiryDays: number | null;
+  fileExpiryDaysChoices: ChatChoice[];
+  filesEnabled: boolean;
+}
+
+/** A direct message in the list of the user's ones. */
+export interface ChatDirectEntry {
+  conversationId: number;
+  partner: ChatRef;
+  unread: number;
+  lastMessageAt: string | null;
+  /** False if the other one has no system access any more (read-only). */
+  canWrite: boolean;
 }

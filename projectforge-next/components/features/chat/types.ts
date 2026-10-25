@@ -19,12 +19,10 @@ export interface ChatEditorHandle {
   getHtml: () => string;
 }
 
-/** An image of the message being written: uploading, uploaded (fileId) or failed. */
-export interface PendingImage {
+/** A file of the message being written, sent with it (uploaded only then). */
+export interface PendingFile {
   key: string;
-  name: string;
-  /** Object url of the local file, for the preview. */
-  previewUrl: string;
-  fileId: string | null;
-  error: string | null;
+  file: File;
+  /** Object url of a local image, for the preview; null for other files. */
+  previewUrl: string | null;
 }

@@ -30,15 +30,8 @@ export function useMessageMutations() {
     ...options,
   });
   const edit = useMutation({
-    mutationFn: ({
-      id,
-      html,
-      imageIds,
-    }: {
-      id: number;
-      html: string;
-      imageIds: string[];
-    }) => editChatMessage(id, html, imageIds),
+    mutationFn: ({ id, html }: { id: number; html: string }) =>
+      editChatMessage(id, html),
     onSuccess: (message: ChatMessage) => {
       applyChatChanges(queryClient, conversation.id, [message]);
       return sync();

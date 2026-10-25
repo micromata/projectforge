@@ -60,13 +60,13 @@ class ChatHtmlSanitizerTest {
 
     @Test
     fun `image types are detected by content`() {
-        assertEquals(ChatImageService.ImageType.PNG, ChatImageService.detectType(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0)))
-        assertEquals(ChatImageService.ImageType.JPEG, ChatImageService.detectType(byteArrayOf(0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte(), 0)))
-        assertEquals(ChatImageService.ImageType.GIF, ChatImageService.detectType("GIF89a...".toByteArray()))
-        assertEquals(ChatImageService.ImageType.WEBP, ChatImageService.detectType("RIFF\u0000\u0000\u0000\u0000WEBPVP8 ".toByteArray()))
-        assertNull(ChatImageService.detectType("<svg onload=alert(1)>".toByteArray()))
-        assertNull(ChatImageService.detectType("%PDF-1.7".toByteArray()))
+        assertEquals(ChatFileService.ImageType.PNG, ChatFileService.detectType(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0)))
+        assertEquals(ChatFileService.ImageType.JPEG, ChatFileService.detectType(byteArrayOf(0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte(), 0)))
+        assertEquals(ChatFileService.ImageType.GIF, ChatFileService.detectType("GIF89a...".toByteArray()))
+        assertEquals(ChatFileService.ImageType.WEBP, ChatFileService.detectType("RIFF\u0000\u0000\u0000\u0000WEBPVP8 ".toByteArray()))
+        assertNull(ChatFileService.detectType("<svg onload=alert(1)>".toByteArray()))
+        assertNull(ChatFileService.detectType("%PDF-1.7".toByteArray()))
         val gif = "GIF89a...".toByteArray()
-        assertArrayEquals(gif, ChatImageService.stripMetadata(gif, ChatImageService.ImageType.GIF))
+        assertArrayEquals(gif, ChatFileService.stripMetadata(gif, ChatFileService.ImageType.GIF))
     }
 }

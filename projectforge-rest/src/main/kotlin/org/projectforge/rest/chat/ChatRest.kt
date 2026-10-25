@@ -26,9 +26,11 @@ package org.projectforge.rest.chat
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletResponse
 import org.projectforge.business.chat.ChatAccess
-import org.projectforge.business.chat.ChatImageService
+import org.projectforge.business.chat.ChatDirectChatHost
+import org.projectforge.business.chat.ChatFileService
 import org.projectforge.business.chat.ChatMessageDao
 import org.projectforge.business.chat.ChatService
+import org.projectforge.common.FormatterUtils
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translateMsg
@@ -39,6 +41,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.pub.next.RestError
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.CacheControl
 import org.springframework.http.ContentDisposition
@@ -59,6 +62,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import org.springframework.util.unit.DataSize
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.util.concurrent.TimeUnit
 
@@ -68,7 +72,7 @@ private val log = KotlinLogging.logger {}
  * The conversations of the chat (PF-CHAT) for the chat panel and page of projectforge-next.
  *
  * Every endpoint checks the access by the conversation taken from the database ([ChatService], [ChatAccess]): the
- * host of the conversation decides who reads, writes and moderates. Ids of the request (message, thread root, image)
+ * host of the conversation decides who reads, writes and moderates. Ids of the request (message, thread root, file)
  * are only accepted within this conversation. State changing calls are POST, PUT or DELETE (CSRF).
  *
  * A refused call answers 403 (no access) or 400 with the translated message ([ChatErrorResult]).
@@ -92,7 +96,13 @@ class ChatRest {
     private lateinit var historyFormatService: HistoryFormatService
 
     @Autowired
-    private lateinit var imageService: ChatImageService
+    private lateinit var directHost: ChatDirectChatHost
+
+    @Autowired
+    private lateinit var fileService: ChatFileService
+
+    @Value("\${spring.servlet.multipart.max-request-size:110MB}")
+    private lateinit var maxRequestSizeConfig: String
 
     @AccessChecked("ChatService.open: read access of the host to the host object, created only with write access")
     @PostMapping("open")
@@ -109,6 +119,7 @@ class ChatRest {
     fun getConversation(@PathVariable id: Long): ChatConversation {
         val context = chatService.requireContext(id)
         val state = chatService.getMemberState(id, context.user.id!!)
+        val maxFileSize = fileService.maxFileSize(context)
         return ChatConversation(
             id = id,
             hostType = context.conversation.hostType!!,
@@ -123,8 +134,14 @@ class ChatRest {
             newestMessageId = chatService.newestMessageId(id),
             changeSeq = chatService.currentSeq(id),
             me = converter.ref(context.user.id),
-            maxImagesPerMessage = imageService.maxPerMessage,
-            maxImageSize = imageService.maxSize,
+            directPartner = if (context.conversation.hostType == ChatDirectChatHost.HOST_TYPE) {
+                directHost.partnerId(context.hostId, context.user.id)?.let { converter.ref(it) }
+            } else null,
+            filesEnabled = fileService.filesEnabled(context),
+            maxFilesPerMessage = fileService.maxPerMessage,
+            maxFileSize = maxFileSize,
+            maxFileSizeFormatted = maxFileSize?.let { FormatterUtils.formatBytes(it) },
+            maxRequestSize = DataSize.parse(maxRequestSizeConfig).toBytes(),
         )
     }
 
@@ -186,17 +203,34 @@ class ChatRest {
         return eventPublisher.subscribe(context, chatService.currentSeq(id))
     }
 
+    /** A message without files (JSON). */
     @AccessChecked("ChatService.send: write access of the host to the conversation; thread root of this conversation only")
-    @PostMapping("conversation/{id}/messages")
+    @PostMapping("conversation/{id}/messages", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun send(@PathVariable id: Long, @RequestBody request: ChatSendRequest): ChatMessage {
-        val message = chatService.send(id, request.threadRootId, request.html, request.imageIds)
+        val message = chatService.send(id, request.threadRootId, request.html)
+        return converter.convert(chatService.requireContext(id), message)
+    }
+
+    /**
+     * A message with files (multipart: the part `message` as JSON, the parts `files`): the files are stored in the
+     * data transfer with the message, not before ([ChatFileService.store]).
+     */
+    @AccessChecked("ChatService.send: write access of the host to the conversation; thread root of this conversation only")
+    @PostMapping("conversation/{id}/messages", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun sendWithFiles(
+        @PathVariable id: Long,
+        @RequestPart("message") request: ChatSendRequest,
+        @RequestPart("files", required = false) files: List<MultipartFile>?,
+    ): ChatMessage {
+        val uploads = files.orEmpty().map { ChatFileService.Upload(it.originalFilename, it.bytes) }
+        val message = chatService.send(id, request.threadRootId, request.html, uploads)
         return converter.convert(chatService.requireContext(id), message)
     }
 
     @AccessChecked("ChatService.edit: own message only, write access of the host to its conversation (from the database)")
     @PutMapping("message/{id}")
     fun edit(@PathVariable id: Long, @RequestBody request: ChatEditRequest): ChatMessage {
-        val message = chatService.edit(id, request.html, request.imageIds)
+        val message = chatService.edit(id, request.html)
         return converter.convert(chatService.requireContext(message.conversationId), message)
     }
 
@@ -272,34 +306,30 @@ class ChatRest {
         return converter.convert(context, chatService.search(context, q, authorId))
     }
 
-    @AccessChecked("ChatImageService.upload: write access of the host to the conversation")
-    @PostMapping("conversation/{id}/image")
-    fun uploadImage(@PathVariable id: Long, @RequestPart("file") file: MultipartFile): ChatImageResult {
-        val user = ThreadLocalUserContext.requiredLoggedInUser
-        if (file.size > imageService.maxSize) {
-            throw UserException("chat.image.error.tooLarge", imageService.maxSize / 1024 / 1024)
-        }
-        val attachment = imageService.upload(id, file.originalFilename, file.bytes, user)
-        return ChatImageResult(attachment.fileId!!)
-    }
-
-    /** An image of the conversation, inline with its content type (checked on upload); no external link or token. */
-    @AccessChecked("ChatImageService.download: read access of the host to the conversation")
-    @GetMapping("conversation/{id}/image/{fileId}")
-    fun downloadImage(
+    /**
+     * A file of a message of the conversation (not of a deleted one, of a hidden one for moderators only); no external
+     * link or token. Images (checked by their content when sent) are shown inline unless [download], any other file
+     * is always an attachment of unknown type, so the browser never shows (or runs) it.
+     */
+    @AccessChecked("ChatFileService.download: read access of the host to the conversation, file of a visible message of it")
+    @GetMapping("conversation/{id}/file/{fileId}")
+    fun downloadFile(
         @PathVariable id: Long,
         @PathVariable fileId: String,
         @RequestParam("download", required = false) download: Boolean?,
     ): ResponseEntity<InputStreamResource> {
-        val user = ThreadLocalUserContext.requiredLoggedInUser
-        val (file, inputStream) = imageService.download(id, fileId, user)
-            ?: return ResponseEntity.notFound().build()
-        val type = ChatImageService.ImageType.ofExtension(file.fileExtension)
-            ?: return ResponseEntity.notFound().build()
-        val disposition = if (download == true) ContentDisposition.attachment() else ContentDisposition.inline()
+        val context = chatService.requireContext(id)
+        val (attachment, file) = fileService.download(context, fileId) ?: return ResponseEntity.notFound().build()
+        val (fileObject, inputStream) = file
+        val imageType = if (attachment.image) ChatFileService.ImageType.ofExtension(fileObject.fileExtension) else null
+        val disposition = if (imageType == null || download == true) ContentDisposition.attachment() else ContentDisposition.inline()
+        val contentType = imageType?.let { MediaType.parseMediaType(it.mimeType) } ?: MediaType.APPLICATION_OCTET_STREAM
         return ResponseEntity.ok()
-            .contentType(MediaType.parseMediaType(type.mimeType))
-            .header(HttpHeaders.CONTENT_DISPOSITION, disposition.filename(file.fileName ?: "image.${type.extension}").build().toString())
+            .contentType(contentType)
+            .header(
+                HttpHeaders.CONTENT_DISPOSITION,
+                disposition.filename(fileObject.fileName ?: attachment.name, Charsets.UTF_8).build().toString(),
+            )
             .header("X-Content-Type-Options", "nosniff")
             .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS).cachePrivate())
             .body(InputStreamResource(inputStream))

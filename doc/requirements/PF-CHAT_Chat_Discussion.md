@@ -4,11 +4,11 @@
 |---|---|
 | COMP-ID | PF-CHAT |
 | DOC-ID | PF-CHAT-REQ |
-| Status | Draft 0.3 (chat rooms and mentions added) |
+| Status | Draft 0.4 (direct messages, files of any type in the data transfer) |
 | Owner | Kai Reinhard |
 | Date | 2026-10-25 |
 | Stage | R1 in implementation (ProjectForge 9.0.16) |
-| Used by | chat rooms (built-in first host, PF-CHAT-ROOM); [PF-CVR – CVE-Radar](PF-CVR_CVE-Radar_Vulnerability_Management.md); later invoices, orders and others |
+| Used by | chat rooms and direct messages (built-in hosts, PF-CHAT-ROOM, PF-CHAT-DM); [PF-CVR – CVE-Radar](PF-CVR_CVE-Radar_Vulnerability_Management.md); later invoices, orders and others |
 
 ---
 
@@ -20,7 +20,7 @@ do not follow the access rules of the object.
 
 **Objective:** a generic chat module, modelled on Google Chat, that any module can embed for its objects:
 - conversations about an object, with replies to a single message as a thread of their own;
-- messages written and edited with the rich text editor of PF, with images attached;
+- messages written and edited with the rich text editor of PF, with files attached;
 - access taken entirely from the object the conversation belongs to;
 - chat rooms with participants (users and/or groups) for discussions that belong to no other object;
 - mentions with `@` and suggestions, notifying the mentioned users.
@@ -30,7 +30,7 @@ The chat is a module of its own: it knows nothing about vulnerabilities or invoi
 whose objects are rooms with participants; the CVE-Radar follows.
 
 **Measurable benefit (targets):**
-- Every discussion about an embedded object is found at the object, complete with images and threads.
+- Every discussion about an embedded object is found at the object, complete with files and threads.
 - A new message is visible to the other participants within 3 s, without a reload.
 - Embedding the chat into a new host needs no change of the chat module.
 
@@ -50,7 +50,7 @@ whose objects are rooms with participants; the CVE-Radar follows.
    └ chat context: title, link, channels, read/write check, moderators, participants, retention
         │
         ▼
- ┌───────────────────────────┐ ── images ──▶ file storage of the data transfer module (JCR, AttachmentsService)
+ ┌───────────────────────────┐ ── files ───▶ data transfer: an area per conversation, personal boxes (DM)
  │ PF-CHAT                   │ ── notify ──▶ notification system (in-app, mail, digest)
  │ conversations, messages,  │ ── live ────▶ browser via SSE (SseEmitter), polling as fallback
  │ threads, read states      │
@@ -60,8 +60,8 @@ whose objects are rooms with participants; the CVE-Radar follows.
 ```
 
 **Scope boundaries:**
-- Conversations always belong to a host object. Free discussions use a chat room (PF-CHAT-ROOM) as host object;
-  direct messages between two users are not part of this version (see CTX-07).
+- Conversations always belong to a host object. Free discussions use a chat room (PF-CHAT-ROOM) as host object,
+  private ones a direct message (PF-CHAT-DM), whose host object is the pair of users.
 - No video or voice calls, no screen sharing, no e-mail-to-chat, no integration of external messengers.
 - The chat has no access rules of its own; it never widens what the host allows.
 
@@ -74,11 +74,12 @@ whose objects are rooms with participants; the CVE-Radar follows.
 | Chat context | The adapter a host registers: title, link, channels, access checks, moderators, retention of its objects. |
 | Channel | A conversation kind of a host, e.g. *internal* and *public* for a vulnerability; one conversation per host object and channel. |
 | Conversation | The messages about one host object in one channel. |
-| Message | A post with author, time and rich text, optionally with images. |
+| Message | A post with author, time and rich text, optionally with files. |
 | Thread | The replies to one message, shown apart from the conversation; one level deep. |
 | Mention | `@user` in a message, chosen from suggestions; notifies the user. |
 | Chat room | A host object of the built-in host *chat room*: name, description, owner, moderators and participants (users and groups). |
-| Attachment | An image stored in the data transfer storage and shown with the message. |
+| Attachment | A file of a message (any type), stored in the data transfer; images are shown as thumbnails. |
+| Direct message | A conversation of two users (built-in host *direct*), see PF-CHAT-DM. |
 
 ## 5. Requirements
 
@@ -94,8 +95,8 @@ Priority by MoSCoW: **M** = Must, **S** = Should, **C** = Could, **W** = Won't (
 | CTX-04 | Every conversation must also be reachable as a page of its own (`/next/chat/{id}`) showing the title of the host object with a link back to it. | M | links in notifications |
 | CTX-05 | A conversation must follow the life cycle of its host object: read-only when the host says so (e.g. closed vulnerability), archived and deleted together with it. | M | |
 | CTX-06 | A host should be able to show the number of conversations and unread messages per object in its lists (e.g. a chat column in the invoice list). | S | |
-| CTX-07 | Free rooms and team rooms are chat rooms of the built-in host PF-CHAT-ROOM; direct messages between two users without a room are not planned. | W | decisions 2, 9 |
-| CTX-08 | A cleanup job should remove conversations and images whose host object no longer exists (e.g. orphaned files in the data transfer storage) and apply the retention rule of a host. | S | later; CTX-05 stays the rule |
+| CTX-07 | Free rooms and team rooms are chat rooms of the built-in host PF-CHAT-ROOM; private conversations of two users are direct messages of the built-in host PF-CHAT-DM. | M | decisions 2, 9, 12 |
+| CTX-08 | A cleanup job should remove conversations and files whose host object no longer exists (e.g. orphaned files in the data transfer storage) and apply the retention rule of a host. | S | later; CTX-05 stays the rule |
 
 ### 5.2 PF-CHAT-MSG – Messages
 
@@ -127,18 +128,18 @@ own instead of interleaving with the conversation.
 | THR-06 | A reply could additionally be posted into the conversation ("also send to conversation"). | C | as in Google Chat |
 | THR-07 | Moving a message or thread into another conversation is not planned. | W | |
 
-### 5.4 PF-CHAT-ATT – Images
+### 5.4 PF-CHAT-ATT – Files
 
 | ID | Requirement | Prio | Remark |
 |---|---|---|---|
-| ATT-01 | Users must be able to attach images to a message by pasting (e.g. a screenshot), drag & drop or the file dialog, several per message. | M | |
-| ATT-02 | Images must be stored in the file storage of the data transfer module (JCR via `AttachmentsService`), in a technical area per conversation that does not appear in the data transfer lists. | M | reuse, no second file store |
-| ATT-03 | Access to an image must be checked against the read check of the conversation (CTX-01), not against the member lists of the data transfer area; images must not be reachable by an external link or token. | M | |
-| ATT-04 | Images must not expire as data transfer files do; they are kept and deleted with their message and conversation (CTX-05). | M | |
-| ATT-05 | Only PNG, JPEG, GIF and WebP must be accepted, checked by content rather than by file name; size and number per message are configurable (default 10 MB, 10 images). | M | untrusted input |
-| ATT-06 | Images must be shown as thumbnails in the message and opened full size in a viewer (lightbox) with download. | M | |
-| ATT-07 | Metadata (EXIF, GPS location) should be removed on upload. | S | privacy |
-| ATT-08 | Other file types (PDF, office documents) could be attached later under the same rules. | C | |
+| ATT-01 | Users must be able to attach files of any type to a message by pasting (e.g. a screenshot), drag & drop or the file dialog, at most 10 per message (configurable). They are stored when the message is sent, not before. | M | nothing unsent in the data transfer |
+| ATT-02 | Files must be stored in the data transfer: in a synthetic area per conversation, for direct messages in the personal box of the recipient. The synthetic area appears in the data transfer list of the readers of the conversation as "Chat: …"; nobody uploads into it or administers it there. | M | decision 5 |
+| ATT-03 | Access to a file of a synthetic area must be checked against the read check of the conversation (CTX-01), not against member lists of the data transfer; files of hidden messages for moderators only; deleting a file there is up to its author and the moderators. No external link or token. | M | `DataTransferAreaHost` |
+| ATT-04 | Files expire as the area says: a room chooses how long (default 30 days), a personal box keeps them as it does; an expired file stays listed with the message as "no longer available". Deleting a message deletes its files, deleting a room its area. | M | clean-up job of the data transfer |
+| ATT-05 | The size of a file is limited by the area (upload limit, free capacity). Images (PNG, JPEG, GIF, WebP) are recognised by content; all other files are always sent as download of unknown type (`attachment`, `nosniff`). | M | untrusted input |
+| ATT-06 | Images must be shown as thumbnails in the message and opened full size in a viewer (lightbox) with download; other files as download with name and size. | M | |
+| ATT-07 | Metadata (EXIF, GPS location) of images should be removed on upload. | S | privacy |
+| ATT-08 | Without the data transfer plugin (or on the gateway) no files can be exchanged; the composer and the room dialog say so. | M | |
 
 ### 5.5 PF-CHAT-NOT – Unread messages and notifications
 
@@ -186,11 +187,23 @@ participants.
 | ROOM-04 | The owner of a room is taken from the database and the logged-in user; an edit must not change it. | M | SEC-02 |
 | ROOM-05 | Users and groups can be chosen as participants only as far as the user may see them in the user and group selection. | M | no widening of visibility |
 | ROOM-06 | A user must see a list of the rooms they take part in and open each one as conversation page (CTX-04). | M | minimal in R1 |
-| ROOM-07 | Deleting a room deletes its conversation, messages and images. | M | CTX-05 |
+| ROOM-07 | Deleting a room deletes its conversation, messages and files (its data transfer area). | M | CTX-05 |
 | ROOM-08 | A chat area should show the rooms as a side bar with unread counts per room, as in Google Chat, and offer the room management there. | S | R2 |
 | ROOM-09 | The messages of rooms are not part of notification mails (NOT-05). | M | |
+| ROOM-10 | The room dialog must offer how long the files of the room are kept (choices of the data transfer, default 30 days). | M | ATT-04 |
 
-### 5.9 Non-functional requirements
+### 5.9 PF-CHAT-DM – Direct messages
+
+| ID | Requirement | Prio | Remark |
+|---|---|---|---|
+| DM-01 | Every user with system access must always be able to write privately to another user: from the chat page (choosing the user) and from every conversation (clicking an author). | M | decision 12 |
+| DM-02 | A direct message can be started only with users the user may see in the user selection (as ROOM-05), not with oneself. | M | no widening of visibility |
+| DM-03 | A pair of users has exactly one conversation, whoever starts it; each sees the name of the other one as title. | M | |
+| DM-04 | Both read and write as long as both have system access, without checking the visibility again (whoever got a message may answer); without the system access of the other one it is read-only. Nobody moderates, administrators have no access. | M | |
+| DM-05 | The chat page must list the direct messages with at least one message (newest first, unread counts); an opened, empty one isn't listed. | M | |
+| DM-06 | New messages are notified as in rooms (in the app at once, by mail if not seen within an hour, once until read) with a text of their own, without the content. | M | NOT-05 |
+
+### 5.10 Non-functional requirements
 
 | ID | Requirement | Prio |
 |---|---|---|
@@ -215,33 +228,35 @@ participants.
 | User and group selection | `user/autosearch`, `group/autosearch`, `EntityMultiAutocomplete` |
 
 To be built: chat context interface and registry, conversation/message/read-state entities, chat rooms, chat panel and
-page, thread side panel, mention suggestions, image upload and viewer.
+page, thread side panel, mention suggestions, file upload and image viewer.
 
 ## 7. Integration examples
 
 | Host | Channels | Read / write | Remark |
 |---|---|---|---|
 | Chat room | *main* | participants of the room (ROOM-02) | first host, built in |
+| Direct message | *main* | the two users (DM-04) | built in |
 | CVE-Radar vulnerability | *internal*, *public* | internal: ST and affected groups; public: recipients of the client advisory | [PF-CVR-DISC](PF-CVR_CVE-Radar_Vulnerability_Management.md#511-pf-cvr-disc--discussion) |
 | CVE-Radar finding | *internal* | visibility of the finding (PF-CVR VIS-09) | system-specific discussion |
 | Invoice (later) | *internal* | as the invoice (`RechnungDao`) | questions about an invoice |
 | Order (later) | *internal* | as the order (`AuftragDao`) | discussion about an order |
 
-## 8. Decisions (as of 0.3)
+## 8. Decisions (as of 0.4)
 
 | # | Topic | Decision | Requirements |
 |---|---|---|---|
 | 1 | Module | Generic core module embedded by hosts; no access rules of its own | CTX-01, NFR-05 |
-| 2 | Scope | Conversations always belong to a host object; free discussions take place in chat rooms; no direct messages | CTX-07 |
+| 2 | Scope | Conversations always belong to a host object; free discussions take place in chat rooms, private ones in direct messages | CTX-07 |
 | 3 | Threads | As in Google Chat: replies to a message, one level deep | THR-01, THR-02 |
 | 4 | Editing | Existing rich text editor, own messages editable and historised | MSG-01, MSG-03 |
-| 5 | Images | Data transfer storage, access from the conversation, no expiry | ATT-02 – ATT-04 |
+| 5 | Files | All types, in the data transfer: a synthetic area per conversation (access from the conversation, expiry chosen by the room), the personal box of the recipient for direct messages; none without the plugin | ATT-01 – ATT-08 |
 | 6 | Live updates | SSE with heartbeat, automatic fallback to polling; no WebSocket | NOT-06, NOT-08, NFR-07 |
 | 7 | Reactions | Emoji reactions as in Google Chat | MSG-10 |
 | 8 | Retention | Kept until the host object is deleted; a cleanup job follows later | CTX-05, CTX-08 |
 | 9 | Chat rooms | Built-in first host with participants (users and groups); the chat area follows in R2 | ROOM-01 – ROOM-09 |
 | 10 | Mentions | `@` with suggestions from the readers of the conversation; checked on the server; notified at once | MSG-07, NOT-03 |
 | 11 | Reactions storage | Stored with the message (emoji → user ids), not historised | MSG-10 |
+| 12 | Direct messages | Built-in host with the pair of users as host object; started only with visible users, then open to both | DM-01 – DM-06 |
 
 ## 9. Open points
 
@@ -250,6 +265,6 @@ None at the moment.
 ## 10. Next steps
 
 1. Release cut R1 (ProjectForge 9.0.16): chat core (CTX, MSG incl. mentions and reactions, THR, ATT, NOT-01 – NOT-07, SRCH-01, SEC) with
-   the chat room as first host and a minimal room list (ROOM-01 – ROOM-07, ROOM-09).
+   the chat room as first host and a minimal room list (ROOM-01 – ROOM-07, ROOM-09, ROOM-10), direct messages (DM).
 2. R2: chat area (ROOM-08), search across conversations (SRCH-02), export (SEC-08), user guide.
 3. PF-CVR DISC on top of R1; the cleanup job (CTX-08) later.

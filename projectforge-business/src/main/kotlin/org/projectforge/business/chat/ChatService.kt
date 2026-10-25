@@ -62,7 +62,7 @@ open class ChatService {
     private lateinit var hostRegistry: ChatHostRegistry
 
     @Autowired
-    private lateinit var imageService: ChatImageService
+    private lateinit var fileService: ChatFileService
 
     @Autowired
     private lateinit var notifier: ChatNotifier
@@ -86,7 +86,8 @@ open class ChatService {
     )
 
     /**
-     * The conversation of the host object and channel, created if missing and the user may write in it (CTX-02).
+     * The conversation of the host object and channel, created if missing and the user may write in it (CTX-02), with
+     * the area of its files.
      * @return The context, null if there is no conversation yet and the user may not write (nothing to show).
      * @throws AccessException if the user may not read it, or the host object doesn't exist.
      */
@@ -102,7 +103,11 @@ open class ChatService {
             } else {
                 createConversation(hostType, hostId, channel)
             }
-        return chatAccess.getContext(conversation, user) ?: throw AccessException(user, NO_ACCESS)
+        val context = chatAccess.getContext(conversation, user) ?: throw AccessException(user, NO_ACCESS)
+        if (context.canWrite) {
+            fileService.ensureArea(context) // The area of its files in the data transfer, see ChatFileService.
+        }
+        return context
     }
 
     private fun createConversation(hostType: String, hostId: Long, channel: String): ChatConversationDO {
@@ -192,16 +197,41 @@ open class ChatService {
 
     /**
      * Sends a message, or a reply in the thread of [threadRootId] (a reply to a reply belongs to the same thread).
-     * @param attachmentIds The ids of images uploaded for the conversation before ([ChatImageService.upload]).
+     * @param files The files of the message, stored in the data transfer ([ChatFileService.store]) before; deleted
+     * again if the message isn't saved.
      */
-    open fun send(conversationId: Long, threadRootId: Long?, html: String?, attachmentIds: List<String>?): ChatMessageDO {
+    open fun send(
+        conversationId: Long,
+        threadRootId: Long?,
+        html: String?,
+        files: List<ChatFileService.Upload> = emptyList(),
+    ): ChatMessageDO {
         val user = ThreadLocalUserContext.requiredLoggedInUser
         val context = chatAccess.requireWriteContext(conversationId, user)
         val content = sanitize(context, html)
-        val images = validateImages(context, attachmentIds)
-        if (content.html.isEmpty() && images.isEmpty()) {
+        if (content.html.isEmpty() && files.isEmpty()) {
             throw UserException(ERROR_EMPTY)
         }
+        if (threadRootId != null && findMessage(threadRootId)?.conversationId != conversationId) {
+            throw AccessException(user, NO_ACCESS) // Checked before the files are stored.
+        }
+        val attachments = fileService.store(context, files)
+        try {
+            return send(context, threadRootId, content, attachments)
+        } catch (ex: Exception) {
+            fileService.delete(attachments)
+            throw ex
+        }
+    }
+
+    private fun send(
+        context: ChatAccess.Context,
+        threadRootId: Long?,
+        content: ChatHtmlSanitizer.Result,
+        attachments: List<ChatAttachment>,
+    ): ChatMessageDO {
+        val user = context.user
+        val conversationId = context.conversationId
         val now = Date()
         var followers = emptySet<Long>()
         val (message, seq) = persistenceService.runInTransaction { pc ->
@@ -219,7 +249,7 @@ open class ChatService {
                 it.threadRootId = root?.id
                 it.content = content.html
                 it.contentText = content.text.take(ChatMessageDO.CONTENT_TEXT_LENGTH)
-                it.attachmentIds = images.takeIf { ids -> ids.isNotEmpty() }?.joinToString(",")
+                it.writeAttachments(attachments)
                 it.mentionedIds = ChatRoomDO.toCsv(content.mentionedIds)
                 it.changeSeq = seq
             }
@@ -252,8 +282,8 @@ open class ChatService {
         return message
     }
 
-    /** The author edits the own message (historised, MSG-03). Newly mentioned users are notified. */
-    open fun edit(messageId: Long, html: String?, attachmentIds: List<String>?): ChatMessageDO {
+    /** The author edits the own message (historised, MSG-03), its files stay. Newly mentioned users are notified. */
+    open fun edit(messageId: Long, html: String?): ChatMessageDO {
         val user = ThreadLocalUserContext.requiredLoggedInUser
         val stored = findMessage(messageId) ?: throw AccessException(user, NO_ACCESS)
         val context = chatAccess.requireWriteContext(stored.conversationId, user)
@@ -261,8 +291,7 @@ open class ChatService {
             throw AccessException(user, NO_ACCESS)
         }
         val content = sanitize(context, html)
-        val images = validateImages(context, attachmentIds)
-        if (content.html.isEmpty() && images.isEmpty()) {
+        if (content.html.isEmpty() && stored.readAttachments().isEmpty()) {
             throw UserException(ERROR_EMPTY)
         }
         var newlyMentioned = emptyList<Long>()
@@ -273,7 +302,6 @@ open class ChatService {
             newlyMentioned = content.mentionedIds.filter { it !in previous }
             message.content = content.html
             message.contentText = content.text.take(ChatMessageDO.CONTENT_TEXT_LENGTH)
-            message.attachmentIds = images.takeIf { it.isNotEmpty() }?.joinToString(",")
             message.mentionedIds = ChatRoomDO.toCsv(content.mentionedIds)
             message.editedAt = Date()
             message.changeSeq = seq
@@ -287,7 +315,10 @@ open class ChatService {
         return message
     }
 
-    /** The author deletes the own message: a placeholder stays (MSG-04), the thread stays readable. */
+    /**
+     * The author deletes the own message: a placeholder stays (MSG-04), the thread stays readable. Its files are
+     * deleted.
+     */
     open fun delete(messageId: Long) {
         val user = ThreadLocalUserContext.requiredLoggedInUser
         val stored = findMessage(messageId) ?: throw AccessException(user, NO_ACCESS)
@@ -311,6 +342,7 @@ open class ChatService {
             seq
         }
         publish(context.conversationId, seq)
+        fileService.delete(stored.readAttachments())
     }
 
     /** A moderator hides a message (of anybody) with a reason, or shows it again (SEC-05, historised). */
@@ -570,7 +602,7 @@ open class ChatService {
 
     /**
      * Deletes the room (marked as deleted, checked by [ChatRoomDao]) and its conversation with all messages and
-     * images (ROOM-07).
+     * files (ROOM-07).
      */
     open fun deleteRoom(roomId: Long) {
         val user = ThreadLocalUserContext.requiredLoggedInUser
@@ -581,7 +613,7 @@ open class ChatService {
 
     /**
      * Deletes the conversations of the host object with their messages (also their history, which holds former texts),
-     * read states and images, e.g. with the deletion of the host object (CTX-05). The notifications about them are
+     * read states and files (the area in the data transfer), e.g. with the deletion of the host object (CTX-05). The notifications about them are
      * resolved. No access check: the caller decides.
      */
     open fun deleteConversations(hostType: String, hostId: Long) {
@@ -610,7 +642,7 @@ open class ChatService {
                 pc.executeUpdate("delete from ChatMessageDO m where m.conversationId = :conversationId", params)
                 pc.executeUpdate("delete from ChatConversationDO c where c.id = :conversationId", params)
             }
-            imageService.deleteAll(conversationId)
+            fileService.deleteArea(conversation)
             notifier.resolveAll(conversationId)
             log.info { "Chat conversation #$conversationId of $hostType #$hostId deleted." }
         }
@@ -682,22 +714,6 @@ open class ChatService {
         }
     }
 
-    /** The given images must be ones of the conversation, at most [ChatImageService.maxPerMessage]. */
-    private fun validateImages(context: ChatAccess.Context, attachmentIds: List<String>?): List<String> {
-        val ids = attachmentIds.orEmpty().map { it.trim() }.filter { it.isNotEmpty() }.distinct()
-        if (ids.isEmpty()) {
-            return ids
-        }
-        if (ids.size > imageService.maxPerMessage) {
-            throw UserException(ERROR_TOO_MANY_IMAGES, imageService.maxPerMessage)
-        }
-        val known = imageService.getImageIds(context.conversationId)
-        if (!known.containsAll(ids)) {
-            throw AccessException(context.user, NO_ACCESS)
-        }
-        return ids
-    }
-
     private fun messageInfo(
         context: ChatAccess.Context,
         message: ChatMessageDO,
@@ -742,7 +758,6 @@ open class ChatService {
         const val ERROR_EMPTY = "chat.message.error.empty"
         const val ERROR_EMOJI = "chat.reaction.error.invalid"
         const val ERROR_TOO_MANY_EMOJIS = "chat.reaction.error.tooMany"
-        const val ERROR_TOO_MANY_IMAGES = "chat.image.error.tooMany"
         const val ERROR_HIDE_REASON = "chat.message.error.hideReason"
 
         private const val NO_ACCESS = "access.exception.noAccess"

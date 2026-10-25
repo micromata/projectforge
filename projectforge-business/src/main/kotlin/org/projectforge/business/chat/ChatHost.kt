@@ -43,6 +43,11 @@ interface ChatHost {
      */
     fun title(hostId: Long, channel: String): String?
 
+    /**
+     * The title as seen by the user, e.g. the name of the other one of a direct message. By default [title].
+     */
+    fun title(hostId: Long, channel: String, user: PFUserDO): String? = title(hostId, channel)
+
     /** The link to the host object (path of the app), shown with the conversation. */
     fun link(hostId: Long): String?
 

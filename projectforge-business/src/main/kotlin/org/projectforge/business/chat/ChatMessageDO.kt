@@ -24,6 +24,7 @@
 package org.projectforge.business.chat
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Index
@@ -33,6 +34,8 @@ import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.NoHistory
 import java.util.Date
+
+private val log = KotlinLogging.logger {}
 
 /**
  * A message of a conversation, or a reply in the thread of a message ([threadRootId]). Threads are one level deep: the
@@ -69,9 +72,9 @@ open class ChatMessageDO : DefaultBaseDO() {
     @get:Column(name = "content_text", length = CONTENT_TEXT_LENGTH)
     open var contentText: String? = null
 
-    /** The ids of the images (csv of JCR file ids), see [ChatImageService]. */
-    @get:Column(name = "attachment_ids", length = 4000)
-    open var attachmentIds: String? = null
+    /** JSON: the files of the message in the data transfer, see [readAttachments] and [ChatFileService]. */
+    @get:Column(name = "attachments", length = 10000)
+    open var attachments: String? = null
 
     /** The users mentioned (csv of ids, checked against the readers), notified once each. */
     @NoHistory
@@ -149,6 +152,23 @@ open class ChatMessageDO : DefaultBaseDO() {
 
     fun writeReactions(map: Map<String, List<Long>>) {
         reactions = map.filterValues { it.isNotEmpty() }.takeIf { it.isNotEmpty() }?.let { JsonUtils.toJson(it) }
+    }
+
+    fun readAttachments(): List<ChatAttachment> {
+        val json = attachments
+        if (json.isNullOrBlank()) {
+            return emptyList()
+        }
+        return try {
+            JsonUtils.fromJson(json, Array<ChatAttachment>::class.java, failOnUnknownProps = false)?.toList() ?: emptyList()
+        } catch (ex: Exception) {
+            log.error { "Attachments of chat message #$id not readable: ${ex.message}" }
+            emptyList()
+        }
+    }
+
+    fun writeAttachments(list: List<ChatAttachment>) {
+        attachments = list.takeIf { it.isNotEmpty() }?.let { JsonUtils.toJson(it) }
     }
 
     companion object {

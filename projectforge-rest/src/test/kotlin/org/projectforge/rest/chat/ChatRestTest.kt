@@ -32,9 +32,13 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.projectforge.business.chat.ChatNotifier
+import org.projectforge.business.chat.InMemoryDataTransfer
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.common.i18n.UserException
+import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.framework.access.AccessException
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 
 /**
  * The chat endpoints as the next app uses them: rooms with participants the user may see only, the messages as
@@ -48,7 +52,13 @@ class ChatRestTest : AbstractTestBase() {
     private lateinit var chatRoomRest: ChatRoomRest
 
     @Autowired
+    private lateinit var chatDirectRest: ChatDirectRest
+
+    @Autowired
     private lateinit var chatNotifier: ChatNotifier
+
+    @Autowired
+    private lateinit var dataTransferBridge: DataTransferBridge
 
     @BeforeEach
     fun setUp() {
@@ -112,4 +122,62 @@ class ChatRestTest : AbstractTestBase() {
         assertNull(hidden.hiddenReason)
         assertTrue(chatRest.mentionCandidates(conversationId, "").any { it.id == getUserId(TEST_USER) })
     }
+
+    @Test
+    fun `direct messages are listed with a message only, files are downloads unless images`() {
+        val user2 = getUserId(TEST_USER2)
+        logon(TEST_USER)
+        suppressErrorLogs {
+            // Without the data transfer: no files.
+            val conversationId = chatDirectRest.open(ChatDirectOpenRequest(user2)).conversationId
+            val conversation = chatRest.getConversation(conversationId)
+            assertEquals(user2, conversation.directPartner!!.id)
+            assertFalse(conversation.filesEnabled)
+            assertThrows(UserException::class.java) {
+                chatRest.sendWithFiles(conversationId, ChatSendRequest(html = "x"), listOf(file("a.txt", "a".toByteArray())))
+            }
+            assertThrows(AccessException::class.java) { chatDirectRest.open(ChatDirectOpenRequest(getUserId("user3"))) }
+        }
+        val dataTransfer = InMemoryDataTransfer()
+        dataTransferBridge.register(dataTransfer)
+        try {
+            val conversationId = chatDirectRest.open(ChatDirectOpenRequest(user2)).conversationId
+            assertTrue(chatRest.getConversation(conversationId).filesEnabled)
+            val png = java.io.ByteArrayOutputStream().also {
+                javax.imageio.ImageIO.write(java.awt.image.BufferedImage(1, 1, java.awt.image.BufferedImage.TYPE_INT_RGB), "png", it)
+            }.toByteArray()
+            val message = chatRest.sendWithFiles(
+                conversationId,
+                ChatSendRequest(html = "<p>files</p>"),
+                listOf(file("page.html", "<script>alert(1)</script>".toByteArray()), file("pic.png", png)),
+            )
+            assertTrue(chatDirectRest.list().any { it.conversationId == conversationId && it.partner.id == user2 })
+            val (html, image) = message.files
+            assertFalse(html.image)
+            assertTrue(html.available)
+            assertTrue(image.image)
+            chatRest.downloadFile(conversationId, html.fileId, null).let { response ->
+                assertEquals(MediaType.APPLICATION_OCTET_STREAM, response.headers.contentType)
+                assertTrue(response.headers.contentDisposition.isAttachment)
+                assertEquals("nosniff", response.headers.getFirst("X-Content-Type-Options"))
+            }
+            chatRest.downloadFile(conversationId, image.fileId, null).let { response ->
+                assertEquals(MediaType.IMAGE_PNG, response.headers.contentType)
+                assertTrue(response.headers.contentDisposition.isInline)
+            }
+            // Expired in the data transfer: still listed, not available.
+            dataTransfer.areas.values.forEach { it.files.remove(html.fileId) }
+            assertFalse(chatRest.getMessages(conversationId, null, null).messages.first().files.first().available)
+            assertEquals(404, chatRest.downloadFile(conversationId, html.fileId, null).statusCode.value())
+            suppressErrorLogs {
+                logon(TEST_FINANCE_USER)
+                assertThrows(AccessException::class.java) { chatRest.downloadFile(conversationId, image.fileId, null) }
+            }
+        } finally {
+            dataTransferBridge.register(null)
+        }
+    }
+
+    private fun file(name: String, content: ByteArray) =
+        org.springframework.mock.web.MockMultipartFile("files", name, "application/octet-stream", content)
 }

@@ -16,6 +16,7 @@ import {
   CHAT_ROOMS_QUERY_KEY,
   deleteChatRoom,
   fetchChatRoom,
+  fetchChatRoomDefaults,
   saveChatRoom,
 } from "@/lib/rs/chat-rooms";
 import type { ChatRoom } from "@/lib/rs/chat-types";
@@ -33,7 +34,7 @@ const NEW_ROOM: ChatRoom = {
 
 /**
  * Creating ([roomId] null) or editing a chat room (PF-CHAT-ROOM): name, description, participating users and
- * groups, moderators. Saved, [onSaved] gets the room's conversation. Owner and moderators may delete it.
+ * groups, moderators, how long its files are kept. Saved, [onSaved] gets the room's conversation. Owner and moderators may delete it.
  */
 export function ChatRoomDialog({
   open,
@@ -52,6 +53,11 @@ export function ChatRoomDialog({
     queryKey: ["chatRoom", roomId],
     queryFn: ({ signal }) => fetchChatRoom(roomId!, signal),
     enabled: open && roomId != null,
+  });
+  const defaults = useQuery({
+    queryKey: ["chatRoomDefaults"],
+    queryFn: ({ signal }) => fetchChatRoomDefaults(signal),
+    enabled: open && roomId == null,
   });
   const [error, setError] = useState<string | null>(null);
   const done = () => {
@@ -75,7 +81,10 @@ export function ChatRoomDialog({
     },
     onError: (e: Error) => toast.error(e.message),
   });
-  const room = roomId == null ? NEW_ROOM : query.data;
+  const room =
+    roomId == null
+      ? defaults.data && { ...NEW_ROOM, ...defaults.data }
+      : query.data;
   const title = roomId == null ? t("chat.room.new") : t("chat.room.edit");
 
   return (
@@ -86,10 +95,12 @@ export function ChatRoomDialog({
           <DialogDescription className="sr-only">{title}</DialogDescription>
         </DialogHeader>
         {error && <FormAlert tone="error">{error}</FormAlert>}
-        {query.isError && (
+        {(query.isError || defaults.isError) && (
           <FormAlert tone="error">{t("chat.conversation.notFound")}</FormAlert>
         )}
-        {!room && !query.isError && <Spinner className="h-5 w-5 border-2" />}
+        {!room && !query.isError && !defaults.isError && (
+          <Spinner className="h-5 w-5 border-2" />
+        )}
         {room && (
           <ChatRoomForm
             key={room.id ?? "new"}

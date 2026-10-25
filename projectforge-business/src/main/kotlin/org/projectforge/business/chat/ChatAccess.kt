@@ -86,7 +86,7 @@ open class ChatAccess {
         if (user.id == null || !host.hasReadAccess(user, hostId, channel)) {
             return null
         }
-        val title = host.title(hostId, channel) ?: return null
+        val title = host.title(hostId, channel, user) ?: return null
         return Context(
             conversation = conversation,
             host = host,

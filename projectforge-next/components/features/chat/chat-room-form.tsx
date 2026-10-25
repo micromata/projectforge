@@ -9,13 +9,21 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { FieldDescription } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { ChatRef, ChatRoom } from "@/lib/rs/chat-types";
 
 /**
  * The fields of a chat room. Participants are chosen from the users and groups the user may see (ROOM-05); the
  * owner takes part anyway and is set by the server. Hints explain what moderators do and that the owner always
- * takes part and moderates (it isn't preset as participant: it couldn't be removed anyway).
+ * takes part and moderates (it isn't preset as participant: it couldn't be removed anyway). The files of the room
+ * are kept for the days chosen, in its data transfer area; without the data transfer there are none (a hint says so).
  */
 export function ChatRoomForm({
   room,
@@ -107,6 +115,39 @@ export function ChatRoomForm({
           />
           <FieldDescription>{t("chat.room.moderators.info")}</FieldDescription>
         </div>
+        {value.filesEnabled ? (
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="chatRoomFileExpiryDays">
+              {t("chat.file.expiryDays._")}
+            </Label>
+            <Select
+              value={
+                value.fileExpiryDays != null
+                  ? String(value.fileExpiryDays)
+                  : undefined
+              }
+              onValueChange={(days) => set({ fileExpiryDays: Number(days) })}
+            >
+              <SelectTrigger id="chatRoomFileExpiryDays" className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {value.fileExpiryDaysChoices?.map((choice) => (
+                  <SelectItem key={choice.value} value={String(choice.value)}>
+                    {choice.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FieldDescription>
+              {t("chat.file.expiryDays.info")}
+            </FieldDescription>
+          </div>
+        ) : (
+          <FieldDescription>
+            {t("chat.file.error.unavailable")}
+          </FieldDescription>
+        )}
       </fieldset>
       <FieldDescription>
         {room.owner && (

@@ -1,5 +1,5 @@
 import { chatPost, chatRequest } from "./chat";
-import type { ChatRoomEntry, ChatRoom } from "./chat-types";
+import type { ChatRoomDefaults, ChatRoomEntry, ChatRoom } from "./chat-types";
 
 export const CHAT_ROOMS_QUERY_KEY = ["chatRooms"] as const;
 
@@ -13,6 +13,15 @@ export function fetchChatRooms(signal?: AbortSignal) {
 
 export function fetchChatRoom(id: number, signal?: AbortSignal) {
   return chatRequest<ChatRoom>(`/rs/chatRoom/${id}`, { method: "GET" }, signal);
+}
+
+/** Defaults of a new room: expiry of its files and the choices, whether files can be exchanged at all. */
+export function fetchChatRoomDefaults(signal?: AbortSignal) {
+  return chatRequest<ChatRoomDefaults>(
+    "/rs/chatRoom/defaults",
+    { method: "GET" },
+    signal
+  );
 }
 
 export function saveChatRoom(room: ChatRoom) {

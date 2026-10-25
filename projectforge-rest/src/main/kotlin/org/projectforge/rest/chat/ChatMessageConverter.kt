@@ -24,15 +24,18 @@
 package org.projectforge.rest.chat
 
 import org.projectforge.business.chat.ChatAccess
+import org.projectforge.business.chat.ChatFileService
 import org.projectforge.business.chat.ChatMessageDO
 import org.projectforge.business.chat.ChatRoomDO
 import org.projectforge.business.chat.ChatService
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.common.FormatterUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 /**
- * Converts messages into what the logged-in user sees ([ChatMessage]).
+ * Converts messages into what the logged-in user sees ([ChatMessage]), with the files still there in the data
+ * transfer (others expired or were deleted there).
  */
 @Service
 class ChatMessageConverter {
@@ -40,22 +43,37 @@ class ChatMessageConverter {
     private lateinit var chatService: ChatService
 
     @Autowired
+    private lateinit var fileService: ChatFileService
+
+    @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
     fun convert(context: ChatAccess.Context, messages: List<ChatMessageDO>): List<ChatMessage> {
         val rootIds = messages.filter { it.threadRootId == null && it.replyCount > 0 }.mapNotNull { it.id }
         val replyAuthors = chatService.selectReplyAuthorIds(rootIds)
-        return messages.map { convert(context, it, replyAuthors[it.id].orEmpty()) }
+        val existing = existingFileIds(messages)
+        return messages.map { convert(context, it, replyAuthors[it.id].orEmpty(), existing) }
     }
 
     fun convert(context: ChatAccess.Context, message: ChatMessageDO): ChatMessage {
         val replyAuthors = if (message.threadRootId == null && message.replyCount > 0) {
             chatService.selectReplyAuthorIds(listOf(message.id!!))[message.id].orEmpty()
         } else emptyList()
-        return convert(context, message, replyAuthors)
+        return convert(context, message, replyAuthors, existingFileIds(listOf(message)))
     }
 
-    private fun convert(context: ChatAccess.Context, message: ChatMessageDO, replyAuthorIds: List<Long>): ChatMessage {
+    /** The files of the messages still there, asked once per area. */
+    private fun existingFileIds(messages: List<ChatMessageDO>): Set<String> {
+        val areaIds = messages.flatMap { message -> message.readAttachments().map { it.areaId } }
+        return if (areaIds.isEmpty()) emptySet() else fileService.existingFileIds(areaIds)
+    }
+
+    private fun convert(
+        context: ChatAccess.Context,
+        message: ChatMessageDO,
+        replyAuthorIds: List<Long>,
+        existingFileIds: Set<String>,
+    ): ChatMessage {
         val meId = context.user.id
         val showContent = !message.deleted && (!message.isHidden || context.isModerator)
         return ChatMessage(
@@ -70,7 +88,9 @@ class ChatMessageConverter {
             hiddenBy = if (message.isHidden && context.isModerator) ref(message.hiddenById).displayName else null,
             hiddenReason = if (message.isHidden && context.isModerator) message.hiddenReason else null,
             content = if (showContent) message.content else null,
-            imageIds = if (showContent) message.attachmentIds?.split(',')?.filter { it.isNotBlank() }.orEmpty() else emptyList(),
+            files = if (showContent) message.readAttachments().map {
+                ChatFile(it.fileId, it.name, it.size, FormatterUtils.formatBytes(it.size), it.image, it.fileId in existingFileIds)
+            } else emptyList(),
             reactions = if (message.deleted) emptyList() else message.readReactions().map { (emoji, userIds) ->
                 ChatReaction(emoji, userIds.size, userIds.map { ref(it).displayName }, meId in userIds)
             },

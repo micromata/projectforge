@@ -10,42 +10,46 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { chatImageUrl } from "@/lib/rs/chat";
+import { chatFileUrl } from "@/lib/rs/chat";
+import type { ChatFile } from "@/lib/rs/chat-types";
 
 /** An image of a message full size, with download. */
 export function ImageLightbox({
   conversationId,
-  fileId,
+  file,
   onClose,
 }: {
   conversationId: number;
-  fileId: string | null;
+  file: ChatFile | null;
   onClose: () => void;
 }) {
   const t = useTranslations();
   return (
-    <Dialog open={fileId != null} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={file != null} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-h-[95dvh] max-w-[95vw] gap-2 p-2 sm:max-w-[90vw]">
-        <DialogTitle className="sr-only">
-          {t("chat.image.download")}
-        </DialogTitle>
-        <DialogDescription className="sr-only">{fileId}</DialogDescription>
-        {fileId && (
+        <DialogTitle className="sr-only">{file?.name}</DialogTitle>
+        <DialogDescription className="sr-only">
+          {t("chat.file.download")}
+        </DialogDescription>
+        {file && (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element -- served by Spring with the session */}
             <img
-              src={chatImageUrl(conversationId, fileId)}
+              src={chatFileUrl(conversationId, file.fileId)}
               alt=""
               className="mx-auto max-h-[85dvh] max-w-full object-contain"
             />
             <div className="flex justify-end">
               <Button asChild variant="outline" size="sm">
-                <a href={chatImageUrl(conversationId, fileId, true)} download>
+                <a
+                  href={chatFileUrl(conversationId, file.fileId, true)}
+                  download={file.name}
+                >
                   <HugeiconsIcon
                     icon={Download01Icon}
                     data-icon="inline-start"
                   />
-                  {t("chat.image.download")}
+                  {t("chat.file.download")}
                 </a>
               </Button>
             </div>

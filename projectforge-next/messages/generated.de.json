@@ -966,16 +966,34 @@
       "readOnly": "Diese Unterhaltung ist schreibgeschützt.",
       "unmute": "Stummschaltung aufheben"
     },
-    "image": {
-      "add": "Bilder hinzufügen",
+    "direct": {
+      "_": "Direktnachrichten",
+      "empty": "Noch keine Direktnachrichten.",
+      "error": {
+        "self": "An sich selbst lassen sich keine Direktnachrichten schicken."
+      },
+      "info": "Angeschrieben werden kann jede Person, die in der Personenauswahl erscheint.",
+      "new": "Direktnachricht",
+      "open": "Öffnen",
+      "send": "Direktnachricht senden",
+      "user": "Person"
+    },
+    "file": {
+      "add": "Dateien anhängen",
+      "directTarget": "Dateien landen im Datentransfer in der persönlichen Box von {arg0}.",
       "download": "Herunterladen",
       "error": {
-        "tooLarge": "Das Bild ist zu groß (höchstens {arg0} MB).",
-        "tooMany": "Höchstens {arg0} Bilder pro Nachricht.",
-        "unsupportedType": "Nur PNG-, JPEG-, GIF- und WebP-Bilder werden unterstützt."
+        "tooLarge": "Die Datei „{arg0}“ ist zu groß (höchstens {arg1}).",
+        "tooLargeTogether": "Alle Dateien zusammen sind für eine Nachricht zu groß.",
+        "tooMany": "Höchstens {arg0} Dateien pro Nachricht.",
+        "unavailable": "Ohne aktiviertes Datentransfer-Plugin können im Chat keine Dateien ausgetauscht werden."
       },
-      "remove": "Bild entfernen",
-      "uploading": "Wird hochgeladen …"
+      "expiryDays": {
+        "_": "Dateien verfügbar",
+        "info": "Die Dateien des Raums werden so lange in seinem Datentransferbereich „Chat: …“ aufbewahrt und danach gelöscht."
+      },
+      "notAvailable": "Datei nicht mehr verfügbar",
+      "remove": "Datei entfernen"
     },
     "mention": {
       "noResults": "Niemand gefunden."
@@ -1008,7 +1026,7 @@
     "room": {
       "delete": {
         "_": "Chatraum löschen",
-        "confirm": "Den Chatraum „{arg0}“ mit allen Nachrichten und Bildern löschen? Das lässt sich nicht rückgängig machen."
+        "confirm": "Den Chatraum „{arg0}“ mit allen Nachrichten und Dateien löschen? Das lässt sich nicht rückgängig machen."
       },
       "description": "Beschreibung",
       "edit": "Chatraum bearbeiten",

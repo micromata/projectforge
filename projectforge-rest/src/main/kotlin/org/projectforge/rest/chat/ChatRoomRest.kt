@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.chat
 
+import org.projectforge.business.chat.ChatFileService
 import org.projectforge.business.chat.ChatRoomChatHost
 import org.projectforge.business.chat.ChatRoomDO
 import org.projectforge.business.chat.ChatRoomDao
@@ -32,6 +33,7 @@ import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
@@ -53,7 +55,8 @@ import org.springframework.web.bind.annotation.RestController
  * The chat rooms (PF-CHAT-ROOM) for the chat page of projectforge-next: the rooms of the logged-in user, editing and
  * deleting them. The access is decided by [ChatRoomDao] for the room stored in the database; the owner is the
  * logged-in user on insert and never changed. New participants must be users and groups the logged-in user may see
- * (ROOM-05), the ones already in the room stay.
+ * (ROOM-05), the ones already in the room stay. The files of a room are kept in the data transfer area of its
+ * conversation for the days chosen here ([ChatFileService]).
  */
 @RestController
 @RequestMapping("${Rest.URL}/chatRoom")
@@ -66,6 +69,9 @@ class ChatRoomRest {
 
     @Autowired
     private lateinit var converter: ChatMessageConverter
+
+    @Autowired
+    private lateinit var fileService: ChatFileService
 
     @Autowired
     private lateinit var groupDao: GroupDao
@@ -97,6 +103,17 @@ class ChatRoomRest {
                 canEdit = chatRoomDao.isModerator(room, userId),
             )
         }.sortedWith(compareByDescending<ChatRoomEntry> { it.lastMessageAt }.thenBy { it.name.lowercase() })
+    }
+
+    /** The defaults of a new room: expiry of its files and the choices, whether files can be exchanged at all. */
+    @AccessChecked("No data: static choices and the availability of the data transfer only")
+    @GetMapping("defaults")
+    fun defaults(): ChatRoomDefaults {
+        return ChatRoomDefaults(
+            fileExpiryDays = DEFAULT_FILE_EXPIRY_DAYS,
+            fileExpiryDaysChoices = expiryDaysChoices(),
+            filesEnabled = fileService.filesAvailable,
+        )
     }
 
     @AccessChecked("ChatRoomDao.find: participants of the room only")
@@ -136,6 +153,7 @@ class ChatRoomRest {
             stored.id!!
         }
         val conversationId = chatService.open(ChatRoomChatHost.HOST_TYPE, id, ChatRoomChatHost.CHANNEL)?.conversationId
+        conversationId?.let { fileService.saveArea(it, name, dto.fileExpiryDays) } // Name and expiry of its files.
         return ChatRoomSaveResult(id, conversationId)
     }
 
@@ -158,7 +176,17 @@ class ChatRoomRest {
                 ChatRef(groupId, userGroupCache.getGroup(groupId)?.name ?: "?")
             },
             canEdit = chatRoomDao.isModerator(room, ThreadLocalUserContext.requiredLoggedInUserId),
+            fileExpiryDays = chatService.findConversations(ChatRoomChatHost.HOST_TYPE, listOf(room.id!!))[room.id]
+                ?.let { fileService.getExpiryDays(it.id!!) } ?: DEFAULT_FILE_EXPIRY_DAYS,
+            fileExpiryDaysChoices = expiryDaysChoices(),
+            filesEnabled = fileService.filesAvailable,
         )
+    }
+
+    private fun expiryDaysChoices(): List<ChatChoice> {
+        return fileService.getExpiryDaysChoices().map { days ->
+            ChatChoice(days, if (days == 1) translate("duration.days.one") else translateMsg("duration.days", days))
+        }
     }
 
     /** The posted users: the ones already stored, and new ones the logged-in user may see (ROOM-05). */
@@ -194,5 +222,6 @@ class ChatRoomRest {
 
     companion object {
         private const val NO_ACCESS = "access.exception.noAccess"
+        private const val DEFAULT_FILE_EXPIRY_DAYS = 30
     }
 }

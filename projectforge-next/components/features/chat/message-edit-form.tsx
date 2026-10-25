@@ -9,7 +9,7 @@ import { ChatEditor } from "./chat-editor";
 import type { ChatEditorHandle } from "./types";
 import { useMessageMutations } from "./use-message-mutations";
 
-/** Editing an own message in place (MSG-03); its images stay. Enter saves, Escape is the cancel button. */
+/** Editing an own message in place (MSG-03); its files stay. Enter saves, Escape is the cancel button. */
 export function MessageEditForm({
   message,
   onDone,
@@ -23,10 +23,7 @@ export function MessageEditForm({
   const editorRef = useRef<ChatEditorHandle>(null);
   const save = () => {
     const html = editorRef.current?.getHtml() ?? "";
-    edit.mutate(
-      { id: message.id, html, imageIds: message.imageIds },
-      { onSuccess: onDone }
-    );
+    edit.mutate({ id: message.id, html }, { onSuccess: onDone });
   };
   return (
     <div className="mt-1 flex flex-col gap-1.5">

@@ -17,16 +17,14 @@ import { useMentionSuggestion } from "./use-mention-suggestion";
 const EMPTY_DOCUMENT = "<p></p>";
 
 /** The images of a paste, if any. */
-function imageFiles(data: DataTransfer | null): File[] {
-  return Array.from(data?.files ?? []).filter((file) =>
-    file.type.startsWith("image/")
-  );
+function pastedFiles(data: DataTransfer | null): File[] {
+  return Array.from(data?.files ?? []);
 }
 
 /**
  * The editor of a chat message (TipTap) with its formatting toolbar: bold, italic, underline, strike-through,
- * lists, links and mentions with suggestions (`@`). Enter submits, Shift+Enter starts a new line; pasted images go
- * to [onImages]. Dropped files are left to the drop zone around it (ChatComposer), the editor only keeps them
+ * lists, links and mentions with suggestions (`@`). Enter submits, Shift+Enter starts a new line; pasted files go
+ * to [onFiles]. Dropped files are left to the drop zone around it (ChatComposer), the editor only keeps them
  * from being inserted. The content is handed out
  * via the ref ([ChatEditorHandle]) when submitting, not on every key stroke; [onChange] only reports whether
  * there is any.
@@ -39,7 +37,7 @@ export const ChatEditor = forwardRef<
     placeholder: string;
     ariaLabel: string;
     onSubmit: () => void;
-    onImages?: (files: File[]) => void;
+    onFiles?: (files: File[]) => void;
     onChange?: (html: string) => void;
     disabled?: boolean;
     autoFocus?: boolean;
@@ -83,9 +81,9 @@ export const ChatEditor = forwardRef<
         return true;
       },
       handlePaste: (view, event) => {
-        const files = imageFiles(event.clipboardData);
-        if (files.length > 0 && propsRef.current.onImages) {
-          propsRef.current.onImages(files);
+        const files = pastedFiles(event.clipboardData);
+        if (files.length > 0 && propsRef.current.onFiles) {
+          propsRef.current.onFiles(files);
           return true;
         }
         return pasteMarkdown(view, event);

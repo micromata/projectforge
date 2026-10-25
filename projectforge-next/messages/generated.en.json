@@ -966,16 +966,34 @@
       "readOnly": "This conversation is read-only.",
       "unmute": "Unmute"
     },
-    "image": {
-      "add": "Add images",
+    "direct": {
+      "_": "Direct messages",
+      "empty": "No direct messages yet.",
+      "error": {
+        "self": "You can't send a direct message to yourself."
+      },
+      "info": "Anybody shown in the user selection can be written to.",
+      "new": "Direct message",
+      "open": "Open",
+      "send": "Send direct message",
+      "user": "Person"
+    },
+    "file": {
+      "add": "Attach files",
+      "directTarget": "Files go into the personal box of {arg0} in the data transfer.",
       "download": "Download",
       "error": {
-        "tooLarge": "The image is too large (at most {arg0} MB).",
-        "tooMany": "At most {arg0} images per message.",
-        "unsupportedType": "Only PNG, JPEG, GIF and WebP images are supported."
+        "tooLarge": "The file \"{arg0}\" is too large (at most {arg1}).",
+        "tooLargeTogether": "All files together are too large for one message.",
+        "tooMany": "At most {arg0} files per message.",
+        "unavailable": "Without the data transfer plugin activated, no files can be exchanged in the chat."
       },
-      "remove": "Remove image",
-      "uploading": "Uploading …"
+      "expiryDays": {
+        "_": "Files available",
+        "info": "The files of the room are kept that long in its data transfer area \"Chat: …\", then they are deleted."
+      },
+      "notAvailable": "File no longer available",
+      "remove": "Remove file"
     },
     "mention": {
       "noResults": "Nobody found."
@@ -1008,7 +1026,7 @@
     "room": {
       "delete": {
         "_": "Delete chat room",
-        "confirm": "Delete the chat room \"{arg0}\" with all its messages and images? This can''t be undone."
+        "confirm": "Delete the chat room \"{arg0}\" with all its messages and files? This can''t be undone."
       },
       "description": "Description",
       "edit": "Edit chat room",

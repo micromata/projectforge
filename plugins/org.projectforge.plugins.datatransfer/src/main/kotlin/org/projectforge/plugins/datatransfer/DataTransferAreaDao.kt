@@ -31,6 +31,8 @@ import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.DataSizeConfig
 import org.projectforge.common.StringHelper
+import org.projectforge.datatransfer.DataTransferAreaHost
+import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.ConfigurationChecker
@@ -69,6 +71,10 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
     @Autowired
     private lateinit var dataTransferAuditDao: DataTransferAuditDao
+
+    /** Optional: tests create the DAO without Spring. */
+    @Autowired(required = false)
+    private var dataTransferBridge: DataTransferBridge? = null
 
     @Autowired
     private lateinit var dataTransferNotificationMailService: DataTransferNotificationMailService
@@ -214,6 +220,21 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         return dbo
     }
 
+    /** The personal box of the user, null if it doesn't exist yet (see [ensurePersonalBox]). Not changed. */
+    open fun findPersonalBox(userId: Long): DataTransferAreaDO? {
+        return persistenceService.selectNamedSingleResult(
+            DataTransferAreaDO.FIND_PERSONAL_BOX,
+            DataTransferAreaDO::class.java,
+            Pair("areaName", DataTransferAreaDO.PERSONAL_BOX_AREA_NAME),
+            Pair("adminIds", "$userId"),
+        )
+    }
+
+    /** The module owning the area, if it is a synthetic one (e.g. of a chat conversation), see [DataTransferAreaHost]. */
+    open fun getAreaHost(area: DataTransferAreaDO?): DataTransferAreaHost? {
+        return dataTransferBridge?.getAreaHost(area?.id)
+    }
+
     /**
      * @return null for an unknown token, also for one too short to be any area's (a mistyped link is no error).
      */
@@ -271,6 +292,16 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         if (externalAccessConfig.gatewayMode && obj.deleted) {
             // Gateway: withdrawn by the main instance (deleted there or no external access anymore), its admins and
             // access users are the ones of the last push.
+            if (throwException) {
+                throw AccessException(user, "access.exception.userHasNotRight")
+            }
+            return false
+        }
+        getAreaHost(oldObj ?: obj)?.let { host ->
+            // A synthetic area (e.g. of a chat conversation): its module decides who sees it, nobody administers it.
+            if (operationType == OperationType.SELECT && host.hasReadAccess(obj.id!!, user)) {
+                return true
+            }
             if (throwException) {
                 throw AccessException(user, "access.exception.userHasNotRight")
             }
@@ -372,6 +403,22 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
         fun generateExternalPassword(): String {
             return NumberHelper.getSecureRandomReducedAlphanumericWithSpecialChars(PASSWORD_LENGTH)
+        }
+
+        /**
+         * A synthetic area (see [DataTransferAreaHost]) has no admins, observers and access lists of its own, no
+         * external access and the global upload limit.
+         */
+        fun secureSyntheticArea(obj: DataTransferAreaDO) {
+            obj.adminIds = null
+            obj.observerIds = null
+            obj.accessGroupIds = null
+            obj.accessUserIds = null
+            obj.externalDownloadEnabled = false
+            obj.externalUploadEnabled = false
+            obj.externalPassword = null
+            obj.externalAccessToken = null
+            obj.maxUploadSizeKB = (globalMaxFileSize.toBytes() / 1024).toInt()
         }
 
         fun ensureSecureExternalAccess(obj: IDataTransferArea) {

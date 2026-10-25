@@ -76,4 +76,11 @@ open class ChatConversationDO {
 
     @get:Column(name = "last_message_at")
     open var lastMessageAt: Date? = null
+
+    /**
+     * The synthetic data transfer area of the files of the messages (see [ChatFileService]), null until the first
+     * one, and always for direct messages (their files are in the personal box of the recipient).
+     */
+    @get:Column(name = "file_area_id")
+    open var fileAreaId: Long? = null
 }

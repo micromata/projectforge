@@ -2,7 +2,6 @@
 
 import { memo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { UserAvatar } from "@/components/shared/user-avatar";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatTimestampMinutes } from "@/lib/format";
 import type { ChatMessage } from "@/lib/rs/chat-types";
@@ -10,15 +9,16 @@ import { cn } from "@/lib/utils";
 import { useChatContext } from "./chat-context";
 import { ChatHtml } from "./chat-html";
 import { MessageActions } from "./message-actions";
+import { MessageAttachments } from "./message-attachments";
+import { MessageAuthor } from "./message-author";
 import { MessageEditForm } from "./message-edit-form";
-import { MessageImages } from "./message-images";
 import { ReactionBar } from "./reaction-bar";
 import { ThreadSummary } from "./thread-summary";
 import { useMessageMutations } from "./use-message-mutations";
 
 /**
- * One message: author, time and "edited" (MSG-02), the content or the placeholder of a deleted or hidden one,
- * images, reactions and, in the conversation, the summary of its thread.
+ * One message: author (a click offers a direct message), time and "edited" (MSG-02), the content or the placeholder
+ * of a deleted or hidden one, files, reactions and, in the conversation, the summary of its thread.
  */
 export const MessageItem = memo(function MessageItem({
   message,
@@ -48,12 +48,10 @@ export const MessageItem = memo(function MessageItem({
         highlightId === message.id && "bg-primary/10"
       )}
     >
-      <UserAvatar name={message.author.displayName} className="mt-0.5" />
+      <MessageAuthor author={message.author} avatar />
       <div className="min-w-0 flex-1">
         <header className="flex flex-wrap items-baseline gap-x-2">
-          <span className="text-sm font-semibold">
-            {message.author.displayName}
-          </span>
+          <MessageAuthor author={message.author} />
           <time
             className="text-xs text-muted-foreground"
             dateTime={message.created ?? undefined}
@@ -88,9 +86,9 @@ export const MessageItem = memo(function MessageItem({
             />
           )
         )}
-        <MessageImages
+        <MessageAttachments
           conversationId={conversation.id}
-          imageIds={message.imageIds}
+          files={message.files}
         />
         <ReactionBar
           reactions={message.reactions}
