@@ -24,7 +24,12 @@
 package org.projectforge.framework.persistence.search
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.apache.lucene.analysis.core.LowerCaseFilterFactory
+import org.apache.lucene.analysis.custom.CustomAnalyzer
+import org.apache.lucene.analysis.de.GermanNormalizationFilterFactory
+import org.apache.lucene.analysis.miscellaneous.ASCIIFoldingFilterFactory
 import org.apache.lucene.analysis.standard.StandardAnalyzer
+import org.apache.lucene.analysis.standard.StandardTokenizerFactory
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
 
 private val log = KotlinLogging.logger {}
@@ -33,7 +38,8 @@ private val log = KotlinLogging.logger {}
  * Turns what the user typed into terms the Lucene index actually holds.
  *
  * A field annotated with `@FullTextField` and no analyzer of its own is indexed by the Hibernate Search
- * default analyzer, and that is Lucene's [StandardAnalyzer] (`LuceneDefaultAnalysisConfigurer`). Its
+ * default analyzer, and that is Lucene's [StandardAnalyzer] plus the normalization of accents and umlauts
+ * ([MyAnalysisConfigurer], see [normalize]; the normalization isn't needed for the splitting here). Its
  * tokenizer treats a hyphen as a word separator, so `dhl-pop` is stored as the two terms `dhl` and `pop` —
  * there is no term beginning with `dhl-pop`.
  *
@@ -58,6 +64,31 @@ object SearchStringTokenizer {
      * instance for the lifetime of the application.
      */
     private val analyzer = StandardAnalyzer()
+
+    /**
+     * The normalization of the analyzers in [MyAnalysisConfigurer]: lower case, German normalization and ASCII
+     * folding. Only used for [normalize], the tokenizer is irrelevant there.
+     */
+    private val normalizer = CustomAnalyzer.builder()
+        .withTokenizer(StandardTokenizerFactory::class.java)
+        .addTokenFilter(LowerCaseFilterFactory::class.java)
+        .addTokenFilter(GermanNormalizationFilterFactory::class.java)
+        .addTokenFilter(ASCIIFoldingFilterFactory::class.java)
+        .build()
+
+    /**
+     * [text] normalized like the terms of the index, e.g. for comparing a search string with a label the same
+     * way the index does: "Müller", "Mueller" and "MULLER" -> "muller", "André" -> "andre", "Straße" -> "strasse".
+     * The text isn't tokenized, whitespace and punctuation are kept.
+     */
+    fun normalize(text: String): String {
+        return try {
+            normalizer.normalize("text", text).utf8ToString()
+        } catch (ex: Exception) {
+            log.error(ex) { "Can't normalize text '$text': ${ex.message}" }
+            text.lowercase()
+        }
+    }
 
     /**
      * The terms the index holds for [text], i.e. [text] run through the analyzer of the searched fields.

@@ -1,11 +1,12 @@
 import type { JiraConfig } from "@/lib/rs/types";
 
 /**
- * Issue-key pattern, mirroring the backend's `JiraUtils.PATTERN` (`[A-Z][A-Z_0-9]*-[0-9]+`): an
- * uppercase project prefix, a dash, a number — e.g. `PROJECTFORGE-222`. Global so every occurrence is
+ * Issue-key pattern, mirroring the backend's `JiraUtils.PATTERN` (`[A-Z]{2}[A-Z_0-9]*-[0-9]+`): an
+ * uppercase project prefix of at least two letters (so a postal code like `D-34286` is no key), a dash, a
+ * number — e.g. `PROJECTFORGE-222`. Global so every occurrence is
  * found; not anchored, so a key inside a sentence still matches, exactly as Wicket's `linkJiraIssues`.
  */
-const JIRA_ISSUE_PATTERN = /[A-Z][A-Z_0-9]*-[0-9]+/g;
+const JIRA_ISSUE_PATTERN = /[A-Z]{2}[A-Z_0-9]*-[0-9]+/g;
 
 /** The project prefix of an issue key (`PROJECTFORGE-222` → `PROJECTFORGE`). */
 function projectOf(issueKey: string): string {

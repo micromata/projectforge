@@ -94,4 +94,20 @@ class SearchStringTokenizerTest {
         Assertions.assertNull(SearchStringTokenizer.expandSplitWord("-"))
         Assertions.assertNull(SearchStringTokenizer.expandSplitWord("dhl-pop", "%"))
     }
+
+    /**
+     * Accents and German umlaut spellings are normalized like the index (see MyAnalysisConfigurer).
+     */
+    @Test
+    fun normalizeTest() {
+        Assertions.assertEquals("muller", SearchStringTokenizer.normalize("Müller"))
+        Assertions.assertEquals("muller", SearchStringTokenizer.normalize("Mueller"))
+        Assertions.assertEquals("muller", SearchStringTokenizer.normalize("MÜLLER"))
+        Assertions.assertEquals("mu", SearchStringTokenizer.normalize("Mue"), "Prefix while typing.")
+        Assertions.assertEquals("andre", SearchStringTokenizer.normalize("André"))
+        Assertions.assertEquals("strasse", SearchStringTokenizer.normalize("Straße"))
+        Assertions.assertEquals("jorg", SearchStringTokenizer.normalize("Joerg"))
+        Assertions.assertEquals("queue", SearchStringTokenizer.normalize("Queue"), "No 'ue' after 'q'.")
+        Assertions.assertEquals("societe generale", SearchStringTokenizer.normalize("Société Générale"))
+    }
 }
