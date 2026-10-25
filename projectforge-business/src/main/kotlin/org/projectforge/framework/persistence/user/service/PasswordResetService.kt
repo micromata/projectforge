@@ -72,8 +72,14 @@ class PasswordResetService {
     /**
      * @param Link in e-mail for password reset. "<token>" will be reset by the generated token.
      *        E. g. projectforge.acme.com/next/password-reset?token=IBMwcF3b1f80OvH6bcbOcqWCaUtFr4
+     * @param clientIp The ip address of the requesting client (for the rate limit), if known.
+     * @return false, if the request was refused by the rate limit of the client (or the global one), see
+     * [PasswordResetRateLimiter]. The limit per user doesn't show here (no user enumeration).
      */
-    fun sendMail(usernameEmail: String, link: String) {
+    fun sendMail(usernameEmail: String, link: String, clientIp: String?): Boolean {
+        if (!PasswordResetRateLimiter.tryAcquireClient(clientIp)) {
+            return false
+        }
         /**
          * Start the following procedure as thread to prevent, that an attacker
          * will get any information of the user existence regarding the duration of the request
@@ -101,6 +107,14 @@ class PasswordResetService {
                 sendPasswordReset(usernameEmail, user, link)
             }
         }
+        return true
+    }
+
+    /**
+     * For tests (the rate limiter is internal to this module): forgets all recorded requests.
+     */
+    fun clearRateLimits() {
+        PasswordResetRateLimiter.clearAll()
     }
 
     private fun sendPasswordReset(usernameEmail: String, user: PFUserDO, link: String) {
@@ -109,6 +123,14 @@ class PasswordResetService {
         val userId = user.id
         if (!user.hasSystemAccess() || userId == null) {
             log.warn { "A user without system access required a password reset by '$usernameEmail': ${user}." }
+            return
+        }
+        if (!PasswordResetRateLimiter.tryAcquireUser(userId)) {
+            // Silently dropped (the answer of the request is the same).
+            SecurityLogging.logSecurityWarn(
+                PasswordResetService::class.java,
+                "Password reset mail for user ${user.username} refused (too many requests for this user)."
+            )
             return
         }
         val mail = Mail()
