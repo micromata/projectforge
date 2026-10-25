@@ -48,13 +48,25 @@ export interface TaskProjekt {
  * same value — the tree sends it per node, the list per row (`Task.copyFrom4ListRow`).
  */
 export interface TaskConsumption {
-  /** Already localised, e.g. "350PT/188PT (186%)" — the bar's tooltip. */
+  /**
+   * Already localised, e.g. "8,78PT/18,00PT (49%), Rest: 9,22PT (03.08.2026–12.10.2026)" — the one-line
+   * form of the tooltip: its fallback, the aria label and what a search matches.
+   */
   title?: string;
   /** One of the `progress-*` names of `Consumption.Status`, which picks the bar's colour. */
   status?: string;
   percentage?: number;
   /** Capped at 100, unlike `percentage` — the width the bar is painted with. */
   barPercentage?: number;
+  /** The figures of the tooltip's calculation (see ConsumptionTooltip), formatted with unit, e.g. "8,78 PT". */
+  booked?: string;
+  /** Absent for a task without a budget, as is `remaining`. */
+  budget?: string;
+  /** The absolute value: what is left, or by how much the budget is exceeded where `overbooked`. */
+  remaining?: string;
+  overbooked?: boolean;
+  /** Earliest start until latest stop of the time sheets booked on the task and its sub tasks. */
+  period?: string;
 }
 
 /**

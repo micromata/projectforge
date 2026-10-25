@@ -13,15 +13,20 @@ export type PaidState = { tone: StatusTone; labelKey: string };
  * Overdue keys off `faelligkeit` alone, not the discount (Skonto) maturity: missing the discount deadline
  * costs the discount, it does not make the invoice overdue — that is what `RechnungInfo.isUeberfaellig` reads
  * too. Using the earlier of the two dates would wrongly flag an unpaid-but-not-yet-due invoice as overdue.
+ *
+ * @param overdue Decides overdue instead of the dates, where the server answered it: the creditor invoice
+ *   reads overdue already 2 working days before its due date (`RechnungInfo.isMarkedOverdue`, holidays
+ *   aware). Undefined/null while that answer is on its way, then the dates decide.
  */
 export function paidState(
   bezahlDatum: string | null | undefined,
-  faelligkeit: string | null | undefined
+  faelligkeit: string | null | undefined,
+  overdue?: boolean | null
 ): PaidState {
   if (bezahlDatum)
     return { tone: "success", labelKey: "fibu.rechnung.status.bezahlt" };
   // LocalDate strings ("yyyy-MM-dd") compare lexicographically, so `< today` is "before today".
-  if (faelligkeit && faelligkeit < todayIso())
+  if (overdue ?? (!!faelligkeit && faelligkeit < todayIso()))
     return { tone: "danger", labelKey: "fibu.rechnung.filter.ueberfaellig" };
   return { tone: "info", labelKey: "fibu.rechnung.filter.unbezahlt" };
 }

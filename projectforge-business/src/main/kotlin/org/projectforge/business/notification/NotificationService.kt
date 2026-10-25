@@ -393,7 +393,8 @@ class NotificationService {
             // The first name, if the user has no nickname, so "Hi {{nickname}}," always works.
             "nickname" to (user.nickname?.takeIf { it.isNotBlank() } ?: user.firstname ?: ""),
         )
-        return common + (evaluation?.affected?.get(user.id) ?: handler.variables(rule, today, user))
+        return common + (evaluation?.affected?.get(user.id) ?: evaluation?.variablesFor?.invoke(user)
+            ?: handler.variables(rule, today, user))
     }
 
     private fun build(

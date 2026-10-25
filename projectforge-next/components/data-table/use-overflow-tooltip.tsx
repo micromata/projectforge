@@ -31,10 +31,27 @@ export const TOOLTIP_ATTR = "data-tooltip";
  */
 export const OWN_TOOLTIP_ATTR = "data-own-tooltip";
 
+/** The structured tooltips of declaring elements, see [setTooltipContent]. */
+const tooltipContents = new WeakMap<HTMLElement, React.ReactNode>();
+
+/**
+ * Gives an element declaring [TOOLTIP_ATTR] a structured tooltip (e.g. a calculation laid out in columns)
+ * that the delegated tooltip shows instead of the attribute's text, which stays its plain form. Set from a
+ * ref callback, so a cell renderer needs no hook (and no Radix root of its own) for it.
+ */
+export function setTooltipContent(
+  el: HTMLElement | null,
+  content: React.ReactNode
+) {
+  if (el) tooltipContents.set(el, content);
+}
+
 interface OverflowTarget {
   /** Viewport rect of the clipped element; the tooltip is anchored to it. */
   rect: DOMRect;
   text: string;
+  /** Shown instead of [text] where the declaring element has one, see [setTooltipContent]. */
+  content?: React.ReactNode;
 }
 
 /** Sub-pixel tolerance, px: a fractional text width is not clipped content. */
@@ -124,7 +141,11 @@ export function useOverflowTooltip() {
   const resolve = React.useCallback(
     (
       node: HTMLElement | null
-    ): { anchor: HTMLElement; text: string } | null => {
+    ): {
+      anchor: HTMLElement;
+      text: string;
+      content?: React.ReactNode;
+    } | null => {
       const cell = node?.closest?.<HTMLElement>("th,td");
       if (!cell) return null;
       if (cell.querySelector(`[${OWN_TOOLTIP_ATTR}]`)) return null;
@@ -150,7 +171,9 @@ export function useOverflowTooltip() {
           ? declared.getAttribute(TOOLTIP_ATTR)?.trim()
           : anchor?.innerText.trim();
       if (!anchor || !text) return null;
-      return { anchor, text };
+      const content =
+        anchor === declared ? tooltipContents.get(declared) : undefined;
+      return { anchor, text, content };
     },
     []
   );
@@ -165,7 +188,7 @@ export function useOverflowTooltip() {
         clear();
         return;
       }
-      const { anchor, text } = found;
+      const { anchor, text, content } = found;
       // pointerover bubbles once per descendant the pointer enters, so the same
       // anchor arrives repeatedly; re-measuring it would restart the delay and
       // the tooltip would never appear. Keyed on the anchor rather than the cell,
@@ -174,7 +197,8 @@ export function useOverflowTooltip() {
       if (timer.current) clearTimeout(timer.current);
       current.current = anchor;
       timer.current = setTimeout(
-        () => setTarget({ rect: anchor.getBoundingClientRect(), text }),
+        () =>
+          setTarget({ rect: anchor.getBoundingClientRect(), text, content }),
         DELAY
       );
     },
@@ -196,6 +220,7 @@ export function useOverflowTooltip() {
       setTarget({
         rect: found.anchor.getBoundingClientRect(),
         text: found.text,
+        content: found.content,
       });
     },
     [clear, coarsePointer, resolve]
@@ -237,7 +262,7 @@ function OverflowTooltip({
   coarsePointer: boolean;
 }) {
   if (!target) return null;
-  const { rect, text } = target;
+  const { rect, text, content: rich } = target;
   // The placeholder for the clipped element itself: the cell cannot be the trigger without wrapping
   // every cell. Portalled to the body, not left where the table renders it: the placeholder is
   // positioned `fixed` in viewport coordinates, but `position: fixed` is relative to any transformed
@@ -271,7 +296,7 @@ function OverflowTooltip({
         sideOffset={4}
         className={cn(OVERFLOW_CONTENT_CLASS, "w-auto")}
       >
-        {text}
+        {rich ?? text}
       </PopoverContent>
     </Popover>
   ) : (
@@ -284,7 +309,7 @@ function OverflowTooltip({
     >
       <TooltipTrigger asChild>{placeholder}</TooltipTrigger>
       <TooltipContent sideOffset={4} className={OVERFLOW_CONTENT_CLASS}>
-        {text}
+        {rich ?? text}
       </TooltipContent>
     </Tooltip>
   );

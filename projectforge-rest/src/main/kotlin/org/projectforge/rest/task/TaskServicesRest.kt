@@ -277,7 +277,9 @@ class TaskServicesRest {
             reference = node.task.reference,
             priority = node.task.priority,
             status = node.task.status,
-            responsibleUser = node.task.responsibleUser,
+            // From the cache by id: after an update the tree holds the posted task, whose user is an id-only
+            // stub without a name (see TaskDao.afterInsertOrModify), which left the column empty.
+            responsibleUser = PfCaches.instance.getUser(node.task.responsibleUserId),
             deleted = node.task.deleted,
         )
 

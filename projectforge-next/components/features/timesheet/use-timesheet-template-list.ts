@@ -37,6 +37,8 @@ export function useTimesheetTemplateList(
     queryKey: RECENT_KEY,
     queryFn: ({ signal }) => fetchRecentTimesheets(signal),
     staleTime: Infinity,
+    // Fresh on every opened form: the entries carry their budget's consumption, which a save elsewhere moves.
+    refetchOnMount: "always",
   });
   const favorites = useQuery<TimesheetFavorite[]>({
     queryKey: FAVORITES_KEY,
@@ -47,8 +49,10 @@ export function useTimesheetTemplateList(
   const applyRecent = useCallback(
     async (entry: TimesheetDetail) => {
       try {
-        const merged = await selectRecentTimesheet({ ...current(), ...entry });
-        apply(merged ?? entry);
+        // The recent list's consumption bar is display only: it goes neither to the backend nor into the form.
+        const picked = withoutConsumption(entry);
+        const merged = await selectRecentTimesheet({ ...current(), ...picked });
+        apply(merged ?? picked);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : String(err));
       }
@@ -95,3 +99,11 @@ export function useTimesheetTemplateList(
 
 /** What the template list hands out — the props the templates bar is built from. */
 export type TimesheetTemplateList = ReturnType<typeof useTimesheetTemplateList>;
+
+/** The entry with its task reduced to the reference, without the consumption the recent list shows. */
+function withoutConsumption(entry: TimesheetDetail): TimesheetDetail {
+  if (!entry.task) return entry;
+  const task = { ...entry.task };
+  delete task.consumption;
+  return { ...entry, task };
+}

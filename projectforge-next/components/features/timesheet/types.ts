@@ -52,7 +52,11 @@ export type Kost2Ref = EntityRefDto & {
 export interface TimesheetDetail {
   /** null for a sheet that has not been saved yet (Spring assigns the id). */
   id: number | null;
-  task?: EntityRefDto | null;
+  /**
+   * On a recent entry (`getRecentList`) with the consumption of its budget (the task's, or the first
+   * ancestor's with one), for the recent list's bar; absent elsewhere.
+   */
+  task?: (EntityRefDto & { consumption?: unknown }) | null;
   user?: EntityRefDto | null;
   kost2?: Kost2Ref | null;
   location?: string | null;

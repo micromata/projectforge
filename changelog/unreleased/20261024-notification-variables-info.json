@@ -1,0 +1,11 @@
+{
+  "type": "added",
+  "en": "Notifications",
+  "de": "Benachrichtigungen",
+  "items": [
+    {
+      "en": "The rule editor lists the variables available for subject and text (general ones and those of the rule type), each with a button to copy it.",
+      "de": "Der Regel-Editor listet die für Betreff und Text verfügbaren Variablen auf (allgemeine und die des Regeltyps), jede mit einem Button zum Kopieren."
+    }
+  ]
+}

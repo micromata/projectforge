@@ -72,5 +72,17 @@ export function RuleParamsField({ className }: { className?: string }) {
       />
     );
   }
+  if (ruleType === "CREDITOR_INVOICES_DUE") {
+    return (
+      <NumberField
+        name="dueWorkingDays"
+        label={t("dueWorkingDays")}
+        metadataLess
+        fractionDigits={0}
+        maxDigits={2}
+        className={className}
+      />
+    );
+  }
   return null;
 }

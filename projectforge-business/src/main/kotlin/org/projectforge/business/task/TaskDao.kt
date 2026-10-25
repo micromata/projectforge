@@ -24,9 +24,12 @@
 package org.projectforge.business.task
 
 import jakarta.persistence.Tuple
+import jakarta.transaction.Status
+import jakarta.transaction.Synchronization
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
+import org.hibernate.Session
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserDao
@@ -44,6 +47,7 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.not
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
+import org.projectforge.framework.persistence.jpa.PfPersistenceContextThreadLocal
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -312,6 +316,20 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
 
     override fun afterInsertOrModify(obj: TaskDO, operationType: OperationType) {
         taskTree.addOrUpdateTaskNode(obj)
+        // Called after the commit, unless the change is part of an outer transaction (e.g. the project wizard):
+        // then the tree takes it before the commit. Rolled back, the tree would keep a task that doesn't exist (or
+        // a change that didn't happen) until its next refresh: reload it on next access instead.
+        PfPersistenceContextThreadLocal.getTransactional()?.em?.unwrap(Session::class.java)?.transaction
+            ?.takeIf { it.isActive }
+            ?.registerSynchronization(object : Synchronization {
+                override fun beforeCompletion() {}
+                override fun afterCompletion(status: Int) {
+                    if (status != Status.STATUS_COMMITTED) {
+                        log.info { "Transaction with task #${obj.id} not committed, the task tree will be reloaded." }
+                        taskTree.discardUncommittedChange(obj)
+                    }
+                }
+            })
     }
 
     /**

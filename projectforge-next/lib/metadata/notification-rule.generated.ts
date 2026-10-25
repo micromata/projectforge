@@ -125,6 +125,10 @@ export const NOTIFICATION_RULE_METADATA = {
           i18nKey: "notification.ruleTypes.TIMESHEETS_TO_ACCEPT",
         },
         {
+          value: "CREDITOR_INVOICES_DUE",
+          i18nKey: "notification.ruleTypes.CREDITOR_INVOICES_DUE",
+        },
+        {
           value: "MANUAL",
           i18nKey: "notification.ruleTypes.MANUAL",
         },

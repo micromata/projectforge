@@ -619,7 +619,11 @@ abstract class AbstractCache {
                             // terminated refresh returned meanwhile: it may have overwritten our data with older one.
                             if (abandonedReturns.get() == abandonedReturnsAtStart) {
                                 this.refreshedInvalidation = invalidation
-                                this.isExpired = false
+                                // Left expired, if setExpired was called meanwhile: the data may miss what it was
+                                // called for (e.g. a change rolled back after this refresh had read it).
+                                if (invalidationCounter.get() == invalidation) {
+                                    this.isExpired = false
+                                }
                             }
                             lastSuccessMillis = System.currentTimeMillis()
                             lastRefreshError = null

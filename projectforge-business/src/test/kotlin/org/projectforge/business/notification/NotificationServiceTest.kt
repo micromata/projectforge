@@ -30,6 +30,9 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.EingangsrechnungDO
+import org.projectforge.business.fibu.EingangsrechnungDao
+import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.task.TaskDO
@@ -45,6 +48,7 @@ import org.projectforge.framework.json.JsonUtils
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -53,6 +57,12 @@ import java.util.Date
 class NotificationServiceTest : AbstractTestBase() {
     @Autowired
     private lateinit var configurationDao: ConfigurationDao
+
+    @Autowired
+    private lateinit var creditorInvoicesDueRuleHandler: CreditorInvoicesDueRuleHandler
+
+    @Autowired
+    private lateinit var eingangsrechnungDao: EingangsrechnungDao
 
     @Autowired
     private lateinit var employeeDao: EmployeeDao
@@ -222,6 +232,49 @@ class NotificationServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun creditorInvoicesDueTest() {
+        val financeUser = initTestDB.getUser(TEST_FINANCE_USER)!!
+        val otherUser = initTestDB.getUser(TEST_USER)!!
+        val rule = insertRule(NotificationRuleType.CREDITOR_INVOICES_DUE, financeUser, NotificationDelivery()) {
+            it.recipients = JsonUtils.toJson(NotificationRecipients(userIds = listOf(financeUser.id!!, otherUser.id!!)))
+            it.params = JsonUtils.toJson(NotificationParams(dueWorkingDays = 2))
+        }
+        // Far in the past, so no invoice of another test is due: Monday, March 12th 2001.
+        val invoice = insertCreditorInvoice("R-2001-1", LocalDate.of(2001, 3, 12))
+        val wednesday = LocalDate.of(2001, 3, 7)
+        val thursday = LocalDate.of(2001, 3, 8)
+        val now = Date.from(thursday.atTime(12, 0).atZone(ZoneId.of("UTC")).toInstant())
+        assertEquals(0, notificationService.runRule(rule, wednesday, now).created, "Due in 3 working days.")
+        // Only the recipient with read access to the creditor invoices:
+        assertTrue(creditorInvoicesDueRuleHandler.isRelevant(rule, thursday, financeUser))
+        assertFalse(creditorInvoicesDueRuleHandler.isRelevant(rule, thursday, otherUser), "No finance member.")
+        assertEquals(1, notificationService.runRule(rule, thursday, now).created)
+        val notification = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single()
+        assertEquals(financeUser.id, notification.recipientId)
+        assertTrue(notification.body!!.contains("1 invoices, 2 working days"), notification.body)
+        assertTrue(notification.body!!.contains("Due Creditor, R-2001-1"), notification.body)
+        // Overdue for 90 days: included; for more: left out (old unpaid ones would be reported every day).
+        val overdue90 = insertCreditorInvoice("R-2000-2", thursday.minusDays(90))
+        insertCreditorInvoice("R-2000-1", wednesday.minusDays(91))
+        assertEquals(listOf(overdue90.id, invoice.id), creditorInvoicesDueRuleHandler.dueInvoices(rule, thursday).map { it.invoice.id })
+        eingangsrechnungDao.markAsDeleted(overdue90, checkAccess = false)
+        // More working days in advance: due already on Wednesday.
+        rule.params = JsonUtils.toJson(NotificationParams(dueWorkingDays = 3))
+        assertEquals(1, creditorInvoicesDueRuleHandler.dueInvoices(rule, wednesday).size)
+        rule.params = JsonUtils.toJson(NotificationParams(dueWorkingDays = 0))
+        assertEquals(0, creditorInvoicesDueRuleHandler.dueInvoices(rule, thursday).size, "Not before the due date.")
+        assertEquals(1, creditorInvoicesDueRuleHandler.dueInvoices(rule, LocalDate.of(2001, 3, 12)).size)
+        // Paid: resolved.
+        rule.params = JsonUtils.toJson(NotificationParams(dueWorkingDays = 2))
+        val stored = eingangsrechnungDao.find(invoice.id, checkAccess = false)!!
+        stored.bezahlDatum = thursday
+        stored.zahlBetrag = BigDecimal("100")
+        eingangsrechnungDao.update(stored, checkAccess = false)
+        notificationService.resolvePending(thursday)
+        assertEquals(NotificationStatus.RESOLVED, notificationDao.findById(notification.id)!!.status)
+    }
+
+    @Test
     fun expireOfDeletedRuleTest() {
         val user = initTestDB.addUser("notification-deleted-rule-user")
         val rule = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery())
@@ -344,6 +397,24 @@ class NotificationServiceTest : AbstractTestBase() {
         assertTrue(failed, "Exception expected.")
     }
 
+    private fun insertCreditorInvoice(
+        referenz: String,
+        faelligkeit: LocalDate,
+    ): EingangsrechnungDO {
+        val invoice = EingangsrechnungDO().also {
+            it.datum = faelligkeit.minusMonths(1)
+            it.kreditor = "Due Creditor"
+            it.referenz = referenz
+            it.faelligkeit = faelligkeit
+            it.addPosition(EingangsrechnungsPositionDO().also { pos ->
+                pos.menge = BigDecimal.ONE
+                pos.einzelNetto = BigDecimal("100")
+            })
+        }
+        eingangsrechnungDao.insert(invoice, checkAccess = false)
+        return invoice
+    }
+
     private fun insertRule(
         type: NotificationRuleType,
         recipient: PFUserDO,
@@ -363,6 +434,8 @@ class NotificationServiceTest : AbstractTestBase() {
             "<p>{{unbookedDaysCount}} days: {{unbookedDays}}</p>"
         } else if (type == NotificationRuleType.TIMESHEETS_WITHOUT_KOST2) {
             "<p>{{timesheetsWithoutKost2Count}} sheets, {{timesheetsWithoutKost2Hours}} hours: {{timesheetsWithoutKost2Tasks}}</p>"
+        } else if (type == NotificationRuleType.CREDITOR_INVOICES_DUE) {
+            "<p>{{creditorInvoicesDueCount}} invoices, {{dueWorkingDays}} working days: {{creditorInvoicesDueList}}</p>"
         } else if (type == NotificationRuleType.PASSWORD_NOT_CHANGED) {
             "<p>Changed {{passwordAgeDays}} days ago: {{passwordLink}}</p>"
         } else {
