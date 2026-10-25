@@ -1513,8 +1513,9 @@ echo Zipping backupfile ...
 gzip $BACKUPFILE
 
 echo Exporting files ...
-# Custom format; -Z 0: the content is already compressed (or not compressible).
-$PGSQL_DIR/pg_dump -U projectforge -n pf_files -Fc -Z 0 -f $FILES_BACKUPFILE || { echo "Error: export of files failed."; exit 1; }
+# Custom format; compressed (-Z 1, with PostgreSQL 16+ also -Z zstd:1): pg_dump writes the file contents (bytea) hex
+# encoded, which doubles their size, even if the files themselves are already compressed.
+$PGSQL_DIR/pg_dump -U projectforge -n pf_files -Fc -Z 1 -f $FILES_BACKUPFILE || { echo "Error: export of files failed."; exit 1; }
 
 if [ -d $PF_HOME/datatransfer ]; then
   echo Archiving data transfer files ...

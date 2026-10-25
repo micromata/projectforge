@@ -10,7 +10,8 @@
 ## Why age
 - Public-key encryption (X25519): the server encrypts without knowing the secret.
 - Authenticated encryption (ChaCha20-Poly1305), streamable, no keyring, agent or pinentry as with gpg.
-- Fast: negligible at ~2 GB/day (seconds). File size stays the same (data is already compressed).
+- Fast: negligible at ~2 GB/day (seconds). File size stays the same (age doesn't compress: the main dump is gzipped, the files dump uses `-Z 1`, because
+  pg_dump writes bytea hex encoded, i.e. twice the size).
 - Multiple recipients per file, e.g. a main key and an emergency key.
 - ZIP with AES-256 was rejected: file names inside the ZIP stay readable, the password would have to be stored on the
   server, and the key derivation is weak (1000 rounds PBKDF2-SHA1).
@@ -30,7 +31,7 @@
 `pforgebackup.sh` (adminguide, "Backup script") encrypts directly, without a plaintext intermediate file:
 
     pg_dump -U projectforge -N pf_files | gzip | age -R $RECIPIENTS -o $BACKUPFILE.gz.age
-    pg_dump -U projectforge -n pf_files -Fc -Z 0 | age -R $RECIPIENTS -o $FILES_BACKUPFILE.age
+    pg_dump -U projectforge -n pf_files -Fc -Z 1 | age -R $RECIPIENTS -o $FILES_BACKUPFILE.age
 
 - Use `set -o pipefail` so a failing pg_dump aborts the script. Write to a `.tmp` file first and rename afterwards
   (same as the JCR ZIP).
