@@ -3553,7 +3553,8 @@
       },
       "mailSentTo": "E-Mail mit dem Passwortrücksetzen-Link wurde gesendet an ''{arg0}''. Bitte im Spam-Ordner schauen bzw. überprüfen, ob der Benutzer:innenname bzw. E-Mail korrekt ist.",
       "request": "Rücksetzen anfordern",
-      "title": "Passwort vergessen"
+      "title": "Passwort vergessen",
+      "tooManyRequests": "Zu viele Anfragen zum Zurücksetzen des Passworts. Bitte später erneut versuchen."
     },
     "reset": {
       "error": "Es wurde keine gültige Passwortreset-Sitzung gefunden. Entweder ist sie schon verbraucht, abgelaufen oder nicht vorhanden. Bitte erneut versuchen.",
