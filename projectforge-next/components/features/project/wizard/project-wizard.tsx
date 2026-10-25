@@ -60,6 +60,7 @@ import { WizardParentTaskStep } from "./wizard-parent-task-step";
 import { WizardProjectStep } from "./wizard-project-step";
 import { WizardProjectResult } from "./wizard-project-result";
 import { WizardRoleStep } from "./wizard-role-step";
+import { useWizardElements } from "./use-wizard-elements";
 
 /**
  * The project wizard: sets up a project in one go — its customer (an existing or a new one), the
@@ -119,6 +120,13 @@ export function ProjectWizard() {
   const customerForm = useForm({ defaultValues: emptyCustomerValues() });
   const projectForm = useForm({ defaultValues: emptyProjectValues() });
   const [parentTaskId, setParentTaskId] = useState<number | null>(null);
+  const elements = useWizardElements();
+  // A new customer's existing element stands in for the parent its new one would be created below.
+  const customerElementExisting =
+    customerMode === "new" && elements.customerElement.mode === "existing";
+  const projectElementExisting =
+    withProject && elements.projectElement.mode === "existing";
+  const requestParentTaskId = customerElementExisting ? null : parentTaskId;
   const [roles, setRoles] = useState<RoleStates>(initialRoles);
   const [attempted, setAttempted] = useState(false);
   const [executeErrors, setExecuteErrors] = useState<string[]>([]);
@@ -233,7 +241,19 @@ export function ProjectWizard() {
             .filter((art) => art.selected)
             .map((art) => art.id),
         },
-    parentTaskId,
+    parentTaskId: requestParentTaskId,
+    ...(customerElementExisting
+      ? {
+          customerTaskExisting: true,
+          customerTaskId: elements.customerElement.taskId,
+        }
+      : {}),
+    ...(projectElementExisting
+      ? {
+          projectTaskExisting: true,
+          projectTaskId: elements.projectElement.taskId,
+        }
+      : {}),
     // No groups without a project: they are given rights on its element.
     ...(withProject
       ? Object.fromEntries(
@@ -319,6 +339,7 @@ export function ProjectWizard() {
         : [],
     });
     setParentTaskId(null);
+    elements.reset();
     setRoles(initialRoles());
   };
 
@@ -345,6 +366,11 @@ export function ProjectWizard() {
   }
 
   const preview = validation.data?.preview;
+  // The existing elements the server uses, picked or found by their titles.
+  const reusedCustomerTaskId = validation.data?.customerTaskId ?? null;
+  const reusedProjectTaskId = withProject
+    ? (validation.data?.projectTaskId ?? null)
+    : null;
   const anyGroup =
     withProject &&
     GROUP_STEPS.some(
@@ -398,6 +424,13 @@ export function ProjectWizard() {
           rootTaskId={init.data?.rootTaskId}
           parentTaskId={parentTaskId}
           onChange={setParentTaskId}
+          pathParentTaskId={requestParentTaskId}
+          customerElement={elements.customerElement}
+          onCustomerElementChange={elements.setCustomerElement}
+          projectElement={elements.projectElement}
+          onProjectElementChange={elements.setProjectElement}
+          reusedCustomerTaskId={reusedCustomerTaskId}
+          reusedProjectTaskId={reusedProjectTaskId}
           projectName={projectName}
           errors={errors}
         />
@@ -442,11 +475,13 @@ export function ProjectWizard() {
           projectNumber={withProject ? projectValues.projektnummer : null}
           anyGroup={anyGroup}
           errors={validation.data?.validationErrors ?? []}
-          parentTaskId={parentTaskId}
+          parentTaskId={requestParentTaskId}
           newCustomer={customerMode === "new"}
           customerOnly={!withProject}
           customerName={customerValues.name?.trim() ?? ""}
           projectName={projectName}
+          reusedCustomerTaskId={reusedCustomerTaskId}
+          reusedProjectTaskId={reusedProjectTaskId}
           rootTaskId={init.data?.rootTaskId}
           preview={
             preview && anyGroup ? (

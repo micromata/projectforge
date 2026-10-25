@@ -18,6 +18,9 @@
         "items" : [ "Der Regel-Editor listet die für Betreff und Text verfügbaren Variablen auf (allgemeine und die des Regeltyps), jede mit einem Button zum Kopieren.", "Zu jeder Variablen wird ein Beispielwert gezeigt, so ist z. B. erkennbar, wie eine Liste von Rechnungen aussieht; die Vorschau zeigt die Texte auch mit Beispielwerten." ]
       }, "Zeitbericht-Formular: Die Tabelle der zuletzt verwendeten Einträge lässt sich pro Spalte sortieren und filtern, ihre Spalten lassen sich verschieben, in der Breite ändern, fixieren und ausblenden; das Layout wird pro Benutzer gespeichert.", "Benachrichtigungen: Zustellungsschritte per SMS an die Mobilfunknummer der Empfänger (sofern SMS konfiguriert ist), mit eigenem SMS-Text der Regel oder sonst Betreff und Link." ]
     }, {
+      "type" : "improved",
+      "items" : [ "Kundenassistent: Vorhandene Strukturelemente des Kunden und des Projekts können statt neuer verwendet werden, aus dem Baum gewählt (der Titel darf abweichen, z. B. „ACME“ für „ACME Inc.“) oder automatisch über den gleichen Titel gefunden." ]
+    }, {
       "type" : "changed",
       "items" : [ "Auftragsstatistik, Deckungsbeitrag-Bubbles: Die Größe einer Bubble zeigt ihren DB1 statt ihrer Kosten. Der Schalter „Titel einblenden“ beschriftet die eigenen Bubbles mit Kurztitel und DB %; ausgeschaltet stehen die Namen nur im Tooltip." ]
     }, {

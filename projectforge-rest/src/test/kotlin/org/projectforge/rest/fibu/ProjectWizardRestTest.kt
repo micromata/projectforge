@@ -28,9 +28,12 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjectWizardService
+import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
+import org.projectforge.business.task.TaskWizardService
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.UserRightId
@@ -56,10 +59,16 @@ class ProjectWizardRestTest : AbstractTestBase() {
     private lateinit var projectWizardRest: ProjectWizardRest
 
     @Autowired
+    private lateinit var projektDao: ProjektDao
+
+    @Autowired
     private lateinit var taskDao: TaskDao
 
     @Autowired
     private lateinit var taskTree: TaskTree
+
+    @Autowired
+    private lateinit var taskWizardService: TaskWizardService
 
     @Test
     fun `missing and wrong values are field errors`() {
@@ -116,6 +125,125 @@ class ProjectWizardRestTest : AbstractTestBase() {
             entries.map { it.taskTitle },
         )
         Assertions.assertEquals(listOf(true, false), entries.map { it.pickedElement })
+    }
+
+    @Test
+    fun `elements of the same titles are used, not reported as duplicates`() {
+        logon(ADMIN_USER)
+        val parent = createTask("ProjectWizardRestTest-sameTitles-parent", taskTree.rootTaskNode.task!!)
+        val customerTask = createTask("ProjectWizardRestTest-sameTitles", parent)
+        val projectTask = createTask("ProjectWizardRestTest-sameTitles-project", customerTask)
+        logon(TEST_FINANCE_USER)
+        val answer = projectWizardRest.validate(
+            ProjectWizardService.Data(
+                customer = ProjectWizardService.CustomerData(nummer = 18606L, name = "ProjectWizardRestTest-sameTitles"),
+                project = ProjectWizardService.ProjectData(nummer = 1, name = "ProjectWizardRestTest-sameTitles-project"),
+                parentTaskId = parent.id,
+                teamGroup = ProjectWizardService.GroupData(name = "ProjectWizardRestTest-sameTitles"),
+            )
+        ).body!!
+        Assertions.assertEquals(emptyList<String>(), answer.validationErrors.map { "${it.fieldId}: ${it.message}" })
+        Assertions.assertEquals(customerTask.id, answer.customerTaskId)
+        Assertions.assertEquals(projectTask.id, answer.projectTaskId)
+        // The rights on the existing element and its ancestors, no new element:
+        val entries = answer.preview!!.entries
+        Assertions.assertEquals(listOf(projectTask.id, customerTask.id, parent.id), entries.map { it.taskId })
+        Assertions.assertEquals(listOf(true, false, false), entries.map { it.pickedElement })
+    }
+
+    @Test
+    fun `an existing element of the project that can't be used is a field error`() {
+        logon(ADMIN_USER)
+        val customerTask = createTask("ProjectWizardRestTest-refused", taskTree.rootTaskNode.task!!)
+        val outside = createTask("ProjectWizardRestTest-refused-outside", taskTree.rootTaskNode.task!!)
+        val taken = createTask("ProjectWizardRestTest-refused-taken", customerTask)
+        val nested = createTask("ProjectWizardRestTest-refused-nested", taken)
+        logon(TEST_FINANCE_USER)
+        val kunde = KundeDO().also {
+            it.nummer = 18607L
+            it.name = "ProjectWizardRestTest-refused"
+        }
+        kundeDao.insert(kunde)
+        projektDao.insert(ProjektDO().also {
+            it.name = "ProjectWizardRestTest-refused-taken"
+            it.kunde = kunde
+            it.nummer = 1
+            it.task = taken
+        })
+        for (projectTaskId in listOf(outside.id, taken.id, nested.id, null)) {
+            val answer = projectWizardRest.validate(
+                ProjectWizardService.Data(
+                    customer = ProjectWizardService.CustomerData(existing = true, id = 18607L),
+                    project = ProjectWizardService.ProjectData(nummer = 2, name = "ProjectWizardRestTest-refused-p"),
+                    parentTaskId = customerTask.id,
+                    projectTaskExisting = true,
+                    projectTaskId = projectTaskId,
+                )
+            ).body!!
+            Assertions.assertEquals(
+                listOf("projectTaskId"),
+                answer.validationErrors.map { it.fieldId },
+                "Task #$projectTaskId",
+            )
+            Assertions.assertNull(answer.preview)
+        }
+        // A new element of the title of the one with a project would be the same one:
+        val answer = projectWizardRest.validate(
+            ProjectWizardService.Data(
+                customer = ProjectWizardService.CustomerData(existing = true, id = 18607L),
+                project = ProjectWizardService.ProjectData(nummer = 2, name = "ProjectWizardRestTest-refused-taken"),
+                parentTaskId = customerTask.id,
+            )
+        ).body!!
+        Assertions.assertEquals(listOf("projectTaskId"), answer.validationErrors.map { it.fieldId })
+        Assertions.assertNull(answer.projectTaskId, "Not reported as used, it is refused.")
+    }
+
+    @Test
+    fun `a deleted element of the new title is a field error, not a failure at Finish`() {
+        logon(ADMIN_USER)
+        val parent = createTask("ProjectWizardRestTest-deleted-parent", taskTree.rootTaskNode.task!!)
+        val deleted = createTask("ProjectWizardRestTest-deleted", parent)
+        taskDao.markAsDeleted(deleted)
+        logon(TEST_FINANCE_USER)
+        val answer = projectWizardRest.validate(
+            ProjectWizardService.Data(
+                customer = ProjectWizardService.CustomerData(nummer = 18608L, name = "ProjectWizardRestTest-deleted"),
+                parentTaskId = parent.id,
+            )
+        ).body!!
+        Assertions.assertEquals(listOf("customerTaskId"), answer.validationErrors.map { it.fieldId })
+        Assertions.assertNull(answer.customerTaskId)
+    }
+
+    @Test
+    fun `an element found by title the user may not see is a field error`() {
+        logon(ADMIN_USER)
+        val parent = createTask("ProjectWizardRestTest-unseen-parent", taskTree.rootTaskNode.task!!)
+        val sibling = createTask("ProjectWizardRestTest-unseen-sibling", parent)
+        createTask("ProjectWizardRestTest-unseen", parent)
+        val user = initTestDB.addUser(PFUserDO().also {
+            it.username = "ProjectWizardRestTest.unseen"
+            it.addRight(UserRightDO(UserRightId.FIBU_CUSTOMER, UserRightValue.READWRITE))
+        })
+        val orga = getGroup(ORGA_GROUP)
+        orga.addUser(user)
+        groupDao.update(orga)
+        val group = GroupDO().also { it.name = "ProjectWizardRestTest-unseen" }
+        groupDao.setAssignedUsers(group, listOf(user))
+        groupDao.insert(group)
+        // The sibling with its rights, the parent with read access only: the other child stays hidden.
+        taskWizardService.grantAccess(taskId = sibling.id!!, teamGroupId = group.id)
+        logon(user)
+        Assertions.assertTrue(projectWizardRest.init().customerAllowed)
+        val answer = projectWizardRest.validate(
+            ProjectWizardService.Data(
+                customer = ProjectWizardService.CustomerData(nummer = 18609L, name = "ProjectWizardRestTest-unseen"),
+                parentTaskId = parent.id,
+            )
+        ).body!!
+        Assertions.assertEquals(listOf("customerTaskId"), answer.validationErrors.map { it.fieldId })
+        Assertions.assertNull(answer.customerTaskId)
     }
 
     @Test
@@ -207,5 +335,11 @@ class ProjectWizardRestTest : AbstractTestBase() {
         ).body!!
         Assertions.assertEquals(emptyList<String>(), answer.validationErrors.map { "${it.fieldId}: ${it.message}" })
         Assertions.assertNull(answer.preview)
+    }
+
+    private fun createTask(title: String, parent: TaskDO): TaskDO = TaskDO().also {
+        it.title = title
+        it.parentTask = parent
+        taskDao.insert(it)
     }
 }

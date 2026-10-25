@@ -56,7 +56,7 @@ private val log = KotlinLogging.logger {}
  * it is checked on [execute] ([ProjectWizardService.checkAllowed]).
  *
  * The field ids of the validation errors are the paths of [ProjectWizardService.Data]: `customer.nummer`,
- * `project.name`, `parentTaskId`, `teamGroup.name`, ...
+ * `project.name`, `parentTaskId`, `customerTaskId`, `projectTaskId`, `teamGroup.name`, ...
  *
  * @author Kai Reinhard
  */
@@ -78,10 +78,15 @@ class ProjectWizardRest {
     /**
      * @param preview What [execute] would write as access rights, as the structure wizard reports it -
      * null as long as no parent is given.
+     * @param customerTaskId For a new customer, the existing element that becomes the customer's (picked or
+     * found by its title, see [ProjectWizardService.elementsOf]), null if a new one is created.
+     * @param projectTaskId The existing element that becomes the project's, null if a new one is created.
      */
     class ValidateResponse(
         val validationErrors: List<ValidationError>,
         val preview: TaskWizardRest.ExecuteResponse?,
+        val customerTaskId: Long? = null,
+        val projectTaskId: Long? = null,
     )
 
     class ResultGroup(
@@ -96,9 +101,13 @@ class ProjectWizardRest {
         val customerName: String?,
         val customerCreated: Boolean,
         val customerTaskId: Long?,
+        val customerTaskCreated: Boolean,
+        val customerTaskTitle: String?,
         val projectId: Long?,
         val projectName: String?,
         val taskId: Long?,
+        val taskCreated: Boolean,
+        val taskTitle: String?,
         val groups: List<ResultGroup>,
         val access: TaskWizardRest.ExecuteResponse?,
     )
@@ -165,14 +174,26 @@ class ProjectWizardRest {
     @PostMapping("validate")
     fun validate(@RequestBody data: ProjectWizardService.Data): ResponseEntity<ValidateResponse> {
         checkAllowed()
-        return ResponseEntity.ok(ValidateResponse(validationErrors(data), preview(data)))
+        val elements = elementsOf(data)
+        // Existing elements only if they can be used: visible, and not refused (see the validation errors).
+        val customerTaskId = elements.customerTask?.id
+            .takeIf { data.customer?.isNew != false && elements.customerProblem == null }
+        val projectTaskId = elements.projectTask?.id.takeIf { elements.projectProblem == null }
+        return ResponseEntity.ok(
+            ValidateResponse(
+                validationErrors(data, elements),
+                preview(data, elements),
+                customerTaskId = customerTaskId,
+                projectTaskId = projectTaskId,
+            )
+        )
     }
 
     @AccessChecked("ProjectWizardService.checkAllowed (incl. insert access on the parent task)")
     @PostMapping("execute")
     fun execute(@RequestBody data: ProjectWizardService.Data): ResponseEntity<*> {
         checkAllowed()
-        validationErrors(data).takeIf { it.isNotEmpty() }?.let {
+        validationErrors(data, elementsOf(data)).takeIf { it.isNotEmpty() }?.let {
             return ResponseEntity(ResponseAction(validationErrors = it), HttpStatus.NOT_ACCEPTABLE)
         }
         val result = try {
@@ -194,9 +215,13 @@ class ProjectWizardRest {
                 customerName = result.customerName,
                 customerCreated = result.customerCreated,
                 customerTaskId = result.customerTaskId,
+                customerTaskCreated = result.customerTaskCreated,
+                customerTaskTitle = result.customerTaskTitle,
                 projectId = result.projectId,
                 projectName = result.projectName,
                 taskId = result.taskId,
+                taskCreated = result.taskCreated,
+                taskTitle = result.taskTitle,
                 groups = result.groups.map { ResultGroup(it.groupType.name, it.id, it.name, it.created) },
                 access = result.access?.let { TaskWizardRest.toResponse(it) },
             )
@@ -209,19 +234,41 @@ class ProjectWizardRest {
         }
     }
 
-    private fun preview(data: ProjectWizardService.Data): TaskWizardRest.ExecuteResponse? {
-        // Without a project there are no groups, so no rights to show.
-        data.project ?: return null
-        val parentTaskId = parentNodeOf(data)?.id ?: return null
+    private fun preview(
+        data: ProjectWizardService.Data,
+        elements: CheckedElements,
+    ): TaskWizardRest.ExecuteResponse? {
+        // Without a project there are no groups, so no rights to show; nor for elements that can't be used.
+        val project = data.project ?: return null
+        if (elements.customerProblem != null || elements.projectProblem != null) {
+            return null
+        }
         val wizardGroup = { group: ProjectWizardService.GroupData? ->
             group?.let { TaskWizardService.WizardGroup(it.id, it.name?.trim()) }
         }
-        val customer = data.customer
+        // Visible, as there is no problem with it:
+        elements.projectTask?.let { projectTask ->
+            return TaskWizardRest.toResponse(
+                taskWizardService.previewExistingElement(
+                    taskId = projectTask.id!!,
+                    managerGroup = wizardGroup(data.managerGroup),
+                    teamGroup = wizardGroup(data.teamGroup),
+                    externalGroup = wizardGroup(data.externalGroup),
+                    checkAccess = false,
+                )
+            )
+        }
+        if (data.projectTaskPicked) {
+            return null
+        }
+        // The project's new element below the customer's, which is new itself or exists already:
+        val parentTaskId = (if (elements.customerTaskNew) parentNodeOf(data) else visible(elements.customerTask))
+            ?.id ?: return null
         return TaskWizardRest.toResponse(
             taskWizardService.previewNewElement(
                 parentTaskId = parentTaskId,
-                newTaskTitle = data.project?.name?.trim(),
-                newParentTitle = if (customer?.isNew == true) customer.name?.trim() else null,
+                newTaskTitle = project.name?.trim(),
+                newParentTitle = if (elements.customerTaskNew) data.customer?.name?.trim() else null,
                 managerGroup = wizardGroup(data.managerGroup),
                 teamGroup = wizardGroup(data.teamGroup),
                 externalGroup = wizardGroup(data.externalGroup),
@@ -230,7 +277,10 @@ class ProjectWizardRest {
         )
     }
 
-    private fun validationErrors(data: ProjectWizardService.Data): List<ValidationError> {
+    private fun validationErrors(
+        data: ProjectWizardService.Data,
+        elements: CheckedElements,
+    ): List<ValidationError> {
         val errors = mutableListOf<ValidationError>()
         val customer = data.customer ?: ProjectWizardService.CustomerData()
         val kundeNummer = if (customer.isNew) {
@@ -263,21 +313,23 @@ class ProjectWizardRest {
                 )
             }
         }
-        val parentNode = parentNodeOf(data)
-        if (parentNode == null) {
-            if (project != null || data.parentTaskId != null) {
-                required(errors, null, "parentTaskId", "task.parentTask")
-            }
-        } else {
-            // The new element below the picked one is titled by the new customer or else by the project, and
-            // sister elements must differ (TaskDao).
-            val newTitle = if (customer.isNew) customer.name?.trim() else projectName
-            if (!newTitle.isNullOrBlank() && parentNode.children?.any { !it.isDeleted && it.task?.title == newTitle } == true) {
-                errors.add(ValidationError(translate("task.error.duplicateChildTasks"), "parentTaskId"))
-            }
+        val customerTaskPicked = customer.isNew && data.customerTaskPicked
+        if (customerTaskPicked && elements.customerTask == null) {
+            required(errors, null, "customerTaskId", "project.wizard.result.customerElement")
+        } else if (!customerTaskPicked && parentNodeOf(data) == null && (project != null || data.parentTaskId != null)) {
+            required(errors, null, "parentTaskId", "task.parentTask")
+        }
+        elements.customerProblem?.let {
+            errors.add(ValidationError(messageOf(it), "customerTaskId"))
         }
         if (project == null) {
             return errors
+        }
+        if (data.projectTaskPicked && elements.projectTask == null) {
+            required(errors, null, "projectTaskId", "project.wizard.result.projectElement")
+        }
+        elements.projectProblem?.let {
+            errors.add(ValidationError(messageOf(it), "projectTaskId"))
         }
         val newNames = mutableSetOf<String>()
         data.groups.forEach { (groupType, group) ->
@@ -298,10 +350,45 @@ class ProjectWizardRest {
      * rows of the groups on them, and the validation tells about its children. Unknown otherwise, as one that
      * doesn't exist.
      */
-    private fun parentNodeOf(data: ProjectWizardService.Data): TaskNode? {
-        val parentNode = data.parentTaskId?.let { taskTree.getTaskNodeById(it) } ?: return null
-        val task = parentNode.task ?: return null
-        return parentNode.takeIf { taskDao.hasLoggedInUserSelectAccess(task, throwException = false) }
+    private fun parentNodeOf(data: ProjectWizardService.Data): TaskNode? =
+        visible(data.parentTaskId?.let { taskTree.getTaskNodeById(it) })
+
+    /** The element if the user may see it (see [parentNodeOf]), otherwise null. */
+    private fun visible(node: TaskNode?): TaskNode? {
+        val task = node?.task ?: return null
+        return node.takeIf { taskDao.hasLoggedInUserSelectAccess(task, throwException = false) }
+    }
+
+    /** The elements of a request and their problems, worked out once per request. */
+    private class CheckedElements(
+        elements: ProjectWizardService.Elements,
+        val customerProblem: ProjectWizardService.TaskProblem?,
+        val projectProblem: ProjectWizardService.TaskProblem?,
+    ) {
+        val customerTask = elements.customerTask
+        val customerTaskNew = elements.customerTaskNew
+        val projectTask = elements.projectTask
+    }
+
+    private fun elementsOf(data: ProjectWizardService.Data): CheckedElements {
+        val elements = projectWizardService.elementsOf(data)
+        return CheckedElements(
+            elements,
+            customerProblem = projectWizardService.customerTaskProblem(data, elements),
+            projectProblem = projectWizardService.projectTaskProblem(data, elements),
+        )
+    }
+
+    private fun messageOf(problem: ProjectWizardService.TaskProblem): String {
+        val key = when (problem.type) {
+            ProjectWizardService.TaskProblem.Type.NOT_VISIBLE -> "project.wizard.error.taskNotVisible"
+            ProjectWizardService.TaskProblem.Type.NOT_BELOW_CUSTOMER -> "project.wizard.error.taskNotBelowCustomer"
+            ProjectWizardService.TaskProblem.Type.HAS_PROJECT -> "project.wizard.error.taskHasProject"
+            ProjectWizardService.TaskProblem.Type.NO_WRITE_ACCESS -> "project.wizard.error.taskNoWriteAccess"
+            ProjectWizardService.TaskProblem.Type.OTHER_CUSTOMER -> "project.wizard.error.taskOfOtherCustomer"
+            ProjectWizardService.TaskProblem.Type.DELETED_NAMESAKE -> "project.wizard.error.taskDeleted"
+        }
+        return translateMsg(key, problem.title, problem.detail)
     }
 
     private fun required(errors: MutableList<ValidationError>, value: Any?, fieldId: String, labelKey: String) {
