@@ -54,6 +54,14 @@ function installHooks() {
     }
   });
   DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+    // Data attributes only of a mention (chat), anywhere else they are dropped.
+    if (
+      (node.hasAttribute?.("data-type") || node.hasAttribute?.("data-id")) &&
+      (node.tagName !== "SPAN" || node.getAttribute("data-type") !== "mention")
+    ) {
+      node.removeAttribute("data-type");
+      node.removeAttribute("data-id");
+    }
     if (node.tagName === "A") {
       node.setAttribute("target", "_blank");
       node.setAttribute("rel", "noopener noreferrer");
@@ -66,6 +74,45 @@ export function sanitizeRichText(html: string): string {
   if (!DOMPurify.isSupported) return "";
   installHooks();
   return DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR });
+}
+
+/** The markup of a chat message (no headings, no tables), see ChatHtmlSanitizer in the backend. */
+const CHAT_ALLOWED_TAGS = [
+  "p",
+  "br",
+  "strong",
+  "b",
+  "em",
+  "i",
+  "u",
+  "s",
+  "ul",
+  "ol",
+  "li",
+  "a",
+  "span",
+];
+const CHAT_ALLOWED_ATTR = [
+  "href",
+  "style",
+  "target",
+  "rel",
+  "data-type",
+  "data-id",
+];
+
+/**
+ * The HTML of a chat message, sanitized: the markup of [sanitizeRichText] without headings and tables, plus
+ * mentions (`<span data-type="mention" data-id="…">`). The data attributes survive on such a span only. Kept in
+ * line with ChatHtmlSanitizer of the backend, which sanitizes every message before storing it.
+ */
+export function sanitizeChatHtml(html: string): string {
+  if (!DOMPurify.isSupported) return "";
+  installHooks();
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: CHAT_ALLOWED_TAGS,
+    ALLOWED_ATTR: CHAT_ALLOWED_ATTR,
+  });
 }
 
 /**

@@ -429,6 +429,15 @@ open class ChatService {
         )
     }
 
+    /** The id of the newest message or reply of the conversation, null if none. */
+    open fun newestMessageId(conversationId: Long): Long? {
+        return persistenceService.selectSingleResult(
+            "select max(m.id) from ChatMessageDO m where m.conversationId = :conversationId",
+            java.lang.Long::class.java,
+            Pair("conversationId", conversationId),
+        )?.toLong()
+    }
+
     /** The number of messages and replies of others the user didn't read yet (deleted ones excluded). */
     open fun countUnread(conversationId: Long, userId: Long): Long {
         val lastRead = getMemberState(conversationId, userId)?.lastReadMessageId ?: 0L

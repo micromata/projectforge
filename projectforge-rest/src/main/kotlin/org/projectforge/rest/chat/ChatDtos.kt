@@ -84,6 +84,8 @@ class ChatConversation(
     val muted: Boolean,
     /** The id of the newest message read by the logged-in user before, for the "new" line. */
     val lastReadMessageId: Long?,
+    /** The newest message or reply, to mark the conversation read up to it. */
+    val newestMessageId: Long?,
     val changeSeq: Long,
     val me: ChatRef,
     val maxImagesPerMessage: Int,

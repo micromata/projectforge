@@ -120,6 +120,7 @@ class ChatRest {
             isModerator = context.isModerator,
             muted = state?.muted == true,
             lastReadMessageId = state?.lastReadMessageId,
+            newestMessageId = chatService.newestMessageId(id),
             changeSeq = chatService.currentSeq(id),
             me = converter.ref(context.user.id),
             maxImagesPerMessage = imageService.maxPerMessage,
@@ -177,9 +178,10 @@ class ChatRest {
         response: HttpServletResponse,
     ): SseEmitter {
         val context = chatService.requireContext(id)
-        // No buffering by a reverse proxy (nginx), see the admin guide.
+        // No buffering by a reverse proxy (nginx), see the admin guide; no-transform: no proxy compresses (and so
+        // buffers) the stream, e.g. the dev server of the next app.
         response.setHeader("X-Accel-Buffering", "no")
-        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache")
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-transform")
         log.debug { "Chat events of conversation #$id subscribed by user #${context.user.id} (last event: $lastEventId)." }
         return eventPublisher.subscribe(context, chatService.currentSeq(id))
     }
