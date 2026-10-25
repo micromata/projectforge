@@ -135,7 +135,8 @@ class ChatNotifier {
     /**
      * A confidential message offered to the recipient of a direct chat ([ChatSecretRelay]): in the app only (a mail
      * would come too late, the session ends after minutes), not if watching the conversation right now. Names only the
-     * sender, nothing of the message (which doesn't exist yet). [offeredAt] tells the offers apart.
+     * sender, nothing of the message (which doesn't exist yet). [offeredAt] tells the offers apart. Watching is known
+     * from the server-sent events only: a chat open in polling mode gets the notification too.
      */
     fun onSecretOffer(conversationId: Long, senderId: Long, recipientId: Long, offeredAt: Long) {
         if (eventListeners.any { it.isWatching(conversationId, recipientId) }) {

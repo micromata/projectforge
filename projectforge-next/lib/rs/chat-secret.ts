@@ -4,13 +4,14 @@ import type { ChatRef } from "./chat-types";
 
 /**
  * A confidential message of a direct chat as one of its two sides sees it (ChatSecretRest): end-to-end
- * encrypted by the browsers, the server only relays it in memory. Gone (404) once received, cancelled or
- * expired.
+ * encrypted by the browsers, the server only relays it in memory. TAKEN once received (until it expires),
+ * gone (404) when cancelled or expired.
  */
 export interface ChatSecretSession {
   id: string;
   conversationId: number;
-  state: "OFFERED" | "ACCEPTED" | "DELIVERED";
+  /** TAKEN: received by the recipient, nothing of the message left on the server. */
+  state: "OFFERED" | "ACCEPTED" | "DELIVERED" | "TAKEN";
   sender: ChatRef;
   recipient: ChatRef;
   /** Is the logged-in user the sender? */

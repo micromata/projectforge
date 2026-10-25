@@ -48,6 +48,8 @@ export function SecretReceiveSteps({
         throw new Error(t("chat.secret.error.decrypt"));
       }
     },
+    // The decrypted text is the mutation's data: not kept in the cache once the dialog is gone.
+    gcTime: 0,
   });
   const session = useSecretSession(take.isIdle ? id : null, true);
   useCancelOnUnmount(take.isIdle ? id : null);

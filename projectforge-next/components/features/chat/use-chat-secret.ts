@@ -19,17 +19,21 @@ export const SECRET_MAX_LENGTH = 4000;
 const POLL_MS = 2000;
 
 /**
- * A confidential message as one of its sides sees it; asked for every [POLL_MS] while [poll]. An error
- * (404, 403) means it ended: received, cancelled by the other side or expired.
+ * A confidential message as one of its sides sees it; asked for every [POLL_MS] while [poll], until it is
+ * TAKEN (received). An error (404, 403) means it ended: cancelled by the other side or expired.
  */
 export function useSecretSession(id: string | null, poll: boolean) {
   return useQuery({
     queryKey: chatSecretQueryKey(id ?? ""),
     queryFn: ({ signal }) => fetchChatSecret(id!, signal),
     enabled: !!id,
-    // Ended (an error) stays ended: no more asking.
+    // Ended (an error) or received stays so: no more asking.
     refetchInterval: (query) =>
-      poll && query.state.status !== "error" ? POLL_MS : false,
+      poll &&
+      query.state.status !== "error" &&
+      query.state.data?.state !== "TAKEN"
+        ? POLL_MS
+        : false,
     refetchOnWindowFocus: false,
     retry: false,
   });

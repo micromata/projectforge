@@ -285,12 +285,12 @@ test.describe("chat", { tag: "@parallel" }, () => {
         sendDialog.getByText(t("chat.secret.received", { arg0: otherName }))
       ).toBeVisible({ timeout: 10_000 });
 
-      // Nothing left: not taken twice, not in the messages of the conversation.
+      // Nothing left: not taken twice (received, the sender knows), not in the messages of the conversation.
       const again = await other.request.post(
         `/rs/chatSecret/${sessionId}/take`,
         { headers: await writeHeaders(other.request), data: {} }
       );
-      expect(again.status()).toBe(403);
+      expect(again.status()).toBe(400);
       const messages = await page.request.get(
         `/rs/chat/conversation/${conversationId}/messages`
       );

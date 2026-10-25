@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "@/lib/toast";
 import {
@@ -16,12 +14,13 @@ import {
   generateSecretKeyPair,
   isSecretCryptoSupported,
 } from "@/lib/secret-crypto";
+import { SecretOfferRow } from "./secret-offer-row";
 import { SecretReceiveSteps, type ActiveSecret } from "./secret-receive-dialog";
 
 /**
  * The confidential messages offered to the user in a direct chat: accepting makes the key pair (only
- * here, in memory) and opens the dialog that receives the message. One the user can't open anymore (its
- * key is gone with a reload) can only be discarded.
+ * here, in memory) and opens the dialog that receives the message (see SecretOfferRow for one accepted
+ * elsewhere).
  */
 export function SecretOffers({
   sessions,
@@ -30,7 +29,6 @@ export function SecretOffers({
   sessions: ChatSecretSession[];
   onChange: () => void;
 }) {
-  const t = useTranslations();
   const [active, setActive] = useState<ActiveSecret | null>(null);
   const accept = useMutation({
     mutationFn: async (session: ChatSecretSession) => {
@@ -42,47 +40,24 @@ export function SecretOffers({
     onSuccess: setActive,
     onError: (error: Error) => toast.error(error.message),
     onSettled: onChange,
+    // The private key is in the mutation's data: only in this component's state, not in the cache.
+    gcTime: 0,
   });
   const discard = (session: ChatSecretSession) =>
     void cancelChatSecret(session.id).finally(onChange);
   const shown = sessions.filter((it) => it.id !== active?.session.id);
   return (
     <>
-      {shown.map((session) => {
-        const sender = session.sender.displayName;
-        const offered = session.state === "OFFERED";
-        return (
-          <div
-            key={session.id}
-            className="flex shrink-0 flex-wrap items-center gap-2 border-t bg-primary/5 px-3 py-2 text-sm"
-            data-testid="chat-secret-offer"
-          >
-            <p className="flex-1">
-              {offered
-                ? t("chat.secret.offered", { arg0: sender })
-                : t("chat.secret.lost", { arg0: sender })}
-            </p>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => discard(session)}
-            >
-              {offered ? t("chat.secret.decline") : t("chat.secret.discard")}
-            </Button>
-            {offered && (
-              <Button
-                type="button"
-                size="sm"
-                disabled={accept.isPending || !isSecretCryptoSupported()}
-                onClick={() => accept.mutate(session)}
-              >
-                {t("chat.secret.accept")}
-              </Button>
-            )}
-          </div>
-        );
-      })}
+      {shown.map((session) => (
+        <SecretOfferRow
+          key={session.id}
+          session={session}
+          accepting={accept.isPending}
+          canAccept={isSecretCryptoSupported()}
+          onAccept={() => accept.mutate(session)}
+          onDiscard={() => discard(session)}
+        />
+      ))}
       <Dialog open={!!active} onOpenChange={(open) => !open && setActive(null)}>
         <DialogContent className="sm:max-w-md">
           {active && (

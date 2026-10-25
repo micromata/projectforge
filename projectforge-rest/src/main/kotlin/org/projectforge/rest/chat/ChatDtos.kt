@@ -201,7 +201,7 @@ class ChatRoomDefaults(val fileExpiryDays: Int?, val fileExpiryDaysChoices: List
 class ChatSecretSession(
     val id: String,
     val conversationId: Long,
-    /** OFFERED, ACCEPTED or DELIVERED. */
+    /** OFFERED, ACCEPTED, DELIVERED or TAKEN (received by the recipient, nothing of it left). */
     val state: String,
     val sender: ChatRef,
     val recipient: ChatRef,

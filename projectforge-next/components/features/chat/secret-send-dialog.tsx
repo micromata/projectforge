@@ -39,6 +39,7 @@ export function SecretSendSteps({
   });
   const session = useSecretSession(sessionId, true);
   const state = session.data?.state;
+  const taken = state === "TAKEN";
   const deliver = useMutation({
     mutationFn: async (text: string) => {
       const data = session.data!;
@@ -46,23 +47,26 @@ export function SecretSendSteps({
       return deliverChatSecret(data.id, payload);
     },
     onSuccess: () => void session.refetch(),
+    // The text is the mutation's variables: not kept in the cache once the dialog is gone.
+    gcTime: 0,
   });
-  const delivered = deliver.isSuccess;
-  useCancelOnUnmount(delivered ? null : sessionId);
+  // Sending (or sent): closing mustn't cancel what may already be delivered.
+  const sending = !deliver.isIdle && !deliver.isError;
+  useCancelOnUnmount(sending ? null : sessionId);
   const error = offer.error ?? deliver.error;
   let body;
   if (!isSecretCryptoSupported()) {
     body = (
       <FormAlert tone="error">{t("chat.secret.error.unsupported")}</FormAlert>
     );
-  } else if (session.isError) {
+  } else if (taken) {
     body = (
-      <FormAlert tone={delivered ? "success" : "info"}>
-        {delivered
-          ? t("chat.secret.received", { arg0: partner })
-          : t("chat.secret.ended")}
+      <FormAlert tone="success">
+        {t("chat.secret.received", { arg0: partner })}
       </FormAlert>
     );
+  } else if (session.isError) {
+    body = <FormAlert tone="info">{t("chat.secret.ended")}</FormAlert>;
   } else if (state === "OFFERED") {
     body = (
       <SecretWaiting
@@ -100,7 +104,7 @@ export function SecretSendSteps({
       {error && <FormAlert tone="error">{error.message}</FormAlert>}
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>
-          {sessionId && !session.isError && !delivered
+          {sessionId && !session.isError && !sending && !taken
             ? t("chat.message.cancel")
             : t("chat.secret.close")}
         </Button>

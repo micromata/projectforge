@@ -132,12 +132,13 @@ class ChatSecretRelayTest : AbstractTestBase() {
 
         logon("chatSecret1-recipient")
         assertEquals(payload.ciphertext, relay.take(session.id).ciphertext)
-        assertNull(relay.get(session.id), "gone once taken")
+        assertTrue(relay.pending(conversationId).isEmpty(), "taken: nothing to accept or take anymore")
         suppressErrorLogs {
-            assertThrows(AccessException::class.java) { relay.take(session.id) }
+            assertThrows(UserException::class.java) { relay.take(session.id) }
         }
         logon("chatSecret1-sender")
-        assertNull(relay.get(session.id))
+        assertEquals(ChatSecretRelay.State.TAKEN, relay.get(session.id)!!.state, "the sender learns it was opened")
+        assertNull(relay.get(session.id)!!.payload)
     }
 
     @Test

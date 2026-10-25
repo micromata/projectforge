@@ -94,7 +94,7 @@ class ChatSecretRest {
         return toDto(relay.deliver(id, payload))
     }
 
-    /** The ciphertext, only once: the session is deleted with it. POST, as it changes the state. */
+    /** The ciphertext, only once: it is deleted with it. POST, as it changes the state. */
     @AccessChecked("ChatSecretRelay.take: the recipient of the session only, read access to the conversation")
     @PostMapping("{id}/take")
     fun take(@PathVariable id: String): ChatSecretPayload {

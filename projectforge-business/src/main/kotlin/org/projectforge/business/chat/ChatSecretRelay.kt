@@ -49,6 +49,9 @@ private val log = KotlinLogging.logger {}
  * The flow: the sender offers ([offer], recipient: the partner of the direct chat from the database), the recipient
  * accepts with its public key ([accept]), the sender delivers the ciphertext with its own public key ([deliver]), the
  * recipient takes it once ([take]). Each step is allowed to its side only and in its state only.
+ *
+ * The fingerprint the browsers show covers the recipient's key, i.e. the confidentiality: a manipulated server can't
+ * read the message. The sender's key isn't authenticated, so such a server could replace the message (forge it).
  */
 @Service
 open class ChatSecretRelay {
@@ -64,7 +67,8 @@ open class ChatSecretRelay {
     @Autowired(required = false)
     private var eventListeners: List<ChatEventListener> = emptyList()
 
-    enum class State { OFFERED, ACCEPTED, DELIVERED }
+    /** [TAKEN]: the recipient has the ciphertext (deleted here), kept until expiry so the sender learns it. */
+    enum class State { OFFERED, ACCEPTED, DELIVERED, TAKEN }
 
     /** The ciphertext with what the recipient needs to decrypt it (all base64url). */
     class Payload(val senderKey: String, val iv: String, val ciphertext: String)
@@ -108,7 +112,8 @@ open class ChatSecretRelay {
         }
         val recipientId = directHost.partnerId(context.hostId, user.id) ?: throw AccessException(user, NO_ACCESS)
         purge()
-        if (sessions.size >= MAX_SESSIONS || sessions.values.count { it.senderId == user.id } >= MAX_SESSIONS_PER_USER) {
+        val open = sessions.values.count { it.senderId == user.id && it.state != State.TAKEN }
+        if (sessions.size >= MAX_SESSIONS || open >= MAX_SESSIONS_PER_USER) {
             throw UserException(ERROR_TOO_MANY)
         }
         val session = Session(newId(), context.conversationId, user.id!!, recipientId, clock())
@@ -130,7 +135,8 @@ open class ChatSecretRelay {
         val user = ThreadLocalUserContext.requiredLoggedInUser
         val context = chatAccess.requireContext(conversationId, user)
         return sessions.values.filter {
-            it.conversationId == context.conversationId && it.recipientId == user.id && !expired(it)
+            it.conversationId == context.conversationId && it.recipientId == user.id && it.state != State.TAKEN &&
+                    !expired(it)
         }.sortedBy { it.created }
     }
 
@@ -172,15 +178,20 @@ open class ChatSecretRelay {
         return session
     }
 
-    /** The recipient takes the ciphertext: only once, the session is deleted with it. */
+    /**
+     * The recipient takes the ciphertext: only once, it is deleted with it. The session stays (state [State.TAKEN],
+     * without anything of the message) until it expires, so the sender can tell "opened" from "ended".
+     */
     open fun take(id: String?): Payload {
         val (session, user) = requireSide(id, recipient = true)
         chatAccess.requireContext(session.conversationId, user)
         val payload = synchronized(session) {
             checkState(session, State.DELIVERED)
-            session.payload.also { session.payload = null }
+            session.payload.also {
+                session.payload = null
+                session.state = State.TAKEN
+            }
         } ?: throw AccessException(user, NO_ACCESS)
-        sessions.remove(session.id)
         wake(session, session.senderId)
         return payload
     }
