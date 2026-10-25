@@ -448,10 +448,11 @@ class ProjectWizardServiceTest : AbstractTestBase() {
     }
 
     @Test
-    fun `an element found by the new customer's name that holds another customer's projects is refused`() {
+    fun `an element found by the new customer's name that holds another customer's projects is refused, a picked one warned about`() {
         val parent = createParent("otherCustomer")
         val customerTask = createTask("$PREFIX otherCustomer", parent)
         val projectTask = createTask("$PREFIX-otherCustomer-project", customerTask)
+        val free = createTask("$PREFIX otherCustomer free", parent)
         logon(TEST_FINANCE_USER)
         val kunde = KundeDO().also {
             it.nummer = 18515L
@@ -473,8 +474,23 @@ class ProjectWizardServiceTest : AbstractTestBase() {
         Assertions.assertEquals(ProjectWizardService.TaskProblem.Type.OTHER_CUSTOMER, problem?.type)
         Assertions.assertEquals("$PREFIX otherCustomer old", problem?.detail)
         Assertions.assertThrows(IllegalArgumentException::class.java) { projectWizardService.execute(data) }
-        // Picked on purpose, the element may be shared:
+        // Refused, not warned about:
+        Assertions.assertNull(projectWizardService.customerTaskWarning(data, projectWizardService.elementsOf(data)))
+        // Picked on purpose, the element may be shared, with a warning; as one of another project:
         data.customerTaskExisting = true
+        data.customerTaskId = projectTask.id
+        projectWizardService.customerTaskWarning(data, projectWizardService.elementsOf(data)).let {
+            Assertions.assertEquals(ProjectWizardService.TaskProblem.Type.HAS_PROJECT, it?.type)
+            Assertions.assertEquals("$PREFIX-otherCustomer-project", it?.detail)
+        }
+        data.customerTaskId = customerTask.id
+        projectWizardService.customerTaskWarning(data, projectWizardService.elementsOf(data)).let {
+            Assertions.assertEquals(ProjectWizardService.TaskProblem.Type.OTHER_CUSTOMER, it?.type)
+            Assertions.assertEquals("$PREFIX otherCustomer old", it?.detail)
+        }
+        // No warning for a free element:
+        data.customerTaskId = free.id
+        Assertions.assertNull(projectWizardService.customerTaskWarning(data, projectWizardService.elementsOf(data)))
         data.customerTaskId = customerTask.id
         val result = projectWizardService.execute(data)
         Assertions.assertEquals(customerTask.id, result.customerTaskId)

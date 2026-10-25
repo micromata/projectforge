@@ -414,12 +414,36 @@ class ProjectWizardService {
         if (data.customerTaskPicked) {
             return null
         }
+        return otherCustomerOf(node)?.let { TaskProblem(TaskProblem.Type.OTHER_CUSTOMER, node.task?.title, it) }
+    }
+
+    /**
+     * A warning for the picked element of a new customer, which the user may use nevertheless: it belongs to a
+     * project ([TaskProblem.Type.HAS_PROJECT], itself or an ancestor) or holds projects of another customer
+     * ([TaskProblem.Type.OTHER_CUSTOMER]). The access rights on it and its ancestors apply to the new project as
+     * well, so the members of the other project or customer may see it. Null without a warning, or if the element
+     * can't be used anyway ([customerTaskProblem]).
+     */
+    fun customerTaskWarning(data: Data, elements: Elements): TaskProblem? {
+        if (data.customer?.isNew != true || !data.customerTaskPicked) {
+            return null
+        }
+        val node = elements.customerTask ?: return null
+        if (customerTaskProblem(data, elements) != null) {
+            return null
+        }
+        val title = node.task?.title
+        node.getProjekt(true)?.let { return TaskProblem(TaskProblem.Type.HAS_PROJECT, title, it.name) }
+        return otherCustomerOf(node)?.let { TaskProblem(TaskProblem.Type.OTHER_CUSTOMER, title, it) }
+    }
+
+    /** The name of the customer (or project, without customer) of a project in or below [node], null if none. */
+    private fun otherCustomerOf(node: TaskNode): String? {
         val other = projektCache.all.values.firstOrNull { projekt ->
             !projekt.deleted && generateSequence(taskTree.getTaskNodeById(projekt.task?.id)) { it.parent }
                 .any { it == node }
         } ?: return null
-        val otherName = other.kunde?.id?.let { kundeCache.getKunde(it)?.name } ?: other.name
-        return TaskProblem(TaskProblem.Type.OTHER_CUSTOMER, node.task?.title, otherName)
+        return other.kunde?.id?.let { kundeCache.getKunde(it)?.name } ?: other.name
     }
 
     /**

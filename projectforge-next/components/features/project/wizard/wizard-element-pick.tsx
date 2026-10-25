@@ -25,6 +25,8 @@ interface WizardElementPickProps {
    * with mode "new" the one it found by the title, which is said here.
    */
   reusedTaskId: number | null;
+  /** With mode "existing": why the picked element may not be a good choice, which doesn't keep from finishing. */
+  warning?: string | null;
   /** The field id of the element's errors (`customerTaskId`, `projectTaskId`). */
   fieldId: string;
   errors: ValidationError[];
@@ -46,6 +48,7 @@ export function WizardElementPick({
   taskId,
   onTaskChange,
   reusedTaskId,
+  warning,
   fieldId,
   errors,
   children,
@@ -74,13 +77,16 @@ export function WizardElementPick({
         ]}
       />
       {mode === "existing" ? (
-        <WizardTaskPicker
-          taskId={taskId}
-          onChange={onTaskChange}
-          ariaLabel={label}
-          errors={errors}
-          fieldId={fieldId}
-        />
+        <>
+          <WizardTaskPicker
+            taskId={taskId}
+            onChange={onTaskChange}
+            ariaLabel={label}
+            errors={errors}
+            fieldId={fieldId}
+          />
+          {warning && <p className="text-xs text-warning">{warning}</p>}
+        </>
       ) : (
         <>
           {children}

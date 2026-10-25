@@ -31,6 +31,8 @@ interface WizardParentTaskStepProps {
   /** The existing elements the server uses (`ProjectWizardRest.ValidateResponse`), picked or found by title. */
   reusedCustomerTaskId: number | null;
   reusedProjectTaskId: number | null;
+  /** Why the picked element of a new customer may not be a good choice (`ValidateResponse.customerTaskWarning`). */
+  customerTaskWarning: string | null;
   /** The title of the customer's new element, the customer's name. */
   customerName: string;
   /** The title of the project's new element, the project's name. */
@@ -64,6 +66,7 @@ export function WizardParentTaskStep({
   onProjectElementChange,
   reusedCustomerTaskId,
   reusedProjectTaskId,
+  customerTaskWarning,
   customerName,
   projectName,
   rootTaskId,
@@ -106,6 +109,7 @@ export function WizardParentTaskStep({
             onCustomerElementChange({ ...customerElement, taskId })
           }
           reusedTaskId={reusedCustomerTaskId}
+          warning={customerTaskWarning}
           fieldId="customerTaskId"
           errors={errors}
         >

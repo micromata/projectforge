@@ -81,6 +81,8 @@ export interface ProjectWizardValidation {
   customerTaskId?: number | null;
   /** The existing element that becomes the project's, picked or found by its title; absent if a new one is created. */
   projectTaskId?: number | null;
+  /** Why the picked element of a new customer may not be a good choice, which doesn't keep from finishing. */
+  customerTaskWarning?: string | null;
 }
 
 /** `ProjectWizardRest.ResultGroup`. */

@@ -431,6 +431,7 @@ export function ProjectWizard() {
           onProjectElementChange={elements.setProjectElement}
           reusedCustomerTaskId={reusedCustomerTaskId}
           reusedProjectTaskId={reusedProjectTaskId}
+          customerTaskWarning={validation.data?.customerTaskWarning ?? null}
           projectName={projectName}
           errors={errors}
         />

@@ -81,12 +81,15 @@ class ProjectWizardRest {
      * @param customerTaskId For a new customer, the existing element that becomes the customer's (picked or
      * found by its title, see [ProjectWizardService.elementsOf]), null if a new one is created.
      * @param projectTaskId The existing element that becomes the project's, null if a new one is created.
+     * @param customerTaskWarning Why the picked element of a new customer may not be a good choice, which the user
+     * may finish nevertheless ([ProjectWizardService.customerTaskWarning]).
      */
     class ValidateResponse(
         val validationErrors: List<ValidationError>,
         val preview: TaskWizardRest.ExecuteResponse?,
         val customerTaskId: Long? = null,
         val projectTaskId: Long? = null,
+        val customerTaskWarning: String? = null,
     )
 
     class ResultGroup(
@@ -185,6 +188,7 @@ class ProjectWizardRest {
                 preview(data, elements),
                 customerTaskId = customerTaskId,
                 projectTaskId = projectTaskId,
+                customerTaskWarning = elements.customerWarning?.let { warningOf(it) },
             )
         )
     }
@@ -364,6 +368,7 @@ class ProjectWizardRest {
         elements: ProjectWizardService.Elements,
         val customerProblem: ProjectWizardService.TaskProblem?,
         val projectProblem: ProjectWizardService.TaskProblem?,
+        val customerWarning: ProjectWizardService.TaskProblem?,
     ) {
         val customerTask = elements.customerTask
         val customerTaskNew = elements.customerTaskNew
@@ -376,6 +381,7 @@ class ProjectWizardRest {
             elements,
             customerProblem = projectWizardService.customerTaskProblem(data, elements),
             projectProblem = projectWizardService.projectTaskProblem(data, elements),
+            customerWarning = projectWizardService.customerTaskWarning(data, elements),
         )
     }
 
@@ -389,6 +395,15 @@ class ProjectWizardRest {
             ProjectWizardService.TaskProblem.Type.DELETED_NAMESAKE -> "project.wizard.error.taskDeleted"
         }
         return translateMsg(key, problem.title, problem.detail)
+    }
+
+    private fun warningOf(warning: ProjectWizardService.TaskProblem): String? {
+        val key = when (warning.type) {
+            ProjectWizardService.TaskProblem.Type.HAS_PROJECT -> "project.wizard.warning.taskInProject"
+            ProjectWizardService.TaskProblem.Type.OTHER_CUSTOMER -> "project.wizard.warning.taskOfOtherCustomer"
+            else -> return null
+        }
+        return translateMsg(key, warning.title, warning.detail)
     }
 
     private fun required(errors: MutableList<ValidationError>, value: Any?, fieldId: String, labelKey: String) {

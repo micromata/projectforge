@@ -200,6 +200,38 @@ class ProjectWizardRestTest : AbstractTestBase() {
     }
 
     @Test
+    fun `a picked element of another project is warned about, not refused`() {
+        logon(ADMIN_USER)
+        val taken = createTask("ProjectWizardRestTest-warning", taskTree.rootTaskNode.task!!)
+        logon(TEST_FINANCE_USER)
+        val kunde = KundeDO().also {
+            it.nummer = 18610L
+            it.name = "ProjectWizardRestTest-warning"
+        }
+        kundeDao.insert(kunde)
+        projektDao.insert(ProjektDO().also {
+            it.name = "ProjectWizardRestTest-warning-taken"
+            it.kunde = kunde
+            it.nummer = 1
+            it.task = taken
+        })
+        val answer = projectWizardRest.validate(
+            ProjectWizardService.Data(
+                customer = ProjectWizardService.CustomerData(nummer = 18611L, name = "ProjectWizardRestTest-warned"),
+                project = ProjectWizardService.ProjectData(nummer = 1, name = "ProjectWizardRestTest-warned"),
+                customerTaskExisting = true,
+                customerTaskId = taken.id,
+            )
+        ).body!!
+        Assertions.assertEquals(emptyList<String>(), answer.validationErrors.map { "${it.fieldId}: ${it.message}" })
+        Assertions.assertEquals(taken.id, answer.customerTaskId)
+        Assertions.assertTrue(
+            answer.customerTaskWarning?.contains("ProjectWizardRestTest-warning-taken") == true,
+            answer.customerTaskWarning,
+        )
+    }
+
+    @Test
     fun `a deleted element of the new title is a field error, not a failure at Finish`() {
         logon(ADMIN_USER)
         val parent = createTask("ProjectWizardRestTest-deleted-parent", taskTree.rootTaskNode.task!!)
