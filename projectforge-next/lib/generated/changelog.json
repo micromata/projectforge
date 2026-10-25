@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.15",
+    "date" : "2026-10-25",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Admin guide: the backup script compresses the dump of the files (about half the size), because pg_dump writes their contents hex encoded." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Outgoing invoices: invoices saved in the new interface were not found by the name of their customer until the next search index rebuild.", "Project selection: projects are also found by their number (e.g. 7.002) and by the name of their customer.", "Scripts: showing the log of a running script could fail with an error.", "Time sheet list: the filter including all sub structure elements could not be switched off. It is replaced by the filter \"without structure sub elements\", off by default." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

@@ -5913,7 +5913,6 @@
       "_": "Protection of privacy",
       "tooltip": "If checked then users don't have access to the time sheets of other users assigned to this structure element or any sub element."
     },
-    "recursive": "incl. all structure sub elements",
     "reference": "Reference",
     "selectPanel": {
       "info": "You may select folders by clicking in other columns of the row than the first.\\\n**Keyboard:** **↑ / ↓** – move between the elements · **→ / ←** – expand and collapse the focused element · **Enter** – select the focused element",
@@ -5964,6 +5963,7 @@
         "select": "Select structure element"
       }
     },
+    "withoutSubTasks": "without structure sub elements",
     "wizard": {
       "action": {
         "_": "Action",

@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.15",
+    "date" : "2026-10-25",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Admin-Handbuch: Das Backup-Skript komprimiert den Dump der Dateien (etwa halbe Größe), weil pg_dump deren Inhalte hex-kodiert schreibt." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Debitorenrechnungen: In der neuen Oberfläche gespeicherte Rechnungen wurden bis zum nächsten Neuaufbau des Suchindex nicht über den Namen ihres Kunden gefunden.", "Projektauswahl: Projekte werden auch über ihre Nummer (z. B. 7.002) und den Namen ihres Kunden gefunden.", "Scripte: Das Anzeigen des Logs eines laufenden Scripts konnte mit einem Fehler abbrechen.", "Zeitberichte: Der Filter „inkl. aller Strukturunterelemente“ ließ sich nicht abschalten. Er ist ersetzt durch den Filter „ohne Strukturunterelemente“, standardmäßig deaktiviert." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

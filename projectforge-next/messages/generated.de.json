@@ -5913,7 +5913,6 @@
       "_": "Datenschutz",
       "tooltip": "Wenn diese Option gewählt wird, dann kann nicht auf die Zeitberichte anderer Benutzer:innen unterhalb dieses Strukturelements zugegriffen werden."
     },
-    "recursive": "inkl. aller Strukturunterelemente",
     "reference": "Referenz",
     "selectPanel": {
       "info": "Ordnerelement können ausgewählt werden, indem in eine andere Spalte geklickt wird (außer der ersten).\\\n**Tastatur:** **↑ / ↓** – zwischen den Elementen bewegen · **→ / ←** – fokussiertes Element auf- und zuklappen · **Eingabetaste** – fokussiertes Element auswählen",
@@ -5964,6 +5963,7 @@
         "select": "Strukturelement auswählen"
       }
     },
+    "withoutSubTasks": "ohne Strukturunterelemente",
     "wizard": {
       "action": {
         "_": "Aktion",
