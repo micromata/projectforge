@@ -160,6 +160,61 @@ class AutoCompleteObjectsTest : AbstractTestBase() {
         Assertions.assertEquals(byName.id, result.first(), "$result")
     }
 
+    /**
+     * Accents and German umlaut spellings are ignored, in both directions: "Andre" finds "André", "Mueller"
+     * finds "Müller" and vice versa (default analyzer of the user names, see MyAnalysisConfigurer).
+     */
+    @Test
+    fun userNameWithAccentsTest() {
+        logon(ADMIN_USER)
+        val user = initTestDB.addUser(PFUserDO().also {
+            it.username = "accents-$PREFIX"
+            it.firstname = "André"
+            it.lastname = "Müller"
+        })
+        listOf("Andre", "andré", "ANDRE", "Andre Mueller", "Muller", "Müller", "Mueller", "Mue", "Mül").forEach {
+            Assertions.assertTrue(
+                autoComplete(userEntityRest, it).any { hit -> hit.id == user.id },
+                "User 'André Müller' not offered for '$it'.",
+            )
+        }
+        val anotherUser = initTestDB.addUser(PFUserDO().also {
+            it.username = "accents2-$PREFIX"
+            it.firstname = "Andrea"
+            it.lastname = "Mueller"
+        })
+        Assertions.assertTrue(autoComplete(userEntityRest, "Müller").any { it.id == anotherUser.id })
+    }
+
+    /** Customer names (customAnalyzer) and project names (wordPartsAnalyzer) ignore accents as well. */
+    @Test
+    fun customerAndProjectWithAccentsTest() {
+        logon(TEST_FINANCE_USER)
+        val customer = KundeDO().also {
+            it.name = "Société Générale $PREFIX"
+            it.id = 4713L
+        }
+        kundeDao.insert(customer)
+        listOf("societe", "Société", "generale", "Gene").forEach {
+            Assertions.assertTrue(
+                autoComplete(customerPagesRest, it).any { hit -> hit.id == customer.id },
+                "Customer '${customer.name}' not offered for '$it'.",
+            )
+        }
+        val projekt = ProjektDO().also {
+            it.name = "Größenmessung_$PREFIX"
+            it.internKost2_4 = 994
+            it.nummer = 94
+        }
+        projektDao.insert(projekt)
+        listOf("groessenmessung", "grossen", "Größen", "Größenmessung_").forEach {
+            Assertions.assertTrue(
+                autoComplete(projectEntityRest, it).any { hit -> hit.id == projekt.id },
+                "Project '${projekt.name}' not offered for '$it'.",
+            )
+        }
+    }
+
     /** Project names and identifiers are found by a part of an underscore name, as group names. */
     @Test
     fun projectNameWithUnderscoreTest() {
