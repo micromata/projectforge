@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ChatRef } from "@/lib/rs/chat-types";
 import { useChatContext } from "./chat-context";
-import { useOpenDirect } from "./use-open-direct";
+import { useOpenDirect } from "@/hooks/use-open-direct";
 
 /**
  * Avatar or name of the author of a message. For somebody else than the user (and the other one of the open direct

@@ -196,7 +196,7 @@ participants.
 
 | ID | Requirement | Prio | Remark |
 |---|---|---|---|
-| DM-01 | Every user with system access must always be able to write privately to another user: from the chat page (choosing the user) and from every conversation (clicking an author). | M | decision 12 |
+| DM-01 | Every user with system access must always be able to write privately to another user: from the chat page (choosing the user), from a user found in the menu search (button "Start chat / send file", Ctrl/Cmd+Enter) and from every conversation (clicking an author). | M | decision 12 |
 | DM-02 | A direct message can be started only with users the user may see in the user selection (as ROOM-05), not with oneself. | M | no widening of visibility |
 | DM-03 | A pair of users has exactly one conversation, whoever starts it; each sees the name of the other one as title. | M | |
 | DM-04 | Both read and write as long as both have system access, without checking the visibility again (whoever got a message may answer); without the system access of the other one it is read-only. Nobody moderates, administrators have no access. | M | |

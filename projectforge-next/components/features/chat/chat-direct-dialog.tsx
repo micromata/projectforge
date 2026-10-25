@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { useOpenDirect } from "./use-open-direct";
+import { useOpenDirect } from "@/hooks/use-open-direct";
 
 /**
  * Starting a direct message (PF-CHAT-DM): the user is chosen from those the user may see (the user selection,

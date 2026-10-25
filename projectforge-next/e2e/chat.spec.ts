@@ -210,6 +210,60 @@ test.describe("chat", { tag: "@parallel" }, () => {
     }
   });
 
+  test("a direct message started from a user found in the menu search", async ({
+    loggedInPage: page,
+    browser,
+  }) => {
+    test.skip(!hasRole("normalo-user"), "No normalo account on this instance.");
+    const { t } = await userFormat(page);
+    const other = await browser.newPage({
+      baseURL: test.info().project.use.baseURL,
+    });
+    let otherName: string;
+    try {
+      await loginWithOwnSession(other, "normalo-user");
+      otherName = (
+        (await (await other.request.get("/rs/userStatus")).json()) as {
+          userData: { fullname: string };
+        }
+      ).userData.fullname;
+    } finally {
+      await other.close();
+    }
+    const label = t(
+      (await isPluginActive(page.request, "datatransfer"))
+        ? "chat.direct.startOrSendFile"
+        : "chat.direct.start"
+    );
+    await goto(page, "/chat");
+    await page.getByRole("button", { name: t("menu.main.title") }).click();
+    await page
+      .getByPlaceholder(t("menu.quickAccess.placeholder"))
+      .fill(otherName);
+    await page
+      .getByRole("button", { name: `${otherName}: ${label}` })
+      .first()
+      .click();
+    await expect(page).toHaveURL(/\/chat\/\d+/);
+    await expect(page.getByRole("heading", { name: otherName })).toBeVisible();
+    const conversationUrl = page.url();
+
+    // By the keyboard, the same chat.
+    await goto(page, "/chat");
+    await page.getByRole("button", { name: t("menu.main.title") }).click();
+    await page
+      .getByPlaceholder(t("menu.quickAccess.placeholder"))
+      .fill(otherName);
+    const button = page
+      .getByRole("button", { name: `${otherName}: ${label}` })
+      .first();
+    // The users found lead the list, so the first one is selected: Ctrl/Cmd+Enter starts the chat right away.
+    await expect(page.getByRole("option").first()).toContainText(otherName);
+    await expect(button).toBeVisible();
+    await page.keyboard.press("ControlOrMeta+Enter");
+    await expect(page).toHaveURL(conversationUrl);
+  });
+
   test("a confidential message, end-to-end encrypted, received once", async ({
     loggedInPage: page,
     browser,

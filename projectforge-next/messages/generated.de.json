@@ -976,6 +976,8 @@
       "new": "Direktnachricht",
       "open": "Öffnen",
       "send": "Direktnachricht senden",
+      "start": "Chat starten",
+      "startOrSendFile": "Chat starten / Datei senden",
       "user": "Person"
     },
     "file": {
