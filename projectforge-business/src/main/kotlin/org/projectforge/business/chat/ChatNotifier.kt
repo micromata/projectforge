@@ -132,6 +132,48 @@ class ChatNotifier {
         }
     }
 
+    /**
+     * A confidential message offered to the recipient of a direct chat ([ChatSecretRelay]): in the app only (a mail
+     * would come too late, the session ends after minutes), not if watching the conversation right now. Names only the
+     * sender, nothing of the message (which doesn't exist yet). [offeredAt] tells the offers apart.
+     */
+    fun onSecretOffer(conversationId: Long, senderId: Long, recipientId: Long, offeredAt: Long) {
+        if (eventListeners.any { it.isWatching(conversationId, recipientId) }) {
+            return
+        }
+        executor.execute {
+            try {
+                val recipient = userGroupCache.getUser(recipientId) ?: return@execute
+                val senderName = userGroupCache.getUser(senderId)?.getFullname() ?: "?"
+                notificationService.notifyDirect(
+                    recipientId = recipientId,
+                    title = I18nHelper.getLocalizedMessage(recipient, "chat.notification.secret.title", senderName),
+                    body = "<p>${StringEscapeUtils.escapeHtml4(
+                        I18nHelper.getLocalizedMessage(recipient, "chat.notification.secret.text", senderName)
+                    )}</p>",
+                    link = "/chat/$conversationId",
+                    dedupKey = "${secretPrefix(conversationId, recipientId)}$offeredAt",
+                    delivery = SECRET_DELIVERY,
+                    display = NotificationDisplay.BANNER,
+                    menuBadge = MenuItemDefId.CHAT,
+                )
+            } catch (ex: Exception) {
+                log.error(ex) { "Notification of a confidential message in conversation #$conversationId failed: ${ex.message}" }
+            }
+        }
+    }
+
+    /** Resolves the notifications of the recipient about confidential messages of the conversation (none open). */
+    fun resolveSecret(conversationId: Long, recipientId: Long) {
+        executor.execute {
+            try {
+                notificationService.resolveByDedupPrefix(recipientId, secretPrefix(conversationId, recipientId))
+            } catch (ex: Exception) {
+                log.error(ex) { "Resolving chat notifications of conversation #$conversationId failed: ${ex.message}" }
+            }
+        }
+    }
+
     internal fun notify(info: MessageInfo) {
         val host = hostRegistry.get(info.hostType) ?: return
         val author = userGroupCache.getUser(info.authorId)
@@ -243,6 +285,12 @@ class ChatNotifier {
                 NotificationDeliveryStep(NotificationChannel.MAIL, NEW_MESSAGE_MAIL_DELAY_MINUTES, onlyIfUnacknowledged = true),
             )
         )
+
+        private val SECRET_DELIVERY = NotificationDelivery(
+            listOf(NotificationDeliveryStep(NotificationChannel.IN_APP, 0))
+        )
+
+        internal fun secretPrefix(conversationId: Long, userId: Long) = "chat:secret:$conversationId:$userId:"
 
         internal fun newPrefix(conversationId: Long, userId: Long) = "chat:new:$conversationId:$userId:"
 

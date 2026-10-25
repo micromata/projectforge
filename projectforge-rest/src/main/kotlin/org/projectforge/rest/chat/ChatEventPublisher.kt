@@ -68,8 +68,13 @@ class ChatEventPublisher : ChatEventListener {
         /** The next thing to send: [NOTHING], [PING] or a sequence (the higher one wins). */
         val pending = AtomicLong(NOTHING)
 
+        /** Is a confidential message of the user to be announced ([SECRET_EVENT_NAME])? */
+        val secret = AtomicBoolean(false)
+
         /** Is a task of the pool sending to this subscription (scheduled or running)? */
         val sending = AtomicBoolean(false)
+
+        fun idle() = pending.get() == NOTHING && !secret.get()
     }
 
     private val subscriptions = ConcurrentHashMap<Long, CopyOnWriteArraySet<Subscription>>()
@@ -103,6 +108,10 @@ class ChatEventPublisher : ChatEventListener {
         subscriptions[conversationId]?.forEach { offer(it, changeSeq) }
     }
 
+    override fun onSecret(conversationId: Long, userId: Long) {
+        subscriptions[conversationId]?.filter { it.userId == userId }?.forEach { offerSecret(it) }
+    }
+
     override fun isWatching(conversationId: Long, userId: Long): Boolean {
         return subscriptions[conversationId]?.any { it.userId == userId } == true
     }
@@ -119,6 +128,15 @@ class ChatEventPublisher : ChatEventListener {
     /** Merges [what] into the pending send of the subscription and starts a task, if none is sending to it. */
     private fun offer(subscription: Subscription, what: Long) {
         subscription.pending.accumulateAndGet(what, ::maxOf)
+        startSending(subscription)
+    }
+
+    private fun offerSecret(subscription: Subscription) {
+        subscription.secret.set(true)
+        startSending(subscription)
+    }
+
+    private fun startSending(subscription: Subscription) {
         if (subscription.sending.compareAndSet(false, true)) {
             executor.execute { drain(subscription) }
         }
@@ -127,16 +145,18 @@ class ChatEventPublisher : ChatEventListener {
     private fun drain(subscription: Subscription) {
         while (true) {
             val what = subscription.pending.getAndSet(NOTHING)
-            if (what == NOTHING) {
+            val secret = subscription.secret.getAndSet(false)
+            if (what == NOTHING && !secret) {
                 subscription.sending.set(false)
                 // Offered meanwhile, but the offer saw this task still sending: go on (if no other task started).
-                if (subscription.pending.get() == NOTHING || !subscription.sending.compareAndSet(false, true)) {
+                if (subscription.idle() || !subscription.sending.compareAndSet(false, true)) {
                     return
                 }
                 continue
             }
-            if (!deliver(subscription, what)) {
+            if ((what != NOTHING && !deliver(subscription, what)) || (secret && !deliver(subscription, SECRET))) {
                 subscription.pending.set(NOTHING)
+                subscription.secret.set(false)
                 subscription.sending.set(false)
                 return
             }
@@ -156,9 +176,14 @@ class ChatEventPublisher : ChatEventListener {
                 remove(subscription)
                 return false
             }
-            subscription.emitter.send(
-                SseEmitter.event().id("$what").name(EVENT_NAME).data("{\"changeSeq\":$what}")
-            )
+            if (what == SECRET) {
+                // No id: the id is the change sequence of a reconnect.
+                subscription.emitter.send(SseEmitter.event().name(SECRET_EVENT_NAME).data("{}"))
+            } else {
+                subscription.emitter.send(
+                    SseEmitter.event().id("$what").name(EVENT_NAME).data("{\"changeSeq\":$what}")
+                )
+            }
             return true
         } catch (ex: Exception) {
             log.debug { "Chat event to user #${subscription.userId} not sent (connection closed?): ${ex.message}" }
@@ -176,6 +201,9 @@ class ChatEventPublisher : ChatEventListener {
 
     companion object {
         const val EVENT_NAME = "change"
+
+        /** Something changed for a confidential message of the user (no content, the page asks). */
+        const val SECRET_EVENT_NAME = "secret"
         const val HEARTBEAT_MILLIS = 25_000L
         const val TIMEOUT_MILLIS = 60 * 60_000L
 
@@ -184,5 +212,6 @@ class ChatEventPublisher : ChatEventListener {
 
         private const val NOTHING = Long.MIN_VALUE
         private const val PING = -1L
+        private const val SECRET = -2L
     }
 }

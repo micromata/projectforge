@@ -17,8 +17,10 @@ import { ChatComposer } from "./chat-composer";
 import { ChatContextProvider, type ChatContextValue } from "./chat-context";
 import { ChatPanelHeader } from "./chat-panel-header";
 import { MessageList } from "./message-list";
+import { SecretOffers } from "./secret-offers";
 import { ThreadPanel } from "./thread-panel";
 import { useChatLive } from "./use-chat-live";
+import { useSecretOffers } from "./use-chat-secret";
 import { useMarkRead } from "./use-mark-read";
 
 /**
@@ -54,10 +56,12 @@ export function ChatPanel({
   const trackNewest = useCallback((messages: ChatMessage[]) => {
     setNewestId((id) => Math.max(id, ...messages.map((it) => it.id)));
   }, []);
+  const secrets = useSecretOffers(conversation);
   const live = useChatLive(
     conversationId,
     conversation?.changeSeq,
-    trackNewest
+    trackNewest,
+    secrets.refresh
   );
   const onAtEnd = useCallback(
     (id: number | null) =>
@@ -118,6 +122,7 @@ export function ChatPanel({
           lastReadMessageId={lastReadAtOpen ?? null}
           onAtEnd={onAtEnd}
         />
+        <SecretOffers sessions={secrets.sessions} onChange={secrets.refresh} />
         {conversation.canWrite ? (
           <ChatComposer
             conversation={conversation}

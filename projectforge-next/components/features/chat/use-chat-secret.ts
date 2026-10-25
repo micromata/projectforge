@@ -1,0 +1,92 @@
+"use client";
+
+import { useCallback, useEffect, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  cancelChatSecret,
+  chatSecretPendingQueryKey,
+  chatSecretQueryKey,
+  fetchChatSecret,
+  fetchPendingChatSecrets,
+} from "@/lib/rs/chat-secret";
+import type { ChatConversation } from "@/lib/rs/chat-types";
+import { secretFingerprint } from "@/lib/secret-crypto";
+
+/** The longest confidential text (the server takes at most 16 KB of ciphertext). */
+export const SECRET_MAX_LENGTH = 4000;
+
+/** While a side waits for the other one, its dialog asks this often (the event of the chat may not come). */
+const POLL_MS = 2000;
+
+/**
+ * A confidential message as one of its sides sees it; asked for every [POLL_MS] while [poll]. An error
+ * (404, 403) means it ended: received, cancelled by the other side or expired.
+ */
+export function useSecretSession(id: string | null, poll: boolean) {
+  return useQuery({
+    queryKey: chatSecretQueryKey(id ?? ""),
+    queryFn: ({ signal }) => fetchChatSecret(id!, signal),
+    enabled: !!id,
+    // Ended (an error) stays ended: no more asking.
+    refetchInterval: (query) =>
+      poll && query.state.status !== "error" ? POLL_MS : false,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
+}
+
+/** The fingerprint of the recipient's public key, compared by both sides (see secretFingerprint). */
+export function useSecretFingerprint(publicKey: string | null | undefined) {
+  return useQuery({
+    queryKey: ["chatSecretFingerprint", publicKey],
+    queryFn: () => secretFingerprint(publicKey!),
+    enabled: !!publicKey,
+    staleTime: Infinity,
+  }).data;
+}
+
+/**
+ * Cancels the session when the dialog closes (it unmounts with it), unless [id] is null by then: a
+ * session nobody can finish anymore is deleted at once instead of waiting for it to expire. Deferred by a
+ * tick, so the remount of React's strict mode (development) doesn't cancel it.
+ */
+export function useCancelOnUnmount(id: string | null) {
+  const ref = useRef<string | null>(null);
+  const scheduled = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    ref.current = id;
+  }, [id]);
+  useEffect(() => {
+    if (scheduled.current) clearTimeout(scheduled.current);
+    scheduled.current = null;
+    return () => {
+      scheduled.current = setTimeout(() => {
+        if (ref.current) void cancelChatSecret(ref.current).catch(() => {});
+      }, 0);
+    };
+  }, []);
+}
+
+/**
+ * The confidential messages of a direct chat the user is the recipient of, and `refresh` for the event of
+ * the chat (useChatLive's onSecret), which also refreshes an open session of either side.
+ */
+export function useSecretOffers(conversation: ChatConversation | undefined) {
+  const queryClient = useQueryClient();
+  const conversationId = conversation?.id ?? 0;
+  const query = useQuery({
+    queryKey: chatSecretPendingQueryKey(conversationId),
+    queryFn: ({ signal }) => fetchPendingChatSecrets(conversationId, signal),
+    enabled: !!conversation?.directPartner,
+    refetchOnWindowFocus: false,
+  });
+  const direct = !!conversation?.directPartner;
+  const refresh = useCallback(() => {
+    if (!direct) return;
+    void queryClient.invalidateQueries({
+      queryKey: chatSecretPendingQueryKey(conversationId),
+    });
+    void queryClient.invalidateQueries({ queryKey: ["chatSecret"] });
+  }, [direct, conversationId, queryClient]);
+  return { sessions: query.data ?? [], refresh };
+}

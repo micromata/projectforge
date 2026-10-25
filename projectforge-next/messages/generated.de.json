@@ -1055,6 +1055,34 @@
       "noResults": "Keine Nachrichten gefunden.",
       "placeholder": "Nachrichten durchsuchen"
     },
+    "secret": {
+      "accept": "Annehmen",
+      "action": "Vertraulich senden",
+      "close": "Schließen",
+      "decline": "Ablehnen",
+      "delivered": "Gesendet. Warten, bis {arg0} sie öffnet …",
+      "discard": "Verwerfen",
+      "ended": "Die Sitzung ist beendet (abgelehnt, abgebrochen oder abgelaufen).",
+      "error": {
+        "decrypt": "Die Nachricht ließ sich nicht entschlüsseln.",
+        "unsupported": "Dieser Browser bietet hier keine Verschlüsselung (eine sichere Verbindung ist nötig)."
+      },
+      "fingerprint": "Fingerabdruck",
+      "info": "Ende-zu-Ende-verschlüsselt: Der Text wird im Browser der sendenden Person verschlüsselt und erst im Browser der empfangenden entschlüsselt. ProjectForge leitet ihn weiter, ohne ihn lesen zu können, und speichert nichts. Beide müssen online sein; nach 10 Minuten endet die Sitzung.",
+      "limit": "Das schützt vor Datenbank-Backups, Logs und Administratoren, die in Daten schauen, nicht vor einem manipulierten Server. Im Zweifel den Fingerabdruck auf beiden Seiten vergleichen, z. B. am Telefon.",
+      "lost": "Eine vertrauliche Nachricht von {arg0} lässt sich hier nicht mehr öffnen (die Seite wurde neu geladen).",
+      "offered": "{arg0} möchte eine vertrauliche Nachricht senden.",
+      "receiveTitle": "Vertrauliche Nachricht von {arg0}",
+      "received": "{arg0} hat die Nachricht geöffnet. Auf dem Server ist nichts davon übrig.",
+      "send": "Verschlüsseln und senden",
+      "sendTitle": "Vertrauliche Nachricht an {arg0}",
+      "show": "Nachricht anzeigen",
+      "shownOnce": "Nur hier und nur einmal angezeigt: Schließen des Dialogs löscht sie.",
+      "start": "Starten",
+      "text": "Vertraulicher Text",
+      "waitingForAccept": "Warten, bis {arg0} annimmt …",
+      "waitingForSender": "Warten, bis {arg0} sendet …"
+    },
     "thread": {
       "follow": "Folgen",
       "lastReply": "Letzte Antwort {arg0}",

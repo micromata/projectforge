@@ -13,6 +13,7 @@ import { sendChatMessage } from "@/lib/rs/chat";
 import type { ChatConversation, ChatMessage } from "@/lib/rs/chat-types";
 import { ChatEditor } from "./chat-editor";
 import { PendingFiles } from "./pending-files";
+import { SecretSendButton } from "./secret-send-button";
 import type { ChatEditorHandle } from "./types";
 import { useChatDraft } from "./use-chat-draft";
 import { usePendingFiles } from "./use-pending-files";
@@ -110,6 +111,9 @@ export function ChatComposer({
                 }}
               />
             </>
+          )}
+          {threadRootId == null && (
+            <SecretSendButton conversation={conversation} />
           )}
           <ChatEditor
             ref={editorRef}

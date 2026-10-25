@@ -1055,6 +1055,34 @@
       "noResults": "No messages found.",
       "placeholder": "Search messages"
     },
+    "secret": {
+      "accept": "Accept",
+      "action": "Send confidentially",
+      "close": "Close",
+      "decline": "Decline",
+      "delivered": "Sent. Waiting for {arg0} to open it…",
+      "discard": "Discard",
+      "ended": "The session has ended (declined, cancelled or expired).",
+      "error": {
+        "decrypt": "The message could not be decrypted.",
+        "unsupported": "This browser offers no encryption here (a secure connection is needed)."
+      },
+      "fingerprint": "Fingerprint",
+      "info": "End-to-end encrypted: the text is encrypted in the sender's browser and decrypted only in the recipient's. ProjectForge relays it without being able to read it and stores nothing. Both have to be online; the session ends after 10 minutes.",
+      "limit": "This protects against database backups, logs and administrators looking into data, not against a manipulated server. If in doubt, compare the fingerprint on both sides, e.g. by phone.",
+      "lost": "A confidential message from {arg0} can no longer be opened here (the page was reloaded).",
+      "offered": "{arg0} wants to send a confidential message.",
+      "receiveTitle": "Confidential message from {arg0}",
+      "received": "{arg0} has opened the message. Nothing of it is left on the server.",
+      "send": "Encrypt and send",
+      "sendTitle": "Confidential message to {arg0}",
+      "show": "Show message",
+      "shownOnce": "Shown only here and only once: closing the dialog deletes it.",
+      "start": "Start",
+      "text": "Confidential text",
+      "waitingForAccept": "Waiting for {arg0} to accept…",
+      "waitingForSender": "Waiting for {arg0} to send…"
+    },
     "thread": {
       "follow": "Follow",
       "lastReply": "Last reply {arg0}",

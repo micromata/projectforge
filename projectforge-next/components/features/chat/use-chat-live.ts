@@ -26,11 +26,14 @@ const SSE_RETRY_MS = 5 * 60_000;
  * not at all after 15 minutes in the background) and tries the events again from time to time.
  *
  * [initialSeq] is the sequence of the conversation when loaded; nothing happens before it is known.
+ * [onSecret] is called when a confidential message of the user may have changed (its own event; in polling
+ * mode with every poll).
  */
 export function useChatLive(
   conversationId: number,
   initialSeq: number | undefined,
-  onChanges?: (messages: ChatMessage[]) => void
+  onChanges?: (messages: ChatMessage[]) => void,
+  onSecret?: () => void
 ) {
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<"events" | "polling">("events");
@@ -38,9 +41,11 @@ export function useChatLive(
   const syncing = useRef(false);
   const again = useRef(false);
   const onChangesRef = useRef(onChanges);
+  const onSecretRef = useRef(onSecret);
   useEffect(() => {
     onChangesRef.current = onChanges;
-  }, [onChanges]);
+    onSecretRef.current = onSecret;
+  }, [onChanges, onSecret]);
   // Before the effect of the events below: they need it.
   useEffect(() => {
     if (seqRef.current == null && initialSeq != null)
@@ -93,6 +98,7 @@ export function useChatLive(
       );
       if (seqRef.current == null || seq > seqRef.current) void sync();
     });
+    source.addEventListener("secret", () => onSecretRef.current?.());
     source.onopen = () => {
       failures = 0;
     };
@@ -119,8 +125,10 @@ export function useChatLive(
       );
     };
     const tick = () => {
-      if (!hiddenSince || Date.now() - hiddenSince < POLL_HIDDEN_MAX_MS)
+      if (!hiddenSince || Date.now() - hiddenSince < POLL_HIDDEN_MAX_MS) {
         void sync();
+        onSecretRef.current?.();
+      }
       schedule();
     };
     const onVisibility = () => {

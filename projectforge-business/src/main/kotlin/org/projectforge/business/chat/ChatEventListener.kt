@@ -33,4 +33,7 @@ interface ChatEventListener {
 
     /** Has the user the conversation open right now (no notification about new messages needed)? */
     fun isWatching(conversationId: Long, userId: Long): Boolean = false
+
+    /** A confidential message of the conversation changed for the user ([ChatSecretRelay]). */
+    fun onSecret(conversationId: Long, userId: Long) {}
 }

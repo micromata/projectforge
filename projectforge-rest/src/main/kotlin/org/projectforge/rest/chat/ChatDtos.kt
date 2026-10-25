@@ -193,3 +193,28 @@ class ChatDirectOpenResult(val conversationId: Long)
 
 /** Defaults of a new room: expiry of its files, its choices, files possible. */
 class ChatRoomDefaults(val fileExpiryDays: Int?, val fileExpiryDaysChoices: List<ChatChoice>, val filesEnabled: Boolean)
+
+/**
+ * A confidential message of a direct chat ([org.projectforge.business.chat.ChatSecretRelay]) as one of its two sides
+ * sees it: never the ciphertext (only [ChatSecretPayload] by take).
+ */
+class ChatSecretSession(
+    val id: String,
+    val conversationId: Long,
+    /** OFFERED, ACCEPTED or DELIVERED. */
+    val state: String,
+    val sender: ChatRef,
+    val recipient: ChatRef,
+    /** Is the logged-in user the sender? */
+    val mine: Boolean,
+    /** The public key of the recipient (raw P-256, base64url), after accepting. */
+    val recipientKey: String?,
+    val expiresAt: Date,
+)
+
+class ChatSecretOfferRequest(val conversationId: Long? = null)
+
+class ChatSecretAcceptRequest(val publicKey: String? = null)
+
+/** The ciphertext (AES-GCM) with the public key of the sender and the iv, all base64url. */
+class ChatSecretPayload(val senderKey: String? = null, val iv: String? = null, val ciphertext: String? = null)

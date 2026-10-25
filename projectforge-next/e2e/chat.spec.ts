@@ -17,7 +17,8 @@ async function userId(page: Page): Promise<number> {
  * a message with a mention chosen from the suggestions appears live at the other one, who replies in the thread;
  * a user outside the room is refused. The room is deleted afterwards (with its conversation). Direct messages
  * between the two, with a file in the personal box of the recipient; files of a room in its data transfer area;
- * a coloured text, inline code and code blocks of several lines (from the toolbar and by ```).
+ * a coloured text, inline code and a code block of several lines; a confidential message (end-to-end encrypted,
+ * received once, in no message of the conversation).
  */
 test.describe("chat", { tag: "@parallel" }, () => {
   test("mentions, live updates and threads between two participants", async ({
@@ -204,6 +205,98 @@ test.describe("chat", { tag: "@parallel" }, () => {
         expect(refused.status()).toBe(403);
         await outsider.close();
       }
+    } finally {
+      await other.close();
+    }
+  });
+
+  test("a confidential message, end-to-end encrypted, received once", async ({
+    loggedInPage: page,
+    browser,
+  }) => {
+    test.skip(!hasRole("normalo-user"), "No normalo account on this instance.");
+    const { t } = await userFormat(page);
+    const other = await browser.newPage({
+      baseURL: test.info().project.use.baseURL,
+    });
+    try {
+      await loginWithOwnSession(other, "normalo-user");
+      const otherName = (
+        (await (await other.request.get("/rs/userStatus")).json()) as {
+          userData: { fullname: string };
+        }
+      ).userData.fullname;
+      const opened = await page.request.post("/rs/chatDirect/open", {
+        headers: await writeHeaders(page.request),
+        data: { userId: await userId(other) },
+      });
+      expect(opened.ok()).toBeTruthy();
+      const { conversationId } = (await opened.json()) as {
+        conversationId: number;
+      };
+      const { t: otherT } = await userFormat(other);
+      await goto(page, `/chat/${conversationId}`);
+      await goto(other, `/chat/${conversationId}`);
+      // The dev server's indicator covers the buttons of the composer (bottom left).
+      for (const it of [page, other])
+        await it.addStyleTag({
+          content: "nextjs-portal { display: none !important; }",
+        });
+
+      // The sender offers, the recipient accepts: both see the same fingerprint.
+      await page.getByRole("button", { name: t("chat.secret.action") }).click();
+      const sendDialog = page.getByRole("dialog");
+      const offered = page.waitForResponse((res) =>
+        res.url().endsWith("/rs/chatSecret/offer")
+      );
+      await sendDialog
+        .getByRole("button", { name: t("chat.secret.start") })
+        .click();
+      const sessionId = ((await (await offered).json()) as { id: string }).id;
+      const offer = other.getByTestId("chat-secret-offer");
+      await expect(offer).toBeVisible({ timeout: 10_000 });
+      await offer
+        .getByRole("button", { name: otherT("chat.secret.accept") })
+        .click();
+      const receiveDialog = other.getByRole("dialog");
+      const fingerprint = sendDialog.getByTestId("chat-secret-fingerprint");
+      await expect(fingerprint).toBeVisible({ timeout: 10_000 });
+      const digits = await fingerprint.locator("span").textContent();
+      expect(digits).toMatch(/^\d{5} \d{5} \d{5} \d{5}$/);
+      await expect(
+        receiveDialog.getByTestId("chat-secret-fingerprint").locator("span")
+      ).toHaveText(digits!);
+
+      // Encrypted and sent, shown once at the recipient.
+      const secret = `pw-${uniqueSuffix()}`;
+      await sendDialog
+        .getByRole("textbox", { name: t("chat.secret.text") })
+        .fill(secret);
+      await sendDialog
+        .getByRole("button", { name: t("chat.secret.send") })
+        .click();
+      await receiveDialog
+        .getByRole("button", { name: otherT("chat.secret.show") })
+        .click({ timeout: 10_000 });
+      await expect(receiveDialog.getByTestId("chat-secret-text")).toHaveValue(
+        secret
+      );
+      await expect(
+        sendDialog.getByText(t("chat.secret.received", { arg0: otherName }))
+      ).toBeVisible({ timeout: 10_000 });
+
+      // Nothing left: not taken twice, not in the messages of the conversation.
+      const again = await other.request.post(
+        `/rs/chatSecret/${sessionId}/take`,
+        { headers: await writeHeaders(other.request), data: {} }
+      );
+      expect(again.status()).toBe(403);
+      const messages = await page.request.get(
+        `/rs/chat/conversation/${conversationId}/messages`
+      );
+      expect(await messages.text()).not.toContain(secret);
+      await other.keyboard.press("Escape");
+      await expect(other.getByText(secret)).toHaveCount(0);
     } finally {
       await other.close();
     }
