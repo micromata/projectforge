@@ -485,6 +485,27 @@ open class ChatService {
             .toList()
     }
 
+    /** The authors of the replies of the given messages (not deleted ones), in the order of their first reply. */
+    open fun selectReplyAuthorIds(rootIds: Collection<Long>): Map<Long, List<Long>> {
+        if (rootIds.isEmpty()) {
+            return emptyMap()
+        }
+        val result = mutableMapOf<Long, MutableList<Long>>()
+        persistenceService.executeQueryBatched(
+            "select m.threadRootId, m.authorId from ChatMessageDO m where m.threadRootId in :rootIds" +
+                    " and m.deleted = false order by m.id",
+            Array<Any?>::class.java,
+            batchParam = "rootIds",
+            batchValues = rootIds,
+        ).forEach { row ->
+            val rootId = (row[0] as? Number)?.toLong() ?: return@forEach
+            val authorId = (row[1] as? Number)?.toLong() ?: return@forEach
+            val authors = result.getOrPut(rootId) { mutableListOf() }
+            if (authorId !in authors) authors += authorId
+        }
+        return result
+    }
+
     /** The followers of a thread: the author of its message and the followers, without those who unfollowed it. */
     open fun threadFollowers(message: ChatMessageDO): Set<Long> {
         return threadFollowers(message.authorId, message.followerIds, message.unfollowerIds)

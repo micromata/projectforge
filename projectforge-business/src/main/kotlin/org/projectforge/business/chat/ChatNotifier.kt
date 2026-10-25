@@ -70,7 +70,7 @@ class ChatNotifier {
     private var eventListeners: List<ChatEventListener> = emptyList()
 
     /** Single thread: the notifications of one message are created in the order of the messages. Tests run inline. */
-    internal var executor: Executor = Executors.newSingleThreadExecutor { runnable ->
+    var executor: Executor = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "ChatNotifier").also { it.isDaemon = true }
     }
 
