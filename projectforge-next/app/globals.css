@@ -468,6 +468,23 @@
   background-image: linear-gradient(var(--row-grey), var(--row-grey));
 }
 
+/* CVE-Radar: an instance deviating from its system's baseline (INV-11) — another version, an added or a
+ * missing technology, in the comparison matrix and wherever a deviation is marked. */
+.cve-deviation,
+.cve-matrix-version {
+  background-color: var(--status-info-bg);
+  color: var(--status-info);
+}
+.cve-matrix-added {
+  background-color: var(--status-available-bg);
+  color: var(--status-available);
+}
+.cve-matrix-removed {
+  background-color: var(--status-loaned-bg);
+  color: var(--status-loaned);
+  text-decoration-line: line-through;
+}
+
 /*
  * A label's text can be selected and copied. The shadcn Label (components/ui/label.tsx, not ours to
  * edit) makes it `select-none`; this rule is outside any layer and so wins over that utility. A click
