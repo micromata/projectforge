@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "The info of a structure element (title, path, project, customer, consumption) was answered to every logged-in user; now only to users who may see the structure element.",
-  "de": "Die Infos eines Strukturelements (Titel, Pfad, Projekt, Kunde, Verbrauch) wurden jedem eingeloggten Nutzer geliefert; jetzt nur noch an Nutzer, die das Strukturelement sehen dürfen."
-}

@@ -1,6 +1,88 @@
 {
   "releases": [
     {
+      "id": "9-0-15",
+      "version": "9.0.15",
+      "date": "2026-10-25",
+      "title": "ProjectForge 9.0.15 released",
+      "tag": "9.0.15-RELEASE",
+      "published": false,
+      "summary": [
+        "**Ad hoc bookings**: grant or propose time sheet bookings without group membership",
+        "**Notifications**: SMS delivery, creditor invoices due, variables with examples",
+        "Time sheet form: recently used entries with consumption, sortable and filterable",
+        "Customer wizard reuses existing structure elements",
+        "Structure tree: lost and incomplete elements after a background reload fixed",
+        "Password forgotten: reset mail limited against mail bombing"
+      ],
+      "overview": [
+        "**Ad hoc bookings:** who may edit the time sheets of others on a structure element grants colleagues the booking of own time sheets for a period, optionally restricted to some cost units; the colleagues see only the granted structure elements. Employees without this right may propose such a booking, the project management accepts the time sheets afterwards (reminded by a new notification rule).",
+        "**Notifications:** delivery steps by SMS; new rule \"Creditor invoices due\"; the rule editor lists the variables for subject and text with example values and a copy button, the preview shows the texts with example values.",
+        "**Creditor invoices:** marked as overdue already 2 working days before the due date.",
+        "**Time sheet form:** the recently used entries show the consumption of their budget and can be sorted, filtered and arranged per column (remembered per user); the consumption bar tooltip shows budget, booked and remaining person days.",
+        "**Customer wizard:** existing structure elements of the customer and the project can be used instead of new ones, picked from the tree or found by the same title.",
+        "**Order statistics:** the bubble size of the contribution margin chart shows the contribution margin; titles can be switched on.",
+        "**Fixed:** structure elements created or moved during a background reload could vanish from the structure tree, the responsible person was missing after a change; an invalid search syntax shows a hint instead of an empty list; the info of a structure element is only answered to users who may see it; the password reset mail is limited per user, per client and in total, so it can no longer be requested over and over."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            {
+              "title": "Ad hoc bookings",
+              "items": [
+                "Who may edit the time sheets of others on a structure element (e.g. project management, finance) may grant colleagues the booking of own time sheets for a period, without group membership: several colleagues at once, on the structure element and any of its sub elements, each optionally restricted to some of its cost units. The grant is active right away, each colleague gets a mail with the links to book on.",
+                "The colleagues see only the granted structure elements and the titles of their ancestors in the structure tree: no other structure elements, consumption, time sheets of others or statistics. After the period or a revocation the own time sheets stay readable.",
+                "In the structure tree, a badge marks the structure elements with ad hoc bookings; its tooltip names the colleagues and their periods. Shown only to who may grant on the structure element.",
+                "Employees without this right may propose such a booking on the structure elements they book on themselves, for 31 days at most: the colleague books right away, the project management accepts the time sheets afterwards, unchanged or moved to another structure element or cost unit (time sheet form or mass update; list filter \"Only to be accepted\"). Until then they count like any other time sheet. The project management may confirm a proposal, so later bookings don't have to be accepted anymore.",
+                "New notification rule \"Time sheets to be accepted\": reminds the project managers of the time sheets still to be accepted (in the app, and by mail if not acknowledged, as configured in the rule). The structure tree shows their number next to the badge."
+              ]
+            },
+            "Consumption bar (structure tree, task list, time sheet form): the tooltip shows the budget, the booked and the remaining person days as a calculation, an overbooked budget in red.",
+            "Time sheet form: the recently used entries show the consumption of their budget, and the search also matches it.",
+            {
+              "title": "Creditor invoices",
+              "items": [
+                "Marked as overdue (red) already 2 working days before the due date, so they are paid in time.",
+                "New notification rule \"Creditor invoices due\": reports unpaid creditor invoices due within a configurable number of working days (overdue ones of the last 90 days included) to the recipients of the rule."
+              ]
+            },
+            {
+              "title": "Notifications",
+              "items": [
+                "The rule editor lists the variables available for subject and text (general ones and those of the rule type), each with a button to copy it.",
+                "The variables come with an example value each, so it is visible how e.g. a list of invoices looks; the preview also shows the texts with example values."
+              ]
+            },
+            "Time sheet form: the table of recently used entries can be sorted and filtered per column, its columns can be reordered, resized, pinned and hidden; the layout is remembered per user.",
+            "Notifications: delivery steps by SMS to the mobile phone number of the recipients (if SMS is configured), with an own SMS text of the rule or otherwise the subject and the link."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Customer wizard: existing structure elements of the customer and the project can be used instead of new ones, picked from the tree (the title may differ, e.g. \"ACME\" for \"ACME Inc.\") or found automatically by the same title."
+          ]
+        },
+        {
+          "type": "changed",
+          "items": [
+            "Order statistics, contribution margin bubble chart: the size of a bubble shows its contribution margin instead of its costs. The switch \"Show titles\" labels the own bubbles with their short title and contribution margin %; switched off, the names are in the tooltip only."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "The info of a structure element (title, path, project, customer, consumption) was answered to every logged-in user; now only to users who may see the structure element.",
+            "Structure tree: a structure element created or moved while the tree was being reloaded in the background could vanish from the tree until the next reload, so no sub-element could be created below it (\"Parent structure element is required but not found\").",
+            "Structure tree: after a structure element was changed, its responsible person was missing in the tree until the next reload.",
+            "Password forgotten: the reset mail is limited per user, per client and in total, so it can no longer be requested over and over (mail bombing, invalidating a pending reset link).",
+            "Lists: a search term that isn't a valid search syntax (e.g. \"Project: Alpha\") now shows a hint instead of an empty list without explanation."
+          ]
+        }
+      ]
+    },
+    {
       "id": "9-0-14",
       "version": "9.0.14",
       "date": "2026-10-23",
