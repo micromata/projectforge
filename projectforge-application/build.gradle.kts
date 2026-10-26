@@ -355,6 +355,18 @@ tasks.register<JavaExec>("releaseSha256Changelog") {
 }
 
 /**
+ * Used by bin/pfDev.sh github-release: writes the GitHub release notes of the tagged release -PreleaseVersion=X.Y.Z
+ * to build/release-notes-X.Y.Z.md.
+ */
+tasks.register<JavaExec>("releaseNotesChangelog") {
+    group = "development"
+    mainClass.set("org.projectforge.development.GenerateChangelogMain")
+    classpath = sourceSets["test"].runtimeClasspath
+    workingDir = rootDir
+    args("--release-notes", providers.gradleProperty("releaseVersion").getOrElse(""))
+}
+
+/**
  * Used by bin/pfDev.sh changelog-fold: moves changelog/unreleased/ into the release -PreleaseId (default: newest).
  * Used by bin/pfDev.sh release with -PreleaseVersion=X.Y.Z -PreleasePublished=true|false: adds the entry of the
  * release if missing (published or not) and moves changelog/unreleased/ into it.
