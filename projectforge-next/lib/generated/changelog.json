@@ -6,14 +6,11 @@
     "date" : "2026-10-26",
     "title" : "Not yet released",
     "sections" : [ {
-      "type" : "added",
-      "items" : [ "Number ranges: the first proposed local project number can be set per range in the accounting configuration, e.g. 5.###.01 instead of 5.###.00; lower numbers can still be entered." ]
-    }, {
       "type" : "improved",
-      "items" : [ {
-        "title" : "Chat",
-        "items" : [ "The room page shows the description of the room, now formatted text; the creator and the moderators edit the room from there.", "A search box on the chat page narrows the direct messages and the rooms.", "Menu search: the menu entries found come first again, the users found to chat with follow them." ]
-      } ]
+      "items" : [ "Notifications: the bell has a button \"Archived entries\" listing the confirmed or finished notifications of the last 90 days, so a notification confirmed by mistake can still be read and opened.", "Project selection of the edit pages and project filter of the lists and statistics: each project shows its customer in brackets." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Notifications: if the mail server isn't reachable, a failed notification mail is logged only once with its stack trace and its cause is shown in the delivery state; the further mails of the run wait for the next run instead of each waiting for the timeout.", "Project wizard: after \"Configure another element\" the project step offered no cost 2 types any more, so the next project had to get them in its edit form afterwards." ]
     } ]
   },
   "groups" : [ {

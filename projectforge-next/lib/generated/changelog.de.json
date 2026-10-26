@@ -6,14 +6,11 @@
     "date" : "2026-10-26",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
-      "type" : "added",
-      "items" : [ "Nummernkreise: Die erste vorgeschlagene lokale Projektnummer lässt sich je Nummernkreis in der Buchhaltungskonfiguration festlegen, z. B. 5.###.01 statt 5.###.00; niedrigere Nummern können weiterhin eingegeben werden." ]
-    }, {
       "type" : "improved",
-      "items" : [ {
-        "title" : "Chat",
-        "items" : [ "Die Raumseite zeigt die Beschreibung des Raums, jetzt als formatierten Text; wer den Raum angelegt hat und die Moderation bearbeiten ihn direkt dort.", "Ein Suchfeld auf der Chatseite grenzt die Direktnachrichten und die Räume ein.", "Menüsuche: Die gefundenen Menüeinträge stehen wieder an erster Stelle, die gefundenen Personen zum Chatten folgen danach." ]
-      } ]
+      "items" : [ "Benachrichtigungen: Die Glocke hat eine Schaltfläche „Archivierte Einträge“, die die bestätigten oder erledigten Benachrichtigungen der letzten 90 Tage anzeigt, so kann eine versehentlich bestätigte Benachrichtigung weiterhin gelesen und geöffnet werden.", "Projektauswahl der Bearbeitungsseiten und Projektfilter der Listen und Statistiken: Hinter jedem Projekt steht der Kunde in Klammern." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Benachrichtigungen: Ist der Mailserver nicht erreichbar, wird eine fehlgeschlagene Benachrichtigungsmail nur noch einmal mit Stacktrace geloggt und ihre Ursache im Zustellstatus angezeigt; die weiteren Mails des Laufs warten auf den nächsten Lauf, statt jeweils auf das Timeout.", "Projekt-Assistent: Nach „Weiteres Element einrichten“ bot der Projekt-Schritt keine Kost2-Arten mehr an, das nächste Projekt musste sie erst nachträglich im Projekt-Formular bekommen." ]
     } ]
   },
   "groups" : [ {

@@ -36,6 +36,10 @@ const nextConfig: NextConfig = {
   // redirect, Spring serves the pre-rendered <route>/index.html), so switching it off makes dev
   // behave like prod rather than diverging from it.
   skipTrailingSlashRedirect: true,
+  // Dev-only as well (the static export has no server to compress): gzip buffered the server-sent events of the
+  // chat proxied below, no event arrived and the chat fell back to polling every 3 s (use-chat-live.ts). Locally
+  // the size gained by compression doesn't matter.
+  compress: false,
   turbopack: {
     root: __dirname,
   },

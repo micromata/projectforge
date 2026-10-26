@@ -331,13 +331,18 @@ export function ProjectWizard() {
     setCustomerMode("existing");
     setWantsProject(true);
     setCustomer(null);
-    customerForm.reset(emptyCustomerValues());
-    projectForm.reset({
-      ...emptyProjectValues(),
-      kost2Arts: projectPreset.data
-        ? toProjectFormValues(projectPreset.data).kost2Arts
-        : [],
-    });
+    // Keeping the default values: reset would make these values the form's defaults, and the next render's
+    // useForm (with the empty defaults again) would reset the form to those, dropping the cost 2 types.
+    customerForm.reset(emptyCustomerValues(), { keepDefaultValues: true });
+    projectForm.reset(
+      {
+        ...emptyProjectValues(),
+        kost2Arts: projectPreset.data
+          ? toProjectFormValues(projectPreset.data).kost2Arts
+          : [],
+      },
+      { keepDefaultValues: true }
+    );
     setParentTaskId(null);
     elements.reset();
     setRoles(initialRoles());
