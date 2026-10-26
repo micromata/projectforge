@@ -98,7 +98,8 @@ export function SearchAreaTile({
                   <button
                     type="button"
                     className="flex w-full items-center gap-2 px-3 py-1 text-left text-sm hover:bg-accent"
-                    onClick={() => navigate(hit.viewUrl)}
+                    // Always given here: the search page asks for no contacts.
+                    onClick={() => hit.viewUrl && navigate(hit.viewUrl)}
                   >
                     <span className="truncate">
                       <HighlightedText text={hit.displayName} query={term} />

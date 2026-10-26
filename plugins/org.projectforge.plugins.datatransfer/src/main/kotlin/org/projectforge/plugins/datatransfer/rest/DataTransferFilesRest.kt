@@ -80,6 +80,8 @@ class DataTransferFilesRest {
         val gatewayUrl: String? = null,
         /** Gateway: the area was pushed by the main instance and is administered there only. */
         val managedByMainInstance: Boolean = false,
+        /** A synthetic area (e.g. of a chat conversation): its files come from there, no upload here. */
+        val syntheticArea: Boolean = false,
     )
 
     class ObserveRequest(var observe: Boolean? = null)
@@ -159,6 +161,7 @@ class DataTransferFilesRest {
                 "${externalAccessConfig.gatewayPublicUrl}/${DataTransferUtils.areaViewPath(dbObj.id)}"
             } else null,
             managedByMainInstance = externalAccessConfig.gatewayMode,
+            syntheticArea = dataTransferAreaDao.getAreaHost(dbObj) != null,
         )
     }
 

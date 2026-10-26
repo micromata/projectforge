@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import type { HistoryEntry } from "@/lib/rs/history";
 import { HistoryAttrDiff } from "./history-attr-diff";
 import { HistoryEntryHeader } from "./history-entry-header";
+import { UserAvatar } from "@/components/shared/user-avatar";
 
 export interface HistoryEntryItemProps {
   entry: HistoryEntry;
@@ -17,17 +18,6 @@ export interface HistoryEntryItemProps {
   last: boolean;
   /** Opens the comment dialog; absent when the entity supports no comments. */
   onComment?: () => void;
-}
-
-/** Two initials of a name like "Fink, Laura", the avatar's content. */
-function initials(name: string | null): string {
-  if (!name) return "?";
-  return name
-    .split(/[\s,]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? "")
-    .join("");
 }
 
 /**
@@ -47,17 +37,7 @@ export function HistoryEntryItem({
   return (
     <li className="flex gap-3.5">
       <div className="flex shrink-0 flex-col items-center">
-        <div
-          aria-hidden
-          className="flex size-7 items-center justify-center rounded-full border-[1.5px] text-[11px] font-bold"
-          style={{
-            background: "var(--status-available-bg)",
-            borderColor: "var(--status-available-border)",
-            color: "var(--primary)",
-          }}
-        >
-          {initials(entry.modifiedByUser)}
-        </div>
+        <UserAvatar name={entry.modifiedByUser} />
         {!last && <div className="my-1 w-px flex-1 bg-border" />}
       </div>
       <Collapsible

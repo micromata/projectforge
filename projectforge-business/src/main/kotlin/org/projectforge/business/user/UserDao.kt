@@ -77,7 +77,8 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         return QueryFilter(filter)
     }
 
-    override fun select(filter: BaseSearchFilter): List<PFUserDO> {
+    /** Also for [selectForSearchDao] (the data search), which passes [checkAccess]. */
+    override fun select(filter: BaseSearchFilter, checkAccess: Boolean): List<PFUserDO> {
         val myFilter = if (filter is PFUserFilter) {
             filter
         } else {
@@ -100,7 +101,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         if (myFilter.hrPlanning != null) {
             queryFilter.add(eq("hrPlanning", myFilter.hrPlanning))
         }
-        var list = select(queryFilter)
+        var list = select(queryFilter, checkAccess)
         if (myFilter.isAdminUser != null) {
             val origList = list
             list = LinkedList()

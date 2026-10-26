@@ -1,0 +1,46 @@
+"use client";
+
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { UserAvatar } from "@/components/shared/user-avatar";
+import { Badge } from "@/components/ui/badge";
+import { useFormatContext } from "@/hooks/use-format";
+import { formatTimestampMinutes } from "@/lib/format";
+import type { ChatDirectEntry } from "@/lib/rs/chat-types";
+
+/** The direct messages as a list: the other one, last message, unread count; read-only ones marked. */
+export function ChatDirectList({ entries }: { entries: ChatDirectEntry[] }) {
+  const t = useTranslations();
+  const formatContext = useFormatContext();
+  return (
+    <ul className="flex max-w-3xl flex-col divide-y rounded-md border">
+      {entries.map((entry) => (
+        <li key={entry.conversationId}>
+          <Link
+            href={`/chat/${entry.conversationId}`}
+            className="flex items-center gap-2.5 px-3 py-2 hover:underline"
+          >
+            <UserAvatar name={entry.partner.displayName} />
+            <span className="min-w-0 flex-1">
+              <span className="flex items-center gap-2">
+                <span className="truncate font-semibold">
+                  {entry.partner.displayName}
+                </span>
+                {entry.unread > 0 && (
+                  <Badge variant="destructive">
+                    {t("chat.room.unread", { arg0: entry.unread })}
+                  </Badge>
+                )}
+              </span>
+              <span className="block text-xs text-muted-foreground">
+                {entry.lastMessageAt &&
+                  formatTimestampMinutes(entry.lastMessageAt, formatContext)}
+                {!entry.canWrite && ` · ${t("chat.conversation.readOnly")}`}
+              </span>
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}

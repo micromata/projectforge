@@ -34,10 +34,19 @@ export function richTextExtensions(placeholder: string) {
  * editor, as is a plain text without markup.
  */
 export function pasteMarkdown(view: EditorView, event: ClipboardEvent) {
+  return pasteMarkdownAs(view, event, sanitizeRichText);
+}
+
+/** [pasteMarkdown] for an editor of other markup (the chat), sanitized by [sanitize]. */
+export function pasteMarkdownAs(
+  view: EditorView,
+  event: ClipboardEvent,
+  sanitize: (html: string) => string
+) {
   const data = event.clipboardData;
   if (!data || data.getData("text/html")) return false;
   const text = data.getData("text/plain");
   if (!looksLikeMarkdown(text)) return false;
   // Without the event: pasteHTML hands it to this handler again, which would convert it endlessly.
-  return view.pasteHTML(sanitizeRichText(markdownToHtml(text)));
+  return view.pasteHTML(sanitize(markdownToHtml(text)));
 }

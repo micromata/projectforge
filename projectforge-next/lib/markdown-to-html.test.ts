@@ -20,6 +20,12 @@ describe("markdownToHtml", () => {
     expect(html).toContain("<td>2</td>");
   });
 
+  it("converts a fenced code block without a last empty line", () => {
+    expect(markdownToHtml("```\nfun a() {\n    b()\n}\n```")).toBe(
+      "<pre><code>fun a() {\n    b()\n}</code></pre>"
+    );
+  });
+
   it("wraps plain text into a paragraph", () => {
     expect(markdownToHtml("just text")).toBe("<p>just text</p>");
   });
@@ -34,6 +40,7 @@ describe("looksLikeMarkdown", () => {
     "some **bold** word",
     "a [link](https://example.org)",
     "| a | b |",
+    "```\nls -la\n```",
   ])("recognizes %j", (text) => expect(looksLikeMarkdown(text)).toBe(true));
 
   it.each(["plain text", "a * b * c", "3.5 hours", "#hashtag"])(

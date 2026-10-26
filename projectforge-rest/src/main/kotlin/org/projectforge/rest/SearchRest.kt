@@ -25,6 +25,9 @@ package org.projectforge.rest
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.NextMigration
+import org.projectforge.business.user.PFUserFilter
+import org.projectforge.feature.FeatureService
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.DaoConst
@@ -32,6 +35,8 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.api.SearchDao
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.registry.Registry
 import org.projectforge.registry.RegistryEntry
 import org.projectforge.rest.config.Rest
@@ -59,12 +64,19 @@ private val log = KotlinLogging.logger {}
  * ([BaseDao.hasLoggedInUserSelectAccess]) — read access, not history access, so e.g. a project manager who may read
  * customers but not their history still sees the customer area. Each hit carries the frontend url of its record
  * ([AbstractEntityRest.getStandardEditPage]), so the frontend needs no per-entity navigation logic.
+ *
+ * The menu search asks for contacts as well ([query] `contacts`): with the chat on, the users are found there by
+ * everybody, as in the user selection, to write to. Who may not open the user page gets them without its url
+ * ([SearchHit.viewUrl], [SearchAreaResult.listUrl] null), to chat with only.
  */
 @RestController
 @RequestMapping("${Rest.URL}/search")
 class SearchRest {
   @Autowired
   private lateinit var searchDao: SearchDao
+
+  @Autowired
+  private lateinit var featureService: FeatureService
 
   @Autowired
   private lateinit var my2FARequestHandler: My2FARequestHandler
@@ -120,6 +132,7 @@ class SearchRest {
    * @param term        The search string, empty answers with no areas.
    * @param areas       Area ids to search; null/empty falls back to all accessible areas (MVP has no persisted scope yet).
    * @param maxPerArea  Hits per area before a [SearchAreaResult.hasMore] marker; the magnifier passes a small value.
+   * @param contacts    The users to chat with as well (the menu search), see [contactArea].
    */
   @AccessChecked("DAO: select access per area (whitelist) and per row")
   @GetMapping("query")
@@ -127,6 +140,7 @@ class SearchRest {
     @RequestParam("q") term: String,
     @RequestParam("areas", required = false) areas: List<String>?,
     @RequestParam("maxPerArea", required = false) maxPerArea: Int?,
+    @RequestParam("contacts", required = false) contacts: Boolean? = null,
   ): SearchResponse {
     if (term.isBlank()) {
       return SearchResponse(term, emptyList())
@@ -134,31 +148,58 @@ class SearchRest {
     val requested = areas?.takeIf { it.isNotEmpty() }?.toSet()
     val limit = maxPerArea?.coerceIn(1, MAX_PER_AREA_LIMIT) ?: DEFAULT_MAX_PER_AREA
     val searchString = HibernateSearchFilterUtils.modifySearchString(term, true)
-    val results = accessibleAreas()
+    val areasWithPages = accessibleAreas()
+    val contactArea = if (contacts == true) contactArea(areasWithPages) else null
+    val results = (areasWithPages + listOfNotNull(contactArea))
+      .sortedBy { priorityIndex(it.id) }
       .filter { requested == null || it.id in requested }
-      .mapNotNull { entry -> searchArea(entry, searchString, limit) }
+      .mapNotNull { entry -> searchArea(entry, searchString, limit, withPages = entry != contactArea) }
     return SearchResponse(term, results)
   }
 
-  private fun searchArea(entry: RegistryEntry, searchString: String, limit: Int): SearchAreaResult? {
-    val rest = restByDoClass[entry.getDOClass()] ?: return null
-    val filter = BaseSearchFilter().also {
-      it.searchString = searchString
-      it.maxRows = limit
+  /**
+   * The users as contacts, if the chat is on and the user area isn't among [areasWithPages] (its page needs the admin
+   * group and its second factor). The users found are those of the user selection: the DAO's select access per row,
+   * as the chat checks it when opening a direct message. Without the second factor of the user pages, as the user
+   * selection (`/rs/user/autosearch`): nothing of their pages is shown.
+   */
+  private fun contactArea(areasWithPages: List<RegistryEntry>): RegistryEntry? {
+    if (!featureService.isEnabled(MenuItemDefId.CHAT) || areasWithPages.any { it.id == DaoConst.USER }) {
+      return null
     }
-    val entries = searchDao.getEntries(filter, entry.doClass, entry.dao) ?: return null
-    if (entries.isEmpty()) {
+    return Registry.getInstance().getEntry(DaoConst.USER)?.takeIf { it.dao.hasLoggedInUserSelectAccess(false) }
+  }
+
+  /** @param withPages false for the [contactArea]: no urls, and not the logged-in user (nobody to chat with). */
+  private fun searchArea(entry: RegistryEntry, searchString: String, limit: Int, withPages: Boolean): SearchAreaResult? {
+    val rest = restByDoClass[entry.getDOClass()] ?: return null
+    val loggedInUserId = ThreadLocalUserContext.loggedInUserId
+    val filter = searchFilter(entry).also {
+      it.searchString = searchString
+      // A contact search drops the user self afterwards and tells by one more whether there are more.
+      it.maxRows = if (withPages) limit else limit + 2
+    }
+    // A null object marks "more entries" (as SearchDao answers). SearchDao needs the history access as well, which
+    // the contacts don't: their select access per row is that of the user selection.
+    val objects: List<Any?> = if (withPages) {
+      searchDao.getEntries(filter, entry.doClass, entry.dao)?.map { it.dataObject } ?: return null
+    } else {
+      entry.dao.select(filter)
+        .filter { (it as? IdObject<*>)?.id != loggedInUserId }
+        .let { if (it.size > limit) it.take(limit) + null else it }
+    }
+    if (objects.isEmpty()) {
       return null
     }
     val editPage = rest.getStandardEditPage()
     var hasMore = false
-    val hits = entries.mapNotNull { data ->
-      val dataObject = data.dataObject ?: run { hasMore = true; return@mapNotNull null }
+    val hits = objects.mapNotNull { dataObject ->
+      dataObject ?: run { hasMore = true; return@mapNotNull null }
       val id = (dataObject as? IdObject<*>)?.id?.let { (it as? Number)?.toLong() } ?: return@mapNotNull null
       SearchHit(
         id = id,
         displayName = (dataObject as? DisplayNameCapable)?.displayName ?: dataObject.toString(),
-        viewUrl = editPage.replace(NextMigration.ID_PLACEHOLDER, id.toString()),
+        viewUrl = if (withPages) editPage.replace(NextMigration.ID_PLACEHOLDER, id.toString()) else null,
       )
     }
     if (hits.isEmpty()) {
@@ -168,16 +209,24 @@ class SearchRest {
     // with the term pre-filled (the frontend appends `?q=<term>`). A next list seeds its search box from
     // `?q=` client-side (see the next EntityListPage). Keyed by the
     // rest category, not the registry id, so the `orderBook` → `order` route difference is resolved right.
-    val listUrl = NextMigration.listUrl(rest.category)
+    val listUrl = if (withPages) NextMigration.listUrl(rest.category) else null
     return SearchAreaResult(entry.id, translate(entry.i18nTitleHeading), hasMore, hits, listUrl)
   }
+
+  /**
+   * Users only if active (deleted ones are left out by every area's filter): the search looks for whom to reach, a
+   * deactivated user is still found in the user list.
+   */
+  private fun searchFilter(entry: RegistryEntry): BaseSearchFilter =
+    if (entry.id == DaoConst.USER) PFUserFilter().setDeactivatedUser(false) else BaseSearchFilter()
 
   /**
    * The Registry areas the logged-in user may search, ordered by [PRIORITY_AREAS] then registration order.
    *
    * Restricted to the [ALLOWED_AREAS] whitelist, and within it to areas the user may *read*
    * ([BaseDao.hasLoggedInUserSelectAccess] — the read right the requirement asks for, so customer/project/employee
-   * appear only for users who may see their entries). Areas that need an unmet second factor are dropped as well (see
+   * appear only for users who may see their entries). The users only for those who may open their page (admin group,
+   * [isPageArea]); the others find them as contacts ([contactArea]). Areas that need an unmet second factor are dropped as well (see
    * [needsUnmet2FA]) so the aggregated search can't leak a 2FA-protected area's rows.
    */
   private fun accessibleAreas(): List<RegistryEntry> {
@@ -187,10 +236,18 @@ class SearchRest {
             entry.isSearchable &&
             restByDoClass.containsKey(entry.getDOClass()) &&
             entry.dao.hasLoggedInUserSelectAccess(false) &&
+            isPageArea(entry) &&
             !needsUnmet2FA(entry)
       }
       .sortedBy { priorityIndex(it.id) }
   }
+
+  /**
+   * False for the users, if the user may not open their page: the user DAO answers the select access for the user
+   * selection (users of the same groups), its page is for the admin group only ([BaseDao.hasLoggedInUserAccess]).
+   */
+  private fun isPageArea(entry: RegistryEntry): Boolean =
+    entry.id != DaoConst.USER || entry.dao.hasLoggedInUserAccess(null, null, OperationType.SELECT, false)
 
   /**
    * True if the area's rest path is 2FA-protected and the user's factor is missing or expired. A read across many
@@ -268,7 +325,8 @@ class SearchHit(
   val id: Long,
   val displayName: String,
   val secondaryInfo: String? = null,
-  val viewUrl: String,
+  /** Null for a contact, whose page the user may not open (see [SearchRest.query] `contacts`). */
+  val viewUrl: String?,
 )
 
 /** The hits of one area; [hasMore] mirrors the Wicket "more entries" marker. */
@@ -279,9 +337,9 @@ class SearchAreaResult(
   val hits: List<SearchHit>,
   /**
    * The area's own native list page (`resolveMenuUrl`-ready, e.g. `next/book` or `react/project`), where
-   * "more in …" leads. The frontend appends `?q=<term>` so the list opens pre-filtered.
+   * "more in …" leads. The frontend appends `?q=<term>` so the list opens pre-filtered. Null for the contacts.
    */
-  val listUrl: String,
+  val listUrl: String?,
 )
 
 class SearchResponse(val term: String, val areas: List<SearchAreaResult>)

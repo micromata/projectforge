@@ -8,12 +8,15 @@
 
 import { request } from "./client";
 
-/** A single record found. `viewUrl` is `resolveMenuUrl`-ready (e.g. `next/book/17`, `react/konto/edit/5`). */
+/**
+ * A single record found. `viewUrl` is `resolveMenuUrl`-ready (e.g. `next/book/17`, `react/konto/edit/5`); null for a
+ * contact (see [searchData] `contacts`), whose page the user may not open (omitted, as every null of the backend).
+ */
 export interface SearchHit {
   id: number;
   displayName: string;
   secondaryInfo?: string | null;
-  viewUrl: string;
+  viewUrl?: string | null;
 }
 
 /** The hits of one area; `hasMore` signals that the area holds further matches beyond `maxPerArea`. */
@@ -25,9 +28,10 @@ export interface SearchAreaResult {
   /**
    * The area's own native list page (`resolveMenuUrl`-ready, e.g. `next/book` or `react/project`), where
    * "more in …" leads so the whole area is searched there. The term is appended as `?q=` (see [areaMoreUrl]);
-   * a next list seeds its search box from it client-side, a React/generic list is seeded server-side.
+   * a next list seeds its search box from it client-side, a React/generic list is seeded server-side. Null for the
+   * contacts.
    */
-  listUrl: string;
+  listUrl?: string | null;
 }
 
 /**
@@ -54,17 +58,22 @@ export interface SearchArea {
 
 /**
  * Searches `term` across the given `areas` (all accessible ones when omitted), at most `maxPerArea` hits each.
- * The magnifier passes a small `maxPerArea`; the search page a larger one.
+ * The magnifier passes a small `maxPerArea`; the search page a larger one. With `contacts` (the magnifier), the users
+ * to chat with come as well, for those who may not open the user pages without their urls.
  */
 export function searchData(
   term: string,
-  areas?: string[],
-  maxPerArea?: number,
+  {
+    areas,
+    maxPerArea,
+    contacts,
+  }: { areas?: string[]; maxPerArea?: number; contacts?: boolean },
   signal?: AbortSignal
 ): Promise<SearchResponse> {
   const params = new URLSearchParams({ q: term });
   if (areas && areas.length > 0) params.set("areas", areas.join(","));
   if (maxPerArea != null) params.set("maxPerArea", String(maxPerArea));
+  if (contacts) params.set("contacts", "true");
   return request<SearchResponse>(
     `/rs/search/query?${params.toString()}`,
     { method: "GET" },

@@ -87,6 +87,8 @@ export interface DataTransferView {
   gatewayUrl?: string | null;
   /** Gateway: pushed by the main instance and administered there only. */
   managedByMainInstance?: boolean;
+  /** A synthetic area (e.g. of a chat conversation): its files come from there, no upload here. */
+  syntheticArea?: boolean;
 }
 
 /** One entry of the activities, `DataTransferAuditDO` with its computed fields. */
