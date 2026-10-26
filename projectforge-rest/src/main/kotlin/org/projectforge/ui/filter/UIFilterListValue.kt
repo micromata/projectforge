@@ -31,10 +31,13 @@ package org.projectforge.ui.filter
  *   `kundeText`), so the frontend can mark it as such.
  * @param group True for a value standing for several others (a customer group, a business unit), marked as such
  *   by the frontend.
+ * @param members For a [group] value: the names of the values it stands for among those offered, sorted, shown by
+ *   the frontend as tooltip. Only those offered, so it names nothing the list doesn't show anyway.
  */
 class UIFilterListValue(
     val id: String,
     val displayName: String,
     val freeText: Boolean? = null,
     val group: Boolean? = null,
+    val members: List<String>? = null,
 )

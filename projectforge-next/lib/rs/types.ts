@@ -332,6 +332,8 @@ export interface FilterListValue {
   freeText?: boolean;
   /** Stands for several others: a customer group in the customer checklist. */
   group?: boolean;
+  /** For a [group] value: the names of the values it stands for among those offered, shown as tooltip. */
+  members?: string[];
   /** No longer live but still selectable, e.g. a closed address campaign (`UISelectValue.inactive`). */
   inactive?: boolean;
 }

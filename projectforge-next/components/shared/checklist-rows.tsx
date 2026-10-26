@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FreeTextBadge } from "@/components/shared/free-text-badge";
 import { GroupBadge } from "@/components/shared/group-badge";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { HighlightedText } from "@/components/shared/highlighted-text";
 import type { ChecklistOption } from "./checklist";
 import { toggled } from "./checklist-selection";
@@ -14,6 +15,9 @@ import { toggled } from "./checklist-selection";
  * scrolls through them — the hint below asks for a narrower search instead.
  */
 const MAX_RENDERED = 200;
+
+/** More members of a group than this are summed up in the tooltip, which must fit on the screen. */
+const MAX_MEMBERS = 30;
 
 /** The matching entries of a [Checklist], one checkbox each. */
 export function ChecklistRows({
@@ -41,19 +45,33 @@ export function ChecklistRows({
       >
         {shown.map((option) => (
           <li key={option.value}>
-            <label className="flex cursor-pointer items-center gap-2 px-2 py-1 text-sm hover:bg-muted">
-              <Checkbox
-                checked={selected.includes(option.value)}
-                onCheckedChange={() =>
-                  onChange(toggled(selected, option.value))
-                }
-              />
-              <span className="min-w-0 flex-1 truncate">
-                <HighlightedText text={option.label} query={term} />
-              </span>
-              {option.group && <GroupBadge />}
-              {option.freeText && <FreeTextBadge />}
-            </label>
+            <HintTooltip
+              title={
+                option.members?.length
+                  ? t("fibu.customerGroups.members.tooltip")
+                  : undefined
+              }
+              content={
+                option.members?.length ? (
+                  <GroupMembers members={option.members} />
+                ) : undefined
+              }
+              side="right"
+            >
+              <label className="flex cursor-pointer items-center gap-2 px-2 py-1 text-sm hover:bg-muted">
+                <Checkbox
+                  checked={selected.includes(option.value)}
+                  onCheckedChange={() =>
+                    onChange(toggled(selected, option.value))
+                  }
+                />
+                <span className="min-w-0 flex-1 truncate">
+                  <HighlightedText text={option.label} query={term} />
+                </span>
+                {option.group && <GroupBadge />}
+                {option.freeText && <FreeTextBadge />}
+              </label>
+            </HintTooltip>
           </li>
         ))}
       </ul>
@@ -66,6 +84,24 @@ export function ChecklistRows({
         </p>
       )}
     </>
+  );
+}
+
+/** The customers or projects a group option stands for, as plain text (names from the database). */
+function GroupMembers({ members }: { members: string[] }) {
+  const t = useTranslations();
+  const rest = members.length - MAX_MEMBERS;
+  return (
+    <ul>
+      {members.slice(0, MAX_MEMBERS).map((name) => (
+        <li key={name}>{name}</li>
+      ))}
+      {rest > 0 && (
+        <li className="text-muted-foreground">
+          {t("fibu.customerGroups.members.more", { arg0: rest })}
+        </li>
+      )}
+    </ul>
   );
 }
 
