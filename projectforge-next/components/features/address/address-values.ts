@@ -1,5 +1,6 @@
 import type { AddressValues } from "./address-schema";
 import type { AddressDetail } from "./types";
+import { toPickerRef } from "@/lib/page-def/reference";
 
 /** The text fields of an address, which the form holds as a string or null. */
 export const ADDRESS_TEXT_FIELDS = [
@@ -63,10 +64,9 @@ export function toFormValues(address: AddressDetail): AddressValues {
     contactStatus: (address.contactStatus ??
       null) as AddressValues["contactStatus"],
     form: (address.form ?? null) as AddressValues["form"],
-    addressbookList: (address.addressbookList ?? []).map((book) => ({
-      id: book.id,
-      displayName: book.displayName ?? book.title,
-    })),
+    addressbookList: (address.addressbookList ?? []).map(
+      (book) => toPickerRef(book, book.displayName ?? book.title)!
+    ),
     isFavoriteCard: address.isFavoriteCard ?? false,
     instantMessaging: address.instantMessaging ?? null,
     hasImage: address.hasImage ?? false,

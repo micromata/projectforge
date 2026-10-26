@@ -4,10 +4,12 @@
  * for itself (a user when its account is deactivated, an employee three months after leaving). Add a
  * further flag here as the concept grows, and every reference column picks it up.
  */
-export interface InactiveFlags {
+// A type alias, not an interface: only an alias is assignable to the schemas' loose objects, also inside the
+// ref types combining it (`InactiveFlags & { … }`).
+export type InactiveFlags = {
   deleted?: boolean;
   deactivated?: boolean;
-}
+};
 
 /**
  * Whether a referenced object should read as "no longer live": deleted, or otherwise deactivated. The
@@ -39,4 +41,25 @@ export function inactiveRefClass(
   if (ref?.deleted === true) return DELETED_REF_CLASS;
   if (ref?.deactivated === true) return DEACTIVATED_REF_CLASS;
   return undefined;
+}
+
+/**
+ * The reference a picker binds to: the id (all the server needs to resolve it), the name to show, and the
+ * inactive flags, so the picked value is struck through as in the lists. Building `{id, displayName}` by
+ * hand would drop them.
+ */
+export function toPickerRef(
+  ref:
+    | ({ id: number; displayName?: string | null } & InactiveFlags)
+    | null
+    | undefined,
+  displayName?: string | null
+): ({ id: number; displayName: string } & InactiveFlags) | null {
+  if (!ref) return null;
+  return {
+    id: ref.id,
+    displayName: displayName ?? ref.displayName ?? "",
+    ...(ref.deleted === true ? { deleted: true } : {}),
+    ...(ref.deactivated === true ? { deactivated: true } : {}),
+  };
 }

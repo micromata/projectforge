@@ -26,7 +26,7 @@ export function AvailabilitySubstituteAbsences() {
     () => [
       ...(stats?.substituteVacations ?? []).map((v, index) => ({
         id: String(v.id ?? `v${index}`),
-        name: v.employee?.user?.displayName ?? v.employee?.displayName,
+        name: v.employee?.user ?? v.employee,
         startDateFormatted: v.startDateFormatted,
         endDateFormatted: v.endDateFormatted,
         kind: vacationTitle,
@@ -35,7 +35,7 @@ export function AvailabilitySubstituteAbsences() {
       })),
       ...(stats?.substituteAvailabilities ?? []).map((entry, i) => ({
         id: `a${i}`,
-        name: entry.user?.displayName ?? entry.employee?.displayName,
+        name: entry.user ?? entry.employee,
         startDateFormatted: entry.startDateFormatted,
         endDateFormatted: entry.endDateFormatted,
         kind: availabilityTitle,

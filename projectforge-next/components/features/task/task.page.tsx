@@ -175,6 +175,8 @@ export const TASK_PAGE = definePage<
       // to name a key, and the generated metadata is where that key lives (see labelKeyFor).
       labelKey: TASK_METADATA.fields.responsibleUser.i18nKey,
       accessor: (row) => row.responsibleUser?.displayName ?? "",
+      // Struck through when the user left (see ColumnBase.referenceKey).
+      referenceKey: "responsibleUser",
       size: 160,
     },
     {

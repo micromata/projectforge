@@ -51,7 +51,7 @@ export const LICENSE_PAGE = definePage<
       // property, and the DO only has the csv of their ids.
       id: "owners",
       labelKey: "plugins.licensemanagement.owner",
-      accessor: (row) => row.owners?.map((user) => user.displayName).join(", "),
+      accessor: (row) => row.owners,
       size: 240,
       sortable: false,
     },

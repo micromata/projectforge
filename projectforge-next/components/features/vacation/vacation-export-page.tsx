@@ -43,6 +43,7 @@ import {
   type ChartWidth,
 } from "@/components/shared/absence-chart/absence-chart-width";
 import { useVacationExportFavorites } from "./use-vacation-export-favorites";
+import { toPickerRef } from "@/lib/page-def/reference";
 
 /** The arts the team calendar pages through, the quarter first (the default). */
 const KINDS = periodKindsOf(["quarter", "year"]);
@@ -99,7 +100,7 @@ export function VacationExportPage() {
 }
 
 function toRef(ref: VacationExportRef): EntityRef {
-  return { id: ref.id, displayName: ref.displayName ?? "" };
+  return toPickerRef(ref)!;
 }
 
 /**

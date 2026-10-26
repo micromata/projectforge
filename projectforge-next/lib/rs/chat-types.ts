@@ -1,5 +1,7 @@
+import type { InactiveFlags } from "@/lib/page-def/reference";
+
 /** A user or group as shown by the chat (the pickers' EntityRef). */
-export interface ChatRef {
+export interface ChatRef extends InactiveFlags {
   id: number;
   displayName: string;
 }

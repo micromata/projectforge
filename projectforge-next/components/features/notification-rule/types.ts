@@ -7,6 +7,7 @@ import type {
   NotificationRuleType,
   NotificationSeverity,
 } from "@/lib/rs/notification";
+import type { InactiveFlags } from "@/lib/page-def/reference";
 
 /** Where "Open" of a notification leads: the page of the rule type, nowhere or a menu item. */
 export type LinkMode = "DEFAULT" | "NONE" | "MENU_ITEM";
@@ -28,7 +29,7 @@ export type DayOfWeek =
   | "SUNDAY";
 
 /** A group or user as the DTO references it (`Group` / `User` with the id and display name). */
-export interface Ref {
+export interface Ref extends InactiveFlags {
   id: number;
   displayName?: string;
 }

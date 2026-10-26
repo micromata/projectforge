@@ -1,10 +1,12 @@
 "use client";
 
+import { Fragment } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { SectionCard } from "@/components/shared/section-card";
 import { fetchPollResults } from "@/lib/rs/poll";
 import type { PollResults } from "./types";
+import { RefName, RefList } from "@/components/shared/ref-list";
 
 /** Id of the tab, as the url carries it (`?tab=results`, the link of the mail after the end). */
 export const RESULTS_TAB_ID = "results";
@@ -37,10 +39,13 @@ function ResultsView({ results }: { results: PollResults }) {
   const attendees = results.rows.filter((row) => row.attendee);
   const answered = results.rows.filter((row) => row.answers.length > 0);
   const missing = attendees.filter((row) => row.answers.length === 0);
-  const name = (row: PollResults["rows"][number]) =>
-    row.attendee
-      ? row.user.displayName
-      : `${row.user.displayName} (${t("poll.results.notAttendee")})`;
+  // Struck through when the user left (see RefName).
+  const name = (row: PollResults["rows"][number]) => (
+    <>
+      <RefName value={row.user} />
+      {!row.attendee && ` (${t("poll.results.notAttendee")})`}
+    </>
+  );
   return (
     <div className="flex flex-col gap-4 p-4">
       <p className="text-sm" data-testid="poll-results-summary">
@@ -82,7 +87,12 @@ function ResultsView({ results }: { results: PollResults }) {
                           {chosen.length}
                         </td>
                         <td className="py-1 align-top text-muted-foreground">
-                          {chosen.map(({ row }) => name(row)).join(", ")}
+                          {chosen.map(({ row }, index) => (
+                            <Fragment key={row.user.id}>
+                              {index > 0 && ", "}
+                              {name(row)}
+                            </Fragment>
+                          ))}
                         </td>
                       </tr>
                     );
@@ -99,7 +109,7 @@ function ResultsView({ results }: { results: PollResults }) {
             {t("poll.results.missing")}
           </h3>
           <p className="text-sm">
-            {missing.map((row) => row.user.displayName).join(", ")}
+            <RefList refs={missing.map((row) => row.user)} />
           </p>
         </SectionCard>
       )}
