@@ -70,7 +70,8 @@ export const VISITORBOOK_PAGE = definePage<
     {
       id: "contactPersonsAsString",
       labelKey: "orga.visitorbook.contactPersons",
-      accessor: (row) => row.contactPersonsAsString ?? null,
+      // By name, each struck through when no longer active (see RefList).
+      accessor: (row) => row.contactPersons,
       sortable: false,
       size: 220,
     },

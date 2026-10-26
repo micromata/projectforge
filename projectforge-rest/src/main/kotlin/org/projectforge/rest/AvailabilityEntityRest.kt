@@ -337,7 +337,7 @@ class AvailabilityEntityRest :
         // The substitutes are users: the chart's rows are keyed by them, so a vacation tells its employee's user.
         shown.substituteVacations?.forEach { vacation ->
             vacation.employee?.let { employee ->
-                employee.user = employeeCache.getUserByEmployee(employee.id)?.let { User(it) }
+                employee.user = employeeCache.getUserByEmployee(employee.id)?.let { User.ref(it) }
             }
         }
         result.conflict = shown.conflict

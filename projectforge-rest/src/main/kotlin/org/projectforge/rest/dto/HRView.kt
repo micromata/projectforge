@@ -42,7 +42,7 @@ class HRView(
     /** One row per employee, sorted by full name. */
     val rows: List<HRViewRow>,
     /** Employees taking part in the HR planning without planned days in the period. Empty if only my projects. */
-    val unplannedUsers: List<HRViewUser>,
+    val unplannedUsers: List<UserRef>,
     /** True if the logged-in user may write plannings: only then the users lead to their planned week. */
     val fullAccess: Boolean,
 )
@@ -75,8 +75,8 @@ class HRViewCell(
 )
 
 class HRViewRow(
-    val userId: Long?,
-    val userName: String?,
+    /** The employee, struck through when no longer active. */
+    val user: UserRef,
     /** The planned week of the user, if the period has one: the user's link leads to it. */
     val planningId: Long?,
     /** The planning is marked as deleted. */
@@ -86,9 +86,4 @@ class HRViewRow(
     val rest: HRViewCell,
     /** The cells by [HRViewColumn.key]; a column without days is missing. */
     val cells: Map<String, HRViewCell>,
-)
-
-class HRViewUser(
-    val id: Long?,
-    val displayName: String?,
 )

@@ -5,6 +5,7 @@
  */
 
 import { request } from "./client";
+import type { UserRef } from "@/lib/page-def/reference";
 
 export type NotificationSeverity = "INFO" | "IMPORTANT" | "URGENT";
 
@@ -150,14 +151,15 @@ export interface NotificationLogEntry {
   id: number;
   /** Null for an ad hoc notification or a deleted rule. */
   ruleName?: string | null;
-  recipient?: string | null;
+  /** Struck through when no longer active, as acknowledgedBy. */
+  recipient?: UserRef | null;
   status: NotificationStatus;
   periodKey?: string | null;
   title?: string | null;
   created?: string | null;
   inAppSince?: string | null;
   acknowledgedAt?: string | null;
-  acknowledgedBy?: string | null;
+  acknowledgedBy?: UserRef | null;
   doneAt?: string | null;
   resolvedAt?: string | null;
   deliverySteps: {

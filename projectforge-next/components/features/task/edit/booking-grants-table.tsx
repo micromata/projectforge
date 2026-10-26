@@ -18,6 +18,7 @@ import {
   BookingGrantStatus,
 } from "./booking-grant-actions";
 import { BookingGrantPositionList } from "./booking-grant-position-list";
+import { RefName } from "@/components/shared/ref-list";
 
 /**
  * The ad hoc booking grants of a task and its sub elements, newest period first, as the backend sorted them.
@@ -64,7 +65,9 @@ export function BookingGrantsTable({
                 key={grant.id}
                 className={cn(!current && "text-muted-foreground")}
               >
-                <TableCell>{grant.userName}</TableCell>
+                <TableCell>
+                  <RefName value={grant.user} />
+                </TableCell>
                 <TableCell className="whitespace-nowrap">
                   {formatDate(grant.validFrom, ctx)}
                 </TableCell>
@@ -77,7 +80,9 @@ export function BookingGrantsTable({
                 <TableCell>
                   <BookingGrantStatus grant={grant} taskId={taskId} />
                 </TableCell>
-                <TableCell>{grant.grantedByName}</TableCell>
+                <TableCell>
+                  <RefName value={grant.grantedBy} />
+                </TableCell>
                 <TableCell className="whitespace-normal">
                   {grant.comment}
                 </TableCell>

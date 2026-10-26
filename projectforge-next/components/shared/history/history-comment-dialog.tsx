@@ -21,7 +21,8 @@ import {
   useSubmitShortcut,
   useSubmitShortcutHint,
 } from "@/hooks/use-submit-shortcut";
-import type { HistoryEntry } from "@/lib/rs/history";
+import { modifiedByRef, type HistoryEntry } from "@/lib/rs/history";
+import { RefName } from "@/components/shared/ref-list";
 
 export interface HistoryCommentDialogProps {
   entry: HistoryEntry;
@@ -66,7 +67,7 @@ export function HistoryCommentDialog({
         <DialogHeader>
           <DialogTitle>{t("history.entry")}</DialogTitle>
           <DialogDescription>
-            {entry.modifiedByUser ?? "—"} · {entry.timeAgo}
+            <RefName value={modifiedByRef(entry)} /> · {entry.timeAgo}
           </DialogDescription>
         </DialogHeader>
 

@@ -4,6 +4,7 @@
 // `nummernkreis`, `bereich`, `kost2ArtsAsString` and `statusAsString` are computed read-only values.
 
 import type { PROJEKT_METADATA } from "@/lib/metadata/projekt.generated";
+import type { NamedRef } from "@/components/shared/ref-list";
 
 /** The constants of org.projectforge.business.fibu.ProjektStatus, from the metadata. */
 export type ProjektStatus =
@@ -69,6 +70,8 @@ export interface ProjectDetail {
   additionalContacts?: RefDto[] | null;
   /** The contact person and the further ones, full names, for the list column only. */
   assignedPersons?: string | null;
+  /** The same persons as references, struck through when no longer active (see RefList). */
+  assignedPersonList?: NamedRef[] | null;
   /** Digit 1 of the project's Kost2 (computed from the project number, absent for a free one). Read-only. */
   nummernkreis?: number | null;
   /** Digits 2-4 of the project's Kost2 (storage format of Kost2DO). Read-only. */

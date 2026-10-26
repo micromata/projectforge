@@ -1,3 +1,5 @@
+import type { UserRef } from "@/lib/page-def/reference";
+
 /**
  * The monthly employee report ("Monatsbericht"), mirroring the backend DTO
  * (`org.projectforge.rest.dto.MonthlyEmployeeReport*`). All durations, percentages and dates arrive
@@ -54,8 +56,8 @@ export interface MonthlyReportWeek {
 }
 
 export interface MonthlyReport {
-  userId?: number | null;
-  userName: string;
+  /** The user the report is about, struck through in the picker when no longer active. */
+  user: UserRef;
   maySelectOtherUsers: boolean;
   year: number;
   /** 1-based: 1 = January, ..., 12 = December. */

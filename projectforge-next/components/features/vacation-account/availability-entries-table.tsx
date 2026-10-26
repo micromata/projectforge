@@ -18,6 +18,7 @@ import { useNavigateMenuUrl } from "@/hooks/use-navigate-menu-url";
 import { leafKeyOf } from "@/lib/leaf-key";
 import { cn } from "@/lib/utils";
 import type { VacationAccount } from "./types";
+import { RefList } from "@/components/shared/ref-list";
 
 /**
  * The availability entries of the employee's user overlapping the three years of the account, newest first: the
@@ -122,7 +123,7 @@ export function AvailabilityEntriesTable({
                   {entry.comment}
                 </TableCell>
                 <TableCell className="whitespace-normal">
-                  {entry.substitutes}
+                  <RefList refs={entry.substitutes} />
                 </TableCell>
               </TableRow>
             ))}

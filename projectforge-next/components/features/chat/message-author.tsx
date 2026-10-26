@@ -13,6 +13,7 @@ import {
 import type { ChatRef } from "@/lib/rs/chat-types";
 import { useChatContext } from "./chat-context";
 import { useOpenDirect } from "@/hooks/use-open-direct";
+import { RefName } from "@/components/shared/ref-list";
 
 /**
  * Avatar or name of the author of a message. For somebody else than the user (and the other one of the open direct
@@ -31,9 +32,10 @@ export function MessageAuthor({
   const { conversation } = useChatContext();
   const openDirect = useOpenDirect();
   const content = avatar ? (
-    <UserAvatar name={author.displayName} className="mt-0.5" />
+    <UserAvatar name={author.displayName} flags={author} className="mt-0.5" />
   ) : (
-    <span className="text-sm font-semibold">{author.displayName}</span>
+    // Struck through when the author left (see RefName).
+    <RefName value={author} className="text-sm font-semibold" />
   );
   if (
     author.id === conversation.me.id ||

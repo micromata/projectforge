@@ -20,6 +20,7 @@ import { formatTimestampMinutes } from "@/lib/format";
 import { searchChatMessages } from "@/lib/rs/chat";
 import type { ChatMessage } from "@/lib/rs/chat-types";
 import { useChatContext } from "./chat-context";
+import { RefName } from "@/components/shared/ref-list";
 
 /** Searching the messages of the conversation and its threads by text (SRCH-01); a hit jumps to the message. */
 export function ChatSearch({
@@ -80,7 +81,7 @@ export function ChatSearch({
                   }}
                 >
                   <span className="text-xs text-muted-foreground">
-                    {message.author.displayName},{" "}
+                    <RefName value={message.author} />,{" "}
                     {formatTimestampMinutes(message.created, formatContext)}
                   </span>
                   <span className="line-clamp-2 block text-sm">

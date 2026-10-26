@@ -13,7 +13,7 @@
       "items" : [ {
         "title" : "Chat",
         "items" : [ "The room page shows the description of the room, now formatted text; the creator and the moderators edit the room from there.", "A search box on the chat page narrows the direct messages and the rooms.", "Menu search: the menu entries found come first again, the users found to chat with follow them." ]
-      }, {
+      }, "Deleted or deactivated users, groups and employees are now struck through in more places: lists with several names (group members, access lists, contact persons, substitutes), the task tree, chat, history, attachments, the vacation account, booking grants, the HR view, absence charts and the notification log.", {
         "title" : "Mass update",
         "items" : [ "In the selection mode of a list with more than 100 entries, a button selects the first 100 of them, the most a mass update changes at once." ]
       }, "Notifications: the bell has a button \"Archived entries\" listing the confirmed or finished notifications of the last 90 days, so a notification confirmed by mistake can still be read and opened.", "Project selection of the edit pages and project filter of the lists and statistics: each project shows its customer in brackets.", "User selection: users are also found by their nickname." ]

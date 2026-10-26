@@ -69,6 +69,9 @@ class VacationAccount(
 class VacationAccountEmployee(
     val id: Long?,
     val displayName: String?,
+    /** Whether the employee is no longer active (deleted, left): the name is struck through. */
+    val deleted: Boolean = false,
+    val deactivated: Boolean = false,
 )
 
 class VacationAccountYear(
@@ -83,9 +86,10 @@ class VacationAccountVacation(
     val statusString: String?,
     val workingDaysFormatted: String?,
     val specialFormatted: String?,
-    val replacement: String?,
-    val otherReplacements: String?,
-    val manager: String?,
+    /** The replacements and the manager as references, so a no longer active one is struck through. */
+    val replacement: Employee?,
+    val otherReplacements: List<Employee>?,
+    val manager: Employee?,
     val vacationModeString: String?,
     val comment: String?,
     /** At least one day of it without any replacement on duty (`ConflictingVacationsCache`). */
@@ -121,8 +125,8 @@ class VacationAccountAvailability(
     val statusString: String?,
     val locationString: String?,
     val comment: String?,
-    /** The names of the substitutes, comma separated. */
-    val substitutes: String?,
+    /** The substitutes as references, so a no longer active one is struck through. */
+    val substitutes: List<User>?,
     /** At least one day from today on without any substitute on duty (`ConflictingAvailabilitiesCache`). */
     val conflict: Boolean,
     /** Its working days (weekends and holidays not counted), as of a vacation. */

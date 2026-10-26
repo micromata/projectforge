@@ -17,6 +17,7 @@
 import { rawRequest, request, RsError } from "./client";
 import type { ResponseAction } from "./types";
 import { uploadWithProgress, type UploadOptions } from "./upload";
+import type { InactiveFlags } from "@/lib/page-def/reference";
 
 /**
  * `AttachmentsService.DEFAULT_NODE` — the sub-path a single attachment list stores under. Pages
@@ -55,6 +56,17 @@ export function zipModeMessageKey(zipMode: ZipMode | null | undefined) {
 }
 
 /** org.projectforge.framework.jcr.Attachment, as it arrives on the wire. */
+/** Whether the creating or last modifying user of an attachment is still active, for inactiveRefClass. */
+export function attachmentUserFlags(
+  attachment: Attachment,
+  key: "createdByUser" | "lastUpdateByUser"
+): InactiveFlags {
+  return {
+    deleted: !!attachment[`${key}Deleted`],
+    deactivated: !!attachment[`${key}Deactivated`],
+  };
+}
+
 export interface Attachment {
   /** Assigned by the JCR; identifies the file in every call below. */
   fileId: string;
@@ -65,8 +77,14 @@ export interface Attachment {
   description?: string | null;
   created?: string | null;
   createdByUser?: string | null;
+  /** The creating user is deleted or deactivated: the name is struck through (see inactiveRefClass). */
+  createdByUserDeleted?: boolean | null;
+  createdByUserDeactivated?: boolean | null;
   lastUpdate?: string | null;
   lastUpdateByUser?: string | null;
+  /** As createdByUserDeleted/-Deactivated, for the last modifying user. */
+  lastUpdateByUserDeleted?: boolean | null;
+  lastUpdateByUserDeactivated?: boolean | null;
   /** Localised "a few seconds ago", built by the backend. */
   lastUpdateTimeAgo?: string | null;
   /** Formatted by the backend in the user's timezone and date format. */

@@ -37,6 +37,7 @@ export function ThreadSummary({
           <UserAvatar
             key={author.id}
             name={author.displayName}
+            flags={author}
             className="size-5 text-[9px]"
           />
         ))}

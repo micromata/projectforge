@@ -183,7 +183,7 @@ class Task(id: Long? = null,
         priority = src.priority
         status = src.status
         // The minimal user from the cache (name and deleted/deactivated, so the column strikes a leaver through).
-        responsibleUser = PfCaches.instance.getUser(src.responsibleUserId)?.let { User(it) }
+        responsibleUser = PfCaches.instance.getUser(src.responsibleUserId)?.let { User.ref(it) }
         val id = src.id ?: return
         val node = TaskTree.instance.getTaskNodeById(id) ?: return
         consumption = Consumption.create(node)

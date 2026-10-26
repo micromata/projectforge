@@ -7,6 +7,7 @@ import type { DataTransferView } from "@/lib/rs/datatransfer";
 import { DataTransferCapacityBar } from "./datatransfer-capacity-bar";
 import { DataTransferInfoItem as Item } from "./datatransfer-info-item";
 import { DataTransferObserveCheckbox } from "./datatransfer-observe-checkbox";
+import { RefList, type NamedRef } from "@/components/shared/ref-list";
 
 /**
  * What a reader of an area should know beside its files, as the legacy view listed it: who is notified
@@ -38,7 +39,7 @@ export function DataTransferFilesInfo({ view }: { view: DataTransferView }) {
               hint={t("plugins.datatransfer.observers.info")}
               className="sm:col-span-2"
             >
-              {area.observersAsString ?? "–"}
+              {refsOr(area.observers, area.observersAsString ?? "–")}
             </Item>
             <div className="flex items-end">
               <DataTransferObserveCheckbox
@@ -82,7 +83,7 @@ export function DataTransferFilesInfo({ view }: { view: DataTransferView }) {
           label={t("plugins.datatransfer.admins._")}
           className="sm:col-span-2"
         >
-          {area.adminsAsString}
+          {refsOr(area.admins, area.adminsAsString)}
         </Item>
         <Item
           label={t("plugins.datatransfer.maxUploadSize._")}
@@ -107,13 +108,13 @@ export function DataTransferFilesInfo({ view }: { view: DataTransferView }) {
               label={t("plugins.datatransfer.accessUsers._")}
               className="sm:col-span-3"
             >
-              {area.accessUsersAsString}
+              {refsOr(area.accessUsers, area.accessUsersAsString)}
             </Item>
             <Item
               label={t("plugins.datatransfer.accessGroups._")}
               className="sm:col-span-3"
             >
-              {area.accessGroupsAsString}
+              {refsOr(area.accessGroups, area.accessGroupsAsString)}
             </Item>
             {area.externalAccessEnabled && (
               <>
@@ -141,4 +142,12 @@ export function DataTransferFilesInfo({ view }: { view: DataTransferView }) {
       </dl>
     </SectionCard>
   );
+}
+
+/** The users or groups by name, each struck through when no longer active (see RefList); else the joined names. */
+function refsOr(
+  refs: readonly NamedRef[] | null | undefined,
+  text: string | null | undefined
+) {
+  return refs?.length ? <RefList refs={refs} /> : text;
 }

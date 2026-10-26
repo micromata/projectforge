@@ -30,6 +30,7 @@ import org.projectforge.business.chat.ChatRoomDO
 import org.projectforge.business.chat.ChatService
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.FormatterUtils
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -106,8 +107,13 @@ class ChatMessageConverter {
     }
 
     fun ref(userId: Long?): ChatRef {
-        val user = userGroupCache.getUser(userId)
-        return ChatRef(userId ?: 0, user?.getFullname() ?: "?")
+        val user = userGroupCache.getUser(userId) ?: return ChatRef(userId ?: 0, "?")
+        return ref(user)
+    }
+
+    /** As [ref] by id, for a user already at hand. */
+    fun ref(user: PFUserDO): ChatRef {
+        return ChatRef(user.id ?: 0, user.getFullname(), deleted = user.deleted, deactivated = user.deactivated)
     }
 
     companion object {

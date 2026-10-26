@@ -299,6 +299,8 @@ class TaskServicesRest {
      */
     class GroupAccess(
         val groupName: String,
+        /** The group is deleted: the name is struck through. */
+        val groupDeleted: Boolean = false,
         val recursive: Boolean,
         val description: String?,
         val rights: List<TaskWizardRest.AccessRight>,
@@ -483,15 +485,18 @@ class TaskServicesRest {
                 return
             }
             val entries = accessList.mapNotNull { access ->
-                PfCaches.instance.getGroup(access.groupId)?.name?.let { name -> name to access }
+                PfCaches.instance.getGroup(access.groupId)?.let { group ->
+                    group.name?.let { name -> Triple(name, access, group.deleted) }
+                }
             }.sortedBy { it.first.lowercase() }
             if (entries.isEmpty()) {
                 return
             }
             task.groupAccess = entries.joinToString(", ") { it.first }
-            task.groupAccessList = entries.map { (name, access) ->
+            task.groupAccessList = entries.map { (name, access, deleted) ->
                 GroupAccess(
                     groupName = name,
+                    groupDeleted = deleted,
                     recursive = access.recursive,
                     description = access.description?.takeIf { it.isNotBlank() },
                     // All four types, a missing one as all denied, so every matrix of the tooltip has four lines.

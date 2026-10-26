@@ -15,6 +15,7 @@ import {
   type NotificationLogEntry,
 } from "@/lib/rs/notification";
 import { toast } from "@/lib/toast";
+import { RefName } from "@/components/shared/ref-list";
 
 type Column = ColumnDef<NotificationLogEntry, unknown>;
 type Step = NotificationLogEntry["deliverySteps"][number];
@@ -63,13 +64,36 @@ export function NotificationLogTable({
       ...(withRule
         ? [column("rule", t("ruleName"), 160, (r) => r.ruleName ?? "")]
         : []),
-      column("recipient", t("recipient"), 160, (r) => r.recipient ?? ""),
+      {
+        ...column(
+          "recipient",
+          t("recipient"),
+          160,
+          (r) => r.recipient?.displayName ?? ""
+        ),
+        // Struck through when the recipient is no longer active (see inactiveRefClass).
+        cell: ({ row }) => <RefName value={row.original.recipient} />,
+      },
       column("status", t("status"), 110, (r) => t(`statuses.${r.status}`)),
       column("periodKey", t("preview.period"), 100, (r) => r.periodKey ?? ""),
       column("created", t("created"), 130, (r) => time(r.created)),
-      column("acknowledgedAt", t("acknowledgedAt"), 180, (r) =>
-        [time(r.acknowledgedAt), r.acknowledgedBy].filter(Boolean).join(", ")
-      ),
+      {
+        ...column("acknowledgedAt", t("acknowledgedAt"), 180, (r) =>
+          [time(r.acknowledgedAt), r.acknowledgedBy?.displayName]
+            .filter(Boolean)
+            .join(", ")
+        ),
+        cell: ({ row }) => {
+          const r = row.original;
+          return (
+            <>
+              {time(r.acknowledgedAt)}
+              {r.acknowledgedAt && r.acknowledgedBy && ", "}
+              <RefName value={r.acknowledgedBy} />
+            </>
+          );
+        },
+      },
       column("finished", t("resolvedAt"), 130, (r) =>
         time(r.doneAt ?? r.resolvedAt)
       ),
@@ -137,7 +161,9 @@ export function NotificationLogTable({
 export function useNotificationLogInvalidation() {
   const queryClient = useQueryClient();
   return () => {
-    void queryClient.invalidateQueries({ queryKey: ["notificationRule", "log"] });
+    void queryClient.invalidateQueries({
+      queryKey: ["notificationRule", "log"],
+    });
     void queryClient.invalidateQueries({ queryKey: ["userStatus"] });
     void queryClient.invalidateQueries({ queryKey: ["notifications"] });
   };

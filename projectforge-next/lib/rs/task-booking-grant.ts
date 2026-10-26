@@ -1,5 +1,6 @@
 import { request } from "./client";
 import type { TaskKost2 } from "./task";
+import type { UserRef } from "@/lib/page-def/reference";
 
 /**
  * Ad hoc booking grants of a task and its descendants, `TaskBookingGrantRest`: a user may book own time
@@ -28,15 +29,16 @@ export interface TaskBookingGrantPosition {
 /** One grant, `TaskBookingGrantRest.Entry`. Dates as ISO `yyyy-MM-dd`. */
 export interface TaskBookingGrant {
   id: number;
-  userId?: number;
-  userName?: string;
+  /** The user the grant is for. */
+  user?: UserRef | null;
   validFrom?: string;
   validUntil?: string;
   positions: TaskBookingGrantPosition[];
   /** Tasks of the grant the logged-in user doesn't see. */
   hiddenPositions: number;
   comment?: string;
-  grantedByName?: string;
+  /** The granting (or proposing) user. */
+  grantedBy?: UserRef | null;
   status: TaskBookingGrantStatus;
   /** Already translated by the backend. */
   statusAsString: string;

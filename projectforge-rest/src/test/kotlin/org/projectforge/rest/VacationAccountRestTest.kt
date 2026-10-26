@@ -228,7 +228,7 @@ class VacationAccountRestTest : AbstractTestBase() {
                 val vacations = account.years.flatMap { it.vacations }
                 assertEquals(expectedVacations, vacations.size)
                 // The other replacements are there, read without a lazy load per vacation.
-                assertTrue(vacations.all { it.otherReplacements?.contains(other.displayName) == true })
+                assertTrue(vacations.all { v -> v.otherReplacements?.any { it.displayName == other.displayName } == true })
                 return statistics.prepareStatementCount
             }
             // Warms up what doesn't belong to the account itself: caches (users, rights) and the carry stored by the

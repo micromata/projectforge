@@ -11,9 +11,14 @@ import { HighlightedText } from "@/components/shared/highlighted-text";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { AttachmentSelection } from "@/hooks/use-attachment-selection";
-import { attachmentDownloadUrl, type Attachment } from "@/lib/rs/attachments";
+import {
+  attachmentDownloadUrl,
+  attachmentUserFlags,
+  type Attachment,
+} from "@/lib/rs/attachments";
 import { AttachmentEncryptedBadge } from "./attachment-encrypted-badge";
 import { useAttachmentService } from "./attachment-service";
+import { inactiveRefClass } from "@/lib/page-def/reference";
 
 type Column = ColumnDef<Attachment, unknown>;
 
@@ -111,11 +116,16 @@ export function attachmentColumns(
     header: header(label, "text"),
     size: 140,
     meta: { label },
-    cell: ({ getValue, table }) => (
-      <HighlightedText
-        text={String(getValue())}
-        query={table.options.meta?.highlight}
-      />
+    cell: ({ getValue, row, table }) => (
+      // Struck through when the user is no longer active (see inactiveRefClass).
+      <span
+        className={inactiveRefClass(attachmentUserFlags(row.original, key))}
+      >
+        <HighlightedText
+          text={String(getValue())}
+          query={table.options.meta?.highlight}
+        />
+      </span>
     ),
   });
 

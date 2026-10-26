@@ -55,6 +55,11 @@ class Auftrag(
     var personDays: BigDecimal? = null,
     var referenz: String? = null,
     var assignedPersons: String? = null,
+    /**
+     * The persons of [assignedPersons] as references, for the list column (struck through when no longer active).
+     * Only the lean list row ([copyFrom4ListRow]) carries it, instead of the string.
+     */
+    var assignedPersonList: List<User>? = null,
     var contactPerson: User? = null,
     /**
      * The further contact persons next to [contactPerson], see [AuftragDO.additionalContactUserIds].
@@ -210,8 +215,8 @@ class Auftrag(
      * is left out and why:
      * - the four `formatted*` sums (~141 B/row): the client formats currency in the user's locale
      *   (`lib/format.ts`), and a string column would sort "900,00" after "1.100,00" anyway.
-     * - [contactPerson] and the [additionalContacts]: the column shows the derived
-     *   [assignedPersons] string, nothing of the users themselves.
+     * - [contactPerson] and the [additionalContacts]: the column shows the derived [assignedPersonList], the
+     *   users by name only (with their inactive flags).
      * - [customer] and [project] as objects (~257 B/row): only their `displayName` is a column, so the row
      *   carries a [Customer]/[Project] holding that name and nothing else.
      * - `bemerkung`, `statusBeschreibung`, `bindungsFrist`, `beauftragungs*`, `kundeText`, `forecastType`,
@@ -258,7 +263,8 @@ class Auftrag(
         // [ForecastUtils.getProbabilityOfAccurence]). The edit form keeps the entered value (see [copyFrom]).
         probabilityOfOccurrence =
             if (src.status == AuftragsStatus.BEAUFTRAGT) null else src.probabilityOfOccurrence
-        assignedPersons = src.assignedPersons
+        // The persons as references, not the [assignedPersons] string: the column strikes a leaver through.
+        assignedPersonList = User.toContactList(src.contactPerson?.id, src.additionalContactUserIds)
         attachmentsCounter = src.attachmentsCounter
         attachmentsSize = src.attachmentsSize
         val orderInfo = orderInfo(src)
