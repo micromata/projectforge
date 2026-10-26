@@ -6,6 +6,9 @@
     "date" : "2026-10-26",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Number ranges: the first proposed local project number can be set per range in the accounting configuration, e.g. 5.###.01 instead of 5.###.00; lower numbers can still be entered." ]
+    }, {
       "type" : "improved",
       "items" : [ {
         "title" : "Chat",

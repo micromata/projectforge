@@ -274,15 +274,19 @@
         "error": {
           "accountRange": "{arg0}: keine gültigen Kontonummern: {arg1} (z. B. 4000-4799 oder 6300,6800-6855).",
           "duplicateId": "{arg0}: Die Id {arg1} wird schon von einer anderen Zeile verwendet.",
+          "firstProjectNumber": "{arg0}: Die erste vorgeschlagene Projektnummer {arg1} liegt nicht in 0-{arg2}.",
+          "firstProjectNumberRange": "Erste vorgeschlagene Projektnummer: Es gibt keinen Nummernkreis mit dem Präfix {arg0}.",
           "id": "{arg0}: Die Id {arg1} ist kein gültiger Name (Buchstaben, Ziffern und _, beginnend mit einem Buchstaben).",
           "unknownRow": "{arg0}: Es gibt keine Zeile mit der Id {arg1}.",
           "value": "{arg0}: Der Wert lässt sich nicht übersetzen (Formel oder Groovy-Skript)."
         },
+        "firstProjectNumbers": "Erste vorgeschlagene Projektnummer",
         "heading": "Überschrift der BWA",
         "help": {
           "accountRange": "DATEV-Konten, deren Buchungssätze in dieser Zeile summiert werden: einzelne Konten und Bereiche, durch Kommas getrennt, z. B. 4000-4799 oder 6300,6800-6855. Leer bei berechneten Zeilen und Trennzeilen.",
           "creditors": "Kontonummern der Kreditoren (z. B. 70000-79999): Die Kontoauswahl für Kreditoren bietet nur diese Konten an. Leer: alle Konten.",
           "debitors": "Kontonummern der Debitoren (z. B. 10000-12999): Die Kontoauswahl für Debitoren bietet nur diese Konten an. Leer: alle Konten.",
+          "firstProjectNumbers": "Je Nummernkreis: die lokale Projektnummer, ab der für ein neues Projekt die nächste freie Projektnummer vorgeschlagen wird, z. B. 1 für 5.###.01 statt 5.###.00. Niedrigere Nummern können weiterhin von Hand eingegeben werden und werden vorgeschlagen, wenn alle höheren vergeben sind. Leer: 0.",
           "heading": "Überschrift über der betriebswirtschaftlichen Auswertung.",
           "id": "Name der Zeile in Formeln und Skripten anderer Zeilen: Buchstaben, Ziffern und _, beginnend mit einem Buchstaben. Auf eine Zeile ohne Id kann nicht verwiesen werden.",
           "indent": "Einrückung des Titels in der BWA, z. B. 1 oder 2 für Unterzeilen. Leer: keine.",
@@ -319,7 +323,8 @@
           }
         },
         "rows": "Zeilen der betriebswirtschaftlichen Auswertung (BWA)",
-        "summary": "Debitoren {arg0}, Kreditoren {arg1}, {arg2} Zeilen der BWA"
+        "summary": "Debitoren {arg0}, Kreditoren {arg1}, {arg2} Zeilen der BWA",
+        "summaryFirstProjectNumbers": "erste vorgeschlagene Projektnummern {arg0}"
       },
       "categories": {
         "finance": "Finanzen",

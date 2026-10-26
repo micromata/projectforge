@@ -14,6 +14,9 @@ export function AccountingConfigSummary({ json }: { json: string | null | undefi
       </span>
     );
   }
+  const firstProjectNumbers = Object.entries(config.firstProjectNumbers)
+    .map(([prefix, number]) => `${prefix}: ${number}`)
+    .join(", ");
   return (
     <span className="tabular-nums">
       {t("administration.configuration.accounting.summary", {
@@ -21,6 +24,8 @@ export function AccountingConfigSummary({ json }: { json: string | null | undefi
         arg1: config.creditorsAccountNumberRanges.trim() || "–",
         arg2: config.rows.length,
       })}
+      {firstProjectNumbers &&
+        `, ${t("administration.configuration.accounting.summaryFirstProjectNumbers", { arg0: firstProjectNumbers })}`}
     </span>
   );
 }

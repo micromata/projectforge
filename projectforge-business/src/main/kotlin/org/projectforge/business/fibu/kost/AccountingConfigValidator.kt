@@ -24,13 +24,14 @@
 
 package org.projectforge.business.fibu.kost
 
+import org.projectforge.business.fibu.numberrange.NumberRangeService
 import org.projectforge.business.scripting.GroovyExecutor
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.utils.IntRanges
 
 /**
  * Checks the accounting settings of the configuration page (parameter `fibu.accounting`, [AccountingConfig]):
- * the account number ranges, the ids of the business assessment rows (unique names usable in formulas and
+ * the account number ranges, the first proposed project numbers (by prefix of a number range), the ids of the business assessment rows (unique names usable in formulas and
  * scripts), the rows referred to and the values (formulas and Groovy scripts must compile).
  */
 object AccountingConfigValidator {
@@ -49,6 +50,7 @@ object AccountingConfigValidator {
             translateMsg("administration.configuration.accounting.creditorsAccountNumberRanges"),
             config.creditorsAccountNumberRangesString,
         )
+        checkFirstProjectNumbers(errors, config.firstProjectNumbers)
         val bwa = config.businessAssessmentConfig ?: return errors
         val rows = bwa.rows ?: emptyList()
         val ids = mutableSetOf<String>()
@@ -86,6 +88,23 @@ object AccountingConfigValidator {
             }
         }
         return errors
+    }
+
+    private fun checkFirstProjectNumbers(errors: MutableList<String>, firstProjectNumbers: Map<Int, Int>?) {
+        val numberRanges = NumberRangeService.current
+        firstProjectNumbers?.forEach { (prefix, number) ->
+            val range = numberRanges.rangeForPrefix(prefix)
+            if (range == null) {
+                errors.add(translateMsg("administration.configuration.accounting.error.firstProjectNumberRange", prefix))
+            } else if (number !in 0..range.maxLocalNumber) {
+                errors.add(
+                    translateMsg(
+                        "administration.configuration.accounting.error.firstProjectNumber",
+                        range.name?.let { "$prefix ($it)" } ?: "$prefix", number, range.maxLocalNumber,
+                    )
+                )
+            }
+        }
     }
 
     private fun checkRanges(errors: MutableList<String>, name: String, ranges: String?) {

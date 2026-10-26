@@ -52,6 +52,11 @@ export interface AccountingConfig {
   debitorsAccountNumberRanges: string;
   /** e.g. `70000-79999` */
   creditorsAccountNumberRanges: string;
+  /**
+   * The first local project number proposed for a new project, by prefix of the number range, e.g.
+   * `{ "5": 1 }` for 5.###.01 instead of 5.###.00. Not given: 0.
+   */
+  firstProjectNumbers: Record<string, number>;
   /** Heading of the business assessment. */
   heading: string;
   /** Ids of the rows of the overall performance, the merchandise purchase and the preliminary result. */
@@ -64,6 +69,7 @@ export interface AccountingConfig {
 export const ACCOUNTING_DEFAULTS: AccountingConfig = {
   debitorsAccountNumberRanges: "",
   creditorsAccountNumberRanges: "",
+  firstProjectNumbers: {},
   heading: "",
   overallPerformance: "",
   merchandisePurchase: "",
@@ -79,6 +85,14 @@ function text(value: unknown): string {
 
 function numberOrNull(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+/** The integer values of the object by prefix (`"1"`-`"9"`), others are dropped. */
+function firstProjectNumbers(value: unknown): Record<string, number> {
+  if (!isObject(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value).filter(([prefix, number]) => /^[1-9]$/.test(prefix) && Number.isInteger(number))
+  ) as Record<string, number>;
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -107,6 +121,7 @@ export function parseAccountingConfig(json: string | null | undefined): {
       config: {
         debitorsAccountNumberRanges: text(value.debitorsAccountNumberRanges),
         creditorsAccountNumberRanges: text(value.creditorsAccountNumberRanges),
+        firstProjectNumbers: firstProjectNumbers(value.firstProjectNumbers),
         heading: text(bwa.heading),
         overallPerformance: text(bwa.overallPerformance),
         merchandisePurchase: text(bwa.merchandisePurchase),
@@ -147,6 +162,9 @@ export function serializeAccountingConfig(config: AccountingConfig): string {
   const result: Record<string, unknown> = {};
   putText(result, "debitorsAccountNumberRanges", config.debitorsAccountNumberRanges);
   putText(result, "creditorsAccountNumberRanges", config.creditorsAccountNumberRanges);
+  if (Object.keys(config.firstProjectNumbers).length > 0) {
+    result.firstProjectNumbers = config.firstProjectNumbers;
+  }
   const bwa: Record<string, unknown> = {};
   putText(bwa, "heading", config.heading);
   putText(bwa, "overallPerformance", config.overallPerformance);

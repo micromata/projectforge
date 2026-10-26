@@ -37,6 +37,7 @@ import org.projectforge.framework.xmlstream.XmlObject;
 import org.projectforge.framework.xmlstream.XmlObjectReader;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * The accounting settings: the account number ranges of debitors and creditors and the used business assessment
@@ -70,6 +71,13 @@ public class AccountingConfig implements Serializable
   @XmlField(alias = "creditorsAccountNumberRanges")
   @JsonProperty("creditorsAccountNumberRanges")
   private String creditorsAccountNumberRangesString;
+
+  /**
+   * The first local project number proposed for a new project per prefix of a number range, e. g. {5: 1} for
+   * 5.###.01 instead of 5.###.00. Only the proposal: lower numbers may still be given. Not given: 0.
+   */
+  @JsonProperty("firstProjectNumbers")
+  private Map<Integer, Integer> firstProjectNumbers;
 
   /**
    * Gets the configuration of the parameter fibu.accounting. It's cached as long as the parameter isn't changed, so
@@ -140,6 +148,24 @@ public class AccountingConfig implements Serializable
   public IntRanges getCreditorsAccountNumberRanges()
   {
     return (IntRanges) new IntRanges(creditorsAccountNumberRangesString).setNullRangeMatchesAlways(true);
+  }
+
+  /**
+   * @return The first proposed local project numbers by prefix of the number range, null if not configured.
+   */
+  public Map<Integer, Integer> getFirstProjectNumbers()
+  {
+    return firstProjectNumbers;
+  }
+
+  /**
+   * @param prefix The prefix of the number range.
+   * @return The first local project number proposed in the number range, 0 if not configured.
+   */
+  public int getFirstProjectNumber(final int prefix)
+  {
+    final Integer value = firstProjectNumbers != null ? firstProjectNumbers.get(prefix) : null;
+    return value != null ? value : 0;
   }
 
   /**
