@@ -22,6 +22,7 @@ import { ThreadPanel } from "./thread-panel";
 import { useChatLive } from "./use-chat-live";
 import { useSecretOffers } from "./use-chat-secret";
 import { useMarkRead } from "./use-mark-read";
+import { useQuoting } from "./use-quoting";
 import { useReadMark } from "./use-read-mark";
 import { useUnreadJump } from "./use-unread-jump";
 
@@ -49,15 +50,27 @@ export function ChatPanel({
   const { markUpTo, pause, resume, settled } = useMarkRead(conversationId);
   const { readMark, marks, markUnread, threadOpened, hasUnreadReplies } =
     useReadMark(conversationId, conversation, pause, settled);
+  const { quoting, setQuoting } = useQuoting();
   const [threadRootId, setThreadRootId] = useState<number | null>(null);
   const [threadFocusId, setThreadFocusId] = useState<number | null>(null);
   const openThread = useCallback(
     (rootId: number, focusId?: number) => {
+      if (rootId !== threadRootId) setQuoting(true, null); // A quote of another thread.
       setThreadRootId(rootId);
       setThreadFocusId(focusId ?? null);
       threadOpened(rootId);
     },
-    [threadOpened]
+    [threadRootId, setQuoting, threadOpened]
+  );
+  const jump = useCallback(
+    (target: { id: number; threadRootId: number | null }) => {
+      if (target.threadRootId) openThread(target.threadRootId, target.id);
+      else
+        document
+          .getElementById(`chat-message-${target.id}`)
+          ?.scrollIntoView({ block: "center" });
+    },
+    [openThread]
   );
   const [newestId, setNewestId] = useState(0);
   const closeThread = useCallback(() => setThreadRootId(null), []);
@@ -106,6 +119,9 @@ export function ChatPanel({
             conversation,
             sync: live.sync,
             openThread,
+            jump,
+            quoting,
+            setQuoting,
             highlightId: unreadJump.jumpedId ?? highlightId,
             readMark,
             hasUnreadReplies,
@@ -117,6 +133,9 @@ export function ChatPanel({
       conversation,
       live.sync,
       openThread,
+      jump,
+      quoting,
+      setQuoting,
       unreadJump.jumpedId,
       highlightId,
       readMark,
@@ -138,13 +157,6 @@ export function ChatPanel({
       </div>
     );
   }
-  const jump = (message: ChatMessage) => {
-    if (message.threadRootId) openThread(message.threadRootId);
-    else
-      document
-        .getElementById(`chat-message-${message.id}`)
-        ?.scrollIntoView({ block: "center" });
-  };
   return (
     <ChatContextProvider value={context}>
       <section

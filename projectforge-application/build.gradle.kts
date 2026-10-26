@@ -383,3 +383,13 @@ tasks.register<JavaExec>("foldChangelog") {
         args("--fold", providers.gradleProperty("releaseId").getOrElse(""))
     }
 }
+
+// Comparison of the answers of the main instance and the gateway (CardDAV, ICS), see doc/HOWTO-TEST-GATEWAY.md.
+// ./gradlew :projectforge-application:gatewayCompare [-Pconfig=<file>]
+tasks.register<JavaExec>("gatewayCompare") {
+    group = "verification"
+    description = "Compares the CardDAV and ICS answers of the main instance and the gateway."
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("org.projectforge.gateway.compare.GatewayCompareKt")
+    args = listOfNotNull(project.findProperty("config") as String?)
+}

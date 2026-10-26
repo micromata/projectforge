@@ -140,6 +140,61 @@ Test of the timeout: let the push url point to a port which accepts connections 
 `projectforge.integration.clients.gateway.responseTimeoutMs=3000`. Expected: one warning per sync, status
 *aborted* and `timeouts=1` on the statistics page.
 
+
+### 5. Comparison with the main instance
+
+`GatewayCompare` (test sources of `projectforge-application`, package `org.projectforge.gateway.compare`) sends the
+same CardDAV and ICS requests to the main instance and to the gateway and compares the answers. It works for any pair,
+the local Variant A as well as production and its gateway. Run it after a sync, e.g. from the IDE (`main` in
+`GatewayCompare.kt`) or with `./gradlew :projectforge-application:gatewayCompare` (`-Pconfig=<file>` for another
+config file), with `~/ProjectForge/gateway-compare.properties`:
+
+```properties
+main.url=http://localhost:8080
+gateway.url=http://localhost:8090
+# CardDAV: a user with some address favorites, DAV token from My account (authentication passwords)
+carddav.username=joe
+carddav.token=...
+# ICS: subscription urls copied from the subscription dialog of the main instance (with and without reminders,
+# time sheets); on the gateway only the base url is replaced
+ics.1=http://localhost:8080/export/ProjectForge.ics?user=42&q=...
+ics.2=http://localhost:8080/export/ProjectForge.ics?user=42&q=...
+# Self-signed test installations only (Variant C)
+#tls.insecure=true
+# Requests with a wrong token (test installations only, see below)
+#negative.enabled=true
+```
+
+Cases: each ICS url; the CardDAV requests of a client (OPTIONS, PROPFIND of `.well-known`, principal, home and address
+book, sync without and with token, multiget, GET of a vCard and its photo) and one without authorization (refused by
+both). The tool only reads (no PUT or DELETE); on the main instance its requests show up as token accesses of the user
+(My account, user agent `Java-http-client`). With `negative.enabled=true` also an ICS url with a tampered `q`, one with
+an unknown user and a CardDAV request with a wrong token, which both must refuse. Only on test installations: on the
+main instance a wrong token counts as a failed login of the user from this ip (`LoginProtection`, increasing delay)
+and is logged as an error and a security warning. The result goes to
+`~/ProjectForge/gateway-compare/<timestamp>/`: `report.md` (OK/DIFF/ERROR per case, the differing lines), the raw
+answers in `main/` and `gateway/` and the normalized ones as `*.norm.txt`. The raw answers contain the addresses and
+events of the user: keep them local. The report masks `q`.
+
+Normalized, i.e. allowed differences: base url, ids of the addresses in hrefs and photo urls (the gateway has its own
+ids; the UID is the same), ETags, CTags, sync tokens and `REV` (timestamps of each instance), `DTSTAMP`, the order of
+the events and of the addresses. The status codes of refused requests may differ (e.g. 400 on the main instance, 401 on
+the gateway). ETags and CTag must be stable on each instance (`carddav-stable-*`): otherwise the clients download the
+whole address book with every sync.
+
+Expected differences: the vCards of the gateway contain only the synced fields (name, organization, emails, phone
+numbers, photo, see *Addresses*), so the `carddav-multiget` and `carddav-get-vcard` cases show the other fields of the
+main instance (postal addresses, birthday, …) as missing.
+
+**Which requests the clients send:** for CardDAV, `projectforge.carddav.server.debugUser=<user>` on the main instance
+writes all requests and answers of this user to `projectforge-carddav-<user>-calls.log` and `-detail.log` in the
+ProjectForge home (sync a test account with the clients in question: iOS, macOS Contacts, DAVx5, Thunderbird). For ICS,
+the main instance logs the first successful subscription request of each kind since its start: the names of the
+parameters, the number of team calendars and the user agent, without token and ids (`Calendar subscription (first of
+this kind since start): params=[exportReminders,teamCals], teamCals=1, ...`, all further requests on debug level).
+`grep 'Calendar subscription'` shows which kinds of subscriptions are in use, e.g. whether several team calendars per
+url still occur. Use a test account for `debugUser`: its log files contain the full address data.
+
 ---
 
 ## Variant B: Podman + Postgres on a Debian server
@@ -481,7 +536,17 @@ push (on a full sync always). The gateway replaces its favorites with this list,
 created locally on the gateway are removed.
 
 ### ICS data
-Pre-computed ICS calendar exports per user and calendar.
+Pre-computed ICS calendar exports per user: each team calendar the user may see (once for both urls of the
+subscription dialog, with and without reminders: the main instance exports no reminders either way), the user's time
+sheets, the holidays and the weeks of the year (generated once per
+locale). The gateway finds a subscription by its decrypted parameters without the token (`GatewayIcsParams`), not by
+the encrypted `q`, and checks the token within `q` as the main instance does. Subscriptions of several team calendars
+at once (`teamCals=1;2;3`, older urls) are not pushed: the gateway answers them with 404 and logs the parameter names
+(`cache miss`).
+
+Update the main instance and the gateway together: since the ICS entries carry the normalized parameters instead of the
+encrypted `q`, an older gateway refuses the ICS push of a newer main instance (and vice versa). Until both run the same
+version, each sync logs a failed ICS push and pushes all calendars again the next time; afterwards it heals by itself.
 
 ### Delta sync and nightly full sync
 

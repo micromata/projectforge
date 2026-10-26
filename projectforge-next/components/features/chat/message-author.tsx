@@ -32,7 +32,13 @@ export function MessageAuthor({
   const { conversation } = useChatContext();
   const openDirect = useOpenDirect();
   const content = avatar ? (
-    <UserAvatar name={author.displayName} flags={author} className="mt-0.5" />
+    <UserAvatar
+      name={author.displayName}
+      flags={author}
+      userId={author.id}
+      avatarVersion={author.avatarVersion}
+      className="mt-0.5"
+    />
   ) : (
     // Struck through when the author left (see RefName).
     <RefName value={author} className="text-sm font-semibold" />

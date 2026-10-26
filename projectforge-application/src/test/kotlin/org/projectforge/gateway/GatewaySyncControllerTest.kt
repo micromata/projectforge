@@ -86,8 +86,8 @@ class GatewaySyncControllerTest {
         )
 
         val entries = listOf(
-            SyncIcsEntryDto(userId = 1L, queryParam = "q1", icsData = "BEGIN:VCALENDAR\nEND:VCALENDAR"),
-            SyncIcsEntryDto(userId = 1L, queryParam = "q2", icsData = "BEGIN:VCALENDAR\nEND:VCALENDAR"),
+            SyncIcsEntryDto(userId = 1L, params = "teamCals=1", icsData = "BEGIN:VCALENDAR\nEND:VCALENDAR"),
+            SyncIcsEntryDto(userId = 1L, params = "teamCals=2", icsData = "BEGIN:VCALENDAR\nEND:VCALENDAR"),
         )
         val response = controller.syncIcsEntries("my-secret", entries)
         assertEquals(HttpStatus.OK, response.statusCode)

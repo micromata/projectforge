@@ -320,6 +320,38 @@ class ChatServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun `a message quotes one of the same conversation, not deleted or hidden`() {
+        val conversationId = createRoom("chat quote test")
+        val message = chatService.send(conversationId, null, "original")
+        val reply = chatService.send(conversationId, message.id, "reply")
+        logon(TEST_USER2)
+        val quoting = chatService.send(conversationId, null, "quoting the reply", quotedMessageId = reply.id)
+        assertEquals(reply.id, chatService.findMessage(quoting.id)!!.quotedMessageId)
+        assertEquals(listOf(reply.id), chatService.findMessages(conversationId, listOf(reply.id!!)).map { it.id })
+        val otherConversationId = createRoom("chat quote other room")
+        assertTrue(chatService.findMessages(otherConversationId, listOf(reply.id!!)).isEmpty())
+        suppressErrorLogs {
+            logon(TEST_USER)
+            assertThrows(UserException::class.java) {
+                chatService.send(otherConversationId, null, "quoting elsewhere", quotedMessageId = message.id)
+            }
+            assertThrows(UserException::class.java) { chatService.send(conversationId, null, "x", quotedMessageId = -1) }
+            chatService.hide(message.id!!, true, "spam")
+            assertThrows(UserException::class.java) {
+                chatService.send(conversationId, null, "quoting hidden", quotedMessageId = message.id)
+            }
+            chatService.hide(message.id!!, false, null)
+            chatService.delete(message.id!!)
+            assertThrows(UserException::class.java) {
+                chatService.send(conversationId, null, "quoting deleted", quotedMessageId = message.id)
+            }
+        }
+        // A message of the conversation quotes a reply: deleting the room deletes both (no foreign key in the way).
+        chatService.deleteRoom(chatService.requireContext(conversationId).hostId)
+        assertEquals(null, chatService.findMessage(quoting.id))
+    }
+
+    @Test
     fun `deleting a room deletes its conversation`() {
         val conversationId = createRoom("chat delete test")
         val user2 = getUserId(TEST_USER2)

@@ -28,6 +28,7 @@ import org.projectforge.business.chat.ChatFileService
 import org.projectforge.business.chat.ChatMessageDO
 import org.projectforge.business.chat.ChatRoomDO
 import org.projectforge.business.chat.ChatService
+import org.projectforge.business.user.UserAvatarDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -47,20 +48,43 @@ class ChatMessageConverter {
     private lateinit var fileService: ChatFileService
 
     @Autowired
+    private lateinit var userAvatarDao: UserAvatarDao
+
+    @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
     fun convert(context: ChatAccess.Context, messages: List<ChatMessageDO>): List<ChatMessage> {
         val rootIds = messages.filter { it.threadRootId == null && it.replyCount > 0 }.mapNotNull { it.id }
         val replies = chatService.selectReplySummaries(rootIds)
         val existing = existingFileIds(messages)
-        return messages.map { convert(context, it, replies[it.id], existing) }
+        val quoted = quotedMessages(context, messages)
+        return messages.map { convert(context, it, replies[it.id], existing, quoted) }
     }
 
     fun convert(context: ChatAccess.Context, message: ChatMessageDO): ChatMessage {
         val replies = if (message.threadRootId == null && message.replyCount > 0) {
             chatService.selectReplySummaries(listOf(message.id!!))[message.id]
         } else null
-        return convert(context, message, replies, existingFileIds(listOf(message)))
+        return convert(context, message, replies, existingFileIds(listOf(message)), quotedMessages(context, listOf(message)))
+    }
+
+    /** The messages quoted by the given ones, by id, asked once. */
+    private fun quotedMessages(context: ChatAccess.Context, messages: List<ChatMessageDO>): Map<Long, ChatMessageDO> {
+        val ids = messages.mapNotNull { it.quotedMessageId }
+        return chatService.findMessages(context.conversationId, ids).associateBy { it.id!! }
+    }
+
+    private fun quote(context: ChatAccess.Context, quoted: ChatMessageDO): ChatQuote {
+        val showContent = !quoted.deleted && (!quoted.isHidden || context.isModerator)
+        return ChatQuote(
+            id = quoted.id!!,
+            threadRootId = quoted.threadRootId,
+            author = ref(quoted.authorId),
+            created = quoted.created,
+            deleted = quoted.deleted,
+            hidden = quoted.isHidden,
+            excerpt = if (showContent) excerpt(quoted.contentText) else null,
+        )
     }
 
     /** The files of the messages still there, asked once per area. */
@@ -74,6 +98,7 @@ class ChatMessageConverter {
         message: ChatMessageDO,
         replies: ChatService.ReplySummary?,
         existingFileIds: Set<String>,
+        quoted: Map<Long, ChatMessageDO>,
     ): ChatMessage {
         val meId = context.user.id
         val showContent = !message.deleted && (!message.isHidden || context.isModerator)
@@ -89,6 +114,7 @@ class ChatMessageConverter {
             hiddenBy = if (message.isHidden && context.isModerator) ref(message.hiddenById).displayName else null,
             hiddenReason = if (message.isHidden && context.isModerator) message.hiddenReason else null,
             content = if (showContent) message.content else null,
+            quote = if (showContent) message.quotedMessageId?.let { quoted[it] }?.let { quote(context, it) } else null,
             files = if (showContent) message.readAttachments().map {
                 ChatFile(it.areaId, it.fileId, it.name, it.size, FormatterUtils.formatBytes(it.size), it.image, it.fileId in existingFileIds)
             } else emptyList(),
@@ -113,10 +139,30 @@ class ChatMessageConverter {
 
     /** As [ref] by id, for a user already at hand. */
     fun ref(user: PFUserDO): ChatRef {
-        return ChatRef(user.id ?: 0, user.getFullname(), deleted = user.deleted, deactivated = user.deactivated)
+        return ChatRef(
+            user.id ?: 0,
+            user.getFullname(),
+            deleted = user.deleted,
+            deactivated = user.deactivated,
+            avatarVersion = userAvatarDao.getVersion(user.id),
+        )
     }
 
     companion object {
         private const val MAX_REPLY_AUTHORS = 5
+
+        /** The length of the excerpt of a quoted message (characters). */
+        internal const val QUOTE_EXCERPT_LENGTH = 200
+
+        /** The beginning of [text], cut at a word if longer than [QUOTE_EXCERPT_LENGTH], with an ellipsis. */
+        internal fun excerpt(text: String?): String? {
+            val trimmed = text?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+            if (trimmed.length <= QUOTE_EXCERPT_LENGTH) {
+                return trimmed
+            }
+            val cut = trimmed.take(QUOTE_EXCERPT_LENGTH)
+            val atWord = cut.substringBeforeLast(' ').takeIf { it.length > QUOTE_EXCERPT_LENGTH / 2 } ?: cut
+            return "${atWord.trimEnd()}…"
+        }
     }
 }

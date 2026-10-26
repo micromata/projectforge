@@ -34,6 +34,11 @@ class ChatRef(
     val displayName: String,
     val deleted: Boolean = false,
     val deactivated: Boolean = false,
+    /**
+     * The version of the user's avatar (`/rs/userAvatar/{id}/preview?v=`), null without one or if the logged-in user
+     * may not see it (and always for groups): the initials are shown then.
+     */
+    val avatarVersion: Long? = null,
 )
 
 /** A file of a message (stored in the data transfer). */
@@ -62,6 +67,22 @@ class ChatReaction(
 )
 
 /**
+ * The message quoted by another one (MSG-08), as the logged-in user may see it: no [excerpt] of a deleted message, of
+ * a hidden one only for moderators.
+ */
+class ChatQuote(
+    val id: Long,
+    /** The thread of the quoted message, null for a message of the conversation (for jumping to it). */
+    val threadRootId: Long?,
+    val author: ChatRef,
+    val created: Date?,
+    val deleted: Boolean,
+    val hidden: Boolean,
+    /** The beginning of its plain text, null if not to be shown. */
+    val excerpt: String?,
+)
+
+/**
  * A message as shown to the logged-in user: the content of a deleted message is never sent, of a hidden one only to
  * moderators.
  */
@@ -79,6 +100,8 @@ class ChatMessage(
     val hiddenReason: String? = null,
     /** Sanitized HTML, null for a deleted message (and a hidden one, except for moderators). */
     val content: String?,
+    /** The message quoted by this one, null for none (or if its content isn't shown). */
+    val quote: ChatQuote? = null,
     val files: List<ChatFile>,
     val reactions: List<ChatReaction>,
     val replyCount: Int,
@@ -141,7 +164,7 @@ class ChatOpenRequest(val hostType: String? = null, val hostId: Long? = null, va
 class ChatOpenResult(val conversationId: Long?)
 
 /** The message part of a message sent (multipart, with the files). */
-class ChatSendRequest(val html: String? = null, val threadRootId: Long? = null)
+class ChatSendRequest(val html: String? = null, val threadRootId: Long? = null, val quotedMessageId: Long? = null)
 
 class ChatEditRequest(val html: String? = null)
 

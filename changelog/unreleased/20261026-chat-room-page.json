@@ -12,6 +12,10 @@
       "de": "Ein Suchfeld auf der Chatseite grenzt die Direktnachrichten und die Räume ein."
     },
     {
+      "en": "Messages can quote another message of the conversation: the quote shows its author and the beginning of its text, a click shows the message.",
+      "de": "Nachrichten können eine andere Nachricht der Unterhaltung zitieren: Das Zitat zeigt, von wem sie ist, und den Anfang ihres Texts; ein Klick zeigt die Nachricht."
+    },
+    {
       "en": "Menu search: the menu entries found come first again, the users found to chat with follow them.",
       "de": "Menüsuche: Die gefundenen Menüeinträge stehen wieder an erster Stelle, die gefundenen Personen zum Chatten folgen danach."
     }

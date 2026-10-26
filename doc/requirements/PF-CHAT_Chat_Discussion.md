@@ -112,7 +112,7 @@ Priority by MoSCoW: **M** = Must, **S** = Should, **C** = Could, **W** = Won't (
 | MSG-05 | Every message must have a deep link that opens the conversation (or thread) at this message; the link can be copied. | M | |
 | MSG-06 | A conversation must open with the newest 50 messages and load older ones when scrolling up; long conversations stay fluent (virtualised list). | M | |
 | MSG-07 | Messages must be able to mention users: typing `@` opens suggestions, completed while typing, only from users with read access to the conversation; the choice inserts a mention chip. The server checks the mentioned users against the readers and notifies each newly mentioned user once, also after an edit. | M | NOT-03, decision 10 |
-| MSG-08 | A message should be able to quote another message of the same conversation (with link to it). | S | |
+| MSG-08 | A message should be able to quote another message of the same conversation (with link to it). | S | by reference (`quotedMessageId`, checked by the server): author, time and excerpt are resolved when shown, so a deleted or hidden message shows its placeholder; a click shows the message, no notification |
 | MSG-09 | An unsent draft should be kept per user and conversation. | S | |
 | MSG-10 | Users should be able to react to messages and thread replies with emoji, as in Google Chat: quick choice of recently used emoji, per emoji the count and (on hover) who reacted; a second click takes the own reaction back. Reactions are not notified. | S | decision 7 |
 

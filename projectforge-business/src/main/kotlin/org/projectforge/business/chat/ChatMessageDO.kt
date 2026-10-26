@@ -63,6 +63,13 @@ open class ChatMessageDO : DefaultBaseDO() {
     @get:Column(name = "thread_root_fk")
     open var threadRootId: Long? = null
 
+    /**
+     * The message of the same conversation quoted by this one (MSG-08), null for none. Set when sent, never changed;
+     * the quoted message may have been deleted since.
+     */
+    @get:Column(name = "quoted_message_fk")
+    open var quotedMessageId: Long? = null
+
     /** The sanitized HTML ([ChatHtmlSanitizer]). */
     @get:Column(name = "content", length = 100000)
     open var content: String? = null

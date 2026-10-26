@@ -27,7 +27,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.common.StringHelper
 import org.projectforge.gateway.sync.GatewayIcsCache
+import org.projectforge.gateway.sync.GatewayIcsParams
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -36,6 +38,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.security.MessageDigest
 
 private val log = KotlinLogging.logger {}
 
@@ -67,6 +70,13 @@ class GatewayIcsExportController(
             log.warn { "ICS export: failed to decrypt params for user $userId" }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
+        // The token within q must be the stored one, as on the main instance (RestCalendarSubscriptionUserFilter).
+        val params = StringHelper.getKeyValues(decryptedParams, "&")
+        val storedToken = userAuthenticationsService.internalGetToken(userId, UserTokenType.CALENDAR_REST)
+        if (params == null || storedToken == null || !tokenEquals(params["token"], storedToken)) {
+            log.warn { "ICS export: invalid token in params for user $userId" }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        }
 
         // Deactivated or deleted users (as synced by the main instance) get nothing, as on the main instance.
         val user = userDao.find(userId, checkAccess = false)
@@ -76,9 +86,10 @@ class GatewayIcsExportController(
         }
 
         // Look up cached ICS data
-        val icsData = icsCache.get(userId, q)
+        val icsData = icsCache.get(userId, GatewayIcsParams.normalize(params))
         if (icsData == null) {
-            log.info { "ICS export: no cached data for user $userId (cache miss)" }
+            // Names only: the values contain ids of calendars and users.
+            log.info { "ICS export: no cached data for user $userId (cache miss), params=${GatewayIcsParams.names(params)}" }
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
         }
 
@@ -86,5 +97,10 @@ class GatewayIcsExportController(
         headers.contentType = MediaType.parseMediaType("text/calendar; charset=UTF-8")
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=projectforge.ics")
         return ResponseEntity.ok().headers(headers).body(icsData.toByteArray(Charsets.UTF_8))
+    }
+
+    private fun tokenEquals(token: String?, storedToken: String): Boolean {
+        token ?: return false
+        return MessageDigest.isEqual(token.toByteArray(Charsets.UTF_8), storedToken.toByteArray(Charsets.UTF_8))
     }
 }

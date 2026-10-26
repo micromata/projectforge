@@ -136,6 +136,9 @@ class User(
     /** Sipgate is configured: the personal phone identifiers are of use. */
     var phoneIdentifiersSupported: Boolean? = null
 
+    /** The version of the user's avatar (`/rs/userAvatar/{id}?v=`), null without one. */
+    var avatarVersion: Long? = null
+
     /**
      * @see copyFromMinimal
      */

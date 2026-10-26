@@ -108,6 +108,7 @@ export function ThreadPanel({
           ref={scrollRef}
           onScroll={(event) => (atEnd.current = isAtEnd(event.currentTarget))}
           className="min-h-0 flex-1 overflow-y-auto py-2"
+          data-chat-messages
         >
           <div ref={contentRef}>
             {query.isPending && rootId != null && (

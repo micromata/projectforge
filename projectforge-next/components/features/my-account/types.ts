@@ -70,6 +70,9 @@ export interface MyAccountInit {
   changePasswordUrl?: string | null;
   changeWlanPasswordUrl?: string | null;
   my2FASetupUrl?: string | null;
+  /** The own id and the version of the avatar, null without one (see UserAvatarField). */
+  userId?: number | null;
+  avatarVersion?: number | null;
 }
 
 /** Mirror of `MyAccountRest.TokenAccess`. */

@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * In-memory cache for ICS calendar data pushed from the main instance.
- * Key: "userId:queryParam", Value: ICS data as String.
+ * Key: "userId:params" (see [GatewayIcsParams]), Value: ICS data as String.
  */
 @Component
 @ConditionalOnProperty(name = ["projectforge.gateway.enabled"], havingValue = "true")
@@ -37,12 +37,12 @@ class GatewayIcsCache {
 
     private val cache = ConcurrentHashMap<String, String>()
 
-    fun put(userId: Long, queryParam: String, icsData: String) {
-        cache["$userId:$queryParam"] = icsData
+    fun put(userId: Long, params: String, icsData: String) {
+        cache["$userId:$params"] = icsData
     }
 
-    fun get(userId: Long, queryParam: String): String? {
-        return cache["$userId:$queryParam"]
+    fun get(userId: Long, params: String): String? {
+        return cache["$userId:$params"]
     }
 
     fun clear() {
