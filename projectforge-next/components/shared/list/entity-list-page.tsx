@@ -51,6 +51,7 @@ import type { LegendEntry, PageDef } from "@/lib/page-def/types";
 import type { MagicFilter } from "@/lib/rs/types";
 import { TableLegend } from "@/components/data-table/table-legend";
 import { ListSelectionSection } from "./list-selection-section";
+import { useSelectFirst } from "./use-select-first";
 import { ListToolbar } from "./list-toolbar";
 import { ListResultInfo } from "./list-result-info";
 import { ListTruncationNotice } from "./list-truncation-notice";
@@ -336,6 +337,7 @@ function DeclaredList<
     [table]
   );
   useSelectAllShortcut(mode.active, selectAll);
+  const selectFirst = useSelectFirst(page.entity, table, list.filter);
 
   // After every hook, so the early return doesn't change their order.
   if (denied) {
@@ -446,6 +448,7 @@ function DeclaredList<
             metadata={page.metadata}
             columns={declarations.columns}
             onSelectAll={selectAll}
+            onSelectFirst={selectFirst}
           />
         )
       }

@@ -3228,6 +3228,7 @@
     },
     "restore": "Restore selected",
     "restoreConfirm": "Do you really want to restore the {arg0} selected entries?",
+    "selectFirst": "Select first {arg0}",
     "selectedEntries": "Selected entries"
   },
   "menu": {
@@ -3392,6 +3393,8 @@
       "triggerConfirm": "Run the rule now for all recipients? Recipients already notified for the same period are not notified again."
     },
     "center": "Notifications",
+    "centerArchived": "Archived entries",
+    "centerArchivedEmpty": "No archived entries of the last 90 days.",
     "centerEmpty": "No open notifications.",
     "channels": {
       "IN_APP": "In the app",
