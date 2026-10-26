@@ -23,8 +23,12 @@
 
 package org.projectforge.gateway.sync.dto
 
+/**
+ * @param params The parameters of the subscription, normalized by
+ * [org.projectforge.gateway.sync.GatewayIcsParams.normalize] (without the token).
+ */
 data class SyncIcsEntryDto(
     val userId: Long,
-    val queryParam: String,
+    val params: String,
     val icsData: String,
 )

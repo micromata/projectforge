@@ -53,6 +53,7 @@ import org.projectforge.framework.persistence.user.entities.UserAuthenticationsD
 import org.projectforge.framework.utils.Crypt
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferExternalAccessConfig
+import org.projectforge.gateway.sync.GatewayIcsParams
 import org.projectforge.gateway.sync.dto.SyncAddressDto
 import org.projectforge.gateway.sync.dto.SyncDataTransferAreaDto
 import org.projectforge.gateway.sync.dto.SyncFavoritesDto
@@ -418,11 +419,10 @@ class GatewaySyncPushService(
         val icsEntries = mutableListOf<SyncIcsEntryDto>()
         var skippedUnchanged = 0
 
-        // Holidays are identical for all users – generate once and reuse
-        var holidaysIcsData: String? = null
         // The ICS of a team calendar is the same for all users of the same access class and locale (see
-        // teamCalIcsKey): generated once per run, not once per user (users × calendars exports per run).
-        val teamCalIcs = mutableMapOf<String, String?>()
+        // teamCalIcsKey), the holidays and weeks of the year for all users of the same locale (translated titles):
+        // generated once per run, not once per user (users × calendars exports per run).
+        val sharedIcs = mutableMapOf<String, String?>()
 
         for (user in users) {
             try {
@@ -430,11 +430,12 @@ class GatewaySyncPushService(
                 val userId = user.id!!
                 val token = userAuthenticationsService.internalGetToken(userId, UserTokenType.CALENDAR_REST) ?: continue
 
-                // Generate ICS for each accessible team calendar
+                // Generate ICS for each accessible team calendar. The subscription dialog offers it with and without
+                // reminders, both urls get the same ICS (see GatewayIcsParams).
                 val calendars = teamCalCache.allAccessibleCalendars
                 for (cal in calendars.orEmpty()) {
                     val calId = cal.id ?: continue
-                    if (!addIcsEntry(userId, token, "teamCals=$calId", icsEntries, teamCalIcs, teamCalIcsKey(cal, user))) {
+                    if (!addIcsEntry(userId, token, "teamCals=$calId", icsEntries, sharedIcs, teamCalIcsKey(cal, user))) {
                         skippedUnchanged++
                     }
                 }
@@ -442,14 +443,11 @@ class GatewaySyncPushService(
                 // Generate Timesheets ICS for this user
                 if (!addIcsEntry(userId, token, "timesheetUser=$userId", icsEntries)) skippedUnchanged++
 
-                // Holidays are identical for all users – generate only once, but with each user's query param
-                val holidaysQ = encryptQuery(userId, token, HOLIDAYS_PARAMS)
-                if (holidaysQ != null && holidaysIcsData == null) {
-                    holidaysIcsData = exportIcs(userId, holidaysQ, HOLIDAYS_PARAMS)
+                // Holidays and weeks of the year (both offered by the subscription dialog)
+                for (params in listOf(HOLIDAYS_PARAMS, WEEK_OF_YEARS_PARAMS)) {
+                    val key = "$params:${ThreadLocalUserContext.locale}"
+                    if (!addIcsEntry(userId, token, params, icsEntries, sharedIcs, key)) skippedUnchanged++
                 }
-                val holidaysAdded = holidaysQ != null && holidaysIcsData != null &&
-                        addIfChanged(userId, HOLIDAYS_PARAMS, holidaysQ, holidaysIcsData, icsEntries)
-                if (!holidaysAdded) skippedUnchanged++
 
             } catch (e: Exception) {
                 log.error(e) { "Error generating ICS for user '${user.username}'" }
@@ -502,7 +500,7 @@ class GatewaySyncPushService(
         } else {
             exportIcs(userId, encryptedQ, additionalParams)
         } ?: return false
-        return addIfChanged(userId, additionalParams, encryptedQ, icsData, entries)
+        return addIfChanged(userId, additionalParams, icsData, entries)
     }
 
     /**
@@ -569,7 +567,6 @@ class GatewaySyncPushService(
     private fun addIfChanged(
         userId: Long,
         additionalParams: String,
-        encryptedQ: String,
         icsData: String,
         entries: MutableList<SyncIcsEntryDto>,
     ): Boolean {
@@ -579,7 +576,8 @@ class GatewaySyncPushService(
             return false
         }
         lastPushHashes[cacheKey] = hash
-        entries.add(SyncIcsEntryDto(userId = userId, queryParam = encryptedQ, icsData = icsData))
+        val params = GatewayIcsParams.normalize(additionalParams) ?: return false
+        entries.add(SyncIcsEntryDto(userId = userId, params = params, icsData = icsData))
         return true
     }
 
@@ -713,6 +711,8 @@ class GatewaySyncPushService(
         private const val SYNC_API_PATH = "/api/gateway/sync"
 
         private const val HOLIDAYS_PARAMS = "holidays=true"
+
+        private const val WEEK_OF_YEARS_PARAMS = "weekOfYears=true"
 
         /**
          * Hash of the ICS data without the DTSTAMP lines: ical4j stamps every generated event with the current

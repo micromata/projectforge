@@ -46,6 +46,13 @@ class GatewayIcsExportControllerTest {
     private val userDao = mock<UserDao>()
     private val controller = GatewayIcsExportController(icsCache, userAuthenticationsService, userDao)
 
+    private fun stubDecrypt(decrypted: String, q: String = "valid-q") {
+        whenever(userAuthenticationsService.decrypt(eq(1L), eq(UserTokenType.CALENDAR_REST), eq(q)))
+            .thenReturn(decrypted)
+        whenever(userAuthenticationsService.internalGetToken(eq(1L), eq(UserTokenType.CALENDAR_REST)))
+            .thenReturn("abc")
+    }
+
     private fun stubUser(deactivated: Boolean = false) {
         val user = PFUserDO()
         user.id = 1L
@@ -87,9 +94,8 @@ class GatewayIcsExportControllerTest {
     @Test
     fun returnsUnauthorizedForDeactivatedUser() {
         stubUser(deactivated = true)
-        icsCache.put(1L, "valid-q", "BEGIN:VCALENDAR\r\nEND:VCALENDAR")
-        whenever(userAuthenticationsService.decrypt(eq(1L), eq(UserTokenType.CALENDAR_REST), eq("valid-q")))
-            .thenReturn("token=abc&teamCals=5")
+        icsCache.put(1L, "teamCals=5", "BEGIN:VCALENDAR\r\nEND:VCALENDAR")
+        stubDecrypt("token=abc&teamCals=5")
 
         val response = controller.exportCalendar(1L, "valid-q")
         assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
@@ -98,8 +104,7 @@ class GatewayIcsExportControllerTest {
     @Test
     fun returnsNotFoundForCacheMiss() {
         stubUser()
-        whenever(userAuthenticationsService.decrypt(eq(1L), eq(UserTokenType.CALENDAR_REST), eq("valid-q")))
-            .thenReturn("token=abc&teamCals=5")
+        stubDecrypt("token=abc&teamCals=5")
 
         val response = controller.exportCalendar(1L, "valid-q")
         assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
@@ -108,14 +113,36 @@ class GatewayIcsExportControllerTest {
     @Test
     fun returnsCachedIcsData() {
         val icsData = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nEND:VCALENDAR"
-        icsCache.put(1L, "valid-q", icsData)
+        icsCache.put(1L, "teamCals=5", icsData)
         stubUser()
-        whenever(userAuthenticationsService.decrypt(eq(1L), eq(UserTokenType.CALENDAR_REST), eq("valid-q")))
-            .thenReturn("token=abc&teamCals=5")
+        stubDecrypt("token=abc&teamCals=5")
 
         val response = controller.exportCalendar(1L, "valid-q")
         assertEquals(HttpStatus.OK, response.statusCode)
         assertEquals("text/calendar;charset=UTF-8", response.headers.contentType?.toString())
         assertEquals(icsData, String(response.body!!, Charsets.UTF_8))
+    }
+
+    /**
+     * The subscription urls of the UI contain exportReminders (CalendarFeedService.getFullUrl): the gateway answered
+     * them with 404, as its cache was keyed by the encrypted q of the push (without exportReminders).
+     */
+    @Test
+    fun servesSubscriptionUrlsOfTheUi() {
+        icsCache.put(1L, "teamCals=5", "BEGIN:VCALENDAR")
+        stubUser()
+        stubDecrypt("token=abc&teamCals=5&exportReminders=false", q = "q-false")
+        stubDecrypt("token=abc&teamCals=5&exportReminders=true", q = "q-true")
+
+        assertEquals("BEGIN:VCALENDAR", String(controller.exportCalendar(1L, "q-false").body!!, Charsets.UTF_8))
+        assertEquals("BEGIN:VCALENDAR", String(controller.exportCalendar(1L, "q-true").body!!, Charsets.UTF_8))
+    }
+
+    @Test
+    fun returnsUnauthorizedForWrongTokenInParams() {
+        icsCache.put(1L, "teamCals=5", "BEGIN:VCALENDAR\r\nEND:VCALENDAR")
+        stubDecrypt("token=other&teamCals=5")
+
+        assertEquals(HttpStatus.UNAUTHORIZED, controller.exportCalendar(1L, "valid-q").statusCode)
     }
 }

@@ -31,6 +31,7 @@ import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.SecurityLogging
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import java.util.concurrent.ConcurrentHashMap
 
 private val log = KotlinLogging.logger {}
 
@@ -59,5 +60,40 @@ class RestCalendarSubscriptionUserFilter : AbstractRestUserFilter(UserTokenType.
                 userParams = arrayOf("user"),
                 tokenParams = arrayOf("q[token]"),
                 userId = userId)
+        if (authInfo.success) {
+            logSubscriptionParams(params, authInfo)
+        }
+    }
+
+    /**
+     * Which kinds of subscriptions the clients use (single or several team calendars, reminders, timesheets, holidays,
+     * week of years), e.g. for checking which of them the gateway serves. Only the names of the parameters and the
+     * number of team calendars: no token, no ids. The gateway push exports internally, not by this filter.
+     *
+     * Logged once per kind and user agent since the start (the clients poll every few minutes), further requests on
+     * debug level.
+     */
+    private fun logSubscriptionParams(params: Map<String, String>, authInfo: RestAuthenticationInfo) {
+        val names = params.keys.filter { it != "token" }.sorted().joinToString(",")
+        val teamCals = params["teamCals"]?.split(";")?.count { it.isNotBlank() } ?: 0
+        val reminders = params[CalendarSubscriptionServiceRest.PARAM_EXPORT_REMINDER] == "true"
+        // Client controlled: no line breaks into the log.
+        val userAgent = authInfo.request.getHeader("User-Agent")?.take(100)?.replace(Regex("\\p{Cntrl}"), "?")
+        val kind = "params=[$names], teamCals=$teamCals, reminders=$reminders, userAgent=$userAgent"
+        if (loggedKinds.size < MAX_LOGGED_KINDS && loggedKinds.add(kind)) {
+            log.info { "Calendar subscription (first of this kind since start): $kind" }
+        } else {
+            log.debug { "Calendar subscription: $kind" }
+        }
+    }
+
+    companion object {
+        /**
+         * Kinds of subscriptions already logged (no user specific data). Bounded, as the user agent is client
+         * controlled.
+         */
+        private val loggedKinds: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
+        private const val MAX_LOGGED_KINDS = 1000
     }
 }

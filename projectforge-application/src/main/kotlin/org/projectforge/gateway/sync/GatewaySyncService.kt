@@ -574,7 +574,7 @@ class GatewaySyncService(
     fun syncIcsEntries(entries: List<SyncIcsEntryDto>): SyncResultDto {
         var updated = 0
         for (entry in entries) {
-            gatewayIcsCache.put(entry.userId, entry.queryParam, entry.icsData)
+            gatewayIcsCache.put(entry.userId, entry.params, entry.icsData)
             updated++
         }
         log.info { "ICS cache sync complete: $updated entries updated" }

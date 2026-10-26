@@ -34,16 +34,16 @@ class GatewaySyncServiceTest {
     fun syncIcsEntriesPutsIntoCache() {
         val icsCache = GatewayIcsCache()
         val entries = listOf(
-            SyncIcsEntryDto(userId = 1L, queryParam = "q1", icsData = "ics-content-1"),
-            SyncIcsEntryDto(userId = 2L, queryParam = "q2", icsData = "ics-content-2"),
+            SyncIcsEntryDto(userId = 1L, params = "teamCals=1", icsData = "ics-content-1"),
+            SyncIcsEntryDto(userId = 2L, params = "teamCals=2", icsData = "ics-content-2"),
         )
 
         for (entry in entries) {
-            icsCache.put(entry.userId, entry.queryParam, entry.icsData)
+            icsCache.put(entry.userId, entry.params, entry.icsData)
         }
 
-        assertEquals("ics-content-1", icsCache.get(1L, "q1"))
-        assertEquals("ics-content-2", icsCache.get(2L, "q2"))
+        assertEquals("ics-content-1", icsCache.get(1L, "teamCals=1"))
+        assertEquals("ics-content-2", icsCache.get(2L, "teamCals=2"))
         assertNull(icsCache.get(1L, "nonexistent"))
     }
 }
