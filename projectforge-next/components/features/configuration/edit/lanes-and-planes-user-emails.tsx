@@ -43,13 +43,12 @@ export function LanesAndPlanesUserEmails({
     enabled: rows.some((row) => row.userId != null),
     staleTime: 60_000,
   });
-  const names = new Map(
-    (users.data ?? []).map((user) => [user.id, user.displayName])
-  );
+  // The whole hit, with its inactive flags: a deactivated user still set is struck through.
+  const byId = new Map((users.data ?? []).map((user) => [user.id, user]));
   const refOf = (userId: number | null): EntityRef | null =>
     userId == null
       ? null
-      : { id: userId, displayName: names.get(userId) ?? `#${userId}` };
+      : (byId.get(userId) ?? { id: userId, displayName: `#${userId}` });
   return (
     <LanesAndPlanesRows<LanesAndPlanesUserEmail>
       label={t("userEmails._")}

@@ -12,19 +12,10 @@ import {
   type AddressbookValues,
 } from "./addressbook-schema";
 import { emptyAddressbookValues, toFormValues } from "./addressbook-values";
-import type {
-  AddressbookDetail,
-  AddressbookListRow,
-  AddressbookRef,
-} from "./types";
+import type { AddressbookDetail, AddressbookListRow } from "./types";
 
 /** React Query key of the list, so a write from the edit page refreshes it. */
 export const ADDRESS_BOOK_LIST_QUERY_KEY = ["addressBook"] as const;
-
-/** The display names of an access list, as one cell. */
-function names(refs: AddressbookRef[] | undefined): string {
-  return (refs ?? []).map((ref) => ref.displayName ?? "???").join(", ");
-}
 
 /**
  * The address books — list and edit — as data (see lib/page-def/types.ts).
@@ -55,11 +46,12 @@ export const ADDRESS_BOOK_PAGE = definePage<
       size: 170,
       cell: ({ row }) => row.original.owner?.displayName ?? null,
     },
-    // The access lists are csv lists of ids in the database, resolved by the DTO: nothing to sort by.
+    // The access lists are csv lists of ids in the database, resolved by the DTO: nothing to sort by. Each
+    // entry is struck through when no longer active (see RefList).
     {
       id: "fullAccessUsers",
       labelKey: "addressbook.fullAccess.users",
-      accessor: (row) => names(row.fullAccessUsers),
+      accessor: (row) => row.fullAccessUsers,
       sortable: false,
       size: 200,
       wrap: true,
@@ -67,7 +59,7 @@ export const ADDRESS_BOOK_PAGE = definePage<
     {
       id: "fullAccessGroups",
       labelKey: "addressbook.fullAccess.groups",
-      accessor: (row) => names(row.fullAccessGroups),
+      accessor: (row) => row.fullAccessGroups,
       sortable: false,
       size: 200,
       wrap: true,
@@ -75,7 +67,7 @@ export const ADDRESS_BOOK_PAGE = definePage<
     {
       id: "readonlyAccessUsers",
       labelKey: "addressbook.readonlyAccess.users",
-      accessor: (row) => names(row.readonlyAccessUsers),
+      accessor: (row) => row.readonlyAccessUsers,
       sortable: false,
       size: 200,
       wrap: true,
@@ -83,7 +75,7 @@ export const ADDRESS_BOOK_PAGE = definePage<
     {
       id: "readonlyAccessGroups",
       labelKey: "addressbook.readonlyAccess.groups",
-      accessor: (row) => names(row.readonlyAccessGroups),
+      accessor: (row) => row.readonlyAccessGroups,
       sortable: false,
       size: 200,
       wrap: true,

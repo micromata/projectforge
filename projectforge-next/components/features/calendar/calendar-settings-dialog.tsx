@@ -26,6 +26,7 @@ import type { useCalendarFilterMutations } from "./use-calendar-filter-mutations
 import { CalendarAbsenceKinds } from "./calendar-absence-kinds";
 import { CalendarVacationSelects } from "./calendar-vacation-selects";
 import { CalendarColorSettings } from "./calendar-color-settings";
+import { toPickerRef } from "@/lib/page-def/reference";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
@@ -105,10 +106,7 @@ export function CalendarSettingsDialog({
                 <PersonSelect
                   value={
                     showsOwn && timesheetUser?.id != null
-                      ? {
-                          id: timesheetUser.id,
-                          displayName: timesheetUser.displayName ?? "",
-                        }
+                      ? toPickerRef({ ...timesheetUser, id: timesheetUser.id })
                       : null
                   }
                   onChange={(user) =>

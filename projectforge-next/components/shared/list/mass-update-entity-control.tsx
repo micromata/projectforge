@@ -38,9 +38,8 @@ export function MassUpdateEntityControl({
       url={url}
       value={value}
       onChange={(entry) => {
-        setPicked(
-          entry ? { id: entry.id, displayName: entry.displayName } : null
-        );
+        // The whole entry, with its inactive flags (see inactiveRefClass).
+        setPicked(entry ?? null);
         onChange(entry?.id ?? undefined);
       }}
       selectMe={withSelectMe ? currentUser : undefined}

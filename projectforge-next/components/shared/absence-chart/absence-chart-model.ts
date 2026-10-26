@@ -93,6 +93,8 @@ export interface ChartRow {
   bars: ChartBar[];
   /** The substitutes' on a form, the employees' on the team calendar if asked for. */
   availabilities?: AvailabilityBar[];
+  /** Whether the person is deleted or deactivated: the name is struck through then (see inactiveRefClass). */
+  inactive?: InactiveFlags;
 }
 
 /** A period on the axis, cut off at its edges; null if it lies beside it. ISO dates compare as strings. */
@@ -196,6 +198,22 @@ export function availabilityBarOf(
 export interface ChartPerson {
   key: string;
   name: string;
+  /** Whether the person is no longer active, see ChartRow.inactive. */
+  inactive?: InactiveFlags;
+}
+
+/** A referenced employee or user as a person of the chart, keyed by its id, with its inactive flags. */
+export function chartPersonOf(
+  ref: PersonRef | null | undefined
+): ChartPerson | null {
+  if (!ref) return null;
+  return {
+    key: String(ref.id),
+    name: ref.displayName ?? "",
+    ...((ref.deleted || ref.deactivated) && {
+      inactive: { deleted: ref.deleted, deactivated: ref.deactivated },
+    }),
+  };
 }
 
 /**
@@ -224,12 +242,12 @@ export function buildAbsenceChart(
       bars: ownBar ? splitByConflict(ownBar, days) : [],
     },
   ];
-  const people = new Map<string, string>();
-  for (const s of substitutes) people.set(s.key, s.name);
+  const people = new Map<string, ChartPerson>();
+  for (const s of substitutes) people.set(s.key, s);
   for (const { person } of [...vacations, ...availabilities]) {
-    if (person && !people.has(person.key)) people.set(person.key, person.name);
+    if (person && !people.has(person.key)) people.set(person.key, person);
   }
-  for (const [key, name] of people) {
+  for (const [key, { name, inactive }] of people) {
     const bars = vacations
       .filter((v) => v.person?.key === key)
       .map((v, i) => barOf(`${key}-${v.id ?? i}`, days, v))
@@ -244,6 +262,7 @@ export function buildAbsenceChart(
       own: false,
       bars,
       ...(entries.length > 0 && { availabilities: entries }),
+      ...(inactive && { inactive }),
     });
   }
   return rows;

@@ -90,7 +90,8 @@ export const AVAILABILITY_PAGE = definePage<
       size: 200,
       sortable: false,
       wrap: true,
-      accessor: (row) => row.substitutesAsString ?? "",
+      // Each struck through when no longer active (see RefList).
+      accessor: (row) => row.substitutes,
     },
   ],
   // At least one day without any substitute on duty (ConflictingAvailabilitiesCache), as in the vacation list.

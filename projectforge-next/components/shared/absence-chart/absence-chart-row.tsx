@@ -17,6 +17,7 @@ import {
   GRID_CELL,
   gridCell,
 } from "./absence-chart-grid";
+import { inactiveRefClass } from "@/lib/page-def/reference";
 
 /**
  * A row of the vacation chart: the name, the day columns' backgrounds and the bars of the vacations on top,
@@ -58,7 +59,7 @@ export function AbsenceChartRow({
           )}
           style={gridCell(gridRow, 1)}
         >
-          {row.name}
+          <span className={inactiveRefClass(row.inactive)}>{row.name}</span>
         </div>
       </HintTooltip>
       {days.map((day, i) => (

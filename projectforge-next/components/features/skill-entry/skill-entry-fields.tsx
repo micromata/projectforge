@@ -10,6 +10,7 @@ import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { SKILL_ENTRY_METADATA } from "@/lib/metadata/skill-entry.generated";
 import { fetchSkillSuggestions } from "@/lib/rs/skill-entry";
 import type { SkillEntryValues } from "./skill-entry-schema";
+import { RefName } from "@/components/shared/ref-list";
 
 /**
  * The skill, completing from the skills anybody has already entered — the autocompletion of the legacy
@@ -38,7 +39,7 @@ export function SkillOwnerField({ className }: { className?: string }) {
   );
   return (
     <ReadOnlyValue label={label("owner")} className={className}>
-      {owner?.displayName}
+      <RefName value={owner} />
     </ReadOnlyValue>
   );
 }
