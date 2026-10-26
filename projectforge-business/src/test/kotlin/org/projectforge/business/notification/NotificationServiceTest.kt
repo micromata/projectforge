@@ -45,10 +45,14 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.json.JsonUtils
+import org.projectforge.mail.MailSendException
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.util.ReflectionTestUtils
+import jakarta.mail.MessagingException
+import java.net.SocketTimeoutException
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -330,6 +334,30 @@ class NotificationServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun archivedTest() {
+        val user = initTestDB.addUser("notification-archived-user")
+        val otherUser = initTestDB.addUser("notification-archived-other-user")
+        val since = Date(System.currentTimeMillis() - 60_000L)
+        val toast = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery())
+        val mailOnly = insertRule(
+            NotificationRuleType.MANUAL, user,
+            NotificationDelivery(listOf(NotificationDeliveryStep(NotificationChannel.MAIL, 0))),
+        )
+        val other = insertRule(NotificationRuleType.MANUAL, otherUser, NotificationDelivery())
+        notificationService.trigger(toast)
+        notificationService.trigger(mailOnly)
+        notificationService.trigger(other)
+        val notification = notificationDao.select(NotificationDao.Filter(ruleId = toast.id)).single()
+        assertTrue(notificationDao.findArchived(user.id!!, since).isEmpty(), "Still visible, mail only isn't listed.")
+        // Confirmed by mistake: the toast isn't visible any more, but archived.
+        notificationDao.acknowledge(notification.id!!, user)
+        assertTrue(notificationDao.findVisible(user.id!!).isEmpty())
+        assertEquals(listOf(notification.id), notificationDao.findArchived(user.id!!, since).map { it.id })
+        assertTrue(notificationDao.findArchived(otherUser.id!!, since).isEmpty(), "The other one is still open.")
+        assertTrue(notificationDao.findArchived(user.id!!, Date(System.currentTimeMillis() + 60_000L)).isEmpty())
+    }
+
+    @Test
     fun expireOfDeactivatedRuleTest() {
         val user = initTestDB.addUser("notification-deactivated-rule-user")
         val delivery = NotificationDelivery(
@@ -361,6 +389,40 @@ class NotificationServiceTest : AbstractTestBase() {
         notificationRuleDao.update(rule, checkAccess = false)
         notificationService.resolvePending(LocalDate.now())
         assertEquals(NotificationStatus.EXPIRED, notificationDao.findById(second.id)!!.status)
+    }
+
+    @Test
+    fun mailServerUnreachableTest() {
+        val first = initTestDB.addUser("notification-unreachable-user1")
+        val second = initTestDB.addUser("notification-unreachable-user2")
+        val mail = NotificationDelivery(listOf(NotificationDeliveryStep(NotificationChannel.MAIL, 0)))
+        val rule = insertRule(NotificationRuleType.MANUAL, first, mail) {
+            it.recipients = JsonUtils.toJson(NotificationRecipients(userIds = listOf(first.id!!, second.id!!)))
+        }
+        var calls = 0
+        val unreachable = object : NotificationChannelSender {
+            override val channel = NotificationChannel.MAIL
+            override fun deliver(notification: NotificationDO, recipient: PFUserDO, now: Date): String? {
+                ++calls
+                throw MailSendException(MessagingException("Couldn't connect", SocketTimeoutException("Connect timed out")))
+            }
+        }
+        val senderList = ReflectionTestUtils.getField(notificationService, "senderList")
+        ReflectionTestUtils.setField(notificationService, "senderList", listOf(unreachable))
+        try {
+            assertEquals(2, notificationService.trigger(rule).created)
+        } finally {
+            ReflectionTestUtils.setField(notificationService, "senderList", senderList)
+        }
+        assertEquals(1, calls, "The second mail isn't tried once the mail server isn't reachable.")
+        val steps = notificationDao.select(NotificationDao.Filter(ruleId = rule.id))
+            .map { it.readDeliveryState().steps.single() }.sortedByDescending { it.attempts }
+        assertEquals(1, steps[0].attempts)
+        assertEquals("Connect timed out", steps[0].error, "The cause, not the i18n key of the MailSendException.")
+        assertFalse(steps[0].isProcessed, "Retried later.")
+        assertEquals(0, steps[1].attempts, "Postponed: no attempt counted.")
+        assertNull(steps[1].error)
+        assertFalse(steps[1].isProcessed)
     }
 
     @Test

@@ -136,6 +136,19 @@ class KostFormatter {
     }
 
     /**
+     * "5.123.45: ACME DB project (ACME)": [formatProjekt] (TEXT) followed by the customer in brackets, the label
+     * wherever a project is chosen (pickers, filter checklists), since projects of different customers often share
+     * a name. A project without customer has no brackets.
+     */
+    fun formatProjektWithCustomer(projekt: ProjektDO?): String {
+        val useProjekt = projektCache.getProjektIfNotInitialized(projekt)
+        return withCustomer(
+            formatProjekt(useProjekt, FormatType.TEXT),
+            useProjekt?.let { KundeFormatter.formatKundeAsString(it.kunde) },
+        )
+    }
+
+    /**
      * Examples: "5.234.56.78: travel - ACME DB project"
      * "6.100.27.03 - {cost 2 description}
      * @param kost2 The kost2 to format.
@@ -229,6 +242,11 @@ class KostFormatter {
             private set
 
         const val MAX_VALUE: Int = 99999999
+
+        /** "label (customer)", or the label alone for a blank customer. See [formatProjektWithCustomer]. */
+        @JvmStatic
+        fun withCustomer(label: String, customer: String?): String =
+            if (customer.isNullOrBlank()) label else "$label ($customer)"
 
         /**
          * Default cap for the abbreviated TEXT / NUMBER_AND_NAME formats (project, kost, kunde). The
