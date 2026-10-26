@@ -245,6 +245,15 @@ export function muteChatConversation(id: number, muted: boolean) {
   return chatPost<void>(`${BASE}/conversation/${id}/mute`, { value: muted });
 }
 
+/** The members of the conversation, the user included, sorted by name (ChatRest.members). */
+export function fetchChatMembers(id: number, signal?: AbortSignal) {
+  return chatRequest<ChatRef[]>(
+    `${BASE}/conversation/${id}/members`,
+    { method: "GET" },
+    signal
+  );
+}
+
 export function fetchChatMentionCandidates(
   id: number,
   search: string,

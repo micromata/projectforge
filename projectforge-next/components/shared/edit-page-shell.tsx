@@ -172,7 +172,8 @@ export function EditPageShell({
  *
  * `/task/42#financeAdministration` is a link to a *part* of a form — the shape a mail or a bookmark
  * takes when it is about one block of an entry rather than the entry. Without this the form would
- * always open at its first section and such a link would appear to do nothing.
+ * always open at its first section and such a link would appear to do nothing. A hash changed later,
+ * on the open page, scrolls as well.
  */
 function useSectionFromHash(
   tabs: EditPageTab[],
@@ -185,9 +186,19 @@ function useSectionFromHash(
     .map((tab) => tab.id)
     .join(",");
   useEffect(() => {
-    const index = anchorIds.split(",").indexOf(window.location.hash.slice(1));
+    const indexOfHash = () =>
+      anchorIds.split(",").indexOf(window.location.hash.slice(1));
+    const index = indexOfHash();
     // Not `>= 0`: the first section is where the page opens anyway, and scrolling to it would undo a
     // scroll restored by the browser on a reload.
     if (index > 0) scrollToSection(index);
+    // A hash set while the page is open (the avatar in the user menu, clicked on My account itself)
+    // is a jump within the page; there the first section is a target like any other.
+    const onHashChange = () => {
+      const changed = indexOfHash();
+      if (changed >= 0) scrollToSection(changed);
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
   }, [anchorIds, scrollToSection]);
 }

@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { chatConversationQueryKey, fetchChatConversation } from "@/lib/rs/chat";
 import { cn } from "@/lib/utils";
+import { ChatMembersButton } from "./chat-members-button";
 import { ChatPanel } from "./chat-panel";
 import { ChatRoomDialog } from "./chat-room-dialog";
 
@@ -61,6 +62,12 @@ export function ChatConversationPage({
             {t("chat.backToHost")}
           </Link>
         </Button>
+        {conversation && (
+          <ChatMembersButton
+            conversationId={conversationId}
+            meId={conversation.me.id}
+          />
+        )}
         {roomId != null && (
           <Button
             variant="ghost"
