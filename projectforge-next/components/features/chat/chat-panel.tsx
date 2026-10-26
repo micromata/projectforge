@@ -8,6 +8,7 @@ import { Spinner } from "@/components/shared/spinner";
 import {
   chatConversationQueryKey,
   fetchChatConversation,
+  markChatUnread,
   muteChatConversation,
 } from "@/lib/rs/chat";
 import type { ChatMessage } from "@/lib/rs/chat-types";
@@ -44,15 +45,23 @@ export function ChatPanel({
     refetchOnWindowFocus: false,
   });
   const conversation = query.data;
-  // The read state when opened, for the "new" line: marking read meanwhile doesn't move it.
-  const [lastReadAtOpen, setLastReadAtOpen] = useState<
-    number | null | undefined
-  >(undefined);
-  if (conversation && lastReadAtOpen === undefined)
-    setLastReadAtOpen(conversation.lastReadMessageId ?? null);
+  // The read state when opened, for the "new" lines: marking read meanwhile doesn't move it, marking unread does.
+  const [readMark, setReadMark] = useState<number | null | undefined>(
+    undefined
+  );
+  if (conversation && readMark === undefined)
+    setReadMark(conversation.lastReadMessageId ?? null);
   const [threadRootId, setThreadRootId] = useState<number | null>(null);
+  // The threads opened since: their new replies are seen.
+  const [openedThreads, setOpenedThreads] = useState<ReadonlySet<number>>(
+    () => new Set()
+  );
+  const openThread = useCallback((rootId: number) => {
+    setThreadRootId(rootId);
+    setOpenedThreads((ids) => new Set(ids).add(rootId));
+  }, []);
   const [newestId, setNewestId] = useState(0);
-  const markUpTo = useMarkRead(conversationId);
+  const { markUpTo, pause, resume } = useMarkRead(conversationId);
   const trackNewest = useCallback((messages: ChatMessage[]) => {
     setNewestId((id) => Math.max(id, ...messages.map((it) => it.id)));
   }, []);
@@ -68,6 +77,27 @@ export function ChatPanel({
       markUpTo(Math.max(id ?? 0, newestId, conversation?.newestMessageId ?? 0)),
     [markUpTo, newestId, conversation?.newestMessageId]
   );
+  const unread = useMutation({
+    mutationFn: (message: ChatMessage) =>
+      markChatUnread(conversationId, message.id),
+    onMutate: (message) => {
+      pause(message.id - 1);
+      setReadMark(message.id - 1);
+      setOpenedThreads(new Set());
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["chatRooms"] });
+      void queryClient.invalidateQueries({ queryKey: ["chatDirect"] });
+    },
+  });
+  const markUnread = unread.mutate;
+  const hasUnreadReplies = useCallback(
+    (message: ChatMessage) =>
+      readMark != null &&
+      (message.newestReplyOfOthersId ?? 0) > readMark &&
+      !openedThreads.has(message.id),
+    [readMark, openedThreads]
+  );
   const mute = useMutation({
     mutationFn: (muted: boolean) => muteChatConversation(conversationId, muted),
     onSuccess: () =>
@@ -81,11 +111,22 @@ export function ChatPanel({
         ? {
             conversation,
             sync: live.sync,
-            openThread: setThreadRootId,
+            openThread,
             highlightId,
+            readMark: readMark ?? null,
+            hasUnreadReplies,
+            markUnread,
           }
         : null,
-    [conversation, live.sync, highlightId]
+    [
+      conversation,
+      live.sync,
+      openThread,
+      highlightId,
+      readMark,
+      hasUnreadReplies,
+      markUnread,
+    ]
   );
 
   if (query.isError) {
@@ -101,7 +142,7 @@ export function ChatPanel({
     );
   }
   const jump = (message: ChatMessage) => {
-    if (message.threadRootId) setThreadRootId(message.threadRootId);
+    if (message.threadRootId) openThread(message.threadRootId);
     else
       document
         .getElementById(`chat-message-${message.id}`)
@@ -118,16 +159,14 @@ export function ChatPanel({
           onMute={() => mute.mutate(!conversation.muted)}
           polling={live.mode === "polling"}
         />
-        <MessageList
-          lastReadMessageId={lastReadAtOpen ?? null}
-          onAtEnd={onAtEnd}
-        />
+        <MessageList onAtEnd={onAtEnd} />
         <SecretOffers sessions={secrets.sessions} onChange={secrets.refresh} />
         {conversation.canWrite ? (
           <ChatComposer
             conversation={conversation}
             threadRootId={null}
             onSent={(message) => {
+              resume(); // Writing, the conversation is read again.
               applyChatChanges(queryClient, conversationId, [message]);
               void live.sync();
             }}

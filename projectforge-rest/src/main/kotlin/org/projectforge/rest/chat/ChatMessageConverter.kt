@@ -50,16 +50,16 @@ class ChatMessageConverter {
 
     fun convert(context: ChatAccess.Context, messages: List<ChatMessageDO>): List<ChatMessage> {
         val rootIds = messages.filter { it.threadRootId == null && it.replyCount > 0 }.mapNotNull { it.id }
-        val replyAuthors = chatService.selectReplyAuthorIds(rootIds)
+        val replies = chatService.selectReplySummaries(rootIds)
         val existing = existingFileIds(messages)
-        return messages.map { convert(context, it, replyAuthors[it.id].orEmpty(), existing) }
+        return messages.map { convert(context, it, replies[it.id], existing) }
     }
 
     fun convert(context: ChatAccess.Context, message: ChatMessageDO): ChatMessage {
-        val replyAuthors = if (message.threadRootId == null && message.replyCount > 0) {
-            chatService.selectReplyAuthorIds(listOf(message.id!!))[message.id].orEmpty()
-        } else emptyList()
-        return convert(context, message, replyAuthors, existingFileIds(listOf(message)))
+        val replies = if (message.threadRootId == null && message.replyCount > 0) {
+            chatService.selectReplySummaries(listOf(message.id!!))[message.id]
+        } else null
+        return convert(context, message, replies, existingFileIds(listOf(message)))
     }
 
     /** The files of the messages still there, asked once per area. */
@@ -71,7 +71,7 @@ class ChatMessageConverter {
     private fun convert(
         context: ChatAccess.Context,
         message: ChatMessageDO,
-        replyAuthorIds: List<Long>,
+        replies: ChatService.ReplySummary?,
         existingFileIds: Set<String>,
     ): ChatMessage {
         val meId = context.user.id
@@ -96,7 +96,8 @@ class ChatMessageConverter {
             },
             replyCount = message.replyCount,
             lastReplyAt = message.lastReplyAt,
-            replyAuthors = replyAuthorIds.take(MAX_REPLY_AUTHORS).map { ref(it) },
+            replyAuthors = replies?.authorIds.orEmpty().take(MAX_REPLY_AUTHORS).map { ref(it) },
+            newestReplyOfOthersId = replies?.newestIdOfOthers(meId),
             following = message.threadRootId == null && meId in chatService.threadFollowers(message),
             own = message.authorId == meId,
             mentionsMe = meId != null && meId in ChatRoomDO.toIds(message.mentionedIds),

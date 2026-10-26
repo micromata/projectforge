@@ -452,6 +452,22 @@ open class ChatService {
         notifier.resolve(conversationId, user.id!!)
     }
 
+    /**
+     * The logged-in user marks the conversation unread from the given message on: read only up to the messages
+     * before it, also if read further before. The notifications resolved stay resolved.
+     */
+    open fun markUnread(conversationId: Long, messageId: Long) {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val context = chatAccess.requireContext(conversationId, user)
+        val message = findMessage(messageId)?.takeIf { it.conversationId == context.conversationId }
+            ?: throw AccessException(user, NO_ACCESS)
+        persistenceService.runInTransaction { pc ->
+            val state = memberState(pc, conversationId, user.id!!)
+            state.lastReadMessageId = message.id!! - 1
+            if (state.id == null) pc.em.persist(state)
+        }
+    }
+
     /** Mutes the conversation for the logged-in user (no notifications about new messages, except mentions). */
     open fun setMuted(conversationId: Long, muted: Boolean) {
         val user = ThreadLocalUserContext.requiredLoggedInUser
@@ -556,14 +572,17 @@ open class ChatService {
             .toList()
     }
 
-    /** The authors of the replies of the given messages (not deleted ones), in the order of their first reply. */
-    open fun selectReplyAuthorIds(rootIds: Collection<Long>): Map<Long, List<Long>> {
+    /**
+     * The replies of the given messages (not deleted ones): their authors in the order of their first reply and the
+     * newest reply of each author.
+     */
+    open fun selectReplySummaries(rootIds: Collection<Long>): Map<Long, ReplySummary> {
         if (rootIds.isEmpty()) {
             return emptyMap()
         }
-        val result = mutableMapOf<Long, MutableList<Long>>()
+        val result = mutableMapOf<Long, ReplySummary>()
         persistenceService.executeQueryBatched(
-            "select m.threadRootId, m.authorId from ChatMessageDO m where m.threadRootId in :rootIds" +
+            "select m.threadRootId, m.authorId, m.id from ChatMessageDO m where m.threadRootId in :rootIds" +
                     " and m.deleted = false order by m.id",
             Array<Any?>::class.java,
             batchParam = "rootIds",
@@ -571,10 +590,21 @@ open class ChatService {
         ).forEach { row ->
             val rootId = (row[0] as? Number)?.toLong() ?: return@forEach
             val authorId = (row[1] as? Number)?.toLong() ?: return@forEach
-            val authors = result.getOrPut(rootId) { mutableListOf() }
-            if (authorId !in authors) authors += authorId
+            val id = (row[2] as? Number)?.toLong() ?: return@forEach
+            val summary = result.getOrPut(rootId) { ReplySummary() }
+            if (authorId !in summary.newestIdByAuthor) summary.authorIds += authorId
+            summary.newestIdByAuthor[authorId] = id // Ordered by id: the last one is the newest.
         }
         return result
+    }
+
+    /** The replies of a thread, see [selectReplySummaries]. */
+    class ReplySummary {
+        val authorIds = mutableListOf<Long>()
+        val newestIdByAuthor = mutableMapOf<Long, Long>()
+
+        /** The newest reply of an author other than the given user, null if none. */
+        fun newestIdOfOthers(userId: Long?): Long? = newestIdByAuthor.filterKeys { it != userId }.values.maxOrNull()
     }
 
     /** The followers of a thread: the author of its message and the followers, without those who unfollowed it. */

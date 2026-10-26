@@ -23,7 +23,8 @@ import { useMessageMutations } from "./use-message-mutations";
 
 /**
  * The actions of a message, shown on hover (always on touch devices): react, reply in the thread, and in the
- * menu edit and delete (own messages), copy the link, hide and history (moderators).
+ * menu edit and delete (own messages), copy the link, mark unread (messages of others), hide and history
+ * (moderators).
  */
 export function MessageActions({
   message,
@@ -35,7 +36,7 @@ export function MessageActions({
   onEdit: () => void;
 }) {
   const t = useTranslations();
-  const { conversation, openThread } = useChatContext();
+  const { conversation, openThread, markUnread } = useChatContext();
   const mutations = useMessageMutations();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [hiding, setHiding] = useState(false);
@@ -94,6 +95,11 @@ export function MessageActions({
           <DropdownMenuItem onSelect={copyLink}>
             {t("chat.message.copyLink")}
           </DropdownMenuItem>
+          {!message.own && !message.deleted && (
+            <DropdownMenuItem onSelect={() => markUnread(message)}>
+              {t("chat.message.markUnread")}
+            </DropdownMenuItem>
+          )}
           {conversation.isModerator && !message.deleted && (
             <DropdownMenuItem
               onSelect={() =>

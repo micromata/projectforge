@@ -46,6 +46,8 @@ export interface ChatMessage {
   replyCount: number;
   lastReplyAt: string | null;
   replyAuthors: ChatRef[];
+  /** The newest reply of others in the thread, for marking it as having unread replies. */
+  newestReplyOfOthersId: number | null;
   following: boolean;
   own: boolean;
   mentionsMe: boolean;

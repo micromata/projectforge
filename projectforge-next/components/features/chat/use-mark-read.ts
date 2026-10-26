@@ -9,17 +9,18 @@ const DELAY_MS = 1_000;
 /**
  * Marks the conversation read up to the newest message known (NOT-01) while it is shown at its end in a visible
  * tab, a second after the last change; the notifications about it are resolved by the server, so the badges of
- * the menu and the notifications are refreshed.
+ * the menu and the notifications are refreshed. Marked unread, it pauses until resumed.
  */
 export function useMarkRead(conversationId: number) {
   const queryClient = useQueryClient();
   const marked = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pending = useRef(0);
+  const paused = useRef(false);
 
   const flush = useCallback(() => {
     const id = pending.current;
-    if (id <= marked.current || document.hidden) return;
+    if (paused.current || id <= marked.current || document.hidden) return;
     marked.current = id;
     markChatRead(conversationId, id).then(
       () => {
@@ -37,13 +38,25 @@ export function useMarkRead(conversationId: number) {
   /** The newest message id is shown (at the end of the list): mark it read soon. */
   const markUpTo = useCallback(
     (messageId: number | null | undefined) => {
-      if (!messageId || messageId <= marked.current) return;
+      if (paused.current || !messageId || messageId <= marked.current) return;
       pending.current = Math.max(pending.current, messageId);
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(flush, DELAY_MS);
     },
     [flush]
   );
+
+  /** Marked unread, read up to [readUpTo]: doesn't mark read until [resume]. */
+  const pause = useCallback((readUpTo: number) => {
+    paused.current = true;
+    if (timer.current) clearTimeout(timer.current);
+    marked.current = readUpTo;
+    pending.current = readUpTo;
+  }, []);
+
+  const resume = useCallback(() => {
+    paused.current = false;
+  }, []);
 
   useEffect(() => {
     const onVisibility = () => !document.hidden && flush();
@@ -54,5 +67,5 @@ export function useMarkRead(conversationId: number) {
     };
   }, [flush]);
 
-  return markUpTo;
+  return { markUpTo, pause, resume };
 }

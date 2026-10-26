@@ -5,8 +5,12 @@ import { UserAvatar } from "@/components/shared/user-avatar";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatTimestampMinutes } from "@/lib/format";
 import type { ChatMessage } from "@/lib/rs/chat-types";
+import { useChatContext } from "./chat-context";
 
-/** Below a message with a thread: who replied, how often and when last (THR-03); a click opens it. */
+/**
+ * Below a message with a thread: who replied, how often and when last (THR-03), whether there are unread replies;
+ * a click opens it.
+ */
 export function ThreadSummary({
   message,
   onOpen,
@@ -16,6 +20,7 @@ export function ThreadSummary({
 }) {
   const t = useTranslations();
   const formatContext = useFormatContext();
+  const { hasUnreadReplies } = useChatContext();
   if (message.replyCount === 0) return null;
   const count =
     message.replyCount === 1
@@ -37,6 +42,11 @@ export function ThreadSummary({
         ))}
       </span>
       <span className="font-semibold text-primary">{count}</span>
+      {hasUnreadReplies(message) && (
+        <span className="rounded-full bg-destructive px-1.5 text-[10px] font-semibold text-white">
+          {t("chat.thread.newReplies")}
+        </span>
+      )}
       {message.lastReplyAt && (
         <span className="text-muted-foreground">
           {t("chat.thread.lastReply", {

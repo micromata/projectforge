@@ -280,6 +280,14 @@ class ChatRest {
         return ResponseEntity.noContent().build()
     }
 
+    @AccessChecked("ChatService.markUnread: read access of the host to the conversation, message of this conversation only, own state only")
+    @PostMapping("conversation/{id}/unread")
+    fun markUnread(@PathVariable id: Long, @RequestBody request: ChatReadRequest): ResponseEntity<Unit> {
+        val messageId = request.messageId ?: throw AccessException(ThreadLocalUserContext.requiredLoggedInUser, NO_ACCESS)
+        chatService.markUnread(id, messageId)
+        return ResponseEntity.noContent().build()
+    }
+
     @AccessChecked("ChatService.setMuted: read access of the host to the conversation, own state only")
     @PostMapping("conversation/{id}/mute")
     fun mute(@PathVariable id: Long, @RequestBody request: ChatFlagRequest): ResponseEntity<Unit> {

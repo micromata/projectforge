@@ -192,6 +192,11 @@ export function markChatRead(id: number, messageId: number) {
   return chatPost<void>(`${BASE}/conversation/${id}/read`, { messageId });
 }
 
+/** Marks the conversation unread from the message on (read up to the messages before it). */
+export function markChatUnread(id: number, messageId: number) {
+  return chatPost<void>(`${BASE}/conversation/${id}/unread`, { messageId });
+}
+
 export function muteChatConversation(id: number, muted: boolean) {
   return chatPost<void>(`${BASE}/conversation/${id}/mute`, { value: muted });
 }

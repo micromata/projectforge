@@ -77,6 +77,8 @@ class ChatMessage(
     val lastReplyAt: Date?,
     /** The authors of the replies (thread summary), at most a few. */
     val replyAuthors: List<ChatRef>,
+    /** The newest reply of others in the thread, for marking it as having unread replies. */
+    val newestReplyOfOthersId: Long? = null,
     /** Follows the logged-in user the thread of this message? */
     val following: Boolean,
     /** Is it a message of the logged-in user (editable, deletable)? */

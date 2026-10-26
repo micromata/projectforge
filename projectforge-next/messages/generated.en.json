@@ -1020,6 +1020,7 @@
       },
       "history": "History",
       "linkCopied": "Link copied.",
+      "markUnread": "Mark as unread",
       "placeholder": "Write a message, @ mentions somebody",
       "react": "Add reaction",
       "reply": "Reply in thread",
@@ -1090,6 +1091,7 @@
     "thread": {
       "follow": "Follow",
       "lastReply": "Last reply {arg0}",
+      "newReplies": "New",
       "placeholder": "Reply in thread",
       "replies": "{arg0} replies",
       "reply": "1 reply",

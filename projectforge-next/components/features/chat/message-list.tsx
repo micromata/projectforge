@@ -4,6 +4,7 @@ import { Fragment, useEffect, useLayoutEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
+import type { ChatMessage } from "@/lib/rs/chat-types";
 import { useChatContext } from "./chat-context";
 import { MessageItem } from "./message-item";
 import { useChatMessages } from "./use-chat-messages";
@@ -14,29 +15,23 @@ const AT_END_PX = 80;
 /**
  * The messages of the conversation, oldest at the top, starting at the end (or at the message of a deep link).
  * Scrolling up loads older ones, keeping the position; new messages scroll along while at the end. A line marks
- * the first message unread when the conversation was opened. [onAtEnd] reports the newest message shown at the end.
+ * the first message unread when the conversation was opened (or as marked unread since). [onAtEnd] reports the
+ * newest message shown at the end.
  */
 export function MessageList({
-  lastReadMessageId,
   onAtEnd,
 }: {
-  lastReadMessageId: number | null;
   onAtEnd: (newestId: number | null) => void;
 }) {
   const t = useTranslations();
-  const { conversation, highlightId } = useChatContext();
+  const { conversation, highlightId, readMark } = useChatContext();
   const { query, messages } = useChatMessages(conversation.id);
   const scrollRef = useRef<HTMLDivElement>(null);
   const atEnd = useRef(true);
   const heightBefore = useRef<number | null>(null);
   const positioned = useRef(false);
   const newest = messages[messages.length - 1];
-  const firstUnread = messages.find(
-    (it) =>
-      lastReadMessageId != null &&
-      it.id > lastReadMessageId &&
-      it.author.id !== conversation.me.id
-  )?.id;
+  const firstUnread = findFirstUnread(messages, readMark, conversation.me.id);
 
   // Keeps the position when older messages come in on top, follows new ones at the end.
   useLayoutEffect(() => {
@@ -109,16 +104,32 @@ export function MessageList({
       )}
       {messages.map((message) => (
         <Fragment key={message.id}>
-          {message.id === firstUnread && (
-            <div className="my-1 flex items-center gap-2 px-3 text-xs font-semibold text-destructive">
-              <span className="h-px flex-1 bg-destructive/50" />
-              {t("chat.conversation.newMessages")}
-              <span className="h-px flex-1 bg-destructive/50" />
-            </div>
-          )}
+          {message.id === firstUnread && <NewMessagesLine />}
           <MessageItem message={message} />
         </Fragment>
       ))}
+    </div>
+  );
+}
+
+/** The first message of others newer than the read state [readMark], undefined if none (or never read). */
+export function findFirstUnread(
+  messages: ChatMessage[],
+  readMark: number | null,
+  meId: number
+): number | undefined {
+  if (readMark == null) return undefined;
+  return messages.find((it) => it.id > readMark && it.author.id !== meId)?.id;
+}
+
+/** The line above the first unread message. */
+export function NewMessagesLine() {
+  const t = useTranslations();
+  return (
+    <div className="my-1 flex items-center gap-2 px-3 text-xs font-semibold text-destructive">
+      <span className="h-px flex-1 bg-destructive/50" />
+      {t("chat.conversation.newMessages")}
+      <span className="h-px flex-1 bg-destructive/50" />
     </div>
   );
 }

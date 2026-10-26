@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "@/components/shared/spinner";
@@ -17,11 +17,13 @@ import { applyChatChanges, chatThreadQueryKey } from "./chat-cache";
 import { useChatContext } from "./chat-context";
 import { ChatComposer } from "./chat-composer";
 import { MessageItem } from "./message-item";
+import { findFirstUnread, NewMessagesLine } from "./message-list";
 import { useMessageMutations } from "./use-message-mutations";
 
 /**
  * The thread of a message in a side panel (full screen on small devices, THR-04): the message, its replies,
- * following it and replying. Kept up to date by the live updates of the conversation.
+ * following it and replying, a line above the first unread reply. Kept up to date by the live updates of the
+ * conversation.
  */
 export function ThreadPanel({
   rootId,
@@ -31,7 +33,7 @@ export function ThreadPanel({
   onClose: () => void;
 }) {
   const t = useTranslations();
-  const { conversation, sync } = useChatContext();
+  const { conversation, sync, readMark } = useChatContext();
   const queryClient = useQueryClient();
   const { follow } = useMessageMutations();
   const endRef = useRef<HTMLDivElement>(null);
@@ -47,6 +49,11 @@ export function ThreadPanel({
     endRef.current?.scrollIntoView({ block: "end" });
   }, [replies]);
   const root = query.data?.root;
+  const firstUnread = findFirstUnread(
+    query.data?.replies ?? [],
+    readMark,
+    conversation.me.id
+  );
 
   return (
     <Sheet open={rootId != null} onOpenChange={(open) => !open && onClose()}>
@@ -82,7 +89,10 @@ export function ThreadPanel({
           {root && <MessageItem message={root} inThread />}
           {query.data && <div className="mx-3 my-1 border-t" />}
           {query.data?.replies.map((reply) => (
-            <MessageItem key={reply.id} message={reply} inThread />
+            <Fragment key={reply.id}>
+              {reply.id === firstUnread && <NewMessagesLine />}
+              <MessageItem message={reply} inThread />
+            </Fragment>
           ))}
           <div ref={endRef} />
         </div>

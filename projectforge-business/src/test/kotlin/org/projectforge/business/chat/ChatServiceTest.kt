@@ -205,6 +205,39 @@ class ChatServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun `marking a message unread moves the read state back, the newest reply of others marks a thread`() {
+        val conversationId = createRoom("chat unread test")
+        val first = chatService.send(conversationId, null, "first")
+        val second = chatService.send(conversationId, null, "second")
+        val user2 = getUserId(TEST_USER2)
+
+        logon(TEST_USER2)
+        chatService.markRead(conversationId, second.id!!)
+        assertEquals(0, chatService.countUnread(conversationId, user2))
+        chatService.markUnread(conversationId, first.id!!)
+        assertEquals(2, chatService.countUnread(conversationId, user2))
+        assertEquals(first.id!! - 1, chatService.getMemberState(conversationId, user2)!!.lastReadMessageId)
+        chatService.markUnread(conversationId, second.id!!) // Also forwards: read up to the message before.
+        assertEquals(1, chatService.countUnread(conversationId, user2))
+
+        val ownReply = chatService.send(conversationId, first.id, "reply of user2")
+        logon(TEST_USER)
+        val reply = chatService.send(conversationId, first.id, "reply of the owner")
+        val summary = chatService.selectReplySummaries(listOf(first.id!!))[first.id]!!
+        assertEquals(listOf(user2, getUserId(TEST_USER)), summary.authorIds)
+        assertEquals(reply.id, summary.newestIdOfOthers(user2))
+        assertEquals(ownReply.id, summary.newestIdOfOthers(getUserId(TEST_USER)))
+
+        suppressErrorLogs {
+            logon(TEST_FINANCE_USER)
+            assertThrows(AccessException::class.java) { chatService.markUnread(conversationId, first.id!!) }
+            val otherId = chatService.send(createRoom("chat unread other room"), null, "other").id!!
+            logon(TEST_USER2)
+            assertThrows(AccessException::class.java) { chatService.markUnread(conversationId, otherId) }
+        }
+    }
+
+    @Test
     fun `the search finds wildcards as text`() {
         val conversationId = createRoom("chat search test")
         val context = chatService.requireContext(conversationId)
