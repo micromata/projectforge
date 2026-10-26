@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Admin guide: the backup script compresses the dump of the files (about half the size), because pg_dump writes their contents hex encoded.",
-  "de": "Admin-Handbuch: Das Backup-Skript komprimiert den Dump der Dateien (etwa halbe Größe), weil pg_dump deren Inhalte hex-kodiert schreibt."
-}
