@@ -75,6 +75,8 @@ export interface UserDetail {
   externalUserManagementSystem?: boolean | null;
   wlanPasswordSupported?: boolean | null;
   phoneIdentifiersSupported?: boolean | null;
+  /** The version of the user's avatar (lib/rs/user-avatar.ts), null without one. */
+  avatarVersion?: number | null;
   created?: string | null;
   lastUpdate?: string | null;
 }

@@ -6477,6 +6477,21 @@
         "qrCode": "QR-Code zum Einrichten einer Client-App mit diesem Schlüssel."
       }
     },
+    "avatar": {
+      "_": "Avatar",
+      "edit": "Bearbeiten",
+      "error": {
+        "unsupportedImage": "Als Avatar können nur Bilder der Typen PNG, JPEG und GIF verwendet werden."
+      },
+      "hint": "Wird im Chat und im Benutzermenü allen Benutzern angezeigt, die mindestens eine Gruppe gemeinsam haben.",
+      "remove": {
+        "_": "Entfernen",
+        "confirm": "Avatar entfernen?"
+      },
+      "removed": "Der Avatar wurde entfernt.",
+      "saved": "Der Avatar wurde gespeichert.",
+      "upload": "Bild hochladen"
+    },
     "changePassword": {
       "error": {
         "noCharacter": "Passwort muss mindestens einen Buchstaben haben.",

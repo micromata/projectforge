@@ -28,6 +28,7 @@ import org.projectforge.business.chat.ChatFileService
 import org.projectforge.business.chat.ChatMessageDO
 import org.projectforge.business.chat.ChatRoomDO
 import org.projectforge.business.chat.ChatService
+import org.projectforge.business.user.UserAvatarDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -45,6 +46,9 @@ class ChatMessageConverter {
 
     @Autowired
     private lateinit var fileService: ChatFileService
+
+    @Autowired
+    private lateinit var userAvatarDao: UserAvatarDao
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
@@ -135,7 +139,13 @@ class ChatMessageConverter {
 
     /** As [ref] by id, for a user already at hand. */
     fun ref(user: PFUserDO): ChatRef {
-        return ChatRef(user.id ?: 0, user.getFullname(), deleted = user.deleted, deactivated = user.deactivated)
+        return ChatRef(
+            user.id ?: 0,
+            user.getFullname(),
+            deleted = user.deleted,
+            deactivated = user.deactivated,
+            avatarVersion = userAvatarDao.getVersion(user.id),
+        )
     }
 
     companion object {

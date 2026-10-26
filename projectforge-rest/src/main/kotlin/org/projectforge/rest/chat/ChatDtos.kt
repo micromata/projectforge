@@ -34,6 +34,11 @@ class ChatRef(
     val displayName: String,
     val deleted: Boolean = false,
     val deactivated: Boolean = false,
+    /**
+     * The version of the user's avatar (`/rs/userAvatar/{id}/preview?v=`), null without one or if the logged-in user
+     * may not see it (and always for groups): the initials are shown then.
+     */
+    val avatarVersion: Long? = null,
 )
 
 /** A file of a message (stored in the data transfer). */

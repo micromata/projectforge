@@ -134,6 +134,9 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
     private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
 
     @Autowired
+    private lateinit var userAvatarDao: UserAvatarDao
+
+    @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
     @Autowired
@@ -165,6 +168,7 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
             user.externalUserManagementSystem = externalUserManagementSystem
             user.wlanPasswordSupported = Login.getInstance().isWlanPasswordChangeSupported(obj)
             user.phoneIdentifiersSupported = sipgateConfiguration.isConfigured()
+            user.avatarVersion = userAvatarDao.getVersion(obj.id)
         }
         return user
     }

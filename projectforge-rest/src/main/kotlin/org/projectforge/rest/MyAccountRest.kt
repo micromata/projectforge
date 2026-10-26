@@ -30,6 +30,7 @@ import org.projectforge.business.login.Login
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.user.StayLoggedInTokenDao
 import org.projectforge.business.user.UserAuthenticationsService
+import org.projectforge.business.user.UserAvatarDao
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenData
 import org.projectforge.business.user.UserTokenType
@@ -94,6 +95,9 @@ class MyAccountRest {
 
     @Autowired
     private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
+
+    @Autowired
+    private lateinit var userAvatarDao: UserAvatarDao
 
     @Autowired
     private lateinit var userDao: UserDao
@@ -179,6 +183,9 @@ class MyAccountRest {
         val changePasswordUrl: String?,
         val changeWlanPasswordUrl: String?,
         val my2FASetupUrl: String?,
+        /** The id of the logged-in user and the version of the avatar, null without one (see UserAvatarRest). */
+        val userId: Long?,
+        val avatarVersion: Long?,
     )
 
     class Defaults(val dateFormat: String, val excelDateFormat: String, val timeNotation: String?)
@@ -222,6 +229,8 @@ class MyAccountRest {
             changePasswordUrl = MenuItemDefId.CHANGE_PASSWORD.url,
             changeWlanPasswordUrl = if (data.wlanPasswordChangeSupported) MenuItemDefId.CHANGE_WLAN_PASSWORD.url else null,
             my2FASetupUrl = MenuItemDefId.MY_2FA_SETUP.url,
+            userId = ThreadLocalUserContext.loggedInUserId,
+            avatarVersion = userAvatarDao.getVersion(ThreadLocalUserContext.loggedInUserId),
         )
     }
 

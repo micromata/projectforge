@@ -36,6 +36,7 @@ export function ImageEditorDialog({
   image,
   aspect,
   maxWidth,
+  round = false,
   onApply,
   onClose,
 }: {
@@ -44,6 +45,8 @@ export function ImageEditorDialog({
   aspect: number;
   /** The width the result is scaled down to at most. */
   maxWidth: number;
+  /** Shows the cut as a circle, for images shown round (avatars); the result stays a rectangle. */
+  round?: boolean;
   onApply: (file: File) => Promise<void> | void;
   onClose: () => void;
 }) {
@@ -89,6 +92,7 @@ export function ImageEditorDialog({
             zoom={zoom}
             maxZoom={MAX_ZOOM}
             aspect={aspect}
+            cropShape={round ? "round" : "rect"}
             onCropChange={setCrop}
             onZoomChange={setZoom}
             onCropComplete={(_: Area, pixels: Area) => setArea(pixels)}

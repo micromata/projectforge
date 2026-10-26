@@ -31,6 +31,8 @@ export function ChatDirectList({
             <UserAvatar
               name={entry.partner.displayName}
               flags={entry.partner}
+              userId={entry.partner.id}
+              avatarVersion={entry.partner.avatarVersion}
             />
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-2">

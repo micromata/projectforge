@@ -7,7 +7,7 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Addresses: a small image editor cuts a square out of a chosen image, or the one already shown, before it is uploaded (drag and zoom).", "Number ranges: the first proposed local project number can be set per range in the accounting configuration, e.g. 5.###.01 instead of 5.###.00; lower numbers can still be entered.", "Group fields (e.g. the access lists of calendars, address books and polls): hovering a group shows its members, for whoever may see the group.", "Project list: Excel export of the filtered projects with all their fields." ]
+      "items" : [ "Addresses: a small image editor cuts a square out of a chosen image, or the one already shown, before it is uploaded (drag and zoom).", "Number ranges: the first proposed local project number can be set per range in the accounting configuration, e.g. 5.###.01 instead of 5.###.00; lower numbers can still be entered.", "Group fields (e.g. the access lists of calendars, address books and polls): hovering a group shows its members, for whoever may see the group.", "Project list: Excel export of the filtered projects with all their fields.", "Avatars: users upload their own picture under My account (cut square in the image editor); it is shown in the chat and in the user menu to all users sharing at least one group. Administrators can change or remove the avatar of any user." ]
     }, {
       "type" : "improved",
       "items" : [ {

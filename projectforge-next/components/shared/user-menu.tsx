@@ -16,6 +16,7 @@ import {
 import { MENU_HOVER_CLASS, MenuLink } from "@/components/shared/menu-link";
 import { MenuCounterBadge } from "@/components/shared/menu-counter-badge";
 import { ThemeMenu } from "@/components/shared/theme-menu";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { useReportMenuUsage } from "@/hooks/use-report-menu-usage";
 
 /**
@@ -28,10 +29,15 @@ import { useReportMenuUsage } from "@/hooks/use-report-menu-usage";
 export function UserMenu({
   items,
   username,
+  userId,
+  avatarVersion,
   onLogout,
 }: {
   items: MenuItem[];
   username: string;
+  /** The own avatar in front of the name (see UserAvatar). */
+  userId?: number | null;
+  avatarVersion?: number | null;
   onLogout: () => void;
 }) {
   const t = useTranslations("menu");
@@ -49,10 +55,16 @@ export function UserMenu({
       <MenubarTrigger
         className={cn(
           buttonVariants({ variant: "ghost", size: "sm" }),
-          "max-w-40 shrink-0 cursor-pointer"
+          "max-w-48 shrink-0 cursor-pointer"
         )}
         aria-label={t("myAccount")}
       >
+        <UserAvatar
+          name={username}
+          userId={userId}
+          avatarVersion={avatarVersion}
+          className="size-6 text-[10px]"
+        />
         <span className="truncate">{username}</span>
         {/* Same icon and size as a favourites folder, so both read as openable. */}
         <HugeiconsIcon icon={ArrowDown01Icon} size={14} className="shrink-0" />

@@ -6477,6 +6477,21 @@
         "qrCode": "QR code for setting up a client app with this token."
       }
     },
+    "avatar": {
+      "_": "Avatar",
+      "edit": "Edit",
+      "error": {
+        "unsupportedImage": "Only images of the types PNG, JPEG and GIF can be used as avatar."
+      },
+      "hint": "Shown in the chat and in the user menu to all users sharing at least one group.",
+      "remove": {
+        "_": "Remove",
+        "confirm": "Remove the avatar?"
+      },
+      "removed": "The avatar has been removed.",
+      "saved": "The avatar has been saved.",
+      "upload": "Upload image"
+    },
     "changePassword": {
       "error": {
         "noCharacter": "Password must have at minimum one letter.",

@@ -4,6 +4,8 @@ import type { InactiveFlags } from "@/lib/page-def/reference";
 export interface ChatRef extends InactiveFlags {
   id: number;
   displayName: string;
+  /** The version of the user's avatar, null without one or if it may not be seen (and for groups). */
+  avatarVersion?: number | null;
 }
 
 /** A file of a message, stored in the data transfer (ChatFileService). */
