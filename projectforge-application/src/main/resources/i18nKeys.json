@@ -1268,6 +1268,7 @@
   {"i18nKey":"chat.file.expiryDays","bundleName":"I18nResources","translation":"Files available","translationDE":"Dateien verfügbar","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"chat.file.expiryDays.info","bundleName":"I18nResources","translation":"The files of the room are kept that long in its data transfer area \"Chat: …\", then they are deleted.","translationDE":"Die Dateien des Raums werden so lange in seinem Datentransferbereich „Chat: …“ aufbewahrt und danach gelöscht.","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"chat.file.notAvailable","bundleName":"I18nResources","translation":"File no longer available","translationDE":"Datei nicht mehr verfügbar","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"chat.file.openArea","bundleName":"I18nResources","translation":"Open in data transfer","translationDE":"Im Datentransfer öffnen","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"chat.file.remove","bundleName":"I18nResources","translation":"Remove file","translationDE":"Datei entfernen","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"chat.image.error.tooManyPixels","bundleName":"I18nResources","translation":"The image is too large (at most {0} megapixels).","translationDE":"Das Bild ist zu groß (höchstens {0} Megapixel).","usedInClasses":["org.projectforge.business.chat.ChatFileService"],"usedInFiles":[]},
   {"i18nKey":"chat.mention.noResults","bundleName":"I18nResources","translation":"Nobody found.","translationDE":"Niemand gefunden.","usedInClasses":[],"usedInFiles":[]},

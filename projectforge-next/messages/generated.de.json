@@ -995,6 +995,7 @@
         "info": "Die Dateien des Raums werden so lange in seinem Datentransferbereich „Chat: …“ aufbewahrt und danach gelöscht."
       },
       "notAvailable": "Datei nicht mehr verfügbar",
+      "openArea": "Im Datentransfer öffnen",
       "remove": "Datei entfernen"
     },
     "mention": {

@@ -89,7 +89,7 @@ class ChatMessageConverter {
             hiddenReason = if (message.isHidden && context.isModerator) message.hiddenReason else null,
             content = if (showContent) message.content else null,
             files = if (showContent) message.readAttachments().map {
-                ChatFile(it.fileId, it.name, it.size, FormatterUtils.formatBytes(it.size), it.image, it.fileId in existingFileIds)
+                ChatFile(it.areaId, it.fileId, it.name, it.size, FormatterUtils.formatBytes(it.size), it.image, it.fileId in existingFileIds)
             } else emptyList(),
             reactions = if (message.deleted) emptyList() else message.readReactions().map { (emoji, userIds) ->
                 ChatReaction(emoji, userIds.size, userIds.map { ref(it).displayName }, meId in userIds)

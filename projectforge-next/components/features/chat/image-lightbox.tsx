@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Download01Icon } from "@hugeicons/core-free-icons";
+import { Download01Icon, FolderOpenIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,7 +14,7 @@ import {
 import { chatFileUrl } from "@/lib/rs/chat";
 import type { ChatFile } from "@/lib/rs/chat-types";
 
-/** An image of a message full size, with download. */
+/** An image of a message full size, with download and a link to its data transfer area. */
 export function ImageLightbox({
   conversationId,
   file,
@@ -39,7 +40,16 @@ export function ImageLightbox({
               alt=""
               className="mx-auto max-h-[85dvh] max-w-full object-contain"
             />
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/datatransfer/${file.areaId}`} onClick={onClose}>
+                  <HugeiconsIcon
+                    icon={FolderOpenIcon}
+                    data-icon="inline-start"
+                  />
+                  {t("chat.file.openArea")}
+                </Link>
+              </Button>
               <Button asChild variant="outline" size="sm">
                 <a
                   href={chatFileUrl(conversationId, file.fileId, true)}

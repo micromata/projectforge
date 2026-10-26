@@ -30,6 +30,8 @@ class ChatRef(val id: Long, val displayName: String)
 
 /** A file of a message (stored in the data transfer). */
 class ChatFile(
+    /** The data transfer area of the file: the area of the conversation, for direct messages the personal box. */
+    val areaId: Long,
     val fileId: String,
     val name: String,
     val size: Long,

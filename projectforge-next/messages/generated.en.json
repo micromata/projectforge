@@ -995,6 +995,7 @@
         "info": "The files of the room are kept that long in its data transfer area \"Chat: …\", then they are deleted."
       },
       "notAvailable": "File no longer available",
+      "openArea": "Open in data transfer",
       "remove": "Remove file"
     },
     "mention": {

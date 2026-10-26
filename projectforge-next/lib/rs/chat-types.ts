@@ -6,6 +6,8 @@ export interface ChatRef {
 
 /** A file of a message, stored in the data transfer (ChatFileService). */
 export interface ChatFile {
+  /** The data transfer area of the file: the conversation's area, for direct messages the personal box. */
+  areaId: number;
   fileId: string;
   name: string;
   size: number;
