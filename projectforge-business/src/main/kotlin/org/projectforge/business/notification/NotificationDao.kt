@@ -120,6 +120,22 @@ class NotificationDao {
         ).filter { it.isVisibleInApp }
     }
 
+    /**
+     * The notifications of the given user once visible in the app but not any more (confirmed toasts, done, resolved
+     * or expired ones), created since the given date, the newest first. Mail or SMS only ones are left out.
+     */
+    fun findArchived(userId: Long, since: Date, maxResults: Int = 20): List<NotificationDO> {
+        return persistenceService.executeQuery(
+            "from NotificationDO n where n.recipientId = :recipientId and n.inAppSince is not null" +
+                    " and n.created >= :since order by n.created desc, n.id desc",
+            NotificationDO::class.java,
+            Pair("recipientId", userId),
+            Pair("since", since),
+            // The visible ones are filtered afterwards, so take some more.
+            maxResults = maxResults * 3,
+        ).filterNot { it.isVisibleInApp }.take(maxResults)
+    }
+
     fun summary(userId: Long, now: Date = Date()): Summary {
         val visible = findVisible(userId, now)
         return Summary(

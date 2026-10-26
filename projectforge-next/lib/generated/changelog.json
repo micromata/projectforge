@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.16",
+    "date" : "2026-10-26",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Notifications: the bell has a button \"Archived entries\" listing the confirmed or finished notifications of the last 90 days, so a notification confirmed by mistake can still be read and opened." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Notifications: if the mail server isn't reachable, a failed notification mail is logged only once with its stack trace and its cause is shown in the delivery state; the further mails of the run wait for the next run instead of each waiting for the timeout." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

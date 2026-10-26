@@ -9,6 +9,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import {
   acknowledgeNotification,
+  fetchMyArchivedNotifications,
   fetchMyNotifications,
   markNotificationDone,
   type AppNotification,
@@ -32,6 +33,23 @@ export function useMyNotifications(): AppNotification[] {
     placeholderData: keepPreviousData,
   });
   return openCount > 0 ? (data ?? []) : [];
+}
+
+/**
+ * The notifications no longer visible in the app (confirmed, done, …), e.g. after a confirmation by
+ * mistake. Loaded whenever a component using it mounts (the bell's archived section opened), not
+ * polled; the key starts with "notifications", so a confirmation reloads it as well.
+ */
+export function useMyArchivedNotifications(): {
+  notifications: AppNotification[];
+  isLoading: boolean;
+} {
+  const { data, isLoading } = useQuery({
+    queryKey: ["notifications", "archived"],
+    queryFn: ({ signal }) => fetchMyArchivedNotifications(signal),
+    staleTime: 0,
+  });
+  return { notifications: data ?? [], isLoading };
 }
 
 /**

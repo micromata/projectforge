@@ -49,6 +49,9 @@ export interface AppNotification {
   /** A path of the app, e.g. `next/monthlyEmployeeReport`. */
   link?: string | null;
   created?: string | null;
+  acknowledgedAt?: string | null;
+  doneAt?: string | null;
+  resolvedAt?: string | null;
 }
 
 /** The notifications of the logged-in user visible in the app, the newest first. */
@@ -57,6 +60,20 @@ export function fetchMyNotifications(
 ): Promise<AppNotification[]> {
   return request<AppNotification[]>(
     "/rs/notification/my",
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * The notifications of the logged-in user no longer visible in the app (confirmed, done, resolved or
+ * expired) of the last days, the newest first.
+ */
+export function fetchMyArchivedNotifications(
+  signal?: AbortSignal
+): Promise<AppNotification[]> {
+  return request<AppNotification[]>(
+    "/rs/notification/my/archived",
     { method: "GET" },
     signal
   );

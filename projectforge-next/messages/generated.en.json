@@ -3387,6 +3387,8 @@
       "triggerConfirm": "Run the rule now for all recipients? Recipients already notified for the same period are not notified again."
     },
     "center": "Notifications",
+    "centerArchived": "Archived entries",
+    "centerArchivedEmpty": "No archived entries of the last 90 days.",
     "centerEmpty": "No open notifications.",
     "channels": {
       "IN_APP": "In the app",

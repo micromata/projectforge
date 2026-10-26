@@ -3387,6 +3387,8 @@
       "triggerConfirm": "Regel jetzt für alle Empfänger auslösen? Für denselben Zeitraum bereits Benachrichtigte werden nicht erneut benachrichtigt."
     },
     "center": "Benachrichtigungen",
+    "centerArchived": "Archivierte Einträge",
+    "centerArchivedEmpty": "Keine archivierten Einträge der letzten 90 Tage.",
     "centerEmpty": "Keine offenen Benachrichtigungen.",
     "channels": {
       "IN_APP": "In der App",
