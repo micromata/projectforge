@@ -38,6 +38,8 @@ export function ThreadSummary({
             key={author.id}
             name={author.displayName}
             flags={author}
+            userId={author.id}
+            avatarVersion={author.avatarVersion}
             className="size-5 text-[9px]"
           />
         ))}

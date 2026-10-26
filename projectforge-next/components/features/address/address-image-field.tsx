@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete02Icon } from "@hugeicons/core-free-icons";
-import { Button } from "@/components/ui/button";
 import { AttachmentDropArea } from "@/components/shared/attachments/attachment-drop-area";
+import {
+  ImageEditorDialog,
+  type EditableImage,
+} from "@/components/shared/image-editor/image-editor-dialog";
 import {
   useEntityData,
   useEntityEditForm,
@@ -20,15 +21,27 @@ import {
 } from "@/lib/rs/address";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { AddressImagePreview } from "./address-image-preview";
 import type { AddressValues } from "./address-schema";
 import type { AddressDetail } from "./types";
 
 const ACCEPTED_IMAGES = "image/png,image/jpeg,image/gif";
 
+/** Address images are square: the list, the view and phone contacts (vCard) show them in square boxes. */
+const IMAGE_ASPECT = 1;
+
+/**
+ * The width an address image is scaled down to at most. A photo of this size practically always fits into the
+ * 100 KB the backend stores (`AddressImageServicesRest.MAX_STORED_IMAGE_FILE_SIZE_KB`), so it keeps its size
+ * instead of being shrunk further; enough for phone contacts (CardDAV) and the views.
+ */
+const IMAGE_MAX_WIDTH = 400;
+
 /**
  * The image of an address: shown, replaced by an upload, or removed — all of it only on save, so a cancel leaves
  * the stored image as it was. An upload waits in the session (`uploadImage/-1`, also for a new address without an
- * id) and is previewed from there; a removal is the flag `imageDeleted`, which the save carries out.
+ * id) and is previewed from there; a removal is the flag `imageDeleted`, which the save carries out. A chosen file
+ * and the shown image are cut square and scaled down in the image editor first; only its result is uploaded.
  */
 export function AddressImageField({ className }: { className?: string }) {
   const t = useTranslations();
@@ -41,6 +54,7 @@ export function AddressImageField({ className }: { className?: string }) {
   // Saving an image touches the address, so its modification time tells a replaced image from the cached one.
   const version = useEntityData<AddressDetail>()?.lastUpdate ?? "";
   const [uploading, setUploading] = useState(false);
+  const [editing, setEditing] = useState<EditableImage | null>(null);
 
   // An upload left in the session by a form that was abandoned must not end up in this address on save — unless
   // it is this form's own (a remount while one is pending).
@@ -56,17 +70,40 @@ export function AddressImageField({ className }: { className?: string }) {
       ? `${addressImageUrl(values.id)}?v=${encodeURIComponent(version)}`
       : null);
 
+  // A failure is thrown on to the editor, which shows it and stays open with its settings.
   const upload = async (file: File) => {
     setUploading(true);
     try {
       await uploadAddressImage(file);
       form.setFieldValue("imageDataUrl", uploadedAddressImageUrl(Date.now()));
       form.setFieldValue("imageDeleted", false);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : String(error));
     } finally {
       setUploading(false);
     }
+  };
+
+  // The object url of a chosen file is released when the editor closes, also by leaving the form.
+  const editingSrc = editing?.src;
+  useEffect(
+    () => () => {
+      if (editingSrc?.startsWith("blob:")) URL.revokeObjectURL(editingSrc);
+    },
+    [editingSrc]
+  );
+
+  // `accept` only filters the file chooser: a file dropped in may be anything.
+  const edit = (file: File) => {
+    if (!ACCEPTED_IMAGES.split(",").includes(file.type)) {
+      toast.error(
+        t("file.upload.error.unsupportedFormat", { arg0: "PNG, JPEG, GIF" })
+      );
+      return;
+    }
+    setEditing({
+      src: URL.createObjectURL(file),
+      type: file.type,
+      name: file.name,
+    });
   };
 
   const remove = () => {
@@ -83,30 +120,30 @@ export function AddressImageField({ className }: { className?: string }) {
       )}
     >
       {src && (
-        <div className="flex flex-col items-start gap-2">
-          {/* A plain img: served by the backend from the database or the session, nothing next/image could optimize
-              under the static export. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={src}
-            alt={t("address.image")}
-            className="max-h-48 max-w-48 rounded-md border object-contain"
-          />
-          {!readOnly && (
-            <Button type="button" variant="outline" size="sm" onClick={remove}>
-              <HugeiconsIcon icon={Delete02Icon} />
-              {t("delete")}
-            </Button>
-          )}
-        </div>
+        <AddressImagePreview
+          src={src}
+          readOnly={readOnly}
+          editDisabled={uploading}
+          onEdit={() => setEditing({ src, name: "image" })}
+          onRemove={remove}
+        />
       )}
       {!readOnly && (
         <AttachmentDropArea
-          onFiles={(files) => files[0] && void upload(files[0])}
+          onFiles={([file]) => file && edit(file)}
           accept={ACCEPTED_IMAGES}
           multiple={false}
           disabled={uploading}
           label={t("address.image")}
+        />
+      )}
+      {editing && (
+        <ImageEditorDialog
+          image={editing}
+          aspect={IMAGE_ASPECT}
+          maxWidth={IMAGE_MAX_WIDTH}
+          onApply={upload}
+          onClose={() => setEditing(null)}
         />
       )}
     </div>

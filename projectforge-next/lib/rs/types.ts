@@ -169,6 +169,8 @@ export interface UserData {
   currency: string;
   thousandSeparator: string;
   decimalSeparator: string;
+  /** The version of the own avatar (lib/rs/user-avatar.ts), null without one. */
+  avatarVersion?: number | null;
 }
 
 /**
