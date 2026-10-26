@@ -110,6 +110,15 @@ class Project(
         copyFromMinimal(src)
     }
 
+    /**
+     * Labels this reference the way a project is offered for choosing, with its customer
+     * ([KostFormatter.formatProjektWithCustomer]): for the project field of an edit page, so its loaded value
+     * reads like the picks of `project/autosearch`.
+     */
+    fun labelWithCustomer(src: ProjektDO): Project = also {
+        displayName = KostFormatter.instance.formatProjektWithCustomer(src)
+    }
+
     override fun copyFromMinimal(src: ProjektDO) {
         super.copyFromMinimal(src)
         // Resolve the customer through the cache: src may be a detached/cached ProjektDO whose kunde is

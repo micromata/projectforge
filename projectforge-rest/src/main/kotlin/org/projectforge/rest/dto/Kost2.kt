@@ -88,6 +88,7 @@ class Kost2(
     this.project = src.projekt?.let {
       val project = Project()
       project.copyFromMinimal(it)
+      project.labelWithCustomer(it)
       project.name = it.name
       project
     }

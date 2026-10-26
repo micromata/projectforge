@@ -27,6 +27,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AuftragsCache
+import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.ProjektStatus
@@ -386,6 +387,9 @@ class ProjectEntityRest
         val list = super.queryAutocompleteObjects(request, filter)
         return if (showInactive(request)) list else list.filter { !isInactiveAutoCompleteEntry(it) }
     }
+
+    /** With the customer: projects of different customers often share a name. */
+    override fun autoCompleteLabel(obj: ProjektDO): String = KostFormatter.instance.formatProjektWithCustomer(obj)
 
     override fun isInactiveAutoCompleteEntry(obj: ProjektDO): Boolean =
         super.isInactiveAutoCompleteEntry(obj) || obj.status == ProjektStatus.ENDED

@@ -25,6 +25,7 @@
 package org.projectforge.rest.fibu
 
 import org.projectforge.business.PfCaches
+import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.customergroup.CustomerGroupIndex
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -101,8 +102,9 @@ internal class ProjectChecklistFilter(
         }
 
         /**
-         * The given projects, each once, sorted by name as the lists' project cells show it. In front, sorted by
-         * name, the project groups of these projects.
+         * The given projects, each once, sorted by name as the lists' project cells show it, followed by the
+         * customer in brackets (many projects of different customers share a name). In front, sorted by name, the
+         * project groups of these projects.
          */
         fun valuesOf(
             projectIds: Sequence<Long?>,
@@ -112,7 +114,7 @@ internal class ProjectChecklistFilter(
             val groups = ids.mapNotNull { groupIndex.projectGroupOf(it) }.distinct().filter { it.key != null }
                 .map { UIFilterListValue(GROUP_PREFIX + it.key, it.name ?: it.key!!, group = true) }
             val projects = ids
-                .map { id -> UIFilterListValue(id.toString(), PfCaches.instance.getProjekt(id)?.displayName ?: id.toString()) }
+                .map { id -> UIFilterListValue(id.toString(), PfCaches.instance.getProjekt(id)?.let { KostFormatter.instance.formatProjektWithCustomer(it) } ?: id.toString()) }
             return groups.sortedWith(byName) + projects.sortedWith(byName)
         }
     }

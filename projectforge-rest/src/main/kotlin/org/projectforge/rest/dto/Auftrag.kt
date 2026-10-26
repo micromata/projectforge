@@ -175,7 +175,7 @@ class Auftrag(
             Customer(it)
         }
         this.project = src.projekt?.let {
-            Project(it)
+            Project(it).labelWithCustomer(it)
         }
         val orderInfo = orderInfo(src)
         personDays = orderInfo.personDays

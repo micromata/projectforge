@@ -26,6 +26,7 @@ package org.projectforge.rest.fibu
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
+import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.customergroup.BusinessUnit
 import org.projectforge.business.fibu.customergroup.CustomerGroup
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfig
@@ -298,7 +299,7 @@ class CustomerGroupRest : AbstractDynamicPageRest() {
             ProjectGroupData(
                 key = group.key,
                 name = group.name,
-                projects = group.projects.map { EntityRef(it, PfCaches.instance.getProjekt(it)?.displayName ?: "$it") }
+                projects = group.projects.map { EntityRef(it, PfCaches.instance.getProjekt(it)?.let { p -> KostFormatter.instance.formatProjektWithCustomer(p) } ?: "$it") }
                     .toMutableList(),
             )
         }.toMutableList(),
