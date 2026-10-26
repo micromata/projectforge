@@ -963,6 +963,9 @@
     "conversation": {
       "empty": "Noch keine Nachrichten.",
       "loadOlder": "Ältere Nachrichten laden",
+      "members": "Mitglieder",
+      "membersCount": "Mitglieder ({arg0})",
+      "membersMe": "(du)",
       "mute": "Stummschalten",
       "muted": "Stummgeschaltet: Neue Nachrichten werden nicht gemeldet, Erwähnungen schon.",
       "newMessages": "Neu",
@@ -1032,6 +1035,11 @@
       "linkCopied": "Link kopiert.",
       "markUnread": "Als ungelesen markieren",
       "placeholder": "Nachricht schreiben, @ erwähnt jemanden",
+      "quote": {
+        "_": "Zitieren",
+        "of": "Zitat von {arg0}, zur Nachricht",
+        "remove": "Zitat entfernen"
+      },
       "react": "Reaktion hinzufügen",
       "reply": "Im Thread antworten",
       "save": "Speichern",
@@ -2920,6 +2928,10 @@
     }
   },
   "id": "Id",
+  "imageEditor": {
+    "title": "Bild bearbeiten",
+    "zoom": "Zoom"
+  },
   "import": {
     "_": "Importieren",
     "confirmMessage": "Sollen nun alle ausgewählten Einträge importiert werden? Diese Aktion kann nicht rückgängig gemacht werden.",
@@ -6480,6 +6492,21 @@
         "none": "Seit dem Start des Servers gab es keinen Zugriff mit diesem Schlüssel.",
         "qrCode": "QR-Code zum Einrichten einer Client-App mit diesem Schlüssel."
       }
+    },
+    "avatar": {
+      "_": "Avatar",
+      "edit": "Bearbeiten",
+      "error": {
+        "unsupportedImage": "Als Avatar können nur Bilder der Typen PNG, JPEG und GIF verwendet werden."
+      },
+      "hint": "Wird im Chat und im Benutzermenü allen Benutzern angezeigt, die mindestens eine Gruppe gemeinsam haben.",
+      "remove": {
+        "_": "Entfernen",
+        "confirm": "Avatar entfernen?"
+      },
+      "removed": "Der Avatar wurde entfernt.",
+      "saved": "Der Avatar wurde gespeichert.",
+      "upload": "Bild hochladen"
     },
     "changePassword": {
       "error": {

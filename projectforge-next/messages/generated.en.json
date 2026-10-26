@@ -963,6 +963,9 @@
     "conversation": {
       "empty": "No messages yet.",
       "loadOlder": "Load older messages",
+      "members": "Members",
+      "membersCount": "Members ({arg0})",
+      "membersMe": "(you)",
       "mute": "Mute",
       "muted": "Muted: new messages aren't notified, mentions are.",
       "newMessages": "New",
@@ -1032,6 +1035,11 @@
       "linkCopied": "Link copied.",
       "markUnread": "Mark as unread",
       "placeholder": "Write a message, @ mentions somebody",
+      "quote": {
+        "_": "Quote",
+        "of": "Quote of {arg0}, show the message",
+        "remove": "Remove quote"
+      },
       "react": "Add reaction",
       "reply": "Reply in thread",
       "save": "Save",
@@ -2920,6 +2928,10 @@
     }
   },
   "id": "Id",
+  "imageEditor": {
+    "title": "Edit image",
+    "zoom": "Zoom"
+  },
   "import": {
     "_": "Import",
     "confirmMessage": "Would you like to import the selected entries now? This operation cannot be undone.",
@@ -6480,6 +6492,21 @@
         "none": "No access with this token since the server was started.",
         "qrCode": "QR code for setting up a client app with this token."
       }
+    },
+    "avatar": {
+      "_": "Avatar",
+      "edit": "Edit",
+      "error": {
+        "unsupportedImage": "Only images of the types PNG, JPEG and GIF can be used as avatar."
+      },
+      "hint": "Shown in the chat and in the user menu to all users sharing at least one group.",
+      "remove": {
+        "_": "Remove",
+        "confirm": "Remove the avatar?"
+      },
+      "removed": "The avatar has been removed.",
+      "saved": "The avatar has been saved.",
+      "upload": "Upload image"
     },
     "changePassword": {
       "error": {

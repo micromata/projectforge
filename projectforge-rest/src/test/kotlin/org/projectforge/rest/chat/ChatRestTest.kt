@@ -86,6 +86,11 @@ class ChatRestTest : AbstractTestBase() {
             assertEquals("<p>The <strong>rest</strong> room</p>", it.description)
             assertTrue(it.isModerator)
         }
+        assertEquals(
+            listOf(getUserId(TEST_USER), getUserId(TEST_USER2)).sorted(),
+            chatRest.members(result.conversationId!!).map { it.id }.sorted(),
+            "the owner and the users, the logged-in user included",
+        )
         suppressErrorLogs {
             // Rich text isn't cut off (its markup would be broken), but refused.
             assertThrows(UserException::class.java) {
@@ -104,6 +109,7 @@ class ChatRestTest : AbstractTestBase() {
             assertThrows(AccessException::class.java) { chatRoomRest.get(result.id) }
             assertTrue(chatRoomRest.list().none { it.id == result.id })
             assertThrows(AccessException::class.java) { chatRest.getConversation(result.conversationId!!) }
+            assertThrows(AccessException::class.java) { chatRest.members(result.conversationId!!) }
         }
     }
 

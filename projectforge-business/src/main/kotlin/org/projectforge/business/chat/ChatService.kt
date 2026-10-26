@@ -635,9 +635,8 @@ open class ChatService {
      */
     open fun mentionCandidates(context: ChatAccess.Context, search: String?, limit: Int = 10): List<PFUserDO> {
         val term = search?.trim()?.lowercase().orEmpty()
-        return context.host.participantIds(context.hostId, context.channel).asSequence()
-            .filter { it != context.user.id }
-            .mapNotNull { userGroupCache.getUser(it) }
+        return participants(context)
+            .filter { it.id != context.user.id }
             .filter { user ->
                 term.isEmpty() || listOfNotNull(user.getFullname(), user.username, user.nickname, user.firstname, user.lastname)
                     .any { it.lowercase().contains(term) }
@@ -646,6 +645,23 @@ open class ChatService {
             .sortedBy { it.getFullname().lowercase() }
             .take(limit.coerceIn(1, 50))
             .toList()
+    }
+
+    /**
+     * The members of the conversation, shown with it: the participants of the host with read access, the logged-in user
+     * included, sorted by name.
+     */
+    open fun members(context: ChatAccess.Context): List<PFUserDO> {
+        return participants(context)
+            .filter { chatAccess.hasReadAccess(context, it) }
+            .sortedBy { it.getFullname().lowercase() }
+            .toList()
+    }
+
+    /** The participants of the host as users, not checked for read access yet. */
+    private fun participants(context: ChatAccess.Context): Sequence<PFUserDO> {
+        return context.host.participantIds(context.hostId, context.channel).asSequence()
+            .mapNotNull { userGroupCache.getUser(it) }
     }
 
     /**
