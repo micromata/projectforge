@@ -18,6 +18,7 @@ import { useChatContext } from "./chat-context";
 import { ChatComposer } from "./chat-composer";
 import { MessageItem } from "./message-item";
 import { findFirstUnread, NewMessagesLine } from "./message-list";
+import { isAtEnd, useFollowEnd } from "./use-follow-end";
 import { useMarkThreadRead } from "./use-mark-thread-read";
 import { useMessageMutations } from "./use-message-mutations";
 
@@ -42,6 +43,9 @@ export function ThreadPanel({
   const queryClient = useQueryClient();
   const { follow } = useMessageMutations();
   const endRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const atEnd = useRef(true);
+  const contentRef = useFollowEnd(scrollRef, atEnd);
   const query = useQuery({
     queryKey: chatThreadQueryKey(conversation.id, rootId ?? 0),
     queryFn: ({ signal }) => fetchChatThread(conversation.id, rootId!, signal),
@@ -65,6 +69,7 @@ export function ThreadPanel({
       focusedOnce.current = focusId;
       target.scrollIntoView({ block: "center" });
     } else endRef.current?.scrollIntoView({ block: "end" });
+    if (scrollRef.current) atEnd.current = isAtEnd(scrollRef.current);
   }, [replies, focused, focusId]);
   useMarkThreadRead(conversation.id, rootId, query.data?.replies);
   const root = query.data?.root;
@@ -99,21 +104,27 @@ export function ThreadPanel({
             </Button>
           )}
         </SheetHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto py-2">
-          {query.isPending && rootId != null && (
-            <div className="flex justify-center py-6">
-              <Spinner className="h-5 w-5 border-2" />
-            </div>
-          )}
-          {root && <MessageItem message={root} inThread />}
-          {query.data && <div className="mx-3 my-1 border-t" />}
-          {query.data?.replies.map((reply) => (
-            <Fragment key={reply.id}>
-              {reply.id === firstUnread && <NewMessagesLine />}
-              <MessageItem message={reply} inThread />
-            </Fragment>
-          ))}
-          <div ref={endRef} />
+        <div
+          ref={scrollRef}
+          onScroll={(event) => (atEnd.current = isAtEnd(event.currentTarget))}
+          className="min-h-0 flex-1 overflow-y-auto py-2"
+        >
+          <div ref={contentRef}>
+            {query.isPending && rootId != null && (
+              <div className="flex justify-center py-6">
+                <Spinner className="h-5 w-5 border-2" />
+              </div>
+            )}
+            {root && <MessageItem message={root} inThread />}
+            {query.data && <div className="mx-3 my-1 border-t" />}
+            {query.data?.replies.map((reply) => (
+              <Fragment key={reply.id}>
+                {reply.id === firstUnread && <NewMessagesLine />}
+                <MessageItem message={reply} inThread />
+              </Fragment>
+            ))}
+            <div ref={endRef} />
+          </div>
         </div>
         {rootId != null &&
           conversation.canWrite &&
