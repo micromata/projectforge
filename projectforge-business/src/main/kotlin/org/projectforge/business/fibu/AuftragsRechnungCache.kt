@@ -187,10 +187,13 @@ class AuftragsRechnungCache : AbstractCache() {
             //val auftrag = auftragsPosition.auftrag
             val rechnungPosInfo = rechnungCache.ensureRechnungPosInfo(pos)
             pos.info = rechnungPosInfo
-            if (auftrag == null) {
-                // AuftragsCache doesn't know this position (yet): it is refreshing right now and calls this refresh
-                // nested (see auftragsCacheListener), so its order map isn't available. invoicePositionMapByAuftragId
-                // stays incomplete and has to be rebuilt afterwards:
+            if (auftrag == null && (auftragsCache.isRefreshInProgress || !auftragsCache.initialized)) {
+                // AuftragsCache doesn't know this position (yet): it is refreshing right now (e.g. calls this refresh
+                // nested, see auftragsCacheListener), so its order map isn't available. invoicePositionMapByAuftragId
+                // stays incomplete and has to be rebuilt afterwards.
+                // Not for a position unknown to a complete AuftragsCache: it holds no deleted order positions, so an
+                // invoice position assigned to a deleted one would mark every refresh incomplete, and both caches
+                // would refresh each other endlessly (seen in the daily order book snapshots).
                 orderResolutionIncomplete = true
             }
             auftrag?.id?.let { auftragId ->
@@ -257,6 +260,10 @@ class AuftragsRechnungCache : AbstractCache() {
      */
     private val rechnungCacheListener = object : CacheListener {
         override fun onAfterCacheRefresh() {
+            if (isRefreshingOnCurrentThread) {
+                // Called from within our own refresh: forceReload would only expire this cache (see auftragsCacheListener).
+                return
+            }
             if (invoiceResolutionIncomplete && invoiceHealRounds.incrementAndGet() <= MAX_COUPLED_REFRESH_ROUNDS) {
                 log.info { "RechnungCache is complete now, re-reading the order/invoice assignments built while it was still incomplete." }
                 forceReload()
@@ -275,6 +282,12 @@ class AuftragsRechnungCache : AbstractCache() {
         }
 
         override fun onAfterCacheRefresh() {
+            if (isRefreshingOnCurrentThread) {
+                // AuftragsCache was refreshed from within our own refresh (refreshAuftragsCacheIfNeeded), which already
+                // read the complete orders. forceReload would be a no-op here, but expire this cache and reset
+                // coupledRefreshRounds: the next access would refresh both caches again, and so on for every access.
+                return
+            }
             if (orderResolutionIncomplete) {
                 // Our order map was built without AuftragsCache (nested refresh). Now that the orders are known, it
                 // can be completed. AuftragsCache is up-to-date, so this must not trigger it again:
