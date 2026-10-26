@@ -192,7 +192,7 @@ class AutoCompleteObjectsTest : AbstractTestBase() {
         logon(TEST_FINANCE_USER)
         val customer = KundeDO().also {
             it.name = "Société Générale $PREFIX"
-            it.id = 4713L
+            it.id = 4714L
         }
         kundeDao.insert(customer)
         listOf("societe", "Société", "generale", "Gene").forEach {
@@ -204,7 +204,7 @@ class AutoCompleteObjectsTest : AbstractTestBase() {
         val projekt = ProjektDO().also {
             it.name = "Größenmessung_$PREFIX"
             it.internKost2_4 = 994
-            it.nummer = 94
+            it.nummer = 98
         }
         projektDao.insert(projekt)
         listOf("groessenmessung", "grossen", "Größen", "Größenmessung_").forEach {
@@ -346,9 +346,14 @@ class AutoCompleteObjectsTest : AbstractTestBase() {
             it.status = ProjektStatus.BUILD
         }
         projektDao.insert(running)
-        Assertions.assertEquals(listOf(running.id), autoComplete(projectEntityRest, word).map { it.id })
-        val all = autoComplete(projectEntityRest, word, showInactive = true)
-        Assertions.assertEquals(setOf(running.id, ended.id), all.map { it.id }.toSet())
+        // Only the own projects: the name parts of other tests' projects (the PREFIX) match the word as well.
+        val own = setOf(running.id, ended.id)
+        Assertions.assertEquals(
+            listOf(running.id),
+            autoComplete(projectEntityRest, word).map { it.id }.filter { it in own },
+        )
+        val all = autoComplete(projectEntityRest, word, showInactive = true).filter { it.id in own }
+        Assertions.assertEquals(own, all.map { it.id }.toSet())
         Assertions.assertEquals(true, all.single { it.id == ended.id }.deactivated)
         Assertions.assertNull(all.single { it.id == running.id }.deactivated)
     }
