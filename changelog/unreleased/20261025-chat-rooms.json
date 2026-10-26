@@ -4,8 +4,8 @@
   "de": "Chat",
   "items": [
     {
-      "en": "Chat rooms (menu Common → Chat): anybody creates a room and chooses its participants, users and groups; members who join a group later take part at once. The creator and the moderators edit and delete the room. Rooms are visible to their participants only, administrators included.",
-      "de": "Chaträume (Menü Allgemein → Chat): Alle können einen Raum anlegen und die Teilnehmenden wählen, Personen und Gruppen; wer später in eine Gruppe kommt, nimmt sofort teil. Wer den Raum angelegt hat und die Moderation bearbeiten und löschen ihn. Räume sehen nur ihre Teilnehmenden, auch Administratoren nicht."
+      "en": "Chat rooms (menu Common → Chat): anybody creates a room and chooses its participants, users and groups; members who join a group later take part at once. The creator and the moderators edit and delete the room. Rooms are visible to their participants only, administrators included. The room page shows its description (formatted text); the creator and moderators edit the room from there.",
+      "de": "Chaträume (Menü Allgemein → Chat): Alle können einen Raum anlegen und die Teilnehmenden wählen, Personen und Gruppen; wer später in eine Gruppe kommt, nimmt sofort teil. Wer den Raum angelegt hat und die Moderation bearbeiten und löschen ihn. Räume sehen nur ihre Teilnehmenden, auch Administratoren nicht. Die Raumseite zeigt die Beschreibung (formatierter Text); wer den Raum angelegt hat und die Moderation bearbeiten ihn direkt dort."
     },
     {
       "en": "Direct messages: anybody can write privately to any user shown in the user selection, from the chat page, from a user found in the menu search (start chat / send file; for everybody, with the users of the user selection) or by clicking an author in any conversation; whoever got a message can answer. Only the two read the conversation, administrators neither.",

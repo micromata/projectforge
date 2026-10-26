@@ -48,6 +48,9 @@ interface ChatHost {
      */
     fun title(hostId: Long, channel: String, user: PFUserDO): String? = title(hostId, channel)
 
+    /** The description of the host object as rich text (HTML), shown above the conversation; null for none. */
+    fun description(hostId: Long, channel: String): String? = null
+
     /** The link to the host object (path of the app), shown with the conversation. */
     fun link(hostId: Long): String?
 

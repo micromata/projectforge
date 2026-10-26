@@ -126,6 +126,7 @@ class ChatRest {
             hostId = context.hostId,
             channel = context.channel,
             title = context.title,
+            description = context.host.description(context.hostId, context.channel),
             link = context.host.link(context.hostId),
             canWrite = context.canWrite,
             isModerator = context.isModerator,

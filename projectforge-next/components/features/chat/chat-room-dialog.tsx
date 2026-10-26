@@ -41,11 +41,14 @@ export function ChatRoomDialog({
   roomId,
   onClose,
   onSaved,
+  onDeleted = onClose,
 }: {
   open: boolean;
   roomId: number | null;
   onClose: () => void;
   onSaved: (conversationId: number | null) => void;
+  /** After deleting the room; by default [onClose]. */
+  onDeleted?: () => void;
 }) {
   const t = useTranslations();
   const queryClient = useQueryClient();
@@ -77,7 +80,7 @@ export function ChatRoomDialog({
     mutationFn: deleteChatRoom,
     onSuccess: () => {
       done();
-      onClose();
+      onDeleted();
     },
     onError: (e: Error) => toast.error(e.message),
   });

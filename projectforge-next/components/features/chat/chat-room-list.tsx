@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Settings02Icon } from "@hugeicons/core-free-icons";
+import { RichTextPreview } from "@/components/shared/rich-text-preview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useFormatContext } from "@/hooks/use-format";
@@ -38,11 +39,10 @@ export function ChatRoomList({
                 </Badge>
               )}
             </span>
-            {room.description && (
-              <span className="block truncate text-sm text-muted-foreground">
-                {room.description}
-              </span>
-            )}
+            <RichTextPreview
+              text={room.description}
+              className="text-sm text-muted-foreground"
+            />
             <span className="block text-xs text-muted-foreground">
               {t("chat.room.participants", { arg0: room.participantCount })}
               {room.lastMessageAt &&

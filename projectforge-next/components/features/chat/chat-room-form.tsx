@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { EntityMultiAutocomplete } from "@/components/shared/entity-multi-autocomplete";
+import { RichTextEditor } from "@/components/shared/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { FieldDescription } from "@/components/ui/field";
@@ -16,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import type { ChatRef, ChatRoom } from "@/lib/rs/chat-types";
 
 /**
@@ -65,11 +65,10 @@ export function ChatRoomForm({
           <Label htmlFor="chatRoomDescription">
             {t("chat.room.description")}
           </Label>
-          <Textarea
+          <RichTextEditor
             id="chatRoomDescription"
-            value={value.description ?? ""}
-            maxLength={4000}
-            onChange={(event) => set({ description: event.target.value })}
+            value={value.description}
+            onChange={(html) => set({ description: html || null })}
           />
         </div>
         <div className="flex flex-col gap-1.5">
