@@ -40,6 +40,7 @@ import org.projectforge.common.i18n.MessageParamType
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage
+import org.projectforge.framework.integration.IntegrationErrors
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.EntityCopyStatus
@@ -545,7 +546,9 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      * Wicket, which passes its fully loaded object, the lookup yields the same entities from the cache.
      *
      * A failing mail doesn't stop the mails to the other recipients; the first failure is thrown after all
-     * recipients were tried, so the caller can still report it.
+     * recipients were tried, so the caller can still report it. Only if the mail server can't be reached
+     * ([IntegrationErrors.isConnectionError]) the remaining recipients are skipped: each of them would delay the save
+     * by the SMTP timeout just to fail the same way.
      *
      * @return true if at least one mail was sent.
      */
@@ -571,7 +574,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
         var sent = false
         var failure: Exception? = null
-        recipients.forEach { recipient ->
+        for ((index, recipient) in recipients.withIndex()) {
             try {
                 if (sendNotification(auftrag, recipient, subject, requestUrl, history.take(10))) {
                     sent = true
@@ -579,6 +582,14 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             } catch (ex: Exception) {
                 log.error("Can't send the notification of order #${auftrag.nummer} to user ${recipient.username}: ${ex.message}", ex)
                 failure = failure ?: ex
+                if (IntegrationErrors.isConnectionError(ex)) {
+                    // The other mails would fail the same way, each one delaying the save by the SMTP timeout.
+                    val skipped = recipients.drop(index + 1)
+                    if (skipped.isNotEmpty()) {
+                        log.warn("Mail server unreachable, notification of order #${auftrag.nummer} not sent to: ${skipped.joinToString { it.username ?: "?" }}")
+                    }
+                    break
+                }
             }
         }
         failure?.let { throw it }
