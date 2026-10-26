@@ -16,6 +16,11 @@ const POLL_VISIBLE_MS = 3_000;
 const POLL_HIDDEN_MS = 30_000;
 /** A tab hidden that long stops asking: otherwise an idle tab would keep its session alive forever. */
 const POLL_HIDDEN_MAX_MS = 15 * 60_000;
+/**
+ * A tab hidden that long closes the event stream (opened again when shown): the server counts an open stream as
+ * watching the conversation and notifies nobody watching, so a forgotten tab mustn't swallow the notifications.
+ */
+const SSE_HIDDEN_CLOSE_MS = 30_000;
 /** In polling mode, server-sent events are tried again after this. */
 const SSE_RETRY_MS = 5 * 60_000;
 
@@ -23,7 +28,8 @@ const SSE_RETRY_MS = 5 * 60_000;
  * Keeps the open conversation up to date (NOT-06): server-sent events announce a change (its sequence), then
  * the changes since the last known sequence are fetched and merged into the cache. After repeated failures of
  * the event stream it falls back to polling (every 3 s while the tab is visible, every 30 s in the background,
- * not at all after 15 minutes in the background) and tries the events again from time to time.
+ * not at all after 15 minutes in the background) and tries the events again from time to time. The event stream
+ * is closed while the tab is hidden for a while; shown again, it reconnects and fetches what was missed.
  *
  * [initialSeq] is the sequence of the conversation when loaded; nothing happens before it is known.
  * [onSecret] is called when a confidential message of the user may have changed (its own event; in polling
@@ -37,6 +43,7 @@ export function useChatLive(
 ) {
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<"events" | "polling">("events");
+  const shown = useShown();
   const seqRef = useRef<number | null>(null);
   const syncing = useRef(false);
   const again = useRef(false);
@@ -81,7 +88,7 @@ export function useChatLive(
   }, [conversationId, queryClient]);
 
   useEffect(() => {
-    if (mode !== "events" || initialSeq == null) return;
+    if (mode !== "events" || initialSeq == null || !shown) return;
     const source = new EventSource(chatEventsUrl(conversationId), {
       withCredentials: true,
     });
@@ -101,6 +108,7 @@ export function useChatLive(
     source.addEventListener("secret", () => onSecretRef.current?.());
     source.onopen = () => {
       failures = 0;
+      onSecretRef.current?.(); // Offers made while closed (hidden tab) announced no event here.
     };
     source.onerror = () => {
       if (++failures >= SSE_FAILURES_BEFORE_POLLING) {
@@ -112,7 +120,7 @@ export function useChatLive(
       clearTimeout(buffered);
       source.close();
     };
-  }, [conversationId, initialSeq, mode, sync]);
+  }, [conversationId, initialSeq, mode, shown, sync]);
 
   useEffect(() => {
     if (mode !== "polling") return;
@@ -146,4 +154,25 @@ export function useChatLive(
   }, [mode, sync]);
 
   return { mode, sync };
+}
+
+/** False once the tab is hidden for [SSE_HIDDEN_CLOSE_MS], true again when shown. */
+function useShown() {
+  const [shown, setShown] = useState(true);
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onVisibility = () => {
+      clearTimeout(timer);
+      if (document.hidden)
+        timer = setTimeout(() => setShown(false), SSE_HIDDEN_CLOSE_MS);
+      else setShown(true);
+    };
+    onVisibility();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, []);
+  return shown;
 }

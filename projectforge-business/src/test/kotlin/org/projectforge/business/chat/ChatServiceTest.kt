@@ -238,6 +238,53 @@ class ChatServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun `replies count as unread in followed threads and with a mention, mentions in threads are resolved by opening them`() {
+        val conversationId = createRoom("chat thread unread test")
+        val user2 = getUserId(TEST_USER2)
+        val root = chatService.send(conversationId, null, "root")
+        logon(TEST_USER2)
+        chatService.markRead(conversationId, root.id!!)
+
+        logon(TEST_USER)
+        chatService.send(conversationId, root.id, "a reply nobody but the owner follows")
+        assertEquals(0, chatService.countUnread(conversationId, user2), "thread not followed")
+        val mention = chatService.send(conversationId, root.id, """<span data-type="mention" data-id="$user2">x</span>""")
+        assertEquals(1, chatService.countUnread(conversationId, user2), "mentioned")
+        assertEquals(mapOf(conversationId to 1L), chatService.countUnread(listOf(conversationId), user2))
+        val threadMentions = "${ChatNotifier.mentionPrefix(conversationId, user2)}t${root.id}:"
+        assertEquals(1, notificationDao.findPendingByDedupPrefix(user2, threadMentions).size)
+
+        logon(TEST_USER2)
+        chatService.markRead(conversationId, mention.id!!)
+        assertEquals(1, notificationDao.findPendingByDedupPrefix(user2, threadMentions).size, "not resolved by the conversation")
+        chatService.markThreadRead(conversationId, root.id!!)
+        assertTrue(notificationDao.findPendingByDedupPrefix(user2, threadMentions).isEmpty())
+        chatService.setFollowing(root.id!!, true)
+
+        logon(TEST_USER)
+        val third = chatService.send(conversationId, root.id, "third")
+        assertEquals(1, chatService.countUnread(conversationId, user2), "followed")
+        chatService.hide(third.id!!, true, "off topic")
+        assertEquals(0, chatService.countUnread(conversationId, user2), "hidden")
+        chatService.hide(third.id!!, false, null) // A hidden message isn't deleted by its author.
+        chatService.delete(third.id!!)
+        assertEquals(chatService.findMessage(mention.id)!!.created, chatService.findMessage(root.id)!!.lastReplyAt)
+
+        val hiddenRoot = chatService.send(conversationId, null, "hidden root")
+        chatService.hide(hiddenRoot.id!!, true, "spam")
+        chatService.delete(root.id!!)
+        suppressErrorLogs {
+            assertThrows(AccessException::class.java) { chatService.send(conversationId, root.id, "to a deleted message") }
+            assertThrows(AccessException::class.java) { chatService.send(conversationId, mention.id, "to its reply") }
+            assertThrows(AccessException::class.java) { chatService.send(conversationId, hiddenRoot.id, "to a hidden message") }
+            logon(TEST_FINANCE_USER)
+            assertThrows(AccessException::class.java) { chatService.markThreadRead(conversationId, root.id!!) }
+            logon(TEST_USER2)
+            assertThrows(AccessException::class.java) { chatService.markThreadRead(conversationId, mention.id!!) }
+        }
+    }
+
+    @Test
     fun `the search finds wildcards as text`() {
         val conversationId = createRoom("chat search test")
         val context = chatService.requireContext(conversationId)

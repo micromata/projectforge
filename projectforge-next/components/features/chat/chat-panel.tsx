@@ -49,8 +49,9 @@ export function ChatPanel({
   const [readMark, setReadMark] = useState<number | null | undefined>(
     undefined
   );
+  // Never read: everything of others is new, as counted by the server.
   if (conversation && readMark === undefined)
-    setReadMark(conversation.lastReadMessageId ?? null);
+    setReadMark(conversation.lastReadMessageId ?? 0);
   const [threadRootId, setThreadRootId] = useState<number | null>(null);
   // The threads opened since: their new replies are seen.
   const [openedThreads, setOpenedThreads] = useState<ReadonlySet<number>>(
@@ -61,7 +62,7 @@ export function ChatPanel({
     setOpenedThreads((ids) => new Set(ids).add(rootId));
   }, []);
   const [newestId, setNewestId] = useState(0);
-  const { markUpTo, pause, resume } = useMarkRead(conversationId);
+  const { markUpTo, pause, resume, settled } = useMarkRead(conversationId);
   const trackNewest = useCallback((messages: ChatMessage[]) => {
     setNewestId((id) => Math.max(id, ...messages.map((it) => it.id)));
   }, []);
@@ -78,8 +79,10 @@ export function ChatPanel({
     [markUpTo, newestId, conversation?.newestMessageId]
   );
   const unread = useMutation({
-    mutationFn: (message: ChatMessage) =>
-      markChatUnread(conversationId, message.id),
+    mutationFn: async (message: ChatMessage) => {
+      await settled(); // Not overtaken by a read state still on its way.
+      return markChatUnread(conversationId, message.id);
+    },
     onMutate: (message) => {
       pause(message.id - 1);
       setReadMark(message.id - 1);
