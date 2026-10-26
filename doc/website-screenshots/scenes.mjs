@@ -1,4 +1,5 @@
-// The scenes of the website screenshots: name (= file name), path below /next, wait (ms), act (interaction), dark.
+// The scenes of the website screenshots: name (= file name), path below /next, wait (ms), act (interaction), dark,
+// height (of the viewport, default 860).
 // Viewport coordinates are CSS pixels of the 1440 x 860 viewport.
 
 // Workaround: the day view button shows its raw i18n key "calendar.day" (bug, to be fixed in the frontend).
@@ -23,6 +24,15 @@ const removeEmployeeFilter = async (p) => {
   await p.waitForTimeout(800);
   await p.getByRole("button", { name: "Delete" }).click();
   await p.waitForTimeout(2500);
+};
+
+// Closes the notification banners (e.g. the direct message of chat-seed.mjs), for this session only.
+const closeBanners = async (p) => {
+  const banner = p.getByTestId("notification-banner");
+  while (await banner.count()) {
+    await banner.first().locator("button").last().click();
+    await p.waitForTimeout(300);
+  }
 };
 
 export default [
@@ -64,6 +74,13 @@ export default [
       await p.getByText("Alpine Insurance – Claims Portal").first().click();
       await p.waitForTimeout(3000);
   } },
-  { name: "2026-SystemDashboard", path: "/systemDashboard?tab=scheduler", wait: 3500 },
+  // Sample problems of dashboard-problems.kts: tiles with figures and trend bars.
+  { name: "2026-SystemDashboard", path: "/systemDashboard", wait: 3500, dark: true, height: 640, act: closeBanners },
+  // Sample chat of chat-seed.mjs.
+  { name: "2026-Chat", path: "/chat", wait: 2000, act: async (p) => {
+      await closeBanners(p);
+      await p.getByText("Fleet Tracking Platform", { exact: true }).first().click();
+      await p.waitForTimeout(3000);
+  } },
   { name: "2026-Dark", path: "/finance/statistics", wait: 5000, dark: true },
 ];

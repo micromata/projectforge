@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Outgoing invoices: invoices saved in the new interface were not found by the name of their customer until the next search index rebuild.",
-  "de": "Debitorenrechnungen: In der neuen Oberfläche gespeicherte Rechnungen wurden bis zum nächsten Neuaufbau des Suchindex nicht über den Namen ihres Kunden gefunden."
-}

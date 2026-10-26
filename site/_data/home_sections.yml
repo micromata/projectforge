@@ -22,9 +22,26 @@ security:
     - "**System dashboard** that collects problems and mails you a digest – before your users notice."
   img: screenshots/2026-SystemDashboard.png
   reverse: true
-  img_caption: The system dashboard shows problems, caches and every scheduled job.
+  img_caption: The system dashboard shows every subsystem with its errors of the last days.
   button_text: Installation guide
   button_url: /docs/installation/
+
+chat:
+  title: Talk where the work is.
+  subtitle: A chat built into ProjectForge – no extra tool, no data in someone else's cloud.
+  text: >-
+    Rooms for teams, projects or customers, and direct messages to any colleague – right next to the orders,
+    timesheets and files they are about. Messages arrive live, and everything stays on your own server.
+  bullets:
+    - "**Rooms and direct messages** – choose people and groups; whoever joins a group later is in at once. Only the participants read along, administrators neither."
+    - "**Files of any type** by paste or drag & drop, stored in the data transfer and kept as long as the room says."
+    - "**Formatting, code blocks, emoji reactions and threads** – @mentions notify at once, in the app and by mail."
+    - "**Confidential messages** for a password: end-to-end encrypted, never stored by the server, shown only once."
+    - "**Unread at a glance** – mark a message unread, threads with new replies are marked, mails only for what wasn't seen in the app."
+  img: screenshots/2026-Chat.png
+  img_caption: A project room with a code block, an image, reactions and a thread.
+  button_text: All collaboration features
+  button_url: /features/#collaboration
 
 proof:
   title: Battle-tested since 2001.

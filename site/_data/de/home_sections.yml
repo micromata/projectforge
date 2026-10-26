@@ -22,9 +22,27 @@ security:
     - "**System-Dashboard**, das Probleme sammelt und eine Zusammenfassung mailt – bevor es den Benutzern auffällt."
   img: screenshots/2026-SystemDashboard.png
   reverse: true
-  img_caption: Das System-Dashboard zeigt Probleme, Caches und jeden geplanten Job.
+  img_caption: Das System-Dashboard zeigt jedes Teilsystem mit seinen Fehlern der letzten Tage.
   button_text: Installationsanleitung (EN)
   button_url: /docs/installation/
+
+chat:
+  title: Reden, wo die Arbeit ist.
+  subtitle: Ein Chat direkt in ProjectForge – kein zusätzliches Tool, keine Daten in fremder Cloud.
+  text: >-
+    Räume für Teams, Projekte oder Kunden und Direktnachrichten an alle Kolleginnen und Kollegen – direkt neben den
+    Aufträgen, Zeitberichten und Dateien, um die es geht. Nachrichten kommen live an, und alles bleibt auf dem eigenen
+    Server.
+  bullets:
+    - "**Räume und Direktnachrichten** – Personen und Gruppen auswählen; wer später in eine Gruppe kommt, ist sofort dabei. Mitlesen können nur die Teilnehmenden, auch Administratoren nicht."
+    - "**Dateien jeder Art** per Einfügen oder Drag & Drop, abgelegt im Datentransfer und so lange aufbewahrt, wie im Raum eingestellt."
+    - "**Formatierung, Codeblöcke, Emoji-Reaktionen und Threads** – @-Erwähnungen benachrichtigen sofort, in der App und per Mail."
+    - "**Vertrauliche Nachrichten** für ein Passwort: Ende-zu-Ende-verschlüsselt, vom Server nie gespeichert, nur einmal angezeigt."
+    - "**Ungelesenes auf einen Blick** – Nachrichten als ungelesen markieren, Threads mit neuen Antworten sind gekennzeichnet, Mails nur für das, was in der App nicht gesehen wurde."
+  img: screenshots/2026-Chat.png
+  img_caption: Ein Projektraum mit Codeblock, Bild, Reaktionen und Thread.
+  button_text: Alle Funktionen zur Zusammenarbeit
+  button_url: /de/features/#collaboration
 
 proof:
   title: Praxiserprobt seit 2001.

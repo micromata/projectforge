@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Search and selection boxes ignore accents and German umlaut spellings: \"Andre\" finds \"André\", \"Mueller\" and \"Muller\" find \"Müller\", \"Strasse\" finds \"Straße\", and vice versa. Applies to entries indexed after the update, i.e. completely after the next nightly re-index.",
-  "de": "Suche und Auswahlfelder ignorieren Akzente und Umlaut-Schreibweisen: „Andre“ findet „André“, „Mueller“ und „Muller“ finden „Müller“, „Strasse“ findet „Straße“ und umgekehrt. Gilt für Einträge, die nach dem Update indiziert wurden, also vollständig nach der nächsten nächtlichen Neuindizierung."
-}

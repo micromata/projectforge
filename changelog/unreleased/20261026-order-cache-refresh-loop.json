@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "The order and invoice caches no longer refresh each other endlessly (e.g. during the daily order book snapshots) when an invoice refers to a deleted order position.",
-  "de": "Der Auftrags- und der Rechnungscache aktualisieren sich nicht mehr gegenseitig endlos (z. B. bei den täglichen Auftragsbuch-Snapshots), wenn eine Rechnung auf eine gelöschte Auftragsposition verweist."
-}
