@@ -101,6 +101,15 @@ class CvrCaseStatusService {
         return status(case, active, allDevices.size - active.size, findings, confirmations, teamChecks)
     }
 
+    /** The states of the given (active) devices only, e.g. the own ones of a user, without the case's other items. */
+    fun deviceStates(
+        case: CvrCaseDO,
+        activeDevices: List<CvrDeviceDO>,
+        openFindingsByDevice: Map<Long?, List<CvrScanFindingDO>>,
+    ): List<DeviceStatus> {
+        return status(case, activeDevices, 0, openFindingsByDevice, emptyList(), emptyList()).devices
+    }
+
     internal fun status(
         case: CvrCaseDO,
         activeDevices: List<CvrDeviceDO>,

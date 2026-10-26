@@ -90,6 +90,10 @@ class CveRadarService {
     fun close(user: PFUserDO, caseId: Long, reason: String?): CvrCaseDO {
         access.checkSecurityTeam(user)
         val case = getCase(user, caseId)
+        if (case.status?.isClosed == true) {
+            // Would replace the documented reason (of the security officer, for example).
+            throw UserException(ERROR_ALREADY_CLOSED)
+        }
         checkClosing(user, case, reason)
         case.status = CvrCaseStatus.CLOSED
         case.closeReason = reason!!.trim()
@@ -153,10 +157,7 @@ class CveRadarService {
     /** The open team checks of the user's groups (not of closed cases). */
     fun myTeamChecks(user: PFUserDO): List<CvrTeamCheckDO> {
         val groupIds = userGroupCache.getUserGroups(user) ?: return emptyList()
-        return teamCheckDao.selectByGroups(groupIds).filter { check ->
-            val case = caseDao.find(check.caseId, checkAccess = false)
-            case != null && !case.deleted && case.status?.isClosed != true
-        }
+        return teamCheckDao.selectByGroups(groupIds, openCasesOnly = true)
     }
 
     /** The cases released to the clients and not closed: those every employee sees (SEC-03). */
@@ -182,6 +183,7 @@ class CveRadarService {
     companion object {
         const val ERROR_NOT_FOUND = "plugins.cveradar.error.notFound"
         const val ERROR_CLOSE_REASON = "plugins.cveradar.closure.error.reason"
+        const val ERROR_ALREADY_CLOSED = "plugins.cveradar.closure.error.alreadyClosed"
         const val ERROR_CLOSE_OPEN_ITEMS = "plugins.cveradar.closure.error.openItems"
         const val ERROR_GROUP = "plugins.cveradar.teamCheck.error.group"
         const val ERROR_SUBJECT = "plugins.cveradar.teamCheck.error.subject"

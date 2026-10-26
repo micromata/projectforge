@@ -86,8 +86,8 @@ object GraylogParser {
                 username = username,
                 serialNumber = value(iSerial),
                 hostname = value(iHost),
-                version = value(iVersion)?.take(50),
-                checkId = checkId?.take(100),
+                version = value(iVersion),
+                checkId = checkId,
                 checkPassed = if (checkId == null) null else value(iCheckResult)?.lowercase()?.let { PASSED.contains(it) },
             )
         }

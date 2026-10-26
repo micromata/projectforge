@@ -52,30 +52,47 @@ class CvrDeviceService {
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
-    /** An asset of the scanner, mapped to a device (EXT-03). */
-    class ScanAsset(val assetId: String, val assetName: String, val serialNumber: String, val username: String)
+    /** An asset of the scanner, mapped to a device (EXT-03). Values are cut to the column sizes. */
+    class ScanAsset(assetId: String, assetName: String, serialNumber: String, username: String) {
+        val assetId = assetId.take(50)
+        val assetName = assetName.take(255)
+        val serialNumber = serialNumber.take(100)
+        val username = username.take(255)
+    }
 
-    /** A finding of the scanner for an asset (EXT-01). */
+    /** A finding of the scanner for an asset (EXT-01). Values are cut to the column sizes. */
     class ScanVuln(
-        val pluginId: String,
+        pluginId: String,
         val pluginName: String? = null,
         val severity: Int? = null,
         val cveIds: List<String> = emptyList(),
         val firstSeen: Date? = null,
         val lastSeen: Date? = null,
-        val hostname: String? = null,
-    )
+        hostname: String? = null,
+    ) {
+        val pluginId = pluginId.take(50)
+        val hostname = hostname?.take(255)
+    }
 
-    /** A message of the client agent from the log server (EXT-04, EXT-05). */
+    /**
+     * A message of the client agent from the log server (EXT-04, EXT-05). Values are cut to the column sizes: one
+     * overlong message would otherwise fail the whole sync.
+     */
     class AgentRecord(
         val timestamp: Date,
-        val username: String,
-        val serialNumber: String? = null,
-        val hostname: String? = null,
-        val version: String? = null,
-        val checkId: String? = null,
+        username: String,
+        serialNumber: String? = null,
+        hostname: String? = null,
+        version: String? = null,
+        checkId: String? = null,
         val checkPassed: Boolean? = null,
-    )
+    ) {
+        val username = username.take(255)
+        val serialNumber = serialNumber?.take(100)
+        val hostname = hostname?.take(255)
+        val version = version?.take(50)
+        val checkId = checkId?.take(100)
+    }
 
     /** The latest result of a check of the client agent. */
     class AgentCheck(var passed: Boolean = false, var at: Date? = null)
@@ -213,7 +230,7 @@ class CvrDeviceService {
                             checks[checkId] = AgentCheck(latest.checkPassed!!, latest.timestamp)
                         }
                     }
-                device.agentChecks = if (checks.isEmpty()) null else objectMapper.writeValueAsString(checks).take(4000)
+                device.agentChecks = checksJson(device, checks)
                 context.update(device)
                 updated++
             }
@@ -314,12 +331,34 @@ class CvrDeviceService {
         }
     }
 
+    /**
+     * The checks as json fitting into the column: if they are too many, the oldest are dropped (never cut, the json
+     * would be unreadable and all checks lost).
+     */
+    internal fun checksJson(device: CvrDeviceDO, checks: Map<String, AgentCheck>): String? {
+        var kept = checks.entries.sortedByDescending { it.value.at }.map { it.key to it.value }
+        while (kept.isNotEmpty()) {
+            val json = objectMapper.writeValueAsString(kept.toMap())
+            if (json.length <= MAX_CHECKS_JSON) {
+                if (kept.size < checks.size) {
+                    log.info { "Device #${device.id}: ${checks.size - kept.size} oldest agent checks dropped." }
+                }
+                return json
+            }
+            kept = kept.dropLast(maxOf(1, kept.size / 10))
+        }
+        return null
+    }
+
     private fun resolveUserId(username: String): Long? {
         return (userGroupCache.getUser(username) ?: userGroupCache.getUser(username.lowercase()))?.id
     }
 
     companion object {
         private const val MILLIS_PER_DAY = 24L * 3600 * 1000
+
+        /** The size of the column agent_checks. */
+        private const val MAX_CHECKS_JSON = 4000
 
         private val objectMapper = ObjectMapper()
 

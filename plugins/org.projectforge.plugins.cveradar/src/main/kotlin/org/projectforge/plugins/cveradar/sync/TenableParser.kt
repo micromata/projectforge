@@ -37,7 +37,11 @@ object TenableParser {
 
     class Asset(val id: String, val name: String)
 
-    class VulnPage(val totalRecords: Int, val vulns: List<CvrDeviceService.ScanVuln>)
+    /**
+     * [totalRecords] is null if the response doesn't tell it; [returned] counts all results of the page, also those
+     * without plugin id.
+     */
+    class VulnPage(val totalRecords: Int?, val returned: Int, val vulns: List<CvrDeviceService.ScanVuln>)
 
     /** The usable and manageable assets (asset lists) of the user. */
     fun parseAssets(json: String): List<Asset> {
@@ -56,7 +60,8 @@ object TenableParser {
 
     fun parseVulns(json: String): VulnPage {
         val response = checkError(objectMapper.readTree(json)).path("response")
-        val vulns = response.path("results").mapNotNull { node ->
+        val results = response.path("results")
+        val vulns = results.mapNotNull { node ->
             val pluginId = node.text("pluginID") ?: return@mapNotNull null
             CvrDeviceService.ScanVuln(
                 pluginId = pluginId,
@@ -69,7 +74,7 @@ object TenableParser {
                 hostname = node.text("dnsName") ?: node.text("netbiosName")?.substringAfterLast('\\'),
             )
         }
-        return VulnPage(response.text("totalRecords")?.toIntOrNull() ?: vulns.size, vulns)
+        return VulnPage(response.text("totalRecords")?.toIntOrNull(), results.size(), vulns)
     }
 
     /** The request body of `/rest/analysis` for the findings of an asset with the given severities. */

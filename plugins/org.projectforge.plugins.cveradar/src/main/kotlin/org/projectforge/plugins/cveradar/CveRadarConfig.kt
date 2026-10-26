@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @ConfigurationProperties(prefix = "projectforge.plugin.cveradar")
 open class CveRadarConfig {
-    /** Prefix of the ids of incidents without CVE (IMP-14): `<prefix>-<year>-<n>`. */
+    /** Prefix of the ids of incidents without CVE (IMP-14): `<prefix>-<year>-<n>`, letters and digits only. */
     var caseIdPrefix: String = "INC"
 
     /** A device not reported for more days is inactive (EXT-07): not counted in the closure overview. */

@@ -49,8 +49,11 @@ import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
 import org.projectforge.plugins.cveradar.rest.CloseRequest
 import org.projectforge.plugins.cveradar.rest.ConfirmRequest
 import org.projectforge.plugins.cveradar.rest.CveRadarRest
+import org.projectforge.plugins.cveradar.rest.CvrCase
+import org.projectforge.plugins.cveradar.rest.CvrCaseEntityRest
 import org.projectforge.plugins.cveradar.rest.TeamCheckAnswerRequest
 import org.projectforge.plugins.cveradar.rest.TeamCheckRequest
+import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.Date
 
@@ -61,6 +64,9 @@ import java.util.Date
 class CveRadarTest : AbstractTestBase() {
     @Autowired
     private lateinit var caseDao: CvrCaseDao
+
+    @Autowired
+    private lateinit var caseRest: CvrCaseEntityRest
 
     @Autowired
     private lateinit var config: CveRadarConfig
@@ -102,16 +108,29 @@ class CveRadarTest : AbstractTestBase() {
 
     @Test
     fun `a reader sees the closure overview without persons`() {
-        logon(user("st2", UserRightValue.READWRITE))
+        val st = user("st2", UserRightValue.READWRITE)
+        logon(st)
         val case = insertCase("reader", minVersion = "2.0")
+        val checkId = rest.createTeamCheck(case.id!!, TeamCheckRequest(getGroupId(TEST_GROUP), "Project R"))
+            .teamChecks.single().id
+        logon(TEST_USER)
+        rest.answerTeamCheck(checkId, TeamCheckAnswerRequest(CvrTeamAnswer.NOT_AFFECTED, "not used"))
         val reader = user("reader1", UserRightValue.READONLY)
         logon(reader)
         val view = rest.status(case.id!!)
         assertNull(view.deviceRows, "no devices with persons for a reader (VIS-15)")
         assertNull(view.questions)
         assertFalse(view.canEdit)
+        val readerCheck = view.teamChecks.single()
+        assertEquals(CvrTeamAnswer.NOT_AFFECTED, readerCheck.answer)
+        assertNull(readerCheck.answeredBy, "who answered isn't shown to a reader (VIS-10)")
+        assertNull(readerCheck.comment)
         assertThrows(AccessException::class.java) { rest.devices() }
         assertThrows(AccessException::class.java) { caseDao.insert(newCase("reader-refused")) }
+        logon(st)
+        val stCheck = rest.status(case.id!!).teamChecks.single()
+        assertEquals("not used", stCheck.comment)
+        assertTrue(stCheck.answeredBy != null)
     }
 
     @Test
@@ -218,6 +237,47 @@ class CveRadarTest : AbstractTestBase() {
         assertThrows(UserException::class.java) { rest.close(case.id!!, CloseRequest(" ")) }
         val closed = rest.close(case.id!!, CloseRequest("All projects fixed."))
         assertEquals(CvrCaseStatus.CLOSED, closed.case.status)
+        assertThrows(UserException::class.java, { rest.close(case.id!!, CloseRequest("other reason")) }, "closed once")
+        assertEquals("All projects fixed.", caseDao.find(case.id)!!.closeReason)
+    }
+
+    @Test
+    fun `not relevant closes like closed, with reason and with open items by the security officer only`() {
+        val so = user("so2", UserRightValue.READWRITE)
+        val soGroup = initTestDB.addGroup("cveradar-so-test2", so.username!!)
+        logon(user("st6", UserRightValue.READWRITE))
+        val case = insertCase("notrelevant")
+        rest.createTeamCheck(case.id!!, TeamCheckRequest(getGroupId(TEST_GROUP), "Project Z"))
+        fun errors(reason: String?) = mutableListOf<ValidationError>().also { errors ->
+            val dto = CvrCase().also {
+                it.copyFrom(caseDao.find(case.id)!!)
+                it.status = CvrCaseStatus.NOT_RELEVANT
+                it.closeReason = reason
+            }
+            caseRest.validate(errors, dto)
+        }
+        assertEquals(1, errors(null).size, "a reason is needed")
+        assertEquals(1, errors("not used here").size, "open items: security officer only")
+        config.securityOfficerGroup = soGroup.name!!
+        try {
+            logon(so)
+            assertTrue(errors("not used here").isEmpty())
+        } finally {
+            config.securityOfficerGroup = ""
+        }
+    }
+
+    @Test
+    fun `too many agent checks drop the oldest, the json stays readable`() {
+        val device = CvrDeviceDO()
+        val checks = (1..200).associate { "CHECK-$it-${"x".repeat(20)}" to CvrDeviceService.AgentCheck(true, Date(it * 1000L)) }
+        val json = deviceService.checksJson(device, checks)!!
+        assertTrue(json.length <= 4000)
+        device.agentChecks = json
+        val read = deviceService.agentChecks(device)
+        assertTrue(read.isNotEmpty() && read.size < 200)
+        assertTrue(read.containsKey("CHECK-200-${"x".repeat(20)}"), "the newest check is kept")
+        assertFalse(read.containsKey("CHECK-1-${"x".repeat(20)}"), "the oldest check is dropped")
     }
 
     @Test

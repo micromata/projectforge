@@ -85,9 +85,19 @@ class CvrCaseDao : BaseDao<CvrCaseDO>(CvrCaseDO::class.java) {
         obj.clientAgentCheckId = obj.clientAgentCheckId?.trim()?.takeIf { it.isNotEmpty() }
     }
 
-    /** `<prefix>-<year>-<n>` with the next n of the year. */
+    /**
+     * Serialised, so two new incidents saved at the same time don't get the same code (within this instance; the
+     * unique constraint stays the last guard).
+     */
+    override fun insert(obj: CvrCaseDO, checkAccess: Boolean): Long {
+        synchronized(INSERT_LOCK) {
+            return super.insert(obj, checkAccess)
+        }
+    }
+
+    /** `<prefix>-<year>-<n>` with the next n of the year; the prefix has letters and digits only (no LIKE wildcard). */
     internal fun nextIncidentCode(year: Int = Year.now().value): String {
-        val prefix = "${config.caseIdPrefix.trim().uppercase().ifEmpty { "INC" }}-$year-"
+        val prefix = "${config.caseIdPrefix.uppercase().filter { it in 'A'..'Z' || it in '0'..'9' }.ifEmpty { "INC" }}-$year-"
         val codes = persistenceService.executeQuery(
             "select c.code from CvrCaseDO c where c.code like :prefix",
             String::class.java,
@@ -98,6 +108,8 @@ class CvrCaseDao : BaseDao<CvrCaseDO>(CvrCaseDO::class.java) {
     }
 
     companion object {
+        private val INSERT_LOCK = Any()
+
         val CVE_REGEX = Regex("""^CVE-\d{4}-\d{4,}$""")
 
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf("assignee.username", "assignee.firstname", "assignee.lastname")

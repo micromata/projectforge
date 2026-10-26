@@ -24,6 +24,7 @@
 package org.projectforge.plugins.cveradar
 
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.plugins.cveradar.model.CvrCaseStatus
 import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
 import org.springframework.stereotype.Service
 
@@ -44,21 +45,31 @@ class CvrTeamCheckDao : BaseDao<CvrTeamCheckDO>(CvrTeamCheckDO::class.java) {
     /** The checks of a case (deleted ones not). */
     fun selectByCase(caseId: Long): List<CvrTeamCheckDO> {
         return persistenceService.executeQuery(
-            "from CvrTeamCheckDO t where t.cvrCase.id = :caseId and t.deleted = false order by t.subject",
+            "select t from CvrTeamCheckDO t join fetch t.cvrCase where t.cvrCase.id = :caseId and t.deleted = false " +
+                    "order by t.subject",
             CvrTeamCheckDO::class.java,
             Pair("caseId", caseId),
         )
     }
 
-    /** The open checks (deleted ones not) of the given groups, for the members' own view. */
-    fun selectByGroups(groupIds: Collection<Long>): List<CvrTeamCheckDO> {
+    /**
+     * The checks (deleted ones not) of the given groups with their case fetched, for the members' own view; with
+     * [openCasesOnly] only those of cases not deleted and not closed.
+     */
+    fun selectByGroups(groupIds: Collection<Long>, openCasesOnly: Boolean = false): List<CvrTeamCheckDO> {
         if (groupIds.isEmpty()) {
             return emptyList()
         }
+        val params = mutableListOf<Pair<String, Any?>>(Pair("groupIds", groupIds))
+        val caseFilter = if (openCasesOnly) {
+            params.add(Pair("closed", CvrCaseStatus.entries.filter { it.isClosed }))
+            " and c.deleted = false and (c.status is null or c.status not in :closed)"
+        } else ""
         return persistenceService.executeQuery(
-            "from CvrTeamCheckDO t where t.group.id in :groupIds and t.deleted = false order by t.subject",
+            "select t from CvrTeamCheckDO t join fetch t.cvrCase c " +
+                    "where t.group.id in :groupIds and t.deleted = false$caseFilter order by t.subject",
             CvrTeamCheckDO::class.java,
-            Pair("groupIds", groupIds),
+            *params.toTypedArray(),
         )
     }
 }

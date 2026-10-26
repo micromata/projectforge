@@ -78,11 +78,12 @@ class CvrCaseEntityRest : AbstractDTOEntityRest<CvrCaseDO, CvrCase, CvrCaseDao>(
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: CvrCase) {
         super.validate(validationErrors, dto)
-        if (dto.status != CvrCaseStatus.CLOSED) {
+        // NOT_RELEVANT closes the case as well (CvrCaseStatus.isClosed): same rules as CLOSED (CLS-05).
+        if (dto.status?.isClosed != true) {
             return
         }
         val stored = dto.id?.let { baseDao.find(it, checkAccess = false) }
-        if (stored?.status == CvrCaseStatus.CLOSED) {
+        if (stored?.status?.isClosed == true) {
             return
         }
         try {

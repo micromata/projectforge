@@ -3948,6 +3948,7 @@
         "devices": "Devices",
         "editCase": "Edit",
         "error": {
+          "alreadyClosed": "The case is already closed.",
           "openItems": "The case has open items; only the security officer may close it now.",
           "reason": "A reason is required for closing."
         },

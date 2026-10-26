@@ -3948,6 +3948,7 @@
         "devices": "Geräte",
         "editCase": "Bearbeiten",
         "error": {
+          "alreadyClosed": "Der Fall ist schon geschlossen.",
           "openItems": "Der Fall hat offene Punkte; schließen darf ihn jetzt nur der Security Officer.",
           "reason": "Zum Schließen ist eine Begründung nötig."
         },

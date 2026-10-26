@@ -61,6 +61,9 @@ class TenableSyncService {
         val tenable = config.tenable
         check(tenable.isConfigured()) { "Tenable.sc isn't configured." }
         val pattern = Regex(tenable.assetPattern)
+        check(tenable.assetPattern.contains("(?<serial>") && tenable.assetPattern.contains("(?<user>")) {
+            "projectforge.plugin.cveradar.tenable.assetPattern needs the named groups (?<serial>...) and (?<user>...)."
+        }
         val summary = Summary()
         val syncTime = Date()
         val assets = TenableParser.parseAssets(call(HttpGet(CveRadarHttp.url(tenable.url, "/rest/asset?fields=id,name"))))
@@ -91,19 +94,32 @@ class TenableSyncService {
         return summary
     }
 
+    /**
+     * All findings of the asset. Throws, if they can't be read completely: the findings not returned would be
+     * resolved otherwise.
+     */
     private fun readVulns(assetId: String, severities: String): List<CvrDeviceService.ScanVuln> {
         val vulns = mutableListOf<CvrDeviceService.ScanVuln>()
+        var returned = 0
         var offset = 0
+        var totalRecords: Int?
         while (true) {
             val request = HttpPost(CveRadarHttp.url(config.tenable.url, "/rest/analysis"))
             val page = TenableParser.parseVulns(
                 call(request, TenableParser.vulnQuery(assetId, severities, offset, offset + PAGE_SIZE))
             )
             vulns.addAll(page.vulns)
+            returned += page.returned
+            totalRecords = page.totalRecords
             offset += PAGE_SIZE
-            if (page.vulns.isEmpty() || offset >= page.totalRecords || offset >= MAX_FINDINGS_PER_ASSET) {
+            // A page not full is the last one; without totalRecords this is the only sign of the end.
+            if (page.returned < PAGE_SIZE || (totalRecords != null && offset >= totalRecords)) {
                 break
             }
+            check(offset < MAX_FINDINGS_PER_ASSET) { "More than $MAX_FINDINGS_PER_ASSET findings." }
+        }
+        check(totalRecords == null || returned >= totalRecords) {
+            "Only $returned of $totalRecords findings returned."
         }
         return vulns
     }

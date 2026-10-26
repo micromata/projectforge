@@ -58,6 +58,8 @@ class ParserTest {
         """.trimIndent()
         val page = TenableParser.parseVulns(json)
         assertEquals(2, page.totalRecords)
+        assertEquals(2, page.returned)
+        assertNull(TenableParser.parseVulns("""{"response":{"results":[]}}""").totalRecords, "unknown, not guessed")
         val first = page.vulns[0]
         assertEquals("100001", first.pluginId)
         assertEquals(3, first.severity)

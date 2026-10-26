@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.cveradar.rest
 
+import org.hibernate.Hibernate
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
@@ -134,9 +135,10 @@ class CveRadarRest {
         val devices = deviceService.selectDevicesOfUser(userId)
         val findings = deviceService.selectFindings(devices.mapNotNull { it.id }).groupBy { it.deviceId }
         val confirmations = deviceService.selectConfirmationsOfUser(userId).associateBy { it.caseId }
-        val activeIds = devices.filter { it.lastSeen?.before(activeSince) == false }.mapNotNull { it.id }.toSet()
+        val activeDevices = devices.filter { it.lastSeen?.before(activeSince) == false }
         val advisories = service.releasedCases().map { case ->
-            val ownStates = statusService.status(case).devices.filter { activeIds.contains(it.device.id) }
+            // The own devices only, loaded once for all cases.
+            val ownStates = statusService.deviceStates(case, activeDevices, findings)
             val confirmation = confirmations[case.id]
             Advisory(
                 id = case.id!!,
@@ -236,8 +238,14 @@ class CveRadarRest {
         },
     )
 
+    /**
+     * Who answered and the comment are shown to the security team and to the members of the asked group only; a reader
+     * sees the answer without persons (VIS-10).
+     */
     private fun teamCheckRow(user: PFUserDO, check: CvrTeamCheckDO): TeamCheckRow {
-        val case = check.caseId?.let { service.findCase(it) }
+        // Fetched by the queries of CvrTeamCheckDao, otherwise loaded here.
+        val case = check.cvrCase?.takeIf { Hibernate.isInitialized(it) } ?: check.caseId?.let { service.findCase(it) }
+        val securityTeamOrMember = access.isSecurityTeam(user) || access.isMemberOf(user, check.groupId)
         return TeamCheckRow(
             id = check.id!!,
             caseId = check.caseId,
@@ -247,12 +255,11 @@ class CveRadarRest {
             groupName = userGroupCache.getGroup(check.groupId)?.name,
             subject = check.subject,
             answer = check.answer,
-            comment = check.comment,
+            comment = if (securityTeamOrMember) check.comment else null,
             answerDate = check.answerDate,
-            answeredBy = userGroupCache.getUser(check.answeredBy?.id)?.displayName,
+            answeredBy = if (securityTeamOrMember) userGroupCache.getUser(check.answeredBy?.id)?.displayName else null,
             lastUpdate = check.lastUpdate,
-            canAnswer = case?.status?.isClosed != true &&
-                    (access.isSecurityTeam(user) || access.isMemberOf(user, check.groupId)),
+            canAnswer = case?.status?.isClosed != true && securityTeamOrMember,
         )
     }
 
