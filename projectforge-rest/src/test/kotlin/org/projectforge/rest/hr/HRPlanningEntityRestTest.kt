@@ -184,9 +184,9 @@ class HRPlanningEntityRestTest : AbstractTestBase() {
         assertEquals(200, save(planning).statusCode.value())
         val planningId = hrPlanningDao.getEntry(getUser(TEST_USER).id, week)!!.id!!
 
-        // The edit page shows the project's name in its picker, not only its id.
+        // The edit page shows the project's name with its customer in its picker, not only its id.
         val stored = hrPlanningEntityRest.getItem(planningId).body as HRPlanning
-        assertEquals(projekt.displayName, stored.entries!!.single { it.status == null }.projekt?.displayName)
+        assertEquals("${projekt.displayName} (${projekt.kunde!!.name})", stored.entries!!.single { it.status == null }.projekt?.displayName)
 
         // The project filter of the list picks any project (an autocompletion, as the legacy list's) and narrows
         // the list to its entries.

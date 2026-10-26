@@ -1305,7 +1305,8 @@ constructor(
         return queryAutocompleteObjects(request, filter)
     }
 
-    private fun autoCompleteLabel(obj: O): String? {
+    /** The label of an `autosearch` hit; [org.projectforge.rest.fibu.ProjectEntityRest] adds the customer. */
+    protected open fun autoCompleteLabel(obj: O): String? {
         return if (obj is DisplayNameCapable) obj.displayName else obj.toString()
     }
 
