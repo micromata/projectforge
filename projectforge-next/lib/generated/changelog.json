@@ -7,10 +7,10 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "improved",
-      "items" : [ "Notifications: the bell has a button \"Archived entries\" listing the confirmed or finished notifications of the last 90 days, so a notification confirmed by mistake can still be read and opened." ]
+      "items" : [ "Notifications: the bell has a button \"Archived entries\" listing the confirmed or finished notifications of the last 90 days, so a notification confirmed by mistake can still be read and opened.", "Project selection of the edit pages and project filter of the lists and statistics: each project shows its customer in brackets." ]
     }, {
       "type" : "fixed",
-      "items" : [ "Notifications: if the mail server isn't reachable, a failed notification mail is logged only once with its stack trace and its cause is shown in the delivery state; the further mails of the run wait for the next run instead of each waiting for the timeout." ]
+      "items" : [ "Notifications: if the mail server isn't reachable, a failed notification mail is logged only once with its stack trace and its cause is shown in the delivery state; the further mails of the run wait for the next run instead of each waiting for the timeout.", "Project wizard: after \"Configure another element\" the project step offered no cost 2 types any more, so the next project had to get them in its edit form afterwards." ]
     } ]
   },
   "groups" : [ {
