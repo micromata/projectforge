@@ -48,6 +48,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -81,6 +82,10 @@ class CveRadarRest {
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
+
+    /** Called by Spring before every endpoint of this controller. */
+    @ModelAttribute
+    fun checkPluginActive() = access.checkPluginActive()
 
     @AccessChecked("CveRadarService.getCase: read right; devices with persons for the read-write right only (VIS-15)")
     @GetMapping("case/{id}/status")

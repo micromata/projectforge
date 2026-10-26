@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.plugins.cveradar.CveRadarAccess
 import org.projectforge.plugins.cveradar.CveRadarPlugin
 import org.projectforge.plugins.cveradar.CveRadarService
 import org.projectforge.plugins.cveradar.CvrCaseDao
@@ -37,6 +38,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -55,7 +57,14 @@ class CvrCaseEntityRest : AbstractDTOEntityRest<CvrCaseDO, CvrCase, CvrCaseDao>(
     "plugins.cveradar.cases",
 ) {
     @Autowired
+    private lateinit var access: CveRadarAccess
+
+    @Autowired
     private lateinit var cveRadarService: CveRadarService
+
+    /** Called by Spring before every endpoint of this controller. */
+    @ModelAttribute
+    fun checkPluginActive() = access.checkPluginActive()
 
     override fun newDTO(): CvrCase = CvrCase()
 

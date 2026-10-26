@@ -28,6 +28,7 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.plugins.core.PluginAdminService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -48,7 +49,20 @@ class CveRadarAccess {
     private lateinit var config: CveRadarConfig
 
     @Autowired
+    private lateinit var pluginAdminService: PluginAdminService
+
+    @Autowired
     private lateinit var userGroupCache: UserGroupCache
+
+    /**
+     * Refuses every endpoint of the CVE-Radar while the plugin isn't activated: its tables are created on activation
+     * only, and an inactive plugin answers nothing.
+     */
+    fun checkPluginActive() {
+        if (!pluginAdminService.isActive(PluginAdminService.PLUGIN_CVE_RADAR_ID)) {
+            throw AccessException(NO_ACCESS)
+        }
+    }
 
     fun isSecurityTeam(user: PFUserDO): Boolean {
         return accessChecker.hasRight(user, CveRadarRightId.PLUGIN_CVERADAR, false, UserRightValue.READWRITE)

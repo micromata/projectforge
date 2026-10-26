@@ -36,6 +36,7 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
+import org.projectforge.plugins.core.PluginsRegistry
 import org.projectforge.plugins.cveradar.CvrCaseStatusService.DeviceState
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrCaseKind
@@ -104,6 +105,22 @@ class CveRadarTest : AbstractTestBase() {
         assertEquals(case.code, caseDao.find(case.id)!!.code)
         rest.devices()
         assertTrue(rest.status(case.id!!).canEdit)
+    }
+
+    @Test
+    fun `no endpoint answers while the plugin isn't activated`() {
+        logon(user("st7", UserRightValue.READWRITE))
+        rest.checkPluginActive()
+        caseRest.checkPluginActive()
+        val plugins = PluginsRegistry.instance().plugins
+        val plugin = plugins.single { it.id == CveRadarPlugin.ID }
+        plugins.remove(plugin)
+        try {
+            assertThrows(AccessException::class.java) { rest.checkPluginActive() }
+            assertThrows(AccessException::class.java) { caseRest.checkPluginActive() }
+        } finally {
+            plugins.add(plugin)
+        }
     }
 
     @Test
