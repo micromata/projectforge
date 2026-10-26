@@ -100,6 +100,7 @@ class DataTransferChatHostTest : AbstractTestBase() {
             assertTrue(chatHost.hasWriteAccess(user, areaId, DataTransferChatHost.CHANNEL), username)
             assertFalse(chatHost.isModerator(user, areaId, DataTransferChatHost.CHANNEL), username)
             assertNotNull(testService.downloadFile(area, file), username)
+            assertEquals(1, chatService.countUnread(DataTransferChatHost.HOST_TYPE, areaId, DataTransferChatHost.CHANNEL), username)
             assertTrue(chatService.listConversations(DataTransferChatHost.HOST_TYPE).any { it.conversationId == conversationId }, username)
         }
         // Others don't, administrators neither.
@@ -108,6 +109,7 @@ class DataTransferChatHostTest : AbstractTestBase() {
                 val user = logon(username)
                 assertThrows(AccessException::class.java, { open(areaId) }, username)
                 assertFalse(chatHost.hasReadAccess(user, areaId, DataTransferChatHost.CHANNEL), username)
+                assertEquals(0, chatService.countUnread(DataTransferChatHost.HOST_TYPE, areaId, DataTransferChatHost.CHANNEL), username)
                 assertFalse(chatService.listConversations(DataTransferChatHost.HOST_TYPE).any { it.conversationId == conversationId }, username)
             }
         }

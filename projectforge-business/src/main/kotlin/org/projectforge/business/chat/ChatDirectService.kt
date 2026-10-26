@@ -94,6 +94,16 @@ open class ChatDirectService {
         }
     }
 
+    /** The messages of the other user in the direct message the logged-in user didn't read yet; 0 if there is none. */
+    open fun countUnread(otherUserId: Long): Long {
+        val userId = ThreadLocalUserContext.requiredLoggedInUserId
+        if (otherUserId == userId) {
+            return 0
+        }
+        val pair = findPair(userId, otherUserId) ?: return 0
+        return chatService.countUnread(ChatDirectChatHost.HOST_TYPE, pair.id!!, ChatDirectChatHost.CHANNEL)
+    }
+
     private fun findPair(userId: Long, otherUserId: Long): ChatDirectDO? {
         return persistenceService.selectSingleResult(
             "from ChatDirectDO d where d.user1Id = :user1Id and d.user2Id = :user2Id",

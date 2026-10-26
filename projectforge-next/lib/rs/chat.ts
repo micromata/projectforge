@@ -8,6 +8,7 @@ import type {
   ChatThread,
   ChatChanges,
   ChatHostEntry,
+  ChatUnreadMessage,
 } from "./chat-types";
 
 /**
@@ -209,6 +210,19 @@ export function fetchChatMessageHistory(messageId: number) {
   return chatRequest<HistoryEntry[]>(`${BASE}/message/${messageId}/history`, {
     method: "GET",
   });
+}
+
+/** The messages of others unread since [after] (the read state when opened), oldest first, also in threads. */
+export function fetchChatUnreadMessages(
+  id: number,
+  after: number,
+  signal?: AbortSignal
+) {
+  return chatRequest<ChatUnreadMessage[]>(
+    `${BASE}/conversation/${id}/unreadMessages?after=${after}`,
+    { method: "GET" },
+    signal
+  );
 }
 
 export function markChatRead(id: number, messageId: number) {

@@ -29,7 +29,8 @@ export const MessageItem = memo(function MessageItem({
 }) {
   const t = useTranslations();
   const formatContext = useFormatContext();
-  const { conversation, openThread, highlightId } = useChatContext();
+  const { conversation, openThread, highlightId, observeSeen } =
+    useChatContext();
   const { react } = useMessageMutations();
   const [editing, setEditing] = useState(false);
   const placeholder = message.deleted
@@ -41,6 +42,8 @@ export const MessageItem = memo(function MessageItem({
   return (
     <article
       id={`chat-message-${message.id}`}
+      ref={message.author.id !== conversation.me.id ? observeSeen : undefined}
+      data-message-id={message.id}
       aria-label={`${message.author.displayName}, ${formatTimestampMinutes(message.created, formatContext)}`}
       className={cn(
         "group relative flex gap-2.5 px-3 py-1.5 hover:bg-muted/40",

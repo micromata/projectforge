@@ -26,6 +26,8 @@ package org.projectforge.plugins.datatransfer.rest
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
+import org.projectforge.business.chat.ChatDirectService
+import org.projectforge.business.chat.ChatService
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.common.NumberOfBytes
@@ -87,6 +89,11 @@ class DataTransferFilesRest {
         val chatAvailable: Boolean = false,
         /** The owner of a personal box: whom a direct message from it goes to. */
         val personalBoxUserId: Long? = null,
+        /**
+         * The messages the logged-in user didn't read yet in the chat of the area, or in the direct message with the
+         * owner of another one's personal box.
+         */
+        val chatUnread: Long = 0,
     )
 
     class ObserveRequest(var observe: Boolean? = null)
@@ -104,7 +111,13 @@ class DataTransferFilesRest {
     private lateinit var dataTransferAreaEntityRest: DataTransferAreaEntityRest
 
     @Autowired
+    private lateinit var chatDirectService: ChatDirectService
+
+    @Autowired
     private lateinit var chatHost: DataTransferChatHost
+
+    @Autowired
+    private lateinit var chatService: ChatService
 
     @Autowired
     private lateinit var dataTransferAreaDao: DataTransferAreaDao
@@ -160,6 +173,8 @@ class DataTransferFilesRest {
         }
         val (dbObj, dto) = convertData(areaId)
         val externalAccessConfig = dataTransferAreaDao.externalAccessConfig
+        val chatAvailable = chatHost.isChatArea(dbObj)
+        val boxUserId = dbObj.getPersonalBoxUserId()
         return View(
             area = dto,
             editAccess = hasEditAccess(dto, dbObj),
@@ -170,8 +185,15 @@ class DataTransferFilesRest {
             } else null,
             managedByMainInstance = externalAccessConfig.gatewayMode,
             syntheticArea = dataTransferAreaDao.getAreaHost(dbObj) != null,
-            chatAvailable = chatHost.isChatArea(dbObj),
-            personalBoxUserId = dbObj.getPersonalBoxUserId(),
+            chatAvailable = chatAvailable,
+            personalBoxUserId = boxUserId,
+            chatUnread = when {
+                boxUserId != null -> chatDirectService.countUnread(boxUserId)
+                chatAvailable -> chatService.countUnread(
+                    DataTransferChatHost.HOST_TYPE, areaId, DataTransferChatHost.CHANNEL
+                )
+                else -> 0
+            },
         )
     }
 

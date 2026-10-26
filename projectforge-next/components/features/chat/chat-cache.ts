@@ -97,3 +97,14 @@ export function applyChatChanges(
     );
   });
 }
+
+/**
+ * The read state of a conversation changed: refreshes the unread counts shown elsewhere (lists of rooms, direct
+ * messages and hosts, the chat button of a data transfer area).
+ */
+export function invalidateUnreadCounts(queryClient: QueryClient) {
+  ["chatRooms", "chatDirect", "chatHosts"].forEach(
+    (key) => void queryClient.invalidateQueries({ queryKey: [key] })
+  );
+  void queryClient.invalidateQueries({ queryKey: ["datatransfer", "view"] });
+}

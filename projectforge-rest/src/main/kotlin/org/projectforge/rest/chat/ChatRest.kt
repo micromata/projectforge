@@ -336,6 +336,17 @@ class ChatRest {
         return chatService.mentionCandidates(context, search).map { converter.ref(it) }
     }
 
+    /**
+     * The messages of others unread since [after] (the read state when the conversation was opened), oldest first:
+     * for jumping to the next one, also in a thread.
+     */
+    @AccessChecked("ChatService.requireContext: read access of the host to the conversation; own read state only")
+    @GetMapping("conversation/{id}/unreadMessages")
+    fun unreadMessages(@PathVariable id: Long, @RequestParam("after") after: Long): List<ChatUnreadMessage> {
+        val context = chatService.requireContext(id)
+        return chatService.selectUnread(context, after).map { (messageId, rootId) -> ChatUnreadMessage(messageId, rootId) }
+    }
+
     @AccessChecked("ChatService.requireContext: read access of the host to the conversation")
     @GetMapping("conversation/{id}/search")
     fun search(

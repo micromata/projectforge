@@ -8,7 +8,6 @@ import { Spinner } from "@/components/shared/spinner";
 import {
   chatConversationQueryKey,
   fetchChatConversation,
-  markChatUnread,
   muteChatConversation,
 } from "@/lib/rs/chat";
 import type { ChatMessage } from "@/lib/rs/chat-types";
@@ -23,6 +22,8 @@ import { ThreadPanel } from "./thread-panel";
 import { useChatLive } from "./use-chat-live";
 import { useSecretOffers } from "./use-chat-secret";
 import { useMarkRead } from "./use-mark-read";
+import { useReadMark } from "./use-read-mark";
+import { useUnreadJump } from "./use-unread-jump";
 
 /**
  * A conversation (PF-CHAT): the messages, writing, threads in a side panel, live updates. Embeddable by any host
@@ -45,27 +46,40 @@ export function ChatPanel({
     refetchOnWindowFocus: false,
   });
   const conversation = query.data;
-  // The read state when opened, for the "new" lines: marking read meanwhile doesn't move it, marking unread does.
-  const [readMark, setReadMark] = useState<number | null | undefined>(
-    undefined
-  );
-  // Never read: everything of others is new, as counted by the server.
-  if (conversation && readMark === undefined)
-    setReadMark(conversation.lastReadMessageId ?? 0);
-  const [threadRootId, setThreadRootId] = useState<number | null>(null);
-  // The threads opened since: their new replies are seen.
-  const [openedThreads, setOpenedThreads] = useState<ReadonlySet<number>>(
-    () => new Set()
-  );
-  const openThread = useCallback((rootId: number) => {
-    setThreadRootId(rootId);
-    setOpenedThreads((ids) => new Set(ids).add(rootId));
-  }, []);
-  const [newestId, setNewestId] = useState(0);
   const { markUpTo, pause, resume, settled } = useMarkRead(conversationId);
-  const trackNewest = useCallback((messages: ChatMessage[]) => {
-    setNewestId((id) => Math.max(id, ...messages.map((it) => it.id)));
-  }, []);
+  const { readMark, marks, markUnread, threadOpened, hasUnreadReplies } =
+    useReadMark(conversationId, conversation, pause, settled);
+  const [threadRootId, setThreadRootId] = useState<number | null>(null);
+  const [threadFocusId, setThreadFocusId] = useState<number | null>(null);
+  const openThread = useCallback(
+    (rootId: number, focusId?: number) => {
+      setThreadRootId(rootId);
+      setThreadFocusId(focusId ?? null);
+      threadOpened(rootId);
+    },
+    [threadOpened]
+  );
+  const [newestId, setNewestId] = useState(0);
+  const closeThread = useCallback(() => setThreadRootId(null), []);
+  const unreadJump = useUnreadJump(
+    conversationId,
+    readMark,
+    marks,
+    openThread,
+    closeThread
+  );
+  const known = Math.max(newestId, conversation?.newestMessageId ?? 0);
+  const meId = conversation?.me.id;
+  const refreshUnread = unreadJump.refresh;
+  const trackNewest = useCallback(
+    (messages: ChatMessage[]) => {
+      setNewestId((id) => Math.max(id, ...messages.map((it) => it.id)));
+      // New ones of others: unread as well, until seen.
+      if (messages.some((it) => it.id > known && it.author.id !== meId))
+        refreshUnread();
+    },
+    [known, meId, refreshUnread]
+  );
   const secrets = useSecretOffers(conversation);
   const live = useChatLive(
     conversationId,
@@ -77,30 +91,6 @@ export function ChatPanel({
     (id: number | null) =>
       markUpTo(Math.max(id ?? 0, newestId, conversation?.newestMessageId ?? 0)),
     [markUpTo, newestId, conversation?.newestMessageId]
-  );
-  const unread = useMutation({
-    mutationFn: async (message: ChatMessage) => {
-      await settled(); // Not overtaken by a read state still on its way.
-      return markChatUnread(conversationId, message.id);
-    },
-    onMutate: (message) => {
-      pause(message.id - 1);
-      setReadMark(message.id - 1);
-      setOpenedThreads(new Set());
-    },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["chatRooms"] });
-      void queryClient.invalidateQueries({ queryKey: ["chatDirect"] });
-      void queryClient.invalidateQueries({ queryKey: ["chatHosts"] });
-    },
-  });
-  const markUnread = unread.mutate;
-  const hasUnreadReplies = useCallback(
-    (message: ChatMessage) =>
-      readMark != null &&
-      (message.newestReplyOfOthersId ?? 0) > readMark &&
-      !openedThreads.has(message.id),
-    [readMark, openedThreads]
   );
   const mute = useMutation({
     mutationFn: (muted: boolean) => muteChatConversation(conversationId, muted),
@@ -116,20 +106,23 @@ export function ChatPanel({
             conversation,
             sync: live.sync,
             openThread,
-            highlightId,
-            readMark: readMark ?? null,
+            highlightId: unreadJump.jumpedId ?? highlightId,
+            readMark,
             hasUnreadReplies,
             markUnread,
+            observeSeen: unreadJump.observe,
           }
         : null,
     [
       conversation,
       live.sync,
       openThread,
+      unreadJump.jumpedId,
       highlightId,
       readMark,
       hasUnreadReplies,
       markUnread,
+      unreadJump.observe,
     ]
   );
 
@@ -160,6 +153,8 @@ export function ChatPanel({
       >
         <ChatPanelHeader
           onJump={jump}
+          unreadCount={unreadJump.count}
+          onNextUnread={unreadJump.jump}
           onMute={() => mute.mutate(!conversation.muted)}
           polling={live.mode === "polling"}
         />
@@ -182,7 +177,8 @@ export function ChatPanel({
         )}
         <ThreadPanel
           rootId={threadRootId}
-          onClose={() => setThreadRootId(null)}
+          focusId={threadFocusId}
+          onClose={closeThread}
         />
       </section>
     </ChatContextProvider>

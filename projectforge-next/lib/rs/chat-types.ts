@@ -87,6 +87,12 @@ export interface ChatConversation {
   maxRequestSize: number;
 }
 
+/** An unread message (ChatRest.unreadMessages): the root of its thread, null for a message of the conversation. */
+export interface ChatUnreadMessage {
+  id: number;
+  threadRootId: number | null;
+}
+
 export interface ChatMessagesPage {
   messages: ChatMessage[];
   hasMore: boolean;

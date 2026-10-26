@@ -151,6 +151,9 @@ class ChatReactionRequest(val emoji: String? = null)
 
 class ChatReadRequest(val messageId: Long? = null)
 
+/** An unread message: its id and the root of its thread (null for a message of the conversation itself). */
+class ChatUnreadMessage(val id: Long, val threadRootId: Long?)
+
 class ChatFlagRequest(val value: Boolean = true)
 
 /** The translated message of a refused call (HTTP 400). */

@@ -157,6 +157,7 @@ own instead of interleaving with the conversation.
 | NOT-07 | Users should be able to mute a conversation (except mentions). | S | |
 | NOT-08 | WebSockets and presence or typing indicators ("is typing …") are not planned; sending goes via ordinary POST requests. | W | decision 6 |
 | NOT-09 | Users should be able to mark a message of others as unread (menu of the message): the read state goes back to the message before it, the "new" line moves there and the conversation isn't marked read again until the user writes or opens it anew. Notifications already resolved stay resolved. | S | decision 14 |
+| NOT-10 | A conversation should show at its top right a badge with the messages unread when it was opened (NOT-01, replies included) not seen yet; a message counts as seen once shown, in the conversation or its thread. A click on the badge jumps to the next one: a reply opens its thread at it, an older message is loaded if needed. | S | |
 
 ### 5.6 PF-CHAT-SRCH – Search
 
@@ -220,6 +221,7 @@ host object is the area.
 | DT-04 | Deleting the area deletes its conversation with all messages (CTX-05). | M | |
 | DT-05 | The personal box of another user must offer a button "Direct message", which opens the direct message with its owner (PF-CHAT-DM, DM-02 applies); the files go into the owner's personal box (ATT-02). The own box has none. | M | |
 | DT-06 | The chat page must list the chats of the areas with at least one message the user may read, newest first, with unread counts, narrowed by its search box. | M | as DM-05 |
+| DT-07 | The buttons "Chat" and "Direct message" should show the number of unread messages of the conversation (NOT-01). | S | |
 
 ### 5.11 PF-CHAT-CONF – Confidential messages
 
@@ -293,13 +295,13 @@ page, thread side panel, mention suggestions, file upload and image viewer.
 | 12 | Direct messages | Built-in host with the pair of users as host object; started only with visible users, then open to both | DM-01 – DM-06 |
 | 13 | Confidential messages | A live session of the two browsers (like OTR), end-to-end encrypted, relayed in memory and taken once; direct messages only | CONF-01 – CONF-08 |
 | 14 | Read state | One mark per user and conversation (the newest message read), for the conversation and its threads; replies count as unread only in threads followed or with a mention; marking unread moves it back; the menu badges come from the notifications and aren't restored by marking unread | NOT-01, NOT-03, NOT-09 |
-| 15 | Data transfer areas | Every ordinary area is a chat room of the users with access, its files go into the area; the personal box of another user leads to the direct message with its owner | DT-01 – DT-06 |
+| 15 | Data transfer areas | Every ordinary area is a chat room of the users with access, its files go into the area; the personal box of another user leads to the direct message with its owner | DT-01 – DT-07 |
 
 ## 9. Implementation status (review of R1, 2026-10-26)
 
 Implemented in R1: CTX-01 – CTX-05, CTX-07, MSG-01 – MSG-05, MSG-07, MSG-09, MSG-10, THR-01 – THR-05, ATT-01 – ATT-08,
-NOT-01 – NOT-07, NOT-09, SEC-01 – SEC-07, ROOM-01 – ROOM-07, ROOM-09, ROOM-10, DM-01 – DM-06, CONF-01 – CONF-07,
-DT-01 – DT-06.
+NOT-01 – NOT-07, NOT-09, NOT-10, SEC-01 – SEC-07, ROOM-01 – ROOM-07, ROOM-09, ROOM-10, DM-01 – DM-06, CONF-01 – CONF-07,
+DT-01 – DT-07.
 
 Deviations and gaps:
 
@@ -308,7 +310,7 @@ Deviations and gaps:
 | MSG-06, NFR-04 | Paging by 50 and loading older messages is implemented, the list is not virtualised; 10,000 messages are not measured yet. |
 | SRCH-01 | Search by text in the UI; the author filter exists only in the REST endpoint (`authorId`), not in the search dialog. Hidden messages aren't found, also not by moderators. |
 | ATT-07 | Metadata removed for JPEG and PNG (encoded again); GIF and WebP are kept as they are (animations). |
-| CTX-06 | Unread counts only in the lists of the chat page (rooms, direct messages, data transfer areas); not in the lists of a host (e.g. the data transfer list). |
+| CTX-06 | Unread counts in the lists of the chat page (rooms, direct messages, data transfer areas) and at the chat buttons of a data transfer area (DT-07); not in the lists of a host (e.g. the data transfer list). |
 | MSG-08, THR-06, CTX-08, ROOM-08, SRCH-02, SEC-08 | Open (S/C, R2 or later). |
 
 ## 10. Open points

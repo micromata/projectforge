@@ -966,6 +966,7 @@
       "mute": "Mute",
       "muted": "Muted: new messages aren't notified, mentions are.",
       "newMessages": "New",
+      "nextUnread": "Jump to the next unread message ({arg0} unread)",
       "notFound": "The conversation doesn't exist or isn't accessible.",
       "polling": "Live updates interrupted, new messages are checked periodically.",
       "readOnly": "This conversation is read-only.",

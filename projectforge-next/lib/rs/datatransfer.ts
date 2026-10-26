@@ -94,6 +94,8 @@ export interface DataTransferView {
   chatAvailable?: boolean;
   /** The owner of a personal box: whom a direct message from it goes to. */
   personalBoxUserId?: number | null;
+  /** Unread messages in the chat of the area, or in the direct message with the owner of another one's box. */
+  chatUnread?: number;
 }
 
 /** One entry of the activities, `DataTransferAuditDO` with its computed fields. */

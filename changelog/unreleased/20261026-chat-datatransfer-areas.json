@@ -14,6 +14,10 @@
     {
       "en": "The chat page lists the chats of the data transfer areas with messages, with unread counts.",
       "de": "Die Chatseite listet die Chats der Datentransferbereiche mit Nachrichten, mit der Zahl der ungelesenen."
+    },
+    {
+      "en": "The buttons Chat and Direct message show the number of unread messages. In a chat, a badge at the top right shows the unread messages not seen yet; a click jumps to the next one, also into a thread.",
+      "de": "Die Buttons Chat und Direktnachricht zeigen die Zahl der ungelesenen Nachrichten. Im Chat zeigt ein Badge oben rechts die noch nicht gesehenen ungelesenen Nachrichten; ein Klick springt zur nächsten, auch in einen Thread."
     }
   ]
 }

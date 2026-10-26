@@ -966,6 +966,7 @@
       "mute": "Stummschalten",
       "muted": "Stummgeschaltet: Neue Nachrichten werden nicht gemeldet, Erwähnungen schon.",
       "newMessages": "Neu",
+      "nextUnread": "Zur nächsten ungelesenen Nachricht springen ({arg0} ungelesen)",
       "notFound": "Die Unterhaltung gibt es nicht oder sie ist nicht zugänglich.",
       "polling": "Live-Aktualisierung unterbrochen, neue Nachrichten werden regelmäßig abgefragt.",
       "readOnly": "Diese Unterhaltung ist schreibgeschützt.",

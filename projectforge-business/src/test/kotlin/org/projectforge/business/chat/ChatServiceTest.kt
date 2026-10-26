@@ -285,6 +285,30 @@ class ChatServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun `the unread messages are listed from the given read state on, replies with their thread`() {
+        val conversationId = createRoom("chat unread list test")
+        val roomId = chatService.requireContext(conversationId).hostId
+        val first = chatService.send(conversationId, null, "first")
+        logon(TEST_USER2)
+        chatService.markRead(conversationId, first.id!!)
+        chatService.setFollowing(first.id!!, true)
+
+        logon(TEST_USER)
+        val reply = chatService.send(conversationId, first.id, "reply")
+        val second = chatService.send(conversationId, null, "second")
+        logon(TEST_USER2)
+        assertEquals(2, chatService.countUnread(ChatRoomChatHost.HOST_TYPE, roomId, ChatRoomChatHost.CHANNEL))
+        chatService.send(conversationId, null, "own") // Read up to here, not unread for its author anyway.
+        assertEquals(0, chatService.countUnread(ChatRoomChatHost.HOST_TYPE, roomId, ChatRoomChatHost.CHANNEL))
+        val context = chatService.requireContext(conversationId)
+        assertEquals(listOf(Pair(reply.id!!, first.id), Pair(second.id!!, null)), chatService.selectUnread(context, first.id!!))
+        assertEquals(listOf(first.id!!, reply.id!!, second.id!!), chatService.selectUnread(context, 0).map { it.first })
+
+        logon(TEST_FINANCE_USER) // No participant.
+        assertEquals(0, chatService.countUnread(ChatRoomChatHost.HOST_TYPE, roomId, ChatRoomChatHost.CHANNEL))
+    }
+
+    @Test
     fun `the search finds wildcards as text`() {
         val conversationId = createRoom("chat search test")
         val context = chatService.requireContext(conversationId)

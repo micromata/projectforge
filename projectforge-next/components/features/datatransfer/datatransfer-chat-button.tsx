@@ -7,6 +7,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Message01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { UnreadBadge } from "@/components/shared/unread-badge";
 import { useAuth } from "@/hooks/use-auth";
 import { useOpenDirect } from "@/hooks/use-open-direct";
 import {
@@ -20,7 +21,7 @@ import { toast } from "@/lib/toast";
 /**
  * The chat of an area's page (PF-CHAT-DT): an ordinary area is a chat room of everybody with access to it, its files
  * go into the area; the personal box of another user opens the direct message with its owner, whose files go into
- * the box. The own box has none.
+ * the box. The own box has none. Each one shows the messages not read yet.
  */
 export function DataTransferChatButton({ view }: { view: DataTransferView }) {
   const { user } = useAuth();
@@ -28,17 +29,23 @@ export function DataTransferChatButton({ view }: { view: DataTransferView }) {
   if (!user) return null; // Not known yet: it might be the own box.
   if (boxUserId != null) {
     if (boxUserId === user?.userId) return null;
-    return <DirectMessageButton userId={boxUserId} />;
+    return <DirectMessageButton userId={boxUserId} unread={view.chatUnread} />;
   }
   if (!view.chatAvailable || view.area.id == null) return null;
-  return <AreaChatButton areaId={view.area.id} />;
+  return <AreaChatButton areaId={view.area.id} unread={view.chatUnread} />;
 }
 
 /** Highlighted in the yellow of the chat actions (as "Start chat" in the menu search). */
 const CHAT_BUTTON_CLASSES =
   "gap-1.5 bg-brand-yellow-dark font-medium text-black hover:bg-brand-yellow-dark/85";
 
-function AreaChatButton({ areaId }: { areaId: number }) {
+function AreaChatButton({
+  areaId,
+  unread,
+}: {
+  areaId: number;
+  unread?: number;
+}) {
   const t = useTranslations();
   const router = useRouter();
   const open = useMutation({
@@ -65,12 +72,19 @@ function AreaChatButton({ areaId }: { areaId: number }) {
       >
         <HugeiconsIcon icon={Message01Icon} size={14} aria-hidden />
         {t("plugins.datatransfer.button.chat._")}
+        <UnreadBadge count={unread} />
       </Button>
     </HintTooltip>
   );
 }
 
-function DirectMessageButton({ userId }: { userId: number }) {
+function DirectMessageButton({
+  userId,
+  unread,
+}: {
+  userId: number;
+  unread?: number;
+}) {
   const t = useTranslations();
   const openDirect = useOpenDirect();
   return (
@@ -84,6 +98,7 @@ function DirectMessageButton({ userId }: { userId: number }) {
       >
         <HugeiconsIcon icon={Message01Icon} size={14} aria-hidden />
         {t("plugins.datatransfer.button.directMessage._")}
+        <UnreadBadge count={unread} />
       </Button>
     </HintTooltip>
   );
