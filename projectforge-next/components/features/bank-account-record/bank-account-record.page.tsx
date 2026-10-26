@@ -49,12 +49,15 @@ export const BANK_ACCOUNT_RECORD_PAGE = definePage<
       id: "accountIban",
       labelKey: "plugins.banking.account.record.accountIban",
       accessor: (row) => row.bankAccount?.iban ?? "",
+      // Struck through when the account is deleted (see ColumnBase.referenceKey).
+      referenceKey: "bankAccount",
       size: 200,
     },
     {
       id: "accountName",
       labelKey: "plugins.banking.account.record.accountName",
       accessor: (row) => accountLabel(row.bankAccount),
+      referenceKey: "bankAccount",
       size: 160,
     },
     { name: "date", size: 110 },

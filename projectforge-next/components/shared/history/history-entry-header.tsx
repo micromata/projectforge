@@ -9,8 +9,9 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatTimestampMinutes } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { HistoryEntry } from "@/lib/rs/history";
+import { modifiedByRef, type HistoryEntry } from "@/lib/rs/history";
 import { opColor } from "./history-op-style";
+import { RefName } from "@/components/shared/ref-list";
 
 export interface HistoryEntryHeaderProps {
   entry: HistoryEntry;
@@ -58,9 +59,10 @@ export function HistoryEntryHeader({ entry, open }: HistoryEntryHeaderProps) {
                   open && "rotate-90"
                 )}
               />
-              <span className="text-sm font-semibold">
-                {entry.modifiedByUser ?? "—"}
-              </span>
+              <RefName
+                value={modifiedByRef(entry)}
+                className="text-sm font-semibold"
+              />
               {entry.diffSummary.map((diff) => (
                 <span
                   key={diff.type}

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
 import type { PollAnswerData } from "./types";
+import { RefName } from "@/components/shared/ref-list";
 
 /** Whose answers are shown: the logged-in user's, or those of an attendee (full access only). */
 export function PollOwnerSelect({
@@ -45,7 +46,7 @@ export function PollOwnerSelect({
           )}
           {data.attendees?.map((attendee) => (
             <SelectItem key={attendee.id} value={String(attendee.id)}>
-              {attendee.displayName}
+              <RefName value={attendee} />
             </SelectItem>
           ))}
         </SelectContent>

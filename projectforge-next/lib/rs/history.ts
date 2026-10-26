@@ -50,6 +50,9 @@ export interface HistoryEntry {
   timeAgo: string;
   modifiedByUserId: number | null;
   modifiedByUser: string | null;
+  /** Whether the modifying user is deleted or deactivated: the name is struck through then. */
+  modifiedByUserDeleted?: boolean;
+  modifiedByUserDeactivated?: boolean;
   operationType: EntityOpType;
   /** Translated name of `operationType`. */
   operation: string;
@@ -107,4 +110,17 @@ export async function appendHistoryComment(
   if (!res.ok) {
     throw new RsError(res.status, `${res.status} ${res.statusText}: ${path}`);
   }
+}
+
+/** The modifying user of a history entry as a reference, with its inactive flags (see inactiveRefClass). */
+export function modifiedByRef(entry: HistoryEntry): {
+  displayName: string;
+  deleted?: boolean;
+  deactivated?: boolean;
+} {
+  return {
+    displayName: entry.modifiedByUser ?? "—",
+    deleted: entry.modifiedByUserDeleted,
+    deactivated: entry.modifiedByUserDeactivated,
+  };
 }

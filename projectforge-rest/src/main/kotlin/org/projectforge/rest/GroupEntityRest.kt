@@ -62,6 +62,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.*
 
@@ -219,6 +220,27 @@ class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
         return GroupNomenclatureConfig.get()
     }
 
+    /**
+     * The members of a group, for the tooltip of a group's pill in the pickers of projectforge-next (a calendar's
+     * access list, the groups of a user). Only for whom may see the group ([GroupDao.hasUserSelectAccess]: admins,
+     * finance and controlling, its own members); anybody else is told so rather than refused, so the tooltip can
+     * say it, and an unknown id answers the same as a forbidden one. Served from the [UserGroupCache], no database.
+     */
+    @AccessChecked("DAO: select access to the group (GroupDao.hasUserSelectAccess with the object)")
+    @GetMapping("members")
+    fun members(@RequestParam id: Long): GroupMembers {
+        val group = userGroupCache.getGroup(id)
+        if (group == null || !baseDao.hasLoggedInUserSelectAccess(group, false)) {
+            return GroupMembers(visible = false)
+        }
+        val members = group.assignedUsers.orEmpty()
+            .mapNotNull { userService.getUser(it.id) }
+            .filter { !it.deleted }
+            .map { GroupMembers.Member(it.id!!, it.displayName, it.deactivated) }
+            .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.displayName })
+        return GroupMembers(visible = true, members = members)
+    }
+
     @PostMapping("createGid")
     fun createGid(@Valid @RequestBody postData: PostData<Group>):
             ResponseAction {
@@ -359,4 +381,11 @@ class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
         /** The posix gid range, as Wicket's GroupEditForm allowed it. */
         internal val GID_RANGE = 1..65535
     }
+}
+
+/**
+ * Answer of [GroupEntityRest.members]: the members of a group, if the logged-in user may see them ([visible]).
+ */
+data class GroupMembers(val visible: Boolean, val members: List<Member> = emptyList()) {
+    data class Member(val id: Long, val displayName: String, val deactivated: Boolean)
 }

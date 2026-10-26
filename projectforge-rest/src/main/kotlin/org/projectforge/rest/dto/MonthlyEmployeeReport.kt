@@ -40,6 +40,8 @@ class MonthlyEmployeeReportData(
     /** The user the report is about (defaults to the logged-in user). */
     val userId: Long?,
     val userName: String,
+    /** The user is no longer active (deactivated or deleted): struck through in the picker. */
+    val userDeactivated: Boolean = false,
     /** True if the logged-in user may pick another user (access to other users' time sheets). */
     val maySelectOtherUsers: Boolean,
     val year: Int,

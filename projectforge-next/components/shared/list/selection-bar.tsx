@@ -6,6 +6,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { HelpCircleIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { MAX_MASS_UPDATE } from "@/lib/rs/multi-select";
 
 /**
  * The bar above the table while a list is in selection mode: how many are picked, and what can be
@@ -19,6 +20,7 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 export function SelectionBar({
   count,
   onSelectAll,
+  onSelectFirst,
   onClear,
   onLeave,
   actions,
@@ -26,6 +28,11 @@ export function SelectionBar({
 }: {
   count: number;
   onSelectAll: () => void;
+  /**
+   * Ticks the first MAX_MASS_UPDATE rows, the most one mass update changes. Absent where it would
+   * mean the same as select all, or where the bar leads to no mass update.
+   */
+  onSelectFirst?: () => void;
   onClear: () => void;
   onLeave: () => void;
   /** The mass update button, rendered right of the counts. */
@@ -77,6 +84,17 @@ export function SelectionBar({
         >
           {t("selectAll")}
         </Button>
+        {onSelectFirst && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2"
+            onClick={onSelectFirst}
+          >
+            {t("massUpdate.selectFirst", { arg0: MAX_MASS_UPDATE })}
+          </Button>
+        )}
         <Button
           type="button"
           variant="ghost"

@@ -2799,6 +2799,14 @@
       "not": "Allgemeine Gruppe",
       "tooltip": "Lokale Gruppen werden nicht mit einem externen Benutzer:innensystem synchronisiert (z. B. LDAP)."
     },
+    "members": {
+      "tooltip": {
+        "count": "{arg0} Mitglieder",
+        "loading": "Mitglieder werden geladen …",
+        "none": "Keine Mitglieder",
+        "notVisible": "Die Mitglieder sind nur für Mitglieder der Gruppe und für Admins sichtbar."
+      }
+    },
     "nomenclature": {
       "_": "Namenskonvention",
       "description": {
@@ -3228,6 +3236,7 @@
     },
     "restore": "Ausgewählte wiederherstellen",
     "restoreConfirm": "Sollen die {arg0} ausgewählten Einträge wirklich wiederhergestellt werden?",
+    "selectFirst": "Erste {arg0} auswählen",
     "selectedEntries": "Ausgewählte Einträge"
   },
   "menu": {
@@ -3392,6 +3401,8 @@
       "triggerConfirm": "Regel jetzt für alle Empfänger auslösen? Für denselben Zeitraum bereits Benachrichtigte werden nicht erneut benachrichtigt."
     },
     "center": "Benachrichtigungen",
+    "centerArchived": "Archivierte Einträge",
+    "centerArchivedEmpty": "Keine archivierten Einträge der letzten 90 Tage.",
     "centerEmpty": "Keine offenen Benachrichtigungen.",
     "channels": {
       "IN_APP": "In der App",

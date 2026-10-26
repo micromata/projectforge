@@ -232,7 +232,7 @@ export const ORDER_PAGE = definePage<
     {
       id: "assignedPersons",
       labelKey: "fibu.common.assignedPersons",
-      accessor: (row) => row.assignedPersons ?? "",
+      accessor: (row) => row.assignedPersonList,
       size: 180,
       className: "text-muted-foreground",
     },

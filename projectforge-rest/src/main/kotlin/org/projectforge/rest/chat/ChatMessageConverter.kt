@@ -107,7 +107,12 @@ class ChatMessageConverter {
 
     fun ref(userId: Long?): ChatRef {
         val user = userGroupCache.getUser(userId)
-        return ChatRef(userId ?: 0, user?.getFullname() ?: "?")
+        return ChatRef(
+            userId ?: 0,
+            user?.getFullname() ?: "?",
+            deleted = user?.deleted == true,
+            deactivated = user?.deactivated == true,
+        )
     }
 
     companion object {

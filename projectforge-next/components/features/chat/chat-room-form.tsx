@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ChatRef, ChatRoom } from "@/lib/rs/chat-types";
+import { RefName } from "@/components/shared/ref-list";
 
 /**
  * The fields of a chat room. Participants are chosen from the users and groups the user may see (ROOM-05); the
@@ -151,7 +152,7 @@ export function ChatRoomForm({
       <FieldDescription>
         {room.owner && (
           <>
-            {t("chat.room.owner._")}: {room.owner.displayName}.{" "}
+            {t("chat.room.owner._")}: <RefName value={room.owner} />.{" "}
           </>
         )}
         {t("chat.room.owner.info")}

@@ -35,6 +35,13 @@ const NOT_ACCEPTABLE = 406;
  */
 export const MULTI_SELECTION_PARAM = "multiSelectionMode";
 
+/**
+ * The most entries one mass update changes — the backend's `BaseDao.MAX_MASS_UPDATE`, which refuses a
+ * larger selection. Spelled out here for the list, which picks before any mass update page (and its
+ * `MultiSelectMeta.maxMassUpdate`) was asked.
+ */
+export const MAX_MASS_UPDATE = 100;
+
 /** One field the page may change — the backend's `MassUpdateFieldMeta`. */
 export interface MassUpdateFieldMeta {
   /** Name of the field, and the key of its parameter in the posted map. */

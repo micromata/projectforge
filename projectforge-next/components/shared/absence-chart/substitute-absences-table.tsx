@@ -4,11 +4,27 @@ import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useTranslations } from "next-intl";
 import { DataTable } from "@/components/data-table";
+import {
+  isRefArray,
+  RefList,
+  RefName,
+  type NamedRef,
+} from "@/components/shared/ref-list";
+
+/** A cell's value: a text, or the person(s) by name, struck through when no longer active (see RefName). */
+type CellValue = string | NamedRef | readonly NamedRef[] | null | undefined;
+
+function renderValue(value: CellValue) {
+  if (value == null || typeof value === "string") return value ?? "";
+  if (isRefArray(value)) return <RefList refs={value} />;
+  return Array.isArray(value) ? "" : <RefName value={value as NamedRef} />;
+}
 
 /** A vacation or an availability entry of a substitute, as the table shows it (texts formatted by the backend). */
 export interface SubstituteAbsenceRow {
   id: string;
-  name?: string | null;
+  /** The substitute, as referenced. */
+  name?: NamedRef | null;
   startDateFormatted?: string | null;
   endDateFormatted?: string | null;
   /** E.g. the vacation's mode, or "Availability" for an availability entry. */
@@ -16,7 +32,7 @@ export interface SubstituteAbsenceRow {
   /** The vacation's status, or what the availability entry is called for the user. */
   status?: string | null;
   /** The values of the [extraColumns], by their ids. */
-  extra?: Record<string, string | null | undefined>;
+  extra?: Record<string, CellValue>;
 }
 
 export interface SubstituteAbsenceColumn {
@@ -62,7 +78,7 @@ export function SubstituteAbsencesTable({
     const column = (
       id: string,
       header: string,
-      value: (row: SubstituteAbsenceRow) => string | null | undefined,
+      value: (row: SubstituteAbsenceRow) => CellValue,
       size = 150
     ): ColumnDef<SubstituteAbsenceRow, unknown> => ({
       id,
@@ -70,7 +86,7 @@ export function SubstituteAbsencesTable({
       size,
       enableSorting: false,
       meta: { label: header },
-      cell: ({ row }) => value(row.original) ?? "",
+      cell: ({ row }) => renderValue(value(row.original)),
     });
     return [
       column("name", h.name, (r) => r.name),

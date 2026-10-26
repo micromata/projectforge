@@ -8,6 +8,7 @@ import type {
 } from "@/components/shared/absence-chart/absence-chart-model";
 
 import type { AVAILABILITY_METADATA } from "@/lib/metadata/availability.generated";
+import type { InactiveFlags } from "@/lib/page-def/reference";
 
 /** The constants of org.projectforge.business.availability.AvailabilityStatus, from the metadata. */
 export type AvailabilityStatus =
@@ -18,7 +19,7 @@ export type AvailabilityLocation =
   (typeof AVAILABILITY_METADATA.fields.location.enumValues)[number]["value"];
 
 /** A referenced user as the DTO carries it: the id to write back, the name to show. */
-export type UserRef = {
+export type UserRef = InactiveFlags & {
   id: number;
   displayName?: string;
 };
@@ -54,7 +55,6 @@ export interface AvailabilityDetail extends AvailabilityFormStats {
   availableTypes?: string[] | null;
   /** Optional: who stands in for the user during the period. */
   substitutes?: UserRef[] | null;
-  substitutesAsString?: string | null;
   deleted?: boolean;
   writeAccess?: boolean;
   deleteAccess?: boolean;

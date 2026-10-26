@@ -7,6 +7,7 @@ import type {
 } from "@/components/shared/absence-chart/absence-chart-model";
 import type { AbsenceKind } from "@/lib/rs/absence-kinds";
 import type { VACATION_METADATA } from "@/lib/metadata/vacation.generated";
+import type { InactiveFlags } from "@/lib/page-def/reference";
 
 /** The constants of org.projectforge.business.vacation.model.VacationStatus, from the metadata. */
 export type VacationStatus =
@@ -16,7 +17,7 @@ export type VacationStatus =
  * A referenced employee as the DTO carries it: the id to write back, the name to show. A type alias rather
  * than an interface, so it satisfies the index signature of the schema's `looseObject`.
  */
-export type EmployeeRef = {
+export type EmployeeRef = InactiveFlags & {
   id: number;
   displayName?: string;
 };
@@ -103,7 +104,7 @@ export interface VacationListRow extends VacationDetail {
 }
 
 /** A user or group of the team vacation calendar (`org.projectforge.rest.dto.VacationExportRef`). */
-export interface VacationExportRef {
+export interface VacationExportRef extends InactiveFlags {
   id: number;
   displayName?: string | null;
 }

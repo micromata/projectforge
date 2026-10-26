@@ -52,7 +52,11 @@ export function ReportFilterRow({
             id="report-user"
             value={
               report.userId
-                ? { id: report.userId, displayName: report.userName }
+                ? {
+                    id: report.userId,
+                    displayName: report.userName,
+                    deactivated: report.userDeactivated,
+                  }
                 : null
             }
             required

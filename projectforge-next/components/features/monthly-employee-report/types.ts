@@ -56,6 +56,8 @@ export interface MonthlyReportWeek {
 export interface MonthlyReport {
   userId?: number | null;
   userName: string;
+  /** The user is no longer active (deactivated or deleted): struck through in the picker. */
+  userDeactivated?: boolean;
   maySelectOtherUsers: boolean;
   year: number;
   /** 1-based: 1 = January, ..., 12 = December. */

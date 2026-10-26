@@ -1,6 +1,8 @@
+import type { InactiveFlags } from "@/lib/page-def/reference";
+
 /** A user or group as the DTO carries it: the id is what `copyTo` stores. */
 // A type alias, not an interface: only an alias is assignable to the schema's loose object.
-export type AddressbookRef = {
+export type AddressbookRef = InactiveFlags & {
   id: number;
   displayName?: string;
 };

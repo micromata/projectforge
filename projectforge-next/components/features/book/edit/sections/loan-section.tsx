@@ -8,6 +8,7 @@ import { InputField } from "@/components/shared/form/input-field";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { BookLoanActions } from "./book-loan-actions";
 import type { UserRef } from "../../types";
+import { RefName } from "@/components/shared/ref-list";
 
 /**
  * The loan of a book: who has it since when, an optional note, and the two actions that change it
@@ -45,14 +46,19 @@ export function LoanSection() {
             {t("lendOutBy")}
           </span>
           <span className="text-sm">
-            {lendOutBy
-              ? // Date only: lendOutDate is a LocalDate. The legacy component formatted it with
-                // jsTimestampFormatMinutes and so rendered a meaningless 00:00.
-                [lendOutBy.displayName, formatDate(values.lendOutDate, format)]
-                  .filter(Boolean)
-                  .join(", ")
-              : // Not lent out — a dash, so the line reads as "nobody" and keeps its height.
-                "–"}
+            {lendOutBy ? (
+              <>
+                {/* Struck through when the borrower left (see RefName). */}
+                <RefName value={lendOutBy} />
+                {/* Date only: lendOutDate is a LocalDate. The legacy component formatted it with
+                    jsTimestampFormatMinutes and so rendered a meaningless 00:00. */}
+                {values.lendOutDate &&
+                  `, ${formatDate(values.lendOutDate, format)}`}
+              </>
+            ) : (
+              // Not lent out — a dash, so the line reads as "nobody" and keeps its height.
+              "–"
+            )}
           </span>
         </div>
         <InputField

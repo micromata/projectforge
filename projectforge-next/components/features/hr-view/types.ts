@@ -34,6 +34,8 @@ export interface HrViewCell {
 export interface HrViewRow {
   userId: number;
   userName?: string | null;
+  /** The user is no longer active (deactivated or deleted): the name is struck through. */
+  userDeactivated?: boolean;
   planningId?: number | null;
   deleted: boolean;
   sum: HrViewCell;
@@ -44,6 +46,8 @@ export interface HrViewRow {
 export interface HrViewUser {
   id: number;
   displayName?: string | null;
+  /** No longer active (deactivated or deleted): struck through. */
+  deactivated?: boolean;
 }
 
 export interface HrView {

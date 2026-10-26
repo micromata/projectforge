@@ -67,11 +67,17 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("${Rest.URL}/customerGroups")
 class CustomerGroupRest : AbstractDynamicPageRest() {
     /**
-     * A customer, task, user or group as the multi-autocomplete holds it; its further flags (`deactivated`, …)
-     * are ignored, also where unknown properties are refused (development).
+     * A customer, task, user or group as the multi-autocomplete holds it. [deleted] and [deactivated] are sent for a
+     * user or group no longer active (struck through), and ignored when posted, as further unknown properties are,
+     * also where those are refused (development).
      */
     @JsonIgnoreProperties(ignoreUnknown = true)
-    class EntityRef(var id: Long? = null, var displayName: String? = null)
+    class EntityRef(
+        var id: Long? = null,
+        var displayName: String? = null,
+        var deleted: Boolean? = null,
+        var deactivated: Boolean? = null,
+    )
 
     open class CustomerSetData(
         var key: String? = null,
@@ -286,10 +292,19 @@ class CustomerGroupRest : AbstractDynamicPageRest() {
                 key = grant.key,
                 name = grant.name,
                 remark = grant.remark,
-                users = grant.userIds.map { EntityRef(it, userGroupCache.getUser(it)?.getFullname() ?: "$it") }
-                    .toMutableList(),
-                userGroups = grant.groupIds.map { EntityRef(it, userGroupCache.getGroup(it)?.name ?: "$it") }
-                    .toMutableList(),
+                users = grant.userIds.map { id ->
+                    val user = userGroupCache.getUser(id)
+                    EntityRef(
+                        id,
+                        user?.getFullname() ?: "$id",
+                        deleted = user?.deleted?.takeIf { it },
+                        deactivated = user?.deactivated?.takeIf { it },
+                    )
+                }.toMutableList(),
+                userGroups = grant.groupIds.map { id ->
+                    val group = userGroupCache.getGroup(id)
+                    EntityRef(id, group?.name ?: "$id", deleted = group?.deleted?.takeIf { it })
+                }.toMutableList(),
                 customers = grant.customers.map { customerRef(it) }.toMutableList(),
                 groups = grant.groups.toMutableList(),
                 businessUnits = grant.businessUnits.toMutableList(),

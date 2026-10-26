@@ -165,7 +165,12 @@ class VacationAccountRest {
             PFDay.of(year, Month.JANUARY, 1).endOfYear.localDate,
         ).orEmpty().map { LeaveAccountEntry(it) }.sortedByDescending { it.date }
         return VacationAccount(
-            employee = VacationAccountEmployee(employeeId, employee.displayName),
+            employee = VacationAccountEmployee(
+                employeeId,
+                employee.displayName,
+                deleted = employee.deleted,
+                deactivated = employee.deactivated,
+            ),
             hrAccess = hrAccess,
             canRecalculate = hrAccess &&
                     !NumberHelper.isEqual(currentStats.remainingLeaveFromPreviousYear, prevStats.vacationDaysLeftInYear),
@@ -220,9 +225,9 @@ class VacationAccountRest {
                     statusString = vacation.statusString,
                     workingDaysFormatted = vacation.workingDaysFormatted,
                     specialFormatted = vacation.specialFormatted,
-                    replacement = vacation.replacement?.displayName,
-                    otherReplacements = vacation.otherReplacementsAsString,
-                    manager = vacation.manager?.displayName,
+                    replacement = vacation.replacement,
+                    otherReplacements = vacation.otherReplacements,
+                    manager = vacation.manager,
                     vacationModeString = vacation.vacationModeString,
                     comment = vacation.comment,
                     conflict = conflictingVacationsCache.hasConflict(vacation.id),
@@ -272,7 +277,7 @@ class VacationAccountRest {
                     statusString = entry.status?.let { translate(it.i18nKey) },
                     locationString = entry.location?.let { translate(it.i18nKey) },
                     comment = entry.comment,
-                    substitutes = dto.substitutesAsString,
+                    substitutes = dto.substitutes,
                     conflict = conflictingAvailabilitiesCache.hasConflict(entry.id),
                     workingDaysFormatted = dto.workingDaysFormatted,
                     startDate = entry.startDate,

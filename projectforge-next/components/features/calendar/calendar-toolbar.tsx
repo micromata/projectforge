@@ -12,6 +12,7 @@ import { CalendarFavoritesMenu } from "./calendar-favorites-menu";
 import { CalendarSettingsDialog } from "./calendar-settings-dialog";
 import { CalendarMoreMenu } from "./calendar-more-menu";
 import { CALENDAR_EVENTS_KEY } from "./use-calendar-init";
+import { toPickerRef } from "@/lib/page-def/reference";
 
 /**
  * The calendar's own header controls: booking several days at once, the saved-filter favourites, the
@@ -49,7 +50,7 @@ export function CalendarToolbar({
     canChooseUser &&
     (init.filter?.timesheetUserId ?? 0) > 0 &&
     filterUser?.id != null
-      ? { id: filterUser.id, displayName: filterUser.displayName ?? "" }
+      ? toPickerRef({ ...filterUser, id: filterUser.id })
       : null;
   // Redraw the booked days, moved to the period they were booked in. Booked for oneself while the calendar hides time sheets (the default for
   // a new colleague), the own sheets are turned on so the booking is visible at all — as a sheet saved

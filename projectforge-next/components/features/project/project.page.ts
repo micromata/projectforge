@@ -119,7 +119,7 @@ export const PROJECT_PAGE = definePage<
     {
       id: "assignedPersons",
       labelKey: "fibu.common.assignedPersons",
-      accessor: (row) => row.assignedPersons ?? "",
+      accessor: (row) => row.assignedPersonList,
       size: 180,
       sortable: false,
       className: "text-muted-foreground",

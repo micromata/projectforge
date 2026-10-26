@@ -43,6 +43,12 @@ class DisplayHistoryEntry {
     var timeAgo: String? = null
     var modifiedByUserId: Long? = null
     var modifiedByUser: String? = null
+
+    /** Whether the modifying user is deleted, so the frontend strikes the name through. */
+    var modifiedByUserDeleted: Boolean = false
+
+    /** Whether the modifying user is deactivated, so the frontend strikes the name through. */
+    var modifiedByUserDeactivated: Boolean = false
     var operationType: EntityOpType? = null
     val operation: String
         get() = HistoryFormatService.translate(operationType)
@@ -94,6 +100,8 @@ class DisplayHistoryEntry {
                 entry.timeAgo = TimeAgo.getMessage(historyEntry.modifiedAt)
                 entry.modifiedByUserId = modifiedByUser?.id
                 entry.modifiedByUser = modifiedByUser?.getFullname() ?: historyEntry.modifiedBy
+                entry.modifiedByUserDeleted = modifiedByUser?.deleted == true
+                entry.modifiedByUserDeactivated = modifiedByUser?.deactivated == true
                 entry.operationType = historyEntry.entityOpType
                 entry.userComment = historyEntry.userComment
             }

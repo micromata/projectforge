@@ -14,6 +14,7 @@ import { AbsenceDaysCell } from "@/components/shared/absence-chart/absence-days-
 import { useNavigateMenuUrl } from "@/hooks/use-navigate-menu-url";
 import { cn } from "@/lib/utils";
 import type { VacationAccount } from "./types";
+import { RefList, RefName } from "@/components/shared/ref-list";
 
 /**
  * The vacations of the next, current and previous year, one block per year. A row opens its form, which returns
@@ -81,11 +82,15 @@ export function VacationEntriesTable({
                   />
                 </TableCell>
                 <TableCell>{vacation.specialFormatted}</TableCell>
-                <TableCell>{vacation.replacement}</TableCell>
-                <TableCell className="whitespace-normal">
-                  {vacation.otherReplacements}
+                <TableCell>
+                  <RefName value={vacation.replacement} />
                 </TableCell>
-                <TableCell>{vacation.manager}</TableCell>
+                <TableCell className="whitespace-normal">
+                  <RefList refs={vacation.otherReplacements} />
+                </TableCell>
+                <TableCell>
+                  <RefName value={vacation.manager} />
+                </TableCell>
                 <TableCell>{vacation.vacationModeString}</TableCell>
                 <TableCell className="whitespace-normal">
                   {vacation.comment}

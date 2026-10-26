@@ -178,7 +178,8 @@ class ChatRoomRest {
             moderators = ChatRoomDO.toIds(room.moderatorUserIds).map { converter.ref(it) },
             users = ChatRoomDO.toIds(room.participantUserIds).map { converter.ref(it) },
             groups = ChatRoomDO.toIds(room.participantGroupIds).map { groupId ->
-                ChatRef(groupId, userGroupCache.getGroup(groupId)?.name ?: "?")
+                val group = userGroupCache.getGroup(groupId)
+                ChatRef(groupId, group?.name ?: "?", deleted = group?.deleted == true)
             },
             canEdit = chatRoomDao.isModerator(room, ThreadLocalUserContext.requiredLoggedInUserId),
             fileExpiryDays = chatService.findConversations(ChatRoomChatHost.HOST_TYPE, listOf(room.id!!))[room.id]

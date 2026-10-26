@@ -30,6 +30,8 @@ export interface TaskBookingGrant {
   id: number;
   userId?: number;
   userName?: string;
+  /** The user is no longer active (deactivated or deleted): the name is struck through. */
+  userDeactivated?: boolean;
   validFrom?: string;
   validUntil?: string;
   positions: TaskBookingGrantPosition[];
@@ -37,6 +39,8 @@ export interface TaskBookingGrant {
   hiddenPositions: number;
   comment?: string;
   grantedByName?: string;
+  /** As userDeactivated, for the granting user. */
+  grantedByDeactivated?: boolean;
   status: TaskBookingGrantStatus;
   /** Already translated by the backend. */
   statusAsString: string;

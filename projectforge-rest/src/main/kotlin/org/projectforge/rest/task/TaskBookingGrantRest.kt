@@ -40,6 +40,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.dto.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
@@ -70,6 +71,8 @@ class TaskBookingGrantRest {
         val id: Long,
         val userId: Long?,
         val userName: String?,
+        /** The user is no longer active (deactivated or deleted): the name is struck through. */
+        val userDeactivated: Boolean,
         val validFrom: LocalDate?,
         val validUntil: LocalDate?,
         val positions: List<Position>,
@@ -77,6 +80,8 @@ class TaskBookingGrantRest {
         val hiddenPositions: Int,
         val comment: String?,
         val grantedByName: String?,
+        /** As [userDeactivated], for the granting user. */
+        val grantedByDeactivated: Boolean,
         val created: Date?,
         val status: Status,
         val statusAsString: String,
@@ -306,6 +311,7 @@ class TaskBookingGrantRest {
             id = grant.id!!,
             userId = grant.user?.id,
             userName = userGroupCache.getUser(grant.user?.id)?.getFullname(),
+            userDeactivated = User.isInactive(userGroupCache.getUser(grant.user?.id)),
             validFrom = grant.validFrom,
             validUntil = grant.validUntil,
             positions = shown.mapNotNull { position ->
@@ -321,6 +327,7 @@ class TaskBookingGrantRest {
             hiddenPositions = positions.size - shown.size,
             comment = grant.comment,
             grantedByName = userGroupCache.getUser(grantedByUserId)?.getFullname(),
+            grantedByDeactivated = User.isInactive(userGroupCache.getUser(grantedByUserId)),
             created = grant.created,
             status = status,
             statusAsString = translate("task.bookingGrant.status.${status.name}"),

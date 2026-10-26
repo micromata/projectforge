@@ -18,12 +18,7 @@ import { PollResultsPanel, RESULTS_TAB_ID } from "./poll-results-panel";
 import { PollTitleCell } from "./poll-title-cell";
 import { pollSchema, POLL_FIELDS, type PollValues } from "./poll-schema";
 import { emptyPollValues, toFormValues } from "./poll-values";
-import type { PollDetail, PollListRow, PollRef } from "./types";
-
-/** The display names of users or groups, as one cell. */
-function names(refs: PollRef[] | undefined): string {
-  return (refs ?? []).map((ref) => ref.displayName ?? "???").join(", ");
-}
+import type { PollDetail, PollListRow } from "./types";
 
 /**
  * The polls — list and edit — as data (see lib/page-def/types.ts). Replaces the React UILayout pages of
@@ -68,10 +63,11 @@ export const POLL_PAGE = definePage<
       // The attendees are csv lists of ids in the database, resolved by the DTO: nothing to sort by.
       id: "attendees",
       labelKey: "poll.attendees._",
-      accessor: (row) =>
-        [names(row.attendeeGroups), names(row.attendeeUsers)]
-          .filter(Boolean)
-          .join(", "),
+      // Groups, then users, each struck through when no longer active (see RefList).
+      accessor: (row) => [
+        ...(row.attendeeGroups ?? []),
+        ...(row.attendeeUsers ?? []),
+      ],
       sortable: false,
       size: 260,
       wrap: true,

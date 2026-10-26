@@ -7,7 +7,7 @@ import { CommentAdd01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import type { HistoryEntry } from "@/lib/rs/history";
+import { modifiedByRef, type HistoryEntry } from "@/lib/rs/history";
 import { HistoryAttrDiff } from "./history-attr-diff";
 import { HistoryEntryHeader } from "./history-entry-header";
 import { UserAvatar } from "@/components/shared/user-avatar";
@@ -37,7 +37,7 @@ export function HistoryEntryItem({
   return (
     <li className="flex gap-3.5">
       <div className="flex shrink-0 flex-col items-center">
-        <UserAvatar name={entry.modifiedByUser} />
+        <UserAvatar name={entry.modifiedByUser} flags={modifiedByRef(entry)} />
         {!last && <div className="my-1 w-px flex-1 bg-border" />}
       </div>
       <Collapsible

@@ -57,13 +57,14 @@ export const MERLIN_PAGE = definePage<
     {
       id: "adminsAsString",
       labelKey: "plugins.merlin.admins._",
-      accessor: (row) => row.adminsAsString ?? "",
+      // The users by name, each struck through when no longer active (see RefList).
+      accessor: (row) => row.admins,
       size: 180,
     },
     {
       id: "accessUsersAsString",
       labelKey: "plugins.merlin.accessUsers._",
-      accessor: (row) => row.accessUsersAsString ?? "",
+      accessor: (row) => row.accessUsers,
       size: 180,
     },
     {

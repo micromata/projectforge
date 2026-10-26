@@ -9,6 +9,7 @@ import {
 } from "@/components/shared/entity-multi-autocomplete";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import type { GroupRef, UserRef } from "@/lib/rs/calendar-types";
+import { toPickerRef } from "@/lib/page-def/reference";
 
 interface CalendarVacationSelectsProps {
   groups: GroupRef[];
@@ -24,7 +25,8 @@ function toEntityRef(ref: GroupRef | UserRef): EntityRef {
     ("name" in ref ? ref.name : undefined) ??
     ("username" in ref ? ref.username : undefined) ??
     "";
-  return { id: ref.id ?? 0, displayName: name };
+  // With the inactive flags, so a group deleted or a user deactivated since is struck through.
+  return toPickerRef({ ...ref, id: ref.id ?? 0 }, name)!;
 }
 
 /**

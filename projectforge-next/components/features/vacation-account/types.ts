@@ -1,3 +1,6 @@
+import type { InactiveFlags } from "@/lib/page-def/reference";
+import type { NamedRef } from "@/components/shared/ref-list";
+
 /**
  * The vacation account of an employee, as `GET /rs/vacationAccount` answers it (mirrors
  * `org.projectforge.rest.dto.VacationAccount`). Every value comes formatted for the logged-in user; the urls
@@ -5,7 +8,7 @@
  */
 export interface VacationAccount {
   /** Null if the logged-in user has no employee: then everything else is empty. */
-  employee?: { id: number; displayName?: string } | null;
+  employee?: ({ id: number; displayName?: string } & InactiveFlags) | null;
   /** HR staff: may choose any employee and recalculate the remaining leave. */
   hrAccess: boolean;
   canRecalculate: boolean;
@@ -56,9 +59,10 @@ export interface VacationAccountVacation {
   statusString?: string;
   workingDaysFormatted?: string;
   specialFormatted?: string;
-  replacement?: string;
-  otherReplacements?: string;
-  manager?: string;
+  /** As references, so a no longer active one is struck through. */
+  replacement?: NamedRef | null;
+  otherReplacements?: NamedRef[] | null;
+  manager?: NamedRef | null;
   vacationModeString?: string;
   comment?: string;
   /** A day of it without any replacement on duty. */
@@ -93,7 +97,8 @@ export interface VacationAccountAvailability {
   locationString?: string;
   comment?: string;
   /** The names, comma separated. */
-  substitutes?: string;
+  /** As references, so a no longer active one is struck through. */
+  substitutes?: NamedRef[] | null;
   /** A day from today on without any substitute on duty. */
   conflict: boolean;
   /** Its working days (weekends and holidays not counted). */

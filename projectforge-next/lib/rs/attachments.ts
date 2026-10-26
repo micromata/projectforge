@@ -65,8 +65,12 @@ export interface Attachment {
   description?: string | null;
   created?: string | null;
   createdByUser?: string | null;
+  /** True if the creating user is no longer active (deactivated or deleted): the name is struck through. */
+  createdByUserDeactivated?: boolean | null;
   lastUpdate?: string | null;
   lastUpdateByUser?: string | null;
+  /** As createdByUserDeactivated, for the last modifying user. */
+  lastUpdateByUserDeactivated?: boolean | null;
   /** Localised "a few seconds ago", built by the backend. */
   lastUpdateTimeAgo?: string | null;
   /** Formatted by the backend in the user's timezone and date format. */

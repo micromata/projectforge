@@ -25,8 +25,16 @@ package org.projectforge.rest.chat
 
 import java.util.Date
 
-/** A user or group as shown by the chat (and as chosen by the pickers of the next app). */
-class ChatRef(val id: Long, val displayName: String)
+/**
+ * A user or group as shown by the chat (and as chosen by the pickers of the next app), with whether it is still
+ * active: a deleted or deactivated one is struck through.
+ */
+class ChatRef(
+    val id: Long,
+    val displayName: String,
+    val deleted: Boolean = false,
+    val deactivated: Boolean = false,
+)
 
 /** A file of a message (stored in the data transfer). */
 class ChatFile(

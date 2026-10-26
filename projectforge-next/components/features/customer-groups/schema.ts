@@ -55,7 +55,8 @@ export const FORM_METADATA: EntityMetadata = {
   },
 };
 
-const entityRef = z.object({ id: z.number(), displayName: z.string() });
+// Loose: a user or group carries its inactive flags (deleted, deactivated), to be struck through.
+const entityRef = z.looseObject({ id: z.number(), displayName: z.string() });
 
 const customerSet = {
   key: z.string(),

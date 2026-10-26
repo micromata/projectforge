@@ -1,9 +1,10 @@
 import type { EmployeeValues } from "./employee-schema";
 import type { EmployeeDetail, EmployeeRef } from "./types";
+import { toPickerRef } from "@/lib/page-def/reference";
 
-/** The reference a picker binds to: {id, displayName}, all the server needs to resolve it by id. */
+/** The reference a picker binds to (see toPickerRef). */
 function toRef(ref: EmployeeRef | null | undefined) {
-  return ref ? { id: ref.id, displayName: ref.displayName ?? "" } : null;
+  return toPickerRef(ref);
 }
 
 export function toFormValues(employee: EmployeeDetail): EmployeeValues {

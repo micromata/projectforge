@@ -92,8 +92,7 @@ export const VACATION_PAGE = definePage<
       size: 200,
       sortable: false,
       wrap: true,
-      accessor: (row) =>
-        (row.otherReplacements ?? []).map((e) => e.displayName).join(", "),
+      accessor: (row) => row.otherReplacements,
     },
     {
       name: "manager",

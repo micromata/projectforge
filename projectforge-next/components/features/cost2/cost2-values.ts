@@ -1,5 +1,6 @@
 import type { Cost2Values } from "./cost2-schema";
 import type { Cost2Detail } from "./types";
+import { toPickerRef } from "@/lib/page-def/reference";
 
 /**
  * A field Spring left out of the JSON (`JsonInclude.Include.NON_NULL`, see types.ts) arrives as
@@ -19,10 +20,8 @@ export function toFormValues(cost2: Cost2Detail): Cost2Values {
     bereich: part(cost2.bereich),
     teilbereich: part(cost2.teilbereich),
     endziffer: part(cost2.endziffer),
-    // The reference the picker binds to: {id, displayName}, all the server needs to resolve it by id.
-    project: cost2.project
-      ? { id: cost2.project.id, displayName: cost2.project.name ?? "" }
-      : null,
+    // The reference the picker binds to (see toPickerRef), by the project's plain name.
+    project: toPickerRef(cost2.project, cost2.project?.name ?? ""),
     workFraction: cost2.workFraction ?? null,
     sharedCost: cost2.sharedCost ?? null,
     kostentraegerStatus: cost2.kostentraegerStatus ?? null,
