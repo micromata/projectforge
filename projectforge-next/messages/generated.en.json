@@ -2799,6 +2799,14 @@
       "not": "Common group",
       "tooltip": "Local groups will not be synchronized with an external user management system (such as LDAP)."
     },
+    "members": {
+      "tooltip": {
+        "count": "{arg0} members",
+        "loading": "Loading members …",
+        "none": "No members",
+        "notVisible": "The members are only visible to members of the group and to administrators."
+      }
+    },
     "nomenclature": {
       "_": "Naming convention",
       "description": {

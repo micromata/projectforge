@@ -25,7 +25,9 @@
 package org.projectforge.rest
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.ldap.GroupDOConverter
 import org.projectforge.business.ldap.LdapGroupValues
@@ -74,5 +76,33 @@ class GroupEntityRestTest : AbstractTestBase() {
         groupEntityRest.prepareClone(dto)
         assertNull(dto.gidNumber)
         assertNull(dto.ldapValues)
+    }
+
+    @Test
+    fun `the members of a group are shown only to whom may see the group`() {
+        val groupId = getGroupId("group1")
+        val names = listOf(getUser("user1").displayName, getUser("user2").displayName)
+            .sortedWith(String.CASE_INSENSITIVE_ORDER)
+
+        logon(TEST_USER) // No member of group1.
+        groupEntityRest.members(groupId).let {
+            assertFalse(it.visible)
+            assertTrue(it.members.isEmpty())
+        }
+
+        logon("user1") // A member.
+        assertEquals(names, groupEntityRest.members(groupId).members.map { it.displayName })
+
+        logon(TEST_ADMIN_USER)
+        groupEntityRest.members(groupId).let {
+            assertTrue(it.visible)
+            assertEquals(names, it.members.map { member -> member.displayName })
+        }
+    }
+
+    @Test
+    fun `an unknown group answers as a hidden one`() {
+        logon(TEST_ADMIN_USER)
+        assertFalse(groupEntityRest.members(-4711).visible)
     }
 }
