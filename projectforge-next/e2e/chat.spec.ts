@@ -165,8 +165,16 @@ test.describe("chat", { tag: "@parallel" }, () => {
       await editor.press("Enter");
       const sent = page.locator("article").filter({ hasText: text });
       await expect(
-        sent.getByRole("link", { name: new RegExp("e2e-offer.pdf") })
+        sent.getByRole("link", {
+          name: `${t("chat.file.download")}: e2e-offer.pdf`,
+        })
       ).toBeVisible();
+      // Besides the download, its data transfer area (the personal box of the other one).
+      await expect(
+        sent.getByRole("link", {
+          name: `${t("chat.file.openArea")}: e2e-offer.pdf`,
+        })
+      ).toHaveAttribute("href", /\/datatransfer\/\d+$/);
 
       // The other one: listed, the same conversation, the file downloadable, answers.
       const { t: otherT } = await userFormat(other);
@@ -178,7 +186,9 @@ test.describe("chat", { tag: "@parallel" }, () => {
       const received = other.locator("article").filter({ hasText: text });
       await expect(received).toBeVisible({ timeout: 10_000 });
       const href = await received
-        .getByRole("link", { name: new RegExp("e2e-offer.pdf") })
+        .getByRole("link", {
+          name: `${otherT("chat.file.download")}: e2e-offer.pdf`,
+        })
         .getAttribute("href");
       const download = await other.request.get(href!.replace(/^\/next/, ""));
       expect(download.ok()).toBeTruthy();
@@ -262,6 +272,64 @@ test.describe("chat", { tag: "@parallel" }, () => {
     await expect(button).toBeVisible();
     await page.keyboard.press("ControlOrMeta+Enter");
     await expect(page).toHaveURL(conversationUrl);
+  });
+
+  test("users found as contacts by who may not open their pages", async ({
+    browser,
+  }) => {
+    test.skip(
+      !hasRole("normalo-user") || !hasRole("finance-user"),
+      "No normalo or finance account on this instance."
+    );
+    const other = await browser.newPage({
+      baseURL: test.info().project.use.baseURL,
+    });
+    const page = await browser.newPage({
+      baseURL: test.info().project.use.baseURL,
+    });
+    try {
+      await loginWithOwnSession(other, "normalo-user");
+      const otherName = (
+        (await (await other.request.get("/rs/userStatus")).json()) as {
+          userData: { fullname: string };
+        }
+      ).userData.fullname;
+      // Finance: sees every user (user selection), but no user pages (admin group).
+      await loginWithOwnSession(page, "finance-user");
+      const { t } = await userFormat(page);
+      const found = await page.request.get(
+        `/rs/search/query?q=${encodeURIComponent(otherName)}&contacts=true`
+      );
+      const users = (
+        (await found.json()) as {
+          areas: {
+            areaId: string;
+            listUrl?: string;
+            hits: { viewUrl?: string }[];
+          }[];
+        }
+      ).areas.filter((area) => area.areaId === "user");
+      expect(users).toHaveLength(1);
+      // Omitted, as every null of the backend.
+      expect(users[0].listUrl).toBeUndefined();
+      expect(users[0].hits.every((hit) => !hit.viewUrl)).toBeTruthy();
+
+      // The row itself starts the chat.
+      await goto(page, "/chat");
+      await page.getByRole("button", { name: t("menu.main.title") }).click();
+      await page
+        .getByPlaceholder(t("menu.quickAccess.placeholder"))
+        .fill(otherName);
+      await expect(page.getByRole("option").first()).toContainText(otherName);
+      await page.keyboard.press("Enter");
+      await expect(page).toHaveURL(/\/chat\/\d+/);
+      await expect(
+        page.getByRole("heading", { name: otherName })
+      ).toBeVisible();
+    } finally {
+      await page.close();
+      await other.close();
+    }
   });
 
   test("a confidential message, end-to-end encrypted, received once", async ({
@@ -396,7 +464,9 @@ test.describe("chat", { tag: "@parallel" }, () => {
         page.getByRole("button", { name: "e2e-pixel.png" })
       ).toBeVisible();
       await expect(
-        page.getByRole("link", { name: new RegExp("e2e-notes.txt") })
+        page.getByRole("link", {
+          name: `${t("chat.file.download")}: e2e-notes.txt`,
+        })
       ).toBeVisible();
       // The expiry chosen is the one of the room.
       const stored = (await (

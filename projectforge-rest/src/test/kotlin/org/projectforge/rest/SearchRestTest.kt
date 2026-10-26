@@ -60,4 +60,38 @@ class SearchRestTest : AbstractTestBase() {
         Assertions.assertFalse(deactivated.id in ids, "$ids")
         Assertions.assertFalse(deleted.id in ids, "$ids")
     }
+
+    /**
+     * An ordinary user finds the users of the user selection (same group) as contacts, without their pages; only in
+     * the menu search (`contacts`), and not the user self. An admin gets their pages.
+     */
+    @Test
+    fun contactsForOrdinaryUsersTest() {
+        logon(ADMIN_USER)
+        val word = "searchcontact${System.currentTimeMillis()}"
+        val colleague = initTestDB.addUser(PFUserDO().also {
+            it.username = "colleague-$word"
+            it.lastname = word
+        })
+        // In no group of the test user: not found by it.
+        initTestDB.addUser(PFUserDO().also {
+            it.username = "stranger-$word"
+            it.lastname = word
+        })
+        initTestDB.addGroup("group-$word", TEST_USER, colleague.username!!)
+        // The test context registers the user area twice: the hits of all areas.
+        val admin = searchRest.query(word, listOf(DaoConst.USER), 10, contacts = true).areas
+        Assertions.assertEquals(2, admin.flatMap { it.hits }.map { it.id }.toSet().size)
+        Assertions.assertTrue(admin.flatMap { it.hits }.all { it.viewUrl != null })
+        Assertions.assertTrue(admin.all { it.listUrl != null })
+
+        logon(TEST_USER)
+        Assertions.assertTrue(searchRest.query(word, listOf(DaoConst.USER), 10).areas.isEmpty())
+        val contacts = searchRest.query(word, listOf(DaoConst.USER), 10, contacts = true).areas
+        Assertions.assertEquals(setOf(colleague.id), contacts.flatMap { it.hits }.map { it.id }.toSet())
+        Assertions.assertTrue(contacts.flatMap { it.hits }.all { it.viewUrl == null })
+        Assertions.assertTrue(contacts.all { it.listUrl == null })
+        val self = searchRest.query(TEST_USER, listOf(DaoConst.USER), 10, contacts = true).areas
+        Assertions.assertTrue(self.flatMap { it.hits }.none { it.id == getUser(TEST_USER).id }, "$self")
+    }
 }

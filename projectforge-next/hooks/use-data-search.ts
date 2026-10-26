@@ -15,14 +15,15 @@ const MIN_TERM_LENGTH = 2;
  * field doesn't blank out between keystrokes.
  *
  * @param maxPerArea Hits per area — small for the magnifier, so several areas fit without scrolling.
+ * @param contacts   The users to chat with as well (see [searchData]).
  */
-export function useDataSearch(term: string, maxPerArea = 3) {
+export function useDataSearch(term: string, maxPerArea = 3, contacts = false) {
   const debounced = useDebouncedValue(term.trim());
   const enabled = debounced.length >= MIN_TERM_LENGTH;
   return useQuery<SearchResponse>({
-    queryKey: ["dataSearch", debounced, maxPerArea],
+    queryKey: ["dataSearch", debounced, maxPerArea, contacts],
     queryFn: ({ signal }) =>
-      searchData(debounced, undefined, maxPerArea, signal),
+      searchData(debounced, { maxPerArea, contacts }, signal),
     enabled,
     placeholderData: keepPreviousData,
   });

@@ -68,7 +68,11 @@ export function SearchPage() {
   const searchQuery = useQuery<SearchResponse>({
     queryKey: ["search", term.trim(), scope],
     queryFn: ({ signal }) =>
-      searchData(term.trim(), scope, MAX_PER_AREA, signal),
+      searchData(
+        term.trim(),
+        { areas: scope, maxPerArea: MAX_PER_AREA },
+        signal
+      ),
     enabled,
     placeholderData: keepPreviousData,
   });
