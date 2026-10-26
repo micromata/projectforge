@@ -51,7 +51,6 @@ class Vacation(
     var vacationModeString: String? = null,
     var replacement: Employee? = null,
     var otherReplacements: List<Employee>? = null,
-    var otherReplacementsAsString: String? = null,
     var manager: Employee? = null,
     var special: Boolean? = null,
     var specialFormatted: String? = null,
@@ -122,9 +121,7 @@ class Vacation(
         endDateFormatted = endDate?.let {
             PFDayUtils.format(it, DateFormatType.DATE)
         }
-        otherReplacements = Employee.toEmployeeList(src.otherReplacements)?.also {
-            otherReplacementsAsString = it.joinToString { it.displayName ?: "???" }
-        }
+        otherReplacements = Employee.toEmployeeList(src.otherReplacements)
     }
 
     override fun copyTo(dest: VacationDO) {

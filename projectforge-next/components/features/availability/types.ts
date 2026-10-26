@@ -55,7 +55,6 @@ export interface AvailabilityDetail extends AvailabilityFormStats {
   availableTypes?: string[] | null;
   /** Optional: who stands in for the user during the period. */
   substitutes?: UserRef[] | null;
-  substitutesAsString?: string | null;
   deleted?: boolean;
   writeAccess?: boolean;
   deleteAccess?: boolean;

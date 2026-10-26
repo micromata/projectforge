@@ -105,15 +105,24 @@ export const DATA_TRANSFER_PAGE = definePage<
     { name: "expiryDays", size: 90 },
     ...(
       [
-        ["adminsAsString", "plugins.datatransfer.admins._"],
-        ["observersAsString", "plugins.datatransfer.observers._"],
-        ["accessUsersAsString", "plugins.datatransfer.accessUsers._"],
-        ["accessGroupsAsString", "plugins.datatransfer.accessGroups._"],
+        ["adminsAsString", "plugins.datatransfer.admins._", "admins"],
+        ["observersAsString", "plugins.datatransfer.observers._", "observers"],
+        [
+          "accessUsersAsString",
+          "plugins.datatransfer.accessUsers._",
+          "accessUsers",
+        ],
+        [
+          "accessGroupsAsString",
+          "plugins.datatransfer.accessGroups._",
+          "accessGroups",
+        ],
       ] as const
-    ).map(([id, labelKey]) => ({
+    ).map(([id, labelKey, refs]) => ({
       id,
       labelKey,
-      accessor: (row: DataTransferListRow) => row[id] ?? "",
+      // By name, each struck through when no longer active (see RefList).
+      accessor: (row: DataTransferListRow) => row[refs],
       sortable: false as const,
       size: 180,
     })),

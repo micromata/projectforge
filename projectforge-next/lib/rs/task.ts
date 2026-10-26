@@ -542,6 +542,8 @@ export interface AccessRight {
 /** `TaskServicesRest.GroupAccess`: one group's explicit access entry on a task. */
 export interface TaskGroupAccess {
   groupName: string;
+  /** The group is deleted: the name is struck through. */
+  groupDeleted?: boolean;
   /** Whether the rights hold for the sub elements as well. */
   recursive: boolean;
   description?: string | null;

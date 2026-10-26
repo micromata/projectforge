@@ -13,7 +13,7 @@
       "items" : [ {
         "title" : "Chat",
         "items" : [ "Die Raumseite zeigt die Beschreibung des Raums, jetzt als formatierten Text; wer den Raum angelegt hat und die Moderation bearbeiten ihn direkt dort.", "Ein Suchfeld auf der Chatseite grenzt die Direktnachrichten und die Räume ein.", "Menüsuche: Die gefundenen Menüeinträge stehen wieder an erster Stelle, die gefundenen Personen zum Chatten folgen danach." ]
-      }, {
+      }, "Gelöschte oder deaktivierte User, Gruppen und Mitarbeiter:innen werden jetzt an weiteren Stellen durchgestrichen: in Listen mit mehreren Namen (Gruppenmitglieder, Zugriffslisten, Ansprechpersonen, Vertretungen), im Strukturbaum, im Chat, in der Historie, bei Anhängen, im Urlaubskonto, bei Buchungsfreigaben, in der HR-Ansicht, in Abwesenheitsdiagrammen und im Benachrichtigungsprotokoll.", {
         "title" : "Massenänderung",
         "items" : [ "Im Auswahlmodus einer Liste mit mehr als 100 Einträgen wählt ein Button die ersten 100 davon aus, die höchste Anzahl, die eine Massenänderung auf einmal ändert." ]
       }, "Benachrichtigungen: Die Glocke hat eine Schaltfläche „Archivierte Einträge“, die die bestätigten oder erledigten Benachrichtigungen der letzten 90 Tage anzeigt, so kann eine versehentlich bestätigte Benachrichtigung weiterhin gelesen und geöffnet werden.", "Projektauswahl der Bearbeitungsseiten und Projektfilter der Listen und Statistiken: Hinter jedem Projekt steht der Kunde in Klammern.", "User-Auswahl: User werden auch über ihren Rufnamen gefunden." ]

@@ -77,6 +77,8 @@ class HRViewCell(
 class HRViewRow(
     val userId: Long?,
     val userName: String?,
+    /** The user is no longer active (deactivated or deleted): the name is struck through. */
+    val userDeactivated: Boolean = false,
     /** The planned week of the user, if the period has one: the user's link leads to it. */
     val planningId: Long?,
     /** The planning is marked as deleted. */
@@ -91,4 +93,6 @@ class HRViewRow(
 class HRViewUser(
     val id: Long?,
     val displayName: String?,
+    /** No longer active (deactivated or deleted): struck through. */
+    val deactivated: Boolean = false,
 )

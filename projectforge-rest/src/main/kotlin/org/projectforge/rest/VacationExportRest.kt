@@ -45,6 +45,7 @@ import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.dto.User
 import org.projectforge.rest.dto.VacationChartDay
 import org.projectforge.rest.dto.VacationExportAvailability
 import org.projectforge.rest.dto.VacationExportFavoriteInfo
@@ -269,7 +270,7 @@ class VacationExportRest {
         val viewer = ThreadLocalUserContext.loggedInUser
         return absences.map { entry ->
             VacationExportRow(
-                VacationExportRef(entry.user.id!!, entry.user.getFullname()),
+                ref(entry.user),
                 entry.vacations.map { VacationExportVacation.of(it, from, until) },
                 entry.availabilities.map {
                     val comment = it.comment.takeIf { _ -> absenceService.isCommentVisible(viewer, it) }
@@ -392,7 +393,8 @@ class VacationExportRest {
     /** The lookup asks for more results by raising `maxResults` (it has no offset). */
     private fun maxResultsOf(maxResults: Int?): Int = (maxResults ?: MAX_RESULTS).coerceIn(1, MAX_RESULTS_LIMIT)
 
-    private fun ref(user: PFUserDO): VacationExportRef = VacationExportRef(user.id!!, user.getFullname())
+    private fun ref(user: PFUserDO): VacationExportRef =
+        VacationExportRef(user.id!!, user.getFullname(), deactivated = User.isInactive(user))
 
     /** The users and groups of these ids the user may pick, sorted by name. */
     private fun selection(userIds: List<Long>?, groupIds: List<Long>?, access: Access) = VacationExportSelection(

@@ -47,6 +47,7 @@ import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.User
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.UIColor
@@ -114,6 +115,8 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         /** The name of the rule, null for an ad hoc notification or a deleted rule. */
         val ruleName: String?,
         val recipient: String?,
+        /** The recipient is no longer active (deactivated or deleted): the name is struck through. */
+        val recipientDeactivated: Boolean,
         val status: NotificationStatus,
         val periodKey: String?,
         val title: String?,
@@ -121,6 +124,8 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         val inAppSince: Date?,
         val acknowledgedAt: Date?,
         val acknowledgedBy: String?,
+        /** As [recipientDeactivated], for the confirming user. */
+        val acknowledgedByDeactivated: Boolean,
         val doneAt: Date?,
         val resolvedAt: Date?,
         val deliverySteps: List<DeliveryStepEntry>,
@@ -381,6 +386,7 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
             id = notification.id,
             ruleName = ruleName,
             recipient = caches.getUser(notification.recipientId)?.getFullname(),
+            recipientDeactivated = User.isInactive(caches.getUser(notification.recipientId)),
             status = notification.status,
             periodKey = notification.periodKey,
             title = notification.title,
@@ -388,6 +394,7 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
             inAppSince = notification.inAppSince,
             acknowledgedAt = notification.acknowledgedAt,
             acknowledgedBy = caches.getUser(notification.acknowledgedById)?.getFullname(),
+            acknowledgedByDeactivated = User.isInactive(caches.getUser(notification.acknowledgedById)),
             doneAt = notification.doneAt,
             resolvedAt = notification.resolvedAt,
             deliverySteps = notification.readDeliveryState().steps.map {

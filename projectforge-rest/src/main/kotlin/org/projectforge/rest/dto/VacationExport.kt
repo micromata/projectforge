@@ -33,10 +33,11 @@ import java.time.LocalDate
 
 // The team vacation calendar of projectforge-next (`/next/vacationExport`, VacationExportRest).
 
-/** A user or group as the pickers show it. */
+/** A user or group as the pickers show it; a user no longer active (deactivated or deleted) is struck through. */
 class VacationExportRef(
     val id: Long,
     val displayName: String?,
+    val deactivated: Boolean = false,
 )
 
 /**

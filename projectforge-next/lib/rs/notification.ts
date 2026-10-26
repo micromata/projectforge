@@ -151,6 +151,8 @@ export interface NotificationLogEntry {
   /** Null for an ad hoc notification or a deleted rule. */
   ruleName?: string | null;
   recipient?: string | null;
+  /** The recipient is no longer active (deactivated or deleted): the name is struck through. */
+  recipientDeactivated?: boolean;
   status: NotificationStatus;
   periodKey?: string | null;
   title?: string | null;
@@ -158,6 +160,8 @@ export interface NotificationLogEntry {
   inAppSince?: string | null;
   acknowledgedAt?: string | null;
   acknowledgedBy?: string | null;
+  /** As recipientDeactivated, for the confirming user. */
+  acknowledgedByDeactivated?: boolean;
   doneAt?: string | null;
   resolvedAt?: string | null;
   deliverySteps: {

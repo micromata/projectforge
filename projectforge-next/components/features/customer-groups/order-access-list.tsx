@@ -23,6 +23,7 @@ import { ORDER_ACCESS_METADATA } from "./schema";
 import type { CustomerGroupsValues, OrderAccessValues } from "./types";
 import { useDebouncedPayload } from "./use-debounced-payload";
 import { newKey, usedKeys } from "./values";
+import { RefName } from "@/components/shared/ref-list";
 
 /**
  * The order access grants: read access to all orders of customers, customer groups and business units
@@ -94,7 +95,7 @@ export function OrderAccessList() {
                     variant="outline"
                     className="font-normal"
                   >
-                    {ref.displayName}
+                    <RefName value={ref} />
                   </Badge>
                 ))}
                 groupNames={[

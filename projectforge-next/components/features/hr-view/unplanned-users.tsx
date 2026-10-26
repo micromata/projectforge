@@ -6,6 +6,9 @@ import { MenuLink } from "@/components/shared/menu-link";
 import { SearchInput } from "@/components/shared/list/search-input";
 import { planningHref } from "./planning-links";
 import type { HrView, HrViewUser } from "./types";
+import { RefName } from "@/components/shared/ref-list";
+import { cn } from "@/lib/utils";
+import { DEACTIVATED_REF_CLASS } from "@/lib/page-def/reference";
 
 /** Whether every word of the search occurs in the name, case-insensitive; an empty search matches all. */
 function matches(user: HrViewUser, search: string): boolean {
@@ -44,12 +47,15 @@ export function UnplannedUsers({ view }: { view: HrView }) {
             <MenuLink
               key={user.id}
               url={url}
-              className="text-primary hover:underline"
+              className={cn(
+                "text-primary hover:underline",
+                user.deactivated && DEACTIVATED_REF_CLASS
+              )}
             >
               {name}
             </MenuLink>
           ) : (
-            <span key={user.id}>{name}</span>
+            <RefName key={user.id} value={{ ...user, displayName: name }} />
           );
         })}
       </p>

@@ -24,6 +24,7 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.PfCaches
+import org.projectforge.business.fibu.ContactUserIds
 import org.projectforge.business.ldap.PFUserDOConverter
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
@@ -250,6 +251,27 @@ class User(
                 user.copyFrom(userDO)
             }
             return user
+        }
+
+        /**
+         * Whether the given user is no longer active (deactivated or deleted), for the views that send a user by name
+         * only: the frontend strikes the name through then.
+         */
+        fun isInactive(user: PFUserDO?): Boolean {
+            return user != null && (user.deactivated || user.deleted)
+        }
+
+        /**
+         * The contact person and the further contacts of an order or project (main contact first), each with its name
+         * and whether it is still active, from the cache: a no longer active one is struck through. Unknown ids are
+         * skipped; null if there is nobody.
+         */
+        fun toContactList(contactPersonId: Long?, additionalContactUserIds: String?): List<User>? {
+            val caches = PfCaches.instance
+            return (listOfNotNull(contactPersonId) + ContactUserIds.toList(additionalContactUserIds))
+                .distinct()
+                .mapNotNull { caches.getUser(it)?.let { user -> User(user) } }
+                .takeIf { it.isNotEmpty() }
         }
 
         /**

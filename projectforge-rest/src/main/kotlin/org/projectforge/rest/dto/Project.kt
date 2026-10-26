@@ -55,6 +55,8 @@ class Project(
     var additionalContacts: List<User>? = null,
     /** The contact person and the additional contacts, for the list column only ([ProjektDO.assignedPersons]). */
     var assignedPersons: String? = null,
+    /** The persons of [assignedPersons] as references, for the list column (struck through when no longer active). */
+    var assignedPersonList: List<User>? = null,
     var nummernkreis: Int? = null,
     var bereich: Int? = null,
     /** Digits 5-6 of the project number, the third part of its Kost2 (not the local number, see ProjektDO). */
@@ -135,6 +137,7 @@ class Project(
         additionalContacts = User.toUserList(src.additionalContactUserIds)
         User.restoreDisplayNames(additionalContacts)
         assignedPersons = src.assignedPersons
+        assignedPersonList = User.toContactList(src.contactPerson?.id, src.additionalContactUserIds)
         this.nummernkreis = src.nummernkreis
         this.bereich = src.bereich
         this.teilbereich = src.teilbereich
