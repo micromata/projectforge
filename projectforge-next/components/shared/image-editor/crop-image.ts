@@ -26,7 +26,7 @@ export function editedImageType(sourceType: string | undefined): string {
   return sourceType === "image/jpeg" ? "image/jpeg" : "image/png";
 }
 
-/** The size of the result: the given width, the height following the area, never larger than the area. */
+/** The size of the result: at most the given width, the height following the area, never larger than the area. */
 export function targetSize(
   area: PixelArea,
   width: number

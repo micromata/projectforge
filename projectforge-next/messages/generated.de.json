@@ -2921,10 +2921,7 @@
   },
   "id": "Id",
   "imageEditor": {
-    "aspectRatio": "Seitenverhältnis",
-    "aspectRatioOriginal": "Original",
     "title": "Bild bearbeiten",
-    "width": "Breite (px)",
     "zoom": "Zoom"
   },
   "import": {

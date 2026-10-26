@@ -27,11 +27,21 @@ import type { AddressDetail } from "./types";
 
 const ACCEPTED_IMAGES = "image/png,image/jpeg,image/gif";
 
+/** Address images are square: the list, the view and phone contacts (vCard) show them in square boxes. */
+const IMAGE_ASPECT = 1;
+
+/**
+ * The width an address image is scaled down to at most. A photo of this size practically always fits into the
+ * 100 KB the backend stores (`AddressImageServicesRest.MAX_STORED_IMAGE_FILE_SIZE_KB`), so it keeps its size
+ * instead of being shrunk further; enough for phone contacts (CardDAV) and the views.
+ */
+const IMAGE_MAX_WIDTH = 400;
+
 /**
  * The image of an address: shown, replaced by an upload, or removed — all of it only on save, so a cancel leaves
  * the stored image as it was. An upload waits in the session (`uploadImage/-1`, also for a new address without an
  * id) and is previewed from there; a removal is the flag `imageDeleted`, which the save carries out. A chosen file
- * and the shown image are cropped and scaled in the image editor first; only its result is uploaded.
+ * and the shown image are cut square and scaled down in the image editor first; only its result is uploaded.
  */
 export function AddressImageField({ className }: { className?: string }) {
   const t = useTranslations();
@@ -130,6 +140,8 @@ export function AddressImageField({ className }: { className?: string }) {
       {editing && (
         <ImageEditorDialog
           image={editing}
+          aspect={IMAGE_ASPECT}
+          maxWidth={IMAGE_MAX_WIDTH}
           onApply={upload}
           onClose={() => setEditing(null)}
         />

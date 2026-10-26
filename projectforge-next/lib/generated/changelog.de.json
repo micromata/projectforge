@@ -7,7 +7,7 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Adressen: Ein kleiner Bildeditor schneidet ein ausgewähltes Bild, auch das bereits angezeigte, vor dem Hochladen zu (auf Wunsch mit festem Seitenverhältnis) und verkleinert es.", "Nummernkreise: Die erste vorgeschlagene lokale Projektnummer lässt sich je Nummernkreis in der Buchhaltungskonfiguration festlegen, z. B. 5.###.01 statt 5.###.00; niedrigere Nummern können weiterhin eingegeben werden.", "Gruppenfelder (z. B. die Zugriffslisten von Kalendern, Adressbüchern und Umfragen): Beim Überfahren einer Gruppe werden ihre Mitglieder angezeigt, sofern die Gruppe sichtbar ist.", "Projektliste: Excel-Export der gefilterten Projekte mit allen Feldern." ]
+      "items" : [ "Adressen: Ein kleiner Bildeditor schneidet aus einem ausgewählten Bild, auch dem bereits angezeigten, vor dem Hochladen einen quadratischen Ausschnitt (verschieben und zoomen).", "Nummernkreise: Die erste vorgeschlagene lokale Projektnummer lässt sich je Nummernkreis in der Buchhaltungskonfiguration festlegen, z. B. 5.###.01 statt 5.###.00; niedrigere Nummern können weiterhin eingegeben werden.", "Gruppenfelder (z. B. die Zugriffslisten von Kalendern, Adressbüchern und Umfragen): Beim Überfahren einer Gruppe werden ihre Mitglieder angezeigt, sofern die Gruppe sichtbar ist.", "Projektliste: Excel-Export der gefilterten Projekte mit allen Feldern." ]
     }, {
       "type" : "improved",
       "items" : [ {
