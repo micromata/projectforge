@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { HighlightedText } from "@/components/shared/highlighted-text";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Badge } from "@/components/ui/badge";
 import { useFormatContext } from "@/hooks/use-format";
@@ -9,7 +10,14 @@ import { formatTimestampMinutes } from "@/lib/format";
 import type { ChatDirectEntry } from "@/lib/rs/chat-types";
 
 /** The direct messages as a list: the other one, last message, unread count; read-only ones marked. */
-export function ChatDirectList({ entries }: { entries: ChatDirectEntry[] }) {
+export function ChatDirectList({
+  entries,
+  highlight,
+}: {
+  entries: ChatDirectEntry[];
+  /** The search term the list was narrowed by, marked in the names. */
+  highlight?: string;
+}) {
   const t = useTranslations();
   const formatContext = useFormatContext();
   return (
@@ -24,7 +32,10 @@ export function ChatDirectList({ entries }: { entries: ChatDirectEntry[] }) {
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-2">
                 <span className="truncate font-semibold">
-                  {entry.partner.displayName}
+                  <HighlightedText
+                    text={entry.partner.displayName}
+                    query={highlight}
+                  />
                 </span>
                 {entry.unread > 0 && (
                   <Badge variant="destructive">

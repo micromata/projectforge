@@ -1,14 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Message01Icon } from "@hugeicons/core-free-icons";
+import { matchesSearchTerm } from "@/components/data-table/filter-groups";
 import { FormAlert } from "@/components/shared/form-alert";
+import { SearchInput } from "@/components/shared/list/search-input";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
+import { richTextToPlainText } from "@/components/shared/rich-text";
 import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import { CHAT_DIRECT_QUERY_KEY, fetchChatDirect } from "@/lib/rs/chat-direct";
@@ -21,8 +24,9 @@ import { ChatRoomList } from "./chat-room-list";
 /**
  * The chat of the user (`/next/chat`): the direct messages (PF-CHAT-DM) and the chat rooms (PF-CHAT-ROOM, ROOM-06),
  * the ones with the newest messages first, with unread counts; starting a direct message, creating a room and
- * editing those the user owns or moderates. Each opens its conversation. Minimal on purpose: the chat area with
- * the conversations beside the open one follows (ROOM-08).
+ * editing those the user owns or moderates. Each opens its conversation. A search box narrows both lists, on the
+ * entries already loaded (other one, room name, description). Minimal on purpose: the chat area with the
+ * conversations beside the open one follows (ROOM-08).
  */
 export function ChatRoomsPage() {
   const t = useTranslations();
@@ -37,6 +41,29 @@ export function ChatRoomsPage() {
   });
   const [dialog, setDialog] = useState<{ roomId: number | null } | null>(null);
   const [directDialog, setDirectDialog] = useState(false);
+  const [search, setSearch] = useState("");
+  const directFound = useMemo(
+    () =>
+      direct.data?.filter((entry) =>
+        matchesSearchTerm(search, entry.partner.displayName)
+      ),
+    [direct.data, search]
+  );
+  const roomsFound = useMemo(
+    () =>
+      query.data?.filter((room) =>
+        matchesSearchTerm(
+          search,
+          room.name,
+          room.description ? richTextToPlainText(room.description) : undefined
+        )
+      ),
+    [query.data, search]
+  );
+  // An empty list because of the search, not because there is nothing yet.
+  const nothingFound = (
+    <p className="text-sm text-muted-foreground">{t("nothingFound")}</p>
+  );
 
   return (
     <PageShell>
@@ -50,6 +77,9 @@ export function ChatRoomsPage() {
           {t("chat.room.new")}
         </Button>
       </PageTitleRow>
+      <div className="w-64 max-w-full px-4 pt-3">
+        <SearchInput value={search} onChange={setSearch} focusIfIdle />
+      </div>
       <section
         className="flex flex-col gap-3 px-4 pt-2 pb-4"
         aria-labelledby="chatDirectHeading"
@@ -66,8 +96,12 @@ export function ChatRoomsPage() {
             {t("chat.direct.empty")}
           </p>
         )}
-        {direct.data && direct.data.length > 0 && (
-          <ChatDirectList entries={direct.data} />
+        {direct.data &&
+          direct.data.length > 0 &&
+          directFound?.length === 0 &&
+          nothingFound}
+        {directFound && directFound.length > 0 && (
+          <ChatDirectList entries={directFound} highlight={search} />
         )}
       </section>
       <section
@@ -86,9 +120,14 @@ export function ChatRoomsPage() {
             {t("chat.rooms.empty")}
           </p>
         )}
-        {query.data && query.data.length > 0 && (
+        {query.data &&
+          query.data.length > 0 &&
+          roomsFound?.length === 0 &&
+          nothingFound}
+        {roomsFound && roomsFound.length > 0 && (
           <ChatRoomList
-            rooms={query.data}
+            rooms={roomsFound}
+            highlight={search}
             onEdit={(roomId) => setDialog({ roomId })}
           />
         )}

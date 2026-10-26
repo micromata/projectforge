@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Settings02Icon } from "@hugeicons/core-free-icons";
+import { HighlightedText } from "@/components/shared/highlighted-text";
 import { RichTextPreview } from "@/components/shared/rich-text-preview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,9 +15,12 @@ import type { ChatRoomEntry } from "@/lib/rs/chat-types";
 /** The rooms as a list: name, description, participants, last message, unread count. */
 export function ChatRoomList({
   rooms,
+  highlight,
   onEdit,
 }: {
   rooms: ChatRoomEntry[];
+  /** The search term the list was narrowed by, marked in names and descriptions. */
+  highlight?: string;
   onEdit: (roomId: number) => void;
 }) {
   const t = useTranslations();
@@ -32,7 +36,9 @@ export function ChatRoomList({
             className="min-w-0 flex-1 hover:underline"
           >
             <span className="flex items-center gap-2">
-              <span className="truncate font-semibold">{room.name}</span>
+              <span className="truncate font-semibold">
+                <HighlightedText text={room.name} query={highlight} />
+              </span>
               {room.unread > 0 && (
                 <Badge variant="destructive">
                   {t("chat.room.unread", { arg0: room.unread })}
@@ -41,6 +47,7 @@ export function ChatRoomList({
             </span>
             <RichTextPreview
               text={room.description}
+              highlight={highlight}
               className="text-sm text-muted-foreground"
             />
             <span className="block text-xs text-muted-foreground">
