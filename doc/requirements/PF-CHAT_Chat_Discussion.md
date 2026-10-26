@@ -4,11 +4,11 @@
 |---|---|
 | COMP-ID | PF-CHAT |
 | DOC-ID | PF-CHAT-REQ |
-| Status | Draft 0.5 (confidential messages, unread threads and marking unread, review of R1) |
+| Status | Draft 0.6 (data transfer areas as chat rooms, direct message from a personal box) |
 | Owner | Kai Reinhard |
 | Date | 2026-10-26 |
 | Stage | R1 in implementation (ProjectForge 9.0.16) |
-| Used by | chat rooms and direct messages (built-in hosts, PF-CHAT-ROOM, PF-CHAT-DM); [PF-CVR – CVE-Radar](PF-CVR_CVE-Radar_Vulnerability_Management.md); later invoices, orders and others |
+| Used by | chat rooms and direct messages (built-in hosts, PF-CHAT-ROOM, PF-CHAT-DM); data transfer areas (PF-CHAT-DT); [PF-CVR – CVE-Radar](PF-CVR_CVE-Radar_Vulnerability_Management.md); later invoices, orders and others |
 
 ---
 
@@ -136,7 +136,7 @@ own instead of interleaving with the conversation.
 | ID | Requirement | Prio | Remark |
 |---|---|---|---|
 | ATT-01 | Users must be able to attach files of any type to a message by pasting (e.g. a screenshot), drag & drop or the file dialog, at most 10 per message (configurable). They are stored when the message is sent, not before. | M | nothing unsent in the data transfer |
-| ATT-02 | Files must be stored in the data transfer: in a synthetic area per conversation, for direct messages in the personal box of the recipient. The synthetic area appears in the data transfer list of the readers of the conversation as "Chat: …"; nobody uploads into it or administers it there. | M | decision 5 |
+| ATT-02 | Files must be stored in the data transfer: in a synthetic area per conversation, for direct messages in the personal box of the recipient, for a data transfer area in the area itself (DT-03). The synthetic area appears in the data transfer list of the readers of the conversation as "Chat: …"; nobody uploads into it or administers it there. | M | decision 5 |
 | ATT-03 | Access to a file of a synthetic area must be checked against the read check of the conversation (CTX-01), not against member lists of the data transfer; files of hidden messages for moderators only; deleting a file there is up to its author and the moderators. No external link or token. | M | `DataTransferAreaHost` |
 | ATT-04 | Files expire as the area says: a room chooses how long (default 30 days), a personal box keeps them as it does; an expired file stays listed with the message as "no longer available". Deleting a message deletes its files, deleting a room its area. | M | clean-up job of the data transfer |
 | ATT-05 | The size of a file is limited by the area (upload limit, free capacity). Images (PNG, JPEG, GIF, WebP) are recognised by content; all other files are always sent as download of unknown type (`attachment`, `nosniff`). | M | untrusted input |
@@ -207,7 +207,21 @@ participants.
 | DM-05 | The chat page must list the direct messages with at least one message (newest first, unread counts); an opened, empty one isn't listed. | M | |
 | DM-06 | New messages are notified as in rooms (in the app at once, by mail if not seen within an hour, once until read) with a text of their own, without the content. | M | NOT-05 |
 
-### 5.10 PF-CHAT-CONF – Confidential messages
+### 5.10 PF-CHAT-DT – Data transfer areas
+
+Every data transfer area is a chat room of its own: a host of the data transfer plugin (`DataTransferChatHost`), the
+host object is the area.
+
+| ID | Requirement | Prio | Remark |
+|---|---|---|---|
+| DT-01 | Every ordinary data transfer area must have a chat, opened by a button "Chat" on the page of the area; no personal box, no synthetic area (e.g. of a chat conversation) and none on the gateway. | M | decision 15 |
+| DT-02 | The users with access to the area inside PF read and write (admins, access users, members of the access groups, with system access); its admins moderate. External users of the area never see the chat (the public page of the area has nothing of it); in an area with external access, the chat says so: they see only the files with their descriptions. All of them are notified about new messages (NOT-02), the content isn't part of the mails (NOT-05). | M | `DataTransferAreaDao.hasInternalAccess` |
+| DT-03 | Files of its messages go into the area itself (its expiry, upload limit and capacity), not into a synthetic area; no files if the external access of the area runs via the gateway (no upload into it in the main instance). Hiding a message hides it in the chat, not its file in the area (everybody with access to the area, external users too, still sees it); deleting the message deletes its file. | M | ATT-02, ATT-08 |
+| DT-04 | Deleting the area deletes its conversation with all messages (CTX-05). | M | |
+| DT-05 | The personal box of another user must offer a button "Direct message", which opens the direct message with its owner (PF-CHAT-DM, DM-02 applies); the files go into the owner's personal box (ATT-02). The own box has none. | M | |
+| DT-06 | The chat page must list the chats of the areas with at least one message the user may read, newest first, with unread counts, narrowed by its search box. | M | as DM-05 |
+
+### 5.11 PF-CHAT-CONF – Confidential messages
 
 Modelled on an OTR session: for a password or a key that must not stay in the chat, the mail or the database.
 
@@ -222,7 +236,7 @@ Modelled on an OTR session: for a password or a key that must not stay in the ch
 | CONF-07 | Limits: at most 5 open sessions per sender, 1,000 overall, 16 KB ciphertext. | M | |
 | CONF-08 | Confidential messages in rooms, to several recipients, with files, or kept for later reading are not planned. | W | |
 
-### 5.11 Non-functional requirements
+### 5.12 Non-functional requirements
 
 | ID | Requirement | Prio |
 |---|---|---|
@@ -255,12 +269,13 @@ page, thread side panel, mention suggestions, file upload and image viewer.
 |---|---|---|---|
 | Chat room | *main* | participants of the room (ROOM-02) | first host, built in |
 | Direct message | *main* | the two users (DM-04) | built in |
+| Data transfer area | *main* | the users with access to the area inside PF (DT-02) | data transfer plugin, files in the area |
 | CVE-Radar vulnerability | *internal*, *public* | internal: ST and affected groups; public: recipients of the client advisory | [PF-CVR-DISC](PF-CVR_CVE-Radar_Vulnerability_Management.md#511-pf-cvr-disc--discussion) |
 | CVE-Radar finding | *internal* | visibility of the finding (PF-CVR VIS-09) | system-specific discussion |
 | Invoice (later) | *internal* | as the invoice (`RechnungDao`) | questions about an invoice |
 | Order (later) | *internal* | as the order (`AuftragDao`) | discussion about an order |
 
-## 8. Decisions (as of 0.5)
+## 8. Decisions (as of 0.6)
 
 | # | Topic | Decision | Requirements |
 |---|---|---|---|
@@ -278,11 +293,13 @@ page, thread side panel, mention suggestions, file upload and image viewer.
 | 12 | Direct messages | Built-in host with the pair of users as host object; started only with visible users, then open to both | DM-01 – DM-06 |
 | 13 | Confidential messages | A live session of the two browsers (like OTR), end-to-end encrypted, relayed in memory and taken once; direct messages only | CONF-01 – CONF-08 |
 | 14 | Read state | One mark per user and conversation (the newest message read), for the conversation and its threads; replies count as unread only in threads followed or with a mention; marking unread moves it back; the menu badges come from the notifications and aren't restored by marking unread | NOT-01, NOT-03, NOT-09 |
+| 15 | Data transfer areas | Every ordinary area is a chat room of the users with access, its files go into the area; the personal box of another user leads to the direct message with its owner | DT-01 – DT-06 |
 
 ## 9. Implementation status (review of R1, 2026-10-26)
 
 Implemented in R1: CTX-01 – CTX-05, CTX-07, MSG-01 – MSG-05, MSG-07, MSG-09, MSG-10, THR-01 – THR-05, ATT-01 – ATT-08,
-NOT-01 – NOT-07, NOT-09, SEC-01 – SEC-07, ROOM-01 – ROOM-07, ROOM-09, ROOM-10, DM-01 – DM-06, CONF-01 – CONF-07.
+NOT-01 – NOT-07, NOT-09, SEC-01 – SEC-07, ROOM-01 – ROOM-07, ROOM-09, ROOM-10, DM-01 – DM-06, CONF-01 – CONF-07,
+DT-01 – DT-06.
 
 Deviations and gaps:
 
@@ -291,7 +308,7 @@ Deviations and gaps:
 | MSG-06, NFR-04 | Paging by 50 and loading older messages is implemented, the list is not virtualised; 10,000 messages are not measured yet. |
 | SRCH-01 | Search by text in the UI; the author filter exists only in the REST endpoint (`authorId`), not in the search dialog. Hidden messages aren't found, also not by moderators. |
 | ATT-07 | Metadata removed for JPEG and PNG (encoded again); GIF and WebP are kept as they are (animations). |
-| CTX-06 | Unread counts only in the lists of rooms and direct messages; no other host yet. |
+| CTX-06 | Unread counts only in the lists of the chat page (rooms, direct messages, data transfer areas); not in the lists of a host (e.g. the data transfer list). |
 | MSG-08, THR-06, CTX-08, ROOM-08, SRCH-02, SEC-08 | Open (S/C, R2 or later). |
 
 ## 10. Open points

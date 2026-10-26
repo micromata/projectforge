@@ -971,6 +971,10 @@
       "readOnly": "This conversation is read-only.",
       "unmute": "Unmute"
     },
+    "dataTransfer": {
+      "_": "Data transfer",
+      "empty": "No chats in data transfer areas yet: every area is a chat room for everybody with access to it."
+    },
     "direct": {
       "_": "Direct messages",
       "empty": "No direct messages yet.",
@@ -4271,6 +4275,14 @@
         "events": "Events of the last 30 days"
       },
       "button": {
+        "chat": {
+          "_": "Chat",
+          "info": "Chat with everybody who has access to this area. Files sent in the chat go into this area."
+        },
+        "directMessage": {
+          "_": "Direct message",
+          "info": "Write to the owner of this personal box directly. Files sent in the chat go into this box."
+        },
         "downloadAll": {
           "_": "Download all",
           "info": "Download all files in one ZIP archive."

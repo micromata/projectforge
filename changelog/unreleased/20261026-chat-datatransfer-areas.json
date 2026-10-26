@@ -1,0 +1,19 @@
+{
+  "type": "added",
+  "en": "Chat in the data transfer",
+  "de": "Chat im Datentransfer",
+  "items": [
+    {
+      "en": "Every data transfer area is a chat room for everybody with access to it (its admins moderate): the button Chat on the area opens it, files sent in the chat go into the area. External users don't see the chat, only the files with their descriptions; the chat of an area with external access says so. Hiding a message doesn't hide its file in the area, deleting the message deletes it.",
+      "de": "Jeder Datentransferbereich ist ein Chatraum für alle mit Zugriff darauf (die Admins moderieren): Der Button Chat am Bereich öffnet ihn, im Chat verschickte Dateien landen im Bereich. Externe Personen sehen den Chat nicht, nur die Dateien mit ihren Beschreibungen; der Chat eines Bereichs mit externem Zugriff weist darauf hin. Das Ausblenden einer Nachricht blendet ihre Datei im Bereich nicht aus, das Löschen der Nachricht löscht sie."
+    },
+    {
+      "en": "The personal box of another user has the button Direct message, which opens the direct message with them; the files go into their personal box.",
+      "de": "Die persönliche Box einer anderen Person hat den Button Direktnachricht, der die Direktnachricht mit ihr öffnet; die Dateien landen in ihrer persönlichen Box."
+    },
+    {
+      "en": "The chat page lists the chats of the data transfer areas with messages, with unread counts.",
+      "de": "Die Chatseite listet die Chats der Datentransferbereiche mit Nachrichten, mit der Zahl der ungelesenen."
+    }
+  ]
+}

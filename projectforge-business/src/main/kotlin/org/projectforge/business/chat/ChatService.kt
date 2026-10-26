@@ -665,6 +665,20 @@ open class ChatService {
     }
 
     /**
+     * The conversations of the host type with at least one message the logged-in user may read (e.g. the chats of the
+     * data transfer areas), newest first.
+     */
+    open fun listConversations(hostType: String): List<ChatAccess.Context> {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        hostRegistry.get(hostType) ?: return emptyList()
+        return persistenceService.executeQuery(
+            "from ChatConversationDO c where c.hostType = :hostType and c.lastMessageAt is not null order by c.lastMessageAt desc",
+            ChatConversationDO::class.java,
+            Pair("hostType", hostType),
+        ).mapNotNull { chatAccess.getContext(it, user) }
+    }
+
+    /**
      * Deletes the room (marked as deleted, checked by [ChatRoomDao]) and its conversation with all messages and
      * files (ROOM-07).
      */

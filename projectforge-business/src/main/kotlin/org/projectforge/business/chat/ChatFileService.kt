@@ -49,7 +49,8 @@ private val log = KotlinLogging.logger {}
  *   the conversation (this service is its [DataTransferAreaHost]): its readers see the area in the data transfer and
  *   download its files, except those of hidden messages (moderators only). Its files expire as configured (rooms:
  *   [ChatRoomChatHost], see [saveArea]), the clean-up job of the data transfer deletes them.
- * - for direct messages in the personal box of the recipient, where both see the file (its owner and its uploader).
+ * - in an existing area given by the host ([ChatHost.usesOwnFileArea]): for direct messages the personal box of the
+ *   recipient, where both see the file (its owner and its uploader); for a data transfer area the area itself.
  *
  * The size of a file is limited by the area (upload limit, free capacity). Images (PNG, JPEG, GIF, WebP, checked by
  * their content) are shown as thumbnails; the metadata (EXIF, GPS) of JPEG and PNG images is removed by encoding
@@ -78,7 +79,7 @@ open class ChatFileService : DataTransferAreaHost {
     private lateinit var dataTransferBridge: DataTransferBridge
 
     @Autowired
-    private lateinit var directHost: ChatDirectChatHost
+    private lateinit var hostRegistry: ChatHostRegistry
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
@@ -107,7 +108,9 @@ open class ChatFileService : DataTransferAreaHost {
         get() = dataTransferBridge.fileStorageAvailable
 
     /** Can files be exchanged in the conversation (data transfer available)? */
-    open fun filesEnabled(context: ChatAccess.Context): Boolean = filesAvailable
+    open fun filesEnabled(context: ChatAccess.Context): Boolean {
+        return filesAvailable && context.host.filesAllowed(context.hostId, context.channel)
+    }
 
     /**
      * The largest file the conversation takes now (bytes), null if no files can be exchanged or its area doesn't exist
@@ -118,14 +121,14 @@ open class ChatFileService : DataTransferAreaHost {
         return dataTransferBridge.getMaxUploadSize(areaId)
     }
 
-    /** Creates the area of the conversation, if missing (not for direct messages). No access check. */
+    /** Creates the area of the conversation, if missing (not for a host with its own area). No access check. */
     open fun ensureArea(context: ChatAccess.Context) {
         targetAreaId(context, create = true)
     }
 
     /**
-     * Stores the files of a message of the user: in the area of the conversation (created if missing), for direct
-     * messages in the personal box of the recipient. The caller checked the write access. On an error, the files
+     * Stores the files of a message of the user: in the area of the conversation (created if missing), or in the
+     * area of the host ([ChatHost.fileAreaId], e.g. the personal box of the recipient of a direct message). The caller checked the write access. On an error, the files
      * stored before are deleted again.
      */
     open fun store(context: ChatAccess.Context, uploads: List<Upload>): List<ChatAttachment> {
@@ -169,11 +172,12 @@ open class ChatFileService : DataTransferAreaHost {
 
     /**
      * Creates or updates the area of the conversation: its name (shown in the data transfer) and the days its files are
-     * kept (null: unchanged, 30 days for a new one). Nothing for direct messages. No access check: the caller decides.
+     * kept (null: unchanged, 30 days for a new one). Nothing for a host with its own area ([ChatHost.usesOwnFileArea]).
+     * No access check: the caller decides.
      */
     open fun saveArea(conversationId: Long, title: String, expiryDays: Int?) {
         val conversation = chatAccess.findConversation(conversationId) ?: return
-        if (conversation.hostType == ChatDirectChatHost.HOST_TYPE) {
+        if (hostRegistry.get(conversation.hostType)?.usesOwnFileArea != false) {
             return
         }
         synchronized(this) {
@@ -267,16 +271,16 @@ open class ChatFileService : DataTransferAreaHost {
     }
 
     /**
-     * The area the files of the user go to: the personal box of the recipient for direct messages, the area of the
-     * conversation otherwise (created if missing and [create]). Null if no files can be exchanged.
+     * The area the files of the user go to: the one of the host if it has its own ([ChatHost.fileAreaId], e.g. the
+     * personal box of the recipient of a direct message), the area of the conversation otherwise (created if missing
+     * and [create]). Null if no files can be exchanged.
      */
     private fun targetAreaId(context: ChatAccess.Context, create: Boolean): Long? {
         if (!dataTransferBridge.fileStorageAvailable) {
             return null
         }
-        if (context.conversation.hostType == ChatDirectChatHost.HOST_TYPE) {
-            val recipientId = directHost.partnerId(context.hostId, context.user.id) ?: return null
-            return dataTransferBridge.getPersonalBoxId(recipientId)
+        if (context.host.usesOwnFileArea) {
+            return context.host.fileAreaId(context.hostId, context.channel, context.user)
         }
         chatAccess.findConversation(context.conversationId)?.fileAreaId?.let { return it }
         if (!create) {

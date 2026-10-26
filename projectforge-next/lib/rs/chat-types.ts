@@ -64,6 +64,8 @@ export interface ChatConversation {
   title: string;
   /** The description of the host object as rich text (HTML), null for none. */
   description: string | null;
+  /** A notice of the host shown above the conversation (plain text), e.g. that external users don't see it. */
+  notice?: string | null;
   /** Path of the next app of the host object, e.g. `/chat`. */
   link: string | null;
   canWrite: boolean;
@@ -140,6 +142,19 @@ export interface ChatRoomDefaults {
   fileExpiryDays: number | null;
   fileExpiryDaysChoices: ChatChoice[];
   filesEnabled: boolean;
+}
+
+/** A conversation of a host (e.g. a data transfer area) in the list of the user's ones. */
+export interface ChatHostEntry {
+  conversationId: number;
+  hostId: number;
+  /** The title of the host object, e.g. the name of the area. */
+  title: string;
+  /** The link to the host object. */
+  link: string | null;
+  unread: number;
+  lastMessageAt: string | null;
+  canWrite: boolean;
 }
 
 /** A direct message in the list of the user's ones. */

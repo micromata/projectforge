@@ -7,7 +7,10 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Number ranges: the first proposed local project number can be set per range in the accounting configuration, e.g. 5.###.01 instead of 5.###.00; lower numbers can still be entered.", "Group fields (e.g. the access lists of calendars, address books and polls): hovering a group shows its members, for whoever may see the group.", "Project list: Excel export of the filtered projects with all their fields." ]
+      "items" : [ {
+        "title" : "Chat in the data transfer",
+        "items" : [ "Every data transfer area is a chat room for everybody with access to it (its admins moderate): the button Chat on the area opens it, files sent in the chat go into the area. External users don't see the chat, only the files with their descriptions; the chat of an area with external access says so. Hiding a message doesn't hide its file in the area, deleting the message deletes it.", "The personal box of another user has the button Direct message, which opens the direct message with them; the files go into their personal box.", "The chat page lists the chats of the data transfer areas with messages, with unread counts." ]
+      }, "Number ranges: the first proposed local project number can be set per range in the accounting configuration, e.g. 5.###.01 instead of 5.###.00; lower numbers can still be entered.", "Group fields (e.g. the access lists of calendars, address books and polls): hovering a group shows its members, for whoever may see the group.", "Project list: Excel export of the filtered projects with all their fields." ]
     }, {
       "type" : "improved",
       "items" : [ {

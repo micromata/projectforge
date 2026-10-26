@@ -90,6 +90,10 @@ export interface DataTransferView {
   managedByMainInstance?: boolean;
   /** A synthetic area (e.g. of a chat conversation): its files come from there, no upload here. */
   syntheticArea?: boolean;
+  /** The area is a chat room as well: no personal box, no synthetic area, not on the gateway. */
+  chatAvailable?: boolean;
+  /** The owner of a personal box: whom a direct message from it goes to. */
+  personalBoxUserId?: number | null;
 }
 
 /** One entry of the activities, `DataTransferAuditDO` with its computed fields. */

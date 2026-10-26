@@ -114,6 +114,29 @@ class ChatRest {
         return ChatOpenResult(chatService.open(hostType, hostId, channel)?.conversationId)
     }
 
+    /**
+     * The conversations of the host type with at least one message (e.g. the chats of the data transfer areas), newest
+     * first.
+     */
+    @AccessChecked("ChatService.listConversations: read access of the host per conversation")
+    @GetMapping("list/{hostType}")
+    fun listConversations(@PathVariable hostType: String): List<ChatHostEntry> {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val contexts = chatService.listConversations(hostType)
+        val unread = chatService.countUnread(contexts.map { it.conversationId }, user.id!!)
+        return contexts.map { context ->
+            ChatHostEntry(
+                conversationId = context.conversationId,
+                hostId = context.hostId,
+                title = context.title,
+                link = context.host.link(context.hostId),
+                unread = unread[context.conversationId] ?: 0,
+                lastMessageAt = context.conversation.lastMessageAt,
+                canWrite = context.canWrite,
+            )
+        }
+    }
+
     @AccessChecked("ChatService.requireContext: read access of the host to the conversation")
     @GetMapping("conversation/{id}")
     fun getConversation(@PathVariable id: Long): ChatConversation {
@@ -127,6 +150,7 @@ class ChatRest {
             channel = context.channel,
             title = context.title,
             description = context.host.description(context.hostId, context.channel),
+            notice = context.host.notice(context.hostId, context.channel, context.user),
             link = context.host.link(context.hostId),
             canWrite = context.canWrite,
             isModerator = context.isModerator,

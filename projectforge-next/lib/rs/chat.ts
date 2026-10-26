@@ -7,6 +7,7 @@ import type {
   ChatMessagesPage,
   ChatThread,
   ChatChanges,
+  ChatHostEntry,
 } from "./chat-types";
 
 /**
@@ -75,6 +76,28 @@ export function openChatConversation(
     hostId,
     channel,
   });
+}
+
+/** The host type of the data transfer areas, each one a chat room (PF-CHAT-DT). */
+export const CHAT_HOST_DATA_TRANSFER = "dataTransfer";
+
+/** The channel of the chat of a data transfer area. */
+export const CHAT_DATA_TRANSFER_CHANNEL = "main";
+
+export function chatHostListQueryKey(hostType: string) {
+  return ["chatHosts", hostType] as const;
+}
+
+/** The conversations of the host type with messages the user may read (e.g. of the data transfer areas), newest first. */
+export function fetchChatHostConversations(
+  hostType: string,
+  signal?: AbortSignal
+) {
+  return chatRequest<ChatHostEntry[]>(
+    `${BASE}/list/${encodeURIComponent(hostType)}`,
+    { method: "GET" },
+    signal
+  );
 }
 
 export function fetchChatConversation(id: number, signal?: AbortSignal) {

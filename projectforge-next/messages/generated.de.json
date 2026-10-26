@@ -971,6 +971,10 @@
       "readOnly": "Diese Unterhaltung ist schreibgeschützt.",
       "unmute": "Stummschaltung aufheben"
     },
+    "dataTransfer": {
+      "_": "Datentransfer",
+      "empty": "Noch keine Chats in Datentransferbereichen: Jeder Bereich ist ein Chatraum für alle mit Zugriff darauf."
+    },
     "direct": {
       "_": "Direktnachrichten",
       "empty": "Noch keine Direktnachrichten.",
@@ -4271,6 +4275,14 @@
         "events": "Ereignisse der letzten 30 Tage"
       },
       "button": {
+        "chat": {
+          "_": "Chat",
+          "info": "Mit allen chatten, die Zugriff auf diesen Bereich haben. Im Chat verschickte Dateien landen in diesem Bereich."
+        },
+        "directMessage": {
+          "_": "Direktnachricht",
+          "info": "Der Person dieser persönlichen Box direkt schreiben. Im Chat verschickte Dateien landen in dieser Box."
+        },
         "downloadAll": {
           "_": "Alles herunterladen",
           "info": "Alle Dateien in einem ZIP-Archiv herunterladen."

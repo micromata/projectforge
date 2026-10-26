@@ -32,6 +32,7 @@ export function useMarkRead(conversationId: number) {
         void queryClient.invalidateQueries({ queryKey: ["menu"] });
         void queryClient.invalidateQueries({ queryKey: ["chatRooms"] });
         void queryClient.invalidateQueries({ queryKey: ["chatDirect"] });
+        void queryClient.invalidateQueries({ queryKey: ["chatHosts"] });
       },
       () => {
         marked.current = 0; // Tried again with the next change.

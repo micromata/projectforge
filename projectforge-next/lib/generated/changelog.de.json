@@ -7,7 +7,10 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Nummernkreise: Die erste vorgeschlagene lokale Projektnummer lässt sich je Nummernkreis in der Buchhaltungskonfiguration festlegen, z. B. 5.###.01 statt 5.###.00; niedrigere Nummern können weiterhin eingegeben werden.", "Gruppenfelder (z. B. die Zugriffslisten von Kalendern, Adressbüchern und Umfragen): Beim Überfahren einer Gruppe werden ihre Mitglieder angezeigt, sofern die Gruppe sichtbar ist.", "Projektliste: Excel-Export der gefilterten Projekte mit allen Feldern." ]
+      "items" : [ {
+        "title" : "Chat im Datentransfer",
+        "items" : [ "Jeder Datentransferbereich ist ein Chatraum für alle mit Zugriff darauf (die Admins moderieren): Der Button Chat am Bereich öffnet ihn, im Chat verschickte Dateien landen im Bereich. Externe Personen sehen den Chat nicht, nur die Dateien mit ihren Beschreibungen; der Chat eines Bereichs mit externem Zugriff weist darauf hin. Das Ausblenden einer Nachricht blendet ihre Datei im Bereich nicht aus, das Löschen der Nachricht löscht sie.", "Die persönliche Box einer anderen Person hat den Button Direktnachricht, der die Direktnachricht mit ihr öffnet; die Dateien landen in ihrer persönlichen Box.", "Die Chatseite listet die Chats der Datentransferbereiche mit Nachrichten, mit der Zahl der ungelesenen." ]
+      }, "Nummernkreise: Die erste vorgeschlagene lokale Projektnummer lässt sich je Nummernkreis in der Buchhaltungskonfiguration festlegen, z. B. 5.###.01 statt 5.###.00; niedrigere Nummern können weiterhin eingegeben werden.", "Gruppenfelder (z. B. die Zugriffslisten von Kalendern, Adressbüchern und Umfragen): Beim Überfahren einer Gruppe werden ihre Mitglieder angezeigt, sofern die Gruppe sichtbar ist.", "Projektliste: Excel-Export der gefilterten Projekte mit allen Feldern." ]
     }, {
       "type" : "improved",
       "items" : [ {

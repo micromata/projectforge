@@ -14,18 +14,26 @@ import { PageTitleRow } from "@/components/shared/page-title-row";
 import { richTextToPlainText } from "@/components/shared/rich-text";
 import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
+import { useFeatureEnabled } from "@/hooks/use-feature-enabled";
+import {
+  CHAT_HOST_DATA_TRANSFER,
+  chatHostListQueryKey,
+  fetchChatHostConversations,
+} from "@/lib/rs/chat";
 import { CHAT_DIRECT_QUERY_KEY, fetchChatDirect } from "@/lib/rs/chat-direct";
 import { CHAT_ROOMS_QUERY_KEY, fetchChatRooms } from "@/lib/rs/chat-rooms";
 import { ChatDirectDialog } from "./chat-direct-dialog";
 import { ChatDirectList } from "./chat-direct-list";
+import { ChatHostList } from "./chat-host-list";
 import { ChatRoomDialog } from "./chat-room-dialog";
 import { ChatRoomList } from "./chat-room-list";
 
 /**
- * The chat of the user (`/next/chat`): the direct messages (PF-CHAT-DM) and the chat rooms (PF-CHAT-ROOM, ROOM-06),
- * the ones with the newest messages first, with unread counts; starting a direct message, creating a room and
- * editing those the user owns or moderates. Each opens its conversation. A search box narrows both lists, on the
- * entries already loaded (other one, room name, description). Minimal on purpose: the chat area with the
+ * The chat of the user (`/next/chat`): the direct messages (PF-CHAT-DM), the chat rooms (PF-CHAT-ROOM, ROOM-06) and
+ * the chats of the data transfer areas with messages (PF-CHAT-DT, with the plugin only), the ones with the newest
+ * messages first, with unread counts; starting a direct message, creating a room and
+ * editing those the user owns or moderates. Each opens its conversation. A search box narrows the lists, on the
+ * entries already loaded (other one, room name, description, area name). Minimal on purpose: the chat area with the
  * conversations beside the open one follows (ROOM-08).
  */
 export function ChatRoomsPage() {
@@ -38,6 +46,13 @@ export function ChatRoomsPage() {
   const direct = useQuery({
     queryKey: CHAT_DIRECT_QUERY_KEY,
     queryFn: ({ signal }) => fetchChatDirect(signal),
+  });
+  const dataTransferEnabled = useFeatureEnabled("datatransfer");
+  const dataTransfer = useQuery({
+    queryKey: chatHostListQueryKey(CHAT_HOST_DATA_TRANSFER),
+    queryFn: ({ signal }) =>
+      fetchChatHostConversations(CHAT_HOST_DATA_TRANSFER, signal),
+    enabled: dataTransferEnabled,
   });
   const [dialog, setDialog] = useState<{ roomId: number | null } | null>(null);
   const [directDialog, setDirectDialog] = useState(false);
@@ -59,6 +74,13 @@ export function ChatRoomsPage() {
         )
       ),
     [query.data, search]
+  );
+  const dataTransferFound = useMemo(
+    () =>
+      dataTransfer.data?.filter((entry) =>
+        matchesSearchTerm(search, entry.title)
+      ),
+    [dataTransfer.data, search]
   );
   // An empty list because of the search, not because there is nothing yet.
   const nothingFound = (
@@ -132,6 +154,32 @@ export function ChatRoomsPage() {
           />
         )}
       </section>
+      {dataTransferEnabled && (
+        <section
+          className="flex flex-col gap-3 px-4 pb-6"
+          aria-labelledby="chatDataTransferHeading"
+        >
+          <h2 id="chatDataTransferHeading" className="text-sm font-semibold">
+            {t("chat.dataTransfer._")}
+          </h2>
+          {dataTransfer.isError && (
+            <FormAlert tone="error">{t("access.exception.noAccess")}</FormAlert>
+          )}
+          {dataTransfer.isPending && <Spinner className="h-5 w-5 border-2" />}
+          {dataTransfer.data?.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              {t("chat.dataTransfer.empty")}
+            </p>
+          )}
+          {dataTransfer.data &&
+            dataTransfer.data.length > 0 &&
+            dataTransferFound?.length === 0 &&
+            nothingFound}
+          {dataTransferFound && dataTransferFound.length > 0 && (
+            <ChatHostList entries={dataTransferFound} highlight={search} />
+          )}
+        </section>
+      )}
       <ChatDirectDialog
         open={directDialog}
         onClose={() => setDirectDialog(false)}

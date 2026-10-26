@@ -36,6 +36,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferChatHost
 import org.projectforge.plugins.datatransfer.DataTransferExternalAccessConfig
 import org.projectforge.plugins.datatransfer.DataTransferUtils
 import org.projectforge.rest.AttachmentsServicesRest
@@ -82,6 +83,10 @@ class DataTransferFilesRest {
         val managedByMainInstance: Boolean = false,
         /** A synthetic area (e.g. of a chat conversation): its files come from there, no upload here. */
         val syntheticArea: Boolean = false,
+        /** The area is a chat room as well (PF-CHAT-DT): no personal box, no synthetic area, not on the gateway. */
+        val chatAvailable: Boolean = false,
+        /** The owner of a personal box: whom a direct message from it goes to. */
+        val personalBoxUserId: Long? = null,
     )
 
     class ObserveRequest(var observe: Boolean? = null)
@@ -97,6 +102,9 @@ class DataTransferFilesRest {
 
     @Autowired
     private lateinit var dataTransferAreaEntityRest: DataTransferAreaEntityRest
+
+    @Autowired
+    private lateinit var chatHost: DataTransferChatHost
 
     @Autowired
     private lateinit var dataTransferAreaDao: DataTransferAreaDao
@@ -162,6 +170,8 @@ class DataTransferFilesRest {
             } else null,
             managedByMainInstance = externalAccessConfig.gatewayMode,
             syntheticArea = dataTransferAreaDao.getAreaHost(dbObj) != null,
+            chatAvailable = chatHost.isChatArea(dbObj),
+            personalBoxUserId = dbObj.getPersonalBoxUserId(),
         )
     }
 

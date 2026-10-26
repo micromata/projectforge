@@ -91,6 +91,7 @@ export function ChatPanel({
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["chatRooms"] });
       void queryClient.invalidateQueries({ queryKey: ["chatDirect"] });
+      void queryClient.invalidateQueries({ queryKey: ["chatHosts"] });
     },
   });
   const markUnread = unread.mutate;
