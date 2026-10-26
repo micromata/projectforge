@@ -31,6 +31,7 @@ for (const dark of [false, true]) {
   await page.waitForURL((u) => !u.toString().includes("/login"), { timeout: 20_000 });
   for (const s of list) {
     try {
+      await page.setViewportSize({ width: 1440, height: s.height || 860 });
       await page.goto(base + s.path);
       await page.waitForLoadState("networkidle").catch(() => {});
       await page.waitForTimeout(s.wait || 2000);

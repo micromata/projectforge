@@ -118,8 +118,9 @@ image::2026-Liquidity.png[Liquidity forecast,link=/uploads/screenshots/2026-Liqu
 [[collaboration]]
 == Collaboration
 
-_Team calendars, address book, file sharing and Word templates – the everyday things your team needs anyway._
+_Chat, team calendars, address book, file sharing and Word templates – the everyday things your team needs anyway._
 
+Chat:: Rooms for teams and projects and direct messages, with files, reactions, threads and @mentions – live, on your own server. Confidential messages such as passwords travel end-to-end encrypted and are shown only once.
 Team calendars:: Shared calendars with holidays and birthdays. Subscribe to them on any device via ICS and show external calendars inside ProjectForge.
 Address book:: Shared addresses, synchronized to your phone via CardDAV, vCard export.
 Data transfer:: Share files with colleagues and customers – protected by password and expiry date, with a full activity log.
@@ -127,6 +128,7 @@ Word templates:: Generate contracts and serial letters from your own Word templa
 Polls:: Ask your team and get a quick answer.
 Office organization:: Contracts, incoming and outgoing mail log, visitor book, library, software licenses and hardware.
 
+image::2026-Chat.png[Chat room of a project,link=/uploads/screenshots/2026-Chat.png]
 image::2026-Calendar.png[Team calendar with leave and holidays,link=/uploads/screenshots/2026-Calendar.png]
 image::2026-DataTransfer.png[Data transfer,link=/uploads/screenshots/2026-DataTransfer.png]
 
@@ -169,7 +171,7 @@ Scripting:: Kotlin and Groovy scripts for your own reports and exports – even 
 Plugins:: Extend ProjectForge with your own modules.
 Open source:: Kotlin, Spring Boot and Next.js. Read the code, change it, contribute.
 
-image::2026-SystemDashboard.png[System dashboard with the scheduled jobs,link=/uploads/screenshots/2026-SystemDashboard.png]
+image::2026-SystemDashboard.png[System dashboard with the subsystems and their errors,link=/uploads/screenshots/2026-SystemDashboard.png]
 
 [[requirements]]
 == Technical requirements

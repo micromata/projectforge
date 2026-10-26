@@ -118,8 +118,9 @@ image::2026-Liquidity.png[Liquiditätsvorschau,link=/uploads/screenshots/2026-Li
 [[collaboration]]
 == Zusammenarbeit
 
-_Teamkalender, Adressbuch, Dateiaustausch und Word-Vorlagen – das, was das Team ohnehin täglich braucht._
+_Chat, Teamkalender, Adressbuch, Dateiaustausch und Word-Vorlagen – das, was das Team ohnehin täglich braucht._
 
+Chat:: Räume für Teams und Projekte und Direktnachrichten, mit Dateien, Reaktionen, Threads und @-Erwähnungen – live und auf dem eigenen Server. Vertrauliche Nachrichten wie Passwörter gehen Ende-zu-Ende-verschlüsselt und werden nur einmal angezeigt.
 Teamkalender:: Gemeinsame Kalender mit Feiertagen und Geburtstagen. Per ICS auf jedem Gerät abonnierbar, externe Kalender lassen sich in ProjectForge anzeigen.
 Adressbuch:: Gemeinsame Adressen, per CardDAV aufs Telefon synchronisiert, vCard-Export.
 Datentransfer:: Dateien mit Kolleginnen, Kollegen und Kunden teilen – geschützt durch Passwort und Ablaufdatum, mit vollständigem Aktivitätsprotokoll.
@@ -127,6 +128,7 @@ Word-Vorlagen:: Verträge und Serienbriefe aus eigenen Word-Vorlagen erzeugen, a
 Umfragen:: Das Team fragen und schnell eine Antwort bekommen.
 Büroorganisation:: Verträge, Post-Eingangs- und -Ausgangsbuch, Besucherbuch, Bibliothek, Softwarelizenzen und Hardware.
 
+image::2026-Chat.png[Chatraum eines Projekts,link=/uploads/screenshots/2026-Chat.png]
 image::2026-Calendar.png[Teamkalender mit Urlauben und Feiertagen,link=/uploads/screenshots/2026-Calendar.png]
 image::2026-DataTransfer.png[Datentransfer,link=/uploads/screenshots/2026-DataTransfer.png]
 
@@ -169,7 +171,7 @@ Skripte:: Kotlin- und Groovy-Skripte für eigene Auswertungen und Exporte – so
 Plugins:: ProjectForge mit eigenen Modulen erweitern.
 Open Source:: Kotlin, Spring Boot und Next.js. Code lesen, ändern, mitwirken.
 
-image::2026-SystemDashboard.png[System-Dashboard mit den geplanten Jobs,link=/uploads/screenshots/2026-SystemDashboard.png]
+image::2026-SystemDashboard.png[System-Dashboard mit den Teilsystemen und ihren Fehlern,link=/uploads/screenshots/2026-SystemDashboard.png]
 
 [[requirements]]
 == Technische Voraussetzungen
