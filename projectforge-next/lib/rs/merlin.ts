@@ -10,9 +10,10 @@ import { rawRequest, request, RsError } from "./client";
 import { downloadFile, downloadPost, responseBlob, saveBlob } from "./download";
 import type { ValidationError } from "./types";
 import { parseContentDispositionFilename } from "@/lib/dynamic/content-disposition";
+import type { InactiveFlags } from "@/lib/page-def/reference";
 
 /** A user or group as the DTO references it: the id is what the backend stores. */
-export type MerlinRef = {
+export type MerlinRef = InactiveFlags & {
   id: number;
   displayName?: string;
 };

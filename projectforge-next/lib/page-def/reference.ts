@@ -4,10 +4,12 @@
  * for itself (a user when its account is deactivated, an employee three months after leaving). Add a
  * further flag here as the concept grows, and every reference column picks it up.
  */
-export interface InactiveFlags {
+// A type alias, not an interface: only an alias is assignable to the schemas' loose objects, also inside the
+// ref types combining it (`InactiveFlags & { … }`).
+export type InactiveFlags = {
   deleted?: boolean;
   deactivated?: boolean;
-}
+};
 
 /**
  * Whether a referenced object should read as "no longer live": deleted, or otherwise deactivated. The

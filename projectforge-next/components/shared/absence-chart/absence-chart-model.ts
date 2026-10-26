@@ -1,3 +1,5 @@
+import type { InactiveFlags } from "@/lib/page-def/reference";
+
 /**
  * The model of the absence charts (AbsenceChartFrame, AbsenceChartRow): a period being edited — a vacation or an
  * availability entry — and the absences of its substitutes as bars over the days, and the team vacation calendar.
@@ -15,7 +17,7 @@ export interface ChartDay {
 }
 
 /** A person as the DTOs refer to one: the id, the name to show. */
-export interface PersonRef {
+export interface PersonRef extends InactiveFlags {
   id: number;
   displayName?: string | null;
 }

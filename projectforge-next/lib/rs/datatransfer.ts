@@ -9,9 +9,10 @@
 
 import type { Attachment } from "./attachments";
 import { request } from "./client";
+import type { InactiveFlags } from "@/lib/page-def/reference";
 
 /** A user or group as the area references it: the id is what the backend stores. */
-export type DataTransferRef = {
+export type DataTransferRef = InactiveFlags & {
   id: number;
   displayName?: string;
 };

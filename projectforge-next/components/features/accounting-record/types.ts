@@ -1,4 +1,5 @@
 import type { BUCHUNGSSATZ_METADATA } from "@/lib/metadata/buchungssatz.generated";
+import type { InactiveFlags } from "@/lib/page-def/reference";
 
 /** Soll/Haben (debit/credit) of an accounting record. */
 export type SHType =
@@ -9,7 +10,7 @@ export type SHType =
  * signature mirrors the schema's `looseObject` (extra backend fields pass through untouched), so a detail
  * value assigns straight into the form values without a cast.
  */
-export interface EntityRef {
+export interface EntityRef extends InactiveFlags {
   id: number;
   displayName?: string | null;
   [key: string]: unknown;
