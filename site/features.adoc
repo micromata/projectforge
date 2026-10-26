@@ -45,8 +45,11 @@ Consumption bars:: See at a glance which tasks are on budget and which are runni
 Resource planning:: Plan your people across projects week by week, so project leads and employees always know who works on what.
 Gantt charts:: Visualize your plan for your team and your customers.
 
+[.pf-screenshots]
+--
 image::2026-OrderBook.png[Order book,link=/uploads/screenshots/2026-OrderBook.png]
 image::2026-TaskTree.png[Structure tree with consumption bars,link=/uploads/screenshots/2026-TaskTree.png]
+--
 
 [[time_tracking]]
 == Time Tracking
@@ -112,14 +115,18 @@ Liquidity planning:: Expected payments, recurring series and invoices combined i
 Bank accounts:: Import account statements and browse the transactions of your accounts.
 DATEV:: Import accounting records and incoming invoices from DATEV and get business assessments (BWA).
 
+[.pf-screenshots]
+--
 image::2026-Statistics.png[Statistics and forecast,link=/uploads/screenshots/2026-Statistics.png]
 image::2026-Liquidity.png[Liquidity forecast,link=/uploads/screenshots/2026-Liquidity.png]
+--
 
 [[collaboration]]
 == Collaboration
 
-_Team calendars, address book, file sharing and Word templates – the everyday things your team needs anyway._
+_Chat, team calendars, address book, file sharing and Word templates – the everyday things your team needs anyway._
 
+Chat:: Rooms for teams and projects and direct messages, with files, reactions, threads and @mentions – live, on your own server. Confidential messages such as passwords travel end-to-end encrypted and are shown only once.
 Team calendars:: Shared calendars with holidays and birthdays. Subscribe to them on any device via ICS and show external calendars inside ProjectForge.
 Address book:: Shared addresses, synchronized to your phone via CardDAV, vCard export.
 Data transfer:: Share files with colleagues and customers – protected by password and expiry date, with a full activity log.
@@ -127,8 +134,12 @@ Word templates:: Generate contracts and serial letters from your own Word templa
 Polls:: Ask your team and get a quick answer.
 Office organization:: Contracts, incoming and outgoing mail log, visitor book, library, software licenses and hardware.
 
+[.pf-screenshots]
+--
+image::2026-Chat.png[Chat room of a project,link=/uploads/screenshots/2026-Chat.png]
 image::2026-Calendar.png[Team calendar with leave and holidays,link=/uploads/screenshots/2026-Calendar.png]
 image::2026-DataTransfer.png[Data transfer,link=/uploads/screenshots/2026-DataTransfer.png]
+--
 
 [[easy_to_use]]
 == Easy to Use
@@ -142,8 +153,11 @@ Excel everywhere:: Export every list to Excel.
 History:: Every change is logged with who and when – and you can comment on it.
 Two languages:: English and German interface, mails in the language of the recipient.
 
+[.pf-screenshots]
+--
 image::2026-Menu.png[Main menu and favorites,link=/uploads/screenshots/2026-Menu.png]
 image::2026-Dark.png[Dark theme,link=/uploads/screenshots/2026-Dark.png]
+--
 
 [[security_integration]]
 == Security & Integration
@@ -169,7 +183,7 @@ Scripting:: Kotlin and Groovy scripts for your own reports and exports – even 
 Plugins:: Extend ProjectForge with your own modules.
 Open source:: Kotlin, Spring Boot and Next.js. Read the code, change it, contribute.
 
-image::2026-SystemDashboard.png[System dashboard with the scheduled jobs,link=/uploads/screenshots/2026-SystemDashboard.png]
+image::2026-SystemDashboard.png[System dashboard with the subsystems and their errors,link=/uploads/screenshots/2026-SystemDashboard.png]
 
 [[requirements]]
 == Technical requirements

@@ -1,5 +1,59 @@
 {
   "releases": {
+    "9-0-16": {
+      "title": "ProjectForge 9.0.16 veröffentlicht",
+      "summary": [
+        "**Chat**: Räume, Direktnachrichten, Dateien, Threads, Erwähnungen und vertrauliche Nachrichten",
+        "**Suche** ignoriert Akzente und Umlaut-Schreibweisen",
+        "Projektauswahl findet Projekte über Nummer und Kunde",
+        "Auftrags- und Rechnungscache aktualisieren sich nicht mehr gegenseitig endlos"
+      ],
+      "overview": [
+        "**Chat** (Menü Allgemein → Chat): Räume mit ausgewählten Personen und Gruppen sowie Direktnachrichten an alle Personen, lesbar nur für die Teilnehmenden, auch nicht für Administratoren. Nachrichten mit Formatierung, Dateien jeder Art (abgelegt im Datentransfer), Emoji-Reaktionen, Threads zum Folgen und als ungelesen Markieren sowie @-Erwähnungen mit Benachrichtigung in der App und per Mail. Vertrauliche Nachrichten in Direktnachrichten sind Ende-zu-Ende-verschlüsselt und werden vom Server nie gespeichert. Hinter einem Reverse Proxy braucht der Chat eine ungepufferte Verbindung, siehe Administrationshandbuch.",
+        "**Suche:** Suche und Auswahlfelder ignorieren Akzente und Umlaut-Schreibweisen („Mueller“ findet „Müller“, „Strasse“ findet „Straße“), vollständig nach der nächsten nächtlichen Neuindizierung; deaktivierte Personen werden in der Suche im Hauptmenü nicht mehr gefunden.",
+        "**Administration:** Das Backup-Skript des Administrationshandbuchs komprimiert den Dump der Dateien auf etwa die halbe Größe.",
+        "**Behoben:** Auftrags- und Rechnungscache aktualisierten sich gegenseitig endlos, wenn eine Rechnung auf eine gelöschte Auftragsposition verwies; Projekte werden über ihre Nummer und den Namen ihres Kunden gefunden; in der neuen Oberfläche gespeicherte Debitorenrechnungen werden sofort über ihren Kunden gefunden; der Zeitberichtsfilter für Strukturunterelemente lässt sich abschalten; Postleitzahlen wie „D-34286“ werden nicht mehr als JIRA-Issues verlinkt; das Log eines laufenden Scripts wird wieder angezeigt."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Chat: Vertrauliche Nachrichten in Direktnachrichten (z. B. für ein Passwort), Ende-zu-Ende-verschlüsselt in beiden Browsern, live weitergeleitet und vom Server nie gespeichert, für die empfangende Person nur einmal angezeigt.",
+            {
+              "title": "Chat",
+              "items": [
+                "Chaträume (Menü Allgemein → Chat): Alle können einen Raum anlegen und die Teilnehmenden wählen, Personen und Gruppen; wer später in eine Gruppe kommt, nimmt sofort teil. Wer den Raum angelegt hat und die Moderation bearbeiten und löschen ihn. Räume sehen nur ihre Teilnehmenden, auch Administratoren nicht.",
+                "Direktnachrichten: Allen, die in der Personenauswahl erscheinen, kann privat geschrieben werden, über die Chatseite, bei einer in der Menüsuche gefundenen Person (Chat starten / Datei senden; für alle, mit den Personen der Personenauswahl) oder per Klick auf eine Person in jeder Unterhaltung; wer eine Nachricht bekommen hat, kann antworten. Die Unterhaltung lesen nur die beiden, auch Administratoren nicht.",
+                "Nachrichten mit Formatierung (Textfarben, Listen, Links, Code im Text und Codeblöcke mit mehreren Zeilen), Dateien jeder Art (Einfügen, Drag & Drop oder Dateiauswahl; Bilder als Vorschau), Emoji-Reaktionen und Antworten als eigene Threads, denen man folgen kann. Die Dateien liegen im Datentransfer: in einem Bereich pro Raum, den dessen Teilnehmende im Datentransfer sehen und in dem die Dateien so lange bleiben, wie im Raum eingestellt; Dateien von Direktnachrichten landen in der persönlichen Box der empfangenden Person. Ohne Datentransfer-Plugin werden keine Dateien ausgetauscht. Eigene Nachrichten lassen sich bearbeiten und löschen, die Moderation blendet Nachrichten mit Begründung aus und sieht die Historie einer Nachricht.",
+                "Ein @ schlägt die Teilnehmenden des Raums vor; die erwähnte Person wird sofort benachrichtigt, in der App und per Mail. Neue Nachrichten werden einmal pro Raum gemeldet, bis sie gelesen sind, per Mail nur, wenn sie nicht innerhalb einer Stunde in der App gesehen wurden; Räume lassen sich stummschalten.",
+                "Neue Nachrichten erscheinen ohne Neuladen (Server-Sent Events, mit Abfragen als Rückfall). Hinter einem Reverse Proxy braucht der Chat eine ungepufferte Verbindung, siehe Administrationshandbuch."
+              ]
+            },
+            "Chat: Eine Datei einer Nachricht lässt sich neben dem Herunterladen auch in ihrem Datentransferbereich öffnen.",
+            "Chat: Eine Nachricht lässt sich als ungelesen markieren, Threads mit ungelesenen Antworten sind gekennzeichnet, und im Thread zeigt eine Linie die erste ungelesene Antwort."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Suche und Auswahlfelder ignorieren Akzente und Umlaut-Schreibweisen: „Andre“ findet „André“, „Mueller“ und „Muller“ finden „Müller“, „Strasse“ findet „Straße“ und umgekehrt. Gilt für Einträge, die nach dem Update indiziert wurden, also vollständig nach der nächsten nächtlichen Neuindizierung.",
+            "Admin-Handbuch: Das Backup-Skript komprimiert den Dump der Dateien (etwa halbe Größe), weil pg_dump deren Inhalte hex-kodiert schreibt."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Debitorenrechnungen: In der neuen Oberfläche gespeicherte Rechnungen wurden bis zum nächsten Neuaufbau des Suchindex nicht über den Namen ihres Kunden gefunden.",
+            "JIRA-Links: Ein Issue-Schlüssel braucht mindestens zwei führende Großbuchstaben, sodass eine Postleitzahl wie „D-34286“ in einem Text nicht mehr als Issue verlinkt wird.",
+            "Projektauswahl: Projekte werden auch über ihre Nummer (z. B. 7.002) und den Namen ihres Kunden gefunden.",
+            "Scripte: Das Anzeigen des Logs eines laufenden Scripts konnte mit einem Fehler abbrechen.",
+            "Zeitberichte: Der Filter „inkl. aller Strukturunterelemente“ ließ sich nicht abschalten. Er ist ersetzt durch den Filter „ohne Strukturunterelemente“, standardmäßig deaktiviert.",
+            "Der Auftrags- und der Rechnungscache aktualisieren sich nicht mehr gegenseitig endlos (z. B. bei den täglichen Auftragsbuch-Snapshots), wenn eine Rechnung auf eine gelöschte Auftragsposition verweist.",
+            "Suche im Hauptmenü: Deaktivierte Personen werden nicht mehr gefunden (in der Personenliste weiterhin)."
+          ]
+        }
+      ]
+    },
     "9-0-15": {
       "title": "ProjectForge 9.0.15 veröffentlicht",
       "summary": [

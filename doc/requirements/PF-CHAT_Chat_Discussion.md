@@ -4,9 +4,9 @@
 |---|---|
 | COMP-ID | PF-CHAT |
 | DOC-ID | PF-CHAT-REQ |
-| Status | Draft 0.4 (direct messages, files of any type in the data transfer, colours and code in messages) |
+| Status | Draft 0.5 (confidential messages, unread threads and marking unread, review of R1) |
 | Owner | Kai Reinhard |
-| Date | 2026-10-25 |
+| Date | 2026-10-26 |
 | Stage | R1 in implementation (ProjectForge 9.0.16) |
 | Used by | chat rooms and direct messages (built-in hosts, PF-CHAT-ROOM, PF-CHAT-DM); [PF-CVR – CVE-Radar](PF-CVR_CVE-Radar_Vulnerability_Management.md); later invoices, orders and others |
 
@@ -23,7 +23,8 @@ do not follow the access rules of the object.
 - messages written and edited with the rich text editor of PF, with files attached;
 - access taken entirely from the object the conversation belongs to;
 - chat rooms with participants (users and/or groups) for discussions that belong to no other object;
-- mentions with `@` and suggestions, notifying the mentioned users.
+- mentions with `@` and suggestions, notifying the mentioned users;
+- confidential messages (e.g. a password) in direct messages, end-to-end encrypted and never stored.
 
 The chat is a module of its own: it knows nothing about vulnerabilities or invoices. The embedding module (the
 *host*) tells it who may read and write. The first host is the chat room (PF-CHAT-ROOM), a small built-in host
@@ -80,6 +81,8 @@ whose objects are rooms with participants; the CVE-Radar follows.
 | Chat room | A host object of the built-in host *chat room*: name, description, owner, moderators and participants (users and groups). |
 | Attachment | A file of a message (any type), stored in the data transfer; images are shown as thumbnails. |
 | Direct message | A conversation of two users (built-in host *direct*), see PF-CHAT-DM. |
+| Read state | Per user and conversation the id of the newest message read (one mark for the conversation and its threads); everything of others after it is unread. |
+| Confidential message | A text of a direct message encrypted in the browser of the sender for the browser of the recipient, relayed live by the server and shown once, see PF-CHAT-CONF. |
 
 ## 5. Requirements
 
@@ -120,9 +123,9 @@ own instead of interleaving with the conversation.
 
 | ID | Requirement | Prio | Remark |
 |---|---|---|---|
-| THR-01 | Users must be able to reply to any message of a conversation; the replies form the thread of this message. | M | |
+| THR-01 | Users must be able to reply to any message of a conversation (not to a deleted or hidden one, checked on the server); the replies form the thread of this message. | M | |
 | THR-02 | Threads are one level deep: a reply within a thread belongs to the same thread, it does not start a new one. | M | decision |
-| THR-03 | In the conversation, a message with a thread must show the number of replies, the time of the last reply and the participants (avatars/initials); a click opens the thread. | M | |
+| THR-03 | In the conversation, a message with a thread must show the number of replies, the time of the last reply and the participants (avatars/initials), without deleted or hidden replies; a click opens the thread. | M | |
 | THR-04 | A thread must open in a side panel beside the conversation (full screen on small devices), with its own editor and attachments as in the conversation. | M | mobile first |
 | THR-05 | The author of a message and everybody who replied follow its thread automatically; users must be able to follow and unfollow a thread. | M | NOT-02 |
 | THR-06 | A reply could additionally be posted into the conversation ("also send to conversation"). | C | as in Google Chat |
@@ -137,7 +140,7 @@ own instead of interleaving with the conversation.
 | ATT-03 | Access to a file of a synthetic area must be checked against the read check of the conversation (CTX-01), not against member lists of the data transfer; files of hidden messages for moderators only; deleting a file there is up to its author and the moderators. No external link or token. | M | `DataTransferAreaHost` |
 | ATT-04 | Files expire as the area says: a room chooses how long (default 30 days), a personal box keeps them as it does; an expired file stays listed with the message as "no longer available". Deleting a message deletes its files, deleting a room its area. | M | clean-up job of the data transfer |
 | ATT-05 | The size of a file is limited by the area (upload limit, free capacity). Images (PNG, JPEG, GIF, WebP) are recognised by content; all other files are always sent as download of unknown type (`attachment`, `nosniff`). | M | untrusted input |
-| ATT-06 | Images must be shown as thumbnails in the message and opened full size in a viewer (lightbox) with download; other files as download with name and size. | M | |
+| ATT-06 | Images must be shown as thumbnails in the message and opened full size in a viewer (lightbox) with download; other files as download with name and size. Each available file also links to its data transfer area (the area of the conversation, or the personal box for direct messages). | M | access of the data transfer, see ATT-03 |
 | ATT-07 | Metadata (EXIF, GPS location) of images should be removed on upload. | S | privacy |
 | ATT-08 | Without the data transfer plugin (or on the gateway) no files can be exchanged; the composer and the room dialog say so. | M | |
 
@@ -145,14 +148,15 @@ own instead of interleaving with the conversation.
 
 | ID | Requirement | Prio | Remark |
 |---|---|---|---|
-| NOT-01 | The system must keep per user and conversation which messages are read and show a "new" line at the first unread message. | M | |
+| NOT-01 | The system must keep per user and conversation which messages are read (read state) and show a "new" line at the first unread message, in the conversation as in a thread; a conversation never read shows it at the first message of others. A message with unread replies of others shows a mark "new" until its thread is opened. The conversation is read up to its newest message (replies included) when shown at its end in a visible tab. Unread are the messages of others, not deleted or hidden; replies only in threads the user follows or is mentioned in. | M | one read state, decision 14 |
 | NOT-02 | Users must be notified about new messages in conversations they take part in and threads they follow, via the existing notification system (in-app, mail, digest). | M | `business/notification/` |
-| NOT-03 | Mentions must be notified at once and shown as a badge at the menu until read. | M | |
+| NOT-03 | Mentions must be notified at once and shown as a badge at the menu until read: a mention in the conversation by reading the conversation, a mention in a thread by opening the thread. | M | |
 | NOT-04 | The host must be able to add recipients per message type (e.g. the security team for every new message of a vulnerability). | M | CTX-01 |
 | NOT-05 | Notifications and mails must name only the conversation, its host title and the author; content goes to the mail only if the host allows it. | M | confidentiality (e.g. PF-CVR VIS-07) |
-| NOT-06 | New messages, edits, deletions and reactions must appear to the other participants without a reload, while a chat panel or page is open: via server-sent events (Spring `SseEmitter`, event id = change sequence of the conversation) with a heartbeat (default every 25 s) so proxies keep the connection; on reconnect, missed events since the last event id are delivered. After repeated failures of the SSE connection the client falls back to polling automatically (about every 3 s while the tab is active, every 30 s in the background). | M | NFR-03, decision 6 |
+| NOT-06 | New messages, edits, deletions and reactions must appear to the other participants without a reload, while a chat panel or page is open: via server-sent events (Spring `SseEmitter`, event id = change sequence of the conversation) with a heartbeat (default every 25 s) so proxies keep the connection; on reconnect, missed events since the last event id are delivered. After repeated failures of the SSE connection the client falls back to polling automatically (about every 3 s while the tab is active, every 30 s in the background). Who has the conversation open by SSE counts as watching it and isn't notified about its new messages; a tab hidden for 30 s closes its connection (reopened and brought up to date when shown), so a forgotten tab doesn't swallow the notifications. | M | NFR-03, decision 6 |
 | NOT-07 | Users should be able to mute a conversation (except mentions). | S | |
 | NOT-08 | WebSockets and presence or typing indicators ("is typing …") are not planned; sending goes via ordinary POST requests. | W | decision 6 |
+| NOT-09 | Users should be able to mark a message of others as unread (menu of the message): the read state goes back to the message before it, the "new" line moves there and the conversation isn't marked read again until the user writes or opens it anew. Notifications already resolved stay resolved. | S | decision 14 |
 
 ### 5.6 PF-CHAT-SRCH – Search
 
@@ -169,7 +173,7 @@ own instead of interleaving with the conversation.
 | SEC-02 | Conversation, host object and author must be taken from the database and the logged-in user, never from the request; an edit or delete must not move a message to another conversation or author. | M | |
 | SEC-03 | State changing calls (send, edit, delete, read state, follow) must use POST/PUT/DELETE, never GET. | M | CSRF |
 | SEC-04 | Message HTML must be sanitized on the server before storing and rendered sanitized in the client (`RichText`); links open with `rel="noopener noreferrer"`. | M | "text stays text" |
-| SEC-05 | Moderators must be able to hide a message of others with a reason; hiding and the reason are historised and visible to moderators. | M | |
+| SEC-05 | Moderators must be able to hide a message of others with a reason; hiding and the reason are historised and visible to moderators. Others see neither its content nor its files or reactions. | M | |
 | SEC-06 | A PF administrator must get no access to conversations through the admin role alone. | M | |
 | SEC-07 | Every access rule comes with a test (refused for an ordinary user, allowed for the user it is meant for). | M | |
 | SEC-08 | A conversation should be exportable (PDF or HTML incl. threads and images) by users with read access, for audits and evidence. | S | |
@@ -203,7 +207,22 @@ participants.
 | DM-05 | The chat page must list the direct messages with at least one message (newest first, unread counts); an opened, empty one isn't listed. | M | |
 | DM-06 | New messages are notified as in rooms (in the app at once, by mail if not seen within an hour, once until read) with a text of their own, without the content. | M | NOT-05 |
 
-### 5.10 Non-functional requirements
+### 5.10 PF-CHAT-CONF – Confidential messages
+
+Modelled on an OTR session: for a password or a key that must not stay in the chat, the mail or the database.
+
+| ID | Requirement | Prio | Remark |
+|---|---|---|---|
+| CONF-01 | In a direct message, the sender must be able to send a text confidentially: the browser of the recipient makes a key pair (WebCrypto, ECDH P-256, private key not extractable, in memory only), the sender's browser encrypts for it (ECDH → HKDF-SHA-256 → AES-GCM, the session id as additional data). | M | decision 13 |
+| CONF-02 | The server relays only the public keys and the ciphertext, in memory: nothing goes into the database, the log, the chat history or a notification. | M | single node, as the SSE |
+| CONF-03 | The flow is offer (sender) → accept with the public key (recipient) → deliver the ciphertext (sender) → take (recipient); each step only by its side and in its state. The recipient is the partner of the direct chat from the database. | M | SEC-02 |
+| CONF-04 | The recipient can take the ciphertext once only, it is deleted with it; the sender learns "opened" or "ended". Either side can cancel; a session expires after 10 minutes. | M | |
+| CONF-05 | Both sides must see a fingerprint of the recipient's key before the text is sent; the dialog says what this protects against (a server reading the text) and what not (a manipulated server forging a message, since the sender's key isn't authenticated; the screen of the recipient). | M | |
+| CONF-06 | The open chat of the other side is woken by a contentless event; a recipient without the chat open gets an in-app banner naming only the sender (no mail, it would come too late), resolved once no offer is open anymore. | M | NOT-05 |
+| CONF-07 | Limits: at most 5 open sessions per sender, 1,000 overall, 16 KB ciphertext. | M | |
+| CONF-08 | Confidential messages in rooms, to several recipients, with files, or kept for later reading are not planned. | W | |
+
+### 5.11 Non-functional requirements
 
 | ID | Requirement | Prio |
 |---|---|---|
@@ -241,7 +260,7 @@ page, thread side panel, mention suggestions, file upload and image viewer.
 | Invoice (later) | *internal* | as the invoice (`RechnungDao`) | questions about an invoice |
 | Order (later) | *internal* | as the order (`AuftragDao`) | discussion about an order |
 
-## 8. Decisions (as of 0.4)
+## 8. Decisions (as of 0.5)
 
 | # | Topic | Decision | Requirements |
 |---|---|---|---|
@@ -257,14 +276,40 @@ page, thread side panel, mention suggestions, file upload and image viewer.
 | 10 | Mentions | `@` with suggestions from the readers of the conversation; checked on the server; notified at once | MSG-07, NOT-03 |
 | 11 | Reactions storage | Stored with the message (emoji → user ids), not historised | MSG-10 |
 | 12 | Direct messages | Built-in host with the pair of users as host object; started only with visible users, then open to both | DM-01 – DM-06 |
+| 13 | Confidential messages | A live session of the two browsers (like OTR), end-to-end encrypted, relayed in memory and taken once; direct messages only | CONF-01 – CONF-08 |
+| 14 | Read state | One mark per user and conversation (the newest message read), for the conversation and its threads; replies count as unread only in threads followed or with a mention; marking unread moves it back; the menu badges come from the notifications and aren't restored by marking unread | NOT-01, NOT-03, NOT-09 |
 
-## 9. Open points
+## 9. Implementation status (review of R1, 2026-10-26)
 
-None at the moment.
+Implemented in R1: CTX-01 – CTX-05, CTX-07, MSG-01 – MSG-05, MSG-07, MSG-09, MSG-10, THR-01 – THR-05, ATT-01 – ATT-08,
+NOT-01 – NOT-07, NOT-09, SEC-01 – SEC-07, ROOM-01 – ROOM-07, ROOM-09, ROOM-10, DM-01 – DM-06, CONF-01 – CONF-07.
 
-## 10. Next steps
+Deviations and gaps:
 
-1. Release cut R1 (ProjectForge 9.0.16): chat core (CTX, MSG incl. mentions and reactions, THR, ATT, NOT-01 – NOT-07, SRCH-01, SEC) with
-   the chat room as first host and a minimal room list (ROOM-01 – ROOM-07, ROOM-09, ROOM-10), direct messages (DM).
-2. R2: chat area (ROOM-08), search across conversations (SRCH-02), export (SEC-08), user guide.
+| Requirement | State |
+|---|---|
+| MSG-06, NFR-04 | Paging by 50 and loading older messages is implemented, the list is not virtualised; 10,000 messages are not measured yet. |
+| SRCH-01 | Search by text in the UI; the author filter exists only in the REST endpoint (`authorId`), not in the search dialog. Hidden messages aren't found, also not by moderators. |
+| ATT-07 | Metadata removed for JPEG and PNG (encoded again); GIF and WebP are kept as they are (animations). |
+| CTX-06 | Unread counts only in the lists of rooms and direct messages; no other host yet. |
+| MSG-08, THR-06, CTX-08, ROOM-08, SRCH-02, SEC-08 | Open (S/C, R2 or later). |
+
+## 10. Open points
+
+None at the moment. The findings of the review of R1 are fixed:
+- a chat open in a background tab no longer suppresses the notifications (NOT-06);
+- replies count as unread only in threads followed or with a mention, mentions in threads are resolved by opening
+  the thread (NOT-01, NOT-03, decision 14);
+- a conversation never read shows the "new" line (NOT-01);
+- no replies to deleted or hidden messages (THR-01); no reactions or reply authors of hidden messages for others,
+  hidden messages don't count as unread (SEC-05, THR-03); deleting the last reply updates the time of the last
+  reply; marking unread waits for a read state still on its way.
+
+## 11. Next steps
+
+1. Release cut R1 (ProjectForge 9.0.16): chat core (CTX, MSG incl. mentions and reactions, THR, ATT, NOT-01 – NOT-07,
+   NOT-09, SRCH-01, SEC) with the chat room as first host and a minimal room list (ROOM-01 – ROOM-07, ROOM-09,
+   ROOM-10), direct messages (DM), confidential messages (CONF).
+2. R2: chat area (ROOM-08), search across conversations (SRCH-02), author filter in the search (SRCH-01), virtualised
+   list (MSG-06, NFR-04), quoting (MSG-08), export (SEC-08), user guide.
 3. PF-CVR DISC on top of R1; the cleanup job (CTX-08) later.

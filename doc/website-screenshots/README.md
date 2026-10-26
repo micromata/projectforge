@@ -46,6 +46,13 @@ was designed for 2026-10-13; all dates are shifted relative to the day of the se
    ```
    ./create-files.sh && node upload-files.mjs
    ```
+   and create the sample chat and the sample problems of the system dashboard (backdated hourly counts, so that
+   the tiles show trend bars; run it again shortly before the pictures, its counts are relative to the current hour):
+   ```
+   node chat-seed.mjs && node run-script.mjs dashboard-problems.kts
+   ```
+   If the home was copied from one with Lanes & Planes, append `projectforge.lanesandplanes.enabled=false` (tile
+   without runs).
 5. Take the pictures and copy them, resized, into the website:
    ```
    node shoot.mjs /tmp/pf-screenshots

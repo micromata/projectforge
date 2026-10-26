@@ -172,5 +172,23 @@ class ChatSecretRelayTest : AbstractTestBase() {
         }
     }
 
+    @Test
+    fun `seen in the open chat, the notification of an offer is resolved`() {
+        val conversationId = directChat("chatSecret3")
+        val session = relay.offer(conversationId)
+        val recipientId = getUserId("chatSecret3-recipient")
+        val prefix = ChatNotifier.secretPrefix(conversationId, recipientId)
+        assertEquals(1, notificationDao.findPendingByDedupPrefix(recipientId, prefix).size)
+        suppressErrorLogs {
+            logon(TEST_USER)
+            assertThrows(AccessException::class.java) { relay.seen(conversationId) }
+        }
+        assertEquals(1, notificationDao.findPendingByDedupPrefix(recipientId, prefix).size, "not by others")
+        logon("chatSecret3-recipient")
+        relay.seen(conversationId)
+        assertTrue(notificationDao.findPendingByDedupPrefix(recipientId, prefix).isEmpty())
+        assertEquals(listOf(session.id), relay.pending(conversationId).map { it.id }, "the offer stays")
+    }
+
     private fun base64(bytes: ByteArray) = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
 }

@@ -110,7 +110,19 @@ class ChatNotifier {
         executor.execute {
             try {
                 notificationService.resolveByDedupPrefix(userId, newPrefix(conversationId, userId))
-                notificationService.resolveByDedupPrefix(userId, mentionPrefix(conversationId, userId))
+                // Mentions in threads are resolved by opening the thread (resolveThread).
+                notificationService.resolveByDedupPrefix(userId, "${mentionPrefix(conversationId, userId)}m:")
+            } catch (ex: Exception) {
+                log.error(ex) { "Resolving chat notifications of conversation #$conversationId failed: ${ex.message}" }
+            }
+        }
+    }
+
+    /** Resolves the notifications of the user about mentions in the thread of the message (opened). */
+    fun resolveThread(conversationId: Long, userId: Long, rootId: Long) {
+        executor.execute {
+            try {
+                notificationService.resolveByDedupPrefix(userId, "${mentionPrefix(conversationId, userId)}t$rootId:")
             } catch (ex: Exception) {
                 log.error(ex) { "Resolving chat notifications of conversation #$conversationId failed: ${ex.message}" }
             }
@@ -200,7 +212,7 @@ class ChatNotifier {
                 title = I18nHelper.getLocalizedMessage(user, "chat.notification.mention.title", authorName, titleFor(user!!)),
                 body = body(user, "chat.notification.mention.text", authorName, titleFor(user), info, withContent),
                 link = link,
-                dedupKey = "${mentionPrefix(info.conversationId, userId)}${info.messageId}",
+                dedupKey = mentionKey(info.conversationId, userId, info.threadRootId, info.messageId),
                 delivery = MENTION_DELIVERY,
                 display = NotificationDisplay.BANNER,
                 menuBadge = MenuItemDefId.CHAT,
@@ -296,5 +308,11 @@ class ChatNotifier {
         internal fun newPrefix(conversationId: Long, userId: Long) = "chat:new:$conversationId:$userId:"
 
         internal fun mentionPrefix(conversationId: Long, userId: Long) = "chat:mention:$conversationId:$userId:"
+
+        /** The mention in a message (`m:`) or in a reply of the thread (`t<root id>:`), resolved separately. */
+        internal fun mentionKey(conversationId: Long, userId: Long, threadRootId: Long?, messageId: Long): String {
+            val part = threadRootId?.let { "t$it:" } ?: "m:"
+            return "${mentionPrefix(conversationId, userId)}$part$messageId"
+        }
     }
 }

@@ -17,12 +17,16 @@ export function useMarkRead(conversationId: number) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pending = useRef(0);
   const paused = useRef(false);
+  // The read state sent last: marking unread waits for it, so it can't arrive later and undo it.
+  const inFlight = useRef<Promise<unknown>>(Promise.resolve());
 
   const flush = useCallback(() => {
     const id = pending.current;
     if (paused.current || id <= marked.current || document.hidden) return;
     marked.current = id;
-    markChatRead(conversationId, id).then(
+    const request = markChatRead(conversationId, id);
+    inFlight.current = request.catch(() => undefined);
+    request.then(
       () => {
         void queryClient.invalidateQueries({ queryKey: ["userStatus"] });
         void queryClient.invalidateQueries({ queryKey: ["menu"] });
@@ -58,6 +62,9 @@ export function useMarkRead(conversationId: number) {
     paused.current = false;
   }, []);
 
+  /** Resolved when the read state sent last arrived (or failed). */
+  const settled = useCallback(() => inFlight.current, []);
+
   useEffect(() => {
     const onVisibility = () => !document.hidden && flush();
     document.addEventListener("visibilitychange", onVisibility);
@@ -67,5 +74,5 @@ export function useMarkRead(conversationId: number) {
     };
   }, [flush]);
 
-  return { markUpTo, pause, resume };
+  return { markUpTo, pause, resume, settled };
 }

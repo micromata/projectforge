@@ -58,7 +58,7 @@ export function MessageActions({
           onPick={(emoji) => mutations.react.mutate({ id: message.id, emoji })}
         />
       )}
-      {!inThread && conversation.canWrite && !message.deleted && (
+      {!inThread && writable && (
         <Button
           variant="ghost"
           size="icon-sm"

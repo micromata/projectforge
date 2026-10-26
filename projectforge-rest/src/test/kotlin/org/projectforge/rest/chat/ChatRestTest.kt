@@ -120,6 +120,7 @@ class ChatRestTest : AbstractTestBase() {
         assertTrue(hidden.hidden)
         assertNull(hidden.content)
         assertNull(hidden.hiddenReason)
+        assertTrue(hidden.reactions.isEmpty(), "no reactions (and names) of a hidden message")
         assertTrue(chatRest.mentionCandidates(conversationId, "").any { it.id == getUserId(TEST_USER) })
     }
 

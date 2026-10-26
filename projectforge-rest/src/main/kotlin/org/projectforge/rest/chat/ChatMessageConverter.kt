@@ -91,7 +91,7 @@ class ChatMessageConverter {
             files = if (showContent) message.readAttachments().map {
                 ChatFile(it.areaId, it.fileId, it.name, it.size, FormatterUtils.formatBytes(it.size), it.image, it.fileId in existingFileIds)
             } else emptyList(),
-            reactions = if (message.deleted) emptyList() else message.readReactions().map { (emoji, userIds) ->
+            reactions = if (!showContent) emptyList() else message.readReactions().map { (emoji, userIds) ->
                 ChatReaction(emoji, userIds.size, userIds.map { ref(it).displayName }, meId in userIds)
             },
             replyCount = message.replyCount,

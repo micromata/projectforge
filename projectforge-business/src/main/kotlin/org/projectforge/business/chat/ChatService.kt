@@ -212,8 +212,12 @@ open class ChatService {
         if (content.html.isEmpty() && files.isEmpty()) {
             throw UserException(ERROR_EMPTY)
         }
-        if (threadRootId != null && findMessage(threadRootId)?.conversationId != conversationId) {
-            throw AccessException(user, NO_ACCESS) // Checked before the files are stored.
+        if (threadRootId != null) {
+            // Checked before the files are stored: a root of this conversation, not deleted or hidden.
+            val root = findMessage(threadRootId)?.let { if (it.threadRootId != null) findMessage(it.threadRootId) else it }
+            if (root?.conversationId != conversationId || root.deleted || root.isHidden) {
+                throw AccessException(user, NO_ACCESS)
+            }
         }
         val attachments = fileService.store(context, files)
         try {
@@ -242,6 +246,10 @@ open class ChatService {
                     throw AccessException(user, NO_ACCESS)
                 }
                 root.threadRootId?.let { root = loadMessage(pc, it) } // One level deep (THR-02).
+                val thread = root
+                if (thread == null || thread.deleted || thread.isHidden) {
+                    throw AccessException(user, NO_ACCESS)
+                }
             }
             val message = ChatMessageDO().also {
                 it.conversationId = conversationId
@@ -332,9 +340,18 @@ open class ChatService {
             chatMessageDao.markAsDeleted(message)
             setSeq(pc, messageId, seq)
             message.threadRootId?.let { rootId ->
+                // The time of the last reply left, null if none.
+                val lastReplyAt = pc.selectSingleResult(
+                    "select max(m.created) from ChatMessageDO m where m.threadRootId = :rootId and m.deleted = false" +
+                            " and m.id <> :id",
+                    Date::class.java,
+                    Pair("rootId", rootId),
+                    Pair("id", messageId),
+                )
                 pc.executeUpdate(
-                    "update ChatMessageDO m set m.replyCount = m.replyCount - 1, m.changeSeq = :seq" +
-                            " where m.id = :id and m.replyCount > 0",
+                    "update ChatMessageDO m set m.replyCount = m.replyCount - 1, m.lastReplyAt = :lastReplyAt," +
+                            " m.changeSeq = :seq where m.id = :id and m.replyCount > 0",
+                    Pair("lastReplyAt", lastReplyAt),
                     Pair("seq", seq),
                     Pair("id", rootId),
                 )
@@ -453,6 +470,18 @@ open class ChatService {
     }
 
     /**
+     * The logged-in user opened the thread of the message: resolves the notifications about mentions in its replies
+     * (not resolved by [markRead], which reads the conversation). The read state stays.
+     */
+    open fun markThreadRead(conversationId: Long, rootId: Long) {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val context = chatAccess.requireContext(conversationId, user)
+        findMessage(rootId)?.takeIf { it.conversationId == context.conversationId && it.threadRootId == null }
+            ?: throw AccessException(user, NO_ACCESS)
+        notifier.resolveThread(conversationId, user.id!!, rootId)
+    }
+
+    /**
      * The logged-in user marks the conversation unread from the given message on: read only up to the messages
      * before it, also if read further before. The notifications resolved stay resolved.
      */
@@ -498,16 +527,20 @@ open class ChatService {
         )?.toLong()
     }
 
-    /** The number of messages and replies of others the user didn't read yet (deleted ones excluded). */
+    /**
+     * The number of messages of others the user didn't read yet (deleted and hidden ones excluded), with the replies
+     * of the threads the user follows or is mentioned in ([UNREAD_CLAUSE]).
+     */
     open fun countUnread(conversationId: Long, userId: Long): Long {
         val lastRead = getMemberState(conversationId, userId)?.lastReadMessageId ?: 0L
         return persistenceService.selectSingleResult(
             "select count(m) from ChatMessageDO m where m.conversationId = :conversationId and m.id > :lastRead" +
-                    " and m.authorId <> :userId and m.deleted = false",
+                    " and $UNREAD_CLAUSE",
             java.lang.Long::class.java,
             Pair("conversationId", conversationId),
             Pair("lastRead", lastRead),
             Pair("userId", userId),
+            Pair("userCsv", csvPattern(userId)),
         )?.toLong() ?: 0
     }
 
@@ -519,12 +552,13 @@ open class ChatService {
         return persistenceService.executeQueryBatched(
             "select m.conversationId, count(m) from ChatMessageDO m left join ChatMemberStateDO s" +
                     " on s.conversationId = m.conversationId and s.userId = :userId" +
-                    " where m.conversationId in :conversationIds and m.authorId <> :userId and m.deleted = false" +
+                    " where m.conversationId in :conversationIds and $UNREAD_CLAUSE" +
                     " and m.id > coalesce(s.lastReadMessageId, 0) group by m.conversationId",
             Array<Any?>::class.java,
             batchParam = "conversationIds",
             batchValues = conversationIds,
             Pair("userId", userId),
+            Pair("userCsv", csvPattern(userId)),
         ).associate { row -> (row[0] as Number).toLong() to (row[1] as Number).toLong() }
     }
 
@@ -573,7 +607,7 @@ open class ChatService {
     }
 
     /**
-     * The replies of the given messages (not deleted ones): their authors in the order of their first reply and the
+     * The replies of the given messages (not deleted or hidden ones): their authors in the order of their first reply and the
      * newest reply of each author.
      */
     open fun selectReplySummaries(rootIds: Collection<Long>): Map<Long, ReplySummary> {
@@ -583,7 +617,7 @@ open class ChatService {
         val result = mutableMapOf<Long, ReplySummary>()
         persistenceService.executeQueryBatched(
             "select m.threadRootId, m.authorId, m.id from ChatMessageDO m where m.threadRootId in :rootIds" +
-                    " and m.deleted = false order by m.id",
+                    " and m.deleted = false and m.hiddenById is null order by m.id",
             Array<Any?>::class.java,
             batchParam = "rootIds",
             batchValues = rootIds,
@@ -781,6 +815,20 @@ open class ChatService {
         const val MAX_SEARCH_RESULTS = 100
         const val MAX_EMOJI_LENGTH = 16
         const val MAX_EMOJIS_PER_MESSAGE = 20
+
+        /**
+         * The messages counting as unread for the user `:userId` (`:userCsv`: [csvPattern]): of others, not deleted or
+         * hidden; replies only in threads the user follows (author of the message or follower, not unfollowed, see
+         * [threadFollowers]) or is mentioned in.
+         */
+        private const val UNREAD_CLAUSE = "m.authorId <> :userId and m.deleted = false and m.hiddenById is null" +
+                " and (m.threadRootId is null or concat(',', m.mentionedIds, ',') like :userCsv" +
+                " or exists (select r.id from ChatMessageDO r where r.id = m.threadRootId" +
+                " and (r.authorId = :userId or concat(',', r.followerIds, ',') like :userCsv)" +
+                " and (r.unfollowerIds is null or concat(',', r.unfollowerIds, ',') not like :userCsv)))"
+
+        /** Matches the id in a list of ids ([ChatRoomDO.toCsv]) enclosed in commas. */
+        private fun csvPattern(id: Long) = "%,$id,%"
 
         /** The wildcards of LIKE and its escape character (`!`, see [search]). */
         private val LIKE_SPECIAL_CHARS = Regex("([%_!])")
