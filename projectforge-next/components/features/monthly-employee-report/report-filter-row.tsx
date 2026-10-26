@@ -12,6 +12,7 @@ import { formatMonthName } from "@/lib/format";
 import { periodKindOf } from "@/lib/date-period";
 import { isoOfParts, partsOf } from "@/lib/date-period-math";
 import type { MonthlyReport, MonthlyReportQuery } from "./types";
+import { toPickerRef } from "@/lib/page-def/reference";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
@@ -50,15 +51,7 @@ export function ReportFilterRow({
           <Label htmlFor="report-user">{t("timesheet.user")}</Label>
           <PersonSelect
             id="report-user"
-            value={
-              report.userId
-                ? {
-                    id: report.userId,
-                    displayName: report.userName,
-                    deactivated: report.userDeactivated,
-                  }
-                : null
-            }
+            value={toPickerRef(report.user)}
             required
             aria-label={t("timesheet.user")}
             onChange={(user) => onChange({ ...value, userId: user?.id })}

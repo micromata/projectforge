@@ -33,7 +33,11 @@ export function BookingGrantStatus({
       )}
       {grant.pendingTimesheets > 0 && (
         <Link
-          href={timesheetsToAcceptRoute(grant.userId, grant.userName, taskId)}
+          href={timesheetsToAcceptRoute(
+            grant.user?.id,
+            grant.user?.displayName ?? undefined,
+            taskId
+          )}
           className="text-xs underline underline-offset-2"
         >
           {t("task.bookingGrant.pending._", { arg0: grant.pendingTimesheets })}
@@ -64,7 +68,7 @@ export function BookingGrantActions({
           type="button"
           variant="outline"
           size="sm"
-          aria-label={`${t("task.bookingGrant.confirm._")}: ${grant.userName ?? ""}`}
+          aria-label={`${t("task.bookingGrant.confirm._")}: ${grant.user?.displayName ?? ""}`}
           onClick={() => onConfirm(grant)}
         >
           {t("task.bookingGrant.confirm._")}
@@ -75,7 +79,7 @@ export function BookingGrantActions({
           type="button"
           variant="outline"
           size="sm"
-          aria-label={`${t("task.bookingGrant.revoke._")}: ${grant.userName ?? ""}`}
+          aria-label={`${t("task.bookingGrant.revoke._")}: ${grant.user?.displayName ?? ""}`}
           onClick={() => onRevoke(grant)}
         >
           {t("task.bookingGrant.revoke._")}

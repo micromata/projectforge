@@ -193,9 +193,10 @@ export interface OrderListRow {
   pos?: string | null;
   personDays?: number | null;
   referenz?: string | null;
-  /** The four managers in one column (`assignedPersons`, transient). */
-  assignedPersons?: string | null;
-  /** The same persons as references, struck through when no longer active (see RefList). */
+  /**
+   * The contact person and the additional contacts in one column (`assignedPersons`), as references, struck
+   * through when no longer active (see RefList).
+   */
   assignedPersonList?: NamedRef[] | null;
   erfassungsDatum?: string | null;
   entscheidungsDatum?: string | null;

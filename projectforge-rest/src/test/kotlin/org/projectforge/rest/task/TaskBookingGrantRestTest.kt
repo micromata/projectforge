@@ -199,10 +199,10 @@ class TaskBookingGrantRestTest : AbstractTestBase() {
         assertTrue(result.success, result.message)
         val entry = result.info!!.grants!!.single()
         assertEquals(TaskBookingGrantRest.Status.ACTIVE, entry.status)
-        assertEquals(fixture.helper.id, entry.userId)
+        assertEquals(fixture.helper.id, entry.user?.id)
         assertTrue(entry.revocable)
         // Who granted comes from the history of the insert.
-        assertEquals(fixture.manager.getFullname(), entry.grantedByName)
+        assertEquals(fixture.manager.getFullname(), entry.grantedBy?.displayName)
         assertEquals(
             listOf("bgrest-manage | bgrest-manage.granted", "bgrest-manage | bgrest-manage.sibling"),
             entry.positions.map { it.path }.sorted(),

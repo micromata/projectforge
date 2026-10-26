@@ -1,3 +1,5 @@
+import type { UserRef } from "@/lib/page-def/reference";
+
 /**
  * The HR view ("Personalplanung", `org.projectforge.rest.hr.HRViewRest`, DTOs in `rest/dto/HRView.kt`): the
  * planned and booked man days of the employees in a period, per project or customer.
@@ -32,22 +34,13 @@ export interface HrViewCell {
 }
 
 export interface HrViewRow {
-  userId: number;
-  userName?: string | null;
-  /** The user is no longer active (deactivated or deleted): the name is struck through. */
-  userDeactivated?: boolean;
+  /** The employee, struck through when no longer active. */
+  user: UserRef;
   planningId?: number | null;
   deleted: boolean;
   sum: HrViewCell;
   rest: HrViewCell;
   cells: Record<string, HrViewCell>;
-}
-
-export interface HrViewUser {
-  id: number;
-  displayName?: string | null;
-  /** No longer active (deactivated or deleted): struck through. */
-  deactivated?: boolean;
 }
 
 export interface HrView {
@@ -56,7 +49,7 @@ export interface HrView {
   calendarWeeks: string;
   columns: HrViewColumn[];
   rows: HrViewRow[];
-  unplannedUsers: HrViewUser[];
+  unplannedUsers: UserRef[];
   /** Whether the user may write plannings: only then the employees lead to their planned week. */
   fullAccess: boolean;
 }

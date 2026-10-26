@@ -18,7 +18,7 @@ import {
   BookingGrantStatus,
 } from "./booking-grant-actions";
 import { BookingGrantPositionList } from "./booking-grant-position-list";
-import { DEACTIVATED_REF_CLASS } from "@/lib/page-def/reference";
+import { RefName } from "@/components/shared/ref-list";
 
 /**
  * The ad hoc booking grants of a task and its sub elements, newest period first, as the backend sorted them.
@@ -65,10 +65,8 @@ export function BookingGrantsTable({
                 key={grant.id}
                 className={cn(!current && "text-muted-foreground")}
               >
-                <TableCell
-                  className={cn(grant.userDeactivated && DEACTIVATED_REF_CLASS)}
-                >
-                  {grant.userName}
+                <TableCell>
+                  <RefName value={grant.user} />
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
                   {formatDate(grant.validFrom, ctx)}
@@ -82,12 +80,8 @@ export function BookingGrantsTable({
                 <TableCell>
                   <BookingGrantStatus grant={grant} taskId={taskId} />
                 </TableCell>
-                <TableCell
-                  className={cn(
-                    grant.grantedByDeactivated && DEACTIVATED_REF_CLASS
-                  )}
-                >
-                  {grant.grantedByName}
+                <TableCell>
+                  <RefName value={grant.grantedBy} />
                 </TableCell>
                 <TableCell className="whitespace-normal">
                   {grant.comment}

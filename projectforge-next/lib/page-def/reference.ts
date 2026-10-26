@@ -12,6 +12,15 @@ export type InactiveFlags = {
 };
 
 /**
+ * A user as a view shows it by name (`org.projectforge.rest.dto.UserRef`): the HR view, booking grants, the
+ * notification log, … The flags are sent only when true; show it with `RefName`.
+ */
+export type UserRef = InactiveFlags & {
+  id: number;
+  displayName?: string | null;
+};
+
+/**
  * Whether a referenced object should read as "no longer live": deleted, or otherwise deactivated. The
  * one predicate behind the strikethrough a list column shows for a reference — applied automatically in
  * `use-declared-columns` to the object found under the column's key (see `ColumnBase.referenceKey`).

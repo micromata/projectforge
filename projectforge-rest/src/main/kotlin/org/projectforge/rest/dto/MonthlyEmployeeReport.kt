@@ -38,16 +38,13 @@ import java.math.BigDecimal
  */
 class MonthlyEmployeeReportData(
     /** The user the report is about (defaults to the logged-in user). */
-    val userId: Long?,
-    val userName: String,
-    /** The user is no longer active (deactivated or deleted): struck through in the picker. */
-    val userDeactivated: Boolean = false,
+    val user: UserRef,
     /** True if the logged-in user may pick another user (access to other users' time sheets). */
     val maySelectOtherUsers: Boolean,
     val year: Int,
     /** 1-based: 1 = January, ..., 12 = December. */
     val month: Int,
-    /** Years that have time sheets for [userId], for the year dropdown (descending). */
+    /** Years that have time sheets for [user], for the year dropdown (descending). */
     val availableYears: List<Int>,
     /** Whether cost accounting is configured (adds the Kost1 header field and Kost2 columns). */
     val costConfigured: Boolean,

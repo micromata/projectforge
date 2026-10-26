@@ -28,8 +28,8 @@ export function bookedHref(
   taskName?: string | null
 ) {
   return monthlyReportDrillDownHref({
-    userId: row.userId,
-    userName: row.userName ?? undefined,
+    userId: row.user.id,
+    userName: row.user.displayName ?? undefined,
     taskId: taskId ?? undefined,
     taskName: taskId ? (taskName ?? undefined) : undefined,
     startDate: view.filter.startDay,

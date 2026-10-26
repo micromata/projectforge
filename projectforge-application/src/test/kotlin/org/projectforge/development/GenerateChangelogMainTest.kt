@@ -318,6 +318,19 @@ class GenerateChangelogMainTest {
     )
     // A published release directly after a published one lists its own changes only.
     assertEquals(listOf("r0"), GenerateChangelogMain.aggregatedReleases(root, "8.3.0").map { it["id"].asText() })
+    // A mini release has a GitHub release of its own, with its own changes only.
+    assertEquals(listOf("r2"), GenerateChangelogMain.aggregatedReleases(root, "8.3.2").map { it["id"].asText() })
+    val mini = GenerateChangelogMain.releaseNotesMarkdown(root, "8.3.2")
+    assertTrue(
+      mini.startsWith(
+        "# ProjectForge 8.3.2\n\nMini release: tagged only, without jar or docker image, build it from the source code. " +
+          "Ready-made binaries: https://github.com/micromata/projectforge/releases/latest\n"
+      ), mini
+    )
+    assertFalse(mini.contains("Also includes"), mini)
+    assertFalse(mini.contains("fix 1"), mini)
+    assertTrue(mini.contains("- feature 2"), mini)
+    assertFalse(GenerateChangelogMain.releaseNotesMarkdown(root, "8.3.3").contains("Mini release"))
   }
 
   @Test

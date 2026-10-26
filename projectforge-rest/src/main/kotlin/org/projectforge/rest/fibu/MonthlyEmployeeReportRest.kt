@@ -58,7 +58,7 @@ import org.projectforge.rest.dto.MonthlyEmployeeReportCell
 import org.projectforge.rest.dto.MonthlyEmployeeReportData
 import org.projectforge.rest.dto.MonthlyEmployeeReportRow
 import org.projectforge.rest.dto.MonthlyEmployeeReportWeekDto
-import org.projectforge.rest.dto.User
+import org.projectforge.rest.dto.UserRef
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
 import org.springframework.http.ResponseEntity
@@ -376,9 +376,7 @@ class MonthlyEmployeeReportRest {
         }
 
         return MonthlyEmployeeReportData(
-            userId = user.id,
-            userName = user.getFullname(),
-            userDeactivated = User.isInactive(user),
+            user = UserRef(user),
             maySelectOtherUsers = accessChecker.hasLoggedInUserAccessToTimesheetsOfOtherUsers(),
             year = report.year,
             month = report.month,

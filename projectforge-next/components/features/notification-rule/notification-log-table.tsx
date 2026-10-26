@@ -15,8 +15,7 @@ import {
   type NotificationLogEntry,
 } from "@/lib/rs/notification";
 import { toast } from "@/lib/toast";
-import { DEACTIVATED_REF_CLASS } from "@/lib/page-def/reference";
-import { cn } from "@/lib/utils";
+import { RefName } from "@/components/shared/ref-list";
 
 type Column = ColumnDef<NotificationLogEntry, unknown>;
 type Step = NotificationLogEntry["deliverySteps"][number];
@@ -66,24 +65,23 @@ export function NotificationLogTable({
         ? [column("rule", t("ruleName"), 160, (r) => r.ruleName ?? "")]
         : []),
       {
-        ...column("recipient", t("recipient"), 160, (r) => r.recipient ?? ""),
-        // Struck through when the recipient is no longer active (see inactiveRefClass).
-        cell: ({ row }) => (
-          <span
-            className={cn(
-              row.original.recipientDeactivated && DEACTIVATED_REF_CLASS
-            )}
-          >
-            {row.original.recipient}
-          </span>
+        ...column(
+          "recipient",
+          t("recipient"),
+          160,
+          (r) => r.recipient?.displayName ?? ""
         ),
+        // Struck through when the recipient is no longer active (see inactiveRefClass).
+        cell: ({ row }) => <RefName value={row.original.recipient} />,
       },
       column("status", t("status"), 110, (r) => t(`statuses.${r.status}`)),
       column("periodKey", t("preview.period"), 100, (r) => r.periodKey ?? ""),
       column("created", t("created"), 130, (r) => time(r.created)),
       {
         ...column("acknowledgedAt", t("acknowledgedAt"), 180, (r) =>
-          [time(r.acknowledgedAt), r.acknowledgedBy].filter(Boolean).join(", ")
+          [time(r.acknowledgedAt), r.acknowledgedBy?.displayName]
+            .filter(Boolean)
+            .join(", ")
         ),
         cell: ({ row }) => {
           const r = row.original;
@@ -91,13 +89,7 @@ export function NotificationLogTable({
             <>
               {time(r.acknowledgedAt)}
               {r.acknowledgedAt && r.acknowledgedBy && ", "}
-              <span
-                className={cn(
-                  r.acknowledgedByDeactivated && DEACTIVATED_REF_CLASS
-                )}
-              >
-                {r.acknowledgedBy}
-              </span>
+              <RefName value={r.acknowledgedBy} />
             </>
           );
         },

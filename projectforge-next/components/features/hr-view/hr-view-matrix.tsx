@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { HrViewCell } from "./hr-view-cell";
 import { bookedHref, planningHref } from "./planning-links";
 import type { HrView, HrViewRow } from "./types";
-import { DEACTIVATED_REF_CLASS } from "@/lib/page-def/reference";
+import { inactiveRefClass } from "@/lib/page-def/reference";
 
 /**
  * The matrix of the HR view: one row per employee, the sum and the rest (planned without a project), then
@@ -27,12 +27,12 @@ export function HrViewMatrix({ view }: { view: HrView }) {
   const t = useTranslations();
 
   function userCell(row: HrViewRow) {
-    const name = row.userName ?? String(row.userId);
-    const url = planningHref(view, row.userId, row.planningId);
+    const name = row.user.displayName ?? String(row.user.id);
+    const url = planningHref(view, row.user.id, row.planningId);
     // A deleted planning struck through, a user no longer active as everywhere (see inactiveRefClass).
     const className = cn(
       row.deleted && "line-through",
-      row.userDeactivated && DEACTIVATED_REF_CLASS
+      inactiveRefClass(row.user)
     );
     return url ? (
       <MenuLink
@@ -63,7 +63,7 @@ export function HrViewMatrix({ view }: { view: HrView }) {
         </TableHeader>
         <TableBody>
           {view.rows.map((row) => (
-            <TableRow key={row.userId}>
+            <TableRow key={row.user.id}>
               <TableCell className="whitespace-nowrap">
                 {userCell(row)}
               </TableCell>

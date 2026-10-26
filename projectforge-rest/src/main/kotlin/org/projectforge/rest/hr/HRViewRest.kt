@@ -40,8 +40,7 @@ import org.projectforge.rest.dto.HRViewCell
 import org.projectforge.rest.dto.HRViewColumn
 import org.projectforge.rest.dto.HRViewFilter
 import org.projectforge.rest.dto.HRViewRow
-import org.projectforge.rest.dto.HRViewUser
-import org.projectforge.rest.dto.User
+import org.projectforge.rest.dto.UserRef
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -134,9 +133,7 @@ class HRViewRest {
             projects.forEach { project -> userData.getEntry(project)?.let { cells[projectKey(project.id)] = cell(it) } }
             customers.forEach { customer -> userData.getEntry(customer)?.let { cells[customerKey(customer.nummer)] = cell(it) } }
             HRViewRow(
-                userId = userData.userId,
-                userName = userData.user.getFullname(),
-                userDeactivated = User.isInactive(userData.user),
+                user = UserRef(userData.user),
                 planningId = userData.planningId,
                 deleted = userData.isDeleted,
                 sum = HRViewCell(nonZero(userData.plannedDaysSum), nonZero(userData.actualDaysSum)),
@@ -147,7 +144,7 @@ class HRViewRest {
         val unplannedUsers = if (filter.onlyMyProjects) {
             emptyList()
         } else {
-            hrViewDao.getUnplannedResources(data).map { HRViewUser(it.id, it.getFullname(), User.isInactive(it)) }
+            hrViewDao.getUnplannedResources(data).map { UserRef(it) }
         }
         return HRView(
             filter = filter,

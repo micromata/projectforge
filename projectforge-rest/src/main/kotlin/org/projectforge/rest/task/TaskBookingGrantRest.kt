@@ -40,7 +40,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
-import org.projectforge.rest.dto.User
+import org.projectforge.rest.dto.UserRef
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
@@ -69,19 +69,16 @@ class TaskBookingGrantRest {
 
     class Entry(
         val id: Long,
-        val userId: Long?,
-        val userName: String?,
-        /** The user is no longer active (deactivated or deleted): the name is struck through. */
-        val userDeactivated: Boolean,
+        /** The user the grant is for, struck through when no longer active. */
+        val user: UserRef?,
         val validFrom: LocalDate?,
         val validUntil: LocalDate?,
         val positions: List<Position>,
         /** The number of tasks of the grant the logged-in user doesn't see: neither to grant nor to propose on. */
         val hiddenPositions: Int,
         val comment: String?,
-        val grantedByName: String?,
-        /** As [userDeactivated], for the granting user. */
-        val grantedByDeactivated: Boolean,
+        /** The granting (or proposing) user. */
+        val grantedBy: UserRef?,
         val created: Date?,
         val status: Status,
         val statusAsString: String,
@@ -309,9 +306,7 @@ class TaskBookingGrantRest {
         val mayGrantAll = access.mayGrantAll(taskIds)
         return Entry(
             id = grant.id!!,
-            userId = grant.user?.id,
-            userName = userGroupCache.getUser(grant.user?.id)?.getFullname(),
-            userDeactivated = User.isInactive(userGroupCache.getUser(grant.user?.id)),
+            user = UserRef.of(userGroupCache.getUser(grant.user?.id)),
             validFrom = grant.validFrom,
             validUntil = grant.validUntil,
             positions = shown.mapNotNull { position ->
@@ -326,8 +321,7 @@ class TaskBookingGrantRest {
             },
             hiddenPositions = positions.size - shown.size,
             comment = grant.comment,
-            grantedByName = userGroupCache.getUser(grantedByUserId)?.getFullname(),
-            grantedByDeactivated = User.isInactive(userGroupCache.getUser(grantedByUserId)),
+            grantedBy = UserRef.of(userGroupCache.getUser(grantedByUserId)),
             created = grant.created,
             status = status,
             statusAsString = translate("task.bookingGrant.status.${status.name}"),

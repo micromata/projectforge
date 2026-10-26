@@ -89,7 +89,7 @@ class HRViewRestTest : AbstractTestBase() {
         val week = WEEK
         plan(TEST_USER, week, entry(portal, BigDecimal(16)), entry(shop, BigDecimal(4)), statusEntry(BigDecimal(8)))
         val view = view(week)
-        val row = view.rows.single { it.userId == getUser(TEST_USER).id }
+        val row = view.rows.single { it.user.id == getUser(TEST_USER).id }
         assertTrue(row.planningId != null)
         assertDays("3.5", row.sum.planned)
         assertDays("1", row.rest.planned)
@@ -102,7 +102,7 @@ class HRViewRestTest : AbstractTestBase() {
         val grouped = view(week, allProjectsGroupedByCustomer = true)
         val customerKey = grouped.columns.single { it.label == "HR view ltd." }.key
         assertTrue(grouped.columns.none { it.key.startsWith("p") })
-        val groupedRow = grouped.rows.single { it.userId == getUser(TEST_USER).id }
+        val groupedRow = grouped.rows.single { it.user.id == getUser(TEST_USER).id }
         assertDays("2.5", groupedRow.cells[customerKey]?.planned)
         assertDays("1", groupedRow.rest.planned)
 
