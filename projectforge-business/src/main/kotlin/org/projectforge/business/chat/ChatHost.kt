@@ -51,6 +51,12 @@ interface ChatHost {
     /** The description of the host object as rich text (HTML), shown above the conversation; null for none. */
     fun description(hostId: Long, channel: String): String? = null
 
+    /**
+     * A notice shown above the conversation as plain text in the language of the user, e.g. that the external users
+     * of a data transfer area don't see its chat; null for none.
+     */
+    fun notice(hostId: Long, channel: String, user: PFUserDO): String? = null
+
     /** The link to the host object (path of the app), shown with the conversation. */
     fun link(hostId: Long): String?
 
@@ -73,4 +79,24 @@ interface ChatHost {
 
     /** May notification mails contain the text of messages (NOT-05)? */
     fun mailContentAllowed(hostId: Long, channel: String): Boolean = false
+
+    /**
+     * Do the files of the conversation go into an existing data transfer area given by the host ([fileAreaId], e.g.
+     * the personal box of the recipient of a direct message, or the data transfer area being discussed) instead of
+     * a synthetic area of the conversation (ATT-02)?
+     */
+    val usesOwnFileArea: Boolean
+        get() = false
+
+    /**
+     * The existing data transfer area the files of the user go to, if [usesOwnFileArea]; null if no files can be
+     * exchanged there.
+     */
+    fun fileAreaId(hostId: Long, channel: String, user: PFUserDO): Long? = null
+
+    /**
+     * Can files be exchanged in the conversation at all (e.g. not for a data transfer area on the gateway)? Free of side
+     * effects, unlike [fileAreaId] (which may create a personal box): asked on every read of the conversation.
+     */
+    fun filesAllowed(hostId: Long, channel: String): Boolean = true
 }

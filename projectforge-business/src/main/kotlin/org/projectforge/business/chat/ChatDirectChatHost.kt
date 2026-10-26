@@ -24,6 +24,7 @@
 package org.projectforge.business.chat
 
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,6 +41,9 @@ import java.util.concurrent.ConcurrentHashMap
  */
 @Service
 class ChatDirectChatHost : ChatHost {
+    @Autowired
+    private lateinit var dataTransferBridge: DataTransferBridge
+
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
@@ -85,6 +89,16 @@ class ChatDirectChatHost : ChatHost {
     override fun participantIds(hostId: Long, channel: String): Set<Long> {
         val pair = pair(hostId, channel) ?: return emptySet()
         return setOfNotNull(pair.user1Id, pair.user2Id)
+    }
+
+    /** The files go into the personal box of the recipient, where both see them (ATT-02). */
+    override val usesOwnFileArea: Boolean
+        get() = true
+
+    override fun fileAreaId(hostId: Long, channel: String, user: PFUserDO): Long? {
+        pair(hostId, channel) ?: return null
+        val recipientId = partnerId(hostId, user.id) ?: return null
+        return dataTransferBridge.getPersonalBoxId(recipientId)
     }
 
     /** The other one of the pair, null if the user isn't one of them. */

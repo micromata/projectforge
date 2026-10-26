@@ -18,19 +18,24 @@ import { useChatContext } from "./chat-context";
 import { ChatComposer } from "./chat-composer";
 import { MessageItem } from "./message-item";
 import { findFirstUnread, NewMessagesLine } from "./message-list";
+import { isAtEnd, useFollowEnd } from "./use-follow-end";
 import { useMarkThreadRead } from "./use-mark-thread-read";
 import { useMessageMutations } from "./use-message-mutations";
 
 /**
  * The thread of a message in a side panel (full screen on small devices, THR-04): the message, its replies,
- * following it and replying, a line above the first unread reply; mentions in it are resolved. Kept up to date
+ * following it and replying, a line above the first unread reply; mentions in it are resolved. Opened at the reply
+ * [focusId] (jumping to the next unread one), otherwise at its end. Kept up to date
  * by the live updates of the conversation.
  */
 export function ThreadPanel({
   rootId,
+  focusId = null,
   onClose,
 }: {
   rootId: number | null;
+  /** The reply to scroll to (the next unread one), otherwise the end. */
+  focusId?: number | null;
   onClose: () => void;
 }) {
   const t = useTranslations();
@@ -38,6 +43,9 @@ export function ThreadPanel({
   const queryClient = useQueryClient();
   const { follow } = useMessageMutations();
   const endRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const atEnd = useRef(true);
+  const contentRef = useFollowEnd(scrollRef, atEnd);
   const query = useQuery({
     queryKey: chatThreadQueryKey(conversation.id, rootId ?? 0),
     queryFn: ({ signal }) => fetchChatThread(conversation.id, rootId!, signal),
@@ -46,9 +54,23 @@ export function ThreadPanel({
     refetchOnWindowFocus: false,
   });
   const replies = query.data?.replies.length ?? 0;
+  const focused = query.data?.replies.some((it) => it.id === focusId) === true;
+  // The reply scrolled to once: new replies afterwards are followed at the end again.
+  const focusedOnce = useRef<number | null>(null);
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: "end" });
-  }, [replies]);
+    if (rootId == null) focusedOnce.current = null; // Closed: jumped to again later.
+  }, [rootId]);
+  useEffect(() => {
+    const target =
+      focused && focusedOnce.current !== focusId
+        ? document.getElementById(`chat-message-${focusId}`)
+        : null;
+    if (target) {
+      focusedOnce.current = focusId;
+      target.scrollIntoView({ block: "center" });
+    } else endRef.current?.scrollIntoView({ block: "end" });
+    if (scrollRef.current) atEnd.current = isAtEnd(scrollRef.current);
+  }, [replies, focused, focusId]);
   useMarkThreadRead(conversation.id, rootId, query.data?.replies);
   const root = query.data?.root;
   const firstUnread = findFirstUnread(
@@ -82,21 +104,28 @@ export function ThreadPanel({
             </Button>
           )}
         </SheetHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto py-2" data-chat-messages>
-          {query.isPending && rootId != null && (
-            <div className="flex justify-center py-6">
-              <Spinner className="h-5 w-5 border-2" />
-            </div>
-          )}
-          {root && <MessageItem message={root} inThread />}
-          {query.data && <div className="mx-3 my-1 border-t" />}
-          {query.data?.replies.map((reply) => (
-            <Fragment key={reply.id}>
-              {reply.id === firstUnread && <NewMessagesLine />}
-              <MessageItem message={reply} inThread />
-            </Fragment>
-          ))}
-          <div ref={endRef} />
+        <div
+          ref={scrollRef}
+          onScroll={(event) => (atEnd.current = isAtEnd(event.currentTarget))}
+          className="min-h-0 flex-1 overflow-y-auto py-2"
+          data-chat-messages
+        >
+          <div ref={contentRef}>
+            {query.isPending && rootId != null && (
+              <div className="flex justify-center py-6">
+                <Spinner className="h-5 w-5 border-2" />
+              </div>
+            )}
+            {root && <MessageItem message={root} inThread />}
+            {query.data && <div className="mx-3 my-1 border-t" />}
+            {query.data?.replies.map((reply) => (
+              <Fragment key={reply.id}>
+                {reply.id === firstUnread && <NewMessagesLine />}
+                <MessageItem message={reply} inThread />
+              </Fragment>
+            ))}
+            <div ref={endRef} />
+          </div>
         </div>
         {rootId != null &&
           conversation.canWrite &&

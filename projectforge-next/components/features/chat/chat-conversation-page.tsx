@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon, Settings02Icon } from "@hugeicons/core-free-icons";
+import { FormAlert } from "@/components/shared/form-alert";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
 import {
@@ -80,6 +81,12 @@ export function ChatConversationPage({
             RICH_TEXT_MUTED_CLASSES
           )}
         />
+      )}
+      {conversation?.notice && (
+        // E.g. that the external users of a data transfer area don't see its chat.
+        <div className="shrink-0 px-4 pt-2">
+          <FormAlert tone="info">{conversation.notice}</FormAlert>
+        </div>
       )}
       <div className="flex min-h-0 flex-1 flex-col">
         <ChatPanel

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { markChatRead } from "@/lib/rs/chat";
+import { invalidateUnreadCounts } from "./chat-cache";
 
 const DELAY_MS = 1_000;
 
@@ -30,8 +31,7 @@ export function useMarkRead(conversationId: number) {
       () => {
         void queryClient.invalidateQueries({ queryKey: ["userStatus"] });
         void queryClient.invalidateQueries({ queryKey: ["menu"] });
-        void queryClient.invalidateQueries({ queryKey: ["chatRooms"] });
-        void queryClient.invalidateQueries({ queryKey: ["chatDirect"] });
+        invalidateUnreadCounts(queryClient);
       },
       () => {
         marked.current = 0; // Tried again with the next change.

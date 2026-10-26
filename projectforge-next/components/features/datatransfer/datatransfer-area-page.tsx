@@ -21,6 +21,7 @@ import {
   dataTransferTabs,
   resolveDataTransferTab,
 } from "./datatransfer-area-tabs";
+import { DataTransferChatButton } from "./datatransfer-chat-button";
 import { DataTransferEditTab } from "./datatransfer-edit-tab";
 import { DataTransferFilesActions } from "./datatransfer-files-actions";
 import { DataTransferFilesInfo } from "./datatransfer-files-info";
@@ -29,7 +30,8 @@ import { DataTransferFilesTab } from "./datatransfer-files-tab";
 /**
  * One area (`/datatransfer/{id}`): its files, its info, its activities and — for who may change it — its admin form,
  * as tabs in `?tab=` so a tab can be linked and the back button works. The page every user with access
- * works on, admin or not.
+ * works on, admin or not. Each area is a chat room as well, the personal box of another user opens the direct
+ * message with its owner (see DataTransferChatButton).
  *
  * `-1` is the logged-in user's own personal box, which the backend creates on first use; the url is
  * replaced by the box's real id at once, so it can be bookmarked and passed on as any other area.
@@ -79,6 +81,7 @@ export function DataTransferAreaPage({ id }: { id: number }) {
         <Button asChild variant="outline" size="sm">
           <GuardedLink href="/datatransfer">{t("back")}</GuardedLink>
         </Button>
+        {view && <DataTransferChatButton view={view} />}
         {view && <DataTransferFilesActions view={view} />}
       </PageTitleRow>
       {query.isLoading ? (

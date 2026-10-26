@@ -127,6 +127,8 @@ class ChatConversation(
     val title: String,
     /** The description of the host object as rich text (HTML), null for none. */
     val description: String?,
+    /** A notice of the host shown above the conversation (plain text), null for none. */
+    val notice: String? = null,
     /** Path of the next app of the host object. */
     val link: String?,
     val canWrite: Boolean,
@@ -171,6 +173,9 @@ class ChatHideRequest(val hidden: Boolean = true, val reason: String? = null)
 class ChatReactionRequest(val emoji: String? = null)
 
 class ChatReadRequest(val messageId: Long? = null)
+
+/** An unread message: its id and the root of its thread (null for a message of the conversation itself). */
+class ChatUnreadMessage(val id: Long, val threadRootId: Long?)
 
 class ChatFlagRequest(val value: Boolean = true)
 
@@ -221,6 +226,19 @@ class ChatDirectEntry(
     val unread: Long,
     val lastMessageAt: Date?,
     /** False, if the other one has no system access any more (read-only). */
+    val canWrite: Boolean,
+)
+
+/** A conversation of a host (e.g. a data transfer area) in the list of the logged-in user's ones. */
+class ChatHostEntry(
+    val conversationId: Long,
+    val hostId: Long,
+    /** The title of the host object. */
+    val title: String,
+    /** The link to the host object. */
+    val link: String?,
+    val unread: Long,
+    val lastMessageAt: Date?,
     val canWrite: Boolean,
 )
 

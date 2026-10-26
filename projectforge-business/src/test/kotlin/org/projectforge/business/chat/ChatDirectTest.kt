@@ -108,8 +108,13 @@ class ChatDirectTest : AbstractTestBase() {
         assertEquals(NotificationDisplay.BANNER, notification.display)
         assertTrue(notification.title!!.startsWith(getUser("chatDirect-1").getFullname()), notification.title)
 
+        assertEquals(0, chatDirectService.countUnread(user2), "own message")
+        logon("chatDirect-3")
+        assertEquals(0, chatDirectService.countUnread(user1), "no conversation")
+
         // The other one: the same conversation, the other title, may answer.
         logon("chatDirect-2")
+        assertEquals(1, chatDirectService.countUnread(user1))
         val other = chatDirectService.open(user1)
         assertEquals(context.conversationId, other.conversationId)
         assertEquals(getUser("chatDirect-1").getFullname(), other.title)

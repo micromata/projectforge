@@ -8,7 +8,8 @@ export interface ChatContextValue {
   conversation: ChatConversation;
   /** Fetches the changes since the last known one (after an own action). */
   sync: () => Promise<void>;
-  openThread: (rootId: number) => void;
+  /** Opens the thread, scrolled to the reply [focusId] (otherwise to its end). */
+  openThread: (rootId: number, focusId?: number) => void;
   /** Shows a message: scrolls to it in the conversation, or opens its thread. */
   jump: (target: { id: number; threadRootId: number | null }) => void;
   /** The messages being quoted in the composer of the conversation and of the open thread (MSG-08). */
@@ -26,6 +27,8 @@ export interface ChatContextValue {
   hasUnreadReplies: (message: ChatMessage) => boolean;
   /** Marks the conversation unread from the message on. */
   markUnread: (message: ChatMessage) => void;
+  /** The ref of a message of others: shown, it counts as seen (no longer unread for the badge). */
+  observeSeen: (element: HTMLElement | null) => (() => void) | undefined;
 }
 
 const ChatContext = createContext<ChatContextValue | null>(null);

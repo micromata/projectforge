@@ -555,6 +555,37 @@ open class ChatService {
         )?.toLong() ?: 0
     }
 
+    /**
+     * The messages of others newer than [afterId] counting as unread for the user of the context ([UNREAD_CLAUSE]),
+     * oldest first, at most [MAX_UNREAD]: id and thread root (null for a message of the conversation itself). For
+     * jumping to the next unread message, also in a thread; [afterId] is the read state when the conversation was
+     * opened, which may have moved since.
+     */
+    open fun selectUnread(context: ChatAccess.Context, afterId: Long): List<Pair<Long, Long?>> {
+        val userId = context.user.id!!
+        return persistenceService.executeQuery(
+            "select m.id, m.threadRootId from ChatMessageDO m where m.conversationId = :conversationId" +
+                    " and m.id > :afterId and $UNREAD_CLAUSE order by m.id",
+            Array<Any?>::class.java,
+            Pair("conversationId", context.conversationId),
+            Pair("afterId", afterId),
+            Pair("userId", userId),
+            Pair("userCsv", csvPattern(userId)),
+            maxResults = MAX_UNREAD,
+        ).map { row -> Pair((row[0] as Number).toLong(), (row[1] as Number?)?.toLong()) }
+    }
+
+    /**
+     * [countUnread] of the logged-in user in the conversation of the host object, 0 if it has none yet or the user
+     * may not read it (e.g. for the chat button of the host object).
+     */
+    open fun countUnread(hostType: String, hostId: Long, channel: String): Long {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val conversation = chatAccess.findConversation(hostType, hostId, channel) ?: return 0
+        val context = chatAccess.getContext(conversation, user) ?: return 0
+        return countUnread(context.conversationId, user.id!!)
+    }
+
     /** [countUnread] of the given conversations in one query, by conversation id (missing: none unread). */
     open fun countUnread(conversationIds: Collection<Long>, userId: Long): Map<Long, Long> {
         if (conversationIds.isEmpty()) {
@@ -673,6 +704,20 @@ open class ChatService {
             batchValues = hostIds,
             Pair("hostType", hostType),
         ).associateBy { it.hostId!! }
+    }
+
+    /**
+     * The conversations of the host type with at least one message the logged-in user may read (e.g. the chats of the
+     * data transfer areas), newest first.
+     */
+    open fun listConversations(hostType: String): List<ChatAccess.Context> {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        hostRegistry.get(hostType) ?: return emptyList()
+        return persistenceService.executeQuery(
+            "from ChatConversationDO c where c.hostType = :hostType and c.lastMessageAt is not null order by c.lastMessageAt desc",
+            ChatConversationDO::class.java,
+            Pair("hostType", hostType),
+        ).mapNotNull { chatAccess.getContext(it, user) }
     }
 
     /**
@@ -837,6 +882,7 @@ open class ChatService {
         const val MAX_PAGE_SIZE = 200
         const val MAX_CHANGES = 500
         const val MAX_SEARCH_RESULTS = 100
+        const val MAX_UNREAD = 500
         const val MAX_EMOJI_LENGTH = 16
         const val MAX_EMOJIS_PER_MESSAGE = 20
 

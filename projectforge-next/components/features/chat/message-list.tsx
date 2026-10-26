@@ -8,9 +8,7 @@ import type { ChatMessage } from "@/lib/rs/chat-types";
 import { useChatContext } from "./chat-context";
 import { MessageItem } from "./message-item";
 import { useChatMessages } from "./use-chat-messages";
-
-/** Below this distance from the end, the list counts as "at the end": new messages scroll it along. */
-const AT_END_PX = 80;
+import { AT_END_PX, isAtEnd, useFollowEnd } from "./use-follow-end";
 
 /**
  * The messages of the conversation, oldest at the top, starting at the end (or at the message of a deep link).
@@ -30,6 +28,7 @@ export function MessageList({
   const atEnd = useRef(true);
   const heightBefore = useRef<number | null>(null);
   const positioned = useRef(false);
+  const contentRef = useFollowEnd(scrollRef, atEnd);
   const newest = messages[messages.length - 1];
   const firstUnread = findFirstUnread(messages, readMark, conversation.me.id);
 
@@ -46,8 +45,10 @@ export function MessageList({
         highlightId != null
           ? document.getElementById(`chat-message-${highlightId}`)
           : null;
-      if (target) target.scrollIntoView({ block: "center" });
-      else element.scrollTop = element.scrollHeight;
+      if (target) {
+        target.scrollIntoView({ block: "center" });
+        atEnd.current = isAtEnd(element); // Not moved to the end by images loaded later.
+      } else element.scrollTop = element.scrollHeight;
     } else if (atEnd.current) {
       element.scrollTop = element.scrollHeight;
     }
@@ -65,9 +66,7 @@ export function MessageList({
   const onScroll = () => {
     const element = scrollRef.current;
     if (!element) return;
-    atEnd.current =
-      element.scrollHeight - element.scrollTop - element.clientHeight <
-      AT_END_PX;
+    atEnd.current = isAtEnd(element);
     if (atEnd.current) onAtEnd(newest?.id ?? null);
     if (element.scrollTop < AT_END_PX) loadOlder();
   };
@@ -81,34 +80,36 @@ export function MessageList({
       role="log"
       aria-live="polite"
     >
-      {query.hasNextPage && (
-        <div className="flex justify-center py-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={query.isFetchingNextPage}
-            onClick={loadOlder}
-          >
-            {t("chat.conversation.loadOlder")}
-          </Button>
-        </div>
-      )}
-      {query.isPending && (
-        <div className="flex justify-center py-6">
-          <Spinner className="h-5 w-5 border-2" />
-        </div>
-      )}
-      {query.isSuccess && messages.length === 0 && (
-        <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-          {t("chat.conversation.empty")}
-        </p>
-      )}
-      {messages.map((message) => (
-        <Fragment key={message.id}>
-          {message.id === firstUnread && <NewMessagesLine />}
-          <MessageItem message={message} />
-        </Fragment>
-      ))}
+      <div ref={contentRef}>
+        {query.hasNextPage && (
+          <div className="flex justify-center py-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={query.isFetchingNextPage}
+              onClick={loadOlder}
+            >
+              {t("chat.conversation.loadOlder")}
+            </Button>
+          </div>
+        )}
+        {query.isPending && (
+          <div className="flex justify-center py-6">
+            <Spinner className="h-5 w-5 border-2" />
+          </div>
+        )}
+        {query.isSuccess && messages.length === 0 && (
+          <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+            {t("chat.conversation.empty")}
+          </p>
+        )}
+        {messages.map((message) => (
+          <Fragment key={message.id}>
+            {message.id === firstUnread && <NewMessagesLine />}
+            <MessageItem message={message} />
+          </Fragment>
+        ))}
+      </div>
     </div>
   );
 }
