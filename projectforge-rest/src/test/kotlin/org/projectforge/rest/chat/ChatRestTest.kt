@@ -139,6 +139,50 @@ class ChatRestTest : AbstractTestBase() {
     }
 
     @Test
+    fun `a quote shows the excerpt the user may see of the quoted message`() {
+        logon(TEST_USER)
+        val conversationId = chatRoomRest.save(ChatRoom(
+            name = "rest quotes",
+            users = listOf(ChatRef(getUserId(TEST_USER2), "x")),
+        )).conversationId!!
+        logon(TEST_USER2)
+        val original = chatRest.send(conversationId, ChatSendRequest(html = "<p>the <b>original</b></p>"))
+        val quoting = chatRest.send(conversationId, ChatSendRequest(html = "<p>agreed</p>", quotedMessageId = original.id))
+        assertEquals(original.id, quoting.quote!!.id)
+        assertEquals("the original", quoting.quote!!.excerpt)
+        assertEquals(getUserId(TEST_USER2), quoting.quote!!.author.id)
+        assertNull(original.quote)
+
+        logon(TEST_USER)
+        chatRest.hide(original.id, ChatHideRequest(true, "spam"))
+        val seenByModerator = chatRest.getMessages(conversationId, null, null).messages.single { it.id == quoting.id }
+        assertEquals("the original", seenByModerator.quote!!.excerpt, "moderators see the content")
+        assertTrue(seenByModerator.quote!!.hidden)
+        logon(TEST_USER2)
+        val seenByMember = chatRest.getChanges(conversationId, 0).messages.single { it.id == quoting.id }
+        assertTrue(seenByMember.quote!!.hidden)
+        assertNull(seenByMember.quote!!.excerpt, "no content of a hidden message in a quote")
+
+        logon(TEST_USER)
+        chatRest.hide(original.id, ChatHideRequest(false, null))
+        logon(TEST_USER2)
+        chatRest.delete(original.id)
+        val deleted = chatRest.getMessages(conversationId, null, null).messages.single { it.id == quoting.id }
+        assertTrue(deleted.quote!!.deleted)
+        assertNull(deleted.quote!!.excerpt)
+    }
+
+    @Test
+    fun `an excerpt is cut at a word`() {
+        assertNull(ChatMessageConverter.excerpt("  "))
+        assertEquals("short", ChatMessageConverter.excerpt(" short "))
+        val long = "word ".repeat(100)
+        val excerpt = ChatMessageConverter.excerpt(long)!!
+        assertTrue(excerpt.length <= ChatMessageConverter.QUOTE_EXCERPT_LENGTH + 1)
+        assertTrue(excerpt.endsWith("word…"))
+    }
+
+    @Test
     fun `direct messages are listed with a message only, files are downloads unless images`() {
         val user2 = getUserId(TEST_USER2)
         logon(TEST_USER)

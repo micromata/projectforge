@@ -18,7 +18,7 @@ async function userId(page: Page): Promise<number> {
  * a user outside the room is refused. The room is deleted afterwards (with its conversation). Direct messages
  * between the two, with a file in the personal box of the recipient; files of a room in its data transfer area;
  * a coloured text, inline code and a code block of several lines; a confidential message (end-to-end encrypted,
- * received once, in no message of the conversation).
+ * received once, in no message of the conversation); a message quoting another one.
  */
 test.describe("chat", { tag: "@parallel" }, () => {
   test("mentions, live updates and threads between two participants", async ({
@@ -556,6 +556,60 @@ test.describe("chat", { tag: "@parallel" }, () => {
       await expect(
         page.locator("article").filter({ hasText: fenced }).locator("pre code")
       ).toHaveJSProperty("textContent", `if (x)\n    ${fenced}`);
+    } finally {
+      await page.request.delete(`/rs/chatRoom/${room.id}`, {
+        headers: await writeHeaders(page.request),
+      });
+    }
+  });
+
+  test("a message quoting another one shows it on a click", async ({
+    loggedInPage: page,
+  }) => {
+    const name = `ZZ e2e chat quote ${uniqueSuffix()}`;
+    const saved = await page.request.post("/rs/chatRoom/save", {
+      headers: await writeHeaders(page.request),
+      data: { name, users: [] },
+    });
+    expect(saved.ok()).toBeTruthy();
+    const room = (await saved.json()) as { id: number; conversationId: number };
+    try {
+      const { t } = await userFormat(page);
+      await goto(page, `/chat/${room.conversationId}`);
+      const editor = page.getByRole("textbox", {
+        name: t("chat.message.placeholder"),
+      });
+      const original = `original ${uniqueSuffix()}`;
+      await editor.click();
+      await editor.pressSequentially(original);
+      await editor.press("Enter");
+      // The first one: the message quoting it contains its text as well.
+      const first = page
+        .locator("article")
+        .filter({ hasText: original })
+        .first();
+      await expect(first).toBeVisible();
+
+      await first.hover();
+      await first
+        .getByRole("button", { name: t("chat.message.quote._") })
+        .click();
+      // The quote above the editor, which has the focus.
+      await expect(
+        page.getByRole("button", { name: t("chat.message.quote.remove") })
+      ).toBeVisible();
+      const answer = `answer ${uniqueSuffix()}`;
+      await editor.pressSequentially(answer);
+      await editor.press("Enter");
+      const quoting = page.locator("article").filter({ hasText: answer });
+      const quote = quoting.getByRole("button").filter({ hasText: original });
+      await expect(quote).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: t("chat.message.quote.remove") })
+      ).toHaveCount(0);
+
+      await quote.click();
+      await expect(first).toHaveClass(/bg-primary\/10/);
     } finally {
       await page.request.delete(`/rs/chatRoom/${room.id}`, {
         headers: await writeHeaders(page.request),

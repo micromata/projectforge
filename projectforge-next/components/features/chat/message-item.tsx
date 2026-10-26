@@ -12,13 +12,14 @@ import { MessageActions } from "./message-actions";
 import { MessageAttachments } from "./message-attachments";
 import { MessageAuthor } from "./message-author";
 import { MessageEditForm } from "./message-edit-form";
+import { QuotedMessage } from "./quoted-message";
 import { ReactionBar } from "./reaction-bar";
 import { ThreadSummary } from "./thread-summary";
 import { useMessageMutations } from "./use-message-mutations";
 
 /**
- * One message: author (a click offers a direct message), time and "edited" (MSG-02), the content or the placeholder
- * of a deleted or hidden one, files, reactions and, in the conversation, the summary of its thread.
+ * One message: author (a click offers a direct message), time and "edited" (MSG-02), the message it quotes (MSG-08),
+ * the content or the placeholder of a deleted or hidden one, files, reactions and, in the conversation, the summary of its thread.
  */
 export const MessageItem = memo(function MessageItem({
   message,
@@ -76,6 +77,7 @@ export const MessageItem = memo(function MessageItem({
             })}
           </p>
         )}
+        {message.quote && <QuotedMessage quote={message.quote} />}
         {editing ? (
           <MessageEditForm message={message} onDone={() => setEditing(false)} />
         ) : (

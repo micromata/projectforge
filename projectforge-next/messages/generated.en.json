@@ -1027,6 +1027,11 @@
       "linkCopied": "Link copied.",
       "markUnread": "Mark as unread",
       "placeholder": "Write a message, @ mentions somebody",
+      "quote": {
+        "_": "Quote",
+        "of": "Quote of {arg0}, show the message",
+        "remove": "Remove quote"
+      },
       "react": "Add reaction",
       "reply": "Reply in thread",
       "save": "Save",

@@ -77,6 +77,7 @@ export function MessageList({
       ref={scrollRef}
       onScroll={onScroll}
       className="min-h-0 flex-1 overflow-y-auto py-2"
+      data-chat-messages
       role="log"
       aria-live="polite"
     >

@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Comment01Icon, MoreHorizontalIcon } from "@hugeicons/core-free-icons";
+import {
+  Comment01Icon,
+  MoreHorizontalIcon,
+  QuoteDownIcon,
+} from "@hugeicons/core-free-icons";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +26,7 @@ import { MessageHistoryDialog } from "./message-history-dialog";
 import { useMessageMutations } from "./use-message-mutations";
 
 /**
- * The actions of a message, shown on hover (always on touch devices): react, reply in the thread, and in the
+ * The actions of a message, shown on hover (always on touch devices): react, quote, reply in the thread, and in the
  * menu edit and delete (own messages), copy the link, mark unread (messages of others), hide and history
  * (moderators).
  */
@@ -36,7 +40,7 @@ export function MessageActions({
   onEdit: () => void;
 }) {
   const t = useTranslations();
-  const { conversation, openThread, markUnread } = useChatContext();
+  const { conversation, openThread, markUnread, setQuoting } = useChatContext();
   const mutations = useMessageMutations();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [hiding, setHiding] = useState(false);
@@ -57,6 +61,16 @@ export function MessageActions({
           ariaLabel={t("chat.message.react")}
           onPick={(emoji) => mutations.react.mutate({ id: message.id, emoji })}
         />
+      )}
+      {writable && (
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t("chat.message.quote._")}
+          onClick={() => setQuoting(inThread, message)}
+        >
+          <HugeiconsIcon icon={QuoteDownIcon} />
+        </Button>
       )}
       {!inThread && writable && (
         <Button

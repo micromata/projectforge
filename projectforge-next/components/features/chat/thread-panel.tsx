@@ -82,7 +82,7 @@ export function ThreadPanel({
             </Button>
           )}
         </SheetHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto py-2">
+        <div className="min-h-0 flex-1 overflow-y-auto py-2" data-chat-messages>
           {query.isPending && rootId != null && (
             <div className="flex justify-center py-6">
               <Spinner className="h-5 w-5 border-2" />

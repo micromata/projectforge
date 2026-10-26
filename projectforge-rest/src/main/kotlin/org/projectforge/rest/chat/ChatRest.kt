@@ -208,7 +208,7 @@ class ChatRest {
     @AccessChecked("ChatService.send: write access of the host to the conversation; thread root of this conversation only")
     @PostMapping("conversation/{id}/messages", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun send(@PathVariable id: Long, @RequestBody request: ChatSendRequest): ChatMessage {
-        val message = chatService.send(id, request.threadRootId, request.html)
+        val message = chatService.send(id, request.threadRootId, request.html, quotedMessageId = request.quotedMessageId)
         return converter.convert(chatService.requireContext(id), message)
     }
 
@@ -224,7 +224,7 @@ class ChatRest {
         @RequestPart("files", required = false) files: List<MultipartFile>?,
     ): ChatMessage {
         val uploads = files.orEmpty().map { ChatFileService.Upload(it.originalFilename, it.bytes) }
-        val message = chatService.send(id, request.threadRootId, request.html, uploads)
+        val message = chatService.send(id, request.threadRootId, request.html, uploads, request.quotedMessageId)
         return converter.convert(chatService.requireContext(id), message)
     }
 

@@ -199,12 +199,14 @@ open class ChatService {
      * Sends a message, or a reply in the thread of [threadRootId] (a reply to a reply belongs to the same thread).
      * @param files The files of the message, stored in the data transfer ([ChatFileService.store]) before; deleted
      * again if the message isn't saved.
+     * @param quotedMessageId A message of the same conversation quoted by this one (MSG-08), not deleted or hidden.
      */
     open fun send(
         conversationId: Long,
         threadRootId: Long?,
         html: String?,
         files: List<ChatFileService.Upload> = emptyList(),
+        quotedMessageId: Long? = null,
     ): ChatMessageDO {
         val user = ThreadLocalUserContext.requiredLoggedInUser
         val context = chatAccess.requireWriteContext(conversationId, user)
@@ -219,9 +221,16 @@ open class ChatService {
                 throw AccessException(user, NO_ACCESS)
             }
         }
+        if (quotedMessageId != null) {
+            // The conversation of the quoted message from the database: no quoting across conversations.
+            val quoted = findMessage(quotedMessageId)
+            if (quoted?.conversationId != conversationId || quoted.deleted || quoted.isHidden) {
+                throw UserException(ERROR_QUOTE_NOT_FOUND)
+            }
+        }
         val attachments = fileService.store(context, files)
         try {
-            return send(context, threadRootId, content, attachments)
+            return send(context, threadRootId, content, attachments, quotedMessageId)
         } catch (ex: Exception) {
             fileService.delete(attachments)
             throw ex
@@ -233,6 +242,7 @@ open class ChatService {
         threadRootId: Long?,
         content: ChatHtmlSanitizer.Result,
         attachments: List<ChatAttachment>,
+        quotedMessageId: Long?,
     ): ChatMessageDO {
         val user = context.user
         val conversationId = context.conversationId
@@ -255,6 +265,7 @@ open class ChatService {
                 it.conversationId = conversationId
                 it.authorId = user.id
                 it.threadRootId = root?.id
+                it.quotedMessageId = quotedMessageId
                 it.content = content.html
                 it.contentText = content.text.take(ChatMessageDO.CONTENT_TEXT_LENGTH)
                 it.writeAttachments(attachments)
@@ -717,6 +728,19 @@ open class ChatService {
         return chatMessageDao.find(id, checkAccess = false)
     }
 
+    /** The messages of the conversation with the given ids (e.g. the quoted ones), without access check. */
+    open fun findMessages(conversationId: Long, ids: Collection<Long>): List<ChatMessageDO> {
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
+        return persistenceService.executeQuery(
+            "from ChatMessageDO m where m.conversationId = :conversationId and m.id in :ids",
+            ChatMessageDO::class.java,
+            Pair("conversationId", conversationId),
+            Pair("ids", ids.distinct()),
+        )
+    }
+
     private fun loadMessage(pc: PfPersistenceContext, id: Long): ChatMessageDO? {
         return pc.selectSingleResult(
             "from ChatMessageDO m where m.id = :id",
@@ -837,6 +861,7 @@ open class ChatService {
         const val ERROR_EMOJI = "chat.reaction.error.invalid"
         const val ERROR_TOO_MANY_EMOJIS = "chat.reaction.error.tooMany"
         const val ERROR_HIDE_REASON = "chat.message.error.hideReason"
+        const val ERROR_QUOTE_NOT_FOUND = "chat.message.error.quoteNotFound"
 
         private const val NO_ACCESS = "access.exception.noAccess"
     }

@@ -28,6 +28,21 @@ export interface ChatReaction {
 }
 
 /**
+ * The message quoted by another one (MSG-08): no excerpt of a deleted message, of a hidden one only for moderators.
+ */
+export interface ChatQuote {
+  id: number;
+  /** The thread of the quoted message, null for a message of the conversation. */
+  threadRootId: number | null;
+  author: ChatRef;
+  created: string | null;
+  deleted: boolean;
+  hidden: boolean;
+  /** The beginning of its plain text, null if not to be shown. */
+  excerpt: string | null;
+}
+
+/**
  * A message as the logged-in user sees it (ChatRest/ChatMessageConverter): no content of a deleted message,
  * of a hidden one only for moderators.
  */
@@ -43,6 +58,8 @@ export interface ChatMessage {
   hiddenBy: string | null;
   hiddenReason: string | null;
   content: string | null;
+  /** The message quoted by this one, null for none. */
+  quote: ChatQuote | null;
   files: ChatFile[];
   reactions: ChatReaction[];
   replyCount: number;

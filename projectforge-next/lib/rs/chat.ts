@@ -130,16 +130,18 @@ export function sendChatMessage(
   id: number,
   html: string,
   threadRootId: number | null,
-  files: File[] = []
+  files: File[] = [],
+  quotedMessageId: number | null = null
 ) {
   const path = `${BASE}/conversation/${id}/messages`;
+  const request = { html, threadRootId, quotedMessageId };
   if (files.length === 0) {
-    return chatPost<ChatMessage>(path, { html, threadRootId });
+    return chatPost<ChatMessage>(path, request);
   }
   const body = new FormData();
   body.append(
     "message",
-    new Blob([JSON.stringify({ html, threadRootId })], {
+    new Blob([JSON.stringify(request)], {
       type: "application/json",
     })
   );

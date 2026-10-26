@@ -1027,6 +1027,11 @@
       "linkCopied": "Link kopiert.",
       "markUnread": "Als ungelesen markieren",
       "placeholder": "Nachricht schreiben, @ erwähnt jemanden",
+      "quote": {
+        "_": "Zitieren",
+        "of": "Zitat von {arg0}, zur Nachricht",
+        "remove": "Zitat entfernen"
+      },
       "react": "Reaktion hinzufügen",
       "reply": "Im Thread antworten",
       "save": "Speichern",

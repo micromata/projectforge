@@ -57,10 +57,35 @@ export function ChatPanel({
   const [openedThreads, setOpenedThreads] = useState<ReadonlySet<number>>(
     () => new Set()
   );
-  const openThread = useCallback((rootId: number) => {
-    setThreadRootId(rootId);
-    setOpenedThreads((ids) => new Set(ids).add(rootId));
-  }, []);
+  const [quoting, setQuotingState] = useState<ChatContextValue["quoting"]>({
+    main: null,
+    thread: null,
+  });
+  const setQuoting = useCallback(
+    (inThread: boolean, message: ChatMessage | null) =>
+      setQuotingState((it) =>
+        inThread ? { ...it, thread: message } : { ...it, main: message }
+      ),
+    []
+  );
+  const openThread = useCallback(
+    (rootId: number) => {
+      if (rootId !== threadRootId) setQuoting(true, null); // A quote of another thread.
+      setThreadRootId(rootId);
+      setOpenedThreads((ids) => new Set(ids).add(rootId));
+    },
+    [threadRootId, setQuoting]
+  );
+  const jump = useCallback(
+    (target: { id: number; threadRootId: number | null }) => {
+      if (target.threadRootId) openThread(target.threadRootId);
+      else
+        document
+          .getElementById(`chat-message-${target.id}`)
+          ?.scrollIntoView({ block: "center" });
+    },
+    [openThread]
+  );
   const [newestId, setNewestId] = useState(0);
   const { markUpTo, pause, resume, settled } = useMarkRead(conversationId);
   const trackNewest = useCallback((messages: ChatMessage[]) => {
@@ -115,6 +140,9 @@ export function ChatPanel({
             conversation,
             sync: live.sync,
             openThread,
+            jump,
+            quoting,
+            setQuoting,
             highlightId,
             readMark: readMark ?? null,
             hasUnreadReplies,
@@ -125,6 +153,9 @@ export function ChatPanel({
       conversation,
       live.sync,
       openThread,
+      jump,
+      quoting,
+      setQuoting,
       highlightId,
       readMark,
       hasUnreadReplies,
@@ -144,13 +175,6 @@ export function ChatPanel({
       </div>
     );
   }
-  const jump = (message: ChatMessage) => {
-    if (message.threadRootId) openThread(message.threadRootId);
-    else
-      document
-        .getElementById(`chat-message-${message.id}`)
-        ?.scrollIntoView({ block: "center" });
-  };
   return (
     <ChatContextProvider value={context}>
       <section

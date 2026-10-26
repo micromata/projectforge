@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -12,17 +12,19 @@ import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { sendChatMessage } from "@/lib/rs/chat";
 import type { ChatConversation, ChatMessage } from "@/lib/rs/chat-types";
+import { useChatContext } from "./chat-context";
 import { ChatEditor } from "./chat-editor";
 import { PendingFiles } from "./pending-files";
+import { QuoteBar } from "./quote-bar";
 import { SecretSendButton } from "./secret-send-button";
 import type { ChatEditorHandle } from "./types";
 import { useChatDraft } from "./use-chat-draft";
 import { usePendingFiles } from "./use-pending-files";
 
 /**
- * Writing a message of the conversation or a reply in a thread: the editor, the files (paste, the file dialog or
- * dropped anywhere on the composer, sent with the message into the data transfer) and the send button. The draft
- * is kept until sent.
+ * Writing a message of the conversation or a reply in a thread: the editor, the message quoted (MSG-08, chosen in
+ * its actions), the files (paste, the file dialog or dropped anywhere on the composer, sent with the message into the
+ * data transfer) and the send button. The draft is kept until sent, the quote isn't part of it.
  */
 export function ChatComposer({
   conversation,
@@ -41,17 +43,25 @@ export function ChatComposer({
   const draft = useChatDraft(conversation.id, threadRootId, conversation.me.id);
   const [hasText, setHasText] = useState(!!draft.initial);
   const pending = usePendingFiles(conversation);
+  const { quoting, setQuoting } = useChatContext();
+  const inThread = threadRootId != null;
+  const quote = inThread ? quoting.thread : quoting.main;
+  useEffect(() => {
+    if (quote) editorRef.current?.focus();
+  }, [quote]);
   const send = useMutation({
     mutationFn: (html: string) =>
       sendChatMessage(
         conversation.id,
         html,
         threadRootId,
-        pending.files.map((it) => it.file)
+        pending.files.map((it) => it.file),
+        quote?.id ?? null
       ),
     onSuccess: (message) => {
       editorRef.current?.clear();
       pending.clear();
+      setQuoting(inThread, null);
       draft.save("");
       setHasText(false);
       onSent(message);
@@ -71,6 +81,12 @@ export function ChatComposer({
   return (
     <AttachmentDropZone onFiles={pending.add}>
       <div className="shrink-0 border-t bg-background">
+        {quote && (
+          <QuoteBar
+            message={quote}
+            onRemove={() => setQuoting(inThread, null)}
+          />
+        )}
         <PendingFiles files={pending.files} onRemove={pending.remove} />
         {pending.files.length > 0 && (
           <p

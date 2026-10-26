@@ -9,6 +9,12 @@ export interface ChatContextValue {
   /** Fetches the changes since the last known one (after an own action). */
   sync: () => Promise<void>;
   openThread: (rootId: number) => void;
+  /** Shows a message: scrolls to it in the conversation, or opens its thread. */
+  jump: (target: { id: number; threadRootId: number | null }) => void;
+  /** The messages being quoted in the composer of the conversation and of the open thread (MSG-08). */
+  quoting: { main: ChatMessage | null; thread: ChatMessage | null };
+  /** Quotes [message] in the composer of the thread ([inThread]) or of the conversation, null removes the quote. */
+  setQuoting: (inThread: boolean, message: ChatMessage | null) => void;
   /** The message a deep link points to (highlighted, scrolled to). */
   highlightId: number | null;
   /**
