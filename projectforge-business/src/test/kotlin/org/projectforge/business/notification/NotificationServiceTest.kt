@@ -334,6 +334,30 @@ class NotificationServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun archivedTest() {
+        val user = initTestDB.addUser("notification-archived-user")
+        val otherUser = initTestDB.addUser("notification-archived-other-user")
+        val since = Date(System.currentTimeMillis() - 60_000L)
+        val toast = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery())
+        val mailOnly = insertRule(
+            NotificationRuleType.MANUAL, user,
+            NotificationDelivery(listOf(NotificationDeliveryStep(NotificationChannel.MAIL, 0))),
+        )
+        val other = insertRule(NotificationRuleType.MANUAL, otherUser, NotificationDelivery())
+        notificationService.trigger(toast)
+        notificationService.trigger(mailOnly)
+        notificationService.trigger(other)
+        val notification = notificationDao.select(NotificationDao.Filter(ruleId = toast.id)).single()
+        assertTrue(notificationDao.findArchived(user.id!!, since).isEmpty(), "Still visible, mail only isn't listed.")
+        // Confirmed by mistake: the toast isn't visible any more, but archived.
+        notificationDao.acknowledge(notification.id!!, user)
+        assertTrue(notificationDao.findVisible(user.id!!).isEmpty())
+        assertEquals(listOf(notification.id), notificationDao.findArchived(user.id!!, since).map { it.id })
+        assertTrue(notificationDao.findArchived(otherUser.id!!, since).isEmpty(), "The other one is still open.")
+        assertTrue(notificationDao.findArchived(user.id!!, Date(System.currentTimeMillis() + 60_000L)).isEmpty())
+    }
+
+    @Test
     fun expireOfDeactivatedRuleTest() {
         val user = initTestDB.addUser("notification-deactivated-rule-user")
         val delivery = NotificationDelivery(

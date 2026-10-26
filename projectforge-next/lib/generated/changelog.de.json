@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.16",
+    "date" : "2026-10-26",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Benachrichtigungen: Die Glocke hat eine Schaltfläche „Archivierte Einträge“, die die bestätigten oder erledigten Benachrichtigungen der letzten 90 Tage anzeigt, so kann eine versehentlich bestätigte Benachrichtigung weiterhin gelesen und geöffnet werden." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Benachrichtigungen: Ist der Mailserver nicht erreichbar, wird eine fehlgeschlagene Benachrichtigungsmail nur noch einmal mit Stacktrace geloggt und ihre Ursache im Zustellstatus angezeigt; die weiteren Mails des Laufs warten auf den nächsten Lauf, statt jeweils auf das Timeout." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {
