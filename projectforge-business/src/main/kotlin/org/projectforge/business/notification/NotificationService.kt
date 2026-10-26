@@ -32,10 +32,14 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.utils.HtmlSanitizer
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.mail.MailSendException
 import org.projectforge.menu.builder.MenuItemDefId
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.time.LocalDate
 import java.util.Date
 import java.util.concurrent.locks.ReentrantLock
@@ -78,6 +82,22 @@ class NotificationService {
     /** The result of a rule run. */
     class RunResult(val recipients: Int = 0, val created: Int = 0, val errors: Int = 0, val lastError: String? = null)
 
+    /**
+     * The state of one job run (or of a single delivery): once the mail server isn't reachable, the further mails of
+     * the run aren't tried (each would wait for the connect timeout and log the same failure), but stay due for the
+     * next run.
+     */
+    internal class DeliveryRun {
+        var mailServerUnreachable = false
+        var postponedMails = 0
+
+        fun logPostponed(job: String) {
+            if (postponedMails > 0) {
+                log.info { "$job: mail server not reachable, $postponedMails mail(s) postponed to the next run." }
+            }
+        }
+    }
+
     /** The result of [preview]. */
     class Preview(
         /** The users who would be notified by a run today (not yet notified ones and already notified ones). */
@@ -110,9 +130,8 @@ class NotificationService {
         handlerList.associateBy { it.ruleType }
     }
 
-    private val senders: Map<NotificationChannel, NotificationChannelSender> by lazy {
-        senderList.associateBy { it.channel }
-    }
+    private val senders: Map<NotificationChannel, NotificationChannelSender>
+        get() = senderList.associateBy { it.channel } // A few senders: not cached, so a test may replace them.
 
     @Scheduled(cron = "\${projectforge.notification.cron:0 0 7-19 * * *}")
     fun ruleJob() {
@@ -147,11 +166,12 @@ class NotificationService {
             lock.withLock {
                 var errors = 0
                 var lastError: String? = null
+                val run = DeliveryRun()
                 notificationRuleDao.selectActive().forEach { rule ->
                     if (!rule.readSchedule().isDue(today) || rule.lastRun?.let { toLocalDate(it) } == today) {
                         return@forEach
                     }
-                    val result = runRule(rule, today, now)
+                    val result = runRule(rule, today, now, run)
                     notificationRuleDao.updateLastRun(rule.id!!, now)
                     errors += result.errors
                     result.lastError?.let { lastError = it }
@@ -160,6 +180,7 @@ class NotificationService {
                 val resolveResult = resolvePending(today)
                 errors += resolveResult.errors
                 resolveResult.lastError?.let { lastError = it }
+                run.logPostponed("Notification rule job")
                 ruleJobStats.record(start, errors, lastError)
             }
         } catch (ex: Exception) {
@@ -180,15 +201,17 @@ class NotificationService {
             var lastError: String? = null
             // A rule deactivated since the last rule job sends nothing more (that job expires its notifications).
             val activeRuleIds = notificationRuleDao.selectActive().mapNotNull { it.id }.toSet()
+            val run = DeliveryRun()
             notificationDao.findDueDeliveries(now).forEach { notification ->
                 if (notification.ruleId != null && notification.ruleId !in activeRuleIds) {
                     notificationDao.finish(notification, NotificationStatus.EXPIRED)
                     return@forEach
                 }
-                val result = deliverDueSteps(notification, now)
+                val result = deliverDueSteps(notification, now, run)
                 errors += result.errors
                 result.lastError?.let { lastError = it }
             }
+            run.logPostponed("Notification delivery job")
             deliveryJobStats.record(start, errors, lastError)
         } catch (ex: Exception) {
             log.error(NotificationLogEvents.JOB_FAILED, ex) { "Notification delivery job failed: ${ex.message}" }
@@ -201,7 +224,9 @@ class NotificationService {
     /** Runs the rule now, regardless of its schedule (already notified recipients aren't notified twice). */
     fun trigger(rule: NotificationRuleDO): RunResult {
         lock.withLock {
-            val result = runRule(rule, today(), Date())
+            val run = DeliveryRun()
+            val result = runRule(rule, today(), Date(), run)
+            run.logPostponed("Notification rule #${rule.id} '${rule.name}'")
             log.info { "Notification rule #${rule.id} '${rule.name}' triggered by hand: ${result.created} notification(s) created for ${result.recipients} recipient(s), ${result.errors} error(s)." }
             return result
         }
@@ -353,7 +378,7 @@ class NotificationService {
     }
 
     /** Evaluates the rule and creates the notifications of the recipients not yet notified for the period. */
-    internal fun runRule(rule: NotificationRuleDO, today: LocalDate, now: Date): RunResult {
+    internal fun runRule(rule: NotificationRuleDO, today: LocalDate, now: Date, run: DeliveryRun = DeliveryRun()): RunResult {
         val evaluation: NotificationRuleHandler.Evaluation
         val handler: NotificationRuleHandler
         val recipients: List<PFUserDO>
@@ -378,7 +403,7 @@ class NotificationService {
                 notification.dedupKey = dedupKey
                 notificationDao.insert(notification)
                 ++created
-                val result = deliverDueSteps(notification, now)
+                val result = deliverDueSteps(notification, now, run)
                 errors += result.errors
                 result.lastError?.let { lastError = it }
             } catch (ex: Exception) {
@@ -424,7 +449,7 @@ class NotificationService {
     }
 
     /** Delivers the due, not yet processed steps of the notification (re-read: the recipient may have confirmed it). */
-    internal fun deliverDueSteps(given: NotificationDO, now: Date): RunResult {
+    internal fun deliverDueSteps(given: NotificationDO, now: Date, run: DeliveryRun = DeliveryRun()): RunResult {
         val notification = notificationDao.findById(given.id) ?: return RunResult()
         val state = notification.readDeliveryState()
         val delivery = notification.readDelivery()
@@ -443,6 +468,10 @@ class NotificationService {
                 step.error = if (sender == null) "Channel ${step.channel} not supported." else "Recipient not available."
                 return@forEach
             }
+            if (step.channel == NotificationChannel.MAIL && run.mailServerUnreachable) {
+                ++run.postponedMails // Stays due, no attempt counted: the next run tries again.
+                return@forEach
+            }
             try {
                 val reason = sender.deliver(notification, recipient, now)
                 if (reason == null) {
@@ -452,12 +481,18 @@ class NotificationService {
                     step.error = reason
                 }
             } catch (ex: Exception) {
-                val error = ex.message ?: ex.javaClass.simpleName
+                // A failed mail is already logged by SendMail with its stack trace: here only one line with its cause.
+                val mailFailure = ex is MailSendException
+                val error = if (mailFailure) rootCauseMessage(ex) else ex.message ?: ex.javaClass.simpleName
+                if (mailFailure && isConnectFailure(ex)) {
+                    run.mailServerUnreachable = true
+                }
+                val logged = if (mailFailure) null else ex
                 val attempt = step.attempts + 1
                 if (step.recordFailure(error, now)) {
-                    log.warn(NotificationLogEvents.DELIVERY_FAILED, ex) { "Notification #${notification.id}: ${step.channel} to user #${recipient.id} failed (attempt $attempt of ${NotificationDeliveryState.MAX_ATTEMPTS}), retry at ${step.dueAt}: $error" }
+                    log.warn(NotificationLogEvents.DELIVERY_FAILED, logged) { "Notification #${notification.id}: ${step.channel} to user #${recipient.id} failed (attempt $attempt of ${NotificationDeliveryState.MAX_ATTEMPTS}), retry at ${step.dueAt}: $error" }
                 } else {
-                    log.error(NotificationLogEvents.DELIVERY_FAILED, ex) { "Notification #${notification.id}: ${step.channel} to user #${recipient.id} failed finally after $attempt attempts: $error" }
+                    log.error(NotificationLogEvents.DELIVERY_FAILED, logged) { "Notification #${notification.id}: ${step.channel} to user #${recipient.id} failed finally after $attempt attempts: $error" }
                 }
                 ++errors
                 lastError = error
@@ -575,5 +610,19 @@ class NotificationService {
         internal fun toLocalDate(date: Date): LocalDate = date.toInstant().atZone(zoneId()).toLocalDate()
 
         private fun zoneId() = Configuration.instance.defaultTimeZone.toZoneId()
+
+        private fun causes(ex: Throwable): Sequence<Throwable> =
+            generateSequence(ex) { cause -> cause.cause?.takeIf { it !== cause } }.take(20)
+
+        /** The message of the innermost cause, e.g. `Connect timed out` instead of `mail.error.exception`. */
+        internal fun rootCauseMessage(ex: Throwable): String {
+            val root = causes(ex).last()
+            return root.message?.takeIf { it.isNotBlank() } ?: root.javaClass.simpleName
+        }
+
+        /** The mail server isn't reachable (host unknown, connection refused or timed out). */
+        internal fun isConnectFailure(ex: Throwable): Boolean = causes(ex).any {
+            it is ConnectException || it is SocketTimeoutException || it is UnknownHostException
+        }
     }
 }
