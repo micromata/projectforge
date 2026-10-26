@@ -1827,6 +1827,10 @@
       "intro": "Customers that belong together (ACME Germany, ACME Logistics, ACME Holding) form a group, which the customer filters of the order book, the invoices, the projects and the cost 2 offer like a single customer. Business units combine groups and customers and get a filter of their own. A customer belongs to at most one group, a group or customer to at most one business unit. Project groups do the same for the projects of the project filters.",
       "matches": "Matches {arg0} customers",
       "matchesNone": "Matches no customer yet",
+      "members": {
+        "more": "… and {arg0} more",
+        "tooltip": "Comprises"
+      },
       "name": "Name",
       "orderAccess": {
         "_": "Order access",
@@ -3890,10 +3894,77 @@
         },
         "title": "Feedback {arg0}"
       },
+      "case": {
+        "assignee": "Assignee",
+        "clientAdvisory": "Released to employees",
+        "clientAdvisoryHint": "Every employee sees the case with the measures for non-techies and confirms them, unless the own devices prove the fix already.",
+        "clientAgentCheckId": "Check of the client agent",
+        "closeReason": "Reason of closing",
+        "code": "Id",
+        "codeHint": "CVE id of a vulnerability; an incident without id gets the next one of the year.",
+        "cveIds": "CVE ids",
+        "error": {
+          "codeExists": "The id {arg0} exists already.",
+          "cveId": "A CVE needs its CVE id, e.g. CVE-2026-12345."
+        },
+        "kind": {
+          "_": "Kind",
+          "CVE": "Vulnerability (CVE)",
+          "INCIDENT": "Incident"
+        },
+        "list": {
+          "hint": "Several values separated by commas."
+        },
+        "minClientAgentVersion": "Minimum version of the client agent",
+        "new": {
+          "hint": "The closure overview with team checks and devices is available after the first save."
+        },
+        "nonTechMeasures": "Measures for non-techies",
+        "priority": "Priority",
+        "scanPluginIds": "Scanner plugin ids",
+        "section": {
+          "criteria": "Fix criteria",
+          "general": "Case",
+          "measures": "Measures"
+        },
+        "status": "Status",
+        "techMeasures": "Measures for techies"
+      },
+      "cases": {
+        "add": "New case",
+        "edit": "Edit case",
+        "list": "Cases"
+      },
       "clientAnswer": {
         "DONE": "Done",
         "NOT_AFFECTED": "Not affected",
         "QUESTION": "Question/problem"
+      },
+      "closure": {
+        "closable": "Can be closed: every criterion is met.",
+        "close": "Close case",
+        "closeWithOpenItems": "There are open items: only the security officer closes the case now, with a reason.",
+        "confirmations": "Confirmed by employees",
+        "devices": "Devices",
+        "editCase": "Edit",
+        "error": {
+          "openItems": "The case has open items; only the security officer may close it now.",
+          "reason": "A reason is required for closing."
+        },
+        "inactive": "Inactive devices",
+        "noCriteria": "No fix criteria: only team checks and confirmations count.",
+        "notClosable": "Not closable yet:",
+        "open": {
+          "devicesNoData": "{arg0} devices without data or confirmation",
+          "devicesOpen": "{arg0} devices not fixed",
+          "questions": "{arg0} open questions of employees",
+          "riskAccepted": "{arg0} risks accepted (decision of the security officer)",
+          "teamChecks": "{arg0} team checks not answered or in progress"
+        },
+        "openOverview": "Open closure overview",
+        "questions": "Questions",
+        "teamChecks": "Team checks",
+        "title": "Closure overview"
       },
       "column": {
         "assignee": "Assignee",
@@ -3947,6 +4018,25 @@
       },
       "demo": "Demo",
       "deviation": "deviation",
+      "device": {
+        "agentVersion": "Agent version",
+        "check": "Check",
+        "checkFailed": "failed",
+        "checkPassed": "passed",
+        "confirmation": "Confirmation",
+        "hostname": "Host name",
+        "lastSeen": "Last reported",
+        "openFindings": "Open scan findings",
+        "serialNumber": "Serial number",
+        "state": {
+          "CONFIRMED": "Confirmed",
+          "FIXED": "Fixed",
+          "NO_DATA": "No data",
+          "OPEN": "Not fixed"
+        },
+        "stateLabel": "State",
+        "user": "User"
+      },
       "discussion": {
         "newPost": "New post (Markdown)",
         "post": "Post",
@@ -3958,9 +4048,11 @@
         "title": "Discussion"
       },
       "error": {
+        "answer": "An answer is required.",
         "expiryRequired": "A risk acceptance needs a period of validity.",
         "noAccess": "Not allowed for this role.",
         "notAssignee": "The binding priority is set by the assignee or the security officer.",
+        "notFound": "Not found.",
         "openFindings": "Can be closed only when every finding is fixed, mitigated, not affected or accepted as a risk.",
         "reasonRequired": "A reason is required.",
         "riskNeedsManagement": "From P2 on, the management approves as well; the prototype does not show this."
@@ -4046,6 +4138,27 @@
         "INSTANCE": "Instance",
         "SYSTEM": "System"
       },
+      "live": {
+        "devices": {
+          "hint": "All devices as the vulnerability scanner and the log server report them. Personal data: visible to the security team only.",
+          "title": "Devices"
+        },
+        "entry": "Real data:",
+        "my": {
+          "devices": "My devices",
+          "hint": "The measures to confirm, the open checks of your groups and your devices as the vulnerability scanner and the log server report them.",
+          "noDevices": "No devices reported for you.",
+          "teamChecks": "Checks of my groups",
+          "title": "My CVE-Radar"
+        },
+        "nav": {
+          "cases": "Cases",
+          "devices": "Devices",
+          "my": "My CVE-Radar",
+          "prototype": "Prototype"
+        },
+        "saved": "Saved."
+      },
       "masterDataOnly": {
         "info": "Only the master data of this system is visible for this role (code, name, group, level). Components and findings require a grant.",
         "short": "master data only"
@@ -4070,6 +4183,13 @@
         "workaround": "Workaround"
       },
       "menu": "CVE-Radar",
+      "my": {
+        "error": {
+          "question": "Please describe the question or problem."
+        },
+        "fixedByEvidence": "Your devices already report the fix, no confirmation is needed.",
+        "question": "Question or problem"
+      },
       "myAreas": {
         "findings": "Open findings of my systems",
         "groups": "My groups: {arg0}",
@@ -4091,6 +4211,10 @@
         "label": "possibly"
       },
       "priority": {
+        "P1": "P1",
+        "P2": "P2",
+        "P3": "P3",
+        "P4": "P4",
         "binding": "Binding priority",
         "suggested": "Suggestion {arg0}: {arg1}"
       },
@@ -4129,6 +4253,7 @@
         "save": "Save rating"
       },
       "reason": "Reason",
+      "right": "CVE-Radar",
       "role": {
         "CA": "CVE-Radar admin",
         "EMPLOYEE": "Employee",
@@ -4202,6 +4327,27 @@
         "planned": "planned for {arg0}",
         "plannedInDays": "Planned in days",
         "version": "version {arg0}"
+      },
+      "teamCheck": {
+        "add": "Request team check",
+        "addInfo": "The group checks whether the project or system is affected and answers like team feedback.",
+        "answer": "Answer",
+        "answeredBy": "Answered by",
+        "comment": "Comment, version or planned date",
+        "date": "Date",
+        "delete": "Delete",
+        "deleteFor": "Delete team check {arg0}",
+        "error": {
+          "caseClosed": "The case is closed.",
+          "group": "Please choose a group.",
+          "reason": "A reason is required for \"not affected\" and \"risk accepted\".",
+          "subject": "Please name the project or system."
+        },
+        "group": "Group",
+        "none": "No team checks.",
+        "open": "open",
+        "reason": "Reason",
+        "subject": "Project or system"
       },
       "title": "CVE-Radar",
       "tree": {

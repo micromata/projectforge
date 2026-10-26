@@ -1827,6 +1827,10 @@
       "intro": "Zusammengehörende Kunden (ACME Germany, ACME Logistics, ACME Holding) bilden eine Gruppe, die die Kundenfilter von Auftragsbuch, Rechnungen, Projekten und Kost2 wie einen einzelnen Kunden anbieten. Business Units fassen Gruppen und Kunden zusammen und erhalten einen eigenen Filter. Ein Kunde gehört zu höchstens einer Gruppe, eine Gruppe oder ein Kunde zu höchstens einer Business Unit. Projektgruppen leisten dasselbe für die Projekte der Projektfilter.",
       "matches": "Trifft {arg0} Kunden",
       "matchesNone": "Trifft noch keinen Kunden",
+      "members": {
+        "more": "… und {arg0} weitere",
+        "tooltip": "Umfasst"
+      },
       "name": "Name",
       "orderAccess": {
         "_": "Auftragsfreigaben",
@@ -3890,10 +3894,77 @@
         },
         "title": "Feedback {arg0}"
       },
+      "case": {
+        "assignee": "Bearbeitung",
+        "clientAdvisory": "Für Mitarbeitende freigegeben",
+        "clientAdvisoryHint": "Alle Mitarbeitenden sehen den Fall mit den Maßnahmen für Non-Techies und bestätigen sie, sofern ihre Geräte die Behebung nicht schon belegen.",
+        "clientAgentCheckId": "Prüfung des Client-Agents",
+        "closeReason": "Begründung des Abschlusses",
+        "code": "Kennung",
+        "codeHint": "CVE-ID einer Schwachstelle; ein Vorfall ohne Kennung erhält die nächste des Jahres.",
+        "cveIds": "CVE-IDs",
+        "error": {
+          "codeExists": "Die Kennung {arg0} gibt es schon.",
+          "cveId": "Eine CVE braucht ihre CVE-ID, z. B. CVE-2026-12345."
+        },
+        "kind": {
+          "_": "Art",
+          "CVE": "Schwachstelle (CVE)",
+          "INCIDENT": "Vorfall"
+        },
+        "list": {
+          "hint": "Mehrere Werte durch Kommas getrennt."
+        },
+        "minClientAgentVersion": "Mindestversion des Client-Agents",
+        "new": {
+          "hint": "Die Abschlussübersicht mit Team-Prüfungen und Geräten gibt es nach dem ersten Speichern."
+        },
+        "nonTechMeasures": "Maßnahmen für Non-Techies",
+        "priority": "Priorität",
+        "scanPluginIds": "Plugin-IDs des Scanners",
+        "section": {
+          "criteria": "Behebungskriterien",
+          "general": "Fall",
+          "measures": "Maßnahmen"
+        },
+        "status": "Status",
+        "techMeasures": "Maßnahmen für Techies"
+      },
+      "cases": {
+        "add": "Neuer Fall",
+        "edit": "Fall bearbeiten",
+        "list": "Fälle"
+      },
       "clientAnswer": {
         "DONE": "Erledigt",
         "NOT_AFFECTED": "Nicht betroffen",
         "QUESTION": "Frage/Problem"
+      },
+      "closure": {
+        "closable": "Schließbar: alle Kriterien sind erfüllt.",
+        "close": "Fall schließen",
+        "closeWithOpenItems": "Es gibt offene Punkte: Schließen kann den Fall jetzt nur der Security Officer, mit Begründung.",
+        "confirmations": "Von Mitarbeitenden bestätigt",
+        "devices": "Geräte",
+        "editCase": "Bearbeiten",
+        "error": {
+          "openItems": "Der Fall hat offene Punkte; schließen darf ihn jetzt nur der Security Officer.",
+          "reason": "Zum Schließen ist eine Begründung nötig."
+        },
+        "inactive": "Inaktive Geräte",
+        "noCriteria": "Keine Behebungskriterien: es zählen nur Team-Prüfungen und Bestätigungen.",
+        "notClosable": "Noch nicht schließbar:",
+        "open": {
+          "devicesNoData": "{arg0} Geräte ohne Daten oder Bestätigung",
+          "devicesOpen": "{arg0} Geräte nicht behoben",
+          "questions": "{arg0} offene Rückfragen von Mitarbeitenden",
+          "riskAccepted": "{arg0} akzeptierte Risiken (Entscheidung des Security Officers)",
+          "teamChecks": "{arg0} Team-Prüfungen unbeantwortet oder in Arbeit"
+        },
+        "openOverview": "Abschlussübersicht öffnen",
+        "questions": "Rückfragen",
+        "teamChecks": "Team-Prüfungen",
+        "title": "Abschlussübersicht"
       },
       "column": {
         "assignee": "Bearbeitung",
@@ -3947,6 +4018,25 @@
       },
       "demo": "Demo",
       "deviation": "Abweichung",
+      "device": {
+        "agentVersion": "Agent-Version",
+        "check": "Prüfung",
+        "checkFailed": "nicht bestanden",
+        "checkPassed": "bestanden",
+        "confirmation": "Bestätigung",
+        "hostname": "Hostname",
+        "lastSeen": "Zuletzt gemeldet",
+        "openFindings": "Offene Scanbefunde",
+        "serialNumber": "Seriennummer",
+        "state": {
+          "CONFIRMED": "Bestätigt",
+          "FIXED": "Behoben",
+          "NO_DATA": "Ohne Daten",
+          "OPEN": "Nicht behoben"
+        },
+        "stateLabel": "Stand",
+        "user": "Person"
+      },
       "discussion": {
         "newPost": "Neuer Beitrag (Markdown)",
         "post": "Beitrag senden",
@@ -3958,9 +4048,11 @@
         "title": "Diskussion"
       },
       "error": {
+        "answer": "Eine Antwort ist nötig.",
         "expiryRequired": "Eine Risikoakzeptanz braucht eine Gültigkeitsdauer.",
         "noAccess": "Für diese Rolle nicht erlaubt.",
         "notAssignee": "Die verbindliche Priorität setzt, wer die Schwachstelle bearbeitet, oder der Security Officer.",
+        "notFound": "Nicht gefunden.",
         "openFindings": "Erst schließbar, wenn alle Befunde behoben, abgeschwächt, nicht betroffen oder als Risiko akzeptiert sind.",
         "reasonRequired": "Eine Begründung ist erforderlich.",
         "riskNeedsManagement": "Ab P2 genehmigt zusätzlich die Geschäftsleitung; das zeigt der Prototyp nicht."
@@ -4046,6 +4138,27 @@
         "INSTANCE": "Instanz",
         "SYSTEM": "System"
       },
+      "live": {
+        "devices": {
+          "hint": "Alle Geräte, wie Schwachstellenscanner und Log-Server sie melden. Personenbezogene Daten: nur für das Security-Team sichtbar.",
+          "title": "Geräte"
+        },
+        "entry": "Echte Daten:",
+        "my": {
+          "devices": "Meine Geräte",
+          "hint": "Die zu bestätigenden Maßnahmen, die offenen Prüfungen der eigenen Gruppen und die eigenen Geräte, wie Schwachstellenscanner und Log-Server sie melden.",
+          "noDevices": "Für dich sind keine Geräte gemeldet.",
+          "teamChecks": "Prüfungen meiner Gruppen",
+          "title": "Mein CVE-Radar"
+        },
+        "nav": {
+          "cases": "Fälle",
+          "devices": "Geräte",
+          "my": "Mein CVE-Radar",
+          "prototype": "Prototyp"
+        },
+        "saved": "Gespeichert."
+      },
       "masterDataOnly": {
         "info": "Für diese Rolle sind nur die Stammdaten dieses Systems sichtbar (Kürzel, Name, Gruppe, Stufe). Komponenten und Befunde erfordern eine Freigabe.",
         "short": "nur Stammdaten"
@@ -4070,6 +4183,13 @@
         "workaround": "Workaround"
       },
       "menu": "CVE-Radar",
+      "my": {
+        "error": {
+          "question": "Bitte die Frage oder das Problem beschreiben."
+        },
+        "fixedByEvidence": "Deine Geräte melden die Behebung schon, eine Bestätigung ist nicht nötig.",
+        "question": "Frage oder Problem"
+      },
       "myAreas": {
         "findings": "Offene Befunde meiner Systeme",
         "groups": "Meine Gruppen: {arg0}",
@@ -4091,6 +4211,10 @@
         "label": "möglicherweise"
       },
       "priority": {
+        "P1": "P1",
+        "P2": "P2",
+        "P3": "P3",
+        "P4": "P4",
         "binding": "Verbindliche Priorität",
         "suggested": "Vorschlag {arg0}: {arg1}"
       },
@@ -4129,6 +4253,7 @@
         "save": "Bewertung speichern"
       },
       "reason": "Begründung",
+      "right": "CVE-Radar",
       "role": {
         "CA": "CVE-Radar-Admin",
         "EMPLOYEE": "Mitarbeiter:in",
@@ -4202,6 +4327,27 @@
         "planned": "geplant bis {arg0}",
         "plannedInDays": "Geplant in Tagen",
         "version": "Version {arg0}"
+      },
+      "teamCheck": {
+        "add": "Team-Prüfung anfordern",
+        "addInfo": "Die Gruppe prüft, ob das Projekt oder System betroffen ist, und antwortet wie beim Team-Feedback.",
+        "answer": "Antwort",
+        "answeredBy": "Beantwortet von",
+        "comment": "Kommentar, Version oder geplanter Termin",
+        "date": "Datum",
+        "delete": "Löschen",
+        "deleteFor": "Team-Prüfung {arg0} löschen",
+        "error": {
+          "caseClosed": "Der Fall ist geschlossen.",
+          "group": "Bitte eine Gruppe wählen.",
+          "reason": "Für „nicht betroffen\" und „Risiko akzeptiert\" ist eine Begründung nötig.",
+          "subject": "Bitte das Projekt oder System nennen."
+        },
+        "group": "Gruppe",
+        "none": "Keine Team-Prüfungen.",
+        "open": "offen",
+        "reason": "Begründung",
+        "subject": "Projekt oder System"
       },
       "title": "CVE-Radar",
       "tree": {

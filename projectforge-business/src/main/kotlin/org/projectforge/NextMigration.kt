@@ -314,6 +314,15 @@ object NextMigration {
             newEntryRoute = "customer/new",
             legacyApp = null,
         ),
+        // Hand built list and edit page of the cases of the CVE-Radar (plugin cveradar, CvrCaseEntityRest,
+        // components/features/cve-radar/cases), new in next: no legacy page, so no way back and no redirect
+        // (legacyApp = null). A row opens the closure overview (`cveradar/closure/<id>`).
+        "cvrcase" to NextPage(
+            route = "cvrcase",
+            editRoute = "cvrcase/$ID_PLACEHOLDER",
+            newEntryRoute = "cvrcase/new",
+            legacyApp = null,
+        ),
         // Hand built list and edit page of the employees (EmployeeEntityRest, components/features/employee), migrated
         // from React; the time-dependent attributes (status, weekly hours, annual leave) are edited in dialogs of the
         // form (`employee/validSinceAttr/...`). The React pages are gone (no UILayout served any more): no way back and

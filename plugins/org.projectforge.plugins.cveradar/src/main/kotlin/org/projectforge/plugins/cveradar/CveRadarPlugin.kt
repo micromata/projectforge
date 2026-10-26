@@ -33,25 +33,34 @@ import org.projectforge.web.WicketSupport
 /**
  * CVE-Radar (vulnerability management, see doc/requirements/PF-CVR_CVE-Radar_Vulnerability_Management.md).
  *
- * For now only a UI prototype for the review of the specification: the pages under /next/cveradar work on test
- * data bundled with the frontend, so the plugin registers nothing but its menu entry and texts. It is not
- * activated initially; an admin switches it on in the plugin administration.
+ * R0 with real data: cases (vulnerabilities and incidents) with fix criteria and closure overview, team checks,
+ * devices from the vulnerability scanner and the log server ([CveRadarJobs]) and the employees' confirmations. The
+ * other pages under /next/cveradar are still the UI prototype on test data bundled with the frontend. The plugin is
+ * not activated initially; an admin switches it on in the plugin administration.
  */
-class CveRadarPlugin : AbstractPlugin(ID, "CVE-Radar", "Vulnerability management (prototype with test data).") {
+class CveRadarPlugin : AbstractPlugin(ID, "CVE-Radar", "Vulnerability management.") {
 
     override fun initialize() {
+        val caseDao = WicketSupport.get(CvrCaseDao::class.java)
+        val teamCheckDao = WicketSupport.get(CvrTeamCheckDao::class.java)
+        register(CASE_CATEGORY, CvrCaseDao::class.java, caseDao, "plugins.cveradar.case")
+        register("cvrteamcheck", CvrTeamCheckDao::class.java, teamCheckDao, "plugins.cveradar.teamCheck")
+        registerRight(CveRadarRight())
         val menuCreator = WicketSupport.get(MenuCreator::class.java)
         // A new page of projectforge-next without a legacy version, so no NextMigration entry:
         menuCreator.register(MenuItemDefId.MISC, MenuItemDef(info.id, "plugins.cveradar.menu", "next/cveradar"))
         addResourceBundle(RESOURCE_BUNDLE_NAME)
     }
 
-    /** The prototype's pages have no REST category to derive them from. */
+    /** The start page and the prototype's pages have no REST category to derive them from. */
     override val featureNextRoutes: List<String>
         get() = listOf("cveradar")
 
     companion object {
         const val ID = PluginAdminService.PLUGIN_CVE_RADAR_ID
         const val RESOURCE_BUNDLE_NAME = "CveRadarI18nResources"
+
+        /** The REST category of the cases (`/rs/cvrcase`) and the route of their next pages. */
+        const val CASE_CATEGORY = "cvrcase"
     }
 }

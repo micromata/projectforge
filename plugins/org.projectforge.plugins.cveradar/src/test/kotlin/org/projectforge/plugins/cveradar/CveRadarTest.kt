@@ -1,0 +1,298 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.plugins.cveradar
+
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.user.UserRightValue
+import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.user.entities.UserRightDO
+import org.projectforge.plugins.cveradar.CvrCaseStatusService.DeviceState
+import org.projectforge.plugins.cveradar.model.CvrCaseDO
+import org.projectforge.plugins.cveradar.model.CvrCaseKind
+import org.projectforge.plugins.cveradar.model.CvrCaseStatus
+import org.projectforge.plugins.cveradar.model.CvrClientAnswer
+import org.projectforge.plugins.cveradar.model.CvrConfirmationDO
+import org.projectforge.plugins.cveradar.model.CvrDeviceDO
+import org.projectforge.plugins.cveradar.model.CvrScanFindingDO
+import org.projectforge.plugins.cveradar.model.CvrTeamAnswer
+import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
+import org.projectforge.plugins.cveradar.rest.CloseRequest
+import org.projectforge.plugins.cveradar.rest.ConfirmRequest
+import org.projectforge.plugins.cveradar.rest.CveRadarRest
+import org.projectforge.plugins.cveradar.rest.TeamCheckAnswerRequest
+import org.projectforge.plugins.cveradar.rest.TeamCheckRequest
+import org.springframework.beans.factory.annotation.Autowired
+import java.util.Date
+
+/**
+ * CVE-Radar R0: access of the security team, of readers and of ordinary users (SEC-07), the sync of scan findings
+ * (EXT-02), the closure overview (CLS-02) with team checks (CLS-03) and confirmations (CLS-04), and closing (CLS-05).
+ */
+class CveRadarTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var caseDao: CvrCaseDao
+
+    @Autowired
+    private lateinit var config: CveRadarConfig
+
+    @Autowired
+    private lateinit var deviceService: CvrDeviceService
+
+    @Autowired
+    private lateinit var rest: CveRadarRest
+
+    @Autowired
+    private lateinit var statusService: CvrCaseStatusService
+
+    init {
+        listOf(
+            CvrCaseDO::class.java, CvrTeamCheckDO::class.java, CvrConfirmationDO::class.java,
+            CvrDeviceDO::class.java, CvrScanFindingDO::class.java,
+        ).forEach { MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(it.canonicalName) }
+    }
+
+    @Test
+    fun `an ordinary user sees neither cases nor devices, the security team does`() {
+        val st = user("st1", UserRightValue.READWRITE)
+        logon(st)
+        val case = insertCase("access")
+        logon(TEST_USER)
+        assertThrows(AccessException::class.java) { caseDao.find(case.id) }
+        assertThrows(AccessException::class.java) { caseDao.insert(newCase("refused")) }
+        assertThrows(AccessException::class.java) { rest.status(case.id!!) }
+        assertThrows(AccessException::class.java) { rest.devices() }
+        assertThrows(AccessException::class.java) {
+            rest.createTeamCheck(case.id!!, TeamCheckRequest(getGroupId(TEST_GROUP), "refused"))
+        }
+        logon(st)
+        assertEquals(case.code, caseDao.find(case.id)!!.code)
+        rest.devices()
+        assertTrue(rest.status(case.id!!).canEdit)
+    }
+
+    @Test
+    fun `a reader sees the closure overview without persons`() {
+        logon(user("st2", UserRightValue.READWRITE))
+        val case = insertCase("reader", minVersion = "2.0")
+        val reader = user("reader1", UserRightValue.READONLY)
+        logon(reader)
+        val view = rest.status(case.id!!)
+        assertNull(view.deviceRows, "no devices with persons for a reader (VIS-15)")
+        assertNull(view.questions)
+        assertFalse(view.canEdit)
+        assertThrows(AccessException::class.java) { rest.devices() }
+        assertThrows(AccessException::class.java) { caseDao.insert(newCase("reader-refused")) }
+    }
+
+    @Test
+    fun `an incident gets the next id of the year, a CVE needs its id`() {
+        logon(user("st3", UserRightValue.READWRITE))
+        val first = insertCase("code1")
+        val second = insertCase("code2")
+        val prefix = "${config.caseIdPrefix}-${java.time.Year.now().value}-"
+        assertTrue(first.code!!.startsWith(prefix))
+        assertEquals(first.code!!.removePrefix(prefix).toInt() + 1, second.code!!.removePrefix(prefix).toInt())
+        assertThrows(UserException::class.java) {
+            caseDao.insert(newCase("cve").also { it.kind = CvrCaseKind.CVE; it.code = "no cve" })
+        }
+        val cve = newCase("cve").also { it.kind = CvrCaseKind.CVE; it.code = "cve-2026-12345" }
+        caseDao.insert(cve)
+        assertEquals("CVE-2026-12345", cve.code)
+    }
+
+    @Test
+    fun `scan findings not reported any more are resolved and reopened when reported again`() {
+        val asset = CvrDeviceService.ScanAsset("a1", "SN-RESOLVE_testUser", "SN-RESOLVE", TEST_USER)
+        val vulnA = CvrDeviceService.ScanVuln("p-a", "A", 3, listOf("CVE-2026-0001"))
+        val vulnB = CvrDeviceService.ScanVuln("p-b", "B", 2)
+        val first = deviceService.applyScanAsset(asset, listOf(vulnA, vulnB))
+        assertEquals(2, first.newFindings)
+        val second = deviceService.applyScanAsset(asset, listOf(vulnA))
+        assertEquals(1, second.resolved)
+        val third = deviceService.applyScanAsset(asset, listOf(vulnA, vulnB))
+        assertEquals(0, third.newFindings)
+        assertEquals(1, third.reopened)
+        val device = deviceService.selectDevices().single { it.serialNumber == "SN-RESOLVE" }
+        assertEquals(getUserId(TEST_USER), device.userId, "the user name is resolved to the PF user")
+        assertEquals(2, deviceService.selectFindings(listOf(device.id!!)).size)
+    }
+
+    @Test
+    fun `devices are fixed by version, check or scan, open otherwise or confirmed by their user`() {
+        val case = CvrCaseDO().also {
+            it.id = 4711
+            it.minClientAgentVersion = "2.6.34"
+            it.clientAgentCheckId = "INC-CHECK"
+            it.scanPluginIds = "p-ca"
+            it.clientAdvisory = true
+        }
+        fun device(id: Long, version: String? = null, checks: String? = null, userId: Long? = null) =
+            CvrDeviceDO().also {
+                it.id = id
+                it.agentVersion = version
+                it.agentChecks = checks
+                it.userId = userId
+                it.lastSeen = Date()
+            }
+        val byVersion = device(1, version = "2.6.40")
+        val byCheck = device(2, checks = """{"INC-CHECK":{"passed":true,"at":0}}""")
+        val tooOld = device(3, version = "2.6.3")
+        val failedCheck = device(4, version = "2.6.40", checks = """{"INC-CHECK":{"passed":false,"at":0}}""")
+        val withFinding = device(5, version = "2.6.40")
+        val noData = device(6)
+        val confirmed = device(7, userId = 99)
+        val finding = CvrScanFindingDO().also { it.deviceId = 5; it.pluginId = "p-ca" }
+        val confirmation = CvrConfirmationDO().also { it.userId = 99; it.answer = CvrClientAnswer.DONE }
+        val status = statusService.status(
+            case,
+            listOf(byVersion, byCheck, tooOld, failedCheck, withFinding, noData, confirmed),
+            0,
+            mapOf(5L to listOf(finding)),
+            listOf(confirmation),
+            emptyList(),
+        )
+        val states = status.devices.associate { it.device.id to it.state }
+        assertEquals(DeviceState.FIXED, states[1])
+        assertEquals(DeviceState.FIXED, states[2])
+        assertEquals(DeviceState.OPEN, states[3])
+        assertEquals(DeviceState.OPEN, states[4], "a failed check beats the version")
+        assertEquals(DeviceState.OPEN, states[5], "an open scan finding of the case")
+        assertEquals(DeviceState.NO_DATA, states[6])
+        assertEquals(DeviceState.CONFIRMED, states[7])
+        assertFalse(status.closable)
+        assertEquals(mapOf("devicesOpen" to 3, "devicesNoData" to 1), status.openItems.associate { it.key to it.count })
+    }
+
+    @Test
+    fun `team checks are answered by the group only, then the case can be closed`() {
+        val st = user("st4", UserRightValue.READWRITE)
+        logon(st)
+        val case = insertCase("teamcheck")
+        val view = rest.createTeamCheck(case.id!!, TeamCheckRequest(getGroupId(TEST_GROUP), "Project X"))
+        val checkId = view.teamChecks.single().id
+        assertFalse(view.closable)
+        assertThrows(UserException::class.java) { rest.close(case.id!!, CloseRequest("too early")) }
+
+        logon(TEST_ADMIN_USER) // Not member of the group, no right.
+        assertThrows(AccessException::class.java) {
+            rest.answerTeamCheck(checkId, TeamCheckAnswerRequest(CvrTeamAnswer.FIXED))
+        }
+        logon(TEST_USER) // Member of the group, without right of the CVE-Radar.
+        assertThrows(UserException::class.java, { rest.answerTeamCheck(checkId, TeamCheckAnswerRequest(CvrTeamAnswer.NOT_AFFECTED)) }, "a reason is needed")
+        val answered = rest.answerTeamCheck(checkId, TeamCheckAnswerRequest(CvrTeamAnswer.FIXED, "version 2.1"))
+        assertEquals(CvrTeamAnswer.FIXED, answered.answer)
+        assertTrue(rest.my().teamChecks.any { it.id == checkId }, "the check is in the own view of the member")
+
+        logon(st)
+        assertTrue(rest.status(case.id!!).closable)
+        assertThrows(UserException::class.java) { rest.close(case.id!!, CloseRequest(" ")) }
+        val closed = rest.close(case.id!!, CloseRequest("All projects fixed."))
+        assertEquals(CvrCaseStatus.CLOSED, closed.case.status)
+    }
+
+    @Test
+    fun `only the security officer closes a case with open items`() {
+        val so = user("so1", UserRightValue.READWRITE)
+        val soGroup = initTestDB.addGroup("cveradar-so-test", so.username!!)
+        logon(so)
+        val case = insertCase("so")
+        rest.createTeamCheck(case.id!!, TeamCheckRequest(getGroupId(TEST_GROUP), "Project Y"))
+        assertThrows(UserException::class.java) { rest.close(case.id!!, CloseRequest("risk accepted")) }
+        config.securityOfficerGroup = soGroup.name!!
+        try {
+            assertTrue(rest.status(case.id!!).canCloseWithOpenItems)
+            assertEquals(CvrCaseStatus.CLOSED, rest.close(case.id!!, CloseRequest("risk accepted")).case.status)
+        } finally {
+            config.securityOfficerGroup = ""
+        }
+    }
+
+    @Test
+    fun `employees see released cases and their own devices only and confirm for themselves`() {
+        logon(user("st5", UserRightValue.READWRITE))
+        val released = insertCase("released") { it.clientAdvisory = true; it.nonTechMeasures = "Update." }
+        val internal = insertCase("internal")
+        deviceService.applyScanAsset(
+            CvrDeviceService.ScanAsset("a2", "SN-MY2_testUser2", "SN-MY2", TEST_USER2), emptyList(),
+        )
+        deviceService.applyScanAsset(
+            CvrDeviceService.ScanAsset("a1", "SN-MY1_testUser", "SN-MY1", TEST_USER), emptyList(),
+        )
+        logon(TEST_USER)
+        val my = rest.my()
+        assertTrue(my.devices.all { it.username == TEST_USER }, "only the own devices")
+        assertTrue(my.devices.any { it.serialNumber == "SN-MY1" })
+        assertTrue(my.advisories.any { it.id == released.id })
+        assertFalse(my.advisories.any { it.id == internal.id })
+        assertThrows(UserException::class.java) { rest.confirm(internal.id!!, ConfirmRequest(CvrClientAnswer.DONE)) }
+        assertThrows(UserException::class.java) { rest.confirm(released.id!!, ConfirmRequest(CvrClientAnswer.QUESTION)) }
+        val after = rest.confirm(released.id!!, ConfirmRequest(CvrClientAnswer.DONE))
+        assertEquals(CvrClientAnswer.DONE, after.advisories.single { it.id == released.id }.myAnswer)
+        assertEquals(
+            CvrClientAnswer.DONE,
+            deviceService.selectConfirmations(released.id!!).single { it.userId == getUserId(TEST_USER) }.answer,
+        )
+    }
+
+    private fun user(name: String, right: UserRightValue): PFUserDO {
+        val username = "${javaClass.simpleName}.$name"
+        initTestDB.getUser(username)?.let { return it }
+        logon(TEST_ADMIN_USER)
+        val user = PFUserDO().also {
+            it.username = username
+            it.firstname = name
+            it.lastname = "CveRadar"
+            it.addRight(UserRightDO(CveRadarRightId.PLUGIN_CVERADAR, right))
+        }
+        return initTestDB.addUser(user)
+    }
+
+    private fun newCase(title: String) = CvrCaseDO().also {
+        it.title = title
+        it.kind = CvrCaseKind.INCIDENT
+        it.status = CvrCaseStatus.NEW
+    }
+
+    private fun insertCase(
+        title: String,
+        minVersion: String? = null,
+        init: (CvrCaseDO) -> Unit = {},
+    ): CvrCaseDO {
+        val case = newCase(title).also {
+            it.minClientAgentVersion = minVersion
+            init(it)
+        }
+        caseDao.insert(case)
+        return case
+    }
+}
