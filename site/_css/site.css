@@ -846,6 +846,12 @@ a.changelog-pill-docker:hover {
   width: 100%;
   height: auto;
 }
+/* Several screenshots of a section, one below the other: [.pf-screenshots] block around the images. */
+.pf-adoc-sections .pf-screenshots > .content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
 .pf-adoc-sections .imageblock .title {
   margin-top: 0.5rem;
   font-size: 13px;
@@ -893,9 +899,11 @@ a.changelog-pill-docker:hover {
   max-width: var(--container-narrow);
 }
 @media (width >= 56.25rem) {
+  /* Heading, subtitle and list on the left; a screenshot column taller than the text extends the last row only. */
   .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto 1fr;
     column-gap: 3rem;
   }
   .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) > h2 {
@@ -904,28 +912,24 @@ a.changelog-pill-docker:hover {
   .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) > .sectionbody {
     display: contents;
   }
-  .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) > .sectionbody > :not(.imageblock, .pf-gallery) {
+  .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) > .sectionbody > :not(.imageblock, .pf-gallery, .pf-screenshots) {
     grid-column: 1;
   }
   .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) > .sectionbody > .dlist,
   .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) > .sectionbody > .ulist {
     margin-top: 1.5rem;
   }
-  .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) > .sectionbody > :is(.imageblock, .pf-gallery) {
+  .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) > .sectionbody > :is(.imageblock, .pf-gallery, .pf-screenshots) {
     grid-column: 2;
     grid-row: 1 / span 3;
     align-self: center;
   }
-  .pf-adoc-sections > .sect1:has(.imageblock) > .sectionbody > .imageblock + .imageblock {
-    grid-row: 4;
-    margin-top: 1.5rem;
-  }
   /* Every other band mirrors: screenshot left, text right. */
   .pf-adoc-sections > .sect1:nth-child(even of .sect1):has(.imageblock, .pf-gallery) > h2,
-  .pf-adoc-sections > .sect1:nth-child(even of .sect1):has(.imageblock, .pf-gallery) > .sectionbody > :not(.imageblock, .pf-gallery) {
+  .pf-adoc-sections > .sect1:nth-child(even of .sect1):has(.imageblock, .pf-gallery) > .sectionbody > :not(.imageblock, .pf-gallery, .pf-screenshots) {
     grid-column: 2;
   }
-  .pf-adoc-sections > .sect1:nth-child(even of .sect1):has(.imageblock, .pf-gallery) > .sectionbody > :is(.imageblock, .pf-gallery) {
+  .pf-adoc-sections > .sect1:nth-child(even of .sect1):has(.imageblock, .pf-gallery) > .sectionbody > :is(.imageblock, .pf-gallery, .pf-screenshots) {
     grid-column: 1;
   }
 }

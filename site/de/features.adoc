@@ -45,8 +45,11 @@ Verbrauchsbalken:: Auf einen Blick sehen, welche Strukturelemente im Budget lieg
 Ressourcenplanung:: Das Personal Woche für Woche über alle Projekte planen, damit Projektleitung und Mitarbeitende immer wissen, wer woran arbeitet.
 Gantt-Diagramme:: Den Plan für das Team und die Kunden visualisieren.
 
+[.pf-screenshots]
+--
 image::2026-OrderBook.png[Auftragsbuch,link=/uploads/screenshots/2026-OrderBook.png]
 image::2026-TaskTree.png[Strukturbaum mit Verbrauchsbalken,link=/uploads/screenshots/2026-TaskTree.png]
+--
 
 [[time_tracking]]
 == Zeiterfassung
@@ -112,8 +115,11 @@ Liquiditätsplanung:: Erwartete Zahlungen, wiederkehrende Serien und Rechnungen 
 Bankkonten:: Kontoauszüge importieren und die Umsätze der Konten durchsuchen.
 DATEV:: Buchungssätze und Eingangsrechnungen aus DATEV importieren und betriebswirtschaftliche Auswertungen (BWA) erhalten.
 
+[.pf-screenshots]
+--
 image::2026-Statistics.png[Statistiken und Forecast,link=/uploads/screenshots/2026-Statistics.png]
 image::2026-Liquidity.png[Liquiditätsvorschau,link=/uploads/screenshots/2026-Liquidity.png]
+--
 
 [[collaboration]]
 == Zusammenarbeit
@@ -128,9 +134,12 @@ Word-Vorlagen:: Verträge und Serienbriefe aus eigenen Word-Vorlagen erzeugen, a
 Umfragen:: Das Team fragen und schnell eine Antwort bekommen.
 Büroorganisation:: Verträge, Post-Eingangs- und -Ausgangsbuch, Besucherbuch, Bibliothek, Softwarelizenzen und Hardware.
 
+[.pf-screenshots]
+--
 image::2026-Chat.png[Chatraum eines Projekts,link=/uploads/screenshots/2026-Chat.png]
 image::2026-Calendar.png[Teamkalender mit Urlauben und Feiertagen,link=/uploads/screenshots/2026-Calendar.png]
 image::2026-DataTransfer.png[Datentransfer,link=/uploads/screenshots/2026-DataTransfer.png]
+--
 
 [[easy_to_use]]
 == Einfache Bedienung
@@ -144,8 +153,11 @@ Excel überall:: Jede Liste nach Excel exportieren.
 Historie:: Jede Änderung wird mit Wer und Wann protokolliert – und lässt sich kommentieren.
 Zwei Sprachen:: Deutsche und englische Oberfläche, Mails in der Sprache des Empfängers.
 
+[.pf-screenshots]
+--
 image::2026-Menu.png[Hauptmenü und Favoriten,link=/uploads/screenshots/2026-Menu.png]
 image::2026-Dark.png[Dunkles Design,link=/uploads/screenshots/2026-Dark.png]
+--
 
 [[security_integration]]
 == Sicherheit & Integration
