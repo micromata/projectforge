@@ -280,6 +280,14 @@ class ChatRest {
         return ResponseEntity.noContent().build()
     }
 
+    /** The thread of the message was opened: resolves the notifications about mentions in it. */
+    @AccessChecked("ChatService.markThreadRead: read access of the host to the conversation, root of this conversation only, own notifications only")
+    @PostMapping("conversation/{id}/thread/{rootId}/read")
+    fun markThreadRead(@PathVariable id: Long, @PathVariable rootId: Long): ResponseEntity<Unit> {
+        chatService.markThreadRead(id, rootId)
+        return ResponseEntity.noContent().build()
+    }
+
     @AccessChecked("ChatService.markUnread: read access of the host to the conversation, message of this conversation only, own state only")
     @PostMapping("conversation/{id}/unread")
     fun markUnread(@PathVariable id: Long, @RequestBody request: ChatReadRequest): ResponseEntity<Unit> {

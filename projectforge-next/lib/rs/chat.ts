@@ -192,6 +192,11 @@ export function markChatRead(id: number, messageId: number) {
   return chatPost<void>(`${BASE}/conversation/${id}/read`, { messageId });
 }
 
+/** The thread of the message was opened: resolves the notifications about mentions in it. */
+export function markChatThreadRead(id: number, rootId: number) {
+  return chatPost<void>(`${BASE}/conversation/${id}/thread/${rootId}/read`, {});
+}
+
 /** Marks the conversation unread from the message on (read up to the messages before it). */
 export function markChatUnread(id: number, messageId: number) {
   return chatPost<void>(`${BASE}/conversation/${id}/unread`, { messageId });

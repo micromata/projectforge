@@ -110,6 +110,13 @@ abstract class AbstractCache {
     private var refreshLock = ReentrantLock()
 
     /**
+     * True, if the current thread is refreshing this cache right now (e.g. a listener of a dependent cache called
+     * from within this cache's refresh). A [forceReload] would then only expire the cache without reloading it.
+     */
+    protected val isRefreshingOnCurrentThread: Boolean
+        get() = refreshLock.isHeldByCurrentThread
+
+    /**
      * Incremented by [terminateRefresh]: a refresh started before (the abandoned one) must no longer change the state
      * of the cache when it returns at last.
      */

@@ -18,12 +18,13 @@ import { useChatContext } from "./chat-context";
 import { ChatComposer } from "./chat-composer";
 import { MessageItem } from "./message-item";
 import { findFirstUnread, NewMessagesLine } from "./message-list";
+import { useMarkThreadRead } from "./use-mark-thread-read";
 import { useMessageMutations } from "./use-message-mutations";
 
 /**
  * The thread of a message in a side panel (full screen on small devices, THR-04): the message, its replies,
- * following it and replying, a line above the first unread reply. Kept up to date by the live updates of the
- * conversation.
+ * following it and replying, a line above the first unread reply; mentions in it are resolved. Kept up to date
+ * by the live updates of the conversation.
  */
 export function ThreadPanel({
   rootId,
@@ -48,6 +49,7 @@ export function ThreadPanel({
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
   }, [replies]);
+  useMarkThreadRead(conversation.id, rootId, query.data?.replies);
   const root = query.data?.root;
   const firstUnread = findFirstUnread(
     query.data?.replies ?? [],
@@ -96,17 +98,20 @@ export function ThreadPanel({
           ))}
           <div ref={endRef} />
         </div>
-        {rootId != null && conversation.canWrite && !root?.deleted && (
-          <ChatComposer
-            conversation={conversation}
-            threadRootId={rootId}
-            autoFocus
-            onSent={(message) => {
-              applyChatChanges(queryClient, conversation.id, [message]);
-              void sync();
-            }}
-          />
-        )}
+        {rootId != null &&
+          conversation.canWrite &&
+          !root?.deleted &&
+          !root?.hidden && (
+            <ChatComposer
+              conversation={conversation}
+              threadRootId={rootId}
+              autoFocus
+              onSent={(message) => {
+                applyChatChanges(queryClient, conversation.id, [message]);
+                void sync();
+              }}
+            />
+          )}
       </SheetContent>
     </Sheet>
   );

@@ -226,6 +226,38 @@ class AuftragsCacheTest : AbstractTestBase() {
     }
 
     /**
+     * An invoice position assigned to a deleted order position is unknown to [AuftragsCache] (it holds no deleted
+     * positions). This marked every refresh of [AuftragsRechnungCache] as incomplete, and both caches refreshed each
+     * other again on every access (endless loop in the daily order book snapshots).
+     */
+    @Test
+    fun `invoice on a deleted order position doesn't refresh the caches endlessly`() {
+        val order = createOrderWithInvoice(netSum = 500, invoicedSum = 300)
+        order.addPosition(AuftragsPositionDO().also { pos ->
+            pos.titel = "Pos 2"
+            pos.nettoSumme = 100.toBigDecimal()
+            pos.status = AuftragsStatus.BEAUFTRAGT
+        })
+        auftragDao.update(order, checkAccess = false)
+        order.positionen!!.first().deleted = true
+        auftragDao.update(order, checkAccess = false)
+
+        auftragsRechnungCache.forceReload()
+        val auftragsCacheRefreshes = auftragsCache.status().refreshCount
+        val auftragsRechnungCacheRefreshes = auftragsRechnungCache.status().refreshCount
+        repeat(5) {
+            auftragsRechnungCache.getRechnungsPosInfoByAuftragId(order.id)
+            auftragsCache.getOrderInfo(order.id)
+        }
+        Assertions.assertEquals(auftragsCacheRefreshes, auftragsCache.status().refreshCount, "AuftragsCache refreshes.")
+        Assertions.assertEquals(
+            auftragsRechnungCacheRefreshes,
+            auftragsRechnungCache.status().refreshCount,
+            "AuftragsRechnungCache refreshes.",
+        )
+    }
+
+    /**
      * Creates an order with one position of [netSum] and one invoice of [invoicedSum] assigned to this position.
      */
     private fun createOrderWithInvoice(netSum: Int, invoicedSum: Int): AuftragDO {

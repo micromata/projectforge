@@ -55,6 +55,8 @@ object CoreFeatures {
         // The subscription dialog (with its QR code) is offered by the calendar, the calendar list and the timesheets.
         MenuItemDefId.CALENDAR to Extras(rest = listOf("calendarSettings", "teamEvent") + CALENDAR_SUBSCRIPTION),
         MenuItemDefId.CALENDAR_LIST to Extras(rest = listOf("teamCalImport", "teamEvent") + CALENDAR_SUBSCRIPTION),
+        // The rooms, the direct messages and the confidential messages of the chat.
+        MenuItemDefId.CHAT to Extras(rest = listOf("chatDirect", "chatRoom", "chatSecret")),
         MenuItemDefId.CURRENCY_PAIR_LIST to Extras(rest = listOf("currencyConversionRate")),
         // The number ranges of the number fields of customers and projects.
         MenuItemDefId.CUSTOMER_LIST to Extras(rest = listOf("numberRanges") + PROJECT_WIZARD, next = PROJECT_WIZARD),
