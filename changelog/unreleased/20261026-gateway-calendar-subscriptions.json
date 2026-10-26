@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Gateway: subscriptions of team calendars and of the weeks of the year are served, holidays in the language of the user; the token within the subscription url is checked as on the main instance.",
-  "de": "Gateway: Abos von Teamkalendern und der Kalenderwochen werden ausgeliefert, Feiertage in der Sprache des Users; das Token in der Abo-URL wird wie in der Hauptinstanz geprüft."
-}

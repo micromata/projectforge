@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "Number ranges: the first proposed local project number can be set per range in the accounting configuration, e.g. 5.###.01 instead of 5.###.00; lower numbers can still be entered.",
-  "de": "Nummernkreise: Die erste vorgeschlagene lokale Projektnummer lässt sich je Nummernkreis in der Buchhaltungskonfiguration festlegen, z. B. 5.###.01 statt 5.###.00; niedrigere Nummern können weiterhin eingegeben werden."
-}
