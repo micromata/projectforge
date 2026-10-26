@@ -98,9 +98,6 @@ export function QuickAccessResults({
         {/* Reached while the menu is still being fetched; a term without a hit is answered by the
             data search row below instead. */}
         {found.length === 0 && !term.trim() && <CommandEmpty />}
-        {dataSearch && (
-          <QuickDataHits term={term} part="users" onNavigate={onNavigate} />
-        )}
         {recent.length > 0 && (
           <CommandGroup heading={t("quickAccess.recent")}>
             {recent.map((entry) => (
@@ -128,7 +125,11 @@ export function QuickAccessResults({
           </CommandGroup>
         ))}
         {/* The live data hits sit below the menu: the menu is the primary answer, the data the next
-          best, and the full search (pinned below) the fallback. Users found lead (above), see QuickDataHits. */}
+          best, and the full search (pinned below) the fallback. With the chat on, the users found lead the
+          data hits (to be written to), see QuickDataHits. */}
+        {dataSearch && (
+          <QuickDataHits term={term} part="users" onNavigate={onNavigate} />
+        )}
         {dataSearch && (
           <QuickDataHits term={term} part="others" onNavigate={onNavigate} />
         )}

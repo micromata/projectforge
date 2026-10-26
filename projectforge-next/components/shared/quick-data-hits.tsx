@@ -17,9 +17,9 @@ import { areaMoreUrl, type SearchHit } from "@/lib/rs/search";
 const USER_AREA = "user";
 
 /**
- * The live data hits in the menu search: a few matches per area, addresses first, below the menu hits. With the
- * chat on, the users lead instead, above the menu ([part] `users`, the others `others`): somebody looked for by name
- * is mostly to be written to.
+ * The live data hits in the menu search: a few matches per area, addresses first, below the menu hits (the menu
+ * always leads). With the chat on, the users lead the data hits ([part] `users`, the others `others`): somebody
+ * looked for by name is mostly to be written to.
  *
  * Renders as `CommandGroup`s so it joins the same cmdk list — with `shouldFilter={false}` on the root the
  * arrow keys walk the items in DOM order, so the menu leads and the data follows. Each hit navigates to its
@@ -34,7 +34,7 @@ export function QuickDataHits({
   onNavigate,
 }: {
   term: string;
-  /** The users only (leading, with the chat on) or the other areas; both from the same (cached) search. */
+  /** The users only (leading the data hits, with the chat on) or the other areas; both from the same (cached) search. */
   part: "users" | "others";
   /** Collapses the search slot once a destination is chosen. */
   onNavigate: () => void;

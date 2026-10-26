@@ -267,9 +267,15 @@ test.describe("chat", { tag: "@parallel" }, () => {
     const button = page
       .getByRole("button", { name: `${otherName}: ${label}` })
       .first();
-    // The users found lead the list, so the first one is selected: Ctrl/Cmd+Enter starts the chat right away.
-    await expect(page.getByRole("option").first()).toContainText(otherName);
     await expect(button).toBeVisible();
+    // The menu hits lead the list, the users found follow: walk down to the user, then Ctrl/Cmd+Enter starts
+    // the chat right away.
+    const selected = page.locator('[role="option"][aria-selected="true"]');
+    for (let i = 0; i < 20; i++) {
+      if (((await selected.textContent()) ?? "").includes(otherName)) break;
+      await page.keyboard.press("ArrowDown");
+    }
+    await expect(selected).toContainText(otherName);
     await page.keyboard.press("ControlOrMeta+Enter");
     await expect(page).toHaveURL(conversationUrl);
   });

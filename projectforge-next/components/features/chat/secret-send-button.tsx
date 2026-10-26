@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { SquareLock02Icon } from "@hugeicons/core-free-icons";
+import { LockPasswordIcon } from "@hugeicons/core-free-icons";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { ChatConversation } from "@/lib/rs/chat-types";
@@ -20,15 +21,18 @@ export function SecretSendButton({
   if (!conversation.directPartner) return null;
   return (
     <>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label={t("chat.secret.action")}
-        onClick={() => setOpen(true)}
-      >
-        <HugeiconsIcon icon={SquareLock02Icon} />
-      </Button>
+      <HintTooltip text={t("chat.secret.action")}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={t("chat.secret.action")}
+          onClick={() => setOpen(true)}
+        >
+          {/* The heavier stroke sets the lock apart from the thin outline icons around it. */}
+          <HugeiconsIcon icon={LockPasswordIcon} strokeWidth={2} />
+        </Button>
+      </HintTooltip>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <SecretSendSteps

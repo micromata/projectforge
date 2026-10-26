@@ -60,6 +60,8 @@ export interface ChatConversation {
   hostId: number;
   channel: string;
   title: string;
+  /** The description of the host object as rich text (HTML), null for none. */
+  description: string | null;
   /** Path of the next app of the host object, e.g. `/chat`. */
   link: string | null;
   canWrite: boolean;

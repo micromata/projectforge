@@ -1,0 +1,19 @@
+{
+  "type": "improved",
+  "en": "Chat",
+  "de": "Chat",
+  "items": [
+    {
+      "en": "The room page shows the description of the room, now formatted text; the creator and the moderators edit the room from there.",
+      "de": "Die Raumseite zeigt die Beschreibung des Raums, jetzt als formatierten Text; wer den Raum angelegt hat und die Moderation bearbeiten ihn direkt dort."
+    },
+    {
+      "en": "A search box on the chat page narrows the direct messages and the rooms.",
+      "de": "Ein Suchfeld auf der Chatseite grenzt die Direktnachrichten und die Räume ein."
+    },
+    {
+      "en": "Menu search: the menu entries found come first again, the users found to chat with follow them.",
+      "de": "Menüsuche: Die gefundenen Menüeinträge stehen wieder an erster Stelle, die gefundenen Personen zum Chatten folgen danach."
+    }
+  ]
+}

@@ -150,10 +150,16 @@ class NumberRanges(
         return (min..range.customerMax!!).firstOrNull { it !in used }
     }
 
-    /** Lowest local project number not in [usedLocalNumbers], null if exhausted (e.g. 10 projects for 1 digit). */
-    fun nextFreeLocalNumber(range: NumberRange, usedLocalNumbers: Collection<Int>): Int? {
+    /**
+     * Lowest local project number from [start] on not in [usedLocalNumbers], or, if all of these are taken, the lowest
+     * free one below [start]. Null if exhausted (e.g. 10 projects for 1 digit).
+     * @param start The first proposed local number (e.g. 1 for 5.###.01), limited to 0..[NumberRange.maxLocalNumber].
+     */
+    fun nextFreeLocalNumber(range: NumberRange, usedLocalNumbers: Collection<Int>, start: Int = 0): Int? {
         val used = usedLocalNumbers.toSet()
-        return (0..range.maxLocalNumber).firstOrNull { it !in used }
+        val first = start.coerceIn(0, range.maxLocalNumber)
+        return (first..range.maxLocalNumber).firstOrNull { it !in used }
+            ?: (0 until first).firstOrNull { it !in used }
     }
 
     fun segmentsForPrefix(prefix: Int?): List<Int> = rangeForPrefix(prefix)?.segments ?: defaultSegments

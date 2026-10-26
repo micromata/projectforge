@@ -28,6 +28,8 @@ import { FieldHint } from "@/components/shared/form/field-hint";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { NumberBox } from "@/components/shared/form/number-box";
 import { useFieldErrors } from "@/components/shared/form/use-field-errors";
+import { maxLocalNumber } from "@/lib/number-ranges";
+import { useNumberRanges, type NumberRange } from "@/lib/rs/number-ranges";
 import {
   BWA_PRIORITIES,
   EMPTY_BWA_ROW,
@@ -50,6 +52,12 @@ const ROW_COLUMNS =
 
 const HEADING = "text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground";
 
+/** The project numbers of the range as pattern, e.g. `5.###.##` (name), for the first project numbers. */
+function rangeLabel(range: NumberRange): string {
+  const pattern = [String(range.prefix), ...range.segments.slice(1, -1).map((n) => "#".repeat(n))].join(".");
+  return range.name ? `${pattern} (${range.name})` : pattern;
+}
+
 /**
  * The editor of the parameter `fibu.accounting`: the account number ranges of debitors and creditors, the
  * heading and key rows of the business assessment (BWA) and its rows in their order (a record is assigned
@@ -67,6 +75,7 @@ export function AccountingConfigEditor({ label, hint, className }: JsonEditorPro
   const overallPerformanceIds = useFieldIds();
   const merchandisePurchaseIds = useFieldIds();
   const preliminaryResultIds = useFieldIds();
+  const numberRanges = useNumberRanges()?.ranges ?? [];
   return (
     <form.Field name={"stringValue" as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -191,6 +200,42 @@ export function AccountingConfigEditor({ label, hint, className }: JsonEditorPro
                   (creditorsAccountNumberRanges) => update({ creditorsAccountNumberRanges })
                 )}
               </div>
+              {numberRanges.length > 0 && (
+                <div className="grid gap-2">
+                  <span className={`${HEADING} flex items-center gap-1`}>
+                    {t("administration.configuration.accounting.firstProjectNumbers")}
+                    <FieldHint
+                      hint={t("administration.configuration.accounting.help.firstProjectNumbers")}
+                      label={t("administration.configuration.accounting.firstProjectNumbers")}
+                    />
+                  </span>
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-2">
+                    {numberRanges.map((range) => {
+                      const prefix = String(range.prefix);
+                      const label = rangeLabel(range);
+                      return (
+                        <div key={prefix} className="grid gap-1 text-sm">
+                          <span className="tabular-nums">{label}</span>
+                          <NumberBox
+                            value={config.firstProjectNumbers[prefix] ?? null}
+                            fractionDigits={0}
+                            grouped={false}
+                            maxDigits={String(maxLocalNumber(range)).length}
+                            aria-label={`${t("administration.configuration.accounting.firstProjectNumbers")} ${label}`}
+                            onChange={(value) => {
+                              const others = Object.fromEntries(
+                                Object.entries(config.firstProjectNumbers).filter(([p]) => p !== prefix)
+                              );
+                              update({ firstProjectNumbers: value == null ? others : { ...others, [prefix]: value } });
+                            }}
+                            onBlur={field.handleBlur}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               <div className="grid gap-4 md:grid-cols-4">
                 {textSetting(
                   headingIds,

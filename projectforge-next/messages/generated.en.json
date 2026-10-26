@@ -274,15 +274,19 @@
         "error": {
           "accountRange": "{arg0}: no valid account numbers: {arg1} (e.g. 4000-4799 or 6300,6800-6855).",
           "duplicateId": "{arg0}: the id {arg1} is used by another row already.",
+          "firstProjectNumber": "{arg0}: the first proposed project number {arg1} isn''t in 0-{arg2}.",
+          "firstProjectNumberRange": "First proposed project number: there is no number range with the prefix {arg0}.",
           "id": "{arg0}: the id {arg1} is no valid name (letters, digits and _, starting with a letter).",
           "unknownRow": "{arg0}: there is no row with the id {arg1}.",
           "value": "{arg0}: the value can''t be compiled (formula or Groovy script)."
         },
+        "firstProjectNumbers": "First proposed project number",
         "heading": "Heading of the business assessment",
         "help": {
           "accountRange": "DATEV accounts whose records are summed up in this row: single accounts and ranges, separated by commas, e.g. 4000-4799 or 6300,6800-6855. Empty for calculated rows and separator lines.",
           "creditors": "Account numbers of the creditors (e.g. 70000-79999): the account selection of creditors offers these accounts only. Empty: all accounts.",
           "debitors": "Account numbers of the debitors (e.g. 10000-12999): the account selection of debitors offers these accounts only. Empty: all accounts.",
+          "firstProjectNumbers": "Per number range: the local project number from which the next free project number is proposed for a new project, e.g. 1 for 5.###.01 instead of 5.###.00. Lower numbers can still be entered by hand and are proposed once all higher ones are taken. Empty: 0.",
           "heading": "Heading shown above the business assessment.",
           "id": "Name of the row in formulas and scripts of other rows: letters, digits and _, starting with a letter. A row without id can't be referred to.",
           "indent": "Indentation of the title in the business assessment, e.g. 1 or 2 for sub rows. Empty: none.",
@@ -319,7 +323,8 @@
           }
         },
         "rows": "Rows of the business assessment (BWA)",
-        "summary": "Debitors {arg0}, creditors {arg1}, {arg2} rows of the business assessment"
+        "summary": "Debitors {arg0}, creditors {arg1}, {arg2} rows of the business assessment",
+        "summaryFirstProjectNumbers": "first proposed project numbers {arg0}"
       },
       "categories": {
         "finance": "Finance",
@@ -3387,8 +3392,6 @@
       "triggerConfirm": "Run the rule now for all recipients? Recipients already notified for the same period are not notified again."
     },
     "center": "Notifications",
-    "centerArchived": "Archived entries",
-    "centerArchivedEmpty": "No archived entries of the last 90 days.",
     "centerEmpty": "No open notifications.",
     "channels": {
       "IN_APP": "In the app",

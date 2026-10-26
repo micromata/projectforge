@@ -70,6 +70,7 @@ class ChatRestTest : AbstractTestBase() {
         logon(TEST_USER)
         val result = chatRoomRest.save(ChatRoom(
             name = " rest room ",
+            description = "<p>The <strong>rest</strong> room</p>",
             owner = ChatRef(getUserId(TEST_USER2), "posted owner"),
             // TEST_USER2 shares a group with TEST_USER, the finance user doesn't.
             users = listOf(ChatRef(getUserId(TEST_USER2), "x"), ChatRef(getUserId(TEST_FINANCE_USER), "y")),
@@ -81,9 +82,22 @@ class ChatRestTest : AbstractTestBase() {
         assertEquals(listOf(getUserId(TEST_USER2)), room.users.map { it.id })
         assertTrue(room.canEdit)
         assertTrue(chatRoomRest.list().any { it.id == result.id && it.conversationId == result.conversationId })
+        chatRest.getConversation(result.conversationId!!).let {
+            assertEquals("<p>The <strong>rest</strong> room</p>", it.description)
+            assertTrue(it.isModerator)
+        }
+        suppressErrorLogs {
+            // Rich text isn't cut off (its markup would be broken), but refused.
+            assertThrows(UserException::class.java) {
+                chatRoomRest.save(chatRoomRest.get(result.id).also {
+                    it.description = "x".repeat(ChatRoomRest.DESCRIPTION_MAX_LENGTH + 1)
+                })
+            }
+        }
 
         logon(TEST_USER2)
         assertFalse(chatRoomRest.get(result.id).canEdit)
+        assertFalse(chatRest.getConversation(result.conversationId!!).isModerator)
         suppressErrorLogs {
             assertThrows(AccessException::class.java) { chatRoomRest.save(room.also { it.name = "taken over" }) }
             logon(TEST_FINANCE_USER)

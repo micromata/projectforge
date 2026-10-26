@@ -134,13 +134,18 @@ class ChatRoomRest {
         if (name.isNullOrEmpty()) {
             throw UserException("chat.room.error.nameRequired")
         }
+        // Rich text (HTML): cut off, its markup would be broken.
+        val description = dto.description?.trim()?.takeIf { it.isNotEmpty() }
+        if ((description?.length ?: 0) > DESCRIPTION_MAX_LENGTH) {
+            throw UserException("chat.room.error.descriptionTooLong")
+        }
         val stored = dto.id?.let { chatRoomDao.find(it, checkAccess = false) ?: throw AccessException(user, NO_ACCESS) }
         val userIds = visibleUserIds(dto.users, stored?.participantUserIds)
         val moderatorIds = visibleUserIds(dto.moderators, stored?.moderatorUserIds)
         val groupIds = visibleGroupIds(dto.groups, stored?.participantGroupIds)
         val room = (stored ?: ChatRoomDO()).also {
             it.name = name.take(255)
-            it.description = dto.description?.trim()?.take(4000)?.takeIf { text -> text.isNotEmpty() }
+            it.description = description
             it.participantUserIds = ChatRoomDO.toCsv(userIds)
             it.moderatorUserIds = ChatRoomDO.toCsv(moderatorIds)
             it.participantGroupIds = ChatRoomDO.toCsv(groupIds)
@@ -223,5 +228,8 @@ class ChatRoomRest {
     companion object {
         private const val NO_ACCESS = "access.exception.noAccess"
         private const val DEFAULT_FILE_EXPIRY_DAYS = 30
+
+        /** The length of the column [ChatRoomDO.description]. */
+        const val DESCRIPTION_MAX_LENGTH = 4000
     }
 }

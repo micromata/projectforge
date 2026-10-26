@@ -94,6 +94,8 @@ class ChatConversation(
     val hostId: Long,
     val channel: String,
     val title: String,
+    /** The description of the host object as rich text (HTML), null for none. */
+    val description: String?,
     /** Path of the next app of the host object. */
     val link: String?,
     val canWrite: Boolean,

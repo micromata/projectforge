@@ -189,6 +189,12 @@ class NumberRangesTest {
         assertEquals(3, micromata.nextFreeLocalNumber(new, listOf(0, 1, 2, 4)))
         assertNull(micromata.nextFreeLocalNumber(new, (0..9).toList()), "Only 10 projects per customer.")
         assertEquals(10, micromata.nextFreeLocalNumber(legacy, (0..9).toList()))
+        // First proposed number, the lower ones once all higher ones are taken:
+        assertEquals(1, micromata.nextFreeLocalNumber(legacy, emptyList(), start = 1))
+        assertEquals(3, micromata.nextFreeLocalNumber(legacy, listOf(1, 2), start = 1))
+        assertEquals(0, micromata.nextFreeLocalNumber(legacy, (1..99).toList(), start = 1))
+        assertNull(micromata.nextFreeLocalNumber(legacy, (0..99).toList(), start = 1))
+        assertEquals(9, micromata.nextFreeLocalNumber(new, emptyList(), start = 42), "Limited to the range.")
         assertEquals(10002L, micromata.nextFreeCustomerNumber(new, listOf(10000L, 10001L)))
         assertNull(micromata.nextFreeCustomerNumber(internal, emptyList()))
     }

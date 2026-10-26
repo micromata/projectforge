@@ -71,6 +71,10 @@ class ChatRoomChatHost : ChatHost {
         return room(hostId, channel)?.name
     }
 
+    override fun description(hostId: Long, channel: String): String? {
+        return room(hostId, channel)?.description
+    }
+
     override fun link(hostId: Long): String = LINK
 
     override fun hasReadAccess(user: PFUserDO, hostId: Long, channel: String): Boolean {

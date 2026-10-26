@@ -37,6 +37,9 @@ import org.projectforge.business.fibu.numberrange.NumberRangeService
 import org.projectforge.business.fibu.numberrange.NumberRangeViolation
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.configuration.ConfigurationJsonValidators
+import org.projectforge.framework.configuration.ConfigurationJsonValues
+import org.projectforge.framework.configuration.ConfigurationParam
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -242,6 +245,36 @@ class ProjektDaoNumberRangeTest : AbstractTestBase() {
             assertTrue(afterwards > internalNext, "$afterwards must be above $internalNext")
             null
         }
+    }
+
+    @Test
+    fun `next free local number starts at the configured first project number`() {
+        ConfigurationJsonValues.internalSetForTest(ConfigurationParam.FIBU_ACCOUNTING, """{"firstProjectNumbers":{"5":1}}""")
+        try {
+            persistenceService.runInTransaction { _ ->
+                logon(TEST_FINANCE_USER)
+                val customer = insertKunde(778)
+                assertEquals(1, projektDao.nextFreeLocalNumber(customer, null))
+                assertEquals(577801, insertProjekt(customer, nummer = 1).projektnummer)
+                assertEquals(2, projektDao.nextFreeLocalNumber(customer, null))
+                // Lower numbers can still be given by hand:
+                assertEquals(577800, insertProjekt(customer, nummer = 0).projektnummer)
+                // Other ranges start at 0:
+                assertEquals(0, projektDao.nextFreeLocalNumber(insertKunde(10009), null))
+                null
+            }
+        } finally {
+            ConfigurationJsonValues.internalSetForTest(ConfigurationParam.FIBU_ACCOUNTING, null)
+        }
+    }
+
+    @Test
+    fun `first project numbers are validated against the number ranges`() {
+        fun errors(json: String) = ConfigurationJsonValidators.validate(ConfigurationParam.FIBU_ACCOUNTING.key, json)
+        assertEquals(emptyList<String>(), errors("""{"firstProjectNumbers":{"5":1,"1":9}}"""))
+        assertEquals(1, errors("""{"firstProjectNumbers":{"5":100}}""").size, "Only 2 project digits.")
+        assertEquals(1, errors("""{"firstProjectNumbers":{"1":10}}""").size, "Only 1 project digit.")
+        assertEquals(1, errors("""{"firstProjectNumbers":{"7":1}}""").size, "No range 7.")
     }
 
     @Test

@@ -4,8 +4,9 @@ import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Attachment01Icon, SentIcon } from "@hugeicons/core-free-icons";
+import { AttachmentIcon, SentIcon } from "@hugeicons/core-free-icons";
 import { AttachmentDropZone } from "@/components/shared/attachments/attachment-drop-zone";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
@@ -87,34 +88,39 @@ export function ChatComposer({
           </p>
         )}
         <div className="flex items-end gap-1 p-2">
-          {conversation.filesEnabled && (
-            <>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label={t("chat.file.add")}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <HugeiconsIcon icon={Attachment01Icon} />
-              </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                className="sr-only"
-                tabIndex={-1}
-                aria-hidden
-                onChange={(event) => {
-                  pending.add(Array.from(event.target.files ?? []));
-                  event.target.value = "";
-                }}
-              />
-            </>
-          )}
-          {threadRootId == null && (
-            <SecretSendButton conversation={conversation} />
-          )}
+          {/* The actions beside the editor stacked, so they take one column of its height. */}
+          <div className="flex shrink-0 flex-col">
+            {conversation.filesEnabled && (
+              <>
+                <HintTooltip text={t("chat.file.add")}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={t("chat.file.add")}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <HugeiconsIcon icon={AttachmentIcon} />
+                  </Button>
+                </HintTooltip>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  className="sr-only"
+                  tabIndex={-1}
+                  aria-hidden
+                  onChange={(event) => {
+                    pending.add(Array.from(event.target.files ?? []));
+                    event.target.value = "";
+                  }}
+                />
+              </>
+            )}
+            {threadRootId == null && (
+              <SecretSendButton conversation={conversation} />
+            )}
+          </div>
           <ChatEditor
             ref={editorRef}
             conversationId={conversation.id}
