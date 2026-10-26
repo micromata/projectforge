@@ -241,6 +241,74 @@ test.describe("address", { tag: "@lane-address" }, () => {
     await page.getByRole("button", { name: format.t("cancel") }).click();
     await expect(page.locator('input[type="file"]')).toHaveCount(1);
   });
+
+  test("crops and scales a chosen image in the image editor before the upload", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    await goto(page, "/address/new");
+    // A 400 × 200 image, drawn by the browser: no image file to keep beside the spec.
+    const png = await page.evaluate(() => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 400;
+      canvas.height = 200;
+      const context = canvas.getContext("2d")!;
+      context.fillStyle = "steelblue";
+      context.fillRect(0, 0, 400, 200);
+      return canvas.toDataURL("image/png").split(",")[1];
+    });
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "e2e-image.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(png, "base64"),
+    });
+
+    const dialog = page.getByRole("dialog", {
+      name: format.t("imageEditor.title"),
+    });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("radio", { name: "1:1" }).click();
+    await dialog.getByLabel(format.t("imageEditor.width")).fill("120");
+    await expect(dialog.getByText("120 × 120 px")).toBeVisible();
+    const upload = page.waitForResponse("**/rs/address/uploadImage/-1");
+    await dialog.getByRole("button", { name: format.t("apply") }).click();
+    expect((await upload).ok()).toBe(true);
+    await expect(dialog).toBeHidden();
+
+    // The preview is the uploaded result, square and scaled down. The form isn't saved: the upload stays in
+    // the session until the next form discards it.
+    const preview = page.getByRole("img", { name: format.t("address.image") });
+    await expect
+      .poll(() =>
+        preview.evaluate((img: HTMLImageElement) =>
+          img.complete ? `${img.naturalWidth}x${img.naturalHeight}` : ""
+        )
+      )
+      .toBe("120x120");
+  });
+
+  test("refuses a file that is no image before the image editor opens", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    await goto(page, "/address/new");
+    // `accept` only filters the file chooser; a drop (like setInputFiles) may hand over anything.
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "e2e-not-an-image.txt",
+      mimeType: "text/plain",
+      buffer: Buffer.from("no image"),
+    });
+    await expect(
+      page.locator("[data-sonner-toaster]").getByText(
+        format.t("file.upload.error.unsupportedFormat", {
+          arg0: "PNG, JPEG, GIF",
+        })
+      )
+    ).toBeVisible();
+    await expect(
+      page.getByRole("dialog", { name: format.t("imageEditor.title") })
+    ).toHaveCount(0);
+  });
 });
 
 /**

@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Addresses: a small image editor crops (optionally to a fixed aspect ratio) and scales down a chosen image, or the one already shown, before it is uploaded.",
+  "de": "Adressen: Ein kleiner Bildeditor schneidet ein ausgewähltes Bild, auch das bereits angezeigte, vor dem Hochladen zu (auf Wunsch mit festem Seitenverhältnis) und verkleinert es."
+}

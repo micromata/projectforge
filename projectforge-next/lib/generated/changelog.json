@@ -7,13 +7,13 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Number ranges: the first proposed local project number can be set per range in the accounting configuration, e.g. 5.###.01 instead of 5.###.00; lower numbers can still be entered.", "Group fields (e.g. the access lists of calendars, address books and polls): hovering a group shows its members, for whoever may see the group.", "Project list: Excel export of the filtered projects with all their fields." ]
+      "items" : [ "Addresses: a small image editor crops (optionally to a fixed aspect ratio) and scales down a chosen image, or the one already shown, before it is uploaded.", "Number ranges: the first proposed local project number can be set per range in the accounting configuration, e.g. 5.###.01 instead of 5.###.00; lower numbers can still be entered.", "Group fields (e.g. the access lists of calendars, address books and polls): hovering a group shows its members, for whoever may see the group.", "Project list: Excel export of the filtered projects with all their fields." ]
     }, {
       "type" : "improved",
       "items" : [ {
         "title" : "Chat",
         "items" : [ "The room page shows the description of the room, now formatted text; the creator and the moderators edit the room from there.", "A search box on the chat page narrows the direct messages and the rooms.", "Messages can quote another message of the conversation: the quote shows its author and the beginning of its text, a click shows the message.", "Menu search: the menu entries found come first again, the users found to chat with follow them." ]
-      }, "Deleted or deactivated users, groups and employees are now struck through in more places: lists with several names (group members, access lists, contact persons, substitutes), the task tree, chat, history, attachments, the vacation account, booking grants, the HR view, absence charts and the notification log.", {
+      }, "List filters: customer and project groups show the customers and projects they comprise as tooltip.", "Deleted or deactivated users, groups and employees are now struck through in more places: lists with several names (group members, access lists, contact persons, substitutes), the task tree, chat, history, attachments, the vacation account, booking grants, the HR view, absence charts and the notification log.", {
         "title" : "Mass update",
         "items" : [ "In the selection mode of a list with more than 100 entries, a button selects the first 100 of them, the most a mass update changes at once." ]
       }, "Notifications: the bell has a button \"Archived entries\" listing the confirmed or finished notifications of the last 90 days, so a notification confirmed by mistake can still be read and opened.", "Project selection of the edit pages and project filter of the lists and statistics: each project shows its customer in brackets.", "Structure element selection: a selected structure element is removed with its own (x) (not for mandatory fields), the home icon opens the tree.", "User selection: users are also found by their nickname." ]

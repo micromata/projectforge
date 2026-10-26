@@ -1827,6 +1827,10 @@
       "intro": "Customers that belong together (ACME Germany, ACME Logistics, ACME Holding) form a group, which the customer filters of the order book, the invoices, the projects and the cost 2 offer like a single customer. Business units combine groups and customers and get a filter of their own. A customer belongs to at most one group, a group or customer to at most one business unit. Project groups do the same for the projects of the project filters.",
       "matches": "Matches {arg0} customers",
       "matchesNone": "Matches no customer yet",
+      "members": {
+        "more": "… and {arg0} more",
+        "tooltip": "Comprises"
+      },
       "name": "Name",
       "orderAccess": {
         "_": "Order access",
@@ -2916,6 +2920,13 @@
     }
   },
   "id": "Id",
+  "imageEditor": {
+    "aspectRatio": "Aspect ratio",
+    "aspectRatioOriginal": "Original",
+    "title": "Edit image",
+    "width": "Width (px)",
+    "zoom": "Zoom"
+  },
   "import": {
     "_": "Import",
     "confirmMessage": "Would you like to import the selected entries now? This operation cannot be undone.",
