@@ -77,3 +77,8 @@ export function takeChatSecret(id: string) {
 export function cancelChatSecret(id: string) {
   return chatPost<void>(`${BASE}/${encodeURIComponent(id)}/cancel`, {});
 }
+
+/** The offers of the conversation are shown in the open chat: their notification is resolved. */
+export function markChatSecretsSeen(conversationId: number) {
+  return chatPost<void>(`${BASE}/seen`, { conversationId });
+}

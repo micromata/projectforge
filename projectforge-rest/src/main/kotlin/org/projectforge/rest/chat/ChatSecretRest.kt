@@ -70,6 +70,14 @@ class ChatSecretRest {
         return relay.pending(conversationId).map { toDto(it) }
     }
 
+    /** The offers are shown in the open chat: resolves their notification. POST, as it changes the state. */
+    @AccessChecked("ChatSecretRelay.seen: read access to the conversation, notifications of the logged-in user only")
+    @PostMapping("seen")
+    fun seen(@RequestBody request: ChatSecretOfferRequest): ResponseEntity<Void> {
+        relay.seen(request.conversationId)
+        return ResponseEntity.noContent().build()
+    }
+
     @AccessChecked("ChatSecretRelay.get: the sender or the recipient of the session only")
     @GetMapping("{id}")
     fun get(@PathVariable id: String): ResponseEntity<ChatSecretSession> {

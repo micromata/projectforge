@@ -371,12 +371,17 @@ test.describe("chat", { tag: "@parallel" }, () => {
       const offered = page.waitForResponse((res) =>
         res.url().endsWith("/rs/chatSecret/offer")
       );
+      // Shown in the open chat, the offer's notification is resolved (its banner would point here).
+      const seen = other.waitForResponse(
+        (res) => res.url().endsWith("/rs/chatSecret/seen") && res.ok()
+      );
       await sendDialog
         .getByRole("button", { name: t("chat.secret.start") })
         .click();
       const sessionId = ((await (await offered).json()) as { id: string }).id;
       const offer = other.getByTestId("chat-secret-offer");
       await expect(offer).toBeVisible({ timeout: 10_000 });
+      await seen;
       await offer
         .getByRole("button", { name: otherT("chat.secret.accept") })
         .click();

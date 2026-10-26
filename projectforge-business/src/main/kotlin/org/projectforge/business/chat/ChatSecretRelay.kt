@@ -140,6 +140,16 @@ open class ChatSecretRelay {
         }.sortedBy { it.created }
     }
 
+    /**
+     * The recipient sees the offers of the conversation in the open chat (where they are accepted): their
+     * notification is resolved, it would only point to where the user already is.
+     */
+    open fun seen(conversationId: Long?) {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val context = chatAccess.requireContext(conversationId, user)
+        chatNotifier.resolveSecret(context.conversationId, user.id!!)
+    }
+
     /** The recipient accepts with its public key. */
     open fun accept(id: String?, publicKey: String?): Session {
         val (session, user) = requireSide(id, recipient = true)

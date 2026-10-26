@@ -216,6 +216,7 @@ class ChatSecretSession(
     val expiresAt: Date,
 )
 
+/** The conversation of an offer, or whose offers were seen. */
 class ChatSecretOfferRequest(val conversationId: Long? = null)
 
 class ChatSecretAcceptRequest(val publicKey: String? = null)

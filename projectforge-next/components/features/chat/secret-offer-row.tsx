@@ -31,7 +31,8 @@ export function SecretOfferRow({
   return (
     <div
       role="status"
-      className="flex shrink-0 flex-wrap items-center gap-2 border-t bg-primary/5 px-3 py-2 text-sm"
+      // Comes in noticeably: it appears below a conversation that may be read at the moment.
+      className="flex shrink-0 flex-wrap items-center gap-2 border-t bg-primary/5 px-3 py-2 text-sm duration-500 animate-in fade-in slide-in-from-bottom-2"
       data-testid="chat-secret-offer"
     >
       <p className="flex-1">

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "@/lib/toast";
 import {
   acceptChatSecret,
   cancelChatSecret,
+  markChatSecretsSeen,
   type ChatSecretSession,
 } from "@/lib/rs/chat-secret";
 import {
@@ -20,7 +21,8 @@ import { SecretReceiveSteps, type ActiveSecret } from "./secret-receive-dialog";
 /**
  * The confidential messages offered to the user in a direct chat: accepting makes the key pair (only
  * here, in memory) and opens the dialog that receives the message (see SecretOfferRow for one accepted
- * elsewhere).
+ * elsewhere). Shown here, their notification is resolved: its banner would only point to where the user
+ * already is.
  */
 export function SecretOffers({
   sessions,
@@ -30,6 +32,7 @@ export function SecretOffers({
   onChange: () => void;
 }) {
   const [active, setActive] = useState<ActiveSecret | null>(null);
+  useResolveNotificationOnSight(sessions);
   const accept = useMutation({
     mutationFn: async (session: ChatSecretSession) => {
       const keys = await generateSecretKeyPair();
@@ -73,4 +76,23 @@ export function SecretOffers({
       </Dialog>
     </>
   );
+}
+
+/** Resolves the notification of the offers once they are shown (by the server, for the conversation). */
+function useResolveNotificationOnSight(sessions: ChatSecretSession[]) {
+  const queryClient = useQueryClient();
+  const offered = sessions.filter((it) => it.state === "OFFERED");
+  const conversationId = offered[0]?.conversationId;
+  // Changes with a new offer only, so each one is resolved once.
+  const key = offered.map((it) => it.id).join(",");
+  useEffect(() => {
+    if (!key || conversationId == null) return;
+    void markChatSecretsSeen(conversationId)
+      .then(() => {
+        void queryClient.invalidateQueries({ queryKey: ["userStatus"] });
+        void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+        void queryClient.invalidateQueries({ queryKey: ["menu"] });
+      })
+      .catch(() => {});
+  }, [key, conversationId, queryClient]);
 }
