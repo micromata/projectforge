@@ -14,9 +14,13 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { accessListHref } from "@/lib/access-links";
-import { DELETED_REF_CLASS } from "@/lib/page-def/reference";
+import { RefList, RefName } from "@/components/shared/ref-list";
 import type { TaskGroupAccess } from "@/lib/rs/task";
-import { cn } from "@/lib/utils";
+
+/** A group of the column by name, struck through when deleted. */
+function groupRef(group: TaskGroupAccess) {
+  return { displayName: group.groupName, deleted: group.groupDeleted };
+}
 
 /**
  * The admins' groups column of the task tree and the task list: the names of the groups with an access
@@ -56,17 +60,12 @@ export function TaskGroupAccessCell({
       // count as picking the row.
       onClick={(event) => event.stopPropagation()}
     >
-      {groups?.length
-        ? // Each group by name, a deleted one struck through (see inactiveRefClass).
-          groups.map((group, index) => (
-            <Fragment key={group.groupName}>
-              {index > 0 && ", "}
-              <span className={cn(group.groupDeleted && DELETED_REF_CLASS)}>
-                {group.groupName}
-              </span>
-            </Fragment>
-          ))
-        : text}
+      {groups?.length ? (
+        // Each group by name, a deleted one struck through (see inactiveRefClass).
+        <RefList refs={groups.map(groupRef)} />
+      ) : (
+        text
+      )}
     </MenuLink>
   );
   if (!groups?.length) {
@@ -88,9 +87,7 @@ export function TaskGroupAccessCell({
           {groups.map((group) => (
             <Fragment key={group.groupName}>
               <div className="col-span-2 mt-1.5 font-medium first:mt-0">
-                <span className={cn(group.groupDeleted && DELETED_REF_CLASS)}>
-                  {group.groupName}
-                </span>
+                <RefName value={groupRef(group)} />
                 {group.recursive && (
                   <span className="font-normal text-muted-foreground">
                     {` (${t("recursive")})`}

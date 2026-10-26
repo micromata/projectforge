@@ -100,7 +100,7 @@ class GanttDiagram(
         task = TaskTree.instance.getTaskById(src.taskId)?.let {
             Task(id = it.id, displayName = it.displayName, title = it.title).also { dto -> dto.deleted = it.deleted }
         }
-        owner = PfCaches.instance.getUser(src.ownerId)?.let { User(it) }
+        owner = PfCaches.instance.getUser(src.ownerId)?.let { User.ref(it) }
     }
 
     /**

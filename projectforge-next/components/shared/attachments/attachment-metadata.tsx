@@ -2,9 +2,13 @@
 
 import { useTranslations } from "next-intl";
 import { CopyButton } from "@/components/shared/copy-button";
-import { zipModeMessageKey, type Attachment } from "@/lib/rs/attachments";
+import {
+  attachmentUserFlags,
+  zipModeMessageKey,
+  type Attachment,
+} from "@/lib/rs/attachments";
 import { useAttachmentService } from "./attachment-service";
-import { DEACTIVATED_REF_CLASS } from "@/lib/page-def/reference";
+import { inactiveRefClass, type InactiveFlags } from "@/lib/page-def/reference";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -43,7 +47,7 @@ export function AttachmentMetadata({ attachment }: Props) {
         <Field
           label={t("createdBy")}
           value={attachment.createdByUser}
-          inactive={!!attachment.createdByUserDeactivated}
+          inactive={attachmentUserFlags(attachment, "createdByUser")}
         />
       )}
       <Field label={t("modified")} value={attachment.lastUpdateTimeAgo} />
@@ -51,7 +55,7 @@ export function AttachmentMetadata({ attachment }: Props) {
         <Field
           label={t("modifiedBy")}
           value={attachment.lastUpdateByUser}
-          inactive={!!attachment.lastUpdateByUserDeactivated}
+          inactive={attachmentUserFlags(attachment, "lastUpdateByUser")}
         />
       )}
       {attachment.checksum && (
@@ -76,8 +80,8 @@ function Field({
   label: string;
   value?: string | null;
   copyable?: boolean;
-  /** A user no longer active: struck through (see inactiveRefClass). */
-  inactive?: boolean;
+  /** Whether the user shown is still active: struck through if not (see inactiveRefClass). */
+  inactive?: InactiveFlags;
 }) {
   return (
     <div className="min-w-0">
@@ -88,7 +92,7 @@ function Field({
         <span
           className={cn(
             "min-w-0 flex-1 break-all text-xs",
-            inactive && value && DEACTIVATED_REF_CLASS
+            value && inactiveRefClass(inactive)
           )}
         >
           {value || "–"}

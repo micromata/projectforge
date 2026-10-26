@@ -45,7 +45,6 @@ import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AccessChecked
-import org.projectforge.rest.dto.User
 import org.projectforge.rest.dto.VacationChartDay
 import org.projectforge.rest.dto.VacationExportAvailability
 import org.projectforge.rest.dto.VacationExportFavoriteInfo
@@ -394,7 +393,12 @@ class VacationExportRest {
     private fun maxResultsOf(maxResults: Int?): Int = (maxResults ?: MAX_RESULTS).coerceIn(1, MAX_RESULTS_LIMIT)
 
     private fun ref(user: PFUserDO): VacationExportRef =
-        VacationExportRef(user.id!!, user.getFullname(), deactivated = User.isInactive(user))
+        VacationExportRef(
+            user.id!!,
+            user.getFullname(),
+            deleted = user.deleted.takeIf { it },
+            deactivated = user.deactivated.takeIf { it },
+        )
 
     /** The users and groups of these ids the user may pick, sorted by name. */
     private fun selection(userIds: List<Long>?, groupIds: List<Long>?, access: Access) = VacationExportSelection(

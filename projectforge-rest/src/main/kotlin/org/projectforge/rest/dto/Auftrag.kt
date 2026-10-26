@@ -55,7 +55,10 @@ class Auftrag(
     var personDays: BigDecimal? = null,
     var referenz: String? = null,
     var assignedPersons: String? = null,
-    /** The persons of [assignedPersons] as references, for the list column (struck through when no longer active). */
+    /**
+     * The persons of [assignedPersons] as references, for the list column (struck through when no longer active).
+     * Only the lean list row ([copyFrom4ListRow]) carries it, instead of the string.
+     */
     var assignedPersonList: List<User>? = null,
     var contactPerson: User? = null,
     /**
@@ -182,7 +185,6 @@ class Auftrag(
         val orderInfo = orderInfo(src)
         personDays = orderInfo.personDays
         assignedPersons = src.assignedPersons
-        assignedPersonList = User.toContactList(src.contactPerson?.id, src.additionalContactUserIds)
         nettoSumme = orderInfo.netSum
         beauftragtNettoSumme = orderInfo.commissionedNetSum
         fakturiertSum = orderInfo.invoicedSum
@@ -261,7 +263,7 @@ class Auftrag(
         // [ForecastUtils.getProbabilityOfAccurence]). The edit form keeps the entered value (see [copyFrom]).
         probabilityOfOccurrence =
             if (src.status == AuftragsStatus.BEAUFTRAGT) null else src.probabilityOfOccurrence
-        assignedPersons = src.assignedPersons
+        // The persons as references, not the [assignedPersons] string: the column strikes a leaver through.
         assignedPersonList = User.toContactList(src.contactPerson?.id, src.additionalContactUserIds)
         attachmentsCounter = src.attachmentsCounter
         attachmentsSize = src.attachmentsSize

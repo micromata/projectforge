@@ -254,11 +254,15 @@ class User(
         }
 
         /**
-         * Whether the given user is no longer active (deactivated or deleted), for the views that send a user by name
-         * only: the frontend strikes the name through then.
+         * The user as a reference of a list row: id, display name, deleted and deactivated (struck through when no
+         * longer active), without the username and the flags of [copyFromMinimal] that a row of a long list would
+         * carry for nothing.
          */
-        fun isInactive(user: PFUserDO?): Boolean {
-            return user != null && (user.deactivated || user.deleted)
+        fun ref(user: PFUserDO): User {
+            return User(user.id, user.displayName, localUser = null, restrictedUser = null, hrPlanning = null).also {
+                it.deleted = user.deleted
+                it.deactivated = user.deactivated
+            }
         }
 
         /**
@@ -270,7 +274,7 @@ class User(
             val caches = PfCaches.instance
             return (listOfNotNull(contactPersonId) + ContactUserIds.toList(additionalContactUserIds))
                 .distinct()
-                .mapNotNull { caches.getUser(it)?.let { user -> User(user) } }
+                .mapNotNull { caches.getUser(it)?.let { user -> ref(user) } }
                 .takeIf { it.isNotEmpty() }
         }
 

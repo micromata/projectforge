@@ -11,11 +11,14 @@ import { HighlightedText } from "@/components/shared/highlighted-text";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { AttachmentSelection } from "@/hooks/use-attachment-selection";
-import { attachmentDownloadUrl, type Attachment } from "@/lib/rs/attachments";
+import {
+  attachmentDownloadUrl,
+  attachmentUserFlags,
+  type Attachment,
+} from "@/lib/rs/attachments";
 import { AttachmentEncryptedBadge } from "./attachment-encrypted-badge";
 import { useAttachmentService } from "./attachment-service";
-import { DEACTIVATED_REF_CLASS } from "@/lib/page-def/reference";
-import { cn } from "@/lib/utils";
+import { inactiveRefClass } from "@/lib/page-def/reference";
 
 type Column = ColumnDef<Attachment, unknown>;
 
@@ -116,9 +119,7 @@ export function attachmentColumns(
     cell: ({ getValue, row, table }) => (
       // Struck through when the user is no longer active (see inactiveRefClass).
       <span
-        className={cn(
-          row.original[`${key}Deactivated`] && DEACTIVATED_REF_CLASS
-        )}
+        className={inactiveRefClass(attachmentUserFlags(row.original, key))}
       >
         <HighlightedText
           text={String(getValue())}

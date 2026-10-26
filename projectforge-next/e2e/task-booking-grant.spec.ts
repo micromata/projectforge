@@ -102,7 +102,7 @@ test.describe("task booking grants", { tag: "@lane-task" }, () => {
       const result = (await granted.json()) as {
         success: boolean;
         message?: string;
-        info: { grants: { id: number; userName?: string }[] };
+        info: { grants: { id: number; user?: { displayName?: string } }[] };
       };
       expect(result.success, result.message).toBe(true);
       const grant = result.info.grants[0];
@@ -115,14 +115,17 @@ test.describe("task booking grants", { tag: "@lane-task" }, () => {
         page
           .getByRole("row")
           .filter({ hasText: secondTitle })
-          .getByLabel(grant.userName ?? "", { exact: false })
+          .getByLabel(grant.user?.displayName ?? "", { exact: false })
       ).toBeVisible();
       await goto(page, `/task/${task.id}`);
       await page
         .getByRole("tab", { name: format.t("task.bookingGrants._") })
         .click();
       await expect(
-        page.getByRole("cell", { name: grant.userName ?? "", exact: true })
+        page.getByRole("cell", {
+          name: grant.user?.displayName ?? "",
+          exact: true,
+        })
       ).toBeVisible();
 
       // The helper books on both granted tasks, but not on their parent.
@@ -170,7 +173,7 @@ test.describe("task booking grants", { tag: "@lane-task" }, () => {
         helperPage
           .getByRole("row")
           .filter({ hasText: secondTitle })
-          .getByLabel(grant.userName ?? "", { exact: false })
+          .getByLabel(grant.user?.displayName ?? "", { exact: false })
       ).toHaveCount(0);
       await helperPage.close();
 

@@ -158,9 +158,8 @@ class Timesheet(
                 deleted = it.deleted
             }
         }
-        // User.copyFromMinimal includes deleted and deactivated, so the frontend strikes a removed or deactivated
-        // user through.
-        src.user?.let { user = User(it) }
+        // With deleted and deactivated, so the frontend strikes a removed or deactivated user through.
+        src.user?.let { user = User.ref(it) }
         src.kost2?.let { kost2DO ->
             kost2 = Kost2().also { dto ->
                 dto.copyFromMinimal(kost2DO)

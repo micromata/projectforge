@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { cn } from "@/lib/utils";
+import { RefName } from "@/components/shared/ref-list";
 import type { MonthlyReport } from "./types";
 
 /**
@@ -64,7 +65,9 @@ export function ReportHeader({ report }: { report: MonthlyReport }) {
   return (
     <dl className="flex flex-wrap gap-x-6 gap-y-2" aria-label={t("statistics")}>
       {!report.maySelectOtherUsers && (
-        <Stat label={t("timesheet.user")}>{report.userName}</Stat>
+        <Stat label={t("timesheet.user")}>
+          <RefName value={report.user} />
+        </Stat>
       )}
       {report.costConfigured && report.kost1 && (
         <Stat label={t("fibu.kost1._")}>{report.kost1}</Stat>
