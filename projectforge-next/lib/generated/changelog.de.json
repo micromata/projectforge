@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.14",
+    "date" : "2026-10-23",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "Optionaler MCP-Prototyp für Lesezugriffe mit OAuth-Freigabe über die bestehende ProjectForge-Browsersitzung, auswählbaren und durch Benutzerrechte begrenzten Scopes, PKCE und an die Sitzung gebundenem Zugriff." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {
