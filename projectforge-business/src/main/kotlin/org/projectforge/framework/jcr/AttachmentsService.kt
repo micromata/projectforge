@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -664,11 +665,19 @@ open class AttachmentsService {
             val user = userGroupCache.getUser(it)
             attachment.createdByUser = user?.getFullname()
             attachment.createdByUserId = user?.id
+            attachment.createdByUserDeactivated = inactiveOrNull(user)
         }
         NumberHelper.parseLong(fileObject.lastUpdateByUser, false)?.let {
-            attachment.lastUpdateByUser = userGroupCache.getUser(it)?.getFullname()
+            val user = userGroupCache.getUser(it)
+            attachment.lastUpdateByUser = user?.getFullname()
+            attachment.lastUpdateByUserDeactivated = inactiveOrNull(user)
         }
         return attachment
+    }
+
+    /** True for a no longer active (deactivated or deleted) user, else null (left out of the json). */
+    private fun inactiveOrNull(user: PFUserDO?): Boolean? {
+        return if (user != null && (user.deactivated || user.deleted)) true else null
     }
 
     private fun developerWarning(path: String, id: Any, method: String, enableSearchIndex: Boolean) {

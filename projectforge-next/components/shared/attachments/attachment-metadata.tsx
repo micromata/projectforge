@@ -4,6 +4,8 @@ import { useTranslations } from "next-intl";
 import { CopyButton } from "@/components/shared/copy-button";
 import { zipModeMessageKey, type Attachment } from "@/lib/rs/attachments";
 import { useAttachmentService } from "./attachment-service";
+import { DEACTIVATED_REF_CLASS } from "@/lib/page-def/reference";
+import { cn } from "@/lib/utils";
 
 interface Props {
   attachment: Attachment;
@@ -38,11 +40,19 @@ export function AttachmentMetadata({ attachment }: Props) {
       />
       <Field label={t("created")} value={attachment.createdFormatted} />
       {userInfo && (
-        <Field label={t("createdBy")} value={attachment.createdByUser} />
+        <Field
+          label={t("createdBy")}
+          value={attachment.createdByUser}
+          inactive={!!attachment.createdByUserDeactivated}
+        />
       )}
       <Field label={t("modified")} value={attachment.lastUpdateTimeAgo} />
       {userInfo && (
-        <Field label={t("modifiedBy")} value={attachment.lastUpdateByUser} />
+        <Field
+          label={t("modifiedBy")}
+          value={attachment.lastUpdateByUser}
+          inactive={!!attachment.lastUpdateByUserDeactivated}
+        />
       )}
       {attachment.checksum && (
         <div className="sm:col-span-2">
@@ -61,10 +71,13 @@ function Field({
   label,
   value,
   copyable,
+  inactive,
 }: {
   label: string;
   value?: string | null;
   copyable?: boolean;
+  /** A user no longer active: struck through (see inactiveRefClass). */
+  inactive?: boolean;
 }) {
   return (
     <div className="min-w-0">
@@ -72,7 +85,14 @@ function Field({
       <dd className="flex items-start gap-1">
         {/* A dash for an empty value, as the legacy ReadonlyField does — an empty line would read
             as a missing field rather than a missing value. */}
-        <span className="min-w-0 flex-1 break-all text-xs">{value || "–"}</span>
+        <span
+          className={cn(
+            "min-w-0 flex-1 break-all text-xs",
+            inactive && value && DEACTIVATED_REF_CLASS
+          )}
+        >
+          {value || "–"}
+        </span>
         {copyable && value && (
           <CopyButton
             value={value}

@@ -309,7 +309,7 @@ class ChatRest {
     @GetMapping("conversation/{id}/mentionCandidates")
     fun mentionCandidates(@PathVariable id: Long, @RequestParam("search", required = false) search: String?): List<ChatRef> {
         val context = chatService.requireContext(id)
-        return chatService.mentionCandidates(context, search).map { ChatRef(it.id!!, it.getFullname()) }
+        return chatService.mentionCandidates(context, search).map { converter.ref(it.id) }
     }
 
     @AccessChecked("ChatService.requireContext: read access of the host to the conversation")

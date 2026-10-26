@@ -564,7 +564,9 @@ class DataTransferPublicServicesRest {
             if (!userInfoVisible) {
                 it.createdByUser = null
                 it.createdByUserId = null
+                it.createdByUserDeactivated = null
                 it.lastUpdateByUser = null
+                it.lastUpdateByUserDeactivated = null
             }
         }
         return attachments
