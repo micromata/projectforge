@@ -1822,6 +1822,10 @@
       "intro": "Zusammengehörende Kunden (ACME Germany, ACME Logistics, ACME Holding) bilden eine Gruppe, die die Kundenfilter von Auftragsbuch, Rechnungen, Projekten und Kost2 wie einen einzelnen Kunden anbieten. Business Units fassen Gruppen und Kunden zusammen und erhalten einen eigenen Filter. Ein Kunde gehört zu höchstens einer Gruppe, eine Gruppe oder ein Kunde zu höchstens einer Business Unit. Projektgruppen leisten dasselbe für die Projekte der Projektfilter.",
       "matches": "Trifft {arg0} Kunden",
       "matchesNone": "Trifft noch keinen Kunden",
+      "members": {
+        "more": "… und {arg0} weitere",
+        "tooltip": "Umfasst"
+      },
       "name": "Name",
       "orderAccess": {
         "_": "Auftragsfreigaben",

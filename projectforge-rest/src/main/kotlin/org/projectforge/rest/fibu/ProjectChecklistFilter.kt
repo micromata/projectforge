@@ -104,18 +104,24 @@ internal class ProjectChecklistFilter(
         /**
          * The given projects, each once, sorted by name as the lists' project cells show it, followed by the
          * customer in brackets (many projects of different customers share a name). In front, sorted by name, the
-         * project groups of these projects.
+         * project groups of these projects, each with these of its projects as [UIFilterListValue.members].
          */
         fun valuesOf(
             projectIds: Sequence<Long?>,
             groupIndex: CustomerGroupIndex = CustomerPaths.defaultIndex(),
+            nameOf: (Long) -> String = ::projectName,
         ): List<UIFilterListValue> {
-            val ids = projectIds.filterNotNullTo(mutableSetOf())
-            val groups = ids.mapNotNull { groupIndex.projectGroupOf(it) }.distinct().filter { it.key != null }
-                .map { UIFilterListValue(GROUP_PREFIX + it.key, it.name ?: it.key!!, group = true) }
-            val projects = ids
-                .map { id -> UIFilterListValue(id.toString(), PfCaches.instance.getProjekt(id)?.let { KostFormatter.instance.formatProjektWithCustomer(it) } ?: id.toString()) }
+            val names = projectIds.filterNotNull().distinct().associateWith(nameOf)
+            val groups = names.keys.groupBy { groupIndex.projectGroupOf(it) }.filterKeys { it?.key != null }
+                .map { (group, ids) ->
+                    val members = ids.map { names[it]!! }.sortedWith { a, b -> StringComparator.compare(a, b) }
+                    UIFilterListValue(GROUP_PREFIX + group!!.key, group.name ?: group.key!!, group = true, members = members)
+                }
+            val projects = names.map { (id, name) -> UIFilterListValue(id.toString(), name) }
             return groups.sortedWith(byName) + projects.sortedWith(byName)
         }
+
+        private fun projectName(id: Long): String =
+            PfCaches.instance.getProjekt(id)?.let { KostFormatter.instance.formatProjektWithCustomer(it) } ?: id.toString()
     }
 }

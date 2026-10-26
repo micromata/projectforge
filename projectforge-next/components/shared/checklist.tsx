@@ -20,6 +20,8 @@ export interface ChecklistOption {
   freeText?: boolean;
   /** Stands for several others, e.g. a customer group (see [GroupBadge]). */
   group?: boolean;
+  /** For a [group] option: the names of what it stands for, listed in the row's tooltip. */
+  members?: string[];
 }
 
 export interface ChecklistProps {
