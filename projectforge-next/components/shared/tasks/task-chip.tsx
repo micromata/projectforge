@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { HierarchyIcon } from "@hugeicons/core-free-icons";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { inactiveRefClass } from "@/lib/page-def/reference";
 import { fetchTaskInfo } from "@/lib/rs/task";
 
 interface TaskChipProps {
@@ -37,7 +38,7 @@ export function TaskChip({ taskId, displayName }: TaskChipProps) {
           size={12}
           className="shrink-0 text-muted-foreground"
         />
-        <span>{title}</span>
+        <span className={inactiveRefClass(task)}>{title}</span>
       </span>
     </HintTooltip>
   );

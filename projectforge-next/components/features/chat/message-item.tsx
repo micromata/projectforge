@@ -1,44 +1,45 @@
 "use client";
 
 import { memo, useState } from "react";
-import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
-import { formatTimestampMinutes } from "@/lib/format";
+import { formatTime, formatTimestampMinutes } from "@/lib/format";
 import type { ChatMessage } from "@/lib/rs/chat-types";
 import { cn } from "@/lib/utils";
 import { useChatContext } from "./chat-context";
-import { ChatHtml } from "./chat-html";
 import { MessageActions } from "./message-actions";
 import { MessageAttachments } from "./message-attachments";
 import { MessageAuthor } from "./message-author";
-import { MessageEditForm } from "./message-edit-form";
-import { QuotedMessage } from "./quoted-message";
+import { ReadReceipt } from "./read-receipt";
+import { MessageBubble } from "./message-bubble";
+import { MessageHeader } from "./message-header";
 import { ReactionBar } from "./reaction-bar";
 import { ThreadSummary } from "./thread-summary";
 import { useMessageMutations } from "./use-message-mutations";
 
 /**
- * One message: author (a click offers a direct message), time and "edited" (MSG-02), the message it quotes (MSG-08),
- * the content or the placeholder of a deleted or hidden one, files, reactions and, in the conversation, the summary of its thread.
+ * One message, grouped as in Google Chat: the first of a group shows the avatar and the header (author, a click
+ * offers a direct message; time, "edited", MSG-02), a [continued] one only its time on hover. Then the bubble (quote,
+ * content or placeholder), files, reactions and, in the conversation, the summary of its thread. The user's own
+ * messages are aligned right, without avatar and name.
  */
 export const MessageItem = memo(function MessageItem({
   message,
   inThread = false,
+  continued = false,
+  readByPartner = false,
 }: {
   message: ChatMessage;
   inThread?: boolean;
+  /** Follows a message of the same author shortly before (see layoutMessages): no avatar, no header. */
+  continued?: boolean;
+  /** The newest own message the other one of a direct message has read: marked as read. */
+  readByPartner?: boolean;
 }) {
-  const t = useTranslations();
   const formatContext = useFormatContext();
   const { conversation, openThread, highlightId, observeSeen } =
     useChatContext();
   const { react } = useMessageMutations();
   const [editing, setEditing] = useState(false);
-  const placeholder = message.deleted
-    ? t("chat.message.deleted")
-    : message.hidden && !message.content
-      ? t("chat.message.hidden")
-      : null;
 
   return (
     <article
@@ -47,50 +48,73 @@ export const MessageItem = memo(function MessageItem({
       data-message-id={message.id}
       aria-label={`${message.author.displayName}, ${formatTimestampMinutes(message.created, formatContext)}`}
       className={cn(
-        "group relative flex gap-2.5 px-3 py-1.5 hover:bg-muted/40",
-        message.mentionsMe && "border-l-2 border-primary bg-primary/5",
-        highlightId === message.id && "bg-primary/10"
+        "group relative flex gap-2 px-3 pb-0.5 transition-colors",
+        continued ? "pt-0.5" : "pt-2"
       )}
     >
-      <MessageAuthor author={message.author} avatar />
-      <div className="min-w-0 flex-1">
-        <header className="flex flex-wrap items-baseline gap-x-2">
-          <MessageAuthor author={message.author} />
-          <time
-            className="text-xs text-muted-foreground"
-            dateTime={message.created ?? undefined}
-          >
-            {formatTimestampMinutes(message.created, formatContext)}
-          </time>
-          {message.editedAt && !message.deleted && (
-            <span className="text-xs text-muted-foreground">
-              ({t("chat.message.edited")}{" "}
-              {formatTimestampMinutes(message.editedAt, formatContext)})
-            </span>
+      {!message.own && (
+        <div className="w-7 shrink-0">
+          {continued ? (
+            <time
+              className="invisible block pt-2 text-center text-[10px] text-muted-foreground group-hover:visible"
+              dateTime={message.created ?? undefined}
+            >
+              {formatTime(message.created, formatContext)}
+            </time>
+          ) : (
+            <MessageAuthor author={message.author} avatar />
           )}
-        </header>
-        {placeholder && (
-          <p className="text-sm text-muted-foreground italic">{placeholder}</p>
+        </div>
+      )}
+      {message.own && continued && (
+        <time
+          className="invisible mt-2 shrink-0 self-start text-[10px] text-muted-foreground group-hover:visible"
+          dateTime={message.created ?? undefined}
+        >
+          {formatTime(message.created, formatContext)}
+        </time>
+      )}
+      <div
+        className={cn(
+          "@container/message flex min-w-0 flex-1 flex-col gap-0.5",
+          message.own ? "items-end" : "items-start"
         )}
-        {message.hidden && message.content && (
-          <p className="text-xs text-destructive">
-            {t("chat.message.hiddenReason", {
-              arg0: message.hiddenBy ?? "",
-              arg1: message.hiddenReason ?? "",
-            })}
-          </p>
-        )}
-        {message.quote && <QuotedMessage quote={message.quote} />}
-        {editing ? (
-          <MessageEditForm message={message} onDone={() => setEditing(false)} />
-        ) : (
-          message.content && (
-            <ChatHtml
-              html={message.content}
-              className={cn("text-sm", message.hidden && "opacity-60")}
-            />
-          )
-        )}
+      >
+        {!continued && <MessageHeader message={message} />}
+        {/* The actions sit beside the bubble (left of an own one), top aligned; the bubble leaves them room. In a
+            narrow column (phone, thread panel) there is none, so they overlap the bubble's upper corner instead. */}
+        <div
+          className={cn(
+            "relative min-w-0",
+            editing
+              ? "w-full"
+              : "max-w-[85%] @min-[32rem]/message:max-w-[min(85%,calc(100%-7.5rem))]"
+          )}
+        >
+          <MessageBubble
+            message={message}
+            highlighted={highlightId === message.id}
+            editing={editing}
+            onEditDone={() => setEditing(false)}
+          />
+          {!editing && (
+            // Stays visible while its emoji picker or menu is open (outside, in a portal): they are anchored to it.
+            <div
+              className={cn(
+                "absolute -top-3 z-10 hidden group-focus-within:flex group-hover:flex has-data-[state=open]:flex pointer-coarse:flex @min-[32rem]/message:top-0",
+                message.own
+                  ? "left-2 @min-[32rem]/message:right-full @min-[32rem]/message:left-auto @min-[32rem]/message:mr-1"
+                  : "right-2 @min-[32rem]/message:left-full @min-[32rem]/message:right-auto @min-[32rem]/message:ml-1"
+              )}
+            >
+              <MessageActions
+                message={message}
+                inThread={inThread}
+                onEdit={() => setEditing(true)}
+              />
+            </div>
+          )}
+        </div>
         <MessageAttachments
           conversationId={conversation.id}
           files={message.files}
@@ -100,6 +124,7 @@ export const MessageItem = memo(function MessageItem({
           disabled={!conversation.canWrite}
           onToggle={(emoji) => react.mutate({ id: message.id, emoji })}
         />
+        {readByPartner && <ReadReceipt />}
         {!inThread && (
           <ThreadSummary
             message={message}
@@ -107,16 +132,6 @@ export const MessageItem = memo(function MessageItem({
           />
         )}
       </div>
-      {!editing && (
-        // Stays visible while its emoji picker or menu is open (outside, in a portal): they are anchored to it.
-        <div className="absolute -top-3 right-3 hidden group-focus-within:flex group-hover:flex has-data-[state=open]:flex pointer-coarse:flex">
-          <MessageActions
-            message={message}
-            inThread={inThread}
-            onEdit={() => setEditing(true)}
-          />
-        </div>
-      )}
     </article>
   );
 });

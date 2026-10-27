@@ -557,7 +557,7 @@ async function customerWithProject(
   }
 }
 
-/** The range with customers of the highest numbers, e.g. range 1 (10000-19999) of Micromata's. */
+/** The range with customers of the highest numbers, e.g. range 1 (10000-19999) of application-test.properties. */
 function lastCustomerRange(ranges: NumberRange[]): NumberRange | undefined {
   return ranges
     .filter(hasCustomers)

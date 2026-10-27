@@ -10,6 +10,7 @@ import { TASK_METADATA } from "@/lib/metadata/task.generated";
 import { TASK_STRUCTURE_QUERY_KEYS } from "@/lib/rs/task";
 import { definePage } from "@/lib/page-def/define-page";
 import { accessListHref } from "@/lib/access-links";
+import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { timesheetAddHref, timesheetListHref } from "@/lib/timesheet-links";
 import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
 import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
@@ -201,6 +202,9 @@ export const TASK_PAGE = definePage<
   ],
   // The switch to the structure tree, Wicket's "tree view" button.
   listActions: TaskListActions,
+  // A closed task reads struck through (thin, grey), as everywhere a task is shown; a deleted one stays red.
+  inactiveLabelKey: "task.status.closed",
+  rowClassName: (row) => (row.deactivated ? INACTIVE_ROW_CLASS : undefined),
   edit: {
     schema: taskSchema,
     fieldNames: TASK_FIELDS,

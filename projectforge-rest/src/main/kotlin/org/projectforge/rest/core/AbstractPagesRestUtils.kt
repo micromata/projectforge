@@ -105,7 +105,7 @@ internal fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>> buildQueryFil
 }
 
 /**
- * Serves one page of a server-side paged list (see `projectforge-next/docs/list-paging.md`).
+ * Serves one page of a server-side paged list (see `dev-docs/next/list-paging.md`).
  *
  * The whole ordered, access-checked id list is materialized once per (session, filter) and cached
  * ([ListPageCache]); each page is then a slice of it, loaded with [AbstractEntityRest.getListByIds]. So the

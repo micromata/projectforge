@@ -35,8 +35,8 @@ import org.springframework.context.annotation.Configuration
  * Example configuration in application.properties:
  * ```
  * projectforge.invoicing-quota.enabled=true
- * projectforge.invoicing-quota.billed-patterns=5.*,!5.999.*,5.___.99.*
- * projectforge.invoicing-quota.ignored-patterns=6.3*
+ * projectforge.invoicing-quota.billed-patterns=5.*,!5.900.*,5.___.99.*
+ * projectforge.invoicing-quota.ignored-patterns=6.9*
  * projectforge.invoicing-quota.info.de=Die Fakturaquote gibt dir einen guten Überblick, ...
  * projectforge.invoicing-quota.info.en=The invoicing quota gives you a good overview, ...
  * projectforge.invoicing-quota.foreign-user-groups=CONTROLLING_GROUP
@@ -48,9 +48,9 @@ import org.springframework.context.annotation.Configuration
  *
  * Pattern syntax:
  * - `5.*` = Starts with "5."
- * - `!5.999.*` = Exception: does NOT start with "5.999."
+ * - `!5.900.*` = Exception: does NOT start with "5.900."
  * - `5.___.99.*` = Regex-like: 5 + 3 arbitrary digits + .99 + anything
- * - `6.3*` = Starts with "6.3"
+ * - `6.9*` = Starts with "6.9"
  *
  * @author Kai Reinhard
  */
@@ -67,7 +67,7 @@ open class InvoicingQuotaConfiguration {
      * List of patterns for Kost2 display names that count as billed.
      * Patterns starting with '!' are negations (exceptions).
      *
-     * Example: `5.*,!5.999.*` = All Kost5 except 5.999.*
+     * Example: `5.*,!5.900.*` = All Kost5 except 5.900.*
      */
     var billedPatterns: List<String> = emptyList()
 
@@ -75,7 +75,7 @@ open class InvoicingQuotaConfiguration {
      * List of patterns for Kost2 display names that should be ignored
      * in the calculation (e.g., vacation, absences).
      *
-     * Example: `6.3*` = Urlaub, Elternzeit, Krankheit, Zeitausgleich, Abwesenheiten
+     * Example: `6.9*` = Urlaub, Elternzeit, Krankheit, Zeitausgleich, Abwesenheiten
      */
     var ignoredPatterns: List<String> = emptyList()
 

@@ -101,7 +101,7 @@ object ForecastUtils { // open needed by Wicket.
     }
 
     /**
-     * See doc/misc/ForecastExportProbabilities.xlsx
+     * See dev-docs/misc/ForecastExportProbabilities.xlsx
      */
     @JvmStatic
     fun getProbabilityOfAccurence(order: OrderInfo, pos: OrderPositionInfo): BigDecimal {
@@ -117,7 +117,7 @@ object ForecastUtils { // open needed by Wicket.
             return getGivenProbability(order, BigDecimal.ZERO)
         }
         // Excel rows: Order 7
-        if (pos.status == AuftragsStatus.BEAUFTRAGT) {
+        if (pos.status.isIn(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.ABGESCHLOSSEN) == true) {
             return BigDecimal.ONE
         }
         // Excel rows: Order 8
@@ -218,6 +218,26 @@ object ForecastUtils { // open needed by Wicket.
     @JvmStatic
     fun getForecastType(order: AuftragDO, pos: AuftragsPositionDO? = null): AuftragForecastType {
         return pos?.forecastType ?: order.forecastType ?: AuftragForecastType.default
+    }
+
+    /**
+     * Completed orders are shown in the forecast as long as their performance period ended at most this number of
+     * months before the base month. Older ones are not expected to be invoiced anymore.
+     */
+    const val MAX_OVERDUE_MONTHS = 12
+
+    /**
+     * @return true, if the position is completed (see [OrderPositionInfo.toBeInvoicedByStatus]), still has an open
+     * amount (invoices already booked count, even if the position isn't marked as fully invoiced) and its performance
+     * period didn't end more than [MAX_OVERDUE_MONTHS] months before [baseMonth].
+     */
+    @JvmStatic
+    fun isCompletedAndOpen(order: OrderInfo, pos: OrderPositionInfo, baseMonth: PFDay): Boolean {
+        if (!pos.toBeInvoicedByStatus || pos.netSum - pos.invoicedSum <= BigDecimal.ONE) {
+            return false
+        }
+        val end = getEndLeistungszeitraum(order, pos)
+        return !end.beginOfMonth.plusMonths(MAX_OVERDUE_MONTHS.toLong()).isBefore(baseMonth.beginOfMonth)
     }
 
     @JvmStatic

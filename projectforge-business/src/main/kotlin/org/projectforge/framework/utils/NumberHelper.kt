@@ -412,12 +412,12 @@ object NumberHelper {
 
     /**
      * Extracts the phone number of the given string. All characters of the set "+-/()." and white spaces will be deleted and +## will be
-     * replaced by 00##. Example: +49 561 / 316793-0 -> 00495613167930 <br></br>
+     * replaced by 00##. Example: +49 123 / 456789-0 -> 00491234567890 <br></br>
      * Ignores any characters after the first occurrence of ':' or any letter.
      *
      * @param str
      * @param countryPrefix If country prefix is given, for all numbers beginning with the country prefix the country prefix will be replaced
-     * by 0. Example: ("+49 561 / 316793-0", "+49") -> 05613167930; ("+39 123456", "+49") -> 0039123456.
+     * by 0. Example: ("+49 123 / 456789-0", "+49") -> 01234567890; ("+39 123456", "+49") -> 0039123456.
      * @return
      */
     @JvmStatic

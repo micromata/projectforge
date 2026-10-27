@@ -58,15 +58,15 @@ class EInvoiceExportServiceTest {
 
     private fun createSellerConfig(): EInvoiceSellerConfig {
         return EInvoiceSellerConfig().apply {
-            name = "Micromata GmbH"
-            street = "Marie-Calm-Straße 1-5"
-            zip = "34131"
-            city = "Kassel"
+            name = "Example Seller GmbH"
+            street = "Musterstraße 1-5"
+            zip = "12345"
+            city = "Musterstadt"
             country = "DE"
             vatId = "DE123456789"
             taxNumber = "026/123/45678"
-            email = "info@micromata.de"
-            phone = "+49 561 316 85 0"
+            email = "info@example.org"
+            phone = "+49 123 456789-0"
             bankAccounts = mutableListOf(
                 BankAccountConfig().apply {
                     name = "Commerzbank"
@@ -144,7 +144,7 @@ class EInvoiceExportServiceTest {
         val xmlString = String(xml, Charsets.UTF_8)
         assertTrue(xmlString.contains("<?xml"), "Should be valid XML")
         assertTrue(xmlString.contains("2024001"), "Should contain invoice number")
-        assertTrue(xmlString.contains("Micromata GmbH"), "Should contain seller name")
+        assertTrue(xmlString.contains("Example Seller GmbH"), "Should contain seller name")
         assertTrue(xmlString.contains("Testkundin GmbH"), "Should contain buyer name")
         assertTrue(xmlString.contains("Softwareentwicklung"), "Should contain position text")
         assertTrue(xmlString.contains("DE123456789"), "Should contain seller VAT ID")

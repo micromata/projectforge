@@ -1,13 +1,55 @@
 ---
 title: "ProjectForge 9"
-date: 2026-10-26
-sort_key: "2026-10-26 0046"
+date: 2026-10-27
+sort_key: "2026-10-27 0047"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json and changelog/changelog.de.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 Neu in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-0-18.changelog-release]
+=== ProjectForge 9.0.18 veröffentlicht
+
+[.changelog-source]
+__2026-10-27, Tag https://github.com/micromata/projectforge/tree/9.0.18-RELEASE[9.0.18-RELEASE]__ +++{% include release-pills.html tag="9.0.18-RELEASE" docker="9.0.18" mini=true %}+++
+
+- **Chat**: Vertrauliche Gespräche, Suche in allen Nachrichten, kompaktes Layout mit Sprechblasen, Zähler für Ungelesenes in der oberen Leiste
+- Liquiditätsvorschau: Anzahl der Tage frei wählbar
+- Suche: Geschlossene Strukturelemente nicht mehr in der Menü-Schnellsuche
+
+.Überblick
+[%collapsible]
+====
+- **Chat:** Aus der vertraulichen Nachricht in einer Direktnachricht wird ein vertrauliches Gespräch, Ende-zu-Ende-verschlüsselt und nie auf dem Server gespeichert, bis eine Seite es beendet; der Fingerabdruck deckt beide Schlüssel ab. Unterhaltungen sind kompakter, mit Sprechblasen, gruppierten Nachrichten und einem Trenner pro Tag.
+- **Chat:** Die Suche der Chatseite findet auch Nachrichten in allen lesbaren Unterhaltungen, mit Vorschau des neuesten Treffers; ein Klick springt zur Nachricht. Eine Sprechblase in der oberen Leiste führt zum Chat und zeigt die ungelesenen Nachrichten, ebenso der Menüeintrag.
+- **Liquiditätsvorschau:** Die Anzahl der Tage kann frei eingegeben werden (1 bis 600), die üblichen Zeiträume bleiben als Schnellwahl.
+- **Suche:** Geschlossene Strukturelemente werden in der Menü-Schnellsuche nicht mehr gefunden; die Detailsuche findet sie weiterhin, durchgestrichen.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Chat: Die Suche der Chatseite findet auch Nachrichten in allen lesbaren Unterhaltungen, jeweils mit einer Vorschau des neuesten Treffers; ein Klick springt zur Nachricht, auch in einem Thread.
+- Chat: Eine Sprechblase in der oberen Leiste führt zum Chat, ein Zähler zeigt dort und am Menüeintrag die ungelesenen Nachrichten.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Chat: Kompaktere Unterhaltungen mit Sprechblasen (eigene Nachrichten rechts), aufeinanderfolgende Nachrichten derselben Person gruppiert und ein Trenner pro Tag.
+- Liquiditätsvorschau: Die Anzahl der Tage kann frei eingegeben werden (1 bis 600), die üblichen Zeiträume bleiben als Schnellwahl.
+- Suche: Geschlossene Strukturelemente werden in der Menü-Schnellsuche nicht mehr gefunden. Die Detailsuche findet sie weiterhin und zeigt sie durchgestrichen, ebenso der Strukturbaum, die Pfade und die Listen.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- Chat: Aus der vertraulichen Nachricht in einer Direktnachricht wird ein vertrauliches Gespräch. Beide Seiten schreiben sich hin und her, Ende-zu-Ende-verschlüsselt und nie auf dem Server gespeichert, bis eine Seite es beendet. Der Fingerabdruck deckt jetzt beide Schlüssel ab, eine gefälschte Nachricht fällt so als Abweichung auf.
+====
 
 [discrete#release-9-0-17.changelog-release]
 === ProjectForge 9.0.17 veröffentlicht
@@ -255,7 +297,7 @@ __2026-10-23, Tag https://github.com/micromata/projectforge/tree/9.0.14-RELEASE[
   * Export ohne Positionen: Die Zeilen einer Rechnung (eine je Buchungszeile) werden zu einer Rechnung mit dem Gesamtbetrag zusammengefasst, statt bei jedem Import als neue Rechnungen angeboten zu werden.
   * Export ohne Positionen: Die interne Notiz (Spalte „Interne Re.-Nr.“) wird nicht mehr an die Rechnungsnummer angehängt, die sich sonst bei jedem Import der beiden Dateien hin- und herändert.
 - Massenänderungen: Das Protokollfenster zeigt die geänderten Einträge wieder an.
-- Stornorechnungen werden bei den Auftragspositionen aufgeführt, die sie stornieren, direkt nach der stornierten Rechnung (z. B. 17400 und 17400-S), auch im Auftrags- und Forecast-Export. Im Auftrag sind beide durchgestrichen; zusammen zählen sie weiterhin 0 als fakturiert.
+- Stornorechnungen werden bei den Auftragspositionen aufgeführt, die sie stornieren, direkt nach der stornierten Rechnung (z. B. 12345 und 12345-S), auch im Auftrags- und Forecast-Export. Im Auftrag sind beide durchgestrichen; zusammen zählen sie weiterhin 0 als fakturiert.
 - Auftragsbuch: Die Bearbeitungsseite springt beim Ändern eines Feldes nicht mehr.
 
 ++++

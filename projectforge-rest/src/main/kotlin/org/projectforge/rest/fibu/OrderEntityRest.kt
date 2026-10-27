@@ -397,8 +397,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * Opts the order list into the lean row: [Auftrag.copyFrom4ListRow] fills only the columns of
    * `order.page.tsx`, which is what the hand built next page renders.
    *
-   * Measured on the order book of a real installation (7132 rows): 1755 B/row become 741 B/row, 12.5 MB
-   * become 5.3 MB, and 1.5 MB become 549 KB on the wire. Most of it is the four manager DTOs (~524 B/row
+   * On a large order book (several thousand rows) a row shrinks to less than half its size, both
+   * uncompressed and on the wire. Most of it is the four manager DTOs (~524 B/row
    * for a column showing nothing but the derived `assignedPersons` string), the sums travelling twice (raw
    * and pre-formatted), and a dozen fields no column reads.
    */
@@ -632,7 +632,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   /**
    * The whole-result statistics of a server-side paged order list: computed over the full id list, not over
    * the single page [postProcessResultSet] sees, so the footer shows the sums of every matching order (see
-   * `projectforge-next/docs/list-paging.md`). Each id's [OrderInfo] is a cache lookup, so this stays cheap for the whole
+   * `dev-docs/next/list-paging.md`). Each id's [OrderInfo] is a cache lookup, so this stays cheap for the whole
    * result. The non-paged `POST list` keeps computing the same statistics over its (complete) result set in
    * [postProcessResultSet].
    */
@@ -1344,7 +1344,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   /**
    * The bubble chart of the contribution margin tab ([ContributionMarginService.bubbles]): the projects of
    * [contributionMargin], grouped by the requested grouping. With `includeOthers`, also the projects of the orders
-   * the filter selects regardless of the user's access (all of a business unit, a customer, …), but anonymous:
+   * the filter selects regardless of the user's access and of its project filter (all of a business unit, a customer, …), but anonymous:
    * their bubbles have neither label nor project count, and no id or name of them leaves the server. Grouping and
    * switch are remembered for the next time, the filter isn't (it's stored by [contributionMargin]).
    */
@@ -1366,13 +1366,16 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   }
 
   /**
-   * The contribution margin of the projects of the orders [magicFilter] selects, but the user may not see: the
-   * orders are selected without access check. Only for anonymous comparison ([contributionMarginBubbles]).
+   * The contribution margin of the projects of the orders [magicFilter] selects, ignoring its project filter, but
+   * the user may not see: the orders are selected without access check. Only for anonymous comparison ([contributionMarginBubbles]).
    */
   private fun otherProjectsContributionMargin(magicFilter: MagicFilter, startDate: LocalDate): ContributionMarginData {
     val key = statisticsCacheKey(OrderStatisticsCache.Kind.CONTRIBUTION_MARGIN_OTHERS, magicFilter, startDate)
     return orderStatisticsCache.get(key) {
+      // Without the project filter: the others are meant to be projects other than the chosen ones. Business unit
+      // and customer stay.
       val filter = forecastFilter(magicFilter, startDate)
+      filter.entries.removeIf { it.field == ProjectChecklistFilter.FIELD }
       filter.autoWildcardSearch = true
       fixMagicFilterFromClient(filter)
       val (queryFilter, customResultFilters) = buildQueryFilter(this, baseDao, filter)
@@ -1597,7 +1600,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
      * [filterList] sorts the loaded order list (each order's info via the cache) for the non-paged `POST
      * list`, and [sortIds] sorts the materialized id list (each id's info via the cache) for server-side
      * paging — the paged result must be the same rows in the same order as `POST list` (see
-     * `projectforge-next/docs/list-paging.md`).
+     * `dev-docs/next/list-paging.md`).
      *
      * The customer and the project sort by the very string the cell shows — the `displayName` of the cached
      * [org.projectforge.business.fibu.kunde.KundeDO]/[org.projectforge.business.fibu.ProjektDO], formatted by

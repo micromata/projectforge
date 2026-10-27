@@ -1,10 +1,11 @@
 import { Extension } from "@tiptap/react";
 import Mention from "@tiptap/extension-mention";
 import type { SuggestionOptions } from "@tiptap/suggestion";
-import StarterKit from "@tiptap/starter-kit";
-import { Color, TextStyle } from "@tiptap/extension-text-style";
-import { Placeholder } from "@tiptap/extensions";
 import type { ChatRef } from "@/lib/rs/chat-types";
+import {
+  CHAT_MESSAGE_FEATURES,
+  richTextExtensions,
+} from "@/components/shared/rich-text-extensions";
 
 /**
  * A mention (`<span data-type="mention" data-id="…">@Name</span>`). The backend keeps only `data-type` and
@@ -54,28 +55,16 @@ export type MentionRender = ReturnType<
 >;
 
 /**
- * The markup of a chat message: paragraphs, bold, italic, strike-through, text colours, lists, links, code (inline
- * and as a block of several lines, without highlighting) and mentions. No headings or tables: it is a chat, not a
- * document (see sanitizeChatHtml).
+ * The extensions of a chat message on top of the shared ones ([richTextExtensions]): a new line with Shift+Enter
+ * and mentions.
  */
 export function chatEditorExtensions(
   placeholder: string,
   mentionItems: (query: string) => Promise<ChatRef[]>,
   mentionRender: () => MentionRender
 ) {
-  return [
-    StarterKit.configure({
-      heading: false,
-      blockquote: false,
-      horizontalRule: false,
-      // Tab indents (by spaces) in a code block, else it leaves the editor.
-      codeBlock: { enableTabIndentation: true },
-      link: { openOnClick: false, autolink: true },
-    }),
+  return richTextExtensions(placeholder, CHAT_MESSAGE_FEATURES, [
     ChatNewLine,
-    TextStyle,
-    Color,
-    Placeholder.configure({ placeholder }),
     ChatMention.configure({
       HTMLAttributes: { class: "chat-mention" },
       suggestion: {
@@ -84,5 +73,5 @@ export function chatEditorExtensions(
         render: mentionRender,
       },
     }),
-  ];
+  ]);
 }

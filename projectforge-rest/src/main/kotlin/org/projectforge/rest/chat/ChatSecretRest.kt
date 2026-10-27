@@ -45,9 +45,9 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.Date
 
 /**
- * Confidential messages of direct chats ([ChatSecretRelay]): end-to-end encrypted by the browsers, relayed in memory
- * only. Only the two sides of a session see it, each step only its side; the recipient is the partner of the direct
- * chat from the database. Nothing of it is logged.
+ * Confidential conversations of direct chats ([ChatSecretRelay]): end-to-end encrypted by the browsers, relayed in
+ * memory only. Only the two sides of a session see it, each step only its side; the recipient is the partner of the
+ * direct chat from the database. Nothing of it is logged.
  */
 @RestController
 @RequestMapping("${Rest.URL}/chatSecret")
@@ -61,13 +61,20 @@ class ChatSecretRest {
     @AccessChecked("ChatSecretRelay.offer: write access to the conversation, a direct chat only; recipient is its partner from the database")
     @PostMapping("offer")
     fun offer(@RequestBody request: ChatSecretOfferRequest): ChatSecretSession {
-        return toDto(relay.offer(request.conversationId))
+        return toDto(relay.offer(request.conversationId, request.publicKey))
     }
 
     @AccessChecked("ChatSecretRelay.pending: read access to the conversation, sessions of the logged-in user as recipient only")
     @GetMapping("pending")
     fun pending(@RequestParam conversationId: Long): List<ChatSecretSession> {
         return relay.pending(conversationId).map { toDto(it) }
+    }
+
+    /** The offers to the logged-in user waiting for an answer, in all direct chats (to draw the user's attention). */
+    @AccessChecked("ChatSecretRelay.offers: sessions of the logged-in user as recipient only, read access to each conversation")
+    @GetMapping("offers")
+    fun offers(): List<ChatSecretSession> {
+        return relay.offers().map { toDto(it) }
     }
 
     /** The offers are shown in the open chat: resolves their notification. POST, as it changes the state. */
@@ -91,23 +98,22 @@ class ChatSecretRest {
         return toDto(relay.accept(id, request.publicKey))
     }
 
-    @AccessChecked("ChatSecretRelay.deliver: the sender of the session only, write access to the conversation")
-    @PostMapping("{id}/deliver")
-    fun deliver(@PathVariable id: String, @RequestBody request: ChatSecretPayload): ChatSecretSession {
-        val payload = ChatSecretRelay.Payload(
-            senderKey = request.senderKey ?: throw UserException(ChatSecretRelay.ERROR_INVALID),
+    @AccessChecked("ChatSecretRelay.send: a side of the session only, write access to the conversation")
+    @PostMapping("{id}/send")
+    fun send(@PathVariable id: String, @RequestBody request: ChatSecretMessage): ChatSecretSession {
+        val message = ChatSecretRelay.Message(
+            counter = request.counter ?: throw UserException(ChatSecretRelay.ERROR_INVALID),
             iv = request.iv ?: throw UserException(ChatSecretRelay.ERROR_INVALID),
             ciphertext = request.ciphertext ?: throw UserException(ChatSecretRelay.ERROR_INVALID),
         )
-        return toDto(relay.deliver(id, payload))
+        return toDto(relay.send(id, message))
     }
 
-    /** The ciphertext, only once: it is deleted with it. POST, as it changes the state. */
-    @AccessChecked("ChatSecretRelay.take: the recipient of the session only, read access to the conversation")
+    /** The messages waiting for the logged-in user, only once: they are deleted with it. POST, as it changes the state. */
+    @AccessChecked("ChatSecretRelay.take: a side of the session only, read access to the conversation")
     @PostMapping("{id}/take")
-    fun take(@PathVariable id: String): ChatSecretPayload {
-        val payload = relay.take(id)
-        return ChatSecretPayload(senderKey = payload.senderKey, iv = payload.iv, ciphertext = payload.ciphertext)
+    fun take(@PathVariable id: String): List<ChatSecretMessage> {
+        return relay.take(id).map { ChatSecretMessage(counter = it.counter, iv = it.iv, ciphertext = it.ciphertext) }
     }
 
     @AccessChecked("ChatSecretRelay.cancel: the sender or the recipient of the session only")
@@ -118,14 +124,19 @@ class ChatSecretRest {
     }
 
     private fun toDto(session: ChatSecretRelay.Session): ChatSecretSession {
+        val userId = ThreadLocalUserContext.requiredLoggedInUserId
         return ChatSecretSession(
             id = session.id,
             conversationId = session.conversationId,
             state = session.state.name,
-            sender = converter.ref(session.senderId),
+            initiator = converter.ref(session.initiatorId),
             recipient = converter.ref(session.recipientId),
-            mine = session.senderId == ThreadLocalUserContext.requiredLoggedInUserId,
+            mine = session.isInitiator(userId),
+            initiatorKey = session.initiatorKey,
             recipientKey = session.recipientKey,
+            waiting = session.waiting(userId),
+            readCounter = session.read(userId),
+            sentCounter = session.sent(userId),
             expiresAt = Date(session.expiresAt),
         )
     }

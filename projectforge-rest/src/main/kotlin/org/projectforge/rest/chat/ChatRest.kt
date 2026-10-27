@@ -297,6 +297,18 @@ class ChatRest {
         return historyFormatService.selectAsDisplayEntries(chatMessageDao, message)
     }
 
+    /** How far the other one of a direct message has read; null for any other conversation. */
+    @AccessChecked("ChatService.requireContext: read access of the host to the conversation; direct messages only, the other member's state of this conversation")
+    @GetMapping("conversation/{id}/partnerRead")
+    fun getPartnerRead(@PathVariable id: Long): ChatPartnerRead {
+        val context = chatService.requireContext(id)
+        if (context.conversation.hostType != ChatDirectChatHost.HOST_TYPE) {
+            return ChatPartnerRead(null)
+        }
+        val partnerId = directHost.partnerId(context.hostId, context.user.id) ?: return ChatPartnerRead(null)
+        return ChatPartnerRead(chatService.getMemberState(id, partnerId)?.lastReadMessageId)
+    }
+
     @AccessChecked("ChatService.markRead: read access of the host to the conversation, message of this conversation only, own state only")
     @PostMapping("conversation/{id}/read")
     fun markRead(@PathVariable id: Long, @RequestBody request: ChatReadRequest): ResponseEntity<Unit> {
@@ -353,6 +365,21 @@ class ChatRest {
     fun unreadMessages(@PathVariable id: Long, @RequestParam("after") after: Long): List<ChatUnreadMessage> {
         val context = chatService.requireContext(id)
         return chatService.selectUnread(context, after).map { (messageId, rootId) -> ChatUnreadMessage(messageId, rootId) }
+    }
+
+    /** The conversations with messages containing the text (SRCH-02), the one with the newest match first. */
+    @AccessChecked("ChatService.searchAll: read access of the host per conversation")
+    @GetMapping("search")
+    fun searchAll(@RequestParam("q", required = false) q: String?): List<ChatSearchHit> {
+        return chatService.searchAll(q).map { hit ->
+            ChatSearchHit(
+                conversationId = hit.context.conversationId,
+                hostType = hit.context.conversation.hostType!!,
+                title = hit.context.title,
+                hitCount = hit.hitCount,
+                message = converter.convert(hit.context, hit.newest),
+            )
+        }
     }
 
     @AccessChecked("ChatService.requireContext: read access of the host to the conversation")

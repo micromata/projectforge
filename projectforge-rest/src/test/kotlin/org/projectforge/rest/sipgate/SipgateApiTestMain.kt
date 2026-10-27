@@ -35,7 +35,7 @@ import kotlin.io.path.Path
 
 fun main() {
   // From documentation:
-  // println("{    \"contactType\": {        \"value\": \"COMPANY\"    },    \"organization\": {        \"id\": \"\"    },    \"company\": \"d.velop AG\",    \"type\": {        \"value\": \"PARTNER\"    },    \"number\": \"0004\",    \"street\": \"Schildarpstraße 6\",    \"zip\": \"48712\",    \"city\": \"Gescher\",    \"country\": \"Deutschland\",    \"addressAdditional\": \"d.velop Campus Gebäude 3\",    \"website\": \"www.d-velop.de\",    \"active\": {        \"value\": \"TRUE\"    }}")
+  // println("{    \"contactType\": {        \"value\": \"COMPANY\"    },    \"organization\": {        \"id\": \"\"    },    \"company\": \"ACME AG\",    \"type\": {        \"value\": \"PARTNER\"    },    \"number\": \"0004\",    \"street\": \"Musterweg 1\",    \"zip\": \"12345\",    \"city\": \"Musterstadt\",    \"country\": \"Deutschland\",    \"addressAdditional\": \"Gebäude 1\",    \"website\": \"www.example.org\",    \"active\": {        \"value\": \"TRUE\"    }}")
   val props = Properties()
   val path = Path(System.getProperty("user.home"), "ProjectForge", "projectforge.properties")
   props.load(path.toFile().bufferedReader())
@@ -94,7 +94,7 @@ private fun callTest(sipgateClient: SipgateClient) {
   val sipgateService = SipgateService()
   sipgateService.sipgateClient = sipgateClient
   sipgateService.postConstruct()
-  sipgateService.initCall(deviceId = "e23", callerId = "0561-31679321", callee = "+49 561 51080985", caller = "p22")
+  sipgateService.initCall(deviceId = "e0", callerId = "+49 123 4567890", callee = "+49 123 4567891", caller = "p0")
   // sipgateService.initCall(deviceId = "x1", callerId = "p1", callee = "01234567", caller = "p1")
   // sipgateService.sendSms(smsId = "s0", message = "Test sipgate", recipient = "012345")
 }
@@ -126,13 +126,13 @@ private fun contactService(sipgateClient: SipgateClient) {
   val addressDO = AddressDO()
   addressDO.name = "Meier"
   addressDO.firstName = "Hurzel"
-  addressDO.organization = "Micromata GmbH"
+  addressDO.organization = "ACME GmbH"
   addressDO.division = "DevOps"
   addressDO.privateEmail = "kai@acme.com"
   addressDO.email = "business@acme.com"
-  addressDO.addressText = "Marie-Calm-Str. 1-5"
-  addressDO.zipCode = "34131"
-  addressDO.city = "Kassel"
+  addressDO.addressText = "Musterweg 1-5"
+  addressDO.zipCode = "12345"
+  addressDO.city = "Musterstadt"
   addressDO.businessPhone = "0123"
   addressDO.privatePhone = "1234"
   addressDO.mobilePhone = "2345"
@@ -142,7 +142,7 @@ private fun contactService(sipgateClient: SipgateClient) {
   contacts = contactService.getList()
   var contact = contacts.find { it.name == "Hurzel Meier" }!!
   Assertions.assertEquals(SipgateContact.Scope.SHARED, contact.scope)
-  Assertions.assertEquals("Micromata GmbH", contact.organization)
+  Assertions.assertEquals("ACME GmbH", contact.organization)
   Assertions.assertEquals("DevOps", contact.division)
   val emails = contact.emails
   Assertions.assertEquals(2, emails!!.size)
@@ -150,9 +150,9 @@ private fun contactService(sipgateClient: SipgateClient) {
   Assertions.assertEquals("business@acme.com", emails.find { it.type == SipgateContact.EmailType.WORK }!!.email)
   Assertions.assertEquals(1, contact.addresses!!.size)
   val address = contact.addresses!!.first()
-  Assertions.assertEquals("Marie-Calm-Str. 1-5", address.streetAddress)
-  Assertions.assertEquals("34131", address.postalCode)
-  Assertions.assertEquals("Kassel", address.locality)
+  Assertions.assertEquals("Musterweg 1-5", address.streetAddress)
+  Assertions.assertEquals("12345", address.postalCode)
+  Assertions.assertEquals("Musterstadt", address.locality)
 
 
   println("#${contacts.size} contacts.")

@@ -5,9 +5,11 @@ import type {
   ChatMessage,
   ChatConversation,
   ChatMessagesPage,
+  ChatPartnerRead,
   ChatThread,
   ChatChanges,
   ChatHostEntry,
+  ChatSearchHit,
   ChatUnreadMessage,
 } from "./chat-types";
 
@@ -81,6 +83,11 @@ export function openChatConversation(
 
 /** The host type of the data transfer areas, each one a chat room (PF-CHAT-DT). */
 export const CHAT_HOST_DATA_TRANSFER = "dataTransfer";
+export const CHAT_HOST_CHAT_ROOM = "chatRoom";
+export const CHAT_HOST_DIRECT = "direct";
+
+/** The shortest term of the search across all conversations (ChatService.MIN_SEARCH_ALL_LENGTH). */
+export const CHAT_SEARCH_ALL_MIN_LENGTH = 3;
 
 /** The channel of the chat of a data transfer area. */
 export const CHAT_DATA_TRANSFER_CHANNEL = "main";
@@ -104,6 +111,18 @@ export function fetchChatHostConversations(
 export function fetchChatConversation(id: number, signal?: AbortSignal) {
   return chatRequest<ChatConversation>(
     `${BASE}/conversation/${id}`,
+    { method: "GET" },
+    signal
+  );
+}
+
+export const chatPartnerReadQueryKey = (id: number) =>
+  ["chatPartnerRead", id] as const;
+
+/** How far the other one of a direct message has read (null for any other conversation). */
+export function fetchChatPartnerRead(id: number, signal?: AbortSignal) {
+  return chatRequest<ChatPartnerRead>(
+    `${BASE}/conversation/${id}/partnerRead`,
     { method: "GET" },
     signal
   );
@@ -273,6 +292,15 @@ export function searchChatMessages(
 ) {
   return chatRequest<ChatMessage[]>(
     `${BASE}/conversation/${id}/search?q=${encodeURIComponent(q)}`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/** The conversations of the user with messages containing [q] (at least [CHAT_SEARCH_ALL_MIN_LENGTH] characters), newest match first. */
+export function searchAllChatMessages(q: string, signal?: AbortSignal) {
+  return chatRequest<ChatSearchHit[]>(
+    `${BASE}/search?q=${encodeURIComponent(q)}`,
     { method: "GET" },
     signal
   );

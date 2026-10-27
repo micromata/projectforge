@@ -231,6 +231,48 @@ export function formatTime(value: unknown, ctx: FormatContext): string {
   }).format(date);
 }
 
+/**
+ * The calendar day a timestamp falls on in the user's zone as `yyyy-MM-dd`, for comparing days (e.g. where
+ * a day separator goes); empty for no timestamp.
+ */
+export function dayKeyOf(value: unknown, ctx: FormatContext): string {
+  return dayKeyFormatter(ctx)(value);
+}
+
+/** [dayKeyOf] with the formatter built once, for many timestamps. */
+export function dayKeyFormatter(
+  ctx: FormatContext
+): (value: unknown) => string {
+  // en-CA writes the ISO order; only the digits are used.
+  const format = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: ctx.timeZone,
+  });
+  return (value) => {
+    const date = toDate(value);
+    return date ? format.format(date) : "";
+  };
+}
+
+/**
+ * The day of a timestamp as a heading, with the weekday, e.g. "Dienstag, 20. Okt."; with the year only if it
+ * isn't the current one ("Dienstag, 20. Okt. 2025").
+ */
+export function formatDayHeading(value: unknown, ctx: FormatContext): string {
+  const date = toDate(value);
+  if (!date) return "";
+  const thisYear = dayKeyOf(new Date(), ctx).slice(0, 4);
+  return new Intl.DateTimeFormat(ctx.locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+    year: dayKeyOf(date, ctx).startsWith(thisYear) ? undefined : "numeric",
+    timeZone: ctx.timeZone,
+  }).format(date);
+}
+
 /** [formatTimeRange] for a same-day period, e.g. `10:30 – 12:00`. */
 export function formatTimeRange(
   begin: unknown,

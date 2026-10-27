@@ -32,10 +32,10 @@ import org.projectforge.framework.json.JsonUtils
 class SipgateTest {
   @Test
   fun base64Test() {
-    val tokenId = "token-FQ1V12"
-    val token = "e68ead46-a7db-46cd-8a1a-44aed1e4e372"
+    val tokenId = "token-ABCDEF"
+    val token = "00000000-0000-0000-0000-000000000000"
     Assertions.assertEquals(
-      "dG9rZW4tRlExVjEyOmU2OGVhZDQ2LWE3ZGItNDZjZC04YTFhLTQ0YWVkMWU0ZTM3Mg==",
+      "dG9rZW4tQUJDREVGOjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMA==",
       SipgateClient.base64Credentials(tokenId, token)
     )
   }

@@ -54,11 +54,11 @@ public class NumberHelperConfigTest extends AbstractTestBase {
 
     @Test
     void matchesPhoneNumberTest() {
-        assertTrue(NumberHelper.matchesPhoneNumber("0561 316793-0"));
-        assertTrue(NumberHelper.matchesPhoneNumber("+49 561 316793-0"));
-        assertTrue(NumberHelper.matchesPhoneNumber("(0049) 561 316793-0"));
-        assertTrue(NumberHelper.matchesPhoneNumber("0561 316793/0"));
-        assertFalse(NumberHelper.matchesPhoneNumber("test 0561 316793/0"));
+        assertTrue(NumberHelper.matchesPhoneNumber("0123 456789-0"));
+        assertTrue(NumberHelper.matchesPhoneNumber("+49 123 456789-0"));
+        assertTrue(NumberHelper.matchesPhoneNumber("(0049) 123 456789-0"));
+        assertTrue(NumberHelper.matchesPhoneNumber("0123 456789/0"));
+        assertFalse(NumberHelper.matchesPhoneNumber("test 0123 456789/0"));
         assertFalse(NumberHelper.matchesPhoneNumber("+ ( ) / -"));
         assertTrue(NumberHelper.matchesPhoneNumber("+ ( ) / 5 -"));
     }

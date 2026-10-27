@@ -180,7 +180,7 @@ class AuftragsRechnungCache : AbstractCache() {
             }
             if (pos.deleted || rechnungInfo.deleted || rechnungInfo.belegNummer == null) {
                 // Invoice position or invoice is deleted, or the invoice has no number yet (planned). A
-                // cancellation has no number of its own, but a belegNummer (e.g. 17400-S).
+                // cancellation has no number of its own, but a belegNummer (e.g. 12345-S).
                 continue
             }
             val auftrag = auftragsCache.getOrderInfoByPositionId(auftragsPositionId)

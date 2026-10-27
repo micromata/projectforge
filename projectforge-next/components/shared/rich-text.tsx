@@ -70,13 +70,19 @@ function installHooks() {
 }
 
 /** The stored HTML of a rich text, sanitized; empty where there is no DOM (prerendering). */
-export function sanitizeRichText(html: string): string {
+export function sanitizeRichText(
+  html: string,
+  { code = false }: { code?: boolean } = {}
+): string {
   if (!DOMPurify.isSupported) return "";
   installHooks();
-  return DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR });
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: code ? [...ALLOWED_TAGS, "code", "pre"] : ALLOWED_TAGS,
+    ALLOWED_ATTR,
+  });
 }
 
-/** The markup of a chat message (no headings, no tables, but code), see ChatHtmlSanitizer in the backend. */
+/** The markup of a chat message (no headings, but tables and code), see ChatHtmlSanitizer in the backend. */
 const CHAT_ALLOWED_TAGS = [
   "p",
   "pre",
@@ -93,9 +99,17 @@ const CHAT_ALLOWED_TAGS = [
   "li",
   "a",
   "span",
+  "table",
+  "thead",
+  "tbody",
+  "tr",
+  "th",
+  "td",
 ];
 const CHAT_ALLOWED_ATTR = [
   "href",
+  "colspan",
+  "rowspan",
   "style",
   "target",
   "rel",
@@ -104,7 +118,7 @@ const CHAT_ALLOWED_ATTR = [
 ];
 
 /**
- * The HTML of a chat message, sanitized: the markup of [sanitizeRichText] without headings and tables, plus code
+ * The HTML of a chat message, sanitized: the markup of [sanitizeRichText] without headings, plus code
  * (`<code>` inline, `<pre><code>` as a block) and mentions (`<span data-type="mention" data-id="…">`). The data
  * attributes survive on such a span only. Kept in line with ChatHtmlSanitizer of the backend, which sanitizes every
  * message before storing it.
@@ -170,14 +184,20 @@ export function richTextToPlainText(text: string): string {
 export function RichText({
   html,
   className,
+  code,
+  decorate,
 }: {
   html: string;
   className?: string;
+  /** Keep code (`<code>`, `<pre>`), as the editor of [DESCRIPTION_FEATURES] writes it. */
+  code?: boolean;
+  /** Changes the sanitized HTML, e.g. draws the custom emoji (decorateEmoji). */
+  decorate?: (sanitized: string) => string;
 }) {
-  const sanitized = useMemo(
-    () => sanitizeRichText(toRichTextHtml(html)),
-    [html]
-  );
+  const sanitized = useMemo(() => {
+    const clean = sanitizeRichText(toRichTextHtml(html), { code });
+    return decorate ? decorate(clean) : clean;
+  }, [html, code, decorate]);
   return (
     <div
       className={cn(

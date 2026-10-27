@@ -61,7 +61,7 @@ interface UseMagicFilterQueryOptions {
   /**
    * A column-header (funnel) filter is set. The funnel narrows on the client, so under it the page
    * falls back to fetching the whole result set (`list`) even when `serverPaging` is on — slower, but
-   * the footer total and the narrowing then agree. Without it the page would show "50 of 7000" while
+   * the footer total and the narrowing then agree. Without it the page would show "50 of 5000" while
    * the funnel hid rows of the loaded 50 only.
    */
   columnFilterActive?: boolean;

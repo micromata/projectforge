@@ -33,7 +33,8 @@ import org.projectforge.business.utils.HtmlHelper
  * Sanitizes the HTML of a chat message. Allows the same as [org.projectforge.framework.utils.HtmlSanitizer] (and
  * `sanitizeChatHtml` of `projectforge-next/components/features/chat/chat-html.ts`): paragraphs, line breaks, bold,
  * italic, underline, strike-through, lists, links (http, https, mailto) and text colours, plus code (`<code>` inline,
- * `<pre><code>` as a block of several lines, without a language) and mentions:
+ * `<pre><code>` as a block of several lines, without a language), tables (`colspan`/`rowspan` as numbers only; no
+ * headings) and mentions:
  * `<span data-type="mention" data-id="{userId}">@{name}</span>`.
  *
  * A mention is kept only for a user accepted by the caller (the readers of the conversation); its text is taken from
@@ -51,11 +52,16 @@ object ChatHtmlSanitizer {
 
     private val safelist: Safelist = Safelist()
         .addTags("p", "br", "strong", "b", "em", "i", "u", "s", "ul", "ol", "li", "a", "span", "code", "pre")
+        .addTags("table", "thead", "tbody", "tr", "th", "td")
         .addAttributes("a", "href")
         .addProtocols("a", "href", "http", "https", "mailto")
         .addAttributes("span", "style", "data-type", "data-id")
+        .addAttributes("th", "colspan", "rowspan")
+        .addAttributes("td", "colspan", "rowspan")
 
     private val COLOR_REGEX = """^\s*color\s*:\s*(#[0-9a-fA-F]{3,8}|rgba?\([0-9.,\s%]+\)|[a-zA-Z]+)\s*;?\s*$""".toRegex()
+
+    private val SPAN_REGEX = """\d{1,3}""".toRegex()
 
     private val TAG_REGEX = """<[a-zA-Z/][^>]*>""".toRegex()
 
@@ -83,6 +89,10 @@ object ChatHtmlSanitizer {
             if (userId !in mentionedIds) {
                 mentionedIds += userId
             }
+        }
+        clean.select("th[colspan], td[colspan], th[rowspan], td[rowspan]").forEach { cell ->
+            listOf("colspan", "rowspan").filter { cell.hasAttr(it) && !SPAN_REGEX.matches(cell.attr(it)) }
+                .forEach { cell.removeAttr(it) }
         }
         clean.select("span[style]").forEach { span -> cleanStyle(span) }
         clean.select("span:not([style]):not([data-type])").unwrap()

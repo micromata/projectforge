@@ -138,8 +138,8 @@ object HibernateSearchFilterUtils {
                     // A word the user gave a syntax of their own: none of the tokenizer's business.
                     null
                 } else {
-                    // A separator in the word (dhl-pop, dhl-, kai@acme.de) means the index holds other terms
-                    // than the word, and a wildcard term is never tokenized by Lucene - so 'dhl-pop*' could not
+                    // A separator in the word (acme-pop, acme-, kai@acme.de) means the index holds other terms
+                    // than the word, and a wildcard term is never tokenized by Lucene - so 'acme-pop*' could not
                     // match anything. Offer the terms of the index as an alternative to the word as typed.
                     SearchStringTokenizer.expandSplitWord(modified, wildcardChar!!, andSearch && tokens.size > 1)
                 }

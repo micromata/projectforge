@@ -342,9 +342,9 @@ class EingangsrechnungPosImportDTO(
      */
     private fun convertReferenzSimilarityToScore(similarity: Double): Int {
         return when {
-            similarity >= 1.0 -> 45   // Perfect normalized match: "325124610" = "3251246-10"
+            similarity >= 1.0 -> 45   // Perfect normalized match: "123456710" = "1234567-10"
             similarity >= 0.8 -> 40   // High similarity: significant common parts
-            similarity >= 0.6 -> 35   // Medium similarity: "325124610" vs "3251246-10 / Az.: IS-0017-10/KSR"
+            similarity >= 0.6 -> 35   // Medium similarity: "123456710" vs "1234567-10 / Az.: AB-0001-10/XYZ"
             similarity >= 0.35 -> 25  // Low similarity: some common elements (lowered from 0.4 to 0.35)
             similarity >= 0.2 -> 15   // Very low similarity: minimal but detectable match
             else -> 0                 // No meaningful similarity
@@ -430,13 +430,13 @@ class EingangsrechnungPosImportDTO(
         const val MAX_MATCH_DAYS = 14L
 
         /**
-         * Minimum creditor similarity (as in [StringMatchUtils.calculateCompanySimilarity]): "ISICO GmbH" and
-         * "ISICO Datenschutz GmbH" are the same creditor.
+         * Minimum creditor similarity (as in [StringMatchUtils.calculateCompanySimilarity]): "ACME GmbH" and
+         * "ACME Consulting GmbH" are the same creditor.
          */
         const val MIN_KREDITOR_SIMILARITY = 0.6
 
         /**
-         * Minimum invoice number similarity: "325124610" and "3251246-10 / Az.: IS-0017-10/KSR" are the same invoice.
+         * Minimum invoice number similarity: "123456710" and "1234567-10 / Az.: AB-0001-10/XYZ" are the same invoice.
          */
         const val MIN_REFERENZ_SIMILARITY = 0.35
     }

@@ -1,23 +1,29 @@
-import type { SecretPayload } from "@/lib/secret-crypto";
+import type { SecretMessage } from "@/lib/secret-crypto";
 import { chatPost, chatRequest } from "./chat";
 import type { ChatRef } from "./chat-types";
 
 /**
- * A confidential message of a direct chat as one of its two sides sees it (ChatSecretRest): end-to-end
- * encrypted by the browsers, the server only relays it in memory. TAKEN once received (until it expires),
- * gone (404) when cancelled or expired.
+ * A confidential conversation of a direct chat as one of its two sides sees it (ChatSecretRest): end-to-end
+ * encrypted by the browsers, the server only relays it in memory. Gone (404) when ended or expired.
  */
 export interface ChatSecretSession {
   id: string;
   conversationId: number;
-  /** TAKEN: received by the recipient, nothing of the message left on the server. */
-  state: "OFFERED" | "ACCEPTED" | "DELIVERED" | "TAKEN";
-  sender: ChatRef;
+  /** OFFERED: waiting for the recipient's key. */
+  state: "OFFERED" | "OPEN";
+  initiator: ChatRef;
   recipient: ChatRef;
-  /** Is the logged-in user the sender? */
+  /** Is the logged-in user the initiator? */
   mine: boolean;
-  /** The recipient's public key (raw P-256, base64url), after accepting. */
+  /** The public keys (raw P-256, base64url), the recipient's after accepting. */
+  initiatorKey: string;
   recipientKey: string | null;
+  /** Messages waiting for the logged-in user. */
+  waiting: number;
+  /** The highest counter of the own messages the partner has taken. */
+  readCounter: number;
+  /** The highest counter of the own messages the server has accepted. */
+  sentCounter: number;
   expiresAt: string;
 }
 
@@ -31,8 +37,22 @@ export function chatSecretPendingQueryKey(conversationId: number) {
   return ["chatSecretPending", conversationId] as const;
 }
 
-export function offerChatSecret(conversationId: number) {
-  return chatPost<ChatSecretSession>(`${BASE}/offer`, { conversationId });
+/** The offers to the logged-in user waiting for an answer, in all direct chats (see useSecretOfferAlerts). */
+export const CHAT_SECRET_OFFERS_QUERY_KEY = ["chatSecretOffers"] as const;
+
+export function fetchChatSecretOffers(signal?: AbortSignal) {
+  return chatRequest<ChatSecretSession[]>(
+    `${BASE}/offers`,
+    { method: "GET" },
+    signal
+  );
+}
+
+export function offerChatSecret(conversationId: number, publicKey: string) {
+  return chatPost<ChatSecretSession>(`${BASE}/offer`, {
+    conversationId,
+    publicKey,
+  });
 }
 
 export function fetchChatSecret(id: string, signal?: AbortSignal) {
@@ -62,16 +82,19 @@ export function acceptChatSecret(id: string, publicKey: string) {
   );
 }
 
-export function deliverChatSecret(id: string, payload: SecretPayload) {
+export function sendChatSecret(id: string, message: SecretMessage) {
   return chatPost<ChatSecretSession>(
-    `${BASE}/${encodeURIComponent(id)}/deliver`,
-    payload
+    `${BASE}/${encodeURIComponent(id)}/send`,
+    message
   );
 }
 
-/** The ciphertext, only once: the session is deleted with it. */
+/** The messages waiting for the user, only once: they are deleted with it. */
 export function takeChatSecret(id: string) {
-  return chatPost<SecretPayload>(`${BASE}/${encodeURIComponent(id)}/take`, {});
+  return chatPost<SecretMessage[]>(
+    `${BASE}/${encodeURIComponent(id)}/take`,
+    {}
+  );
 }
 
 export function cancelChatSecret(id: string) {

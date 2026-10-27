@@ -12,6 +12,12 @@ const SSE_FAILURES_BEFORE_POLLING = 3;
  * connection is open, but nothing arrives): polling then.
  */
 const SSE_FIRST_EVENT_MS = 10_000;
+/**
+ * The request may wait before the connection opens: a browser allows six connections per host on HTTP/1.1, and the
+ * other event streams of the page (`use-user-events.ts`) or of a page just left take theirs. Waiting is no sign of
+ * buffering, so the first event is only expected [SSE_FIRST_EVENT_MS] after the connection opened, this long at most.
+ */
+const SSE_CONNECT_MS = 40_000;
 const POLL_VISIBLE_MS = 3_000;
 const POLL_HIDDEN_MS = 30_000;
 /** A tab hidden that long stops asking: otherwise an idle tab would keep its session alive forever. */
@@ -33,13 +39,14 @@ const SSE_RETRY_MS = 5 * 60_000;
  *
  * [initialSeq] is the sequence of the conversation when loaded; nothing happens before it is known.
  * [onSecret] is called when a confidential message of the user may have changed (its own event; in polling
- * mode with every poll).
+ * mode with every poll). [onRead] likewise when the other one of a direct message read further.
  */
 export function useChatLive(
   conversationId: number,
   initialSeq: number | undefined,
   onChanges?: (messages: ChatMessage[]) => void,
-  onSecret?: () => void
+  onSecret?: () => void,
+  onRead?: () => void
 ) {
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<"events" | "polling">("events");
@@ -49,10 +56,12 @@ export function useChatLive(
   const again = useRef(false);
   const onChangesRef = useRef(onChanges);
   const onSecretRef = useRef(onSecret);
+  const onReadRef = useRef(onRead);
   useEffect(() => {
     onChangesRef.current = onChanges;
     onSecretRef.current = onSecret;
-  }, [onChanges, onSecret]);
+    onReadRef.current = onRead;
+  }, [onChanges, onSecret, onRead]);
   // Before the effect of the events below: they need it.
   useEffect(() => {
     if (seqRef.current == null && initialSeq != null)
@@ -93,10 +102,11 @@ export function useChatLive(
       withCredentials: true,
     });
     let failures = 0;
-    const buffered = setTimeout(() => {
+    const fallBack = () => {
       source.close();
       setMode("polling");
-    }, SSE_FIRST_EVENT_MS);
+    };
+    let buffered = setTimeout(fallBack, SSE_CONNECT_MS);
     source.addEventListener("change", (event) => {
       clearTimeout(buffered);
       const seq = Number(
@@ -106,8 +116,11 @@ export function useChatLive(
       if (seqRef.current == null || seq > seqRef.current) void sync();
     });
     source.addEventListener("secret", () => onSecretRef.current?.());
+    source.addEventListener("read", () => onReadRef.current?.());
     source.onopen = () => {
       failures = 0;
+      clearTimeout(buffered);
+      buffered = setTimeout(fallBack, SSE_FIRST_EVENT_MS);
       onSecretRef.current?.(); // Offers made while closed (hidden tab) announced no event here.
     };
     source.onerror = () => {
@@ -136,6 +149,7 @@ export function useChatLive(
       if (!hiddenSince || Date.now() - hiddenSince < POLL_HIDDEN_MAX_MS) {
         void sync();
         onSecretRef.current?.();
+        onReadRef.current?.();
       }
       schedule();
     };

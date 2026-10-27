@@ -30,6 +30,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.menu.MenuBadge
 import org.projectforge.menu.MenuItem
+import java.util.concurrent.CopyOnWriteArrayList
 
 private val log = KotlinLogging.logger {}
 
@@ -66,6 +67,11 @@ constructor(
 
     var menuItemDefId: MenuItemDefId? = null
         private set
+
+    /**
+     * Copy on write: plugins add entries on the ApplicationReadyEvent, while the server already builds menus for
+     * requests (iterating a plain list there threw a ConcurrentModificationException).
+     */
     internal var children: MutableList<MenuItemDef>? = null
 
     init {
@@ -106,7 +112,7 @@ constructor(
     @Synchronized
     internal fun add(item: MenuItemDef): MenuItemDef {
         if (children == null) {
-            children = mutableListOf()
+            children = CopyOnWriteArrayList()
         } else {
             children?.let { childs ->
                 if (childs.any { it.id == item.id }) {

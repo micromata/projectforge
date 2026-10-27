@@ -31,7 +31,7 @@ import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.web.WicketSupport
 
 /**
- * CVE-Radar (vulnerability management, see doc/requirements/PF-CVR_CVE-Radar_Vulnerability_Management.md).
+ * CVE-Radar (vulnerability management, see dev-docs/requirements/PF-CVR_CVE-Radar_Vulnerability_Management.md).
  *
  * R0 with real data: cases (vulnerabilities and incidents) with fix criteria and closure overview, team checks,
  * devices from the vulnerability scanner and the log server ([CveRadarJobs]) and the employees' confirmations. The

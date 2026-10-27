@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import type { ChatReaction } from "@/lib/rs/chat-types";
 import { cn } from "@/lib/utils";
+import { EmojiGlyph, emojiLabel } from "@/components/shared/emoji/custom-emoji";
 
 /**
  * The reactions of a message: per emoji the count, who reacted on hover; a click adds the own reaction or takes
@@ -36,7 +37,10 @@ export function ReactionBar({
               )}
               onClick={() => onToggle(reaction.emoji)}
             >
-              <span>{reaction.emoji}</span>
+              <EmojiGlyph
+                emoji={reaction.emoji}
+                label={emojiLabel(t, reaction.emoji)}
+              />
               <span className="tabular-nums">{reaction.count}</span>
             </button>
           </HintTooltip>

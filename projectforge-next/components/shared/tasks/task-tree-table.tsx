@@ -18,7 +18,10 @@ import {
 } from "@/components/data-table";
 import type { AgGridNode } from "@/lib/dynamic/grid/ag-grid-types";
 import { initialStateFrom } from "@/lib/dynamic/grid/initial-state";
-import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
+import {
+  deletedRowClass,
+  INACTIVE_ROW_CLASS,
+} from "@/lib/dynamic/grid/row-class";
 import { resolveRestUrl } from "@/lib/dynamic/response-action";
 import type { TaskNode, TaskTreeFilter } from "@/lib/rs/task";
 import { cn } from "@/lib/utils";
@@ -223,7 +226,10 @@ export function TaskTreeTable({
         isLoading={isLoading}
         isFetching={isFetching}
         emptyState={t("task.selectPanel.noTasksFound")}
-        rowClassName={deletedRowClass}
+        rowClassName={(row) =>
+          deletedRowClass(row) ??
+          (row.deactivated ? INACTIVE_ROW_CLASS : undefined)
+        }
         // The server already opened the ancestors of this task (see useTaskTree); marking it and
         // scrolling to it is what makes it findable in a tree of thousands. No scope: the dialog is
         // reopened in order to see the selected task, so it scrolls there every time.

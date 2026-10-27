@@ -26,6 +26,7 @@ package org.projectforge.menu.builder
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.birthdaybutler.BirthdayButlerConfiguration
 import org.projectforge.business.availability.ConflictingAvailabilitiesCache
+import org.projectforge.business.chat.ChatUnreadCounter
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.datev.DatevImportService
@@ -58,6 +59,7 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.util.concurrent.CopyOnWriteArrayList
 
 private val log = KotlinLogging.logger {}
 
@@ -68,7 +70,8 @@ private val log = KotlinLogging.logger {}
 @Component
 open class MenuCreator {
     internal class MenuItemDefHolder {
-        internal val menuItems: MutableList<MenuItemDef> = mutableListOf()
+        /** Copy on write, see [MenuItemDef.children]. */
+        internal val menuItems: MutableList<MenuItemDef> = CopyOnWriteArrayList()
         fun add(menuItem: MenuItemDef): MenuItemDef {
             if (menuItems.any { it.id == menuItem.id }) {
                 log.error { "Menu item registered twice (ignoring): $this" }
@@ -118,6 +121,9 @@ open class MenuCreator {
     @Autowired
     private lateinit var featureService: FeatureService
 
+    @Autowired
+    private lateinit var chatUnreadCounter: ChatUnreadCounter
+
     private var initialized = false
 
     private val pluginMenuRegistrations = mutableListOf<PluginMenuRegistration>()
@@ -139,7 +145,7 @@ open class MenuCreator {
      * Plugins may register entries for the user's personal menu at the top right.
      */
     // open needed by Wicket SpringBean.
-    open var personalMenuPluginEntries = mutableListOf<MenuItemDef>()
+    open var personalMenuPluginEntries: MutableList<MenuItemDef> = CopyOnWriteArrayList()
         internal set
 
     companion object {
@@ -335,7 +341,7 @@ open class MenuCreator {
                         conflictingAvailabilitiesCache.numberOfConflicts(ThreadLocalUserContext.loggedInUserId)
                     })
             )
-            .add(MenuItemDef(MenuItemDefId.CHAT))
+            .add(MenuItemDef(MenuItemDefId.CHAT, badgeCounter = { chatUnreadCounter.countUnread() }))
             .add(MenuItemDef(MenuItemDefId.BOOK_LIST))
             .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST))
             .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST))

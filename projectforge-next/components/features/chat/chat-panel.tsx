@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormAlert } from "@/components/shared/form-alert";
 import { Spinner } from "@/components/shared/spinner";
 import {
   chatConversationQueryKey,
+  chatPartnerReadQueryKey,
   fetchChatConversation,
   muteChatConversation,
 } from "@/lib/rs/chat";
@@ -28,15 +30,21 @@ import { useUnreadJump } from "./use-unread-jump";
 
 /**
  * A conversation (PF-CHAT): the messages, writing, threads in a side panel, live updates. Embeddable by any host
- * page (CTX-03); the conversation page shows it full size. [highlightId] is the message of a deep link (MSG-05).
+ * page (CTX-03); the conversation page shows it full size. [highlightId] is the message of a deep link (MSG-05),
+ * [threadRootId] the thread opened with it for a reply (e.g. a match of the search across conversations).
  */
 export function ChatPanel({
   conversationId,
   highlightId = null,
+  threadRootId: initialThreadRootId = null,
+  headerSlot = null,
   className,
 }: {
   conversationId: number;
   highlightId?: number | null;
+  threadRootId?: number | null;
+  /** An element of the host page (e.g. its title row) to show search, muting and the like in, instead of a row of its own. */
+  headerSlot?: HTMLElement | null;
   className?: string;
 }) {
   const t = useTranslations();
@@ -51,8 +59,17 @@ export function ChatPanel({
   const { readMark, marks, markUnread, threadOpened, hasUnreadReplies } =
     useReadMark(conversationId, conversation, pause, settled);
   const { quoting, setQuoting } = useQuoting();
-  const [threadRootId, setThreadRootId] = useState<number | null>(null);
-  const [threadFocusId, setThreadFocusId] = useState<number | null>(null);
+  const [threadRootId, setThreadRootId] = useState<number | null>(
+    initialThreadRootId
+  );
+  const [threadFocusId, setThreadFocusId] = useState<number | null>(
+    initialThreadRootId ? highlightId : null
+  );
+  useEffect(() => {
+    if (initialThreadRootId) threadOpened(initialThreadRootId);
+    // The thread of the deep link on mount only, as the state above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const openThread = useCallback(
     (rootId: number, focusId?: number) => {
       if (rootId !== threadRootId) setQuoting(true, null); // A quote of another thread.
@@ -84,21 +101,32 @@ export function ChatPanel({
   const known = Math.max(newestId, conversation?.newestMessageId ?? 0);
   const meId = conversation?.me.id;
   const refreshUnread = unreadJump.refresh;
+  const refreshPartnerRead = useCallback(
+    () =>
+      queryClient.invalidateQueries({
+        queryKey: chatPartnerReadQueryKey(conversationId),
+      }),
+    [queryClient, conversationId]
+  );
   const trackNewest = useCallback(
     (messages: ChatMessage[]) => {
       setNewestId((id) => Math.max(id, ...messages.map((it) => it.id)));
       // New ones of others: unread as well, until seen.
       if (messages.some((it) => it.id > known && it.author.id !== meId))
         refreshUnread();
+      // A message of the other one counts as read by it, up to itself.
+      if (messages.some((it) => it.id > known && it.author.id !== meId))
+        void refreshPartnerRead();
     },
-    [known, meId, refreshUnread]
+    [known, meId, refreshUnread, refreshPartnerRead]
   );
   const secrets = useSecretOffers(conversation);
   const live = useChatLive(
     conversationId,
     conversation?.changeSeq,
     trackNewest,
-    secrets.refresh
+    secrets.refresh,
+    refreshPartnerRead
   );
   const onAtEnd = useCallback(
     (id: number | null) =>
@@ -163,13 +191,19 @@ export function ChatPanel({
         className={cn("flex min-h-0 flex-1 flex-col", className)}
         aria-label={conversation.title}
       >
-        <ChatPanelHeader
-          onJump={jump}
-          unreadCount={unreadJump.count}
-          onNextUnread={unreadJump.jump}
-          onMute={() => mute.mutate(!conversation.muted)}
-          polling={live.mode === "polling"}
-        />
+        {(() => {
+          const header = (
+            <ChatPanelHeader
+              onJump={jump}
+              unreadCount={unreadJump.count}
+              onNextUnread={unreadJump.jump}
+              onMute={() => mute.mutate(!conversation.muted)}
+              polling={live.mode === "polling"}
+              inline={headerSlot != null}
+            />
+          );
+          return headerSlot ? createPortal(header, headerSlot) : header;
+        })()}
         <MessageList onAtEnd={onAtEnd} />
         <SecretOffers sessions={secrets.sessions} onChange={secrets.refresh} />
         {conversation.canWrite ? (

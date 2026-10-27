@@ -121,8 +121,8 @@ If the search term consists only of letters, digits, spaces and the characters `
 ProjectForge® automatically appends the wildcard character '*' to each word. Words ending with '*',
 words starting with '+' or '-' (Lucene operators) and the keywords AND, OR and NOT are left
 untouched. A search term starting with '+' or '-' is used as entered, as are all other expressions
-(e. g. containing ':', '~', '"' or brackets). A word with a separator inside such as `dhl-pop` is
-searched as typed and as its parts: `dhl-pop*` or both `dhl*` and `pop*`.
+(e. g. containing ':', '~', '"' or brackets). A word with a separator inside such as `acme-pop` is
+searched as typed and as its parts: `acme-pop*` or both `acme*` and `pop*`.
 
 Start your search term with an apostrophe (') to switch off any modification: the apostrophe is
 removed and the rest is used exactly as entered.
