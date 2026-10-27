@@ -70,7 +70,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     // The pages of projectforge-next are static files served by a resource handler (see WebApplicationConfig), so
     // no filter sees their urls and a client side navigation doesn't even reach the server: only their rest calls
     // are left to gate. Hence WRITE:<category> for the saves and the *Rest classes for the reading shortcuts
-    // (NextMigration2FATest keeps the gates the former Wicket pages /wa/... had).
+    // (PageRoutes2FATest keeps the gates the former Wicket pages /wa/... had).
     registerShortCutValues(
       My2FAShortCut.ADMIN_WRITE,
       "WRITE:user;WRITE:group;WRITE:access;WRITE:configuration;",

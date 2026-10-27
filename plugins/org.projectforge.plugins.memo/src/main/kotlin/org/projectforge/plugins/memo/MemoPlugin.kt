@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.memo
 
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
@@ -51,7 +51,7 @@ class MemoPlugin : AbstractPlugin(ID, "Memo", "Personal text memos of users.") {
         menuCreator.register(
             MenuItemDefId.MISC,
             // Migrated to projectforge-next (MemoEntityRest); the React pages were removed.
-            MenuItemDef(info.id, "plugins.memo.menu", NextMigration.listUrl(CATEGORY))
+            MenuItemDef(info.id, "plugins.memo.menu", PageRoutes.listUrl(CATEGORY))
         )
 
 

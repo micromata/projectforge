@@ -25,18 +25,18 @@
 package org.projectforge.feature
 
 import org.projectforge.Constants
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 
 /**
  * Derives the paths of a feature (see [FeatureDefinition]) from the url of its menu entry.
  *
  * - `next/<route>`: the next route, the REST categories of the migrated pages with this route
- *   ([NextMigration.categoriesOfRoute]) or, for a route of one segment, the route itself as category
+ *   ([PageRoutes.categoriesOfRoute]) or, for a route of one segment, the route itself as category
  *   (`next/search` -> `rs/search`).
  * - `react/<category>/...`: the category (`react/contract` -> `rs/contract`).
  * - Others (`logout`, `wa/...`): no paths.
  *
- * Every REST category also gets the next pages of the category (its route, see [NextMigration.nextPage], or the
+ * Every REST category also gets the next pages of the category (its route, see [PageRoutes.page], or the
  * generic page `next/<category>`) and its multi-selection (`<category>Selected`).
  */
 object FeatureDerivation {
@@ -64,7 +64,7 @@ object FeatureDerivation {
                 val route = path.removePrefix(Constants.NEXT_APP_PATH)
                 if (route.isNotEmpty()) {
                     routes.add(route)
-                    categories.addAll(NextMigration.categoriesOfRoute(route).ifEmpty {
+                    categories.addAll(PageRoutes.categoriesOfRoute(route).ifEmpty {
                         if (route.contains('/')) emptySet() else setOf(route)
                     })
                 }
@@ -82,7 +82,7 @@ object FeatureDerivation {
                 return@forEach // A sub path (task/tree), no category of its own.
             }
             paths.add(restKey("$category$URL_SUFFIX_SELECTED"))
-            val page = NextMigration.nextPage(category)
+            val page = PageRoutes.page(category)
             if (page == null) {
                 routes.add(category) // The generic page of projectforge-next.
             } else {
@@ -110,6 +110,6 @@ object FeatureDerivation {
 
     /** `address/edit/:id` -> `address/edit`. */
     private fun routeOf(route: String): String {
-        return route.substringBefore(NextMigration.ID_PLACEHOLDER).substringBefore('?').trimEnd('/')
+        return route.substringBefore(PageRoutes.ID_PLACEHOLDER).substringBefore('?').trimEnd('/')
     }
 }

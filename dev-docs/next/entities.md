@@ -10,7 +10,7 @@ reaches (see [page-declarations.md](page-declarations.md)) and where the escape 
 | `cost1` | `Kost1EntityRest`                    | Wicket               | the minimum: what a page looks like with nothing special         |
 | `order` | `OrderEntityRest`                    | Wicket               | the hard case: nested collections, server-computed sums, exports |
 
-All three are registered in `NextMigration.MIGRATED` (backend).
+All three are registered in `PageRoutes.PAGES` (backend).
 
 ---
 
@@ -81,8 +81,7 @@ What it adds beyond `cost1`:
   header uses a short label, because the full one is four times the column's width.
 - **Sections render for a new book too.** The legacy page hid the loan block only because lending out
   needs a saved entity, which `BookLoanActions` checks itself.
-- **The way back is gone.** The React page it was migrated from has been removed, so
-  `NextMigration` records `legacyApp = null` and no `LegacyPageLink` appears.
+- **The React page is gone.** `PageRoutes` records no `legacyApp`, so no old link is redirected.
 
 Also of note: the loan section shows `lendOutBy` and `lendOutDate` rather than editing them — both are
 set by the server from the session and the current date, so an input could only offer a user the

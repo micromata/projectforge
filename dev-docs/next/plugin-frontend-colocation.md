@@ -29,7 +29,7 @@ runtime frontend plugin loading**.
 **Consequence:** a plugin frontend can never be as independent as the backend plugin. The most that
 is achievable is to **place the source files physically under `plugins/**`** and pull them into the
 one Next build at compile time. A thin route stub per page must remain in `app/` (App Router
-requirement), and the migration switch (`NextMigration.kt`, menu, 2FA) stays in the backend anyway.
+requirement), and the migration switch (`PageRoutes.kt`, menu, 2FA) stays in the backend anyway.
 
 ## Recommended approach: one npm workspace package per plugin + thin route stubs
 
@@ -86,15 +86,15 @@ plugins/org.projectforge.plugins.liquidityplanning/
   part of the one build via workspaces. Adjust the `npmInstall` trigger so that a changed plugin
   `package.json` forces a re-install.
 - **Gating optional plugins:** because everything is bundled at build time, a deactivated plugin
-  (`pf.plugins.active`) is only "off" at runtime in that its menu entry and its `NextMigration`
+  (`pf.plugins.active`) is only "off" at runtime in that its menu entry and its `PageRoutes`
   route are absent, or the REST endpoint answers 404/403 — the code is still in the bundle. Truly
   excluding it from the bundle would require conditional workspace inclusion + conditional stubs
   (see "Limits").
 
 ### Switch/2FA stay in the backend (unchanged)
 
-`NextMigration.MIGRATED` (whose routes `NextMigrationTest` checks against `app/(authenticated)/`),
-`MenuItemDefId.url` and `ProjectForge2FAInitialization` (`NextMigration2FATest`) stay where they
+`PageRoutes.PAGES` (whose routes `PageRoutesTest` checks against `app/(authenticated)/`),
+`MenuItemDefId.url` and `ProjectForge2FAInitialization` (`PageRoutes2FATest`) stay where they
 are. They are not part of the move — only the TSX/TS sources migrate.
 
 ## Representative files (pilot: liquidity-planning)
@@ -140,4 +140,4 @@ New in the plugin:
 7. E2E: `E2E_BASE_URL=http://localhost:8080 npx playwright test` for the liquidity spec (if one
    exists), otherwise manually with `e2e-full-access` (credentials in
    `$PROJECTFORGE_HOME/testAccounts.txt`).
-8. Backend tests untouched: `NextMigrationTest`, `NextMigration2FATest` must stay green.
+8. Backend tests untouched: `PageRoutesTest`, `PageRoutes2FATest` must stay green.

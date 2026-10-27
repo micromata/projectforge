@@ -24,7 +24,7 @@
 package org.projectforge.rest
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressFilter
@@ -208,7 +208,7 @@ class PhoneCallRest {
 
     /** The view page of the address in projectforge-next, e.g. `/next/address/42`. */
     private fun addressViewUrl(id: Long, returnTo: String? = null): String {
-        val url = "/${NextMigration.listUrl("address")}/$id"
+        val url = "/${PageRoutes.listUrl("address")}/$id"
         return if (returnTo == null) url else "$url?returnTo=$returnTo"
     }
 

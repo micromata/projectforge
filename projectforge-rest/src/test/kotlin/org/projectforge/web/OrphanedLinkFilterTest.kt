@@ -25,7 +25,7 @@ package org.projectforge.web
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.springframework.mock.web.MockFilterChain
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
@@ -35,7 +35,7 @@ class OrphanedLinkFilterTest {
 
     /**
      * The React calendar is a migrated page like any other now: a bookmarked or emailed link to it is bent
-     * onto the next calendar. Next offers no way back to it any more (`offerLegacyLink = false`).
+     * onto the next calendar. A bookmarked "way back" link (legacyEscape) is redirected too.
      */
     @Test
     fun `the react calendar is redirected to next`() {
@@ -48,12 +48,12 @@ class OrphanedLinkFilterTest {
      */
     @Test
     fun `the react calendar with the escape marker is redirected to next`() {
-        Assertions.assertEquals("/next/calendar", redirectOf("/react/calendar", NextMigration.ESCAPE_HATCH_PARAM))
+        Assertions.assertEquals("/next/calendar", redirectOf("/react/calendar", "legacyEscape"))
     }
 
     /**
      * The links of pages that never left ProjectForge (no mail, no data transfer) get no redirect of their own, see
-     * NextMigration.NextPage.legacyApp: they land on the next start page as any other old React or Wicket url.
+     * PageRoutes.NextPage.legacyApp: they land on the next start page as any other old React or Wicket url.
      */
     @Test
     fun `links that never left ProjectForge land on the next start page`() {
@@ -215,16 +215,16 @@ class OrphanedLinkFilterTest {
      */
     @Test
     fun `a legacy page is redirected to next even with the escape marker`() {
-        Assertions.assertEquals("/next/order", redirectOf("/wa/orderBookList", NextMigration.ESCAPE_HATCH_PARAM))
+        Assertions.assertEquals("/next/order", redirectOf("/wa/orderBookList", "legacyEscape"))
         Assertions.assertEquals(
             "/next/order/5",
-            redirectOf("/wa/orderBookEdit", mapOf("id" to "5", NextMigration.ESCAPE_HATCH_PARAM to "")),
+            redirectOf("/wa/orderBookEdit", mapOf("id" to "5", "legacyEscape" to "")),
         )
         Assertions.assertEquals(
             "/next/todo/7",
             redirectOf("/wa/wicket/bookmarkable/org.projectforge.plugins.todo.ToDoEditPage", mapOf("id" to "7")),
         )
-        Assertions.assertEquals("/next/vacation", redirectOf("/react/vacation", NextMigration.ESCAPE_HATCH_PARAM))
+        Assertions.assertEquals("/next/vacation", redirectOf("/react/vacation", "legacyEscape"))
     }
 
     /** The Wicket direct call, meant to be called by url, keeps its deep link parameters on next. */

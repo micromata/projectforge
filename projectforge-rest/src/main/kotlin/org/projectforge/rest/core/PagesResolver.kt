@@ -25,7 +25,7 @@ package org.projectforge.rest.core
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.utils.NumberHelper
@@ -46,7 +46,7 @@ object PagesResolver {
 
     /**
      * The url of the edit page. For pages migrated to projectforge-next the route registered in
-     * [NextMigration] is used, because it differs from the `<route>/edit/<id>` shape of the legacy
+     * [PageRoutes] is used, because it differs from the `<route>/edit/<id>` shape of the legacy
      * React app (book e.g. uses `book/<id>` and `book/new`).
      */
     @JvmStatic
@@ -59,9 +59,9 @@ object PagesResolver {
     ): String {
         val category = getCategory(pagesRestClass) ?: return "NOT_FOUND"
         val path = if (id != null) {
-            NextMigration.standardEditPage(category).replace(NextMigration.ID_PLACEHOLDER, "$id")
+            PageRoutes.standardEditPage(category).replace(PageRoutes.ID_PLACEHOLDER, "$id")
         } else {
-            NextMigration.newEntryUrl(category)
+            PageRoutes.newEntryUrl(category)
         }
         val prefix = if (absolute) "/" else ""
         return "$prefix$path${getQueryString(params, returnToCaller)}"
@@ -120,7 +120,7 @@ object PagesResolver {
      * @return the default url (calendar url).
      */
     fun getDefaultUrl(): String {
-        return "/${NextMigration.listUrl("calendar")}"
+        return "/${PageRoutes.listUrl("calendar")}"
     }
 
     fun register(category: String, pagesRest: AbstractEntityRest<*, *, *>) {
@@ -153,7 +153,7 @@ object PagesResolver {
 
     /**
      * Builds the frontend path of a page from the `@RequestMapping` of its rest class, pointing at
-     * whichever frontend currently serves it: [NextMigration] maps the rest category to the route
+     * whichever frontend currently serves it: [PageRoutes] maps the rest category to the route
      * of projectforge-next for migrated pages, everything else stays in the legacy React app.
      *
      * Public pages (`/rsPublic`) are always served by the React app for now (login and friends
@@ -174,7 +174,7 @@ object PagesResolver {
         val subpath = path.removePrefix(Rest.URL)
         val category = subpath.removePrefix("/").substringBefore('/')
         val remainder = subpath.removePrefix("/").removePrefix(category)
-        return "${NextMigration.listUrl(category)}$remainder$suffix"
+        return "${PageRoutes.listUrl(category)}$remainder$suffix"
     }
 
     private fun getQueryString(params: Map<String, Any?>? = null, returnToCaller: String? = null): String {

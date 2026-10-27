@@ -25,7 +25,7 @@
 package org.projectforge.rest.feature
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.feature.FeatureDefinition
 import org.projectforge.feature.FeatureService
 import org.projectforge.model.rest.RestPaths
@@ -84,7 +84,7 @@ class FeaturePathIndex {
                 paths.add(key)
                 if (key.startsWith(FeatureDefinition.REST_PREFIX)) {
                     val category = key.removePrefix(FeatureDefinition.REST_PREFIX)
-                    paths.add("${FeatureDefinition.NEXT_PREFIX}${NextMigration.routeOrCategory(category)}")
+                    paths.add("${FeatureDefinition.NEXT_PREFIX}${PageRoutes.routeOrCategory(category)}")
                 }
             }
         }

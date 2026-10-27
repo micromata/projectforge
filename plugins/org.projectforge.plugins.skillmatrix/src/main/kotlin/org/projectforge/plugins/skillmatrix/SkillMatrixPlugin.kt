@@ -24,7 +24,7 @@
 package org.projectforge.plugins.skillmatrix
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
@@ -56,7 +56,7 @@ class SkillMatrixPlugin : AbstractPlugin(
         menuCreator.register(
             MenuItemDefId.PROJECT_MANAGEMENT,
             // Migrated to projectforge-next (SkillEntryEntityRest); the React pages were removed.
-            MenuItemDef(info.id, "plugins.skillmatrix.menu", NextMigration.listUrl(CATEGORY))
+            MenuItemDef(info.id, "plugins.skillmatrix.menu", PageRoutes.listUrl(CATEGORY))
         )
 
         // All the i18n stuff:

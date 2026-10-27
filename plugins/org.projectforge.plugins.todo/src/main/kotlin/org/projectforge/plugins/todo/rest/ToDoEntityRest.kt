@@ -25,7 +25,7 @@ package org.projectforge.plugins.todo.rest
 
 import jakarta.servlet.http.HttpServletRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.common.i18n.UserException
@@ -273,7 +273,7 @@ class ToDoEntityRest : AbstractDTOEntityRest<ToDoDO, ToDo, ToDoDao>(
      */
     fun sendNotification(obj: ToDoDO): String? {
         val url = domainService.getDomain(
-            NextMigration.standardEditPage(category).replace(NextMigration.ID_PLACEHOLDER, "${obj.id}")
+            PageRoutes.standardEditPage(category).replace(PageRoutes.ID_PLACEHOLDER, "${obj.id}")
         )
         // The mail shows the names of the references, the written object carries id-only stubs.
         val todo = baseDao.find(obj.id, checkAccess = false) ?: return null

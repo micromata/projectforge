@@ -25,7 +25,7 @@ package org.projectforge.security
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.SystemStatus
 import org.projectforge.model.rest.RestPaths
 
@@ -49,7 +49,7 @@ import org.projectforge.model.rest.RestPaths
  *
  * @author Kai Reinhard
  */
-class NextMigration2FATest {
+class PageRoutes2FATest {
   /** The categories whose Wicket list page required a second factor (ADMIN, FINANCE, HR). */
   private val gatedOnRead = listOf(
     "access", "account", "accountingRecord", "cost1", "cost2", "cost2Type", "customer", "hrPlanning", "order",
@@ -63,7 +63,7 @@ class NextMigration2FATest {
   )
 
   /**
-   * The standalone pages (no category of [NextMigration]): rest urls their next pages call, successors of Wicket
+   * The standalone pages (no category of [PageRoutes]): rest urls their next pages call, successors of Wicket
    * pages that required a second factor on reading.
    */
   private val standaloneOnRead = listOf(
@@ -148,7 +148,7 @@ class NextMigration2FATest {
   @Test
   fun `the gated categories are migrated ones`() {
     (gatedOnRead + gatedOnWrite).forEach { category ->
-      Assertions.assertTrue(NextMigration.isMigrated(category), category)
+      Assertions.assertTrue(PageRoutes.isMigrated(category), category)
     }
   }
 
@@ -165,7 +165,7 @@ class NextMigration2FATest {
   }
 
   /**
-   * The rest url of a category: [NextMigration] is keyed by the rest category, which is the path of its
+   * The rest url of a category: [PageRoutes] is keyed by the rest category, which is the path of its
    * `*Rest` class (`/rs/order`), so no lookup is needed.
    */
   private fun restUrl(category: String): String {

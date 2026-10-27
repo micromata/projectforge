@@ -59,8 +59,7 @@ import org.springframework.web.bind.annotation.RestController
  * set is fixed: there is no add and no delete (suppressed in [ConfigurationDao]).
  *
  * Layout free ([AbstractDTOEntityRest]): the hand built next page brings its own layout, so there is no
- * server side `createListLayout`/`createEditLayout` here. The way-back link to the classic Wicket page
- * is driven by `NextMigration` (offerLegacyLink).
+ * server side `createListLayout`/`createEditLayout` here.
  */
 @RestController
 @RequestMapping("${Rest.URL}/configuration")

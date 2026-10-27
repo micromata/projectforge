@@ -8,7 +8,7 @@ import { TAB_PARAM } from "@/components/shared/edit-page-tabs";
 
 /**
  * The admin form of an existing area is a tab of its page; this url only forwards there. Kept because
- * `NextMigration.editRoute` (old `react/datatransfer/edit/{id}` links) and bookmarks still name it.
+ * `PageRoutes.editRoute` (old `react/datatransfer/edit/{id}` links) and bookmarks still name it.
  */
 export function DataTransferEditPageClient() {
   const router = useRouter();

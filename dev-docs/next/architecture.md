@@ -8,7 +8,7 @@ Boot application under `/next` (`Constants.NEXT_APP_PATH`). Old `/wa/…` and `/
 by `OrphanedLinkFilter`: links that left ProjectForge (mails, data transfer) land on their page here,
 everything else on the start page.
 
-Which pages exist and how the backend links to them is decided in one place, `NextMigration` in
+Which pages exist and how the backend links to them is decided in one place, `PageRoutes` in
 projectforge-business (see [Routing](#routing)).
 
 ## Two operating modes
@@ -200,26 +200,26 @@ Each of these cost a debugging session once.
 concrete routes (`/book`, `/book/new`, `/book/[id]`, …). There is no catch-all: a URL no route serves
 is a 404. The history of an entry is a tab of its edit page (`?tab=history`), not a route.
 
-On the backend, `NextMigration` (projectforge-business) is the single place that knows the pages: a
+On the backend, `PageRoutes` (projectforge-business) is the single place that knows the pages: a
 page's URL is generated in two unrelated places — the menu (`MenuItemDefId`) and every
 `ResponseAction(url = …)` redirect after save/cancel/delete (via `PagesResolver`) — and both ask it.
 It also records which old `/wa` or `/react` URLs are redirected (`legacyApp`).
 
 ### Adding a page
 
-- **An entry in `NextMigration.MIGRATED`** (REST category → next route) and its directory under
-  `app/(authenticated)/`; `NextMigrationTest` checks that every route exists. A second perspective of
+- **An entry in `PageRoutes.PAGES`** (REST category → next route) and its directory under
+  `app/(authenticated)/`; `PageRoutesTest` checks that every route exists. A second perspective of
   an entity under another route names its URL directly in `MenuItemDefId` (task tree `next/taskTree`
   beside the list `next/task`).
 - **The second factor is checked on the REST call**, not on the page URL (a static file passes no
   filter): register the `*Rest` class in `ProjectForge2FAInitialization` for reading
   (`registerShortCutClasses`) and `WRITE:<category>` in the matching `*_WRITE` shortcut for writing. The
   category is the REST path, not the DAO identifier (`order`, not `auftrag`). Both are needed, because
-  each shortcut can be configured on its own. `NextMigration2FATest` enforces it.
+  each shortcut can be configured on its own. `PageRoutes2FATest` enforces it.
 - **Access is checked by the endpoint** (`@AccessChecked`, see the security rules in the root
   `CLAUDE.md`); `userAccess` and the DTO's access flags only decide what the page shows.
 - **Old links are redirected only if they left ProjectForge** — in a mail (notifications, reminders) or
-  a data transfer. Bookmarks alone don't justify a redirect (`NextMigrationTest`, "only links that left
+  a data transfer. Bookmarks alone don't justify a redirect (`PageRoutesTest`, "only links that left
   ProjectForge are redirected").
 
 ## Page composition
