@@ -12,12 +12,6 @@ export type AddEntryButtonProps =
   | {
       /** Route of the add page, e.g. `/task/new`. */
       href: string;
-      /**
-       * Whether [href] leaves this app — the add page of an entity whose list is migrated but whose
-       * form is not (see useEditTargets). Rendered as a plain anchor then, because client-side routing
-       * would not find a Wicket page.
-       */
-      isLegacy?: boolean;
       onClick?: never;
     }
   | {
@@ -28,7 +22,6 @@ export type AddEntryButtonProps =
        */
       onClick: () => void;
       href?: never;
-      isLegacy?: never;
     };
 
 /**
@@ -44,10 +37,10 @@ export type AddEntryButtonProps =
  * shortcut.
  */
 export function AddEntryButton(props: AddEntryButtonProps) {
-  const { href, isLegacy, onClick } = props;
+  const { href, onClick } = props;
   const t = useTranslations();
   // Inert in the `onClick` variant (no href); its shortcut is the caller's (see useCreateShortcut).
-  useAddEntryShortcut(href, isLegacy);
+  useAddEntryShortcut(href);
 
   // No `size` prop on the icon: the primitive sizes it with the button, and an explicit width/height
   // attribute would win over that class.
@@ -71,11 +64,7 @@ export function AddEntryButton(props: AddEntryButtonProps) {
         </Button>
       ) : (
         <Button asChild size="icon-lg" aria-label={t("menu.addNewEntry")}>
-          {isLegacy ? (
-            <a href={href}>{icon}</a>
-          ) : (
-            <GuardedLink href={href}>{icon}</GuardedLink>
-          )}
+          <GuardedLink href={href}>{icon}</GuardedLink>
         </Button>
       )}
     </HintTooltip>

@@ -12,7 +12,7 @@ import { taskHref } from "./task-routes";
  * The way from a selected task to that task's own page — the shortcut the legacy order form offered
  * from a position, and from where the timesheets booked on the task are reachable.
  *
- * The target is the migrated next form (`task` is in `NextMigration.MIGRATED`), which carries the
+ * The target is the migrated next form (`task` is in `PageRoutes.PAGES`), which carries the
  * five cross-links of Wicket's content menu, „Zeitberichte anzeigen" among them — the one action this
  * link exists for. Until the migration this pointed at Wicket's task form, because the React form was
  * a plain UILayout form without that action.

@@ -24,7 +24,7 @@
 package org.projectforge.rest.fibu
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.SystemStatus
 import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.DomainService
@@ -287,7 +287,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     }
     val operationType = if (postData.data.id == null) OperationType.INSERT else OperationType.UPDATE
     val url = domainService.getDomain(
-      NextMigration.standardEditPage(category).replace(NextMigration.ID_PLACEHOLDER, "${obj.id}")
+      PageRoutes.standardEditPage(category).replace(PageRoutes.ID_PLACEHOLDER, "${obj.id}")
     )
     try {
       baseDao.sendNotificationIfRequired(obj, operationType, url)

@@ -43,7 +43,7 @@ object DataTransferUtils {
     return "${Constants.NEXT_APP_PATH}$ROUTE/${areaId ?: 0}"
   }
 
-  /** The route of the data transfer pages in projectforge-next (see `NextMigration.MIGRATED`). */
+  /** The route of the data transfer pages in projectforge-next (see `PageRoutes.MIGRATED`). */
   const val ROUTE = "datatransfer"
 
   fun expiryTimeLeft(attachment: Attachment, expiryDays: Int?, locale: Locale? = null): String {

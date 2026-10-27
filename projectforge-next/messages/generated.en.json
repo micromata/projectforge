@@ -2848,12 +2848,6 @@
     "male": "male",
     "unknown": "unknown"
   },
-  "goreact": {
-    "menu": {
-      "classics": "Old version",
-      "classicsInfo": "The old version will be removed shortly."
-    }
-  },
   "group": {
     "_": "Group",
     "assignedUsers": "Assigned users",

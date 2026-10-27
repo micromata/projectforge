@@ -31,7 +31,7 @@ import org.mockito.Mockito
 class LoginServiceRestTest {
     /**
      * Where a login without a requested target sends the user: the calendar, the application's start page,
-     * now served by projectforge-next (routed through [NextMigration], see the method's KDoc). Not derived
+     * now served by projectforge-next (routed through [PageRoutes], see the method's KDoc). Not derived
      * from the request - the requested target is kept by the client, because a login rotates the http session.
      */
     @Test

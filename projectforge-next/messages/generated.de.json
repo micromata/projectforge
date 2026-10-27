@@ -2848,12 +2848,6 @@
     "male": "männlich",
     "unknown": "unbekannt"
   },
-  "goreact": {
-    "menu": {
-      "classics": "Alte Version",
-      "classicsInfo": "Die alte Version wird in Kürze entfernt."
-    }
-  },
   "group": {
     "_": "Gruppe",
     "assignedUsers": "Assoziierte Benutzer:in",

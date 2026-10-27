@@ -28,7 +28,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.business.vacation.service.VacationSendMailService
 import org.projectforge.menu.builder.MenuItemDefId
 import java.io.IOException
@@ -63,7 +63,7 @@ class OrphanedLinkFilter : Filter {
             redirect(servletResponse, uri, "/")
         } else if (uri.contains("/wa/calendar") || uri.contains("/wa/teamCalendar")) { // Old Wicket calendars, the
             // former page after login.
-            redirect(servletResponse, uri, "/${NextMigration.listUrl("calendar")}")
+            redirect(servletResponse, uri, "/${PageRoutes.listUrl("calendar")}")
         } else if (uri.endsWith("/react/changePassword") || uri.contains("/react/changePassword/")) {
             // Old dynamic React page for changing the password, linked by the "password not changed" mails of 9.0.5
             // (react/changePassword/dynamic) and migrated to projectforge-next. The React page was removed, so there is
@@ -156,7 +156,7 @@ class OrphanedLinkFilter : Filter {
         ) {
             return false
         }
-        redirect(response, uri, "/${NextMigration.listUrl("calendar")}")
+        redirect(response, uri, "/${PageRoutes.listUrl("calendar")}")
         return true
     }
 
@@ -176,7 +176,7 @@ class OrphanedLinkFilter : Filter {
         response: ServletResponse,
         uri: String,
     ): Boolean {
-        val listUrl = NextMigration.listUrl("datatransfer")
+        val listUrl = PageRoutes.listUrl("datatransfer")
         val page = DATATRANSFER_DYNAMIC_PAGES.find { uri.contains("/react/$it/") || uri.endsWith("/react/$it") }
             ?: return false
         val target = if (page == "datatransferpersonalfiles") {
@@ -221,10 +221,10 @@ class OrphanedLinkFilter : Filter {
 
     /**
      * Bends a bookmarked or emailed link to a legacy list/edit/add page that has moved to
-     * projectforge-next onto its new url (see [NextMigration.orphanedLinks]).
+     * projectforge-next onto its new url (see [PageRoutes.orphanedLinks]).
      *
-     * A bookmarked escape hatch link (the former "way back" link, marked with [NextMigration.ESCAPE_HATCH_PARAM])
-     * is redirected as well: neither Wicket nor React is left to go back to.
+     * A bookmarked link of the former "way back" button (marked with [LEGACY_ESCAPE_PARAM]) is redirected as well:
+     * neither Wicket nor React is left to go back to.
      *
      * @return true if the request was a migrated legacy link and a redirect was sent.
      */
@@ -233,19 +233,19 @@ class OrphanedLinkFilter : Filter {
         response: ServletResponse,
         uri: String,
     ): Boolean {
-        for (link in NextMigration.orphanedLinks()) {
+        for (link in PageRoutes.orphanedLinks()) {
             // The edit page first: its path (e.g. wa/orderBookEdit) is more specific than the list path,
             // and for the React app the list path is even a prefix of it (react/group vs react/group/edit).
             if (containsPath(uri, link.legacyEditPath)) {
                 val id = when (link.legacyApp) {
-                    NextMigration.LegacyApp.WICKET -> request.getParameter("id")?.toLongOrNull()
+                    PageRoutes.LegacyApp.WICKET -> request.getParameter("id")?.toLongOrNull()
                     // react/group/edit/<id>; no id means the add page.
-                    NextMigration.LegacyApp.REACT ->
+                    PageRoutes.LegacyApp.REACT ->
                         uri.substringAfter("/${link.legacyEditPath}/", "").substringBefore('/').toLongOrNull()
                 }
                 val target = if (id != null) {
-                    link.nextEditUrl.replace(NextMigration.ID_PLACEHOLDER, "$id")
-                } else if (link.legacyApp == NextMigration.LegacyApp.WICKET) {
+                    link.nextEditUrl.replace(PageRoutes.ID_PLACEHOLDER, "$id")
+                } else if (link.legacyApp == PageRoutes.LegacyApp.WICKET) {
                     // The presets of a Wicket add page travel as parameters (e.g. wa/ganttEdit?task=42 of the
                     // task page) and mean the same on the next new-entry page (newEntryParams).
                     "${link.nextNewEntryUrl}${wicketQuery(request)}"
@@ -258,7 +258,7 @@ class OrphanedLinkFilter : Filter {
             if (containsPath(uri, link.legacyListPath)) {
                 // The presets of a Wicket list travel as parameters too (wa/accessList?taskId=42 of the task page,
                 // the same as next/access?taskId=42).
-                val query = if (link.legacyApp == NextMigration.LegacyApp.WICKET) wicketQuery(request) else ""
+                val query = if (link.legacyApp == PageRoutes.LegacyApp.WICKET) wicketQuery(request) else ""
                 redirect(response, uri, "${link.nextListUrl}$query")
                 return true
             }
@@ -293,7 +293,7 @@ class OrphanedLinkFilter : Filter {
      */
     private fun wicketQuery(request: HttpServletRequest, renames: Map<String, String> = emptyMap()): String {
         val query = request.queryString?.split('&')
-            ?.filter { it.isNotBlank() && it.substringBefore('=') != NextMigration.ESCAPE_HATCH_PARAM }
+            ?.filter { it.isNotBlank() && it.substringBefore('=') != LEGACY_ESCAPE_PARAM }
             ?.joinToString("&") { param ->
                 val name = param.substringBefore('=')
                 renames[name]?.let { "$it${param.removePrefix(name)}" } ?: param
@@ -322,6 +322,9 @@ class OrphanedLinkFilter : Filter {
     }
 
     companion object {
+        /** Query parameter the former "way back" links to the legacy pages carried; dropped from the redirect. */
+        private const val LEGACY_ESCAPE_PARAM = "legacyEscape"
+
         private val VACATION_LIST_URL = MenuItemDefId.VACATION.url ?: "/"
 
         /** Prefix of the bookmarkable urls of the Wicket pages in org.projectforge.web. */

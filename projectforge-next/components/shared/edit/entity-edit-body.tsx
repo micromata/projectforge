@@ -25,7 +25,6 @@ import {
 import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
 import { useFocusFirstField } from "@/hooks/use-focus-first-field";
 import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
-import { useLegacyEditUrl } from "@/hooks/use-legacy-edit-url";
 import { useInsertAccess } from "@/hooks/use-insert-access";
 import { useHistoryCommentSupport } from "@/hooks/use-history-comment-support";
 import { usePendingClone } from "@/hooks/use-pending-clone";
@@ -56,7 +55,6 @@ export interface EditRegions {
   title: string;
   category: string;
   crossLinks?: ReactNode;
-  legacyUrl?: string;
   trailing?: ReactNode;
   deleted: boolean;
   tabs: EditPageTab[];
@@ -150,7 +148,6 @@ export function EntityEditBody<
   const undeleteMutation = useUndeleteEntity<Data>(page.entity, writeOptions);
   const actionMutation = useEntityAction<Data>(page.entity, writeOptions);
   const cancelMutation = useCancelEntityEdit<Data>(page.entity, writeOptions);
-  const legacyUrl = useLegacyEditUrl(page.entity, id);
   // Cloning produces a *new* entry, so it needs the insert right, not the write right of the entry.
   const canInsert = useInsertAccess(page.entity);
   const takesHistoryComment = useHistoryCommentSupport(page.entity);
@@ -329,7 +326,6 @@ export function EntityEditBody<
       edit.crossLinks && id != null ? (
         <EntityCrossLinks links={edit.crossLinks} data={data} />
       ) : undefined,
-    legacyUrl,
     trailing: edit.headerTrailing?.(data),
     deleted: access.deleted,
     tabs: entityTabs({

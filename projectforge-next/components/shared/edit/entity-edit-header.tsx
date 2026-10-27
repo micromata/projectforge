@@ -6,7 +6,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { ExperimentalBadge } from "@/components/shared/experimental-badge";
 import { GuardedLink } from "@/components/shared/guarded-link";
-import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -20,8 +19,6 @@ export interface EntityEditHeaderProps {
   listLabel: string;
   /** The entry being edited, e.g. a book's title or a cost number. */
   title: string;
-  /** The legacy React edit page of this entry, see LegacyPageLink. */
-  legacyUrl?: string;
   /** Anything the entity wants beside its title — a book's loan badge. */
   trailing?: ReactNode;
   /** What else can be done with this entry, as one menu — see EntityCrossLinks. */
@@ -48,7 +45,6 @@ export function EntityEditHeader({
   listRoute,
   listLabel,
   title,
-  legacyUrl,
   trailing,
   crossLinks,
   deleted,
@@ -92,9 +88,6 @@ export function EntityEditHeader({
         <span className="flex-1" />
         {trailing}
         {crossLinks}
-        {/* Right, not left: the left of this row is the breadcrumb back to the list, and putting a
-            second link beside it would read as part of that path. */}
-        <LegacyPageLink url={legacyUrl} />
       </div>
     </div>
   );

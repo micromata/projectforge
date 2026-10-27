@@ -246,6 +246,6 @@ such a page the section tabs become links back to the form with the section in t
 6. Routes under `app/(authenticated)/<route>/`: `page.tsx` (list), `[id]/page.tsx` +
    `page-client.tsx`. The `page.tsx` files exist only to
    provide `generateStaticParams()` for the static export; the client reads the real id from the URL.
-7. Register the category in `NextMigration.MIGRATED` (projectforge-business); `NextMigrationTest`
+7. Register the category in `PageRoutes.PAGES` (projectforge-business); `PageRoutesTest`
    asserts that its route has a directory under `app/(authenticated)/`.
 8. New texts go into `I18nResources.properties` / `I18nResources_de.properties`, then regenerate.

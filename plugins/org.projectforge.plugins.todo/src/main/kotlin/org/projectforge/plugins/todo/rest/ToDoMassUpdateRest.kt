@@ -26,7 +26,7 @@ package org.projectforge.plugins.todo.rest
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.common.i18n.Priority
 import org.projectforge.plugins.todo.ToDoDO
 import org.projectforge.plugins.todo.ToDoDao
@@ -68,7 +68,7 @@ class ToDoMassUpdateRest : AbstractMassUpdateRest<ToDoDO>() {
 
     override val layoutContext: LayoutContext = LayoutContext(ToDoDO::class.java)
 
-    override val listPageUrl: String = "/${NextMigration.listUrl(ToDoPlugin.CATEGORY)}"
+    override val listPageUrl: String = "/${PageRoutes.listUrl(ToDoPlugin.CATEGORY)}"
 
     @PostConstruct
     private fun postConstruct() {

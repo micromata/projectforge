@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.calendar
 
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.availability.AbsenceKind
 import org.projectforge.business.calendar.CalendarView
@@ -375,9 +375,9 @@ class CalendarServicesRest {
                 // Time sheet was modified, so reload page and goto date of timesheet (if modified):
                 val hash = NumberHelper.getSecureRandomAlphanumeric(4)
                 val gotoDate = PFDateTime.fromOrNow(date).localDate
-                return ResponseAction("/${NextMigration.listUrl("calendar")}?gotoDate=$gotoDate&hash=$hash")
+                return ResponseAction("/${PageRoutes.listUrl("calendar")}?gotoDate=$gotoDate&hash=$hash")
             }
-            return ResponseAction("/${NextMigration.listUrl("calendar")}")
+            return ResponseAction("/${PageRoutes.listUrl("calendar")}")
         }
     }
 }

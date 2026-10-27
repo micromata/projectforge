@@ -123,7 +123,7 @@ The Next.js app (App Router) lives in `projectforge-next/`; its conventions are 
   rendered by the generic `EntityListPage` and `EntityEditPage`.
 * Field types, maximum lengths, mandatory fields and enum values are not maintained twice: they are
   generated from the entity's `@PropertyInfo` and JPA annotations into `lib/metadata/<entity>.generated.ts`.
-* The menu and the redirects are decided by the backend (`MenuItemDefId`, `NextMigration`), so a page can
+* The menu and the redirects are decided by the backend (`MenuItemDefId`, `PageRoutes`), so a page can
   be switched to `projectforge-next` independently of all others.
 
 In development the dev server (`bin/pfDev.sh dev`, port 3000) proxies `/rs/**` and `/rsPublic/**` to Spring
@@ -357,7 +357,7 @@ The books are the reference implementation of a hand-built page. What it takes:
 |The routes of the list and the edit page (`/next/book`, `/next/book/<id>`, `/next/book/new`); they only
 render `EntityListPage` and `EntityEditPage` with the declaration.
 
-|`MenuItemDefId`, `NextMigration` (projectforge-business)
+|`MenuItemDefId`, `PageRoutes` (projectforge-business)
 |The menu entry and the routes of the page.
 |===
 
