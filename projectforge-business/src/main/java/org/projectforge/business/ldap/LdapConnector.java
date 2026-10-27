@@ -84,7 +84,7 @@ public class LdapConnector {
     if (StringUtils.isNotBlank(authentication)) {
       env.put(Context.SECURITY_AUTHENTICATION, ldapConfig.getAuthentication());
       if (!"none".equals(authentication)) {
-        // Avoid null-value-attack (thanx to Sergej Michel, Micromata):
+        // Avoid null-value-attack (finding of a security review):
         final String userNotEmpty = StringUtils.isNotBlank(user) ? user : "<no-user>";
         final char[] passwordNotEmpty = password != null && password.length > 0 ? password : "<no-password>".toCharArray();
         env.put(Context.SECURITY_PRINCIPAL, userNotEmpty);

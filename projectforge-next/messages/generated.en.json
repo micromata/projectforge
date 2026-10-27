@@ -3050,11 +3050,11 @@
       },
       "generalKost1": {
         "_": "General Kost1 (cost centers)",
-        "tooltip": "Sent to all users as cost centers (cost_centers). Formatted number like 1.005.01.00. Without entries, the cost centers maintained in Lanes & Planes are kept."
+        "tooltip": "Sent to all users as cost centers (cost_centers). Formatted number like 1.900.01.00. Without entries, the cost centers maintained in Lanes & Planes are kept."
       },
       "generalKost2": {
         "_": "General Kost2 (cost units)",
-        "tooltip": "Sent to all users as cost units (cost_units) in addition to the bookable Kost2, independent of their booking rights, e.g. internal Kost2 like trainings or sales. Formatted number like 5.999.10.09."
+        "tooltip": "Sent to all users as cost units (cost_units) in addition to the bookable Kost2, independent of their booking rights, e.g. internal Kost2 like trainings or sales. Formatted number like 5.900.10.01."
       },
       "invalidJson": "The stored value is no valid JSON; the defaults are shown and replace it on saving.",
       "kost2Patterns": {
@@ -6296,7 +6296,7 @@
         "info": "Accepts the selected time sheets booked by a proposed ad hoc booking, with the structure element and cost unit chosen above, if any. Nothing changes about this for the others."
       },
       "remapKost2": "Remap cost unit by type (structure element stays)",
-      "remapKost2Info": "Each time sheet keeps its structure element. A cost unit the structure element no longer offers is replaced by its cost unit of the same type (last 2 digits), e.g. 5.999.11.02 -> 7.001.01.02 after a project was linked.",
+      "remapKost2Info": "Each time sheet keeps its structure element. A cost unit the structure element no longer offers is replaced by its cost unit of the same type (last 2 digits), e.g. 5.900.11.01 -> 7.900.01.01 after a project was linked.",
       "taskNotApplied": "The structure element is not selected (checkbox) and will therefore not be changed.",
       "updateTask": "Update structure element for all time sheets."
     },
@@ -6588,7 +6588,7 @@
     "mobilePhone": {
       "_": "Mobile phone",
       "info": "Mobile phone usable as a 2nd factor (required e.g. for password reset or other services).\n\nYou may configure this field by any admin or by configuring your two-factor-authentication.",
-      "invalidFormat": "Valid characters for phone numbers are '+' as first char, '-', '/' and spaces. The leading country code is optional, e.g.: +49 561 316793-0 or 0561 316793-0"
+      "invalidFormat": "Valid characters for phone numbers are '+' as first char, '-', '/' and spaces. The leading country code is optional, e.g.: +49 123 456789-0 or 0123 456789-0"
     },
     "myAccount": {
       "defaultValue": "Default: {arg0}",

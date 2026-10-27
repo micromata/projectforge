@@ -136,7 +136,7 @@ internal class CustomerChecklistFilter(
 
         /**
          * The customers of the given rows, each once, sorted by name: a customer entity's number, or `null`
-         * plus the free text, trimmed: texts differing only in surrounding blanks ("DHL", "DHL ") are one entry, as
+         * plus the free text, trimmed: texts differing only in surrounding blanks ("ACME", "ACME ") are one entry, as
          * the list's cell shows them alike. A free-text customer only counts for a row without a customer entity: with one,
          * the cell shows the entity and so does this list.
          *

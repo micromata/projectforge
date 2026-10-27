@@ -515,7 +515,7 @@ class TaskServicesRest {
         }
 
         fun addTimesheetReferenceList(task: Task) {
-            val timesheetReferenceList = listOf("Uni Kassel", "Uni Göttingen")
+            val timesheetReferenceList = listOf("Reference A", "Reference B")
             task.timesheetReferenceList =
                 timesheetReferenceList//Registry.getInstance().getDao(TimesheetDao::class.java).getUsedReferences(task.id)
         }

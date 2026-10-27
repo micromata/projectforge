@@ -76,7 +76,7 @@ public class WebApplicationConfig implements WebMvcConfigurer {
      * (directory {@code index.html}, {@code <route>.html}) and mapping deep links of a dynamic route onto the one
      * route Next prerendered for it.
      * <p>
-     * A static export has no file for {@code /next/book/25219084}: {@code book/[id]} is prerendered exactly once,
+     * A static export has no file for {@code /next/book/4711}: {@code book/[id]} is prerendered exactly once,
      * from the placeholder of its {@code generateStaticParams} ({@code book/new}). That prerender — not
      * {@code 404.html}, which is Next's own not-found page and renders as such wherever it is served — is the shell a
      * deep link has to be answered with, because the HTML carries the route's page component. Which shell belongs to
@@ -84,7 +84,7 @@ public class WebApplicationConfig implements WebMvcConfigurer {
      * (projectforge-next/scripts/generate-spa-shell-map.mjs), so a new dynamic route needs no change here.
      * <p>
      * Substituting the whole directory rather than just the HTML also serves the route's RSC payloads
-     * ({@code book/25219084/__next._tree.txt} → {@code book/new/__next._tree.txt}), which is what makes
+     * ({@code book/4711/__next._tree.txt} → {@code book/new/__next._tree.txt}), which is what makes
      * client-side navigation to a deep link work.
      * <p>
      * The assets are linked as {@code /next/public/_next/**} ({@link Constants#NEXT_PUBLIC_ASSETS_PATH}), but the

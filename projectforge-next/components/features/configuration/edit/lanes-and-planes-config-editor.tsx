@@ -114,7 +114,7 @@ export function LanesAndPlanesConfigEditor({
                 hint={t("generalKost1.tooltip")}
                 invalid={hasError(t("generalKost1._"))}
                 entries={config.generalKost1}
-                placeholder="1.005.01.00"
+                placeholder="1.900.01.00"
                 onChange={(generalKost1) => update({ generalKost1 })}
                 onBlur={field.handleBlur}
                 list={
@@ -134,7 +134,7 @@ export function LanesAndPlanesConfigEditor({
                 hint={t("generalKost2.tooltip")}
                 invalid={hasError(t("generalKost2._"))}
                 entries={config.generalKost2}
-                placeholder="5.999.10.09"
+                placeholder="5.900.10.01"
                 onChange={(generalKost2) => update({ generalKost2 })}
                 onBlur={field.handleBlur}
                 list={

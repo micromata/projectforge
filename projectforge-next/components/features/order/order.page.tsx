@@ -78,7 +78,7 @@ export const ORDER_PAGE = definePage<
   metadata: AUFTRAG_METADATA,
   route: "/order",
   queryKey: ORDER_LIST_QUERY_KEY,
-  // The order book is the reference for server-side paging: ~7000 rows, four CustomResultFilters (so
+  // The order book is the reference for server-side paging: thousands of rows, four CustomResultFilters (so
   // nothing narrows after the query) and statistics from the aggregate hook. See PageDef.serverPaging.
   serverPaging: true,
   // Where the entry sits in the main menu: Finance > Order book (MenuItemDefId.ORDER_LIST). It hangs

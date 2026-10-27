@@ -31,7 +31,7 @@ import kotlin.math.min
  * Provides normalization, similarity calculation, and flexible matching algorithms.
  *
  * Use cases:
- * - Invoice number matching: "325124610" ↔ "3251246-10 / Az.: IS-0017-10/KSR"
+ * - Invoice number matching: "123456710" ↔ "1234567-10 / Az.: AB-0001-10/XYZ"
  * - Company name matching: "Microsoft Corp." ↔ "Microsoft Corporation"
  * - Reference code matching: "ABC-123/XYZ" ↔ "abc123xyz"
  */
@@ -64,7 +64,7 @@ object StringMatchUtils {
             calculateLevenshteinSimilarity(normalized1, normalized2)
         } else 0.0
 
-        // Priority 2: Substring containment for partial matches (e.g., "325124610" in "3251246-10 / Az...")
+        // Priority 2: Substring containment for partial matches (e.g., "123456710" in "1234567-10 / Az...")
         val containmentBonus = calculateContainmentBonus(normalized1, normalized2)
 
         // If we have strong Levenshtein or containment, use that
@@ -92,7 +92,7 @@ object StringMatchUtils {
      * Normalize a string by removing special characters, whitespace, and converting to lowercase.
      *
      * Examples:
-     * - "3251246-10 / Az.: IS-0017-10/KSR" → "32512461010is001710ksr"
+     * - "1234567-10 / Az.: AB-0001-10/XYZ" → "12345671010ab000110xyz"
      * - "Microsoft Corp." → "microsoftcorp"
      * - "ABC-123/XYZ" → "abc123xyz"
      */
@@ -109,7 +109,7 @@ object StringMatchUtils {
      *
      * Examples:
      * - "microsoftcorp" → ["microsoftcorp", "microsoft", "corp"]
-     * - "32512461010" → ["32512461010", "3251246", "1010"] (only longer sequences)
+     * - "12345671010" → ["12345671010", "1234567", "1010"] (only longer sequences)
      *
      * @param minSubstringLength Minimum length for substring extraction (default: 8 for invoice numbers)
      */
@@ -163,7 +163,7 @@ object StringMatchUtils {
 
         return if (longer.contains(shorter) && shorter.length >= 4) {
             // If shorter string is substantial, give high similarity
-            // This handles cases like "325124610" (9 chars) in "32512461010is001710ksr" (22 chars)
+            // This handles cases like "123456710" (9 chars) in "12345671010ab000110xyz" (22 chars)
             // Ratio: 9/22 = 0.409 → should be high similarity as it's the core invoice number
             val ratio = shorter.length.toDouble() / longer.length
             if (shorter.length >= 8) {

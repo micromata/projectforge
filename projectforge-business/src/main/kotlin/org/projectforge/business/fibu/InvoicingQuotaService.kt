@@ -186,7 +186,7 @@ class InvoicingQuotaService(
      * - `.` = literal dot (escaped)
      *
      * Examples:
-     * - `5.*` matches "5.123", "5.999.01.02"
+     * - `5.*` matches "5.123", "5.900.01.02"
      * - `5.___.99.*` matches "5.123.99.01", "5.456.99.99"
      * - `6.3*` matches "6.3", "6.31", "6.399.01"
      *

@@ -255,7 +255,7 @@ __2026-10-23, Tag https://github.com/micromata/projectforge/tree/9.0.14-RELEASE[
   * Export ohne Positionen: Die Zeilen einer Rechnung (eine je Buchungszeile) werden zu einer Rechnung mit dem Gesamtbetrag zusammengefasst, statt bei jedem Import als neue Rechnungen angeboten zu werden.
   * Export ohne Positionen: Die interne Notiz (Spalte „Interne Re.-Nr.“) wird nicht mehr an die Rechnungsnummer angehängt, die sich sonst bei jedem Import der beiden Dateien hin- und herändert.
 - Massenänderungen: Das Protokollfenster zeigt die geänderten Einträge wieder an.
-- Stornorechnungen werden bei den Auftragspositionen aufgeführt, die sie stornieren, direkt nach der stornierten Rechnung (z. B. 17400 und 17400-S), auch im Auftrags- und Forecast-Export. Im Auftrag sind beide durchgestrichen; zusammen zählen sie weiterhin 0 als fakturiert.
+- Stornorechnungen werden bei den Auftragspositionen aufgeführt, die sie stornieren, direkt nach der stornierten Rechnung (z. B. 12345 und 12345-S), auch im Auftrags- und Forecast-Export. Im Auftrag sind beide durchgestrichen; zusammen zählen sie weiterhin 0 als fakturiert.
 - Auftragsbuch: Die Bearbeitungsseite springt beim Ändern eines Feldes nicht mehr.
 
 ++++

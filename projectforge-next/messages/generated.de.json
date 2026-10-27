@@ -3050,11 +3050,11 @@
       },
       "generalKost1": {
         "_": "Allgemeine Kost1 (Kostenstellen)",
-        "tooltip": "Werden allen Usern als Kostenstellen (cost_centers) übertragen. Formatierte Nummer wie 1.005.01.00. Ohne Einträge bleiben die in Lanes & Planes gepflegten Kostenstellen erhalten."
+        "tooltip": "Werden allen Usern als Kostenstellen (cost_centers) übertragen. Formatierte Nummer wie 1.900.01.00. Ohne Einträge bleiben die in Lanes & Planes gepflegten Kostenstellen erhalten."
       },
       "generalKost2": {
         "_": "Allgemeine Kost2 (Kostenträger)",
-        "tooltip": "Werden allen Usern zusätzlich zu den bebuchbaren Kost2 als Kostenträger (cost_units) übertragen, unabhängig von ihren Buchungsrechten, z. B. interne Kost2 wie Fortbildung oder Vertrieb. Formatierte Nummer wie 5.999.10.09."
+        "tooltip": "Werden allen Usern zusätzlich zu den bebuchbaren Kost2 als Kostenträger (cost_units) übertragen, unabhängig von ihren Buchungsrechten, z. B. interne Kost2 wie Fortbildung oder Vertrieb. Formatierte Nummer wie 5.900.10.01."
       },
       "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON; angezeigt werden die Vorgaben, die ihn beim Speichern ersetzen.",
       "kost2Patterns": {
@@ -6296,7 +6296,7 @@
         "info": "Übernimmt die ausgewählten, über eine vorgeschlagene Ad-hoc-Buchung gebuchten Zeitberichte, ggf. mit dem oben gewählten Strukturelement und der Kost2. Für die übrigen ändert sich daran nichts."
       },
       "remapKost2": "Kost2 nach Kostenart umschlüsseln (Strukturelement bleibt)",
-      "remapKost2Info": "Jeder Zeitbericht behält sein Strukturelement. Eine Kost2, die das Strukturelement nicht mehr anbietet, wird durch dessen Kost2 derselben Kostenart (letzte beiden Ziffern) ersetzt, z. B. 5.999.11.02 -> 7.001.01.02 nach Verlinkung eines Projekts.",
+      "remapKost2Info": "Jeder Zeitbericht behält sein Strukturelement. Eine Kost2, die das Strukturelement nicht mehr anbietet, wird durch dessen Kost2 derselben Kostenart (letzte beiden Ziffern) ersetzt, z. B. 5.900.11.01 -> 7.900.01.01 nach Verlinkung eines Projekts.",
       "taskNotApplied": "Das Strukturelement ist nicht ausgewählt (Checkbox) und wird daher nicht geändert.",
       "updateTask": "Strukturelement für alle Zeitberichte ändern"
     },
@@ -6588,7 +6588,7 @@
     "mobilePhone": {
       "_": "Mobilnummer",
       "info": "Die Nummer kann als 2. Faktor benutzt werden, um z. B. das Passwort zurückzusetzen oder andere sicherheitsrelevante Bereiche zu nutzen.\n\nDie Nummer kann im Bereich Zwei-Faktor-Authentifizierung geändert werden.",
-      "invalidFormat": "Es sind nur Zahlen sowie '+' am Anfang, '-', '/' und Leerzeichen erlaubt. Die führende Ländervorwahl ist optional. Beispiel: +49 561 316793-0 oder 0561 316793-0"
+      "invalidFormat": "Es sind nur Zahlen sowie '+' am Anfang, '-', '/' und Leerzeichen erlaubt. Die führende Ländervorwahl ist optional. Beispiel: +49 123 456789-0 oder 0123 456789-0"
     },
     "myAccount": {
       "defaultValue": "Voreinstellung: {arg0}",

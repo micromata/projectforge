@@ -261,7 +261,7 @@
               ]
             },
             "Massenänderungen: Das Protokollfenster zeigt die geänderten Einträge wieder an.",
-            "Stornorechnungen werden bei den Auftragspositionen aufgeführt, die sie stornieren, direkt nach der stornierten Rechnung (z. B. 17400 und 17400-S), auch im Auftrags- und Forecast-Export. Im Auftrag sind beide durchgestrichen; zusammen zählen sie weiterhin 0 als fakturiert.",
+            "Stornorechnungen werden bei den Auftragspositionen aufgeführt, die sie stornieren, direkt nach der stornierten Rechnung (z. B. 12345 und 12345-S), auch im Auftrags- und Forecast-Export. Im Auftrag sind beide durchgestrichen; zusammen zählen sie weiterhin 0 als fakturiert.",
             "Auftragsbuch: Die Bearbeitungsseite springt beim Ändern eines Feldes nicht mehr."
           ]
         },

@@ -397,8 +397,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * Opts the order list into the lean row: [Auftrag.copyFrom4ListRow] fills only the columns of
    * `order.page.tsx`, which is what the hand built next page renders.
    *
-   * Measured on the order book of a real installation (7132 rows): 1755 B/row become 741 B/row, 12.5 MB
-   * become 5.3 MB, and 1.5 MB become 549 KB on the wire. Most of it is the four manager DTOs (~524 B/row
+   * On a large order book (several thousand rows) a row shrinks to less than half its size, both
+   * uncompressed and on the wire. Most of it is the four manager DTOs (~524 B/row
    * for a column showing nothing but the derived `assignedPersons` string), the sums travelling twice (raw
    * and pre-formatted), and a dozen fields no column reads.
    */

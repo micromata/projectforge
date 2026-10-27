@@ -16,7 +16,7 @@ const DELAY_MILLIS = 500;
 
 /**
  * Has the server validate the unsaved configuration shortly after every change and puts its errors on the
- * fields, as a save would — a conflict (`dhl*` here, `dh*` in another group) shows up while it is made, on
+ * fields, as a save would — a conflict (`acme*` here, `ac*` in another group) shows up while it is made, on
  * both sets involved: on the one being edited and on the other one, whose row opens by itself.
  *
  * The rules are the server's alone (customers and free texts in use, the task tree), so there is no client

@@ -187,7 +187,7 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
   hideHeader?: boolean;
   /**
    * Only the rows in view (and a few around them) are in the document, for a table showing thousands of
-   * rows on one page: the import preview rendered 2,847 rows with 23 cells each at once and froze the
+   * rows on one page: an import preview rendering thousands of rows with two dozen cells each at once froze the
    * browser for many seconds. Spacer rows above and below keep the scroll height.
    *
    * Only for a bounded table (not [autoHeight]) without [renderRowDetail], [highlightRowId] and [viewScope]:

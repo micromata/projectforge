@@ -372,7 +372,7 @@ class TimesheetMassUpdateRest : AbstractMassUpdateRest<TimesheetDO>() {
     /**
      * Moves the cost unit of the given sheet to the cost unit of the same type (kost2Art, the last two digits)
      * among those of the sheet's *own* task, leaving the task as it is. Needed after the cost units of a task
-     * changed (e. g. a project was linked to it, 5.999.11.02 -> 7.0001.02), as the sheets booked before keep
+     * changed (e. g. a project was linked to it, 5.900.11.01 -> 7.900.01.01), as the sheets booked before keep
      * their old ones.
      *
      * A sheet without cost unit, or with one its task still offers, is left alone. A remapped cost unit is

@@ -57,7 +57,7 @@ class TextPattern private constructor(
     }
 
     /**
-     * Whether every name this pattern matches is matched by [other] as well: `dhl*` by `dh*`, `ACME AG` by
+     * Whether every name this pattern matches is matched by [other] as well: `acme*` by `ac*`, `ACME AG` by
      * `ACME*`, anything containing "post" by `*post*`. Two groups with such patterns claim the same customers
      * by construction, whether any exists yet or not.
      */

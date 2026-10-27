@@ -18,7 +18,7 @@ export interface InvoiceNumberProps {
 
 /**
  * The number of an invoice of an order position, as shown in the position's header and in its invoice
- * list. A cancellation has no number of its own, only its printed one (e.g. 17400-S); a cancelled invoice
+ * list. A cancellation has no number of its own, only its printed one (e.g. 12345-S); a cancelled invoice
  * and its cancellation count 0 together, so both are struck through.
  */
 export function InvoiceNumber({
