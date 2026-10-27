@@ -26,6 +26,7 @@ package org.projectforge.menu.builder
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.birthdaybutler.BirthdayButlerConfiguration
 import org.projectforge.business.availability.ConflictingAvailabilitiesCache
+import org.projectforge.business.chat.ChatUnreadCounter
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.datev.DatevImportService
@@ -119,6 +120,9 @@ open class MenuCreator {
 
     @Autowired
     private lateinit var featureService: FeatureService
+
+    @Autowired
+    private lateinit var chatUnreadCounter: ChatUnreadCounter
 
     private var initialized = false
 
@@ -337,7 +341,7 @@ open class MenuCreator {
                         conflictingAvailabilitiesCache.numberOfConflicts(ThreadLocalUserContext.loggedInUserId)
                     })
             )
-            .add(MenuItemDef(MenuItemDefId.CHAT))
+            .add(MenuItemDef(MenuItemDefId.CHAT, badgeCounter = { chatUnreadCounter.countUnread() }))
             .add(MenuItemDef(MenuItemDefId.BOOK_LIST))
             .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST))
             .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST))

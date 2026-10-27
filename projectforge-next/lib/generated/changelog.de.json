@@ -7,7 +7,7 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Chat: Die Suche der Chatseite findet auch Nachrichten in allen lesbaren Unterhaltungen, jeweils mit einer Vorschau des neuesten Treffers; ein Klick springt zur Nachricht, auch in einem Thread." ]
+      "items" : [ "Chat: Die Suche der Chatseite findet auch Nachrichten in allen lesbaren Unterhaltungen, jeweils mit einer Vorschau des neuesten Treffers; ein Klick springt zur Nachricht, auch in einem Thread.", "Chat: Eine Sprechblase in der oberen Leiste führt zum Chat, ein Zähler zeigt dort und am Menüeintrag die ungelesenen Nachrichten." ]
     }, {
       "type" : "improved",
       "items" : [ "Chat: Kompaktere Unterhaltungen mit Sprechblasen (eigene Nachrichten rechts), aufeinanderfolgende Nachrichten derselben Person gruppiert und ein Trenner pro Tag.", "Liquiditätsvorschau: Die Anzahl der Tage kann frei eingegeben werden (1 bis 600), die üblichen Zeiträume bleiben als Schnellwahl." ]

@@ -995,6 +995,7 @@
     },
     "file": {
       "add": "Attach files",
+      "addHint": "Attach files. They can also simply be dropped into the message window.",
       "directTarget": "Files go into the personal box of {arg0} in the data transfer.",
       "download": "Download",
       "error": {
@@ -1011,6 +1012,8 @@
       "openArea": "Open in data transfer",
       "remove": "Remove file"
     },
+    "linkHint": "Chat and encrypted communication",
+    "linkHintDataTransfer": "Chat, encrypted communication and data exchange",
     "mention": {
       "noResults": "Nobody found."
     },
