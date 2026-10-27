@@ -695,7 +695,7 @@ constructor(
     /**
      * One page of the list, served server-side: the ordered id list is materialized once per (session,
      * filter) and cached, and this returns the 50-row slice at `offset` (see [getListPage] and
-     * `projectforge-next/docs/list-paging.md`). A new path beside [getList], not an extension of it: `POST list` stays
+     * `dev-docs/next/list-paging.md`). A new path beside [getList], not an extension of it: `POST list` stays
      * byte-identical for the legacy React app, the multi-selection start and the Excel exports, all of which
      * need every row.
      *

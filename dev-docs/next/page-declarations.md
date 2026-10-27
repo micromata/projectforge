@@ -10,11 +10,10 @@ it is mandatory, and how long its value may be.
 So a page here is **data, not code**. One module per entity exports a `PageDef` describing _what is
 shown, in which order, how wide and under which label_. Two generic components render it:
 
-| Component           | File                                             | Renders                                   |
-| ------------------- | ------------------------------------------------ | ----------------------------------------- |
-| `EntityListPage`    | `components/shared/list/entity-list-page.tsx`    | the whole list page                       |
-| `EntityEditPage`    | `components/shared/edit/entity-edit-page.tsx`    | the whole edit form                       |
-| `EntityHistoryPage` | `components/shared/edit/entity-history-page.tsx` | the change-history tab of the same entity |
+| Component        | File                                          | Renders             |
+| ---------------- | --------------------------------------------- | ------------------- |
+| `EntityListPage` | `components/shared/list/entity-list-page.tsx` | the whole list page |
+| `EntityEditPage` | `components/shared/edit/entity-edit-page.tsx` | the whole edit form |
 
 A route file then contains nothing but the wiring:
 
@@ -245,11 +244,8 @@ such a page the section tabs become links back to the form with the section in t
 4. `<noun>-values.ts` — `toFormValues` (normalising `undefined` away) and the empty values.
 5. `<noun>.page.ts(x)` — the `definePage({...})` declaration.
 6. Routes under `app/(authenticated)/<route>/`: `page.tsx` (list), `[id]/page.tsx` +
-   `page-client.tsx`, `[id]/history/page.tsx` + `page-client.tsx`. The `page.tsx` files exist only to
+   `page-client.tsx`. The `page.tsx` files exist only to
    provide `generateStaticParams()` for the static export; the client reads the real id from the URL.
 7. Register the category in `NextMigration.MIGRATED` (projectforge-business); `NextMigrationTest`
    asserts that its route has a directory under `app/(authenticated)/`.
 8. New texts go into `I18nResources.properties` / `I18nResources_de.properties`, then regenerate.
-
-The `/migrate-page` skill documents the full workflow including where to find the Wicket/React source
-pages and DTOs.

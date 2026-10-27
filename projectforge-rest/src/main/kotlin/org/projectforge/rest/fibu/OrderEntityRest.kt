@@ -632,7 +632,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   /**
    * The whole-result statistics of a server-side paged order list: computed over the full id list, not over
    * the single page [postProcessResultSet] sees, so the footer shows the sums of every matching order (see
-   * `projectforge-next/docs/list-paging.md`). Each id's [OrderInfo] is a cache lookup, so this stays cheap for the whole
+   * `dev-docs/next/list-paging.md`). Each id's [OrderInfo] is a cache lookup, so this stays cheap for the whole
    * result. The non-paged `POST list` keeps computing the same statistics over its (complete) result set in
    * [postProcessResultSet].
    */
@@ -1597,7 +1597,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
      * [filterList] sorts the loaded order list (each order's info via the cache) for the non-paged `POST
      * list`, and [sortIds] sorts the materialized id list (each id's info via the cache) for server-side
      * paging — the paged result must be the same rows in the same order as `POST list` (see
-     * `projectforge-next/docs/list-paging.md`).
+     * `dev-docs/next/list-paging.md`).
      *
      * The customer and the project sort by the very string the cell shows — the `displayName` of the cached
      * [org.projectforge.business.fibu.kunde.KundeDO]/[org.projectforge.business.fibu.ProjektDO], formatted by

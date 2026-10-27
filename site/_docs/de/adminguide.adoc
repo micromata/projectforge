@@ -101,7 +101,7 @@ ProjectForge in `~/ProjectForge/projectforge.properties` mitgeteilt:
 
 [source]
 ----
-# Der Proxy muss X-Forwarded-Proto senden (siehe doc/misc/nginx_sites-available_projectforge):
+# Der Proxy muss X-Forwarded-Proto senden (siehe dev-docs/misc/nginx_sites-available_projectforge):
 server.forward-headers-strategy=native
 # Oder, wenn ohnehin jeder Zugriff über https erfolgt:
 #server.servlet.session.cookie.secure=true
@@ -119,7 +119,7 @@ Der Chat schickt neue Nachrichten per Server-Sent Events an die geöffneten Unte
 (`/rs/chat/conversation/{id}/events`), eine lang offene Antwort mit einem Heartbeat alle 25 Sekunden. Der Proxy darf sie
 weder puffern noch vor dem nächsten Heartbeat schließen. ProjectForge sendet `X-Accel-Buffering: no`, was nginx
 beachtet; nginx braucht daher nur einen Read-Timeout über 25 Sekunden (die Beispielkonfiguration
-`doc/misc/nginx_sites-available_projectforge` hat 600 Sekunden). Bei anderen Proxys muss das Puffern für diesen Pfad
+`dev-docs/misc/nginx_sites-available_projectforge` hat 600 Sekunden). Bei anderen Proxys muss das Puffern für diesen Pfad
 abgeschaltet werden. Ohne das funktioniert der Chat trotzdem: Er fragt dann alle paar Sekunden nach neuen Nachrichten.
 
 [[postgresql]]

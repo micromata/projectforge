@@ -750,7 +750,7 @@ sudo openssl dhparam -out /etc/nginx/dhparam.pem 2048
 Copy the template from the repository and replace the placeholder domain:
 
 ```bash
-sudo cp doc/misc/nginx_sites-available_projectforge \
+sudo cp dev-docs/misc/nginx_sites-available_projectforge \
   /etc/nginx/sites-available/projectforge
 sudo sed -i 's/projectforge.example.com/gateway.internal/g' \
   /etc/nginx/sites-available/projectforge

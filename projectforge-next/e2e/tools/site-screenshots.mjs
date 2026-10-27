@@ -15,7 +15,7 @@
  *
  * Never run it against the main instance: its database is a copy of production, and the screenshots are published.
  *
- * The shots match the other ones of the website (doc/website-screenshots/shoot.mjs): a viewport of 1440×860 at a
+ * The shots match the other ones of the website (dev-docs/website-screenshots/shoot.mjs): a viewport of 1440×860 at a
  * zoom of 2, scaled down to 1920×1146 (sips, macOS), light theme, without the development badge and the
  * customer's logo.
  */

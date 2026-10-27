@@ -101,7 +101,7 @@ object ForecastUtils { // open needed by Wicket.
     }
 
     /**
-     * See doc/misc/ForecastExportProbabilities.xlsx
+     * See dev-docs/misc/ForecastExportProbabilities.xlsx
      */
     @JvmStatic
     fun getProbabilityOfAccurence(order: OrderInfo, pos: OrderPositionInfo): BigDecimal {

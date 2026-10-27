@@ -6,12 +6,11 @@ backend UILayout are removed. This is the one list of what is left. Remove an en
 ## Tests
 
 - **E2E specs for refusals** that so far are only covered as successes (the roles exist, see
-  `../CLAUDE.md`, "Testing against the running system"):
+  `projectforge-next/CLAUDE.md`, "Testing against the running system"):
   - 403 of the e-invoice checker for a user without FIBU/ORGA or order book right;
   - `useReadAccessGuard` (a 403 on reading an entity);
   - the `rejected` write path of `postEntityAction`;
   - the English locale (`normalo-user` has `locale=en`);
-  - the counterpart of `book-list-gear.spec.ts`: the full reindex only as admin;
   - renaming and deleting a filter favorite (applying, saving and the modified marker are covered).
 - **Manual checks, need real hardware or a real mailbox:**
   - second factor with a real token: WebAuthn, OTP/SMS/mail after login, the reset-mail link,
@@ -45,4 +44,5 @@ backend UILayout are removed. This is the one list of what is left. Remove an en
   are already declared in `teamEvent.page.tsx`, only the route is missing.
 - **`calendar.useNewCalendarEvents`** — with the flag set, the calendar's `action` answers URLs to
   `calEvent`, for which there is no page. Look at this before switching the flag (currently `false`).
+- **Plugin frontends inside the plugin modules** — see [plugin-frontend-colocation.md](plugin-frontend-colocation.md); full modularity is impossible under static export.
 - **`NEXT_APP_PATH`** stays `/next` (decided).

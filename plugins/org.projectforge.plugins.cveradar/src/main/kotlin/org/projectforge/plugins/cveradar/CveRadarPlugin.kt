@@ -31,7 +31,7 @@ import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.web.WicketSupport
 
 /**
- * CVE-Radar (vulnerability management, see doc/requirements/PF-CVR_CVE-Radar_Vulnerability_Management.md).
+ * CVE-Radar (vulnerability management, see dev-docs/requirements/PF-CVR_CVE-Radar_Vulnerability_Management.md).
  *
  * For now only a UI prototype for the review of the specification: the pages under /next/cveradar work on test
  * data bundled with the frontend, so the plugin registers nothing but its menu entry and texts. It is not
