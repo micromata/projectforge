@@ -13,7 +13,7 @@ import { useSecretFingerprint } from "./use-chat-secret";
 export function SecretInfo() {
   const t = useTranslations();
   return (
-    <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+    <div className="flex flex-col gap-1 text-xs/relaxed text-muted-foreground">
       <p>{t("chat.secret.info")}</p>
       <p>{t("chat.secret.limit")}</p>
     </div>
