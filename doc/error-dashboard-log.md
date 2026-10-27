@@ -13,6 +13,32 @@ fix didn't hold.
 Each entry lists the dashboard source (class:line or log event code) as it appeared, so a reappearing problem can
 be matched even if line numbers move.
 
+## 2026-10-27 (export 07:14, 36 problems OPEN, last 7 days, running version 9.0.17)
+
+9.0.17 went live 2026-10-26 ~22:40 UTC. Three new problems, all within minutes after that deploy; all others are
+listed on 2026-10-25 and weren't seen after the deploys of 9.0.15–9.0.17.
+
+### Fixed (claude-dev1)
+
+| Dashboard source | Cause | Fix | Watch |
+|---|---|---|---|
+| `support.requestError` at `MenuCreator:837` `ConcurrentModificationException` on `GET /rs/menu` (1×, after the restart) | Plugins register their menu entries on the `ApplicationReadyEvent` (`PluginAdminService.activatePlugin`), when requests are already served: a menu request iterated the children of a top-level entry (e.g. MISC) while a plugin added to it. Line 837 is beyond EOF: inlined `children?.forEach` in `build`. Impact: one 500, retried by the client. | `MenuItemDef.children`, `MenuItemDefHolder.menuItems` and `personalMenuPluginEntries` are `CopyOnWriteArrayList`s (written at startup only, read per request; `MenuItemDefConcurrencyTest`). | |
+| `support.loggedError` at `ImageService:309` "Error while writing image : Bogus input colorspace" (2×, same second) | Upload of an image with alpha channel: JPEG is tried first, the JPEG writer refuses alpha, the PNG fallback then works. The expected failure was logged as ERROR (image + preview = 2×). | Images with alpha channel aren't tried as JPEG at all; writer and stream are closed in `finally` (`ImageServiceTest`). | An `ImageService` write error now is a real one. |
+
+### Already fixed, resolve in the dashboard
+
+| Dashboard source | Assessment |
+|---|---|
+| `AbstractScriptExecuteRest:276`, `KLogger.DefaultImpls:764` (`state` is null), `GroovyExecutor.1:115` (24 groups), `DBQueryBuilderByCriteria:125` 'KundeDO.kost', `AbstractRestUserFilter:90` (jar replaced at the deploy) | See 2026-10-25; not seen after the deploys. |
+| `AccessCheckerImpl:88` "Task with … not found." | Not seen after the deploy of `e33ee1f450`; cause still only assumed, keep watching. |
+
+### Not a code problem
+
+| Dashboard source | Assessment |
+|---|---|
+| `lanesAndPlanes.push.refused` "no invoice profile ids in the configuration parameter 'lanesAndPlanes'" (1×) | The push is enabled, but the invoice profile ids aren't maintained in the configuration parameter yet (Administration → Configuration, finance). Refused as intended. |
+| `gateway.push.unreachable` + `integration.sync.runFailed`, `rest.noCredentials` | Unchanged, see 2026-10-19. |
+
 ## 2026-10-25 (export 20:09, 36 problems OPEN, last 7 days, running version 9.0.14)
 
 9.0.14 went live ~2026-10-23. Most groups are fixes that already held or are not deployed yet.

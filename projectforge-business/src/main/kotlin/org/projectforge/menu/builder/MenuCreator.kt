@@ -58,6 +58,7 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.util.concurrent.CopyOnWriteArrayList
 
 private val log = KotlinLogging.logger {}
 
@@ -68,7 +69,8 @@ private val log = KotlinLogging.logger {}
 @Component
 open class MenuCreator {
     internal class MenuItemDefHolder {
-        internal val menuItems: MutableList<MenuItemDef> = mutableListOf()
+        /** Copy on write, see [MenuItemDef.children]. */
+        internal val menuItems: MutableList<MenuItemDef> = CopyOnWriteArrayList()
         fun add(menuItem: MenuItemDef): MenuItemDef {
             if (menuItems.any { it.id == menuItem.id }) {
                 log.error { "Menu item registered twice (ignoring): $this" }
@@ -139,7 +141,7 @@ open class MenuCreator {
      * Plugins may register entries for the user's personal menu at the top right.
      */
     // open needed by Wicket SpringBean.
-    open var personalMenuPluginEntries = mutableListOf<MenuItemDef>()
+    open var personalMenuPluginEntries: MutableList<MenuItemDef> = CopyOnWriteArrayList()
         internal set
 
     companion object {
