@@ -103,7 +103,9 @@ export const MessageItem = memo(function MessageItem({
         // Stays visible while its emoji picker or menu is open (outside, in a portal): they are anchored to it.
         <div
           className={cn(
-            "absolute -top-3 hidden group-focus-within:flex group-hover:flex has-data-[state=open]:flex pointer-coarse:flex",
+            "absolute hidden group-focus-within:flex group-hover:flex has-data-[state=open]:flex pointer-coarse:flex",
+            // The first of a group has a header row: stay inside the row, not over the divider above it.
+            continued ? "-top-3" : "top-0",
             message.own ? "left-3" : "right-3"
           )}
         >

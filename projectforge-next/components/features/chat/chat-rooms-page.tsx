@@ -22,12 +22,14 @@ import {
 } from "@/lib/rs/chat";
 import { CHAT_DIRECT_QUERY_KEY, fetchChatDirect } from "@/lib/rs/chat-direct";
 import { CHAT_ROOMS_QUERY_KEY, fetchChatRooms } from "@/lib/rs/chat-rooms";
+import { ChatDirectCandidates } from "./chat-direct-candidates";
 import { ChatDirectDialog } from "./chat-direct-dialog";
 import { ChatDirectList } from "./chat-direct-list";
 import { ChatHostList } from "./chat-host-list";
 import { ChatRoomDialog } from "./chat-room-dialog";
 import { ChatRoomList } from "./chat-room-list";
 import { ChatMessageSearch } from "./chat-search-hit-list";
+import { useDirectCandidates } from "./use-direct-candidates";
 
 /**
  * The chat of the user (`/next/chat`): the direct messages (PF-CHAT-DM), the chat rooms (PF-CHAT-ROOM, ROOM-06) and
@@ -66,6 +68,7 @@ export function ChatRoomsPage() {
       ),
     [direct.data, search]
   );
+  const candidates = useDirectCandidates(search, direct.data);
   const roomsFound = useMemo(
     () =>
       query.data?.filter((room) =>
@@ -125,9 +128,13 @@ export function ChatRoomsPage() {
         {direct.data &&
           direct.data.length > 0 &&
           directFound?.length === 0 &&
+          candidates.length === 0 &&
           nothingFound}
         {directFound && directFound.length > 0 && (
           <ChatDirectList entries={directFound} highlight={search} />
+        )}
+        {candidates.length > 0 && (
+          <ChatDirectCandidates users={candidates} highlight={search} />
         )}
       </section>
       <section
