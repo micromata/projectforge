@@ -1202,3 +1202,12 @@ span.row-inactive {
     animation: none;
   }
 }
+
+/* A shortcode in the editor: the text stays (and is sent), but shows as the emoji. */
+.chat-emoji-code {
+  overflow: hidden;
+  color: transparent;
+  white-space: nowrap;
+  text-indent: -999em;
+  margin-inline: 0.05em;
+}
