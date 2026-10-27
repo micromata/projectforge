@@ -338,7 +338,7 @@ test.describe("chat", { tag: "@parallel" }, () => {
     }
   });
 
-  test("a confidential message, end-to-end encrypted, received once", async ({
+  test("a confidential conversation, end-to-end encrypted, ended by one side", async ({
     loggedInPage: page,
     browser,
   }) => {
@@ -349,11 +349,6 @@ test.describe("chat", { tag: "@parallel" }, () => {
     });
     try {
       await loginWithOwnSession(other, "normalo-user");
-      const otherName = (
-        (await (await other.request.get("/rs/userStatus")).json()) as {
-          userData: { fullname: string };
-        }
-      ).userData.fullname;
       const opened = await page.request.post("/rs/chatDirect/open", {
         headers: await writeHeaders(page.request),
         data: { userId: await userId(other) },
@@ -371,7 +366,7 @@ test.describe("chat", { tag: "@parallel" }, () => {
           content: "nextjs-portal { display: none !important; }",
         });
 
-      // The sender offers, the recipient accepts: both see the same fingerprint.
+      // The initiator offers, the recipient accepts: both see the same fingerprint.
       await page.getByRole("button", { name: t("chat.secret.action") }).click();
       const sendDialog = page.getByRole("dialog");
       const offered = page.waitForResponse((res) =>
@@ -400,36 +395,53 @@ test.describe("chat", { tag: "@parallel" }, () => {
         receiveDialog.getByTestId("chat-secret-fingerprint").locator("span")
       ).toHaveText(digits!);
 
-      // Encrypted and sent, shown once at the recipient.
+      // Both write: the text arrives decrypted, the answer too, and the first is marked as read.
       const secret = `pw-${uniqueSuffix()}`;
+      const answer = `re-${uniqueSuffix()}`;
       await sendDialog
         .getByRole("textbox", { name: t("chat.secret.text") })
         .fill(secret);
       await sendDialog
         .getByRole("button", { name: t("chat.secret.send") })
         .click();
-      await receiveDialog
-        .getByRole("button", { name: otherT("chat.secret.show") })
-        .click({ timeout: 10_000 });
-      await expect(receiveDialog.getByTestId("chat-secret-text")).toHaveValue(
-        secret
+      await expect(receiveDialog.getByTestId("chat-secret-text")).toContainText(
+        secret,
+        { timeout: 10_000 }
       );
-      await expect(
-        sendDialog.getByText(t("chat.secret.received", { arg0: otherName }))
-      ).toBeVisible({ timeout: 10_000 });
+      await receiveDialog
+        .getByRole("textbox", { name: otherT("chat.secret.text") })
+        .fill(answer);
+      await receiveDialog
+        .getByRole("button", { name: otherT("chat.secret.send") })
+        .click();
+      await expect(sendDialog.getByTestId("chat-secret-text")).toContainText(
+        answer,
+        { timeout: 10_000 }
+      );
+      await expect(sendDialog.getByText(t("chat.secret.read"))).toBeVisible({
+        timeout: 10_000,
+      });
 
-      // Nothing left: not taken twice (received, the sender knows), not in the messages of the conversation.
+      // Nothing left: not taken twice, not in the messages of the conversation.
       const again = await other.request.post(
         `/rs/chatSecret/${sessionId}/take`,
         { headers: await writeHeaders(other.request), data: {} }
       );
-      expect(again.status()).toBe(400);
+      expect(again.ok()).toBeTruthy();
+      expect(await again.json()).toEqual([]);
       const messages = await page.request.get(
         `/rs/chat/conversation/${conversationId}/messages`
       );
       expect(await messages.text()).not.toContain(secret);
-      await other.keyboard.press("Escape");
+
+      // One side ends it: the other one learns, and nothing of it is left on the page that ended it.
+      await receiveDialog
+        .getByRole("button", { name: otherT("chat.secret.end") })
+        .click();
       await expect(other.getByText(secret)).toHaveCount(0);
+      await expect(sendDialog.getByText(t("chat.secret.ended"))).toBeVisible({
+        timeout: 10_000,
+      });
     } finally {
       await other.close();
     }

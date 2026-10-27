@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Chat: a confidential message in a direct message is now a confidential conversation. Both sides write back and forth, end-to-end encrypted and never stored by the server, until one side ends it. The fingerprint now covers both keys, so a forged message shows as a difference.",
+  "de": "Chat: Aus der vertraulichen Nachricht in einer Direktnachricht wird ein vertrauliches Gespräch. Beide Seiten schreiben sich hin und her, Ende-zu-Ende-verschlüsselt und nie auf dem Server gespeichert, bis eine Seite es beendet. Der Fingerabdruck deckt jetzt beide Schlüssel ab, eine gefälschte Nachricht fällt so als Abweichung auf."
+}

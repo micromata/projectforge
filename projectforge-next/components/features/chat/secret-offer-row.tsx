@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import type { ChatSecretSession } from "@/lib/rs/chat-secret";
 
 /**
- * A confidential message offered to the user: accept or decline. One already accepted that isn't open in
- * this window is being received in another one, or its key is gone (reload): discarding it asks first, as
- * it would also end the other window's session.
+ * A confidential conversation offered to the user: accept or decline. One already accepted that isn't
+ * open in this window runs in another one, or its key is gone (reload): discarding it asks first, as it
+ * would also end the other window's session.
  */
 export function SecretOfferRow({
   session,
@@ -26,7 +26,7 @@ export function SecretOfferRow({
 }) {
   const t = useTranslations();
   const [confirm, setConfirm] = useState(false);
-  const sender = session.sender.displayName;
+  const sender = session.initiator.displayName;
   const offered = session.state === "OFFERED";
   return (
     <div

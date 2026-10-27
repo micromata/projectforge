@@ -8,9 +8,9 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { ChatConversation } from "@/lib/rs/chat-types";
-import { SecretSendSteps } from "./secret-send-dialog";
+import { SecretStartSteps } from "./secret-start-steps";
 
-/** Opens the dialog sending a confidential message, in direct chats only. */
+/** Opens the dialog starting a confidential conversation, in direct chats only. */
 export function SecretSendButton({
   conversation,
 }: {
@@ -35,7 +35,7 @@ export function SecretSendButton({
       </HintTooltip>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
-          <SecretSendSteps
+          <SecretStartSteps
             conversationId={conversation.id}
             partner={conversation.directPartner.displayName}
             onClose={() => setOpen(false)}

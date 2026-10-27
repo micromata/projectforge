@@ -2,9 +2,14 @@
 
 import { useTranslations } from "next-intl";
 import { Spinner } from "@/components/shared/spinner";
+import {
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useSecretFingerprint } from "./use-chat-secret";
 
-/** What a confidential message protects against and what not, shown to both sides. */
+/** What a confidential conversation protects against and what not, shown to both sides. */
 export function SecretInfo() {
   const t = useTranslations();
   return (
@@ -15,10 +20,16 @@ export function SecretInfo() {
   );
 }
 
-/** The fingerprint of the recipient's key: the same on both sides, unless a key was swapped on the way. */
-export function SecretFingerprint({ publicKey }: { publicKey: string | null }) {
+/** The fingerprint of both keys: the same on both sides, unless a key was swapped on the way. */
+export function SecretFingerprint({
+  initiatorKey,
+  recipientKey,
+}: {
+  initiatorKey: string | null;
+  recipientKey: string | null;
+}) {
   const t = useTranslations();
-  const fingerprint = useSecretFingerprint(publicKey);
+  const fingerprint = useSecretFingerprint(initiatorKey, recipientKey);
   if (!fingerprint) return null;
   return (
     <p className="text-sm" data-testid="chat-secret-fingerprint">
@@ -35,5 +46,19 @@ export function SecretWaiting({ text }: { text: string }) {
       <Spinner className="h-4 w-4 border-2" />
       {text}
     </p>
+  );
+}
+
+/** Title and the notes about what a confidential conversation protects against. */
+export function SecretHeader({ title }: { title: string }) {
+  return (
+    <DialogHeader>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogDescription asChild>
+        <div>
+          <SecretInfo />
+        </div>
+      </DialogDescription>
+    </DialogHeader>
   );
 }

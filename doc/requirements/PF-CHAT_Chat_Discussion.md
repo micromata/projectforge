@@ -24,7 +24,7 @@ do not follow the access rules of the object.
 - access taken entirely from the object the conversation belongs to;
 - chat rooms with participants (users and/or groups) for discussions that belong to no other object;
 - mentions with `@` and suggestions, notifying the mentioned users;
-- confidential messages (e.g. a password) in direct messages, end-to-end encrypted and never stored.
+- confidential conversations (e.g. to send a password) in direct messages, end-to-end encrypted and never stored.
 
 The chat is a module of its own: it knows nothing about vulnerabilities or invoices. The embedding module (the
 *host*) tells it who may read and write. The first host is the chat room (PF-CHAT-ROOM), a small built-in host
@@ -82,7 +82,7 @@ whose objects are rooms with participants; the CVE-Radar follows.
 | Attachment | A file of a message (any type), stored in the data transfer; images are shown as thumbnails. |
 | Direct message | A conversation of two users (built-in host *direct*), see PF-CHAT-DM. |
 | Read state | Per user and conversation the id of the newest message read (one mark for the conversation and its threads); everything of others after it is unread. |
-| Confidential message | A text of a direct message encrypted in the browser of the sender for the browser of the recipient, relayed live by the server and shown once, see PF-CHAT-CONF. |
+| Confidential conversation | A live session of the two browsers of a direct message: the texts are encrypted in one browser for the other, relayed by the server in memory and deleted when taken, see PF-CHAT-CONF. |
 
 ## 5. Requirements
 
@@ -223,20 +223,21 @@ host object is the area.
 | DT-06 | The chat page must list the chats of the areas with at least one message the user may read, newest first, with unread counts, narrowed by its search box. | M | as DM-05 |
 | DT-07 | The buttons "Chat" and "Direct message" should show the number of unread messages of the conversation (NOT-01). | S | |
 
-### 5.11 PF-CHAT-CONF – Confidential messages
+### 5.11 PF-CHAT-CONF – Confidential conversations
 
 Modelled on an OTR session: for a password or a key that must not stay in the chat, the mail or the database.
 
 | ID | Requirement | Prio | Remark |
 |---|---|---|---|
-| CONF-01 | In a direct message, the sender must be able to send a text confidentially: the browser of the recipient makes a key pair (WebCrypto, ECDH P-256, private key not extractable, in memory only), the sender's browser encrypts for it (ECDH → HKDF-SHA-256 → AES-GCM, the session id as additional data). | M | decision 13 |
+| CONF-01 | In a direct message, a user must be able to start a confidential conversation: each browser makes a key pair per session (WebCrypto, ECDH P-256, private key not extractable, in memory only); the session key is derived from both (ECDH → HKDF-SHA-256 → AES-GCM, the session id as info), every message is encrypted with a fresh IV and the session id, the sender's role and a counter as additional data. | M | decision 13 |
 | CONF-02 | The server relays only the public keys and the ciphertext, in memory: nothing goes into the database, the log, the chat history or a notification. | M | single node, as the SSE |
-| CONF-03 | The flow is offer (sender) → accept with the public key (recipient) → deliver the ciphertext (sender) → take (recipient); each step only by its side and in its state. The recipient is the partner of the direct chat from the database. | M | SEC-02 |
-| CONF-04 | The recipient can take the ciphertext once only, it is deleted with it; the sender learns "opened" or "ended". Either side can cancel; a session expires after 10 minutes. | M | |
-| CONF-05 | Both sides must see a fingerprint of the recipient's key before the text is sent; the dialog says what this protects against (a server reading the text) and what not (a manipulated server forging a message, since the sender's key isn't authenticated; the screen of the recipient). | M | |
-| CONF-06 | The open chat of the other side is woken by a contentless event; a recipient without the chat open gets an in-app banner naming only the sender (no mail, it would come too late), resolved once no offer is open anymore. | M | NOT-05 |
-| CONF-07 | Limits: at most 5 open sessions per sender, 1,000 overall, 16 KB ciphertext. | M | |
-| CONF-08 | Confidential messages in rooms, to several recipients, with files, or kept for later reading are not planned. | W | |
+| CONF-03 | The flow is offer with the initiator's key → accept with the recipient's key → both send and take messages. Each step only by its side and in its state; the recipient is the partner of the direct chat from the database. | M | SEC-02 |
+| CONF-04 | A message is taken by the other side once and deleted with it; the sender sees that it was read. The counter of a side must rise (the server and the receiving browser drop a replayed or reordered message); at most 20 messages per direction wait untaken. | M | |
+| CONF-05 | Either side can end the conversation, the other one learns it. It ends by itself after 10 minutes without a message, after 2 hours at the latest, and when a side isn't seen for 2 minutes (page closed or reloaded: its key is gone). | M | |
+| CONF-06 | Both sides must see a fingerprint of both public keys; the dialog says what this protects against (a server reading or forging texts, if the sides compare it) and what not (the screen or clipboard of a side). | M | |
+| CONF-07 | The open chat of the other side is woken by a contentless event; a recipient without the chat open gets an in-app banner naming only the initiator (no mail, it would come too late), resolved once no offer is open anymore. | M | NOT-05 |
+| CONF-08 | Limits: at most 5 open sessions per initiator, 1,000 overall, 16 KB ciphertext per message. | M | |
+| CONF-09 | Confidential conversations in rooms, with several participants, with files, or kept for later reading are not planned. | W | |
 
 ### 5.12 Non-functional requirements
 
@@ -293,14 +294,14 @@ page, thread side panel, mention suggestions, file upload and image viewer.
 | 10 | Mentions | `@` with suggestions from the readers of the conversation; checked on the server; notified at once | MSG-07, NOT-03 |
 | 11 | Reactions storage | Stored with the message (emoji → user ids), not historised | MSG-10 |
 | 12 | Direct messages | Built-in host with the pair of users as host object; started only with visible users, then open to both | DM-01 – DM-06 |
-| 13 | Confidential messages | A live session of the two browsers (like OTR), end-to-end encrypted, relayed in memory and taken once; direct messages only | CONF-01 – CONF-08 |
+| 13 | Confidential conversations | A live session of the two browsers (like OTR), end-to-end encrypted, relayed in memory and deleted when taken, until one side ends it; direct messages only | CONF-01 – CONF-09 |
 | 14 | Read state | One mark per user and conversation (the newest message read), for the conversation and its threads; replies count as unread only in threads followed or with a mention; marking unread moves it back; the menu badges come from the notifications and aren't restored by marking unread | NOT-01, NOT-03, NOT-09 |
 | 15 | Data transfer areas | Every ordinary area is a chat room of the users with access, its files go into the area; the personal box of another user leads to the direct message with its owner | DT-01 – DT-07 |
 
 ## 9. Implementation status (review of R1, 2026-10-26)
 
 Implemented in R1: CTX-01 – CTX-05, CTX-07, MSG-01 – MSG-05, MSG-07, MSG-09, MSG-10, THR-01 – THR-05, ATT-01 – ATT-08,
-NOT-01 – NOT-07, NOT-09, NOT-10, SEC-01 – SEC-07, ROOM-01 – ROOM-07, ROOM-09, ROOM-10, DM-01 – DM-06, CONF-01 – CONF-07,
+NOT-01 – NOT-07, NOT-09, NOT-10, SEC-01 – SEC-07, ROOM-01 – ROOM-07, ROOM-09, ROOM-10, DM-01 – DM-06, CONF-01 – CONF-08,
 DT-01 – DT-07.
 
 Deviations and gaps:
@@ -328,7 +329,7 @@ None at the moment. The findings of the review of R1 are fixed:
 
 1. Release cut R1 (ProjectForge 9.0.16): chat core (CTX, MSG incl. mentions and reactions, THR, ATT, NOT-01 – NOT-07,
    NOT-09, SRCH-01, SEC) with the chat room as first host and a minimal room list (ROOM-01 – ROOM-07, ROOM-09,
-   ROOM-10), direct messages (DM), confidential messages (CONF).
+   ROOM-10), direct messages (DM), confidential conversations (CONF).
 2. R2: chat area (ROOM-08), search across conversations (SRCH-02), author filter in the search (SRCH-01), virtualised
    list (MSG-06, NFR-04), quoting (MSG-08), export (SEC-08), user guide.
 3. PF-CVR DISC on top of R1; the cleanup job (CTX-08) later.

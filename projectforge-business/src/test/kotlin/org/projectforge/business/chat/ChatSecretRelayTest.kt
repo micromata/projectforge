@@ -39,8 +39,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.util.Base64
 
 /**
- * Confidential messages of direct chats ([ChatSecretRelay]): only the two of the direct chat, each step only by its
- * side and in its state, the ciphertext taken once, nothing left after taking, cancelling or expiring.
+ * Confidential conversations of direct chats ([ChatSecretRelay]): only the two of the direct chat, each step only by its
+ * side and in its state, messages taken once, nothing left after taking, cancelling or expiring.
  */
 class ChatSecretRelayTest : AbstractTestBase() {
     @Autowired
@@ -73,9 +73,9 @@ class ChatSecretRelayTest : AbstractTestBase() {
 
     private val publicKey = base64(ByteArray(65).also { it[0] = 4 })
 
-    private val payload = ChatSecretRelay.Payload(publicKey, base64(ByteArray(12)), base64(ByteArray(40)))
+    private fun message(counter: Long) = ChatSecretRelay.Message(counter, base64(ByteArray(12)), base64(ByteArray(40)))
 
-    /** The direct chat of sender and recipient (in a group, so they see each other), opened by the sender. */
+    /** The direct chat of initiator and recipient (in a group, so they see each other), opened by the initiator. */
     private fun directChat(prefix: String): Long {
         logon(TEST_ADMIN_USER)
         initTestDB.addUser("$prefix-sender")
@@ -86,11 +86,14 @@ class ChatSecretRelayTest : AbstractTestBase() {
     }
 
     @Test
-    fun `the ciphertext goes from the sender to the recipient once, nobody else sees the session`() {
+    fun `both sides write back and forth, messages are taken once, nobody else sees the session`() {
         val conversationId = directChat("chatSecret1")
-        val session = relay.offer(conversationId)
+        suppressErrorLogs {
+            assertThrows(UserException::class.java) { relay.offer(conversationId, base64(ByteArray(64))) }
+        }
+        val session = relay.offer(conversationId, publicKey)
         assertEquals(getUserId("chatSecret1-recipient"), session.recipientId)
-        assertTrue(relay.pending(conversationId).isEmpty(), "the sender is no recipient")
+        assertTrue(relay.pending(conversationId).isEmpty(), "the initiator is no recipient")
 
         suppressErrorLogs {
             listOf(TEST_USER, TEST_ADMIN_USER).forEach { username ->
@@ -98,12 +101,13 @@ class ChatSecretRelayTest : AbstractTestBase() {
                 assertNull(relay.get(session.id))
                 assertThrows(AccessException::class.java) { relay.pending(conversationId) }
                 assertThrows(AccessException::class.java) { relay.accept(session.id, publicKey) }
+                assertThrows(AccessException::class.java) { relay.send(session.id, message(1)) }
                 assertThrows(AccessException::class.java) { relay.take(session.id) }
                 relay.cancel(session.id) // Does nothing.
             }
             logon("chatSecret1-sender")
             assertThrows(AccessException::class.java) { relay.accept(session.id, publicKey) }
-            assertThrows(UserException::class.java) { relay.deliver(session.id, payload) } // Not accepted yet.
+            assertThrows(UserException::class.java) { relay.send(session.id, message(1)) } // Not accepted yet.
         }
 
         val recipientId = getUserId("chatSecret1-recipient")
@@ -115,49 +119,123 @@ class ChatSecretRelayTest : AbstractTestBase() {
         assertEquals(listOf(session.id), relay.pending(conversationId).map { it.id })
         suppressErrorLogs {
             assertThrows(UserException::class.java) { relay.accept(session.id, base64(ByteArray(64))) }
-            assertThrows(AccessException::class.java) { relay.deliver(session.id, payload) }
         }
         relay.accept(session.id, publicKey)
-        assertEquals(ChatSecretRelay.State.ACCEPTED, relay.get(session.id)!!.state)
+        assertEquals(ChatSecretRelay.State.OPEN, relay.get(session.id)!!.state)
         assertTrue(notificationDao.findPendingByDedupPrefix(recipientId, prefix).isEmpty(), "resolved by accepting")
+        suppressErrorLogs {
+            assertThrows(UserException::class.java) { relay.accept(session.id, publicKey) } // Already open.
+        }
 
         logon("chatSecret1-sender")
         assertEquals(publicKey, relay.get(session.id)!!.recipientKey)
         suppressErrorLogs {
-            val tooLarge = ChatSecretRelay.Payload(publicKey, payload.iv, base64(ByteArray(ChatSecretRelay.MAX_CIPHERTEXT_BYTES + 1)))
-            assertThrows(UserException::class.java) { relay.deliver(session.id, tooLarge) }
-            assertThrows(UserException::class.java) { relay.deliver(session.id, ChatSecretRelay.Payload(publicKey, base64(ByteArray(8)), payload.ciphertext)) }
+            val tooLarge = ChatSecretRelay.Message(1, message(1).iv, base64(ByteArray(ChatSecretRelay.MAX_CIPHERTEXT_BYTES + 1)))
+            assertThrows(UserException::class.java) { relay.send(session.id, tooLarge) }
+            assertThrows(UserException::class.java) { relay.send(session.id, ChatSecretRelay.Message(1, base64(ByteArray(8)), message(1).ciphertext)) }
         }
-        relay.deliver(session.id, payload)
+        relay.send(session.id, message(1))
+        relay.send(session.id, message(2))
+        suppressErrorLogs {
+            assertThrows(UserException::class.java) { relay.send(session.id, message(2)) } // Counter must rise.
+            assertThrows(UserException::class.java) { relay.send(session.id, message(1)) }
+        }
+        assertEquals(0, relay.get(session.id)!!.waiting(getUserId("chatSecret1-sender")), "own messages aren't waiting")
 
         logon("chatSecret1-recipient")
-        assertEquals(payload.ciphertext, relay.take(session.id).ciphertext)
-        assertTrue(relay.pending(conversationId).isEmpty(), "taken: nothing to accept or take anymore")
-        suppressErrorLogs {
-            assertThrows(UserException::class.java) { relay.take(session.id) }
-        }
+        assertEquals(2, relay.get(session.id)!!.waiting(recipientId))
+        assertEquals(listOf(1L, 2L), relay.take(session.id).map { it.counter })
+        assertTrue(relay.take(session.id).isEmpty(), "taken once")
+        relay.send(session.id, message(1)) // The recipient counts its own messages.
+
         logon("chatSecret1-sender")
-        assertEquals(ChatSecretRelay.State.TAKEN, relay.get(session.id)!!.state, "the sender learns it was opened")
-        assertNull(relay.get(session.id)!!.payload)
+        val senderId = getUserId("chatSecret1-sender")
+        assertEquals(2L, relay.get(session.id)!!.read(senderId), "the initiator learns its messages were taken")
+        assertEquals(listOf(1L), relay.take(session.id).map { it.counter })
+        logon("chatSecret1-recipient")
+        assertEquals(1L, relay.get(session.id)!!.read(recipientId))
     }
 
     @Test
-    fun `only in direct chats, cancelled by either side, gone after expiry`() {
+    fun `a full queue is refused until the other side takes`() {
+        val conversationId = directChat("chatSecret4")
+        val session = relay.offer(conversationId, publicKey)
+        logon("chatSecret4-recipient")
+        relay.accept(session.id, publicKey)
+        logon("chatSecret4-sender")
+        (1L..ChatSecretRelay.MAX_QUEUED).forEach { relay.send(session.id, message(it)) }
+        suppressErrorLogs {
+            assertThrows(UserException::class.java) { relay.send(session.id, message(ChatSecretRelay.MAX_QUEUED + 1L)) }
+        }
+        logon("chatSecret4-recipient")
+        assertEquals(ChatSecretRelay.MAX_QUEUED, relay.take(session.id).size)
+        logon("chatSecret4-sender")
+        relay.send(session.id, message(ChatSecretRelay.MAX_QUEUED + 1L))
+    }
+
+    @Test
+    fun `only in direct chats, ended by either side, gone after idle time, maximum or absence`() {
         val conversationId = directChat("chatSecret2")
-        val cancelled = relay.offer(conversationId)
+        val cancelled = relay.offer(conversationId, publicKey)
         logon("chatSecret2-recipient")
         relay.cancel(cancelled.id)
         assertTrue(relay.pending(conversationId).isEmpty())
-
         logon("chatSecret2-sender")
-        val expiring = relay.offer(conversationId)
-        assertNotNull(relay.get(expiring.id))
+        assertNull(relay.get(cancelled.id), "gone for the other side too")
+
         val now = System.currentTimeMillis()
-        relay.clock = { now + ChatSecretRelay.TTL_MILLIS + 1 }
-        assertNull(relay.get(expiring.id))
+        // Idle: nothing sent for ten minutes, although both are there.
+        val idle = relay.offer(conversationId, publicKey)
+        logon("chatSecret2-recipient")
+        relay.accept(idle.id, publicKey)
+        for (minutes in 1..11) {
+            relay.clock = { now + minutes * 60_000L }
+            logon("chatSecret2-recipient")
+            relay.get(idle.id)
+            logon("chatSecret2-sender")
+            relay.get(idle.id)
+        }
+        assertNull(relay.get(idle.id), "no message for ${ChatSecretRelay.IDLE_MILLIS / 60_000} minutes")
         relay.purge()
+        assertEquals(0, relay.size)
+
+        // A message keeps it going; the maximum ends it nevertheless.
+        relay.clock = { now }
+        val active = relay.offer(conversationId, publicKey)
+        logon("chatSecret2-recipient")
+        relay.accept(active.id, publicKey)
+        var counter = 0L
+        var minutes = 0L
+        // Both sides keep asking (the browsers poll), a message every 5 minutes keeps the session from going idle.
+        while (minutes < ChatSecretRelay.MAX_MILLIS / 60_000L - 1) {
+            minutes += 1
+            relay.clock = { now + minutes * 60_000L }
+            logon("chatSecret2-sender")
+            relay.get(active.id)
+            if (minutes % 5 == 0L) {
+                relay.send(active.id, message(++counter))
+            }
+            logon("chatSecret2-recipient")
+            relay.take(active.id)
+        }
+        assertNotNull(relay.get(active.id))
+        relay.clock = { now + ChatSecretRelay.MAX_MILLIS + 1 }
+        assertNull(relay.get(active.id))
+        relay.purge()
+        assertEquals(0, relay.size)
+
+        // A side not asking anymore (page closed) ends it for both.
+        relay.clock = { now }
+        logon("chatSecret2-sender")
+        val absent = relay.offer(conversationId, publicKey)
+        logon("chatSecret2-recipient")
+        relay.accept(absent.id, publicKey)
+        relay.clock = { now + ChatSecretRelay.PRESENCE_MILLIS - 1 }
+        logon("chatSecret2-sender")
+        assertNotNull(relay.get(absent.id))
+        relay.clock = { now + ChatSecretRelay.PRESENCE_MILLIS + 1 }
+        assertNull(relay.get(absent.id), "the recipient wasn't seen for ${ChatSecretRelay.PRESENCE_MILLIS} ms")
         relay.clock = System::currentTimeMillis
-        assertNull(relay.get(expiring.id), "deleted by the purge")
 
         // A room isn't a direct chat.
         val owner = logon(TEST_USER)
@@ -168,14 +246,14 @@ class ChatSecretRelayTest : AbstractTestBase() {
         })
         val roomConversation = chatService.open(ChatRoomChatHost.HOST_TYPE, roomId, ChatRoomChatHost.CHANNEL)!!.conversationId
         suppressErrorLogs {
-            assertThrows(AccessException::class.java) { relay.offer(roomConversation) }
+            assertThrows(AccessException::class.java) { relay.offer(roomConversation, publicKey) }
         }
     }
 
     @Test
     fun `seen in the open chat, the notification of an offer is resolved`() {
         val conversationId = directChat("chatSecret3")
-        val session = relay.offer(conversationId)
+        val session = relay.offer(conversationId, publicKey)
         val recipientId = getUserId("chatSecret3-recipient")
         val prefix = ChatNotifier.secretPrefix(conversationId, recipientId)
         assertEquals(1, notificationDao.findPendingByDedupPrefix(recipientId, prefix).size)
