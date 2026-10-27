@@ -20,6 +20,8 @@ export interface PageTitleRowProps {
   /** Fills the flexible space between the title and the actions — a header-level control such as the
       calendar's chooser field. Left empty it is just the spacer that pushes the actions right. */
   center?: ReactNode;
+  /** Beside the title, e.g. a pill marking what the page is about. */
+  titleAddon?: ReactNode;
   /** The page's own actions, right of the legacy link. */
   children?: ReactNode;
 }
@@ -38,6 +40,7 @@ export function PageTitleRow({
   experimental,
   experimentalLabel,
   center,
+  titleAddon,
   children,
 }: PageTitleRowProps) {
   useDocumentTitle(title);
@@ -50,7 +53,14 @@ export function PageTitleRow({
             {category}
           </p>
         )}
-        <h1 className="text-lg font-bold tracking-tight">{title}</h1>
+        {titleAddon ? (
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-bold tracking-tight">{title}</h1>
+            {titleAddon}
+          </div>
+        ) : (
+          <h1 className="text-lg font-bold tracking-tight">{title}</h1>
+        )}
       </div>
       {experimental && <ExperimentalBadge label={experimentalLabel} />}
       {/* The flexible middle: a header control if the page gives one, otherwise a plain spacer that
