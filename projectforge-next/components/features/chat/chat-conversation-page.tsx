@@ -17,11 +17,13 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   CHAT_HOST_CHAT_ROOM,
+  CHAT_HOST_DATA_TRANSFER,
   chatConversationQueryKey,
   fetchChatConversation,
 } from "@/lib/rs/chat";
 import { cn } from "@/lib/utils";
 import { ChatMembersButton } from "./chat-members-button";
+import { ChatDataTransferPill } from "./chat-host-pill";
 import { ChatPanel } from "./chat-panel";
 import { ChatRoomDialog } from "./chat-room-dialog";
 
@@ -60,6 +62,11 @@ export function ChatConversationPage({
       <PageTitleRow
         category={t("chat.title")}
         title={conversation?.title ?? t("chat.title")}
+        titleAddon={
+          conversation?.hostType === CHAT_HOST_DATA_TRANSFER && (
+            <ChatDataTransferPill link={conversation.link ?? null} />
+          )
+        }
       >
         <Button asChild variant="outline">
           <Link href={conversation?.link ?? "/chat"}>

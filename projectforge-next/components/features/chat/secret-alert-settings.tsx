@@ -1,11 +1,15 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { isAttentionSoundOn, setAttentionSoundOn } from "@/lib/attention-sound";
+import {
+  isAttentionSoundOn,
+  playAttentionSound,
+  setAttentionSoundOn,
+} from "@/lib/attention-sound";
 import { cn } from "@/lib/utils";
 
 /**
@@ -13,13 +17,36 @@ import { cn } from "@/lib/utils";
  * off, and the permission for notifications of the system, asked only on a click (browsers refuse to ask
  * without one, and an unasked prompt is often denied for good).
  */
-export function SecretAlertSettings({ className }: { className?: string }) {
+export function SecretAlertSettings({
+  className,
+  showTest,
+}: {
+  className?: string;
+  /** A button to hear the sound, and a hint where the browser refuses notifications. */
+  showTest?: boolean;
+}) {
   const t = useTranslations();
   const soundId = useId();
   const [soundOn, setSoundOn] = useState(isAttentionSoundOn);
   const [permission, setPermission] = useState(() =>
     typeof Notification === "undefined" ? null : Notification.permission
   );
+  // Changed in the settings of the browser while this is open: follow it where the Permissions API tells.
+  useEffect(() => {
+    let status: PermissionStatus | undefined;
+    const update = () =>
+      setPermission(
+        typeof Notification === "undefined" ? null : Notification.permission
+      );
+    navigator.permissions
+      ?.query({ name: "notifications" })
+      .then((it) => {
+        status = it;
+        it.addEventListener("change", update);
+      })
+      .catch(() => {});
+    return () => status?.removeEventListener("change", update);
+  }, []);
   return (
     <div
       className={cn(
@@ -41,6 +68,35 @@ export function SecretAlertSettings({ className }: { className?: string }) {
           {t("chat.secret.alert.sound")}
         </Label>
       </div>
+      {showTest && (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => void playAttentionSound({ force: true })}
+        >
+          {t("chat.secret.alert.testSound")}
+        </Button>
+      )}
+      {showTest && (
+        <p>
+          {t("chat.secret.alert.notificationsStatus")}{" "}
+          <span className="font-medium">
+            {permission === null
+              ? t("chat.secret.alert.statusUnsupported")
+              : permission === "granted"
+                ? t("chat.secret.alert.statusGranted")
+                : permission === "denied"
+                  ? t("chat.secret.alert.statusDenied")
+                  : t("chat.secret.alert.statusDefault")}
+          </span>
+        </p>
+      )}
+      {showTest && permission === "denied" && (
+        <p className="text-muted-foreground">
+          {t("chat.secret.alert.notificationsDenied")}
+        </p>
+      )}
       {permission === "default" && (
         <Button
           type="button"

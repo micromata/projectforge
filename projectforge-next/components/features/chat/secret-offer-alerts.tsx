@@ -9,6 +9,7 @@ import {
 } from "@/lib/attention-sound";
 import { setFaviconBadge } from "@/lib/favicon-badge";
 import { claimOfferSignal } from "@/lib/offer-signals";
+import { addRingLogEntry } from "@/lib/ring-log";
 import { useChatSecretOffers } from "@/hooks/use-chat-secret-offers";
 import type { ChatSecretSession } from "@/lib/rs/chat-secret";
 import { useBlinkingTitle } from "./use-blinking-title";
@@ -49,7 +50,12 @@ export function SecretOfferAlerts() {
       );
       if (notification) notifications.current.set(offer.id, notification);
     });
-    if (fresh.length > 0) playAttentionSound();
+    if (fresh.length > 0) {
+      const names = fresh.map((it) => it.initiator.displayName).join(", ");
+      void playAttentionSound().then((outcome) =>
+        addRingLogEntry({ outcome, reason: "secretOffer", arg: names })
+      );
+    }
     // Answered, withdrawn or expired: its system notification goes too.
     notifications.current.forEach((notification, id) => {
       if (ids.has(id)) return;
