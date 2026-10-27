@@ -492,6 +492,7 @@ bin/pfDev.sh run 1          # Spring on :8081; the first start fills the databas
 bin/pfDev.sh dev 1          # next dev on :3001, proxying to :8081
 bin/pfDev.sh e2e 1 login    # e2e tests against :8081 (--dev: against :3001)
 bin/pfDev.sh reset 1        # deletes ~/ProjectForge-1 (asks first), then `setup 1` again
+bin/pfDev.sh renew 1        # stop, delete, set up again and start slot 1 (asks first; -y skips)
 ```
 
 Notes:
