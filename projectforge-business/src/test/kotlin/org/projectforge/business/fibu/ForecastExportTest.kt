@@ -326,6 +326,36 @@ class ForecastExportTest : AbstractTestBase() {
     }
 
     /**
+     * A completed order with a commissioned position, nothing invoiced yet, is listed in the order book as "to be
+     * invoiced" and must get a real forecast row, although its performance period ended months ago.
+     */
+    @Test
+    fun completedOrderNotInvoicedGetsRowTest() {
+        logon(TEST_FINANCE_USER)
+        val baseDate = PFDay.now().plusMonths(-4)
+        val order = createOrder(baseDate, AuftragsStatus.ABGESCHLOSSEN, baseDate, baseDate.plusMonths(1))
+        addPosition(order, 1, AuftragsStatus.BEAUFTRAGT, 5000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
+        val orderId = auftragDao.insert(order)
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        val orderNummer = auftragDao.find(orderId)!!.nummer!!
+
+        val filter = AuftragFilter()
+        filter.periodOfPerformanceStartDate = baseDate.localDate
+        val ba = forecastExport.xlsExport(filter, distributeUnusedBudget = true)
+        XSSFWorkbook(ByteArrayInputStream(ba)).use { workbook ->
+            val sheet = workbook.getSheet(ForecastExportContext.Sheet.FORECAST.title)!!
+            val headRow = findHeadRow(sheet, ForecastExportContext.ForecastCol.ORDER_NR.header)
+            val orderNrCol = findColumn(headRow, ForecastExportContext.ForecastCol.ORDER_NR.header)
+            val found = (headRow.rowNum + 1..sheet.lastRowNum).any { rowNum ->
+                val cell = sheet.getRow(rowNum)?.getCell(orderNrCol)
+                cell?.cellType == CellType.NUMERIC && cell.numericCellValue.toInt() == orderNummer
+            }
+            Assertions.assertTrue(found, "Completed order $orderNummer, not invoiced, must be part of the forecast.")
+        }
+    }
+
+    /**
      * A completed (ABGESCHLOSSEN) but invoiced order position must not drop out of the IST sums. auftragsStatusToShow
      * allows ABGESCHLOSSEN on order level while auftragsPositionsStatusToShow does not, so before the fix such a
      * position was skipped and its project only appeared as an anonymous pseudo order row (ORDER_NR 0). It must now
@@ -349,6 +379,7 @@ class ForecastExportTest : AbstractTestBase() {
         val order = createOrder(baseDate, AuftragsStatus.ABGESCHLOSSEN, baseDate, baseDate.plusMonths(4))
         order.projekt = projektDao.find(projektId, checkAccess = false, attached = true)
         addPosition(order, 1, AuftragsStatus.ABGESCHLOSSEN, 5000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
+            .vollstaendigFakturiert = true // Fully invoiced: completed positions still to be invoiced get a real row.
         val orderId = auftragDao.insert(order)
         auftragsCache.setExpired()
         auftragsCache.forceReload()

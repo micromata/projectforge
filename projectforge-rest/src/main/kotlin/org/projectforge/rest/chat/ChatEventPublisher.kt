@@ -71,10 +71,13 @@ class ChatEventPublisher : ChatEventListener {
         /** Is a confidential message of the user to be announced ([SECRET_EVENT_NAME])? */
         val secret = AtomicBoolean(false)
 
+        /** Did the other one of a direct message read ([READ_EVENT_NAME])? */
+        val read = AtomicBoolean(false)
+
         /** Is a task of the pool sending to this subscription (scheduled or running)? */
         val sending = AtomicBoolean(false)
 
-        fun idle() = pending.get() == NOTHING && !secret.get()
+        fun idle() = pending.get() == NOTHING && !secret.get() && !read.get()
     }
 
     private val subscriptions = ConcurrentHashMap<Long, CopyOnWriteArraySet<Subscription>>()
@@ -112,6 +115,13 @@ class ChatEventPublisher : ChatEventListener {
         subscriptions[conversationId]?.filter { it.userId == userId }?.forEach { offerSecret(it) }
     }
 
+    override fun onRead(conversationId: Long, readerId: Long) {
+        subscriptions[conversationId]?.filter { it.userId != readerId }?.forEach {
+            it.read.set(true)
+            startSending(it)
+        }
+    }
+
     override fun isWatching(conversationId: Long, userId: Long): Boolean {
         return subscriptions[conversationId]?.any { it.userId == userId } == true
     }
@@ -146,7 +156,8 @@ class ChatEventPublisher : ChatEventListener {
         while (true) {
             val what = subscription.pending.getAndSet(NOTHING)
             val secret = subscription.secret.getAndSet(false)
-            if (what == NOTHING && !secret) {
+            val read = subscription.read.getAndSet(false)
+            if (what == NOTHING && !secret && !read) {
                 subscription.sending.set(false)
                 // Offered meanwhile, but the offer saw this task still sending: go on (if no other task started).
                 if (subscription.idle() || !subscription.sending.compareAndSet(false, true)) {
@@ -154,9 +165,12 @@ class ChatEventPublisher : ChatEventListener {
                 }
                 continue
             }
-            if ((what != NOTHING && !deliver(subscription, what)) || (secret && !deliver(subscription, SECRET))) {
+            if ((what != NOTHING && !deliver(subscription, what)) || (secret && !deliver(subscription, SECRET)) ||
+                (read && !deliver(subscription, READ))
+            ) {
                 subscription.pending.set(NOTHING)
                 subscription.secret.set(false)
+                subscription.read.set(false)
                 subscription.sending.set(false)
                 return
             }
@@ -176,7 +190,9 @@ class ChatEventPublisher : ChatEventListener {
                 remove(subscription)
                 return false
             }
-            if (what == SECRET) {
+            if (what == READ) {
+                subscription.emitter.send(SseEmitter.event().name(READ_EVENT_NAME).data("{}"))
+            } else if (what == SECRET) {
                 // No id: the id is the change sequence of a reconnect.
                 subscription.emitter.send(SseEmitter.event().name(SECRET_EVENT_NAME).data("{}"))
             } else {
@@ -204,6 +220,9 @@ class ChatEventPublisher : ChatEventListener {
 
         /** Something changed for a confidential message of the user (no content, the page asks). */
         const val SECRET_EVENT_NAME = "secret"
+
+        /** The other one of a direct message read further (no content, the page asks). */
+        const val READ_EVENT_NAME = "read"
         const val HEARTBEAT_MILLIS = 25_000L
         const val TIMEOUT_MILLIS = 60 * 60_000L
 
@@ -213,5 +232,6 @@ class ChatEventPublisher : ChatEventListener {
         private const val NOTHING = Long.MIN_VALUE
         private const val PING = -1L
         private const val SECRET = -2L
+        private const val READ = -3L
     }
 }

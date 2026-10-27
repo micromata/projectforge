@@ -769,7 +769,10 @@ open class ForecastExport { // open needed by Wicket.
                     // even when their project was invoiced: that would write one (near-empty, zero-remaining) row per
                     // completed position and bloat the sheet. Their project's IST visibility is instead ensured by the
                     // single enriched pseudo row per invoiced project (see missedProjectIds below).
-                    if (pos.status in ForecastUtils.auftragsPositionsStatusToShow && isRelevant(ctx, orderInfo, pos)) {
+                    // Exception: completed positions with an open amount, not too long ago. They are still to be invoiced.
+                    if (ForecastUtils.isCompletedAndOpen(orderInfo, pos, ctx.startDate) ||
+                        (pos.status in ForecastUtils.auftragsPositionsStatusToShow && isRelevant(ctx, orderInfo, pos))
+                    ) {
                         addOrderPosition(
                             ctx,
                             sheet,

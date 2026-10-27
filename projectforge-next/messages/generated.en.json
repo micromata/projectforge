@@ -1046,13 +1046,10 @@
       "react": "Add reaction",
       "reply": "Reply in thread",
       "save": "Save",
+      "seen": "Read",
+      "seenBy": "Read by {arg0}",
       "send": "Send",
       "unhide": "Show again"
-    },
-    "notification": {
-      "secret": {
-        "title": "{arg0} wants to start a confidential conversation"
-      }
     },
     "room": {
       "delete": {
@@ -1094,11 +1091,6 @@
     "secret": {
       "accept": "Accept",
       "action": "Confidential conversation",
-      "alert": {
-        "allowNotifications": "Allow browser notifications",
-        "sound": "Sound when a confidential conversation is offered",
-        "title": "{arg0}: confidential conversation"
-      },
       "close": "Close",
       "decline": "Decline",
       "discard": "Discard",

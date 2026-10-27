@@ -9,6 +9,7 @@ import { useChatContext } from "./chat-context";
 import { MessageActions } from "./message-actions";
 import { MessageAttachments } from "./message-attachments";
 import { MessageAuthor } from "./message-author";
+import { ReadReceipt } from "./read-receipt";
 import { MessageBubble } from "./message-bubble";
 import { MessageHeader } from "./message-header";
 import { ReactionBar } from "./reaction-bar";
@@ -25,11 +26,14 @@ export const MessageItem = memo(function MessageItem({
   message,
   inThread = false,
   continued = false,
+  readByPartner = false,
 }: {
   message: ChatMessage;
   inThread?: boolean;
   /** Follows a message of the same author shortly before (see layoutMessages): no avatar, no header. */
   continued?: boolean;
+  /** The newest own message the other one of a direct message has read: marked as read. */
+  readByPartner?: boolean;
 }) {
   const formatContext = useFormatContext();
   const { conversation, openThread, highlightId, observeSeen } =
@@ -72,17 +76,45 @@ export const MessageItem = memo(function MessageItem({
       )}
       <div
         className={cn(
-          "flex min-w-0 flex-1 flex-col gap-0.5",
+          "@container/message flex min-w-0 flex-1 flex-col gap-0.5",
           message.own ? "items-end" : "items-start"
         )}
       >
         {!continued && <MessageHeader message={message} />}
-        <MessageBubble
-          message={message}
-          highlighted={highlightId === message.id}
-          editing={editing}
-          onEditDone={() => setEditing(false)}
-        />
+        {/* The actions sit beside the bubble (left of an own one), top aligned; the bubble leaves them room. In a
+            narrow column (phone, thread panel) there is none, so they overlap the bubble's upper corner instead. */}
+        <div
+          className={cn(
+            "relative min-w-0",
+            editing
+              ? "w-full"
+              : "max-w-[85%] @min-[32rem]/message:max-w-[min(85%,calc(100%-7.5rem))]"
+          )}
+        >
+          <MessageBubble
+            message={message}
+            highlighted={highlightId === message.id}
+            editing={editing}
+            onEditDone={() => setEditing(false)}
+          />
+          {!editing && (
+            // Stays visible while its emoji picker or menu is open (outside, in a portal): they are anchored to it.
+            <div
+              className={cn(
+                "absolute -top-3 z-10 hidden group-focus-within:flex group-hover:flex has-data-[state=open]:flex pointer-coarse:flex @min-[32rem]/message:top-0",
+                message.own
+                  ? "left-2 @min-[32rem]/message:right-full @min-[32rem]/message:left-auto @min-[32rem]/message:mr-1"
+                  : "right-2 @min-[32rem]/message:left-full @min-[32rem]/message:right-auto @min-[32rem]/message:ml-1"
+              )}
+            >
+              <MessageActions
+                message={message}
+                inThread={inThread}
+                onEdit={() => setEditing(true)}
+              />
+            </div>
+          )}
+        </div>
         <MessageAttachments
           conversationId={conversation.id}
           files={message.files}
@@ -92,6 +124,7 @@ export const MessageItem = memo(function MessageItem({
           disabled={!conversation.canWrite}
           onToggle={(emoji) => react.mutate({ id: message.id, emoji })}
         />
+        {readByPartner && <ReadReceipt />}
         {!inThread && (
           <ThreadSummary
             message={message}
@@ -99,21 +132,6 @@ export const MessageItem = memo(function MessageItem({
           />
         )}
       </div>
-      {!editing && (
-        // Stays visible while its emoji picker or menu is open (outside, in a portal): they are anchored to it.
-        <div
-          className={cn(
-            "absolute -top-3 hidden group-focus-within:flex group-hover:flex has-data-[state=open]:flex pointer-coarse:flex",
-            message.own ? "left-3" : "right-3"
-          )}
-        >
-          <MessageActions
-            message={message}
-            inThread={inThread}
-            onEdit={() => setEditing(true)}
-          />
-        </div>
-      )}
     </article>
   );
 });

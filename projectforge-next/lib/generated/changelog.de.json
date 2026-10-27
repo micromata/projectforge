@@ -1,5 +1,26 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.17",
+    "date" : "2026-10-27",
+    "title" : "Noch nicht veröffentlicht",
+    "summary" : [ "**Chat**: Vertrauliche Gespräche, Suche in allen Nachrichten, kompaktes Layout mit Sprechblasen, Zähler für Ungelesenes in der oberen Leiste", "Liquiditätsvorschau: Anzahl der Tage frei wählbar", "Suche: Geschlossene Strukturelemente nicht mehr in der Menü-Schnellsuche" ],
+    "overview" : [ "**Chat:** Aus der vertraulichen Nachricht in einer Direktnachricht wird ein vertrauliches Gespräch, Ende-zu-Ende-verschlüsselt und nie auf dem Server gespeichert, bis eine Seite es beendet; der Fingerabdruck deckt beide Schlüssel ab. Unterhaltungen sind kompakter, mit Sprechblasen, gruppierten Nachrichten und einem Trenner pro Tag.", "**Chat:** Die Suche der Chatseite findet auch Nachrichten in allen lesbaren Unterhaltungen, mit Vorschau des neuesten Treffers; ein Klick springt zur Nachricht. Eine Sprechblase in der oberen Leiste führt zum Chat und zeigt die ungelesenen Nachrichten, ebenso der Menüeintrag.", "**Liquiditätsvorschau:** Die Anzahl der Tage kann frei eingegeben werden (1 bis 600), die üblichen Zeiträume bleiben als Schnellwahl.", "**Suche:** Geschlossene Strukturelemente werden in der Menü-Schnellsuche nicht mehr gefunden; die Detailsuche findet sie weiterhin, durchgestrichen." ],
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "Chat: In einer Direktnachricht steht unter der neuesten eigenen Nachricht, die das Gegenüber gelesen hat, \"Gelesen\" mit dessen Avatar.", "Chat: Die Suche der Chatseite findet auch Nachrichten in allen lesbaren Unterhaltungen, jeweils mit einer Vorschau des neuesten Treffers; ein Klick springt zur Nachricht, auch in einem Thread.", "Chat: Eine Sprechblase in der oberen Leiste führt zum Chat, ein Zähler zeigt dort und am Menüeintrag die ungelesenen Nachrichten." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Chat: Kompaktere Unterhaltungen mit Sprechblasen (eigene Nachrichten rechts), aufeinanderfolgende Nachrichten derselben Person gruppiert und ein Trenner pro Tag.", "Chat: Die Suche bietet auch Benutzer ohne bisherige Direktnachricht an; ein Klick startet die Unterhaltung.", "Datentransfer: Persönliche Boxen stehen immer ganz oben in der Liste, auch bei der Suche nach einem Benutzer.", "Liquiditätsvorschau: Die Anzahl der Tage kann frei eingegeben werden (1 bis 600), die üblichen Zeiträume bleiben als Schnellwahl.", "Suche: Geschlossene Strukturelemente werden in der Menü-Schnellsuche nicht mehr gefunden. Die Detailsuche findet sie weiterhin und zeigt sie durchgestrichen, ebenso der Strukturbaum, die Pfade und die Listen." ]
+    }, {
+      "type" : "changed",
+      "items" : [ "Chat: Aus der vertraulichen Nachricht in einer Direktnachricht wird ein vertrauliches Gespräch. Beide Seiten schreiben sich hin und her, Ende-zu-Ende-verschlüsselt und nie auf dem Server gespeichert, bis eine Seite es beendet. Der Fingerabdruck deckt jetzt beide Schlüssel ab, eine gefälschte Nachricht fällt so als Abweichung auf." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Chat: Das Aktionsmenü einer Nachricht überdeckt nicht mehr die Trennlinie darüber." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {
@@ -52,25 +73,6 @@
       } ]
     },
     "updates" : [ {
-      "id" : "9-0-18",
-      "version" : "9.0.18",
-      "date" : "2026-10-27",
-      "title" : "ProjectForge 9.0.18 veröffentlicht",
-      "tag" : "9.0.18-RELEASE",
-      "published" : false,
-      "summary" : [ "**Chat**: Vertrauliche Gespräche, Suche in allen Nachrichten, kompaktes Layout mit Sprechblasen, Zähler für Ungelesenes in der oberen Leiste", "Liquiditätsvorschau: Anzahl der Tage frei wählbar", "Suche: Geschlossene Strukturelemente nicht mehr in der Menü-Schnellsuche" ],
-      "overview" : [ "**Chat:** Aus der vertraulichen Nachricht in einer Direktnachricht wird ein vertrauliches Gespräch, Ende-zu-Ende-verschlüsselt und nie auf dem Server gespeichert, bis eine Seite es beendet; der Fingerabdruck deckt beide Schlüssel ab. Unterhaltungen sind kompakter, mit Sprechblasen, gruppierten Nachrichten und einem Trenner pro Tag.", "**Chat:** Die Suche der Chatseite findet auch Nachrichten in allen lesbaren Unterhaltungen, mit Vorschau des neuesten Treffers; ein Klick springt zur Nachricht. Eine Sprechblase in der oberen Leiste führt zum Chat und zeigt die ungelesenen Nachrichten, ebenso der Menüeintrag.", "**Liquiditätsvorschau:** Die Anzahl der Tage kann frei eingegeben werden (1 bis 600), die üblichen Zeiträume bleiben als Schnellwahl.", "**Suche:** Geschlossene Strukturelemente werden in der Menü-Schnellsuche nicht mehr gefunden; die Detailsuche findet sie weiterhin, durchgestrichen." ],
-      "sections" : [ {
-        "type" : "added",
-        "items" : [ "Chat: Die Suche der Chatseite findet auch Nachrichten in allen lesbaren Unterhaltungen, jeweils mit einer Vorschau des neuesten Treffers; ein Klick springt zur Nachricht, auch in einem Thread.", "Chat: Eine Sprechblase in der oberen Leiste führt zum Chat, ein Zähler zeigt dort und am Menüeintrag die ungelesenen Nachrichten." ]
-      }, {
-        "type" : "improved",
-        "items" : [ "Chat: Kompaktere Unterhaltungen mit Sprechblasen (eigene Nachrichten rechts), aufeinanderfolgende Nachrichten derselben Person gruppiert und ein Trenner pro Tag.", "Liquiditätsvorschau: Die Anzahl der Tage kann frei eingegeben werden (1 bis 600), die üblichen Zeiträume bleiben als Schnellwahl.", "Suche: Geschlossene Strukturelemente werden in der Menü-Schnellsuche nicht mehr gefunden. Die Detailsuche findet sie weiterhin und zeigt sie durchgestrichen, ebenso der Strukturbaum, die Pfade und die Listen." ]
-      }, {
-        "type" : "changed",
-        "items" : [ "Chat: Aus der vertraulichen Nachricht in einer Direktnachricht wird ein vertrauliches Gespräch. Beide Seiten schreiben sich hin und her, Ende-zu-Ende-verschlüsselt und nie auf dem Server gespeichert, bis eine Seite es beendet. Der Fingerabdruck deckt jetzt beide Schlüssel ab, eine gefälschte Nachricht fällt so als Abweichung auf." ]
-      } ]
-    }, {
       "id" : "9-0-17",
       "version" : "9.0.17",
       "date" : "2026-10-26",

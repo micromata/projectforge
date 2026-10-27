@@ -112,6 +112,11 @@ export interface ChatUnreadMessage {
   threadRootId: number | null;
 }
 
+/** How far the other one of a direct message has read: the id of the newest message, null if nothing yet. */
+export interface ChatPartnerRead {
+  lastReadMessageId: number | null;
+}
+
 export interface ChatMessagesPage {
   messages: ChatMessage[];
   hasMore: boolean;

@@ -33,13 +33,14 @@ const SSE_RETRY_MS = 5 * 60_000;
  *
  * [initialSeq] is the sequence of the conversation when loaded; nothing happens before it is known.
  * [onSecret] is called when a confidential message of the user may have changed (its own event; in polling
- * mode with every poll).
+ * mode with every poll). [onRead] likewise when the other one of a direct message read further.
  */
 export function useChatLive(
   conversationId: number,
   initialSeq: number | undefined,
   onChanges?: (messages: ChatMessage[]) => void,
-  onSecret?: () => void
+  onSecret?: () => void,
+  onRead?: () => void
 ) {
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<"events" | "polling">("events");
@@ -49,10 +50,12 @@ export function useChatLive(
   const again = useRef(false);
   const onChangesRef = useRef(onChanges);
   const onSecretRef = useRef(onSecret);
+  const onReadRef = useRef(onRead);
   useEffect(() => {
     onChangesRef.current = onChanges;
     onSecretRef.current = onSecret;
-  }, [onChanges, onSecret]);
+    onReadRef.current = onRead;
+  }, [onChanges, onSecret, onRead]);
   // Before the effect of the events below: they need it.
   useEffect(() => {
     if (seqRef.current == null && initialSeq != null)
@@ -106,6 +109,7 @@ export function useChatLive(
       if (seqRef.current == null || seq > seqRef.current) void sync();
     });
     source.addEventListener("secret", () => onSecretRef.current?.());
+    source.addEventListener("read", () => onReadRef.current?.());
     source.onopen = () => {
       failures = 0;
       onSecretRef.current?.(); // Offers made while closed (hidden tab) announced no event here.
@@ -136,6 +140,7 @@ export function useChatLive(
       if (!hiddenSince || Date.now() - hiddenSince < POLL_HIDDEN_MAX_MS) {
         void sync();
         onSecretRef.current?.();
+        onReadRef.current?.();
       }
       schedule();
     };
