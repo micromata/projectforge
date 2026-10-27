@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Orders: if the mail server can't be reached, saving waits only once for it instead of once per recipient of the notification.",
-  "de": "Aufträge: Ist der Mailserver nicht erreichbar, wartet das Speichern nur noch einmal auf ihn statt einmal pro Empfänger:in der Benachrichtigung."
-}

@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Notifications: if the mail server isn't reachable, a failed notification mail is logged only once with its stack trace and its cause is shown in the delivery state; the further mails of the run wait for the next run instead of each waiting for the timeout.",
-  "de": "Benachrichtigungen: Ist der Mailserver nicht erreichbar, wird eine fehlgeschlagene Benachrichtigungsmail nur noch einmal mit Stacktrace geloggt und ihre Ursache im Zustellstatus angezeigt; die weiteren Mails des Laufs warten auf den nächsten Lauf, statt jeweils auf das Timeout."
-}
