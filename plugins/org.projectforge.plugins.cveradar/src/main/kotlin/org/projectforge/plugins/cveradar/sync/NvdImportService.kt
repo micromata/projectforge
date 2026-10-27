@@ -106,7 +106,8 @@ class NvdImportService {
         var startIndex = 0
         while (true) {
             val page = source.fetch(start, end, startIndex)
-            page.cves.forEach { store(it, result) }
+            val stored = vulnerabilityDao.findByCveIds(page.cves.map { it.cveId }) // One query, not one per CVE.
+            page.cves.forEach { store(it, stored[it.cveId], result) }
             startIndex += page.cves.size
             if (page.cves.isEmpty() || startIndex >= page.totalResults) {
                 return
@@ -114,8 +115,7 @@ class NvdImportService {
         }
     }
 
-    private fun store(cve: NvdCve, result: Result) {
-        val existing = vulnerabilityDao.findByCveId(cve.cveId)
+    private fun store(cve: NvdCve, existing: CvrVulnerabilityDO?, result: Result) {
         if (existing == null) {
             val score = cve.rating?.score
             if (score == null || score < BigDecimal.valueOf(config.nvd.minCvss)) {
