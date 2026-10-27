@@ -4,10 +4,10 @@
 |---|---|
 | COMP-ID | PF-CHAT |
 | DOC-ID | PF-CHAT-REQ |
-| Status | Draft 0.6 (data transfer areas as chat rooms, direct message from a personal box) |
+| Status | Draft 0.7 (status of the implementation brought up to date, open points only) |
 | Owner | Kai Reinhard |
-| Date | 2026-10-26 |
-| Stage | R1 in implementation (ProjectForge 9.0.16) |
+| Date | 2026-10-27 |
+| Stage | R1 released (ProjectForge 9.0.16), R2 in progress |
 | Used by | chat rooms and direct messages (built-in hosts, PF-CHAT-ROOM, PF-CHAT-DM); data transfer areas (PF-CHAT-DT); [PF-CVR – CVE-Radar](PF-CVR_CVE-Radar_Vulnerability_Management.md); later invoices, orders and others |
 
 ---
@@ -112,9 +112,10 @@ Priority by MoSCoW: **M** = Must, **S** = Should, **C** = Could, **W** = Won't (
 | MSG-05 | Every message must have a deep link that opens the conversation (or thread) at this message; the link can be copied. | M | |
 | MSG-06 | A conversation must open with the newest 50 messages and load older ones when scrolling up; long conversations stay fluent (virtualised list). | M | |
 | MSG-07 | Messages must be able to mention users: typing `@` opens suggestions, completed while typing, only from users with read access to the conversation; the choice inserts a mention chip. The server checks the mentioned users against the readers and notifies each newly mentioned user once, also after an edit. | M | NOT-03, decision 10 |
-| MSG-08 | A message should be able to quote another message of the same conversation (with link to it). | S | by reference (`quotedMessageId`, checked by the server): author, time and excerpt are resolved when shown, so a deleted or hidden message shows its placeholder; a click shows the message, no notification |
+| MSG-08 | A message should be able to quote another message of the same conversation (with link to it). | S | by reference (`quotedMessageId`, checked by the server): author, time and excerpt are resolved when shown, so a deleted or hidden message shows its placeholder; a click shows the message, no notification; quote action in conversation and thread, quote bar in the composer |
 | MSG-09 | An unsent draft should be kept per user and conversation. | S | |
 | MSG-10 | Users should be able to react to messages and thread replies with emoji, as in Google Chat: quick choice of recently used emoji, per emoji the count and (on hover) who reacted; a second click takes the own reaction back. Reactions are not notified. | S | decision 7 |
+| MSG-11 | A conversation must be shown compactly: messages as bubbles (the own ones on the right), consecutive messages of the same author grouped, a separator per day. | M | mobile first (NFR-02) |
 
 ### 5.3 PF-CHAT-THR – Threads
 
@@ -196,6 +197,7 @@ participants.
 | ROOM-08 | A chat area should show the rooms as a side bar with unread counts per room, as in Google Chat, and offer the room management there. | S | R2 |
 | ROOM-09 | The messages of rooms are not part of notification mails (NOT-05). | M | |
 | ROOM-10 | The room dialog must offer how long the files of the room are kept (choices of the data transfer, default 30 days). | M | ATT-04 |
+| ROOM-11 | Every conversation (room, data transfer area, direct message) must offer the list of its members with avatars, the own user marked; the list contains only users with read access to the conversation. | M | checked on the server (SEC-01), same lookup as the mention suggestions |
 
 ### 5.9 PF-CHAT-DM – Direct messages
 
@@ -278,7 +280,7 @@ page, thread side panel, mention suggestions, file upload and image viewer.
 | Invoice (later) | *internal* | as the invoice (`RechnungDao`) | questions about an invoice |
 | Order (later) | *internal* | as the order (`AuftragDao`) | discussion about an order |
 
-## 8. Decisions (as of 0.6)
+## 8. Decisions (as of 0.7)
 
 | # | Topic | Decision | Requirements |
 |---|---|---|---|
@@ -298,39 +300,18 @@ page, thread side panel, mention suggestions, file upload and image viewer.
 | 14 | Read state | One mark per user and conversation (the newest message read), for the conversation and its threads; replies count as unread only in threads followed or with a mention; marking unread moves it back; the menu badges come from the notifications and aren't restored by marking unread | NOT-01, NOT-03, NOT-09 |
 | 15 | Data transfer areas | Every ordinary area is a chat room of the users with access, its files go into the area; the personal box of another user leads to the direct message with its owner | DT-01 – DT-07 |
 
-## 9. Implementation status (review of R1, 2026-10-26)
-
-Implemented in R1: CTX-01 – CTX-05, CTX-07, MSG-01 – MSG-05, MSG-07, MSG-09, MSG-10, THR-01 – THR-05, ATT-01 – ATT-08,
-NOT-01 – NOT-07, NOT-09, NOT-10, SEC-01 – SEC-07, ROOM-01 – ROOM-07, ROOM-09, ROOM-10, DM-01 – DM-06, CONF-01 – CONF-08,
-DT-01 – DT-07.
-
-Deviations and gaps:
+## 9. Open points and deviations
 
 | Requirement | State |
 |---|---|
 | MSG-06, NFR-04 | Paging by 50 and loading older messages is implemented, the list is not virtualised; 10,000 messages are not measured yet. |
 | SRCH-01 | Search by text in the UI; the author filter exists only in the REST endpoint (`authorId`), not in the search dialog. Hidden messages aren't found, also not by moderators. |
 | ATT-07 | Metadata removed for JPEG and PNG (encoded again); GIF and WebP are kept as they are (animations). |
-| CTX-06 | Unread counts in the lists of the chat page (rooms, direct messages, data transfer areas) and at the chat buttons of a data transfer area (DT-07); not in the lists of a host (e.g. the data transfer list). |
-| SRCH-02 | The search box of the chat page also searches the messages of all conversations (at least three characters, the newest 1,000 conversations with a match are checked, `GET /rs/chat/search`): one entry per conversation with the number of matches and the newest match as preview, filtered by the read check of each conversation; a host excludes its conversations by `ChatHost.searchableAcrossConversations` (all hosts take part so far). A match older than the first page of the conversation opens it without jumping. |
-| MSG-08, THR-06, CTX-08, ROOM-08, SEC-08 | Open (S/C, R2 or later). |
+| CTX-06 | Unread counts in the lists of the chat page and at the chat buttons of a data transfer area; not in the lists of a host (e.g. the data transfer list). |
+| THR-06, CTX-08, ROOM-08, SEC-08 | Open (C/S, R2 or later). |
 
-## 10. Open points
+## 10. Next steps
 
-None at the moment. The findings of the review of R1 are fixed:
-- a chat open in a background tab no longer suppresses the notifications (NOT-06);
-- replies count as unread only in threads followed or with a mention, mentions in threads are resolved by opening
-  the thread (NOT-01, NOT-03, decision 14);
-- a conversation never read shows the "new" line (NOT-01);
-- no replies to deleted or hidden messages (THR-01); no reactions or reply authors of hidden messages for others,
-  hidden messages don't count as unread (SEC-05, THR-03); deleting the last reply updates the time of the last
-  reply; marking unread waits for a read state still on its way.
-
-## 11. Next steps
-
-1. Release cut R1 (ProjectForge 9.0.16): chat core (CTX, MSG incl. mentions and reactions, THR, ATT, NOT-01 – NOT-07,
-   NOT-09, SRCH-01, SEC) with the chat room as first host and a minimal room list (ROOM-01 – ROOM-07, ROOM-09,
-   ROOM-10), direct messages (DM), confidential conversations (CONF).
-2. R2: chat area (ROOM-08), search across conversations (SRCH-02), author filter in the search (SRCH-01), virtualised
-   list (MSG-06, NFR-04), quoting (MSG-08), export (SEC-08), user guide.
-3. PF-CVR DISC on top of R1; the cleanup job (CTX-08) later.
+1. R2: chat area (ROOM-08), author filter in the search (SRCH-01), virtualised list with a measurement of 10,000
+   messages (MSG-06, NFR-04), export (SEC-08), user guide.
+2. PF-CVR DISC on top of the chat; then the cleanup job (CTX-08) and "also send to conversation" (THR-06).
