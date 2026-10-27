@@ -31,6 +31,12 @@ backend UILayout are removed. This is the one list of what is left. Remove an en
 - Remove the unused `limitResultSize` of `QueryFilter`/`DBFilter`.
 - Roll out to further lists only when they grow large enough to need it.
 
+## Features
+
+- **Vacation: half day on a non-working day.** If the first or last day of a vacation is marked as a half
+  day but isn't a working day, `VacationService.getVacationDays` silently ignores the flag; the form
+  should point that out.
+
 ## Deferred on purpose
 
 - **Calendar event attendees** — not editable in the event form; the schema carries existing attendees
