@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.17",
+    "date" : "2026-10-27",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "Chat: Die Suche der Chatseite findet auch Nachrichten in allen lesbaren Unterhaltungen, jeweils mit einer Vorschau des neuesten Treffers; ein Klick springt zur Nachricht, auch in einem Thread." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Chat: Kompaktere Unterhaltungen mit Sprechblasen (eigene Nachrichten rechts), aufeinanderfolgende Nachrichten derselben Person gruppiert und ein Trenner pro Tag.", "Liquiditätsvorschau: Die Anzahl der Tage kann frei eingegeben werden (1 bis 600), die üblichen Zeiträume bleiben als Schnellwahl." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

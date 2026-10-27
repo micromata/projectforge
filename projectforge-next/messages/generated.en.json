@@ -1074,6 +1074,12 @@
     },
     "search": {
       "_": "Search",
+      "hits": "{arg0} matches",
+      "kind": {
+        "chatRoom": "Chat room",
+        "direct": "Direct message"
+      },
+      "messages": "Found messages",
       "noResults": "No messages found.",
       "placeholder": "Search messages"
     },
