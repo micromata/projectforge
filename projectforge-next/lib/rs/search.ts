@@ -17,6 +17,8 @@ export interface SearchHit {
   displayName: string;
   secondaryInfo?: string | null;
   viewUrl?: string | null;
+  /** Set for a closed task structure element (shown as a status pill). */
+  statusLabel?: string | null;
 }
 
 /** The hits of one area; `hasMore` signals that the area holds further matches beyond `maxPerArea`. */
@@ -59,7 +61,8 @@ export interface SearchArea {
 /**
  * Searches `term` across the given `areas` (all accessible ones when omitted), at most `maxPerArea` hits each.
  * The magnifier passes a small `maxPerArea`; the search page a larger one. With `contacts` (the magnifier), the users
- * to chat with come as well, for those who may not open the user pages without their urls.
+ * to chat with come as well, for those who may not open the user pages without their urls. Closed task structure
+ * elements are only found with `closed` (the search page).
  */
 export function searchData(
   term: string,
@@ -67,13 +70,20 @@ export function searchData(
     areas,
     maxPerArea,
     contacts,
-  }: { areas?: string[]; maxPerArea?: number; contacts?: boolean },
+    closed,
+  }: {
+    areas?: string[];
+    maxPerArea?: number;
+    contacts?: boolean;
+    closed?: boolean;
+  },
   signal?: AbortSignal
 ): Promise<SearchResponse> {
   const params = new URLSearchParams({ q: term });
   if (areas && areas.length > 0) params.set("areas", areas.join(","));
   if (maxPerArea != null) params.set("maxPerArea", String(maxPerArea));
   if (contacts) params.set("contacts", "true");
+  if (closed) params.set("closed", "true");
   return request<SearchResponse>(
     `/rs/search/query?${params.toString()}`,
     { method: "GET" },

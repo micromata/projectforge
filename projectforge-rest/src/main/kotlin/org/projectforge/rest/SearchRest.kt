@@ -25,7 +25,10 @@ package org.projectforge.rest
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.NextMigration
+import org.projectforge.business.task.TaskDO
+import org.projectforge.business.task.TaskFilter
 import org.projectforge.business.user.PFUserFilter
+import org.projectforge.common.task.TaskStatus
 import org.projectforge.feature.FeatureService
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.DisplayNameCapable
@@ -64,6 +67,9 @@ private val log = KotlinLogging.logger {}
  * ([BaseDao.hasLoggedInUserSelectAccess]) — read access, not history access, so e.g. a project manager who may read
  * customers but not their history still sees the customer area. Each hit carries the frontend url of its record
  * ([AbstractEntityRest.getStandardEditPage]), so the frontend needs no per-entity navigation logic.
+ *
+ * Closed task structure elements are left out unless the search asks for them ([query] `closed`, the search page):
+ * the menu search is for finding what to work on. A closed hit carries its status ([SearchHit.statusLabel]).
  *
  * The menu search asks for contacts as well ([query] `contacts`): with the chat on, the users are found there by
  * everybody, as in the user selection, to write to. Who may not open the user page gets them without its url
@@ -133,6 +139,7 @@ class SearchRest {
    * @param areas       Area ids to search; null/empty falls back to all accessible areas (MVP has no persisted scope yet).
    * @param maxPerArea  Hits per area before a [SearchAreaResult.hasMore] marker; the magnifier passes a small value.
    * @param contacts    The users to chat with as well (the menu search), see [contactArea].
+   * @param closed      Also find closed task structure elements (the search page), else they are left out.
    */
   @AccessChecked("DAO: select access per area (whitelist) and per row")
   @GetMapping("query")
@@ -141,6 +148,7 @@ class SearchRest {
     @RequestParam("areas", required = false) areas: List<String>?,
     @RequestParam("maxPerArea", required = false) maxPerArea: Int?,
     @RequestParam("contacts", required = false) contacts: Boolean? = null,
+    @RequestParam("closed", required = false) closed: Boolean? = null,
   ): SearchResponse {
     if (term.isBlank()) {
       return SearchResponse(term, emptyList())
@@ -153,7 +161,7 @@ class SearchRest {
     val results = (areasWithPages + listOfNotNull(contactArea))
       .sortedBy { priorityIndex(it.id) }
       .filter { requested == null || it.id in requested }
-      .mapNotNull { entry -> searchArea(entry, searchString, limit, withPages = entry != contactArea) }
+      .mapNotNull { entry -> searchArea(entry, searchString, limit, withPages = entry != contactArea, includeClosed = closed == true) }
     return SearchResponse(term, results)
   }
 
@@ -171,10 +179,16 @@ class SearchRest {
   }
 
   /** @param withPages false for the [contactArea]: no urls, and not the logged-in user (nobody to chat with). */
-  private fun searchArea(entry: RegistryEntry, searchString: String, limit: Int, withPages: Boolean): SearchAreaResult? {
+  private fun searchArea(
+    entry: RegistryEntry,
+    searchString: String,
+    limit: Int,
+    withPages: Boolean,
+    includeClosed: Boolean,
+  ): SearchAreaResult? {
     val rest = restByDoClass[entry.getDOClass()] ?: return null
     val loggedInUserId = ThreadLocalUserContext.loggedInUserId
-    val filter = searchFilter(entry).also {
+    val filter = searchFilter(entry, includeClosed).also {
       it.searchString = searchString
       // A contact search drops the user self afterwards and tells by one more whether there are more.
       it.maxRows = if (withPages) limit else limit + 2
@@ -200,6 +214,7 @@ class SearchRest {
         id = id,
         displayName = (dataObject as? DisplayNameCapable)?.displayName ?: dataObject.toString(),
         viewUrl = if (withPages) editPage.replace(NextMigration.ID_PLACEHOLDER, id.toString()) else null,
+        statusLabel = if ((dataObject as? TaskDO)?.status == TaskStatus.C) translate("task.status.closed") else null,
       )
     }
     if (hits.isEmpty()) {
@@ -217,8 +232,12 @@ class SearchRest {
    * Users only if active (deleted ones are left out by every area's filter): the search looks for whom to reach, a
    * deactivated user is still found in the user list.
    */
-  private fun searchFilter(entry: RegistryEntry): BaseSearchFilter =
-    if (entry.id == DaoConst.USER) PFUserFilter().setDeactivatedUser(false) else BaseSearchFilter()
+  private fun searchFilter(entry: RegistryEntry, includeClosed: Boolean): BaseSearchFilter =
+    when (entry.id) {
+      DaoConst.USER -> PFUserFilter().setDeactivatedUser(false)
+      DaoConst.TASK -> TaskFilter().also { it.isClosed = includeClosed }
+      else -> BaseSearchFilter()
+    }
 
   /**
    * The Registry areas the logged-in user may search, ordered by [PRIORITY_AREAS] then registration order.
@@ -327,6 +346,8 @@ class SearchHit(
   val secondaryInfo: String? = null,
   /** Null for a contact, whose page the user may not open (see [SearchRest.query] `contacts`). */
   val viewUrl: String?,
+  /** Set for a closed task structure element (shown as a status pill), null otherwise. */
+  val statusLabel: String? = null,
 )
 
 /** The hits of one area; [hasMore] mirrors the Wicket "more entries" marker. */

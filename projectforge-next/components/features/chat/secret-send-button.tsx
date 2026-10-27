@@ -26,6 +26,7 @@ export function SecretSendButton({
           type="button"
           variant="ghost"
           size="icon"
+          className="bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
           aria-label={t("chat.secret.action")}
           onClick={() => setOpen(true)}
         >

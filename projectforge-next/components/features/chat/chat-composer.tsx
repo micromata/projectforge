@@ -110,7 +110,7 @@ export function ChatComposer({
             <div className="flex shrink-0 flex-col">
               {conversation.filesEnabled && (
                 <>
-                  <HintTooltip text={t("chat.file.add")}>
+                  <HintTooltip text={t("chat.file.addHint")}>
                     <Button
                       type="button"
                       variant="ghost"
