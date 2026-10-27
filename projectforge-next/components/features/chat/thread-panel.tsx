@@ -1,9 +1,10 @@
 "use client";
 
-import { Fragment, useEffect, useRef } from "react";
+import { Fragment, useEffect, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "@/components/shared/spinner";
+import { useFormatContext } from "@/hooks/use-format";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -16,6 +17,8 @@ import { fetchChatThread } from "@/lib/rs/chat";
 import { applyChatChanges, chatThreadQueryKey } from "./chat-cache";
 import { useChatContext } from "./chat-context";
 import { ChatComposer } from "./chat-composer";
+import { DaySeparator } from "./day-separator";
+import { layoutMessages } from "./message-grouping";
 import { MessageItem } from "./message-item";
 import { findFirstUnread, NewMessagesLine } from "./message-list";
 import { isAtEnd, useFollowEnd } from "./use-follow-end";
@@ -39,6 +42,7 @@ export function ThreadPanel({
   onClose: () => void;
 }) {
   const t = useTranslations();
+  const formatContext = useFormatContext();
   const { conversation, sync, readMark } = useChatContext();
   const queryClient = useQueryClient();
   const { follow } = useMessageMutations();
@@ -78,6 +82,19 @@ export function ThreadPanel({
     readMark,
     conversation.me.id
   );
+  // Laid out with the root, so a reply on the day of the root gets no separator; the first reply starts a group of
+  // its own all the same, below the line under the root.
+  const replyLayout = useMemo(
+    () =>
+      layoutMessages(
+        [...(root ? [root] : []), ...(query.data?.replies ?? [])],
+        formatContext,
+        firstUnread
+      )
+        .slice(root ? 1 : 0)
+        .map((it, index) => (index === 0 ? { ...it, continued: false } : it)),
+    [root, query.data?.replies, formatContext, firstUnread]
+  );
 
   return (
     <Sheet open={rootId != null} onOpenChange={(open) => !open && onClose()}>
@@ -116,12 +133,14 @@ export function ThreadPanel({
                 <Spinner className="h-5 w-5 border-2" />
               </div>
             )}
+            {root?.created && <DaySeparator timestamp={root.created} />}
             {root && <MessageItem message={root} inThread />}
             {query.data && <div className="mx-3 my-1 border-t" />}
-            {query.data?.replies.map((reply) => (
+            {replyLayout.map(({ message: reply, dayStart, continued }) => (
               <Fragment key={reply.id}>
+                {dayStart && <DaySeparator timestamp={dayStart} />}
                 {reply.id === firstUnread && <NewMessagesLine />}
-                <MessageItem message={reply} inThread />
+                <MessageItem message={reply} inThread continued={continued} />
               </Fragment>
             ))}
             <div ref={endRef} />

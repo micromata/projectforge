@@ -320,6 +320,60 @@ class ChatServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun `the search across conversations finds readable ones only, without deleted and hidden messages`() {
+        val ownId = createRoom("chat search all test")
+        chatService.send(ownId, null, "the Zebrafish42 swims")
+        val newest = chatService.send(ownId, null, "a second zebrafish42")
+        chatService.delete(chatService.send(ownId, null, "deleted zebrafish42").id!!)
+        val hidden = chatService.send(ownId, null, "hidden zebrafish42")
+        chatService.hide(hidden.id!!, true, "off topic")
+        // A room of TEST_USER2 without TEST_USER.
+        logon(TEST_USER2)
+        val otherRoomId = chatRoomDao.insert(ChatRoomDO().also {
+            it.name = "chat search all other"
+            it.ownerId = getUserId(TEST_USER2)
+        })
+        val otherId = chatService.open(ChatRoomChatHost.HOST_TYPE, otherRoomId, ChatRoomChatHost.CHANNEL)!!.conversationId
+        val other = chatService.send(otherId, null, "zebrafish42 elsewhere")
+
+        // TEST_USER2 reads both, the one with the newest match first.
+        val hits2 = chatService.searchAll("zebrafish42")
+        assertEquals(listOf(otherId, ownId), hits2.map { it.context.conversationId })
+        assertEquals(other.id, hits2[0].newest.id)
+
+        logon(TEST_USER)
+        val hits = chatService.searchAll(" ZEBRAFISH42 ")
+        assertEquals(listOf(ownId), hits.map { it.context.conversationId })
+        assertEquals(2, hits[0].hitCount)
+        assertEquals(newest.id, hits[0].newest.id)
+        assertTrue(chatService.searchAll("zebra_ish42").isEmpty(), "Wildcards are searched as text.")
+        assertTrue(chatService.searchAll("ze").isEmpty(), "At least three characters.")
+    }
+
+    @Test
+    fun `the search across conversations returns the newest readable ones up to the limits`() {
+        val oldestId = createRoom("chat search limit 1")
+        chatService.send(oldestId, null, "quokka77 first")
+        val middleId = createRoom("chat search limit 2")
+        chatService.send(middleId, null, "quokka77 second")
+        // The newest match is in a room TEST_USER doesn't read.
+        logon(TEST_USER2)
+        val foreignRoomId = chatRoomDao.insert(ChatRoomDO().also {
+            it.name = "chat search limit foreign"
+            it.ownerId = getUserId(TEST_USER2)
+        })
+        val foreignId = chatService.open(ChatRoomChatHost.HOST_TYPE, foreignRoomId, ChatRoomChatHost.CHANNEL)!!.conversationId
+        chatService.send(foreignId, null, "quokka77 foreign")
+
+        logon(TEST_USER)
+        // The unreadable one doesn't count against the limit of conversations.
+        assertEquals(listOf(middleId), chatService.searchAll("quokka77", maxConversations = 1).map { it.context.conversationId })
+        assertEquals(listOf(middleId, oldestId), chatService.searchAll("quokka77").map { it.context.conversationId })
+        // But against the checks: the two newest are checked only.
+        assertEquals(listOf(middleId), chatService.searchAll("quokka77", maxChecked = 2).map { it.context.conversationId })
+    }
+
+    @Test
     fun `a message quotes one of the same conversation, not deleted or hidden`() {
         val conversationId = createRoom("chat quote test")
         val message = chatService.send(conversationId, null, "original")

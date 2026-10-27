@@ -242,6 +242,16 @@ class ChatHostEntry(
     val canWrite: Boolean,
 )
 
+/** A conversation with messages matching the search of the chat page: the newest match as preview. */
+class ChatSearchHit(
+    val conversationId: Long,
+    val hostType: String,
+    /** The title of the host object as seen by the logged-in user. */
+    val title: String,
+    val hitCount: Long,
+    val message: ChatMessage,
+)
+
 class ChatDirectOpenRequest(val userId: Long? = null)
 
 class ChatDirectOpenResult(val conversationId: Long)

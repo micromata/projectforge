@@ -355,6 +355,21 @@ class ChatRest {
         return chatService.selectUnread(context, after).map { (messageId, rootId) -> ChatUnreadMessage(messageId, rootId) }
     }
 
+    /** The conversations with messages containing the text (SRCH-02), the one with the newest match first. */
+    @AccessChecked("ChatService.searchAll: read access of the host per conversation")
+    @GetMapping("search")
+    fun searchAll(@RequestParam("q", required = false) q: String?): List<ChatSearchHit> {
+        return chatService.searchAll(q).map { hit ->
+            ChatSearchHit(
+                conversationId = hit.context.conversationId,
+                hostType = hit.context.conversation.hostType!!,
+                title = hit.context.title,
+                hitCount = hit.hitCount,
+                message = converter.convert(hit.context, hit.newest),
+            )
+        }
+    }
+
     @AccessChecked("ChatService.requireContext: read access of the host to the conversation")
     @GetMapping("conversation/{id}/search")
     fun search(

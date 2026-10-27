@@ -311,7 +311,8 @@ Deviations and gaps:
 | SRCH-01 | Search by text in the UI; the author filter exists only in the REST endpoint (`authorId`), not in the search dialog. Hidden messages aren't found, also not by moderators. |
 | ATT-07 | Metadata removed for JPEG and PNG (encoded again); GIF and WebP are kept as they are (animations). |
 | CTX-06 | Unread counts in the lists of the chat page (rooms, direct messages, data transfer areas) and at the chat buttons of a data transfer area (DT-07); not in the lists of a host (e.g. the data transfer list). |
-| MSG-08, THR-06, CTX-08, ROOM-08, SRCH-02, SEC-08 | Open (S/C, R2 or later). |
+| SRCH-02 | The search box of the chat page also searches the messages of all conversations (at least three characters, the newest 1,000 conversations with a match are checked, `GET /rs/chat/search`): one entry per conversation with the number of matches and the newest match as preview, filtered by the read check of each conversation; a host excludes its conversations by `ChatHost.searchableAcrossConversations` (all hosts take part so far). A match older than the first page of the conversation opens it without jumping. |
+| MSG-08, THR-06, CTX-08, ROOM-08, SEC-08 | Open (S/C, R2 or later). |
 
 ## 10. Open points
 

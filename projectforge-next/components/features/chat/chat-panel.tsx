@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormAlert } from "@/components/shared/form-alert";
@@ -28,15 +28,18 @@ import { useUnreadJump } from "./use-unread-jump";
 
 /**
  * A conversation (PF-CHAT): the messages, writing, threads in a side panel, live updates. Embeddable by any host
- * page (CTX-03); the conversation page shows it full size. [highlightId] is the message of a deep link (MSG-05).
+ * page (CTX-03); the conversation page shows it full size. [highlightId] is the message of a deep link (MSG-05),
+ * [threadRootId] the thread opened with it for a reply (e.g. a match of the search across conversations).
  */
 export function ChatPanel({
   conversationId,
   highlightId = null,
+  threadRootId: initialThreadRootId = null,
   className,
 }: {
   conversationId: number;
   highlightId?: number | null;
+  threadRootId?: number | null;
   className?: string;
 }) {
   const t = useTranslations();
@@ -51,8 +54,17 @@ export function ChatPanel({
   const { readMark, marks, markUnread, threadOpened, hasUnreadReplies } =
     useReadMark(conversationId, conversation, pause, settled);
   const { quoting, setQuoting } = useQuoting();
-  const [threadRootId, setThreadRootId] = useState<number | null>(null);
-  const [threadFocusId, setThreadFocusId] = useState<number | null>(null);
+  const [threadRootId, setThreadRootId] = useState<number | null>(
+    initialThreadRootId
+  );
+  const [threadFocusId, setThreadFocusId] = useState<number | null>(
+    initialThreadRootId ? highlightId : null
+  );
+  useEffect(() => {
+    if (initialThreadRootId) threadOpened(initialThreadRootId);
+    // The thread of the deep link on mount only, as the state above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const openThread = useCallback(
     (rootId: number, focusId?: number) => {
       if (rootId !== threadRootId) setQuoting(true, null); // A quote of another thread.

@@ -629,6 +629,63 @@ open class ChatService {
         )
     }
 
+    /** The messages containing the text in a conversation: their count and the newest one. */
+    class SearchHit(val context: ChatAccess.Context, val hitCount: Long, val newest: ChatMessageDO)
+
+    /**
+     * The conversations the logged-in user may read with messages or replies containing the text (at least
+     * [MIN_SEARCH_ALL_LENGTH] characters), the one with the newest match first, up to [maxConversations] (SRCH-02).
+     * Each conversation with matches is checked by its host, the newest first, at most [maxChecked] of them: a common
+     * term must not cost a check of every conversation of the system. The matches of the others are dropped, their
+     * counts as well, as are those of hosts excluding the search ([ChatHost.searchableAcrossConversations]).
+     */
+    open fun searchAll(
+        text: String?,
+        maxConversations: Int = MAX_SEARCH_CONVERSATIONS,
+        maxChecked: Int = MAX_SEARCH_CHECKED,
+    ): List<SearchHit> {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val term = text?.trim()?.lowercase().orEmpty()
+        if (term.length < MIN_SEARCH_ALL_LENGTH) {
+            return emptyList()
+        }
+        // conversationId, count, newest message id, the newest match first; the wildcards of the term are searched as text.
+        val matches = persistenceService.executeQuery(
+            "select m.conversationId, count(m), max(m.id) from ChatMessageDO m" +
+                    " where m.deleted = false and m.hiddenById is null and lower(m.contentText) like :term escape '!'" +
+                    " group by m.conversationId order by max(m.id) desc",
+            Array<Any?>::class.java,
+            Pair("term", "%${term.replace(LIKE_SPECIAL_CHARS, "!$1")}%"),
+            maxResults = maxChecked,
+        ).map { row -> Triple((row[0] as Number).toLong(), (row[1] as Number).toLong(), (row[2] as Number).toLong()) }
+        val contexts = mutableListOf<ChatAccess.Context>()
+        for (chunk in matches.chunked(SEARCH_CHECK_CHUNK)) {
+            val conversations = persistenceService.executeQuery(
+                "from ChatConversationDO c where c.id in :ids",
+                ChatConversationDO::class.java,
+                Pair("ids", chunk.map { it.first }),
+            ).associateBy { it.id!! }
+            chunk.forEach { (conversationId) ->
+                if (contexts.size >= maxConversations) return@forEach
+                val conversation = conversations[conversationId] ?: return@forEach
+                if (hostRegistry.get(conversation.hostType)?.searchableAcrossConversations != true) return@forEach
+                chatAccess.getContext(conversation, user)?.let { contexts += it }
+            }
+            if (contexts.size >= maxConversations) break
+        }
+        val byConversation = matches.associateBy { it.first }
+        val newest = persistenceService.executeQueryBatched(
+            "from ChatMessageDO m where m.id in :ids",
+            ChatMessageDO::class.java,
+            batchParam = "ids",
+            batchValues = contexts.map { byConversation[it.conversationId]!!.third },
+        ).associateBy { it.id!! }
+        return contexts.mapNotNull { context ->
+            val (_, count, newestId) = byConversation[context.conversationId]!!
+            newest[newestId]?.let { SearchHit(context, count, it) }
+        }
+    }
+
     /**
      * The users who may be mentioned (MSG-07): participants with read access, matching the search (name, username),
      * sorted by name. The logged-in user isn't offered.
@@ -898,6 +955,10 @@ open class ChatService {
         const val MAX_PAGE_SIZE = 200
         const val MAX_CHANGES = 500
         const val MAX_SEARCH_RESULTS = 100
+        const val MAX_SEARCH_CONVERSATIONS = 50
+        const val MAX_SEARCH_CHECKED = 1000
+        const val MIN_SEARCH_ALL_LENGTH = 3
+        private const val SEARCH_CHECK_CHUNK = 100
         const val MAX_UNREAD = 500
         const val MAX_EMOJI_LENGTH = 16
         const val MAX_EMOJIS_PER_MESSAGE = 20
