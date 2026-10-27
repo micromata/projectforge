@@ -7,7 +7,7 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Chat: the search of the chat page also finds messages in all readable conversations, each with a preview of the newest match; a click jumps to the message, also in a thread." ]
+      "items" : [ "Chat: the search of the chat page also finds messages in all readable conversations, each with a preview of the newest match; a click jumps to the message, also in a thread.", "Chat: a speech bubble in the top bar links to the chat, a counter shows the unread messages there and at the menu entry." ]
     }, {
       "type" : "improved",
       "items" : [ "Chat: more compact conversations with message bubbles (own messages on the right), consecutive messages of the same author grouped and a separator per day.", "Liquidity forecast: the number of days can be entered freely (1 to 600), the usual horizons remain as quick picks." ]
