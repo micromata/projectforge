@@ -1,6 +1,48 @@
 {
   "releases": [
     {
+      "id": "9-0-18",
+      "version": "9.0.18",
+      "date": "2026-10-27",
+      "title": "ProjectForge 9.0.18 released",
+      "tag": "9.0.18-RELEASE",
+      "published": false,
+      "summary": [
+        "**Chat**: confidential conversations, search in all messages, compact bubble layout, unread badge in the top bar",
+        "Liquidity forecast: number of days freely selectable",
+        "Search: closed task structure elements no longer in the menu quick search"
+      ],
+      "overview": [
+        "**Chat:** a confidential message in a direct message is now a confidential conversation, end-to-end encrypted and never stored by the server, until one side ends it; the fingerprint covers both keys. Conversations are more compact, with message bubbles, grouped messages and a separator per day.",
+        "**Chat:** the search of the chat page also finds messages in all readable conversations, with a preview of the newest match; a click jumps to the message. A speech bubble in the top bar links to the chat and shows the unread messages, as does the menu entry.",
+        "**Liquidity forecast:** the number of days can be entered freely (1 to 600), the usual horizons remain as quick picks.",
+        "**Search:** closed task structure elements are no longer found in the menu quick search; the detailed search still finds them, struck through."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Chat: the search of the chat page also finds messages in all readable conversations, each with a preview of the newest match; a click jumps to the message, also in a thread.",
+            "Chat: a speech bubble in the top bar links to the chat, a counter shows the unread messages there and at the menu entry."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Chat: more compact conversations with message bubbles (own messages on the right), consecutive messages of the same author grouped and a separator per day.",
+            "Liquidity forecast: the number of days can be entered freely (1 to 600), the usual horizons remain as quick picks.",
+            "Search: closed task structure elements are no longer found in the menu quick search. The detailed search still finds them and shows them struck through, as do the structure tree, the paths and the lists."
+          ]
+        },
+        {
+          "type": "changed",
+          "items": [
+            "Chat: a confidential message in a direct message is now a confidential conversation. Both sides write back and forth, end-to-end encrypted and never stored by the server, until one side ends it. The fingerprint now covers both keys, so a forged message shows as a difference."
+          ]
+        }
+      ]
+    },
+    {
       "id": "9-0-17",
       "version": "9.0.17",
       "date": "2026-10-26",
