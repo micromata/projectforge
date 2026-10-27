@@ -30,14 +30,16 @@ import org.projectforge.common.scheduling.SchedulerJobRunner
 import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.cveradar.sync.GraylogSyncService
+import org.projectforge.plugins.cveradar.sync.NvdImportService
 import org.projectforge.plugins.cveradar.sync.TenableSyncService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 /**
- * The syncs of the external sources (EXT-01, EXT-04), also startable in the jobs monitor. Inactive while the plugin
- * isn't activated or the source isn't configured. Every run also deletes the outdated devices (EXT-07).
+ * The syncs of the external sources (EXT-01, EXT-04) and the import from the NVD (IMP-03), also startable in the jobs
+ * monitor. Inactive while the plugin isn't activated or the source isn't configured. Every sync of a device source
+ * also deletes the outdated devices (EXT-07).
  */
 @Service
 class CveRadarJobs {
@@ -49,6 +51,9 @@ class CveRadarJobs {
 
     @Autowired
     private lateinit var graylogSyncService: GraylogSyncService
+
+    @Autowired
+    private lateinit var nvdImportService: NvdImportService
 
     @Autowired
     private lateinit var pluginAdminService: PluginAdminService
@@ -66,6 +71,9 @@ class CveRadarJobs {
         }
         schedulerJobRunner.register(GRAYLOG_JOB, ::graylogSync) {
             inactiveReason() ?: if (!config.graylog.isConfigured()) "Graylog isn't configured." else null
+        }
+        schedulerJobRunner.register(NVD_JOB, ::nvdImport) {
+            inactiveReason() ?: if (!config.nvd.enabled) "The NVD import isn't enabled." else null
         }
     }
 
@@ -87,6 +95,13 @@ class CveRadarJobs {
         }
     }
 
+    @Scheduled(cron = NVD_CRON)
+    fun nvdImport() {
+        schedulerJobRunner.runAsync(NVD_JOB) { run ->
+            run.note(nvdImportService.import().toString())
+        }
+    }
+
     private fun deleteOutdated(): String {
         val deleted = deviceService.deleteOutdated(config.deviceRetentionDays)
         return if (deleted > 0) ", $deleted outdated devices deleted" else ""
@@ -101,6 +116,8 @@ class CveRadarJobs {
 
         private const val GRAYLOG_CRON = "\${projectforge.plugin.cveradar.graylog.cron:0 15 * * * *}"
 
+        private const val NVD_CRON = "\${projectforge.plugin.cveradar.nvd.cron:0 17 */2 * * *}"
+
         val TENABLE_JOB = SchedulerJobDefinition(
             "cveradar.tenable", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "tenableSync",
             SchedulerSchedule.Cron(TENABLE_CRON),
@@ -109,6 +126,11 @@ class CveRadarJobs {
         val GRAYLOG_JOB = SchedulerJobDefinition(
             "cveradar.graylog", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "graylogSync",
             SchedulerSchedule.Cron(GRAYLOG_CRON),
+        )
+
+        val NVD_JOB = SchedulerJobDefinition(
+            "cveradar.nvd", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "nvdImport",
+            SchedulerSchedule.Cron(NVD_CRON),
         )
     }
 }

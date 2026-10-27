@@ -4225,7 +4225,8 @@
           "cases": "Fälle",
           "devices": "Geräte",
           "my": "Mein CVE-Radar",
-          "prototype": "Prototyp"
+          "prototype": "Demo",
+          "vulnerabilities": "Schwachstellen"
         },
         "saved": "Gespeichert."
       },
@@ -4354,6 +4355,16 @@
         }
       },
       "selected": "Ausgewählt: {arg0}",
+      "start": {
+        "demo": {
+          "hint": "Alle geplanten Funktionen des CVE-Radars als klickbarer Prototyp mit fiktiven Testdaten.",
+          "link": "Demo öffnen",
+          "title": "Demo"
+        },
+        "vulnerabilities": {
+          "hint": "Die aus der NVD importierten Schwachstellen ab dem eingestellten CVSS-Wert. Ein Klick auf die CVE öffnet sie bei der NVD."
+        }
+      },
       "system": {
         "criticality": "Kritikalität",
         "grants": "Freigaben",
@@ -4443,12 +4454,19 @@
       "versionNowUnaffected": "Inventar hat bereits eine unkritische Version – bitte bestätigen",
       "vuln": {
         "affectedRanges": "Betroffene Konfigurationen",
+        "cvss31Score": "CVSS 3.x",
+        "cvss31Severity": "Schweregrad CVSS 3.x",
+        "cvss31Vector": "Vektor CVSS 3.x",
+        "cvss40Score": "CVSS 4.0",
+        "cvss40Severity": "Schweregrad CVSS 4.0",
+        "cvss40Vector": "Vektor CVSS 4.0",
         "cwe": "CWE",
         "description": "Beschreibung (NVD)",
         "modified": "Geändert",
         "nvdStatus": "NVD-Status",
         "references": "Weitere Referenzen",
         "remediationHints": "Hinweise zur Behebung",
+        "severity": "Schweregrad",
         "tab": {
           "ai": "KI",
           "discussion": "Diskussion & Q&A",
@@ -4459,6 +4477,10 @@
         }
       },
       "vulnerabilities": {
+        "legend": {
+          "rejected": "Von der NVD zurückgewiesen"
+        },
+        "title": "Schwachstellen (NVD)",
         "withFindingsOnly": "Nur mit Befunden"
       },
       "yes": "ja"

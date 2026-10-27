@@ -5,7 +5,7 @@ import { VulnerabilityPage } from "@/components/features/cve-radar/vulnerability
 
 // Reads the id from the URL at runtime (see page.tsx and use-route-params.ts).
 export function CveRadarVulnerabilityPageClient() {
-  const id = useRouteParams<{ id: string }>("/cveradar/cve/[id]")?.id;
+  const id = useRouteParams<{ id: string }>("/cveradar/demo/cve/[id]")?.id;
   if (id === undefined) return null;
   return <VulnerabilityPage id={decodeURIComponent(id)} />;
 }

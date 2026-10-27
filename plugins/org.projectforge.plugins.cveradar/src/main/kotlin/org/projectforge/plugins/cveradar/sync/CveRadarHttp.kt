@@ -31,16 +31,18 @@ import org.projectforge.framework.integration.PooledHttpClients
 
 /**
  * The HTTP calls of the connectors: pooled clients with the timeouts of [IntegrationConfig] (ids [TENABLE],
- * [GRAYLOG]) and a size limit of every response (EXT-06, SEC-05). Error messages never contain request headers.
+ * [GRAYLOG], [NVD]) and a size limit of every response (EXT-06, SEC-05). Error messages never contain request headers.
  */
 internal object CveRadarHttp {
     const val TENABLE = "cveradar-tenable"
     const val GRAYLOG = "cveradar-graylog"
+    const val NVD = IntegrationConfig.CVERADAR_NVD
 
     /** Used, if `projectforge.integration.clients.<id>.maxResponseBytes` isn't given. */
     private const val DEFAULT_MAX_RESPONSE_BYTES = 50L * 1024 * 1024
 
-    class HttpException(message: String) : RuntimeException(message)
+    /** @param status The HTTP status of the answer. */
+    class HttpException(message: String, val status: Int) : RuntimeException(message)
 
     fun execute(integrationId: String, request: HttpUriRequestBase, jsonBody: String? = null): String {
         jsonBody?.let { request.entity = StringEntity(it, ContentType.APPLICATION_JSON) }
@@ -50,7 +52,7 @@ internal object CveRadarHttp {
             val body = response.entity?.content?.use { PooledHttpClients.readLimited(it, maxBytes) }
                 ?.toString(Charsets.UTF_8) ?: ""
             if (response.code !in 200..299) {
-                throw HttpException("${request.method} ${request.requestUri}: HTTP ${response.code} ${body.take(300)}")
+                throw HttpException("${request.method} ${request.requestUri}: HTTP ${response.code} ${body.take(300)}", response.code)
             }
             body
         }

@@ -323,6 +323,15 @@ object NextMigration {
             newEntryRoute = "cvrcase/new",
             legacyApp = null,
         ),
+        // The vulnerabilities imported from the NVD by the CVE-Radar (plugin cveradar, CvrVulnerabilityEntityRest),
+        // listed on its start page (components/features/cve-radar/vulnerabilities). Read only and without a page of
+        // their own yet; new in next: no legacy page, so no way back and no redirect (legacyApp = null).
+        "cvrvulnerability" to NextPage(
+            route = "cveradar",
+            editRoute = "cveradar/$ID_PLACEHOLDER",
+            newEntryRoute = "cveradar/new",
+            legacyApp = null,
+        ),
         // Hand built list and edit page of the employees (EmployeeEntityRest, components/features/employee), migrated
         // from React; the time-dependent attributes (status, weekly hours, annual leave) are edited in dialogs of the
         // form (`employee/validSinceAttr/...`). The React pages are gone (no UILayout served any more): no way back and

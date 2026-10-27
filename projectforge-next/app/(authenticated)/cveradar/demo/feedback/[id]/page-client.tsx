@@ -5,7 +5,7 @@ import { CampaignPage } from "@/components/features/cve-radar/feedback/campaign-
 
 // Reads the id from the URL at runtime (see page.tsx and use-route-params.ts).
 export function CveRadarCampaignPageClient() {
-  const id = useRouteParams<{ id: string }>("/cveradar/feedback/[id]")?.id;
+  const id = useRouteParams<{ id: string }>("/cveradar/demo/feedback/[id]")?.id;
   if (id === undefined) return null;
   return <CampaignPage id={decodeURIComponent(id)} />;
 }

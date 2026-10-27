@@ -33,10 +33,11 @@ import org.projectforge.web.WicketSupport
 /**
  * CVE-Radar (vulnerability management, see dev-docs/requirements/PF-CVR_CVE-Radar_Vulnerability_Management.md).
  *
- * R0 with real data: cases (vulnerabilities and incidents) with fix criteria and closure overview, team checks,
- * devices from the vulnerability scanner and the log server ([CveRadarJobs]) and the employees' confirmations. The
- * other pages under /next/cveradar are still the UI prototype on test data bundled with the frontend. The plugin is
- * not activated initially; an admin switches it on in the plugin administration.
+ * Real data: the vulnerabilities imported from the NVD (start page /next/cveradar), cases (vulnerabilities and
+ * incidents) with fix criteria and closure overview, team checks, devices from the vulnerability scanner and the log
+ * server ([CveRadarJobs]) and the employees' confirmations. The UI prototype on test data bundled with the frontend
+ * is at /next/cveradar/demo. The plugin is not activated initially; an admin switches it on in the plugin
+ * administration.
  */
 class CveRadarPlugin : AbstractPlugin(ID, "CVE-Radar", "Vulnerability management.") {
 
@@ -45,6 +46,10 @@ class CveRadarPlugin : AbstractPlugin(ID, "CVE-Radar", "Vulnerability management
         val teamCheckDao = WicketSupport.get(CvrTeamCheckDao::class.java)
         register(CASE_CATEGORY, CvrCaseDao::class.java, caseDao, "plugins.cveradar.case")
         register("cvrteamcheck", CvrTeamCheckDao::class.java, teamCheckDao, "plugins.cveradar.teamCheck")
+        register(
+            VULNERABILITY_CATEGORY, CvrVulnerabilityDao::class.java, WicketSupport.get(CvrVulnerabilityDao::class.java),
+            "plugins.cveradar.vulnerability",
+        )
         registerRight(CveRadarRight())
         val menuCreator = WicketSupport.get(MenuCreator::class.java)
         // A new page of projectforge-next without a legacy version, so no NextMigration entry:
@@ -62,5 +67,8 @@ class CveRadarPlugin : AbstractPlugin(ID, "CVE-Radar", "Vulnerability management
 
         /** The REST category of the cases (`/rs/cvrcase`) and the route of their next pages. */
         const val CASE_CATEGORY = "cvrcase"
+
+        /** The vulnerabilities imported from the NVD (`/rs/cvrvulnerability`), listed on the start page. */
+        const val VULNERABILITY_CATEGORY = "cvrvulnerability"
     }
 }

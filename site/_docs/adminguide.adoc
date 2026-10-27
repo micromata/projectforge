@@ -1750,8 +1750,9 @@ checks of projects and systems, the confirmations of the employees and a closure
 can be closed. As evidence on the client devices, a vulnerability scanner (Tenable.sc) and a central log server
 (Graylog) with the messages of a client agent can be connected; both are optional.
 
-The plugin is under development. The page _Miscellaneous_ -> _CVE-Radar_ is still the prototype with demo data; the
-pages working on real data (_Cases_, _Devices_, _My CVE-Radar_) are linked from its bar _Real data_.
+The plugin is under development. The page _Miscellaneous_ -> _CVE-Radar_ lists the vulnerabilities imported from the
+NVD (see <<cve_radar_nvd>>); the pages _Cases_, _Devices_ and _My CVE-Radar_ work on real data as well. The remaining
+functions can be tried as a prototype with fictitious demo data, linked prominently on the start page.
 
 [[cve_radar_activation]]
 ==== Activation
@@ -1769,10 +1770,10 @@ The right _CVE-Radar_ is given per user (edit the user, _Edit user rights_):
 |Right |Who and what
 
 |_Read and write_
-|The security team: cases, team checks, the devices with their persons, closing of cases.
+|The security team: cases, team checks, the devices with their persons, closing of cases, the vulnerabilities from the NVD.
 
 |_Read-only_
-|Readers, e.g. the management: cases and closure overviews, as counts only (no persons, no devices).
+|Readers, e.g. the management: the vulnerabilities from the NVD, cases and closure overviews, as counts only (no persons, no devices).
 
 |none
 |Every employee: on _My CVE-Radar_ the own devices, the cases released to the clients (to confirm the measures) and the
@@ -1864,16 +1865,47 @@ projectforge.plugin.cveradar.graylog.cron=0 15 * * * *
 * Devices are matched by serial number; without serial field by user name and host name.
 * A check result `passed`, `true` or `ok` counts as passed, anything else as failed.
 
+[[cve_radar_nvd]]
+==== Vulnerabilities from the NVD
+
+ProjectForge imports the vulnerabilities (CVEs) from the National Vulnerability Database (NVD API 2.0) and lists them on
+the start page _Miscellaneous_ -> _CVE-Radar_. The import is off by default, as it needs internet access.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.nvd.enabled=true
+# Optional: an API key raises the rate limit from 5 to 50 requests in 30 seconds
+# (https://nvd.nist.gov/developers/request-an-api-key).
+projectforge.plugin.cveradar.nvd.apiKey=...
+# The first run imports the vulnerabilities modified in the last 30 days (no back-fill of history).
+projectforge.plugin.cveradar.nvd.initialDays=30
+# New vulnerabilities from this CVSS score on.
+projectforge.plugin.cveradar.nvd.minCvss=7.0
+# Every 2 hours at minute 17 (UTC).
+projectforge.plugin.cveradar.nvd.cron=0 17 */2 * * *
+----
+
+* The first run imports the vulnerabilities modified in the last `initialDays`, every run after that the ones modified
+  since the last complete run (in pieces of at most 120 days, as the NVD allows). A run aborted by an error continues
+  there.
+* The score is the one of the NVD; as long as the NVD hasn't rated a vulnerability, the score of the assigning
+  authority (CNA) counts. A vulnerability without any score is imported as soon as it is rated.
+* A stored vulnerability is always updated, also when the NVD rejects it (shown struck through) or rates it lower.
+* Reading the list needs the right _CVE-Radar_ (see <<cve_radar_rights>>).
+* The API key is sent as header only and is never logged or shown by the properties editor.
+
 [[cve_radar_jobs]]
 ==== Jobs and connections
 
-* Both connectors run as jobs, _CVE-Radar: vulnerability scanner_ and _CVE-Radar: client agents_, listed under
+* The connectors and the NVD import run as jobs, _CVE-Radar: vulnerability scanner_, _CVE-Radar: client agents_ and
+  _CVE-Radar: NVD import_, listed under
   _Administration_ -> _Job monitor_. There they can be started at once (_Run now_); while their source isn't configured, they
   are shown as inactive with the reason. The summary of every run (devices, new, reopened and resolved findings) is
   shown in the run and logged, errors are part of the error digest.
 * Timeouts and the max size of a response are set per connection with
-  `projectforge.integration.clients.cveradar-tenable.*` and `projectforge.integration.clients.cveradar-graylog.*`
-  (e.g. `responseTimeoutMs`, `maxResponseBytes`, default 50 MB).
+  `projectforge.integration.clients.cveradar-tenable.*`, `projectforge.integration.clients.cveradar-graylog.*` and
+  `projectforge.integration.clients.cveradar-nvd.*` (e.g. `responseTimeoutMs`, `maxResponseBytes`, default 50 MB; for
+  the NVD 180 s and 200 MB, as a page has up to 2000 vulnerabilities).
 * An outgoing proxy isn't supported yet: ProjectForge must reach both hosts directly.
 * Keys and the token are never shown by the properties editor. Instead of `projectforge.properties` they may be given
   as environment variables, e.g. `PROJECTFORGE_PLUGIN_CVERADAR_TENABLE_SECRETKEY`.

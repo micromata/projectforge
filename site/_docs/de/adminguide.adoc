@@ -1790,8 +1790,10 @@ von Projekten und Systemen, die Bestätigungen der Mitarbeitenden und eine Absch
 geschlossen werden kann. Als Nachweis auf den Client-Geräten lassen sich ein Schwachstellenscanner (Tenable.sc) und ein
 zentraler Log-Server (Graylog) mit den Meldungen eines Client-Agents anbinden; beides ist optional.
 
-Das Plugin ist in Entwicklung. Die Seite _Verschiedenes_ -> _CVE-Radar_ ist noch der Prototyp mit Demodaten; die Seiten
-mit echten Daten (_Fälle_, _Geräte_, _Mein CVE-Radar_) sind in ihrer Leiste _Echte Daten_ verlinkt.
+Das Plugin ist in Entwicklung. Die Seite _Verschiedenes_ -> _CVE-Radar_ listet die aus der NVD importierten
+Schwachstellen (siehe <<cve_radar_nvd>>); auch die Seiten _Fälle_, _Geräte_ und _Mein CVE-Radar_ arbeiten mit echten
+Daten. Die übrigen Funktionen lassen sich als Prototyp mit fiktiven Demodaten ausprobieren, der auf der Startseite
+prominent verlinkt ist.
 
 [[cve_radar_activation]]
 ==== Aktivierung
@@ -1810,10 +1812,10 @@ Das Recht _CVE-Radar_ wird pro Benutzer vergeben (Benutzer bearbeiten, _Benutzer
 |Recht |Wer und was
 
 |_Lesend und schreibend_
-|Das Security-Team: Fälle, Team-Prüfungen, die Geräte mit ihren Personen, das Schließen von Fällen.
+|Das Security-Team: Fälle, Team-Prüfungen, die Geräte mit ihren Personen, das Schließen von Fällen, die Schwachstellen aus der NVD.
 
 |_Nur lesend_
-|Lesende, z. B. die Geschäftsführung: Fälle und Abschlussübersichten, nur als Zahlen (keine Personen, keine Geräte).
+|Lesende, z. B. die Geschäftsführung: die Schwachstellen aus der NVD, Fälle und Abschlussübersichten, nur als Zahlen (keine Personen, keine Geräte).
 
 |keins
 |Alle Mitarbeitenden: auf _Mein CVE-Radar_ die eigenen Geräte, die für Mitarbeitende freigegebenen Fälle (zum
@@ -1906,16 +1908,48 @@ projectforge.plugin.cveradar.graylog.cron=0 15 * * * *
 * Geräte werden über die Seriennummer zugeordnet, ohne Seriennummernfeld über Benutzer- und Hostnamen.
 * Ein Prüfergebnis `passed`, `true` oder `ok` gilt als bestanden, alles andere als nicht bestanden.
 
+[[cve_radar_nvd]]
+==== Schwachstellen aus der NVD
+
+ProjectForge importiert die Schwachstellen (CVEs) aus der National Vulnerability Database (NVD API 2.0) und listet sie auf
+der Startseite _Verschiedenes_ -> _CVE-Radar_. Der Import ist standardmäßig aus, da er Internetzugriff braucht.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.nvd.enabled=true
+# Optional: Ein API-Key hebt das Limit von 5 auf 50 Anfragen in 30 Sekunden
+# (https://nvd.nist.gov/developers/request-an-api-key).
+projectforge.plugin.cveradar.nvd.apiKey=...
+# Der erste Lauf importiert die in den letzten 30 Tagen geänderten Schwachstellen (kein Nachladen der Historie).
+projectforge.plugin.cveradar.nvd.initialDays=30
+# Neue Schwachstellen ab diesem CVSS-Wert.
+projectforge.plugin.cveradar.nvd.minCvss=7.0
+# Alle 2 Stunden zur Minute 17 (UTC).
+projectforge.plugin.cveradar.nvd.cron=0 17 */2 * * *
+----
+
+* Der erste Lauf importiert die in den letzten `initialDays` geänderten Schwachstellen, jeder weitere die seit dem letzten
+  vollständigen Lauf geänderten (in Abschnitten von höchstens 120 Tagen, wie es die NVD erlaubt). Ein durch einen Fehler
+  abgebrochener Lauf setzt dort wieder an.
+* Es zählt der Wert der NVD; solange die NVD eine Schwachstelle nicht bewertet hat, gilt der Wert der vergebenden Stelle
+  (CNA). Eine Schwachstelle ohne jeden Wert wird importiert, sobald sie bewertet ist.
+* Eine gespeicherte Schwachstelle wird immer aktualisiert, auch wenn die NVD sie zurückweist (durchgestrichen
+  dargestellt) oder niedriger bewertet.
+* Die Liste lesen darf, wer das Recht _CVE-Radar_ hat (siehe <<cve_radar_rights>>).
+* Der API-Key wird nur als Header gesendet und weder geloggt noch vom Properties-Editor angezeigt.
+
 [[cve_radar_jobs]]
 ==== Jobs und Verbindungen
 
-* Beide Anbindungen laufen als Jobs, _CVE-Radar: Schwachstellenscanner_ und _CVE-Radar: Client-Agents_, aufgeführt
+* Die Anbindungen und der NVD-Import laufen als Jobs, _CVE-Radar: Schwachstellenscanner_, _CVE-Radar: Client-Agents_ und
+  _CVE-Radar: NVD-Import_, aufgeführt
   unter _Administration_ -> _Jobmonitor_. Dort lassen sie sich sofort starten (_Jetzt starten_); solange ihre Quelle nicht
   konfiguriert ist, werden sie als inaktiv mit dem Grund angezeigt. Die Zusammenfassung jedes Laufs (Geräte, neue,
   wieder geöffnete und behobene Befunde) steht im Lauf und im Log, Fehler sind Teil des Fehler-Digests.
 * Timeouts und die maximale Größe einer Antwort werden pro Verbindung mit
-  `projectforge.integration.clients.cveradar-tenable.*` und `projectforge.integration.clients.cveradar-graylog.*`
-  eingestellt (z. B. `responseTimeoutMs`, `maxResponseBytes`, Default 50 MB).
+  `projectforge.integration.clients.cveradar-tenable.*`, `projectforge.integration.clients.cveradar-graylog.*` und
+  `projectforge.integration.clients.cveradar-nvd.*` eingestellt (z. B. `responseTimeoutMs`, `maxResponseBytes`, Default
+  50 MB; bei der NVD 180 s und 200 MB, da eine Seite bis zu 2000 Schwachstellen enthält).
 * Ein ausgehender Proxy wird noch nicht unterstützt: ProjectForge muss beide Hosts direkt erreichen.
 * Keys und Token zeigt der Properties-Editor nie an. Statt in `projectforge.properties` können sie als
   Umgebungsvariablen gesetzt werden, z. B. `PROJECTFORGE_PLUGIN_CVERADAR_TENABLE_SECRETKEY`.

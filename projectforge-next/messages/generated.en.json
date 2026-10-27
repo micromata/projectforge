@@ -4225,7 +4225,8 @@
           "cases": "Cases",
           "devices": "Devices",
           "my": "My CVE-Radar",
-          "prototype": "Prototype"
+          "prototype": "Demo",
+          "vulnerabilities": "Vulnerabilities"
         },
         "saved": "Saved."
       },
@@ -4354,6 +4355,16 @@
         }
       },
       "selected": "Selected: {arg0}",
+      "start": {
+        "demo": {
+          "hint": "All planned functions of the CVE-Radar as a clickable prototype with fictitious test data.",
+          "link": "Open demo",
+          "title": "Demo"
+        },
+        "vulnerabilities": {
+          "hint": "The vulnerabilities imported from the NVD, from the configured CVSS score on. A click on the CVE opens it at the NVD."
+        }
+      },
       "system": {
         "criticality": "Criticality",
         "grants": "Grants",
@@ -4443,12 +4454,19 @@
       "versionNowUnaffected": "Inventory already has an unaffected version — please confirm",
       "vuln": {
         "affectedRanges": "Affected configurations",
+        "cvss31Score": "CVSS 3.x",
+        "cvss31Severity": "Severity CVSS 3.x",
+        "cvss31Vector": "Vector CVSS 3.x",
+        "cvss40Score": "CVSS 4.0",
+        "cvss40Severity": "Severity CVSS 4.0",
+        "cvss40Vector": "Vector CVSS 4.0",
         "cwe": "CWE",
         "description": "Description (NVD)",
         "modified": "Modified",
         "nvdStatus": "NVD status",
         "references": "Other references",
         "remediationHints": "Remediation hints",
+        "severity": "Severity",
         "tab": {
           "ai": "AI",
           "discussion": "Discussion & Q&A",
@@ -4459,6 +4477,10 @@
         }
       },
       "vulnerabilities": {
+        "legend": {
+          "rejected": "Rejected by the NVD"
+        },
+        "title": "Vulnerabilities (NVD)",
         "withFindingsOnly": "Only with findings"
       },
       "yes": "yes"

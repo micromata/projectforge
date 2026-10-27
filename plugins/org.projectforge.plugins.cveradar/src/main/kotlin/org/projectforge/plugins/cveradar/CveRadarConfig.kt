@@ -50,6 +50,8 @@ open class CveRadarConfig {
 
     var graylog = Graylog()
 
+    var nvd = Nvd()
+
     /** Vulnerability scanner Tenable.sc (EXT-01 – EXT-03). */
     class Tenable {
         /** Base url, e.g. `https://tenable.example.org`; empty: inactive. */
@@ -113,5 +115,28 @@ open class CveRadarConfig {
 
         fun isConfigured(): Boolean = url.isNotBlank() && token.isNotBlank() && query.isNotBlank() &&
                 userField.isNotBlank() && (versionField.isNotBlank() || checkIdField.isNotBlank())
+    }
+
+    /** Import of the vulnerabilities from the NVD API 2.0 (PF-CVR-IMP). */
+    class Nvd {
+        /** Imports from the NVD (needs internet access); off: inactive. */
+        var enabled: Boolean = false
+
+        var url: String = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+
+        /**
+         * The API key of the NVD (raises the rate limit from 5 to 50 requests in 30 s), optional. Never logged and never
+         * sent to the frontend.
+         */
+        var apiKey: String = ""
+
+        /** The first run imports the vulnerabilities modified in these last days (IMP-09). */
+        var initialDays: Int = 30
+
+        /** Vulnerabilities with a lower CVSS score aren't imported (IMP-10). */
+        var minCvss: Double = 7.0
+
+        override fun toString(): String =
+            "Nvd(enabled=$enabled, url=$url, apiKey=${if (apiKey.isBlank()) "<none>" else "***"}, initialDays=$initialDays, minCvss=$minCvss)"
     }
 }
