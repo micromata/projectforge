@@ -131,7 +131,7 @@ public class StringHelper {
     }
 
     /**
-     * For example ["Micromata", "IT-Services", "Computer"] -> "Computer, IT-Services, Micromata".
+     * For example ["ACME", "IT-Services", "Computer"] -> "ACME, Computer, IT-Services".
      *
      * @param list      List of input strings.
      * @param delimiter The delimiter of the single string in output string.
@@ -145,7 +145,7 @@ public class StringHelper {
     }
 
     /**
-     * For example ["Micromata", "IT-Services", "Computer"] -> "Computer, IT-Services, Micromata".
+     * For example ["ACME", "IT-Services", "Computer"] -> "ACME, Computer, IT-Services".
      *
      * @param delimiter The delimiter of the single string in output string.
      */
@@ -159,7 +159,7 @@ public class StringHelper {
     }
 
     /**
-     * For example ["Micromata", "IT-Services", "Computer"] -> "Computer, IT-Services, Micromata".
+     * For example ["ACME", "IT-Services", "Computer"] -> "ACME, Computer, IT-Services".
      *
      * @param delimiter The delimiter of the single string in output string.
      */
@@ -391,7 +391,7 @@ public class StringHelper {
 
     /**
      * Valid characters are ''+'' as first char, ''-'', ''/'' and spaces. The leading country code is mandatory, e. g.:
-     * +49 561 316793-0
+     * +49 123 456789-0
      */
     public static boolean checkPhoneNumberFormat(final String value) {
         return checkPhoneNumberFormat(value, true);
@@ -400,7 +400,7 @@ public class StringHelper {
     /**
      * Valid characters are ''+'' as first char, ''-'', ''/'' and spaces.
      *
-     * @param countryCodeRequired If true, The leading country code is mandatory, e. g.: +49 561 316793-0
+     * @param countryCodeRequired If true, The leading country code is mandatory, e. g.: +49 123 456789-0
      */
     public static boolean checkPhoneNumberFormat(final String value, final boolean countryCodeRequired) {
         if (StringUtils.isBlank(value)) {

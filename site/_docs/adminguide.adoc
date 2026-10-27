@@ -100,7 +100,7 @@ in `~/ProjectForge/projectforge.properties`:
 
 [source]
 ----
-# The proxy must send X-Forwarded-Proto (see doc/misc/nginx_sites-available_projectforge):
+# The proxy must send X-Forwarded-Proto (see dev-docs/misc/nginx_sites-available_projectforge):
 server.forward-headers-strategy=native
 # Or, if every access is via https anyway:
 #server.servlet.session.cookie.secure=true
@@ -117,7 +117,7 @@ the browser. The Content Security Policy can be replaced by an own value of `pro
 The chat pushes new messages to the open conversations via server-sent events
 (`/rs/chat/conversation/{id}/events`), a long-lived response with a heartbeat every 25 seconds. The proxy must neither
 buffer it nor close it before the next heartbeat. ProjectForge sends `X-Accel-Buffering: no`, which nginx honours, so
-nginx only needs a read timeout above 25 seconds (the example configuration `doc/misc/nginx_sites-available_projectforge`
+nginx only needs a read timeout above 25 seconds (the example configuration `dev-docs/misc/nginx_sites-available_projectforge`
 has 600 seconds). Other proxies need the buffering switched off for this path. Without it, the chat still works: it
 falls back to asking for new messages every few seconds.
 
@@ -857,7 +857,7 @@ is especially use-ful for administrator users of ProjectForge.
 [[ldap_over_ssl]]
 ==== LDAP over SSL
 
-`openssl s_client -showcerts -connect ldap.acme.priv:636 > ldap.pem` Copy
+`openssl s_client -showcerts -connect ldap.acme.internal:636 > ldap.pem` Copy
 the lines
 including `-----BEGIN CERTIFICATE-----` until `-----END CERTIFICATE-----` (including)
 to a file called `ldap.cert.` Now you can configure the certificate file

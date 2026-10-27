@@ -34,6 +34,12 @@ interface ChatEventListener {
     /** Has the user the conversation open right now (no notification about new messages needed)? */
     fun isWatching(conversationId: Long, userId: Long): Boolean = false
 
-    /** A confidential message of the conversation changed for the user ([ChatSecretRelay]). */
+    /** A confidential session in the conversation changed for the user ([ChatSecretRelay]). */
     fun onSecret(conversationId: Long, userId: Long) {}
+
+    /**
+     * The confidential conversations offered to the user changed (new, accepted, ended or expired), in any of the
+     * user's direct chats ([ChatSecretRelay.offers]): wakes every open page of the user, not only the open chat.
+     */
+    fun onSecretOffers(userId: Long) {}
 }

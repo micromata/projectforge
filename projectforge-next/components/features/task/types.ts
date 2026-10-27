@@ -124,6 +124,8 @@ export interface TaskListRow {
   path?: string | null;
   /** Whether the task is marked as deleted — the row is then tinted and struck through. */
   deleted?: boolean;
+  /** Whether the task is closed — the row is then struck through grey (`row-inactive`). */
+  deactivated?: boolean;
   shortDescription?: string | null;
   /** `LocalDate` on the DTO, travelling as `yyyy-MM-dd`. */
   protectTimesheetsUntil?: string | null;

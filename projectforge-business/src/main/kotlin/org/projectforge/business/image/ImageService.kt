@@ -280,6 +280,11 @@ class ImageService {
         quality: Float = DEFAULT_JPEG_QUALITY,
     ): ByteArray? {
         if (image != null) {
+            if (format == ImageType.JPEG && image.colorModel.hasAlpha()) {
+                // The JPEG writer refuses an alpha channel ("Bogus input colorspace"): the callers fall back to PNG.
+                log.debug { "Image with alpha channel, not written as JPEG." }
+                return null
+            }
             try {
                 val baos = ByteArrayOutputStream()
 
@@ -292,10 +297,13 @@ class ImageService {
                         param.compressionQuality = quality // 0.0 - 1.0
                     }
                     val ios = ImageIO.createImageOutputStream(baos)
-                    writer.output = ios
-                    writer.write(null, IIOImage(image, null, null), param)
-                    writer.dispose()
-                    ios.close()
+                    try {
+                        writer.output = ios
+                        writer.write(null, IIOImage(image, null, null), param)
+                    } finally {
+                        writer.dispose()
+                        ios.close()
+                    }
                 } else {
                     // Use PNG or other format
                     ImageIO.write(image, format.extension, baos)

@@ -14,7 +14,8 @@ public class PackageComparator
 
   private static String MAVEN_PATTERN = "src/main/java";
 
-  private static final String MAIN_ROOT_PATH = "/Users/blumenstein/Projekte/Projectforge/git/";
+  /** Parent directory of the checkouts to compare, given by -DrootPath=... (default: the current directory). */
+  private static final String MAIN_ROOT_PATH = System.getProperty("rootPath", "./");
 
   private static final String OLD_ROOT_PATH = MAIN_ROOT_PATH + "projectforge-webapp/" + MAVEN_PATTERN;
 

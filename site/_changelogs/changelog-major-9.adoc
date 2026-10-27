@@ -1,13 +1,55 @@
 ---
 title: "ProjectForge 9"
-date: 2026-10-26
-sort_key: "2026-10-26 0046"
+date: 2026-10-27
+sort_key: "2026-10-27 0047"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-0-18.changelog-release]
+=== ProjectForge 9.0.18 released
+
+[.changelog-source]
+__2026-10-27, tag https://github.com/micromata/projectforge/tree/9.0.18-RELEASE[9.0.18-RELEASE]__ +++{% include release-pills.html tag="9.0.18-RELEASE" docker="9.0.18" mini=true %}+++
+
+- **Chat**: confidential conversations, search in all messages, compact bubble layout, unread badge in the top bar
+- Liquidity forecast: number of days freely selectable
+- Search: closed task structure elements no longer in the menu quick search
+
+.Overview
+[%collapsible]
+====
+- **Chat:** a confidential message in a direct message is now a confidential conversation, end-to-end encrypted and never stored by the server, until one side ends it; the fingerprint covers both keys. Conversations are more compact, with message bubbles, grouped messages and a separator per day.
+- **Chat:** the search of the chat page also finds messages in all readable conversations, with a preview of the newest match; a click jumps to the message. A speech bubble in the top bar links to the chat and shows the unread messages, as does the menu entry.
+- **Liquidity forecast:** the number of days can be entered freely (1 to 600), the usual horizons remain as quick picks.
+- **Search:** closed task structure elements are no longer found in the menu quick search; the detailed search still finds them, struck through.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Chat: the search of the chat page also finds messages in all readable conversations, each with a preview of the newest match; a click jumps to the message, also in a thread.
+- Chat: a speech bubble in the top bar links to the chat, a counter shows the unread messages there and at the menu entry.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Chat: more compact conversations with message bubbles (own messages on the right), consecutive messages of the same author grouped and a separator per day.
+- Liquidity forecast: the number of days can be entered freely (1 to 600), the usual horizons remain as quick picks.
+- Search: closed task structure elements are no longer found in the menu quick search. The detailed search still finds them and shows them struck through, as do the structure tree, the paths and the lists.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- Chat: a confidential message in a direct message is now a confidential conversation. Both sides write back and forth, end-to-end encrypted and never stored by the server, until one side ends it. The fingerprint now covers both keys, so a forged message shows as a difference.
+====
 
 [discrete#release-9-0-17.changelog-release]
 === ProjectForge 9.0.17 released
@@ -255,7 +297,7 @@ __2026-10-23, tag https://github.com/micromata/projectforge/tree/9.0.14-RELEASE[
   * Header-only export: the rows of one invoice (one per booking line) are merged into one invoice with the total amount, instead of being offered as new invoices on every import.
   * Header-only export: the internal note (column "Interne Re.-Nr.") is no longer appended to the invoice number, which changed back and forth with every import of the two files.
 - Mass updates: the log window shows the updated entries again.
-- Cancellation invoices are listed with the order positions they cancel, right after the cancelled invoice (e.g. 17400 and 17400-S), also in the order and forecast exports. On the order page both are struck through; together they still count 0 as invoiced.
+- Cancellation invoices are listed with the order positions they cancel, right after the cancelled invoice (e.g. 12345 and 12345-S), also in the order and forecast exports. On the order page both are struck through; together they still count 0 as invoiced.
 - Order book: the edit page no longer jumps while a field is changed.
 
 ++++

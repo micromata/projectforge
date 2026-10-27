@@ -70,6 +70,10 @@ database.
                    gateway push and Sipgate off, number ranges 4/5/1 (as in the tests). Once per slot. Its first run fills the
                    database with test data (admin password pw, random if omitted)
   reset <slot>     Delete the home dir of a slot instance (asks first)
+  renew <slot> [-y] [pw]
+                   Stop the Spring of a slot, delete its home, set it up again
+                   and start it (stop + reset + setup + run); asks first, -y
+                   skips the question. The next dev server keeps running
   run [slot]       Build (skip tests), then run the app in dev mode (Spring on
                    :8080+slot); the first run after setup initializes the
                    database with test data and prints the admin login
@@ -484,6 +488,74 @@ ensure_git_merge_driver() {
 
 ensure_git_merge_driver
 
+# `setup`: creates the home of a slot instance; $1 = admin password for the initial database (random if omitted).
+slot_setup() {
+  if [[ -d "$PF_HOME" ]]; then
+    echo "$PF_HOME already exists; \`pfDev.sh reset $SLOT\` first to start over." >&2
+    exit 1
+  fi
+  init_slot_home
+  # Read by the first `run`, which initializes the database with it (the setup needs a running instance).
+  (umask 077 && echo "${1:-Pf-$(openssl rand -hex 8)-1x}" >"$PF_HOME/$SETUP_PENDING")
+  echo "Done. Start it with \`pfDev.sh run $SLOT\` (:$SPRING_PORT); the first start fills the database with test data."
+}
+
+# `reset`: deletes the home of a slot instance; asks first unless $1 is "yes".
+slot_reset() {
+  if [[ ! -d "$PF_HOME" ]]; then
+    echo "$PF_HOME doesn't exist."
+    return 0
+  fi
+  if lsof -nP -iTCP:"$SPRING_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+    echo "Something is listening on :$SPRING_PORT — stop the instance first." >&2
+    exit 1
+  fi
+  local answer="${1:-}"
+  [[ "$answer" == yes ]] || read -r -p "Delete $PF_HOME (database, index, logs)? [y/N] " answer
+  [[ "$answer" == [yY] || "$answer" == yes ]] && rm -rf "$PF_HOME" && echo "Deleted."
+  return 0
+}
+
+# `run`: builds, then runs the app in dev mode in the foreground (replaces this shell); args go to bootRun.
+slot_run() {
+  local opts="-XX:ReservedCodeCacheSize=256m -Dprojectforge.base.dir=$PF_HOME"
+  if ((SLOT > 0)); then
+    if [[ ! -d "$PF_HOME" ]]; then
+      echo "Slot $SLOT isn't set up yet, run \`pfDev.sh setup $SLOT\` first." >&2
+      exit 1
+    fi
+    if lsof -nP -iTCP:"$SPRING_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+      echo "Slot $SLOT is already running (:$SPRING_PORT)." >&2
+      exit 1
+    fi
+    # The main instance keeps whatever its projectforge.properties says.
+    opts+=" -Dserver.port=$SPRING_PORT -Dprojectforge.domain=http://localhost:$SPRING_PORT -Dserver.servlet.session.cookie.name=$COOKIE"
+  fi
+  "$GRADLEW" -p "$ROOT" build -x test
+  # First start after `setup`: fill the fresh database as soon as the instance answers.
+  [[ -f "$PF_HOME/$SETUP_PENDING" ]] && init_database &
+  JAVA_TOOL_OPTIONS="$opts" \
+    exec "$GRADLEW" -p "$ROOT" :projectforge-application:bootRun "$@"
+}
+
+# `renew`: stops the Spring of a slot, deletes its home, sets it up again and starts it. The question comes
+# first, so answering no changes nothing; the next dev server keeps running (it proxies, and reconnects).
+slot_renew() {
+  local assume_yes="" password=""
+  for arg in "$@"; do
+    if [[ "$arg" == -y ]]; then assume_yes=yes; else password="$arg"; fi
+  done
+  if [[ -d "$PF_HOME" && -z "$assume_yes" ]]; then
+    local answer
+    read -r -p "Delete $PF_HOME (database, index, logs) and restart slot $SLOT? [y/N] " answer
+    [[ "$answer" == [yY] ]] || { echo "Nothing changed."; return 0; }
+  fi
+  stop_port "$SPRING_PORT"
+  slot_reset yes
+  slot_setup "$password"
+  slot_run
+}
+
 cmd="${1:-help}"
 shift || true
 parse_slot "${1:-}"
@@ -494,48 +566,19 @@ case "$cmd" in
     exec "$GRADLEW" -p "$ROOT" :projectforge-application:developmentMainForRelease "$@"
     ;;
   run)
-    opts="-XX:ReservedCodeCacheSize=256m -Dprojectforge.base.dir=$PF_HOME"
-    if ((SLOT > 0)); then
-      if [[ ! -d "$PF_HOME" ]]; then
-        echo "Slot $SLOT isn't set up yet, run \`pfDev.sh setup $SLOT\` first." >&2
-        exit 1
-      fi
-      if lsof -nP -iTCP:"$SPRING_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
-        echo "Slot $SLOT is already running (:$SPRING_PORT)." >&2
-        exit 1
-      fi
-      # The main instance keeps whatever its projectforge.properties says.
-      opts+=" -Dserver.port=$SPRING_PORT -Dprojectforge.domain=http://localhost:$SPRING_PORT -Dserver.servlet.session.cookie.name=$COOKIE"
-    fi
-    "$GRADLEW" -p "$ROOT" build -x test
-    # First start after `setup`: fill the fresh database as soon as the instance answers.
-    [[ -f "$PF_HOME/$SETUP_PENDING" ]] && init_database &
-    JAVA_TOOL_OPTIONS="$opts" \
-      exec "$GRADLEW" -p "$ROOT" :projectforge-application:bootRun "$@"
+    slot_run "$@"
     ;;
   setup)
     require_slot setup
-    if [[ -d "$PF_HOME" ]]; then
-      echo "$PF_HOME already exists; \`pfDev.sh reset $SLOT\` first to start over." >&2
-      exit 1
-    fi
-    init_slot_home
-    # Read by the first `run`, which initializes the database with it (the setup needs a running instance).
-    (umask 077 && echo "${1:-Pf-$(openssl rand -hex 8)-1x}" >"$PF_HOME/$SETUP_PENDING")
-    echo "Done. Start it with \`pfDev.sh run $SLOT\` (:$SPRING_PORT); the first start fills the database with test data."
+    slot_setup "${1:-}"
     ;;
   reset)
     require_slot reset
-    if [[ ! -d "$PF_HOME" ]]; then
-      echo "$PF_HOME doesn't exist."
-      exit 0
-    fi
-    if lsof -nP -iTCP:"$SPRING_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
-      echo "Something is listening on :$SPRING_PORT — stop the instance first." >&2
-      exit 1
-    fi
-    read -r -p "Delete $PF_HOME (database, index, logs)? [y/N] " answer
-    [[ "$answer" == [yY] ]] && rm -rf "$PF_HOME" && echo "Deleted."
+    slot_reset
+    ;;
+  renew)
+    require_slot renew
+    slot_renew "$@"
     ;;
   ps)
     list_servers

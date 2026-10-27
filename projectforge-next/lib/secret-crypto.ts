@@ -1,7 +1,8 @@
-// End-to-end encryption of a confidential chat message (ChatSecretRelay), with the browser's WebCrypto
-// only: the recipient makes an ECDH P-256 key pair (private key not extractable, in memory only), the
-// sender a second one per message; ECDH → HKDF-SHA-256 (info: the session id) → AES-GCM-256. The server
-// only ever sees the public keys and the ciphertext.
+// End-to-end encryption of a confidential conversation (ChatSecretRelay), with the browser's WebCrypto
+// only: each side makes an ECDH P-256 key pair per session (private key not extractable, in memory only);
+// ECDH → HKDF-SHA-256 (info: the session id) → AES-GCM-256, one key for the session. A message is bound to
+// the session, to its sender's role and to its counter (additional data), so a replayed, reordered or
+// reflected message fails. The server only ever sees the public keys and the ciphertext.
 
 import { bufferToBase64url, decodeBase64url } from "./base64url";
 
@@ -9,9 +10,12 @@ const CURVE: EcKeyGenParams = { name: "ECDH", namedCurve: "P-256" };
 const IV_BYTES = 12;
 const INFO_PREFIX = "projectforge-chat-secret:";
 
-/** What the recipient needs besides its private key (all base64url), as sent by ChatSecretRest. */
-export interface SecretPayload {
-  senderKey: string;
+/** Who started the session: the initiator offered it, the recipient accepted. */
+export type SecretRole = "initiator" | "recipient";
+
+/** An encrypted message as sent by ChatSecretRest (iv and ciphertext base64url). */
+export interface SecretMessage {
+  counter: number;
   iv: string;
   ciphertext: string;
 }
@@ -31,7 +35,10 @@ export async function exportPublicKey(key: CryptoKey): Promise<string> {
   return bufferToBase64url(await crypto.subtle.exportKey("raw", key));
 }
 
-async function deriveAesKey(
+/**
+ * The key of the session from the own private and the partner's public key (the same on both sides).
+ */
+export async function deriveSessionKey(
   privateKey: CryptoKey,
   publicKey: string,
   sessionId: string
@@ -65,58 +72,71 @@ async function deriveAesKey(
   );
 }
 
-function additionalData(sessionId: string) {
-  return new TextEncoder().encode(sessionId);
+function additionalData(sessionId: string, role: SecretRole, counter: number) {
+  return new TextEncoder().encode(`${sessionId}|${role}|${counter}`);
 }
 
-/** Encrypts the text for the recipient's public key, with a fresh key pair of the sender. */
-export async function encryptSecret(
+/** Encrypts the text as message [counter] of [role] (the counter rises per side, starting at 1). */
+export async function encryptMessage(
   text: string,
-  recipientKey: string,
-  sessionId: string
-): Promise<SecretPayload> {
-  const pair = await generateSecretKeyPair();
-  const key = await deriveAesKey(pair.privateKey, recipientKey, sessionId);
+  key: CryptoKey,
+  sessionId: string,
+  role: SecretRole,
+  counter: number
+): Promise<SecretMessage> {
   const iv = crypto.getRandomValues(new Uint8Array(IV_BYTES));
   const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv, additionalData: additionalData(sessionId) },
+    {
+      name: "AES-GCM",
+      iv,
+      additionalData: additionalData(sessionId, role, counter),
+    },
     key,
     new TextEncoder().encode(text)
   );
   return {
-    senderKey: await exportPublicKey(pair.publicKey),
+    counter,
     iv: bufferToBase64url(iv.buffer),
     ciphertext: bufferToBase64url(ciphertext),
   };
 }
 
-/** Decrypts with the recipient's private key; rejects if anything was changed on the way (GCM tag). */
-export async function decryptSecret(
-  payload: SecretPayload,
-  privateKey: CryptoKey,
-  sessionId: string
+/**
+ * Decrypts a message of the partner ([senderRole]); rejects if anything was changed on the way, or if it
+ * isn't the partner's (GCM tag).
+ */
+export async function decryptMessage(
+  message: SecretMessage,
+  key: CryptoKey,
+  sessionId: string,
+  senderRole: SecretRole
 ): Promise<string> {
-  const key = await deriveAesKey(privateKey, payload.senderKey, sessionId);
   const plain = await crypto.subtle.decrypt(
     {
       name: "AES-GCM",
-      iv: decodeBase64url(payload.iv),
-      additionalData: additionalData(sessionId),
+      iv: decodeBase64url(message.iv),
+      additionalData: additionalData(sessionId, senderRole, message.counter),
     },
     key,
-    decodeBase64url(payload.ciphertext)
+    decodeBase64url(message.ciphertext)
   );
   return new TextDecoder().decode(plain);
 }
 
 /**
- * A short fingerprint of the recipient's public key (4 groups of 5 digits): both sides see it before the
- * text is sent, so a key swapped on the way shows as a difference.
+ * A short fingerprint of both public keys (4 groups of 5 digits): both sides see it, so a key swapped on
+ * the way shows as a difference.
  */
-export async function secretFingerprint(publicKey: string): Promise<string> {
-  const hash = new Uint8Array(
-    await crypto.subtle.digest("SHA-256", decodeBase64url(publicKey))
-  );
+export async function secretFingerprint(
+  initiatorKey: string,
+  recipientKey: string
+): Promise<string> {
+  const a = new Uint8Array(decodeBase64url(initiatorKey));
+  const b = new Uint8Array(decodeBase64url(recipientKey));
+  const both = new Uint8Array(a.length + b.length);
+  both.set(a, 0);
+  both.set(b, a.length);
+  const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", both));
   const groups: string[] = [];
   for (let i = 0; i < 8; i += 2) {
     groups.push(String((hash[i] << 8) | hash[i + 1]).padStart(5, "0"));

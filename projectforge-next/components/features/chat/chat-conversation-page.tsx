@@ -15,18 +15,22 @@ import {
   RichText,
 } from "@/components/shared/rich-text";
 import { Button } from "@/components/ui/button";
-import { chatConversationQueryKey, fetchChatConversation } from "@/lib/rs/chat";
+import {
+  CHAT_HOST_CHAT_ROOM,
+  chatConversationQueryKey,
+  fetchChatConversation,
+} from "@/lib/rs/chat";
 import { cn } from "@/lib/utils";
 import { ChatMembersButton } from "./chat-members-button";
 import { ChatPanel } from "./chat-panel";
 import { ChatRoomDialog } from "./chat-room-dialog";
 
 /** The host type of the chat rooms (ChatRoomChatHost.HOST_TYPE). */
-const CHAT_ROOM_HOST_TYPE = "chatRoom";
 
 /**
  * A conversation as a page of its own (`/next/chat/{id}`, CTX-04): the title of its host object with the way
- * back to it, its description, the conversation full size. `?message={id}` points at a message (MSG-05). The
+ * back to it, its description, the conversation full size. `?message={id}` points at a message (MSG-05),
+ * `&thread={rootId}` opens its thread for a reply. The
  * owner and the moderators of a chat room edit it from here (the server checks it again).
  */
 export function ChatConversationPage({
@@ -39,6 +43,7 @@ export function ChatConversationPage({
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const highlight = Number(searchParams.get("message"));
+  const thread = Number(searchParams.get("thread"));
   const query = useQuery({
     queryKey: chatConversationQueryKey(conversationId),
     queryFn: ({ signal }) => fetchChatConversation(conversationId, signal),
@@ -47,7 +52,7 @@ export function ChatConversationPage({
   const [editRoom, setEditRoom] = useState(false);
   const conversation = query.data;
   const roomId =
-    conversation?.hostType === CHAT_ROOM_HOST_TYPE && conversation.isModerator
+    conversation?.hostType === CHAT_HOST_CHAT_ROOM && conversation.isModerator
       ? conversation.hostId
       : null;
   return (
@@ -101,6 +106,7 @@ export function ChatConversationPage({
           highlightId={
             Number.isInteger(highlight) && highlight > 0 ? highlight : null
           }
+          threadRootId={Number.isInteger(thread) && thread > 0 ? thread : null}
         />
       </div>
       {roomId != null && (

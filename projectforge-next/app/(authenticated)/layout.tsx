@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { SecretOfferAlerts } from "@/components/features/chat/secret-offer-alerts";
 import { AuthGuard } from "@/components/shared/auth-guard";
 import { CostSearchPanelHost } from "@/components/shared/cost-search/cost-search-panel-host";
 import { FeatureGuard } from "@/components/shared/feature-guard";
@@ -7,6 +8,7 @@ import { JobToasts } from "@/components/shared/jobs/job-toasts";
 import { NotificationToasts } from "@/components/shared/notifications/notification-toasts";
 import { TwoFactorProvider } from "@/components/shared/two-factor-provider";
 import { UnsavedChangesDialogHost } from "@/components/shared/unsaved-changes-dialog-host";
+import { UserEvents } from "@/components/shared/user-events";
 
 export default function AuthenticatedLayout({
   children,
@@ -20,6 +22,10 @@ export default function AuthenticatedLayout({
       <JobToasts />
       {/* The user's notifications shown as toasts, on whatever page the poll finds them. */}
       <NotificationToasts />
+      {/* One event stream of the user for every page; it wakes e.g. the signals of a confidential
+          conversation offered, which has to reach the user wherever the app is open. */}
+      <UserEvents />
+      <SecretOfferAlerts />
       {/* The one edit modal any page below can open (the calendar's timesheets and team events, the
           structure wizard's groups) — mounted here so it outlives whatever raised it. */}
       <EntityEditModalHost />

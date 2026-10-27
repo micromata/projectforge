@@ -8,7 +8,7 @@ import { matchRoute, type RouteParams } from "@/lib/route-params";
  *
  * `useParams()` is unusable here: under `output: "export"` each dynamic route is prerendered exactly
  * once, from the placeholder its `generateStaticParams` returns, and the params baked into that
- * build are what the hook reports at runtime. `/next/book/25219084` would render the *new* book
+ * build are what the hook reports at runtime. `/next/book/4711` would render the *new* book
  * form, because `book/[id]` was prerendered as `book/new`. `usePathname()` does follow the URL,
  * so the params are parsed from it against the route's own pattern.
  *

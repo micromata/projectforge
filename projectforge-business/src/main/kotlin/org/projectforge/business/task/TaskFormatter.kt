@@ -58,7 +58,7 @@ open class TaskFormatter : AbstractFormatter() {
          * @param showCurrentTask if true also the given task by id will be added to the path, otherwise the path of the
          * parent task will be shown.
          * @param abreviationLength The parent path will be shorted for achieving the given length. But the length isn't garantueed.
-         * Example: "Micromata - Business Unit Green - ProjectForge - Development - Release 1.3" -> "M..BUG..P..Development..Release 1.3"
+         * Example: "ACME - Business Unit A - ProjectForge - Development - Release 1.3" -> "A..BUA..P..Development..Release 1.3"
          */
         @JvmStatic
         @JvmOverloads

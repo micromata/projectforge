@@ -70,17 +70,17 @@ class AutoCompleteObjectsTest : AbstractTestBase() {
     private lateinit var userEntityRest: UserEntityRest
 
     /**
-     * A group named `dhl-pop`: the index holds `dhl` and `pop` (the default analyzer separates at the hyphen),
-     * so the query `+dhl-pop*` of the combo box asked for a term that cannot exist - Lucene doesn't tokenize a
-     * wildcard term. Only `dhl pop` used to find the group.
+     * A group named `acme-pop`: the index holds `acme` and `pop` (the default analyzer separates at the hyphen),
+     * so the query `+acme-pop*` of the combo box asked for a term that cannot exist - Lucene doesn't tokenize a
+     * wildcard term. Only `acme pop` used to find the group.
      */
     @Test
     fun groupNameWithHyphenTest() {
         logon(ADMIN_USER)
         val group = GroupDO()
-        group.name = "dhl-pop.$PREFIX"
+        group.name = "acme-pop.$PREFIX"
         groupDao.insert(group)
-        listOf("dhl-pop", "dhl-po", "dhl-", "dhl", "pop", "dhl pop").forEach { searchString ->
+        listOf("acme-pop", "acme-po", "acme-", "acme", "pop", "acme pop").forEach { searchString ->
             val result = autoComplete(groupEntityRest, searchString)
             Assertions.assertTrue(
                 result.any { it.id == group.id },
@@ -88,7 +88,7 @@ class AutoCompleteObjectsTest : AbstractTestBase() {
             )
         }
         Assertions.assertTrue(
-            autoComplete(groupEntityRest, "dxl-pop").none { it.id == group.id },
+            autoComplete(groupEntityRest, "axme-pop").none { it.id == group.id },
             "A word the name doesn't hold offers nothing: the search is still a search.",
         )
     }

@@ -117,7 +117,7 @@ open class ConfigurationService {
     protected set
 
   /**
-   * For direct calls all numbers beginning with the this number will be stripped, e. g. for 0561316793: 056131679323 ->
+   * For direct calls all numbers beginning with the this number will be stripped, e. g. for 0123456789: 012345678923 ->
    * 23. So internal calls are supported.
    */
   @Value("\${projectforge.telephoneSystemNumber}")

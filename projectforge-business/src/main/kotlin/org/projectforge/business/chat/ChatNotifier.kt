@@ -145,9 +145,9 @@ class ChatNotifier {
     }
 
     /**
-     * A confidential message offered to the recipient of a direct chat ([ChatSecretRelay]): in the app only (a mail
+     * A confidential conversation offered to the recipient of a direct chat ([ChatSecretRelay]): in the app only (a mail
      * would come too late, the session ends after minutes), not if watching the conversation right now. Names only the
-     * sender, nothing of the message (which doesn't exist yet). [offeredAt] tells the offers apart. Watching is known
+     * initiator, nothing of the conversation (which hasn't started yet). [offeredAt] tells the offers apart. Watching is known
      * from the server-sent events only: a chat open in polling mode gets the notification too.
      */
     fun onSecretOffer(conversationId: Long, senderId: Long, recipientId: Long, offeredAt: Long) {
@@ -171,12 +171,12 @@ class ChatNotifier {
                     menuBadge = MenuItemDefId.CHAT,
                 )
             } catch (ex: Exception) {
-                log.error(ex) { "Notification of a confidential message in conversation #$conversationId failed: ${ex.message}" }
+                log.error(ex) { "Notification of a confidential conversation in conversation #$conversationId failed: ${ex.message}" }
             }
         }
     }
 
-    /** Resolves the notifications of the recipient about confidential messages of the conversation (none open). */
+    /** Resolves the notifications of the recipient about confidential conversations of the conversation (none open). */
     fun resolveSecret(conversationId: Long, recipientId: Long) {
         executor.execute {
             try {

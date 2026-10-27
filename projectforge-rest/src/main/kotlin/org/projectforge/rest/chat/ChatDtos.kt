@@ -242,6 +242,16 @@ class ChatHostEntry(
     val canWrite: Boolean,
 )
 
+/** A conversation with messages matching the search of the chat page: the newest match as preview. */
+class ChatSearchHit(
+    val conversationId: Long,
+    val hostType: String,
+    /** The title of the host object as seen by the logged-in user. */
+    val title: String,
+    val hitCount: Long,
+    val message: ChatMessage,
+)
+
 class ChatDirectOpenRequest(val userId: Long? = null)
 
 class ChatDirectOpenResult(val conversationId: Long)
@@ -250,27 +260,35 @@ class ChatDirectOpenResult(val conversationId: Long)
 class ChatRoomDefaults(val fileExpiryDays: Int?, val fileExpiryDaysChoices: List<ChatChoice>, val filesEnabled: Boolean)
 
 /**
- * A confidential message of a direct chat ([org.projectforge.business.chat.ChatSecretRelay]) as one of its two sides
- * sees it: never the ciphertext (only [ChatSecretPayload] by take).
+ * A confidential conversation of a direct chat ([org.projectforge.business.chat.ChatSecretRelay]) as one of its two
+ * sides sees it: never the ciphertext (only [ChatSecretMessage] by take).
  */
 class ChatSecretSession(
     val id: String,
     val conversationId: Long,
-    /** OFFERED, ACCEPTED, DELIVERED or TAKEN (received by the recipient, nothing of it left). */
+    /** OFFERED (waiting for the recipient's key) or OPEN. */
     val state: String,
-    val sender: ChatRef,
+    val initiator: ChatRef,
     val recipient: ChatRef,
-    /** Is the logged-in user the sender? */
+    /** Is the logged-in user the initiator? */
     val mine: Boolean,
-    /** The public key of the recipient (raw P-256, base64url), after accepting. */
+    /** The public keys (raw P-256, base64url); the recipient's after accepting. */
+    val initiatorKey: String,
     val recipientKey: String?,
+    /** Messages waiting for the logged-in user (to take). */
+    val waiting: Int,
+    /** The highest counter of the logged-in user's messages the partner has taken. */
+    val readCounter: Long,
+    /** The highest counter of the logged-in user's messages the relay has accepted (to resume after a lost answer). */
+    val sentCounter: Long,
+    /** The end of the session if nothing more is sent. */
     val expiresAt: Date,
 )
 
-/** The conversation of an offer, or whose offers were seen. */
-class ChatSecretOfferRequest(val conversationId: Long? = null)
+/** The conversation of an offer (with the initiator's key), or whose offers were seen. */
+class ChatSecretOfferRequest(val conversationId: Long? = null, val publicKey: String? = null)
 
 class ChatSecretAcceptRequest(val publicKey: String? = null)
 
-/** The ciphertext (AES-GCM) with the public key of the sender and the iv, all base64url. */
-class ChatSecretPayload(val senderKey: String? = null, val iv: String? = null, val ciphertext: String? = null)
+/** An encrypted message (AES-GCM), the iv and ciphertext base64url; the counter rises per side. */
+class ChatSecretMessage(val counter: Long? = null, val iv: String? = null, val ciphertext: String? = null)

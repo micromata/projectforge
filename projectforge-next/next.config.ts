@@ -45,7 +45,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     // Dev-only, for the rewrites below: the proxy gives up after 30s by default and answers 500,
-    // while the forecast export of the whole order book takes just over that on a real database
+    // while the forecast export of the whole order book takes just over that on a large database
     // (ForecastExport walks every order and every invoice of three years). Prod has no proxy — Spring
     // serves both — so this only makes dev behave like it.
     proxyTimeout: 300_000,

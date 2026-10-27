@@ -33,17 +33,17 @@ import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Comp
 
 class CustomerGroupIndexTest {
     private val directory = CustomerDirectory(
-        customers = mapOf(101L to "ACME Germany", 102L to "ACME Logistics", 200L to "Internal", 300L to "Kühne Spedition"),
+        customers = mapOf(101L to "ACME Germany", 102L to "ACME Logistics", 200L to "Internal", 300L to "Muster Spedition"),
         // Project 1 of the internal customer below task 10 (in BU Blue), project 2 below 20 (in BU Green),
         // project 3 of an ACME customer below 20, project 4 below no business unit's task. Project 5 below 20 has
-        // no customer entity, its orders were placed by "Kühne Spedition" (free text), then by the internal one;
+        // no customer entity, its orders were placed by "Muster Spedition" (free text), then by the internal one;
         // project 6 below 20 has neither.
         projects = mapOf(
             1L to ProjectRef(200, 11),
             2L to ProjectRef(200, 21),
             3L to ProjectRef(101, 21),
             4L to ProjectRef(200, 30),
-            5L to ProjectRef(null, 21, listOf(CustomerKey(null, "Kühne Spedition"), CustomerKey(200))),
+            5L to ProjectRef(null, 21, listOf(CustomerKey(null, "Muster Spedition"), CustomerKey(200))),
             6L to ProjectRef(null, 21),
         ),
         taskPath = {

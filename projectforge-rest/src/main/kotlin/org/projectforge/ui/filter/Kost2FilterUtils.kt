@@ -38,9 +38,9 @@ import org.projectforge.ui.UISelectValue
  * it — the time sheets, an invoice's positions, and so on.
  *
  * A single text field that filters directly *and* suggests concrete cost units:
- * - The free text the user types filters the list. A number-looking term (`6.300`) becomes a **prefix
+ * - The free text the user types filters the list. A number-looking term (`6.900`) becomes a **prefix
  *   search** on the cost number, so trimming trailing segments widens the result
- *   (`6.300.00.00` → `6.300.00` project → `6.300` customer → `6` number range, as the legacy `nummer:…*`).
+ *   (`6.900.00.00` → `6.900.00` project → `6.900` customer → `6` number range, as the legacy `nummer:…*`).
  *   Any other text is ORed across the indexed cost unit fields, so a project name or a description
  *   filters too. The customer is reached through the number prefix, not a field of its own.
  * - A type-ahead against `cost2/autosearch` (marked [AutoCompletion.Type.KOST2]) suggests concrete cost

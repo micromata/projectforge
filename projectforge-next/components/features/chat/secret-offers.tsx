@@ -16,12 +16,17 @@ import {
   isSecretCryptoSupported,
 } from "@/lib/secret-crypto";
 import { SecretOfferRow } from "./secret-offer-row";
-import { SecretReceiveSteps, type ActiveSecret } from "./secret-receive-dialog";
+import { SecretConversationSteps } from "./secret-conversation-dialog";
+
+/** An accepted confidential conversation with the recipient's private key (in memory only). */
+interface ActiveSecret {
+  session: ChatSecretSession;
+  privateKey: CryptoKey;
+}
 
 /**
- * The confidential messages offered to the user in a direct chat: accepting makes the key pair (only
- * here, in memory) and opens the dialog that receives the message (see SecretOfferRow for one accepted
- * elsewhere). Shown here, their notification is resolved: its banner would only point to where the user
+ * The confidential conversations offered to the user in a direct chat: accepting makes the key pair (only
+ * here, in memory) and opens the conversation dialog (see SecretOfferRow for one accepted elsewhere). Shown here, their notification is resolved: its banner would only point to where the user
  * already is.
  */
 export function SecretOffers({
@@ -38,7 +43,7 @@ export function SecretOffers({
       const keys = await generateSecretKeyPair();
       const publicKey = await exportPublicKey(keys.publicKey);
       await acceptChatSecret(session.id, publicKey);
-      return { session, privateKey: keys.privateKey, publicKey };
+      return { session, privateKey: keys.privateKey };
     },
     onSuccess: setActive,
     onError: (error: Error) => toast.error(error.message),
@@ -64,8 +69,11 @@ export function SecretOffers({
       <Dialog open={!!active} onOpenChange={(open) => !open && setActive(null)}>
         <DialogContent className="sm:max-w-md">
           {active && (
-            <SecretReceiveSteps
-              active={active}
+            <SecretConversationSteps
+              role="recipient"
+              partner={active.session.initiator.displayName}
+              sessionId={active.session.id}
+              privateKey={active.privateKey}
               onClose={() => {
                 setActive(null);
                 onChange();

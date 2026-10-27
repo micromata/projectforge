@@ -469,7 +469,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
       log.warn("No username given.");
       return null;
     }
-    // Xanatizer-findings, thanx to Felix Tschentscher and Sergej Michel, Micromata:
+    // Findings of a static code analysis:
     final String encodedUsername = LdapUtils.encodeForLDAP(username);
     return (LdapUser) new LdapTemplate(ldapConnector) {
       @Override

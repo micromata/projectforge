@@ -1,11 +1,15 @@
 "use client";
 
-import { Fragment, useEffect, useLayoutEffect, useRef } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Spinner } from "@/components/shared/spinner";
+import { useFormatContext } from "@/hooks/use-format";
 import { Button } from "@/components/ui/button";
 import type { ChatMessage } from "@/lib/rs/chat-types";
+import { CHAT_COLUMN_CLASS } from "./chat-column";
 import { useChatContext } from "./chat-context";
+import { DaySeparator } from "./day-separator";
+import { layoutMessages } from "./message-grouping";
 import { MessageItem } from "./message-item";
 import { useChatMessages } from "./use-chat-messages";
 import { AT_END_PX, isAtEnd, useFollowEnd } from "./use-follow-end";
@@ -22,6 +26,7 @@ export function MessageList({
   onAtEnd: (newestId: number | null) => void;
 }) {
   const t = useTranslations();
+  const formatContext = useFormatContext();
   const { conversation, highlightId, readMark } = useChatContext();
   const { query, messages } = useChatMessages(conversation.id);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -31,6 +36,10 @@ export function MessageList({
   const contentRef = useFollowEnd(scrollRef, atEnd);
   const newest = messages[messages.length - 1];
   const firstUnread = findFirstUnread(messages, readMark, conversation.me.id);
+  const layout = useMemo(
+    () => layoutMessages(messages, formatContext, firstUnread),
+    [messages, formatContext, firstUnread]
+  );
 
   // Keeps the position when older messages come in on top, follows new ones at the end.
   useLayoutEffect(() => {
@@ -80,7 +89,7 @@ export function MessageList({
       role="log"
       aria-live="polite"
     >
-      <div ref={contentRef}>
+      <div ref={contentRef} className={CHAT_COLUMN_CLASS}>
         {query.hasNextPage && (
           <div className="flex justify-center py-1">
             <Button
@@ -103,10 +112,11 @@ export function MessageList({
             {t("chat.conversation.empty")}
           </p>
         )}
-        {messages.map((message) => (
+        {layout.map(({ message, dayStart, continued }) => (
           <Fragment key={message.id}>
+            {dayStart && <DaySeparator timestamp={dayStart} />}
             {message.id === firstUnread && <NewMessagesLine />}
-            <MessageItem message={message} />
+            <MessageItem message={message} continued={continued} />
           </Fragment>
         ))}
       </div>

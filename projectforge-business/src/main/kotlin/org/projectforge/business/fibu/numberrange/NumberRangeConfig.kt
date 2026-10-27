@@ -28,7 +28,7 @@ package org.projectforge.business.fibu.numberrange
  * the formerly built-in ranges 4 and 5 ([NumberRanges.legacyRanges]) apply only to an installation that used them
  * (see [NumberRangeService]), otherwise customer and project numbers are free.
  *
- * Example (the ranges used by Micromata):
+ * Example:
  * ```
  * projectforge.fibu.number-ranges.allow-free-numbers=false
  * projectforge.fibu.number-ranges.ranges[0].prefix=4

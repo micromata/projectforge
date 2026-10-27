@@ -262,7 +262,7 @@ class RechnungCacheTest : AbstractTestBase() {
 
     /**
      * A cancellation invoice has no number of its own, but stays assigned to the order positions of the invoice it
-     * cancels: listed right after it (e.g. 17400, 17400-S), and counting 0 together with it. Two cancellations on
+     * cancels: listed right after it (e.g. 12345, 12345-S), and counting 0 together with it. Two cancellations on
      * the same order position must both be kept (they used to compare equal in the cache's TreeSet).
      */
     @Test

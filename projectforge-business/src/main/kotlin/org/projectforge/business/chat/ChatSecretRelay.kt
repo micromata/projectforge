@@ -38,20 +38,21 @@ import java.util.concurrent.ConcurrentHashMap
 private val log = KotlinLogging.logger {}
 
 /**
- * Confidential messages of a direct chat (like an OTR session): end-to-end encrypted by the two browsers, the server
- * only relays the public keys and the ciphertext. The keys are made by the browsers (WebCrypto, ECDH P-256), the
- * private ones never leave them; this relay only sees what it can't decrypt.
+ * A confidential conversation of a direct chat (like an OTR session): end-to-end encrypted by the two browsers, the
+ * server only relays the public keys and the ciphertext. The keys are made by the browsers (WebCrypto, ECDH P-256),
+ * the private ones never leave them; this relay only sees what it can't decrypt.
  *
  * Nothing is written anywhere: no database, no log, no chat history. The sessions live in memory only (single node,
- * as the subscriptions of the server-sent events), are deleted when the recipient took the ciphertext, when cancelled
- * or after [TTL_MILLIS].
+ * as the subscriptions of the server-sent events). A message is deleted when the other side took it; the session is
+ * deleted when either side ends it, after [IDLE_MILLIS] without a message, after [MAX_MILLIS] at the latest, or when a
+ * side isn't seen anymore for [PRESENCE_MILLIS] (page closed or reloaded: its key is gone with it).
  *
- * The flow: the sender offers ([offer], recipient: the partner of the direct chat from the database), the recipient
- * accepts with its public key ([accept]), the sender delivers the ciphertext with its own public key ([deliver]), the
- * recipient takes it once ([take]). Each step is allowed to its side only and in its state only.
+ * The flow: the initiator offers with its public key ([offer], recipient: the partner of the direct chat from the
+ * database), the recipient accepts with its own ([accept]); then both sides [send] and [take] messages until one ends
+ * the session ([cancel]). Each step is allowed to its side only and in its state only.
  *
- * The fingerprint the browsers show covers the recipient's key, i.e. the confidentiality: a manipulated server can't
- * read the message. The sender's key isn't authenticated, so such a server could replace the message (forge it).
+ * The fingerprint the browsers show covers both public keys: a manipulated server can neither read nor forge a
+ * message without the two sides seeing different fingerprints (if they compare them).
  */
 @Service
 open class ChatSecretRelay {
@@ -64,20 +65,23 @@ open class ChatSecretRelay {
     @Autowired
     private lateinit var directHost: ChatDirectChatHost
 
+    /** Internal: replaced by tests. */
     @Autowired(required = false)
-    private var eventListeners: List<ChatEventListener> = emptyList()
+    internal var eventListeners: List<ChatEventListener> = emptyList()
 
-    /** [TAKEN]: the recipient has the ciphertext (deleted here), kept until expiry so the sender learns it. */
-    enum class State { OFFERED, ACCEPTED, DELIVERED, TAKEN }
+    /** [OFFERED]: waiting for the recipient's key. [OPEN]: both keys known, messages can be sent. */
+    enum class State { OFFERED, OPEN }
 
-    /** The ciphertext with what the recipient needs to decrypt it (all base64url). */
-    class Payload(val senderKey: String, val iv: String, val ciphertext: String)
+    /** One encrypted message (iv and ciphertext base64url); [counter] rises per side, it is part of the AES-GCM data. */
+    class Message(val counter: Long, val iv: String, val ciphertext: String)
 
     class Session internal constructor(
         val id: String,
         val conversationId: Long,
-        val senderId: Long,
+        val initiatorId: Long,
         val recipientId: Long,
+        /** The public key of the initiator (raw, base64url). */
+        val initiatorKey: String,
         internal val created: Long,
     ) {
         @Volatile
@@ -90,10 +94,39 @@ open class ChatSecretRelay {
             internal set
 
         @Volatile
-        internal var payload: Payload? = null
+        internal var lastActivity: Long = created
 
+        @Volatile
+        internal var initiatorSeen: Long = created
+
+        @Volatile
+        internal var recipientSeen: Long = created
+
+        internal val toInitiator = ArrayDeque<Message>()
+        internal val toRecipient = ArrayDeque<Message>()
+
+        /** The highest counter sent by the side. */
+        internal var initiatorSent = 0L
+        internal var recipientSent = 0L
+
+        /** The highest counter of the messages sent by the side the other one has taken. */
+        internal var initiatorRead = 0L
+        internal var recipientRead = 0L
+
+        fun isInitiator(userId: Long?) = userId == initiatorId
+
+        /** Messages waiting for the user. */
+        fun waiting(userId: Long?): Int = synchronized(this) { (if (isInitiator(userId)) toInitiator else toRecipient).size }
+
+        /** The highest counter of the user's messages the partner has taken. */
+        fun read(userId: Long?): Long = synchronized(this) { if (isInitiator(userId)) initiatorRead else recipientRead }
+
+        /** The highest counter the user has sent (accepted by the relay). */
+        fun sent(userId: Long?): Long = synchronized(this) { if (isInitiator(userId)) initiatorSent else recipientSent }
+
+        /** The end of the session if nothing more is sent. */
         val expiresAt: Long
-            get() = created + TTL_MILLIS
+            get() = minOf(created + MAX_MILLIS, lastActivity + IDLE_MILLIS)
     }
 
     private val sessions = ConcurrentHashMap<String, Session>()
@@ -103,40 +136,60 @@ open class ChatSecretRelay {
     /** The time in millis (replaced by tests). */
     internal var clock: () -> Long = System::currentTimeMillis
 
-    /** The sender offers the partner of the direct chat a confidential message. */
-    open fun offer(conversationId: Long?): Session {
+    /** The initiator offers the partner of the direct chat a confidential conversation. */
+    open fun offer(conversationId: Long?, publicKey: String?): Session {
         val user = ThreadLocalUserContext.requiredLoggedInUser
         val context = chatAccess.requireWriteContext(conversationId, user)
         if (context.host.hostType != ChatDirectChatHost.HOST_TYPE) {
             throw AccessException(user, NO_ACCESS)
         }
         val recipientId = directHost.partnerId(context.hostId, user.id) ?: throw AccessException(user, NO_ACCESS)
+        checkPublicKey(publicKey, user)
         purge()
-        val open = sessions.values.count { it.senderId == user.id && it.state != State.TAKEN }
+        val open = sessions.values.count { it.initiatorId == user.id }
         if (sessions.size >= MAX_SESSIONS || open >= MAX_SESSIONS_PER_USER) {
             throw UserException(ERROR_TOO_MANY)
         }
-        val session = Session(newId(), context.conversationId, user.id!!, recipientId, clock())
+        val session = Session(newId(), context.conversationId, user.id!!, recipientId, publicKey!!, clock())
         sessions[session.id] = session
         wake(session, recipientId)
-        chatNotifier.onSecretOffer(session.conversationId, session.senderId, recipientId, session.created)
+        wakeOffers(recipientId)
+        chatNotifier.onSecretOffer(session.conversationId, session.initiatorId, recipientId, session.created)
         return session
     }
 
-    /** The session, if the logged-in user is one of its two sides and it is still open; null otherwise. */
+    /**
+     * The session, if the logged-in user is one of its two sides and it is still open; null otherwise. Asking is the
+     * sign that the side is still there.
+     */
     open fun get(id: String?): Session? {
         val session = sessions[id ?: return null]?.takeIf { !expired(it) } ?: return null
         val userId = ThreadLocalUserContext.requiredLoggedInUserId
-        return session.takeIf { userId == it.senderId || userId == it.recipientId }
+        if (userId != session.initiatorId && userId != session.recipientId) {
+            return null
+        }
+        if (session.isInitiator(userId)) session.initiatorSeen = clock() else session.recipientSeen = clock()
+        return session
     }
 
-    /** The sessions of the conversation the logged-in user is the recipient of (to accept or to take). */
+    /** The sessions of the conversation the logged-in user is the recipient of (to accept, or accepted elsewhere). */
     open fun pending(conversationId: Long?): List<Session> {
         val user = ThreadLocalUserContext.requiredLoggedInUser
         val context = chatAccess.requireContext(conversationId, user)
         return sessions.values.filter {
-            it.conversationId == context.conversationId && it.recipientId == user.id && it.state != State.TAKEN &&
-                    !expired(it)
+            it.conversationId == context.conversationId && it.recipientId == user.id && !expired(it)
+        }.sortedBy { it.created }
+    }
+
+    /**
+     * The offers to the logged-in user waiting for an answer, in all of the user's direct chats: to draw the user's
+     * attention wherever the app is open (sound, tab title, browser notification), not only in the chat.
+     */
+    open fun offers(): List<Session> {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        return sessions.values.filter {
+            it.recipientId == user.id && it.state == State.OFFERED && !expired(it) &&
+                    chatAccess.getContext(it.conversationId, user) != null
         }.sortedBy { it.created }
     }
 
@@ -152,58 +205,77 @@ open class ChatSecretRelay {
 
     /** The recipient accepts with its public key. */
     open fun accept(id: String?, publicKey: String?): Session {
-        val (session, user) = requireSide(id, recipient = true)
+        val (session, user) = requireSide(id, initiator = false)
         checkPublicKey(publicKey, user)
         synchronized(session) {
             checkState(session, State.OFFERED)
             session.recipientKey = publicKey
-            session.state = State.ACCEPTED
+            session.state = State.OPEN
+            session.lastActivity = clock()
         }
-        wake(session, session.senderId)
+        wake(session, session.initiatorId)
+        wakeOffers(session.recipientId)
         resolveNotification(session)
         return session
     }
 
-    /** The sender delivers the ciphertext, encrypted for the public key of the recipient. */
-    open fun deliver(id: String?, payload: Payload): Session {
-        val (session, user) = requireSide(id, recipient = false)
+    /** Either side sends a message, encrypted for the key of the other one. */
+    open fun send(id: String?, message: Message): Session {
+        val (session, user) = requireSide(id, initiator = null)
         chatAccess.requireWriteContext(session.conversationId, user)
-        checkPublicKey(payload.senderKey, user)
-        if (decodedSize(payload.iv) != IV_BYTES) {
+        if (decodedSize(message.iv) != IV_BYTES) {
             throw UserException(ERROR_INVALID)
         }
-        val size = decodedSize(payload.ciphertext)
+        val size = decodedSize(message.ciphertext)
         if (size == null || size <= TAG_BYTES) {
             throw UserException(ERROR_INVALID)
         }
         if (size > MAX_CIPHERTEXT_BYTES) {
             throw UserException(ERROR_TOO_LARGE)
         }
+        val initiator = session.isInitiator(user.id)
         synchronized(session) {
-            checkState(session, State.ACCEPTED)
-            session.payload = payload
-            session.state = State.DELIVERED
+            checkState(session, State.OPEN)
+            val sent = if (initiator) session.initiatorSent else session.recipientSent
+            if (message.counter <= sent) {
+                throw UserException(ERROR_INVALID)
+            }
+            val queue = if (initiator) session.toRecipient else session.toInitiator
+            if (queue.size >= MAX_QUEUED) {
+                throw UserException(ERROR_QUEUE_FULL)
+            }
+            queue.addLast(message)
+            if (initiator) session.initiatorSent = message.counter else session.recipientSent = message.counter
+            session.lastActivity = clock()
         }
-        wake(session, session.recipientId)
+        wake(session, if (initiator) session.recipientId else session.initiatorId)
         return session
     }
 
     /**
-     * The recipient takes the ciphertext: only once, it is deleted with it. The session stays (state [State.TAKEN],
-     * without anything of the message) until it expires, so the sender can tell "opened" from "ended".
+     * Either side takes the messages waiting for it: they are deleted with it, the other side learns they were taken.
      */
-    open fun take(id: String?): Payload {
-        val (session, user) = requireSide(id, recipient = true)
+    open fun take(id: String?): List<Message> {
+        val (session, user) = requireSide(id, initiator = null)
         chatAccess.requireContext(session.conversationId, user)
-        val payload = synchronized(session) {
-            checkState(session, State.DELIVERED)
-            session.payload.also {
-                session.payload = null
-                session.state = State.TAKEN
+        val initiator = session.isInitiator(user.id)
+        val messages = synchronized(session) {
+            checkState(session, State.OPEN)
+            val queue = if (initiator) session.toInitiator else session.toRecipient
+            queue.toList().also {
+                queue.clear()
+                val last = it.lastOrNull()?.counter
+                if (last != null) {
+                    // The partner's messages were taken: its "read" mark.
+                    if (initiator) session.recipientRead = last else session.initiatorRead = last
+                    session.lastActivity = clock()
+                }
             }
-        } ?: throw AccessException(user, NO_ACCESS)
-        wake(session, session.senderId)
-        return payload
+        }
+        if (messages.isNotEmpty()) {
+            wake(session, if (initiator) session.recipientId else session.initiatorId)
+        }
+        return messages
     }
 
     /** Either side ends the session. */
@@ -211,7 +283,10 @@ open class ChatSecretRelay {
         val user = ThreadLocalUserContext.requiredLoggedInUser
         val session = get(id) ?: return
         sessions.remove(session.id)
-        wake(session, if (user.id == session.senderId) session.recipientId else session.senderId)
+        wake(session, if (user.id == session.initiatorId) session.recipientId else session.initiatorId)
+        if (session.state == State.OFFERED) {
+            wakeOffers(session.recipientId)
+        }
         resolveNotification(session)
     }
 
@@ -220,16 +295,18 @@ open class ChatSecretRelay {
         val expired = sessions.values.filter { expired(it) }
         expired.forEach { sessions.remove(it.id) }
         expired.forEach { resolveNotification(it) }
+        expired.filter { it.state == State.OFFERED }.map { it.recipientId }.distinct().forEach { wakeOffers(it) }
     }
 
     /** The number of open sessions (tests, statistics). */
     open val size: Int
         get() = sessions.size
 
-    private fun requireSide(id: String?, recipient: Boolean): Pair<Session, PFUserDO> {
+    /** [initiator]: true the initiator, false the recipient, null either of them. */
+    private fun requireSide(id: String?, initiator: Boolean?): Pair<Session, PFUserDO> {
         val user = ThreadLocalUserContext.requiredLoggedInUser
         val session = get(id) ?: throw AccessException(user, NO_ACCESS)
-        if (user.id != if (recipient) session.recipientId else session.senderId) {
+        if (initiator != null && session.isInitiator(user.id) != initiator) {
             throw AccessException(user, NO_ACCESS)
         }
         return Pair(session, user)
@@ -245,7 +322,7 @@ open class ChatSecretRelay {
     private fun checkPublicKey(key: String?, user: PFUserDO) {
         val bytes = decode(key)
         if (bytes == null || bytes.size != PUBLIC_KEY_BYTES || bytes[0] != 4.toByte()) {
-            log.debug { "Invalid public key of a confidential chat message by user #${user.id}." }
+            log.debug { "Invalid public key of a confidential chat by user #${user.id}." }
             throw UserException(ERROR_INVALID)
         }
     }
@@ -264,7 +341,12 @@ open class ChatSecretRelay {
 
     private fun decodedSize(value: String?): Int? = decode(value)?.size
 
-    private fun expired(session: Session): Boolean = clock() > session.expiresAt
+    private fun expired(session: Session): Boolean {
+        val now = clock()
+        return now > session.created + MAX_MILLIS || now > session.lastActivity + IDLE_MILLIS ||
+                now - session.initiatorSeen > PRESENCE_MILLIS ||
+                (session.state == State.OPEN && now - session.recipientSeen > PRESENCE_MILLIS)
+    }
 
     private fun newId(): String {
         val bytes = ByteArray(16)
@@ -294,13 +376,33 @@ open class ChatSecretRelay {
         }
     }
 
+    /** Wakes all open pages of the user: the offers to the user changed (the event carries nothing either). */
+    private fun wakeOffers(userId: Long) {
+        eventListeners.forEach { listener ->
+            try {
+                listener.onSecretOffers(userId)
+            } catch (ex: Exception) {
+                log.warn(ex) { "Chat event listener failed for the offers to user #$userId: ${ex.message}" }
+            }
+        }
+    }
+
     companion object {
-        const val TTL_MILLIS = 10 * 60_000L
+        /** A session ends after this long without a message. */
+        const val IDLE_MILLIS = 10 * 60_000L
+
+        /** A session ends after this long, however active. */
+        const val MAX_MILLIS = 2 * 60 * 60_000L
+
+        /** A side not asking for this long is gone (closed page, reload); tolerates throttled background tabs. */
+        const val PRESENCE_MILLIS = 2 * 60_000L
         const val MAX_CIPHERTEXT_BYTES = 16 * 1024
+        const val MAX_QUEUED = 20
         const val ERROR_INVALID = "chat.secret.error.invalid"
         const val ERROR_STATE = "chat.secret.error.state"
         const val ERROR_TOO_LARGE = "chat.secret.error.tooLarge"
         const val ERROR_TOO_MANY = "chat.secret.error.tooMany"
+        const val ERROR_QUEUE_FULL = "chat.secret.error.queueFull"
 
         private const val PUBLIC_KEY_BYTES = 65
         private const val IV_BYTES = 12

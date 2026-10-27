@@ -232,8 +232,8 @@ constructor(
 
     /**
      * Optional subset of [autoCompleteSearchFields] (typically the name): entries found by these fields are listed
-     * before the ones found only by the other [autoCompleteSearchFields]. Searching `micromat` for groups shall offer
-     * the group `micromaten` first, not all groups of the organization `Micromata`.
+     * before the ones found only by the other [autoCompleteSearchFields]. Searching `acme` for groups shall offer
+     * the group `acme-staff` first, not all groups of the organization `ACME`.
      *
      * Needed because the prefix queries of the type-ahead are constant-score (no relevance between a name and an
      * organization hit) and the result is cut at `maxResults` in index order: a name hit could be dropped entirely.
@@ -695,7 +695,7 @@ constructor(
     /**
      * One page of the list, served server-side: the ordered id list is materialized once per (session,
      * filter) and cached, and this returns the 50-row slice at `offset` (see [getListPage] and
-     * `projectforge-next/docs/list-paging.md`). A new path beside [getList], not an extension of it: `POST list` stays
+     * `dev-docs/next/list-paging.md`). A new path beside [getList], not an extension of it: `POST list` stays
      * byte-identical for the legacy React app, the multi-selection start and the Excel exports, all of which
      * need every row.
      *
@@ -1233,7 +1233,7 @@ constructor(
         }
         val words = searchString?.split(' ', '\t', '\n')?.filter { it.isNotBlank() }
         // Every word required, and each of them matched either as typed or as the terms the index holds for it:
-        // 'dhl-pop' is two terms in the index, and 'dhl-pop*' - a wildcard term, which Lucene doesn't tokenize -
+        // 'acme-pop' is two terms in the index, and 'acme-pop*' - a wildcard term, which Lucene doesn't tokenize -
         // used to match nothing at all (see [SearchStringTokenizer]). A word the caller already marked as
         // required carries a syntax of its own and stays untouched, as before.
         val modifiedSearchString = words

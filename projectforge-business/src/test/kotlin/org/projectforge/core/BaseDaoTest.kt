@@ -72,8 +72,8 @@ class BaseDaoTest {
   @Test
   fun modifyAndSearchStringTest() {
     Assertions.assertEquals("+hallo* +test*", modifySearchString("hallo test", true))
-    Assertions.assertEquals("+(dhl-pop* (+dhl* +pop*)) +test*", modifySearchString("dhl-pop test", true))
-    Assertions.assertEquals("(dhl-pop* (+dhl* +pop*))", modifySearchString("dhl-pop", true))
+    Assertions.assertEquals("+(acme-pop* (+acme* +pop*)) +test*", modifySearchString("acme-pop test", true))
+    Assertions.assertEquals("(acme-pop* (+acme* +pop*))", modifySearchString("acme-pop", true))
     Assertions.assertEquals(
       "+hallo* -test",
       modifySearchString("hallo -test", true),

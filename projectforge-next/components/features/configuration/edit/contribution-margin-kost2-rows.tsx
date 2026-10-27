@@ -52,7 +52,7 @@ export function ContributionMarginKost2Rows({
           </span>
           <Input
             value={row.project ?? ""}
-            placeholder="5.999.10"
+            placeholder="5.900.10"
             aria-label={`${t("project")} ${index + 1}`}
             onChange={(e) => set(index, { project: e.target.value || null })}
             onBlur={onBlur}

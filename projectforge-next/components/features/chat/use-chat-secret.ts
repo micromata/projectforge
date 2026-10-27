@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  CHAT_SECRET_OFFERS_QUERY_KEY,
   cancelChatSecret,
   chatSecretPendingQueryKey,
   chatSecretQueryKey,
   fetchChatSecret,
   fetchPendingChatSecrets,
 } from "@/lib/rs/chat-secret";
+import { RsError } from "@/lib/rs/client";
 import type { ChatConversation } from "@/lib/rs/chat-types";
 import { secretFingerprint } from "@/lib/secret-crypto";
 
@@ -18,41 +20,47 @@ export const SECRET_MAX_LENGTH = 4000;
 /** While a side waits for the other one, its dialog asks this often (the event of the chat may not come). */
 const POLL_MS = 2000;
 
+/** The conversation is over (404, 403): ended by the other side, expired, or the other side is gone. */
+export function isSecretEnded(error: unknown) {
+  return (
+    error instanceof RsError && (error.status === 404 || error.status === 403)
+  );
+}
+
 /**
- * A confidential message as one of its sides sees it; asked for every [POLL_MS] while [poll], until it is
- * TAKEN (received). An error (404, 403) means it ended: cancelled by the other side or expired.
+ * A confidential conversation as one of its sides sees it; asked for every [POLL_MS] while [poll] (which
+ * also tells the server this side is still there). Only a conversation that ended ([isSecretEnded]) stops
+ * the asking: a failed request (network, 5xx) is asked again.
  */
 export function useSecretSession(id: string | null, poll: boolean) {
   return useQuery({
     queryKey: chatSecretQueryKey(id ?? ""),
     queryFn: ({ signal }) => fetchChatSecret(id!, signal),
     enabled: !!id,
-    // Ended (an error) or received stays so: no more asking.
     refetchInterval: (query) =>
-      poll &&
-      query.state.status !== "error" &&
-      query.state.data?.state !== "TAKEN"
-        ? POLL_MS
-        : false,
+      poll && !isSecretEnded(query.state.error) ? POLL_MS : false,
     refetchOnWindowFocus: false,
     retry: false,
   });
 }
 
-/** The fingerprint of the recipient's public key, compared by both sides (see secretFingerprint). */
-export function useSecretFingerprint(publicKey: string | null | undefined) {
+/** The fingerprint of both public keys, compared by both sides (see secretFingerprint). */
+export function useSecretFingerprint(
+  initiatorKey: string | null | undefined,
+  recipientKey: string | null | undefined
+) {
   return useQuery({
-    queryKey: ["chatSecretFingerprint", publicKey],
-    queryFn: () => secretFingerprint(publicKey!),
-    enabled: !!publicKey,
+    queryKey: ["chatSecretFingerprint", initiatorKey, recipientKey],
+    queryFn: () => secretFingerprint(initiatorKey!, recipientKey!),
+    enabled: !!initiatorKey && !!recipientKey,
     staleTime: Infinity,
   }).data;
 }
 
 /**
- * Cancels the session when the dialog closes (it unmounts with it), unless [id] is null by then: a
- * session nobody can finish anymore is deleted at once instead of waiting for it to expire. Deferred by a
- * tick, so the remount of React's strict mode (development) doesn't cancel it.
+ * Ends the session when the dialog closes (it unmounts with it), unless [id] is null by then: the other
+ * side learns at once instead of waiting for it to expire. Deferred by a tick, so the remount of React's
+ * strict mode (development) doesn't end it.
  */
 export function useCancelOnUnmount(id: string | null) {
   const ref = useRef<string | null>(null);
@@ -72,7 +80,7 @@ export function useCancelOnUnmount(id: string | null) {
 }
 
 /**
- * The confidential messages of a direct chat the user is the recipient of, and `refresh` for the event of
+ * The confidential conversations of a direct chat the user is the recipient of, and `refresh` for the event of
  * the chat (useChatLive's onSecret), which also refreshes an open session of either side.
  */
 export function useSecretOffers(conversation: ChatConversation | undefined) {
@@ -91,6 +99,10 @@ export function useSecretOffers(conversation: ChatConversation | undefined) {
       queryKey: chatSecretPendingQueryKey(conversationId),
     });
     void queryClient.invalidateQueries({ queryKey: ["chatSecret"] });
+    // The counter in the top bar and the signals follow the answer, with the stream or without it.
+    void queryClient.invalidateQueries({
+      queryKey: CHAT_SECRET_OFFERS_QUERY_KEY,
+    });
   }, [direct, conversationId, queryClient]);
   return { sessions: query.data ?? [], refresh };
 }

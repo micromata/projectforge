@@ -40,12 +40,12 @@ private val log = KotlinLogging.logger {}
  * A field annotated with `@FullTextField` and no analyzer of its own is indexed by the Hibernate Search
  * default analyzer, and that is Lucene's [StandardAnalyzer] plus the normalization of accents and umlauts
  * ([MyAnalysisConfigurer], see [normalize]; the normalization isn't needed for the splitting here). Its
- * tokenizer treats a hyphen as a word separator, so `dhl-pop` is stored as the two terms `dhl` and `pop` —
- * there is no term beginning with `dhl-pop`.
+ * tokenizer treats a hyphen as a word separator, so `acme-pop` is stored as the two terms `acme` and `pop` —
+ * there is no term beginning with `acme-pop`.
  *
- * That matters because a search string carries wildcards: `dhl-pop*` is parsed as a wildcard query on a
+ * That matters because a search string carries wildcards: `acme-pop*` is parsed as a wildcard query on a
  * *single* term, and Lucene does not tokenize a wildcard term (it only normalizes it, i.e. lowercases it).
- * So the query asked for something the index cannot contain, while `dhl pop` (two words, hence `dhl* pop*`)
+ * So the query asked for something the index cannot contain, while `acme pop` (two words, hence `acme* pop*`)
  * matched. The same holds for anything else the analyzer splits, an email address in the user picker for
  * instance.
  *
@@ -120,10 +120,10 @@ object SearchStringTokenizer {
      * One word of a search string as a Lucene query, matching it either as typed or as the terms the index
      * holds for it.
      *
-     * A word that is one term of the index anyway is answered as before, `dhl` -> `dhl*`, so a search whose
+     * A word that is one term of the index anyway is answered as before, `acme` -> `acme*`, so a search whose
      * words hold no separator is not changed at all. A word the analyzer reads differently gets both readings:
-     * `dhl-pop` -> `(dhl-pop* (+dhl* +pop*))`, `dhl-` -> `(dhl-* (+dhl*))`. The terms are required among
-     * themselves (all of `dhl` and `pop` must be found), the two readings are alternatives (either matches).
+     * `acme-pop` -> `(acme-pop* (+acme* +pop*))`, `acme-` -> `(acme-* (+acme*))`. The terms are required among
+     * themselves (all of `acme` and `pop` must be found), the two readings are alternatives (either matches).
      *
      * @param word One word of the search string, i.e. without whitespace. Lucene operators and syntax are
      * none of this function's business — the caller decides what is a word (see [HibernateSearchFilterUtils]).
@@ -168,8 +168,8 @@ object SearchStringTokenizer {
      * `(word* (+t1* +t2*))`: match the word as typed, or all of the terms the index holds for it.
      *
      * The alternative is needed whenever the analyzer reads the word differently than it was typed - not only
-     * when it splits it. A word ending in a separator is the case that made this obvious: the index holds `dhl`
-     * for `dhl-`, so the wildcard term `dhl-*` matches nothing, while `dhl` and `dhl-p` both work.
+     * when it splits it. A word ending in a separator is the case that made this obvious: the index holds `acme`
+     * for `acme-`, so the wildcard term `acme-*` matches nothing, while `acme` and `acme-p` both work.
      *
      * @return null if there is nothing to offer an alternative to, i.e. if the word is one term as typed.
      */
@@ -180,7 +180,7 @@ object SearchStringTokenizer {
         val split = tokens.joinToString(" ") { "+$it$wildcard" }
         if (!word.first().isLetterOrDigit()) {
             // A word beginning with anything else would be an operator of the parser rather than a word
-            // ('-dhl' is a prohibited clause), so only the terms of the index are offered for it.
+            // ('-acme' is a prohibited clause), so only the terms of the index are offered for it.
             return "$prefix($split)"
         }
         return "$prefix($word$wildcard ($split))"

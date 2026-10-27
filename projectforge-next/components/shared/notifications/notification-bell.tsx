@@ -16,6 +16,7 @@ import {
   MenubarSeparator,
   MenubarTrigger,
 } from "@/components/ui/menubar";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { MenuCounterBadge } from "@/components/shared/menu-counter-badge";
 import { cn } from "@/lib/utils";
 import { useNotificationStore } from "@/store/notification-store";
@@ -36,20 +37,22 @@ export function NotificationBell() {
   const notifications = bySeverity(useMyNotifications());
   return (
     <MenubarMenu>
-      <MenubarTrigger
-        className={cn(
-          buttonVariants({ variant: "ghost", size: "sm" }),
-          "relative shrink-0 cursor-pointer"
-        )}
-        aria-label={t("center")}
-        data-testid="notification-bell"
-      >
-        <HugeiconsIcon icon={Notification03Icon} size={18} />
-        <MenuCounterBadge
-          badge={{ counter: notifications.length }}
-          variant="corner"
-        />
-      </MenubarTrigger>
+      <HintTooltip text={t("center")}>
+        <MenubarTrigger
+          className={cn(
+            buttonVariants({ variant: "ghost", size: "sm" }),
+            "relative shrink-0 cursor-pointer"
+          )}
+          aria-label={t("center")}
+          data-testid="notification-bell"
+        >
+          <HugeiconsIcon icon={Notification03Icon} size={18} />
+          <MenuCounterBadge
+            badge={{ counter: notifications.length }}
+            variant="corner"
+          />
+        </MenubarTrigger>
+      </HintTooltip>
       <MenubarContent
         align="end"
         className="w-[28rem] max-w-[calc(100vw-1rem)]"

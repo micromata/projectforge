@@ -5,6 +5,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Home01Icon } from "@hugeicons/core-free-icons";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import type { TaskNode } from "@/lib/rs/task";
+import { inactiveRefClass } from "@/lib/page-def/reference";
+import { cn } from "@/lib/utils";
 import { TaskPathCurrent } from "./task-path-current";
 
 interface TaskPathProps {
@@ -127,7 +129,10 @@ export function TaskPath({
                 else onSelect(ancestor);
               }}
               disabled={disabled}
-              className="max-w-40 cursor-pointer truncate text-muted-foreground hover:text-foreground hover:underline disabled:cursor-default disabled:hover:text-muted-foreground disabled:hover:no-underline"
+              className={cn(
+                "max-w-40 cursor-pointer truncate text-muted-foreground hover:text-foreground hover:underline disabled:cursor-default disabled:hover:text-muted-foreground disabled:hover:no-underline",
+                inactiveRefClass(ancestor)
+              )}
             >
               {ancestor.title}
             </button>

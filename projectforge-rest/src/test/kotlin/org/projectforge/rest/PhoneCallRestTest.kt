@@ -35,13 +35,13 @@ class PhoneCallRestTest {
     @Test
     fun isValidDialNumber() {
         Assertions.assertTrue(PhoneCallRest.isValidDialNumber("0123456789"))
-        Assertions.assertTrue(PhoneCallRest.isValidDialNumber("+49 561 / 316 793-0"))
-        Assertions.assertTrue(PhoneCallRest.isValidDialNumber("(0561) 316793"))
+        Assertions.assertTrue(PhoneCallRest.isValidDialNumber("+49 123 / 456 789-0"))
+        Assertions.assertTrue(PhoneCallRest.isValidDialNumber("(0123) 456789"))
         Assertions.assertTrue(PhoneCallRest.isValidDialNumber(""), "The emptiness is guarded before this check.")
 
-        Assertions.assertFalse(PhoneCallRest.isValidDialNumber("0561abc"))
+        Assertions.assertFalse(PhoneCallRest.isValidDialNumber("0123abc"))
         Assertions.assertFalse(PhoneCallRest.isValidDialNumber("call me"))
-        Assertions.assertFalse(PhoneCallRest.isValidDialNumber("0561*99"))
+        Assertions.assertFalse(PhoneCallRest.isValidDialNumber("0123*99"))
     }
 
     @Test
@@ -49,28 +49,28 @@ class PhoneCallRestTest {
         Assertions.assertNull(PhoneCallRest.stripSystemNumber(null, "0"))
 
         // No system number configured: the extracted number is returned unchanged.
-        Assertions.assertEquals("0561316793", PhoneCallRest.stripSystemNumber("0561316793", null))
-        Assertions.assertEquals("0561316793", PhoneCallRest.stripSystemNumber("0561316793", ""))
+        Assertions.assertEquals("0123456789", PhoneCallRest.stripSystemNumber("0123456789", null))
+        Assertions.assertEquals("0123456789", PhoneCallRest.stripSystemNumber("0123456789", ""))
 
         // Leading system number is stripped, otherwise the number is left as it is.
-        Assertions.assertEquals("561316793", PhoneCallRest.stripSystemNumber("0561316793", "0"))
-        Assertions.assertEquals("316793", PhoneCallRest.stripSystemNumber("0561316793", "0561"))
-        Assertions.assertEquals("0561316793", PhoneCallRest.stripSystemNumber("0561316793", "99"))
+        Assertions.assertEquals("123456789", PhoneCallRest.stripSystemNumber("0123456789", "0"))
+        Assertions.assertEquals("456789", PhoneCallRest.stripSystemNumber("0123456789", "0123"))
+        Assertions.assertEquals("0123456789", PhoneCallRest.stripSystemNumber("0123456789", "99"))
     }
 
     @Test
     fun recentCallRoundTrip() {
-        val withAddress = PhoneCallRest.RecentCall("0561316793", 42L)
+        val withAddress = PhoneCallRest.RecentCall("0123456789", 42L)
         Assertions.assertEquals(withAddress, PhoneCallRest.RecentCall.decode(withAddress.encode()))
-        val withoutAddress = PhoneCallRest.RecentCall("0561316793")
-        Assertions.assertEquals("0561316793", withoutAddress.encode(), "A call without address stays a bare number.")
+        val withoutAddress = PhoneCallRest.RecentCall("0123456789")
+        Assertions.assertEquals("0123456789", withoutAddress.encode(), "A call without address stays a bare number.")
         Assertions.assertEquals(withoutAddress, PhoneCallRest.RecentCall.decode(withoutAddress.encode()))
 
         // Entries stored before the address was remembered (a bare number or a Wicket display text) stay readable.
         Assertions.assertEquals(
-            PhoneCallRest.RecentCall("0561316793: Reinhard, Kai"),
-            PhoneCallRest.RecentCall.decode("0561316793: Reinhard, Kai"),
+            PhoneCallRest.RecentCall("0123456789: Reinhard, Kai"),
+            PhoneCallRest.RecentCall.decode("0123456789: Reinhard, Kai"),
         )
-        Assertions.assertNull(PhoneCallRest.RecentCall.decode("0561316793\tx").addressId)
+        Assertions.assertNull(PhoneCallRest.RecentCall.decode("0123456789\tx").addressId)
     }
 }

@@ -108,7 +108,7 @@ open class KontoDO : DefaultBaseDO(), DisplayNameCapable {
     open var sellerBankAccountName: String? = null
 
     /**
-     * Formats the account as string: "[nummer] [title]", e. g. "11000 Micromata GmbH"
+     * Formats the account as string: "[nummer] [title]", e. g. "11000 ACME GmbH"
      */
     fun formatKonto(): String {
         return formatKonto(this)
@@ -134,7 +134,7 @@ open class KontoDO : DefaultBaseDO(), DisplayNameCapable {
         internal const val FIND_BY_NUMMER = "KontoDO_FindByNummer"
 
         /**
-         * Formats the account as string: "[nummer] [title]", e. g. "11000 Micromata GmbH"
+         * Formats the account as string: "[nummer] [title]", e. g. "11000 ACME GmbH"
          *
          * @param konto
          */

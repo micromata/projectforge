@@ -125,7 +125,7 @@ class AuftragsPosition(
          */
         var nummer: Int? = null,
         /**
-         * The number as printed on the document, i.e. what the link shows: [nummer], or e.g. `17400-S`
+         * The number as printed on the document, i.e. what the link shows: [nummer], or e.g. `12345-S`
          * for a cancellation. Null for a planned invoice without a number, which is why such invoices are
          * left out.
          */

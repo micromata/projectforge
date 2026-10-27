@@ -33,7 +33,7 @@ data class CustomerGroupError(val fieldId: String, val messageKey: String, val p
  *
  * Claimed twice is checked twice over:
  * - by the rules themselves: the same customer number in two sets, or a name pattern covering another set's
- *   (`dhl*` and `dh*`, `ACME AG` and `ACME*`), whether a matching customer exists yet or not;
+ *   (`acme*` and `ac*`, `ACME AG` and `ACME*`), whether a matching customer exists yet or not;
  * - by the data: every customer entity of the [CustomerDirectory] (by number and by name) and every free-text
  *   customer in use is run against all sets, which also finds what overlapping patterns of different kinds
  *   catch (`ACME*` and `*Logistics` both claiming "ACME Logistics").

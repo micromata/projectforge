@@ -31,9 +31,9 @@ export const EMPTY_USER_EMAIL: LanesAndPlanesUserEmail = {
 export interface LanesAndPlanesConfig {
   /** Provided by Lanes & Planes; an empty row is posted as null and ignored by the backend. */
   accountingInvoiceProfileIds: (number | null)[];
-  /** Formatted numbers of the Kost1 sent to all users as cost centers, e.g. `1.005.01.00`. */
+  /** Formatted numbers of the Kost1 sent to all users as cost centers, e.g. `1.900.01.00`. */
   generalKost1: string[];
-  /** Formatted numbers of the Kost2 sent to all users as cost units, e.g. `5.999.10.09`. */
+  /** Formatted numbers of the Kost2 sent to all users as cost units, e.g. `5.900.10.01`. */
   generalKost2: string[];
   /** Glob patterns (`*`, `?`) of the Kost2 a user may book, e.g. `5.*.02`. Empty: all. */
   kost2Patterns: string[];

@@ -995,6 +995,7 @@
     },
     "file": {
       "add": "Dateien anhängen",
+      "addHint": "Dateien anhängen. Dateien können auch einfach in das Nachrichtenfenster gezogen werden.",
       "directTarget": "Dateien landen im Datentransfer in der persönlichen Box von {arg0}.",
       "download": "Herunterladen",
       "error": {
@@ -1011,6 +1012,8 @@
       "openArea": "Im Datentransfer öffnen",
       "remove": "Datei entfernen"
     },
+    "linkHint": "Chat und verschlüsselte Kommunikation",
+    "linkHintDataTransfer": "Chat, verschlüsselte Kommunikation und Datenaustausch",
     "mention": {
       "noResults": "Niemand gefunden."
     },
@@ -1046,6 +1049,11 @@
       "send": "Senden",
       "unhide": "Wieder einblenden"
     },
+    "notification": {
+      "secret": {
+        "title": "{arg0} möchte ein vertrauliches Gespräch beginnen"
+      }
+    },
     "room": {
       "delete": {
         "_": "Chatraum löschen",
@@ -1074,37 +1082,48 @@
     },
     "search": {
       "_": "Suchen",
+      "hits": "{arg0} Treffer",
+      "kind": {
+        "chatRoom": "Chatraum",
+        "direct": "Direktnachricht"
+      },
+      "messages": "Gefundene Nachrichten",
       "noResults": "Keine Nachrichten gefunden.",
       "placeholder": "Nachrichten durchsuchen"
     },
     "secret": {
       "accept": "Annehmen",
-      "action": "Vertraulich senden",
+      "action": "Vertrauliches Gespräch",
+      "alert": {
+        "allowNotifications": "Browser-Benachrichtigungen erlauben",
+        "sound": "Ton, wenn ein vertrauliches Gespräch angeboten wird",
+        "title": "{arg0}: vertrauliches Gespräch"
+      },
       "close": "Schließen",
       "decline": "Ablehnen",
-      "delivered": "Gesendet. Warten, bis {arg0} sie öffnet …",
       "discard": "Verwerfen",
       "discardConfirm": "Ist sie in einem anderen Fenster offen, endet sie auch dort.",
-      "elsewhere": "Eine vertrauliche Nachricht von {arg0} wird in einem anderen Fenster empfangen oder lässt sich hier nicht mehr öffnen (die Seite wurde neu geladen).",
-      "ended": "Die Sitzung ist beendet (abgelehnt, abgebrochen oder abgelaufen).",
+      "elsewhere": "Ein vertrauliches Gespräch mit {arg0} läuft in einem anderen Fenster oder lässt sich hier nicht mehr öffnen (die Seite wurde neu geladen).",
+      "empty": "Noch keine Nachrichten. Die erste an {arg0} kann hier geschrieben werden.",
+      "end": "Gespräch beenden",
+      "ended": "Das Gespräch ist beendet (abgelehnt, von der Gegenseite beendet, abgelaufen oder die Gegenseite ist weg).",
       "error": {
         "decrypt": "Die Nachricht ließ sich nicht entschlüsseln.",
+        "missing": "Eine Nachricht der Gegenseite fehlt.",
         "unsupported": "Dieser Browser bietet hier keine Verschlüsselung (eine sichere Verbindung ist nötig)."
       },
       "fingerprint": "Fingerabdruck",
-      "info": "Ende-zu-Ende-verschlüsselt: Der Text wird im Browser der sendenden Person verschlüsselt und erst im Browser der empfangenden entschlüsselt. ProjectForge leitet ihn weiter, ohne ihn lesen zu können, und speichert nichts. Beide müssen online sein; nach 10 Minuten endet die Sitzung.",
-      "limit": "Das schützt vor Datenbank-Backups, Logs und Administratoren, die in Daten schauen, nicht vor einem manipulierten Server. Im Zweifel den Fingerabdruck auf beiden Seiten vergleichen, z. B. am Telefon.",
-      "offered": "{arg0} möchte eine vertrauliche Nachricht senden.",
-      "receiveTitle": "Vertrauliche Nachricht von {arg0}",
-      "received": "{arg0} hat die Nachricht geöffnet. Auf dem Server ist nichts davon übrig.",
+      "info": "Ende-zu-Ende-verschlüsselt: Texte werden in einem Browser verschlüsselt und erst im anderen entschlüsselt. ProjectForge leitet sie weiter, ohne sie lesen zu können, und speichert nichts. Beide müssen online sein; das Gespräch endet, wenn eine Seite es beendet oder verlässt, nach 10 Minuten ohne Nachricht und spätestens nach 2 Stunden.",
+      "limit": "Das schützt vor Datenbank-Backups, Logs und Administratoren, die in Daten schauen. Den Fingerabdruck auf beiden Seiten vergleichen, z. B. am Telefon: Weicht er ab, ist ein manipulierter Server im Spiel. Bildschirm und Zwischenablage der Beteiligten sind nicht geschützt.",
+      "offered": "{arg0} möchte ein vertrauliches Gespräch beginnen.",
+      "read": "Gelesen",
+      "receiveTitle": "Vertrauliches Gespräch mit {arg0}",
       "send": "Verschlüsseln und senden",
-      "sendTitle": "Vertrauliche Nachricht an {arg0}",
-      "show": "Nachricht anzeigen",
-      "shownOnce": "Nur hier und nur einmal angezeigt: Schließen des Dialogs löscht sie. Falls kopiert, die Zwischenablage nach Gebrauch leeren.",
+      "sendTitle": "Vertrauliches Gespräch mit {arg0}",
       "start": "Starten",
       "text": "Vertraulicher Text",
       "waitingForAccept": "Warten, bis {arg0} annimmt …",
-      "waitingForSender": "Warten, bis {arg0} sendet …"
+      "waitingForSender": "Verbinde mit {arg0} …"
     },
     "thread": {
       "follow": "Folgen",
@@ -3050,11 +3069,11 @@
       },
       "generalKost1": {
         "_": "Allgemeine Kost1 (Kostenstellen)",
-        "tooltip": "Werden allen Usern als Kostenstellen (cost_centers) übertragen. Formatierte Nummer wie 1.005.01.00. Ohne Einträge bleiben die in Lanes & Planes gepflegten Kostenstellen erhalten."
+        "tooltip": "Werden allen Usern als Kostenstellen (cost_centers) übertragen. Formatierte Nummer wie 1.900.01.00. Ohne Einträge bleiben die in Lanes & Planes gepflegten Kostenstellen erhalten."
       },
       "generalKost2": {
         "_": "Allgemeine Kost2 (Kostenträger)",
-        "tooltip": "Werden allen Usern zusätzlich zu den bebuchbaren Kost2 als Kostenträger (cost_units) übertragen, unabhängig von ihren Buchungsrechten, z. B. interne Kost2 wie Fortbildung oder Vertrieb. Formatierte Nummer wie 5.999.10.09."
+        "tooltip": "Werden allen Usern zusätzlich zu den bebuchbaren Kost2 als Kostenträger (cost_units) übertragen, unabhängig von ihren Buchungsrechten, z. B. interne Kost2 wie Fortbildung oder Vertrieb. Formatierte Nummer wie 5.900.10.01."
       },
       "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON; angezeigt werden die Vorgaben, die ihn beim Speichern ersetzen.",
       "kost2Patterns": {
@@ -6296,7 +6315,7 @@
         "info": "Übernimmt die ausgewählten, über eine vorgeschlagene Ad-hoc-Buchung gebuchten Zeitberichte, ggf. mit dem oben gewählten Strukturelement und der Kost2. Für die übrigen ändert sich daran nichts."
       },
       "remapKost2": "Kost2 nach Kostenart umschlüsseln (Strukturelement bleibt)",
-      "remapKost2Info": "Jeder Zeitbericht behält sein Strukturelement. Eine Kost2, die das Strukturelement nicht mehr anbietet, wird durch dessen Kost2 derselben Kostenart (letzte beiden Ziffern) ersetzt, z. B. 5.999.11.02 -> 7.001.01.02 nach Verlinkung eines Projekts.",
+      "remapKost2Info": "Jeder Zeitbericht behält sein Strukturelement. Eine Kost2, die das Strukturelement nicht mehr anbietet, wird durch dessen Kost2 derselben Kostenart (letzte beiden Ziffern) ersetzt, z. B. 5.900.11.01 -> 7.900.01.01 nach Verlinkung eines Projekts.",
       "taskNotApplied": "Das Strukturelement ist nicht ausgewählt (Checkbox) und wird daher nicht geändert.",
       "updateTask": "Strukturelement für alle Zeitberichte ändern"
     },
@@ -6588,7 +6607,7 @@
     "mobilePhone": {
       "_": "Mobilnummer",
       "info": "Die Nummer kann als 2. Faktor benutzt werden, um z. B. das Passwort zurückzusetzen oder andere sicherheitsrelevante Bereiche zu nutzen.\n\nDie Nummer kann im Bereich Zwei-Faktor-Authentifizierung geändert werden.",
-      "invalidFormat": "Es sind nur Zahlen sowie '+' am Anfang, '-', '/' und Leerzeichen erlaubt. Die führende Ländervorwahl ist optional. Beispiel: +49 561 316793-0 oder 0561 316793-0"
+      "invalidFormat": "Es sind nur Zahlen sowie '+' am Anfang, '-', '/' und Leerzeichen erlaubt. Die führende Ländervorwahl ist optional. Beispiel: +49 123 456789-0 oder 0123 456789-0"
     },
     "myAccount": {
       "defaultValue": "Voreinstellung: {arg0}",

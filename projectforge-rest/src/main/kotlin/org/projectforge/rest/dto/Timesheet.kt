@@ -156,6 +156,7 @@ class Timesheet(
                 path = TaskFormatter.getTaskPath(it.id, showCurrentTask = false)
                 // So the frontend strikes the task through when it is deleted (see the group/task columns).
                 deleted = it.deleted
+                deactivated = it.deactivated
             }
         }
         // With deleted and deactivated, so the frontend strikes a removed or deactivated user through.

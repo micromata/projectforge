@@ -39,7 +39,7 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
 
     /**
      * The number as printed on the document ([RechnungDO.belegNummer]): [nummer] for an invoice and e.g.
-     * `17400-S` for a cancellation, which has no number of its own. Null for a creditor invoice and for an
+     * `12345-S` for a cancellation, which has no number of its own. Null for a creditor invoice and for an
      * invoice without number (planned).
      */
     val belegNummer: String? = (invoice as? RechnungDO)?.belegNummer

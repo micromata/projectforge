@@ -25,7 +25,9 @@ package org.projectforge.rest
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.task.TaskDao
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.persistence.DaoConst
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,6 +36,9 @@ import org.springframework.beans.factory.annotation.Autowired
 class SearchRestTest : AbstractTestBase() {
     @Autowired
     private lateinit var searchRest: SearchRest
+
+    @Autowired
+    private lateinit var taskDao: TaskDao
 
     /** Deactivated and deleted users aren't found, not even by an admin: the search is for whom to reach. */
     @Test
@@ -93,5 +98,27 @@ class SearchRestTest : AbstractTestBase() {
         Assertions.assertTrue(contacts.all { it.listUrl == null })
         val self = searchRest.query(TEST_USER, listOf(DaoConst.USER), 10, contacts = true).areas
         Assertions.assertTrue(self.flatMap { it.hits }.none { it.id == getUser(TEST_USER).id }, "$self")
+    }
+
+    /** Closed task structure elements are left out, unless the search asks for them (the search page): then with their status. */
+    @Test
+    fun closedTasksOnlyOnRequestTest() {
+        logon(ADMIN_USER)
+        val word = "searchclosed${System.currentTimeMillis()}"
+        val open = initTestDB.addTask("${word}open", "root")
+        val closed = initTestDB.addTask("${word}closed", "root")
+        closed.status = TaskStatus.C
+        taskDao.update(closed)
+        taskDao.reindex(open)
+        taskDao.reindex(closed)
+        val menu = searchRest.query(word, listOf(DaoConst.TASK), 10).areas.flatMap { it.hits }
+        Assertions.assertEquals(setOf(open.id), menu.map { it.id }.toSet(), "$menu")
+        Assertions.assertTrue(menu.all { it.statusLabel == null })
+        val detail = searchRest.query(word, listOf(DaoConst.TASK), 10, closed = true).areas.flatMap { it.hits }
+        Assertions.assertEquals(setOf(open.id, closed.id), detail.map { it.id }.toSet(), "$detail")
+        Assertions.assertNotNull(detail.first { it.id == closed.id }.statusLabel)
+        Assertions.assertNull(detail.first { it.id == open.id }.statusLabel)
+        Assertions.assertTrue(taskDao.find(closed.id)!!.deactivated)
+        Assertions.assertFalse(taskDao.find(open.id)!!.deactivated)
     }
 }

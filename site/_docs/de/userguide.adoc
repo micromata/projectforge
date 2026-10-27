@@ -126,8 +126,8 @@ Besteht der Suchbegriff nur aus Buchstaben, Ziffern, Leerzeichen und den Zeichen
 ProjectForge® an jedes Wort automatisch den Platzhalter '*' an. Wörter, die auf '*' enden, Wörter, die mit
 '+' oder '-' beginnen (Lucene-Operatoren), und die Schlüsselwörter AND, OR und NOT bleiben unverändert. Ein
 Suchbegriff, der mit '+' oder '-' beginnt, wird so verwendet, wie er eingegeben wurde, ebenso alle anderen
-Ausdrücke (z. B. mit ':', '~', '"' oder Klammern). Ein Wort mit einem Trennzeichen darin wie `dhl-pop`
-wird wie eingegeben und in seinen Teilen gesucht: `dhl-pop*` oder sowohl `dhl*` als auch `pop*`.
+Ausdrücke (z. B. mit ':', '~', '"' oder Klammern). Ein Wort mit einem Trennzeichen darin wie `acme-pop`
+wird wie eingegeben und in seinen Teilen gesucht: `acme-pop*` oder sowohl `acme*` als auch `pop*`.
 
 Beginnt der Suchbegriff mit einem Apostroph ('), unterbleibt jede Veränderung: Der Apostroph wird entfernt
 und der Rest exakt wie eingegeben verwendet.
