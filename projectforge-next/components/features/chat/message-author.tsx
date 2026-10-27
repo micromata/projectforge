@@ -41,7 +41,7 @@ export function MessageAuthor({
     />
   ) : (
     // Struck through when the author left (see RefName).
-    <RefName value={author} className="text-sm font-semibold" />
+    <RefName value={author} className="text-xs font-medium" />
   );
   if (
     author.id === conversation.me.id ||

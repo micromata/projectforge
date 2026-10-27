@@ -44,7 +44,7 @@ export function ThreadSummary({
           />
         ))}
       </span>
-      <span className="font-semibold text-primary">{count}</span>
+      <span className="font-medium text-primary">{count}</span>
       {hasUnreadReplies(message) && (
         <span className="rounded-full bg-destructive px-1.5 text-[10px] font-semibold text-white">
           {t("chat.thread.newReplies")}
