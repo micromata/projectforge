@@ -150,21 +150,22 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
                 DBPredicate.Equal("adminIds", loggedInUserId.toString()),
             )
         )
-        var result = super.select(filter, customResultFilters, checkAccess)
+        val result = super.select(filter, customResultFilters, checkAccess)
         // searchString contains trailing %:
         val searchString = filter.fulltextSearchString?.replace("%", "")
-        if (searchString == null || searchString.length < 2) { // Search string is given and has at least 2 chars:
-            return result
+        val found = result.toMutableList()
+        if (searchString != null && searchString.length >= 2) { // Search string is given and has at least 2 chars:
+            val knownIds = found.mapNotNullTo(mutableSetOf()) { it.id }
+            userService.sortedUsers.filter { user ->
+                user.username?.contains(searchString, ignoreCase = true) == true ||
+                        user.getFullname().contains(searchString, ignoreCase = true)
+            }.forEach { user ->
+                // User name matches given string, so add personal box of this active user:
+                ensurePersonalBox(user.id!!)?.let { if (knownIds.add(it.id!!)) found.add(it) }
+            }
         }
-        result = result.toMutableList()
-        userService.sortedUsers.filter { user ->
-            user.username?.contains(searchString, ignoreCase = true) == true ||
-                    user.getFullname().contains(searchString, ignoreCase = true)
-        }.forEach { user ->
-            // User name matches given string, so add personal box of this active user:
-            ensurePersonalBox(user.id!!)?.let { result.add(it) }
-        }
-        return result
+        // Personal boxes first (stable: the order of the query stays within both groups):
+        return found.sortedBy { !it.isPersonalBox() }
     }
 
     /**
