@@ -7,7 +7,7 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Optionaler MCP-Prototyp für Lesezugriffe mit OAuth-Freigabe über die bestehende ProjectForge-Browsersitzung, auswählbaren und durch Benutzerrechte begrenzten Scopes, PKCE und an die Sitzung gebundenem Zugriff." ]
+      "items" : [ "Optionaler MCP-Prototyp für Lesezugriffe mit OAuth-Freigabe über die bestehende ProjectForge-Browsersitzung, auswählbaren und durch Benutzerrechte begrenzten Scopes, PKCE und an die Sitzung gebundenem Zugriff. KI-Agenten durchsuchen Projekte, Kunden, Aufgaben, Zeitbuchungen, Adressen und Rechnungen mit den Filtern der Listenseiten, lesen einzelne Einträge mit allen Feldern und laden angehängte Dateien herunter." ]
     } ]
   },
   "groups" : [ {

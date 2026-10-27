@@ -461,6 +461,10 @@ gewohnt an (einschließlich des zweiten Faktors) und gibt dem Agenten den Zugrif
 Datenarten, die der Benutzer nicht lesen darf oder für die sein zweiter Faktor nicht frisch genug ist, werden nicht
 angeboten. Der Zugriff endet mit der Browser-Sitzung, spätestens nach einer Stunde; der Agent fragt dann erneut.
 
+Der Agent sucht in den Daten wie die Listenseiten (Volltext, die Filter der Liste, Sortierung), liest einzelne Einträge
+mit allen Feldern der Bearbeitungsseite und lädt angehängte Dateien herunter (bis 5 MB, keine verschlüsselten). Private
+Daten von Adressen (private Telefonnummern, E-Mail und Anschrift, Geburtstag) gibt er nie heraus.
+
 Grenzen des Prototyps:
 
 - Nur Clients mit einem Callback auf dem eigenen Rechner (`localhost`, `127.0.0.1`, `[::1]`), also Desktop-Apps und

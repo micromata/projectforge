@@ -62,6 +62,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 private val log = KotlinLogging.logger {}
 
@@ -111,6 +112,8 @@ class McpSessionOAuth(
     /** Compared by identity. Holds only the hashes of its current access and refresh token (one of each). */
     class Grant(val clientId: String, val session: HttpSession, val userId: Long, val scopes: Set<String>, val expires: Long) {
         val id = randomId()
+        // Order of creation: grants of the same millisecond share their expiry.
+        val sequence = grantSequence.incrementAndGet()
         @Volatile var accessHash: String? = null
         @Volatile var refreshHash: String? = null
         @Volatile var revoked = false
@@ -353,7 +356,7 @@ class McpSessionOAuth(
         }
         if (!grants.containsKey(grant.id)) {
             // One user holds at most a few grants; a new one replaces the oldest instead of filling the global limit.
-            grants.values.filter { it.userId == grant.userId }.sortedBy { it.expires }
+            grants.values.filter { it.userId == grant.userId }.sortedBy { it.sequence }
                 .dropLast(MAX_GRANTS_PER_USER - 1).forEach {
                     log.info { "MCP: oldest grant of user #${it.userId} for client ${it.clientId} replaced by a new one." }
                     revoke(it)
@@ -453,5 +456,6 @@ class McpSessionOAuth(
         internal const val MAX_CONFIRMED_CLIENTS = 1000
         internal const val MAX_GRANTS_PER_USER = 10
         internal const val MAX_GRANTS = 5000
+        private val grantSequence = AtomicLong()
     }
 }

@@ -449,6 +449,10 @@ The agent registers itself and opens ProjectForge in the browser (OAuth with PKC
 for which their second factor isn't fresh enough, aren't offered. The access ends with the browser session, at the
 latest after one hour; the agent then asks again.
 
+The agent searches the data as the list pages do (full text, the filters of the list, sorting), reads single entries with
+all fields of the edit page, and downloads attached files (up to 5 MB, not encrypted ones). Private data of addresses
+(private phone numbers, email and address, birthday) is never handed out.
+
 Limits of the prototype:
 
 - Only clients with a callback on the own computer (`localhost`, `127.0.0.1`, `[::1]`), i.e. desktop apps and command

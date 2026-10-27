@@ -7,7 +7,7 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Opt-in read-only MCP prototype with OAuth consent using the existing ProjectForge browser session, selectable permission-limited scopes, PKCE and logout-bound access." ]
+      "items" : [ "Opt-in read-only MCP prototype with OAuth consent using the existing ProjectForge browser session, selectable permission-limited scopes, PKCE and logout-bound access. AI agents search projects, customers, tasks, timesheets, addresses and invoices with the filters of the list pages, read single entries with all fields and download attached files." ]
     } ]
   },
   "groups" : [ {

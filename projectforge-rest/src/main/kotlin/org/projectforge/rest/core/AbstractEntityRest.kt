@@ -909,8 +909,10 @@ constructor(
      * its own might).
      *
      * The default is the full DTO, so this costs a page that overrides neither nothing.
+     *
+     * Public for the search results of the MCP server (`org.projectforge.mcp`), which show what a list row shows.
      */
-    protected open fun createListRow(obj: O): DTO {
+    open fun createListRow(obj: O): DTO {
         return transformFromDB(obj, false)
     }
 
