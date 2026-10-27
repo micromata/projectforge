@@ -40,15 +40,15 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
         Assertions.assertTrue(defaults.generalKost1.isEmpty())
         Assertions.assertTrue(LanesAndPlanesSettings.parse("no json").generalKost2.isEmpty())
         val settings = LanesAndPlanesSettings.parse(
-            """{"accountingInvoiceProfileIds":[12,null],"generalKost1":["1.005.01.00"],"generalKost2":["1.010.01.00"," "],""" +
-                    """"kost2Patterns":["5.*.02"," 5.*.19, ,5.*.20 "," "],"costObjectField":"COST_UNITS","unknown":1,""" +
+            """{"accountingInvoiceProfileIds":[12,null],"generalKost1":["1.900.01.00"],"generalKost2":["1.910.01.00"," "],""" +
+                    """"kost2Patterns":["5.*.07"," 5.*.11, ,5.*.12 "," "],"costObjectField":"COST_UNITS","unknown":1,""" +
                     """"additionalUsers":[{"email":"a@example.org","firstName":"A","lastName":"B"},{"email":" "}]}"""
         )
         Assertions.assertEquals(listOf(12L), settings.invoiceProfileIds)
-        Assertions.assertEquals(listOf("1.010.01.00"), settings.generalKost2Numbers)
-        Assertions.assertEquals(listOf("1.005.01.00"), settings.generalKost1Numbers, "Old JSON with costObjectField still parses.")
+        Assertions.assertEquals(listOf("1.910.01.00"), settings.generalKost2Numbers)
+        Assertions.assertEquals(listOf("1.900.01.00"), settings.generalKost1Numbers, "Old JSON with costObjectField still parses.")
         Assertions.assertEquals(listOf(1, 2), settings.kost2PatternGroups.map { it.size }, "Alternatives separated by comma.")
-        Assertions.assertTrue(settings.kost2PatternGroups[1][1].matches("5.123.01.20"))
+        Assertions.assertTrue(settings.kost2PatternGroups[1][1].matches("5.123.01.12"))
         Assertions.assertEquals(listOf("a@example.org"), settings.additionalUserList.map { it.email }, "Empty rows are ignored.")
     }
 
@@ -56,9 +56,9 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
     fun validate() {
         val active = kost2(1)
         val closed = kost2(2, KostentraegerStatus.ENDED)
-        val kost2Map = mapOf("1.010.01.00" to active, "1.010.02.00" to closed, "1010.01.00" to active)
+        val kost2Map = mapOf("1.910.01.00" to active, "1.910.02.00" to closed, "1910.01.00" to active)
         val find: (String) -> Kost2DO? = { kost2Map[it] }
-        val kost1Map = mapOf("1.005.01.00" to kost1(1), "1.005.02.00" to kost1(2, KostentraegerStatus.ENDED))
+        val kost1Map = mapOf("1.900.01.00" to kost1(1), "1.900.02.00" to kost1(2, KostentraegerStatus.ENDED))
         val findKost1: (String) -> Kost1DO? = { kost1Map[it] }
         Assertions.assertEquals(
             listOf("accountingInvoiceProfileIds:lanesAndPlanes.config.error.invoiceProfileRequired:null:null"),
@@ -66,9 +66,9 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
         )
         val settings = LanesAndPlanesSettings(
             accountingInvoiceProfileIds = listOf(12L, null, 0L),
-            generalKost1 = listOf("1.005.01.00", "1.005.02.00", "1.000.00.00", "1.005.01.00"),
-            generalKost2 = listOf("1.010.01.00", "", "9.999.99.99", "1.010.02.00", "1010.01.00"),
-            kost2Patterns = listOf("5.*.02", "", "5.[0-9]", "5.*.19, 5.[0], 5.*.20"),
+            generalKost1 = listOf("1.900.01.00", "1.900.02.00", "1.000.00.00", "1.900.01.00"),
+            generalKost2 = listOf("1.910.01.00", "", "9.999.99.99", "1.910.02.00", "1910.01.00"),
+            kost2Patterns = listOf("5.*.07", "", "5.[0-9]", "5.*.11, 5.[0], 5.*.12"),
             additionalUsers = listOf(
                 LanesAndPlanesSettings.AdditionalUser("a@example.org", "A", "B"),
                 LanesAndPlanesSettings.AdditionalUser(),
@@ -80,12 +80,12 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
         Assertions.assertEquals(
             listOf(
                 "accountingInvoiceProfileIds:lanesAndPlanes.config.error.invoiceProfileId:2:0",
-                "generalKost1:lanesAndPlanes.config.error.kost1NotActive:1:1.005.02.00",
+                "generalKost1:lanesAndPlanes.config.error.kost1NotActive:1:1.900.02.00",
                 "generalKost1:lanesAndPlanes.config.error.kost1NotFound:2:1.000.00.00",
-                "generalKost1:lanesAndPlanes.config.error.kost1Duplicate:3:1.005.01.00",
+                "generalKost1:lanesAndPlanes.config.error.kost1Duplicate:3:1.900.01.00",
                 "generalKost2:lanesAndPlanes.config.error.kost2NotFound:2:9.999.99.99",
-                "generalKost2:lanesAndPlanes.config.error.kost2NotActive:3:1.010.02.00",
-                "generalKost2:lanesAndPlanes.config.error.kost2Duplicate:4:1010.01.00",
+                "generalKost2:lanesAndPlanes.config.error.kost2NotActive:3:1.910.02.00",
+                "generalKost2:lanesAndPlanes.config.error.kost2Duplicate:4:1910.01.00",
                 "kost2Patterns:lanesAndPlanes.config.error.pattern:2:5.[0-9]",
                 "kost2Patterns:lanesAndPlanes.config.error.pattern:3:5.[0]",
                 "additionalUsers:lanesAndPlanes.config.error.additionalUserEmail:2:no email",
@@ -102,11 +102,11 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
         val settings = LanesAndPlanesSettings(
             existingCostObjects = listOf(
                 " 50123401 Project - Travel costs ", "", "5012340 Too short", "501234011 Too long",
-                "50123401 Duplicate", "10050100", "x".repeat(103),
+                "50123401 Duplicate", "19000100", "x".repeat(103),
             ),
         )
         Assertions.assertEquals(
-            mapOf("50123401" to "50123401 Project - Travel costs", "10050100" to "10050100"),
+            mapOf("50123401" to "50123401 Project - Travel costs", "19000100" to "19000100"),
             settings.existingNamesByNumber,
             "The first name of a number wins.",
         )
@@ -166,11 +166,11 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
 
     @Test
     fun globToRegex() {
-        val regex = LanesAndPlanesSettings.globToRegex("5.*.02")
-        Assertions.assertTrue(regex.matches("5.123.45.02"))
+        val regex = LanesAndPlanesSettings.globToRegex("5.*.07")
+        Assertions.assertTrue(regex.matches("5.123.45.07"))
         Assertions.assertFalse(regex.matches("5.123.45.03"))
-        Assertions.assertFalse(regex.matches("15.123.45.02"))
-        Assertions.assertFalse(regex.matches("5.123.45.021"))
+        Assertions.assertFalse(regex.matches("15.123.45.07"))
+        Assertions.assertFalse(regex.matches("5.123.45.071"))
         Assertions.assertTrue(LanesAndPlanesSettings.globToRegex("5.123.??.*").matches("5.123.45.11"))
         Assertions.assertFalse(LanesAndPlanesSettings.globToRegex("5.123.??.*").matches("5.123.4.11"))
         Assertions.assertFalse(LanesAndPlanesSettings.globToRegex("5.1").matches("531"), "The dot is no wildcard.")

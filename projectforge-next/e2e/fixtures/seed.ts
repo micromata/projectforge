@@ -652,7 +652,7 @@ export async function findProjectWithCustomer(
   // `EntityAutocomplete` has `minChars = 2` and asks the backend for nothing shorter, so a
   // one-letter term would look like "no project matched". The full name is the most selective term
   // available and keeps the pick unambiguous — without the characters the autosearch reads as query
-  // syntax: a name like "KCE (myDHL Express)" taken literally matches nothing, its words do.
+  // syntax: a name like "ACME (Express Service)" taken literally matches nothing, its words do.
   const searchTerm = project.name
     .replace(/[+\-!(){}[\]^"~*?:\\/&|]/g, " ")
     .replace(/\s+/g, " ")

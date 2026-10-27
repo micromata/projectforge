@@ -3,8 +3,8 @@ import { matchRoute } from "./route-params";
 
 describe("matchRoute", () => {
   it("reads a single param", () => {
-    expect(matchRoute("/book/[id]", "/book/25219084")).toEqual({
-      id: "25219084",
+    expect(matchRoute("/book/[id]", "/book/4711")).toEqual({
+      id: "4711",
     });
   });
 

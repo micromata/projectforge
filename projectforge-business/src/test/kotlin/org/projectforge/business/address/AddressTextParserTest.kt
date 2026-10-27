@@ -273,16 +273,16 @@ class AddressTextParserTest {
     @Test
     fun `test parse signature with i A and ampersand in position`() {
         val text = """
-            i. A. Sandra Berta, Menschen & Kultur
+            i. A. Erika Musterfrau, Kunden & Service
 
             Example GmbH
-            Marie-Calm Str. 1-5, D-34131 Kassel
-            Tel: +49 561 / 31 67 93 - 0
-            Fax: +49 561 / 31 67 93- 11
-            mailto: s.berta@example.de
+            Musterweg 1-5, D-12345 Musterstadt
+            Tel: +49 123 / 45 67 89 - 0
+            Fax: +49 123 / 45 67 89- 11
+            mailto: e.musterfrau@example.de
             https://www.example.de
 
-            AG Kassel HRB 7370
+            AG Musterstadt HRB 12345
             Geschäftsführung:
             Max Mustermann
             John Doe
@@ -291,16 +291,16 @@ class AddressTextParserTest {
         val result = AddressTextParser.parseAddressText(text)
 
         // "i. A." should be recognized as title or part of position
-        assertEquals("Sandra", result.firstName)
-        assertEquals("Berta", result.name)
-        assertEquals("Menschen & Kultur", result.positionText)
+        assertEquals("Erika", result.firstName)
+        assertEquals("Musterfrau", result.name)
+        assertEquals("Kunden & Service", result.positionText)
         assertEquals("Example GmbH", result.organization)
-        assertEquals("Marie-Calm Str. 1-5", result.addressText)
-        assertEquals("34131", result.zipCode)
-        assertEquals("Kassel", result.city)
-        assertEquals("+49 561 31 67 93-0", result.businessPhone) // Normalized format
-        assertEquals("+49 561 31 67 93-11", result.fax) // Normalized format
-        assertEquals("s.berta@example.de", result.email)
+        assertEquals("Musterweg 1-5", result.addressText)
+        assertEquals("12345", result.zipCode)
+        assertEquals("Musterstadt", result.city)
+        assertEquals("+49 123 45 67 89-0", result.businessPhone) // Normalized format
+        assertEquals("+49 123 45 67 89-11", result.fax) // Normalized format
+        assertEquals("e.musterfrau@example.de", result.email)
         assertEquals("https://www.example.de", result.website)
     }
 
@@ -656,7 +656,7 @@ class AddressTextParserTest {
             Dipl.Phys Kai Reinhard
             Senior Developer
 
-            Micromata GmbH
+            ACME GmbH
             Hauptstraße 1
             34131 Kassel
 
@@ -673,7 +673,7 @@ class AddressTextParserTest {
         assertEquals("Kai", result.firstName)
         assertEquals("Reinhard", result.name)
         assertEquals("Senior Developer", result.positionText)
-        assertEquals("Micromata GmbH", result.organization)
+        assertEquals("ACME GmbH", result.organization)
         assertEquals("34131", result.zipCode)
         assertEquals("Kassel", result.city)
         assertEquals("+49 561 12345678", result.businessPhone)

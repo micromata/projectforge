@@ -2,398 +2,398 @@
 ------------------------------------------+-----------------------------+------+------------------------------------------------------------+-----------+--------+-----------
 -- \pset null 'NULL'
 ------------------------------------------+-----------------------------+------+------------------------------------------------------------+-----------+--------+-----------
--- GroupTaskAccess 190664: --
+-- GroupTaskAccess 702100: --
 -----------------------------
-        | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   2658215
- Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   2658215
-        | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   2658215
-TASK_ACCESS_MANAGEMENT={true,false,false,false};TASKS={true,false,false,false};TIMESHEETS={true,false,false,false};OWN_TIMESHEETS={true,false,false,false} | entries:nv   | V    | java.lang.String                                           | NULL      | NULL   |   2658991
- Update                                                                                                                                                     | entries:op   | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   2658991
-                                                                                                                                                            | entries:ov   | V    | java.lang.String                                           | NULL      | NULL   |   2658991
+        | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   7015000
+ Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7015000
+        | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   7015000
+TASK_ACCESS_MANAGEMENT={true,false,false,false};TASKS={true,false,false,false};TIMESHEETS={true,false,false,false};OWN_TIMESHEETS={true,false,false,false} | entries:nv   | V    | java.lang.String                                           | NULL      | NULL   |   7018000
+ Update                                                                                                                                                     | entries:op   | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7018000
+                                                                                                                                                            | entries:ov   | V    | java.lang.String                                           | NULL      | NULL   |   7018000
 ------------------------------------------+-----------------------------+------+------------------------------------------------------------+-----------+--------+-----------
--- User 34961222 --
+-- User 70360000 --
 -------------------
- 2023-02-10 13:34:25:184 | lastPasswordChange:nv | V    | java.util.Date                                             | NULL      | NULL   |  38057999
- Update                  | lastPasswordChange:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  38057999
- 2022-10-04 09:55:19:329 | lastPasswordChange:ov | V    | java.util.Date                                             | NULL      | NULL   |  38057999
- de_DE         | locale:nv         | V    | java.util.Locale                                           | NULL      | NULL   |  37229748
- Update        | locale:op         | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  37229748
-               | locale:ov         | V    | java.util.Locale                                           | NULL      | NULL   |  37229748
- Europe/Berlin | timeZoneString:nv | V    | java.lang.String                                           | NULL      | NULL   |  37229748
- Insert        | timeZoneString:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  37229748
- NULL          | timeZoneString:ov | N    | java.lang.String                                           | NULL      | NULL   |  37229748
- 1100452,1100063,1826459,33 | assignedGroups:nv | V    | org.projectforge.framework.persistence.user.entities.GroupDO | NULL      | NULL   |  34961266
- Update                     | assignedGroups:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType   | NULL      | NULL   |  34961266
- NULL                       | assignedGroups:ov | N    | org.projectforge.framework.persistence.user.entities.GroupDO | NULL      | NULL   |  34961266
+ 2023-02-10 13:34:25:184 | lastPasswordChange:nv | V    | java.util.Date                                             | NULL      | NULL   |  71260000
+ Update                  | lastPasswordChange:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71260000
+ 2022-10-04 09:55:19:329 | lastPasswordChange:ov | V    | java.util.Date                                             | NULL      | NULL   |  71260000
+ de_DE         | locale:nv         | V    | java.util.Locale                                           | NULL      | NULL   |  71200000
+ Update        | locale:op         | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71200000
+               | locale:ov         | V    | java.util.Locale                                           | NULL      | NULL   |  71200000
+ Europe/Berlin | timeZoneString:nv | V    | java.lang.String                                           | NULL      | NULL   |  71200000
+ Insert        | timeZoneString:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71200000
+ NULL          | timeZoneString:ov | N    | java.lang.String                                           | NULL      | NULL   |  71200000
+ 7006000,7003000,7009000,33 | assignedGroups:nv | V    | org.projectforge.framework.persistence.user.entities.GroupDO | NULL      | NULL   |  70420000
+ Update                     | assignedGroups:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType   | NULL      | NULL   |  70420000
+ NULL                       | assignedGroups:ov | N    | org.projectforge.framework.persistence.user.entities.GroupDO | NULL      | NULL   |  70420000
 
 ------------------------------------------+-----------------------------+------+------------------------------------------------------------+-----------+--------+-----------
--- Invoice 40770225: --
+-- Invoice 72130000: --
 -----------------------
- Wartung ABC im Oktober 2023              | betreff:nv                  | V    | java.lang.String                                           | NULL      | NULL   |  40770229
- Insert                                   | betreff:op                  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- ACME  AG                                 | customerAddress:nv          | V    | java.lang.String                                           | NULL      | NULL   |  40770229
- Insert                                   | customerAddress:op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- Projekt: ABC Wartung 2023                | customerref1:nv             | V    | java.lang.String                                           | NULL      | NULL   |  40770229
- Insert                                   | customerref1:op             | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- 2023-11-01                               | datum:nv                    | V    | java.time.LocalDate                                        | NULL      | NULL   |  40770229
- Insert                                   | datum:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- false                                    | deleted:nv                  | V    | boolean                                                    | NULL      | NULL   |  40770229
- Insert                                   | deleted:op                  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- 2023-04-22                               | discountMaturity:nv         | V    | java.time.LocalDate                                        | NULL      | NULL   |  40770229
- Insert                                   | discountMaturity:op         | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- 2023-12-31                               | faelligkeit:nv              | V    | java.time.LocalDate                                        | NULL      | NULL   |  40770229
- Insert                                   | faelligkeit:op              | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- 40770225                                 | id:nv                       | V    | java.lang.Integer                                          | NULL      | NULL   |  40770229
- Insert                                   | id:op                       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- 167469                                   | konto:nv                    | V    | org.projectforge.business.fibu.KontoDO                     | NULL      | NULL   |  40770229
- Insert                                   | konto:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- 150                                      | kunde:nv                    | V    | org.projectforge.business.fibu.KundeDO                     | NULL      | NULL   |  40770229
- Insert                                   | kunde:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- 14105                                    | nummer:nv                   | V    | java.lang.Integer                                          | NULL      | NULL   |  40770229
- Insert                                   | nummer:op                   | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- 2023-10-01                               | periodOfPerformanceBegin:nv | V    | java.time.LocalDate                                        | NULL      | NULL   |  40770229
- Insert                                   | periodOfPerformanceBegin:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- 2023-10-31                               | periodOfPerformanceEnd:nv   | V    | java.time.LocalDate                                        | NULL      | NULL   |  40770229
- Insert                                   | periodOfPerformanceEnd:op   | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- 40770226                                 | positionen:nv               | V    | org.projectforge.business.fibu.RechnungsPositionDO         | NULL      | NULL   |  40770229
- Insert                                   | positionen:op               | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- 25552514                                 | projekt:nv                  | V    | org.projectforge.business.fibu.ProjektDO                   | NULL      | NULL   |  40770229
- Insert                                   | projekt:op                  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- GESTELLT                                 | status:nv                   | V    | org.projectforge.business.fibu.RechnungStatus              | NULL      | NULL   |  40770229
- Insert                                   | status:op                   | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- RECHNUNG                                 | typ:nv                      | V    | org.projectforge.business.fibu.RechnungTyp                 | NULL      | NULL   |  40770229
- Insert                                   | typ:op                      | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40770229
- PoBa       | bemerkung:nv   | V    | java.lang.String                                           | NULL      | NULL   |  41391150
- Insert     | bemerkung:op   | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  41391150
- NULL       | bemerkung:ov   | N    | java.lang.String                                           | NULL      | NULL   |  41391150
- 2023-12-29 | bezahlDatum:nv | V    | java.time.LocalDate                                        | NULL      | NULL   |  41391150
- Insert     | bezahlDatum:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  41391150
- NULL       | bezahlDatum:ov | N    | java.time.LocalDate                                        | NULL      | NULL   |  41391150
- BEZAHLT    | status:nv      | V    | org.projectforge.business.fibu.RechnungStatus              | NULL      | NULL   |  41391150
- Update     | status:op      | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  41391150
- GESTELLT   | status:ov      | V    | org.projectforge.business.fibu.RechnungStatus              | NULL      | NULL   |  41391150
- 4765.95    | zahlBetrag:nv  | V    | java.math.BigDecimal                                       | NULL      | NULL   |  41391150
- Insert     | zahlBetrag:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  41391150
- NULL       | zahlBetrag:ov  | N    | java.math.BigDecimal                                       | NULL      | NULL   |  41391150
+ Wartung ABC im Oktober 2023              | betreff:nv                  | V    | java.lang.String                                           | NULL      | NULL   |  72190000
+ Insert                                   | betreff:op                  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ ACME  AG                                 | customerAddress:nv          | V    | java.lang.String                                           | NULL      | NULL   |  72190000
+ Insert                                   | customerAddress:op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ Projekt: ABC Wartung 2023                | customerref1:nv             | V    | java.lang.String                                           | NULL      | NULL   |  72190000
+ Insert                                   | customerref1:op             | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ 2023-11-01                               | datum:nv                    | V    | java.time.LocalDate                                        | NULL      | NULL   |  72190000
+ Insert                                   | datum:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ false                                    | deleted:nv                  | V    | boolean                                                    | NULL      | NULL   |  72190000
+ Insert                                   | deleted:op                  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ 2023-04-22                               | discountMaturity:nv         | V    | java.time.LocalDate                                        | NULL      | NULL   |  72190000
+ Insert                                   | discountMaturity:op         | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ 2023-12-31                               | faelligkeit:nv              | V    | java.time.LocalDate                                        | NULL      | NULL   |  72190000
+ Insert                                   | faelligkeit:op              | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ 72130000                                 | id:nv                       | V    | java.lang.Integer                                          | NULL      | NULL   |  72190000
+ Insert                                   | id:op                       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ 701800                                   | konto:nv                    | V    | org.projectforge.business.fibu.KontoDO                     | NULL      | NULL   |  72190000
+ Insert                                   | konto:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ 901                                      | kunde:nv                    | V    | org.projectforge.business.fibu.KundeDO                     | NULL      | NULL   |  72190000
+ Insert                                   | kunde:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ 10042                                    | nummer:nv                   | V    | java.lang.Integer                                          | NULL      | NULL   |  72190000
+ Insert                                   | nummer:op                   | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ 2023-10-01                               | periodOfPerformanceBegin:nv | V    | java.time.LocalDate                                        | NULL      | NULL   |  72190000
+ Insert                                   | periodOfPerformanceBegin:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ 2023-10-31                               | periodOfPerformanceEnd:nv   | V    | java.time.LocalDate                                        | NULL      | NULL   |  72190000
+ Insert                                   | periodOfPerformanceEnd:op   | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ 72160000                                 | positionen:nv               | V    | org.projectforge.business.fibu.RechnungsPositionDO         | NULL      | NULL   |  72190000
+ Insert                                   | positionen:op               | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ 70150000                                 | projekt:nv                  | V    | org.projectforge.business.fibu.ProjektDO                   | NULL      | NULL   |  72190000
+ Insert                                   | projekt:op                  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ GESTELLT                                 | status:nv                   | V    | org.projectforge.business.fibu.RechnungStatus              | NULL      | NULL   |  72190000
+ Insert                                   | status:op                   | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ RECHNUNG                                 | typ:nv                      | V    | org.projectforge.business.fibu.RechnungTyp                 | NULL      | NULL   |  72190000
+ Insert                                   | typ:op                      | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72190000
+ Bank       | bemerkung:nv   | V    | java.lang.String                                           | NULL      | NULL   |  72460000
+ Insert     | bemerkung:op   | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72460000
+ NULL       | bemerkung:ov   | N    | java.lang.String                                           | NULL      | NULL   |  72460000
+ 2023-12-29 | bezahlDatum:nv | V    | java.time.LocalDate                                        | NULL      | NULL   |  72460000
+ Insert     | bezahlDatum:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72460000
+ NULL       | bezahlDatum:ov | N    | java.time.LocalDate                                        | NULL      | NULL   |  72460000
+ BEZAHLT    | status:nv      | V    | org.projectforge.business.fibu.RechnungStatus              | NULL      | NULL   |  72460000
+ Update     | status:op      | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72460000
+ GESTELLT   | status:ov      | V    | org.projectforge.business.fibu.RechnungStatus              | NULL      | NULL   |  72460000
+ 1234.56    | zahlBetrag:nv  | V    | java.math.BigDecimal                                       | NULL      | NULL   |  72460000
+ Insert     | zahlBetrag:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72460000
+ NULL       | zahlBetrag:ov  | N    | java.math.BigDecimal                                       | NULL      | NULL   |  72460000
 
 ------------------------------------------+-----------------------------+------+------------------------------------------------------------+-----------+--------+-----------
--- Order / Auftrag 36901223: --
+-- Order / Auftrag 70810000: --
 -------------------------------
- 2022-10-28                                         | angebotsDatum:nv            | V    | java.time.LocalDate                                           | NULL      | NULL   |  36901229
- Insert                                             | angebotsDatum:op            | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- IN_ERSTELLUNG                                      | auftragsStatus:nv           | V    | org.projectforge.business.fibu.AuftragsStatus                 | NULL      | NULL   |  36901229
- Insert                                             | auftragsStatus:op           | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- Summen eintragen, die beauftragt wurden. 6% Rabatt | bemerkung:nv                | V    | java.lang.String                                              | NULL      | NULL   |  36901229
- Insert                                             | bemerkung:op                | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- 14532637                                           | contactPerson:nv            | V    | org.projectforge.framework.persistence.user.entities.PFUserDO | NULL      | NULL   |  36901229
- Insert                                             | contactPerson:op            | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- false                                              | deleted:nv                  | V    | boolean                                                       | NULL      | NULL   |  36901229
- Insert                                             | deleted:op                  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- 2022-10-28                                         | entscheidungsDatum:nv       | V    | java.time.LocalDate                                           | NULL      | NULL   |  36901229
- Insert                                             | entscheidungsDatum:op       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- 2022-10-28                                         | erfassungsDatum:nv          | V    | java.time.LocalDate                                           | NULL      | NULL   |  36901229
- Insert                                             | erfassungsDatum:op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- 2021177                                            | headOfBusinessManager:nv    | V    | org.projectforge.framework.persistence.user.entities.PFUserDO | NULL      | NULL   |  36901229
- Insert                                             | headOfBusinessManager:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- 36901223                                           | id:nv                       | V    | java.lang.Integer                                             | NULL      | NULL   |  36901229
- Insert                                             | id:op                       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- 620                                                | kunde:nv                    | V    | org.projectforge.business.fibu.KundeDO                        | NULL      | NULL   |  36901229
- Insert                                             | kunde:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- 5328                                               | nummer:nv                   | V    | java.lang.Integer                                             | NULL      | NULL   |  36901229
- Insert                                             | nummer:op                   | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- 2023-01-01                                         | periodOfPerformanceBegin:nv | V    | java.time.LocalDate                                           | NULL      | NULL   |  36901229
- Insert                                             | periodOfPerformanceBegin:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- 2023-12-31                                         | periodOfPerformanceEnd:nv   | V    | java.time.LocalDate                                           | NULL      | NULL   |  36901229
- Insert                                             | periodOfPerformanceEnd:op   | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- 36901224,36901225,36901226,36901227,36901228       | positionen:nv               | V    | org.projectforge.business.fibu.AuftragsPositionDO             | NULL      | NULL   |  36901229
- Insert                                             | positionen:op               | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- 100                                                | probabilityOfOccurrence:nv  | V    | java.lang.Integer                                             | NULL      | NULL   |  36901229
- Insert                                             | probabilityOfOccurrence:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- 132012                                             | projekt:nv                  | V    | org.projectforge.business.fibu.ProjektDO                      | NULL      | NULL   |  36901229
- Insert                                             | projekt:op                  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- ????????????                                       | referenz:nv                 | V    | java.lang.String                                              | NULL      | NULL   |  36901229
- Insert                                             | referenz:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
- ABCD 2023                                          | titel:nv                    | V    | java.lang.String                                              | NULL      | NULL   |  36901229
- Insert                                             | titel:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  36901229
+ 2022-10-28                                         | angebotsDatum:nv            | V    | java.time.LocalDate                                           | NULL      | NULL   |  70990000
+ Insert                                             | angebotsDatum:op            | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ IN_ERSTELLUNG                                      | auftragsStatus:nv           | V    | org.projectforge.business.fibu.AuftragsStatus                 | NULL      | NULL   |  70990000
+ Insert                                             | auftragsStatus:op           | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ Beauftragte Summen eintragen, 3% Nachlass          | bemerkung:nv                | V    | java.lang.String                                              | NULL      | NULL   |  70990000
+ Insert                                             | bemerkung:op                | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ 70060000                                           | contactPerson:nv            | V    | org.projectforge.framework.persistence.user.entities.PFUserDO | NULL      | NULL   |  70990000
+ Insert                                             | contactPerson:op            | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ false                                              | deleted:nv                  | V    | boolean                                                       | NULL      | NULL   |  70990000
+ Insert                                             | deleted:op                  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ 2022-10-28                                         | entscheidungsDatum:nv       | V    | java.time.LocalDate                                           | NULL      | NULL   |  70990000
+ Insert                                             | entscheidungsDatum:op       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ 2022-10-28                                         | erfassungsDatum:nv          | V    | java.time.LocalDate                                           | NULL      | NULL   |  70990000
+ Insert                                             | erfassungsDatum:op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ 7012000                                            | headOfBusinessManager:nv    | V    | org.projectforge.framework.persistence.user.entities.PFUserDO | NULL      | NULL   |  70990000
+ Insert                                             | headOfBusinessManager:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ 70810000                                           | id:nv                       | V    | java.lang.Integer                                             | NULL      | NULL   |  70990000
+ Insert                                             | id:op                       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ 902                                                | kunde:nv                    | V    | org.projectforge.business.fibu.KundeDO                        | NULL      | NULL   |  70990000
+ Insert                                             | kunde:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ 4711                                               | nummer:nv                   | V    | java.lang.Integer                                             | NULL      | NULL   |  70990000
+ Insert                                             | nummer:op                   | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ 2023-01-01                                         | periodOfPerformanceBegin:nv | V    | java.time.LocalDate                                           | NULL      | NULL   |  70990000
+ Insert                                             | periodOfPerformanceBegin:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ 2023-12-31                                         | periodOfPerformanceEnd:nv   | V    | java.time.LocalDate                                           | NULL      | NULL   |  70990000
+ Insert                                             | periodOfPerformanceEnd:op   | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ 70840000,70870000,70900000,70930000,70960000       | positionen:nv               | V    | org.projectforge.business.fibu.AuftragsPositionDO             | NULL      | NULL   |  70990000
+ Insert                                             | positionen:op               | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ 100                                                | probabilityOfOccurrence:nv  | V    | java.lang.Integer                                             | NULL      | NULL   |  70990000
+ Insert                                             | probabilityOfOccurrence:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ 700300                                             | projekt:nv                  | V    | org.projectforge.business.fibu.ProjektDO                      | NULL      | NULL   |  70990000
+ Insert                                             | projekt:op                  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ ????????????                                       | referenz:nv                 | V    | java.lang.String                                              | NULL      | NULL   |  70990000
+ Insert                                             | referenz:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
+ ABCD 2023                                          | titel:nv                    | V    | java.lang.String                                              | NULL      | NULL   |  70990000
+ Insert                                             | titel:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType    | NULL      | NULL   |  70990000
 
- 36901406,36901407,36901408,36901409 | paymentSchedules:nv | V    | org.projectforge.business.fibu.PaymentScheduleDO           | NULL      | NULL   |  36901410
- Update                              | paymentSchedules:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  36901410
-                                     | paymentSchedules:ov | V    | org.projectforge.business.fibu.PaymentScheduleDO           | NULL      | NULL   |  36901410
+ 71020000,71050000,71080000,71110000 | paymentSchedules:nv | V    | org.projectforge.business.fibu.PaymentScheduleDO           | NULL      | NULL   |  71140000
+ Update                              | paymentSchedules:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71140000
+                                     | paymentSchedules:ov | V    | org.projectforge.business.fibu.PaymentScheduleDO           | NULL      | NULL   |  71140000
 
- POTENZIAL     | auftragsStatus:nv | V    | org.projectforge.business.fibu.AuftragsStatus              | NULL      | NULL   |  36901457
- Update        | auftragsStatus:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  36901457
- IN_ERSTELLUNG | auftragsStatus:ov | V    | org.projectforge.business.fibu.AuftragsStatus              | NULL      | NULL   |  36901457
+ POTENZIAL     | auftragsStatus:nv | V    | org.projectforge.business.fibu.AuftragsStatus              | NULL      | NULL   |  71170000
+ Update        | auftragsStatus:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71170000
+ IN_ERSTELLUNG | auftragsStatus:ov | V    | org.projectforge.business.fibu.AuftragsStatus              | NULL      | NULL   |  71170000
 
- 45612392591   | referenz:nv  | V    | java.lang.String                                           | NULL      | NULL   |  38118558
- Update        | referenz:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  38118558
- ????????????  | referenz:ov  | V    | java.lang.String                                           | NULL      | NULL   |  38118558
+ PO-100200300 | referenz:nv  | V    | java.lang.String                                           | NULL      | NULL   |  71320000
+ Update        | referenz:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71320000
+ ????????????  | referenz:ov  | V    | java.lang.String                                           | NULL      | NULL   |  71320000
 
- BEAUFTRAGT | auftragsStatus:nv | V    | org.projectforge.business.fibu.AuftragsStatus              | NULL      | NULL   |  38118562
- Update     | auftragsStatus:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  38118562
- POTENZIAL  | auftragsStatus:ov | V    | org.projectforge.business.fibu.AuftragsStatus              | NULL      | NULL   |  38118562
+ BEAUFTRAGT | auftragsStatus:nv | V    | org.projectforge.business.fibu.AuftragsStatus              | NULL      | NULL   |  71350000
+ Update     | auftragsStatus:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71350000
+ POTENZIAL  | auftragsStatus:ov | V    | org.projectforge.business.fibu.AuftragsStatus              | NULL      | NULL   |  71350000
 
- 4512392591 / 17.02.2023 | referenz:nv  | V    | java.lang.String                                           | NULL      | NULL   |  38147991
- Update                  | referenz:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  38147991
- 4512392591              | referenz:ov  | V    | java.lang.String                                           | NULL      | NULL   |  38147991
+ PO-1002003 / 17.02.2023 | referenz:nv  | V    | java.lang.String                                           | NULL      | NULL   |  71530000
+ Update                  | referenz:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71530000
+ PO-1002003              | referenz:ov  | V    | java.lang.String                                           | NULL      | NULL   |  71530000
 
- 2023-02-17                                           | beauftragungsDatum:nv | V    | java.time.LocalDate                                        | NULL      | NULL   |  38507984
- Insert                                               | beauftragungsDatum:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  38507984
- NULL                                                 | beauftragungsDatum:ov | N    | java.time.LocalDate                                        | NULL      | NULL   |  38507984
- Summen eintragen, die beauftragt wurden. 6% Rabatt   | bemerkung:nv          | V    | java.lang.String                                           | NULL      | NULL   |  38507984
- Update                                               | bemerkung:op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  38507984
- Summen eintragen, die beauftragt wurden. 6% Rabatt   | bemerkung:ov          | V    | java.lang.String                                           | NULL      | NULL   |  38507984
+ 2023-02-17                                           | beauftragungsDatum:nv | V    | java.time.LocalDate                                        | NULL      | NULL   |  71620000
+ Insert                                               | beauftragungsDatum:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71620000
+ NULL                                                 | beauftragungsDatum:ov | N    | java.time.LocalDate                                        | NULL      | NULL   |  71620000
+ Beauftragte Summen eintragen, 3% Nachlass            | bemerkung:nv          | V    | java.lang.String                                           | NULL      | NULL   |  71620000
+ Update                                               | bemerkung:op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71620000
+ Beauftragte Summen eintragen, 3% Nachlass            | bemerkung:ov          | V    | java.lang.String                                           | NULL      | NULL   |  71620000
 
- Attachment uploaded: 'dlkfjdasodlfjdaslfdssddd.pdf'. | attachmentsLastUserAction:nv | V    | java.lang.String                                           | NULL      | NULL   |  38508173
- Insert                                               | attachmentsLastUserAction:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  38508173
- NULL                                                 | attachmentsLastUserAction:ov | N    | java.lang.String                                           | NULL      | NULL   |  38508173
+ Attachment uploaded: 'dlkfjdasodlfjdaslfdssddd.pdf'. | attachmentsLastUserAction:nv | V    | java.lang.String                                           | NULL      | NULL   |  71650000
+ Insert                                               | attachmentsLastUserAction:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71650000
+ NULL                                                 | attachmentsLastUserAction:ov | N    | java.lang.String                                           | NULL      | NULL   |  71650000
 
- ABGESCHLOSSEN | auftragsStatus:nv | V    | org.projectforge.business.fibu.AuftragsStatus              | NULL      | NULL   |  41195493
- Update        | auftragsStatus:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  41195493
- BEAUFTRAGT    | auftragsStatus:ov | V    | org.projectforge.business.fibu.AuftragsStatus              | NULL      | NULL   |  41195493
+ ABGESCHLOSSEN | auftragsStatus:nv | V    | org.projectforge.business.fibu.AuftragsStatus              | NULL      | NULL   |  72310000
+ Update        | auftragsStatus:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72310000
+ BEAUFTRAGT    | auftragsStatus:ov | V    | org.projectforge.business.fibu.AuftragsStatus              | NULL      | NULL   |  72310000
 
--- AuftragsPosition: 36901224: -- master_fk in (38118578,38385654,38512218)
+-- AuftragsPosition: 70840000: -- master_fk in (71470000,71560000,71680000)
 ---------------------------------
- BEAUFTRAGT    | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  38118578
- Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  38118578
- IN_ERSTELLUNG | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  38118578
- ABGESCHLOSSEN | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  38385654
- Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  38385654
- BEAUFTRAGT    | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  38385654
- true          | vollstaendigFakturiert:nv | V    | java.lang.Boolean                                          | NULL      | NULL   |  38512218
- Update        | vollstaendigFakturiert:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  38512218
- false         | vollstaendigFakturiert:ov | V    | java.lang.Boolean                                          | NULL      | NULL   |  38512218
+ BEAUFTRAGT    | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  71470000
+ Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71470000
+ IN_ERSTELLUNG | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  71470000
+ ABGESCHLOSSEN | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  71560000
+ Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71560000
+ BEAUFTRAGT    | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  71560000
+ true          | vollstaendigFakturiert:nv | V    | java.lang.Boolean                                          | NULL      | NULL   |  71680000
+ Update        | vollstaendigFakturiert:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71680000
+ false         | vollstaendigFakturiert:ov | V    | java.lang.Boolean                                          | NULL      | NULL   |  71680000
 
--- AuftragsPosition: 36901225: -- master_fk in (38118574,39310527,39427996)
+-- AuftragsPosition: 70870000: -- master_fk in (71440000,71800000,71830000)
 ---------------------------------
- BEAUFTRAGT    | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  38118574
- Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  38118574
- IN_ERSTELLUNG | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  38118574
- ABGESCHLOSSEN | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  39310527
- Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  39310527
- BEAUFTRAGT    | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  39310527
- true          | vollstaendigFakturiert:nv | V    | java.lang.Boolean                                          | NULL      | NULL   |  39427996
- Update        | vollstaendigFakturiert:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  39427996
- false         | vollstaendigFakturiert:ov | V    | java.lang.Boolean                                          | NULL      | NULL   |  39427996
+ BEAUFTRAGT    | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  71440000
+ Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71440000
+ IN_ERSTELLUNG | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  71440000
+ ABGESCHLOSSEN | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  71800000
+ Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71800000
+ BEAUFTRAGT    | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  71800000
+ true          | vollstaendigFakturiert:nv | V    | java.lang.Boolean                                          | NULL      | NULL   |  71830000
+ Update        | vollstaendigFakturiert:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71830000
+ false         | vollstaendigFakturiert:ov | V    | java.lang.Boolean                                          | NULL      | NULL   |  71830000
 
--- AuftragsPosition: 36901226: -- master_fk in (38118570,40325359,40372455)
+-- AuftragsPosition: 70900000: -- master_fk in (71410000,72070000,72100000)
 ---------------------------------
- BEAUFTRAGT    | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  38118570
- Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  38118570
- IN_ERSTELLUNG | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  38118570
- ABGESCHLOSSEN | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  40325359
- Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40325359
- BEAUFTRAGT    | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  40325359
- true          | vollstaendigFakturiert:nv | V    | java.lang.Boolean                                          | NULL      | NULL   |  40372455
- Update        | vollstaendigFakturiert:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40372455
- false         | vollstaendigFakturiert:ov | V    | java.lang.Boolean                                          | NULL      | NULL   |  40372455
+ BEAUFTRAGT    | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  71410000
+ Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71410000
+ IN_ERSTELLUNG | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  71410000
+ ABGESCHLOSSEN | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  72070000
+ Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72070000
+ BEAUFTRAGT    | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  72070000
+ true          | vollstaendigFakturiert:nv | V    | java.lang.Boolean                                          | NULL      | NULL   |  72100000
+ Update        | vollstaendigFakturiert:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72100000
+ false         | vollstaendigFakturiert:ov | V    | java.lang.Boolean                                          | NULL      | NULL   |  72100000
 
--- AuftragsPosition: 36901227: -- master_fk in (38118566,41195497,41214090)
+-- AuftragsPosition: 70930000: -- master_fk in (71380000,72340000,72400000)
 ---------------------------------
- BEAUFTRAGT    | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  38118566
- Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  38118566
- IN_ERSTELLUNG | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  38118566
- ABGESCHLOSSEN | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  41195497
- Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  41195497
- BEAUFTRAGT    | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  41195497
- true          | vollstaendigFakturiert:nv | V    | java.lang.Boolean                                          | NULL      | NULL   |  41214090
- Update        | vollstaendigFakturiert:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  41214090
- false         | vollstaendigFakturiert:ov | V    | java.lang.Boolean                                          | NULL      | NULL   |  41214090
+ BEAUFTRAGT    | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  71380000
+ Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71380000
+ IN_ERSTELLUNG | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  71380000
+ ABGESCHLOSSEN | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  72340000
+ Update        | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72340000
+ BEAUFTRAGT    | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  72340000
+ true          | vollstaendigFakturiert:nv | V    | java.lang.Boolean                                          | NULL      | NULL   |  72400000
+ Update        | vollstaendigFakturiert:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72400000
+ false         | vollstaendigFakturiert:ov | V    | java.lang.Boolean                                          | NULL      | NULL   |  72400000
 
--- AuftragsPosition: 36901228: -- master_fk in (38118582,39552414,39552418,41195501,41214094)
+-- AuftragsPosition: 70960000: -- master_fk in (71500000,71860000,71890000,72370000,72430000)
 ---------------------------------
- BEAUFTRAGT                                                                        | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  38118582
- Update                                                                            | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  38118582
- IN_ERSTELLUNG                                                                     | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  38118582
- 41 x 52,52 € = 2.153,32 €                                                         | bemerkung:nv              | V    | java.lang.String                                           | NULL      | NULL   |  39552414
- Update                                                                            | bemerkung:op              | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  39552414
- 41 x 52,52 € = 2.153,32 €                                                         | bemerkung:ov              | V    | java.lang.String                                           | NULL      | NULL   |  39552414
- 41 x 52,52 € = 2.153,32 €                                                         | bemerkung:nv              | V    | java.lang.String                                           | NULL      | NULL   |  39552418
- Update                                                                            | bemerkung:op              | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  39552418
- 41 x 52,52 € = 2.153,32 €                                                         | bemerkung:ov              | V    | java.lang.String                                           | NULL      | NULL   |  39552418
- 4280.68                                                                           | nettoSumme:nv             | V    | java.math.BigDecimal                                       | NULL      | NULL   |  39552418
- Update                                                                            | nettoSumme:op             | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  39552418
- 2140.34                                                                           | nettoSumme:ov             | V    | java.math.BigDecimal                                       | NULL      | NULL   |  39552418
- ABGESCHLOSSEN                                                                     | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  41195501
- Update                                                                            | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  41195501
- BEAUFTRAGT                                                                        | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  41195501
- 41 x 52,52 € = 2.153,32 €                                                         | bemerkung:nv              | V    | java.lang.String                                           | NULL      | NULL   |  41214094
- Update                                                                            | bemerkung:op              | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  41214094
- 41 x 52,52 € = 2.153,32 €                                                         | bemerkung:ov              | V    | java.lang.String                                           | NULL      | NULL   |  41214094
- true                                                                              | vollstaendigFakturiert:nv | V    | java.lang.Boolean                                          | NULL      | NULL   |  41214094
- Update                                                                            | vollstaendigFakturiert:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  41214094
- false                                                                             | vollstaendigFakturiert:ov | V    | java.lang.Boolean                                          | NULL      | NULL   |  41214094
+ BEAUFTRAGT                                                                        | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  71500000
+ Update                                                                            | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71500000
+ IN_ERSTELLUNG                                                                     | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  71500000
+ 10 x 50,00 € = 500,00 €                                                           | bemerkung:nv              | V    | java.lang.String                                           | NULL      | NULL   |  71860000
+ Update                                                                            | bemerkung:op              | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71860000
+ 10 x 50,00 € = 500,00 €                                                           | bemerkung:ov              | V    | java.lang.String                                           | NULL      | NULL   |  71860000
+ 10 x 50,00 € = 500,00 €                                                           | bemerkung:nv              | V    | java.lang.String                                           | NULL      | NULL   |  71890000
+ Update                                                                            | bemerkung:op              | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71890000
+ 10 x 50,00 € = 500,00 €                                                           | bemerkung:ov              | V    | java.lang.String                                           | NULL      | NULL   |  71890000
+ 1000.00                                                                           | nettoSumme:nv             | V    | java.math.BigDecimal                                       | NULL      | NULL   |  71890000
+ Update                                                                            | nettoSumme:op             | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71890000
+ 500.00                                                                            | nettoSumme:ov             | V    | java.math.BigDecimal                                       | NULL      | NULL   |  71890000
+ ABGESCHLOSSEN                                                                     | status:nv                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  72370000
+ Update                                                                            | status:op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72370000
+ BEAUFTRAGT                                                                        | status:ov                 | V    | org.projectforge.business.fibu.AuftragsPositionsStatus     | NULL      | NULL   |  72370000
+ 10 x 50,00 € = 500,00 €                                                           | bemerkung:nv              | V    | java.lang.String                                           | NULL      | NULL   |  72430000
+ Update                                                                            | bemerkung:op              | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72430000
+ 10 x 50,00 € = 500,00 €                                                           | bemerkung:ov              | V    | java.lang.String                                           | NULL      | NULL   |  72430000
+ true                                                                              | vollstaendigFakturiert:nv | V    | java.lang.Boolean                                          | NULL      | NULL   |  72430000
+ Update                                                                            | vollstaendigFakturiert:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72430000
+ false                                                                             | vollstaendigFakturiert:ov | V    | java.lang.Boolean                                          | NULL      | NULL   |  72430000
 
 --------------------------------------------------------------------------------------------------------------
--- Rechnung 351958
--- Invoice (RechnungDO) 351958 (embeds RechnungsPositionDO which embeds KostZuweisungDO)
---   Position 351959
---     KostZuweisung 382507, 382508, 382509
---   Position 351960
---     KostZuweisung 382506
--- RechnungDO 351958: (6 entries)
--- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (2972182,3042917,3062919,6191673);
+-- Rechnung 703300
+-- Invoice (RechnungDO) 703300 (embeds RechnungsPositionDO which embeds KostZuweisungDO)
+--   Position 703600
+--     KostZuweisung 704500, 704800, 705100
+--   Position 703900
+--     KostZuweisung 704200
+-- RechnungDO 703300: (6 entries)
+-- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (7024000,7066000,7072000,7078000);
 --                    value                       |  propertyname  | type |                    property_type_class                     | old_value | optype | master_fk
 --------------------------------------------------+----------------+------+------------------------------------------------------------+-----------+--------+-----------
-              | :nv            | V    | java.lang.String                                           | NULL      | NULL   |   2972182
- Insert       | :op            | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   2972182
-              | :ov            | V    | java.lang.String                                           | NULL      | NULL   |   2972182
- 2010-02-22   | bezahlDatum:nv | V    | java.sql.Date                                              | NULL      | NULL   |   3042917
- Update       | bezahlDatum:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3042917
- NULL         | bezahlDatum:ov | N    | java.sql.Date                                              | NULL      | NULL   |   3042917
- BEZAHLT      | status:nv      | V    | de.micromata.fibu.RechnungStatus                           | NULL      | NULL   |   3042917
- Update       | status:op      | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3042917
- GESTELLT     | status:ov      | V    | de.micromata.fibu.RechnungStatus                           | NULL      | NULL   |   3042917
- 4455.00      | zahlBetrag:nv  | V    | java.math.BigDecimal                                       | NULL      | NULL   |   3042917
- Update       | zahlBetrag:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3042917
- NULL         | zahlBetrag:ov  | N    | java.math.BigDecimal                                       | NULL      | NULL   |   3042917
- DM 2010      | betreff:nv     | V    | java.lang.String                                           | NULL      | NULL   |   3062919
- Update       | betreff:op     | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3062919
- DM 2010 #674 | betreff:ov     | V    | java.lang.String                                           | NULL      | NULL   |   3062919
- 167040       | konto:nv       | V    | org.projectforge.business.fibu.KontoDO                     | NULL      | NULL   |   6191673
- Update       | konto:op       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   6191673
- NULL         | konto:ov       | N    | org.projectforge.business.fibu.KontoDO                     | NULL      | NULL   |   6191673
--- RechnungsPositionDO 351960 #1: (4 entries)
--- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (2972178,2985201,3026625,3062923);
+              | :nv            | V    | java.lang.String                                           | NULL      | NULL   |   7024000
+ Insert       | :op            | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7024000
+              | :ov            | V    | java.lang.String                                           | NULL      | NULL   |   7024000
+ 2010-02-22   | bezahlDatum:nv | V    | java.sql.Date                                              | NULL      | NULL   |   7066000
+ Update       | bezahlDatum:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7066000
+ NULL         | bezahlDatum:ov | N    | java.sql.Date                                              | NULL      | NULL   |   7066000
+ BEZAHLT      | status:nv      | V    | de.micromata.fibu.RechnungStatus                           | NULL      | NULL   |   7066000
+ Update       | status:op      | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7066000
+ GESTELLT     | status:ov      | V    | de.micromata.fibu.RechnungStatus                           | NULL      | NULL   |   7066000
+ 1500.00      | zahlBetrag:nv  | V    | java.math.BigDecimal                                       | NULL      | NULL   |   7066000
+ Update       | zahlBetrag:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7066000
+ NULL         | zahlBetrag:ov  | N    | java.math.BigDecimal                                       | NULL      | NULL   |   7066000
+ XY 2010      | betreff:nv     | V    | java.lang.String                                           | NULL      | NULL   |   7072000
+ Update       | betreff:op     | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7072000
+ XY 2010 #123 | betreff:ov     | V    | java.lang.String                                           | NULL      | NULL   |   7072000
+ 701500       | konto:nv       | V    | org.projectforge.business.fibu.KontoDO                     | NULL      | NULL   |   7078000
+ Update       | konto:op       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7078000
+ NULL         | konto:ov       | N    | org.projectforge.business.fibu.KontoDO                     | NULL      | NULL   |   7078000
+-- RechnungsPositionDO 703900 #1: (4 entries)
+-- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (7021000,7030000,7063000,7075000);
 --      value         |    propertyname     | type |                    property_type_class                     | old_value | optype | master_fk
 ----------------------+---------------------+------+------------------------------------------------------------+-----------+--------+-----------
-                      | :nv                 | V    | java.lang.String                                           | NULL      | NULL   |   2972178
- Insert               | :op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   2972178
-                      | :ov                 | V    | java.lang.String                                           | NULL      | NULL   |   2972178
- 0.19                 | vat:nv              | V    | java.math.BigDecimal                                       | NULL      | NULL   |   2985201
- Update               | vat:op              | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   2985201
- 0.19000              | vat:ov              | V    | java.math.BigDecimal                                       | NULL      | NULL   |   2985201
- 382508,382509,382507 | kostZuweisungen:nv  | V    | org.projectforge.business.fibu.kost.KostZuweisungDO        | NULL      | NULL   |   3026625
- Update               | kostZuweisungen:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026625
-                      | kostZuweisungen:ov  | V    | org.projectforge.business.fibu.kost.KostZuweisungDO        | NULL      | NULL   |   3026625
- 320426               | auftragsPosition:nv | V    | org.projectforge.business.fibu.AuftragsPositionDO          | NULL      | NULL   |   3062923
- Update               | auftragsPosition:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3062923
- NULL                 | auftragsPosition:ov | N    | org.projectforge.business.fibu.AuftragsPositionDO          | NULL      | NULL   |   3062923
+                      | :nv                 | V    | java.lang.String                                           | NULL      | NULL   |   7021000
+ Insert               | :op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7021000
+                      | :ov                 | V    | java.lang.String                                           | NULL      | NULL   |   7021000
+ 0.19                 | vat:nv              | V    | java.math.BigDecimal                                       | NULL      | NULL   |   7030000
+ Update               | vat:op              | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7030000
+ 0.19000              | vat:ov              | V    | java.math.BigDecimal                                       | NULL      | NULL   |   7030000
+ 704800,705100,704500 | kostZuweisungen:nv  | V    | org.projectforge.business.fibu.kost.KostZuweisungDO        | NULL      | NULL   |   7063000
+ Update               | kostZuweisungen:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7063000
+                      | kostZuweisungen:ov  | V    | org.projectforge.business.fibu.kost.KostZuweisungDO        | NULL      | NULL   |   7063000
+ 702400               | auftragsPosition:nv | V    | org.projectforge.business.fibu.AuftragsPositionDO          | NULL      | NULL   |   7075000
+ Update               | auftragsPosition:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7075000
+ NULL                 | auftragsPosition:ov | N    | org.projectforge.business.fibu.AuftragsPositionDO          | NULL      | NULL   |   7075000
 
--- RechnungsPositionDO 351960 #2:  (4 entries)
+-- RechnungsPositionDO 703900 #2:  (4 entries)
 -- value |    propertyname     | type |                    property_type_class                     | old_value | optype | master_fk
 ---------+---------------------+------+------------------------------------------------------------+-----------+--------+-----------
-         | :nv                 | V    | java.lang.String                                           | NULL      | NULL   |   2972186
- Insert  | :op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   2972186
-         | :ov                 | V    | java.lang.String                                           | NULL      | NULL   |   2972186
- 0.19    | vat:nv              | V    | java.math.BigDecimal                                       | NULL      | NULL   |   2988849
- Update  | vat:op              | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   2988849
- 0.19000 | vat:ov              | V    | java.math.BigDecimal                                       | NULL      | NULL   |   2988849
- 382506  | kostZuweisungen:nv  | V    | org.projectforge.business.fibu.kost.KostZuweisungDO        | NULL      | NULL   |   3026621
- Update  | kostZuweisungen:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026621
-         | kostZuweisungen:ov  | V    | org.projectforge.business.fibu.kost.KostZuweisungDO        | NULL      | NULL   |   3026621
- 320848  | auftragsPosition:nv | V    | org.projectforge.business.fibu.AuftragsPositionDO          | NULL      | NULL   |   3062915
- Update  | auftragsPosition:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3062915
- NULL    | auftragsPosition:ov | N    | org.projectforge.business.fibu.AuftragsPositionDO          | NULL      | NULL   |   3062915
+         | :nv                 | V    | java.lang.String                                           | NULL      | NULL   |   7027000
+ Insert  | :op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7027000
+         | :ov                 | V    | java.lang.String                                           | NULL      | NULL   |   7027000
+ 0.19    | vat:nv              | V    | java.math.BigDecimal                                       | NULL      | NULL   |   7033000
+ Update  | vat:op              | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7033000
+ 0.19000 | vat:ov              | V    | java.math.BigDecimal                                       | NULL      | NULL   |   7033000
+ 704200  | kostZuweisungen:nv  | V    | org.projectforge.business.fibu.kost.KostZuweisungDO        | NULL      | NULL   |   7060000
+ Update  | kostZuweisungen:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7060000
+         | kostZuweisungen:ov  | V    | org.projectforge.business.fibu.kost.KostZuweisungDO        | NULL      | NULL   |   7060000
+ 702700  | auftragsPosition:nv | V    | org.projectforge.business.fibu.AuftragsPositionDO          | NULL      | NULL   |   7069000
+ Update  | auftragsPosition:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7069000
+ NULL    | auftragsPosition:ov | N    | org.projectforge.business.fibu.AuftragsPositionDO          | NULL      | NULL   |   7069000
 
--- KostZuweisungDO: 382506 (2 entries)
--- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (3024280,3026609);
+-- KostZuweisungDO: 704200 (2 entries)
+-- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (7039000,7051000);
 -- value| propertyname | type |                    property_type_class                     | old_value | optype | master_fk
 --------+--------------+------+------------------------------------------------------------+-----------+--------+-----------
- 331838 | kost2:nv     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024280
- Update | kost2:op     | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3024280
- 166807 | kost2:ov     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024280
-        | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   3026609
- Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026609
-        | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   3026609
--- KostZuweisungDO: 382507 (2 entries)
--- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (3024288,3026613);
+ 703000 | kost2:nv     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   7039000
+ Update | kost2:op     | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7039000
+ 701200 | kost2:ov     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   7039000
+        | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   7051000
+ Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7051000
+        | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   7051000
+-- KostZuweisungDO: 704500 (2 entries)
+-- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (7045000,7054000);
 --value | propertyname | type |                    property_type_class                     | old_value | optype | master_fk
 --------+--------------+------+------------------------------------------------------------+-----------+--------+-----------
- 166797 | kost2:nv     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024288
- Update | kost2:op     | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3024288
- 166806 | kost2:ov     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024288
-        | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   3026613
- Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026613
-        | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   3026613
--- KostZuweisungDO: 382508 (2 entries)
--- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (3024284,3026617);
+ 700600 | kost2:nv     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   7045000
+ Update | kost2:op     | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7045000
+ 700900 | kost2:ov     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   7045000
+        | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   7054000
+ Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7054000
+        | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   7054000
+-- KostZuweisungDO: 704800 (2 entries)
+-- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (7042000,7057000);
 -- value| propertyname | type |                    property_type_class                     | old_value | optype | master_fk
 --------+--------------+------+------------------------------------------------------------+-----------+--------+-----------
- 166797 | kost2:nv     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024284
- Update | kost2:op     | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3024284
- 166806 | kost2:ov     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024284
-        | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   3026617
- Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026617
-        | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   3026617
--- KostZuweisungDO: 382509 (2 entries)
--- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (3024276,3026605);
+ 700600 | kost2:nv     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   7042000
+ Update | kost2:op     | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7042000
+ 700900 | kost2:ov     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   7042000
+        | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   7057000
+ Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7057000
+        | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   7057000
+-- KostZuweisungDO: 705100 (2 entries)
+-- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (7036000,7048000);
 -- value| propertyname | type |                    property_type_class                     | old_value | optype | master_fk
 --------+--------------+------+------------------------------------------------------------+-----------+--------+-----------
- 166797 | kost2:nv     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024276
- Update | kost2:op     | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3024276
- 166806 | kost2:ov     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024276
-        | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   3026605
- Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026605
-        | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   3026605
+ 700600 | kost2:nv     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   7036000
+ Update | kost2:op     | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7036000
+ 700900 | kost2:ov     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   7036000
+        | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   7048000
+ Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   7048000
+        | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   7048000
 
 
--- org.projectforge.business.orga.VisitorbookDO with id 40312219
--- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (40312223,40312245,40312255,40312269);
+-- org.projectforge.business.orga.VisitorbookDO with id 71920000
+-- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (71950000,71980000,72010000,72040000);
 --        value          |                            propertyname                             | type |                    property_type_class                     | old_value | optype | master_fk
 -------------------------+---------------------------------------------------------------------+------+------------------------------------------------------------+-----------+--------+-----------
- Dieter Horst            | company:nv                                                          | V    | java.lang.String                                           | NULL      | NULL   |  40312223
- Insert                  | company:op                                                          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
- false                   | deleted:nv                                                          | V    | boolean                                                    | NULL      | NULL   |  40312223
- Insert                  | deleted:op                                                          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
- Kevin                   | firstname:nv                                                        | V    | java.lang.String                                           | NULL      | NULL   |  40312223
- Insert                  | firstname:op                                                        | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
- 40312219                | id:nv                                                               | V    | java.lang.Integer                                          | NULL      | NULL   |  40312223
- Insert                  | id:op                                                               | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
- Ullmann                 | lastname:nv                                                         | V    | java.lang.String                                           | NULL      | NULL   |  40312223
- Insert                  | lastname:op                                                         | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
- 08.30                   | timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.arrive:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312223
- Insert                  | timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.arrive:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
- 16                      | timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.depart:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312223
- Insert                  | timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.depart:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
- 2023-09-11 00:00:00:000 | timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.startTime:nv | V    | java.util.Date                                             | NULL      | NULL   |  40312223
- Insert                  | timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.startTime:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
- WORKMAN                 | visitortype:nv                                                      | V    | org.projectforge.business.orga.VisitorType                 | NULL      | NULL   |  40312223
- Insert                  | visitortype:op                                                      | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
- 08:30                   | timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.arrive:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312245
- Insert                  | timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.arrive:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312245
- 16:00                   | timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.depart:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312245
- Insert                  | timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.depart:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312245
- 2023-09-12 00:00:00:000 | timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.startTime:nv | V    | java.util.Date                                             | NULL      | NULL   |  40312245
- Insert                  | timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.startTime:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312245
- 08:30                   | timeableAttributes.timeofvisit.2023-09-13 00:00:00:000.arrive:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312255
- Insert                  | timeableAttributes.timeofvisit.2023-09-13 00:00:00:000.arrive:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312255
- 16:00                   | timeableAttributes.timeofvisit.2023-09-13 00:00:00:000.depart:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312255
- Insert                  | timeableAttributes.timeofvisit.2023-09-13 00:00:00:000.depart:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312255
- 2023-09-13 00:00:00:000 | timeableAttributes.timeofvisit.2023-09-13 00:00:00:000.startTime:nv | V    | java.util.Date                                             | NULL      | NULL   |  40312255
- Insert                  | timeableAttributes.timeofvisit.2023-09-13 00:00:00:000.startTime:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312255
- 08:30                   | timeableAttributes.timeofvisit.2023-09-14 00:00:00:000.arrive:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312269
- Insert                  | timeableAttributes.timeofvisit.2023-09-14 00:00:00:000.arrive:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312269
- 15:00                   | timeableAttributes.timeofvisit.2023-09-14 00:00:00:000.depart:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312269
- Insert                  | timeableAttributes.timeofvisit.2023-09-14 00:00:00:000.depart:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312269
- 2023-09-14 00:00:00:000 | timeableAttributes.timeofvisit.2023-09-14 00:00:00:000.startTime:nv | V    | java.util.Date                                             | NULL      | NULL   |  40312269
- Insert                  | timeableAttributes.timeofvisit.2023-09-14 00:00:00:000.startTime:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312269
+ ACME GmbH               | company:nv                                                          | V    | java.lang.String                                           | NULL      | NULL   |  71950000
+ Insert                  | company:op                                                          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71950000
+ false                   | deleted:nv                                                          | V    | boolean                                                    | NULL      | NULL   |  71950000
+ Insert                  | deleted:op                                                          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71950000
+ Max                     | firstname:nv                                                        | V    | java.lang.String                                           | NULL      | NULL   |  71950000
+ Insert                  | firstname:op                                                        | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71950000
+ 71920000                | id:nv                                                               | V    | java.lang.Integer                                          | NULL      | NULL   |  71950000
+ Insert                  | id:op                                                               | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71950000
+ Mustermann              | lastname:nv                                                         | V    | java.lang.String                                           | NULL      | NULL   |  71950000
+ Insert                  | lastname:op                                                         | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71950000
+ 08.30                   | timeableAttributes.timeofvisit.2023-05-08 00:00:00:000.arrive:nv    | V    | java.lang.String                                           | NULL      | NULL   |  71950000
+ Insert                  | timeableAttributes.timeofvisit.2023-05-08 00:00:00:000.arrive:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71950000
+ 16                      | timeableAttributes.timeofvisit.2023-05-08 00:00:00:000.depart:nv    | V    | java.lang.String                                           | NULL      | NULL   |  71950000
+ Insert                  | timeableAttributes.timeofvisit.2023-05-08 00:00:00:000.depart:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71950000
+ 2023-05-08 00:00:00:000 | timeableAttributes.timeofvisit.2023-05-08 00:00:00:000.startTime:nv | V    | java.util.Date                                             | NULL      | NULL   |  71950000
+ Insert                  | timeableAttributes.timeofvisit.2023-05-08 00:00:00:000.startTime:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71950000
+ WORKMAN                 | visitortype:nv                                                      | V    | org.projectforge.business.orga.VisitorType                 | NULL      | NULL   |  71950000
+ Insert                  | visitortype:op                                                      | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71950000
+ 08:30                   | timeableAttributes.timeofvisit.2023-05-09 00:00:00:000.arrive:nv    | V    | java.lang.String                                           | NULL      | NULL   |  71980000
+ Insert                  | timeableAttributes.timeofvisit.2023-05-09 00:00:00:000.arrive:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71980000
+ 16:00                   | timeableAttributes.timeofvisit.2023-05-09 00:00:00:000.depart:nv    | V    | java.lang.String                                           | NULL      | NULL   |  71980000
+ Insert                  | timeableAttributes.timeofvisit.2023-05-09 00:00:00:000.depart:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71980000
+ 2023-05-09 00:00:00:000 | timeableAttributes.timeofvisit.2023-05-09 00:00:00:000.startTime:nv | V    | java.util.Date                                             | NULL      | NULL   |  71980000
+ Insert                  | timeableAttributes.timeofvisit.2023-05-09 00:00:00:000.startTime:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  71980000
+ 08:30                   | timeableAttributes.timeofvisit.2023-05-10 00:00:00:000.arrive:nv    | V    | java.lang.String                                           | NULL      | NULL   |  72010000
+ Insert                  | timeableAttributes.timeofvisit.2023-05-10 00:00:00:000.arrive:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72010000
+ 16:00                   | timeableAttributes.timeofvisit.2023-05-10 00:00:00:000.depart:nv    | V    | java.lang.String                                           | NULL      | NULL   |  72010000
+ Insert                  | timeableAttributes.timeofvisit.2023-05-10 00:00:00:000.depart:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72010000
+ 2023-05-10 00:00:00:000 | timeableAttributes.timeofvisit.2023-05-10 00:00:00:000.startTime:nv | V    | java.util.Date                                             | NULL      | NULL   |  72010000
+ Insert                  | timeableAttributes.timeofvisit.2023-05-10 00:00:00:000.startTime:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72010000
+ 08:30                   | timeableAttributes.timeofvisit.2023-05-11 00:00:00:000.arrive:nv    | V    | java.lang.String                                           | NULL      | NULL   |  72040000
+ Insert                  | timeableAttributes.timeofvisit.2023-05-11 00:00:00:000.arrive:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72040000
+ 15:00                   | timeableAttributes.timeofvisit.2023-05-11 00:00:00:000.depart:nv    | V    | java.lang.String                                           | NULL      | NULL   |  72040000
+ Insert                  | timeableAttributes.timeofvisit.2023-05-11 00:00:00:000.depart:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72040000
+ 2023-05-11 00:00:00:000 | timeableAttributes.timeofvisit.2023-05-11 00:00:00:000.startTime:nv | V    | java.util.Date                                             | NULL      | NULL   |  72040000
+ Insert                  | timeableAttributes.timeofvisit.2023-05-11 00:00:00:000.startTime:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  72040000
 
 
--- EmployeeDO with id 21339579
--- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (21339582,28816752,31130252);
+-- EmployeeDO with id 70090000
+-- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (70120000,70270000,70300000);
 --                  value                    |                                       propertyname                                        | type |                             property_type_class                             | old_value | optype | master_fk
 ---------------------------------------------+-------------------------------------------------------------------------------------------+------+-----------------------------------------------------------------------------+-----------+--------+-----------
- 2019-03-01 00:00:00:000                     | timeableAttributes.employeestatus.2019-03-01 00:00:00:000.startTime:nv                    | V    | java.util.Date                                                              |           |        |  21339582
- Insert                                      | timeableAttributes.employeestatus.2019-03-01 00:00:00:000.startTime:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  21339582
- fibu.employee.status.studentischeHilfskraft | timeableAttributes.employeestatus.2019-03-01 00:00:00:000.status:nv                       | V    | java.lang.String                                                            |           |        |  21339582
- Insert                                      | timeableAttributes.employeestatus.2019-03-01 00:00:00:000.status:op                       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  21339582
- 2020-04-01 00:00:00:000                     | timeableAttributes.employeestatus.2020-04-01 00:00:00:000.startTime:nv                    | V    | java.util.Date                                                              |           |        |  28816752
- Insert                                      | timeableAttributes.employeestatus.2020-04-01 00:00:00:000.startTime:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  28816752
- fibu.employee.status.aushilfe               | timeableAttributes.employeestatus.2020-04-01 00:00:00:000.status:nv                       | V    | java.lang.String                                                            |           |        |  28816752
- Insert                                      | timeableAttributes.employeestatus.2020-04-01 00:00:00:000.status:op                       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  28816752
- 30                                          | timeableAttributes.employeeannualleave.2021-03-01 00:00:00:000.employeeannualleavedays:nv | V    | java.math.BigDecimal                                                        |           |        |  31130252
- Insert                                      | timeableAttributes.employeeannualleave.2021-03-01 00:00:00:000.employeeannualleavedays:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  31130252
- 2021-03-01 00:00:00:000                     | timeableAttributes.employeeannualleave.2021-03-01 00:00:00:000.startTime:nv               | V    | java.util.Date                                                              |           |        |  31130252
- Insert                                      | timeableAttributes.employeeannualleave.2021-03-01 00:00:00:000.startTime:op               | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  31130252
- 2021-03-01 00:00:00:000                     | timeableAttributes.employeestatus.2021-03-01 00:00:00:000.startTime:nv                    | V    | java.util.Date                                                              |           |        |  31130252
- Insert                                      | timeableAttributes.employeestatus.2021-03-01 00:00:00:000.startTime:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  31130252
- fibu.employee.status.festAngestellter       | timeableAttributes.employeestatus.2021-03-01 00:00:00:000.status:nv                       | V    | java.lang.String                                                            |           |        |  31130252
- Insert                                      | timeableAttributes.employeestatus.2021-03-01 00:00:00:000.status:op                       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  31130252
+ 2017-03-01 00:00:00:000                     | timeableAttributes.employeestatus.2017-03-01 00:00:00:000.startTime:nv                    | V    | java.util.Date                                                              |           |        |  70120000
+ Insert                                      | timeableAttributes.employeestatus.2017-03-01 00:00:00:000.startTime:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  70120000
+ fibu.employee.status.studentischeHilfskraft | timeableAttributes.employeestatus.2017-03-01 00:00:00:000.status:nv                       | V    | java.lang.String                                                            |           |        |  70120000
+ Insert                                      | timeableAttributes.employeestatus.2017-03-01 00:00:00:000.status:op                       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  70120000
+ 2018-04-01 00:00:00:000                     | timeableAttributes.employeestatus.2018-04-01 00:00:00:000.startTime:nv                    | V    | java.util.Date                                                              |           |        |  70270000
+ Insert                                      | timeableAttributes.employeestatus.2018-04-01 00:00:00:000.startTime:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  70270000
+ fibu.employee.status.aushilfe               | timeableAttributes.employeestatus.2018-04-01 00:00:00:000.status:nv                       | V    | java.lang.String                                                            |           |        |  70270000
+ Insert                                      | timeableAttributes.employeestatus.2018-04-01 00:00:00:000.status:op                       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  70270000
+ 30                                          | timeableAttributes.employeeannualleave.2019-03-01 00:00:00:000.employeeannualleavedays:nv | V    | java.math.BigDecimal                                                        |           |        |  70300000
+ Insert                                      | timeableAttributes.employeeannualleave.2019-03-01 00:00:00:000.employeeannualleavedays:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  70300000
+ 2019-03-01 00:00:00:000                     | timeableAttributes.employeeannualleave.2019-03-01 00:00:00:000.startTime:nv               | V    | java.util.Date                                                              |           |        |  70300000
+ Insert                                      | timeableAttributes.employeeannualleave.2019-03-01 00:00:00:000.startTime:op               | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  70300000
+ 2019-03-01 00:00:00:000                     | timeableAttributes.employeestatus.2019-03-01 00:00:00:000.startTime:nv                    | V    | java.util.Date                                                              |           |        |  70300000
+ Insert                                      | timeableAttributes.employeestatus.2019-03-01 00:00:00:000.startTime:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  70300000
+ fibu.employee.status.festAngestellter       | timeableAttributes.employeestatus.2019-03-01 00:00:00:000.status:nv                       | V    | java.lang.String                                                            |           |        |  70300000
+ Insert                                      | timeableAttributes.employeestatus.2019-03-01 00:00:00:000.status:op                       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  70300000
 -- manual added:
- Delete                                      | timeableAttributes.employeestatus.2017-09-01 00:00:00:000.startTime:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  26289333
- 2017-09-01 00:00:00:000                     | timeableAttributes.employeestatus.2017-09-01 00:00:00:000.startTime:ov                    | V    | java.util.Date                                                              |           |        |  26289333
- Delete                                      | timeableAttributes.employeestatus.2017-09-01 00:00:00:000.status:op                       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  26289333
- 30                                          | timeableAttributes.employeeannualleave.2009-11-26 00:00:00:000.employeeannualleavedays:nv | V    | java.math.BigDecimal                                                        |           |        |  25952703
- Update                                      | timeableAttributes.employeeannualleave.2009-11-26 00:00:00:000.employeeannualleavedays:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  25952703
- 32                                          | timeableAttributes.employeeannualleave.2009-11-26 00:00:00:000.employeeannualleavedays:ov | V    | java.math.BigDecimal                                                        |           |        |  25952703
+ Delete                                      | timeableAttributes.employeestatus.2015-09-01 00:00:00:000.startTime:op                    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  70210000
+ 2015-09-01 00:00:00:000                     | timeableAttributes.employeestatus.2015-09-01 00:00:00:000.startTime:ov                    | V    | java.util.Date                                                              |           |        |  70210000
+ Delete                                      | timeableAttributes.employeestatus.2015-09-01 00:00:00:000.status:op                       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  70210000
+ 30                                          | timeableAttributes.employeeannualleave.2007-11-26 00:00:00:000.employeeannualleavedays:nv | V    | java.math.BigDecimal                                                        |           |        |  70180000
+ Update                                      | timeableAttributes.employeeannualleave.2007-11-26 00:00:00:000.employeeannualleavedays:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType                  |           |        |  70180000
+ 32                                          | timeableAttributes.employeeannualleave.2007-11-26 00:00:00:000.employeeannualleavedays:ov | V    | java.math.BigDecimal                                                        |           |        |  70180000
 

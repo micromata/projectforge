@@ -12,7 +12,7 @@ import { fetchEntity, insert, writeHeaders } from "./seed";
  *
  * - **CONFIGURED**: ranges given by `projectforge.fibu.number-ranges.*` — bound at startup;
  * - **LEGACY**: no ranges configured, but Kost2 of projects in the former ranges 4 (internal) and 5
- *   (customers 0-999) exist — an installation that used them, e.g. a copy of Micromata's;
+ *   (customers 0-999) exist — an installation that used them, e.g. a copy of such a database;
  * - **FREE**: neither (e.g. a fresh database); customer and project numbers are free.
  *
  * Cost units (`fibu.costConfigured`, [setCostConfigured]) don't change the mode, only whether projects offer

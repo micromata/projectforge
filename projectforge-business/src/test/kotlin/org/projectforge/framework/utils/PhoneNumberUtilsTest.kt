@@ -40,10 +40,10 @@ class PhoneNumberUtilsTest {
         @Test
     fun `test normalize German phone numbers with various formats`() {
         // National format with leading 0
-        assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("0561 / 316793-0"))
-        assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("0561 316793-0"))
-        assertEquals("+49 561316793-0", PhoneNumberUtils.normalizePhoneNumber("0561/316793-0")) // No space before slash
-        assertEquals("+49 5613167930", PhoneNumberUtils.normalizePhoneNumber("05613167930"))
+        assertEquals("+49 123 456789-0", PhoneNumberUtils.normalizePhoneNumber("0123 / 456789-0"))
+        assertEquals("+49 123 456789-0", PhoneNumberUtils.normalizePhoneNumber("0123 456789-0"))
+        assertEquals("+49 123456789-0", PhoneNumberUtils.normalizePhoneNumber("0123/456789-0")) // No space before slash
+        assertEquals("+49 1234567890", PhoneNumberUtils.normalizePhoneNumber("01234567890"))
 
         assertEquals("+49 89 1234567", PhoneNumberUtils.normalizePhoneNumber("+49-89-1234567"))
         assertEquals(
@@ -52,11 +52,11 @@ class PhoneNumberUtilsTest {
             "4567 should be preserved as extension part"
         )
         // With (0) notation
-        assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("+49 (0) 561 / 316793-0"))
-        assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("+49 (0) 561 316793-0"))
+        assertEquals("+49 123 456789-0", PhoneNumberUtils.normalizePhoneNumber("+49 (0) 123 / 456789-0"))
+        assertEquals("+49 123 456789-0", PhoneNumberUtils.normalizePhoneNumber("+49 (0) 123 456789-0"))
 
         // Already normalized
-        assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("+49 561 316793-0"))
+        assertEquals("+49 123 456789-0", PhoneNumberUtils.normalizePhoneNumber("+49 123 456789-0"))
 
         // Mobile numbers
         assertEquals("+49 170 1234567", PhoneNumberUtils.normalizePhoneNumber("0170 1234567"))
@@ -89,25 +89,25 @@ class PhoneNumberUtilsTest {
 
     @Test
     fun `test normalize with extensions`() {
-        assertEquals("+49 561 12345-0", PhoneNumberUtils.normalizePhoneNumber("0561 12345-0"))
-        assertEquals("+49 561 12345-78", PhoneNumberUtils.normalizePhoneNumber("0561 12345-78"))
-        assertEquals("+49 561 12345-789", PhoneNumberUtils.normalizePhoneNumber("0561 12345-789"))
+        assertEquals("+49 123 12345-0", PhoneNumberUtils.normalizePhoneNumber("0123 12345-0"))
+        assertEquals("+49 123 12345-78", PhoneNumberUtils.normalizePhoneNumber("0123 12345-78"))
+        assertEquals("+49 123 12345-789", PhoneNumberUtils.normalizePhoneNumber("0123 12345-789"))
         assertEquals("+49 30 123456-1", PhoneNumberUtils.normalizePhoneNumber("+49 30 123456-1"))
     }
 
     @Test
     fun `test normalize with special characters and formatting`() {
         // Dots - treated as separator between number blocks
-        assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("0561.316793-0"))
+        assertEquals("+49 123 456789-0", PhoneNumberUtils.normalizePhoneNumber("0123.456789-0"))
 
         // Multiple spaces
-        assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("0561   316793 - 0"))
+        assertEquals("+49 123 456789-0", PhoneNumberUtils.normalizePhoneNumber("0123   456789 - 0"))
 
         // Parentheses - leading 0 inside parentheses is removed (after parentheses removal)
-        assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("(0561) 316793-0"))
+        assertEquals("+49 123 456789-0", PhoneNumberUtils.normalizePhoneNumber("(0123) 456789-0"))
 
         // Mixed formatting
-        assertEquals("+49 561 316793-0", PhoneNumberUtils.normalizePhoneNumber("+49 / 561 / 316793 - 0"))
+        assertEquals("+49 123 456789-0", PhoneNumberUtils.normalizePhoneNumber("+49 / 123 / 456789 - 0"))
     }
 
     @Test
@@ -128,35 +128,35 @@ class PhoneNumberUtilsTest {
 
     @Test
     fun `test normalize with custom country prefix`() {
-        assertEquals("+1 561 3167930", PhoneNumberUtils.normalizePhoneNumber("0561 3167930", "+1"))
-        assertEquals("+44 561 3167930", PhoneNumberUtils.normalizePhoneNumber("0561 3167930", "+44"))
-        assertEquals("+41 561 3167930", PhoneNumberUtils.normalizePhoneNumber("0561 3167930", "+41"))
+        assertEquals("+1 123 4567890", PhoneNumberUtils.normalizePhoneNumber("0123 4567890", "+1"))
+        assertEquals("+44 123 4567890", PhoneNumberUtils.normalizePhoneNumber("0123 4567890", "+44"))
+        assertEquals("+41 123 4567890", PhoneNumberUtils.normalizePhoneNumber("0123 4567890", "+41"))
     }
 
     @Test
     fun `test phone numbers match`() {
         // Same number, different formats
-        assertTrue(PhoneNumberUtils.phoneNumbersMatch("0561 316793-0", "+49 561 316793-0"))
-        assertTrue(PhoneNumberUtils.phoneNumbersMatch("+49 561 / 316793-0", "+49 561 316793-0"))
-        assertTrue(PhoneNumberUtils.phoneNumbersMatch("0561 316793-0", "0561 316793-0")) // Same format
-        assertTrue(PhoneNumberUtils.phoneNumbersMatch("+49 (0) 561 316793-0", "0561 316793-0"))
+        assertTrue(PhoneNumberUtils.phoneNumbersMatch("0123 456789-0", "+49 123 456789-0"))
+        assertTrue(PhoneNumberUtils.phoneNumbersMatch("+49 123 / 456789-0", "+49 123 456789-0"))
+        assertTrue(PhoneNumberUtils.phoneNumbersMatch("0123 456789-0", "0123 456789-0")) // Same format
+        assertTrue(PhoneNumberUtils.phoneNumbersMatch("+49 (0) 123 456789-0", "0123 456789-0"))
 
         // Different numbers
-        assertFalse(PhoneNumberUtils.phoneNumbersMatch("0561 316793-0", "0561 316793-1"))
-        assertFalse(PhoneNumberUtils.phoneNumbersMatch("0561 316793", "0562 316793"))
+        assertFalse(PhoneNumberUtils.phoneNumbersMatch("0123 456789-0", "0123 456789-1"))
+        assertFalse(PhoneNumberUtils.phoneNumbersMatch("0123 456789", "0124 456789"))
 
         // Null cases
-        assertFalse(PhoneNumberUtils.phoneNumbersMatch(null, "+49 561 316793-0"))
-        assertFalse(PhoneNumberUtils.phoneNumbersMatch("+49 561 316793-0", null))
+        assertFalse(PhoneNumberUtils.phoneNumbersMatch(null, "+49 123 456789-0"))
+        assertFalse(PhoneNumberUtils.phoneNumbersMatch("+49 123 456789-0", null))
         assertFalse(PhoneNumberUtils.phoneNumbersMatch(null, null))
     }
 
     @Test
     fun `test real world examples`() {
         // From email signatures - spaces normalized
-        assertEquals("+49 561 31 67 93-0", PhoneNumberUtils.normalizePhoneNumber("Tel: +49 561 / 31 67 93 - 0"))
-        assertEquals("+49 561 31 67 93-11", PhoneNumberUtils.normalizePhoneNumber("Fax: +49 561 / 31 67 93- 11"))
-        assertEquals("+49 561 123456-789", PhoneNumberUtils.normalizePhoneNumber("Phone: +49 561 123456-789"))
+        assertEquals("+49 123 45 67 89-0", PhoneNumberUtils.normalizePhoneNumber("Tel: +49 123 / 45 67 89 - 0"))
+        assertEquals("+49 123 45 67 89-11", PhoneNumberUtils.normalizePhoneNumber("Fax: +49 123 / 45 67 89- 11"))
+        assertEquals("+49 123 123456-789", PhoneNumberUtils.normalizePhoneNumber("Phone: +49 123 123456-789"))
 
         // From address book
         assertEquals("+49 170 1234567", PhoneNumberUtils.normalizePhoneNumber("Mobil: +49 170 1234567"))
@@ -172,7 +172,7 @@ class PhoneNumberUtilsTest {
         // No automatic area code detection/splitting
 
         // Various area code lengths - just cleaned
-        assertEquals("+49 561 123456", PhoneNumberUtils.normalizePhoneNumber("0561 123456"))
+        assertEquals("+49 123 123456", PhoneNumberUtils.normalizePhoneNumber("0123 123456"))
         assertEquals("+49 6221 123456", PhoneNumberUtils.normalizePhoneNumber("06221 123456"))
         assertEquals("+49 170 1234567", PhoneNumberUtils.normalizePhoneNumber("0170 1234567"))
     }

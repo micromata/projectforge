@@ -76,17 +76,17 @@ class IncomingInvoiceCsvImporterTest {
     @Test
     fun `credit-card payment offsets are no positions, their date fills a missing paid date`() {
         val storage = parsePositions(
-            """"01.09.2026-30.09.2026";"R";"1.134,35";"EUR";"04.09.";"2026-14171";"OpsGenie Inc.";"6837";"04.09.2026"""",
-            """"01.09.2026-30.09.2026";"G";"1.134,35";"EUR";"04.09.";"2026-14171";"OpsGenie Inc.";"1814";"04.09.2026"""",
-            """"01.04.2026-30.04.2026";"R";"105,24";"USD";"07.04.";"4633DE7-0007";"Gather Presence, Inc";"6837";""""",
-            """"01.06.2026-30.06.2026";"G";"169,33";"EUR";"08.06.";"4633DE7-0007";"Gather Presence, Inc";"1814";"08.06.2026"""",
-            """"01.02.2026-28.02.2026";"R";"33,60";"EUR";"02.02.";"20982";"SearchApi LLC";"6837";"02.02.2026"""",
-            """"01.02.2026-28.02.2026";"G";"33,60";"EUR";"02.02.";"20982";"SearchApi LLC";"1461";"02.02.2026"""",
+            """"01.09.2026-30.09.2026";"R";"1.134,35";"EUR";"04.09.";"2026-10001";"Example Alerting Inc.";"6837";"04.09.2026"""",
+            """"01.09.2026-30.09.2026";"G";"1.134,35";"EUR";"04.09.";"2026-10001";"Example Alerting Inc.";"1814";"04.09.2026"""",
+            """"01.04.2026-30.04.2026";"R";"105,24";"USD";"07.04.";"1111AB1-0001";"Example Office, Inc";"6837";""""",
+            """"01.06.2026-30.06.2026";"G";"169,33";"EUR";"08.06.";"1111AB1-0001";"Example Office, Inc";"1814";"08.06.2026"""",
+            """"01.02.2026-28.02.2026";"R";"33,60";"EUR";"02.02.";"20001";"Example Search LLC";"6837";"02.02.2026"""",
+            """"01.02.2026-28.02.2026";"G";"33,60";"EUR";"02.02.";"20001";"Example Search LLC";"1461";"02.02.2026"""",
         )
         assertEquals(3, storage.readInvoices.size, "Only the invoices are read, not the offsets (1814 and 1461).")
-        val opsGenie = storage.readInvoices.single { it.referenz == "2026-14171" }
-        assertEquals(0, BigDecimal("1134.35").compareTo(opsGenie.grossSum), "Not doubled by the offset.")
-        val gather = storage.readInvoices.single { it.referenz == "4633DE7-0007" }
+        val alerting = storage.readInvoices.single { it.referenz == "2026-10001" }
+        assertEquals(0, BigDecimal("1134.35").compareTo(alerting.grossSum), "Not doubled by the offset.")
+        val gather = storage.readInvoices.single { it.referenz == "1111AB1-0001" }
         assertEquals(LocalDate.of(2026, 6, 8), gather.bezahlDatum, "Missing paid date taken from the offset.")
         assertTrue(storage.errorList.isEmpty(), "No inconsistency anymore, got ${storage.errorList}")
         assertTrue(storage.warningList.any { it.startsWith("3 Zahlungs-Gegenbuchungen") }, "${storage.warningList}")
@@ -95,8 +95,8 @@ class IncomingInvoiceCsvImporterTest {
     @Test
     fun `paid date of the invoice row wins over the offset`() {
         val storage = parsePositions(
-            """"01.09.2026-30.09.2026";"R";"1.134,35";"EUR";"04.09.";"2026-14171";"OpsGenie Inc.";"6837";"05.09.2026"""",
-            """"01.09.2026-30.09.2026";"G";"1.134,35";"EUR";"04.09.";"2026-14171";"OpsGenie Inc.";"1814";"04.09.2026"""",
+            """"01.09.2026-30.09.2026";"R";"1.134,35";"EUR";"04.09.";"2026-10001";"Example Alerting Inc.";"6837";"05.09.2026"""",
+            """"01.09.2026-30.09.2026";"G";"1.134,35";"EUR";"04.09.";"2026-10001";"Example Alerting Inc.";"1814";"04.09.2026"""",
         )
         assertEquals(LocalDate.of(2026, 9, 5), storage.readInvoices.single().bezahlDatum)
     }
@@ -166,7 +166,7 @@ class IncomingInvoiceCsvImporterTest {
     @Test
     fun `paid date before invoice date is a warning`() {
         val storage = parsePositions(
-            """"01.09.2026-30.09.2026";"R";"1.134,35";"EUR";"04.09.";"2026-14171";"OpsGenie Inc.";"6837";"09.04.2026"""",
+            """"01.09.2026-30.09.2026";"R";"1.134,35";"EUR";"04.09.";"2026-10001";"Example Alerting Inc.";"6837";"09.04.2026"""",
         )
         assertTrue(storage.errorList.isEmpty())
         assertTrue(storage.warningList.any { it.contains("liegt vor dem Rechnungsdatum") }, "${storage.warningList}")
@@ -176,8 +176,8 @@ class IncomingInvoiceCsvImporterTest {
     fun `currency mixed with EUR is converted to EUR with a warning`() {
         ratesToEur = mapOf("USD" to BigDecimal("0.9"))
         val storage = parsePositions(
-            """"01.04.2026-30.04.2026";"R";"105,24";"USD";"07.04.";"4633DE7-0007";"Gather Presence, Inc";"6837";"02.06.2026"""",
-            """"01.04.2026-30.04.2026";"R";"169,33";"EUR";"07.04.";"4633DE7-0007";"Gather Presence, Inc";"6837";"02.06.2026"""",
+            """"01.04.2026-30.04.2026";"R";"105,24";"USD";"07.04.";"1111AB1-0001";"Example Office, Inc";"6837";"02.06.2026"""",
+            """"01.04.2026-30.04.2026";"R";"169,33";"EUR";"07.04.";"1111AB1-0001";"Example Office, Inc";"6837";"02.06.2026"""",
         )
         assertTrue(storage.readInvoices.all { it.currency == "EUR" })
         assertEquals(
@@ -192,8 +192,8 @@ class IncomingInvoiceCsvImporterTest {
     @Test
     fun `currency mixed with EUR without a rate is an error`() {
         val storage = parsePositions(
-            """"01.04.2026-30.04.2026";"R";"105,24";"USD";"07.04.";"4633DE7-0007";"Gather Presence, Inc";"6837";"02.06.2026"""",
-            """"01.04.2026-30.04.2026";"R";"169,33";"EUR";"07.04.";"4633DE7-0007";"Gather Presence, Inc";"6837";"02.06.2026"""",
+            """"01.04.2026-30.04.2026";"R";"105,24";"USD";"07.04.";"1111AB1-0001";"Example Office, Inc";"6837";"02.06.2026"""",
+            """"01.04.2026-30.04.2026";"R";"169,33";"EUR";"07.04.";"1111AB1-0001";"Example Office, Inc";"6837";"02.06.2026"""",
         )
         assertTrue(storage.errorList.any { it.contains("kein Umrechnungskurs USD") }, "${storage.errorList}")
         assertTrue(storage.readInvoices.all { it.getErrors().isNotEmpty() }, "Not importable without a rate.")
@@ -202,7 +202,7 @@ class IncomingInvoiceCsvImporterTest {
     @Test
     fun `invoice in a single foreign currency keeps it`() {
         val storage = parsePositions(
-            """"01.04.2026-30.04.2026";"R";"105,24";"USD";"07.04.";"4633DE7-0007";"Gather Presence, Inc";"6837";"02.06.2026"""",
+            """"01.04.2026-30.04.2026";"R";"105,24";"USD";"07.04.";"1111AB1-0001";"Example Office, Inc";"6837";"02.06.2026"""",
         )
         val invoice = storage.readInvoices.single()
         assertEquals("USD", invoice.currency)
@@ -211,15 +211,15 @@ class IncomingInvoiceCsvImporterTest {
 
     @Test
     fun `invoice of the same creditor a year before isn't matched, overwritten or deleted`() {
-        val old = dbInvoice(1, "2025-10654", "OpsGenie Inc.", LocalDate.of(2025, 9, 4))
+        val old = dbInvoice(1, "2025-10654", "Example Alerting Inc.", LocalDate.of(2025, 9, 4))
         val inPeriod = dbInvoice(2, "2026-99999", "Other Ltd.", LocalDate.of(2026, 9, 10))
         databaseInvoices = listOf(old, inPeriod)
         val storage = parsePositions(
-            """"01.09.2026-30.09.2026";"R";"1.134,35";"EUR";"04.09.";"2026-14171";"OpsGenie Inc.";"6837";"04.09.2026"""",
+            """"01.09.2026-30.09.2026";"R";"1.134,35";"EUR";"04.09.";"2026-10001";"Example Alerting Inc.";"6837";"04.09.2026"""",
         )
         storage.reconcileImportStorage()
-        val opsGenie = storage.pairEntries.single { it.read?.referenz == "2026-14171" }
-        assertNull(opsGenie.stored, "Must be NEW, not matched to the invoice of 2025.")
+        val alerting = storage.pairEntries.single { it.read?.referenz == "2026-10001" }
+        assertNull(alerting.stored, "Must be NEW, not matched to the invoice of 2025.")
         assertTrue(storage.pairEntries.none { it.stored?.id == 1L }, "Outside the periods: not offered for deletion.")
         assertTrue(
             storage.pairEntries.any { it.read == null && it.stored?.id == 2L },
@@ -231,7 +231,7 @@ class IncomingInvoiceCsvImporterTest {
     fun `period with an en dash limits the deletions too`() {
         databaseInvoices = listOf(dbInvoice(1, "2026-99999", "Other Ltd.", LocalDate.of(2026, 8, 10)))
         val storage = parsePositions(
-            """"01.09.2026 – 30.09.2026";"R";"1.134,35";"EUR";"04.09.";"2026-14171";"OpsGenie Inc.";"6837";"04.09.2026"""",
+            """"01.09.2026 – 30.09.2026";"R";"1.134,35";"EUR";"04.09.";"2026-10001";"Example Alerting Inc.";"6837";"04.09.2026"""",
         )
         assertEquals(LocalDate.of(2026, 9, 1), storage.periodFrom)
         storage.reconcileImportStorage()
@@ -256,7 +256,7 @@ class IncomingInvoiceCsvImporterTest {
     fun `unparsable period offers no deletions`() {
         databaseInvoices = listOf(dbInvoice(1, "2026-99999", "Other Ltd.", LocalDate.of(2026, 9, 10)))
         val storage = parsePositions(
-            """"September 2026";"R";"1.134,35";"EUR";"04.09.";"2026-14171";"OpsGenie Inc.";"6837";"04.09.2026"""",
+            """"September 2026";"R";"1.134,35";"EUR";"04.09.";"2026-10001";"Example Alerting Inc.";"6837";"04.09.2026"""",
         )
         assertNull(storage.periodFrom)
         storage.reconcileImportStorage()
@@ -265,9 +265,9 @@ class IncomingInvoiceCsvImporterTest {
 
     @Test
     fun `similar invoice number within days is still matched`() {
-        databaseInvoices = listOf(dbInvoice(1, "3251246-10 / Az.: IS-0017-10/KSR", "ISICO GmbH", LocalDate.of(2025, 5, 2)))
+        databaseInvoices = listOf(dbInvoice(1, "4182367-20 / Az.: PR-0042-20/ABC", "PRIVA GmbH", LocalDate.of(2025, 5, 2)))
         val storage = parsePositions(
-            """"01.05.2025-31.05.2025";"R";"746,13";"EUR";"05.05.";"325124610";"ISICO Datenschutz GmbH";"6837";"""""
+            """"01.05.2025-31.05.2025";"R";"612,40";"EUR";"05.05.";"418236720";"PRIVA Datenschutz GmbH";"6837";"""""
         )
         storage.reconcileImportStorage()
         assertEquals(1L, storage.pairEntries.single { it.read != null }.stored?.id)
@@ -275,12 +275,12 @@ class IncomingInvoiceCsvImporterTest {
 
     @Test
     fun `header-only import offers no deletions`() {
-        databaseInvoices = listOf(dbInvoice(1, "2025-10654", "OpsGenie Inc.", LocalDate.of(2025, 9, 4)))
+        databaseInvoices = listOf(dbInvoice(1, "2025-10654", "Example Alerting Inc.", LocalDate.of(2025, 9, 4)))
         val storage = parse(
             "Belegart;Geschäftspartner-Name;Rechnungsbetrag;WKZ;Rechnungs-Nr.;Rechnungsdatum;Konto;BezahltAm",
-            """"R";"OpsGenie Inc.";"1.134,35";"EUR";"2026-14171";"04.09.2026";"6837";"04.09.2026"""",
-            """"G";"OpsGenie Inc.";"-1.134,35";"EUR";"2026-14171";"04.09.2026";"1814";"04.09.2026"""",
-            """"R";"Gather Presence, Inc";"105,24";"USD";"4633DE7-0007";"03.09.2025";"6837";"""""
+            """"R";"Example Alerting Inc.";"1.134,35";"EUR";"2026-10001";"04.09.2026";"6837";"04.09.2026"""",
+            """"G";"Example Alerting Inc.";"-1.134,35";"EUR";"2026-10001";"04.09.2026";"1814";"04.09.2026"""",
+            """"R";"Example Office, Inc";"105,24";"USD";"1111AB1-0001";"03.09.2025";"6837";"""""
         )
         assertEquals(2, storage.readInvoices.size, "Offset skipped in header-only exports too.")
         storage.reconcileImportStorage()
@@ -290,13 +290,13 @@ class IncomingInvoiceCsvImporterTest {
 
     @Test
     fun `rows of one invoice in a header-only export are merged and matched as one`() {
-        databaseInvoices = listOf(dbInvoice(1, "5512049949", "Google Ireland Limited", LocalDate.of(2026, 2, 28)))
+        databaseInvoices = listOf(dbInvoice(1, "5512049949", "Example Cloud Limited", LocalDate.of(2026, 2, 28)))
         val storage = parse(
             "Belegart;Geschäftspartner-Name;Rechnungsbetrag;WKZ;Rechnungs-Nr.;Rechnungsdatum;Konto;BezahltAm",
-            """"G";"Google Ireland Limited";"-487,71";"EUR";"5512049949";"02.03.2026";"1814";"02.03.2026"""",
-            """"R";"Google Ireland Limited";"500,00";"EUR";"5512049949";"28.02.2026";"6810";"28.02.2026"""",
-            """"R";"Google Ireland Limited";"500,00";"EUR";"5512049949";"28.02.2026";"6810";"28.02.2026"""",
-            """"R";"Google Ireland Limited";"487,71";"EUR";"5512049949";"28.02.2026";"6810";"28.02.2026"""",
+            """"G";"Example Cloud Limited";"-487,71";"EUR";"5512049949";"02.03.2026";"1814";"02.03.2026"""",
+            """"R";"Example Cloud Limited";"500,00";"EUR";"5512049949";"28.02.2026";"6810";"28.02.2026"""",
+            """"R";"Example Cloud Limited";"500,00";"EUR";"5512049949";"28.02.2026";"6810";"28.02.2026"""",
+            """"R";"Example Cloud Limited";"487,71";"EUR";"5512049949";"28.02.2026";"6810";"28.02.2026"""",
         )
         val invoice = storage.readInvoices.single()
         assertEquals(0, BigDecimal("1487.71").compareTo(invoice.grossSum))

@@ -45,9 +45,9 @@ public class PersonalAddressTest extends AbstractTestBase {
     address.setFirstName("Kai");
     address.setName("Reinhard");
     address.setMobilePhone("+49 170 123 456");
-    address.setFax("+49 561 316793-11");
-    address.setBusinessPhone("+49 561 316793-0");
-    address.setPrivatePhone("+49 561 12345678");
+    address.setFax("+49 123 456789-11");
+    address.setBusinessPhone("+49 123 456789-0");
+    address.setPrivatePhone("+49 123 12345678");
     addressIds[0] = (Long) addressDao.insert(address);
 
     PersonalAddressDO personalAddress = new PersonalAddressDO();

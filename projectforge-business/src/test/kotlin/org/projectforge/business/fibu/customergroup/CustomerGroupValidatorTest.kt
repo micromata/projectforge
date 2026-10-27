@@ -37,7 +37,7 @@ import org.projectforge.business.fibu.customergroup.CustomerGroupValidator.Compa
 class CustomerGroupValidatorTest {
     private val validator = CustomerGroupValidator(
         CustomerDirectory(
-            customers = mapOf(4L to "Four", 5L to "Five", 101L to "ACME Germany", 102L to "ACME Logistics", 310L to "Kühne Spedition"),
+            customers = mapOf(4L to "Four", 5L to "Five", 101L to "ACME Germany", 102L to "ACME Logistics", 310L to "Muster Spedition"),
             freeTexts = listOf("ACME Freight Logistics", "Unrelated Ltd."),
             // Task 1 is the root; 10 ⊃ 11, and 20 beside them.
             taskPath = { mapOf(1L to listOf(1L), 10L to listOf(1L, 10L), 11L to listOf(1L, 10L, 11L), 20L to listOf(1L, 20L))[it] },
@@ -99,7 +99,7 @@ class CustomerGroupValidatorTest {
     fun `a pattern must not cover or be covered by another group's pattern`() {
         // Whether a customer matching both exists or not:
         assertErrors(
-            config(groups = listOf(group("aaaa", "A", texts = listOf("dhl*")), group("bbbb", "B", texts = listOf("dh*")))),
+            config(groups = listOf(group("aaaa", "A", texts = listOf("globex*")), group("bbbb", "B", texts = listOf("glob*")))),
             "groups[0].texts" to V.ERROR_PATTERN_OVERLAP,
             "groups[1].texts" to V.ERROR_PATTERN_OVERLAP,
         )
@@ -228,7 +228,7 @@ class CustomerGroupValidatorTest {
 
     @Test
     fun `a business unit's colour is a hex code`() {
-        val units = listOf("#FFCB00", "gelb", " ", null).mapIndexed { i, color ->
+        val units = listOf("#3366CC", "blau", " ", null).mapIndexed { i, color ->
             businessUnit("bu0$i", "BU $i").also { it.color = color }
         }
         assertErrors(config(businessUnits = units), "businessUnits[1].color" to V.ERROR_INVALID_COLOR)

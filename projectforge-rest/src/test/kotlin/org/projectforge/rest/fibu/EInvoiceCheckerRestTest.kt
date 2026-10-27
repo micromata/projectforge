@@ -81,7 +81,7 @@ class EInvoiceCheckerRestTest : AbstractTestBase() {
         assertEquals("XRechnung_2024001.xml", result.filename)
         val data = result.invoiceData
         assertEquals("2024001", data.invoiceNumber)
-        assertEquals("Micromata GmbH", data.seller?.name)
+        assertEquals("Example Seller GmbH", data.seller?.name)
         assertEquals("Testkundin GmbH", data.buyer?.name)
         assertEquals(2, data.lineItems.size)
         assertEquals(0, BigDecimal("2100.00").compareTo(data.totalNetAmount), "Net: ${data.totalNetAmount}")
@@ -147,13 +147,13 @@ class EInvoiceCheckerRestTest : AbstractTestBase() {
     /** A real XRechnung, as the export writes it — built by hand, since a test installation configures no seller. */
     private fun createXRechnung(): ByteArray {
         val sellerConfig = EInvoiceSellerConfig().apply {
-            name = "Micromata GmbH"
-            street = "Marie-Calm-Straße 1-5"
-            zip = "34131"
-            city = "Kassel"
+            name = "Example Seller GmbH"
+            street = "Musterstraße 1-5"
+            zip = "12345"
+            city = "Musterstadt"
             country = "DE"
             vatId = "DE123456789"
-            email = "info@micromata.de"
+            email = "info@example.org"
             bankAccounts = mutableListOf(BankAccountConfig().apply { iban = "DE89370400440532013000" })
         }
         val service = EInvoiceExportService(

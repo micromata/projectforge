@@ -31,30 +31,30 @@ import java.math.BigDecimal
 
 class ContributionMarginBubbleBuilderTest {
   private val projects = listOf(
-    project(1, "DHL", "OPTIMA", "1000", "200", projectGroup = "DHL Kleinprojekte"),
-    project(2, "DHL", "EPP", "500", "300", projectGroup = "DHL Kleinprojekte"),
-    project(3, "DHL", "ROSy", "800", "400"),
-    project(4, "Porsche", "BMT", "0", "100"),
+    project(1, "ACME", "ALPHA", "1000", "200", projectGroup = "ACME Kleinprojekte"),
+    project(2, "ACME", "BETA", "500", "300", projectGroup = "ACME Kleinprojekte"),
+    project(3, "ACME", "Gamma", "800", "400"),
+    project(4, "Globex", "Delta", "0", "100"),
     project(5, null, "Intern", "0", "0"), // Amounts in the previous years only.
   )
 
-  private val customerGroups = mapOf(1L to "DPDHL", 2L to "DPDHL")
+  private val customerGroups = mapOf(1L to "ACME Group", 2L to "ACME Group")
 
   @Test
   fun `one bubble per project`() {
     val bubbles = bubbles(ContributionMarginBubbleGrouping.PROJECT)
-    assertEquals(listOf("ROSy", "EPP", "OPTIMA", "BMT"), bubbles.map { it.label }, "Sorted by costs, empty left out.")
-    val optima = bubbles.single { it.label == "OPTIMA" }
-    assertEquals(BigDecimal("800"), optima.profit)
-    assertEquals(BigDecimal("80.0"), optima.percentage)
-    assertNull(bubbles.single { it.label == "BMT" }.percentage, "No revenue.")
+    assertEquals(listOf("Gamma", "BETA", "ALPHA", "Delta"), bubbles.map { it.label }, "Sorted by costs, empty left out.")
+    val alpha = bubbles.single { it.label == "ALPHA" }
+    assertEquals(BigDecimal("800"), alpha.profit)
+    assertEquals(BigDecimal("80.0"), alpha.percentage)
+    assertNull(bubbles.single { it.label == "Delta" }.percentage, "No revenue.")
   }
 
   @Test
   fun `projects without a group get a bubble of their own`() {
     val bubbles = bubbles(ContributionMarginBubbleGrouping.PROJECT_GROUP)
-    assertEquals(setOf("DHL Kleinprojekte", "ROSy", "BMT"), bubbles.map { it.label }.toSet())
-    val group = bubbles.single { it.label == "DHL Kleinprojekte" }
+    assertEquals(setOf("ACME Kleinprojekte", "Gamma", "Delta"), bubbles.map { it.label }.toSet())
+    val group = bubbles.single { it.label == "ACME Kleinprojekte" }
     assertEquals(BigDecimal("1500"), group.revenue)
     assertEquals(BigDecimal("500"), group.costs)
     assertEquals(BigDecimal("66.7"), group.percentage)
@@ -64,11 +64,11 @@ class ContributionMarginBubbleBuilderTest {
   @Test
   fun `by customer and customer group, the customer is the fallback of the customer group`() {
     assertEquals(
-      setOf("DHL" to 3, "Porsche" to 1),
+      setOf("ACME" to 3, "Globex" to 1),
       bubbles(ContributionMarginBubbleGrouping.CUSTOMER).map { it.label to it.projectCount }.toSet(),
     )
     assertEquals(
-      setOf("DPDHL" to 2, "DHL" to 1, "Porsche" to 1),
+      setOf("ACME Group" to 2, "ACME" to 1, "Globex" to 1),
       bubbles(ContributionMarginBubbleGrouping.CUSTOMER_GROUP).map { it.label to it.projectCount }.toSet(),
     )
   }
@@ -90,35 +90,35 @@ class ContributionMarginBubbleBuilderTest {
 
   @Test
   fun `a bubble gets the colour of the business unit all its projects share`() {
-    val colors = mapOf(1L to "#ffcb00", 2L to "#ffcb00", 3L to "#009ba3", 4L to "#009ba3")
+    val colors = mapOf(1L to "#3366cc", 2L to "#3366cc", 3L to "#009ba3", 4L to "#009ba3")
     val byCustomer = ContributionMarginBubbleBuilder.bubbles(
       projects, true, ContributionMarginBubbleGrouping.CUSTOMER, colorOf = { colors[it] },
     )
-    assertNull(byCustomer.single { it.label == "DHL" }.color, "Mixed business units.")
-    assertEquals("#009ba3", byCustomer.single { it.label == "Porsche" }.color)
+    assertNull(byCustomer.single { it.label == "ACME" }.color, "Mixed business units.")
+    assertEquals("#009ba3", byCustomer.single { it.label == "Globex" }.color)
     val byGroup = ContributionMarginBubbleBuilder.bubbles(
       projects, false, ContributionMarginBubbleGrouping.PROJECT_GROUP, colorOf = { colors[it] },
     )
     val group = byGroup.single { it.revenue == BigDecimal("1500") }
-    assertEquals("#ffcb00", group.color, "Anonymous bubbles keep the colour.")
+    assertEquals("#3366cc", group.color, "Anonymous bubbles keep the colour.")
     assertNull(group.label)
   }
 
   @Test
   fun `a bubble names its projects by their short name and has a short title`() {
     val withIdentifier = projects.map {
-      if (it.projectId == 1L) project(1, "DHL", "OPTIMA", "1000", "200", "DHL Kleinprojekte", identifier = "OPT") else it
+      if (it.projectId == 1L) project(1, "ACME", "ALPHA", "1000", "200", "ACME Kleinprojekte", identifier = "ALP") else it
     }
     val bubbles = ContributionMarginBubbleBuilder.bubbles(withIdentifier, true, ContributionMarginBubbleGrouping.PROJECT_GROUP)
-    assertEquals(listOf("EPP", "OPT"), bubbles.single { it.label == "DHL Kleinprojekte" }.projects)
-    assertEquals(listOf("ROSy"), bubbles.single { it.label == "ROSy" }.projects, "Without identifier: the name.")
+    assertEquals(listOf("ALP", "BETA"), bubbles.single { it.label == "ACME Kleinprojekte" }.projects)
+    assertEquals(listOf("Gamma"), bubbles.single { it.label == "Gamma" }.projects, "Without identifier: the name.")
     val byProject = ContributionMarginBubbleBuilder.bubbles(withIdentifier, true, ContributionMarginBubbleGrouping.PROJECT)
-    assertEquals(listOf("OPT"), byProject.single { it.label == "OPTIMA" }.projects)
-    assertEquals("OPT", byProject.single { it.label == "OPTIMA" }.title, "A project by itself: its identifier.")
-    assertEquals("ROSy", byProject.single { it.label == "ROSy" }.title, "Without identifier: its name.")
-    assertEquals("DHL Kleinprojekte", bubbles.single { it.label == "DHL Kleinprojekte" }.title, "A group: its name.")
+    assertEquals(listOf("ALP"), byProject.single { it.label == "ALPHA" }.projects)
+    assertEquals("ALP", byProject.single { it.label == "ALPHA" }.title, "A project by itself: its identifier.")
+    assertEquals("Gamma", byProject.single { it.label == "Gamma" }.title, "Without identifier: its name.")
+    assertEquals("ACME Kleinprojekte", bubbles.single { it.label == "ACME Kleinprojekte" }.title, "A group: its name.")
     val byCustomer = ContributionMarginBubbleBuilder.bubbles(withIdentifier, true, ContributionMarginBubbleGrouping.CUSTOMER)
-    assertEquals("DHL", byCustomer.single { it.label == "DHL" }.title, "A customer: its name, not its projects.")
+    assertEquals("ACME", byCustomer.single { it.label == "ACME" }.title, "A customer: its name, not its projects.")
     assertTrue(
       ContributionMarginBubbleBuilder.bubbles(withIdentifier, false, ContributionMarginBubbleGrouping.CUSTOMER)
         .all { it.projects == null && it.title == null },

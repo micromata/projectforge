@@ -32,7 +32,7 @@ class StringMatchUtilsTest {
     fun testNormalizeString() {
         // Test removal of special characters and whitespace
         assertEquals("microsoftcorp", StringMatchUtils.normalizeString("Microsoft Corp."))
-        assertEquals("325124610azis001710ksr", StringMatchUtils.normalizeString("3251246-10 / Az.: IS-0017-10/KSR"))
+        assertEquals("418236720azpr004220abc", StringMatchUtils.normalizeString("4182367-20 / Az.: PR-0042-20/ABC"))
         assertEquals("abc123xyz", StringMatchUtils.normalizeString("ABC-123/XYZ"))
         assertEquals("ordernr2024001", StringMatchUtils.normalizeString("Order Nr. 2024-001"))
         assertEquals("", StringMatchUtils.normalizeString("!@#$%^&*()"))
@@ -46,8 +46,8 @@ class StringMatchUtilsTest {
         assertTrue(parts1.contains("microsoftcorp"))
         assertTrue(parts1.size >= 1) // Should have at least the full string
 
-        val parts2 = StringMatchUtils.extractSignificantParts("32512461010")
-        assertTrue(parts2.contains("32512461010"))
+        val parts2 = StringMatchUtils.extractSignificantParts("41823672010")
+        assertTrue(parts2.contains("41823672010"))
         assertTrue(parts2.size >= 1) // Should have at least the full string
 
         // Test short strings
@@ -66,13 +66,13 @@ class StringMatchUtilsTest {
     @Test
     fun testCalculateSimilarityInvoiceNumbers() {
         // Main use case: invoice number matching
-        val similarity1 = StringMatchUtils.calculateSimilarity("325124610", "3251246-10")
+        val similarity1 = StringMatchUtils.calculateSimilarity("418236720", "4182367-20")
         assertTrue(similarity1 > 0.5, "Invoice numbers should be similar")
 
-        val similarity2 = StringMatchUtils.calculateSimilarity("325124610", "3251246-10 / Az.: IS-0017-10/KSR")
+        val similarity2 = StringMatchUtils.calculateSimilarity("418236720", "4182367-20 / Az.: PR-0042-20/ABC")
         assertTrue(similarity2 > 0.3, "Invoice number with additional info should be similar")
 
-        val similarity3 = StringMatchUtils.calculateSimilarity("325124610", "999888777")
+        val similarity3 = StringMatchUtils.calculateSimilarity("418236720", "999888777")
         assertTrue(similarity3 < 0.3, "Different invoice numbers should not be similar")
     }
 
@@ -162,12 +162,12 @@ class StringMatchUtilsTest {
     @Test
     fun testRealWorldFailingCase() {
         // Test the actual failing case from user
-        val referenz1 = "325124610"
-        val referenz2 = "3251246-10 / Az.: IS-0017-10/KSR"
+        val referenz1 = "418236720"
+        val referenz2 = "4182367-20 / Az.: PR-0042-20/ABC"
         val referenzSimilarity = StringMatchUtils.calculateSimilarity(referenz1, referenz2)
 
-        val kreditor1 = "ISICO Datenschutz GmbH"
-        val kreditor2 = "ISICO GmbH"
+        val kreditor1 = "PRIVA Datenschutz GmbH"
+        val kreditor2 = "PRIVA GmbH"
         val kreditorSimilarity = StringMatchUtils.calculateCompanySimilarity(kreditor1, kreditor2)
 
         // Calculate scores as per EingangsrechnungPosImportDTO logic
@@ -213,7 +213,7 @@ class StringMatchUtilsTest {
         // when combined with mismatched kreditor and date
 
         // This should still match: same number with different formatting
-        val similarity3 = StringMatchUtils.calculateSimilarity("325124610", "3251246-10 / Az.: IS-0017-10/KSR")
+        val similarity3 = StringMatchUtils.calculateSimilarity("418236720", "4182367-20 / Az.: PR-0042-20/ABC")
         assertTrue(similarity3 > 0.8, "Same invoice number with extra text should match (was $similarity3)")
 
         // Typo case: should still be similar

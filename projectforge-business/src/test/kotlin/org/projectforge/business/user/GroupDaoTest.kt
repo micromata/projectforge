@@ -150,7 +150,7 @@ class GroupDaoTest : AbstractTestBase() {
     /**
      * A group whose name holds a hyphen: the index holds the name as two terms (the default analyzer separates
      * at the hyphen), and Lucene doesn't tokenize a wildcard term - so the search used to ask for a term
-     * beginning with `dhl-pop`, which cannot exist. See [org.projectforge.framework.persistence.search.SearchStringTokenizer].
+     * beginning with `acme-pop`, which cannot exist. See [org.projectforge.framework.persistence.search.SearchStringTokenizer].
      */
     /**
      * The protection of the system groups decides on the stored name: posting a system group with another name
@@ -175,15 +175,15 @@ class GroupDaoTest : AbstractTestBase() {
     fun searchStringWithHyphenTest() {
         logon(ADMIN_USER)
         val group = GroupDO()
-        group.name = "dhl-pop.$PREFIX"
+        group.name = "acme-pop.$PREFIX"
         groupDao.insert(group)
-        QueryFilter(BaseSearchFilter().also { it.searchString = "dxl-pop" }).let { filter ->
+        QueryFilter(BaseSearchFilter().also { it.searchString = "axme-pop" }).let { filter ->
             Assertions.assertTrue(
                 groupDao.select(filter).none { it.id == group.id },
                 "The search is a search: a word the name doesn't hold finds nothing.",
             )
         }
-        listOf("dhl-pop", "dhl-po", "dhl-", "dhl", "pop", "dhl pop").forEach { searchString ->
+        listOf("acme-pop", "acme-po", "acme-", "acme", "pop", "acme pop").forEach { searchString ->
             val filter = QueryFilter(BaseSearchFilter().also { it.searchString = searchString })
             val result = groupDao.select(filter)
             Assertions.assertTrue(
