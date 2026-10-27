@@ -437,6 +437,36 @@ digest (see above), the runs of the scheduled jobs and offers a log viewer for s
 context of a log entry. The counts are stored in the database (`projectforge.support.logAggregation.*` and
 `projectforge.scheduler.stats.*` in `application.properties`, cleaned up by the daily privacy protection job).
 
+[[mcp_server]]
+=== MCP server for AI agents (prototype)
+
+ProjectForge can offer a read-only MCP server (Model Context Protocol) at `/mcp`, so that AI agents such as Claude
+Desktop or Claude Code read projects, customers, tasks, timesheets, addresses and invoices. The agent sees only what the
+user may see in ProjectForge; it can't change anything.
+
+The agent registers itself and opens ProjectForge in the browser (OAuth with PKCE). There the user logs in as usual
+(including the second factor) and allows the agent access to selected data types. Data types the user can't read, or
+for which their second factor isn't fresh enough, aren't offered. The access ends with the browser session, at the
+latest after one hour; the agent then asks again.
+
+Limits of the prototype:
+
+- Only clients with a callback on the own computer (`localhost`, `127.0.0.1`, `[::1]`), i.e. desktop apps and command
+  line tools, no web clients.
+- Tokens are kept in memory: after a restart of ProjectForge, the agents ask the users again.
+- The consent page is German only.
+
+The MCP server is off by default. The resource is the external https url of the endpoint; behind a reverse proxy
+`/mcp`, `/mcp/oauth/` and `/.well-known/oauth-*` must be forwarded to ProjectForge.
+
+.File: `projectforge.properties`
+----
+projectforge.mcp.enabled=true
+projectforge.mcp.resource=https://projectforge.acme.com/mcp
+# Optional: keeps the clients allowed by users over a restart (absolute path). Default: in memory only.
+projectforge.mcp.client-registry-file=/home/projectforge/ProjectForge/mcp-clients.properties
+----
+
 [[phone_calls_and_texting_with_projectforge]]
 === Phone calls and texting with ProjectForge
 
