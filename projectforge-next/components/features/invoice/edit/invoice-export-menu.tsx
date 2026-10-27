@@ -102,7 +102,7 @@ export function InvoiceExportMenu({
  * What one entry is called, as Wicket names it: the variant with its underscores read as spaces, and
  * "default" for the unnamed one.
  *
- * The name is a file name fragment ("MMInvoiceTemplate_Commerzbank.docx" → "Commerzbank"), so it is the
+ * The name is a file name fragment ("InvoiceTemplate_BankA.docx" → "BankA"), so it is the
  * installation's own word and not translatable — only the fallback is. Shared with the ZUGFeRD export,
  * which converts the same templates (see EInvoiceActions).
  */

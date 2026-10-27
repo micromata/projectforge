@@ -86,7 +86,7 @@ class OrphanedLinkFilter : Filter {
             val target = if (pollId != null) "poll/$pollId/answer" else "poll"
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}$target")
         } else if (uri.contains("/wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage")) {
-            // /wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage?id=26422747
+            // /wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage?id=4711
             // The id is interpolated into the Location header, so only accept what an id can be: anything else is
             // either a broken bookmark or somebody trying to smuggle query params into the target url.
             val id = servletRequest.getParameter("id")?.toLongOrNull()

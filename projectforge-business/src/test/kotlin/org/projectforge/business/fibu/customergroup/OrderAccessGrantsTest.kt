@@ -34,7 +34,7 @@ import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Comp
 /** Which orders the order access grants give whom, see [OrderAccessGrants]. */
 class OrderAccessGrantsTest {
     private val directory = CustomerDirectory(
-        customers = mapOf(101L to "ACME Germany", 200L to "Internal", 300L to "Kühne Spedition", 400L to "Single"),
+        customers = mapOf(101L to "ACME Germany", 200L to "Internal", 300L to "Muster Spedition", 400L to "Single"),
         // Project 1 of the internal customer below task 10 (in BU Blue), project 2 below no business unit's task.
         projects = mapOf(1L to ProjectRef(200, 11), 2L to ProjectRef(200, 30)),
         taskPath = { mapOf(10L to listOf(1L, 10L), 11L to listOf(1L, 10L, 11L), 30L to listOf(1L, 30L))[it] },

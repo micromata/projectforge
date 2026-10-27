@@ -1317,7 +1317,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     /**
      * The whole-result statistics of a server-side paged invoice list: computed over the full id list, not
      * over the single page [postProcessResultSet] sees, so the footer shows the sums of every matching
-     * invoice (see `projectforge-next/docs/list-paging.md`). [RechnungsStatistik] converts foreign currencies from the
+     * invoice (see `dev-docs/next/list-paging.md`). [RechnungsStatistik] converts foreign currencies from the
      * loaded [RechnungDO], which no cache holds, so the matching invoices are loaded here - the same work
      * [postProcessResultSet] does over its (complete) result set on the non-paged `POST list`.
      */

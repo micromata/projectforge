@@ -145,11 +145,11 @@ class CSVParserTest {
         Assertions.assertEquals(5, row1!!.size)
         Assertions.assertEquals("R", row1[0])
         Assertions.assertEquals("Software Company GmbH", row1[1])
-        Assertions.assertEquals("1200,78", row1[2])
+        Assertions.assertEquals("999,90", row1[2])
         Assertions.assertTrue(row1[3].contains("\n"), "Service description should contain newlines")
-        Assertions.assertEquals("12x Creative Cloud\nLicense for period", row1[3])
+        Assertions.assertEquals("12x Office Suite\nLicense for period", row1[3])
         Assertions.assertTrue(row1[4].contains("\n"), "Notes should contain newlines")
-        Assertions.assertEquals("KK KL\ngepr. KL", row1[4])
+        Assertions.assertEquals("AB CD\ngepr. CD", row1[4])
 
         // Parse second invoice row
         val row2 = parser.parseLine()
@@ -157,10 +157,10 @@ class CSVParserTest {
         Assertions.assertEquals(5, row2!!.size)
         Assertions.assertEquals("R", row2[0])
         Assertions.assertEquals("Cloud Provider Inc", row2[1])
-        Assertions.assertEquals("565,27", row2[2])
-        Assertions.assertEquals("AWS-Account Prod Environment", row2[3])
+        Assertions.assertEquals("456,78", row2[2])
+        Assertions.assertEquals("Cloud hosting test environment", row2[3])
         Assertions.assertTrue(row2[4].contains("\n"), "Notes should contain newlines")
-        Assertions.assertEquals("wi AB\nchecked by admin", row2[4])
+        Assertions.assertEquals("ab XY\nchecked by admin", row2[4])
     }
 
     @Test
@@ -192,7 +192,7 @@ class CSVParserTest {
     }
 
     @Test
-    fun parseRealWorldDatevExport() {
+    fun parseDatevExport() {
         val parser = loadCsvFromResources("datev_export.csv")
 
         // Parse headers
@@ -212,8 +212,8 @@ class CSVParserTest {
         Assertions.assertEquals(9, row1!!.size)
         Assertions.assertEquals("R", row1[0])
         Assertions.assertEquals("Marketing Service GmbH", row1[1])
-        Assertions.assertEquals("384,16", row1[3])
-        Assertions.assertEquals("Geschäftsbericht, Material Frühlingsfest", row1[7])
+        Assertions.assertEquals("123,45", row1[3])
+        Assertions.assertEquals("Geschäftsbericht, Material Sommerfest", row1[7])
 
         // Parse multiline invoice
         val row2 = parser.parseLine()
@@ -221,7 +221,7 @@ class CSVParserTest {
         Assertions.assertEquals(9, row2!!.size)
         Assertions.assertEquals("R", row2[0])
         Assertions.assertEquals("Software Solutions Ltd", row2[1])
-        Assertions.assertEquals("1200,78", row2[3])
+        Assertions.assertEquals("999,90", row2[3])
         Assertions.assertTrue(row2[7].contains("\n"), "Service description should span multiple lines")
         Assertions.assertTrue(row2[8].contains("\n"), "Notes should span multiple lines")
 
@@ -230,8 +230,8 @@ class CSVParserTest {
         Assertions.assertNotNull(row3)
         Assertions.assertEquals("G", row3!![0])
         Assertions.assertEquals("Marketing Service GmbH", row3[1])
-        Assertions.assertEquals("-54,15", row3[3])
-        Assertions.assertEquals("zu Rechnung Nr. 24984", row3[8])
+        Assertions.assertEquals("-12,34", row3[3])
+        Assertions.assertEquals("zu Rechnung Nr. 10001", row3[8])
     }
 
     @Test

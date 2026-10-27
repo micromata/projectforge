@@ -60,10 +60,10 @@ class MyAnalysisConfigurer : LuceneAnalysisConfigurer {
             .tokenFilter(ASCIIFoldingFilterFactory::class.java)
 
         // Splits only on whitespace, so every word of a name becomes its own term while special characters
-        // stay attached (e.g. "K+S Energy" -> "k+s", "energy"). This is what lets a search find a word *inside*
-        // a customer name ("post" finds "Deutsche Post AG", "+deutsche -post" excludes it) while still matching
+        // stay attached (e.g. "A+B Energy" -> "a+b", "energy"). This is what lets a search find a word *inside*
+        // a customer name ("post" finds "Muster Post AG", "+muster -post" excludes it) while still matching
         // a name that holds a character the standard analyzer would strip. A KeywordTokenizer used to index the
-        // whole name as a single term, so only a prefix of the whole name matched and "post" missed "Deutsche
+        // whole name as a single term, so only a prefix of the whole name matched and "post" missed "Muster
         // Post" entirely. Prefix matching still works via the wildcard expansion in SearchStringTokenizer.
         context.analyzer("customAnalyzer")
             .custom()

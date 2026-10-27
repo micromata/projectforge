@@ -11,7 +11,7 @@ import {
   rangeWithoutCustomers,
 } from "./number-ranges";
 
-/** The ranges Micromata configures (application-test.properties). */
+/** The example ranges of application-test.properties. */
 const INFO: NumberRangesInfo = {
   costConfigured: true,
   mode: "CONFIGURED",

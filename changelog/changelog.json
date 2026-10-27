@@ -281,7 +281,7 @@
               ]
             },
             "Mass updates: the log window shows the updated entries again.",
-            "Cancellation invoices are listed with the order positions they cancel, right after the cancelled invoice (e.g. 17400 and 17400-S), also in the order and forecast exports. On the order page both are struck through; together they still count 0 as invoiced.",
+            "Cancellation invoices are listed with the order positions they cancel, right after the cancelled invoice (e.g. 12345 and 12345-S), also in the order and forecast exports. On the order page both are struck through; together they still count 0 as invoiced.",
             "Order book: the edit page no longer jumps while a field is changed."
           ]
         },

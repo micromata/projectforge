@@ -87,7 +87,7 @@ class LoginProtectionTest {
                 "Maps should be empty.")
         Assertions.assertEquals(0, lp.mapByIpAddress.sizeOfLoginFailedAttemptsMap,
                 "Maps should be empty.")
-        val ip = "192.168.76.1"
+        val ip = "192.0.2.1"
         for (i in 0..3000) {
             lp.incrementFailedLoginTimeOffset(i.toString(), ip)
         }
@@ -95,7 +95,7 @@ class LoginProtectionTest {
                 "Time offset due to 3 failed logins expected.")
         Assertions.assertTrue(lp.getFailedLoginTimeOffsetIfExists("kai", ip) < 3001,
                 "Time offset due to 3 failed logins not more than 3 seconds expected.")
-        Assertions.assertEquals(0, lp.getFailedLoginTimeOffsetIfExists("horst", "192.168.76.2").toInt(),
+        Assertions.assertEquals(0, lp.getFailedLoginTimeOffsetIfExists("horst", "192.0.2.2").toInt(),
                 "No offset for new ip address expected.")
     }
 

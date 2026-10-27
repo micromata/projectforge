@@ -56,7 +56,7 @@ class ContributionMarginConfig(
 ) {
   /**
    * Assigns the kost2 without an own project whose number starts with [kost2] (nummernkreis, bereich,
-   * teilbereich, e.g. `6.000.10`, any kost2 type) to the project with the kost [project] (e.g. `5.999.10`).
+   * teilbereich, e.g. `6.000.10`, any kost2 type) to the project with the kost [project] (e.g. `5.900.10`).
    */
   class Kost2Assignment(var kost2: String? = null, var project: String? = null) {
     /** An empty row of the editor, ignored. */

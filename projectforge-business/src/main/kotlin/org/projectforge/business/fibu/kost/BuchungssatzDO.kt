@@ -238,10 +238,10 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
             betrag = betrag!!.negate()
         }
         if (kost2!!.isEqual(1, 0, 0, 0) && kto >= 6000 && kto <= 6299) { // "1.000.00.00"
-            // Bei diesen Buchungen handelt es sich um Kontrollbuchungen mit dem Gegenkonto 3790, was wir hier nochmals prüfen:
+            // These are control bookings with the contra account 3790, which is checked here once more:
             if (gegenKonto!!.nummer != 3790) {
-                // log.error("Bei dieser Buchung ist das Gegenkonto nicht 3790, wie von der Buchhaltung mitgeteilt "
-                // + "(deshalb wird dieser Datensatz nicht ignoriert!");
+                // log.error("The contra account of this booking is not 3790 as expected for a control booking "
+                // + "(so this record is not ignored)!");
             } else {
                 isIgnore = true
             }

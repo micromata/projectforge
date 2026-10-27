@@ -37,7 +37,7 @@ class CryptStreamUtilsTest {
     Assertions.assertFalse(String(encrypted).contains("dependencies"))
     Assertions.assertTrue(String(decrypted).contains("dependencies"))
 
-    checkFile("../doc/misc/ForecastExportProbabilities.xlsx")
+    checkFile("../dev-docs/misc/ForecastExportProbabilities.xlsx")
 
     Assertions.assertFalse(CryptStreamUtils.wasWrongPassword(IllegalArgumentException("some other error")))
   }

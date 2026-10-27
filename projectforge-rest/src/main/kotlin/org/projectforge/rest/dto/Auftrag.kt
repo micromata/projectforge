@@ -153,7 +153,7 @@ class Auftrag(
      *
      * [AuftragDO.positionen] and [AuftragDO.paymentSchedules] are `FetchType.LAZY`, so reading either one
      * is a select per order — and each position pulls its task, and each task its parents. Over a list of
-     * some 7000 orders that is what turned `initialList` into 26 MB in 99 seconds, while Wicket's list
+     * thousands of orders that turned `initialList` into several MB of JSON and minutes of loading, while Wicket's list
      * stayed fast: it reads the same sums from [AuftragsCache], which preloads positions and schedules in
      * three bulk selects (see its `refresh`) and never walks a lazy collection.
      *
@@ -211,7 +211,7 @@ class Auftrag(
      * leaves out — `formattedNettoSumme` & co., and the nested `contactPerson`/`customer`/`project`. Hence
      * two fillings of one DTO rather than two DTOs.
      *
-     * Measured over the order book of a real installation (7132 rows), 1755 B/row become 741 B/row. What
+     * On a large order book (several thousand rows) a row shrinks to less than half its size. What
      * is left out and why:
      * - the four `formatted*` sums (~141 B/row): the client formats currency in the user's locale
      *   (`lib/format.ts`), and a string column would sort "900,00" after "1.100,00" anyway.

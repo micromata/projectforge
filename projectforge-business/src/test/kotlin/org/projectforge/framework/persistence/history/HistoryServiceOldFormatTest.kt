@@ -54,13 +54,13 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
     fun testOldInvoiceHistory() {
         ensureSetup()
         val invoice = RechnungDO()
-        invoice.id = 40770225
+        invoice.id = 72130000
         val hist = createHistoryTester()
-        val msg = "Invoice 40770225, entry 0"
+        val msg = "Invoice 72130000, entry 0"
         hist.loadHistory(invoice, 2, 21, msg)
         hist.getEntry(0, 4, msg).let { entry ->
-            HistoryTester.assertHistoryAttr(entry, "bemerkung", "PoBa", null, PropertyOpType.Insert, msg = msg)
-            HistoryTester.assertHistoryAttr(entry, "bemerkung", "PoBa", null, PropertyOpType.Insert, msg = msg)
+            HistoryTester.assertHistoryAttr(entry, "bemerkung", "Bank", null, PropertyOpType.Insert, msg = msg)
+            HistoryTester.assertHistoryAttr(entry, "bemerkung", "Bank", null, PropertyOpType.Insert, msg = msg)
             HistoryTester.assertHistoryAttr(
                 entry,
                 "bezahlDatum",
@@ -82,34 +82,34 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
             HistoryTester.assertHistoryAttr(
                 entry,
                 "zahlBetrag",
-                "4765.95",
+                "1234.56",
                 null,
                 PropertyOpType.Insert,
                 BigDecimal::class,
                 msg = msg,
             )
         }
-        hist.getEntry(1, 17, "Invoice 40770225, entry 0")
-        invoice.id = 351958
-        hist.loadHistory(invoice, 20, 22, "Invoice 351958")
-        hist.getEntriesByEntityId(351958L, 4, 6)
-        hist.getEntriesByEntityId(351959L, 4, 4)
-        hist.getEntriesByEntityId(351960L, 4, 4)
-        hist.getEntriesByEntityId(382506L, 2, 2)
-        hist.getEntriesByEntityId(382507L, 2, 2)
-        hist.getEntriesByEntityId(382508L, 2, 2)
-        hist.getEntriesByEntityId(382509L, 2, 2)
-        // 20.04.15 17:19 Update Konto              -> 12202
-        // 08.03.10 13:26 Update #1:Position        -> 674.1
-        // 08.03.10 13:26 Update Betreff            DM 2010 #674 -> DM 2010
-        // 08.03.10 13:26 Update #2:Position        -> 674.2
+        hist.getEntry(1, 17, "Invoice 72130000, entry 0")
+        invoice.id = 703300
+        hist.loadHistory(invoice, 20, 22, "Invoice 703300")
+        hist.getEntriesByEntityId(703300L, 4, 6)
+        hist.getEntriesByEntityId(703600L, 4, 4)
+        hist.getEntriesByEntityId(703900L, 4, 4)
+        hist.getEntriesByEntityId(704200L, 2, 2)
+        hist.getEntriesByEntityId(704500L, 2, 2)
+        hist.getEntriesByEntityId(704800L, 2, 2)
+        hist.getEntriesByEntityId(705100L, 2, 2)
+        // 20.04.15 17:19 Update Konto              -> 19001
+        // 08.03.10 13:26 Update #1:Position        -> 123.1
+        // 08.03.10 13:26 Update Betreff            XY 2010 #123 -> XY 2010
+        // 08.03.10 13:26 Update #2:Position        -> 123.2
         // 22.02.10 08:55 Update Rechnungsstatus    gestellt -> bezahlt
         // 22.02.10 08:55 Update Bezahldatum        -> 2010-02-22
-        // 22.02.10 08:55 Update Zahlbetrag         -> 4455.00
-        // 08.02.10 11:33 Update #1.kost#0:Kost     5.620.08.02 -> 5.620.07.02
-        // 08.02.10 11:33 Update #1.kost#1:Kost     5.620.08.02 -> 5.620.07.02
-        // 08.02.10 11:33 Update #1.kost#2:Kost     5.620.08.02 -> 5.620.07.02
-        // 08.02.10 11:33 Update #2.kost#0:Kost     5.620.08.04 -> 5.620.07.04
+        // 22.02.10 08:55 Update Zahlbetrag         -> 1500.00
+        // 08.02.10 11:33 Update #1.kost#0:Kost     5.900.08.02 -> 5.900.07.02
+        // 08.02.10 11:33 Update #1.kost#1:Kost     5.900.08.02 -> 5.900.07.02
+        // 08.02.10 11:33 Update #1.kost#2:Kost     5.900.08.02 -> 5.900.07.02
+        // 08.02.10 11:33 Update #2.kost#0:Kost     5.900.08.04 -> 5.900.07.04
         // 08.02.10 11:24 Update #1:kostZuweisungen	-> 0, 1, 2
         // 08.02.10 11:24 Update #2:kostZuweisungen	-> 0
         // 08.02.10 11:24 Insert #1.kost#0:
@@ -127,20 +127,20 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
     fun testOldUserHistory() {
         ensureSetup()
         val user = PFUserDO()
-        user.id = 34961222
+        user.id = 70360000
         val hist = createHistoryTester()
         hist.loadHistory(user, 27, 4)
-        hist.getEntriesByPk(getNewHistoryEntryId(34961266), 1, 1).first().let { entry ->
+        hist.getEntriesByPk(getNewHistoryEntryId(70420000), 1, 1).first().let { entry ->
             HistoryTester.assertHistoryAttr(
                 entry,
                 "assignedGroups",
-                "1100452,1100063,1826459,33",
+                "7006000,7003000,7009000,33",
                 null,
                 PropertyOpType.Update,
                 GroupDO::class
             )
         }
-        hist.getEntriesByPk(getNewHistoryEntryId(38057999), 1, 1).first().let { entry ->
+        hist.getEntriesByPk(getNewHistoryEntryId(71260000), 1, 1).first().let { entry ->
             HistoryTester.assertHistoryAttr(
                 entry,
                 "lastPasswordChange",
@@ -150,7 +150,7 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
                 Date::class,
             )
         }
-        hist.getEntriesByPk(getNewHistoryEntryId(37229748), 1, 2).first().let { entry ->
+        hist.getEntriesByPk(getNewHistoryEntryId(71200000), 1, 2).first().let { entry ->
             HistoryTester.assertHistoryAttr(entry, "locale", "de_DE", "", PropertyOpType.Update, Locale::class)
             HistoryTester.assertHistoryAttr(entry, "timeZoneString", "Europe/Berlin", null, PropertyOpType.Insert)
         }
@@ -160,41 +160,41 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
     fun testOldAuftragHistory() {
         ensureSetup()
         val order = AuftragDO()
-        order.id = 36901223
+        order.id = 70810000
         val hist = createHistoryTester()
         hist.loadHistory(
             order,
             26,
             46,
-            "The history entries of the embedded positions should be found, because they are part of an history attr entry: 36901224,36901225,36901226,36901227,36901228."
+            "The history entries of the embedded positions should be found, because they are part of an history attr entry: 70840000,70870000,70900000,70930000,70960000."
         )
-        hist.getEntriesByEntityId(36901223L, 9, 27)
-        hist.getEntriesByEntityId(36901224L, 3, 3)
-        hist.getEntriesByEntityId(36901225L, 3, 3)
-        hist.getEntriesByEntityId(36901226L, 3, 3)
-        hist.getEntriesByEntityId(36901227L, 3, 3)
-        hist.getEntriesByEntityId(36901228L, 5, 7)
-        hist.getEntriesByPk(getNewHistoryEntryId(36901229), 1, 18)
+        hist.getEntriesByEntityId(70810000L, 9, 27)
+        hist.getEntriesByEntityId(70840000L, 3, 3)
+        hist.getEntriesByEntityId(70870000L, 3, 3)
+        hist.getEntriesByEntityId(70900000L, 3, 3)
+        hist.getEntriesByEntityId(70930000L, 3, 3)
+        hist.getEntriesByEntityId(70960000L, 5, 7)
+        hist.getEntriesByPk(getNewHistoryEntryId(70990000), 1, 18)
         // val orderPos = AuftragsPositionDO()
-        // orderPos.id = 36901228
+        // orderPos.id = 70960000
     }
 
     @Test
     fun testOldEmployeeTimedAttrHistory() {
         ensureSetup()
         val employee = EmployeeDO()
-        employee.id = 21339579
+        employee.id = 70090000
         val hist = createHistoryTester()
         hist.loadHistory(employee, 5, 6)
         hist.getEntry(0, 1).assertAttr(
-            "annualleave.2009-11-26",
+            "annualleave.2007-11-26",
             value = "30",
             oldValue = "32",
             opType = PropertyOpType.Update,
             propertyTypeClass = BigDecimal::class
         )
         hist.getEntry(1, 1).assertAttr(
-            "status.2017-09-01",
+            "status.2015-09-01",
             value = null,
             oldValue = null,
             opType = PropertyOpType.Delete,
@@ -202,26 +202,26 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
         )
         hist.getEntry(2, 2)
             .assertAttr(
-                "annualleave.2021-03-01",
+                "annualleave.2019-03-01",
                 value = "30",
                 oldValue = null,
                 opType = PropertyOpType.Insert,
                 propertyTypeClass = BigDecimal::class
             )
             .assertAttr(
-                "status.2021-03-01",
+                "status.2019-03-01",
                 value = "fibu.employee.status.festAngestellter",
                 oldValue = null,
                 opType = PropertyOpType.Insert
             )
         hist.getEntry(3, 1).assertAttr(
-            "status.2020-04-01",
+            "status.2018-04-01",
             value = "fibu.employee.status.aushilfe",
             oldValue = null,
             opType = PropertyOpType.Insert
         )
         hist.getEntry(4, 1).assertAttr(
-            "status.2019-03-01",
+            "status.2017-03-01",
             value = "fibu.employee.status.studentischeHilfskraft",
             oldValue = null,
             opType = PropertyOpType.Insert
@@ -338,14 +338,14 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
             // select pk,entity_id,entity_name,entity_optype from t_pf_history where entity_id = <ENTITY_ID>
             // select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (PK1,PK2,PK3);
             persistenceService.runInTransaction { context ->
-                context.executeNativeUpdate("insert into t_fibu_rechnung (pk,deleted,datum) values (351958,false,'2023-12-29')")
-                context.executeNativeUpdate("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351959,false,351958,1)")
-                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index,netto) values (382507,false,351959,0,10.10)")
-                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index,netto) values (382508,false,351959,1),20.20")
-                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index,netto) values (382509,false,351959,2),30.30")
-                context.executeNativeUpdate("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351960,false,351958,2)")
-                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382506,false,351960,0)")
-                context.executeNativeUpdate("insert into t_fibu_konto (pk,deleted,bezeichnung,nummer) values (167040,false,'ACME Int.',12202)")
+                context.executeNativeUpdate("insert into t_fibu_rechnung (pk,deleted,datum) values (703300,false,'2023-12-29')")
+                context.executeNativeUpdate("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (703600,false,703300,1)")
+                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index,netto) values (704500,false,703600,0,10.10)")
+                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index,netto) values (704800,false,703600,1),20.20")
+                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index,netto) values (705100,false,703600,2),30.30")
+                context.executeNativeUpdate("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (703900,false,703300,2)")
+                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (704200,false,703900,0)")
+                context.executeNativeUpdate("insert into t_fibu_konto (pk,deleted,bezeichnung,nummer) values (701500,false,'ACME Int.',19001)")
             }
         }
 

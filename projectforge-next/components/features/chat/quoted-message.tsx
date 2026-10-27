@@ -41,14 +41,14 @@ export function QuotedMessage({ quote }: { quote: ChatQuote }) {
   return (
     <button
       type="button"
-      className="my-1 block w-full max-w-xl rounded-sm border-l-2 border-primary bg-muted/60 px-2 py-1 text-left text-xs hover:bg-muted"
+      className="my-1 block w-full max-w-xl rounded-sm border-l-2 border-primary bg-background/60 px-2 py-1 text-left text-xs hover:bg-background"
       aria-label={t("chat.message.quote.of", {
         arg0: quote.author.displayName,
       })}
       onClick={show}
     >
       <span className="block text-muted-foreground">
-        <span className="font-semibold text-foreground">
+        <span className="font-medium text-foreground">
           <RefName value={quote.author} />
         </span>
         , {formatTimestampMinutes(quote.created, formatContext)}

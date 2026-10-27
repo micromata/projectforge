@@ -110,7 +110,7 @@ class MagicFilter(
 
   /**
    * A stable hash over everything that decides **which rows in which order** the filter selects. It is the
-   * cache key of the server-side paged id list (see `projectforge-next/docs/list-paging.md`): two filters with the same
+   * cache key of the server-side paged id list (see `dev-docs/next/list-paging.md`): two filters with the same
    * fingerprint yield the same ordered result, so their materialized id list may be reused.
    *
    * Included: [entries] (sorted, [PAGINATION_PAGE_SIZE] excluded — page size does not change the row set),

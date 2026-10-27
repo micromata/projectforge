@@ -56,8 +56,8 @@ class FilenameUtilsTest {
     @Test
     fun createStrictSafeFilename() {
         TestSetup.init()
-        Assertions.assertEquals("http_www.micromata.de", FilenameUtils.createSafeFilename("http://www.micromata.de"))
-        Assertions.assertEquals("http_www", FilenameUtils.createSafeFilename("http://www.micromata.de", maxlength = 8))
+        Assertions.assertEquals("http_www.example.org", FilenameUtils.createSafeFilename("http://www.example.org"))
+        Assertions.assertEquals("http_www", FilenameUtils.createSafeFilename("http://www.example.org", maxlength = 8))
         Assertions.assertEquals("Schroedinger", FilenameUtils.createSafeFilename("Schrödinger"))
         Assertions.assertEquals(
             "Micromata_is_a_great_software_company.",

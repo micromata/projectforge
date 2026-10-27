@@ -118,8 +118,8 @@ class NextSpaResourceResolverTest {
 
     @Test
     void servesADeepLinkFromTheShellOfItsRoute() throws IOException {
-        assertEquals("book edit shell", resolve("book/25219084"));
-        assertEquals("book history shell", resolve("book/25219084/history"));
+        assertEquals("book edit shell", resolve("book/4711"));
+        assertEquals("book history shell", resolve("book/4711/history"));
     }
 
     /** A path no route of the export serves stays a 404: there is no catch-all shell to answer it. */
@@ -133,9 +133,9 @@ class NextSpaResourceResolverTest {
     @Test
     void servesThePayloadsADeepLinksClientSideNavigationNeeds() throws IOException {
         // The route with an extension appended, i.e. the shell's own index file.
-        assertEquals("book edit payload", resolve("book/25219084.txt"));
+        assertEquals("book edit payload", resolve("book/4711.txt"));
         // A file below the page, resolved against the route of the path without the file name.
-        assertEquals("book edit tree", resolve("book/25219084/__next._tree.txt"));
+        assertEquals("book edit tree", resolve("book/4711/__next._tree.txt"));
     }
 
     /** The build links its assets below /next/public (assetPrefix), the export keeps them in _next/. */
@@ -149,7 +149,7 @@ class NextSpaResourceResolverTest {
     @Test
     void leavesAMissingAssetUnresolved() throws IOException {
         assertNull(resolver.getResource("_next/static/chunks/gone.js", location));
-        assertNull(resolver.getResource("book/25219084/gone.txt", location));
+        assertNull(resolver.getResource("book/4711/gone.txt", location));
         assertNull(resolver.getResource("favicon.ico", location));
     }
 

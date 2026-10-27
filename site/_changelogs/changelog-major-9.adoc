@@ -255,7 +255,7 @@ __2026-10-23, tag https://github.com/micromata/projectforge/tree/9.0.14-RELEASE[
   * Header-only export: the rows of one invoice (one per booking line) are merged into one invoice with the total amount, instead of being offered as new invoices on every import.
   * Header-only export: the internal note (column "Interne Re.-Nr.") is no longer appended to the invoice number, which changed back and forth with every import of the two files.
 - Mass updates: the log window shows the updated entries again.
-- Cancellation invoices are listed with the order positions they cancel, right after the cancelled invoice (e.g. 17400 and 17400-S), also in the order and forecast exports. On the order page both are struck through; together they still count 0 as invoiced.
+- Cancellation invoices are listed with the order positions they cancel, right after the cancelled invoice (e.g. 12345 and 12345-S), also in the order and forecast exports. On the order page both are struck through; together they still count 0 as invoiced.
 - Order book: the edit page no longer jumps while a field is changed.
 
 ++++

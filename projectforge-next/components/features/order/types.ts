@@ -54,7 +54,7 @@ export type EntityRefDto = {
 export interface InvoiceRef {
   id?: number | null;
   nummer?: number | null;
-  /** The number as printed, e.g. `17400-S` for a cancellation, which has no `nummer` of its own. */
+  /** The number as printed, e.g. `12345-S` for a cancellation, which has no `nummer` of its own. */
   belegNummer?: string | null;
   date?: string | null;
   netSum?: number | null;
@@ -168,8 +168,8 @@ export interface OrderDetail {
 /**
  * One row of the list: the same `Auftrag` DTO, with only the fields the columns of `order.page.tsx`
  * show. The backend fills exactly those for a next client (`Auftrag.copyFrom4ListRow`, selected by
- * `AbstractEntityRest.createListRow`) and `JsonInclude.NON_NULL` keeps the rest off the wire — 12.5 MB
- * become 3.2 MB over the 7132 orders of a real installation.
+ * `AbstractEntityRest.createListRow`) and `JsonInclude.NON_NULL` keeps the rest off the wire — on a
+ * large order book (several thousand rows) that is a fraction of the full rows.
  *
  * So this is deliberately **not** an extension of [OrderDetail], although the wire type is the same DTO:
  * what a list row carries is a subset, and inheriting the full shape is what let the page reach for a

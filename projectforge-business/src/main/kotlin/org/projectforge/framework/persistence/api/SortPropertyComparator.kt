@@ -56,7 +56,7 @@ private val log = KotlinLogging.logger {}
  *
  * @param valueOf How a property of an object is read. Defaults to reflection over the bean, which covers
  * every persisted column and every getter. Override it for a value reflection cannot reach as cheaply —
- * an order's net sum is a map lookup in `AuftragsCache`, which is what makes sorting 7000 rows a matter of
+ * an order's net sum is a map lookup in `AuftragsCache`, which is what makes sorting thousands of rows a matter of
  * milliseconds. Return `null` to fall back to the reflective read.
  * @param computedProperties The properties [valueOf] *owns*: for these a `null` it returns is a real "no
  * value" (blank, ranks lowest), not the signal to fall back to reflection. A transient/computed column

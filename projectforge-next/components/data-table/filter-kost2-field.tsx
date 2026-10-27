@@ -16,7 +16,7 @@ import type { FilterElement } from "@/lib/rs/types";
 import { cn } from "@/lib/utils";
 import { TextField, type FilterInputProps } from "./filter-field-inputs";
 
-/** The number segment of a suggestion's display name ("6.300.00.00: Urlaub – …" → "6.300.00.00"). */
+/** The number segment of a suggestion's display name ("6.900.00.00: Urlaub – …" → "6.900.00.00"). */
 function numberOf(displayName: string): string {
   return displayName.split(":")[0]?.trim() ?? displayName;
 }
@@ -24,7 +24,7 @@ function numberOf(displayName: string): string {
 /**
  * The cost unit (Kost2) list filter (AutoCompletion.Type.KOST2, see Kost2FilterUtils): a text input
  * whose free text filters the list directly — a number-looking term as a prefix on the cost number
- * (trimming trailing segments widens it: 6.300.00.00 → 6.300.00 → 6.300 → 6), any other text across the
+ * (trimming trailing segments widens it: 6.900.00.00 → 6.900.00 → 6.900 → 6), any other text across the
  * cost unit's number, description and project name.
  *
  * While typing, a type-ahead against `cost2/autosearch` suggests concrete cost units — searchable by

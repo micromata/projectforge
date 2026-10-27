@@ -123,7 +123,7 @@ class Task(id: Long? = null,
     var kost2ListAsLines: String? = null
 
     /**
-     * The path to the root as "Micromata -> Business Unit -> ProjectForge", shown as the tooltip of the
+     * The path to the root as "ACME -> Business Unit -> ProjectForge", shown as the tooltip of the
      * structure element column — the list counterpart of the tree's path (`TaskFormatter.getTaskPath`).
      * Only filled by [copyFrom4ListRow], see [consumption]; on a nested task of a time sheet row it is the
      * *parent* path (see [Timesheet.copyFrom4ListRow]).
