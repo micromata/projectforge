@@ -68,7 +68,7 @@ class McpController(
     timesheetDao: TimesheetDao,
     addressDao: AddressDao,
     invoiceDao: RechnungDao,
-    @Value("\${projectforge.mcp.resource}") private val resource: String,
+    @param:Value("\${projectforge.mcp.resource}") private val resource: String,
 ) {
     init {
         require(URI(resource).scheme == "https") { "projectforge.mcp.resource must be an https URL" }

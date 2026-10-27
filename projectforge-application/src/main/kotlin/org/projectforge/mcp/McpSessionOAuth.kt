@@ -82,7 +82,7 @@ class McpSessionOAuth(
     timesheetDao: TimesheetDao,
     addressDao: AddressDao,
     invoiceDao: RechnungDao,
-    @Value("\${projectforge.mcp.resource}") val resource: String,
+    @param:Value("\${projectforge.mcp.resource}") val resource: String,
     @Value("\${projectforge.mcp.client-registry-file:}") registryFile: String = "",
 ) {
     val origin = URI(resource).let { "${it.scheme}://${it.rawAuthority}" }
