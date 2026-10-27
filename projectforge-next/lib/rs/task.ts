@@ -127,6 +127,8 @@ export interface TaskNode {
    * tinted and struck through (see deletedRowClass); `statusAsString` reads "gelöscht".
    */
   deleted?: boolean;
+  /** Whether the task is closed: shown struck through grey, as every deactivated reference (`inactiveRefClass`). */
+  deactivated?: boolean;
   /**
    * Set for a node the user sees by an ad hoc booking grant only (`TaskServicesRest.BookingGrantNode`): the
    * granted task (`GRANT`, bookable) or one of its ancestors (`PATH`, shown by its title, not selectable).

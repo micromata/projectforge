@@ -70,7 +70,7 @@ export function SearchPage() {
     queryFn: ({ signal }) =>
       searchData(
         term.trim(),
-        { areas: scope, maxPerArea: MAX_PER_AREA },
+        { areas: scope, maxPerArea: MAX_PER_AREA, closed: true },
         signal
       ),
     enabled,

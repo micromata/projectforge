@@ -172,6 +172,7 @@ class Task(id: Long? = null,
         // reads it (the path to the root is the tree perspective's business).
         id = src.id
         deleted = src.deleted
+        deactivated = src.deactivated
         displayName = src.displayName
         // Two columns every next list offers, hidden until the user switches them on
         // (`lib/page-def/audit-columns.ts`).

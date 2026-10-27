@@ -94,6 +94,11 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     @get:Column(length = STATUS_LENGTH)
     open var status = TaskStatus.N
 
+    /** A closed task reads as stale wherever it is shown (struck through grey), see [ExtendedBaseDO.deactivated]. */
+    override val deactivated: Boolean
+        @Transient
+        get() = status == TaskStatus.C
+
     @PropertyInfo(i18nKey = "priority")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = PRIORITY_LENGTH)

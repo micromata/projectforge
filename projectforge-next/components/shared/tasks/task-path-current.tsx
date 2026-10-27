@@ -24,7 +24,9 @@ export function TaskPathCurrent({
   const t = useTranslations();
   const className = cn(
     "truncate",
-    highlight ? "font-bold text-primary" : "font-medium"
+    highlight ? "font-bold text-primary" : "font-medium",
+    // Only the strike: the colour stays the current segment's own (a closed task is still the selected one).
+    task.deactivated && "line-through decoration-muted-foreground decoration-1"
   );
   if (!onOpen) return <span className={className}>{task.title}</span>;
   return (

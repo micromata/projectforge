@@ -244,6 +244,11 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         return TaskDurationInfo(totalDuration / 1000, earliestStart, latestStop)
     }
 
+    /** The data search: a [TaskFilter] also decides on the status (closed ones are left out unless asked for). */
+    override fun selectForSearchDao(filter: BaseSearchFilter, checkAccess: Boolean): List<TaskDO> {
+        return if (filter is TaskFilter) select(filter) else super.selectForSearchDao(filter, checkAccess)
+    }
+
     @Throws(AccessException::class)
     override fun select(filter: BaseSearchFilter): List<TaskDO> {
         val myFilter = if (filter is TaskFilter) {

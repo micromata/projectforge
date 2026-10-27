@@ -240,6 +240,8 @@ class TaskServicesRest {
          * flag itself. The client marks such a row (`row-deleted`).
          */
         val deleted: Boolean = false,
+        /** Whether the task is closed ([TaskDO.deactivated]): the client strikes it through grey, tree and path alike. */
+        val deactivated: Boolean = false,
     ) {
         /**
          * Set for a node the user sees only by an ad hoc booking grant ([TaskBookingGrantCache]): a granted task
@@ -281,6 +283,7 @@ class TaskServicesRest {
             // stub without a name (see TaskDao.afterInsertOrModify), which left the column empty.
             responsibleUser = PfCaches.instance.getUser(node.task.responsibleUserId),
             deleted = node.task.deleted,
+            deactivated = node.task.deactivated,
         )
 
         /**
