@@ -278,6 +278,64 @@ class ForecastOrderPosInfoTest {
      * contrasting case reported as order 6809 / 5503.
      */
     @Test
+    fun `completed position not invoiced after its performance period is forecast in the first forecast month`() {
+        for (forecastType in listOf(AuftragForecastType.CURRENT_MONTH, AuftragForecastType.FOLLOWING_MONTH)) {
+            OrderInfo().also { orderInfo ->
+                orderInfo.status = AuftragsStatus.ABGESCHLOSSEN
+                orderInfo.snapshotDate = baseDate.localDate // January 8th, 2025
+                orderInfo.forecastType = forecastType
+                orderInfo.periodOfPerformanceBegin = LocalDate.of(2024, Month.MARCH, 1)
+                orderInfo.periodOfPerformanceEnd = LocalDate.of(2024, Month.JUNE, 30)
+                createPos(
+                    AuftragsStatus.ABGESCHLOSSEN, AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
+                    PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("5000"), invoicedSum = BigDecimal("1000"),
+                ).also { pos ->
+                    pos.toBeInvoicedByStatus = true
+                    val fcPosInfo = ForecastOrderPosInfo(orderInfo, pos)
+                    fcPosInfo.calculate()
+                    val expectedMonth = if (forecastType == AuftragForecastType.CURRENT_MONTH) {
+                        PFDay.of(2025, Month.JANUARY, 1)
+                    } else {
+                        PFDay.of(2025, Month.FEBRUARY, 1)
+                    }
+                    Assertions.assertEquals(expectedMonth, fcPosInfo.months.last().date, "$forecastType")
+                    fcPosInfo.months.forEach {
+                        val expected = if (it.date == expectedMonth) BigDecimal("4000") else BigDecimal.ZERO
+                        Assertions.assertEquals(0, expected.compareTo(it.toBeInvoicedSum), "$forecastType ${it.date}")
+                    }
+                    Assertions.assertEquals(0, BigDecimal.ZERO.compareTo(fcPosInfo.difference), "$forecastType")
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `completed position is only open if not invoiced and not too long ago`() {
+        fun check(periodEnd: LocalDate, invoiced: String): Boolean {
+            val orderInfo = OrderInfo().also {
+                it.status = AuftragsStatus.ABGESCHLOSSEN
+                it.periodOfPerformanceBegin = LocalDate.of(2023, Month.JANUARY, 1)
+                it.periodOfPerformanceEnd = periodEnd
+            }
+            val pos = createPos(
+                AuftragsStatus.ABGESCHLOSSEN, AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
+                PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("5000"), invoicedSum = BigDecimal(invoiced),
+            ).also { it.toBeInvoicedByStatus = true }
+            val result = ForecastUtils.isCompletedAndOpen(orderInfo, pos, baseDate)
+            if (!result) { // Neither a row nor an amount in the forecast.
+                Assertions.assertNull(ForecastOrderPosInfo(orderInfo, pos).also { it.calculate() }.months.firstOrNull {
+                    it.toBeInvoicedSum.signum() != 0
+                })
+            }
+            return result
+        }
+        Assertions.assertTrue(check(LocalDate.of(2024, Month.JUNE, 30), "1000"))
+        Assertions.assertFalse(check(LocalDate.of(2024, Month.JUNE, 30), "5000"), "Invoiced, but not marked as such.")
+        Assertions.assertTrue(check(LocalDate.of(2024, Month.JANUARY, 31), "0"), "12 months back: still shown.")
+        Assertions.assertFalse(check(LocalDate.of(2023, Month.DECEMBER, 31), "0"), "More than 12 months back.")
+    }
+
+    @Test
     fun `following month forecast should not count current month`() {
         val julBaseDate = PFDay.of(2026, Month.JULY, 15)
         // Scenario similar to reported order 6863: T&M, FOLLOWING_MONTH, full year 2026, partially invoiced.

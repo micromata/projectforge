@@ -5,6 +5,7 @@ import type {
   ChatMessage,
   ChatConversation,
   ChatMessagesPage,
+  ChatPartnerRead,
   ChatThread,
   ChatChanges,
   ChatHostEntry,
@@ -110,6 +111,18 @@ export function fetchChatHostConversations(
 export function fetchChatConversation(id: number, signal?: AbortSignal) {
   return chatRequest<ChatConversation>(
     `${BASE}/conversation/${id}`,
+    { method: "GET" },
+    signal
+  );
+}
+
+export const chatPartnerReadQueryKey = (id: number) =>
+  ["chatPartnerRead", id] as const;
+
+/** How far the other one of a direct message has read (null for any other conversation). */
+export function fetchChatPartnerRead(id: number, signal?: AbortSignal) {
+  return chatRequest<ChatPartnerRead>(
+    `${BASE}/conversation/${id}/partnerRead`,
     { method: "GET" },
     signal
   );

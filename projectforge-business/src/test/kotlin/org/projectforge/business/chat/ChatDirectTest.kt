@@ -131,6 +131,51 @@ class ChatDirectTest : AbstractTestBase() {
     }
 
     @Test
+    fun `reading a direct message is announced to the other one, once per step and not for rooms`() {
+        val user1 = initTestDB.addUser("chatDirectRead-1").id!!
+        val user2 = initTestDB.addUser("chatDirectRead-2").id!!
+        initTestDB.addGroup("chatDirectRead-group", "chatDirectRead-1", "chatDirectRead-2")
+        val reads = mutableListOf<Pair<Long, Long>>()
+        val target = org.springframework.test.util.AopTestUtils.getUltimateTargetObject<ChatService>(chatService)
+        val listeners = org.springframework.test.util.ReflectionTestUtils.getField(target, "eventListeners")
+        org.springframework.test.util.ReflectionTestUtils.setField(target, "eventListeners", listOf(object : ChatEventListener {
+            override fun onChange(conversationId: Long, changeSeq: Long) {}
+            override fun onRead(conversationId: Long, readerId: Long) {
+                reads.add(Pair(conversationId, readerId))
+            }
+        }))
+        try {
+            logon("chatDirectRead-1")
+            val conversationId = chatDirectService.open(user2).conversationId
+            val message = chatService.send(conversationId, null, "Hello")
+            reads.clear() // Sending counts as reading by the author, not announced.
+            logon("chatDirectRead-2")
+            chatService.markRead(conversationId, message.id!!)
+            assertEquals(listOf(Pair(conversationId, user2)), reads)
+            chatService.markRead(conversationId, message.id!!)
+            assertEquals(1, reads.size, "not raised: not announced again")
+            // The other one sees how far the partner has read.
+            logon("chatDirectRead-1")
+            assertEquals(message.id, chatService.getMemberState(conversationId, user2)?.lastReadMessageId)
+
+            reads.clear()
+            logon("chatDirectRead-1")
+            val roomId = chatRoomDao.insert(ChatRoomDO().also {
+                it.name = "chat read test"
+                it.ownerId = user1
+                it.participantUserIds = "$user2"
+            })
+            val room = chatService.open(ChatRoomChatHost.HOST_TYPE, roomId, ChatRoomChatHost.CHANNEL)!!.conversationId
+            val roomMessage = chatService.send(room, null, "Room")
+            logon("chatDirectRead-2")
+            chatService.markRead(room, roomMessage.id!!)
+            assertTrue(reads.isEmpty(), "rooms are not announced")
+        } finally {
+            org.springframework.test.util.ReflectionTestUtils.setField(target, "eventListeners", listeners)
+        }
+    }
+
+    @Test
     fun `without the system access of the other one the conversation is read-only`() {
         val partner = initTestDB.addUser("chatDirectPartner")
         logon(TEST_ADMIN_USER) // Sees everybody.

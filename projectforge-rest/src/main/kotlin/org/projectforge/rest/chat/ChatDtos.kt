@@ -172,6 +172,9 @@ class ChatHideRequest(val hidden: Boolean = true, val reason: String? = null)
 
 class ChatReactionRequest(val emoji: String? = null)
 
+/** How far the other one of a direct message has read: the id of the newest message, null if nothing yet. */
+class ChatPartnerRead(val lastReadMessageId: Long?)
+
 class ChatReadRequest(val messageId: Long? = null)
 
 /** An unread message: its id and the root of its thread (null for a message of the conversation itself). */

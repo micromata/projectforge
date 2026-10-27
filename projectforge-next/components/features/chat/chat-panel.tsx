@@ -7,6 +7,7 @@ import { FormAlert } from "@/components/shared/form-alert";
 import { Spinner } from "@/components/shared/spinner";
 import {
   chatConversationQueryKey,
+  chatPartnerReadQueryKey,
   fetchChatConversation,
   muteChatConversation,
 } from "@/lib/rs/chat";
@@ -96,21 +97,32 @@ export function ChatPanel({
   const known = Math.max(newestId, conversation?.newestMessageId ?? 0);
   const meId = conversation?.me.id;
   const refreshUnread = unreadJump.refresh;
+  const refreshPartnerRead = useCallback(
+    () =>
+      queryClient.invalidateQueries({
+        queryKey: chatPartnerReadQueryKey(conversationId),
+      }),
+    [queryClient, conversationId]
+  );
   const trackNewest = useCallback(
     (messages: ChatMessage[]) => {
       setNewestId((id) => Math.max(id, ...messages.map((it) => it.id)));
       // New ones of others: unread as well, until seen.
       if (messages.some((it) => it.id > known && it.author.id !== meId))
         refreshUnread();
+      // A message of the other one counts as read by it, up to itself.
+      if (messages.some((it) => it.id > known && it.author.id !== meId))
+        void refreshPartnerRead();
     },
-    [known, meId, refreshUnread]
+    [known, meId, refreshUnread, refreshPartnerRead]
   );
   const secrets = useSecretOffers(conversation);
   const live = useChatLive(
     conversationId,
     conversation?.changeSeq,
     trackNewest,
-    secrets.refresh
+    secrets.refresh,
+    refreshPartnerRead
   );
   const onAtEnd = useCallback(
     (id: number | null) =>

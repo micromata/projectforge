@@ -1133,3 +1133,72 @@ span.row-inactive {
     page: vacation-calendar;
   }
 }
+
+/* The flashing light of the siren reaction (🚨), switched off for users who prefer reduced motion. */
+@keyframes siren-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+.siren-blink {
+  animation: siren-blink 1s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .siren-blink {
+    animation: none;
+  }
+}
+
+/* Custom chat emoji (:siren-blue:, :siren-red:, see custom-emoji.ts): drawn with CSS, no image, so the CSP is untouched. */
+.chat-emoji {
+  --siren: #3b82f6;
+  --siren-dark: #1e3a8a;
+  display: inline-block;
+  position: relative;
+  width: 1em;
+  height: 1.1em;
+  vertical-align: -0.2em;
+}
+.chat-emoji-siren-red {
+  --siren: #ef4444;
+  --siren-dark: #7f1d1d;
+}
+.chat-emoji::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 26% 0;
+  border-radius: 50% 50% 10% 10% / 75% 75% 10% 10%;
+  background: radial-gradient(
+    circle at 40% 35%,
+    #fff 0 8%,
+    var(--siren) 40%,
+    var(--siren-dark) 100%
+  );
+  animation: siren-glow 1s ease-in-out infinite;
+}
+.chat-emoji::after {
+  content: "";
+  position: absolute;
+  inset: auto -6% 0 -6%;
+  height: 28%;
+  border-radius: 2px;
+  background: #4b5563;
+}
+@keyframes siren-glow {
+  0%,
+  100% {
+    filter: brightness(1.3) drop-shadow(0 0 3px var(--siren));
+  }
+  50% {
+    filter: brightness(0.55);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-emoji::before {
+    animation: none;
+  }
+}

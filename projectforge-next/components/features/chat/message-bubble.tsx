@@ -39,7 +39,7 @@ export function MessageBubble({
   return (
     <div
       className={cn(
-        "w-fit max-w-[85%] min-w-0 rounded-2xl px-3 py-1.5",
+        "w-fit max-w-full min-w-0 rounded-2xl px-3 py-1.5",
         message.own ? "bg-primary/10" : "bg-muted",
         message.mentionsMe && "ring-1 ring-primary",
         highlighted && "ring-2 ring-primary"
