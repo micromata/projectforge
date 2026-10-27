@@ -215,7 +215,7 @@ class FeaturePathIndex {
 
         /**
          * The REST categories below `/rs` of the app itself (login state, menu, settings, notifications, 2FA, history,
-         * attachments, avatars): always reachable.
+         * attachments, avatars, the event stream): always reachable.
          */
         val CORE_REST = setOf(
             ATTACHMENTS,
@@ -226,6 +226,7 @@ class FeaturePathIndex {
             "notification",
             "timeZones",
             "uiSettings",
+            "userEvents",
             "userAvatar",
             "userStatus",
             "webauthn",
