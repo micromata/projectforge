@@ -30,6 +30,7 @@ import { ChatRoomDialog } from "./chat-room-dialog";
 import { ChatRoomList } from "./chat-room-list";
 import { ChatMessageSearch } from "./chat-search-hit-list";
 import { useDirectCandidates } from "./use-direct-candidates";
+import { SecretAlertSettings } from "./secret-alert-settings";
 
 /**
  * The chat of the user (`/next/chat`): the direct messages (PF-CHAT-DM), the chat rooms (PF-CHAT-ROOM, ROOM-06) and
@@ -104,10 +105,12 @@ export function ChatRoomsPage() {
           {t("chat.room.new")}
         </Button>
       </PageTitleRow>
-      <div className="px-4 pt-3">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 pt-3">
         <div className="relative w-64 max-w-full">
           <SearchInput value={search} onChange={setSearch} focusIfIdle />
         </div>
+        {/* Where the user finds how a confidential conversation offered draws attention, without being offered one. */}
+        <SecretAlertSettings />
       </div>
       <section
         className="flex flex-col gap-3 px-4 pt-2 pb-4"

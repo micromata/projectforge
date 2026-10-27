@@ -70,6 +70,13 @@ class ChatSecretRest {
         return relay.pending(conversationId).map { toDto(it) }
     }
 
+    /** The offers to the logged-in user waiting for an answer, in all direct chats (to draw the user's attention). */
+    @AccessChecked("ChatSecretRelay.offers: sessions of the logged-in user as recipient only, read access to each conversation")
+    @GetMapping("offers")
+    fun offers(): List<ChatSecretSession> {
+        return relay.offers().map { toDto(it) }
+    }
+
     /** The offers are shown in the open chat: resolves their notification. POST, as it changes the state. */
     @AccessChecked("ChatSecretRelay.seen: read access to the conversation, notifications of the logged-in user only")
     @PostMapping("seen")
