@@ -27,13 +27,15 @@ import { ChatDirectList } from "./chat-direct-list";
 import { ChatHostList } from "./chat-host-list";
 import { ChatRoomDialog } from "./chat-room-dialog";
 import { ChatRoomList } from "./chat-room-list";
+import { ChatMessageSearch } from "./chat-search-hit-list";
 
 /**
  * The chat of the user (`/next/chat`): the direct messages (PF-CHAT-DM), the chat rooms (PF-CHAT-ROOM, ROOM-06) and
  * the chats of the data transfer areas with messages (PF-CHAT-DT, with the plugin only), the ones with the newest
  * messages first, with unread counts; starting a direct message, creating a room and
  * editing those the user owns or moderates. Each opens its conversation. A search box narrows the lists, on the
- * entries already loaded (other one, room name, description, area name). Minimal on purpose: the chat area with the
+ * entries already loaded (other one, room name, description, area name); from three characters on, it also searches
+ * the messages of all readable conversations (SRCH-02), listed below with the newest match each. Minimal on purpose: the chat area with the
  * conversations beside the open one follows (ROOM-08).
  */
 export function ChatRoomsPage() {
@@ -99,8 +101,10 @@ export function ChatRoomsPage() {
           {t("chat.room.new")}
         </Button>
       </PageTitleRow>
-      <div className="w-64 max-w-full px-4 pt-3">
-        <SearchInput value={search} onChange={setSearch} focusIfIdle />
+      <div className="px-4 pt-3">
+        <div className="relative w-64 max-w-full">
+          <SearchInput value={search} onChange={setSearch} focusIfIdle />
+        </div>
       </div>
       <section
         className="flex flex-col gap-3 px-4 pt-2 pb-4"
@@ -180,6 +184,7 @@ export function ChatRoomsPage() {
           )}
         </section>
       )}
+      <ChatMessageSearch term={search} />
       <ChatDirectDialog
         open={directDialog}
         onClose={() => setDirectDialog(false)}

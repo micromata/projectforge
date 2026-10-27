@@ -1074,6 +1074,12 @@
     },
     "search": {
       "_": "Suchen",
+      "hits": "{arg0} Treffer",
+      "kind": {
+        "chatRoom": "Chatraum",
+        "direct": "Direktnachricht"
+      },
+      "messages": "Gefundene Nachrichten",
       "noResults": "Keine Nachrichten gefunden.",
       "placeholder": "Nachrichten durchsuchen"
     },

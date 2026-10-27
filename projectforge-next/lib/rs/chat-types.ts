@@ -182,6 +182,18 @@ export interface ChatHostEntry {
   canWrite: boolean;
 }
 
+/** A conversation with messages matching the search of the chat page (SRCH-02). */
+export interface ChatSearchHit {
+  conversationId: number;
+  /** The host type, e.g. `chatRoom`, `direct`, `dataTransfer`. */
+  hostType: string;
+  /** The title of the host object as seen by the user. */
+  title: string;
+  hitCount: number;
+  /** The newest matching message, as preview and target. */
+  message: ChatMessage;
+}
+
 /** A direct message in the list of the user's ones. */
 export interface ChatDirectEntry {
   conversationId: number;

@@ -77,6 +77,13 @@ interface ChatHost {
     /** Further recipients of notifications about new messages (NOT-04), e.g. a security team. */
     fun extraRecipientIds(hostId: Long, channel: String): Set<Long> = emptySet()
 
+    /**
+     * Are the messages of the conversations found by the search across all conversations of the user (SRCH-02)? A
+     * confidential host excludes them; the search within a conversation (SRCH-01) is not affected.
+     */
+    val searchableAcrossConversations: Boolean
+        get() = true
+
     /** May notification mails contain the text of messages (NOT-05)? */
     fun mailContentAllowed(hostId: Long, channel: String): Boolean = false
 
