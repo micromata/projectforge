@@ -1,19 +1,16 @@
 # Website concept projectforge.org (step 1: content, structure, messaging)
 
-Status: draft for review. Comments in German, website texts in English (ready to paste).
+Status: draft. Comments in German, website texts in English.
 Design is done elsewhere; this document only defines content, order and structure.
 
-**Festlegungen (aus der Abstimmung):**
+**Festlegungen:**
 - Zielgruppe: Projektdienstleister (IT-Agenturen, Beratungen, Ingenieurbüros), 10–500 Personen.
   Entscheider: Geschäftsführung/Controlling, Projektleitung, IT-Betrieb.
 - Markt DACH/EU, Seite auf Englisch, Absender „we“ = Micromata, lockerer Ton.
 - Open Source (Community Edition, GPLv3, dual-licensed), kostenlos ohne Einschränkungen.
   Hosting/Support/Einführung durch Micromata: on request.
 - Kontakt: GitHub Issues. Keine öffentliche Demo. Kein Team-Abschnitt.
-- Nicht erwähnen: IHK, Marketing, Memo, ToDo, Wicket; auch keine Features, die es nicht gibt
-  (kein CalDAV-Server – Kalender nur per ICS-Abo; keine OpenAPI/Swagger).
-
-Platzhalter `[TODO: …]` = Angabe, die ich nicht belegen kann und die du ergänzen/streichen musst.
+- Keine Features erwähnen, die es nicht gibt (kein CalDAV-Server – Kalender nur per ICS-Abo; keine OpenAPI/Swagger).
 
 ---
 
@@ -145,8 +142,7 @@ Projects & Orders · Time Tracking · People & Leave · Finance & E-Invoicing ·
 
 > **Battle-tested since 2001.**
 > ProjectForge started as Micromata's own tool and still runs our company every day –
-> from timesheets to the yearly forecast. [TODO: Kennzahlen, z. B. „x users“, „y million timesheets“,
-> „used by n companies“ – nur was belegbar und freigegeben ist.]
+> from timesheets to the yearly forecast.
 
 Optional stat row: `25 years in production` · `9 major versions` · `2 languages` · `0 € license fees`
 
@@ -279,7 +275,7 @@ sich die Screenshots für spätere Releases wiederholen lassen.
 
 | # | Motif | Purpose | Page | Source | Data needed |
 |---|-------|---------|------|--------|-------------|
-| S1 | Main menu dropdown + favorites bar | "modern, easy" (hero) | any page, menu open | Live (own user, menu only) | – |
+| S1 | Main menu dropdown + favorites bar | "modern, easy" (hero) | any page, menu open | Test | – |
 | S2 | Team calendar, week view with leave & holidays | Collaboration / leave | Calendar | Test | 3–4 users, leave, events |
 | S3 | Timesheet list with period filter | Time tracking | Time sheets | Test | ~30 bookings |
 | S4 | Multi-day booking dialog | Time tracking | Calendar → book days | Test | – |
@@ -291,7 +287,7 @@ sich die Screenshots für spätere Releases wiederholen lassen.
 | S10 | Leave request with approval / leave account | People | Application for leave | Test | entitlements |
 | S11 | Data transfer area | Collaboration | Data transfer | Test | a few files |
 | S12 | Two-factor setup | Security | Two-factor authentication | Test | – |
-| S13 | System dashboard | Operations | System dashboard | Live (prüfen: keine Hostnamen/Namen) | – |
+| S13 | System dashboard | Operations | System dashboard | Test | – |
 | S14 | Same as S7 or S3 in dark mode | "modern" | – | Test | – |
 | S15 | Skill matrix statistics *(optional)* | People | Skill matrix | Test | ratings |
 
@@ -304,8 +300,8 @@ Die vorhandenen Screenshots von 2022 (Skillmatrix, StructureTree, Calendar, Data
 
 **Startseite (`faq-main`):**
 1. *How much does it cost?* – Nothing. The community edition is open source (GPL) with all features and no user limits. You only pay if you want our services (hosting, support, introduction) – on request.
-2. *Can you host ProjectForge for us?* – Yes, on request. Open a GitHub issue or contact us … [TODO: Kontaktweg für vertrauliche Anfragen? Ein öffentliches Issue ist für Firmenanfragen evtl. unpassend → E-Mail zusätzlich?]
-3. *Where is my data stored?* – On your server, in your database. [TODO: bestätigen, dass ProjectForge keine Daten nach außen sendet (z. B. Update-Check, Wechselkurse holen ist nur Abruf) – dann „ProjectForge does not phone home.“]
+2. *Can you host ProjectForge for us?* – Yes, on request. Open a GitHub issue or contact us …
+3. *Where is my data stored?* – On your server, in your database.
 4. *Do you provide support?* – Community support via GitHub issues; professional support on request.
 5. *How do I report bugs or wishes?* – GitHub issues (bestehende FAQ 30, aktualisiert).
 
@@ -320,11 +316,3 @@ Die vorhandenen Screenshots von 2022 (Skillmatrix, StructureTree, Calendar, Data
 Die übrigen fachlichen FAQs bleiben stehen und werden in Schritt 2 mit dem User Guide geprüft.
 
 ---
-
-## 7. Open questions for you
-
-1. **Kontakt für Services-Anfragen.** Reicht ein öffentliches GitHub Issue, oder kommt zusätzlich eine E-Mail-Adresse auf die Seite?
-2. **Kennzahlen für 3.7.** Welche Zahlen dürfen genannt werden (Nutzer, Firmen, Buchungen)?
-3. **Services.** Eigene Seite oder nur ein Abschnitt auf der Startseite?
-4. **Benachrichtigungen.** Das Feature ist noch experimentell. Schon bewerben?
-5. **Videos.** Die alten Videos entfernen, oder bleiben sie, bis es neue gibt?

@@ -823,7 +823,7 @@ is especially use-ful for administrator users of ProjectForge.
 [[ldap_over_ssl]]
 ==== LDAP over SSL
 
-`openssl s_client -showcerts -connect ldap.acme.priv:636 > ldap.pem` Copy
+`openssl s_client -showcerts -connect ldap.acme.internal:636 > ldap.pem` Copy
 the lines
 including `-----BEGIN CERTIFICATE-----` until `-----END CERTIFICATE-----` (including)
 to a file called `ldap.cert.` Now you can configure the certificate file

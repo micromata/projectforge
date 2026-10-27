@@ -1,6 +1,4 @@
 ==== Aktuell:
-- Stefan R: Rocket-Chat bzgl. KI-Ersparniss
-
 - JCR: Tool for removing or recovering orphaned nodes.
 - Favoriten bei Scriptausführung für Parameter.
 - Viewpage für user für non-admins.
@@ -50,7 +48,7 @@ History
 
 - Kalenderlist ruft x-fach DB: FIND GroupDO resultClass=GroupDO auf.
 
-==== Rancher
+==== Docker cleanup
 
 [source]
 ----
@@ -78,13 +76,13 @@ SET maintenance_work_mem = '512MB';
 [source]
 ----
 gunzip projectforge-*.sql.gz
-docker run -v ~/ProjectForgeBackup/pf.sql:/mnt/pf.sql -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:13.18 psql -h postgres -U projectforge -q -f /mnt/pf.sql
+docker run -v <backup-dir>/pf.sql:/mnt/pf.sql -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:13.18 psql -h postgres -U projectforge -q -f /mnt/pf.sql
 
 drop view v_t_pf_user;
-update t_pf_user_password SET password_hash='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null;
-update t_pf_user SET password='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null, email='m.developer@localhost';
+update t_pf_user_password SET password_hash='<SHA hash of a dev password>', password_salt=null;
+update t_pf_user SET password='<SHA hash of a dev password>', password_salt=null, email='m.developer@localhost';
 update t_calendar set ext_subscription=false;
-insert into t_pf_user_password (pk,deleted,user_id,password_hash) values(2,false,2,'SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}');
+insert into t_pf_user_password (pk,deleted,user_id,password_hash) values(2,false,2,'<SHA hash of a dev password>');
 ----
 
 Orderbook-Export über die GUI Auftragsbuch -> Dev: export order book
@@ -100,7 +98,7 @@ CREATE DATABASE projectforge;
 Orderbooks importieren:
 [source]
 ----
-docker cp ~/ProjectForgeBackup/ProjectForge-Orderbook_*.gz projectforge-postgres:/tmp/
+docker cp <backup-dir>/ProjectForge-Orderbook_*.gz projectforge-postgres:/tmp/
 
 \set file_path '/tmp/ProjectForge-Orderbook_2023-11-01.gz'
 INSERT INTO t_fibu_orderbook_snapshots (date, created, serialized_orderbook, size)  VALUES ('2023-11-01', NOW(), pg_read_binary_file(:'file_path')::bytea, (pg_stat_file(:'file_path')).size);

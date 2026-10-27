@@ -10,7 +10,7 @@
 ## Why age
 - Public-key encryption (X25519): the server encrypts without knowing the secret.
 - Authenticated encryption (ChaCha20-Poly1305), streamable, no keyring, agent or pinentry as with gpg.
-- Fast: negligible at ~2 GB/day (seconds). File size stays the same (age doesn't compress: the main dump is gzipped, the files dump uses `-Z 1`, because
+- Fast: negligible even for a few GB per day (seconds). File size stays the same (age doesn't compress: the main dump is gzipped, the files dump uses `-Z 1`, because
   pg_dump writes bytea hex encoded, i.e. twice the size).
 - Multiple recipients per file, e.g. a main key and an emergency key.
 - ZIP with AES-256 was rejected: file names inside the ZIP stay readable, the password would have to be stored on the
@@ -53,22 +53,22 @@ Only worthwhile if the JCR ZIP must never be on disk unencrypted.
   after the date, so `.gz.age` and `.dump.age` stay in the same series as before. No change needed.
 - `projectforge.cron.purgeBackupDir` must also cover the directory of the encrypted files.
 
-## Converting the existing archive (local, 148 GB)
+## Converting an existing archive
 - Script: per file `age -R recipients.txt -o f.age f`, verify with `age -d -i key.txt f.age | cmp - f`, only then
-  delete `f`. File by file, because only 159 GB are free.
-- Duration: a few minutes up to ~30 min (I/O-bound).
-- Include the loose copies in `~/ProjectForgeBackup` (`pf.sql`, `jcr-backup_*.tgz`, single dumps) or delete them.
-- `HOWTO.txt` contains a database password in plaintext: remove it and describe the new restore procedure instead.
+  delete `f`. File by file, if disk space is short.
+- Duration: I/O-bound, minutes for a large archive.
+- Include loose copies of dumps outside the archive, or delete them.
+- Notes or scripts next to the backups must not contain passwords in plaintext; describe the restore procedure
+  instead.
 
 ## Restore
-    age -d -i ~/keys/pf-backup.key projectforge_2026-10-11_02-00.sql.gz.age | gunzip | psql …
-    age -d -i ~/keys/pf-backup.key projectforge_files_….dump.age > files.dump && pg_restore -j 4 … files.dump
+    age -d -i <private-key-file> projectforge_2026-10-11_02-00.sql.gz.age | gunzip | psql …
+    age -d -i <private-key-file> projectforge_files_….dump.age > files.dump && pg_restore -j 4 … files.dump
 
 - Update the restore documentation in the adminguide ("Restoring a backup") and the Docker documentation.
 - Do a test restore with the emergency key once per quarter, so a lost key is noticed while plaintext backups still
   exist.
 
-## Open questions
-- Who keeps the emergency key?
-- Is the rsync target (laptop) additionally protected by FileVault? (Usually the default, but it only protects the
-  powered-off device.)
+## Checklist
+- Decide who keeps the emergency key.
+- Protect the rsync target additionally with disk encryption (it only protects the powered-off device).

@@ -117,29 +117,29 @@ keinen DB-Index nutzen und wird bei sehr großen History-Tabellen langsam. Das w
 bewusster Umbau von `DBHistoryQuery` auf Hibernate Search — nicht der Ist-Zustand. Solange
 die Suche SQL-basiert bleibt, ist der Attr-Index reiner Overhead.
 
-### Entscheidung (gemessen am Produktivabzug, PostgreSQL 16): pg_trgm-Index
+### Entscheidung (gemessen an einer großen Datenbank, PostgreSQL 16): pg_trgm-Index
 
-Der Produktivabzug ist groß: `t_pf_history` 3,66 Mio. Zeilen / 916 MB, **`t_pf_history_attr`
-37,6 Mio. Zeilen / 7,5 GB** (avg. `value` 11 Zeichen, `old_value` 20 — die 50000er-
+Gemessen an einer großen Datenbank: `t_pf_history` mit Millionen Zeilen, **`t_pf_history_attr`
+mit mehreren zehn Millionen Zeilen / mehreren GB** (die Werte sind im Schnitt kurz — die 50000er-
 Spaltenbreite ist reine Obergrenze). Die SQL-`LIKE '%term%'`-Suche (siehe oben) kann keinen
 Btree nutzen und war entsprechend langsam:
 
 | Suche | vorher | nachher |
 |---|---|---|
-| AuftragDO (53k), seltener Begriff | ~1,65 s | **5,7 ms** |
-| TimesheetDO (2,1 Mio.), seltener Begriff | 4,36 s | **448 ms** |
+| AuftragDO (zehntausende), seltener Begriff | ~1,65 s | **5,7 ms** |
+| TimesheetDO (Millionen), seltener Begriff | 4,36 s | **448 ms** |
 | AuftragDO, sehr häufiger Begriff („test") | 1,65 s | ~1,13 s |
 
 Gewählt: **PostgreSQL `pg_trgm` GIN-Indizes** auf `lower(value)`/`lower(old_value)` plus ein
 Btree auf `entity_name`. Das beschleunigt das *bestehende* `LIKE`-Prädikat direkt (kein
 Umbau von `DBHistoryQuery`, Substring-Semantik unverändert) und vermeidet den Lucene-
-Reindex-Sturm, den ein `@FullTextField` auf 37,6 Mio. Zeilen erzeugen würde. GIN-Build-Zeit
-gemessen: value ~99 s / 639 MB, old_value ~7 s / 46 MB, entity_name ~2 s. Migration:
+Reindex-Sturm, den ein `@FullTextField` auf zig Millionen Zeilen erzeugen würde. Der GIN-Build dauert
+für `value` gut eine Minute, für `old_value` und `entity_name` Sekunden. Migration:
 `flyway/migrate/postgresql/V8.0.24__RELEASE-HistoryAttr_Trigram_Indexes.sql`.
 
 Sehr häufige Begriffe bleiben durch die reine Treffermenge begrenzt (kein Index hilft, wenn
 „alles was 'test' enthält" gesucht wird); der `entity_name`-Btree ersetzt dort immerhin den
-3,66-Mio.-Seq-Scan durch einen Bitmap-Scan. HSQLDB (nur Dev/Test) behält den `LIKE`-Fallback,
+Seq-Scan über die ganze Tabelle durch einen Bitmap-Scan. HSQLDB (nur Dev/Test) behält den `LIKE`-Fallback,
 kein Gegenstück-Migration nötig.
 
 ### Empfehlung
@@ -185,8 +185,8 @@ Re-Index:
 - [x] `@Indexed` auch von `HistoryEntryDO` entfernt (Suche ist criteria-/SQL-basiert); die
       Reindex-Plumbing (BaseDao-Listen, `ReindexerRegistry`, `HibernateSearchReindexer`-
       Sonderfall, dormanter `CronReindexingHourlyJob`) mitentfernt. → erledigt.
-- [ ] Vor Prod-Rollout: prüfen, ob der Prod-DB-User `CREATE EXTENSION pg_trgm` darf
-      (trusted extension seit PG13 → CREATE-Recht auf DB reicht; sonst DBA vorab).
+- [ ] Vor dem Rollout: der DB-User braucht das Recht für `CREATE EXTENSION pg_trgm`
+      (trusted extension seit PG13 → CREATE-Recht auf der DB reicht; sonst vorab als Superuser anlegen).
 
 App-seitiges loadHistory:
 - [x] Geprüft, ob `loadHistory` pro Objekt in einer Schleife aufgerufen wird → **ja**, in den
@@ -207,22 +207,22 @@ App-seitiges loadHistory:
       ohne Bezug zum History-Pfad und bleibt bewusst außen vor.
 
 Allgemein:
-- [x] Statement-Zahl vor/nach der Umstellung gemessen (am Produktivabzug, PostgreSQL 16). Die
+- [x] Statement-Zahl vor/nach der Umstellung gemessen (an einer großen Datenbank, PostgreSQL 16). Die
       alte Zahl ist deterministisch aus den Kind-Zahlen ableitbar (ein `loadAndMergeHistory`-Call
       je Kind-Instanz, jeder in eigenem `runReadOnly`), die neue ist ein Call je Kind-Klasse:
 
-      | Parent (dickster im Dump) | Kinder | alt (Child-Querys) | neu | + Parent = gesamt alt→neu |
+      | Parent (Beispiel) | Kinder | alt (Child-Querys) | neu | + Parent = gesamt alt→neu |
       |---|---|---|---|---|
-      | RechnungDO `1288095` | 28 Pos. + 69 KostZuw. | 97 | 2 | 98 → 3 |
-      | AuftragDO `32507562` | 84 Pos. + 0 Payment | 84 | 1 | 85 → 2 |
+      | RechnungDO | ~30 Pos. + ~70 KostZuw. | ~100 | 2 | ~100 → 3 |
+      | AuftragDO | ~80 Pos. + 0 Payment | ~80 | 1 | ~80 → 2 |
 
-      Server-Zeit ist dabei **nicht** der Engpass: die gebündelte Query über *alle* 28 Positionen
-      der Rechnung `1288095` läuft in **0,164 ms** — praktisch so teuer wie *eine* der alten
+      Server-Zeit ist dabei **nicht** der Engpass: die gebündelte Query über *alle* Positionen
+      einer solchen Rechnung läuft in **0,164 ms** — praktisch so teuer wie *eine* der alten
       Einzel-Querys (0,115 ms, `ix_pf_history_ent`-Index-Scan). Der Gewinn ist also fast
-      vollständig das Wegfallen von ~95 JDBC-Round-Trips und ebenso vielen `runReadOnly`-
+      vollständig das Wegfallen von ~100 JDBC-Round-Trips und ebenso vielen `runReadOnly`-
       Transaktions-/EntityManager-Setups pro History-Aufruf.
 - [ ] Optional zur Bestätigung am laufenden System: `spring.jpa.properties.hibernate.generate_statistics=true`
-      setzen und die o.g. Rechnung/den Auftrag in der UI öffnen — die Query-Zählung von
+      setzen und eine Rechnung/einen Auftrag mit vielen Positionen in der UI öffnen — die Query-Zählung von
       Hibernate muss die Tabelle bestätigen (reproduziert nur die deterministischen Werte oben).
 
 ## Mögliche Maßnahmen (Ideen, noch nicht bewertet)

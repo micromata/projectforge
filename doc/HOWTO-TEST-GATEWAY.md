@@ -145,7 +145,7 @@ Test of the timeout: let the push url point to a port which accepts connections 
 
 `GatewayCompare` (test sources of `projectforge-application`, package `org.projectforge.gateway.compare`) sends the
 same CardDAV and ICS requests to the main instance and to the gateway and compares the answers. It works for any pair,
-the local Variant A as well as production and its gateway. Run it after a sync, e.g. from the IDE (`main` in
+the local Variant A as well as any other instance and its gateway. Run it after a sync, e.g. from the IDE (`main` in
 `GatewayCompare.kt`) or with `./gradlew :projectforge-application:gatewayCompare` (`-Pconfig=<file>` for another
 config file), with `~/ProjectForge/gateway-compare.properties`:
 
@@ -625,13 +625,13 @@ note in step 4.
 
 ### Files in the ProjectForge home cannot be edited (and `chown` fails)
 
-After `podman unshare chown -R 101:101`, `ls -l` shows an owner like `689924` and editing
+After `podman unshare chown -R 101:101`, `ls -l` shows an owner like `<subuid>` and editing
 `projectforge.properties` is denied — as is `chown`, even though the files nominally belong
 to you.
 
 With rootless Podman, container UIDs are mapped into your subordinate UID range from
 `/etc/subuid`: container UID 0 becomes your own UID, and everything above it lands in the
-subuid range (`689924` above is the mapping of container UID 101, the `projectforge` user from
+subuid range (`<subuid>` above is the mapping of container UID 101, the `projectforge` user from
 the Dockerfile). Those UIDs are allocated to you but are not your login user, so you have
 neither write access nor the `CAP_CHOWN` needed to change ownership — that capability only
 exists inside the namespace.
@@ -711,7 +711,7 @@ sudo sysctl net.ipv4.ip_unprivileged_port_start=80
 
 ---
 
-## Variant C: Native nginx + self-signed certificate with a `.priv` domain (test only)
+## Variant C: Native nginx + self-signed certificate with a `.internal` domain (test only)
 
 Use this variant when nginx runs natively on the Debian gateway server (no Podman/Docker
 for the reverse proxy) and the host is not publicly reachable, so Let's Encrypt is not an
@@ -733,8 +733,8 @@ sudo openssl req -x509 -nodes -days 825 \
   -newkey rsa:2048 \
   -keyout /etc/ssl/projectforge.key \
   -out /etc/ssl/projectforge.crt \
-  -subj "/CN=gateway.priv" \
-  -addext "subjectAltName=DNS:gateway.priv"
+  -subj "/CN=gateway.internal" \
+  -addext "subjectAltName=DNS:gateway.internal"
 ```
 
 ### 3. DH parameters (for TLS 1.2 fallback)
@@ -752,7 +752,7 @@ Copy the template from the repository and replace the placeholder domain:
 ```bash
 sudo cp doc/misc/nginx_sites-available_projectforge \
   /etc/nginx/sites-available/projectforge
-sudo sed -i 's/projectforge.example.com/gateway.priv/g' \
+sudo sed -i 's/projectforge.example.com/gateway.internal/g' \
   /etc/nginx/sites-available/projectforge
 ```
 
@@ -767,14 +767,14 @@ sudo ln -sf /etc/nginx/sites-available/projectforge \
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-### 5. DNS resolution for `.priv`
+### 5. DNS resolution for `.internal`
 
-`.priv` is not a public TLD, so every host that needs to reach the gateway must resolve it
+`.internal` is not a public TLD, so every host that needs to reach the gateway must resolve it
 via `/etc/hosts`. Add the following on the gateway server itself, on the Authentik host,
 and on every developer machine:
 
 ```
-<gateway-ip>  gateway.priv
+<gateway-ip>  gateway.internal
 ```
 
 ### 6. Tell Authentik to trust the certificate
@@ -808,7 +808,7 @@ a self-signed or private-CA certificate, import it into the JVM truststore:
 # Find the JDK in use, e.g.:
 JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
 
-sudo keytool -import -alias authentik-priv \
+sudo keytool -import -alias authentik-internal \
   -file /path/to/authentik.crt \
   -keystore $JAVA_HOME/lib/security/cacerts \
   -storepass changeit -noprompt
@@ -833,18 +833,18 @@ Sync push to /users failed
 ```
 
 Point `projectforge.gateway.push.url` at the internal host name (e.g.
-`https://gateway.priv/api/gateway/sync`), not at a public name that is not resolvable
+`https://gateway.internal/api/gateway/sync`), not at a public name that is not resolvable
 internally or is protected by an SSO proxy.
 
 **1. Fetch and check the certificate** on the host of the main instance:
 
 ```bash
-openssl s_client -connect gateway.priv:443 -servername gateway.priv </dev/null 2>/dev/null \
+openssl s_client -connect gateway.internal:443 -servername gateway.internal </dev/null 2>/dev/null \
   | openssl x509 > gateway.crt
 openssl x509 -in gateway.crt -noout -subject -ext subjectAltName
 ```
 
-The output must contain `DNS:gateway.priv`. Without a matching `subjectAltName` Java fails the
+The output must contain `DNS:gateway.internal`. Without a matching `subjectAltName` Java fails the
 hostname verification even after the import — regenerate the certificate as in step 2.
 
 **2. Create a dedicated truststore.** Prefer this over modifying the JDK's `cacerts`: on Debian
@@ -858,9 +858,9 @@ ps -o args= -C java | head -1
 
 JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))   # or the JDK from above
 cp $JAVA_HOME/lib/security/cacerts ~/pf-truststore.jks
-keytool -importcert -alias gateway-priv -file gateway.crt \
+keytool -importcert -alias gateway-internal -file gateway.crt \
   -keystore ~/pf-truststore.jks -storepass changeit -noprompt
-keytool -list -keystore ~/pf-truststore.jks -storepass changeit -alias gateway-priv
+keytool -list -keystore ~/pf-truststore.jks -storepass changeit -alias gateway-internal
 ```
 
 **3. Start the main instance JVM with this truststore** — wherever its Java options are set
@@ -877,14 +877,14 @@ restart) appears in the gateway log after at most `syncIntervalMs`.
 Note that the truststore is a snapshot of the JDK's `cacerts`: after a JDK update, recreate it
 so that new or renewed public CAs are included.
 
-### 9. `projectforge.properties` for the `.priv` domain
+### 9. `projectforge.properties` for the `.internal` domain
 
 Same as Variant B step 4, with the host names replaced:
 
 ```properties
-projectforge.domain=https://gateway.priv
+projectforge.domain=https://gateway.internal
 spring.security.oauth2.client.registration.authentik.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
-spring.security.oauth2.client.provider.authentik.issuer-uri=https://auth.priv/application/o/projectforge/
+spring.security.oauth2.client.provider.authentik.issuer-uri=https://auth.internal/application/o/projectforge/
 ```
 
 ### 10. Register the redirect URI in Authentik
@@ -892,7 +892,7 @@ spring.security.oauth2.client.provider.authentik.issuer-uri=https://auth.priv/ap
 In the Authentik provider settings set the allowed redirect URI to:
 
 ```
-https://gateway.priv/login/oauth2/code/authentik
+https://gateway.internal/login/oauth2/code/authentik
 ```
 
 ---
@@ -902,4 +902,4 @@ https://gateway.priv/login/oauth2/code/authentik
 Register the redirect URI in the Authentik provider:
 - Local: `http://localhost:8090/login/oauth2/code/authentik`
 - Remote: `https://gateway.example.com/login/oauth2/code/authentik`
-- `.priv` (self-signed): `https://gateway.priv/login/oauth2/code/authentik`
+- `.internal` (self-signed): `https://gateway.internal/login/oauth2/code/authentik`

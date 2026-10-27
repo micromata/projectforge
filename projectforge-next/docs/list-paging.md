@@ -2,7 +2,7 @@
 
 By default a list page receives its whole result set (`POST /rs/<entity>/list`, up to `maxRows`) and
 pages, sorts by column and filters by column in the browser. That is fine for a few hundred rows. For the
-big finance lists it was not: the order list shipped 7132 rows / 12 MB per request and took ~10 s, nearly
+big finance lists it was not: the order list shipped several thousand rows / more than 10 MB per request and took seconds, nearly
 all of it the payload and the per-row pipeline on the server. Those lists are served one page at a time.
 
 Opted in today (`serverPaging: true` on the `PageDef`): `order`, `outgoingInvoice`, `incomingInvoice`,

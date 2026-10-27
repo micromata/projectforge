@@ -240,11 +240,11 @@ Remaining steps, in this order. Each finding gets its own commit on `deps/major-
    `~/ProjectForge-9` (own Lucene index, copy of the JCR), so the Boot 3 instance on the same database keeps
    an index it can open; mail and gateway push off.
    - Start in 25 s; Flyway validates 79 migrations, schema 8.0.33 is up to date, nothing migrated.
-   - **Full reindex: 75 s** (17,337 invoices among the rest), the duration for the release window.
+   - **Full reindex: about a minute** on a database with tens of thousands of invoices, the duration for the release window.
    - Global search on the new index finds projects, users, groups, tasks, books, employees.
-   - ZUGFeRD export of a current invoice: PDF/A-3 with embedded `factur-x.xml`. Old invoices are refused by the
-     e-invoice validation (no bank account / customer address), as before.
-   - Excel export of all invoices (1.4 MB xlsx).
+   - ZUGFeRD export of a current invoice: PDF/A-3 with embedded `factur-x.xml`. Invoices without the required data
+     are refused by the e-invoice validation, as before.
+   - Excel export of all invoices.
    - Log: Hikari "Apparent connection leak" on the MassIndexer threads (they hold connections longer than
      `leak-detection-threshold=30000`), `UserPrefDao` "Can't deserialize json object" of empty
      `legacyXmlPrefs` entries, and the Cglib warnings about final `BaseDao` methods. All three also appear in
@@ -318,7 +318,7 @@ path (see `JarExtractor.createFixedTempDirectory`). Check for each phase:
 ## Verification (per phase)
 
 - `./gradlew build` (all tests) and the e2e suite (`pfDev.sh e2e <n>`).
-- Fat jar smoke test on a pfDev slot (HSQLDB) and against a copy of the production PostgreSQL database:
+- Fat jar smoke test on a pfDev slot (HSQLDB) and against a production-like PostgreSQL database:
   start incl. Flyway, login (password, passkey/WebAuthn, OAuth2/Keycloak), full-text search (old and new entries),
   list/edit pages of next and React, invoice PDF/ZUGFeRD (Mustang), Excel export (POI), iCal export,
   CardDAV, Kotlin and Groovy scripting, attachments (JCR/Oak), DATEV import.
@@ -330,5 +330,5 @@ path (see `JarExtractor.createFixedTempDirectory`). Check for each phase:
 - Jackson 3 defaults: restore Jackson 2 behaviour globally (less risk) or adopt the new defaults and adapt
   the frontends?
 - Window for the Flyway run of the first Boot 4 release in production (and optionally a reindex to drop
-  the old Lucene segments: a full reindex took 75 s on the test database, see step 4 of "Completion of Phase 1").
+  the old Lucene segments: a full reindex took about a minute on the test database, see step 4 of "Completion of Phase 1").
 - Rollback strategy after the Boot 4 release: keep the index backup, or accept a reindex on rollback?

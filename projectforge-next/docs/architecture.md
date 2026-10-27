@@ -30,7 +30,7 @@ code:
   returns (`/book/[id]` → `/book/new`). Therefore `useParams()` is unusable: it reports the baked-in
   placeholder for every URL. Pages read their parameters from `usePathname()` through
   `useRouteParams(pattern)` (`hooks/use-route-params.ts`, matching logic in `lib/route-params.ts`).
-- Spring must answer a deep link such as `/next/book/25219084` with the HTML of _that_ route, not
+- Spring must answer a deep link such as `/next/book/4711` with the HTML of _that_ route, not
   with `404.html` or the list page. `scripts/generate-spa-shell-map.mjs` derives the mapping from
   Next's own build manifests into `out/next-spa-shell-map.json`, which
   `WebApplicationConfig.NextSpaResourceResolver` consumes. A new dynamic route reaches the server by

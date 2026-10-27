@@ -23,7 +23,7 @@ gegenüber einer einfachen Tabelle.
 
 **Für die Ablösung**
 - **Betriebsproblem DataTransfer im Segment-Store:** `SegmentTarStorage` nutzt keinen externen BlobStore.
-  Alle Binaries, auch die mehreren 100 GB DataTransfer-Dateien, liegen inline in den Tar-Segmenten.
+  Alle Binaries, auch die (sehr umfangreichen) DataTransfer-Dateien, liegen inline in den Tar-Segmenten.
   - Gelöschte und abgelaufene Dateien geben ihren Platz erst nach `compactFull()` und `cleanup()` frei.
     Das ist langsam und braucht zeitweise zusätzlichen Platz.
   - Im Dateisystem ist ein Löschen sofort ein Löschen.
@@ -38,7 +38,7 @@ gegenüber einer einfachen Tabelle.
     eigenem ZIP-Format und eigenen CLIs.
   - Risiko Segment-Korruption (`SegmentNotFoundException`) und Compaction-Jobs entfallen.
 - **Transparenz:** Daten sind per SQL und im Dateisystem direkt einsehbar und reparierbar. Oak ist
-  dagegen eine Blackbox, deren Know-how im Team schwindet.
+  dagegen eine Blackbox.
 - **Zukunftsrisiko:** Oak wird primär für Adobe AEM entwickelt. Release-Takt, Java-Baselines und
   Modulzuschnitt richten sich danach, nicht nach uns. Jeder Spring-Boot- oder JDK-Sprung muss Oak
   mitnehmen.
@@ -54,7 +54,7 @@ gegenüber einer einfachen Tabelle.
    - Oak wird entfernt.
 
 Wenn der Aufwand gerade nicht passt, ist **Schritt 1 allein** (DataTransfer raus aus Oak) schon der
-größte Gewinn. Die Entitäts-Dokumente (< 10 GB) könnten zur Not noch eine Weile in Oak bleiben, aber dann
+größte Gewinn. Die Entitäts-Dokumente (deutlich kleiner) könnten zur Not noch eine Weile in Oak bleiben, aber dann
 bleibt auch die Abhängigkeit. Komplett beim Status quo zu bleiben empfehle ich nicht.
 
 ## Ist-Zustand (kurz)
@@ -150,7 +150,7 @@ Für die Gateway-Instanz passt das ebenfalls.
      Start, falls `<home>/jcr-migration/*.zip` vorliegt) liest `repository.json` und die Binaries ohne Oak.
      Zielorte: Entitäts-Dateien in die DB, DataTransfer ins Dateisystem.
      - Idempotent über `file_id`, damit ein abgebrochener Import einfach erneut laufen kann.
-   - **DataTransfer (mehrere 100 GB, weder in die DB noch ins Backup):** Ein ZIP kommt nicht infrage.
+   - **DataTransfer (sehr groß, weder in die DB noch ins Backup):** Ein ZIP kommt nicht infrage.
      Schon im Oak-Release nutzt DataTransfer den neuen Store (Metadaten in `t_attachment` mit storage = FS,
      Binaries im Dateisystem). Neue Dateien landen sofort dort.
      - Bestehende Dateien werden über `RepoService` weiter aus dem JCR gelesen, geändert und gelöscht,
@@ -187,10 +187,10 @@ Für die Gateway-Instanz passt das ebenfalls.
    - Docs: adminguide, installation, technologies, development.
 
 Gesamtaufwand grob: Storage und Schema 2–3 Tage, Migration und Verifikation 2–3 Tage, Tests, Jobs und
-Docs 2 Tage. Insgesamt also etwa 1,5–2 Wochen inklusive e2e-Prüfung gegen eine Kopie des Prod-Repos.
+Docs 2 Tage. Insgesamt also etwa 1,5–2 Wochen inklusive e2e-Prüfung gegen eine Kopie eines produktiven Repos.
 
 ## Risiken und Abwägungen
-- **DB-Wachstum:** Die Größe des Prod-JCR (ohne DataTransfer) geht 1:1 in die DB, pg_dump und
+- **DB-Wachstum:** Die Größe des JCR (ohne DataTransfer) geht 1:1 in die DB, pg_dump und
   Restore-Zeiten. Vorher messen, z. B. mit `DiskUsageStatisticsBuilder` oder der Größe des letzten
   JCR-Backups.
 - **Gewinn:** Ein Stack weniger (Oak-Updates, Segment-Store-Korruption, Compaction, eigene Backup-/Restore-
@@ -201,7 +201,7 @@ Docs 2 Tage. Insgesamt also etwa 1,5–2 Wochen inklusive e2e-Prüfung gegen ein
 
 ## Verifikation (bei Umsetzung)
 - `./gradlew :projectforge-jcr:test :projectforge-business:test` und DataTransfer-Plugin-Tests.
-- Ein Prod-Backup-ZIP in eine lokale Instanz (pfDev-Slot, HSQLDB und PostgreSQL) importieren. Danach
+- Ein Backup-ZIP einer bestehenden Installation in eine lokale Instanz (pfDev-Slot, HSQLDB und PostgreSQL) importieren. Danach
   Checksummen-Report ohne Abweichungen, Stichproben für Download, Upload, Encrypt und Multi-Download in
   Auftrag, Rechnung (inkl. E-Invoice-Export), Vertrag, Script, Merlin und DataTransfer (inkl. externem
   Zugriff und Cleanup-Job).

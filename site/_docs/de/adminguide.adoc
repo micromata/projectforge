@@ -850,7 +850,7 @@ LDAP-Zugangsdaten anmelden. Das ist besonders für Administratoren von ProjectFo
 [[ldap_over_ssl]]
 ==== LDAP über SSL
 
-`openssl s_client -showcerts -connect ldap.acme.priv:636 > ldap.pem` Die Zeilen
+`openssl s_client -showcerts -connect ldap.acme.internal:636 > ldap.pem` Die Zeilen
 von `-----BEGIN CERTIFICATE-----` bis einschließlich `-----END CERTIFICATE-----`
 in eine Datei namens `ldap.cert.` kopieren. Anschließend lässt sich die Zertifikatsdatei
 in `projectforge.properties` konfigurieren oder das Zertifikat in den Java-Keystore
