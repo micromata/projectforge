@@ -993,6 +993,17 @@
       "startOrSendFile": "Chat starten / Datei senden",
       "user": "Person"
     },
+    "emoji": {
+      "empty": "Kein Emoji gefunden",
+      "insert": "Emoji einfügen",
+      "loading": "Lädt…",
+      "more": "Weitere Emojis",
+      "search": "Emoji suchen",
+      "siren": {
+        "blue": "Blaue Sirene",
+        "red": "Rote Sirene"
+      }
+    },
     "file": {
       "add": "Dateien anhängen",
       "addHint": "Dateien anhängen. Dateien können auch einfach in das Nachrichtenfenster gezogen werden.",
@@ -1051,6 +1062,11 @@
       "send": "Senden",
       "unhide": "Wieder einblenden"
     },
+    "notification": {
+      "secret": {
+        "title": "{arg0} möchte ein vertrauliches Gespräch beginnen"
+      }
+    },
     "room": {
       "delete": {
         "_": "Chatraum löschen",
@@ -1091,6 +1107,11 @@
     "secret": {
       "accept": "Annehmen",
       "action": "Vertrauliches Gespräch",
+      "alert": {
+        "allowNotifications": "Browser-Benachrichtigungen erlauben",
+        "sound": "Ton, wenn ein vertrauliches Gespräch angeboten wird",
+        "title": "{arg0}: vertrauliches Gespräch"
+      },
       "close": "Schließen",
       "decline": "Ablehnen",
       "discard": "Verwerfen",
@@ -1421,7 +1442,7 @@
           "noRevenue": "kein Umsatz",
           "others": {
             "_": "Andere Projekte anonym anzeigen",
-            "tooltip": "Zeigt zum Vergleich auch die Projekte, die der Filter auswählt (z. B. alle einer Business Unit), deren Deckungsbeitrag sonst nicht sichtbar ist: blass, ohne Namen, gleich gruppiert."
+            "tooltip": "Zeigt zum Vergleich auch die Projekte, die der Business-Unit- und Kunden-Filter auswählen (z. B. alle einer Business Unit), unabhängig vom Projektfilter, deren Deckungsbeitrag sonst nicht sichtbar ist: blass, ohne Namen, gleich gruppiert."
           },
           "own": "Eigene Projekte",
           "projectCount": "Projekte",

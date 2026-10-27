@@ -1344,7 +1344,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   /**
    * The bubble chart of the contribution margin tab ([ContributionMarginService.bubbles]): the projects of
    * [contributionMargin], grouped by the requested grouping. With `includeOthers`, also the projects of the orders
-   * the filter selects regardless of the user's access (all of a business unit, a customer, …), but anonymous:
+   * the filter selects regardless of the user's access and of its project filter (all of a business unit, a customer, …), but anonymous:
    * their bubbles have neither label nor project count, and no id or name of them leaves the server. Grouping and
    * switch are remembered for the next time, the filter isn't (it's stored by [contributionMargin]).
    */
@@ -1366,13 +1366,16 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   }
 
   /**
-   * The contribution margin of the projects of the orders [magicFilter] selects, but the user may not see: the
-   * orders are selected without access check. Only for anonymous comparison ([contributionMarginBubbles]).
+   * The contribution margin of the projects of the orders [magicFilter] selects, ignoring its project filter, but
+   * the user may not see: the orders are selected without access check. Only for anonymous comparison ([contributionMarginBubbles]).
    */
   private fun otherProjectsContributionMargin(magicFilter: MagicFilter, startDate: LocalDate): ContributionMarginData {
     val key = statisticsCacheKey(OrderStatisticsCache.Kind.CONTRIBUTION_MARGIN_OTHERS, magicFilter, startDate)
     return orderStatisticsCache.get(key) {
+      // Without the project filter: the others are meant to be projects other than the chosen ones. Business unit
+      // and customer stay.
       val filter = forecastFilter(magicFilter, startDate)
+      filter.entries.removeIf { it.field == ProjectChecklistFilter.FIELD }
       filter.autoWildcardSearch = true
       fixMagicFilterFromClient(filter)
       val (queryFilter, customResultFilters) = buildQueryFilter(this, baseDao, filter)

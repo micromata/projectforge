@@ -993,6 +993,17 @@
       "startOrSendFile": "Start chat / send file",
       "user": "Person"
     },
+    "emoji": {
+      "empty": "No emoji found",
+      "insert": "Insert emoji",
+      "loading": "Loading…",
+      "more": "More emoji",
+      "search": "Search emoji",
+      "siren": {
+        "blue": "Blue siren",
+        "red": "Red siren"
+      }
+    },
     "file": {
       "add": "Attach files",
       "addHint": "Attach files. They can also simply be dropped into the message window.",
@@ -1051,6 +1062,11 @@
       "send": "Send",
       "unhide": "Show again"
     },
+    "notification": {
+      "secret": {
+        "title": "{arg0} wants to start a confidential conversation"
+      }
+    },
     "room": {
       "delete": {
         "_": "Delete chat room",
@@ -1091,6 +1107,11 @@
     "secret": {
       "accept": "Accept",
       "action": "Confidential conversation",
+      "alert": {
+        "allowNotifications": "Allow browser notifications",
+        "sound": "Sound when a confidential conversation is offered",
+        "title": "{arg0}: confidential conversation"
+      },
       "close": "Close",
       "decline": "Decline",
       "discard": "Discard",
@@ -1421,7 +1442,7 @@
           "noRevenue": "no revenue",
           "others": {
             "_": "Show other projects anonymously",
-            "tooltip": "Also shows, for comparison, the projects the filter selects (e.g. all of a business unit) whose contribution margin you may not see: pale, without names, grouped the same way."
+            "tooltip": "Also shows, for comparison, the projects the business unit and customer filter select (e.g. all of a business unit), ignoring the project filter, whose contribution margin you may not see: pale, without names, grouped the same way."
           },
           "own": "Own projects",
           "projectCount": "Projects",
