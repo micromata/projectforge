@@ -1,171 +1,214 @@
-# Kost2 reallocation of accounting records (retroactive project move)
+# Kost2-Reallokation von Buchungssätzen (rückwirkender Projektumzug)
 
-Status: planned, nothing implemented yet. Target release: the next one (`version` in `gradle.properties`).
+Status: geplant, noch nichts umgesetzt. Ziel-Release: das nächste (`version` in `gradle.properties`).
 
-## Context
-Timesheets are to be moved retroactively from a collective task to a project of their own, with its own Kost2.
-An example of a collective task is "other projects" of a business unit, booked on collective Kost2 A.
+Dieses Dokument ist auf Deutsch geschrieben, weil es ein Buchhaltungsthema ist. Bezeichner im Code bleiben englisch.
 
-The accounting records imported from DATEV still carry the Kost2 of that time:
-- **Salaries:** `EmployeeSalaryExportDao` splits the gross salary of each employee and month over Kost2, weighted by
-  the timesheet hours (account 6000, counter account 3791, Kost1 = employee).
-  - The split is not stored.
-  - Every export recomputes it from `TimesheetDO.kost2`.
-- **Revenues:** booked on revenue accounts.
-  - The Kost2 comes from the cost assignments of the debitor invoices.
-  - The invoice can be found via `beleg` (`BookedInvoices.tokens`).
+## Ausgangslage
+Zeitberichte werden rückwirkend von einem Sammeltask in ein eigenes Projekt mit eigener Kost2 umgezogen.
+Ein Sammeltask ist z. B. „sonstige Projekte“ eines Geschäftsbereichs, gebucht auf die Sammel-Kost2 A.
 
-The original Kost2 of an accounting record is kept. ProjectForge computes with a reallocated assignment instead.
+Die aus DATEV importierten Buchungssätze tragen noch die Kost2 von damals:
+- **Gehälter:** `EmployeeSalaryExportDao` verteilt das Bruttogehalt je Mitarbeiter und Monat auf die Kost2,
+  gewichtet nach den Stunden der Zeitberichte (Konto 6000, Gegenkonto 3791, Kost1 = Mitarbeiter).
+  - Die Aufteilung wird nicht gespeichert.
+  - Jeder Export berechnet sie neu aus `TimesheetDO.kost2`.
+  - Ergebnis: ein Buchungssatz je (Kost1, Kost2, Monat).
+- **Erlöse:** auf Erlöskonten gebucht.
+  - Die Kost2 kommt aus den Kostenzuweisungen der Debitorenrechnungen.
+  - Die Rechnung lässt sich über `beleg` finden (`BookedInvoices.tokens`).
 
-**Decisions:**
-- **Shares table per accounting record** instead of a single second field, because one record often has to be split.
-- **Salary shares from a move log** of the timesheets.
-- **Additional sources** besides salaries and revenues:
-  - incoming invoices, found via `beleg`
-  - flat rules "Kost2 A → B"
+Die ursprüngliche Kost2 eines Buchungssatzes bleibt erhalten. ProjectForge rechnet stattdessen mit einer
+reallokierten Zuordnung.
 
-## Data model
-Flyway: `V<release>.<n>__RELEASE-Kost2Reallocation.sql` (release = `version` of `gradle.properties` at merge time).
-- Check the open branches for versions already taken in the same release before merging.
+**Typischer Ablauf in der Praxis:**
+- Der Task-Teilbaum des neuen Projekts wird im Strukturbaum unter das Zielprojekt gehängt.
+- Zeitberichte ab einem Stichtag tragen die Kost2 des Zielprojekts.
+- Zeitberichte davor bleiben bewusst auf der Sammel-Kost2, weil deren Gehaltsbuchungen schon erzeugt sind.
+- Diese Zeitberichte liegen also im Teilbaum des Zielprojekts, tragen aber eine fremde Kost2. Genau das ist das Merkmal,
+  über das die Reallokation die Gehaltsanteile findet.
 
-1. **`Kost2ReallocationDO`** (`t_fibu_kost2_reallocation`), the reallocation run:
-   - Fields: description, target project, period (from/to month), status `DRAFT|APPLIED|REVERTED`, comment.
+**Entscheidungen:**
+- **Anteilstabelle je Buchungssatz** statt eines einzelnen zweiten Felds, weil ein Satz oft aufgeteilt werden muss.
+- **Gehaltsanteile aus den noch nicht umgestellten Zeitberichten:**
+  - Die Zeitberichte werden vor der Berechnung nicht umgezogen. Ihr Task zeigt das Ziel, ihre Kost2 die damalige
+    Aufteilung.
+  - Umgestellt werden sie erst beim Anwenden des Laufs. Das Protokoll dient nur dem Revert.
+- **Weitere Quellen** neben Gehältern und Erlösen:
+  - Eingangsrechnungen, gefunden über `beleg`
+  - pauschale Regeln „Kost2 A → B“
+
+## Datenmodell
+Flyway: `V<release>.<n>__RELEASE-Kost2Reallocation.sql` (Release = `version` aus `gradle.properties` beim Merge).
+- Vor dem Merge die offenen Branches auf bereits vergebene Versionen im selben Release prüfen.
+
+1. **`Kost2ReallocationDO`** (`t_fibu_kost2_reallocation`), der Reallokationslauf:
+   - Felder: Beschreibung, Zielprojekt, Zeitraum (Monat von/bis), Status `DRAFT|APPLIED|REVERTED`, Kommentar.
    - `@WithHistory`.
-   - Access: FINANCE only. The DAO overrides both `hasAccess` and `hasInsertAccess` (see the security rules).
-2. **`Kost2ReallocationRuleDO`**: run, source Kost2, target Kost2, optional account range.
-   - These are the rules A → B.
-   - Default rules are created from the target project by matching the Kost2 type, like `TimesheetMassUpdateRest`
-     (l.330-347).
-3. **`Kost2ReallocationTimesheetDO`**, the move log:
-   - Fields: run, timesheet, user, year, month, old task, new task, old Kost2, new Kost2, millis.
-   - The millis are computed like `MonthlyEmployeeReportEntry.getMillis`, so they match the salary export.
+   - Zugriff: nur FINANCE. Das DAO überschreibt `hasAccess` und `hasInsertAccess` (siehe Sicherheitsregeln).
+2. **`Kost2ReallocationRuleDO`**: Lauf, Quell-Kost2, Ziel-Kost2, optionaler Kontenbereich.
+   - Das sind die Regeln A → B.
+   - Standardregeln werden aus dem Zielprojekt über die Kost2-Art erzeugt, wie in `TimesheetMassUpdateRest`
+     (Z. 330-347).
+3. **`Kost2ReallocationTimesheetDO`**, das Umstellungsprotokoll:
+   - Felder: Lauf, Zeitbericht, Benutzer, Jahr, Monat, alter Task, neuer Task, alte Kost2, neue Kost2, Millis.
+   - Wird beim Anwenden geschrieben, wenn die Zeitberichte umgestellt werden. Es ist keine Eingabe der Berechnung,
+     sondern dient dem Revert und der Nachvollziehbarkeit.
 4. **`BuchungssatzKost2ShareDO`** (`t_fibu_buchungssatz_kost2_share`):
-   - Fields: `buchungssatz_fk`, `kost2_fk`, `betrag` (same sign as the record's `betrag`),
-     source `SALARY|INVOICE|INCOMING_INVOICE|RULE`, `run_fk`.
-   - Invariant: the shares add up to the record's `betrag`.
-   - The last share takes the rounding difference, like the correction row of the salary export.
-   - A record without shares counts on its own `kost2`.
-   - **No cascading collection in `BuchungssatzDO`.** The DATEV import rebuilds the DO and calls `insertOrUpdate`
-     (`DatevRecordImportJob.run`), which would wipe the shares.
-   - The shares have their own DAO. They are loaded in bulk via `buchungssatz.id IN (...)`, chunked to stay below
-     the bind parameter limit.
+   - Felder: `buchungssatz_fk`, `kost2_fk`, `betrag` (gleiches Vorzeichen wie `betrag` des Satzes),
+     Quelle `SALARY|INVOICE|INCOMING_INVOICE|RULE`, `run_fk`.
+   - Invariante: Die Anteile ergeben zusammen den `betrag` des Satzes.
+   - Der letzte Anteil nimmt die Rundungsdifferenz auf, wie die Korrekturzeile des Gehaltsexports.
+   - Ein Satz ohne Anteile zählt auf seine eigene `kost2`.
+   - **Keine kaskadierende Collection in `BuchungssatzDO`.** Der DATEV-Import baut das DO neu auf und ruft
+     `insertOrUpdate` (`DatevRecordImportJob.run`), das würde die Anteile löschen.
+   - Die Anteile haben ein eigenes DAO. Sie werden gesammelt über `buchungssatz.id IN (...)` geladen, in Blöcken
+     unterhalb des Limits für Bind-Parameter.
 
-## Central reuse: the effective view
+## Zentrale Wiederverwendung: die effektive Sicht
 `BuchungssatzKost2ShareService.expand(records): List<BuchungssatzDO>`:
-- For each share it returns a transient copy with `kost2` = the share's Kost2, `betrag` = the share, and a reference
-  to the original record.
-- Records without shares are returned unchanged.
-- `calculate()`/`isIgnore` stay with the original record (the 1.0.0.0 rule).
+- Liefert je Anteil eine transiente Kopie mit `kost2` = Kost2 des Anteils, `betrag` = Anteil und einem Verweis auf
+  den ursprünglichen Satz.
+- Sätze ohne Anteile kommen unverändert zurück.
+- `calculate()`/`isIgnore` bleiben am ursprünglichen Satz (die 1.0.0.0-Regel).
 
-Consumers that switch to this view:
+Verbraucher, die auf diese Sicht umgestellt werden:
 
-| Consumer | Change |
+| Verbraucher | Änderung |
 |---|---|
-| `ContributionMarginService.selectRecords` (l.688-711) | Besides `isIn("kost2.id")`, also loads the records whose *shares* point to the Kost2, then expands them. `ContributionMarginCalculator.recordEntries` stays as it is. |
-| `ContributionMarginCache` | Gets a listener on the share DAO. |
-| `ReportDao.loadReport` / `Report.java` (l.388-408) | The Kost2 regex filter runs on the expanded records. |
-| `AccountingRecordEntityRest.reportRecords` (drill-down) | Shows the original record with its shares. |
-| Scripting: `AccountingRecord.kt`, `BuchungssatzImpl` | Also offer `effectiveKost2` and the shares. |
-| BWA | No change. It works on accounts only. |
+| `ContributionMarginService.selectRecords` (Z. 688-711) | Lädt neben `isIn("kost2.id")` auch die Sätze, deren *Anteile* auf die Kost2 zeigen, und expandiert sie. `ContributionMarginCalculator.recordEntries` bleibt, wie es ist. |
+| `ContributionMarginCache` | Bekommt einen Listener auf das Anteils-DAO. |
+| `ReportDao.loadReport` / `Report.java` (Z. 388-408) | Der Kost2-Regex-Filter läuft auf den expandierten Sätzen. |
+| `AccountingRecordEntityRest.reportRecords` (Drill-down) | Zeigt den ursprünglichen Satz mit seinen Anteilen. |
+| Scripting: `AccountingRecord.kt`, `BuchungssatzImpl` | Bieten zusätzlich `effectiveKost2` und die Anteile an. |
+| BWA | Keine Änderung. Sie arbeitet nur auf Konten. |
 
-Display in next (`components/features/accounting-record/`):
-- List: column "reallocated".
-- Edit form: the shares read-only, with a link to the run.
-- Excel export (`AccountingRecordEntityRest` l.249-294): columns for the shares.
+Die Zeitberichtskosten im Deckungsbeitrag (`ContributionMarginService.timesheetEntries`, Z. 663-671) laufen über
+`timesheet.kost2`. Sie stimmen, sobald die Zeitberichte beim Anwenden umgestellt sind; eine eigene Anpassung ist nicht
+nötig.
 
-## DATEV re-import
-Reconcile in `DatevRecordImportStorage` and in the job:
-- If `kost2` and `betrag` of a matched record are unchanged, the shares stay. They are attached to the record's id.
-- If either changed, the shares are dropped.
-  - The preview shows "reallocation dropped". The DTO diff gets a flag for it.
-  - Runs are idempotent and can be applied again.
+Anzeige in next (`components/features/accounting-record/`):
+- Liste: Spalte „reallokiert“.
+- Bearbeitungsformular: die Anteile schreibgeschützt, mit Link zum Lauf.
+- Excel-Export (`AccountingRecordEntityRest` Z. 249-294): Spalten für die Anteile.
 
-## Reallocation run (hand-built next wizard, FINANCE only)
+## DATEV-Reimport
+Abgleich in `DatevRecordImportStorage` und im Job:
+- Sind `kost2` und `betrag` eines zugeordneten Satzes unverändert, bleiben die Anteile. Sie hängen an der id des
+  Satzes.
+- Hat sich eins davon geändert, werden die Anteile verworfen.
+  - Die Vorschau zeigt „Reallokation verworfen“. Der DTO-Diff bekommt dafür ein Flag.
+  - Läufe sind idempotent und können erneut angewendet werden.
 
-1. **Define the run:**
-   - Source: collective Kost2 and/or tasks.
-   - Target: project, target task, period.
-   - Kost2 mapping per Kost2 type: default rules, editable.
+## Reallokationslauf (handgebauter next-Wizard, nur FINANCE)
 
-2. **Move timesheets:**
-   - Selected by task subtree, period and employee.
-   - Moved with the task and Kost2 mapping. The logic of `TimesheetMassUpdateRest` (taskAndKost2 / KOST2_REMAP)
-     moves into a service that both use.
-   - One log entry is written per timesheet.
-   - Explicit privileged path for FINANCE, tested both ways:
-     - It bypasses `checkTimesheetProtection` (`protectTimesheetsUntil`), also for FINANCE's own timesheets.
-     - `validateKost2` accepts an ended source project.
-   - The timesheet history is kept, because the moves go through `timesheetDao.update`.
+1. **Lauf festlegen:**
+   - Quelle: Sammel-Kost2 und/oder Tasks.
+   - Ziel: Projekt, Ziel-Task, Zeitraum.
+   - Kost2-Zuordnung je Kost2-Art: Standardregeln, änderbar.
 
-3. **Salaries:**
-   - For each combination of (employee's Kost1, year, month, old Kost2 A) that has log entries, take the salary
-     records whose (effective) Kost2 is A.
-     - Salary records are those on account 6000 / counter account 3791.
-     - Move these constants out of `EmployeeSalaryExportDao` into one shared place.
-   - share B = betrag × moved millis (A → B) / original millis (A)
-   - original millis (A) = current millis on A + millis moved out of A, via `MonthlyEmployeeReportDao.getReport`.
-   - The rest stays on A.
+2. **Zu reallokierende Zeitberichte:**
+   - **Automatisch erkannt:** Task im Task-Teilbaum des Zielprojekts (`TaskTree`), Kost2 gehört nicht zum Zielprojekt,
+     im Zeitraum.
+   - **Zusätzlich von Hand (gemischter Fall):** Zeitberichte direkt auf dem Sammeltask, ausgewählt nach Zeitraum,
+     Mitarbeiter, Task und Text. Sie bekommen beim Anwenden auch einen Ziel-Task.
+   - Ziel-Kost2 je Zeitbericht: die Kost2 des Zielprojekts mit derselben Kost2-Art (Standardregeln aus Schritt 1).
+   - Die Zuordnungslogik von `TimesheetMassUpdateRest` (taskAndKost2 / KOST2_REMAP) wandert in einen Service, den
+     beide nutzen.
 
-4. **Revenues (debitor invoices):**
-   - Applies to records on revenue accounts (`ContributionMarginConfig.isRevenueAccount`) with a Kost2 in the source.
-   - `beleg` is matched to a `RechnungDO` via `BookedInvoices.tokens`.
-   - Target Kost2 per position:
-     - its cost assignment, if that already points to the target project;
-     - otherwise the target project's Kost2 of the same type, if `rechnung.projekt`,
-       `auftragsPosition.auftrag.projekt` or `auftragsPosition.task` (in the moved subtree) point to the target.
-   - The record is split by the net amounts of the positions.
-   - Optional: update the invoices' cost assignments as well.
+3. **Gehälter:**
+   - Gehaltssätze sind die auf Konto 6000 / Gegenkonto 3791.
+     - Diese Konstanten wandern aus `EmployeeSalaryExportDao` an eine gemeinsame Stelle.
+   - Für jede Kombination (Kost1 des Mitarbeiters, Jahr, Monat, alte Kost2 A) der Zeitberichte aus Schritt 2 wird der
+     Gehaltssatz mit (effektiver) Kost2 A genommen.
+   - Anteil B = effektiver Anteil auf A × Millis der ausgewählten Zeitberichte auf A / aktuelle Millis auf A.
+   - Die Millis werden je Mitarbeiter und Monat berechnet wie in `MonthlyEmployeeReport` (`MonthlyEmployeeReportWeek`
+     Z. 107, `MonthlyEmployeeReportEntry.getMillis`). Der Arbeitsanteil (`workFraction`) kürzt sich heraus, weil
+     beide Werte auf derselben Kost2 liegen.
+   - Der Rest bleibt auf A.
+   - Ein späterer Lauf auf denselben Monat bleibt ohne Rückrechnung richtig:
+     - Der erste Lauf hat seine Zeitberichte schon umgestellt und den Anteil auf A verringert.
+     - Restanteil auf A / aktuelle Millis auf A ist also weiterhin der ursprüngliche Betrag je Stunde.
+   - **Plausibilitätsprüfung in der Vorschau:**
+     - Die Exportaufteilung (Logik aus `EmployeeSalaryExportDao`) wird aus den aktuellen Zeitberichten nachgerechnet.
+     - Sie wird mit den gespeicherten Gehaltssätzen dieses Mitarbeiters und Monats verglichen.
+     - Eine Abweichung bedeutet, dass Zeitberichte nach dem Export geändert wurden. Sie erscheint als Warnung je
+       Mitarbeiter und Monat.
 
-5. **Incoming invoices:** the same way, via `beleg` ↔ `EingangsrechnungDO` and its cost assignments.
-   - **Open question:** what does `beleg` hold for creditor records (`referenz`? a document number?)? Check this
-     against real data first.
+4. **Erlöse (Debitorenrechnungen):**
+   - Betrifft Sätze auf Erlöskonten (`ContributionMarginConfig.isRevenueAccount`) mit einer Kost2 aus der Quelle.
+   - `beleg` wird über `BookedInvoices.tokens` einer `RechnungDO` zugeordnet.
+   - Ziel-Kost2 je Position:
+     - ihre Kostenzuweisung, wenn diese schon auf das Zielprojekt zeigt;
+     - sonst die Kost2 des Zielprojekts mit derselben Art, wenn `rechnung.projekt`,
+       `auftragsPosition.auftrag.projekt` oder `auftragsPosition.task` (im umgezogenen Teilbaum) auf das Ziel zeigen.
+   - Der Satz wird nach den Nettobeträgen der Positionen aufgeteilt.
+   - Optional: auch die Kostenzuweisungen der Rechnungen anpassen.
 
-6. **Rules A → B:** all remaining records of the source Kost2 in the period (optionally one account range) go
-   completely to the target Kost2.
+5. **Eingangsrechnungen:** genauso, über `beleg` ↔ `EingangsrechnungDO` und deren Kostenzuweisungen.
+   - **Offene Frage:** Was steht bei Kreditorensätzen in `beleg` (`referenz`? eine Belegnummer?)? Erst an echten
+     Daten prüfen.
 
-7. **Preview, apply, revert:**
-   - Preview: a diff per record (original, old shares, new shares) and totals per Kost2.
-   - Apply: in one transaction.
-   - Revert: deletes the run's shares and moves the timesheets back according to the log. This is only allowed if no
-     later run changed the same records or timesheets.
-   - A later run works on the effective shares. For example, it can split the remaining share on A further.
+6. **Regeln A → B:** Alle übrigen Sätze der Quell-Kost2 im Zeitraum (optional ein Kontenbereich) gehen vollständig auf
+   die Ziel-Kost2.
 
-## Phases
-1. Data model, share DAO, `expand`, the consumers (contribution margin, reporting, scripting), display and Excel
-   export, keeping the shares on DATEV re-import.
-2. Run entity and wizard with rules A → B (preview, apply, revert).
-3. Timesheet move with log and salary shares.
-4. Revenues via debitor invoices.
-5. Incoming invoices, once the `beleg` question is settled.
+7. **Vorschau, Anwenden, Revert:**
+   - Vorschau: ein Diff je Satz (Original, alte Anteile, neue Anteile), Summen je Kost2 und die Warnungen aus Schritt 3.
+   - Anwenden, in einer Transaktion:
+     1. die Anteile speichern;
+     2. danach die Zeitberichte aus Schritt 2 umstellen: Kost2 → B, bei den von Hand ausgewählten auch der Task;
+     3. je Zeitbericht einen Protokolleintrag schreiben.
+   - Die Reihenfolge ist wichtig: Nach dem Umstellen ist das Merkmal aus Schritt 2 weg.
+   - Privilegierter Pfad für FINANCE, in beide Richtungen getestet:
+     - Er umgeht `checkTimesheetProtection` (`protectTimesheetsUntil`), auch für FINANCEs eigene Zeitberichte.
+     - `validateKost2` akzeptiert ein beendetes Quellprojekt.
+   - Die Historie der Zeitberichte bleibt erhalten, weil das Umstellen über `timesheetDao.update` läuft.
+   - Revert: löscht die Anteile des Laufs und stellt die Zeitberichte laut Protokoll auf alten Task und alte Kost2
+     zurück. Nur erlaubt, wenn kein späterer Lauf dieselben Sätze oder Zeitberichte geändert hat.
+   - Ein späterer Lauf arbeitet auf den effektiven Anteilen. Er kann z. B. den Restanteil auf A weiter aufteilen.
 
-Every phase also includes:
-- i18n (German texts without "Sie")
+## Phasen
+1. Datenmodell, Anteils-DAO, `expand`, die Verbraucher (Deckungsbeitrag, Reporting, Scripting), Anzeige und
+   Excel-Export, Erhalt der Anteile beim DATEV-Reimport.
+2. Lauf-Entität und Wizard mit Regeln A → B (Vorschau, Anwenden, Revert).
+3. Zeitberichte erkennen, Gehaltsanteile, Umstellung der Zeitberichte mit Protokoll.
+4. Erlöse über Debitorenrechnungen.
+5. Eingangsrechnungen, sobald die `beleg`-Frage geklärt ist.
+
+Zu jeder Phase gehören auch:
+- i18n (deutsche Texte ohne „Sie“)
 - `changelog/unreleased/yyyyMMdd-kost2-reallocation.json` (EN + DE)
 - `RestEndpointAccessCheckTest` (`@AccessChecked`)
-- state changes via POST only
+- Zustandsänderungen nur per POST
 
-## Critical files
+## Wichtige Dateien
 - `projectforge-business/.../fibu/kost/BuchungssatzDO.kt`, `BuchungssatzDao.kt`
 - `projectforge-rest/.../fibu/importer/DatevRecordImportJob.kt`, `DatevRecordImportStorage.kt`, `DatevRecordImportDTO.kt`
 - `projectforge-business/.../fibu/contributionmargin/ContributionMarginService.kt`, `ContributionMarginCache.kt`
 - `projectforge-business/.../fibu/kost/reporting/ReportDao.java`, `Report.java`
-- `projectforge-business/.../fibu/datev/EmployeeSalaryExportDao.java`, `MonthlyEmployeeReportDao.java`
-- `projectforge-rest/.../TimesheetMassUpdateRest.kt`, `projectforge-business/.../timesheet/TimesheetDao.kt`
+- `projectforge-business/.../fibu/datev/EmployeeSalaryExportDao.java`, `MonthlyEmployeeReportDao.java`,
+  `MonthlyEmployeeReportWeek.kt`
+- `projectforge-rest/.../TimesheetMassUpdateRest.kt`, `projectforge-business/.../timesheet/TimesheetDao.kt`,
+  `projectforge-business/.../task/TaskTree.kt`
 - `projectforge-business/.../scripting/support/BookedInvoices.kt`
 - `projectforge-rest/.../orga/AccountingRecordEntityRest.kt`, `projectforge-next/components/features/accounting-record/`
 
-## Verification
-- Unit tests:
-  - `expand`: totals, rounding, sign for debit/credit.
-  - Salary shares against a hand-computed `EmployeeSalaryExportDao` example (2 employees, one partial move).
-  - Matching invoices via `beleg`.
-  - Rules.
-  - Re-import: shares kept or dropped.
-- Access tests:
-  - TEST_USER is refused, FINANCE is allowed.
-  - Only FINANCE can bypass the timesheet protection.
-- Contribution margin of a test project before and after a run:
-  - The total over all projects is unchanged.
-  - Costs and revenues have moved from the collective project to the target project.
-  - After reverting, everything is identical to the state before.
-- e2e on a slot server (`bin/pfDev.sh e2e <n>`): a wizard run including the preview.
+## Prüfung
+- Unit-Tests:
+  - `expand`: Summen, Rundung, Vorzeichen bei Soll/Haben.
+  - Gehaltsanteile gegen ein von Hand gerechnetes `EmployeeSalaryExportDao`-Beispiel: zwei Mitarbeiter in einem Monat,
+    einer ganz im Teilbaum des Zielprojekts, einer nur teilweise, eine Kost2-Art.
+  - Erkennung: Task im Teilbaum mit fremder Kost2 wird gefunden, Task im Teilbaum mit Kost2 des Zielprojekts nicht.
+  - Zwei Läufe nacheinander auf denselben Monat und dieselbe Sammel-Kost2.
+  - Plausibilitätsprüfung: ein nach dem Export geänderter Zeitbericht führt zur Warnung.
+  - Zuordnung der Rechnungen über `beleg`.
+  - Regeln.
+  - Reimport: Anteile bleiben oder werden verworfen.
+- Zugriffstests:
+  - TEST_USER wird abgewiesen, FINANCE darf.
+  - Nur FINANCE kann den Zeitberichtsschutz umgehen.
+- Deckungsbeitrag eines Testprojekts vor und nach einem Lauf:
+  - Die Summe über alle Projekte bleibt gleich.
+  - Kosten (Gehälter und Zeitberichtskosten) und Erlöse sind vom Sammelprojekt zum Zielprojekt gewandert.
+  - Nach dem Revert ist alles wie vorher.
+- e2e auf einem Slot-Server (`bin/pfDev.sh e2e <n>`): ein Wizard-Lauf einschließlich Vorschau.
