@@ -2,12 +2,15 @@
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
   "unreleased" : {
     "id" : "unreleased",
-    "version" : "9.0.17",
-    "date" : "2026-10-23",
+    "version" : "9.0.18",
+    "date" : "2026-10-27",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
       "items" : [ "Optionaler MCP-Prototyp für Lesezugriffe mit OAuth-Freigabe über die bestehende ProjectForge-Browsersitzung, auswählbaren und durch Benutzerrechte begrenzten Scopes, PKCE und an die Sitzung gebundenem Zugriff. KI-Agenten durchsuchen Projekte, Kunden, Aufgaben, Zeitbuchungen, Adressen und Rechnungen mit den Filtern der Listenseiten, lesen einzelne Einträge mit allen Feldern und laden angehängte Dateien herunter." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Chat: Ein angebotenes vertrauliches Gespräch erreicht den Empfänger jetzt auf jeder Seite, auch in einem Tab im Hintergrund: ein Ton (abschaltbar), ein blinkender Tab-Titel, ein Punkt am Tab-Symbol und, falls erlaubt, eine Browser-Benachrichtigung." ]
     } ]
   },
   "groups" : [ {
@@ -62,6 +65,25 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-0-18",
+      "version" : "9.0.18",
+      "date" : "2026-10-27",
+      "title" : "ProjectForge 9.0.18 veröffentlicht",
+      "tag" : "9.0.18-RELEASE",
+      "published" : false,
+      "summary" : [ "**Chat**: Vertrauliche Gespräche, Suche in allen Nachrichten, kompaktes Layout mit Sprechblasen, Zähler für Ungelesenes in der oberen Leiste", "Liquiditätsvorschau: Anzahl der Tage frei wählbar", "Suche: Geschlossene Strukturelemente nicht mehr in der Menü-Schnellsuche" ],
+      "overview" : [ "**Chat:** Aus der vertraulichen Nachricht in einer Direktnachricht wird ein vertrauliches Gespräch, Ende-zu-Ende-verschlüsselt und nie auf dem Server gespeichert, bis eine Seite es beendet; der Fingerabdruck deckt beide Schlüssel ab. Unterhaltungen sind kompakter, mit Sprechblasen, gruppierten Nachrichten und einem Trenner pro Tag.", "**Chat:** Die Suche der Chatseite findet auch Nachrichten in allen lesbaren Unterhaltungen, mit Vorschau des neuesten Treffers; ein Klick springt zur Nachricht. Eine Sprechblase in der oberen Leiste führt zum Chat und zeigt die ungelesenen Nachrichten, ebenso der Menüeintrag.", "**Liquiditätsvorschau:** Die Anzahl der Tage kann frei eingegeben werden (1 bis 600), die üblichen Zeiträume bleiben als Schnellwahl.", "**Suche:** Geschlossene Strukturelemente werden in der Menü-Schnellsuche nicht mehr gefunden; die Detailsuche findet sie weiterhin, durchgestrichen." ],
+      "sections" : [ {
+        "type" : "added",
+        "items" : [ "Chat: Die Suche der Chatseite findet auch Nachrichten in allen lesbaren Unterhaltungen, jeweils mit einer Vorschau des neuesten Treffers; ein Klick springt zur Nachricht, auch in einem Thread.", "Chat: Eine Sprechblase in der oberen Leiste führt zum Chat, ein Zähler zeigt dort und am Menüeintrag die ungelesenen Nachrichten." ]
+      }, {
+        "type" : "improved",
+        "items" : [ "Chat: Kompaktere Unterhaltungen mit Sprechblasen (eigene Nachrichten rechts), aufeinanderfolgende Nachrichten derselben Person gruppiert und ein Trenner pro Tag.", "Liquiditätsvorschau: Die Anzahl der Tage kann frei eingegeben werden (1 bis 600), die üblichen Zeiträume bleiben als Schnellwahl.", "Suche: Geschlossene Strukturelemente werden in der Menü-Schnellsuche nicht mehr gefunden. Die Detailsuche findet sie weiterhin und zeigt sie durchgestrichen, ebenso der Strukturbaum, die Pfade und die Listen." ]
+      }, {
+        "type" : "changed",
+        "items" : [ "Chat: Aus der vertraulichen Nachricht in einer Direktnachricht wird ein vertrauliches Gespräch. Beide Seiten schreiben sich hin und her, Ende-zu-Ende-verschlüsselt und nie auf dem Server gespeichert, bis eine Seite es beendet. Der Fingerabdruck deckt jetzt beide Schlüssel ab, eine gefälschte Nachricht fällt so als Abweichung auf." ]
+      } ]
+    }, {
       "id" : "9-0-17",
       "version" : "9.0.17",
       "date" : "2026-10-26",
@@ -165,7 +187,7 @@
         "items" : [ {
           "title" : "Import von Eingangsrechnungen",
           "items" : [ "Positionen einer Rechnung in unterschiedlichen Währungen werden zum Kurs des Rechnungsdatums in EUR umgerechnet, statt als EUR übernommen zu werden; ohne Kurs wird die Rechnung als fehlerhaft markiert.", "Gespeicherte Rechnungen zwischen zwei Perioden des Exports (z. B. März bei einem Export von Januar und Juni) werden nicht mehr zum Löschen angeboten.", "Export ohne Positionen: Die Zeilen einer Rechnung (eine je Buchungszeile) werden zu einer Rechnung mit dem Gesamtbetrag zusammengefasst, statt bei jedem Import als neue Rechnungen angeboten zu werden.", "Export ohne Positionen: Die interne Notiz (Spalte „Interne Re.-Nr.“) wird nicht mehr an die Rechnungsnummer angehängt, die sich sonst bei jedem Import der beiden Dateien hin- und herändert." ]
-        }, "Massenänderungen: Das Protokollfenster zeigt die geänderten Einträge wieder an.", "Stornorechnungen werden bei den Auftragspositionen aufgeführt, die sie stornieren, direkt nach der stornierten Rechnung (z. B. 17400 und 17400-S), auch im Auftrags- und Forecast-Export. Im Auftrag sind beide durchgestrichen; zusammen zählen sie weiterhin 0 als fakturiert.", "Auftragsbuch: Die Bearbeitungsseite springt beim Ändern eines Feldes nicht mehr." ]
+        }, "Massenänderungen: Das Protokollfenster zeigt die geänderten Einträge wieder an.", "Stornorechnungen werden bei den Auftragspositionen aufgeführt, die sie stornieren, direkt nach der stornierten Rechnung (z. B. 12345 und 12345-S), auch im Auftrags- und Forecast-Export. Im Auftrag sind beide durchgestrichen; zusammen zählen sie weiterhin 0 als fakturiert.", "Auftragsbuch: Die Bearbeitungsseite springt beim Ändern eines Feldes nicht mehr." ]
       }, {
         "type" : "removed",
         "items" : [ "Die frühere React-Oberfläche ist entfernt: Alle ihre Seiten sind Teil der neuen Oberfläche, und alte Links (`/react/...`) führen dorthin." ]
