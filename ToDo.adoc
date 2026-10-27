@@ -1,6 +1,0 @@
-==== Aktuell:
-- Gradle-Version-Checker: Read lib.versions.toml und Vergleichen mit fatjar.
-- Fehlerhinweis, wenn halber Tag für Urlaubsanfang/ende gewählt wird, es aber kein Arbeitstag ist.
-- Google-Calendar-Integration
-
-- ProjektEdit: History enthält keine neuen Kost2DOs/Arten (Einträge sind aber da).
