@@ -7,10 +7,13 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Opt-in read-only MCP prototype with OAuth consent using the existing ProjectForge browser session, selectable permission-limited scopes, PKCE and logout-bound access. AI agents search projects, customers, tasks, timesheets, addresses and invoices with the filters of the list pages, read single entries with all fields and download attached files." ]
+      "items" : [ "Opt-in read-only MCP prototype with OAuth consent using the existing ProjectForge browser session, selectable permission-limited scopes, PKCE and logout-bound access. AI agents search projects, customers, tasks, timesheets, addresses and invoices with the filters of the list pages, read single entries with all fields and download attached files.", "Chat: in a direct message, \"Read\" with the avatar of the other one is shown under the newest own message they have read." ]
     }, {
       "type" : "improved",
-      "items" : [ "Chat: an offered confidential conversation now reaches the recipient on every page, also in a background tab: a sound (can be switched off), a blinking tab title, a dot on the tab icon and, if allowed, a browser notification." ]
+      "items" : [ "Chat: the search also offers users without a direct message yet; a click starts the conversation.", "Chat: the whole emoji catalog with search and categories (\"More emoji\"), loaded only when opened, for reactions and via a new button in the formatting bar for messages; the siren emoji flashes, new emoji :siren-blue: and :siren-red:.", "Chat: an offered confidential conversation now reaches the recipient on every page, also in a background tab: a sound (can be switched off), a blinking tab title, a dot on the tab icon and, if allowed, a browser notification.", "Data transfer: personal boxes are always listed first, also when searching for a user." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Chat: the action menu of a message no longer overlaps the divider above it.", "Forecast: completed orders that are not yet fully invoiced are listed again in the statistics and the Excel export, with their open amount in the current (or following) month." ]
     } ]
   },
   "groups" : [ {
