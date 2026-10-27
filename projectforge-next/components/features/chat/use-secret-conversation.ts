@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import {
+  chatSecretQueryKey,
   sendChatSecret,
   takeChatSecret,
   type ChatSecretSession,
@@ -27,14 +28,18 @@ export interface SecretText {
  * The messages of an open confidential conversation (ChatSecretRelay): derives the session key from the own
  * private and the partner's public key, decrypts what is waiting for this side and encrypts what it sends.
  * Texts are kept in this hook's state only, never in the query cache; a message of the partner is accepted
- * only if its counter rises (a replayed or reordered one is dropped).
+ * only if its counter rises (a replayed or reordered one is dropped), and a gap is reported (the relay can
+ * drop messages unnoticed otherwise). [updatedAt] is when the session was last fetched: what is waiting is
+ * taken again after each fetch, also if the number waiting did not change.
  */
 export function useSecretConversation(
   role: SecretRole,
   privateKey: CryptoKey | null,
-  session: ChatSecretSession | undefined
+  session: ChatSecretSession | undefined,
+  updatedAt: number
 ) {
   const t = useTranslations();
+  const queryClient = useQueryClient();
   const [texts, setTexts] = useState<SecretText[]>([]);
   const [aesKey, setAesKey] = useState<CryptoKey | null>(null);
   const received = useRef(0);
@@ -60,10 +65,14 @@ export function useSecretConversation(
     mutationFn: async (key: CryptoKey) => {
       const messages = await takeChatSecret(id!);
       const decrypted: SecretText[] = [];
+      let failure: string | null = null;
       for (const message of messages) {
         if (message.counter <= received.current) continue;
         try {
           const text = await decryptMessage(message, key, id!, partner);
+          if (message.counter !== received.current + 1) {
+            failure = t("chat.secret.error.missing");
+          }
           received.current = message.counter;
           decrypted.push({
             key: `${partner}-${message.counter}`,
@@ -72,14 +81,20 @@ export function useSecretConversation(
             text,
           });
         } catch {
-          throw new Error(t("chat.secret.error.decrypt"));
+          failure = t("chat.secret.error.decrypt");
         }
       }
-      return decrypted;
+      // What was decrypted is shown even if another one of the batch failed (it is gone from the relay).
+      if (decrypted.length > 0) setTexts((all) => [...all, ...decrypted]);
+      if (failure) throw new Error(failure);
     },
-    onSuccess: (decrypted) => setTexts((all) => [...all, ...decrypted]),
     onSettled: () => {
       taking.current = false;
+      if (id) {
+        void queryClient.invalidateQueries({
+          queryKey: chatSecretQueryKey(id),
+        });
+      }
     },
     gcTime: 0,
   });
@@ -89,11 +104,12 @@ export function useSecretConversation(
     if (!aesKey || waiting === 0 || taking.current) return;
     taking.current = true;
     takeMutate(aesKey);
-  }, [aesKey, waiting, takeMutate]);
+  }, [aesKey, waiting, updatedAt, takeMutate]);
 
   const send = useMutation({
     mutationFn: async (text: string) => {
-      const counter = sent.current + 1;
+      // After a lost answer the relay may have accepted a message this side doesn't know of.
+      const counter = Math.max(sent.current, session?.sentCounter ?? 0) + 1;
       const message = await encryptMessage(text, aesKey!, id!, role, counter);
       await sendChatSecret(id!, message);
       sent.current = counter;

@@ -120,6 +120,9 @@ open class ChatSecretRelay {
         /** The highest counter of the user's messages the partner has taken. */
         fun read(userId: Long?): Long = synchronized(this) { if (isInitiator(userId)) initiatorRead else recipientRead }
 
+        /** The highest counter the user has sent (accepted by the relay). */
+        fun sent(userId: Long?): Long = synchronized(this) { if (isInitiator(userId)) initiatorSent else recipientSent }
+
         /** The end of the session if nothing more is sent. */
         val expiresAt: Long
             get() = minOf(created + MAX_MILLIS, lastActivity + IDLE_MILLIS)

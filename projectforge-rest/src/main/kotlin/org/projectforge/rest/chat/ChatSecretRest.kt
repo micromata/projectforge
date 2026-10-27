@@ -129,6 +129,7 @@ class ChatSecretRest {
             recipientKey = session.recipientKey,
             waiting = session.waiting(userId),
             readCounter = session.read(userId),
+            sentCounter = session.sent(userId),
             expiresAt = Date(session.expiresAt),
         )
     }

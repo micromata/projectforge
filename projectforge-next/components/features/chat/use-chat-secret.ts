@@ -9,6 +9,7 @@ import {
   fetchChatSecret,
   fetchPendingChatSecrets,
 } from "@/lib/rs/chat-secret";
+import { RsError } from "@/lib/rs/client";
 import type { ChatConversation } from "@/lib/rs/chat-types";
 import { secretFingerprint } from "@/lib/secret-crypto";
 
@@ -18,19 +19,25 @@ export const SECRET_MAX_LENGTH = 4000;
 /** While a side waits for the other one, its dialog asks this often (the event of the chat may not come). */
 const POLL_MS = 2000;
 
+/** The conversation is over (404, 403): ended by the other side, expired, or the other side is gone. */
+export function isSecretEnded(error: unknown) {
+  return (
+    error instanceof RsError && (error.status === 404 || error.status === 403)
+  );
+}
+
 /**
  * A confidential conversation as one of its sides sees it; asked for every [POLL_MS] while [poll] (which
- * also tells the server this side is still there). An error (404, 403) means it ended: by the other side,
- * expired, or the other side is gone.
+ * also tells the server this side is still there). Only a conversation that ended ([isSecretEnded]) stops
+ * the asking: a failed request (network, 5xx) is asked again.
  */
 export function useSecretSession(id: string | null, poll: boolean) {
   return useQuery({
     queryKey: chatSecretQueryKey(id ?? ""),
     queryFn: ({ signal }) => fetchChatSecret(id!, signal),
     enabled: !!id,
-    // Ended (an error) stays so: no more asking.
     refetchInterval: (query) =>
-      poll && query.state.status !== "error" ? POLL_MS : false,
+      poll && !isSecretEnded(query.state.error) ? POLL_MS : false,
     refetchOnWindowFocus: false,
     retry: false,
   });

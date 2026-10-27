@@ -1,5 +1,21 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.17",
+    "date" : "2026-10-27",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "Chat: the search of the chat page also finds messages in all readable conversations, each with a preview of the newest match; a click jumps to the message, also in a thread." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Chat: more compact conversations with message bubbles (own messages on the right), consecutive messages of the same author grouped and a separator per day.", "Liquidity forecast: the number of days can be entered freely (1 to 600), the usual horizons remain as quick picks." ]
+    }, {
+      "type" : "changed",
+      "items" : [ "Chat: a confidential message in a direct message is now a confidential conversation. Both sides write back and forth, end-to-end encrypted and never stored by the server, until one side ends it. The fingerprint now covers both keys, so a forged message shows as a difference." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

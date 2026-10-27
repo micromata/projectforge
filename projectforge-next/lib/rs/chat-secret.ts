@@ -22,6 +22,8 @@ export interface ChatSecretSession {
   waiting: number;
   /** The highest counter of the own messages the partner has taken. */
   readCounter: number;
+  /** The highest counter of the own messages the server has accepted. */
+  sentCounter: number;
   expiresAt: string;
 }
 

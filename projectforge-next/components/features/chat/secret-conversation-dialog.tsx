@@ -8,7 +8,11 @@ import type { SecretRole } from "@/lib/secret-crypto";
 import { SecretMessageList } from "./secret-message-list";
 import { SecretFingerprint, SecretHeader, SecretWaiting } from "./secret-parts";
 import { SecretSendForm } from "./secret-send-form";
-import { useCancelOnUnmount, useSecretSession } from "./use-chat-secret";
+import {
+  isSecretEnded,
+  useCancelOnUnmount,
+  useSecretSession,
+} from "./use-chat-secret";
 import { useSecretConversation } from "./use-secret-conversation";
 
 /**
@@ -31,8 +35,13 @@ export function SecretConversationSteps({
 }) {
   const t = useTranslations();
   const session = useSecretSession(sessionId, true);
-  const ended = session.isError;
-  const conversation = useSecretConversation(role, privateKey, session.data);
+  const ended = isSecretEnded(session.error);
+  const conversation = useSecretConversation(
+    role,
+    privateKey,
+    session.data,
+    session.dataUpdatedAt
+  );
   useCancelOnUnmount(sessionId);
   const open = session.data?.state === "OPEN";
   const title =

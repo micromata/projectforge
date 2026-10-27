@@ -279,6 +279,8 @@ class ChatSecretSession(
     val waiting: Int,
     /** The highest counter of the logged-in user's messages the partner has taken. */
     val readCounter: Long,
+    /** The highest counter of the logged-in user's messages the relay has accepted (to resume after a lost answer). */
+    val sentCounter: Long,
     /** The end of the session if nothing more is sent. */
     val expiresAt: Date,
 )

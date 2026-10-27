@@ -154,6 +154,7 @@ class ChatSecretRelayTest : AbstractTestBase() {
         assertEquals(listOf(1L), relay.take(session.id).map { it.counter })
         logon("chatSecret1-recipient")
         assertEquals(1L, relay.get(session.id)!!.read(recipientId))
+        assertEquals(2L, relay.get(session.id)!!.sent(senderId), "the highest accepted counter, to resume after a lost answer")
     }
 
     @Test
