@@ -82,6 +82,13 @@ class DatevRecordImportDTO(
     var dateHint: String? = null,
     /** The id of the matching database record, set during reconcile; null for a new record. */
     var id: Long? = null,
+    /**
+     * Set during reconcile: the stored record is reallocated (has kost2 shares), but the file changes its kost2 or
+     * amount, so the import discards the shares (the record counts on its own kost2 again). Not part of the diff.
+     */
+    var reallocationDiscarded: Boolean = false,
+    /** The descriptions of the reallocation runs of the discarded shares (to be re-applied). Not part of the diff. */
+    var reallocationRuns: String? = null,
 ) : ImportPairEntry.Modified<DatevRecordImportDTO> {
 
     /** Parse errors kept on the DTO so they survive reconcile, which rebuilds the pair entries. */
@@ -92,6 +99,20 @@ class DatevRecordImportDTO(
     }
 
     fun getErrors(): List<String> = errors.toList()
+
+    /**
+     * Does the import of this read record discard the kost2 shares of the [stored] one? Only if its kost2 or amount
+     * changes: the shares hang on the id of the record and fit as long as both are unchanged.
+     */
+    fun changesKost2OrAmountOf(stored: DatevRecordImportDTO?): Boolean {
+        stored?.id ?: return false
+        if (kost2Id != stored.kost2Id) {
+            return true
+        }
+        val amount = betrag ?: return stored.betrag != null
+        val storedAmount = stored.betrag ?: return true
+        return amount.compareTo(storedAmount) != 0
+    }
 
     override val properties: Array<KProperty<*>>
         get() = arrayOf(

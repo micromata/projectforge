@@ -2,6 +2,7 @@ import { BUCHUNGSSATZ_METADATA } from "@/lib/metadata/buchungssatz.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { AccountingRecordBwa } from "./accounting-record-bwa";
 import { AccountingRecordListActions } from "./accounting-record-list-actions";
+import { Kost2SharesField } from "./kost2-shares-field";
 import {
   accountingRecordSchema,
   ACCOUNTING_RECORD_FIELDS,
@@ -112,6 +113,13 @@ export const ACCOUNTING_RECORD_PAGE = definePage<
     },
     // Debit/credit ("S"/"H"), which the enum renderer shows as its translated label.
     { name: "sh", size: 80 },
+    // Reallocated by a Kost2 reallocation run: the amount counts on other cost units (the edit view lists them).
+    {
+      id: "reallocated",
+      labelKey: "fibu.kost2Reallocation.reallocated",
+      accessor: (row) => (row.reallocated ? "✓" : ""),
+      size: 100,
+    },
     { name: "text", size: 260 },
     { name: "comment", size: 220 },
   ],
@@ -164,6 +172,7 @@ export const ACCOUNTING_RECORD_PAGE = definePage<
           { custom: GegenKontoField },
           { name: "text", span: 2, readOnly: true },
           { name: "menge", readOnly: true },
+          { custom: Kost2SharesField },
           // The only editable field — the annotation a user may add to an imported booking.
           { name: "comment", span: 3, rows: 3 },
         ],

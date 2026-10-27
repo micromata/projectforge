@@ -1,6 +1,7 @@
 # Kost2-Reallokation von Buchungssätzen (rückwirkender Projektumzug)
 
-Status: geplant, noch nichts umgesetzt. Ziel-Release: das nächste (`version` in `gradle.properties`).
+Status: Phasen 1–3 sind umgesetzt (Migration `V9.0.19.1__RELEASE-Kost2Reallocation.sql`), Phase 4 und 5 sind offen.
+Ziel-Release: das nächste (`version` in `gradle.properties`).
 
 Dieses Dokument ist auf Deutsch geschrieben, weil es ein Buchhaltungsthema ist. Bezeichner im Code bleiben englisch.
 
@@ -64,6 +65,36 @@ Flyway: `V<release>.<n>__RELEASE-Kost2Reallocation.sql` (Release = `version` aus
      `insertOrUpdate` (`DatevRecordImportJob.run`), das würde die Anteile löschen.
    - Die Anteile haben ein eigenes DAO. Sie werden gesammelt über `buchungssatz.id IN (...)` geladen, in Blöcken
      unterhalb des Limits für Bind-Parameter.
+
+### Anteile pro Lauf versioniert (umgesetzt)
+Ein späterer Lauf kann einen Satz erneut aufteilen, und ein Revert muss die früheren Anteile zurückholen. Deshalb gilt:
+- Die **aktiven** Anteile eines Satzes sind die mit `deleted = false` und `superseded_by_run_fk IS NULL`.
+- Teilt Lauf N einen Satz neu auf, markiert er die aktiven Anteile als `superseded_by_run_fk = N` und legt seine eigenen
+  an (`run_fk = N`).
+- Revert von N löscht die Anteile mit `run_fk = N` und setzt `superseded_by_run_fk = N` zurück. Er ist verweigert, wenn
+  ein späterer Lauf Anteile von N überholt oder dieselben Zeitberichte umgezogen hat, oder wenn ein umgezogener
+  Zeitbericht seitdem geändert wurde (anderer Task oder andere Kost2 als laut Protokoll). Gelöschte Zeitberichte bleiben,
+  wie sie sind.
+- Der DATEV-Reimport markiert die Anteile eines Satzes als gelöscht, wenn sich Kost2 oder Betrag ändern. Das entscheidet
+  der Import-Job in seiner Transaktion aus der Datenbank; die Markierung in der Vorschau ist nur Anzeige.
+  **Erneut anwenden** (`POST reapply`) rechnet sie aus dem Zeitberichtsprotokoll und den Regeln neu: Basis auf A sind die
+  aktuellen Millis auf A plus die Millis, die dieser und spätere Läufe von A weggezogen haben. Die Zeitberichte bleiben
+  unverändert. Frühere Läufe mit verworfenen Anteilen derselben Sätze sind zuerst erneut anzuwenden.
+- Anwenden ist nur aus dem Entwurf möglich und läuft in einer Transaktion. Anwenden, erneut Anwenden und Revert sperren
+  zuerst die Zeile des Laufs (bedingtes Update auf den erwarteten Status) und rechnen erst danach; ein gleichzeitiger
+  zweiter Aufruf wartet und findet dann den neuen Status vor. Ein zweiter Aufruf mit denselben Parametern ändert nichts (die Zeitberichte zeigen das Merkmal nicht mehr, die Quellen der Regeln passen nicht mehr).
+
+### Regeln und Gehaltssätze (umgesetzt)
+Gehaltssätze (Konto 6000 / Gegenkonto 3791) werden nur über die Zeitberichte aufgeteilt. Eine Regel A → B erfasst sie nur,
+wenn ihr Kontenbereich das Gehaltskonto ausdrücklich enthält; sonst würde sie die Zeitberichts-Aufteilung überstimmen.
+Regeln verketten sich nicht: Sie lesen die Beträge vor den Regeln (A → B und B → C bringt A nur nach B), und je Quelle
+gilt die erste passende Regel.
+
+### Millis der Zeitberichte (umgesetzt)
+Der Gehaltsexport teilt nach `kost2Durations[k].millis`. Der Arbeitsanteil (`workFraction`) ist je Kost2 gleich, kürzt
+sich also heraus. Die Millis je Zeitbericht (nach der Überlappungsaufteilung) liefert
+`MonthlyEmployeeReport.kost2TimesheetAttendances`. Die Aufteilung selbst steht in `EmployeeSalarySplit` und wird vom
+Export und von der Plausibilitätsprüfung gemeinsam benutzt.
 
 ## Zentrale Wiederverwendung: die effektive Sicht
 `BuchungssatzKost2ShareService.expand(records): List<BuchungssatzDO>`:
@@ -159,9 +190,10 @@ Abgleich in `DatevRecordImportStorage` und im Job:
      2. danach die Zeitberichte aus Schritt 2 umstellen: Kost2 → B, bei den von Hand ausgewählten auch der Task;
      3. je Zeitbericht einen Protokolleintrag schreiben.
    - Die Reihenfolge ist wichtig: Nach dem Umstellen ist das Merkmal aus Schritt 2 weg.
-   - Privilegierter Pfad für FINANCE, in beide Richtungen getestet:
+   - Privilegierter Pfad für FINANCE, in beide Richtungen getestet (`TimesheetDao.reallocate`):
      - Er umgeht `checkTimesheetProtection` (`protectTimesheetsUntil`), auch für FINANCEs eigene Zeitberichte.
-     - `validateKost2` akzeptiert ein beendetes Quellprojekt.
+     - `validateKost2` wird übersprungen (beendetes Projekt, Kost2 des Tasks); sonst stellt der Revert die alte Kost2
+       unter dem neuen Task nicht wieder her.
    - Die Historie der Zeitberichte bleibt erhalten, weil das Umstellen über `timesheetDao.update` läuft.
    - Revert: löscht die Anteile des Laufs und stellt die Zeitberichte laut Protokoll auf alten Task und alte Kost2
      zurück. Nur erlaubt, wenn kein späterer Lauf dieselben Sätze oder Zeitberichte geändert hat.

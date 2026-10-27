@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Cost 2 reallocation: accounting records, salaries included, can be reallocated retroactively from a collective cost unit to a project, with the time sheets moved along. The original booking stays; the contribution margin, the reporting and the scripts use the reallocated shares, which are kept when the DATEV import is repeated and can be reverted.",
+  "de": "Kost2-Reallokation: Buchungssätze, auch Gehälter, lassen sich rückwirkend von einer Sammel-Kost2 auf ein Projekt umbuchen, die Zeitberichte ziehen mit um. Die ursprüngliche Buchung bleibt erhalten; Deckungsbeitrag, Reporting und Skripte rechnen mit den reallokierten Anteilen, die beim erneuten Datev-Import erhalten bleiben und sich zurücknehmen lassen."
+}

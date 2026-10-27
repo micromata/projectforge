@@ -28,6 +28,7 @@ import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.datev.DatevImportService
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.BuchungssatzDao
+import org.projectforge.business.fibu.kost.reallocation.BuchungssatzKost2ShareDao
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.SHType
 import org.projectforge.business.user.UserRightValue
@@ -41,12 +42,14 @@ private val log = KotlinLogging.logger {}
 /**
  * Persists the selected DATEV accounting record import rows. A row with a matching database record
  * ([ImportPairEntry.stored]) is updated by its id, an unmatched row is inserted; records are never deleted.
+ * The kost2 shares of a reallocated record are kept, unless its kost2 or amount changes (they are discarded then).
  * The voucher date is stored as read, even if it lies outside the booking batch (year/month).
  *
  * @author Kai Reinhard
  */
 class DatevRecordImportJob(
     private val buchungssatzDao: BuchungssatzDao,
+    private val shareDao: BuchungssatzKost2ShareDao,
     private val kontoCache: KontoCache,
     private val kostCache: KostCache,
     private val selectedEntries: List<ImportPairEntry<DatevRecordImportDTO>>,
@@ -107,11 +110,19 @@ class DatevRecordImportJob(
         totalNumber = toPersist.size
         try {
             buchungssatzDao.persistenceService.runInTransaction { context ->
+                // Decided here from the database, not from the preview (a run may have been applied or reverted since).
+                val discardedReallocations = discardedReallocations(toPersist)
                 toPersist.chunked(INSERT_BLOCK_SIZE).forEach { block ->
                     buchungssatzDao.insertOrUpdate(block, checkAccess = false)
                     context.flush()
                     processedNumber += block.size
                     log.info { "Saved $processedNumber of $totalNumber accounting records." }
+                }
+                if (discardedReallocations.isNotEmpty()) {
+                    val count = shareDao.discardForRecords(discardedReallocations)
+                    log.info {
+                        "Discarded $count kost2 shares of ${discardedReallocations.size} reallocated accounting records (kost2 or amount changed)."
+                    }
                 }
             }
         } catch (ex: Exception) {
@@ -120,6 +131,26 @@ class DatevRecordImportJob(
             throw ex
         }
         log.info { "Import completed: inserted=${result.inserted}, updated=${result.updated}." }
+    }
+
+    /**
+     * The ids of the reallocated records (with active kost2 shares) whose kost2 or amount the import changes: they lose
+     * their kost2 shares (the runs may be re-applied).
+     */
+    private fun discardedReallocations(toPersist: List<BuchungssatzDO>): List<Long> {
+        val byId = toPersist.filter { it.id != null }.associateBy { it.id!! }
+        if (byId.isEmpty()) {
+            return emptyList()
+        }
+        val reallocatedIds = shareDao.selectRecordIdsWithActiveShares(byId.keys)
+        if (reallocatedIds.isEmpty()) {
+            return emptyList()
+        }
+        return buchungssatzDao.select(reallocatedIds, checkAccess = false).orEmpty().filter { stored ->
+            val satz = byId[stored.id] ?: return@filter false
+            val storedBetrag = stored.betrag
+            satz.kost2?.id != stored.kost2?.id || storedBetrag == null || satz.betrag?.compareTo(storedBetrag) != 0
+        }.mapNotNull { it.id }
     }
 
     private fun buildRecord(read: DatevRecordImportDTO): BuchungssatzDO? {

@@ -57,9 +57,9 @@ import java.util.*;
  */
 @Service
 public class EmployeeSalaryExportDao {
-  public static final int KONTO = 6000;
+  public static final int KONTO = EmployeeSalarySplit.KONTO;
 
-  public static final int GEGENKONTO = 3791;
+  public static final int GEGENKONTO = EmployeeSalarySplit.GEGENKONTO;
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeSalaryExportDao.class);
   @Autowired
   private MonthlyEmployeeReportDao monthlyEmployeeReportDao;
@@ -195,39 +195,28 @@ public class EmployeeSalaryExportDao {
       final Kost1DO kost1 = salary.getEmployee().getKost1();
       final BigDecimal bruttoMitAGAnteil = salary.getBruttoMitAgAnteil();
       final BigDecimal netDuration = new BigDecimal(report.getTotalNetDuration());
-      final Map<String, Kost2Row> rows = report.getKost2Rows();
+      final List<EmployeeSalarySplit.Part> parts = EmployeeSalarySplit.split(bruttoMitAGAnteil, report);
       BigDecimal sum = BigDecimal.ZERO;
-      int j = rows.size();
-      for (final Kost2Row row : rows.values()) {
-        final Kost2DO kost2 = row.kost2;
-        final MonthlyEmployeeReportEntry entry = report.getKost2Durations().get(kost2.getId());
+      for (final EmployeeSalarySplit.Part part : parts) {
+        final Kost2DO kost2 = part.getKost2();
         mapping.add(ExcelColumn.KOST1, kost1.getNummer());
         mapping.add(ExcelColumn.MITARBEITER, user.getFullname());
         mapping.add(ExcelColumn.KOST2, kost2.getNummer());
-        final BigDecimal duration = new BigDecimal(entry.getMillis() / 1000); // Seconds
-        // duration = duration.divide(new BigDecimal(60 * 60 * 24), 8, RoundingMode.HALF_UP); // Fraction of day (24 hours)
-        // mapping.add(ExcelColumn.STUNDEN, duration);
+        final BigDecimal duration = new BigDecimal(part.getMillis() / 1000); // Seconds
         mapping.add(ExcelColumn.STUNDEN, duration.divide(new BigDecimal(3600), 2, RoundingMode.HALF_UP));
         mapping.add(ExcelColumn.BEZEICHNUNG, kost2.getToolTip());
-        final BigDecimal betrag;
-        if (NumberHelper.isNotZero(netDuration)) {
-          betrag = CurrencyHelper.multiply(bruttoMitAGAnteil,
-                  new BigDecimal(entry.getMillis()).divide(netDuration, 8, RoundingMode.HALF_UP));
-        } else {
-          betrag = BigDecimal.ZERO;
-        }
-        sum = sum.add(betrag);
-        if (--j == 0) {
-          final BigDecimal korrektur = bruttoMitAGAnteil.subtract(sum);
-          mapping.add(ExcelColumn.BRUTTO_MIT_AG, betrag.add(korrektur));
+        sum = sum.add(part.getAmount());
+        final BigDecimal korrektur = part.getCorrection();
+        if (korrektur != null) { // Last part.
+          mapping.add(ExcelColumn.BRUTTO_MIT_AG, part.getAmount());
           mapping.add(ExcelColumn.KORREKTUR, korrektur);
-          if (NumberHelper.isEqual(sum.add(korrektur), bruttoMitAGAnteil)) {
+          if (NumberHelper.isEqual(sum, bruttoMitAGAnteil)) {
             mapping.add(ExcelColumn.SUMME, bruttoMitAGAnteil);
           } else {
             mapping.add(ExcelColumn.SUMME, "*** " + sum + " != " + bruttoMitAGAnteil);
           }
         } else {
-          mapping.add(ExcelColumn.BRUTTO_MIT_AG, betrag);
+          mapping.add(ExcelColumn.BRUTTO_MIT_AG, part.getAmount());
           mapping.add(ExcelColumn.KORREKTUR, "");
           mapping.add(ExcelColumn.SUMME, "");
         }

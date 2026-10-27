@@ -112,6 +112,13 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     @get:Transient
     open var isIgnore = false
 
+    /**
+     * Only set for a transient copy of the effective view (one copy per kost2 share of a reallocated record, see
+     * `BuchungssatzKost2ShareService.expand`): the stored record. Null for stored records.
+     */
+    @get:Transient
+    open var originalRecord: BuchungssatzDO? = null
+
     @PropertyInfo(i18nKey = "fibu.buchungssatz.konto")
     @IndexedEmbedded(includeDepth = 1)
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)

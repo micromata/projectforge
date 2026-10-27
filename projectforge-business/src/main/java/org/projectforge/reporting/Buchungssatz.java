@@ -76,7 +76,27 @@ public interface Buchungssatz
 
   Kost1 getKost1();
 
+  /** @return Kost2, for a reallocated record (effective view) the kost2 of its share. */
   Kost2 getKost2();
+
+  /**
+   * @return True, if this is a kost2 share of a reallocated record (effective view): {@link #getKost2()} and
+   * {@link #getBetrag()} are the ones of the share, {@link #getOriginalKost2()} and {@link #getOriginalBetrag()} the
+   * ones of the stored record.
+   */
+  default boolean isReallocated() {
+    return false;
+  }
+
+  /** @return The kost2 of the stored record (also for a share of a reallocated record). */
+  default Kost2 getOriginalKost2() {
+    return getKost2();
+  }
+
+  /** @return The amount of the stored record (also for a share of a reallocated record). */
+  default BigDecimal getOriginalBetrag() {
+    return getBetrag();
+  }
 
   /**
    * Kommt nicht über die Buchhaltung, sondern kann nachträglich über ProjectForge angelegt werden.

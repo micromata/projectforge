@@ -25,6 +25,7 @@ package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.SHType
+import org.projectforge.business.fibu.kost.reallocation.Kost2ShareSource
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -42,8 +43,27 @@ class Buchungssatz(
         var kost1: Kost1? = null,
         var kost2: Kost2? = null,
         var konto: Konto? = null,
-        var gegenKonto: Konto? = null
+        var gegenKonto: Konto? = null,
+        /**
+         * True, if the record is reallocated (has kost2 shares). For a share of the effective view (report
+         * drill-down), [betrag] and [kost2] are the ones of the share, [originalBetrag] and [originalKost2] the ones
+         * of the stored record.
+         */
+        var reallocated: Boolean = false,
+        var originalBetrag: BigDecimal? = null,
+        var originalKost2: Kost2? = null,
+        /** The kost2 shares of a reallocated record (only filled for the edit view). */
+        var shares: List<Kost2Share>? = null,
 ) : BaseDTO<BuchungssatzDO>() {
+
+    /** A kost2 share of a reallocated record. */
+    class Kost2Share(
+        var kost2: Kost2? = null,
+        var betrag: BigDecimal? = null,
+        var source: Kost2ShareSource? = null,
+        var runId: Long? = null,
+        var runDescription: String? = null,
+    )
 
     override fun copyFrom(src: BuchungssatzDO) {
         super.copyFrom(src)
@@ -61,6 +81,11 @@ class Buchungssatz(
         }
         this.gegenKonto = src.gegenKonto?.let {
             Konto(it)
+        }
+        src.originalRecord?.let { original ->
+            this.reallocated = true
+            this.originalBetrag = original.betrag
+            this.originalKost2 = original.kost2?.let { Kost2(it) }
         }
     }
 }

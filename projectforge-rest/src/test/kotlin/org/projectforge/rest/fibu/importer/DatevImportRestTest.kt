@@ -43,6 +43,8 @@ import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.BuchungssatzDao
+import org.projectforge.business.fibu.kost.reallocation.BuchungssatzKost2ShareDao
+import org.projectforge.business.fibu.kost.reallocation.BuchungssatzKost2ShareService
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.business.fibu.kost.Kost2DO
@@ -80,6 +82,9 @@ class DatevImportRestTest {
     private lateinit var kostCache: KostCache
     private lateinit var buchungssatzDao: BuchungssatzDao
     private val storedRecords = mutableListOf<BuchungssatzDO>()
+
+    /** The ids of the stored records with kost2 shares (reallocated), with the description of their run. */
+    private val reallocatedRecords = mutableMapOf<Long, String>()
 
     private val konto4400 = konto(1L, 4400, "Erlöse")
     private val konto1200 = konto(2L, 1200, "Bank")
@@ -120,6 +125,14 @@ class DatevImportRestTest {
         Mockito.`when`(applicationContext.getBean(KontoCache::class.java)).thenReturn(kontoCache)
         Mockito.`when`(applicationContext.getBean(KostCache::class.java)).thenReturn(kostCache)
         Mockito.`when`(applicationContext.getBean(BuchungssatzDao::class.java)).thenReturn(buchungssatzDao)
+        val shareService = Mockito.mock(BuchungssatzKost2ShareService::class.java) { invocation ->
+            if (invocation.method.name == "runDescriptionsByRecordId") {
+                invocation.getArgument<Collection<Long>>(0).mapNotNull { id -> reallocatedRecords[id]?.let { id to it } }.toMap()
+            } else {
+                Mockito.RETURNS_DEFAULTS.answer(invocation)
+            }
+        }
+        Mockito.`when`(applicationContext.getBean(BuchungssatzKost2ShareService::class.java)).thenReturn(shareService)
         ApplicationContextProvider().setApplicationContext(applicationContext)
     }
 
@@ -209,6 +222,24 @@ class DatevImportRestTest {
         assertEquals(HttpStatus.OK, commitResponse.statusCode)
         assertEquals(1, enqueuedJobs.size)
         assertTrue(enqueuedJobs.first() is DatevRecordImportJob)
+    }
+
+    @Test
+    fun `reallocated records whose amount changes lose their kost2 shares`() {
+        // Both stored records are reallocated; #1 is unchanged by the file, #2 gets another amount.
+        storedRecords.add(stored(id = 100L, satznr = 1, betrag = "-1234.56", datum = LocalDate.of(2026, 7, 15)))
+        storedRecords.add(stored(id = 101L, satznr = 2, betrag = "99.00", datum = LocalDate.of(2026, 8, 13)))
+        reallocatedRecords[100L] = "Run 1"
+        reallocatedRecords[101L] = "Run 1, Run 2"
+        val storage = DatevRecordImportStorage({ _, _ -> storedRecords.toList() })
+        storage.filename = FILENAME
+        DatevRecordExcelImporter(kontoCache, kostCache).parse(buildXlsx().inputStream(), storage)
+        storage.reconcileImportStorage(rereadDatabaseEntries = true)
+        val bySatznr = storage.pairEntries.associateBy { it.read?.satznr }
+        assertFalse(bySatznr[1]!!.read!!.reallocationDiscarded, "Unchanged kost2 and amount: the shares stay.")
+        assertTrue(bySatznr[2]!!.read!!.reallocationDiscarded)
+        assertEquals("Run 1, Run 2", bySatznr[2]!!.read!!.reallocationRuns)
+        assertFalse(bySatznr[3]!!.read!!.reallocationDiscarded, "A new record has no shares.")
     }
 
     @Test
@@ -343,7 +374,7 @@ class DatevImportRestTest {
     }
 
     private fun parseRecords(): DatevRecordImportStorage {
-        val storage = DatevRecordImportStorage { _, _ -> emptyList() }
+        val storage = DatevRecordImportStorage(loadBatch = { _, _ -> emptyList() })
         storage.filename = FILENAME
         DatevRecordExcelImporter(kontoCache, kostCache).parse(buildXlsx().inputStream(), storage)
         return storage
@@ -464,6 +495,7 @@ class DatevImportRestTest {
     private fun recordRest(enqueuedJobs: MutableList<AbstractJob> = mutableListOf()) = DatevRecordImportRest().also {
         setField(it, "accessChecker", Mockito.mock(AccessChecker::class.java))
         setField(it, "buchungssatzDao", buchungssatzDao)
+        setField(it, "buchungssatzKost2ShareDao", Mockito.mock(BuchungssatzKost2ShareDao::class.java))
         setField(it, "kontoCache", kontoCache)
         setField(it, "kostCache", kostCache)
         setField(it, "parser", parser())

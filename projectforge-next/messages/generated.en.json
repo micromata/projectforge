@@ -1784,6 +1784,7 @@
       "vollstaendigFakturiert": "completely invoiced",
       "zahlung": "Payment"
     },
+    "buchungssaetze": "Accounting records",
     "buchungssatz": {
       "_": "Accounting record",
       "beleg": "Receipt",
@@ -2193,6 +2194,57 @@
         "list": "List of cost 2 ids"
       },
       "workFraction": "Work time fraction"
+    },
+    "kost2Reallocation": {
+      "after": "After",
+      "appliedAt": "Applied at",
+      "apply": "Apply",
+      "before": "Before",
+      "confirm": {
+        "apply": "Store the cost 2 shares and move the time sheets to the target project? This changes the evaluations of the projects; the run can be reverted.",
+        "delete": "Delete the draft?",
+        "revert": "Delete the shares of the run, restore the previous ones and move the time sheets back?"
+      },
+      "defaultRules": "Default rules",
+      "detect": "Detect time sheets",
+      "detected": "Detected time sheets",
+      "discarded": "Reallocation discarded (runs)",
+      "found": "Time sheets found (select by hand)",
+      "fromMonth": "From month",
+      "fromYear": "From year",
+      "needsReapply": "shares were discarded by a DATEV reimport, to be re-applied",
+      "new": "New run",
+      "period": "Period",
+      "preview": "Preview",
+      "reallocated": "reallocated",
+      "reapply": "Re-apply",
+      "revert": "Revert",
+      "rule": {
+        "kontoFrom": "Account from",
+        "kontoTo": "Account to",
+        "source": "Source cost 2",
+        "target": "Target cost 2"
+      },
+      "searchTask": "Collective structure element to search",
+      "shares": "Cost 2 shares",
+      "sourceKost2": "Source cost 2 (collective)",
+      "status": {
+        "APPLIED": "Applied",
+        "DRAFT": "Draft",
+        "REVERTED": "Reverted"
+      },
+      "step": {
+        "definition": "Run",
+        "preview": "Preview",
+        "timesheets": "Time sheets"
+      },
+      "sums": "Sums per cost 2",
+      "targetProject": "Target project",
+      "targetTask": "Target task",
+      "timesheets": "Time sheets to move",
+      "title": "Cost 2 reallocation",
+      "toMonth": "To month",
+      "toYear": "To year"
     },
     "kost2art": {
       "kost2arten": "Cost 2 types",
@@ -3363,6 +3415,7 @@
       "kost": "Cost",
       "kost1": "Cost 1 ids",
       "kost2": "Cost 2 ids",
+      "kost2Reallocation": "Cost 2 reallocation",
       "kost2arten": "Cost 2 types",
       "kostSearch": "Cost search",
       "kunden": "Customers",

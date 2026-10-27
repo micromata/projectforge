@@ -106,6 +106,9 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     /** Set by [runAccepting] only: [onUpdate] keeps the stored [TimesheetDO.acceptancePending] otherwise. */
     private val accepting = ThreadLocal<Boolean>()
 
+    /** Set by [reallocate] only: [onUpdate] keeps the booking grant and skips the validation of the cost unit. */
+    private val reallocating = ThreadLocal<Boolean>()
+
     @PostConstruct
     fun init() {
         AITimeSavings.timeSavingsByAIEnabled = timeSavingsByAIEnabled
@@ -446,7 +449,9 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         // Never changed by the client: the grant stays, the acceptance is done by runAccepting only.
         obj.bookingGrant = dbObj.bookingGrant
         obj.acceptancePending = dbObj.acceptancePending
-        if (accepting.get() == true && dbObj.acceptancePending) {
+        if (reallocating.get() == true) {
+            // Moved by the Kost2 reallocation: the booking grant and the acceptance stay as they are.
+        } else if (accepting.get() == true && dbObj.acceptancePending) {
             if (!hasForeignTimesheetWriteAccess(ThreadLocalUserContext.requiredLoggedInUser, dbObj.taskId)) {
                 throw AccessException("access.exception.noAccess")
             }
@@ -468,7 +473,9 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         if (compareValues(obj.taskId, dbObj.taskId) != 0) {
             taskTree.resetTotalDuration(dbObj.taskId!!)
         }
-        if (compareValues(obj.taskId, dbObj.taskId) != 0 || compareValues(obj.kost2Id, dbObj.kost2Id) != 0) {
+        if (reallocating.get() != true &&
+            (compareValues(obj.taskId, dbObj.taskId) != 0 || compareValues(obj.kost2Id, dbObj.kost2Id) != 0)
+        ) {
             validateKost2(obj)
         }
     }
@@ -891,6 +898,32 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             return block()
         } finally {
             accepting.remove()
+        }
+    }
+
+    /**
+     * Moves the time sheet to the given task and cost unit for the Kost2 reallocation of finance (applying or reverting
+     * a run). Finance members only, also for their own time sheets: the time sheet protection
+     * ([checkTimesheetProtection]), the bookability of the task and the cost unit of the task ([validateKost2]) aren't
+     * checked, as the reallocation moves time sheets of months already exported (also of ended projects) and the
+     * revert restores the old cost unit under the new task. Times are unchanged, the other checks of an update
+     * ([onInsertOrModify]) remain. The history shows the change.
+     * @throws AccessException if the logged-in user isn't a member of the finance group.
+     */
+    open fun reallocate(timesheet: TimesheetDO, task: TaskDO, kost2: Kost2DO?) {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
+            throw AccessException(
+                user, "access.exception.userHasNotRight", ProjectForgeGroup.FINANCE_GROUP.key, OperationType.UPDATE,
+            )
+        }
+        timesheet.task = task
+        timesheet.kost2 = kost2
+        reallocating.set(true)
+        try {
+            update(timesheet, checkAccess = false)
+        } finally {
+            reallocating.remove()
         }
     }
 

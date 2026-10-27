@@ -591,6 +591,12 @@ open class MenuCreator {
                     checkAccess =
                     { Configuration.instance.isCostConfigured })
             )
+            .add(
+                MenuItemDef(MenuItemDefId.KOST2_REALLOCATION,
+                    requiredGroups = arrayOf(ProjectForgeGroup.FINANCE_GROUP),
+                    checkAccess =
+                    { Configuration.instance.isCostConfigured })
+            )
 
         //////////////////////////////////////
         //

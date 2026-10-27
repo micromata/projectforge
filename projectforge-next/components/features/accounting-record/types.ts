@@ -38,8 +38,21 @@ export interface AccountingRecordDetail {
   kost2?: EntityRef | null;
   konto?: EntityRef | null;
   gegenKonto?: EntityRef | null;
+  /** The record is reallocated (Kost2 reallocation): it has kost2 shares. */
+  reallocated?: boolean;
+  /** Only for the edit view of a reallocated record: the shares that replace its own cost unit. */
+  shares?: Kost2Share[] | null;
   created?: string | null;
   lastUpdate?: string | null;
+}
+
+/** `Buchungssatz.Kost2Share`: a part of the amount that counts on another cost unit. */
+export interface Kost2Share {
+  kost2?: EntityRef | null;
+  betrag?: number | null;
+  source?: "SALARY" | "INVOICE" | "INCOMING_INVOICE" | "RULE" | null;
+  runId?: number | null;
+  runDescription?: string | null;
 }
 
 export interface AccountingRecordListRow extends AccountingRecordDetail {

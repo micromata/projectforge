@@ -22,6 +22,14 @@ export const DATEV_RECORD_IMPORT_COLUMNS: ImportColumn[] = [
     kind: "text",
     width: 220,
   },
+  // The stored record is reallocated (Kost2 reallocation) and this import changes its cost unit or amount: the
+  // shares of these runs are discarded (the runs can be re-applied afterwards).
+  {
+    field: "reallocationRuns",
+    headerKey: "fibu.kost2Reallocation.discarded",
+    kind: "text",
+    width: 180,
+  },
   {
     field: "betrag",
     headerKey: "fibu.common.betrag",

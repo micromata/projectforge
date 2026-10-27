@@ -28,6 +28,7 @@ import org.projectforge.business.PfCaches;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BuchungssatzDao;
 import org.projectforge.business.fibu.kost.BuchungssatzFilter;
+import org.projectforge.business.fibu.kost.reallocation.BuchungssatzKost2ShareService;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.xmlstream.XStreamHelper;
@@ -51,6 +52,9 @@ public class ReportDao {
 
   @Autowired
   private BuchungssatzDao buchungssatzDao;
+
+  @Autowired
+  private BuchungssatzKost2ShareService buchungssatzKost2ShareService;
 
   public ReportDao() {
     xstream = XStreamHelper.createXStream(ReportObjective.class);
@@ -111,7 +115,9 @@ public class ReportDao {
     // This also keeps the records usable after the request, as the report lives in the user's session.
     final PfCaches pfCaches = PfCaches.getInstance();
     list.forEach(pfCaches::initialize);
-    report.select(list);
+    // Reallocated records count with their kost2 shares (effective view), so the kost2 filters of the report objectives
+    // see the reallocated kost2.
+    report.select(buchungssatzKost2ShareService.expand(list));
   }
 
   public ReportObjective deserializeFromXML(String xml) {

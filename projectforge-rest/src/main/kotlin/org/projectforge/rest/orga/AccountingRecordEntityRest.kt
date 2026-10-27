@@ -24,10 +24,14 @@
 package org.projectforge.rest.orga
 
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.BuchungssatzDao
+import org.projectforge.business.fibu.kost.reallocation.BuchungssatzKost2ShareDO
+import org.projectforge.business.fibu.kost.reallocation.BuchungssatzKost2ShareService
+import org.projectforge.business.fibu.kost.reallocation.Kost2ReallocationDao
 import org.projectforge.business.fibu.kost.reporting.ReportStorage
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
@@ -48,6 +52,8 @@ import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.Buchungssatz
 import org.projectforge.rest.dto.BwaStatistics
+import org.projectforge.rest.dto.Kost2
+import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
@@ -81,6 +87,15 @@ class AccountingRecordEntityRest :
     @Autowired
     private lateinit var kontoCache: KontoCache
 
+    @Autowired
+    private lateinit var caches: PfCaches
+
+    @Autowired
+    private lateinit var shareService: BuchungssatzKost2ShareService
+
+    @Autowired
+    private lateinit var kost2ReallocationDao: Kost2ReallocationDao
+
     /**
      * The DATEV-import right the Wicket `AccountingRecordListPage`/`AccountingRecordEditPage` gate on — kept
      * here so the migrated page is no more permissive than the pages it replaces. The DAO's group-only
@@ -105,7 +120,25 @@ class AccountingRecordEntityRest :
         checkDatevImportAccess() // choke point for every read (list rows, edit read, report drill-down).
         val buchungssatz = Buchungssatz()
         buchungssatz.copyFrom(obj)
+        if (editMode && obj.originalRecord == null) {
+            val shares = shareService.activeShares(obj)
+            if (shares.isNotEmpty()) {
+                buchungssatz.reallocated = true
+                buchungssatz.shares = shares.map { toShareDTO(it) }
+            }
+        }
         return buchungssatz
+    }
+
+    private fun toShareDTO(share: BuchungssatzKost2ShareDO): Buchungssatz.Kost2Share {
+        val runId = share.run?.id
+        return Buchungssatz.Kost2Share(
+            kost2 = caches.getKost2(share.kost2?.id)?.let { Kost2(it) },
+            betrag = share.betrag,
+            source = share.source,
+            runId = runId,
+            runDescription = runId?.let { kost2ReallocationDao.find(it, checkAccess = false)?.description },
+        )
     }
 
     override fun newDTO(): Buchungssatz {
@@ -193,6 +226,11 @@ class AccountingRecordEntityRest :
         magicFilter: MagicFilter,
     ): ResultSet<*> {
         val result = super.postProcessResultSet(resultSet, request, magicFilter)
+        // The reallocated records of the list (one query for the whole page).
+        @Suppress("UNCHECKED_CAST")
+        val rows = result.resultSet as List<Buchungssatz>
+        val reallocatedIds = shareService.recordIdsWithActiveShares(rows.mapNotNull { it.id })
+        rows.forEach { it.reallocated = it.reallocated || it.id in reallocatedIds }
         if (resultSet.offset == null) {
             result.statistics = BwaStatistics.from(resultSet.resultSet)
         }
@@ -271,8 +309,11 @@ class AccountingRecordEntityRest :
             sheet.registerColumn(translate("fibu.buchungssatz.text"), COL_TEXT).withSize(40)
             sheet.registerColumn(translate("fibu.buchungssatz.menge"), COL_QUANTITY).withSize(10)
             sheet.registerColumn(translate("comment"), COL_COMMENT).withSize(40)
+            sheet.registerColumn(translate("fibu.kost2Reallocation.reallocated"), COL_REALLOCATED).withSize(10)
+            sheet.registerColumn(translate("fibu.kost2Reallocation.shares"), COL_SHARES).withSize(40)
             sheet.setColumnStyle(COL_AMOUNT, numberStyle)
             ExcelUtils.addHeadRow(sheet)
+            val sharesByRecord = shareService.activeSharesByRecordId(list.mapNotNull { it.id })
             list.forEach { satz ->
                 val row = sheet.createRow()
                 if (satz.year != null && satz.month != null) {
@@ -297,6 +338,15 @@ class AccountingRecordEntityRest :
                 satz.text?.let { row.getCell(COL_TEXT)?.setCellValue(it) }
                 satz.menge?.let { row.getCell(COL_QUANTITY)?.setCellValue(it) }
                 satz.comment?.let { row.getCell(COL_COMMENT)?.setCellValue(it) }
+                sharesByRecord[satz.id]?.let { shares ->
+                    row.getCell(COL_REALLOCATED)?.setCellValue(translate("yes"))
+                    row.getCell(COL_SHARES)?.setCellValue(shares.joinToString("; ") { share ->
+                        val kost2 = KostFormatter.instance.formatKost2(
+                            caches.getKost2(share.kost2?.id), KostFormatter.FormatType.FORMATTED_NUMBER,
+                        )
+                        "$kost2: ${NumberFormatter.format(share.betrag, 2)}"
+                    })
+                }
             }
             sheet.setAutoFilter()
             val filename = "ProjectForge-AccountingRecords_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx"
@@ -332,5 +382,7 @@ class AccountingRecordEntityRest :
         private const val COL_TEXT = "text"
         private const val COL_QUANTITY = "menge"
         private const val COL_COMMENT = "comment"
+        private const val COL_REALLOCATED = "reallocated"
+        private const val COL_SHARES = "shares"
     }
 }

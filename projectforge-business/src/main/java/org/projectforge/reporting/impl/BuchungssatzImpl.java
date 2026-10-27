@@ -106,6 +106,26 @@ public class BuchungssatzImpl implements Buchungssatz
     return kost2;
   }
 
+  @Override
+  public boolean isReallocated()
+  {
+    return buchungssatz.getOriginalRecord() != null;
+  }
+
+  @Override
+  public Kost2 getOriginalKost2()
+  {
+    final BuchungssatzDO original = buchungssatz.getOriginalRecord();
+    return original != null ? new Kost2Impl(original.getKost2()) : kost2;
+  }
+
+  @Override
+  public BigDecimal getOriginalBetrag()
+  {
+    final BuchungssatzDO original = buchungssatz.getOriginalRecord();
+    return original != null ? original.getBetrag() : buchungssatz.getBetrag();
+  }
+
   public String getMenge()
   {
     return buchungssatz.getMenge();

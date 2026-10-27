@@ -27,6 +27,7 @@ import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -110,6 +111,7 @@ class AccountingRecordExcelExportTest : AbstractTestBase() {
                 "fibu.buchungssatz.satznr", "date", "fibu.common.betrag", "finance.accountingRecord.dc",
                 "fibu.buchungssatz.konto", "fibu.buchungssatz.gegenKonto", "fibu.kost1", "fibu.kost2",
                 "fibu.buchungssatz.beleg", "fibu.buchungssatz.text", "fibu.buchungssatz.menge", "comment",
+                "fibu.kost2Reallocation.reallocated", "fibu.kost2Reallocation.shares",
             ).map { translate(it) },
             sheet.getRow(0).map { it.stringCellValue },
         )
@@ -125,6 +127,9 @@ class AccountingRecordExcelExportTest : AbstractTestBase() {
         assertEquals("B-87", row.getCell(8).stringCellValue)
         assertEquals("Export record", row.getCell(9).stringCellValue)
         assertEquals("A comment", row.getCell(11).stringCellValue)
+        // Not reallocated: no kost2 shares.
+        assertNull(row.getCell(12))
+        assertNull(row.getCell(13))
     }
 
     @Test

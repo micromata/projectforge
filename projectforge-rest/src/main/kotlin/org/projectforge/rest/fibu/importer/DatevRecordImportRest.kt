@@ -29,6 +29,7 @@ import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.datev.DatevImportService
 import org.projectforge.business.fibu.kost.BuchungssatzDao
+import org.projectforge.business.fibu.kost.reallocation.BuchungssatzKost2ShareDao
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.common.DataSizeConfig
 import org.projectforge.framework.access.AccessChecker
@@ -66,6 +67,9 @@ class DatevRecordImportRest : AbstractImportRest<DatevRecordImportDTO, DatevReco
 
     @Autowired
     private lateinit var buchungssatzDao: BuchungssatzDao
+
+    @Autowired
+    private lateinit var buchungssatzKost2ShareDao: BuchungssatzKost2ShareDao
 
     @Autowired
     private lateinit var kontoCache: KontoCache
@@ -146,6 +150,7 @@ class DatevRecordImportRest : AbstractImportRest<DatevRecordImportDTO, DatevReco
         return jobHandler.addJob(
             DatevRecordImportJob(
                 buchungssatzDao,
+                buchungssatzKost2ShareDao,
                 kontoCache,
                 kostCache,
                 selectedEntries,

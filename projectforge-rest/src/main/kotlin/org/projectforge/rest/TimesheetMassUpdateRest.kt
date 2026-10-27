@@ -30,6 +30,7 @@ import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
+import org.projectforge.business.timesheet.TimesheetKost2Mapper
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.i18n.UserException
 import org.projectforge.common.logging.LogSubscription
@@ -335,7 +336,7 @@ class TimesheetMassUpdateRest : AbstractMassUpdateRest<TimesheetDO>() {
                         }
                         if (!availableKost2s.isNullOrEmpty() && timesheet.kost2?.projekt != project) {
                             // Try to find kost2 with same type (last 2 digits of projects)
-                            availableKost2s.find { it.kost2Art?.id == timesheet.kost2?.kost2Art?.id }?.let { newKost2 ->
+                            TimesheetKost2Mapper.sameKost2Art(timesheet.kost2, availableKost2s)?.let { newKost2 ->
                                 timesheet.kost2 = newKost2
                             }
                         }
@@ -388,7 +389,7 @@ class TimesheetMassUpdateRest : AbstractMassUpdateRest<TimesheetDO>() {
         if (availableKost2s?.any { it.id == kost2.id } == true) {
             return null
         }
-        availableKost2s?.find { it.kost2Art?.id == kost2.kost2Art?.id }?.let { newKost2 ->
+        TimesheetKost2Mapper.sameKost2Art(kost2, availableKost2s)?.let { newKost2 ->
             timesheet.kost2 = newKost2
             massUpdateContext.recordCurrentModification("kost2", kost2.formattedNumber, newKost2.formattedNumber)
             return null

@@ -74,6 +74,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     CUSTOMER_GROUPS("menu.fibu.customerGroups", "next/customerGroups"), //
 
     DATEV_IMPORT("menu.fibu.datevImport", "next/datev-import"), //
+    KOST2_REALLOCATION("menu.fibu.kost2Reallocation", "next/kost2-reallocation"), //
     // Migrated to projectforge-next (EInvoiceCheckerRest); the React page was removed.
     E_INVOICE_CHECKER("menu.fibu.eInvoiceChecker", "next/eInvoiceChecker"), //
     // Migrated to projectforge-next; the React pages were removed.

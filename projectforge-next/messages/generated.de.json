@@ -1784,6 +1784,7 @@
       "vollstaendigFakturiert": "vollständig fakturiert",
       "zahlung": "Zahlung"
     },
+    "buchungssaetze": "Buchungssätze",
     "buchungssatz": {
       "_": "Buchungssatz",
       "beleg": "Beleg",
@@ -2193,6 +2194,57 @@
         "list": "Liste der Kost2s"
       },
       "workFraction": "Arbeitszeitanteil"
+    },
+    "kost2Reallocation": {
+      "after": "Danach",
+      "appliedAt": "Angewendet am",
+      "apply": "Anwenden",
+      "before": "Vorher",
+      "confirm": {
+        "apply": "Kost2-Anteile speichern und die Zeitberichte auf das Zielprojekt umziehen? Das ändert die Auswertungen der Projekte; der Lauf lässt sich zurücknehmen.",
+        "delete": "Entwurf löschen?",
+        "revert": "Anteile des Laufs löschen, die vorherigen wiederherstellen und die Zeitberichte zurückziehen?"
+      },
+      "defaultRules": "Standardregeln",
+      "detect": "Zeitberichte erkennen",
+      "detected": "Erkannte Zeitberichte",
+      "discarded": "Reallokation verworfen (Läufe)",
+      "found": "Gefundene Zeitberichte (von Hand auswählen)",
+      "fromMonth": "Von Monat",
+      "fromYear": "Von Jahr",
+      "needsReapply": "Anteile wurden durch einen Datev-Reimport verworfen, erneut anzuwenden",
+      "new": "Neuer Lauf",
+      "period": "Zeitraum",
+      "preview": "Vorschau",
+      "reallocated": "reallokiert",
+      "reapply": "Erneut anwenden",
+      "revert": "Zurücknehmen",
+      "rule": {
+        "kontoFrom": "Konto von",
+        "kontoTo": "Konto bis",
+        "source": "Quell-Kost2",
+        "target": "Ziel-Kost2"
+      },
+      "searchTask": "Sammel-Strukturelement zum Suchen",
+      "shares": "Kost2-Anteile",
+      "sourceKost2": "Quell-Kost2 (Sammel-Kost2)",
+      "status": {
+        "APPLIED": "Angewendet",
+        "DRAFT": "Entwurf",
+        "REVERTED": "Zurückgenommen"
+      },
+      "step": {
+        "definition": "Lauf",
+        "preview": "Vorschau",
+        "timesheets": "Zeitberichte"
+      },
+      "sums": "Summen je Kost2",
+      "targetProject": "Zielprojekt",
+      "targetTask": "Ziel-Strukturelement",
+      "timesheets": "Umzuziehende Zeitberichte",
+      "title": "Kost2-Reallokation",
+      "toMonth": "Bis Monat",
+      "toYear": "Bis Jahr"
     },
     "kost2art": {
       "kost2arten": "Kost2-Arten",
@@ -3363,6 +3415,7 @@
       "kost": "Kost",
       "kost1": "Kost1",
       "kost2": "Kost2",
+      "kost2Reallocation": "Kost2-Reallokation",
       "kost2arten": "Kost2-Arten",
       "kostSearch": "Kost-Suche",
       "kunden": "Kunden",

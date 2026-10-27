@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.BuchungssatzDao
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.SHType
+import org.projectforge.business.fibu.kost.reallocation.BuchungssatzKost2ShareService
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.importer.ImportPairEntry
@@ -44,13 +45,17 @@ private val log = KotlinLogging.logger {}
  * A record is unique per booking batch and record number (year, month, satznr), so the reconcile loads each booking
  * batch once ([BuchungssatzDao.selectByMonth]) and matches on the record number. A match becomes the `stored` side
  * (→ MODIFIED/UNMODIFIED), no match is a NEW record. Records missing in the file are not deleted (as in the legacy
- * import).
+ * import). A reallocated record whose kost2 or amount the file changes is marked
+ * ([DatevRecordImportDTO.reallocationDiscarded]): the import discards its kost2 shares.
  *
  * @param loadBatch Loads all stored records of a booking batch (year, month); replaceable for tests.
+ * @param loadReallocationRuns The descriptions of the reallocation runs of the reallocated records out of the given
+ * ones (by record id); replaceable for tests.
  * @author Kai Reinhard
  */
 class DatevRecordImportStorage(
     private val loadBatch: ((year: Int, month: Int) -> List<BuchungssatzDO>)? = null,
+    private val loadReallocationRuns: ((recordIds: Collection<Long>) -> Map<Long, String>)? = null,
 ) : ImportStorage<DatevRecordImportDTO>(ImportSettings()) {
 
     override val targetEntityTitle: String
@@ -104,11 +109,41 @@ class DatevRecordImportStorage(
             read.getErrors().forEach { pairEntry.addError(it) }
             addEntry(pairEntry)
         }
+        markDiscardedReallocations()
         // Logged on a changed result only: the preview reconciles again on every change of its display options.
         val summary = DatevImportLog.reconcileSummary(pairEntries)
         if (summary != lastReconcileSummary) {
             lastReconcileSummary = summary
             log.info { "Reconciled ${pairEntries.size} accounting records of file '$filename' with the database: $summary." }
+        }
+    }
+
+    /**
+     * Marks the read records whose import discards the kost2 shares of the stored (reallocated) record, for the preview
+     * only: the import job decides again from the database.
+     */
+    private fun markDiscardedReallocations() {
+        readRecords.forEach {
+            it.reallocationDiscarded = false
+            it.reallocationRuns = null
+        }
+        val changed = pairEntries.filter { it.read?.changesKost2OrAmountOf(it.stored) == true }
+        if (changed.isEmpty()) {
+            return
+        }
+        val loader = loadReallocationRuns ?: run {
+            val service = ApplicationContextProvider.getApplicationContext()
+                .getBean(BuchungssatzKost2ShareService::class.java)
+            val fn: (Collection<Long>) -> Map<Long, String> = { ids -> service.runDescriptionsByRecordId(ids) }
+            fn
+        }
+        val runsByRecord = loader(changed.mapNotNull { it.stored?.id })
+        changed.forEach { entry ->
+            val runs = runsByRecord[entry.stored?.id] ?: return@forEach
+            entry.read?.let {
+                it.reallocationDiscarded = true
+                it.reallocationRuns = runs
+            }
         }
     }
 

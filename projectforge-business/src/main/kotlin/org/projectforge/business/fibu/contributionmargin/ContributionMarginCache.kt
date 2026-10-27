@@ -35,6 +35,8 @@ import org.projectforge.business.fibu.RechnungCache
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.BuchungssatzDao
+import org.projectforge.business.fibu.kost.reallocation.BuchungssatzKost2ShareDO
+import org.projectforge.business.fibu.kost.reallocation.BuchungssatzKost2ShareDao
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostCache
@@ -113,6 +115,9 @@ class ContributionMarginCache {
   private lateinit var buchungssatzDao: BuchungssatzDao
 
   @Autowired
+  private lateinit var buchungssatzKost2ShareDao: BuchungssatzKost2ShareDao
+
+  @Autowired
   private lateinit var projektDao: ProjektDao
 
   @Autowired
@@ -136,6 +141,8 @@ class ContributionMarginCache {
     auftragDao.register(listener<AuftragDO>())
     rechnungDao.register(listener<RechnungDO>())
     buchungssatzDao.register(listener<BuchungssatzDO>())
+    // Reallocated records count with their kost2 shares.
+    buchungssatzKost2ShareDao.register(listener<BuchungssatzKost2ShareDO>())
     projektDao.register(listener<ProjektDO>())
     kost2Dao.register(listener<Kost2DO>())
     rechnungCache.register(reloadListener)

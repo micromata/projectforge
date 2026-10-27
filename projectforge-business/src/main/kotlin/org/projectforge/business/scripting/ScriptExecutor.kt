@@ -34,7 +34,10 @@ import org.projectforge.business.fibu.contributionmargin.ContributionMarginServi
 import org.projectforge.business.fibu.customergroup.CustomerGroupService
 import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotScriptingService
 import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
+import org.projectforge.business.fibu.kost.reallocation.BuchungssatzKost2ShareDao
+import org.projectforge.business.fibu.kost.reallocation.BuchungssatzKost2ShareService
 import org.projectforge.business.fibu.kost.reporting.ReportGeneratorList
+import org.projectforge.business.scripting.support.Kost2ShareScriptingService
 import org.projectforge.business.task.ScriptingTaskTree
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.registry.Registry
@@ -108,6 +111,10 @@ abstract class ScriptExecutor(
             ApplicationContextProvider.getApplicationContext().getBean(ContributionMarginService::class.java)
         variables["customerGroupService"] =
             ApplicationContextProvider.getApplicationContext().getBean(CustomerGroupService::class.java)
+        variables["kost2ShareService"] = Kost2ShareScriptingService(
+            ApplicationContextProvider.getApplicationContext().getBean(BuchungssatzKost2ShareService::class.java),
+            ApplicationContextProvider.getApplicationContext().getBean(BuchungssatzKost2ShareDao::class.java),
+        )
         variables["employeeService"] = EmployeeScriptingService(
             ApplicationContextProvider.getApplicationContext().getBean(EmployeeService::class.java)
         )

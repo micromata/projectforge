@@ -44,6 +44,8 @@ import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.BuchungssatzDao
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginAllocator.GroupKey
 import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.business.fibu.kost.reallocation.BuchungssatzKost2ShareDao
+import org.projectforge.business.fibu.kost.reallocation.BuchungssatzKost2ShareService
 import org.projectforge.business.scripting.support.BookedInvoices
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.TimesheetDao
@@ -90,6 +92,12 @@ open class ContributionMarginService {
 
   @Autowired
   private lateinit var buchungssatzDao: BuchungssatzDao
+
+  @Autowired
+  private lateinit var shareDao: BuchungssatzKost2ShareDao
+
+  @Autowired
+  private lateinit var shareService: BuchungssatzKost2ShareService
 
   @Autowired
   private lateinit var caches: PfCaches
@@ -698,13 +706,26 @@ open class ContributionMarginService {
       ContributionMarginCalculator.bookingDate(record)?.let { it in from..until } == true
     }
     if (kost2Ids == null) {
-      return inRange(buchungssatzDao.select(recordsQueryFilter(from, until), checkAccess = false))
+      return inRange(shareService.expand(buchungssatzDao.select(recordsQueryFilter(from, until), checkAccess = false)))
     }
-    return kost2Ids.chunked(CHUNK_SIZE).flatMap { chunk ->
+    val own = kost2Ids.chunked(CHUNK_SIZE).flatMap { chunk ->
       val queryFilter = recordsQueryFilter(from, until)
       queryFilter.add(isIn("kost2.id", chunk))
-      inRange(buchungssatzDao.select(queryFilter, checkAccess = false))
+      buchungssatzDao.select(queryFilter, checkAccess = false)
     }
+    // Reallocated records count with their shares (effective view): also the records of other kost2 with a share on
+    // one of the given ones, and only the shares on the given kost2.
+    val ownIds = own.mapNotNull { it.id }.toSet()
+    val sharedIds = shareDao.selectActiveRecordIdsByKost2(
+      kost2Ids, from.year * 100 + from.monthValue, until.year * 100 + until.monthValue,
+    ) - ownIds
+    val shared = if (sharedIds.isEmpty()) {
+      emptyList()
+    } else {
+      buchungssatzDao.select(sharedIds, checkAccess = false).orEmpty().filter { !it.deleted }
+    }
+    val kost2IdSet = kost2Ids.toSet()
+    return inRange(shareService.expand(own + shared).filter { it.kost2?.id in kost2IdSet })
   }
 
   private fun recordsQueryFilter(from: LocalDate, until: LocalDate): QueryFilter {

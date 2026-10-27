@@ -195,6 +195,17 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
     val kost2Durations = mutableMapOf<Long, MonthlyEmployeeReportEntry>()
 
     /**
+     * The attendance duration (millis, after the overlap split, before the working time fraction) of each time sheet
+     * counted on a kost2, by time sheet id. The salary export splits by [kost2Durations], whose working time fraction
+     * is the same for all time sheets of a kost2: so the share of some time sheets of a kost2 is their attendance
+     * duration divided by the one of all time sheets of the kost2 (used by the Kost2 reallocation).
+     */
+    val kost2TimesheetAttendances = mutableMapOf<Long, Kost2TimesheetAttendance>()
+
+    /** See [kost2TimesheetAttendances]. */
+    class Kost2TimesheetAttendance(val timesheetId: Long, val kost2Id: Long, val millis: Long) : Serializable
+
+    /**
      * Key is task.id.
      */
     val taskDurations = mutableMapOf<Long, MonthlyEmployeeReportEntry>()
@@ -279,6 +290,11 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
         val splitDurations = TimesheetOverlapUtils.splitDurations(bufferedSheets.map { it.first })
         for ((sheet, hasSelectAccess) in bufferedSheets) {
             val attendanceDuration = sheet.id?.let { splitDurations[it] } ?: sheet.duration
+            val sheetId = sheet.id
+            val sheetKost2Id = sheet.kost2Id
+            if (hasSelectAccess && sheetId != null && sheetKost2Id != null && weeks.any { it.matchWeek(sheet) }) {
+                kost2TimesheetAttendances[sheetId] = Kost2TimesheetAttendance(sheetId, sheetKost2Id, attendanceDuration)
+            }
             var added = false
             for (week in weeks) {
                 if (week.matchWeek(sheet)) {
