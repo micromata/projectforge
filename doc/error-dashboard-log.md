@@ -36,7 +36,7 @@ listed on 2026-10-25 and weren't seen after the deploys of 9.0.15–9.0.17.
 
 | Dashboard source | Assessment |
 |---|---|
-| `lanesAndPlanes.push.refused` "no invoice profile ids in the configuration parameter 'lanesAndPlanes'" (1×) | The push is enabled, but the invoice profile ids aren't maintained in the configuration parameter yet (Administration → Configuration, finance). Refused as intended. |
+| `lanesAndPlanes.push.refused` "no invoice profile ids in the configuration parameter 'lanesAndPlanes'" (1×) | Configuration incomplete (invoice profile ids missing in the configuration parameter); the push is refused as intended. |
 | `gateway.push.unreachable` + `integration.sync.runFailed`, `rest.noCredentials` | Unchanged, see 2026-10-19. |
 
 ## 2026-10-25 (export 20:09, 36 problems OPEN, last 7 days, running version 9.0.14)
@@ -69,7 +69,7 @@ listed on 2026-10-25 and weren't seen after the deploys of 9.0.15–9.0.17.
 | Dashboard source | Assessment |
 |---|---|
 | `support.requestError` at `AbstractRestUserFilter:90` `NoSuchFileException` for the application jar (3× within seconds, at a deploy) | The jar was replaced under the running server during the deploy (kotlin-reflect loading builtins from it). |
-| `gateway.push.unreachable` + `integration.sync.runFailed` (~1400/24h each) | Unchanged, see 2026-10-19 (gateway shut down, 1-minute interval, no back-off). |
+| `gateway.push.unreachable` + `integration.sync.runFailed` (~1400/24h each) | Unchanged, see 2026-10-19 (gateway not reachable, no back-off). |
 | `rest.noCredentials` | Expired session tabs, notify NONE. |
 
 ## 2026-10-21 (three problems from the dashboard)
@@ -78,7 +78,7 @@ listed on 2026-10-25 and weren't seen after the deploys of 9.0.15–9.0.17.
 
 | Dashboard source | Cause | Fix | Watch |
 |---|---|---|---|
-| `support.loggedError` at `IncomingInvoiceCsvImporter:579` "RENR '…': Inkonsistente Werte für 'bezahlDatum'" / "… 'currency'" (6× and 3×, one user, three uploads) | Position export of DATEV: the column `Belegart` wasn't read, so a credit note on a credit-card clearing account (the payment: 806 on 1814, 66 on 1461 in 01–03/2026, of 945 credit notes) became a positive position of the invoice with the same number and date, or an invoice of its own. Behind it a worse bug: the fuzzy matching (stage 2/3 of `EingangsrechnungImportStorage`) accepted an equal creditor alone, the job then overwrote number, date, paid date, currency and subject of an older invoice of that creditor (proven by the history; a few hundred invoices since the import went live, plus ≈770 phantom invoices from payment offsets). | Offsets are dropped (`filterRecords`), their date fills a missing paid date; other credit notes negative. Candidates of stage 2/3 must be plausible (`isPlausibleMatch`: creditor similar, date ≤ 14 days apart, number similar or same amount); the job refuses implausible updates (`isPlausibleUpdateOf`). Header-only imports offer no deletions, position imports only within their periods. Inconsistencies log `warn` (shown in the import dialog anyway); warning for paid date before invoice date; EUR wins over another currency. | Repair of the overwritten invoices from the history and deletion of the phantom invoices on prod (SQL with the user, not a migration). Two invoice rows with the same number and date but different amounts (one case) remain an inconsistency error until corrected in DATEV. |
+| `support.loggedError` at `IncomingInvoiceCsvImporter:579` "RENR '…': Inkonsistente Werte für 'bezahlDatum'" / "… 'currency'" (6× and 3×, one user, three uploads) | Position export of DATEV: the column `Belegart` wasn't read, so a credit note on a credit-card clearing account (the payment) became a positive position of the invoice with the same number and date, or an invoice of its own. Behind it a worse bug: the fuzzy matching (stage 2/3 of `EingangsrechnungImportStorage`) accepted an equal creditor alone, the job then overwrote number, date, paid date, currency and subject of an older invoice of that creditor (proven by the history), and payment offsets created phantom invoices. | Offsets are dropped (`filterRecords`), their date fills a missing paid date; other credit notes negative. Candidates of stage 2/3 must be plausible (`isPlausibleMatch`: creditor similar, date ≤ 14 days apart, number similar or same amount); the job refuses implausible updates (`isPlausibleUpdateOf`). Header-only imports offer no deletions, position imports only within their periods. Inconsistencies log `warn` (shown in the import dialog anyway); warning for paid date before invoice date; EUR wins over another currency. | Data imported before the fix may need a repair from the history (not a migration). Two invoice rows with the same number and date but different amounts remain an inconsistency error until corrected in the source system. |
 
 ### Fixed (main worktree, branch `fix/script-errors-not-on-dashboard`)
 
@@ -98,7 +98,7 @@ listed on 2026-10-25 and weren't seen after the deploys of 9.0.15–9.0.17.
 
 | Dashboard source | Assessment |
 |---|---|
-| `gateway.push.unreachable` + `integration.sync.runFailed` (gateway-push, ~1400×/24h each, since ~2026-10-17) | Gateway shut down on purpose. Every run is "full" until an address push succeeds, then delta again. ~1440 runs/day means a configured interval of 1 minute (default 15 min); no back-off. Each failed run logs both events (runFailed is notify NONE). |
+| `gateway.push.unreachable` + `integration.sync.runFailed` (gateway-push, ~1400×/24h each, since ~2026-10-17) | Gateway not reachable. Every run is "full" until an address push succeeds, then delta again. The sync retries on every run, no back-off. Each failed run logs both events (runFailed is notify NONE). |
 
 ### Open
 
@@ -133,7 +133,7 @@ problems of 9.0.0–9.0.2 were last seen ≤ 2026-10-07 and can be resolved.
 
 ### Open
 
-- **7 of 10 calendar subscriptions failing** (`integration.sync.runFailed` ical-subscriptions, 7 errors/day):
+- **Most calendar subscriptions failing** (`integration.sync.runFailed` ical-subscriptions, daily errors):
   unchanged, muted in the dashboard. See 2026-10-08.
 
 ## 2026-10-09 (single problem from the dashboard detail, running version 9.0.4-SNAPSHOT)
@@ -157,11 +157,11 @@ analysis below occurred again after that deploy, no REGRESSION.
 | `DBQueryBuilderByCriteria:125` "Can't add order for property 'ProjektDO.kost'" (5×, 2 users) | The number column of the next project list sorts by the transient `kost`; the query went out unsorted. | `ProjectEntityRest.computedSortProperties` sorts by `kost` in memory (fixed-width digits, sorts as text). | |
 | `AccessCheckerImpl:229` "access.violation.userNotMemberOf: PF_Admin" (1×) | A denied group check (e.g. an admin page) was logged as unclassified ERROR before the `AccessException` is thrown. | WARN with `access.userNotMemberOf` (SECURITY, threshold 10). | If it turns up below the threshold often, a page or link sends normal users to an admin function. |
 | `DBFullTextResultIterator:188` `persistence.fulltextQueryInvalid` (1×, a search term with an unclosed `"`) | A term with invalid query syntax gives no result; from the user's point of view expected, not a problem of the installation. | Logged as plain INFO without event, so no longer collected; `persistence.fulltextQueryInvalid` removed. No repair or escaping of the term (would guess the user's intent). | |
-| `IdpMasterLoginHandler:157` "IdP master sync failed" (502/503 while authentik started, "Connection pool shut down" on shutdown; resolved/ignored) | IdP unavailable, logged as unclassified ERROR. | `idp.sync.failed` (EXTERNAL, threshold 3). | |
+| `IdpMasterLoginHandler:157` "IdP master sync failed" (502/503 while the IdP started, "Connection pool shut down" on shutdown; resolved/ignored) | IdP unavailable, logged as unclassified ERROR. | `idp.sync.failed` (EXTERNAL, threshold 3). | |
 
 ### Open
 
-- **7 of 10 calendar subscriptions failing**: unchanged, see below.
+- **Most calendar subscriptions failing**: unchanged, see below.
 
 ## 2026-10-08 (export 2026-10-07 22:44, 18 problems OPEN, last 7 days, running version 9.0.2)
 
@@ -179,9 +179,9 @@ Delta to the analysis of 2026-10-07. `04fd7072b` is not deployed yet, so these s
 
 ### Open
 
-- **7 of 10 calendar subscriptions failing**: the server log of a regular run shows 21 subscribed calendars, 11
-  skipped (deactivated/deleted owner), 3 fetched successfully and the 7 failing ones skipped by the back-off (daily
-  retry, counted as `unchanged`). A run without retry therefore shows no error; the cause is only in the run that
+- **Most calendar subscriptions failing**: the server log of a regular run shows the subscriptions of deactivated or deleted owners
+  skipped, a few fetched successfully and the failing ones skipped by the back-off (daily retry, counted as
+  `unchanged`). A run without retry therefore shows no error; the cause is only in the run that
   retries them (`Retrying subscribed calendar #…` followed by `Unable to gather subscription calendar #…`; WARN only
   for the first failure after a restart, then INFO). Last run with these errors: 2026-10-06 ~23:00 UTC.
 
@@ -201,7 +201,7 @@ Deploy timeline derived from the data: 9.0.0 ~2026-10-05 21:40 UTC, 9.0.1 ~2026-
 
 | Dashboard source | Assessment |
 |---|---|
-| `gateway.push.unreachable` (certificate without SAN for the DMZ host name) | Certificate/configuration; last seen 2026-10-06 21:07 UTC, apparently fixed by the admin. |
+| `gateway.push.unreachable` (TLS certificate not matching the gateway's host name) | Certificate/configuration; last seen 2026-10-06 21:07 UTC, apparently fixed by the admin. |
 | `rest.noCredentials` on `/rs/menu` (~1000×, 2 users) | Open browser tabs with expired sessions, notify NONE. Noise. |
 
 ### Fixed in `04fd7072b` (develop, after 9.0.2)
@@ -216,13 +216,13 @@ Deploy timeline derived from the data: 9.0.0 ~2026-10-05 21:40 UTC, 9.0.1 ~2026-
 | `HibernateSearchAuftragsPositionBridge:48` "AuftragDO … is null" (10×, 3 users) | `RechnungsPosition.copyTo` sets an id-only `AuftragsPositionDO` stub; the `@IndexedEmbedded` bridge indexed an empty order position → invoice not found by order number until re-index. | `RechnungDao.resolveOrderPositions` replaces stubs by `getReference` in `onInsertOrModify`. | If the message reappears: another write path with stubs (mass update, import?). |
 | `DBFullTextResultIterator:120/167` parse errors, e.g. a trailing `/` or a dangling `AND)` in the search term | User input with query syntax errors (HSEARCH600180) logged as ERROR. | Logged as WARN with `persistence.fulltextQueryInvalid` (CLIENT). The user still gets no result for such input (no escaped retry). | |
 | `DBFullTextResultIterator` NPE "state is null" (AddressDO) | Presumably a query string predicate built without fields. **Not reproduced.** | `DBPredicate.search()` builds no query-string predicate without fields (string and numeric variant). | If the NPE reappears, the assumed cause was wrong. |
-| `TeamEventExternalSubscriptionCache:305/315` "7 of 10 … failing" (ERROR every ~15 min) | Logged on every run in `handleFailingSubscriptions`. | At most once a day, log event `ical.subscriptions.systemicFailure` (EXTERNAL/ADMIN). Heuristic `isSystemicFailure` (≥3 and majority) **deliberately unchanged**. | See open items. |
+| `TeamEventExternalSubscriptionCache:305/315` "… of … failing" (ERROR every ~15 min) | Logged on every run in `handleFailingSubscriptions`. | At most once a day, log event `ical.subscriptions.systemicFailure` (EXTERNAL/ADMIN). Heuristic `isSystemicFailure` (≥3 and majority) **deliberately unchanged**. | See open items. |
 
 ### Open
 
-- **7 of 10 calendar subscriptions failing** (since 9.0.0). Cause not in the export. Tracking/back-off
+- **Most calendar subscriptions failing** (since 9.0.0). Cause not in the export. Tracking/back-off
   (`e5a22d950`) and the pooled HTTP client with 30 s timeout / 10 MB limit (`c8fe5c757`) were introduced in 9.0.0;
   the old client had no proxy either. Check the server log for `Unable to gather subscription calendar #`:
   - same network error for all (timeout, DNS, proxy) → server network, or the new timeout/size limit is too strict;
   - 404/403 → subscriptions really dead; then the systemic heuristic prevents their deactivation with only
-    ~10 active subscriptions (consider "systemic only if the failures started at the same time").
+    few active subscriptions (consider "systemic only if the failures started at the same time").
