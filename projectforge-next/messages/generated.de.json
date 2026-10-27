@@ -995,6 +995,7 @@
     },
     "file": {
       "add": "Dateien anhängen",
+      "addHint": "Dateien anhängen. Dateien können auch einfach in das Nachrichtenfenster gezogen werden.",
       "directTarget": "Dateien landen im Datentransfer in der persönlichen Box von {arg0}.",
       "download": "Herunterladen",
       "error": {
@@ -1011,6 +1012,8 @@
       "openArea": "Im Datentransfer öffnen",
       "remove": "Datei entfernen"
     },
+    "linkHint": "Chat und verschlüsselte Kommunikation",
+    "linkHintDataTransfer": "Chat, verschlüsselte Kommunikation und Datenaustausch",
     "mention": {
       "noResults": "Niemand gefunden."
     },

@@ -11,6 +11,7 @@ import { MainMenuDropdown } from "@/components/shared/main-menu-dropdown";
 import { FavoritesBar } from "@/components/shared/favorites-bar";
 import { UserMenu } from "@/components/shared/user-menu";
 import { NotificationBell } from "@/components/shared/notifications/notification-bell";
+import { ChatLinkButton } from "@/components/shared/chat-link-button";
 import { CostSearchToggleButton } from "@/components/shared/cost-search/cost-search-toggle-button";
 
 export function TopNavigation() {
@@ -43,6 +44,7 @@ export function TopNavigation() {
         {/* ml-auto keeps the user menu right-aligned even when there are no favourites at all. */}
         <div className="ml-auto flex shrink-0 items-center">
           <CostSearchToggleButton />
+          <ChatLinkButton />
           <NotificationBell />
           <UserMenu
             items={menu?.myAccountMenu?.menuItems ?? []}
