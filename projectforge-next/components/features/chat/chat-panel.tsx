@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormAlert } from "@/components/shared/form-alert";
@@ -36,11 +37,14 @@ export function ChatPanel({
   conversationId,
   highlightId = null,
   threadRootId: initialThreadRootId = null,
+  headerSlot = null,
   className,
 }: {
   conversationId: number;
   highlightId?: number | null;
   threadRootId?: number | null;
+  /** An element of the host page (e.g. its title row) to show search, muting and the like in, instead of a row of its own. */
+  headerSlot?: HTMLElement | null;
   className?: string;
 }) {
   const t = useTranslations();
@@ -187,13 +191,19 @@ export function ChatPanel({
         className={cn("flex min-h-0 flex-1 flex-col", className)}
         aria-label={conversation.title}
       >
-        <ChatPanelHeader
-          onJump={jump}
-          unreadCount={unreadJump.count}
-          onNextUnread={unreadJump.jump}
-          onMute={() => mute.mutate(!conversation.muted)}
-          polling={live.mode === "polling"}
-        />
+        {(() => {
+          const header = (
+            <ChatPanelHeader
+              onJump={jump}
+              unreadCount={unreadJump.count}
+              onNextUnread={unreadJump.jump}
+              onMute={() => mute.mutate(!conversation.muted)}
+              polling={live.mode === "polling"}
+              inline={headerSlot != null}
+            />
+          );
+          return headerSlot ? createPortal(header, headerSlot) : header;
+        })()}
         <MessageList onAtEnd={onAtEnd} />
         <SecretOffers sessions={secrets.sessions} onChange={secrets.refresh} />
         {conversation.canWrite ? (

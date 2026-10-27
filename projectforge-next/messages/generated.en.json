@@ -972,6 +972,7 @@
       "nextUnread": "Jump to the next unread message ({arg0} unread)",
       "notFound": "The conversation doesn't exist or isn't accessible.",
       "polling": "Live updates interrupted, new messages are checked periodically.",
+      "pollingLabel": "Delayed",
       "readOnly": "This conversation is read-only.",
       "unmute": "Unmute"
     },
@@ -979,6 +980,10 @@
       "_": "Data transfer",
       "empty": "No chats in data transfer areas yet: every area is a chat room for everybody with access to it.",
       "open": "Go to the data transfer area"
+    },
+    "description": {
+      "hide": "Hide description",
+      "show": "Show description"
     },
     "direct": {
       "_": "Direct messages",

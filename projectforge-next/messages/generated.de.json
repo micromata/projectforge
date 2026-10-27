@@ -972,6 +972,7 @@
       "nextUnread": "Zur nächsten ungelesenen Nachricht springen ({arg0} ungelesen)",
       "notFound": "Die Unterhaltung gibt es nicht oder sie ist nicht zugänglich.",
       "polling": "Live-Aktualisierung unterbrochen, neue Nachrichten werden regelmäßig abgefragt.",
+      "pollingLabel": "Verzögert",
       "readOnly": "Diese Unterhaltung ist schreibgeschützt.",
       "unmute": "Stummschaltung aufheben"
     },
@@ -979,6 +980,10 @@
       "_": "Datentransfer",
       "empty": "Noch keine Chats in Datentransferbereichen: Jeder Bereich ist ein Chatraum für alle mit Zugriff darauf.",
       "open": "Zum Datentransferbereich"
+    },
+    "description": {
+      "hide": "Beschreibung ausblenden",
+      "show": "Beschreibung einblenden"
     },
     "direct": {
       "_": "Direktnachrichten",

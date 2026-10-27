@@ -3,11 +3,14 @@
 import { useEditorState, type Editor } from "@tiptap/react";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
+  CodeIcon,
   LeftToRightListBulletIcon,
   LeftToRightListNumberIcon,
   Link01Icon,
+  SourceCodeSquareIcon,
   TextBoldIcon,
   TextItalicIcon,
+  TextStrikethroughIcon,
   TextUnderlineIcon,
   VariableIcon,
 } from "@hugeicons/core-free-icons";
@@ -22,6 +25,9 @@ import {
   ToolbarMenu,
   ToolbarToggle,
 } from "@/components/shared/rich-text-toolbar-controls";
+import { EmojiPicker } from "@/components/shared/emoji/emoji-picker";
+import type { RichTextFeatures } from "@/components/shared/rich-text-extensions";
+import { NOTE_FEATURES } from "@/components/shared/rich-text-extensions";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 /** A placeholder the caller resolves later, inserted as `{{key}}` (e.g. the fields of a mail). */
@@ -34,14 +40,18 @@ type Mark =
   | "bold"
   | "italic"
   | "underline"
+  | "strike"
   | "bulletList"
   | "orderedList"
-  | "link";
+  | "code"
+  | "codeBlock";
 
 const MARKS: {
   mark: Mark;
   icon: IconSvgElement;
   toggle: (editor: Editor) => void;
+  /** Offered with [RichTextFeatures.code] only. */
+  code?: boolean;
 }[] = [
   {
     mark: "bold",
@@ -59,6 +69,12 @@ const MARKS: {
     toggle: (e) => e.chain().focus().toggleUnderline().run(),
   },
   {
+    mark: "strike",
+    icon: TextStrikethroughIcon,
+    toggle: (e) => e.chain().focus().toggleStrike().run(),
+    code: true,
+  },
+  {
     mark: "bulletList",
     icon: LeftToRightListBulletIcon,
     toggle: (e) => e.chain().focus().toggleBulletList().run(),
@@ -68,23 +84,44 @@ const MARKS: {
     icon: LeftToRightListNumberIcon,
     toggle: (e) => e.chain().focus().toggleOrderedList().run(),
   },
+  {
+    mark: "code",
+    icon: CodeIcon,
+    toggle: (e) => e.chain().focus().toggleCode().run(),
+    code: true,
+  },
+  {
+    mark: "codeBlock",
+    icon: SourceCodeSquareIcon,
+    toggle: (e) => e.chain().focus().toggleCodeBlock().run(),
+    code: true,
+  },
 ];
 
-/** The toolbar of [RichTextEditor]. */
+/** The toolbar of [RichTextEditor] and of the chat editor: the groups of [features]. */
 export function RichTextToolbar({
   editor,
   variables,
+  features = NOTE_FEATURES,
+  codeBlockHint,
 }: {
   editor: Editor | null;
   variables?: RichTextVariable[];
+  features?: RichTextFeatures;
+  /** Explains the code block button, if the editor handles Enter differently in it (the chat). */
+  codeBlockHint?: string;
 }) {
   const t = useTranslations("richTextEditor");
+  const tRoot = useTranslations();
   const active = useEditorState({
     editor,
     selector: ({ editor }) => ({
       bold: editor?.isActive("bold") ?? false,
       italic: editor?.isActive("italic") ?? false,
       underline: editor?.isActive("underline") ?? false,
+      strike: editor?.isActive("strike") ?? false,
+      code: editor?.isActive("code") ?? false,
+      codeBlock: editor?.isActive("codeBlock") ?? false,
       bulletList: editor?.isActive("bulletList") ?? false,
       orderedList: editor?.isActive("orderedList") ?? false,
       link: editor?.isActive("link") ?? false,
@@ -102,17 +139,22 @@ export function RichTextToolbar({
       role="toolbar"
       aria-label={t("toolbar")}
     >
-      <HeadingMenu editor={editor} pressed={active?.heading} />
-      {MARKS.map(({ mark, icon, toggle }) => (
-        <ToolbarToggle
-          key={mark}
-          label={t(mark)}
-          pressed={active?.[mark]}
-          onPressedChange={() => editor && toggle(editor)}
-        >
-          <HugeiconsIcon icon={icon} />
-        </ToolbarToggle>
-      ))}
+      {features.headings && (
+        <HeadingMenu editor={editor} pressed={active?.heading} />
+      )}
+      {MARKS.filter((m) => !m.code || features.code).map(
+        ({ mark, icon, toggle }) => (
+          <ToolbarToggle
+            key={mark}
+            label={t(mark)}
+            hint={mark === "codeBlock" ? codeBlockHint : undefined}
+            pressed={active?.[mark]}
+            onPressedChange={() => editor && toggle(editor)}
+          >
+            <HugeiconsIcon icon={icon} />
+          </ToolbarToggle>
+        )
+      )}
       <ToolbarToggle
         label={t("link._")}
         pressed={active?.link}
@@ -121,7 +163,13 @@ export function RichTextToolbar({
         <HugeiconsIcon icon={Link01Icon} />
       </ToolbarToggle>
       <RichTextColorMenu editor={editor} pressed={active?.color} />
-      <TableMenu editor={editor} inTable={active?.table} />
+      {features.tables && <TableMenu editor={editor} inTable={active?.table} />}
+      {features.emoji && (
+        <EmojiPicker
+          ariaLabel={tRoot("chat.emoji.insert")}
+          onPick={(emoji) => editor?.chain().focus().insertContent(emoji).run()}
+        />
+      )}
       {variables && variables.length > 0 && (
         <ToolbarMenu label={t("variable")} icon={VariableIcon}>
           {variables.map((variable) => (

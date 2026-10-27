@@ -3,8 +3,10 @@
 import { useEffect, useRef } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import {
+  NOTE_FEATURES,
   pasteMarkdown,
   richTextExtensions,
+  type RichTextFeatures,
 } from "@/components/shared/rich-text-extensions";
 import {
   RichTextToolbar,
@@ -23,15 +25,16 @@ export type { RichTextVariable };
 const EMPTY_DOCUMENT = "<p></p>";
 
 /** The content of a stored value: the editor's HTML or a converted markdown text, sanitized either way. */
-function toContent(value: string | null) {
-  return sanitizeRichText(toRichTextHtml(value ?? ""));
+function toContent(value: string | null, features: RichTextFeatures) {
+  return sanitizeRichText(toRichTextHtml(value ?? ""), { code: features.code });
 }
 
 /**
- * A small rich text editor (TipTap): paragraphs, headings (levels 1 to 4), bold, italic, underline,
- * lists, tables, links and a few text colours. The value is HTML; render it with [RichText], which
- * sanitizes it. No code or block quotes: it is for notes (a tooltip hint, the body of a mail), not for
- * documents.
+ * A small rich text editor (TipTap): paragraphs, bold, italic, underline, lists, links and a few text
+ * colours, plus what [features] offers: headings (levels 1 to 4), tables (the default), code, emoji. The value
+ * is HTML; render it with [RichText], which sanitizes it (with `code` for code). No block quotes: it is for notes
+ * (a tooltip hint, the body of a mail, a room description), not for documents. The chat editor (ChatEditor)
+ * is built from the same parts.
  *
  * A value that isn't the editor's HTML (plain text or markdown from before) is shown converted and
  * stored as HTML with the next change; markdown pasted as plain text is converted as well.
@@ -46,6 +49,7 @@ export function RichTextEditor({
   onBlur,
   placeholder,
   variables,
+  features = NOTE_FEATURES,
   invalid,
   disabled,
   className,
@@ -57,6 +61,8 @@ export function RichTextEditor({
   onBlur?: () => void;
   placeholder?: string;
   variables?: RichTextVariable[];
+  /** The markup offered, see [RichTextFeatures]; headings and tables by default. */
+  features?: RichTextFeatures;
   invalid?: boolean;
   disabled?: boolean;
   className?: string;
@@ -74,8 +80,8 @@ export function RichTextEditor({
   const editor = useEditor({
     // Static export: the editor is created in the browser only, never prerendered.
     immediatelyRender: false,
-    extensions: richTextExtensions(placeholder ?? ""),
-    content: toContent(value),
+    extensions: richTextExtensions(placeholder ?? "", features),
+    content: toContent(value, features),
     editable: !disabled,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
@@ -97,8 +103,10 @@ export function RichTextEditor({
   useEffect(() => {
     if (!editor || (value ?? "") === lastEmitted.current) return;
     lastEmitted.current = value ?? "";
-    editor.commands.setContent(toContent(value), { emitUpdate: false });
-  }, [value, editor]);
+    editor.commands.setContent(toContent(value, features), {
+      emitUpdate: false,
+    });
+  }, [value, editor, features]);
   useEffect(() => {
     editor?.setEditable(!disabled, false);
   }, [disabled, editor]);
@@ -112,7 +120,13 @@ export function RichTextEditor({
         className
       )}
     >
-      {!disabled && <RichTextToolbar editor={editor} variables={variables} />}
+      {!disabled && (
+        <RichTextToolbar
+          editor={editor}
+          variables={variables}
+          features={features}
+        />
+      )}
       <EditorContent editor={editor} />
     </div>
   );
