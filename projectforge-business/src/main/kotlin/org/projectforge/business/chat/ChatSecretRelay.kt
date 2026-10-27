@@ -65,8 +65,9 @@ open class ChatSecretRelay {
     @Autowired
     private lateinit var directHost: ChatDirectChatHost
 
+    /** Internal: replaced by tests. */
     @Autowired(required = false)
-    private var eventListeners: List<ChatEventListener> = emptyList()
+    internal var eventListeners: List<ChatEventListener> = emptyList()
 
     /** [OFFERED]: waiting for the recipient's key. [OPEN]: both keys known, messages can be sent. */
     enum class State { OFFERED, OPEN }
@@ -152,6 +153,7 @@ open class ChatSecretRelay {
         val session = Session(newId(), context.conversationId, user.id!!, recipientId, publicKey!!, clock())
         sessions[session.id] = session
         wake(session, recipientId)
+        wakeOffers(recipientId)
         chatNotifier.onSecretOffer(session.conversationId, session.initiatorId, recipientId, session.created)
         return session
     }
@@ -180,6 +182,18 @@ open class ChatSecretRelay {
     }
 
     /**
+     * The offers to the logged-in user waiting for an answer, in all of the user's direct chats: to draw the user's
+     * attention wherever the app is open (sound, tab title, browser notification), not only in the chat.
+     */
+    open fun offers(): List<Session> {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        return sessions.values.filter {
+            it.recipientId == user.id && it.state == State.OFFERED && !expired(it) &&
+                    chatAccess.getContext(it.conversationId, user) != null
+        }.sortedBy { it.created }
+    }
+
+    /**
      * The recipient sees the offers of the conversation in the open chat (where they are accepted): their
      * notification is resolved, it would only point to where the user already is.
      */
@@ -200,6 +214,7 @@ open class ChatSecretRelay {
             session.lastActivity = clock()
         }
         wake(session, session.initiatorId)
+        wakeOffers(session.recipientId)
         resolveNotification(session)
         return session
     }
@@ -269,6 +284,9 @@ open class ChatSecretRelay {
         val session = get(id) ?: return
         sessions.remove(session.id)
         wake(session, if (user.id == session.initiatorId) session.recipientId else session.initiatorId)
+        if (session.state == State.OFFERED) {
+            wakeOffers(session.recipientId)
+        }
         resolveNotification(session)
     }
 
@@ -277,6 +295,7 @@ open class ChatSecretRelay {
         val expired = sessions.values.filter { expired(it) }
         expired.forEach { sessions.remove(it.id) }
         expired.forEach { resolveNotification(it) }
+        expired.filter { it.state == State.OFFERED }.map { it.recipientId }.distinct().forEach { wakeOffers(it) }
     }
 
     /** The number of open sessions (tests, statistics). */
@@ -353,6 +372,17 @@ open class ChatSecretRelay {
                 listener.onSecret(session.conversationId, userId)
             } catch (ex: Exception) {
                 log.warn(ex) { "Chat event listener failed for conversation #${session.conversationId}: ${ex.message}" }
+            }
+        }
+    }
+
+    /** Wakes all open pages of the user: the offers to the user changed (the event carries nothing either). */
+    private fun wakeOffers(userId: Long) {
+        eventListeners.forEach { listener ->
+            try {
+                listener.onSecretOffers(userId)
+            } catch (ex: Exception) {
+                log.warn(ex) { "Chat event listener failed for the offers to user #$userId: ${ex.message}" }
             }
         }
     }

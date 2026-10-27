@@ -37,6 +37,17 @@ export function chatSecretPendingQueryKey(conversationId: number) {
   return ["chatSecretPending", conversationId] as const;
 }
 
+/** The offers to the logged-in user waiting for an answer, in all direct chats (see useSecretOfferAlerts). */
+export const CHAT_SECRET_OFFERS_QUERY_KEY = ["chatSecretOffers"] as const;
+
+export function fetchChatSecretOffers(signal?: AbortSignal) {
+  return chatRequest<ChatSecretSession[]>(
+    `${BASE}/offers`,
+    { method: "GET" },
+    signal
+  );
+}
+
 export function offerChatSecret(conversationId: number, publicKey: string) {
   return chatPost<ChatSecretSession>(`${BASE}/offer`, {
     conversationId,

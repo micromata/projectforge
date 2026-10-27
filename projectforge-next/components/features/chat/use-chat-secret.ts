@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  CHAT_SECRET_OFFERS_QUERY_KEY,
   cancelChatSecret,
   chatSecretPendingQueryKey,
   chatSecretQueryKey,
@@ -98,6 +99,10 @@ export function useSecretOffers(conversation: ChatConversation | undefined) {
       queryKey: chatSecretPendingQueryKey(conversationId),
     });
     void queryClient.invalidateQueries({ queryKey: ["chatSecret"] });
+    // The counter in the top bar and the signals follow the answer, with the stream or without it.
+    void queryClient.invalidateQueries({
+      queryKey: CHAT_SECRET_OFFERS_QUERY_KEY,
+    });
   }, [direct, conversationId, queryClient]);
   return { sessions: query.data ?? [], refresh };
 }

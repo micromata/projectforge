@@ -7,6 +7,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Message01Icon } from "@hugeicons/core-free-icons";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { buttonVariants } from "@/components/ui/button";
+import { useChatSecretOffers } from "@/hooks/use-chat-secret-offers";
 import { useFeatureEnabled } from "@/hooks/use-feature-enabled";
 import { MenuCounterBadge } from "@/components/shared/menu-counter-badge";
 import { CHAT_DIRECT_QUERY_KEY, fetchChatDirect } from "@/lib/rs/chat-direct";
@@ -14,7 +15,8 @@ import { CHAT_ROOMS_QUERY_KEY, fetchChatRooms } from "@/lib/rs/chat-rooms";
 import { cn } from "@/lib/utils";
 
 /**
- * The unread messages of the rooms and direct messages. Shares the queries of the chat page, whose invalidations
+ * The unread messages of the rooms and direct messages, plus the confidential conversations offered and not yet
+ * answered (they wait for the user like an unread message). Shares the queries of the chat page, whose invalidations
  * (read state changed) refresh it; no polling, as every call touches the HTTP session — it refetches on focus.
  */
 function useChatUnreadCount() {
@@ -35,7 +37,8 @@ function useChatUnreadCount() {
   });
   const sum = (entries?: { unread: number }[]) =>
     (entries ?? []).reduce((total, entry) => total + entry.unread, 0);
-  return sum(rooms.data) + sum(direct.data);
+  const offers = useChatSecretOffers();
+  return sum(rooms.data) + sum(direct.data) + offers.length;
 }
 
 /** The top bar's speech bubble, linking to the chat. */

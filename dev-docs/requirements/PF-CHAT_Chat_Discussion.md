@@ -240,6 +240,7 @@ Modelled on an OTR session: for a password or a key that must not stay in the ch
 | CONF-07 | The open chat of the other side is woken by a contentless event; a recipient without the chat open gets an in-app banner naming only the initiator (no mail, it would come too late), resolved once no offer is open anymore. | M | NOT-05 |
 | CONF-08 | Limits: at most 5 open sessions per initiator, 1,000 overall, 16 KB ciphertext per message. | M | |
 | CONF-09 | Confidential conversations in rooms, with several participants, with files, or kept for later reading are not planned. | W | |
+| CONF-10 | An offer must reach the recipient on every page of the app, also in a background tab: a contentless event of the user's own stream (`/rs/userEvents`, for all pages) reloads the open offers to the user (`/rs/chatSecret/offers`). Per new offer once a sound (Web Audio, can be switched off per browser) and a browser notification (only if allowed, asked on a click; closed once the offer is answered, withdrawn or expired); while an offer is open, a blinking tab title (hidden tab only) and a dot on the favicon. All name only the initiator. The top bar's chat symbol counts the open offers with the unread messages. The offers are also reloaded by a page change and by the focus of the window (at most every 5 seconds), so a stream that doesn't arrive only delays them. The sound switch and the permission for notifications are on the chat page and in the dialog of a confidential conversation. The stream mustn't keep an idle tab logged in: closed after 15 minutes hidden, not reopened after an hour without interaction. | S | NOT-05; sound only after an interaction with the page (autoplay policy) |
 
 ### 5.12 Non-functional requirements
 
@@ -296,7 +297,7 @@ page, thread side panel, mention suggestions, file upload and image viewer.
 | 10 | Mentions | `@` with suggestions from the readers of the conversation; checked on the server; notified at once | MSG-07, NOT-03 |
 | 11 | Reactions storage | Stored with the message (emoji → user ids), not historised | MSG-10 |
 | 12 | Direct messages | Built-in host with the pair of users as host object; started only with visible users, then open to both | DM-01 – DM-06 |
-| 13 | Confidential conversations | A live session of the two browsers (like OTR), end-to-end encrypted, relayed in memory and deleted when taken, until one side ends it; direct messages only | CONF-01 – CONF-09 |
+| 13 | Confidential conversations | A live session of the two browsers (like OTR), end-to-end encrypted, relayed in memory and deleted when taken, until one side ends it; direct messages only | CONF-01 – CONF-10 |
 | 14 | Read state | One mark per user and conversation (the newest message read), for the conversation and its threads; replies count as unread only in threads followed or with a mention; marking unread moves it back; the menu badges come from the notifications and aren't restored by marking unread | NOT-01, NOT-03, NOT-09 |
 | 15 | Data transfer areas | Every ordinary area is a chat room of the users with access, its files go into the area; the personal box of another user leads to the direct message with its owner | DT-01 – DT-07 |
 

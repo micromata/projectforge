@@ -1049,6 +1049,11 @@
       "send": "Senden",
       "unhide": "Wieder einblenden"
     },
+    "notification": {
+      "secret": {
+        "title": "{arg0} möchte ein vertrauliches Gespräch beginnen"
+      }
+    },
     "room": {
       "delete": {
         "_": "Chatraum löschen",
@@ -1089,6 +1094,11 @@
     "secret": {
       "accept": "Annehmen",
       "action": "Vertrauliches Gespräch",
+      "alert": {
+        "allowNotifications": "Browser-Benachrichtigungen erlauben",
+        "sound": "Ton, wenn ein vertrauliches Gespräch angeboten wird",
+        "title": "{arg0}: vertrauliches Gespräch"
+      },
       "close": "Schließen",
       "decline": "Ablehnen",
       "discard": "Verwerfen",
