@@ -42,7 +42,7 @@ import javax.net.ssl.X509TrustManager
 
 /**
  * Sends the same CardDAV and ICS requests to the main instance and to the gateway and compares the answers, see
- * doc/HOWTO-TEST-GATEWAY.md, *Comparison with the main instance*.
+ * dev-docs/HOWTO-TEST-GATEWAY.md, *Comparison with the main instance*.
  *
  * Usage: GatewayCompareKt [config file], default ~/ProjectForge/gateway-compare.properties:
  * ```

@@ -33,6 +33,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   `site/changelog-posts.adoc` and `projectforge-next/lib/generated/changelog{,.de}.json` are generated from
   them by the same `gen` run (`GenerateChangelogMain`) and never edited by hand.
 
+## Developer documents (`dev-docs/`)
+- Reference notes and plans for developers live in `dev-docs/` (index: `dev-docs/README.md`), the Next.js frontend
+  ones in `dev-docs/next/` (architecture, page concept, `open-points.md`). Documentation for users and
+  administrators belongs to the website (`site/`). Remove a plan or an open point once it is done.
+
 ## Website (`site/`)
 - The website is English and German (see `site/README.adoc`). Every change of an English file goes into its
   German version in the same commit, with the same headings and anchors; `SiteTranslationTest` fails otherwise.

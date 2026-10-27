@@ -91,7 +91,7 @@ open class GatewaySecurityConfig {
             // SAMEORIGIN as SecurityHeaderFilter and the CSP's frame-ancestors 'self': Spring's default DENY would
             // overwrite the filter's header.
             // HSTS (only sent for secure requests) without includeSubDomains: other hosts of the domain may still
-            // need http, see doc/misc/nginx_sites-available_projectforge.
+            // need http, see dev-docs/misc/nginx_sites-available_projectforge.
             .headers { headers ->
                 headers.frameOptions { it.sameOrigin() }
                 headers.httpStrictTransportSecurity { it.includeSubDomains(false) }

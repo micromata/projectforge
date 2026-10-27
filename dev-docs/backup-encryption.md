@@ -46,7 +46,7 @@ Only worthwhile if the JCR ZIP must never be on disk unencrypted.
 - `RepoBackupService.createBackupFile()` writes the `ZipOutputStream` through an age stream (Java library, e.g.
   `com.exceptionfactory.jagged`) to `….zip.age`.
 - Effort: small, but hardly worth it, since `RepoBackupService` goes away with the JCR replacement
-  (`doc/jcr-replacement.md`).
+  (`dev-docs/jcr-replacement.md`).
 
 ## Purging (`DatabaseBackupPurgeJob`)
 - `BackupFilesPurging` groups by the text in front of the date in the file name (series) and ignores everything

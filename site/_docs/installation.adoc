@@ -290,7 +290,7 @@ All of the commands below should be run with `root` privileges.
 
 To use NGINX as a reverse proxy, create a configuration file. The standard path for NGINX configurations is
 `/etc/nginx/sites-available/`, so let's create the file `/etc/nginx/sites-available/projectforge` from our
-https://github.com/micromata/projectforge/blob/master/doc/misc/nginx_sites-available_projectforge[template].
+https://github.com/micromata/projectforge/blob/master/dev-docs/misc/nginx_sites-available_projectforge[template].
 If you want to use `.htpasswd` to block access to the installation, remove the comment character (`#`) in front of the `auth_basic` and `auth_basic_user_file` parameters.
 If you want to use HSTS (which makes browsers show an error page when the SSL certificate is invalid and/or nonexistent), remove the comment character (`#`) in front of the `add_header Strict-Transport-Security` parameter.
 

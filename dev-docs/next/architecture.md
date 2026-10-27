@@ -65,7 +65,7 @@ i18n/, messages/          next-intl config and locale catalogs
 e2e/                      Playwright tests running against the real backend
 ```
 
-The binding rules for placing code in these tiers are in `../CLAUDE.md`; this document only describes
+The binding rules for placing code in these tiers are in `projectforge-next/CLAUDE.md`; this document only describes
 what exists.
 
 ## Layers
@@ -88,9 +88,8 @@ Every call to Spring goes through this folder; feature code never calls `fetch`.
   re-reads the entity), and **HTTP 406 is a regular answer** carrying `validationErrors`.
 - `types.ts` — the wire contracts: `MagicFilter`, `MagicFilterEntry`, `ResultSet`, `ListMetaData`,
   `ResponseAction`, `ValidationError`, `UserStatus`, …
-- Further modules per concern: `attachments.ts`, `auth.ts`, `column-state.ts`, `download.ts`,
-  `filter-elements.ts`, `history.ts`, `jobs.ts`, `list-actions.ts`, `order.ts`, `submit-meta.ts`,
-  `task.ts`, `upload.ts`.
+- Further modules per concern (one file per area, e.g. `attachments.ts`, `history.ts`, `list-actions.ts`;
+  browse the directory, it grows with every feature).
 
 Because Spring's mapper uses `JsonInclude.Include.NON_NULL`, an empty field is **absent** from the
 JSON rather than null. Every DTO type in this app therefore marks optional properties with `?`, and
@@ -245,7 +244,7 @@ What goes into them for an entity is not written per page but declared once — 
   filter and column-order derivations). Deliberately DOM-free: what is worth asserting is the
   derivation, not the JSX around it.
 - `npm run e2e` — Playwright against the **running** system, see "Testing against the running
-  system" in `../CLAUDE.md` for the test accounts (written by `E2ETestAccountsService` in development
+  system" in `projectforge-next/CLAUDE.md` for the test accounts (written by `E2ETestAccountsService` in development
   mode), the targets (`npm run e2e` → the static export on :8080, `npm run e2e:dev` → the dev server),
   the slots of `bin/pfDev.sh` and the spec tags (`@parallel`, `@lane-*`, `@isolated`). A spec about a
   rights rule asks for the role that makes the refusal reachable and skips via `hasRole` where the

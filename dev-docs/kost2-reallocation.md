@@ -1,6 +1,6 @@
 # Kost2 reallocation of accounting records (retroactive project move)
 
-Target release: 9.0.16.
+Status: planned, nothing implemented yet. Target release: the next one (`version` in `gradle.properties`).
 
 ## Context
 Timesheets are to be moved retroactively from a collective task to a project of their own, with its own Kost2.
@@ -25,9 +25,8 @@ The original Kost2 of an accounting record is kept. ProjectForge computes with a
   - flat rules "Kost2 A → B"
 
 ## Data model
-Flyway: `V9.0.16.2__RELEASE-Kost2Reallocation.sql`.
-- `V9.0.16.1` is already taken on `claude-dev2` (`V9.0.16.1__RELEASE-Chat.sql`).
-- Check the open branches again before merging.
+Flyway: `V<release>.<n>__RELEASE-Kost2Reallocation.sql` (release = `version` of `gradle.properties` at merge time).
+- Check the open branches for versions already taken in the same release before merging.
 
 1. **`Kost2ReallocationDO`** (`t_fibu_kost2_reallocation`), the reallocation run:
    - Fields: description, target project, period (from/to month), status `DRAFT|APPLIED|REVERTED`, comment.

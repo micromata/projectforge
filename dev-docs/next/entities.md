@@ -1,6 +1,6 @@
-# The first three entities
+# Reference entities
 
-`book`, `cost1` and `order` were the first pages migrated, and they remain the reference implementations. They were picked in that order on purpose:
+`book`, `cost1` and `order` are the reference implementations. They were picked on purpose:
 each one is a step up in difficulty, and together they define how far the declarative page concept
 reaches (see [page-declarations.md](page-declarations.md)) and where the escape hatches are needed.
 
@@ -18,9 +18,9 @@ All three are registered in `NextMigration.MIGRATED` (backend).
 
 Files: `components/features/cost1/` — `cost1.page.ts`, `cost1-schema.ts`, `cost1-values.ts`,
 `types.ts`, `cost-number-field.tsx`, `cost-number-segments.ts`.
-Routes: `/cost1`, `/cost1/new`, `/cost1/[id]`, `/cost1/[id]/history`.
+Routes: `/cost1`, `/cost1/new`, `/cost1/[id]`.
 
-The whole page is 78 lines of declaration. Three columns (the three the legacy Wicket
+The whole page is a short declaration. Three columns (the three the legacy Wicket
 `Kost1ListPage` shows, in its order) plus the two audit timestamps, and one section with
 three entries. Every label, the status texts and every rule come from `Kost1DO` through the generated
 metadata.
@@ -54,7 +54,7 @@ What it shows about the concept:
 Files: `components/features/book/` — `book.page.tsx`, `types.ts`, `edit/book-edit-schema.ts`,
 `edit/book-edit-values.ts`, `edit/sections/*`, `lend-out-column.tsx`, `loan-status.tsx`,
 `status-badge.tsx`.
-Routes: `/book`, `/book/new`, `/book/[id]`, `/book/[id]/history`.
+Routes: `/book`, `/book/new`, `/book/[id]`.
 
 The columns are `BookEntityRest.createListLayout`'s, in its order. Four sections: general, loan, notes,
 attachments. Every label, every rule and the constants of both enums come from `BookDO`.
@@ -97,7 +97,7 @@ history tab.
 Files: `components/features/order/` — `order.page.tsx`, `order-schema.ts`, `order-values.ts`,
 `types.ts`, `use-order-sums.ts`, `order-statistics.ts`, `order-statistics-line.tsx`,
 `order-list-actions.tsx`, `forecast-export-dialog.tsx`, `edit/*`, `forecast/order-forecast-page.tsx`.
-Routes: `/order`, `/order/new`, `/order/[id]`, `/order/[id]/history`, `/order/[id]/forecast`.
+Routes: `/order`, `/order/new`, `/order/[id]`, `/order/[id]/forecast`.
 
 This is the page the server-laid-out `UILayout` renderer cannot express, and the reason the
 declaration has an escape hatch at every level. Everything _around_ those exceptions is ordinary — the

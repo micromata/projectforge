@@ -23,7 +23,7 @@ was designed for 2026-10-13; all dates are shifted relative to the day of the se
    ```
 2. Hide the plugins the pictures don't show (memo, to-do, ...); the change is applied on the next start:
    ```
-   cd doc/website-screenshots
+   cd dev-docs/website-screenshots
    node run-script.mjs menu-plugins.kts
    ```
 3. Stop the instance (`bin/pfDev.sh stop 5`) and prepare its home for the pictures:

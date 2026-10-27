@@ -5,7 +5,7 @@ pages, sorts by column and filters by column in the browser. That is fine for a 
 big finance lists it was not: the order list shipped several thousand rows / more than 10 MB per request and took seconds, nearly
 all of it the payload and the per-row pipeline on the server. Those lists are served one page at a time.
 
-Opted in today (`serverPaging: true` on the `PageDef`): `order`, `outgoingInvoice`, `incomingInvoice`,
+Opted in today (`serverPaging: true` on the `PageDef`): `order`, `invoice`, `creditor-invoice`,
 `timesheet`, `accountingRecord`. Every other list pages in the browser.
 
 Two cheaper measures apply to every list: gzip (`server.compression.*` in `application.properties`, 8×

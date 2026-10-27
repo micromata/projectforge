@@ -384,7 +384,7 @@ tasks.register<JavaExec>("foldChangelog") {
     }
 }
 
-// Comparison of the answers of the main instance and the gateway (CardDAV, ICS), see doc/HOWTO-TEST-GATEWAY.md.
+// Comparison of the answers of the main instance and the gateway (CardDAV, ICS), see dev-docs/HOWTO-TEST-GATEWAY.md.
 // ./gradlew :projectforge-application:gatewayCompare [-Pconfig=<file>]
 tasks.register<JavaExec>("gatewayCompare") {
     group = "verification"
