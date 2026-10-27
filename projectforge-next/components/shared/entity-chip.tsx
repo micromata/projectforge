@@ -1,9 +1,10 @@
 "use client";
 
-import type { DragEvent } from "react";
+import type { DragEvent, ReactNode } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import type { SelectModifiers } from "@/hooks/use-chip-selection";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { inactiveRefClass } from "@/lib/page-def/reference";
 import { cn } from "@/lib/utils";
 import type { EntityRef } from "./entity-autocomplete";
@@ -17,6 +18,8 @@ export interface EntityChipProps {
   removeLabel: string;
   onDragStart: (event: DragEvent<HTMLSpanElement>) => void;
   onDragEnd: () => void;
+  /** Shown on hover over the chip — the members of a group (see [GroupMembersHint]). */
+  hint?: ReactNode;
 }
 
 /**
@@ -34,39 +37,43 @@ export function EntityChip({
   removeLabel,
   onDragStart,
   onDragEnd,
+  hint,
 }: EntityChipProps) {
+  // No openOnTap: a tap on the chip selects it, which a popover would swallow.
   return (
-    <span
-      role="option"
-      aria-selected={selected}
-      // Found by the sweep over the chips, see [useChipSweep].
-      data-chip-id={entry.id}
-      draggable
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-      onClick={(event) => onSelect(event)}
-      className={cn(
-        "inline-flex h-6 max-w-full cursor-default items-center gap-1 rounded-full border px-2 text-xs font-semibold select-none",
-        selected
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-primary/25 bg-primary/10 text-primary"
-      )}
-    >
-      <span className={cn("truncate", inactiveRefClass(entry))}>
-        {entry.displayName}
-      </span>
-      <button
-        type="button"
-        onClick={(event) => {
-          // Removing is no click on the chip: it would select the chip it just took away.
-          event.stopPropagation();
-          onRemove();
-        }}
-        aria-label={removeLabel}
-        className="cursor-pointer opacity-60 hover:opacity-100"
+    <HintTooltip content={hint}>
+      <span
+        role="option"
+        aria-selected={selected}
+        // Found by the sweep over the chips, see [useChipSweep].
+        data-chip-id={entry.id}
+        draggable
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onClick={(event) => onSelect(event)}
+        className={cn(
+          "inline-flex h-6 max-w-full cursor-default items-center gap-1 rounded-full border px-2 text-xs font-semibold select-none",
+          selected
+            ? "border-primary bg-primary text-primary-foreground"
+            : "border-primary/25 bg-primary/10 text-primary"
+        )}
       >
-        <HugeiconsIcon icon={Cancel01Icon} size={12} />
-      </button>
-    </span>
+        <span className={cn("truncate", inactiveRefClass(entry))}>
+          {entry.displayName}
+        </span>
+        <button
+          type="button"
+          onClick={(event) => {
+            // Removing is no click on the chip: it would select the chip it just took away.
+            event.stopPropagation();
+            onRemove();
+          }}
+          aria-label={removeLabel}
+          className="cursor-pointer opacity-60 hover:opacity-100"
+        >
+          <HugeiconsIcon icon={Cancel01Icon} size={12} />
+        </button>
+      </span>
+    </HintTooltip>
   );
 }

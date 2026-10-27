@@ -1,6 +1,228 @@
 {
   "releases": [
     {
+      "id": "9-0-17",
+      "version": "9.0.17",
+      "date": "2026-10-26",
+      "title": "ProjectForge 9.0.17 released",
+      "tag": "9.0.17-RELEASE",
+      "published": false,
+      "summary": [
+        "**Chat in the data transfer**: every area is a chat room, direct messages from personal boxes",
+        "**Avatars** in the chat and the user menu",
+        "Chat: members list, quotes and search",
+        "Project list: Excel export, customer shown in the project selection",
+        "Unreachable mail server no longer slows down saving orders"
+      ],
+      "overview": [
+        "**Chat in the data transfer:** every data transfer area is a chat room for everybody with access to it (its admins moderate), files sent in the chat go into the area; external users see only the files. The personal box of another user opens the direct message with them. The buttons Chat and Direct message and the chat page show the unread messages.",
+        "**Chat:** every conversation lists its members with their avatars; messages can quote another message; a search box narrows the direct messages and the rooms; the room page shows the formatted description of the room and is edited there.",
+        "**Avatars:** users upload their own picture under My account, cut square in a new image editor (also used for the images of addresses); it is shown in the chat and in the user menu to all users sharing a group. Administrators can change or remove any avatar.",
+        "**Projects:** Excel export of the project list; the project selection and the project filters show the customer of each project; the first proposed local project number can be set per number range.",
+        "**Notifications:** the bell lists the archived entries of the last 90 days, so a notification confirmed by mistake can still be opened.",
+        "**Usability:** group fields show the members of a group on hover, customer and project groups in list filters show what they comprise; deleted or deactivated users, groups and employees are struck through in more places; users are found by their nickname; a selected structure element is removed with its own (x); in a list with more than 100 entries a button selects the first 100 for a mass update.",
+        "**Fixed:** with the mail server unreachable, saving an order waited once per recipient of its notification and every notification mail waited for the timeout; the gateway serves the subscriptions of team calendars and of the weeks of the year; the project wizard offered no cost 2 types after \"Configure another element\"."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Addresses: a small image editor cuts a square out of a chosen image, or the one already shown, before it is uploaded (drag and zoom).",
+            {
+              "title": "Chat in the data transfer",
+              "items": [
+                "Every data transfer area is a chat room for everybody with access to it (its admins moderate): the button Chat on the area opens it, files sent in the chat go into the area. External users don't see the chat, only the files with their descriptions; the chat of an area with external access says so. Hiding a message doesn't hide its file in the area, deleting the message deletes it.",
+                "The personal box of another user has the button Direct message, which opens the direct message with them; the files go into their personal box.",
+                "The chat page lists the chats of the data transfer areas with messages, with unread counts.",
+                "The buttons Chat and Direct message show the number of unread messages. In a chat, a badge at the top right shows the unread messages not seen yet; a click jumps to the next one, also into a thread."
+              ]
+            },
+            "Chat: every conversation, also of a data transfer area, lists its members with their avatars (icon at the top right).",
+            "Number ranges: the first proposed local project number can be set per range in the accounting configuration, e.g. 5.###.01 instead of 5.###.00; lower numbers can still be entered.",
+            "Group fields (e.g. the access lists of calendars, address books and polls): hovering a group shows its members, for whoever may see the group.",
+            "Project list: Excel export of the filtered projects with all their fields.",
+            "Avatars: users upload their own picture under My account (cut square in the image editor); it is shown in the chat and in the user menu to all users sharing at least one group. Administrators can change or remove the avatar of any user. A click on the own avatar in the user menu opens it under My account."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            {
+              "title": "Chat",
+              "items": [
+                "The room page shows the description of the room, now formatted text; the creator and the moderators edit the room from there.",
+                "A search box on the chat page narrows the direct messages and the rooms.",
+                "Messages can quote another message of the conversation: the quote shows its author and the beginning of its text, a click shows the message.",
+                "Menu search: the menu entries found come first again, the users found to chat with follow them."
+              ]
+            },
+            "List filters: customer and project groups show the customers and projects they comprise as tooltip.",
+            "Deleted or deactivated users, groups and employees are now struck through in more places: lists with several names (group members, access lists, contact persons, substitutes), the task tree, chat, history, attachments, the vacation account, booking grants, the HR view, absence charts and the notification log.",
+            {
+              "title": "Mass update",
+              "items": [
+                "In the selection mode of a list with more than 100 entries, a button selects the first 100 of them, the most a mass update changes at once."
+              ]
+            },
+            "Notifications: the bell has a button \"Archived entries\" listing the confirmed or finished notifications of the last 90 days, so a notification confirmed by mistake can still be read and opened.",
+            "Project selection of the edit pages and project filter of the lists and statistics: each project shows its customer in brackets.",
+            "Structure element selection: a selected structure element is removed with its own (x) (not for mandatory fields), the home icon opens the tree.",
+            "User selection: users are also found by their nickname."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Gateway: subscriptions of team calendars and of the weeks of the year are served, holidays in the language of the user; the token within the subscription url is checked as on the main instance.",
+            "Notifications: if the mail server isn't reachable, a failed notification mail is logged only once with its stack trace and its cause is shown in the delivery state; the further mails of the run wait for the next run instead of each waiting for the timeout.",
+            "Orders: if the mail server can't be reached, saving waits only once for it instead of once per recipient of the notification.",
+            "Project wizard: after \"Configure another element\" the project step offered no cost 2 types any more, so the next project had to get them in its edit form afterwards."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "9-0-16",
+      "version": "9.0.16",
+      "date": "2026-10-26",
+      "title": "ProjectForge 9.0.16 released",
+      "tag": "9.0.16-RELEASE",
+      "published": false,
+      "summary": [
+        "**Chat**: rooms, direct messages, files, threads, mentions and confidential messages",
+        "**Search** ignores accents and umlaut spellings",
+        "Project selection finds projects by number and customer",
+        "Order and invoice caches no longer refresh each other endlessly"
+      ],
+      "overview": [
+        "**Chat** (menu Common → Chat): rooms with chosen users and groups, and direct messages to any user, readable by their participants only, administrators neither. Messages with formatting, files of any type (stored in the data transfer), emoji reactions, threads that can be followed and marked unread, and @ mentions notified in the app and by mail. Confidential messages in direct messages are end-to-end encrypted and never stored by the server. Behind a reverse proxy, the chat needs an unbuffered connection, see the administration guide.",
+        "**Search:** search and selection boxes ignore accents and German umlaut spellings (\"Mueller\" finds \"Müller\", \"Strasse\" finds \"Straße\"), completely after the next nightly re-index; deactivated users are no longer found in the search of the main menu.",
+        "**Administration:** the backup script of the administration guide compresses the dump of the files to about half the size.",
+        "**Fixed:** the order and invoice caches refreshed each other endlessly when an invoice referred to a deleted order position; projects are found by their number and the name of their customer; outgoing invoices saved in the new interface are found by their customer at once; the time sheet filter for sub structure elements can be switched off; postal codes like \"D-34286\" are no longer linked as JIRA issues; the log of a running script is shown again."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Chat: confidential messages in direct messages (e.g. for a password), end-to-end encrypted in both browsers, relayed live and never stored by the server, shown to the recipient only once.",
+            {
+              "title": "Chat",
+              "items": [
+                "Chat rooms (menu Common → Chat): anybody creates a room and chooses its participants, users and groups; members who join a group later take part at once. The creator and the moderators edit and delete the room. Rooms are visible to their participants only, administrators included.",
+                "Direct messages: anybody can write privately to any user shown in the user selection, from the chat page, from a user found in the menu search (start chat / send file; for everybody, with the users of the user selection) or by clicking an author in any conversation; whoever got a message can answer. Only the two read the conversation, administrators neither.",
+                "Messages with formatting (text colours, lists, links, inline code and code blocks of several lines), files of any type (paste, drag & drop or file dialog; images as thumbnails), emoji reactions and replies as threads of their own, which can be followed. The files are stored in the data transfer: in an area per room, whose participants see it in the data transfer and where the files are kept as long as chosen in the room; files of direct messages go into the personal box of the recipient. Without the data transfer plugin, no files are exchanged. Own messages can be edited and deleted, moderators hide messages with a reason and see the history of a message.",
+                "Typing @ suggests the participants of the room; a mentioned person is notified at once, in the app and by mail. New messages are notified once per room until read, by mail only if not seen in the app within an hour; rooms can be muted.",
+                "New messages appear without reload (server-sent events, with polling as fallback). Behind a reverse proxy, the chat needs an unbuffered connection, see the administration guide."
+              ]
+            },
+            "Chat: a file of a message can also be opened in its data transfer area, besides downloading it.",
+            "Chat: a message can be marked unread, threads with unread replies are marked, and in a thread a line shows the first unread reply."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Search and selection boxes ignore accents and German umlaut spellings: \"Andre\" finds \"André\", \"Mueller\" and \"Muller\" find \"Müller\", \"Strasse\" finds \"Straße\", and vice versa. Applies to entries indexed after the update, i.e. completely after the next nightly re-index.",
+            "Admin guide: the backup script compresses the dump of the files (about half the size), because pg_dump writes their contents hex encoded."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Outgoing invoices: invoices saved in the new interface were not found by the name of their customer until the next search index rebuild.",
+            "JIRA links: an issue key needs at least two leading uppercase letters, so a postal code like \"D-34286\" in a text is no longer linked as an issue.",
+            "Project selection: projects are also found by their number (e.g. 7.002) and by the name of their customer.",
+            "Scripts: showing the log of a running script could fail with an error.",
+            "Time sheet list: the filter including all sub structure elements could not be switched off. It is replaced by the filter \"without structure sub elements\", off by default.",
+            "The order and invoice caches no longer refresh each other endlessly (e.g. during the daily order book snapshots) when an invoice refers to a deleted order position.",
+            "Search in the main menu: deactivated users are no longer found (they still are in the user list)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "9-0-15",
+      "version": "9.0.15",
+      "date": "2026-10-25",
+      "title": "ProjectForge 9.0.15 released",
+      "tag": "9.0.15-RELEASE",
+      "published": false,
+      "summary": [
+        "**Ad hoc bookings**: grant or propose time sheet bookings without group membership",
+        "**Notifications**: SMS delivery, creditor invoices due, variables with examples",
+        "Time sheet form: recently used entries with consumption, sortable and filterable",
+        "Customer wizard reuses existing structure elements",
+        "Structure tree: lost and incomplete elements after a background reload fixed",
+        "Password forgotten: reset mail limited against mail bombing"
+      ],
+      "overview": [
+        "**Ad hoc bookings:** who may edit the time sheets of others on a structure element grants colleagues the booking of own time sheets for a period, optionally restricted to some cost units; the colleagues see only the granted structure elements. Employees without this right may propose such a booking, the project management accepts the time sheets afterwards (reminded by a new notification rule).",
+        "**Notifications:** delivery steps by SMS; new rule \"Creditor invoices due\"; the rule editor lists the variables for subject and text with example values and a copy button, the preview shows the texts with example values.",
+        "**Creditor invoices:** marked as overdue already 2 working days before the due date.",
+        "**Time sheet form:** the recently used entries show the consumption of their budget and can be sorted, filtered and arranged per column (remembered per user); the consumption bar tooltip shows budget, booked and remaining person days.",
+        "**Customer wizard:** existing structure elements of the customer and the project can be used instead of new ones, picked from the tree or found by the same title.",
+        "**Order statistics:** the bubble size of the contribution margin chart shows the contribution margin; titles can be switched on.",
+        "**Fixed:** structure elements created or moved during a background reload could vanish from the structure tree, the responsible person was missing after a change; an invalid search syntax shows a hint instead of an empty list; the info of a structure element is only answered to users who may see it; the password reset mail is limited per user, per client and in total, so it can no longer be requested over and over."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            {
+              "title": "Ad hoc bookings",
+              "items": [
+                "Who may edit the time sheets of others on a structure element (e.g. project management, finance) may grant colleagues the booking of own time sheets for a period, without group membership: several colleagues at once, on the structure element and any of its sub elements, each optionally restricted to some of its cost units. The grant is active right away, each colleague gets a mail with the links to book on.",
+                "The colleagues see only the granted structure elements and the titles of their ancestors in the structure tree: no other structure elements, consumption, time sheets of others or statistics. After the period or a revocation the own time sheets stay readable.",
+                "In the structure tree, a badge marks the structure elements with ad hoc bookings; its tooltip names the colleagues and their periods. Shown only to who may grant on the structure element.",
+                "Employees without this right may propose such a booking on the structure elements they book on themselves, for 31 days at most: the colleague books right away, the project management accepts the time sheets afterwards, unchanged or moved to another structure element or cost unit (time sheet form or mass update; list filter \"Only to be accepted\"). Until then they count like any other time sheet. The project management may confirm a proposal, so later bookings don't have to be accepted anymore.",
+                "New notification rule \"Time sheets to be accepted\": reminds the project managers of the time sheets still to be accepted (in the app, and by mail if not acknowledged, as configured in the rule). The structure tree shows their number next to the badge."
+              ]
+            },
+            "Consumption bar (structure tree, task list, time sheet form): the tooltip shows the budget, the booked and the remaining person days as a calculation, an overbooked budget in red.",
+            "Time sheet form: the recently used entries show the consumption of their budget, and the search also matches it.",
+            {
+              "title": "Creditor invoices",
+              "items": [
+                "Marked as overdue (red) already 2 working days before the due date, so they are paid in time.",
+                "New notification rule \"Creditor invoices due\": reports unpaid creditor invoices due within a configurable number of working days (overdue ones of the last 90 days included) to the recipients of the rule."
+              ]
+            },
+            {
+              "title": "Notifications",
+              "items": [
+                "The rule editor lists the variables available for subject and text (general ones and those of the rule type), each with a button to copy it.",
+                "The variables come with an example value each, so it is visible how e.g. a list of invoices looks; the preview also shows the texts with example values."
+              ]
+            },
+            "Time sheet form: the table of recently used entries can be sorted and filtered per column, its columns can be reordered, resized, pinned and hidden; the layout is remembered per user.",
+            "Notifications: delivery steps by SMS to the mobile phone number of the recipients (if SMS is configured), with an own SMS text of the rule or otherwise the subject and the link."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Customer wizard: existing structure elements of the customer and the project can be used instead of new ones, picked from the tree (the title may differ, e.g. \"ACME\" for \"ACME Inc.\") or found automatically by the same title."
+          ]
+        },
+        {
+          "type": "changed",
+          "items": [
+            "Order statistics, contribution margin bubble chart: the size of a bubble shows its contribution margin instead of its costs. The switch \"Show titles\" labels the own bubbles with their short title and contribution margin %; switched off, the names are in the tooltip only."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "The info of a structure element (title, path, project, customer, consumption) was answered to every logged-in user; now only to users who may see the structure element.",
+            "Structure tree: a structure element created or moved while the tree was being reloaded in the background could vanish from the tree until the next reload, so no sub-element could be created below it (\"Parent structure element is required but not found\").",
+            "Structure tree: after a structure element was changed, its responsible person was missing in the tree until the next reload.",
+            "Password forgotten: the reset mail is limited per user, per client and in total, so it can no longer be requested over and over (mail bombing, invalidating a pending reset link).",
+            "Lists: a search term that isn't a valid search syntax (e.g. \"Project: Alpha\") now shows a hint instead of an empty list without explanation."
+          ]
+        }
+      ]
+    },
+    {
       "id": "9-0-14",
       "version": "9.0.14",
       "date": "2026-10-23",

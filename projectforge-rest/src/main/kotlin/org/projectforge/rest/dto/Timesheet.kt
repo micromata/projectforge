@@ -74,6 +74,24 @@ class Timesheet(
     var tags: List<String>? = null
 
     /**
+     * Set (transient, server set) for a time sheet booked by a grant an employee proposed, to be accepted by the
+     * project management ([TimesheetDO.acceptancePending]); null otherwise.
+     */
+    var acceptance: Acceptance? = null
+
+    /**
+     * @param proposedByName Who proposed the grant (edit only).
+     * @param mayAccept Whether the logged-in user may accept the time sheet (edit only).
+     */
+    class Acceptance(val proposedByName: String? = null, val mayAccept: Boolean? = null)
+
+    /**
+     * Posted by the edit form only (transient): whether its save accepts the sheet. The form saves through
+     * [org.projectforge.rest.TimesheetEntityRest.accept] then, this flag itself isn't read.
+     */
+    var acceptOnSave: Boolean? = null
+
+    /**
      * The extra columns of the hand-built next list, formatted server-side and only set on a list row (see
      * [org.projectforge.rest.TimesheetEntityRest.postProcessResultSet]): the two-digit week of the year, the
      * short day-of-week name, the "date fromTime-toTime" period and the "h:mm" duration — the counterparts
@@ -125,6 +143,9 @@ class Timesheet(
         // `tagsConfigured` list variable, see TimesheetEntityRest.addVariablesForListPage).
         tag = src.tag
         description = src.description
+        if (src.acceptancePending) {
+            acceptance = Acceptance()
+        }
         // The columns show a name (and, for the cost unit, its formatted number), not a whole entity — so
         // the id and display name only. Not the DTOs' copyFrom, which would nest the task's parent chain.
         // The plain title (not `displayName`, which appends "(#id)") is the label, and the path *without*
@@ -137,9 +158,8 @@ class Timesheet(
                 deleted = it.deleted
             }
         }
-        // deleted and deactivated so the frontend strikes a removed or deactivated user through: neither is
-        // copied by User.copyFromMinimal (deactivated is never, deleted only for admins), so set both here.
-        src.user?.let { user = User(id = it.id, displayName = it.displayName).also { dto -> dto.deleted = it.deleted; dto.deactivated = it.deactivated } }
+        // With deleted and deactivated, so the frontend strikes a removed or deactivated user through.
+        src.user?.let { user = User.ref(it) }
         src.kost2?.let { kost2DO ->
             kost2 = Kost2().also { dto ->
                 dto.copyFromMinimal(kost2DO)

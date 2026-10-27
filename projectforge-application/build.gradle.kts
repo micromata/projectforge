@@ -60,6 +60,7 @@ dependencies {
     implementation(project(":projectforge-rest"))
     implementation(project(":projectforge-carddav"))
     implementation(project(":projectforge-idp"))
+    implementation(project(":org.projectforge.plugins.cveradar"))
     implementation(project(":org.projectforge.plugins.datatransfer"))
     implementation(project(":org.projectforge.plugins.ihk"))
     implementation(project(":org.projectforge.plugins.licensemanagement"))
@@ -355,6 +356,18 @@ tasks.register<JavaExec>("releaseSha256Changelog") {
 }
 
 /**
+ * Used by bin/pfDev.sh github-release: writes the GitHub release notes of the tagged release -PreleaseVersion=X.Y.Z
+ * to build/release-notes-X.Y.Z.md.
+ */
+tasks.register<JavaExec>("releaseNotesChangelog") {
+    group = "development"
+    mainClass.set("org.projectforge.development.GenerateChangelogMain")
+    classpath = sourceSets["test"].runtimeClasspath
+    workingDir = rootDir
+    args("--release-notes", providers.gradleProperty("releaseVersion").getOrElse(""))
+}
+
+/**
  * Used by bin/pfDev.sh changelog-fold: moves changelog/unreleased/ into the release -PreleaseId (default: newest).
  * Used by bin/pfDev.sh release with -PreleaseVersion=X.Y.Z -PreleasePublished=true|false: adds the entry of the
  * release if missing (published or not) and moves changelog/unreleased/ into it.
@@ -370,4 +383,14 @@ tasks.register<JavaExec>("foldChangelog") {
     } else {
         args("--fold", providers.gradleProperty("releaseId").getOrElse(""))
     }
+}
+
+// Comparison of the answers of the main instance and the gateway (CardDAV, ICS), see doc/HOWTO-TEST-GATEWAY.md.
+// ./gradlew :projectforge-application:gatewayCompare [-Pconfig=<file>]
+tasks.register<JavaExec>("gatewayCompare") {
+    group = "verification"
+    description = "Compares the CardDAV and ICS answers of the main instance and the gateway."
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("org.projectforge.gateway.compare.GatewayCompareKt")
+    args = listOfNotNull(project.findProperty("config") as String?)
 }

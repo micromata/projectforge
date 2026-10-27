@@ -140,7 +140,8 @@ internal class CustomerChecklistFilter(
          * the list's cell shows them alike. A free-text customer only counts for a row without a customer entity: with one,
          * the cell shows the entity and so does this list.
          *
-         * In front, sorted by name, the customer groups of these customers.
+         * In front, sorted by name, the customer groups of these customers, each with these of its customers as
+         * [UIFilterListValue.members].
          */
         fun valuesOf(
             customers: Sequence<CustomerRow>,
@@ -148,23 +149,28 @@ internal class CustomerChecklistFilter(
         ): List<UIFilterListValue> {
             val customerIds = mutableSetOf<Long>()
             val texts = mutableSetOf<String>()
-            val groups = linkedSetOf<String>()
+            // The entity ids and texts of each group's rows, named once all rows are known.
+            val groups = linkedMapOf<String, MutableSet<CustomerRow>>()
             customers.forEach { (kundeId, kundeText) ->
+                val text = kundeText?.trim()?.takeIf { it.isNotEmpty() }
                 if (!groupIndex.isEmpty) {
-                    groupIndex.groupOf(kundeId, kundeText)?.key?.let { groups.add(it) }
+                    groupIndex.groupOf(kundeId, kundeText)?.key?.let { key ->
+                        groups.getOrPut(key) { mutableSetOf() }.add(CustomerRow(kundeId, if (kundeId == null) text else null))
+                    }
                 }
                 if (kundeId != null) {
                     customerIds.add(kundeId)
                 } else {
-                    kundeText?.trim()?.takeIf { it.isNotEmpty() }?.let { texts.add(it) }
+                    text?.let { texts.add(it) }
                 }
             }
-            val entities = customerIds.map { id ->
-                UIFilterListValue(ENTITY_PREFIX + id, PfCaches.instance.getKunde(id)?.displayName ?: id.toString())
-            }
+            val names = customerIds.associateWith { id -> PfCaches.instance.getKunde(id)?.displayName ?: id.toString() }
+            val entities = customerIds.map { id -> UIFilterListValue(ENTITY_PREFIX + id, names[id]!!) }
             val freeTexts = texts.map { UIFilterListValue(TEXT_PREFIX + it, it, freeText = true) }
-            val groupValues = groups.mapNotNull { groupIndex.getGroup(it) }.map {
-                UIFilterListValue(GROUP_PREFIX + it.key, it.name ?: it.key!!, group = true)
+            val groupValues = groups.mapNotNull { (key, rows) -> groupIndex.getGroup(key)?.let { it to rows } }.map { (group, rows) ->
+                val members = rows.mapNotNull { row -> row.kundeId?.let { names[it] } ?: row.kundeText }.distinct()
+                    .sortedWith { a, b -> StringComparator.compare(a, b) }
+                UIFilterListValue(GROUP_PREFIX + group.key, group.name ?: group.key!!, group = true, members = members)
             }
             return groupValues.sortedWith(byName) + (entities + freeTexts).sortedWith(byName)
         }

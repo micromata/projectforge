@@ -15,6 +15,7 @@ import { StringSuggestField } from "@/components/shared/form/string-suggest-fiel
 import { TextAreaField } from "@/components/shared/form/text-area-field";
 import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
+import { UserAvatarField } from "@/components/shared/user-avatar-field";
 import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
 import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
 import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
@@ -78,6 +79,22 @@ export function MyAccountForm({ init }: { init: MyAccountInit }) {
       label: t("user.myAccount.section.account"),
       content: <AccountSection init={init} readOnly={readOnly} />,
     },
+    ...(init.userId != null
+      ? [
+          {
+            id: "avatar",
+            label: t("user.avatar._"),
+            content: (
+              <UserAvatarField
+                userId={init.userId}
+                name={[data.firstname, data.lastname].filter(Boolean).join(" ")}
+                avatarVersion={init.avatarVersion}
+                readOnly={readOnly}
+              />
+            ),
+          },
+        ]
+      : []),
     {
       id: "settings",
       label: t("user.myAccount.section.settings"),

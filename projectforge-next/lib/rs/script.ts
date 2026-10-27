@@ -9,9 +9,10 @@
 import type { Attachment } from "./attachments";
 import { request } from "./client";
 import { downloadFile } from "./download";
+import type { InactiveFlags } from "@/lib/page-def/reference";
 
 /** A user, group or task as the DTO references it: the id is what the backend stores. */
-export type ScriptRef = {
+export type ScriptRef = InactiveFlags & {
   id: number;
   displayName?: string;
 };

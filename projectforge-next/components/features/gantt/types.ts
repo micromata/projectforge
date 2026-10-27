@@ -1,3 +1,5 @@
+import type { InactiveFlags } from "@/lib/page-def/reference";
+
 // Mirrors org.projectforge.rest.gantt.GanttDiagram and GanttObject (projectforge-rest). Keep field names
 // in sync with the Spring DTOs. Settings and style are flattened into the diagram; the tree of the chart
 // travels as `root`, which only the edit form loads (the list rows carry none).
@@ -57,7 +59,7 @@ export interface GanttObject {
   task?: GanttTaskValues | null;
 }
 
-type Ref = {
+type Ref = InactiveFlags & {
   id: number;
   displayName?: string;
 };

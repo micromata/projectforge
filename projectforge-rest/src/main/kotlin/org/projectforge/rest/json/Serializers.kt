@@ -52,8 +52,9 @@ class PFUserDOSerializer : StdSerializer<PFUserDO>(PFUserDO::class.java) {
             jgen.writeNull()
             return
         }
-        val user = User(userDO.id, displayName = userDO.displayName, username = userDO.username)
-        jgen.writeObject(user)
+        // id, display name, username and whether it is still active (deleted, deactivated): a no longer active
+        // user is struck through wherever shown as a reference.
+        jgen.writeObject(User(userDO))
     }
 }
 
@@ -68,8 +69,8 @@ class GroupDOSerializer : StdSerializer<GroupDO>(GroupDO::class.java) {
             jgen.writeNull()
             return
         }
-        val group = Group(groupDO.id, displayName = groupDO.displayName, name = groupDO.name)
-        jgen.writeObject(group)
+        // Including the deleted flag, a deleted group is struck through wherever shown as a reference.
+        jgen.writeObject(Group().also { it.copyFromMinimal(groupDO) })
     }
 }
 
@@ -188,7 +189,7 @@ class EmployeeDOSerializer : StdSerializer<EmployeeDO>(EmployeeDO::class.java) {
             jgen.writeNull()
             return
         }
-        val employee = Employee(employeeDO.id, displayName = employeeDO.displayName)
-        jgen.writeObject(employee)
+        // Including deleted and deactivated (left), a no longer active employee is struck through wherever shown.
+        jgen.writeObject(Employee().also { it.copyFromMinimal(employeeDO) })
     }
 }

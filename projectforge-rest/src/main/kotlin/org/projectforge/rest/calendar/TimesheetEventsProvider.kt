@@ -127,7 +127,7 @@ class TimesheetEventsProvider {
                 }
                 lastStopTime = stopTime
             }
-            val title: String = CalendarHelper.getTitle(timesheet)
+            val title: String = CalendarHelper.getTaskTitle(timesheet)
             val description = CalendarHelper.getDescription(timesheet)
             val formattedDuration = FullCalendarEvent.formatDuration(timesheet.duration)
             /*var outOfRange: Boolean? = null

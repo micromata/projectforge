@@ -68,9 +68,9 @@ import kotlin.system.exitProcess
  * 3. `projectforge-next/lib/generated/changelog.json` and `changelog.de.json` (the German version) for the
  *    page `/next/changelog`, already grouped.
  *
- * A tagged release with `"published": false` is a mini release: `bin/pfDev.sh publish` only pushes its tag, without
- * a GitHub release, jar or docker images. Its changes are part of the release notes of the next published
- * release (see [releaseNotesMarkdown]).
+ * A tagged release with `"published": false` is a mini release: `bin/pfDev.sh publish` pushes its tag and creates a
+ * GitHub release with its own changes, without jar or docker images and never the latest one. Its changes are also
+ * part of the release notes of the next published release (see [releaseNotesMarkdown]).
  *
  * A published release has the SHA-256 checksum of its jar (`"sha256"`), shown by both targets. The jar contains the
  * generated changelog, so its checksum can't be part of the release commit: `bin/pfDev.sh release` adds it with the
@@ -199,7 +199,8 @@ object GenerateChangelogMain {
    * the newest one by default (see [fold]). Both take `--add-release true|false` (used by `bin/pfDev.sh release`):
    * a missing entry of the release is added first, published or not (see [withRelease]); `--fold` then folds into it.
    * With `--sha256 X.Y.Z` (used by `bin/pfDev.sh release`) it first adds the checksum of the built jar of the release
-   * (see [withSha256]).
+   * (see [withSha256]). With `--release-notes X.Y.Z` (used by `bin/pfDev.sh github-release`) it only writes the
+   * GitHub release notes of that tagged release, of any age, to `build/release-notes-X.Y.Z.md`.
    */
   @JvmStatic
   fun main(args: Array<String>) {
@@ -209,6 +210,9 @@ object GenerateChangelogMain {
     val addRelease = option("--add-release")?.takeIf { it.isNotBlank() }?.toBooleanStrict()
     option("--check-release")?.let { version ->
       exitProcess(checkReleaseMain(rootDir, version, addRelease))
+    }
+    option("--release-notes")?.let { version ->
+      exitProcess(releaseNotesMain(rootDir, version))
     }
     option("--fold")?.let { value ->
       foldMain(rootDir, value.takeIf { it.isNotBlank() }, addRelease)
@@ -236,6 +240,20 @@ object GenerateChangelogMain {
   }
 
   internal fun resolveRootDir(): File = SourcesUtils.getBasePath().toFile()
+
+  /** Writes the GitHub release notes of the tagged release [version] (`bin/pfDev.sh github-release`), 1 if there is none. */
+  private fun releaseNotesMain(rootDir: File, version: String): Int {
+    val root = ObjectMapper().readTree(File(rootDir, SOURCE).readText(ENCODING))
+    if (root["releases"].none { it["version"]?.asText() == version && it["tag"] != null }) {
+      System.err.println("The changelog has no tagged release $version.")
+      return 1
+    }
+    val notes = File(rootDir, releaseNotesPath(version))
+    notes.parentFile.mkdirs()
+    notes.writeText(releaseNotesMarkdown(root, version), ENCODING)
+    println("Release notes of $version: ${notes.path}")
+    return 0
+  }
 
   /**
    * The check of `bin/pfDev.sh release`, which adds the release entry and folds `changelog/unreleased/` into it
@@ -350,7 +368,7 @@ object GenerateChangelogMain {
     return copy
   }
 
-  /** The GitHub release notes of [version], written by the check mode of [main] (a build artifact). */
+  /** The GitHub release notes of [version], written by the check and release notes modes of [main] (a build artifact). */
   internal fun releaseNotesPath(version: String) = "build/release-notes-$version.md"
 
   /** The git tag of a release, `8.2.37-RELEASE` (the scheme of all tags since 7.0). */
@@ -427,13 +445,21 @@ object GenerateChangelogMain {
 
   /**
    * The GitHub release notes of the release [version] (Markdown, English): the summaries, intros and overviews and,
-   * folded, all changes (the sections, merged by type) of the release and of the unpublished releases since the last
-   * published one (see [aggregatedReleases]), newest first.
+   * folded, all changes (the sections, merged by type) of the release and, for a published one, of the unpublished
+   * releases since the last published one (see [aggregatedReleases]), newest first. A mini release says so and
+   * points to the latest ready-made binaries.
    */
   internal fun releaseNotesMarkdown(root: JsonNode, version: String): String {
     val releases = aggregatedReleases(root, version)
     val sb = StringBuilder()
     sb.appendLine("# ProjectForge $version")
+    if (!isPublished(releases.first())) {
+      sb.appendLine()
+      sb.appendLine(
+        "Mini release: tagged only, without jar or docker image, build it from the source code. " +
+          "Ready-made binaries: $REPO_URL/releases/latest"
+      )
+    }
     majorReleaseOf(root, releases.first())?.let { head ->
       sb.appendLine()
       val headVersion = head["version"].asText()
@@ -511,13 +537,15 @@ object GenerateChangelogMain {
   }
 
   /**
-   * The release [version] followed by the older tagged releases with `"published": false` up to the next older
-   * published one, newest first. Snapshots in between aren't part of a GitHub release and are skipped.
+   * The release [version] followed, if it is published, by the older tagged releases with `"published": false` up to
+   * the next older published one, newest first. Snapshots in between aren't part of a GitHub release and are skipped.
+   * An unpublished release (it has a GitHub release of its own, without downloads) is the only one.
    */
   internal fun aggregatedReleases(root: JsonNode, version: String): List<JsonNode> {
     val releases = root["releases"].toList()
     val index = releases.indexOfFirst { it["version"]?.asText() == version }
     require(index >= 0) { "No release of version $version." }
+    if (!isPublished(releases[index])) return listOf(releases[index])
     val older = releases.drop(index + 1).filter { it["tag"] != null }.takeWhile { !isPublished(it) }
     return listOf(releases[index]) + older
   }
@@ -532,7 +560,7 @@ object GenerateChangelogMain {
     return head.takeIf { isPublished(it) }
   }
 
-  /** A release is published (GitHub release, jar, docker images) unless it says `"published": false`. */
+  /** A release is published (jar, docker images) unless it says `"published": false`; both have a GitHub release. */
   internal fun isPublished(release: JsonNode): Boolean = release["published"]?.asBoolean() != false
 
   /** The markdown subset is GitHub Markdown already, except red text: a bold warning there. */

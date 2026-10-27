@@ -47,6 +47,8 @@ export function TopNavigation() {
           <UserMenu
             items={menu?.myAccountMenu?.menuItems ?? []}
             username={user?.fullname ?? user?.username ?? ""}
+            userId={user?.userId}
+            avatarVersion={user?.avatarVersion}
             onLogout={handleLogout}
           />
         </div>

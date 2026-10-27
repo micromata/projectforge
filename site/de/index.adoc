@@ -49,11 +49,15 @@ hero:
 ++++
 
 ++++
-{% include text-section.html key="proof" background="muted" %}
+{% include text-section.html key="chat" background="muted" %}
 ++++
 
 ++++
-{% include text-section.html key="services" %}
+{% include text-section.html key="proof" %}
+++++
+
+++++
+{% include text-section.html key="services" background="muted" %}
 ++++
 
 ++++

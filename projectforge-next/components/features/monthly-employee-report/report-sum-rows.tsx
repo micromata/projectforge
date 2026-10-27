@@ -24,8 +24,8 @@ export function ReportSumRows({ report }: { report: MonthlyReport }) {
     const week = weekIndex != null ? report.weeks[weekIndex] : undefined;
     navigate(
       monthlyReportDrillDownHref({
-        userId: report.userId ?? 0,
-        userName: report.userName,
+        userId: report.user.id,
+        userName: report.user.displayName ?? undefined,
         startDate: week?.startDate ?? report.startDate,
         endDate: week?.endDate ?? report.endDate,
       })

@@ -46,3 +46,6 @@ export const ROLE_FIELDS: Record<
   managerGroup: "managerGroup",
   externalGroup: "externalGroup",
 };
+
+/** How the wizard gets a structure element of the customer or the project: a new one, or an existing one. */
+export type ElementMode = "new" | "existing";

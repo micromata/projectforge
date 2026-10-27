@@ -5,6 +5,7 @@
  */
 
 import { request } from "./client";
+import type { UserRef } from "@/lib/page-def/reference";
 
 export type NotificationSeverity = "INFO" | "IMPORTANT" | "URGENT";
 
@@ -24,6 +25,8 @@ export type NotificationRuleType =
   | "VACATION_LEFT"
   | "PASSWORD_NOT_CHANGED"
   | "TIMESHEETS_WITHOUT_KOST2"
+  | "TIMESHEETS_TO_ACCEPT"
+  | "CREDITOR_INVOICES_DUE"
   | "MANUAL";
 
 /** `NotificationDao.Summary`, sent with the user status (see useAuth). */
@@ -47,6 +50,9 @@ export interface AppNotification {
   /** A path of the app, e.g. `next/monthlyEmployeeReport`. */
   link?: string | null;
   created?: string | null;
+  acknowledgedAt?: string | null;
+  doneAt?: string | null;
+  resolvedAt?: string | null;
 }
 
 /** The notifications of the logged-in user visible in the app, the newest first. */
@@ -55,6 +61,20 @@ export function fetchMyNotifications(
 ): Promise<AppNotification[]> {
   return request<AppNotification[]>(
     "/rs/notification/my",
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * The notifications of the logged-in user no longer visible in the app (confirmed, done, resolved or
+ * expired) of the last days, the newest first.
+ */
+export function fetchMyArchivedNotifications(
+  signal?: AbortSignal
+): Promise<AppNotification[]> {
+  return request<AppNotification[]>(
+    "/rs/notification/my/archived",
     { method: "GET" },
     signal
   );
@@ -79,6 +99,10 @@ export function markNotificationDone(id: number): Promise<AppNotification> {
 export interface NotificationVariable {
   key: string;
   label: string;
+  /** Available for every rule type (the names of the recipient), otherwise only for the given one. */
+  common?: boolean;
+  /** How a value looks (e.g. a list of invoices), from synthetic data. */
+  example?: string | null;
 }
 
 export interface MenuBadgeOption {
@@ -96,6 +120,19 @@ export interface NotificationPreview {
   subject: string;
   /** Sanitized HTML, rendered with the values of the logged-in user. */
   text: string;
+  /** Rendered with example values (the own ones may be empty, e.g. no unbooked days). */
+  exampleSubject: string;
+  /** Sanitized HTML, rendered with example values. */
+  exampleText: string;
+  /** The SMS as sent (own and example values), absent if the cascade has no SMS step. */
+  sms?: string | null;
+  exampleSms?: string | null;
+}
+
+/** Is SMS configured (otherwise SMS steps are skipped), and the max length of an SMS. */
+export interface NotificationSmsInfo {
+  configured: boolean;
+  maxLength: number;
 }
 
 export interface NotificationTestResult {
@@ -114,14 +151,15 @@ export interface NotificationLogEntry {
   id: number;
   /** Null for an ad hoc notification or a deleted rule. */
   ruleName?: string | null;
-  recipient?: string | null;
+  /** Struck through when no longer active, as acknowledgedBy. */
+  recipient?: UserRef | null;
   status: NotificationStatus;
   periodKey?: string | null;
   title?: string | null;
   created?: string | null;
   inAppSince?: string | null;
   acknowledgedAt?: string | null;
-  acknowledgedBy?: string | null;
+  acknowledgedBy?: UserRef | null;
   doneAt?: string | null;
   resolvedAt?: string | null;
   deliverySteps: {
@@ -154,6 +192,16 @@ export function fetchMenuBadgeOptions(
 ): Promise<MenuBadgeOption[]> {
   return request<MenuBadgeOption[]>(
     "/rs/notificationRule/menuBadges",
+    { method: "GET" },
+    signal
+  );
+}
+
+export function fetchNotificationSmsInfo(
+  signal?: AbortSignal
+): Promise<NotificationSmsInfo> {
+  return request<NotificationSmsInfo>(
+    "/rs/notificationRule/smsInfo",
     { method: "GET" },
     signal
   );

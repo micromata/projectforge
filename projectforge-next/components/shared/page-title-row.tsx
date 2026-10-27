@@ -15,6 +15,8 @@ export interface PageTitleRowProps {
   legacyUrl?: string;
   /** The page belongs to an unfinished feature: a large red badge beside the title (see ExperimentalBadge). */
   experimental?: boolean;
+  /** The text of that badge instead of "Experimental", e.g. "Demo" for a prototype on test data. */
+  experimentalLabel?: string;
   /** Fills the flexible space between the title and the actions — a header-level control such as the
       calendar's chooser field. Left empty it is just the spacer that pushes the actions right. */
   center?: ReactNode;
@@ -34,6 +36,7 @@ export function PageTitleRow({
   title,
   legacyUrl,
   experimental,
+  experimentalLabel,
   center,
   children,
 }: PageTitleRowProps) {
@@ -49,7 +52,7 @@ export function PageTitleRow({
         )}
         <h1 className="text-lg font-bold tracking-tight">{title}</h1>
       </div>
-      {experimental && <ExperimentalBadge />}
+      {experimental && <ExperimentalBadge label={experimentalLabel} />}
       {/* The flexible middle: a header control if the page gives one, otherwise a plain spacer that
           pushes the actions to the right edge. `min-w-0` lets an input here shrink instead of overflow. */}
       <div className="min-w-0 flex-1">{center}</div>

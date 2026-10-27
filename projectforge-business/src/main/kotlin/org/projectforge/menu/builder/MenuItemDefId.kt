@@ -58,6 +58,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // by the "password not changed" mails of 9.0.5, is redirected by OrphanedLinkFilter.
     CHANGE_PASSWORD("menu.changePassword", "next/changePassword"), //
     CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", "next/changeWlanPassword"), //
+    // Hand-built in projectforge-next (ChatRest): the chat rooms and their conversations.
+    CHAT("menu.chat", "next/chat"), //
     CONFIGURATION("menu.configuration", getListUrl("configuration")), //
     CONTRACTS("menu.contracts", getListUrl("contract")), //
     // Migrated to projectforge-next; the Wicket pages (wa/cost1List, wa/cost2List, wa/cost2TypeList) were removed.

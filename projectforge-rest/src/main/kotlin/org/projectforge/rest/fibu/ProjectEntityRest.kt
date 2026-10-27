@@ -27,14 +27,17 @@ import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AuftragsCache
+import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.fibu.kost.ProjektKost2Service
+import org.projectforge.business.task.TaskFormatter
 import org.projectforge.business.task.TaskTree
 import org.projectforge.common.StringHelper
+import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -47,9 +50,12 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.ne
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.api.impl.DBPredicate
+import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDay
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.Kost2Art
@@ -64,11 +70,13 @@ import org.projectforge.ui.filter.Kost2FilterUtils
 import org.projectforge.ui.filter.UIFilterListValue
 import org.projectforge.ui.filter.addLeading
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
+import java.util.Date
 
 /**
  * The project (Projekt) list and edit page, layout free — its list and form are hand built in
@@ -372,13 +380,23 @@ class ProjectEntityRest
         projektKost2Service.deactivate(projektId, unselected.map { it.id!! })
     }
 
-    override val autoCompleteSearchFields = arrayOf("name", "identifier")
+    /**
+     * Number and customer, too: the label shows `7.002.00: name`, and a project is often looked up by its
+     * customer. `kost` is the formatted project number (keyword), matched by the prefix typed.
+     */
+    override val autoCompleteSearchFields = arrayOf("kost", "name", "identifier", "kunde.name", "kunde.identifier")
+
+    /** Number and name hits first: `mob` lists projects named Mob… before all projects of customer Mobilion. */
+    override val autoCompletePrimarySearchFields = arrayOf("kost", "name", "identifier")
 
     /** Ended projects only on request ([org.projectforge.ui.AutoCompletion.SHOW_INACTIVE_PARAM]). */
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<ProjektDO> {
         val list = super.queryAutocompleteObjects(request, filter)
         return if (showInactive(request)) list else list.filter { !isInactiveAutoCompleteEntry(it) }
     }
+
+    /** With the customer: projects of different customers often share a name. */
+    override fun autoCompleteLabel(obj: ProjektDO): String = KostFormatter.instance.formatProjektWithCustomer(obj)
 
     override fun isInactiveAutoCompleteEntry(obj: ProjektDO): Boolean =
         super.isInactiveAutoCompleteEntry(obj) || obj.status == ProjektStatus.ENDED
@@ -412,6 +430,87 @@ class ProjectEntityRest
         return ProjectChecklistFilter.valuesOf(getResultIds(checklistFilter(filter, ProjectChecklistFilter.FIELD)).asSequence())
     }
 
+    /**
+     * The filtered list as an Excel file with all fields of a project, one row per project. The rows come from
+     * [getResultList], i.e. through the same pipeline the list itself uses (list type, customer, business unit,
+     * project and cost 2 type filters, search). An empty result answers 404 rather than a file.
+     *
+     * Each row is the list row ([createListRow]), so customer, account, task, group and contacts come from the
+     * caches and the activity dates are those of the list. The former project managers are left out: they are
+     * read-only legacy columns, replaced by the contacts.
+     */
+    @AccessChecked("DAO: select access (list result filtered by baseDao)")
+    @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
+    fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+        val list = getResultList(filter)
+        if (list.isEmpty()) {
+            return ResponseEntity.notFound().build<Any>()
+        }
+        ExcelUtils.prepareWorkbook().use { workbook ->
+            val sheet = workbook.createOrGetSheet(translate("fibu.projekt.projekte"))
+            // Excel's built-in "General" for the numbers: merlin's default "#.#" shows whole numbers as "35," in
+            // German Excel. Registered at column level before any cell exists.
+            val numberStyle = workbook.createOrGetCellStyle("number")
+            numberStyle.dataFormat = workbook.createDataFormat().getFormat("General")
+            sheet.registerColumn(translate("fibu.projekt.projektnummer"), COL_KOST).withSize(14)
+            sheet.registerColumn(translate("fibu.projekt.projektnummer") + " (#)", COL_PROJEKTNUMMER).withSize(12)
+            sheet.registerColumn(translate("fibu.projekt.nummer"), COL_NUMMER).withSize(10)
+            sheet.registerColumn(translate("fibu.projekt.identifier"), COL_IDENTIFIER).withSize(20)
+            sheet.registerColumn(translate("fibu.projekt.name"), COL_NAME).withSize(40)
+            sheet.registerColumn(translate("fibu.kunde.nummer"), COL_CUSTOMER_NUMBER).withSize(10)
+            sheet.registerColumn(translate("fibu.kunde.name"), COL_CUSTOMER_NAME).withSize(30)
+            sheet.registerColumn(translate("fibu.kunde.division"), COL_CUSTOMER_DIVISION).withSize(20)
+            sheet.registerColumn(translate("status"), COL_STATUS).withSize(14)
+            sheet.registerColumn(translate("task"), COL_TASK).withSize(40)
+            sheet.registerColumn(translate("fibu.projekt.projektManagerGroup"), COL_GROUP).withSize(25)
+            sheet.registerColumn(translate("contactPerson"), COL_CONTACT_PERSON).withSize(25)
+            sheet.registerColumn(translate("additionalContacts"), COL_ADDITIONAL_CONTACTS).withSize(40)
+            // The account's designation under "Account": a plain "Identifier" would be mistaken for the project's.
+            sheet.registerColumn(translate("fibu.konto.nummer"), COL_KONTO_NUMMER).withSize(12)
+            sheet.registerColumn(translate("fibu.konto"), COL_KONTO_BEZEICHNUNG).withSize(30)
+            sheet.registerColumn(translate("fibu.kost2art.kost2arten"), COL_KOST2_ARTS).withSize(20)
+            sheet.registerColumn(translate("fibu.projekt.lastActivity"), COL_LAST_ACTIVITY).withSize(12)
+            sheet.registerColumn(translate("fibu.projekt.lastTimesheet"), COL_LAST_TIMESHEET).withSize(12)
+            sheet.registerColumn(translate("fibu.projekt.lastOrder"), COL_LAST_ORDER).withSize(12)
+            sheet.registerColumn(translate("description"), COL_DESCRIPTION).withSize(60)
+            sheet.registerColumn(translate("created"), COL_CREATED).withSize(12)
+            sheet.registerColumn(translate("lastUpdate"), COL_LAST_UPDATE).withSize(12)
+            listOf(COL_PROJEKTNUMMER, COL_NUMMER, COL_CUSTOMER_NUMBER, COL_KONTO_NUMMER).forEach { sheet.setColumnStyle(it, numberStyle) }
+            ExcelUtils.addHeadRow(sheet)
+            list.forEach { obj ->
+                val project = createListRow(obj)
+                val row = sheet.createRow()
+                row.getCell(COL_KOST)?.setCellValue(project.kostFormatted)
+                project.projektnummer?.let { row.getCell(COL_PROJEKTNUMMER)?.setCellValue(it)?.setCellStyle(numberStyle) }
+                row.getCell(COL_NUMMER)?.setCellValue(project.nummer)?.setCellStyle(numberStyle)
+                row.getCell(COL_IDENTIFIER)?.setCellValue(project.identifier)
+                row.getCell(COL_NAME)?.setCellValue(project.name)
+                obj.kunde?.nummer?.let { row.getCell(COL_CUSTOMER_NUMBER)?.setCellValue(it)?.setCellStyle(numberStyle) }
+                row.getCell(COL_CUSTOMER_NAME)?.setCellValue(obj.kunde?.name)
+                row.getCell(COL_CUSTOMER_DIVISION)?.setCellValue(obj.kunde?.division)
+                row.getCell(COL_STATUS)?.setCellValue(project.statusAsString)
+                row.getCell(COL_TASK)?.setCellValue(obj.task?.id?.let { TaskFormatter.getTaskPath(it) })
+                row.getCell(COL_GROUP)?.setCellValue(obj.projektManagerGroup?.name)
+                row.getCell(COL_CONTACT_PERSON)?.setCellValue(obj.contactPerson?.getFullname())
+                row.getCell(COL_ADDITIONAL_CONTACTS)?.setCellValue(
+                    obj.additionalContactUserIdList.mapNotNull { caches.getUser(it)?.getFullname() }.joinToString("; ")
+                )
+                obj.konto?.nummer?.let { row.getCell(COL_KONTO_NUMMER)?.setCellValue(it)?.setCellStyle(numberStyle) }
+                row.getCell(COL_KONTO_BEZEICHNUNG)?.setCellValue(obj.konto?.bezeichnung)
+                row.getCell(COL_KOST2_ARTS)?.setCellValue(project.kost2ArtsAsString)
+                project.lastActivityDate?.let { row.getCell(COL_LAST_ACTIVITY)?.setCellValue(it) }
+                project.lastTimesheetDate?.let { row.getCell(COL_LAST_TIMESHEET)?.setCellValue(it) }
+                project.lastOrderDate?.let { row.getCell(COL_LAST_ORDER)?.setCellValue(it) }
+                row.getCell(COL_DESCRIPTION)?.setCellValue(project.description)
+                obj.created?.let { row.getCell(COL_CREATED)?.setCellValue(it) }
+                obj.lastUpdate?.let { row.getCell(COL_LAST_UPDATE)?.setCellValue(it) }
+            }
+            sheet.setAutoFilter()
+            val filename = "ProjectForge-Projects_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx"
+            return RestUtils.downloadFile(filename, workbook.asByteArrayOutputStream.toByteArray())
+        }
+    }
+
     /** The customers of the projects of a checklist: their own, else those of their orders ([projectCustomersOf]). */
     private fun customerRefs(filter: MagicFilter?, ownField: String): Sequence<CustomerRow> {
         val projektIds = getResultIds(checklistFilter(filter, ownField))
@@ -435,6 +534,29 @@ class ProjectEntityRest
 
     companion object {
         private const val STATUS_FIELD = "status"
+
+        private const val COL_KOST = "kost"
+        private const val COL_PROJEKTNUMMER = "projektnummer"
+        private const val COL_NUMMER = "nummer"
+        private const val COL_IDENTIFIER = "identifier"
+        private const val COL_NAME = "name"
+        private const val COL_CUSTOMER_NUMBER = "customerNumber"
+        private const val COL_CUSTOMER_NAME = "customerName"
+        private const val COL_CUSTOMER_DIVISION = "customerDivision"
+        private const val COL_STATUS = "status"
+        private const val COL_TASK = "task"
+        private const val COL_GROUP = "projektManagerGroup"
+        private const val COL_CONTACT_PERSON = "contactPerson"
+        private const val COL_ADDITIONAL_CONTACTS = "additionalContacts"
+        private const val COL_KONTO_NUMMER = "kontoNummer"
+        private const val COL_KONTO_BEZEICHNUNG = "kontoBezeichnung"
+        private const val COL_KOST2_ARTS = "kost2Arts"
+        private const val COL_LAST_ACTIVITY = "lastActivity"
+        private const val COL_LAST_TIMESHEET = "lastTimesheet"
+        private const val COL_LAST_ORDER = "lastOrder"
+        private const val COL_DESCRIPTION = "description"
+        private const val COL_CREATED = "created"
+        private const val COL_LAST_UPDATE = "lastUpdate"
 
         /** The id of the synthetic status filter element, consumed in [preProcessMagicFilter]. */
         const val LIST_TYPE_FIELD = "listType"

@@ -3,6 +3,7 @@ import type {
   BankAccountRecordAccount,
   BankAccountRecordDetail,
 } from "./types";
+import { toPickerRef } from "@/lib/page-def/reference";
 
 /** How an account reads in the picker and the list: its name, else its IBAN. */
 export function accountLabel(
@@ -20,13 +21,11 @@ export function toFormValues(
 ): BankAccountRecordValues {
   return {
     id: record.id ?? null,
-    // The reference the picker binds to: {id, displayName}, all the server needs to resolve it by id.
-    bankAccount: record.bankAccount
-      ? {
-          id: record.bankAccount.id,
-          displayName: accountLabel(record.bankAccount),
-        }
-      : null,
+    // The reference the picker binds to (see toPickerRef).
+    bankAccount: toPickerRef(
+      record.bankAccount,
+      record.bankAccount ? accountLabel(record.bankAccount) : null
+    ),
     date: record.date ?? null,
     valueDate: record.valueDate ?? null,
     amount: record.amount ?? null,

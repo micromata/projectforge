@@ -127,7 +127,7 @@ export function MonthlyEmployeeReportPage() {
             {quotaTab && (
               <TabsContent value="invoicingQuota">
                 <InvoicingQuotaChartView
-                  userId={data.userId}
+                  userId={data.user.id}
                   year={data.year}
                   month={data.month}
                 />

@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import jakarta.persistence.Tuple
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction
 import org.projectforge.business.fibu.kost.KostZuweisungDO
@@ -188,6 +189,29 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         obj.info = rechnungCache.ensureRechnungInfo(obj)
     }
 
+    /**
+     * Replaces the id-only kunde/projekt stubs the REST layer builds (`Rechnung.copyTo`) by the cached, fully
+     * populated entities before the invoice is written, as [AuftragDao] does for orders.
+     *
+     * The invoice's search document embeds kunde and projekt (with its customer), built from the entity state at
+     * flush time: a stub would index an empty customer name, so searching the list by the customer missed every
+     * invoice saved in the next app until the next reindex — while invoices with the name as free text
+     * (`kundeText`) were found.
+     *
+     * A stub whose id is unknown to the cache is left alone rather than nulled: dropping it would change what is
+     * stored.
+     */
+    private fun resolveKundeAndProjekt(rechnung: RechnungDO) {
+        val caches = PfCaches.instance
+        // nummer is KundeDO's real @Id; reading the transient id alias would initialize a lazy proxy.
+        rechnung.kunde?.nummer?.let { id -> caches.getKunde(id)?.let { rechnung.kunde = it } }
+        rechnung.projekt?.id?.let { id ->
+            caches.getProjekt(id)?.let { projekt ->
+                rechnung.projekt = projekt.also { it.kunde = caches.getKundeIfNotInitialized(it.kunde) }
+            }
+        }
+    }
+
     override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
         rechnungCache.update(obj)
         if (obj.typ == RechnungTyp.CANCELLATION) {
@@ -220,6 +244,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     }
 
     override fun onInsertOrModify(obj: RechnungDO, operationType: OperationType) {
+        resolveKundeAndProjekt(obj)
         if (operationType != OperationType.INSERT && obj.id != null) {
             checkStoredCancellationUnchanged(obj, operationType)
         }

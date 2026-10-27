@@ -194,4 +194,15 @@ class KostFormatterTest : AbstractTestBase() {
             kostFormatter.formatKost2(kost2, KostFormatter.FormatType.TEXT, 30)
         )
     }
+
+    @Test
+    fun `a chosen project names its customer in brackets`() {
+        val kunde = KundeDO().also { it.nummer = 205; it.name = "ACME" }
+        val projekt = ProjektDO().also { it.nummer = 4; it.projektnummer = 520504; it.name = "Allgemein" }
+        Assertions.assertEquals("5.205.04: Allgemein", kostFormatter.formatProjektWithCustomer(projekt))
+        projekt.kunde = kunde
+        Assertions.assertEquals("5.205.04: Allgemein (ACME)", kostFormatter.formatProjektWithCustomer(projekt))
+        Assertions.assertEquals("?.???.??", kostFormatter.formatProjektWithCustomer(null))
+        Assertions.assertEquals("label", KostFormatter.withCustomer("label", " "))
+    }
 }

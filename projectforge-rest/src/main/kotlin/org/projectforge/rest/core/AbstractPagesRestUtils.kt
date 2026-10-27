@@ -57,8 +57,12 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
         val list = pagesRest.getListByIds(entityIds)
         return ResultSet(list, null, selectedEntityIds = selectedEntityIds, magicFilter = magicFilter)
     }
-    val list = getObjectList(pagesRest, baseDao, magicFilter)
+    val (queryFilter, customResultFilters) = buildQueryFilter(pagesRest, baseDao, magicFilter)
+    val list = baseDao.select(queryFilter, customResultFilters).toMutableList()
     val resultSet = ResultSet(pagesRest.filterList(list, magicFilter), null, list.size, magicFilter = magicFilter)
+    if (queryFilter.fulltextQueryInvalid) {
+        resultSet.resultWarning = translate("search.invalidSyntax")
+    }
     return resultSet
 }
 
@@ -154,7 +158,10 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
         val (queryFilter, customResultFilters) = buildQueryFilter(pagesRest, baseDao, magicFilter)
         val idResult = baseDao.selectIds(queryFilter, customResultFilters)
         val sortedIds = pagesRest.sortIds(idResult.ids, magicFilter)
-        listPageCache.put(request, pagesRest.category, baseDao.doClass, fingerprint, sortedIds, idResult.truncated)
+        listPageCache.put(
+            request, pagesRest.category, baseDao.doClass, fingerprint, sortedIds, idResult.truncated,
+            queryInvalid = queryFilter.fulltextQueryInvalid,
+        )
     }
     val allIds = idList.ids
     val pageIds = if (offset >= allIds.size) {
@@ -167,6 +174,9 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
         page, null, totalSize = allIds.size, magicFilter = magicFilter,
         offset = offset, limit = limit, totalSizeExact = !idList.truncated,
     )
+    if (idList.queryInvalid) {
+        resultSet.resultWarning = translate("search.invalidSyntax")
+    }
     // Whole-result statistics are a property of the id list, not of the page: compute them once and cache them
     // with the ids (invalidated together by the change counter), so paging through the same filter does not
     // recompute them on every flip. For a list whose aggregate reloads the whole result set from the database

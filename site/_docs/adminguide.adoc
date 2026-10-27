@@ -111,6 +111,16 @@ ProjectForge sends its security headers itself (Content Security Policy, `X-Fram
 the browser. The Content Security Policy can be replaced by an own value of `projectforge.security.csp-header-value`
 (an empty value sends none, which isn't recommended).
 
+[[reverse_proxy_chat]]
+==== Behind a reverse proxy: live updates of the chat
+
+The chat pushes new messages to the open conversations via server-sent events
+(`/rs/chat/conversation/{id}/events`), a long-lived response with a heartbeat every 25 seconds. The proxy must neither
+buffer it nor close it before the next heartbeat. ProjectForge sends `X-Accel-Buffering: no`, which nginx honours, so
+nginx only needs a read timeout above 25 seconds (the example configuration `doc/misc/nginx_sites-available_projectforge`
+has 600 seconds). Other proxies need the buffering switched off for this path. Without it, the chat still works: it
+falls back to asking for new messages every few seconds.
+
 [[postgresql]]
 === PostgreSQL
 
@@ -1513,8 +1523,9 @@ echo Zipping backupfile ...
 gzip $BACKUPFILE
 
 echo Exporting files ...
-# Custom format; -Z 0: the content is already compressed (or not compressible).
-$PGSQL_DIR/pg_dump -U projectforge -n pf_files -Fc -Z 0 -f $FILES_BACKUPFILE || { echo "Error: export of files failed."; exit 1; }
+# Custom format; compressed (-Z 1, with PostgreSQL 16+ also -Z zstd:1): pg_dump writes the file contents (bytea) hex
+# encoded, which doubles their size, even if the files themselves are already compressed.
+$PGSQL_DIR/pg_dump -U projectforge -n pf_files -Fc -Z 1 -f $FILES_BACKUPFILE || { echo "Error: export of files failed."; exit 1; }
 
 if [ -d $PF_HOME/datatransfer ]; then
   echo Archiving data transfer files ...

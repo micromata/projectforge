@@ -468,6 +468,23 @@
   background-image: linear-gradient(var(--row-grey), var(--row-grey));
 }
 
+/* CVE-Radar: an instance deviating from its system's baseline (INV-11) — another version, an added or a
+ * missing technology, in the comparison matrix and wherever a deviation is marked. */
+.cve-deviation,
+.cve-matrix-version {
+  background-color: var(--status-info-bg);
+  color: var(--status-info);
+}
+.cve-matrix-added {
+  background-color: var(--status-available-bg);
+  color: var(--status-available);
+}
+.cve-matrix-removed {
+  background-color: var(--status-loaned-bg);
+  color: var(--status-loaned);
+  text-decoration-line: line-through;
+}
+
 /*
  * A label's text can be selected and copied. The shadcn Label (components/ui/label.tsx, not ours to
  * edit) makes it `select-none`; this rule is outside any layer and so wins over that utility. A click
@@ -1009,11 +1026,11 @@ span.row-inactive {
 }
 .rich-text-editor ul {
   list-style: disc;
-  padding-left: 1.25rem;
+  padding-left: 1.5rem;
 }
 .rich-text-editor ol {
   list-style: decimal;
-  padding-left: 1.25rem;
+  padding-left: 1.5rem;
 }
 .rich-text-editor a {
   text-decoration: underline;
@@ -1056,6 +1073,32 @@ span.row-inactive {
 }
 :is(.rich-text, .rich-text-editor) :is(th, td) p {
   margin: 0;
+}
+/* Code of a chat message, inline and as a block of several lines, rendered and in the editor alike. A long
+   line of a block scrolls instead of wrapping: the indentation of code means something. */
+:is(.rich-text, .rich-text-editor) code {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.85em;
+  background: var(--muted);
+  border-radius: 0.25rem;
+  padding: 0.0625rem 0.25rem;
+}
+:is(.rich-text, .rich-text-editor) pre {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  /* The size of the code here, so the line height is measured by it. */
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  margin: 0.5rem 0;
+  overflow-x: auto;
+  padding: 0.5rem 0.75rem;
+  white-space: pre;
+}
+:is(.rich-text, .rich-text-editor) pre code {
+  background: none;
+  font-size: inherit;
+  padding: 0;
 }
 /* The cells the editor's selection spans (TipTap marks them). */
 .rich-text-editor .selectedCell {

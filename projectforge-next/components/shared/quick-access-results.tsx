@@ -125,8 +125,14 @@ export function QuickAccessResults({
           </CommandGroup>
         ))}
         {/* The live data hits sit below the menu: the menu is the primary answer, the data the next
-          best, and the full search (pinned below) the fallback. */}
-        {dataSearch && <QuickDataHits term={term} onNavigate={onNavigate} />}
+          best, and the full search (pinned below) the fallback. With the chat on, the users found lead the
+          data hits (to be written to), see QuickDataHits. */}
+        {dataSearch && (
+          <QuickDataHits term={term} part="users" onNavigate={onNavigate} />
+        )}
+        {dataSearch && (
+          <QuickDataHits term={term} part="others" onNavigate={onNavigate} />
+        )}
       </CommandList>
       {/* Pinned below the scroll area, not the last row inside it: the way out of a dead end must stay
           on screen even when the hits above fill the list and scroll it. What the user typed may well

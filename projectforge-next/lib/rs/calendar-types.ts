@@ -11,6 +11,7 @@
  */
 
 import type { AbsenceKind } from "@/lib/rs/absence-kinds";
+import type { InactiveFlags } from "@/lib/page-def/reference";
 
 export { ABSENCE_KINDS, type AbsenceKind } from "@/lib/rs/absence-kinds";
 
@@ -57,14 +58,14 @@ export interface StyledTeamCalendar extends TeamCalendar {
 }
 
 /** A minimal user reference (`User.copyFromMinimal`). */
-export interface UserRef {
+export interface UserRef extends InactiveFlags {
   id?: number | null;
   username?: string | null;
   displayName?: string | null;
 }
 
 /** A minimal group reference (`Group.copyFromMinimal`). */
-export interface GroupRef {
+export interface GroupRef extends InactiveFlags {
   id?: number | null;
   name?: string | null;
   displayName?: string | null;

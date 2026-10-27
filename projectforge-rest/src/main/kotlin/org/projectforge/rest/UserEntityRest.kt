@@ -134,6 +134,9 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
     private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
 
     @Autowired
+    private lateinit var userAvatarDao: UserAvatarDao
+
+    @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
     @Autowired
@@ -165,6 +168,7 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
             user.externalUserManagementSystem = externalUserManagementSystem
             user.wlanPasswordSupported = Login.getInstance().isWlanPasswordChangeSupported(obj)
             user.phoneIdentifiersSupported = sipgateConfiguration.isConfigured()
+            user.avatarVersion = userAvatarDao.getVersion(obj.id)
         }
         return user
     }
@@ -579,10 +583,10 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
     }
 
     override val autoCompleteSearchFields =
-        arrayOf("username", "firstname", "lastname", "email", "alternativeEmails", "formerEmails")
+        arrayOf("username", "firstname", "lastname", "nickname", "email", "alternativeEmails", "formerEmails")
 
     /** Name hits first, see [autoCompletePrimarySearchFields]. */
-    override val autoCompletePrimarySearchFields = arrayOf("username", "firstname", "lastname")
+    override val autoCompletePrimarySearchFields = arrayOf("username", "firstname", "lastname", "nickname")
 
     /**
      * Deactivated users only on request ([AutoCompletion.SHOW_INACTIVE_PARAM]) and only for the members of

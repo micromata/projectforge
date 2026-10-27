@@ -335,6 +335,7 @@ open class MenuCreator {
                         conflictingAvailabilitiesCache.numberOfConflicts(ThreadLocalUserContext.loggedInUserId)
                     })
             )
+            .add(MenuItemDef(MenuItemDefId.CHAT))
             .add(MenuItemDef(MenuItemDefId.BOOK_LIST))
             .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST))
             .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST))

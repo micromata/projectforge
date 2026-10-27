@@ -1,5 +1,6 @@
 import type { LeaveAccountEntryValues } from "./leave-account-entry-schema";
 import type { LeaveAccountEntryDetail } from "./types";
+import { toPickerRef } from "@/lib/page-def/reference";
 
 /**
  * A field Spring left out of the JSON (`JsonInclude.Include.NON_NULL`, see types.ts) arrives as `undefined`; every
@@ -10,13 +11,8 @@ export function toFormValues(
 ): LeaveAccountEntryValues {
   return {
     id: entry.id ?? null,
-    // The reference the picker binds to: {id, displayName}, all the server needs to resolve it by id.
-    employee: entry.employee
-      ? {
-          id: entry.employee.id,
-          displayName: entry.employee.displayName ?? "",
-        }
-      : null,
+    // The reference the picker binds to (see toPickerRef).
+    employee: toPickerRef(entry.employee),
     date: entry.date ?? null,
     amount: entry.amount ?? null,
     description: entry.description ?? null,

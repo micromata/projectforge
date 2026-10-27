@@ -9,9 +9,10 @@
 
 import type { Attachment } from "./attachments";
 import { request } from "./client";
+import type { InactiveFlags } from "@/lib/page-def/reference";
 
 /** A user or group as the area references it: the id is what the backend stores. */
-export type DataTransferRef = {
+export type DataTransferRef = InactiveFlags & {
   id: number;
   displayName?: string;
 };
@@ -87,6 +88,14 @@ export interface DataTransferView {
   gatewayUrl?: string | null;
   /** Gateway: pushed by the main instance and administered there only. */
   managedByMainInstance?: boolean;
+  /** A synthetic area (e.g. of a chat conversation): its files come from there, no upload here. */
+  syntheticArea?: boolean;
+  /** The area is a chat room as well: no personal box, no synthetic area, not on the gateway. */
+  chatAvailable?: boolean;
+  /** The owner of a personal box: whom a direct message from it goes to. */
+  personalBoxUserId?: number | null;
+  /** Unread messages in the chat of the area, or in the direct message with the owner of another one's box. */
+  chatUnread?: number;
 }
 
 /** One entry of the activities, `DataTransferAuditDO` with its computed fields. */

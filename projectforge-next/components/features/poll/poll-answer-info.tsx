@@ -9,6 +9,7 @@ import { formatDate, formatTimestampMinutes } from "@/lib/format";
 import { PollOwnerSelect } from "./poll-owner-select";
 import { RESULTS_TAB_ID } from "./poll-results-panel";
 import type { PollAnswerData } from "./types";
+import { RefName } from "@/components/shared/ref-list";
 
 /**
  * The head of the answer page: what the poll is about, whose it is and until when it is answered. A user with
@@ -39,7 +40,9 @@ export function PollAnswerInfo({
           </>
         )}
         <dt className="text-muted-foreground">{t("poll.owner")}</dt>
-        <dd>{data.owner?.displayName}</dd>
+        <dd>
+          <RefName value={data.owner} />
+        </dd>
         <dt className="text-muted-foreground">{t("poll.deadline._")}</dt>
         <dd>{formatDate(data.deadline, ctx)}</dd>
         {data.lastUpdate && (

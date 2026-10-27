@@ -26,6 +26,8 @@ package org.projectforge.plugins.datatransfer.rest
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
+import org.projectforge.business.chat.ChatDirectService
+import org.projectforge.business.chat.ChatService
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.common.NumberOfBytes
@@ -36,6 +38,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferChatHost
 import org.projectforge.plugins.datatransfer.DataTransferExternalAccessConfig
 import org.projectforge.plugins.datatransfer.DataTransferUtils
 import org.projectforge.rest.AttachmentsServicesRest
@@ -80,6 +83,17 @@ class DataTransferFilesRest {
         val gatewayUrl: String? = null,
         /** Gateway: the area was pushed by the main instance and is administered there only. */
         val managedByMainInstance: Boolean = false,
+        /** A synthetic area (e.g. of a chat conversation): its files come from there, no upload here. */
+        val syntheticArea: Boolean = false,
+        /** The area is a chat room as well (PF-CHAT-DT): no personal box, no synthetic area, not on the gateway. */
+        val chatAvailable: Boolean = false,
+        /** The owner of a personal box: whom a direct message from it goes to. */
+        val personalBoxUserId: Long? = null,
+        /**
+         * The messages the logged-in user didn't read yet in the chat of the area, or in the direct message with the
+         * owner of another one's personal box.
+         */
+        val chatUnread: Long = 0,
     )
 
     class ObserveRequest(var observe: Boolean? = null)
@@ -95,6 +109,15 @@ class DataTransferFilesRest {
 
     @Autowired
     private lateinit var dataTransferAreaEntityRest: DataTransferAreaEntityRest
+
+    @Autowired
+    private lateinit var chatDirectService: ChatDirectService
+
+    @Autowired
+    private lateinit var chatHost: DataTransferChatHost
+
+    @Autowired
+    private lateinit var chatService: ChatService
 
     @Autowired
     private lateinit var dataTransferAreaDao: DataTransferAreaDao
@@ -150,6 +173,8 @@ class DataTransferFilesRest {
         }
         val (dbObj, dto) = convertData(areaId)
         val externalAccessConfig = dataTransferAreaDao.externalAccessConfig
+        val chatAvailable = chatHost.isChatArea(dbObj)
+        val boxUserId = dbObj.getPersonalBoxUserId()
         return View(
             area = dto,
             editAccess = hasEditAccess(dto, dbObj),
@@ -159,6 +184,16 @@ class DataTransferFilesRest {
                 "${externalAccessConfig.gatewayPublicUrl}/${DataTransferUtils.areaViewPath(dbObj.id)}"
             } else null,
             managedByMainInstance = externalAccessConfig.gatewayMode,
+            syntheticArea = dataTransferAreaDao.getAreaHost(dbObj) != null,
+            chatAvailable = chatAvailable,
+            personalBoxUserId = boxUserId,
+            chatUnread = when {
+                boxUserId != null -> chatDirectService.countUnread(boxUserId)
+                chatAvailable -> chatService.countUnread(
+                    DataTransferChatHost.HOST_TYPE, areaId, DataTransferChatHost.CHANNEL
+                )
+                else -> 0
+            },
         )
     }
 

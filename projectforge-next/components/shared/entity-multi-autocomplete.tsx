@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import type { EntityRef } from "./entity-autocomplete";
 import type { InactiveMode } from "@/hooks/use-show-inactive";
 import { EntityChip } from "./entity-chip";
+import { GroupMembersHint } from "./group-members-hint";
 import { EntitySearchList } from "./entity-search-list";
 import { useChipTransfer } from "./use-chip-transfer";
 import { SelectMeButton } from "./select-me-button";
@@ -95,8 +96,9 @@ export function EntityMultiAutocomplete({
         compareText(a.displayName, b.displayName, format)
       )
     : value;
+  const chipType = refType ?? refTypeOfUrl(url);
   const { boxProps, chipProps, dropTarget, change } = useChipTransfer({
-    refType: refType ?? refTypeOfUrl(url),
+    refType: chipType,
     value,
     chips,
     onChange,
@@ -124,6 +126,12 @@ export function EntityMultiAutocomplete({
               <EntityChip
                 key={entry.id}
                 {...chipProps(entry, removeLabel(entry))}
+                // Who a group stands for is what one wants to know before granting it anything.
+                hint={
+                  chipType === "group" ? (
+                    <GroupMembersHint groupId={entry.id} />
+                  ) : undefined
+                }
               />
             ))}
             <PopoverTrigger asChild>

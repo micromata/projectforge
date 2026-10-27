@@ -26,23 +26,21 @@ export function VacationsOfReplacements() {
     return [
       ...vacations.map((v, index) => ({
         id: String(v.id ?? index),
-        name: v.employee?.displayName,
+        name: v.employee,
         startDateFormatted: v.startDateFormatted,
         endDateFormatted: v.endDateFormatted,
         kind: v.vacationModeString,
         status: v.statusString,
         extra: {
-          replacement: v.replacement?.displayName,
-          otherReplacements: (v.otherReplacements ?? [])
-            .map((e) => e.displayName)
-            .join(", "),
-          manager: v.manager?.displayName,
+          replacement: v.replacement,
+          otherReplacements: v.otherReplacements,
+          manager: v.manager,
           workingDays: v.workingDaysFormatted,
         },
       })),
       ...(stats?.replacementAvailabilities ?? []).map((entry, i) => ({
         id: `a${i}`,
-        name: entry.employee?.displayName ?? entry.user?.displayName,
+        name: entry.employee ?? entry.user,
         startDateFormatted: entry.startDateFormatted,
         endDateFormatted: entry.endDateFormatted,
         kind: availabilityTitle,

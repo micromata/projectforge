@@ -30,6 +30,7 @@ import org.projectforge.NextMigration
 import org.projectforge.SystemAlertMessage
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.notification.NotificationDao
+import org.projectforge.business.user.UserAvatarCache
 import org.projectforge.business.user.UserLocale
 import org.projectforge.common.DateFormatType
 import org.projectforge.feature.FeatureService
@@ -82,6 +83,9 @@ open class UserStatusRest {
   private lateinit var employeeDao: EmployeeDao
 
   @Autowired
+  private lateinit var userAvatarCache: UserAvatarCache
+
+  @Autowired
   private lateinit var notificationDao: NotificationDao
 
   @Autowired
@@ -111,6 +115,8 @@ open class UserStatusRest {
     var currency: String? = Constants.CURRENCY_SYMBOL,
     var thousandSeparator: Char? = null,
     var decimalSeparator: Char? = null,
+    /** The version of the user's avatar for the user menu (see UserAvatarRest), null without one. */
+    var avatarVersion: Long? = null,
   ) {
     /**
      * 0 - Sunday, 1 - Monday, ...
@@ -208,6 +214,7 @@ open class UserStatusRest {
       lastName = user.lastname,
       userId = user.id,
       employeeId = employeeId,
+      avatarVersion = userAvatarCache.getVersion(user.id), // The own one, visible anyway.
       locale = ThreadLocalUserContext.localeAsString,
       timeZone = ThreadLocalUserContext.timeZone.id,
       timeNotation = DateFormats.ensureAndGetDefaultTimeNotation(),

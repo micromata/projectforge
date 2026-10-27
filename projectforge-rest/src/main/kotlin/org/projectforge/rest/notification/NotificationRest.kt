@@ -61,6 +61,9 @@ class NotificationRest {
         /** A path of the app, e.g. `next/monthlyEmployeeReport`. */
         val link: String?,
         val created: Date?,
+        val acknowledgedAt: Date? = null,
+        val doneAt: Date? = null,
+        val resolvedAt: Date? = null,
     )
 
     @Autowired
@@ -72,6 +75,18 @@ class NotificationRest {
     fun getMy(): List<Notification> {
         val user = ThreadLocalUserContext.requiredLoggedInUser
         return notificationDao.findVisible(user.id!!).map { toDTO(it) }
+    }
+
+    /**
+     * The notifications of the logged-in user no longer visible in the app (confirmed, done, resolved or expired) of
+     * the last [ARCHIVED_DAYS] days, the newest first: the bell shows them, e.g. after a confirmation by mistake.
+     */
+    @AccessChecked("Own user only (notifications of the logged-in user)")
+    @GetMapping("my/archived")
+    fun getMyArchived(): List<Notification> {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val since = Date(System.currentTimeMillis() - ARCHIVED_DAYS * 24L * 60 * 60 * 1000)
+        return notificationDao.findArchived(user.id!!, since).map { toDTO(it) }
     }
 
     /** Confirms the notification: no further escalation; a toast disappears, a banner stays until done. */
@@ -99,6 +114,13 @@ class NotificationRest {
             body = notification.body,
             link = notification.link,
             created = notification.created,
+            acknowledgedAt = notification.acknowledgedAt,
+            doneAt = notification.doneAt,
+            resolvedAt = notification.resolvedAt,
         )
+    }
+
+    companion object {
+        private const val ARCHIVED_DAYS = 90
     }
 }

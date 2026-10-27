@@ -7,6 +7,7 @@ import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import { PersonSelect } from "@/components/shared/person-select";
 import { VacationStatisticsTable } from "./vacation-statistics-table";
 import type { VacationAccount } from "./types";
+import { toPickerRef } from "@/lib/page-def/reference";
 
 /**
  * The head of the vacation account, laid out as on the React page: the employee picker (HR staff only) on the
@@ -37,12 +38,7 @@ export function VacationAccountSummary({
             id="vacation-account-employee"
             kind="employee"
             required
-            value={
-              selected ??
-              (employee
-                ? { id: employee.id, displayName: employee.displayName ?? "" }
-                : null)
-            }
+            value={selected ?? toPickerRef(employee)}
             onChange={(picked) =>
               picked?.id &&
               onSelectEmployee({

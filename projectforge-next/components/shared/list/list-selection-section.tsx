@@ -24,6 +24,7 @@ export function ListSelectionSection<
   metadata,
   columns,
   onSelectAll,
+  onSelectFirst,
 }: {
   massUpdate: MassUpdateDef;
   mode: ListSelection;
@@ -31,6 +32,8 @@ export function ListSelectionSection<
   /** The list's own column declarations, so the panel's rows read as the table's do. */
   columns: ColumnDeclaration<Row, M>[];
   onSelectAll: () => void;
+  /** Ticks the first MAX_MASS_UPDATE rows; absent while the list has no more than those. */
+  onSelectFirst?: () => void;
 }) {
   const StatisticsLine = massUpdate.statisticsLine;
   return (
@@ -38,6 +41,7 @@ export function ListSelectionSection<
       <SelectionBar
         count={mode.selectedIds.length}
         onSelectAll={onSelectAll}
+        onSelectFirst={onSelectFirst}
         onClear={() => mode.selection?.clear()}
         onLeave={mode.leave}
         actions={

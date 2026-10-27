@@ -43,12 +43,11 @@ export const GROUP_PAGE = definePage<
     { name: "organization", size: 200, wrap: true },
     { name: "description", size: 320, wrap: true },
     {
-      // The members, joined as the legacy list shows them (`SHOW_LIST_OF_DISPLAYNAMES`). No sorting:
-      // the backend orders by entity property, and a collection is none.
+      // The members, as the legacy list shows them (`SHOW_LIST_OF_DISPLAYNAMES`), each struck through
+      // when it left (see RefList). No sorting: the backend orders by entity property, and a collection is none.
       id: "assignedUsers",
       labelKey: "group.assignedUsers",
-      accessor: (row) =>
-        row.assignedUsers?.map((user) => user.displayName).join(", "),
+      accessor: (row) => row.assignedUsers,
       size: 320,
       sortable: false,
       wrap: true,

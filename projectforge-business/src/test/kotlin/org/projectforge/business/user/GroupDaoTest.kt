@@ -194,6 +194,25 @@ class GroupDaoTest : AbstractTestBase() {
     }
 
     @Test
+    fun `an invalid search syntax gives an empty result and is flagged`() {
+        logon(ADMIN_USER)
+        val group = GroupDO()
+        group.name = "colon-test.$PREFIX"
+        groupDao.insert(group)
+        // "unknown:colon" is a field query for a field that isn't searched (Hibernate Search: NPE), '"colon' an
+        // unclosed phrase (Hibernate Search: parse error).
+        listOf("unknown:colon", "colon: test", "\"colon").forEach { searchString ->
+            val filter = QueryFilter(BaseSearchFilter().also { it.searchString = searchString })
+            Assertions.assertTrue(groupDao.select(filter).isEmpty(), "No result for '$searchString'.")
+            Assertions.assertTrue(filter.fulltextQueryInvalid, "'$searchString' is flagged as invalid.")
+        }
+        QueryFilter(BaseSearchFilter().also { it.searchString = "colon" }).let { filter ->
+            Assertions.assertTrue(groupDao.select(filter).any { it.id == group.id })
+            Assertions.assertFalse(filter.fulltextQueryInvalid)
+        }
+    }
+
+    @Test
     fun testSetAssignedUsers() {
         logon(ADMIN_USER)
         val group = GroupDO()

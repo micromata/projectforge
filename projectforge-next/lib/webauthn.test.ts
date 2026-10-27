@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { bufferToBase64url, decodeBase64url } from "./base64url";
 import {
-  bufferToBase64url,
-  decodeBase64url,
   toPublicKeyCreationOptions,
   toRegisterFinishRequest,
   type WebAuthnRequestOptions,

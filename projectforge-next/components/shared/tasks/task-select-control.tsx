@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Edit02Icon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon, Edit02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { fetchTaskInfo, type TaskNode } from "@/lib/rs/task";
@@ -41,6 +41,8 @@ export interface TaskSelectControlProps {
   showConsumption?: boolean;
   /** The type-ahead finds only tasks a time sheet may be booked on (see TaskSearchPopover). */
   onlyBookable?: boolean;
+  /** A task must stay picked: the clear button (x) is left out, another task may still replace it. */
+  required?: boolean;
 }
 
 /**
@@ -62,6 +64,7 @@ export function TaskSelectControl({
   onDrillDown,
   showConsumption,
   onlyBookable,
+  required,
 }: TaskSelectControlProps) {
   const t = useTranslations();
   const { recordTask } = useRecentTasks();
@@ -96,12 +99,28 @@ export function TaskSelectControl({
         <TaskPath
           task={(taskId != null && task) || null}
           onSelect={select}
+          // The home icon opens the tree, it doesn't clear: clearing is the (x) beside the path, which a
+          // required field doesn't offer.
+          onHome={onOpen}
+          homeTooltip={t("task.tree.title.select")}
           onOpen={onOpen}
           openTreeOnAncestorClick={openTreeOnAncestorClick}
           onDrillDown={onDrillDown}
           disabled={disabled}
         />
       </div>
+      {taskId != null && !disabled && !required && (
+        <HintTooltip text={t("reset")}>
+          <button
+            type="button"
+            onClick={() => select(null)}
+            aria-label={`${t("reset")}: ${ariaLabel}`}
+            className="shrink-0 cursor-pointer text-muted-foreground hover:text-foreground"
+          >
+            <HugeiconsIcon icon={Cancel01Icon} size={12} />
+          </button>
+        </HintTooltip>
+      )}
       {/* Before the tree button, in the order Wicket's select panel has the two: the term first, the
           tree for when the name is not what the user knows. */}
       <TaskSearchPopover
@@ -128,8 +147,11 @@ export function TaskSelectControl({
           <HugeiconsIcon icon={Edit02Icon} size={14} />
         </Button>
       </HintTooltip>
-      {/* Leads to the task itself, where its timesheets are — see TaskEditLink. */}
-      {showEditLink && <TaskEditLink taskId={taskId} />}
+      {/* Leads to the task itself, where its timesheets are — see TaskEditLink. Not for a task the user
+          sees by a booking grant only: its page is not theirs to open. */}
+      {showEditLink && task?.bookingGrant == null && (
+        <TaskEditLink taskId={taskId} />
+      )}
       {showConsumption && taskId != null && task && (
         <div className="w-24 shrink-0">
           <TaskConsumptionBar task={task} />

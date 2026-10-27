@@ -8,6 +8,11 @@ export const TIMESHEET_METADATA = {
   entity: "TimesheetDO",
   historizable: true,
   fields: {
+    acceptancePending: {
+      dataType: "BOOLEAN",
+      i18nKey: "timesheet.acceptancePending",
+      required: false,
+    },
     created: {
       dataType: "TIMESTAMP",
       i18nKey: "created",

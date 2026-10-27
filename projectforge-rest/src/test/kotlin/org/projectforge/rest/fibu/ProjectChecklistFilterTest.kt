@@ -106,6 +106,19 @@ class ProjectChecklistFilterTest {
         assertFalse(predicate.match(sheet(kost2Id = 200)))
     }
 
+    @Test
+    fun `a project group value names its offered projects`() {
+        val names = mapOf(17L to "Beta", 18L to "Alpha", 42L to "Solo")
+        // 18 of the group is offered, 17 is not:
+        val values = ProjectChecklistFilter.valuesOf(sequenceOf(42L, 18L, null, 18L), index) { names[it]!! }
+        assertEquals(listOf("pg:prjgr1", "18", "42"), values.map { it.id })
+        assertEquals(listOf("Alpha"), values[0].members)
+        assertEquals(true, values[0].group)
+        assertNull(values[1].members)
+        val both = ProjectChecklistFilter.valuesOf(sequenceOf(17L, 18L), index) { names[it]!! }
+        assertEquals(listOf("Alpha", "Beta"), both[0].members)
+    }
+
     private val index = CustomerGroupIndex(
         CustomerGroupConfig(
             projectGroups = mutableListOf(

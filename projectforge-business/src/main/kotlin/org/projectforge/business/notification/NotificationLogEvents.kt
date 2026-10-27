@@ -40,7 +40,7 @@ object NotificationLogEvents {
     val DELIVERY_FAILED = LogEvent(
         code = "notification.deliveryFailed",
         category = LogCategory.EXTERNAL,
-        explanation = "A step of the delivery of a notification (e.g. a mail) failed. It is retried after 15 minutes, 1 hour and 4 hours (logged as warning), the last failure is logged as error and the step is given up; the error is stored in the notification's delivery state.",
+        explanation = "A step of the delivery of a notification (e.g. a mail) failed. It is retried after 15 minutes, 1 hour and 4 hours (logged as warning), the last failure is logged as error and the step is given up; the error is stored in the notification's delivery state. A failed mail is reported with its stack trace as mail.sendFailed, here only by one line with its cause. If the mail server isn't reachable, the further mails of the run are postponed to the next run.",
         action = "Check the mail server (see also the mail tile) and the recipient's mail address.",
     )
 

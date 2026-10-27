@@ -187,6 +187,7 @@ class Rechnung(
         src.projekt?.let { p ->
             project = Project()
             project?.copyFromMinimal(p)
+            project?.labelWithCustomer(p)
         }
         src.kunde?.let { c ->
             customer = Customer()

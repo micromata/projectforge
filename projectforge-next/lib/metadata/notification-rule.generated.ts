@@ -121,6 +121,14 @@ export const NOTIFICATION_RULE_METADATA = {
           i18nKey: "notification.ruleTypes.TIMESHEETS_WITHOUT_KOST2",
         },
         {
+          value: "TIMESHEETS_TO_ACCEPT",
+          i18nKey: "notification.ruleTypes.TIMESHEETS_TO_ACCEPT",
+        },
+        {
+          value: "CREDITOR_INVOICES_DUE",
+          i18nKey: "notification.ruleTypes.CREDITOR_INVOICES_DUE",
+        },
+        {
           value: "MANUAL",
           i18nKey: "notification.ruleTypes.MANUAL",
         },
@@ -150,6 +158,12 @@ export const NOTIFICATION_RULE_METADATA = {
           i18nKey: "notification.severities.URGENT",
         },
       ],
+    },
+    smsText: {
+      dataType: "STRING",
+      i18nKey: "notification.smsText",
+      required: false,
+      maxLength: 1000,
     },
     subject: {
       dataType: "STRING",

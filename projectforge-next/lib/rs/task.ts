@@ -48,13 +48,25 @@ export interface TaskProjekt {
  * same value — the tree sends it per node, the list per row (`Task.copyFrom4ListRow`).
  */
 export interface TaskConsumption {
-  /** Already localised, e.g. "350PT/188PT (186%)" — the bar's tooltip. */
+  /**
+   * Already localised, e.g. "8,78PT/18,00PT (49%), Rest: 9,22PT (03.08.2026–12.10.2026)" — the one-line
+   * form of the tooltip: its fallback, the aria label and what a search matches.
+   */
   title?: string;
   /** One of the `progress-*` names of `Consumption.Status`, which picks the bar's colour. */
   status?: string;
   percentage?: number;
   /** Capped at 100, unlike `percentage` — the width the bar is painted with. */
   barPercentage?: number;
+  /** The figures of the tooltip's calculation (see ConsumptionTooltip), formatted with unit, e.g. "8,78 PT". */
+  booked?: string;
+  /** Absent for a task without a budget, as is `remaining`. */
+  budget?: string;
+  /** The absolute value: what is left, or by how much the budget is exceeded where `overbooked`. */
+  remaining?: string;
+  overbooked?: boolean;
+  /** Earliest start until latest stop of the time sheets booked on the task and its sub tasks. */
+  period?: string;
 }
 
 /**
@@ -115,21 +127,45 @@ export interface TaskNode {
    * tinted and struck through (see deletedRowClass); `statusAsString` reads "gelöscht".
    */
   deleted?: boolean;
+  /**
+   * Set for a node the user sees by an ad hoc booking grant only (`TaskServicesRest.BookingGrantNode`): the
+   * granted task (`GRANT`, bookable) or one of its ancestors (`PATH`, shown by its title, not selectable).
+   */
+  bookingGrant?: "GRANT" | "PATH";
+  /**
+   * The current ad hoc booking grants on the node (`TaskServicesRest.BookingGrantBadge`), only for who may
+   * grant on it and not in the select popover.
+   */
+  bookingGrants?: TaskBookingGrantBadgeEntry[];
+  /** The time sheets on the node to be accepted, for who may grant on it only (as `bookingGrants`). */
+  pendingTimesheets?: number;
   consumption?: unknown;
   /** Index signature so the node can be read as a table row (see DataObject). */
   [field: string]: unknown;
+}
+
+/** A current booking grant on a tree node. Dates as ISO `yyyy-MM-dd`. */
+export interface TaskBookingGrantBadgeEntry {
+  userName?: string;
+  validFrom: string;
+  validUntil: string;
+  /** Its period hasn't begun yet. */
+  upcoming: boolean;
+  /** Proposed without the right to grant: its time sheets are to be accepted. */
+  acceptanceRequired?: boolean;
 }
 
 /**
  * Whether a node may be picked as the task of *another* entity — a timesheet, an order position, an
  * access entry.
  *
- * Only the root is not: it is the tree's anchor, not a task anyone books against (Wicket leaves it out
- * of the select panel's path for the same reason, and never offers it for selection). The structure
+ * The root is not: it is the tree's anchor, not a task anyone books against (Wicket leaves it out
+ * of the select panel's path for the same reason, and never offers it for selection). Neither is an
+ * ancestor the user sees only on the way to a booking grant (`bookingGrant: "PATH"`). The structure
  * tree page itself is exempt — there a click opens the task's own edit page, which the root has.
  */
 export function isSelectableTask(task: TaskNode): boolean {
-  return task.root !== true;
+  return task.root !== true && task.bookingGrant !== "PATH";
 }
 
 /** The status filter of the tree, `TaskFilter`. Names are the request's parameter names. */
@@ -506,6 +542,8 @@ export interface AccessRight {
 /** `TaskServicesRest.GroupAccess`: one group's explicit access entry on a task. */
 export interface TaskGroupAccess {
   groupName: string;
+  /** The group is deleted: the name is struck through. */
+  groupDeleted?: boolean;
   /** Whether the rights hold for the sub elements as well. */
   recursive: boolean;
   description?: string | null;

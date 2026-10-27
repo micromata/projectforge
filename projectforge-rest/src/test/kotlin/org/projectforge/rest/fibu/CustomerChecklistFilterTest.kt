@@ -140,6 +140,17 @@ class CustomerChecklistFilterTest {
     }
 
     @Test
+    fun `a group value names its offered customers`() {
+        val values = CustomerChecklistFilter.valuesOf(
+            sequenceOf(CustomerRow(null, "ACME Logistics "), CustomerRow(null, "ACME Holding GmbH"), CustomerRow(null, "ACME Logistics"), CustomerRow(null, "Beta")),
+            index,
+        )
+        // Only those of the rows, each once, sorted; not the group's other customers:
+        assertEquals(listOf("ACME Holding GmbH", "ACME Logistics"), values[0].members)
+        assertNull(values.single { it.id == "t:Beta" }.members)
+    }
+
+    @Test
     fun `free texts differing only in surrounding blanks are one value`() {
         val values = CustomerChecklistFilter.valuesOf(
             sequenceOf(CustomerRow(null, "DHL"), CustomerRow(null, "DHL "), CustomerRow(null, " DHL"), CustomerRow(null, "  ")),

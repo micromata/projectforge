@@ -274,15 +274,19 @@
         "error": {
           "accountRange": "{arg0}: keine gültigen Kontonummern: {arg1} (z. B. 4000-4799 oder 6300,6800-6855).",
           "duplicateId": "{arg0}: Die Id {arg1} wird schon von einer anderen Zeile verwendet.",
+          "firstProjectNumber": "{arg0}: Die erste vorgeschlagene Projektnummer {arg1} liegt nicht in 0-{arg2}.",
+          "firstProjectNumberRange": "Erste vorgeschlagene Projektnummer: Es gibt keinen Nummernkreis mit dem Präfix {arg0}.",
           "id": "{arg0}: Die Id {arg1} ist kein gültiger Name (Buchstaben, Ziffern und _, beginnend mit einem Buchstaben).",
           "unknownRow": "{arg0}: Es gibt keine Zeile mit der Id {arg1}.",
           "value": "{arg0}: Der Wert lässt sich nicht übersetzen (Formel oder Groovy-Skript)."
         },
+        "firstProjectNumbers": "Erste vorgeschlagene Projektnummer",
         "heading": "Überschrift der BWA",
         "help": {
           "accountRange": "DATEV-Konten, deren Buchungssätze in dieser Zeile summiert werden: einzelne Konten und Bereiche, durch Kommas getrennt, z. B. 4000-4799 oder 6300,6800-6855. Leer bei berechneten Zeilen und Trennzeilen.",
           "creditors": "Kontonummern der Kreditoren (z. B. 70000-79999): Die Kontoauswahl für Kreditoren bietet nur diese Konten an. Leer: alle Konten.",
           "debitors": "Kontonummern der Debitoren (z. B. 10000-12999): Die Kontoauswahl für Debitoren bietet nur diese Konten an. Leer: alle Konten.",
+          "firstProjectNumbers": "Je Nummernkreis: die lokale Projektnummer, ab der für ein neues Projekt die nächste freie Projektnummer vorgeschlagen wird, z. B. 1 für 5.###.01 statt 5.###.00. Niedrigere Nummern können weiterhin von Hand eingegeben werden und werden vorgeschlagen, wenn alle höheren vergeben sind. Leer: 0.",
           "heading": "Überschrift über der betriebswirtschaftlichen Auswertung.",
           "id": "Name der Zeile in Formeln und Skripten anderer Zeilen: Buchstaben, Ziffern und _, beginnend mit einem Buchstaben. Auf eine Zeile ohne Id kann nicht verwiesen werden.",
           "indent": "Einrückung des Titels in der BWA, z. B. 1 oder 2 für Unterzeilen. Leer: keine.",
@@ -319,7 +323,8 @@
           }
         },
         "rows": "Zeilen der betriebswirtschaftlichen Auswertung (BWA)",
-        "summary": "Debitoren {arg0}, Kreditoren {arg1}, {arg2} Zeilen der BWA"
+        "summary": "Debitoren {arg0}, Kreditoren {arg1}, {arg2} Zeilen der BWA",
+        "summaryFirstProjectNumbers": "erste vorgeschlagene Projektnummern {arg0}"
       },
       "categories": {
         "finance": "Finanzen",
@@ -402,7 +407,7 @@
         "error": {
           "browseBaseUrl": "Standard-Browse-URL {arg0}: keine http(s)-URL.",
           "duplicate": "Projekt {arg0} ist auf Server {arg1} und Server {arg2} eingetragen.",
-          "project": "Server {arg0}: {arg1} ist kein gültiges Projektkürzel (Buchstaben, Ziffern, Unterstrich; beginnend mit einem Buchstaben).",
+          "project": "Server {arg0}: {arg1} ist kein gültiges Projektkürzel (Buchstaben, Ziffern, Unterstrich; beginnend mit mindestens zwei Buchstaben).",
           "projectsMissing": "Server {arg0}: die Projekte fehlen.",
           "serverUrl": "Server {arg0}: {arg1} ist keine http(s)-URL.",
           "serverUrlMissing": "Server {arg0}: die Browse-URL fehlt."
@@ -953,6 +958,166 @@
   },
   "changes": "Änderungen",
   "charactersLeft": "Zeichen übrig.",
+  "chat": {
+    "backToHost": "Zurück",
+    "conversation": {
+      "empty": "Noch keine Nachrichten.",
+      "loadOlder": "Ältere Nachrichten laden",
+      "members": "Mitglieder",
+      "membersCount": "Mitglieder ({arg0})",
+      "membersMe": "(du)",
+      "mute": "Stummschalten",
+      "muted": "Stummgeschaltet: Neue Nachrichten werden nicht gemeldet, Erwähnungen schon.",
+      "newMessages": "Neu",
+      "nextUnread": "Zur nächsten ungelesenen Nachricht springen ({arg0} ungelesen)",
+      "notFound": "Die Unterhaltung gibt es nicht oder sie ist nicht zugänglich.",
+      "polling": "Live-Aktualisierung unterbrochen, neue Nachrichten werden regelmäßig abgefragt.",
+      "readOnly": "Diese Unterhaltung ist schreibgeschützt.",
+      "unmute": "Stummschaltung aufheben"
+    },
+    "dataTransfer": {
+      "_": "Datentransfer",
+      "empty": "Noch keine Chats in Datentransferbereichen: Jeder Bereich ist ein Chatraum für alle mit Zugriff darauf."
+    },
+    "direct": {
+      "_": "Direktnachrichten",
+      "empty": "Noch keine Direktnachrichten.",
+      "error": {
+        "self": "An sich selbst lassen sich keine Direktnachrichten schicken."
+      },
+      "info": "Angeschrieben werden kann jede Person, die in der Personenauswahl erscheint.",
+      "new": "Direktnachricht",
+      "open": "Öffnen",
+      "send": "Direktnachricht senden",
+      "start": "Chat starten",
+      "startOrSendFile": "Chat starten / Datei senden",
+      "user": "Person"
+    },
+    "file": {
+      "add": "Dateien anhängen",
+      "directTarget": "Dateien landen im Datentransfer in der persönlichen Box von {arg0}.",
+      "download": "Herunterladen",
+      "error": {
+        "tooLarge": "Die Datei „{arg0}“ ist zu groß (höchstens {arg1}).",
+        "tooLargeTogether": "Alle Dateien zusammen sind für eine Nachricht zu groß.",
+        "tooMany": "Höchstens {arg0} Dateien pro Nachricht.",
+        "unavailable": "Ohne aktiviertes Datentransfer-Plugin können im Chat keine Dateien ausgetauscht werden."
+      },
+      "expiryDays": {
+        "_": "Dateien verfügbar",
+        "info": "Die Dateien des Raums werden so lange in seinem Datentransferbereich „Chat: …“ aufbewahrt und danach gelöscht."
+      },
+      "notAvailable": "Datei nicht mehr verfügbar",
+      "openArea": "Im Datentransfer öffnen",
+      "remove": "Datei entfernen"
+    },
+    "mention": {
+      "noResults": "Niemand gefunden."
+    },
+    "message": {
+      "cancel": "Abbrechen",
+      "codeBlock": "Codeblock mit mehreren Zeilen: Enter beginnt eine neue Zeile, Strg+Enter (Mac: ⌘+Enter) sendet.",
+      "copyLink": "Link kopieren",
+      "delete": {
+        "_": "Löschen",
+        "confirm": "Diese Nachricht löschen?"
+      },
+      "deleted": "Nachricht gelöscht",
+      "edit": "Bearbeiten",
+      "edited": "bearbeitet",
+      "hidden": "Nachricht von der Moderation ausgeblendet",
+      "hiddenReason": "Ausgeblendet von {arg0}: {arg1}",
+      "hide": {
+        "_": "Ausblenden",
+        "reason": "Grund für das Ausblenden"
+      },
+      "history": "Historie",
+      "linkCopied": "Link kopiert.",
+      "markUnread": "Als ungelesen markieren",
+      "placeholder": "Nachricht schreiben, @ erwähnt jemanden",
+      "quote": {
+        "_": "Zitieren",
+        "of": "Zitat von {arg0}, zur Nachricht",
+        "remove": "Zitat entfernen"
+      },
+      "react": "Reaktion hinzufügen",
+      "reply": "Im Thread antworten",
+      "save": "Speichern",
+      "send": "Senden",
+      "unhide": "Wieder einblenden"
+    },
+    "room": {
+      "delete": {
+        "_": "Chatraum löschen",
+        "confirm": "Den Chatraum „{arg0}“ mit allen Nachrichten und Dateien löschen? Das lässt sich nicht rückgängig machen."
+      },
+      "description": "Beschreibung",
+      "edit": "Chatraum bearbeiten",
+      "moderators": {
+        "_": "Moderation",
+        "info": "Wer moderiert, nimmt am Raum teil, bearbeitet und löscht ihn, blendet Nachrichten anderer mit Begründung aus (z. B. themenfremd oder vertraulich) und sieht die Historie bearbeiteter Nachrichten – wie die Person, die den Raum angelegt hat."
+      },
+      "name": "Name",
+      "new": "Neuer Chatraum",
+      "owner": {
+        "_": "Angelegt von",
+        "info": "Wer den Raum anlegt, nimmt immer teil und moderiert ihn."
+      },
+      "participantGroups": "Teilnehmende Gruppen",
+      "participantUsers": "Teilnehmende Personen",
+      "participants": "{arg0} Teilnehmende",
+      "unread": "{arg0} ungelesen"
+    },
+    "rooms": {
+      "_": "Chaträume",
+      "empty": "Noch keine Chaträume: Einfach einen anlegen und die Teilnehmenden wählen."
+    },
+    "search": {
+      "_": "Suchen",
+      "noResults": "Keine Nachrichten gefunden.",
+      "placeholder": "Nachrichten durchsuchen"
+    },
+    "secret": {
+      "accept": "Annehmen",
+      "action": "Vertraulich senden",
+      "close": "Schließen",
+      "decline": "Ablehnen",
+      "delivered": "Gesendet. Warten, bis {arg0} sie öffnet …",
+      "discard": "Verwerfen",
+      "discardConfirm": "Ist sie in einem anderen Fenster offen, endet sie auch dort.",
+      "elsewhere": "Eine vertrauliche Nachricht von {arg0} wird in einem anderen Fenster empfangen oder lässt sich hier nicht mehr öffnen (die Seite wurde neu geladen).",
+      "ended": "Die Sitzung ist beendet (abgelehnt, abgebrochen oder abgelaufen).",
+      "error": {
+        "decrypt": "Die Nachricht ließ sich nicht entschlüsseln.",
+        "unsupported": "Dieser Browser bietet hier keine Verschlüsselung (eine sichere Verbindung ist nötig)."
+      },
+      "fingerprint": "Fingerabdruck",
+      "info": "Ende-zu-Ende-verschlüsselt: Der Text wird im Browser der sendenden Person verschlüsselt und erst im Browser der empfangenden entschlüsselt. ProjectForge leitet ihn weiter, ohne ihn lesen zu können, und speichert nichts. Beide müssen online sein; nach 10 Minuten endet die Sitzung.",
+      "limit": "Das schützt vor Datenbank-Backups, Logs und Administratoren, die in Daten schauen, nicht vor einem manipulierten Server. Im Zweifel den Fingerabdruck auf beiden Seiten vergleichen, z. B. am Telefon.",
+      "offered": "{arg0} möchte eine vertrauliche Nachricht senden.",
+      "receiveTitle": "Vertrauliche Nachricht von {arg0}",
+      "received": "{arg0} hat die Nachricht geöffnet. Auf dem Server ist nichts davon übrig.",
+      "send": "Verschlüsseln und senden",
+      "sendTitle": "Vertrauliche Nachricht an {arg0}",
+      "show": "Nachricht anzeigen",
+      "shownOnce": "Nur hier und nur einmal angezeigt: Schließen des Dialogs löscht sie. Falls kopiert, die Zwischenablage nach Gebrauch leeren.",
+      "start": "Starten",
+      "text": "Vertraulicher Text",
+      "waitingForAccept": "Warten, bis {arg0} annimmt …",
+      "waitingForSender": "Warten, bis {arg0} sendet …"
+    },
+    "thread": {
+      "follow": "Folgen",
+      "lastReply": "Letzte Antwort {arg0}",
+      "newReplies": "Neu",
+      "placeholder": "Im Thread antworten",
+      "replies": "{arg0} Antworten",
+      "reply": "1 Antwort",
+      "title": "Thread",
+      "unfollow": "Nicht mehr folgen"
+    },
+    "title": "Chat"
+  },
   "clone": "Klonen",
   "close": "Schließen",
   "codeEditor": {
@@ -1253,7 +1418,7 @@
             "_": "Titel einblenden",
             "tooltip": "Beschriftet die eigenen Bubbles mit Kurztitel und DB %: dem Namen der Gruppe bzw. des Kunden, bei einem einzelnen Projekt mit dem Kurzbezeichner (sonst dem Namen). Ausgeschaltet stehen die Namen nur im Tooltip."
           },
-          "size": "Bubble-Größe: Kosten"
+          "size": "Bubble-Größe: DB1"
         },
         "config": {
           "addAssignment": "Zuordnung hinzufügen",
@@ -1670,6 +1835,10 @@
       "intro": "Zusammengehörende Kunden (ACME Germany, ACME Logistics, ACME Holding) bilden eine Gruppe, die die Kundenfilter von Auftragsbuch, Rechnungen, Projekten und Kost2 wie einen einzelnen Kunden anbieten. Business Units fassen Gruppen und Kunden zusammen und erhalten einen eigenen Filter. Ein Kunde gehört zu höchstens einer Gruppe, eine Gruppe oder ein Kunde zu höchstens einer Business Unit. Projektgruppen leisten dasselbe für die Projekte der Projektfilter.",
       "matches": "Trifft {arg0} Kunden",
       "matchesNone": "Trifft noch keinen Kunden",
+      "members": {
+        "more": "… und {arg0} weitere",
+        "tooltip": "Umfasst"
+      },
       "name": "Name",
       "orderAccess": {
         "_": "Auftragsfreigaben",
@@ -1745,6 +1914,7 @@
           "positions": "Rechnungspositionen"
         }
       },
+      "markedOverdue": "Überfällig oder in 2 Werktagen fällig",
       "multiselected": {
         "title": "Mehrfachauswahl Kreditorrechnungen"
       },
@@ -2646,6 +2816,14 @@
       "not": "Allgemeine Gruppe",
       "tooltip": "Lokale Gruppen werden nicht mit einem externen Benutzer:innensystem synchronisiert (z. B. LDAP)."
     },
+    "members": {
+      "tooltip": {
+        "count": "{arg0} Mitglieder",
+        "loading": "Mitglieder werden geladen …",
+        "none": "Keine Mitglieder",
+        "notVisible": "Die Mitglieder sind nur für Mitglieder der Gruppe und für Admins sichtbar."
+      }
+    },
     "nomenclature": {
       "_": "Namenskonvention",
       "description": {
@@ -2750,6 +2928,10 @@
     }
   },
   "id": "Id",
+  "imageEditor": {
+    "title": "Bild bearbeiten",
+    "zoom": "Zoom"
+  },
   "import": {
     "_": "Importieren",
     "confirmMessage": "Sollen nun alle ausgewählten Einträge importiert werden? Diese Aktion kann nicht rückgängig gemacht werden.",
@@ -3075,6 +3257,7 @@
     },
     "restore": "Ausgewählte wiederherstellen",
     "restoreConfirm": "Sollen die {arg0} ausgewählten Einträge wirklich wiederhergestellt werden?",
+    "selectFirst": "Erste {arg0} auswählen",
     "selectedEntries": "Ausgewählte Einträge"
   },
   "menu": {
@@ -3239,11 +3422,13 @@
       "triggerConfirm": "Regel jetzt für alle Empfänger auslösen? Für denselben Zeitraum bereits Benachrichtigte werden nicht erneut benachrichtigt."
     },
     "center": "Benachrichtigungen",
+    "centerArchived": "Archivierte Einträge",
+    "centerArchivedEmpty": "Keine archivierten Einträge der letzten 90 Tage.",
     "centerEmpty": "Keine offenen Benachrichtigungen.",
     "channels": {
       "IN_APP": "In der App",
       "MAIL": "E-Mail",
-      "SMS": "SMS (noch nicht unterstützt)"
+      "SMS": "SMS"
     },
     "created": "Erstellt",
     "delivery": {
@@ -3253,6 +3438,7 @@
       "info": "Die Schritte werden nach der angegebenen Zeit seit dem Erstellen der Benachrichtigung zugestellt. Ein Schritt „nur wenn unbestätigt“ entfällt, sobald die Benachrichtigung bestätigt oder ihr Anlass erledigt ist.",
       "onlyIfUnacknowledged": "Nur wenn unbestätigt",
       "removeStep": "Schritt entfernen",
+      "smsNotConfigured": "nicht konfiguriert",
       "unit": {
         "days": "Tagen",
         "hours": "Stunden",
@@ -3282,6 +3468,7 @@
     "open": "Öffnen",
     "params": {
       "daysBeforeExpiry": "Tage vor dem Verfall",
+      "dueWorkingDays": "Werktage vor Fälligkeit (inkl. bis zu 90 Tage überfälliger Rechnungen)",
       "kost2MissingMonths": "Betrachtete Monate (inkl. aktuellem Monat)",
       "passwordMaxAgeDays": "Passwort älter als (Tage)",
       "referredMonth": {
@@ -3300,7 +3487,9 @@
       "none": "Heute ist niemand zu benachrichtigen.",
       "period": "Zeitraum",
       "recipients": "{arg0} Empfänger",
-      "sample": "Beispiel mit den eigenen Werten"
+      "sample": "Beispiel mit den eigenen Werten",
+      "sms": "SMS ({arg0} Zeichen)",
+      "withExamples": "Mit Beispielwerten"
     },
     "recipient": "Empfänger",
     "recipients": {
@@ -3323,9 +3512,12 @@
         "dayOfWeek": "Ein Wochentag ist erforderlich.",
         "daysBeforeExpiry": "Die Anzahl der Tage darf nicht negativ sein.",
         "delay": "Die Zeit eines Zustellungsschritts darf nicht negativ sein.",
+        "dueWorkingDays": "Die Anzahl der Werktage muss zwischen 0 und 30 liegen.",
         "kost2MissingMonths": "Die Anzahl der Monate muss zwischen 1 und 12 liegen.",
         "noDeliveryStep": "Mindestens ein Zustellungsschritt ist erforderlich.",
-        "passwordMaxAgeDays": "Die Anzahl der Tage muss mindestens 1 sein."
+        "passwordMaxAgeDays": "Die Anzahl der Tage muss mindestens 1 sein.",
+        "recipientsRequired": "Empfänger sind erforderlich: Eine Rechnung betrifft keinen Benutzer.",
+        "smsTextLength": "Der SMS-Text darf höchstens {arg0} Zeichen lang sein."
       },
       "lastRun": "Letzter Lauf",
       "legend": {
@@ -3361,9 +3553,11 @@
     },
     "ruleName": "Regel",
     "ruleTypes": {
+      "CREDITOR_INVOICES_DUE": "Fällige Kreditorenrechnungen",
       "MANUAL": "Manuell (ohne Bedingung)",
       "PASSWORD_NOT_CHANGED": "Passwort lange nicht geändert",
       "TIMESHEETS_MISSING": "Fehlende Zeitberichte",
+      "TIMESHEETS_TO_ACCEPT": "Zu übernehmende Zeitberichte",
       "TIMESHEETS_WITHOUT_KOST2": "Zeitberichte ohne Kost2",
       "VACATION_LEFT": "Verfallender Resturlaub"
     },
@@ -3386,6 +3580,8 @@
       "URGENT": "Dringend"
     },
     "severity": "Dringlichkeit",
+    "smsText": "SMS-Text",
+    "smsTextInfo": "Klartext mit denselben Variablen wie der Text, gesendet an die Mobilfunknummer der Empfänger (wer keine hinterlegt hat, bekommt keine SMS). Ist er leer, werden Betreff und Link gesendet. Gekürzt auf {arg0} Zeichen.",
     "status": "Status",
     "statuses": {
       "ACKNOWLEDGED": "Bestätigt",
@@ -3410,7 +3606,12 @@
     "triggerErrors": "{arg0} Fehler: {arg1}",
     "triggerResult": "{arg0} Benachrichtigung(en) für {arg1} Empfänger erstellt.",
     "variable": {
+      "creditorInvoiceLink": "Link zu den Kreditorenrechnungen",
+      "creditorInvoicesDueCount": "Anzahl fälliger Kreditorenrechnungen",
+      "creditorInvoicesDueList": "Fällige Kreditorenrechnungen (Kreditor, Referenz, Fälligkeit, Betrag)",
+      "creditorInvoicesDueSum": "Bruttosumme der fälligen Kreditorenrechnungen",
       "daysLeft": "Verbleibende Urlaubstage",
+      "dueWorkingDays": "Werktage vor Fälligkeit",
       "expiryDate": "Verfallsdatum",
       "firstName": "Vorname",
       "fullName": "Vollständiger Name",
@@ -3424,6 +3625,10 @@
       "passwordMaxAgeDays": "Maximales Alter des Passworts (Tage)",
       "period": "Zeitraum",
       "timesheetLink": "Link zu den Zeitberichten",
+      "timesheetsToAcceptCount": "Anzahl der zu übernehmenden Zeitberichte",
+      "timesheetsToAcceptHours": "Zu übernehmende Stunden",
+      "timesheetsToAcceptLink": "Link zu den zu übernehmenden Zeitberichten",
+      "timesheetsToAcceptTasks": "Strukturelemente mit zu übernehmenden Zeitberichten",
       "timesheetsWithoutKost2Count": "Anzahl der Zeitberichte ohne Kost2",
       "timesheetsWithoutKost2Hours": "Ohne Kost2 gebuchte Stunden",
       "timesheetsWithoutKost2Tasks": "Ohne Kost2 bebuchte Strukturelemente",
@@ -3434,6 +3639,13 @@
       "unbookedWorkingDays": "Arbeitstage ohne Zeitberichte (ohne Urlaub)",
       "unbookedWorkingDaysCount": "Anzahl der Arbeitstage ohne Zeitberichte (ohne Urlaub)",
       "vacationLink": "Link zum Urlaub"
+    },
+    "variables": {
+      "common": "Allgemein",
+      "example": "z. B.",
+      "info": "In Betreff und Text werden die Variablen durch ihre Werte ersetzt.",
+      "ruleType": "Für diesen Regeltyp",
+      "title": "Verfügbare Variablen"
     }
   },
   "operation": {
@@ -3525,7 +3737,8 @@
       },
       "mailSentTo": "E-Mail mit dem Passwortrücksetzen-Link wurde gesendet an ''{arg0}''. Bitte im Spam-Ordner schauen bzw. überprüfen, ob der Benutzer:innenname bzw. E-Mail korrekt ist.",
       "request": "Rücksetzen anfordern",
-      "title": "Passwort vergessen"
+      "title": "Passwort vergessen",
+      "tooManyRequests": "Zu viele Anfragen zum Zurücksetzen des Passworts. Bitte später erneut versuchen."
     },
     "reset": {
       "error": "Es wurde keine gültige Passwortreset-Sitzung gefunden. Entweder ist sie schon verbraucht, abgelaufen oder nicht vorhanden. Bitte erneut versuchen.",
@@ -3628,6 +3841,428 @@
         }
       }
     },
+    "cveradar": {
+      "advisories": {
+        "none": "Aktuell keine Client-Hinweise.",
+        "todo": "Was ist zu tun?"
+      },
+      "ai": {
+        "content": "KI-Texte",
+        "import": {
+          "apply": "Importieren",
+          "file": "Datei wählen…",
+          "info": "JSON-Datei hierher ziehen, auswählen oder den Text einfügen.",
+          "invalid": "Ungültige Antwort",
+          "title": "KI-Antwort importieren",
+          "valid": "Die Antwort entspricht dem Schema."
+        },
+        "longDescription": "Langbeschreibung",
+        "marker": {
+          "released": "KI-generiert, freigegeben",
+          "unreleased": "KI-generiert, nicht freigegeben"
+        },
+        "none": "Noch keine KI-Antwort importiert.",
+        "prompt": {
+          "approvedOnly": "Diesen Prompt nur verwenden mit: {arg0}",
+          "copied": "Prompt kopiert.",
+          "copy": "Prompt kopieren",
+          "instruction": "Analysiere die folgende Schwachstelle für ein IT-Unternehmen. Antworte auf Deutsch, ausschließlich mit JSON genau im Format des Beispiels am Ende.",
+          "title": "Prompt für ein freigegebenes KI-System",
+          "withInventory": "Eingesetzte Technologien und Versionen mitgeben (nie Namen oder Kürzel von Systemen)"
+        },
+        "release": "Für Mitarbeitende freigeben",
+        "risk": "Risikoeinschätzung",
+        "shortDescription": "Kurzbeschreibung"
+      },
+      "apply": "Übernehmen",
+      "back": "Zurück",
+      "baseline": {
+        "edit": {
+          "info": "Wirkt sofort in allen Instanzen ohne Abweichung. Deren dadurch gelöste Befunde gehen auf „Behebung geplant“, bis jede Instanz die Behebung bestätigt.",
+          "title": "Version von {arg0} ändern"
+        },
+        "info": "Komponenten und Technologien, einmal für alle Instanzen gepflegt; Instanzen erfassen nur Abweichungen.",
+        "newVersion": "Neue Version (bisher {arg0})",
+        "preview": {
+          "deviating": "Unverändert (eigene Version)",
+          "fixPlanned": "Befunde auf „Behebung geplant“",
+          "inheriting": "Wirkt in"
+        },
+        "title": "Baseline",
+        "version": "Basis {arg0}"
+      },
+      "campaign": {
+        "answer": "Antworten",
+        "answerFor": "Antwort für {arg0}",
+        "answered": "{arg0} von {arg1} beantwortet",
+        "deadline": "Frist {arg0}",
+        "hiddenInstances": "+{arg0} Instanzen anderer Teams, nicht sichtbar",
+        "info": "Jedes Team antwortet je Instanz; die Antwort setzt den Status der Befunde dieser Instanz.",
+        "mandatory": "verpflichtend",
+        "open": "offen",
+        "target": {
+          "CLIENTS": "Alle Mitarbeitenden",
+          "TEAMS": "Teams"
+        },
+        "title": "Feedback {arg0}"
+      },
+      "clientAnswer": {
+        "DONE": "Erledigt",
+        "NOT_AFFECTED": "Nicht betroffen",
+        "QUESTION": "Frage/Problem"
+      },
+      "column": {
+        "assignee": "Bearbeitung",
+        "code": "Kürzel",
+        "component": "Komponente",
+        "confidentiality": "Vertraulichkeit",
+        "cve": "CVE",
+        "cvss": "CVSS",
+        "deviations": "Abweichungen",
+        "due": "Fällig",
+        "epss": "EPSS",
+        "exposed": "Internet",
+        "findingStatus": "Befunde nach Status",
+        "group": "Zuständige Gruppe",
+        "instance": "Instanz",
+        "instances": "Instanzen",
+        "name": "Name",
+        "priority": "Prio",
+        "published": "Veröffentlicht",
+        "site": "Standort",
+        "stage": "Stage",
+        "status": "Status",
+        "technologies": "Technologien",
+        "technology": "Technologie",
+        "title": "Beschreibung"
+      },
+      "confidentiality": {
+        "CONFIDENTIAL": "Vertraulich",
+        "INTERNAL": "Intern",
+        "STRICTLY_CONFIDENTIAL": "Streng vertraulich"
+      },
+      "criticality": {
+        "HIGH": "Hoch",
+        "LOW": "Niedrig",
+        "MEDIUM": "Mittel",
+        "VERY_HIGH": "Sehr hoch"
+      },
+      "dashboard": {
+        "acknowledged": "Kenntnisnahmen: {arg0}",
+        "campaigns": "Laufende Kampagnen",
+        "escalations": "Eskalationen",
+        "newToday": "Neu (24 h)",
+        "openPriority": "Offen {arg0}",
+        "overdue": "Überfällig",
+        "trend": {
+          "closed": "erledigt",
+          "open": "offen",
+          "title": "Befunde der letzten 30 Tage"
+        },
+        "triageOverdue": "Triage überfällig"
+      },
+      "demo": "Demo",
+      "deviation": "Abweichung",
+      "discussion": {
+        "newPost": "Neuer Beitrag (Markdown)",
+        "post": "Beitrag senden",
+        "scope": {
+          "INTERNAL": "Intern",
+          "PUBLIC": "Öffentliche Diskussion",
+          "label": "Sichtbar für"
+        },
+        "title": "Diskussion"
+      },
+      "error": {
+        "expiryRequired": "Eine Risikoakzeptanz braucht eine Gültigkeitsdauer.",
+        "noAccess": "Für diese Rolle nicht erlaubt.",
+        "notAssignee": "Die verbindliche Priorität setzt, wer die Schwachstelle bearbeitet, oder der Security Officer.",
+        "openFindings": "Erst schließbar, wenn alle Befunde behoben, abgeschwächt, nicht betroffen oder als Risiko akzeptiert sind.",
+        "reasonRequired": "Eine Begründung ist erforderlich.",
+        "riskNeedsManagement": "Ab P2 genehmigt zusätzlich die Geschäftsleitung; das zeigt der Prototyp nicht."
+      },
+      "escalation": {
+        "acknowledgedBy": "Kenntnis genommen",
+        "active": "Eskaliert: SO und Geschäftsleitung sind hinzugezogen",
+        "automatic": "automatisch nach Regel (P1 oder KEV mit Instanz im Internet)",
+        "start": {
+          "info": "Zieht Security Officer und Geschäftsleitung sofort hinzu, per Banner und Mail.",
+          "title": "Eskalieren"
+        },
+        "title": "Eskalation"
+      },
+      "exploitability": {
+        "HIGH": "hoch",
+        "LOW": "gering",
+        "MEDIUM": "mittel",
+        "NONE": "keine"
+      },
+      "filter": {
+        "all": "Alle",
+        "technology": {
+          "label": "Technologie",
+          "placeholder": "Technologie, z. B. spring boot < 3.5.7"
+        },
+        "withVulns": "Nur mit CVEs"
+      },
+      "findingBucket": {
+        "done": "{arg0} erledigt",
+        "inProgress": "{arg0} in Arbeit",
+        "open": "{arg0} offen"
+      },
+      "findingStatus": {
+        "AFFECTED": "Betroffen",
+        "FIXED": "Behoben",
+        "FIX_PLANNED": "Behebung geplant",
+        "IN_REVIEW": "In Prüfung",
+        "MITIGATED": "Abgeschwächt",
+        "NEW": "Neu",
+        "NOT_AFFECTED": "Nicht betroffen",
+        "RISK_ACCEPTED": "Risiko akzeptiert"
+      },
+      "findings": {
+        "confirmFixed": "Behoben bestätigen…",
+        "fixedVersion": "Behobene Version",
+        "openOf": "{arg0} von {arg1} offen",
+        "openOnly": "Nur offene",
+        "riskAccepted": {
+          "info": "Risikoakzeptanz erfordert den Security Officer (ab P2 zusätzlich die Geschäftsleitung) und ein Ablaufdatum."
+        },
+        "riskExpiresInDays": "Gültig für (Tage)",
+        "setStatus": "Status setzen…"
+      },
+      "group": {
+        "overridden": "am System überschrieben"
+      },
+      "hiddenSystems": "+{arg0} weitere betroffene Systeme, nicht sichtbar",
+      "hiddenSystemsShort": "+{arg0} verborgen",
+      "inherited": {
+        "from": "von {arg0}"
+      },
+      "instance": {
+        "contact": "Ansprechpartner:in",
+        "default": "Standardinstanz",
+        "exposed": "aus dem Internet erreichbar",
+        "internal": "nur intern",
+        "openFindings": "{arg0} offen",
+        "raised": "an der Instanz angehoben",
+        "tenant": "Mandant"
+      },
+      "inventory": {
+        "hiddenSystems": "+{arg0} weitere Systeme, für diese Rolle nicht sichtbar",
+        "vulnCount": "{arg0} CVE(s)"
+      },
+      "kev": {
+        "info": "Im CISA-Katalog bekannter ausgenutzter Schwachstellen: wird aktiv ausgenutzt.",
+        "label": "KEV"
+      },
+      "level": {
+        "AREA": "Bereich",
+        "COMPONENT": "Komponente",
+        "INSTANCE": "Instanz",
+        "SYSTEM": "System"
+      },
+      "masterDataOnly": {
+        "info": "Für diese Rolle sind nur die Stammdaten dieses Systems sichtbar (Kürzel, Name, Gruppe, Stufe). Komponenten und Befunde erfordern eine Freigabe.",
+        "short": "nur Stammdaten"
+      },
+      "matrix": {
+        "actions": "Abweichung von {arg0}",
+        "apply": "In Baseline übernehmen",
+        "info": "Technologie × Instanz. Farbige Zellen weichen von der Baseline ab; ein Klick darauf übernimmt sie in die Baseline oder setzt sie zurück.",
+        "kind": {
+          "ADDED": "zusätzlich",
+          "REMOVED": "fehlt",
+          "VERSION": "andere Version"
+        },
+        "reset": "Abweichung zurücksetzen"
+      },
+      "measures": {
+        "fixVersion": "Fix-Version",
+        "nonTechMeasures": "Maßnahmen für Nicht-Techies",
+        "none": "Noch nicht beschrieben.",
+        "remediation": "Behebung",
+        "techMeasures": "Maßnahmen für Techies",
+        "workaround": "Workaround"
+      },
+      "menu": "CVE-Radar",
+      "myAreas": {
+        "findings": "Offene Befunde meiner Systeme",
+        "groups": "Meine Gruppen: {arg0}",
+        "openFeedback": "Mein offenes Feedback",
+        "systems": "Meine Systeme"
+      },
+      "no": "nein",
+      "nobody": "niemand",
+      "none": "Keine.",
+      "notFound": "Nicht gefunden oder für diese Rolle nicht sichtbar.",
+      "origin": {
+        "CI": "CI-Pipeline",
+        "MANUAL": "manuell",
+        "SBOM": "SBOM-Datei"
+      },
+      "persona": "Ansicht als",
+      "possiblyAffected": {
+        "info": "Für diese Technologie ist keine genaue Version im Inventar, der Treffer ist daher unsicher.",
+        "label": "möglicherweise"
+      },
+      "priority": {
+        "binding": "Verbindliche Priorität",
+        "suggested": "Vorschlag {arg0}: {arg1}"
+      },
+      "priorityReason": {
+        "cvssP2": "CVSS ≥ 9 → P2",
+        "cvssP3": "CVSS ≥ 7 → P3",
+        "cvssP4": "CVSS < 7 → P4",
+        "epss": "EPSS ≥ 30 % +1",
+        "exposed": "kritische Instanz im Internet +1",
+        "instances": "betroffene Instanzen +1",
+        "kev": "KEV +1"
+      },
+      "prototype": {
+        "banner": "Demo mit fiktiven Testdaten; Änderungen bleiben nur in diesem Browser.",
+        "reset": {
+          "info": "Stellt die Testdaten im Auslieferungszustand wieder her; alle Änderungen gehen verloren.",
+          "label": "Testdaten zurücksetzen"
+        }
+      },
+      "qa": {
+        "audience": {
+          "NONTECH": "alle",
+          "TECH": "Techies"
+        },
+        "title": "Fragen & Antworten"
+      },
+      "ratings": {
+        "binding": "Verbindliche Priorität {arg0}: {arg1}",
+        "deviates": "Weicht von der verbindlichen Priorität ab",
+        "deviatesSuggestion": "Weicht vom Vorschlag ab",
+        "exploitability": "Ausnutzbarkeit bei uns",
+        "noBinding": "Noch keine verbindliche Priorität; Vorschlag {arg0}.",
+        "none": "Noch keine Bewertungen.",
+        "notRelevant": "Als nicht relevant geschlossen: {arg0}",
+        "own": "Meine Bewertung",
+        "save": "Bewertung speichern"
+      },
+      "reason": "Begründung",
+      "role": {
+        "CA": "CVE-Radar-Admin",
+        "EMPLOYEE": "Mitarbeiter:in",
+        "MG": "Geschäftsleitung",
+        "SO": "Security Officer",
+        "ST": "Security-Team",
+        "TEAM": "Bereichs-/Systemteam"
+      },
+      "save": "Speichern",
+      "saved": "Gespeichert (nur Testdaten).",
+      "sbom": {
+        "change": {
+          "NEW": "neu",
+          "REMOVED": "entfernt",
+          "VERSION": "Version"
+        },
+        "import": "SBOM importieren…",
+        "noChange": "Kein Unterschied.",
+        "sample": "Beispieldatei: {arg0}",
+        "target": {
+          "baseline": {
+            "info": "Ersetzt die Technologien der Komponente in der Baseline; alle Instanzen ohne Abweichung folgen."
+          },
+          "instance": {
+            "info": "Die Unterschiede zur Baseline werden Abweichungen dieser Instanz."
+          },
+          "label": "Ziel"
+        }
+      },
+      "selected": "Ausgewählt: {arg0}",
+      "system": {
+        "criticality": "Kritikalität",
+        "grants": "Freigaben",
+        "tab": {
+          "findings": "Befunde",
+          "matrix": "Vergleich",
+          "overview": "Stammdaten & Instanzen"
+        },
+        "type": "Typ"
+      },
+      "systemType": {
+        "APPLICATION": "Anwendung",
+        "CLIENT": "Client",
+        "NETWORK": "Netzwerkgerät",
+        "SAAS": "SaaS",
+        "SERVER": "Server"
+      },
+      "tab": {
+        "advisories": "Client-Hinweise",
+        "dashboard": "Dashboard",
+        "feedback": "Feedback",
+        "findings": "Befunde",
+        "myAreas": "Meine Bereiche",
+        "systems": "Systeme & Komponenten",
+        "vulnerabilities": "Schwachstellen (CVEs)"
+      },
+      "tabHint": {
+        "advisories": "Hinweise für Mitarbeitende zum Standard-Client mit Anleitung und Bestätigung.",
+        "dashboard": "Lage auf einen Blick: offene Befunde je Priorität, Überfälliges, Eskalationen und Rücklauf der Kampagnen.",
+        "feedback": "Laufende und abgeschlossene Feedback-Kampagnen mit Rücklaufquote.",
+        "findings": "Jeder Befund einzeln: Schwachstelle × Komponente × Instanz, mit Status und Frist. Hier lassen sich viele Befunde auf einmal bearbeiten, z. B. „behoben“ über mehrere Instanzen bestätigen.",
+        "myAreas": "Die eigenen Bereiche und Systeme mit ihren offenen Befunden.",
+        "systems": "Alle Systeme mit Instanzen und Komponenten. Je Zeile ist zu sehen, welche Schwachstellen sie betreffen und wie weit deren Bearbeitung ist. Ein Klick auf das Kürzel klappt auf und zu, ein Klick daneben öffnet das System.",
+        "vulnerabilities": "Alle importierten Schwachstellen mit Bearbeitungsstatus, Priorität und Status der zugehörigen Befunde. Ein Klick öffnet die Schwachstelle; mehrere angehakte lassen sich gemeinsam bearbeiten."
+      },
+      "teamAnswer": {
+        "FIXED": "Betroffen – behoben",
+        "IN_PROGRESS": "Betroffen – in Arbeit",
+        "NOT_AFFECTED": "Nicht betroffen",
+        "RISK_ACCEPTED": "Risiko akzeptiert (Freigabe durch SO)",
+        "planned": "geplant bis {arg0}",
+        "plannedInDays": "Geplant in Tagen",
+        "version": "Version {arg0}"
+      },
+      "title": "CVE-Radar",
+      "tree": {
+        "collapse": "Zuklappen",
+        "expand": "Aufklappen"
+      },
+      "triage": {
+        "assign": "Zuweisen…",
+        "notRelevant": "Nicht relevant…",
+        "priority": "Priorität setzen",
+        "setPriority": "Priorität setzen…",
+        "takeOver": "Ich übernehme"
+      },
+      "triageStatus": {
+        "CLOSED": "Abgeschlossen",
+        "IN_REMEDIATION": "In Behebung",
+        "IN_TRIAGE": "In Triage",
+        "NEW": "Neu",
+        "NOT_RELEVANT": "Nicht relevant",
+        "RATED": "Bewertet"
+      },
+      "unknown": "unbekannt",
+      "versionNowUnaffected": "Inventar hat bereits eine unkritische Version – bitte bestätigen",
+      "vuln": {
+        "affectedRanges": "Betroffene Konfigurationen",
+        "cwe": "CWE",
+        "description": "Beschreibung (NVD)",
+        "modified": "Geändert",
+        "nvdStatus": "NVD-Status",
+        "references": "Weitere Referenzen",
+        "remediationHints": "Hinweise zur Behebung",
+        "tab": {
+          "ai": "KI",
+          "discussion": "Diskussion & Q&A",
+          "findingsCount": "Befunde ({arg0})",
+          "measures": "Maßnahmen",
+          "overview": "Überblick",
+          "ratings": "Bewertungen"
+        }
+      },
+      "vulnerabilities": {
+        "withFindingsOnly": "Nur mit Befunden"
+      },
+      "yes": "ja"
+    },
     "datatransfer": {
       "access": {
         "title": "Zugriff"
@@ -3653,6 +4288,14 @@
         "events": "Ereignisse der letzten 30 Tage"
       },
       "button": {
+        "chat": {
+          "_": "Chat",
+          "info": "Mit allen chatten, die Zugriff auf diesen Bereich haben. Im Chat verschickte Dateien landen in diesem Bereich."
+        },
+        "directMessage": {
+          "_": "Direktnachricht",
+          "info": "Der Person dieser persönlichen Box direkt schreiben. Im Chat verschickte Dateien landen in dieser Box."
+        },
         "downloadAll": {
           "_": "Alles herunterladen",
           "info": "Alle Dateien in einem ZIP-Archiv herunterladen."
@@ -3741,6 +4384,9 @@
         "info": "Über die persönliche Box können Dateien direkt an andere Benutzer gesendet werden.",
         "select": "Wähle den Benutzer, dessen persönliche Box du öffnen möchtest.",
         "title": "Persönliche Box von {arg0}"
+      },
+      "syntheticArea": {
+        "readOnly": "Die Dateien dieses Bereichs werden nur dort hinzugefügt und geändert, wohin sie gehören (z. B. im Chat)."
       },
       "tab": {
         "files": "Dateien",
@@ -4498,6 +5144,13 @@
       "customer": {
         "intro": "Der Kunde des Projekts: ein vorhandener oder ein neuer, der zusammen mit dem Projekt angelegt wird – oder auch allein."
       },
+      "element": {
+        "autoReuse": "Ein Element mit diesem Titel gibt es schon, es wird verwendet: {arg0}",
+        "customerIntro": "Ein neues Element unter einem gewählten, mit dem Namen des Kunden als Titel, oder ein vorhandenes Element; dessen Titel darf vom Namen abweichen.",
+        "existing": "Vorhandenes Element verwenden",
+        "new": "Neues Element anlegen",
+        "projectIntro": "Ein neues Element unter dem Element des Kunden, mit dem Namen des Projekts als Titel, oder ein vorhandenes Element darunter, das noch kein Projekt hat; dessen Titel darf abweichen. Das Element wird mit dem Projekt verknüpft und bekommt die Zugriffsrechte der Gruppen."
+      },
       "existing": {
         "customer": "Vorhandener Kunde",
         "group": "Vorhandene Gruppe"
@@ -4523,23 +5176,23 @@
       "pageTitle": "Kundenassistent",
       "parentTask": {
         "customerOnly": {
-          "intro": "Optional: Unterhalb dieses Elements wird das Strukturelement des neuen Kunden angelegt, mit dem Namen des Kunden als Titel. Ohne Element wird nur der Kunde angelegt."
+          "intro": "Optional: das Strukturelement des neuen Kunden, ein neues unterhalb eines gewählten Elements mit dem Namen des Kunden als Titel oder ein vorhandenes. Ohne Element wird nur der Kunde angelegt."
         },
         "existingCustomer": {
           "_": "Strukturelement des Kunden",
-          "intro": "Das Element des Kunden, soweit bekannt aus seinen Projekten vorbelegt. Darunter wird das Strukturelement des Projekts angelegt, mit dem Namen des Projekts als Titel, und mit dem Projekt verknüpft."
+          "intro": "Das Element des Kunden, soweit bekannt aus seinen Projekten vorbelegt. Darunter liegt das Strukturelement des Projekts."
         },
-        "newCustomer": {
-          "_": "Übergeordnetes Element des Kunden",
-          "intro": "Unterhalb dieses Elements wird das Strukturelement des neuen Kunden angelegt, mit dem Namen des Kunden als Titel, und darunter das Strukturelement des Projekts."
-        },
-        "newPath": "Pfad der neuen Strukturelemente:",
+        "heading": "Strukturelemente",
+        "intro": "Die Strukturelemente des Kunden und des Projekts: neue oder vorhandene.",
+        "newCustomer": "Übergeordnetes Element des Kunden",
+        "newPath": "Pfad der Strukturelemente:",
         "structure": {
           "_": "Das Element eines Kunden ist das übergeordnete Element aller seiner Projekte. Es kann einer Kundengruppe, einer Business-Unit o. ä. untergeordnet sein oder auf oberster Ebene liegen.",
           "title": "Wie der Aufbau gedacht ist"
         }
       },
       "preview": {
+        "existingElement": "vorhanden",
         "newElement": "neu"
       },
       "project": {
@@ -4582,6 +5235,8 @@
   "richTextEditor": {
     "bold": "Fett",
     "bulletList": "Aufzählung",
+    "code": "Code",
+    "codeBlock": "Codeblock",
     "color": {
       "_": "Textfarbe",
       "blue": "Blau",
@@ -4600,6 +5255,7 @@
     },
     "orderedList": "Nummerierte Liste",
     "paragraph": "Normaler Text",
+    "strike": "Durchgestrichen",
     "table": {
       "_": "Tabelle",
       "addColumnAfter": "Spalte rechts einfügen",
@@ -4676,6 +5332,7 @@
         "pageContext": "Gestartet von: {arg0}. Das Script erhält den aktuellen Filter dieser Seite als Variable `pageContext`."
       },
       "includes": "Eingebundene Scripts",
+      "input": "Eingabe",
       "name": "Name",
       "output": "Ausgabe",
       "pageButtons": "Seiten-Buttons",
@@ -4710,6 +5367,7 @@
     "area": "Bereich",
     "durationOfSearch": "Suchdauer",
     "error": "Es trat leider ein interner Fehler auf.",
+    "invalidSyntax": "Der Suchbegriff ist keine gültige Suchsyntax (z. B. ein Doppelpunkt hinter einem Wort oder ein offenes Anführungszeichen), daher gibt es kein Ergebnis.",
     "lastDay": "Letzter Tag",
     "lastDays": "Letzte {arg0} Tage",
     "lastHour": "Letzte Stunde",
@@ -5304,7 +5962,91 @@
       "tooltip": "Wenn gewählt (wird auch an Unterelemente vererbt), dürfen sich hier gebuchte Zeitberichte zeitlich mit Zeitberichten anderer Projekte überlappen (geteilte Kosten). Überlappende Zeit wird in Anwesenheits- und Monatsberichten anteilig gezählt (z. B. 1h + überlappend 1h = je 0,5h). Überlappende Zeitberichte auf derselben Kost2 oder innerhalb desselben Projekts oder derselben Überlappungsgruppe (Konfiguration) werden nicht unterstützt. Eine Einstellung der Kost2 hat Vorrang."
     },
     "assignedUser": "Verantwortliche:r",
+    "bookingGrant": {
+      "acceptanceRequired": "Zu übernehmen",
+      "add": "Buchung freigeben",
+      "badge": {
+        "_": "{arg0} Ad-hoc-Buchung(en)",
+        "upcoming": "ab {arg0}"
+      },
+      "confirm": {
+        "_": "Bestätigen",
+        "confirm": "Diese vorgeschlagene Freigabe bestätigen? Ab jetzt damit gebuchte Zeitberichte müssen nicht mehr übernommen werden, die bisher gebuchten weiterhin."
+      },
+      "error": {
+        "endBeforeStart": "Das Ende des Zeitraums liegt vor seinem Beginn.",
+        "invalidKost2": "Eine Kost2 gehört nicht zu ihrem Strukturelement.",
+        "noTask": "Bitte mindestens ein Strukturelement auswählen.",
+        "notConfirmable": "Die Freigabe ist widerrufen oder schon bestätigt.",
+        "periodNotSet": "Bitte den Zeitraum angeben.",
+        "periodTooLong": "Eine vorgeschlagene Freigabe gilt höchstens 31 Tage.",
+        "proposalTooFarAhead": "Eine vorgeschlagene Freigabe endet spätestens 31 Tage nach heute.",
+        "taskNotBookable": "Auf dieses Strukturelement können keine Zeitberichte gebucht werden.",
+        "taskTwice": "Ein Strukturelement ist doppelt ausgewählt.",
+        "userChanged": "Die Person einer Freigabe kann nicht geändert werden.",
+        "userNotSet": "Bitte mindestens eine Person auswählen."
+      },
+      "grantedBy": "Freigegeben von",
+      "kost2": {
+        "all": "Alle Kost2",
+        "selected": "{arg0} Kost2"
+      },
+      "mail": {
+        "acceptanceRequired": "Deine Zeitberichte werden von der Projektleitung geprüft und übernommen, ggf. auf ein anderes Strukturelement oder eine andere Kost2.",
+        "greeting": "Hallo {arg0},",
+        "subject": {
+          "_": "Zeitberichte buchen auf {arg0}",
+          "multiple": "Zeitberichte buchen auf {arg0} Strukturelementen"
+        },
+        "text": "{arg0} hat dir das Buchen eigener Zeitberichte für den Zeitraum {arg1} auf den folgenden Strukturelementen freigegeben. Über die Links kannst du deine Zeitberichte buchen:"
+      },
+      "none": "Keine Ad-hoc-Buchungen freigegeben.",
+      "pending": {
+        "_": "{arg0} zu übernehmen",
+        "tooltip": "{arg0} über eine vorgeschlagene Freigabe gebuchte(r) Zeitbericht(e) zu übernehmen"
+      },
+      "positions": {
+        "_": "Strukturelemente",
+        "add": "Unterelement hinzufügen",
+        "hidden": "und {arg0} weitere(s) Strukturelement(e)",
+        "truncated": "Angeboten werden nur die ersten {arg0} Unterelemente. Ein tieferes Unterelement über sein eigenes Strukturelement freigeben."
+      },
+      "proposal": {
+        "info": "Hier kann keine Freigabe erteilt, aber eine vorgeschlagen werden: Die aushelfende Person bucht sofort, die Projektleitung übernimmt die Zeitberichte anschließend (ggf. auf ein anderes Strukturelement oder eine andere Kost2). Höchstens 31 Tage gültig."
+      },
+      "propose": "Buchung vorschlagen",
+      "proposed": {
+        "_": "Vorgeschlagen",
+        "tooltip": "Ohne Freigaberecht vorgeschlagen: Die damit gebuchten Zeitberichte übernimmt die Projektleitung."
+      },
+      "revoke": {
+        "_": "Widerrufen",
+        "confirm": "Diese Freigabe auf allen ihren Strukturelementen widerrufen? Die bisher gebuchten Zeitberichte bleiben erhalten."
+      },
+      "status": {
+        "_": "Status",
+        "ACTIVE": "Aktiv",
+        "EXPIRED": "Abgelaufen",
+        "REVOKED": "Widerrufen",
+        "UPCOMING": "Anstehend"
+      },
+      "users": "Personen",
+      "validFrom": "Gültig ab",
+      "validUntil": "Gültig bis"
+    },
+    "bookingGrants": {
+      "_": "Ad-hoc-Buchungen",
+      "info": "Aushelfende Kolleg:innen können hier für einen Zeitraum eigene Zeitberichte auf diesem Strukturelement oder seinen Unterelementen buchen, ohne Mitglied einer Gruppe zu sein. Sie sehen nichts weiter vom Projekt: nur die freigegebenen Strukturelemente und die Titel der übergeordneten Elemente."
+    },
     "consumption": "Verbrauch",
+    "consumptionTooltip": {
+      "booked": "Gebucht",
+      "budget": "Budget",
+      "overbooked": "Überbucht",
+      "overbookedTitle": "{arg0} überbucht",
+      "remaining": "Rest",
+      "remainingTitle": "Rest: {arg0}"
+    },
     "deleted": "gelöscht",
     "edit": {
       "maxHoursIngoredDueToAssignedOrders": "Diesem Strukturelement oder einem Strukturunterelement wurden Aufträge zugeordnet. Standardmäßig wird deren Personentage-Summe verwendet; die eingetragenen Maximalstunden werden nur berücksichtigt, wenn die Option \"Maximalstunden haben Vorrang\" gesetzt ist. Die Angabe einer Null verhindert die Anzeige des Maximalwerts in den Verbrauchsbalken."
@@ -5369,7 +6111,6 @@
       "_": "Datenschutz",
       "tooltip": "Wenn diese Option gewählt wird, dann kann nicht auf die Zeitberichte anderer Benutzer:innen unterhalb dieses Strukturelements zugegriffen werden."
     },
-    "recursive": "inkl. aller Strukturunterelemente",
     "reference": "Referenz",
     "selectPanel": {
       "info": "Ordnerelement können ausgewählt werden, indem in eine andere Spalte geklickt wird (außer der ersten).\\\n**Tastatur:** **↑ / ↓** – zwischen den Elementen bewegen · **→ / ←** – fokussiertes Element auf- und zuklappen · **Eingabetaste** – fokussiertes Element auswählen",
@@ -5420,6 +6161,7 @@
         "select": "Strukturelement auswählen"
       }
     },
+    "withoutSubTasks": "ohne Strukturunterelemente",
     "wizard": {
       "action": {
         "_": "Aktion",
@@ -5494,6 +6236,12 @@
   },
   "timesheet": {
     "_": "Zeitbericht",
+    "acceptance": {
+      "accept": "Übernehmen",
+      "acceptOnSave": "Beim Speichern übernehmen",
+      "info": "Über eine von {arg0} vorgeschlagene Ad-hoc-Buchung gebucht: von der Projektleitung zu übernehmen, ggf. auf ein anderes Strukturelement oder eine andere Kost2."
+    },
+    "acceptancePending": "Zu übernehmen",
     "ai": {
       "timeSavedByAI": {
         "_": "KI-Ersparnis",
@@ -5537,12 +6285,16 @@
       "vacationNotConfigured": "Keine Urlaubs-Kost2 konfiguriert: Strukturelement und Kost2 bitte selbst wählen.",
       "vacationPlaceholder": "Urlaub auswählen"
     },
+    "bookingGrant": "Ad-hoc-Buchung",
     "description": "Tätigkeitsbericht",
     "duration": "Dauer",
     "iCalSubscription": "Zeitberichte im iCal-Format für den/die angemeldete:n Benutzer:in exportieren (*.ics).",
     "icsExport": "ics-Export",
     "location": "Ort",
     "massupdate": {
+      "acceptPending": {
+        "info": "Übernimmt die ausgewählten, über eine vorgeschlagene Ad-hoc-Buchung gebuchten Zeitberichte, ggf. mit dem oben gewählten Strukturelement und der Kost2. Für die übrigen ändert sich daran nichts."
+      },
       "remapKost2": "Kost2 nach Kostenart umschlüsseln (Strukturelement bleibt)",
       "remapKost2Info": "Jeder Zeitbericht behält sein Strukturelement. Eine Kost2, die das Strukturelement nicht mehr anbietet, wird durch dessen Kost2 derselben Kostenart (letzte beiden Ziffern) ersetzt, z. B. 5.999.11.02 -> 7.001.01.02 nach Verlinkung eines Projekts.",
       "taskNotApplied": "Das Strukturelement ist nicht ausgewählt (Checkbox) und wird daher nicht geändert.",
@@ -5610,6 +6362,11 @@
   "user": {
     "_": "Benutzer:in",
     "My2FA": {
+      "expired": "Für die angeforderte Aktion ist eine (erneute) Zwei-Faktor-Authentifizierung erforderlich, die nicht älter als {arg0} ist.",
+      "required": {
+        "_": "Eine (erneute) Zwei-Faktor-Authentifizierung ist erforderlich.",
+        "extended": "Eine (erneute) Zwei-Faktor-Authentifizierung ist aus Sicherheitsgründen erforderlich. Du kannst hierzu einen Code anfordern (s. Link unterhalb des Code-Feldes) oder, falls konfiguriert, deine Authenticator-App benutzen."
+      },
       "setup": {
         "authenticator": {
           "info": "Smartphone einrichten\n\n1. Einfach den Barcode in der Authenticator-App scannen.\n2. Fertig.\n\nJedesmal, wenn ProjectForge nach einem Code fragt, einfach den in der Authenticator-App eingeblendeten Code verwenden.\n\nEs können mehrere Authenticator-Apps gleichzeitig (auch als Backup) genutzt werden.\n\nCodes aus der Authenticator-App sind noch für ca. 30 Sekunden gültig, nachdem sie in der App erneuert wurden.\n\nDiese Barcode-Ansicht ist für ca. 10 Minuten einsehbar. Anschließend wird für die erneute Anzeige eine 2FA-Authentifizierung benötigt.",
@@ -5617,6 +6374,9 @@
           "title": "Authenticator-Apps"
         },
         "authenticatorKey": "Authenticator-Schlüssel",
+        "check": {
+          "fail": "Code-Prüfung fehlgeschlagen."
+        },
         "check2FA": "2FA jetzt prüfen",
         "disableAuthenticatorApp": {
           "_": "Authenticator-App entfernen",
@@ -5678,8 +6438,16 @@
       },
       "title": "Zweifaktor-Authentifizierung"
     },
+    "activated": {
+      "_": "Aktiviert",
+      "tooltip": "Deaktivierte Benutzer:innen haben keinen Systemzugang mehr."
+    },
     "add": {
       "optionalPassword": "Hier kann optional ein Erstpasswort vergeben werden."
+    },
+    "adminUsers": {
+      "_": "Administrator:innen",
+      "none": "Nichtadministrator:innen"
     },
     "alternativeEmails": {
       "_": "Alternative E-Mail-Adressen",
@@ -5725,7 +6493,30 @@
         "qrCode": "QR-Code zum Einrichten einer Client-App mit diesem Schlüssel."
       }
     },
+    "avatar": {
+      "_": "Avatar",
+      "edit": "Bearbeiten",
+      "error": {
+        "unsupportedImage": "Als Avatar können nur Bilder der Typen PNG, JPEG und GIF verwendet werden."
+      },
+      "hint": "Wird im Chat und im Benutzermenü allen Benutzern angezeigt, die mindestens eine Gruppe gemeinsam haben.",
+      "remove": {
+        "_": "Entfernen",
+        "confirm": "Avatar entfernen?"
+      },
+      "removed": "Der Avatar wurde entfernt.",
+      "saved": "Der Avatar wurde gespeichert.",
+      "upload": "Bild hochladen"
+    },
     "changePassword": {
+      "error": {
+        "noCharacter": "Passwort muss mindestens einen Buchstaben haben.",
+        "noNonCharacter": "Passwort muss mindestens einen Nicht-Buchstaben haben.",
+        "notMinLength": "Passwort muss mindestens {arg0} Zeichen haben.",
+        "oldPasswdEqualsNew": "Neues Passwort darf nicht dem alten entsprechen.",
+        "oldPasswordWrong": "Das alte Passwort wurde nicht korrekt eingegeben.",
+        "passwordQualityCheck": "Passwort muss mindestens {arg0} Zeichen und sowohl mindestens einen Buchstaben als auch einen Nicht-Buchstaben enthalten."
+      },
       "msg": {
         "passwordSuccessfullyChanged": "Passwort wurde erfolgreich geändert."
       },
@@ -5734,21 +6525,44 @@
       "oldPassword": "Altes Passwort",
       "password": {
         "lastChange": "Letzte Passwortänderung"
-      }
+      },
+      "title": "Eigenes Passwort ändern"
     },
     "changeWlanPassword": {
+      "error": {
+        "loginPasswordWrong": "Das Login-Passwort wurde nicht korrekt eingegeben."
+      },
       "lastChange": "Letzte WLAN/Samba-Passwortänderung",
       "loginPassword": "Login-Passwort",
-      "newPassword": "Neues WLAN-Passwort"
+      "newPassword": "Neues WLAN-Passwort",
+      "title": "WLAN/Samba Passwort ändern"
     },
     "deactivated": "Deaktiviert",
     "defaultLocale": "Default (Browser)",
+    "error": {
+      "emailUsedByOtherUser": "{arg0} wird schon von {arg1} verwendet.",
+      "invalidEmail": "Ungültige E-Mail-Adresse: {arg0}",
+      "passwordAndRepeatDoesNotMatch": "Passwort und Passwortwiederholung stimmen nicht überein.",
+      "usernameAlreadyExists": "Benutzer:inname ist bereits vergeben."
+    },
+    "filter": {
+      "hrPlanning": "Personalplanung",
+      "privileged": "Privilegierte Benutzer:innen",
+      "restricted": "Eingeschränkte Benutzer:innen",
+      "status": "Status",
+      "syncStatus": "Synchronisationsstatus",
+      "type": "Typ"
+    },
     "formerEmails": {
       "_": "Frühere E-Mail-Adressen",
       "info": "Nicht mehr genutzte E-Mail-Adressen (z. B. nach einer Namensänderung), durch Kommas getrennt. Diese Adressen werden ggf. für die Synchronisationsläufe von Fremdsystemen (z. B. Lanes & Planes) benötigt."
     },
     "gpgPublicKey": "GPG-Public-Key",
-    "hrPlanningEnabled": "Personalplanung",
+    "hrPlanningEnabled": {
+      "_": "Personalplanung",
+      "not": "keine Personalplanung",
+      "tooltip": "Soll der oder die Benutzer:in in der Personalplanung sichtbar sein?"
+    },
     "jiraUsername": {
       "_": "JIRA Benutzer:inname",
       "tooltip": "Wird nur gebraucht, wenn dieser von dem ProjectForge-Benutzer:innamen abweicht und der oder die Benutzer:in aus ProjectForge heraus mit JIRA arbeiten möchte."
@@ -5757,12 +6571,20 @@
     "legend": {
       "deactivated": "Deaktiviert"
     },
+    "list": {
+      "select": {
+        "title": "Benutzer:in auswählen"
+      }
+    },
     "localUser": {
       "_": "Lokale:r Benutzer:in",
       "not": "Allgemeine:r Benutzer:in",
       "tooltip": "Lokale Benutzer:innen werden nicht mit einem externen Benutzer:innensystem synchronisiert (z. B. LDAP)."
     },
     "locale": "Sprache",
+    "menu": {
+      "editRights": "Benutzer:innenrechte"
+    },
     "mobilePhone": {
       "_": "Mobilnummer",
       "info": "Die Nummer kann als 2. Faktor benutzt werden, um z. B. das Passwort zurückzusetzen oder andere sicherheitsrelevante Bereiche zu nutzen.\n\nDie Nummer kann im Bereich Zwei-Faktor-Authentifizierung geändert werden.",
@@ -5777,6 +6599,7 @@
         "settings": "Einstellungen",
         "tokens": "Zugangsschlüssel"
       },
+      "teamcalwhitelist": "Kalender Whitelist für Kalendersoftware",
       "title": {
         "edit": "Mein Zugang"
       }
@@ -5789,17 +6612,29 @@
         "title": "Direktwahl"
       }
     },
+    "restricted": {
+      "_": "eingeschränkt",
+      "not": "nicht eingeschränkt"
+    },
     "restrictedUser": {
       "_": "Eingeschränkte:r Nutzer:in",
       "tooltip": "Ein eingeschränkte:r (restricted) Nutzer:in darf sich lediglich anmelden und sein Passwort ändern.\n\nDer oder die Nutzer:in wird mit einem externen Usermanagementsystem synchronisiert."
     },
     "rights": {
-      "none": "Mit den zugeordneten Gruppen ist kein Recht konfigurierbar."
+      "none": "Mit den zugeordneten Gruppen ist kein Recht konfigurierbar.",
+      "title": {
+        "edit": "Benutzer:innenrechte bearbeiten"
+      }
     },
     "sshPublicKey": "SSH public key",
     "title": {
       "add": "Neue:r Benutzer:in",
-      "list": "Benutzer:in"
+      "edit": "Benutzer:in bearbeiten",
+      "heading": "Benutzer:in",
+      "list": {
+        "_": "Benutzer:in",
+        "select": "Benutzer:in auswählen"
+      }
     },
     "tooltip": {
       "assignedGroups": "Die Gruppen bestimmen die Rechte. Zugeordnet werden sie von der Administration.",
@@ -5812,7 +6647,9 @@
       "timeZone": "Alle Uhrzeiten (Zeitberichte, Kalendertermine) werden in dieser Zeitzone angezeigt und eingegeben.",
       "username": "Der Anmeldename. Ändern kann ihn nur die Administration."
     },
-    "username": "Benutzer:inname"
+    "unassignedGroups": "Nicht assoziierte Gruppen",
+    "username": "Benutzer:inname",
+    "users": "Benutzer:in"
   },
   "username": "Benutzer:innenname",
   "vacation": {

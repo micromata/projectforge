@@ -121,6 +121,24 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     private var root: TaskNode? = null
 
     /**
+     * The tasks inserted or changed since the current tree was published, by id, in the order of their changes. A
+     * [refresh] may read the tasks before a change is committed: started by the very insert (whose access to the
+     * tree in TaskDao.onInsertOrModify finds it expired) or running meanwhile. It publishes its tree as a whole at
+     * the end, and without these records the change, written to the replaced map, would be lost until the next
+     * refresh.
+     * Guarded by [changesSincePublishLock], which also covers the swap of [taskMap] at the end of [refresh].
+     */
+    private var changesSincePublish = mutableMapOf<Long, TaskDO>()
+
+    private val changesSincePublishLock = Any()
+
+    /**
+     * For tests only: called by [refresh] right before the new tree is published, e.g. for inserting a task the
+     * refresh hasn't read.
+     */
+    internal var beforePublishHook: (() -> Unit)? = null
+
+    /**
      * The order position references are stored in a map. The key is the task id and the value is a set of order position
      * entries.
      */
@@ -508,6 +526,14 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     fun addOrUpdateTaskNode(task: TaskDO): TaskNode {
         checkRefresh()
         requireNotNull(task.id)
+        // Recorded before writing to the current map: once a refresh has taken the records, the map read below is
+        // already the new one.
+        synchronized(changesSincePublishLock) {
+            // Removed first, so the records keep the order of the changes: a task moved below a task inserted
+            // meanwhile is applied after its new parent.
+            changesSincePublish.remove(task.id!!)
+            changesSincePublish[task.id!!] = task
+        }
         val node = getTaskNodeById(task.id) ?: return addTaskNode(task)
         node.setTask(task)
         if (task.parentTaskId != null && task.parentTaskId != node.getParent().id) {
@@ -537,6 +563,17 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
         }
         updateTimeOfLastModification()
         return node
+    }
+
+    /**
+     * Called by TaskDao, if the transaction of a change given to [addOrUpdateTaskNode] wasn't committed: forgets the
+     * record of the change, so no refresh takes it in again, and reloads the tree on next access.
+     */
+    fun discardUncommittedChange(task: TaskDO) {
+        synchronized(changesSincePublishLock) {
+            task.id?.let { id -> changesSincePublish.remove(id, task) }
+        }
+        setExpired()
     }
 
     /**
@@ -966,15 +1003,22 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
             nTaskMap.forEach { (id, node) ->
                 node.bookableForTimesheets = oldTaskMap[id]?.bookableForTimesheets ?: false
             }
+            beforePublishHook?.invoke()
             // Published only now, as a whole: readers don't wait for a refresh (see AbstractCache.refreshLock), so
             // an earlier assignment would show them a tree without children, durations or bookability.
-            this.taskMap = nTaskMap
-            this.root = newRoot
+            // The nodes for the bookability below: once published, the map may get new nodes while iterated.
+            val nodes = synchronized(changesSincePublishLock) {
+                changesSincePublish.values.forEach { task -> applyChange(nTaskMap, newRoot!!, task) }
+                changesSincePublish = mutableMapOf()
+                this.taskMap = nTaskMap
+                this.root = newRoot
+                nTaskMap.values.toList()
+            }
             refreshOrderPositionReferences()
             // Now update the status: bookable for time sheets:
             val timesheet = TimesheetDO()
-            taskList.forEach { task ->
-                val node = nTaskMap[task.id]
+            nodes.forEach { node ->
+                val task = node.getTask()
                 timesheet.task = task
                 val bookable = timesheetDao.checkTaskBookable(
                     timesheet,
@@ -983,9 +1027,47 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                     throwException = false,
                     checkTaskTreeRefresh = false,
                 )
-                node!!.bookableForTimesheets = bookable
+                node.bookableForTimesheets = bookable
             }
             log.info { "Initializing task tree done. ${context.formatStats()}" }
+        }
+    }
+
+    /**
+     * Applies a task inserted or changed since the last publish to the tree a [refresh] is building: adds a task
+     * the refresh hasn't read, or takes the change (and moves the node, if its parent changed). A task without a
+     * known parent goes below the root, as in [addTaskNode].
+     *
+     * Always applied: the record is the last change of the task, and one the refresh has read already is
+     * applied again unchanged (`lastUpdate` can't tell them apart, an update leaves the given object's one as it
+     * was). A change rolled back meanwhile expires the tree (see [TaskDao.afterInsertOrModify]).
+     */
+    private fun applyChange(nodes: MutableMap<Long, TaskNode>, root: TaskNode, task: TaskDO) {
+        val id = task.id ?: return
+        val existing = nodes[id]
+        try {
+            val node = existing ?: TaskNode().also { nodes[id] = it }
+            node.setTask(task)
+            if (node.id == root.id) {
+                return
+            }
+            val parent = task.parentTaskId?.let { nodes[it] } ?: root
+            if (parent.id == node.id || node.isParentOf(parent)) {
+                // Checked before detaching the node: node.setParent would refuse it, and leave the subtree detached.
+                log.error { "Can't take the change of task #$id into the refreshed task tree: cyclic reference to #${parent.id}." }
+                setExpired()
+                return
+            }
+            val oldParent = node.getParent()
+            if (oldParent !== parent) {
+                oldParent?.removeChild(node)
+                node.setParent(parent)
+                parent.addChild(node)
+            }
+        } catch (ex: Exception) {
+            // The tree is reloaded on next access, rather than failing this refresh.
+            log.error(ex) { "Can't take the change of task #$id into the refreshed task tree: ${ex.message}" }
+            setExpired()
         }
     }
 

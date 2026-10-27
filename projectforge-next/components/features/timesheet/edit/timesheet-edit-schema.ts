@@ -42,6 +42,9 @@ const timesheetEditObject = z.object({
   timeSavedByAIUnit: m.enumField("timeSavedByAIUnit"),
   timeSavedByAIDescription: m.nullableString("timeSavedByAIDescription"),
   created: m.nullableString("created"),
+  // Transient: the save accepts the sheet booked by a proposed grant (`TimesheetEntityRest.accept`, see
+  // AcceptanceField and the page's submitAction).
+  acceptOnSave: z.boolean(),
 });
 
 export const timesheetEditSchema = timesheetEditObject

@@ -120,6 +120,22 @@ class NotificationDao {
         ).filter { it.isVisibleInApp }
     }
 
+    /**
+     * The notifications of the given user once visible in the app but not any more (confirmed toasts, done, resolved
+     * or expired ones), created since the given date, the newest first. Mail or SMS only ones are left out.
+     */
+    fun findArchived(userId: Long, since: Date, maxResults: Int = 20): List<NotificationDO> {
+        return persistenceService.executeQuery(
+            "from NotificationDO n where n.recipientId = :recipientId and n.inAppSince is not null" +
+                    " and n.created >= :since order by n.created desc, n.id desc",
+            NotificationDO::class.java,
+            Pair("recipientId", userId),
+            Pair("since", since),
+            // The visible ones are filtered afterwards, so take some more.
+            maxResults = maxResults * 3,
+        ).filterNot { it.isVisibleInApp }.take(maxResults)
+    }
+
     fun summary(userId: Long, now: Date = Date()): Summary {
         val visible = findVisible(userId, now)
         return Summary(
@@ -141,6 +157,27 @@ class NotificationDao {
             Pair("statuses", NotificationStatus.PENDING),
         ).filter { it.status == NotificationStatus.OPEN || it.display == NotificationDisplay.BANNER }
             .groupingBy { it.menuBadge!! }.eachCount()
+    }
+
+    /**
+     * The pending notifications of the given recipient (of all recipients, if null) whose dedup key starts with the
+     * given prefix, e.g. the ones of a chat conversation (`chat:new:4711:`).
+     */
+    fun findPendingByDedupPrefix(recipientId: Long?, prefix: String): List<NotificationDO> {
+        require(prefix.isNotEmpty() && '%' !in prefix && '_' !in prefix) { "Invalid dedup key prefix: '$prefix'." }
+        val params = mutableListOf<Pair<String, Any?>>(
+            Pair("prefix", "$prefix%"),
+            Pair("statuses", NotificationStatus.PENDING),
+        )
+        val recipientClause = recipientId?.let {
+            params += Pair("recipientId", it)
+            " and n.recipientId = :recipientId"
+        } ?: ""
+        return persistenceService.executeQuery(
+            "from NotificationDO n where n.dedupKey like :prefix and n.status in :statuses$recipientClause",
+            NotificationDO::class.java,
+            *params.toTypedArray(),
+        )
     }
 
     /** The pending notifications of the given rules. */

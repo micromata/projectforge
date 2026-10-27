@@ -109,6 +109,7 @@ export function TaskSelectField({
               taskId={taskId}
               ariaLabel={label}
               disabled={disabled}
+              required={required}
               onOpen={() => {
                 setRootAtId(null);
                 setOpen(true);

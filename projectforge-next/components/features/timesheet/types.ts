@@ -52,7 +52,11 @@ export type Kost2Ref = EntityRefDto & {
 export interface TimesheetDetail {
   /** null for a sheet that has not been saved yet (Spring assigns the id). */
   id: number | null;
-  task?: EntityRefDto | null;
+  /**
+   * On a recent entry (`getRecentList`) with the consumption of its budget (the task's, or the first
+   * ancestor's with one), for the recent list's bar; absent elsewhere.
+   */
+  task?: (EntityRefDto & { consumption?: unknown }) | null;
   user?: EntityRefDto | null;
   kost2?: Kost2Ref | null;
   location?: string | null;
@@ -89,6 +93,8 @@ export interface TimesheetDetail {
    * reads the text from here (see TIMESHEET_PAGE `editFooter`).
    */
   timeSavingsByAINote?: string | null;
+  /** Set if the sheet is to be accepted by the project management (transient, server set). */
+  acceptance?: TimesheetAcceptance | null;
   /** Position in the recent list — the backend's key for an entry that has no id (see RecentTimesheets). */
   counter?: number | null;
   deleted?: boolean;
@@ -126,4 +132,15 @@ export interface TimesheetListRow {
   tag?: string | null;
   description?: string | null;
   created?: string | null;
+  /** Set if the sheet is to be accepted by the project management (see TimesheetAcceptance). */
+  acceptance?: TimesheetAcceptance | null;
+}
+
+/**
+ * `Timesheet.Acceptance`: the sheet was booked by an ad hoc booking grant proposed without the right to
+ * grant and is to be accepted by the project management. The two fields are sent by the edit only.
+ */
+export interface TimesheetAcceptance {
+  proposedByName?: string | null;
+  mayAccept?: boolean | null;
 }

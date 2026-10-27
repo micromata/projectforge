@@ -49,6 +49,7 @@ export function teamChartRows(
     key: String(row.user.id),
     name: row.user.displayName ?? "",
     own: false,
+    inactive: row.user,
     bars: (showVacations ? row.vacations : [])
       .map((v, i) =>
         barOf(`${row.user.id}-${v.id ?? i}`, view.days, {

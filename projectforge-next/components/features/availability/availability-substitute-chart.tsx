@@ -8,7 +8,7 @@ import { AbsenceChartLegend } from "@/components/shared/absence-chart/absence-ch
 import {
   availabilityLabel,
   buildAbsenceChart,
-  type PersonRef,
+  chartPersonOf,
 } from "@/components/shared/absence-chart/absence-chart-model";
 import { AbsenceChartRow } from "@/components/shared/absence-chart/absence-chart-row";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
@@ -19,9 +19,7 @@ import type { AvailabilityValues } from "./availability-schema";
 import { useAvailabilityStats } from "./use-availability-stats";
 
 /** A substitute as a row of the chart: by user, the substitutes are users. */
-function person(user: PersonRef | null | undefined) {
-  return user ? { key: String(user.id), name: user.displayName ?? "" } : null;
-}
+const person = chartPersonOf;
 
 /**
  * The entry being edited and the absences of its substitutes overlapping it, as bars over the calendar days

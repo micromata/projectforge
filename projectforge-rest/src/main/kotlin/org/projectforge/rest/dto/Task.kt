@@ -91,6 +91,13 @@ class Task(id: Long? = null,
     var protectTimesheetsUntilWriteAccess: Boolean = false
 
     /**
+     * Whether the user may grant ad hoc bookings on this task (`TaskBookingGrantDao.mayGrant`: who may edit the
+     * time sheets of others on it) or propose them on it or a sub task (`TaskBookingGrantDao.mayPropose`). Only the
+     * section's visibility: every endpoint of `TaskBookingGrantRest` checks it itself.
+     */
+    var bookingGrantAccess: Boolean = false
+
+    /**
      * Whether order positions are assigned to this task or below it, which then decide the planned hours
      * instead of `maxHours` (unless `maxHoursHasPriority`): the case in which Wicket's `TaskEditForm`
      * warns with `task.edit.maxHoursIngoredDueToAssignedOrders`. Filled for the edit page only.
@@ -175,10 +182,8 @@ class Task(id: Long? = null,
         reference = src.reference
         priority = src.priority
         status = src.status
-        // The display name only, from the cache — the column shows a name, not a user entity.
-        responsibleUser = PfCaches.instance.getUser(src.responsibleUserId)?.let {
-            User(id = it.id, displayName = it.displayName)
-        }
+        // The minimal user from the cache (name and deleted/deactivated, so the column strikes a leaver through).
+        responsibleUser = PfCaches.instance.getUser(src.responsibleUserId)?.let { User.ref(it) }
         val id = src.id ?: return
         val node = TaskTree.instance.getTaskNodeById(id) ?: return
         consumption = Consumption.create(node)

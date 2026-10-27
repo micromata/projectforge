@@ -55,6 +55,8 @@ class Project(
     var additionalContacts: List<User>? = null,
     /** The contact person and the additional contacts, for the list column only ([ProjektDO.assignedPersons]). */
     var assignedPersons: String? = null,
+    /** The persons of [assignedPersons] as references, for the list column (struck through when no longer active). */
+    var assignedPersonList: List<User>? = null,
     var nummernkreis: Int? = null,
     var bereich: Int? = null,
     /** Digits 5-6 of the project number, the third part of its Kost2 (not the local number, see ProjektDO). */
@@ -110,6 +112,15 @@ class Project(
         copyFromMinimal(src)
     }
 
+    /**
+     * Labels this reference the way a project is offered for choosing, with its customer
+     * ([KostFormatter.formatProjektWithCustomer]): for the project field of an edit page, so its loaded value
+     * reads like the picks of `project/autosearch`.
+     */
+    fun labelWithCustomer(src: ProjektDO): Project = also {
+        displayName = KostFormatter.instance.formatProjektWithCustomer(src)
+    }
+
     override fun copyFromMinimal(src: ProjektDO) {
         super.copyFromMinimal(src)
         // Resolve the customer through the cache: src may be a detached/cached ProjektDO whose kunde is
@@ -126,6 +137,7 @@ class Project(
         additionalContacts = User.toUserList(src.additionalContactUserIds)
         User.restoreDisplayNames(additionalContacts)
         assignedPersons = src.assignedPersons
+        assignedPersonList = User.toContactList(src.contactPerson?.id, src.additionalContactUserIds)
         this.nummernkreis = src.nummernkreis
         this.bereich = src.bereich
         this.teilbereich = src.teilbereich

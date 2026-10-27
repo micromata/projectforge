@@ -12,9 +12,15 @@ interface TaskPathProps {
   task: TaskNode | null;
   /**
    * Pick an ancestor instead — the shortcut the legacy panel offers as „Strukturelement durch dieses
-   * Strukturoberelement ersetzen". `null` means the home button: clear the selection.
+   * Strukturoberelement ersetzen". `null` means the home button: clear the selection, unless [onHome]
+   * gives that button another job.
    */
   onSelect: (task: TaskNode | null) => void;
+  /**
+   * What the home button does instead of `onSelect(null)`. The select control opens the tree with it:
+   * clearing has its own (x) there, and a home icon reads as "the root", not as "remove".
+   */
+  onHome?: () => void;
   /**
    * Opens the tree, as the field's own button does. Given one, „please select" — or the selected task,
    * once there is one — is a click target itself: it is the widest thing on the row and the first place
@@ -70,6 +76,7 @@ interface TaskPathProps {
 export function TaskPath({
   task,
   onSelect,
+  onHome,
   onOpen,
   openTreeOnAncestorClick = false,
   onDrillDown,
@@ -101,7 +108,7 @@ export function TaskPath({
       <HintTooltip text={homeText}>
         <button
           type="button"
-          onClick={() => onSelect(null)}
+          onClick={() => (onHome ? onHome() : onSelect(null))}
           disabled={disabled}
           aria-label={homeText}
           className="cursor-pointer text-muted-foreground hover:text-foreground disabled:cursor-default disabled:hover:text-muted-foreground"

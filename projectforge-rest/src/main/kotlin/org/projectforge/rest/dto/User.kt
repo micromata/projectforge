@@ -24,6 +24,7 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.PfCaches
+import org.projectforge.business.fibu.ContactUserIds
 import org.projectforge.business.ldap.PFUserDOConverter
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
@@ -134,6 +135,9 @@ class User(
 
     /** Sipgate is configured: the personal phone identifiers are of use. */
     var phoneIdentifiersSupported: Boolean? = null
+
+    /** The version of the user's avatar (`/rs/userAvatar/{id}?v=`), null without one. */
+    var avatarVersion: Long? = null
 
     /**
      * @see copyFromMinimal
@@ -250,6 +254,31 @@ class User(
                 user.copyFrom(userDO)
             }
             return user
+        }
+
+        /**
+         * The user as a reference of a list row: id, display name, deleted and deactivated (struck through when no
+         * longer active), without the username and the flags of [copyFromMinimal] that a row of a long list would
+         * carry for nothing.
+         */
+        fun ref(user: PFUserDO): User {
+            return User(user.id, user.displayName, localUser = null, restrictedUser = null, hrPlanning = null).also {
+                it.deleted = user.deleted
+                it.deactivated = user.deactivated
+            }
+        }
+
+        /**
+         * The contact person and the further contacts of an order or project (main contact first), each with its name
+         * and whether it is still active, from the cache: a no longer active one is struck through. Unknown ids are
+         * skipped; null if there is nobody.
+         */
+        fun toContactList(contactPersonId: Long?, additionalContactUserIds: String?): List<User>? {
+            val caches = PfCaches.instance
+            return (listOfNotNull(contactPersonId) + ContactUserIds.toList(additionalContactUserIds))
+                .distinct()
+                .mapNotNull { caches.getUser(it)?.let { user -> ref(user) } }
+                .takeIf { it.isNotEmpty() }
         }
 
         /**

@@ -8,6 +8,7 @@
 
 import type { AUFTRAG_METADATA } from "@/lib/metadata/auftrag.generated";
 import type { AUFTRAGS_POSITION_METADATA } from "@/lib/metadata/auftrags-position.generated";
+import type { NamedRef } from "@/components/shared/ref-list";
 
 type EnumOf<F extends { enumValues?: readonly { value: string }[] }> =
   NonNullable<F["enumValues"]>[number]["value"];
@@ -192,8 +193,11 @@ export interface OrderListRow {
   pos?: string | null;
   personDays?: number | null;
   referenz?: string | null;
-  /** The four managers in one column (`assignedPersons`, transient). */
-  assignedPersons?: string | null;
+  /**
+   * The contact person and the additional contacts in one column (`assignedPersons`), as references, struck
+   * through when no longer active (see RefList).
+   */
+  assignedPersonList?: NamedRef[] | null;
   erfassungsDatum?: string | null;
   entscheidungsDatum?: string | null;
   nettoSumme?: number | null;

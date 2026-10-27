@@ -1,7 +1,7 @@
 import {
   buildAbsenceChart,
   type ChartRow,
-  type PersonRef,
+  chartPersonOf,
 } from "@/components/shared/absence-chart/absence-chart-model";
 import type {
   EmployeeRef,
@@ -33,8 +33,7 @@ export function buildVacationChart(
   vacations: VacationDetail[],
   availabilities: VacationReplacementAvailability[] = []
 ): ChartRow[] {
-  const person = (e: PersonRef | null | undefined) =>
-    e ? { key: String(e.id), name: e.displayName ?? "" } : null;
+  const person = chartPersonOf;
   return buildAbsenceChart(
     days,
     { ...own, name: own.employee?.displayName ?? "" },

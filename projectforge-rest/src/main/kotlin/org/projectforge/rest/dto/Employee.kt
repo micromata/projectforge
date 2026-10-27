@@ -70,21 +70,34 @@ class Employee(
         private val employeeCache by lazy { EmployeeCache.instance }
 
         /**
-         * Set display names of any existing user in the given list.
-         * @see UserService.getUser
+         * Set display names of any existing employee in the given list, and whether it is still active (deleted,
+         * deactivated): a no longer active employee is struck through wherever shown as a reference. The cache holds
+         * no deleted employee: one missing there keeps its name and flags (see [toEmployeeList]).
          */
         fun restoreDisplayNames(employees: List<Employee>?) {
-            employees?.forEach { it.displayName = employeeCache.getEmployee(it.id)?.displayName }
+            employees?.forEach { employee ->
+                val employeeDO = employeeCache.getEmployee(employee.id) ?: return@forEach
+                employee.displayName = employeeDO.displayName
+                employee.deleted = employeeDO.deleted
+                employee.deactivated = employeeDO.deactivated
+            }
         }
 
         /**
-         * The employees with id and display name only. The name comes from the [EmployeeCache], not from the given
-         * (usually lazy) employees: their user would be loaded one by one otherwise (N+1 selects of `T_PF_USER`).
+         * The employees with id, display name and their inactive flags only. The name comes from the [EmployeeCache],
+         * not from the given (usually lazy) employees: their user would be loaded one by one otherwise (N+1 selects of
+         * `T_PF_USER`). The cache holds no deleted employee, so the name of a deleted one is taken from itself, and
+         * the flags always are (columns of the employee, no user needed).
          */
         fun toEmployeeList(employees: Collection<EmployeeDO>?): List<Employee>? {
             employees ?: return null
-            return employees.map { Employee(it.id, displayName = employeeCache.getEmployee(it.id)?.displayName) }
-                .sortedBy { it.displayName }
+            return employees.map { employeeDO ->
+                val displayName = employeeCache.getEmployee(employeeDO.id)?.displayName ?: employeeDO.displayName
+                Employee(employeeDO.id, displayName = displayName).also {
+                    it.deleted = employeeDO.deleted
+                    it.deactivated = employeeDO.deactivated
+                }
+            }.sortedBy { it.displayName }
         }
 
         fun toEmployeeDOList(employees: Collection<Employee>?): MutableSet<EmployeeDO>? {

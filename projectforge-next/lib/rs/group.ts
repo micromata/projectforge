@@ -35,3 +35,30 @@ export async function fetchNextFreeGidNumber(
   const group = action.variables?.data as { gidNumber?: number } | undefined;
   return group?.gidNumber ?? null;
 }
+
+/** One member of a group, as [fetchGroupMembers] answers it. */
+export interface GroupMember {
+  id: number;
+  displayName: string;
+  deactivated: boolean;
+}
+
+/** The answer of `GET /rs/group/members` (`GroupEntityRest.members`). */
+export interface GroupMembers {
+  /** False if the logged-in user may not see the group (no member, no admin) — or it does not exist. */
+  visible: boolean;
+  /** Sorted by name; empty while not [visible]. */
+  members: GroupMember[];
+}
+
+/** The members of a group, for the tooltip of its pill (see GroupMembersHint). */
+export function fetchGroupMembers(
+  id: number,
+  signal?: AbortSignal
+): Promise<GroupMembers> {
+  return request<GroupMembers>(
+    `/rs/group/members?id=${encodeURIComponent(id)}`,
+    { method: "GET" },
+    signal
+  );
+}

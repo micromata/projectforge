@@ -5,10 +5,13 @@ import { useTranslations } from "next-intl";
 import { MenuLink } from "@/components/shared/menu-link";
 import { SearchInput } from "@/components/shared/list/search-input";
 import { planningHref } from "./planning-links";
-import type { HrView, HrViewUser } from "./types";
+import type { HrView } from "./types";
+import { RefName } from "@/components/shared/ref-list";
+import { cn } from "@/lib/utils";
+import { inactiveRefClass, type UserRef } from "@/lib/page-def/reference";
 
 /** Whether every word of the search occurs in the name, case-insensitive; an empty search matches all. */
-function matches(user: HrViewUser, search: string): boolean {
+function matches(user: UserRef, search: string): boolean {
   const name = (user.displayName ?? String(user.id)).toLowerCase();
   return search
     .toLowerCase()
@@ -44,12 +47,15 @@ export function UnplannedUsers({ view }: { view: HrView }) {
             <MenuLink
               key={user.id}
               url={url}
-              className="text-primary hover:underline"
+              className={cn(
+                "text-primary hover:underline",
+                inactiveRefClass(user)
+              )}
             >
               {name}
             </MenuLink>
           ) : (
-            <span key={user.id}>{name}</span>
+            <RefName key={user.id} value={{ ...user, displayName: name }} />
           );
         })}
       </p>

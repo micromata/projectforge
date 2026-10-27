@@ -169,6 +169,8 @@ export interface UserData {
   currency: string;
   thousandSeparator: string;
   decimalSeparator: string;
+  /** The version of the own avatar (lib/rs/user-avatar.ts), null without one. */
+  avatarVersion?: number | null;
 }
 
 /**
@@ -332,6 +334,8 @@ export interface FilterListValue {
   freeText?: boolean;
   /** Stands for several others: a customer group in the customer checklist. */
   group?: boolean;
+  /** For a [group] value: the names of the values it stands for among those offered, shown as tooltip. */
+  members?: string[];
   /** No longer live but still selectable, e.g. a closed address campaign (`UISelectValue.inactive`). */
   inactive?: boolean;
 }

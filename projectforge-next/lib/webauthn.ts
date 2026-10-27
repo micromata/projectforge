@@ -6,6 +6,8 @@
 // and WebAuthnFinishRequest). So the conversion below mirrors that contract
 // instead of using a generic library.
 
+import { bufferToBase64url, decodeBase64url } from "./base64url";
+
 /** Mirrors org.projectforge.security.dto.WebAuthnPublicKeyCredentialCreationOptions. */
 export interface WebAuthnRequestOptions {
   rp: { id?: string; name: string };
@@ -57,26 +59,6 @@ export interface WebAuthnRegisterFinishRequest {
   };
   clientExtensionResults: Record<string, never>;
   challenge: string;
-}
-
-export function decodeBase64url(value: string): ArrayBuffer {
-  const padding = "==".slice(0, (4 - (value.length % 4)) % 4);
-  const base64 = value.replace(/-/g, "+").replace(/_/g, "/") + padding;
-  const raw = atob(base64);
-  const bytes = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i += 1) {
-    bytes[i] = raw.charCodeAt(i);
-  }
-  return bytes.buffer;
-}
-
-export function bufferToBase64url(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let raw = "";
-  bytes.forEach((byte) => {
-    raw += String.fromCharCode(byte);
-  });
-  return btoa(raw).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
 /** True if the browser can do WebAuthn at all (http:// origins other than localhost can't). */

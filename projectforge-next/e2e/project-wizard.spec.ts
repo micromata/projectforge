@@ -57,11 +57,10 @@ test.describe("project wizard", { tag: "@lane-task" }, () => {
     });
     await expect(finish).toBeEnabled({ timeout: 20_000 });
     // Numbered „1. Kunde“ etc. (WizardStepCard), matched whole: „Kunde“ is part of other headings too.
-    // An existing customer is the default, which names the third step.
     for (const heading of [
       format.t("fibu.kunde._"),
       format.t("fibu.projekt._"),
-      format.t("project.wizard.parentTask.existingCustomer._"),
+      format.t("project.wizard.parentTask.heading"),
       format.t("task.wizard.team._"),
       format.t("task.wizard.managerGroup._"),
       format.t("task.wizard.externalGroup._"),
@@ -148,6 +147,41 @@ test.describe("project wizard", { tag: "@lane-task" }, () => {
         timeout: 20_000,
       }
     );
+  });
+
+  test("the elements of customer and project may be existing ones, which Finish asks for", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    await goto(page, PAGE);
+
+    await page
+      .getByRole("radio", { name: format.t("project.wizard.new.customer") })
+      .click();
+    // One choice for the customer's element, one for the project's, both new by default.
+    const existing = page.getByRole("radio", {
+      name: format.t("project.wizard.element.existing"),
+    });
+    await expect(existing).toHaveCount(2, { timeout: 20_000 });
+    await expect(
+      page.getByRole("radio", { name: format.t("project.wizard.element.new") })
+    ).toHaveCount(2);
+    // An existing element for the project, but none picked: the server names it at its choice.
+    await page
+      .getByRole("radiogroup", {
+        name: format.t("project.wizard.result.projectElement"),
+      })
+      .getByRole("radio", { name: format.t("project.wizard.element.existing") })
+      .click();
+    await page
+      .getByRole("button", { name: format.t("project.wizard.finish._") })
+      .click();
+    await expect(
+      page
+        .getByRole("alert")
+        .filter({ hasText: format.t("project.wizard.result.projectElement") })
+        .and(page.locator("p"))
+    ).toBeVisible({ timeout: 20_000 });
   });
 });
 

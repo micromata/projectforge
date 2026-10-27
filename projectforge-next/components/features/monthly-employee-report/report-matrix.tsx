@@ -36,8 +36,8 @@ export function ReportMatrix({ report }: { report: MonthlyReport }) {
   function drillDown(row: MonthlyReportRow, week?: MonthlyReportWeek) {
     navigate(
       monthlyReportDrillDownHref({
-        userId: report.userId ?? 0,
-        userName: report.userName,
+        userId: report.user.id,
+        userName: report.user.displayName ?? undefined,
         kost2Id: row.kost2Id ?? undefined,
         kost2Label: row.kost2Id ? row.label : undefined,
         taskId: row.taskId ?? undefined,

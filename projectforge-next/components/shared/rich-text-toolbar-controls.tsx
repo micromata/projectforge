@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import type { Editor } from "@tiptap/react";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import {
@@ -12,19 +13,36 @@ import { Toggle } from "@/components/ui/toggle";
 
 /** The buttons of [RichTextToolbar]: a toggle and a menu, both icon-only with their label as tooltip. */
 
+/** Asks for the address of the link at the selection; an empty one (or just `https://`) removes the link. */
+export function promptLink(editor: Editor | null, prompt: string) {
+  if (!editor) return;
+  const previous = editor.getAttributes("link").href as string | undefined;
+  const url = window.prompt(prompt, previous ?? "https://")?.trim();
+  if (url === undefined) return;
+  const chain = editor.chain().focus().extendMarkRange("link");
+  if (url === "" || url === "https://") {
+    chain.unsetLink().run();
+  } else {
+    chain.setLink({ href: url }).run();
+  }
+}
+
 export function ToolbarToggle({
   label,
+  hint,
   pressed,
   onPressedChange,
   children,
 }: {
   label: string;
+  /** The tooltip, if it says more than the label. */
+  hint?: string;
   pressed: boolean | undefined;
   onPressedChange: () => void;
   children: ReactNode;
 }) {
   return (
-    <HintTooltip title={label}>
+    <HintTooltip title={hint ?? label}>
       <Toggle
         size="sm"
         aria-label={label}

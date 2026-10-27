@@ -9,6 +9,7 @@ import {
 const STORED = JSON.stringify({
   debitorsAccountNumberRanges: "10000-12999",
   creditorsAccountNumberRanges: "70000-79999",
+  firstProjectNumbers: { "5": 1 },
   businessAssessment: {
     heading: "BWA",
     overallPerformance: "gesamtleistung",
@@ -25,6 +26,7 @@ describe("parseAccountingConfig", () => {
     const { config, invalid } = parseAccountingConfig(STORED);
     expect(invalid).toBe(false);
     expect(config.debitorsAccountNumberRanges).toBe("10000-12999");
+    expect(config.firstProjectNumbers).toEqual({ "5": 1 });
     expect(config.overallPerformance).toBe("gesamtleistung");
     expect(config.merchandisePurchase).toBe("");
     expect(config.rows).toHaveLength(3);
@@ -45,6 +47,11 @@ describe("parseAccountingConfig", () => {
     const row = parseAccountingConfig(json).config.rows[0];
     expect(row.priority).toBe("HIGH");
     expect(row.scale).toBeNull();
+  });
+
+  it("drops first project numbers of no prefix or no integer", () => {
+    const json = '{"firstProjectNumbers":{"5":1,"0":2,"x":3,"7":"4","1":1.5}}';
+    expect(parseAccountingConfig(json).config.firstProjectNumbers).toEqual({ "5": 1 });
   });
 
   it("takes the defaults for an empty or invalid value", () => {

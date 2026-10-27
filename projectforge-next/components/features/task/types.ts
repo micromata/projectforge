@@ -98,6 +98,8 @@ export interface TaskDetail {
   deleteAccess?: boolean | null;
   /** `kost2BlackWhiteList`, `kost2IsBlackList` and `timesheetBookingStatus` — see FinanceSection. */
   kost2AndBookingStatusWriteAccess?: boolean | null;
+  /** Whether the user may grant ad hoc bookings on the task (TaskBookingGrantDao.mayGrant). */
+  bookingGrantAccess?: boolean | null;
   /** `protectTimesheetsUntil` and `protectionOfPrivacy` — the finance group only. */
   protectTimesheetsUntilWriteAccess?: boolean | null;
   /** Order positions decide the planned hours, not `maxHours` (TaskEntityRest, edit page only). */

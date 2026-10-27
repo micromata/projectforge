@@ -47,6 +47,8 @@ import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.UserRef
+import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.UIColor
 import org.projectforge.ui.ValidationError
@@ -75,7 +77,11 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     NotificationRuleDao::class.java, "notification.rule",
 ) {
     /** A variable `{{key}}` of the rule texts with its translated label. */
-    class Variable(val key: String, val label: String)
+    /**
+     * [common]: available for every rule type (names of the recipient), otherwise only for the given one. [example]:
+     * how a value looks (e.g. a list of invoices), from synthetic data.
+     */
+    class Variable(val key: String, val label: String, val common: Boolean, val example: String?)
 
     /** A menu item a rule may show its notifications on as a counter. */
     class MenuBadgeOption(val id: String, val label: String)
@@ -88,7 +94,16 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         val periodKey: String?,
         val subject: String,
         val text: String,
+        /** Subject and text rendered with example values. */
+        val exampleSubject: String,
+        val exampleText: String,
+        /** The SMS as sent (own values and example values), null if the cascade has no SMS step. */
+        val sms: String?,
+        val exampleSms: String?,
     )
+
+    /** Is SMS configured (otherwise SMS steps are skipped), and the max length of an SMS. */
+    class SmsInfo(val configured: Boolean, val maxLength: Int)
 
     class TestResult(val delivered: List<NotificationChannel>, val failed: Map<NotificationChannel, String>)
 
@@ -99,14 +114,15 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         val id: Long?,
         /** The name of the rule, null for an ad hoc notification or a deleted rule. */
         val ruleName: String?,
-        val recipient: String?,
+        /** Struck through when no longer active, as [acknowledgedBy]. */
+        val recipient: UserRef?,
         val status: NotificationStatus,
         val periodKey: String?,
         val title: String?,
         val created: Date?,
         val inAppSince: Date?,
         val acknowledgedAt: Date?,
-        val acknowledgedBy: String?,
+        val acknowledgedBy: UserRef?,
         val doneAt: Date?,
         val resolvedAt: Date?,
         val deliverySteps: List<DeliveryStepEntry>,
@@ -134,6 +150,9 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
 
     @Autowired
     private lateinit var notificationService: NotificationService
+
+    @Autowired
+    private lateinit var smsSenderConfig: SmsSenderConfig
 
     override fun transformFromDB(obj: NotificationRuleDO, editMode: Boolean): NotificationRule {
         val rule = NotificationRule()
@@ -163,6 +182,11 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         if (dto.text.isNullOrBlank()) {
             validationErrors += required("text", "notification.text")
         }
+        if ((dto.smsText?.length ?: 0) > MAX_SMS_TEXT_LENGTH) {
+            validationErrors += ValidationError(
+                translateMsg("notification.rule.error.smsTextLength", MAX_SMS_TEXT_LENGTH), fieldId = "smsText",
+            )
+        }
         if (dto.deliverySteps.isEmpty()) {
             validationErrors += ValidationError(translate("notification.rule.error.noDeliveryStep"), fieldId = "deliverySteps")
         }
@@ -182,6 +206,15 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         }
         if (dto.ruleType == NotificationRuleType.TIMESHEETS_WITHOUT_KOST2 && dto.kost2MissingMonths !in 1..12) {
             validationErrors += ValidationError(translate("notification.rule.error.kost2MissingMonths"), fieldId = "kost2MissingMonths")
+        }
+        if (dto.ruleType == NotificationRuleType.CREDITOR_INVOICES_DUE) {
+            if (dto.dueWorkingDays !in 0..30) {
+                validationErrors += ValidationError(translate("notification.rule.error.dueWorkingDays"), fieldId = "dueWorkingDays")
+            }
+            // Nobody is concerned by an invoice, so "only those concerned" without recipients would notify nobody.
+            if (dto.recipientGroups.isEmpty() && dto.recipientUsers.isEmpty() && !dto.allEmployees && dto.employeeStatus.isEmpty()) {
+                validationErrors += ValidationError(translate("notification.rule.error.recipientsRequired"), fieldId = "recipientGroups")
+            }
         }
     }
 
@@ -205,7 +238,18 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     @GetMapping("variables")
     fun getVariables(@RequestParam("ruleType", required = false) ruleType: NotificationRuleType?): List<Variable> {
         checkInsertAccess()
-        return notificationService.variables(ruleType).map { Variable(it, translate("notification.variable.$it")) }
+        val examples = notificationService.exampleVariables(ruleType, ThreadLocalUserContext.requiredLoggedInUser)
+        return notificationService.variables(ruleType).map {
+            Variable(it, translate("notification.variable.$it"), it in NotificationService.COMMON_VARIABLES, examples[it])
+        }
+    }
+
+    /** Is SMS configured? The editor offers SMS steps only then. */
+    @AccessChecked("DAO: NotificationRuleDao insert access (admin/finance, checkInsertAccess)")
+    @GetMapping("smsInfo")
+    fun getSmsInfo(): SmsInfo {
+        checkInsertAccess()
+        return SmsInfo(smsSenderConfig.isSmsConfigured(), smsSenderConfig.smsMaxMessageLength)
     }
 
     /** The menu items selectable as menu badge, sorted by their translated labels. */
@@ -232,6 +276,10 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
             periodKey = preview.periodKey,
             subject = preview.subject,
             text = preview.text,
+            exampleSubject = preview.exampleSubject,
+            exampleText = preview.exampleText,
+            sms = preview.sms,
+            exampleSms = preview.exampleSms,
         )
     }
 
@@ -334,14 +382,14 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         return NotificationEntry(
             id = notification.id,
             ruleName = ruleName,
-            recipient = caches.getUser(notification.recipientId)?.getFullname(),
+            recipient = UserRef.of(caches.getUser(notification.recipientId)),
             status = notification.status,
             periodKey = notification.periodKey,
             title = notification.title,
             created = notification.created,
             inAppSince = notification.inAppSince,
             acknowledgedAt = notification.acknowledgedAt,
-            acknowledgedBy = caches.getUser(notification.acknowledgedById)?.getFullname(),
+            acknowledgedBy = UserRef.of(caches.getUser(notification.acknowledgedById)),
             doneAt = notification.doneAt,
             resolvedAt = notification.resolvedAt,
             deliverySteps = notification.readDeliveryState().steps.map {
@@ -374,5 +422,6 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     companion object {
         private const val MAX_PREVIEW_RECIPIENTS = 50
         private const val MAX_LOG_ENTRIES = 500
+        private const val MAX_SMS_TEXT_LENGTH = 1000
     }
 }

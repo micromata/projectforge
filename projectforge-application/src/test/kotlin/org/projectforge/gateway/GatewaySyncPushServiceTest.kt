@@ -148,6 +148,26 @@ class GatewaySyncPushServiceTest {
     }
 
     /**
+     * The gateway looks up a subscription by its decrypted parameters (GatewayIcsParams), so the push sends them
+     * normalized, the way the gateway normalizes the subscription urls of the UI.
+     */
+    @Test
+    fun addIcsEntrySendsNormalizedParams() {
+        val serviceRest = mock<CalendarSubscriptionServiceRest>()
+        whenever(serviceRest.exportCalendar(any())).thenReturn(ResponseEntity.ok("BEGIN:VCALENDAR"))
+        val userAuthenticationsService = mock<UserAuthenticationsService>()
+        whenever(userAuthenticationsService.internalGetToken(any(), eq(UserTokenType.CALENDAR_REST)))
+            .thenReturn("stored-token")
+        val service = createService(serviceRest, userAuthenticationsService)
+        val addIcsEntry = GatewaySyncPushService::class.java.declaredMethods.single { it.name == "addIcsEntry" }
+            .also { it.isAccessible = true }
+        val entries = mutableListOf<SyncIcsEntryDto>()
+        addIcsEntry.invoke(service, 1L, "t1", "teamCals=7", entries, null, null)
+        addIcsEntry.invoke(service, 1L, "t1", "weekOfYears=true", entries, null, null)
+        assertEquals(listOf("teamCals=7", "weekOfYears=true"), entries.map { it.params })
+    }
+
+    /**
      * The absences a team calendar includes are those the user may see, decided for each user (group mates, HR staff,
      * managers, substitutes): such a calendar is not shared with the other users of the same access class.
      */

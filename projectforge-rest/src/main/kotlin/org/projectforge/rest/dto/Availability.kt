@@ -52,7 +52,6 @@ class Availability(
     var availableTypes: List<String>? = null,
     /** Optional: who stands in for the user during the period. */
     var substitutes: List<User>? = null,
-    var substitutesAsString: String? = null,
     /** On a day of the period all substitutes are away (ConflictingAvailabilitiesCache). Read-only. */
     var conflict: Boolean? = null,
     /**
@@ -86,7 +85,6 @@ class Availability(
             workingDaysFormatted = VacationStats.format(workingDays)
         }
         substitutes = src.substitutes?.map { User().apply { copyFromMinimal(it) } }?.sortedBy { it.displayName }
-        substitutesAsString = substitutes?.joinToString { it.displayName ?: "???" }
     }
 
     /** The substitutes by their ids only. */

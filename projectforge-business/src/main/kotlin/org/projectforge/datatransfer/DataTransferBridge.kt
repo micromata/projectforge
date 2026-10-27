@@ -26,7 +26,9 @@ package org.projectforge.datatransfer
 import jakarta.annotation.PostConstruct
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.jcr.FileObject
 import org.springframework.stereotype.Service
+import java.io.InputStream
 
 /**
  * Bridge for data transfer, if available as plugin. DataTransfer itself isn't accessible from this module.
@@ -35,7 +37,10 @@ import org.springframework.stereotype.Service
 class DataTransferBridge {
     private var dataTransferInterface: DataTransferInterface? = null
 
-    val available: Boolean by lazy { dataTransferInterface != null }
+    private val areaHosts = java.util.concurrent.CopyOnWriteArrayList<DataTransferAreaHost>()
+
+    val available: Boolean
+        get() = dataTransferInterface != null
 
     @PostConstruct
     private fun postConstruct() {
@@ -43,9 +48,9 @@ class DataTransferBridge {
     }
 
     /**
-     * The DataTransferService of the plugin datatransfer must call this method to register itself.
+     * The DataTransferService of the plugin datatransfer must call this method to register itself (null: none, for tests).
      */
-    fun register(dataTransferInterface: DataTransferInterface) {
+    fun register(dataTransferInterface: DataTransferInterface?) {
         this.dataTransferInterface = dataTransferInterface
     }
 
@@ -80,6 +85,55 @@ class DataTransferBridge {
             description = description
         ) ?: false
     }
+
+    /** Can files be stored for other modules (see [DataTransferInterface.isFileStorageAvailable])? */
+    val fileStorageAvailable: Boolean
+        get() = dataTransferInterface?.isFileStorageAvailable() == true
+
+    /** A module with synthetic areas registers itself on start. */
+    fun registerAreaHost(host: DataTransferAreaHost) {
+        areaHosts += host
+    }
+
+    /** The module owning the synthetic area, null for an ordinary area. */
+    fun getAreaHost(areaId: Long?): DataTransferAreaHost? {
+        areaId ?: return null
+        return areaHosts.find { it.owns(areaId) }
+    }
+
+    fun getExpiryDaysChoices(): List<Int> = dataTransferInterface?.getExpiryDaysChoices() ?: emptyList()
+
+    /** See [DataTransferInterface.saveSyntheticArea]. */
+    fun saveSyntheticArea(areaId: Long?, name: String, expiryDays: Int?): Long? {
+        return dataTransferInterface?.takeIf { it.isFileStorageAvailable() }?.saveSyntheticArea(areaId, name, expiryDays)
+    }
+
+    fun deleteArea(areaId: Long) {
+        dataTransferInterface?.deleteArea(areaId)
+    }
+
+    fun getPersonalBoxId(userId: Long): Long? {
+        return dataTransferInterface?.takeIf { it.isFileStorageAvailable() }?.getPersonalBoxId(userId)
+    }
+
+    fun getMaxUploadSize(areaId: Long): Long? = dataTransferInterface?.getMaxUploadSize(areaId)
+
+    fun getExpiryDays(areaId: Long): Int? = dataTransferInterface?.getExpiryDays(areaId)
+
+    /** See [DataTransferInterface.addFile]. */
+    fun addFile(areaId: Long, fileName: String, content: ByteArray): DataTransferFile {
+        val dataTransfer = dataTransferInterface?.takeIf { it.isFileStorageAvailable() }
+            ?: throw IllegalStateException("Data transfer isn't available for storing files.")
+        return dataTransfer.addFile(areaId, fileName, content)
+    }
+
+    fun getFile(areaId: Long, fileId: String): Pair<FileObject, InputStream>? {
+        return dataTransferInterface?.getFile(areaId, fileId)
+    }
+
+    fun deleteFile(areaId: Long, fileId: String): Boolean = dataTransferInterface?.deleteFile(areaId, fileId) ?: false
+
+    fun getFileIds(areaId: Long): Set<String> = dataTransferInterface?.getFileIds(areaId) ?: emptySet()
 
     companion object {
         lateinit var instance: DataTransferBridge

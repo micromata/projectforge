@@ -67,7 +67,12 @@ class HRPlanning(
      */
     fun copyFromWithCollections(src: HRPlanningDO) {
         copyFrom(src)
-        entries = src.entries?.map { HRPlanningEntry().also { entry -> entry.copyFrom(it) } }?.toMutableList()
+        entries = src.entries?.map { entryDO ->
+            HRPlanningEntry().also { entry ->
+                entry.copyFrom(entryDO)
+                entryDO.projekt?.let { entry.projekt?.labelWithCustomer(it) }
+            }
+        }?.toMutableList()
     }
 
     /**

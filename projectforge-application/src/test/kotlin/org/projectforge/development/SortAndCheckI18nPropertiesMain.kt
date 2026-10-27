@@ -44,6 +44,7 @@ object SortAndCheckI18nPropertiesMain {
   val FILES = listOf(
     "projectforge-business/src/main/resources/I18nResources",
     "plugins/org.projectforge.plugins.banking/src/main/resources/BankingI18nResources",
+    "plugins/org.projectforge.plugins.cveradar/src/main/resources/CveRadarI18nResources",
     "plugins/org.projectforge.plugins.datatransfer/src/main/resources/DataTransferI18nResources",
     "plugins/org.projectforge.plugins.ihk/src/main/resources/IHKI18nResources",
     "plugins/org.projectforge.plugins.todo/src/main/resources/ToDoI18nResources",

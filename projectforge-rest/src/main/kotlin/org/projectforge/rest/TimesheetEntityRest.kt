@@ -31,6 +31,7 @@ import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.task.TaskTree
+import org.projectforge.business.task.bookinggrant.TaskBookingGrantDao
 import org.projectforge.business.timesheet.*
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.OperationType
@@ -55,8 +56,11 @@ import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.core.aggrid.GridState
 import org.projectforge.rest.core.getObjectList
+import org.projectforge.rest.core.saveOrUpdate
 import org.projectforge.rest.dto.*
+import org.projectforge.rest.dto.datatable.DataTableStateRequest
 import org.projectforge.rest.fibu.BusinessUnitChecklistFilter
 import org.projectforge.rest.fibu.CustomerChecklistFilter
 import org.projectforge.rest.fibu.CustomerRow
@@ -65,6 +69,7 @@ import org.projectforge.rest.fibu.ViaProjectCriteria
 import org.projectforge.rest.fibu.customerRowsOf
 import org.projectforge.rest.fibu.projectCustomersOf
 import org.projectforge.rest.fibu.removeTextFilters
+import org.projectforge.rest.task.Consumption
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.Kost2FilterUtils
@@ -117,6 +122,9 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
 
     @Autowired
     private lateinit var timesheetRecentService: TimesheetRecentService
+
+    @Autowired
+    private lateinit var taskBookingGrantDao: TaskBookingGrantDao
 
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
@@ -184,6 +192,16 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         timesheet.timeSavingsByAIEnabled = baseDao.timeSavingsByAIEnabled
         timesheet.timeSavingsByAINote = timeSavingsByAINote()
         timesheet.tags = timesheetDao.getTags(timesheet.tag)
+        if (editMode && obj.acceptancePending) {
+            val user = ThreadLocalUserContext.requiredLoggedInUser
+            val proposedBy = obj.bookingGrant?.id?.let { taskBookingGrantDao.selectGrantedByUserIds(listOf(it))[it] }
+            timesheet.acceptance = Timesheet.Acceptance(
+                proposedByName = caches.getUser(proposedBy)?.getFullname(),
+                mayAccept = timesheetDao.hasForeignTimesheetWriteAccess(user, obj.taskId),
+            )
+        } else if (obj.acceptancePending) {
+            timesheet.acceptance = Timesheet.Acceptance()
+        }
         // PFDay.fromOrNull(timesheet.startTime)
         return timesheet
     }
@@ -274,6 +292,12 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         // TimesheetDao.hasUpdateAccess fails with an IllegalArgumentException (500 instead of a field error).
         if (dto.task?.id == null) {
             validationErrors.add(ValidationError.createFieldRequired(TimesheetDO::class.java, "task"))
+        } else if (dto.kost2?.id == null && Configuration.instance.isCostConfigured &&
+            !taskTree.getKost2List(dto.task?.id).isNullOrEmpty()
+        ) {
+            // As TimesheetDao.validateKost2, but as field error and before the access check: a user booking by an ad
+            // hoc grant restricted to cost units would otherwise get an access violation for the missing cost unit.
+            validationErrors.add(ValidationError(translate("timesheet.error.kost2Required"), fieldId = "kost2"))
         }
         if (baseDao.timeSavingsByAIEnabled) {
             timesheetDao.validateTimeSavingsByAI(dto.timeSavedByAI, dto.timeSavedByAIUnit)?.let {
@@ -503,6 +527,11 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
             if (task != null) {
                 ts.task = Task()
                 ts.task!!.copyFromMinimal(task)
+                // The bar the form shows once the entry is picked (selectRecent): a work package without a
+                // budget of its own is booked against its parent's, see TaskServicesRest.createTask.
+                taskTree.getTaskNodeById(it.taskId)?.let { node ->
+                    ts.task!!.consumption = Consumption.create(taskTree.getPersonDaysNode(node) ?: node)
+                }
             }
             it.timeSavedByAIUnit?.let {
                 ts.timeSavedByAIUnit = it
@@ -536,6 +565,42 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
             ts
         }
         return RecentTimesheets(timesheets, SystemInfoCache.instance().isCost2EntriesExists())
+    }
+
+    /**
+     * The save of the edit form accepting a time sheet booked by a grant an employee proposed (see
+     * [TimesheetDao.runAccepting]), with the changes of the form (e.g. another task or cost unit). By who may edit the
+     * time sheets of others on its stored task.
+     */
+    @AccessChecked("TimesheetDao.runAccepting/onUpdate: hasForeignTimesheetWriteAccess on the stored task, update access")
+    @PostMapping("accept")
+    fun accept(
+        request: HttpServletRequest,
+        @Valid @RequestBody postData: PostData<Timesheet>,
+    ): ResponseEntity<ResponseAction> {
+        sessionCsrfService.validateCsrfToken(request, postData, "Accept time sheet")?.let { return it }
+        val obj = transformForDB(postData.data)
+        return timesheetDao.runAccepting {
+            saveOrUpdate(request, baseDao, obj, postData, this, validate(obj, postData), OperationType.UPDATE)
+        }
+    }
+
+    /**
+     * Stores the column state of the recent entries' table (order, width, visibility, pinning, sorting) in the
+     * user's prefs — in a slot of its own, apart from the time sheet list's ([updateColumnStates]).
+     */
+    @AccessChecked("Own user prefs of the logged-in user only")
+    @PostMapping("recentList/${RestPaths.SET_COLUMN_STATES}")
+    fun updateRecentColumnStates(@Valid @RequestBody request: DataTableStateRequest): String {
+        agGridSupport.storeGridState(USER_PREF_AREA_RECENT_GRID, request)
+        return "OK"
+    }
+
+    /** The user's stored column state of the recent entries' table, or an empty one if there is none yet. */
+    @AccessChecked("Own user prefs of the logged-in user only")
+    @GetMapping("recentList/${RestPaths.COLUMN_STATES}")
+    fun getRecentColumnStates(): GridState {
+        return agGridSupport.getGridState(USER_PREF_AREA_RECENT_GRID) ?: GridState()
     }
 
     @PostMapping("selectRecent")
@@ -701,11 +766,15 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
                 ),
             ).also { it.defaultFilter = true }
         )
-        // The two options of the legacy list form (TimesheetListForm): search the picked task including its
-        // sub-tasks (on by default, see MagicFilterProcessor, and consumed in preProcessMagicFilter so the
-        // toggle can switch it off), and keep only sheets booked on a billable cost unit.
-        elements.add(UIFilterBooleanElement("recursive", label = translate("task.recursive"), defaultFilter = true))
+        // The two options of the legacy list form (TimesheetListForm): search the picked task without its
+        // sub-tasks (off by default, consumed in preProcessMagicFilter, see searchSubTasks), and keep only
+        // sheets booked on a billable cost unit.
+        elements.add(
+            UIFilterBooleanElement(WITHOUT_SUB_TASKS_FILTER, label = translate("task.withoutSubTasks"), defaultFilter = true)
+        )
         elements.add(UIFilterBooleanElement("onlyBillable", label = translate("task.onlyBillable")))
+        // The sheets booked by a grant an employee proposed, still to be accepted by the project management.
+        elements.add(UIFilterBooleanElement(ACCEPTANCE_PENDING_FILTER, label = translate("timesheet.filter.acceptancePending")))
         // The legacy form's "only collisions" option: the sheets that overlap in time with another sheet of the
         // same user (see TimesheetCollisionFilter).
         elements.add(
@@ -826,9 +895,9 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
      *   add stay with the generic processor as plain bounds on their columns.
      * - `task` (a `defaultFilter` object picker): taken over here rather than left to the generic processor,
      *   because the picker sends the task as `value.id` while the generic `TaskDO` predicate reads
-     *   `value.value` (null then, which would match sheets *without* a task). The `recursive` toggle decides
-     *   whether the sub-tasks are searched too (default true, as the legacy list).
-     * - `recursive` (default true): see above; only consumed so it doesn't fall through as an unknown field.
+     *   `value.value` (null then, which would match sheets *without* a task). The sub-tasks are searched too,
+     *   unless `withoutSubTasks` is ticked (see [searchSubTasks]).
+     * - `withoutSubTasks` (default off) and the legacy `recursive` of saved filters: see above.
      * - `user` (a `defaultFilter` object picker): same `value.id` reason, filtered by `user.id` as
      *   `TimesheetDao.getList` does it.
      * - `onlyBillable`: a post filter over the result, as `TimesheetDao.internalGetList` does it.
@@ -854,9 +923,7 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
             periodStart?.let { target.add(QueryFilter.ge("stopTime", it)) }
             periodEnd?.let { target.add(QueryFilter.le("startTime", it)) }
         }
-        val recursiveEntry = source.entries.find { it.field == "recursive" }
-        recursiveEntry?.synthetic = true
-        val recursive = recursiveEntry?.value?.value != "false" // Default true, as the legacy list.
+        val recursive = searchSubTasks(source)
         source.entries.find { it.field == "task" }?.let { taskEntry ->
             taskEntry.synthetic = true
             val taskId = taskEntry.value.id ?: taskEntry.value.value?.toLongOrNull()
@@ -896,6 +963,12 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
             entry.synthetic = true
             if (entry.value.value == "true") {
                 filters.add(TimesheetBillableFilter())
+            }
+        }
+        source.entries.find { it.field == ACCEPTANCE_PENDING_FILTER }?.let { entry ->
+            entry.synthetic = true
+            if (entry.value.value == "true") {
+                target.add(QueryFilter.eq("acceptancePending", true))
             }
         }
         source.entries.find { it.field == "hasJiraIssues" }?.let { entry ->
@@ -1127,8 +1200,31 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         /** The list columns showing the start pre-formatted (see [postProcessMagicFilter]). */
         private val START_TIME_SORT_ALIASES = setOf("weekOfYear", "dayName")
 
+        /** The list filter of the time sheets to be accepted ([TimesheetDO.acceptancePending]). */
+        const val ACCEPTANCE_PENDING_FILTER = "acceptancePending"
+
+        /** The list filter searching the picked task only, without its sub-tasks (see [searchSubTasks]). */
+        const val WITHOUT_SUB_TASKS_FILTER = "withoutSubTasks"
+
+        /**
+         * Whether the `task` filter searches the sub-tasks too: yes, unless [WITHOUT_SUB_TASKS_FILTER] is ticked.
+         * The option is negated on purpose: a boolean filter of the list is either ticked (`"true"`) or absent,
+         * unticking it never sends `"false"`, so a filter on by default (the former `recursive`) couldn't be
+         * switched off. A `recursive` entry of a saved filter is ignored. Both entries are consumed (synthetic),
+         * so they don't fall through as unknown fields.
+         */
+        internal fun searchSubTasks(source: MagicFilter): Boolean {
+            source.entries.filter { it.field == "recursive" }.forEach { it.synthetic = true }
+            val withoutSubTasks = source.entries.find { it.field == WITHOUT_SUB_TASKS_FILTER }
+            withoutSubTasks?.synthetic = true
+            return withoutSubTasks?.value?.value != "true"
+        }
+
         /** User-pref name the chosen PDF-export options are stored under, in this entity's category. */
         private const val USER_PREF_PARAM_PDF_EXPORT = "pdfExport"
+
+        /** User-pref area of the recent entries' table layout, see [updateRecentColumnStates]. */
+        private const val USER_PREF_AREA_RECENT_GRID = "timesheetRecent"
 
         /**
          * The legacy list's guard (`TimesheetListForm`'s validator, `TimesheetListPage.buildList`): without a period
@@ -1143,7 +1239,9 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
                     !it.fromValue.isNullOrBlank() || !it.toValue.isNullOrBlank() || !it.value.isNullOrBlank() || it.id != null
                 }
             }
-            return listOf("period", "startTime", "stopTime", "task").none { hasValue(it) }
+            // The sheets to accept are few: no period needed.
+            val toAccept = filter.entries.any { it.field == ACCEPTANCE_PENDING_FILTER && it.value.value == "true" }
+            return !toAccept && listOf("period", "startTime", "stopTime", "task").none { hasValue(it) }
         }
     }
 }

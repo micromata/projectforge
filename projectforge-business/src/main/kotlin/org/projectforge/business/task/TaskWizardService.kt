@@ -248,7 +248,49 @@ class TaskWizardService {
         checkAccess: Boolean = true,
     ): Result {
         val parentNode = requireTaskNode(parentTaskId)
-        val granted = listOf(
+        val granted = wizardGroupsOf(managerGroup, teamGroup, externalGroup, checkAccess) { group, groupType ->
+            val leaf = entryOf(groupType, group.name, null, newTaskTitle, isLeaf = true, AccessStatus.CREATED)
+            val newParent = newParentTitle?.let {
+                entryOf(groupType, group.name, null, it, isLeaf = false, AccessStatus.CREATED)
+            }
+            val ancestors = createAccessRights(
+                parentNode, group, groupType, isLeaf = false, dryRun = true, checkAccess = checkAccess,
+            )
+            listOfNotNull(leaf, newParent) + ancestors
+        }
+        return Result(newTaskTitle, granted)
+    }
+
+    /**
+     * The preview of the project wizard for an existing element of the project: what [grantAccess] would do on
+     * [taskId], for groups of which some may not exist yet - like [previewAccess], but with the wizard's groups
+     * and its access checks (see [previewNewElement]).
+     *
+     * @throws IllegalArgumentException if [taskId] names no element.
+     */
+    fun previewExistingElement(
+        taskId: Long,
+        managerGroup: WizardGroup? = null,
+        teamGroup: WizardGroup? = null,
+        externalGroup: WizardGroup? = null,
+        checkAccess: Boolean = true,
+    ): Result {
+        val taskNode = requireTaskNode(taskId)
+        val granted = wizardGroupsOf(managerGroup, teamGroup, externalGroup, checkAccess) { group, groupType ->
+            createAccessRights(taskNode, group, groupType, isLeaf = true, dryRun = true, checkAccess = checkAccess)
+        }
+        return Result(taskNode.task?.title, granted)
+    }
+
+    /** The rows of the wizard's groups, existing ones by id and new ones by name; groups without either left out. */
+    private fun wizardGroupsOf(
+        managerGroup: WizardGroup?,
+        teamGroup: WizardGroup?,
+        externalGroup: WizardGroup?,
+        checkAccess: Boolean,
+        entries: (GroupRef, GroupType) -> List<AccessEntryResult>,
+    ): List<GrantedAccess> {
+        return listOf(
             GroupType.MANAGER to managerGroup,
             GroupType.TEAM to teamGroup,
             GroupType.EXTERNAL to externalGroup,
@@ -260,16 +302,8 @@ class TaskWizardService {
                 wizardGroup.name.isNullOrBlank() -> null
                 else -> GroupRef(null, wizardGroup.name)
             } ?: return@mapNotNull null
-            val leaf = entryOf(groupType, group.name, null, newTaskTitle, isLeaf = true, AccessStatus.CREATED)
-            val newParent = newParentTitle?.let {
-                entryOf(groupType, group.name, null, it, isLeaf = false, AccessStatus.CREATED)
-            }
-            val ancestors = createAccessRights(
-                parentNode, group, groupType, isLeaf = false, dryRun = true, checkAccess = checkAccess,
-            )
-            GrantedAccess(groupType, group.name, listOfNotNull(leaf, newParent) + ancestors)
+            GrantedAccess(groupType, group.name, entries(group, groupType))
         }
-        return Result(newTaskTitle, granted)
     }
 
     /**

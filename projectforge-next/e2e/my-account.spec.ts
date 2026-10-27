@@ -67,6 +67,27 @@ test.describe("my account", { tag: "@parallel" }, () => {
     ).toBeVisible();
   });
 
+  test("the avatar in the user menu opens the avatar section", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    const avatarTab = page.getByRole("tab", { name: t("user.avatar._") });
+    const avatarLink = page.getByRole("link", {
+      name: `${t("menu.myAccount")}: ${t("user.avatar._")}`,
+    });
+
+    await goto(page, "/changelog");
+    await avatarLink.click();
+    await expect(page).toHaveURL(/\/myAccount#avatar$/);
+    await expect(avatarTab).toHaveAttribute("aria-selected", "true");
+
+    // On the page itself, after scrolling elsewhere, it jumps back to the avatar.
+    await page.getByRole("tab").first().click();
+    await expect(avatarTab).toHaveAttribute("aria-selected", "false");
+    await avatarLink.click();
+    await expect(avatarTab).toHaveAttribute("aria-selected", "true");
+  });
+
   test("opens the password change as a dialog", async ({
     loggedInPage: page,
   }) => {

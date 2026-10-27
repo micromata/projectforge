@@ -42,7 +42,7 @@ test.describe("user page", { tag: "@parallel" }, () => {
     const format = await userFormat(page);
     await goto(page, "/user");
     await expect(
-      page.getByRole("heading", { name: format.t("user.title.list") })
+      page.getByRole("heading", { name: label(format, "user.title.list") })
     ).toBeVisible({ timeout: 30_000 });
 
     for (const column of USER_PAGE.columns) {
@@ -215,7 +215,7 @@ test.describe("user list without the admin right", { tag: "@parallel" }, () => {
     const format = await userFormat(page);
     await goto(page, "/user");
     await expect(
-      page.getByRole("heading", { name: format.t("user.title.list") })
+      page.getByRole("heading", { name: label(format, "user.title.list") })
     ).toBeVisible({ timeout: 30_000 });
     await expect(
       page.getByRole("link", { name: format.t("menu.addNewEntry") })
