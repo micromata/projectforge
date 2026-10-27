@@ -11,6 +11,7 @@ import { useChatContext } from "./chat-context";
 import { DaySeparator } from "./day-separator";
 import { layoutMessages } from "./message-grouping";
 import { MessageItem } from "./message-item";
+import { usePartnerRead } from "./use-partner-read";
 import { useChatMessages } from "./use-chat-messages";
 import { AT_END_PX, isAtEnd, useFollowEnd } from "./use-follow-end";
 
@@ -35,6 +36,11 @@ export function MessageList({
   const positioned = useRef(false);
   const contentRef = useFollowEnd(scrollRef, atEnd);
   const newest = messages[messages.length - 1];
+  const partnerRead = usePartnerRead();
+  const readByPartner = useMemo(
+    () => findReadByPartner(messages, partnerRead, conversation.me.id),
+    [messages, partnerRead, conversation.me.id]
+  );
   const firstUnread = findFirstUnread(messages, readMark, conversation.me.id);
   const layout = useMemo(
     () => layoutMessages(messages, formatContext, firstUnread),
@@ -116,7 +122,11 @@ export function MessageList({
           <Fragment key={message.id}>
             {dayStart && <DaySeparator timestamp={dayStart} />}
             {message.id === firstUnread && <NewMessagesLine />}
-            <MessageItem message={message} continued={continued} />
+            <MessageItem
+              message={message}
+              continued={continued}
+              readByPartner={message.id === readByPartner}
+            />
           </Fragment>
         ))}
       </div>
@@ -144,4 +154,16 @@ export function NewMessagesLine() {
       <span className="h-px flex-1 bg-destructive/50" />
     </div>
   );
+}
+
+/** The newest message of the user the other one of a direct message has read (up to [partnerRead]), if any. */
+export function findReadByPartner(
+  messages: ChatMessage[],
+  partnerRead: number | null,
+  meId: number
+): number | undefined {
+  if (partnerRead == null) return undefined;
+  return messages.findLast(
+    (it) => it.id <= partnerRead && it.author.id === meId
+  )?.id;
 }

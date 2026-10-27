@@ -476,8 +476,13 @@ open class ChatService {
         val context = chatAccess.requireContext(conversationId, user)
         val message = findMessage(messageId)?.takeIf { it.conversationId == context.conversationId }
             ?: throw AccessException(user, NO_ACCESS)
-        persistenceService.runInTransaction { pc -> updateLastRead(pc, conversationId, user.id!!, message.id!!) }
+        val raised = persistenceService.runInTransaction { pc ->
+            updateLastRead(pc, conversationId, user.id!!, message.id!!)
+        }
         notifier.resolve(conversationId, user.id!!)
+        if (raised && context.conversation.hostType == ChatDirectChatHost.HOST_TYPE) {
+            publishRead(conversationId, user.id!!)
+        }
     }
 
     /**
@@ -904,13 +909,15 @@ open class ChatService {
         }
     }
 
-    private fun updateLastRead(pc: PfPersistenceContext, conversationId: Long, userId: Long, messageId: Long) {
+    /** Raises the read state; false if it was not lower than [messageId]. */
+    private fun updateLastRead(pc: PfPersistenceContext, conversationId: Long, userId: Long, messageId: Long): Boolean {
         val state = memberState(pc, conversationId, userId)
         if ((state.lastReadMessageId ?: 0) >= messageId) {
-            return
+            return false
         }
         state.lastReadMessageId = messageId
         if (state.id == null) pc.em.persist(state)
+        return true
     }
 
     /** The sanitized content: mentions only of users with read access, named by the user cache. */
@@ -945,6 +952,16 @@ open class ChatService {
         eventListeners.forEach { listener ->
             try {
                 listener.onChange(conversationId, changeSeq)
+            } catch (ex: Exception) {
+                log.warn(ex) { "Chat event listener failed for conversation #$conversationId: ${ex.message}" }
+            }
+        }
+    }
+
+    private fun publishRead(conversationId: Long, readerId: Long) {
+        eventListeners.forEach { listener ->
+            try {
+                listener.onRead(conversationId, readerId)
             } catch (ex: Exception) {
                 log.warn(ex) { "Chat event listener failed for conversation #$conversationId: ${ex.message}" }
             }

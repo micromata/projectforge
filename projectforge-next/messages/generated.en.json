@@ -1046,6 +1046,8 @@
       "react": "Add reaction",
       "reply": "Reply in thread",
       "save": "Save",
+      "seen": "Read",
+      "seenBy": "Read by {arg0}",
       "send": "Send",
       "unhide": "Show again"
     },

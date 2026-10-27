@@ -36,4 +36,7 @@ interface ChatEventListener {
 
     /** A confidential session in the conversation changed for the user ([ChatSecretRelay]). */
     fun onSecret(conversationId: Long, userId: Long) {}
+
+    /** The reader raised the read state in a direct conversation: the partner may show it ([ChatService.markRead]). */
+    fun onRead(conversationId: Long, readerId: Long) {}
 }

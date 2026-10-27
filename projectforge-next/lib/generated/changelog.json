@@ -9,13 +9,16 @@
     "overview" : [ "**Chat:** a confidential message in a direct message is now a confidential conversation, end-to-end encrypted and never stored by the server, until one side ends it; the fingerprint covers both keys. Conversations are more compact, with message bubbles, grouped messages and a separator per day.", "**Chat:** the search of the chat page also finds messages in all readable conversations, with a preview of the newest match; a click jumps to the message. A speech bubble in the top bar links to the chat and shows the unread messages, as does the menu entry.", "**Liquidity forecast:** the number of days can be entered freely (1 to 600), the usual horizons remain as quick picks.", "**Search:** closed task structure elements are no longer found in the menu quick search; the detailed search still finds them, struck through." ],
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Chat: the search of the chat page also finds messages in all readable conversations, each with a preview of the newest match; a click jumps to the message, also in a thread.", "Chat: a speech bubble in the top bar links to the chat, a counter shows the unread messages there and at the menu entry." ]
+      "items" : [ "Chat: in a direct message, \"Read\" with the avatar of the other one is shown under the newest own message they have read.", "Chat: the search of the chat page also finds messages in all readable conversations, each with a preview of the newest match; a click jumps to the message, also in a thread.", "Chat: a speech bubble in the top bar links to the chat, a counter shows the unread messages there and at the menu entry." ]
     }, {
       "type" : "improved",
-      "items" : [ "Chat: more compact conversations with message bubbles (own messages on the right), consecutive messages of the same author grouped and a separator per day.", "Liquidity forecast: the number of days can be entered freely (1 to 600), the usual horizons remain as quick picks.", "Search: closed task structure elements are no longer found in the menu quick search. The detailed search still finds them and shows them struck through, as do the structure tree, the paths and the lists." ]
+      "items" : [ "Chat: more compact conversations with message bubbles (own messages on the right), consecutive messages of the same author grouped and a separator per day.", "Chat: the search also offers users without a direct message yet; a click starts the conversation.", "Data transfer: personal boxes are always listed first, also when searching for a user.", "Liquidity forecast: the number of days can be entered freely (1 to 600), the usual horizons remain as quick picks.", "Search: closed task structure elements are no longer found in the menu quick search. The detailed search still finds them and shows them struck through, as do the structure tree, the paths and the lists." ]
     }, {
       "type" : "changed",
       "items" : [ "Chat: a confidential message in a direct message is now a confidential conversation. Both sides write back and forth, end-to-end encrypted and never stored by the server, until one side ends it. The fingerprint now covers both keys, so a forged message shows as a difference." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Chat: the action menu of a message no longer overlaps the divider above it." ]
     } ]
   },
   "groups" : [ {

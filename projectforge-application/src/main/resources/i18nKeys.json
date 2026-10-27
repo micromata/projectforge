@@ -1316,6 +1316,8 @@
   {"i18nKey":"chat.message.react","bundleName":"I18nResources","translation":"Add reaction","translationDE":"Reaktion hinzufügen","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"chat.message.reply","bundleName":"I18nResources","translation":"Reply in thread","translationDE":"Im Thread antworten","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"chat.message.save","bundleName":"I18nResources","translation":"Save","translationDE":"Speichern","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"chat.message.seen","bundleName":"I18nResources","translation":"Read","translationDE":"Gelesen","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"chat.message.seenBy","bundleName":"I18nResources","translation":"Read by {0}","translationDE":"Gelesen von {0}","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"chat.message.send","bundleName":"I18nResources","translation":"Send","translationDE":"Senden","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"chat.message.unhide","bundleName":"I18nResources","translation":"Show again","translationDE":"Wieder einblenden","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"chat.notification.direct.text","bundleName":"I18nResources","translation":"{0} sent you a message in the chat.","translationDE":"{0} hat dir im Chat eine Nachricht geschickt.","usedInClasses":[],"usedInFiles":[]},
