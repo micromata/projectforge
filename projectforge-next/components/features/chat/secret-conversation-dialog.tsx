@@ -5,6 +5,7 @@ import { FormAlert } from "@/components/shared/form-alert";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import type { SecretRole } from "@/lib/secret-crypto";
+import { SecretAlertSettings } from "./secret-alert-settings";
 import { SecretMessageList } from "./secret-message-list";
 import { SecretFingerprint, SecretHeader, SecretWaiting } from "./secret-parts";
 import { SecretSendForm } from "./secret-send-form";
@@ -83,6 +84,7 @@ export function SecretConversationSteps({
         />
       )}
       <DialogFooter>
+        <SecretAlertSettings className="flex-1" />
         <Button type="button" variant="outline" onClick={onClose}>
           {ended ? t("chat.secret.close") : t("chat.secret.end")}
         </Button>

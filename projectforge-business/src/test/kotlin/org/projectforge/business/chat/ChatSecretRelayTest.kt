@@ -66,9 +66,25 @@ class ChatSecretRelayTest : AbstractTestBase() {
         chatNotifier.executor = java.util.concurrent.Executor { it.run() }
     }
 
+    private var savedListeners: List<ChatEventListener> = emptyList()
+
     @AfterEach
     fun tearDown() {
         relay.clock = System::currentTimeMillis
+        relay.eventListeners = savedListeners
+    }
+
+    /** Records the users whose pages are woken because their offers changed. */
+    private fun recordOffers(): MutableList<Long> {
+        val woken = java.util.Collections.synchronizedList(mutableListOf<Long>())
+        savedListeners = relay.eventListeners
+        relay.eventListeners = savedListeners + object : ChatEventListener {
+            override fun onChange(conversationId: Long, changeSeq: Long) {}
+            override fun onSecretOffers(userId: Long) {
+                woken.add(userId)
+            }
+        }
+        return woken
     }
 
     private val publicKey = base64(ByteArray(65).also { it[0] = 4 })
@@ -267,6 +283,45 @@ class ChatSecretRelayTest : AbstractTestBase() {
         relay.seen(conversationId)
         assertTrue(notificationDao.findPendingByDedupPrefix(recipientId, prefix).isEmpty())
         assertEquals(listOf(session.id), relay.pending(conversationId).map { it.id }, "the offer stays")
+    }
+
+    @Test
+    fun `the offers to the user are listed in all chats and wake all of the user's pages`() {
+        val woken = recordOffers()
+        val conversationId = directChat("chatSecret5")
+        val recipientId = getUserId("chatSecret5-recipient")
+        val accepted = relay.offer(conversationId, publicKey)
+        assertEquals(listOf(recipientId), woken, "only the recipient, not the initiator")
+        assertTrue(relay.offers().isEmpty(), "the initiator has no offers to answer")
+        logon(TEST_USER)
+        assertTrue(relay.offers().isEmpty(), "nobody else sees them")
+
+        logon("chatSecret5-recipient")
+        assertEquals(listOf(accepted.id), relay.offers().map { it.id })
+        woken.clear()
+        relay.accept(accepted.id, publicKey)
+        assertEquals(listOf(recipientId), woken, "accepted: the offer is gone")
+        assertTrue(relay.offers().isEmpty(), "an open session is no offer anymore")
+        woken.clear()
+        relay.cancel(accepted.id)
+        assertTrue(woken.isEmpty(), "an open session ended: no offer changed")
+
+        logon("chatSecret5-sender")
+        val cancelled = relay.offer(conversationId, publicKey)
+        woken.clear()
+        relay.cancel(cancelled.id)
+        assertEquals(listOf(recipientId), woken, "withdrawn by the initiator")
+
+        val expiring = relay.offer(conversationId, publicKey)
+        woken.clear()
+        // Measured after the offer, with a margin: the initiator is seen at the offer's time.
+        val absent = System.currentTimeMillis() + ChatSecretRelay.PRESENCE_MILLIS + 1_000
+        relay.clock = { absent }
+        logon("chatSecret5-recipient")
+        assertTrue(relay.offers().isEmpty(), "the initiator is gone")
+        relay.purge()
+        assertEquals(listOf(recipientId), woken, "expired")
+        assertNull(relay.get(expiring.id))
     }
 
     private fun base64(bytes: ByteArray) = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
