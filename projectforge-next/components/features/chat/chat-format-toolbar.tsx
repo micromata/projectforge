@@ -14,6 +14,7 @@ import {
   TextStrikethroughIcon,
   TextUnderlineIcon,
 } from "@hugeicons/core-free-icons";
+import { EmojiPicker } from "./emoji-picker";
 import { RichTextColorMenu } from "@/components/shared/rich-text-color-menu";
 import {
   promptLink,
@@ -84,6 +85,7 @@ const FORMATS: {
 export function ChatFormatToolbar({ editor }: { editor: Editor | null }) {
   const t = useTranslations("richTextEditor");
   const tChat = useTranslations("chat.message");
+  const tRoot = useTranslations();
   const active = useEditorState({
     editor,
     selector: ({ editor }) => ({
@@ -127,6 +129,10 @@ export function ChatFormatToolbar({ editor }: { editor: Editor | null }) {
         <HugeiconsIcon icon={Link01Icon} />
       </ToolbarToggle>
       <RichTextColorMenu editor={editor} pressed={active?.color} />
+      <EmojiPicker
+        ariaLabel={tRoot("chat.emoji.insert")}
+        onPick={(emoji) => editor?.chain().focus().insertContent(emoji).run()}
+      />
     </div>
   );
 }

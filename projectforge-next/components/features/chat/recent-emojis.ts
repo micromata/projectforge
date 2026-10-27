@@ -1,5 +1,5 @@
 const KEY = "pf.chat.recentEmojis";
-const MAX = 8;
+const MAX = 16;
 
 /** The emoji the user reacted with lately (quick choice, MSG-10), kept in the browser's local storage. */
 export const recentEmojis = {
