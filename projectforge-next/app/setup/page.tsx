@@ -14,7 +14,7 @@ import { AuthCard } from "@/components/shared/auth-card";
 import { FormAlert } from "@/components/shared/form-alert";
 import { FieldHint } from "@/components/shared/form/field-hint";
 import { ValueCombobox } from "@/components/shared/value-combobox";
-import { Button } from "@/components/ui/button";
+import { SetupSubmitButton } from "@/components/features/setup/setup-submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -340,9 +340,11 @@ function Setup() {
           />
         </div>
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? t("submitting") : t("finish")}
-        </Button>
+        <SetupSubmitButton
+          isSubmitting={isSubmitting}
+          label={t("finish")}
+          submittingLabel={t("submitting")}
+        />
       </form>
     </AuthCard>
   );

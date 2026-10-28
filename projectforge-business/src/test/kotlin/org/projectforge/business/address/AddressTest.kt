@@ -244,7 +244,8 @@ class AddressTest : AbstractTestBase() {
         var address = AddressDO()
         address.name = "Kai Reinhard"
         address.addressbookList = addressbookSet
-        val id = addressDao.insert(address)
+        // Without access check: the user may not add an address to the book without access.
+        val id = addressDao.insert(address, checkAccess = false)
 
         address = addressDao.find(id)!!
         Assertions.assertEquals(2, address.addressbookList!!.size)
@@ -262,6 +263,34 @@ class AddressTest : AbstractTestBase() {
             address.addressbookList!!.size,
             "Address book without user access should be preserved."
         )
+    }
+
+    /**
+     * Adding an address to an address book writes into it: posting a foreign book along with an own one isn't enough.
+     */
+    @Test
+    fun `an address can't be added to a foreign address book`() {
+        logon(TEST_USER)
+        val withoutAccess = addressbookSet.first { it.id != addressbookWithUserAccess.id }
+        suppressErrorLogs {
+            Assertions.assertThrows(AccessException::class.java) {
+                addressDao.insert(AddressDO().also {
+                    it.name = "Foreign book"
+                    it.addressbookList = mutableSetOf(addressbookWithUserAccess, withoutAccess)
+                })
+            }
+        }
+        val address = AddressDO().also {
+            it.name = "Own book"
+            it.addressbookList = mutableSetOf(addressbookWithUserAccess)
+        }
+        val id = addressDao.insert(address)
+        val stored = addressDao.find(id)!!
+        stored.addressbookList!!.add(withoutAccess)
+        suppressErrorLogs {
+            Assertions.assertThrows(AccessException::class.java) { addressDao.update(stored) }
+        }
+        Assertions.assertEquals(1, addressDao.find(id)!!.addressbookList!!.size)
     }
 
     @Test

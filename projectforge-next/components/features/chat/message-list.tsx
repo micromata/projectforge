@@ -1,0 +1,169 @@
+"use client";
+
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useTranslations } from "next-intl";
+import { Spinner } from "@/components/shared/spinner";
+import { useFormatContext } from "@/hooks/use-format";
+import { Button } from "@/components/ui/button";
+import type { ChatMessage } from "@/lib/rs/chat-types";
+import { CHAT_COLUMN_CLASS } from "./chat-column";
+import { useChatContext } from "./chat-context";
+import { DaySeparator } from "./day-separator";
+import { layoutMessages } from "./message-grouping";
+import { MessageItem } from "./message-item";
+import { usePartnerRead } from "./use-partner-read";
+import { useChatMessages } from "./use-chat-messages";
+import { AT_END_PX, isAtEnd, useFollowEnd } from "./use-follow-end";
+
+/**
+ * The messages of the conversation, oldest at the top, starting at the end (or at the message of a deep link).
+ * Scrolling up loads older ones, keeping the position; new messages scroll along while at the end. A line marks
+ * the first message unread when the conversation was opened (or as marked unread since). [onAtEnd] reports the
+ * newest message shown at the end.
+ */
+export function MessageList({
+  onAtEnd,
+}: {
+  onAtEnd: (newestId: number | null) => void;
+}) {
+  const t = useTranslations();
+  const formatContext = useFormatContext();
+  const { conversation, highlightId, readMark } = useChatContext();
+  const { query, messages } = useChatMessages(conversation.id);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const atEnd = useRef(true);
+  const heightBefore = useRef<number | null>(null);
+  const positioned = useRef(false);
+  const contentRef = useFollowEnd(scrollRef, atEnd);
+  const newest = messages[messages.length - 1];
+  const partnerRead = usePartnerRead();
+  const readByPartner = useMemo(
+    () => findReadByPartner(messages, partnerRead, conversation.me.id),
+    [messages, partnerRead, conversation.me.id]
+  );
+  const firstUnread = findFirstUnread(messages, readMark, conversation.me.id);
+  const layout = useMemo(
+    () => layoutMessages(messages, formatContext, firstUnread),
+    [messages, formatContext, firstUnread]
+  );
+
+  // Keeps the position when older messages come in on top, follows new ones at the end.
+  useLayoutEffect(() => {
+    const element = scrollRef.current;
+    if (!element || messages.length === 0) return;
+    if (heightBefore.current != null) {
+      element.scrollTop += element.scrollHeight - heightBefore.current;
+      heightBefore.current = null;
+    } else if (!positioned.current) {
+      positioned.current = true;
+      const target =
+        highlightId != null
+          ? document.getElementById(`chat-message-${highlightId}`)
+          : null;
+      if (target) {
+        target.scrollIntoView({ block: "center" });
+        atEnd.current = isAtEnd(element); // Not moved to the end by images loaded later.
+      } else element.scrollTop = element.scrollHeight;
+    } else if (atEnd.current) {
+      element.scrollTop = element.scrollHeight;
+    }
+  }, [messages, highlightId]);
+
+  useEffect(() => {
+    if (atEnd.current) onAtEnd(newest?.id ?? null);
+  }, [newest?.id, onAtEnd]);
+
+  const loadOlder = () => {
+    if (!query.hasNextPage || query.isFetchingNextPage) return;
+    heightBefore.current = scrollRef.current?.scrollHeight ?? null;
+    void query.fetchNextPage();
+  };
+  const onScroll = () => {
+    const element = scrollRef.current;
+    if (!element) return;
+    atEnd.current = isAtEnd(element);
+    if (atEnd.current) onAtEnd(newest?.id ?? null);
+    if (element.scrollTop < AT_END_PX) loadOlder();
+  };
+
+  return (
+    <div
+      ref={scrollRef}
+      onScroll={onScroll}
+      className="min-h-0 flex-1 overflow-y-auto py-2"
+      data-chat-messages
+      role="log"
+      aria-live="polite"
+    >
+      <div ref={contentRef} className={CHAT_COLUMN_CLASS}>
+        {query.hasNextPage && (
+          <div className="flex justify-center py-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={query.isFetchingNextPage}
+              onClick={loadOlder}
+            >
+              {t("chat.conversation.loadOlder")}
+            </Button>
+          </div>
+        )}
+        {query.isPending && (
+          <div className="flex justify-center py-6">
+            <Spinner className="h-5 w-5 border-2" />
+          </div>
+        )}
+        {query.isSuccess && messages.length === 0 && (
+          <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+            {t("chat.conversation.empty")}
+          </p>
+        )}
+        {layout.map(({ message, dayStart, continued }) => (
+          <Fragment key={message.id}>
+            {dayStart && <DaySeparator timestamp={dayStart} />}
+            {message.id === firstUnread && <NewMessagesLine />}
+            <MessageItem
+              message={message}
+              continued={continued}
+              readByPartner={message.id === readByPartner}
+            />
+          </Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** The first message of others newer than the read state [readMark], undefined if none (or never read). */
+export function findFirstUnread(
+  messages: ChatMessage[],
+  readMark: number | null,
+  meId: number
+): number | undefined {
+  if (readMark == null) return undefined;
+  return messages.find((it) => it.id > readMark && it.author.id !== meId)?.id;
+}
+
+/** The line above the first unread message. */
+export function NewMessagesLine() {
+  const t = useTranslations();
+  return (
+    <div className="my-1 flex items-center gap-2 px-3 text-xs font-semibold text-destructive">
+      <span className="h-px flex-1 bg-destructive/50" />
+      {t("chat.conversation.newMessages")}
+      <span className="h-px flex-1 bg-destructive/50" />
+    </div>
+  );
+}
+
+/** The newest message of the user the other one of a direct message has read (up to [partnerRead]), if any. */
+export function findReadByPartner(
+  messages: ChatMessage[],
+  partnerRead: number | null,
+  meId: number
+): number | undefined {
+  if (partnerRead == null) return undefined;
+  return messages.findLast(
+    (it) => it.id <= partnerRead && it.author.id === meId
+  )?.id;
+}

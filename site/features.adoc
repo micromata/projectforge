@@ -45,8 +45,11 @@ Consumption bars:: See at a glance which tasks are on budget and which are runni
 Resource planning:: Plan your people across projects week by week, so project leads and employees always know who works on what.
 Gantt charts:: Visualize your plan for your team and your customers.
 
+[.pf-screenshots]
+--
 image::2026-OrderBook.png[Order book,link=/uploads/screenshots/2026-OrderBook.png]
 image::2026-TaskTree.png[Structure tree with consumption bars,link=/uploads/screenshots/2026-TaskTree.png]
+--
 
 [[time_tracking]]
 == Time Tracking
@@ -61,18 +64,32 @@ Bulk edit:: Select many bookings and change them at once.
 
 image::2026-Timesheets.png[Timesheets,link=/uploads/screenshots/2026-Timesheets.png]
 
-[[people_leave]]
-== People & Leave
+[[leave_availability]]
+== Leave & Availability
 
-_Leave requests, leave accounts, employees and skills – without an extra HR tool._
+_Who is away, who stands in, who can be reached – at a glance, without an extra HR tool._
 
-Leave requests:: Request leave, get it approved, everybody involved is notified. Conflicts within the team are detected early.
+Leave requests:: Request leave, get it approved, everybody involved is notified. Each request shows its days as a bar – weekends, holidays and the days without any substitute on duty.
+Substitutes:: The vacations and absences of the substitutes are charted right in the form, so gaps in the team are detected before the leave is approved.
+Leave accounts:: Entitlements, carry-overs and remaining days – always correct, with the year's leave and absences in one view.
 Leave becomes a timesheet:: Approved vacation is booked as timesheets automatically every night.
-Leave accounts:: Entitlements, carry-overs and remaining days – always correct.
+Availability:: Parental leave, workation, illness or time off in lieu (the types are configurable): anybody, freelancers included, enters periods of reduced availability – not available, remotely reachable or reachable in urgent cases only, with location and a comment for the team.
+Availability at a glance:: Pick some colleagues and see their vacations and absences of the next weeks as bars, right from the calendar, the leave account and the lists.
+Absences in the calendar:: Vacations and availability entries of your groups in the calendar, in team calendars and their ICS subscriptions – each calendar decides which kinds it shows.
+Team vacation calendar:: The leave of whole groups per quarter or year, printable and as Excel export.
+Privacy built in:: Colleagues see what matters to them – the status from today on. The reason of an absence stays with the person concerned and HR.
+
+++++
+{% include screenshot-gallery.html key="leave_availability" %}
+++++
+
+[[people_skills]]
+== People & Skills
+
+_Employees, salaries and skills in one place._
+
 Employees and salaries:: Employee data and salaries, importable from Excel and exportable to DATEV.
 Skill matrix:: Who knows what? Your team rates its own skills and interests – a great help when staffing new projects.
-
-image::2026-Calendar.png[Team calendar with leave and holidays,link=/uploads/screenshots/2026-Calendar.png]
 
 [[finance_e_invoicing]]
 == Finance & E-Invoicing
@@ -98,14 +115,18 @@ Liquidity planning:: Expected payments, recurring series and invoices combined i
 Bank accounts:: Import account statements and browse the transactions of your accounts.
 DATEV:: Import accounting records and incoming invoices from DATEV and get business assessments (BWA).
 
+[.pf-screenshots]
+--
 image::2026-Statistics.png[Statistics and forecast,link=/uploads/screenshots/2026-Statistics.png]
 image::2026-Liquidity.png[Liquidity forecast,link=/uploads/screenshots/2026-Liquidity.png]
+--
 
 [[collaboration]]
 == Collaboration
 
-_Team calendars, address book, file sharing and Word templates – the everyday things your team needs anyway._
+_Chat, team calendars, address book, file sharing and Word templates – the everyday things your team needs anyway._
 
+Chat:: Rooms for teams and projects and direct messages, with files, reactions, threads and @mentions – live, on your own server. Confidential messages such as passwords travel end-to-end encrypted and are shown only once (link:/docs/userguide/#chat[user guide]).
 Team calendars:: Shared calendars with holidays and birthdays. Subscribe to them on any device via ICS and show external calendars inside ProjectForge.
 Address book:: Shared addresses, synchronized to your phone via CardDAV, vCard export.
 Data transfer:: Share files with colleagues and customers – protected by password and expiry date, with a full activity log.
@@ -113,7 +134,12 @@ Word templates:: Generate contracts and serial letters from your own Word templa
 Polls:: Ask your team and get a quick answer.
 Office organization:: Contracts, incoming and outgoing mail log, visitor book, library, software licenses and hardware.
 
+[.pf-screenshots]
+--
+image::2026-ChatRoom.png[Chat room of a project,link=/uploads/screenshots/2026-ChatRoom.png]
+image::2026-Calendar.png[Team calendar with leave and holidays,link=/uploads/screenshots/2026-Calendar.png]
 image::2026-DataTransfer.png[Data transfer,link=/uploads/screenshots/2026-DataTransfer.png]
+--
 
 [[easy_to_use]]
 == Easy to Use
@@ -127,8 +153,26 @@ Excel everywhere:: Export every list to Excel.
 History:: Every change is logged with who and when – and you can comment on it.
 Two languages:: English and German interface, mails in the language of the recipient.
 
+[.pf-screenshots]
+--
 image::2026-Menu.png[Main menu and favorites,link=/uploads/screenshots/2026-Menu.png]
 image::2026-Dark.png[Dark theme,link=/uploads/screenshots/2026-Dark.png]
+--
+
+[[data_sovereignty]]
+== Data Sovereignty & GDPR
+
+_Your data stays yours – on your server, under your rules._
+
+Self-hosted:: Runs on your own server, in your data center or with a hoster you choose. You decide where the data lives, who has access, how long it is kept and when you update.
+No third-party cloud:: No telemetry, no tracking, no scripts, fonts or images from other hosts – the Content Security Policy of the browser refuses them.
+Open source:: The code can be checked by anybody. Your data is in your own PostgreSQL database, without vendor lock-in.
+GDPR:: Processing personal data becomes a matter of your own policies, without a processor outside your control. Fine-grained rights, the history of changes and privacy by default support you – the reason of an absence, for example, stays with the person concerned and HR.
+Confidential chat:: Passwords and access data travel end-to-end encrypted between two browsers – never stored, not in the database, logs, backups or mails. Administrators can't read conversations either.
+
+image::2026-ChatSecretDialog.png[Confidential conversation with its fingerprint,link=/uploads/screenshots/2026-ChatSecretDialog.png]
+
+See also link:/docs/userguide/#data_sovereignty_and_gdpr[Data sovereignty and GDPR] in the user guide.
 
 [[security_integration]]
 == Security & Integration
@@ -154,7 +198,7 @@ Scripting:: Kotlin and Groovy scripts for your own reports and exports – even 
 Plugins:: Extend ProjectForge with your own modules.
 Open source:: Kotlin, Spring Boot and Next.js. Read the code, change it, contribute.
 
-image::2026-SystemDashboard.png[System dashboard with the scheduled jobs,link=/uploads/screenshots/2026-SystemDashboard.png]
+image::2026-SystemDashboard.png[System dashboard with the subsystems and their errors,link=/uploads/screenshots/2026-SystemDashboard.png]
 
 [[requirements]]
 == Technical requirements

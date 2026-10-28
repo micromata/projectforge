@@ -15,6 +15,7 @@ export function useStatisticsLabels() {
       // Shared keys:
       customer: t("fibu.kunde._"),
       project: t("fibu.projekt._"),
+      projectGroup: t("fibu.projectGroup"),
       kost: t("fibu.auftrag.contributionMargin.kost"),
       kost2: t("fibu.kost2._"),
       order: t("fibu.auftrag._"),

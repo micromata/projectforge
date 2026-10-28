@@ -77,6 +77,10 @@ class PasswordNotChangedRuleHandler : NotificationRuleHandler {
         return variables(user, rule.readParams().passwordMaxAgeDays, today)
     }
 
+    override fun exampleVariables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> {
+        return variables(user, rule.readParams().passwordMaxAgeDays, today, today.minusDays(100))
+    }
+
     /** Resolved if the password was changed (or isn't too old any more), expired if the user has no access any more. */
     override fun resolve(
         rule: NotificationRuleDO,
@@ -96,9 +100,13 @@ class PasswordNotChangedRuleHandler : NotificationRuleHandler {
         return result
     }
 
-    private fun variables(user: PFUserDO, maxAgeDays: Int, today: LocalDate): Map<String, String> {
+    private fun variables(
+        user: PFUserDO,
+        maxAgeDays: Int,
+        today: LocalDate,
+        lastChange: LocalDate? = lastChange(user)?.let { NotificationService.toLocalDate(it) },
+    ): Map<String, String> {
         val locale = UserLocale.determineUserLocale(user)
-        val lastChange = lastChange(user)?.let { NotificationService.toLocalDate(it) }
         return mapOf(
             "passwordChangeDate" to (lastChange?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)) ?: "–"),
             "passwordAgeDays" to (lastChange?.let { ChronoUnit.DAYS.between(it, today).toString() } ?: "–"),

@@ -8,6 +8,12 @@ export const POLL_RESPONSE_METADATA = {
   entity: "PollResponseDO",
   historizable: true,
   fields: {
+    answers: {
+      dataType: "STRING",
+      i18nKey: "poll.answers",
+      required: false,
+      maxLength: 100000,
+    },
     created: {
       dataType: "TIMESTAMP",
       i18nKey: "created",
@@ -32,12 +38,6 @@ export const POLL_RESPONSE_METADATA = {
       dataType: "USER",
       i18nKey: "poll.response.owner",
       required: false,
-    },
-    responses: {
-      dataType: "STRING",
-      i18nKey: "poll.responses",
-      required: false,
-      maxLength: 1000,
     },
   },
 } as const satisfies EntityMetadata;

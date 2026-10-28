@@ -1,8 +1,8 @@
 /**
- * Background jobs of the backend (`JobsMonitorPageRest`, `org.projectforge.framework.jobs`).
+ * Background jobs of the backend (`JobsMonitorRest`, `org.projectforge.framework.jobs`).
  *
  * Long-running operations answer with a job id instead of blocking (see startReindexOrRunIt in
- * AbstractPagesRest); the client polls this controller for the progress. The endpoints are shared with
+ * AbstractEntityRest); the client polls this controller for the progress. The endpoints are shared with
  * the legacy frontend and answer with a `ResponseAction` whose variables carry the payload, so the
  * unwrapping happens here and nowhere else.
  */
@@ -29,16 +29,18 @@ export interface JobInfo {
   animated?: boolean;
   /** Set only while the job can still be cancelled, and only for a user allowed to (writeAccess). */
   cancelId?: number;
+  /** True once the job is over: finished, failed, cancelled or refused. */
+  terminated?: boolean;
   /** Translated reason of a failed or refused job — the counters of `progressTitle` explain nothing there. */
   errorMessage?: string;
 }
 
 /**
- * A job is over once the backend stops offering to cancel it: `cancelId` is set for RUNNING and
- * WAITING only (see JobInfo.create). The status itself isn't part of the DTO.
+ * A job is over once it finished, failed, was cancelled or refused (JobInfo.create). Not derived from
+ * `cancelId`: a running job the user may only read has none either.
  */
 export function isJobTerminated(job: JobInfo): boolean {
-  return job.cancelId == null;
+  return job.terminated === true;
 }
 
 /** A terminated job that didn't finish successfully is marked DANGER by the backend. */
@@ -57,8 +59,7 @@ export async function fetchJobs(signal?: AbortSignal): Promise<JobInfo[]> {
 }
 
 /**
- * Asks the backend to cancel a job. GET despite changing state — the endpoint is shared with the
- * legacy frontend. Answers with the updated job list.
+ * Asks the backend to cancel a job. Answers with the updated job list.
  */
 export async function cancelJob(
   jobId: number,
@@ -66,7 +67,7 @@ export async function cancelJob(
 ): Promise<JobInfo[]> {
   const action = await request<ResponseAction>(
     `/rs/jobsMonitor/cancel?jobId=${jobId}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
   return readJobs(action);

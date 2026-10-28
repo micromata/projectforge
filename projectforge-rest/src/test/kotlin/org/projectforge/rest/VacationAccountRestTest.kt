@@ -31,6 +31,10 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityDao
+import org.projectforge.business.availability.AvailabilityLocation
+import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeService
@@ -42,6 +46,9 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.business.vacation.service.VacationService
+import org.projectforge.business.vacation.service.VacationStats
+import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -57,6 +64,9 @@ import java.time.temporal.TemporalAdjusters
  * who may recalculate the remaining leave.
  */
 class VacationAccountRestTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var availabilityDao: AvailabilityDao
+
     @Autowired
     private lateinit var vacationAccountRest: VacationAccountRest
 
@@ -133,6 +143,60 @@ class VacationAccountRestTest : AbstractTestBase() {
     }
 
     @Test
+    fun `the account lists the availability entries of the employee's user in its three years, newest first`() {
+        val own = createEmployee("availability-own")
+        val other = createEmployee("availability-other")
+        val hr = createEmployee("availability-hr", hrAccess = true)
+        val year = LocalDate.now().year
+        logon(hr.user!!)
+        fun insert(employee: EmployeeDO, start: LocalDate, end: LocalDate, type: String? = null) =
+            availabilityDao.insert(AvailabilityDO().also {
+                it.user = employee.user
+                it.startDate = start
+                it.endDate = end
+                it.status = AvailabilityStatus.REMOTE_REACHABLE
+                it.location = AvailabilityLocation.REMOTE
+                it.type = type
+                it.comment = "Workation"
+            })
+        val previousYear = insert(own, LocalDate.of(year - 1, 12, 20), LocalDate.of(year, 1, 5))
+        val nextYear = insert(own, LocalDate.of(year + 1, 6, 1), LocalDate.of(year + 1, 6, 10), type = "Workation")
+        insert(own, LocalDate.of(year - 2, 3, 1), LocalDate.of(year - 2, 3, 5)) // Before the three years.
+        insert(own, LocalDate.of(year + 2, 3, 1), LocalDate.of(year + 2, 3, 5)) // After them.
+        insert(other, LocalDate.of(year, 3, 1), LocalDate.of(year, 3, 5))
+
+        logon(own.user!!)
+        vacationAccountRest.getAccount(other.id).let { account ->
+            assertEquals(listOf(nextYear, previousYear), account.availabilities.map { it.id }, "Only the own ones.")
+            account.availabilities.first().let {
+                assertEquals("Workation", it.type, "The own type.")
+                assertEquals("Workation", it.comment)
+                assertFalse(it.conflict)
+                assertEquals("/next/availability/$nextYear?returnTo=%2FvacationAccount", it.editUrl)
+                // The days bar: the period, its weekends and holidays and its working days.
+                assertEquals(LocalDate.of(year + 1, 6, 1), it.startDate)
+                assertEquals(LocalDate.of(year + 1, 6, 10), it.endDate)
+                val days = (1..10).map { day -> LocalDate.of(year + 1, 6, day) }
+                assertEquals(days.filter { day -> !Holidays.instance.isWorkingDay(day) }, it.nonWorkingDays)
+                assertEquals(
+                    VacationStats.format(VacationService.getVacationDays(days.first(), days.last())),
+                    it.workingDaysFormatted,
+                )
+                assertNull(it.uncoveredDays)
+            }
+            assertEquals(
+                "/next/availability/new?user=${own.user!!.id}&returnTo=%2FvacationAccount",
+                account.newAvailabilityUrl,
+            )
+        }
+        logon(hr.user!!)
+        vacationAccountRest.getAccount(own.id).let { account ->
+            assertEquals(listOf(nextYear, previousYear), account.availabilities.map { it.id }, "HR: the one shown.")
+            assertEquals("Workation", account.availabilities.first().type)
+        }
+    }
+
+    @Test
     fun `the account costs a constant number of statements, not one per vacation`() {
         val hr = createEmployee("statements-hr", hrAccess = true)
         val replacement = createEmployee("statements-replacement")
@@ -164,7 +228,7 @@ class VacationAccountRestTest : AbstractTestBase() {
                 val vacations = account.years.flatMap { it.vacations }
                 assertEquals(expectedVacations, vacations.size)
                 // The other replacements are there, read without a lazy load per vacation.
-                assertTrue(vacations.all { it.otherReplacements?.contains(other.displayName) == true })
+                assertTrue(vacations.all { v -> v.otherReplacements?.any { it.displayName == other.displayName } == true })
                 return statistics.prepareStatementCount
             }
             // Warms up what doesn't belong to the account itself: caches (users, rights) and the carry stored by the
@@ -184,6 +248,8 @@ class VacationAccountRestTest : AbstractTestBase() {
             assertNull(it.employee)
             assertTrue(it.statistics.isEmpty())
             assertNull(it.newVacationUrl)
+            assertTrue(it.availabilities.isEmpty())
+            assertNull(it.newAvailabilityUrl)
         }
     }
 

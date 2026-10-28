@@ -3,36 +3,32 @@
 import { useEditorState, type Editor } from "@tiptap/react";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
+  CodeIcon,
   LeftToRightListBulletIcon,
   LeftToRightListNumberIcon,
   Link01Icon,
-  PaintBoardIcon,
+  SourceCodeSquareIcon,
   TextBoldIcon,
   TextItalicIcon,
+  TextStrikethroughIcon,
   TextUnderlineIcon,
   VariableIcon,
 } from "@hugeicons/core-free-icons";
 import { useTranslations } from "next-intl";
+import { RichTextColorMenu } from "@/components/shared/rich-text-color-menu";
 import {
   HeadingMenu,
   TableMenu,
 } from "@/components/shared/rich-text-block-menus";
 import {
+  promptLink,
   ToolbarMenu,
   ToolbarToggle,
 } from "@/components/shared/rich-text-toolbar-controls";
+import { EmojiPicker } from "@/components/shared/emoji/emoji-picker";
+import type { RichTextFeatures } from "@/components/shared/rich-text-extensions";
+import { NOTE_FEATURES } from "@/components/shared/rich-text-extensions";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-
-/**
- * The text colours offered. The value is written into the stored HTML (it must work in a mail as well,
- * so no CSS variable), the swatch shows the same colour.
- */
-const COLORS = [
-  { key: "red", value: "#dc2626", swatch: "bg-red-600" },
-  { key: "green", value: "#16a34a", swatch: "bg-green-600" },
-  { key: "blue", value: "#2563eb", swatch: "bg-blue-600" },
-] as const;
 
 /** A placeholder the caller resolves later, inserted as `{{key}}` (e.g. the fields of a mail). */
 export interface RichTextVariable {
@@ -44,14 +40,18 @@ type Mark =
   | "bold"
   | "italic"
   | "underline"
+  | "strike"
   | "bulletList"
   | "orderedList"
-  | "link";
+  | "code"
+  | "codeBlock";
 
 const MARKS: {
   mark: Mark;
   icon: IconSvgElement;
   toggle: (editor: Editor) => void;
+  /** Offered with [RichTextFeatures.code] only. */
+  code?: boolean;
 }[] = [
   {
     mark: "bold",
@@ -69,6 +69,12 @@ const MARKS: {
     toggle: (e) => e.chain().focus().toggleUnderline().run(),
   },
   {
+    mark: "strike",
+    icon: TextStrikethroughIcon,
+    toggle: (e) => e.chain().focus().toggleStrike().run(),
+    code: true,
+  },
+  {
     mark: "bulletList",
     icon: LeftToRightListBulletIcon,
     toggle: (e) => e.chain().focus().toggleBulletList().run(),
@@ -78,23 +84,44 @@ const MARKS: {
     icon: LeftToRightListNumberIcon,
     toggle: (e) => e.chain().focus().toggleOrderedList().run(),
   },
+  {
+    mark: "code",
+    icon: CodeIcon,
+    toggle: (e) => e.chain().focus().toggleCode().run(),
+    code: true,
+  },
+  {
+    mark: "codeBlock",
+    icon: SourceCodeSquareIcon,
+    toggle: (e) => e.chain().focus().toggleCodeBlock().run(),
+    code: true,
+  },
 ];
 
-/** The toolbar of [RichTextEditor]. */
+/** The toolbar of [RichTextEditor] and of the chat editor: the groups of [features]. */
 export function RichTextToolbar({
   editor,
   variables,
+  features = NOTE_FEATURES,
+  codeBlockHint,
 }: {
   editor: Editor | null;
   variables?: RichTextVariable[];
+  features?: RichTextFeatures;
+  /** Explains the code block button, if the editor handles Enter differently in it (the chat). */
+  codeBlockHint?: string;
 }) {
   const t = useTranslations("richTextEditor");
+  const tRoot = useTranslations();
   const active = useEditorState({
     editor,
     selector: ({ editor }) => ({
       bold: editor?.isActive("bold") ?? false,
       italic: editor?.isActive("italic") ?? false,
       underline: editor?.isActive("underline") ?? false,
+      strike: editor?.isActive("strike") ?? false,
+      code: editor?.isActive("code") ?? false,
+      codeBlock: editor?.isActive("codeBlock") ?? false,
       bulletList: editor?.isActive("bulletList") ?? false,
       orderedList: editor?.isActive("orderedList") ?? false,
       link: editor?.isActive("link") ?? false,
@@ -104,18 +131,7 @@ export function RichTextToolbar({
     }),
   });
 
-  const editLink = () => {
-    if (!editor) return;
-    const previous = editor.getAttributes("link").href as string | undefined;
-    const url = window.prompt(t("link.prompt"), previous ?? "https://")?.trim();
-    if (url === undefined) return;
-    const chain = editor.chain().focus().extendMarkRange("link");
-    if (url === "" || url === "https://") {
-      chain.unsetLink().run();
-    } else {
-      chain.setLink({ href: url }).run();
-    }
-  };
+  const editLink = () => promptLink(editor, t("link.prompt"));
 
   return (
     <div
@@ -123,17 +139,22 @@ export function RichTextToolbar({
       role="toolbar"
       aria-label={t("toolbar")}
     >
-      <HeadingMenu editor={editor} pressed={active?.heading} />
-      {MARKS.map(({ mark, icon, toggle }) => (
-        <ToolbarToggle
-          key={mark}
-          label={t(mark)}
-          pressed={active?.[mark]}
-          onPressedChange={() => editor && toggle(editor)}
-        >
-          <HugeiconsIcon icon={icon} />
-        </ToolbarToggle>
-      ))}
+      {features.headings && (
+        <HeadingMenu editor={editor} pressed={active?.heading} />
+      )}
+      {MARKS.filter((m) => !m.code || features.code).map(
+        ({ mark, icon, toggle }) => (
+          <ToolbarToggle
+            key={mark}
+            label={t(mark)}
+            hint={mark === "codeBlock" ? codeBlockHint : undefined}
+            pressed={active?.[mark]}
+            onPressedChange={() => editor && toggle(editor)}
+          >
+            <HugeiconsIcon icon={icon} />
+          </ToolbarToggle>
+        )
+      )}
       <ToolbarToggle
         label={t("link._")}
         pressed={active?.link}
@@ -141,31 +162,14 @@ export function RichTextToolbar({
       >
         <HugeiconsIcon icon={Link01Icon} />
       </ToolbarToggle>
-      <ToolbarMenu
-        label={t("color._")}
-        icon={PaintBoardIcon}
-        pressed={active?.color}
-      >
-        {COLORS.map((color) => (
-          <DropdownMenuItem
-            key={color.key}
-            onSelect={() => editor?.chain().focus().setColor(color.value).run()}
-          >
-            <span
-              className={cn("size-3 rounded-full", color.swatch)}
-              aria-hidden
-            />
-            {t(`color.${color.key}`)}
-          </DropdownMenuItem>
-        ))}
-        <DropdownMenuItem
-          onSelect={() => editor?.chain().focus().unsetColor().run()}
-        >
-          <span className="size-3 rounded-full border" aria-hidden />
-          {t("color.default")}
-        </DropdownMenuItem>
-      </ToolbarMenu>
-      <TableMenu editor={editor} inTable={active?.table} />
+      <RichTextColorMenu editor={editor} pressed={active?.color} />
+      {features.tables && <TableMenu editor={editor} inTable={active?.table} />}
+      {features.emoji && (
+        <EmojiPicker
+          ariaLabel={tRoot("chat.emoji.insert")}
+          onPick={(emoji) => editor?.chain().focus().insertContent(emoji).run()}
+        />
+      )}
       {variables && variables.length > 0 && (
         <ToolbarMenu label={t("variable")} icon={VariableIcon}>
           {variables.map((variable) => (

@@ -26,6 +26,7 @@ package org.projectforge.rest.task
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
+import org.projectforge.business.task.bookinggrant.TaskBookingGrantDao
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.configuration.Configuration
@@ -57,6 +58,9 @@ class TaskEntityRest
         "task.title") {
 
     @Autowired
+    private lateinit var taskBookingGrantDao: TaskBookingGrantDao
+
+    @Autowired
     private lateinit var taskTree: TaskTree
 
     override fun transformFromDB(obj: TaskDO, editMode: Boolean): Task {
@@ -72,6 +76,7 @@ class TaskEntityRest
             task.protectTimesheetsUntilWriteAccess =
                 accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)
             task.maxHoursIgnoredDueToOrders = obj.id != null && taskTree.hasOrderPositions(obj.id, true)
+            task.bookingGrantAccess = user != null && obj.id != null && taskBookingGrantDao.mayGrantOrPropose(user, obj.id)
         }
         return task
     }
@@ -136,6 +141,7 @@ class TaskEntityRest
             "kost2Configured" to Configuration.instance.isCostConfigured,
             "orders" to columns.orders,
             "protectTimesheetsUntil" to columns.protectTimesheetsUntil,
+            "groupAccess" to columns.groupAccess,
         )
     }
 

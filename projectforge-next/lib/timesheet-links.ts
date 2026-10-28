@@ -97,3 +97,33 @@ export function timesheetAddHref(taskId: number): string {
   });
   return `next/timesheet/new?${params.toString()}`;
 }
+
+/** [timesheetAddHref] as a route of this app, for the router (which adds the base path itself). */
+export function timesheetAddRoute(taskId: number): string {
+  return `/${timesheetAddHref(taskId).replace(/^next\//, "")}`;
+}
+
+/**
+ * Query parameter of the time sheet list: only the sheets to be accepted by the project management (booked by
+ * an ad hoc booking grant proposed without the right to grant, `TimesheetEntityRest.ACCEPTANCE_PENDING_FILTER`).
+ * The notification of the rule `TIMESHEETS_TO_ACCEPT` links the list with it as well.
+ */
+export const TIMESHEET_ACCEPTANCE_PENDING_PARAM = "acceptancePending";
+
+/**
+ * The time sheets to be accepted, of one user and one task (with its sub-tasks) if given, as a route of this
+ * app.
+ */
+export function timesheetsToAcceptRoute(
+  userId?: number,
+  userName?: string,
+  taskId?: number
+): string {
+  const params = new URLSearchParams({
+    [TIMESHEET_ACCEPTANCE_PENDING_PARAM]: "true",
+  });
+  if (userId) params.set(TIMESHEET_USER_ID_PARAM, String(userId));
+  if (userId && userName) params.set(TIMESHEET_USER_NAME_PARAM, userName);
+  if (taskId) params.set(TIMESHEET_TASK_ID_PARAM, String(taskId));
+  return `/timesheet?${params.toString()}`;
+}

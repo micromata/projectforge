@@ -31,6 +31,8 @@ import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.DataSizeConfig
 import org.projectforge.common.StringHelper
+import org.projectforge.datatransfer.DataTransferAreaHost
+import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.ConfigurationChecker
@@ -47,7 +49,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileInfo
 import org.projectforge.rest.config.RestUtils
-import org.projectforge.rest.core.RestResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -71,6 +72,10 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     @Autowired
     private lateinit var dataTransferAuditDao: DataTransferAuditDao
 
+    /** Optional: tests create the DAO without Spring. */
+    @Autowired(required = false)
+    private var dataTransferBridge: DataTransferBridge? = null
+
     @Autowired
     private lateinit var dataTransferNotificationMailService: DataTransferNotificationMailService
 
@@ -90,6 +95,10 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
     @Autowired
     private lateinit var domainService: DomainService
+
+    @Autowired
+    lateinit var externalAccessConfig: DataTransferExternalAccessConfig
+        private set
 
     open fun createInitializedFile(): DataTransferAreaDO {
         val file = DataTransferAreaDO()
@@ -141,22 +150,38 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
                 DBPredicate.Equal("adminIds", loggedInUserId.toString()),
             )
         )
-        var result = super.select(filter, customResultFilters, checkAccess)
+        val result = super.select(filter, customResultFilters, checkAccess)
         // searchString contains trailing %:
         val searchString = filter.fulltextSearchString?.replace("%", "")
-        if (searchString == null || searchString.length < 2) { // Search string is given and has at least 2 chars:
-            return result
+        val found = result.toMutableList()
+        if (searchString != null && searchString.length >= 2) { // Search string is given and has at least 2 chars:
+            val knownIds = found.mapNotNullTo(mutableSetOf()) { it.id }
+            userService.sortedUsers.filter { user ->
+                user.username?.contains(searchString, ignoreCase = true) == true ||
+                        user.getFullname().contains(searchString, ignoreCase = true)
+            }.forEach { user ->
+                // User name matches given string, so add personal box of this active user:
+                ensurePersonalBox(user.id!!)?.let { if (knownIds.add(it.id!!)) found.add(it) }
+            }
         }
-        result = result.toMutableList()
-        userService.sortedUsers.filter { user ->
-            user.username?.contains(searchString, ignoreCase = true) == true ||
-                    user.getFullname().contains(searchString, ignoreCase = true)
-        }.forEach { user ->
-            // User name matches given string, so add personal box of this active user:
-            val personalBox = ensurePersonalBox(user.id!!)!!
-            result.add(personalBox)
-        }
-        return result
+        // Personal boxes first (stable: the order of the query stays within both groups):
+        return found.sortedBy { !it.isPersonalBox() }
+    }
+
+    /**
+     * A synthetic area (see [DataTransferAreaHost]) has no admins, observers and access lists of its own, no
+     * external access and, as a personal box, the upload limit of Spring's multipart configuration.
+     */
+    open fun secureSyntheticArea(obj: DataTransferAreaDO) {
+        obj.adminIds = null
+        obj.observerIds = null
+        obj.accessGroupIds = null
+        obj.accessUserIds = null
+        obj.externalDownloadEnabled = false
+        obj.externalUploadEnabled = false
+        obj.externalPassword = null
+        obj.externalAccessToken = null
+        obj.maxUploadSizeKB = (configurationChecker.springServletMultipartMaxFileSize.toBytes() / 1024).toInt()
     }
 
     /**
@@ -183,7 +208,14 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
             obj.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB
     }
 
+    /**
+     * @return null on the gateway: it has only the areas pushed by the main instance (they carry the ids of the
+     * main instance, so the gateway must not create any area itself), no personal boxes.
+     */
     open fun ensurePersonalBox(userId: Long): DataTransferAreaDO? {
+        if (externalAccessConfig.gatewayMode) {
+            return null
+        }
         userGroupCache.getUser(userId) ?: return null
         var dbo = persistenceService.selectNamedSingleResult(
             DataTransferAreaDO.FIND_PERSONAL_BOX,
@@ -205,9 +237,27 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         return dbo
     }
 
+    /** The personal box of the user, null if it doesn't exist yet (see [ensurePersonalBox]). Not changed. */
+    open fun findPersonalBox(userId: Long): DataTransferAreaDO? {
+        return persistenceService.selectNamedSingleResult(
+            DataTransferAreaDO.FIND_PERSONAL_BOX,
+            DataTransferAreaDO::class.java,
+            Pair("areaName", DataTransferAreaDO.PERSONAL_BOX_AREA_NAME),
+            Pair("adminIds", "$userId"),
+        )
+    }
+
+    /** The module owning the area, if it is a synthetic one (e.g. of a chat conversation), see [DataTransferAreaHost]. */
+    open fun getAreaHost(area: DataTransferAreaDO?): DataTransferAreaHost? {
+        return dataTransferBridge?.getAreaHost(area?.id)
+    }
+
+    /**
+     * @return null for an unknown token, also for one too short to be any area's (a mistyped link is no error).
+     */
     open fun getAnonymousArea(externalAccessToken: String?): DataTransferAreaDO? {
-        if (externalAccessToken?.length ?: 0 < ACCESS_TOKEN_LENGTH) {
-            throw IllegalArgumentException("externalAccessToken to short.")
+        if ((externalAccessToken?.length ?: 0) < ACCESS_TOKEN_LENGTH) {
+            return null
         }
         val dbo = persistenceService.selectNamedSingleResult(
             DataTransferAreaDO.FIND_BY_EXTERNAL_ACCESS_TOKEN,
@@ -217,8 +267,24 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         return dbo
     }
 
+    /**
+     * The external link of an area is this url followed by its access token: the gateway's public page if
+     * external access runs via the gateway, the next public page of this instance otherwise (`next/public/datatransfer/`).
+     * Links to the former React page (`react/public/datatransfer/dynamic/<token>`), sent before, are redirected to the
+     * latter by OrphanedLinkFilter.
+     */
     open fun getExternalBaseLinkUrl(): String {
-        return domainService.getDomain("${RestResolver.REACT_PUBLIC_PATH}/datatransfer/dynamic/")
+        if (externalAccessConfig.viaGateway) {
+            return "${externalAccessConfig.gatewayPublicUrl}${DataTransferExternalAccessConfig.PUBLIC_PAGE_PATH}"
+        }
+        return domainService.getDomain(DataTransferExternalAccessConfig.PUBLIC_PAGE_PATH)
+    }
+
+    /**
+     * No areas are created on the gateway (see [hasAccess]): the list offers no add button there.
+     */
+    override fun hasInsertAccess(user: PFUserDO): Boolean {
+        return !externalAccessConfig.gatewayMode
     }
 
     override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {
@@ -232,8 +298,33 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         operationType: OperationType,
         throwException: Boolean
     ): Boolean {
+        if (externalAccessConfig.gatewayMode && operationType != OperationType.SELECT) {
+            // Gateway: all areas are pushed by the main instance and administered there, here only their files.
+            if (throwException) {
+                throw AccessException(user, "access.exception.userHasNotRight")
+            }
+            return false
+        }
         obj ?: return false
-        if (obj.isPersonalBox() == true) {
+        if (externalAccessConfig.gatewayMode && obj.deleted) {
+            // Gateway: withdrawn by the main instance (deleted there or no external access anymore), its admins and
+            // access users are the ones of the last push.
+            if (throwException) {
+                throw AccessException(user, "access.exception.userHasNotRight")
+            }
+            return false
+        }
+        getAreaHost(oldObj ?: obj)?.let { host ->
+            // A synthetic area (e.g. of a chat conversation): its module decides who sees it, nobody administers it.
+            if (operationType == OperationType.SELECT && host.hasReadAccess(obj.id!!, user)) {
+                return true
+            }
+            if (throwException) {
+                throw AccessException(user, "access.exception.userHasNotRight")
+            }
+            return false
+        }
+        if (obj.isPersonalBox() == true || oldObj?.isPersonalBox() == true) {
             if (operationType != OperationType.SELECT && throwException) {
                 // Select only on inboxes:
                 throw AccessException(user, "access.exception.userHasNotRight")
@@ -241,7 +332,9 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
             // Select only on inboxes:
             return operationType == OperationType.SELECT
         }
-        val adminIds = StringHelper.splitToLongs(obj.adminIds, ",")
+        // On update and delete the admins of the stored area decide, never the ones of the posted object: otherwise
+        // anybody could make himself admin by posting his own id.
+        val adminIds = StringHelper.splitToLongs((oldObj ?: obj).adminIds, ",")
         if (adminIds?.contains(user.id!!) == true) {
             return true
         }
@@ -267,6 +360,24 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
             throw AccessException(user, "access.exception.userHasNotRight")
         }
         return false
+    }
+
+    /**
+     * Whether the user has access to the area inside ProjectForge: as admin, access user or member of an access
+     * group. Unlike [hasAccess] without side effects (that one removes the external secrets from the object on a
+     * select), so usable on the area of an external access.
+     */
+    open fun hasInternalAccess(user: PFUserDO, area: DataTransferAreaDO): Boolean {
+        val userId = user.id ?: return false
+        if (StringHelper.splitToLongs(area.adminIds, ",")?.contains(userId) == true) {
+            return true
+        }
+        if (StringHelper.splitToLongs(area.accessUserIds, ",")?.contains(userId) == true) {
+            return true
+        }
+        return StringHelper.splitToLongs(area.accessGroupIds, ",")?.let {
+            userGroupCache.isUserMemberOfAtLeastOneGroup(userId, *it.toTypedArray())
+        } == true
     }
 
     override val defaultSortProperties: Array<SortProperty>?
@@ -327,7 +438,8 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
          */
         fun calculateMaxUploadFileSize(data: DataTransferAreaDO): Long {
             val used = data.attachmentsSize ?: 0
-            val freeCapacity = data.capacity - used
+            // A full area has no capacity left, not a negative one.
+            val freeCapacity = (data.capacity - used).coerceAtLeast(0)
             return minOf(freeCapacity, getMaxUploadFileSizeKB(data) * 1024L)
         }
 

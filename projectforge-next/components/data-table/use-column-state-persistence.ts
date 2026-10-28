@@ -88,6 +88,9 @@ export function useColumnStatePersistenceByUrl(
   const latest = useRef(state);
   // While set, writes are dropped: the state they would send is known to be outdated.
   const suspended = useRef<Promise<unknown> | null>(null);
+  // The state the server has (as far as we know): the one the table mounted with, then the last one written.
+  // Posting a state equal to it would only touch the user prefs on every page view.
+  const persisted = useRef<{ url: string; state: string } | null>(null);
 
   const serialized = JSON.stringify(state);
 
@@ -97,10 +100,17 @@ export function useColumnStatePersistenceByUrl(
 
   useEffect(() => {
     if (!url) return;
+    // Mounted once the stored state has been read, so the first state is the stored one: nothing to write yet.
+    if (persisted.current?.url !== url)
+      persisted.current = { url, state: serialized };
+    if (serialized === persisted.current.state) return;
 
     const post = () => {
       timer.current = null;
       if (suspended.current) return;
+      const body = JSON.stringify(latest.current);
+      if (body === persisted.current?.state) return;
+      persisted.current = { url, state: body };
       void saveColumnStatesToUrl(url, latest.current).catch(() => {
         // Losing a layout preference must never surface as a user error.
       });
@@ -151,4 +161,42 @@ export function useColumnStatePersistence(
     entity ? `/rs/${entity}/setColumnStates` : undefined,
     state
   );
+}
+
+const localStorageKey = (name: string) => `pf.columnStates.${name}`;
+
+/**
+ * The column state kept in the browser's local storage under `name` — for a page without user prefs to
+ * keep it in (the external access of a data transfer area, whose visitor has no ProjectForge account).
+ * Read synchronously, so unlike the backend variant there is nothing to wait for; an unreadable entry
+ * (private mode, a value of an older shape) counts as none.
+ */
+export function readLocalColumnState(name: string | undefined): ColumnState {
+  if (!name) return {};
+  try {
+    const stored = window.localStorage.getItem(localStorageKey(name));
+    const parsed: unknown = stored ? JSON.parse(stored) : null;
+    return parsed && typeof parsed === "object" ? (parsed as ColumnState) : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Writes the column state to the local storage under `name` (see readLocalColumnState). Not debounced
+ * like the backend variant: a local write costs nothing worth saving, and none can be lost on unmount.
+ */
+export function useLocalColumnStatePersistence(
+  name: string | undefined,
+  state: ColumnState
+) {
+  const serialized = JSON.stringify(state);
+  useEffect(() => {
+    if (!name) return;
+    try {
+      window.localStorage.setItem(localStorageKey(name), serialized);
+    } catch {
+      // Private mode or full storage: the layout just isn't remembered.
+    }
+  }, [name, serialized]);
 }

@@ -25,8 +25,9 @@ package org.projectforge.menu.builder
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.birthdaybutler.BirthdayButlerConfiguration
+import org.projectforge.business.availability.ConflictingAvailabilitiesCache
+import org.projectforge.business.chat.ChatUnreadCounter
 import org.projectforge.business.configuration.ConfigurationService
-import org.projectforge.business.dvelop.DvelopConfiguration
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.datev.DatevImportService
 import org.projectforge.business.fibu.kost.Kost1Dao
@@ -44,6 +45,7 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.business.vacation.service.VacationMenuCounterCache
 import org.projectforge.business.vacation.service.VacationService
+import org.projectforge.feature.FeatureService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
@@ -57,6 +59,7 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.util.concurrent.CopyOnWriteArrayList
 
 private val log = KotlinLogging.logger {}
 
@@ -67,7 +70,8 @@ private val log = KotlinLogging.logger {}
 @Component
 open class MenuCreator {
     internal class MenuItemDefHolder {
-        internal val menuItems: MutableList<MenuItemDef> = mutableListOf()
+        /** Copy on write, see [MenuItemDef.children]. */
+        internal val menuItems: MutableList<MenuItemDef> = CopyOnWriteArrayList()
         fun add(menuItem: MenuItemDef): MenuItemDef {
             if (menuItems.any { it.id == menuItem.id }) {
                 log.error { "Menu item registered twice (ignoring): $this" }
@@ -100,9 +104,6 @@ open class MenuCreator {
     private lateinit var configurationService: ConfigurationService
 
     @Autowired
-    private lateinit var dvelopConfiguration: DvelopConfiguration
-
-    @Autowired
     private lateinit var sipgateConfiguration: SipgateConfiguration
 
     @Autowired
@@ -114,15 +115,37 @@ open class MenuCreator {
     @Autowired
     private lateinit var conflictingVacationsCache: ConflictingVacationsCache
 
+    @Autowired
+    private lateinit var conflictingAvailabilitiesCache: ConflictingAvailabilitiesCache
+
+    @Autowired
+    private lateinit var featureService: FeatureService
+
+    @Autowired
+    private lateinit var chatUnreadCounter: ChatUnreadCounter
+
     private var initialized = false
 
     private val pluginMenuRegistrations = mutableListOf<PluginMenuRegistration>()
+
+    /** The plugin registering menu entries right now, see [registeringPlugin]. */
+    private var currentPluginId: String? = null
+
+    /** Menu id -> id of the plugin that registered it (main and personal menu). */
+    private val pluginIdByMenuId = mutableMapOf<String, String>()
+
+    /**
+     * Counts every change of the menu definitions, so the [FeatureService] knows when to rebuild its index.
+     */
+    @Volatile
+    var modificationCount = 0
+        private set
 
     /**
      * Plugins may register entries for the user's personal menu at the top right.
      */
     // open needed by Wicket SpringBean.
-    open var personalMenuPluginEntries = mutableListOf<MenuItemDef>()
+    open var personalMenuPluginEntries: MutableList<MenuItemDef> = CopyOnWriteArrayList()
         internal set
 
     companion object {
@@ -145,7 +168,52 @@ open class MenuCreator {
                 }
             } ?: log.error { "Can't re-register plugin menu '${registration.menuItemDef.id}': parentId=${registration.parentId} not found." }
         }
+        modificationCount++
         log.info { "Menu refreshed including ${pluginMenuRegistrations.size} plugin menu entries." }
+    }
+
+    /**
+     * Runs the initialization of a plugin: the menu entries registered meanwhile belong to it (see [getPluginId]).
+     */
+    fun <T> registeringPlugin(pluginId: String, block: () -> T): T {
+        synchronized(menuItemDefHolder) {
+            currentPluginId = pluginId
+        }
+        try {
+            return block()
+        } finally {
+            synchronized(menuItemDefHolder) {
+                currentPluginId = null
+            }
+        }
+    }
+
+    /**
+     * @return The id of the plugin which registered the menu entry with the given id, or null for a core entry.
+     */
+    fun getPluginId(menuId: String): String? {
+        synchronized(menuItemDefHolder) {
+            return pluginIdByMenuId[menuId]
+        }
+    }
+
+    /**
+     * Visits all menu entry definitions of the main menu (with the ids of their ancestors, top down) and the
+     * personal menu entries of the plugins (without ancestors).
+     */
+    fun forEachMenuItemDef(visitor: (menuItemDef: MenuItemDef, ancestorIds: List<String>) -> Unit) {
+        initialize()
+        fun visit(def: MenuItemDef, ancestors: List<String>) {
+            visitor(def, ancestors)
+            def.children?.toList()?.forEach { visit(it, ancestors + def.id) }
+        }
+        menuItemDefHolder.menuItems.toList().forEach { visit(it, emptyList()) }
+        personalMenuPluginEntries.toList().forEach { visitor(it, emptyList()) }
+    }
+
+    private fun rememberPlugin(menuId: String) {
+        currentPluginId?.let { pluginIdByMenuId[menuId] = it }
+        modificationCount++
     }
 
     /**
@@ -161,6 +229,7 @@ open class MenuCreator {
                 it.add(menuItemDef)
             } ?: log.error { "Can't add Menu ${menuItemDef.id}: parentId=$parentId not found." }
             pluginMenuRegistrations.add(PluginMenuRegistration(parentId, menuItemDef))
+            rememberPlugin(menuItemDef.id)
         }
     }
 
@@ -265,6 +334,14 @@ open class MenuCreator {
                 MenuItemDef(MenuItemDefId.VACATION,
                     badgeCounter = { vacationMenuCounterCache.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.loggedInUser) })
             )
+            .add(
+                MenuItemDef(MenuItemDefId.AVAILABILITY,
+                    // The own entries none of whose substitutes is on duty on a day.
+                    badgeCounter = {
+                        conflictingAvailabilitiesCache.numberOfConflicts(ThreadLocalUserContext.loggedInUserId)
+                    })
+            )
+            .add(MenuItemDef(MenuItemDefId.CHAT, badgeCounter = { chatUnreadCounter.countUnread() }))
             .add(MenuItemDef(MenuItemDefId.BOOK_LIST))
             .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST))
             .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST))
@@ -384,30 +461,27 @@ open class MenuCreator {
                                 isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
                     })
             )
-        if (Configuration.instance.isCostConfigured) {
-            fibuMenu.add(
-                MenuItemDef(MenuItemDefId.CUSTOMER_LIST,
-                    checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) })
+        // Not tied to isCostConfigured: customers and projects work without cost units (free numbers, see
+        // NumberRangeService).
+        fibuMenu.add(
+            MenuItemDef(MenuItemDefId.CUSTOMER_LIST,
+                checkAccess = {
+                    isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) ||
+                            hasRight(KundeDao.USER_RIGHT_ID, *READONLY_READWRITE)
+                })
+        )
+            .add(
+                MenuItemDef(MenuItemDefId.PROJECT_LIST,
+                    checkAccess = {
+                        hasRight(ProjektDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
+                                isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                    })
             )
-                .add(
-                    MenuItemDef(MenuItemDefId.PROJECT_LIST,
-                        checkAccess = {
-                            hasRight(ProjektDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
-                                    isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
-                        })
-                )
-        }
         // Not tied to isCostConfigured: groups of free-text customers make sense without customer entities.
         fibuMenu.add(
             MenuItemDef(MenuItemDefId.CUSTOMER_GROUPS,
                 checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) })
         )
-        if (dvelopConfiguration.isConfigured()) {
-            fibuMenu.add(
-                MenuItemDef(MenuItemDefId.DVELOP,
-                    checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) })
-            )
-        }
 
         // MenuNewCounterOrder, tooltip = "menu.fibu.orderbook.htmlSuffixTooltip"
         fibuMenu.add(
@@ -424,7 +498,7 @@ open class MenuCreator {
         fibuMenu.add(
             MenuItemDef(MenuItemDefId.E_INVOICE_CHECKER,
                 // Also open to order-book users: the checker only parses an uploaded file and exposes
-                // no ProjectForge data (see EInvoiceCheckerPageRest.checkAccess).
+                // no ProjectForge data (see EInvoiceCheckerRest.checkAccess).
                 checkAccess = {
                     isInGroup(*FIBU_ORGA_GROUPS) ||
                             hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE)
@@ -667,6 +741,10 @@ open class MenuCreator {
         menuCreatorContext: MenuCreatorContext,
         notificationCounts: Map<String, Int>,
     ): MenuItem? {
+        if (!featureService.isEnabled(menuItemDef)) {
+            // Switched off for everybody (projectforge.features.*, or plugin not active).
+            return null
+        }
         if (!MenuConfiguration.instance.isVisible(menuItemDef)) {
             // Not visible for the user (groups customized in projectforge.properties).
             return null
@@ -729,7 +807,15 @@ open class MenuCreator {
         return accessChecker.isLoggedInUserMemberOfGroup(*groups)
     }
 
-    fun registerPluginMenu(id: String, i18nLabelKey: String, link: String) {
-        personalMenuPluginEntries.add(MenuItemDef(id = id, i18nKey = i18nLabelKey, url = link))
+    /**
+     * @param featureRestPaths See [MenuItemDef.featureRestPaths].
+     */
+    fun registerPluginMenu(id: String, i18nLabelKey: String, link: String, featureRestPaths: List<String> = emptyList()) {
+        val menuItemDef = MenuItemDef(id = id, i18nKey = i18nLabelKey, url = link)
+        menuItemDef.featureRestPaths = featureRestPaths
+        synchronized(menuItemDefHolder) {
+            personalMenuPluginEntries.add(menuItemDef)
+            rememberPlugin(id)
+        }
     }
 }

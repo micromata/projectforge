@@ -2,6 +2,8 @@
 title: Development
 author: kai
 tags: [development]
+# Only in English (no German page): the German pages link it in English. See site/README.adoc.
+untranslated: true
 ---
 :hide-uri-scheme:
 
@@ -73,10 +75,6 @@ of the pages not yet hand-built.
 |The frontend: Next.js 16, React 19, TypeScript, TanStack Table/Query/Form, Tailwind CSS 4. Built as a static
 export and served by Spring Boot under `/next` -- no Node.js process in production.
 
-|`projectforge-webapp`
-|The legacy React app under `/react`, still bundled for the pages that are not yet migrated to
-`projectforge-next`.
-
 |`projectforge-jcr`, `projectforge-carddav`, `projectforge-idp`
 |The JCR document store (Apache Jackrabbit Oak) of existing installations, CardDAV for addresses, user and group
 sync with an identity provider (Keycloak, authentik). Attachments are stored by the file store configured with
@@ -109,14 +107,14 @@ There are two kinds of entity REST classes:
   filter metadata, favorites, history and the write operations; the page itself is hand-built in
   `projectforge-next`. This is the pattern for every new or migrated page, e. g. `BookEntityRest`.
 * `*PagesRest` (base classes `AbstractPagesRest`, `AbstractDTOPagesRest`): additionally generates the page
-  layout on the server (`UILayout` JSON), which the legacy React app and the dynamic renderer of
-  `projectforge-next` (`components/dynamic/`) display. These pages are migrated step by step to the
+  layout on the server (`UILayout` JSON), which only the legacy React app displays. These pages are
+  migrated step by step to the
   `*EntityRest` pattern.
 
 ==== Frontend (projectforge-next)
 
 The Next.js app (App Router) lives in `projectforge-next/`; its conventions are described in
-`projectforge-next/CLAUDE.md` and `projectforge-next/docs/`. In short:
+`projectforge-next/CLAUDE.md` and `dev-docs/next/`. In short:
 
 * Routes in `app/(authenticated)/<entity>/`, the domain code in `components/features/<entity>/`, shared
   components in `components/shared/` and `components/data-table/`.
@@ -125,7 +123,7 @@ The Next.js app (App Router) lives in `projectforge-next/`; its conventions are 
   rendered by the generic `EntityListPage` and `EntityEditPage`.
 * Field types, maximum lengths, mandatory fields and enum values are not maintained twice: they are
   generated from the entity's `@PropertyInfo` and JPA annotations into `lib/metadata/<entity>.generated.ts`.
-* The menu and the redirects are decided by the backend (`MenuItemDefId`, `NextMigration`), so a page can
+* The menu and the redirects are decided by the backend (`MenuItemDefId`, `PageRoutes`), so a page can
   be switched to `projectforge-next` independently of all others.
 
 In development the dev server (`bin/pfDev.sh dev`, port 3000) proxies `/rs/**` and `/rsPublic/**` to Spring
@@ -359,7 +357,7 @@ The books are the reference implementation of a hand-built page. What it takes:
 |The routes of the list and the edit page (`/next/book`, `/next/book/<id>`, `/next/book/new`); they only
 render `EntityListPage` and `EntityEditPage` with the declaration.
 
-|`MenuItemDefId`, `NextMigration` (projectforge-business)
+|`MenuItemDefId`, `PageRoutes` (projectforge-business)
 |The menu entry and the routes of the page.
 |===
 
@@ -372,7 +370,7 @@ Steps in short:
 5. Register the menu entry and the routes in the backend.
 6. Check the frontend with `bin/pfDev.sh check` (TypeScript, ESLint, Prettier) and add tests (see <<Tests>>).
 
-The declaration format is described in `projectforge-next/docs/page-declarations.md`. Pages that don't fit
+The declaration format is described in `dev-docs/next/page-declarations.md`. Pages that don't fit
 the declaration use the hooks `useEntityListPage` and `useEntityEditForm` directly or are hand-built
 completely.
 
@@ -494,12 +492,13 @@ bin/pfDev.sh run 1          # Spring on :8081; the first start fills the databas
 bin/pfDev.sh dev 1          # next dev on :3001, proxying to :8081
 bin/pfDev.sh e2e 1 login    # e2e tests against :8081 (--dev: against :3001)
 bin/pfDev.sh reset 1        # deletes ~/ProjectForge-1 (asks first), then `setup 1` again
+bin/pfDev.sh renew 1        # stop, delete, set up again and start slot 1 (asks first; -y skips)
 ```
 
 Notes:
 
 * `setup` needs the `projectforge.properties` of the main home dir (`~/ProjectForge`). It copies
-  `projectforge.properties`, `config.xml`, `resources` and `styles` from there and
+  `projectforge.properties`, `config.xml` (if not yet migrated), `resources` and `styles` from there and
   appends a block that switches to an own HSQLDB in `~/ProjectForge-n/database` and turns off sending mails
   and the gateway push. Database, search index and JCR of the main instance are not copied.
 * Port, domain, base dir and cookie name are passed by `pfDev.sh` as system properties, so the main

@@ -1,0 +1,11 @@
+# The doc navigation of the German pages (see _data/navigation_docs.yml): a doc without a German translation is
+# linked in English, marked with (EN).
+- title: Dokumentation
+  docs:
+  - quickstart
+  - installation
+  - userguide
+  - adminguide
+  - development
+  - technologies
+  - migration

@@ -47,20 +47,29 @@ export function setAlertMessage(
 
 // The export actions answer with a file; the filename comes from the Content-Disposition header the
 // backend sends (RestUtils.downloadFile), so it is never guessed here (see ./download.ts).
-export const downloadExportConfiguration = () =>
-  downloadFile("/rs/system/exportConfiguration");
 export const downloadExport2FAConfiguration = () =>
   downloadFile("/rs/system/export2FAConfiguration");
+// POST: these two change data (a report into the data transfer box, all address images rewritten).
 export const downloadCheckSystemIntegrity = () =>
-  downloadFile("/rs/system/checkSystemIntegrity");
+  downloadFile("/rs/system/checkSystemIntegrity", { method: "POST" });
 export const downloadExportSchema = () =>
   downloadFile("/rs/system/exportSchema");
 export const downloadOptimizeAddressImages = () =>
-  downloadFile("/rs/system/optimizeAddressImages");
+  downloadFile("/rs/system/optimizeAddressImages", { method: "POST" });
 export const downloadCheckI18nProperties = () =>
   downloadFile("/rs/system/checkI18nProperties");
 export const downloadDebugUserGroupCache = () =>
   downloadFile("/rs/system/debugUserGroupCache");
+
+// The Sipgate actions (SipgateAdminRest), offered by the System page if Sipgate is configured.
+export const downloadSipgateConfiguration = () =>
+  downloadFile("/rs/sipgate/downloadConfiguration");
+export const synchronizeSipgate = () =>
+  request<SystemMessageResponse>("/rs/sipgate/synchronize", { method: "POST" });
+export const resetSipgateContacts = () =>
+  request<SystemMessageResponse>("/rs/sipgate/resetContacts", {
+    method: "POST",
+  });
 
 /** Body of a reindex run: an optional entry limit and an optional "modified since" date (yyyy-MM-dd). */
 export interface ReindexRequestBody {

@@ -103,8 +103,19 @@ class Address(
     /**
      * Warning message for duplicate addresses (populated by watchFields).
      */
-    var duplicateWarning: String? = null
-) : BaseDTO<AddressDO>() {
+    var duplicateWarning: String? = null,
+    /**
+     * Whether an image is stored for this address (`address/image/{id}`, `address/imagePreview/{id}`).
+     */
+    var hasImage: Boolean = false,
+    /**
+     * Posted by the form of projectforge-next only, if it was opened for an entry of a running VCF import: the
+     * index of that entry, which a save marks as imported (see AddressSaveSupport.reconcileImport).
+     */
+    var importIndex: Int? = null,
+    override var writeAccess: Boolean? = null,
+    override var deleteAccess: Boolean? = null,
+) : BaseDTO<AddressDO>(), EntityAccessSupport {
 
     @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
     val contactStatusAsString: String?
@@ -124,6 +135,7 @@ class Address(
         super.copyFrom(src)
         if (AddressImageCache.instance.getImage(src.id) != null) {
             imageData = byteArrayOf(1) // Marker for frontend for an available image.
+            hasImage = true
         }
         // For new addresses no cache entry exist.
         val srcAddressbookList = AddressbookCache.instance.getAddressbooksForAddress(src) ?: src.addressbookList
@@ -148,6 +160,11 @@ class Address(
             addressbookList?.forEach { srcAddressbook ->
                 val addressbook = AddressbookDO()
                 srcAddressbook.copyTo(addressbook)
+                if (addressbook.title == null) {
+                    // A reference by id, as the pickers of projectforge-next post it ({id, displayName}): the
+                    // validation of the address checks its address books as well, which need their title.
+                    addressbook.title = AddressbookCache.instance.getAddressbook(srcAddressbook.id)?.title
+                }
                 dest.add(addressbook)
             }
         }

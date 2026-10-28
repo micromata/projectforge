@@ -11,6 +11,7 @@
 import { rawRequest, request, RsError } from "./client";
 import type { ResponseAction } from "./types";
 import type {
+  AbsenceKind,
   CalendarActionParams,
   CalendarData,
   CalendarEventsFilter,
@@ -78,13 +79,13 @@ export function fetchCalendarEvents(
   );
 }
 
-/** Re-reads the external subscriptions and reports whether the client should reload (`GET refresh`). */
+/** Re-reads the external subscriptions and reports whether the client should reload (`POST refresh`). */
 export function refreshSubscriptions(
   signal?: AbortSignal
 ): Promise<CalendarRefreshResult> {
   return request<CalendarRefreshResult>(
     `${BASE}/refresh`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
@@ -117,7 +118,7 @@ export async function storeCalendarState(
   );
 }
 
-// --- Colour settings (persisted apart from the filter; served by CalendarSettingsPageRest) ---
+// --- Colour settings (persisted apart from the filter; served by CalendarSettingsRest) ---
 
 /** The current colour settings (`GET /rs/calendarSettings/settings`); every colour comes filled with its default. */
 export function fetchCalendarSettings(
@@ -147,7 +148,7 @@ export function saveCalendarSettings(
 
 // --- Filter mutations (each answers with a CalendarInitPatch) ---
 
-/** Recolours a calendar; `bgColor` unset clears it (`GET changeStyle`). Answers `{activeCalendars, teamCalendars, styleMap}`. */
+/** Recolours a calendar; `bgColor` unset clears it (`POST changeStyle`). Answers `{activeCalendars, teamCalendars, styleMap}`. */
 export function changeCalendarStyle(
   calendarId: number,
   bgColor: string | undefined,
@@ -155,12 +156,12 @@ export function changeCalendarStyle(
 ): Promise<CalendarInitPatch> {
   return request<CalendarInitPatch>(
     `${BASE}/changeStyle${query({ calendarId, bgColor })}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
 
-/** Shows or hides a calendar (`GET setVisibility`). Answers `{filter, activeCalendars, isFilterModified}`. */
+/** Shows or hides a calendar (`POST setVisibility`). Answers `{filter, activeCalendars, isFilterModified}`. */
 export function setCalendarVisibility(
   calendarId: number,
   visible: boolean,
@@ -168,67 +169,67 @@ export function setCalendarVisibility(
 ): Promise<CalendarInitPatch> {
   return request<CalendarInitPatch>(
     `${BASE}/setVisibility${query({ calendarId, visible })}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
 
-/** Sets the calendar a new event defaults to (`GET changeDefaultCalendar`). */
+/** Sets the calendar a new event defaults to (`POST changeDefaultCalendar`). */
 export function changeDefaultCalendar(
   id: number,
   signal?: AbortSignal
 ): Promise<CalendarInitPatch> {
   return request<CalendarInitPatch>(
     `${BASE}/changeDefaultCalendar${query({ id })}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
 
-/** Shows another user's timesheets (or one's own when `userId` is unset) (`GET changeTimesheetUser`). */
+/** Shows another user's timesheets (or one's own when `userId` is unset) (`POST changeTimesheetUser`). */
 export function changeTimesheetUser(
   userId: number | undefined,
   signal?: AbortSignal
 ): Promise<CalendarInitPatch> {
   return request<CalendarInitPatch>(
     `${BASE}/changeTimesheetUser${query({ userId })}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
 
-/** Toggles the working-time break events (`GET changeShowBreaks`). */
+/** Toggles the working-time break events (`POST changeShowBreaks`). */
 export function changeShowBreaks(
   showBreaks: boolean,
   signal?: AbortSignal
 ): Promise<CalendarInitPatch> {
   return request<CalendarInitPatch>(
     `${BASE}/changeShowBreaks${query({ showBreaks })}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
 
-/** Sets the time-grid slot size in minutes; must be one of {@link CALENDAR_GRID_SIZES} (`GET changeGridSize`). */
+/** Sets the time-grid slot size in minutes; must be one of {@link CALENDAR_GRID_SIZES} (`POST changeGridSize`). */
 export function changeGridSize(
   size: number,
   signal?: AbortSignal
 ): Promise<CalendarInitPatch> {
   return request<CalendarInitPatch>(
     `${BASE}/changeGridSize${query({ size })}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
 
-/** Sets the first hour scrolled into view (0–23) (`GET changeFirstHour`). */
+/** Sets the first hour scrolled into view (0–23) (`POST changeFirstHour`). */
 export function changeFirstHour(
   hour: number,
   signal?: AbortSignal
 ): Promise<CalendarInitPatch> {
   return request<CalendarInitPatch>(
     `${BASE}/changeFirstHour${query({ hour })}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
@@ -257,33 +258,48 @@ export function changeVacationUsers(
   );
 }
 
+/**
+ * Sets what is shown of the absences (`POST changeAbsenceKinds`); body is a bare array of `AbsenceKind`s, all of
+ * them meaning no restriction.
+ */
+export function changeAbsenceKinds(
+  kinds: AbsenceKind[],
+  signal?: AbortSignal
+): Promise<CalendarInitPatch> {
+  return request<CalendarInitPatch>(
+    `${BASE}/changeAbsenceKinds`,
+    { method: "POST", body: JSON.stringify(kinds) },
+    signal
+  );
+}
+
 // --- Filter favourites ---
 
-/** Saves the current filter under a new name (`GET createNewFilter`). Answers `{filter, filterFavorites, isFilterModified}`. */
+/** Saves the current filter under a new name (`POST createNewFilter`). Answers `{filter, filterFavorites, isFilterModified}`. */
 export function createCalendarFilter(
   newFilterName: string,
   signal?: AbortSignal
 ): Promise<CalendarInitPatch> {
   return request<CalendarInitPatch>(
     `${BASE}/createNewFilter${query({ newFilterName })}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
 
-/** Overwrites the saved filter with the current state (`GET updateFilter`). Answers `{isFilterModified: false}`. */
+/** Overwrites the saved filter with the current state (`POST updateFilter`). Answers `{isFilterModified: false}`. */
 export function updateCalendarFilter(
   id: number,
   signal?: AbortSignal
 ): Promise<CalendarInitPatch> {
   return request<CalendarInitPatch>(
     `${BASE}/updateFilter${query({ id })}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
 
-/** Renames a saved filter (`GET renameFilter`). Answers `{filterFavorites}`. */
+/** Renames a saved filter (`POST renameFilter`). Answers `{filterFavorites}`. */
 export function renameCalendarFilter(
   id: number,
   newName: string,
@@ -291,31 +307,31 @@ export function renameCalendarFilter(
 ): Promise<CalendarInitPatch> {
   return request<CalendarInitPatch>(
     `${BASE}/renameFilter${query({ id, newName })}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
 
-/** Deletes a saved filter (`GET deleteFilter`). Answers `{filterFavorites}`. */
+/** Deletes a saved filter (`POST deleteFilter`). Answers `{filterFavorites}`. */
 export function deleteCalendarFilter(
   id: number,
   signal?: AbortSignal
 ): Promise<CalendarInitPatch> {
   return request<CalendarInitPatch>(
     `${BASE}/deleteFilter${query({ id })}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
 
-/** Applies a saved filter and re-initialises the page (`GET selectFilter` → full `CalendarInit`). */
+/** Applies a saved filter and re-initialises the page (`POST selectFilter` → full `CalendarInit`). */
 export function selectCalendarFilter(
   id: number,
   signal?: AbortSignal
 ): Promise<CalendarInit> {
   return request<CalendarInit>(
     `${BASE}/selectFilter${query({ id })}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }

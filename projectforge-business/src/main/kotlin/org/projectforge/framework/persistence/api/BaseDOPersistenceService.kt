@@ -181,7 +181,12 @@ class BaseDOPersistenceService {
                 res.dbObjBackup = null
             }
             res.wantsReindexAllDependentObjects = baseDao?.wantsReindexAllDependentObjects(obj, useDbObj) == true
-            val candHContext = CandHMaster.copyValues(src = obj, dest = useDbObj, entityOpType = EntityOpType.Update)
+            val candHContext = CandHMaster.copyValues(
+                src = obj,
+                dest = useDbObj,
+                ignoreProperties = *IGNORE_ON_EXISTING,
+                entityOpType = EntityOpType.Update,
+            )
             val modStatus = candHContext.currentCopyStatus
             res.modStatus = modStatus
             if (modStatus != EntityCopyStatus.NONE) {
@@ -251,19 +256,26 @@ class BaseDOPersistenceService {
         }
         baseDao?.changedRegistry?.beforeInsertOrModify(obj, OperationType.DELETE)
         return persistenceService.runInTransaction { context ->
-            baseDao?.changedRegistry?.onDelete(obj)
-            baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.DELETE)
             val em = context.em
             val useClass = baseDao?.doClass ?: obj.javaClass
             val dbObj = requireDbObj(context, useClass, obj.id, "markAsDeleted")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()
+                // The stored entry has to pass, before the hooks act on the posted one: otherwise anybody could delete
+                // a foreign entry by posting it with the own user as owner (or into the own calendar, task, ...).
+                baseDao?.checkLoggedInUserDeleteAccess(dbObj, dbObj)
+            }
+            baseDao?.changedRegistry?.onDelete(obj)
+            baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.DELETE)
+            if (checkAccess) {
+                // The posted values are taken along, so they have to pass too.
                 baseDao?.checkLoggedInUserDeleteAccess(obj, dbObj)
             }
             obj.deleted = true
             val candHContext = CandHMaster.copyValues(
                 src = obj,
                 dest = dbObj,
+                ignoreProperties = *IGNORE_ON_EXISTING,
                 entityOpType = EntityOpType.MarkAsDeleted
             ) // If user has made additional changes.
             val modStatus = candHContext.currentCopyStatus
@@ -307,19 +319,26 @@ class BaseDOPersistenceService {
         }
         baseDao?.changedRegistry?.beforeInsertOrModify(obj, OperationType.UNDELETE)
         return persistenceService.runInTransaction { context ->
-            baseDao?.changedRegistry?.onUndelete(obj)
-            baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.UNDELETE)
             val em = context.em
             val useClass = baseDao?.doClass ?: obj.javaClass
             val dbObj = requireDbObj(context, useClass, obj.id, "undelete")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()
+                // The stored entry has to pass, before the hooks act on the posted one: otherwise anybody could take
+                // over a foreign deleted entry by posting it with the own user as owner.
+                baseDao?.checkLoggedInUserInsertAccess(dbObj)
+            }
+            baseDao?.changedRegistry?.onUndelete(obj)
+            baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.UNDELETE)
+            if (checkAccess) {
+                // The posted values are taken along (an entry re-created by undeleting it), so they have to pass too.
                 baseDao?.checkLoggedInUserInsertAccess(obj)
             }
             obj.deleted = false
             val candHContext = CandHMaster.copyValues(
                 src = obj,
                 dest = dbObj,
+                ignoreProperties = *IGNORE_ON_EXISTING,
                 entityOpType = EntityOpType.Undelete
             ) // If user has made additional changes.
             val modStatus = candHContext.currentCopyStatus
@@ -378,15 +397,16 @@ class BaseDOPersistenceService {
         }
         baseDao?.changedRegistry?.beforeInsertOrModify(obj, OperationType.DELETE)
         persistenceService.runInTransaction { context ->
-            baseDao?.changedRegistry?.onDelete(obj)
-            baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.DELETE)
             val em = context.em
             val useClass = baseDao?.doClass ?: obj.javaClass
             val dbObj = requireDbObj(context, useClass, obj.id, "delete (force=$force)")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()
-                baseDao?.checkLoggedInUserDeleteAccess(obj, dbObj)
+                // The stored entry decides, before the hooks act (e.g. remove dependent data).
+                baseDao?.checkLoggedInUserDeleteAccess(dbObj, dbObj)
             }
+            baseDao?.changedRegistry?.onDelete(obj)
+            baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.DELETE)
             context.delete(dbObj) // Don't use em.remove directly, due to PersistenceCallsStats.
             em.flush()
             if (HistoryBaseDaoAdapter.isHistorizable(obj)) {
@@ -434,6 +454,14 @@ class BaseDOPersistenceService {
 
     companion object {
         private const val LUCENE_FLUSH_ALWAYS = false
+
+        /**
+         * Not copied onto an entry existing in the database (update, mark as deleted, undelete): the creation date is set
+         * once on insert, the date of the last update here whenever anything changed (`setLastUpdate`). A caller rarely
+         * sends them back (a form of projectforge-next posts its fields only): a missing one would empty the stored
+         * date, and a differing one alone would count as a change.
+         */
+        private val IGNORE_ON_EXISTING = arrayOf("created", "lastUpdate")
 
         @JvmStatic
         @JvmOverloads

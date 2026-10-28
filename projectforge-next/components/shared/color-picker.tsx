@@ -3,9 +3,14 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowDown01Icon,
+  CheckmarkCircle02Icon,
+} from "@hugeicons/core-free-icons";
+import { HexColorPicker } from "react-colorful";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { PRESET_COLORS } from "./color-palette";
 
 /** The backend's own rule (`CalendarStyle.validateHexCode`); `changeStyle` throws for anything else. */
 const HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
@@ -14,31 +19,10 @@ export function isValidHexColor(value: string): boolean {
   return HEX_RE.test(value.trim());
 }
 
-/**
- * A palette of ready-made calendar colours. These are colour **data** stored per calendar
- * (`CalendarStyle.bgColor`), not theme tokens — the same kind of value FullCalendar paints an event
- * with — so each swatch is rendered from its hex directly, as the event dots already are. Seeded from
- * the brand palette plus a few saturated tones so a calendar can be told apart at a glance.
- */
-const PRESET_COLORS = [
-  "#009ba3",
-  "#007480",
-  "#e10057",
-  "#a70836",
-  "#ffcb00",
-  "#ff9d01",
-  "#75be01",
-  "#32912e",
-  "#3f51b5",
-  "#9c27b0",
-  "#795548",
-  "#607d8b",
-] as const;
-
 interface ColorPickerProps {
   /** The current colour, a hex string (`#rgb` or `#rrggbb`); empty means none chosen yet. */
   value?: string | null;
-  /** Fires with a valid hex whenever the user settles on a colour (swatch, native picker, valid input). */
+  /** Fires with a valid hex whenever the user settles on a colour (swatch, picker, valid input). */
   onChange: (value: string) => void;
   id?: string;
   "aria-label"?: string;
@@ -48,10 +32,11 @@ interface ColorPickerProps {
 }
 
 /**
- * Picks a colour three ways — a preset swatch, the OS-native colour dialog, or a typed hex code — and
- * reports it back as a validated hex string. It never talks to the backend itself: the caller decides
- * what a chosen colour means (write it into a form, or fire `changeStyle` once the popover closes), so
- * this stays reusable between the calendar's style popover and the `COLOR_CHOOSER` form field.
+ * Picks a colour three ways — a preset swatch, any colour in the picker area (react-colorful, folded
+ * behind "Custom colour" since a swatch is the usual choice), or a typed hex code — and reports it back
+ * as a validated, lower-cased hex string. It never talks to the backend itself: the caller decides what a
+ * chosen colour means (write it into a form, or fire `changeStyle` once the popover closes), so this
+ * stays reusable between the calendar's style popover and the colour fields of the forms.
  */
 export function ColorPicker({
   value,
@@ -65,7 +50,10 @@ export function ColorPicker({
   // The text field keeps its own draft so a half-typed "#0" is not pushed out as a colour; only a
   // complete, valid hex reaches `onChange`.
   const [draft, setDraft] = useState(value ?? "");
-  const current = value ?? "";
+  const current = (value ?? "").toLowerCase();
+  const isPreset = PRESET_COLORS.includes(current);
+  // A colour of no swatch was picked freely: the picker shows it.
+  const [custom, setCustom] = useState(!!current && !isPreset);
 
   const commit = (next: string) => {
     setDraft(next);
@@ -73,10 +61,10 @@ export function ColorPicker({
   };
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
-      <div className="flex flex-wrap gap-1.5">
+    <div className={cn("flex w-fit flex-col gap-2", className)}>
+      <div className="grid grid-cols-[repeat(11,1.25rem)] gap-1">
         {PRESET_COLORS.map((color) => {
-          const selected = current.toLowerCase() === color;
+          const selected = current === color;
           return (
             <button
               key={color}
@@ -84,13 +72,13 @@ export function ColorPicker({
               onClick={() => commit(color)}
               aria-label={color}
               aria-pressed={selected}
-              className="flex size-6 items-center justify-center rounded-full border border-border/60"
+              className="flex size-5 items-center justify-center rounded-full border border-border/60"
               style={{ background: color }}
             >
               {selected && (
                 <HugeiconsIcon
                   icon={CheckmarkCircle02Icon}
-                  size={14}
+                  size={12}
                   className="text-white drop-shadow"
                   aria-hidden
                 />
@@ -99,23 +87,35 @@ export function ColorPicker({
           );
         })}
       </div>
+      <button
+        type="button"
+        onClick={() => setCustom((open) => !open)}
+        aria-expanded={custom}
+        className="flex items-center gap-1 self-start text-xs text-muted-foreground hover:text-foreground"
+      >
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
+          size={14}
+          className={cn("transition-transform", !custom && "-rotate-90")}
+          aria-hidden
+        />
+        {t("color.picker.custom")}
+      </button>
+      {custom && (
+        <HexColorPicker
+          color={isValidHexColor(current) ? current : PRESET_COLORS[0]}
+          onChange={commit}
+          style={{ width: "100%", height: "9rem" }}
+        />
+      )}
       <div className="flex items-center gap-2">
-        {/* A labelled swatch over the sr-only native input: OS-native, keyboard-reachable, zero deps. */}
-        <label
-          className="size-8 shrink-0 cursor-pointer rounded-md border border-input"
+        <span
+          aria-hidden
+          className="size-8 shrink-0 rounded-md border border-input"
           style={{
             background: isValidHexColor(current) ? current : "transparent",
           }}
-        >
-          <span className="sr-only">{t("select._")}</span>
-          <input
-            type="color"
-            value={isValidHexColor(current) ? current : "#000000"}
-            onChange={(e) => commit(e.target.value)}
-            className="sr-only"
-            aria-label={ariaLabel ?? t("select._")}
-          />
-        </label>
+        />
         <Input
           id={id}
           value={draft}

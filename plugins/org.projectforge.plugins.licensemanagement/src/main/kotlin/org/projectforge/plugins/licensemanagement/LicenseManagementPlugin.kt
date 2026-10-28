@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.licensemanagement
 
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
@@ -60,11 +60,11 @@ class LicenseManagementPlugin : AbstractPlugin(
         register(entry)
 
         // Register the menu entry as sub menu entry of the misc menu. The licenses are migrated to
-        // projectforge-next (see NextMigration.MIGRATED), their Wicket pages are removed. The menu id
+        // projectforge-next (see PageRoutes.MIGRATED), their Wicket pages are removed. The menu id
         // stays ID, LicensePluginService derives the menu visibility from it.
         WicketSupport.get(MenuCreator::class.java).register(
             MenuItemDefId.MISC,
-            MenuItemDef(ID, "plugins.licensemanagement.menu", NextMigration.listUrl(CATEGORY))
+            MenuItemDef(ID, "plugins.licensemanagement.menu", PageRoutes.listUrl(CATEGORY))
         )
 
         // Define the access management:

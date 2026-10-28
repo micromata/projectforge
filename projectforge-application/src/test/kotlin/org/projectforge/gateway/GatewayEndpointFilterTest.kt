@@ -28,6 +28,7 @@ import jakarta.servlet.ReadListener
 import jakarta.servlet.ServletInputStream
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.rest.config.AttachmentCategoryRequests
 import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -60,6 +61,15 @@ class GatewayEndpointFilterTest {
     @Test
     fun allowsDataTransferPublic() {
         assertAllowed("/rsPublic/datatransfer/download/abc123")
+        assertAllowed("/rsPublic/datatransfer/next/state")
+    }
+
+    @Test
+    fun allowsDataTransferPublicNextUi() {
+        assertAllowed("/next/public/datatransfer/abc123/")
+        assertAllowed("/next/public/datatransfer/new/index.txt")
+        assertBlocked("/next/public/address")
+        assertBlocked("/react/public/datatransfer/dynamic/abc123")
     }
 
     @Test
@@ -75,9 +85,11 @@ class GatewayEndpointFilterTest {
         assertAllowed("/next/datatransfer/42/")
         assertAllowed("/next/datatransfer/new/edit/index.txt")
         assertAllowed("/next/datatransfer/personal-box/")
-        assertAllowed("/next/_next/static/chunks/main.js")
-        assertAllowed("/next/_next/static/media/font.woff2")
-        assertAllowed("/next/favicon.ico")
+        assertAllowed("/next/public/_next/static/chunks/main.js")
+        assertAllowed("/next/public/_next/static/media/font.woff2")
+        assertAllowed("/favicon.ico")
+        assertAllowed("/favicon.png")
+        assertAllowed("/apple-touch-icon.png")
         assertAllowed("/next/")
     }
 
@@ -110,7 +122,7 @@ class GatewayEndpointFilterTest {
 
     @Test
     fun checksCategoryInBodyOfAttachmentCalls() {
-        for (url in GatewayEndpointFilter.BODY_CATEGORY_URLS) {
+        for (url in AttachmentCategoryRequests.BODY_CATEGORY_URLS) {
             assertAllowedWithBody(url, """{"data":{"category":"datatransfer","id":42,"fileId":"abc"}}""")
             assertBlocked(url, """{"data":{"category":"book","id":42,"fileId":"abc"}}""")
             assertBlocked(url, """{"data":{"id":42}}""")

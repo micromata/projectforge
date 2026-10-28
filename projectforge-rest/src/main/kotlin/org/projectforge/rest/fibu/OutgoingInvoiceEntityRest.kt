@@ -48,6 +48,7 @@ import org.projectforge.business.fibu.RechnungStatus
 import org.projectforge.business.fibu.RechnungTyp
 import org.projectforge.business.fibu.RechnungsStatistik
 import org.projectforge.business.fibu.SearchFilterWithPeriodOfPerformance
+import org.projectforge.business.fibu.customergroup.CustomerGroupService
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostZuweisungExport
 import org.projectforge.business.fibu.kost.KundeCache
@@ -116,7 +117,7 @@ private val log = KotlinLogging.logger {}
  * which proxies it (`RechnungEditForm` reads the attachment settings and the access checker from here).
  *
  * Answers the list, its statistics, its two exports, the multi selection the mass update page runs on
- * ([RechnungMultiSelectedPageRest]) and the read/write path of the hand built edit page of
+ * ([OutgoingInvoiceMassUpdateRest]) and the read/write path of the hand built edit page of
  * `/next/invoice/[id]` — including its [recalculate]. It carries no `createEditLayout` any more, and with it
  * the legacy React page of this entity is gone: it only ever showed a read only header plus the attachment
  * list. Wicket's edit page is still reachable and writes through the same [RechnungDao].
@@ -446,11 +447,10 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * (`RechnungCostEditTablePanel.newKostZuweisung` takes the first one).
      *
      * Answered by the project rather than looked up in the browser: which cost units belong to a project
-     * follows from its number range, area and number ([ProjektDO.nummernkreis] and friends), and the invoice
-     * DTO carries its project the `copyFromMinimal` way, which omits all three.
+     * follows from the project reference of the cost units, and the invoice DTO carries its
+     * project the `copyFromMinimal` way, which omits it.
      *
-     * An empty list where the project has no area — [KostCache] cannot be asked without one, and a project
-     * in that state has no cost units to offer.
+     * An empty list for a project without cost units (e.g. with a free project number).
      */
     @AccessChecked("DAO: select access + checkSingleInvoiceDetailAccess (edit form helper)")
     @GetMapping("activeKost2")
@@ -459,8 +459,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         // Edit form helper: order book users (list only) don't get it, see checkSingleInvoiceDetailAccess.
         checkSingleInvoiceDetailAccess()
         val projekt = projektCache.getProjekt(projektId) ?: return emptyList()
-        val bereich = projekt.bereich ?: return emptyList()
-        return kostCache.getActiveKost2(projekt.nummernkreis, bereich, projekt.teilbereich)
+        return kostCache.getActiveKost2ForProjekt(projekt.id)
             .sorted()
             .map { Kost2(it) }
     }
@@ -469,20 +468,15 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * Whether a cost unit belongs to the project (or, for an invoice naming none, to the customer) of the
      * invoice — the question `RechnungEditForm.onRenderCostRow` answers by outlining the field in Wicket.
      *
-     * Server side for the same reason [getActiveKost2] is: the comparison is over the number range, the area
-     * and the number of the project or the customer, and neither `Project` nor `Customer` carries those on
-     * the wire (`Customer` has no number range at all). Three integers the caches hold anyway against
-     * widening two DTOs other pages use — and the rule stays next to Wicket's copy of it.
+     * Server side for the same reason [getActiveKost2] is: the comparison needs the project of the cost unit and
+     * its customer, which the caches hold anyway.
      *
      * `matchesInvoice` is true wherever Wicket wouldn't warn, which includes the two cases it leaves alone:
      * an invoice with neither project nor customer, and a cost unit that cannot be resolved.
      *
-     * **One deliberate difference.** For an invoice naming only a customer, Wicket compares the customer
-     * number against `Kost2DO.teilbereich` — digits 5-6, which are the *project* number — and leaves
-     * `bereich`, the digits a customer number actually occupies ([KundeDO.kost]), uncompared. So it warns
-     * about nearly every cost unit of a customer-only invoice, and stays quiet about cost units of other
-     * customers. Here the customer number is compared against `bereich`, which is the question the form is
-     * asking.
+     * The cost unit matches if it belongs to the project of the invoice or, for an invoice naming only a
+     * customer, to a project of this customer. Compared by the assigned project, not by the digits: where the
+     * customer number lies in the Kost2 depends on the configured number range.
      */
     @AccessChecked("DAO: select access + checkSingleInvoiceDetailAccess (edit form helper)")
     @GetMapping("kost2Check")
@@ -495,27 +489,14 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         checkSingleInvoiceDetailAccess()
         val kost2 = kostCache.getKost2(kost2Id) ?: return Kost2Check(matchesInvoice = true)
         // The project wins over the customer, as the Wicket form reads them: a project already names its
-        // customer, and its area narrows the answer further.
+        // customer and narrows the answer further.
+        val kost2Projekt = projektCache.getProjekt(kost2.projekt?.id)
         val projekt = projektCache.getProjekt(projektId)
-        val numberRange: Int
-        // -1 means "don't compare": a customer names the digits 2-4 of a cost unit but not the 5-6.
-        var area = -1
-        var number = -1
         if (projekt != null) {
-            numberRange = projekt.nummernkreis
-            area = projekt.bereich ?: -1
-            number = projekt.nummer
-        } else {
-            val kunde = kundeCache.getKunde(kundeId) ?: return Kost2Check(matchesInvoice = true)
-            numberRange = kunde.nummernkreis
-            area = kunde.nummer?.toInt() ?: return Kost2Check(matchesInvoice = true)
+            return Kost2Check(matchesInvoice = kost2Projekt?.id == projekt.id)
         }
-        val differs = when {
-            numberRange >= 0 && kost2.nummernkreis != numberRange -> true
-            area >= 0 && kost2.bereich != area -> true
-            else -> number >= 0 && kost2.teilbereich != number
-        }
-        return Kost2Check(matchesInvoice = !differs)
+        val kunde = kundeCache.getKunde(kundeId) ?: return Kost2Check(matchesInvoice = true)
+        return Kost2Check(matchesInvoice = kost2Projekt?.kunde?.nummer == kunde.nummer)
     }
 
     /**
@@ -820,7 +801,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     }
 
     /**
-     * The groups the e-invoice functions require, as `EInvoiceCheckerPageRest.checkAccess` requires them.
+     * The groups the e-invoice functions require, as `EInvoiceCheckerRest.checkAccess` requires them.
      *
      * On top of the select right of the category: reading an invoice and handling the document that leaves
      * the house for it are two different permissions, and the classic frontends only ever hid the menu entry
@@ -1336,7 +1317,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     /**
      * The whole-result statistics of a server-side paged invoice list: computed over the full id list, not
      * over the single page [postProcessResultSet] sees, so the footer shows the sums of every matching
-     * invoice (see `MIGRATION-list-paging.md`). [RechnungsStatistik] converts foreign currencies from the
+     * invoice (see `dev-docs/next/list-paging.md`). [RechnungsStatistik] converts foreign currencies from the
      * loaded [RechnungDO], which no cache holds, so the matching invoices are loaded here - the same work
      * [postProcessResultSet] does over its (complete) result set on the non-paged `POST list`.
      */
@@ -1363,6 +1344,11 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         if (invoices.isEmpty()) {
             return ResponseEntity.notFound().build<Any>()
         }
+        // Only a few projects belong to a project group: the column is only there if one of the invoices has one.
+        // The index taken once: CustomerGroupService.index checks its sources on each call.
+        val groupIndex = CustomerGroupService.instanceOrNull?.index?.takeIf { it.projectGroups.isNotEmpty() }
+        val projectGroupOf = { invoice: RechnungDO -> groupIndex?.projectGroupOf(invoice.projekt?.id)?.name }
+        val withProjectGroup = invoices.any { projectGroupOf(it) != null }
         ExcelUtils.prepareWorkbook().use { workbook ->
             val sheet = workbook.createOrGetSheet(translate("fibu.rechnungen"))
             val currencyStyle = workbook.createOrGetCellStyle("currency")
@@ -1370,6 +1356,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             ExcelUtils.registerColumn(sheet, RechnungDO::nummer, 10)
             sheet.registerColumn(translate("fibu.kunde"), COL_CUSTOMER).withSize(30)
             sheet.registerColumn(translate("fibu.projekt"), COL_PROJECT).withSize(30)
+            if (withProjectGroup) {
+                sheet.registerColumn(translate("fibu.projectGroup"), COL_PROJECT_GROUP).withSize(25)
+            }
             ExcelUtils.registerColumn(sheet, RechnungDO::betreff, 40)
             ExcelUtils.registerColumn(sheet, RechnungDO::datum)
             ExcelUtils.registerColumn(sheet, RechnungDO::faelligkeit)
@@ -1396,6 +1385,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
                 )
                 row.getCell(COL_PROJECT)
                     ?.setCellValue(PfCaches.instance.getProjektIfNotInitialized(invoice.projekt)?.displayName)
+                if (withProjectGroup) {
+                    row.getCell(COL_PROJECT_GROUP)?.setCellValue(projectGroupOf(invoice))
+                }
                 row.getCell(COL_STATUS)?.setCellValue(invoice.status?.let { translate(it.i18nKey) })
                 val info = invoice.ensuredInfo
                 row.getCell(COL_NET_SUM)?.setCellValue(info.netSum)?.setCellStyle(currencyStyle)
@@ -1793,6 +1785,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         /** Aliases of the Excel columns that are no property of [RechnungDO]. */
         private const val COL_CUSTOMER = "customer"
         private const val COL_PROJECT = "project"
+        private const val COL_PROJECT_GROUP = "projectGroup"
         private const val COL_STATUS = "statusAsString"
         private const val COL_NET_SUM = "netSum"
         private const val COL_GROSS_SUM = "grossSum"

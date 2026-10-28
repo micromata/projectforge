@@ -21,6 +21,7 @@ export default function ToDoMassUpdatePage() {
       selectedEntries={(count) => (
         <SelectedEntriesPanel
           endpoint={massUpdate.endpoint}
+          entity={TO_DO_PAGE.entity}
           metadata={TO_DO_PAGE.metadata}
           columns={TO_DO_PAGE.columns}
           // The count is all this page knows of the selection, and it comes from `{page}/meta`, which

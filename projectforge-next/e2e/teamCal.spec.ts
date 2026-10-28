@@ -51,11 +51,11 @@ test.describe("teamCal", { tag: "@lane-teamCal" }, () => {
   }) => {
     const { t } = await userFormat(page);
     await goto(page, "/teamCal");
-    const rows = page.getByRole("row").filter({ has: page.getByRole("cell") });
+    const rows = page.locator(ROW);
     // The list shows a calendar on every database: the test data's, or the ones of production.
     await expect(rows.first()).toBeVisible();
     let saveAttempted = false;
-    await page.route("**/rs/teamCal/saveorupdate*", (route) => {
+    await page.route("**/rs/teamCal/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
@@ -66,18 +66,62 @@ test.describe("teamCal", { tag: "@lane-teamCal" }, () => {
       name: t("plugins.teamcal.export.reminder.checkbox._"),
     });
     await expect(reminders).toBeVisible();
-    const qr = page.locator("img[src*='text=']");
+    const qr = page.locator("img[src^='data:image/png']");
     const before = await qr.getAttribute("src");
-    await reminders.click();
-    await expect(qr).not.toHaveAttribute("src", before!);
+    const checkedBefore = await reminders.isChecked();
+    // Under the load of the full suite the first click may come before the form has settled and get
+    // lost: click again until the switch has really moved.
+    await expect(async () => {
+      if ((await reminders.isChecked()) === checkedBefore) {
+        await reminders.click();
+      }
+      await expect(qr).not.toHaveAttribute("src", before!, { timeout: 2_000 });
+    }).toPass({ timeout: 15_000 });
     expect(saveAttempted).toBe(false);
   });
 
-  test("redirects the old React list", async ({ loggedInPage: page }) => {
-    await page.goto("/react/teamCal");
-    await expect(page).toHaveURL(/\/next\/teamCal$/);
+  test("posts the absence kinds the calendar includes, all of them by default", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const { t } = format;
+    let posted: { data?: { absenceKinds?: string[] } } | null = null;
+    await page.route("**/rs/teamCal/{insert,update}*", (route) => {
+      posted = route.request().postDataJSON();
+      return route.abort();
+    });
+
+    await goto(page, "/teamCal/new");
+    await page
+      .getByRole("textbox", {
+        name: new RegExp(`^${escape(label(format, "plugins.teamcal.title"))}`),
+      })
+      .fill("e2e absence kinds");
+    const kinds = page.getByRole("group", {
+      name: t("plugins.teamcal.absenceKinds._"),
+    });
+    await expect(kinds.getByRole("button")).toHaveCount(4);
+    for (const button of await kinds.getByRole("button").all()) {
+      await expect(button).toHaveAttribute("aria-pressed", "true");
+    }
+    await kinds
+      .getByRole("button", { name: t("availability.status.remoteReachable") })
+      .click();
+    await page.getByRole("button", { name: t("create") }).click();
+    await expect.poll(() => posted).not.toBeNull();
+    expect(posted!.data?.absenceKinds).toEqual([
+      "VACATION",
+      "NOT_AVAILABLE",
+      "REACHABLE_IF_NEEDED",
+    ]);
   });
 });
+
+/**
+ * A row of the loaded list: the `data-row-id` tells it from the skeleton rows shown while the list loads
+ * and from the row of the empty list (see DataTable), which have cells as well.
+ */
+const ROW = "tbody tr[data-row-id]";
 
 function escape(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

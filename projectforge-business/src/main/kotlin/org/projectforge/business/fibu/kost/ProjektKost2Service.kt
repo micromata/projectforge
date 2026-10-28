@@ -24,8 +24,6 @@
 package org.projectforge.business.fibu.kost
 
 import org.projectforge.business.fibu.ProjektDao
-import org.projectforge.common.i18n.MessageParam
-import org.projectforge.common.i18n.MessageParamType
 import org.projectforge.common.i18n.UserException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -55,8 +53,8 @@ open class ProjektKost2Service {
      * (inserting would collide with its number), a non-active or ended one is activated again.
      *
      * @return true if any unit was created or changed.
-     * @throws UserException if a unit has to be created but the project has no range (bereich): neither a
-     * customer nor an internal range (internKost2_4) — the number of a cost 2 unit is made of it.
+     * @throws UserException if a unit has to be created but the project number belongs to no number range — the
+     * number of a cost 2 unit is made of it.
      */
     open fun activate(projektId: Long, artIds: Collection<Long>): Boolean {
         val kost2ByArtId = kost2ByArtId(projektId)
@@ -64,11 +62,8 @@ open class ProjektKost2Service {
         artIds.forEach { artId ->
             val cached = kost2ByArtId[artId]
             if (cached == null) {
-                if (projektDao.findOrLoad(projektId)?.bereich == null) {
-                    throw UserException(
-                        "validation.error.fieldRequired",
-                        MessageParam("fibu.projekt.internKost2_4", MessageParamType.I18N_KEY),
-                    )
+                if (projektDao.findOrLoad(projektId)?.nummernkreis == null) {
+                    throw UserException(Kost2Dao.PROJEKT_WITHOUT_NUMBER_RANGE_I18N_KEY)
                 }
                 val kost2 = Kost2DO()
                 kost2Dao.setProjekt(kost2, projektId)

@@ -3,6 +3,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import { cn } from "@/lib/utils";
 
 /**
@@ -19,7 +20,8 @@ import { cn } from "@/lib/utils";
  * No raw HTML by default: a text that has to become markup is a text that belongs in a component. The
  * one exception is `allowHtml`, for an authored text an admin configures that legitimately carries HTML
  * (a time sheet's AI-savings note links with an `<a>`, mirroring the legacy `DynamicAlert`'s `rehypeRaw`)
- * — trusted, admin-only content, never something from an end user.
+ * — trusted, admin-only content, never something from an end user. Sanitized all the same (the default
+ * schema of rehype-sanitize: links and formatting, no scripts, event handlers or styles).
  */
 export function MarkdownText({
   text,
@@ -41,7 +43,7 @@ export function MarkdownText({
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={allowHtml ? [rehypeRaw] : undefined}
+        rehypePlugins={allowHtml ? [rehypeRaw, rehypeSanitize] : undefined}
       >
         {text}
       </ReactMarkdown>

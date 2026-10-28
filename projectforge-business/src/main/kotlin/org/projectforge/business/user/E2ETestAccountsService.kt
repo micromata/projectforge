@@ -50,8 +50,8 @@ private val log = KotlinLogging.logger {}
  *
  * The suite runs against the **running** system, so it needs real accounts — and one per rights
  * situation, because a rejection is only reachable with a user who lacks the right. Creating those by
- * hand is the step every developer used to have to do (and the passwords of the users in
- * `data/pfTestdata.sql` are of no help: they are hashes of a clear text nobody has).
+ * hand is the step every developer used to have to do (and the sample users of the test data don't cover
+ * these rights situations).
  *
  * Therefore ProjectForge creates them itself, on every start **in development mode only**, and notes
  * the generated passwords in [FILENAME] in ProjectForge's home directory — the file
@@ -541,6 +541,7 @@ private val ALL_RIGHTS: Map<UserRightId, UserRightValue> = mapOf(
     UserRightId.FIBU_COST_UNIT to UserRightValue.READWRITE,
     UserRightId.FIBU_ACCOUNTS to UserRightValue.READWRITE,
     UserRightId.FIBU_CURRENCY_CONVERSION to UserRightValue.READWRITE,
+    UserRightId.FIBU_CUSTOMER to UserRightValue.READWRITE,
     UserRightId.FIBU_DATEV_IMPORT to UserRightValue.TRUE,
     UserRightId.ORGA_CONTRACTS to UserRightValue.READWRITE,
     UserRightId.ORGA_INCOMING_MAIL to UserRightValue.READWRITE,
@@ -561,6 +562,7 @@ private val FINANCE_RIGHTS: Map<UserRightId, UserRightValue> = mapOf(
     UserRightId.FIBU_COST_UNIT to UserRightValue.READWRITE,
     UserRightId.FIBU_ACCOUNTS to UserRightValue.READWRITE,
     UserRightId.FIBU_CURRENCY_CONVERSION to UserRightValue.READWRITE,
+    UserRightId.FIBU_CUSTOMER to UserRightValue.READWRITE,
     UserRightId.FIBU_DATEV_IMPORT to UserRightValue.TRUE,
     UserRightId.PM_ORDER_BOOK to UserRightValue.READWRITE,
     UserRightId.PM_PROJECT to UserRightValue.READWRITE,

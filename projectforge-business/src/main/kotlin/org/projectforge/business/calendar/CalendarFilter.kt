@@ -23,6 +23,7 @@
 
 package org.projectforge.business.calendar
 
+import org.projectforge.business.availability.AbsenceKind
 import org.projectforge.business.teamcal.filter.TemplateEntry
 import org.projectforge.favorites.AbstractFavorite
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -78,6 +79,12 @@ class CalendarFilter(
   var vacationUserIds: Set<Long?>? = null,
 
   /**
+   * What is shown of the absences of the employees and users chosen above ([vacationGroupIds], [vacationUserIds]):
+   * vacations and availability entries by their state. Null for all of them.
+   */
+  var absenceKinds: Set<AbsenceKind>? = null,
+
+  /**
    * If true, breaks between time sheets of a day will be displayed. If the user clicks on a break, a time sheet
    * with the start and stop time of the break could easily be created.
    */
@@ -111,6 +118,7 @@ class CalendarFilter(
     //this.showVacations = src.showVacations
     this.vacationGroupIds = copySet(src.vacationGroupIds)
     this.vacationUserIds = copySet(src.vacationUserIds)
+    this.absenceKinds = src.absenceKinds?.toSet()
     this.gridSize = src.gridSize
     this.firstHour = src.firstHour
     this.showBreaks = src.showBreaks
@@ -189,6 +197,7 @@ class CalendarFilter(
         // this.showVacations != other.showVacations ||
         isModified(this.vacationGroupIds, other.vacationGroupIds) ||
         isModified(this.vacationUserIds, other.vacationUserIds) ||
+        this.absenceKinds != other.absenceKinds ||
         this.gridSize != other.gridSize ||
         this.firstHour != other.firstHour ||
         this.showBreaks != other.showBreaks ||

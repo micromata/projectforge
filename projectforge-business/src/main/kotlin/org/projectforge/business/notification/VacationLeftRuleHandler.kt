@@ -83,6 +83,10 @@ class VacationLeftRuleHandler : NotificationRuleHandler {
         return variables(user, days, expiryDate(params, today))
     }
 
+    override fun exampleVariables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> {
+        return variables(user, BigDecimal("3.5"), expiryDate(rule.readParams(), today))
+    }
+
     override fun resolve(
         rule: NotificationRuleDO,
         notifications: List<NotificationDO>,

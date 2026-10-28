@@ -29,6 +29,7 @@ import org.projectforge.business.gantt.GanttRelationType
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskFormatter
 import org.projectforge.business.task.TaskTree
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.common.task.TimesheetBookingStatus
@@ -90,6 +91,13 @@ class Task(id: Long? = null,
     var protectTimesheetsUntilWriteAccess: Boolean = false
 
     /**
+     * Whether the user may grant ad hoc bookings on this task (`TaskBookingGrantDao.mayGrant`: who may edit the
+     * time sheets of others on it) or propose them on it or a sub task (`TaskBookingGrantDao.mayPropose`). Only the
+     * section's visibility: every endpoint of `TaskBookingGrantRest` checks it itself.
+     */
+    var bookingGrantAccess: Boolean = false
+
+    /**
      * Whether order positions are assigned to this task or below it, which then decide the planned hours
      * instead of `maxHours` (unless `maxHoursHasPriority`): the case in which Wicket's `TaskEditForm`
      * warns with `task.edit.maxHoursIngoredDueToAssignedOrders`. Filled for the edit page only.
@@ -115,7 +123,7 @@ class Task(id: Long? = null,
     var kost2ListAsLines: String? = null
 
     /**
-     * The path to the root as "Micromata -> Business Unit -> ProjectForge", shown as the tooltip of the
+     * The path to the root as "ACME -> Business Unit -> ProjectForge", shown as the tooltip of the
      * structure element column — the list counterpart of the tree's path (`TaskFormatter.getTaskPath`).
      * Only filled by [copyFrom4ListRow], see [consumption]; on a nested task of a time sheet row it is the
      * *parent* path (see [Timesheet.copyFrom4ListRow]).
@@ -127,6 +135,14 @@ class Task(id: Long? = null,
      * by [copyFrom4ListRow], see [consumption].
      */
     var orderList: List<TaskServicesRest.Order>? = null
+
+    /**
+     * The groups with explicit access rights on this task and its tooltip, for the list's `Groups` column.
+     * Only filled by [copyFrom4ListRow] and only for admins, see [TaskServicesRest.addGroupAccess].
+     */
+    var groupAccess: String? = null
+
+    var groupAccessList: List<TaskServicesRest.GroupAccess>? = null
 
     /**
      * @see copyFromMinimal
@@ -156,6 +172,7 @@ class Task(id: Long? = null,
         // reads it (the path to the root is the tree perspective's business).
         id = src.id
         deleted = src.deleted
+        deactivated = src.deactivated
         displayName = src.displayName
         // Two columns every next list offers, hidden until the user switches them on
         // (`lib/page-def/audit-columns.ts`).
@@ -166,10 +183,8 @@ class Task(id: Long? = null,
         reference = src.reference
         priority = src.priority
         status = src.status
-        // The display name only, from the cache — the column shows a name, not a user entity.
-        responsibleUser = PfCaches.instance.getUser(src.responsibleUserId)?.let {
-            User(id = it.id, displayName = it.displayName)
-        }
+        // The minimal user from the cache (name and deleted/deactivated, so the column strikes a leaver through).
+        responsibleUser = PfCaches.instance.getUser(src.responsibleUserId)?.let { User.ref(it) }
         val id = src.id ?: return
         val node = TaskTree.instance.getTaskNodeById(id) ?: return
         consumption = Consumption.create(node)
@@ -181,6 +196,11 @@ class Task(id: Long? = null,
         kost2WildCard = serviceTask.kost2WildCard
         kost2ListAsLines = serviceTask.kost2ListAsLines
         orderList = serviceTask.orderList
+        if (UserGroupCache.getInstance().isUserMemberOfAdminGroup) {
+            TaskServicesRest.addGroupAccess(serviceTask)
+            groupAccess = serviceTask.groupAccess
+            groupAccessList = serviceTask.groupAccessList
+        }
         // The whole path including this task, as the Wicket list shows it in the title cell's tooltip
         // (`WicketTaskFormatter.appendFormattedTask(..., showPathAsTooltip = true)`).
         path = TaskFormatter.getTaskPath(id)

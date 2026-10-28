@@ -29,39 +29,34 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.projectforge.NextMigration
-import org.projectforge.rest.AddressPagesRest
+import org.projectforge.PageRoutes
 import org.projectforge.rest.BookEntityRest
-import org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest
+import org.projectforge.rest.orga.PostausgangEntityRest
 
 class PageResolverTest {
     @Test
     fun resolveTest() {
-        assertEquals("react/address", PagesResolver.getListPageUrl(AddressPagesRest::class.java))
-        assertEquals("react/address?str=test", PagesResolver.getListPageUrl(AddressPagesRest::class.java, mapOf("str" to "test")))
+        assertEquals("next/outgoingMail", PagesResolver.getListPageUrl(PostausgangEntityRest::class.java))
+        assertEquals("next/outgoingMail?str=test", PagesResolver.getListPageUrl(PostausgangEntityRest::class.java, mapOf("str" to "test")))
 
-        var result = PagesResolver.getListPageUrl(AddressPagesRest::class.java, mapOf("str" to "test", "id" to 5))
-        assertEquals("react/address?str=test&id=5".length, result.length)
+        var result = PagesResolver.getListPageUrl(PostausgangEntityRest::class.java, mapOf("str" to "test", "id" to 5))
+        assertEquals("next/outgoingMail?str=test&id=5".length, result.length)
         // Order of params may differ:
         assertTrue(result.contains("str=test"))
         assertTrue(result.contains("id=5"))
-        assertTrue(result.startsWith("react/address?"))
+        assertTrue(result.startsWith("next/outgoingMail?"))
         assertTrue(result.contains("&"))
 
-        assertEquals("react/address/edit", PagesResolver.getEditPageUrl(AddressPagesRest::class.java))
-        assertEquals("react/address/edit/42", PagesResolver.getEditPageUrl(AddressPagesRest::class.java, 42))
+        assertEquals("next/outgoingMail/new", PagesResolver.getEditPageUrl(PostausgangEntityRest::class.java))
+        assertEquals("next/outgoingMail/42", PagesResolver.getEditPageUrl(PostausgangEntityRest::class.java, 42))
 
-        result = PagesResolver.getEditPageUrl(AddressPagesRest::class.java, 42, mapOf("str" to "test", "p2" to "test2"))
-        assertEquals("react/address/edit/42?str=test&p2=test2".length, result.length)
+        result = PagesResolver.getEditPageUrl(PostausgangEntityRest::class.java, 42, mapOf("str" to "test", "p2" to "test2"))
+        assertEquals("next/outgoingMail/42?str=test&p2=test2".length, result.length)
         // Order of params may differ:
         assertTrue(result.contains("str=test"))
         assertTrue(result.contains("p2=test2"))
-        assertTrue(result.startsWith("react/address/edit/42?"))
+        assertTrue(result.startsWith("next/outgoingMail/42?"))
         assertTrue(result.contains("&"))
-
-        assertEquals("react/calendarSubscription/dynamic", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, trailingSlash = false))
-        assertEquals("react/calendarSubscription/dynamic/", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java))
-        assertEquals("react/calendarSubscription/dynamic/123", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, id = 123))
     }
 
     /**
@@ -76,48 +71,37 @@ class PageResolverTest {
         assertEquals("next/book?str=test", PagesResolver.getListPageUrl(BookEntityRest::class.java, mapOf("str" to "test")))
         // book is hand built in projectforge-next, so its edit route is /book/<id>, not /book/edit/<id>:
         assertEquals("next/book/42", PagesResolver.getEditPageUrl(BookEntityRest::class.java, 42))
-        assertEquals("next/book/new", NextMigration.newEntryUrl("book"))
-        assertEquals("next/book/:id", NextMigration.standardEditPage("book"))
-        // Not migrated: unchanged, and the category is used as the route.
-        assertFalse(NextMigration.isMigrated("address"))
-        assertEquals("react/address/edit", NextMigration.newEntryUrl("address"))
-        assertEquals("react/address/edit/:id", NextMigration.standardEditPage("address"))
+        assertEquals("next/book/new", PageRoutes.newEntryUrl("book"))
+        assertEquals("next/book/:id", PageRoutes.standardEditPage("book"))
+        // Not migrated (a category of no page, every React list is migrated by now): unchanged, and the category is
+        // used as the route.
+        assertFalse(PageRoutes.isMigrated(NOT_MIGRATED))
+        assertEquals("react/$NOT_MIGRATED/edit", PageRoutes.newEntryUrl(NOT_MIGRATED))
+        assertEquals("react/$NOT_MIGRATED/edit/:id", PageRoutes.standardEditPage(NOT_MIGRATED))
     }
 
     /**
      * The row click url of a list grid is the *edit* page with the id placeholder - not the *new
      * entry* url with an id appended, which is what it used to be built from. For the generic React
-     * shape both happen to be the same (`react/address/edit` + `/id`), so the difference only shows
+     * shape both happen to be the same (`react/<category>/edit` + `/id`), so the difference only shows
      * on a hand built page: book answered a row click with `next/book/new/<id>`, the empty add
      * form.
      */
     @Test
     fun rowClickUrlTest() {
-        assertEquals("next/book/:id", NextMigration.standardEditPage("book"))
+        assertEquals("next/book/:id", PageRoutes.standardEditPage("book"))
         assertNotEquals(
-            "${NextMigration.newEntryUrl("book")}/:id",
-            NextMigration.standardEditPage("book"),
-            "The new entry url is not a template of the edit url - see AGGridSupport.prepareUIGrid4ListPage."
+            "${PageRoutes.newEntryUrl("book")}/:id",
+            PageRoutes.standardEditPage("book"),
+            "The new entry url is not a template of the edit url."
         )
-        assertEquals("react/address/edit/:id", NextMigration.standardEditPage("address"))
+        assertEquals("react/$NOT_MIGRATED/edit/:id", PageRoutes.standardEditPage(NOT_MIGRATED))
         // group has been hand built in projectforge-next since, and follows book's shape.
-        assertEquals("next/group/:id", NextMigration.standardEditPage("group"))
+        assertEquals("next/group/:id", PageRoutes.standardEditPage("group"))
     }
 
-    /**
-     * The way back to the legacy page, offered by projectforge-next while the migration runs. Not
-     * derivable from the next url: the app it leads back to isn't (React or Wicket), and a
-     * route need not name its category.
-     */
-    @Test
-    fun legacyPageTest() {
-        // book has no way back: its React page is gone (BookEntityRest serves no layout), so
-        // projectforge-next offers no legacy link for it.
-        assertNull(NextMigration.legacyListUrl("book"))
-        assertNull(NextMigration.legacyEditPage("book"))
-        assertNull(NextMigration.legacyNewEntryUrl("book"))
-        // Not migrated: the legacy page is the page itself.
-        assertEquals(NextMigration.listUrl("address"), NextMigration.legacyListUrl("address"))
-        assertEquals(NextMigration.standardEditPage("address"), NextMigration.legacyEditPage("address"))
+    companion object {
+        /** A category no page has: resolved as a page not migrated to projectforge-next. */
+        private const val NOT_MIGRATED = "notMigratedCategory"
     }
 }

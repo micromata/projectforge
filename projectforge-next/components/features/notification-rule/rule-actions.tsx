@@ -5,7 +5,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { useEntityEditForm } from "@/components/shared/form/form-context";
+import {
+  useEntityData,
+  useEntityEditForm,
+} from "@/components/shared/form/form-context";
 import {
   previewNotificationRule,
   testNotificationRuleToMe,
@@ -14,6 +17,7 @@ import {
 } from "@/lib/rs/notification";
 import { toast } from "@/lib/toast";
 import { RulePreviewDialog } from "./rule-preview-dialog";
+import type { NotificationRuleDetail } from "./types";
 
 const reportError = (error: unknown) =>
   toast.error(error instanceof Error ? error.message : String(error));
@@ -25,6 +29,8 @@ const reportError = (error: unknown) =>
 export function RuleActions({ id }: { id: number | null }) {
   const t = useTranslations("notification");
   const form = useEntityEditForm();
+  // The saved state, not the form value: the backend runs the saved rule only if it is active.
+  const savedActive = useEntityData<NotificationRuleDetail>()?.active === true;
   const queryClient = useQueryClient();
   const [preview, setPreview] = useState<NotificationPreview | null>(null);
   const [confirmTrigger, setConfirmTrigger] = useState(false);
@@ -91,6 +97,7 @@ export function RuleActions({ id }: { id: number | null }) {
         variant="outline"
         size="sm"
         disabled={testMutation.isPending}
+        title={t("action.testToMeInfo")}
         onClick={() => {
           const { subject, text } = form.state.values as {
             subject?: string | null;
@@ -111,7 +118,8 @@ export function RuleActions({ id }: { id: number | null }) {
           type="button"
           variant="outline"
           size="sm"
-          disabled={triggerMutation.isPending}
+          disabled={triggerMutation.isPending || !savedActive}
+          title={savedActive ? undefined : t("rule.trigger.inactive")}
           onClick={() => setConfirmTrigger(true)}
         >
           {t("action.trigger")}

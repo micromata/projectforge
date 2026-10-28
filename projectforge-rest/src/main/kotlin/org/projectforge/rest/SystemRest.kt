@@ -33,6 +33,7 @@ import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookDao
 import org.projectforge.business.book.BookStatus
 import org.projectforge.business.jobs.CronSanityCheckJob
+import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.system.SystemService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
@@ -122,6 +123,9 @@ class SystemRest {
     @Autowired
     private lateinit var fileStoreMigrationService: FileStoreMigrationService
 
+    @Autowired
+    private lateinit var sipgateConfiguration: SipgateConfiguration
+
     /**
      * The only implementation ([org.projectforge.i18n.I18nKeysUsage]) lives in projectforge-application, which is not
      * on the classpath of every (plugin/wicket) test context. Autowire it optionally so those Spring test contexts can
@@ -155,6 +159,8 @@ class SystemRest {
         val alertMessageSampleRelease: String,
         /** True, if all files are stored by the file store (projectforge.files.store=db), false: JCR. */
         val allFilesInFileStore: Boolean,
+        /** True, if Sipgate is configured: the System page offers its actions then (SipgateAdminRest). */
+        val sipgateConfigured: Boolean,
     )
 
     /** A plain result message, shown by the frontend as a success toast. */
@@ -166,7 +172,7 @@ class SystemRest {
 
     /**
      * The id of the started job ([ReindexJob], [JcrBackupZipJob], [org.projectforge.framework.jcr.RepoMigrationJob]), which the frontend polls (see
-     * JobsMonitorPageRest) for the progress.
+     * JobsMonitorRest) for the progress.
      */
     class JobResponse(val jobId: Int)
 
@@ -190,6 +196,7 @@ class SystemRest {
                 nextRelease(),
             ),
             allFilesInFileStore = fileStoreMigrationService.allFilesInFileStore,
+            sipgateConfigured = sipgateConfiguration.isConfigured(),
         )
     }
 
@@ -234,17 +241,8 @@ class SystemRest {
     fun rereadConfiguration(): MessageResponse {
         checkWriteAccess()
         log.info { "Administration: reread configuration." }
-        val result = systemService.rereadConfiguration()
-        return MessageResponse(translateMsg("administration.rereadConfiguration", result ?: ""))
-    }
-
-    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
-    @GetMapping("exportConfiguration")
-    fun exportConfiguration(): ResponseEntity<*> {
-        checkWriteAccess()
-        log.info { "Administration: export configuration." }
-        val filename = "config-${DateHelper.getDateAsFilenameSuffix(Date())}.xml"
-        return RestUtils.downloadFile(filename, systemService.exportConfiguration() ?: "")
+        systemService.rereadConfiguration()
+        return MessageResponse(translate("administration.rereadConfiguration"))
     }
 
     @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
@@ -264,7 +262,7 @@ class SystemRest {
     // ------------------------------------------------------------------------------------------
 
     @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
-    @GetMapping("checkSystemIntegrity")
+    @PostMapping("checkSystemIntegrity")
     fun checkSystemIntegrity(): ResponseEntity<*> {
         checkWriteAccess()
         log.info { "Administration: check system integrity." }
@@ -295,7 +293,7 @@ class SystemRest {
     }
 
     @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
-    @GetMapping("optimizeAddressImages")
+    @PostMapping("optimizeAddressImages")
     fun optimizeAddressImages(): ResponseEntity<*> {
         checkWriteAccess()
         log.info { "Administration: shrink all address images and rebuild previews." }

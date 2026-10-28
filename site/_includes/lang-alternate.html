@@ -1,0 +1,15 @@
+{%- comment -%}
+    Sets alternate_lang (the other language of the page) and alternate_url (the url of the page in that language,
+    nil if it isn't translated): a German page has the url of its English page with the prefix /de (see languages
+    in _config.yml).
+{%- endcomment -%}
+{%- if page.lang == 'de' -%}
+{%- assign alternate_lang = 'en' -%}
+{%- assign alternate_candidate = page.url | remove_first: '/de' -%}
+{%- else -%}
+{%- assign alternate_lang = 'de' -%}
+{%- assign alternate_candidate = page.url | prepend: '/de' -%}
+{%- endif -%}
+{%- assign alternate_page = site.pages | where: "url", alternate_candidate | first -%}
+{%- unless alternate_page -%}{%- assign alternate_page = site.docs | where: "url", alternate_candidate | first -%}{%- endunless -%}
+{%- if alternate_page -%}{%- assign alternate_url = alternate_candidate -%}{%- else -%}{%- assign alternate_url = nil -%}{%- endif -%}

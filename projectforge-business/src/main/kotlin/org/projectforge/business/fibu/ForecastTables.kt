@@ -54,6 +54,8 @@ class ForecastProjectRow(
     val projectId: Long,
     val customer: String?,
     val project: String?,
+    /** The project group the project belongs to, null for none. */
+    val projectGroup: String? = null,
     /** The remaining forecast plus the invoices (IST) of the 12 months. */
     val forecast: BigDecimal,
     /** Null, if no plan was calculated. */
@@ -78,6 +80,7 @@ class ForecastPositionRow(
     val projectId: Long?,
     val customer: String?,
     val project: String?,
+    val projectGroup: String? = null,
     val title: String?,
     /** Only given, if it differs from the order's title. */
     val positionTitle: String?,
@@ -117,6 +120,7 @@ class ForecastInvoiceRow(
     val projectId: Long,
     val customer: String?,
     val project: String?,
+    val projectGroup: String? = null,
     val subject: String?,
     val positionText: String?,
     val orderId: Long?,
@@ -149,18 +153,20 @@ internal class ForecastTablesCollector {
     /**
      * @param visibleProjectIds The project ids of the forecast sheet rows, see [ForecastChartTotals.build].
      * @param planByProject The plan per project, null if no plan was calculated.
+     * @param projectGroupOf The project group of a project without any row carrying it (only planned).
      * @param labelOf Customer and project name of a project without any row carrying them.
      */
     fun build(
         months: List<String>,
         visibleProjectIds: Set<Long>,
         planByProject: Map<Long, BigDecimal>?,
+        projectGroupOf: (projectId: Long) -> String? = { null },
         labelOf: (projectId: Long) -> Pair<String?, String?>?,
     ): ForecastTables {
         val visibleInvoices = invoices.filter { it.projectId in visibleProjectIds }
         return ForecastTables(
             months = months,
-            projects = projects(visibleProjectIds, visibleInvoices, planByProject, labelOf),
+            projects = projects(visibleProjectIds, visibleInvoices, planByProject, labelOf, projectGroupOf),
             positions = positions.toList(),
             invoices = visibleInvoices,
         )
@@ -169,6 +175,7 @@ internal class ForecastTablesCollector {
     private class ProjectSums {
         var customer: String? = null
         var project: String? = null
+        var projectGroup: String? = null
         var forecast: BigDecimal = BigDecimal.ZERO
         var prevYear: BigDecimal = BigDecimal.ZERO
         var prevPrevYear: BigDecimal = BigDecimal.ZERO
@@ -187,6 +194,7 @@ internal class ForecastTablesCollector {
         visibleInvoices: List<ForecastInvoiceRow>,
         planByProject: Map<Long, BigDecimal>?,
         labelOf: (projectId: Long) -> Pair<String?, String?>?,
+        projectGroupOf: (projectId: Long) -> String?,
     ): List<ForecastProjectRow> {
         val map = mutableMapOf<Long, ProjectSums>()
         positions.forEach { row ->
@@ -197,6 +205,7 @@ internal class ForecastTablesCollector {
             row.months.forEach { value -> value?.let { sums.forecast += it } }
             sums.difference += row.difference
             row.warning?.let { sums.warnings.add(ForecastWarning("${row.orderNumber}.${row.positionNumber}", it)) }
+            row.projectGroup?.let { sums.projectGroup = it }
             if (row.projectId != null) {
                 sums.label(row.customer, row.project)
             } else {
@@ -210,6 +219,7 @@ internal class ForecastTablesCollector {
                 ForecastInvoiceRow.Kind.PREV_YEAR -> sums.prevYear += row.netSum
                 ForecastInvoiceRow.Kind.PREV_PREV_YEAR -> sums.prevPrevYear += row.netSum
             }
+            row.projectGroup?.let { sums.projectGroup = it }
             sums.label(row.customer, row.project)
         }
         planByProject?.keys?.filter { it in visibleProjectIds }?.forEach { map.getOrPut(it) { ProjectSums() } }
@@ -226,6 +236,7 @@ internal class ForecastTablesCollector {
                     projectId = id,
                     customer = sums.customer,
                     project = sums.project,
+                    projectGroup = sums.projectGroup ?: projectGroupOf(id),
                     forecast = sums.forecast,
                     plan = planByProject?.let { it[id] ?: BigDecimal.ZERO },
                     prevYear = sums.prevYear,

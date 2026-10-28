@@ -6,6 +6,7 @@ import { waitForRow } from "./fixtures/list-table";
 import { USER_PAGE } from "../components/features/user/user.page";
 import { PF_USER_METADATA } from "../lib/metadata/pf-user.generated";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The user page of projectforge-next — list and form, both rendered from USER_PAGE.
@@ -29,7 +30,9 @@ test.describe("user page", { tag: "@parallel" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     // The filter is stored per user and per entity: a status left behind would decide which users show.
     await page.request
-      .get("/rs/user/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/user/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 
@@ -39,7 +42,7 @@ test.describe("user page", { tag: "@parallel" }, () => {
     const format = await userFormat(page);
     await goto(page, "/user");
     await expect(
-      page.getByRole("heading", { name: format.t("user.title.list") })
+      page.getByRole("heading", { name: label(format, "user.title.list") })
     ).toBeVisible({ timeout: 30_000 });
 
     for (const column of USER_PAGE.columns) {
@@ -110,7 +113,7 @@ test.describe("user page", { tag: "@parallel" }, () => {
     const id = await userIdOf(page.request, username);
     let userSaved = false;
     page.on("request", (request) => {
-      if (request.url().includes("/rs/user/saveorupdate")) userSaved = true;
+      if (/\/rs\/user\/(insert|update)\b/.test(request.url())) userSaved = true;
     });
     await goto(page, `/user/${id}`);
     await expect(usernameField(page, format)).toHaveValue(username, {
@@ -188,7 +191,9 @@ test.describe("user page", { tag: "@parallel" }, () => {
 
   test.afterAll(async ({ seedRequest }) => {
     await seedRequest
-      .get("/rs/user/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/user/filter/reset", {
+        headers: await writeHeaders(seedRequest),
+      })
       .catch(() => undefined);
   });
 });
@@ -210,7 +215,7 @@ test.describe("user list without the admin right", { tag: "@parallel" }, () => {
     const format = await userFormat(page);
     await goto(page, "/user");
     await expect(
-      page.getByRole("heading", { name: format.t("user.title.list") })
+      page.getByRole("heading", { name: label(format, "user.title.list") })
     ).toBeVisible({ timeout: 30_000 });
     await expect(
       page.getByRole("link", { name: format.t("menu.addNewEntry") })

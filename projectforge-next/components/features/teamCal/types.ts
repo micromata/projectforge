@@ -1,8 +1,10 @@
+import type { AbsenceKind } from "@/lib/rs/absence-kinds";
 import type { CalendarSubscriptionInfo } from "@/lib/rs/calendar-subscription";
+import type { InactiveFlags } from "@/lib/page-def/reference";
 
 /** A user or group as the DTO carries it: the id is what `copyTo` stores. */
 // A type alias, not an interface: only an alias is assignable to the schema's loose object.
-export type TeamCalRef = {
+export type TeamCalRef = InactiveFlags & {
   id: number;
   displayName?: string;
 };
@@ -32,6 +34,8 @@ export interface TeamCalDetail {
   minimalAccessGroups?: TeamCalRef[];
   includeLeaveDaysForUsers?: TeamCalRef[];
   includeLeaveDaysForGroups?: TeamCalRef[];
+  /** Which absences of the people above the calendar includes (`TeamCalDO.includeAbsenceKinds`); absent: all. */
+  absenceKinds?: AbsenceKind[] | null;
   externalSubscription?: boolean;
   /** Only sent in edit mode to users who may update the calendar (it may hold credentials). */
   externalSubscriptionUrl?: string | null;

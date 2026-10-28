@@ -6,8 +6,8 @@ import { REQUIRED } from "@/lib/validation/markers";
 /**
  * Every rule below — mandatory, maximum length, the constants of the status enum — comes from KundeDO
  * through `lib/metadata/kunde.generated.ts`. Hand-written are only the fields the metadata cannot
- * describe: the referenced `konto` (a foreign DO, no `UIDataType`), and the range of `nummer` (see
- * below).
+ * describe: the referenced `konto` (a foreign DO, no `UIDataType`), and the lower bound of `nummer`
+ * (see below).
  */
 const m = fromMetadata(KUNDE_METADATA);
 
@@ -31,12 +31,12 @@ export const customerSchema = z.object({
   id: z.number().nullable(),
   /**
    * The customer number, the entity's user-assigned id. Required (a customer has no identity without
-   * one) and bounded 0..999 — `KundeDO.MAX_ID`, which the metadata cannot carry (no `@PropertyInfo`
-   * min/max on `nummer`). Uniqueness is the backend's check
-   * (`fibu.kunde.validation.existingCustomerNr`).
+   * one) and not negative. Whether it has to lie in a configured number range and its uniqueness are the
+   * backend's checks (`fibu.numberRange.error.customerNotInRange`, `fibu.kunde.validation.existingCustomerNr`),
+   * the field names the ranges (CustomerNumberField).
    */
   nummer: m
-    .intField("nummer", { min: 0, max: 999 })
+    .intField("nummer", { min: 0 })
     .refine((v): boolean => v != null, REQUIRED),
   name: m.requiredString("name"),
   identifier: m.nullableString("identifier"),

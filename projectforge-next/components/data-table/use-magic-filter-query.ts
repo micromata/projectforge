@@ -1,15 +1,24 @@
 "use client";
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import type {
   OnChangeFn,
   PaginationState,
   SortingState,
 } from "@tanstack/react-table";
-import { fetchList, fetchListPage } from "@/lib/rs/client";
+import { fetchList, fetchListMeta, fetchListPage } from "@/lib/rs/client";
 import { paginationPageSizeEntry } from "@/lib/rs/types";
-import type { MagicFilter, MagicFilterEntry, ResultSet } from "@/lib/rs/types";
+import type {
+  ListMetaData,
+  MagicFilter,
+  MagicFilterEntry,
+  ResultSet,
+} from "@/lib/rs/types";
 import { DEFAULT_PAGE_SIZE, useStorablePageSize } from "./page-size-options";
 
 interface UseMagicFilterQueryOptions {
@@ -52,7 +61,7 @@ interface UseMagicFilterQueryOptions {
   /**
    * A column-header (funnel) filter is set. The funnel narrows on the client, so under it the page
    * falls back to fetching the whole result set (`list`) even when `serverPaging` is on — slower, but
-   * the footer total and the narrowing then agree. Without it the page would show "50 of 7000" while
+   * the footer total and the narrowing then agree. Without it the page would show "50 of 5000" while
    * the funnel hid rows of the loaded 50 only.
    */
   columnFilterActive?: boolean;
@@ -67,7 +76,7 @@ interface UseMagicFilterQueryOptions {
 
 interface UseMagicFilterQueryResult<O> {
   /**
-   * The whole result set, not a single page: AbstractPagesRest.getList returns
+   * The whole result set, not a single page: AbstractEntityRest.getList returns
    * everything up to maxRows. Paging is left to the table, which has to filter
    * before it pages — slicing here would filter the visible page only.
    */
@@ -171,7 +180,7 @@ export function useMagicFilterQuery<O>({
   // fresh array each render must not trigger a refetch.
   const serializedEntries = JSON.stringify(filterEntries ?? []);
 
-  // The page index is deliberately not part of the filter: AbstractPagesRest.getList
+  // The page index is deliberately not part of the filter: AbstractEntityRest.getList
   // returns the whole result list (capped by maxRows) rather than a single page, so
   // paging happens on the client below. Only the page size is sent, as the entry the
   // backend expects.
@@ -240,6 +249,35 @@ export function useMagicFilterQuery<O>({
     refetchOnWindowFocus: "always",
     enabled,
   });
+
+  // The filter fields of the list meta may depend on the filter itself: the address campaign values offer the
+  // values of the campaign just selected (`ResultSet.reloadUI`, set by the backend when that changed). The meta
+  // is cached forever otherwise (see useListMeta), so its filter fields are asked again and patched into the
+  // cache. Not by invalidating it: a refetch of the meta holds the list page back behind its spinner (see
+  // useRememberedFilter), which remounts the list and would see this same answer again. Only the filter fields
+  // are taken over; the filter the user set stays as is (but for values the fields no longer offer, see
+  // useListFilters).
+  // Not for a cached answer while the list is asked anew (staleTime 0, see above): the backend stores the filter
+  // with that request, so until it is answered the meta would still be the previous campaign's.
+  const queryClient = useQueryClient();
+  const reloadUI =
+    query.data?.reloadUI === true && !query.isFetching ? query.data : undefined;
+  useEffect(() => {
+    if (!reloadUI) return;
+    const controller = new AbortController();
+    fetchListMeta(entity, controller.signal)
+      .then((fresh) =>
+        queryClient.setQueryData<ListMetaData>(
+          ["listMeta", entity],
+          (previous) =>
+            previous
+              ? { ...previous, filterElements: fresh.filterElements }
+              : previous
+        )
+      )
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [reloadUI, queryClient, entity]);
 
   const allRows = query.data?.resultSet;
   // Stable identity while no result is in: a fresh [] would rebuild the table's rows.

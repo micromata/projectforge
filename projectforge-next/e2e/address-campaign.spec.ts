@@ -3,6 +3,7 @@ import { userFormat } from "./fixtures/format";
 import { ADDRESS_CAMPAIGN_METADATA } from "../lib/metadata/address-campaign.generated";
 import { ADDRESS_CAMPAIGN_PAGE } from "../components/features/address-campaign/address-campaign.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The address campaign page of the marketing plugin against the live backend (see ADDRESS_CAMPAIGN_PAGE
@@ -14,8 +15,8 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 test.describe("address campaign", { tag: "@parallel" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get("/rs/addressCampaign/filter/reset", {
-        headers: { "X-PF-Frontend": "next" },
+      .post("/rs/addressCampaign/filter/reset", {
+        headers: await writeHeaders(page.request),
       })
       .catch(() => undefined);
   });
@@ -38,18 +39,29 @@ test.describe("address campaign", { tag: "@parallel" }, () => {
     }
   });
 
+  test("offers a new campaign as active", async ({ loggedInPage: page }) => {
+    const { t } = await userFormat(page);
+    await goto(page, "/address-campaign/new");
+    // An inactive campaign is closed: its values can't be changed any more (AddressCampaignValueRight).
+    await expect(
+      page.getByRole("checkbox", {
+        name: t("plugins.marketing.addressCampaign.active"),
+      })
+    ).toBeChecked();
+  });
+
   test("refuses to save a campaign without title and values", async ({
     loggedInPage: page,
   }) => {
     const { t } = await userFormat(page);
     let saveAttempted = false;
-    await page.route("**/rs/addressCampaign/saveorupdate*", (route) => {
+    await page.route("**/rs/addressCampaign/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
 
     await goto(page, "/address-campaign/new");
-    await page.getByRole("button", { name: t("save") }).click();
+    await page.getByRole("button", { name: t("create") }).click();
 
     for (const key of ["title", "values"]) {
       await expect(
@@ -67,7 +79,7 @@ test.describe("address campaign", { tag: "@parallel" }, () => {
   }) => {
     const { t } = await userFormat(page);
     let saveAttempted = false;
-    await page.route("**/rs/addressCampaign/saveorupdate*", (route) => {
+    await page.route("**/rs/addressCampaign/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
@@ -75,7 +87,7 @@ test.describe("address campaign", { tag: "@parallel" }, () => {
     await goto(page, "/address-campaign/new");
     await page.getByRole("textbox", { name: t("title") }).fill("e2e campaign");
     await page.getByRole("textbox", { name: t("values") }).fill(" ; ;");
-    await page.getByRole("button", { name: t("save") }).click();
+    await page.getByRole("button", { name: t("create") }).click();
 
     await expect(
       page.getByText(

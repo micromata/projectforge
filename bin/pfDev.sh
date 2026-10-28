@@ -43,16 +43,21 @@ Commands:
                    asking (otherwise the tests would fail on them late). Runs the tests (unless --skip-tests), before anything is changed;
                    then folds changelog/unreleased/ into the entry, sets the version,
                    runs gen and a clean build, commits and tags, then commits the next
-                   X.Y.(Z+1)-SNAPSHOT. Nothing is pushed.
+                   X.Y.(Z+1)-SNAPSHOT. Finally asks whether to run publish (push +
+                   GitHub release); declined, nothing is pushed.
   publish <X.Y.Z>  Pushes the release and its tag and creates its GitHub release (notes
                    generated from the changelog, the jar attached if wanted, e.g. not for
                    minor releases); asks before each step. The docker
                    images follow with docker/push-release.sh (see its --help), the
                    upload of the jar to SourceForge by hand (rsync command printed at
                    the end, then set as default download, i.e. latest). A release
-                   with "published": false in the changelog is only pushed (mini release,
-                   no GitHub release, jars or docker images); its changes go into the
-                   notes of the next published release
+                   with "published": false in the changelog (mini release) gets a GitHub
+                   release with its own notes, but no jar or docker images, never the
+                   latest one; its changes also go into the notes of the next published
+                   release
+  github-release <X.Y.Z>...
+                   Creates the missing GitHub releases of releases tagged and pushed
+                   already (e.g. older mini releases), oldest first; nothing is pushed
   help             Show this help
 
 Instances (slots):
@@ -62,10 +67,14 @@ with its own HSQLDB and the session cookie JSESSIONID_n. Without a slot
 everything is as before: :8080/:3000, ~/ProjectForge and its configured
 database.
   setup <slot> [pw] Create the home ~/ProjectForge-n from
-                   ~/ProjectForge/projectforge.properties: own HSQLDB, mails and
-                   gateway push off. Once per slot. Its first run fills the
+                   ~/ProjectForge/projectforge.properties: own HSQLDB, mails,
+                   gateway push and Sipgate off, number ranges 4/5/1 (as in the tests). Once per slot. Its first run fills the
                    database with test data (admin password pw, random if omitted)
   reset <slot>     Delete the home dir of a slot instance (asks first)
+  renew <slot> [-y] [pw]
+                   Stop the Spring of a slot, delete its home, set it up again
+                   and start it (stop + reset + setup + run); asks first, -y
+                   skips the question. The next dev server keeps running
   run [slot]       Build (skip tests), then run the app in dev mode (Spring on
                    :8080+slot); the first run after setup initializes the
                    database with test data and prints the admin login
@@ -115,7 +124,7 @@ init_slot_home() {
     echo "No $src/projectforge.properties to derive the slot instance from." >&2
     exit 1
   fi
-  echo "Creating $PF_HOME from $src (own HSQLDB, mails and gateway push off)."
+  echo "Creating $PF_HOME from $src (own HSQLDB, mails, gateway push and Sipgate off)."
   mkdir -p "$PF_HOME"
   cp "$src/projectforge.properties" "$PF_HOME/"
   for item in config.xml resources styles; do
@@ -134,6 +143,25 @@ spring.datasource.username=sa
 spring.datasource.password=
 mail.session.pfmailsession.emailEnabled=false
 projectforge.gateway.push.enabled=false
+# Sipgate off: the copied token would sync every address change with the real Sipgate account, importing its
+# contacts into this test database (blank token = not configured, see SipgateConfiguration.isConfigured).
+projectforge.sipgate.token=
+# Number ranges of customers and projects (as in application-test.properties): the test data's customers
+# 300-304 belong to range 5, so their projects get Kost2. Without ranges a fresh database has free numbers
+# and no Kost2 (see NumberRangeService).
+projectforge.fibu.number-ranges.allow-free-numbers=true
+projectforge.fibu.number-ranges.ranges[0].prefix=4
+projectforge.fibu.number-ranges.ranges[0].name=Intern
+projectforge.fibu.number-ranges.ranges[0].project-digits=5
+projectforge.fibu.number-ranges.ranges[1].prefix=5
+projectforge.fibu.number-ranges.ranges[1].customer-min=0
+projectforge.fibu.number-ranges.ranges[1].customer-max=999
+projectforge.fibu.number-ranges.ranges[1].project-digits=2
+projectforge.fibu.number-ranges.ranges[2].prefix=1
+projectforge.fibu.number-ranges.ranges[2].customer-min=10000
+projectforge.fibu.number-ranges.ranges[2].customer-max=19999
+projectforge.fibu.number-ranges.ranges[2].project-digits=1
+projectforge.fibu.number-ranges.ranges[2].segments=1,4,1,2
 EOF
 }
 
@@ -188,10 +216,13 @@ process_cwd() {
 }
 
 list_servers() {
-  local slot port pid kind lines=()
+  local slot port pid kind listeners lines=()
+  # One lsof call for all ports ("port pid" per line): each call takes a noticeable fraction of a second.
+  listeners="$(lsof -nP -iTCP -sTCP:LISTEN -Fpn 2>/dev/null |
+    awk '/^p/ { pid = substr($0, 2) } /^n/ { sub(/.*:/, ""); print $0, pid }' || true)"
   for slot in 0 1 2 3 4 5 6 7 8 9; do
     for port in $((8080 + slot)) $((3000 + slot)); do
-      pid="$(listener_pid "$port")"
+      pid="$(awk -v port="$port" '$1 == port { print $2; exit }' <<<"$listeners")"
       [[ -n "$pid" ]] || continue
       ((port >= 8080)) && kind=spring || kind=next
       lines+=("$(printf '%-5s %-7s %-7s %-7s %s' "$slot" ":$port" "$kind" "$pid" "$(process_cwd "$pid")")")
@@ -242,7 +273,14 @@ confirm() {
   [[ "$answer" == [yY] ]]
 }
 
-RELEASE_USAGE="Usage: pfDev.sh release X.Y.Z [--skip-tests] / pfDev.sh publish X.Y.Z"
+# Like confirm, but Enter means yes.
+confirm_yes() {
+  local answer
+  read -r -p "$1 [Y/n] " answer
+  [[ -z "$answer" || "$answer" == [yY] ]]
+}
+
+RELEASE_USAGE="Usage: pfDev.sh release X.Y.Z [--skip-tests] / pfDev.sh publish X.Y.Z / pfDev.sh github-release X.Y.Z..."
 
 release() {
   local version="${1:-}" skip_tests=false
@@ -339,10 +377,17 @@ release() {
     echo "Note: the build changed files that weren't committed:"
     git status --short
   fi
-  echo "Released $version (tag $tag), now on $next. Nothing is pushed yet: pfDev.sh publish $version"
+  echo "Released $version (tag $tag), now on $next."
+  # Pushes the branch and the tag and creates the GitHub release (publish asks before each step), so a release is
+  # not forgotten on GitHub. Declined: nothing is pushed, publish can follow by hand.
+  if confirm_yes "Publish $version now (push, GitHub release)?"; then
+    publish "$version"
+  else
+    echo "Nothing is pushed yet: pfDev.sh publish $version"
+  fi
 }
 
-# Whether the release <version> of changelog.json is published (GitHub release, jar, docker images): true or false.
+# Whether the release <version> of changelog.json is published (jar, docker images; a mini release isn't): true or false.
 release_published() {
   node -e '
     const release = require(process.argv[1]).releases.find((r) => r.version === process.argv[2]);
@@ -356,52 +401,36 @@ publish() {
     echo "$RELEASE_USAGE" >&2
     exit 1
   fi
-  local tag="$version-RELEASE" notes="$ROOT/build/release-notes-$version.md"
-  local jar="$ROOT/projectforge-application/build/libs/projectforge-application-$version.jar"
+  local tag="$version-RELEASE" jar="$ROOT/projectforge-application/build/libs/projectforge-application-$version.jar"
   cd "$ROOT"
   if ! git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
     echo "There is no tag $tag, run pfDev.sh release $version first." >&2
     exit 1
   fi
-  # A mini release ("published": false) is only pushed, its notes are part of the next published release.
+  # A mini release ("published": false) gets a GitHub release with its own notes, but no jar or docker images.
   if [[ "$(release_published "$version")" == false ]]; then
-    confirm "Push $(git branch --show-current) and the tag $tag (unpublished: no GitHub release, jar or docker images)?" || exit 1
+    confirm_yes "Push $(git branch --show-current) and the tag $tag (mini release: no jar or docker images)?" || exit 1
     git push --follow-tags
-    echo "Pushed $tag. Its changes are part of the release notes of the next published release."
+    github_release "$version"
+    echo "Its changes are also part of the release notes of the next published release."
     return
   fi
-  if [[ ! -f "$notes" ]]; then
-    echo "$notes is missing, it's written by pfDev.sh release $version." >&2
-    exit 1
-  fi
-  # The checksum is in the changelog since pfDev.sh release. A local jar must be the one of the release.
-  local sha256="" expected notes_with_sha
-  expected="$(node -e '
-    const release = require(process.argv[1]).releases.find((r) => r.version === process.argv[2]);
-    console.log(release?.sha256 ?? "");
-  ' "$ROOT/changelog/changelog.json" "$version")"
-  if [[ -f "$jar" ]]; then
-    sha256="$(shasum -a 256 "$jar" | cut -d' ' -f1)"
-    if [[ -z "$expected" ]]; then
-      echo "Note: the changelog has no SHA-256 of $version yet, add \"sha256\": \"$sha256\" to its entry."
-    elif [[ "$sha256" != "$expected" ]]; then
-      echo "The SHA-256 $sha256 of $jar isn't the one of the changelog ($expected), it was rebuilt after the release." >&2
-      exit 1
-    fi
-  else
-    echo "Note: $jar is missing (built by pfDev.sh release $version), it can't be attached to the GitHub release."
-    sha256="$expected"
-  fi
-  if [[ -n "$sha256" ]]; then
-    notes_with_sha="$ROOT/build/release-notes-$version-sha256.md"
-    { cat "$notes"; echo; echo "SHA-256 of $(basename "$jar"): \`$sha256\`"; } >"$notes_with_sha"
-    notes="$notes_with_sha"
-  fi
-  echo "----- $notes -----"
-  cat "$notes"
-  echo "-----"
-  confirm "Push $(git branch --show-current) and the tag $tag?" || exit 1
+  confirm_yes "Push $(git branch --show-current) and the tag $tag?" || exit 1
   git push --follow-tags
+  github_release "$version"
+  echo "Next, the docker images: docker/push-release.sh $version arch (on an arm64 and an amd64 machine)"
+  # The upload to SourceForge is done by hand; afterwards the jar is set as default download there (files/latest).
+  echo "SourceForge: upload with: rsync -e ssh --progress $jar <user>@frs.sourceforge.net:/home/frs/project/pforge/ProjectForge/$version/"
+  echo "  and make it the default download (info icon of the file, \"Default Download For\": all platforms)."
+}
+
+# Creates the GitHub release of the pushed tag of <version>, notes from the changelog (also used for releases tagged
+# and pushed earlier, pfDev.sh github-release). A mini release gets no jar and is never the latest one.
+github_release() {
+  local version="$1"
+  local tag="$version-RELEASE" notes="$ROOT/build/release-notes-$version.md"
+  local jar="$ROOT/projectforge-application/build/libs/projectforge-application-$version.jar"
+  cd "$ROOT"
   # gh would create a missing tag on the default branch, so the pushed tag is checked first.
   if ! git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
     echo "The tag $tag isn't on origin." >&2
@@ -409,22 +438,58 @@ publish() {
   fi
   if gh release view "$tag" >/dev/null 2>&1; then
     echo "The GitHub release $tag exists already."
-  elif confirm "Create the GitHub release $tag (notes from the changelog)?"; then
+    return
+  fi
+  # Written by pfDev.sh release; missing for a release tagged earlier (or on another machine).
+  if [[ ! -f "$notes" ]]; then
+    "$GRADLEW" -p "$ROOT" -q :projectforge-application:releaseNotesChangelog --rerun -PreleaseVersion="$version"
+  fi
+  local assets=() latest=--latest=false
+  if [[ "$(release_published "$version")" == true ]]; then
+    # The checksum is in the changelog since pfDev.sh release. A local jar must be the one of the release.
+    local sha256="" expected notes_with_sha
+    expected="$(node -e '
+      const release = require(process.argv[1]).releases.find((r) => r.version === process.argv[2]);
+      console.log(release?.sha256 ?? "");
+    ' "$ROOT/changelog/changelog.json" "$version")"
+    if [[ -f "$jar" ]]; then
+      sha256="$(shasum -a 256 "$jar" | cut -d' ' -f1)"
+      if [[ -z "$expected" ]]; then
+        echo "Note: the changelog has no SHA-256 of $version yet, add \"sha256\": \"$sha256\" to its entry."
+      elif [[ "$sha256" != "$expected" ]]; then
+        echo "The SHA-256 $sha256 of $jar isn't the one of the changelog ($expected), it was rebuilt after the release." >&2
+        exit 1
+      fi
+    else
+      echo "Note: $jar is missing (built by pfDev.sh release $version), it can't be attached to the GitHub release."
+      sha256="$expected"
+    fi
+    if [[ -n "$sha256" ]]; then
+      notes_with_sha="$ROOT/build/release-notes-$version-sha256.md"
+      { cat "$notes"; echo; echo "SHA-256 of $(basename "$jar"): \`$sha256\`"; } >"$notes_with_sha"
+      notes="$notes_with_sha"
+    fi
+  fi
+  echo "----- $notes -----"
+  cat "$notes"
+  echo "-----"
+  confirm_yes "Create the GitHub release $tag (notes from the changelog)?" || return 0
+  if [[ "$(release_published "$version")" == true ]]; then
     # Jars of minor releases may stay off GitHub (space), SourceForge has them. Without a jar, the release has no
     # Jar (GitHub) pill on the website.
-    local assets=()
     if [[ -f "$jar" ]] && confirm "Attach $(basename "$jar") to the GitHub release?"; then
       assets=("$jar")
     fi
-    # Only the newest release is the latest one, e.g. not 9.0.2 published after 9.0.3.
-    local latest=--latest=false
-    [[ "$(git tag -l '[0-9]*-RELEASE' --sort=-v:refname | head -1)" == "$tag" ]] && latest=--latest
-    gh release create "$tag" ${assets[@]+"${assets[@]}"} --title "ProjectForge $version" --notes-file "$notes" "$latest"
+    # Only the newest published release is the latest one, e.g. not 9.0.2 published after 9.0.3. The latest one
+    # on GitHub is the download of the website, so a mini release (without jar) never is.
+    local newest
+    newest="$(node -e '
+      const release = require(process.argv[1]).releases.find((r) => r.tag && r.published !== false);
+      console.log(release?.tag ?? "");
+    ' "$ROOT/changelog/changelog.json")"
+    [[ "$newest" == "$tag" ]] && latest=--latest
   fi
-  echo "Next, the docker images: docker/push-release.sh $version arch (on an arm64 and an amd64 machine)"
-  # The upload to SourceForge is done by hand; afterwards the jar is set as default download there (files/latest).
-  echo "SourceForge: upload with: rsync -e ssh --progress $jar <user>@frs.sourceforge.net:/home/frs/project/pforge/ProjectForge/$version/"
-  echo "  and make it the default download (info icon of the file, \"Default Download For\": all platforms)."
+  gh release create "$tag" ${assets[@]+"${assets[@]}"} --title "ProjectForge $version" --notes-file "$notes" "$latest"
 }
 
 # The merge driver of .gitattributes for generated files: keeps the own side (%A) instead of a conflict, the file is
@@ -438,6 +503,74 @@ ensure_git_merge_driver() {
 
 ensure_git_merge_driver
 
+# `setup`: creates the home of a slot instance; $1 = admin password for the initial database (random if omitted).
+slot_setup() {
+  if [[ -d "$PF_HOME" ]]; then
+    echo "$PF_HOME already exists; \`pfDev.sh reset $SLOT\` first to start over." >&2
+    exit 1
+  fi
+  init_slot_home
+  # Read by the first `run`, which initializes the database with it (the setup needs a running instance).
+  (umask 077 && echo "${1:-Pf-$(openssl rand -hex 8)-1x}" >"$PF_HOME/$SETUP_PENDING")
+  echo "Done. Start it with \`pfDev.sh run $SLOT\` (:$SPRING_PORT); the first start fills the database with test data."
+}
+
+# `reset`: deletes the home of a slot instance; asks first unless $1 is "yes".
+slot_reset() {
+  if [[ ! -d "$PF_HOME" ]]; then
+    echo "$PF_HOME doesn't exist."
+    return 0
+  fi
+  if lsof -nP -iTCP:"$SPRING_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+    echo "Something is listening on :$SPRING_PORT — stop the instance first." >&2
+    exit 1
+  fi
+  local answer="${1:-}"
+  [[ "$answer" == yes ]] || read -r -p "Delete $PF_HOME (database, index, logs)? [y/N] " answer
+  [[ "$answer" == [yY] || "$answer" == yes ]] && rm -rf "$PF_HOME" && echo "Deleted."
+  return 0
+}
+
+# `run`: builds, then runs the app in dev mode in the foreground (replaces this shell); args go to bootRun.
+slot_run() {
+  local opts="-XX:ReservedCodeCacheSize=256m -Dprojectforge.base.dir=$PF_HOME"
+  if ((SLOT > 0)); then
+    if [[ ! -d "$PF_HOME" ]]; then
+      echo "Slot $SLOT isn't set up yet, run \`pfDev.sh setup $SLOT\` first." >&2
+      exit 1
+    fi
+    if lsof -nP -iTCP:"$SPRING_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+      echo "Slot $SLOT is already running (:$SPRING_PORT)." >&2
+      exit 1
+    fi
+    # The main instance keeps whatever its projectforge.properties says.
+    opts+=" -Dserver.port=$SPRING_PORT -Dprojectforge.domain=http://localhost:$SPRING_PORT -Dserver.servlet.session.cookie.name=$COOKIE"
+  fi
+  "$GRADLEW" -p "$ROOT" build -x test
+  # First start after `setup`: fill the fresh database as soon as the instance answers.
+  [[ -f "$PF_HOME/$SETUP_PENDING" ]] && init_database &
+  JAVA_TOOL_OPTIONS="$opts" \
+    exec "$GRADLEW" -p "$ROOT" :projectforge-application:bootRun "$@"
+}
+
+# `renew`: stops the Spring of a slot, deletes its home, sets it up again and starts it. The question comes
+# first, so answering no changes nothing; the next dev server keeps running (it proxies, and reconnects).
+slot_renew() {
+  local assume_yes="" password=""
+  for arg in "$@"; do
+    if [[ "$arg" == -y ]]; then assume_yes=yes; else password="$arg"; fi
+  done
+  if [[ -d "$PF_HOME" && -z "$assume_yes" ]]; then
+    local answer
+    read -r -p "Delete $PF_HOME (database, index, logs) and restart slot $SLOT? [y/N] " answer
+    [[ "$answer" == [yY] ]] || { echo "Nothing changed."; return 0; }
+  fi
+  stop_port "$SPRING_PORT"
+  slot_reset yes
+  slot_setup "$password"
+  slot_run
+}
+
 cmd="${1:-help}"
 shift || true
 parse_slot "${1:-}"
@@ -448,48 +581,19 @@ case "$cmd" in
     exec "$GRADLEW" -p "$ROOT" :projectforge-application:developmentMainForRelease "$@"
     ;;
   run)
-    opts="-XX:ReservedCodeCacheSize=256m -Dprojectforge.base.dir=$PF_HOME"
-    if ((SLOT > 0)); then
-      if [[ ! -d "$PF_HOME" ]]; then
-        echo "Slot $SLOT isn't set up yet, run \`pfDev.sh setup $SLOT\` first." >&2
-        exit 1
-      fi
-      if lsof -nP -iTCP:"$SPRING_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
-        echo "Slot $SLOT is already running (:$SPRING_PORT)." >&2
-        exit 1
-      fi
-      # The main instance keeps whatever its projectforge.properties says.
-      opts+=" -Dserver.port=$SPRING_PORT -Dprojectforge.domain=http://localhost:$SPRING_PORT -Dserver.servlet.session.cookie.name=$COOKIE"
-    fi
-    "$GRADLEW" -p "$ROOT" build -x test
-    # First start after `setup`: fill the fresh database as soon as the instance answers.
-    [[ -f "$PF_HOME/$SETUP_PENDING" ]] && init_database &
-    JAVA_TOOL_OPTIONS="$opts" \
-      exec "$GRADLEW" -p "$ROOT" :projectforge-application:bootRun "$@"
+    slot_run "$@"
     ;;
   setup)
     require_slot setup
-    if [[ -d "$PF_HOME" ]]; then
-      echo "$PF_HOME already exists; \`pfDev.sh reset $SLOT\` first to start over." >&2
-      exit 1
-    fi
-    init_slot_home
-    # Read by the first `run`, which initializes the database with it (the setup needs a running instance).
-    (umask 077 && echo "${1:-Pf-$(openssl rand -hex 8)-1x}" >"$PF_HOME/$SETUP_PENDING")
-    echo "Done. Start it with \`pfDev.sh run $SLOT\` (:$SPRING_PORT); the first start fills the database with test data."
+    slot_setup "${1:-}"
     ;;
   reset)
     require_slot reset
-    if [[ ! -d "$PF_HOME" ]]; then
-      echo "$PF_HOME doesn't exist."
-      exit 0
-    fi
-    if lsof -nP -iTCP:"$SPRING_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
-      echo "Something is listening on :$SPRING_PORT — stop the instance first." >&2
-      exit 1
-    fi
-    read -r -p "Delete $PF_HOME (database, index, logs)? [y/N] " answer
-    [[ "$answer" == [yY] ]] && rm -rf "$PF_HOME" && echo "Deleted."
+    slot_reset
+    ;;
+  renew)
+    require_slot renew
+    slot_renew "$@"
     ;;
   ps)
     list_servers
@@ -539,6 +643,15 @@ case "$cmd" in
     ;;
   publish)
     publish "$@"
+    ;;
+  github-release)
+    if (($# == 0)); then
+      echo "$RELEASE_USAGE" >&2
+      exit 1
+    fi
+    for version in "$@"; do
+      github_release "$version"
+    done
     ;;
   check)
     cd "$NEXT" && npm run typecheck && npm run lint && exec npm run format:check

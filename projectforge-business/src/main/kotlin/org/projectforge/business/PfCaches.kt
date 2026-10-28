@@ -36,6 +36,7 @@ import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -123,17 +124,15 @@ class PfCaches {
     }
 
     /**
-     * Fills the task, kunde, konto, projectManager, ... of the given project.
+     * Fills the task, kunde, konto, contactPerson, ... of the given project.
      * @param project The project to fill.
      * @return The filled project for chaining.
      */
     fun initialize(project: ProjektDO): ProjektDO {
-        project.headOfBusinessManager = getUserIfNotInitialized(project.headOfBusinessManager)
+        project.contactPerson = getUserIfNotInitialized(project.contactPerson)
         project.konto = getKontoIfNotInitialized(project.konto)
         project.kunde = getKundeIfNotInitialized(project.kunde)
-        project.projectManager = getUserIfNotInitialized(project.projectManager)
         project.projektManagerGroup = getGroupIfNotInitialized(project.projektManagerGroup)
-        project.salesManager = getUserIfNotInitialized(project.salesManager)
         project.task = getTaskIfNotInitialized(project.task)
         return project
     }
@@ -162,6 +161,18 @@ class PfCaches {
         vacation.otherReplacements =
             vacation.otherReplacements?.mapNotNull { getEmployeeIfNotInitialized(it) }?.toMutableSet()
         return vacation
+    }
+
+    /**
+     * Fills the user and the substitutes of the given availability.
+     * @param availability The availability to fill.
+     * @return The filled availability for chaining.
+     */
+    fun initialize(availability: AvailabilityDO): AvailabilityDO {
+        availability.user = getUserIfNotInitialized(availability.user)
+        availability.substitutes =
+            availability.substitutes?.mapNotNull { getUserIfNotInitialized(it) }?.toMutableSet()
+        return availability
     }
 
     /**
@@ -198,7 +209,7 @@ class PfCaches {
      * its [RechnungInfo], but none of the position entities.
      *
      * `positionen` is a lazy collection, so iterating it means one `SELECT` per invoice: over a list of
-     * 17.000 invoices that is 17.000 queries and ~20 s of the request, while the sums and the cost unit
+     * N invoices that is N queries and many seconds of the request, while the sums and the cost unit
      * columns of a list row come from the cached [RechnungInfo] (whose own positions are preloaded by
      * `RechnungJdbcService`) and need no entity at all. Compare [initialize] for [AuftragDO], which leaves
      * its positions alone for the same reason.
@@ -341,10 +352,8 @@ class PfCaches {
             project.konto = getKontoIfNotInitialized(project.konto)
             project.task = getTaskIfNotInitialized(project.task)
             project.kunde = getKundeIfNotInitialized(project.kunde)
-            project.projectManager = getUserIfNotInitialized(project.projectManager)
-            project.headOfBusinessManager = getUserIfNotInitialized(project.headOfBusinessManager)
+            project.contactPerson = getUserIfNotInitialized(project.contactPerson)
             project.projektManagerGroup = getGroupIfNotInitialized(project.projektManagerGroup)
-            project.salesManager = getUserIfNotInitialized(project.salesManager)
         }
     }
 
@@ -404,7 +413,7 @@ class PfCaches {
         }
 
         /**
-         * Fills the task, kunde, konto, projectManager, ... of the given project.
+         * Fills the task, kunde, konto, contactPerson, ... of the given project.
          * @param project The project to fill.
          * @return The filled project for chaining.
          */

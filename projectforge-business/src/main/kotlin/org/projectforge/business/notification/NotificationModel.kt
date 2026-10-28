@@ -47,6 +47,12 @@ enum class NotificationRuleType : I18nEnum {
     /** Time sheets without cost 2 unit in the last months (missing in the salary export). */
     TIMESHEETS_WITHOUT_KOST2,
 
+    /** Time sheets booked by a grant an employee proposed, to be accepted by the project management. */
+    TIMESHEETS_TO_ACCEPT,
+
+    /** Unpaid creditor invoices due within some working days or overdue (to be paid in time). */
+    CREDITOR_INVOICES_DUE,
+
     /** No condition: all recipients get the notification when it is triggered (by hand or by the schedule). */
     MANUAL;
 
@@ -110,7 +116,7 @@ enum class NotificationChannel : I18nEnum {
     IN_APP,
     MAIL,
 
-    /** Not yet supported (phase 2): such steps are skipped. */
+    /** To the mobile phone of the user, if SMS is configured ([NotificationRuleDO.smsText] or subject and link). */
     SMS;
 
     override val i18nKey: String
@@ -229,7 +235,28 @@ class NotificationParams(
     var passwordMaxAgeDays: Int = 90,
     /** [NotificationRuleType.TIMESHEETS_WITHOUT_KOST2]: the months looked at, the current month included. */
     var kost2MissingMonths: Int = 2,
+    /**
+     * [NotificationRuleType.CREDITOR_INVOICES_DUE]: unpaid creditor invoices due within these working days (0: from the
+     * due date on), overdue ones included. Independent of the red marking of the list
+     * ([org.projectforge.business.fibu.RechnungCalculator.CREDITOR_OVERDUE_WORKING_DAYS]).
+     */
+    var dueWorkingDays: Int = 2,
+    /** All rule types: the link of the notifications ("Open" in the app). */
+    var linkMode: LinkMode = LinkMode.DEFAULT,
+    /** [LinkMode.MENU_ITEM]: the id of the menu item (`MenuItemDefId`) linked to. */
+    var linkMenuItem: String? = null,
 ) {
+    enum class LinkMode {
+        /** The page of the rule type, e.g. the time sheets (none for a manual rule). */
+        DEFAULT,
+
+        /** No link. */
+        NONE,
+
+        /** The page of the menu item [linkMenuItem]. */
+        MENU_ITEM,
+    }
+
     enum class ReferredMonth(val offset: Long) {
         CURRENT(0),
         PREVIOUS(-1);

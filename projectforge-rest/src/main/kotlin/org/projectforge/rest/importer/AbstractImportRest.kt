@@ -40,19 +40,14 @@ import java.io.InputStream
 private val log = KotlinLogging.logger {}
 
 /**
- * The layout-free, JSON returning analog of the UILayout based [AbstractImportPageRest] /
- * [AbstractImportUploadPageRest] pair.
- *
- * Where the legacy pages answer with `UILayout` / `ResponseAction` objects a React page rehydrates, this base
- * answers with plain [ImportView] JSON that a hand built page reads directly. The legacy classes stay in
- * place — address and banking still use them; this base is only the reusable foundation for the newer,
- * hand built import pages, starting with the incoming-invoice (Kreditor) CSV import.
+ * The layout-free, JSON returning base of the hand built import pages (projectforge-next, `ImportFeature`): it
+ * answers with plain [ImportView] JSON that the page reads directly. It replaced the UILayout based
+ * `AbstractImportPageRest` of the React app, whose last subclass (banking) moved to next.
  *
  * The import storage lives in the user's session under a per-controller key (see [sessionAttributeName]),
- * reusing the same [ExpiringSessionAttributes] mechanism and [AbstractImportPageRest.getSessionAttributeName]
- * scheme the upload page uses, so the two never collide.
+ * using [ExpiringSessionAttributes] (see [getSessionAttributeName]).
  *
- * The endpoint contract mirrors [AbstractImportPageRest]'s actions:
+ * The endpoint contract:
  *  - `POST upload` parses the file and stashes the storage, then answers the [ImportView].
  *  - `GET state` answers the current [ImportView] (an empty, `null`-storage one if nothing is in progress).
  *  - `POST reconcile` reconciles with the database, then answers the [ImportView].
@@ -105,6 +100,14 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
     protected open fun extraViewMeta(storage: S): Map<String, Any>? = null
 
     /**
+     * Called after a successful upload, once the own storage is stashed: a subclass may read the [file] again, e.g. to
+     * fill the stash of a related import from the same file (see [stashStorage]). Defaults to nothing.
+     * @return Notes for the user (translated), answered as [ImportView.uploadNotes].
+     */
+    protected open fun afterUpload(request: HttpServletRequest, file: MultipartFile, filename: String): List<String>? =
+        null
+
+    /**
      * The uploaded file is parsed, the resulting storage stashed in the session and its [ImportView]
      * answered. On an empty file, a failed check or a parse error the response is a `400` carrying the
      * message under the `error` key.
@@ -127,9 +130,13 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
             val storage = file.inputStream.use { inputStream ->
                 proceedUpload(inputStream, filename, request)
             }
-            ExpiringSessionAttributes.setAttribute(request, sessionAttributeName, storage, TTL_MINUTES)
+            stashStorage(request, sessionAttributeName, storage)
             log.info { "Successfully processed file: $filename" }
-            return ResponseEntity.ok(buildView(storage))
+            // The own import is done, a failure of the follow-up must not turn it into an error.
+            val uploadNotes = runCatching { afterUpload(request, file, filename) }
+                .onFailure { log.warn(it) { "Error in the follow-up of the upload of file: $filename" } }
+                .getOrNull()
+            return ResponseEntity.ok(buildView(storage, uploadNotes = uploadNotes))
         } catch (ex: Exception) {
             log.error(ex) { "Error processing uploaded file: $filename" }
             return ResponseEntity.badRequest().body(mapOf("error" to (ex.message ?: translate("file.upload.error"))))
@@ -164,7 +171,7 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
 
     /**
      * Filters the stashed entries to the ids the user selected — keeping only the importable states (NEW,
-     * MODIFIED, DELETED), exactly as [AbstractImportPageRest]'s import action does — and enqueues the import
+     * MODIFIED, DELETED) — and enqueues the import
      * job. Answers `{ jobId }` on success, a `400` with an `error` message otherwise.
      */
     @PostMapping("commit")
@@ -227,6 +234,7 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
     protected fun buildView(
         storage: S?,
         displayOptions: ImportStorage.DisplayOptions? = null,
+        uploadNotes: List<String>? = null,
     ): ImportView<O> {
         storage ?: return ImportView()
         return ImportView(
@@ -236,7 +244,16 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
             info = storage.info,
             entries = storage.createEntries(displayOptions),
             meta = extraViewMeta(storage),
+            uploadNotes = uploadNotes?.takeIf { it.isNotEmpty() },
         )
+    }
+
+    /**
+     * Stashes the given storage in the session under the given key, with the TTL of an upload. Besides the own
+     * [sessionAttributeName], the key of a related import may be given (see [afterUpload]).
+     */
+    protected fun stashStorage(request: HttpServletRequest, sessionAttributeName: String, storage: ImportStorage<*>) {
+        ExpiringSessionAttributes.setAttribute(request, sessionAttributeName, storage, TTL_MINUTES)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -245,11 +262,10 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
     }
 
     /**
-     * The per-controller session key, reusing [AbstractImportPageRest]'s scheme so it never collides with a
-     * legacy import page's key.
+     * The per-controller session key, see [getSessionAttributeName].
      */
     protected val sessionAttributeName: String
-        get() = AbstractImportPageRest.getSessionAttributeName(this::class.java)
+        get() = getSessionAttributeName(this::class.java)
 
     /**
      * The request body of [commit]: the ids of the selected entries and the display options.
@@ -260,6 +276,14 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
     )
 
     companion object {
+        /**
+         * The session key of the import storage of the given import controller, e.g. for an import that fills the
+         * stash of a related one (see [stashStorage]).
+         */
+        fun getSessionAttributeName(importRest: Class<*>): String {
+            return "${importRest.name}.importStorage"
+        }
+
         /** Session TTL of a stashed import, in minutes (matching the legacy upload page). */
         private const val TTL_MINUTES = 20
     }

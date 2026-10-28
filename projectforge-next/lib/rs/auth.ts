@@ -112,7 +112,7 @@ export function login(
 export function cancelLogin(signal?: AbortSignal): Promise<ActionResult> {
   return request<ActionResult>(
     `${LOGIN_PATH}/cancel`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
@@ -150,7 +150,7 @@ export function sendSmsCode(
 ): Promise<TwoFactorResult> {
   return request<TwoFactorResult>(
     `${TWO_FACTOR_PATHS[context]}/sendSmsCode`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
@@ -162,7 +162,7 @@ export function sendMailCode(
 ): Promise<TwoFactorResult> {
   return request<TwoFactorResult>(
     `${TWO_FACTOR_PATHS[context]}/sendMailCode`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
@@ -238,7 +238,7 @@ export function cancelPasswordReset(
 ): Promise<ActionResult> {
   return request<ActionResult>(
     `${RESET_PATH}/cancel`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }

@@ -54,7 +54,7 @@ open class TeamCalEventsProvider() {
   private lateinit var teamEventDao: TeamEventDao
 
   @Autowired
-  private lateinit var vacationProvider: VacationProvider
+  private lateinit var absenceProvider: AbsenceProvider
 
   /**
    * @param teamCalendarIds Null items should only occur on (de)serialization issues.
@@ -198,7 +198,9 @@ open class TeamCalEventsProvider() {
       val userIds = User.toLongArray(cal.includeLeaveDaysForUsers)?.toSet()
       val groupIds = Group.toLongArray(cal.includeLeaveDaysForGroups)?.toSet()
       val style = styleMap.get(calId)
-      vacationProvider.addEvents(start, end, events, groupIds, userIds, settings, style)
+      // The kinds the calendar includes (TeamCalDO.includeAbsenceKinds, all by default), not those of the user's own
+      // choice (CalendarFilter.absenceKinds): the calendar shows the same as its subscription.
+      absenceProvider.addEvents(start, end, events, groupIds, userIds, cal.absenceKinds, settings, style)
     }
   }
 }

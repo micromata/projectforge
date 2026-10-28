@@ -48,18 +48,18 @@ import java.time.LocalDate
 /**
  * Guards the fix for the reported "inverted" full text search on the outgoing invoice list.
  *
- * The customer report: with a payment state filter selected, searching `post` showed invoices *without* "Post"
- * in the customer name while `-post` showed exactly the "Deutsche Post" customers — the results looked swapped.
+ * The customer report: with a payment state filter selected, searching `acme` showed invoices *without* "Acme"
+ * in the customer name while `-acme` showed exactly the customers with "Acme" in their name — the results looked swapped.
  *
  * The cause was the analyzer on [KundeDO.name]: it used to be indexed with a `KeywordTokenizer`, so the whole
- * name was a *single* term and a search term "post" only ever matched a *prefix of the whole name* — never the
- * "post" *inside* "Deutsche Post DHL …". So `post` missed those customers and `-post` (a prohibited-only
- * clause = every doc lacking the term "post") surfaced exactly them. The fix indexes the name with a
+ * name was a *single* term and a search term "acme" only ever matched a *prefix of the whole name* — never the
+ * "acme" *inside* "Global Acme Services …". So `acme` missed those customers and `-acme` (a prohibited-only
+ * clause = every doc lacking the term "acme") surfaced exactly them. The fix indexes the name with a
  * `WhitespaceTokenizer` (see `MyAnalysisConfigurer`), so each word of the name is its own term while special
- * characters stay attached — a word inside the name matches, and a name like "K+S" is still found.
+ * characters stay attached — a word inside the name matches, and a name like "A+B" is still found.
  *
- * The two invoice groups below mirror the screenshots: "DHL Freight" invoices carry "Post" in a tokenized
- * field (subject), so they match `post` via the subject; the "Deutsche Post" invoices carry "post" only in the
+ * The two invoice groups below cover both cases: the invoices of one customer carry the word in a tokenized
+ * field (subject), so they match via the subject; the invoices of the other customer carry it only in the
  * customer name and used to go missing — they are the regression this test locks down.
  */
 class OutgoingInvoiceSearchStatusTest : AbstractTestBase() {
@@ -122,10 +122,33 @@ class OutgoingInvoiceSearchStatusTest : AbstractTestBase() {
         assertEquals(ids, listIds(search = "kwatt"), "A word inside the name (\"kwatt\") matches its customer.")
     }
 
+    @Test
+    fun `a prefix of the customer name finds its invoices, also via the project's customer`() {
+        val kunde = insertKunde(840, "Quorbilion GmbH")
+        val direct = insertInvoices(kunde, subject = "Lieferung", count = 1)
+        val freeText = insertInvoices(null, subject = "Lieferung", count = 1, kundeText = "Quorbiliion")
+        rebuildIndex()
+        assertEquals((direct + freeText).toSortedSet(), listIds(search = "quorbili"))
+        assertEquals((direct + freeText).toSortedSet(), listIds(search = "Quorbili"))
+        assertEquals(direct.toSortedSet(), listIds(search = "quorbilion"))
+    }
+
+    /**
+     * An invoice saved by the next app references its customer as an id-only stub (`Rechnung.copyTo`). It must be
+     * found by the customer's name right away, not only after the next reindex.
+     */
+    @Test
+    fun `an invoice saved with an id-only customer is found by the customer name without reindex`() {
+        val kunde = insertKunde(850, "Zarquonix GmbH")
+        val ids = insertInvoices(KundeDO().also { it.nummer = kunde.nummer }, subject = "Lieferung", count = 1)
+        assertEquals(ids.toSortedSet(), listIds(search = "zarquon"))
+    }
+
     /** Runs the list exactly as the `POST list` endpoint does (state filter as a custom result filter). */
     private fun listIds(search: String? = null, status: String? = null): Set<Long> {
         val filter = MagicFilter()
         filter.searchString = search
+        filter.autoWildcardSearch = true // As the list endpoints set it.
         if (status != null) {
             filter.entries.add(MagicFilterEntry(field = OutgoingInvoiceEntityRest.LIST_TYPE_FILTER).also {
                 it.value.values = arrayOf(status)
@@ -148,13 +171,14 @@ class OutgoingInvoiceSearchStatusTest : AbstractTestBase() {
         return kunde
     }
 
-    private fun insertInvoices(kunde: KundeDO, subject: String, count: Int): List<Long> {
+    private fun insertInvoices(kunde: KundeDO?, subject: String, count: Int, kundeText: String? = null): List<Long> {
         return (1..count).map {
             val invoice = RechnungDO().also {
                 it.datum = LocalDate.now()
                 it.faelligkeit = LocalDate.now()
                 it.status = RechnungStatus.GESTELLT
                 it.kunde = kunde
+                it.kundeText = kundeText
                 it.betreff = subject
                 it.addPosition(RechnungsPositionDO().also { pos ->
                     pos.menge = BigDecimal.ONE

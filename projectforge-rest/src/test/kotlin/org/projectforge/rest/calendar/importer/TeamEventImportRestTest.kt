@@ -33,7 +33,7 @@ import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.core.ExpiringSessionAttributes
-import org.projectforge.rest.importer.AbstractImportPageRest
+import org.projectforge.rest.importer.AbstractImportRest
 import org.projectforge.rest.importer.ImportEntry
 import org.projectforge.rest.importer.ImportView
 import org.springframework.beans.factory.annotation.Autowired
@@ -169,7 +169,7 @@ class TeamEventImportRestTest : AbstractTestBase() {
     private fun commitAll(request: MockHttpServletRequest) {
         val storage = ExpiringSessionAttributes.getAttribute(
             request,
-            AbstractImportPageRest.getSessionAttributeName(TeamEventImportRest::class.java),
+            AbstractImportRest.getSessionAttributeName(TeamEventImportRest::class.java),
         ) as TeamEventImportStorage
         val selected = storage.pairEntries.filter {
             it.status == ImportEntry.Status.NEW || it.status == ImportEntry.Status.MODIFIED

@@ -29,6 +29,7 @@ import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.i18n.translate
+import org.projectforge.login.LoginService
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.rest.config.RestUtils
@@ -82,7 +83,7 @@ class DataTransferPublicSession {
       unregister(request, data.id) // Unregister, force re-login.
       return null
     }
-    log.info {
+    log.debug {
       "External user info restored from session: ${ToStringUtil.toJsonString(data)}, ip=${
         RestUtils.getClientIp(
           request
@@ -94,7 +95,8 @@ class DataTransferPublicSession {
 
   /**
    * Tries to log-in the user. Uses LoginProtection. Doesn't check if the user is already logged-in.
-   * The session id will be changed (session fixation), but any previous logged-in area will be put in the new session.
+   * The session id will be changed (session fixation), keeping the session's attributes (areas logged-in before, a
+   * login to ProjectForge).
    */
   internal fun login(
     request: HttpServletRequest,
@@ -103,7 +105,7 @@ class DataTransferPublicSession {
     userInfo: String?
   ): CheckAccessResult {
     if (accessToken == null || password == null) {
-      return CheckAccessResult(failedAccessMessage = LoginResultStatus.FAILED.localizedMessage)
+      return CheckAccessResult(failedAccessMessage = loginFailedMessage)
     }
     val loginProtection = LoginProtection.instance()
     val clientIpAddress = RestUtils.getClientIp(request)
@@ -125,7 +127,7 @@ class DataTransferPublicSession {
     if (dbo == null) {
       log.warn { "Data transfer area with externalAccessToken '$accessToken' not found. Requested by ip=$clientIpAddress, userInfo='$userInfo'." }
       loginProtection.incrementFailedLoginTimeOffset(accessToken, clientIpAddress)
-      return CheckAccessResult(failedAccessMessage = LoginResultStatus.FAILED.localizedMessage)
+      return CheckAccessResult(failedAccessMessage = loginFailedMessage)
     }
     val errorMessage = checkDataBaseEntry(request, dbo, dbo.id!!, accessToken, password, userInfo)
     if (errorMessage != null) {
@@ -136,15 +138,12 @@ class DataTransferPublicSession {
     loginProtection.clearLoginTimeOffset(accessToken, null, clientIpAddress)
     log.info { "Data transfer area with externalAccessToken '$accessToken': login successful by ip=$clientIpAddress, userInfo='$userInfo'." }
 
-    // Session Fixation: Change JSESSIONID after login (due to security reasons / XSS attack on login page)
+    // Session Fixation: Change JSESSIONID after login (due to security reasons / XSS attack on login page).
+    // A new id rather than a new session: the attributes stay, i.e. the areas logged-in before and the login to
+    // ProjectForge itself of a user signed on (SSO), whom invalidating the session would log out.
     request.getSession(false)?.let { session ->
       if (!session.isNew) {
-        val map = getSessionMap(request)
-        session.invalidate()
-        if (map != null) {
-          // Save any logged-in areas from old session and restore in nes session:
-          request.getSession(true).setAttribute(SESSION_ATTRIBUTE, map)
-        }
+        request.changeSessionId()
       }
     }
     register(request, dbo, userInfo)
@@ -165,7 +164,7 @@ class DataTransferPublicSession {
           RestUtils.getClientIp(request)
         }, userInfo='$userInfo'."
       }
-      return LoginResultStatus.FAILED.localizedMessage
+      return loginFailedMessage
     }
     // Check the matching of all params (protect against cross area access)
     if (dbo.id != areaId || dbo.externalPassword != password || dbo.externalAccessToken != accessToken) {
@@ -174,10 +173,15 @@ class DataTransferPublicSession {
           RestUtils.getClientIp(request)
         }, userInfo='$userInfo'."
       }
-      return LoginResultStatus.FAILED.localizedMessage
+      return loginFailedMessage
     }
-    if (dbo.externalUploadEnabled != true && dbo.externalDownloadEnabled != true) {
+    if (dbo.deleted || (dbo.externalUploadEnabled != true && dbo.externalDownloadEnabled != true)) {
       return translate("plugins.datatransfer.external.noAccess")
+    }
+    if (dataTransferAreaDao.externalAccessConfig.isOnGateway(dbo)) {
+      // The external access of this area is served by the gateway only (its link points there).
+      log.info { "External access of data transfer area '${dbo.areaName}' refused here, it runs via the gateway. Requested by ip=${RestUtils.getClientIp(request)}." }
+      return translate("plugins.datatransfer.external.viaGateway")
     }
     return null
   }
@@ -207,11 +211,19 @@ class DataTransferPublicSession {
     getSessionMap(request)?.remove(areaId)
   }
 
+  /**
+   * Ends the login to every area of this session. The session itself only if nobody is logged in to ProjectForge in
+   * it: a user signed on (SSO) stays logged in there.
+   */
   internal fun logout(request: HttpServletRequest) {
     val map = getSessionMap(request)
     if (map != null) {
       log.info { "External user logged-out: ${ToStringUtil.toJsonString(map)}, ip=${RestUtils.getClientIp(request)}" }
-      request.getSession(false)?.invalidate()
+      if (LoginService.getUser(request) != null) {
+        request.getSession(false)?.removeAttribute(SESSION_ATTRIBUTE)
+      } else {
+        request.getSession(false)?.invalidate()
+      }
     }
   }
 
@@ -222,7 +234,7 @@ class DataTransferPublicSession {
     areaId ?: return false
     fileId ?: return false
     val data = getSessionMap(request)?.get(areaId) ?: return false
-    log.info {
+    log.debug {
       "External user info restored from session: ${ToStringUtil.toJsonString(data)}, ip=${
         RestUtils.getClientIp(
           request
@@ -274,6 +286,12 @@ class DataTransferPublicSession {
       request.getSession(false)?.getAttribute(SESSION_ATTRIBUTE) as? MutableMap<Long, TransferAreaData>
     return map
   }
+
+  /**
+   * Not [LoginResultStatus.FAILED]: its text asks to check the login name, and an external user has none.
+   */
+  private val loginFailedMessage: String
+    get() = translate("plugins.datatransfer.external.loginFailed")
 
   companion object {
     internal const val SESSION_ATTRIBUTE = "transferAreas"

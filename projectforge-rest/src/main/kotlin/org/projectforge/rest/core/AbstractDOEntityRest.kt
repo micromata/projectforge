@@ -29,11 +29,8 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.MagicFilter
 
 /**
- * The layout free base class of an entity page that transfers its data objects as they are, without a
- * DTO in between, see [AbstractEntityRest].
- *
- * The counterpart of [AbstractDOPagesRest], whose body this repeats - see [AbstractDTOEntityRest] for
- * why.
+ * The base class of an entity page that transfers its data objects as they are, without a DTO in
+ * between, see [AbstractEntityRest].
  *
  * @author Kai Reinhard
  */

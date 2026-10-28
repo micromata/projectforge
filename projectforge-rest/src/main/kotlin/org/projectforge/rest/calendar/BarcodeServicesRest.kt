@@ -27,63 +27,29 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.client.j2se.MatrixToImageWriter
 import com.google.zxing.qrcode.QRCodeWriter
 import org.apache.commons.io.output.ByteArrayOutputStream
-import org.projectforge.rest.config.Rest
 import org.springframework.http.MediaType
-import org.springframework.web.bind.annotation.*
-import java.net.URLEncoder
-import java.nio.file.FileSystems
-import java.nio.file.Path
-
+import java.util.Base64
 
 /**
- * Rest services for getting events.
+ * QR codes as data urls. There is no endpoint serving them as images: a code may carry a secret (keys, tokens), which
+ * must not be part of an url, and its size isn't left to the client.
  */
-@RestController
-@RequestMapping(BarcodeServicesRest.PATH)
 class BarcodeServicesRest {
-    class BarcodeRequest(var text: String, var width: Int = 250, var height: Int = 250)
-
-    @PostMapping(value = ["qrcodeFromPost.png"], produces = [MediaType.IMAGE_PNG_VALUE])
-    @ResponseBody
-    fun getQrCode(@RequestBody barcodeRequest: BarcodeRequest): ByteArray {
-        val qrCodeWriter = QRCodeWriter()
-        val bitMatrix = qrCodeWriter.encode(barcodeRequest.text, BarcodeFormat.QR_CODE, barcodeRequest.width, barcodeRequest.height)
-        val pngOutputStream = ByteArrayOutputStream()
-        MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream)
-        return pngOutputStream.toByteArray()
-    }
-
-    @GetMapping(value = ["qrcode.png"], produces = [MediaType.IMAGE_PNG_VALUE])
-    @ResponseBody
-    fun getQrCode(@RequestParam("width") width: Int?,
-                  @RequestParam("height") height: Int?,
-                  @RequestParam("text") text: String?)
-            : ByteArray {
-        val qrCodeWriter = QRCodeWriter()
-        val bitMatrix = qrCodeWriter.encode(text ?: "", BarcodeFormat.QR_CODE, width ?: 250, height ?: 250)
-        val pngOutputStream = ByteArrayOutputStream()
-        MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream)
-        return pngOutputStream.toByteArray()
-    }
-
     companion object {
-        fun getBarcodeGetUrl(text: String): String {
-            return "$GET_URL?text=${URLEncoder.encode("$text", "UTF-8")}"
+        /**
+         * The QR code of the given text as data url (`data:image/png;base64,...`) for an img tag. For secrets, which
+         * must not be part of an url: the code is delivered in the (uncached) json response instead.
+         */
+        fun getQrCodeDataUrl(text: String, width: Int = 250, height: Int = 250): String {
+            val png = createQrCodePng(text, width, height)
+            return "data:${MediaType.IMAGE_PNG_VALUE};base64,${Base64.getEncoder().encodeToString(png)}"
         }
 
-        internal const val PATH = "${Rest.URL}/barcode"
-
-        const val POST_URL = "$PATH/qrcodeFromPost.png"
-
-        const val GET_URL = "$PATH/qrcode.png"
+        private fun createQrCodePng(text: String, width: Int, height: Int): ByteArray {
+            val bitMatrix = QRCodeWriter().encode(text, BarcodeFormat.QR_CODE, width, height)
+            val pngOutputStream = ByteArrayOutputStream()
+            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream)
+            return pngOutputStream.toByteArray()
+        }
     }
-}
-
-fun main() {
-    val text = "https://www.projectforge.org"
-    val barcodeRequest = BarcodeServicesRest.BarcodeRequest(text = text)
-    val qrCodeWriter = QRCodeWriter()
-    val bitMatrix = qrCodeWriter.encode(barcodeRequest.text, BarcodeFormat.QR_CODE, barcodeRequest.width, barcodeRequest.height)
-    val path: Path = FileSystems.getDefault().getPath("test.png")
-    MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path)
 }

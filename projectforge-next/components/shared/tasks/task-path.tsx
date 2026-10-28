@@ -5,6 +5,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Home01Icon } from "@hugeicons/core-free-icons";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import type { TaskNode } from "@/lib/rs/task";
+import { inactiveRefClass } from "@/lib/page-def/reference";
+import { cn } from "@/lib/utils";
 import { TaskPathCurrent } from "./task-path-current";
 
 interface TaskPathProps {
@@ -12,12 +14,19 @@ interface TaskPathProps {
   task: TaskNode | null;
   /**
    * Pick an ancestor instead — the shortcut the legacy panel offers as „Strukturelement durch dieses
-   * Strukturoberelement ersetzen". `null` means the home button: clear the selection.
+   * Strukturoberelement ersetzen". `null` means the home button: clear the selection, unless [onHome]
+   * gives that button another job.
    */
   onSelect: (task: TaskNode | null) => void;
   /**
-   * Opens the tree, as the field's own button does. Given one, „please select" is a click target
-   * itself — it is the widest thing on the row and the first place a pointer goes.
+   * What the home button does instead of `onSelect(null)`. The select control opens the tree with it:
+   * clearing has its own (x) there, and a home icon reads as "the root", not as "remove".
+   */
+  onHome?: () => void;
+  /**
+   * Opens the tree, as the field's own button does. Given one, „please select" — or the selected task,
+   * once there is one — is a click target itself: it is the widest thing on the row and the first place
+   * a pointer goes.
    */
   onOpen?: () => void;
   /**
@@ -57,11 +66,6 @@ interface TaskPathProps {
    * the same reason (the node the tree is rooted at). Pass `false` to render the last segment plain.
    */
   highlightCurrent?: boolean;
-  /**
-   * Make the last segment — the task itself, not its ancestors — a link to the time sheets booked on it
-   * (see [TaskPathCurrent]). Off by default; the order position turns it on.
-   */
-  linkCurrentToTimesheets?: boolean;
 }
 
 /**
@@ -69,11 +73,12 @@ interface TaskPathProps {
  *
  * The ancestors are buttons, since selecting one is how the timesheet moves a booking up the tree
  * without opening the whole panel. The last segment is the current selection: highlighted turquoise by
- * default and inert (see [highlightCurrent]) unless [linkCurrentToTimesheets] makes it a link.
+ * default (see [highlightCurrent]); it opens the tree when [onOpen] is given.
  */
 export function TaskPath({
   task,
   onSelect,
+  onHome,
   onOpen,
   openTreeOnAncestorClick = false,
   onDrillDown,
@@ -83,7 +88,6 @@ export function TaskPath({
   ancestorTooltip,
   showPlaceholder = true,
   highlightCurrent = true,
-  linkCurrentToTimesheets = false,
 }: TaskPathProps) {
   const t = useTranslations();
   // `path` holds the ancestors root-first and excludes the task itself (TaskServicesRest.createTask).
@@ -106,7 +110,7 @@ export function TaskPath({
       <HintTooltip text={homeText}>
         <button
           type="button"
-          onClick={() => onSelect(null)}
+          onClick={() => (onHome ? onHome() : onSelect(null))}
           disabled={disabled}
           aria-label={homeText}
           className="cursor-pointer text-muted-foreground hover:text-foreground disabled:cursor-default disabled:hover:text-muted-foreground"
@@ -125,7 +129,10 @@ export function TaskPath({
                 else onSelect(ancestor);
               }}
               disabled={disabled}
-              className="max-w-40 cursor-pointer truncate text-muted-foreground hover:text-foreground hover:underline disabled:cursor-default disabled:hover:text-muted-foreground disabled:hover:no-underline"
+              className={cn(
+                "max-w-40 cursor-pointer truncate text-muted-foreground hover:text-foreground hover:underline disabled:cursor-default disabled:hover:text-muted-foreground disabled:hover:no-underline",
+                inactiveRefClass(ancestor)
+              )}
             >
               {ancestor.title}
             </button>
@@ -138,7 +145,7 @@ export function TaskPath({
           <TaskPathCurrent
             task={task}
             highlight={highlightCurrent}
-            linkToTimesheets={linkCurrentToTimesheets}
+            onOpen={disabled ? undefined : onOpen}
           />
         </span>
       )}

@@ -9,14 +9,11 @@ import type { AgGridNode } from "@/lib/dynamic/grid/ag-grid-types";
 import { initialStateFrom } from "@/lib/dynamic/grid/initial-state";
 
 /**
- * "Reset columns" for a dynamic grid.
+ * "Reset columns" for a grid laid out by the server (the task tree).
  *
- * The endpoint (`AbstractPagesRest.resetGridState`) drops the user's stored grid
+ * The endpoint (`TaskServicesRest.resetGridState`) drops the user's stored grid
  * preference and answers with an UPDATE action carrying the default `columnDefs`
- * and `sortModel`. That answer is applied to the table state here rather than
- * handed to `callAction`: the generic interpreter would file both under
- * `variables`, where nothing reads them — the grid takes its columns from the
- * layout node, not from a variable.
+ * and `sortModel`. That answer is applied to the table state here.
  *
  * Without the url (a grid that doesn't persist its state) the table still resets
  * to the column defs' own defaults, which is what the empty state means.
@@ -50,9 +47,9 @@ export function useGridStateReset(
     }
     try {
       await suspendPersistence(async () => {
-        // A GET carries no body at all (see callDynamicAction), so the postData is
-        // only there to satisfy the signature.
-        const result = await callDynamicAction("GET", url, { data: {} });
+        // POST, as it drops a stored preference; the endpoint reads no body, the postData
+        // is only there to satisfy the signature.
+        const result = await callDynamicAction("POST", url, { data: {} });
         if (result.kind !== "action") return;
         const variables = result.response.variables ?? {};
         // Applied inside the suspension: the state update it triggers must not queue a write of its

@@ -51,6 +51,13 @@ export const TEAM_CAL_METADATA = {
       i18nKey: "id",
       required: false,
     },
+    includeAbsenceKinds: {
+      dataType: "STRING",
+      i18nKey: "plugins.teamcal.absenceKinds",
+      required: false,
+      maxLength: 255,
+      tooltipI18nKey: "plugins.teamcal.absenceKinds.tooltip",
+    },
     includeLeaveDaysForGroups: {
       dataType: "STRING",
       i18nKey: "calendar.filter.vacation.groups",

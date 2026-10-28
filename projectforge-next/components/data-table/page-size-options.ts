@@ -13,7 +13,7 @@ export const DEFAULT_PAGE_SIZE = 50;
 /**
  * The extra-large page size the pagination select offers after PAGE_SIZE_OPTIONS, for looking at a big
  * result on one page. Deliberately not "all rows": the server's cap (QueryFilter.QUERY_FILTER_MAX_ROWS,
- * 100 000) took ~20 s to serve for the unfiltered accounting records, and the table renders every row of
+ * 100 000) takes many seconds to serve on a large database, and the table renders every row of
  * the page. A larger result simply gets a second page.
  *
  * Transient by design: it is never stored as the user's page size (see storablePageSize), so the next

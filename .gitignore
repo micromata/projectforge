@@ -35,8 +35,6 @@ test-output
 
 /log4j-dev.properties
 
-#Node
-/projectforge-webapp/node_modules
 /ProjectForge
 projectforge-caldav/src/main/resources/milton.license.properties
 projectforge-caldav/src/main/resources/milton.license.sig
@@ -45,12 +43,12 @@ projectforge-repository/jackrabbit
 projectforge-jcr/test/out
 projectforge-rest/test/out
 plugins/org.projectforge.plugins.datatransfer/test
+plugins/org.projectforge.plugins.merlin/test
 .DS_Store
 projectforge-application/src/main/kotlin/local
 .gradle
 build
 .kotlin
-projectforge-webapp/node
 projectforge-business/src/main/kotlin/testscripts
 .claude
 

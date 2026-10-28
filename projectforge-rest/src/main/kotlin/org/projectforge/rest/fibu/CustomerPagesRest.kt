@@ -24,10 +24,15 @@
 package org.projectforge.rest.fibu
 
 import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.KundeStatus
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
@@ -35,6 +40,7 @@ import org.projectforge.rest.dto.Customer
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterListElement
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -54,6 +60,9 @@ class CustomerPagesRest
     : AbstractDTOEntityRest<KundeDO, Customer, KundeDao>(
         KundeDao::class.java,
         "fibu.kunde.title") {
+
+    @Autowired
+    private lateinit var fibuNumberValidation: FibuNumberValidation
 
     @PostConstruct
     private fun postConstruct() {
@@ -86,25 +95,50 @@ class CustomerPagesRest
     }
 
     /**
+     * Sorts by the customer number the list shows, which no database column holds: [KundeDO.kost] is a
+     * getter formatting [KundeDO.nummer], so the criteria query can't order by it (it would log "Could not
+     * resolve attribute" and return the rows unordered). The formatted number only segments the plain one
+     * ("5123" → "5.123"), so ordering by `nummer` is the same order.
+     */
+    override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
+        target.sortProperties.replaceAll {
+            if (it.property == "kost") SortProperty("nummer", it.sortOrder) else it
+        }
+    }
+
+    /**
      * The customer number is the entity's user-assigned id and must be free. This is the check
      * [KundeDao.onInsert] makes (`fibu.kunde.validation.existingCustomerNr`), repeated here as a field
      * error so the hand built form marks the number field instead of only toasting the exception. Used
      * to be the `onWatchFieldsUpdate` of the removed edit layout.
+     *
+     * The number must also fit the configured number ranges ([NumberRangeService]).
      *
      * Only for a new customer: an existing one's number equals its id, so `doesNumberAlreadyExist` would
      * always find the customer itself.
      */
     override fun validate(validationErrors: MutableList<ValidationError>, dto: Customer) {
         super.validate(validationErrors, dto)
-        if (dto.id == null && dto.nummer != null && baseDao.doesNumberAlreadyExist(transformForDB(dto))) {
-            validationErrors.add(
-                ValidationError(
-                    translate("fibu.kunde.validation.existingCustomerNr"),
-                    fieldId = KundeDO::nummer.name,
-                )
-            )
+        if (dto.id == null) {
+            fibuNumberValidation.validateNewCustomerNumber(validationErrors, dto.nummer)
         }
     }
 
     override val autoCompleteSearchFields = arrayOf("name", "identifier")
+
+    /**
+     * Customers no longer in business (ended, non-active, non-existent) only on request
+     * ([org.projectforge.ui.AutoCompletion.SHOW_INACTIVE_PARAM]).
+     */
+    override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<KundeDO> {
+        val list = super.queryAutocompleteObjects(request, filter)
+        return if (showInactive(request)) list else list.filter { !isInactiveAutoCompleteEntry(it) }
+    }
+
+    override fun isInactiveAutoCompleteEntry(obj: KundeDO): Boolean =
+        super.isInactiveAutoCompleteEntry(obj) || obj.status in INACTIVE_STATUS
+
+    private companion object {
+        val INACTIVE_STATUS = setOf(KundeStatus.ENDED, KundeStatus.NONACTIVE, KundeStatus.NONEXISTENT)
+    }
 }

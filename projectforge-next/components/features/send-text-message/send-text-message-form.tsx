@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/field";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { SuggestInput } from "@/components/shared/suggest-input";
+import { DialogFrame } from "@/components/shared/dialog-frame";
 import { SectionCard } from "@/components/shared/section-card";
 import { toast } from "@/lib/toast";
 import { RsError } from "@/lib/rs/client";
@@ -27,8 +28,14 @@ import type { SendTextMessageInitialData } from "./types";
  */
 export function SendTextMessageForm({
   initial,
+  inDialog,
+  onDone,
 }: {
   initial: SendTextMessageInitialData;
+  /** Rendered in SendTextMessageDialog: no card of its own, the dialog is the frame. */
+  inDialog?: boolean;
+  /** Called once the message was sent, e.g. to close the dialog. */
+  onDone?: () => void;
 }) {
   const t = useTranslations();
   const [phoneNumber, setPhoneNumber] = useState(initial.phoneNumber ?? "");
@@ -37,10 +44,14 @@ export function SendTextMessageForm({
 
   const send = useMutation({
     mutationFn: () => sendTextMessage({ phoneNumber, message }),
-    onSuccess: (result) =>
-      result.success
-        ? toast.success(result.message)
-        : toast.error(result.message),
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success(result.message);
+        onDone?.();
+      } else {
+        toast.error(result.message);
+      }
+    },
     onError: (error) =>
       toast.error(error instanceof RsError ? error.message : String(error)),
   });
@@ -53,8 +64,9 @@ export function SendTextMessageForm({
     setMessage(initial.message);
   };
 
+  const Card = inDialog ? DialogFrame : SectionCard;
   return (
-    <SectionCard className="mx-auto w-full max-w-2xl">
+    <Card className="mx-auto w-full max-w-2xl">
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor="sms-phone-number">
@@ -112,6 +124,6 @@ export function SendTextMessageForm({
         confirmLabel={t("send")}
         onConfirm={() => send.mutate()}
       />
-    </SectionCard>
+    </Card>
   );
 }

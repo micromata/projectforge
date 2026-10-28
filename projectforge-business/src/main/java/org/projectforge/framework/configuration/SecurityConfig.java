@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Bean used by ConfigXML (config.xml) for configuring security stuff.
+ * Security settings, configured by the properties projectforge.security.*.
  *
  * @author Kai Reinhard
  */
@@ -76,11 +76,11 @@ public class SecurityConfig
   }
 
   /**
-   * @see ConfigXml#toString(Object)
+   * @see SecretFieldToString#toString(Object)
    */
   @Override
   public String toString()
   {
-    return ConfigXml.toString(this);
+    return SecretFieldToString.toString(this);
   }
 }

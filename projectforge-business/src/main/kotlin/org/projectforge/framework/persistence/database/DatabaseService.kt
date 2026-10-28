@@ -147,6 +147,7 @@ class DatabaseService {
             adminUser.addRight(UserRightDO(UserRightId.ORGA_INCOMING_MAIL, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.ORGA_OUTGOING_MAIL, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE))
+            adminUser.addRight(UserRightDO(UserRightId.FIBU_CUSTOMER, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE))
             adminUser.rights!!.forEach(Consumer { obj: UserRightDO -> userRightDao.insert(obj, checkAccess = false) })
@@ -333,6 +334,7 @@ class DatabaseService {
      * @return
      */
     fun internalDoesTableExist(table: String): Boolean {
+        checkTableName(table)
         val jdbc = getDatabaseExecutor()
         try {
             jdbc.queryForInt("SELECT COUNT(*) FROM $table")
@@ -343,12 +345,20 @@ class DatabaseService {
         return true
     }
 
+    /**
+     * The table name goes into the sql as it is (it can't be a bind parameter), so only a plain identifier.
+     */
+    private fun checkTableName(table: String) {
+        require(TABLE_NAME_REGEX.matches(table)) { "Invalid table name: '$table'" }
+    }
+
     fun isTableEmpty(table: String): Boolean {
         accessCheck()
         return internalIsTableEmpty(table)
     }
 
     fun internalIsTableEmpty(table: String): Boolean {
+        checkTableName(table)
         val jdbc = getDatabaseExecutor()
         return try {
             jdbc.queryForInt("SELECT COUNT(*) FROM $table") == 0
@@ -469,6 +479,8 @@ class DatabaseService {
 
     companion object {
         const val DEFAULT_ADMIN_USER: String = "admin"
+
+        private val TABLE_NAME_REGEX = Regex("^[A-Za-z_][A-Za-z0-9_.]*$")
 
         private val SYSTEM_ADMIN_PSEUDO_USER = PFUserDO()
 

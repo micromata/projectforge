@@ -1,0 +1,381 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.rest.fibu
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.PfCaches
+import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.customergroup.BusinessUnit
+import org.projectforge.business.fibu.customergroup.CustomerGroup
+import org.projectforge.business.fibu.customergroup.CustomerGroupConfig
+import org.projectforge.business.fibu.customergroup.CustomerGroupError
+import org.projectforge.business.fibu.customergroup.CustomerGroupService
+import org.projectforge.business.fibu.customergroup.CustomerSet
+import org.projectforge.business.fibu.customergroup.OrderAccessGrant
+import org.projectforge.business.fibu.customergroup.ProjectGroup
+import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightValue
+import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.task.TaskServicesRest
+import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.TargetType
+import org.projectforge.ui.ValidationError
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+
+/**
+ * The editor of the customer groups, business units, order access grants and project groups (next page
+ * `/customerGroups`), for
+ * finance and controlling only — admins included only if they are members of one of these groups.
+ */
+@RestController
+@RequestMapping("${Rest.URL}/customerGroups")
+class CustomerGroupRest : AbstractDynamicPageRest() {
+    /**
+     * A customer, task, user or group as the multi-autocomplete holds it. [deleted] and [deactivated] are sent for a
+     * user or group no longer active (struck through), and ignored when posted, as further unknown properties are,
+     * also where those are refused (development).
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    class EntityRef(
+        var id: Long? = null,
+        var displayName: String? = null,
+        var deleted: Boolean? = null,
+        var deactivated: Boolean? = null,
+    )
+
+    open class CustomerSetData(
+        var key: String? = null,
+        var name: String? = null,
+        var customers: MutableList<EntityRef> = mutableListOf(),
+        var texts: MutableList<String> = mutableListOf(),
+    )
+
+    class GroupData : CustomerSetData()
+
+    class BusinessUnitData : CustomerSetData() {
+        var groups: MutableList<String> = mutableListOf()
+
+        /** Tasks with their path as label, as the task type-ahead (`task/tree/autosearch`) gives them. */
+        var tasks: MutableList<EntityRef> = mutableListOf()
+
+        /** Hex code, e.g. `#ffcb00`, see [BusinessUnit.color]. */
+        var color: String? = null
+    }
+
+    /** An order access grant ([OrderAccessGrant]), users, groups and customers as the multi-autocomplete holds them. */
+    class OrderAccessData(
+        var key: String? = null,
+        var name: String? = null,
+        var remark: String? = null,
+        var users: MutableList<EntityRef> = mutableListOf(),
+        /** The groups of users (not customer groups). */
+        var userGroups: MutableList<EntityRef> = mutableListOf(),
+        var customers: MutableList<EntityRef> = mutableListOf(),
+        /** Keys of the customer groups. */
+        var groups: MutableList<String> = mutableListOf(),
+        /** Keys of the business units. */
+        var businessUnits: MutableList<String> = mutableListOf(),
+    )
+
+    /** A project group ([ProjectGroup]), its projects as the multi-autocomplete holds them. */
+    class ProjectGroupData(
+        var key: String? = null,
+        var name: String? = null,
+        var projects: MutableList<EntityRef> = mutableListOf(),
+    )
+
+    /** A user named by a grant that has no effect for them, see [orderAccessInfo]. */
+    class IneffectiveGrantee(val name: String, val reason: IneffectiveReason)
+
+    enum class IneffectiveReason { DEACTIVATED, NO_PROJECT_MANAGER, NO_ORDER_BOOK_RIGHT }
+
+    /** The names and patterns of one field, for [matches]. */
+    class MatchesRequest(var texts: MutableList<String> = mutableListOf())
+
+    class CustomerGroupsData(
+        var groups: MutableList<GroupData> = mutableListOf(),
+        var businessUnits: MutableList<BusinessUnitData> = mutableListOf(),
+        var orderAccess: MutableList<OrderAccessData> = mutableListOf(),
+        var projectGroups: MutableList<ProjectGroupData> = mutableListOf(),
+        /** The stored row's last update (epoch millis), sent back on save for the optimistic lock. */
+        var lastUpdate: Long? = null,
+        /** Free text about the definition as a whole, see [CustomerGroupConfig.remark]. */
+        var remark: String? = null,
+        /** The stored `ConfigurationDO` row, for its change history (`/rs/configuration/history/{id}`). */
+        var id: Long? = null,
+        /** The value as stored (JSON), the base of the editor's diff. */
+        var storedJson: String? = null,
+    )
+
+    /** The configuration as JSON text, as it is stored (ids only), see [toJson]. */
+    class JsonValue(var json: String? = null)
+
+    @Autowired
+    private lateinit var accessChecker: AccessChecker
+
+    @Autowired
+    private lateinit var customerGroupService: CustomerGroupService
+
+    @Autowired
+    private lateinit var orderStatisticsCache: OrderStatisticsCache
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
+
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
+    @GetMapping
+    fun getData(): CustomerGroupsData {
+        checkAccess()
+        return toData(customerGroupService.index.config)
+    }
+
+    @AccessChecked("FINANCE/CONTROLLING group + not restricted/demo")
+    @PostMapping("save")
+    fun save(
+        request: HttpServletRequest,
+        @RequestBody postData: PostData<CustomerGroupsData>,
+    ): ResponseEntity<ResponseAction> {
+        validateCsrfToken(request, postData)?.let { return it }
+        checkAccess()
+        accessChecker.checkRestrictedOrDemoUser()
+        val data = postData.data
+        val config = toConfig(data)
+        val errors = customerGroupService.save(config, data.lastUpdate)
+        if (errors.isNotEmpty()) {
+            return ResponseEntity(ResponseAction(validationErrors = errors.map { toValidationError(it) }), HttpStatus.NOT_ACCEPTABLE)
+        }
+        // The cached statistics are per user: a revoked order access grant must not show them any longer.
+        orderStatisticsCache.clear()
+        return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING).addVariable("data", getData()))
+    }
+
+    /**
+     * The errors the given unsaved configuration would be refused with, so the editor shows a conflict right
+     * after the change causing it (on both sets involved) instead of only on saving. Nothing is stored, hence
+     * no CSRF token; the optimistic lock is [save]'s.
+     */
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
+    @PostMapping("validate")
+    fun validate(@RequestBody data: CustomerGroupsData): List<ValidationError> {
+        checkAccess()
+        return customerGroupService.check(toConfig(data)).map { toValidationError(it) }
+    }
+
+    /**
+     * The given unsaved configuration as it would be stored (ids only, no display names), for the editor's diff
+     * against the stored value and the former ones of the history, which are of the same format. Nothing is stored.
+     */
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
+    @PostMapping("toJson")
+    fun toJson(@RequestBody data: CustomerGroupsData): JsonValue {
+        checkAccess()
+        return JsonValue(customerGroupService.toStoredJson(toConfig(data)))
+    }
+
+    /**
+     * The customer entities and free-text customers the given names and patterns match, so the editor can show
+     * what a pattern catches before it is saved.
+     */
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
+    @PostMapping("matches")
+    fun matches(@RequestBody request: MatchesRequest): CustomerGroupService.CustomerMatches {
+        checkAccess()
+        return customerGroupService.matches(request.texts)
+    }
+
+    /**
+     * What the given unsaved configuration leaves without a business unit, shown below the business units and
+     * updated while editing.
+     */
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
+    @PostMapping("unassigned")
+    fun unassigned(@RequestBody data: CustomerGroupsData): CustomerGroupService.Unassigned {
+        checkAccess()
+        return customerGroupService.unassigned(toConfig(data))
+    }
+
+    /**
+     * What each business unit of the given unsaved configuration stands for (by business-unit key), shown in
+     * its row and updated while editing.
+     */
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
+    @PostMapping("businessUnitMembers")
+    fun businessUnitMembers(@RequestBody data: CustomerGroupsData): Map<String, List<CustomerGroupService.BusinessUnitMember>> {
+        checkAccess()
+        return customerGroupService.businessUnitMembers(toConfig(data))
+    }
+
+    /**
+     * The users each order access grant of the given unsaved configuration names (directly or through a group) but
+     * has no effect for, by grant key: deactivated users, users neither project manager nor project assistant, and
+     * users without read access to the order book. Shown in the grant's row as a hint, not refused: memberships
+     * change at any time, and the access check leaves these users out anyway.
+     */
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
+    @PostMapping("orderAccessInfo")
+    fun orderAccessInfo(@RequestBody data: CustomerGroupsData): Map<String, List<IneffectiveGrantee>> {
+        checkAccess()
+        return data.orderAccess.mapNotNull { grant ->
+            val key = grant.key ?: return@mapNotNull null
+            val userIds = userGroupCache.getMemberIds(
+                grant.userGroups.mapNotNull { it.id }, grant.users.mapNotNull { it.id },
+            )
+            val ineffective = userIds.mapNotNull { userGroupCache.getUser(it) }.mapNotNull { user ->
+                val reason = when {
+                    !user.hasSystemAccess() -> IneffectiveReason.DEACTIVATED
+                    !userGroupCache.isUserMemberOfGroup(
+                        user, ProjectForgeGroup.PROJECT_MANAGER, ProjectForgeGroup.PROJECT_ASSISTANT,
+                    ) -> IneffectiveReason.NO_PROJECT_MANAGER
+                    !accessChecker.hasRight(
+                        user, UserRightId.PM_ORDER_BOOK,
+                        UserRightValue.READONLY, UserRightValue.PARTLYREADWRITE, UserRightValue.READWRITE,
+                    ) -> IneffectiveReason.NO_ORDER_BOOK_RIGHT
+                    else -> null
+                } ?: return@mapNotNull null
+                IneffectiveGrantee(user.getFullname(), reason)
+            }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
+            ineffective.takeIf { it.isNotEmpty() }?.let { key to it }
+        }.toMap()
+    }
+
+    private fun checkAccess() {
+        accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
+    }
+
+    private fun toData(config: CustomerGroupConfig) = CustomerGroupsData(
+        groups = config.groups.map { fill(GroupData(), it) }.toMutableList(),
+        businessUnits = config.businessUnits.map { bu ->
+            fill(BusinessUnitData(), bu).also { data ->
+                data.groups = bu.groups.toMutableList()
+                data.tasks = bu.tasks.map { EntityRef(it, TaskServicesRest.formatPath(it)) }.toMutableList()
+                data.color = bu.color
+            }
+        }.toMutableList(),
+        orderAccess = config.orderAccess.map { grant ->
+            OrderAccessData(
+                key = grant.key,
+                name = grant.name,
+                remark = grant.remark,
+                users = grant.userIds.map { id ->
+                    val user = userGroupCache.getUser(id)
+                    EntityRef(
+                        id,
+                        user?.getFullname() ?: "$id",
+                        deleted = user?.deleted?.takeIf { it },
+                        deactivated = user?.deactivated?.takeIf { it },
+                    )
+                }.toMutableList(),
+                userGroups = grant.groupIds.map { id ->
+                    val group = userGroupCache.getGroup(id)
+                    EntityRef(id, group?.name ?: "$id", deleted = group?.deleted?.takeIf { it })
+                }.toMutableList(),
+                customers = grant.customers.map { customerRef(it) }.toMutableList(),
+                groups = grant.groups.toMutableList(),
+                businessUnits = grant.businessUnits.toMutableList(),
+            )
+        }.toMutableList(),
+        projectGroups = config.projectGroups.map { group ->
+            ProjectGroupData(
+                key = group.key,
+                name = group.name,
+                projects = group.projects.map { EntityRef(it, PfCaches.instance.getProjekt(it)?.let { p -> KostFormatter.instance.formatProjektWithCustomer(p) } ?: "$it") }
+                    .toMutableList(),
+            )
+        }.toMutableList(),
+        remark = config.remark,
+        lastUpdate = customerGroupService.lastUpdate,
+        id = customerGroupService.entryId,
+        storedJson = customerGroupService.storedJson,
+    )
+
+    private fun <T : CustomerSetData> fill(dest: T, src: CustomerSet): T {
+        dest.key = src.key
+        dest.name = src.name
+        dest.customers = src.customers.map { customerRef(it) }.toMutableList()
+        dest.texts = src.texts.toMutableList()
+        return dest
+    }
+
+    private fun customerRef(nummer: Long) = EntityRef(nummer, PfCaches.instance.getKunde(nummer)?.displayName ?: "$nummer")
+
+    private fun toConfig(data: CustomerGroupsData) = CustomerGroupConfig(
+        groups = data.groups.map { copy(it, CustomerGroup()) }.toMutableList(),
+        businessUnits = data.businessUnits.map { bu ->
+            copy(bu, BusinessUnit()).also { dest ->
+                dest.groups = bu.groups.toMutableList()
+                dest.tasks = bu.tasks.mapNotNull { it.id }.distinct().toMutableList()
+                dest.color = bu.color?.trim()?.lowercase()?.takeIf { it.isNotEmpty() }
+            }
+        }.toMutableList(),
+        orderAccess = data.orderAccess.map { src ->
+            OrderAccessGrant().also { dest ->
+                dest.key = src.key?.takeIf { it.isNotBlank() }
+                dest.name = src.name
+                dest.remark = src.remark
+                dest.userIds = src.users.mapNotNull { it.id }.toMutableList()
+                dest.groupIds = src.userGroups.mapNotNull { it.id }.toMutableList()
+                dest.customers = src.customers.mapNotNull { it.id }.toMutableList()
+                dest.groups = src.groups.toMutableList()
+                dest.businessUnits = src.businessUnits.toMutableList()
+            }
+        }.toMutableList(),
+        projectGroups = data.projectGroups.map { src ->
+            ProjectGroup().also { dest ->
+                dest.key = src.key?.takeIf { it.isNotBlank() }
+                dest.name = src.name
+                dest.projects = src.projects.mapNotNull { it.id }.toMutableList()
+            }
+        }.toMutableList(),
+        remark = data.remark,
+    )
+
+    private fun <T : CustomerSet> copy(src: CustomerSetData, dest: T): T {
+        dest.key = src.key?.takeIf { it.isNotBlank() }
+        dest.name = src.name
+        dest.customers = src.customers.mapNotNull { it.id }.toMutableList()
+        dest.texts = src.texts.toMutableList()
+        return dest
+    }
+
+    private fun toValidationError(error: CustomerGroupError) = ValidationError(
+        message = translateMsg(error.messageKey, *error.params.toTypedArray()),
+        fieldId = error.fieldId.takeIf { it.isNotEmpty() },
+        messageId = error.messageKey,
+    )
+}

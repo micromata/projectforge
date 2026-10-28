@@ -60,7 +60,7 @@ dependencies {
     implementation(project(":projectforge-rest"))
     implementation(project(":projectforge-carddav"))
     implementation(project(":projectforge-idp"))
-    implementation(project(":projectforge-webapp"))
+    implementation(project(":org.projectforge.plugins.cveradar"))
     implementation(project(":org.projectforge.plugins.datatransfer"))
     implementation(project(":org.projectforge.plugins.ihk"))
     implementation(project(":org.projectforge.plugins.licensemanagement"))
@@ -240,7 +240,6 @@ dependencies {
 sourceSets {
     named("main") {
         resources {
-            srcDir(project(":projectforge-webapp").layout.buildDirectory.dir("resources/main"))
             srcDir(project(":projectforge-next").layout.buildDirectory.dir("resources/main"))
         }
     }
@@ -252,19 +251,22 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+tasks.named<Test>("test") {
+    // GenerateChangelogMainTest and SiteTranslationTest check the changelog and the website: a change there has to
+    // run them again instead of leaving the tests up to date.
+    inputs.files(rootProject.fileTree("site") {
+        exclude("_site/**", "node_modules/**", ".jekyll-cache/**", "assets/css/main.css", "_data/binaries.json")
+    }).withPropertyName("site").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(rootProject.file("changelog")).withPropertyName("changelog").withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 tasks.named("processResources") {
-    dependsOn(":projectforge-webapp:npmBuild", ":projectforge-webapp:copyReactBuild")
     dependsOn(":projectforge-next:npmBuild", ":projectforge-next:copyNextBuild")
 }
 
 tasks.named<BootJar>("bootJar") {
-    dependsOn(":projectforge-webapp:webAppJar")
     dependsOn(":projectforge-next:nextAppJar")
     dependsOn(tasks.named("jar")) // Ensure the plain JAR is built before bootJar
-    val webAppJarProvider = project(":projectforge-webapp").layout.buildDirectory.file("libs/projectforge-webapp-${project.version}.jar")
-    from(webAppJarProvider) {
-        into("BOOT-INF/lib") // Insert the webapp jar into the boot jar.
-    }
     val nextAppJarProvider = project(":projectforge-next").layout.buildDirectory.file("libs/projectforge-next-${project.version}.jar")
     from(nextAppJarProvider) {
         into("BOOT-INF/lib") // Insert the next.js app jar into the boot jar.
@@ -353,6 +355,18 @@ tasks.register<JavaExec>("releaseSha256Changelog") {
 }
 
 /**
+ * Used by bin/pfDev.sh github-release: writes the GitHub release notes of the tagged release -PreleaseVersion=X.Y.Z
+ * to build/release-notes-X.Y.Z.md.
+ */
+tasks.register<JavaExec>("releaseNotesChangelog") {
+    group = "development"
+    mainClass.set("org.projectforge.development.GenerateChangelogMain")
+    classpath = sourceSets["test"].runtimeClasspath
+    workingDir = rootDir
+    args("--release-notes", providers.gradleProperty("releaseVersion").getOrElse(""))
+}
+
+/**
  * Used by bin/pfDev.sh changelog-fold: moves changelog/unreleased/ into the release -PreleaseId (default: newest).
  * Used by bin/pfDev.sh release with -PreleaseVersion=X.Y.Z -PreleasePublished=true|false: adds the entry of the
  * release if missing (published or not) and moves changelog/unreleased/ into it.
@@ -368,4 +382,14 @@ tasks.register<JavaExec>("foldChangelog") {
     } else {
         args("--fold", providers.gradleProperty("releaseId").getOrElse(""))
     }
+}
+
+// Comparison of the answers of the main instance and the gateway (CardDAV, ICS), see dev-docs/HOWTO-TEST-GATEWAY.md.
+// ./gradlew :projectforge-application:gatewayCompare [-Pconfig=<file>]
+tasks.register<JavaExec>("gatewayCompare") {
+    group = "verification"
+    description = "Compares the CardDAV and ICS answers of the main instance and the gateway."
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("org.projectforge.gateway.compare.GatewayCompareKt")
+    args = listOfNotNull(project.findProperty("config") as String?)
 }

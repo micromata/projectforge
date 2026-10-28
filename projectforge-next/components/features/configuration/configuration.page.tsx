@@ -1,3 +1,4 @@
+import { GROUP_NOMENCLATURE_QUERY_KEY } from "@/hooks/use-group-nomenclature";
 import { CONFIGURATION_METADATA } from "@/lib/metadata/configuration.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import {
@@ -10,10 +11,12 @@ import { ConfigurationAccessNote } from "./edit/configuration-access-note";
 import { ConfigurationValueField } from "./edit/configuration-value-field";
 import { ConfigurationValueCell } from "./list/configuration-value-cell";
 import { ParamLabelCell } from "./list/param-label-cell";
-import type { ConfigurationDetail, ConfigurationRow } from "./types";
+import {
+  CONFIGURATION_ENTITY,
+  type ConfigurationDetail,
+  type ConfigurationRow,
+} from "./types";
 
-/** REST category of the configuration entity — `ConfigurationEntityRest` is mapped to "configuration". */
-export const CONFIGURATION_ENTITY = "configuration";
 /** React Query key of the list, so a write from the edit page refreshes it. */
 export const CONFIGURATION_LIST_QUERY_KEY = ["configuration"] as const;
 /** Route of the list; the edit page hangs below it as `/configuration/{id}`. */
@@ -46,6 +49,9 @@ export const CONFIGURATION_PAGE = definePage<
   metadata: CONFIGURATION_METADATA,
   route: CONFIGURATION_ROUTE,
   queryKey: CONFIGURATION_LIST_QUERY_KEY,
+  // The group nomenclature (parameter `groupNomenclature`) is read under its own key by the wizards and
+  // the group form; a save here must not leave them on the previous value.
+  extraInvalidateKeys: [GROUP_NOMENCLATURE_QUERY_KEY],
   // Administration > System configuration (MenuCreator, CONFIGURATION).
   categoryKey: "menu.administration",
   // `.title.list`, not the bare `administration.configuration`: that key is both a text and the parent

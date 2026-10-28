@@ -4,6 +4,7 @@
 // `nummernkreis`, `bereich`, `kost2ArtsAsString` and `statusAsString` are computed read-only values.
 
 import type { PROJEKT_METADATA } from "@/lib/metadata/projekt.generated";
+import type { NamedRef } from "@/components/shared/ref-list";
 
 /** The constants of org.projectforge.business.fibu.ProjektStatus, from the metadata. */
 export type ProjektStatus =
@@ -51,8 +52,10 @@ export interface Kost2ArtSelection {
  */
 export interface ProjectDetail {
   id: number | null;
-  /** The project's own two digits, 0..99 — unique within its customer or internal range. */
+  /** The local project number — unique within its customer or the range without customers. */
   nummer?: number | null;
+  /** The system-wide unique project number, e.g. 512345 (range 5) or a free one. */
+  projektnummer?: number | null;
   name?: string | null;
   identifier?: string | null;
   description?: string | null;
@@ -62,21 +65,25 @@ export interface ProjectDetail {
   konto?: RefDto | null;
   task?: ProjectTaskDto | null;
   projektManagerGroup?: RefDto | null;
-  projectManager?: RefDto | null;
-  headOfBusinessManager?: RefDto | null;
-  salesManager?: RefDto | null;
-  /** 5 with a customer, 4 without (computed by the entity). Read-only. */
+  contactPerson?: RefDto | null;
+  /** The further contact persons next to `contactPerson` (`Project.additionalContacts`). */
+  additionalContacts?: RefDto[] | null;
+  /** The contact person and the further ones, full names, for the list column only. */
+  assignedPersons?: string | null;
+  /** The same persons as references, struck through when no longer active (see RefList). */
+  assignedPersonList?: NamedRef[] | null;
+  /** Digit 1 of the project's Kost2 (computed from the project number, absent for a free one). Read-only. */
   nummernkreis?: number | null;
-  /** The customer's number, or the internal range (computed by the entity). Read-only. */
+  /** Digits 2-4 of the project's Kost2 (storage format of Kost2DO). Read-only. */
   bereich?: number | null;
-  /** The internal range ("4.xxx") of a project without customer. */
+  /** Legacy: digits 2-4 of an internal project; not used any more (see ProjektDO.internKost2_4). */
   internKost2_4?: number | null;
   /**
    * All cost 2 types for the edit form; in a list row only the project's existing ones, with `active`
    * (struck through when not, see ProjectKost2ArtsCell).
    */
   kost2Arts?: Kost2ArtSelection[] | null;
-  /** The formatted number ("5.123.04"). Read-only. */
+  /** The formatted project number ("5.123.04", "1.0007.3", or a free one). Read-only. */
   kostFormatted?: string | null;
   /** The two-digit ids of the project's cost 2 types ("00, 01, 03") — list rows only. Read-only. */
   kost2ArtsAsString?: string | null;

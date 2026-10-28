@@ -8,8 +8,6 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { Label } from "@/components/ui/label";
-import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { DateInput } from "@/components/shared/date-input";
 import { NumberBox } from "@/components/shared/form/number-box";
 import { ChartDashboard } from "@/components/shared/dashboard/chart-dashboard";
@@ -24,9 +22,11 @@ import {
 import { LiquidityForecastBalanceChart } from "./liquidity-forecast-balance-chart";
 import { LiquidityForecastCashflowChart } from "./liquidity-forecast-cashflow-chart";
 import { LiquidityForecastExport } from "./liquidity-forecast-export";
+import {
+  clampNextDays,
+  LiquidityForecastDaysInput,
+} from "./liquidity-forecast-days-input";
 
-/** The forecast horizons offered — days from the base date on. */
-const NEXT_DAYS_OPTIONS = [30, 60, 90, 180, 365] as const;
 const DEFAULT_NEXT_DAYS = 90;
 /** React Query key of the user's last-used forecast parameters (see fetchLiquidityForecastSettings). */
 const FORECAST_SETTINGS_KEY = ["liquidity", "forecast", "settings"];
@@ -77,8 +77,9 @@ function LiquidityForecastControls({
   const [baseDate, setBaseDate] = useState<string | null>(
     settings.baseDate ?? null
   );
-  const [nextDays, setNextDays] = useState(
-    settings.nextDays ?? DEFAULT_NEXT_DAYS
+  // Null while the days box is empty (being retyped); the request then keeps the default horizon.
+  const [nextDays, setNextDays] = useState<number | null>(
+    clampNextDays(settings.nextDays ?? null, DEFAULT_NEXT_DAYS)
   );
 
   // Memoized so its reference only changes when an input does — the debounce then resets its timer on a
@@ -87,7 +88,7 @@ function LiquidityForecastControls({
     () => ({
       startAmount: startAmount ?? 0,
       baseDate: baseDate || null,
-      nextDays,
+      nextDays: clampNextDays(nextDays, DEFAULT_NEXT_DAYS),
     }),
     [startAmount, baseDate, nextDays]
   );
@@ -142,24 +143,11 @@ function LiquidityForecastControls({
             aria-label={tf("baseDate._")}
           />
         </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor="nextDays">{tf("nextDays")}</Label>
-          <Select
-            value={String(nextDays)}
-            onValueChange={(value) => setNextDays(Number(value))}
-          >
-            <SelectTrigger id="nextDays" className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {NEXT_DAYS_OPTIONS.map((days) => (
-                <SelectItem key={days} value={String(days)}>
-                  {days}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <LiquidityForecastDaysInput
+          label={tf("nextDays")}
+          value={nextDays}
+          onChange={setNextDays}
+        />
         <LiquidityForecastExport
           params={debouncedParams}
           disabled={query.isPending || points.length === 0}

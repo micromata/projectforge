@@ -38,14 +38,13 @@ import java.math.BigDecimal
  */
 class MonthlyEmployeeReportData(
     /** The user the report is about (defaults to the logged-in user). */
-    val userId: Long?,
-    val userName: String,
+    val user: UserRef,
     /** True if the logged-in user may pick another user (access to other users' time sheets). */
     val maySelectOtherUsers: Boolean,
     val year: Int,
     /** 1-based: 1 = January, ..., 12 = December. */
     val month: Int,
-    /** Years that have time sheets for [userId], for the year dropdown (descending). */
+    /** Years that have time sheets for [user], for the year dropdown (descending). */
     val availableYears: List<Int>,
     /** Whether cost accounting is configured (adds the Kost1 header field and Kost2 columns). */
     val costConfigured: Boolean,
@@ -142,6 +141,11 @@ class MonthlyEmployeeReportRow(
     val sum: String,
     /** Monthly time saved by AI for this row (formatted). */
     val aiTimeSavings: String,
+    /**
+     * A task row booked without Kost2, marked only while the db-param `timesheet.warnMissingKost2` is on
+     * (see [org.projectforge.framework.configuration.Configuration.isWarnMissingKost2]).
+     */
+    val missingKost2: Boolean = false,
 )
 
 /**

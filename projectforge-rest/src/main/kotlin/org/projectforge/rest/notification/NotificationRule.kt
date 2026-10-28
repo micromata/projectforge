@@ -62,6 +62,7 @@ class NotificationRule(
     var daysBeforeExpiry: Int = 30,
     var passwordMaxAgeDays: Int = 90,
     var kost2MissingMonths: Int = 2,
+    var dueWorkingDays: Int = 2,
     var recipientGroups: List<Group> = emptyList(),
     var recipientUsers: List<User> = emptyList(),
     var allEmployees: Boolean = false,
@@ -73,8 +74,12 @@ class NotificationRule(
     var display: NotificationDisplay = NotificationDisplay.BANNER,
     var manualDone: Boolean = false,
     var menuBadge: String? = null,
+    var linkMode: NotificationParams.LinkMode = NotificationParams.LinkMode.DEFAULT,
+    var linkMenuItem: String? = null,
     var subject: String? = null,
     var text: String? = null,
+    /** Plain text with variables for the delivery by SMS; blank: subject and link. */
+    var smsText: String? = null,
     var editableByGroups: List<Group> = emptyList(),
     /** Read-only: the last run by schedule. */
     var lastRun: Date? = null,
@@ -99,6 +104,9 @@ class NotificationRule(
         daysBeforeExpiry = params.daysBeforeExpiry
         passwordMaxAgeDays = params.passwordMaxAgeDays
         kost2MissingMonths = params.kost2MissingMonths
+        dueWorkingDays = params.dueWorkingDays
+        linkMode = params.linkMode
+        linkMenuItem = params.linkMenuItem
         val recipients = src.readRecipients()
         recipientGroups = recipients.groupIds.map { Group(it) }.also { Group.restoreDisplayNames(it) }
         recipientUsers = recipients.userIds.map { User(it) }.also { User.restoreDisplayNames(it) }
@@ -113,7 +121,12 @@ class NotificationRule(
     override fun copyTo(dest: NotificationRuleDO) {
         super.copyTo(dest)
         dest.schedule = JsonUtils.toJson(schedule)
-        dest.params = JsonUtils.toJson(NotificationParams(referredMonth, vacationExpiry, daysBeforeExpiry, passwordMaxAgeDays, kost2MissingMonths))
+        dest.params = JsonUtils.toJson(
+            NotificationParams(
+                referredMonth, vacationExpiry, daysBeforeExpiry, passwordMaxAgeDays, kost2MissingMonths, dueWorkingDays,
+                linkMode, linkMenuItem = linkMenuItem?.takeIf { linkMode == NotificationParams.LinkMode.MENU_ITEM && it.isNotBlank() },
+            )
+        )
         dest.recipients = JsonUtils.toJson(
             NotificationRecipients(
                 groupIds = recipientGroups.mapNotNull { it.id }.distinct(),

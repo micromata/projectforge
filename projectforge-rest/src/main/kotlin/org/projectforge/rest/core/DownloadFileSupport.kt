@@ -24,10 +24,8 @@
 package org.projectforge.rest.core
 
 import org.projectforge.common.DateFormatType
-import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.ui.*
 import java.time.temporal.ChronoUnit
 import jakarta.servlet.http.HttpServletRequest
 
@@ -61,33 +59,6 @@ class DownloadFileSupport(
     var fileSize: String? = null
     var availableUntil: String? = null
     var filenameAndSize: String? = null
-  }
-
-  /**
-   * @param useDataObject If set (default), the field download.filenameAndSize of the data object is used, otherwise
-   * the value will be set directly from given download param.
-   */
-  fun createDownloadFieldset(title: String?, restPath: String, download: Download, useDataObject: Boolean = true): UIFieldset {
-    val availableUntil = translateMsg("scripting.download.filename.additional", download.availableUntil)
-    val fieldset = UIFieldset(title = title)
-    fieldset
-      .add(
-        UIReadOnlyField(
-          "download.filenameAndSize",
-          label = "file",
-          additionalLabel = "'$availableUntil",
-          value = if (useDataObject) null else download.filename,
-        )
-      )
-      .add(
-        UIButton.createDownloadButton(
-          responseAction = ResponseAction(
-            url = restPath,
-            targetType = TargetType.DOWNLOAD
-          )
-        )
-      )
-    return fieldset
   }
 
   fun getDownloadFile(request: HttpServletRequest): DownloadFile? {

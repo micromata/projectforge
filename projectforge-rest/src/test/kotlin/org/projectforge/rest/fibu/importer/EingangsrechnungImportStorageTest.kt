@@ -31,18 +31,18 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
- * Test class for EingangsrechnungImportStorage with ISICO matching scenario.
+ * Test class for EingangsrechnungImportStorage with PRIVA matching scenario.
  */
 class EingangsrechnungImportStorageTest {
 
     @Test
-    fun testISICOMatchingScenario() {
-        // Create ISICO import invoice (from CSV)
+    fun testCreditorMatchingScenario() {
+        // Create PRIVA import invoice (from CSV)
         val importInvoice = EingangsrechnungPosImportDTO(
-            referenz = "325124610",
-            kreditor = "ISICO Datenschutz GmbH",
+            referenz = "418236720",
+            kreditor = "PRIVA Datenschutz GmbH",
             datum = LocalDate.of(2025, 5, 2),
-            grossSum = BigDecimal("746.13"),
+            grossSum = BigDecimal("612.40"),
             konto = Konto(id = 1),
             betreff = "Some service description",
             faelligkeit = LocalDate.of(2025, 6, 1),
@@ -50,10 +50,10 @@ class EingangsrechnungImportStorageTest {
             positionNummer = 1
         )
 
-        // Create ISICO database invoice (existing)
+        // Create PRIVA database invoice (existing)
         val dbInvoice = EingangsrechnungDO().apply {
-            referenz = "3251246-10 / Az.: IS-0017-10/KSR"
-            kreditor = "ISICO GmbH"
+            referenz = "4182367-20 / Az.: PR-0042-20/ABC"
+            kreditor = "PRIVA GmbH"
             datum = LocalDate.of(2025, 5, 2)
             // Note: grossSum calculation would be through ensuredInfo but we'll skip for this test
         }
@@ -63,17 +63,17 @@ class EingangsrechnungImportStorageTest {
 
         // Score should be sufficient for matching (without amount matching due to complexity)
         // Expected: referenz(25) + kreditor(20) + date(20) = 65
-        assertTrue(score >= 60, "ISICO invoices should match with score >= 60, got $score")
+        assertTrue(score >= 60, "PRIVA invoices should match with score >= 60, got $score")
     }
 
     @Test
     fun testHeaderMatchingScenario() {
-        // Create ISICO import invoice (from CSV)
+        // Create PRIVA import invoice (from CSV)
         val importInvoice = EingangsrechnungPosImportDTO(
-            referenz = "325124610",
-            kreditor = "ISICO Datenschutz GmbH",
+            referenz = "418236720",
+            kreditor = "PRIVA Datenschutz GmbH",
             datum = LocalDate.of(2025, 5, 2),
-            grossSum = BigDecimal("746.13"),
+            grossSum = BigDecimal("612.40"),
             konto = Konto(id = 1),
             betreff = "Some service description",
             faelligkeit = LocalDate.of(2025, 6, 1),
@@ -81,10 +81,10 @@ class EingangsrechnungImportStorageTest {
             positionNummer = 1
         )
 
-        // Create ISICO database invoice (existing)
+        // Create PRIVA database invoice (existing)
         val dbInvoice = EingangsrechnungDO().apply {
-            referenz = "3251246-10 / Az.: IS-0017-10/KSR"
-            kreditor = "ISICO GmbH"
+            referenz = "4182367-20 / Az.: PR-0042-20/ABC"
+            kreditor = "PRIVA GmbH"
             datum = LocalDate.of(2025, 5, 2)
         }
 
@@ -93,6 +93,36 @@ class EingangsrechnungImportStorageTest {
 
         // Score should be sufficient for matching (without amount matching due to complexity)
         // Expected: referenz(25) + kreditor(20) + date(20) = 65
-        assertTrue(headerScore >= 60, "ISICO invoices should header match with score >= 60, got $headerScore")
+        assertTrue(headerScore >= 60, "PRIVA invoices should header match with score >= 60, got $headerScore")
+    }
+
+    @Test
+    fun `no update of an invoice of another date or creditor`() {
+        val read = EingangsrechnungPosImportDTO(
+            referenz = "2026-10001",
+            kreditor = "Example Alerting Inc.",
+            datum = LocalDate.of(2026, 9, 4),
+        )
+        val sameCreditorYearBefore = EingangsrechnungDO().apply {
+            referenz = "2025-10654"
+            kreditor = "Example Alerting Inc."
+            datum = LocalDate.of(2025, 9, 4)
+        }
+        assertFalse(read.isPlausibleUpdateOf(sameCreditorYearBefore), "A year apart: another invoice.")
+        assertFalse(read.isPlausibleMatch(sameCreditorYearBefore))
+
+        val otherCreditor = EingangsrechnungDO().apply {
+            referenz = "2026-10001"
+            kreditor = "Example Office, Inc"
+            datum = LocalDate.of(2026, 9, 4)
+        }
+        assertFalse(read.isPlausibleUpdateOf(otherCreditor), "Another creditor: another invoice.")
+
+        val corrected = EingangsrechnungDO().apply {
+            referenz = "2026-10001"
+            kreditor = "Example Alerting Inc."
+            datum = LocalDate.of(2026, 9, 9)
+        }
+        assertTrue(read.isPlausibleMatch(corrected), "Date corrected by some days: same invoice.")
     }
 }

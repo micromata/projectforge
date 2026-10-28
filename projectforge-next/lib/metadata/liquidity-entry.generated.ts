@@ -9,7 +9,7 @@ export const LIQUIDITY_ENTRY_METADATA = {
   historizable: true,
   fields: {
     amount: {
-      dataType: "DECIMAL",
+      dataType: "AMOUNT",
       i18nKey: "fibu.common.betrag",
       required: false,
     },

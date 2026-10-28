@@ -19,14 +19,6 @@ export interface ListToolbarProps {
    * leaves the button and its keyboard shortcut out entirely (see useEditTargets.canAdd).
    */
   addHref?: string;
-  /**
-   * Whether [addHref] leaves this app — the add page of an entity whose list is migrated but whose
-   * form is not (see useEditTargets). Rendered as a plain anchor then, because client-side routing
-   * would not find a Wicket page.
-   */
-  addIsLegacy?: boolean;
-  /** The legacy list page (`ui.legacyUrl` of the list response), see LegacyPageLink. */
-  legacyUrl?: string;
   /** The list belongs to an unfinished feature, see PageDef.experimental. */
   experimental?: boolean;
   /**
@@ -62,8 +54,6 @@ export function ListToolbar({
   searchValue,
   onSearchChange,
   addHref,
-  addIsLegacy,
-  legacyUrl,
   experimental,
   actions,
   selectionToggle,
@@ -77,7 +67,6 @@ export function ListToolbar({
       <PageTitleRow
         title={title}
         category={category}
-        legacyUrl={legacyUrl}
         experimental={experimental}
       >
         {selectionToggle}
@@ -96,7 +85,7 @@ export function ListToolbar({
             )}
           </>
         )}
-        {addHref && <AddEntryButton href={addHref} isLegacy={addIsLegacy} />}
+        {addHref && <AddEntryButton href={addHref} />}
       </PageTitleRow>
 
       <div className="flex items-center gap-3 px-4 py-2.5">

@@ -12,7 +12,7 @@ import type {
 
 /**
  * The column state the backend persists per entity category (user prefs, via
- * AbstractPagesRest's setColumnStates / columnStates). The wire format is
+ * AbstractEntityRest's setColumnStates / columnStates). The wire format is
  * TanStack's own state shape, so these slices map 1:1.
  */
 export interface ColumnState {

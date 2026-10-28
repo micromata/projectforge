@@ -37,9 +37,9 @@ function subscribe(listener: () => void): () => void {
  * Warns before what is being edited is thrown away — the counterpart of Wicket's own "are you sure"
  * on an edit form.
  *
- * Two ways out of the form need it, and neither can be caught by keeping the values somewhere: the
- * link back to the legacy page (`LegacyPageLink`, deliberately a full reload) and a link out of the
- * form into another entity (an invoice position's order). The first is the browser's business, hence
+ * Two ways out of the form need it, and neither can be caught by keeping the values somewhere: a
+ * full page load (reload, closing the tab, a link out of the app) and a link out of the form into
+ * another entity (an invoice position's order). The first is the browser's business, hence
  * `beforeunload`; the second is a client navigation, which [confirmLeaveUnsavedChanges] guards with
  * the app's own dialog.
  *

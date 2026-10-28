@@ -53,6 +53,11 @@ interface NotificationRuleHandler {
          * again after the next change got too old.
          */
         val userPeriodKeys: Map<Long, String> = emptyMap(),
+        /**
+         * The variables of a recipient not in [affected], computed from the data of this run (instead of
+         * [NotificationRuleHandler.variables], which would load them again for every recipient).
+         */
+        val variablesFor: ((PFUserDO) -> Map<String, String>)? = null,
     ) {
         /** The link for the given recipient. */
         fun linkFor(user: PFUserDO): String? = link?.replace(USER_ID, "${user.id}")
@@ -79,6 +84,12 @@ interface NotificationRuleHandler {
      * recipients) or the editor sending a test to oneself.
      */
     fun variables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String>
+
+    /**
+     * Example values of the [variables] for the editor of a rule, formatted for the given user as the real ones
+     * (e.g. a list of two invoices): from synthetic data, without database access.
+     */
+    fun exampleVariables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> = emptyMap()
 
     /** May the user be a recipient of the run at all (e.g. employed in the referred month)? */
     fun isRelevant(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Boolean = true

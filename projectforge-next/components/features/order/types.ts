@@ -8,6 +8,7 @@
 
 import type { AUFTRAG_METADATA } from "@/lib/metadata/auftrag.generated";
 import type { AUFTRAGS_POSITION_METADATA } from "@/lib/metadata/auftrags-position.generated";
+import type { NamedRef } from "@/components/shared/ref-list";
 
 type EnumOf<F extends { enumValues?: readonly { value: string }[] }> =
   NonNullable<F["enumValues"]>[number]["value"];
@@ -53,8 +54,12 @@ export type EntityRefDto = {
 export interface InvoiceRef {
   id?: number | null;
   nummer?: number | null;
+  /** The number as printed, e.g. `12345-S` for a cancellation, which has no `nummer` of its own. */
+  belegNummer?: string | null;
   date?: string | null;
   netSum?: number | null;
+  /** A cancelled invoice or its cancellation: they count 0 together and are shown struck through. */
+  cancelled?: boolean;
 }
 
 /**
@@ -163,8 +168,8 @@ export interface OrderDetail {
 /**
  * One row of the list: the same `Auftrag` DTO, with only the fields the columns of `order.page.tsx`
  * show. The backend fills exactly those for a next client (`Auftrag.copyFrom4ListRow`, selected by
- * `AbstractPagesRest.createListRow`) and `JsonInclude.NON_NULL` keeps the rest off the wire — 12.5 MB
- * become 3.2 MB over the 7132 orders of a real installation.
+ * `AbstractEntityRest.createListRow`) and `JsonInclude.NON_NULL` keeps the rest off the wire — on a
+ * large order book (several thousand rows) that is a fraction of the full rows.
  *
  * So this is deliberately **not** an extension of [OrderDetail], although the wire type is the same DTO:
  * what a list row carries is a subset, and inheriting the full shape is what let the page reach for a
@@ -188,8 +193,11 @@ export interface OrderListRow {
   pos?: string | null;
   personDays?: number | null;
   referenz?: string | null;
-  /** The four managers in one column (`assignedPersons`, transient). */
-  assignedPersons?: string | null;
+  /**
+   * The contact person and the additional contacts in one column (`assignedPersons`), as references, struck
+   * through when no longer active (see RefList).
+   */
+  assignedPersonList?: NamedRef[] | null;
   erfassungsDatum?: string | null;
   entscheidungsDatum?: string | null;
   nettoSumme?: number | null;

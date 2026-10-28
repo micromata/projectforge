@@ -45,6 +45,7 @@ import org.projectforge.rest.pub.LoginServiceRest
 import org.projectforge.security.RegisterUser4Thread
 import org.projectforge.security.SecurityLogging
 import org.projectforge.security.dto.WebAuthnPublicKeyCredentialCreationOptions
+import org.projectforge.web.WebUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -88,8 +89,10 @@ open class PasswordResetNextRest : AbstractDynamicPageRest() {
     /**
      * Requests a mail with a password reset link. Doesn't tell the client whether the user exists (no user
      * enumeration): [PasswordResetService.sendMail] sends the mail in an own thread for the very same reason.
+     * Too many requests of a client (or of all clients) are refused, too many mails for one user are silently dropped
+     * (see [org.projectforge.framework.persistence.user.service.PasswordResetRateLimiter]).
      */
-    @AccessChecked("PUBLIC: same answer for every input (no user enumeration); refused when logged in")
+    @AccessChecked("PUBLIC: same answer for every input (no user enumeration); refused when logged in; throttled per client and per user")
     @PostMapping("requestMail")
     fun requestMail(
         request: HttpServletRequest,
@@ -112,7 +115,17 @@ open class PasswordResetNextRest : AbstractDynamicPageRest() {
         }
         // "TOKEN" is replaced by the generated token, see PasswordResetService.sendPasswordReset:
         val link = getUrl("/${Constants.NEXT_APP_PATH}$NEXT_RESET_PAGE?token=TOKEN")
-        passwordResetService.sendMail(usernameEmail, link)
+        if (!passwordResetService.sendMail(usernameEmail, link, WebUtils.getClientIp(request))) {
+            SecurityLogging.logSecurityWarn(
+                request,
+                this::class.java,
+                "PASSWORD RESET THROTTLED",
+                "Password reset mail refused: too many requests."
+            )
+            return ResponseEntity.ok(
+                NextActionResult(success = false, message = translate("password.forgotten.tooManyRequests"))
+            )
+        }
         return ResponseEntity.ok(
             NextActionResult(
                 success = true,
@@ -223,7 +236,7 @@ open class PasswordResetNextRest : AbstractDynamicPageRest() {
     }
 
     @AccessChecked("PUBLIC: reset session data from a valid token required (authenticated())")
-    @GetMapping("sendSmsCode")
+    @PostMapping("sendSmsCode")
     fun sendSmsCode(request: HttpServletRequest): ResponseEntity<NextTwoFactorResult> {
         return authenticated(request) { twoFactorSupport.sendSmsCode(request) }
     }
@@ -253,7 +266,7 @@ open class PasswordResetNextRest : AbstractDynamicPageRest() {
      * is cleared.
      */
     @AccessChecked("PUBLIC: drops the own reset token/session data")
-    @GetMapping("cancel")
+    @PostMapping("cancel")
     fun cancel(request: HttpServletRequest, response: HttpServletResponse): NextActionResult {
         getSessionData(request)?.let {
             passwordResetService.deleteToken(it.token)

@@ -4,38 +4,50 @@ import { useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatDateInput } from "@/lib/date-parse";
-import { barLabel, teamChartRows } from "./vacation-chart-model";
-import { VacationChartFrame } from "./vacation-chart-frame";
-import { VacationChartLegend } from "./vacation-chart-legend";
-import { VacationChartRow } from "./vacation-chart-row";
+import {
+  availabilityLabel,
+  barLabel,
+} from "@/components/shared/absence-chart/absence-chart-model";
+import { teamChartRows } from "@/components/shared/absence-chart/absence-team-rows";
+import { AbsenceChartFrame } from "@/components/shared/absence-chart/absence-chart-frame";
+import { AbsenceChartLegend } from "@/components/shared/absence-chart/absence-chart-legend";
+import { AbsenceChartRow } from "@/components/shared/absence-chart/absence-chart-row";
+import type { AbsenceKind } from "@/lib/rs/absence-kinds";
 import type { VacationExportView } from "./types";
 import {
   resolveChartWidth,
-  type VacationChartWidth,
-} from "./vacation-chart-width";
+  type ChartWidth,
+} from "@/components/shared/absence-chart/absence-chart-width";
 
 /**
  * The team vacation calendar: one row per employee with their vacations as bars over the days of the period,
- * approved ones solid, those in progress pale and dashed. The axis and rows are the vacation form's chart
- * (VacationChartFrame, VacationChartRow), its day columns as wide as chosen (`auto`: narrow beyond a quarter).
+ * approved ones solid, those in progress pale and dashed, and — if asked for — their availability entries: thin
+ * lines beneath, not-available ones striped bars. The axis and rows are the vacation form's chart (AbsenceChartFrame,
+ * AbsenceChartRow), its day columns as wide as chosen (`auto`: narrow beyond a quarter).
  *
  * The chart is the page's content, so it is its own text alternative: a group of the employees' names and their
  * bars, each focusable and named with its period and status (barLabel), the axis hidden from screen readers.
  *
  * Printed — by the print button or the browser's own command — it is laid out in the width of the page (see
- * VacationChartFrame), and always light: a dark theme would print as a black page now that the backgrounds are
+ * AbsenceChartFrame), and always light: a dark theme would print as a black page now that the backgrounds are
  * printed (see globals.css).
  */
 export function VacationTeamChart({
   view,
   dayWidth,
+  absenceKinds,
 }: {
   view: VacationExportView;
-  dayWidth: VacationChartWidth;
+  dayWidth: ChartWidth;
+  /** The absences shown, those of the view only (it may be the answer of the choice before, still shown). */
+  absenceKinds: readonly AbsenceKind[];
 }) {
   const t = useTranslations();
   const ctx = useFormatContext();
-  const rows = useMemo(() => teamChartRows(view), [view]);
+  const rows = useMemo(
+    () => teamChartRows(view, absenceKinds),
+    [view, absenceKinds]
+  );
   useEffect(() => {
     const root = document.documentElement;
     let dark = false;
@@ -63,14 +75,14 @@ export function VacationTeamChart({
   return (
     // `min-w-0`: a flex item would otherwise grow to the chart's width instead of letting it scroll.
     <figure className="chart-panel min-w-0 space-y-2 rounded-md border p-3">
-      <VacationChartFrame
+      <AbsenceChartFrame
         days={view.days}
         ariaLabel={t("vacation.export.title")}
         dayWidth={resolveChartWidth(dayWidth, view.days.length)}
         role="group"
       >
         {rows.map((row, r) => (
-          <VacationChartRow
+          <AbsenceChartRow
             key={row.key}
             row={row}
             gridRow={r + 3}
@@ -83,11 +95,19 @@ export function VacationTeamChart({
                 statusLabel
               )
             }
+            availabilityText={(bar) =>
+              availabilityLabel(row.name, bar, (iso) =>
+                formatDateInput(iso, ctx)
+              )
+            }
             focusable
           />
         ))}
-      </VacationChartFrame>
-      <VacationChartLegend team />
+      </AbsenceChartFrame>
+      <AbsenceChartLegend
+        team
+        availabilities={absenceKinds.some((kind) => kind !== "VACATION")}
+      />
     </figure>
   );
 }

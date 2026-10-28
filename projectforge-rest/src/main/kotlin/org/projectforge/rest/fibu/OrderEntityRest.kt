@@ -24,13 +24,17 @@
 package org.projectforge.rest.fibu
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.SystemStatus
 import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.fibu.*
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginBubbleGrouping
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginBubbles
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginBreakdown
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginData
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginDetails
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginLevel
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginResult
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginService
 import org.projectforge.business.user.ProjectForgeGroup
@@ -57,6 +61,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.core.buildQueryFilter
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.ValidationUtils
@@ -74,6 +79,7 @@ import org.projectforge.ui.filter.UIFilterObjectElement
 import org.projectforge.ui.filter.inGroup
 import org.projectforge.ui.filter.addLeading
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -281,7 +287,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     }
     val operationType = if (postData.data.id == null) OperationType.INSERT else OperationType.UPDATE
     val url = domainService.getDomain(
-      NextMigration.standardEditPage(category).replace(NextMigration.ID_PLACEHOLDER, "${obj.id}")
+      PageRoutes.standardEditPage(category).replace(PageRoutes.ID_PLACEHOLDER, "${obj.id}")
     )
     try {
       baseDao.sendNotificationIfRequired(obj, operationType, url)
@@ -391,8 +397,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * Opts the order list into the lean row: [Auftrag.copyFrom4ListRow] fills only the columns of
    * `order.page.tsx`, which is what the hand built next page renders.
    *
-   * Measured on the order book of a real installation (7132 rows): 1755 B/row become 741 B/row, 12.5 MB
-   * become 5.3 MB, and 1.5 MB become 549 KB on the wire. Most of it is the four manager DTOs (~524 B/row
+   * On a large order book (several thousand rows) a row shrinks to less than half its size, both
+   * uncompressed and on the wire. Most of it is the four manager DTOs (~524 B/row
    * for a column showing nothing but the derived `assignedPersons` string), the sums travelling twice (raw
    * and pre-formatted), and a dozen fields no column reads.
    */
@@ -626,7 +632,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   /**
    * The whole-result statistics of a server-side paged order list: computed over the full id list, not over
    * the single page [postProcessResultSet] sees, so the footer shows the sums of every matching order (see
-   * `MIGRATION-list-paging.md`). Each id's [OrderInfo] is a cache lookup, so this stays cheap for the whole
+   * `dev-docs/next/list-paging.md`). Each id's [OrderInfo] is a cache lookup, so this stays cheap for the whole
    * result. The non-paged `POST list` keeps computing the same statistics over its (complete) result set in
    * [postProcessResultSet].
    */
@@ -790,9 +796,12 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * Only the id based overload of [ForecastOrderAnalysis.htmlExport] is exposed: it loads the order
    * through [AuftragDao] and thereby checks the read access, while the `htmlExport(orderInfo)` overload
    * takes an already loaded order and checks nothing.
+   *
+   * As text/plain: the html is meant for the dialog that inserts it, a browser opening the url directly must not
+   * render it.
    */
   @AccessChecked("DAO: AuftragDao.find")
-  @GetMapping("forecastAnalysis/{id}")
+  @GetMapping("forecastAnalysis/{id}", produces = [MediaType.TEXT_PLAIN_VALUE])
   fun forecastAnalysis(@PathVariable("id") id: Long): String {
     return forecastOrderAnalysis.htmlExport(orderId = id)
   }
@@ -1130,6 +1139,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       settings.snapshotDate,
     )
     return orderStatisticsCache.get(key) {
+      val usesSnapshots = settings.planningDate != null || settings.snapshotDate != null
       forecastExport.statistics(
         forecastOrders(magicFilter, settings.startDate),
         startDate = settings.startDate,
@@ -1137,6 +1147,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
         planningDate = settings.planningDate,
         distributeUnusedBudget = settings.distributeUnusedBudget,
         snapshotDate = settings.snapshotDate,
+        deletedOrderIds = if (usesSnapshots) deletedForecastOrderIds(magicFilter, settings.startDate) else emptySet(),
       )
     }
   }
@@ -1170,13 +1181,28 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * [magicFilter] itself is left untouched.
    */
   private fun forecastOrders(magicFilter: MagicFilter, startDate: LocalDate?): List<AuftragDO> {
+    return getResultList(forecastFilter(magicFilter, startDate))
+  }
+
+  /**
+   * The ids of the orders [forecastOrders] would return if they weren't deleted: the order book snapshots of the
+   * plan and of a forecast of a past date still hold them ([ForecastExport.statistics]).
+   */
+  private fun deletedForecastOrderIds(magicFilter: MagicFilter, startDate: LocalDate?): Set<Long> {
+    val filter = forecastFilter(magicFilter, startDate)
+    filter.entries.removeIf { it.field == "deleted" }
+    filter.entries.add(MagicFilterEntry("deleted", "true"))
+    return getResultIds(filter).toSet()
+  }
+
+  private fun forecastFilter(magicFilter: MagicFilter, startDate: LocalDate?): MagicFilter {
     val filter = magicFilter.clone()
     filter.entries.removeIf { it.field == PERIOD_OF_PERFORMANCE_FILTER || it.field == MagicFilter.PAGINATION_PAGE_SIZE }
     val from = PFDay.fromOrNull(startDate)?.beginOfMonth ?: PFDay.now().beginOfYear
     filter.entries.add(MagicFilterEntry(PERIOD_OF_PERFORMANCE_FILTER).also {
       it.value.fromValue = from.plusYears(-3).isoString
     })
-    return getResultList(filter)
+    return filter
   }
 
   /** What the forecast charts tab asks for, and what is remembered of it per user. */
@@ -1263,6 +1289,27 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     return contributionMarginResult(magicFilter, startDate).details
   }
 
+  /**
+   * The contribution margin of the same request as [contributionMargin] broken down by orders or tasks
+   * ([ContributionMarginService.calculateBreakdown]), for the same projects. Stores neither filter nor start date.
+   */
+  @AccessChecked("contributionMarginService.checkAccess + allowed projects + DAO select; cache key includes the user")
+  @PostMapping("contributionMargin/breakdown")
+  fun contributionMarginBreakdown(@RequestBody request: ContributionMarginRequest): ContributionMarginBreakdown {
+    contributionMarginService.checkAccess()
+    val startDate = request.startDate ?: PFDay.now().beginOfYear.localDate
+    val magicFilter = OrderStatisticsFilterService.statisticsFilter(request.filter)
+    val level = request.level ?: ContributionMarginLevel.ORDER
+    val kind = when (level) {
+      ContributionMarginLevel.ORDER -> OrderStatisticsCache.Kind.CONTRIBUTION_MARGIN_BY_ORDER
+      ContributionMarginLevel.TASK -> OrderStatisticsCache.Kind.CONTRIBUTION_MARGIN_BY_TASK
+    }
+    return orderStatisticsCache.get(statisticsCacheKey(kind, magicFilter, startDate)) {
+      val orders = forecastOrders(magicFilter, startDate)
+      contributionMarginService.calculateBreakdown(contributionMarginService.allowedProjectIds(orders), startDate, level)
+    }
+  }
+
   /** The contribution margin of the order statistics, cached per user, filter and start date. */
   private fun contributionMarginResult(magicFilter: MagicFilter, startDate: LocalDate): ContributionMarginResult {
     val key = statisticsCacheKey(OrderStatisticsCache.Kind.CONTRIBUTION_MARGIN, magicFilter, startDate)
@@ -1277,6 +1324,87 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     }
   }
 
+  /** The grouping and the switches of the bubble chart of the contribution margin tab, remembered per user. */
+  @AccessChecked("contributionMarginService.checkAccess (fibu, project manager/assistant)")
+  @GetMapping("contributionMargin/bubbles/settings")
+  fun getContributionMarginBubbleSettings(): ContributionMarginBubbleSettings {
+    contributionMarginService.checkAccess()
+    val stored = userPrefService.getEntry(
+      category,
+      USER_PREF_PARAM_CONTRIBUTION_MARGIN_BUBBLES,
+      ContributionMarginBubbleSettings::class.java
+    )
+    return ContributionMarginBubbleSettings(
+      grouping = stored?.grouping ?: ContributionMarginBubbleGrouping.PROJECT_GROUP,
+      includeOthers = stored?.includeOthers ?: false,
+      showProjects = stored?.showProjects ?: true,
+    )
+  }
+
+  /**
+   * The bubble chart of the contribution margin tab ([ContributionMarginService.bubbles]): the projects of
+   * [contributionMargin], grouped by the requested grouping. With `includeOthers`, also the projects of the orders
+   * the filter selects regardless of the user's access and of its project filter (all of a business unit, a customer, …), but anonymous:
+   * their bubbles have neither label nor project count, and no id or name of them leaves the server. Grouping and
+   * switch are remembered for the next time, the filter isn't (it's stored by [contributionMargin]).
+   */
+  @AccessChecked("contributionMarginService.checkAccess + allowed projects; the others only anonymous sums")
+  @PostMapping("contributionMargin/bubbles")
+  fun contributionMarginBubbles(@RequestBody request: ContributionMarginBubbleRequest): ContributionMarginBubbles {
+    contributionMarginService.checkAccess()
+    val startDate = request.startDate ?: PFDay.now().beginOfYear.localDate
+    val settings = ContributionMarginBubbleSettings(
+      grouping = request.grouping ?: ContributionMarginBubbleGrouping.PROJECT_GROUP,
+      includeOthers = request.includeOthers == true,
+      showProjects = request.showProjects == true,
+    )
+    userPrefService.putEntry(category, USER_PREF_PARAM_CONTRIBUTION_MARGIN_BUBBLES, settings, true)
+    val magicFilter = OrderStatisticsFilterService.statisticsFilter(request.filter)
+    val own = contributionMarginResult(magicFilter, startDate).data
+    val others = if (settings.includeOthers == true) otherProjectsContributionMargin(magicFilter, startDate) else null
+    return contributionMarginService.bubbles(own, others, settings.grouping!!)
+  }
+
+  /**
+   * The contribution margin of the projects of the orders [magicFilter] selects, ignoring its project filter, but
+   * the user may not see: the orders are selected without access check. Only for anonymous comparison ([contributionMarginBubbles]).
+   */
+  private fun otherProjectsContributionMargin(magicFilter: MagicFilter, startDate: LocalDate): ContributionMarginData {
+    val key = statisticsCacheKey(OrderStatisticsCache.Kind.CONTRIBUTION_MARGIN_OTHERS, magicFilter, startDate)
+    return orderStatisticsCache.get(key) {
+      // Without the project filter: the others are meant to be projects other than the chosen ones. Business unit
+      // and customer stay.
+      val filter = forecastFilter(magicFilter, startDate)
+      filter.entries.removeIf { it.field == ProjectChecklistFilter.FIELD }
+      filter.autoWildcardSearch = true
+      fixMagicFilterFromClient(filter)
+      val (queryFilter, customResultFilters) = buildQueryFilter(this, baseDao, filter)
+      val allProjectIds = baseDao.select(queryFilter, customResultFilters, checkAccess = false)
+        .mapNotNull { it.projekt?.id }.toSet()
+      val ownProjectIds = contributionMarginService.allowedProjectIds(forecastOrders(magicFilter, startDate))
+      contributionMarginService.calculate(allProjectIds - ownProjectIds, startDate)
+    }
+  }
+
+  class ContributionMarginBubbleSettings(
+    var grouping: ContributionMarginBubbleGrouping? = null,
+    /** Whether the projects the user may not see are shown as well, anonymous. */
+    var includeOthers: Boolean? = null,
+    /**
+     * Whether the own bubbles are labelled with their short title and DB %, "show titles", on by default (only
+     * the client uses it, remembered here; the name is kept for the stored preferences).
+     */
+    var showProjects: Boolean? = null,
+  )
+
+  class ContributionMarginBubbleRequest(
+    var filter: MagicFilter? = null,
+    var startDate: LocalDate? = null,
+    var grouping: ContributionMarginBubbleGrouping? = null,
+    var includeOthers: Boolean? = null,
+    var showProjects: Boolean? = null,
+  )
+
   /** What the contribution margin tab asks for, and what is remembered of it per user. */
   class ContributionMarginSettings(
     /** The first month of the 12 months shown (any day of it). */
@@ -1286,6 +1414,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   class ContributionMarginRequest(
     var filter: MagicFilter? = null,
     var startDate: LocalDate? = null,
+    /** The breakdown of [contributionMarginBreakdown], orders by default. */
+    var level: ContributionMarginLevel? = null,
   )
 
   /** Whether the list page offers the contribution margin tab (see [ContributionMarginService.hasAccess]). */
@@ -1470,7 +1600,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
      * [filterList] sorts the loaded order list (each order's info via the cache) for the non-paged `POST
      * list`, and [sortIds] sorts the materialized id list (each id's info via the cache) for server-side
      * paging — the paged result must be the same rows in the same order as `POST list` (see
-     * `MIGRATION-list-paging.md`).
+     * `dev-docs/next/list-paging.md`).
      *
      * The customer and the project sort by the very string the cell shows — the `displayName` of the cached
      * [org.projectforge.business.fibu.kunde.KundeDO]/[org.projectforge.business.fibu.ProjektDO], formatted by
@@ -1534,5 +1664,6 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     private const val USER_PREF_PARAM_FORECAST_EXPORT = "forecastExport"
     private const val USER_PREF_PARAM_FORECAST_CHART = "forecastChart"
     private const val USER_PREF_PARAM_CONTRIBUTION_MARGIN = "contributionMargin"
+    private const val USER_PREF_PARAM_CONTRIBUTION_MARGIN_BUBBLES = "contributionMarginBubbles"
   }
 }

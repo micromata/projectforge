@@ -13,15 +13,21 @@ import type { AttachmentWriteResult } from "@/lib/rs/attachments";
 import { AttachmentDropArea } from "./attachment-drop-area";
 import { AttachmentDropZone } from "./attachment-drop-zone";
 import { AttachmentFiles } from "./attachment-files";
+import { useAttachmentService } from "./attachment-service";
 import { AttachmentUploadRow } from "./attachment-upload-row";
 
 export interface AttachmentListProps {
-  /** Rest path of the entity, i.e. `AbstractPagesRest.category` — "book", "contract", … */
+  /** Rest path of the entity, i.e. `AbstractEntityRest.category` — "book", "contract", … */
   entity: string;
   /** null for an entity that isn't saved yet: the JCR needs a persisted id to attach to. */
   id: number | null;
   /** Only downloads are offered — for a user without write access to the entity. */
   readOnly?: boolean;
+  /**
+   * No upload, but the files stay deletable and renamable — for an area whose new files belong elsewhere
+   * (data transfer area with external access via the gateway).
+   */
+  noUpload?: boolean;
   /**
    * Compact variant for a section between the fields of a form (books, orders, …): no permanent drop
    * box, the click sits as a button in the toolbar and the whole section takes a drop.
@@ -83,13 +89,19 @@ export interface AttachmentListProps {
    * the columns can still be changed, but only for as long as the page is open.
    */
   columnStates?: string;
+  /**
+   * Where `columnStates` keeps the layout: `"prefs"` (default) in the user's prefs via the REST path,
+   * `"local"` in the browser under that name — for a visitor without a ProjectForge account (the external
+   * access of a data transfer area).
+   */
+  columnStatesStorage?: "prefs" | "local";
 }
 
 /**
  * The attachments of one entity: upload, download, rename, delete, and the same on a whole
  * selection (download as one ZIP, delete at once — see AttachmentFiles).
  *
- * Generic, not tied to a feature: every `AbstractPagesRest` page may have attachments (books,
+ * Generic, not tied to a feature: every `AbstractEntityRest` page may have attachments (books,
  * contracts, orders, invoices, scripts), so this is the shared counterpart of the legacy
  * `UIAttachmentList` and its `DynamicAttachmentList.jsx`.
  *
@@ -103,6 +115,7 @@ export function AttachmentList({
   entity,
   id,
   readOnly,
+  noUpload,
   embedded,
   lockedDescription,
   lockedLabel,
@@ -110,6 +123,7 @@ export function AttachmentList({
   uploadHint,
   layout,
   columnStates,
+  columnStatesStorage,
 }: AttachmentListProps) {
   const t = useTranslations();
   const { data, isLoading, isError } = useAttachments(entity, id);
@@ -134,9 +148,15 @@ export function AttachmentList({
     [mergeResult, onChanged, t]
   );
 
+  const { maxFileSize } = useAttachmentService();
   const uploads = useAttachmentUploads(entity, id, {
     onResult: onUploadResult,
     transferErrorMessage: t("file.upload.error._"),
+    tooLargeMessage: maxFileSize
+      ? t("file.upload.error.maxSizeOfExceeded", {
+          arg0: maxFileSize.formatted,
+        })
+      : undefined,
   });
 
   // Nothing can be attached before the first save; the backend says so in its own words.
@@ -166,11 +186,12 @@ export function AttachmentList({
       : a
   );
   // Embedded, the toolbar carries the add button, so it has to be there before the first file too.
-  const showFiles = attachments.length > 0 || (embedded && !readOnly);
+  const upload = !readOnly && !noUpload;
+  const showFiles = attachments.length > 0 || (embedded && upload);
 
   const content = (
     <div className="flex flex-col gap-3">
-      {!embedded && !readOnly && (
+      {!embedded && upload && (
         <div className="flex flex-col gap-1">
           <AttachmentDropArea onFiles={uploads.enqueue} />
           {uploadHint && (
@@ -197,10 +218,11 @@ export function AttachmentList({
           entity={entity}
           id={id}
           readOnly={readOnly}
-          onFiles={embedded ? uploads.enqueue : undefined}
+          onFiles={embedded && upload ? uploads.enqueue : undefined}
           onChanged={onChanged}
           layout={layout}
           columnStates={columnStates}
+          columnStatesStorage={columnStatesStorage}
         />
       )}
       {/* Nothing stored and nothing on its way: the uploads above would otherwise be contradicted. */}
@@ -211,7 +233,7 @@ export function AttachmentList({
   );
 
   // Embedded there is no dashed box to aim at, so the whole section takes the drop instead.
-  return embedded && !readOnly ? (
+  return embedded && upload ? (
     <AttachmentDropZone onFiles={uploads.enqueue}>{content}</AttachmentDropZone>
   ) : (
     content

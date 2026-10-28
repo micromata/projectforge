@@ -6,6 +6,7 @@ import {
   type AttachmentWriteResult,
 } from "@/lib/rs/attachments";
 import { UploadError } from "@/lib/rs/upload";
+import { useAttachmentService } from "@/components/shared/attachments/attachment-service";
 
 /** One file on its way to the server, as the UI needs to show it. */
 export interface UploadJob {
@@ -15,6 +16,8 @@ export interface UploadJob {
   size: number;
   /** 0-100, or null while the browser cannot tell the total. */
   percent: number | null;
+  /** Smoothed upload speed in bytes per second, or null until two progress events allow a measurement. */
+  bytesPerSecond: number | null;
   /** waiting → sending → the server's verdict. */
   state: "queued" | "sending" | "failed";
   /** Why it failed; already translated when it comes from the backend. */
@@ -26,9 +29,16 @@ export interface UseAttachmentUploadsOptions {
   onResult: (result: AttachmentWriteResult, fileName: string) => void;
   /** Message for a transfer that never reached the backend (network, proxy, abort). */
   transferErrorMessage: string;
+  /** Message for a file larger than `AttachmentService.maxFileSize`, which is then not sent at all. */
+  tooLargeMessage?: string;
 }
 
 let nextJobId = 0;
+
+/** Progress events closer together than this are folded into the next one — their rate would be noise. */
+const MIN_SAMPLE_MILLIS = 250;
+/** Weight of the newest sample in the smoothed speed. */
+const SMOOTHING = 0.3;
 
 /**
  * Uploads files in parallel and tracks each one's progress separately, as the legacy
@@ -46,8 +56,13 @@ let nextJobId = 0;
 export function useAttachmentUploads(
   entity: string,
   id: number | null,
-  { onResult, transferErrorMessage }: UseAttachmentUploadsOptions
+  {
+    onResult,
+    transferErrorMessage,
+    tooLargeMessage,
+  }: UseAttachmentUploadsOptions
 ) {
+  const { base, onWriteError, maxFileSize } = useAttachmentService();
   const [jobs, setJobs] = useState<UploadJob[]>([]);
   const controllers = useRef(new Map<number, AbortController>());
   /** Jobs cancelled before their turn came — [send] checks this instead of starting the transfer. */
@@ -70,12 +85,33 @@ export function useAttachmentUploads(
       if (cancelled.current.delete(job.id)) return;
       const controller = new AbortController();
       controllers.current.set(job.id, controller);
-      patch(job.id, { state: "sending", percent: 0 });
+      patch(job.id, { state: "sending", percent: 0, bytesPerSecond: null });
+      let sample = { time: performance.now(), loaded: 0 };
+      let speed: number | null = null;
       try {
-        const result = await uploadAttachment(entity, id!, file, undefined, {
-          onProgress: ({ percent }) => patch(job.id, { percent }),
-          signal: controller.signal,
-        });
+        const result = await uploadAttachment(
+          entity,
+          id!,
+          file,
+          undefined,
+          {
+            onProgress: ({ percent, loaded }) => {
+              const now = performance.now();
+              if (now - sample.time >= MIN_SAMPLE_MILLIS) {
+                const current =
+                  ((loaded - sample.loaded) / (now - sample.time)) * 1000;
+                speed =
+                  speed == null
+                    ? current
+                    : SMOOTHING * current + (1 - SMOOTHING) * speed;
+                sample = { time: now, loaded };
+              }
+              patch(job.id, { percent, bytesPerSecond: speed });
+            },
+            signal: controller.signal,
+          },
+          base
+        );
         onResult(result, file.name);
         if (result.kind === "rejected") {
           patch(job.id, { state: "failed", error: result.message });
@@ -89,30 +125,36 @@ export function useAttachmentUploads(
           setJobs((current) => current.filter((j) => j.id !== job.id));
         } else {
           patch(job.id, { state: "failed", error: transferErrorMessage });
+          onWriteError?.();
         }
       } finally {
         controllers.current.delete(job.id);
       }
     },
-    [entity, id, onResult, patch, transferErrorMessage]
+    [base, entity, id, onResult, onWriteError, patch, transferErrorMessage]
   );
 
   const enqueue = useCallback(
     (files: File[]) => {
       if (id == null || id <= 0 || files.length === 0) return;
-      const added = files.map((file) => ({
-        job: {
+      const added = files.map((file) => {
+        // Refused before the transfer: the backend would only say so once the whole file had arrived.
+        const tooLarge = maxFileSize != null && file.size > maxFileSize.bytes;
+        const job: UploadJob = {
           id: (nextJobId += 1),
           name: file.name,
           size: file.size,
           percent: null,
-          state: "queued" as const,
-        },
-        file,
-      }));
+          bytesPerSecond: null,
+          state: tooLarge ? "failed" : "queued",
+          error: tooLarge ? tooLargeMessage : undefined,
+        };
+        return { job, file };
+      });
       setJobs((current) => [...current, ...added.map((entry) => entry.job)]);
 
       added.forEach(({ job, file }) => {
+        if (job.state === "failed") return;
         const previous = chains.current.get(file.name);
         // `catch` on the predecessor: a failed upload must not keep the next one of that name from
         // being tried at all.
@@ -131,7 +173,7 @@ export function useAttachmentUploads(
         });
       });
     },
-    [id, send]
+    [id, maxFileSize, send, tooLargeMessage]
   );
 
   /** Cancels a running upload or drops a queued/failed one. */

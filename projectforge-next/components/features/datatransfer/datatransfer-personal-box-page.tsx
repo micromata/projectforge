@@ -13,6 +13,7 @@ import { PageTitleRow } from "@/components/shared/page-title-row";
 import { SectionCard } from "@/components/shared/section-card";
 import { toast } from "@/lib/toast";
 import { fetchPersonalBox } from "@/lib/rs/datatransfer";
+import { toPickerRef } from "@/lib/page-def/reference";
 
 /**
  * Opens another user's personal box (`/datatransfer/personal-box`): the way to send a single colleague
@@ -28,11 +29,7 @@ export function DataTransferPersonalBoxPage() {
   });
   const [picked, setPicked] = useState<EntityRef | null>(null);
   const lastUser = last.data?.user;
-  const user =
-    picked ??
-    (lastUser
-      ? { id: lastUser.id, displayName: lastUser.displayName ?? "" }
-      : null);
+  const user = picked ?? toPickerRef(lastUser);
 
   const open = useMutation({
     mutationFn: (userId: number) => fetchPersonalBox(userId),

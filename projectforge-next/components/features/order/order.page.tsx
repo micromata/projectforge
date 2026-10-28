@@ -1,11 +1,12 @@
 import { attachmentsColumn } from "@/components/shared/attachments/attachments-column";
 import { TERM_KIND_IDS } from "@/lib/date-period";
+import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { AUFTRAG_METADATA } from "@/lib/metadata/auftrag.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { FreeTextNameCell } from "@/components/shared/free-text-name-cell";
 import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
 import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
-import { AdditionalContactsField } from "./edit/additional-contacts-field";
+import { makeAdditionalContactsField } from "@/components/shared/form/additional-contacts-field";
 import { AttachmentSection } from "./edit/attachment-section";
 import { OrderForecastPanel } from "./forecast/order-forecast-panel";
 import { CustomerProjectFields } from "./edit/customer-project-fields";
@@ -28,9 +29,16 @@ import { emptyOrderValues, toFormValues } from "./order-values";
 import type { OrderDetail, OrderListRow } from "./types";
 
 /** REST category of an order — `OrderEntityRest` is mapped to "order", not to "auftrag". */
+
 export const ORDER_ENTITY = "order";
 /** React Query key of the list, so a write from the edit page refreshes it. */
 export const ORDER_LIST_QUERY_KEY = ["order"] as const;
+
+/** The order's further contacts, said what being one means: access to the order and its change mail. */
+const OrderAdditionalContactsField = makeAdditionalContactsField(
+  "fibu.auftrag.contacts.info"
+);
+
 /** Id of the forecast tab — what the URL carries as `?tab=forecast`. */
 export const FORECAST_TAB_ID = "forecast";
 
@@ -70,7 +78,7 @@ export const ORDER_PAGE = definePage<
   metadata: AUFTRAG_METADATA,
   route: "/order",
   queryKey: ORDER_LIST_QUERY_KEY,
-  // The order book is the reference for server-side paging: ~7000 rows, four CustomResultFilters (so
+  // The order book is the reference for server-side paging: thousands of rows, four CustomResultFilters (so
   // nothing narrows after the query) and statistics from the aggregate hook. See PageDef.serverPaging.
   serverPaging: true,
   // Where the entry sits in the main menu: Finance > Order book (MenuItemDefId.ORDER_LIST). It hangs
@@ -224,7 +232,7 @@ export const ORDER_PAGE = definePage<
     {
       id: "assignedPersons",
       labelKey: "fibu.common.assignedPersons",
-      accessor: (row) => row.assignedPersons ?? "",
+      accessor: (row) => row.assignedPersonList,
       size: 180,
       className: "text-muted-foreground",
     },
@@ -238,7 +246,7 @@ export const ORDER_PAGE = definePage<
   // the untyped `ResultSet.statistics` becomes what `OrderEntityRest.OrderStatistics` sends — see
   // PageDef.statistics for why this is the place for it.
   // Mirrors AuftragListPage's CellItemListener (first match wins):
-  // 1. deleted / ABGELEHNT / ERSETZT → row-deleted (struck-through grey)
+  // 1. ABGELEHNT / ERSETZT → row-inactive (struck through thin and grey; a deleted order stays row-deleted)
   // 2. toBeInvoiced → row-red  (highest business priority: something must be invoiced)
   // 3. BEAUFTRAGT or LOI → row-green  (active order)
   // 4. ESKALATION → row-red
@@ -246,14 +254,14 @@ export const ORDER_PAGE = definePage<
   // about as "the month/quarter/year from here", and "Jahr bis heute" only confuses in a book of
   // commitments that run into the future.
   filterPeriodKinds: ["termMonth", "termThreeMonths", "termYear"],
-  deletedLabelKey: "order.legend.deleted",
+  inactiveLabelKey: "order.legend.rejected",
   legend: [
     { className: "row-red", labelKey: "order.legend.toBeInvoiced" },
     { className: "row-green", labelKey: "order.legend.commissioned" },
   ],
   rowClassName: (row) => {
     if (row.status === "ABGELEHNT" || row.status === "ERSETZT")
-      return "row-deleted";
+      return INACTIVE_ROW_CLASS;
     if (row.toBeInvoiced) return "row-red";
     if (row.status === "BEAUFTRAGT" || row.status === "LOI") return "row-green";
     if (row.status === "ESKALATION") return "row-red";
@@ -341,7 +349,7 @@ export const ORDER_PAGE = definePage<
         fields: [
           // Both say what being a contact means: access to the order and its change mail.
           { name: "contactPerson", hintKey: "fibu.auftrag.contacts.info" },
-          { custom: AdditionalContactsField, span: 2 },
+          { custom: OrderAdditionalContactsField, span: 2 },
         ],
       },
       {

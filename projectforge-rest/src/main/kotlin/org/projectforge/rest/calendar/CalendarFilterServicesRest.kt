@@ -24,6 +24,7 @@
 package org.projectforge.rest.calendar
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.availability.AbsenceKind
 import org.projectforge.business.calendar.*
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.timesheet.TimesheetDao
@@ -37,6 +38,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
 import org.projectforge.ui.LayoutUtils
@@ -67,6 +69,8 @@ class CalendarFilterServicesRest {
     var activeCalendars: MutableList<StyledTeamCalendar>? = null,
     var vacationGroups: List<Group>? = null,
     var vacationUsers: List<User>? = null,
+    /** What is shown of their absences (see [CalendarFilter.absenceKinds]); null for all. */
+    var absenceKinds: List<AbsenceKind>? = null,
     /**
      * This is the list of possible default calendars (with full access). The user may choose one which is
      * used as default if creating a new event. The pseudo calendar -1 for own time sheets is
@@ -164,6 +168,7 @@ class CalendarFilterServicesRest {
       }
       user
     }?.filter { it.id != null }
+    initial.absenceKinds = currentFilter.absenceKinds?.sorted()
 
     val favorites = getFilterFavorites()
     initial.filterFavorites = favorites.idTitleList
@@ -196,6 +201,8 @@ class CalendarFilterServicesRest {
       "calendar.filter.vacation.groups.tooltip",
       "calendar.filter.vacation.users",
       "calendar.filter.vacation.users.tooltip",
+      "calendar.filter.absenceKinds",
+      "calendar.filter.absenceKinds.tooltip",
       "calendar.filter.visible",
       "calendar.defaultCalendar",
       "calendar.defaultCalendar.tooltip",
@@ -276,7 +283,7 @@ class CalendarFilterServicesRest {
     return currentFilter.isModified(favoriteFilter)
   }
 
-  @GetMapping("changeStyle")
+  @PostMapping("changeStyle")
   fun changeCalendarStyle(
     @RequestParam("calendarId", required = true) calendarId: Long,
     @RequestParam("bgColor") bgColor: String?
@@ -305,7 +312,7 @@ class CalendarFilterServicesRest {
   /**
    * @return The currentFilter with changed set of invisibleCalendars.
    */
-  @GetMapping("setVisibility")
+  @PostMapping("setVisibility")
   fun setVisibility(
     @RequestParam("calendarId", required = true) calendarId: Long,
     @RequestParam("visible", required = true) visible: Boolean
@@ -321,7 +328,7 @@ class CalendarFilterServicesRest {
     )
   }
 
-  @GetMapping("changeDefaultCalendar")
+  @PostMapping("changeDefaultCalendar")
   fun changeDefaultCalendar(@RequestParam("id", required = true) id: String): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     currentFilter.defaultCalendarId = NumberHelper.parseLong(id)
@@ -331,7 +338,7 @@ class CalendarFilterServicesRest {
   /**
    * @param userIdString Change user for displaying time sheets if allowed. If null, no time sheets will be displayed.
    */
-  @GetMapping("changeTimesheetUser")
+  @PostMapping("changeTimesheetUser")
   fun changeTimesheetUser(@RequestParam("userId") userIdString: String?): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     val userId = NumberHelper.parseLong(userIdString)
@@ -350,7 +357,7 @@ class CalendarFilterServicesRest {
   /**
    * @param userIdString Change user for displaying time sheets if allowed. If null, no time sheets will be displayed.
    */
-  @GetMapping("changeShowBreaks")
+  @PostMapping("changeShowBreaks")
   fun changeShowBreaks(@RequestParam("showBreaks") showBreaks: Boolean?): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     currentFilter.showBreaks = showBreaks
@@ -371,7 +378,18 @@ class CalendarFilterServicesRest {
     return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
   }
 
-  @GetMapping("changeGridSize")
+  /**
+   * What is shown of the absences: all kinds for null or all of them, none for an empty set.
+   */
+  @AccessChecked("Own user prefs (calendar filter of the logged-in user)")
+  @PostMapping("changeAbsenceKinds")
+  fun changeAbsenceKinds(@RequestBody kinds: Set<AbsenceKind>?): Map<String, Any> {
+    val currentFilter = getCurrentFilter()
+    currentFilter.absenceKinds = kinds?.takeIf { it.size < AbsenceKind.entries.size }
+    return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+  }
+
+  @PostMapping("changeGridSize")
   fun changeGridSize(@RequestParam("size", required = true) size: Int): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     if (size in intArrayOf(5, 10, 15, 30, 60)) {
@@ -380,7 +398,7 @@ class CalendarFilterServicesRest {
     return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
   }
 
-  @GetMapping("changeFirstHour")
+  @PostMapping("changeFirstHour")
   fun changeFirstHour(@RequestParam("hour", required = true) hour: Int): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     if (hour >= 0 && hour < 24) {
@@ -392,7 +410,7 @@ class CalendarFilterServicesRest {
   /**
    * @return The currentFilter with changed name and defaultCalendarId and the new list of filterFavorites (id's with titles).
    */
-  @GetMapping("createNewFilter")
+  @PostMapping("createNewFilter")
   fun createFavoriteFilter(@RequestParam("newFilterName", required = true) newFilterName: String): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     currentFilter.name = newFilterName
@@ -411,7 +429,7 @@ class CalendarFilterServicesRest {
    * Updates the named Filter with the values of the current filter.
    * @return The current filter with flag modified=false.
    */
-  @GetMapping("updateFilter")
+  @PostMapping("updateFilter")
   fun updateFavoriteFilter(@RequestParam("id", required = true) id: Long): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     getFilterFavorites().get(id)?.copyFrom(currentFilter)
@@ -421,14 +439,14 @@ class CalendarFilterServicesRest {
   /**
    * @return The new list of filterFavorites (id's with titles) without the deleted filter.
    */
-  @GetMapping("deleteFilter")
+  @PostMapping("deleteFilter")
   fun deleteFavoriteFilter(@RequestParam("id", required = true) id: Long): Map<String, Any> {
     val favorites = getFilterFavorites()
     favorites.remove(id)
     return mapOf("filterFavorites" to getFilterFavorites().idTitleList)
   }
 
-  @GetMapping("selectFilter")
+  @PostMapping("selectFilter")
   fun selectFilter(@RequestParam("id", required = true) id: Long): CalendarInit {
     val favorites = getFilterFavorites()
     val currentFilter = favorites.get(id)
@@ -444,7 +462,7 @@ class CalendarFilterServicesRest {
   /**
    * @return new filterFavorites
    */
-  @GetMapping("renameFilter")
+  @PostMapping("renameFilter")
   fun renameFavoriteFilter(
     @RequestParam("id", required = true) id: Long,
     @RequestParam("newName", required = true) newName: String
@@ -498,10 +516,13 @@ class CalendarFilterServicesRest {
       state = CalendarFilterState()
       userPrefService.putEntry(PREF_AREA, PREF_NAME_STATE, state)
     }
-    if (state.startDate == null)
-      state.startDate = LocalDate.now()
     if (state.view == null)
       state.view = CalendarView.MONTH
+    if (state.startDate == null) {
+      // The month view stores the first day of its grid and the frontend moves a date which isn't the 1st into
+      // the following month (normalizeInitialDate), so today would show the next month.
+      state.startDate = if (state.view == CalendarView.MONTH) LocalDate.now().withDayOfMonth(1) else LocalDate.now()
+    }
     return state
   }
 

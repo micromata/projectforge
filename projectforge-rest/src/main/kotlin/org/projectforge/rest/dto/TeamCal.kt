@@ -24,6 +24,7 @@
 package org.projectforge.rest.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.projectforge.business.availability.AbsenceKind
 import org.projectforge.business.common.BaseUserGroupRightService
 import org.projectforge.business.teamcal.CalendarAccessStatus
 import org.projectforge.business.teamcal.admin.TeamCalDao
@@ -50,6 +51,8 @@ class TeamCal(
     var minimalAccessUsers: List<User>? = null,
     var includeLeaveDaysForUsers: List<User>? = null,
     var includeLeaveDaysForGroups: List<Group>? = null,
+    /** Which absences of the people above are included (TeamCalDO.includeAbsenceKinds), all of them if null. */
+    var absenceKinds: List<AbsenceKind>? = null,
     var externalSubscription: Boolean = false,
     var externalSubscriptionUrl: String? = null,
     /**
@@ -78,6 +81,7 @@ class TeamCal(
 
         includeLeaveDaysForGroups = Group.toGroupList(src.includeLeaveDaysForGroups)
         includeLeaveDaysForUsers = User.toUserList(src.includeLeaveDaysForUsers)
+        absenceKinds = AbsenceKind.parse(src.includeAbsenceKinds)?.sorted()
 
         val teamCalDao = ApplicationContextProvider.getApplicationContext().getBean(TeamCalDao::class.java)
         val accessChecker = ApplicationContextProvider.getApplicationContext().getBean(AccessChecker::class.java)
@@ -107,5 +111,6 @@ class TeamCal(
 
         dest.includeLeaveDaysForGroups = Group.toLongList(includeLeaveDaysForGroups)
         dest.includeLeaveDaysForUsers = User.toLongList(includeLeaveDaysForUsers)
+        dest.includeAbsenceKinds = AbsenceKind.toCsv(absenceKinds)
     }
 }

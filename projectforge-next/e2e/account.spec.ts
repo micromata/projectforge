@@ -1,9 +1,10 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
-import { waitForRows } from "./fixtures/list-table";
+import { hasEntries, waitForRows } from "./fixtures/list-table";
 import { KONTO_METADATA } from "../lib/metadata/konto.generated";
 import { ACCOUNT_PAGE } from "../components/features/account/account.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The account page against the live backend (see ACCOUNT_PAGE and KontoEntityRest).
@@ -16,7 +17,9 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 test.describe("account", { tag: "@parallel" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get("/rs/account/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/account/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 
@@ -41,6 +44,10 @@ test.describe("account", { tag: "@parallel" }, () => {
   test("sorts by the account number by default, as Wicket's list does", async ({
     loggedInPage: page,
   }) => {
+    test.skip(
+      !(await hasEntries(page.request, "account")),
+      "no account in this database"
+    );
     await goto(page, "/account");
     const rows = await waitForRows(page);
 
@@ -87,13 +94,13 @@ test.describe("account", { tag: "@parallel" }, () => {
   }) => {
     const { t } = await userFormat(page);
     let saveAttempted = false;
-    await page.route("**/rs/account/saveorupdate*", (route) => {
+    await page.route("**/rs/account/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
 
     await goto(page, "/account/new");
-    await page.getByRole("button", { name: t("save") }).click();
+    await page.getByRole("button", { name: t("create") }).click();
 
     for (const key of ["fibu.konto.nummer", "fibu.konto.bezeichnung"]) {
       await expect(

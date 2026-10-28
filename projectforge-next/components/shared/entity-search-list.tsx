@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   Command,
@@ -10,9 +10,14 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { LookupLoadingRow } from "@/components/shared/lookup-loading-row";
 import { isNearBottom, useEntityLookup } from "@/hooks/use-entity-lookup";
+import { type InactiveMode, useShowInactive } from "@/hooks/use-show-inactive";
+import { inactiveRefClass } from "@/lib/page-def/reference";
 import type { EntityRef } from "./entity-autocomplete";
+import { withCurrent } from "./with-current";
 import {
   EntitySearchFreeText,
   type FreeTextOption,
@@ -39,8 +44,8 @@ export interface EntitySearchListProps<T extends EntityRef = EntityRef> {
   onPick: (entry: T) => void;
   /**
    * Whether the caller collects several entries (see [EntityMultiAutocomplete]) rather than closing on
-   * the first one: the term and the cursor stay after a pick, so the next of the same search (the
-   * second „ACME" customer) is a click away instead of typed again.
+   * the first one: the term stays after a pick, selected, so the next of the same search (the second
+   * „ACME" customer) is a click away instead of typed again, and typing another name replaces it.
    */
   collecting?: boolean;
   /**
@@ -75,6 +80,17 @@ export interface EntitySearchListProps<T extends EntityRef = EntityRef> {
    * [EntitySearchFreeText]. Left out by callers that only take records.
    */
   freeText?: FreeTextOption;
+  /**
+   * How inactive entries are offered (deactivated users, employees who left, ended projects …), see
+   * [InactiveMode]. Default `toggle`: hidden behind a "show inactive" checkbox for those who may see them.
+   */
+  inactive?: InactiveMode;
+  /**
+   * The value the caller currently holds. Offered on top of the list while the term is empty or matches
+   * it, also if the backend no longer answers it — an inactive user who is already set stays choosable
+   * for everybody, the checkbox notwithstanding.
+   */
+  current?: EntityRef | null;
 }
 
 /**
@@ -83,8 +99,7 @@ export interface EntitySearchListProps<T extends EntityRef = EntityRef> {
  *
  * It owns the term and the query alone: what a pick *means* is the caller's business, and the term is of
  * no interest once the entry is found. Which entries there are to offer — the first page as soon as the
- * popover opens, a longer one while the user scrolls — is [useEntityLookup]'s, shared in turn with the
- * picker of a server-laid-out form (DynamicSelect), so both behave the same.
+ * popover opens, a longer one while the user scrolls — is [useEntityLookup]'s.
  */
 export function EntitySearchList<T extends EntityRef = EntityRef>({
   url,
@@ -99,19 +114,39 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
   emptyTermSearches = true,
   initialSearch = "",
   freeText,
+  inactive,
+  current,
 }: EntitySearchListProps<T>) {
   const t = useTranslations();
   const [search, setSearch] = useState(initialSearch);
   const searchRef = useRef<HTMLInputElement>(null);
+  const checkboxId = useId();
+  const showInactive = useShowInactive(url, inactive);
+  const lookupParams = useMemo(
+    () =>
+      showInactive.params ? { ...params, ...showInactive.params } : params,
+    [params, showInactive.params]
+  );
 
-  const { entries, isFetching, isLoadingMore, loadMore } = useEntityLookup<T>({
+  const {
+    entries: found,
+    isFetching,
+    isLoadingMore,
+    loadMore,
+    typeToSearch,
+  } = useEntityLookup<T>({
     url,
     search,
-    params,
+    params: lookupParams,
     open: active,
     minChars,
     emptyTermSearches,
   });
+
+  const entries = useMemo(
+    () => withCurrent(found, current, search),
+    [found, current, search]
+  );
 
   /** The recent quick-picks only make sense before a term narrows the list; typing takes over. */
   const showRecent =
@@ -121,8 +156,10 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
     onPick(entry);
     if (collecting) {
       // Explicitly, and not by leaving focus alone: a pick by mouse leaves it on the item that was
-      // clicked, so typing on would go nowhere.
+      // clicked, so typing on would go nowhere. The term is selected, not cleared: the other matches
+      // stay a click away, and typing the next name replaces it instead of being appended to it.
       searchRef.current?.focus();
+      searchRef.current?.select();
     } else {
       // A single pick is done: what was searched for has been found.
       setSearch("");
@@ -138,6 +175,20 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
         onValueChange={setSearch}
         placeholder={t("filter.search")}
       />
+      {showInactive.toggleable && (
+        <div className="flex items-center gap-2 border-b px-3 py-1.5">
+          <Checkbox
+            id={checkboxId}
+            checked={showInactive.checked}
+            onCheckedChange={(checked) =>
+              showInactive.setChecked(checked === true)
+            }
+          />
+          <Label htmlFor={checkboxId} className="text-xs font-normal">
+            {t("filter.showInactive")}
+          </Label>
+        </div>
+      )}
       {/* cmdk's list is its own scroll container, so the next page is asked for from here. The
           arrow keys scroll it too, which pages for the keyboard as well. */}
       <CommandList
@@ -150,9 +201,11 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
               offer — the hint to type only fits a term that is too short to be looked up. */}
           {search.trim().length > 0 && search.trim().length < minChars
             ? t("filter.search")
-            : isFetching
-              ? t("loading")
-              : t("nothingFound")}
+            : typeToSearch
+              ? t("filter.typeToSearch")
+              : isFetching
+                ? t("loading")
+                : t("nothingFound")}
         </CommandEmpty>
         {showRecent && (
           // Own value prefix so a recent entry never collides with the same id in the backend results
@@ -170,6 +223,7 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
                 key={`recent-${entry.id}`}
                 value={`recent-${entry.id}`}
                 onSelect={() => pick(entry)}
+                className={inactiveRefClass(entry)}
               >
                 {entry.displayName}
               </CommandItem>
@@ -189,6 +243,7 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
                 key={entry.id}
                 value={String(entry.id)}
                 onSelect={() => pick(entry)}
+                className={inactiveRefClass(entry)}
               >
                 {entry.displayName}
               </CommandItem>

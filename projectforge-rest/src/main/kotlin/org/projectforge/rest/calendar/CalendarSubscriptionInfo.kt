@@ -33,7 +33,6 @@ import org.projectforge.framework.i18n.translate
  */
 class CalendarSubscriptionInfo(var headline: String? = null,
                                val accessStatus: CalendarAccessStatus? = null,
-                               val barcodeUrl: String? = BarcodeServicesRest.GET_URL,
                                val securityAdviseHeadline: String? = translate("securityAdvice"),
                                val securityAdvise: String? = translate("calendar.icsExport.securityAdvice")) {
     /**
@@ -43,8 +42,29 @@ class CalendarSubscriptionInfo(var headline: String? = null,
     val remindersExportDefaultValue: Boolean = accessStatus != null && remindersStatusList.contains(accessStatus)
 
     var urlWithoutExportedReminders: String? = null
+        set(value) {
+            field = value
+            qrCodeWithoutExportedReminders = value?.let { BarcodeServicesRest.getQrCodeDataUrl(it) }
+        }
 
     var url: String? = null
+        set(value) {
+            field = value
+            qrCode = value?.let { BarcodeServicesRest.getQrCodeDataUrl(it) }
+        }
+
+    /**
+     * The QR code of [url] as data url: the url carries the user's token, so it must not be part of an image url
+     * (access logs).
+     */
+    var qrCode: String? = null
+        private set
+
+    /**
+     * The QR code of [urlWithoutExportedReminders] as data url, see [qrCode].
+     */
+    var qrCodeWithoutExportedReminders: String? = null
+        private set
 
     fun initUrls(calendarFeedService: CalendarFeedService, teamCalId: Long?) {
         teamCalId ?: return

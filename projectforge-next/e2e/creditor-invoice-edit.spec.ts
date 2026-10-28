@@ -120,10 +120,10 @@ test.describe("creditor invoice edit", { tag: "@lane-creditor" }, () => {
       // find its row by — and the form leaves for the list once it is stored.
       const saved = page.waitForResponse(
         (response) =>
-          response.url().includes(`/rs/${ENTITY}/saveorupdate`) && response.ok()
+          response.url().includes(`/rs/${ENTITY}/insert`) && response.ok()
       );
       await page
-        .getByRole("button", { name: format.t("save"), exact: true })
+        .getByRole("button", { name: format.t("create"), exact: true })
         .click();
       const body = (await (await saved).json()) as {
         variables?: { id?: number };
@@ -243,11 +243,12 @@ test.describe("creditor invoice edit", { tag: "@lane-creditor" }, () => {
       // The regression this guards is what `CREDITOR_INVOICE_ARRAY_FIELDS` exists for: the backend
       // names `positionen` as the field, no `<form.Field>` is mounted for the collection itself, and
       // without the array names the message would be written into a slot nobody renders — a save that
-      // silently does nothing (see applyServerValidationErrors).
+      // silently does nothing (see applyServerValidationErrors). Scoped to the toasts, because the empty
+      // list of positions says the same text the moment the last row is deleted, before any save.
       await expect(
-        page.getByText(
-          format.t("fibu.rechnung.error.rechnungHatKeinePositionen")
-        )
+        page
+          .locator("[data-sonner-toaster]")
+          .getByText(format.t("fibu.rechnung.error.rechnungHatKeinePositionen"))
       ).toBeVisible();
       // And the page stays, so the invoice can be repaired rather than lost.
       await expect(page).toHaveURL(new RegExp(`${ROUTE}/${id}$`));

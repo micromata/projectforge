@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import type { MassUpdateParameter } from "@/lib/rs/multi-select";
 import { cn } from "@/lib/utils";
 import { TaskKost2Picker } from "../task-kost2-picker";
+import { Kost2RemapCheckbox } from "./kost2-remap-checkbox";
 
 /**
  * The task + cost unit control of the time sheet mass update — the mass-update adapter around the shared
@@ -16,7 +17,7 @@ import { TaskKost2Picker } from "../task-kost2-picker";
  * declared fields do not model), so it renders through the `customFields` slot at the position the backend
  * declares for `taskAndKost2` (below the activity report) and contributes its parameters under
  * the keys the backend expects: `task`/`kost2` carry the chosen ids and `taskAndKost2` is the synthetic
- * field the run gates the change on (`TimesheetMultiSelectedPageRest.checkParamHasAction`).
+ * field the run gates the change on (`TimesheetMassUpdateRest.checkParamHasAction`).
  *
  * The task control is *always* usable: a task must be pickable to load its cost units, and picking one
  * when no shared task is pre-filled is how a cost-unit-only change starts. The checkbox is a separate
@@ -37,6 +38,9 @@ import { TaskKost2Picker } from "../task-kost2-picker";
  *   dropped, so an untouched section acts on nothing.
  * The cost unit is validated against the task server side (`handleClientMassUpdateCall`), and a task change
  * maps the cost unit to the same type in the new project.
+ *
+ * The remap opt-in ([Kost2RemapCheckbox]) is a mode of its own: each sheet keeps its task and gets the cost
+ * unit of the same type its own task offers, so the picker is disabled and only `kost2Remap` is posted.
  */
 export function TaskKost2MassUpdateField({
   setParam,
@@ -54,13 +58,22 @@ export function TaskKost2MassUpdateField({
   const [enabled, setEnabled] = useState(false);
   const [taskId, setTaskId] = useState<number | null>(() => initialTaskId);
   const [kost2Id, setKost2Id] = useState<number | null>(() => initialKost2Id);
+  const [remap, setRemap] = useState(false);
 
   // The user picked a task off the pre-filled one — a change that only takes effect once the opt-in is on.
   const taskChanged = taskId !== initialTaskId;
   // A picked-but-not-opted-in task: warn that it will not be written, so the opt-out is not a silent one.
-  const warnTaskIgnored = taskChanged && !enabled;
+  const warnTaskIgnored = taskChanged && !enabled && !remap;
 
   useEffect(() => {
+    setParam("kost2Remap", remap ? { change: true } : undefined);
+    if (remap) {
+      // Every sheet keeps its own task and cost unit choice; the picker's values are not applied.
+      setParam("task", undefined);
+      setParam("kost2", undefined);
+      setParam("taskAndKost2", undefined);
+      return;
+    }
     // The task is written only with the opt-in on; the cost unit is a change on its own.
     const applyTask = enabled && taskId != null;
     const kost2Changed = kost2Id !== initialKost2Id;
@@ -79,7 +92,7 @@ export function TaskKost2MassUpdateField({
     setParam("taskAndKost2", { change: true });
     // `setParam` is stable (a useCallback in MassUpdateForm); the flag and ids drive the params.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, taskId, kost2Id, initialTaskId, initialKost2Id]);
+  }, [enabled, remap, taskId, kost2Id, initialTaskId, initialKost2Id]);
 
   return (
     <div className="space-y-3">
@@ -97,6 +110,7 @@ export function TaskKost2MassUpdateField({
           <Checkbox
             id={checkboxId}
             checked={enabled}
+            disabled={remap}
             onCheckedChange={(value) => setEnabled(value === true)}
           />
           <Label htmlFor={checkboxId} className="cursor-pointer font-medium">
@@ -114,7 +128,9 @@ export function TaskKost2MassUpdateField({
         kost2Id={kost2Id}
         onTaskChange={(ref) => setTaskId(ref?.id ?? null)}
         onKost2Change={setKost2Id}
+        disabled={remap}
       />
+      <Kost2RemapCheckbox checked={remap} onCheckedChange={setRemap} />
     </div>
   );
 }

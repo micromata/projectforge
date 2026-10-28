@@ -66,14 +66,13 @@ export interface SuggestInputProps {
 /**
  * A free-text box that suggests values the backend has already seen for it — a time sheet's location, its
  * reference, the properties a `{category}/autocomplete?property=…` answers for
- * (`AbstractPagesRest.getAutoCompletionForProperty`).
+ * (`AbstractEntityRest.getAutoCompletionForProperty`).
  *
  * The suggestions are a convenience only: anything the user types is a valid value, which is what makes
  * this a different control from [EntityAutocomplete] — that one picks an *entity* and refuses everything
  * else, this one completes a string.
  *
- * Context-free on purpose, so both a hand-built form field ([StringSuggestField]) and the server
- * laid out one ([DynamicAutoCompleteInput]) render the same box.
+ * Context-free on purpose, so any form field ([StringSuggestField]) or filter can render the same box.
  */
 export function SuggestInput({
   value,

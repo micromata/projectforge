@@ -39,7 +39,9 @@ class Customer(id: Long? = null,
                var description: String? = null,
                var konto: Konto? = null,
                var kost: String? = null,
-) : BaseDTODisplayObject<KundeDO>(id, displayName = displayName) {
+) : BaseDTODisplayObject<KundeDO>(id, displayName = displayName), EntityAccessSupport {
+    override var writeAccess: Boolean? = null
+    override var deleteAccess: Boolean? = null
 
     @get:JsonProperty
     val statusAsString: String?

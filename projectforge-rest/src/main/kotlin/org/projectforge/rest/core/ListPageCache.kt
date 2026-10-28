@@ -39,11 +39,13 @@ private val log = KotlinLogging.logger {}
 
 /**
  * The materialized ordered id list of a server-side paged list, cached per (session, filter). See
- * [ListPageCache] and `MIGRATION-list-paging.md`.
+ * [ListPageCache] and `dev-docs/next/list-paging.md`.
  *
  * @param fingerprint [org.projectforge.framework.persistence.api.MagicFilter.resultFingerprint] the list was built for.
  * @param ids The ordered ids the filter selected (already access-checked and sorted).
  * @param truncated True if the underlying query hit its row cap, so [ids] may be incomplete.
+ * @param queryInvalid True if the search term isn't a valid search syntax, so [ids] is empty
+ *   (see [org.projectforge.framework.persistence.api.QueryFilter.fulltextQueryInvalid]).
  * @param changeCounter The value of [ListPageChangeCounter] for the entity at build time; a later value means
  *   the entity changed and the list must be rebuilt.
  * @param createdMillis Build time (informational; the effective TTL is enforced by [ExpiringSessionAttributes]).
@@ -54,6 +56,7 @@ class CachedIdList(
     val truncated: Boolean,
     val changeCounter: Long,
     val createdMillis: Long,
+    val queryInvalid: Boolean = false,
 ) {
     /**
      * The whole-result statistics of this id list ([AbstractEntityRest.aggregate]), computed once and reused
@@ -103,8 +106,8 @@ class ListPageChangeCounter {
 }
 
 /**
- * Session cache of the ordered id list materialized for a server-side paged list (Stage 2 of
- * `MIGRATION-list-paging.md`).
+ * Session cache of the ordered id list materialized for a server-side paged list
+ * (see `dev-docs/next/list-paging.md`).
  *
  * Stored via [ExpiringSessionAttributes] (per session, sliding TTL, swept by a background timer) — the same
  * store [org.projectforge.rest.multiselect.MultiSelectionSupport] uses, deliberately not [UserPrefService]:
@@ -154,6 +157,7 @@ class ListPageCache {
         fingerprint: String,
         ids: LongArray,
         truncated: Boolean,
+        queryInvalid: Boolean = false,
     ): CachedIdList {
         val cached = CachedIdList(
             fingerprint = fingerprint,
@@ -161,6 +165,7 @@ class ListPageCache {
             truncated = truncated,
             changeCounter = changeCounter.getCounter(doClass),
             createdMillis = System.currentTimeMillis(),
+            queryInvalid = queryInvalid,
         )
         val store = getOrCreateStore(request, category)
         synchronized(store) {

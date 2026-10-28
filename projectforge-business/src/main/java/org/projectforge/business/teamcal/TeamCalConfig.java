@@ -24,11 +24,10 @@
 package org.projectforge.business.teamcal;
 
 import org.projectforge.framework.configuration.Configuration;
-import org.projectforge.framework.configuration.ConfigurationData;
 
 import java.util.UUID;
 
-public class TeamCalConfig implements ConfigurationData
+public class TeamCalConfig
 {
 
   // Don't change this, otherwise the synchronization with older entries may fail.

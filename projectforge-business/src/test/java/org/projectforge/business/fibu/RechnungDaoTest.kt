@@ -162,11 +162,72 @@ class RechnungDaoTest : AbstractTestBase() {
                 })
             }
 
+            // Deleting decides by the stored type and original as well, not by the posted ones: an ordinary
+            // invoice deleted as a posted cancellation of the original doesn't revert the original, and the
+            // cancellation deleted as a posted invoice doesn't leave it cancelled.
+            val other = RechnungDO()
+            other.datum = LocalDate.now()
+            other.faelligkeit = LocalDate.now()
+            other.projekt = original.projekt
+            other.nummer = rechnungDao.getNextNumber(other)
+            other.status = RechnungStatus.GESTELLT
+            other.addPosition(createPosition(1, "50.00", "0.19", "test"))
+            val otherId = rechnungDao.insert(other)
+            assertUserException("fibu.rechnung.error.cancellation.unchangeable") {
+                rechnungDao.markAsDeleted(RechnungDO().also {
+                    it.id = otherId
+                    it.typ = RechnungTyp.CANCELLATION
+                    it.originalRechnung = RechnungDO().also { ref -> ref.id = originalId }
+                })
+            }
+            assertUserException("fibu.rechnung.error.cancellation.unchangeable") {
+                rechnungDao.markAsDeleted(RechnungDO().also {
+                    it.id = cancellationId
+                    it.typ = RechnungTyp.RECHNUNG
+                })
+            }
+            Assertions.assertEquals(RechnungStatus.STORNIERT, rechnungDao.find(originalId, attached = true)!!.status)
+
             // Deleting the cancellation reverts the original.
             rechnungDao.markAsDeleted(cancellation)
             Assertions.assertEquals(RechnungStatus.GESTELLT, rechnungDao.find(originalId, attached = true)!!.status)
             Assertions.assertNull(rechnungDao.findCancellationOf(originalId))
         }
+    }
+
+    /**
+     * A deleted position is only flagged and stays in the collection; an invoice whose positions are all deleted has
+     * none left and is refused like one without any.
+     */
+    @Test
+    fun testOnlyDeletedPositions() {
+        // No surrounding transaction: the update below reads the invoice in a transaction of its own, which would
+        // wait for the lock of an outer one (HSQLDB).
+        logon(TEST_FINANCE_USER)
+        val projekt = initTestDB.addProjekt(null, 1, "foo")
+        fun newInvoice(): RechnungDO {
+            val rechnung = RechnungDO()
+            rechnung.datum = LocalDate.now()
+            rechnung.faelligkeit = LocalDate.now()
+            rechnung.projekt = projekt
+            rechnung.nummer = rechnungDao.getNextNumber(rechnung)
+            return rechnung
+        }
+        assertUserException("fibu.rechnung.error.rechnungHatKeinePositionen") {
+            rechnungDao.insert(newInvoice().also {
+                it.addPosition(createPosition(1, "10.00", "0.19", "deleted").also { pos -> pos.deleted = true })
+            })
+        }
+
+        val rechnung = newInvoice()
+        rechnung.addPosition(createPosition(1, "10.00", "0.19", "live"))
+        rechnung.addPosition(createPosition(1, "20.00", "0.19", "deleted").also { it.deleted = true })
+        val id = rechnungDao.insert(rechnung)
+
+        val edited = rechnungDao.find(id)!!
+        edited.positionen!!.forEach { it.deleted = true }
+        assertUserException("fibu.rechnung.error.rechnungHatKeinePositionen") { rechnungDao.update(edited) }
+        Assertions.assertEquals(1, rechnungDao.find(id)!!.positionenExcludingDeleted.size)
     }
 
     private fun assertUserException(i18nKey: String, block: () -> Unit) {
@@ -312,6 +373,27 @@ class RechnungDaoTest : AbstractTestBase() {
         val fromDb = rechnungDao.find(id)
         Assertions.assertEquals(1, fromDb!!.positionen!!.size)
         Assertions.assertNotNull(fromDb.positionen!![0].kostZuweisungen)
+    }
+
+    /**
+     * A deleted position stays in the collection (soft delete) and is posted with the invoice, but it is no
+     * part of it any more: an invoice left with deleted positions only has none and must be refused, as one
+     * without any is.
+     */
+    @Test
+    fun `an invoice with deleted positions only is refused`() {
+        logon(TEST_FINANCE_USER)
+        val rechnung = RechnungDO()
+        rechnung.status = RechnungStatus.GEPLANT
+        rechnung.datum = LocalDate.now()
+        rechnung.faelligkeit = LocalDate.now()
+        rechnung.projekt = initTestDB.addProjekt(null, 43, "deleted positions")
+        rechnung.addPosition(createPosition(1, "50.00", "0", "test").also { it.deleted = true })
+        val ex = Assertions.assertThrows(UserException::class.java) {
+            suppressErrorLogs { rechnungDao.insert(rechnung) }
+        }
+        Assertions.assertEquals("fibu.rechnung.error.rechnungHatKeinePositionen", ex.i18nKey)
+        Assertions.assertEquals("positionen", ex.causedByField)
     }
 
     private fun createPosition(

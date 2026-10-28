@@ -1,0 +1,175 @@
+import { AVAILABILITY_METADATA } from "@/lib/metadata/availability.generated";
+import { definePage } from "@/lib/page-def/define-page";
+import { VACATION_ACCOUNT_QUERY_KEY } from "@/lib/rs/vacation-account";
+import { AbsenceDaysCell } from "@/components/shared/absence-chart/absence-days-bar";
+import { AbsenceStartCell } from "@/components/shared/list/absence-start-cell";
+import { AvailabilityConflictNotice } from "./availability-conflict-notice";
+import {
+  AvailabilityInternalCommentField,
+  AvailabilityLocationField,
+  AvailabilitySubstitutesField,
+  AvailabilityTypeField,
+  AvailabilityUserField,
+} from "./availability-fields";
+import { AvailabilityListActions } from "./availability-list-actions";
+import { AvailabilitySubstituteAbsences } from "./availability-substitute-absences";
+import { AvailabilitySubstituteChart } from "./availability-substitute-chart";
+import {
+  availabilitySchema,
+  AVAILABILITY_FIELDS,
+  type AvailabilityValues,
+} from "./availability-schema";
+import { emptyAvailabilityValues, toFormValues } from "./availability-values";
+import type { AvailabilityDetail, AvailabilityListRow } from "./types";
+
+/** React Query key of the list, so a write from the edit page refreshes it. */
+export const AVAILABILITY_LIST_QUERY_KEY = ["availability"] as const;
+
+/**
+ * The availability entries — list and edit — as data (see lib/page-def/types.ts). Replaces the React UILayout
+ * pages of `AvailabilityPagesRest`: periods of reduced availability (parental leave, workation, …) of users —
+ * employees and freelancers alike — with their type, reachability and location, a comment for everybody who may
+ * see the entry and an internal one for the user and HR staff only, and optional substitutes: a conflict if all of them
+ * are away on a day of it.
+ */
+export const AVAILABILITY_PAGE = definePage<
+  AvailabilityListRow,
+  AvailabilityValues,
+  AvailabilityDetail,
+  typeof AVAILABILITY_METADATA
+>({
+  entity: "availability",
+  metadata: AVAILABILITY_METADATA,
+  route: "/availability",
+  queryKey: AVAILABILITY_LIST_QUERY_KEY,
+  // The vacation account lists the entries, too.
+  extraInvalidateKeys: [VACATION_ACCOUNT_QUERY_KEY],
+  // Where the entry sits in the main menu: Common (MenuCreator, MenuItemDefId.AVAILABILITY).
+  categoryKey: "menu.common",
+  titleKey: "availability.title.list",
+  columns: [
+    {
+      name: "user",
+      size: 170,
+      cell: ({ row }) => row.original.user?.displayName ?? null,
+    },
+    {
+      name: "startDate",
+      size: 110,
+      // Empty for an entry of somebody else shown from today on only: its begin isn't told.
+      cell: ({ row }) => (
+        <AbsenceStartCell
+          startDate={row.original.startDate}
+          startHidden={row.original.startHidden}
+        />
+      ),
+    },
+    { name: "endDate", size: 110 },
+    {
+      // Computed from the period, sorted by that number on the server (AvailabilityEntityRest.computedSortProperties).
+      // Beside the number the period as a bar, red on the days without any substitute on duty, as in the vacation list.
+      id: "workingDaysFormatted",
+      labelKey: "availability.workingDays",
+      size: 220,
+      accessor: (row) => row.workingDaysFormatted ?? "",
+      cell: ({ row }) => (
+        <AbsenceDaysCell
+          formatted={row.original.workingDaysFormatted}
+          row={row.original}
+        />
+      ),
+    },
+    { name: "type", size: 140 },
+    // Sorted as displayed, by their translation (AvailabilityEntityRest.computedSortProperties).
+    { name: "status", size: 170 },
+    { name: "location", size: 110 },
+    { name: "comment", size: 260, wrap: true },
+    {
+      id: "substitutes",
+      labelKey: "availability.substitutes",
+      size: 200,
+      sortable: false,
+      wrap: true,
+      // Each struck through when no longer active (see RefList).
+      accessor: (row) => row.substitutes,
+    },
+  ],
+  // At least one day without any substitute on duty (ConflictingAvailabilitiesCache), as in the vacation list.
+  legend: [{ className: "row-red", labelKey: "availability.conflicts" }],
+  rowClassName: (row) =>
+    row.conflict === true && !row.deleted ? "row-red" : undefined,
+  defaultSort: { id: "startDate", desc: true },
+  // The pinned period (AvailabilityEntityRest: the entries overlapping it) is a calendar year unless a month or a
+  // free range is picked.
+  filterPeriodKinds: ["month", "year"],
+  filterDefaultPeriodKind: "year",
+  // The team vacation calendar, with the availability entries shown.
+  listActions: AvailabilityListActions,
+  edit: {
+    schema: availabilitySchema,
+    fieldNames: AVAILABILITY_FIELDS,
+    defaultValues: emptyAvailabilityValues,
+    toFormValues,
+    title: (availability) =>
+      [availability.user?.displayName, availability.type]
+        .filter(Boolean)
+        .join(", "),
+    newTitleKey: "availability.title.add",
+    savedMessageKey: "message.successfullChanged",
+    // HR staff may preset the user (`?user=<id>`, AvailabilityEntityRest.newBaseDTO).
+    newEntryParams: ["user"],
+    // "Als Urlaub bearbeiten" — build a vacation from this entry's person, period, comment and substitutes and open
+    // it as a new vacation (AvailabilityEntityRest.switch2Vacation → VacationEntityRest.cloneFromAvailability).
+    // This entry stays; the vacation is named, not imported, so the two features don't depend on each other in a
+    // circle.
+    convert: {
+      action: "switch2Vacation",
+      targetEntity: "vacation",
+      targetRoute: "/vacation",
+      labelKey: "availability.switchToVacationButton",
+      // Nothing is converted: a new vacation is opened, and a stored entry stays as it is.
+      tooltipKey: "availability.switchToVacationButton.tooltip",
+    },
+    // The warning of a day without any substitute on duty; a start without an end makes a one-day period, as in
+    // the vacation form.
+    editIntro: AvailabilityConflictNotice,
+    // The list by default; the calendar opens an entry with `?returnTo=/calendar` (use-calendar-action.ts), the
+    // vacation account with `?returnTo=/vacationAccount` (VacationAccountRest.availabilityEditUrl).
+    returnTargets: [
+      { route: "/availability", labelKey: "availability.title.list" },
+      { route: "/calendar", labelKey: "menu.calendar" },
+      { route: "/vacationAccount", labelKey: "menu.vacation.leaveaccount" },
+    ],
+    sections: [
+      {
+        id: "general",
+        titleKey: "availability.title",
+        fields: [
+          { custom: AvailabilityUserField },
+          { name: "status" },
+          { name: "startDate", startsRow: true },
+          { name: "endDate" },
+          { custom: AvailabilityTypeField, startsRow: true },
+          { custom: AvailabilityLocationField },
+          {
+            name: "comment",
+            span: 2,
+            rows: 3,
+            publicText: true,
+            hintKey: "availability.comment.tooltip",
+          },
+          { custom: AvailabilityInternalCommentField, span: 2 },
+          { custom: AvailabilitySubstitutesField, span: 2, startsRow: true },
+          // Who is away when, right where the substitutes are chosen.
+          { custom: AvailabilitySubstituteChart, span: 4 },
+        ],
+      },
+      {
+        id: "substituteAbsences",
+        titleKey: "availability.substitutes.absences",
+        // The details of the absences the chart shows (and the chart's text for screen readers).
+        render: () => <AvailabilitySubstituteAbsences />,
+      },
+    ],
+  },
+});

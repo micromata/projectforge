@@ -21,6 +21,7 @@ export default function AccessMassUpdatePage() {
       selectedEntries={(count) => (
         <SelectedEntriesPanel
           endpoint={massUpdate.endpoint}
+          entity={ACCESS_PAGE.entity}
           metadata={ACCESS_PAGE.metadata}
           columns={ACCESS_PAGE.columns}
           // The count is all this page knows of the selection, and it comes from `{page}/meta`, which

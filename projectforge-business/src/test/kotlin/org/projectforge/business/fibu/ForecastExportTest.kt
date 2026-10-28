@@ -32,6 +32,9 @@ import org.apache.poi.ss.util.CellReference
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.customergroup.CustomerGroupConfig
+import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.projectGroup
+import org.projectforge.business.fibu.customergroup.CustomerGroupService
 import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -66,6 +69,9 @@ class ForecastExportTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var orderbookSnapshotsService: OrderbookSnapshotsService
+
+    @Autowired
+    private lateinit var customerGroupService: CustomerGroupService
 
     /**
      * The order analysis shows both cases of projectforge.fibu.forecast.distributeUnusedBudget, but only if they
@@ -320,6 +326,36 @@ class ForecastExportTest : AbstractTestBase() {
     }
 
     /**
+     * A completed order with a commissioned position, nothing invoiced yet, is listed in the order book as "to be
+     * invoiced" and must get a real forecast row, although its performance period ended months ago.
+     */
+    @Test
+    fun completedOrderNotInvoicedGetsRowTest() {
+        logon(TEST_FINANCE_USER)
+        val baseDate = PFDay.now().plusMonths(-4)
+        val order = createOrder(baseDate, AuftragsStatus.ABGESCHLOSSEN, baseDate, baseDate.plusMonths(1))
+        addPosition(order, 1, AuftragsStatus.BEAUFTRAGT, 5000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
+        val orderId = auftragDao.insert(order)
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        val orderNummer = auftragDao.find(orderId)!!.nummer!!
+
+        val filter = AuftragFilter()
+        filter.periodOfPerformanceStartDate = baseDate.localDate
+        val ba = forecastExport.xlsExport(filter, distributeUnusedBudget = true)
+        XSSFWorkbook(ByteArrayInputStream(ba)).use { workbook ->
+            val sheet = workbook.getSheet(ForecastExportContext.Sheet.FORECAST.title)!!
+            val headRow = findHeadRow(sheet, ForecastExportContext.ForecastCol.ORDER_NR.header)
+            val orderNrCol = findColumn(headRow, ForecastExportContext.ForecastCol.ORDER_NR.header)
+            val found = (headRow.rowNum + 1..sheet.lastRowNum).any { rowNum ->
+                val cell = sheet.getRow(rowNum)?.getCell(orderNrCol)
+                cell?.cellType == CellType.NUMERIC && cell.numericCellValue.toInt() == orderNummer
+            }
+            Assertions.assertTrue(found, "Completed order $orderNummer, not invoiced, must be part of the forecast.")
+        }
+    }
+
+    /**
      * A completed (ABGESCHLOSSEN) but invoiced order position must not drop out of the IST sums. auftragsStatusToShow
      * allows ABGESCHLOSSEN on order level while auftragsPositionsStatusToShow does not, so before the fix such a
      * position was skipped and its project only appeared as an anonymous pseudo order row (ORDER_NR 0). It must now
@@ -343,6 +379,7 @@ class ForecastExportTest : AbstractTestBase() {
         val order = createOrder(baseDate, AuftragsStatus.ABGESCHLOSSEN, baseDate, baseDate.plusMonths(4))
         order.projekt = projektDao.find(projektId, checkAccess = false, attached = true)
         addPosition(order, 1, AuftragsStatus.ABGESCHLOSSEN, 5000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
+            .vollstaendigFakturiert = true // Fully invoiced: completed positions still to be invoiced get a real row.
         val orderId = auftragDao.insert(order)
         auftragsCache.setExpired()
         auftragsCache.forceReload()
@@ -417,6 +454,80 @@ class ForecastExportTest : AbstractTestBase() {
                 visibleTrueFound,
                 "The invoice of the completed order (project $projektId) must evaluate visible = TRUE."
             )
+        }
+    }
+
+    /**
+     * The project group column is appended behind the template's columns, but only if project groups exist: the
+     * template's formulas address columns by letter. The web tables carry the group as well.
+     */
+    @Test
+    fun projectGroupColumnTest() {
+        logon(TEST_FINANCE_USER)
+        val today = PFDay.now()
+        val baseDate = today.plusMonths(-4)
+        val projekt = ProjektDO()
+        projekt.nummer = 7
+        projekt.name = "ForecastExportTest - project group"
+        val projektId = projektDao.insert(projekt, checkAccess = false)
+        val order = createOrder(baseDate, AuftragsStatus.BEAUFTRAGT, baseDate, baseDate.plusMonths(4))
+        order.projekt = projektDao.find(projektId, checkAccess = false, attached = true)
+        addPosition(order, 1, AuftragsStatus.BEAUFTRAGT, 4000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
+        val orderId = auftragDao.insert(order)
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        val invoice = createInvoice(baseDate.plusMonths(1))
+        addPosition(invoice, 700.0, auftragDao.find(orderId)!!.getPosition(1))
+        rechnungDao.insert(invoice)
+
+        val filter = AuftragFilter()
+        filter.periodOfPerformanceStartDate = baseDate.localDate
+        fun headers(ba: ByteArray?, sheetTitle: String): List<String> = XSSFWorkbook(ByteArrayInputStream(ba)).use {
+            val sheet = it.getSheet(sheetTitle)!!
+            findHeadRow(sheet, "Kunde").mapNotNull { cell -> cell.takeIf { c -> c.cellType == CellType.STRING }?.stringCellValue }
+        }
+        Assertions.assertFalse(
+            ForecastExportContext.PROJECT_GROUP_HEADER in headers(forecastExport.xlsExport(filter), ForecastExportContext.Sheet.FORECAST.title),
+            "No project groups, no column.",
+        )
+        try {
+            val errors = customerGroupService.save(
+                CustomerGroupConfig(projectGroups = mutableListOf(projectGroup(null, "Parent", listOf(projektId!!)))),
+                customerGroupService.lastUpdate,
+            )
+            Assertions.assertEquals(emptyList<String>(), errors.map { it.messageKey })
+            val ba = forecastExport.xlsExport(filter)
+            XSSFWorkbook(ByteArrayInputStream(ba)).use { workbook ->
+                listOf(ForecastExportContext.Sheet.FORECAST, ForecastExportContext.Sheet.INVOICES).forEach { sheetEnum ->
+                    val sheet = workbook.getSheet(sheetEnum.title)!!
+                    val idHeader = if (sheetEnum == ForecastExportContext.Sheet.FORECAST) {
+                        ForecastExportContext.ForecastCol.PROJECT_ID.header
+                    } else {
+                        ForecastExportContext.InvoicesCol.PROJECT_ID.header
+                    }
+                    // The last head row (the forecast sheet has two) is the one the rows follow.
+                    val headRow = (0..sheet.lastRowNum).mapNotNull { sheet.getRow(it) }.last { row ->
+                        row.any { it.cellType == CellType.STRING && it.stringCellValue == idHeader }
+                    }
+                    val groupCol = findColumn(headRow, ForecastExportContext.PROJECT_GROUP_HEADER)
+                    Assertions.assertTrue(groupCol > findColumn(headRow, idHeader), "Appended behind the template's columns.")
+                    val idCol = findColumn(headRow, idHeader)
+                    val groups = (headRow.rowNum + 1..sheet.lastRowNum).mapNotNull { sheet.getRow(it) }
+                        .filter { row -> row.getCell(idCol)?.takeIf { it.cellType == CellType.NUMERIC }?.numericCellValue?.toLong() == projektId }
+                        .map { it.getCell(groupCol)?.stringCellValue }
+                    Assertions.assertTrue(groups.isNotEmpty(), "${sheetEnum.title}: rows of the project expected.")
+                    Assertions.assertEquals(listOf("Parent"), groups.distinct(), sheetEnum.title)
+                    Assertions.assertFalse(sheet.isColumnHidden(groupCol), sheetEnum.title)
+                }
+            }
+            val orders = auftragDao.select(forecastExport.buildQueryFilter(filter, baseDate.beginOfMonth, true))
+            val tables = forecastExport.statistics(orders, baseDate.localDate, unfiltered = true)!!.tables
+            Assertions.assertEquals(setOf("Parent"), tables.positions.filter { it.projectId == projektId }.map { it.projectGroup }.toSet())
+            Assertions.assertEquals("Parent", tables.projects.single { it.projectId == projektId }.projectGroup)
+            Assertions.assertEquals(setOf("Parent"), tables.invoices.filter { it.projectId == projektId }.map { it.projectGroup }.toSet())
+            Assertions.assertTrue(tables.positions.filter { it.projectId != projektId }.all { it.projectGroup == null })
+        } finally {
+            customerGroupService.save(CustomerGroupConfig(), customerGroupService.lastUpdate)
         }
     }
 
@@ -564,7 +675,10 @@ class ForecastExportTest : AbstractTestBase() {
             }
             assertAmounts(excelRow(forecastSheet, 7, firstMonthCol), chartData.ist, "IST")
             val cumulatedSheet = workbook.getSheet("Umsatz kumuliert")!!
+            // 'Gesamt' adds IST and forecast per month, as the chart does:
+            val forecastSums = List(12) { i -> chartData.forecastByStatus.values.sumOf { it[i] } }
             assertAmounts(excelRow(cumulatedSheet, 3, 1), chartData.total, "Gesamt")
+            assertAmounts(List(12) { i -> chartData.ist[i] + forecastSums[i] }, chartData.total, "Total")
             assertAmounts(excelRow(cumulatedSheet, 7, 1), chartData.prevYear, "Vorjahr")
             assertAmounts(excelRow(cumulatedSheet, 10, 1), chartData.prevPrevYear, "Vorvorjahr")
         }
@@ -618,6 +732,7 @@ class ForecastExportTest : AbstractTestBase() {
         assertAmounts(chart.prevPrevYear, invoiceSums(ForecastInvoiceRow.Kind.PREV_PREV_YEAR), "Previous previous year")
         val forecast = chart.forecastByStatus.values.flatten().sumOf { it } + chart.ist.sumOf { it }
         assertAmount(tables.projects.sumOf { it.forecast }, forecast.toDouble())
+        assertAmount(tables.projects.sumOf { it.forecast }, chart.total.sumOf { it }.toDouble())
         assertAmount(tables.projects.sumOf { it.prevYear }, chart.prevYear.sumOf { it }.toDouble())
         Assertions.assertTrue(tables.projects.all { it.plan == null }, "No plan without planning date.")
         Assertions.assertEquals(tables.projects.size, tables.projects.map { it.projectId }.toSet().size)
@@ -749,6 +864,57 @@ class ForecastExportTest : AbstractTestBase() {
         Assertions.assertEquals(today.localDate, fromSnapshot.snapshotDate)
         assertAmounts(beforeChange.total, fromSnapshot.total, "Total of the snapshot")
         assertAmounts(beforeChange.ist, fromSnapshot.ist, "IST of the snapshot")
+    }
+
+    /**
+     * An order deleted after the planning date is still part of the plan (the snapshot holds it), if its id is given
+     * as deleted order, but not of the current forecast.
+     */
+    @Test
+    fun deletedOrderStaysInPlanTest() {
+        logon(TEST_FINANCE_USER)
+        val today = PFDay.now()
+        val baseDate = today.plusMonths(-2)
+        val kept = createTimeAndMaterials(
+            AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT, 1000.0, baseDate, baseDate, today.plusMonths(3),
+        )
+        val deleted = createTimeAndMaterials(
+            AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT, 3000.0, baseDate, baseDate, today.plusMonths(3),
+        )
+        // The plan counts the projects of the forecast only, so the deleted order shares the project of the kept one.
+        val projekt = ProjektDO()
+        projekt.nummer = 5
+        projekt.name = "ForecastExportTest - deleted order"
+        val projektId = projektDao.insert(projekt, checkAccess = false)
+        listOf(kept, deleted).forEach { order ->
+            auftragDao.find(order.id)!!.let {
+                it.projekt = projektDao.find(projektId, checkAccess = false, attached = true)
+                auftragDao.update(it)
+            }
+        }
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        orderbookSnapshotsService.storeOrderbookSnapshot(date = today.localDate)
+        val before = forecastExport.statistics(
+            listOf(auftragDao.find(kept.id)!!, auftragDao.find(deleted.id)!!), baseDate.localDate, unfiltered = false,
+            planningDate = today.localDate, distributeUnusedBudget = true,
+        )!!.chart
+
+        auftragDao.markAsDeleted(auftragDao.find(deleted.id)!!)
+        auftragsCache.setExpired()
+        fun statistics(deletedOrderIds: Set<Long>) = forecastExport.statistics(
+            listOf(auftragDao.find(kept.id)!!), baseDate.localDate, unfiltered = false,
+            planningDate = today.localDate, distributeUnusedBudget = true, deletedOrderIds = deletedOrderIds,
+        )!!.chart
+        val withoutDeleted = statistics(emptySet())
+        val withDeleted = statistics(setOf(deleted.id!!))
+
+        assertAmounts(before.plan!!, withDeleted.plan!!, "Plan with the deleted order")
+        Assertions.assertTrue(
+            withoutDeleted.plan!!.sumOf { it } < withDeleted.plan!!.sumOf { it },
+            "Without its id the deleted order is missing in the plan.",
+        )
+        assertAmounts(withoutDeleted.total, withDeleted.total, "Current forecast without the deleted order")
     }
 
     private fun assertAmounts(expected: List<BigDecimal>, actual: List<BigDecimal>, name: String) {

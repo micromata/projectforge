@@ -25,6 +25,9 @@ package org.projectforge.business.fibu;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.projectforge.business.excel.*;
+import org.projectforge.business.fibu.customergroup.CustomerGroupIndex;
+import org.projectforge.business.fibu.customergroup.CustomerGroupService;
+import org.projectforge.business.fibu.customergroup.ProjectGroup;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
@@ -41,6 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -64,10 +69,17 @@ public class OrderExport {
     private AuftragsCache auftragsCache;
 
     @Autowired
+    private AuftragDao auftragDao;
+
+    @Autowired
     private TaskTree taskTree;
 
-    private ExportColumn[] createOrderColumns() {
-        return new ExportColumn[]{
+    /**
+     * @param withProjectGroup Only a few projects belong to a project group: the column is only there if one of the
+     *                         exported orders has one.
+     */
+    private ExportColumn[] createOrderColumns(final boolean withProjectGroup) {
+        return withProjectGroupColumn(withProjectGroup, OrderCol.PROJECT, OrderCol.PROJECT_GROUP, new ExportColumn[]{
                 new I18nExportColumn(OrderCol.NUMMER, "fibu.auftrag.nummer.short", MyXlsContentProvider.LENGTH_ID),
                 new I18nExportColumn(OrderCol.NUMBER_OF_POSITIONS, "fibu.auftrag.positions", MyXlsContentProvider.LENGTH_ID),
                 new I18nExportColumn(OrderCol.DATE_OF_OFFER, "fibu.auftrag.angebot.datum", MyXlsContentProvider.LENGTH_DATE),
@@ -93,10 +105,41 @@ public class OrderExport {
                 new I18nExportColumn(OrderCol.ADDITIONAL_CONTACTS, "fibu.auftrag.additionalContacts", MyXlsContentProvider.LENGTH_STD),
                 new I18nExportColumn(OrderCol.REFERENCE, "fibu.common.reference", MyXlsContentProvider.LENGTH_STD),
                 new I18nExportColumn(OrderCol.COMMENT, "comment", MyXlsContentProvider.LENGTH_COMMENT)
-        };
+        });
     }
 
-    private void addOrderMapping(final PropertyMapping mapping, final AuftragDO order) {
+    /** The columns with the project group column inserted behind [afterCol], if [withProjectGroup]. */
+    private static ExportColumn[] withProjectGroupColumn(final boolean withProjectGroup, final Enum<?> afterCol,
+                                                         final Enum<?> projectGroupCol, final ExportColumn[] columns) {
+        if (!withProjectGroup) {
+            return columns;
+        }
+        final List<ExportColumn> result = new ArrayList<>(Arrays.asList(columns));
+        result.add(columnIndex(columns, afterCol) + 1,
+                new I18nExportColumn(projectGroupCol, "fibu.projectGroup", MyXlsContentProvider.LENGTH_STD));
+        return result.toArray(new ExportColumn[0]);
+    }
+
+    private static int columnIndex(final ExportColumn[] columns, final Enum<?> col) {
+        for (int i = 0; i < columns.length; i++) {
+            if (col.name().equals(columns[i].getName())) {
+                return i;
+            }
+        }
+        throw new IllegalArgumentException("Column " + col + " not found.");
+    }
+
+    /**
+     * @param groupIndex Taken once per export ([CustomerGroupService.getIndex] checks its sources on each call), null if
+     *                   there are no project groups.
+     */
+    private static String projectGroupOf(final CustomerGroupIndex groupIndex, final AuftragDO order) {
+        final ProjektDO project = order.getProjekt();
+        final ProjectGroup group = groupIndex != null && project != null ? groupIndex.projectGroupOf(project.getId()) : null;
+        return group != null ? group.getName() : null;
+    }
+
+    private void addOrderMapping(final PropertyMapping mapping, final AuftragDO order, final CustomerGroupIndex groupIndex) {
         var orderInfo = auftragsCache.getOrderInfo(order);
         mapping.add(OrderCol.NUMMER, order.getNummer());
         mapping.add(OrderCol.NUMBER_OF_POSITIONS,
@@ -110,6 +153,7 @@ public class OrderExport {
                         ? ThreadLocalUserContext.getLocalizedString(order.getStatus().getI18nKey()) : "");
         mapping.add(OrderCol.STATUS_COMMENT, order.getStatusBeschreibung());
         mapping.add(OrderCol.PROJECT, order.getProjektAsString());
+        mapping.add(OrderCol.PROJECT_GROUP, projectGroupOf(groupIndex, order));
         final ProjektDO project = order.getProjekt();
         final String projectCustomer = KundeFormatter.formatKundeAsString(project != null ? project.getKunde() : null,
                 order.getKundeText());
@@ -138,8 +182,8 @@ public class OrderExport {
         mapping.add(OrderCol.COMMENT, order.getBemerkung());
     }
 
-    private ExportColumn[] createPosColumns() {
-        return new ExportColumn[]{ //
+    private ExportColumn[] createPosColumns(final boolean withProjectGroup) {
+        return withProjectGroupColumn(withProjectGroup, PosCol.PROJECT, PosCol.PROJECT_GROUP, new ExportColumn[]{ //
                 new I18nExportColumn(PosCol.NUMBER, "fibu.auftrag.nummer.short", MyXlsContentProvider.LENGTH_ID),
                 new I18nExportColumn(PosCol.POS_NUMBER, "fibu.auftrag.position", 5),
                 new I18nExportColumn(PosCol.DATE_OF_OFFER, "fibu.auftrag.angebot.datum", MyXlsContentProvider.LENGTH_DATE),
@@ -165,16 +209,18 @@ public class OrderExport {
                 new I18nExportColumn(OrderCol.FORECAST_TYPE, AuftragForecastType.getBaseKey(), MyXlsContentProvider.LENGTH_PERCENT),
                 new I18nExportColumn(OrderCol.CONTACT_PERSON, "contactPerson", 30),
                 new I18nExportColumn(PosCol.TASK, "task", MyXlsContentProvider.LENGTH_STD),
-                new I18nExportColumn(PosCol.COMMENT, "comment", MyXlsContentProvider.LENGTH_COMMENT)};
+                new I18nExportColumn(PosCol.COMMENT, "comment", MyXlsContentProvider.LENGTH_COMMENT)});
     }
 
-    private void addPosMapping(final PropertyMapping mapping, final AuftragDO order, final AuftragsPositionDO pos) {
+    private void addPosMapping(final PropertyMapping mapping, final AuftragDO order, final AuftragsPositionDO pos,
+                               final CustomerGroupIndex groupIndex) {
         mapping.add(PosCol.NUMBER, order.getNummer());
         mapping.add(PosCol.POS_NUMBER, "#" + pos.getNumber());
         mapping.add(PosCol.DATE_OF_OFFER, order.getAngebotsDatum());
         mapping.add(PosCol.DATE_OF_ENTRY, order.getErfassungsDatum());
         mapping.add(PosCol.DATE_OF_DESICION, ensureErfassungsDatum(order));
         mapping.add(PosCol.PROJECT, order.getProjektAsString());
+        mapping.add(PosCol.PROJECT_GROUP, projectGroupOf(groupIndex, order));
         mapping.add(PosCol.ORDER_TITLE, order.getTitel());
         mapping.add(PosCol.TITLE, pos.getTitel());
         mapping.add(PosCol.TYPE,
@@ -215,7 +261,9 @@ public class OrderExport {
         }
         mapping.add(OrderCol.PROBABILITY_OF_OCCURRENCE, order.getProbabilityOfOccurrence());
         mapping.add(OrderCol.FORECAST_TYPE, ForecastUtils.getForecastType(order, pos));
-        mapping.add(OrderCol.CONTACT_PERSON, order.getContactPerson() != null ? order.getContactPerson().getFullname() : "");
+        // From the cache: the detached order's lazy user would be loaded by its own query.
+        final PFUserDO contactPerson = UserGroupCache.getInstance().getUserIfNotInitialized(order.getContactPerson());
+        mapping.add(OrderCol.CONTACT_PERSON, contactPerson != null ? contactPerson.getFullname() : "");
         final TaskDO task = pos.getTask();
         final TaskNode node = task != null ? taskTree.getTaskNodeById(task.getId()) : null;
         mapping.add(PosCol.TASK, node != null ? node.getTask().getTitle() : "");
@@ -255,7 +303,7 @@ public class OrderExport {
         if (invoicePositions != null) {
             String delimiter = "";
             for (final RechnungPosInfo invoicePos : invoicePositions) {
-                sb.append(delimiter).append(invoicePos.getRechnungInfo().getNummer());
+                sb.append(delimiter).append(invoicePos.getRechnungInfo().getBelegNummer());
                 delimiter = ", ";
             }
         }
@@ -275,17 +323,23 @@ public class OrderExport {
      * MARKETING_GROUP (PF_Marketing) all addresses are exported, for others only those which are marked as personal
      * favorites.
      */
-    public byte[] export(final List<AuftragDO> list) {
-        if (CollectionUtils.isEmpty(list)) {
+    public byte[] export(final List<AuftragDO> orders) {
+        if (CollectionUtils.isEmpty(orders)) {
             return null;
         }
         log.info("Exporting order list.");
+        // Positions, payment schedules, project and customers of all orders at once, not lazily order by order:
+        final List<AuftragDO> list = auftragDao.selectForExport(orders);
         final ExportWorkbook xls = new ExportWorkbook();
         final ContentProvider contentProvider = new MyContentProvider(xls);
         // create a default Date format and currency column
         xls.setContentProvider(contentProvider);
 
-        ExportColumn[] columns = createOrderColumns();
+        final CustomerGroupService groupService = CustomerGroupService.getInstanceOrNull();
+        final CustomerGroupIndex groupIndex = groupService != null && !groupService.getIndex().getProjectGroups().isEmpty()
+                ? groupService.getIndex() : null;
+        final boolean withProjectGroup = list.stream().anyMatch(order -> projectGroupOf(groupIndex, order) != null);
+        ExportColumn[] columns = createOrderColumns(withProjectGroup);
         String sheetTitle = ThreadLocalUserContext.getLocalizedString("fibu.auftrag.auftraege");
         ExportSheet sheet = xls.addSheet(sheetTitle);
         ContentProvider sheetProvider = sheet.getContentProvider();
@@ -296,11 +350,11 @@ public class OrderExport {
         sheet.setColumns(columns);
         for (final AuftragDO order : list) {
             final PropertyMapping mapping = new PropertyMapping();
-            addOrderMapping(mapping, order);
+            addOrderMapping(mapping, order, groupIndex);
             sheet.addRow(mapping.getMapping(), 0);
         }
         sheet.setAutoFilter();
-        columns = createPosColumns();
+        columns = createPosColumns(withProjectGroup);
         sheetTitle = ThreadLocalUserContext.getLocalizedString("fibu.auftrag.positions");
         sheet = xls.addSheet(sheetTitle);
         sheetProvider = sheet.getContentProvider();
@@ -311,13 +365,13 @@ public class OrderExport {
                 PosCol.PERIOD_OF_PERFORMANCE_END);
         sheet.createFreezePane(1, 1);
         sheet.setColumns(columns);
-        sheet.setMergedRegion(0, 0, PosCol.PERIOD_OF_PERFORMANCE_BEGIN.ordinal(),
-                PosCol.PERIOD_OF_PERFORMANCE_END.ordinal(),
+        sheet.setMergedRegion(0, 0, columnIndex(columns, PosCol.PERIOD_OF_PERFORMANCE_BEGIN),
+                columnIndex(columns, PosCol.PERIOD_OF_PERFORMANCE_END),
                 ThreadLocalUserContext.getLocalizedString("fibu.periodOfPerformance"));
         for (final AuftragDO order : list) {
             for (final AuftragsPositionDO pos : order.getPositionenExcludingDeleted()) {
                 final PropertyMapping mapping = new PropertyMapping();
-                addPosMapping(mapping, order, pos);
+                addPosMapping(mapping, order, pos, groupIndex);
                 sheet.addRow(mapping.getMapping(), 0);
             }
         }
@@ -358,11 +412,11 @@ public class OrderExport {
     }
 
     private enum OrderCol {
-        NUMMER, NUMBER_OF_POSITIONS, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_CUSTOMER, TITLE, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, FEHLBETRAG, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, PROBABILITY_OF_OCCURRENCE, FORECAST_TYPE, CONTACT_PERSON, ADDITIONAL_CONTACTS, REFERENCE, COMMENT
+        NUMMER, NUMBER_OF_POSITIONS, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_GROUP, PROJECT_CUSTOMER, TITLE, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, FEHLBETRAG, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, PROBABILITY_OF_OCCURRENCE, FORECAST_TYPE, CONTACT_PERSON, ADDITIONAL_CONTACTS, REFERENCE, COMMENT
     }
 
     private enum PosCol {
-        NUMBER, POS_NUMBER, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, PROJECT, ORDER_TITLE, TITLE, TYPE, PAYMENTTYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, FEHLBETRAG, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT
+        NUMBER, POS_NUMBER, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, PROJECT, PROJECT_GROUP, ORDER_TITLE, TITLE, TYPE, PAYMENTTYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, FEHLBETRAG, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT
     }
 
     private enum PaymentsCol {

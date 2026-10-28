@@ -43,6 +43,9 @@ data class ProjectRef(
  * @param projects The projects, id -> customer and task.
  * @param taskPath The ids of a task's ancestors and of the task itself, root first; null for an unknown task.
  * @param taskTitle A task's title, for the validation's messages.
+ * @param projectName A project's display name, for the validation's messages.
+ * @param userExists Whether a user id is known, for the order access grants.
+ * @param groupExists Whether a group id is known, for the order access grants.
  */
 class CustomerDirectory(
     val customers: Map<Long, String?> = emptyMap(),
@@ -50,6 +53,9 @@ class CustomerDirectory(
     val projects: Map<Long, ProjectRef> = emptyMap(),
     val taskPath: (Long) -> List<Long>? = { null },
     val taskTitle: (Long) -> String? = { null },
+    val projectName: (Long) -> String? = { null },
+    val userExists: (Long) -> Boolean = { false },
+    val groupExists: (Long) -> Boolean = { false },
 ) {
     companion object {
         val EMPTY = CustomerDirectory()

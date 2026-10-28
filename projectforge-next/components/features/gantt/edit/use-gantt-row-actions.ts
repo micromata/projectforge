@@ -1,9 +1,10 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "@/lib/toast";
 import { moveGanttTask, saveGanttObjectAsTask } from "@/lib/rs/gantt";
+import { TASK_STRUCTURE_QUERY_KEYS } from "@/lib/rs/task";
 import {
   addChild,
   findNode,
@@ -25,6 +26,12 @@ const showError = (error: unknown) =>
 export function useGanttRowActions(row: GanttRow) {
   const t = useTranslations();
   const editor = useGanttEditorContext();
+  const queryClient = useQueryClient();
+  /** A structure element was written: the task pickers' cached paths are stale now. */
+  const invalidateTasks = () => {
+    for (const key of TASK_STRUCTURE_QUERY_KEYS)
+      void queryClient.invalidateQueries({ queryKey: key });
+  };
   const { node } = row;
   const root = editor.root;
   const marked = editor.marked;
@@ -48,6 +55,7 @@ export function useGanttRowActions(row: GanttRow) {
       }
     },
     onSuccess: () => {
+      if ((markedNode?.id ?? 0) > 0) invalidateTasks();
       if (!markedNode || target == null || !editor.root) return;
       editor.setRoot(moveNode(editor.root, markedNode.id, target));
       if (!toTop) editor.setOpen(node.id, true);
@@ -58,6 +66,7 @@ export function useGanttRowActions(row: GanttRow) {
   const saveAsTask = useMutation({
     mutationFn: () => saveGanttObjectAsTask(node, row.parentId!),
     onSuccess: ({ id, task }) => {
+      invalidateTasks();
       editor.update(node.id, { id, task });
       if (editor.isOpen(node.id)) {
         editor.setOpen(node.id, false);

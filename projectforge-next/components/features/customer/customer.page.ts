@@ -1,3 +1,4 @@
+import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { KUNDE_METADATA } from "@/lib/metadata/kunde.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { CustomerKontoField } from "./customer-konto-field";
@@ -9,10 +10,17 @@ import {
   type CustomerValues,
 } from "./customer-schema";
 import { emptyCustomerValues, toFormValues } from "./customer-values";
-import type { CustomerDetail, CustomerListRow } from "./types";
+import type { CustomerDetail, CustomerListRow, KundeStatus } from "./types";
 
 /** React Query key of the list, so a write from the edit page refreshes it. */
 export const CUSTOMER_LIST_QUERY_KEY = ["customer"] as const;
+
+/** The statuses of a customer no longer worked with (CustomerPagesRest.INACTIVE_STATUS). */
+const INACTIVE_STATUS: ReadonlySet<KundeStatus> = new Set([
+  "ENDED",
+  "NONACTIVE",
+  "NONEXISTENT",
+]);
 
 /**
  * The whole customer page — list and edit — as data (see lib/page-def/types.ts).
@@ -43,8 +51,9 @@ export const CUSTOMER_PAGE = definePage<
   categoryKey: "menu.fibu._",
   titleKey: "fibu.kunde.title.list",
   columns: [
-    // The formatted number ("5.###"), read as one — the same value the legacy list leads with. The
-    // raw `nummer` behind it is the sort property, so the column keeps the metadata order.
+    // The formatted number ("5.123", "1.0007", or a free one), read as one — the same value the legacy list leads with. The
+    // raw `nummer` behind it is the sort property (CustomerPagesRest.postProcessMagicFilter maps the `kost` sort
+    // onto it), so the column keeps the metadata order.
     { name: "kost", size: 110, className: "font-mono" },
     { name: "identifier", size: 140 },
     { name: "name", size: 260 },
@@ -65,6 +74,13 @@ export const CUSTOMER_PAGE = definePage<
     { name: "created", size: 130 },
     { name: "lastUpdate", size: 130 },
   ],
+  // A no longer active customer reads struck through (thin, grey), set apart from a deleted one — the same
+  // statuses the selection boxes strike (CustomerPagesRest.isInactiveAutoCompleteEntry).
+  inactiveLabelKey: "fibu.kunde.legend.inactive",
+  rowClassName: (row) =>
+    row.status && INACTIVE_STATUS.has(row.status)
+      ? INACTIVE_ROW_CLASS
+      : undefined,
   // The way to the customer groups and business units, for those who may maintain them.
   listActions: CustomerListActions,
   edit: {

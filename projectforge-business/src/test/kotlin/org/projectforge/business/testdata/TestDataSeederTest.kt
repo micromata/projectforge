@@ -1,0 +1,218 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+
+package org.projectforge.business.testdata
+
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.projectforge.business.availability.AbsenceKind
+import org.projectforge.business.availability.AbsenceService
+import org.projectforge.business.calendar.CalendarFilter
+import org.projectforge.business.teamcal.event.TeamEventDao
+import org.projectforge.business.teamcal.event.TeamEventFilter
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.user.UserDao
+import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.business.vacation.service.ConflictingVacationsCache
+import org.projectforge.favorites.Favorites
+import org.projectforge.framework.persistence.database.DatabaseInitTestDataService
+import org.projectforge.framework.persistence.database.DatabaseService
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import java.time.LocalDate
+import java.util.Date
+import java.util.TimeZone
+
+class TestDataSeederTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var absenceService: AbsenceService
+
+    @Autowired
+    private lateinit var conflictingVacationsCache: ConflictingVacationsCache
+
+    @Autowired
+    private lateinit var databaseService: DatabaseService
+
+    @Autowired
+    private lateinit var testDataSeeder: TestDataSeeder
+
+    @Autowired
+    private lateinit var teamEventDao: TeamEventDao
+
+    @Autowired
+    private lateinit var userDao: UserDao
+
+    @Autowired
+    private lateinit var userPrefService: UserPrefService
+
+    @Autowired
+    private lateinit var vacationDao: VacationDao
+
+    /** The seeder needs an empty database, as the setup does. */
+    override fun initDb() {
+        init(false)
+    }
+
+    /**
+     * After another test class the database isn't recreated (and [initDb] isn't called), as its test users are known
+     * already: clear it here.
+     */
+    override fun beforeAll() {
+        clearDatabase()
+    }
+
+    /** Leaves no known test users, so the next test class recreates its test database. */
+    override fun afterAll() {
+        clearDatabase()
+    }
+
+    @Test
+    fun `seed an empty database`() {
+        Assertions.assertFalse(databaseService.databaseTablesWithEntriesExist())
+        databaseService.insertGlobalAddressbook() // As the setup does before.
+        // A detaching find of an instance the seed transaction already manages is reported only in development mode
+        // (or at debug level): listen to it here, the seeder is meant to write without one.
+        val detachLog = LoggerFactory.getLogger(SHARED_DETACH_LOGGER) as Logger
+        val detachLevel = detachLog.level
+        val detaches = ListAppender<ILoggingEvent>().also { it.start() }
+        detachLog.level = Level.DEBUG
+        detachLog.addAppender(detaches)
+        val ctx = try {
+            testDataSeeder.seedCore("Test-Data-2026!", TimeZone.getTimeZone("Europe/Berlin"))
+        } finally {
+            detachLog.detachAppender(detaches)
+            detachLog.level = detachLevel
+        }
+        Assertions.assertEquals(
+            emptyList<String>(),
+            detaches.list.map { event ->
+                // The caller is the first frame outside the persistence layer (the event carries it as an exception).
+                val caller = event.throwableProxy?.stackTraceElementProxyArray
+                    ?.map { it.stackTraceElement }
+                    ?.firstOrNull { !it.className.startsWith("org.projectforge.framework.persistence") }
+                "${event.formattedMessage.substringBefore(" detached")} at $caller"
+            }.distinct(),
+            "The seeder must not detach instances its own transaction manages.",
+        )
+        // The demo scripts don't fit into the test schema: hbm2ddl creates T_SCRIPT.SCRIPT with 255 bytes only
+        // (a BLOB in the Flyway schema of a real database).
+        Assertions.assertEquals(
+            emptyList<String>(),
+            ctx.failed - DatabaseInitTestDataService::class.simpleName,
+            "Failed contributors (see log).",
+        )
+
+        Assertions.assertNotNull(userDao.getInternalByName(DatabaseService.DEFAULT_ADMIN_USER))
+        Assertions.assertEquals("Laura", userDao.getInternalByName("laura")?.firstname)
+        Assertions.assertTrue(
+            userService.authenticateUser("laura", "Test-Data-2026!".toCharArray()) != null,
+            "The sample users get the given password.",
+        )
+        Assertions.assertEquals(10L, count("PFUserDO"))
+        Assertions.assertEquals(5L, count("KundeDO"))
+        Assertions.assertEquals(6L, count("ProjektDO"))
+        // The customers belong to range 5 of the test configuration: every project has its 4 standard Kost2, and most
+        // time sheets are booked on them.
+        Assertions.assertEquals(24L, count("Kost2DO", "e.projekt is not null and e.nummernkreis = 5"))
+        Assertions.assertTrue(count("TimesheetDO", "e.kost2 is not null") > 1000, "time sheets with Kost2")
+        Assertions.assertEquals(11L, count("AuftragDO"))
+        Assertions.assertEquals(9L, count("EmployeeDO"))
+        Assertions.assertTrue(count("TimesheetDO") > 1000, "time sheets")
+        Assertions.assertTrue(count("RechnungDO") > 50, "invoices")
+        Assertions.assertTrue(count("EingangsrechnungDO") > 30, "incoming invoices")
+        Assertions.assertEquals(9L, count("VacationDO"), "vacations (refused ones are logged)")
+        Assertions.assertEquals(6L, count("AvailabilityDO"), "availability entries")
+        Assertions.assertTrue(count("TeamEventDO") >= 10, "calendar events")
+        Assertions.assertEquals(8L, count("AddressDO"))
+        // The administrator's calendar shows own time sheets and events right after the setup.
+        val adminId = ctx.users[DatabaseService.DEFAULT_ADMIN_USER]!!.id
+        Assertions.assertTrue(count("TimesheetDO", "e.user.id = $adminId") > 100, "admin time sheets")
+        Assertions.assertEquals(5L, count("TeamEventDO", "e.calendar.owner.id = $adminId"), "admin events")
+        val filter = userPrefService.getEntry("calendar", Favorites.PREF_NAME_CURRENT, CalendarFilter::class.java, adminId)
+        Assertions.assertEquals(adminId, filter?.timesheetUserId, "admin calendar filter")
+        Assertions.assertEquals(2, filter?.calendarIds?.size)
+        // Recurring events fill the calendar later on, too.
+        logon(DatabaseService.DEFAULT_ADMIN_USER)
+        val inThreeMonths = ctx.today.plusMonths(3).atStartOfDay(ctx.zone)
+        val later = teamEventDao.getEventList(
+            TeamEventFilter().setTeamCals(filter!!.calendarIds.filterNotNull())
+                .setStartDate(Date.from(inThreeMonths.toInstant()))
+                .setEndDate(Date.from(inThreeMonths.plusWeeks(4).toInstant())),
+            true,
+        )
+        Assertions.assertEquals(4, later.count { it.subject == "Weekly planning" }, "weekly planning in 4 weeks")
+        // The administrator shares a group with the team: sees its availability entries (and vacations), but not those
+        // ended before today (AbsenceVisibility). Which ones those are depends on the weekday the test runs.
+        val employeeUserIds = ctx.employees.values.mapNotNull { it.user?.id }
+        fun availabilities(visibility: AbsenceService.Visibility) = absenceService.getAbsences(
+            ctx.today.minusDays(7), ctx.today.plusMonths(4), AbsenceKind.entries.toSet(), userIds = employeeUserIds,
+            visibility = visibility,
+        ).availabilities
+        val seeded = availabilities(AbsenceService.Visibility.PRE_AUTHORIZED)
+        Assertions.assertEquals(6, seeded.size, "availability entries seeded")
+        Assertions.assertEquals(
+            seeded.count { it.endDate?.isBefore(LocalDate.now()) == false },
+            availabilities(AbsenceService.Visibility.PER_ENTRY).size,
+            "availability entries visible to the admin",
+        )
+        // The substitute Max isn't available during Alex's vacation, but remotely reachable during Julia's.
+        val vacations = vacationDao.selectAll(checkAccess = false)
+        val alex = ctx.employee("alex").id
+        val julia = ctx.employee("julia").id
+        Assertions.assertTrue(
+            conflictingVacationsCache.hasConflict(vacations.single { it.employee?.id == alex }),
+            "Alex's vacation is a conflict",
+        )
+        Assertions.assertFalse(
+            conflictingVacationsCache.hasConflict(vacations.single { it.employee?.id == julia }),
+            "Julia's vacation is no conflict",
+        )
+        // Every invoice position refers to its order position.
+        Assertions.assertEquals(
+            0L,
+            persistenceService.runReadOnly { context ->
+                context.em.createQuery(
+                    "select count(p) from RechnungsPositionDO p where p.auftragsPosition is null",
+                    java.lang.Long::class.java,
+                ).singleResult.toLong()
+            },
+        )
+    }
+
+    private fun count(entity: String, where: String? = null): Long = persistenceService.runReadOnly { context ->
+        val condition = where?.let { " where $it" } ?: ""
+        context.em.createQuery("select count(e) from $entity e$condition", java.lang.Long::class.java)
+            .singleResult.toLong()
+    }
+
+    private companion object {
+        /** See PfPersistenceContext.logSharedDetach. */
+        const val SHARED_DETACH_LOGGER = "org.projectforge.framework.persistence.jpa.SharedInstanceDetach"
+    }
+}

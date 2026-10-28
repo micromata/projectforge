@@ -1,0 +1,18 @@
+---
+layout: page
+width: expand
+title: Professionelle Services
+description: "Hosting, Einführung, Datenimport, Integration, Support und Erweiterungen für ProjectForge – optionale Services von Micromata, dem Team, das es entwickelt."
+hero:
+    title: Professionelle Services
+    subtitle: ProjectForge ist kostenlos. Wer dabei Unterstützung möchte, bekommt sie von uns – wir haben es gebaut, also kennen wir es am besten.
+    note: Alles auf dieser Seite ist optional und auf Anfrage erhältlich. Die Software selbst bleibt kostenlos und vollständig, ob mit oder ohne unsere Services.
+permalink: /de/services/
+---
+:page-liquid:
+
+++++
+{% include boxes.html data="services_offer" columns="3" tone="muted" title="Unser Angebot" %}
+{% include text-section.html data="services_sections" key="who_we_are" %}
+{% include cta.html title="Kontakt" subtitle="Am einfachsten über ein GitHub-Issue mit einer kurzen Beschreibung, was gebraucht wird – wir melden uns. GitHub-Issues sind öffentlich, vertrauliche Informationen gehören dort also nicht hinein. Für vertrauliche Anfragen stehen die Kontaktdaten im Impressum." button_text="GitHub-Issue eröffnen" button_url="https://github.com/micromata/projectforge/issues/new" button2_text="Impressum" button2_url="/misc/imprint.html" %}
+++++

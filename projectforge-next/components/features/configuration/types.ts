@@ -2,6 +2,9 @@
 // polymorphic value held per `configurationType` in one of four typed slots; only the slot matching the
 // type is populated (the others are absent, JsonInclude.Include.NON_NULL).
 
+/** REST category of the configuration entity — `ConfigurationEntityRest` is mapped to "configuration". */
+export const CONFIGURATION_ENTITY = "configuration";
+
 /**
  * The value types of a configuration parameter (org.projectforge.framework.configuration.ConfigurationType).
  * Serialized as the enum name (`@Enumerated(STRING)`), so these are exactly the strings on the wire. Only

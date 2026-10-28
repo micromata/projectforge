@@ -43,15 +43,13 @@ export const COST2_PAGE = definePage<
       className: "font-mono font-semibold",
     },
     // The Kost2Art the number's last part names, and whether its costs are invoiced. The name only for
-    // customer cost units (4.x and 5.x): for internal ones it misleads (vacation as "Akquise"), as in
-    // the monthly report (MonthlyEmployeeReport.Kost2Row.displayedKost2ArtName).
+    // cost units of a project (of a number range): for the others it misleads (vacation as "Akquise"), as
+    // in the monthly report (MonthlyEmployeeReport.Kost2Row.displayedKost2ArtName).
     {
       id: "kost2Art.name",
       labelKey: "fibu.kost2.art",
       accessor: (row) =>
-        row.nummernkreis === 4 || row.nummernkreis === 5
-          ? (row.kost2Art?.name ?? "")
-          : "",
+        row.project != null ? (row.kost2Art?.name ?? "") : "",
       referenceKey: "kost2Art",
       size: 140,
     },
@@ -88,7 +86,7 @@ export const COST2_PAGE = definePage<
     { name: "lastUpdate", size: 130, hiddenByDefault: true },
   ],
   listActions: Cost2ListActions,
-  // Mass update of a selection: status, shared cost, description and comment (Kost2MultiSelectedPageRest, /cost2Selected).
+  // Mass update of a selection: status, shared cost, description and comment (Cost2MassUpdateRest, /cost2Selected).
   massUpdate: {
     endpoint: "cost2Selected",
     route: "/cost2/mass-update",

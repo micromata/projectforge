@@ -2,7 +2,7 @@
 #
 # Pushes the docker images of a release to the registry, each architecture built natively.
 #
-# Run `arch` on an arm64 machine (e. g. the Mac) and on an amd64 machine (e. g. a Linux server), then
+# Run `arch` on an arm64 machine and on an amd64 machine, then
 # `manifest` once on either of them to combine both into the multi-arch tags X.Y.Z and latest.
 #
 # Usage:
@@ -127,9 +127,9 @@ build_and_push_arch() {
   "$TOOL" build --platform "linux/$arch" --build-arg "JAR_FILE=$jar_file" -t "$image" "$CONTEXT"
   confirm "Push $image?" || exit 1
   "$TOOL" push "$image"
-  local other=amd64 machine="the amd64 machine (e. g. the Linux server)"
+  local other=amd64 machine="an amd64 machine"
   if [ "$arch" = amd64 ]; then
-    other=arm64 machine="the arm64 machine (e. g. the Mac)"
+    other=arm64 machine="an arm64 machine"
   fi
   echo
   echo "------------------------------------------------------------------------------"
@@ -170,7 +170,8 @@ push_manifests() {
   confirm "Push $REPO:$VERSION and $REPO:latest from $amd64 and $arm64?" || exit 1
   for tag in "$VERSION" latest; do
     if [ "$TOOL" = podman ]; then
-      podman manifest exists "$REPO:$tag" && podman manifest rm "$REPO:$tag" >/dev/null
+      # The local name may be a manifest list or a plain image (e. g. an earlier pull of latest): remove either.
+      podman rmi -f "$REPO:$tag" >/dev/null 2>&1 || true
       # docker:// reads the images from the registry, both must have been pushed by `arch`.
       podman manifest create "$REPO:$tag" "docker://$amd64" "docker://$arm64"
       podman manifest push --all "$REPO:$tag" "docker://$REPO:$tag"

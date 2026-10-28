@@ -10,6 +10,9 @@ import { fromMetadata } from "@/lib/validation/from-metadata";
 const m = fromMetadata(KONTO_METADATA);
 
 export const accountSchema = z.object({
+  // null while the account is new — Spring assigns the id on the first save. Posted back with the
+  // values, as the backend tells an update from an insert by it.
+  id: z.number().nullable(),
   // The range Wicket's `KontoEditForm` bounds the number to (MinMaxNumberField 0..99999999); the entity
   // declares none. A duplicate is rejected by the backend (`fibu.konto.validate.duplicate`).
   nummer: m.intField("nummer", { min: 0, max: 99_999_999 }),

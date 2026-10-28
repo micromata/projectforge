@@ -25,12 +25,12 @@ package org.projectforge.business.fibu
 
 import jakarta.persistence.Tuple
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.user.ProjectForgeGroup
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightServiceImpl
 import org.projectforge.business.user.UserRightValue
@@ -70,9 +70,6 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
-
-    @Autowired
-    private lateinit var projektCache: ProjektCache
 
     /**
      * @return the rechnungCache
@@ -129,7 +126,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     /**
      * The invoice statistics of the given ids, straight from [RechnungCache] - no entity is loaded and no
      * position is touched, so it is cheap enough for a live-during-selection call (see
-     * `RechnungMultiSelectedPageRest`). Every value [AbstractRechnungsStatistik.add] reads is already in the
+     * `OutgoingInvoiceMassUpdateRest`). Every value [AbstractRechnungsStatistik.add] reads is already in the
      * cached [RechnungInfo], keyed by id.
      */
     fun buildStatistikByIds(ids: Collection<Serializable>?): RechnungsStatistik {
@@ -192,6 +189,29 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         obj.info = rechnungCache.ensureRechnungInfo(obj)
     }
 
+    /**
+     * Replaces the id-only kunde/projekt stubs the REST layer builds (`Rechnung.copyTo`) by the cached, fully
+     * populated entities before the invoice is written, as [AuftragDao] does for orders.
+     *
+     * The invoice's search document embeds kunde and projekt (with its customer), built from the entity state at
+     * flush time: a stub would index an empty customer name, so searching the list by the customer missed every
+     * invoice saved in the next app until the next reindex — while invoices with the name as free text
+     * (`kundeText`) were found.
+     *
+     * A stub whose id is unknown to the cache is left alone rather than nulled: dropping it would change what is
+     * stored.
+     */
+    private fun resolveKundeAndProjekt(rechnung: RechnungDO) {
+        val caches = PfCaches.instance
+        // nummer is KundeDO's real @Id; reading the transient id alias would initialize a lazy proxy.
+        rechnung.kunde?.nummer?.let { id -> caches.getKunde(id)?.let { rechnung.kunde = it } }
+        rechnung.projekt?.id?.let { id ->
+            caches.getProjekt(id)?.let { projekt ->
+                rechnung.projekt = projekt.also { it.kunde = caches.getKundeIfNotInitialized(it.kunde) }
+            }
+        }
+    }
+
     override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
         rechnungCache.update(obj)
         if (obj.typ == RechnungTyp.CANCELLATION) {
@@ -224,8 +244,9 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     }
 
     override fun onInsertOrModify(obj: RechnungDO, operationType: OperationType) {
-        if (operationType == OperationType.UPDATE && obj.id != null) {
-            checkStoredCancellationUnchanged(obj)
+        resolveKundeAndProjekt(obj)
+        if (operationType != OperationType.INSERT && obj.id != null) {
+            checkStoredCancellationUnchanged(obj, operationType)
         }
         if (RechnungTyp.RECHNUNG == obj.typ && obj.id != null) {
             // A projection, not find(): find() detaches the managed instance this update is just writing, and the
@@ -311,8 +332,9 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             obj.zahlBetrag = obj.zahlBetrag!!.setScale(2, RoundingMode.HALF_UP)
         }
         obj.recalculate()
-        if (obj.positionen.isNullOrEmpty()) {
-            throw UserException("fibu.rechnung.error.rechnungHatKeinePositionen")
+        // A deleted position stays in the collection (soft delete), but is no part of the invoice any more.
+        if (obj.positionen.isNullOrEmpty() || hasNoLivePositions(obj, operationType)) {
+            throw UserException("fibu.rechnung.error.rechnungHatKeinePositionen").setCausedByField("positionen")
         }
         val size = obj.positionen!!.size
         for (i in size - 1 downTo 1) {
@@ -395,14 +417,20 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * A stored cancellation keeps its type and its original: the original's status was set to STORNIERT for
      * it, and a cancellation turned into an invoice or moved to another original would leave that status
      * behind. Deleting the cancellation (and creating a new one) is the way to go instead.
+     *
+     * Checked on delete and undelete as well: the hook acts on the posted type and original, so a stored invoice
+     * deleted as a posted cancellation would reset the status of any cancelled invoice.
      */
-    private fun checkStoredCancellationUnchanged(obj: RechnungDO) {
+    private fun checkStoredCancellationUnchanged(obj: RechnungDO, operationType: OperationType) {
         val stored = persistenceService.selectNamedSingleResult(
             RechnungDO.SELECT_TYP_AND_ORIGINAL_ID,
             Tuple::class.java,
             Pair("id", obj.id),
         ) ?: return
         if (stored.get("typ") != RechnungTyp.CANCELLATION) {
+            if (operationType == OperationType.DELETE && obj.typ == RechnungTyp.CANCELLATION) {
+                throw UserException("fibu.rechnung.error.cancellation.unchangeable")
+            }
             return
         }
         if (obj.typ != RechnungTyp.CANCELLATION || obj.originalRechnung?.id != stored.get("originalId")) {
@@ -710,31 +738,22 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             // Members of the finance/orga groups with (at least) read access to the order book see every order.
             return true
         }
-        // Otherwise the user must be tied to the order as (additional) contact person or through the project's manager group.
-        var hasAccess = false
-        if (orderInfo.isContact(user.id)) {
-            hasAccess = true
-        }
-        projektCache.getProjekt(orderInfo.projektId)?.let { projekt ->
-            if (UserGroupCache.getInstance().isUserMemberOfGroup(user.id, projekt.projektManagerGroupId)
-                || projekt.headOfBusinessManagerId == user.id
-                || projekt.salesManagerId == user.id
-            ) {
-                hasAccess = true
-            }
-        }
-        if (!hasAccess) {
-            return false
-        }
-        if (!orderInfo.isVollstaendigFakturiert) {
-            return true
-        }
-        // Fully invoiced orders stay visible for a while, keyed off the performance/offer date (see AuftragRight).
-        val endDate = orderInfo.periodOfPerformanceEnd ?: orderInfo.angebotsDatum ?: return false
-        return LocalDate.now().toEpochDay() - endDate.toEpochDay() <= AuftragRight.MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER
+        // Otherwise the user must be tied to the order as (additional) contact person, or to its project as one or
+        // through the project's manager group, or be granted it (an invoice is only read).
+        return OrderSelectAccess.hasAccess(user, OrderAccessFacts.of(orderInfo), includeGrants = true)
     }
 
     companion object {
+        /**
+         * True if an invoice to be inserted or updated has no position left that isn't marked as deleted. A deleted
+         * position stays in the collection (see [AbstractRechnungDO.abstractPositionenExcludingDeleted]), so the
+         * collection alone doesn't tell. Not checked on delete and undelete: an invoice stored without live
+         * positions before this check existed must stay deletable.
+         */
+        fun hasNoLivePositions(obj: AbstractRechnungDO, operationType: OperationType): Boolean =
+            (operationType == OperationType.INSERT || operationType == OperationType.UPDATE) &&
+                    obj.abstractPositionenExcludingDeleted.isEmpty()
+
         @JvmField
         val USER_RIGHT_ID: UserRightId = UserRightId.FIBU_AUSGANGSRECHNUNGEN
 

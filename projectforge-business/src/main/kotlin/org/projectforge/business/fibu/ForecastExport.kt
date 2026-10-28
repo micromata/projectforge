@@ -30,6 +30,7 @@ import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.Row
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.ForecastExportContext.*
+import org.projectforge.business.fibu.customergroup.CustomerGroupService
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
@@ -237,6 +238,9 @@ open class ForecastExport { // open needed by Wicket.
      * @param planningDate If given, the plan is calculated from the closest order book snapshot.
      * @param snapshotDate If given, the forecast is calculated from the closest order book snapshot instead of the
      * current order book: its versions of the orders of [orderList] (matched by id), and the invoices before it only.
+     * @param deletedOrderIds The orders deleted since, selected as [orderList] otherwise: [orderList] can't hold them,
+     * but the snapshots of [planningDate] and [snapshotDate] still do, and a plan doesn't shrink because one of its
+     * orders was deleted later (the filter based [xlsExport] keeps them as well). Not part of the current forecast.
      * @return null, if neither order positions nor invoices were found.
      */
     open fun chartData(
@@ -246,8 +250,11 @@ open class ForecastExport { // open needed by Wicket.
         planningDate: LocalDate? = null,
         distributeUnusedBudget: Boolean? = null,
         snapshotDate: LocalDate? = null,
+        deletedOrderIds: Set<Long> = emptySet(),
     ): ForecastChartData? {
-        return statistics(orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate)?.chart
+        return statistics(
+            orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate, deletedOrderIds,
+        )?.chart
     }
 
     /**
@@ -261,9 +268,11 @@ open class ForecastExport { // open needed by Wicket.
         planningDate: LocalDate? = null,
         distributeUnusedBudget: Boolean? = null,
         snapshotDate: LocalDate? = null,
+        deletedOrderIds: Set<Long> = emptySet(),
     ): ForecastStatistics? {
         val result = exportSelected(
-            orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate, chartsOnly = true,
+            orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate, deletedOrderIds,
+            chartsOnly = true,
         ) ?: return null
         return ForecastStatistics(result.chartData, result.tables)
     }
@@ -281,7 +290,7 @@ open class ForecastExport { // open needed by Wicket.
         try {
             return exportSelected(
                 orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate = null,
-                chartsOnly = false,
+                deletedOrderIds = emptySet(), chartsOnly = false,
             )?.xls
         } catch (ex: Exception) {
             log.error(ex) { "Error exporting forecast: $ex" }
@@ -296,9 +305,10 @@ open class ForecastExport { // open needed by Wicket.
         planningDate: LocalDate?,
         distributeUnusedBudget: Boolean?,
         snapshotDate: LocalDate?,
+        deletedOrderIds: Set<Long>,
         chartsOnly: Boolean,
     ): ExportResult? {
-        val orderIds = orderList.mapNotNull { it.id }.toSet()
+        val orderIds = orderList.mapNotNull { it.id }.toSet() + deletedOrderIds
         val closestSnapshotDate = getClosestSnapshotDate(snapshotDate, null, "snapshot")
         // The snapshot's versions of the selected orders (a snapshot can't be queried, so they are matched by id).
         // Orders created after the snapshot aren't part of it.
@@ -504,34 +514,43 @@ open class ForecastExport { // open needed by Wicket.
         }
         val forecastTemplate = applicationContext.getResource("classpath:officeTemplates/ForecastTemplate.xlsx")
 
+        // Only a few projects belong to a project group: without any, the sheets stay exactly as the template.
+        val projectGroupIndex = CustomerGroupService.instanceOrNull?.index?.takeIf { it.projectGroups.isNotEmpty() }
+
         ExcelWorkbook(forecastTemplate.inputStream, "ForecastTemplate.xlsx").use { workbook ->
             val forecastSheet = workbook.getSheet(Sheet.FORECAST.title)!!
             log.debug { "Forecast sheet: $forecastSheet" }
+            projectGroupIndex?.let { appendProjectGroupColumn(forecastSheet, 0, FORECAST_HEAD_ROW) }
             ForecastCol.entries.forEach { forecastSheet.registerColumn(it.header) }
             MonthCol.entries.forEach { forecastSheet.registerColumn(it.header) }
 
             val planningSheet = workbook.getSheet(Sheet.PLANNING.title)!!
             log.debug { "Planning forecast sheet: $planningSheet" }
+            projectGroupIndex?.let { appendProjectGroupColumn(planningSheet, 0, FORECAST_HEAD_ROW) }
             ForecastCol.entries.forEach { planningSheet.registerColumn(it.header) }
             MonthCol.entries.forEach { planningSheet.registerColumn(it.header) }
 
             val invoicesSheet = workbook.getSheet(Sheet.INVOICES.title)!!
             log.debug { "Invoices sheet: $invoicesSheet" }
+            projectGroupIndex?.let { appendProjectGroupColumn(invoicesSheet, 0) }
             InvoicesCol.entries.forEach { invoicesSheet.registerColumn(it.header) }
             MonthCol.entries.forEach { invoicesSheet.registerColumn(it.header) }
 
             val invoicesPrevYearSheet = workbook.getSheet(Sheet.INVOICES_PREV_YEAR.title)!!
             log.debug { "InvoicesPriorYearSheet sheet: $invoicesPrevYearSheet" }
+            projectGroupIndex?.let { appendProjectGroupColumn(invoicesPrevYearSheet, 0) }
             InvoicesCol.entries.forEach { invoicesPrevYearSheet.registerColumn(it.header) }
             MonthCol.entries.forEach { invoicesPrevYearSheet.registerColumn(it.header) }
 
             val invoicesPrevPrevYearSheet = workbook.getSheet(Sheet.INVOICES_PREV_PREV_YEAR.title)!!
             log.debug { "InvoicesPriorPriorYearSheet sheet: $invoicesPrevPrevYearSheet" }
+            projectGroupIndex?.let { appendProjectGroupColumn(invoicesPrevPrevYearSheet, 0) }
             InvoicesCol.entries.forEach { invoicesPrevPrevYearSheet.registerColumn(it.header) }
             MonthCol.entries.forEach { invoicesPrevPrevYearSheet.registerColumn(it.header) }
 
             val planningInvoicesSheet = workbook.getSheet(Sheet.PLANNING_INVOICES.title)!!
             log.debug { "PlanningInvoicesSheet sheet: $planningInvoicesSheet" }
+            projectGroupIndex?.let { appendProjectGroupColumn(planningInvoicesSheet, 0) }
             InvoicesCol.entries.forEach { planningInvoicesSheet.registerColumn(it.header) }
             MonthCol.entries.forEach { planningInvoicesSheet.registerColumn(it.header) }
 
@@ -540,6 +559,7 @@ open class ForecastExport { // open needed by Wicket.
             val projectOverviewSheet = workbook.getSheet(Sheet.PROJECT_OVERVIEW.title)
             if (projectOverviewSheet != null) {
                 log.debug { "Project overview sheet: $projectOverviewSheet" }
+                projectGroupIndex?.let { appendProjectGroupColumn(projectOverviewSheet, 0) }
                 ProjectOverviewCol.entries.forEach { projectOverviewSheet.registerColumn(it.header) }
             } else {
                 log.info { "Template has no '${Sheet.PROJECT_OVERVIEW.title}' sheet, skipping project overview." }
@@ -561,6 +581,7 @@ open class ForecastExport { // open needed by Wicket.
                 snapshot = snapshotDate != null,
                 fillUnitCol = fillUnitCol,
                 distributeUnusedBudget = distributeUnusedBudget,
+                projectGroupIndex = projectGroupIndex,
             )
             ctx.showAll = showAll
 
@@ -613,11 +634,22 @@ open class ForecastExport { // open needed by Wicket.
                 ExcelUtils.setColumnHidden(forecastSheet, ForecastCol.UNIT.header, true)
                 ExcelUtils.setColumnHidden(planningSheet, ForecastCol.UNIT.header, true)
             }
-            ExcelUtils.setAutoFilter(forecastSheet, FORECAST_HEAD_ROW, 0, FORECAST_NUMBER_OF_COLS_AUTOFILTER)
+            if (projectGroupIndex != null && !ctx.hasProjectGroupEntries) {
+                listOfNotNull(
+                    forecastSheet, planningSheet, invoicesSheet, invoicesPrevYearSheet, invoicesPrevPrevYearSheet,
+                    planningInvoicesSheet, projectOverviewSheet,
+                ).forEach { ExcelUtils.setColumnHidden(it, Context.PROJECT_GROUP_HEADER, true) }
+            }
+            // The appended project group column lies behind the template's last one: the filter reaches up to it.
+            val forecastAutoFilterCols = forecastSheet.getColumnDef(Context.PROJECT_GROUP_HEADER)
+                ?.takeIf { projectGroupIndex != null }?.let { it.columnNumber + 1 } ?: FORECAST_NUMBER_OF_COLS_AUTOFILTER
+            ExcelUtils.setAutoFilter(forecastSheet, FORECAST_HEAD_ROW, 0, forecastAutoFilterCols)
             invoicesSheet.setAutoFilter()
             invoicesPrevYearSheet.setAutoFilter()
             invoicesPrevPrevYearSheet.setAutoFilter()
-            ExcelUtils.setAutoFilter(planningSheet, FORECAST_HEAD_ROW, 0, FORECAST_NUMBER_OF_COLS_AUTOFILTER)
+            val planningAutoFilterCols = planningSheet.getColumnDef(Context.PROJECT_GROUP_HEADER)
+                ?.takeIf { projectGroupIndex != null }?.let { it.columnNumber + 1 } ?: FORECAST_NUMBER_OF_COLS_AUTOFILTER
+            ExcelUtils.setAutoFilter(planningSheet, FORECAST_HEAD_ROW, 0, planningAutoFilterCols)
             planningInvoicesSheet.setAutoFilter()
 
             fillPlanningForecast(planningDate, ctx)
@@ -644,6 +676,7 @@ open class ForecastExport { // open needed by Wicket.
             months = ForecastChartTotals.months(ctx.startDate),
             visibleProjectIds = ctx.forecastRowProjectIds,
             planByProject = planningDate?.let { ctx.chartTotals.planByProject() },
+            projectGroupOf = { ctx.projectGroupNameOf(it) },
         ) { projectId ->
             projectCache.getProjekt(projectId)?.let { projekt ->
                 // projekt.kunde is a lazy proxy on the shared cached instance, resolve it via the KundeCache.
@@ -736,7 +769,10 @@ open class ForecastExport { // open needed by Wicket.
                     // even when their project was invoiced: that would write one (near-empty, zero-remaining) row per
                     // completed position and bloat the sheet. Their project's IST visibility is instead ensured by the
                     // single enriched pseudo row per invoiced project (see missedProjectIds below).
-                    if (pos.status in ForecastUtils.auftragsPositionsStatusToShow && isRelevant(ctx, orderInfo, pos)) {
+                    // Exception: completed positions with an open amount, not too long ago. They are still to be invoiced.
+                    if (ForecastUtils.isCompletedAndOpen(orderInfo, pos, ctx.startDate) ||
+                        (pos.status in ForecastUtils.auftragsPositionsStatusToShow && isRelevant(ctx, orderInfo, pos))
+                    ) {
                         addOrderPosition(
                             ctx,
                             sheet,
@@ -946,6 +982,10 @@ open class ForecastExport { // open needed by Wicket.
         }
         sheet.setStringValue(row, ForecastCol.CUSTOMER.header, order.kundeAsString)
         sheet.setStringValue(row, ForecastCol.PROJECT.header, order.projektAsString)
+        ctx.projectGroupNameOf(order.projektId)?.let {
+            ctx.hasProjectGroupEntries = true
+            sheet.setStringValue(row, Context.PROJECT_GROUP_HEADER, it)
+        }
         sheet.setStringValue(row, ForecastCol.TITEL.header, order.titel)
         if (pos.titel != order.titel)
             sheet.setStringValue(row, ForecastCol.POS_TITLE.header, pos.titel)
@@ -1155,6 +1195,7 @@ open class ForecastExport { // open needed by Wicket.
                     projectId = order.projektId,
                     customer = order.kundeAsString,
                     project = order.projektAsString,
+                    projectGroup = ctx.projectGroupNameOf(order.projektId),
                     title = order.titel,
                     positionTitle = if (pos.titel != order.titel) pos.titel else null,
                     art = pos.art?.let { translate(it.i18nKey) },
@@ -1291,6 +1332,9 @@ open class ForecastExport { // open needed by Wicket.
                 agg.project
             }
             setOverviewString(sheet, rowNum, ProjectOverviewCol.PROJECT.header, projectLabel)
+            if (ctx.projectGroupIndex != null) {
+                setOverviewString(sheet, rowNum, Context.PROJECT_GROUP_HEADER, ctx.projectGroupNameOf(id))
+            }
             setOverviewCurrency(ctx, sheet, rowNum, ProjectOverviewCol.PLAN.header, plan)
             setOverviewCurrency(ctx, sheet, rowNum, ProjectOverviewCol.FORECAST.header, forecast)
             setOverviewCurrency(ctx, sheet, rowNum, ProjectOverviewCol.PREV_YEAR.header, prevYear)
@@ -1352,6 +1396,27 @@ open class ForecastExport { // open needed by Wicket.
         val cell = sheet.getCell(row, header, false) ?: return null
         if (cell.cellType != CellType.NUMERIC) return null
         return BigDecimal.valueOf(cell.numericCellValue)
+    }
+
+    /**
+     * Appends and registers the column [Context.PROJECT_GROUP_HEADER] behind the last column of the given head
+     * rows (the forecast sheets have two). Must run before the sheet's head row is read (first `getColumnDef`), which
+     * assigns the column numbers. Behind, not between the other columns: the template's formulas address
+     * columns by letter.
+     */
+    private fun appendProjectGroupColumn(sheet: ExcelSheet, vararg headRowNums: Int) {
+        val poiSheet = sheet.poiSheet
+        val col = headRowNums.maxOf { poiSheet.getRow(it)?.lastCellNum?.toInt()?.coerceAtLeast(0) ?: 0 }
+        headRowNums.forEach { rowNum ->
+            val row = poiSheet.getRow(rowNum) ?: poiSheet.createRow(rowNum)
+            val styleOf = row.getCell(col - 1)?.cellStyle
+            row.createCell(col).also { cell ->
+                cell.setCellValue(Context.PROJECT_GROUP_HEADER)
+                styleOf?.let { cell.cellStyle = it }
+            }
+        }
+        poiSheet.setColumnWidth(col, 25 * 256)
+        sheet.registerColumn(Context.PROJECT_GROUP_HEADER)
     }
 
     private fun setOverviewString(sheet: ExcelSheet, rowNum: Int, header: String, value: String?) {

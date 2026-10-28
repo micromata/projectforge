@@ -93,6 +93,15 @@ class Attachment() {
    */
   var createdByUserId: Long? = null
 
+  /**
+   * True, if the creating internal user is deleted, as [createdByUserDeactivated] if deactivated: the frontend strikes
+   * the name through (deleted in red, deactivated in grey). Null otherwise and for an external user.
+   */
+  var createdByUserDeleted: Boolean? = null
+
+  /** See [createdByUserDeleted]. */
+  var createdByUserDeactivated: Boolean? = null
+
   var lastUpdate: Date? = null
 
   /**
@@ -109,6 +118,12 @@ class Attachment() {
   val lastUpdateTimeAgo: String
     get() = TimeAgo.getMessage(lastUpdate)
   var lastUpdateByUser: String? = null
+
+  /** As [createdByUserDeleted], for the last modifying user. */
+  var lastUpdateByUserDeleted: Boolean? = null
+
+  /** As [createdByUserDeactivated], for the last modifying user. */
+  var lastUpdateByUserDeactivated: Boolean? = null
 
   /**
    * Location of file as path to node in JCR.

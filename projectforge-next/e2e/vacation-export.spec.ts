@@ -1,10 +1,11 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The team vacation calendar against the live backend (see VacationExportRest).
  *
- * Nothing is written but the choice of employees and groups, which the backend stores per user: the one stored
+ * Nothing is written but the choice of users, groups and period, which the backend stores per user: the one stored
  * before is put back at the end. In the vacation lane, as it reads the vacation entries.
  *
  * Put back is the choice as `initial` answers it, i.e. without the ids the user may no longer pick (deactivated
@@ -21,49 +22,53 @@ test.describe("team vacation calendar", { tag: "@lane-vacation" }, () => {
     const initial = (await (
       await page.request.get("/rs/vacationExport/initial", { headers })
     ).json()) as {
-      employees: { id: number }[];
+      users: { id: number }[];
       groups: { id: number }[];
       periodKind?: string;
       dayWidth?: string;
+      absenceKinds: string[];
     };
-    const store = (
-      employeeIds: number[],
+    const store = async (
+      userIds: number[],
       groupIds: number[],
       periodKind?: string,
       dayWidth?: string
     ) =>
+      // A POST of the next client needs the session's CSRF token (RestCsrfProtection).
       page.request.post("/rs/vacationExport/view", {
-        headers: { ...headers, "Content-Type": "application/json" },
+        headers: await writeHeaders(page.request),
         data: {
-          employeeIds,
+          userIds,
           groupIds,
           periodKind,
           dayWidth,
+          // Stored with the rest: kept as it was.
+          absenceKinds: initial.absenceKinds,
           from: "2030-01-01",
           until: "2030-01-01",
         },
       });
     try {
-      const employees = (await (
-        await page.request.get("/rs/vacationExport/employees?search=", {
+      const users = (await (
+        await page.request.get("/rs/vacationExport/users?search=", {
           headers,
         })
       ).json()) as { id: number; displayName: string }[];
-      test.skip(employees.length === 0, "no employee to pick");
-      const employee = employees[0];
-      expect((await store([employee.id], [], "quarter")).ok()).toBe(true);
+      test.skip(users.length === 0, "no user to pick");
+      const user = users[0];
+      expect((await store([user.id], [], "quarter")).ok()).toBe(true);
 
       await goto(page, "/vacationExport?period=quarter&from=2030-04-01");
       await expect(
         page.getByRole("heading", { name: t("vacation.export.title") })
       ).toBeVisible();
-      // The stored choice is shown again, and the chart has a row for the employee.
+      // The stored choice is shown again, and the chart has a row for the user.
       // A group of names and labelled bars (its own text alternative), not one image.
       const chart = page.getByRole("group", {
         name: t("vacation.export.title"),
       });
       await expect(chart).toBeVisible();
-      await expect(chart.getByText(employee.displayName).first()).toBeVisible();
+      await expect(chart.getByText(user.displayName).first()).toBeVisible();
       // Every bar is reached by the keyboard and names its period and status.
       const bars = chart.getByRole("img");
       if ((await bars.count()) > 0) {
@@ -101,7 +106,7 @@ test.describe("team vacation calendar", { tag: "@lane-vacation" }, () => {
       expect((await download).suggestedFilename()).toMatch(/\.xlsx$/);
     } finally {
       await store(
-        initial.employees.map((e) => e.id),
+        initial.users.map((e) => e.id),
         initial.groups.map((g) => g.id),
         initial.periodKind,
         initial.dayWidth

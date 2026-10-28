@@ -30,6 +30,8 @@ import org.projectforge.common.logging.error
 import org.projectforge.rest.core.RestLogEvents
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.business.availability.AbsenceKind
+import org.projectforge.business.availability.AbsenceService
 import org.projectforge.business.teamcal.CalendarHelper
 import org.projectforge.business.teamcal.TeamCalConfig
 import org.projectforge.business.teamcal.admin.TeamCalDao
@@ -45,7 +47,6 @@ import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.business.vacation.VacationCache
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.calendar.Holidays.Companion.instance
 import org.projectforge.framework.i18n.translate
@@ -68,6 +69,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
@@ -96,7 +98,8 @@ class CalendarSubscriptionServiceRest {
     private lateinit var userGroupCache: UserGroupCache
 
     @Autowired
-    private lateinit var vacationCache: VacationCache
+    private lateinit var absenceService: AbsenceService
+
 
     @GetMapping
     fun exportCalendar(request: HttpServletRequest): ResponseEntity<*> {
@@ -190,8 +193,7 @@ class CalendarSubscriptionServiceRest {
         val eventDateUntilLimit = now().plusYears(2)
         eventFilter.deleted = false
         eventFilter.startDate = eventDateFromLimit.utilDate
-        val vacationEvents =
-            mutableSetOf<Long>() // For avoiding multiple entries of vacation days. Ids of vacation event.
+        val absenceEvents = mutableSetOf<String>() // For avoiding multiple entries of the same absence (by their uid).
         val processedTeamCals = mutableListOf<TeamCalDO>()
         for (teamCalIdString in teamCalIds) {
             val calId = teamCalIdString.toLong()
@@ -207,33 +209,55 @@ class CalendarSubscriptionServiceRest {
 
             teamCalDao.find(calId, checkAccess = false)?.let { cal ->
                 processedTeamCals.add(cal)
-                if (!cal.includeLeaveDaysForGroups.isNullOrBlank() || !cal.includeLeaveDaysForUsers.isNullOrBlank()) {
-                    val userIds = User.toLongArray(cal.includeLeaveDaysForUsers)?.toSet()
-                    val groupIds = Group.toLongArray(cal.includeLeaveDaysForGroups)?.toSet()
-
-                    val vacations = vacationCache.getVacationForPeriodAndUsers(
+                if (cal.includesAbsences) {
+                    addAbsences(
+                        generator,
                         eventDateFromLimit.localDate,
                         eventDateUntilLimit.localDate,
-                        groupIds,
-                        userIds
+                        Group.toLongArray(cal.includeLeaveDaysForGroups)?.toSet(),
+                        User.toLongArray(cal.includeLeaveDaysForUsers)?.toSet(),
+                        cal.absenceKinds,
+                        absenceEvents,
                     )
-                    vacations.forEach { vacation ->
-                        val title = "${translate("vacation")}: ${vacation.employee?.user?.getFullname()}"
-                        if (!vacationEvents.contains(vacation.id) && vacation.startDate != null && vacation.endDate != null) {
-                            vacationEvents.add(vacation.id!!)
-                            // Event doesn't yet exist:
-                            generator.addAllDayEvent(
-                                vacation.startDate!!,
-                                vacation.endDate,
-                                title,
-                                "vacation-${vacation.id}",
-                            )
-                        }
-                    }
                 }
             }
         }
         return processedTeamCals
+    }
+
+    /**
+     * The absences of the people of a team calendar of the kinds it includes ([TeamCalDO.absenceKinds]), as far as the
+     * subscribing user may see them ([AbsenceService]); the availability entries always by their status only: a
+     * subscription may be read by anybody. Each absence once ([seen], by its uid).
+     */
+    internal fun addAbsences(
+        generator: ICalGenerator,
+        from: LocalDate,
+        until: LocalDate,
+        groupIds: Set<Long?>?,
+        userIds: Set<Long?>?,
+        kinds: Set<AbsenceKind>,
+        seen: MutableSet<String>,
+    ) {
+        val absences = absenceService.getAbsences(from, until, kinds, groupIds, userIds)
+        absences.vacations.forEach { vacation ->
+            val startDate = vacation.startDate ?: return@forEach
+            val endDate = vacation.endDate ?: return@forEach
+            val uid = "vacation-${vacation.id}"
+            if (seen.add(uid)) {
+                val title = "${translate("vacation")}: ${absenceService.userOf(vacation)?.getFullname()}"
+                generator.addAllDayEvent(startDate, endDate, title, uid)
+            }
+        }
+        absences.availabilities.forEach { availability ->
+            val startDate = availability.startDate ?: return@forEach
+            val uid = "availability-${availability.id}"
+            if (seen.add(uid)) {
+                val name = absenceService.userOf(availability)?.getFullname()
+                val label = absenceService.labelFor(null, availability, neutral = true)
+                generator.addAllDayEvent(startDate, availability.endDate, "$label: $name", uid)
+            }
+        }
     }
 
     /**

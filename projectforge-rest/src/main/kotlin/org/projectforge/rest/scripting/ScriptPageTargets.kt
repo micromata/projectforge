@@ -24,7 +24,7 @@
 
 package org.projectforge.rest.scripting
 
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.core.PluginAdminService
@@ -69,7 +69,7 @@ class ScriptPageTargets {
      */
     private val allListRests: Map<String, AbstractEntityRest<*, *, *>> by lazy {
         applicationContext.getBeansOfType(AbstractEntityRest::class.java).values
-            .filter { NextMigration.isMigrated(it.category) }
+            .filter { PageRoutes.isMigrated(it.category) }
             .associateBy { it.category }
     }
 
@@ -100,7 +100,7 @@ class ScriptPageTargets {
     fun getPageTarget(id: String?): PageTarget? {
         listCategory(id)?.let { category ->
             val rest = listRests[category] ?: return null
-            return PageTarget(id!!, listTitle(rest), "/${NextMigration.routeOrCategory(category)}")
+            return PageTarget(id!!, listTitle(rest), "/${PageRoutes.routeOrCategory(category)}")
         }
         statisticsTab(id)?.let { tab ->
             val tabTitle = translate(if (tab == TAB_FORECAST) "fibu.auftrag.statistics.forecast" else "fibu.auftrag.contributionMargin._")

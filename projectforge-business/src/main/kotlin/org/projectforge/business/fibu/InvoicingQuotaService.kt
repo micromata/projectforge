@@ -23,6 +23,9 @@
 
 package org.projectforge.business.fibu
 
+import org.projectforge.business.fibu.kost.Kost2DO
+import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.stereotype.Service
@@ -46,7 +49,17 @@ class InvoicingQuotaService(
     /**
      * Check if invoicing quota calculation is enabled.
      */
-    fun isEnabled(): Boolean = config.enabled && config.billedPatterns.isNotEmpty()
+    fun isEnabled(): Boolean =
+        config.enabled && (config.billedPatterns.isNotEmpty() || config.billedByInvoicedKost2Types)
+
+    /**
+     * Whether the Kost2 belongs to a project with customer and its Kost2 type is invoiced, resolved by the caches.
+     * Replaceable in tests.
+     */
+    internal var isInvoicedCustomerKost2: (Kost2DO) -> Boolean = { kost2 ->
+        KostCache.instance.getKost2Art(kost2.kost2Art?.id)?.fakturiert == true &&
+                ProjektCache.instance.getProjekt(kost2.projekt?.id)?.kunde != null
+    }
 
     /**
      * May the logged-in user see the invoicing quota of the given user? Always for the own quota, for other
@@ -83,14 +96,27 @@ class InvoicingQuotaService(
 
         // Split patterns into positive (without '!') and negative (with '!')
         val positivePatterns = config.billedPatterns.filter { !it.startsWith("!") }
-        val negativePatterns = config.billedPatterns
-            .filter { it.startsWith("!") }
-            .map { it.substring(1) }
-
         val matchesPositive = positivePatterns.any { matchesPattern(kost2DisplayName, it) }
-        val matchesNegative = negativePatterns.any { matchesPattern(kost2DisplayName, it) }
 
-        return matchesPositive && !matchesNegative
+        return matchesPositive && !matchesNegativePattern(kost2DisplayName)
+    }
+
+    /**
+     * Like [isBilled] by its display name, plus [InvoicingQuotaConfiguration.billedByInvoicedKost2Types].
+     */
+    fun isBilled(kost2: Kost2DO, kost2DisplayName: String): Boolean {
+        if (config.billedByInvoicedKost2Types && isInvoicedCustomerKost2(kost2) &&
+            !matchesNegativePattern(kost2DisplayName)
+        ) {
+            return true
+        }
+        return isBilled(kost2DisplayName)
+    }
+
+    private fun matchesNegativePattern(kost2DisplayName: String): Boolean {
+        return config.billedPatterns
+            .filter { it.startsWith("!") }
+            .any { matchesPattern(kost2DisplayName, it.substring(1)) }
     }
 
     /**
@@ -132,7 +158,7 @@ class InvoicingQuotaService(
                 val displayName = kost2.displayName ?: return@forEach
                 if (!isIgnored(displayName)) {
                     totalDuration += entry.workFractionMillis
-                    if (isBilled(displayName)) {
+                    if (isBilled(kost2, displayName)) {
                         billedDuration += entry.workFractionMillis
                     }
                 }
@@ -160,7 +186,7 @@ class InvoicingQuotaService(
      * - `.` = literal dot (escaped)
      *
      * Examples:
-     * - `5.*` matches "5.123", "5.999.01.02"
+     * - `5.*` matches "5.123", "5.900.01.02"
      * - `5.___.99.*` matches "5.123.99.01", "5.456.99.99"
      * - `6.3*` matches "6.3", "6.31", "6.399.01"
      *

@@ -10,7 +10,15 @@ import {
   EntityAutocomplete,
   type EntityRef,
 } from "@/components/shared/entity-autocomplete";
+import { GroupNomenclatureHint } from "@/components/shared/group-nomenclature-hint";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { useGroupNomenclature } from "@/hooks/use-group-nomenclature";
+import {
+  groupBaseName,
+  suggestedGroupName,
+  type GroupNomenclatureConfig,
+} from "@/lib/group-nomenclature";
+import type { TaskNode } from "@/lib/rs/task";
 import { Label } from "@/components/ui/label";
 import type { WizardGroupStep } from "./types";
 import { WizardStepCard } from "./wizard-step-card";
@@ -21,8 +29,13 @@ interface WizardGroupStepProps {
   number: number;
   value: EntityRef | null;
   onChange: (group: EntityRef | null) => void;
-  /** Title of the picked structure element, from which the suggested group name is built. */
-  taskTitle?: string | null;
+  /**
+   * The base of the suggested group name: the project's names following the configured nomenclature,
+   * or the title of the picked structure element (see groupBaseNameOfTask).
+   */
+  baseName?: string | null;
+  /** The configured description of the group naming convention, shown with the create link. */
+  nomenclatureDescription?: string | null;
 }
 
 /**
@@ -36,13 +49,20 @@ export function WizardGroupStepCard({
   number,
   value,
   onChange,
-  taskTitle,
+  baseName,
+  nomenclatureDescription,
 }: WizardGroupStepProps) {
   const t = useTranslations();
   const [creating, setCreating] = useState(false);
   const id = `wizard-${step.key}`;
   const heading = t(`task.wizard.${step.key}._`);
-  const suggestedName = suggestGroupName(step, taskTitle, t);
+  const nomenclature = useGroupNomenclature();
+  const suggestedName = suggestedGroupName(
+    nomenclature,
+    step.key,
+    baseName,
+    defaultGroupNameSuffix(step, t)
+  );
 
   return (
     <WizardStepCard
@@ -71,16 +91,22 @@ export function WizardGroupStepCard({
           group's own page definition is what the dialog renders — the one place this feature reaches
           into another one, because "create a group here" *is* a reference to the group page, and
           rebuilding its form would be a second form to keep in step with GroupEntityRest. */}
-      <HintTooltip text={t("task.wizard.button.createGroup.tooltip")}>
-        <button
-          type="button"
-          onClick={() => setCreating(true)}
-          className="flex w-fit items-center gap-1 text-xs text-primary hover:underline"
-        >
-          <HugeiconsIcon icon={PlusSignIcon} size={12} />
-          {t("task.wizard.button.createGroup._")}
-        </button>
-      </HintTooltip>
+      <div className="flex items-center gap-1">
+        <HintTooltip text={t("task.wizard.button.createGroup.tooltip")}>
+          <button
+            type="button"
+            onClick={() => setCreating(true)}
+            className="flex w-fit items-center gap-1 text-xs text-primary hover:underline"
+          >
+            <HugeiconsIcon icon={PlusSignIcon} size={12} />
+            {t("task.wizard.button.createGroup._")}
+          </button>
+        </HintTooltip>
+        <GroupNomenclatureHint
+          description={nomenclatureDescription}
+          label={`${t("group.nomenclature._")}: ${heading}`}
+        />
+      </div>
       <EntityEditModal
         page={GROUP_PAGE}
         id={null}
@@ -103,13 +129,37 @@ export function WizardGroupStepCard({
   );
 }
 
-/** The name Wicket suggested: the element's title, plus the role's suffix for all but the team. */
-function suggestGroupName(
+/**
+ * The suffix a role's group got in Wicket, the translated `groupNameSuffix` — the team has none. A
+ * configured nomenclature replaces it (see suggestedGroupName).
+ */
+export function defaultGroupNameSuffix(
   step: WizardGroupStep,
-  taskTitle: string | null | undefined,
   t: (key: string) => string
 ): string | null {
-  if (!taskTitle) return null;
-  if (!step.hasNameSuffix) return taskTitle;
-  return `${taskTitle}-${t(`task.wizard.${step.key}.groupNameSuffix`)}`;
+  return step.hasNameSuffix
+    ? t(`task.wizard.${step.key}.groupNameSuffix`)
+    : null;
+}
+
+/**
+ * The base of the group names for a picked structure element: with a configured pattern and a project
+ * the element belongs to (its own or an ancestor's), the project's names following the pattern — the
+ * groups of a project are named the same whichever wizard creates them —, otherwise the element's
+ * title, as Wicket did.
+ */
+export function groupBaseNameOfTask(
+  config: GroupNomenclatureConfig | null | undefined,
+  task: Pick<TaskNode, "title" | "projekt"> | null | undefined
+): string | null {
+  if (!task) return null;
+  const projekt = task.projekt;
+  if (config?.pattern?.trim() && projekt) {
+    const name = groupBaseName(config, {
+      customer: projekt.customer,
+      project: projekt,
+    });
+    if (name) return name;
+  }
+  return task.title?.trim() || null;
 }

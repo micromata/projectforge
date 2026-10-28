@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  moveRow,
   readArrayAtPath,
   removeRow,
   restoreRow,
@@ -90,5 +91,18 @@ describe("updateRow", () => {
       { id: 7, netto: "100" },
       { id: 8, netto: "300" },
     ]);
+  });
+});
+
+describe("moveRow", () => {
+  it("moves a row up or down, the others shift by one", () => {
+    expect(moveRow(["a", "b", "c"], 2, 0)).toEqual(["c", "a", "b"]);
+    expect(moveRow(["a", "b", "c"], 0, 1)).toEqual(["b", "a", "c"]);
+  });
+
+  it("leaves the rows alone out of range", () => {
+    const rows = ["a", "b"];
+    expect(moveRow(rows, 0, 2)).toBe(rows);
+    expect(moveRow(rows, -1, 0)).toBe(rows);
   });
 });

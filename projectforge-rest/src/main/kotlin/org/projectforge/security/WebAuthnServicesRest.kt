@@ -35,10 +35,8 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.my2fa.My2FAServicesRest
-import org.projectforge.rest.my2fa.My2FASetupPageRest
 import org.projectforge.security.dto.*
 import org.projectforge.security.webauthn.WebAuthnSupport
-import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -64,7 +62,7 @@ class WebAuthnServicesRest {
   private lateinit var my2FAServicesRest: My2FAServicesRest
 
   @Autowired
-  private lateinit var my2FASetupPageRest: My2FASetupPageRest
+  private lateinit var my2FAService: My2FAService
 
   /**
    * Step 0 (the client requests the registration).
@@ -81,7 +79,6 @@ class WebAuthnServicesRest {
       challenge = createUserChallenge(request), // https://www.w3.org/TR/webauthn-2/
       timeout = WebAuthnSupport.TIMEOUT,
       requestId = requestId,
-      sessionToken = request.getSession(false).id,
       pubKeyCredParams = publicKeyCredentialParameters,
       authenticatorSelection = authenticatorSelectionCriteria,
       extensions = extensions,
@@ -93,7 +90,7 @@ class WebAuthnServicesRest {
 
   /**
    * Step 5: Browser Creates Final Data, Application sends response to Server
-   * Rest service is defined in [WebAuthnEntryPageRest]
+   * Rest service is defined in [org.projectforge.rest.my2fa.My2FASetupRest]
    */
   fun doRegisterFinish(
     request: HttpServletRequest,
@@ -101,7 +98,7 @@ class WebAuthnServicesRest {
     displayName: String? = null,
   ): WebAuthnSupport.Result {
     log.info { "User wants to finish registration." }
-    if (!my2FASetupPageRest.checkLastSuccessful2FA()) {
+    if (!my2FAService.checkLastSuccessful2FAForSetup()) {
       return WebAuthnSupport.Result("user.My2FA.required")
     }
     val credential = webAuthnRequest.credential!!
@@ -132,7 +129,6 @@ class WebAuthnServicesRest {
         challenge = createUserChallenge(request), // https://www.w3.org/TR/webauthn-2/
         timeout = WebAuthnSupport.TIMEOUT,
         requestId = requestId,
-        sessionToken = request.getSession(false).id,
         pubKeyCredParams = publicKeyCredentialParameters,
         authenticatorSelection = authenticatorSelectionCriteria,
         extensions = extensions,
@@ -143,7 +139,7 @@ class WebAuthnServicesRest {
 
   /**
    * Step 5: Browser Creates Final Data, Application sends response to Server
-   * Rest service is defined in [My2FAServicesRest]
+   * Rest service is defined in [org.projectforge.rest.my2fa.My2FANextRest]
    */
   fun doWebAuthnFinish(
     request: HttpServletRequest,
@@ -230,19 +226,6 @@ class WebAuthnServicesRest {
     get() = webAuthnSupport.allLoggedInUserCredentials.map { WebAuthnCredential(it.credentialId) }.toTypedArray()
 
   companion object {
-    fun addAuthenticateTranslations(layout: UILayout) {
-      layout.addTranslations(
-        "webauthn.registration.button.authenticate",
-        "webauthn.registration.button.authenticate.info",
-      )
-    }
-
-    fun addRegisterTranslations(layout: UILayout) {
-      layout.addTranslations(
-        "webauthn.registration.button.register",
-      )
-    }
-
     private val SESSSION_ATTRIBUTE_CHALLENGE = "${WebAuthnServicesRest::class.java.name}:challenge"
   }
 }

@@ -18,6 +18,7 @@ import type {
   MagicFilterEntry,
 } from "../lib/rs/types";
 import type { Page, Response } from "@playwright/test";
+import { writeHeaders } from "./fixtures/seed";
 
 type Translate = UserFormat["t"];
 
@@ -148,7 +149,9 @@ for (const list of LISTS) {
     test.beforeEach(async ({ loggedInPage: page }) => {
       // The filter is stored per user: start from the default, so no picked criterion narrows the check.
       await page.request
-        .get(`/rs/${list.entity}/filter/reset`, { headers: HEADERS })
+        .post(`/rs/${list.entity}/filter/reset`, {
+          headers: await writeHeaders(page.request),
+        })
         .catch(() => undefined);
     });
 
@@ -156,7 +159,9 @@ for (const list of LISTS) {
       // And leave it at the default: the ticked criterion would otherwise narrow every later spec of
       // this lane, which looks for its own freshly seeded row (without customer or project).
       await page.request
-        .get(`/rs/${list.entity}/filter/reset`, { headers: HEADERS })
+        .post(`/rs/${list.entity}/filter/reset`, {
+          headers: await writeHeaders(page.request),
+        })
         .catch(() => undefined);
     });
 
@@ -200,6 +205,86 @@ for (const list of LISTS) {
         await expect(pill).toContainText(second.displayName);
       });
     }
+
+    test("says it narrows the result, and chooses from all when switched", async ({
+      loggedInPage: page,
+    }) => {
+      const { t } = await userFormat(page);
+      const field = list.checklists[0].field;
+      const url = valuesUrl(list, field);
+      // Without other criteria the endpoint answers every row the user may see — for time sheets too,
+      // although their list itself shows nothing without a period or a task.
+      const response = await page.request.post(`/rs/${url}`, {
+        headers: await postHeaders(page),
+        data: { entries: [] },
+      });
+      expect(response.ok()).toBeTruthy();
+      const all = (await response.json()) as FilterListValue[];
+      const first = named(all)[0];
+      test.skip(!first, `No ${field} at all.`);
+
+      const label = await openFilter(page, t, list, field);
+      const group = page.getByRole("group", { name: label });
+      await expect(
+        page.getByText(t("select.checklist.narrowsHint"))
+      ).toBeVisible();
+
+      // Asked without the other criteria — or answered from the cache, where the list's filter has none.
+      await page
+        .getByRole("switch", { name: t("select.checklist.fromAll") })
+        .click();
+      await expect(
+        page.getByText(t("select.checklist.fromAllHint"))
+      ).toBeVisible();
+      await expect(
+        page.getByText(
+          t("select.checklist.selectedOf", { arg0: 0, arg1: all.length })
+        )
+      ).toBeVisible();
+      await expect(
+        group.getByRole("checkbox", { name: first.displayName, exact: true })
+      ).toBeVisible();
+    });
+
+    test("is narrowed by the list's search term too", async ({
+      loggedInPage: page,
+    }) => {
+      const { t } = await userFormat(page);
+      const field = list.checklists[0].field;
+      const first = named(await filterValues(page, valuesUrl(list, field)))[0];
+      test.skip(!first, `No ${field} at all.`);
+
+      await goto(page, list.route);
+      await expect(
+        page.getByRole("heading", { name: t(list.titleKey) })
+      ).toBeVisible({ timeout: 60_000 });
+      // A term no row matches: the list is empty, so is what the checklist offers.
+      const term = `nomatch${Date.now()}`;
+      const searched = page.waitForResponse(
+        (response) =>
+          /\/rs\/[^/]+\/list(Page)?$/.test(response.url()) &&
+          JSON.stringify(response.request().postDataJSON()).includes(term)
+      );
+      await page.getByPlaceholder(t("filter.searchList")).fill(term);
+      const { resultSet } = (await (await searched).json()) as {
+        resultSet: Row[];
+      };
+      // Not every list's search takes a free term (cost 2 searches by its number fields).
+      test.skip(resultSet.length > 0, "The search doesn't narrow this list.");
+
+      const label = await openFilter(page, t, list, field, false);
+      await expect(
+        page.getByText(t("select.checklist.noneForOtherFilters"))
+      ).toBeVisible();
+      await page
+        .getByRole("switch", { name: t("select.checklist.fromAll") })
+        .click();
+      await expect(
+        page
+          .getByRole("group", { name: label })
+          .getByRole("checkbox", { name: first.displayName, exact: true })
+      ).toBeVisible();
+    });
 
     if (list.checklists.length === 2) {
       test("a ticked customer narrows the projects offered", async ({

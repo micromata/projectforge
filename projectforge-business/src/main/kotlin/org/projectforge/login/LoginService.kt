@@ -199,9 +199,13 @@ open class LoginService {
      * To be called whenever a second factor was checked successfully, right where the last2FA cookie is
      * written ([org.projectforge.rest.my2fa.My2FAServicesRest] and the WebAuthn endpoints). Issues the
      * stay-logged-in cookie the user asked for at login time, if any.
+     *
+     * Renews the session id: the session gained privileges (session fixation, as at login in [internalLogin]). The
+     * attributes, the CSRF token included, are kept.
      */
     fun onSecondFactorSucceeded(request: HttpServletRequest, response: HttpServletResponse) {
         val session = request.getSession(false) ?: return
+        request.changeSessionId()
         // Consume it in any case: a later in-session 2FA check must not inherit a cookie the user asked for
         // at login time.
         val requested = session.getAttribute(SESSION_KEY_STAY_LOGGED_IN_REQUESTED) as? Boolean

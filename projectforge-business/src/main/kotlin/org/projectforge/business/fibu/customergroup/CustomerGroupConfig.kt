@@ -31,7 +31,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The customer groups and business units, stored as JSON in the configuration parameter
  * [org.projectforge.framework.configuration.ConfigurationParam.CUSTOMER_GROUPS] and maintained by finance and
- * controlling on a page of their own (`CustomerGroupPageRest`).
+ * controlling on a page of their own (`CustomerGroupRest`).
  *
  * A group combines customers that belong together (ACME Germany, ACME Logistics, ACME Holding -> ACME); a
  * business unit combines groups and single customers. Each customer belongs to at most one group, each group
@@ -44,6 +44,10 @@ class CustomerGroupConfig(
     var version: Int = VERSION,
     var groups: MutableList<CustomerGroup> = mutableListOf(),
     var businessUnits: MutableList<BusinessUnit> = mutableListOf(),
+    /** Read access to the orders of customers, groups and business units, see [OrderAccessGrant]. */
+    var orderAccess: MutableList<OrderAccessGrant> = mutableListOf(),
+    /** Projects shown together as one in the project filters of the lists, see [ProjectGroup]. */
+    var projectGroups: MutableList<ProjectGroup> = mutableListOf(),
     /**
      * Free text of finance and controlling about the definition as a whole: how the groups and business units
      * are drawn, or why they were changed. Not evaluated; changes are traced through the history of the
@@ -54,7 +58,8 @@ class CustomerGroupConfig(
     fun toJson(): String = JsonUtils.toJson(this, ignoreNullableProps = true)
 
     companion object {
-        const val VERSION = 1
+        /** 2: [orderAccess] added. 3: [projectGroups] added. 4: [BusinessUnit.color] added. */
+        const val VERSION = 4
 
         /**
          * @return The parsed configuration, an empty one for a blank value. A value that can't be read is
@@ -109,4 +114,56 @@ class BusinessUnit : CustomerSet() {
      * its customer leads to none (see [CustomerGroupIndex.businessUnitOf]).
      */
     var tasks: MutableList<Long> = mutableListOf()
+
+    /**
+     * The colour of the business unit as lower-case hex code (e.g. `#ffcb00`), used for its bubbles in the
+     * contribution margin bubble chart; none: the default colour.
+     */
+    var color: String? = null
+}
+
+/**
+ * Read access to all orders of the given customers, groups and business units (resolved per order as the
+ * business-unit filter of the order list does, see [CustomerGroupIndex.businessUnitOf]), for the given users and
+ * the members of the given groups. Only project managers and project assistants with the order book right are
+ * granted, see [OrderAccessGrantService]. The grant only reads: writing still needs a tie to the order or its
+ * project.
+ */
+class OrderAccessGrant {
+    /** Stable key, assigned by the server on the first save (as [CustomerSet.key]). */
+    var key: String? = null
+
+    var name: String? = null
+
+    var remark: String? = null
+
+    /** Ids of the users granted ([org.projectforge.framework.persistence.user.entities.PFUserDO.id]). */
+    var userIds: MutableList<Long> = mutableListOf()
+
+    /** Ids of the groups whose members are granted ([org.projectforge.framework.persistence.user.entities.GroupDO.id]). */
+    var groupIds: MutableList<Long> = mutableListOf()
+
+    /** Numbers of the customer entities ([org.projectforge.business.fibu.KundeDO.nummer]). */
+    var customers: MutableList<Long> = mutableListOf()
+
+    /** Keys of the customer groups ([CustomerGroup.key]). */
+    var groups: MutableList<String> = mutableListOf()
+
+    /** Keys of the business units ([BusinessUnit.key]). */
+    var businessUnits: MutableList<String> = mutableListOf()
+}
+
+/**
+ * Projects belonging together under a common parent project: offered as one entry in the project filters of the
+ * lists (order book, invoices, cost 2, timesheets, order statistics), standing for all of its projects. Each
+ * project belongs to at most one project group (see [CustomerGroupValidator]).
+ */
+class ProjectGroup {
+    /** Stable key, assigned by the server on the first save (as [CustomerSet.key]); filters refer to it (`pg:<key>`). */
+    var key: String? = null
+
+    var name: String? = null
+
+    /** Ids of the projects ([org.projectforge.business.fibu.ProjektDO.id]). */
+    var projects: MutableList<Long> = mutableListOf()
 }

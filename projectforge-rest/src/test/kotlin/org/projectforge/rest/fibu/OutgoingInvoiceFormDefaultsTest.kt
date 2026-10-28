@@ -43,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired
  * [OutgoingInvoiceEntityRest.getActiveKost2] and [OutgoingInvoiceEntityRest.checkKost2].
  *
  * None of them writes anything, so what has to be tested is that each one checks the read access itself —
- * a `@GetMapping` on an entity rest class gets none of `AbstractPagesRest`'s checks for free — and that the
+ * a `@GetMapping` on an entity rest class gets no check of the base class for free — and that the
  * Kost2 comparison reproduces `RechnungEditForm.onRenderCostRow`, which is a rule with three `-1` cases in
  * it and the reason the answer is computed server side at all.
  */

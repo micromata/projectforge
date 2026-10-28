@@ -75,14 +75,13 @@ export async function loggedInRequest(
 }
 
 /**
- * Logs `role` in and stores its cookies for the browser host of `baseURL`.
+ * Logs `role` in to a new session and returns its cookies for the browser host of `baseURL`, without
+ * storing them: for a test that changes its session (see [createSession] for the shared one).
  *
  * The cookies are issued for the API context's host (127.0.0.1, see [apiBaseUrl]); a browser on
  * "localhost" would not send them back, so their domain is rewritten to the host the browser uses.
- * Written to a temporary file and renamed, so a worker reading the file while another one refreshes
- * it never sees half of it.
  */
-export async function createSession(
+export async function newSession(
   baseURL: string,
   role: Role
 ): Promise<SessionCookie[]> {
@@ -93,6 +92,20 @@ export async function createSession(
     domain: host,
   }));
   await context.dispose();
+  return cookies;
+}
+
+/**
+ * Logs `role` in (see [newSession]) and stores its cookies as the session all tests of the run share.
+ *
+ * Written to a temporary file and renamed, so a worker reading the file while another one refreshes
+ * it never sees half of it.
+ */
+export async function createSession(
+  baseURL: string,
+  role: Role
+): Promise<SessionCookie[]> {
+  const cookies = await newSession(baseURL, role);
   mkdirSync(AUTH_DIR, { recursive: true });
   const file = statePath(role);
   const tmp = `${file}.${process.pid}.tmp`;

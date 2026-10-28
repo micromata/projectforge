@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { NotificationChannel } from "@/lib/rs/notification";
+import { useSmsInfo } from "./use-sms-info";
 import type { DeliveryStep } from "./types";
 
 type Unit = "minutes" | "hours" | "days";
@@ -44,10 +45,19 @@ export function DeliveryStepRow({
   onRemove: () => void;
 }) {
   const t = useTranslations("notification");
-  // The unit is the user's choice while editing (1 day typed as "24 hours" stays in hours).
-  const [unit, setUnit] = useState<Unit>(() => unitOf(step.delayMinutes));
+  // The unit is the user's choice while editing (1 day typed as "24 hours" stays in hours). Only while the
+  // delay is a whole multiple of it: the rows are keyed by position, so after a removal a row gets the state
+  // of the one before, whose unit would round the delay (30 minutes in days to 0, sent at once).
+  const [chosenUnit, setUnit] = useState<Unit>(() => unitOf(step.delayMinutes));
+  const unit =
+    step.delayMinutes % MINUTES[chosenUnit] === 0
+      ? chosenUnit
+      : unitOf(step.delayMinutes);
   const amount = Math.round(step.delayMinutes / MINUTES[unit]);
   const id = `delivery-step-${index}`;
+  // Not configured: not offered for new steps, a stored SMS step stays selectable (and is skipped).
+  const smsInfo = useSmsInfo();
+  const smsUnavailable = smsInfo?.configured === false;
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-md border p-2">
       <Select
@@ -63,7 +73,14 @@ export function DeliveryStepRow({
         <SelectContent>
           <SelectItem value="IN_APP">{t("channels.IN_APP")}</SelectItem>
           <SelectItem value="MAIL">{t("channels.MAIL")}</SelectItem>
-          <SelectItem value="SMS">{t("channels.SMS")}</SelectItem>
+          <SelectItem
+            value="SMS"
+            disabled={smsUnavailable && step.channel !== "SMS"}
+          >
+            {smsUnavailable
+              ? `${t("channels.SMS")} (${t("delivery.smsNotConfigured")})`
+              : t("channels.SMS")}
+          </SelectItem>
         </SelectContent>
       </Select>
       <span className="text-sm text-muted-foreground">

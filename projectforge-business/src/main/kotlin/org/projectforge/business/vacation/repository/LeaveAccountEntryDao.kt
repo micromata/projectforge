@@ -118,6 +118,14 @@ open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntry
         }
     }
 
+    /**
+     * Without a userRightId, BaseDao would allow everybody to add entries (add button, newEntry): HR staff only, as
+     * for writing them.
+     */
+    override fun hasInsertAccess(user: PFUserDO): Boolean {
+        return accessChecker.hasRight(user, UserRightId.HR_VACATION, false, UserRightValue.READWRITE)
+    }
+
     // A correction of the previous year changes its left days, i.e. the stored carry into the current year:
     override fun afterInsertOrModify(obj: LeaveAccountEntryDO, operationType: OperationType) {
         remainingLeaveDao.invalidateCarry(obj.employee?.id, obj.date)

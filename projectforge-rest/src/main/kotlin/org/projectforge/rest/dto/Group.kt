@@ -63,7 +63,7 @@ class Group(
      * only, while every user may *read* a group (for checking who is a member of what).
      *
      * So this is the entity where the two differ most, and the hand built next page needs the answer:
-     * the server side layouts of the legacy frontends got it as `UILayout.UserAccess`,
+     * the server side layouts of the legacy frontends got it as `UserAccess`,
      * a form without a layout takes it from here — filled
      * by [org.projectforge.rest.core.AbstractEntityRest.getById] from the same DAO calls.
      */
@@ -156,11 +156,17 @@ class Group(
         }
 
         /**
-         * Set display names of any existing group in the given list.
+         * Set display names of any existing group in the given list, and whether it is still active (deleted,
+         * deactivated): a no longer active group is struck through wherever shown as a reference.
          */
         fun restoreDisplayNames(groups: List<Group>?) {
             val caches = PfCaches.instance
-            groups?.forEach { it.displayName = caches.getGroup(it.id)?.displayName ?: "???" }
+            groups?.forEach { group ->
+                val groupDO = caches.getGroup(group.id)
+                group.displayName = groupDO?.displayName ?: "???"
+                group.deleted = groupDO?.deleted == true
+                group.deactivated = groupDO?.deactivated == true
+            }
         }
 
         /**

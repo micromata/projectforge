@@ -25,13 +25,12 @@ package org.projectforge.jira
 
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.timesheet.TimesheetDO
-import org.projectforge.framework.configuration.ConfigXml
 import java.util.regex.Pattern
 
 object JiraUtils {
-  private const val PATTERN = "([A-Z][A-Z_0-9]*-[0-9]+)"
+  private const val PATTERN = "([A-Z]{2}[A-Z_0-9]*-[0-9]+)"
   val isJiraConfigured: Boolean
-    get() = ConfigXml.getInstance().isJIRAConfigured
+    get() = JiraConfig.get().isConfigured
 
   /**
    * A single JIRA server as the client needs it to build browse links itself: the base url an issue key is
@@ -52,15 +51,15 @@ object JiraUtils {
   )
 
   /**
-   * Builds the [JiraClientConfig] from [ConfigXml], or an unconfigured one where JIRA is off.
+   * Builds the [JiraClientConfig] from [JiraConfig], or an unconfigured one where JIRA is off.
    */
   @JvmStatic
   fun getClientConfig(): JiraClientConfig {
-    val config = ConfigXml.getInstance()
-    if (!config.isJIRAConfigured) {
+    val config = JiraConfig.get()
+    if (!config.isConfigured) {
       return JiraClientConfig(configured = false)
     }
-    val servers = config.jiraServers?.mapNotNull { server ->
+    val servers = config.servers?.mapNotNull { server ->
       val baseUrl = server.baseUrl
       val projects = server.projects?.toList()
       if (baseUrl.isNullOrBlank() || projects.isNullOrEmpty()) {
@@ -71,7 +70,7 @@ object JiraUtils {
     } ?: emptyList()
     return JiraClientConfig(
       configured = true,
-      defaultBrowseBaseUrl = config.jiraBrowseBaseUrl?.takeIf { it.isNotBlank() },
+      defaultBrowseBaseUrl = config.browseBaseUrl?.takeIf { it.isNotBlank() },
       servers = servers,
     )
   }
@@ -88,20 +87,20 @@ object JiraUtils {
   }
 
   private fun getJiraBrowseBaseUrl(jiraIssue: String): String {
-    val config = ConfigXml.getInstance()
-    config.jiraServers?.forEach { server ->
+    val config = JiraConfig.get()
+    config.servers?.forEach { server ->
       server.baseUrl?.let { baseUrl ->
         if (server.projects?.any { jiraIssue.startsWith(it) } == true) {
           return getNonBlankServerUrl(baseUrl)
         }
       }
     }
-    return getNonBlankServerUrl(config.jiraBrowseBaseUrl)
+    return getNonBlankServerUrl(config.browseBaseUrl)
   }
 
   private fun getNonBlankServerUrl(baseUrl: String?): String {
     return if (baseUrl.isNullOrBlank()) {
-      "config-xml-jiraBrowseBaseUrl-undefined"
+      "jira-browseBaseUrl-undefined"
     } else {
       baseUrl
     }
@@ -123,11 +122,11 @@ object JiraUtils {
    *
    * @param text
    * @return [.parseJiraIssues]
-   * @see ConfigXml.isJIRAConfigured
+   * @see JiraConfig.isConfigured
    */
   @JvmStatic
   fun checkForJiraIssues(text: String?): Array<String>? {
-    return if (!ConfigXml.getInstance().isJIRAConfigured) {
+    return if (!isJiraConfigured) {
       null
     } else parseJiraIssues(text)
   }
@@ -161,7 +160,7 @@ object JiraUtils {
   }
 
   /**
-   * Returns found matches for JIRA issues: UPPERCASE_LETTERS-###: [A-Z][A-Z_0-9]*-[0-9]+
+   * Returns found matches for JIRA issues: UPPERCASE_LETTERS-### (at least 2 leading letters): [A-Z]{2}[A-Z_0-9]*-[0-9]+
    *
    * @param text
    * @return
@@ -172,7 +171,7 @@ object JiraUtils {
   }
 
   /**
-   * Returns found matches for JIRA issues: UPPERCASE_LETTERS-###: [A-Z][A-Z_0-9]*-[0-9]+
+   * Returns found matches for JIRA issues: UPPERCASE_LETTERS-### (at least 2 leading letters): [A-Z]{2}[A-Z_0-9]*-[0-9]+
    *
    * @param project ID of Jira project (PROJECTFORGE, ...). (case-insensitive)
    * @param text

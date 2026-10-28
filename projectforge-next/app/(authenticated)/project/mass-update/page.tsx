@@ -18,7 +18,7 @@ export default function ProjectMassUpdatePage() {
       listRoute={PROJECT_PAGE.route}
       listQueryKey={PROJECT_PAGE.queryKey}
       // The cost 2 types to create/activate or deactivate: several picks plus the action, which the generic
-      // renderer has no field for (ProjectMultiSelectedPageRest declares `kost2Arts` as a custom field).
+      // renderer has no field for (ProjectMassUpdateRest declares `kost2Arts` as a custom field).
       customFields={{
         kost2Arts: (setParam, meta) => {
           const field = meta.fields.find((f) => f.field === "kost2Arts");
@@ -32,6 +32,7 @@ export default function ProjectMassUpdatePage() {
       selectedEntries={(count) => (
         <SelectedEntriesPanel
           endpoint={massUpdate.endpoint}
+          entity={PROJECT_PAGE.entity}
           metadata={PROJECT_PAGE.metadata}
           columns={PROJECT_PAGE.columns}
           // The count is all this page knows of the selection, and it comes from `{page}/meta`, which

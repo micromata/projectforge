@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { EditorState, type Extension } from "@uiw/react-codemirror";
 
 /**
- * The texts CodeMirror itself shows in its search panel, in the user's language, keyed by the English
+ * The texts CodeMirror itself shows in its search panel and diff, in the user's language, keyed by the English
  * phrase CodeMirror asks for (`$` is filled in by CodeMirror).
  */
 export function useCodeEditorPhrases(): Extension {
@@ -28,6 +28,8 @@ export function useCodeEditorPhrases(): Extension {
         "on line": t("codeEditor.phrase.onLine"),
         "replaced match on line $": t("codeEditor.phrase.replacedOnLine"),
         "replaced $ matches": t("codeEditor.phrase.replacedMatches"),
+        // The collapsed stretch of a diff (CodeDiffView).
+        "$ unchanged lines": t("codeEditor.phrase.unchangedLines"),
       }),
     [t]
   );

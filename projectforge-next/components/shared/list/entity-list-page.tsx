@@ -31,7 +31,10 @@ import {
 import { useSelectAllShortcut } from "@/hooks/use-select-all-shortcut";
 import { useUpdateAccess } from "@/hooks/use-update-access";
 import { useEntitySelection } from "@/store/selection-store";
-import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
+import {
+  deletedRowClass,
+  INACTIVE_ROW_CLASS,
+} from "@/lib/dynamic/grid/row-class";
 import { leafKeyOf } from "@/lib/leaf-key";
 import {
   auditColumnsFor,
@@ -48,6 +51,7 @@ import type { LegendEntry, PageDef } from "@/lib/page-def/types";
 import type { MagicFilter } from "@/lib/rs/types";
 import { TableLegend } from "@/components/data-table/table-legend";
 import { ListSelectionSection } from "./list-selection-section";
+import { useSelectFirst } from "./use-select-first";
 import { ListToolbar } from "./list-toolbar";
 import { ListResultInfo } from "./list-result-info";
 import { ListTruncationNotice } from "./list-truncation-notice";
@@ -161,7 +165,10 @@ const LIST_SEARCH_PARAM = "q";
  */
 const LOCKED_COLUMN_IDS = [SELECTION_COLUMN_ID];
 
-/** Always includes the deleted entry first, then any entity-specific entries. */
+/**
+ * Always includes the deleted entry first, then the inactive one if the page names it, then any
+ * entity-specific entries.
+ */
 function legendEntries<
   Row extends ListRow,
   Values,
@@ -171,9 +178,18 @@ function legendEntries<
   const deletedEntry: LegendEntry = {
     className: "row-deleted",
     labelKey: page.deletedLabelKey ?? "table.legend.deleted",
-    strikethrough: true,
+    strikethrough: "deleted",
   };
-  return [deletedEntry, ...(page.legend ?? [])];
+  const inactiveEntry: LegendEntry[] = page.inactiveLabelKey
+    ? [
+        {
+          className: INACTIVE_ROW_CLASS,
+          labelKey: page.inactiveLabelKey,
+          strikethrough: "inactive",
+        },
+      ]
+    : [];
+  return [deletedEntry, ...inactiveEntry, ...(page.legend ?? [])];
 }
 
 function DeclaredList<
@@ -276,6 +292,9 @@ function DeclaredList<
   // declarative and cannot hold state; it survives period stepping (only the filter values change) and
   // resets when the page is left, which is what "on demand" asks for.
   const [previousYearComparison, setPreviousYearComparison] = useState(false);
+  // The entry a row click opened in the page's own dialog (see PageDef.rowDialog), null while none is.
+  const [dialogId, setDialogId] = useState<number | null>(null);
+  const RowDialog = page.rowDialog;
   const buildFilter = useCallback(
     (base: MagicFilter): MagicFilter =>
       previousYearComparison
@@ -318,6 +337,7 @@ function DeclaredList<
     [table]
   );
   useSelectAllShortcut(mode.active, selectAll);
+  const selectFirst = useSelectFirst(page.entity, table, list.filter);
 
   // After every hook, so the early return doesn't change their order.
   if (denied) {
@@ -338,9 +358,6 @@ function DeclaredList<
           // Only where this user may add one: without the right the button is left out, as the
           // legacy page leaves the create entry out of its menu (see useEditTargets.canAdd).
           addHref={targets.canAdd ? targets.addHref : undefined}
-          addIsLegacy={targets.legacy}
-          // The button, unless this entity has demoted the way back into the gear menu below.
-          legacyUrl={list.legacyInMenu ? undefined : list.legacyUrl}
           experimental={page.experimental}
           selectionToggle={
             page.massUpdate &&
@@ -361,11 +378,7 @@ function DeclaredList<
             </>
           }
           gearMenu={
-            <ListGearMenu
-              entity={page.entity}
-              // Present only for an entity that has moved its way back in here (see legacyInMenu).
-              legacyUrl={list.legacyInMenu ? list.legacyUrl : undefined}
-            >
+            <ListGearMenu entity={page.entity}>
               {GearMenuActions && <GearMenuActions />}
             </ListGearMenu>
           }
@@ -397,6 +410,7 @@ function DeclaredList<
               elements={list.filters.elements}
               values={list.filters.values}
               onChange={list.applyValues}
+              searchString={list.filter.searchString}
               periodKinds={page.filterPeriodKinds}
               defaultPeriodKind={page.filterDefaultPeriodKind}
               trailing={
@@ -427,6 +441,7 @@ function DeclaredList<
             metadata={page.metadata}
             columns={declarations.columns}
             onSelectAll={selectAll}
+            onSelectFirst={selectFirst}
           />
         )
       }
@@ -457,6 +472,7 @@ function DeclaredList<
                 // virtual series occurrence) to a route of its own; anything else opens the entry.
                 const to = page.onRowClick?.(row);
                 if (to) navigateInGesture(router, to);
+                else if (RowDialog) setDialogId(row.id);
                 else targets.openEntry(row.id);
               }
             : undefined
@@ -480,6 +496,9 @@ function DeclaredList<
         }
         className="flex-1"
       />
+      {RowDialog && dialogId !== null && (
+        <RowDialog id={dialogId} onClose={() => setDialogId(null)} />
+      )}
     </ListPageShell>
   );
   return embedded ? content : <PageShell>{content}</PageShell>;

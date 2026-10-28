@@ -25,7 +25,7 @@ package org.projectforge.plugins.todo.rest
 
 import jakarta.servlet.http.HttpServletRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.common.i18n.UserException
@@ -267,13 +267,13 @@ class ToDoEntityRest : AbstractDTOEntityRest<ToDoDO, ToDo, ToDoDao>(
     /**
      * Notifies assignee and reporter of the written to-do. A failing notification must never fail the write,
      * which is committed already, nor stay silent: the warning is returned for the response (see
-     * `OrderEntityRest`). Also used by the mass update ([ToDoMultiSelectedPageRest]).
+     * `OrderEntityRest`). Also used by the mass update ([ToDoMassUpdateRest]).
      *
      * @return The translated warning of a failed notification, or null.
      */
     fun sendNotification(obj: ToDoDO): String? {
         val url = domainService.getDomain(
-            NextMigration.standardEditPage(category).replace(NextMigration.ID_PLACEHOLDER, "${obj.id}")
+            PageRoutes.standardEditPage(category).replace(PageRoutes.ID_PLACEHOLDER, "${obj.id}")
         )
         // The mail shows the names of the references, the written object carries id-only stubs.
         val todo = baseDao.find(obj.id, checkAccess = false) ?: return null
@@ -343,14 +343,14 @@ class ToDoEntityRest : AbstractDTOEntityRest<ToDoDO, ToDo, ToDoDao>(
     }
 
     @AccessChecked("own user only (user prefs of the logged-in user)")
-    @GetMapping("$TEMPLATES_PATH/delete")
+    @PostMapping("$TEMPLATES_PATH/delete")
     fun deleteTemplate(@RequestParam("id") id: Long): Map<String, Any> {
         toDoFavoritesService.delete(id)
         return getTemplates()
     }
 
     @AccessChecked("own user only (user prefs of the logged-in user)")
-    @GetMapping("$TEMPLATES_PATH/rename")
+    @PostMapping("$TEMPLATES_PATH/rename")
     fun renameTemplate(@RequestParam("id") id: Long, @RequestParam("newName") newName: String): Map<String, Any> {
         toDoFavoritesService.rename(id, newName)
         return getTemplates()

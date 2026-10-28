@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.memo
 
-import org.projectforge.Constants
+import org.projectforge.PageRoutes
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
@@ -50,10 +50,9 @@ class MemoPlugin : AbstractPlugin(ID, "Memo", "Personal text memos of users.") {
         // Register the menu entry as sub menu entry of the misc menu:
         menuCreator.register(
             MenuItemDefId.MISC,
-            MenuItemDef(info.id, "plugins.memo.menu", "${Constants.REACT_APP_PATH}memo")
+            // Migrated to projectforge-next (MemoEntityRest); the React pages were removed.
+            MenuItemDef(info.id, "plugins.memo.menu", PageRoutes.listUrl(CATEGORY))
         )
-        // Later: React only:
-        // menuCreator.add(parentId, menuItemDef);
 
 
         // Define the access management:
@@ -66,6 +65,9 @@ class MemoPlugin : AbstractPlugin(ID, "Memo", "Personal text memos of users.") {
     companion object {
         const val ID = PluginAdminService.PLUGIN_MEMO_ID
         const val RESOURCE_BUNDLE_NAME = "MemoI18nResources"
+
+        /** The REST category (`/rs/memo`) and the route of the next page. */
+        const val CATEGORY = "memo"
 
         // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
         // each test).

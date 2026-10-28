@@ -6,8 +6,10 @@ import { useFormatContext } from "@/hooks/use-format";
 import { formatYearMonth } from "@/lib/format";
 import type { ContributionMarginTimesheetRow } from "@/lib/rs/order";
 import {
+  hasProjectGroup,
   moneyColumn,
   numberColumn,
+  projectGroupColumns,
   textColumn,
 } from "../statistics/statistics-table-columns";
 import { StatisticsTable } from "../statistics/statistics-table";
@@ -23,6 +25,7 @@ type Row = ContributionMarginTimesheetRow;
 export function ContributionMarginTimesheetTable({ rows }: { rows: Row[] }) {
   const t = useStatisticsLabels();
   const ctx = useFormatContext();
+  const withProjectGroup = hasProjectGroup(rows);
   const columns = useMemo<ColumnDef<Row, unknown>[]>(
     () => [
       {
@@ -36,13 +39,14 @@ export function ContributionMarginTimesheetTable({ rows }: { rows: Row[] }) {
       },
       textColumn<Row>("customer", t.customer, (row) => row.customer, 180),
       textColumn<Row>("project", t.project, (row) => row.project, 220),
+      ...projectGroupColumns<Row>(withProjectGroup, t.projectGroup),
       textColumn<Row>("kost2", t.kost2, (row) => row.kost2, 110),
       numberColumn<Row>("hours", t.hours, (row) => row.hours, ctx),
       moneyColumn<Row>("costs", t.costs, (row) => row.costs, ctx, {
         className: () => PRELIMINARY_CLASS,
       }),
     ],
-    [t, ctx]
+    [t, ctx, withProjectGroup]
   );
   return (
     <StatisticsTable<Row>

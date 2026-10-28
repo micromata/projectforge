@@ -17,9 +17,11 @@ const PINNED_COLUMNS = 4;
  * Every column has a filter in its header: the kind its builder names (see statistics-table-columns), else
  * number for a right-aligned column and text otherwise. The sums follow the filtered rows.
  *
- * The table scrolls in its own box, bounded to the viewport, rather than the page: so the header, the
- * sums and the first columns stay in sight while the wide month columns are scrolled, like the frozen
- * panes of the Excel sheets.
+ * The table scrolls in its own box rather than the page: so the header, the sums and the first columns
+ * stay in sight while the wide month columns are scrolled, like the frozen panes of the Excel sheets.
+ * The box is at most as high as the scrolling tab panel around it (100cqh, the panel is the size
+ * container, see OrderStatisticsPage), not a share of the viewport: the title, filter bar and tabs above
+ * leave the panel less than that, so the header and the sums would never be in sight together.
  */
 export function StatisticsTable<T>({
   columns,
@@ -72,7 +74,7 @@ export function StatisticsTable<T>({
     [columns]
   );
   return (
-    <div className="flex max-h-[70vh] flex-col">
+    <div className="flex max-h-[100cqh] flex-col">
       <DataTable<T>
         columns={filterable}
         data={data}

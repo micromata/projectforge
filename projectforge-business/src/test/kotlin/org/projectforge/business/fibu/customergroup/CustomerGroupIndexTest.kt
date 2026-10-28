@@ -25,23 +25,25 @@ package org.projectforge.business.fibu.customergroup
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.businessUnit
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.group
+import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.projectGroup
 
 class CustomerGroupIndexTest {
     private val directory = CustomerDirectory(
-        customers = mapOf(101L to "ACME Germany", 102L to "ACME Logistics", 200L to "Internal", 300L to "Kühne Spedition"),
+        customers = mapOf(101L to "ACME Germany", 102L to "ACME Logistics", 200L to "Internal", 300L to "Muster Spedition"),
         // Project 1 of the internal customer below task 10 (in BU Blue), project 2 below 20 (in BU Green),
         // project 3 of an ACME customer below 20, project 4 below no business unit's task. Project 5 below 20 has
-        // no customer entity, its orders were placed by "Kühne Spedition" (free text), then by the internal one;
+        // no customer entity, its orders were placed by "Muster Spedition" (free text), then by the internal one;
         // project 6 below 20 has neither.
         projects = mapOf(
             1L to ProjectRef(200, 11),
             2L to ProjectRef(200, 21),
             3L to ProjectRef(101, 21),
             4L to ProjectRef(200, 30),
-            5L to ProjectRef(null, 21, listOf(CustomerKey(null, "Kühne Spedition"), CustomerKey(200))),
+            5L to ProjectRef(null, 21, listOf(CustomerKey(null, "Muster Spedition"), CustomerKey(200))),
             6L to ProjectRef(null, 21),
         ),
         taskPath = {
@@ -58,6 +60,25 @@ class CustomerGroupIndexTest {
     )
 
     private val index = CustomerGroupIndex(config, directory)
+
+    @Test
+    fun `a project group resolves to its projects, a project to its group`() {
+        val withProjectGroups = CustomerGroupIndex(
+            CustomerGroupConfig(
+                projectGroups = mutableListOf(projectGroup("prjgr1", "Parent", listOf(1, 3)), projectGroup("prjgr2", "Other", listOf(4))),
+            ),
+            directory,
+        )
+        assertEquals(setOf(1L, 3L), withProjectGroups.resolveProjectGroup("prjgr1"))
+        assertNull(withProjectGroups.resolveProjectGroup("gone01"))
+        assertNull(withProjectGroups.resolveProjectGroup(null))
+        assertEquals("Parent", withProjectGroups.projectGroupOf(3)?.name)
+        assertEquals("Other", withProjectGroups.projectGroupOf(4)?.name)
+        assertNull(withProjectGroups.projectGroupOf(2))
+        assertNull(withProjectGroups.projectGroupOf(null))
+        // Project groups alone are no customer groups: the customer filters stay as they are.
+        assertTrue(withProjectGroups.isEmpty)
+    }
 
     @Test
     fun `a name pattern matches customer entities by name and free texts`() {

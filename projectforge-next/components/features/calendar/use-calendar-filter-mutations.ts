@@ -3,6 +3,7 @@
 import { useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  changeAbsenceKinds,
   changeCalendarStyle,
   changeDefaultCalendar,
   changeFirstHour,
@@ -15,16 +16,18 @@ import {
   setCalendarVisibility,
   storeCalendarState,
 } from "@/lib/rs/calendar";
-import type {
-  CalendarInit,
-  StyledTeamCalendar,
-  UserRef,
+import {
+  ABSENCE_KINDS,
+  type AbsenceKind,
+  type CalendarInit,
+  type StyledTeamCalendar,
+  type UserRef,
 } from "@/lib/rs/calendar-types";
 import { CALENDAR_INIT_KEY, useInitPatchRunner } from "./use-calendar-init";
 
 /**
  * Every `change*` mutation the toolbar and settings dialog trigger, each wired to the effect the
- * backend's answer calls for (see the trigger→effect table in MIGRATION-calendar.md):
+ * backend's answer calls for:
  *
  * - style / visibility carry colour and visibility in their payload → apply the patch and refetch events;
  * - timesheet-user / show-breaks / vacations answer with only `isFilterModified`, so the new value is
@@ -108,6 +111,13 @@ export function useCalendarFilterMutations() {
       changeVacationUsers: (userIds: number[]) => {
         patchFilter({ vacationUserIds: userIds });
         return run(changeVacationUsers(userIds), { events: true });
+      },
+      /** All kinds are stored as none chosen (null), as the server does. */
+      changeAbsenceKinds: (kinds: AbsenceKind[]) => {
+        patchFilter({
+          absenceKinds: kinds.length < ABSENCE_KINDS.length ? kinds : null,
+        });
+        return run(changeAbsenceKinds(kinds), { events: true });
       },
       setActiveCalendars,
       /** Re-reads external subscriptions and drops the whole calendar cache, in place of a page reload. */

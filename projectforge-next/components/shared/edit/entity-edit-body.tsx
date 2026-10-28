@@ -25,13 +25,13 @@ import {
 import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
 import { useFocusFirstField } from "@/hooks/use-focus-first-field";
 import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
-import { useLegacyEditUrl } from "@/hooks/use-legacy-edit-url";
 import { useInsertAccess } from "@/hooks/use-insert-access";
 import { useHistoryCommentSupport } from "@/hooks/use-history-comment-support";
 import { usePendingClone } from "@/hooks/use-pending-clone";
 import { useReadAccessGuard } from "@/hooks/use-read-access-guard";
 import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
 import type { ListRow } from "@/hooks/use-entity-list-page";
+import { leafKeyOf } from "@/lib/leaf-key";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { EditablePageDef } from "@/lib/page-def/types";
 import { entityAccess, type EntityAccessFlags } from "@/lib/rs/entity-access";
@@ -55,7 +55,6 @@ export interface EditRegions {
   title: string;
   category: string;
   crossLinks?: ReactNode;
-  legacyUrl?: string;
   trailing?: ReactNode;
   deleted: boolean;
   tabs: EditPageTab[];
@@ -137,7 +136,11 @@ export function EntityEditBody<
   // Whether this user may see this entity at all — a different question than the write access below.
   const readAccess = useReadAccessGuard(page.entity, error);
   const saveMutation = useSaveEntity<Data>(page.entity, writeOptions);
-  const deleteMutation = useDeleteEntity<Data>(page.entity, writeOptions);
+  const deleteMutation = useDeleteEntity<Data>(
+    page.entity,
+    page.metadata.historizable,
+    writeOptions
+  );
   const forceDeleteMutation = useForceDeleteEntity<Data>(
     page.entity,
     writeOptions
@@ -145,7 +148,6 @@ export function EntityEditBody<
   const undeleteMutation = useUndeleteEntity<Data>(page.entity, writeOptions);
   const actionMutation = useEntityAction<Data>(page.entity, writeOptions);
   const cancelMutation = useCancelEntityEdit<Data>(page.entity, writeOptions);
-  const legacyUrl = useLegacyEditUrl(page.entity, id);
   // Cloning produces a *new* entry, so it needs the insert right, not the write right of the entry.
   const canInsert = useInsertAccess(page.entity);
   const takesHistoryComment = useHistoryCommentSupport(page.entity);
@@ -204,10 +206,14 @@ export function EntityEditBody<
         meta.action === "save"
           ? (edit.submitAction?.(values) ?? "save")
           : meta.action;
+      // New or existing is what the route says (`id`), not the posted values: the id is never put
+      // into the payload here, so a form that lost it is rejected by the backend's `update` instead of
+      // being inserted as a copy of the entry.
+      const operation = id == null ? "insert" : "update";
       // A declared action posts to `/rs/{entity}/{action}`; anything else is a save.
       return edit.actions?.includes(action)
-        ? actionMutation.mutateAsync({ action, data: posted })
-        : saveMutation.mutateAsync(posted);
+        ? actionMutation.mutateAsync({ action, operation, data: posted })
+        : saveMutation.mutateAsync({ operation, data: posted });
     },
   });
 
@@ -244,6 +250,11 @@ export function EntityEditBody<
   // What the backend says this user may do with this entry — the counterpart of Wicket's
   // `AbstractEditForm.updateButtonVisibility`.
   const access = entityAccess(data, id == null);
+  // Shown, not edited: a deleted entry (until it is restored), and one the user may not save where the page
+  // asks for it (EditDef.readOnlyWithoutWriteAccess).
+  const shownOnly =
+    access.deleted ||
+    (edit.readOnlyWithoutWriteAccess === true && !access.write);
 
   const {
     runCancel,
@@ -308,13 +319,13 @@ export function EntityEditBody<
 
   const regions: EditRegions = {
     title,
-    category: t(page.categoryKey),
+    // As the list (entity-list-page): a category that also has children (`menu.orga`) is exported as `<key>._`.
+    category: t(leafKeyOf(page.categoryKey, t.has)),
     // Only for a stored entry: every cross link names it in its url (see CrossLinkDef).
     crossLinks:
       edit.crossLinks && id != null ? (
         <EntityCrossLinks links={edit.crossLinks} data={data} />
       ) : undefined,
-    legacyUrl,
     trailing: edit.headerTrailing?.(data),
     deleted: access.deleted,
     tabs: entityTabs({
@@ -345,12 +356,12 @@ export function EntityEditBody<
               active={active}
             />
           );
-          return access.deleted ? (
+          return shownOnly ? (
             <fieldset
               key={section.id}
               disabled
               className="contents"
-              aria-label={t("deleted")}
+              aria-label={access.deleted ? t("deleted") : undefined}
             >
               {rendered}
             </fieldset>
@@ -394,6 +405,7 @@ export function EntityEditBody<
         showClone={Boolean(edit.clone && id != null && canInsert)}
         // On `id` rather than `data`: a new entry has data too (the `fetchNew` preset).
         showDelete={Boolean(id != null && data && access.delete)}
+        deletePermanent={!page.metadata.historizable}
         // The irrevocable delete, beside the ordinary one: only where the entity opts in
         // (EditDef.forceDelete → isForceDeletionSupport) and the same access the mark-as-deleted needs,
         // and never while an entry is already deleted (undelete takes that place).
@@ -415,7 +427,10 @@ export function EntityEditBody<
         showConvert={Boolean(
           edit.convert && (edit.convert.visible?.(data) ?? true)
         )}
-        convertLabel={edit.convert ? t(edit.convert.labelKey) : ""}
+        // Leaf-resolved: the label key may have children, e.g. its `.tooltip` (see leafKeyOf).
+        convertLabel={
+          edit.convert ? t(leafKeyOf(edit.convert.labelKey, t.has)) : ""
+        }
         convertTooltip={
           edit.convert?.tooltipKey ? t(edit.convert.tooltipKey) : undefined
         }
@@ -433,6 +448,7 @@ export function EntityEditBody<
         isSaving={isSubmitting}
         isDirty={isDirty}
         allowSaveUnchanged={allowSaveUnchanged}
+        isNew={id == null}
         // Saving leaves, so this is always the write before this one: `lastUpdate`, or `created` for
         // an entry never changed since (both on `BaseDTO`).
         lastSaved={
@@ -455,7 +471,7 @@ export function EntityEditBody<
       value={{
         form,
         metadata: page.metadata,
-        readOnly: access.deleted,
+        readOnly: shownOnly,
         data,
       }}
     >

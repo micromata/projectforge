@@ -74,3 +74,24 @@ export function updateRow<Row extends ArrayRow>(
     at === index ? { ...entry, ...changes } : entry
   );
 }
+
+/**
+ * Moves the row at `from` to `to` (both indices of the values), the others shift up or down by one — the
+ * order of a collection whose order means something, e.g. the questions of a poll. Out of range leaves the
+ * rows as they are.
+ */
+export function moveRow<Row>(rows: Row[], from: number, to: number): Row[] {
+  if (
+    from === to ||
+    from < 0 ||
+    to < 0 ||
+    from >= rows.length ||
+    to >= rows.length
+  ) {
+    return rows;
+  }
+  const result = [...rows];
+  const [row] = result.splice(from, 1);
+  result.splice(to, 0, row);
+  return result;
+}

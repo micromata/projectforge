@@ -43,7 +43,7 @@ import java.util.TimeZone
  */
 object TestSetup {
     /**
-     * Puts a context user in ThreadLocaleUserContext and creates a minimal ConfigXml configuration.
+     * Puts a context user in ThreadLocaleUserContext and sets the configuration parameters of the tests (see [TestConfigurationParams]).
      * This is use-full for tests needing the user's locale, timezone etc, but not the time consuming
      * database and Spring setup.
      * @return created user in ThreadLocalUserContext.
@@ -59,7 +59,7 @@ object TestSetup {
         user.locale = Locale("de", "DE")
         user.firstDayOfWeek = DayOfWeek.MONDAY
         ThreadLocalUserContext.userContext = UserContext.Companion.createTestInstance(user)
-        ConfigXmlTest.createTestConfiguration()
+        TestConfigurationParams.init()
         ConfigurationServiceAccessor.internalInitJunitTestMode()
         /*val configurationService = Mockito.mock(ConfigurationService::class.java)
         val configList = mutableListOf<ConfigurationDO>()

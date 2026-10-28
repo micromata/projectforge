@@ -630,6 +630,40 @@ class TaskTest : AbstractTestBase() {
         }
     }
 
+    /**
+     * A deleted time sheet doesn't count, neither in the re-read after the tree's reset (TimesheetDao's
+     * afterInsertOrModify) nor in a full refresh. Insert and delete in transactions of their own, as two requests
+     * would: inside one, the deleted object is the managed one and no change (or reset) is detected.
+     */
+    @Test
+    fun readTotalDurationWithoutDeletedTimesheets() {
+        lateinit var task: TaskDO
+        val dt = withDate(2010, Month.MAY, 20, 8, 0)
+        val timesheets = persistenceService.runInTransaction { _ ->
+            logon(getUser(TEST_ADMIN_USER))
+            task = initTestDB.addTask("totalDurationDeletedTask", "root")
+            (0L..1L).map { day ->
+                TimesheetDO().also { ts ->
+                    ts.user = getUser(TEST_USER)
+                    ts.setStartDate(dt.plus(day, ChronoUnit.DAYS).utilDate)
+                        .stopTime = dt.plus(day, ChronoUnit.DAYS).plus(3, ChronoUnit.HOURS).sqlTimestamp
+                    ts.task = task
+                    timesheetDao.insert(ts)
+                }
+            }
+        }
+        Assertions.assertEquals((6 * 3600).toLong(), getTotalDuration(taskTree, task.id))
+        persistenceService.runInTransaction { _ ->
+            timesheetDao.markAsDeleted(timesheetDao.find(timesheets[1].id, checkAccess = false)!!)
+        }
+        persistenceService.runReadOnly { _ ->
+            Assertions.assertEquals((3 * 3600).toLong(), taskDao.readTotalDuration(task.id))
+            Assertions.assertEquals((3 * 3600).toLong(), getTotalDuration(taskTree, task.id))
+            taskTree.refresh()
+            Assertions.assertEquals((3 * 3600).toLong(), getTotalDuration(taskTree, task.id))
+        }
+    }
+
     private fun getTotalDuration(taskTree: TaskTree, taskId: Long?): Long {
         return taskTree.getTaskNodeById(taskId)!!.getDuration(taskTree, true)
     }

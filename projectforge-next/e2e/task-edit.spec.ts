@@ -6,8 +6,7 @@ import { waitForRows } from "./fixtures/list-table";
 import { resetTreeState } from "./fixtures/task-tree";
 
 /**
- * The task edit page (`/next/task/:id`) against the live backend — the hand-built page of step 2 of
- * projectforge-next/MIGRATION.md.
+ * The task edit page (`/next/task/:id`) against the live backend.
  *
  * Three things here exist nowhere else and are what these cases are about: the two sections that start
  * folded and unfold when their tab is clicked, the return to the *caller* (`?returnTo=`, the tree
@@ -503,7 +502,7 @@ test.describe("task edit", { tag: "@lane-task" }, () => {
       if (request.method() === "PUT" || request.url().includes("/rs/task/save"))
         posted = true;
     });
-    await page.getByRole("button", { name: format.t("save") }).click();
+    await page.getByRole("button", { name: format.t("create") }).click();
     // The parent is mandatory, as in Wicket (TaskEditForm): the schema refuses the form, so nothing is
     // created — which matters here, a saved task could not be removed again.
     await expect(

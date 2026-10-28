@@ -25,7 +25,7 @@ package org.projectforge.rest.core
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.utils.NumberHelper
@@ -46,8 +46,8 @@ object PagesResolver {
 
     /**
      * The url of the edit page. For pages migrated to projectforge-next the route registered in
-     * [NextMigration] is used, because a hand built page may deviate from the generic
-     * `<route>/edit/<id>` shape of the UILayout pages (book e.g. uses `book/<id>` and `book/new`).
+     * [PageRoutes] is used, because it differs from the `<route>/edit/<id>` shape of the legacy
+     * React app (book e.g. uses `book/<id>` and `book/new`).
      */
     @JvmStatic
     fun getEditPageUrl(
@@ -59,9 +59,9 @@ object PagesResolver {
     ): String {
         val category = getCategory(pagesRestClass) ?: return "NOT_FOUND"
         val path = if (id != null) {
-            NextMigration.standardEditPage(category).replace(NextMigration.ID_PLACEHOLDER, "$id")
+            PageRoutes.standardEditPage(category).replace(PageRoutes.ID_PLACEHOLDER, "$id")
         } else {
-            NextMigration.newEntryUrl(category)
+            PageRoutes.newEntryUrl(category)
         }
         val prefix = if (absolute) "/" else ""
         return "$prefix$path${getQueryString(params, returnToCaller)}"
@@ -110,37 +110,17 @@ object PagesResolver {
     @JvmStatic
     @JvmOverloads
     fun getMultiSelectionPageUrl(
-        multiSelectedPageClass: Class<out AbstractEntityRest<*, *, *>>,
+        massUpdateRestClass: Class<out AbstractEntityRest<*, *, *>>,
         absolute: Boolean = false
     ): String {
-        return getBasePageUrl(multiSelectedPageClass, null, MultiSelectionSupport.getMultiSelectionParamMap(), absolute)
-    }
-
-    /**
-     * @param trailingSlash Only effect if id is null: return .../dynamic/ (default) or .../dynamic if param is false.
-     * @return Path of react page.
-     */
-    @JvmStatic
-    @JvmOverloads
-    fun getDynamicPageUrl(
-        pageRestClass: Class<*>,
-        params: Map<String, Any?>? = null,
-        id: Any? = null,
-        absolute: Boolean = false,
-        trailingSlash: Boolean = true,
-        returnToCaller: String? = null,
-    ): String {
-        val path = getRequestMappingPath(pageRestClass, "/dynamic") ?: return "NOT_FOUND"
-        val prefix = if (absolute) "/" else ""
-        val idPart = if (id != null) "/$id" else if (trailingSlash) "/" else ""
-        return "$prefix$path$idPart${getQueryString(params, returnToCaller)}"
+        return getBasePageUrl(massUpdateRestClass, null, MultiSelectionSupport.getMultiSelectionParamMap(), absolute)
     }
 
     /**
      * @return the default url (calendar url).
      */
     fun getDefaultUrl(): String {
-        return "/${NextMigration.listUrl("calendar")}"
+        return "/${PageRoutes.listUrl("calendar")}"
     }
 
     fun register(category: String, pagesRest: AbstractEntityRest<*, *, *>) {
@@ -173,7 +153,7 @@ object PagesResolver {
 
     /**
      * Builds the frontend path of a page from the `@RequestMapping` of its rest class, pointing at
-     * whichever frontend currently serves it: [NextMigration] maps the rest category to the route
+     * whichever frontend currently serves it: [PageRoutes] maps the rest category to the route
      * of projectforge-next for migrated pages, everything else stays in the legacy React app.
      *
      * Public pages (`/rsPublic`) are always served by the React app for now (login and friends
@@ -194,7 +174,7 @@ object PagesResolver {
         val subpath = path.removePrefix(Rest.URL)
         val category = subpath.removePrefix("/").substringBefore('/')
         val remainder = subpath.removePrefix("/").removePrefix(category)
-        return "${NextMigration.listUrl(category)}$remainder$suffix"
+        return "${PageRoutes.listUrl(category)}$remainder$suffix"
     }
 
     private fun getQueryString(params: Map<String, Any?>? = null, returnToCaller: String? = null): String {

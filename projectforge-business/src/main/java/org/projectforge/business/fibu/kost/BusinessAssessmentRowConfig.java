@@ -23,6 +23,11 @@
 
 package org.projectforge.business.fibu.kost;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import groovy.lang.Script;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -36,13 +41,15 @@ import org.projectforge.framework.xmlstream.XmlOmitField;
 import java.io.Serializable;
 
 /**
- * Used in config.xml for the definition of the used business assessment schema. This object represents a single row of the business
- * assessment.
+ * A single row of the business assessment (see {@link BusinessAssessmentConfig}).
  *
  * @author Kai Reinhard
  *
  */
 @XmlObject(alias = "row")
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE,
+    isGetterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class BusinessAssessmentRowConfig implements Serializable
 {
   private static final long serialVersionUID = -8441226359103634737L;
@@ -52,6 +59,7 @@ public class BusinessAssessmentRowConfig implements Serializable
   // <row no="1051" id="gesamtleistung" value="umsatzErloese+bestVerdg+aktEigenleistungen" priority="high" title="Gesamtleistung" />
 
   @XmlOmitField
+  @JsonIgnore
   IntRanges accountNumberRanges;
 
   @XmlField(asAttribute = true)
@@ -61,13 +69,16 @@ public class BusinessAssessmentRowConfig implements Serializable
   private String id;
 
   @XmlField(asAttribute = true, alias = "accountRange")
+  @JsonProperty("accountRange")
   private String accountRangeConfig;
 
   @XmlField(alias = "value")
+  @JsonProperty("value")
   private String valueConfig;
 
   private transient Script valueScript;
 
+  @JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_VALUES) // "high" as in the former config.xml
   private Priority priority;
 
   @XmlField(asAttribute = true)
@@ -78,6 +89,7 @@ public class BusinessAssessmentRowConfig implements Serializable
   private String unit;
 
   @XmlOmitField
+  @JsonIgnore
   private boolean initialized;
 
   public BusinessAssessmentRowConfig()
@@ -90,7 +102,7 @@ public class BusinessAssessmentRowConfig implements Serializable
    */
   public String getNo()
   {
-    return no;
+    return no != null ? no.trim() : null;
   }
 
   /**
@@ -99,7 +111,7 @@ public class BusinessAssessmentRowConfig implements Serializable
    */
   public String getId()
   {
-    return id;
+    return id != null ? id.trim() : null;
   }
 
   /**

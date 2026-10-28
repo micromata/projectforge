@@ -13,7 +13,7 @@ import {
   labelKeyFor,
 } from "@/lib/page-def/define-page";
 import type { ColumnDeclaration } from "@/lib/page-def/types";
-import { isInactiveRef, type InactiveFlags } from "@/lib/page-def/reference";
+import { inactiveRefClass, type InactiveFlags } from "@/lib/page-def/reference";
 import { declaredCell } from "./declared-cell";
 import { periodColumnDef } from "./declared-period-column";
 
@@ -82,6 +82,7 @@ export function useDeclaredColumns<
           align,
           filterKind: filterKind ?? undefined,
           wrap: declaration.wrap,
+          cellClassName: declaration.cellClassName,
         },
         // Left to the table's default (sortable) unless the declaration opts out — see
         // ColumnBase.sortable.
@@ -120,16 +121,15 @@ export function useDeclaredColumns<
           // default cell and a custom `cell` alike.
           const ref =
             ctx.row.original[(declaration.referenceKey ?? name) as keyof Row];
-          const body =
-            ref &&
-            typeof ref === "object" &&
-            isInactiveRef(ref as InactiveFlags) ? (
-              <span className="line-through decoration-destructive decoration-2">
-                {rendered}
-              </span>
-            ) : (
-              rendered
-            );
+          const refClass =
+            ref && typeof ref === "object"
+              ? inactiveRefClass(ref as InactiveFlags)
+              : undefined;
+          const body = refClass ? (
+            <span className={refClass}>{rendered}</span>
+          ) : (
+            rendered
+          );
           const tooltip = declaration.tooltip?.(ctx.row.original);
           if (!tooltip) return body;
           // A wrapper rather than an attribute on the rendered element: the cell may be the

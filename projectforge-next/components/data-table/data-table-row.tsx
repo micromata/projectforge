@@ -66,6 +66,9 @@ interface DataTableRowProps<TData> {
   suspendPinning?: boolean;
   /** Vertical lines between the columns (see DataTable). */
   columnLines?: boolean;
+  /** Measures the rendered row for the row virtualizer, with its [virtualIndex] (see DataTable.virtualizeRows). */
+  measureRef?: (element: HTMLTableRowElement | null) => void;
+  virtualIndex?: number;
 }
 
 export function DataTableRow<TData>({
@@ -77,9 +80,13 @@ export function DataTableRow<TData>({
   className,
   suspendPinning,
   columnLines = false,
+  measureRef,
+  virtualIndex,
 }: DataTableRowProps<TData>) {
   return (
     <TableRow
+      ref={measureRef}
+      data-index={virtualIndex}
       // The entity's id on both list paths (both set `getRowId` to it), which is what makes the row
       // addressable from outside the table — see useHighlightedRow, and the e2e specs.
       data-row-id={row.id}
@@ -137,7 +144,8 @@ export function DataTableRow<TData>({
             // numbers, and both column paths write it (useDeclaredColumns, columnDefAdapter).
             cell.column.columnDef.meta?.align === "right" && "text-right",
             columnLines && "border-r",
-            pinnedClass(cell.column, suspendPinning)
+            pinnedClass(cell.column, suspendPinning),
+            cell.column.columnDef.meta?.cellClassName
           )}
         >
           {flexRender(cell.column.columnDef.cell, cell.getContext())}

@@ -25,6 +25,7 @@ package org.projectforge.business.user
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -149,27 +150,65 @@ class GroupDaoTest : AbstractTestBase() {
     /**
      * A group whose name holds a hyphen: the index holds the name as two terms (the default analyzer separates
      * at the hyphen), and Lucene doesn't tokenize a wildcard term - so the search used to ask for a term
-     * beginning with `dhl-pop`, which cannot exist. See [org.projectforge.framework.persistence.search.SearchStringTokenizer].
+     * beginning with `acme-pop`, which cannot exist. See [org.projectforge.framework.persistence.search.SearchStringTokenizer].
      */
+    /**
+     * The protection of the system groups decides on the stored name: posting a system group with another name
+     * doesn't delete it.
+     */
+    @Test
+    fun `a system group can't be deleted by posting it with another name`() {
+        logon(ADMIN_USER)
+        val adminGroupId = UserGroupCache.getInstance().getGroup(ProjectForgeGroup.ADMIN_GROUP)!!.id!!
+        val posted = groupDao.find(adminGroupId)!!.also { it.name = "$PREFIX.group.renamedSystemGroup" }
+        suppressErrorLogs {
+            Assertions.assertThrows(UserException::class.java) { groupDao.markAsDeleted(posted) }
+        }
+        Assertions.assertFalse(groupDao.find(adminGroupId)!!.deleted)
+        // An ordinary group may be deleted:
+        val groupId = groupDao.insert(GroupDO().also { it.name = "$PREFIX.group.deletable" })
+        groupDao.markAsDeleted(groupDao.find(groupId)!!)
+        Assertions.assertTrue(groupDao.find(groupId, checkAccess = false)!!.deleted)
+    }
+
     @Test
     fun searchStringWithHyphenTest() {
         logon(ADMIN_USER)
         val group = GroupDO()
-        group.name = "dhl-pop.$PREFIX"
+        group.name = "acme-pop.$PREFIX"
         groupDao.insert(group)
-        QueryFilter(BaseSearchFilter().also { it.searchString = "dxl-pop" }).let { filter ->
+        QueryFilter(BaseSearchFilter().also { it.searchString = "axme-pop" }).let { filter ->
             Assertions.assertTrue(
                 groupDao.select(filter).none { it.id == group.id },
                 "The search is a search: a word the name doesn't hold finds nothing.",
             )
         }
-        listOf("dhl-pop", "dhl-po", "dhl-", "dhl", "pop", "dhl pop").forEach { searchString ->
+        listOf("acme-pop", "acme-po", "acme-", "acme", "pop", "acme pop").forEach { searchString ->
             val filter = QueryFilter(BaseSearchFilter().also { it.searchString = searchString })
             val result = groupDao.select(filter)
             Assertions.assertTrue(
                 result.any { it.id == group.id },
                 "Group '${group.name}' not found by search string '$searchString': ${result.map { it.name }}",
             )
+        }
+    }
+
+    @Test
+    fun `an invalid search syntax gives an empty result and is flagged`() {
+        logon(ADMIN_USER)
+        val group = GroupDO()
+        group.name = "colon-test.$PREFIX"
+        groupDao.insert(group)
+        // "unknown:colon" is a field query for a field that isn't searched (Hibernate Search: NPE), '"colon' an
+        // unclosed phrase (Hibernate Search: parse error).
+        listOf("unknown:colon", "colon: test", "\"colon").forEach { searchString ->
+            val filter = QueryFilter(BaseSearchFilter().also { it.searchString = searchString })
+            Assertions.assertTrue(groupDao.select(filter).isEmpty(), "No result for '$searchString'.")
+            Assertions.assertTrue(filter.fulltextQueryInvalid, "'$searchString' is flagged as invalid.")
+        }
+        QueryFilter(BaseSearchFilter().also { it.searchString = "colon" }).let { filter ->
+            Assertions.assertTrue(groupDao.select(filter).any { it.id == group.id })
+            Assertions.assertFalse(filter.fulltextQueryInvalid)
         }
     }
 

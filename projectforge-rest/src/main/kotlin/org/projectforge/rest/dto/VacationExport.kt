@@ -24,78 +24,129 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.availability.AbsenceKind
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import java.time.LocalDate
 
 // The team vacation calendar of projectforge-next (`/next/vacationExport`, VacationExportRest).
 
-/** An employee or group as the pickers show it. */
+/**
+ * A user or group as the pickers show it. A user no longer active is struck through (deleted in red, deactivated in
+ * grey); both flags are null unless true, so `NON_NULL` leaves them off the wire.
+ */
 class VacationExportRef(
     val id: Long,
     val displayName: String?,
+    val deleted: Boolean? = null,
+    val deactivated: Boolean? = null,
 )
 
 /**
- * What the page shows and exports: the vacations of [employeeIds] and of the members of [groupIds] from [from] to
+ * What the page shows and exports: the absences of the users [userIds] and of the members of [groupIds] from [from] to
  * [until] (both inclusive). The Excel export ignores [until]: its sheets start in the month of [from].
  *
  * @param periodKind The kind of period the page pages through (e.g. `quarter`), only stored for next time.
  * @param dayWidth The width of the chart's day columns (`auto`, `fit`, `narrow`, …), only stored for next time.
+ * @param absenceKinds What is shown and exported of the users' absences: their vacations and their availability
+ * entries by their state. Null: the vacations only.
  */
 class VacationExportRequest(
-    var employeeIds: List<Long>? = null,
+    var userIds: List<Long>? = null,
     var groupIds: List<Long>? = null,
     var periodKind: String? = null,
     var dayWidth: String? = null,
     var from: LocalDate? = null,
     var until: LocalDate? = null,
+    var absenceKinds: List<AbsenceKind>? = null,
 )
 
 /**
- * The page's initial state: the employees and groups chosen last time (only those still to be picked).
+ * The page's initial state: the users and groups chosen last time (only those still to be picked).
  *
  * @param unrestricted HR and finance staff, who may pick everybody; anybody else picks only from their own groups.
  * @param earliestDate The first day shown and exported: 1 January of the current year for anybody but HR and
  * finance staff (null: no limit), who don't see the vacations of previous years.
+ * @param absenceKinds The kinds of absences chosen last time ([VacationExportRequest.absenceKinds]), never empty.
  */
 class VacationExportInitial(
-    val employees: List<VacationExportRef>,
+    val users: List<VacationExportRef>,
     val groups: List<VacationExportRef>,
     val periodKind: String?,
     val dayWidth: String?,
+    val absenceKinds: List<AbsenceKind>,
     val unrestricted: Boolean,
     val earliestDate: LocalDate?,
     val favorites: List<VacationExportFavoriteInfo>,
 )
 
 /**
- * A favorite of the team vacation calendar: a named choice of employees and groups (the ids the user may still
+ * A favorite of the team vacation calendar: a named choice of users and groups (the ids the user may still
  * pick, as [VacationExportSelection] applies them; the page tells by them whether its choice is the favorite's).
  */
 class VacationExportFavoriteInfo(
     val id: Long,
     val name: String,
-    val employeeIds: List<Long>,
+    val userIds: List<Long>,
     val groupIds: List<Long>,
 )
 
-/** A favorite applied: its employees and groups, only those the user may (still) pick. */
+/** A favorite applied: its users and groups, only those the user may (still) pick. */
 class VacationExportSelection(
-    val employees: List<VacationExportRef>,
+    val users: List<VacationExportRef>,
     val groups: List<VacationExportRef>,
 )
 
-/** The calendar of the period asked for: its [days] and one row per employee, sorted by name. */
+/** The calendar of the period asked for: its [days] and one row per user, sorted by name. */
 class VacationExportView(
     val days: List<VacationChartDay>,
     val rows: List<VacationExportRow>,
 )
 
+/**
+ * @param vacations Empty unless [VacationExportRequest.absenceKinds] ask for them.
+ * @param availabilities Only those of the states [VacationExportRequest.absenceKinds] ask for.
+ */
 class VacationExportRow(
-    val employee: VacationExportRef,
+    val user: VacationExportRef,
     val vacations: List<VacationExportVacation>,
+    val availabilities: List<VacationExportAvailability> = emptyList(),
 )
+
+/**
+ * An availability entry of the team vacation calendar, cut to the period shown as [VacationExportVacation.of]. Only
+ * the public comment: the internal one is for the employee and HR staff, not for the team.
+ *
+ * @param label What the entry is called for the logged-in user, as the Excel export writes it
+ * (AvailabilityDao.labelFor: the type, e.g. "Workation (Reachable if needed)", only for the employee and HR staff).
+ * @param comment The public comment, for everybody the entry is shown to (AbsenceService.isCommentVisible).
+ * @param absent The employee is away (AvailabilityStatus.absent), as on vacation.
+ * @param status The entry's state: what the page filters by while the next view loads.
+ */
+class VacationExportAvailability(
+    val id: Long?,
+    val startDate: LocalDate?,
+    val endDate: LocalDate?,
+    val label: String,
+    val comment: String?,
+    val absent: Boolean = false,
+    val status: AvailabilityStatus? = null,
+) {
+    companion object {
+        fun of(obj: AvailabilityDO, from: LocalDate, until: LocalDate, label: String, comment: String?) =
+            VacationExportAvailability(
+                obj.id,
+                obj.startDate?.let { maxOf(it, from) },
+                obj.endDate?.let { minOf(it, until) },
+                label,
+                comment?.takeIf { it.isNotBlank() },
+                obj.status?.absent == true,
+                obj.status,
+            )
+    }
+}
 
 class VacationExportVacation(
     val id: Long?,

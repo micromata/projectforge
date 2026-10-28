@@ -181,69 +181,26 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
             : Any? {
         validateCsrfToken(request, postData)?.let { return it }
         val password = postData.data.attachment.password
-        if (password.isNullOrBlank() || password.length < 6) {
-            return ResponseEntity(
-                ResponseAction(
-                    validationErrors = createValidationErrors(
-                        ValidationError(
-                            translateMsg("user.changePassword.error.notMinLength", "6"),
-                            fieldId = "attachment.password"
-                        )
-                    )
-                ), HttpStatus.NOT_ACCEPTABLE
-            )
-        }
+        passwordTooShort(password)?.let { return it }
         val result = prepareEncryption(postData)
         result.responseAction?.let { return it }
         val pagesRest = result.pagesRest!!
-        var newFilename: String
-        val tmpFile = File.createTempFile("projectforge-encrypted-zip", null)
-        val encryptionMode = result.attachment!!.newZipMode ?: ZipMode.ENCRYPTED_STANDARD
+        val data = postData.data
         result.inputStream!!.use { istream ->
-            val file = File(result.fileObject!!.fileName ?: "untitled.zip")
-            val filenameWithoutExtension = file.nameWithoutExtension
-            val oldExtension = file.extension
-            val preserveExtension =
-                if (oldExtension.equals("zip", ignoreCase = true)) "-encrypted" else ".$oldExtension"
-            newFilename = "$filenameWithoutExtension$preserveExtension.zip"
-            FileOutputStream(tmpFile).use { out ->
-                ZipUtils.encryptZipFile(
-                    file.name,
-                    password,
-                    istream,
-                    out,
-                    encryptionMode
-                )
-            }
-        }
-        FileInputStream(tmpFile).use { istream ->
-            attachmentsService.addAttachment(
+            encryptFile(
                 pagesRest.jcrPath!!,
-                fileInfo = FileInfo(
-                    newFilename,
-                    fileSize = tmpFile.length(),
-                    description = result.attachment.description,
-                    zipMode = encryptionMode,
-                    encryptionInProgress = true,
-                ),
+                pagesRest.baseDao,
+                result.obj!!,
+                pagesRest.attachmentsAccessChecker,
+                fileId = data.fileId,
+                listId = data.listId,
+                fileObject = result.fileObject!!,
                 inputStream = istream,
-                baseDao = pagesRest.baseDao,
-                obj = result.obj!!,
-                accessChecker = pagesRest.attachmentsAccessChecker
+                password = password!!,
+                mode = result.attachment!!.newZipMode,
+                description = result.attachment.description,
             )
         }
-        tmpFile.delete()
-        val data = postData.data
-        attachmentsService.deleteAttachment(
-            pagesRest.jcrPath!!,
-            data.fileId,
-            pagesRest.baseDao,
-            result.obj!!,
-            pagesRest.attachmentsAccessChecker,
-            data.listId,
-            encryptionInProgress = true,
-            encryptedFileName = newFilename,
-        )
         val actionListener = getListener(data.category)
         val obj = getDataObject(pagesRest, data.id) // Check data object availability.
         return ResponseEntity.ok()
@@ -270,14 +227,88 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         validateCsrfToken(request, postData)?.let { return it }
         val result = prepareEncryption(postData)
         result.responseAction?.let { return it }
-        val password = postData.data.attachment.password
-        val testResult = !password.isNullOrBlank() && result.inputStream!!.use { istream ->
-            ZipUtils.testDecryptZipFile(
-                postData.data.attachment.password ?: "empty password is wrong password",
-                istream
-            )
+        val testResult = result.inputStream!!.use { istream ->
+            isDecryptable(postData.data.attachment.password, istream)
         }
-        if (testResult) {
+        return testDecryptionResponse(testResult)
+    }
+
+    /**
+     * Replaces the file by a password protected ZIP of it, under a new file id: `a.pdf` becomes `a.pdf.zip`, a zip
+     * `a-encrypted.zip`; the original is deleted. Shared with the external access of a data transfer area
+     * (`DataTransferPublicServicesRest`), which has its own access check and user.
+     * @param inputStream The content of the file to encrypt (see [AttachmentsService.getAttachmentInputStream]).
+     * @param userString The external user doing it, otherwise the logged-in user is assumed.
+     * @return The encrypted file, which replaces the original.
+     */
+    fun encryptFile(
+        jcrPath: String,
+        baseDao: BaseDao<out ExtendedBaseDO<Long>>,
+        obj: ExtendedBaseDO<Long>,
+        accessChecker: AttachmentsAccessChecker,
+        fileId: String,
+        listId: String?,
+        fileObject: FileObject,
+        inputStream: InputStream,
+        password: String,
+        mode: ZipMode?,
+        description: String?,
+        userString: String? = null,
+    ): Attachment {
+        val tmpFile = File.createTempFile("projectforge-encrypted-zip", null)
+        try {
+            val encryptionMode = mode ?: ZipMode.ENCRYPTED_STANDARD
+            val file = File(fileObject.fileName ?: "untitled.zip")
+            val oldExtension = file.extension
+            val preserveExtension =
+                if (oldExtension.equals("zip", ignoreCase = true)) "-encrypted" else ".$oldExtension"
+            val newFilename = "${file.nameWithoutExtension}$preserveExtension.zip"
+            FileOutputStream(tmpFile).use { out ->
+                ZipUtils.encryptZipFile(file.name, password, inputStream, out, encryptionMode)
+            }
+            val attachment = FileInputStream(tmpFile).use { istream ->
+                attachmentsService.addAttachment(
+                    jcrPath,
+                    fileInfo = FileInfo(
+                        newFilename,
+                        fileSize = tmpFile.length(),
+                        // The next client sends no description with the password: the file keeps its own.
+                        description = description ?: fileObject.description,
+                        zipMode = encryptionMode,
+                        encryptionInProgress = true,
+                    ),
+                    inputStream = istream,
+                    baseDao = baseDao,
+                    obj = obj,
+                    accessChecker = accessChecker,
+                    userString = userString,
+                )
+            }
+            attachmentsService.deleteAttachment(
+                jcrPath,
+                fileId,
+                baseDao,
+                obj,
+                accessChecker,
+                listId,
+                encryptionInProgress = true,
+                userString = userString,
+                encryptedFileName = newFilename,
+            )
+            return attachment
+        } finally {
+            tmpFile.delete()
+        }
+    }
+
+    /** Whether the password opens the encrypted file. An empty one never does. */
+    fun isDecryptable(password: String?, inputStream: InputStream): Boolean {
+        return !password.isNullOrBlank() && ZipUtils.testDecryptZipFile(password, inputStream)
+    }
+
+    /** The answer of [isDecryptable] for the client: a toast on success, a validation error of the password field otherwise. */
+    fun testDecryptionResponse(success: Boolean): Any {
+        if (success) {
             return UIToast.createToast(translate("attachment.testDecryption.successful"), color = UIColor.SUCCESS)
         }
         return ResponseEntity(
@@ -285,6 +316,23 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
                 validationErrors = createValidationErrors(
                     ValidationError(
                         translate("attachment.testDecryption.failed"),
+                        fieldId = "attachment.password"
+                    )
+                )
+            ), HttpStatus.NOT_ACCEPTABLE
+        )
+    }
+
+    /** A validation error of the password field, if the password is too short to encrypt with. */
+    fun passwordTooShort(password: String?): ResponseEntity<*>? {
+        if (!password.isNullOrBlank() && password.length >= 6) {
+            return null
+        }
+        return ResponseEntity(
+            ResponseAction(
+                validationErrors = createValidationErrors(
+                    ValidationError(
+                        translateMsg("user.changePassword.error.notMinLength", "6"),
                         fieldId = "attachment.password"
                     )
                 )
@@ -316,7 +364,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     }
 
     /**
-     * Upload service e. g. for [UIAttachmentList].
+     * Upload service of the attachment lists.
      * @param id Object id where the uploaded file should belong to.
      * @param listId Usable for handling different upload areas for one page. If only one attachment list is needed, you may
      * ignore this value.

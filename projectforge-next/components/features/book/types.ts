@@ -3,6 +3,7 @@
 // backend via a Next.js rewrite without changing call sites.
 
 import type { BOOK_METADATA } from "@/lib/metadata/book.generated";
+import type { InactiveFlags } from "@/lib/page-def/reference";
 
 // The constants of org.projectforge.business.book.BookStatus / BookType, taken from the generated
 // metadata instead of copied: the generator reads the enum itself, so a new constant reaches the
@@ -12,7 +13,7 @@ export type BookStatus =
 export type BookType =
   (typeof BOOK_METADATA.fields.type.enumValues)[number]["value"];
 
-export interface UserRef {
+export interface UserRef extends InactiveFlags {
   id: number;
   displayName: string;
 }

@@ -22,6 +22,7 @@ import {
 } from "@/hooks/use-submit-shortcut";
 import { AttachmentEncryption } from "./attachment-encryption";
 import { AttachmentFileActions } from "./attachment-file-actions";
+import { useAttachmentService } from "./attachment-service";
 import { AttachmentMetadata } from "./attachment-metadata";
 import type { Attachment, EncryptionMode } from "@/lib/rs/attachments";
 
@@ -34,8 +35,14 @@ export interface AttachmentEditDialogProps {
   /** Some write on this file is running — no second one can be started from here. */
   busy?: boolean;
   /**
+   * Nothing of the file can be changed: the details are shown with the download only — no save, no
+   * delete, no encryption. For a file of someone else in the external access of a data transfer area, or
+   * a list without write access, as the legacy dialog without `writeAccess`.
+   */
+  readOnly?: boolean;
+  /**
    * Offers encrypting the file and testing a password against it (see AttachmentEncryption). Off
-   * where the backend gives no such option either: the Merlin templates, the public data transfer.
+   * where the backend gives no such option either: the Merlin templates.
    */
   encryptionSupport?: boolean;
   /** A password call is running. */
@@ -67,6 +74,7 @@ export function AttachmentEditDialog({
   id,
   saving,
   busy,
+  readOnly,
   encryptionSupport = true,
   encrypting,
   onSave,
@@ -76,13 +84,14 @@ export function AttachmentEditDialog({
   onClose,
 }: AttachmentEditDialogProps) {
   const t = useTranslations();
+  const { base } = useAttachmentService();
   const ids = useId();
   const [name, setName] = useState(attachment.name);
   const [description, setDescription] = useState(attachment.description ?? "");
   const shortcutHint = useSubmitShortcutHint();
 
   // An empty name would leave the file unreachable in the list — the button's own condition.
-  const canSubmit = name.trim().length > 0 && !saving && !busy;
+  const canSubmit = !readOnly && name.trim().length > 0 && !saving && !busy;
   const onKeyDown = useSubmitShortcut(
     () => onSave(name.trim(), description.trim()),
     canSubmit
@@ -104,6 +113,7 @@ export function AttachmentEditDialog({
               id={`${ids}-name`}
               value={name}
               onChange={(e) => setName(e.target.value)}
+              disabled={readOnly}
               autoFocus
             />
           </div>
@@ -113,12 +123,13 @@ export function AttachmentEditDialog({
               id={`${ids}-description`}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              disabled={readOnly}
               rows={3}
             />
           </div>
           <Separator />
           <AttachmentMetadata attachment={attachment} />
-          {encryptionSupport && (
+          {encryptionSupport && !readOnly && (
             <>
               <Separator />
               <AttachmentEncryption
@@ -133,24 +144,26 @@ export function AttachmentEditDialog({
 
         <DialogFooter className="sm:justify-between">
           <AttachmentFileActions
-            fileRef={{ entity, id, fileId: attachment.fileId }}
+            fileRef={{ entity, id, fileId: attachment.fileId, base }}
             busy={busy}
-            onDelete={onDelete}
+            onDelete={readOnly ? undefined : onDelete}
           />
           <div className="flex flex-col-reverse gap-2 sm:flex-row">
             <Button type="button" variant="outline" onClick={onClose}>
-              {t("cancel")}
+              {readOnly ? t("close") : t("cancel")}
             </Button>
-            <HintTooltip {...shortcutHint}>
-              <Button
-                type="button"
-                disabled={!canSubmit}
-                onClick={() => onSave(name.trim(), description.trim())}
-              >
-                {saving && <Spinner className="h-4 w-4 border-2" />}
-                {t("save")}
-              </Button>
-            </HintTooltip>
+            {!readOnly && (
+              <HintTooltip {...shortcutHint}>
+                <Button
+                  type="button"
+                  disabled={!canSubmit}
+                  onClick={() => onSave(name.trim(), description.trim())}
+                >
+                  {saving && <Spinner className="h-4 w-4 border-2" />}
+                  {t("save")}
+                </Button>
+              </HintTooltip>
+            )}
           </div>
         </DialogFooter>
       </DialogContent>

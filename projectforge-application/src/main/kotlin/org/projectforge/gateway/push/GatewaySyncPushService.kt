@@ -37,6 +37,7 @@ import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.common.StringHelper
 import org.projectforge.common.logging.error
 import org.projectforge.common.logging.warn
 import org.projectforge.framework.integration.IntegrationConfig
@@ -50,7 +51,11 @@ import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
 import org.projectforge.framework.utils.Crypt
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
+import org.projectforge.plugins.datatransfer.DataTransferExternalAccessConfig
+import org.projectforge.gateway.sync.GatewayIcsParams
 import org.projectforge.gateway.sync.dto.SyncAddressDto
+import org.projectforge.gateway.sync.dto.SyncDataTransferAreaDto
 import org.projectforge.gateway.sync.dto.SyncFavoritesDto
 import org.projectforge.gateway.sync.dto.SyncGroupDto
 import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
@@ -84,6 +89,7 @@ class GatewaySyncPushService(
     private val persistenceService: PfPersistenceService,
     private val userAuthenticationsService: UserAuthenticationsService,
     private val teamCalCache: TeamCalCache,
+    private val dataTransferExternalAccessConfig: DataTransferExternalAccessConfig,
     integrationConfig: IntegrationConfig,
 ) {
     @Autowired(required = false)
@@ -110,6 +116,8 @@ class GatewaySyncPushService(
     private var lastUsersHash: Int? = null
 
     private var lastGroupsHash: Int? = null
+
+    private var lastDataTransferAreasHash: Int? = null
 
     private val pushLock = ReentrantLock()
 
@@ -165,6 +173,10 @@ class GatewaySyncPushService(
      * Pushes all users, including deactivated and deleted ones (active = false), so the gateway revokes
      * their access. Tokens are only sent for active users. A delta sync skips the push, if nothing changed since
      * the last push.
+     *
+     * The email address is sent only for active observers of the data transfer areas pushed to the gateway
+     * ([pushDataTransferAreas]): the gateway sends them the notification mails of these areas. All other users
+     * have none there (data minimization), and an observer who stops observing loses it with the next push.
      */
     private fun pushUsers(fullSync: Boolean, counts: SyncCounts): Boolean {
         val users = userDao.selectAll(checkAccess = false)
@@ -172,6 +184,11 @@ class GatewaySyncPushService(
             "SELECT a FROM UserAuthenticationsDO a",
             UserAuthenticationsDO::class.java,
         ).associateBy { it.userId }
+        val observerIds = if (dataTransferExternalAccessConfig.viaGateway) {
+            loadPushedDataTransferAreas().flatMap { StringHelper.splitToLongs(it.observerIds, ",")?.toList() ?: emptyList() }.toSet()
+        } else {
+            emptySet()
+        }
         val dtos = users.filter { it.username != null }.map { user ->
             val active = user.hasSystemAccess()
             val auth = if (active) authByUserId[user.id] else null
@@ -181,6 +198,7 @@ class GatewaySyncPushService(
                 davToken = auth?.davToken,
                 calendarRestToken = auth?.calendarExportToken,
                 active = active,
+                email = user.email?.takeIf { active && user.id in observerIds && it.isNotBlank() },
             )
         }.sortedBy { it.username }
         val hash = dtos.hashCode()
@@ -216,6 +234,63 @@ class GatewaySyncPushService(
         log.info { "Pushing groups to gateway..." }
         val result = postSync("/groups?fullSync=$fullSync", dtos, counts)
         lastGroupsHash = hash.takeIf { result?.errors == 0 }
+    }
+
+    /**
+     * Pushes all data transfer areas with external access (except personal boxes), if their external access runs
+     * via the gateway (see [DataTransferExternalAccessConfig.Mode.VIA_GATEWAY]). Always the complete list (small
+     * data volume), the gateway deletes its copies of areas missing here. A delta sync skips the push, if nothing
+     * changed since the last push.
+     *
+     * Otherwise (external access on this instance or none at all) an empty list: the gateway withdraws the areas
+     * pushed before, so their external links don't stay valid there.
+     */
+    private fun pushDataTransferAreas(fullSync: Boolean, counts: SyncCounts) {
+        val areas = if (dataTransferExternalAccessConfig.viaGateway) loadPushedDataTransferAreas() else emptyList()
+        val dtos = areas.map { area ->
+            SyncDataTransferAreaDto(
+                id = area.id!!,
+                areaName = area.areaName!!,
+                description = area.description,
+                adminUsernames = usernames(area.adminIds),
+                observerUsernames = usernames(area.observerIds),
+                accessUsernames = usernames(area.accessUserIds),
+                accessGroupNames = StringHelper.splitToLongs(area.accessGroupIds, ",")?.toList()
+                    ?.mapNotNull { userGroupCache.getGroup(it)?.takeIf { group -> !group.deleted }?.name }?.sorted()
+                    ?: emptyList(),
+                externalDownloadEnabled = area.externalDownloadEnabled == true,
+                externalUploadEnabled = area.externalUploadEnabled == true,
+                externalAccessToken = area.externalAccessToken,
+                externalPassword = area.externalPassword,
+                expiryDays = area.expiryDays,
+                maxUploadSizeKB = area.maxUploadSizeKB,
+            )
+        }.sortedBy { it.id }
+        val hash = dtos.hashCode()
+        if (!fullSync && hash == lastDataTransferAreasHash) {
+            log.info { "Data transfer areas unchanged, skipping data transfer area push." }
+            counts.unchanged = dtos.size
+            return
+        }
+        log.info { "Pushing ${dtos.size} data transfer areas with external access to gateway..." }
+        val result = postSync("/datatransferareas", dtos, counts)
+        lastDataTransferAreasHash = hash.takeIf { result?.errors == 0 }
+    }
+
+    /**
+     * The areas pushed to the gateway: not deleted, with external access, no personal boxes.
+     */
+    private fun loadPushedDataTransferAreas(): List<DataTransferAreaDO> {
+        return persistenceService.executeQuery(
+            "SELECT a FROM DataTransferAreaDO a WHERE a.deleted = false",
+            DataTransferAreaDO::class.java,
+        ).filter { it.externalAccessEnabled && !it.isPersonalBox() && !it.areaName.isNullOrBlank() }
+    }
+
+    private fun usernames(userIds: String?): List<String> {
+        return StringHelper.splitToLongs(userIds, ",")?.toList()
+            ?.mapNotNull { userGroupCache.getUser(it)?.username }?.sorted()
+            ?: emptyList()
     }
 
     /**
@@ -344,11 +419,10 @@ class GatewaySyncPushService(
         val icsEntries = mutableListOf<SyncIcsEntryDto>()
         var skippedUnchanged = 0
 
-        // Holidays are identical for all users – generate once and reuse
-        var holidaysIcsData: String? = null
         // The ICS of a team calendar is the same for all users of the same access class and locale (see
-        // teamCalIcsKey): generated once per run, not once per user (users × calendars exports per run).
-        val teamCalIcs = mutableMapOf<String, String?>()
+        // teamCalIcsKey), the holidays and weeks of the year for all users of the same locale (translated titles):
+        // generated once per run, not once per user (users × calendars exports per run).
+        val sharedIcs = mutableMapOf<String, String?>()
 
         for (user in users) {
             try {
@@ -356,11 +430,12 @@ class GatewaySyncPushService(
                 val userId = user.id!!
                 val token = userAuthenticationsService.internalGetToken(userId, UserTokenType.CALENDAR_REST) ?: continue
 
-                // Generate ICS for each accessible team calendar
+                // Generate ICS for each accessible team calendar. The subscription dialog offers it with and without
+                // reminders, both urls get the same ICS (see GatewayIcsParams).
                 val calendars = teamCalCache.allAccessibleCalendars
                 for (cal in calendars.orEmpty()) {
                     val calId = cal.id ?: continue
-                    if (!addIcsEntry(userId, token, "teamCals=$calId", icsEntries, teamCalIcs, teamCalIcsKey(cal, user))) {
+                    if (!addIcsEntry(userId, token, "teamCals=$calId", icsEntries, sharedIcs, teamCalIcsKey(cal, user))) {
                         skippedUnchanged++
                     }
                 }
@@ -368,14 +443,11 @@ class GatewaySyncPushService(
                 // Generate Timesheets ICS for this user
                 if (!addIcsEntry(userId, token, "timesheetUser=$userId", icsEntries)) skippedUnchanged++
 
-                // Holidays are identical for all users – generate only once, but with each user's query param
-                val holidaysQ = encryptQuery(userId, token, HOLIDAYS_PARAMS)
-                if (holidaysQ != null && holidaysIcsData == null) {
-                    holidaysIcsData = exportIcs(userId, holidaysQ, HOLIDAYS_PARAMS)
+                // Holidays and weeks of the year (both offered by the subscription dialog)
+                for (params in listOf(HOLIDAYS_PARAMS, WEEK_OF_YEARS_PARAMS)) {
+                    val key = "$params:${ThreadLocalUserContext.locale}"
+                    if (!addIcsEntry(userId, token, params, icsEntries, sharedIcs, key)) skippedUnchanged++
                 }
-                val holidaysAdded = holidaysQ != null && holidaysIcsData != null &&
-                        addIfChanged(userId, HOLIDAYS_PARAMS, holidaysQ, holidaysIcsData, icsEntries)
-                if (!holidaysAdded) skippedUnchanged++
 
             } catch (e: Exception) {
                 log.error(e) { "Error generating ICS for user '${user.username}'" }
@@ -428,13 +500,16 @@ class GatewaySyncPushService(
         } else {
             exportIcs(userId, encryptedQ, additionalParams)
         } ?: return false
-        return addIfChanged(userId, additionalParams, encryptedQ, icsData, entries)
+        return addIfChanged(userId, additionalParams, icsData, entries)
     }
 
     /**
      * What the ICS of a team calendar depends on besides the calendar: the events the user sees and how
      * (TeamEventRight.hasSelectAccess: owner, full and readonly access see all fields, minimal access sees cleared
-     * events) and the locale (title of the included vacation days). Requires the user context of the user.
+     * events) and the locale (title of the included vacation days). A calendar including absences of people
+     * ([TeamCalDO.includesAbsences]) depends on the user, too: which of them the user may see is decided for each one
+     * (AbsenceService: group mates, HR staff, managers and substitutes), so its ICS is not shared with anybody else.
+     * Requires the user context of the user.
      */
     private fun teamCalIcsKey(cal: TeamCalDO, user: PFUserDO): String {
         val userId = user.id
@@ -443,7 +518,8 @@ class GatewaySyncPushService(
             teamCalRight.hasMinimalAccess(cal, userId) -> "minimal"
             else -> "none"
         }
-        return "${cal.id}:$access:${ThreadLocalUserContext.locale}"
+        val viewer = if (cal.includesAbsences) ":user-$userId" else ""
+        return "${cal.id}:$access:${ThreadLocalUserContext.locale}$viewer"
     }
 
     /**
@@ -491,7 +567,6 @@ class GatewaySyncPushService(
     private fun addIfChanged(
         userId: Long,
         additionalParams: String,
-        encryptedQ: String,
         icsData: String,
         entries: MutableList<SyncIcsEntryDto>,
     ): Boolean {
@@ -501,7 +576,8 @@ class GatewaySyncPushService(
             return false
         }
         lastPushHashes[cacheKey] = hash
-        entries.add(SyncIcsEntryDto(userId = userId, queryParam = encryptedQ, icsData = icsData))
+        val params = GatewayIcsParams.normalize(additionalParams) ?: return false
+        entries.add(SyncIcsEntryDto(userId = userId, params = params, icsData = icsData))
         return true
     }
 
@@ -522,6 +598,8 @@ class GatewaySyncPushService(
             try {
                 if (run.step("users") { pushUsers(full, it) }) {
                     run.step("groups") { pushGroups(full, it) }
+                    // Admins, observers and access users/groups are matched by name, so after users and groups.
+                    run.step("datatransfer") { pushDataTransferAreas(full, it) }
                     // Favorites reference addresses by uid, so they need the addresses on the gateway first.
                     if (config.syncAddresses && run.step("addresses") { pushAddressBooks(full, it) }) {
                         run.step("favorites") { pushFavorites(full, it) }
@@ -633,6 +711,8 @@ class GatewaySyncPushService(
         private const val SYNC_API_PATH = "/api/gateway/sync"
 
         private const val HOLIDAYS_PARAMS = "holidays=true"
+
+        private const val WEEK_OF_YEARS_PARAMS = "weekOfYears=true"
 
         /**
          * Hash of the ICS data without the DTSTAMP lines: ical4j stamps every generated event with the current

@@ -24,6 +24,7 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.PfCaches
+import org.projectforge.business.fibu.ContactUserIds
 import org.projectforge.business.ldap.PFUserDOConverter
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
@@ -135,6 +136,9 @@ class User(
     /** Sipgate is configured: the personal phone identifiers are of use. */
     var phoneIdentifiersSupported: Boolean? = null
 
+    /** The version of the user's avatar (`/rs/userAvatar/{id}?v=`), null without one. */
+    var avatarVersion: Long? = null
+
     /**
      * @see copyFromMinimal
      */
@@ -152,10 +156,9 @@ class User(
     override fun copyFromMinimal(src: PFUserDO) {
         this.displayName = src.displayName
         this.username = src.username
-        this.id = src.id
-        if (userGroupCache.isUserMemberOfAdminGroup) {
-            super.copyFromMinimal(src)
-        }
+        // id, deleted and deactivated, for every user (not only admins): a no longer active user is struck through
+        // wherever shown as a reference.
+        super.copyFromMinimal(src)
     }
 
     override fun copyFrom(src: PFUserDO) {
@@ -254,6 +257,31 @@ class User(
         }
 
         /**
+         * The user as a reference of a list row: id, display name, deleted and deactivated (struck through when no
+         * longer active), without the username and the flags of [copyFromMinimal] that a row of a long list would
+         * carry for nothing.
+         */
+        fun ref(user: PFUserDO): User {
+            return User(user.id, user.displayName, localUser = null, restrictedUser = null, hrPlanning = null).also {
+                it.deleted = user.deleted
+                it.deactivated = user.deactivated
+            }
+        }
+
+        /**
+         * The contact person and the further contacts of an order or project (main contact first), each with its name
+         * and whether it is still active, from the cache: a no longer active one is struck through. Unknown ids are
+         * skipped; null if there is nobody.
+         */
+        fun toContactList(contactPersonId: Long?, additionalContactUserIds: String?): List<User>? {
+            val caches = PfCaches.instance
+            return (listOfNotNull(contactPersonId) + ContactUserIds.toList(additionalContactUserIds))
+                .distinct()
+                .mapNotNull { caches.getUser(it)?.let { user -> ref(user) } }
+                .takeIf { it.isNotEmpty() }
+        }
+
+        /**
          * Converts csv of user ids to list of user (only with id and displayName = "???", no other content).
          */
         fun toUserList(str: String?): List<User>? {
@@ -277,12 +305,18 @@ class User(
         }
 
         /**
-         * Set display names of any existing user in the given list.
+         * Set display names of any existing user in the given list, and whether it is still active (deleted,
+         * deactivated): a no longer active user is struck through wherever shown as a reference.
          * @see UserService.getUser
          */
         fun restoreDisplayNames(users: List<User>?) {
             val caches = PfCaches.instance
-            users?.forEach { it.displayName = caches.getUser(it.id)?.displayName ?: "???" }
+            users?.forEach { user ->
+                val userDO = caches.getUser(user.id)
+                user.displayName = userDO?.displayName ?: "???"
+                user.deleted = userDO?.deleted == true
+                user.deactivated = userDO?.deactivated == true
+            }
         }
 
         fun restoreEmails(users: List<User>?) {

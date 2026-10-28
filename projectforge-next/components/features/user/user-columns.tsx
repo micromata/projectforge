@@ -49,12 +49,11 @@ export const USER_COLUMNS: ColumnDeclaration<
   { name: "description", size: 220, wrap: true, visible: adminOnly },
   { name: "mobilePhone", size: 150, visible: adminOnly },
   {
-    // The groups, joined as the legacy list shows them (`SHOW_LIST_OF_DISPLAYNAMES`). No sorting: the
-    // backend orders by entity property, and a collection is none.
+    // The groups, as the legacy list shows them (`SHOW_LIST_OF_DISPLAYNAMES`), a deleted one struck
+    // through (see RefList). No sorting: the backend orders by entity property, and a collection is none.
     id: "assignedGroups",
     labelKey: "user.assignedGroups",
-    accessor: (row) =>
-      row.assignedGroups?.map((group) => group.displayName).join(", "),
+    accessor: (row) => row.assignedGroups,
     size: 320,
     sortable: false,
     wrap: true,

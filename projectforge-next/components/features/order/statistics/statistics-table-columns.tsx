@@ -68,6 +68,28 @@ export function textColumn<T>(
   };
 }
 
+/** Whether one of the rows belongs to a project group. */
+export function hasProjectGroup(
+  rows: readonly { projectGroup?: string | null }[]
+): boolean {
+  return rows.some((row) => !!row.projectGroup);
+}
+
+/**
+ * The project group column, placed behind the project. Only few projects belong to a group, so it is only
+ * there if one of the rows has one (`withProjectGroup`, see {@link hasProjectGroup}); filtering it by a
+ * group sums the group up in the footers.
+ */
+export function projectGroupColumns<T extends { projectGroup?: string | null }>(
+  withProjectGroup: boolean,
+  label: string,
+  size = 160
+): Col<T>[] {
+  return withProjectGroup
+    ? [textColumn<T>("projectGroup", label, (row) => row.projectGroup, size)]
+    : [];
+}
+
 /**
  * An amount column, summed up in the footer over the rows left by the column filters (all pages, not only
  * the current one). `className` styles single cells, e.g. preliminary values.

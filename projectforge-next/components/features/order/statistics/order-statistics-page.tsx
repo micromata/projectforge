@@ -111,7 +111,17 @@ function OrderStatistics({ meta }: { meta: OrderStatisticsMeta }) {
             </TabsTrigger>
           )}
         </TabsList>
-        <TabsContent value="forecast" className="min-h-0 overflow-auto">
+        {/* min-h-64 instead of min-h-0: the panel still shrinks below its content to scroll on its own,
+            but not below 16rem. On a short viewport (phone landscape) it then overflows the shrunk
+            column above, so <main> scrolls and the charts stay reachable; the column and <Tabs> keep
+            their min-h-0, or their content-based min-height would be the whole chart height and the
+            page would scroll on every viewport.
+            [container-type:size]: the panel is the box the data tables are bounded to (100cqh, see
+            StatisticsTable), as its height comes from the flex column and not from its content. */}
+        <TabsContent
+          value="forecast"
+          className="min-h-64 overflow-auto [container-type:size]"
+        >
           <OrderForecastChartsView
             filter={state.filter}
             planningDateHint={meta.planningDateHint}
@@ -120,7 +130,7 @@ function OrderStatistics({ meta }: { meta: OrderStatisticsMeta }) {
         {meta.contributionMargin && (
           <TabsContent
             value="contributionMargin"
-            className="min-h-0 overflow-auto"
+            className="min-h-64 overflow-auto [container-type:size]"
           >
             <OrderContributionMarginView filter={state.filter} />
           </TabsContent>

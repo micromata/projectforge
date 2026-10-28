@@ -4,20 +4,23 @@ import { useTranslations } from "next-intl";
 import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { Label } from "@/components/ui/label";
 import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { chartWidthOf, type VacationChartWidth } from "./vacation-chart-width";
+import {
+  chartWidthOf,
+  type ChartWidth,
+} from "@/components/shared/absence-chart/absence-chart-width";
 
-/** How wide the team calendar draws its day columns, from fitting the window to wide (see VacationChartWidth). */
+/** How wide the team calendar draws its day columns, from fitting the window to wide (see ChartWidth). */
 export function VacationChartWidthSelect({
   value,
   onChange,
 }: {
-  value: VacationChartWidth;
-  onChange: (value: VacationChartWidth) => void;
+  value: ChartWidth;
+  onChange: (value: ChartWidth) => void;
 }) {
   const t = useTranslations();
   const id = "vacation-export-day-width";
   // Spelled out, so the i18n scanner finds every key.
-  const labels: Record<VacationChartWidth, string> = {
+  const labels: Record<ChartWidth, string> = {
     auto: t("vacation.export.dayWidth.auto"),
     fit: t("vacation.export.dayWidth.fit"),
     narrow: t("vacation.export.dayWidth.narrow"),
@@ -32,7 +35,7 @@ export function VacationChartWidthSelect({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {(Object.keys(labels) as VacationChartWidth[]).map((width) => (
+          {(Object.keys(labels) as ChartWidth[]).map((width) => (
             <SelectItem key={width} value={width}>
               {labels[width]}
             </SelectItem>

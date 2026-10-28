@@ -380,6 +380,19 @@ open class UserGroupCache : AbstractCache() {
     }
 
     /**
+     * The ids of the members of the given groups and the given user ids.
+     * @param groupIds Null items should only occur on (de)serialization issues.
+     * @param userIds Null items should only occur on (de)serialization issues.
+     */
+    fun getMemberIds(groupIds: Collection<Long?>?, userIds: Collection<Long?>?): MutableSet<Long> {
+        val result = userIds.orEmpty().filterNotNull().toMutableSet()
+        groupIds.orEmpty().forEach { groupId ->
+            getGroup(groupId)?.assignedUsers?.forEach { user -> user.id?.let { result.add(it) } }
+        }
+        return result
+    }
+
+    /**
      * Returns a collection of group id's to which the user is assigned to.
      *
      * @return collection if found, otherwise null.

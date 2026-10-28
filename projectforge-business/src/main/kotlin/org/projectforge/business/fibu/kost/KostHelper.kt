@@ -24,11 +24,25 @@
 package org.projectforge.business.fibu.kost
 
 import org.projectforge.business.fibu.OldKostFormatter
+import org.projectforge.business.fibu.numberrange.NumberRangeService
 import org.projectforge.common.StringHelper2
 import org.projectforge.framework.utils.NumberHelper.parseInteger
 
 object KostHelper {
   /**
+   * Parses Kost2 numbers: 8 digits or the delimited form matching the segments of the configured number range of the
+   * prefix (e.g. 1.####.#.## or #.###.##.##).
+   * @return int[4] (nummernkreis, bereich, teilbereich, kost2Art in the positional storage format of Kost2DO) or null if
+   * the string is not parse-able.
+   * @see org.projectforge.business.fibu.numberrange.NumberRanges.parseKost2
+   */
+  @JvmStatic
+  fun parseKost2String(kostString: String?): IntArray? {
+    return NumberRangeService.current.parseKost2(kostString)
+  }
+
+  /**
+   * Parses Kost1 numbers (number ranges don't apply to Kost1). Use [parseKost2String] for Kost2.
    * @param kostString Format ######## or #.###.##.## is supported.
    * @return int[4] or null if string is not parse-able.
    */

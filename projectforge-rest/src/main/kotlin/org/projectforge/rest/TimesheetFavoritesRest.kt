@@ -112,14 +112,14 @@ class TimesheetFavoritesRest {
   /**
    * Deletes the given timesheet template/favorite.
    */
-  @GetMapping("delete")
+  @PostMapping("delete")
   fun delete(@RequestParam("id", required = true) id: Long): Map<String, Any> {
     timsheetFavoritesService.deleteFavorite(id)
     timsheetFavoritesService.refreshMigrationCache(ThreadLocalUserContext.loggedInUserId!!)
     return mapOf("timesheetFavorites" to getList())
   }
 
-  @GetMapping("rename")
+  @PostMapping("rename")
   fun rename(
     @RequestParam("id", required = true) id: Long,
     @RequestParam("newName", required = true) newName: String
@@ -129,7 +129,7 @@ class TimesheetFavoritesRest {
     return mapOf("timesheetFavorites" to getList())
   }
 
-  @GetMapping("migrateOldTemplates")
+  @PostMapping("migrateOldTemplates")
   fun migrateOldTemplates(): Map<String, Any> {
     timsheetFavoritesService.migrateFromLegacyFavorites(timsheetFavoritesService.getFavorites())
     return mapOf("timesheetFavorites" to getList())

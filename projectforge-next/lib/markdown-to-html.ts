@@ -12,12 +12,19 @@ const markdown = new Marked({ gfm: true, breaks: true });
  * Plain text comes back as paragraphs, i.e. a plain text is a markdown text without markup.
  */
 export function markdownToHtml(text: string): string {
-  return markdown.parse(text, { async: false }).trim();
+  // Without the line break marked ends a code block with: kept as an empty last line otherwise.
+  return markdown
+    .parse(text, { async: false })
+    .replace(/\n<\/code><\/pre>/g, "</code></pre>")
+    .trim();
 }
 
-/** Headings, lists, block quotes, table rows, emphasis, code and links: what a markdown text is told by. */
+/**
+ * Headings, lists, block quotes, table rows, code fences, emphasis, code and links: what a markdown text is
+ * told by.
+ */
 const MARKDOWN_PATTERN =
-  /^\s{0,3}(#{1,6}\s|[-*+]\s|\d+[.)]\s|>|\|.*\|\s*$)|\*\*[^*\n]+\*\*|__[^_\n]+__|`[^`\n]+`|\[[^\]\n]+\]\([^)\s]+\)/m;
+  /^\s{0,3}(#{1,6}\s|[-*+]\s|\d+[.)]\s|>|\|.*\|\s*$|```)|\*\*[^*\n]+\*\*|__[^_\n]+__|`[^`\n]+`|\[[^\]\n]+\]\([^)\s]+\)/m;
 
 /** Whether a text carries markdown markup, i.e. wasn't meant as plain text (e.g. on a paste). */
 export function looksLikeMarkdown(text: string): boolean {

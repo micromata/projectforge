@@ -4,7 +4,7 @@
  * (`org.projectforge.rest.TimesheetEntityRest`).
  *
  * Reads and writes of the entity itself are not here: they are the generic `fetchOne`/`fetchNew`
- * (client.ts) and `saveOrUpdateEntity` and friends (entity.ts), parameterised with the category —
+ * (client.ts) and `insertEntity`/`updateEntity` and friends (entity.ts), parameterised with the category —
  * a time sheet is saved exactly like a book.
  */
 
@@ -203,7 +203,7 @@ export async function deleteTimesheetFavorite(
 ): Promise<TimesheetFavorite[]> {
   const result = await request<FavoritesResult>(
     `${FAVORITES}/delete?id=${id}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
   return result.timesheetFavorites ?? [];
@@ -216,7 +216,7 @@ export async function renameTimesheetFavorite(
 ): Promise<TimesheetFavorite[]> {
   const result = await request<FavoritesResult>(
     `${FAVORITES}/rename?id=${id}&newName=${encodeURIComponent(newName)}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
   return result.timesheetFavorites ?? [];
@@ -244,7 +244,7 @@ export function fetchReferenceSuggestions(
 }
 
 /**
- * The locations this user has booked before (`AbstractPagesRest.getAutoCompletionForProperty`, which
+ * The locations this user has booked before (`AbstractEntityRest.getAutoCompletionForProperty`, which
  * the entity opts into per property — `isAutocompletionPropertyEnabled("location")`).
  *
  * The generic property autocompletion, not one of the time sheet's own endpoints, hence the

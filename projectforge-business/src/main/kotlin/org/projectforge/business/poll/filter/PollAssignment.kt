@@ -25,9 +25,10 @@ package org.projectforge.business.poll.filter
 
 import org.projectforge.common.i18n.I18nEnum
 
+/** What a user is to a poll (see PollDao.getAssignments). */
 enum class PollAssignment(val key: String) : I18nEnum {
-    OWNER("owner"), ACCESS("access"), ATTENDEE("attendee"), OTHER("other");
+    OWNER("owner"), ACCESS("access"), ATTENDEE("attendee");
 
     override val i18nKey: String
-        get() = ("poll.$key")
+        get() = ("poll.assignment.$key")
 }

@@ -29,6 +29,10 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.projectforge.business.availability.AbsenceKind
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityDao
+import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.test.AbstractTestBase
@@ -40,9 +44,11 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
+import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.dto.VacationExportRequest
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
@@ -50,6 +56,9 @@ import java.time.LocalDate
 class VacationExportRestTest : AbstractTestBase() {
     @Autowired
     private lateinit var vacationExportRest: VacationExportRest
+
+    @Autowired
+    private lateinit var availabilityDao: AvailabilityDao
 
     @Autowired
     private lateinit var employeeDao: EmployeeDao
@@ -71,23 +80,23 @@ class VacationExportRestTest : AbstractTestBase() {
         val other = initTestDB.addGroup("$PREFIX.other", stranger.user!!.username!!)
 
         logon(own.user!!)
-        val pickable = vacationExportRest.employees(PREFIX, null).map { it.id }
-        assertTrue(pickable.containsAll(listOf(own.id, colleague.id)), "Own group.")
-        assertFalse(pickable.contains(stranger.id), "Not of an own group.")
+        val pickable = vacationExportRest.users(PREFIX, null).map { it.id }
+        assertTrue(pickable.containsAll(listOf(own.user!!.id, colleague.user!!.id)), "Own group.")
+        assertFalse(pickable.contains(stranger.user!!.id), "Not of an own group.")
         assertEquals(listOf(team.id), vacationExportRest.groups(PREFIX, null).map { it.id })
         // Asked for anyway: dropped.
         assertEquals(
-            setOf(colleague.id),
-            ids(VacationExportRequest(employeeIds = listOf(colleague.id!!, stranger.id!!), groupIds = listOf(other.id!!))),
+            setOf(colleague.user!!.id),
+            ids(VacationExportRequest(userIds = listOf(colleague.user!!.id!!, stranger.user!!.id!!), groupIds = listOf(other.id!!))),
         )
-        assertEquals(setOf(own.id, colleague.id), ids(VacationExportRequest(groupIds = listOf(team.id!!))))
+        assertEquals(setOf(own.user!!.id, colleague.user!!.id), ids(VacationExportRequest(groupIds = listOf(team.id!!))))
 
         logon(finance.user!!)
-        assertTrue(vacationExportRest.employees(PREFIX, null).map { it.id }.contains(stranger.id))
+        assertTrue(vacationExportRest.users(PREFIX, null).map { it.id }.contains(stranger.user!!.id))
         assertTrue(vacationExportRest.groups(PREFIX, null).map { it.id }.containsAll(listOf(team.id, other.id)))
         assertEquals(
-            setOf(own.id, colleague.id, stranger.id),
-            ids(VacationExportRequest(employeeIds = listOf(stranger.id!!), groupIds = listOf(team.id!!))),
+            setOf(own.user!!.id, colleague.user!!.id, stranger.user!!.id),
+            ids(VacationExportRequest(userIds = listOf(stranger.user!!.id!!), groupIds = listOf(team.id!!))),
         )
     }
 
@@ -104,7 +113,7 @@ class VacationExportRestTest : AbstractTestBase() {
 
         logon(own.user!!)
         val request = VacationExportRequest(
-            employeeIds = listOf(colleague.id!!), periodKind = "quarter",
+            userIds = listOf(colleague.user!!.id!!), periodKind = "quarter",
             from = LocalDate.of(year, 4, 1), until = LocalDate.of(year, 6, 30),
         )
         val view = vacationExportRest.view(request)
@@ -115,11 +124,63 @@ class VacationExportRestTest : AbstractTestBase() {
         assertEquals(listOf(LocalDate.of(year, 4, 1)), vacations.map { it.startDate })
         assertEquals(listOf(LocalDate.of(year, 4, 3)), vacations.map { it.endDate })
         assertEquals(VacationStatus.IN_PROGRESS, vacations[0].status)
+        request.absenceKinds = listOf(AbsenceKind.REMOTE_REACHABLE)
+        assertTrue(vacationExportRest.view(request).rows.single().vacations.isEmpty(), "Vacations not asked for.")
+        assertEquals(listOf(AbsenceKind.REMOTE_REACHABLE), vacationExportRest.getInitial().absenceKinds)
+        request.absenceKinds = null
+        vacationExportRest.view(request)
 
         val initial = vacationExportRest.getInitial()
-        assertEquals(listOf(colleague.id), initial.employees.map { it.id })
+        assertEquals(listOf(colleague.user!!.id), initial.users.map { it.id })
         assertEquals("quarter", initial.periodKind)
         assertFalse(initial.unrestricted)
+    }
+
+    @Test
+    fun `availabilities are shown only if asked for, as the vacations of the same users`() {
+        val own = createEmployee("avail-own")
+        val colleague = createEmployee("avail-colleague")
+        val finance = createEmployee("avail-finance", finance = true)
+        logon(TEST_ADMIN_USER)
+        initTestDB.addGroup("$PREFIX.avail", own.user!!.username!!, colleague.user!!.username!!)
+        val year = LocalDate.now().year + 2
+        logon(TEST_HR_USER)
+        availabilityDao.insert(AvailabilityDO().also {
+            it.user = colleague.user
+            it.startDate = LocalDate.of(year, 3, 25)
+            it.endDate = LocalDate.of(year, 4, 10)
+            it.type = "Workation"
+            it.status = AvailabilityStatus.REACHABLE_IF_NEEDED
+            it.comment = "public"
+            it.internalComment = "internal"
+        })
+        val request = VacationExportRequest(
+            userIds = listOf(colleague.user!!.id!!), from = LocalDate.of(year, 4, 1), until = LocalDate.of(year, 6, 30),
+        )
+
+        logon(own.user!!)
+        assertTrue(vacationExportRest.view(request).rows.single().availabilities.isEmpty(), "Not asked for.")
+        request.absenceKinds = listOf(AbsenceKind.VACATION, AbsenceKind.NOT_AVAILABLE)
+        assertTrue(vacationExportRest.view(request).rows.single().availabilities.isEmpty(), "Not of this state.")
+        request.absenceKinds = AbsenceKind.entries
+        val availability = vacationExportRest.view(request).rows.single().availabilities.single()
+        // Cut to the quarter, with the public comment only (the dto has no internal one).
+        assertEquals(LocalDate.of(year, 4, 1), availability.startDate)
+        assertEquals(LocalDate.of(year, 4, 10), availability.endDate)
+        assertEquals("public", availability.comment)
+        // A colleague is told the status only, the type may be personal (AvailabilityDao.labelFor).
+        assertEquals(translate("availability.status.reachableIfNeeded"), availability.label)
+        assertFalse(availability.absent)
+        assertEquals(AbsenceKind.entries, vacationExportRest.getInitial().absenceKinds, "Stored for next time.")
+        assertEquals(AvailabilityStatus.REACHABLE_IF_NEEDED, availability.status)
+        logon(colleague.user!!)
+        assertTrue(vacationExportRest.view(request).rows.single().availabilities.single().label.startsWith("Workation ("))
+        logon(own.user!!)
+
+        // Finance staff may pick everybody and see their vacations, but the availability entries only as anybody else
+        // (AbsenceVisibility): not of people sharing no group with them.
+        logon(finance.user!!)
+        assertTrue(vacationExportRest.view(request).rows.single().availabilities.isEmpty())
     }
 
     @Test
@@ -136,7 +197,7 @@ class VacationExportRestTest : AbstractTestBase() {
             colleague, own, LocalDate.of(year - 1, 12, 28), LocalDate.of(year, 1, 2), VacationStatus.APPROVED, hr.user!!,
         )
         fun request(from: LocalDate, until: LocalDate) =
-            VacationExportRequest(employeeIds = listOf(colleague.id!!), dayWidth = "fit", from = from, until = until)
+            VacationExportRequest(userIds = listOf(colleague.user!!.id!!), dayWidth = "fit", from = from, until = until)
 
         logon(own.user!!)
         val previousQuarter = vacationExportRest.view(request(LocalDate.of(year - 1, 10, 1), LocalDate.of(year - 1, 12, 31)))
@@ -159,7 +220,7 @@ class VacationExportRestTest : AbstractTestBase() {
     }
 
     @Test
-    fun `favorites store a choice of employees and groups, applied as far as the user may pick it`() {
+    fun `favorites store a choice of users and groups, applied as far as the user may pick it`() {
         val own = createEmployee("fav-own")
         val colleague = createEmployee("fav-colleague")
         val stranger = createEmployee("fav-stranger")
@@ -169,24 +230,24 @@ class VacationExportRestTest : AbstractTestBase() {
         logon(own.user!!)
         var favorites = vacationExportRest.createFavorite(
             "Team",
-            VacationExportRequest(employeeIds = listOf(colleague.id!!, stranger.id!!), groupIds = listOf(team.id!!)),
+            VacationExportRequest(userIds = listOf(colleague.user!!.id!!, stranger.user!!.id!!), groupIds = listOf(team.id!!)),
         )
-        favorites = vacationExportRest.createFavorite("Team", VacationExportRequest(employeeIds = listOf(own.id!!)))
+        favorites = vacationExportRest.createFavorite("Team", VacationExportRequest(userIds = listOf(own.user!!.id!!)))
         assertEquals(2, favorites.size)
         assertEquals(2, favorites.map { it.name }.toSet().size, "Names are unique.")
-        val first = favorites.first { it.employeeIds.contains(colleague.id) }
+        val first = favorites.first { it.userIds.contains(colleague.user!!.id) }
         assertEquals(listOf(team.id), first.groupIds)
         // As selectFavorite applies it: without the stranger, so the page's choice reads as the favorite.
-        assertEquals(listOf(colleague.id), first.employeeIds)
+        assertEquals(listOf(colleague.user!!.id), first.userIds)
         assertEquals(favorites.map { it.id }, vacationExportRest.getInitial().favorites.map { it.id })
 
         // The stranger isn't of an own group: not applied.
         val selection = vacationExportRest.selectFavorite(first.id)
-        assertEquals(listOf(colleague.id), selection.employees.map { it.id })
+        assertEquals(listOf(colleague.user!!.id), selection.users.map { it.id })
         assertEquals(listOf(team.id), selection.groups.map { it.id })
 
         favorites = vacationExportRest.updateFavorite(first.id, VacationExportRequest(groupIds = listOf(team.id!!)))
-        assertTrue(favorites.first { it.id == first.id }.employeeIds.isEmpty())
+        assertTrue(favorites.first { it.id == first.id }.userIds.isEmpty())
         favorites = vacationExportRest.renameFavorite(first.id, "Renamed")
         assertEquals("Renamed", favorites.first { it.id == first.id }.name)
         favorites = vacationExportRest.deleteFavorite(first.id)
@@ -199,11 +260,94 @@ class VacationExportRestTest : AbstractTestBase() {
         val json = UserPrefDao.objectMapper.writeValueAsString(pref)
         val read = UserPrefDao.objectMapper.readValue(json, VacationExportRest.VacationExportUserPref::class.java)
         val favorite = read.favorites!!.single()
-        assertEquals(listOf("Team", 3L, listOf(1L), listOf(2L)), listOf(favorite.name, favorite.id, favorite.employeeIds, favorite.groupIds))
+        assertEquals(listOf("Team", 3L, listOf(1L), listOf(2L)), listOf(favorite.name, favorite.id, favorite.userIds, favorite.groupIds))
+    }
+
+    @Test
+    fun `the quick view picks users of the own groups, freelancers included, and stores nothing`() {
+        val own = createEmployee("quick-own")
+        val colleague = createEmployee("quick-colleague")
+        val stranger = createEmployee("quick-stranger")
+        val freelancer = createUser("quick-freelancer")
+        val finance = createEmployee("quick-finance", finance = true)
+        logon(TEST_ADMIN_USER)
+        val quick =
+            initTestDB.addGroup("$PREFIX.quick", own.user!!.username!!, colleague.user!!.username!!, freelancer.username!!)
+        initTestDB.addGroup("$PREFIX.quickOther", stranger.user!!.username!!)
+        val monday = PFDay.now().beginOfWeek.date
+        insertVacation(colleague, own, monday.plusDays(14), monday.plusDays(18), VacationStatus.APPROVED)
+        logon(TEST_HR_USER)
+        availabilityDao.insert(AvailabilityDO().also {
+            it.user = freelancer
+            it.startDate = monday.plusDays(7)
+            it.endDate = monday.plusDays(9)
+            it.status = AvailabilityStatus.NOT_AVAILABLE
+        })
+
+        logon(own.user!!)
+        val pickable = vacationExportRest.users("$PREFIX.quick", null).map { it.id }
+        assertTrue(pickable.containsAll(listOf(own.user!!.id, colleague.user!!.id, freelancer.id)), "Own group.")
+        assertFalse(pickable.contains(stranger.user!!.id), "Not of an own group.")
+        assertEquals(listOf(freelancer.id), vacationExportRest.users("quick-freelancer lastname", null).map { it.id })
+
+        val view = vacationExportRest.userView(listOf(colleague.user!!.id!!), null)
+        assertEquals(monday, view.days.first().date)
+        assertEquals(8 * 7, view.days.size)
+        assertEquals(listOf(monday.plusDays(14)), view.rows.single().vacations.map { it.startDate })
+        assertEquals(colleague.user!!.id, view.rows.single().user.id, "The row is keyed by the user.")
+        // A freelancer has no employee: their availability entries only.
+        val freelancerRow = vacationExportRest.userView(listOf(freelancer.id!!), 4).rows.single()
+        assertTrue(freelancerRow.vacations.isEmpty())
+        assertTrue(freelancerRow.availabilities.single().absent)
+        assertEquals(12 * 7, vacationExportRest.userView(listOf(freelancer.id!!), 99).days.size, "At most 12 weeks.")
+        assertTrue(vacationExportRest.userView(listOf(stranger.user!!.id!!), null).rows.isEmpty(), "Not to be picked.")
+        // Several at once: a row each, in the order asked for, each with their own absences.
+        val rows = vacationExportRest.userView(
+            listOf(freelancer.id!!, stranger.user!!.id!!, colleague.user!!.id!!, freelancer.id!!), null,
+        ).rows
+        assertEquals(listOf(freelancer.id, colleague.user!!.id), rows.map { it.user.id }, "Stranger and duplicate dropped.")
+        assertEquals(listOf(1, 0), rows.map { it.availabilities.size })
+        assertEquals(listOf(0, 1), rows.map { it.vacations.size })
+        assertTrue(vacationExportRest.getInitial().users.isEmpty(), "The team calendar's choice isn't touched.")
+        // The team calendar, too, shows the members of a group without an employee: their availability entries.
+        assertEquals(
+            setOf(own.user!!.id, colleague.user!!.id, freelancer.id),
+            ids(VacationExportRequest(groupIds = listOf(quick.id!!))),
+        )
+        val calendar = vacationExportRest.view(
+            VacationExportRequest(
+                userIds = listOf(freelancer.id!!), absenceKinds = AbsenceKind.entries,
+                from = monday, until = monday.plusDays(27),
+            )
+        )
+        assertTrue(calendar.rows.single().availabilities.single().absent)
+
+        logon(finance.user!!)
+        assertTrue(vacationExportRest.users("$PREFIX.quick", null).map { it.id }.contains(stranger.user!!.id))
+    }
+
+    @Test
+    fun `a choice stored before the absence kinds reads as the vacations and, if shown, the availabilities`() {
+        fun read(json: String) = UserPrefDao.objectMapper.readValue(json, VacationExportRest.VacationExportUserPref::class.java)
+            .storedAbsenceKinds()
+        assertEquals(AbsenceKind.entries, read("{\"showAvailabilities\":true}"))
+        assertEquals(listOf(AbsenceKind.VACATION), read("{\"showAvailabilities\":false}"))
+        assertEquals(listOf(AbsenceKind.VACATION), read("{}"))
+        assertEquals(listOf(AbsenceKind.NOT_AVAILABLE), read("{\"showAvailabilities\":true,\"absenceKinds\":[\"NOT_AVAILABLE\"]}"))
+    }
+
+    @Test
+    fun `a choice stored with employees reads as their users`() {
+        val own = createEmployee("migrate-own")
+        val colleague = createEmployee("migrate-colleague")
+        logon(TEST_ADMIN_USER)
+        initTestDB.addGroup("$PREFIX.migrate", own.user!!.username!!, colleague.user!!.username!!)
+        logon(own.user!!)
+        assertEquals(listOf(colleague.user!!.id), vacationExportRest.migrateEmployeeIds(listOf(colleague.id!!, -1L)))
     }
 
     private fun ids(request: VacationExportRequest): Set<Long?> =
-        persistenceService.runReadOnly { vacationExportRest.resolveEmployees(request).map { it.id }.toSet() }
+        persistenceService.runReadOnly { vacationExportRest.resolveUsers(request).map { it.id }.toSet() }
 
     private fun insertVacation(
         employee: EmployeeDO,
@@ -225,6 +369,19 @@ class VacationExportRestTest : AbstractTestBase() {
             it.special = true
         }, checkAccess = false)
         loggedInUser?.let { logon(it) }
+    }
+
+    /** A user without an employee, e.g. a freelancer. */
+    private fun createUser(name: String): PFUserDO {
+        val loggedInUser = ThreadLocalUserContext.loggedInUser
+        logon(TEST_ADMIN_USER)
+        val user = PFUserDO()
+        user.firstname = "$PREFIX.$name"
+        user.lastname = "$name.lastname"
+        user.username = "$PREFIX.$name.username"
+        initTestDB.addUser(user)
+        loggedInUser?.let { logon(it) }
+        return user
     }
 
     private fun createEmployee(name: String, finance: Boolean = false, hrAccess: Boolean = false): EmployeeDO {

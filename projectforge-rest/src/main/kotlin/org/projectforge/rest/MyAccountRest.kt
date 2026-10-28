@@ -30,6 +30,7 @@ import org.projectforge.business.login.Login
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.user.StayLoggedInTokenDao
 import org.projectforge.business.user.UserAuthenticationsService
+import org.projectforge.business.user.UserAvatarDao
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenData
 import org.projectforge.business.user.UserTokenType
@@ -94,6 +95,9 @@ class MyAccountRest {
 
     @Autowired
     private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
+
+    @Autowired
+    private lateinit var userAvatarDao: UserAvatarDao
 
     @Autowired
     private lateinit var userDao: UserDao
@@ -171,7 +175,7 @@ class MyAccountRest {
         /** False without a configured Sipgate: the personal phone identifiers are good for nothing then. */
         val phoneIdentifiersSupported: Boolean,
         /**
-         * The menu urls of the password pages (next) and of the 2FA setup (not migrated yet, React); the WLAN
+         * The menu urls of the password pages and of the 2FA setup (next); the WLAN
          * password null if it can't be changed in this installation. Offered whatever the menu configuration says: an
          * installation hides the password entries of the menu *because* this page links them (see
          * projectforge.menu.visibility.changePassword).
@@ -179,6 +183,9 @@ class MyAccountRest {
         val changePasswordUrl: String?,
         val changeWlanPasswordUrl: String?,
         val my2FASetupUrl: String?,
+        /** The id of the logged-in user and the version of the avatar, null without one (see UserAvatarRest). */
+        val userId: Long?,
+        val avatarVersion: Long?,
     )
 
     class Defaults(val dateFormat: String, val excelDateFormat: String, val timeNotation: String?)
@@ -190,8 +197,8 @@ class MyAccountRest {
         /** The most recent accesses with this token since the start of the server, most recent first. */
         val accesses: List<TokenAccess>,
         /**
-         * The url of a QR code for a client app (REST client only): it carries a short-lived link to the user's
-         * credentials (see AuthenticationPublicServicesRest.createQueryURL).
+         * The QR code for a client app as data url (REST client only): it carries a short-lived link to the user's
+         * credentials (see AuthenticationPublicServicesRest.createQueryURL), so it must not be part of an image url.
          */
         val qrCodeUrl: String? = null,
     )
@@ -222,6 +229,8 @@ class MyAccountRest {
             changePasswordUrl = MenuItemDefId.CHANGE_PASSWORD.url,
             changeWlanPasswordUrl = if (data.wlanPasswordChangeSupported) MenuItemDefId.CHANGE_WLAN_PASSWORD.url else null,
             my2FASetupUrl = MenuItemDefId.MY_2FA_SETUP.url,
+            userId = ThreadLocalUserContext.loggedInUserId,
+            avatarVersion = userAvatarDao.getVersion(ThreadLocalUserContext.loggedInUserId),
         )
     }
 
@@ -337,7 +346,7 @@ class MyAccountRest {
         } ?: emptyList()
         // Not for a restricted or demo user: the QR code hands out the account's credentials.
         val qrCodeUrl = if (token == UserTokenType.REST_CLIENT && !accessChecker.isRestrictedOrDemoUser) {
-            BarcodeServicesRest.getBarcodeGetUrl(authenticationPublicServicesRest.createQueryURL())
+            BarcodeServicesRest.getQrCodeDataUrl(authenticationPublicServicesRest.createQueryURL())
         } else {
             null
         }

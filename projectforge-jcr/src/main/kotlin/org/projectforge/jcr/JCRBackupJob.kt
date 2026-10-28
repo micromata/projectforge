@@ -48,10 +48,19 @@ class JCRBackupJob {
     @Autowired
     private lateinit var schedulerJobRunner: SchedulerJobRunner
 
+    @Autowired
+    private lateinit var repoService: RepoService
+
     @PostConstruct
     private fun postConstruct() {
         schedulerJobRunner.register(SCHEDULER_JOB, ::execute) {
-            if (repoBackupService.backupDirectory == null) "No backup directory of the repository." else null
+            if (repoBackupService.backupDirectory == null) {
+                "No backup directory of the repository."
+            } else if (!repoService.jcrAvailable) {
+                "The JCR repository isn't available (see the log of the start)."
+            } else {
+                null
+            }
         }
     }
 

@@ -27,25 +27,28 @@ const kost2Art = z.looseObject({
 /**
  * Which fields the form has mirrors org.projectforge.rest.dto.Project — a hand-written decision.
  *
- * `nummernkreis`, `bereich` and `kostFormatted` are absent: the entity derives them from the customer
- * (or the internal range) and the number, and the form shows them live (see ProjectNumberField).
+ * `nummernkreis`, `bereich` and `kostFormatted` are absent: the entity derives them from the project
+ * number, and the form shows it live (see ProjectNumberField). `internKost2_4` is absent, too: it is
+ * legacy, the local number of an internal project covers all its digits.
  */
 export const projectSchema = z.object({
   // null while the project is new — Spring assigns the id on the first save.
   id: z.number().nullable(),
   /**
-   * The project's two digits of the cost number, 0..99 (`ProjektDO.nummer`, a two-digit part); the
-   * metadata carries no bounds. Unique within the customer or internal range — the backend's check
-   * (`fibu.projekt.validation.numbernotfreeforcustomer`).
+   * The local project number (`ProjektDO.nummer`): per customer of a number range, or of the range without
+   * customers. Its bounds depend on the range (the digits of `NumberRange.projectDigits`), which the
+   * field enforces (ProjectNumberField); the authority is the backend's check
+   * (`fibu.projekt.validation.localNumberOutOfRange`, `numbernotfreeforcustomer`). For a free project
+   * the form sets it to the project number.
    */
   nummer: m
-    .intField("nummer", { min: 0, max: 99 })
+    .intField("nummer", { min: 0 })
     .refine((v): boolean => v != null, REQUIRED),
   /**
-   * The internal range of a project without customer ("4.xxx"), three digits. Only required when a cost
-   * 2 unit is to be created without customer — a cross-field rule the backend checks.
+   * The system-wide unique project number: computed for a range (ProjectNumberField keeps it in line),
+   * typed for a free one, where empty means the next free one (`ProjektDao.assignProjektnummer`).
    */
-  internKost2_4: m.intField("internKost2_4", { min: 0, max: 999 }),
+  projektnummer: m.intField("projektnummer", { min: 1 }),
   name: m.requiredString("name"),
   identifier: m.nullableString("identifier"),
   status: m.enumField("status"),
@@ -53,9 +56,15 @@ export const projectSchema = z.object({
   konto: entityRef,
   task: m.entityField("task"),
   projektManagerGroup: m.entityField("projektManagerGroup"),
-  projectManager: m.entityField("projectManager"),
-  headOfBusinessManager: m.entityField("headOfBusinessManager"),
-  salesManager: m.entityField("salesManager"),
+  contactPerson: m.entityField("contactPerson"),
+  /**
+   * The further contact persons. No metadata: the DTO carries them as user references, the entity as
+   * comma separated ids (`ProjektDO.additionalContactUserIds`). An empty list rather than null, which is
+   * what the picker holds.
+   */
+  additionalContacts: z.array(
+    z.looseObject({ id: z.number(), displayName: z.string().optional() })
+  ),
   description: m.nullableString("description"),
   kost2Arts: z.array(kost2Art),
   /** Read-only: number and customer are fixed, see ProjectNumberField. Ignored by the backend on save. */

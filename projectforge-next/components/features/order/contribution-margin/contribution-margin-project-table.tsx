@@ -12,6 +12,11 @@ import type {
   ContributionMarginSums,
 } from "@/lib/rs/order";
 import { StatisticsTable } from "../statistics/statistics-table";
+import {
+  hasProjectGroup,
+  projectGroupColumns,
+} from "../statistics/statistics-table-columns";
+import { useStatisticsLabels } from "../statistics/use-statistics-labels";
 import { ContributionMarginPercentage } from "./contribution-margin-percentage";
 
 type Row = ContributionMarginProject;
@@ -72,8 +77,10 @@ export function ContributionMarginProjectTable({
   onProjectClick: (projectId: number) => void;
 }) {
   const t = useTranslations("fibu.auftrag.contributionMargin");
+  const labels = useStatisticsLabels();
   const ctx = useFormatContext();
   const { total } = data;
+  const withProjectGroup = hasProjectGroup(data.projects);
   const columns = useMemo<ColumnDef<Row, unknown>[]>(() => {
     const money = (value: number) => (
       <span className={cn("tabular-nums", value < 0 && "text-destructive")}>
@@ -153,6 +160,7 @@ export function ContributionMarginProjectTable({
         meta: { label: t("project") },
         cell: ({ row }) => row.original.project ?? row.original.projectId,
       },
+      ...projectGroupColumns<Row>(withProjectGroup, labels.projectGroup),
       text("kost", t("kost"), 80),
       amount("revenue", t("revenue")),
       amount("costs", t("costs")),
@@ -167,7 +175,7 @@ export function ContributionMarginProjectTable({
         Math.max(0, -row.prevPrevYearProfit)
       ),
     ];
-  }, [t, ctx, data, total]);
+  }, [t, labels, ctx, data, total, withProjectGroup]);
 
   return (
     <StatisticsTable<Row>

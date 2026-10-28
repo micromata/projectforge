@@ -26,12 +26,15 @@ package org.projectforge.rest
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.SystemAlertMessage
+import org.projectforge.business.chat.ChatUnreadCounter
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.notification.NotificationDao
+import org.projectforge.business.user.UserAvatarCache
 import org.projectforge.business.user.UserLocale
 import org.projectforge.common.DateFormatType
+import org.projectforge.feature.FeatureService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.jira.JiraUtils
@@ -41,9 +44,12 @@ import org.projectforge.framework.time.PFDateCompatibilityUtils
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.login.LoginService
+import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.SessionCsrfService
+import org.projectforge.rest.feature.FeaturePathIndex
 import org.projectforge.rest.pub.SystemStatusRest
+import org.projectforge.ui.AutoCompletion
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -67,16 +73,28 @@ open class UserStatusRest {
   private lateinit var accessChecker: AccessChecker
 
   @Autowired
+  private lateinit var featureService: FeatureService
+
+  @Autowired
+  private lateinit var featurePathIndex: FeaturePathIndex
+
+  @Autowired
   private lateinit var systemStatusRest: SystemStatusRest
 
   @Autowired
   private lateinit var employeeDao: EmployeeDao
 
   @Autowired
+  private lateinit var userAvatarCache: UserAvatarCache
+
+  @Autowired
   private lateinit var notificationDao: NotificationDao
 
   @Autowired
   private lateinit var sessionCsrfService: SessionCsrfService
+
+  @Autowired
+  private lateinit var chatUnreadCounter: ChatUnreadCounter
 
   data class UserData(
     var username: String? = null,
@@ -102,6 +120,8 @@ open class UserStatusRest {
     var currency: String? = Constants.CURRENCY_SYMBOL,
     var thousandSeparator: Char? = null,
     var decimalSeparator: Char? = null,
+    /** The version of the user's avatar for the user menu (see UserAvatarRest), null without one. */
+    var avatarVersion: Long? = null,
   ) {
     /**
      * 0 - Sunday, 1 - Monday, ...
@@ -126,23 +146,25 @@ open class UserStatusRest {
     /**
      * CSRF token of the user's session, sent by projectforge-next in every state-changing call
      * (header [org.projectforge.rest.core.RestCsrfProtection.CSRF_TOKEN_HEADER]).
-     *
-     * The UILayout based clients get it per page inside `FormLayoutData.serverData` instead; next has no
-     * such envelope, so it takes the token from here - the one call it makes on every app start.
+     * Taken from here because it is the one call next makes on every app start.
      */
     val csrfToken: String? = null,
     /**
      * True if the user is a member of the admin group.
      *
      * Needed by projectforge-next, which declares its menus in the frontend and therefore has to decide itself
-     * whether to offer an admin only action (e. g. rebuilding the whole search index). The UILayout based clients
-     * don't need it: there the server omits such entries from the page menu (see AbstractPagesRest).
+     * whether to offer an admin only action (e. g. rebuilding the whole search index).
      */
     val adminUser: Boolean = false,
     /**
+     * True if the user may see inactive persons (deactivated users, employees who left) in the pickers, see
+     * [AutoCompletion.SHOW_INACTIVE_PERSONS_GROUPS]. projectforge-next offers its "show inactive" checkbox for
+     * users and employees only then; the backend enforces it anyway.
+     */
+    val showInactivePersons: Boolean = false,
+    /**
      * The JIRA configuration projectforge-next needs to turn issue keys into links itself (see
-     * [JiraUtils.getClientConfig]), sent only where JIRA is configured. The UILayout based clients don't need it:
-     * there the server emits the finished links (see JiraSupport / JiraIssuesPanel).
+     * [JiraUtils.getClientConfig]), sent only where JIRA is configured.
      */
     val jira: JiraUtils.JiraClientConfig? = null,
     /**
@@ -157,7 +179,7 @@ open class UserStatusRest {
      */
     val legacyBannerFeedbackText: String? = null,
     /**
-     * The REST categories that have a projectforge-next version ([NextMigration.categories]). The old
+     * The REST categories that have a projectforge-next version ([PageRoutes.categories]). The old
      * React web app shows the warning banner only on a page whose category is in this set - a page that
      * hasn't been migrated has no new version to point to. The React route's first path segment is the
      * category (the legacy app mounts pages under `<category>`), so the client matches on it.
@@ -168,6 +190,21 @@ open class UserStatusRest {
      * window focus and page changes) and loads the notifications themselves (NotificationRest) only if it changed.
      */
     val notifications: NotificationDao.Summary? = null,
+    /**
+     * The switched off features (projectforge.features.*, inactive plugins): the frontend hides what calls them on
+     * every page (e.g. the quick search).
+     */
+    val disabledFeatures: List<String> = emptyList(),
+    /**
+     * The next routes of the switched off features, see [FeaturePathIndex.nextRoutes]: the frontend shows "not
+     * found" for them (the server answers 404 anyway, but not on navigating inside the app).
+     */
+    val featureRoutes: FeaturePathIndex.NextRoutes? = null,
+    /**
+     * The unread messages of the user in all their chat rooms and direct messages, for the badge of the top bar
+     * (so the client needn't load both lists for it). 0 if the chat is switched off or counting fails.
+     */
+    val chatUnread: Int = 0,
   )
 
   @GetMapping
@@ -187,6 +224,7 @@ open class UserStatusRest {
       lastName = user.lastname,
       userId = user.id,
       employeeId = employeeId,
+      avatarVersion = userAvatarCache.getVersion(user.id), // The own one, visible anyway.
       locale = ThreadLocalUserContext.localeAsString,
       timeZone = ThreadLocalUserContext.timeZone.id,
       timeNotation = DateFormats.ensureAndGetDefaultTimeNotation(),
@@ -215,10 +253,14 @@ open class UserStatusRest {
         SystemAlertMessage.alertMessage,
         csrfToken,
         accessChecker.isLoggedInUserMemberOfAdminGroup,
+        accessChecker.isLoggedInUserMemberOfGroup(*AutoCompletion.SHOW_INACTIVE_PERSONS_GROUPS),
         JiraUtils.getClientConfig().takeIf { it.configured },
         legacyBannerText = translate("legacyVersion.banner.text"),
         legacyBannerFeedbackText = translate("legacyVersion.banner.feedback"),
-        migratedCategories = NextMigration.categories,
+        migratedCategories = PageRoutes.categories,
+        disabledFeatures = featureService.disabledFeatureIds(),
+        featureRoutes = featurePathIndex.nextRoutes(),
+        chatUnread = if (featureService.isEnabled(MenuItemDefId.CHAT)) chatUnreadCounter.countUnread() else 0,
         notifications = user.id?.let { userId ->
           runCatching { notificationDao.summary(userId) }
             .onFailure { log.error(it) { "Can't read the notifications of user #$userId: ${it.message}" } }

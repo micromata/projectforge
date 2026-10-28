@@ -31,7 +31,6 @@ import org.projectforge.common.html.Html
 import org.projectforge.common.html.HtmlDocument
 import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.persistence.database.SchemaExport
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -61,24 +60,13 @@ class SystemService {
     private lateinit var dataTransferBridge: DataTransferBridge
 
     /**
-     * Re-reads the configuration ([Configuration] and the config.xml): forces a reload of the [Configuration] cache
-     * and re-reads config.xml via [ConfigXml].
-     *
-     * @return The result message of [ConfigXml.readConfiguration] (warnings, if any).
+     * Re-reads the configuration parameters: forces a reload of the [Configuration] cache, e.g. after a parameter was
+     * modified directly in the data base.
      */
-    fun rereadConfiguration(): String? {
+    fun rereadConfiguration() {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         log.info { "Administration: reload configuration." }
         Configuration.instance.forceReload()
-        return ConfigXml.getInstance().readConfiguration()
-    }
-
-    /**
-     * Exports the current config.xml (see [ConfigXml.exportConfiguration]) so an administrator can download it.
-     */
-    fun exportConfiguration(): String? {
-        accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
-        return ConfigXml.getInstance().exportConfiguration()
     }
 
     fun exportSchema(): String? {

@@ -33,15 +33,12 @@ import org.projectforge.plugins.merlin.MerlinTemplate
 import org.projectforge.plugins.merlin.MerlinTemplateDao
 import org.projectforge.plugins.merlin.MerlinVariable
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.User
-import org.projectforge.ui.ResponseAction
-import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -63,9 +60,10 @@ class MerlinTestServicesRest {
   private lateinit var merlinTemplateDao: MerlinTemplateDao
 
   @Autowired
-  private lateinit var merlinPagesRest: MerlinPagesRest
+  private lateinit var merlinEntityRest: MerlinEntityRest
 
-  @GetMapping("contract")
+  @AccessChecked("No data read: inserts a new template owned by the logged-in user (MerlinTemplateDao)")
+  @PostMapping("example/contract")
   fun contract(): ResponseEntity<*> {
     return createTemplate(
       titleKey = "plugins.merlin.menu.examples.contract",
@@ -108,7 +106,8 @@ class MerlinTestServicesRest {
     )
   }
 
-  @GetMapping("letter")
+  @AccessChecked("No data read: inserts a new template owned by the logged-in user (MerlinTemplateDao)")
+  @PostMapping("example/letter")
   fun letter(): ResponseEntity<*> {
     return createTemplate(
       titleKey = "plugins.merlin.menu.examples.letter",
@@ -150,7 +149,7 @@ class MerlinTestServicesRest {
         variable.dependsOn = dto.variables.find { it.name == dependsOnName }
       }
     }
-    val dbo = merlinPagesRest.transformForDB(dto)
+    val dbo = merlinEntityRest.transformForDB(dto)
     merlinTemplateDao.insert(dbo)
     dto.id = dbo.id
     applicationContext.getResource("classpath:examples/$filename").inputStream.use { istream ->
@@ -163,12 +162,7 @@ class MerlinTestServicesRest {
         accessChecker = merlinHandler.attachmentsAccessChecker,
       )
     }
-    return ResponseEntity(
-      ResponseAction(
-        PagesResolver.getDynamicPageUrl(MerlinExecutionPageRest::class.java, id = dto.id, absolute = true),
-        targetType = TargetType.REDIRECT
-      ), HttpStatus.OK
-    )
+    return ResponseEntity.ok(mapOf("id" to dto.id))
   }
 
   private fun createVariable(

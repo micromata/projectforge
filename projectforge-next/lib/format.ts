@@ -231,6 +231,48 @@ export function formatTime(value: unknown, ctx: FormatContext): string {
   }).format(date);
 }
 
+/**
+ * The calendar day a timestamp falls on in the user's zone as `yyyy-MM-dd`, for comparing days (e.g. where
+ * a day separator goes); empty for no timestamp.
+ */
+export function dayKeyOf(value: unknown, ctx: FormatContext): string {
+  return dayKeyFormatter(ctx)(value);
+}
+
+/** [dayKeyOf] with the formatter built once, for many timestamps. */
+export function dayKeyFormatter(
+  ctx: FormatContext
+): (value: unknown) => string {
+  // en-CA writes the ISO order; only the digits are used.
+  const format = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: ctx.timeZone,
+  });
+  return (value) => {
+    const date = toDate(value);
+    return date ? format.format(date) : "";
+  };
+}
+
+/**
+ * The day of a timestamp as a heading, with the weekday, e.g. "Dienstag, 20. Okt."; with the year only if it
+ * isn't the current one ("Dienstag, 20. Okt. 2025").
+ */
+export function formatDayHeading(value: unknown, ctx: FormatContext): string {
+  const date = toDate(value);
+  if (!date) return "";
+  const thisYear = dayKeyOf(new Date(), ctx).slice(0, 4);
+  return new Intl.DateTimeFormat(ctx.locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+    year: dayKeyOf(date, ctx).startsWith(thisYear) ? undefined : "numeric",
+    timeZone: ctx.timeZone,
+  }).format(date);
+}
+
 /** [formatTimeRange] for a same-day period, e.g. `10:30 – 12:00`. */
 export function formatTimeRange(
   begin: unknown,
@@ -317,6 +359,20 @@ export function formatElapsed(millis: number, ctx: FormatContext): string {
   return `${unit(Math.floor(minutes / 60), "hour")}, ${unit(minutes % 60, "minute")}`;
 }
 
+/**
+ * A transfer speed in bytes per second as `850 kB/s` or `1,2 MB/s` (decimal units, the number in the user's
+ * locale).
+ */
+export function formatTransferRate(
+  bytesPerSecond: number,
+  ctx: FormatContext
+): string {
+  const kilo = Math.round(bytesPerSecond / 1000);
+  // Rounded first, so 999.6 kB/s doesn't read "1000 kB/s".
+  if (kilo < 1000) return `${formatNumber(kilo, ctx, 0)} kB/s`;
+  return `${formatNumber(bytesPerSecond / 1_000_000, ctx, 1)} MB/s`;
+}
+
 export function formatNumber(
   value: unknown,
   ctx: FormatContext,
@@ -328,6 +384,23 @@ export function formatNumber(
   return new Intl.NumberFormat(ctx.locale, {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
+  }).format(numeric);
+}
+
+/**
+ * A number with as many decimals as it has, up to [maxFractionDigits] — a conversion rate (`0.85`, `1.17647059`),
+ * whose precision is its own, where [formatNumber] would round to three digits or pad to a fixed number.
+ */
+export function formatNumberUpTo(
+  value: unknown,
+  ctx: FormatContext,
+  maxFractionDigits: number
+): string {
+  if (value == null || value === "") return "";
+  const numeric = typeof value === "number" ? value : Number(value);
+  if (Number.isNaN(numeric)) return "";
+  return new Intl.NumberFormat(ctx.locale, {
+    maximumFractionDigits: maxFractionDigits,
   }).format(numeric);
 }
 

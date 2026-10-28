@@ -34,7 +34,7 @@ import java.math.BigDecimal
 import java.util.Locale
 
 /**
- * Regression test for the employee Excel export number format (see [EmployeePagesRest.exportAsExcel]).
+ * Regression test for the employee Excel export number format (see [EmployeeEntityRest.exportAsExcel]).
  *
  * Reproduces the export path (column-level [de.micromata.merlin.excel.ExcelSheet.setColumnStyle] with an explicit
  * "#,##0.##" format), serializes to bytes, re-reads the written .xlsx and asserts that whole numbers are stored

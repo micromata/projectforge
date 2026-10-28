@@ -23,9 +23,9 @@
 
 package org.projectforge.plugins.datatransfer
 
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.business.admin.SystemStatistics
-import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.jcr.RepoBackupService
 import org.projectforge.jcr.RepoService
 import org.projectforge.menu.Menu
@@ -62,7 +62,7 @@ class DataTransferPlugin :
         // Files of data transfer areas are stored in the file system by the new file store (projectforge.files.store=db):
         WicketSupport.get(RepoService::class.java).registerFileSystemPath(
             dataTransferAreaEntityRest.jcrPath!!,
-            File(ConfigXml.getInstance().applicationHomeDir, FILE_SYSTEM_DIR),
+            File(WicketSupport.get(ConfigurationService::class.java).applicationHomeDir, FILE_SYSTEM_DIR),
         )
 
         // Register it:
@@ -70,13 +70,14 @@ class DataTransferPlugin :
 
         menuCreator.register(
             MenuItemDefId.MISC,
-            MenuItemDef(info.id, "plugins.datatransfer.menu", NextMigration.listUrl(DataTransferUtils.ROUTE))
+            MenuItemDef(info.id, "plugins.datatransfer.menu", PageRoutes.listUrl(DataTransferUtils.ROUTE))
         )
 
         menuCreator.registerPluginMenu(
             "DataTransferPersonalBox",
             "plugins.datatransfer.personalBox",
-            DataTransferUtils.areaViewPath(DataTransferUtils.PERSONAL_BOX_ID)
+            DataTransferUtils.areaViewPath(DataTransferUtils.PERSONAL_BOX_ID),
+            featureRestPaths = listOf("datatransferpersonalfiles"), // DataTransferPersonalBoxRest
         )
 
         // All the i18n stuff:
@@ -94,6 +95,10 @@ class DataTransferPlugin :
             DataTransferStatisticsBuilder()
         )
     }
+
+    /** The external access to an area (see DataTransferPublicNextRest). */
+    override val featureNextRoutes: List<String>
+        get() = listOf("public/${DataTransferUtils.ROUTE}")
 
     override fun createDefaultFavoriteMenu(menu: Menu, allMenuItems: List<MenuItem>) {
         if (allMenuItems.any { it.id == info.id }) {

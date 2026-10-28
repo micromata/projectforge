@@ -32,6 +32,7 @@ import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.plugins.marketing.AddressCampaignValueDO
 import org.projectforge.rest.dto.BaseDTO
+import org.projectforge.rest.dto.EntityAccessSupport
 
 class AddressCampaignValue(
     var addressCampaign: AddressCampaign? = null,
@@ -49,7 +50,20 @@ class AddressCampaignValue(
     var isFavoriteCard: Boolean? = null,
     var lastUpdateOfAddress: java.util.Date? = null,
     var isAddressValid: Boolean? = null,
-) : BaseDTO<AddressCampaignValueDO>() {
+    /** The comparison campaign the list shows beside this one (e.g. last year's), set for the form only. */
+    var comparisonCampaignTitle: String? = null,
+    /** The value and comment the address has in the comparison campaign, if one is selected. */
+    var comparisonValue: String? = null,
+    var comparisonComment: String? = null,
+    override var writeAccess: Boolean? = null,
+    override var deleteAccess: Boolean? = null,
+) : BaseDTO<AddressCampaignValueDO>(), EntityAccessSupport {
+
+    /** Takes the value and the comment of the address in the comparison campaign. */
+    fun setComparison(comparison: AddressCampaignValueDO) {
+        comparisonValue = comparison.value
+        comparisonComment = comparison.comment
+    }
 
     @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
     val contactStatusAsString: String?

@@ -24,6 +24,7 @@
 package org.projectforge.rest
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.PageRoutes
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressFilter
@@ -39,7 +40,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.utils.RecentQueue
-import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.PagesResolver
@@ -197,14 +197,19 @@ class PhoneCallRest {
     /**
      * The "back" link the [PhoneCallForm] offers, mirroring the Wicket page's `backToCaller`: to the address'
      * view page when the user came from there, else to the address list; null when opened plain (no caller).
-     * Address is not migrated to next yet, so both targets are the legacy React app (see [PagesResolver]).
      */
     private fun backUrl(callerPage: String?, address: AddressDO?): String? {
         return when (callerPage) {
-            "addressView" -> address?.id?.let { AddressViewPageRest.getPageUrl(it) }
-            "addressList" -> PagesResolver.getListPageUrl(AddressPagesRest::class.java, absolute = true)
+            "addressView" -> address?.id?.let { addressViewUrl(it) }
+            "addressList" -> PagesResolver.getListPageUrl(AddressEntityRest::class.java, absolute = true)
             else -> null
         }
+    }
+
+    /** The view page of the address in projectforge-next, e.g. `/next/address/42`. */
+    private fun addressViewUrl(id: Long, returnTo: String? = null): String {
+        val url = "/${PageRoutes.listUrl("address")}/$id"
+        return if (returnTo == null) url else "$url?returnTo=$returnTo"
     }
 
     /**
@@ -326,7 +331,7 @@ class PhoneCallRest {
             address.id!!,
             displayName,
             numbers,
-            AddressViewPageRest.getPageUrl(address.id, returnToCaller = "/${MenuItemDefId.PHONE_CALL.url}"),
+            addressViewUrl(address.id!!, returnTo = "/phoneCall"),
         )
     }
 

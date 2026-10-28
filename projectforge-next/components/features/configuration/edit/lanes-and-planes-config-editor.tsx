@@ -21,6 +21,7 @@ import {
 import type { JsonEditorProps } from "./json-editors";
 import { KostNumbersPicker } from "./kost-numbers-picker";
 import { LanesAndPlanesRows } from "./lanes-and-planes-rows";
+import { LanesAndPlanesUserEmails } from "./lanes-and-planes-user-emails";
 import { ListOrTextSetting } from "./list-or-text-setting";
 
 /**
@@ -113,7 +114,7 @@ export function LanesAndPlanesConfigEditor({
                 hint={t("generalKost1.tooltip")}
                 invalid={hasError(t("generalKost1._"))}
                 entries={config.generalKost1}
-                placeholder="1.005.01.00"
+                placeholder="1.900.01.00"
                 onChange={(generalKost1) => update({ generalKost1 })}
                 onBlur={field.handleBlur}
                 list={
@@ -133,7 +134,7 @@ export function LanesAndPlanesConfigEditor({
                 hint={t("generalKost2.tooltip")}
                 invalid={hasError(t("generalKost2._"))}
                 entries={config.generalKost2}
-                placeholder="5.999.10.09"
+                placeholder="5.900.10.01"
                 onChange={(generalKost2) => update({ generalKost2 })}
                 onBlur={field.handleBlur}
                 list={
@@ -238,57 +239,11 @@ export function LanesAndPlanesConfigEditor({
                   </div>
                 )}
               />
-              <ListOrTextSetting
-                label={t("existingUserEmails._")}
-                hint={t("existingUserEmails.tooltip")}
-                invalid={hasError(t("existingUserEmails._"))}
-                entries={config.existingUserEmails}
-                placeholder={t("additionalUsers.email")}
-                onChange={(existingUserEmails) =>
-                  update({ existingUserEmails })
-                }
+              <LanesAndPlanesUserEmails
+                rows={config.userEmails}
+                invalid={hasError(t("userEmails._"))}
+                onChange={(userEmails) => update({ userEmails })}
                 onBlur={field.handleBlur}
-                list={
-                  <LanesAndPlanesRows<string>
-                    rows={config.existingUserEmails}
-                    empty=""
-                    onChange={(existingUserEmails) =>
-                      update({ existingUserEmails })
-                    }
-                    ariaLabel={t("existingUserEmails._")}
-                    renderInput={(value, set, ariaLabel) => (
-                      <Input
-                        value={value}
-                        type="email"
-                        placeholder={t("additionalUsers.email")}
-                        aria-label={ariaLabel}
-                        onChange={(e) => set(e.target.value)}
-                        onBlur={field.handleBlur}
-                      />
-                    )}
-                  />
-                }
-              />
-              <LanesAndPlanesRows<string>
-                label={t("confirmedEmailChanges._")}
-                hint={t("confirmedEmailChanges.tooltip")}
-                invalid={hasError(t("confirmedEmailChanges._"))}
-                ariaLabel={t("confirmedEmailChanges._")}
-                rows={config.confirmedEmailChanges}
-                empty=""
-                onChange={(confirmedEmailChanges) =>
-                  update({ confirmedEmailChanges })
-                }
-                renderInput={(value, set, ariaLabel) => (
-                  <Input
-                    value={value}
-                    type="email"
-                    placeholder={t("additionalUsers.email")}
-                    aria-label={ariaLabel}
-                    onChange={(e) => set(e.target.value)}
-                    onBlur={field.handleBlur}
-                  />
-                )}
               />
             </div>
           </FieldShell>

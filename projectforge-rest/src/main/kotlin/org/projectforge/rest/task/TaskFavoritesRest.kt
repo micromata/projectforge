@@ -63,52 +63,12 @@ class TaskFavoritesRest {
         return toInfoList()
     }
 
+    // State changing (or, for select, recording the user's choice): POST, which carries the CSRF token.
+
     /**
      * Adds new favorite task with given id under the given name.
      * @return new list of favorites.
      */
-    @AccessChecked("Own user prefs; task select access")
-    @GetMapping("create")
-    fun new(@RequestParam("taskId", required = true) taskId: Long, @RequestParam("name", required = true) name: String): List<TaskFavoriteInfo> {
-        checkTaskAccess(taskId)
-        taskFavorites.createFavorite(name, taskId)
-        return toInfoList()
-    }
-
-    /**
-     * Selects the task id from the filter.
-     * @return taskId referenced by given favorite.
-     */
-    @GetMapping("select")
-    fun select(@RequestParam("id", required = true) id: Long): Long? {
-        return taskFavorites.selectTaskId(id)
-    }
-
-    /**
-     * Selects the task id from the filter.
-     * @return taskId referenced by given favorite.
-     */
-    @AccessChecked("Own user prefs (UserPrefDao, scoped to the logged-in user)")
-    @GetMapping("delete")
-    fun delete(@RequestParam("id", required = true) id: Long): List<TaskFavoriteInfo> {
-        taskFavorites.deleteFavorite(id)
-        return toInfoList()
-    }
-
-    /**
-     * Selects the task id from the filter.
-     * @return taskId referenced by given favorite.
-     */
-    @AccessChecked("Own user prefs (UserPrefDao, scoped to the logged-in user)")
-    @GetMapping("rename")
-    fun rename(@RequestParam("id", required = true) id: Long, @RequestParam("newName", required = true) newName: String): List<TaskFavoriteInfo> {
-        taskFavorites.renameFavorite(id, newName)
-        return toInfoList()
-    }
-
-    // POST variants for the Next.js frontend, which sends the CSRF token on state changing calls. They
-    // delegate to the same service as the GET mappings above (kept for the legacy React frontend).
-
     @AccessChecked("Own user prefs; task select access")
     @PostMapping("create")
     fun createPost(@RequestParam("taskId", required = true) taskId: Long, @RequestParam("name", required = true) name: String): List<TaskFavoriteInfo> {

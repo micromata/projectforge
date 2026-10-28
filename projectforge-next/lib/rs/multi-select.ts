@@ -1,18 +1,15 @@
 /**
- * The mass update of a list selection (`AbstractMultiSelectedPage`), layout free.
+ * The mass update of a list selection (`AbstractMassUpdateRest`), layout free.
  *
  * Two REST bases are involved and they are not the same: the selection is *started* on the list's own
- * entity (`{entity}/startMultiSelection`), everything after that happens on the mass update page
+ * entity (`{entity}/startSelection`), everything after that happens on the mass update page
  * (`{page}/meta`, `/select`, `/update`, `/download`, `/cancel`) — and its path is not derivable from
  * the entity's (`invoiceSelected` for `outgoingInvoice`), so a page declares it.
  *
  * The state lives in the HTTP session, keyed by the backend's `*Rest` class
- * (`MultiSelectionSupport.SessionContext`, 60 minutes): `startMultiSelection` registers every id the
+ * (`MultiSelectionSupport.SessionContext`, 60 minutes): `startSelection` registers every id the
  * filter matched, `select` narrows that to the ticked ones, and `meta`/`update` read them from there.
  * Nothing carries ids in a url, and a deployment behind a load balancer needs sticky sessions.
- *
- * The `dynamic`/`massUpdate`/`selected` endpoints of the same page answer the same information as a
- * `UILayout` and are deprecated; they are deliberately not wrapped here.
  */
 
 import { rawRequest, request, RsError } from "./client";
@@ -37,6 +34,13 @@ const NOT_ACCEPTABLE = 406;
  * one must not open as a plain list the user has to switch over by hand.
  */
 export const MULTI_SELECTION_PARAM = "multiSelectionMode";
+
+/**
+ * The most entries one mass update changes — the backend's `BaseDao.MAX_MASS_UPDATE`, which refuses a
+ * larger selection. Spelled out here for the list, which picks before any mass update page (and its
+ * `MultiSelectMeta.maxMassUpdate`) was asked.
+ */
+export const MAX_MASS_UPDATE = 100;
 
 /** One field the page may change — the backend's `MassUpdateFieldMeta`. */
 export interface MassUpdateFieldMeta {
@@ -88,22 +92,19 @@ export interface MultiSelectMeta {
    * (`InvoiceStatistics` for the invoice) — rendered by the component the page declares, see
    * `MassUpdateDef.statisticsLine`.
    *
-   * `unknown` because the shape is the entity's and nothing generic reads it. The deprecated
-   * `statistics` field of the same response is that summary pre-rendered as markdown for the
-   * `UILayout` form, and is not read here: its amounts are formatted server side and its colours are
-   * raw HTML spans.
+   * `unknown` because the shape is the entity's and nothing generic reads it.
    */
   statisticsData?: unknown;
   /**
    * Start values for the page's own custom controls, keyed by field name — the task and cost unit the
-   * selected time sheets share, say (see `AbstractMultiSelectedPage.initialParams`). Advisory prefill
+   * selected time sheets share, say (see `AbstractMassUpdateRest.initialParams`). Advisory prefill
    * only: the declared fields above are not seeded from it, and a control must not post a value the user
    * left at its preset (that would be a change they never made). Consumed by a `customFields` control.
    */
   initialParams?: Record<string, MassUpdateParameter>;
   /**
    * Whether the page offers deleting whole selected entries as one action (soft delete) — the "delete
-   * selected" button. Off unless the backend page opts in (`AbstractMultiSelectedPage.supportsMassDeletion`).
+   * selected" button. Off unless the backend page opts in (`AbstractMassUpdateRest.supportsMassDeletion`).
    */
   supportsDelete?: boolean;
   /** Whether the page offers restoring selected, already deleted entries — the "restore" button. */
@@ -156,6 +157,11 @@ export interface MassUpdateResult {
   downloadUrl?: string;
   /** The fields the update acted on, translated. */
   changedFields: string[];
+  /**
+   * The log viewer of the user's log subscription the run wrote to (`next/logViewer/<id>`), absent where
+   * the page has none. Registered by the run itself, right before it starts.
+   */
+  logViewerUrl?: string | null;
 }
 
 /** Answer of a run: either it went through, or the server rejected it with something to fix. */
@@ -197,7 +203,8 @@ export type MassUpdatePreviewOutcome =
 
 /** Where the client goes next — the backend's `MultiSelectNavigation`. */
 export interface MultiSelectNavigation {
-  url: string;
+  /** Where a cancel returns to (the list the selection came from); absent for the other calls. */
+  url?: string | null;
   selectedCount: number;
   /**
    * What the ticked entries add up to, in the same shape `MultiSelectMeta.statisticsData` carries
@@ -365,7 +372,7 @@ export function cancelMultiSelection(
 ): Promise<MultiSelectNavigation> {
   return request<MultiSelectNavigation>(
     `/rs/${page}/cancel`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }

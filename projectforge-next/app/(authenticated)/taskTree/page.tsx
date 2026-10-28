@@ -16,13 +16,13 @@ import { TaskTreeActionBar } from "@/components/shared/tasks/task-tree-action-ba
 import { TaskTreePanel } from "@/components/shared/tasks/task-tree-panel";
 import { useTaskTree } from "@/components/shared/tasks/use-task-tree";
 import { navigateInGesture } from "@/lib/navigate-in-gesture";
+import { timesheetAddRoute } from "@/lib/timesheet-links";
 
 /**
  * The structure tree page (`/next/taskTree`), the migration of Wicket's `wa/taskTree`.
  *
- * A concrete route rather than a category of the generic list page: the tree is served by
- * `TaskServicesRest`, not by a list layout, and `taskTree` is no REST category — the entity behind it
- * is `task`. Hence the directory here, which shadows the `[category]` catch-all.
+ * Its own route: the tree is served by `TaskServicesRest`, not by a list endpoint, and `taskTree` is no
+ * REST category — the entity behind it is `task`.
  *
  * Header and actions are the ones of the list perspective on the same tasks, down to the component
  * (see PageTitleRow and TaskTreeActionBar): the two pages differ in their table and in nothing else.
@@ -88,12 +88,17 @@ function TaskTreeBody() {
           highlightTaskId={highlightTaskId}
           // `returnTo`, so cancel, save and the breadcrumb of the edit page lead back here rather than
           // to the task list — the tree is where the user came from (see useEditReturn).
-          onSelect={(task) =>
+          // A node shown by a booking grant only has no edit page for this user: the granted task leads to a
+          // new time sheet on it, its ancestors (on the way only) to nothing.
+          onSelect={(task) => {
+            if (task.bookingGrant === "PATH") return;
             navigateInGesture(
               router,
-              taskHref(task.id, { returnTo: TASK_TREE_ROUTE })
-            )
-          }
+              task.bookingGrant === "GRANT"
+                ? timesheetAddRoute(task.id)
+                : taskHref(task.id, { returnTo: TASK_TREE_ROUTE })
+            );
+          }}
         />
       </div>
     </>

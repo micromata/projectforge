@@ -28,6 +28,8 @@ import jakarta.servlet.http.HttpServletRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.IOUtils
 import org.projectforge.business.address.AddressDao
+import org.projectforge.business.address.AddressTextImportService
+import org.projectforge.business.address.FormOfAddress
 import org.projectforge.business.address.AddressExport
 import org.projectforge.business.address.AddressImageDO
 import org.projectforge.business.address.ImageType
@@ -35,14 +37,18 @@ import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.business.address.vcard.VCardUtils
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
+import org.projectforge.framework.time.PFDayUtils
+import org.projectforge.framework.utils.LocaleUtils
+import org.projectforge.rest.dto.Address
+import org.projectforge.rest.dto.PostData
+import org.projectforge.ui.UIToast
 import org.projectforge.rest.address.importer.AddressImportDTO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.LanguageService
-import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.projectforge.ui.UIColor
@@ -59,6 +65,7 @@ import org.springframework.web.multipart.MultipartFile
 import java.io.IOException
 import java.io.PrintWriter
 import java.io.StringWriter
+import java.time.LocalDate
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -87,9 +94,6 @@ class AddressServicesRest {
     private lateinit var addressDao: AddressDao
 
     @Autowired
-    private lateinit var addressRest: AddressPagesRest
-
-    @Autowired
     private lateinit var addressExport: AddressExport
 
     @Autowired
@@ -103,6 +107,9 @@ class AddressServicesRest {
 
     @Autowired
     private lateinit var imageService: org.projectforge.business.image.ImageService
+
+    @Autowired
+    private lateinit var addressTextImportService: AddressTextImportService
 
     @GetMapping("acLang")
     fun getLanguages(@RequestParam("search") search: String?): List<DisplayLanguage> {
@@ -142,10 +149,6 @@ class AddressServicesRest {
     fun exportFavoritesExcel(request: HttpServletRequest): ResponseEntity<*> {
         log.info { "Exporting personal address book as Excel file." }
         val list = addressDao.favoriteVCards.map { it.address!! }
-        val magicFilter = MagicFilter(maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS)
-        val resultSet = ResultSet(list, null, list.size, magicFilter = magicFilter)
-        addressRest.postProcessResultSet(resultSet, request, magicFilter)
-
         val personalAddressMap = personalAddressDao.personalAddressByAddressId
 
         val xls = addressExport.export(list, personalAddressMap)
@@ -310,7 +313,12 @@ class AddressServicesRest {
                         bytes = imageBytes,
                         imageTooLarge = imageTooLarge
                     )
-                    ExpiringSessionAttributes.setAttribute(session, SESSION_VCF_IMAGE_ATTR, sessionImage, 1)
+                    ExpiringSessionAttributes.setAttribute(
+                        session,
+                        SESSION_VCF_IMAGE_ATTR,
+                        sessionImage,
+                        AddressImageServicesRest.SESSION_IMAGE_TTL_MINUTES,
+                    )
                 }
             }
 
@@ -355,6 +363,155 @@ class AddressServicesRest {
     }
 
     /**
+     * Parses address text (email signature) and returns structured field mapping.
+     */
+    @AccessChecked("no data access: parses the posted text only")
+    @PostMapping("parseText")
+    fun parseText(@RequestBody data: PostData<Map<String, String>>): ResponseEntity<ResponseAction> {
+        val inputText = data.data["inputText"] ?: ""
+        log.info { "Parsing address text (${inputText.length} characters)" }
+
+        val parsed = addressTextImportService.parseText(inputText)
+
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE)
+                .addVariable("parsedData", parsed)
+        )
+    }
+
+    /**
+     * DTO for applying parsed address data.
+     */
+    data class ApplyParsedDataRequest(
+        val address: Address,
+        val selectedFields: Map<String, String>,
+        val applyImage: Boolean = false
+    )
+
+    /**
+     * Applies parsed data to address form fields.
+     */
+    @AccessChecked("no data access: applies the posted fields to the posted address only")
+    @PostMapping("applyParsedData")
+    fun applyParsedData(
+        @RequestBody request: ApplyParsedDataRequest,
+        httpRequest: HttpServletRequest
+    ): ResponseEntity<ResponseAction> {
+        val address = request.address
+        val selectedFields = request.selectedFields
+        val applyImage = request.applyImage
+
+        // Handle image from VCF if requested
+        var vcfImageBase64: String? = null
+        var vcfImageFilename: String? = null
+        var vcfImageMimeType: String? = null
+        if (applyImage) {
+            val session = httpRequest.getSession(false)
+            val vcfImage = ExpiringSessionAttributes.getAttribute(session, SESSION_VCF_IMAGE_ATTR)
+                    as? SessionVcfImage
+
+            if (vcfImage != null && !vcfImage.imageTooLarge) {
+                // Send image bytes to frontend (Base64-encoded)
+                vcfImageBase64 = Base64.getEncoder().encodeToString(vcfImage.bytes)
+                vcfImageFilename = vcfImage.filename
+                vcfImageMimeType = vcfImage.imageType.mimeType
+
+                // Clear VCF image from session (frontend will handle upload)
+                ExpiringSessionAttributes.removeAttribute(session, SESSION_VCF_IMAGE_ATTR)
+                log.debug { "Sending VCF image to frontend: ${vcfImage.filename} (${vcfImage.bytes.size} bytes, ${vcfImage.imageType})" }
+            }
+        }
+
+        // Apply only selected fields
+        selectedFields.forEach { (fieldName, value) ->
+            when (fieldName) {
+                "title" -> address.title = value
+                "firstName" -> address.firstName = value
+                "name" -> address.name = value
+                "organization" -> address.organization = value
+                "division" -> address.division = value
+                "positionText" -> address.positionText = value
+                "businessPhone" -> address.businessPhone = value
+                "mobilePhone" -> address.mobilePhone = value
+                "fax" -> address.fax = value
+                "privatePhone" -> address.privatePhone = value
+                "privateMobilePhone" -> address.privateMobilePhone = value
+                "email" -> address.email = value
+                "privateEmail" -> address.privateEmail = value
+                // Business address fields
+                "addressText" -> address.addressText = value
+                "addressText2" -> address.addressText2 = value
+                "zipCode" -> address.zipCode = value
+                "city" -> address.city = value
+                "state" -> address.state = value
+                "country" -> address.country = value
+                // Postal address fields
+                "postalAddressText" -> address.postalAddressText = value
+                "postalAddressText2" -> address.postalAddressText2 = value
+                "postalZipCode" -> address.postalZipCode = value
+                "postalCity" -> address.postalCity = value
+                "postalState" -> address.postalState = value
+                "postalCountry" -> address.postalCountry = value
+                // Private address fields
+                "privateAddressText" -> address.privateAddressText = value
+                "privateAddressText2" -> address.privateAddressText2 = value
+                "privateZipCode" -> address.privateZipCode = value
+                "privateCity" -> address.privateCity = value
+                "privateState" -> address.privateState = value
+                "privateCountry" -> address.privateCountry = value
+                "website" -> address.website = value
+                "comment" -> address.comment = value
+                // Additional VCard fields
+                "birthName" -> address.birthName = value
+                "birthday" -> address.birthday = tryParseLocalDate(value)
+                "fingerprint" -> address.fingerprint = value
+                "publicKey" -> address.publicKey = value
+                "form" -> address.form = tryParseFormOfAddress(value)
+                "communicationLanguage" -> address.communicationLanguage = tryParseLocale(value)
+            }
+        }
+
+        log.debug { "Applied ${selectedFields.size} parsed fields to address" }
+
+        val response = ResponseAction(targetType = TargetType.UPDATE)
+            .addVariable("data", address)
+            .addVariable("ui", UIToast.createToast(translate("address.parseText.applied")))
+
+        // Include VCF image data if present (frontend will handle upload)
+        if (vcfImageBase64 != null) {
+            response.addVariable("vcfImageData", vcfImageBase64)
+            response.addVariable("vcfImageFilename", vcfImageFilename)
+            response.addVariable("vcfImageMimeType", vcfImageMimeType)
+        }
+
+        return ResponseEntity.ok(response)
+    }
+
+    /**
+     * Takes the image of the last parsed vCard (see [parseVcf], or an entry of the VCF import) over as the uploaded
+     * image of the address form, which the next save stores (see `AddressSaveSupport`). Unlike the image data
+     * [applyParsedData] returns for the React form, nothing travels to the client and back.
+     */
+    @AccessChecked("own session only")
+    @PostMapping("applyVcfImage")
+    fun applyVcfImage(request: HttpServletRequest): ResponseEntity<String> {
+        val session = request.getSession(false)
+        val vcfImage = ExpiringSessionAttributes.getAttribute(session, SESSION_VCF_IMAGE_ATTR) as? SessionVcfImage
+        if (vcfImage == null || vcfImage.imageTooLarge) {
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+        val image = AddressImageServicesRest.SessionImage(vcfImage.filename, vcfImage.imageType, vcfImage.bytes)
+        ExpiringSessionAttributes.setAttribute(
+            session,
+            AddressImageServicesRest.SESSION_IMAGE_ATTR,
+            image,
+            AddressImageServicesRest.SESSION_IMAGE_TTL_MINUTES,
+        )
+        ExpiringSessionAttributes.removeAttribute(session, SESSION_VCF_IMAGE_ATTR)
+        return ResponseEntity("OK", HttpStatus.OK)
+    }
+
+    /**
      * Converts VCF data to the parsedData format expected by the text parser.
      */
     private fun convertVcfToParsedDataFormat(
@@ -390,4 +547,43 @@ class AddressServicesRest {
     }
 
     class DisplayLanguage(val id: String, val displayName: String)
+
+    /**
+     * Helper function to parse LocalDate from string using PFDayUtils.parseDate().
+     * Accepts ISO format (YYYY-MM-DD), user's date format, and other formats.
+     * Returns null if parsing fails.
+     */
+    private fun tryParseLocalDate(value: String?): LocalDate? {
+        if (value.isNullOrBlank()) return null
+        return PFDayUtils.parseDate(value)
+    }
+
+    /**
+     * Helper function to parse FormOfAddress from string representation.
+     * Uses VCardUtils.parseFormOfAddress() which checks all supported locales.
+     * Accepts both enum names (PERSON_MALE) and localized display strings (Herr, Mr.).
+     * Returns null if parsing fails.
+     */
+    private fun tryParseFormOfAddress(value: String?): FormOfAddress? {
+        return VCardUtils.parseFormOfAddress(value)
+    }
+
+    /**
+     * Helper function to parse Locale from a language tag ("de", "en-US"), its `toString` form ("de_DE", as a
+     * dropped vCard posts it) or its display name ("Deutsch (Deutschland)", as the comparison of a VCF import
+     * shows it, see AddressImportSupport). Returns null if parsing fails.
+     */
+    private fun tryParseLocale(value: String?): Locale? {
+        if (value.isNullOrBlank()) return null
+        val trimmed = value.trim()
+        val displayLocales = listOf(Locale.getDefault(), ThreadLocalUserContext.locale, Locale.ENGLISH).distinct()
+        Locale.getAvailableLocales().find { locale ->
+            locale.language.isNotEmpty() && displayLocales.any { locale.getDisplayName(it).equals(trimmed, ignoreCase = true) }
+        }?.let { return it }
+        if (!trimmed.matches(Regex("[A-Za-z]{2,3}([_-][A-Za-z0-9]{2,8})*"))) {
+            return null
+        }
+        return LocaleUtils.parse(trimmed.replace('_', '-'))
+    }
 }
+

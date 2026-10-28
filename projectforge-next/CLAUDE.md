@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # ProjectForge Next.js — Project Conventions
 
-This is the in-progress migration of the legacy `projectforge-webapp` (CRA + React) into a modern Next.js App Router app. The legacy code is a **reference for capabilities and domain logic only** — never copy its structure, styling, or patterns. Everything written here must be clean, structured, and maintainable for the long term.
+This is the Next.js App Router frontend of ProjectForge, the successor of the removed legacy React app (`projectforge-webapp`, still in the git history) and of Wicket. Legacy code is a **reference for capabilities and domain logic only** — never copy its structure, styling, or patterns. Everything written here must be clean, structured, and maintainable for the long term.
 
 ## Reuse first — always
 
@@ -18,7 +18,7 @@ This is the in-progress migration of the legacy `projectforge-webapp` (CRA + Rea
 
 1. `grep`/`find` `components/`, `lib/`, `hooks/` for similar names and purposes. Read at least one match.
 2. For any UI primitive (button, input, dialog, dropdown, etc.) check if shadcn provides it. If yes, install via `npx shadcn@latest add <name>` — never hand-roll. Never edit anything in `components/ui/`.
-3. For domain features, check `projectforge-webapp/` (legacy) to understand existing capabilities and naming. Do **not** port its code; reimplement cleanly.
+3. For domain features, check the backend (`projectforge-rest`, `projectforge-business`) and, if needed, the removed legacy `projectforge-webapp/` in the git history to understand existing capabilities and naming. Do **not** port its code; reimplement cleanly.
 4. If you find a near-match that needs extension, extend or generalize it rather than forking. Big or duplicated components should be picked up and split.
 
 If you create something that could plausibly be reused, put it in the right tier (see below) so the next agent finds it.
@@ -88,7 +88,6 @@ Cross-feature imports are forbidden. If two features need the same thing, it bel
 ## Forms, validation, i18n
 
 - **Hand-built forms use `@tanstack/react-form` + Zod.** The schema lives next to the feature and mirrors the Spring Boot DTO exactly. No raw `<form onSubmit>` handlers. (`books/edit` is the reference.)
-- **Server-laid-out forms use no form library.** Pages rendered from a `UILayout` (`components/dynamic/`) are context-driven: `data` / `setData` / `validationErrors` from `DynamicLayoutProvider`. The field set only exists at runtime and validation is the server's (HTTP 406 carries `validationErrors`), so a Zod schema would have to be generated per response and would validate nothing the server doesn't. Do not introduce a form library there.
 - **All user-facing strings via `next-intl`.** Reference via `useTranslations` / `getTranslations`. No hardcoded German (or any natural language) in JSX. When you touch a file with hardcoded strings, migrate them.
 - **`I18nResources.properties` is the source of truth, not `messages/*.json`.** New texts go into `projectforge-business/src/main/resources/I18nResources.properties` (English) and `I18nResources_de.properties` (German), and the key's prefix must be covered by `PREFIXES` in `projectforge-application/src/test/kotlin/org/projectforge/development/GenerateNextI18nMessagesMain.kt`. Then run `DevelopmentMainForRelease` (same package) — it sorts the bundles, regenerates `messages/generated.<locale>.json` and refreshes the i18n key usage. Invoke it with `bin/pfDev.sh gen` (or `./gradlew :projectforge-application:developmentMainForRelease`). Reuse existing keys wherever one fits; the backend bundle already covers most domain vocabulary.
 - `messages/de.json` / `messages/en.json` are hand-written and hold **only** texts with no backend counterpart (transient UI states like „Prüfe…"). They are deep-merged over the generated catalogs (`i18n/config.ts`), so both can share a namespace.
@@ -207,7 +206,7 @@ entity, `finance-user` for the finance rights without the admin group. Not every
 ## Window titles
 
 - **Every page names the browser window after its heading**: `<page title> – ProjectForge` (page first, so many open tabs stay distinguishable; edit pages: the record's display name, as in their header). Built by `windowTitle` (`lib/window-title.ts`), set by **`useDocumentTitle`** (`hooks/use-document-title.ts`).
-- **The shared headings already call it**: `PageTitleRow` (and thereby every list page), `EntityEditHeader`, `DynamicPage`, `MassUpdateForm`, `AuthCard`. A page built from these needs nothing more. A page with a **hand-written heading** (`<h1>` in a `PageShell`, e.g. the import pages, `taskWizard`) must call `useDocumentTitle` with the same string it renders. Modals don't touch the title.
+- **The shared headings already call it**: `PageTitleRow` (and thereby every list page), `EntityEditHeader`, `MassUpdateForm`, `AuthCard`. A page built from these needs nothing more. A page with a **hand-written heading** (`<h1>` in a `PageShell`, e.g. the import pages, `taskWizard`) must call `useDocumentTitle` with the same string it renders. Modals don't touch the title.
 - **Never set a title via Next's `metadata`** (root layout or per route): under static export the titles are translated only on the client, and Next re-mounts its metadata `<title>` after the page's effects, overwriting the page's title. The root layout's plain `<title>` is just the prerendered default.
 
 ## Reusable components — where to look

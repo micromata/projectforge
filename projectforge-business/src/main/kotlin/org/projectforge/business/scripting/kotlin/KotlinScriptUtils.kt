@@ -78,13 +78,13 @@ internal object KotlinScriptUtils {
         }
         val returnValue = extractResult(result)
         if (returnValue is ResultValue.Error) {
-            log.error { "Script result with error: ${returnValue.error}" }
+            log.info { "Script result with error: ${returnValue.error}" }
             scriptExecutionResult.result = returnValue.error
             return
         }
         scriptExecutionResult.result = returnValue
         if (result !is ResultWithDiagnostics.Success) {
-            log.error { "Script result: ${result.valueOrNull()}" }
+            log.info { "Script result: ${result.valueOrNull()}" }
         }
     }
 

@@ -12,6 +12,7 @@ import {
 } from "./field-shell";
 import { useEntityEditForm, useFieldMetadata } from "./form-context";
 import { useFieldErrors } from "./use-field-errors";
+import type { InactiveMode } from "@/hooks/use-show-inactive";
 
 export interface EntityMultiAutocompleteFieldProps extends BaseFieldProps {
   /**
@@ -23,6 +24,8 @@ export interface EntityMultiAutocompleteFieldProps extends BaseFieldProps {
   minChars?: number;
   /** Further request parameters of that search, see [EntitySearchList]. */
   params?: Record<string, unknown>;
+  /** How inactive entries are offered, see [InactiveMode]. */
+  inactive?: InactiveMode;
   /**
    * The entity has no metadata for this field, and cannot have any: a collection is no
    * `@PropertyInfo` field of the DO, so a group's `assignedUsers` is absent from the generated
@@ -48,6 +51,7 @@ export function EntityMultiAutocompleteField({
   entity,
   minChars,
   params,
+  inactive,
   metadataLess,
   sorted,
 }: EntityMultiAutocompleteFieldProps) {
@@ -80,6 +84,7 @@ export function EntityMultiAutocompleteField({
               // The trigger is a button, which a <label htmlFor> cannot name — same as SelectField.
               aria-label={label}
               url={`${entity}/autosearch?search=:search`}
+              refType={entity}
               value={(field.state.value as EntityRef[] | null) ?? []}
               onChange={(next) => {
                 field.handleChange(next);
@@ -90,6 +95,7 @@ export function EntityMultiAutocompleteField({
               removeLabel={(entry) => `${t("delete")}: ${entry.displayName}`}
               minChars={minChars}
               params={params}
+              inactive={inactive}
               sorted={sorted}
               selectMe={selectMe}
             />

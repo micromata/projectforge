@@ -58,7 +58,18 @@ describe("parseLanesAndPlanesConfig", () => {
     ]);
     expect(config.generalKost1).toEqual([]);
     expect(config.existingCostObjects).toEqual([]);
-    expect(config.existingUserEmails).toEqual([]);
-    expect(config.confirmedEmailChanges).toEqual([]);
+    expect(config.userEmails).toEqual([]);
+  });
+
+  it("completes the user emails and drops the removed settings", () => {
+    const { config } = parseLanesAndPlanesConfig(
+      '{"existingUserEmails":["a@example.org"],"confirmedEmailChanges":[],"userEmails":[{"userId":4},{"email":"b@example.org"}]}'
+    );
+    expect(config.userEmails).toEqual([
+      { userId: 4, email: "" },
+      { userId: null, email: "b@example.org" },
+    ]);
+    expect("existingUserEmails" in config).toBe(false);
+    expect("confirmedEmailChanges" in config).toBe(false);
   });
 });

@@ -99,11 +99,13 @@ open class VisitorbookCache : AbstractCache() {
     }
 
     private fun fillVisitorbookInfo(visitorbookInfo: VisitorbookInfo, entries: List<VisitorbookEntryDO>) {
-        val lastEntry = entries.first()
-        visitorbookInfo.lastDateOfVisit = lastEntry.dateOfVisit
-        visitorbookInfo.latestArrived = lastEntry.arrived
-        visitorbookInfo.latestDeparted = lastEntry.departed
+        // No entries left after the last visit was deleted.
+        val lastEntry = entries.firstOrNull()
+        visitorbookInfo.lastDateOfVisit = lastEntry?.dateOfVisit
+        visitorbookInfo.latestArrived = lastEntry?.arrived
+        visitorbookInfo.latestDeparted = lastEntry?.departed
         visitorbookInfo.numberOfVisits = entries.size
+        visitorbookInfo.incompleteVisits = entries.count { it.arrived.isNullOrBlank() || it.departed.isNullOrBlank() }
     }
 
     companion object {

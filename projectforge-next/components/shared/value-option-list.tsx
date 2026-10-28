@@ -9,12 +9,18 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Badge } from "@/components/ui/badge";
 import { HighlightedText } from "@/components/shared/highlighted-text";
 import { cn } from "@/lib/utils";
 
 export interface ValueOption {
   value: string;
   label: string;
+  /**
+   * No longer live but still selectable — a closed (inactive) address campaign: offered muted with an
+   * "inactive" badge rather than struck through, which would read as deleted (`UISelectValue.inactive`).
+   */
+  inactive?: boolean;
 }
 
 /**
@@ -56,6 +62,7 @@ export function ValueOptionList({
   className,
 }: ValueOptionListProps) {
   const t = useTranslations("select");
+  const tRoot = useTranslations();
   // Controlled only to highlight the match in the options; cmdk still does the filtering itself.
   const [search, setSearch] = useState("");
   // cmdk's highlighted item (its value is the option's label), so Space can toggle it.
@@ -90,9 +97,20 @@ export function ValueOptionList({
             onSelect={() => toggle(option.value)}
           >
             {/* One span so CommandItem's flex `gap` doesn't space out the highlight fragments. */}
-            <span>
+            <span
+              className={cn(option.inactive && "flex-1 text-muted-foreground")}
+            >
               <HighlightedText text={option.label} query={search} />
             </span>
+            {option.inactive && (
+              <Badge
+                variant="outline"
+                // Beside the trailing tick: the label takes the free space (flex-1), not two auto margins.
+                className="font-normal text-muted-foreground"
+              >
+                {tRoot("select.inactive")}
+              </Badge>
+            )}
           </CommandItem>
         ))}
       </CommandList>

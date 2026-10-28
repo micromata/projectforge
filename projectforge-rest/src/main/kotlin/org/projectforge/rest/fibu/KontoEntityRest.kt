@@ -65,6 +65,9 @@ class KontoEntityRest
      */
     override val autoCompleteSearchFields = arrayOf("nummer", "bezeichnung", "description")
 
+    /** Name hits first, see [autoCompletePrimarySearchFields]. */
+    override val autoCompletePrimarySearchFields = arrayOf("nummer", "bezeichnung")
+
     override fun transformFromDB(obj: KontoDO, editMode: Boolean): Konto {
         val konto = Konto()
         konto.copyFrom(obj)

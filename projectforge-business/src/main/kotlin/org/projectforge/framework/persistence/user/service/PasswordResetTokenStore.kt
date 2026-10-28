@@ -55,13 +55,18 @@ internal object PasswordResetTokenStore {
     }
   }
 
+  /**
+   * A still valid token of the user is returned as it is (its expiry isn't extended): otherwise anybody could make the
+   * link of a pending reset mail invalid by requesting another one.
+   */
   fun createToken(userId: Long): String {
-    val token = NumberHelper.getSecureRandomAlphanumeric(30)
     tidyUp()
     synchronized(store) {
+      store[userId]?.let { return it.token }
+      val token = NumberHelper.getSecureRandomAlphanumeric(30)
       store[userId] = ExpiringToken(token)
+      return token
     }
-    return token
   }
 
   private fun tidyUp() {

@@ -131,8 +131,8 @@ public class StringHelperTest {
     assertEquals("", StringHelper.removeNonDigits(null));
     assertEquals("", StringHelper.removeNonDigits("a"));
     assertEquals("1", StringHelper.removeNonDigits("1"));
-    assertEquals("495613167930", StringHelper.removeNonDigits("+49 561 / 316793 - 0"));
-    assertEquals("056131679311", StringHelper.removeNonDigits("0561 / 316793-11"));
+    assertEquals("491234567890", StringHelper.removeNonDigits("+49 123 / 456789 - 0"));
+    assertEquals("012345678911", StringHelper.removeNonDigits("0123 / 456789-11"));
   }
 
   @Test
@@ -180,12 +180,12 @@ public class StringHelperTest {
     assertTrue(StringHelper.checkPhoneNumberFormat(null));
     assertTrue(StringHelper.checkPhoneNumberFormat(""));
     assertTrue(StringHelper.checkPhoneNumberFormat(" "));
-    assertTrue(StringHelper.checkPhoneNumberFormat("+49 561 316793-0"));
-    assertFalse(StringHelper.checkPhoneNumberFormat("+490561 123456"), "+490561 123456 not allowed.");
-    assertFalse(StringHelper.checkPhoneNumberFormat("+49 0561 123456"), "+49 0561 123456 not allowed.");
-    assertFalse(StringHelper.checkPhoneNumberFormat("+49     0561 123456"), "+49 0561 123456 not allowed.");
-    assertFalse(StringHelper.checkPhoneNumberFormat("0561 316793-0"), "Leading country code expected.");
-    assertFalse(StringHelper.checkPhoneNumberFormat("+49 561 316793+0"), "+ is only allowed at first char");
+    assertTrue(StringHelper.checkPhoneNumberFormat("+49 123 456789-0"));
+    assertFalse(StringHelper.checkPhoneNumberFormat("+490123 123456"), "+490123 123456 not allowed.");
+    assertFalse(StringHelper.checkPhoneNumberFormat("+49 0123 123456"), "+49 0123 123456 not allowed.");
+    assertFalse(StringHelper.checkPhoneNumberFormat("+49     0123 123456"), "+49 0123 123456 not allowed.");
+    assertFalse(StringHelper.checkPhoneNumberFormat("0123 456789-0"), "Leading country code expected.");
+    assertFalse(StringHelper.checkPhoneNumberFormat("+49 123 456789+0"), "+ is only allowed at first char");
   }
 
   @Test

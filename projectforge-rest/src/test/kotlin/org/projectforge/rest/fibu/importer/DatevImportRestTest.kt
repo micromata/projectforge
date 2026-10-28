@@ -189,16 +189,8 @@ class DatevImportRestTest {
         storedRecords.add(stored(id = 100L, satznr = 1, betrag = "-1234.56", datum = LocalDate.of(2026, 7, 15)))
         storedRecords.add(stored(id = 101L, satznr = 2, betrag = "99.00", datum = LocalDate.of(2026, 8, 13)))
         val enqueuedJobs = mutableListOf<AbstractJob>()
-        val rest = DatevRecordImportRest()
-        setField(rest, "accessChecker", Mockito.mock(AccessChecker::class.java))
-        setField(rest, "buchungssatzDao", buchungssatzDao)
-        setField(rest, "kontoCache", kontoCache)
-        setField(rest, "kostCache", kostCache)
-        setField(rest, "caches", Mockito.mock(PfCaches::class.java))
-        setField(rest, "configurationService", configurationService())
-        setField(rest, "jobHandler", echoJobHandler(enqueuedJobs))
-        val request = MockHttpServletRequest()
-        request.setSession(MockHttpSession())
+        val rest = recordRest(enqueuedJobs)
+        val request = requestWithSession()
 
         val file = MockMultipartFile("file", FILENAME, XLSX_CONTENT_TYPE, buildXlsx())
         val uploadResponse = rest.upload(request, file)
@@ -236,21 +228,10 @@ class DatevImportRestTest {
 
     @Test
     fun `chart of accounts upload round-trip`() {
-        val persistenceService = Mockito.mock(PfPersistenceService::class.java) { invocation ->
-            if (invocation.method.name == "executeQuery") emptyList<KontoDO>()
-            else Mockito.RETURNS_DEFAULTS.answer(invocation)
-        }
-        val applicationContext = ApplicationContextProvider.getApplicationContext()
-        Mockito.`when`(applicationContext.getBean(PfPersistenceService::class.java)).thenReturn(persistenceService)
+        mockNoStoredAccounts()
         val enqueuedJobs = mutableListOf<AbstractJob>()
-        val rest = DatevAccountImportRest()
-        setField(rest, "accessChecker", Mockito.mock(AccessChecker::class.java))
-        setField(rest, "kontoDao", Mockito.mock(KontoDao::class.java))
-        setField(rest, "kontoCache", kontoCache)
-        setField(rest, "configurationService", configurationService())
-        setField(rest, "jobHandler", echoJobHandler(enqueuedJobs))
-        val request = MockHttpServletRequest()
-        request.setSession(MockHttpSession())
+        val rest = accountRest(enqueuedJobs)
+        val request = requestWithSession()
 
         val file = MockMultipartFile("file", FILENAME, XLSX_CONTENT_TYPE, buildXlsx())
         val upload = rest.upload(request, file)
@@ -263,6 +244,61 @@ class DatevImportRestTest {
         val commitData = AbstractImportRest.CommitData(selectedIds = reconcileView.entries.map { it.id })
         assertEquals(HttpStatus.OK, rest.commit(request, commitData).statusCode)
         assertTrue(enqueuedJobs.single() is DatevAccountImportJob)
+    }
+
+    @Test
+    fun `a records upload stashes the chart of accounts of the same file for the accounts tab`() {
+        mockNoStoredAccounts()
+        val recordRest = recordRest()
+        val accountRest = accountRest()
+        val request = requestWithSession()
+        assertNull(accountRest.state(request).filename, "Nothing in the accounts tab before the upload.")
+
+        val upload = recordRest.upload(request, MockMultipartFile("file", FILENAME, XLSX_CONTENT_TYPE, buildXlsx()))
+        assertEquals(HttpStatus.OK, upload.statusCode, "Upload should succeed: ${upload.body}")
+        assertEquals(1, (upload.body as ImportView<*>).uploadNotes?.size, "The user is told about the accounts tab.")
+        assertEquals(4, recordRest.state(request).entries.size, "The own tab keeps its records.")
+
+        val accountState = accountRest.state(request)
+        assertEquals(FILENAME, accountState.filename)
+        assertEquals(listOf(4400, 8400), accountState.entries.map { (it.read as DatevAccountImportDTO).nummer })
+        val reconciled = accountRest.reconcile(request, ImportStorage.DisplayOptions()).body as ImportView<*>
+        assertTrue(reconciled.hasBeenReconciled)
+        assertTrue(reconciled.entries.all { it.status == ImportEntry.Status.NEW })
+        assertNull(reconciled.uploadNotes, "Notes are only answered on the upload.")
+    }
+
+    @Test
+    fun `an accounts upload stashes the accounting records of the same file for the records tab`() {
+        val recordRest = recordRest()
+        val accountRest = accountRest()
+        val request = requestWithSession()
+
+        val upload = accountRest.upload(request, MockMultipartFile("file", FILENAME, XLSX_CONTENT_TYPE, buildXlsx()))
+        assertEquals(HttpStatus.OK, upload.statusCode, "Upload should succeed: ${upload.body}")
+        assertEquals(1, (upload.body as ImportView<*>).uploadNotes?.size)
+
+        assertEquals(FILENAME, recordRest.state(request).filename)
+        val reconciled = recordRest.reconcile(request, ImportStorage.DisplayOptions()).body as ImportView<*>
+        val bySatznr = reconciled.entries.associateBy { (it.read as DatevRecordImportDTO).satznr }
+        assertEquals(ImportEntry.Status.NEW, bySatznr[1]!!.status)
+        assertEquals(ImportEntry.Status.FAULTY, bySatznr[4]!!.status)
+    }
+
+    @Test
+    fun `a records upload without chart of accounts leaves the accounts tab untouched`() {
+        val recordRest = recordRest()
+        val accountRest = accountRest()
+        val request = requestWithSession()
+        val accountsFile = "2026-06_-_Kontenplan.xlsx"
+        accountRest.upload(request, MockMultipartFile("file", accountsFile, XLSX_CONTENT_TYPE, buildXlsx()))
+
+        val upload = recordRest.upload(
+            request, MockMultipartFile("file", FILENAME, XLSX_CONTENT_TYPE, buildXlsx(withKontenplan = false)),
+        )
+        assertEquals(HttpStatus.OK, upload.statusCode, "Upload should succeed: ${upload.body}")
+        assertNull((upload.body as ImportView<*>).uploadNotes)
+        assertEquals(accountsFile, accountRest.state(request).filename, "The earlier accounts upload is kept.")
     }
 
     @Test
@@ -417,6 +453,43 @@ class DatevImportRestTest {
             it.nummer = nummer
             it.bezeichnung = bezeichnung
         }
+    }
+
+    private fun parser(): DatevImportParser = DatevImportParser().also {
+        setField(it, "kontoCache", kontoCache)
+        setField(it, "kostCache", kostCache)
+        setField(it, "caches", Mockito.mock(PfCaches::class.java))
+    }
+
+    private fun recordRest(enqueuedJobs: MutableList<AbstractJob> = mutableListOf()) = DatevRecordImportRest().also {
+        setField(it, "accessChecker", Mockito.mock(AccessChecker::class.java))
+        setField(it, "buchungssatzDao", buchungssatzDao)
+        setField(it, "kontoCache", kontoCache)
+        setField(it, "kostCache", kostCache)
+        setField(it, "parser", parser())
+        setField(it, "configurationService", configurationService())
+        setField(it, "jobHandler", echoJobHandler(enqueuedJobs))
+    }
+
+    private fun accountRest(enqueuedJobs: MutableList<AbstractJob> = mutableListOf()) = DatevAccountImportRest().also {
+        setField(it, "accessChecker", Mockito.mock(AccessChecker::class.java))
+        setField(it, "kontoDao", Mockito.mock(KontoDao::class.java))
+        setField(it, "parser", parser())
+        setField(it, "configurationService", configurationService())
+        setField(it, "jobHandler", echoJobHandler(enqueuedJobs))
+    }
+
+    /** Both tabs share the session, as in the browser. */
+    private fun requestWithSession() = MockHttpServletRequest().also { it.setSession(MockHttpSession()) }
+
+    /** The account reconcile reads all stored accounts: none here. */
+    private fun mockNoStoredAccounts() {
+        val persistenceService = Mockito.mock(PfPersistenceService::class.java) { invocation ->
+            if (invocation.method.name == "executeQuery") emptyList<KontoDO>()
+            else Mockito.RETURNS_DEFAULTS.answer(invocation)
+        }
+        val applicationContext = ApplicationContextProvider.getApplicationContext()
+        Mockito.`when`(applicationContext.getBean(PfPersistenceService::class.java)).thenReturn(persistenceService)
     }
 
     /** The upload limit of both DATEV imports, as configured by default (`projectforge.max-file-size.datev`). */

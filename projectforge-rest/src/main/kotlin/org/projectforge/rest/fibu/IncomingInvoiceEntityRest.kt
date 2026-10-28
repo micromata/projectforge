@@ -79,7 +79,7 @@ private val log = KotlinLogging.logger {}
  * The list of incoming invoices (Kreditorenrechnungen), layout free — the incoming sibling of
  * [OutgoingInvoiceEntityRest] and modelled on it.
  *
- * `open` for the same reason the outgoing one is: it is autowired by [EingangsrechnungMultiSelectedPageRest]
+ * `open` for the same reason the outgoing one is: it is autowired by [IncomingInvoiceMassUpdateRest]
  * and named by Wicket's `EingangsrechnungListPage.addNewMassSelect`.
  *
  * Answers the list, its statistics, its two exports, and the read/write path of the hand built edit page of
@@ -260,6 +260,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
             kostZuweisungenFehlbetrag = if (costConfigured) info.kostZuweisungenFehlbetrag else null,
             bezahlt = info.isBezahlt,
             ueberfaellig = info.isUeberfaellig,
+            markedOverdue = info.isMarkedOverdue,
             positions = info.positions?.map { position ->
                 PositionSums(
                     number = position.number,
@@ -286,6 +287,8 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
         val kostZuweisungenFehlbetrag: BigDecimal?,
         val bezahlt: Boolean,
         val ueberfaellig: Boolean,
+        /** Overdue, or due within 2 working days ([org.projectforge.business.fibu.RechnungInfo.isMarkedOverdue]). */
+        val markedOverdue: Boolean,
         val positions: List<PositionSums>?,
     )
 
@@ -421,7 +424,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
 
     /**
      * The whole-result statistics of a server-side paged invoice list: computed over the full id list, not
-     * over the single page [postProcessResultSet] sees (see `MIGRATION-list-paging.md`).
+     * over the single page [postProcessResultSet] sees (see `dev-docs/next/list-paging.md`).
      * [EingangsrechnungsStatistik] converts foreign currencies from the loaded [EingangsrechnungDO], which no
      * cache holds, so the matching invoices are loaded here. See [OutgoingInvoiceEntityRest.aggregate].
      */
@@ -511,7 +514,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
 
     /**
      * The SEPA bank transfer of a single invoice as a pain.001.003.03 xml, the single-invoice counterpart of
-     * [EingangsrechnungMultiSelectedPageRest.exportTransfers] and of Wicket's `EingangsrechnungEditPage`
+     * [IncomingInvoiceMassUpdateRest.exportTransfers] and of Wicket's `EingangsrechnungEditPage`
      * "Export bank transfers" button. A validation failure (missing IBAN/BIC/receiver/…) is returned as a
      * downloadable `error.txt` listing the missing fields, exactly as the multi-select export does.
      */

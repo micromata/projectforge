@@ -11,8 +11,14 @@ import { HighlightedText } from "@/components/shared/highlighted-text";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { AttachmentSelection } from "@/hooks/use-attachment-selection";
-import { attachmentDownloadUrl, type Attachment } from "@/lib/rs/attachments";
+import {
+  attachmentDownloadUrl,
+  attachmentUserFlags,
+  type Attachment,
+} from "@/lib/rs/attachments";
 import { AttachmentEncryptedBadge } from "./attachment-encrypted-badge";
+import { useAttachmentService } from "./attachment-service";
+import { inactiveRefClass } from "@/lib/page-def/reference";
 
 type Column = ColumnDef<Attachment, unknown>;
 
@@ -36,8 +42,11 @@ function useCellContext(): CellContext {
   return context;
 }
 
-/** Whether the row offers no rename — then its click downloads instead (see AttachmentRow). */
-function noRename(attachment: Attachment, readOnly?: boolean): boolean {
+/**
+ * Whether nothing of the file can be changed in its details — they open read-only then (see
+ * AttachmentFiles). In the compact list such a row's click downloads instead (see AttachmentRow).
+ */
+export function noRename(attachment: Attachment, readOnly?: boolean): boolean {
   return (
     readOnly === true ||
     attachment.readonly === true ||
@@ -76,7 +85,11 @@ export function searchAttachments(
  */
 export function attachmentColumns(
   t: (key: string) => string,
-  readOnly?: boolean
+  readOnly?: boolean,
+  /** Shows who uploaded and changed a file (see AttachmentService.userInfo). */
+  userInfo = true,
+  /** Leads with a checkbox; a read-only list has one only where a selection can be downloaded. */
+  selectable = !readOnly
 ): Column[] {
   const header = (label: string, filterKind?: FilterKind): Column["header"] =>
     function AttachmentColumnHeader({ column, table }) {
@@ -103,11 +116,16 @@ export function attachmentColumns(
     header: header(label, "text"),
     size: 140,
     meta: { label },
-    cell: ({ getValue, table }) => (
-      <HighlightedText
-        text={String(getValue())}
-        query={table.options.meta?.highlight}
-      />
+    cell: ({ getValue, row, table }) => (
+      // Struck through when the user is no longer active (see inactiveRefClass).
+      <span
+        className={inactiveRefClass(attachmentUserFlags(row.original, key))}
+      >
+        <HighlightedText
+          text={String(getValue())}
+          query={table.options.meta?.highlight}
+        />
+      </span>
     ),
   });
 
@@ -144,7 +162,7 @@ export function attachmentColumns(
       meta: { label: t("created") },
       cell: ({ row }) => row.original.createdFormatted ?? "",
     },
-    user("createdByUser", t("createdBy")),
+    ...(userInfo ? [user("createdByUser", t("createdBy"))] : []),
     {
       id: "lastUpdate",
       accessorFn: (row) => row.lastUpdate ?? "",
@@ -159,7 +177,7 @@ export function attachmentColumns(
         </span>
       ),
     },
-    user("lastUpdateByUser", t("modifiedBy")),
+    ...(userInfo ? [user("lastUpdateByUser", t("modifiedBy"))] : []),
     {
       id: "expiryInfo",
       accessorFn: (row) => row.info?.expiryInfo ?? "",
@@ -171,7 +189,7 @@ export function attachmentColumns(
       meta: { label: t("attachment.expires") },
     },
   ];
-  return readOnly
+  return !selectable
     ? columns
     : [
         {
@@ -226,6 +244,7 @@ function NameCell({
 }) {
   const t = useTranslations();
   const { entity, id } = useCellContext();
+  const { base } = useAttachmentService();
   return (
     <div className="min-w-0">
       <div className="flex items-center gap-1.5">
@@ -234,6 +253,7 @@ function NameCell({
             entity,
             id,
             fileId: attachment.fileId,
+            base,
           })}
           aria-label={`${t("download._")}: ${attachment.name}`}
           // min-w-0: a flex item doesn't shrink below its content, so a name without spaces
@@ -274,7 +294,8 @@ interface Props {
  * (`DynamicAttachmentList.jsx`), for a page whose content *is* the files (a data transfer area). The
  * compact list (AttachmentRow) stays for the attachment sections inside a form.
  *
- * A row click opens the details, or downloads where nothing could be changed in them — as AttachmentRow.
+ * A row click opens the details, read-only where nothing could be changed in them — as the legacy page,
+ * where the external access opened its dialog for every file too. The name stays the download link.
  */
 export function AttachmentTable({
   table,
@@ -297,14 +318,7 @@ export function AttachmentTable({
         autoHeight
         emptyState={t("nothingFound")}
         onRowClick={(attachment) => {
-          if (busy) return;
-          if (noRename(attachment, readOnly)) {
-            window.location.assign(
-              attachmentDownloadUrl({ entity, id, fileId: attachment.fileId })
-            );
-          } else {
-            onEdit(attachment);
-          }
+          if (!busy) onEdit(attachment);
         }}
         rowActions={
           readOnly

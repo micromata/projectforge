@@ -24,6 +24,7 @@
 package org.projectforge.rest.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.projectforge.business.fibu.ContactUserIds
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO
@@ -36,6 +37,11 @@ class Project(
     id: Long? = null,
     displayName: String? = null,
     var nummer: Int = 0,
+    /**
+     * System-wide unique project number: computed for customers of a number range, entered otherwise (see
+     * [ProjektDO.projektnummer]).
+     */
+    var projektnummer: Int? = null,
     var name: String? = null,
     var identifier: String? = null,
     var description: String? = null,
@@ -44,11 +50,17 @@ class Project(
     var konto: Konto? = null,
     var task: Task? = null,
     var projektManagerGroup: Group? = null,
-    var projectManager: User? = null,
-    var headOfBusinessManager: User? = null,
-    var salesManager: User? = null,
+    var contactPerson: User? = null,
+    /** The further contact persons next to [contactPerson] ([ProjektDO.additionalContactUserIds]). */
+    var additionalContacts: List<User>? = null,
+    /** The contact person and the additional contacts, for the list column only ([ProjektDO.assignedPersons]). */
+    var assignedPersons: String? = null,
+    /** The persons of [assignedPersons] as references, for the list column (struck through when no longer active). */
+    var assignedPersonList: List<User>? = null,
     var nummernkreis: Int? = null,
     var bereich: Int? = null,
+    /** Digits 5-6 of the project number, the third part of its Kost2 (not the local number, see ProjektDO). */
+    var teilbereich: Int? = null,
     /**
      * The internal range (Kostenstellen 2-4, "4.xxx") of a project without customer; its customer's number
      * takes this place otherwise.
@@ -100,6 +112,15 @@ class Project(
         copyFromMinimal(src)
     }
 
+    /**
+     * Labels this reference the way a project is offered for choosing, with its customer
+     * ([KostFormatter.formatProjektWithCustomer]): for the project field of an edit page, so its loaded value
+     * reads like the picks of `project/autosearch`.
+     */
+    fun labelWithCustomer(src: ProjektDO): Project = also {
+        displayName = KostFormatter.instance.formatProjektWithCustomer(src)
+    }
+
     override fun copyFromMinimal(src: ProjektDO) {
         super.copyFromMinimal(src)
         // Resolve the customer through the cache: src may be a detached/cached ProjektDO whose kunde is
@@ -112,8 +133,14 @@ class Project(
 
     override fun copyFrom(src: ProjektDO) {
         super.copyFrom(src)
+        // super.copyFrom maps the contact person (a relation), not the additional contacts (a csv of ids).
+        additionalContacts = User.toUserList(src.additionalContactUserIds)
+        User.restoreDisplayNames(additionalContacts)
+        assignedPersons = src.assignedPersons
+        assignedPersonList = User.toContactList(src.contactPerson?.id, src.additionalContactUserIds)
         this.nummernkreis = src.nummernkreis
         this.bereich = src.bereich
+        this.teilbereich = src.teilbereich
         src.kunde?.let {
             // Name and division for the list columns of the next project list; the kunde is resolved
             // from the cache (PfCaches.initialize), so this costs no query.
@@ -136,5 +163,7 @@ class Project(
         // The DTO field is named 'customer' while the DO field is 'kunde', so the name-based super.copyTo
         // skips it; map it here by id (null clears the reference, i.e. an internal project).
         dest.kunde = customer?.id?.let { id -> KundeDO().also { it.id = id } }
+        dest.additionalContactUserIds =
+            ContactUserIds.normalize(contactPerson?.id, additionalContacts?.map { it.id })
     }
 }

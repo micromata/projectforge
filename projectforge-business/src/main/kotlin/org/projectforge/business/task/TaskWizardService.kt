@@ -115,12 +115,22 @@ class TaskWizardService {
     class AccessEntryResult(
         val groupType: GroupType,
         val groupName: String?,
-        val taskId: Long,
+        /** Null for the element of [previewNewElement], which doesn't exist yet. */
+        val taskId: Long?,
         val taskTitle: String?,
         val pickedElement: Boolean,
         val status: AccessStatus,
         val recursive: Boolean,
         val rights: List<AccessRightResult>,
+    )
+
+    /**
+     * A group as the project wizard hands it over: an existing one by [id], or one it is about to create,
+     * known only by its [name] - which only a preview can take, there is nothing to write rows for yet.
+     */
+    class WizardGroup(
+        val id: Long? = null,
+        val name: String? = null,
     )
 
     /**
@@ -169,6 +179,9 @@ class TaskWizardService {
      * are never written on it.
      *
      * @param taskId The structure element, required.
+     * @param checkAccess False for the project wizard only, which grants its users the exception of
+     * writing access rights after having checked them itself (see `ProjectWizardService`): the rows are
+     * then read and written without the access checks of [AccessDao].
      * @throws IllegalArgumentException if [taskId] names no element.
      */
     fun grantAccess(
@@ -176,7 +189,17 @@ class TaskWizardService {
         managerGroupId: Long? = null,
         teamGroupId: Long? = null,
         externalGroupId: Long? = null,
-    ): Result = process(taskId, managerGroupId, teamGroupId, externalGroupId, dryRun = false)
+        checkAccess: Boolean = true,
+    ): Result {
+        val taskNode = requireTaskNode(taskId)
+        val granted = grantedAccess(managerGroupId, teamGroupId, externalGroupId) { group, groupType ->
+            createAccessRights(taskNode, group, groupType, isLeaf = true, dryRun = false, checkAccess = checkAccess)
+        }
+        if (granted.isEmpty()) {
+            log.info { "Structure wizard: no group given for task #$taskId, so no access rights to create." }
+        }
+        return Result(taskNode.task?.title, granted)
+    }
 
     /**
      * What [grantAccess] with the same arguments would do, without doing any of it: the same walk over
@@ -193,33 +216,125 @@ class TaskWizardService {
         managerGroupId: Long? = null,
         teamGroupId: Long? = null,
         externalGroupId: Long? = null,
-    ): Result = process(taskId, managerGroupId, teamGroupId, externalGroupId, dryRun = true)
+    ): Result {
+        val taskNode = requireTaskNode(taskId)
+        val granted = grantedAccess(managerGroupId, teamGroupId, externalGroupId) { group, groupType ->
+            createAccessRights(taskNode, group, groupType, isLeaf = true, dryRun = true, checkAccess = true)
+        }
+        return Result(taskNode.task?.title, granted)
+    }
 
-    private fun process(
+    /**
+     * The preview of the project wizard: what [grantAccess] would do on an element that doesn't exist
+     * yet, to be created as child of [parentTaskId] with [newTaskTitle], for groups of which some may
+     * not exist yet either.
+     *
+     * The new element's row is new by definition, and so is every row of a new group; only the rows of
+     * an existing group on the ancestors may already be there.
+     *
+     * @param newParentTitle Title of a new element between [parentTaskId] and the new one - the element
+     * of a new customer, which gets the read access of an ancestor.
+     * @param checkAccess False for the project wizard, whose users may not see the rows of groups they
+     * aren't members of (see [grantAccess]).
+     * @throws IllegalArgumentException if [parentTaskId] names no element.
+     */
+    fun previewNewElement(
+        parentTaskId: Long,
+        newTaskTitle: String?,
+        newParentTitle: String? = null,
+        managerGroup: WizardGroup? = null,
+        teamGroup: WizardGroup? = null,
+        externalGroup: WizardGroup? = null,
+        checkAccess: Boolean = true,
+    ): Result {
+        val parentNode = requireTaskNode(parentTaskId)
+        val granted = wizardGroupsOf(managerGroup, teamGroup, externalGroup, checkAccess) { group, groupType ->
+            val leaf = entryOf(groupType, group.name, null, newTaskTitle, isLeaf = true, AccessStatus.CREATED)
+            val newParent = newParentTitle?.let {
+                entryOf(groupType, group.name, null, it, isLeaf = false, AccessStatus.CREATED)
+            }
+            val ancestors = createAccessRights(
+                parentNode, group, groupType, isLeaf = false, dryRun = true, checkAccess = checkAccess,
+            )
+            listOfNotNull(leaf, newParent) + ancestors
+        }
+        return Result(newTaskTitle, granted)
+    }
+
+    /**
+     * The preview of the project wizard for an existing element of the project: what [grantAccess] would do on
+     * [taskId], for groups of which some may not exist yet - like [previewAccess], but with the wizard's groups
+     * and its access checks (see [previewNewElement]).
+     *
+     * @throws IllegalArgumentException if [taskId] names no element.
+     */
+    fun previewExistingElement(
         taskId: Long,
+        managerGroup: WizardGroup? = null,
+        teamGroup: WizardGroup? = null,
+        externalGroup: WizardGroup? = null,
+        checkAccess: Boolean = true,
+    ): Result {
+        val taskNode = requireTaskNode(taskId)
+        val granted = wizardGroupsOf(managerGroup, teamGroup, externalGroup, checkAccess) { group, groupType ->
+            createAccessRights(taskNode, group, groupType, isLeaf = true, dryRun = true, checkAccess = checkAccess)
+        }
+        return Result(taskNode.task?.title, granted)
+    }
+
+    /** The rows of the wizard's groups, existing ones by id and new ones by name; groups without either left out. */
+    private fun wizardGroupsOf(
+        managerGroup: WizardGroup?,
+        teamGroup: WizardGroup?,
+        externalGroup: WizardGroup?,
+        checkAccess: Boolean,
+        entries: (GroupRef, GroupType) -> List<AccessEntryResult>,
+    ): List<GrantedAccess> {
+        return listOf(
+            GroupType.MANAGER to managerGroup,
+            GroupType.TEAM to teamGroup,
+            GroupType.EXTERNAL to externalGroup,
+        ).mapNotNull { (groupType, wizardGroup) ->
+            val group = when {
+                wizardGroup == null -> null
+                wizardGroup.id != null -> groupDao.find(wizardGroup.id, checkAccess = checkAccess)
+                    ?.let { GroupRef(it.id, it.name) }
+                wizardGroup.name.isNullOrBlank() -> null
+                else -> GroupRef(null, wizardGroup.name)
+            } ?: return@mapNotNull null
+            GrantedAccess(groupType, group.name, entries(group, groupType))
+        }
+    }
+
+    /**
+     * A group the rows are written for: [id] is null for one the project wizard is about to create.
+     */
+    private class GroupRef(val id: Long?, val name: String?)
+
+    private fun requireTaskNode(taskId: Long): TaskNode {
+        val taskNode = taskTree.getTaskNodeById(taskId)
+        requireNotNull(taskNode) { "Structure element with id $taskId not found." }
+        return taskNode
+    }
+
+    private fun grantedAccess(
         managerGroupId: Long?,
         teamGroupId: Long?,
         externalGroupId: Long?,
-        dryRun: Boolean,
-    ): Result {
-        val taskNode = taskTree.getTaskNodeById(taskId)
-        requireNotNull(taskNode) { "Structure element with id $taskId not found." }
-        val granted = listOf(
+        entries: (GroupRef, GroupType) -> List<AccessEntryResult>,
+    ): List<GrantedAccess> {
+        return listOf(
             GroupType.MANAGER to managerGroupId,
             GroupType.TEAM to teamGroupId,
             GroupType.EXTERNAL to externalGroupId,
         ).mapNotNull { (groupType, groupId) ->
-            val group = groupId?.let { groupDao.find(it) } ?: return@mapNotNull null
-            GrantedAccess(
-                groupType,
-                group.name,
-                createAccessRights(taskNode, group, groupType, isLeaf = true, dryRun = dryRun),
-            )
+            // Without access check: the caller has checked who may run the wizard, and the group is
+            // only read for its name here. Attached: the project wizard calls this within its transaction,
+            // right after inserting the group, and a detaching find would pull the new group out of it.
+            val group = groupId?.let { groupDao.find(it, checkAccess = false, attached = true) }
+                ?: return@mapNotNull null
+            GrantedAccess(groupType, group.name, entries(GroupRef(group.id, group.name), groupType))
         }
-        if (granted.isEmpty() && !dryRun) {
-            log.info { "Structure wizard: no group given for task #$taskId, so no access rights to create." }
-        }
-        return Result(taskNode.task?.title, granted)
     }
 
     /**
@@ -237,52 +352,75 @@ class TaskWizardService {
      */
     private fun createAccessRights(
         taskNode: TaskNode?,
-        group: GroupDO,
+        group: GroupRef,
         groupType: GroupType,
         isLeaf: Boolean,
         dryRun: Boolean,
+        checkAccess: Boolean,
     ): List<AccessEntryResult> {
         val task = taskNode?.task ?: return emptyList()
         val taskNodeId = taskNode.id ?: return emptyList()
-        val groupId = group.id ?: return emptyList()
         if (taskTree.isRootNode(taskNode)) {
             return emptyList()
         }
-        val existing = accessDao.getEntry(task, group)
-        val status = if (dryRun) {
-            previewStatus(existing, groupType, isLeaf)
-        } else {
-            writeAccessRight(existing, taskNodeId, groupId, groupType, isLeaf)
+        val groupId = group.id
+        // A group that doesn't exist yet has no rows anywhere.
+        val existing = groupId?.let {
+            accessDao.getEntry(task, GroupDO().also { it.id = groupId }, checkAccess = checkAccess)
         }
-        // The rights of the row afterwards, read off the template alone: it sets all four access types, so
-        // what the row says afterwards does not depend on what it said before - and this way the write and
-        // the preview report the same rights without either of them touching the loaded row.
-        val template = GroupTaskAccessDO().also { applyTemplate(it, groupType, isLeaf) }
-        val entry = AccessEntryResult(
+        // Without access checks (the project wizard, see grantAccess) an existing row is only added to, never
+        // weakened: its user may not manage the access rights, so he must not take away what a group may do.
+        val onlyAdd = !checkAccess && existing != null && !existing.deleted
+        val wanted = wantedRights(existing, groupType, isLeaf, onlyAdd)
+        val status = if (dryRun) {
+            previewStatus(existing, wanted)
+        } else {
+            requireNotNull(groupId) { "Access rights can only be written for an existing group." }
+            writeAccessRight(existing, taskNodeId, groupId, wanted, checkAccess)
+        }
+        val entry = entryOf(groupType, group.name, taskNodeId, task.title, isLeaf, status, wanted)
+        // Minimal access rights for the parent element up to the root.
+        return listOf(entry) + createAccessRights(
+            taskNode.parent, group, groupType, isLeaf = false, dryRun = dryRun, checkAccess = checkAccess,
+        )
+    }
+
+    private fun entryOf(
+        groupType: GroupType,
+        groupName: String?,
+        taskId: Long?,
+        taskTitle: String?,
+        isLeaf: Boolean,
+        status: AccessStatus,
+        wanted: GroupTaskAccessDO? = null,
+    ): AccessEntryResult {
+        // The rights of the row afterwards, read off [wantedRights] (the template for a new row): this way the
+        // write and the preview report the same rights without either of them touching the loaded row.
+        val template = wanted ?: GroupTaskAccessDO().also { applyTemplate(it, groupType, isLeaf) }
+        return AccessEntryResult(
             groupType = groupType,
-            groupName = group.name,
-            taskId = taskNodeId,
-            taskTitle = task.title,
+            groupName = groupName,
+            taskId = taskId,
+            taskTitle = taskTitle,
             pickedElement = isLeaf,
             status = status,
             recursive = template.recursive,
             rights = rightsOf(template),
         )
-        // Minimal access rights for the parent element up to the root.
-        return listOf(entry) + createAccessRights(taskNode.parent, group, groupType, isLeaf = false, dryRun = dryRun)
     }
 
     /**
      * Writes the one row and says what became of it.
      *
      * @param existing The row of this group on this element, or null if there is none yet.
+     * @param wanted The rights the row gets, see [wantedRights].
      */
     private fun writeAccessRight(
         existing: GroupTaskAccessDO?,
         taskNodeId: Long,
         groupId: Long,
-        groupType: GroupType,
-        isLeaf: Boolean,
+        wanted: GroupTaskAccessDO,
+        checkAccess: Boolean,
     ): AccessStatus {
         val wasDeleted = existing?.deleted == true
         val access = existing ?: GroupTaskAccessDO().also {
@@ -292,22 +430,26 @@ class TaskWizardService {
         if (wasDeleted) {
             // Before the template is applied, not after: undelete writes the whole object to the row,
             // so it would persist the new rights and leave the update below nothing to report.
-            accessDao.undelete(access)
+            accessDao.undelete(access, checkAccess)
         }
-        applyTemplate(access, groupType, isLeaf)
+        access.recursive = wanted.recursive
+        wanted.orderedEntries.forEach { entry ->
+            access.ensureAndGetAccessEntry(entry.accessType)
+                .setAccess(entry.accessSelect, entry.accessInsert, entry.accessUpdate, entry.accessDelete)
+        }
         return when {
             existing == null -> {
-                accessDao.insert(access)
+                accessDao.insert(access, checkAccess)
                 AccessStatus.CREATED
             }
             // The row did change - it was deleted - whatever the update answers.
             wasDeleted -> {
-                accessDao.update(access)
+                accessDao.update(access, checkAccess)
                 AccessStatus.UPDATED
             }
             // NONE means the entry already said what the template says, and nothing was written at all
             // (not even lastUpdate, see BaseDOPersistenceService.privateUpdate).
-            accessDao.update(access) == EntityCopyStatus.NONE -> AccessStatus.UNCHANGED
+            accessDao.update(access, checkAccess) == EntityCopyStatus.NONE -> AccessStatus.UNCHANGED
             else -> AccessStatus.UPDATED
         }
     }
@@ -326,8 +468,7 @@ class TaskWizardService {
      */
     private fun previewStatus(
         existing: GroupTaskAccessDO?,
-        groupType: GroupType,
-        isLeaf: Boolean,
+        wanted: GroupTaskAccessDO,
     ): AccessStatus {
         if (existing == null) {
             return AccessStatus.CREATED
@@ -336,15 +477,43 @@ class TaskWizardService {
             // An undelete writes the row whatever the rights say, exactly as in writeAccessRight.
             return AccessStatus.UPDATED
         }
-        val template = GroupTaskAccessDO().also { applyTemplate(it, groupType, isLeaf) }
-        if (existing.recursive != template.recursive) {
+        if (existing.recursive != wanted.recursive) {
             return AccessStatus.UPDATED
         }
         val current = rightsOf(existing).associateBy { it.accessType }
-        val unchanged = rightsOf(template).all { wanted ->
-            current[wanted.accessType]?.let { it.sameAs(wanted) } == true
+        val unchanged = rightsOf(wanted).all { right ->
+            current[right.accessType]?.let { it.sameAs(right) } == true
         }
         return if (unchanged) AccessStatus.UNCHANGED else AccessStatus.UPDATED
+    }
+
+    /**
+     * The rights a row gets, as a new object that shares no [org.projectforge.framework.access.AccessEntryDO]
+     * with [existing] (see [previewStatus]): the template, or with [onlyAdd] the template added to what
+     * [existing] already allows - every permission and the recursion only ever switched on, never off.
+     */
+    private fun wantedRights(
+        existing: GroupTaskAccessDO?,
+        groupType: GroupType,
+        isLeaf: Boolean,
+        onlyAdd: Boolean,
+    ): GroupTaskAccessDO {
+        val template = GroupTaskAccessDO().also { applyTemplate(it, groupType, isLeaf) }
+        if (!onlyAdd || existing == null) {
+            return template
+        }
+        return GroupTaskAccessDO().also { result ->
+            result.recursive = existing.recursive || template.recursive
+            template.orderedEntries.forEach { entry ->
+                val current = existing.getAccessEntry(entry.accessType)
+                result.ensureAndGetAccessEntry(entry.accessType).setAccess(
+                    entry.accessSelect || current?.accessSelect == true,
+                    entry.accessInsert || current?.accessInsert == true,
+                    entry.accessUpdate || current?.accessUpdate == true,
+                    entry.accessDelete || current?.accessDelete == true,
+                )
+            }
+        }
     }
 
     /**

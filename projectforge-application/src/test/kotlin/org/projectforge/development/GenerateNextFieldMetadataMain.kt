@@ -25,10 +25,12 @@ package org.projectforge.development
 
 import jakarta.persistence.Entity
 import org.projectforge.common.i18n.I18nEnum
+import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.history.HistoryServiceUtils
 import org.projectforge.framework.utils.SourcesUtils
 import org.projectforge.ui.ElementInfo
 import org.projectforge.ui.ElementsRegistry
+import org.projectforge.ui.UIDataType
 import org.projectforge.ui.UIDataTypeUtils
 import org.reflections.Reflections
 import java.io.File
@@ -40,8 +42,7 @@ import java.nio.charset.StandardCharsets
  *
  * The declaration in the backend is the single source of truth: `@PropertyInfo` (i18nKey, required,
  * tooltip) at the property and the JPA `@Column` (length, nullable) at its getter. Both are merged by
- * [ElementsRegistry.getElementInfo] — the very same call the UILayout of `/react` and Wicket's fields
- * go through. This generator derives no rule of its own; it only writes down what that call answers.
+ * [ElementsRegistry.getElementInfo] — the very same call the backend validation goes through. This generator derives no rule of its own; it only writes down what that call answers.
  * A changed column length therefore reaches the hand-written next forms instead of leaving them
  * silently wrong.
  *
@@ -49,7 +50,7 @@ import java.nio.charset.StandardCharsets
  * `lib/metadata/<entity>.generated.ts`, exporting a single `<ENTITY>_METADATA` constant. One file per
  * entity and no barrel: nothing imports what it doesn't name, so the bundle only carries the entities
  * a page actually uses. Nested DOs (e.g. `AuftragsPositionDO`) are covered as well although they have
- * no `AbstractPagesRest` of their own — a "only what has a PagesRest" rule would need a hand-kept
+ * no `AbstractEntityRest` of their own — a "only what has an EntityRest" rule would need a hand-kept
  * exception list, which is exactly the staleness this generator removes.
  *
  * The generated files are never edited by hand — [GenerateNextFieldMetadataTest] fails if they differ
@@ -194,8 +195,15 @@ object GenerateNextFieldMetadataMain {
   private fun buildField(elementInfo: ElementInfo): List<Pair<String, String>>? {
     val propertyClass = elementInfo.propertyClass
     val isEnum = propertyClass.isEnum
-    // Enums travel as their constant name, so the frontend treats them as strings.
-    val dataType = if (isEnum) "STRING" else UIDataTypeUtils.getDataType(elementInfo)?.name ?: return null
+    val dataType = when {
+      // Enums travel as their constant name, so the frontend treats them as strings.
+      isEnum -> "STRING"
+      // Money (`@PropertyInfo(type = CURRENCY)`), not a plain quantity: the forms write it with two digits
+      // and the user's currency, the lists as currency. Not in [UIDataTypeUtils], which also types the
+      // filter and mass update fields and knows nothing of an AMOUNT.
+      elementInfo.propertyType == PropertyType.CURRENCY -> UIDataType.AMOUNT.name
+      else -> UIDataTypeUtils.getDataType(elementInfo)?.name ?: return null
+    }
     val properties = mutableListOf<Pair<String, String>>()
     properties.add("dataType" to quote(dataType))
     elementInfo.i18nKey?.let { properties.add("i18nKey" to quote(it)) }

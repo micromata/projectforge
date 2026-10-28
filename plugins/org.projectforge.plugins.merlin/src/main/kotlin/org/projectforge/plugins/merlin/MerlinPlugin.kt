@@ -23,13 +23,11 @@
 
 package org.projectforge.plugins.merlin
 
-import org.projectforge.Constants
+import org.projectforge.PageRoutes
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.menu.MenuItem
-import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
@@ -70,7 +68,8 @@ class MerlinPlugin :
 
         menuCreator.register(
             MenuItemDefId.MISC,
-            MenuItemDef(info.id, "plugins.merlin.menu", "${Constants.REACT_APP_PATH}merlin")
+            // Migrated to projectforge-next (MerlinEntityRest, MerlinExecuteRest); the React pages were removed.
+            MenuItemDef(info.id, "plugins.merlin.menu", PageRoutes.listUrl(CATEGORY))
         )
 
         // All the i18n stuff:
@@ -85,6 +84,9 @@ class MerlinPlugin :
     companion object {
         const val ID = PluginAdminService.PLUGIN_MERLIN_ID
         const val RESOURCE_BUNDLE_NAME = "MerlinI18nResources"
+
+        /** The REST category (`/rs/merlin`) and the route of the next pages. */
+        const val CATEGORY = "merlin"
 
         fun ensureUserLogSubscription(): LogSubscription {
             val username = ThreadLocalUserContext.loggedInUser!!.username ?: throw InternalError("User not given")
@@ -102,15 +104,11 @@ class MerlinPlugin :
         }
 
         /**
-         * Calls also [ensureUserLogSubscription].
+         * The url of the log viewer showing the Merlin logs of the logged-in user. Calls also
+         * [ensureUserLogSubscription].
          */
-        fun createUserLogSubscriptionMenuItem(): MenuItem {
-            return MenuItem(
-                "logViewer",
-                i18nKey = "plugins.merlin.viewLogs",
-                url = LogViewerRest.viewerUrl(ensureUserLogSubscription().id),
-                type = MenuItemTargetType.REDIRECT,
-            )
+        fun logViewerUrl(): String {
+            return LogViewerRest.viewerUrl(ensureUserLogSubscription().id)
         }
     }
 }

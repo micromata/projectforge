@@ -1,6 +1,9 @@
+import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { NOTIFICATION_RULE_METADATA } from "@/lib/metadata/notification-rule.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { DeliveryStepsField } from "./delivery-steps-field";
+import { LinkField } from "./link-field";
+import { ManualDoneField } from "./manual-done-field";
 import { MenuBadgeField } from "./menu-badge-field";
 import { NotificationRuleListActions } from "./notification-rule-list-actions";
 import {
@@ -26,7 +29,9 @@ import { RuleActions } from "./rule-actions";
 import { RuleLogTab } from "./rule-log-tab";
 import { RuleParamsField } from "./rule-params-field";
 import { RuleTextField } from "./rule-text-field";
+import { RuleVariablesField } from "./rule-variables-field";
 import { ScheduleField } from "./schedule-field";
+import { SmsTextField } from "./sms-text-field";
 import type { NotificationRuleDetail, NotificationRuleListRow } from "./types";
 
 export const NOTIFICATION_RULE_LIST_QUERY_KEY = ["notificationRule"] as const;
@@ -66,6 +71,11 @@ export const NOTIFICATION_RULE_PAGE = definePage<
     { name: "description", size: 300 },
     { name: "lastUpdate", size: 130 },
   ],
+  // An inactive rule reads struck through (thin, grey), so it isn't taken for a running one — nor for a
+  // deleted one, which keeps its own strike.
+  inactiveLabelKey: "notification.rule.legend.inactive",
+  rowClassName: (row) =>
+    row.active === false ? INACTIVE_ROW_CLASS : undefined,
   edit: {
     schema: notificationRuleSchema,
     fieldNames: NOTIFICATION_RULE_FIELDS,
@@ -109,7 +119,8 @@ export const NOTIFICATION_RULE_PAGE = definePage<
           { name: "severity" },
           { name: "display" },
           { custom: MenuBadgeField, span: 2 },
-          { name: "manualDone", span: 4 },
+          { custom: LinkField, span: 2 },
+          { custom: ManualDoneField, span: 4 },
         ],
       },
       {
@@ -118,6 +129,8 @@ export const NOTIFICATION_RULE_PAGE = definePage<
         fields: [
           { name: "subject", span: 4 },
           { custom: RuleTextField, span: 4 },
+          { custom: SmsTextField, span: 4 },
+          { custom: RuleVariablesField, span: 4 },
         ],
       },
       {

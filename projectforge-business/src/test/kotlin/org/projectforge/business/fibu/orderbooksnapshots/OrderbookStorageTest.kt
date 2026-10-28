@@ -30,9 +30,11 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.springframework.beans.factory.annotation.Autowired
+import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
+import java.util.zip.GZIPOutputStream
 
 class OrderbookStorageTest : AbstractTestBase() {
     @Autowired
@@ -117,6 +119,53 @@ class OrderbookStorageTest : AbstractTestBase() {
         incrementalStats =
             orderbookStorageService.createOrderbookSnapshot(incrementalBasedOn = LocalDate.of(2024, Month.NOVEMBER, 12))
         Assertions.assertEquals(6, incrementalStats.count, "No storage found, based on date 2024-11-12, full backup expected.")
+    }
+
+    /**
+     * An order deleted after the full backup isn't part of an incremental snapshot taken after the deletion, but of
+     * one taken before. Incremental snapshots without deletion markers (stored before they were introduced) drop it
+     * too, by its last update.
+     */
+    @Test
+    fun `incremental snapshot drops orders deleted since the full backup`() {
+        recreateDataBase() // Remove any orders created by other tests before.
+        task = initTestDB.addTask("OrderbookStorageTest", "root")
+        kunde = KundeDO().also {
+            it.name = "ACME"
+            it.id = 984233
+            kundeDao.insert(it, checkAccess = false)
+        }
+        project = ProjektDO().also {
+            it.name = "Project"
+            projektDao.insert(it, checkAccess = false)
+        }
+        val kept = createOrder("1", LocalDate.of(2024, Month.DECEMBER, 1))
+        val deletedBefore = createOrder("2", LocalDate.of(2024, Month.DECEMBER, 1))
+        val deletedAfter = createOrder("3", LocalDate.of(2024, Month.DECEMBER, 1))
+        val fullBackup = LocalDate.of(2024, Month.DECEMBER, 15)
+        orderbookStorageService.storeOrderbookSnapshot(date = fullBackup)
+        auftragDao.markAsDeleted(auftragDao.find(deletedBefore.id, checkAccess = false)!!, checkAccess = false)
+
+        val withMarker = LocalDate.of(2024, Month.DECEMBER, 16)
+        orderbookStorageService.storeOrderbookSnapshot(incrementalBasedOn = fullBackup, date = withMarker)
+        val withoutMarker = LocalDate.of(2024, Month.DECEMBER, 17)
+        orderbookStorageService.storeOrderbookSnapshot(incrementalBasedOn = fullBackup, date = withoutMarker)
+        persistenceService.runInTransaction { context ->
+            // An increment as stored before the deletion markers were introduced: no changed orders, no markers.
+            val entry = context.em.find(OrderbookSnapshotDO::class.java, withoutMarker)
+            entry.serializedOrderBook = ByteArrayOutputStream().also { bytes ->
+                GZIPOutputStream(bytes).use { it.write("[]".toByteArray(Charsets.UTF_8)) }
+            }.toByteArray()
+            context.em.merge(entry)
+        }
+        auftragDao.markAsDeleted(auftragDao.find(deletedAfter.id, checkAccess = false)!!, checkAccess = false)
+        // Storing another snapshot clears the parsed snapshots, so the deletion above is seen by the reads below.
+        orderbookStorageService.storeOrderbookSnapshot(incrementalBasedOn = fullBackup, date = LocalDate.of(2024, Month.DECEMBER, 18))
+
+        fun ids(date: LocalDate) = orderbookStorageService.readSnapshot(date)!!.map { it.id }.toSet()
+        Assertions.assertEquals(setOf(kept.id, deletedBefore.id, deletedAfter.id), ids(fullBackup))
+        Assertions.assertEquals(setOf(kept.id, deletedAfter.id), ids(withMarker))
+        Assertions.assertEquals(setOf(kept.id, deletedAfter.id), ids(withoutMarker))
     }
 
     private fun createOrder(id: String, dateOfLastUpdate: LocalDate? = null): AuftragDO {

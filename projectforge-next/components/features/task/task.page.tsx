@@ -3,14 +3,19 @@ import {
   TASK_TREE_ROUTE,
   TASK_WIZARD_ROUTE,
   HIGHLIGHT_ID_PARAM,
+  TASK_BOOKING_GRANTS_SECTION,
   taskWizardHref,
 } from "@/components/shared/tasks/task-routes";
 import { TASK_METADATA } from "@/lib/metadata/task.generated";
+import { TASK_STRUCTURE_QUERY_KEYS } from "@/lib/rs/task";
 import { definePage } from "@/lib/page-def/define-page";
 import { accessListHref } from "@/lib/access-links";
+import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { timesheetAddHref, timesheetListHref } from "@/lib/timesheet-links";
 import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
 import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
+import { TaskGroupAccessCell } from "@/components/shared/tasks/task-group-access-cell";
+import { BookingGrantsSection } from "./edit/booking-grants-section";
 import { FinanceSection } from "./edit/finance-section";
 import { FinanceSummary } from "./edit/finance-summary";
 import { GanttSummary } from "./edit/gantt-summary";
@@ -71,6 +76,8 @@ export const TASK_PAGE = definePage<
   metadata: TASK_METADATA,
   route: TASK_ROUTE,
   queryKey: TASK_LIST_QUERY_KEY,
+  // A rename or move changes the breadcrumb of every task picker showing this task or a descendant.
+  extraInvalidateKeys: TASK_STRUCTURE_QUERY_KEYS,
   categoryKey: "menu.taskTree",
   // „List view", as the tree page is headed „Tree view": the two perspectives name themselves the
   // same way they name each other (see TaskPerspectiveLink).
@@ -169,11 +176,35 @@ export const TASK_PAGE = definePage<
       // to name a key, and the generated metadata is where that key lives (see labelKeyFor).
       labelKey: TASK_METADATA.fields.responsibleUser.i18nKey,
       accessor: (row) => row.responsibleUser?.displayName ?? "",
+      // Struck through when the user left (see ColumnBase.referenceKey).
+      referenceKey: "responsibleUser",
       size: 160,
+    },
+    {
+      // The groups with access rights set on this very task (not the inherited ones), for admins only:
+      // the backend sends the gate and the values to them alone (TaskColumnVisibility.groupAccess).
+      id: "groupAccess",
+      labelKey: "access.groups",
+      accessor: (row) => row.groupAccess ?? "",
+      cell: ({ row }) => (
+        <TaskGroupAccessCell
+          taskId={row.original.id}
+          taskTitle={row.original.title}
+          text={row.original.groupAccess}
+          groups={row.original.groupAccessList}
+        />
+      ),
+      size: 200,
+      sortable: false,
+      filterKind: null,
+      visible: ({ variables }) => variables?.groupAccess === true,
     },
   ],
   // The switch to the structure tree, Wicket's "tree view" button.
   listActions: TaskListActions,
+  // A closed task reads struck through (thin, grey), as everywhere a task is shown; a deleted one stays red.
+  inactiveLabelKey: "task.status.closed",
+  rowClassName: (row) => (row.deactivated ? INACTIVE_ROW_CLASS : undefined),
   edit: {
     schema: taskSchema,
     fieldNames: TASK_FIELDS,
@@ -323,6 +354,14 @@ export const TASK_PAGE = definePage<
         // Folded, the same values as chips (see FinanceSummary): the cost prefix and booking status the
         // element is effectively governed by, plus anything set that deviates from the default.
         collapsedSummary: FinanceSummary,
+      },
+      {
+        id: TASK_BOOKING_GRANTS_SECTION,
+        titleKey: "task.bookingGrants._",
+        collapsed: true,
+        // Only for who may grant on the task (see BookingGrantsSection), and only for a stored task.
+        visible: ({ data }) => data?.bookingGrantAccess === true,
+        render: ({ id }) => <BookingGrantsSection id={id} />,
       },
     ],
   },

@@ -25,8 +25,11 @@ package org.projectforge.business.vacation.service
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.vacation.model.VacationDO
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate
 import java.time.Month
 
@@ -76,6 +79,60 @@ class VacationService2Test {
     )
   }
 
+  @Test
+  fun absentAvailabilityCountsAsVacationTest() {
+    val employee = createEmployee(1)
+    val substitute1 = createEmployee(2)
+    val substitute2 = createEmployee(3)
+    val vacation = createJuneVacation(employee, 1, 30)
+    vacation.replacement = substitute1
+    vacation.otherReplacements = mutableSetOf(substitute2)
+    val service = VacationService()
+    val substitute1Vacation = createJuneVacation(substitute1, 5, 10)
+    // Substitute 2 not available 8th-12th (by their user): nobody on duty on 8th-10th.
+    Assertions.assertEquals(
+      listOf(8, 9, 10),
+      service.uncoveredDays(
+        vacation, listOf(substitute1Vacation),
+        listOf(createJuneAvailability(substitute2, 8, 12, AvailabilityStatus.NOT_AVAILABLE)),
+      ).map { it.dayOfMonth },
+    )
+    // Without any vacation, by availability entries only.
+    Assertions.assertTrue(
+      service.checkConflict(
+        vacation, emptyList(), listOf(
+          createJuneAvailability(substitute1, 1, 3, AvailabilityStatus.NOT_AVAILABLE),
+          createJuneAvailability(substitute2, 2, 4, AvailabilityStatus.NOT_AVAILABLE),
+        )
+      ),
+      "Both substitutes not available on the 2nd and 3rd."
+    )
+    // Reachable (remote, if needed) is on duty: no conflict.
+    AvailabilityStatus.entries.filter { !it.absent }.forEach { status ->
+      Assertions.assertFalse(
+        service.checkConflict(
+          vacation, listOf(substitute1Vacation),
+          listOf(createJuneAvailability(substitute2, 1, 30, status)),
+        ),
+        "$status doesn't make a conflict."
+      )
+    }
+  }
+
+  private fun createJuneAvailability(
+    employee: EmployeeDO,
+    fromDay: Int,
+    toDay: Int,
+    status: AvailabilityStatus,
+  ): AvailabilityDO {
+    val availability = AvailabilityDO()
+    availability.user = employee.user
+    availability.startDate = LocalDate.of(2022, Month.JUNE, fromDay)
+    availability.endDate = LocalDate.of(2022, Month.JUNE, toDay)
+    availability.status = status
+    return availability
+  }
+
   private fun createJuneVacation(employee: EmployeeDO, fromDay: Int, toDay: Int): VacationDO {
     val vacation = VacationDO()
     vacation.employee = employee
@@ -87,6 +144,7 @@ class VacationService2Test {
   private fun createEmployee(id: Long): EmployeeDO {
     val employee = EmployeeDO()
     employee.id = id
+    employee.user = PFUserDO().also { it.id = 100 + id }
     return employee
   }
 }

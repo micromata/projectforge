@@ -1,3 +1,6 @@
+import type { InactiveFlags } from "@/lib/page-def/reference";
+import type { NamedRef } from "@/components/shared/ref-list";
+
 /**
  * The vacation account of an employee, as `GET /rs/vacationAccount` answers it (mirrors
  * `org.projectforge.rest.dto.VacationAccount`). Every value comes formatted for the logged-in user; the urls
@@ -5,7 +8,7 @@
  */
 export interface VacationAccount {
   /** Null if the logged-in user has no employee: then everything else is empty. */
-  employee?: { id: number; displayName?: string } | null;
+  employee?: ({ id: number; displayName?: string } & InactiveFlags) | null;
   /** HR staff: may choose any employee and recalculate the remaining leave. */
   hrAccess: boolean;
   canRecalculate: boolean;
@@ -19,6 +22,12 @@ export interface VacationAccount {
   leaveAccountEntries: VacationAccountLeaveEntry[];
   workingHoursStatistics?: string;
   newVacationUrl?: string;
+  /** Of the employee's user, overlapping the three years, newest first: the other absences. */
+  availabilities: VacationAccountAvailability[];
+  /** A new availability entry of the employee's user; absent for an employee without a user. */
+  newAvailabilityUrl?: string;
+  /** A new leave account entry of the employee; HR staff with write access only. */
+  newLeaveAccountEntryUrl?: string;
   vacationListUrl: string;
   exportUrl: string;
 }
@@ -50,14 +59,15 @@ export interface VacationAccountVacation {
   statusString?: string;
   workingDaysFormatted?: string;
   specialFormatted?: string;
-  replacement?: string;
-  otherReplacements?: string;
-  manager?: string;
+  /** As references, so a no longer active one is struck through. */
+  replacement?: NamedRef | null;
+  otherReplacements?: NamedRef[] | null;
+  manager?: NamedRef | null;
   vacationModeString?: string;
   comment?: string;
   /** A day of it without any replacement on duty. */
   conflict: boolean;
-  /** For the days bar (VacationDaysBar), ISO dates. */
+  /** For the days bar (AbsenceDaysBar), ISO dates. */
   startDate?: string | null;
   endDate?: string | null;
   halfDayBegin?: boolean | null;
@@ -74,5 +84,31 @@ export interface VacationAccountLeaveEntry {
   dateFormatted?: string;
   amountFormatted?: string;
   description?: string;
+  editUrl: string;
+}
+
+/** `org.projectforge.rest.dto.VacationAccountAvailability`. */
+export interface VacationAccountAvailability {
+  id: number;
+  startDateFormatted?: string;
+  endDateFormatted?: string;
+  type?: string;
+  statusString?: string;
+  locationString?: string;
+  comment?: string;
+  /** The names, comma separated. */
+  /** As references, so a no longer active one is struck through. */
+  substitutes?: NamedRef[] | null;
+  /** A day from today on without any substitute on duty. */
+  conflict: boolean;
+  /** Its working days (weekends and holidays not counted). */
+  workingDaysFormatted?: string;
+  /** For the days bar (AbsenceDaysBar), ISO dates. */
+  startDate?: string | null;
+  endDate?: string | null;
+  /** Weekends and holidays; null for a period the bar doesn't draw. */
+  nonWorkingDays?: string[] | null;
+  /** The days without any substitute on duty, only on a conflict. */
+  uncoveredDays?: string[] | null;
   editUrl: string;
 }

@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Used in config.xml for the definition of the used business assessment schema. The business assessment is displayed in
+ * The business assessment of the schema configured in the parameter fibu.accounting. The business assessment is displayed in
  * different accounting areas, such as for DATEV accounting records.
  *
  * @author Kai Reinhard
@@ -240,7 +240,7 @@ public class BusinessAssessment implements Serializable {
     if (config != null) {
       buf.append(config.getHeading());
     } else {
-      buf.append("business assessment (not defined in config.xml, see AdministrationGuide).");
+      buf.append("business assessment (not defined in the configuration parameter fibu.accounting, see AdministrationGuide).");
     }
     if (year > 0) {
       buf.append(": ").append(OldKostFormatter.formatBuchungsmonat(year, month));

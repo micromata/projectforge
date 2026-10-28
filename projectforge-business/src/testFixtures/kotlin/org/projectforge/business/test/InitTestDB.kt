@@ -244,11 +244,9 @@ class InitTestDB {
         kost2ArtIds.forEach { id ->
             val kost2 = Kost2DO()
             kost2.projekt = projekt
-            kost2.nummernkreis = 5
-            if (kunde != null) {
-                kost2.bereich = kunde.id!!.toInt()
-            }
-            kost2.teilbereich = projekt.nummer
+            kost2.nummernkreis = projekt.nummernkreis!!
+            kost2.bereich = projekt.bereich!!
+            kost2.teilbereich = projekt.teilbereich!!
             kost2Dao.setKost2Art(kost2, id)
             kost2Dao.insert(kost2)
         }
@@ -307,6 +305,7 @@ class InitTestDB {
             .addRight(UserRightDO(UserRightId.FIBU_CURRENCY_CONVERSION, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE)) //
+            .addRight(UserRightDO(UserRightId.FIBU_CUSTOMER, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.ORGA_CONTRACTS, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE)) //
@@ -330,6 +329,7 @@ class InitTestDB {
             .addRight(UserRightDO(UserRightId.FIBU_CURRENCY_CONVERSION, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE)) //
+            .addRight(UserRightDO(UserRightId.FIBU_CUSTOMER, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE)) //
         user = addUser(user)

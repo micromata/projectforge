@@ -205,8 +205,8 @@ export function PaymentTermsFields({
         <NumberField
           name="zahlBetrag"
           label={label("zahlBetrag")}
-          // DECIMAL, not AMOUNT — `AbstractRechnungDO.zahlBetrag` is a plain `BigDecimal`.
-          fractionDigits={2}
+          // An AMOUNT, so the two digits come from the metadata; the currency is passed as the field is
+          // placed by hand rather than declared.
           suffix={format.currency}
           // Wide enough for any invoice amount, rather than the whole half.
           maxDigits={10}

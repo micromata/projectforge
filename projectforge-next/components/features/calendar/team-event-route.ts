@@ -1,10 +1,9 @@
 /**
  * Rewrites the calendar backend's legacy team event edit urls onto this app's route shape.
  *
- * The `/rs/calendar/action` endpoint is shared with the timesheet and cal-event editors and with the
- * legacy React calendar, so its output must not be changed server-side (see MIGRATION notes): for a slot
- * select over a calendar it answers `/teamEvent/edit?…&calendar=<id>` for a new event and
- * `/teamEvent/edit/<id>` for an existing one (a resize or drag). This app routes them as `/teamEvent/new`
+ * The `/rs/calendar/action` endpoint (shared with the timesheet and cal-event editors) still answers the
+ * url shape of the removed React calendar: for a slot select over a calendar `/teamEvent/edit?…&calendar=<id>`
+ * for a new event and `/teamEvent/edit/<id>` for an existing one (a resize or drag). This app routes them as `/teamEvent/new`
  * and `/teamEvent/<id>` (see the `[id]` route), so the translation happens here, on the way to the router.
  *
  * The query is kept in both cases. A new event's `calendar`/`start`/`end` preset the form

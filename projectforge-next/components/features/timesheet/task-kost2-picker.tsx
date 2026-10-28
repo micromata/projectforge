@@ -3,20 +3,15 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { renderCell, type CellSpec } from "@/components/data-table";
 import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { FieldShell, useFieldIds } from "@/components/shared/form/field-shell";
-import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { TaskConsumptionBar } from "@/components/shared/tasks/task-consumption-bar";
 import { TaskSelectControl } from "@/components/shared/tasks/task-select-control";
 import { TaskSelectModal } from "@/components/shared/tasks/task-select-modal";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
-import { useFormatContext } from "@/hooks/use-format";
 import { fetchTaskInfo } from "@/lib/rs/task";
 import { cn } from "@/lib/utils";
-
-/** The bar is the table's cell renderer, reached with the literal spec it needs (see TaskConsumptionCell). */
-const CONSUMPTION: CellSpec = { kind: "consumption" };
 
 /**
  * What a time sheet is booked on: the task and the cost unit it allows — the `timesheet.edit.taskAndKost2`
@@ -81,7 +76,6 @@ export function TaskKost2Picker({
   className?: string;
 }) {
   const t = useTranslations();
-  const format = useFormatContext();
   const taskIds = useFieldIds();
   const kost2Ids = useFieldIds();
   // Where the tree opens rooted; reset when the dialog closes (see TaskSelectField for the reasoning).
@@ -93,6 +87,9 @@ export function TaskKost2Picker({
     queryFn: ({ signal }) => fetchTaskInfo(taskId!, signal),
     enabled: taskId != null,
     staleTime: Infinity,
+    // The consumption changes with every booking, and nothing invalidates the shared query on a saved or
+    // deleted time sheet: refetch it whenever the form opens, so the bar isn't the first fetch's figure.
+    refetchOnMount: showConsumption ? "always" : false,
   });
 
   const kost2List = info?.kost2List ?? [];
@@ -194,7 +191,7 @@ export function TaskKost2Picker({
           invalid={kost2Errors.length > 0}
           errors={kost2Errors}
           ids={kost2Ids}
-          // Two of the three columns: "6.300.00.00: Urlaub" and longer would be cut off in one.
+          // Two of the three columns: "6.900.00.00: Urlaub" and longer would be cut off in one.
           className="md:col-span-2"
         >
           <Select
@@ -237,21 +234,9 @@ export function TaskKost2Picker({
           <span className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
             {t("task.consumption")}
           </span>
-          <HintTooltip
-            plain
-            text={(info.consumption as { title?: string }).title}
-          >
-            <div className="w-full max-w-[220px]">
-              {renderCell({
-                spec: CONSUMPTION,
-                value: info.consumption,
-                row: info as unknown as Record<string, unknown>,
-                ctx: format,
-                // The cells name their keys at runtime, which next-intl's literal key type cannot express.
-                t: t as unknown as (key: string) => string,
-              })}
-            </div>
-          </HintTooltip>
+          <div className="w-full max-w-[220px]">
+            <TaskConsumptionBar task={info} />
+          </div>
         </div>
       )}
     </div>

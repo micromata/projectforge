@@ -6,9 +6,12 @@
 - title: Time Tracking
   icon: clock
   url: /features/#time_tracking
-- title: People & Leave
+- title: Leave & Availability
+  icon: calendar-check
+  url: /features/#leave_availability
+- title: People & Skills
   icon: users
-  url: /features/#people_leave
+  url: /features/#people_skills
 - title: Finance & E-Invoicing
   icon: receipt
   url: /features/#finance_e_invoicing
@@ -21,6 +24,9 @@
 - title: Easy to Use
   icon: mouse-pointer-click
   url: /features/#easy_to_use
+- title: Data Sovereignty & GDPR
+  icon: lock
+  url: /features/#data_sovereignty
 - title: Security & Integration
   icon: shield-check
   url: /features/#security_integration

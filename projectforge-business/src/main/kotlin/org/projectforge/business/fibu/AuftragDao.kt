@@ -40,6 +40,7 @@ import org.projectforge.common.i18n.MessageParamType
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage
+import org.projectforge.framework.integration.IntegrationErrors
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.EntityCopyStatus
@@ -383,7 +384,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                 throw UserException("fibu.auftrag.error.nummerBereitsVergeben").setCausedByField("nummer")
             }
         }
-        if (obj.positionen.isNullOrEmpty()) {
+        // A deleted position stays in the collection (soft delete), but is no part of the order any more.
+        if (obj.positionenExcludingDeleted.isEmpty()) {
             throw UserException("fibu.auftrag.error.auftragHatKeinePositionen").setCausedByField("positionen")
         }
         val positionen = obj.positionen
@@ -544,7 +546,9 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      * Wicket, which passes its fully loaded object, the lookup yields the same entities from the cache.
      *
      * A failing mail doesn't stop the mails to the other recipients; the first failure is thrown after all
-     * recipients were tried, so the caller can still report it.
+     * recipients were tried, so the caller can still report it. Only if the mail server can't be reached
+     * ([IntegrationErrors.isConnectionError]) the remaining recipients are skipped: each of them would delay the save
+     * by the SMTP timeout just to fail the same way.
      *
      * @return true if at least one mail was sent.
      */
@@ -570,7 +574,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
         var sent = false
         var failure: Exception? = null
-        recipients.forEach { recipient ->
+        for ((index, recipient) in recipients.withIndex()) {
             try {
                 if (sendNotification(auftrag, recipient, subject, requestUrl, history.take(10))) {
                     sent = true
@@ -578,6 +582,14 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             } catch (ex: Exception) {
                 log.error("Can't send the notification of order #${auftrag.nummer} to user ${recipient.username}: ${ex.message}", ex)
                 failure = failure ?: ex
+                if (IntegrationErrors.isConnectionError(ex)) {
+                    // The other mails would fail the same way, each one delaying the save by the SMTP timeout.
+                    val skipped = recipients.drop(index + 1)
+                    if (skipped.isNotEmpty()) {
+                        log.warn("Mail server unreachable, notification of order #${auftrag.nummer} not sent to: ${skipped.joinToString { it.username ?: "?" }}")
+                    }
+                    break
+                }
             }
         }
         failure?.let { throw it }
@@ -705,6 +717,42 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
          * Gets the highest Auftragsnummer.
          */
         get() = getNextNumber(null)
+
+    /**
+     * The given orders reloaded with their positions, payment schedules, project and customers, for an export reading
+     * all of them ([OrderExport]): lazily loaded order by order (lazy loading without transaction), each order costs
+     * one query per association.
+     *
+     * In the order of [orders]. An order not found (not stored) is taken as it is. The access was checked when
+     * [orders] were selected.
+     */
+    fun selectForExport(orders: List<AuftragDO>): List<AuftragDO> {
+        val ids = orders.mapNotNull { it.id }.distinct()
+        if (ids.isEmpty()) {
+            return orders
+        }
+        val byId = persistenceService.runReadOnly { context ->
+            ids.chunked(IN_CLAUSE_CHUNK_SIZE).flatMap { chunk ->
+                val loaded = context.executeQuery(
+                    "select distinct a from AuftragDO a left join fetch a.positionen left join fetch a.kunde" +
+                            " left join fetch a.projekt p left join fetch p.kunde where a.id in :ids",
+                    AuftragDO::class.java,
+                    "ids" to chunk,
+                    attached = true,
+                )
+                // Two bags can't be fetched by one query (MultipleBagFetchException). In the same persistence
+                // context, this query initializes the schedules of the very instances loaded above.
+                context.executeQuery(
+                    "select distinct a from AuftragDO a left join fetch a.paymentSchedules where a.id in :ids",
+                    AuftragDO::class.java,
+                    "ids" to chunk,
+                    attached = true,
+                )
+                loaded
+            }
+        }.associateBy { it.id }
+        return orders.map { byId[it.id] ?: it }
+    }
 
     /**
      * Gets the highest Auftragsnummer.

@@ -5,7 +5,7 @@
 
     <body>
 
-    <a class="sr-only rounded-md bg-background px-4 py-2 focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50" href="#main">Skip to content</a>
+    <a class="sr-only rounded-md bg-background px-4 py-2 focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50" href="#main">{{ site.data.translation[page.lang].skip_to_content }}</a>
 
     {% include header.html %}
 
@@ -22,6 +22,9 @@
     {% if page.layout == 'doc' %}
         {% include hook-pre-closing-body-doc.html %}
     {% endif %}
+
+    {%- assign t = site.data.translation[page.lang] %}
+    <script src="{{ '/assets/js/copy-code.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-copy="{{ t.copy_code }}" data-copied="{{ t.code_copied }}" defer></script>
 
     {% include hook-pre-closing-body.html %}
 

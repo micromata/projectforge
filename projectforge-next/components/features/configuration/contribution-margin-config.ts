@@ -8,7 +8,7 @@ export const CONTRIBUTION_MARGIN_PARAM = "fibu.contributionMargin";
 export interface Kost2Assignment {
   /** The first three parts of the kost2 numbers, e.g. `6.000.10`. */
   kost2: string | null;
-  /** The kost of the project, e.g. `5.999.10`. */
+  /** The kost of the project, e.g. `5.900.10`. */
   project: string | null;
 }
 

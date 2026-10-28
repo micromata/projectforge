@@ -23,6 +23,7 @@
 
 package org.projectforge.gateway
 
+import org.projectforge.Constants
 import org.projectforge.security.OAuth2UserService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -52,13 +53,14 @@ open class GatewaySecurityConfig {
                     .requestMatchers("/export/ProjectForge.ics").permitAll()
                     // DataTransfer public endpoints (token-based external access)
                     .requestMatchers("/rsPublic/datatransfer/**").permitAll()
+                    // The page of the external access (projectforge-next); its REST calls are the ones above.
+                    .requestMatchers("${GatewayPageController.PUBLIC_DATATRANSFER_URL}/**").permitAll()
                     // Gateway sync API (authenticated via X-Gateway-Secret header)
                     .requestMatchers("/api/gateway/sync/**").permitAll()
                     // Static resources (incl. the assets of projectforge-next)
-                    .requestMatchers("/rsPublic/**", "/static/**", "/next/_next/**").permitAll()
+                    .requestMatchers("/rsPublic/**", "/static/**", "/${Constants.NEXT_PUBLIC_ASSETS_PATH}**").permitAll()
                     .requestMatchers(
                         "/favicon.ico", "/favicon.png", "/apple-touch-icon.png", "/icon-192.png", "/icon-512.png",
-                        "/next/favicon.ico", "/next/icon.png", "/next/apple-icon.png",
                     ).permitAll()
                     // Start, login and error pages (GatewayPageController), they show the login state themselves.
                     // "/next/login/" too: the app's own links carry the trailing slash (trailingSlash = true).
@@ -86,6 +88,14 @@ open class GatewaySecurityConfig {
                 logout.clearAuthentication(true)
             }
             .csrf { csrf -> csrf.disable() }
+            // SAMEORIGIN as SecurityHeaderFilter and the CSP's frame-ancestors 'self': Spring's default DENY would
+            // overwrite the filter's header.
+            // HSTS (only sent for secure requests) without includeSubDomains: other hosts of the domain may still
+            // need http, see dev-docs/misc/nginx_sites-available_projectforge.
+            .headers { headers ->
+                headers.frameOptions { it.sameOrigin() }
+                headers.httpStrictTransportSecurity { it.includeSubDomains(false) }
+            }
 
         if (oAuth2UserService != null) {
             http.oauth2Login { oauth2 ->

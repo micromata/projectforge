@@ -58,6 +58,7 @@ import org.projectforge.rest.dto.MonthlyEmployeeReportCell
 import org.projectforge.rest.dto.MonthlyEmployeeReportData
 import org.projectforge.rest.dto.MonthlyEmployeeReportRow
 import org.projectforge.rest.dto.MonthlyEmployeeReportWeekDto
+import org.projectforge.rest.dto.UserRef
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
 import org.springframework.http.ResponseEntity
@@ -235,6 +236,12 @@ class MonthlyEmployeeReportRest {
         log.info { "Monthly employee report for ${user.getFullname()}: $year-${report.formmattedMonth}" }
 
         val kost1 = kost1Dao.find(report.kost1Id, false)
+        // Task rows booked without Kost2, marked in the PDF only while the db-param is on (the pseudo task excluded).
+        val missingKost2TaskIds = if (Configuration.instance.isWarnMissingKost2) {
+            report.taskEntries.values.mapNotNull { it?.id }.filterNot { MonthlyEmployeeReport.isPseudoTask(it) }.toSet()
+        } else {
+            emptySet()
+        }
         val data = mapOf<String, Any>(
             "systemDate" to dateTimeFormatter.getFormattedDateTime(Date()),
             "title" to translate("menu.monthlyEmployeeReport"),
@@ -262,6 +269,8 @@ class MonthlyEmployeeReportRest {
             "signatureProjectLeaderLabel" to translate("timesheet.signatureProjectLeader"),
             "unbookedWorkingDaysLabel" to translate("fibu.monthlyEmployeeReport.workingDaysWithoutTimesheets"),
             "unbookedVacationDaysLabel" to translate("fibu.monthlyEmployeeReport.vacationDaysWithoutTimesheets"),
+            "missingKost2TaskIds" to missingKost2TaskIds,
+            "missingKost2Label" to translate("fibu.monthlyEmployeeReport.missingKost2"),
         )
         val ba = pdfRenderer.render(STYLE_SHEET, XML_DATA, data)
         val filename = "${translate("menu.monthlyEmployeeReport.fileprefix")}_${user.lastname}_$year-${report.formmattedMonth}.pdf"
@@ -324,6 +333,7 @@ class MonthlyEmployeeReportRest {
                 )
             )
         }
+        val warnMissingKost2 = Configuration.instance.isWarnMissingKost2
         report.taskEntries.values.forEach { task ->
             task ?: return@forEach
             val taskId = task.id ?: return@forEach
@@ -338,6 +348,7 @@ class MonthlyEmployeeReportRest {
                     perWeek = report.weeks.map { toCell(it.taskEntries[taskId]) },
                     sum = total?.formattedDuration ?: "",
                     aiTimeSavings = total?.getFormattedTimeSavedByAI ?: "",
+                    missingKost2 = warnMissingKost2 && !pseudo,
                 )
             )
         }
@@ -365,8 +376,7 @@ class MonthlyEmployeeReportRest {
         }
 
         return MonthlyEmployeeReportData(
-            userId = user.id,
-            userName = user.getFullname(),
+            user = UserRef(user),
             maySelectOtherUsers = accessChecker.hasLoggedInUserAccessToTimesheetsOfOtherUsers(),
             year = report.year,
             month = report.month,

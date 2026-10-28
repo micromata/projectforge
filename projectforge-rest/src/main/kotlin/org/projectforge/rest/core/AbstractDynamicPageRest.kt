@@ -47,12 +47,12 @@ private val log = KotlinLogging.logger {}
  * projectforge-next builds its menu itself, so an entry it doesn't show is still reachable.
  *
  * The pattern is a group or right check as the first statement of each endpoint, see
- * `BirthdayButlerPageRest` or `EInvoiceCheckerPageRest`:
+ * `CustomerGroupRest`:
  * ```
- * accessChecker.checkIsLoggedInUserMemberOfGroup(*UserRightService.FIBU_ORGA_GROUPS)
+ * accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
  * ```
  * The `accessChecker` is autowired per subclass on purpose: several subclasses already declare it
- * privately, and a page whose data is the caller's own (e.g. `ChangePasswordPageRest`) needs no group at
+ * privately, and a page whose data is the caller's own (e.g. `ChangePasswordRest`) needs no group at
  * all — what it needs is a deliberate decision, not an inherited field.
  */
 abstract class AbstractDynamicPageRest {

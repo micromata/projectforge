@@ -36,8 +36,6 @@ public class RestPaths
 
   public static final String REST_PDF_SUB_PATH = "exportAsPdf";
 
-  public static final String REST_START_MULTI_SELECTION = "startMultiSelection";
-
   public static final String TASK = "task";
 
   public static final String TIMESHEET_TEMPLATE = "timesheetTemplate";
@@ -48,13 +46,17 @@ public class RestPaths
 
   public static final String CANCEL = "cancel";
 
-  public static final String CANCEL_MULTI_SELECTION = "cancelMultiSelection";
-
   public static final String EDIT = "edit";
 
   public static final String SAVE = "save";
 
   public static final String UPDATE = "update";
+
+  /**
+   * Inserts a new entry and nothing else: an entry that already exists is rejected, never updated (see
+   * {@link #UPDATE}, the counterpart for an existing entry).
+   */
+  public static final String INSERT = "insert";
 
   public static final String SAVE_OR_UDATE = SAVE + "or" + UPDATE;
 
@@ -69,17 +71,14 @@ public class RestPaths
   public static final String CLONE = "clone";
 
   /**
-   * Layout free counterpart of {@link #CLONE}: answers the prepared clone as plain JSON, without a
-   * UILayout and without saving anything. A path of its own because {@link #CLONE} is mapped by
-   * AbstractPagesRest, which extends the class serving this one - the same path there would be
-   * ambiguous for every legacy page.
+   * Counterpart of {@link #CLONE}: answers the prepared clone as plain JSON, without saving anything.
    */
   public static final String CLONE_DATA = "cloneData";
 
   public static final String SET_COLUMN_STATES = "setColumnStates";
 
   /**
-   * Reads back what SET_COLUMN_STATES stored, for pages that aren't built from a UILayout.
+   * Reads back what SET_COLUMN_STATES stored.
    */
   public static final String COLUMN_STATES = "columnStates";
 

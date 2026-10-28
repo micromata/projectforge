@@ -75,6 +75,8 @@ class LoginServiceTest : AbstractTestBase() {
 
             // The second factor was checked successfully (My2FAServicesRest.updateCookieAndSession):
             loginService.onSecondFactorSucceeded(request, response)
+            // The session gained privileges, so it gets a new id (session fixation):
+            Mockito.verify(request).changeSessionId()
             val cookie = stayLoggedInCookie(response)
             Assertions.assertNotNull(cookie, "Cookie is issued after the second factor.")
             Assertions.assertEquals(userId, stayLoggedInTokenDao.getValidToken(cookie!!.value)?.user?.id)
@@ -139,7 +141,7 @@ class LoginServiceTest : AbstractTestBase() {
             }
             // Fetched after the logins: they expire the cache (last login), which then holds a new user object.
             userGroupCache.getUser(getUser(TEST_USER).id)!!.lastPasswordChange = Date()
-            // The session of the change keeps going (ChangePasswordPageRest), the other one ends:
+            // The session of the change keeps going (ChangePasswordRest), the other one ends:
             LoginService.getUserContext(request)!!.acceptOwnPasswordChange()
             Assertions.assertNotNull(loginService.checkLogin(request, response))
             Assertions.assertNull(loginService.checkLogin(otherRequest, response))

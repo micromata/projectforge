@@ -26,15 +26,20 @@ package org.projectforge.plugins.datatransfer.rest
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
+import org.projectforge.business.chat.ChatDirectService
+import org.projectforge.business.chat.ChatService
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.common.NumberOfBytes
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferChatHost
+import org.projectforge.plugins.datatransfer.DataTransferExternalAccessConfig
 import org.projectforge.plugins.datatransfer.DataTransferUtils
 import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.config.Rest
@@ -71,6 +76,24 @@ class DataTransferFilesRest {
         val downloadAllAvailable: Boolean,
         /** The maximum size of an uploaded file in KB. */
         val maxUploadSizeKB: Int,
+        /**
+         * Main instance: the area's external access runs via the gateway, its files are there (url of the area
+         * on the gateway, same id). No upload here then.
+         */
+        val gatewayUrl: String? = null,
+        /** Gateway: the area was pushed by the main instance and is administered there only. */
+        val managedByMainInstance: Boolean = false,
+        /** A synthetic area (e.g. of a chat conversation): its files come from there, no upload here. */
+        val syntheticArea: Boolean = false,
+        /** The area is a chat room as well (PF-CHAT-DT): no personal box, no synthetic area, not on the gateway. */
+        val chatAvailable: Boolean = false,
+        /** The owner of a personal box: whom a direct message from it goes to. */
+        val personalBoxUserId: Long? = null,
+        /**
+         * The messages the logged-in user didn't read yet in the chat of the area, or in the direct message with the
+         * owner of another one's personal box.
+         */
+        val chatUnread: Long = 0,
     )
 
     class ObserveRequest(var observe: Boolean? = null)
@@ -86,6 +109,15 @@ class DataTransferFilesRest {
 
     @Autowired
     private lateinit var dataTransferAreaEntityRest: DataTransferAreaEntityRest
+
+    @Autowired
+    private lateinit var chatDirectService: ChatDirectService
+
+    @Autowired
+    private lateinit var chatHost: DataTransferChatHost
+
+    @Autowired
+    private lateinit var chatService: ChatService
 
     @Autowired
     private lateinit var dataTransferAreaDao: DataTransferAreaDao
@@ -140,11 +172,28 @@ class DataTransferFilesRest {
             id
         }
         val (dbObj, dto) = convertData(areaId)
+        val externalAccessConfig = dataTransferAreaDao.externalAccessConfig
+        val chatAvailable = chatHost.isChatArea(dbObj)
+        val boxUserId = dbObj.getPersonalBoxUserId()
         return View(
             area = dto,
             editAccess = hasEditAccess(dto, dbObj),
             downloadAllAvailable = (dto.attachmentsSize ?: 0) in 1..NumberOfBytes.GIGA_BYTES,
             maxUploadSizeKB = DataTransferAreaDao.getMaxUploadFileSizeKB(dbObj),
+            gatewayUrl = if (externalAccessConfig.isOnGateway(dbObj)) {
+                "${externalAccessConfig.gatewayPublicUrl}/${DataTransferUtils.areaViewPath(dbObj.id)}"
+            } else null,
+            managedByMainInstance = externalAccessConfig.gatewayMode,
+            syntheticArea = dataTransferAreaDao.getAreaHost(dbObj) != null,
+            chatAvailable = chatAvailable,
+            personalBoxUserId = boxUserId,
+            chatUnread = when {
+                boxUserId != null -> chatDirectService.countUnread(boxUserId)
+                chatAvailable -> chatService.countUnread(
+                    DataTransferChatHost.HOST_TYPE, areaId, DataTransferChatHost.CHANNEL
+                )
+                else -> 0
+            },
         )
     }
 
@@ -161,6 +210,10 @@ class DataTransferFilesRest {
         if (observe != isLoggedInUserObserver(dbDto, loggedInUser)) {
             // Get entry including external access settings (see DataTransferDao#hasAccess).
             val dbObj = dataTransferAreaDao.find(id, checkAccess = false)!!
+            if (dataTransferAreaDao.externalAccessConfig.gatewayMode) {
+                // The observers come from the main instance (gateway), the next push would overwrite them.
+                throw AccessException("access.exception.userHasNotRight")
+            }
             val newObservers = dbDto.observers?.toMutableList() ?: mutableListOf()
             if (observe) {
                 val user = User()

@@ -1,12 +1,12 @@
 {%- comment -%}
     FAQ list from the faqs collection, one <details> per question. Parameters: title, subtitle,
     category (only the FAQs of this category), multiple (several answers may be open at once),
-    id (anchor of the section), tone (muted for a grey band).
+    id (anchor of the section), tone (muted for a grey band). Only the FAQs of the language of the page (the German
+    ones in _faqs/de/).
 {%- endcomment -%}
+{%- assign faqs = site.faqs | where: "lang", page.lang -%}
 {%- if include.category -%}
-    {%- assign faqs = site.faqs | where: "categories", include.category -%}
-{%- else -%}
-    {%- assign faqs = site.faqs -%}
+    {%- assign faqs = faqs | where: "categories", include.category -%}
 {%- endif -%}
 <section class="py-16 max-sm:py-12{% if include.tone == 'muted' %} border-y border-border bg-secondary{% endif %}"{% if include.id %} id="{{ include.id }}"{% endif %}>
     <div class="pf-container pf-narrow">

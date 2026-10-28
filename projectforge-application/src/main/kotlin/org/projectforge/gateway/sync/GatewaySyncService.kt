@@ -38,7 +38,10 @@ import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
 import org.projectforge.carddav.service.AddressDAVCache
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.gateway.sync.dto.SyncAddressDto
+import org.projectforge.gateway.sync.dto.SyncDataTransferAreaDto
 import org.projectforge.gateway.sync.dto.SyncFavoritesDto
 import org.projectforge.gateway.sync.dto.SyncGroupDto
 import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
@@ -60,6 +63,7 @@ class GatewaySyncService(
     private val gatewayIcsCache: GatewayIcsCache,
     private val addressImageCache: AddressImageCache,
     private val personalAddressCache: PersonalAddressCache,
+    private val dataTransferAreaDao: DataTransferAreaDao,
 ) {
     /** Optional: not available if the CardDAV server is disabled. */
     @Autowired(required = false)
@@ -93,12 +97,17 @@ class GatewaySyncService(
                         user.username = dto.username
                         user.idpExternalId = dto.idpExternalId
                         user.deactivated = !dto.active
+                        user.email = dto.email
                         em.persist(user)
                         em.flush()
                     } else {
-                        if (existing.idpExternalId != dto.idpExternalId || existing.deactivated != !dto.active) {
+                        if (existing.idpExternalId != dto.idpExternalId || existing.deactivated != !dto.active ||
+                            existing.email != dto.email
+                        ) {
                             existing.idpExternalId = dto.idpExternalId
                             existing.deactivated = !dto.active
+                            // Only observers of pushed data transfer areas have one (notification mails).
+                            existing.email = dto.email
                             changed = true
                         }
                         user = existing
@@ -442,10 +451,130 @@ class GatewaySyncService(
         personalAddressCache.forceReload()
     }
 
+    /**
+     * [areas] is the complete list of the main instance's areas with external access (mode VIA_GATEWAY): they
+     * are created or updated with the same id as on the main instance, restored if deleted before. All other
+     * areas here (external access switched off or deleted on the main instance) are marked as deleted; their
+     * files are kept. Users and groups unknown here are dropped.
+     *
+     * The gateway has only these areas: it creates none itself (no personal boxes, see DataTransferAreaDao), so
+     * the ids of the main instance can't collide here.
+     *
+     * Via the DAO without access check (history, search index): the areas are read-only here otherwise.
+     */
+    fun syncDataTransferAreas(areas: List<SyncDataTransferAreaDto>): SyncResultDto {
+        var created = 0
+        var updated = 0
+        var deleted = 0
+        var unchanged = 0
+        var errors = 0
+        val existingById = persistenceService.executeQuery(
+            "SELECT a FROM DataTransferAreaDO a",
+            DataTransferAreaDO::class.java,
+        ).associateBy { it.id!! }
+        // From the db, not the caches: users and groups of this push may not be in the caches yet.
+        val userIdByName = persistenceService.executeQuery("SELECT u FROM PFUserDO u", PFUserDO::class.java)
+            .filter { it.username != null }.associate { it.username!! to it.id!! }
+        val groupIdByName = persistenceService.executeQuery(
+            "SELECT g FROM GroupDO g WHERE g.deleted = false", GroupDO::class.java
+        ).filter { it.name != null }.associate { it.name!! to it.id!! }
+        for (dto in areas) {
+            try {
+                val existing = existingById[dto.id]
+                val area = existing ?: insertDataTransferArea(dto)
+                val before = existing?.let { syncedValues(it) }
+                area.areaName = dto.areaName
+                area.description = dto.description
+                area.adminIds = ids(dto.adminUsernames, userIdByName, dto)
+                area.observerIds = ids(dto.observerUsernames, userIdByName, dto)
+                area.accessUserIds = ids(dto.accessUsernames, userIdByName, dto)
+                area.accessGroupIds = ids(dto.accessGroupNames, groupIdByName, dto)
+                area.externalDownloadEnabled = dto.externalDownloadEnabled
+                area.externalUploadEnabled = dto.externalUploadEnabled
+                area.externalAccessToken = dto.externalAccessToken
+                area.externalPassword = dto.externalPassword
+                area.expiryDays = dto.expiryDays
+                area.maxUploadSizeKB = dto.maxUploadSizeKB
+                when {
+                    existing == null -> {
+                        dataTransferAreaDao.update(area, checkAccess = false)
+                        created++
+                    }
+
+                    existing.deleted -> {
+                        dataTransferAreaDao.update(area, checkAccess = false)
+                        dataTransferAreaDao.undelete(area, checkAccess = false)
+                        log.info { "Data transfer area '${dto.areaName}' (id ${dto.id}) restored." }
+                        updated++
+                    }
+
+                    before != syncedValues(area) -> {
+                        dataTransferAreaDao.update(area, checkAccess = false)
+                        updated++
+                    }
+
+                    else -> unchanged++
+                }
+            } catch (e: Exception) {
+                log.error(e) { "Error syncing data transfer area '${dto.areaName}' (id ${dto.id})" }
+                errors++
+            }
+        }
+        val ids = areas.map { it.id }.toSet()
+        existingById.values.filter { !it.deleted && it.id !in ids }.forEach { area ->
+            try {
+                // No external access to the files kept here (a restored area gets it again from the main instance).
+                area.externalAccessToken = null
+                area.externalPassword = null
+                area.externalDownloadEnabled = false
+                area.externalUploadEnabled = false
+                dataTransferAreaDao.markAsDeleted(area, checkAccess = false)
+                log.info { "Data transfer area '${area.areaName}' (id ${area.id}) has no external access on the main instance anymore, marked as deleted." }
+                deleted++
+            } catch (e: Exception) {
+                log.error(e) { "Error deleting data transfer area '${area.areaName}' (id ${area.id})" }
+                errors++
+            }
+        }
+        log.info { "Data transfer area sync complete: created=$created, updated=$updated, deleted=$deleted, unchanged=$unchanged, errors=$errors" }
+        return SyncResultDto(created = created, updated = updated, deleted = deleted, unchanged = unchanged, errors = errors)
+    }
+
+    /**
+     * Creates the row with the id of the main instance: the entity's id is generated otherwise, so JPA can't
+     * persist it with a given one. The values are written by the caller via the DAO.
+     */
+    internal fun insertDataTransferArea(dto: SyncDataTransferAreaDto): DataTransferAreaDO {
+        persistenceService.runInTransaction { context ->
+            context.em.createNativeQuery(
+                "INSERT INTO t_plugin_datatransfer_area (pk, deleted, area_name, created, last_update) VALUES (:id, false, :name, NOW(), NOW())"
+            ).setParameter("id", dto.id).setParameter("name", dto.areaName).executeUpdate()
+        }
+        return dataTransferAreaDao.find(dto.id, checkAccess = false)
+            ?: throw IllegalStateException("Data transfer area with id ${dto.id} not found after insert.")
+    }
+
+    private fun syncedValues(area: DataTransferAreaDO): List<Any?> = listOf(
+        area.areaName, area.description, area.adminIds, area.observerIds, area.accessUserIds, area.accessGroupIds,
+        area.externalDownloadEnabled, area.externalUploadEnabled, area.externalAccessToken, area.externalPassword,
+        area.expiryDays, area.maxUploadSizeKB,
+    )
+
+    /**
+     * @return The csv list of the local ids of the given users or groups, unknown names are dropped.
+     */
+    private fun ids(names: List<String>, idByName: Map<String, Long>, dto: SyncDataTransferAreaDto): String? {
+        return names.mapNotNull { name ->
+            idByName[name].also {
+                if (it == null) log.warn { "User or group '$name' of data transfer area '${dto.areaName}' unknown on the gateway, ignored." }
+            }
+        }.joinToString(",").ifEmpty { null }
+    }
+
     fun syncIcsEntries(entries: List<SyncIcsEntryDto>): SyncResultDto {
         var updated = 0
         for (entry in entries) {
-            gatewayIcsCache.put(entry.userId, entry.queryParam, entry.icsData)
+            gatewayIcsCache.put(entry.userId, entry.params, entry.icsData)
             updated++
         }
         log.info { "ICS cache sync complete: $updated entries updated" }

@@ -169,6 +169,8 @@ export interface UserData {
   currency: string;
   thousandSeparator: string;
   decimalSeparator: string;
+  /** The version of the own avatar (lib/rs/user-avatar.ts), null without one. */
+  avatarVersion?: number | null;
 }
 
 /**
@@ -216,13 +218,36 @@ export interface UserStatus {
    * on its own whether to offer an admin only action (see ListGearMenu).
    */
   adminUser?: boolean;
+  /**
+   * Whether the user may see inactive persons (deactivated users, employees who left) in the pickers, see
+   * useShowInactive. The backend enforces it anyway.
+   */
+  showInactivePersons?: boolean;
   /** JIRA config for client-side issue linking, only where JIRA is configured (see JiraConfig). */
   jira?: JiraConfig;
+  /** Unread chat messages in all rooms and direct messages, for the top bar's badge. */
+  chatUnread?: number;
   /**
    * The summary of the user's notifications visible in the app; the notification center loads them only
    * when it changes (see components/shared/notifications).
    */
   notifications?: NotificationSummary;
+  /**
+   * The ids of the switched off features (projectforge.features.*, inactive plugins), e.g. `SEARCH`: what the app
+   * shows on every page for them is left out (see useFeatureEnabled).
+   */
+  disabledFeatures?: string[];
+  /** The next routes of the switched off features, see FeatureGuard. */
+  featureRoutes?: FeatureRoutes;
+}
+
+/**
+ * The routes (without basePath and slashes, e.g. `address`) of switched off features, and the reachable ones
+ * below them (e.g. below a switched off route of a plugin). The longest route being a prefix of a path decides.
+ */
+export interface FeatureRoutes {
+  disabled: string[];
+  enabled: string[];
 }
 
 export interface SystemStatus {
@@ -289,14 +314,6 @@ export interface MenuData {
 
 // --- Dynamic Layout ---
 
-export interface DynamicLayoutNode {
-  type: string;
-  key: string;
-  content?: DynamicLayoutNode[];
-  // Type-specific props are passed through
-  [prop: string]: unknown;
-}
-
 /**
  * A filter field the backend offers for a list page. Delivered inside the
  * `searchFilter` named container of a list layout, built by
@@ -319,6 +336,10 @@ export interface FilterListValue {
   freeText?: boolean;
   /** Stands for several others: a customer group in the customer checklist. */
   group?: boolean;
+  /** For a [group] value: the names of the values it stands for among those offered, shown as tooltip. */
+  members?: string[];
+  /** No longer live but still selectable, e.g. a closed address campaign (`UISelectValue.inactive`). */
+  inactive?: boolean;
 }
 
 export interface FilterElement {
@@ -387,19 +408,6 @@ export type UIColorName =
   | "success"
   | "warning";
 
-/** A button of the action group or of the layout (org.projectforge.ui.UIButton). */
-export interface ActionDef {
-  id: string;
-  title?: string;
-  color?: UIColorName;
-  outline?: boolean;
-  default?: boolean;
-  tooltip?: string;
-  disabled?: boolean;
-  confirmMessage?: string;
-  responseAction?: ResponseAction;
-}
-
 /** org.projectforge.ui.TargetType. */
 export type TargetType =
   | "REDIRECT"
@@ -452,47 +460,10 @@ export interface PostData<D = Record<string, unknown>> {
   serverData?: ServerData;
 }
 
-export interface AutoCompletion {
-  /** Number of characters before the lookup fires; UIInput/UISelect default it to 2. */
-  minChars?: number;
-  values?: { value: unknown; label: string; allSearchableFields?: string }[];
-  /** USER, EMPLOYEE, GROUP, CUSTOMER, PROJECT - set when the field stores whole entities. */
-  type?: string;
-  /** Contains a literal ":search" placeholder to substitute. */
-  url?: string;
-  urlParams?: Record<string, string>;
-}
-
 /** One offered option of a UISelect (org.projectforge.ui.UISelectValue). */
 export interface UISelectValue {
   id: unknown;
   displayName: string;
-}
-
-export interface NamedContainer {
-  id: string;
-  type: string;
-  content?: DynamicLayoutNode[];
-}
-
-export interface DynamicUIResponse {
-  /** Identifies this layout instance; used to keep dom ids unique (UILayout.uid). */
-  uid?: string;
-  layout: DynamicLayoutNode[];
-  layoutBelowActions?: DynamicLayoutNode[];
-  actions?: ActionDef[];
-  pageMenu?: DynamicLayoutNode[];
-  title?: string;
-  /**
-   * The same page in the legacy React app, e.g. `react/book/edit/42` — the escape hatch shown next
-   * to the title while the migration runs (see LegacyPageLink). Absent for pages with no legacy
-   * counterpart.
-   */
-  legacyUrl?: string;
-  translations?: Record<string, string>;
-  watchFields?: string[];
-  // An array, not a map: each container carries its own id (e.g. "searchFilter").
-  namedContainers?: NamedContainer[];
 }
 
 /** One saved filter, mirroring Favorites.FavoriteIdTitle. */
@@ -502,39 +473,11 @@ export interface FavoriteIdTitle {
 }
 
 /**
- * What `{entity}/initialList` and the `filter/*` endpoints return
- * (AbstractPagesRest.InitialListData).
- *
- * Beyond the layout it carries the filter state the backend keeps per user: the
- * current filter (stored on every list call, see saveCurrentFilter) and the list
- * of saved filters.
- */
-export interface InitialListData extends DynamicPageResponse {
-  filter?: MagicFilter;
-  filterFavorites?: FavoriteIdTitle[];
-  standardEditPage?: string;
-  /**
-   * The legacy edit page with `:id` for the id, e.g. `react/book/edit/:id` or `wa/cost1Edit?id=:id`.
-   * Read by the hand built edit pages, which have no `{entity}/edit` response of their own to take
-   * `ui.legacyUrl` from (see LegacyPageLink).
-   */
-  legacyEditPage?: string;
-  /**
-   * The legacy page for adding an entry, e.g. `react/book/edit` or `wa/cost1Edit`. Its own field,
-   * because dropping the id from `legacyEditPage` is a per-app rule (path segment vs. query
-   * parameter), not a suffix cut.
-   */
-  legacyNewEntryPage?: string;
-  quickSelectUrl?: string;
-  useModalEditDialog?: boolean;
-}
-
-/**
  * What `{entity}/listMeta` returns for a hand built list page (`rest/core/ListMetaData.kt`):
  * everything the page needs beside its rows.
  *
- * The layout free counterpart of {@link InitialListData} — no `ui`, no translations and no result
- * set, because the page renders itself and fetches its rows from `list`.
+ * No `ui`, no translations and no result set, because the page renders itself and fetches its rows
+ * from `list`.
  */
 export interface ListMetaData {
   /** The filter the user left this page with, restored from their user prefs. */
@@ -554,31 +497,12 @@ export interface ListMetaData {
   /** Url template of the page a row leads to, with `:id` for the id. */
   standardEditPage?: string;
   /**
-   * The way back to the legacy list page, e.g. `wa/orderBookList`. Absent for a page whose legacy
-   * counterpart is gone (see LegacyPageLink).
-   */
-  legacyListPage?: string;
-  /**
-   * Whether `legacyListPage` is offered in the list's gear menu instead of the prominent button, per
-   * entity (see `NextMigration.NextPage.legacyListInMenu`). The escape hatch stays loud while a page
-   * still has gaps and is demoted into the menu once it is trusted. Only the list is affected — the
-   * edit page keeps the button.
-   */
-  legacyListInMenu?: boolean;
-  /**
    * Whether the entity is small enough for a full re-index to take seconds, which then is the only
    * re-index of the list, offered to every user (`BaseDao.isFullReindexSmall`, see ListGearMenu).
    */
   fullReindexOnly?: boolean;
   /** The limit of `fullReindexOnly`, named by the explanation of the admins' full re-index entry. */
   fullReindexMaxEntries?: number;
-  /** The legacy edit page with `:id` for the id, e.g. `wa/orderBookEdit?id=:id`. */
-  legacyEditPage?: string;
-  /**
-   * The legacy page for adding an entry. Its own field, because dropping the id from
-   * `legacyEditPage` is a per-app rule (path segment vs. query parameter), not a suffix cut.
-   */
-  legacyNewEntryPage?: string;
   userAccess?: UserAccess;
   /**
    * The entries this user last ticked for a mass update, so entering the selection mode after a
@@ -593,7 +517,7 @@ export interface ListMetaData {
 }
 
 /**
- * What the logged-in user may do with an entity (`UILayout.UserAccess`). Every flag is optional:
+ * What the logged-in user may do with an entity (`org.projectforge.rest.dto.UserAccess`, served with `listMeta`). Every flag is optional:
  * Spring omits the ones the backend left null (`JsonInclude.NON_NULL`).
  */
 export interface UserAccess {
@@ -618,16 +542,4 @@ export interface UserAccess {
 export interface FilterFavoritesResponse {
   filter?: MagicFilter;
   filterFavorites?: FavoriteIdTitle[];
-}
-
-/**
- * Layout and data in one - see rest/dto/FormLayoutData.kt.
- *
- * The same shape doubles as the answer of an action endpoint, which is why it carries the
- * ResponseAction fields as well (the backend writes both into one JSON object).
- */
-export interface DynamicPageResponse extends ResponseAction {
-  ui: DynamicUIResponse;
-  data: Record<string, unknown>;
-  serverData?: ServerData;
 }

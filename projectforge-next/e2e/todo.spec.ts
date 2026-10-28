@@ -32,8 +32,8 @@ test.describe("todo", { tag: "@parallel" }, () => {
       "the todo plugin isn't activated in this instance"
     );
     await page.request
-      .get("/rs/todo/filter/reset", {
-        headers: { "X-PF-Frontend": "next" },
+      .post("/rs/todo/filter/reset", {
+        headers: await writeHeaders(page.request),
       })
       .catch(() => undefined);
   });
@@ -64,7 +64,7 @@ test.describe("todo", { tag: "@parallel" }, () => {
     const format = await userFormat(page);
     const { t } = format;
     let saveAttempted = false;
-    await page.route("**/rs/todo/saveorupdate*", (route) => {
+    await page.route("**/rs/todo/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
@@ -77,7 +77,7 @@ test.describe("todo", { tag: "@parallel" }, () => {
     await expect(
       page.getByRole("button", { name: t("plugins.todo.button.close") })
     ).toHaveCount(0);
-    await page.getByRole("button", { name: t("save") }).click();
+    await page.getByRole("button", { name: t("create") }).click();
 
     for (const key of ["plugins.todo.subject", "plugins.todo.assignee"]) {
       await expect(
@@ -166,7 +166,7 @@ test.describe("todo", { tag: "@parallel" }, () => {
       for (const template of templates.filter((f) =>
         f.name.startsWith(MARKER)
       )) {
-        await request.get(`/rs/todo/templates/delete?id=${template.id}`, {
+        await request.post(`/rs/todo/templates/delete?id=${template.id}`, {
           headers: await writeHeaders(request),
         });
       }

@@ -28,7 +28,7 @@ export function toFormValues(group: GroupDetail): GroupValues {
  * Blank form for a group that doesn't exist yet.
  *
  * `ldapPosixConfigured` starts false, so the LDAP field is absent until the backend says otherwise:
- * an "add" reads its preset from `/rs/group/newEntry` (`AbstractDTOPagesRest.newBaseDTO` runs
+ * an "add" reads its preset from `/rs/group/newEntry` (`AbstractDTOEntityRest.newBaseDTO` runs
  * `transformFromDB`, which sets the flag), and the form is reset onto that answer.
  */
 export function emptyGroupValues(): GroupValues {

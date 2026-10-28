@@ -10,10 +10,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MenuLink } from "@/components/shared/menu-link";
-import { VacationDaysBar } from "@/components/features/vacation/vacation-days-bar";
+import { AbsenceDaysCell } from "@/components/shared/absence-chart/absence-days-bar";
 import { useNavigateMenuUrl } from "@/hooks/use-navigate-menu-url";
 import { cn } from "@/lib/utils";
 import type { VacationAccount } from "./types";
+import { RefList, RefName } from "@/components/shared/ref-list";
 
 /**
  * The vacations of the next, current and previous year, one block per year. A row opens its form, which returns
@@ -74,20 +75,22 @@ export function VacationEntriesTable({
                 </TableCell>
                 <TableCell>{vacation.statusString}</TableCell>
                 <TableCell>
-                  {/* As in the vacation list: beside the number the period as a bar (VacationDaysBar). */}
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 shrink-0 text-right tabular-nums">
-                      {vacation.workingDaysFormatted}
-                    </span>
-                    <VacationDaysBar row={vacation} />
-                  </div>
+                  {/* As in the vacation list: beside the number the period as a bar. */}
+                  <AbsenceDaysCell
+                    formatted={vacation.workingDaysFormatted}
+                    row={vacation}
+                  />
                 </TableCell>
                 <TableCell>{vacation.specialFormatted}</TableCell>
-                <TableCell>{vacation.replacement}</TableCell>
-                <TableCell className="whitespace-normal">
-                  {vacation.otherReplacements}
+                <TableCell>
+                  <RefName value={vacation.replacement} />
                 </TableCell>
-                <TableCell>{vacation.manager}</TableCell>
+                <TableCell className="whitespace-normal">
+                  <RefList refs={vacation.otherReplacements} />
+                </TableCell>
+                <TableCell>
+                  <RefName value={vacation.manager} />
+                </TableCell>
                 <TableCell>{vacation.vacationModeString}</TableCell>
                 <TableCell className="whitespace-normal">
                   {vacation.comment}

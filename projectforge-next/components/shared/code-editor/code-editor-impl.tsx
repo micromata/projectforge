@@ -3,20 +3,13 @@
 import { useMemo, useRef, type CSSProperties } from "react";
 import { useTheme } from "next-themes";
 import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror";
-import { StreamLanguage } from "@codemirror/language";
 import { search } from "@codemirror/search";
-import { kotlin } from "@codemirror/legacy-modes/mode/clike";
-import { groovy } from "@codemirror/legacy-modes/mode/groovy";
 import { useFillHeight } from "@/hooks/use-fill-height";
 import { cn } from "@/lib/utils";
 import type { CodeEditorProps } from "./code-editor";
+import { CODE_EDITOR_LANGUAGES } from "./code-editor-languages";
 import { CodeEditorToolbar } from "./code-editor-toolbar";
 import { useCodeEditorPhrases } from "./use-code-editor-phrases";
-
-const LANGUAGES = {
-  kotlin: StreamLanguage.define(kotlin),
-  groovy: StreamLanguage.define(groovy),
-};
 
 /**
  * The CodeMirror editor itself, loaded only by [CodeEditor] — CodeMirror and its language modes are a
@@ -35,6 +28,8 @@ export default function CodeEditorImpl({
   minHeight = "20rem",
   ariaLabel,
   fill,
+  original,
+  versions,
 }: CodeEditorProps) {
   const { resolvedTheme } = useTheme();
   const editor = useRef<ReactCodeMirrorRef>(null);
@@ -49,7 +44,7 @@ export default function CodeEditorImpl({
     () => [
       search({ top: true }),
       phrases,
-      ...(language ? [LANGUAGES[language]] : []),
+      ...(language ? [CODE_EDITOR_LANGUAGES[language]] : []),
     ],
     [language, phrases]
   );
@@ -81,6 +76,11 @@ export default function CodeEditorImpl({
       <CodeEditorToolbar
         view={() => editor.current?.view}
         readOnly={readOnly}
+        diff={
+          original === undefined
+            ? undefined
+            : { original, current: value, language, versions }
+        }
       />
       <CodeMirror
         id={id}

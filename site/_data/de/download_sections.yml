@@ -1,0 +1,40 @@
+# Text sections of the German download page, rendered by _includes/text-section.html (fields: see there)
+
+next_steps:
+  title: Nächste Schritte
+  text: >-
+    Der [Installationsanleitung](/docs/installation/) (englisch) folgen, dann mit dem
+    [Schnellstart](/de/docs/quickstart/) das eigene Unternehmen einrichten. Was sich in jedem Release geändert hat,
+    steht im [Changelog](/de/changelog-posts/).
+  button_text: Installationsanleitung (EN)
+  button_url: /docs/installation/
+
+updates:
+  title: Updates
+  text: >-
+    Updates sind einfach: ProjectForge stoppen, die neue Version starten. Datenbankschema und Daten werden beim
+    ersten Start automatisch migriert. Vorher die Datenbank sichern und im
+    [Migrationsleitfaden](/docs/migration/) (englisch) die wenigen Änderungen prüfen, die Aufmerksamkeit brauchen. 9.1.x ist das letzte Release mit Java 17 und
+    JCR-Unterstützung: Wer noch das JCR nutzt, migriert zuerst mit 9.1.x, bevor auf 9.2 oder neuer aktualisiert wird.
+  button_text: Migrationsleitfaden (EN)
+  button_url: /docs/migration/
+
+translations:
+  title: Übersetzungen
+  text: >-
+    ProjectForge gibt es auf Deutsch und Englisch, und es ist vollständig internationalisiert. Eine neue Sprache
+    braucht etwas mehr als eine Datei: die Texte des Backends (eine Übersetzung der
+    [englischen Übersetzungsdatei](https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/I18nResources.properties),
+    Format `key=Übersetzung`), die Texte des Web-Frontends und eine kleine Code-Änderung, um die Sprache zu
+    registrieren. Wer eine Sprache beisteuern möchte, eröffnet am besten zuerst ein GitHub-Issue – wir helfen
+    gern beim Einstieg und nehmen sie in ein Release auf.
+  button_text: GitHub-Issue eröffnen
+  button_url: https://github.com/micromata/projectforge/issues
+
+archive:
+  title: Archiv
+  text: >-
+    Alle früheren Versionen gibt es auf [GitHub](https://github.com/micromata/projectforge/releases) und, zurück
+    bis 2010, auf SourceForge.
+  button_text: Frühere Versionen auf SourceForge
+  button_url: https://sourceforge.net/projects/pforge/files/ProjectForge/

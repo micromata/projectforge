@@ -13,6 +13,7 @@ tags: [setup]
 
 :sectnums:
 
+[[introduction]]
 == Introduction
 
 ProjectForge® is designed to improve the efficiency of projects and project teams, from single-person projects up to
@@ -27,6 +28,7 @@ The names below (users, groups, structure elements) are just examples, use your 
 TIP: After creating the users, you can use the _Access wizard_ of a structure element to create a project with its
 groups and access rights in one go. This tutorial shows the steps behind the wizard, so you know what it does.
 
+[[set_up_of_your_team_members]]
 === Set-up of your team members
 
 Log in as administrator and create one account per project member (_Administration_ -> _Users_). In this example we
@@ -40,8 +42,10 @@ start with three team members, one project manager and two developers:
 | betty    | Developer               | betty@acme.com        | -
 |===
 
+[[set_up_your_company_acme_inc]]
 === Set-up your company: ACME Inc.
 
+[[create_your_companys_top_level_structure_element]]
 ==== Create your company's top level structure element
 
 Open _Structure tree_ (menu _Project management_) and add a structure element with the name of your company. Select
@@ -53,6 +57,7 @@ ProjectForge's root structure element as parent.
 | ACME Inc.                 | ProjectForge's root structure element
 |===
 
+[[create_a_group_for_all_employees]]
 === Create a group for all employees
 
 Add a user group (_Administration_ -> _Groups_) named e.g. "ACME employees".
@@ -63,6 +68,7 @@ Add a user group (_Administration_ -> _Groups_) named e.g. "ACME employees".
 | ACME employees | Linda, Dave, Betty
 |===
 
+[[create_project_member_group]]
 === Create project member group
 
 Create another group in _Administration_ -> _Groups_ for your project team:
@@ -73,6 +79,7 @@ Create another group in _Administration_ -> _Groups_ for your project team:
 | ACME web portal team | Linda, Dave, Betty
 |===
 
+[[create_your_project_root_structure_element_e_g_acme_web_portal]]
 === Create your project root structure element, e. g. ACME Web portal
 
 In the structure tree, create a structure element named after your project:
@@ -87,6 +94,7 @@ You can change the hierarchy and the names of your structure elements (e.g. for 
 later, so just start with your project as top level structure element. User names, group names etc. can also be
 changed any time without losing any references in the system.
 
+[[assign_the_required_team_access]]
 === Assign the required team access
 
 ProjectForge® has a very detailed access management, so you can configure which user has which access to the system.
@@ -105,14 +113,17 @@ Many fields show a help icon or tool-tip explaining them, e.g. _Recursive_ (incl
 Now your team members are able to book time sheets on your ACME web portal project. They're also able to give their
 project a sub structure, as explained in the next chapter.
 
+[[structure_of_your_projects]]
 == Structure of your projects
 
+[[the_idea_of_structure_trees_and_hierarchy]]
 === The idea of structure trees and hierarchy
 
 ProjectForge® supports a hierarchy of structure elements without any limits concerning the depth of your tree or the
 number of structure elements. A structure element is a general term which can represent customers, projects, project
 phases, work packages, tasks, issues and more.
 
+[[best_practice_recommended_structure_for_your_projects]]
 === Best practice: recommended structure for your projects
 
 We recommend organizing your projects as follows:
@@ -134,8 +145,10 @@ structure element and insert the customer later, when you have more projects and
 You can add sub structure elements in the structure tree by creating a new structure element and selecting its
 parent. Another convenient way to organize the structure of your project is the _Gantt_ chart (see below).
 
+[[time_sheet_booking]]
 == Time sheet booking
 
+[[adding_time_sheets]]
 === Adding time sheets
 
 All team members should book every activity on the project as time sheets. The easiest way is the calendar: click on
@@ -143,6 +156,7 @@ a day or select a time range to book a new time sheet, or edit an existing one.
 Every time sheet needs at least a start and stop time and the structure element worked on. Optionally the user can
 enter a reference such as a JIRA issue id. Frequently used bookings can be saved as templates.
 
+[[consumption_of_work_packages]]
 === Consumption of work packages
 
 For having an overview at any time, we recommend to configure estimated time budgets for your structure elements.
@@ -154,6 +168,7 @@ structure element has no budget of its own but its sub elements have one, its bu
 of the budgets of all sub elements). The other way is to define your budgets by assigning orders (not described
 here). You can mix both approaches.
 
+[[gantt_charts]]
 == Gantt charts
 
 Gantt charts are a widely used technique for planning a project and keeping it on track. You can edit the Gantt
@@ -163,6 +178,7 @@ convenient to edit them in the Gantt chart directly.
 Choose the menu entry _Gantt_, add a new chart and choose the structure element (project, release or project phase)
 you'd like to plan. In this example we choose the project's main structure element 'ACME web portal'.
 
+[[cost_unit_accounting]]
 == Cost-unit accounting
 
 Project managers and especially controllers like reports, reports and reports. If you'd like to answer questions such
@@ -174,20 +190,24 @@ as the following, use the cost features of ProjectForge® as introduced below.
 * How much did we spend on acquisition for ...?
 * What was the budget for R&D for our whole company?
 
+[[setting_up_cost_objectives_requirements_optional]]
 === Setting up cost objectives, requirements (optional)
 
 The following steps enable your ProjectForge installation for cost objectives:
 
+[[activating_cost]]
 ==== Activating cost
 
 Enable the parameter _Cost-unit accounting configured?_ under _Administration_ -> _Configuration_ (takes effect after a
 re-login).
 
+[[access_rights_and_required_group_of_the_financial_administrative_user]]
 ==== Access rights and required group of the financial administrative user
 
 Please ensure that the financial administrative user is a member of the group PF_Finance and has read/write access
 to the rights _Cost unit_ and _Projects_.
 
+[[define_cost2_types]]
 ==== Define cost2 types
 
 You have to define cost2 types which are valid for all structure elements and projects. Later you'll be able to do
@@ -216,17 +236,24 @@ list any time later):
 
 Please note: _invoiced_ is only a flag which you can use later in your reports and scripts.
 
+[[define_customers_and_projects]]
 ==== Define customers and projects
 
 For customer- or project-specific cost objectives you need to define the customers first and then the customers'
 projects. It's a best practice to have a misc project for every customer for time sheets and costs which aren't
 specific to a project, or for small projects without a separate cost calculation.
 
+Customer and project numbers are free unless you configure number ranges. If the cost 2 units of your projects should
+be derived from the customer and project numbers, configure the number ranges before creating customers and projects,
+see link:/docs/adminguide/#number_ranges_of_customers_projects_and_cost_units[Admin guide – Number ranges].
+
+[[define_cost2]]
 ==== Define cost2
 
 You can define cost2 entries independent of projects, or project-specific cost2 entries by selecting the project
 first.
 
+[[assign_projects_or_cost2_to_structure_elements]]
 ==== Assign projects or cost2 to structure elements
 
 You can assign projects to structure elements (in the project edit page) or add non-project-specific cost2 entries
@@ -234,32 +261,39 @@ directly to a structure element. For project-specific cost assignments you can u
 available cost2 objects for a structure sub tree. Please have a look at the structure element edit page for a better
 understanding.
 
+[[calendars]]
 == Calendars
 
 Please refer to the link:/docs/userguide/[User guide] for further information.
 
+[[best_practices]]
 == Best practices
 
+[[roles_administrators_financial_staff_project_managers_and_controllers]]
 === Roles: administrators, financial staff, project managers and controllers
 
 In larger companies it's useful to split up these roles.
 
+[[system_administrators]]
 ==== System administrators
 
 You should have system administrators who are responsible for managing users, groups and access rights to structure
 elements and functionalities (group PF_Admin).
 
+[[financial_administrative_users]]
 ==== Financial administrative users
 
 Your financial administrative staff is responsible for employees (and salaries), customers, order book, cost
 objectives, projects as well as invoices (outgoing and incoming), see the group PF_Finance. You can specify which
 rights each user should have. The users of the group PF_Organization have reduced rights by default.
 
+[[project_managers]]
 ==== Project managers
 
 Project managers (group PF_ProjectManager) are able to plan human resources and to organize the order book for the
 projects whose project manager group they're members of (set in the project details).
 
+[[controllers]]
 ==== Controllers
 
 Members of the group PF_Controlling have read access to most areas of ProjectForge by default. Members of PF_Controlling

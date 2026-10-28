@@ -99,12 +99,12 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
      *
      * The list of an entity costs what its rows weigh, and a row weighs what the edit form needs: nested
      * DTOs behind a column showing one name, every sum twice (raw and pre-formatted), comments and access
-     * flags no column reads. The order book sent 12.5 MB over 7132 rows that way; filling only its 19
-     * columns leaves 5.3 MB (1.5 MB -> 549 KB gzipped), and `JsonInclude.Include.NON_NULL` keeps the
+     * flags no column reads. A large order book sent several MB of JSON that way; filling only its 19
+     * columns leaves less than half of it, and `JsonInclude.Include.NON_NULL` keeps the
      * rest off the wire.
      *
      * Overriding it is what opts an entity into the lean row (see
-     * [org.projectforge.rest.core.AbstractPagesRest.createListRow], which calls it for a next client). The
+     * [org.projectforge.rest.core.AbstractEntityRest.createListRow], which calls it for a next client). The
      * default is the full copy, so an entity whose DTO is small enough — a book, a cost unit — needs nothing.
      *
      * Why not a row class of its own (as `ListAddress` is): the client's row type stays one projection of

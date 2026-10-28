@@ -52,6 +52,12 @@ internal class Order {
     var forecastType: AuftragForecastType? = null
 
     /**
+     * True for the marker of an order deleted since the full backup an incremental snapshot is based on: reading the
+     * snapshot removes the order of the backup. Null for all other orders.
+     */
+    var deleted: Boolean? = null
+
+    /**
      * [OrderInfo.netSum]
      */
     var netSum = BigDecimal.ZERO

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  columnIdOfDef,
   filterValuesFromEntries,
   useColumnStatePersistence,
   useDataTable,
@@ -130,14 +131,21 @@ export function useEntityListPage<Row extends ListRow>({
   const meta = useListMeta(entity);
 
   // The user's stored sort wins; the page's declared default seeds a list the user has never sorted.
-  const initialSorting: SortingState = storedState.sorting?.length
-    ? storedState.sorting
+  // Only by a column the list has: a sort stored by the legacy React grid of the same category may
+  // name one of its own column ids (`statusAsString`), which no header here shows (see
+  // withDeclaredColumns, the same for the order).
+  const columnIds = columns.map(columnIdOfDef);
+  const storedSorting = (storedState.sorting ?? []).filter((entry) =>
+    columnIds.includes(entry.id)
+  );
+  const initialSorting: SortingState = storedSorting.length
+    ? storedSorting
     : defaultSort
       ? [{ id: defaultSort.id, desc: defaultSort.desc ?? false }]
       : [];
 
   const columnState = useTableState({
-    restoredState: storedState,
+    restoredState: { ...storedState, sorting: storedSorting },
     initialSorting,
     // Only for a user who has never pinned anything: a stored `{}` means they unpinned every column,
     // and that decision has to survive a reload.
@@ -321,13 +329,6 @@ export function useEntityListPage<Row extends ListRow>({
      * keeps the checkbox column, the keyboard and the selecting click out of a plain list.
      */
     selectionMode,
-    /** The legacy list page this one replaces; undefined once it is gone (see ListMetaData). */
-    legacyUrl: meta.data?.legacyListPage,
-    /**
-     * Whether that way back belongs in the gear menu instead of the prominent button — a per-entity
-     * choice the backend makes once the page is trusted (see ListMetaData.legacyListInMenu).
-     */
-    legacyInMenu: meta.data?.legacyListInMenu ?? false,
     data: query.data,
     /**
      * The result was capped by the backend's row limit, so more rows match than came back

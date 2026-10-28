@@ -23,32 +23,32 @@
 
 package org.projectforge.rest.poll
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDao
-import org.projectforge.business.user.service.UserService
 import org.projectforge.common.scheduling.SchedulerJobArea
 import org.projectforge.common.scheduling.SchedulerJobDefinition
 import org.projectforge.common.scheduling.SchedulerJobRunner
 import org.projectforge.common.scheduling.SchedulerRun
 import org.projectforge.common.scheduling.SchedulerSchedule
-import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.mail.MailAttachment
-import org.projectforge.rest.poll.excel.ExcelExport
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.projectforge.framework.persistence.api.QueryFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.stereotype.Service
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
-@RestController
-class PollCronJobs {
+private val log = KotlinLogging.logger {}
 
+/**
+ * The daily work of the polls: ends the running polls whose deadline has passed (and mails it), reminds the
+ * attendees who haven't answered yet 7 days and 1 day before the deadline, and deletes the polls a year after their
+ * deadline. Templates are left alone.
+ */
+@Service
+class PollCronJobs {
     @Autowired
     private lateinit var pollDao: PollDao
 
@@ -59,134 +59,48 @@ class PollCronJobs {
     private lateinit var pollMailService: PollMailService
 
     @Autowired
-    private lateinit var exporter: ExcelExport
-
-    @Autowired
-    private lateinit var userService: UserService
+    private lateinit var pollEntityRest: PollEntityRest
 
     @Autowired
     private lateinit var schedulerJobRunner: SchedulerJobRunner
-
-    private val log: Logger = LoggerFactory.getLogger(PollCronJobs::class.java)
 
     @PostConstruct
     private fun postConstruct() {
         schedulerJobRunner.register(SCHEDULER_JOB, ::dailyCronJobs)
     }
 
-    /**
-     * Cron job for daily stuff: daily at 06:05 (UTC).
-     */
+    /** Daily at 06:05 (server time). */
     @Scheduled(cron = CRON)
     fun dailyCronJobs() {
         schedulerJobRunner.runAsync(SCHEDULER_JOB) { run ->
-            cronDeletePolls()
-            cronEndPolls(run)
+            run(run, LocalDate.now())
         }
     }
 
-    private fun getEmailsOfUsersWhoHaventResponded(poll: Poll, pollId: Long): List<String> {
-        // Alle E-Mail-Adressen der Teilnehmer abrufen
-        val allAttendeesEmails = pollMailService.getAllAttendeesEmails(poll)
-        // Alle Antworten für diese Umfrage abrufen
-        val allResponses = pollResponseDao.selectAll(checkAccess = false)
-            .filter { response ->
-                response.poll?.id == pollId
-            }
-        // E-Mail-Adressen von Benutzern, die bereits geantwortet haben
-        val respondedUserEmails = allResponses.mapNotNull { response ->
-            response.owner?.email
-        }.toSet()
-        // Nur E-Mails von Benutzern zurückgeben, die noch nicht geantwortet haben
-        return allAttendeesEmails.filter { email ->
-            email !in respondedUserEmails
-        }
-    }
-
-
-    /**
-     * Method to end polls after deadline
-     */
-    private fun cronEndPolls(run: SchedulerRun) {
-        val pollDOs = pollDao.selectAllNotDeleted(checkAccess = false)
-        // set State.FINISHED for all old polls and export excel
-        pollDOs.forEach { pollDO ->
-            // try to send mail until successfully changed to FINISHED_AND_MAIL_SENT
-            if (pollDO.state != PollDO.State.FINISHED_AND_MAIL_SENT) {
-                if (pollDO.deadline?.isBefore(LocalDate.now()) == true) {
-                    pollDO.state = PollDO.State.FINISHED
-
-                    try {
-                        val poll = Poll()
-                        poll.copyFrom(pollDO)
-
-                        val excel = exporter.getExcel(poll)
-
-                        val mailAttachment = MailAttachment("${pollDO.title}_${LocalDateTime.now().year}_Result.xlsx", excel)
-                        val owner = userService.getUser(poll.owner?.id)
-                        val mailTo = pollMailService.getAllAttendeesEmails(poll)
-                        val mailFrom = pollDO.owner?.email.toString()
-                        val mailSubject = translateMsg("poll.mail.endedafterdeadline.subject", poll.title)
-                        val mailContent = translateMsg("poll.mail.endedafterdeadline.content", PollMailService.html(pollDO.title), PollMailService.html(owner?.displayName), )
-
-                        pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent, listOf(mailAttachment))
-                        pollDO.state = PollDO.State.FINISHED_AND_MAIL_SENT
-                        log.info("Set state of poll (${pollDO.id}) ${pollDO.title} to FINISHED_AND_MAIL_SENT")
-                        pollDao.insertOrUpdate(pollDO, checkAccess = false)
-                    } catch (e: Exception) {
-                        log.error(e.message, e)
-                        run.fail("Finishing poll ${pollDO.id} failed: ${e.message}", e)
-                    }
-                }
+    internal fun run(run: SchedulerRun?, today: LocalDate) {
+        val polls = pollDao.select(QueryFilter().also { it.add(QueryFilter.eq("template", false)) }, checkAccess = false)
+            .filter { !it.deleted }
+        polls.filter { it.state == PollDO.State.RUNNING && it.deadline?.isBefore(today) == true }.forEach { poll ->
+            try {
+                pollEntityRest.finishAndMail(poll)
+            } catch (ex: Exception) {
+                log.error(ex) { "Finishing poll ${poll.id} failed: ${ex.message}" }
+                run?.fail("Finishing poll ${poll.id} failed: ${ex.message}", ex)
             }
         }
-
-        val pollsInFuture = pollDOs.filter { it.deadline?.isAfter(LocalDate.now()) ?: false }
-        pollsInFuture.forEach { pollDO ->
-            val poll = Poll()
-            poll.copyFrom(pollDO)
-            val daysDifference = ChronoUnit.DAYS.between(LocalDate.now(), pollDO.deadline)
-            if (daysDifference == 1L || daysDifference == 7L) {
-                // add all attendees mails
-                val mailToFiltered = getEmailsOfUsersWhoHaventResponded(poll, pollDO.id!!)
-
-                if (mailToFiltered.isNotEmpty()) {
-                    // Only those who haven't responded yet are reminded.
-                    val mailTo = mailToFiltered
-                    val mailFrom = pollDO.owner?.email.toString()
-                    val mailSubject = translateMsg("poll.mail.endingSoon.subject", daysDifference)
-                    val mailContent = translateMsg(
-                        "poll.mail.endingSoon.content",
-                        PollMailService.html(pollDO.title),
-                        PollMailService.html(pollDO.owner?.displayName),
-                        pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
-                        pollMailService.pollLink(pollDO.id),
-                    )
-                    pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
-                    log.info("Sent reminder mail for poll (${pollDO.id}) to ${mailToFiltered.size} users who haven't responded yet")
-                } else {
-                    log.info("No reminder mail sent for poll (${pollDO.id}) - all users have already responded")
-                }
+        polls.filter { it.state == PollDO.State.RUNNING }.forEach { poll ->
+            val days = ChronoUnit.DAYS.between(today, poll.deadline ?: return@forEach)
+            if (days == 1L || days == 7L) {
+                val answered = pollResponseDao.getResponses(poll.id!!).mapNotNull { it.owner?.id }.toSet()
+                val missing = pollDao.getAttendeeIds(poll) - answered
+                pollMailService.sendReminder(poll, missing, days)
+                log.info { "Reminded ${missing.size} attendees of poll ${poll.id}." }
             }
         }
-    }
-
-    /**
-     * Method to delete old polls
-     */
-    private fun cronDeletePolls() {
-        val polls = pollDao.selectAll(checkAccess = false)
-        val pollsMoreThanOneYearPast = polls.filter {
-            it.deadline?.isBefore(LocalDate.now().minusYears(1)) == true
-        }
-        pollsMoreThanOneYearPast.forEach { poll ->
-            val pollResponses = pollResponseDao.selectAll(checkAccess = false).filter { response ->
-                response.poll?.id == poll.id
-            }
-            pollResponses.forEach {
-                pollResponseDao.markAsDeleted(it, checkAccess = false)
-            }
+        polls.filter { it.deadline?.isBefore(today.minusYears(1)) == true }.forEach { poll ->
+            pollResponseDao.getResponses(poll.id!!).forEach { pollResponseDao.markAsDeleted(it, checkAccess = false) }
             pollDao.markAsDeleted(poll, checkAccess = false)
+            log.info { "Deleted poll ${poll.id}, its deadline is more than a year ago." }
         }
     }
 

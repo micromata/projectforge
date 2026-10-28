@@ -67,6 +67,17 @@ export default function RootLayout({
             Not Next's `metadata.title`: Next re-mounts the <title> it renders from that after the page's
             effects have run, resetting the title the page had just set (seen on the login page). */}
         <title>{APP_TITLE}</title>
+        {/* The icons of the legacy React app at the root (projectforge-webapp/public), not files of
+            this app under /next: an authenticating proxy in front of ProjectForge lets anonymous users
+            reach /favicon.ico already, so the external access of a data transfer area shows it too.
+            No /favicon.png beside it: the proxy doesn't open that one, and a browser preferring it
+            would show no icon at all there (the .ico has 16 and 32 px). */}
+        <link rel="icon" href="/favicon.ico" sizes="16x16 32x32" />
+        <link
+          rel="apple-touch-icon"
+          href="/apple-touch-icon.png"
+          sizes="180x180"
+        />
       </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
@@ -74,7 +85,11 @@ export default function RootLayout({
               CustomerI18nResources overrides via TanStack Query to overlay on its static catalog. */}
           <QueryProvider>
             <LocaleProvider>
-              <TooltipProvider>
+              {/* `disableHoverableContent`: a tooltip closes the moment the pointer leaves its trigger.
+                  Kept open over its own content (Radix' default), it sat in the way of whatever lies
+                  behind it — the header menu above a title-row button could not be reached. No tooltip
+                  holds anything clickable. */}
+              <TooltipProvider disableHoverableContent>
                 {children}
                 {/* More than sonner's three: a job's progress toast stays until the job is done
                     (see JobToasts) and must not be pushed out by the messages of other actions.

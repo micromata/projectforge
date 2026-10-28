@@ -187,6 +187,47 @@ class RepoMigrationServiceTest {
     }
 
     @Test
+    fun `a JCR that can't be opened stops the start in jcr mode only`() {
+        // A file where the repository's directory is expected: Oak fails to open it, as with a damaged repository.
+        val brokenDir = File(tempDir, "broken").also { it.writeText("no repository") }
+        val jcrMode = RepoService()
+        jcrMode.repoConfig = RepoConfig.createForTests()
+        jcrMode.dataSource = FileStoreTestDataSource.dataSource
+        jcrMode.filesStore = RepoService.FILES_STORE_JCR
+        Assertions.assertThrows(Exception::class.java) { jcrMode.init(brokenDir) }
+
+        val repoService = RepoService()
+        repoService.repoConfig = RepoConfig.createForTests()
+        repoService.dataSource = FileStoreTestDataSource.dataSource
+        repoService.filesStore = RepoService.FILES_STORE_DB
+        repoService.init(brokenDir)
+        val fileStore = repoService.fileStore!!
+        fileStore.internalClearForJunitTestCases()
+        try {
+            Assertions.assertFalse(repoService.jcrAvailable)
+            Assertions.assertTrue(repoService.allFilesInFileStore)
+            val order = store(repoService, "org.projectforge.fibu.AuftragDO/3", "order.txt", "Order".toByteArray())
+            Assertions.assertEquals("Order", String(retrieve(repoService, order)!!))
+            Assertions.assertEquals(1, repoService.getFileInfos("org.projectforge.fibu.AuftragDO/3", "attachments")!!.size)
+            Assertions.assertEquals(setOf("3"), repoService.getChildNames("org.projectforge.fibu.AuftragDO"))
+            // A file not in the file store (not migrated) is missing:
+            val missing = FileObject("org.projectforge.fibu.AuftragDO/4", "attachments", fileId = "unknown")
+            Assertions.assertFalse(repoService.retrieveFile(missing))
+            Assertions.assertNull(repoService.getFileInfo("org.projectforge.fibu.AuftragDO/4", "attachments", fileId = "unknown"))
+            Assertions.assertTrue(repoService.deleteFile(copy(order)))
+
+            val migrationService = RepoMigrationService()
+            migrationService.repoService = repoService
+            val result = migrationService.migrate()
+            Assertions.assertTrue(result.ok, result.asText())
+            Assertions.assertEquals(0, result.total)
+        } finally {
+            fileStore.internalClearForJunitTestCases()
+            repoService.shutdown()
+        }
+    }
+
+    @Test
     fun `files store is detected, if not configured`() {
         FileStore(FileStoreTestDataSource.dataSource, "ProjectForge").internalClearForJunitTestCases()
         try {

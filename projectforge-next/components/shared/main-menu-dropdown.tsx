@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Menu01Icon } from "@hugeicons/core-free-icons";
@@ -69,10 +73,29 @@ export function MainMenuDropdown({
     setTerm("");
   }
 
+  /**
+   * Ctrl/Cmd+Enter runs the action of the selected row instead of selecting it, if it has one (`data-quick-action`,
+   * e.g. starting a chat with a user). The list is in a portal, so it is found by the field's `aria-controls`.
+   */
+  function runRowAction(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Enter" || !(event.metaKey || event.ctrlKey)) return;
+    const listId = (event.target as HTMLElement).getAttribute("aria-controls");
+    const action = listId
+      ? document
+          .getElementById(listId)
+          ?.querySelector<HTMLElement>(
+            '[cmdk-item][aria-selected="true"] [data-quick-action]'
+          )
+      : null;
+    if (!action) return;
+    event.preventDefault(); // cmdk skips its own Enter then.
+    action.click();
+  }
+
   if (categories.length === 0) return null;
 
   return (
-    <Command shouldFilter={false} className="contents">
+    <Command shouldFilter={false} className="contents" onKeyDown={runRowAction}>
       <Popover
         open={open}
         onOpenChange={(next) => (next ? setOpen(true) : close())}

@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationMode
@@ -50,7 +51,6 @@ class Vacation(
     var vacationModeString: String? = null,
     var replacement: Employee? = null,
     var otherReplacements: List<Employee>? = null,
-    var otherReplacementsAsString: String? = null,
     var manager: Employee? = null,
     var special: Boolean? = null,
     var specialFormatted: String? = null,
@@ -68,9 +68,19 @@ class Vacation(
      */
     var conflictingVacations: List<Vacation>? = null,
     /**
+     * Availability entries of substitutes overlapping this vacation: the absent ones count as their vacations (see
+     * [conflict]), the others are shown only. Only set in detail view.
+     */
+    var replacementAvailabilities: List<VacationReplacementAvailability>? = null,
+    /**
      * If at least one day of the vacation period isn't covered by any substitute (replacement).
      */
     var conflict: Boolean? = null,
+    /**
+     * The vacation of somebody else begins earlier than [startDate] tells: shown from that day on only, as its begin
+     * isn't told to the logged-in user (AbsenceVisibility). Read-only.
+     */
+    var startHidden: Boolean? = null,
     /**
      * The statuses the logged-in user may set (`VacationDao.getAllowedStatus`). Only set in detail view.
      */
@@ -111,9 +121,7 @@ class Vacation(
         endDateFormatted = endDate?.let {
             PFDayUtils.format(it, DateFormatType.DATE)
         }
-        otherReplacements = Employee.toEmployeeList(src.otherReplacements)?.also {
-            otherReplacementsAsString = it.joinToString { it.displayName ?: "???" }
-        }
+        otherReplacements = Employee.toEmployeeList(src.otherReplacements)
     }
 
     override fun copyTo(dest: VacationDO) {
@@ -150,3 +158,27 @@ class VacationChartDay(
         }
     }
 }
+
+/**
+ * An availability entry of a substitute of a vacation or an availability entry, as its form shows it: who, when and
+ * how reachable.
+ * @param employee The substitute's employee, none for a freelancer.
+ * @param user The substitute.
+ * @param label What the entry is called for the logged-in user (AvailabilityDao.labelFor): its type only for the
+ * substitute and HR staff.
+ * @param comment The public comment (AbsenceService.isCommentVisible).
+ * @param absent The substitute is away (AvailabilityStatus.absent), as on vacation.
+ */
+class VacationReplacementAvailability(
+    var employee: Employee? = null,
+    var user: User? = null,
+    var startDate: LocalDate? = null,
+    var startDateFormatted: String? = null,
+    var endDate: LocalDate? = null,
+    var endDateFormatted: String? = null,
+    var status: AvailabilityStatus? = null,
+    var statusString: String? = null,
+    var label: String? = null,
+    var comment: String? = null,
+    var absent: Boolean = false,
+)

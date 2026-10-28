@@ -20,6 +20,9 @@ function hasValues(values: string): boolean {
 }
 
 export const addressCampaignSchema = z.object({
+  // null while the campaign is new — Spring assigns the id on the first save. Posted back with the
+  // values, as the backend tells an update from an insert by it.
+  id: z.number().nullable(),
   title: m.requiredString("title"),
   // A blank text is already reported as missing; only a given one is checked for its format.
   values: m
@@ -30,6 +33,7 @@ export const addressCampaignSchema = z.object({
       ),
     }),
   comment: m.nullableString("comment"),
+  active: m.booleanField("active"),
 });
 
 export type AddressCampaignValues = z.infer<typeof addressCampaignSchema>;

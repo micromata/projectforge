@@ -108,7 +108,7 @@ test.describe("book edit", { tag: "@parallel" }, () => {
     }) => {
       const { t } = await userFormat(page);
       let saveAttempted = false;
-      await page.route("**/rs/book/saveorupdate*", (route) => {
+      await page.route("**/rs/book/{insert,update}*", (route) => {
         saveAttempted = true;
         return route.abort();
       });
@@ -135,7 +135,7 @@ test.describe("book edit", { tag: "@parallel" }, () => {
       // Blur before saving: a field shows its error once it has been touched (see FieldShell), and a
       // programmatic value change touches nothing.
       await input.blur();
-      await page.getByRole("button", { name: t("save") }).click();
+      await page.getByRole("button", { name: t("create") }).click();
 
       await expect(
         page.getByText(
@@ -157,7 +157,7 @@ test.describe("book edit", { tag: "@parallel" }, () => {
     }) => {
       const { t } = await userFormat(page);
       let saveAttempted = false;
-      await page.route("**/rs/book/saveorupdate*", (route) => {
+      await page.route("**/rs/book/{insert,update}*", (route) => {
         saveAttempted = true;
         return route.abort();
       });

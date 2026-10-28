@@ -107,14 +107,18 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
   @Override
   public boolean hasDeleteAccess(final PFUserDO user, final ToDoDO obj, final ToDoDO oldObj)
   {
-    return hasAccess(user, obj, OperationType.DELETE);
+    return hasAccess(user, obj, oldObj, OperationType.DELETE);
   }
 
+  /**
+   * On update and delete the stored to-do (oldObj) has to pass as well as the posted one: otherwise anybody could take
+   * over a foreign to-do by posting it with the own user as assignee.
+   */
   @Override
   public boolean hasAccess(final PFUserDO user, final ToDoDO obj, final ToDoDO oldObj,
       final OperationType operationType)
   {
-    return hasAccess(user, obj, operationType) || hasAccess(user, oldObj, operationType);
+    return hasAccess(user, obj, operationType) && hasAccess(user, oldObj, operationType);
   }
 
   private boolean hasAccess(final PFUserDO user, final ToDoDO toDo, final OperationType operationType)

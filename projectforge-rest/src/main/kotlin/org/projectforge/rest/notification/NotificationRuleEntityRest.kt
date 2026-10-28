@@ -24,11 +24,13 @@
 
 package org.projectforge.rest.notification
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
 import org.projectforge.business.notification.NotificationChannel
 import org.projectforge.business.notification.NotificationDO
 import org.projectforge.business.notification.NotificationDao
+import org.projectforge.business.notification.NotificationParams
 import org.projectforge.business.notification.NotificationRuleDO
 import org.projectforge.business.notification.NotificationRuleDao
 import org.projectforge.business.notification.NotificationRuleType
@@ -45,6 +47,8 @@ import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.UserRef
+import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.UIColor
 import org.projectforge.ui.ValidationError
@@ -58,12 +62,14 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.Date
 
+private val log = KotlinLogging.logger {}
+
 /**
  * The layout-free REST endpoint of the rules of the notification system, serving the hand-built projectforge-next
  * page (components/features/notification-rule), for admins and finance (see [NotificationRuleDao.hasAccess]).
  *
  * Besides the standard list/edit endpoints: the preview, a test to oneself (both of the maybe unsaved rule of the
- * form), the trigger of a saved rule and the log of its notifications.
+ * form), the trigger of a saved rule and the log of its notifications, in which editors may end pending ones.
  */
 @RestController
 @RequestMapping("${Rest.URL}/notificationRule")
@@ -71,7 +77,11 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     NotificationRuleDao::class.java, "notification.rule",
 ) {
     /** A variable `{{key}}` of the rule texts with its translated label. */
-    class Variable(val key: String, val label: String)
+    /**
+     * [common]: available for every rule type (names of the recipient), otherwise only for the given one. [example]:
+     * how a value looks (e.g. a list of invoices), from synthetic data.
+     */
+    class Variable(val key: String, val label: String, val common: Boolean, val example: String?)
 
     /** A menu item a rule may show its notifications on as a counter. */
     class MenuBadgeOption(val id: String, val label: String)
@@ -84,7 +94,16 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         val periodKey: String?,
         val subject: String,
         val text: String,
+        /** Subject and text rendered with example values. */
+        val exampleSubject: String,
+        val exampleText: String,
+        /** The SMS as sent (own values and example values), null if the cascade has no SMS step. */
+        val sms: String?,
+        val exampleSms: String?,
     )
+
+    /** Is SMS configured (otherwise SMS steps are skipped), and the max length of an SMS. */
+    class SmsInfo(val configured: Boolean, val maxLength: Int)
 
     class TestResult(val delivered: List<NotificationChannel>, val failed: Map<NotificationChannel, String>)
 
@@ -95,18 +114,23 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         val id: Long?,
         /** The name of the rule, null for an ad hoc notification or a deleted rule. */
         val ruleName: String?,
-        val recipient: String?,
+        /** Struck through when no longer active, as [acknowledgedBy]. */
+        val recipient: UserRef?,
         val status: NotificationStatus,
         val periodKey: String?,
         val title: String?,
         val created: Date?,
         val inAppSince: Date?,
         val acknowledgedAt: Date?,
-        val acknowledgedBy: String?,
+        val acknowledgedBy: UserRef?,
         val doneAt: Date?,
         val resolvedAt: Date?,
         val deliverySteps: List<DeliveryStepEntry>,
+        /** May the logged-in user end it: pending and editor of its rule? */
+        val finishable: Boolean = false,
     )
+
+    class FinishResult(val finished: Int)
 
     class DeliveryStepEntry(
         val channel: NotificationChannel,
@@ -126,6 +150,9 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
 
     @Autowired
     private lateinit var notificationService: NotificationService
+
+    @Autowired
+    private lateinit var smsSenderConfig: SmsSenderConfig
 
     override fun transformFromDB(obj: NotificationRuleDO, editMode: Boolean): NotificationRule {
         val rule = NotificationRule()
@@ -155,11 +182,21 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         if (dto.text.isNullOrBlank()) {
             validationErrors += required("text", "notification.text")
         }
+        if ((dto.smsText?.length ?: 0) > MAX_SMS_TEXT_LENGTH) {
+            validationErrors += ValidationError(
+                translateMsg("notification.rule.error.smsTextLength", MAX_SMS_TEXT_LENGTH), fieldId = "smsText",
+            )
+        }
         if (dto.deliverySteps.isEmpty()) {
             validationErrors += ValidationError(translate("notification.rule.error.noDeliveryStep"), fieldId = "deliverySteps")
         }
         if (dto.deliverySteps.any { it.delayMinutes < 0 }) {
             validationErrors += ValidationError(translate("notification.rule.error.delay"), fieldId = "deliverySteps")
+        }
+        if (dto.linkMode == NotificationParams.LinkMode.MENU_ITEM &&
+            MenuItemDefId.entries.none { it.id == dto.linkMenuItem && it.url != null }
+        ) {
+            validationErrors += required("linkMenuItem", "notification.rule.link")
         }
         if (dto.daysBeforeExpiry < 0) {
             validationErrors += ValidationError(translate("notification.rule.error.daysBeforeExpiry"), fieldId = "daysBeforeExpiry")
@@ -169,6 +206,15 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         }
         if (dto.ruleType == NotificationRuleType.TIMESHEETS_WITHOUT_KOST2 && dto.kost2MissingMonths !in 1..12) {
             validationErrors += ValidationError(translate("notification.rule.error.kost2MissingMonths"), fieldId = "kost2MissingMonths")
+        }
+        if (dto.ruleType == NotificationRuleType.CREDITOR_INVOICES_DUE) {
+            if (dto.dueWorkingDays !in 0..30) {
+                validationErrors += ValidationError(translate("notification.rule.error.dueWorkingDays"), fieldId = "dueWorkingDays")
+            }
+            // Nobody is concerned by an invoice, so "only those concerned" without recipients would notify nobody.
+            if (dto.recipientGroups.isEmpty() && dto.recipientUsers.isEmpty() && !dto.allEmployees && dto.employeeStatus.isEmpty()) {
+                validationErrors += ValidationError(translate("notification.rule.error.recipientsRequired"), fieldId = "recipientGroups")
+            }
         }
     }
 
@@ -192,7 +238,18 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     @GetMapping("variables")
     fun getVariables(@RequestParam("ruleType", required = false) ruleType: NotificationRuleType?): List<Variable> {
         checkInsertAccess()
-        return notificationService.variables(ruleType).map { Variable(it, translate("notification.variable.$it")) }
+        val examples = notificationService.exampleVariables(ruleType, ThreadLocalUserContext.requiredLoggedInUser)
+        return notificationService.variables(ruleType).map {
+            Variable(it, translate("notification.variable.$it"), it in NotificationService.COMMON_VARIABLES, examples[it])
+        }
+    }
+
+    /** Is SMS configured? The editor offers SMS steps only then. */
+    @AccessChecked("DAO: NotificationRuleDao insert access (admin/finance, checkInsertAccess)")
+    @GetMapping("smsInfo")
+    fun getSmsInfo(): SmsInfo {
+        checkInsertAccess()
+        return SmsInfo(smsSenderConfig.isSmsConfigured(), smsSenderConfig.smsMaxMessageLength)
     }
 
     /** The menu items selectable as menu badge, sorted by their translated labels. */
@@ -219,6 +276,10 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
             periodKey = preview.periodKey,
             subject = preview.subject,
             text = preview.text,
+            exampleSubject = preview.exampleSubject,
+            exampleText = preview.exampleText,
+            sms = preview.sms,
+            exampleSms = preview.exampleSms,
         )
     }
 
@@ -232,12 +293,18 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         return TestResult(result.delivered, result.failed)
     }
 
-    /** Runs the saved rule now, regardless of its schedule (recipients already notified aren't notified twice). */
+    /**
+     * Runs the saved rule now, regardless of its schedule (recipients already notified aren't notified twice).
+     * An inactive rule isn't run: its refusal is reported as the error of the result (shown by the client).
+     */
     @AccessChecked("DAO: NotificationRuleDao.find (select access) + isEditor of the rule + not restricted/demo")
     @PostMapping("{id}/trigger")
     fun trigger(@PathVariable("id") id: Long): TriggerResult {
         val rule = findAsEditor(id)
         accessChecker.checkRestrictedOrDemoUser()
+        if (!rule.active) {
+            return TriggerResult(0, 0, 1, translate("notification.rule.trigger.inactive"))
+        }
         val result = notificationService.trigger(rule)
         return TriggerResult(result.recipients, result.created, result.errors, result.lastError)
     }
@@ -247,8 +314,46 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     @GetMapping("{id}/notifications")
     fun getNotifications(@PathVariable("id") id: Long): List<NotificationEntry> {
         val rule = baseDao.find(id) ?: return emptyList()
+        val editor = baseDao.isEditor(ThreadLocalUserContext.requiredLoggedInUser, rule)
         return notificationDao.select(NotificationDao.Filter(ruleId = rule.id, maxResults = MAX_LOG_ENTRIES))
-            .map { toEntry(it, rule.name) }
+            .map { toEntry(it, rule.name, editor) }
+    }
+
+    /**
+     * Ends all pending notifications of the rule (expired), e.g. banners nobody can mark as done. For editors of the
+     * rule.
+     */
+    @AccessChecked("DAO: NotificationRuleDao.find (select access) + isEditor of the rule + not restricted/demo")
+    @PostMapping("{id}/finishPending")
+    fun finishPending(@PathVariable("id") id: Long): FinishResult {
+        val rule = findAsEditor(id)
+        accessChecker.checkRestrictedOrDemoUser()
+        val finished = baseDao.expirePending(rule)
+        log.info { "Notification rule #${rule.id} '${rule.name}': $finished pending notification(s) ended by hand." }
+        return FinishResult(finished)
+    }
+
+    /**
+     * Ends the pending notification (expired). For editors of its rule (also of a deleted one), for a notification
+     * without rule (a test) for all rule editors.
+     */
+    @AccessChecked("DAO: NotificationRuleDao.checkLoggedInUserInsertAccess (admin/finance) + isEditor of the rule + not restricted/demo")
+    @PostMapping("notifications/{notificationId}/finish")
+    fun finish(@PathVariable("notificationId") notificationId: Long): NotificationEntry {
+        checkInsertAccess()
+        accessChecker.checkRestrictedOrDemoUser()
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val notification = notificationDao.findById(notificationId)
+            ?: throw IllegalArgumentException("Notification #$notificationId not found.")
+        val rule = baseDao.findInternal(notification.ruleId)
+        if (!baseDao.isEditor(user, rule)) {
+            throw AccessException(user, "access.exception.noAccess")
+        }
+        if (notification.status.isPending) {
+            notificationDao.finish(notification, NotificationStatus.EXPIRED)
+            log.info { "Notification #${notification.id} of rule #${notification.ruleId} ended by hand." }
+        }
+        return toEntry(notification, rule?.name, editor = true)
     }
 
     /**
@@ -263,27 +368,34 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     ): List<NotificationEntry> {
         baseDao.checkLoggedInUserSelectAccess()
         val filter = NotificationDao.Filter(recipientId = recipientId, statuses = statuses, maxResults = MAX_LOG_ENTRIES)
-        val ruleNames = baseDao.selectAllInternal().associate { it.id to it.name }
-        return notificationDao.select(filter).map { toEntry(it, ruleNames[it.ruleId]) }
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val rules = baseDao.selectAllInternal().associateBy { it.id }
+        // Rules not found (deleted) restrict nobody: their notifications may be ended by every rule editor.
+        val editorOfOthers = baseDao.isEditor(user, null)
+        return notificationDao.select(filter).map {
+            val rule = rules[it.ruleId]
+            toEntry(it, rule?.name, editor = if (rule == null) editorOfOthers else baseDao.isEditor(user, rule))
+        }
     }
 
-    private fun toEntry(notification: NotificationDO, ruleName: String?): NotificationEntry {
+    private fun toEntry(notification: NotificationDO, ruleName: String?, editor: Boolean): NotificationEntry {
         return NotificationEntry(
             id = notification.id,
             ruleName = ruleName,
-            recipient = caches.getUser(notification.recipientId)?.getFullname(),
+            recipient = UserRef.of(caches.getUser(notification.recipientId)),
             status = notification.status,
             periodKey = notification.periodKey,
             title = notification.title,
             created = notification.created,
             inAppSince = notification.inAppSince,
             acknowledgedAt = notification.acknowledgedAt,
-            acknowledgedBy = caches.getUser(notification.acknowledgedById)?.getFullname(),
+            acknowledgedBy = UserRef.of(caches.getUser(notification.acknowledgedById)),
             doneAt = notification.doneAt,
             resolvedAt = notification.resolvedAt,
             deliverySteps = notification.readDeliveryState().steps.map {
                 DeliveryStepEntry(it.channel, it.dueAt, it.sentAt, it.skipped, it.failed, it.attempts, it.error)
             },
+            finishable = editor && notification.status.isPending,
         )
     }
 
@@ -310,5 +422,6 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     companion object {
         private const val MAX_PREVIEW_RECIPIENTS = 50
         private const val MAX_LOG_ENTRIES = 500
+        private const val MAX_SMS_TEXT_LENGTH = 1000
     }
 }

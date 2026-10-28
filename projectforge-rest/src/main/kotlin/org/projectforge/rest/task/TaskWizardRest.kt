@@ -88,7 +88,8 @@ class TaskWizardRest {
     class AccessEntry(
         val groupName: String?,
         val groupType: String,
-        val taskId: Long,
+        /** Null for the element the project wizard is about to create. */
+        val taskId: Long?,
         val taskTitle: String?,
         val pickedElement: Boolean,
         val status: String,
@@ -125,7 +126,7 @@ class TaskWizardRest {
     fun execute(@RequestBody request: ExecuteRequest): ResponseEntity<ExecuteResponse> {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         val taskId = request.taskId ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
-        return response(
+        return ok(
             taskWizardService.grantAccess(
                 taskId = taskId,
                 managerGroupId = request.managerGroupId,
@@ -147,7 +148,7 @@ class TaskWizardRest {
     fun preview(@RequestBody request: ExecuteRequest): ResponseEntity<ExecuteResponse> {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         val taskId = request.taskId ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
-        return response(
+        return ok(
             taskWizardService.previewAccess(
                 taskId = taskId,
                 managerGroupId = request.managerGroupId,
@@ -157,9 +158,14 @@ class TaskWizardRest {
         )
     }
 
-    private fun response(result: TaskWizardService.Result): ResponseEntity<ExecuteResponse> {
-        return ResponseEntity(
-            ExecuteResponse(
+    private fun ok(result: TaskWizardService.Result): ResponseEntity<ExecuteResponse> {
+        return ResponseEntity(toResponse(result), HttpStatus.OK)
+    }
+
+    companion object {
+        /** The answer of both wizards, the structure wizard's and the project wizard's. */
+        fun toResponse(result: TaskWizardService.Result): ExecuteResponse {
+            return ExecuteResponse(
                 taskTitle = result.taskTitle,
                 accessEntries = result.granted.sumOf { it.accessEntries },
                 created = result.count(TaskWizardService.AccessStatus.CREATED),
@@ -185,8 +191,7 @@ class TaskWizardRest {
                         },
                     )
                 },
-            ),
-            HttpStatus.OK,
-        )
+            )
+        }
     }
 }

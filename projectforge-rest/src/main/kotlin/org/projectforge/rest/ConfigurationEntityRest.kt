@@ -34,6 +34,7 @@ import org.projectforge.framework.configuration.ConfigurationType
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
@@ -58,8 +59,7 @@ import org.springframework.web.bind.annotation.RestController
  * set is fixed: there is no add and no delete (suppressed in [ConfigurationDao]).
  *
  * Layout free ([AbstractDTOEntityRest]): the hand built next page brings its own layout, so there is no
- * server side `createListLayout`/`createEditLayout` here. The way-back link to the classic Wicket page
- * is driven by `NextMigration` (offerLegacyLink).
+ * server side `createListLayout`/`createEditLayout` here.
  */
 @RestController
 @RequestMapping("${Rest.URL}/configuration")
@@ -88,10 +88,16 @@ class ConfigurationEntityRest :
      * Re-reads the DO from the DB by id (the parameter set is fixed, so there is always a row): parameter
      * and type come from the persisted row, never from the request, and the DTO fills only the matching
      * value slot (see [Configuration.copyTo]).
+     *
+     * A JSON value is stored without the whitespace between its tokens ([JsonUtils.minify]): as typed in the
+     * JSON editor of the page it is indented, which would only fill the column (and the history's).
      */
     override fun transformForDB(dto: Configuration): ConfigurationDO {
         val obj = dto.id?.let { baseDao.find(it, checkAccess = false) } ?: ConfigurationDO()
         dto.copyTo(obj)
+        if (obj.configurationType == ConfigurationType.JSON) {
+            obj.stringValue = obj.stringValue?.let { JsonUtils.minify(it) }
+        }
         return obj
     }
 
@@ -109,24 +115,29 @@ class ConfigurationEntityRest :
             ConfigurationJsonValidators.validate(obj.parameter, dto.stringValue).forEach { message ->
                 validationErrors.add(ValidationError(message, fieldId = "stringValue"))
             }
+            // Measured as stored (see transformForDB).
+            val length = dto.stringValue?.let { JsonUtils.minify(it).length } ?: 0
+            if (length > ConfigurationDO.PARAM_LENGTH) {
+                validationErrors.add(maxLengthError(dto, ConfigurationDO.PARAM_LENGTH))
+            }
             return
         }
         val param = obj.parameter?.let { ConfigurationParam.ofKey(it) }
         validateVacationAutoBooking(validationErrors, param, dto)
         val value = dto.stringValue ?: return
         if (param?.editPage == null && value.length > ConfigurationDO.LEGACY_PARAM_LENGTH) {
-            validationErrors.add(
-                ValidationError(
-                    translateMsg(
-                        "validation.error.maxLength",
-                        dto.i18nKey?.let { translate(it) } ?: dto.parameter,
-                        ConfigurationDO.LEGACY_PARAM_LENGTH,
-                    ),
-                    fieldId = "stringValue",
-                )
-            )
+            validationErrors.add(maxLengthError(dto, ConfigurationDO.LEGACY_PARAM_LENGTH))
         }
     }
+
+    private fun maxLengthError(dto: Configuration, maxLength: Int) = ValidationError(
+        translateMsg(
+            "validation.error.maxLength",
+            dto.i18nKey?.let { translate(it) } ?: dto.parameter,
+            maxLength,
+        ),
+        fieldId = "stringValue",
+    )
 
     /**
      * The days back of the first run of the vacation booking job are limited to

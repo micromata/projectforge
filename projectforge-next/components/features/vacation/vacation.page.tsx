@@ -1,6 +1,8 @@
 import { VACATION_METADATA } from "@/lib/metadata/vacation.generated";
 import { VACATION_ACCOUNT_QUERY_KEY } from "@/lib/rs/vacation-account";
 import { definePage } from "@/lib/page-def/define-page";
+import { AbsenceDaysCell } from "@/components/shared/absence-chart/absence-days-bar";
+import { AbsenceStartCell } from "@/components/shared/list/absence-start-cell";
 import { VacationConflictNotice } from "./vacation-conflict-notice";
 import {
   VacationEmployeeField,
@@ -19,7 +21,6 @@ import {
 import { VacationStatusField } from "./vacation-status-field";
 import { emptyVacationValues, toFormValues } from "./vacation-values";
 import { VacationOverlapChart } from "./vacation-overlap-chart";
-import { VacationDaysBar } from "./vacation-days-bar";
 import { VacationsOfReplacements } from "./vacations-of-replacements";
 import type { VacationDetail, VacationListRow } from "./types";
 
@@ -59,7 +60,17 @@ export const VACATION_PAGE = definePage<
       size: 170,
       cell: ({ row }) => displayName(row.original.employee),
     },
-    { name: "startDate", size: 110 },
+    {
+      name: "startDate",
+      size: 110,
+      // Empty for a vacation of somebody else shown from 1 January on only: its begin isn't told.
+      cell: ({ row }) => (
+        <AbsenceStartCell
+          startDate={row.original.startDate}
+          startHidden={row.original.startHidden}
+        />
+      ),
+    },
     { name: "endDate", size: 110 },
     {
       // Relative to the logged-in user; sorted by its translation (VacationEntityRest.computedSortProperties).
@@ -81,8 +92,7 @@ export const VACATION_PAGE = definePage<
       size: 200,
       sortable: false,
       wrap: true,
-      accessor: (row) =>
-        (row.otherReplacements ?? []).map((e) => e.displayName).join(", "),
+      accessor: (row) => row.otherReplacements,
     },
     {
       name: "manager",
@@ -97,12 +107,10 @@ export const VACATION_PAGE = definePage<
       size: 220,
       accessor: (row) => row.workingDaysFormatted ?? "",
       cell: ({ row }) => (
-        <div className="flex items-center gap-3">
-          <span className="w-8 shrink-0 text-right tabular-nums">
-            {row.original.workingDaysFormatted}
-          </span>
-          <VacationDaysBar row={row.original} />
-        </div>
+        <AbsenceDaysCell
+          formatted={row.original.workingDaysFormatted}
+          row={row.original}
+        />
       ),
     },
     { name: "comment", size: 260, wrap: true },
@@ -130,6 +138,18 @@ export const VACATION_PAGE = definePage<
     savedMessageKey: "message.successfullChanged",
     // The vacation account (VacationAccountRest) adds an entry for the employee it shows.
     newEntryParams: ["employee"],
+    // "Als Abwesenheit bearbeiten" — build an availability entry from this vacation's employee, period, comment and
+    // replacements and open it as a new entry (VacationEntityRest.switch2Availability →
+    // AvailabilityEntityRest.cloneFromVacation). The vacation stays; the availability is named, not imported, so
+    // the two features don't depend on each other in a circle.
+    convert: {
+      action: "switch2Availability",
+      targetEntity: "availability",
+      targetRoute: "/availability",
+      labelKey: "vacation.switchToAvailabilityButton",
+      // Nothing is converted: a new entry is opened, and a stored vacation stays as it is.
+      tooltipKey: "vacation.switchToAvailabilityButton.tooltip",
+    },
     // The list by default; the calendar opens an entry with `?returnTo=/calendar` (use-calendar-action.ts), the
     // vacation account with `?returnTo=/vacationAccount` (VacationAccountRest.vacationEditUrl).
     returnTargets: [

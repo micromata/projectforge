@@ -150,9 +150,11 @@ open class HtmlElement(
     }
 
     private fun buildAttributes(sb: StringBuilder) {
-        attributes?.forEach { (name, value) -> sb.append(" $name=\"$value\"") }
-        classnames?.let { sb.append(" class=\"${it.joinToString(separator = " ") { it }}\"") }
-        id?.let { sb.append(" id=\"$it\"") }
+        // Values escaped: the html is inserted as it is by its clients (e.g. the order forecast analysis in
+        // projectforge-next), so a quote in a value must not end the attribute.
+        attributes?.forEach { (name, value) -> sb.append(" $name=\"${escape(value)}\"") }
+        classnames?.let { sb.append(" class=\"${escape(it.joinToString(separator = " "))}\"") }
+        id?.let { sb.append(" id=\"${escape(it)}\"") }
     }
 
     companion object {

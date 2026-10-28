@@ -87,37 +87,76 @@ class EingangsrechnungImportJob(
         // Group entries by invoice (same stored.id for updates, same referenz+datum+kreditor for new invoices)
         val invoiceGroups = groupEntriesByInvoice()
 
-        for ((invoiceKey, entries) in invoiceGroups) {
+        for ((_, entries) in invoiceGroups) {
             if (!isActive) {
                 return
             }
+            importInvoiceGroup(entries)
+        }
+    }
 
-            // Find the stored invoice ID from any entry that has stored data
-            // All entries with stored data should belong to the same invoice
-            val storedId = entries.firstNotNullOfOrNull { it.stored?.id }
+    /**
+     * Imports the selected entries of one invoice (see [groupEntriesByInvoice]): deletes, updates or inserts it.
+     */
+    internal fun importInvoiceGroup(entries: List<ImportPairEntry<EingangsrechnungPosImportDTO>>) {
+        // Find the stored invoice ID from any entry that has stored data
+        // All entries with stored data should belong to the same invoice
+        val storedId = entries.firstNotNullOfOrNull { it.stored?.id }
 
-            // Check if this is a deletion (all entries have read=null)
-            if (entries.all { it.read == null }) {
-                if (storedId != null) {
-                    val existingEntity = eingangsrechnungDao.find(storedId)
-                    if (existingEntity != null && !existingEntity.deleted) {
-                        eingangsrechnungDao.markAsDeleted(existingEntity)
-                        result.deleted += entries.size  // Count positions, not invoices
-                        processedNumber += entries.size
-                    }
-                }
-                continue
-            }
-
-            // Create or update invoice with positions
+        // Check if this is a deletion (all entries have read=null)
+        if (entries.all { it.read == null }) {
             if (storedId != null) {
-                updateInvoiceWithPositions(storedId, entries)
-            } else {
-                insertInvoiceWithPositions(entries)
+                if (entries.any { it.stored?.positionNummer == null }) {
+                    // The stored invoice is missing in the import (header dto without position number).
+                    markAsDeleted(storedId, entries)
+                } else {
+                    // Only positions the import doesn't have any more. The other positions of the invoice are
+                    // unmodified and therefore not selected: remove these positions, never the whole invoice.
+                    removePositions(storedId, entries)
+                }
             }
+            return
+        }
 
+        // Create or update invoice with positions
+        if (storedId != null) {
+            updateInvoiceWithPositions(storedId, entries)
+        } else {
+            insertInvoiceWithPositions(entries)
+        }
+
+        processedNumber += entries.size
+    }
+
+    private fun markAsDeleted(storedId: Long, entries: List<ImportPairEntry<EingangsrechnungPosImportDTO>>) {
+        val existingEntity = eingangsrechnungDao.find(storedId)
+        if (existingEntity != null && !existingEntity.deleted) {
+            eingangsrechnungDao.markAsDeleted(existingEntity)
+            result.deleted += entries.size  // Count positions, not invoices
             processedNumber += entries.size
         }
+    }
+
+    /**
+     * Removes the given positions (read=null) from the stored invoice. If no position would be left, the invoice
+     * is deleted instead (an invoice without positions is refused).
+     */
+    private fun removePositions(storedId: Long, entries: List<ImportPairEntry<EingangsrechnungPosImportDTO>>) {
+        val existingEntity = eingangsrechnungDao.find(storedId) ?: return
+        if (existingEntity.deleted) {
+            return
+        }
+        val removedNumbers = entries.mapNotNull { it.stored?.positionNummer?.toShort() }.toSet()
+        val positions = existingEntity.positionen ?: return
+        if (positions.none { !it.deleted && it.number !in removedNumbers }) {
+            markAsDeleted(storedId, entries)
+            return
+        }
+        // Removed from the collection, the update marks them as deleted (soft delete, see createPositions).
+        positions.removeIf { it.number in removedNumbers }
+        eingangsrechnungDao.update(existingEntity)
+        result.deleted += entries.size  // Count positions, not invoices
+        processedNumber += entries.size
     }
 
     /**
@@ -157,6 +196,11 @@ class EingangsrechnungImportJob(
 
         // Copy header from first entry
         val firstRead = entries.firstOrNull()?.read
+        entries.firstNotNullOfOrNull { it.read }?.let { read ->
+            if (isImplausibleUpdate(read, existingEntity)) {
+                return
+            }
+        }
         firstRead?.copyTo(existingEntity)
 
         // Set betreff (subject) from first position's betreff for position-based imports
@@ -266,18 +310,24 @@ class EingangsrechnungImportJob(
                     kost2.id = read.kost2!!.id
                     kostZuweisung.kost2 = kost2
                 }
-            } else {
-                // Clear KostZuweisung if no kost1/kost2 in import
-                position.kostZuweisungen?.clear()
             }
+            // Without kost1/kost2 in the import the stored cost assignments are kept: the import has none to
+            // offer, and a cleared collection wouldn't delete them anyway (no orphan removal), they would be read
+            // again by the next reconcile.
 
             positions.add(position)
         }
 
+        // Positions only in the DB that were selected (read == null) are removed from the invoice:
+        val removedPositionNumbers = entries
+            .filter { it.read == null }
+            .mapNotNull { it.stored?.positionNummer?.toShort() }
+            .toSet()
+
         // Preserve existing positions that are not in the import (for partial updates)
         // This ensures that when only some positions are selected for update, the others remain unchanged
         existingPositionsById.values.forEach { existingPos ->
-            if (!positions.any { it.number == existingPos.number }) {
+            if (!positions.any { it.number == existingPos.number } && existingPos.number !in removedPositionNumbers) {
                 positions.add(existingPos)
             }
         }
@@ -341,6 +391,9 @@ class EingangsrechnungImportJob(
                 // Update existing invoice (header only, preserve positions)
                 val existingEntity = eingangsrechnungDao.find(storedId)
                 if (existingEntity != null) {
+                    if (isImplausibleUpdate(readEntry, existingEntity)) {
+                        continue
+                    }
                     readEntry.copyTo(existingEntity)
                     // Positions remain unchanged (already loaded from DB)
                     val modStatus = eingangsrechnungDao.update(existingEntity)
@@ -358,6 +411,23 @@ class EingangsrechnungImportJob(
                 log.debug { "Skipping new invoice: referenz=${readEntry.referenz}, datum=${readEntry.datum}, kreditor=${readEntry.kreditor}" }
             }
         }
+    }
+
+    /**
+     * Last line of defense against a wrong match: an import entry never overwrites a stored invoice of another
+     * creditor or with a date weeks apart (see [EingangsrechnungPosImportDTO.isPlausibleUpdateOf]).
+     * @return true if the update is refused (reported as error of the job).
+     */
+    private fun isImplausibleUpdate(read: EingangsrechnungPosImportDTO, existing: EingangsrechnungDO): Boolean {
+        if (read.isPlausibleUpdateOf(existing)) {
+            return false
+        }
+        val msg = "RENR '${read.referenz}' vom ${read.datum} (${read.kreditor}) nicht übernommen: " +
+                "die gespeicherte Rechnung '${existing.referenz}' vom ${existing.datum} (${existing.kreditor}) " +
+                "ist eine andere."
+        log.warn { "Refused update of incoming invoice ${existing.id}: $msg" }
+        result.errorMessages = (result.errorMessages ?: emptyList()) + msg
+        return true
     }
 
     /**

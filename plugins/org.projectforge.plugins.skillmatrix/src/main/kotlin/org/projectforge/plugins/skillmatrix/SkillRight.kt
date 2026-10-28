@@ -46,6 +46,9 @@ class SkillRight() : UserRightAccessCheck<SkillEntryDO>(SkillRightId.PLUGIN_SKIL
             return true
         }
         val skill = oldObj ?: obj ?: return true // return true: general insert access.
+        if (oldObj != null && obj != null && obj.ownerId != oldObj.ownerId) {
+            return false // An update must not move the skill to another user.
+        }
         // Everybody may select the skill of other users but may only modify own skills.
         return user.id == skill.ownerId
     }

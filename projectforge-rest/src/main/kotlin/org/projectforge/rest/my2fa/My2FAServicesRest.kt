@@ -23,48 +23,23 @@
 
 package org.projectforge.rest.my2fa
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import jakarta.validation.Valid
-import io.github.oshai.kotlinlogging.KotlinLogging
-import org.apache.commons.codec.binary.Base64
 import org.projectforge.business.user.filter.CookieService
-import org.projectforge.common.extensions.capitalize
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.login.LoginService
-import org.projectforge.model.rest.RestPaths
-import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.RestResolver
-import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.pub.LoginServiceRest
-import org.projectforge.security.My2FAData
-import org.projectforge.security.My2FAService
 import org.projectforge.security.OTPCheckResult
-import org.projectforge.security.WebAuthnServicesRest
-import org.projectforge.security.dto.WebAuthnFinishRequest
-import org.projectforge.security.webauthn.WebAuthnSupport
-import org.projectforge.ui.*
 import org.projectforge.web.My2FAHttpService
-import org.projectforge.web.WebUtils
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
-import java.nio.charset.StandardCharsets
-
-private val log = KotlinLogging.logger {}
+import org.springframework.stereotype.Service
 
 /**
- * User may setup his/her 2FA and may check this. 2FA is usable via Authenticator apps (Microsoft or Google Authenticator),
- * via texting messages (if sms is configured) or via e-mails as a fall back.
+ * Check of a code (OTP of an Authenticator app, or sent by sms or e-mail) of the logged-in user and the bookkeeping
+ * of a successful 2FA (cookie and session), shared by the 2FA dialog of projectforge-next ([My2FANextRest]) and the
+ * WebAuthn authentication. The rest endpoints of the former React dialog (`/rs/2FA/...`) are gone.
  */
-@RestController
-@RequestMapping("${Rest.URL}/2FA")
+@Service
 class My2FAServicesRest {
     @Autowired
     private lateinit var cookieService: CookieService
@@ -73,60 +48,7 @@ class My2FAServicesRest {
     private lateinit var loginService: LoginService
 
     @Autowired
-    private lateinit var my2FAService: My2FAService
-
-    @Autowired
     private lateinit var my2FAHttpService: My2FAHttpService
-
-    @Autowired
-    private lateinit var webAuthnSupport: WebAuthnSupport
-
-    @Autowired
-    private lateinit var webAuthnServicesRest: WebAuthnServicesRest
-
-    /**
-     * For validating the Authenticator's OTP, or OTP sent by sms or e-mail. Only for users already logged in
-     * (the 2FA of the login itself is handled by [org.projectforge.rest.pub.next.TwoFactorLoginNextRest]).
-     */
-    @PostMapping("checkOTP")
-    fun checkOTP(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        @Valid @RequestBody postData: PostData<out My2FAData>,
-    ): ResponseEntity<ResponseAction> {
-        // Not needed (no replay attack possible)
-        // sessionCsrfService.validateCsrfToken(request, postData)?.let { return it }
-        val data = postData.data
-        val otp = data.code
-        val password = data.password
-        val otpCheck = internalCheckOTP(request, response, otp, password)
-        if (otpCheck == OTPCheckResult.CODE_EMPTY) {
-            return UIToast.createToastResponseEntity(translate("user.My2FA.setup.check.fail"), color = UIColor.DANGER)
-        }
-        if (otpCheck == OTPCheckResult.SUCCESS) {
-            return after2FASuccess(postData)
-        }
-        // otp check wasn't successful:
-        otpCheck.userMessage?.let { msg ->
-            return AbstractDynamicPageRest.showValidationErrors(
-                ValidationError(msg)
-            )
-        }
-        if (otpCheck == OTPCheckResult.WRONG_LOGIN_PASSWORD) {
-            return AbstractDynamicPageRest.showValidationErrors(
-                ValidationError(
-                    translate("user.My2FACode.password.wrong"),
-                    "password"
-                )
-            )
-        }
-        return AbstractDynamicPageRest.showValidationErrors(
-            ValidationError(
-                translate("user.My2FACode.error.validation"),
-                "code"
-            )
-        )
-    }
 
     /**
      * Checks the given otp and stores it as cookie and in the user's current session on success.
@@ -159,207 +81,6 @@ class My2FAServicesRest {
         loginService.onSecondFactorSucceeded(request, response)
     }
 
-    /**
-     * Sends a OTP as code (text to mobile phone of logged-in user).
-     */
-    @GetMapping("sendSmsCode")
-    fun sendSmsCode(request: HttpServletRequest): ResponseEntity<*> {
-        val user = ThreadLocalUserContext.loggedInUser!!
-        val mobilePhone = user.mobilePhone
-        if (mobilePhone == null) {
-            log.error { "User '${user.username}' tried to send 2FA code as text message, but mobile phone isn't available." }
-            return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
-        }
-        if (!my2FAService.smsConfigured) {
-            log.error { "User tried to send a text message, but sms isn't configured." }
-            return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
-        }
-        val result = my2FAHttpService.createAndTextOTP(request, mobilePhone)
-        return createResponseEntity(result)
-    }
-
-
-    /**
-     * Sends a OTP as code vial mail.
-     */
-    @GetMapping("sendMailCode")
-    fun sendMailCode(request: HttpServletRequest): ResponseEntity<*> {
-        val user = ThreadLocalUserContext.loggedInUser!!
-        if (user.email.isNullOrBlank()) {
-            log.error { "User '${user.username}' tried to send 2FA code as mail, but e-mail address isn't available." }
-            return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
-        }
-        val result = my2FAHttpService.createAndMailOTP(request)
-        return createResponseEntity(result)
-    }
-
-    @PostMapping("webAuthnFinish")
-    fun webAuthnFinish(
-        request: HttpServletRequest,
-        httpResponse: HttpServletResponse,
-        @RequestBody postData: PostData<My2FAWebAuthnData>,
-    ): ResponseEntity<ResponseAction> {
-        val webAuthnFinishRequest = postData.data.webAuthnFinishRequest
-        // Not needed (no replay attack possible)
-        //sessionCsrfService.validateCsrfToken(request, postData)?.let { return it }
-        requireNotNull(webAuthnFinishRequest)
-        val result = webAuthnServicesRest.doWebAuthnFinish(request, httpResponse, webAuthnFinishRequest)
-        if (result.success) {
-            return after2FASuccess(postData)
-        }
-        // Authentication wasn't successful:
-        result.errorMessage!!.let { msg ->
-            return UIToast.createToastResponseEntity(
-                translate(msg),
-                color = UIColor.DANGER,
-            )
-        }
-    }
-
-    fun after2FASuccess(postData: PostData<out My2FAData>): ResponseEntity<ResponseAction> {
-        val data = postData.data
-        if (data.modal == true) {
-            // 2FA request was handled by modal dialog, so close the modal only:
-            return ResponseEntity(
-                ResponseAction(targetType = TargetType.CLOSE_MODAL),
-                HttpStatus.OK
-            )
-        }
-        // 2FA request was handled by an extra page, so redirect to origin:
-        redirectUrlFromTarget(data.target)?.let { redirectUrl ->
-            return ResponseEntity(
-                ResponseAction(targetType = TargetType.REDIRECT, url = redirectUrl),
-                HttpStatus.OK
-            )
-        }
-        data.code = ""
-        data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
-        return UIToast.createToastResponseEntity(
-            translate("user.My2FA.setup.check.success"),
-            color = UIColor.SUCCESS,
-            mutableMapOf("data" to postData.data),
-            merge = true,
-            targetType = TargetType.UPDATE
-        )
-    }
-
-    fun fill2FA(layout: UILayout, my2FAData: My2FAData, redirectUrl: String? = null) {
-        val fieldset = UIFieldset(12, title = "user.My2FACode.title")
-        layout.add(fieldset)
-        fill2FA(layout, fieldset, my2FAData, redirectUrl)
-    }
-
-    fun fill2FA(
-        layout: UILayout,
-        col: UICol, my2FAData: My2FAData, redirectUrl: String? = null,
-        restServiceClass: Class<*> = My2FAServicesRest::class.java,
-    ) {
-        val row = UIRow()
-        col.add(row)
-        fill2FA(layout, row, my2FAData, redirectUrl, restServiceClass = restServiceClass)
-    }
-
-    private fun fill2FA(
-        layout: UILayout,
-        row: UIRow,
-        my2FAData: My2FAData,
-        redirectUrl: String? = null,
-        restServiceClass: Class<*> = My2FAServicesRest::class.java,
-    ) {
-        my2FAData.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
-        val codeCol = UICol(md = 6)
-        row.add(codeCol)
-        fillCodeCol(layout, codeCol, redirectUrl, restServiceClass = restServiceClass)
-        //val showPasswordCol = my2FARequestConfiguration.checkLoginPasswordRequired4Mail2FA()
-        /*
-          // Enable E-Mail with password (required for security reasons, if attacker has access to local client)
-          val passwordCol = UICol(md = width)
-          row.add(passwordCol)
-          passwordCol.add(
-            UIInput(
-              "password",
-              label = "password",
-              tooltip = "user.My2FACode.password.info",
-              dataType = UIDataType.PASSWORD,
-              autoComplete = UIInput.AutoCompleteType.OFF
-            )
-          )*/
-
-        val last2FACol = UICol(md = 6)
-        row.add(last2FACol)
-        last2FACol.add(UIReadOnlyField("lastSuccessful2FA", label = "user.My2FACode.lastSuccessful2FA"))
-    }
-
-    /**
-     * @param restServiceClass Class with services such as checkOTP, mailCode (if configured) and sendSmsCode.
-     */
-    private fun fillCodeCol(
-        layout: UILayout,
-        codeCol: UICol,
-        redirectUrl: String? = null,
-        restServiceClass: Class<*>,
-    ) {
-        val mobilePhone = ThreadLocalUserContext.loggedInUser?.mobilePhone
-        val smsAvailable = my2FAHttpService.smsConfigured && NumberHelper.matchesPhoneNumber(mobilePhone)
-        codeCol
-            .add(
-                UIInput(
-                    "code", label = "user.My2FACode.code", tooltip = "user.My2FACode.code.info",
-                    autoComplete = UIInput.AutoCompleteType.ONE_TIME_CODE,
-                    inputMode = UIInput.InputMode.NUMERIC,
-                    focus = true,
-                    pattern = "\\d*"
-                )
-            )
-        codeCol.add(
-            UIButton.createDefaultButton(
-                "validate",
-                title = "user.My2FACode.code.validate",
-                responseAction = ResponseAction(
-                    RestResolver.getRestUrl(restServiceClass, "checkOTP", params = mapOf("redirect" to redirectUrl)),
-                    targetType = TargetType.POST
-                ),
-            )
-        )
-        if (webAuthnSupport.isAvailableForUser(ThreadLocalUserContext.loggedInUser?.id)) {
-            codeCol.add(
-                UICustomized(
-                    "webauthn.authenticate",
-                    mutableMapOf(
-                        "authenticateFinishUrl" to RestResolver.getRestUrl(restServiceClass, "webAuthnFinish")
-                    ),
-                )
-            )
-            WebAuthnServicesRest.addAuthenticateTranslations(layout)
-        }
-        if (smsAvailable) {
-            codeCol.add(createSendButton(My2FAType.SMS, restServiceClass))
-        }
-        if (!my2FAService.isMail2FADisabledForUser()) {
-            codeCol.add(createSendButton(My2FAType.MAIL, restServiceClass))
-        }
-    }
-
-    /**
-     * @param type [My2FAType.MAIL] and [My2FAType.SMS] supported.
-     * @param usePublicServices Only true for login process (the private services aren't yet available.
-     */
-    private fun createSendButton(type: My2FAType, restServiceClass: Class<*> = this::class.java): UIButton {
-        val lowerType = type.name.lowercase()
-        val type = lowerType.capitalize()
-        return UIButton.createLinkButton(
-            "send${type}Code",
-            // "user.My2FACode.sendCode.mail", "user.My2FACode.sendCode.sms" (needed by I18nKeysUsage)
-            title = "user.My2FACode.sendCode.$lowerType", // user.My2FACode.sendCode.mail
-            // "user.My2FACode.sendCode.mail.info", "user.My2FACode.sendCode.sms.info" (needed by I18nKeysUsage)
-            tooltip = "user.My2FACode.sendCode.$lowerType.info",
-            responseAction = ResponseAction(
-                RestResolver.getRestUrl(restServiceClass, "send${type}Code"),
-                targetType = TargetType.GET
-            ),
-        )
-    }
-
     companion object {
         private val SESSION_KEY_LAST_SUCCESSFUL_2FA = "${My2FAServicesRest::class.java.name}.lastSuccessFul2FA"
 
@@ -369,60 +90,5 @@ class My2FAServicesRest {
         fun getLastSuccessful2FAFromSession(request: HttpServletRequest): Long? {
             return request.getSession(false)?.getAttribute(SESSION_KEY_LAST_SUCCESSFUL_2FA) as? Long
         }
-
-        /**
-         * The url to redirect to after a successful 2FA, taken from the base64 encoded `target` of the request.
-         *
-         * The value is client supplied (base64 is an encoding, not a protection), so it goes through the same
-         * check as the redirect url of the login, see [LoginServiceRest.sanitizeRedirectUrl]: without it a
-         * successful 2FA would be an open redirect - and a convincing phishing hop, because the victim really
-         * did authenticate against ProjectForge.
-         *
-         * @return The sanitized url, or null if there is none to redirect to.
-         */
-        internal fun redirectUrlFromTarget(target: String?): String? {
-            target ?: return null
-            val decoded = String(Base64.decodeBase64(target), StandardCharsets.UTF_8)
-            val sanitized = LoginServiceRest.sanitizeRedirectUrl(decoded) ?: return null
-            return replaceRestByReactUrl(sanitized)
-        }
-
-        /**
-         * Fix the redirect url, if the user was redirected from an rest url, e. g. from /rs/user/initialList the
-         * user should be redirected to /react/user instead.
-         */
-        internal fun replaceRestByReactUrl(url: String?): String? {
-            url ?: return null
-            val normalized = WebUtils.normalizeUri(url) ?: return null
-            if (!normalized.startsWith("/${RestPaths.REST}/")) {
-                return url // Do nothing
-            }
-            val queryParams = WebUtils.parseQueryParams(url)
-            val reduced = normalized.removePrefix("/${RestPaths.REST}/").substringBefore('/')
-            if (url.substringAfterLast("/").startsWith("edit?id=")) {
-                // /rs/user/edit?id=1 -> /react/user/edit/1
-                val id = queryParams.find { it.first == "id" }?.second ?: ""
-                queryParams.removeIf { it.first == "id" }
-                return "/react/$reduced/edit/$id${WebUtils.queryParamsToString(queryParams)}"
-            }
-            return "/react/$reduced${WebUtils.queryParamsToString(queryParams)}"
-        }
-
-        internal fun createResponseEntity(result: My2FAHttpService.Result): ResponseEntity<ResponseAction> {
-            val color = if (result.success) {
-                UIColor.SUCCESS
-            } else {
-                UIColor.DANGER
-            }
-            return UIToast.createToastResponseEntity(result.message, color = color)
-        }
-    }
-
-    /**
-     * Only used for [webAuthnFinish].
-     */
-    @JsonIgnoreProperties(ignoreUnknown = true) // mobile phone etc. of setup data must be ignored.
-    class My2FAWebAuthnData : My2FAData() {
-        var webAuthnFinishRequest: WebAuthnFinishRequest? = null
     }
 }

@@ -10,6 +10,11 @@
  * are always present.
  */
 
+import type { AbsenceKind } from "@/lib/rs/absence-kinds";
+import type { InactiveFlags } from "@/lib/page-def/reference";
+
+export { ABSENCE_KINDS, type AbsenceKind } from "@/lib/rs/absence-kinds";
+
 /** FullCalendar view keys the backend emits and accepts (`CalendarView.key`). */
 export type CalendarViewKey =
   | "dayGridMonth"
@@ -53,14 +58,14 @@ export interface StyledTeamCalendar extends TeamCalendar {
 }
 
 /** A minimal user reference (`User.copyFromMinimal`). */
-export interface UserRef {
+export interface UserRef extends InactiveFlags {
   id?: number | null;
   username?: string | null;
   displayName?: string | null;
 }
 
 /** A minimal group reference (`Group.copyFromMinimal`). */
-export interface GroupRef {
+export interface GroupRef extends InactiveFlags {
   id?: number | null;
   name?: string | null;
   displayName?: string | null;
@@ -87,6 +92,8 @@ export interface CalendarFilter {
   timesheetUserId?: number | null;
   vacationGroupIds?: number[] | null;
   vacationUserIds?: number[] | null;
+  /** What is shown of the absences of the vacation groups/users (`CalendarFilter.absenceKinds`); null for all. */
+  absenceKinds?: AbsenceKind[] | null;
   showBreaks?: boolean | null;
   showPlanning?: boolean | null;
   calendarIds?: number[];
@@ -263,7 +270,7 @@ export interface CalendarActionParams {
   firstHour?: number;
 }
 
-/** The `GET /rs/calendar/refresh` answer: whether the client should reload its subscriptions. */
+/** The `POST /rs/calendar/refresh` answer: whether the client should reload its subscriptions. */
 export interface CalendarRefreshResult {
   reload: boolean;
 }

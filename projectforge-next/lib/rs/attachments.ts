@@ -17,6 +17,7 @@
 import { rawRequest, request, RsError } from "./client";
 import type { ResponseAction } from "./types";
 import { uploadWithProgress, type UploadOptions } from "./upload";
+import type { InactiveFlags } from "@/lib/page-def/reference";
 
 /**
  * `AttachmentsService.DEFAULT_NODE` — the sub-path a single attachment list stores under. Pages
@@ -55,6 +56,17 @@ export function zipModeMessageKey(zipMode: ZipMode | null | undefined) {
 }
 
 /** org.projectforge.framework.jcr.Attachment, as it arrives on the wire. */
+/** Whether the creating or last modifying user of an attachment is still active, for inactiveRefClass. */
+export function attachmentUserFlags(
+  attachment: Attachment,
+  key: "createdByUser" | "lastUpdateByUser"
+): InactiveFlags {
+  return {
+    deleted: !!attachment[`${key}Deleted`],
+    deactivated: !!attachment[`${key}Deactivated`],
+  };
+}
+
 export interface Attachment {
   /** Assigned by the JCR; identifies the file in every call below. */
   fileId: string;
@@ -65,8 +77,14 @@ export interface Attachment {
   description?: string | null;
   created?: string | null;
   createdByUser?: string | null;
+  /** The creating user is deleted or deactivated: the name is struck through (see inactiveRefClass). */
+  createdByUserDeleted?: boolean | null;
+  createdByUserDeactivated?: boolean | null;
   lastUpdate?: string | null;
   lastUpdateByUser?: string | null;
+  /** As createdByUserDeleted/-Deactivated, for the last modifying user. */
+  lastUpdateByUserDeleted?: boolean | null;
+  lastUpdateByUserDeactivated?: boolean | null;
   /** Localised "a few seconds ago", built by the backend. */
   lastUpdateTimeAgo?: string | null;
   /** Formatted by the backend in the user's timezone and date format. */
@@ -110,14 +128,68 @@ export interface AttachmentRef {
   id: number;
   fileId: string;
   listId?: string;
+  /** The endpoints to call, see [AttachmentService.base]. Defaults to `AttachmentsServicesRest`. */
+  base?: string;
 }
 
 const BASE = "/rs/attachments";
 
 /**
+ * The backend a list of attachments talks to, and what it offers.
+ *
+ * `AttachmentsServicesRest` for every entity of a logged-in user ([DEFAULT_ATTACHMENT_SERVICE]). The
+ * external access of a data transfer area has endpoints of its own under the same names and
+ * signatures (`DataTransferPublicServicesRest`), but no reading via the entity, and — depending on
+ * the area — no ZIP download.
+ */
+export interface AttachmentService {
+  /** Base path of the upload, download, modify and delete endpoints. */
+  base: string;
+  /** Reads the current list (see [fetchAttachments] for the default). */
+  fetchAttachments: (
+    entity: string,
+    id: number,
+    signal?: AbortSignal
+  ) => Promise<Attachment[]>;
+  /** Encrypting a file and testing a password against it are offered. */
+  encryption: boolean;
+  /** Several files can be downloaded as one ZIP (`multiDownload`). */
+  multiDownload: boolean;
+  /**
+   * The toolbar offers all files as one ZIP, next to the selected ones. Off where the page has a
+   * "download all" of its own (the external access of a data transfer area, with a size limit).
+   */
+  downloadAll: boolean;
+  /** Who uploaded or changed a file is shown. */
+  userInfo: boolean;
+  /**
+   * Called when a write (upload, rename, delete, encrypt) failed on the way, not refused by the backend.
+   * The external access of a data transfer area re-reads its login state then: the usual cause there is
+   * an expired session, which the page should answer with its login form.
+   */
+  onWriteError?: () => void;
+  /**
+   * The largest file the backend takes, checked before the transfer so an oversized file isn't sent in
+   * vain. `formatted` is the backend's text for it. Unset: no check here, the backend still refuses.
+   */
+  maxFileSize?: { bytes: number; formatted: string };
+  /** The most a ZIP of selected files may contain (as [maxFileSize]); unset: no limit. */
+  maxZipSize?: { bytes: number; formatted: string };
+}
+
+export const DEFAULT_ATTACHMENT_SERVICE: AttachmentService = {
+  base: BASE,
+  fetchAttachments,
+  encryption: true,
+  multiDownload: true,
+  downloadAll: true,
+  userInfo: true,
+};
+
+/**
  * The current list of an entity's attachments.
  *
- * There is no read endpoint of its own: `AbstractPagesRest` puts them into the entity itself
+ * There is no read endpoint of its own: `AbstractEntityRest` puts them into the entity itself
  * (see its `getItemAndLayout`), so this reads the entity and picks the field out. Kept here so a
  * caller doesn't have to know that, and so the entity's own type stays free of it.
  */
@@ -149,11 +221,12 @@ export async function uploadAttachment(
   id: number,
   file: File,
   listId: string = DEFAULT_LIST_ID,
-  options: UploadOptions = {}
+  options: UploadOptions = {},
+  base: string = BASE
 ): Promise<AttachmentWriteResult> {
   const body = new FormData();
   body.append("file", file);
-  const path = `${BASE}/upload/${entity}/${id}/${listId}`;
+  const path = `${base}/upload/${entity}/${id}/${listId}`;
   const res = await uploadWithProgress(path, body, options);
   if (res.status < 200 || res.status >= 300) {
     throw new RsError(res.status, `${res.status}: ${path}`);
@@ -169,7 +242,7 @@ export function modifyAttachment(
   signal?: AbortSignal
 ): Promise<AttachmentWriteResult> {
   return write(
-    `${BASE}/modify`,
+    `${ref.base ?? BASE}/modify`,
     {
       method: "POST",
       body: JSON.stringify({
@@ -190,7 +263,7 @@ export function deleteAttachment(
   signal?: AbortSignal
 ): Promise<AttachmentWriteResult> {
   return write(
-    `${BASE}/delete`,
+    `${ref.base ?? BASE}/delete`,
     { method: "POST", body: JSON.stringify({ data: refData(ref) }) },
     signal
   );
@@ -209,10 +282,11 @@ export function deleteAttachments(
   id: number,
   fileIds: string[],
   listId: string = DEFAULT_LIST_ID,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  base: string = BASE
 ): Promise<AttachmentWriteResult> {
   return write(
-    `${BASE}/multiDelete`,
+    `${base}/multiDelete`,
     {
       method: "POST",
       body: JSON.stringify({
@@ -235,25 +309,68 @@ export function attachmentDownloadUrl(ref: AttachmentRef): string {
     fileId: ref.fileId,
     listId: ref.listId ?? DEFAULT_LIST_ID,
   });
-  return `${BASE}/download/${ref.entity}/${ref.id}?${params}`;
+  return `${ref.base ?? BASE}/download/${ref.entity}/${ref.id}?${params}`;
 }
 
 /**
  * Where the given attachments can be downloaded from, as one ZIP (`multiDownload`).
  *
- * A plain URL for the same reason as [attachmentDownloadUrl]. The ids go out in full, although the
- * backend matches them by prefix and the legacy page shortened them to four characters to keep the
- * URL short: 20-character ids (`OakStorage.createRandomId`) stay well inside any URL limit for the
- * handful of files an entity has, and a prefix can match a second file.
+ * A plain URL for the same reason as [attachmentDownloadUrl]. The ids go out as [shortenFileIds] makes
+ * them: in full for the handful of files an entity usually has, shortened only for a selection that
+ * would make the URL too long.
+ *
+ * @param allFileIds every file of the list, which a shortened id must not match as well.
  */
 export function attachmentsDownloadUrl(
   entity: string,
   id: number,
   fileIds: string[],
-  listId: string = DEFAULT_LIST_ID
+  listId: string = DEFAULT_LIST_ID,
+  base: string = BASE,
+  allFileIds: string[] = fileIds
 ): string {
-  const params = new URLSearchParams({ fileIds: fileIds.join(","), listId });
-  return `${BASE}/multiDownload/${entity}/${id}?${params}`;
+  const params = new URLSearchParams({
+    fileIds: shortenFileIds(fileIds, allFileIds).join(","),
+    listId,
+  });
+  return `${base}/multiDownload/${entity}/${id}?${params}`;
+}
+
+/** Up to this length the ids of a ZIP download go out in full. */
+const MAX_FILE_IDS_LENGTH = 1500;
+/** The shortest prefix sent, as the legacy page did. */
+const MIN_FILE_ID_PREFIX = 4;
+
+/**
+ * The ids for `multiDownload`, which matches them by prefix. In full as long as they fit into
+ * [MAX_FILE_IDS_LENGTH] characters, otherwise each one cut to the shortest prefix (at least
+ * [MIN_FILE_ID_PREFIX]) that matches no other file of the list — 20-character ids
+ * (`FileStore.createRandomId`) would make a URL with hundreds of files too long for the server.
+ *
+ * Exported for its unit test.
+ */
+export function shortenFileIds(
+  fileIds: string[],
+  allFileIds: string[]
+): string[] {
+  const fullLength = fileIds.reduce(
+    (sum, fileId) => sum + fileId.length + 1,
+    0
+  );
+  if (fullLength <= MAX_FILE_IDS_LENGTH) return fileIds;
+  return fileIds.map((fileId) => {
+    for (let length = MIN_FILE_ID_PREFIX; length < fileId.length; length++) {
+      const prefix = fileId.slice(0, length);
+      if (
+        !allFileIds.some(
+          (other) => other !== fileId && other.startsWith(prefix)
+        )
+      ) {
+        return prefix;
+      }
+    }
+    return fileId;
+  });
 }
 
 /**
@@ -286,7 +403,7 @@ export function encryptAttachment(
   signal?: AbortSignal
 ): Promise<AttachmentWriteResult | PasswordRefused> {
   return passwordWrite(
-    `${BASE}/encrypt`,
+    `${ref.base ?? BASE}/encrypt`,
     ref,
     { password, newZipMode: mode },
     signal
@@ -305,7 +422,7 @@ export async function testAttachmentDecryption(
   { kind: "ok" } | { kind: "rejected"; message: string } | PasswordRefused
 > {
   const result = await passwordWrite(
-    `${BASE}/testDecryption`,
+    `${ref.base ?? BASE}/testDecryption`,
     ref,
     { password },
     signal
@@ -354,7 +471,7 @@ const NOT_ACCEPTABLE = 406;
 
 function refData(ref: AttachmentRef) {
   return {
-    // The backend's `category` is the entity's rest path (`AbstractPagesRest.category`).
+    // The backend's `category` is the entity's rest path (`AbstractEntityRest.category`).
     category: ref.entity,
     id: ref.id,
     fileId: ref.fileId,

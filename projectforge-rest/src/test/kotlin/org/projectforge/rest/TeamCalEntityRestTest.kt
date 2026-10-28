@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import org.projectforge.business.availability.AbsenceKind
 import org.projectforge.business.teamcal.CalendarAccessStatus
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
@@ -138,5 +139,23 @@ class TeamCalEntityRestTest : AbstractTestBase() {
         assertEquals("${group.id}", saved.minimalAccessGroupIds)
         assertEquals("${other.id}", saved.includeLeaveDaysForUsers)
         assertEquals(owner.id, saved.owner?.id)
+    }
+
+    /** The kinds of absences a calendar includes: all of them stored as null, as for calendars stored before. */
+    @Test
+    fun `the included absence kinds survive the round trip, all of them as null`() {
+        val owner = logon(TEST_USER)
+        val calId = teamCalDao.insert(TeamCalDO().also {
+            it.title = "Absence kinds test"
+            it.owner = owner
+            it.includeAbsenceKinds = "NOT_AVAILABLE,VACATION"
+        })
+        val dto = teamCalEntityRest.transformFromDB(teamCalDao.find(calId)!!, editMode = true)
+        assertEquals(listOf(AbsenceKind.VACATION, AbsenceKind.NOT_AVAILABLE), dto.absenceKinds)
+        assertEquals("VACATION,NOT_AVAILABLE", teamCalEntityRest.transformForDB(dto).includeAbsenceKinds)
+        dto.absenceKinds = AbsenceKind.entries
+        assertNull(teamCalEntityRest.transformForDB(dto).includeAbsenceKinds)
+        assertNull(teamCalEntityRest.transformFromDB(TeamCalDO().also { it.owner = owner }, editMode = true).absenceKinds)
+        assertEquals(AbsenceKind.entries.toSet(), TeamCalDO().absenceKinds)
     }
 }

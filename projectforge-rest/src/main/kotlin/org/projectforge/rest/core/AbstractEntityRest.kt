@@ -27,11 +27,12 @@ import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.InternalErrorException
@@ -48,6 +49,7 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.history.HistoryFormatService
 import org.projectforge.framework.persistence.search.SearchStringTokenizer
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
@@ -68,19 +70,16 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.io.Serializable
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 private val log = KotlinLogging.logger {}
 
 /**
  * The layout free base class of all entity rest services: query, autocompletion, history, filter
  * favorites, the writes and the attachment support of one entity - everything a client needs that
- * builds its pages itself.
- *
- * The counterpart is [AbstractPagesRest], which adds the server side generated `UILayout` on top for
- * the legacy React app (and for the pages of projectforge-next that are still rendered from it). A
- * page migrated to a hand built projectforge-next page extends this class instead and stops
- * producing that layout altogether: for such a page the layout was built, serialized and dropped by
- * the client.
+ * builds its pages itself. Plain JSON, no server side generated layout: projectforge-next builds every
+ * page by hand.
  *
  * "Layout free" doesn't mean free of [org.projectforge.ui]: the filter fields of a list page are
  * derived from the DAO's search fields ([LayoutListFilterUtils.createNamedSearchFilterContainer]) and
@@ -133,9 +132,49 @@ constructor(
             historizableMap[clazz] = result
             return result
         }
+
+        private val listRequestCounter = AtomicLong()
+
+        /**
+         * The latest list request per user and category ("<category>:<userId>"), see [takeListRequestTicket].
+         * In the companion, not in the bean: a final method of a CGLIB-proxied bean would see the proxy's
+         * uninitialized field.
+         */
+        private val latestListRequests = ConcurrentHashMap<String, Long>()
     }
 
-    class DisplayObject(val id: Any?, override val displayName: String?) : DisplayNameCapable
+    /**
+     * A ticket for a list request on its arrival, before its query runs. The filter of a list request is
+     * stored as the user's current one only after the query ([isLatestListRequest]), so without the ticket
+     * an outdated request finishing late would win: paging a year back and at once forth again (2026 →
+     * 2025 → 2026) aborts the 2025 request in the browser, but the server still finishes it, possibly after
+     * the 2026 one, and the list then returns from an entry with 2025.
+     */
+    private fun takeListRequestTicket(): Pair<String, Long> {
+        val key = "$category:${ThreadLocalUserContext.loggedInUserId}"
+        val ticket = listRequestCounter.incrementAndGet()
+        latestListRequests.merge(key, ticket, ::maxOf)
+        return key to ticket
+    }
+
+    /**
+     * True, if no list request of the same user and category has arrived since the one of [ticket].
+     */
+    private fun isLatestListRequest(ticket: Pair<String, Long>): Boolean {
+        return latestListRequests[ticket.first] == ticket.second
+    }
+
+    /**
+     * A hit of [getAutoCompleteObjects]. [deleted] and [deactivated] are set only if true (null is not serialized),
+     * so a selection box can strike through a no longer active entry (e.g. a deactivated user), as a next list
+     * cell does for such a reference (`isInactiveRef`).
+     */
+    class DisplayObject(
+        val id: Any?,
+        override val displayName: String?,
+        val deleted: Boolean? = null,
+        val deactivated: Boolean? = null,
+    ) : DisplayNameCapable
 
     /**
      * Category should be unique and is e. g. used as react path. At default, it's the dir of the url defined in class annotation [RequestMapping].
@@ -191,7 +230,18 @@ constructor(
      */
     open val autoCompleteSearchFields: Array<String>? = null
 
-    open val addNewEntryUrl: String by lazy { NextMigration.newEntryUrl(category) }
+    /**
+     * Optional subset of [autoCompleteSearchFields] (typically the name): entries found by these fields are listed
+     * before the ones found only by the other [autoCompleteSearchFields]. Searching `acme` for groups shall offer
+     * the group `acme-staff` first, not all groups of the organization `ACME`.
+     *
+     * Needed because the prefix queries of the type-ahead are constant-score (no relevance between a name and an
+     * organization hit) and the result is cut at `maxResults` in index order: a name hit could be dropped entirely.
+     * If null, all [autoCompleteSearchFields] are searched at once, as before.
+     */
+    open val autoCompletePrimarySearchFields: Array<String>? = null
+
+    open val addNewEntryUrl: String by lazy { PageRoutes.newEntryUrl(category) }
 
     /**
      * Relative rest path (without leading /rs
@@ -208,7 +258,7 @@ constructor(
     }
 
     /**
-     * The url template of the page a row of the list page leads to, with [NextMigration.ID_PLACEHOLDER]
+     * The url template of the page a row of the list page leads to, with [PageRoutes.ID_PLACEHOLDER]
      * for the id. Without leading slash. Overridden by pages whose rows don't open an edit form (the
      * address view page, the script execution page, the Wicket project edit page ...).
      *
@@ -216,7 +266,7 @@ constructor(
      * url of the grid from it.
      */
     open fun getStandardEditPage(): String {
-        return NextMigration.standardEditPage(category)
+        return PageRoutes.standardEditPage(category)
     }
 
     // ------------------------------------------------------------------------------------------
@@ -249,7 +299,23 @@ constructor(
      */
     @GetMapping("newEntry")
     fun getNewEntry(request: HttpServletRequest): ResponseEntity<Any> {
+        // The preset may carry more than defaults (e.g. the variable names a script can use), so only for a user
+        // who may add an entry at all.
+        checkLoggedInUserInsertAccess()
         return ResponseEntity(newBaseDTO(request), HttpStatus.OK)
+    }
+
+    /**
+     * Throws an [AccessException] (HTTP 403 for projectforge-next, see GlobalDefaultExceptionHandler) if the
+     * logged-in user may not add entries of this entity at all. The entity wide check without an object: the DAO
+     * checks the actual entry again on insert.
+     *
+     * [BaseDao.hasLoggedInUserInsertAccess] only answers, it doesn't throw.
+     */
+    protected fun checkLoggedInUserInsertAccess() {
+        if (!baseDao.hasLoggedInUserInsertAccess()) {
+            throw AccessException("access.exception.noWriteAccess")
+        }
     }
 
     // ------------------------------------------------------------------------------------------
@@ -269,7 +335,7 @@ constructor(
     }
 
     protected fun getListMeta(request: HttpServletRequest, filter: MagicFilter): ListMetaData {
-        val userAccess = UILayout.UserAccess()
+        val userAccess = UserAccess()
         checkUserAccess(null, userAccess)
         // Assumed rather than checked, because it is not a question about the *list*: whether an entry
         // may be written is asked per entry and travels on its DTO (EntityAccessSupport, filled in
@@ -287,11 +353,13 @@ constructor(
         // Assumed for every entity that has no entity wide answer, and asked where one exists: a list
         // whose rows nobody may open must not offer the click that opens them (see listUpdateAccess).
         userAccess.update = listUpdateAccess()
+        // Whether the list offers to add an entry - false for an entity whose entries are only ever created
+        // from a row of the list (see listInsertAccess).
+        if (!listInsertAccess()) {
+            userAccess.insert = false
+        }
         // Whether a write may carry a comment for the history entry it produces, which is a property of
-        // the entity and not of the user: the same answer AbstractPagesRest puts into the layout's
-        // userAccess, from where the server laid out edit page adds its comment field
-        // (LayoutUtils.processEditPage). A hand built form has no layout to read it from, so it takes it
-        // from here (see useHistoryCommentSupport).
+        // the entity and not of the user. The form takes it from here (see useHistoryCommentSupport).
         userAccess.editHistoryComments = baseDao.supportsHistoryUserComments
         val searchFilterContainer = LayoutListFilterUtils.createNamedSearchFilterContainer(this, lc)
         val elements = searchFilterContainer.content.filterIsInstance<UILabelledElement>()
@@ -305,15 +373,8 @@ constructor(
             filterFavorite = favorites.get(filter.id),
             filterElements = elements,
             standardEditPage = getStandardEditPage(),
-            // Escape hatches ("way back" to the legacy page), marked so OrphanedLinkFilter lets them
-            // reach it instead of bending them straight back to next (see NextMigration.withEscapeHatchMarker).
-            legacyListPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyListUrl(category)),
-            // Whether that way back is offered in the gear menu instead of the prominent button, per entity.
-            legacyListInMenu = NextMigration.legacyListInMenu(category),
             // From EntityCountCache, so no count(*) per list load (see BaseDao.countReindexEntries).
             fullReindexOnly = baseDao.isFullReindexSmall(),
-            legacyEditPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyEditPage(category)),
-            legacyNewEntryPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyNewEntryUrl(category)),
             userAccess = userAccess,
             // What this user last ticked for a mass update, so a reload (or a detour through the legacy
             // app) restores it. Read under this rest class, the identifier startSelection registers and
@@ -467,10 +528,9 @@ constructor(
     /**
      * Applies a saved filter and returns the state of the list page for it.
      *
-     * @return [ListMetaData]. [AbstractPagesRest] answers with its `InitialListData` instead, which is
-     * why the return type is [Any]: the two clients need a different payload for the same action.
+     * @return [ListMetaData].
      */
-    @GetMapping("filter/select")
+    @PostMapping("filter/select")
     open fun selectFavoriteFilter(
         request: HttpServletRequest,
         @RequestParam("id", required = true) id: Long
@@ -499,7 +559,7 @@ constructor(
     /**
      * @return new filterFavorites
      */
-    @GetMapping("filter/rename")
+    @PostMapping("filter/rename")
     fun renameFavoriteFilter(
         @RequestParam("id", required = true) id: Long,
         @RequestParam("newName", required = true) newName: String
@@ -540,7 +600,7 @@ constructor(
     /**
      * @return The new list of filterFavorites (id's with titles) without the deleted filter.
      */
-    @GetMapping("filter/delete")
+    @PostMapping("filter/delete")
     fun deleteFavoriteFilter(@RequestParam("id", required = true) id: Long): Map<String, Any> {
         val favorites = getFilterFavorites()
         favorites.remove(id)
@@ -550,7 +610,7 @@ constructor(
     /**
      * Resets the current filter from the server.
      */
-    @GetMapping("filter/reset")
+    @PostMapping("filter/reset")
     fun resetListFilter(): ResponseAction {
         saveCurrentFilter(newMagicFilter())
         agGridSupport.resetGridState(category)
@@ -561,7 +621,7 @@ constructor(
     /**
      * The current filter will be reset and returned.
      */
-    @GetMapping(RestPaths.FILTER_RESET)
+    @PostMapping(RestPaths.FILTER_RESET)
     fun filterReset(): MagicFilter {
         val filter = getCurrentFilter()
         filter.reset()
@@ -593,9 +653,10 @@ constructor(
     ): ResultSet<*> {
         filter.autoWildcardSearch = true
         fixMagicFilterFromClient(filter)
+        val ticket = takeListRequestTicket()
         val list = getList(request, this, baseDao, filter)
         // A transient jump (doNotStore) must not leave its filter behind as the user's remembered one.
-        if (doNotStore != true) {
+        if (doNotStore != true && isLatestListRequest(ticket)) {
             saveCurrentFilter(filter)
         }
         val resultSet = postProcessResultSet(list, request, filter)
@@ -627,7 +688,7 @@ constructor(
     /**
      * One page of the list, served server-side: the ordered id list is materialized once per (session,
      * filter) and cached, and this returns the 50-row slice at `offset` (see [getListPage] and
-     * `MIGRATION-list-paging.md`). A new path beside [getList], not an extension of it: `POST list` stays
+     * `dev-docs/next/list-paging.md`). A new path beside [getList], not an extension of it: `POST list` stays
      * byte-identical for the legacy React app, the multi-selection start and the Excel exports, all of which
      * need every row.
      *
@@ -638,9 +699,10 @@ constructor(
         val filter = body.filter
         filter.autoWildcardSearch = true
         fixMagicFilterFromClient(filter)
+        val ticket = takeListRequestTicket()
         val list = getListPage(request, this, baseDao, listPageCache, filter, body.offset, body.limit, body.refresh)
         // A transient jump (doNotStore) must not leave its filter behind as the user's remembered one.
-        if (!body.doNotStore) {
+        if (!body.doNotStore && isLatestListRequest(ticket)) {
             saveCurrentFilter(filter)
         }
         val resultSet = postProcessResultSet(list, request, filter)
@@ -741,7 +803,7 @@ constructor(
     /**
      * The given entries as list rows, for a page that holds a selection as ids only.
      *
-     * Lives here rather than at the caller because `O` is only in scope here: [AbstractMultiSelectedPage]
+     * Lives here rather than at the caller because `O` is only in scope here: [AbstractMassUpdateRest]
      * knows its list rest as `AbstractEntityRest<*, *, *>` and could not build the [ResultSet] of `O`
      * that [postProcessResultSet] takes. And going through that method is the point of this one - it is
      * where [AbstractDTOEntityRest] turns the database objects into the lean rows of a hand built next
@@ -822,13 +884,12 @@ constructor(
      * Whether the rows of this response should be the lean ones of [createListRow].
      *
      * Only a hand built projectforge-next page knows which columns it renders, so only for that page is
-     * a partly filled DTO the complete answer. Every other client renders from `UILayout`, whose
-     * columns bind to fields a lean row leaves empty.
+     * a partly filled DTO the complete answer; every other caller of `list` gets the full DTO.
      *
      * A page that offers no lean row is unaffected - [createListRow] falls back to the full DTO.
      */
     protected fun useListRow(request: HttpServletRequest): Boolean {
-        return RestAuthenticationUtils.isNextClient(request) && NextMigration.isMigrated(category)
+        return RestAuthenticationUtils.isNextClient(request) && PageRoutes.isMigrated(category)
     }
 
     /**
@@ -837,8 +898,8 @@ constructor(
      *
      * Answered by the DTO rather than by the page — `BaseDTO.copyFrom4ListRow` is where an entity says what
      * a row of it consists of, so [AbstractDTOEntityRest] implements this once for every DTO page. Override
-     * here only if building the row needs something the DTO cannot reach (as `AddressPagesRest` needs its
-     * image cache).
+     * here only if building the row needs something the DTO cannot reach (as a page needing a cache of
+     * its own might).
      *
      * The default is the full DTO, so this costs a page that overrides neither nothing.
      */
@@ -883,21 +944,9 @@ constructor(
     }
 
     /**
-     * Starts multi selection by registering current result list.
-     */
-    @PostMapping(RestPaths.REST_START_MULTI_SELECTION)
-    fun startMultiSelections(request: HttpServletRequest, @RequestBody filter: MagicFilter): ResponseAction {
-        val count = registerForSelection(request, filter)
-        log.info { "User wants to start multiselection of $count entries." }
-        return ResponseAction(url = PagesResolver.getMultiSelectionPageUrl(this::class.java, absolute = true))
-    }
-
-    /**
-     * Starts multi selection and answers how many entries the filter matched.
-     *
-     * The layout free counterpart of [startMultiSelections], whose answer is a redirect to the mass
-     * update page of the legacy frontend - a hand built page routes itself and only needs to know that
-     * the session now holds the ids (see `MultiSelectMetaData`).
+     * Starts multi selection by registering the current result list and answers how many entries the filter
+     * matched: a hand built page routes itself and only needs to know that the session now holds the ids (see
+     * `MultiSelectMetaData`).
      */
     @PostMapping("startSelection")
     fun startSelection(
@@ -906,10 +955,7 @@ constructor(
     ): MultiSelectNavigation {
         val count = registerForSelection(request, filter)
         log.info { "User wants to start multiselection of $count entries." }
-        return MultiSelectNavigation(
-            url = PagesResolver.getMultiSelectionPageUrl(this::class.java, absolute = true),
-            selectedCount = count,
-        )
+        return MultiSelectNavigation(selectedCount = count)
     }
 
     /** Registers every id the filter matches as selectable and returns how many those are. */
@@ -917,16 +963,6 @@ constructor(
         val ids = getList(request, filter).resultSet.mapNotNull { getId(it) }
         MultiSelectionSupport.registerEntityIdsForSelection(request, this::class.java, ids)
         return ids.size
-    }
-
-    /**
-     * This rest service will be called on multi selection list pages, if the user wants to cancel the multi selection.
-     * @return redirect url
-     */
-    @GetMapping(RestPaths.CANCEL_MULTI_SELECTION)
-    fun handleCancelUrl(request: HttpServletRequest): String {
-        return MultiSelectionSupport.clear(request, this)
-            ?: PagesResolver.getListPageUrl(this::class.java, absolute = true)
     }
 
     // ------------------------------------------------------------------------------------------
@@ -947,10 +983,8 @@ constructor(
      * The user's stored grid state (column order, width, visibility, pinning, sorting), or an empty
      * state if there is none yet.
      *
-     * Counterpart to [updateColumnStates] for pages that aren't built from a `UILayout`: those get
-     * the state folded into their column definitions instead (see
-     * AGGridSupport.restoreColumnsFromUserPref), which a hand-built page has no equivalent of.
-     * The format is TanStack Table's own state, so the frontend can apply it as is.
+     * Counterpart to [updateColumnStates]. The format is TanStack Table's own state, so the frontend can
+     * apply it as is.
      */
     @GetMapping(RestPaths.COLUMN_STATES)
     fun getColumnStates(): GridState {
@@ -977,13 +1011,13 @@ constructor(
     protected open fun getById(
         idString: String?,
         editMode: Boolean = false,
-        userAccess: UILayout.UserAccess? = null
+        userAccess: UserAccess? = null
     ): DTO? {
         if (idString == null) return null
         return getById(idString.toLong(), editMode, userAccess)
     }
 
-    protected fun getById(id: Long?, editMode: Boolean = false, userAccess: UILayout.UserAccess? = null): DTO? {
+    protected fun getById(id: Long?, editMode: Boolean = false, userAccess: UserAccess? = null): DTO? {
         id ?: return null
         val item = baseDao.find(id) ?: return null
         checkUserAccess(item, userAccess)
@@ -1017,14 +1051,25 @@ constructor(
      * server laid out grid makes its rows clickable with it (`AGGridSupport`), a hand built list wires
      * its row click with it (see useEditTargets in projectforge-next).
      *
-     * Not authorization, like the rest of [UILayout.UserAccess]: the DAO refuses the write regardless.
+     * Not authorization, like the rest of [UserAccess]: the DAO refuses the write regardless.
      */
     protected open fun listUpdateAccess(): Boolean = true
 
-    protected fun checkUserAccess(obj: O?, userAccess: UILayout.UserAccess?) {
+    /**
+     * Whether the list offers to add an entry (its add button), on top of the insert right the DAO reports.
+     *
+     * True by default. False for an entity whose entries can't be created from nothing: an address campaign
+     * value belongs to an address and a campaign, so it is only ever created from the row of its address
+     * (`AddressCampaignValueEntityRest`) - a blank form could not be saved.
+     *
+     * Not authorization, like the rest of [UserAccess]: the DAO refuses the insert regardless.
+     */
+    protected open fun listInsertAccess(): Boolean = true
+
+    protected fun checkUserAccess(obj: O?, userAccess: UserAccess?) {
         if (userAccess != null) {
             // Every flag here is a UI hint, not authorization - the DAO refuses the actual write or read
-            // regardless (see UILayout.UserAccess). So none of these probes may be the thing that breaks a
+            // regardless (see UserAccess). So none of these probes may be the thing that breaks a
             // layout or the list meta data: a DAO whose user right is not resolvable throws when asked -
             // either UnsupportedOperationException (no userRightId and no override, BaseDao.hasAccess) or a
             // NullPointerException on a right that isn't registered (yet), e.g. a plugin whose rights bind
@@ -1065,9 +1110,8 @@ constructor(
         if (cloneSupport == CloneSupport.NONE) {
             return ResponseEntity(HttpStatus.NOT_IMPLEMENTED)
         }
-        // Throws an AccessException, which the exception handler answers as HTTP 406 with a validation
-        // error - the client shouldn't have offered the button (see ListMetaData.userAccess.insert).
-        baseDao.hasLoggedInUserInsertAccess()
+        // The client shouldn't have offered the button (see ListMetaData.userAccess.insert).
+        checkLoggedInUserInsertAccess()
         return ResponseEntity(prepareClone(postData.data) as Any, HttpStatus.OK)
     }
 
@@ -1079,7 +1123,6 @@ constructor(
      * If the save fails (an overlapping time period is the typical case) or the entity doesn't autosave,
      * the prepared clone is answered as `ResponseAction(UPDATE)` with the clone under `variables.data`:
      * not saved, the client stays on the form with it (see `cloneAndSaveEntity` in projectforge-next).
-     * `AbstractPagesRest` overrides this to re-serve its layout as well.
      *
      * @return HTTP 501 if this entity has no clone support.
      */
@@ -1094,14 +1137,15 @@ constructor(
         val clone = prepareClone(postData.data)
         if (cloneSupport == CloneSupport.AUTOSAVE) {
             postData.data = clone
-            val result = saveOrUpdate(request, postData)
+            // A clone is a new entry: never an update of the original, whatever prepareClone left in it.
+            val result = insert(request, postData)
             if (result.statusCode == HttpStatus.OK) {
                 return result
             }
             // Validation or other errors: not saved, the client proceeds with editing the clone.
         } else {
-            // Throws an AccessException (HTTP 406), see cloneData.
-            baseDao.hasLoggedInUserInsertAccess()
+            // See cloneData.
+            checkLoggedInUserInsertAccess()
         }
         return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE).addVariable("data", clone))
     }
@@ -1178,23 +1222,85 @@ constructor(
                 "No autoCompleteSearchFields are configured by the developers for this entity."
             )
         }
-        val filter = createAutoCompleteObjectsFilter(request)
+        val words = searchString?.split(' ', '\t', '\n')?.filter { it.isNotBlank() }
         // Every word required, and each of them matched either as typed or as the terms the index holds for it:
-        // 'dhl-pop' is two terms in the index, and 'dhl-pop*' - a wildcard term, which Lucene doesn't tokenize -
+        // 'acme-pop' is two terms in the index, and 'acme-pop*' - a wildcard term, which Lucene doesn't tokenize -
         // used to match nothing at all (see [SearchStringTokenizer]). A word the caller already marked as
         // required carries a syntax of its own and stays untouched, as before.
-        val modifiedSearchString = searchString
-            ?.split(' ', '\t', '\n')
-            ?.filter { it.isNotBlank() }
+        val modifiedSearchString = words
             ?.joinToString(" ") {
                 if (it.startsWith("+")) it else SearchStringTokenizer.expandWord(it, required = true)
             }
             ?.takeIf { it.isNotBlank() }
-        filter.searchString = modifiedSearchString
-        filter.searchFields = autoCompleteSearchFields!!
+        val primaryFields = autoCompletePrimarySearchFields
+        val list = if (primaryFields.isNullOrEmpty() || modifiedSearchString == null) {
+            queryAutocompleteObjects(request, modifiedSearchString, autoCompleteSearchFields!!, maxResults)
+        } else {
+            // Labels starting with the first typed word first, the rest of the primary hits in their default order.
+            // Both normalized like the index, so "mueller" ranks "Müller" first.
+            val firstWord = SearchStringTokenizer.normalize(words!!.first().removePrefix("+"))
+            val primary = queryAutocompleteObjects(request, modifiedSearchString, primaryFields, maxResults)
+                .sortedBy { obj ->
+                    val label = autoCompleteLabel(obj)
+                    if (label != null && SearchStringTokenizer.normalize(label).startsWith(firstWord)) 0 else 1
+                }
+            if (maxResults != null && primary.size >= maxResults) {
+                primary
+            } else {
+                val ids = primary.mapTo(HashSet()) { it.id }
+                // Enough rows to fill up maxResults even if all the primary hits are among them.
+                val othersMax = maxResults?.let { it + primary.size }
+                val others = queryAutocompleteObjects(request, modifiedSearchString, autoCompleteSearchFields!!, othersMax)
+                    .filter { it.id !in ids }
+                (primary + others).let { all -> maxResults?.let { all.take(it) } ?: all }
+            }
+        }
+        return list.map {
+            DisplayObject(
+                it.id,
+                autoCompleteLabel(it),
+                deleted = it.deleted.takeIf { deleted -> deleted },
+                deactivated = isInactiveAutoCompleteEntry(it).takeIf { deactivated -> deactivated },
+            )
+        }
+    }
+
+    /**
+     * Whether the caller asked `autosearch` for inactive entries too (param [AutoCompletion.SHOW_INACTIVE_PARAM])
+     * and may get them ([isShowInactiveAllowed]).
+     * Evaluated by the overrides of [queryAutocompleteObjects] of entities with an inactive state.
+     */
+    protected fun showInactive(request: HttpServletRequest): Boolean {
+        val asked = request.getParameter(AutoCompletion.SHOW_INACTIVE_PARAM) == "true"
+        return asked && isShowInactiveAllowed()
+    }
+
+    /** Whether the logged-in user may get inactive entries from `autosearch`, see [showInactive]. */
+    protected open fun isShowInactiveAllowed(): Boolean = true
+
+    /**
+     * Whether an `autosearch` answer marks this entry as inactive (struck through by the client). Default is
+     * [org.projectforge.framework.persistence.api.ExtendedBaseDO.deactivated]; entities whose inactive state is
+     * a status of their own (projects, customers, cost units) override it.
+     */
+    protected open fun isInactiveAutoCompleteEntry(obj: O): Boolean = obj.deactivated
+
+    private fun queryAutocompleteObjects(
+        request: HttpServletRequest,
+        searchString: String?,
+        searchFields: Array<String>,
+        maxResults: Int?,
+    ): List<O> {
+        val filter = createAutoCompleteObjectsFilter(request)
+        filter.searchString = searchString
+        filter.searchFields = searchFields
         maxResults?.let { filter.maxRows = it }
-        val list = queryAutocompleteObjects(request, filter)
-        return list.map { DisplayObject(it.id, if (it is DisplayNameCapable) it.displayName else it.toString()) }
+        return queryAutocompleteObjects(request, filter)
+    }
+
+    /** The label of an `autosearch` hit; [org.projectforge.rest.fibu.ProjectEntityRest] adds the customer. */
+    protected open fun autoCompleteLabel(obj: O): String? {
+        return if (obj is DisplayNameCapable) obj.displayName else obj.toString()
     }
 
     /**
@@ -1215,13 +1321,16 @@ constructor(
     /**
      * The history items of the given entity, along with the capabilities a client needs to render them.
      *
-     * [supportsUserComments] is also part of the edit layout (`UILayout.UserAccess.editHistoryComments`),
+     * [supportsUserComments] is also part of the edit layout (`UserAccess.editHistoryComments`),
      * but the hand built pages of projectforge-next have no layout to read it from, so the history
      * answers it as well.
      */
     class HistoryInfo(
         val entries: List<DisplayHistoryEntry>,
-        /** [BaseDao.supportsHistoryUserComments]: only then may the client append comments. */
+        /**
+         * [BaseDao.supportsHistoryUserComments] and update access to the entity: only then may the client
+         * append comments (checked again by HistoryService.appendUserComment).
+         */
         val supportsUserComments: Boolean,
     )
 
@@ -1237,7 +1346,11 @@ constructor(
         val item = baseDao.find(id) ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
         val entries = historyFormatService.selectAsDisplayEntries(baseDao, item)
         return ResponseEntity(
-            HistoryInfo(entries, supportsUserComments = baseDao.supportsHistoryUserComments),
+            HistoryInfo(
+                entries,
+                supportsUserComments = baseDao.supportsHistoryUserComments &&
+                        baseDao.hasLoggedInUserUpdateAccess(item, item, false),
+            ),
             HttpStatus.OK,
         )
     }
@@ -1248,13 +1361,11 @@ constructor(
 
     /**
      * Rebuilds the index by the search engine for the newest entries.
-     * @see [BaseDao.rebuildDatabaseIndex4NewestEntries]
+     * @see [DatabaseDao.createReindexSettings]
      */
-    @GetMapping("reindexNewest")
-    fun reindexNewest(request: HttpServletRequest): ResponseAction {
-        startReindexOrRunIt(request, full = false, adminRequired = false)?.let { return it }
-        baseDao.rebuildDatabaseIndex4NewestEntries()
-        return UIToast.createToast(translate("administration.reindexNewest.successful"), color = UIColor.SUCCESS)
+    @PostMapping("reindexNewest")
+    fun reindexNewest(): ResponseAction {
+        return startReindexJob(full = false, adminRequired = false)
     }
 
     /**
@@ -1263,30 +1374,21 @@ constructor(
      * Below [BaseDao.FULL_REINDEX_MAX_ENTRIES_FOR_NON_ADMINS] entries it takes seconds, so every user may start it
      * (see [BaseDao.isFullReindexAllowedForLoggedInUser]). The clients merely hide the menu entry, the check has to
      * be here.
-     * @see [BaseDao.rebuildDatabaseIndex]
      */
-    @GetMapping("reindexFull")
-    fun reindexFull(request: HttpServletRequest): ResponseAction {
+    @PostMapping("reindexFull")
+    fun reindexFull(): ResponseAction {
         // An admin's run stays admin-only to watch and cancel; a regular user's (small) run is their own.
         val adminRequired = accessChecker.isLoggedInUserMemberOfAdminGroup
         if (!adminRequired && !baseDao.isFullReindexSmall()) {
             accessChecker.checkIsLoggedInUserMemberOfAdminGroup() // Throws the AccessException.
         }
-        startReindexOrRunIt(request, full = true, adminRequired = adminRequired)?.let { return it }
-        baseDao.rebuildDatabaseIndex()
-        return UIToast.createToast(translate("administration.reindexFull.successful"), color = UIColor.SUCCESS)
+        return startReindexJob(full = true, adminRequired = adminRequired)
     }
 
     /**
-     * projectforge-next shows a progress toast, so it gets the id of a job to poll (see JobsMonitorPageRest).
-     * The classic clients have no such display and keep waiting for the toast of the finished run.
-     *
-     * @return The response for projectforge-next, or null if the caller has to do the run synchronously.
+     * Runs the reindex as a job: the client gets its id and polls it for the progress (see JobsMonitorRest).
      */
-    private fun startReindexOrRunIt(request: HttpServletRequest, full: Boolean, adminRequired: Boolean): ResponseAction? {
-        if (!RestAuthenticationUtils.isNextClient(request)) {
-            return null
-        }
+    private fun startReindexJob(full: Boolean, adminRequired: Boolean): ResponseAction {
         val i18nKey = if (full) "administration.reindexFull.job.title" else "administration.reindexNewest.job.title"
         val job = jobHandler.addJob(
             ReindexJob(
@@ -1328,15 +1430,50 @@ constructor(
 
     /**
      * Use this service for adding new items as well as updating existing items (id isn't null).
+     *
+     * The upsert of the classic React pages (see `LayoutUtils`). A client that knows whether it creates or edits an
+     * entry uses [insert] or [update] instead, which never do the other one.
      */
     @PutMapping(RestPaths.SAVE_OR_UDATE)
     fun saveOrUpdate(
         request: HttpServletRequest,
         @Valid @RequestBody postData: PostData<DTO>
     ): ResponseEntity<ResponseAction> {
-        sessionCsrfService.validateCsrfToken(request, postData, "Upsert")?.let { return it }
+        return write(request, postData, "Upsert", null)
+    }
+
+    /**
+     * Adds a new item. An item that already exists (see [BaseDao.isNew]) is rejected, never updated.
+     */
+    @PutMapping(RestPaths.INSERT)
+    fun insert(
+        request: HttpServletRequest,
+        @Valid @RequestBody postData: PostData<DTO>
+    ): ResponseEntity<ResponseAction> {
+        return write(request, postData, "Insert", OperationType.INSERT)
+    }
+
+    /**
+     * Updates an existing item. An item without id is rejected, never inserted: a client that lost the id on the
+     * way would otherwise create a copy of the item.
+     */
+    @PutMapping(RestPaths.UPDATE)
+    fun update(
+        request: HttpServletRequest,
+        @Valid @RequestBody postData: PostData<DTO>
+    ): ResponseEntity<ResponseAction> {
+        return write(request, postData, "Update", OperationType.UPDATE)
+    }
+
+    private fun write(
+        request: HttpServletRequest,
+        postData: PostData<DTO>,
+        csrfAction: String,
+        expected: OperationType?,
+    ): ResponseEntity<ResponseAction> {
+        sessionCsrfService.validateCsrfToken(request, postData, csrfAction)?.let { return it }
         val dbObj = transformForDB(postData.data)
-        return saveOrUpdate(request, baseDao, dbObj, postData, this, validate(dbObj, postData))
+        return saveOrUpdate(request, baseDao, dbObj, postData, this, validate(dbObj, postData), expected)
     }
 
     /**
@@ -1548,8 +1685,7 @@ constructor(
     }
 
     /**
-     * The list page to return to after an edit. Overridden by [AbstractPagesRest], whose page exists in
-     * the legacy React app as well and has to return the caller to the frontend they came from.
+     * The list page to return to after an edit.
      */
     protected open fun getListPageUrlAfterEdit(request: HttpServletRequest): String {
         return PagesResolver.getListPageUrl(
@@ -1630,7 +1766,7 @@ constructor(
     /**
      * A unique id which is used as parent node for all attachments. Use [enableJcr] for creating unique nodes.
      * @return unique jcr path if attachments are supported or null, if no attachment support is given (download, upload and list).
-     * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
+     * @see [org.projectforge.rest.orga.ContractEntityRest] as an example.
      */
     open var jcrPath: String? = null  // open needed by Wicket's SpringBean for proxying.
         protected set

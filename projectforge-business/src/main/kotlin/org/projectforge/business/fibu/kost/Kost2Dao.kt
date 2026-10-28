@@ -26,7 +26,7 @@ package org.projectforge.business.fibu.kost
 import jakarta.persistence.criteria.JoinType
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
-import org.projectforge.business.fibu.kost.KostHelper.parseKostString
+import org.projectforge.business.fibu.numberrange.NumberRangeService
 import org.projectforge.business.user.UserRightId
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.OperationType
@@ -55,6 +55,9 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
     @Autowired
     private lateinit var kostCache: KostCache
 
+    @Autowired
+    private lateinit var numberRangeService: NumberRangeService
+
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
@@ -71,9 +74,10 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         val projekt = projektDao.findOrLoad(projektId)
         if (projekt != null) {
             kost2.projekt = projekt
-            kost2.nummernkreis = projekt.nummernkreis
+            // The first 6 digits of the Kost2 are the project number (only for projects of a number range):
+            kost2.nummernkreis = projekt.nummernkreis ?: throw UserException(PROJEKT_WITHOUT_NUMBER_RANGE_I18N_KEY)
             kost2.bereich = projekt.bereich!!
-            kost2.teilbereich = projekt.nummer
+            kost2.teilbereich = projekt.teilbereich!!
         }
     }
 
@@ -88,11 +92,11 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
     }
 
     /**
-     * @param kostString Format ######## or #.###.##.## is supported.
+     * @param kostString 8 digits or the segments of the number range, see [KostHelper.parseKost2String].
      * @see .getKost2
      */
     fun getKost2(kostString: String?): Kost2DO? {
-        val kost = parseKostString(kostString) ?: return null
+        val kost = KostHelper.parseKost2String(kostString) ?: return null
         return getKost2(kost[0], kost[1], kost[2], kost[3].toLong())
     }
 
@@ -125,7 +129,7 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         if (projekt == null) {
             return null
         }
-        return getActiveKost2(projekt.nummernkreis, projekt.bereich!!, projekt.teilbereich)
+        return kostCache.getActiveKost2ForProjekt(projekt.id)
     }
 
     /**
@@ -174,24 +178,21 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
             val projekt =
                 // Attached: inside the update transaction, a detaching find would pull the project out of the session.
                 projektDao.find(obj.projekt?.id, checkAccess = false, attached = true)
-            if (projekt!!.nummernkreis != obj.nummernkreis || projekt.bereich != obj.bereich || projekt.nummer != obj.teilbereich) {
+            // A new Kost2 needs a project of a number range (as setProjekt does); also keeps the detection of the
+            // former ranges 4/5 (NumberRangeService) from being triggered by a free project number like 512345:
+            if (operationType == OperationType.INSERT && projekt!!.nummernkreis == null) {
+                throw UserException(PROJEKT_WITHOUT_NUMBER_RANGE_I18N_KEY)
+            }
+            // Compared with the stored project number, not with the range-derived digits: existing Kost2 of a project
+            // stay valid even if its number range isn't configured (any more).
+            val kost2Projektnummer = obj.nummernkreis * 100_000 + obj.bereich * 100 + obj.teilbereich
+            if (projekt!!.projektnummer != kost2Projektnummer) {
                 throw UserException(
-                    ("Inkonsistenz bei Kost2: "
-                            + obj.nummernkreis
-                            + "."
-                            + obj.bereich
-                            + "."
-                            + obj.teilbereich
-                            + " != "
-                            + projekt.nummernkreis
-                            + "."
-                            + projekt.bereich
-                            + "."
-                            + projekt.nummer
-                            + " (Projekt)")
+                    "Inkonsistenz bei Kost2: $kost2Projektnummer != ${projekt.projektnummer} (Projektnummer)"
                 )
             }
-        } else if (obj.nummernkreis == 4 || obj.nummernkreis == 5) {
+        } else if (numberRangeService.numberRanges.rangeForPrefix(obj.nummernkreis) != null) {
+            // The Kost2 of a number range are the Kost2 of its projects.
             throw UserException("fibu.kost2.error.projektNeededForNummernkreis")
         }
         val other = if (obj.id == null) {
@@ -226,5 +227,8 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         val USER_RIGHT_ID: UserRightId = UserRightId.FIBU_COST_UNIT
 
         val ADDITIONAL_SEARCH_FIELDS = arrayOf("projekt.name", "projekt.kunde.name")
+
+        /** Kost2 can only be generated for projects of a number range (their number is the Kost2 prefix). */
+        const val PROJEKT_WITHOUT_NUMBER_RANGE_I18N_KEY = "fibu.kost2.error.projektWithoutNumberRange"
     }
 }

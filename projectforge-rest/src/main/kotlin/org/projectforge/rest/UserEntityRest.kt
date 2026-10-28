@@ -134,6 +134,9 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
     private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
 
     @Autowired
+    private lateinit var userAvatarDao: UserAvatarDao
+
+    @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
     @Autowired
@@ -165,6 +168,7 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
             user.externalUserManagementSystem = externalUserManagementSystem
             user.wlanPasswordSupported = Login.getInstance().isWlanPasswordChangeSupported(obj)
             user.phoneIdentifiersSupported = sipgateConfiguration.isConfigured()
+            user.avatarVersion = userAvatarDao.getVersion(obj.id)
         }
         return user
     }
@@ -558,7 +562,7 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
     override fun onAfterSave(request: HttpServletRequest, obj: PFUserDO, postData: PostData<User>): ResponseAction {
         val dto = postData.data
         if (dto.id != null) {
-            // Not a new user: its passwords are changed by ChangePasswordPageRest only (own checks and 2FA period).
+            // Not a new user: its passwords are changed by ChangePasswordRest only (own checks and 2FA period).
             return super.onAfterSave(request, obj, postData)
         }
         val password = dto.password
@@ -579,25 +583,22 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
     }
 
     override val autoCompleteSearchFields =
-        arrayOf("username", "firstname", "lastname", "email", "alternativeEmails", "formerEmails")
+        arrayOf("username", "firstname", "lastname", "nickname", "email", "alternativeEmails", "formerEmails")
 
+    /** Name hits first, see [autoCompletePrimarySearchFields]. */
+    override val autoCompletePrimarySearchFields = arrayOf("username", "firstname", "lastname", "nickname")
+
+    /**
+     * Deactivated users only on request ([AutoCompletion.SHOW_INACTIVE_PARAM]) and only for the members of
+     * [AutoCompletion.SHOW_INACTIVE_PERSONS_GROUPS], see [isShowInactiveAllowed].
+     */
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<PFUserDO> {
         val list = super.queryAutocompleteObjects(request, filter)
-        if (filter.searchString.isNullOrBlank() || request.getParameter(AutoCompletion.SHOW_ALL_PARAM) != "true") {
-            // Show deactivated users only if search string is given or param SHOW_ALL_PARAM is true:
-            if (!userGroupCache.isLoggedInUserMemberOfGroup(
-                    ProjectForgeGroup.HR_GROUP,
-                    ProjectForgeGroup.FINANCE_GROUP,
-                    ProjectForgeGroup.ORGA_TEAM,
-                    ProjectForgeGroup.ADMIN_GROUP,
-                )
-            ) {
-                // Shorten list only for non financial and administrative staff:
-                return list.filter { !it.deactivated } // Remove deactivated users when returning all.
-            }
-        }
-        return list
+        return if (showInactive(request)) list else list.filter { !it.deactivated }
     }
+
+    override fun isShowInactiveAllowed(): Boolean =
+        accessChecker.isLoggedInUserMemberOfGroup(*AutoCompletion.SHOW_INACTIVE_PERSONS_GROUPS)
 
     /**
      * Renews a token of the user; the answer carries the posted user with the new creation dates.

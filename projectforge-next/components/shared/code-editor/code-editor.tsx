@@ -2,6 +2,7 @@
 
 import { lazy, Suspense } from "react";
 import { Spinner } from "@/components/shared/spinner";
+import type { CodeVersionSource } from "./types";
 
 const CodeEditorImpl = lazy(() => import("./code-editor-impl"));
 
@@ -11,7 +12,7 @@ export interface CodeEditorProps {
   onChange?: (value: string) => void;
   onBlur?: () => void;
   /** The syntax to highlight; plain text without one. */
-  language?: "kotlin" | "groovy";
+  language?: "kotlin" | "groovy" | "properties" | "json";
   readOnly?: boolean;
   /** CSS height the editor starts with; it grows with its content. */
   minHeight?: string;
@@ -22,6 +23,13 @@ export interface CodeEditorProps {
   fill?: boolean;
   /** Accessible name, where no label points at the editor. */
   ariaLabel?: string;
+  /**
+   * The code as stored: given, the toolbar offers to show the changes made since (CodeDiffButton).
+   * Left out where there is nothing stored yet to compare with.
+   */
+  original?: string;
+  /** The former versions the diff can compare as well (with [original] only). */
+  versions?: CodeVersionSource;
 }
 
 /**

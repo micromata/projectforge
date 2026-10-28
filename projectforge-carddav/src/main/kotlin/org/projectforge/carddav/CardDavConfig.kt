@@ -27,8 +27,8 @@ import jakarta.annotation.PostConstruct
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.vcard.VCardVersion
 import org.projectforge.business.configuration.DomainService
-import org.projectforge.rest.AddressPagesRest
-import org.projectforge.rest.CardDAVInfoPageRest
+import org.projectforge.rest.AddressEntityRest
+import org.projectforge.rest.CardDAVInfoRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
@@ -103,11 +103,11 @@ open class CardDavConfig {
     @PostConstruct
     private fun postConstruct() {
         CardDavServerDebugWriter.debugUser = debugUser
-        AddressPagesRest.carddavServerEnabled = enable
-        CardDAVInfoPageRest.standardUrl = "${domainService.domain}${CardDavInit.CARD_DAV_BASE_PATH}"
-        CardDAVInfoPageRest.appleUrl = domainService.plainDomain
-        CardDAVInfoPageRest.applePath = "${CardDavInit.CARD_DAV_BASE_PATH}/"
-        CardDAVInfoPageRest.iOSUrl = "${domainService.plainDomain}${CardDavInit.CARD_DAV_BASE_PATH}"
+        AddressEntityRest.carddavServerEnabled = enable
+        CardDAVInfoRest.standardUrl = "${domainService.domain}${CardDavInit.CARD_DAV_BASE_PATH}"
+        CardDAVInfoRest.appleUrl = domainService.plainDomain
+        CardDAVInfoRest.applePath = "${CardDavInit.CARD_DAV_BASE_PATH}/"
+        CardDAVInfoRest.iOSUrl = "${domainService.plainDomain}${CardDavInit.CARD_DAV_BASE_PATH}"
         log.info { "CardDAV server configured: enable=$enable, vcardVersion=$vcardVersionNumber, photoMode=${photoMode.name}" }
     }
 

@@ -26,7 +26,7 @@ package org.projectforge.rest.sipgate
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.logging.error
 import org.projectforge.business.sipgate.SipgateUserDevices
-import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.framework.configuration.ApplicationDirectories
 import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -127,7 +127,7 @@ open class SipgateSyncService {
 
   companion object {
     private val storageFile by lazy {
-      File(ConfigXml.getInstance().workingDirectory, "sipgateStorage.json")
+      File(ApplicationDirectories.workingDirectory, "sipgateStorage.json")
     }
   }
 }

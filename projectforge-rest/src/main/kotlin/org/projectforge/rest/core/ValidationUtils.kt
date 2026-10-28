@@ -24,6 +24,7 @@
 package org.projectforge.rest.core
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.persistence.ManyToMany
 import org.apache.commons.beanutils.NestedNullException
 import org.apache.commons.beanutils.PropertyUtils
 import org.hibernate.Hibernate
@@ -34,6 +35,7 @@ import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.ui.ElementInfo
 import org.projectforge.ui.ElementsRegistry
 import org.projectforge.ui.ValidationError
+import org.springframework.beans.BeanUtils
 import java.math.BigDecimal
 
 private val log = KotlinLogging.logger {}
@@ -51,8 +53,8 @@ object ValidationUtils {
      * restated here.
      *
      * The properties come from [ElementsRegistry.listProperties], i.e. from the annotations of the
-     * class, **not** from [ElementsRegistry.getProperties]: that one only returns what a UILayout
-     * happened to put into the registry's cache before. Validating from the cache made the outcome
+     * class, **not** from [ElementsRegistry.getProperties]: that one only returns what happened to be put
+     * into the registry's cache before. Validating from the cache made the outcome
      * depend on which pages the JVM had served since its start, and left every field of a
      * hand-built page (projectforge-next builds no edit layout) unvalidated.
      *
@@ -98,7 +100,9 @@ object ValidationUtils {
                 // are loaded already: the object validated here is the one the client posted, so its rows
                 // are the posted ones, and touching an untouched lazy collection would fetch rows from the
                 // database that no one is about to change.
-                if (Hibernate.isInitialized(value)) {
+                // Not a collection of references (many-to-many, e.g. a vacation's other replacements): they aren't
+                // edited in the form, only chosen, and are posted by their ids only.
+                if (Hibernate.isInitialized(value) && !isReferenceCollection(clazz, property)) {
                     validationErrors.addAll(validateRows(value, "$prefix$property"))
                 }
                 return@forEach
@@ -169,6 +173,20 @@ object ValidationUtils {
             )
         }
         return null
+    }
+
+    /** A many-to-many collection: of references to other entities, not of rows the same form edits. */
+    private fun isReferenceCollection(clazz: Class<*>, property: String): Boolean {
+        val getter = BeanUtils.getPropertyDescriptor(clazz, property)?.readMethod
+        if (getter?.isAnnotationPresent(ManyToMany::class.java) == true) {
+            return true
+        }
+        var type: Class<*>? = clazz
+        while (type != null) {
+            type.declaredFields.find { it.name == property }?.let { return it.isAnnotationPresent(ManyToMany::class.java) }
+            type = type.superclass
+        }
+        return false
     }
 
     /**

@@ -228,6 +228,14 @@ open class My2FAService {
   }
 
   /**
+   * The 2FA setup of the logged-in user (showing or changing a factor) requires a 2FA not older than
+   * [SETUP_2FA_MINUTES] minutes.
+   */
+  fun checkLastSuccessful2FAForSetup(): Boolean {
+    return checklastSuccessful2FA(SETUP_2FA_MINUTES, Unit.MINUTES)
+  }
+
+  /**
    * @return true if the logged in user is member of any group configured via [My2FARequestConfiguration.disableEmail2FAForGroups].
    */
   fun isMail2FADisabledForUser(userContext: UserContext? = null): Boolean {
@@ -244,6 +252,11 @@ open class My2FAService {
   }
 
   companion object {
+    /**
+     * Maximum age of the last 2FA for the 2FA setup, see [checkLastSuccessful2FAForSetup].
+     */
+    const val SETUP_2FA_MINUTES = 10L
+
     fun getLastSuccessful2FAAsTimeAgo(): String? {
       return ThreadLocalUserContext.userContext?.lastSuccessful2FA?.let {
         TimeAgo.getMessage(Date(it), maxUnit = TimeUnit.DAY)

@@ -4,10 +4,21 @@
  * for itself (a user when its account is deactivated, an employee three months after leaving). Add a
  * further flag here as the concept grows, and every reference column picks it up.
  */
-export interface InactiveFlags {
+// A type alias, not an interface: only an alias is assignable to the schemas' loose objects, also inside the
+// ref types combining it (`InactiveFlags & { … }`).
+export type InactiveFlags = {
   deleted?: boolean;
   deactivated?: boolean;
-}
+};
+
+/**
+ * A user as a view shows it by name (`org.projectforge.rest.dto.UserRef`): the HR view, booking grants, the
+ * notification log, … The flags are sent only when true; show it with `RefName`.
+ */
+export type UserRef = InactiveFlags & {
+  id: number;
+  displayName?: string | null;
+};
 
 /**
  * Whether a referenced object should read as "no longer live": deleted, or otherwise deactivated. The
@@ -16,4 +27,48 @@ export interface InactiveFlags {
  */
 export function isInactiveRef(ref?: InactiveFlags | null): boolean {
   return !!ref && (ref.deleted === true || ref.deactivated === true);
+}
+
+/** How a deleted reference reads: the red-pencil strike of a deleted row (`.row-deleted` in globals.css). */
+export const DELETED_REF_CLASS =
+  "line-through decoration-destructive decoration-2";
+
+/**
+ * How a deactivated reference reads (an ended project, a deactivated user): struck through thin and grey on
+ * dimmed text, as an inactive row (`.row-inactive` in globals.css) — quieter than a deleted one.
+ */
+export const DEACTIVATED_REF_CLASS =
+  "line-through decoration-muted-foreground decoration-1 text-muted-foreground";
+
+/**
+ * The class a no longer live reference is shown with — in a list cell as in a selection box, its chips,
+ * its picked value and its hits alike; undefined for a live one. Deleted wins over deactivated.
+ */
+export function inactiveRefClass(
+  ref?: InactiveFlags | null
+): string | undefined {
+  if (ref?.deleted === true) return DELETED_REF_CLASS;
+  if (ref?.deactivated === true) return DEACTIVATED_REF_CLASS;
+  return undefined;
+}
+
+/**
+ * The reference a picker binds to: the id (all the server needs to resolve it), the name to show, and the
+ * inactive flags, so the picked value is struck through as in the lists. Building `{id, displayName}` by
+ * hand would drop them.
+ */
+export function toPickerRef(
+  ref:
+    | ({ id: number; displayName?: string | null } & InactiveFlags)
+    | null
+    | undefined,
+  displayName?: string | null
+): ({ id: number; displayName: string } & InactiveFlags) | null {
+  if (!ref) return null;
+  return {
+    id: ref.id,
+    displayName: displayName ?? ref.displayName ?? "",
+    ...(ref.deleted === true ? { deleted: true } : {}),
+    ...(ref.deactivated === true ? { deactivated: true } : {}),
+  };
 }

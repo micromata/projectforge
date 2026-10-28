@@ -1,0 +1,50 @@
+# Navigation of the site footer of the German pages (see _data/navigation_footer.yml). Docs only available in
+# English are marked with (EN).
+
+columns:
+  - title: Produkt
+    links:
+      - title: Funktionen
+        url: /de/features/
+      - title: Download
+        url: /de/download/
+      - title: Changelog
+        url: /de/changelog-posts/
+      - title: Suche
+        url: /de/search/
+
+  - title: Doku
+    links:
+      - title: Schnellstart
+        url: /de/docs/quickstart/
+      - title: Installation (EN)
+        url: /docs/installation/
+      - title: Administrationshandbuch
+        url: /de/docs/adminguide/
+      - title: Benutzerhandbuch
+        url: /de/docs/userguide/
+      - title: Entwicklung (EN)
+        url: /docs/development/
+      - title: Technologien (EN)
+        url: /docs/technologies/
+      - title: Migration (EN)
+        url: /docs/migration/
+
+  - title: Projekt
+    links:
+      - title: Services
+        url: /de/services/
+      - title: FAQ
+        url: /de/misc/faqs.html
+      - title: Über uns
+        url: /de/about/
+      - title: GitHub
+        url: https://github.com/micromata/projectforge/
+
+legal:
+  - title: Impressum
+    url: /misc/imprint.html
+  - title: Datenschutz
+    url: /misc/privacy-policy.html
+  - title: Nutzungsbedingungen
+    url: /misc/terms-of-use.html

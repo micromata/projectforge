@@ -27,7 +27,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.businessUnit
+import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.grant
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.group
+import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.projectGroup
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.sample
 import org.projectforge.business.fibu.customergroup.CustomerGroupValidator.Companion as V
 
@@ -35,11 +37,13 @@ import org.projectforge.business.fibu.customergroup.CustomerGroupValidator.Compa
 class CustomerGroupValidatorTest {
     private val validator = CustomerGroupValidator(
         CustomerDirectory(
-            customers = mapOf(4L to "Four", 5L to "Five", 101L to "ACME Germany", 102L to "ACME Logistics", 310L to "Kühne Spedition"),
+            customers = mapOf(4L to "Four", 5L to "Five", 101L to "ACME Germany", 102L to "ACME Logistics", 310L to "Muster Spedition"),
             freeTexts = listOf("ACME Freight Logistics", "Unrelated Ltd."),
             // Task 1 is the root; 10 ⊃ 11, and 20 beside them.
             taskPath = { mapOf(1L to listOf(1L), 10L to listOf(1L, 10L), 11L to listOf(1L, 10L, 11L), 20L to listOf(1L, 20L))[it] },
             taskTitle = { "Task $it" },
+            userExists = { it in setOf(7L, 70L) },
+            groupExists = { it == 8L },
         )
     )
 
@@ -95,7 +99,7 @@ class CustomerGroupValidatorTest {
     fun `a pattern must not cover or be covered by another group's pattern`() {
         // Whether a customer matching both exists or not:
         assertErrors(
-            config(groups = listOf(group("aaaa", "A", texts = listOf("dhl*")), group("bbbb", "B", texts = listOf("dh*")))),
+            config(groups = listOf(group("aaaa", "A", texts = listOf("globex*")), group("bbbb", "B", texts = listOf("glob*")))),
             "groups[0].texts" to V.ERROR_PATTERN_OVERLAP,
             "groups[1].texts" to V.ERROR_PATTERN_OVERLAP,
         )
@@ -222,8 +226,87 @@ class CustomerGroupValidatorTest {
         assertTrue(validator.validate(config(businessUnits = listOf(withTasks("bu01", "X", 10, 11), withTasks("bu02", "Y", 20)))).isEmpty())
     }
 
+    @Test
+    fun `a business unit's colour is a hex code`() {
+        val units = listOf("#3366CC", "blau", " ", null).mapIndexed { i, color ->
+            businessUnit("bu0$i", "BU $i").also { it.color = color }
+        }
+        assertErrors(config(businessUnits = units), "businessUnits[1].color" to V.ERROR_INVALID_COLOR)
+    }
+
     private fun withTasks(key: String, name: String, vararg tasks: Long) =
         businessUnit(key, name).also { it.tasks = tasks.toMutableList() }
+
+    @Test
+    fun `an order access grant needs a name, someone and something, all known`() {
+        val base = sample()
+        // Whether a user granted is a project manager isn't the validator's business (user 70 may be none).
+        base.orderAccess = mutableListOf(grant("grant1", "Fine", userIds = listOf(70), businessUnits = listOf("logbu1")))
+        assertTrue(validator.validate(base).isEmpty())
+        base.orderAccess = mutableListOf(
+            grant("grant1", " "),
+            grant(
+                "grant2", "Unknown", userIds = listOf(7, 99), groupIds = listOf(8, 98), customers = listOf(5, 97),
+                groups = listOf("acmeg1", "gone12"), businessUnits = listOf("logbu1", "gone34"),
+            ),
+            // A key already taken by a group:
+            grant("acmeg1", "Taken key", userIds = listOf(7), customers = listOf(5)),
+        )
+        assertErrors(
+            base,
+            "orderAccess[0].name" to V.ERROR_NAME_REQUIRED,
+            "orderAccess[0].users" to V.ERROR_GRANT_NOBODY,
+            "orderAccess[0].customers" to V.ERROR_GRANT_NOTHING,
+            "orderAccess[1].users" to V.ERROR_UNKNOWN_USER,
+            "orderAccess[1].userGroups" to V.ERROR_UNKNOWN_USER_GROUP,
+            "orderAccess[1].customers" to V.ERROR_UNKNOWN_CUSTOMER,
+            "orderAccess[1].groups" to V.ERROR_UNKNOWN_GROUP,
+            "orderAccess[1].businessUnits" to V.ERROR_UNKNOWN_BUSINESS_UNIT,
+            "orderAccess[2].name" to V.ERROR_INVALID_KEY,
+        )
+    }
+
+    @Test
+    fun `project groups need a unique name, known projects, and no project in two groups`() {
+        val withProjects = CustomerGroupValidator(
+            CustomerDirectory(projects = mapOf(1L to ProjectRef(null, null), 2L to ProjectRef(null, null), 3L to ProjectRef(null, null)))
+        )
+        assertTrue(
+            withProjects.validate(
+                CustomerGroupConfig(projectGroups = mutableListOf(projectGroup("prjgr1", "A", listOf(1, 2)), projectGroup("prjgr2", "B", listOf(3))))
+            ).isEmpty()
+        )
+        val config = CustomerGroupConfig(
+            projectGroups = mutableListOf(
+                projectGroup("prjgr1", "A", listOf(1, 2)),
+                projectGroup("prjgr2", "a", listOf(2, 4711)),
+                projectGroup("prjgr3", " "),
+            ),
+        )
+        val order = compareBy<Pair<String, String>>({ it.first }, { it.second })
+        assertEquals(
+            listOf(
+                "projectGroups[0].name" to V.ERROR_DUPLICATE_NAME,
+                "projectGroups[0].projects" to V.ERROR_PROJECT_IN_TWO_GROUPS,
+                "projectGroups[1].name" to V.ERROR_DUPLICATE_NAME,
+                "projectGroups[1].projects" to V.ERROR_PROJECT_IN_TWO_GROUPS,
+                "projectGroups[1].projects" to V.ERROR_UNKNOWN_PROJECT,
+                "projectGroups[2].name" to V.ERROR_NAME_REQUIRED,
+                "projectGroups[2].projects" to V.ERROR_PROJECT_GROUP_EMPTY,
+            ).sortedWith(order),
+            withProjects.validate(config).map { it.fieldId to it.messageKey }.sortedWith(order),
+        )
+    }
+
+    @Test
+    fun `a project group's key must not be taken by a customer group`() {
+        val config = CustomerGroupConfig(
+            groups = mutableListOf(group("abcd", "A")),
+            projectGroups = mutableListOf(projectGroup("abcd", "P", listOf(1))),
+        )
+        val errors = CustomerGroupValidator(CustomerDirectory(projects = mapOf(1L to ProjectRef(null, null)))).validate(config)
+        assertEquals(listOf("projectGroups[0].name" to V.ERROR_INVALID_KEY), errors.map { it.fieldId to it.messageKey })
+    }
 
     private fun config(groups: List<CustomerGroup> = emptyList(), businessUnits: List<BusinessUnit> = emptyList()) =
         CustomerGroupConfig(groups = groups.toMutableList(), businessUnits = businessUnits.toMutableList())

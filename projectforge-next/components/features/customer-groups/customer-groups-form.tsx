@@ -21,6 +21,7 @@ import {
   CONFIGURATION_ENTITY,
   useCustomerGroupsTabs,
 } from "./customer-groups-tabs";
+import { CustomerGroupsDiffButton } from "./customer-groups-diff-button";
 import { UnassignedCustomers } from "./unassigned-customers";
 import { useLiveValidation } from "./use-live-validation";
 import {
@@ -106,9 +107,12 @@ export function CustomerGroupsForm({ data }: { data: CustomerGroupsData }) {
           tabPanels={tabPanels}
           aboveSections={
             <div className="flex flex-col gap-4">
-              <p className="text-sm text-muted-foreground">
-                {t("fibu.customerGroups.intro")}
-              </p>
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm text-muted-foreground">
+                  {t("fibu.customerGroups.intro")}
+                </p>
+                <CustomerGroupsDiffButton data={data} isDirty={isDirty} />
+              </div>
               <TextAreaField name="remark" label={t("comment")} rows={3} />
             </div>
           }

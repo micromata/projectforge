@@ -117,6 +117,10 @@ open class NotificationDO {
     @get:Column(length = 100000)
     open var body: String? = null
 
+    /** The rendered SMS text of the rule (plain text), if the rule has one and delivers by SMS. */
+    @get:Column(name = "sms_text", length = SMS_TEXT_LENGTH)
+    open var smsText: String? = null
+
     /** An optional link (path of the app or absolute url), e.g. to the monthly report. */
     @get:Column(length = 1000)
     open var link: String? = null
@@ -205,5 +209,8 @@ open class NotificationDO {
         internal const val FIND_DUE_DELIVERIES = "NotificationDO_FindDueDeliveries"
         internal const val COUNT_DUE_DELIVERIES = "NotificationDO_CountDueDeliveries"
         internal const val COUNT_PENDING = "NotificationDO_CountPending"
+
+        /** The column length of [smsText]: the rendered text is cut to it (variables may make it longer). */
+        internal const val SMS_TEXT_LENGTH = 1000
     }
 }

@@ -3,6 +3,8 @@ layout: page
 title: Imprint
 width: xsmall
 permalink: /misc/imprint.html
+# Only in English (no German page): the German pages link it in English. See site/README.adoc.
+untranslated: true
 ---
 
 ### Kai Reinhard
@@ -11,12 +13,8 @@ Marie-Calm-Str. 1-5<br>
 34131 Kassel<br>
 Germany
 
-#### Niederlassung:
-Menuhinstraße 8<br>
-53113 Bonn
-
 ### Geschäftsführung
-Kai Reinhard, Alexander Podlich, Stéphanie Naujock
+Kai Reinhard, Alexander Podlich
 
 V.i.S.d.P.:<br>
 Kai Reinhard<br>
@@ -24,8 +22,7 @@ Marie-Calm-Straße 1-5<br>
 34131 Kassel
 
 ### Kontakt
-Web: [www.projectforge.org](https://www.projectforge.org)<br>
-E-Mail: k.reinhard at micromata.com
+Web: [www.projectforge.org](https://www.projectforge.org)
 
 Tel: +49 561 31 67 93-0<br>
 Fax: +49 561 31 67 93-11

@@ -3,6 +3,7 @@ import { definePage } from "@/lib/page-def/define-page";
 import {
   TeamCalFullAccessGroupsField,
   TeamCalFullAccessUsersField,
+  TeamCalAbsenceKindsField,
   TeamCalLeaveDaysGroupsField,
   TeamCalLeaveDaysUsersField,
   TeamCalMinimalAccessGroupsField,
@@ -126,11 +127,12 @@ export const TEAM_CAL_PAGE = definePage<
       },
       {
         id: "vacation",
-        titleKey: "vacation._",
+        titleKey: "plugins.teamcal.absences",
         columns: 4,
         fields: [
           { custom: TeamCalLeaveDaysUsersField, span: 2 },
           { custom: TeamCalLeaveDaysGroupsField, span: 2 },
+          { custom: TeamCalAbsenceKindsField, span: 4 },
         ],
       },
       {

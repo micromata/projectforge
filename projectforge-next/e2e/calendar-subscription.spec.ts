@@ -3,7 +3,7 @@ import { label, userFormat } from "./fixtures/format";
 
 /**
  * The subscription links of ProjectForge's own feeds (`CalendarSubscriptionDialog`,
- * `CalendarSubscriptionInfoPageRest.getInfo`) against the live backend: from the calendar's more menu, the
+ * `CalendarSubscriptionInfoRest.getInfo`) against the live backend: from the calendar's more menu, the
  * holidays feed shows an absolute url carrying the user's token, a QR code of it and the security advice.
  */
 

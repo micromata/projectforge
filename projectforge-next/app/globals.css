@@ -35,9 +35,6 @@
   --color-development-foreground: var(--development-foreground);
   --color-testsystem: var(--testsystem);
   --color-testsystem-foreground: var(--testsystem-foreground);
-  --color-legacy: var(--legacy);
-  --color-legacy-hover: var(--legacy-hover);
-  --color-legacy-foreground: var(--legacy-foreground);
   --color-history-insert: var(--history-insert);
   --color-history-update: var(--history-update);
   --color-history-delete: var(--history-delete);
@@ -153,15 +150,6 @@
   --testsystem: #ff6868;
   /* Dark text: the configured colours are light, signal-like ones (#ff6868: 6.4:1). */
   --testsystem-foreground: #1f0000;
-
-  /*
-   * The way back to the classic UI (see LegacyPageLink). Brand yellow, so the escape hatch is
-   * visible without competing with the primary action of the page, which is teal.
-   */
-  --legacy: var(--brand-yellow-dark);
-  --legacy-hover: #e58a00;
-  /* Dark on yellow, not white: white on #ff9d01 is 2.1:1 and fails at this text size. */
-  --legacy-foreground: #3d2200;
 
   /* Change history: one colour per operation, plus the diff and comment backgrounds */
   --history-insert: var(--brand-green-dark);
@@ -428,10 +416,20 @@
 .row-deleted > td {
   background-image: linear-gradient(var(--row-deleted), var(--row-deleted));
   /* The same red-pencil strike a struck reference cell uses (line-through decoration-destructive
-   * decoration-2 in use-declared-columns), so a deleted row and a deleted reference read alike. */
+   * decoration-2, DELETED_REF_CLASS in lib/page-def/reference.ts), so a deleted row and a deleted reference
+   * read alike. */
   text-decoration-line: line-through;
   text-decoration-color: var(--destructive);
   text-decoration-thickness: 2px;
+}
+/* A row no longer live but not deleted (an ended project, a cancelled invoice, ...): struck through thin and
+ * grey on dimmed text, without a tint — quieter than a deleted row, and the same look as a deactivated
+ * reference (DEACTIVATED_REF_CLASS in lib/page-def/reference.ts). */
+.row-inactive > td {
+  color: var(--muted-foreground);
+  text-decoration-line: line-through;
+  text-decoration-color: var(--muted-foreground);
+  text-decoration-thickness: 1px;
 }
 /* The box of the vacation chart (VacationOverlapChart), faintly set off from the card it sits on, and its
  * sticky names' column: the same tint, but opaque over the card, so the bars scrolling beneath don't show. */
@@ -456,6 +454,23 @@
 }
 .row-grey > td {
   background-image: linear-gradient(var(--row-grey), var(--row-grey));
+}
+
+/* CVE-Radar: an instance deviating from its system's baseline (INV-11) — another version, an added or a
+ * missing technology, in the comparison matrix and wherever a deviation is marked. */
+.cve-deviation,
+.cve-matrix-version {
+  background-color: var(--status-info-bg);
+  color: var(--status-info);
+}
+.cve-matrix-added {
+  background-color: var(--status-available-bg);
+  color: var(--status-available);
+}
+.cve-matrix-removed {
+  background-color: var(--status-loaned-bg);
+  color: var(--status-loaned);
+  text-decoration-line: line-through;
 }
 
 /*
@@ -549,6 +564,10 @@ span.row-green {
 }
 span.row-blue {
   background-color: var(--brand-teal);
+}
+/* An inactive row has no tint, so its chip stays empty: the plain border the legend draws around it. */
+span.row-inactive {
+  background-color: transparent;
 }
 
 /*
@@ -809,6 +828,22 @@ span.row-blue {
   font-weight: 600;
 }
 
+/*
+ * Availability entries (AvailabilityProvider): a not-available one is drawn in the vacations' colour, striped to
+ * tell it apart from a vacation (as ABSENT_BAR_CLASS in the vacation charts), in the text colour, so it stays as
+ * legible in light and dark mode; the others (reachable, remote, …) have a dashed border.
+ */
+.pf-calendar .fc-event.availability-absent {
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in oklab, currentColor 14%, transparent) 0 4px,
+    transparent 4px 8px
+  );
+}
+.pf-calendar .fc-event.availability-event:not(.availability-absent) {
+  border-style: dashed;
+}
+
 /* Weekend/holiday background events shade the whole day column/cell. */
 .pf-calendar .fc-holiday-weekend,
 .pf-calendar .fc-bg-event.fc-holiday-weekend {
@@ -979,11 +1014,11 @@ span.row-blue {
 }
 .rich-text-editor ul {
   list-style: disc;
-  padding-left: 1.25rem;
+  padding-left: 1.5rem;
 }
 .rich-text-editor ol {
   list-style: decimal;
-  padding-left: 1.25rem;
+  padding-left: 1.5rem;
 }
 .rich-text-editor a {
   text-decoration: underline;
@@ -1027,6 +1062,32 @@ span.row-blue {
 :is(.rich-text, .rich-text-editor) :is(th, td) p {
   margin: 0;
 }
+/* Code of a chat message, inline and as a block of several lines, rendered and in the editor alike. A long
+   line of a block scrolls instead of wrapping: the indentation of code means something. */
+:is(.rich-text, .rich-text-editor) code {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.85em;
+  background: var(--muted);
+  border-radius: 0.25rem;
+  padding: 0.0625rem 0.25rem;
+}
+:is(.rich-text, .rich-text-editor) pre {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  /* The size of the code here, so the line height is measured by it. */
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  margin: 0.5rem 0;
+  overflow-x: auto;
+  padding: 0.5rem 0.75rem;
+  white-space: pre;
+}
+:is(.rich-text, .rich-text-editor) pre code {
+  background: none;
+  font-size: inherit;
+  padding: 0;
+}
 /* The cells the editor's selection spans (TipTap marks them). */
 .rich-text-editor .selectedCell {
   background: var(--accent);
@@ -1059,4 +1120,82 @@ span.row-blue {
   body:has([data-print-page="vacation-calendar"]) {
     page: vacation-calendar;
   }
+}
+
+/* The flashing light of the siren reaction (🚨), switched off for users who prefer reduced motion. */
+@keyframes siren-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+.siren-blink {
+  animation: siren-blink 1s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .siren-blink {
+    animation: none;
+  }
+}
+
+/* Custom chat emoji (:siren-blue:, :siren-red:, see custom-emoji.ts): drawn with CSS, no image, so the CSP is untouched. */
+.chat-emoji {
+  --siren: #3b82f6;
+  --siren-dark: #1e3a8a;
+  display: inline-block;
+  position: relative;
+  width: 1em;
+  height: 1.1em;
+  vertical-align: -0.2em;
+}
+.chat-emoji-siren-red {
+  --siren: #ef4444;
+  --siren-dark: #7f1d1d;
+}
+.chat-emoji::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 26% 0;
+  border-radius: 50% 50% 10% 10% / 75% 75% 10% 10%;
+  background: radial-gradient(
+    circle at 40% 35%,
+    #fff 0 8%,
+    var(--siren) 40%,
+    var(--siren-dark) 100%
+  );
+  animation: siren-glow 1s ease-in-out infinite;
+}
+.chat-emoji::after {
+  content: "";
+  position: absolute;
+  inset: auto -6% 0 -6%;
+  height: 28%;
+  border-radius: 2px;
+  background: #4b5563;
+}
+@keyframes siren-glow {
+  0%,
+  100% {
+    filter: brightness(1.3) drop-shadow(0 0 3px var(--siren));
+  }
+  50% {
+    filter: brightness(0.55);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-emoji::before {
+    animation: none;
+  }
+}
+
+/* A shortcode in the editor: the text stays (and is sent), but shows as the emoji. */
+.chat-emoji-code {
+  overflow: hidden;
+  color: transparent;
+  white-space: nowrap;
+  text-indent: -999em;
+  margin-inline: 0.05em;
 }

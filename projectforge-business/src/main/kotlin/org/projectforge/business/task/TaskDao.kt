@@ -24,9 +24,12 @@
 package org.projectforge.business.task
 
 import jakarta.persistence.Tuple
+import jakarta.transaction.Status
+import jakarta.transaction.Synchronization
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
+import org.hibernate.Session
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserDao
@@ -44,6 +47,7 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.not
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
+import org.projectforge.framework.persistence.jpa.PfPersistenceContextThreadLocal
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -207,11 +211,11 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         val intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime")
         if (intervalInSeconds != null) {
             val tuple = persistenceService.selectSingleResult(
-                "select $intervalInSeconds, min(startTime), max(stopTime) from TimesheetDO where task.id=:taskId and task.deleted=false group by task.id",
+                "select $intervalInSeconds, min(startTime), max(stopTime) from TimesheetDO where task.id=:taskId and deleted=false group by task.id",
                 Tuple::class.java,
                 Pair("taskId", taskId),
             )
-            // select intervalInSeconds, min(startTime), max(stopTime) from TimesheetDO where task.id=:taskId and task.deleted=false group by task.id
+            // select intervalInSeconds, min(startTime), max(stopTime) from TimesheetDO where task.id=:taskId and deleted=false group by task.id
                 ?: return TaskDurationInfo(0L, null, null)
             return TaskDurationInfo((tuple[0] as Number).toLong(), tuple[1] as Date?, tuple[2] as Date?)
         }
@@ -238,6 +242,11 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
             }
         }
         return TaskDurationInfo(totalDuration / 1000, earliestStart, latestStop)
+    }
+
+    /** The data search: a [TaskFilter] also decides on the status (closed ones are left out unless asked for). */
+    override fun selectForSearchDao(filter: BaseSearchFilter, checkAccess: Boolean): List<TaskDO> {
+        return if (filter is TaskFilter) select(filter) else super.selectForSearchDao(filter, checkAccess)
     }
 
     @Throws(AccessException::class)
@@ -312,6 +321,20 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
 
     override fun afterInsertOrModify(obj: TaskDO, operationType: OperationType) {
         taskTree.addOrUpdateTaskNode(obj)
+        // Called after the commit, unless the change is part of an outer transaction (e.g. the project wizard):
+        // then the tree takes it before the commit. Rolled back, the tree would keep a task that doesn't exist (or
+        // a change that didn't happen) until its next refresh: reload it on next access instead.
+        PfPersistenceContextThreadLocal.getTransactional()?.em?.unwrap(Session::class.java)?.transaction
+            ?.takeIf { it.isActive }
+            ?.registerSynchronization(object : Synchronization {
+                override fun beforeCompletion() {}
+                override fun afterCompletion(status: Int) {
+                    if (status != Status.STATUS_COMMITTED) {
+                        log.info { "Transaction with task #${obj.id} not committed, the task tree will be reloaded." }
+                        taskTree.discardUncommittedChange(obj)
+                    }
+                }
+            })
     }
 
     /**

@@ -21,6 +21,8 @@ import {
 } from "@/lib/rs/vacation-account";
 import { toast } from "@/lib/toast";
 import { updateSearchParams } from "@/lib/search-params";
+import { AvailabilityQuickViewButton } from "@/components/shared/availability-quick-view/availability-quick-view-button";
+import { AvailabilityEntriesTable } from "./availability-entries-table";
 import { LeaveAccountEntriesTable } from "./leave-account-entries-table";
 import { VacationAccountActions } from "./vacation-account-actions";
 import { VacationEntriesTable } from "./vacation-entries-table";
@@ -28,13 +30,14 @@ import { VacationAccountSummary } from "./vacation-account-summary";
 
 /**
  * The vacation account ("Urlaubskonto"), a hand-built standalone page: the leave statistics of the previous,
- * current and next year, the vacations of these years and the corrections of the leave account.
+ * current and next year, the vacations of these years, the corrections of the leave account and, apart from the
+ * vacations, the availability entries of these years.
  *
  * HR staff pick the employee (`?employeeId=`, kept in the url); without one the backend shows the one shown last,
  * at first the own one. Everybody else always sees their own account.
  *
  * Asked anew on every visit: a vacation saved or deleted from here changes the numbers (the vacation form
- * invalidates the account as well, see VACATION_PAGE.extraInvalidateKeys).
+ * invalidates the account as well, see VACATION_PAGE.extraInvalidateKeys, as does the availability form).
  */
 export function VacationAccountPage() {
   const t = useTranslations();
@@ -90,6 +93,7 @@ export function VacationAccountPage() {
         category={t("menu.vacation._")}
         title={t("vacation.leaveaccount.title")}
       >
+        <AvailabilityQuickViewButton size="sm" />
         <VacationAccountActions
           account={account}
           // Not while another employee's account loads: the buttons would act on the one still shown.
@@ -124,9 +128,14 @@ export function VacationAccountPage() {
         {account && employee && (
           <>
             <VacationEntriesTable account={account} />
-            {account.leaveAccountEntries.length > 0 && (
-              <LeaveAccountEntriesTable account={account} />
+            {(account.leaveAccountEntries.length > 0 ||
+              account.newLeaveAccountEntryUrl) && (
+              <LeaveAccountEntriesTable
+                account={account}
+                switching={switching}
+              />
             )}
+            <AvailabilityEntriesTable account={account} switching={switching} />
           </>
         )}
         <Alert>

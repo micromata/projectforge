@@ -28,22 +28,25 @@ import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.poi.ss.usermodel.BorderStyle
+import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.ss.util.CellRangeAddress
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.neutralLabel
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.calendar.Holidays
-import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.framework.configuration.ConfigurationJsonValues
+import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDayUtils
-import org.projectforge.framework.xmlstream.XmlHelper
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
@@ -91,12 +94,29 @@ object VacationExcelExporter {
       workbook,
       "vacationDay",
       fillForegroundColor = IndexedColors.GREEN,
+      alignment = HorizontalAlignment.CENTER,
       borderStyle = BorderStyle.THIN,
     )
     val unapprovedVacationStyle = ExcelUtils.createCellStyle(
       workbook,
       "unapprovedVacationDay",
       fillForegroundColor = IndexedColors.GREY_40_PERCENT,
+      alignment = HorizontalAlignment.CENTER,
+      borderStyle = BorderStyle.THIN,
+    )
+    val availabilityStyle = ExcelUtils.createCellStyle(
+      workbook,
+      "availabilityDay",
+      fillForegroundColor = IndexedColors.LIGHT_BLUE,
+      alignment = HorizontalAlignment.CENTER,
+      borderStyle = BorderStyle.THIN,
+    )
+    // Not available (AvailabilityStatus.absent): away as on vacation, but told apart from it.
+    val absentStyle = ExcelUtils.createCellStyle(
+      workbook,
+      "absentDay",
+      fillForegroundColor = IndexedColors.LIGHT_ORANGE,
+      alignment = HorizontalAlignment.CENTER,
       borderStyle = BorderStyle.THIN,
     )
     // Half vacation days (half day begin/end, or a half working day such as 24.12.) are lighter and marked by ½.
@@ -133,16 +153,39 @@ object VacationExcelExporter {
 
   internal class SheetData(var sheetName: String, var startDate: PFDay, var endDate: PFDay)
 
+  /** A row of the sheets: a person (a user, an employee or not) with their vacations and availability entries. */
+  class Person(
+    val name: String?,
+    val vacations: List<VacationDO> = emptyList(),
+    val availabilities: List<AvailabilityDO> = emptyList(),
+  )
+
   fun export(
     date: LocalDate = LocalDate.now(),
     vacationsByEmployee: List<VacationService.VacationsByEmployee>,
+    availabilitiesByEmployee: Map<Long, List<AvailabilityDO>> = emptyMap(),
+    /** What an availability entry is called for the user (AvailabilityDao.labelFor); by default only its status. */
+    labelOf: (AvailabilityDO) -> String = { it.neutralLabel },
+  ): ByteArray = export(
+    date,
+    vacationsByEmployee.map {
+      Person(it.employee.user?.getFullname(), it.vacations, availabilitiesByEmployee[it.employee.id].orEmpty())
+    },
+    labelOf,
+  )
+
+  fun export(
+    date: LocalDate = LocalDate.now(),
+    persons: List<Person>,
+    /** What an availability entry is called for the user (AvailabilityDao.labelFor); by default only its status. */
+    labelOf: (AvailabilityDO) -> String = { it.neutralLabel },
   ): ByteArray {
-    log.info { "Exporting Excel sheet with vacations of users: ${vacationsByEmployee.joinToString { it.employee.user?.getFullname() ?: "???" }}" }
+    log.info { "Exporting Excel sheet with vacations of users: ${persons.joinToString { it.name ?: "???" }}" }
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale).use { workbook ->
       val context = Context(workbook)
       val startDate = PFDay.from(date).beginOfMonth
       getSheetsData(startDate).forEach { sheetData ->
-        createSheet(context, sheetData, vacationsByEmployee)
+        createSheet(context, sheetData, persons, labelOf)
       }
       // Legend
       val sheet = workbook.createOrGetSheet(translate("legend"))
@@ -161,6 +204,12 @@ object VacationExcelExporter {
       row = sheet.createRow()
       row.getCell(0).setCellStyle(context.holidayAndWeekendStyle)
       row.getCell(1).setCellValue(translate("vacation.export.legend.holidayOrWeekend"))
+      row = sheet.createRow()
+      row.getCell(0).setCellStyle(context.absentStyle)
+      row.getCell(1).setCellValue(translate("availability.status.notAvailable"))
+      row = sheet.createRow()
+      row.getCell(0).setCellStyle(context.availabilityStyle)
+      row.getCell(1).setCellValue(translate("availability.title"))
       sheet.setColumnWidth(0, COL_WIDTH_DAY)
       return workbook.asByteArrayOutputStream.toByteArray()
     }
@@ -169,7 +218,8 @@ object VacationExcelExporter {
   private fun createSheet(
     context: Context,
     sheetData: SheetData,
-    vacationsByEmployee: List<VacationService.VacationsByEmployee>,
+    persons: List<Person>,
+    labelOf: (AvailabilityDO) -> String,
   ) {
     val startDate = sheetData.startDate
     val endDate = sheetData.endDate
@@ -184,10 +234,10 @@ object VacationExcelExporter {
     val weekDayRow = sheet.createRow()
     var currentDate = startDate
     var columnIndex = 0
-    firstRow.getCell(columnIndex).setCellValue(translate("fibu.employees"))
+    firstRow.getCell(columnIndex).setCellValue(translate("vacation.export.persons"))
     sheet.setColumnWidth(columnIndex, COL_WIDTH_USER) // Column of vacationers.
     firstRow.getCell(++columnIndex).setCellValue(translate("vacation"))
-    sheet.setColumnWidth(columnIndex, 500) // Column if employee has any vacation or not.
+    sheet.setColumnWidth(columnIndex, 500) // Column if the person has any vacation or not.
     createMonthSeparationCells(context, ++columnIndex, dateRow, weekDayRow, firstRow)
     var paranoiaCounter = 0
     var firstDayOfMonthCol = columnIndex + 1
@@ -215,37 +265,105 @@ object VacationExcelExporter {
         firstDayOfMonthCol = columnIndex + 1 // Store column for setMergedRegion of month name.
       }
     }
-    vacationsByEmployee.sortedBy { it.employee.user?.getFullname() }.forEach { entry ->
-      val employee = entry.employee
-      val employeeRow = sheet.createRow()
-      employeeRow.getCell(0).setCellValue(employee.user?.getFullname() ?: "???").setCellStyle(context.standardStyle)
-      createMonthSeparationCells(context, employeeRow)
+    persons.sortedBy { it.name }.forEach { entry ->
+      val personRow = sheet.createRow()
+      personRow.getCell(0).setCellValue(entry.name ?: "???").setCellStyle(context.standardStyle)
+      createMonthSeparationCells(context, personRow)
       paranoiaCounter = 0
       currentDate = startDate
       while (currentDate <= endDate && paranoiaCounter++ < 500) {
         columnIndexMap[currentDate.date]?.let { col ->
-          employeeRow.getCell(col).setCellStyle(context.dayStyle(currentDate))
+          personRow.getCell(col).setCellStyle(context.dayStyle(currentDate))
         }
         currentDate = currentDate.plusDays(1)
       }
+      val occupiedCols = mutableSetOf<Int>()
+      // Vacations first (higher priority).
       val cells = vacationCells(entry.vacations, startDate, endDate)
-      if (cells.isNotEmpty()) {
-        // Mark row as user with vacation entries:
-        employeeRow.getCell(1).setCellValue("X")
-      }
       cells.forEach { (date, cell) ->
         columnIndexMap[date]?.let { col ->
-          val excelCell = employeeRow.getCell(col).setCellStyle(context.vacationStyle(cell))
+          val excelCell = personRow.getCell(col).setCellStyle(context.vacationStyle(cell))
           if (cell.half) {
             excelCell.setCellValue(HALF_DAY_MARKER)
           }
+          occupiedCols.add(col)
         }
+      }
+      var hasEntries = cells.isNotEmpty()
+      // Availability entries on the days not occupied by vacations.
+      entry.availabilities.forEach { availability ->
+        val availStart = PFDay.fromOrNull(availability.startDate)
+        val availEnd = PFDay.fromOrNull(availability.endDate)
+        if (availStart != null && availEnd != null) {
+          val label = labelOf(availability)
+          val style = if (availability.status?.absent == true) context.absentStyle else context.availabilityStyle
+          val cols = mutableListOf<Int>()
+          paranoiaCounter = 0
+          var current: PFDay = if (availStart < startDate) startDate else availStart
+          while (current <= availEnd && current <= endDate && paranoiaCounter++ < 500) {
+            val col = columnIndexMap[current.date]
+            if (col != null && col !in occupiedCols) {
+              personRow.getCell(col).setCellStyle(style)
+              cols.add(col)
+              occupiedCols.add(col)
+              hasEntries = true
+            }
+            current = current.plusDays(1)
+          }
+          mergeConsecutiveColumns(context, sheet, personRow, cols, label, style)
+        }
+      }
+      if (hasEntries) {
+        // Mark row as user with vacation or availability entries:
+        personRow.getCell(1).setCellValue("X")
       }
     }
     sheet.createRow().getCell(0).setCellValue("(${PFDay.now().isoString})")
     sheet.createFreezePane(1, 3)
     sheet.setAutoFilter()
     sheet.poiSheet.setAutoFilter(CellRangeAddress(0, 0, 0, 1))
+  }
+
+  /**
+   * Merges consecutive columns in the given row and sets the label text.
+   * Bridges across month separator columns so that entries spanning multiple months
+   * are merged into a single region (including the separator column).
+   */
+  private fun mergeConsecutiveColumns(
+    context: Context,
+    sheet: ExcelSheet,
+    row: ExcelRow,
+    cols: List<Int>,
+    label: String,
+    style: CellStyle,
+  ) {
+    if (cols.isEmpty()) return
+    val sorted = cols.sorted()
+    val groups = mutableListOf<MutableList<Int>>()
+    var currentGroup = mutableListOf(sorted[0])
+    for (i in 1 until sorted.size) {
+      val prev = sorted[i - 1]
+      val curr = sorted[i]
+      if (curr == prev + 1 || (curr == prev + 2 && context.monthSeparatorCols.contains(prev + 1))) {
+        // Consecutive, or bridging across a month separator column.
+        currentGroup.add(curr)
+      } else {
+        groups.add(currentGroup)
+        currentGroup = mutableListOf(curr)
+      }
+    }
+    groups.add(currentGroup)
+    for (group in groups) {
+      val firstCol = group.first()
+      val lastCol = group.last()
+      if (firstCol < lastCol) {
+        sheet.setMergedRegion(row.rowNum, row.rowNum, firstCol, lastCol, label)
+          .setCellStyle(style)
+      } else {
+        // Single cell - just set value, no merge needed.
+        row.getCell(firstCol).setCellValue(label)
+      }
+    }
   }
 
   /** A painted vacation day: approved wins over in progress, a full day over a half one. */
@@ -381,24 +499,18 @@ object VacationExcelExporter {
 
   @JvmStatic
   fun main(vararg args: String) {
-    val xml = XmlHelper.replaceQuotes(
-      """<config>
-  <holidays>
-    <holiday label='Erster Mai' month='5' dayOfMonth='1'/>
-    <holiday label='Dritter Oktober' month='10' dayOfMonth='3'/>
-    <holiday id='XMAS_EVE' workingDay='true' workFraction='0.5'/>
-    <holiday id='SHROVE_TUESDAY' ignore='true'/>
-    <holiday id='NEW_YEARS_EVE' workingDay='true' workFraction='0.5'/>
-  </holidays>
-</config>"""
+    ConfigurationJsonValues.internalSetForTest(
+      ConfigurationParam.HOLIDAYS,
+      """[{"label":"Erster Mai","month":5,"dayOfMonth":1},{"label":"Dritter Oktober","month":10,"dayOfMonth":3},
+        |{"id":"XMAS_EVE","workingDay":true,"workFraction":0.5},{"id":"SHROVE_TUESDAY","ignore":true},
+        |{"id":"NEW_YEARS_EVE","workingDay":true,"workFraction":0.5}]""".trimMargin()
     )
-    ConfigXml.internalSetInstance(xml)
     val vacationsByEmployee = mutableListOf<VacationService.VacationsByEmployee>()
-    val kai = createEmployee("Kai", "Reinhard")
+    val max = createEmployee("Max", "Mustermann")
     var vacations = mutableListOf<VacationDO>()
-    vacations.add(createVacation(kai, LocalDate.of(2023, Month.FEBRUARY, 25), 20))
-    vacations.add(createVacation(kai, LocalDate.of(2023, Month.APRIL, 2), 1, status = VacationStatus.IN_PROGRESS))
-    vacationsByEmployee.add(VacationService.VacationsByEmployee(kai, vacations))
+    vacations.add(createVacation(max, LocalDate.of(2023, Month.FEBRUARY, 25), 20))
+    vacations.add(createVacation(max, LocalDate.of(2023, Month.APRIL, 2), 1, status = VacationStatus.IN_PROGRESS))
+    vacationsByEmployee.add(VacationService.VacationsByEmployee(max, vacations))
     val berta = createEmployee("Berta", "Müller")
     vacations = mutableListOf()
     vacations.add(

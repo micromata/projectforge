@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.annotations.Type
+import org.projectforge.business.availability.AbsenceKind
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
@@ -68,7 +69,7 @@ open class TeamCalDO : BaseUserGroupRightsDO() {
     }
 
     @PropertyInfo(i18nKey = "plugins.teamcal.title")
-    @FullTextField
+    @FullTextField(analyzer = "wordPartsAnalyzer")
     @get:Column(length = Constants.LENGTH_TITLE)
     open var title: String? = null
 
@@ -98,6 +99,26 @@ open class TeamCalDO : BaseUserGroupRightsDO() {
     @PropertyInfo(i18nKey = "calendar.filter.vacation.groups", tooltip = "calendar.filter.vacation.groups.tooltip")
     @get:Column(name = "include_leave_days_for_groups", length = Constants.LENGTH_TEXT)
     open var includeLeaveDaysForGroups: String? = null
+
+    /**
+     * Which absences of the people above are included (comma separated [AbsenceKind] names, see [AbsenceKind.parse]):
+     * null for all of them. In the calendar view and in the calendar's subscription.
+     */
+    @PropertyInfo(i18nKey = "plugins.teamcal.absenceKinds", tooltip = "plugins.teamcal.absenceKinds.tooltip")
+    @get:Column(name = "include_absence_kinds", length = 255)
+    open var includeAbsenceKinds: String? = null
+
+    /** The kinds of [includeAbsenceKinds], all of them if none are stored. */
+    @get:Transient
+    @get:JsonIgnore
+    open val absenceKinds: Set<AbsenceKind>
+        get() = AbsenceKind.orAll(AbsenceKind.parse(includeAbsenceKinds))
+
+    /** Whether the calendar includes any absences of people at all ([includeLeaveDaysForUsers], [includeLeaveDaysForGroups]). */
+    @get:Transient
+    @get:JsonIgnore
+    open val includesAbsences: Boolean
+        get() = !includeLeaveDaysForUsers.isNullOrBlank() || !includeLeaveDaysForGroups.isNullOrBlank()
 
     @PropertyInfo(i18nKey = "plugins.teamcal.externalsubscription.url")
     @get:Column(name = "ext_subscription", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'false'")

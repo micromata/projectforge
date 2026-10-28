@@ -38,7 +38,9 @@ test.describe("order list caching", { tag: "@lane-order" }, () => {
     let id: number | null = null;
     try {
       await page.request
-        .get("/rs/order/filter/reset", { headers: FE })
+        .post("/rs/order/filter/reset", {
+        headers: await writeHeaders(page),
+      })
         .catch(() => undefined);
 
       // Warm the caches with this run's fingerprint *before* the order exists — this is the crux: the
@@ -104,7 +106,9 @@ test.describe("order list caching", { tag: "@lane-order" }, () => {
     let id: number | null = null;
     try {
       await page.request
-        .get("/rs/order/filter/reset", { headers: FE })
+        .post("/rs/order/filter/reset", {
+        headers: await writeHeaders(page),
+      })
         .catch(() => undefined);
 
       // Log every paged list call the browser makes, with its body — so a refetch after the insert is
@@ -207,7 +211,9 @@ test.describe("order list caching", { tag: "@lane-order" }, () => {
     let id: number | null = null;
     try {
       await page.request
-        .get("/rs/order/filter/reset", { headers: FE })
+        .post("/rs/order/filter/reset", {
+        headers: await writeHeaders(page),
+      })
         .catch(() => undefined);
 
       const t0 = Date.now();
@@ -280,7 +286,9 @@ test.describe("order list caching", { tag: "@lane-order" }, () => {
         .blur();
 
       console.log(`[save +${Date.now() - t0}ms] clicking save`);
-      await page.getByRole("button", { name: t("save"), exact: true }).click();
+      await page
+        .getByRole("button", { name: t("create"), exact: true })
+        .click();
 
       // 3) A successful save navigates back to the list (EntityEditPage.afterSave).
       await expect(page).toHaveURL(/\/order$/, { timeout: 30_000 });

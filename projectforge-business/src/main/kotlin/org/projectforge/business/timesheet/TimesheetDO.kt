@@ -32,6 +32,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
+import org.projectforge.business.task.bookinggrant.TaskBookingGrantDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.calendar.DurationUtils
@@ -54,7 +55,9 @@ import java.util.*
     indexes = [jakarta.persistence.Index(name = "idx_fk_t_timesheet_kost2_id", columnList = "kost2_id"),
         jakarta.persistence.Index(name = "idx_fk_t_timesheet_task_id", columnList = "task_id"),
         jakarta.persistence.Index(name = "idx_fk_t_timesheet_user_id", columnList = "user_id"),
-        jakarta.persistence.Index(name = "idx_timesheet_user_time", columnList = "user_id, start_time")]
+        jakarta.persistence.Index(name = "idx_timesheet_user_time", columnList = "user_id, start_time"),
+        jakarta.persistence.Index(name = "idx_fk_t_timesheet_booking_grant_id", columnList = "booking_grant_id"),
+        jakarta.persistence.Index(name = "idx_t_timesheet_acceptance_pending", columnList = "acceptance_pending")]
 )
 @NamedQueries(
     NamedQuery(
@@ -176,6 +179,25 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @get:JoinColumn(name = "kost2_id", nullable = true)
     @JsonSerialize(using = IdOnlySerializer::class)
     open var kost2: Kost2DO? = null
+
+    /**
+     * The ad hoc booking grant this time sheet was booked by: set on insert, if the user had no group access to the
+     * task. Kept, also after a move by the project management: the user still reads the own time sheet.
+     */
+    @PropertyInfo(i18nKey = "timesheet.bookingGrant")
+    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "booking_grant_id", nullable = true)
+    @JsonSerialize(using = IdOnlySerializer::class)
+    open var bookingGrant: TaskBookingGrantDO? = null
+
+    /**
+     * Booked by a grant proposed by an employee ([TaskBookingGrantDO.acceptanceRequired]): to be accepted by the
+     * project management, maybe moved to another task or cost unit ([TimesheetDao.accept]). Counts like any other time
+     * sheet in the meantime. Changed by [TimesheetDao.runAccepting] only.
+     */
+    @PropertyInfo(i18nKey = "timesheet.acceptancePending")
+    @get:Column(name = "acceptance_pending", nullable = false)
+    open var acceptancePending: Boolean = false
 
     /**
      * Marker is used to mark this time sheet e. g. as a time sheet with an time period collision.

@@ -17,6 +17,32 @@ export const CUSTOMER_SET_METADATA: EntityMetadata = {
     texts: { dataType: "CUSTOMIZED", required: false },
     groups: { dataType: "CUSTOMIZED", required: false },
     tasks: { dataType: "CUSTOMIZED", required: false },
+    color: { dataType: "STRING", required: false },
+  },
+};
+
+/** The metadata of an order access grant's fields, bound per row as [CUSTOMER_SET_METADATA]. */
+export const ORDER_ACCESS_METADATA: EntityMetadata = {
+  entity: "OrderAccessGrant",
+  historizable: false,
+  fields: {
+    name: { dataType: "STRING", required: true, maxLength: 255 },
+    remark: { dataType: "STRING", required: false },
+    users: { dataType: "CUSTOMIZED", required: false },
+    userGroups: { dataType: "CUSTOMIZED", required: false },
+    customers: { dataType: "CUSTOMIZED", required: false },
+    groups: { dataType: "CUSTOMIZED", required: false },
+    businessUnits: { dataType: "CUSTOMIZED", required: false },
+  },
+};
+
+/** The metadata of a project group's fields, bound per row as [CUSTOMER_SET_METADATA]. */
+export const PROJECT_GROUP_METADATA: EntityMetadata = {
+  entity: "ProjectGroup",
+  historizable: false,
+  fields: {
+    name: { dataType: "STRING", required: true, maxLength: 255 },
+    projects: { dataType: "CUSTOMIZED", required: false },
   },
 };
 
@@ -29,7 +55,8 @@ export const FORM_METADATA: EntityMetadata = {
   },
 };
 
-const entityRef = z.object({ id: z.number(), displayName: z.string() });
+// Loose: a user or group carries its inactive flags (deleted, deactivated), to be struck through.
+const entityRef = z.looseObject({ id: z.number(), displayName: z.string() });
 
 const customerSet = {
   key: z.string(),
@@ -51,10 +78,36 @@ export const customerGroupsSchema = z.object({
       ...customerSet,
       groups: z.array(z.string()),
       tasks: z.array(entityRef),
+      // Picked, never typed: whether it is a hex code is the server's check.
+      color: z.string(),
+    })
+  ),
+  orderAccess: z.array(
+    z.object({
+      key: z.string(),
+      name: z.string().trim().min(1, REQUIRED).max(255),
+      remark: z.string(),
+      users: z.array(entityRef),
+      userGroups: z.array(entityRef),
+      customers: z.array(entityRef),
+      groups: z.array(z.string()),
+      businessUnits: z.array(z.string()),
+    })
+  ),
+  projectGroups: z.array(
+    z.object({
+      key: z.string(),
+      name: z.string().trim().min(1, REQUIRED).max(255),
+      projects: z.array(entityRef),
     })
   ),
   remark: z.string(),
   lastUpdate: z.number().nullable(),
 });
 
-export const CUSTOMER_GROUPS_FIELDS = ["groups", "businessUnits"] as const;
+export const CUSTOMER_GROUPS_FIELDS = [
+  "groups",
+  "businessUnits",
+  "orderAccess",
+  "projectGroups",
+] as const;

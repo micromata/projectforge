@@ -2,7 +2,7 @@ import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
 import { purgeTestAttachments } from "./fixtures/attachments";
 import { listRows } from "./fixtures/list-table";
-import { createBook, type SeededBook } from "./fixtures/seed";
+import { createBook, type SeededBook, writeHeaders } from "./fixtures/seed";
 
 /**
  * The attachments column and the "has attachments" filter of the books list, against the live
@@ -31,7 +31,9 @@ test.describe("books list attachments", { tag: "@lane-book" }, () => {
   // the first case uploads to — the column would then be asserted on a list the filter emptied.
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/book/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
     // A file an aborted run left on the book would be counted by the assertion below, which pins the
     // count exactly ("(1)").
@@ -130,7 +132,9 @@ test.describe("books list attachments", { tag: "@lane-book" }, () => {
     // The logged-in context of the seeds: the plain `request` fixture has no session, so its reset was
     // refused and left the filter behind.
     await seedRequest
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/book/filter/reset", {
+        headers: await writeHeaders(seedRequest),
+      })
       .catch(() => undefined);
   });
 });

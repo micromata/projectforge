@@ -5,6 +5,7 @@ import { useStore } from "@tanstack/react-form";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import {
   type ArrayRow,
+  moveRow,
   readArrayAtPath,
   removeRow,
   restoreRow,
@@ -37,6 +38,8 @@ export interface FieldArray<Row extends ArrayRow> {
   /** Takes a deleted row back — the counterpart of [remove] for a row that still exists in the list. */
   restore: (index: number) => void;
   update: (index: number, changes: Partial<Row>) => void;
+  /** Moves a row to another position, see [moveRow]. */
+  move: (from: number, to: number) => void;
 }
 
 /**
@@ -100,6 +103,12 @@ export function useFieldArray<Row extends ArrayRow>(
     [setRows]
   );
 
+  const move = useCallback(
+    (from: number, to: number) =>
+      setRows((previous) => moveRow(previous, from, to)),
+    [setRows]
+  );
+
   const indexed = rows.map((row, index) => [row, index] as [Row, number]);
 
   return {
@@ -111,5 +120,6 @@ export function useFieldArray<Row extends ArrayRow>(
     remove,
     restore,
     update,
+    move,
   };
 }

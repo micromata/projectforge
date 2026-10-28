@@ -10,14 +10,15 @@ import { AlertMessageCard } from "./alert-message-card";
 import { FormatLogEntriesCard } from "./format-log-entries-card";
 import { JcrCard } from "./jcr-card";
 import { ReindexCard } from "./reindex-card";
-import { SystemActionGroups } from "./system-action-groups";
+import { SystemMenuBar } from "./system-menu-bar";
 
 /**
  * The System (administration) page ("/next/system"), successor of Wicket's `wa/admin`. A standalone,
- * action-driven admin page: set the site-wide alert message, reindex the search indices (with an
- * inline progress bar), format log entries, prepare the JCR replacement, and run the
- * caches/configuration/checks/database/dev actions. Admin-group only — every endpoint self-checks. The Wicket page is gone; old `wa/admin`
- * links are redirected here.
+ * action-driven admin page: a menu bar on top with the one-click actions (configuration incl. the
+ * projectforge.properties editor, checks, database, Sipgate if configured, development), below it the cards that need input or
+ * show progress: the site-wide alert message, reindexing the search indices, the JCR replacement and
+ * formatting log entries. Admin-group only — every endpoint self-checks. The Wicket page is gone; old
+ * `wa/admin` links are redirected here.
  */
 export function SystemPage() {
   const t = useTranslations();
@@ -51,9 +52,12 @@ export function SystemPage() {
         )}
         {query.data && (
           <>
+            <SystemMenuBar
+              developmentMode={query.data.developmentMode}
+              sipgateConfigured={query.data.sipgateConfigured}
+            />
             <AlertMessageCard data={query.data} />
             <ReindexCard data={query.data} />
-            <SystemActionGroups data={query.data} />
             <JcrCard data={query.data} />
             <FormatLogEntriesCard />
           </>

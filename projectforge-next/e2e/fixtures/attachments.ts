@@ -43,7 +43,7 @@ export async function purgeTestAttachments(
     },
     data: {
       data: {
-        // The backend's `category` is the entity's rest path (`AbstractPagesRest.category`).
+        // The backend's `category` is the entity's rest path (`AbstractEntityRest.category`).
         category: entity,
         id,
         fileIds: leftovers.map((a) => a.fileId),

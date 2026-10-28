@@ -47,7 +47,6 @@ public class WebApplicationConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addViewController("/" + Constants.REACT_APP_PATH + "**").setViewName("forward:/react-app.html");
         // Root of the Next.js app: an empty resource path isn't resolved by the resource handler below, so map the
         // bare base path explicitly. These patterns match exactly and therefore don't interfere with asset requests.
         registry.addViewController("/" + Constants.NEXT).setViewName("redirect:/" + Constants.NEXT_APP_PATH);
@@ -55,10 +54,9 @@ public class WebApplicationConfig implements WebMvcConfigurer {
     }
 
     /**
-     * projectforge-next (Next.js static export) is served side-by-side with the legacy React app during the migration.
+     * projectforge-next (Next.js static export) is the web frontend.
      * <p>
-     * Unlike the legacy React app (whose assets live at the root, so a plain view-controller forward suffices), the
-     * Next.js export places its assets under the base path ({@code /next/_next/**}). A naive forward of {@code /next/**}
+     * The Next.js export places its assets under the base path ({@code /next/_next/**}). A naive forward of {@code /next/**}
      * to the SPA shell would therefore swallow asset requests. This resource handler instead serves real files first
      * (assets, per-route {@code index.html}) and only then falls back to the shell of the matching dynamic route for
      * deep links such as {@code /next/book/5}. Missing assets still yield a real 404.
@@ -78,7 +76,7 @@ public class WebApplicationConfig implements WebMvcConfigurer {
      * (directory {@code index.html}, {@code <route>.html}) and mapping deep links of a dynamic route onto the one
      * route Next prerendered for it.
      * <p>
-     * A static export has no file for {@code /next/book/25219084}: {@code book/[id]} is prerendered exactly once,
+     * A static export has no file for {@code /next/book/4711}: {@code book/[id]} is prerendered exactly once,
      * from the placeholder of its {@code generateStaticParams} ({@code book/new}). That prerender — not
      * {@code 404.html}, which is Next's own not-found page and renders as such wherever it is served — is the shell a
      * deep link has to be answered with, because the HTML carries the route's page component. Which shell belongs to
@@ -86,8 +84,11 @@ public class WebApplicationConfig implements WebMvcConfigurer {
      * (projectforge-next/scripts/generate-spa-shell-map.mjs), so a new dynamic route needs no change here.
      * <p>
      * Substituting the whole directory rather than just the HTML also serves the route's RSC payloads
-     * ({@code book/25219084/__next._tree.txt} → {@code book/new/__next._tree.txt}), which is what makes
+     * ({@code book/4711/__next._tree.txt} → {@code book/new/__next._tree.txt}), which is what makes
      * client-side navigation to a deep link work.
+     * <p>
+     * The assets are linked as {@code /next/public/_next/**} ({@link Constants#NEXT_PUBLIC_ASSETS_PATH}), but the
+     * export keeps them in {@code _next/}, so that prefix is served from there.
      */
     // Package private rather than private: the order of the cases below is the whole correctness
     // argument, so NextSpaResourceResolverTest exercises them directly.
@@ -100,8 +101,16 @@ public class WebApplicationConfig implements WebMvcConfigurer {
         private record DynamicRoute(String page, Pattern pattern, String shellDir) {
         }
 
+        /** {@link Constants#NEXT_PUBLIC_ASSETS_PATH} relative to the location ({@code public/_next/}). */
+        private static final String PUBLIC_ASSETS =
+                Constants.NEXT_PUBLIC_ASSETS_PATH.substring(Constants.NEXT_APP_PATH.length());
+
         @Override
         protected Resource getResource(String resourcePath, Resource location) throws java.io.IOException {
+            if (resourcePath.startsWith(PUBLIC_ASSETS)) {
+                // 0. An asset as the build links it: only the file itself, never a page in its place.
+                return tryResource("_next/" + resourcePath.substring(PUBLIC_ASSETS.length()), location);
+            }
             // 1. Exact file (assets like _next/static/*.js, favicon.ico, and <route>/index.html when path ends in "/").
             Resource resource = tryResource(resourcePath, location);
             if (resource != null) return resource;
@@ -148,16 +157,15 @@ public class WebApplicationConfig implements WebMvcConfigurer {
                 return shellDir == null ? null : tryResource(shellDir + "/index.html", location);
             }
             // The payload of a *static* route, which the export stores as that route's own index file
-            // ("/book.txt" → "book/index.txt"). Before any shell match: "/book" without the extension also matches the
-            // catch-all "/[category]", whose shell then answers a client side navigation to /next/book with the
-            // payload of a page that renders its own not-found for every route it does not own — the list would
-            // arrive as a 404 although its own prerender is right there.
+            // ("/book.txt" → "book/index.txt"). Before any shell match: a static route may match a dynamic one once
+            // the extension is stripped ("/liquidity/series" matches "/liquidity/[id]"), whose shell would then answer
+            // a client side navigation with the payload of another page.
             int extension = path.lastIndexOf('.');
             Resource own = tryResource(path.substring(1, extension) + "/index" + path.substring(extension), location);
             if (own != null) return own;
             // 3. before 2.: a file below the page, matching the route against the path without the file name. Tried
             // first because stripping the extension instead (below) can turn such a path into a match of a *different*
-            // route — "/book/5/__next._tree.txt" without ".txt" looks like "/[category]/[type]/[...params]".
+            // route — "/book/5/__next._tree.txt" without ".txt" may look like a deeper dynamic route.
             int lastSlash = path.lastIndexOf('/');
             String shellDir = matchShellDir(path.substring(0, lastSlash), location);
             if (shellDir != null) {

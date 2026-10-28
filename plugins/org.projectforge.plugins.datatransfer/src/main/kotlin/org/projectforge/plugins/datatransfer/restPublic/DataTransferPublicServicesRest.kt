@@ -27,10 +27,13 @@ import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.NumberOfBytes
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.FileInfo
+import org.projectforge.jcr.FileObject
+import org.projectforge.login.LoginService
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao.Companion.getExternalUserString
@@ -39,6 +42,7 @@ import org.projectforge.plugins.datatransfer.DataTransferUtils
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
 import org.projectforge.plugins.datatransfer.rest.DataTransferRestUtils
 import org.projectforge.rest.AttachmentsServicesRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.dto.PostData
@@ -48,6 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import java.io.InputStream
 
 private val log = KotlinLogging.logger {}
 
@@ -62,6 +67,9 @@ class DataTransferPublicServicesRest {
 
     @Autowired
     private lateinit var dataTransferAreaDao: DataTransferAreaDao
+
+    @Autowired
+    private lateinit var attachmentsServicesRest: AttachmentsServicesRest
 
     @Autowired
     private lateinit var dataTransferAreaEntityRest: DataTransferAreaEntityRest
@@ -81,6 +89,7 @@ class DataTransferPublicServicesRest {
      * @param category [DataTransferPlugin.ID] ("datatransfer") expected
      */
     @GetMapping("download/{category}/{id}")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin) and download access to the file (hasDownloadAccess)")
     fun download(
         request: HttpServletRequest,
         @PathVariable("category", required = true) category: String,
@@ -119,6 +128,7 @@ class DataTransferPublicServicesRest {
     }
 
     @GetMapping("downloadAll/{category}/{id}")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin) and external download enabled (isDownloadAllAvailable)")
     fun downloadAll(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -132,8 +142,8 @@ class DataTransferPublicServicesRest {
         log.info {
             "User tries to download all attachments: ${createLogInfo(request, sessionData, category, id)}."
         }
-        if (area.externalDownloadEnabled != true) {
-            return RestUtils.badRequest("Download not enabled.")
+        if (!isDownloadAllAvailable(area)) {
+            return RestUtils.badRequest("Download of all files not available.")
         }
         val dto = convert(request, area, sessionData.userInfo)
         DataTransferRestUtils.multiDownload(
@@ -155,6 +165,7 @@ class DataTransferPublicServicesRest {
      * (e. g. first 4 chars).
      */
     @GetMapping("multiDownload/{category}/{id}")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin) and external download enabled")
     fun multiDownload(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -184,6 +195,12 @@ class DataTransferPublicServicesRest {
             ?.filter { attachment ->
                 fileIdList.any { attachment.fileId?.startsWith(it) == true }
             }
+        // The same limit as for downloading all: a selection of every file must not get around it.
+        if (attachments.orEmpty().sumOf { it.size ?: 0L } > MAX_ZIP_SIZE) {
+            log.info { "Selected attachments exceed $MAX_ZIP_SIZE bytes, ZIP download refused." }
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            return
+        }
         DataTransferRestUtils.multiDownload(
             response,
             attachmentsService,
@@ -198,6 +215,7 @@ class DataTransferPublicServicesRest {
     }
 
     @PostMapping("multiDelete")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin), external upload enabled and own files (hasDeleteAccess)")
     fun multiDelete(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentsServicesRest.FileListData>)
             : ResponseEntity<*>? {
         val data = postData.data
@@ -264,18 +282,7 @@ class DataTransferPublicServicesRest {
                 }
             }
         }
-        val list =
-            attachmentsAccessChecker.filterAttachments(
-                request,
-                area.externalDownloadEnabled,
-                area.id!!,
-                attachmentsService.getAttachments(
-                    dataTransferAreaEntityRest.jcrPath!!,
-                    id,
-                    attachmentsAccessChecker,
-                    null
-                )
-            )
+        val list = getClientAttachments(request, area)
         return ResponseEntity.ok()
             .body(
                 ResponseAction(targetType = TargetType.UPDATE, merge = true)
@@ -284,6 +291,7 @@ class DataTransferPublicServicesRest {
     }
 
     @PostMapping("upload/{category}/{id}/{listId}")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin) and external upload enabled")
     fun uploadAttachment(
         request: HttpServletRequest,
         @PathVariable("category", required = true) category: String,
@@ -321,18 +329,7 @@ class DataTransferPublicServicesRest {
         }
 
         dataTransferPublicSession.registerFileAsOwner(request, area.id, attachment.fileId, attachment.name)
-        val list =
-            attachmentsAccessChecker.filterAttachments(
-                request,
-                area.externalDownloadEnabled,
-                area.id!!,
-                attachmentsService.getAttachments(
-                    dataTransferAreaEntityRest.jcrPath!!,
-                    id,
-                    attachmentsAccessChecker,
-                    null
-                )
-            )
+        val list = getClientAttachments(request, area)
         return ResponseEntity.ok()
             .body(
                 ResponseAction(targetType = TargetType.UPDATE, merge = true)
@@ -341,6 +338,7 @@ class DataTransferPublicServicesRest {
     }
 
     @PostMapping("delete")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin) and own file with upload access (hasDeleteAccess)")
     fun delete(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>)
             : ResponseEntity<*>? {
         val category = postData.data.category
@@ -379,14 +377,7 @@ class DataTransferPublicServicesRest {
             listId,
             userString = getExternalUserString(request, sessionData.userInfo)
         )
-        val list =
-            attachmentsService.getAttachments(
-                dataTransferAreaEntityRest.jcrPath!!,
-                id,
-                attachmentsAccessChecker,
-                listId
-            )
-                ?: emptyList() // Client needs empty list to update data of attachments.
+        val list = getClientAttachments(request, area) ?: emptyList() // Client needs empty list to update data of attachments.
         return ResponseEntity.ok()
             .body(
                 ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
@@ -395,6 +386,7 @@ class DataTransferPublicServicesRest {
     }
 
     @PostMapping("modify")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin) and own file with upload access (hasUpdateAccess)")
     fun modify(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>)
             : ResponseEntity<*>? {
         val attachment = postData.data.attachment
@@ -414,6 +406,10 @@ class DataTransferPublicServicesRest {
             }."
         }
 
+        if (!attachmentsAccessChecker.hasUpdateAccess(request, area, fileId)) {
+            return RestUtils.badRequest("Modification not allowed.")
+        }
+
         attachmentsService.changeFileInfo(
             dataTransferAreaEntityRest.jcrPath!!,
             fileId,
@@ -425,18 +421,110 @@ class DataTransferPublicServicesRest {
             listId,
             userString = getExternalUserString(request, sessionData.userInfo)
         )
-        val list =
-            attachmentsService.getAttachments(
-                dataTransferAreaEntityRest.jcrPath!!,
-                id,
-                attachmentsAccessChecker,
-                listId
-            )
+        val list = getClientAttachments(request, area)
         return ResponseEntity.ok()
             .body(
                 ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
                     .addVariable("data", AttachmentsServicesRest.ResponseData(list))
             )
+    }
+
+    /**
+     * Replaces an own file (uploaded in this session, with upload access) by a password protected ZIP of it, as
+     * [AttachmentsServicesRest.encrypt] does for logged-in users. The ZIP has a new file id, which is registered as
+     * owned by this session like an upload: otherwise its uploader could neither change it nor, without download
+     * access, even see it any more.
+     */
+    @PostMapping("encrypt")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin) and own file with upload access (hasUpdateAccess)")
+    fun encrypt(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>)
+            : ResponseEntity<*> {
+        val category = postData.data.category
+        val id = postData.data.id
+        val listId = postData.data.listId
+        check(category == DataTransferPlugin.ID)
+        check(listId == AttachmentsService.DEFAULT_NODE)
+        val data = dataTransferPublicSession.checkLogin(request, id) ?: return RestUtils.badRequest("No valid login.")
+        val area: DataTransferAreaDO = data.first
+        val sessionData = data.second
+        val fileId = postData.data.fileId
+        log.info {
+            "User tries to encrypt attachment: ${createLogInfo(request, sessionData, category, id, listId, fileId)}."
+        }
+        if (!attachmentsAccessChecker.hasUpdateAccess(request, area, fileId)) {
+            return RestUtils.badRequest("Encryption not allowed.")
+        }
+        val password = postData.data.attachment.password
+        attachmentsServicesRest.passwordTooShort(password)?.let { return it }
+        val (fileObject, inputStream) = getInputStream(area, fileId)
+            ?: return RestUtils.badRequest("File not found.")
+        val encrypted = inputStream.use { istream ->
+            attachmentsServicesRest.encryptFile(
+                dataTransferAreaEntityRest.jcrPath!!,
+                dataTransferAreaDao,
+                area,
+                attachmentsAccessChecker,
+                fileId = fileId,
+                listId = listId,
+                fileObject = fileObject,
+                inputStream = istream,
+                password = password!!,
+                mode = postData.data.attachment.newZipMode,
+                description = postData.data.attachment.description,
+                userString = getExternalUserString(request, sessionData.userInfo),
+            )
+        }
+        dataTransferPublicSession.registerFileAsOwner(request, area.id, encrypted.fileId, encrypted.name)
+        val list = getClientAttachments(request, area)
+        return ResponseEntity.ok()
+            .body(
+                ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
+                    .addVariable("data", AttachmentsServicesRest.ResponseData(list))
+            )
+    }
+
+    /** Checks a password against an own encrypted file ([AttachmentsServicesRest.testDecryption]). Changes nothing. */
+    @PostMapping("testDecryption")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin) and own file with upload access (hasUpdateAccess)")
+    fun testDecryption(
+        request: HttpServletRequest,
+        @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>
+    ): Any {
+        val category = postData.data.category
+        val id = postData.data.id
+        val listId = postData.data.listId
+        check(category == DataTransferPlugin.ID)
+        check(listId == AttachmentsService.DEFAULT_NODE)
+        val data = dataTransferPublicSession.checkLogin(request, id) ?: return RestUtils.badRequest("No valid login.")
+        val area: DataTransferAreaDO = data.first
+        val fileId = postData.data.fileId
+        if (!attachmentsAccessChecker.hasUpdateAccess(request, area, fileId)) {
+            return RestUtils.badRequest("Decryption test not allowed.")
+        }
+        val (_, inputStream) = getInputStream(area, fileId) ?: return RestUtils.badRequest("File not found.")
+        val success = inputStream.use { attachmentsServicesRest.isDecryptable(postData.data.attachment.password, it) }
+        return attachmentsServicesRest.testDecryptionResponse(success)
+    }
+
+    private fun getInputStream(area: DataTransferAreaDO, fileId: String): Pair<FileObject, InputStream>? {
+        val pair = attachmentsService.getAttachmentInputStream(
+            dataTransferAreaEntityRest.jcrPath!!,
+            area.id!!,
+            fileId,
+            attachmentsAccessChecker,
+        )
+        val inputStream = pair?.second ?: return null
+        return pair.first to inputStream
+    }
+
+    /**
+     * Whether the visitor may see who uploaded and changed the files: not with the area's password alone, only if
+     * logged in to ProjectForge as well (single sign-on, or the login of the app in the same session) and with
+     * access to the area there ([DataTransferAreaDao.hasInternalAccess]: admin, access user or access group).
+     */
+    internal fun isUserInfoVisible(request: HttpServletRequest, area: DataTransferAreaDO): Boolean {
+        val user = LoginService.getUser(request) ?: return false
+        return dataTransferAreaDao.hasInternalAccess(user, area)
     }
 
     internal fun convert(
@@ -446,21 +534,44 @@ class DataTransferPublicServicesRest {
     ): DataTransferPublicArea {
         val dto = DataTransferPublicArea()
         dto.copyFrom(dbo)
-        dto.attachments = attachmentsAccessChecker.filterAttachments(
+        dto.attachments = getClientAttachments(request, dbo)
+        dto.userInfo = userInfo
+        return dto
+    }
+
+    /**
+     * The attachments of the area as the external user may see them: without download access only the files uploaded
+     * in this session (see [DataTransferPublicAccessChecker.filterAttachments]). Every file carries its expiry info, and
+     * files the user may neither rename nor delete are marked as [Attachment.readonly]. Who uploaded or changed a file
+     * is removed — users of ProjectForge, or the ip address and name of other external users — unless the visitor is
+     * logged in to ProjectForge with access to the area there ([isUserInfoVisible]).
+     */
+    internal fun getClientAttachments(request: HttpServletRequest, area: DataTransferAreaDO): List<Attachment>? {
+        val attachments = attachmentsAccessChecker.filterAttachments(
             request,
-            dto.externalDownloadEnabled,
-            dto.id!!,
+            area.externalDownloadEnabled,
+            area.id!!,
             attachmentsService.getAttachments(
                 dataTransferAreaEntityRest.jcrPath!!,
-                dto.id!!,
+                area.id!!,
                 attachmentsAccessChecker
             )
         )
-        dto.attachments?.forEach {
-            it.addExpiryInfo(DataTransferUtils.expiryTimeLeft(it, dbo.expiryDays))
+        val userInfoVisible = isUserInfoVisible(request, area)
+        attachments?.forEach {
+            it.addExpiryInfo(DataTransferUtils.expiryTimeLeft(it, area.expiryDays))
+            it.readonly = it.fileId?.let { fileId -> !attachmentsAccessChecker.hasUpdateAccess(request, area, fileId) } ?: true
+            if (!userInfoVisible) {
+                it.createdByUser = null
+                it.createdByUserId = null
+                it.createdByUserDeleted = null
+                it.createdByUserDeactivated = null
+                it.lastUpdateByUser = null
+                it.lastUpdateByUserDeleted = null
+                it.lastUpdateByUserDeactivated = null
+            }
         }
-        dto.userInfo = userInfo
-        return dto
+        return attachments
     }
 
     private fun createLogInfo(
@@ -492,5 +603,20 @@ class DataTransferPublicServicesRest {
             }'"
         )
         return sb.toString()
+    }
+
+    companion object {
+        /**
+         * The most a ZIP download (all files or a selection) may contain; more is left to the single files. Checked here
+         * as well as in the clients, which only offer the buttons then.
+         */
+        internal const val MAX_ZIP_SIZE = NumberOfBytes.GIGA_BYTES
+
+        /**
+         * Download all as one ZIP: only with download access, and for 1 byte to [MAX_ZIP_SIZE] in total.
+         */
+        internal fun isDownloadAllAvailable(area: DataTransferAreaDO): Boolean {
+            return area.externalDownloadEnabled == true && (area.attachmentsSize ?: 0) in 1..MAX_ZIP_SIZE
+        }
     }
 }

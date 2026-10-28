@@ -28,7 +28,11 @@ export function CalendarSubscriptionPanel({
     info?.remindersExportDefaultValue ?? true
   );
   const withoutReminders = info?.urlWithoutExportedReminders;
-  const url = withoutReminders && !withReminders ? withoutReminders : info?.url;
+  const useWithoutReminders = !!withoutReminders && !withReminders;
+  const url = useWithoutReminders ? withoutReminders : info?.url;
+  const qrCode = useWithoutReminders
+    ? info?.qrCodeWithoutExportedReminders
+    : info?.qrCode;
   const label = info?.headline ?? t("plugins.teamcal.subscription._");
 
   return (
@@ -50,11 +54,11 @@ export function CalendarSubscriptionPanel({
         </HintTooltip>
       )}
       <CopyableValue value={url} label={label} />
-      {url && info?.barcodeUrl && (
+      {url && qrCode && (
         // eslint-disable-next-line @next/next/no-img-element -- rendered by the backend at runtime.
         <img
-          src={`${info.barcodeUrl}?text=${encodeURIComponent(url)}`}
-          alt={info.headline ?? ""}
+          src={qrCode}
+          alt={info?.headline ?? ""}
           className="size-48 self-center"
         />
       )}

@@ -1,8 +1,13 @@
 import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat, label } from "./fixtures/format";
-import { markAsDeleted, MARKER, uniqueSuffix } from "./fixtures/seed";
-import { CALENDAR_GRID_SIZES } from "../lib/rs/calendar-types";
+import {
+  markAsDeleted,
+  MARKER,
+  uniqueSuffix,
+  writeHeaders,
+} from "./fixtures/seed";
+import { ABSENCE_KINDS, CALENDAR_GRID_SIZES } from "../lib/rs/calendar-types";
 import type {
   CalendarInit,
   StyledTeamCalendar,
@@ -10,7 +15,7 @@ import type {
 
 /**
  * The hand-built calendar (`/next/calendar`, the default page after login), against the live backend.
- * The cases below cover the eight regressions from MIGRATION-calendar.md: it loads and honours a
+ * The cases below cover the regressions found while migrating it: it loads and honours a
  * `?gotoDate`; the view, grid size and calendar visibility survive a reload (they are persisted server
  * side); an event's hover-card shows its data; a filter favourite can be created and deleted; and the
  * two navigation paths a click produces resolve to the migrated timesheet routes.
@@ -116,7 +121,56 @@ test.describe("calendar", { tag: "@lane-calendar" }, () => {
     );
 
     // Leave the account's setting as it was found.
-    await calendarGet(page, `changeGridSize?size=${original}`);
+    await calendarPost(page, `changeGridSize?size=${original}`);
+  });
+
+  test("remembers which absences are shown across a reload", async ({
+    loggedInPage: page,
+  }) => {
+    await goto(page, "/calendar");
+    await expect(page.locator(".pf-calendar")).toBeVisible();
+    const format = await userFormat(page);
+    // Starts from all kinds (null), as a fresh filter does, whatever an aborted run left.
+    await showAllAbsenceKinds(page);
+    await page.reload();
+    expect((await readInit(page)).filter?.absenceKinds ?? null).toBeNull();
+
+    const toggle = async () => {
+      await page
+        .getByRole("button", {
+          name: format.t("calendar.view.settings.tooltip"),
+        })
+        .click();
+      const kinds = page.getByRole("group", {
+        name: format.t("calendar.filter.absenceKinds._"),
+      });
+      // All four kinds, here the remotely reachable ones.
+      await expect(kinds.getByRole("button")).toHaveCount(4);
+      const remote = kinds.getByRole("button", {
+        name: format.t("availability.status.remoteReachable"),
+      });
+      const pressed = await remote.getAttribute("aria-pressed");
+      const changed = page.waitForResponse("**/rs/calendar/changeAbsenceKinds");
+      await remote.click();
+      await changed;
+      await page.keyboard.press("Escape");
+      return pressed;
+    };
+
+    try {
+      expect(await toggle()).toBe("true");
+      await page.reload();
+      // A set on the server, in no particular order.
+      expect(
+        [...((await readInit(page)).filter?.absenceKinds ?? [])].sort()
+      ).toEqual(["VACATION", "NOT_AVAILABLE", "REACHABLE_IF_NEEDED"].sort());
+      // Shown as unpressed after the reload; pressed again, all kinds are shown (null) as found.
+      expect(await toggle()).toBe("false");
+      expect((await readInit(page)).filter?.absenceKinds ?? null).toBeNull();
+    } finally {
+      // Also if it failed halfway: the account shows all kinds again.
+      await showAllAbsenceKinds(page);
+    }
   });
 
   test("remembers a hidden calendar across a reload", async ({
@@ -151,7 +205,7 @@ test.describe("calendar", { tag: "@lane-calendar" }, () => {
     ).toHaveClass(/line-through/);
 
     // Restore the calendar's original visibility.
-    await calendarGet(
+    await calendarPost(
       page,
       `setVisibility?calendarId=${id}&visible=${visible}`
     );
@@ -199,7 +253,7 @@ test.describe("calendar", { tag: "@lane-calendar" }, () => {
     // The account may not show its own timesheets by default; make sure it does for this case.
     const init = await readInit(page);
     const originalTimesheetUser = init.filter?.timesheetUserId ?? null;
-    await calendarGet(page, `changeTimesheetUser?userId=${userId}`);
+    await calendarPost(page, `changeTimesheetUser?userId=${userId}`);
 
     const timesheet = await seedTimesheet(page, seededTask.child.id, userId);
     try {
@@ -236,7 +290,7 @@ test.describe("calendar", { tag: "@lane-calendar" }, () => {
       );
     } finally {
       await markAsDeleted(page.request, "timesheet", timesheet.id);
-      await calendarGet(
+      await calendarPost(
         page,
         originalTimesheetUser != null
           ? `changeTimesheetUser?userId=${originalTimesheetUser}`
@@ -273,10 +327,19 @@ async function readInit(page: Page): Promise<CalendarInit> {
   return (await res.json()) as CalendarInit;
 }
 
-/** Fires one of the `change*` / `setVisibility` GET endpoints — used to set up and to restore state. */
-async function calendarGet(page: Page, pathAndQuery: string): Promise<void> {
-  await page.request.get(`/rs/calendar/${pathAndQuery}`, {
-    headers: { "X-PF-Frontend": "next" },
+/** Shows all kinds of absences again (`POST changeAbsenceKinds`, with the session's CSRF token). */
+async function showAllAbsenceKinds(page: Page): Promise<void> {
+  const res = await page.request.post("/rs/calendar/changeAbsenceKinds", {
+    headers: await writeHeaders(page.request),
+    data: [...ABSENCE_KINDS],
+  });
+  expect(res.ok()).toBe(true);
+}
+
+/** Fires one of the `change*` / `setVisibility` POST endpoints — used to set up and to restore state. */
+async function calendarPost(page: Page, pathAndQuery: string): Promise<void> {
+  await page.request.post(`/rs/calendar/${pathAndQuery}`, {
+    headers: await writeHeaders(page.request),
   });
 }
 
@@ -416,6 +479,6 @@ async function dropOwnFavorites(page: Page): Promise<void> {
   const init = await readInit(page).catch(() => null);
   for (const favorite of init?.filterFavorites ?? []) {
     if (favorite.name !== FAVORITE_NAME) continue;
-    await calendarGet(page, `deleteFilter?id=${favorite.id}`);
+    await calendarPost(page, `deleteFilter?id=${favorite.id}`);
   }
 }

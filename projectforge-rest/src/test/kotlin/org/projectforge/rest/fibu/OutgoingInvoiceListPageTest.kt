@@ -47,7 +47,7 @@ import java.math.BigDecimal
  * The invariant server-side paging rests on, for the outgoing invoice list: a paged result ([getListPage])
  * is the same result the non-paged `POST list` ([getList]) returns, only cut into pages — same rows, same
  * order, same total. If the two ever drift, the footer's total or a page boundary would lie. See
- * [OutgoingInvoiceEntityRest.sortIds] / [OutgoingInvoiceEntityRest.aggregate] and `MIGRATION-list-paging.md`.
+ * [OutgoingInvoiceEntityRest.sortIds] / [OutgoingInvoiceEntityRest.aggregate] and `dev-docs/next/list-paging.md`.
  */
 class OutgoingInvoiceListPageTest : AbstractTestBase() {
     @Autowired

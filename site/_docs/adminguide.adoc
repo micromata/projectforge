@@ -13,6 +13,7 @@ tags: [adminguide]
 
 :sectnums:
 
+[[introduction]]
 == Introduction
 
 This document describes the administration of ProjectForge®: configuration, security, user directories, backups and
@@ -24,8 +25,10 @@ wizard), unless stated otherwise. The defaults with comments are listed in
 https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/application.properties[application.properties].
 Restart ProjectForge after changing this file.
 
+[[projectforge_setup]]
 == ProjectForge Setup
 
+[[database]]
 === Database
 
 The setup wizard writes the database settings, so you usually don't have to touch them. ProjectForge uses the
@@ -49,6 +52,7 @@ spring.datasource.password=
 
 The schema is created and migrated automatically by Flyway on every start.
 
+[[initialization_first_login_and_set_up_dialogue]]
 === Initialization, first login and set-up dialogue
 
 After the first start, ProjectForge® shows its setup page. Choose the target (empty database for a productive system,
@@ -56,6 +60,7 @@ or a test system with example data) and set the administrator's user name and pa
 time zone and e-mail addresses can be changed later under _Administration_ -> _Configuration_. See
 link:/docs/installation/#the_setup_page[Installation – The setup page] for details.
 
+[[ssl_https]]
 === SSL / Https
 
 It's recommended to run ProjectForge on a localhost http port and to handle https with a reverse proxy such as NGINX,
@@ -63,9 +68,11 @@ see link:/docs/installation/#secure_http_connection_sslhttps[Installation – Se
 
 For testing purposes you can use the following configuration:
 
+[[self_signed_certificate]]
 ==== Self-signed certificate
 Generate a self-signed certificate: `keytool -genkeypair -alias selfsigned -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore keystore.p12 -validity 365`
 
+[[configure_the_file_projectforgeprojectforge_properties]]
 ==== Configure the file `~/ProjectForge/projectforge.properties`
 
 [source,properties,linenums]
@@ -78,13 +85,46 @@ server.ssl.key-store-password=<password of your certificate>
 server.ssl.key-store-type=PKCS12
 ----
 
+[[trust_the_self_signed_certificate]]
 ==== Trust the self-signed certificate
 
 . Extract: `keytool -exportcert -alias selfsigned -keystore keystore.p12 -storetype PKCS12 -file selfsigned.crt -rfc`
 . Import it into the certificate store of your system or browser and trust it.
 
+[[reverse_proxy_security_headers]]
+==== Behind a reverse proxy: secure cookie, HSTS and CSP
+
+If the reverse proxy terminates https, ProjectForge itself only sees http requests. Then the session cookie lacks the
+`Secure` flag and no `Strict-Transport-Security` header (HSTS) is sent. Tell ProjectForge about the original protocol
+in `~/ProjectForge/projectforge.properties`:
+
+[source]
+----
+# The proxy must send X-Forwarded-Proto (see dev-docs/misc/nginx_sites-available_projectforge):
+server.forward-headers-strategy=native
+# Or, if every access is via https anyway:
+#server.servlet.session.cookie.secure=true
+----
+
+ProjectForge sends its security headers itself (Content Security Policy, `X-Frame-Options`, `Referrer-Policy`,
+`Permissions-Policy` etc.). Don't add them again in the proxy: a header sent twice with different values is ignored by
+the browser. The Content Security Policy can be replaced by an own value of `projectforge.security.csp-header-value`
+(an empty value sends none, which isn't recommended).
+
+[[reverse_proxy_chat]]
+==== Behind a reverse proxy: live updates of the chat
+
+The chat pushes new messages to the open conversations via server-sent events
+(`/rs/chat/conversation/{id}/events`), a long-lived response with a heartbeat every 25 seconds. The proxy must neither
+buffer it nor close it before the next heartbeat. ProjectForge sends `X-Accel-Buffering: no`, which nginx honours, so
+nginx only needs a read timeout above 25 seconds (the example configuration `dev-docs/misc/nginx_sites-available_projectforge`
+has 600 seconds). Other proxies need the buffering switched off for this path. Without it, the chat still works: it
+falls back to asking for new messages every few seconds.
+
+[[postgresql]]
 === PostgreSQL
 
+[[setting_up_the_database]]
 ==== Setting up the database
 
 PostgreSQL 13 or newer is required: a database migration (Flyway `V8.0.24`) runs
@@ -94,12 +134,12 @@ the database (e.g. as its owner, see below). Otherwise a database administrator 
 beforehand: `psql -U postgres -d projectforge -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"`.
 
 The files of the file store are stored in an own schema `pf_files`, which is created by Flyway as well (so the
-database user also needs the right to create schemas, which the owner of the database has), see <<Backup>>.
+database user also needs the right to create schemas, which the owner of the database has), see <<backup>>.
 
 . Create the user (e.g. as admin user): `createuser -U postgres -P projectforge`
 . Create the database: `createdb -U postgres -E UTF-8 -O projectforge projectforge`
 . You can drop an existing user and database with: `dropdb projectforge` and `dropuser projectforge`
-. To re-use an existing database, restore a dump, see <<Restoring a backup>>.
+. To re-use an existing database, restore a dump, see <<restoring_a_backup>>.
 
 Recommended settings in `postgresql.conf` (`max_connections` must be larger than ProjectForge's connection pool,
 `spring.datasource.hikari.maximum-pool-size`, default 100). If the JCR still uses PostgreSQL as well
@@ -111,8 +151,10 @@ statement_timeout =  300000 # 300s
 lock_timeout = 300000       # 300s
 ----
 
+[[configuration]]
 == Configuration
 
+[[base_directory_applications_home]]
 === Base directory (application's home)
 
 ProjectForge® needs a home directory, by default `${user.home}/ProjectForge` (`/ProjectForge` inside Docker). It's
@@ -121,7 +163,8 @@ ProjectForge finds it. The following files and directories are created if they d
 
 [width="100%",cols="50%,50%",]
 |===
-|`projectforge.properties`, `config.xml` |Configuration files, written by the setup wizard.
+|`projectforge.properties` |Configuration file, written by the setup wizard. A former `config.xml` is taken over
+into the configuration parameters on the first start and renamed to `config.xml.migrated` (may be removed afterwards).
 
 |`database` |The embedded database (HSQLDB), if used.
 
@@ -137,11 +180,18 @@ directory and rebuild the indices via _Administration_ -> _System_ -> _Reindex_.
 
 |`datatransfer` |The files of the data transfer areas (plugin _Data transfer_).
 
-|`jcr` |The former document repository (JCR), only for installations not yet migrated, see <<Moving the files out of the JCR>>.
+|`jcr` |The former document repository (JCR), only for installations not yet migrated, see <<moving_the_files_out_of_the_jcr>>.
 
-|`work` |Working directory for temporary files.
+|`work` |Working directory, e.g. for states of synchronizations.
+
+|`tmp` |Temporary files, e.g. debug logs.
 |===
 
+The directories `jcr`, `work`, `tmp` and `backup` may be placed elsewhere by the properties `projectforge.dir.jcr`,
+`projectforge.dir.work`, `projectforge.dir.tmp` and `projectforge.dir.backup` (absolute or relative to the home
+directory).
+
+[[configuration_file_application_properties]]
 === Configuration file application.properties
 
 ProjectForge® is a Spring Boot application, so you may use any of the
@@ -149,8 +199,57 @@ https://docs.spring.io/spring-boot/appendix/application-properties/index.html[co
 in `projectforge.properties`. All ProjectForge-specific options with their defaults are listed in
 https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/application.properties[application.properties].
 
+[[properties_editor]]
+==== Properties editor
+
+Administrators edit `projectforge.properties` on the page *Administration -> System* (menu
+_Configuration_ -> _Configuration file_). The editor lists all parameters of `application.properties`, grouped by topic,
+with their descriptions and defaults. Parameters of your file that ProjectForge doesn't know are marked: those in
+ProjectForge's namespace (`projectforge.*`, `pf.*`) are no longer used (or misspelled) and are listed in the group
+_No longer used_, where they can be removed at once; others (e.g. settings of Spring Boot) in the group _Other_.
+Passwords, keys and tokens are never shown: a secret can only be set to a new value.
+
+* Before every save, a copy of the file with a timestamp is placed next to it
+  (`projectforge.properties.<yyyy-MM-dd_HH-mm-ss>.bak`). The file is written sorted by groups; your own
+  comments stay above the parameter they were written above.
+* Changes take effect only after a restart of ProjectForge.
+* A value the running system uses differently (a restart is pending, or the value is set by an
+  environment variable or the command line) is marked.
+
+[[feature_toggles]]
+=== Switching off functions
+
+Functions of ProjectForge can be switched off in `projectforge.properties` (a restart is needed). A switched off
+function has no menu entry, and its pages and REST services answer with 404, for everybody.
+
+[source,properties]
+----
+# Allowlist: all (default) or a comma separated list.
+projectforge.features.enabled=all
+# Denylist, wins over the allowlist.
+projectforge.features.disabled=TIMESHEET_LIST,HR
+----
+
+There is one function per menu entry. Its id is the id of the menu entry (`ADDRESS_LIST`, `TIMESHEET_LIST`,
+`FEEDBACK`, `MY_ACCOUNT`, ..., see `MenuItemDefId`), of a plugin's menu entry (`toDo`, `DataTransferPersonalBox`)
+or of a plugin (`datatransfer`, `marketing`). A main menu group (`COMMON`, `FIBU`, `HR`, `MISC`, ...) or a plugin
+stands for all of its entries. Plugins that aren't activated are switched off as well, including their REST services.
+Unknown ids are logged as a warning on start-up.
+
+This is no permission system, the access checks of the functions remain as they are. Some services stay
+reachable even with their function switched off, because other pages need them: the lookups of the input fields
+(e.g. of users or tasks), the subscription of calendars, and the core of the application (login, menu, settings,
+notifications, attachments of the remaining functions). The interfaces outside the pages and REST services aren't
+switched off either: CardDAV (`/carddav`), the export of calendars (`/export/ProjectForge.ics`) and the SMS
+interface (`/export/sms`).
+
+The menu visibility (`projectforge.menu.visibility.*`) is something else: it hides menu entries for groups of users
+only, the functions stay reachable.
+
+[[customization]]
 === Customization
 
+[[logo_and_title_in_pdf_outputs]]
 ==== Logo and title in pdf outputs
 
 Under _Administration_ -> _Configuration_ you can enter your organization name, which is used e.g. as headline of the
@@ -169,6 +268,7 @@ projectforge.logoFileDark=logo-dark.png
 projectforge.export.logoFile=logo-export.png
 ----
 
+[[customizing_i18n_translations]]
 ==== Customizing i18n translations
 
 ProjectForge allows you to customize or override any translation text displayed in the user interface.
@@ -203,20 +303,25 @@ To find available i18n keys that you can override, refer to:
 ** `plugins/org.projectforge.plugins.skillmatrix/src/main/resources/SkillMatrixI18nResources.properties`
 ** And other plugin-specific translation files
 
+[[configuration_settings_web_interface]]
 === Configuration settings (web interface)
 
 Under _Administration_ -> _Configuration_ you can set further parameters of ProjectForge® such as the default time
-zone, the country phone prefix or cost-unit accounting. Each parameter is explained there.
+zone, the country phone prefix or cost-unit accounting. Each parameter is explained there. Structured settings are
+JSON values, e.g. the holidays (additional ones and changes of the built-in ones), the JIRA servers, the contract types
+and the accounting settings including the business assessment (see <<business_assessment_bwa>>).
 
-_Administration_ -> _System_ offers among others: re-reading and exporting `config.xml`, exporting the 2FA
+_Administration_ -> _System_ offers among others: re-reading the configuration parameters, exporting the 2FA
 configuration, re-indexing the search index and system integrity checks.
 
+[[using_ttf_fonts_for_pdf_render_engine]]
 === Using ttf fonts for PDF render engine
 
 Apache FOP is used as internal render engine for PDF outputs. Additional fonts are placed in `resources/fonts` of the
 home directory (or the directory configured by `projectforge.fontsDirectory`). Please refer to the
 https://xmlgraphics.apache.org/fop/[FOP documentation] for details on fonts.
 
+[[html_formatted_e_mail_templates]]
 === HTML formatted E-Mail templates
 
 ProjectForge works with Groovy templates for generating e-mails (e.g. notifications). You'll find the built-in
@@ -259,6 +364,7 @@ This is an example of using dynamic data (here a list of positions will be print
 </html>
 ----
 
+[[sending_e_mails]]
 === Sending e-mails
 
 ProjectForge sends notifications, password reset mails, 2FA codes and the error digest via SMTP:
@@ -276,6 +382,7 @@ mail.session.pfmailsession.smtp.user=projectforge
 mail.session.pfmailsession.smtp.password=<password>
 ----
 
+[[support_error_digest]]
 === Support error digest
 
 If a support address is configured (`projectforge.support.mail`) and sending mails is set up,
@@ -311,8 +418,7 @@ Each problem goes to the recipients of its audience: developers (bugs, data prob
 systems, configuration, sync runs) or security. Without recipients of its own, an audience gets the digest
 at `projectforge.support.mail`.
 
-*File:* `projectforge.properties`:
-
+.File: `projectforge.properties`
 ----
 projectforge.support.mail=support@acme.com
 # How often the digest is sent at most, e.g. 15m, 1h, 1d. 0 disables the digest. Default: 1h
@@ -323,6 +429,7 @@ projectforge.support.errorDigest.recipients.admin=ops@acme.com
 projectforge.support.errorDigest.recipients.security=security@acme.com
 ----
 
+[[system_dashboard_and_log_viewer]]
 === System dashboard and log viewer
 
 Administrators find the _System dashboard_ in the _Administration_ menu. It shows the problems collected for the error
@@ -330,8 +437,10 @@ digest (see above), the runs of the scheduled jobs and offers a log viewer for s
 context of a log entry. The counts are stored in the database (`projectforge.support.logAggregation.*` and
 `projectforge.scheduler.stats.*` in `application.properties`, cleaned up by the daily privacy protection job).
 
+[[phone_calls_and_texting_with_projectforge]]
 === Phone calls and texting with ProjectForge
 
+[[phone_calls]]
 ==== Phone calls
 
 If configured, users are able to initiate phone calls directly by clicking on a phone number of an address or by
@@ -358,6 +467,7 @@ field.
 
 Don't forget to configure your default country phone prefix under _Administration_ -> _Configuration_.
 
+[[texting]]
 ==== Texting
 
 If an SMS gateway is configured, users are able to send text messages by clicking on the SMS symbol of an address or
@@ -385,6 +495,7 @@ symbol of an address or by entering a name or cell phone number.
 
 All options are listed in `application.properties` (`projectforge.sms.*`).
 
+[[phone_lookup]]
 ==== Phone lookup
 
 With the phone lookup service, a telephony system (such as Asterisk) may look up the caller of incoming phone calls:
@@ -398,24 +509,185 @@ random secret key in `projectforge.properties` (e.g. generated with `openssl ran
 projectforge.phoneLookupKey=<your-random-secret>
 ----
 
+[[number_ranges_of_customers_projects_and_cost_units]]
+=== Number ranges of customers, projects and cost units
+
+Customers and projects have their own numbers, every project a system-wide unique project number. Number ranges
+(Nummernkreise) define which customer and project numbers belong together and how the cost units (Kost2) of a
+project are derived from its number. They are configured in `projectforge.properties`
+(`projectforge.fibu.number-ranges.*`). If you don't use cost-unit accounting, or don't need Kost2 of projects, no
+configuration is needed: customer and project numbers are free then.
+
+[[which_ranges_apply]]
+==== Which ranges apply
+
+On start, ProjectForge logs which ranges apply (`Number ranges: mode ...`):
+
+[cols="1,4",options="header"]
+|===
+|Mode |Applies if
+|`CONFIGURED` |At least one range is configured. Only the configured ranges apply.
+|`LEGACY` |No range is configured, but Kost2 of projects in the formerly built-in ranges exist: 4 for internal
+projects (`4.###.##.##`) and 5 for customers 0-999 with up to 100 projects each (`5.###.##.##`). These two ranges then
+apply as before. This is detected on every start and not stored.
+|`FREE` |Otherwise (e.g. a new installation). Customer and project numbers are free, projects get no Kost2. Kost2 without
+a project can still be created.
+|===
+
+IMPORTANT: If an installation in mode `LEGACY` gets its first configured range, only the configured ranges apply. Then
+configure the former ranges 4 and 5 as well (see the example below).
+
+[[settings]]
+==== Settings
+
+Each range is a list entry `projectforge.fibu.number-ranges.ranges[n].<property>`:
+
+[cols="1,1,4",options="header"]
+|===
+|Property |Default |Description
+|`prefix` | |First digit (1-9) of the project and Kost2 numbers of this range, unique for all ranges.
+|`name` | |Display name, e.g. `Intern`.
+|`customer-min`, `customer-max` | |Lowest and highest customer number of this range; give both or none. A range without
+customers is for projects without customer (e.g. internal projects); its `project-digits` must be 5.
+|`project-digits` |2 |Number of digits of the project number per customer (1-5), or of the whole range for a range
+without customers.
+|`segments` |`1,3,2,2` |Segments of the 8-digit Kost2 for display and input, e.g. `1,4,1,2` for `1.####.#.##`. Must
+start with 1 and end with 2 (the Kost2 type) and sum up to 8.
+|===
+
+Global settings:
+
+[cols="1,1,4",options="header"]
+|===
+|Property |Default |Description
+|`projectforge.fibu.number-ranges.allow-free-numbers` |`true` |If `false`, every customer number must lie in a
+configured range (protects against typos) and a project needs a customer of a range or belongs to the range
+without customers; applies to the former ranges 4 and 5 as well.
+|`projectforge.fibu.number-ranges.default-segments` |`1,3,2,2` |Segments of the Kost2 whose first digit belongs to no
+range (Kost2 without project).
+|===
+
+[[project_and_kost2_numbers]]
+==== Project and Kost2 numbers
+
+A project of a range gets a 6-digit project number, its Kost2 are this number followed by the 2-digit Kost2 type:
+
+----
+project number = prefix * 100000 + (customer mod 10^(5 - project-digits)) * 10^project-digits + project
+project number = prefix * 100000 + project                      (range without customers)
+Kost2          = project number * 100 + Kost2 type
+----
+
+The customer number itself is part of the project number: its last `5 - project-digits` digits, whatever
+`customer-min` is. Example: range 1 with the customers 10000-19999 (or 10001-19999), 1 project digit and the segments
+`1,4,1,2`. Project 3 of customer 10007 has the project number 100073 (shown as `1.0007.3`), its Kost2 of type 02 is
+`1.0007.3.02`. Customer 123 of range 5 (customers 0-999, 2 project digits) gets `5.123.xx`.
+
+So all customers of a range must share the digits in front of those last digits: a range with 2 project digits holds
+at most the 1000 customers of one block like 0-999 (100 projects per customer), a range with 1 project digit at most
+the 10000 customers of one block like 10000-19999.
+
+.File: `projectforge.properties`
+[source]
+----
+# Former range 4: internal projects 4.###.##.##
+projectforge.fibu.number-ranges.ranges[0].prefix=4
+projectforge.fibu.number-ranges.ranges[0].name=Intern
+projectforge.fibu.number-ranges.ranges[0].project-digits=5
+# Former range 5: customers 0-999 with up to 100 projects each, 5.###.##.##
+projectforge.fibu.number-ranges.ranges[1].prefix=5
+projectforge.fibu.number-ranges.ranges[1].customer-min=0
+projectforge.fibu.number-ranges.ranges[1].customer-max=999
+projectforge.fibu.number-ranges.ranges[1].project-digits=2
+# Customers 10000-19999 with up to 10 projects each, 1.####.#.##
+projectforge.fibu.number-ranges.ranges[2].prefix=1
+projectforge.fibu.number-ranges.ranges[2].customer-min=10000
+projectforge.fibu.number-ranges.ranges[2].customer-max=19999
+projectforge.fibu.number-ranges.ranges[2].project-digits=1
+projectforge.fibu.number-ranges.ranges[2].segments=1,4,1,2
+# Optional: refuse customer numbers outside these ranges
+projectforge.fibu.number-ranges.allow-free-numbers=false
+----
+
+[[notes]]
+==== Notes
+
+* An inconsistent configuration (prefix used twice, overlapping customer numbers, too many customers for the project
+  digits, invalid segments) stops the start with a message naming the range.
+* New customers and projects are offered the next free number of their range.
+* A project whose customer belongs to no range gets a free project number, which must not lie in the project numbers of
+  a range (e.g. 100000-199999 for prefix 1). Such projects and projects in mode `FREE` can't get Kost2.
+* Kost2 without a project must not start with the prefix of a range: the Kost2 of a range are those of its projects.
+* Stored project and Kost2 numbers are not renumbered if you change a range later. Existing Kost2 stay valid even if
+  their range is no longer configured, but plan new ranges (customer numbers and project digits) before using them.
+* Invoicing quota (`projectforge.invoicing-quota.*`): the patterns apply to the Kost2 numbers as their range segments
+  them (e.g. `1.*` for `1.####.#.##`). With `projectforge.invoicing-quota.billed-by-invoiced-kost2-types=true` the time
+  booked on Kost2 of customer projects with an invoiced Kost2 type counts as billed, independent of the digits.
+
+[[group_nomenclature]]
+=== Group nomenclature
+
+The configuration parameter *Group nomenclature* (`groupNomenclature`, category finance) describes how groups are
+named. It is a description, not a rule: the project and structure wizards suggest the names of new groups following
+it, and its description is shown at the name of a group and in the wizards; no name is checked against it.
+
+* *Description*: rich text explaining the convention.
+* *Pattern of the base name* of a project's groups, with the placeholders `+{customer.identifier}+`,
+  `+{customer.name}+`, `+{customer.number}+`, `+{project.identifier}+`, `+{project.name}+` and `+{project.number}+`.
+  An empty identifier is replaced by the name. Empty: the project's name.
+* *Suffixes* of the manager, team and externals' groups, appended with a hyphen. Empty: the wizard's default
+  (`pm`, none, `extern`/`external`).
+* *Letter case* of the whole suggested name: unchanged, lower case or upper case.
+
+Example: pattern `+{customer.identifier}-{project.identifier}+`, suffixes `pm` and `extern`, lower case suggest
+`acme-portal-pm`, `acme-portal` and `acme-portal-extern`. The structure wizard uses the pattern if the picked element
+belongs to a project, otherwise the element's title.
+
+[[business_assessment_bwa]]
 === business assessment / BWA
 
 If you work with accounting records (DATEV) you may want to have
-business assessments (BWA in German). They are configured in `config.xml` (element `businessAssessment`).
+business assessments (BWA in German). They are configured in the configuration parameter _Accounting_
+(`fibu.accounting`, element `businessAssessment`).
 The business assessments of DATEV consist of rows. Each row has a line number (no) and a title (for
 displaying). The `accountRange` defines which DATEV accounts match the
 row. Please note that a record is assigned to the first row found. +
 If the priority of a row is not high, the row will not be shown in the
 short form of business assessments. The value defines row amounts which
-are calculated (see the example in the `config.xml` created by the setup wizard).
+are calculated: a formula of row ids starting with `=` or a Groovy script returning the amount. The account number
+ranges of debitors and creditors are part of this parameter, too. Example:
 
+[source,json]
+----
+{
+  "debitorsAccountNumberRanges": "10000-12999",
+  "creditorsAccountNumberRanges": "70000-79999",
+  "businessAssessment": {
+    "heading": "BWA",
+    "overallPerformance": "gesamtleistung",
+    "merchandisePurchase": "matWareneinkauf",
+    "preliminaryResult": "vorlaeufigesErgebnis",
+    "rows": [
+      {"no": "1020", "id": "umsatzErloese", "accountRange": "4000-4799", "priority": "MIDDLE", "title": "Umsatzerlöse", "indent": 1},
+      {"no": "1051", "id": "gesamtleistung", "value": "=umsatzErloese", "priority": "HIGH", "title": "Gesamtleistung"},
+      {"no": "1060", "id": "matWareneinkauf", "accountRange": "5700-5999", "priority": "HIGH", "title": "Mat./Wareneinkauf"},
+      {"no": "1380", "id": "vorlaeufigesErgebnis", "value": "=gesamtleistung+matWareneinkauf", "priority": "HIGH", "title": "Vorläufiges Ergebnis"},
+      {"id": "relativePerformance", "value": "if (gesamtleistung != 0.0) { return vorlaeufigesErgebnis / gesamtleistung } else { return 0.0 }", "priority": "HIGH", "title": "relative Performance", "scale": 4}
+    ]
+  }
+}
+----
+
+[[securityconfig]]
 === SecurityConfig
 
+[[secure_passwords]]
 ==== Secure passwords
 
 Passwords are never stored in clear text: every password is hashed together with a random salt per user and a
 pepper (see below). The minimum password length is configured under _Administration_ -> _Configuration_.
 
+[[protection_against_brute_force_attacks]]
 ==== Protection against brute force attacks
 
 If a login fails (via login page or REST service), a penalty time is set for the user name and for the client's IP
@@ -426,6 +698,7 @@ Please refer to the source code (`LoginProtection`) for details.
 The client's IP address is taken from `X-Forwarded-For` only for requests coming from a trusted proxy
 (`projectforge.security.trustedProxies`, default: localhost and the private networks).
 
+[[salted_passwords_with_pepper]]
 ==== Salted passwords with pepper
 
 A pepper string is configured in `projectforge.properties`; the setup wizard generates a random one. Before hashing a
@@ -441,6 +714,7 @@ Keep this value safe: if you lose or change the pepper, no user with a password 
 in any more. The same applies to `projectforge.security.authenticationTokenEncryptionKey`, which encrypts the users'
 authentication tokens (changing it only invalidates the tokens, not the passwords).
 
+[id=2fa_two_factor_authentication]
 ==== 2FA (two-factor-authentication)
 
 2FA (two factor authentication) is supported by:
@@ -460,8 +734,7 @@ stay-logged-in session.
 
 Recommended example configuration:
 
-*File:* `projectforge.properties`:
-
+.File: `projectforge.properties`
 [source,properties,linenums]
 ----
 projectforge.2fa.expiryPeriod.minutes1=
@@ -497,8 +770,10 @@ Please use _Administration_ -> _System_ -> _Export 2FA configuration_ for verify
 ____
 
 
+[[ldap]]
 === LDAP
 
+[[requirements]]
 ==== Requirements
 
 The LDAP must support the following additional schemas (example of
@@ -510,13 +785,13 @@ include /etc/openldap/schema/cosine.schema
 include /etc/openldap/schema/inetorgperson.schema
 ----
 
+[[configuration_2]]
 ==== Configuration
 
 The groupBase setting is only needed in master mode. The managerUser is
 not needed in simple slave mode. For further information see below.
 
-*File:* `projectforge.properties`:
-
+.File: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -535,6 +810,7 @@ projectforge.ldap.sambaAccountsPrimaryGroupSID=
 ...
 ----
 
+[[local_admin_users]]
 ==== Local (admin) users
 
 Please log in as administrator with the stay-logged-in option of the login page
@@ -544,9 +820,10 @@ Edit every user who should be authenticated against ProjectForge (instead of LDA
 check the option _local user_ and save. Now the local users may log-in without LDAP credentials. This
 is especially use-ful for administrator users of ProjectForge.
 
+[[ldap_over_ssl]]
 ==== LDAP over SSL
 
-`openssl s_client -showcerts -connect ldap.acme.priv:636 > ldap.pem` Copy
+`openssl s_client -showcerts -connect ldap.acme.internal:636 > ldap.pem` Copy
 the lines
 including `-----BEGIN CERTIFICATE-----` until `-----END CERTIFICATE-----` (including)
 to a file called `ldap.cert.` Now you can configure the certificate file
@@ -554,6 +831,7 @@ in `projectforge.properties` or you can import the certificate to your
 java keystore. The first solution is independent of your JAVA version
 and is recommended first.
 
+[[projectforge_as_ldap_master]]
 ==== ProjectForge as LDAP master
 
 The LDAP master mode is the most tested LDAP mode of ProjectForge and is used
@@ -563,8 +841,7 @@ users. The ProjectForge user's will be synchronized in LDAP. If there is
 any conflict between LDAP and ProjectForge, the ProjectForge settings
 are used. The configuration of this mode is simple:
 
-*File:* `projectforge.properties`:
-
+.File: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -617,6 +894,7 @@ a synchronization by restarting ProjectForge.
 Users will be added as `uniqueMember` entries in the LDAP groups if also
 assigned in ProjectForge to the same ProjectForge group.
 
+[[ldap_entries]]
 ===== LDAP entries
 
 See figures 3 and 4 for detailed
@@ -647,6 +925,7 @@ in LDAP (for a better synchronization). So the renaming of group names
 should work.
 |===
 
+[[managing_posix_accounts]]
 ===== Managing POSIX accounts
 
 ProjectForge supports the management of POSIX accounts with the
@@ -682,10 +961,10 @@ fields the LDAP entries are updated immediately.
 * Every LDAP entry gets the `object-class` `posixAccount` only if the
 POSIX account data were created in ProjectForge for this user.
 
+[[managing_samba_accounts]]
 ==== Managing Samba accounts
 
-*File:* `projectforge.properties`:
-
+.File: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -719,6 +998,7 @@ fields the LDAP entries are updated immediately.
 * Every LDAP entry gets the `object-class` `sambaSamAccount` only if the
 Samba account data were created in ProjectForge for this user.
 
+[[projectforge_as_ldap_client]]
 ==== ProjectForge as LDAP client
 
 This LDAP login handler acts as a LDAP slave, meaning, that LDAP will be
@@ -726,8 +1006,7 @@ accessed in read-only mode. There are 3 modes
 available: `simple,` `users` and `users-groups.` The configuration of
 this mode is simple:
 
-*File:* `projectforge.properties`:
-
+.File: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -735,6 +1014,7 @@ projectforge.login.handlerClass=LdapSlaveLoginHandler
 ...
 ----
 
+[[simple_mode]]
 ===== Simple mode
 
 The simple mode is assumed if no ldap managerUser is given in the
@@ -751,6 +1031,7 @@ stay-logged-in-method! (If not acceptable please use the normal user
 mode instead.)
 * For local users any LDAP setting is ignored.
 
+[[users_mode]]
 ===== Users mode
 
 The normal user mode is assumed if a LDAP managerUser is given in
@@ -765,16 +1046,17 @@ in ProjectForge's data-base. Any login after synchronizing isn't allowed
 * All known LDAP user fields of the users are synchronized (given name,
 surname, e-mail etc.).
 
+[[users_groups_mode]]
 ===== Users-groups mode
 
 This mode is not yet implemented, the users-mode is used instead.
 
+[[projectforge_without_ldap]]
 ==== ProjectForge without LDAP
 
 You can also use ProjectForge without LDAP (default).
 
-*File:* `projectforge.properties`:
-
+.File: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -782,12 +1064,14 @@ projectforge.login.handlerClass=LoginDefaultHandler
 ...
 ----
 
+[[oauth2_oidc_authentication]]
 === OAuth2 / OIDC Authentication
 
 ProjectForge supports authentication via an external OAuth2/OIDC provider.
 Users log in through the identity provider (e.g. Authentik, Keycloak) and are redirected back to ProjectForge.
 The user must already exist in ProjectForge (matched by `idpExternalId` or username).
 
+[[configuration_3]]
 ==== Configuration
 
 Add the following OAuth2/OIDC client configuration to `projectforge.properties`:
@@ -811,6 +1095,7 @@ The login page of ProjectForge has no button for the identity provider: users st
 `https://<your-projectforge-domain>/oauth2/authorization/authentik` (e.g. as a link or bookmark, or from the
 application dashboard of your identity provider).
 
+[[user_mapping]]
 ==== User mapping
 
 On successful OAuth2 login, ProjectForge resolves the local user account as follows:
@@ -821,6 +1106,7 @@ On successful OAuth2 login, ProjectForge resolves the local user account as foll
 
 Deactivated users are always rejected regardless of a valid OAuth2 session.
 
+[[external_gateway_mode]]
 ==== External Gateway mode
 
 ProjectForge can run as a reduced, public-facing instance that authenticates *exclusively* via OAuth2/OIDC.
@@ -837,10 +1123,13 @@ Activate with the Spring profile `external-gateway`:
 --spring.profiles.active=external-gateway
 ----
 
+[[minimal_gateway_configuration]]
 ===== Minimal gateway configuration
 
 The gateway instance's `projectforge.properties` requires the gateway mode and the database connection.
-All other gateway settings (CardDAV, menu visibility) are provided by the `external-gateway` profile automatically.
+All other gateway settings (CardDAV, the functions switched off, see <<feature_toggles>>) are provided by the
+`external-gateway` profile automatically. Without the profile, the gateway mode switches off all functions but the
+data transfer as well.
 
 The OAuth2/OIDC configuration is only needed for the DataTransfer UI: CardDAV and CalDAV/ICS authenticate
 via tokens and work without it. If the OAuth2 client is not configured, the gateway starts without a login option.
@@ -889,6 +1178,7 @@ spring.datasource.password=
 
 The internal ProjectForge instance syncs user data to the gateway via the shared secret.
 
+[[main_instance_push_configuration]]
 ===== Main instance push configuration
 
 The main (internal) ProjectForge instance must be configured to push user, group, address and calendar data to the gateway.
@@ -911,17 +1201,29 @@ projectforge.gateway.push.syncIntervalMs=900000
 |`push.secret` |Shared secret (must match `projectforge.gateway.sync.secret` on the gateway)
 |`push.syncIntervalMs` |Interval between sync pushes in milliseconds (default: 900000 = 15 minutes)
 |`push.initialDelayMs` |Delay of the first sync push after start-up in milliseconds (default: 120000 = 2 minutes)
+|`push.publicUrl` |URL of the gateway for browsers (external links of data transfer areas), only if it differs from `push.url` without `/api/gateway/sync`
 |===
 
 The push service sends users, groups, address books, and cached ICS calendar data to the gateway.
 All requests are authenticated via the `X-Gateway-Secret` HTTP header.
 
+Data transfer areas with external download or upload are administered on the main instance and pushed to the gateway
+with each sync. Their external link points to the gateway, external users and the internal users with access work with
+the files there; on the gateway these areas are read-only and keep the ids of the main instance. The gateway has
+only these areas, it creates none itself (no personal boxes). Switching off the external access or deleting the area on
+the main instance removes it from the gateway. The gateway sends the notification mails of these areas to their
+observers (e.g. on an external upload), so it needs a mail server configuration; for this the push includes the email
+addresses of these observers, and only theirs. With `projectforge.datatransfer.externalAccess.localAllowed=true` the
+external access runs on the main instance instead (nothing is pushed), with `false` it can't be enabled at all.
+
+[[identity_provider_sync_idp]]
 === Identity Provider Sync (IdP)
 
 ProjectForge can act as a master for user and group data, provisioning them into an external identity provider.
 This is independent of the OAuth2 login described above — it handles user/group lifecycle management.
 Currently supported providers are *Keycloak* and *Authentik*.
 
+[[configuration_4]]
 ==== Configuration
 
 [source,properties]
@@ -934,8 +1236,10 @@ projectforge.login.handlerClass=IdpMasterLoginHandler
 projectforge.idp.syncPasswords=false
 ----
 
+[[keycloak_setup]]
 ==== Keycloak setup
 
+[[realm_and_client]]
 ===== Realm and client
 
 . Create a realm (e.g. `acme.com`)
@@ -952,6 +1256,7 @@ projectforge.keycloak.clientSecret=<secret>
 projectforge.keycloak.pageSize=100
 ----
 
+[[user_attributes]]
 ===== User attributes
 
 Create the following custom user attributes in the Keycloak realm:
@@ -974,6 +1279,7 @@ Set the username validator minimum length to *2* (Keycloak default is 3; reduced
 
 IMPORTANT: Users must *not* be allowed to edit their own attributes (name, first name, etc.) in Keycloak.
 
+[[authentik_setup]]
 ==== Authentik setup
 
 . Create a new role (e.g. `projectforge-sync`) with permissions: Group (add, change, delete, view), User (add, change, delete, view, add/remove user to group)
@@ -989,6 +1295,7 @@ projectforge.authentik.pageSize=100
 
 Authentik stores custom attributes as a JSON object on users/groups — no pre-configuration of attribute schemas is needed.
 
+[[attribute_mappings]]
 ==== Attribute mappings
 
 Configure which ProjectForge fields are synced to IdP user/group attributes:
@@ -1007,6 +1314,7 @@ projectforge.idp.groupAttributes.description=description
 projectforge.idp.groupAttributes.organization=organization
 ----
 
+[[wlan_password_sync_optional]]
 ==== WLAN password sync (optional)
 
 [source,properties]
@@ -1014,6 +1322,7 @@ projectforge.idp.groupAttributes.organization=organization
 projectforge.idp.wlanPasswordAttribute=sambaNTPassword
 ----
 
+[[login_handlers]]
 ==== Login handlers
 
 [cols="2,4"]
@@ -1025,7 +1334,9 @@ projectforge.idp.wlanPasswordAttribute=sambaNTPassword
 |`IdpLoginHandler` |IdP is master; users/groups are pulled IdP -> PF
 |===
 
+[[troubleshooting]]
 === Troubleshooting
+[[nullpointerexception_on_pages_with_diagrams_under_linux]]
 ==== NullPointerException on pages with diagrams under Linux
 If you will receive exceptions while calling pages with diagrams such as under menu project management -> my statistics:
 ----
@@ -1034,8 +1345,10 @@ Caused by: java.lang.NullPointerException
 ----
 the Linux package *fontconfig* probably isn't installed. Please install this package and restart ProjectForge.
 
+[[maintenance]]
 == Maintenance
 
+[[updating]]
 === Updating
 
 Updating is easy: back up your database, stop ProjectForge and start the new version (new JAR file or
@@ -1043,11 +1356,13 @@ Updating is easy: back up your database, stop ProjectForge and start the new ver
 automatically (Flyway) on the first start. Please check the link:/docs/migration/[Migration guide] for the few
 changes that need your attention.
 
+[[re_indexing_the_database]]
 === Re-indexing the database
 
-The search index is rebuilt every night (see <<Scheduler>>). You may also start it manually under _Administration_
+The search index is rebuilt every night (see <<scheduler>>). You may also start it manually under _Administration_
 -> _System_ -> _Reindex_, e.g. after restoring a backup.
 
+[[analysing_tools]]
 === Analysing tools
 
 The log files are located in `logs` of the home directory; administrators may also search them with the log viewer of
@@ -1063,13 +1378,15 @@ jcmd <pid> GC.heap_info
 In Docker, run them inside the container (`docker exec -it projectforge bash`); the JRE image may not contain all JDK
 tools, then `kill -3 <pid>` writes a thread dump to the container's output (`docker logs projectforge`).
 
+[[backup]]
 === Backup
 
 All datasets of ProjectForge® are stored in the underlying
 database (e. g. PostgreSQL).
 You should install a Unix cron script making frequently a backup of the
-database (see <<Backup script>>).
+database (see <<backup_script>>).
 
+[[embedded_database_hsqldb]]
 ==== Embedded database (HSQLDB)
 
 With the embedded database, everything is located in ProjectForge's home directory: the database (`database`), the
@@ -1078,11 +1395,12 @@ The files of the file store are part of the embedded database. For a backup, sto
 directory (e.g. `tar czf projectforge-home_2026-10-06.tar.gz -C $HOME ProjectForge`); `logs` and `hibernateSearch`
 may be left out. For restoring, stop ProjectForge, replace the home directory by the copy and start ProjectForge
 again (rebuild the search index if you left out `hibernateSearch`).
-If the data transfer files are encrypted, the key mustn't be part of this backup, see <<Encryption of the data transfer files>>.
+If the data transfer files are encrypted, the key mustn't be part of this backup, see <<encryption_of_the_data_transfer_files>>.
 
+[[postgresql_dumps]]
 ==== PostgreSQL dumps
 
-The files of the new file store (attachments of contracts, orders, invoices etc., see <<Moving the files out of the JCR>>) are stored in the own schema `pf_files`. This schema may become large, so two dumps are made:
+The files of the new file store (attachments of contracts, orders, invoices etc., see <<moving_the_files_out_of_the_jcr>>) are stored in the own schema `pf_files`. This schema may become large, so two dumps are made:
 
 * The main dump without the files: `pg_dump -N pf_files ...` (excludes the schema `pf_files`).
 * The dump of the files only: `pg_dump -n pf_files -Fc ...` (custom format, restorable in parallel by `pg_restore -j`).
@@ -1090,10 +1408,12 @@ The files of the new file store (attachments of contracts, orders, invoices etc.
 Both dumps are independent of each other: there are no foreign keys between `pf_files` and the other tables. Differences after restoring dumps of different days are reported by the sanity checks, which run nightly
 (`projectforge.cron.sanityChecks`) and on demand via _Administration_ -> _System_ -> _Check system integrity_.
 
-Data transfer files (`<home>/datatransfer`) are not part of any backup: their metadata is in `pf_files`, but the content is stored in the file system and is short-lived.
+Data transfer files (`<home>/datatransfer`) are not part of the dumps: their metadata is in `pf_files`, but the content is stored in the file system. The backup script archives them as `projectforge_datatransfer_...tar` (uncompressed, the files are already stored compressed). If they are encrypted, the key isn't part of this archive, see <<encryption_of_the_data_transfer_files>>.
 
+[[restoring_a_backup]]
 === Restoring a backup
 
+[[data_base]]
 ==== Data base
 
 [source,shell,linenums]
@@ -1109,9 +1429,16 @@ Restoring the files afterwards (schema `pf_files`, the main dump doesn't contain
 pg_restore -U postgres -d projectforge -j 4 projectforge_files_2026-10-06_02-00.dump
 ----
 
-Restore both dumps before starting ProjectForge: the main dump contains the Flyway history, so Flyway doesn't create the schema `pf_files` again. If the schema already exists in the target data base, drop it first (`DROP SCHEMA pf_files CASCADE;`) or use `pg_restore --clean --if-exists`. After restoring, run the sanity checks via _Administration_ -> _System_ -> _Check system integrity_.
+Restoring the data transfer files (from the same backup as the files dump, because their metadata is in `pf_files`), with ProjectForge stopped and after removing the existing directory `datatransfer`:
 
-For dropping and creating a new database, see <<PostgreSQL>>.
+[source,shell,linenums]
+----
+tar xf projectforge_datatransfer_2026-10-06_02-00.tar -C ~/ProjectForge
+----
+
+Restore both dumps before starting ProjectForge: the main dump contains the Flyway history, so Flyway doesn't create the schema `pf_files` again. If the schema already exists in the target data base, drop it first (`DROP SCHEMA pf_files CASCADE;`) or use `pg_restore --clean --if-exists`. After restoring, run the sanity checks via _Administration_ -> _System_ -> _Check system integrity_ (they also report missing data transfer files).
+
+For dropping and creating a new database, see <<postgresql>>.
 Don't forget to rebuild the search index afterwards (_Administration_ -> _System_ -> _Reindex_)!
 
 **Hint**
@@ -1121,16 +1448,22 @@ If you want to use productive data in a test system, change the users' e-mail ad
 test database first, so nobody gets notifications from the test system. Please also mind data protection.
 ____
 
+[[jcr_repository]]
 ==== JCR repository
 
-Only relevant for installations still using the JCR (`projectforge.files.store=jcr`), see <<Moving the files out of the JCR>>.
+Only relevant for installations still using the JCR (`projectforge.files.store=jcr`), see <<moving_the_files_out_of_the_jcr>>.
 The JCR repository contains the uploaded files (contracts, orders etc.). Its nightly backups are written to the backup directory.
 
 For restoring a JCR backup, please refer the file `backupReadme.txt` inside the backup zip file.
 
 If you have a corrupted JCR repository or if you want to make a full backup, refer `backupReadme.txt` as well. You will also find the readme here: `https://github.com/micromata/projectforge/blob/develop/projectforge-jcr/src/main/resources/backupReadme.txt`.
 
+[[moving_the_files_out_of_the_jcr]]
 ==== Moving the files out of the JCR
+
+IMPORTANT: ProjectForge 9.1.x is the last release that runs on Java 17 and supports the JCR. From 9.2 on, there is no
+JCR (Apache Oak) any more, the files are kept in the database and in the file system only. If you still use the JCR,
+migrate with 9.1.x first, before you update to 9.2 or later, as described below.
 
 The JCR (Apache Oak) is going to be replaced by a new file store: the files are stored in the data base (schema `pf_files`), the data transfer files in the file system (`<home>/datatransfer`). The store is chosen in `projectforge.properties`:
 
@@ -1147,29 +1480,32 @@ After switching to `db` and restarting, ProjectForge copies all files of the JCR
 
 * All files are copied, the JCR keeps them. So you may switch back to `jcr` or roll back to the former release; only files uploaded under `db` are missing after a rollback.
 * Data transfer files need disk space twice (JCR and `<home>/datatransfer`) until they expire. Deleted files are deleted in both stores.
-* If the data transfer files should be encrypted, configure the key before switching to `db`, see <<Encryption of the data transfer files>>. The copies in the JCR remain unencrypted until they expire or the JCR is removed.
-* The nightly JCR backup keeps running in both modes as long as the JCR exists. With `db`, the files are part of the files dump (schema `pf_files`, see <<Backup script>>), data transfer files are not backed up.
+* If the data transfer files should be encrypted, configure the key before switching to `db`, see <<encryption_of_the_data_transfer_files>>. The copies in the JCR remain unencrypted until they expire or the JCR is removed.
+* The nightly JCR backup keeps running in both modes as long as the JCR exists. With `db`, the files are part of the files dump (schema `pf_files`, see <<backup_script>>), the data transfer files are archived by the backup script (`<home>/datatransfer`).
 
-Before updating to a release without JCR, either switch to `db` and wait for a successful migration, or create a
-fresh JCR backup ZIP right before the update (system page, card "Document repository (JCR)", _Create JCR backup ZIP_):
-the next release imports the documents from this ZIP into the database. The ZIP doesn't contain the data transfer
-files.
+Before updating to 9.2 or later, switch to `db` with 9.1.x and wait for a successful migration (check the report
+`<home>/jcr-migration-report.txt`). Releases without JCR can't read the JCR, and they don't import a JCR backup ZIP:
+an installation that skipped the migration has to go back to 9.1.x first. Afterwards, the directory `<home>/jcr` can be
+deleted.
 
+[[automatical_backup]]
 === Automatical backup
 
+[[backup_script]]
 ==== Backup script
 
 Install a crontab entry as user projectforge on your ProjectForge®
 server (or the database server) starting the following script:
 
-*File:* `pforgebackup.sh:`
-
+.File: `pforgebackup.sh`
 [source,shell,linenums]
 ----
 #!/bin/bash
 
 PGSQL_DIR=/usr/bin
 BACKUPDIR=/home/projectforge/backup
+# Home directory of ProjectForge:
+PF_HOME=/home/projectforge/ProjectForge
 BASENAME=projectforge
 TIMESTAMP=`date '+%Y-%m-%d_%H-%M'`
 
@@ -1179,8 +1515,10 @@ echo Starting backup of ProjectForge ...
 BACKUPFILE=$BACKUPDIR/${BASENAME}_${TIMESTAMP}.sql
 # Dump of the files only (schema pf_files, attachments of contracts, orders, invoices etc.).
 FILES_BACKUPFILE=$BACKUPDIR/${BASENAME}_files_${TIMESTAMP}.dump
+# Archive of the data transfer files (content in the file system, metadata in pf_files).
+DATATRANSFER_BACKUPFILE=$BACKUPDIR/${BASENAME}_datatransfer_${TIMESTAMP}.tar
 
-echo Using filenames $BACKUPFILE and $FILES_BACKUPFILE ...
+echo Using filenames $BACKUPFILE, $FILES_BACKUPFILE and $DATATRANSFER_BACKUPFILE ...
 
 echo Exporting data ...
 $PGSQL_DIR/pg_dump -U projectforge -N pf_files -f $BACKUPFILE || { echo "Error: export of data failed."; exit 1; }
@@ -1189,11 +1527,20 @@ echo Zipping backupfile ...
 gzip $BACKUPFILE
 
 echo Exporting files ...
-# Custom format; -Z 0: the content is already compressed (or not compressible).
-$PGSQL_DIR/pg_dump -U projectforge -n pf_files -Fc -Z 0 -f $FILES_BACKUPFILE || { echo "Error: export of files failed."; exit 1; }
+# Custom format; compressed (-Z 1, with PostgreSQL 16+ also -Z zstd:1): pg_dump writes the file contents (bytea) hex
+# encoded, which doubles their size, even if the files themselves are already compressed.
+$PGSQL_DIR/pg_dump -U projectforge -n pf_files -Fc -Z 1 -f $FILES_BACKUPFILE || { echo "Error: export of files failed."; exit 1; }
+
+if [ -d $PF_HOME/datatransfer ]; then
+  echo Archiving data transfer files ...
+  # Uncompressed: the files are already stored compressed (or encrypted). Exit code 1 of tar means that files changed
+  # while reading (e.g. an upload during the backup), the archive is usable anyway.
+  tar cf $DATATRANSFER_BACKUPFILE -C $PF_HOME datatransfer
+  [ $? -le 1 ] || { echo "Error: archiving of data transfer files failed."; exit 1; }
+fi
 
 # For using scp for remote backup:
-#scp $BACKUPFILE.gz $FILES_BACKUPFILE <user>@backup.mydomain:backup/
+#scp $BACKUPFILE.gz $FILES_BACKUPFILE $DATATRANSFER_BACKUPFILE <user>@backup.mydomain:backup/
 
 # Deleting of daily backups is done by ProjectForge (projectforge.cron.purgeBackupDir, see below). Monthly backups
 # are kept forever, because they're needed for financial, yearly comparisons.
@@ -1207,17 +1554,17 @@ ProjectForge purges the daily backups (keeping weekly and monthly ones), if the 
 ----
 projectforge.cron.purgeBackupDir=/home/projectforge/backup
 # Optional: comma-separated prefixes of the backup series. If not given, all files containing a date are processed.
-# Each series (text in front of the date, here projectforge_ and projectforge_files_) is purged on its own.
+# Each series (text in front of the date, here projectforge_, projectforge_files_ and projectforge_datatransfer_) is
+# purged on its own.
 #projectforge.cron.purgeBackupFilesPrefix=projectforge_
 ----
 
-The files dump `projectforge_files_...` is its own series, so it is purged like the main dump (also with the prefix `projectforge_`, because it starts with it).
+The files dump `projectforge_files_...` and the archive `projectforge_datatransfer_...` are series of their own, so they are purged like the main dump (also with the prefix `projectforge_`, because they start with it).
 
 For allowing `pg_dump` without prompting a password, run the script as the Unix user `projectforge` and add
 the following line to `pg_hba.conf` (peer authentication: the Unix user name must match the database user name):
 
-*File:* `pg_hba.conf`:
-
+.File: `pg_hba.conf`
 [source,shell,linenums]
 ----
 local projectforge projectforge peer
@@ -1226,6 +1573,7 @@ local projectforge projectforge peer
 Alternatively, store the password in `~/.pgpass` of the user running the script (`chmod 600 ~/.pgpass`):
 `localhost:5432:projectforge:projectforge:<password>` (then add `-h localhost` to the `pg_dump` calls).
 
+[[adding_crontab]]
 ==== Adding crontab
 
 Adding following entry to the Unix crontab:
@@ -1236,6 +1584,7 @@ Adding following entry to the Unix crontab:
 0 2 * * * /home/projectforge/bin/pforgebackup.sh
 ----
 
+[[remote_backup]]
 ==== Remote backup
 
 For remote backup via `scp` you need to use key authorization:
@@ -1244,13 +1593,13 @@ For remote backup via `scp` you need to use key authorization:
 . Copy your public key, e. g. `identity.pub` to your backup server.
 . Add this key on the backup server to the authorized keys.
 
+[[polling_remote_backup]]
 ==== Polling remote backup
 
 For security reasons it's also possible to get the backup files from the
 ProjectForge® server with a cronjob starting e. g. one hour later:
 
-*File:* `pforgePollBackup.sh`:
-
+.File: `pforgePollBackup.sh`
 ....
 #!/bin/bash
 SERVER=projectforge.mydomain
@@ -1270,6 +1619,7 @@ Add the following entry to your crontab on the backup server:
 0 3 * * * /home/projectforge/bin/pforgePollBackup.sh
 ----
 
+[[monitoring]]
 === Monitoring
 
 You may monitor ProjectForge with your monitoring tool (such as Nagios) by calling the public system status, e.g.
@@ -1279,28 +1629,33 @@ name (`appname`) and the start-up state are useful for monitoring: `setupRedirec
 isn't completed.
 
 Problems at runtime (errors, unreachable external systems, failed scheduler runs) are reported by the
-<<Support error digest>> and shown on the _System dashboard_.
+<<support_error_digest>> and shown on the _System dashboard_.
 
+[[scheduler]]
 === Scheduler
 
+[[data_base_search_index]]
 ==== Data base search index
 
 The search index is rebuilt every night by the nightly job (`projectforge.cron.nightly`, default 2:30). ProjectForge runs with
 the time zone UTC (independent of the server's time zone), so the cron expressions of `projectforge.cron.*` are UTC. Errors are
 logged and therefore part of the error digest. The runs of all scheduled jobs are listed on the _System dashboard_.
 
+[[uninstalling_projectforge]]
 === Uninstalling ProjectForge
 
 Delete the JAR file (or the Docker container and image) and ProjectForge's home directory. If you're not sure where
 the home directory is located, look at the log output of the start-up: ProjectForge logs the home directory it uses.
-If you use PostgreSQL, drop the database as well (see <<PostgreSQL>>).
+If you use PostgreSQL, drop the database as well (see <<postgresql>>).
 
 **Hint**
 
 Please note: If you delete the home directory, all data of the embedded database is deleted as well!
 
+[[security_improvements]]
 === Security improvements
 
+[[fail2ban]]
 ==== Fail2ban
 
 Failed logins are logged as warnings, including the client's IP address (`<user>@<ip>` in front of the logger name):
@@ -1316,6 +1671,7 @@ A starting point for a fail2ban filter (please verify it with `fail2ban-regex` a
 failregex = @<HOST>\s.*LoginDefaultHandler\s*: User login failed:
 ----
 
+[[plugins]]
 == Plugins
 
 Some features are built-in plugins which aren't enabled automatically. They are activated by an administrator under
@@ -1323,14 +1679,16 @@ _Administration_ -> _Plugins_ (or via `projectforge.plugins.ensure-active` in `p
 ProjectForge after (de-)activating a plugin, see also
 link:/docs/installation/#activation_of_built_in_plugins[Installation – Activation of built-in plugins].
 
+[[data_transfer]]
 === Data transfer
 
 Data transfer areas for exchanging (large) files between users, groups and also external users. Recommended for most
 installations. The files are stored in `datatransfer` of the home directory and expire automatically.
 
+[[encryption_of_the_data_transfer_files]]
 ==== Encryption of the data transfer files
 
-With the new file store (`projectforge.files.store=db`, see <<Moving the files out of the JCR>>), the data transfer
+With the new file store (`projectforge.files.store=db`, see <<moving_the_files_out_of_the_jcr>>), the data transfer
 files are stored compressed (unless already compressed by their format, e.g. zip, pdf, videos) and, if a key is
 configured, encrypted (AES-256). So copies of the home directory (e.g. backups) don't contain them in plain text:
 
@@ -1351,15 +1709,18 @@ projectforge.files.fileSystemEncryptionKey=...
 * The costs are low: encryption runs with several GB/s per core (Java 21), compressing a text file of 10 GB takes
   about a minute.
 
+[[liquidity_planning]]
 === Liquidity planning
 
 Supports the cash flow forecast for an easy-to-use liquidity planning. Please refer to the
 link:/docs/userguide/[User guide] for further information.
 
+[[banking]]
 === Banking
 
 Bank accounts and the import of bank account statements.
 
+[[software_license_management]]
 === Software license management
 
 In most companies you've to deal with lots of software and license keys.
@@ -1374,15 +1735,18 @@ the users.
 * The history of changes is only visible for administrators and software
 owners.
 
+[[merlin_word_templates]]
 === Merlin Word® templates
 
 Templating for Microsoft Word® documents (with variables, dependent variables as well as serial execution), useful
 for contracts, serial documents etc.
 
+[[skill_matrix]]
 === Skill matrix
 
 Capture and represent the skills of the employees, managed by the users themselves.
 
+[[further_plugins]]
 === Further plugins
 
 A few more plugins exist for compatibility with existing installations. They are listed under _Administration_ ->

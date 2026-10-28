@@ -107,12 +107,18 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
     // var paginationPageSize: Int = 50
 
     // Workaround for old pagesrest, using UITable (instead of AgGrid).
-    // Used by AddressPagesRest.
+    // No longer set by any page since AddressPagesRest was removed; a candidate for removal.
     var limitResultSize: Int = Int.MAX_VALUE
 
     var sortAndLimitMaxRowsWhileSelect: Boolean = true
 
     var entityGraphName: String? = null
+
+    /**
+     * Result info, set by the query: true if [fulltextSearchString] isn't a valid search syntax (e.g. `Project: x`,
+     * an unclosed '"'). The result is empty then, and a list may show the user a hint.
+     */
+    var fulltextQueryInvalid: Boolean = false
 
     fun getExtendedBooleanValue(key: String): Boolean {
         val value = extended[key] ?: return false

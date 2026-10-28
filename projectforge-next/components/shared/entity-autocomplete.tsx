@@ -13,13 +13,19 @@ import {
   COPYABLE_TRIGGER_CLASS,
   useCopyableTrigger,
 } from "@/lib/text-selection";
+import { inactiveRefClass, type InactiveFlags } from "@/lib/page-def/reference";
 import { cn } from "@/lib/utils";
+import type { InactiveMode } from "@/hooks/use-show-inactive";
 import { EntitySearchList } from "./entity-search-list";
 import { SelectMeButton } from "./select-me-button";
 import { useTypeToOpen } from "./use-type-to-open";
 
-/** What `{entity}/autosearch` answers with (AbstractPagesRest.DisplayObject). */
-export interface EntityRef {
+/**
+ * What `{entity}/autosearch` answers with (AbstractEntityRest.DisplayObject), and what a DTO carries as a
+ * reference. The flags say whether the entry is still live (a deactivated user, a deleted group): a no
+ * longer live one is shown struck through, a deleted one in red, a deactivated one in grey (see inactiveRefClass).
+ */
+export interface EntityRef extends InactiveFlags {
   id: number;
   displayName: string;
 }
@@ -78,15 +84,15 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
    * names are much longer than the field is wide (the long cost 2 names in a row of cost assignments).
    */
   popoverClassName?: string;
+  /** How inactive entries are offered, see [InactiveMode]; the current value stays choosable anyway. */
+  inactive?: InactiveMode;
 }
 
 /**
  * Picks one entity by searching the backend for it — a user, a project, a customer.
  *
  * Context-free on purpose: it takes a url and a value, so both the filter row and any hand-built
- * form can use it. Several entities at once are [EntityMultiAutocomplete]'s business; the form fields of
- * a server-laid-out page are served by DynamicSelect instead, which does the same lookup but
- * additionally handles multi-select, CREATABLE and writing through DynamicLayoutProvider.
+ * form can use it. Several entities at once are [EntityMultiAutocomplete]'s business.
  */
 export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   url,
@@ -103,6 +109,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   required,
   emphasized,
   popoverClassName,
+  inactive,
   "aria-label": ariaLabel,
 }: EntityAutocompleteProps<T>) {
   const t = useTranslations();
@@ -143,7 +150,8 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
               className={cn(
                 "truncate",
                 !value && "text-muted-foreground",
-                value && emphasized && "font-semibold text-primary"
+                value && emphasized && "font-semibold text-primary",
+                inactiveRefClass(value)
               )}
             >
               {value?.displayName ?? t("filter.chooseEntity")}
@@ -183,8 +191,12 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
           minChars={minChars}
           active={open}
           initialSearch={initialSearch}
+          inactive={inactive}
+          current={value}
           onPick={(entry) => {
-            onChange(entry);
+            // Re-picking the current value changes nothing; it may be the bare {id, displayName} the
+            // list put on top (see EntitySearchList.current), which must not replace the richer value.
+            if (entry.id !== value?.id) onChange(entry);
             onOpenChange(false);
           }}
         />

@@ -192,7 +192,14 @@ export function DeclaredFormField<M extends EntityMetadata>({
     );
   }
   if (field.rows) {
-    return <TextAreaField {...common} rows={field.rows} disabled={readOnly} />;
+    return (
+      <TextAreaField
+        {...common}
+        rows={field.rows}
+        disabled={readOnly}
+        controlClassName={field.publicText ? "text-destructive" : undefined}
+      />
+    );
   }
   if (meta.dataType === "BOOLEAN") {
     return <CheckboxField {...common} disabled={readOnly} />;
@@ -225,7 +232,13 @@ export function DeclaredFormField<M extends EntityMetadata>({
   }
   const searchEntity = SEARCH_ENTITY[meta.dataType];
   if (searchEntity) {
-    return <EntityAutocompleteField {...common} entity={searchEntity} />;
+    return (
+      <EntityAutocompleteField
+        {...common}
+        entity={searchEntity}
+        disabled={readOnly}
+      />
+    );
   }
   return (
     <InputField

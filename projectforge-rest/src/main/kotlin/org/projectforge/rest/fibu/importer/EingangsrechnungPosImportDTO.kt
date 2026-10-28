@@ -115,6 +115,27 @@ class EingangsrechnungPosImportDTO(
         get() = if (paymentType != null) translate(paymentType) else ""
 
     /**
+     * DATEV Belegart: "R" (invoice) or "G" (credit note). Import only, not stored.
+     */
+    var belegart: String? = null
+
+    /**
+     * DATEV column "Konto" (contra account of the booking, e.g. 6837 or 1814). Import only, not stored.
+     */
+    var gegenkonto: String? = null
+
+    val isCreditNote: Boolean
+        get() = belegart?.trim().equals("G", ignoreCase = true)
+
+    /**
+     * A credit note on the credit-card clearing account isn't a document of its own: it's the payment of the
+     * invoice with the same RENR (booked as credit note by DATEV). Real credit notes, also from the credit card,
+     * are booked on an expense account.
+     */
+    val isCreditCardPaymentOffset: Boolean
+        get() = isCreditNote && gegenkonto?.trim() in CREDIT_CARD_CLEARING_ACCOUNTS
+
+    /**
      * Import errors that occurred during parsing.
      * Stored in DTO to survive the reconcile process (which recreates PairEntries).
      */
@@ -144,7 +165,7 @@ class EingangsrechnungPosImportDTO(
             EingangsrechnungDO::iban,
             EingangsrechnungDO::bic,
             EingangsrechnungDO::receiver,
-            EingangsrechnungDO::paymentType,
+            // paymentType: diffed as paymentTypeAsString (see buildOldDiffValues), the text the import page shows.
             EingangsrechnungDO::customernr,
             EingangsrechnungDO::bemerkung
         )
@@ -198,8 +219,9 @@ class EingangsrechnungPosImportDTO(
         // For header-only imports, skip grossSum and taxRate (they belong to positions)
         if (isPositionBasedImport) {
             // Compare netSum instead of grossSum to avoid rounding errors
-            // (grossSum is converted to netSum with potential rounding differences)
-            buildOldDiffValue(map, "netSum", this.netSum, old.netSum)
+            // (grossSum is converted to netSum with potential rounding differences), but report the old gross sum:
+            // that's the amount the import page shows.
+            buildOldDiffValue(map, "grossSum", this.netSum, old.netSum, oldDisplayValue = old.grossSum)
             buildOldDiffValue(map, "taxRate", this.taxRate, old.taxRate)
             buildOldDiffValue(map, "kost1.description", this.kost1?.description, old.kost1?.description)
             buildOldDiffValue(map, "kost2.description", this.kost2?.description, old.kost2?.description)
@@ -266,6 +288,37 @@ class EingangsrechnungPosImportDTO(
     }
 
     /**
+     * May this import entry overwrite the given stored invoice? Only if it's the same creditor and the invoice date
+     * differs by [MAX_MATCH_DAYS] at most: DATEV corrects numbers and dates of an invoice, but an invoice never
+     * moves by weeks. Without this check, the import overwrote older invoices of the same creditor (number, date,
+     * currency) with new ones.
+     */
+    fun isPlausibleUpdateOf(dbInvoice: EingangsrechnungDO): Boolean {
+        val thisDatum = datum ?: return false
+        val dbDatum = dbInvoice.datum ?: return false
+        if (kotlin.math.abs(java.time.temporal.ChronoUnit.DAYS.between(thisDatum, dbDatum)) > MAX_MATCH_DAYS) {
+            return false
+        }
+        return StringMatchUtils.calculateCompanySimilarity(kreditor, dbInvoice.kreditor) >= MIN_KREDITOR_SIMILARITY
+    }
+
+    /**
+     * Candidate check for the fuzzy matching stages: [isPlausibleUpdateOf] and a similar invoice number or the same
+     * amount. [matchScore] only ranks the plausible candidates.
+     */
+    fun isPlausibleMatch(dbInvoice: EingangsrechnungDO): Boolean {
+        if (!isPlausibleUpdateOf(dbInvoice)) {
+            return false
+        }
+        if (referenz.equals(dbInvoice.referenz, ignoreCase = true) ||
+            StringMatchUtils.calculateSimilarity(referenz, dbInvoice.referenz) >= MIN_REFERENZ_SIMILARITY
+        ) {
+            return true
+        }
+        return calculateAmountMatchScore(dbInvoice) > 0
+    }
+
+    /**
      * Calculate referenz (invoice number) match score.
      * Uses multi-level matching: exact, normalized, and similarity-based.
      */
@@ -289,9 +342,9 @@ class EingangsrechnungPosImportDTO(
      */
     private fun convertReferenzSimilarityToScore(similarity: Double): Int {
         return when {
-            similarity >= 1.0 -> 45   // Perfect normalized match: "325124610" = "3251246-10"
+            similarity >= 1.0 -> 45   // Perfect normalized match: "123456710" = "1234567-10"
             similarity >= 0.8 -> 40   // High similarity: significant common parts
-            similarity >= 0.6 -> 35   // Medium similarity: "325124610" vs "3251246-10 / Az.: IS-0017-10/KSR"
+            similarity >= 0.6 -> 35   // Medium similarity: "123456710" vs "1234567-10 / Az.: AB-0001-10/XYZ"
             similarity >= 0.35 -> 25  // Low similarity: some common elements (lowered from 0.4 to 0.35)
             similarity >= 0.2 -> 15   // Very low similarity: minimal but detectable match
             else -> 0                 // No meaningful similarity
@@ -361,5 +414,30 @@ class EingangsrechnungPosImportDTO(
                 0
             }
         } else 0
+    }
+
+    companion object {
+        /**
+         * DATEV credit-card clearing accounts: credit notes on them are payment offsets. 1814 (Pliant); 1461
+         * ("Kreditkartenabrechnung") was used for the same offsets in 01-03/2026.
+         */
+        val CREDIT_CARD_CLEARING_ACCOUNTS = setOf("1814", "1461")
+
+        /**
+         * Maximum distance of the invoice dates of an import entry and the stored invoice it may update. Below the
+         * shortest month, so the invoice of the previous month of a monthly billing creditor is never taken.
+         */
+        const val MAX_MATCH_DAYS = 14L
+
+        /**
+         * Minimum creditor similarity (as in [StringMatchUtils.calculateCompanySimilarity]): "ACME GmbH" and
+         * "ACME Consulting GmbH" are the same creditor.
+         */
+        const val MIN_KREDITOR_SIMILARITY = 0.6
+
+        /**
+         * Minimum invoice number similarity: "123456710" and "1234567-10 / Az.: AB-0001-10/XYZ" are the same invoice.
+         */
+        const val MIN_REFERENZ_SIMILARITY = 0.35
     }
 }

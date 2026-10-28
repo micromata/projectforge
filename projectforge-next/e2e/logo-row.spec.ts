@@ -8,6 +8,7 @@ import { test, goto, waitForHydration } from "./fixtures/auth";
 import { locales, translate, userFormat } from "./fixtures/format";
 import { waitForRows } from "./fixtures/list-table";
 import { LOGO_ROW_HEIGHT } from "../hooks/use-collapse-on-scroll";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The logo row at the very top gives way when the user scrolls, and comes back at the top again.
@@ -27,7 +28,9 @@ test.describe("logo row", { tag: "@lane-book" }, () => {
   // for it, as the other list specs do.
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/book/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 
@@ -54,6 +57,17 @@ test.describe("logo row", { tag: "@lane-book" }, () => {
     // useHighlightedRow), and a book a parallel spec has just created stands on the last page, which
     // may hold only a few rows. Polled until it holds twice over, as that jump lands after the rows do.
     await waitForRows(page);
+    // Nothing to go back to on a list of one page (a freshly seeded database holds a handful of books),
+    // which overflows by too little even in this window.
+    const singlePage = await page
+      .getByRole("button", { name: t("table.nextPage") })
+      .isDisabled();
+    test.skip(
+      singlePage &&
+        (await column.evaluate((el) => el.scrollHeight - el.clientHeight)) <=
+          200,
+      "the list holds too few rows to scroll"
+    );
     let roomBefore = false;
     await expect
       .poll(

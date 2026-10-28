@@ -32,12 +32,12 @@ class SearchStringTokenizerTest {
      */
     @Test
     fun tokenizeTest() {
-        Assertions.assertEquals(listOf("dhl", "pop"), SearchStringTokenizer.tokenize("dhl-pop"))
-        Assertions.assertEquals(listOf("dhl"), SearchStringTokenizer.tokenize("dhl"))
+        Assertions.assertEquals(listOf("acme", "pop"), SearchStringTokenizer.tokenize("acme-pop"))
+        Assertions.assertEquals(listOf("acme"), SearchStringTokenizer.tokenize("acme"))
         Assertions.assertEquals(listOf("test.de"), SearchStringTokenizer.tokenize("test.de"))
         Assertions.assertEquals(listOf("kai", "acme.de"), SearchStringTokenizer.tokenize("kai@acme.de"))
         Assertions.assertEquals(listOf("5.100.01.02"), SearchStringTokenizer.tokenize("5.100.01.02"))
-        Assertions.assertEquals(listOf("dhl", "pop"), SearchStringTokenizer.tokenize("DHL-POP"), "Lower cased.")
+        Assertions.assertEquals(listOf("acme", "pop"), SearchStringTokenizer.tokenize("ACME-POP"), "Lower cased.")
         Assertions.assertEquals(listOf("2008", "11", "21"), SearchStringTokenizer.tokenize("2008-11-21"))
         Assertions.assertEquals(emptyList<String>(), SearchStringTokenizer.tokenize("-"), "No word at all.")
         Assertions.assertEquals(emptyList<String>(), SearchStringTokenizer.tokenize(""))
@@ -45,22 +45,22 @@ class SearchStringTokenizerTest {
 
     @Test
     fun expandWordTest() {
-        Assertions.assertEquals("dhl*", SearchStringTokenizer.expandWord("dhl"))
-        Assertions.assertEquals("+dhl*", SearchStringTokenizer.expandWord("dhl", required = true))
+        Assertions.assertEquals("acme*", SearchStringTokenizer.expandWord("acme"))
+        Assertions.assertEquals("+acme*", SearchStringTokenizer.expandWord("acme", required = true))
         Assertions.assertEquals(
-            "+(dhl-pop* (+dhl* +pop*))",
-            SearchStringTokenizer.expandWord("dhl-pop", required = true),
+            "+(acme-pop* (+acme* +pop*))",
+            SearchStringTokenizer.expandWord("acme-pop", required = true),
             "Either the whole word (keyword analyzed fields) or all of the terms the index holds for it.",
         )
-        Assertions.assertEquals("(dhl-pop* (+dhl* +pop*))", SearchStringTokenizer.expandWord("dhl-pop"))
+        Assertions.assertEquals("(acme-pop* (+acme* +pop*))", SearchStringTokenizer.expandWord("acme-pop"))
         Assertions.assertEquals(
             "+(kai@acme.de* (+kai* +acme.de*))",
             SearchStringTokenizer.expandWord("kai@acme.de", required = true),
         )
         Assertions.assertEquals(
-            "+(dhl-* (+dhl*))",
-            SearchStringTokenizer.expandWord("dhl-", required = true),
-            "The index holds 'dhl' for 'dhl-', so the wildcard term 'dhl-*' alone would match nothing.",
+            "+(acme-* (+acme*))",
+            SearchStringTokenizer.expandWord("acme-", required = true),
+            "The index holds 'acme' for 'acme-', so the wildcard term 'acme-*' alone would match nothing.",
         )
         Assertions.assertEquals(
             "+(kai@* (+kai*))",
@@ -74,24 +74,40 @@ class SearchStringTokenizerTest {
             "The '++' is no part of the term the index holds.",
         )
         Assertions.assertEquals(
-            "+(+dhl*)",
-            SearchStringTokenizer.expandWord("-dhl", required = true),
+            "+(+acme*)",
+            SearchStringTokenizer.expandWord("-acme", required = true),
             "A leading '-' would be the prohibited operator of the parser, so only the term is asked for.",
         )
         Assertions.assertEquals(
-            "+dhl-pop%",
-            SearchStringTokenizer.expandWord("dhl-pop", "%", required = true),
+            "+acme-pop%",
+            SearchStringTokenizer.expandWord("acme-pop", "%", required = true),
             "The criteria search (like '%') has no query syntax for alternatives.",
         )
     }
 
     @Test
     fun expandSplitWordTest() {
-        Assertions.assertEquals("(dhl-pop* (+dhl* +pop*))", SearchStringTokenizer.expandSplitWord("dhl-pop"))
-        Assertions.assertEquals("(dhl-* (+dhl*))", SearchStringTokenizer.expandSplitWord("dhl-"))
-        Assertions.assertNull(SearchStringTokenizer.expandSplitWord("dhl"), "One term as typed: nothing to expand.")
-        Assertions.assertNull(SearchStringTokenizer.expandSplitWord("DHL"), "One term as typed, but upper case.")
+        Assertions.assertEquals("(acme-pop* (+acme* +pop*))", SearchStringTokenizer.expandSplitWord("acme-pop"))
+        Assertions.assertEquals("(acme-* (+acme*))", SearchStringTokenizer.expandSplitWord("acme-"))
+        Assertions.assertNull(SearchStringTokenizer.expandSplitWord("acme"), "One term as typed: nothing to expand.")
+        Assertions.assertNull(SearchStringTokenizer.expandSplitWord("ACME"), "One term as typed, but upper case.")
         Assertions.assertNull(SearchStringTokenizer.expandSplitWord("-"))
-        Assertions.assertNull(SearchStringTokenizer.expandSplitWord("dhl-pop", "%"))
+        Assertions.assertNull(SearchStringTokenizer.expandSplitWord("acme-pop", "%"))
+    }
+
+    /**
+     * Accents and German umlaut spellings are normalized like the index (see MyAnalysisConfigurer).
+     */
+    @Test
+    fun normalizeTest() {
+        Assertions.assertEquals("muller", SearchStringTokenizer.normalize("Müller"))
+        Assertions.assertEquals("muller", SearchStringTokenizer.normalize("Mueller"))
+        Assertions.assertEquals("muller", SearchStringTokenizer.normalize("MÜLLER"))
+        Assertions.assertEquals("mu", SearchStringTokenizer.normalize("Mue"), "Prefix while typing.")
+        Assertions.assertEquals("andre", SearchStringTokenizer.normalize("André"))
+        Assertions.assertEquals("strasse", SearchStringTokenizer.normalize("Straße"))
+        Assertions.assertEquals("jorg", SearchStringTokenizer.normalize("Joerg"))
+        Assertions.assertEquals("queue", SearchStringTokenizer.normalize("Queue"), "No 'ue' after 'q'.")
+        Assertions.assertEquals("societe generale", SearchStringTokenizer.normalize("Société Générale"))
     }
 }

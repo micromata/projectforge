@@ -117,12 +117,9 @@ object BaseUserGroupRightUtils {
     throwException: Boolean = false,
   ): Boolean {
     if (operationType == null || operationType.isWriteType) {
-      // Must check access of old object first, if exists:
-      if (oldObj != null && hasWriteAccess(oldObj, userId, throwException)) {
-        return true
-      }
-      // Check access of new object:
-      return hasWriteAccess(obj, userId, throwException)
+      // The stored object decides, if exists: otherwise anybody could take over a foreign object by posting it
+      // with the own id as owner or full access user.
+      return hasWriteAccess(oldObj ?: obj, userId, throwException)
     }
     return hasReadAccess(oldObj ?: obj, userId, throwException)
   }

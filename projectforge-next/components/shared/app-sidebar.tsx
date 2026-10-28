@@ -115,7 +115,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" tooltip="Fin Reinhard">
+            <SidebarMenuButton size="lg" tooltip="Jane Doe">
               <div
                 className="flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-primary-foreground"
                 style={{
@@ -124,11 +124,11 @@ export function AppSidebar() {
                   boxShadow: "0 0 0 2px rgba(0,155,163,0.22)",
                 }}
               >
-                FR
+                JD
               </div>
               <div className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-sm font-semibold">
-                  Fin Reinhard
+                  Jane Doe
                 </span>
                 <span className="truncate text-[11px] text-muted-foreground">
                   Administrator

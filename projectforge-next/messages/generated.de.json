@@ -8,6 +8,7 @@
       "noAccess": "Kein Zugriff.",
       "noEmployeeToUser": "Angemeldete:r Benutzer:in hat keinen zugehörige:n Mitarbeiter:in"
     },
+    "groups": "Gruppen",
     "permission": {
       "denied": "nicht erlaubt",
       "granted": "erlaubt"
@@ -26,7 +27,9 @@
       "leader": "Projektmanagement"
     },
     "title": {
+      "_": "Zugriffsoptionen",
       "add": "Neues Zugriffsrecht",
+      "edit": "Zugriff bearbeiten",
       "heading": "Zugriffsrechte",
       "list": "Liste der Zugriffsrechte"
     },
@@ -46,7 +49,10 @@
     "write": "Schreibzugriff"
   },
   "add": "Hinzufügen",
+  "additionalContacts": "Weitere Ansprechpartner:innen",
   "address": {
+    "_": "Adresse",
+    "addAddress": "Adresse hinzufügen",
     "addressStatus": {
       "_": "Adressstatus",
       "leaved": "Unternehmen verlassen",
@@ -56,10 +62,54 @@
     "addressText": "Adresse",
     "addressText2": "Adresse 2",
     "addressbooks": "Adressbücher",
+    "addresses": "Adressen",
     "birthName": "Geburtsname",
     "birthday": "Geburtstag",
+    "book": {
+      "export": {
+        "_": "Excel-Export",
+        "appleScript4Notes": {
+          "_": "Apple-Script",
+          "tooltip": "Zum Löschen von Notizen (mit Mehrfacheinträgen) aus den aus ProjectForge exportierten Adressen (s. Handbuch). Anschließend sollten die Adressen erneut importiert werden, um die bereinigten Notizen aus ProjectForge zu importieren."
+        },
+        "tooltip": "Exportiert die gefilterten Adressen (nur Favoriten) als Excel-Tabelle mit allen Feldern. Eine Komplettliste kann aus Datenschutzgründen nur über die Finanzbuchhaltung abgerufen werden."
+      },
+      "vCardExport": {
+        "_": "Export vCards",
+        "tooltip": {
+          "content": "VCards markierter Adressen können für externe Adressprogramme (z. B. Apple Adressbuch) exportiert werden (utf-8 sollte im Adressprogramm eingestellt sein)."
+        }
+      },
+      "vCardSingleExport": "Export vCard",
+      "vCardsImport": {
+        "clickToEdit": "Ein Klick auf eine Zeile öffnet die Adresse zum Bearbeiten und zum Vergleichen der Felder.",
+        "dataLoaded": "VCF-Daten wurden geladen. Bitte die zu übernehmenden Felder auswählen.",
+        "description": "Hier können vCards (Dateiformat .vcf) in das Adressbuch importiert werden. Bereits vorhandene Adressen werden nicht dupliziert, sondern nur ergänzt (z. B. um Telefonnummern oder E-Mail-Adressen).\n\nAdressen können anschließend abgeglichen und manuell, auch feldweise, importiert werden.",
+        "dropHint": "VCF-Datei hier ablegen",
+        "dropInfo": "Passende Adresse wird automatisch ausgewählt",
+        "dropLabel": "Oder VCF-Datei ablegen",
+        "error": {
+          "parsing": "Fehler beim Parsen der VCF-Datei"
+        },
+        "imageTooLarge": "Das Bild der vCard ist zu groß für eine Übernahme.",
+        "importImage": "Bild übernehmen",
+        "title": "Importieren von vCards (.vcf)",
+        "wrongFileType": "Falsches Dateiformat. Bitte nur \".vcf\"-Format verwenden."
+      }
+    },
     "business": "geschäftlich",
+    "cardDAV": {
+      "infopage": {
+        "description": "Der CardDAV-Service von ProjectForge kann genutzt werden, indem ein CardDAV-Account in der Clientsoftware wie z. B. im Apple Adressbuch eingerichtet wird.",
+        "description2": "Es werden die persönlichen Favoriten synchronisiert. Wenn Adressen per CardDAV-Client gelöscht werden, so werden die Adressen nicht gelöscht, sondern lediglich als Favorit entfernt.",
+        "description3": "Das Anlegen und Editieren von Adressen kann nur direkt in ProjectForge getätigt werden, um Dupletten zu verhindern.",
+        "title": "Einrichten des CardDAV-Services"
+      }
+    },
     "city": "Stadt",
+    "columnHead": {
+      "myFavorites": "F"
+    },
     "communicationLanguage": "Kommunikationssprache",
     "contactStatus": {
       "_": "Kontaktstatus",
@@ -80,6 +130,13 @@
     },
     "division": "Bereich",
     "emails": "E-Mails",
+    "favorites": {
+      "info": "Favoriten können über CardDAV mit einem Adressbuch synchronisiert werden oder als Excel exportiert werden."
+    },
+    "filter": {
+      "invalidAddresses": "Fehlerhafte Adressen",
+      "myFavorites": "meine Favoriten"
+    },
     "fingerprint": "Fingerprint",
     "form": {
       "_": "Anrede",
@@ -88,6 +145,17 @@
       "miss": "Frau",
       "mister": "Herr",
       "unknown": "unbekannt"
+    },
+    "heading": {
+      "businessAddress": "Geschäftsadresse",
+      "businessContact": "Geschäftlicher Kontakt",
+      "personalData": "Persönliche Daten",
+      "postalAddress": "Briefanschrift",
+      "privateAddress": "Privatadresse"
+    },
+    "image": "Bild",
+    "import": {
+      "entryExpired": "Dieser Eintrag des Imports ist nicht mehr verfügbar (ein Import wird 30 Minuten aufbewahrt). Bitte die VCF-Datei erneut hochladen."
     },
     "myCurrentCallerId": {
       "_": "Anruferkennung",
@@ -101,6 +169,37 @@
         "content": "Unter Mein Zugang können persönliche Zuordnungen zu firmen-internen Telefonen vorgenommen werden (interne Rufnummer). Wird auf eine Telefonnummer in der Adressliste geklickt, so kann eine Direktwahl für das hier angegebene Telefon initiiert werden."
       }
     },
+    "parseText": {
+      "addressBlock": "Adressblock",
+      "addressType": {
+        "business": "Geschäftsadresse",
+        "postal": "Postadresse",
+        "private": "Privatadresse"
+      },
+      "applied": "Felder erfolgreich übernommen",
+      "button": {
+        "_": "Daten einlesen (Text/VCard)",
+        "tooltip": "E-Mail-Signaturen oder anderen Text einfügen, oder VCard-Datei ablegen, um Adressdaten zu importieren"
+      },
+      "confidence": {
+        "high": "Hohe Zuverlässigkeit - Wert ist sehr wahrscheinlich korrekt",
+        "low": "Niedrige Zuverlässigkeit - manuelle Überprüfung empfohlen",
+        "medium": "Mittlere Zuverlässigkeit - bitte überprüfen"
+      },
+      "error": {
+        "emptyInput": "Bitte Text zum Parsen eingeben"
+      },
+      "fieldsParsed": "Eingelesene Felder",
+      "info": {
+        "noChanges": "Keine neuen oder geänderten Felder erkannt. Alle eingelesenen Werte stimmen mit den aktuellen Formulardaten überein."
+      },
+      "inputLabel": "E-Mail-Signatur oder Kontaktdaten einfügen:",
+      "inputPlaceholder": "Adresstext hier einfügen...\n\nBeispiel:\nDr. Merle Musterfrau\nSenior Managerin\nBeispiel GmbH\nMusterstraße 1-5\n12345 Musterstadt\nTel: +49 30 12345678\nm.musterfrau@example.com",
+      "remapTo": "Zuordnen zu:",
+      "warning": {
+        "nameDifferent": "Name weicht von aktueller Adresse ab"
+      }
+    },
     "phone": "Telefon",
     "phoneCall": {
       "number": {
@@ -109,6 +208,7 @@
       },
       "title": "Direktwahl Telefonanlage"
     },
+    "phoneNumbers": "Telefonnummern",
     "phoneType": {
       "business": "Telefon geschäftlich",
       "fax": "Fax",
@@ -119,7 +219,9 @@
     "positionText": "Position",
     "postal": "postalisch",
     "private": "privat",
+    "privateEmail": "Private E-Mail",
     "publicKey": "Public key",
+    "removeAddress": "Adresse entfernen",
     "sendSms": {
       "message": "Nachricht",
       "phoneNumber": "Mobilfunknummer",
@@ -127,18 +229,103 @@
       "title": "SMS senden"
     },
     "state": "Bundesland",
-    "title": "Titel",
+    "title": {
+      "_": "Titel",
+      "add": "Neue Adresse",
+      "list": "Adressliste"
+    },
+    "validation": {
+      "duplicateFound": "Mögliches Duplikat gefunden",
+      "duplicateWarning": "Es existieren bereits folgende Adresse(n) mit diesem Namen:"
+    },
+    "view": {
+      "title": "Adresse ansehen"
+    },
     "website": "Webseite",
     "zipCode": "PLZ"
   },
   "addressbook": {
     "description": "Beschreibung",
+    "fullAccess": {
+      "groups": "Vollzugriff (Gruppen)",
+      "tooltip": "Diese Benutzer:innen haben Schreib- und Lesezugriff auf alle Adressen, die diesem Adressbuch zugeordnet sind.",
+      "users": "Vollzugriff (Benutzer:innen)"
+    },
     "owner": "Eigner:in",
-    "title": "Titel"
+    "readonlyAccess": {
+      "groups": "Nur lesend (Gruppen)",
+      "tooltip": "Diese Benutzer:innen haben einen reinen Lesezugriff auf alle Adressen, die diesem Adressbuch zugeordnet sind.",
+      "users": "Nur lesend (Benutzer:innen)"
+    },
+    "title": {
+      "_": "Titel",
+      "add": "Adressbuch hinzufügen",
+      "heading": "Adressbuch",
+      "list": "Adressbücherliste"
+    }
   },
   "administration": {
     "configuration": {
       "_": "Konfiguration",
+      "accounting": {
+        "add": "Zeile hinzufügen",
+        "creditorsAccountNumberRanges": "Kontonummern der Kreditoren",
+        "debitorsAccountNumberRanges": "Kontonummern der Debitoren",
+        "error": {
+          "accountRange": "{arg0}: keine gültigen Kontonummern: {arg1} (z. B. 4000-4799 oder 6300,6800-6855).",
+          "duplicateId": "{arg0}: Die Id {arg1} wird schon von einer anderen Zeile verwendet.",
+          "firstProjectNumber": "{arg0}: Die erste vorgeschlagene Projektnummer {arg1} liegt nicht in 0-{arg2}.",
+          "firstProjectNumberRange": "Erste vorgeschlagene Projektnummer: Es gibt keinen Nummernkreis mit dem Präfix {arg0}.",
+          "id": "{arg0}: Die Id {arg1} ist kein gültiger Name (Buchstaben, Ziffern und _, beginnend mit einem Buchstaben).",
+          "unknownRow": "{arg0}: Es gibt keine Zeile mit der Id {arg1}.",
+          "value": "{arg0}: Der Wert lässt sich nicht übersetzen (Formel oder Groovy-Skript)."
+        },
+        "firstProjectNumbers": "Erste vorgeschlagene Projektnummer",
+        "heading": "Überschrift der BWA",
+        "help": {
+          "accountRange": "DATEV-Konten, deren Buchungssätze in dieser Zeile summiert werden: einzelne Konten und Bereiche, durch Kommas getrennt, z. B. 4000-4799 oder 6300,6800-6855. Leer bei berechneten Zeilen und Trennzeilen.",
+          "creditors": "Kontonummern der Kreditoren (z. B. 70000-79999): Die Kontoauswahl für Kreditoren bietet nur diese Konten an. Leer: alle Konten.",
+          "debitors": "Kontonummern der Debitoren (z. B. 10000-12999): Die Kontoauswahl für Debitoren bietet nur diese Konten an. Leer: alle Konten.",
+          "firstProjectNumbers": "Je Nummernkreis: die lokale Projektnummer, ab der für ein neues Projekt die nächste freie Projektnummer vorgeschlagen wird, z. B. 1 für 5.###.01 statt 5.###.00. Niedrigere Nummern können weiterhin von Hand eingegeben werden und werden vorgeschlagen, wenn alle höheren vergeben sind. Leer: 0.",
+          "heading": "Überschrift über der betriebswirtschaftlichen Auswertung.",
+          "id": "Name der Zeile in Formeln und Skripten anderer Zeilen: Buchstaben, Ziffern und _, beginnend mit einem Buchstaben. Auf eine Zeile ohne Id kann nicht verwiesen werden.",
+          "indent": "Einrückung des Titels in der BWA, z. B. 1 oder 2 für Unterzeilen. Leer: keine.",
+          "keyRow": "Zeile (über ihre Id), aus der die BWA diese Kennzahl nimmt, z. B. für die Statistik der Buchungssätze.",
+          "no": "Nummer vor dem Titel, z. B. die Zeilennummer der DATEV-BWA. Sonst ohne Funktion.",
+          "order": "Reihenfolge: Ein Buchungssatz gehört zur ersten Zeile von oben, deren Konten zu seinem Konto oder Gegenkonto passen. Berechnete Zeilen werden ebenfalls von oben berechnet, eine berechnete Zeile, auf die eine Formel verweist, muss also darüber stehen.",
+          "priority": "Priorität: Wichtigkeit der Zeile. Eine Kurzform der BWA (z. B. in Reports oder Skripten) enthält nur Zeilen hoher oder sehr hoher Priorität. Leer: mittel.",
+          "rows": "Die Zeilen der BWA in der angezeigten Reihenfolge. Eine Zeile summiert entweder die Buchungssätze ihrer Konten, berechnet ihren Betrag über ihren Wert oder ist eine leere Trennzeile (nur eine Nummer oder nichts).",
+          "scale": "Anzahl der Nachkommastellen des Betrags, z. B. 4 für eine Quote. Leer: 2.",
+          "title": "Text der Zeile in der BWA.",
+          "unit": "Einheit hinter dem Betrag, z. B. %. Leer: die Währung.",
+          "value": "Wert: = gefolgt von einer Formel aus Zeilen-Ids (z. B. =umsatzErloese+bestVerdg) oder ein Groovy-Skript, das den Betrag liefert und in dem die Zeilen als Variablen unter ihren Ids verfügbar sind. Leer: die Summe der Buchungssätze der Konten."
+        },
+        "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON-Objekt; die Vorgaben werden angezeigt.",
+        "merchandisePurchase": "Zeile des Wareneinkaufs",
+        "moveDown": "{arg0} nach unten verschieben",
+        "moveUp": "{arg0} nach oben verschieben",
+        "notGiven": "–",
+        "overallPerformance": "Zeile der Gesamtleistung",
+        "preliminaryResult": "Zeile des vorläufigen Ergebnisses",
+        "remove": "{arg0} entfernen",
+        "row": {
+          "accountRange": "Konten",
+          "id": "Id",
+          "indent": "Einzug",
+          "no": "Nr.",
+          "priority": "Priorität",
+          "scale": "Stellen",
+          "title": "Titel",
+          "unit": "Einheit",
+          "value": {
+            "_": "Wert",
+            "placeholder": "Wert: Formel aus Zeilen-Ids wie =umsatzErloese+bestVerdg oder Groovy-Skript, das den Betrag liefert (leer: Summe der Konten)"
+          }
+        },
+        "rows": "Zeilen der betriebswirtschaftlichen Auswertung (BWA)",
+        "summary": "Debitoren {arg0}, Kreditoren {arg1}, {arg2} Zeilen der BWA",
+        "summaryFirstProjectNumbers": "erste vorgeschlagene Projektnummern {arg0}"
+      },
       "categories": {
         "finance": "Finanzen",
         "hr": "Personal",
@@ -148,6 +335,24 @@
         "timesheet": "Zeitberichte"
       },
       "category": "Kategorie",
+      "contractTypes": {
+        "add": "Vertragsart hinzufügen",
+        "error": {
+          "duplicate": "Vertragsart {arg0}: Der Wert ist mehrfach vergeben.",
+          "label": "Vertragsart {arg0}: Die Bezeichnung fehlt.",
+          "value": "Vertragsart {arg0}: Der Wert fehlt."
+        },
+        "help": {
+          "label": "Name der Vertragsart in der Auswahl der Verträge.",
+          "value": "Kurzform, die im Vertrag gespeichert wird, z. B. NDA. Eindeutig; eine spätere Änderung ändert die Verträge mit dem bisherigen Wert nicht."
+        },
+        "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON-Array; es werden keine Vertragsarten angezeigt.",
+        "label": "Bezeichnung",
+        "moveDown": "{arg0} nach unten verschieben",
+        "moveUp": "{arg0} nach oben verschieben",
+        "remove": "{arg0} entfernen",
+        "value": "Wert"
+      },
       "editPage": {
         "hint": "Dieser Parameter wird auf einer eigenen Seite gepflegt.",
         "link": "Editor öffnen"
@@ -160,8 +365,79 @@
         "vacationTaskNotBookable": "Auf dem Urlaubs-Strukturelement „{arg0}“ können keine Zeitberichte gebucht werden (geschlossen, gelöscht oder für Buchungen gesperrt).",
         "vacationTaskNotFound": "Kein Strukturelement mit der Id {arg0}."
       },
+      "holidays": {
+        "add": "Feiertag hinzufügen",
+        "dayOfMonth": "Tag",
+        "error": {
+          "date": "Feiertag {arg0}: kein gültiger Tag und Monat.",
+          "duplicate": "Feiertag {arg0}: Der vordefinierte Feiertag ist mehrfach konfiguriert.",
+          "label": "Feiertag {arg0}: Die Bezeichnung fehlt.",
+          "workFraction": "Feiertag {arg0}: Der Arbeitsanteil muss zwischen 0 und 1 liegen.",
+          "year": "Feiertag {arg0}: kein gültiges Jahr."
+        },
+        "help": {
+          "dayOfMonth": "Tag im Monat eines eigenen Feiertags (1-31).",
+          "holiday": "Eigener Feiertag oder einer der vordefinierten Feiertage, der geändert werden soll.",
+          "ignore": "Der vordefinierte Feiertag gilt nicht (z. B. Faschingsdienstag, wenn er ein Arbeitstag ist).",
+          "label": "Name im Kalender. Bei einem vordefinierten Feiertag optional: ersetzt dessen Namen.",
+          "month": "Monat eines eigenen Feiertags (1 = Januar, 12 = Dezember).",
+          "own": "Eigene Feiertage werden mit Bezeichnung, Tag und Monat ergänzt: jedes Jahr oder nur im angegebenen Jahr (z. B. ein Brückentag).",
+          "predefinedHolidays": "Die vordefinierten (deutschen) Feiertage gelten ohne Eintrag. Ein Eintrag ist nur nötig, um einen zu ändern: ignorieren, umbenennen oder zum teilweisen Arbeitstag machen.",
+          "workFraction": "Anteil eines vollen Arbeitstags, z. B. 0,5 für einen halben Arbeitstag (Heiligabend, Silvester). Nur für Arbeitstage; leer: ein voller Arbeitstag.",
+          "workingDay": "Ob ein eigener Feiertag ein Arbeitstag (z. B. mit Arbeitsanteil) oder ein freier Tag ist. Vordefinierte Feiertage behalten ihre Einstellung.",
+          "year": "Nur in diesem Jahr (z. B. ein Brückentag). Leer: jedes Jahr."
+        },
+        "holiday": "Feiertag",
+        "ignore": "Ignorieren",
+        "ignored": "ignoriert",
+        "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON-Array; es werden keine Feiertage angezeigt.",
+        "label": "Bezeichnung",
+        "month": "Monat",
+        "own": "Eigener Feiertag",
+        "predefined": "Datum und Arbeitstag wie vordefiniert",
+        "remove": "{arg0} entfernen",
+        "workFraction": "Arbeitsanteil",
+        "workingDay": "Arbeitstag",
+        "year": "Jahr"
+      },
+      "jira": {
+        "add": "Server hinzufügen",
+        "baseUrl": "Browse-URL",
+        "browseBaseUrl": "Standard-Browse-URL",
+        "error": {
+          "browseBaseUrl": "Standard-Browse-URL {arg0}: keine http(s)-URL.",
+          "duplicate": "Projekt {arg0} ist auf Server {arg1} und Server {arg2} eingetragen.",
+          "project": "Server {arg0}: {arg1} ist kein gültiges Projektkürzel (Buchstaben, Ziffern, Unterstrich; beginnend mit mindestens zwei Buchstaben).",
+          "projectsMissing": "Server {arg0}: die Projekte fehlen.",
+          "serverUrl": "Server {arg0}: {arg1} ist keine http(s)-URL.",
+          "serverUrlMissing": "Server {arg0}: die Browse-URL fehlt."
+        },
+        "help": {
+          "baseUrl": "URL, an die der Issue-Key angehängt wird, z. B. https://customer.acme.com/jira/browse/ (mit abschließendem Schrägstrich).",
+          "browseBaseUrl": "URL, an die der Issue-Key (z. B. PROJECTFORGE-222) angehängt wird, wenn sein Projekt auf keinem der Server unten liegt, z. B. https://jira.acme.com/jira/browse/ (mit abschließendem Schrägstrich). Ohne Standard-URL und Server werden keine Issues verlinkt.",
+          "projects": "Kürzel der Projekte auf diesem Server, kommagetrennt, z. B. ACME, ADMIN. Ein Projekt liegt nur auf einem Server.",
+          "servers": "Weitere JIRA-Server nach den Projekten, die auf ihnen liegen. Die Issues aller anderen Projekte werden auf die Standard-Browse-URL verlinkt."
+        },
+        "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON-Objekt; es werden keine JIRA-Einstellungen angezeigt.",
+        "moveDown": "{arg0} nach unten verschieben",
+        "moveUp": "{arg0} nach oben verschieben",
+        "projects": "Projekte",
+        "remove": "{arg0} entfernen",
+        "servers": "Server",
+        "summary": {
+          "servers": "{arg0} Server"
+        }
+      },
       "json": {
-        "invalid": "Kein gültiges JSON."
+        "invalid": "Kein gültiges JSON.",
+        "mode": {
+          "_": "Ansicht",
+          "form": "Formular",
+          "json": "JSON"
+        },
+        "notReadable": "Nicht lesbar: {arg0}",
+        "switchInvalid": "Kein gültiges JSON: zum Wechsel ins Formular erst korrigieren.",
+        "unknownFields": "Felder, die das Formular nicht kennt, entfallen, sobald der Wert im Formular geändert wird."
       },
       "param": {
         "calendarDomain": {
@@ -190,13 +466,17 @@
           "label": "Feedback"
         },
         "fibu": {
+          "accounting": {
+            "_": "Buchhaltung",
+            "description": "Kontenbereiche der Debitoren und Kreditoren (z. B. \"10000-12999\") und das Schema der betriebswirtschaftlichen Auswertung (BWA) mit ihren Zeilen: Nummer, Id, Kontenbereich, Wert (Formel beginnend mit \"=\" oder Groovy-Skript), Priorität, Titel, Einrückung, Nachkommastellen und Einheit. Siehe Administrationshandbuch."
+          },
           "contributionMargin": {
             "_": "Deckungsbeitrag",
             "description": "Einstellungen des Deckungsbeitrags (Auftragsbuch und Scripte): die Erlöskonten, der Stundensatz für die Zeitberichte der Monate ohne importierte Buchungssätze, der Ziel-Prozentsatz mit der Rot-Grenze der Ampel und die Zuordnung von Kostenträgern ohne eigenes Projekt zu einem Projekt."
           },
           "costConfigured": {
             "_": "Kostenkalkulation freigeschaltet?",
-            "description": "Wenn die Kostenkalkulation verwendet werden soll (s. Dokumentation) dann muss diese hier grundsätzlich aktiviert werden. Anschließend sind Entitäten wie Projekte und Kunden nutzbar. Bitte beachten: Die Projektentität ist nur sinnvoll, wenn auch eine Kostenträgerrechnung verwendet werden soll. Andernfalls können die Projekte z. B. über den Strukturbaum ab (Kunde -> Projekt -> Release -> Arbeitspakete ...) abgebildet werden. Eine erneutes Ab- und Wiederanmelden ist ggf. erforderlich, damit das Menü aktualisiert wird."
+            "description": "Schaltet die Kostenträgerrechnung frei (Kost1/Kost2, s. Dokumentation): Kostenträger der Projekte mit ihren Kost2-Arten, Kostenzuweisungen der Rechnungen und die zugehörigen Auswertungen. Kunden und Projekte sind auch ohne sie nutzbar, mit freien Nummern oder denen der konfigurierten Nummernkreise. Ein erneutes Ab- und Wiederanmelden ist ggf. erforderlich, damit das Menü aktualisiert wird."
           },
           "customerGroups": {
             "_": "Kundengruppen und Business Units",
@@ -211,15 +491,27 @@
             "description": "Einstellungen des Forecasts (Statistiken): der Hinweis zum Plandatum, der in dessen Tooltip angezeigt wird."
           }
         },
+        "groupNomenclature": {
+          "_": "Nomenklatur der Gruppen",
+          "description": "Namenskonvention der Gruppen (Beschreibung, Muster und Endungen), nach der Projekt- und Strukturelement-Assistent die Namen neuer Gruppen vorschlagen."
+        },
+        "holidays": {
+          "_": "Feiertage",
+          "description": "Zusätzliche Feiertage (Bezeichnung, Monat, Tag, optional Jahr) und Änderungen der vordefinierten über ihre Id (z. B. XMAS_EVE): ignorieren, Bezeichnung, Arbeitstag, Arbeitsanteil (z. B. 0.5 für einen halben Arbeitstag)."
+        },
         "hr": {
           "emailaddress": {
             "_": "E-Mailadresse HR",
             "description": "Mailadresse von HR für Urlaubseinträge"
           }
         },
+        "jira": {
+          "_": "JIRA",
+          "description": "JIRA-Server, auf die Issue-Keys (z. B. PROJECTFORGE-222) in Zeitberichten und Strukturelementen verlinkt werden: eine Standard-Browse-URL und weitere Server nach den Projekten, die auf ihnen liegen. Ohne URL werden keine Issues verlinkt."
+        },
         "lanesAndPlanes": {
           "_": "Lanes & Planes",
-          "description": "Einstellungen der Übertragung der Mitarbeitenden an das Reisemanagement Lanes & Planes: die Rechnungsprofil-IDs, die allgemeinen Kost1, die allen Usern als Kostenstellen übertragen werden, die allgemeinen Kost2, die allen Usern als Kostenträger übertragen werden, die Muster der Kost2, die den Usern übertragen werden, die sie bebuchen dürfen, die weiteren User, die keine Mitarbeitenden sind, die Namen der in Lanes & Planes schon bestehenden Kostenstellen und Kostenträger und die bestätigten E-Mail-Änderungen. Die technischen Einstellungen (Aktivierung, API-Key, Probelauf) stehen in projectforge.properties."
+          "description": "Einstellungen der Übertragung der Mitarbeitenden an das Reisemanagement Lanes & Planes: die Rechnungsprofil-IDs, die allgemeinen Kost1, die allen Usern als Kostenstellen übertragen werden, die allgemeinen Kost2, die allen Usern als Kostenträger übertragen werden, die Muster der Kost2, die den Usern übertragen werden, die sie bebuchen dürfen, die weiteren User, die keine Mitarbeitenden sind, die Namen der in Lanes & Planes schon bestehenden Kostenstellen und Kostenträger und die E-Mails der Mitarbeitenden in Lanes & Planes. Die technischen Einstellungen (Aktivierung, API-Key, Probelauf) stehen in projectforge.properties."
         },
         "messageOfTheDay": {
           "_": "Meldung des Tages",
@@ -228,6 +520,12 @@
         "minPasswordLength": {
           "_": "Passwortmindestlänge",
           "description": "Die Mindestlänge der Benutzer:innenpasswörter."
+        },
+        "orga": {
+          "contractTypes": {
+            "_": "Vertragsarten",
+            "description": "In den Verträgen auswählbare Vertragsarten: eine Liste von Einträgen mit Wert (Kurzform, z. B. NDA) und Bezeichnung (z. B. Geheimhaltungsvereinbarung)."
+          }
         },
         "organization": {
           "_": "Organisation",
@@ -275,7 +573,7 @@
           },
           "warnMissingKost2": {
             "_": "Zeitberichte ohne Kost2 melden?",
-            "description": "Wenn aktiviert, zeigt ein ohne Kost2 gespeicherter Zeitbericht (auf einem Strukturelement ohne Kost2) einen Hinweis, sich an das Projektmanagement oder die Buchhaltung zu wenden, und die Benachrichtigungsregel „Zeitberichte ohne Kost2“ greift. Gebucht werden kann weiterhin. Nur wirksam bei freigeschalteter Kostenrechnung."
+            "description": "Wenn aktiviert, zeigt ein ohne Kost2 gespeicherter Zeitbericht (auf einem Strukturelement ohne Kost2) einen Hinweis, sich an das Projektmanagement oder die Buchhaltung zu wenden, die Benachrichtigungsregel „Zeitberichte ohne Kost2“ greift und solche Einträge werden im Monatsbericht markiert. Gebucht werden kann weiterhin. Nur wirksam bei freigeschalteter Kostenrechnung."
           }
         },
         "timesheetTags": {
@@ -365,16 +663,82 @@
       "encrytpedAes128": "verschlüsselt (AES-128)",
       "encrytpedAes256": "verschlüsselt (AES-256, hohe Sicherheit)",
       "standard": "ohne Verschlüsselung"
-    }
+    },
+    "zipTooLarge": "Die ausgewählten Dateien sind zusammen größer als {arg0}. Bitte weniger Dateien auswählen oder einzeln herunterladen."
   },
   "attachments": {
     "_": "Anhänge",
     "short": "Anh."
   },
   "attr": {
+    "currentlyValid": "Aktuell gültig",
     "validSince": "Gültig ab"
   },
+  "availability": {
+    "chart": {
+      "ariaLabel": "Diagramm dieses Eintrags und der überlappenden Abwesenheiten der Vertretungen",
+      "own": "Dieser Eintrag"
+    },
+    "comment": {
+      "_": "Öffentlicher Kommentar",
+      "tooltip": "Sichtbar für alle, die den Eintrag sehen dürfen, z. B. Kolleg:innen im Kalender."
+    },
+    "conflict": {
+      "info": "Es besteht ein Konflikt mit den Abwesenheiten der Vertreter:innen. An mindestens einem Tag steht kein:e Vertreter:in zur Verfügung (Urlaub oder nicht verfügbar). Bitte andere oder weitere Vertretungen auswählen."
+    },
+    "conflicts": "Konflikte",
+    "endDate": "Enddatum",
+    "entry": {
+      "add": "Eintrag hinzufügen"
+    },
+    "internalComment": {
+      "_": "Interner Kommentar",
+      "tooltip": "Nur für die betroffene Person selbst und für HR sichtbar."
+    },
+    "location": {
+      "_": "Ort",
+      "onSite": "Standort",
+      "remote": "Remote",
+      "tooltip": "Optional, z. B. Remote bei mobiler Tätigkeit oder Workation."
+    },
+    "notSpecified": "keine Angabe",
+    "startDate": "Startdatum",
+    "status": {
+      "_": "Verfügbarkeit",
+      "notAvailable": "Nicht verfügbar",
+      "reachableIfNeeded": "Bei Bedarf erreichbar",
+      "remoteReachable": "Remote erreichbar"
+    },
+    "substitutes": {
+      "_": "Vertretungen",
+      "absences": "Abwesenheiten der Vertretungen",
+      "kind": "Art",
+      "tooltip": "Optional: wer im Zeitraum vertritt. Sind an einem Tag alle abwesend (Urlaub oder nicht verfügbar), wird der Eintrag als Konflikt angezeigt."
+    },
+    "switchToVacationButton": {
+      "_": "Als Urlaub bearbeiten",
+      "tooltip": "Öffnet einen neuen Urlaubsantrag mit Person, Zeitraum, Kommentar und Vertretungen dieses Eintrags. Er wird erst beim Speichern angelegt; ein bereits gespeicherter Verfügbarkeitseintrag bleibt unverändert bestehen und kann danach bei Bedarf gelöscht werden."
+    },
+    "title": {
+      "_": "Verfügbarkeit",
+      "add": "Verfügbarkeitseintrag erstellen",
+      "edit": "Verfügbarkeitseintrag bearbeiten",
+      "heading": "Verfügbarkeit",
+      "list": "Verfügbarkeitsliste"
+    },
+    "type": {
+      "_": "Typ",
+      "tooltip": "Optional. Nur für die betroffene Person selbst und für HR sichtbar, alle anderen sehen nur den Status."
+    },
+    "user": "Person",
+    "workingDays": "Arbeitstage"
+  },
   "back": "Zurück",
+  "birthdayButler": {
+    "organization": {
+      "notSet": "Es ist keine Organisation konfiguriert (projectforge.birthdaybutler.organization in projectforge.properties)."
+    }
+  },
   "book": {
     "abstract": "Zusammenfassung",
     "authors": "Autor:innen",
@@ -435,17 +799,40 @@
     "dayOfWeekShortLabel": "WT",
     "defaultCalendar": "Standardkalender",
     "filter": {
+      "absenceKinds": {
+        "_": "Anzeigen",
+        "tooltip": "Was von den Abwesenheiten angezeigt wird: Urlaube, nicht verfügbar, remote erreichbar usw. Für die Vertretungen eines Urlaubs zählen nur Urlaube und „nicht verfügbar“ als abwesend. Nicht für die Team-Kalender: Sie zeigen die Abwesenheiten, die sie enthalten."
+      },
       "vacation": {
         "groups": {
-          "_": "Urlaubskalender Gruppen",
-          "tooltip": "Für Mitglieder dieser Gruppen werden die Urlaube angezeigt."
+          "_": "Abwesenheiten: Gruppen",
+          "tooltip": "Für Mitglieder dieser Gruppen werden die Abwesenheiten angezeigt: Urlaube und Verfügbarkeitseinträge."
         },
         "users": {
-          "_": "Urlaubskalender Benutzer:in",
-          "tooltip": "Für diese Personen werden die Urlaube angezeigt."
+          "_": "Abwesenheiten: Personen",
+          "tooltip": "Für diese Personen werden die Abwesenheiten angezeigt: Urlaube und Verfügbarkeitseinträge."
         }
       },
       "visible": "sichtbar"
+    },
+    "holiday": {
+      "ascension": "Christi Himmelfahrt",
+      "ashWednesday": "Aschermittwoch",
+      "corpusChristi": "Fronleichnam",
+      "easterMonday": "Ostermontag",
+      "easterSunday": "Ostersonntag",
+      "firstXmasDay": "1. Weihnachtstag",
+      "goodFriday": "Karfreitag",
+      "maundyThursday": "Gründonnerstag",
+      "newYear": "Neujahr",
+      "newYearsEve": "Silvester",
+      "palmSunday": "Palmsonntag",
+      "secondXmasDay": "2. Weihnachtstag",
+      "shroveMonday": "Rosenmontag",
+      "shroveTuesday": "Faschingsdienstag",
+      "whitMonday": "Pfingstmontag",
+      "whitSunday": "Pfingstsonntag",
+      "xmasEve": "Heiligabend"
     },
     "month": {
       "_": "Monat",
@@ -511,8 +898,7 @@
           "info": "Diese Farbe wird für Urlaube verwendet, die in den Ansichtseinstellungen über das Zahnrad ausgewählt wurden.\n\nWenn verschiedene Farben für verschiedene Urlaube von Teams und/oder Personen gewünscht sind, dann kann leicht ein Urlaubskalender für Gruppen/Personen [hier](/next/teamCal/new) eingerichtet werden."
         }
       },
-      "intro": "Beachte: Die Farben von anderen Kalendern kann einfach durch Klicken auf die Pillen in der Kalenderauswahl oben in der Zeile der Kalenderseite verändert werden.",
-      "title": "Kalendereinstellungen"
+      "intro": "Beachte: Die Farben von anderen Kalendern kann einfach durch Klicken auf die Pillen in der Kalenderauswahl oben in der Zeile der Kalenderseite verändert werden."
     },
     "short": {
       "yearToDate": "J→"
@@ -572,12 +958,245 @@
   },
   "changes": "Änderungen",
   "charactersLeft": "Zeichen übrig.",
+  "chat": {
+    "backToHost": "Zurück",
+    "conversation": {
+      "empty": "Noch keine Nachrichten.",
+      "loadOlder": "Ältere Nachrichten laden",
+      "members": "Mitglieder",
+      "membersCount": "Mitglieder ({arg0})",
+      "membersMe": "(du)",
+      "mute": "Stummschalten",
+      "muted": "Stummgeschaltet: Neue Nachrichten werden nicht gemeldet, Erwähnungen schon.",
+      "newMessages": "Neu",
+      "nextUnread": "Zur nächsten ungelesenen Nachricht springen ({arg0} ungelesen)",
+      "notFound": "Die Unterhaltung gibt es nicht oder sie ist nicht zugänglich.",
+      "polling": "Live-Aktualisierung unterbrochen, neue Nachrichten werden regelmäßig abgefragt.",
+      "pollingLabel": "Verzögert",
+      "readOnly": "Diese Unterhaltung ist schreibgeschützt.",
+      "unmute": "Stummschaltung aufheben"
+    },
+    "dataTransfer": {
+      "_": "Datentransfer",
+      "empty": "Noch keine Chats in Datentransferbereichen: Jeder Bereich ist ein Chatraum für alle mit Zugriff darauf.",
+      "open": "Zum Datentransferbereich"
+    },
+    "description": {
+      "hide": "Beschreibung ausblenden",
+      "show": "Beschreibung einblenden"
+    },
+    "direct": {
+      "_": "Direktnachrichten",
+      "empty": "Noch keine Direktnachrichten.",
+      "error": {
+        "self": "An sich selbst lassen sich keine Direktnachrichten schicken."
+      },
+      "info": "Angeschrieben werden kann jede Person, die in der Personenauswahl erscheint.",
+      "new": "Direktnachricht",
+      "open": "Öffnen",
+      "send": "Direktnachricht senden",
+      "start": "Chat starten",
+      "startOrSendFile": "Chat starten / Datei senden",
+      "user": "Person"
+    },
+    "emoji": {
+      "empty": "Kein Emoji gefunden",
+      "insert": "Emoji einfügen",
+      "loading": "Lädt…",
+      "more": "Weitere Emojis",
+      "search": "Emoji suchen",
+      "siren": {
+        "blue": "Blaue Sirene",
+        "red": "Rote Sirene"
+      }
+    },
+    "file": {
+      "add": "Dateien anhängen",
+      "addHint": "Dateien anhängen. Dateien können auch einfach in das Nachrichtenfenster gezogen werden.",
+      "directTarget": "Dateien landen im Datentransfer in der persönlichen Box von {arg0}.",
+      "download": "Herunterladen",
+      "error": {
+        "tooLarge": "Die Datei „{arg0}“ ist zu groß (höchstens {arg1}).",
+        "tooLargeTogether": "Alle Dateien zusammen sind für eine Nachricht zu groß.",
+        "tooMany": "Höchstens {arg0} Dateien pro Nachricht.",
+        "unavailable": "Ohne aktiviertes Datentransfer-Plugin können im Chat keine Dateien ausgetauscht werden."
+      },
+      "expiryDays": {
+        "_": "Dateien verfügbar",
+        "info": "Die Dateien des Raums werden so lange in seinem Datentransferbereich „Chat: …“ aufbewahrt und danach gelöscht."
+      },
+      "notAvailable": "Datei nicht mehr verfügbar",
+      "openArea": "Im Datentransfer öffnen",
+      "remove": "Datei entfernen"
+    },
+    "linkHint": "Chat und verschlüsselte Kommunikation",
+    "linkHintDataTransfer": "Chat, verschlüsselte Kommunikation und Datenaustausch",
+    "mention": {
+      "noResults": "Niemand gefunden."
+    },
+    "message": {
+      "cancel": "Abbrechen",
+      "codeBlock": "Codeblock mit mehreren Zeilen: Enter beginnt eine neue Zeile, Strg+Enter (Mac: ⌘+Enter) sendet.",
+      "copyLink": "Link kopieren",
+      "delete": {
+        "_": "Löschen",
+        "confirm": "Diese Nachricht löschen?"
+      },
+      "deleted": "Nachricht gelöscht",
+      "edit": "Bearbeiten",
+      "edited": "bearbeitet",
+      "hidden": "Nachricht von der Moderation ausgeblendet",
+      "hiddenReason": "Ausgeblendet von {arg0}: {arg1}",
+      "hide": {
+        "_": "Ausblenden",
+        "reason": "Grund für das Ausblenden"
+      },
+      "history": "Historie",
+      "linkCopied": "Link kopiert.",
+      "markUnread": "Als ungelesen markieren",
+      "placeholder": "Nachricht schreiben, @ erwähnt jemanden",
+      "quote": {
+        "_": "Zitieren",
+        "of": "Zitat von {arg0}, zur Nachricht",
+        "remove": "Zitat entfernen"
+      },
+      "react": "Reaktion hinzufügen",
+      "reply": "Im Thread antworten",
+      "save": "Speichern",
+      "seen": "Gelesen",
+      "seenBy": "Gelesen von {arg0}",
+      "send": "Senden",
+      "unhide": "Wieder einblenden"
+    },
+    "notification": {
+      "secret": {
+        "title": "{arg0} möchte ein vertrauliches Gespräch beginnen"
+      }
+    },
+    "room": {
+      "delete": {
+        "_": "Chatraum löschen",
+        "confirm": "Den Chatraum „{arg0}“ mit allen Nachrichten und Dateien löschen? Das lässt sich nicht rückgängig machen."
+      },
+      "description": "Beschreibung",
+      "edit": "Chatraum bearbeiten",
+      "moderators": {
+        "_": "Moderation",
+        "info": "Wer moderiert, nimmt am Raum teil, bearbeitet und löscht ihn, blendet Nachrichten anderer mit Begründung aus (z. B. themenfremd oder vertraulich) und sieht die Historie bearbeiteter Nachrichten – wie die Person, die den Raum angelegt hat."
+      },
+      "name": "Name",
+      "new": "Neuer Chatraum",
+      "owner": {
+        "_": "Angelegt von",
+        "info": "Wer den Raum anlegt, nimmt immer teil und moderiert ihn."
+      },
+      "participantGroups": "Teilnehmende Gruppen",
+      "participantUsers": "Teilnehmende Personen",
+      "participants": "{arg0} Teilnehmende",
+      "unread": "{arg0} ungelesen"
+    },
+    "rooms": {
+      "_": "Chaträume",
+      "empty": "Noch keine Chaträume: Einfach einen anlegen und die Teilnehmenden wählen."
+    },
+    "search": {
+      "_": "Suchen",
+      "hits": "{arg0} Treffer",
+      "kind": {
+        "chatRoom": "Chatraum",
+        "direct": "Direktnachricht"
+      },
+      "messages": "Gefundene Nachrichten",
+      "noResults": "Keine Nachrichten gefunden.",
+      "placeholder": "Nachrichten durchsuchen"
+    },
+    "secret": {
+      "accept": "Annehmen",
+      "action": "Vertrauliches Gespräch",
+      "alert": {
+        "allowNotifications": "Browser-Benachrichtigungen erlauben",
+        "log": "Letzte Signale",
+        "logBlocked": "Still (vom Browser blockiert)",
+        "logClear": "Leeren",
+        "logEmpty": "Noch nichts signalisiert.",
+        "logMuted": "Still (Ton ausgeschaltet)",
+        "logRang": "Geklingelt",
+        "logSecretOffer": "Vertrauliches Gespräch angeboten von {arg0}",
+        "notificationsDenied": "Browser-Benachrichtigungen sind für diese Seite blockiert. Das lässt sich in den Seiteneinstellungen des Browsers wieder ändern.",
+        "notificationsStatus": "Browser-Benachrichtigungen:",
+        "settings": "Ton und Benachrichtigungen",
+        "sound": "Ton, wenn ein vertrauliches Gespräch angeboten wird",
+        "statusDefault": "noch nicht gefragt",
+        "statusDenied": "blockiert",
+        "statusGranted": "erlaubt",
+        "statusUnsupported": "von diesem Browser nicht unterstützt",
+        "testSound": "Ton testen",
+        "title": "{arg0}: vertrauliches Gespräch"
+      },
+      "close": "Schließen",
+      "decline": "Ablehnen",
+      "discard": "Verwerfen",
+      "discardConfirm": "Ist sie in einem anderen Fenster offen, endet sie auch dort.",
+      "elsewhere": "Ein vertrauliches Gespräch mit {arg0} läuft in einem anderen Fenster oder lässt sich hier nicht mehr öffnen (die Seite wurde neu geladen).",
+      "empty": "Noch keine Nachrichten. Die erste an {arg0} kann hier geschrieben werden.",
+      "end": "Gespräch beenden",
+      "ended": "Das Gespräch ist beendet (abgelehnt, von der Gegenseite beendet, abgelaufen oder die Gegenseite ist weg).",
+      "error": {
+        "decrypt": "Die Nachricht ließ sich nicht entschlüsseln.",
+        "missing": "Eine Nachricht der Gegenseite fehlt.",
+        "unsupported": "Dieser Browser bietet hier keine Verschlüsselung (eine sichere Verbindung ist nötig)."
+      },
+      "fingerprint": "Fingerabdruck",
+      "info": "Ende-zu-Ende-verschlüsselt: Texte werden in einem Browser verschlüsselt und erst im anderen entschlüsselt. ProjectForge leitet sie weiter, ohne sie lesen zu können, und speichert nichts. Beide müssen online sein; das Gespräch endet, wenn eine Seite es beendet oder verlässt, nach 10 Minuten ohne Nachricht und spätestens nach 2 Stunden.",
+      "limit": "Das schützt vor Datenbank-Backups, Logs und Administratoren, die in Daten schauen. Den Fingerabdruck auf beiden Seiten vergleichen, z. B. am Telefon: Weicht er ab, ist ein manipulierter Server im Spiel. Bildschirm und Zwischenablage der Beteiligten sind nicht geschützt.",
+      "new": "Verschlüsselter Chat",
+      "newInfo": "Hier wird die Person gewählt, mit der ein Ende-zu-Ende-verschlüsseltes Gespräch beginnen soll. Angefragt werden kann jede Person, die in der Personenauswahl erscheint.",
+      "newTooltip": "Startet ein Ende-zu-Ende-verschlüsseltes Gespräch mit einer Person. Es wird nichts gespeichert, und beide müssen online sein.",
+      "next": "Weiter",
+      "offered": "{arg0} möchte ein vertrauliches Gespräch beginnen.",
+      "read": "Gelesen",
+      "receiveTitle": "Vertrauliches Gespräch mit {arg0}",
+      "send": "Verschlüsseln und senden",
+      "sendTitle": "Vertrauliches Gespräch mit {arg0}",
+      "start": "Starten",
+      "text": "Vertraulicher Text",
+      "waitingForAccept": "Warten, bis {arg0} annimmt …",
+      "waitingForSender": "Verbinde mit {arg0} …"
+    },
+    "thread": {
+      "follow": "Folgen",
+      "lastReply": "Letzte Antwort {arg0}",
+      "newReplies": "Neu",
+      "placeholder": "Im Thread antworten",
+      "replies": "{arg0} Antworten",
+      "reply": "1 Antwort",
+      "title": "Thread",
+      "unfollow": "Nicht mehr folgen"
+    },
+    "title": "Chat"
+  },
   "clone": "Klonen",
   "close": "Schließen",
   "codeEditor": {
     "addCursor": "Weiteren Cursor setzen",
     "copyLine": "Zeile nach oben / unten kopieren",
     "deleteLine": "Zeile löschen",
+    "diff": {
+      "_": "Änderungen anzeigen",
+      "backup": "Backup vom {arg0}",
+      "backupWithoutDate": "Letztes Backup (Datenbank)",
+      "copyAll": "Alles kopieren",
+      "edited": "Bearbeitet (nicht gespeichert)",
+      "historyVersion": "Vor der Änderung vom {arg0} ({arg1})",
+      "left": "Linke Version",
+      "noBackups": "Es gibt noch keine Backups.",
+      "noHistory": "Der Wert wurde noch nicht geändert.",
+      "none": "Keine Änderungen.",
+      "right": "Rechte Version",
+      "showAll": "Alle Zeilen anzeigen",
+      "stored": "Gespeichert",
+      "title": "Versionen vergleichen"
+    },
     "indent": "Einrücken",
     "key": {
       "click": "Klick",
@@ -604,7 +1223,8 @@
       "replaceAll": "alle ersetzen",
       "replaceOne": "ersetzen",
       "replacedMatches": "$ Treffer ersetzt",
-      "replacedOnLine": "Treffer in Zeile $ ersetzt"
+      "replacedOnLine": "Treffer in Zeile $ ersetzt",
+      "unchangedLines": "$ unveränderte Zeilen"
     },
     "previousMatch": "Vorheriger Treffer",
     "rectangularSelection": "Rechteckauswahl",
@@ -621,6 +1241,9 @@
   "color": {
     "error": {
       "unknownFormat": "Farbcode kann nicht verarbeitet werden. Unterstützte Hex-Farbformate: #abc or #abcdef"
+    },
+    "picker": {
+      "custom": "Eigene Farbe"
     }
   },
   "columns": {
@@ -645,6 +1268,7 @@
         "reconcile": "Abgleichen",
         "selectAll": "Alle auswählen"
       },
+      "additionalChanges": "Zusätzliche Änderungen",
       "clearStorage": "Leeren"
     },
     "recurrence": {
@@ -658,6 +1282,10 @@
         "yearly": "Jährlich"
       }
     }
+  },
+  "contact": {
+    "firstname": "Vorname",
+    "name": "Nachname"
   },
   "contactPerson": "Ansprechpartner:in",
   "contactPersons": "Ansprechpartner:innen",
@@ -737,6 +1365,12 @@
   },
   "edit": "Bearbeiten",
   "email": "E-Mail",
+  "emptyInBrackets": "<leer>",
+  "entityRefs": {
+    "paste": {
+      "foreign": "Die Zwischenablage enthält keine Einträge dieser Art."
+    }
+  },
   "error": {
     "_": "Ein Fehler trat auf: {arg0}",
     "endDateBeforeBeginDate": "Das Endedatum darf nicht vor dem Anfangsdatum liegen.",
@@ -792,6 +1426,57 @@
       "contributionMargin": {
         "_": "Deckungsbeitrag",
         "bookingImportEnd": "Buchungssätze sind bis {arg0} importiert. Die späteren Monate (heller) sind vorläufig: Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
+        "breakdown": {
+          "calculated": "Die Werte der Aufträge und Strukturelemente sind kalkulatorisch, weil die Buchungssätze nur das Projekt (Kost2) kennen: Erlöse aus den Rechnungspositionen der Auftragspositionen, Kosten aus den Zeitberichten × Stundensatz ({arg0}). Zeitberichte gehen an die Auftragspositionen des nächsten Strukturelements darüber. Was sich nicht zuordnen lässt, und die Abweichung zur Buchhaltung, bleiben als Rest beim Projekt; die Zeilen eines Projekts ergeben so dessen Deckungsbeitrag.",
+          "chart": "Deckungsbeitrag monatlich: {arg0}",
+          "column": {
+            "order": "Projekt / Auftrag",
+            "task": "Projekt / Strukturelement"
+          },
+          "empty": "Keine Erlöse oder Kosten gefunden.",
+          "hourlyRateMissing": "Es ist kein Stundensatz konfiguriert (Administration → Konfiguration), daher haben Aufträge und Strukturelemente keine Kosten aus Zeitberichten.",
+          "orders": "Aufträge",
+          "residual": {
+            "_": "Nicht zuordenbar",
+            "accounting": {
+              "_": "Abweichung zur Buchhaltung: {arg0}",
+              "tooltip": "Z. B. sonstige Kosten auf den Kostenträgern des Projekts (Fremdleistungen, Reisekosten), Gehälter statt Stundensatz, auf andere Projekte gebuchte Rechnungen."
+            },
+            "invoices": "Rechnungen ohne Auftrag: {arg0}",
+            "invoicesTask": "Rechnungen ohne Strukturelement: {arg0}",
+            "timesheets": "Zeitberichte ohne Auftrag: {arg0}"
+          },
+          "selectRow": "Eine Zeile auswählen, um ihre Monate im Diagramm zu sehen.",
+          "tasks": "Strukturelemente"
+        },
+        "bubbles": {
+          "_": "Deckungsbeitrag-Bubbles",
+          "anonymous": "Andere Projekte (anonym)",
+          "grouping": {
+            "_": "Eine Bubble je",
+            "CUSTOMER": "Kunde",
+            "CUSTOMER_GROUP": "Kundengruppe",
+            "PROJECT": "Projekt",
+            "PROJECT_GROUP": "Projektgruppe",
+            "tooltip": "Projekte ohne Projekt- bzw. Kundengruppe bekommen eine eigene Bubble (Kundengruppe: eine je Kunde)."
+          },
+          "legend": {
+            "anonymous": "blass: andere Projekte (anonym)",
+            "default": "ohne Farbe der Business Unit"
+          },
+          "noRevenue": "kein Umsatz",
+          "others": {
+            "_": "Andere Projekte anonym anzeigen",
+            "tooltip": "Zeigt zum Vergleich auch die Projekte, die der Business-Unit- und Kunden-Filter auswählen (z. B. alle einer Business Unit), unabhängig vom Projektfilter, deren Deckungsbeitrag sonst nicht sichtbar ist: blass, ohne Namen, gleich gruppiert."
+          },
+          "own": "Eigene Projekte",
+          "projectCount": "Projekte",
+          "showTitles": {
+            "_": "Titel einblenden",
+            "tooltip": "Beschriftet die eigenen Bubbles mit Kurztitel und DB %: dem Namen der Gruppe bzw. des Kunden, bei einem einzelnen Projekt mit dem Kurzbezeichner (sonst dem Namen). Ausgeschaltet stehen die Namen nur im Tooltip."
+          },
+          "size": "Bubble-Größe: DB1"
+        },
         "config": {
           "addAssignment": "Zuordnung hinzufügen",
           "bands": "Rot unter {arg0} %, gelb unter {arg1} %, grün ab {arg1} %.",
@@ -1131,6 +1816,11 @@
     },
     "businessUnits": {
       "add": "Business Unit hinzufügen",
+      "color": {
+        "_": "Farbe",
+        "remove": "Farbe entfernen",
+        "tooltip": "Die Farbe der Bubbles der Business Unit im Deckungsbeitrags-Bubble-Diagramm der Statistik. Bubbles mehrerer oder nicht eingefärbter Business Units behalten die Standardfarbe."
+      },
       "empty": "Noch keine Business Units.",
       "groups": "Kundengruppen",
       "members": "Umfasst ({arg0})",
@@ -1167,15 +1857,28 @@
     },
     "currencyConversion": {
       "conversionRate": "Umrechnungskurs",
-      "inverseConversionRate": "Inverser Umrechnungskurs"
+      "currentInverseRate": "Aktueller inverser Umrechnungskurs",
+      "currentRate": "Aktueller Umrechnungskurs",
+      "inverseConversionRate": "Inverser Umrechnungskurs",
+      "rates": "Umrechnungskurse"
     },
     "currencyPair": {
       "_": "Währungspaar",
       "currencyCode": {
         "tooltip": "ISO-Währungscode (3 Buchstaben) wird empfohlen, z.B. USD, EUR, GBP.\n\nDiese Codes werden auch beim Import oder Anlage von Währungen im System genutzt."
       },
+      "insert": {
+        "hint": "Bitte erstelle zunächst das Währungspaar. Umrechnungskurse können nach der Erstellung hinzugefügt werden."
+      },
+      "onlineRates": {
+        "info": "**Automatische Wechselkurse**: ProjectForge kann aktuelle Wechselkurse automatisch aus Online-Quellen abrufen. Beim Hinzufügen von Umrechnungsraten versucht das System, die aktuellsten Kurse für das angegebene Datum abzurufen, was die Pflege aktueller Währungspaare sehr einfach macht."
+      },
       "sourceCurrency": "Quellwährung",
-      "targetCurrency": "Zielwährung"
+      "targetCurrency": "Zielwährung",
+      "title": {
+        "add": "Währungspaar anlegen",
+        "list": "Liste der Währungspaare"
+      }
     },
     "customerGroups": {
       "add": "Kundengruppe hinzufügen",
@@ -1186,10 +1889,29 @@
         "invalidText": "Weder ein Name noch ein gültiges Muster."
       },
       "groups": "Kundengruppen",
-      "intro": "Zusammengehörende Kunden (ACME Germany, ACME Logistics, ACME Holding) bilden eine Gruppe, die die Kundenfilter von Auftragsbuch, Rechnungen, Projekten und Kost2 wie einen einzelnen Kunden anbieten. Business Units fassen Gruppen und Kunden zusammen und erhalten einen eigenen Filter. Ein Kunde gehört zu höchstens einer Gruppe, eine Gruppe oder ein Kunde zu höchstens einer Business Unit.",
+      "intro": "Zusammengehörende Kunden (ACME Germany, ACME Logistics, ACME Holding) bilden eine Gruppe, die die Kundenfilter von Auftragsbuch, Rechnungen, Projekten und Kost2 wie einen einzelnen Kunden anbieten. Business Units fassen Gruppen und Kunden zusammen und erhalten einen eigenen Filter. Ein Kunde gehört zu höchstens einer Gruppe, eine Gruppe oder ein Kunde zu höchstens einer Business Unit. Projektgruppen leisten dasselbe für die Projekte der Projektfilter.",
       "matches": "Trifft {arg0} Kunden",
       "matchesNone": "Trifft noch keinen Kunden",
+      "members": {
+        "more": "… und {arg0} weitere",
+        "tooltip": "Umfasst"
+      },
       "name": "Name",
+      "orderAccess": {
+        "_": "Auftragsfreigaben",
+        "add": "Auftragsfreigabe hinzufügen",
+        "empty": "Noch keine Auftragsfreigaben.",
+        "ineffective": {
+          "_": "Ohne Wirkung für {arg0} Benutzer",
+          "deactivated": "deaktiviert",
+          "noOrderBookRight": "kein Zugriff auf das Auftragsbuch (Recht)",
+          "noProjectManager": "weder Projektmanager noch Projektassistent"
+        },
+        "intro": "Gewährt lesenden Zugriff auf alle Aufträge der gewählten Kunden, Kundengruppen und Business Units, samt Rechnungen, Forecast und Deckungsbeiträgen. Berechtigt werden nur Benutzer, die Projektmanager oder Projektassistent sind (PF_ProjectManager, PF_ProjectAssistant) und Zugriff auf das Auftragsbuch haben. Ändern lässt sich ein Auftrag weiterhin nur als Kontaktperson oder als Projektmanager des Projekts.",
+        "remove": "Auftragsfreigabe {arg0} entfernen",
+        "userGroups": "Gruppen (deren Mitglieder)",
+        "users": "Benutzer"
+      },
       "remove": "Kundengruppe {arg0} entfernen",
       "saved": "Kundengruppen gespeichert.",
       "texts": "Kundennamen",
@@ -1206,7 +1928,7 @@
         },
         "format": {
           "accounts": "Kontenplan: das Blatt \"Kontenplan\" (auch mit vorangestelltem Monat, z. B. \"07_Kontenplan\") mit den Spalten Konto und Beschriftung. Importiert werden nur die Kontobezeichnungen, alle übrigen Kontodaten bleiben erhalten.",
-          "intro": "Die Original-Exceldatei des Steuerbüros (.xlsx / .xls) kann unverändert hochgeladen werden. Auswertungsblätter wie BWA, SuSa oder USt werden ignoriert.",
+          "intro": "Die Original-Exceldatei des Steuerbüros (.xlsx / .xls) kann unverändert hochgeladen werden, ein Upload füllt beide Reiter. Auswertungsblätter wie BWA, SuSa oder USt werden ignoriert.",
           "records": "Buchungssätze: Das Monatsblatt (z. B. \"07\") ist der Buchungsmonat. Buchungssätze mit Belegdatum in einem Folgemonat werden diesem Buchungsmonat zugeordnet, behalten aber ihr tatsächliches Belegdatum.",
           "title": "Dateiformat der Importdatei"
         },
@@ -1214,7 +1936,23 @@
       }
     },
     "eInvoiceChecker": {
-      "description": "Hier kann eine ZUGFeRD-PDF oder XRechnung-XML-Datei hochgeladen werden, um die enthaltenen Rechnungsdaten zu prüfen."
+      "amountDue": "Zahlbetrag",
+      "amounts": "Beträge",
+      "attachments": "Anhänge",
+      "buyer": "Käufer / Rechnungsempfänger",
+      "buyerReference": "Käufer-Referenz (Leitweg-ID)",
+      "description": "Hier kann eine ZUGFeRD-PDF oder XRechnung-XML-Datei hochgeladen werden, um die enthaltenen Rechnungsdaten zu prüfen.",
+      "documentTypeCode": "Dokumenttyp-Code",
+      "format": "Format",
+      "invalid": "Die E-Rechnung weist Fehler auf.",
+      "lineItems": "Positionen",
+      "metadata": "Rechnungsdaten",
+      "mimeType": "MIME-Typ",
+      "profile": "Profil",
+      "seller": "Verkäufer / Rechnungssteller",
+      "title": "E-Rechnungs-Checker",
+      "unit": "Einheit",
+      "valid": "Die E-Rechnung ist gültig."
     },
     "eingangsrechnung": {
       "_": "Kreditorenrechnung",
@@ -1233,6 +1971,7 @@
           "positions": "Rechnungspositionen"
         }
       },
+      "markedOverdue": "Überfällig oder in 2 Werktagen fällig",
       "multiselected": {
         "title": "Mehrfachauswahl Kreditorrechnungen"
       },
@@ -1345,7 +2084,6 @@
       "wochenstunden": "Wochenstunden",
       "zipCode": "PLZ"
     },
-    "employees": "Mitarbeitende",
     "fakturiert": "fakturiert",
     "headOfBusinessManager": "Management Business Unit",
     "konto": {
@@ -1442,7 +2180,8 @@
       "_": "Kost2",
       "art": "Art",
       "error": {
-        "projektNeededForNummernkreis": "Das Projekt muss für die Nummernkreise 4 und 5 zwingend angegeben sein."
+        "projektNeededForNummernkreis": "Für Kostenträger eines Nummernkreises muss das Projekt angegeben sein.",
+        "projektWithoutNumberRange": "Kostenträger (Kost2) gibt es nur für Projekte eines Nummernkreises: Die Nummer des Projekts gehört zu keinem konfigurierten Nummernkreis."
       },
       "id": "Kost2-ID",
       "kost2s": "Kost2s",
@@ -1472,6 +2211,16 @@
       },
       "workFraction": "Arbeitszeitanteil"
     },
+    "kostSearch": {
+      "dock": "Auf jeder Seite einblenden",
+      "dockTooltip": "Lässt die Kost-Suche über jeder Seite schweben und kehrt zur vorherigen Seite zurück, wie ALT-K hier (macOS: Option-K).",
+      "hint": "Kostenträger auswählen, um Nummer und Bezeichnung z. B. zum Kopieren zu erhalten. Mit ALT-K (macOS: Option-K) schwebt die Kost-Suche über jeder Seite.",
+      "number": "Nummer",
+      "panel": {
+        "toggle": "Kost-Suche auf jeder Seite ein- oder ausblenden (ALT-K, macOS: Option-K)"
+      },
+      "popOut": "In eigenem Fenster öffnen"
+    },
     "kunde": {
       "_": "Kunde",
       "division": "Bereich",
@@ -1485,12 +2234,20 @@
         "tooltip": "Dieses Konto wird bei einem Export von Debitorenrechnungen mit ausgegeben, sofern im konkreten Projekt, welches der Rechnung evtl. zugewiesen ist, kein anderes Konto angegeben ist."
       },
       "kunden": "Kunden",
+      "legend": {
+        "inactive": "Beendet, nicht aktiv oder nicht mehr existent"
+      },
       "list": {
         "select": {
           "title": "Kunde wählen"
         }
       },
       "name": "Kundenname",
+      "nextFreeNumber": "Nächste freie Nummer im Nummernkreis {arg0}: {arg1}",
+      "numberRanges": {
+        "info": "Kundennummern der Nummernkreise: {arg0}. Andere Nummern sind frei (für ihre Projekte werden keine Kostenträger erzeugt).",
+        "infoNoFree": "Kundennummern der Nummernkreise: {arg0}."
+      },
       "nummer": "Kundennummer",
       "pleaseSelectKunde": "Bitte Kunde wählen",
       "select": "Auswahl Kunde",
@@ -1536,6 +2293,10 @@
         "noData": "Im Zeitraum gibt es keine Arbeitszeit, aus der sich eine Fakturaquote berechnen ließe.",
         "title": "Fakturaquote der letzten 12 Monate"
       },
+      "missingKost2": {
+        "_": "ohne Kost2",
+        "tooltip": "Ohne Kost2 gebucht: bitte an das Projektmanagement oder die Buchhaltung wenden."
+      },
       "showInvoicingQuota": "Fakturaquote anzeigen",
       "tab": {
         "report": "Monatsbericht"
@@ -1570,9 +2331,21 @@
       }
     },
     "probabilityOfOccurrence": "Eintrittswahrsch. in %",
+    "projectGroup": "Projektgruppe",
+    "projectGroups": {
+      "add": "Projektgruppe hinzufügen",
+      "empty": "Noch keine Projektgruppen.",
+      "intro": "Zusammengehörende Projekte eines gemeinsamen Oberprojekts bilden eine Projektgruppe, die die Projektfilter von Auftragsbuch, Rechnungen, Projekten, Kost2, Zeitberichten und Auftragsstatistik wie ein einzelnes Projekt anbieten. Ein Projekt gehört zu höchstens einer Projektgruppe.",
+      "projects": "Projekte",
+      "remove": "Projektgruppe {arg0} entfernen",
+      "title": "Projektgruppen"
+    },
     "projectManager": "Projektmanagement",
     "projekt": {
       "_": "Projekt",
+      "contacts": {
+        "info": "Ansprechpartner:innen haben Zugriff auf das Projekt und seine Aufträge und Rechnungen."
+      },
       "edit": {
         "kost2DeactivateHint": "Abwählen setzt die Kost2 auf nicht aktiv: keine neuen Buchungen, bestehende Zeitberichte bleiben.",
         "kost2LockedEnded": "Das Projekt ist beendet und damit auch seine Kost2-Einheiten (angehakt): Sie sind nicht mehr änderbar.",
@@ -1588,6 +2361,9 @@
           "tooltip": "Projekte, bei denen mindestens eine der gewählten Kost2-Arten nicht aktiv ist oder fehlt."
         }
       },
+      "freeProjektnummer": {
+        "info": "Freie Projektnummer (der Kunde gehört zu keinem Nummernkreis). Leer: Beim Speichern wird die nächste freie Nummer vergeben."
+      },
       "identifier": "Kurzbezeichner",
       "internKost2_4": "Intern: Koststellen 2-4",
       "konto": {
@@ -1596,6 +2372,9 @@
       "lastActivity": "Letzte Aktivität",
       "lastOrder": "Letzter Auftrag",
       "lastTimesheet": "Letzte Zeitbuchung",
+      "legend": {
+        "ended": "Beendet"
+      },
       "leiter": "Projektmanagement",
       "list": {
         "select": {
@@ -1619,17 +2398,21 @@
         "title": "Mehrfachauswahl Projekte"
       },
       "name": "Name",
+      "nextFreeNumber": "Nächste freie Nummer: {arg0}",
       "nummer": "Nummer",
       "pleaseSelectProjekt": "Bitte Projekt wählen",
       "projektManagerGroup": "Projektmanagergruppe",
       "projekte": "Projekte",
+      "projektnummer": "Projektnummer",
       "status": {
         "acquisition": "Akquise",
+        "active": "aktiv",
         "build": "Entwicklungsphase",
         "ended": "beendet",
         "maintenance": "Wartung",
         "none": "Nicht gesetzt.",
         "onhold": "vorrübergehend (noch) nicht aktiv",
+        "paused": "pausiert",
         "productive": "produktiv (ohne Wartung)"
       },
       "title": {
@@ -1639,8 +2422,10 @@
         "list": "Projekte"
       },
       "validation": {
+        "localNumberOutOfRange": "Die Nummer muss im Nummernkreis des Kunden zwischen 0 und {arg0} liegen.",
         "numberLocked": "Nummer und Kunde können nicht mehr geändert werden: Das Projekt hat bereits Kostenträger (Kost2), die diese Nummer tragen.",
-        "numbernotfreeforcustomer": "Nummer bereits für anderes Kundenprojekt vergeben"
+        "numbernotfreeforcustomer": "Nummer bereits für anderes Kundenprojekt vergeben",
+        "projektnummerExists": "Die Projektnummer {arg0} ist bereits an ein anderes Projekt vergeben."
       },
       "wizard": {
         "notYetAvailable": "Der Assistent ist noch nicht verfügbar. Bitte beachten: Projektobjekte werden aktuell nur und nur für Kostenträgerrechnungen benötigt (s. Dokumentation). Bitte benutzen den Strukturbaum, um eine Kunden-Projekt-Hierarchie abzubilden."
@@ -1957,10 +2742,12 @@
     "selectAll": "Alles auswählen",
     "selection": "Auswahl",
     "show": "Filter anzeigen",
+    "showInactive": "Inaktive anzeigen",
     "startsWith": "Beginnt mit",
     "timeFrom": "Von (Uhrzeit)",
     "timeTo": "Bis (Uhrzeit)",
     "title": "Filter",
+    "typeToSearch": "Zum Suchen tippen…",
     "value": "Wert",
     "valueNotSet": "(nicht gesetzt)",
     "valueTo": "Bis"
@@ -2063,12 +2850,6 @@
     "male": "männlich",
     "unknown": "unbekannt"
   },
-  "goreact": {
-    "menu": {
-      "classics": "Alte Version",
-      "classicsInfo": "Die alte Version wird in Kürze entfernt."
-    }
-  },
   "group": {
     "_": "Gruppe",
     "assignedUsers": "Assoziierte Benutzer:in",
@@ -2087,6 +2868,45 @@
       "_": "Lokale Gruppe",
       "not": "Allgemeine Gruppe",
       "tooltip": "Lokale Gruppen werden nicht mit einem externen Benutzer:innensystem synchronisiert (z. B. LDAP)."
+    },
+    "members": {
+      "tooltip": {
+        "count": "{arg0} Mitglieder",
+        "loading": "Mitglieder werden geladen …",
+        "none": "Keine Mitglieder",
+        "notVisible": "Die Mitglieder sind nur für Mitglieder der Gruppe und für Admins sichtbar."
+      }
+    },
+    "nomenclature": {
+      "_": "Namenskonvention",
+      "description": {
+        "_": "Beschreibung",
+        "tooltip": "Erläutert die Konvention; wird in den Assistenten bei den Namen neuer Gruppen angezeigt."
+      },
+      "example": {
+        "_": "Beispiel",
+        "customer": "Kunde",
+        "project": "Projekt"
+      },
+      "externalSuffix": "Endung der Gruppe der Externen",
+      "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON; angezeigt werden die Standardwerte, die ihn beim Speichern ersetzen.",
+      "letterCase": {
+        "_": "Groß-/Kleinschreibung",
+        "keep": "Unverändert",
+        "lower": "kleinbuchstaben",
+        "tooltip": "Gilt für den ganzen vorgeschlagenen Namen samt Endung.",
+        "upper": "GROSSBUCHSTABEN"
+      },
+      "managerSuffix": "Endung der Managergruppe",
+      "pattern": {
+        "_": "Muster des Basisnamens",
+        "placeholders": "Platzhalter",
+        "tooltip": "Der Basisname der Gruppen eines Projekts, gebildet aus den unten aufgeführten Platzhaltern; ein leerer Kurzbezeichner wird durch den Namen ersetzt. Leer: der Name des Projekts."
+      },
+      "suffix": {
+        "tooltip": "Wird mit Bindestrich angehängt. Leer: die Vorgabe des Assistenten."
+      },
+      "teamSuffix": "Endung der Teamgruppe"
     },
     "owner": "Gruppenbesitzer",
     "pleaseSelectGroup": "Bitte Gruppe wählen",
@@ -2161,6 +2981,10 @@
     }
   },
   "id": "Id",
+  "imageEditor": {
+    "title": "Bild bearbeiten",
+    "zoom": "Zoom"
+  },
   "import": {
     "_": "Importieren",
     "confirmMessage": "Sollen nun alle ausgewählten Einträge importiert werden? Diese Aktion kann nicht rückgängig gemacht werden.",
@@ -2272,31 +3096,23 @@
         "lastName": "Nachname",
         "tooltip": "User von Lanes & Planes, die keine Mitarbeitenden sind, z. B. eine externe Buchhaltung. Werden nur mit Name, E-Mail und Rechnungsprofilen übertragen, ihre Rolle, Manager und Kostenstellen bleiben also erhalten. Ohne Eintrag würden sie von der Übertragung deaktiviert, und hat einer von ihnen Verantwortlichkeiten (z. B. als Buchhaltung), schlägt die ganze Übertragung fehl. Für den Service-Admin von Lanes & Planes und Gastprofile nicht nötig: Der Import lässt sie unberührt."
       },
-      "confirmedEmailChanges": {
-        "_": "Bestätigte E-Mail-Änderungen",
-        "tooltip": "Lanes & Planes erkennt User nur an ihrer E-Mail. Ändert sich die E-Mail von Mitarbeitenden, wird weiter die alte übertragen (siehe Problem-Dashboard), sonst würde der User deaktiviert und neu angelegt. Die E-Mail zuerst in Lanes & Planes von Hand ändern, dann die neue E-Mail hier eintragen. Nach der nächsten Übertragung kann der Eintrag entfernt werden."
-      },
       "existingCostObjects": {
         "_": "Bestehende Namen in Lanes & Planes",
         "textHint": "Ein Name pro Zeile oder die kommagetrennte Liste der Spalte cost_centers des User-Exports.",
         "tooltip": "Kostenstellen und Kostenträger, die es in Lanes & Planes schon gibt (z. B. von Hand angelegt), genau so benannt wie dort, beginnend mit der Nummer ohne Punkte, z. B. 50123401 Projekt - Reisekosten. Ein Kost1 oder Kost2 mit dieser Nummer wird mit diesem Namen als ident und Name übertragen, Lanes & Planes verwendet ihn also weiter. Lanes & Planes lässt einen Namen kein zweites Mal zu (auch gelöschte Einträge zählen): Ohne diesen Eintrag schlägt der Import für alle User mit diesem Kost fehl."
       },
-      "existingUserEmails": {
-        "_": "Bestehende User in Lanes & Planes (E-Mails)",
-        "tooltip": "Die E-Mails der User in Lanes & Planes, aus der Spalte email des User-Exports (CSV) eingefügt, da die Schnittstelle keine User lesen kann. Mitarbeitende, die noch nicht übertragen wurden und deren E-Mail hier fehlt, werden mit einer hier gelisteten alternativen oder früheren E-Mail des Users übertragen, sonst würde Lanes & Planes den User neu anlegen. Wie eine geänderte E-Mail wird sie beibehalten, bis die E-Mail in Lanes & Planes geändert und unten bestätigt wurde. Leer: keine Prüfung."
-      },
       "generalKost1": {
         "_": "Allgemeine Kost1 (Kostenstellen)",
-        "tooltip": "Werden allen Usern als Kostenstellen (cost_centers) übertragen. Formatierte Nummer wie 1.005.01.00. Ohne Einträge bleiben die in Lanes & Planes gepflegten Kostenstellen erhalten."
+        "tooltip": "Werden allen Usern als Kostenstellen (cost_centers) übertragen. Formatierte Nummer wie 1.900.01.00. Ohne Einträge bleiben die in Lanes & Planes gepflegten Kostenstellen erhalten."
       },
       "generalKost2": {
         "_": "Allgemeine Kost2 (Kostenträger)",
-        "tooltip": "Werden allen Usern zusätzlich zu den bebuchbaren Kost2 als Kostenträger (cost_units) übertragen, unabhängig von ihren Buchungsrechten, z. B. interne Kost2 wie Fortbildung oder Vertrieb. Formatierte Nummer wie 5.999.10.09."
+        "tooltip": "Werden allen Usern zusätzlich zu den bebuchbaren Kost2 als Kostenträger (cost_units) übertragen, unabhängig von ihren Buchungsrechten, z. B. interne Kost2 wie Fortbildung oder Vertrieb. Formatierte Nummer wie 5.900.10.01."
       },
       "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON; angezeigt werden die Vorgaben, die ihn beim Speichern ersetzen.",
       "kost2Patterns": {
         "_": "Muster der bebuchbaren Kost2",
-        "tooltip": "Die Kost2, auf die ein User Zeitberichte buchen darf, werden nur als Kostenträger (cost_units) übertragen, wenn sie zu einem dieser Muster passen: * steht für beliebige Zeichen, ? für genau eines, z. B. 5.*.02. Ohne Muster werden alle bebuchbaren Kost2 übertragen."
+        "tooltip": "Die Kost2, auf die ein User Zeitberichte buchen darf, werden nur als Kostenträger (cost_units) übertragen, wenn sie zu einem dieser Muster passen: * steht für beliebige Zeichen, ? für genau eines, z. B. 5.*.02. Ohne Muster werden alle bebuchbaren Kost2 übertragen. Mehrere Muster in einer Zeile, durch Komma getrennt (z. B. 5.*.19, 5.*.20): pro Projekt wird nur die Kost2 des ersten passenden Musters übertragen."
       },
       "kostNotFound": "nicht gefunden",
       "mode": {
@@ -2304,8 +3120,14 @@
         "text": "Text"
       },
       "remove": "{arg0} entfernen",
-      "summary": "{arg0} allgemeine Kost1 · {arg1} allgemeine Kost2 · {arg2} Muster · {arg3} weitere User · {arg4} bestehende Namen",
-      "textHint": "Ein Eintrag pro Zeile oder durch Komma oder Semikolon getrennt, z. B. aus einer CSV-Datei eingefügt."
+      "summary": "{arg0} allgemeine Kost1 · {arg1} allgemeine Kost2 · {arg2} Muster · {arg3} weitere User · {arg4} bestehende Namen · {arg5} E-Mails in Lanes & Planes",
+      "textHint": "Ein Eintrag pro Zeile oder durch Komma oder Semikolon getrennt, z. B. aus einer CSV-Datei eingefügt.",
+      "userEmails": {
+        "_": "E-Mails in Lanes & Planes",
+        "email": "E-Mail in Lanes & Planes",
+        "tooltip": "Lanes & Planes erkennt User nur an ihrer E-Mail. Mitarbeitende werden immer mit der hier eingetragenen E-Mail übertragen, auch wenn sich die E-Mail in ProjectForge ändert (z. B. nach einer Heirat): Sonst würde Lanes & Planes den User deaktivieren und neu anlegen. Vor der ersten Übertragung nur die Mitarbeitenden eintragen, deren E-Mail in Lanes & Planes von ProjectForge abweicht (siehe User-Export von Lanes & Planes). Jede Übertragung ergänzt die Mitarbeitenden, die ohne Eintrag übertragen wurden. Soll sich eine E-Mail ändern, zuerst in Lanes & Planes von Hand ändern, dann hier.",
+        "user": "User"
+      }
     }
   },
   "lastUpdate": "letzte Änderung",
@@ -2362,6 +3184,9 @@
       "contractPersonA": "Ansprechpartner:in A",
       "contractPersonB": "Ansprechpartner:in B",
       "number": "Vertragsnummer",
+      "sections": {
+        "general": "Vertrag"
+      },
       "signerA": "Unterzeichner:in A",
       "signerB": "Unterzeichner:in B",
       "signing": "Unterzeichnung",
@@ -2374,8 +3199,13 @@
         "suspended": "verworfen",
         "unknown": "unbekannt"
       },
+      "title": {
+        "add": "Neuer Vertrag",
+        "list": "Verträge"
+      },
       "type": "Typ",
       "validity": {
+        "_": "Laufzeit",
         "from": "Laufzeit von",
         "until": "Laufzeit bis"
       }
@@ -2467,6 +3297,7 @@
     "fields": {
       "changed": "Geänderte Felder"
     },
+    "info": "Im Protokoll finden sich detaillierte Informationen zur Massenänderung.",
     "mode": {
       "append": "Anhängen",
       "delete": {
@@ -2479,16 +3310,43 @@
     },
     "restore": "Ausgewählte wiederherstellen",
     "restoreConfirm": "Sollen die {arg0} ausgewählten Einträge wirklich wiederhergestellt werden?",
+    "selectFirst": "Erste {arg0} auswählen",
     "selectedEntries": "Ausgewählte Einträge"
   },
   "menu": {
     "2FASetup": "2. Faktor einrichten",
     "addNewEntry": "Neuer Eintrag",
     "administration": "Administration",
+    "availability": "Verfügbarkeit",
+    "birthdayButler": "Geburtstagsbutler",
     "calendar": "Kalender",
     "changePassword": "Passwort ändern",
     "changeWlanPassword": "WLAN/Samba Passwort ändern",
     "common": "Allgemein",
+    "customizer": {
+      "addGroup": "Gruppe hinzufügen",
+      "alreadyAdded": "Bereits in deinem Menü",
+      "customMenuSection": "Dein Menü",
+      "dropItemsHere": "Elemente hier ablegen",
+      "editGroupName": "Gruppenname bearbeiten",
+      "emptyMenuText": "Ziehe Einträge von unten hierher — oder klicke einen Eintrag an, um ihn hinzuzufügen.",
+      "emptyMenuTitle": "Dein Menü ist noch leer",
+      "errorLoadingMenu": "Fehler beim Laden des Menüs. Bitte versuche es erneut.",
+      "errorSavingMenu": "Fehler beim Speichern des Menüs. Bitte versuche es erneut.",
+      "groupName": "Gruppenname",
+      "loadDefault": "Standard laden",
+      "menuSavedSuccessfully": "Menü erfolgreich gespeichert",
+      "noResults": "Keine Einträge gefunden",
+      "removeFromFavorites": "Aus Favoriten entfernen",
+      "removeFromGroup": "Aus Gruppe entfernen",
+      "removeGroup": "Gruppe entfernen",
+      "saveChanges": "Änderungen speichern",
+      "searchHint": "Klicke einen Eintrag an oder ziehe ihn nach oben in dein Menü.",
+      "subtitle": "Stelle dein persönliches Navigationsmenü zusammen: ziehe Einträge aus der Liste unten nach oben in dein Menü — oder klicke sie an. Gruppen erscheinen als Aufklappmenüs.",
+      "templateTitle": "Verfügbare Einträge",
+      "title": "Dein Menü anpassen",
+      "undo": "Rückgängig"
+    },
     "favorites": {
       "more": "Weitere Favoriten"
     },
@@ -2523,8 +3381,10 @@
     "gear": {
       "feedback": "Feedback senden"
     },
+    "hr": "HR",
     "hrList": "Personalplanung",
     "hrPlanningList": "Personalplanungsliste",
+    "logout": "Abmelden",
     "main": {
       "short": "Menü",
       "title": "Hauptmenü"
@@ -2535,6 +3395,12 @@
       "fileprefix": "Monatsbericht"
     },
     "myAccount": "Mein Zugang",
+    "orga": {
+      "_": "Organisation",
+      "postausgang": "Postausgang",
+      "posteingang": "Posteingang",
+      "visitorbook": "Besuchsbuch"
+    },
     "personalStatistics": "Meine Statistiken",
     "phoneCall": "Direktwahl",
     "pluginAdmin": "Plugins",
@@ -2604,15 +3470,18 @@
     "action": {
       "preview": "Vorschau",
       "testToMe": "Test an mich",
+      "testToMeInfo": "Sendet die Regel nur an mich, sofort über alle Kanäle der Zustellung (auch per E-Mail), unabhängig von deren Verzögerungen.",
       "trigger": "Jetzt auslösen",
       "triggerConfirm": "Regel jetzt für alle Empfänger auslösen? Für denselben Zeitraum bereits Benachrichtigte werden nicht erneut benachrichtigt."
     },
     "center": "Benachrichtigungen",
+    "centerArchived": "Archivierte Einträge",
+    "centerArchivedEmpty": "Keine archivierten Einträge der letzten 90 Tage.",
     "centerEmpty": "Keine offenen Benachrichtigungen.",
     "channels": {
       "IN_APP": "In der App",
       "MAIL": "E-Mail",
-      "SMS": "SMS (noch nicht unterstützt)"
+      "SMS": "SMS"
     },
     "created": "Erstellt",
     "delivery": {
@@ -2622,6 +3491,7 @@
       "info": "Die Schritte werden nach der angegebenen Zeit seit dem Erstellen der Benachrichtigung zugestellt. Ein Schritt „nur wenn unbestätigt“ entfällt, sobald die Benachrichtigung bestätigt oder ihr Anlass erledigt ist.",
       "onlyIfUnacknowledged": "Nur wenn unbestätigt",
       "removeStep": "Schritt entfernen",
+      "smsNotConfigured": "nicht konfiguriert",
       "unit": {
         "days": "Tagen",
         "hours": "Stunden",
@@ -2639,6 +3509,11 @@
     "error": {
       "manualDoneNotAllowed": "Diese Benachrichtigung wird automatisch beendet, sobald ihr Anlass erledigt ist."
     },
+    "finish": "Beenden",
+    "finishConfirm": "Diese Benachrichtigung beenden? Sie wird als abgelaufen markiert und verschwindet beim Empfänger.",
+    "finishPending": "Alle offenen beenden",
+    "finishPendingConfirm": "Alle offenen Benachrichtigungen dieser Regel beenden? Sie werden als abgelaufen markiert und verschwinden bei den Empfängern.",
+    "finished": "{arg0} Benachrichtigung(en) beendet.",
     "log": "Versendete Benachrichtigungen",
     "logEmpty": "Noch keine Benachrichtigungen versendet.",
     "logEmptyFilter": "Keine Benachrichtigungen passen zum Filter.",
@@ -2646,6 +3521,7 @@
     "open": "Öffnen",
     "params": {
       "daysBeforeExpiry": "Tage vor dem Verfall",
+      "dueWorkingDays": "Werktage vor Fälligkeit (inkl. bis zu 90 Tage überfälliger Rechnungen)",
       "kost2MissingMonths": "Betrachtete Monate (inkl. aktuellem Monat)",
       "passwordMaxAgeDays": "Passwort älter als (Tage)",
       "referredMonth": {
@@ -2664,7 +3540,9 @@
       "none": "Heute ist niemand zu benachrichtigen.",
       "period": "Zeitraum",
       "recipients": "{arg0} Empfänger",
-      "sample": "Beispiel mit den eigenen Werten"
+      "sample": "Beispiel mit den eigenen Werten",
+      "sms": "SMS ({arg0} Zeichen)",
+      "withExamples": "Mit Beispielwerten"
     },
     "recipient": "Empfänger",
     "recipients": {
@@ -2687,13 +3565,25 @@
         "dayOfWeek": "Ein Wochentag ist erforderlich.",
         "daysBeforeExpiry": "Die Anzahl der Tage darf nicht negativ sein.",
         "delay": "Die Zeit eines Zustellungsschritts darf nicht negativ sein.",
+        "dueWorkingDays": "Die Anzahl der Werktage muss zwischen 0 und 30 liegen.",
         "kost2MissingMonths": "Die Anzahl der Monate muss zwischen 1 und 12 liegen.",
         "noDeliveryStep": "Mindestens ein Zustellungsschritt ist erforderlich.",
-        "passwordMaxAgeDays": "Die Anzahl der Tage muss mindestens 1 sein."
+        "passwordMaxAgeDays": "Die Anzahl der Tage muss mindestens 1 sein.",
+        "recipientsRequired": "Empfänger sind erforderlich: Eine Rechnung betrifft keinen Benutzer.",
+        "smsTextLength": "Der SMS-Text darf höchstens {arg0} Zeichen lang sein."
       },
       "lastRun": "Letzter Lauf",
+      "legend": {
+        "inactive": "Inaktiv"
+      },
+      "link": "Button „Öffnen“",
+      "linkMode": {
+        "DEFAULT": "Standard des Auslösers",
+        "NONE": "Kein Button"
+      },
       "list": "Benachrichtigungsregeln",
       "manualDone": "Empfänger dürfen sie als erledigt markieren",
+      "manualDoneForced": "Bei einer manuellen Regel mit Banner immer erlaubt: sonst beendet nichts den Banner.",
       "menuBadge": "Zähler im Menü",
       "name": "Name",
       "newTitle": "Neue Benachrichtigungsregel",
@@ -2707,15 +3597,20 @@
         "message": "Nachricht"
       },
       "title": "Benachrichtigungsregeln",
+      "trigger": {
+        "inactive": "Die Regel ist inaktiv: zuerst aktivieren und speichern."
+      },
       "warning": {
         "warnMissingKost2Off": "Der Konfigurationsparameter „Zeitberichte ohne Kost2 melden?“ (oder die Kostenrechnung) ist nicht aktiviert: Diese Regel benachrichtigt niemanden, bis er aktiviert ist."
       }
     },
     "ruleName": "Regel",
     "ruleTypes": {
+      "CREDITOR_INVOICES_DUE": "Fällige Kreditorenrechnungen",
       "MANUAL": "Manuell (ohne Bedingung)",
       "PASSWORD_NOT_CHANGED": "Passwort lange nicht geändert",
       "TIMESHEETS_MISSING": "Fehlende Zeitberichte",
+      "TIMESHEETS_TO_ACCEPT": "Zu übernehmende Zeitberichte",
       "TIMESHEETS_WITHOUT_KOST2": "Zeitberichte ohne Kost2",
       "VACATION_LEFT": "Verfallender Resturlaub"
     },
@@ -2738,6 +3633,8 @@
       "URGENT": "Dringend"
     },
     "severity": "Dringlichkeit",
+    "smsText": "SMS-Text",
+    "smsTextInfo": "Klartext mit denselben Variablen wie der Text, gesendet an die Mobilfunknummer der Empfänger (wer keine hinterlegt hat, bekommt keine SMS). Ist er leer, werden Betreff und Link gesendet. Gekürzt auf {arg0} Zeichen.",
     "status": "Status",
     "statuses": {
       "ACKNOWLEDGED": "Bestätigt",
@@ -2755,14 +3652,19 @@
     },
     "subject": "Betreff",
     "subsystemDetail": "{arg0} aktive Regel(n), {arg1} offene Benachrichtigung(en), {arg2} fällige Zustellung(en)",
-    "testDelivered": "Test gesendet: {arg0}",
+    "testDelivered": "Test sofort gesendet (unabhängig von den Verzögerungen): {arg0}",
     "testFailed": "Nicht gesendet: {arg0}",
     "testMissingText": "Für einen Test werden Betreff und Text benötigt.",
     "text": "Text",
     "triggerErrors": "{arg0} Fehler: {arg1}",
     "triggerResult": "{arg0} Benachrichtigung(en) für {arg1} Empfänger erstellt.",
     "variable": {
+      "creditorInvoiceLink": "Link zu den Kreditorenrechnungen",
+      "creditorInvoicesDueCount": "Anzahl fälliger Kreditorenrechnungen",
+      "creditorInvoicesDueList": "Fällige Kreditorenrechnungen (Kreditor, Referenz, Fälligkeit, Betrag)",
+      "creditorInvoicesDueSum": "Bruttosumme der fälligen Kreditorenrechnungen",
       "daysLeft": "Verbleibende Urlaubstage",
+      "dueWorkingDays": "Werktage vor Fälligkeit",
       "expiryDate": "Verfallsdatum",
       "firstName": "Vorname",
       "fullName": "Vollständiger Name",
@@ -2776,6 +3678,10 @@
       "passwordMaxAgeDays": "Maximales Alter des Passworts (Tage)",
       "period": "Zeitraum",
       "timesheetLink": "Link zu den Zeitberichten",
+      "timesheetsToAcceptCount": "Anzahl der zu übernehmenden Zeitberichte",
+      "timesheetsToAcceptHours": "Zu übernehmende Stunden",
+      "timesheetsToAcceptLink": "Link zu den zu übernehmenden Zeitberichten",
+      "timesheetsToAcceptTasks": "Strukturelemente mit zu übernehmenden Zeitberichten",
       "timesheetsWithoutKost2Count": "Anzahl der Zeitberichte ohne Kost2",
       "timesheetsWithoutKost2Hours": "Ohne Kost2 gebuchte Stunden",
       "timesheetsWithoutKost2Tasks": "Ohne Kost2 bebuchte Strukturelemente",
@@ -2786,6 +3692,13 @@
       "unbookedWorkingDays": "Arbeitstage ohne Zeitberichte (ohne Urlaub)",
       "unbookedWorkingDaysCount": "Anzahl der Arbeitstage ohne Zeitberichte (ohne Urlaub)",
       "vacationLink": "Link zum Urlaub"
+    },
+    "variables": {
+      "common": "Allgemein",
+      "example": "z. B.",
+      "info": "In Betreff und Text werden die Variablen durch ihre Werte ersetzt.",
+      "ruleType": "Für diesen Regeltyp",
+      "title": "Verfügbare Variablen"
     }
   },
   "operation": {
@@ -2813,20 +3726,47 @@
     },
     "postausgang": {
       "empfaenger": "Empfänger:in",
-      "person": "z. Hd."
+      "person": "z. Hd.",
+      "title": {
+        "add": "Postausgang anlegen",
+        "heading": "Postausgang",
+        "list": "Postausgangsbuch"
+      }
     },
     "posteingang": {
       "absender": "Absender:in",
-      "person": "Person"
+      "person": "Person",
+      "title": {
+        "add": "Posteingang anlegen",
+        "heading": "Posteingang",
+        "list": "Posteingangsbuch"
+      }
     },
     "visitorbook": {
       "company": "Firma",
       "contactPersons": "Kontaktpersonen",
+      "existing": {
+        "hint": "Bereits erfasst – zum Eintragen des Besuchs auswählen:",
+        "lastVisit": "Letzter Besuch: {arg0} (Besuche: {arg1})",
+        "noVisit": "Noch kein Besuch"
+      },
       "firstname": "Vorname",
+      "lastVisit": {
+        "_": "Letzer Besuch",
+        "arrived": "Letze Ankunftszeit",
+        "departed": "Letze Abreisezeit"
+      },
       "lastname": "Nachname",
+      "numberOfVisits": "Anzahl der Besuche",
       "timeofvisit": {
+        "_": "Besuchszeit",
         "arrive": "Ankunftszeit (HH:MM)",
         "depart": "Abreisezeit (HH:MM)"
+      },
+      "title": {
+        "add": "Besuch hinzufügen",
+        "heading": "Besuchsbuch",
+        "list": "Besuchsbuch Übersicht"
       },
       "visitortype": {
         "_": "Ausweistyp",
@@ -2835,10 +3775,12 @@
         "normal": "Normal",
         "supplier": "Lieferant:in",
         "workman": "Handwerker:in"
-      }
+      },
+      "visits": "Besuche"
     }
   },
   "organization": "Firma",
+  "parse": "Einlesen",
   "password": {
     "_": "Passwort",
     "forgotten": {
@@ -2848,7 +3790,8 @@
       },
       "mailSentTo": "E-Mail mit dem Passwortrücksetzen-Link wurde gesendet an ''{arg0}''. Bitte im Spam-Ordner schauen bzw. überprüfen, ob der Benutzer:innenname bzw. E-Mail korrekt ist.",
       "request": "Rücksetzen anfordern",
-      "title": "Passwort vergessen"
+      "title": "Passwort vergessen",
+      "tooManyRequests": "Zu viele Anfragen zum Zurücksetzen des Passworts. Bitte später erneut versuchen."
     },
     "reset": {
       "error": "Es wurde keine gültige Passwortreset-Sitzung gefunden. Entweder ist sie schon verbraucht, abgelaufen oder nicht vorhanden. Bitte erneut versuchen.",
@@ -2898,28 +3841,480 @@
         "_": "Bankkonto",
         "bank": "Bank",
         "bic": "BIC",
+        "fullAccessGroups": "Vollzugriff (Gruppen)",
+        "fullAccessUsers": "Vollzugriff (Benutzer)",
         "iban": "IBAN",
         "importSettings": "Importeinstellungen",
         "name": "Name",
+        "readonlyAccessGroups": "Lesezugriff (Gruppen)",
+        "readonlyAccessUsers": "Lesezugriff (Benutzer)",
         "record": {
+          "accountIban": "Konto-IBAN",
+          "accountName": "Kontoname",
           "amount": "Betrag",
+          "cashflow": "Geldfluss",
           "checksum": {
             "_": "Checksumme",
             "info": "Diese Checksumme wird beim Import berechnet und soll spätere Änderungen an Feldern, wie Datum, Betrag, IBAN, Empfänger etc. erkennbar machen."
           },
+          "checksumErrors": "Falsche Prüfsumme",
           "collectionReference": "Sammlerreferenz",
           "currency": "Währung",
           "customerReference": "Kundenreferenz",
           "date": "Datum",
           "debteeId": "Gläubiger-ID",
+          "doublets": "Dupletten",
+          "import": {
+            "description": "Die Umsätze eines Bankkontos werden als csv-Datei hochgeladen, wie sie das Online-Banking exportiert. Die Spalten werden über die Importeinstellungen des Kontos zugeordnet. Bereits importierte Umsätze werden aktualisiert, nicht gedoppelt; Dateien mit überlappenden Zeiträumen können also mehrfach importiert werden.\n\n**Umsätze aus dem Zeitraum der Datei, die in der Datei fehlen, werden als gelöscht angeboten.** Sollen sie bleiben, vor dem Import abwählen.",
+            "error": {
+              "noBankAccountGiven": "Kein Bankkonto für den Import hinterlegt. Vorgang abgebrochen."
+            },
+            "title": "Kontoumsätze importieren"
+          },
+          "income": "Einnahmen",
           "info": "Info",
           "mandateReference": "Mandatsreferenz",
+          "outgo": "Ausgaben",
           "receiverSender": "Empfänger/Zahlungspflichtiger",
+          "references": "Referenzen",
           "subject": "Verwendungszweck",
+          "title": {
+            "add": "Neuer Kontoumsatz",
+            "edit": "Kontoumsatz editieren",
+            "list": "Kontoumsätze"
+          },
+          "transaction": "Umsatz",
           "type": "Typ",
           "valueDate": "Wertstellung"
+        },
+        "title": {
+          "add": "Neues Bankkonto",
+          "edit": "Bankkonto editieren",
+          "list": "Bankkonten"
         }
       }
+    },
+    "cveradar": {
+      "advisories": {
+        "none": "Aktuell keine Client-Hinweise.",
+        "todo": "Was ist zu tun?"
+      },
+      "ai": {
+        "content": "KI-Texte",
+        "import": {
+          "apply": "Importieren",
+          "file": "Datei wählen…",
+          "info": "JSON-Datei hierher ziehen, auswählen oder den Text einfügen.",
+          "invalid": "Ungültige Antwort",
+          "title": "KI-Antwort importieren",
+          "valid": "Die Antwort entspricht dem Schema."
+        },
+        "longDescription": "Langbeschreibung",
+        "marker": {
+          "released": "KI-generiert, freigegeben",
+          "unreleased": "KI-generiert, nicht freigegeben"
+        },
+        "none": "Noch keine KI-Antwort importiert.",
+        "prompt": {
+          "approvedOnly": "Diesen Prompt nur verwenden mit: {arg0}",
+          "copied": "Prompt kopiert.",
+          "copy": "Prompt kopieren",
+          "instruction": "Analysiere die folgende Schwachstelle für ein IT-Unternehmen. Antworte auf Deutsch, ausschließlich mit JSON genau im Format des Beispiels am Ende.",
+          "title": "Prompt für ein freigegebenes KI-System",
+          "withInventory": "Eingesetzte Technologien und Versionen mitgeben (nie Namen oder Kürzel von Systemen)"
+        },
+        "release": "Für Mitarbeitende freigeben",
+        "risk": "Risikoeinschätzung",
+        "shortDescription": "Kurzbeschreibung"
+      },
+      "apply": "Übernehmen",
+      "back": "Zurück",
+      "baseline": {
+        "edit": {
+          "info": "Wirkt sofort in allen Instanzen ohne Abweichung. Deren dadurch gelöste Befunde gehen auf „Behebung geplant“, bis jede Instanz die Behebung bestätigt.",
+          "title": "Version von {arg0} ändern"
+        },
+        "info": "Komponenten und Technologien, einmal für alle Instanzen gepflegt; Instanzen erfassen nur Abweichungen.",
+        "newVersion": "Neue Version (bisher {arg0})",
+        "preview": {
+          "deviating": "Unverändert (eigene Version)",
+          "fixPlanned": "Befunde auf „Behebung geplant“",
+          "inheriting": "Wirkt in"
+        },
+        "title": "Baseline",
+        "version": "Basis {arg0}"
+      },
+      "campaign": {
+        "answer": "Antworten",
+        "answerFor": "Antwort für {arg0}",
+        "answered": "{arg0} von {arg1} beantwortet",
+        "deadline": "Frist {arg0}",
+        "hiddenInstances": "+{arg0} Instanzen anderer Teams, nicht sichtbar",
+        "info": "Jedes Team antwortet je Instanz; die Antwort setzt den Status der Befunde dieser Instanz.",
+        "mandatory": "verpflichtend",
+        "open": "offen",
+        "target": {
+          "CLIENTS": "Alle Mitarbeitenden",
+          "TEAMS": "Teams"
+        },
+        "title": "Feedback {arg0}"
+      },
+      "clientAnswer": {
+        "DONE": "Erledigt",
+        "NOT_AFFECTED": "Nicht betroffen",
+        "QUESTION": "Frage/Problem"
+      },
+      "column": {
+        "assignee": "Bearbeitung",
+        "code": "Kürzel",
+        "component": "Komponente",
+        "confidentiality": "Vertraulichkeit",
+        "cve": "CVE",
+        "cvss": "CVSS",
+        "deviations": "Abweichungen",
+        "due": "Fällig",
+        "epss": "EPSS",
+        "exposed": "Internet",
+        "findingStatus": "Befunde nach Status",
+        "group": "Zuständige Gruppe",
+        "instance": "Instanz",
+        "instances": "Instanzen",
+        "name": "Name",
+        "priority": "Prio",
+        "published": "Veröffentlicht",
+        "site": "Standort",
+        "stage": "Stage",
+        "status": "Status",
+        "technologies": "Technologien",
+        "technology": "Technologie",
+        "title": "Beschreibung"
+      },
+      "confidentiality": {
+        "CONFIDENTIAL": "Vertraulich",
+        "INTERNAL": "Intern",
+        "STRICTLY_CONFIDENTIAL": "Streng vertraulich"
+      },
+      "criticality": {
+        "HIGH": "Hoch",
+        "LOW": "Niedrig",
+        "MEDIUM": "Mittel",
+        "VERY_HIGH": "Sehr hoch"
+      },
+      "dashboard": {
+        "acknowledged": "Kenntnisnahmen: {arg0}",
+        "campaigns": "Laufende Kampagnen",
+        "escalations": "Eskalationen",
+        "newToday": "Neu (24 h)",
+        "openPriority": "Offen {arg0}",
+        "overdue": "Überfällig",
+        "trend": {
+          "closed": "erledigt",
+          "open": "offen",
+          "title": "Befunde der letzten 30 Tage"
+        },
+        "triageOverdue": "Triage überfällig"
+      },
+      "demo": "Demo",
+      "deviation": "Abweichung",
+      "discussion": {
+        "newPost": "Neuer Beitrag (Markdown)",
+        "post": "Beitrag senden",
+        "scope": {
+          "INTERNAL": "Intern",
+          "PUBLIC": "Öffentliche Diskussion",
+          "label": "Sichtbar für"
+        },
+        "title": "Diskussion"
+      },
+      "error": {
+        "expiryRequired": "Eine Risikoakzeptanz braucht eine Gültigkeitsdauer.",
+        "noAccess": "Für diese Rolle nicht erlaubt.",
+        "notAssignee": "Die verbindliche Priorität setzt, wer die Schwachstelle bearbeitet, oder der Security Officer.",
+        "openFindings": "Erst schließbar, wenn alle Befunde behoben, abgeschwächt, nicht betroffen oder als Risiko akzeptiert sind.",
+        "reasonRequired": "Eine Begründung ist erforderlich.",
+        "riskNeedsManagement": "Ab P2 genehmigt zusätzlich die Geschäftsleitung; das zeigt der Prototyp nicht."
+      },
+      "escalation": {
+        "acknowledgedBy": "Kenntnis genommen",
+        "active": "Eskaliert: SO und Geschäftsleitung sind hinzugezogen",
+        "automatic": "automatisch nach Regel (P1 oder KEV mit Instanz im Internet)",
+        "start": {
+          "info": "Zieht Security Officer und Geschäftsleitung sofort hinzu, per Banner und Mail.",
+          "title": "Eskalieren"
+        },
+        "title": "Eskalation"
+      },
+      "exploitability": {
+        "HIGH": "hoch",
+        "LOW": "gering",
+        "MEDIUM": "mittel",
+        "NONE": "keine"
+      },
+      "filter": {
+        "all": "Alle",
+        "technology": {
+          "label": "Technologie",
+          "placeholder": "Technologie, z. B. spring boot < 3.5.7"
+        },
+        "withVulns": "Nur mit CVEs"
+      },
+      "findingBucket": {
+        "done": "{arg0} erledigt",
+        "inProgress": "{arg0} in Arbeit",
+        "open": "{arg0} offen"
+      },
+      "findingStatus": {
+        "AFFECTED": "Betroffen",
+        "FIXED": "Behoben",
+        "FIX_PLANNED": "Behebung geplant",
+        "IN_REVIEW": "In Prüfung",
+        "MITIGATED": "Abgeschwächt",
+        "NEW": "Neu",
+        "NOT_AFFECTED": "Nicht betroffen",
+        "RISK_ACCEPTED": "Risiko akzeptiert"
+      },
+      "findings": {
+        "confirmFixed": "Behoben bestätigen…",
+        "fixedVersion": "Behobene Version",
+        "openOf": "{arg0} von {arg1} offen",
+        "openOnly": "Nur offene",
+        "riskAccepted": {
+          "info": "Risikoakzeptanz erfordert den Security Officer (ab P2 zusätzlich die Geschäftsleitung) und ein Ablaufdatum."
+        },
+        "riskExpiresInDays": "Gültig für (Tage)",
+        "setStatus": "Status setzen…"
+      },
+      "group": {
+        "overridden": "am System überschrieben"
+      },
+      "hiddenSystems": "+{arg0} weitere betroffene Systeme, nicht sichtbar",
+      "hiddenSystemsShort": "+{arg0} verborgen",
+      "inherited": {
+        "from": "von {arg0}"
+      },
+      "instance": {
+        "contact": "Ansprechpartner:in",
+        "default": "Standardinstanz",
+        "exposed": "aus dem Internet erreichbar",
+        "internal": "nur intern",
+        "openFindings": "{arg0} offen",
+        "raised": "an der Instanz angehoben",
+        "tenant": "Mandant"
+      },
+      "inventory": {
+        "hiddenSystems": "+{arg0} weitere Systeme, für diese Rolle nicht sichtbar",
+        "vulnCount": "{arg0} CVE(s)"
+      },
+      "kev": {
+        "info": "Im CISA-Katalog bekannter ausgenutzter Schwachstellen: wird aktiv ausgenutzt.",
+        "label": "KEV"
+      },
+      "level": {
+        "AREA": "Bereich",
+        "COMPONENT": "Komponente",
+        "INSTANCE": "Instanz",
+        "SYSTEM": "System"
+      },
+      "masterDataOnly": {
+        "info": "Für diese Rolle sind nur die Stammdaten dieses Systems sichtbar (Kürzel, Name, Gruppe, Stufe). Komponenten und Befunde erfordern eine Freigabe.",
+        "short": "nur Stammdaten"
+      },
+      "matrix": {
+        "actions": "Abweichung von {arg0}",
+        "apply": "In Baseline übernehmen",
+        "info": "Technologie × Instanz. Farbige Zellen weichen von der Baseline ab; ein Klick darauf übernimmt sie in die Baseline oder setzt sie zurück.",
+        "kind": {
+          "ADDED": "zusätzlich",
+          "REMOVED": "fehlt",
+          "VERSION": "andere Version"
+        },
+        "reset": "Abweichung zurücksetzen"
+      },
+      "measures": {
+        "fixVersion": "Fix-Version",
+        "nonTechMeasures": "Maßnahmen für Nicht-Techies",
+        "none": "Noch nicht beschrieben.",
+        "remediation": "Behebung",
+        "techMeasures": "Maßnahmen für Techies",
+        "workaround": "Workaround"
+      },
+      "menu": "CVE-Radar",
+      "myAreas": {
+        "findings": "Offene Befunde meiner Systeme",
+        "groups": "Meine Gruppen: {arg0}",
+        "openFeedback": "Mein offenes Feedback",
+        "systems": "Meine Systeme"
+      },
+      "no": "nein",
+      "nobody": "niemand",
+      "none": "Keine.",
+      "notFound": "Nicht gefunden oder für diese Rolle nicht sichtbar.",
+      "origin": {
+        "CI": "CI-Pipeline",
+        "MANUAL": "manuell",
+        "SBOM": "SBOM-Datei"
+      },
+      "persona": "Ansicht als",
+      "possiblyAffected": {
+        "info": "Für diese Technologie ist keine genaue Version im Inventar, der Treffer ist daher unsicher.",
+        "label": "möglicherweise"
+      },
+      "priority": {
+        "binding": "Verbindliche Priorität",
+        "suggested": "Vorschlag {arg0}: {arg1}"
+      },
+      "priorityReason": {
+        "cvssP2": "CVSS ≥ 9 → P2",
+        "cvssP3": "CVSS ≥ 7 → P3",
+        "cvssP4": "CVSS < 7 → P4",
+        "epss": "EPSS ≥ 30 % +1",
+        "exposed": "kritische Instanz im Internet +1",
+        "instances": "betroffene Instanzen +1",
+        "kev": "KEV +1"
+      },
+      "prototype": {
+        "banner": "Demo mit fiktiven Testdaten; Änderungen bleiben nur in diesem Browser.",
+        "reset": {
+          "info": "Stellt die Testdaten im Auslieferungszustand wieder her; alle Änderungen gehen verloren.",
+          "label": "Testdaten zurücksetzen"
+        }
+      },
+      "qa": {
+        "audience": {
+          "NONTECH": "alle",
+          "TECH": "Techies"
+        },
+        "title": "Fragen & Antworten"
+      },
+      "ratings": {
+        "binding": "Verbindliche Priorität {arg0}: {arg1}",
+        "deviates": "Weicht von der verbindlichen Priorität ab",
+        "deviatesSuggestion": "Weicht vom Vorschlag ab",
+        "exploitability": "Ausnutzbarkeit bei uns",
+        "noBinding": "Noch keine verbindliche Priorität; Vorschlag {arg0}.",
+        "none": "Noch keine Bewertungen.",
+        "notRelevant": "Als nicht relevant geschlossen: {arg0}",
+        "own": "Meine Bewertung",
+        "save": "Bewertung speichern"
+      },
+      "reason": "Begründung",
+      "role": {
+        "CA": "CVE-Radar-Admin",
+        "EMPLOYEE": "Mitarbeiter:in",
+        "MG": "Geschäftsleitung",
+        "SO": "Security Officer",
+        "ST": "Security-Team",
+        "TEAM": "Bereichs-/Systemteam"
+      },
+      "save": "Speichern",
+      "saved": "Gespeichert (nur Testdaten).",
+      "sbom": {
+        "change": {
+          "NEW": "neu",
+          "REMOVED": "entfernt",
+          "VERSION": "Version"
+        },
+        "import": "SBOM importieren…",
+        "noChange": "Kein Unterschied.",
+        "sample": "Beispieldatei: {arg0}",
+        "target": {
+          "baseline": {
+            "info": "Ersetzt die Technologien der Komponente in der Baseline; alle Instanzen ohne Abweichung folgen."
+          },
+          "instance": {
+            "info": "Die Unterschiede zur Baseline werden Abweichungen dieser Instanz."
+          },
+          "label": "Ziel"
+        }
+      },
+      "selected": "Ausgewählt: {arg0}",
+      "system": {
+        "criticality": "Kritikalität",
+        "grants": "Freigaben",
+        "tab": {
+          "findings": "Befunde",
+          "matrix": "Vergleich",
+          "overview": "Stammdaten & Instanzen"
+        },
+        "type": "Typ"
+      },
+      "systemType": {
+        "APPLICATION": "Anwendung",
+        "CLIENT": "Client",
+        "NETWORK": "Netzwerkgerät",
+        "SAAS": "SaaS",
+        "SERVER": "Server"
+      },
+      "tab": {
+        "advisories": "Client-Hinweise",
+        "dashboard": "Dashboard",
+        "feedback": "Feedback",
+        "findings": "Befunde",
+        "myAreas": "Meine Bereiche",
+        "systems": "Systeme & Komponenten",
+        "vulnerabilities": "Schwachstellen (CVEs)"
+      },
+      "tabHint": {
+        "advisories": "Hinweise für Mitarbeitende zum Standard-Client mit Anleitung und Bestätigung.",
+        "dashboard": "Lage auf einen Blick: offene Befunde je Priorität, Überfälliges, Eskalationen und Rücklauf der Kampagnen.",
+        "feedback": "Laufende und abgeschlossene Feedback-Kampagnen mit Rücklaufquote.",
+        "findings": "Jeder Befund einzeln: Schwachstelle × Komponente × Instanz, mit Status und Frist. Hier lassen sich viele Befunde auf einmal bearbeiten, z. B. „behoben“ über mehrere Instanzen bestätigen.",
+        "myAreas": "Die eigenen Bereiche und Systeme mit ihren offenen Befunden.",
+        "systems": "Alle Systeme mit Instanzen und Komponenten. Je Zeile ist zu sehen, welche Schwachstellen sie betreffen und wie weit deren Bearbeitung ist. Ein Klick auf das Kürzel klappt auf und zu, ein Klick daneben öffnet das System.",
+        "vulnerabilities": "Alle importierten Schwachstellen mit Bearbeitungsstatus, Priorität und Status der zugehörigen Befunde. Ein Klick öffnet die Schwachstelle; mehrere angehakte lassen sich gemeinsam bearbeiten."
+      },
+      "teamAnswer": {
+        "FIXED": "Betroffen – behoben",
+        "IN_PROGRESS": "Betroffen – in Arbeit",
+        "NOT_AFFECTED": "Nicht betroffen",
+        "RISK_ACCEPTED": "Risiko akzeptiert (Freigabe durch SO)",
+        "planned": "geplant bis {arg0}",
+        "plannedInDays": "Geplant in Tagen",
+        "version": "Version {arg0}"
+      },
+      "title": "CVE-Radar",
+      "tree": {
+        "collapse": "Zuklappen",
+        "expand": "Aufklappen"
+      },
+      "triage": {
+        "assign": "Zuweisen…",
+        "notRelevant": "Nicht relevant…",
+        "priority": "Priorität setzen",
+        "setPriority": "Priorität setzen…",
+        "takeOver": "Ich übernehme"
+      },
+      "triageStatus": {
+        "CLOSED": "Abgeschlossen",
+        "IN_REMEDIATION": "In Behebung",
+        "IN_TRIAGE": "In Triage",
+        "NEW": "Neu",
+        "NOT_RELEVANT": "Nicht relevant",
+        "RATED": "Bewertet"
+      },
+      "unknown": "unbekannt",
+      "versionNowUnaffected": "Inventar hat bereits eine unkritische Version – bitte bestätigen",
+      "vuln": {
+        "affectedRanges": "Betroffene Konfigurationen",
+        "cwe": "CWE",
+        "description": "Beschreibung (NVD)",
+        "modified": "Geändert",
+        "nvdStatus": "NVD-Status",
+        "references": "Weitere Referenzen",
+        "remediationHints": "Hinweise zur Behebung",
+        "tab": {
+          "ai": "KI",
+          "discussion": "Diskussion & Q&A",
+          "findingsCount": "Befunde ({arg0})",
+          "measures": "Maßnahmen",
+          "overview": "Überblick",
+          "ratings": "Bewertungen"
+        }
+      },
+      "vulnerabilities": {
+        "withFindingsOnly": "Nur mit Befunden"
+      },
+      "yes": "ja"
     },
     "datatransfer": {
       "access": {
@@ -2946,6 +4341,14 @@
         "events": "Ereignisse der letzten 30 Tage"
       },
       "button": {
+        "chat": {
+          "_": "Chat",
+          "info": "Mit allen chatten, die Zugriff auf diesen Bereich haben. Im Chat verschickte Dateien landen in diesem Bereich."
+        },
+        "directMessage": {
+          "_": "Direktnachricht",
+          "info": "Der Person dieser persönlichen Box direkt schreiben. Im Chat verschickte Dateien landen in dieser Box."
+        },
         "downloadAll": {
           "_": "Alles herunterladen",
           "info": "Alle Dateien in einem ZIP-Archiv herunterladen."
@@ -2985,6 +4388,7 @@
             "info": "Bitte den Link erneuern, wenn der Link in unbefugte Hände geraten sein könnte. Der alte Link wird erst durch Speichern ungültig."
           }
         },
+        "loginFailed": "Die Anmeldung war nicht erfolgreich. Bitte das Passwort nochmals prüfen (Groß-/Kleinschreibung bitte beachten).",
         "password": {
           "_": "Passwort",
           "info": "Dieses Passwort soll die Sicherheit gegen Zugriffe erhöhen und ist durch einen Brute-Force-Schutz gesichert.",
@@ -2999,13 +4403,23 @@
             "info": "Wenn freigegeben, können externe Personen über den Link und Passwort hochladen.",
             "title": "Externer Upload"
           }
+        },
+        "userInfo": {
+          "_": "Name oder E-Mail",
+          "info": "Fülle diese optionale Angabe aus, damit die Eigentümer dieses Datentransferbereichs wissen, wer du bist."
         }
       },
       "gateway": {
         "externalAccess": {
-          "edit": "Externer Zugriff kann hier nicht konfiguriert werden. Dazu muss ein Datentransferbereich auf dem Server {arg0} angelegt und administriert werden.",
-          "list": "Externer Zugriff (lesend/schreibend) kann hier nicht konfiguriert werden. Datentransferbereiche mit externem Zugriff müssen auf dem Server {arg0} angelegt und administriert werden."
-        }
+          "edit": "Externer Zugriff kann auf diesem Server nicht aktiviert werden.",
+          "list": "Externer Zugriff (lesend/schreibend) kann auf diesem Server nicht aktiviert werden.",
+          "viaGateway": "Der externe Zugriff läuft über den Server {arg0}: Der Bereich wird dorthin übertragen, der externe Link zeigt dorthin, und Externe laden die Dateien dort herunter und hoch. Auch intern werden die Dateien des Bereichs dort verwaltet."
+        },
+        "files": {
+          "onGateway": "Der externe Zugriff auf diesen Bereich läuft über einen anderen Server, ebenso seine Dateien: Neue Dateien werden dort hochgeladen, nicht hier. Bereits hier gespeicherte Dateien können weiterhin heruntergeladen und gelöscht werden."
+        },
+        "listManagedByMainInstance": "Die Datentransferbereiche werden in der Hauptinstanz von ProjectForge administriert: Sie können hier weder angelegt, geändert noch gelöscht werden. Hier können nur ihre Dateien verwaltet werden.",
+        "managedByMainInstance": "Dieser Bereich wird in der Hauptinstanz von ProjectForge administriert: Er kann hier weder geändert noch gelöscht werden. Hier können nur seine Dateien verwaltet werden."
       },
       "internal": {
         "link": "Interner Link"
@@ -3023,6 +4437,9 @@
         "info": "Über die persönliche Box können Dateien direkt an andere Benutzer gesendet werden.",
         "select": "Wähle den Benutzer, dessen persönliche Box du öffnen möchtest.",
         "title": "Persönliche Box von {arg0}"
+      },
+      "syntheticArea": {
+        "readOnly": "Die Dateien dieses Bereichs werden nur dort hinzugefügt und geändert, wohin sie gehören (z. B. im Chat)."
       },
       "tab": {
         "files": "Dateien",
@@ -3193,11 +4610,18 @@
     "marketing": {
       "addressCampaign": {
         "_": "Adresskampagne",
+        "active": "Aktiv",
         "edit": {
           "warning": {
             "doNotChangeValues": "Nachträgliches Ändern der Label kann bisherige Adresszuordnungen löschen!"
           }
         },
+        "inactiveReadOnly": "Inaktiv: Die Werte dieser Kampagne können nicht mehr geändert werden.",
+        "lastUpdateOfAddress": "Adressänderung",
+        "legend": {
+          "inactive": "Inaktiv (Werte können nicht mehr geändert werden)"
+        },
+        "noCampaignSelected": "Keine Adresskampagne ausgewählt.",
         "title": {
           "add": "Adresskampagne hinzufügen",
           "list": "Adresskampagnen"
@@ -3206,14 +4630,53 @@
           "format": "Bitte eine Werteliste eingeben (durch Semikolons separiert): Wert 1; Wert 2; Wert 3",
           "invalidFormat": "Ungültiges Format, das Format ist: Wert 1; Wert 2; Wert 3"
         }
+      },
+      "addressCampaignValue": {
+        "_": "Adresskampagnenwert",
+        "adopt": "Übernehmen",
+        "adoptComments": "auch die Bemerkungen übernehmen (an eine vorhandene angehängt)",
+        "adoptOnlyEmpty": "nur wo noch kein Wert gesetzt ist",
+        "adoptValues": "Werte der Vergleichskampagne übernehmen",
+        "comparison": "Vergleich",
+        "comparisonComment": "Vergleichsbemerkung",
+        "comparisonValue": "Vergleichswert",
+        "error": {
+          "addressOrCampaignNotGiven": "Adresse oder die Adresskampagne sind nicht gegeben."
+        },
+        "title": {
+          "add": "Adresskampagnenwert hinzufügen",
+          "list": "Liste der Adressen für Kampagnen"
+        }
       }
     },
     "memo": {
       "memo": "Memo",
       "owner": "Eigner",
-      "subject": "Betreff"
+      "subject": "Betreff",
+      "title": {
+        "add": "Memo hinzufügen",
+        "heading": "Memos",
+        "list": "Memoliste"
+      }
     },
     "merlin": {
+      "accessGroups": {
+        "_": "Gruppen mit Zugriff",
+        "info": "Mitglieder dieser Gruppe (wenn angegeben) können diese Vorlage benutzen."
+      },
+      "accessUsers": {
+        "_": "Benutzer mit Zugriff",
+        "info": "Diese Benutzer (wenn angegeben) können diese Vorlage benutzen."
+      },
+      "admins": {
+        "_": "Admins",
+        "info": "Admins haben vollen Zugriff auf diese Vorlage (inkl. Änderung)."
+      },
+      "documentation": "Dokumentation der Vorlagen",
+      "exportExcelTemplate": {
+        "_": "Export Konfigurations-Vorlage",
+        "info": "Über diese Excel-Datei kann die Word®-Vorlage konfiguriert werden (Variablentypen, abhängige Variablen etc.)"
+      },
       "fileNamePattern": {
         "_": "Dateinamenmuster",
         "info": "Dateinamenmuster generierter Dateien (kann Variablennamen enthalten, wie ${user} oder ${date}), z. B. '${date}-contract-${user}'."
@@ -3228,21 +4691,137 @@
           "info": "Das Format und der Inhalt der erzeugten PDF-Datei kann abweichen, bitte sorgfältig überprüfen!"
         }
       },
+      "menu": {
+        "examples": {
+          "_": "Merlin-Beispiele",
+          "contract": "Ein Vertragsbeispiel",
+          "letter": "Ein Briefbeispiel"
+        }
+      },
       "name": "Name der Vorlage",
+      "serial": {
+        "template": {
+          "download": {
+            "_": "Excel® für Serienausführung",
+            "base": "Leere Excel®-Datei",
+            "employees": "Excel®-Datei mit allen aktiven Mitarbeitern",
+            "info": "Über diese Excel-Datei könenn einfach Seriendokumente erstellt werden.",
+            "users": "Excel®-Datei mit allen aktiven Usern"
+          }
+        }
+      },
       "template": {
         "dataTransferUsage": {
           "_": "Persönliche Boxen nutzen",
-          "info": "Die per Serienausführung generierten Dokumente können direkt in die persönlichen Boxen der Benutzer geschrieben werden (DataTransfer-Plugin). Bitte nach Auswahl die Excelvorlage für die Serienausführung auf der Ausführen-Seite herunterlagen, um die Variablen #PersonalBox... zu erhalten."
+          "info": "Die per Serienausführung generierten Dokumente können direkt in die persönlichen Boxen der Benutzer geschrieben werden (DataTransfer-Plugin). Bitte nach Auswahl die Excelvorlage für die Serienausführung auf der Ausführen-Seite herunterlagen, um die Variablen #PersonalBox... zu erhalten.",
+          "resultZip": "Ergebnisarchiv der Merlin-Serienausführung."
         }
+      },
+      "templateConfigurationFile": {
+        "_": "Vorlage-Konfiguration",
+        "info": "Die neueste Excel-Datei aus den Anhängen wird verwendet."
+      },
+      "templateExecutor": {
+        "execute": "Ausführen",
+        "heading": "Ausführung einer Word®-Vorlage"
+      },
+      "title": {
+        "add": "Neue Word-Vorlage anlegen",
+        "heading": "Word-Vorlage",
+        "list": "Liste aller Word-Vorlagen"
+      },
+      "upload": {
+        "serialExecution": {
+          "_": "Serienausführungsdatei (xlsx)",
+          "info": "Hochladen einer Serienausführungsdatei im Excel®-Format."
+        }
+      },
+      "variable": {
+        "add": "Neue Variable anlegen",
+        "allowedValues": {
+          "_": "Erlaubte Werte",
+          "info": "Erlaubte Werte werden als komma-separierte Werte angegeben: \"eins\", \"zwei\", \"drei\" oder: eins, zwei, drei."
+        },
+        "dependsOn": "Abhängig von",
+        "edit": "Variable bearbeiten",
+        "mapping": {
+          "_": "Zuordnung",
+          "info": "Die Zuordnung wird kommasepariert, z. B. eins, zwei, drei..."
+        },
+        "master": {
+          "_": "Mastervariable",
+          "info": "Von Mastervariablen hängen andere Variablen ab, bzw. sie werden in Konditionalausdrücken (if-Anweisungen) verwendet.",
+          "values": "Masterwerte"
+        },
+        "maxValue": "Maximalwert",
+        "minValue": "Minimalwert",
+        "name": "Name",
+        "required": "Erforderlich",
+        "scale": {
+          "_": "Nachkommastellen",
+          "info": "Diese Zahl von Nachkommastellen werden angezeigt. Wenn nicht gegeben, werden alle Nachkommastellen angezeigt."
+        },
+        "sortName": {
+          "_": "Sortiername",
+          "info": "Eingabevariablen werden zur Benutzung in alphabetischer Reihenfolge angezeigt (sortiert nach dem Variablennamen). Wenn dieser Sortiername angegeben ist, wird dieser anstelle des Variablennamens zur Sortierung benutzt."
+        },
+        "type": {
+          "_": "Typ",
+          "DATE": "Datum (date)",
+          "FLOAT": "Fließkommazahl (float)",
+          "INT": "Ganzzahl (int)",
+          "STRING": "Text (string)",
+          "dependent": "Abhängig"
+        },
+        "unique": "Eindeutig",
+        "used": "Benutzt"
+      },
+      "variables": {
+        "_": "Variables",
+        "conditionals": "Bedingte Ausdrücke",
+        "dependant": {
+          "_": "Abhängige Variablen",
+          "info": "Unbenutze Variablen in der Vorlage werden in hellgrau visualisiert."
+        },
+        "input": {
+          "_": "Eingabe-Variablen",
+          "info": "Master-Variablen, von denen andere Variablen abhängen oder die in bedingten Ausdrücken (if-Ausdrücke) verwendet werden, werden rot hervorgehoben."
+        }
+      },
+      "viewLogs": "Protokolldatei anzeigen",
+      "wordTemplateFile": {
+        "_": "Word®-Vorlage",
+        "info": "Die neueste Word®-Datei (docx) der Anhänge wird verwendet."
       }
     },
     "skillmatrix": {
-      "interest": "Interesse",
+      "interest": {
+        "_": "Interesse",
+        "0": "Ohne Einstufung",
+        "1": "Interesse",
+        "2": "Großes Interesse",
+        "3": "Going crazy!"
+      },
       "owner": "Eigner",
-      "rating": "Selbsteinschätzung",
-      "skill": "Skill"
+      "rating": {
+        "_": "Selbsteinschätzung",
+        "0": "Keine Einschätzung",
+        "1": "Basis",
+        "2": "Fortgeschritten",
+        "3": "Experte"
+      },
+      "skill": "Skill",
+      "title": {
+        "add": "Neuer Skill",
+        "list": "Skillmatrix"
+      }
     },
     "teamcal": {
+      "absenceKinds": {
+        "_": "Angezeigte Abwesenheiten",
+        "tooltip": "Welche Abwesenheiten der oben gewählten Personen der Kalender enthält: Urlaube, nicht verfügbar, remote erreichbar usw. Gilt für die Kalenderansicht und das Abonnement des Kalenders."
+      },
+      "absences": "Abwesenheiten",
       "access": {
         "_": "Zugriffsrecht",
         "groups": "Gruppen",
@@ -3427,8 +5006,14 @@
         "timesheets": "Über diese URL können die eigenen Zeitberichte in der persönlichen Kalendersoftware abonniert werden (z. B. Apple iCal oder Microsoft Outlook).",
         "tooltip": "Über diese URL kann der Kalender in der persönlichen Kalendersoftware abonniert werden (z. B. Apple iCal oder Microsoft Outlook)."
       },
-      "switchToTeamEventButton": "In Termin umwandeln",
-      "switchToTimesheetButton": "In Zeitbuchung umwandeln",
+      "switchToTeamEventButton": {
+        "_": "Als Termin bearbeiten",
+        "tooltip": "Öffnet einen neuen Termin mit Zeitraum, Ort und Beschreibung dieser Zeitbuchung. Er wird erst beim Speichern angelegt; eine bereits gespeicherte Zeitbuchung bleibt unverändert bestehen."
+      },
+      "switchToTimesheetButton": {
+        "_": "Als Zeitbuchung bearbeiten",
+        "tooltip": "Öffnet eine neue Zeitbuchung mit Zeitraum, Ort, Betreff und Notiz dieses Termins. Sie wird erst beim Speichern angelegt; ein bereits gespeicherter Termin bleibt unverändert bestehen."
+      },
       "title": {
         "_": "Titel",
         "add": "Kalender hinzufügen",
@@ -3489,16 +5074,109 @@
     }
   },
   "poll": {
-    "attendees": "Teilnehmer:innen",
-    "deadline": "Antwortfrist",
+    "answer": {
+      "for": "Antworten von",
+      "lastUpdate": "Zuletzt gespeichert",
+      "notOpen": "Die Umfrage ist beendet, die Antworten können nicht mehr geändert werden.",
+      "save": "Antworten speichern",
+      "saved": "Die Antworten sind gespeichert.",
+      "title": "Umfrage beantworten"
+    },
+    "answers": "Antworten",
+    "attendeeGroups": "Teilnehmende Gruppen",
+    "attendees": {
+      "_": "Teilnehmer:innen",
+      "tooltip": "Die Teilnehmer:innen beantworten die Umfrage. Alle Mitglieder einer teilnehmenden Gruppe nehmen teil, auch wer später dazukommt."
+    },
+    "deadline": {
+      "_": "Antwortfrist",
+      "tooltip": "Antworten sind bis zum Ende dieses Tages möglich. Am nächsten Morgen wird die Umfrage beendet."
+    },
     "description": "Beschreibung",
+    "error": {
+      "oneQuestionRequired": "Mindestens eine Frage ist erforderlich."
+    },
+    "finish": {
+      "_": "Umfrage beenden",
+      "confirm": "Die Umfrage jetzt beenden? Danach können keine Antworten mehr gegeben oder geändert werden. Alle werden per Mail informiert, wer Vollzugriff hat, bekommt die Ergebnisse.",
+      "done": "Die Umfrage ist beendet."
+    },
+    "fullAccess": {
+      "tooltip": "Ersteller:in und Benutzer:innen mit Vollzugriff bearbeiten die Umfrage, sehen alle Antworten, beenden sie und antworten stellvertretend für Teilnehmer:innen."
+    },
+    "fullAccessGroups": "Gruppen mit Vollzugriff",
+    "fullAccessUsers": "Benutzer:innen mit Vollzugriff",
+    "heading": {
+      "access": "Teilnehmer:innen und Zugriff",
+      "general": "Umfrage",
+      "invitation": "Einladungsmail",
+      "questions": "Fragen"
+    },
+    "info": "Alle Teilnehmer:innen und wer Vollzugriff hat, bekommen eine Einladungsmail, wenn die Umfrage zum ersten Mal gespeichert wird (eine Vorlage: wenn sie als Umfrage gespeichert wird). Bis zur Antwortfrist können die Antworten geändert werden. Am Tag danach wird die Umfrage beendet, und wer Vollzugriff hat, bekommt die Ergebnisse.",
+    "invitation": {
+      "subject": {
+        "_": "Betreff",
+        "tooltip": "Leer lassen für den Standardbetreff."
+      },
+      "text": {
+        "_": "Text",
+        "tooltip": "Leer lassen für den Standardtext. Der Link zur Umfrage und die Antwortfrist werden unter dem Text ergänzt."
+      }
+    },
     "location": "Ort",
+    "option": {
+      "_": "Option",
+      "add": "Option hinzufügen",
+      "remove": "Option entfernen"
+    },
     "owner": "Ersteller:in",
-    "state": "Status",
-    "title": "Titel"
+    "question": {
+      "_": "Frage",
+      "add": "Frage hinzufügen",
+      "moveDown": "Nach unten",
+      "moveUp": "Nach oben",
+      "remove": "Frage entfernen"
+    },
+    "questionTemplate": {
+      "_": "Fragen aus Vorlage übernehmen",
+      "taken": "Die Fragen der Vorlage wurden ergänzt."
+    },
+    "questionType": {
+      "_": "Art der Frage",
+      "MULTIPLE_CHOICE": "Mehrfachauswahl",
+      "SINGLE_CHOICE": "Einfachauswahl",
+      "TEXT": "Text"
+    },
+    "questions": "Fragen",
+    "response": {
+      "owner": "Teilnehmer:in"
+    },
+    "results": {
+      "_": "Ergebnisse",
+      "answered": "{arg0} von {arg1} Teilnehmer:innen haben geantwortet",
+      "missing": "Noch keine Antworten",
+      "notAttendee": "nicht Teilnehmer:in"
+    },
+    "state": {
+      "_": "Status",
+      "finished": "Beendet",
+      "running": "Laufend",
+      "template": "Vorlage"
+    },
+    "template": {
+      "_": "Vorlage",
+      "info": "Eine Vorlage wird nie verschickt: Ihre Fragen werden in andere Umfragen übernommen, oder sie wird geklont. Ohne diese Markierung gespeichert, wird sie zur Umfrage, und die Teilnehmer:innen werden eingeladen."
+    },
+    "title": {
+      "_": "Titel",
+      "add": "Neue Umfrage",
+      "edit": "Umfrage bearbeiten",
+      "list": "Umfragen"
+    }
   },
   "preview": "Vorschau",
   "print": "Drucken",
+  "printView": "Druckansicht",
   "priority": {
     "_": "Priorität",
     "high": "hoch",
@@ -3506,6 +5184,85 @@
     "least": "gering",
     "low": "niedrig",
     "middle": "mittel"
+  },
+  "project": {
+    "wizard": {
+      "action": {
+        "customerNotCreated": "Der Kunde wird noch nicht angelegt: {arg0}",
+        "newCustomer": "Der Kunde {arg0} wird angelegt.",
+        "newProject": "Das Projekt {arg0} wird angelegt.",
+        "noGroups": "Keine Gruppen ausgewählt, daher werden keine Zugriffsrechte angelegt.",
+        "projectNotCreated": "Das Projekt wird noch nicht angelegt: {arg0}"
+      },
+      "customer": {
+        "intro": "Der Kunde des Projekts: ein vorhandener oder ein neuer, der zusammen mit dem Projekt angelegt wird – oder auch allein."
+      },
+      "element": {
+        "autoReuse": "Ein Element mit diesem Titel gibt es schon, es wird verwendet: {arg0}",
+        "customerIntro": "Ein neues Element unter einem gewählten, mit dem Namen des Kunden als Titel, oder ein vorhandenes Element; dessen Titel darf vom Namen abweichen.",
+        "existing": "Vorhandenes Element verwenden",
+        "new": "Neues Element anlegen",
+        "projectIntro": "Ein neues Element unter dem Element des Kunden, mit dem Namen des Projekts als Titel, oder ein vorhandenes Element darunter, das noch kein Projekt hat; dessen Titel darf abweichen. Das Element wird mit dem Projekt verknüpft und bekommt die Zugriffsrechte der Gruppen."
+      },
+      "existing": {
+        "customer": "Vorhandener Kunde",
+        "group": "Vorhandene Gruppe"
+      },
+      "finish": {
+        "_": "Projekt einrichten",
+        "customer": "Kunde anlegen"
+      },
+      "intro": "Mit diesem Assistenten werden ein neuer Kunde und/oder ein neues Projekt in einem Schritt eingerichtet: der Kunde (vorhanden oder neu), das Projekt, sein Strukturelement und bei Bedarf die Gruppen von Team, Teammanager:innen und Externen samt ihrer Zugriffsrechte. Gespeichert wird erst am Ende, dann alles auf einmal.",
+      "managerGroup": {
+        "projectManagerGroup": "Diese Gruppe wird zugleich die Projektmanager-Gruppe des Projekts."
+      },
+      "new": {
+        "customer": "Neuer Kunde",
+        "group": "Neue Gruppe",
+        "project": "Neues Projekt"
+      },
+      "none": {
+        "group": "Keine Gruppe",
+        "project": "Kein Projekt"
+      },
+      "notAllowed": "Der Kundenassistent steht nur Benutzer:innen zur Verfügung, die Kunden oder Projekte und Strukturelemente anlegen dürfen.",
+      "pageTitle": "Kundenassistent",
+      "parentTask": {
+        "customerOnly": {
+          "intro": "Optional: das Strukturelement des neuen Kunden, ein neues unterhalb eines gewählten Elements mit dem Namen des Kunden als Titel oder ein vorhandenes. Ohne Element wird nur der Kunde angelegt."
+        },
+        "existingCustomer": {
+          "_": "Strukturelement des Kunden",
+          "intro": "Das Element des Kunden, soweit bekannt aus seinen Projekten vorbelegt. Darunter liegt das Strukturelement des Projekts."
+        },
+        "heading": "Strukturelemente",
+        "intro": "Die Strukturelemente des Kunden und des Projekts: neue oder vorhandene.",
+        "newCustomer": "Übergeordnetes Element des Kunden",
+        "newPath": "Pfad der Strukturelemente:",
+        "structure": {
+          "_": "Das Element eines Kunden ist das übergeordnete Element aller seiner Projekte. Es kann einer Kundengruppe, einer Business-Unit o. ä. untergeordnet sein oder auf oberster Ebene liegen.",
+          "title": "Wie der Aufbau gedacht ist"
+        }
+      },
+      "preview": {
+        "existingElement": "vorhanden",
+        "newElement": "neu"
+      },
+      "project": {
+        "intro": "Das neue Projekt. Seine Nummer folgt dem Nummernkreis des Kunden."
+      },
+      "result": {
+        "created": "neu",
+        "customerElement": "Strukturelement des Kunden",
+        "existing": "vorhanden",
+        "projectElement": "Strukturelement des Projekts",
+        "title": "Was der Assistent eingerichtet hat"
+      },
+      "running": {
+        "_": "Projekt wird eingerichtet …",
+        "customer": "Kunde wird angelegt …"
+      }
+    }
   },
   "projectmanagement": {
     "personDays": {
@@ -3518,7 +5275,7 @@
     "deleteRowQuestion": "Soll dieser Eintrag wirklich entfernt werden? Er wird beim Speichern des Formulars gelöscht.",
     "forceDeleteQuestion": "ACHTUNG!!! Soll das Object tatsächlich uwiderruflich gelöscht werden? Es werden auch alle Einträge aus der Änderungshistorie zu diesem Object unwiderruflich gelöscht!!!!!!",
     "leaveUnsavedChanges": "Es gibt ungespeicherte Änderungen. Soll die Seite trotzdem verlassen werden?",
-    "markAsDeletedQuestion": "Soll das Objekt als gelöscht markiert werden?"
+    "markAsDeletedQuestion": "Soll das Objekt als gelöscht markiert werden? Es kann später wiederhergestellt werden."
   },
   "rating": "Bewertung",
   "recursive": "rekursiv",
@@ -3531,6 +5288,8 @@
   "richTextEditor": {
     "bold": "Fett",
     "bulletList": "Aufzählung",
+    "code": "Code",
+    "codeBlock": "Codeblock",
     "color": {
       "_": "Textfarbe",
       "blue": "Blau",
@@ -3549,6 +5308,7 @@
     },
     "orderedList": "Nummerierte Liste",
     "paragraph": "Normaler Text",
+    "strike": "Durchgestrichen",
     "table": {
       "_": "Tabelle",
       "addColumnAfter": "Spalte rechts einfügen",
@@ -3625,6 +5385,7 @@
         "pageContext": "Gestartet von: {arg0}. Das Script erhält den aktuellen Filter dieser Seite als Variable `pageContext`."
       },
       "includes": "Eingebundene Scripts",
+      "input": "Eingabe",
       "name": "Name",
       "output": "Ausgabe",
       "pageButtons": "Seiten-Buttons",
@@ -3659,6 +5420,7 @@
     "area": "Bereich",
     "durationOfSearch": "Suchdauer",
     "error": "Es trat leider ein interner Fehler auf.",
+    "invalidSyntax": "Der Suchbegriff ist keine gültige Suchsyntax (z. B. ein Doppelpunkt hinter einem Wort oder ein offenes Anführungszeichen), daher gibt es kein Ergebnis.",
     "lastDay": "Letzter Tag",
     "lastDays": "Letzte {arg0} Tage",
     "lastHour": "Letzte Stunde",
@@ -3691,9 +5453,14 @@
     "_": "Auswählen",
     "checklist": {
       "andMore": "und {arg0} weitere",
+      "fromAll": "Aus allen wählen",
+      "fromAllHint": "Alle Werte, auch solche, die nicht im aktuellen Ergebnis sind.",
+      "narrowsHint": "Nur Werte der Einträge, auf die die übrigen Filter passen: schränkt das aktuelle Ergebnis weiter ein.",
+      "noneForOtherFilters": "Die übrigen Filter treffen keine Einträge. Erst diese setzen oder erweitern (z. B. den Zeitraum) oder aus allen wählen.",
       "selectedOf": "{arg0} von {arg1} ausgewählt",
       "truncated": "{arg0} von {arg1} Einträgen angezeigt; die Suche verfeinern, um die übrigen zu sehen."
     },
+    "inactive": "inaktiv",
     "placeholder": "Auswählen..."
   },
   "selectAll": "Alle auswählen",
@@ -3931,10 +5698,6 @@
           "_": "Export 2FA configuration",
           "tooltip": "Export 2FA configuration including all ProjectForge rest end points and configuration of projectforge.properties."
         },
-        "exportConfiguration": {
-          "_": "Export configuration",
-          "tooltip": "Exports the config.xml which represents the currently used configuration of ProjectForge. The exported file may differ from the config.xml."
-        },
         "formatLogEntries": {
           "_": "Format log entries",
           "textarea": {
@@ -3949,8 +5712,8 @@
         },
         "reindex": "Reindex",
         "rereadConfiguration": {
-          "_": "Reread configuration",
-          "tooltip": "Rereads the config.xml configuration. You can use this to tell ProjectForge that you've modified the config.xml file. ProjectForge reads the config.xml during the start-up phase."
+          "_": "Konfiguration neu einlesen",
+          "tooltip": "Liest die Konfigurationsparameter neu ein, z. B. nachdem ein Parameter direkt in der Datenbank geändert wurde. Meist nicht nötig: Änderungen auf der Konfigurationsseite gelten sofort."
         },
         "resetIdpPasswordSync": {
           "_": "IdP-Passwort-Sync zurücksetzen",
@@ -3962,6 +5725,21 @@
           "tooltip": "Export the database schema (tables, constraints etc.). The database dialect of the currently used database is used."
         },
         "setAlertMessage": "Set system alert message",
+        "sipgate": {
+          "downloadConfiguration": {
+            "_": "Sipgate-Konfiguration herunterladen",
+            "tooltip": "Lädt die Konfiguration von Sipgate (Benutzer, Geräte, Nummern usw.) als Excel-Datei herunter."
+          },
+          "resetContacts": {
+            "_": "Sipgate-Kontakte zurücksetzen",
+            "question": "Sollen die Sipgate-Kontakte wirklich zurückgesetzt werden? Die Kontakte werden danach erneut mit den lokalen Adressen synchronisiert.",
+            "tooltip": "Synchronisiert die Sipgate-Kontakte und setzt sie zurück, z. B. um Kontakte in Sipgate mit doppelten Nummern neu zu ordnen."
+          },
+          "synchronize": {
+            "_": "Sipgate synchronisieren",
+            "tooltip": "Synchronisiert die Kontakte von Sipgate mit den lokalen Adressen und lädt die entfernte Konfiguration (Benutzer, Geräte, Nummern usw.) neu."
+          }
+        },
         "testDatabase": {
           "_": "Datenbank testen",
           "tooltip": "Führt einen Datenbank-Lasttest aus (nur im Entwicklungsmodus, siehe Logdateien)."
@@ -3974,14 +5752,15 @@
         "title": {
           "alertMessage": "Alert message",
           "checks": "Prüfungen",
-          "databaseActions": "Database actions",
+          "databaseActions": "Datenbank-Aktionen",
           "development": "Entwicklung",
           "jcr": "Dokumenten-Repository (JCR)",
           "misc": {
             "logEntries": "Format log entries"
           },
+          "sipgate": "Sipgate",
           "systemChecksAndFunctionality": {
-            "configuration": "Configuration"
+            "configuration": "Konfiguration"
           }
         }
       },
@@ -4081,6 +5860,71 @@
       "restartRequired": "Bitte beachten: Die (De-)Aktivierung von Plugins wird erst nach einem Neustart wirksam!",
       "title": "Plugins"
     },
+    "propertiesEditor": {
+      "activeDiffers": "Das laufende System verwendet einen anderen Wert: Ein Neustart steht aus oder der Wert wird überschrieben.",
+      "activeSource": "Überschrieben durch: {arg0}",
+      "activeValue": "Aktiver Wert",
+      "addParameter": {
+        "_": "Parameter hinzufügen",
+        "exists": "Dieser Parameter existiert bereits.",
+        "invalid": "Ungültiger Schlüssel (nur Buchstaben, Ziffern, '.', '-', '_' und [n]).",
+        "key": "Schlüssel",
+        "value": "Wert"
+      },
+      "backupInfo": "Vor jedem Speichern wird eine Kopie der Datei mit Zeitstempel daneben abgelegt (z. B. projectforge.properties.2026-10-20_09-30-15.bak). Die Datei wird nach Gruppen sortiert neu geschrieben; eigene Kommentare bleiben über ihrem Parameter.",
+      "cardInfo": "Bearbeitet die Parameter der projectforge.properties im Home-Verzeichnis von ProjectForge: nach Themen gruppiert, mit Beschreibungen und Standardwerten.",
+      "changeCount": "{arg0} geändert",
+      "confirm": {
+        "description": "Die folgenden Parameter werden in der projectforge.properties geändert. Vorher wird eine Sicherungskopie geschrieben.",
+        "title": "projectforge.properties speichern?"
+      },
+      "default": "Standard",
+      "delete": "Entfernen",
+      "deleteAll": "Alle entfernen ({arg0})",
+      "deleteInfo": "Löscht den Parameter aus der projectforge.properties (die Sicherung beim Speichern enthält ihn weiterhin).",
+      "diff": {
+        "current": "Aktuelle Datei",
+        "ignoreOrder": "Reihenfolge ignorieren",
+        "info": "Vergleicht die projectforge.properties mit ihren Sicherungskopien oder zwei Sicherungskopien miteinander. Werte von Secrets werden nicht angezeigt, nur ob sie sich geändert haben.",
+        "title": "projectforge.properties vergleichen"
+      },
+      "example": "Beispiel",
+      "expertWarning": "Interne Einstellungen: Nur ändern, wenn genau klar ist, was sie bewirken. Ein falscher Wert kann den Start von ProjectForge verhindern.",
+      "fileComment": "Eigener Kommentar in der projectforge.properties",
+      "filter": {
+        "inFile": "In projectforge.properties gesetzt",
+        "modified": "Geändert"
+      },
+      "group": {
+        "obsolete": "Nicht mehr verwendet",
+        "other": "Sonstige"
+      },
+      "inFileCount": "{arg0} gesetzt",
+      "noResults": "Keine Parameter gefunden.",
+      "notWritable": "Die projectforge.properties existiert nicht oder kann nicht geschrieben werden (fehlende Schreibrechte für die Datei oder ihr Verzeichnis). Die Parameter werden nur lesend angezeigt.",
+      "obsoleteInfo": "Im Namensraum von ProjectForge (projectforge.*, pf.*), wird aber von ProjectForge nicht (mehr) verwendet: eine entfallene Option oder ein Tippfehler. Der Parameter hat keine Wirkung.",
+      "optional": "optional",
+      "otherInfo": "ProjectForge nicht bekannt, z. B. eine Einstellung von Spring Boot oder einer Bibliothek. Bitte prüfen, ob sie noch benötigt wird, und auf Tippfehler achten.",
+      "removed": "entfernt (Standard gilt)",
+      "reset": {
+        "_": "Auf Standard zurücksetzen",
+        "tooltip": "Entfernt den Parameter aus der projectforge.properties, sodass wieder der Standardwert gilt."
+      },
+      "restartRequired": "Änderungen werden erst nach einem Neustart von ProjectForge wirksam!",
+      "search": "Schlüssel oder Beschreibung suchen",
+      "secret": {
+        "notSet": "Nicht gesetzt",
+        "set": "Gesetzt (der Wert wird nicht angezeigt)"
+      },
+      "secretChanged": "neuer Wert",
+      "status": {
+        "obsolete": "nicht mehr verwendet",
+        "unknown": "unbekannt"
+      },
+      "title": "Konfigurationsdatei (projectforge.properties)",
+      "undo": "Änderung verwerfen",
+      "unset": "nicht gesetzt (Standard gilt)"
+    },
     "scheduler": {
       "abandoned": {
         "_": "Beendete Läufe, die noch laufen: {arg0}",
@@ -4171,7 +6015,91 @@
       "tooltip": "Wenn gewählt (wird auch an Unterelemente vererbt), dürfen sich hier gebuchte Zeitberichte zeitlich mit Zeitberichten anderer Projekte überlappen (geteilte Kosten). Überlappende Zeit wird in Anwesenheits- und Monatsberichten anteilig gezählt (z. B. 1h + überlappend 1h = je 0,5h). Überlappende Zeitberichte auf derselben Kost2 oder innerhalb desselben Projekts oder derselben Überlappungsgruppe (Konfiguration) werden nicht unterstützt. Eine Einstellung der Kost2 hat Vorrang."
     },
     "assignedUser": "Verantwortliche:r",
+    "bookingGrant": {
+      "acceptanceRequired": "Zu übernehmen",
+      "add": "Buchung freigeben",
+      "badge": {
+        "_": "{arg0} Ad-hoc-Buchung(en)",
+        "upcoming": "ab {arg0}"
+      },
+      "confirm": {
+        "_": "Bestätigen",
+        "confirm": "Diese vorgeschlagene Freigabe bestätigen? Ab jetzt damit gebuchte Zeitberichte müssen nicht mehr übernommen werden, die bisher gebuchten weiterhin."
+      },
+      "error": {
+        "endBeforeStart": "Das Ende des Zeitraums liegt vor seinem Beginn.",
+        "invalidKost2": "Eine Kost2 gehört nicht zu ihrem Strukturelement.",
+        "noTask": "Bitte mindestens ein Strukturelement auswählen.",
+        "notConfirmable": "Die Freigabe ist widerrufen oder schon bestätigt.",
+        "periodNotSet": "Bitte den Zeitraum angeben.",
+        "periodTooLong": "Eine vorgeschlagene Freigabe gilt höchstens 31 Tage.",
+        "proposalTooFarAhead": "Eine vorgeschlagene Freigabe endet spätestens 31 Tage nach heute.",
+        "taskNotBookable": "Auf dieses Strukturelement können keine Zeitberichte gebucht werden.",
+        "taskTwice": "Ein Strukturelement ist doppelt ausgewählt.",
+        "userChanged": "Die Person einer Freigabe kann nicht geändert werden.",
+        "userNotSet": "Bitte mindestens eine Person auswählen."
+      },
+      "grantedBy": "Freigegeben von",
+      "kost2": {
+        "all": "Alle Kost2",
+        "selected": "{arg0} Kost2"
+      },
+      "mail": {
+        "acceptanceRequired": "Deine Zeitberichte werden von der Projektleitung geprüft und übernommen, ggf. auf ein anderes Strukturelement oder eine andere Kost2.",
+        "greeting": "Hallo {arg0},",
+        "subject": {
+          "_": "Zeitberichte buchen auf {arg0}",
+          "multiple": "Zeitberichte buchen auf {arg0} Strukturelementen"
+        },
+        "text": "{arg0} hat dir das Buchen eigener Zeitberichte für den Zeitraum {arg1} auf den folgenden Strukturelementen freigegeben. Über die Links kannst du deine Zeitberichte buchen:"
+      },
+      "none": "Keine Ad-hoc-Buchungen freigegeben.",
+      "pending": {
+        "_": "{arg0} zu übernehmen",
+        "tooltip": "{arg0} über eine vorgeschlagene Freigabe gebuchte(r) Zeitbericht(e) zu übernehmen"
+      },
+      "positions": {
+        "_": "Strukturelemente",
+        "add": "Unterelement hinzufügen",
+        "hidden": "und {arg0} weitere(s) Strukturelement(e)",
+        "truncated": "Angeboten werden nur die ersten {arg0} Unterelemente. Ein tieferes Unterelement über sein eigenes Strukturelement freigeben."
+      },
+      "proposal": {
+        "info": "Hier kann keine Freigabe erteilt, aber eine vorgeschlagen werden: Die aushelfende Person bucht sofort, die Projektleitung übernimmt die Zeitberichte anschließend (ggf. auf ein anderes Strukturelement oder eine andere Kost2). Höchstens 31 Tage gültig."
+      },
+      "propose": "Buchung vorschlagen",
+      "proposed": {
+        "_": "Vorgeschlagen",
+        "tooltip": "Ohne Freigaberecht vorgeschlagen: Die damit gebuchten Zeitberichte übernimmt die Projektleitung."
+      },
+      "revoke": {
+        "_": "Widerrufen",
+        "confirm": "Diese Freigabe auf allen ihren Strukturelementen widerrufen? Die bisher gebuchten Zeitberichte bleiben erhalten."
+      },
+      "status": {
+        "_": "Status",
+        "ACTIVE": "Aktiv",
+        "EXPIRED": "Abgelaufen",
+        "REVOKED": "Widerrufen",
+        "UPCOMING": "Anstehend"
+      },
+      "users": "Personen",
+      "validFrom": "Gültig ab",
+      "validUntil": "Gültig bis"
+    },
+    "bookingGrants": {
+      "_": "Ad-hoc-Buchungen",
+      "info": "Aushelfende Kolleg:innen können hier für einen Zeitraum eigene Zeitberichte auf diesem Strukturelement oder seinen Unterelementen buchen, ohne Mitglied einer Gruppe zu sein. Sie sehen nichts weiter vom Projekt: nur die freigegebenen Strukturelemente und die Titel der übergeordneten Elemente."
+    },
     "consumption": "Verbrauch",
+    "consumptionTooltip": {
+      "booked": "Gebucht",
+      "budget": "Budget",
+      "overbooked": "Überbucht",
+      "overbookedTitle": "{arg0} überbucht",
+      "remaining": "Rest",
+      "remainingTitle": "Rest: {arg0}"
+    },
     "deleted": "gelöscht",
     "edit": {
       "maxHoursIngoredDueToAssignedOrders": "Diesem Strukturelement oder einem Strukturunterelement wurden Aufträge zugeordnet. Standardmäßig wird deren Personentage-Summe verwendet; die eingetragenen Maximalstunden werden nur berücksichtigt, wenn die Option \"Maximalstunden haben Vorrang\" gesetzt ist. Die Angabe einer Null verhindert die Anzeige des Maximalwerts in den Verbrauchsbalken."
@@ -4236,7 +6164,6 @@
       "_": "Datenschutz",
       "tooltip": "Wenn diese Option gewählt wird, dann kann nicht auf die Zeitberichte anderer Benutzer:innen unterhalb dieses Strukturelements zugegriffen werden."
     },
-    "recursive": "inkl. aller Strukturunterelemente",
     "reference": "Referenz",
     "selectPanel": {
       "info": "Ordnerelement können ausgewählt werden, indem in eine andere Spalte geklickt wird (außer der ersten).\\\n**Tastatur:** **↑ / ↓** – zwischen den Elementen bewegen · **→ / ←** – fokussiertes Element auf- und zuklappen · **Eingabetaste** – fokussiertes Element auswählen",
@@ -4287,6 +6214,7 @@
         "select": "Strukturelement auswählen"
       }
     },
+    "withoutSubTasks": "ohne Strukturunterelemente",
     "wizard": {
       "action": {
         "_": "Aktion",
@@ -4361,6 +6289,12 @@
   },
   "timesheet": {
     "_": "Zeitbericht",
+    "acceptance": {
+      "accept": "Übernehmen",
+      "acceptOnSave": "Beim Speichern übernehmen",
+      "info": "Über eine von {arg0} vorgeschlagene Ad-hoc-Buchung gebucht: von der Projektleitung zu übernehmen, ggf. auf ein anderes Strukturelement oder eine andere Kost2."
+    },
+    "acceptancePending": "Zu übernehmen",
     "ai": {
       "timeSavedByAI": {
         "_": "KI-Ersparnis",
@@ -4404,12 +6338,18 @@
       "vacationNotConfigured": "Keine Urlaubs-Kost2 konfiguriert: Strukturelement und Kost2 bitte selbst wählen.",
       "vacationPlaceholder": "Urlaub auswählen"
     },
+    "bookingGrant": "Ad-hoc-Buchung",
     "description": "Tätigkeitsbericht",
     "duration": "Dauer",
     "iCalSubscription": "Zeitberichte im iCal-Format für den/die angemeldete:n Benutzer:in exportieren (*.ics).",
     "icsExport": "ics-Export",
     "location": "Ort",
     "massupdate": {
+      "acceptPending": {
+        "info": "Übernimmt die ausgewählten, über eine vorgeschlagene Ad-hoc-Buchung gebuchten Zeitberichte, ggf. mit dem oben gewählten Strukturelement und der Kost2. Für die übrigen ändert sich daran nichts."
+      },
+      "remapKost2": "Kost2 nach Kostenart umschlüsseln (Strukturelement bleibt)",
+      "remapKost2Info": "Jeder Zeitbericht behält sein Strukturelement. Eine Kost2, die das Strukturelement nicht mehr anbietet, wird durch dessen Kost2 derselben Kostenart (letzte beiden Ziffern) ersetzt, z. B. 5.900.11.01 -> 7.900.01.01 nach Verlinkung eines Projekts.",
       "taskNotApplied": "Das Strukturelement ist nicht ausgewählt (Checkbox) und wird daher nicht geändert.",
       "updateTask": "Strukturelement für alle Zeitberichte ändern"
     },
@@ -4474,6 +6414,50 @@
   "uptodate": "aktuell",
   "user": {
     "_": "Benutzer:in",
+    "My2FA": {
+      "expired": "Für die angeforderte Aktion ist eine (erneute) Zwei-Faktor-Authentifizierung erforderlich, die nicht älter als {arg0} ist.",
+      "required": {
+        "_": "Eine (erneute) Zwei-Faktor-Authentifizierung ist erforderlich.",
+        "extended": "Eine (erneute) Zwei-Faktor-Authentifizierung ist aus Sicherheitsgründen erforderlich. Du kannst hierzu einen Code anfordern (s. Link unterhalb des Code-Feldes) oder, falls konfiguriert, deine Authenticator-App benutzen."
+      },
+      "setup": {
+        "authenticator": {
+          "info": "Smartphone einrichten\n\n1. Einfach den Barcode in der Authenticator-App scannen.\n2. Fertig.\n\nJedesmal, wenn ProjectForge nach einem Code fragt, einfach den in der Authenticator-App eingeblendeten Code verwenden.\n\nEs können mehrere Authenticator-Apps gleichzeitig (auch als Backup) genutzt werden.\n\nCodes aus der Authenticator-App sind noch für ca. 30 Sekunden gültig, nachdem sie in der App erneuert wurden.\n\nDiese Barcode-Ansicht ist für ca. 10 Minuten einsehbar. Anschließend wird für die erneute Anzeige eine 2FA-Authentifizierung benötigt.",
+          "intro": "Für die Zwei-Faktor-Authentifzierung sollte eine Authenticator-App eingerichtet werden (z. B. Microsoft-, Google-Authenticator oder Fortitoken).",
+          "title": "Authenticator-Apps"
+        },
+        "authenticatorKey": "Authenticator-Schlüssel",
+        "check": {
+          "fail": "Code-Prüfung fehlgeschlagen."
+        },
+        "check2FA": "2FA jetzt prüfen",
+        "disableAuthenticatorApp": {
+          "_": "Authenticator-App entfernen",
+          "confirmMessage": "Soll die Authentificator-App nun entfernt bzw. erneuert werden? Alle bisherhigen Authentificator-Apps werden dann ungültig.",
+          "info": "Diesen Knopf klicken, um die Authentificator-App zu entfernen oder zu erneuern. Für diese Funktion wird selbst ein 2. Faktor benötigt, der nicht älter ist als 10 Minuten."
+        },
+        "enableAuthenticatorApp": {
+          "_": "Authentificator-Apps einrichten",
+          "confirmMessage": "Soll eine Authenticator-App nun eingerichtet werden? Anschließend wird für eine Anmeldung ein 2. Faktor benötigt. Diese Operation kann rückgängig gemacht werden.",
+          "info": "Hierüber kann eine Authenticator-App eingerichtet werden."
+        },
+        "info": {
+          "1": "### Zwei-Faktor-Authentifizierung (2FA)\n\n* ProjectForge unterstützt 2FA für eine erhöhte Sicherheit. Authenticator-Apps, SMS (wenn konfiguriert) und/oder E-Mails werden als 2. Faktor unterstützt.\n* Immer, wenn ProjectForge einen Code anfordert, kann ein Code aus der Authenticator-App eingegeben werden oder ein Einmalpasswort per E-Mail oder als SMS angefordert werden.\n\nWenn die Angemeldet-Bleiben-Funktion bei der Anmeldung verwendet wird, kann eine unnötig häufige Code-Abfrage vermieden werden!",
+          "2": "Es wird dringend empfohlen, einen zweiten Faktor über eine Authenticator-App und/oder WebAuthn (z. B. Fidu2) und, falls verfügbar, auch eine Mobilfunknummer zum Anfordern von Codes per SMS zu konfiguieren.\n\nEinige Sicherheitsfunktionen, wie z. B. ein Passwort-Reset, steht nur zur Verfügung, wenn mindestens ein 2. Faktor (Authenticator-App, SMS oder WebAuthn) konfiguriert ist.",
+          "3": "Hier können 2FA-Codes getestet werden. Außerdem benötigen Änderungen auf dieser Seite eine aktuelle 2FA-Prüfung.",
+          "title": "Zweifaktorauthentifizierung"
+        },
+        "showAuthenticatorKey": "Authenticator-Zugang anzeigen",
+        "sms": {
+          "info": {
+            "_": "Hier kann eine Mobilfunknummer hinterlegt werden, um einen 2. Faktor per SMS anzufordern.",
+            "title": "SMS-Konfiguration"
+          },
+          "mobileNumberRecommended": "Es wird dringend empfohlen, hier die eigene Mobilfunknummer anzugeben.\n\nÜber das Mobiltelefon kann ein zweiter Faktor als SMS alternativ angefordert werden.\n\nWenn die Mobilfunknummer geändert werden soll, wird eine (neue) Zweifaktorauthentifizierung benötigt (siehe oben)."
+        },
+        "title": "Zwei-Faktor-Authentifizierung (2FA) einrichten"
+      }
+    },
     "My2FACode": {
       "authentification": {
         "info": "Ein zweiter Faktor ist nun erforderlich.\n\nHier kann ein 2. Faktor (z. B. OTP-Einmalpasswort) eingegeben werden: Aus einer Authenticator-App, ein angeforderter Code per SMS oder E-Mail oder über einen registrierten WebAuthn-Token."
@@ -4491,27 +6475,32 @@
       },
       "lastSuccessful2FA": "Letzte erfolgreiche 2. Faktorauthentifizierung",
       "password": {
-        "info": "Das Password wird nur beim Versenden des Einmalpassworts per E-Mail aus Sicherheitsgründen verlangt.",
         "wrong": "Passwortprüfung fehlgeschlagen."
       },
       "sendCode": {
         "mail": {
           "_": "E-Mail-Code anfordern",
-          "info": "Code per E-Mail anfordern. Dieser Code ist bis zu 2 Minuten gültig.",
           "message": "Der Code lautet: {arg0}",
           "sentSuccessfully": "Der 2. Faktor wurde erfolgreich per E-Mail versendet um {arg0}",
           "title": "Nachricht von ProjectForge"
         },
         "sms": {
           "_": "SMS-Code anfordern",
-          "info": "Coder per SMS anfordern. Dieser Code ist bis zu 2 Minuten gültig.",
           "sentSuccessfully": "Der 2. Faktor wurde erfolgreich per SMS versendet um {arg0}."
         }
       },
       "title": "Zweifaktor-Authentifizierung"
     },
+    "activated": {
+      "_": "Aktiviert",
+      "tooltip": "Deaktivierte Benutzer:innen haben keinen Systemzugang mehr."
+    },
     "add": {
       "optionalPassword": "Hier kann optional ein Erstpasswort vergeben werden."
+    },
+    "adminUsers": {
+      "_": "Administrator:innen",
+      "none": "Nichtadministrator:innen"
     },
     "alternativeEmails": {
       "_": "Alternative E-Mail-Adressen",
@@ -4557,7 +6546,30 @@
         "qrCode": "QR-Code zum Einrichten einer Client-App mit diesem Schlüssel."
       }
     },
+    "avatar": {
+      "_": "Avatar",
+      "edit": "Bearbeiten",
+      "error": {
+        "unsupportedImage": "Als Avatar können nur Bilder der Typen PNG, JPEG und GIF verwendet werden."
+      },
+      "hint": "Wird im Chat und im Benutzermenü allen Benutzern angezeigt, die mindestens eine Gruppe gemeinsam haben.",
+      "remove": {
+        "_": "Entfernen",
+        "confirm": "Avatar entfernen?"
+      },
+      "removed": "Der Avatar wurde entfernt.",
+      "saved": "Der Avatar wurde gespeichert.",
+      "upload": "Bild hochladen"
+    },
     "changePassword": {
+      "error": {
+        "noCharacter": "Passwort muss mindestens einen Buchstaben haben.",
+        "noNonCharacter": "Passwort muss mindestens einen Nicht-Buchstaben haben.",
+        "notMinLength": "Passwort muss mindestens {arg0} Zeichen haben.",
+        "oldPasswdEqualsNew": "Neues Passwort darf nicht dem alten entsprechen.",
+        "oldPasswordWrong": "Das alte Passwort wurde nicht korrekt eingegeben.",
+        "passwordQualityCheck": "Passwort muss mindestens {arg0} Zeichen und sowohl mindestens einen Buchstaben als auch einen Nicht-Buchstaben enthalten."
+      },
       "msg": {
         "passwordSuccessfullyChanged": "Passwort wurde erfolgreich geändert."
       },
@@ -4566,36 +6578,70 @@
       "oldPassword": "Altes Passwort",
       "password": {
         "lastChange": "Letzte Passwortänderung"
-      }
+      },
+      "title": "Eigenes Passwort ändern"
     },
     "changeWlanPassword": {
+      "error": {
+        "loginPasswordWrong": "Das Login-Passwort wurde nicht korrekt eingegeben."
+      },
       "lastChange": "Letzte WLAN/Samba-Passwortänderung",
       "loginPassword": "Login-Passwort",
-      "newPassword": "Neues WLAN-Passwort"
+      "newPassword": "Neues WLAN-Passwort",
+      "title": "WLAN/Samba Passwort ändern"
     },
     "deactivated": "Deaktiviert",
     "defaultLocale": "Default (Browser)",
+    "error": {
+      "emailUsedByOtherUser": "{arg0} wird schon von {arg1} verwendet.",
+      "invalidEmail": "Ungültige E-Mail-Adresse: {arg0}",
+      "passwordAndRepeatDoesNotMatch": "Passwort und Passwortwiederholung stimmen nicht überein.",
+      "usernameAlreadyExists": "Benutzer:inname ist bereits vergeben."
+    },
+    "filter": {
+      "hrPlanning": "Personalplanung",
+      "privileged": "Privilegierte Benutzer:innen",
+      "restricted": "Eingeschränkte Benutzer:innen",
+      "status": "Status",
+      "syncStatus": "Synchronisationsstatus",
+      "type": "Typ"
+    },
     "formerEmails": {
       "_": "Frühere E-Mail-Adressen",
       "info": "Nicht mehr genutzte E-Mail-Adressen (z. B. nach einer Namensänderung), durch Kommas getrennt. Diese Adressen werden ggf. für die Synchronisationsläufe von Fremdsystemen (z. B. Lanes & Planes) benötigt."
     },
     "gpgPublicKey": "GPG-Public-Key",
-    "hrPlanningEnabled": "Personalplanung",
+    "hrPlanningEnabled": {
+      "_": "Personalplanung",
+      "not": "keine Personalplanung",
+      "tooltip": "Soll der oder die Benutzer:in in der Personalplanung sichtbar sein?"
+    },
     "jiraUsername": {
       "_": "JIRA Benutzer:inname",
       "tooltip": "Wird nur gebraucht, wenn dieser von dem ProjectForge-Benutzer:innamen abweicht und der oder die Benutzer:in aus ProjectForge heraus mit JIRA arbeiten möchte."
     },
     "ldapValues": "LDAP",
+    "legend": {
+      "deactivated": "Deaktiviert"
+    },
+    "list": {
+      "select": {
+        "title": "Benutzer:in auswählen"
+      }
+    },
     "localUser": {
       "_": "Lokale:r Benutzer:in",
       "not": "Allgemeine:r Benutzer:in",
       "tooltip": "Lokale Benutzer:innen werden nicht mit einem externen Benutzer:innensystem synchronisiert (z. B. LDAP)."
     },
     "locale": "Sprache",
+    "menu": {
+      "editRights": "Benutzer:innenrechte"
+    },
     "mobilePhone": {
       "_": "Mobilnummer",
       "info": "Die Nummer kann als 2. Faktor benutzt werden, um z. B. das Passwort zurückzusetzen oder andere sicherheitsrelevante Bereiche zu nutzen.\n\nDie Nummer kann im Bereich Zwei-Faktor-Authentifizierung geändert werden.",
-      "invalidFormat": "Es sind nur Zahlen sowie '+' am Anfang, '-', '/' und Leerzeichen erlaubt. Die führende Ländervorwahl ist optional. Beispiel: +49 561 316793-0 oder 0561 316793-0"
+      "invalidFormat": "Es sind nur Zahlen sowie '+' am Anfang, '-', '/' und Leerzeichen erlaubt. Die führende Ländervorwahl ist optional. Beispiel: +49 123 456789-0 oder 0123 456789-0"
     },
     "myAccount": {
       "defaultValue": "Voreinstellung: {arg0}",
@@ -4606,6 +6652,7 @@
         "settings": "Einstellungen",
         "tokens": "Zugangsschlüssel"
       },
+      "teamcalwhitelist": "Kalender Whitelist für Kalendersoftware",
       "title": {
         "edit": "Mein Zugang"
       }
@@ -4618,17 +6665,29 @@
         "title": "Direktwahl"
       }
     },
+    "restricted": {
+      "_": "eingeschränkt",
+      "not": "nicht eingeschränkt"
+    },
     "restrictedUser": {
       "_": "Eingeschränkte:r Nutzer:in",
       "tooltip": "Ein eingeschränkte:r (restricted) Nutzer:in darf sich lediglich anmelden und sein Passwort ändern.\n\nDer oder die Nutzer:in wird mit einem externen Usermanagementsystem synchronisiert."
     },
     "rights": {
-      "none": "Mit den zugeordneten Gruppen ist kein Recht konfigurierbar."
+      "none": "Mit den zugeordneten Gruppen ist kein Recht konfigurierbar.",
+      "title": {
+        "edit": "Benutzer:innenrechte bearbeiten"
+      }
     },
     "sshPublicKey": "SSH public key",
     "title": {
       "add": "Neue:r Benutzer:in",
-      "list": "Benutzer:in"
+      "edit": "Benutzer:in bearbeiten",
+      "heading": "Benutzer:in",
+      "list": {
+        "_": "Benutzer:in",
+        "select": "Benutzer:in auswählen"
+      }
     },
     "tooltip": {
       "assignedGroups": "Die Gruppen bestimmen die Rechte. Zugeordnet werden sie von der Administration.",
@@ -4641,7 +6700,9 @@
       "timeZone": "Alle Uhrzeiten (Zeitberichte, Kalendertermine) werden in dieser Zeitzone angezeigt und eingegeben.",
       "username": "Der Anmeldename. Ändern kann ihn nur die Administration."
     },
-    "username": "Benutzer:inname"
+    "unassignedGroups": "Nicht assoziierte Gruppen",
+    "username": "Benutzer:inname",
+    "users": "Benutzer:in"
   },
   "username": "Benutzer:innenname",
   "vacation": {
@@ -4659,7 +6720,7 @@
       "uncovered": "Keine Vertretung"
     },
     "conflict": {
-      "info": "Es besteht ein Konflikt mit den Abwesenheiten der Vertreter:innen. An mindestens einem Tag steht kein:e Vertreter:in zur Verfügung. Bitte andere oder weitere Vertretungen auswählen."
+      "info": "Es besteht ein Konflikt mit den Abwesenheiten der Vertreter:innen. An mindestens einem Tag steht kein:e Vertreter:in zur Verfügung (Urlaub oder nicht verfügbar). Bitte andere oder weitere Vertretungen auswählen."
     },
     "conflicts": "Konflikte",
     "countPerDay": "Urlaubsstunden pro Urlaubstag",
@@ -4669,6 +6730,10 @@
       "sendmail": "Es ist ein Problem beim Senden der Urlaubseintragsmail aufgetreten."
     },
     "export": {
+      "absenceKinds": {
+        "_": "Anzeigen",
+        "tooltip": "Welche Abwesenheiten der gewählten Personen angezeigt und exportiert werden: Urlaube und die Verfügbarkeitseinträge nach ihrem Status (z. B. Elternzeit, Workation). Die Kommentare der Verfügbarkeitseinträge nur, wenn die Einträge auch in der Verfügbarkeitsliste sichtbar sind."
+      },
       "dayWidth": {
         "_": "Tagesbreite",
         "auto": "Automatisch",
@@ -4687,6 +6752,7 @@
       "legend": {
         "holidayOrWeekend": "Wochenende oder Feiertag"
       },
+      "persons": "Personen",
       "print": {
         "tooltip": "Druckt den angezeigten Kalender, auf die Seitenbreite verkleinert (im Druckdialog auch als PDF speicherbar)."
       },
@@ -4717,6 +6783,7 @@
     },
     "leaveOfYear": "Urlaubskonto im Jahr {arg0}",
     "leaveaccount": {
+      "availabilities": "Verfügbarkeitseinträge",
       "title": "Urlaubskonto"
     },
     "mail": {
@@ -4746,11 +6813,21 @@
     "own": "Eigner:in",
     "plandannualleave": "Anzahl geplanter Urlaubstage für restliches Kalenderjahr",
     "previousyearleave": "Resturlaub aus dem Vorjahr",
-    "previousyearleaveunused": "Ungenutzer Resturlaub zum {arg0}",
+    "previousyearleaveunused": "Ungenutzter Resturlaub zum {arg0}",
     "previousyearleaveused": "Genutzter Resturlaub aus dem Vorjahr",
+    "quickView": {
+      "button": "Wer ist verfügbar?",
+      "empty": "Keine Abwesenheiten in diesem Zeitraum.",
+      "selectHint": "Eine oder mehrere Personen auswählen, um ihre Urlaube und Verfügbarkeitseinträge der nächsten Wochen zu sehen.",
+      "teamCalendar": "Team-Kalender",
+      "teamCalendarHint": "Gruppen und längere Zeiträume im Team-Urlaubskalender auswählen.",
+      "title": "Verfügbarkeit auf einen Blick",
+      "user": "Personen",
+      "weeks": "Wochen"
+    },
     "recalculateRemainingLeave": "Resturlaub neu berechnen",
     "remainingLeaveFromYear": "Resturlaub aus dem Jahr {arg0}",
-    "remainingLeaveFromYearUnused": "Ungenutzer Resturlaub aus dem Jahr {arg0}",
+    "remainingLeaveFromYearUnused": "Ungenutzter Resturlaub aus dem Jahr {arg0}",
     "replacement": {
       "_": "Vertretung",
       "others": "Weitere Vertretungen"
@@ -4780,6 +6857,10 @@
       "info": "Urlaubseinträge können in der Kalendersicht eingesehen werden, aber auch als Kalender (s. Kalenderliste) für bestimmte Benutzer:innen oder Gruppen angelegt und auch abonniert werden. Sie können insbesondere die eigenen Urlaube und die von Kollegen oder Kolleginnen/Teams in die eigene Kalendersoftware integriert werden."
     },
     "subtotal": "Zwischensumme",
+    "switchToAvailabilityButton": {
+      "_": "Als Abwesenheit bearbeiten",
+      "tooltip": "Öffnet einen neuen Verfügbarkeitseintrag mit Person, Zeitraum, Kommentar und Vertretungen dieses Urlaubs. Er wird erst beim Speichern angelegt; ein bereits gespeicherter Urlaubseintrag bleibt unverändert bestehen und kann danach bei Bedarf gelöscht werden."
+    },
     "title": {
       "add": "Urlaubseintrag erstellen",
       "edit": "Urlaubseintrag ändern",
@@ -4825,7 +6906,14 @@
   "values": "Werte",
   "webauthn": {
     "entry": {
-      "displayName": "Anzeigename",
+      "delete": {
+        "question": "Soll dieser WebAuthn-Token wirklich gelöscht werden? Er kann danach nicht mehr als zweiter Faktor verwendet werden."
+      },
+      "displayName": {
+        "_": "Anzeigename",
+        "info": "Hier kannst du einen beliebigen Namen eingeben, um deinen Token leichter zuordnen zu können."
+      },
+      "edit": "WebAuthn-Eintrag ändern",
       "signCount": {
         "_": "Signaturzähler",
         "info": "Zähler für Authentifizierungen (wird nach jeder Benutzung hochgezählt)"
@@ -4836,7 +6924,11 @@
       "userNotOwnerOrEntryDoesnotExist": "Der/die Benutzer:in hat nicht das Recht, auf fremde WebAuthn-Einträge zuzugreifen oder der gesuchte Eintrag existiert nicht.",
       "validate": "Fehler bei der Validierung der Authentifizierungsdaten."
     },
+    "info": "WebAuthn ist ein moderner und sicherer Standard, um eine hardwarebasierte Zweifaktorauthentifizierung zu ermöglichen. Hier kannst du einen oder mehrere deiner Token registrieren, um eine bequeme und sichere 2FA zu nutzen.",
     "registration": {
+      "2FARequired": {
+        "info": "Bitte de 2FA erneuern, bevor ein WebAuthn-Token registriert werden kann."
+      },
       "button": {
         "authenticate": {
           "_": "WebAuthn",
@@ -4844,7 +6936,8 @@
         },
         "register": "Registrieren"
       }
-    }
+    },
+    "title": "WebAuthn (Fido2 etc.)"
   },
   "yes": "Ja"
 }

@@ -109,11 +109,11 @@ class KostCache : AbstractCache() {
     }
 
     /**
-     * @param kostString Format ######## or #.###.##.## is supported.
+     * @param kostString 8 digits or the segments of the number range, see [KostHelper.parseKost2String].
      * @see .getKost2
      */
     fun getKost2(kostString: String?): Kost2DO? {
-        val kost = parseKostString(kostString) ?: return null
+        val kost = KostHelper.parseKost2String(kostString) ?: return null
         return getKost2(kost[0], kost[1], kost[2], kost[3])
     }
 
@@ -138,6 +138,16 @@ class KostCache : AbstractCache() {
                         && !kost2.deleted
                         && (kost2.effectiveKostentraegerStatus == KostentraegerStatus.ACTIVE || kost2.effectiveKostentraegerStatus == null)
             }
+        }
+    }
+
+    /**
+     * The bookable cost 2 units of the given project, like [getActiveKost2], but by the project reference: also
+     * found if the project's number range isn't configured (any more).
+     */
+    fun getActiveKost2ForProjekt(projektId: Long?): List<Kost2DO> {
+        return getKost2ForProjekt(projektId).filter { kost2 ->
+            kost2.effectiveKostentraegerStatus == KostentraegerStatus.ACTIVE || kost2.effectiveKostentraegerStatus == null
         }
     }
 

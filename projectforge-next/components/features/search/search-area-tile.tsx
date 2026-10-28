@@ -14,6 +14,7 @@ import {
   type SearchArea,
   type SearchAreaResult,
 } from "@/lib/rs/search";
+import { DEACTIVATED_REF_CLASS } from "@/lib/page-def/reference";
 import { cn } from "@/lib/utils";
 
 /**
@@ -98,9 +99,16 @@ export function SearchAreaTile({
                   <button
                     type="button"
                     className="flex w-full items-center gap-2 px-3 py-1 text-left text-sm hover:bg-accent"
-                    onClick={() => navigate(hit.viewUrl)}
+                    // Always given here: the search page asks for no contacts.
+                    onClick={() => hit.viewUrl && navigate(hit.viewUrl)}
                   >
-                    <span className="truncate">
+                    <span
+                      className={cn(
+                        "truncate",
+                        hit.statusLabel && DEACTIVATED_REF_CLASS
+                      )}
+                      title={hit.statusLabel ?? undefined}
+                    >
                       <HighlightedText text={hit.displayName} query={term} />
                     </span>
                     {hit.secondaryInfo ? (

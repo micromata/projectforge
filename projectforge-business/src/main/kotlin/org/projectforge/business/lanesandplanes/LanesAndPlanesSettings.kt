@@ -53,7 +53,9 @@ class LanesAndPlanesSettings(
     var generalKost2: List<String> = emptyList(),
     /**
      * Glob patterns of the formatted numbers (e.g. `5.*.02`): the Kost2 a user may book are only sent, if they
-     * match one of them. Empty: all bookable Kost2.
+     * match one of them. Empty: all bookable Kost2. An entry may contain alternatives separated by comma (e.g.
+     * `5.*.19, 5.*.20`): of the Kost2 of the same project (number without the Kost2 type) matching them, only the
+     * ones of the first matching alternative are sent, see [kost2PatternGroups].
      */
     var kost2Patterns: List<String> = emptyList(),
     /**
@@ -70,18 +72,14 @@ class LanesAndPlanesSettings(
      */
     var existingCostObjects: List<String> = emptyList(),
     /**
-     * The emails of the users existing in Lanes & Planes (the `email` column of the user export, the ExtAPI can't
-     * read users). An employee whose email isn't listed, but one of the alternative or former emails of the
-     * user, is sent with that one (held back like a changed email, see [LanesAndPlanesEmailHolds]), so L&P doesn't
-     * create the user anew. Empty: not checked.
+     * The email of an employee in Lanes & Planes by user id. L&P identifies users by their email only (the ident
+     * can't be used to match them), so an employee is always sent with this email, even if the email in
+     * ProjectForge changed later (e.g. after a marriage): otherwise L&P would deactivate the user and create a new
+     * one. Before the first push only the emails differing from ProjectForge are entered; every successful push
+     * adds the employees sent without an entry, see [LanesAndPlanesSettingsService.addUserEmails]. To change an
+     * email, change it in L&P by hand first, then here.
      */
-    var existingUserEmails: List<String> = emptyList(),
-    /**
-     * New emails of employees which were already changed in Lanes & Planes by hand. L&P identifies users by their
-     * email only, so a changed email is held back (the old one is sent) until it's listed here, see
-     * [LanesAndPlanesEmailHolds].
-     */
-    var confirmedEmailChanges: List<String> = emptyList(),
+    var userEmails: List<UserEmail> = emptyList(),
 ) {
     /** A user sent as is: only the name, the email and the invoice profiles, everything else is kept in L&P. */
     class AdditionalUser(
@@ -92,6 +90,16 @@ class LanesAndPlanesSettings(
         @get:JsonIgnore
         val isEmpty: Boolean
             get() = email.isNullOrBlank() && firstName.isNullOrBlank() && lastName.isNullOrBlank()
+    }
+
+    /** The email of the user (by id) in Lanes & Planes, see [userEmails]. */
+    class UserEmail(
+        var userId: Long? = null,
+        var email: String? = null,
+    ) {
+        @get:JsonIgnore
+        val isEmpty: Boolean
+            get() = userId == null && email.isNullOrBlank()
     }
 
 
@@ -124,19 +132,19 @@ class LanesAndPlanesSettings(
             EXISTING_NAME_REGEX.find(name)?.let { it.groupValues[1] to name }
         }.distinctBy { it.first }.toMap()
 
-    /** The emails of [existingUserEmails], lower case. */
+    /** The emails of [userEmails] by user id, without the empty or incomplete rows of the editor. */
     @get:JsonIgnore
-    val existingEmails: Set<String>
-        get() = existingUserEmails.map { it.trim().lowercase() }.filter { it.isNotEmpty() }.toSet()
+    val emailsByUserId: Map<Long, String>
+        get() = userEmails.mapNotNull { entry ->
+            val userId = entry.userId ?: return@mapNotNull null
+            val email = entry.email?.trim()?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+            userId to email
+        }.distinctBy { it.first }.toMap()
 
-    /** The confirmed new emails, lower case. */
+    /** The entries of [kost2Patterns] as regexes, each with its alternatives, without the empty rows of the editor. */
     @get:JsonIgnore
-    val confirmedEmails: Set<String>
-        get() = confirmedEmailChanges.map { it.trim().lowercase() }.filter { it.isNotEmpty() }.toSet()
-
-    @get:JsonIgnore
-    val kost2Regexes: List<Regex>
-        get() = kost2Patterns.map { it.trim() }.filter { it.isNotEmpty() }.map { globToRegex(it) }
+    val kost2PatternGroups: List<List<Regex>>
+        get() = kost2Patterns.map { splitPattern(it).map { part -> globToRegex(part) } }.filter { it.isNotEmpty() }
 
     /**
      * @param findKost1 The Kost1 of the given formatted number (or null, if unknown).
@@ -159,8 +167,8 @@ class LanesAndPlanesSettings(
             findKost2(number)?.let { it.id!! to isActive(it) }
         }
         kost2Patterns.forEachIndexed { index, pattern ->
-            if (pattern.isNotBlank() && !PATTERN_REGEX.matches(pattern.trim())) {
-                errors += Error(KOST2_PATTERNS, "$ERROR_PREFIX.pattern", index, pattern)
+            splitPattern(pattern).filter { !PATTERN_REGEX.matches(it) }.forEach {
+                errors += Error(KOST2_PATTERNS, "$ERROR_PREFIX.pattern", index, it)
             }
         }
         val emails = mutableSetOf<String>()
@@ -196,16 +204,27 @@ class LanesAndPlanesSettings(
                 errors += Error(EXISTING_COST_OBJECTS, "$ERROR_PREFIX.existingCostObjectLength", index, name)
             }
         }
-        existingUserEmails.forEachIndexed { index, entry ->
-            val email = entry.trim()
-            if (email.isNotEmpty() && !EMAIL_REGEX.matches(email)) {
-                errors += Error(EXISTING_USER_EMAILS, "$ERROR_PREFIX.existingUserEmail", index, email)
+        val userIds = mutableSetOf<Long>()
+        val userEmailSet = mutableSetOf<String>()
+        userEmails.forEachIndexed { index, entry ->
+            if (entry.isEmpty) {
+                return@forEachIndexed
             }
-        }
-        confirmedEmailChanges.forEachIndexed { index, entry ->
-            val email = entry.trim()
-            if (email.isNotEmpty() && !EMAIL_REGEX.matches(email)) {
-                errors += Error(CONFIRMED_EMAIL_CHANGES, "$ERROR_PREFIX.confirmedEmail", index, email)
+            val userId = entry.userId
+            if (userId == null) {
+                errors += Error(USER_EMAILS, "$ERROR_PREFIX.userEmailUser", index)
+            } else if (!userIds.add(userId)) {
+                errors += Error(USER_EMAILS, "$ERROR_PREFIX.userEmailUserDuplicate", index)
+            }
+            val email = entry.email?.trim() ?: ""
+            if (!EMAIL_REGEX.matches(email)) {
+                errors += Error(USER_EMAILS, "$ERROR_PREFIX.userEmailEmail", index, email)
+            } else if (email.lowercase().endsWith(LANES_AND_PLANES_DOMAIN)) {
+                errors += Error(USER_EMAILS, "$ERROR_PREFIX.userEmailLanesAndPlanes", index, email)
+            } else if (email.lowercase() in emails) {
+                errors += Error(USER_EMAILS, "$ERROR_PREFIX.userEmailAdditionalUser", index, email)
+            } else if (!userEmailSet.add(email.lowercase())) {
+                errors += Error(USER_EMAILS, "$ERROR_PREFIX.userEmailDuplicate", index, email)
             }
         }
         return errors
@@ -246,8 +265,7 @@ class LanesAndPlanesSettings(
         const val KOST2_PATTERNS = "kost2Patterns"
         const val ADDITIONAL_USERS = "additionalUsers"
         const val EXISTING_COST_OBJECTS = "existingCostObjects"
-        const val EXISTING_USER_EMAILS = "existingUserEmails"
-        const val CONFIRMED_EMAIL_CHANGES = "confirmedEmailChanges"
+        const val USER_EMAILS = "userEmails"
 
         /** The i18n prefix of the labels of the fields, see [Error.field]. */
         const val I18N_PREFIX = "lanesAndPlanes.config"
@@ -286,6 +304,11 @@ class LanesAndPlanesSettings(
         fun isActive(kost2: Kost2DO): Boolean {
             return !kost2.deleted &&
                     (kost2.effectiveKostentraegerStatus ?: KostentraegerStatus.ACTIVE) == KostentraegerStatus.ACTIVE
+        }
+
+        /** The alternatives of an entry of [kost2Patterns], trimmed, without empty ones. */
+        private fun splitPattern(pattern: String): List<String> {
+            return pattern.split(',').map { it.trim() }.filter { it.isNotEmpty() }
         }
 
         /**

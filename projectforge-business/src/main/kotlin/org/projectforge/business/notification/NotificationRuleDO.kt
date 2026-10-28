@@ -121,6 +121,11 @@ open class NotificationRuleDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(length = 100000)
     open var text: String? = null
 
+    /** Plain text with variables `{{key}}` for the delivery by SMS. If blank, the subject and the link are sent. */
+    @PropertyInfo(i18nKey = "notification.smsText")
+    @get:Column(name = "sms_text", length = 1000)
+    open var smsText: String? = null
+
     /**
      * If given, only members of these groups may edit this rule (besides admins), who must be finance members anyway.
      * CSV of group ids.
@@ -137,6 +142,14 @@ open class NotificationRuleDO : DefaultBaseDO(), DisplayNameCapable {
     @NoHistory
     @get:Column(name = "last_run")
     open var lastRun: Date? = null
+
+    /**
+     * A manual rule has no condition, which could resolve a banner: its recipients must be able to mark it as done,
+     * otherwise it would stay forever.
+     */
+    @get:Transient
+    open val isManualDoneForced: Boolean
+        get() = ruleType == NotificationRuleType.MANUAL && display == NotificationDisplay.BANNER
 
     fun readSchedule(): NotificationSchedule = parse(schedule, NotificationSchedule::class.java) { NotificationSchedule() }
 

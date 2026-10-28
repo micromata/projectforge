@@ -1,0 +1,15 @@
+{%- comment -%}
+    Sets doc_page to the doc include.doc (its name, e.g. userguide) in the language of the page and
+    doc_english_only to true if a German page has to fall back to the English doc (not translated).
+{%- endcomment -%}
+{%- assign doc_english_url = include.doc | prepend: "/docs/" | append: "/" -%}
+{%- assign doc_page = nil -%}
+{%- assign doc_english_only = false -%}
+{%- if page.lang != 'en' -%}
+{%- assign doc_lang_url = doc_english_url | prepend: page.lang | prepend: "/" -%}
+{%- assign doc_page = site.docs | where: "url", doc_lang_url | first -%}
+{%- endif -%}
+{%- unless doc_page -%}
+{%- assign doc_page = site.docs | where: "url", doc_english_url | first -%}
+{%- if page.lang != 'en' -%}{%- assign doc_english_only = true -%}{%- endif -%}
+{%- endunless -%}

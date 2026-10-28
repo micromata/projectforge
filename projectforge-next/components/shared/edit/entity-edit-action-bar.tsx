@@ -16,10 +16,14 @@ export interface EntityEditActionBarProps {
   isDirty: boolean;
   /** Whether an unchanged form may still be saved — true for a new entry (see EntityEditActions). */
   allowSaveUnchanged: boolean;
+  /** The entry doesn't exist yet, so its button reads "Create" (see EntityEditActions). */
+  isNew: boolean;
   lastSaved: string | null;
   /** Clone, delete and undelete each appear only where the entry and this user's access allow it. */
   showClone: boolean;
   showDelete: boolean;
+  /** The delete is for good, the entity not being historized (see EntityDeleteButton.permanent). */
+  deletePermanent: boolean;
   showUndelete: boolean;
   /** The irrevocable delete, where the entity allows it (see EditDef.forceDelete) and the entry exists. */
   showForceDelete: boolean;
@@ -53,9 +57,11 @@ export function EntityEditActionBar({
   isSaving,
   isDirty,
   allowSaveUnchanged,
+  isNew,
   lastSaved,
   showClone,
   showDelete,
+  deletePermanent,
   showUndelete,
   showForceDelete,
   showConvert,
@@ -101,7 +107,11 @@ export function EntityEditActionBar({
       }
       deleteAction={
         showDelete ? (
-          <EntityDeleteButton onDelete={onDelete} disabled={deleteDisabled} />
+          <EntityDeleteButton
+            onDelete={onDelete}
+            disabled={deleteDisabled}
+            permanent={deletePermanent}
+          />
         ) : undefined
       }
       undeleteAction={
@@ -116,6 +126,7 @@ export function EntityEditActionBar({
       isSaving={isSaving}
       isDirty={isDirty}
       allowSaveUnchanged={allowSaveUnchanged}
+      isNew={isNew}
       lastSaved={lastSaved}
     />
   );

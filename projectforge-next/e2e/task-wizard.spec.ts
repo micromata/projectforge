@@ -1,6 +1,7 @@
 import type { APIRequestContext } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { expectedGroupName } from "./fixtures/group-nomenclature";
 import { listRows, waitForRows } from "./fixtures/list-table";
 import {
   fetchRootTaskId,
@@ -11,7 +12,7 @@ import {
 import { narrowToSeeded, resetTreeState } from "./fixtures/task-tree";
 
 /**
- * The structure wizard — step 4b of projectforge-next/MIGRATION.md.
+ * The structure wizard (`/next/taskWizard`).
  *
  * What it does is Wicket's `TaskWizardPage.create`, now `TaskWizardService`: the picked element gets
  * the group's role recursively, every ancestor below the root read access on the tasks alone. The rules
@@ -228,8 +229,12 @@ test.describe("task wizard", { tag: "@lane-task" }, () => {
     const dialog = page.getByRole("dialog");
     const name = dialog.getByLabel(format.t("name"), { exact: true });
     // Wicket only *showed* this name to be copied by hand; here it is an actual prefill. The team's
-    // group is named after the element itself, the other two get a suffix (see suggestGroupName).
-    await expect(name).toHaveValue(seededTask.title, { timeout: 20_000 });
+    // group is named after the element itself, the other two get a suffix (see suggestGroupName); a
+    // configured nomenclature may add a suffix or change the letter case.
+    await expect(name).toHaveValue(
+      await expectedGroupName(page, "team", seededTask.title),
+      { timeout: 20_000 }
+    );
 
     const created = `${MARKER} group ${uniqueSuffix()}`;
     await name.fill(created);
@@ -241,10 +246,12 @@ test.describe("task wizard", { tag: "@lane-task" }, () => {
       name: format.t("group.localGroup._"),
     });
     if ((await localGroup.count()) > 0) await localGroup.check();
-    // The group page's own save button: the dialog renders GROUP_PAGE's declared form now, not a
-    // layout the backend laid out (see EntityEditDialog).
+    // The group page's own create button: the dialog renders GROUP_PAGE's declared form now, not a
+    // layout the backend laid out (see EntityEditDialog). The submit one — the LDAP section has a
+    // "create" button of its own (a new GID).
     await dialog
-      .getByRole("button", { name: format.t("save"), exact: true })
+      .locator('button[type="submit"]')
+      .filter({ hasText: format.t("create") })
       .click();
     await expect(dialog).toBeHidden({ timeout: 20_000 });
 

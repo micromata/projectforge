@@ -72,18 +72,11 @@ internal class GlobalDefaultExceptionHandler {
             log.error { "${translateMsg(userEx)} ${userEx.logHintMessage}" }
             return ResponseEntity.badRequest().body(UIToast.createExceptionToast(userEx))
         }
-        if (ex is AccessException && RestAuthenticationUtils.isNextClient(request)) {
+        if (ex is AccessException) {
             // A denied read escapes the controller as an AccessException (BaseDao.select and friends check
             // and throw). The UserException branch below would answer it with HTTP *200* and nothing but a
-            // toast - the shape the UILayout clients read - which a client fetching plain JSON cannot tell
-            // from a successful empty result: projectforge-next used to render the whole list page with an
-            // empty table (see useReadAccessGuard).
-            //
-            // Only for projectforge-next, because the legacy clients depend on that 200: the legacy React
-            // app throws away every non-ok answer of `{entity}/list` and displays the error nowhere
-            // (utilities/rest.js handleHTTPErrors -> fetchFailure), so an unconditional 403 would leave it
-            // with a blank list instead of today's toast. isNextClient is explicitly not a trust boundary,
-            // which is fine here: the request is denied either way, this only picks the shape of the answer.
+            // toast, which a client fetching plain JSON cannot tell from a successful empty result:
+            // projectforge-next used to render the whole list page with an empty table (see useReadAccessGuard).
             //
             // RestError rather than a toast: it is the body the other next-only denials use
             // (RestAuthenticationUtils.sendError), and it carries neither twoFactorRequired nor
@@ -154,6 +147,7 @@ internal class GlobalDefaultExceptionHandler {
         val logMsg = "$msg (${request.method} ${request.requestURI})"
         when (exInfo.logLevel) {
             LogLevel.INFO -> log.info { logMsg }
+            LogLevel.WARN -> log.warn { logMsg }
             else -> log.error { logMsg }
         }
         return ResponseEntity(msg, exInfo.status)

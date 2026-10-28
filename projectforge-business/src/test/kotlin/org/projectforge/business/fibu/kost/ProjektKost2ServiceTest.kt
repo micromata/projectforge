@@ -26,6 +26,8 @@ package org.projectforge.business.fibu.kost
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.projectforge.business.fibu.KundeDO
+import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.test.AbstractTestBase
@@ -42,6 +44,9 @@ class ProjektKost2ServiceTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var kost2Dao: Kost2Dao
+
+    @Autowired
+    private lateinit var kundeDao: KundeDao
 
     @Autowired
     private lateinit var kostCache: KostCache
@@ -94,9 +99,19 @@ class ProjektKost2ServiceTest : AbstractTestBase() {
     fun `activate refuses a project without range`() {
         persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
-            val id = insertProjekt(internKost2_4 = null, nummer = 12)
+            // A customer of no number range: the project gets a free number, which isn't made of Kost2.
+            val kunde = kundeDao.find(4712L, checkAccess = false) ?: KundeDO().also {
+                it.nummer = 4712L
+                it.name = "ProjektKost2ServiceTest"
+                kundeDao.insert(it, checkAccess = false)
+            }
+            val id = projektDao.insert(ProjektDO().also {
+                it.name = "ProjektKost2ServiceTest free"
+                it.kunde = kunde
+                it.nummer = 12
+            })
             val ex = assertThrows<UserException> { projektKost2Service.activate(id, listOf(1L)) }
-            Assertions.assertEquals("validation.error.fieldRequired", ex.i18nKey)
+            Assertions.assertEquals(Kost2Dao.PROJEKT_WITHOUT_NUMBER_RANGE_I18N_KEY, ex.i18nKey)
             // Deactivating has nothing to create, so it stays a no-op.
             Assertions.assertFalse(projektKost2Service.deactivate(id, listOf(1L)))
             null

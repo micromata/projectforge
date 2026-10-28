@@ -14,6 +14,7 @@ tags: [userguide]
 
 :sectnums:
 
+[[introduction]]
 == Introduction
 
 This guide collects hints, tips and best practices for working with ProjectForge®. It doesn't describe
@@ -34,8 +35,10 @@ or configured by your administrator first (e. g. plugins, telephony, CardDAV or 
 something described here is missing, please ask your administrator.
 ____
 
+[[common_concepts]]
 == Common concepts
 
+[[main_menu]]
 === Main menu
 
 The button *Menu* at the top left opens the main menu (keyboard shortcut kbd:[Ctrl+K], on macOS
@@ -49,6 +52,7 @@ the global search. You may navigate the results with the cursor keys and kbd:[En
 * *Recently used:* While the search field is empty, your recently used entries are shown on top.
 They are stored on the server, so they follow you to other devices and browsers.
 
+[[favorites_bar_and_personal_menu]]
 === Favorites bar and personal menu
 
 Next to the menu button you'll find your personal *favorites bar*. It may contain single entries
@@ -64,6 +68,7 @@ The user menu also contains *Send feedback*, *My account*, *Two-factor authentic
 account* (for employees), entries of plugins (e. g. the *Personal box* of DataTransfer), *Appearance*
 and *Logout*.
 
+[[global_search]]
 === Global search
 
 Under _Common > Search_ (or via the last row of the menu search) you may search several areas at
@@ -106,6 +111,7 @@ wildcards, see below; `+abc* -def*` for words beginning with 'abc' but not with 
 searches for 'def' in all fields.
 |===
 
+[[automatic_wildcards]]
 ==== Automatic wildcards
 
 *Hint*
@@ -115,8 +121,8 @@ If the search term consists only of letters, digits, spaces and the characters `
 ProjectForge® automatically appends the wildcard character '*' to each word. Words ending with '*',
 words starting with '+' or '-' (Lucene operators) and the keywords AND, OR and NOT are left
 untouched. A search term starting with '+' or '-' is used as entered, as are all other expressions
-(e. g. containing ':', '~', '"' or brackets). A word with a separator inside such as `dhl-pop` is
-searched as typed and as its parts: `dhl-pop*` or both `dhl*` and `pop*`.
+(e. g. containing ':', '~', '"' or brackets). A word with a separator inside such as `acme-pop` is
+searched as typed and as its parts: `acme-pop*` or both `acme*` and `pop*`.
 
 Start your search term with an apostrophe (') to switch off any modification: the apostrophe is
 removed and the rest is used exactly as entered.
@@ -142,6 +148,7 @@ ____
 (no substitution because of the leading apostrophe.)
 |===
 
+[[filtering_lists]]
 === Filtering lists
 
 Above each list you'll find the filter bar:
@@ -158,18 +165,21 @@ This is useful, if you want to find all objects you changed during the last hour
 Your last filter settings are stored on the server for each list, so they survive a reload and are
 available on all your devices.
 
+[[favorite_filters]]
 ==== Favorite filters
 
 Use *Favorites* in the filter bar to save filter settings you need often: *New Filter* saves the
 current settings under a name of your choice. An asterisk marks a favorite whose settings were
 changed, *Save modification* stores the changes. You may rename and delete favorites at any time.
 
+[[links_and_bookmarks]]
 ==== Links and bookmarks
 
 All pages have stable addresses: you may bookmark them in your browser or send them by e-mail. Edit
 pages are addressed by the id of the object, list pages accept a search term (`?q=...`). Filter
 settings are not part of the address, use favorite filters for them.
 
+[[multi_selection_and_mass_update]]
 === Multi-selection and mass update
 
 Many lists (e. g. time sheets, invoices, incoming invoices, salaries, projects, cost units and
@@ -185,12 +195,14 @@ Up to 100 entries can be modified at once. After the update ProjectForge® shows
 modified entries and offers an Excel file with all modifications. Selected entries may also be
 deleted or restored at once.
 
+[[export]]
 === Export
 
 Lists with export support offer an *Export* menu in the toolbar. *Excel export* exports the
 currently filtered list. Some lists offer further exports, e. g. the cost assignments of invoices,
 the forecast of the order book or a PDF of time sheets.
 
+[[auto_completion]]
 === Auto completion
 
 Many fields (e. g. users, structure elements, cost units or customers) suggest entries while you are
@@ -198,6 +210,7 @@ typing, usually after entering 2 characters. Use the cursor up and down keys and
 select an entry without using your mouse. The selection of structure elements additionally offers
 your recently used structure elements and your own favorites.
 
+[[history_of_changes]]
 === History of changes
 
 Almost all objects keep a complete history of changes. The section *History of changes* at the
@@ -207,12 +220,14 @@ modified (old and new value).
 For users and groups you may additionally enter a *Change comment* while saving (e. g. why a right
 was granted) or add one later via *Append comment*. These comments are shown in the history.
 
+[[appearance]]
 === Appearance
 
 Choose *Appearance* in the user menu to switch between the *Light* and *Dark* theme or to follow
 the setting of your operating system (*System*). The setting is stored for your user and applied on
 all your devices.
 
+[[stay_logged_in]]
 === Stay logged-in
 
 On the login screen you may tick *Remember my login on this computer.*:
@@ -225,6 +240,7 @@ is renewed every time you use it.
 *Log out* in the row of a device logs out this device only, *Log out all devices.* logs out all of
 them, including the current one.
 
+[[two_factor_authentication]]
 === Two-factor authentication
 
 Your administrator may protect sensitive areas (e. g. administration, finance or HR) by a second
@@ -233,15 +249,20 @@ authentication*:
 
 * *Authenticator apps:* Scan the displayed QR code with an authenticator app on your smartphone
 (time-based one-time passwords, TOTP).
-* *WebAuthn (Fido2 etc.):* Register a hardware token such as a YubiKey.
+* *WebAuthn (Fido2 etc.):* Register a hardware token such as a YubiKey. A click on a registered token
+renames or deletes it.
 * *SMS configuration:* Receive one-time codes by text message (if configured).
 * Codes may also be sent by e-mail, unless your administrator has disabled this.
+
+Showing the authenticator key and every change on this page require a second factor not older than
+10 minutes; if it is older, ProjectForge® asks for a code first. *Check 2FA now* lets you try a code.
 
 If a page or an action requires a second factor that is missing or expired, ProjectForge® asks for a
 code and continues afterwards. Which areas are protected and how long a second factor stays valid
 is configured by your administrator, see
 link:/docs/adminguide/#2fa_two_factor_authentication[Admin guide: 2FA].
 
+[[my_account]]
 === My account
 
 Under *My account* you may maintain your personal settings, e. g. your name, time zone, language,
@@ -251,11 +272,13 @@ You'll also find your personal *authentication tokens* here: for subscribing cal
 CardDAV and for REST clients. Each token may be renewed: all URLs and clients using the old token stop
 working immediately, which is what you want if a subscription URL fell into the wrong hands.
 
+[[calendar]]
 == Calendar
 
 The calendar is one of the most important functionalities of ProjectForge®. You may organize your
 time sheets and personal events as well as team events in a convenient way.
 
+[[views_and_navigation]]
 === Views and navigation
 
 The calendar offers the following views: *Month*, *Week* and *Day*, each month and week also
@@ -265,6 +288,7 @@ Use *Today*, the arrow buttons and *Choose date* (a month picker with a year sel
 browsing. In the week and day views a line marks the current time. ProjectForge® remembers your
 last view and date.
 
+[[calendars_colors_and_favorites]]
 === Calendars, colors and favorites
 
 * Choose the calendars to display: all team calendars you have access to, plus *Birthdays*
@@ -278,17 +302,20 @@ colors.
 
 Holidays and weekends are highlighted.
 
+[[holidays]]
 === Holidays
 
 ProjectForge® supports the German holidays out of the box (in the initial configuration Christmas
 Eve and New Year's Eve count as half working days). Your administrator may add own holidays or modify
-the built-in ones in `config.xml`.
+the built-in ones in the configuration parameter _Holidays_ (_Administration_ -> _Configuration_).
 
+[[support_of_different_time_zones]]
 === Support of different time zones
 
 ProjectForge® supports different time zones at once. Every user may choose his time zone in
 *My account*, e. g. while travelling.
 
+[[creating_and_changing_entries]]
 === Creating and changing entries
 
 * *Create:* Select a time range in the calendar or click *+* (or press kbd:[N]). If you have chosen a
@@ -296,7 +323,9 @@ default calendar, a new event is created, otherwise a new time sheet.
 * *Move and resize:* Drag an entry to another time or change its duration. ProjectForge® opens the
 edit form with the new times; the change is applied when you save it.
 * *Copy:* Use *Clone* in the edit form of a time sheet or an event.
-* *Convert:* An event may be turned into a time sheet (*Switch to time sheet*) and vice versa.
+* *Edit as the other kind:* An event may be edited as a time sheet (*Edit as time sheet*) and vice
+versa (*Edit as event*). This opens a new entry with the times and texts taken over, which is created when
+you save it; an entry already saved stays as it is.
 * *Breaks:* Gaps between your time sheets of a day may be displayed as breaks. Click on a break to
 book a time sheet for this gap.
 
@@ -317,6 +346,7 @@ With *Take over vacation* you choose one of your leave applications (approved or
 back and ahead) and book its days on the vacation cost unit configured by your administrator. If no
 vacation cost unit is configured, you choose the structure element and cost unit yourself.
 
+[[team_calendars]]
 === Team calendars
 
 Under _Common > List of calendars_ you manage team calendars. Each calendar has an owner and may be
@@ -342,6 +372,7 @@ image::/uploads/userguide/PF-TeamCal-Access.png[image]
 
 A team calendar may also show the leave of selected users and groups (section *Vacation*).
 
+[[recurring_events]]
 === Recurring events
 
 ProjectForge® supports recurring events. If you change a recurring event, you choose under *Any
@@ -350,6 +381,7 @@ future events*.
 
 Attendees of imported events are displayed, but ProjectForge® doesn't send invitations.
 
+[[calendar_subscriptions_ics]]
 === Calendar subscriptions (ics)
 
 You may subscribe your ProjectForge® calendars in any calendar application supporting ics
@@ -381,6 +413,7 @@ image::/uploads/userguide/PF-TeamCal-ical.png[image]
 |Figure 2: |An example of subscribed calendars of ProjectForge in Apple's calendar.
 |===
 
+[[subscribing_external_calendars]]
 === Subscribing external calendars
 
 A team calendar may subscribe an external calendar (e. g. from Google or Apple iCloud): tick
@@ -389,6 +422,7 @@ A team calendar may subscribe an external calendar (e. g. from Google or Apple i
 can't be read for a long time (default: 90 days), the subscription is switched off automatically
 and a note is added to the description of the calendar.
 
+[[importing_events]]
 === Importing events
 
 *More > Import Events* in the calendar (or the edit page of a team calendar) imports events from ics
@@ -402,8 +436,10 @@ supported.
 Events are recognized by their unique id (UID): an event already present in the calendar is
 updated instead of being imported twice.
 
+[[leave]]
 == Leave
 
+[[application_for_leave]]
 === Application for leave
 
 Under _Common > Application for leave_ you apply for leave and see the leave applications of your
@@ -423,6 +459,11 @@ New applications get the status *In progress*. Your manager sets the status to *
 The manager, the substitutes and you are notified by e-mail about new and changed applications
 (if a mail server is configured).
 
+An application entered by mistake as leave may be edited as an availability entry (*Edit as absence*),
+and an availability entry as an application (*Edit as vacation*). Person, period, comment and substitutes
+are taken over into a new entry, which is created when you save it; an entry already saved stays as it is
+and may be deleted afterwards.
+
 *Rules*
 
 * You can't apply for more leave days than available (except special leave). Days left over from
@@ -438,6 +479,7 @@ ProjectForge® warns you if there is at least one day on which none of your subs
 because they are on leave themselves. In this case choose other or further substitutes. The list of
 leave applications may be filtered by conflicts.
 
+[[leave_account]]
 === Leave account
 
 Under _Administration > Leave account_ (visible for employees with annual leave) you'll find your
@@ -447,6 +489,7 @@ the HR staff are listed as *Leave account entries* (maintained under _HR > Leave
 
 The leave account also offers a subscription URL for the leave days of employees.
 
+[[automatic_booking_of_vacation]]
 === Automatic booking of vacation
 
 ProjectForge® may book your approved leave (special leave included) automatically as time sheets
@@ -466,6 +509,7 @@ hours). The description is "Vacation".
 
 The *Monthly employee report* shows working days and vacation days without time sheets separately.
 
+[[hr]]
 == HR
 
 * _HR > Employees_ contains the employee data such as staff number, entry and leaving date and
@@ -475,6 +519,7 @@ accounting.
 * _Project management > HR planning_ gives an overview of the planned working hours of your
 employees in projects per week.
 
+[[import_of_salaries]]
 === Import of salaries
 
 Salaries may be imported from an Excel file (.xlsx or .xls) via *Import of salaries*. The following
@@ -486,8 +531,10 @@ columns are required:
 
 Rows with an unknown staff number are marked as faulty and are skipped.
 
+[[address_book]]
 == Address book
 
+[[address_books]]
 === Address books
 
 Addresses are organized in address books (_Common > Addressbooks_). Each address book has an owner
@@ -495,6 +542,7 @@ and may be shared with users and groups with *Full access* (read and write acces
 of this address book) or *Read-only access*. An address may belong to several address books. Addresses
 without an address book belong to the global address book.
 
+[[reverse_search_of_phone_numbers]]
 === Reverse search of phone numbers
 
 ProjectForge® adds every phone number without any special characters and white spaces to the
@@ -507,6 +555,7 @@ ____
 Sometimes you may omit the country prefix of the phone number to find the address.
 ____
 
+[[personal_favorites]]
 === Personal favorites
 
 Tick *Favorite* in the edit page of an address to mark it as one of your personal favorites. Your
@@ -528,6 +577,7 @@ ____
 Please use UTF-8 as encoding in your address book software!
 ____
 
+[[hint_for_apple_contacts]]
 ==== Hint for Apple contacts
 
 Multiple exports of addresses may result in multiple note entries. The Apple script offered in the
@@ -550,12 +600,14 @@ end tell
 (The result 'missing value' is expected.)
 . Afterwards you should import the ProjectForge® download (vCard) again.
 
+[[export_of_the_list_of_addresses]]
 === Export of the list of addresses
 
 You may export the currently displayed list of addresses as Excel file (*Excel-Export*). For reasons
 of data protection only your favorite addresses will be exported. Members of the groups `PF_Finance`
 or `PF_Marketing` are able to export all addresses of the list.
 
+[[direct_call_and_text_messages]]
 === Direct call and text messages
 
 If your company's telephony system is connected (see
@@ -568,6 +620,151 @@ Please enter your personal phone ids (comma separated) under *My account* first.
 
 If an SMS gateway is configured, you may send text messages via _Common > Send SMS_.
 
+[[chat]]
+== Chat
+
+The chat (_Common > Chat_) brings conversations to where the work is: rooms for teams, projects or
+customers, direct messages to any colleague and a chat in every data transfer area. Messages arrive live,
+and everything stays on the server of your own installation.
+
+image::/uploads/screenshots/2026-ChatList.png[image]
+
+[cols="1,4",]
+|===
+|Figure 3: |The chat page with the direct messages, the chat rooms and their unread messages.
+|===
+
+[[chat_rooms]]
+=== Chat rooms
+
+Anybody may create a chat room (*New chat room*) and choose its participants: users and groups. Group
+membership is checked at the moment of access, so whoever joins a group later is in at once, and whoever
+leaves it is out. The owner of a room and its moderators edit or delete the room, hide messages of others
+with a reason (e.g. off-topic or confidential content) and see the history of edited messages.
+
+Files sent in a room are stored in its data transfer area "Chat: …" and kept as long as the room says
+(*Files available*, 30 days by default); then they are deleted.
+
+Every data transfer area is a chat room as well, for everybody with access to the area.
+
+image::/uploads/screenshots/2026-ChatRoom.png[image]
+
+[cols="1,4",]
+|===
+|Figure 4: |A project room with a code block, an image, reactions and a thread.
+|===
+
+[[chat_direct_messages]]
+=== Direct messages
+
+A direct message (*Direct message*) goes to one person: anybody shown in the user selection can be written
+to. There is one conversation per pair of users. Below your own last message a small avatar shows that the
+other side has read it (see figure 6). Files of a direct message go into the personal box of the recipient in the data
+transfer.
+
+[[chat_writing_messages]]
+=== Writing messages
+
+* *Formatting*: bold, italic, lists, links and code blocks. In a code block, kbd:[Enter] starts a new line,
+  kbd:[Ctrl+Enter] (Mac: kbd:[⌘+Enter]) sends.
+* *@mentions*: typing `@` suggests the participants; whoever is mentioned is notified at once.
+* *Quotes* and *emoji reactions* on any message.
+* *Files of any type*: attach them, paste them or simply drop them into the message window. Images are shown
+  as thumbnails and enlarged by a click.
+* *Edit and delete* your own messages; an edited message is marked, and moderators see its history.
+* *Copy link* gives a link to a single message.
+
+[[chat_threads]]
+=== Threads
+
+*Reply in thread* starts a thread on a message, so a side discussion doesn't interrupt the room. The
+message shows the number of replies and their authors; a click opens the thread beside the conversation.
+The author of the message and whoever replies follow the thread; *Follow* and *Unfollow* change that. Threads with new replies are
+marked.
+
+image::/uploads/screenshots/2026-ChatThread.png[image]
+
+[cols="1,4",]
+|===
+|Figure 5: |An open thread beside the conversation of the room.
+|===
+
+[[chat_unread_messages_and_notifications]]
+=== Unread messages and notifications
+
+* The chat symbol in the top bar counts the unread messages, the list of conversations shows them per room.
+* A line marked *New* shows where the unread messages start; a button jumps to the next unread one.
+* *Mark as unread* on a message brings a conversation back for later.
+* *Mute* silences a conversation: new messages are no longer notified, mentions still are.
+* Mentions, direct messages and replies in followed threads are notified in the app and by mail. A mail is
+  sent only for what wasn't seen in the app, and it never contains the text of the message.
+
+[[chat_search]]
+=== Search
+
+The search of the chat page finds messages in all conversations you take part in; the search of a
+conversation looks only in this one. A hit leads to its conversation.
+
+[[chat_confidential_conversations]]
+=== Confidential conversations (end-to-end encrypted)
+
+For a password, an access code or anything else that must not stay anywhere, a direct message offers a
+*Confidential conversation*: a live conversation of two browsers, end-to-end encrypted. The texts are
+encrypted in one browser and decrypted only in the other. ProjectForge relays them without being able to
+read them and stores nothing.
+
+How it works:
+
+. Start it with *Encrypted chat* on the chat page (choose the person) or with the action *Confidential
+  conversation* in a direct message.
+. The other side is alerted on whatever page of ProjectForge is open, also in a background tab: by a sound,
+  a browser notification (if allowed), a blinking tab title and the counter of the chat symbol. Sound and
+  notifications are set in *Sound and notifications*. The offer is answered in the direct message:
+  *Accept* or *Decline*.
+. Both sides see the same *fingerprint*. Compare it, e.g. by phone: if it differs, a manipulated server is
+  involved.
+. Write the confidential text and *Encrypt and send*. A message is shown once to the other side and deleted
+  on the server as soon as it is picked up; the sender sees *Read*.
+. *End conversation* ends it for both sides, and nothing of it is left on the page.
+
+image::/uploads/screenshots/2026-ChatSecretOffer.png[image]
+
+[cols="1,4",]
+|===
+|Figure 6: |The recipient is offered a confidential conversation in the direct message.
+|===
+
+image::/uploads/screenshots/2026-ChatSecretDialog.png[image]
+
+[cols="1,4",]
+|===
+|Figure 7: |A confidential conversation with its fingerprint; the first message has been read.
+|===
+
+Both sides have to be online. The conversation also ends after 10 minutes without a message, after 2 hours at
+the latest, and when one side closes or reloads the page (its key is gone with it). A message may have up to
+16 KB; files can't be sent. Confidential conversations exist only in direct messages, not in rooms.
+
+What it protects against: database backups, log files, the chat history and administrators looking into
+data – none of them ever contains the text. It does not protect the screen or the clipboard of either side.
+The browser needs a secure connection (https).
+
+Technically, each browser creates a key pair for the conversation (WebCrypto, ECDH P-256); the private key
+can't be exported and lives only in the memory of the page. The common key is derived from both (HKDF-SHA-256)
+and encrypts each message with AES-GCM (256 bit) and a fresh initialization vector; conversation, sender and a
+counter are bound into each message, so a message can neither be replayed nor reordered unnoticed. The server
+only sees the public keys and the cipher text, keeps them in memory and deletes them when they are picked up.
+The fingerprint covers both public keys, so comparing it reveals a server that put its own keys in between.
+
+[[chat_privacy]]
+=== Who reads along
+
+Only the participants of a conversation read it: the members of a room, the two people of a direct
+message, those with access to a data transfer area. The administrator role grants no access to
+conversations. Messages and files are stored in the database and the data transfer of your own
+installation, see <<data_sovereignty_and_gdpr>>.
+
+[[structure_elements_in_projectforge_former_tasks]]
 == Structure elements in ProjectForge (former tasks)
 
 The term 'structure element' is used in a generic way and represents customers, projects, releases,
@@ -579,7 +776,7 @@ image::/uploads/userguide/TaskTree.png[image]
 
 [cols="1,4",]
 |===
-|Figure 3: |Hierarchy of structure elements in ProjectForge®
+|Figure 8: |Hierarchy of structure elements in ProjectForge®
 |===
 
 The following table describes the fields of structure elements:
@@ -667,6 +864,7 @@ For finished (closed) structure elements the bar stays green up to 100%; from 10
 shows a mild over-budget status (red track with a neutral bar), above 110% the normal over-budget
 status.
 
+[[suppressing_the_status_of_consumption_bars]]
 ==== Suppressing the status of consumption bars
 
 Enter 0 as maximum hours of a structure element for suppressing the status (planned value and
@@ -724,10 +922,12 @@ If a structure element is protected, the user may still modify fields not affect
 parameters (such as description and location but not times or cost units). The user may therefore
 correct typos etc. in time sheets.
 
+[[time_sheets]]
 == Time sheets
 
 Time sheets are booked in the calendar or under _Project management > Time sheets_.
 
+[[templates_and_recent_entries]]
 === Templates and recent entries
 
 Above the edit form of a time sheet you'll find your *Templates* and *Recent* entries. They fill in
@@ -744,6 +944,7 @@ This is useful if the time sheets are invoiced or taken over by other accounting
 sheets with dates before the date of protection may only be changed by members of the financial
 staff (regarding times and cost assignments).
 
+[[cost_units]]
 === Cost units
 
 * You may assign projects and/or cost 2 units to a structure element.
@@ -765,6 +966,7 @@ If you want to disable cost units you may change the status of such units to 'no
 or you may remove them by using the black or white list of the structure element.
 ____
 
+[[monthly_employee_report]]
 === Monthly employee report
 
 The *Monthly employee report* (_Project management > Monthly employee report_) summarizes the time
@@ -772,26 +974,31 @@ sheets of an employee for a month, as well as the working days and vacation days
 sheets. It is also available as PDF with fields for the signatures of
 the employee and the project leader.
 
+[[my_statistics]]
 === My statistics
 
 _Project management > My statistics_ compares your booked hours with your target hours and shows
 how early you book your time sheets. Early booking of time sheets is essential for a successful
 project management!
 
+[[jira_support]]
 === JIRA support
 
 JIRA issues are supported if configured by your administrator. If JIRA issue keys are contained in
 the activity report or reference of time sheets, they are displayed as links to the configured JIRA
 system.
 
+[[cost_unit_accounting]]
 === Cost unit accounting
 
+[[fraction_of_working_time]]
 ==== Fraction of working time
 
 You may configure a fraction for single cost 2 units or cost 2 types (default is 1). Example: if the
 travelling time should be counted only as half regarding the employee's working time, you may
 configure the fraction as 0.5. The monthly employee report takes this fraction into account.
 
+[[order_book]]
 == Order book
 
 Offers and orders may be managed in the *Order book*. They may be assigned to project managers having
@@ -805,14 +1012,17 @@ structure element etc.) and an optional payment schedule.
 as forecast and contribution margin are available under _Finance > Statistics_ (or _Project
 management > Statistics_ for users without the finance menu).
 
+[[e_mail_notification]]
 === E-mail notification
 
 If you save an order, the contact persons and all users involved in the order (if they have access
 to it) may be notified by e-mail including a link to the order. Untick *Send an e-mail
 notification?* to suppress the notification.
 
+[[financial_administration_with_projectforge]]
 == Financial administration with ProjectForge®
 
+[[invoices]]
 === Invoices
 
 ProjectForge® supports the management of outgoing and incoming invoices (debitors and creditors):
@@ -823,6 +1033,7 @@ unlimited number of cost units.
 * *Export invoice* generates a Word document of a saved invoice based on your company's invoice
 template.
 
+[[assignment_of_cost_units]]
 ==== Assignment of cost units
 
 It's recommended to try this feature for a better understanding. +
@@ -836,6 +1047,7 @@ An unlimited number of assignments is supported. The amount may be given as amou
 Positions and assignments already saved are marked as deleted first and may be restored until you
 save the invoice.
 
+[[clone_and_cancellation]]
 ==== Clone and cancellation
 
 You may clone existing invoices for a faster process of inserting new invoices:
@@ -847,6 +1059,7 @@ You may clone existing invoices for a faster process of inserting new invoices:
 *Create cancellation* prepares a cancellation invoice with negated amounts for an outgoing invoice.
 When saving, the original invoice gets the status canceled.
 
+[[e_invoices_xrechnung_and_zugferd]]
 === E-invoices (XRechnung and ZUGFeRD)
 
 Outgoing invoices may be exported as electronic invoices (if your administrator configured the
@@ -864,6 +1077,7 @@ The *E-Invoice Checker* (_Finance > E-Invoice Checker_) displays the content of 
 XRechnung XML file (seller, buyer, positions, amounts, attachments) and checks the most important
 mandatory fields. It's not a replacement for a full official validation.
 
+[[incoming_invoices]]
 === Incoming invoices
 
 Incoming invoices may be imported from DATEV CSV exports (*Upload of creditor invoices* in the list
@@ -873,6 +1087,7 @@ select the entries and commit them.
 
 *Export bank transfers* creates a SEPA transfer file (pain.001) for one or more incoming invoices.
 
+[[bank_accounts]]
 === Bank accounts
 
 Under _Finance > Bank accounts_ you manage your bank accounts and import their transactions from CSV
@@ -880,11 +1095,13 @@ files. The column mapping is configured per bank account (*Settings for import o
 Transactions already imported are updated, not duplicated, so overlapping periods may be imported
 again.
 
+[[liquidity_planning_forecast]]
 === Liquidity planning / forecast
 
 Based on invoices and additional liquidity entries (others than invoices) ProjectForge® gives you the
 opportunity to manage your cash flow very easily including a forecast (_Reporting > Liquidity_).
 
+[[liquidity_entries_and_series]]
 ==== Liquidity entries and series
 
 Liquidity entries have a date of payment, an amount, a subject and a comment. They may be marked as
@@ -902,12 +1119,14 @@ doesn't follow later changes of the series.
 date on (*Change from a date on*). In the latter case earlier occurrences keep their values, and the
 interval can't be changed (the continuation keeps the interval of the series).
 
+[[forecast]]
 ==== Forecast
 
 The *Liquidity forecast* shows the expected account balance for the next days (up to 600) based on a
 start amount. Choose a base date in the past to compare a former forecast with the actual
 development. *Excel export* downloads the forecast including all entries and invoices.
 
+[[calculation_of_expected_dates_of_payments]]
 ==== Calculation of expected dates of payments
 
 ProjectForge® uses due dates for forecasting the cash flow and account balance. For invoices
@@ -930,6 +1149,7 @@ The liquidity planning is a plugin which is activated automatically when Project
 refer to the
 link:/docs/adminguide/#plugins[Admin guide] for managing plugins.
 
+[[datev_import]]
 === DATEV import
 
 The accounts (chart of accounts) and the accounting records are imported from the Excel files your
@@ -958,7 +1178,7 @@ image::/uploads/userguide/Datev-Import-Buchungssaetze.png[image]
 
 [cols="1,4",]
 |===
-|Figure 4: |Excel format for the DATEV import of accounting records
+|Figure 9: |Excel format for the DATEV import of accounting records
 |===
 
 The import works in the same steps as all imports of ProjectForge®:
@@ -972,6 +1192,7 @@ until all records are taken over.
 Imported accounting records are listed under
 _Reporting > Accounting records_, including a business assessment (BWA) of the chosen period.
 
+[[reporting_via_report_objectives]]
 === Reporting via Report objectives
 
 Under _Reporting > Report Objectives_ you upload (or paste) an XML file describing your report
@@ -1024,6 +1245,7 @@ ____
 
 The accounting records of each report objective may be opened directly from the report.
 
+[[scripting_in_projectforge]]
 == Scripting in ProjectForge®
 
 You may edit, store and execute scripts in ProjectForge® (_Reporting > List of scripts_) for
@@ -1037,11 +1259,13 @@ elements or users), which are asked for before execution.
 * Scripts may be shared with users and groups. They find them under _Project management > List of
 my scripts_ and may execute them without seeing the source code.
 
+[[examples]]
 === Examples
 
 You may use the predefined example scripts for getting an idea how powerful the scripting in
 ProjectForge® is.
 
+[[example_easy_excel_file_generation]]
 ==== Example: Easy Excel-file generation
 
 [source,kotlin,linenums]
@@ -1066,6 +1290,7 @@ sheet.setAutoFilter() // optional Excel auto filter
 workbook
 ----
 
+[[example_usage_of_projectforge_filters]]
 ==== Example: Usage of ProjectForge® filters
 
 [source,kotlin,linenums]
@@ -1080,12 +1305,14 @@ val list = timesheetDao.select(filter)
 
 PFDateTime and PFDay automatically use the time zone of the currently logged-in user as default.
 
+[[access_rights_daos]]
 === Access rights (DAOs)
 
 You may access all database entries by using the DAOs (Data Access Objects) of ProjectForge®. The
 DAOs ensure that only such entities are returned the user has access to. All entities without the
 user's access are removed by the DAOs from the result lists.
 
+[[creation_of_diagrams_and_charts]]
 === Creation of diagrams and charts
 
 You may create charts using https://www.jfree.org/jfreechart/[JFreeChart,window=_blank].
@@ -1094,7 +1321,7 @@ image::/uploads/userguide/ExportJFreeChart.png[image]
 
 [cols="1,4",]
 |===
-|Figure 5: |Example of a script producing a chart
+|Figure 10: |Example of a script producing a chart
 |===
 
 [source,groovy,linenums]
@@ -1114,6 +1341,7 @@ ExportJFreeChart export = new ExportJFreeChart(chart, 800, 600)
 return export
 ----
 
+[[creation_of_zip_archives_containing_multiple_files]]
 === Creation of zip archives containing multiple files
 
 You may create zip files containing multiple files (Excel sheets and diagrams). Optionally the
@@ -1136,6 +1364,7 @@ zip
 The optional parameter `encryptionPassword` (e. g. `ExportZipArchive("my-first-archive",
 encryptionPassword = "...")`) encrypts the archive.
 
+[[nested_and_indexed_properties]]
 === Nested and indexed properties
 
 You may use bean properties using the commonly used notation:
@@ -1148,15 +1377,16 @@ sheet.propertyNames = ["user.username", "description", "startTime", "stopTime",
 
 Nested and indexed properties are supported as well: `users[3].name` or `result.userList[0]`.
 
+[[import_of_excel_files]]
 === Import of Excel files
 
-Figure 6 shows an example file.
+Figure 11 shows an example file.
 
 image::/uploads/userguide/Excel-import-example.png[image]
 
 [cols="1,4",]
 |===
-|Figure 6: |Example file for an Excel import
+|Figure 11: |Example file for an Excel import
 |===
 
 The file uploaded to the script is available as variable `file` (byte array) and its name as
@@ -1197,8 +1427,10 @@ The output is:
 The total amount is: £92.23
 ----
 
+[[miscellaneous]]
 == Miscellaneous
 
+[[data_transfer]]
 === Data transfer
 
 _Miscellaneous > Data transfer_ is the easy way to exchange files with colleagues and external
@@ -1215,10 +1447,12 @@ be notified in advance of files being deleted (for longer expiry periods). The m
 configured per area.
 * *Download all* downloads all files of an area as zip archive.
 
+[[further_features]]
 === Further features
 
 * *Polls* (_Miscellaneous > Polls_): create polls with single choice, multiple choice and text
-questions, invite attendees and export the results.
+questions (also from templates), invite users and groups, and see the results on the page or as Excel
+file. Users with full access edit the poll, see all answers and answer on behalf of attendees.
 * *Merlin Word® templates* (_Miscellaneous > Merlin Word® templates_): generate Word documents
 such as contracts or letters from templates with variables, also as serial documents from an Excel
 sheet.
@@ -1227,14 +1461,41 @@ their usage.
 * *Skill matrix* (_Project management_): rate your own skills and interests and see the skills of
 your colleagues.
 
+[[data_protection]]
 == Data protection
 
+[[data_sovereignty_and_gdpr]]
+=== Data sovereignty and GDPR
+
+ProjectForge® runs on a server of your choice – your own, in your data center, or hosted by a provider you
+choose. All data stays there: the database, the files of the data transfer, the chat, the documents. Nothing
+is sent to a cloud of the vendor or of a third party, there is no telemetry, and the pages load no scripts,
+fonts or images from other hosts (the Content Security Policy refuses them).
+
+This is what digital sovereignty means here: you decide where the data lives, who has access to it, how long
+it is kept and when ProjectForge® is updated. The source code is open (open source) and can be checked by
+anybody, and there is no vendor lock-in: the data is in a PostgreSQL database of your own.
+
+For the GDPR this makes the processing of personal data a matter of your own policies, without a processor
+outside your control. ProjectForge® supports them with fine-grained access rights, the history of changes
+(see <<history_of_changes_2>>), data protection by default (e.g. the reason of an absence stays
+with the person concerned and HR) and conversations nobody else reads (see <<chat_privacy>>). Whether an installation complies
+with the GDPR depends on its operation; ProjectForge® provides the means, not a legal assessment.
+
+[[confidential_chat_messages]]
+=== Confidential chat messages
+
+The texts of a confidential conversation are end-to-end encrypted and never stored: neither in the
+database, nor in log files, backups or mails (see <<chat_confidential_conversations>>).
+
+[[passwords]]
 === Passwords
 
 Passwords are stored only as salted and peppered hashes in the database. Directly after usage of
 passwords (such as in the login screen) all password variables are deleted. Passwords are not part of
 any log file entry.
 
+[[history_of_changes_2]]
 === History of changes
 
 All modifications of entities (create, update, delete) are stored with time stamp, the user who
@@ -1242,16 +1503,19 @@ caused the modification and the modified fields with the old and new value. The 
 displayed at the edit page of an entity. There are single special fields which are not part of this
 history mechanism.
 
+[[logging]]
 === Logging
 
 Access violations and actions of users (such as modification of entities) as well as any error
 message are stored in log files. The log file is important for analyzing errors etc.
 
+[[phone_calls_and_text_messages]]
 === Phone calls and text messages
 
 Phone calls and text messages initiated via ProjectForge® are logged, including the user and the
 phone numbers involved.
 
+[[glossary]]
 == Glossary
 
 The developers of ProjectForge® were using the German language for some financial terms. Nowadays

@@ -153,6 +153,10 @@ open class RepoMigrationService {
             result.error("Files aren't migrated: projectforge.files.store=db required.")
             return result
         }
+        if (!repoService.jcrAvailable) {
+            log.warn { "The JCR repository isn't available (see the log of the start), there are no files to migrate." }
+            return result
+        }
         val files = collectFiles()
         result.total = files.size
         log.info { "Migrating ${files.size} files from the JCR to the file store..." }

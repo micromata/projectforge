@@ -50,7 +50,7 @@ import java.io.ByteArrayInputStream
  */
 class ProjectKost2ArtsMassUpdateTest : AbstractTestBase() {
     @Autowired
-    private lateinit var projectMultiSelectedPageRest: ProjectMultiSelectedPageRest
+    private lateinit var projectMassUpdateRest: ProjectMassUpdateRest
 
     @Autowired
     private lateinit var projektDao: ProjektDao
@@ -79,9 +79,9 @@ class ProjectKost2ArtsMassUpdateTest : AbstractTestBase() {
         }
         Kost2DO().also {
             it.projekt = project
-            it.nummernkreis = project.nummernkreis
+            it.nummernkreis = project.nummernkreis!!
             it.bereich = project.bereich!!
-            it.teilbereich = project.nummer
+            it.teilbereich = project.teilbereich!!
             it.kost2Art = arts[0]
             kost2Dao.insert(it, checkAccess = false)
         }
@@ -95,10 +95,10 @@ class ProjectKost2ArtsMassUpdateTest : AbstractTestBase() {
             override fun getId(obj: ProjektDO): Long = obj.id!!
         }
         val request = Mockito.mock(HttpServletRequest::class.java)
-        assertNull(projectMultiSelectedPageRest.massUpdate(request, listOf(project.id!!), context))
+        assertNull(projectMassUpdateRest.massUpdate(request, listOf(project.id!!), context))
         assertEquals(1, context.modifiedCounter, "errors: ${context.errorMessages.map { it.message }}")
 
-        val excel = MultiSelectionExcelExport.export(context, projectMultiSelectedPageRest)
+        val excel = MultiSelectionExcelExport.export(context, projectMassUpdateRest)
         ExcelWorkbook(ByteArrayInputStream(excel), "protocol.xlsx").use { workbook ->
             val sheet = workbook.getSheet(0)!!.poiSheet
             val row = sheet.getRow(2)
@@ -132,7 +132,7 @@ class ProjectKost2ArtsMassUpdateTest : AbstractTestBase() {
             override fun getId(obj: ProjektDO): Long = obj.id!!
         }
         val request = Mockito.mock(HttpServletRequest::class.java)
-        assertNull(projectMultiSelectedPageRest.massUpdate(request, listOf(project.id!!), context))
+        assertNull(projectMassUpdateRest.massUpdate(request, listOf(project.id!!), context))
         assertEquals(0, context.modifiedCounter)
         assertEquals(1, context.errorCounter)
         assertEquals(project.displayName, context.errorMessages.first().identifier)

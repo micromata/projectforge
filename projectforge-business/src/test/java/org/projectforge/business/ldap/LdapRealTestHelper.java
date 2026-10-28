@@ -35,19 +35,19 @@ import java.io.IOException;
 
 /**
  * Test helper class for do some tests with a real LDAP test system. The LDAP system settings have to be set in
- * $USER.HOME/rojectForge/testldapConfig.xml:
+ * $USER.HOME/ProjectForge/testldapConfig.xml:
  * <p>
  * <pre>
  * &lt;?xml version="1.0" encoding="UTF-8" ?&gt;
  * &lt;ldapConfig&gt;
- *     &lt;server&gt;ldaps://192.168.76.177&lt;/server&gt;
+ *     &lt;server&gt;ldaps://ldap.example.org&lt;/server&gt;
  *     &lt;port&gt;636&lt;/port&gt;
  *     &lt;userBase&gt;ou=pf-test-users&lt;/userBase&gt;
  *     &lt;baseDN&gt;dc=projectforge,dc=org&lt;/baseDN&gt;
  *     &lt;authentication&gt;simple&lt;/authentication&gt;
  *     &lt;managerUser&gt;cn=testuser&lt;/managerUser&gt;
  *     &lt;managerPassword&gt;secret&lt;/managerPassword&gt;
- *     &lt;sslCertificateFile&gt;/Users/kai/ProjectForge/testldap.cert&lt;/sslCertificateFile&gt;
+ *     &lt;sslCertificateFile&gt;$USER.HOME/ProjectForge/testldap.cert&lt;/sslCertificateFile&gt;
  * &lt;/ldapConfig&gt;
  * </pre>
  *

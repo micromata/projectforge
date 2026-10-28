@@ -23,8 +23,10 @@ import {
   type CalendarInit,
 } from "@/lib/rs/calendar-types";
 import type { useCalendarFilterMutations } from "./use-calendar-filter-mutations";
+import { CalendarAbsenceKinds } from "./calendar-absence-kinds";
 import { CalendarVacationSelects } from "./calendar-vacation-selects";
 import { CalendarColorSettings } from "./calendar-color-settings";
+import { toPickerRef } from "@/lib/page-def/reference";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
@@ -35,8 +37,8 @@ interface CalendarSettingsDialogProps {
 
 /**
  * The gear dialog: the presentational settings that do not belong on the toolbar itself — default
- * calendar, whose timesheets to show, breaks, vacation overlays, the time-grid's slot size and first
- * hour, and the event colours (see CalendarColorSettings; formerly the separate `calendarSettings`
+ * calendar, whose timesheets to show, breaks, absence overlays (vacations and availability entries), the
+ * time-grid's slot size and first hour, and the event colours (see CalendarColorSettings; formerly the separate `calendarSettings`
  * page). Each control fires its own `change*`/persist the moment it changes; the dialog holds no draft,
  * so there is no save button, exactly as the legacy settings modal.
  */
@@ -104,10 +106,7 @@ export function CalendarSettingsDialog({
                 <PersonSelect
                   value={
                     showsOwn && timesheetUser?.id != null
-                      ? {
-                          id: timesheetUser.id,
-                          displayName: timesheetUser.displayName ?? "",
-                        }
+                      ? toPickerRef({ ...timesheetUser, id: timesheetUser.id })
                       : null
                   }
                   onChange={(user) =>
@@ -158,6 +157,13 @@ export function CalendarSettingsDialog({
               users={init.vacationUsers ?? []}
               onGroupsChange={mutations.changeVacationGroups}
               onUsersChange={mutations.changeVacationUsers}
+            />
+          )}
+
+          {open && (
+            <CalendarAbsenceKinds
+              kinds={filter?.absenceKinds}
+              onChange={mutations.changeAbsenceKinds}
             />
           )}
 

@@ -7,6 +7,10 @@ import type {
   NotificationRuleType,
   NotificationSeverity,
 } from "@/lib/rs/notification";
+import type { InactiveFlags } from "@/lib/page-def/reference";
+
+/** Where "Open" of a notification leads: the page of the rule type, nowhere or a menu item. */
+export type LinkMode = "DEFAULT" | "NONE" | "MENU_ITEM";
 
 export type ScheduleMode =
   | "NONE"
@@ -25,7 +29,7 @@ export type DayOfWeek =
   | "SUNDAY";
 
 /** A group or user as the DTO references it (`Group` / `User` with the id and display name). */
-export interface Ref {
+export interface Ref extends InactiveFlags {
   id: number;
   displayName?: string;
 }
@@ -55,6 +59,7 @@ export interface NotificationRuleDetail {
   daysBeforeExpiry?: number;
   passwordMaxAgeDays?: number;
   kost2MissingMonths?: number;
+  dueWorkingDays?: number;
   recipientGroups?: Ref[];
   recipientUsers?: Ref[];
   allEmployees?: boolean;
@@ -66,8 +71,11 @@ export interface NotificationRuleDetail {
   display?: NotificationDisplay;
   manualDone?: boolean;
   menuBadge?: string | null;
+  linkMode?: LinkMode;
+  linkMenuItem?: string | null;
   subject?: string | null;
   text?: string | null;
+  smsText?: string | null;
   editableByGroups?: Ref[];
   /** Read-only: the last run by schedule. */
   lastRun?: string | null;

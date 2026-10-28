@@ -59,6 +59,7 @@ class ContributionMarginMonthRow(
   val percentage: BigDecimal?,
   /** True, if the month contains preliminary values (unbooked invoices, time sheets). */
   val preliminary: Boolean,
+  val projectGroup: String? = null,
 )
 
 /** One invoice position of a project in the period. */
@@ -81,6 +82,7 @@ class ContributionMarginInvoiceRow(
   val bookedDate: LocalDate?,
   /** True, if the invoice counts as preliminary revenue (not booked yet). */
   val preliminary: Boolean,
+  val projectGroup: String? = null,
 )
 
 /** The time sheet costs (hours × hourly rate) of a kost2 in a month, preliminary by definition. */
@@ -94,4 +96,5 @@ class ContributionMarginTimesheetRow(
   val hours: BigDecimal?,
   /** Positive amount. */
   val costs: BigDecimal,
+  val projectGroup: String? = null,
 )

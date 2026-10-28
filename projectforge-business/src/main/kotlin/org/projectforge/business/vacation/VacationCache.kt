@@ -26,7 +26,6 @@ package org.projectforge.business.vacation
 import jakarta.annotation.PostConstruct
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.EmployeeCache
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
@@ -50,9 +49,6 @@ private val log = KotlinLogging.logger {}
 open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
     @Autowired
     private lateinit var employeeCache: EmployeeCache
-
-    @Autowired
-    private lateinit var userGroupCache: UserGroupCache
 
     @Autowired
     private lateinit var vacationDao: VacationDao
@@ -79,48 +75,25 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
     }
 
     /**
-     * Checks also the select access of the logged in user.
-     * @param groupIds Null items should only occur on (de)serialization issues.
-     * @param userIds Null items should only occur on (de)serialization issues.
+     * The vacations of the given users overlapping the period, rejected ones left out, whoever is logged in: for a
+     * caller that checks the access itself (AbsenceService).
+     * The entries are the cached ones: not to be changed.
      */
-    open fun getVacationForPeriodAndUsers(
-        startVacationDate: LocalDate, endVacationDate: LocalDate,
-        groupIds: Set<Long?>?, userIds: Set<Long?>?
+    open fun getVacationsOfUsers(
+        userIds: Collection<Long>,
+        startDate: LocalDate, endDate: LocalDate,
     ): List<VacationDO> {
+        if (userIds.isEmpty()) {
+            return emptyList()
+        }
         checkRefresh()
-        val result = mutableListOf<VacationDO>()
-        if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
-            log.info { "No groups given, therefore no vacation will be returned." }
-            return result
+        val ids = userIds.toSet()
+        return vacations.filter { vacation ->
+            vacation.endDate?.isBefore(startDate) == false &&
+                    vacation.startDate?.isAfter(endDate) == false &&
+                    vacation.status != VacationStatus.REJECTED &&
+                    employeeCache.getUser(vacation.employee)?.id in ids
         }
-        for (vacation in vacations) {
-            if (vacation.endDate?.isBefore(startVacationDate) == true ||
-                vacation.startDate?.isAfter(endVacationDate) == true
-            ) {
-                continue
-            }
-            if (vacation.status == VacationStatus.REJECTED) {
-                continue // Nobody is away: not shown in the calendar nor in its subscriptions.
-            }
-            if (!vacationDao.hasSelectAccess(vacation, ThreadLocalUserContext.requiredLoggedInUser)) {
-                continue
-            }
-            val employeeUser = employeeCache.getUser(vacation.employee) ?: continue
-            var match = groupIds?.any { gid ->
-                userGroupCache.getGroup(gid)?.assignedUsers?.any { user ->
-                    user.id == employeeUser.id // The employee matches with one assigned user of the group.
-                } ?: false // Null doesn't match.
-            } ?: false // Null doesn't match
-            if (!match) { // Search for users
-                match = userIds?.any { uid ->
-                    uid == employeeUser.id // The employee matches with one given user.
-                } ?: false // Null doesn't match
-            }
-            if (match) {
-                result.add(vacation) // Employee is part of group, so return the vacation entry for this user.
-            }
-        }
-        return result
     }
 
     override fun afterInsertOrModify(obj: VacationDO, operationType: OperationType) {

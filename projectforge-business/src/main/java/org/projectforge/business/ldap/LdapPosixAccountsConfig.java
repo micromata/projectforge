@@ -26,7 +26,7 @@ package org.projectforge.business.ldap;
 import org.projectforge.framework.persistence.utils.ReflectionToString;
 
 /**
- * Bean used by ConfigXML (config.xml).
+ * Part of the LDAP settings (see LdapConfig).
  *
  * @author Kai Reinhard
  */

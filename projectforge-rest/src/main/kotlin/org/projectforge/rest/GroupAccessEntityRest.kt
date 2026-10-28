@@ -56,8 +56,7 @@ import org.springframework.web.bind.annotation.RestController
  * permission matrix, migrated from the Wicket `AccessListPage`/`AccessEditPage`.
  *
  * Layout free ([AbstractDTOEntityRest]): the hand built next page brings its own layout, so there is no
- * server side `createListLayout`/`createEditLayout` here. There is no way back to the Wicket page
- * (`NextMigration`, `offerLegacyLink = false`); its old urls are redirected by `OrphanedLinkFilter`.
+ * server side `createListLayout`/`createEditLayout` here.
  */
 @RestController
 @RequestMapping("${Rest.URL}/access")
@@ -164,7 +163,7 @@ class GroupAccessEntityRest :
 
     /**
      * Sorts the "task" list column in task-tree order rather than by anything SQL can express: the key is the
-     * task's path to the root ("Micromata -> Business Unit -> ProjectForge", see [TaskFormatter.getTaskPath]),
+     * task's path to the root ("ACME -> Business Unit -> ProjectForge", see [TaskFormatter.getTaskPath]),
      * so an ancestor precedes its descendants and siblings group together. This is what makes the list read as
      * a tree — the frontend then indents each row by the task's depth (access.page.tsx). A row whose task is
      * gone sorts last. Applied in memory over the whole (small) result set, see [computedSortProperties].

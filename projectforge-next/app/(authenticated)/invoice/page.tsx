@@ -32,7 +32,9 @@ export default function InvoiceListPage() {
         <TabsContent value="list" className="flex min-h-0 flex-col">
           <EntityListPage page={INVOICE_PAGE} embedded />
         </TabsContent>
-        <TabsContent value="charts" className="min-h-0 overflow-auto">
+        {/* min-h-64: on a short viewport the panel overflows <Tabs>, so <main> scrolls to it (see
+            OrderStatistics). */}
+        <TabsContent value="charts" className="min-h-64 overflow-auto">
           <InvoiceChartsView />
         </TabsContent>
       </Tabs>

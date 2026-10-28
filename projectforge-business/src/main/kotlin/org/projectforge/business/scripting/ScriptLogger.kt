@@ -39,7 +39,14 @@ class ScriptLogger {
     val hasErrors: Boolean
         get() = messages.any { it.level <= LogLevel.ERROR }
 
-    val messages = mutableListOf<Message>()
+    private val _messages = mutableListOf<Message>()
+
+    /**
+     * A copy of the messages logged so far. The script adds to the log while the user's client reads it in another
+     * request (`AbstractScriptExecuteRest.refresh`), so the list is never handed out itself.
+     */
+    val messages: List<Message>
+        get() = synchronized(_messages) { _messages.toList() }
 
     val lastModified: Date?
         get() = messages.maxOfOrNull { it.timestamp }
@@ -50,8 +57,9 @@ class ScriptLogger {
 
     fun error(msg: () -> Any?) {
         val message = msg()?.toString()
-        log.error { message }
-        messages.add(Message(message, LogLevel.ERROR))
+        // Only INFO on the server: the author of the script sees it in the script log, it is nothing for the dashboard.
+        log.info { message }
+        addMessage(Message(message, LogLevel.ERROR))
     }
 
     fun warn(msg: Any?) {
@@ -61,7 +69,7 @@ class ScriptLogger {
     fun warn(msg: () -> Any?) {
         val message = msg()?.toString()
         log.info { message }
-        messages.add(Message(message, LogLevel.WARN))
+        addMessage(Message(message, LogLevel.WARN))
     }
 
     fun info(msg: Any?) {
@@ -71,7 +79,7 @@ class ScriptLogger {
     fun info(msg: () -> Any?) {
         val message = msg()?.toString()
         log.info { message }
-        messages.add(Message(message, LogLevel.INFO))
+        addMessage(Message(message, LogLevel.INFO))
     }
 
     fun debug(msg: Any?) {
@@ -81,7 +89,7 @@ class ScriptLogger {
     fun debug(msg: () -> Any?) {
         val message = msg()?.toString()
         log.debug { message }
-        messages.add(Message(message, LogLevel.DEBUG))
+        addMessage(Message(message, LogLevel.DEBUG))
     }
 
     internal fun add(msg: String?, logLevel: ScriptDiagnostic.Severity) {
@@ -106,5 +114,9 @@ class ScriptLogger {
                 LogLevel.ERROR
             }
         }
+    }
+
+    private fun addMessage(message: Message) {
+        synchronized(_messages) { _messages.add(message) }
     }
 }

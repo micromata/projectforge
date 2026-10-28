@@ -18,6 +18,7 @@ import {
 } from "@/lib/rs/order";
 import type { MagicFilter } from "@/lib/rs/types";
 import { StatisticsDateField } from "../statistics/statistics-date-field";
+import { ContributionMarginBubbles } from "./contribution-margin-bubbles";
 import { ContributionMarginHints } from "./contribution-margin-hints";
 import { ContributionMarginKpis } from "./contribution-margin-kpis";
 import { ContributionMarginMonthlyChart } from "./contribution-margin-monthly-chart";
@@ -172,6 +173,18 @@ function OrderContributionMargin({
                 render: (className) => (
                   <ContributionMarginMonthlyChart
                     data={query.data}
+                    className={className}
+                  />
+                ),
+              },
+              {
+                id: "bubbles",
+                title: t("bubbles._"),
+                defaultWidth: "full",
+                render: (className) => (
+                  <ContributionMarginBubbles
+                    filter={filter}
+                    params={debouncedParams}
                     className={className}
                   />
                 ),

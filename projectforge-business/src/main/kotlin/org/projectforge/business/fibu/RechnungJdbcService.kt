@@ -53,6 +53,8 @@ class RechnungJdbcService {
 
     fun selectRechnungInfos(entityClass: KClass<out AbstractRechnungDO>): List<RechnungInfo> {
         val rechnungen = mutableMapOf<Long, AbstractRechnungDO>()
+        // Cancellation id -> id of the invoice it cancels, resolved once all invoices are read (see below).
+        val originalIds = mutableMapOf<Long, Long>()
         val sql =
             if (entityClass == RechnungDO::class) SELECT_RECHNUNG_WITH_KOST else SELECT_EINGANGS_RECHNUNG_WITH_KOST
         jdbcTemplate.query(sql, ResultSetExtractor { rs ->
@@ -75,6 +77,7 @@ class RechnungJdbcService {
                             it.status = RechnungStatus.safeValueOf(rs.getString("status"))
                             it.nummer = getInt(rs, "nummer")
                             it.typ = rs.getString("typ")?.let { typ -> runCatching { RechnungTyp.valueOf(typ) }.getOrNull() }
+                            getLong(rs, "original_rechnung_fk")?.let { originalId -> originalIds[rechnungId] = originalId }
                         }
                     }
                 }
@@ -127,6 +130,11 @@ class RechnungJdbcService {
                 pos.kostZuweisungen!!.add(kost)
             }
         })
+        // The originals are read by the same query: a cancellation gets its original, so its belegNummer
+        // (number of the original + "-S") is known to the RechnungInfo as well.
+        originalIds.forEach { (cancellationId, originalId) ->
+            (rechnungen[cancellationId] as? RechnungDO)?.originalRechnung = rechnungen[originalId] as? RechnungDO
+        }
         return rechnungen.map { RechnungCalculator.calculate(it.value, useCaches = false) }
     }
 
@@ -166,7 +174,7 @@ class RechnungJdbcService {
         """.trimIndent()
 
         private val SELECT_RECHNUNG_WITH_KOST = """
-            SELECT r.pk as rechnung_id,r.deleted,r.status,r.typ,r.nummer,r.datum,r.bezahl_datum,r.zahl_betrag,r.currency,r.faelligkeit,r.discountmaturity,r.discountpercent,
+            SELECT r.pk as rechnung_id,r.deleted,r.status,r.typ,r.nummer,r.original_rechnung_fk,r.datum,r.bezahl_datum,r.zahl_betrag,r.currency,r.faelligkeit,r.discountmaturity,r.discountpercent,
                    p.pk as pos_id,p.deleted as pos_deleted,p.number,p.menge,p.einzel_netto,p.vat,p.s_text,p.auftrags_position_fk,
                    k.pk as kost_id,k.netto,k.index,k.kost1_fk,k.kost2_fk
             FROM t_fibu_rechnung r

@@ -14,6 +14,9 @@ import { useFormatContext } from "@/hooks/use-format";
 import type { AgGridNode } from "@/lib/dynamic/grid/ag-grid-types";
 import { adaptColumnDefs } from "@/lib/dynamic/grid/column-def-adapter";
 import type { TaskNode } from "@/lib/rs/task";
+import { TaskGroupAccessCell } from "./task-group-access-cell";
+import { TaskBookingGrantBadge } from "./task-booking-grant-badge";
+import { TASK_TREE_ROUTE, taskBookingGrantsHref } from "./task-routes";
 
 /**
  * The tree's free-text columns whose values may carry JIRA issue keys, linked as Wicket links its list
@@ -24,10 +27,8 @@ const JIRA_TREE_FIELDS = new Set(["shortDescription", "reference"]);
 /**
  * The tree's columns, from the `columnDefs` of the initial answer.
  *
- * Same shape as `useDynamicGridColumns` and for the same reasons — including the memoisation, which
- * keeps a header from remounting and closing its own popover. It is a hook of its own rather than
- * that one reused, because the structure tree has no DynamicLayout to take `translate` from: its
- * headers arrive already translated, so `next-intl` covers the rest.
+ * Memoised, which keeps a header from remounting and closing its own popover. The headers arrive
+ * already translated, so `next-intl` covers the rest.
  *
  * The one column that differs is the tree column: [TreeCell] gets an `onToggle` and the row's
  * `action`, which the generic `renderCell` has no channel for — expanding and adding below a node
@@ -69,6 +70,18 @@ export function useTaskTreeColumns(
         ),
         cell: ({ getValue, row }: CellContext<TaskNode, unknown>) => {
           if (!spec) return null;
+          // The admins' groups column, with each group's rights as icons in its tooltip — the same cell
+          // the task list shows (the server's column def carries no cell kind for it).
+          if (field === "groupAccess") {
+            return (
+              <TaskGroupAccessCell
+                taskId={row.original.id}
+                taskTitle={row.original.title}
+                text={row.original.groupAccess}
+                groups={row.original.groupAccessList}
+              />
+            );
+          }
           // A free-text column: link its JIRA issue keys, as Wicket does in its list columns. The plain
           // string cell is what these columns render anyway, so the value stands in for it.
           if (jiraLinked) {
@@ -94,6 +107,21 @@ export function useTaskTreeColumns(
               {...props}
               onToggle={() => onToggle(row.original)}
               action={rowAction?.(row.original)}
+              badge={
+                row.original.bookingGrants || row.original.pendingTimesheets ? (
+                  <TaskBookingGrantBadge
+                    grants={row.original.bookingGrants}
+                    pendingTimesheets={row.original.pendingTimesheets}
+                    href={
+                      linkEnabled
+                        ? taskBookingGrantsHref(row.original.id, {
+                            returnTo: TASK_TREE_ROUTE,
+                          })
+                        : undefined
+                    }
+                  />
+                ) : undefined
+              }
             />
           ) : (
             renderCell(props)

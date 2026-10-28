@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.task.TaskTree
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
@@ -48,7 +49,7 @@ private val log = KotlinLogging.logger {}
  * Reading follows the [Configuration] cache: the index is rebuilt whenever its raw value changes, so a save on
  * this or (after the cache's expiry) another node is picked up without a listener of its own.
  *
- * Saving is reserved to finance and controlling, checked by the caller (`CustomerGroupPageRest`): the parameter
+ * Saving is reserved to finance and controlling, checked by the caller (`CustomerGroupRest`): the parameter
  * is read-only on the generic configuration page for everyone ([ConfigurationDao.hasAccess]), so [save] writes
  * without the dao's access check.
  */
@@ -68,6 +69,9 @@ class CustomerGroupService {
 
     @Autowired
     private lateinit var customerUsageCache: CustomerUsageCache
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
@@ -130,12 +134,18 @@ class CustomerGroupService {
     fun businessUnitNameOf(kundeId: Long?, kundeText: String? = null, projektId: Long? = null): String? =
         index.businessUnitOf(kundeId, kundeText, projektId)?.name
 
+    /** The name of the project group the project belongs to, null for none. */
+    fun projectGroupNameOf(projektId: Long?): String? = index.projectGroupOf(projektId)?.name
+
     /** By the project's customers (its own, else those of its orders), else by its task. */
     fun businessUnitNameOf(projekt: ProjektDO?): String? {
         projekt ?: return null
         val projektId = projekt.id ?: return businessUnitNameOf(projekt.kunde?.nummer)
         return index.businessUnitOfProject(projektId)?.name
     }
+
+    /** The business unit of the project, see [businessUnitNameOf]. */
+    fun businessUnitOfProject(projektId: Long): BusinessUnit? = index.businessUnitOfProject(projektId)
 
     /**
      * The customer entities and free-text customers the given names and patterns match, sorted by name: the
@@ -255,6 +265,10 @@ class CustomerGroupService {
     val entryId: Long?
         get() = configurationDao.getEntry(ConfigurationParam.CUSTOMER_GROUPS)?.id
 
+    /** The value as stored (JSON), the base of the editor's diff; null if none yet. */
+    val storedJson: String?
+        get() = configurationDao.getEntry(ConfigurationParam.CUSTOMER_GROUPS)?.stringValue
+
     /** The stored row's last update (epoch millis) for the optimistic lock of [save], null if none yet. */
     val lastUpdate: Long?
         get() = configurationDao.getEntry(ConfigurationParam.CUSTOMER_GROUPS)?.lastUpdate?.time
@@ -290,6 +304,9 @@ class CustomerGroupService {
             },
             taskPath = { taskId -> taskPath(taskId) },
             taskTitle = { taskTree.getTaskById(it)?.title },
+            projectName = { projects[it]?.displayName },
+            userExists = { userGroupCache.getUser(it) != null },
+            groupExists = { userGroupCache.getGroup(it) != null },
         )
     }
 
@@ -393,16 +410,27 @@ class CustomerGroupService {
             }
             entry.stringValue = json
             configurationDao.update(entry, checkAccess = false)
-            log.info { "Customer groups saved: ${config.groups.size} groups, ${config.businessUnits.size} business units." }
+            log.info {
+                "Customer groups saved: ${config.groups.size} groups, ${config.businessUnits.size} business units, " +
+                        "${config.projectGroups.size} project groups."
+            }
         }
         Configuration.instance.forceReload()
+        OrderAccessGrantService.instanceOrNull?.invalidate()
         return emptyList()
     }
+
+    /**
+     * The configuration as [save] would store it (trimmed, duplicates and empty texts dropped, missing keys
+     * assigned), without storing or validating it: what it is compared with the stored value as.
+     */
+    fun toStoredJson(config: CustomerGroupConfig): String = config.also { normalize(it) }.toJson()
 
     private fun normalize(config: CustomerGroupConfig) {
         config.version = CustomerGroupConfig.VERSION
         config.remark = config.remark?.trim()?.ifEmpty { null }
-        val usedKeys = (config.groups + config.businessUnits).mapNotNull { it.key }.toMutableSet()
+        val usedKeys = ((config.groups + config.businessUnits).mapNotNull { it.key } + config.orderAccess.mapNotNull { it.key } +
+                config.projectGroups.mapNotNull { it.key }).toMutableSet()
         (config.groups + config.businessUnits).forEach { set ->
             set.name = set.name?.trim()
             set.customers = set.customers.distinct().toMutableList()
@@ -413,6 +441,25 @@ class CustomerGroupService {
             }
         }
         config.businessUnits.forEach { it.groups = it.groups.distinct().toMutableList() }
+        config.orderAccess.forEach { grant ->
+            grant.name = grant.name?.trim()
+            grant.remark = grant.remark?.trim()?.ifEmpty { null }
+            grant.userIds = grant.userIds.distinct().toMutableList()
+            grant.groupIds = grant.groupIds.distinct().toMutableList()
+            grant.customers = grant.customers.distinct().toMutableList()
+            grant.groups = grant.groups.distinct().toMutableList()
+            grant.businessUnits = grant.businessUnits.distinct().toMutableList()
+            if (grant.key.isNullOrBlank()) {
+                grant.key = newKey(usedKeys)
+            }
+        }
+        config.projectGroups.forEach { group ->
+            group.name = group.name?.trim()
+            group.projects = group.projects.distinct().toMutableList()
+            if (group.key.isNullOrBlank()) {
+                group.key = newKey(usedKeys)
+            }
+        }
     }
 
     private fun newKey(usedKeys: MutableSet<String>): String {

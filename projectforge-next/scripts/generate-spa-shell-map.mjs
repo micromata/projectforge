@@ -4,7 +4,7 @@
  *
  * A static export cannot emit a file per entity, so every dynamic route is prerendered exactly once
  * from the placeholder of its `generateStaticParams` (`/book/[id]` -> `/book/new`). Spring has to
- * answer a deep link such as `/next/book/25219084` with *that* route's HTML — any other shell boots
+ * answer a deep link such as `/next/book/4711` with *that* route's HTML — any other shell boots
  * the wrong page component (`404.html` renders Next's not-found page, `book/index.html` the list).
  * The mapping is derived from Next's own manifests rather than hardcoded on the Java side, so a new
  * dynamic route reaches the server by rebuilding.

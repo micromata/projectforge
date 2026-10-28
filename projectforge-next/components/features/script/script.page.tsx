@@ -78,14 +78,15 @@ export const SCRIPT_PAGE = definePage<
     {
       id: "executableByGroupsAsString",
       labelKey: "scripting.script.executableByGroups._",
-      accessor: (row) => row.executableByGroupsAsString ?? "",
+      // By name, each struck through when no longer active (see RefList).
+      accessor: (row) => row.executableByGroups,
       sortable: false,
       size: 180,
     },
     {
       id: "executableByUsersAsString",
       labelKey: "scripting.script.executableByUsers._",
-      accessor: (row) => row.executableByUsersAsString ?? "",
+      accessor: (row) => row.executableByUsers,
       sortable: false,
       size: 180,
     },

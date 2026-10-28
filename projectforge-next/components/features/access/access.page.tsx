@@ -114,7 +114,7 @@ export const ACCESS_PAGE = definePage<
   // The task ("structure") wizard, for admins — the "Assistent" of the Wicket list.
   listActions: AccessListActions,
   // Served under `accessSelected` — the mass-update endpoint of this category (URL_SUFFIX_SELECTED =
-  // "Selected", no dash; see GroupAccessMultiSelectedPageRest). Its presence turns on the selection UI in
+  // "Selected", no dash; see GroupAccessMassUpdateRest). Its presence turns on the selection UI in
   // the generic list. Only the description is editable; whole entries can be deleted and restored.
   massUpdate: {
     endpoint: "accessSelected",

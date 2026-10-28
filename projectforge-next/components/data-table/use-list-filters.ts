@@ -12,6 +12,7 @@ import type {
 import {
   filterEntriesOf,
   filterValuesFromEntries,
+  prunedFilterValues,
   type FilterValues,
 } from "./filter-value";
 import { refreshedPeriodValues } from "./filter-period";
@@ -83,6 +84,15 @@ export function useListFilters(
   const meta = useListMeta(entity);
 
   const elements = useMemo(() => filterElementsOf(meta.data), [meta.data]);
+  // The fields offered anew for the filter just set (reloadUI, see useMagicFilterQuery): values they no longer
+  // offer are taken out (see [prunedFilterValues]). Adjusted while rendering, as React suggests for state derived
+  // from a change, rather than in an effect that would first query the stale filter once more.
+  const [previousElements, setPreviousElements] = useState(elements);
+  if (previousElements !== elements) {
+    setPreviousElements(elements);
+    const pruned = prunedFilterValues(values, previousElements, elements);
+    if (pruned !== values) setValues(pruned);
+  }
   const entries = useMemo(() => filterEntriesOf(values), [values]);
 
   return { elements, values, setValues, entries, favorite, setFavorite };

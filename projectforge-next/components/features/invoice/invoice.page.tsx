@@ -1,5 +1,6 @@
 import { attachmentsColumn } from "@/components/shared/attachments/attachments-column";
 import { TERM_KIND_IDS } from "@/lib/date-period";
+import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { FreeTextNameCell } from "@/components/shared/free-text-name-cell";
@@ -41,10 +42,8 @@ export const INVOICE_ROUTE = "/invoice";
 /**
  * The invoice, list and form (see lib/page-def/types.ts).
  *
- * Released: `NextMigration.MIGRATED["outgoingInvoice"]` names `invoice/:id` and `invoice/new` and is no
- * longer `listOnly`, so a row click, the add button and every server side redirect after a save stay in
- * this app. Wicket's form remains reachable through the escape hatch of the page (LegacyPageLink), which
- * is the only way there now.
+ * `PageRoutes.PAGES["outgoingInvoice"]` names `invoice/:id` and `invoice/new`, so a row click, the add
+ * button and every server side redirect after a save stay in this app.
  *
  * Every document function Wicket has is here as well: the Word export beside the heading (InvoiceExportMenu
  * on `headerTrailing`), and the whole e-invoice as a part of the form rather than a dialog — what Wicket
@@ -229,15 +228,15 @@ export const INVOICE_PAGE = definePage<
   // Mirrors the legacy grid's `withGetRowClass` (first match wins): a cancelled invoice reads greyed and
   // struck through — done and off the books, never overdue or open — overdue and unpaid reads red, anything
   // else not yet paid blue.
-  // `row-deleted` here means "cancelled", not "deleted", so the always-present struck-through entry is
-  // relabelled via `deletedLabelKey` rather than listed a second time (which would duplicate its key).
-  deletedLabelKey: "fibu.rechnung.status.storniert",
+  // Cancelled takes the inactive strike (thin, grey) with its own legend entry, so it isn't taken for a
+  // deleted invoice.
+  inactiveLabelKey: "fibu.rechnung.status.storniert",
   legend: [
     { className: "row-red", labelKey: "fibu.rechnung.filter.ueberfaellig" },
     { className: "row-blue", labelKey: "fibu.rechnung.offen" },
   ],
   rowClassName: (row) => {
-    if (row.status === "STORNIERT") return "row-deleted";
+    if (row.status === "STORNIERT") return INACTIVE_ROW_CLASS;
     if (row.ueberfaellig) return "row-red";
     if (row.status !== "BEZAHLT") return "row-blue";
     return undefined;

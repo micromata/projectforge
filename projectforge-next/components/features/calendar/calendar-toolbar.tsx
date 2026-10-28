@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { BookDaysButton } from "@/components/features/timesheet/book-days/book-days-button";
+import { AvailabilityQuickViewButton } from "@/components/shared/availability-quick-view/availability-quick-view-button";
 import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
 import type { CalendarInit } from "@/lib/rs/calendar-types";
 import type { useCalendarFilterMutations } from "./use-calendar-filter-mutations";
@@ -11,6 +12,7 @@ import { CalendarFavoritesMenu } from "./calendar-favorites-menu";
 import { CalendarSettingsDialog } from "./calendar-settings-dialog";
 import { CalendarMoreMenu } from "./calendar-more-menu";
 import { CALENDAR_EVENTS_KEY } from "./use-calendar-init";
+import { toPickerRef } from "@/lib/page-def/reference";
 
 /**
  * The calendar's own header controls: booking several days at once, the saved-filter favourites, the
@@ -48,7 +50,7 @@ export function CalendarToolbar({
     canChooseUser &&
     (init.filter?.timesheetUserId ?? 0) > 0 &&
     filterUser?.id != null
-      ? { id: filterUser.id, displayName: filterUser.displayName ?? "" }
+      ? toPickerRef({ ...filterUser, id: filterUser.id })
       : null;
   // Redraw the booked days, moved to the period they were booked in. Booked for oneself while the calendar hides time sheets (the default for
   // a new colleague), the own sheets are turned on so the booking is visible at all — as a sheet saved
@@ -74,6 +76,7 @@ export function CalendarToolbar({
         openOnMount={openBookDays}
         onOpened={onBookDaysOpened}
       />
+      <AvailabilityQuickViewButton iconOnly />
       <CalendarFavoritesMenu
         favorites={init.filterFavorites ?? []}
         currentFilterId={init.filter?.id}

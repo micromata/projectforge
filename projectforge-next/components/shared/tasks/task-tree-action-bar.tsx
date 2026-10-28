@@ -4,6 +4,7 @@ import { ListGearMenu } from "@/components/data-table";
 import { AddEntryButton } from "@/components/shared/add-entry-button";
 import { Separator } from "@/components/ui/separator";
 import { TaskPerspectiveLink } from "./task-perspective-link";
+import { ProjectWizardLink } from "./project-wizard-link";
 import { TaskWizardLink } from "./task-wizard-link";
 import { TASK_TREE_ROUTE, newTaskHref } from "./task-routes";
 
@@ -28,6 +29,7 @@ export function TaskTreeActionBar() {
     <>
       <TaskPerspectiveLink to="list" />
       <TaskWizardLink />
+      <ProjectWizardLink />
       <ListGearMenu entity="task" />
       {/* `!self-center`: with an explicit height the primitive's `self-stretch` degrades to
           flex-start (see ListToolbar, where the same separator stands). */}

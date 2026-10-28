@@ -23,17 +23,24 @@
 
 package org.projectforge.business.fibu
 
+import org.hibernate.Hibernate
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.kost.KostZuweisungDO
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.Serializable
+import java.math.BigDecimal
 import java.time.LocalDate
 
 class EingangsrechnungDaoTest : AbstractTestBase() {
     @Autowired
     private lateinit var eingangsrechnungDao: EingangsrechnungDao
+
+    @Autowired
+    private lateinit var kontoDao: KontoDao
 
     @Test
     fun checkAccess() {
@@ -85,6 +92,86 @@ class EingangsrechnungDaoTest : AbstractTestBase() {
         val years = eingangsrechnungDao.years
         Assertions.assertFalse(years.contains(2099), "Deleted far-future invoice must not appear in years.")
         Assertions.assertTrue(years.contains(LocalDate.now().year), "The current invoice's year must be listed.")
+    }
+
+    /**
+     * A deleted position is only flagged and stays in the collection; an invoice whose positions are all deleted has
+     * none left and is refused like one without any.
+     */
+    @Test
+    fun onlyDeletedPositionsAreRefused() {
+        logon(TEST_FINANCE_USER)
+        fun newInvoice(vararg deleted: Boolean): EingangsrechnungDO {
+            val invoice = EingangsrechnungDO()
+            invoice.datum = LocalDate.now()
+            invoice.faelligkeit = LocalDate.now()
+            deleted.forEach { invoice.addPosition(EingangsrechnungsPositionDO().also { pos -> pos.deleted = it }) }
+            return invoice
+        }
+        val ex = Assertions.assertThrows(UserException::class.java) { eingangsrechnungDao.insert(newInvoice(true)) }
+        Assertions.assertEquals("fibu.rechnung.error.rechnungHatKeinePositionen", ex.i18nKey)
+
+        val id = eingangsrechnungDao.insert(newInvoice(false, true))
+        val edited = eingangsrechnungDao.find(id)!!
+        edited.positionen!!.forEach { it.deleted = true }
+        val updateEx = Assertions.assertThrows(UserException::class.java) { eingangsrechnungDao.update(edited) }
+        Assertions.assertEquals("fibu.rechnung.error.rechnungHatKeinePositionen", updateEx.i18nKey)
+    }
+
+    /**
+     * A deleted position stays in the collection (soft delete) and is posted with the invoice, but it is no
+     * part of it any more: an invoice left with deleted positions only has none and must be refused, as one
+     * without any is.
+     */
+    @Test
+    fun refusesInvoiceWithDeletedPositionsOnly() {
+        logon(TEST_FINANCE_USER)
+        val invoice = EingangsrechnungDO()
+        invoice.datum = LocalDate.now()
+        invoice.addPosition(EingangsrechnungsPositionDO().also { it.deleted = true })
+        val ex = Assertions.assertThrows(UserException::class.java) {
+            suppressErrorLogs { eingangsrechnungDao.insert(invoice) }
+        }
+        Assertions.assertEquals("fibu.rechnung.error.rechnungHatKeinePositionen", ex.i18nKey)
+        Assertions.assertEquals("positionen", ex.causedByField)
+    }
+
+    /**
+     * The import reconciliation reads account, positions and cost assignments of all invoices of a date range: they must come
+     * initialized (fetch joins), lazy loading cost two queries per invoice and one per position (n+1).
+     */
+    @Test
+    fun getByDateRangeFetchesPositionsAndCostAssignments() {
+        logon(TEST_FINANCE_USER)
+        // A day of its own (no other test uses it), but near: a far-off year would break the year range guard of years.
+        val datum = LocalDate.now().minusYears(2).withMonth(3).withDayOfMonth(15)
+        val invoice = EingangsrechnungDO()
+        invoice.datum = datum
+        invoice.faelligkeit = datum
+        invoice.konto = KontoDO().also {
+            it.nummer = 47110815
+            it.bezeichnung = "Test account of getByDateRange"
+            kontoDao.insert(it, checkAccess = false)
+        }
+        repeat(2) { posIndex ->
+            invoice.addPosition(EingangsrechnungsPositionDO().also { pos ->
+                pos.menge = BigDecimal.ONE
+                pos.einzelNetto = BigDecimal.TEN
+                repeat(posIndex + 1) { pos.addKostZuweisung(KostZuweisungDO().also { it.netto = BigDecimal.ONE }) }
+            })
+        }
+        val id = eingangsrechnungDao.insert(invoice)
+
+        val result = eingangsrechnungDao.getByDateRange(datum, datum)
+        Assertions.assertEquals(listOf(id), result.map { it.id }, "One invoice expected, not one per fetched position.")
+        Assertions.assertTrue(Hibernate.isInitialized(result[0].konto), "Account must be fetched.")
+        val positions = result[0].positionen
+        Assertions.assertTrue(Hibernate.isInitialized(positions), "Positions must be fetched.")
+        Assertions.assertEquals(listOf<Short>(1, 2), positions!!.map { it.number })
+        positions.forEach { pos ->
+            Assertions.assertTrue(Hibernate.isInitialized(pos.kostZuweisungen), "Cost assignments must be fetched.")
+        }
+        Assertions.assertEquals(listOf(1, 2), positions.map { it.kostZuweisungen!!.size })
     }
 
     private fun checkNoAccess(id: Serializable, eingangsrechnung: EingangsrechnungDO, who: String) {

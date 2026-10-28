@@ -1,9 +1,9 @@
 /**
- * Rest calls of the dynamic (UILayout) pages.
+ * Rest calls answering in the shape of the UILayout endpoints (action urls, autocompletion).
  *
  * These differ from the plain calls in client.ts in three ways, all dictated by the backend:
- * the http method comes from the `ResponseAction`, HTTP 406 is a normal answer carrying
- * `validationErrors`, and the same endpoint may answer with a file instead of JSON.
+ * HTTP 406 is a normal answer carrying `validationErrors`, the same endpoint may answer with a
+ * file instead of JSON, and an url may come from the backend relative to the rest base.
  */
 
 import { parseContentDispositionFilename } from "@/lib/dynamic/content-disposition";
@@ -11,35 +11,33 @@ import { resolveRestUrl } from "@/lib/dynamic/response-action";
 import { rawRequest, RsError } from "./client";
 import { responseBlob, saveBlob } from "./download";
 import type {
-  DynamicPageResponse,
   MagicFilter,
   PostData,
   ResponseAction,
-  ServerData,
   ValidationError,
 } from "./types";
 
-/** HTTP status Spring answers with when the entity failed validation (see AbstractPagesRest). */
+/** HTTP status Spring answers with when the entity failed validation (see AbstractEntityRest). */
 export const NOT_ACCEPTABLE = 406;
 
-export type DynamicMethod = "GET" | "POST" | "PUT" | "DELETE";
+type DynamicMethod = "GET" | "POST" | "PUT" | "DELETE";
 
 export type ActionResult =
-  /** The backend answered with a (possibly enveloped) ResponseAction to interpret. */
-  | { kind: "action"; response: DynamicPageResponse & ResponseAction }
+  /** The backend answered with a ResponseAction. */
+  | { kind: "action"; response: ResponseAction }
   /** HTTP 406: the entity was rejected, the errors belong on the fields. */
   | { kind: "validationErrors"; validationErrors: ValidationError[] }
   /** The response body was a file; it has already been handed to the browser. */
   | { kind: "download" };
 
 /**
- * Calls an action url of a dynamic page and classifies the answer.
+ * Calls an action url and classifies the answer.
  *
  * GET is sent without a body, mirroring the legacy `callAction`: the backend's GET endpoints take
  * their arguments from the query string, and Spring rejects a body on some of them.
  *
- * The body is a `PostData` for every action of a form, and the bare `MagicFilter` for the one action
- * of a list page that takes a filter instead (`{entity}/list`, see useDynamicActions).
+ * The body is a `PostData` for the actions of a form, and the bare `MagicFilter` for list actions
+ * that take a filter instead.
  */
 export async function callDynamicAction(
   method: DynamicMethod,
@@ -75,7 +73,7 @@ export async function callDynamicAction(
   if (contentType.includes("application/json")) {
     return {
       kind: "action",
-      response: (await res.json()) as DynamicPageResponse & ResponseAction,
+      response: (await res.json()) as ResponseAction,
     };
   }
 
@@ -90,20 +88,8 @@ export async function callDynamicAction(
   // An empty 200 (e.g. a plain "OK") means there is nothing left to do.
   return {
     kind: "action",
-    response: { targetType: "NOTHING" } as DynamicPageResponse,
+    response: { targetType: "NOTHING" } as ResponseAction,
   };
-}
-
-/**
- * Notifies the backend that a watched field changed, so it can recalculate dependent fields or
- * swap parts of the layout. See AbstractPagesRest.watchFields / UILayout.watchFields.
- */
-export function postWatchFields(
-  category: string,
-  postData: PostData,
-  signal?: AbortSignal
-): Promise<ActionResult> {
-  return callDynamicAction("POST", `${category}/watchFields`, postData, signal);
 }
 
 /**
@@ -134,17 +120,4 @@ export async function fetchAutoCompletion<T = string>(
     throw new RsError(res.status, `${res.status} ${res.statusText}: ${url}`);
   }
   return (await res.json()) as T[];
-}
-
-/** Builds the request body every mutating call of a dynamic page expects (rest/dto/PostData.kt). */
-export function buildPostData(
-  data: Record<string, unknown>,
-  serverData?: ServerData,
-  watchFieldsTriggered?: string[]
-): PostData {
-  return {
-    data,
-    ...(serverData ? { serverData } : {}),
-    ...(watchFieldsTriggered?.length ? { watchFieldsTriggered } : {}),
-  };
 }

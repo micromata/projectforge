@@ -75,6 +75,9 @@ class OrderInfo : Serializable {
     var entscheidungsDatum: LocalDate? = null
     var kundeId: Long? = null
     var kundeAsString: String? = null
+
+    /** The free-text customer of an order without a customer entity, for the order access grants. */
+    var kundeText: String? = null
     var projektId: Long? = null
     var projektAsString: String? = null
     var probabilityOfOccurrence: Int? = null
@@ -143,6 +146,7 @@ class OrderInfo : Serializable {
         // non-identifier getter on the lazy proxy and force a per-order "where pk=?" load (N+1). See KundeDO.
         kundeId = order.kunde?.nummer
         kundeAsString = order.kundeAsString
+        kundeText = order.kundeText
         projektId = order.projekt?.id
         projektAsString = order.projektAsString
         probabilityOfOccurrence = order.probabilityOfOccurrence

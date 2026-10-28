@@ -8,6 +8,7 @@
       "noAccess": "No access.",
       "noEmployeeToUser": "The user has no employee assigned"
     },
+    "groups": "Groups",
     "permission": {
       "denied": "not granted",
       "granted": "granted"
@@ -26,7 +27,9 @@
       "leader": "Leader"
     },
     "title": {
+      "_": "Accessoptions",
       "add": "Add new group structure element access",
+      "edit": "Edit group structure element access",
       "heading": "Group structure element access",
       "list": "List of group structure element access's"
     },
@@ -46,7 +49,10 @@
     "write": "Write access"
   },
   "add": "Add",
+  "additionalContacts": "Additional contact persons",
   "address": {
+    "_": "Address",
+    "addAddress": "Add address",
     "addressStatus": {
       "_": "Address status",
       "leaved": "company left",
@@ -56,10 +62,54 @@
     "addressText": "Address",
     "addressText2": "Address 2",
     "addressbooks": "Addressbooks",
+    "addresses": "Addresses",
     "birthName": "Birth name",
     "birthday": "Birthday",
+    "book": {
+      "export": {
+        "_": "Excel-Export",
+        "appleScript4Notes": {
+          "_": "Apple-Script",
+          "tooltip": "For removing notes (with multiple entries) of the from ProjectForge exported addresses (s. Handbuch). Afterwards you should import the addresses again for getting the correct notes from ProjectForge."
+        },
+        "tooltip": "Exports the filtered address list (only favorites) as Excel table with all fields. A complete list due to data privacy reasons only available for the accounting staff members."
+      },
+      "vCardExport": {
+        "_": "Export vCards",
+        "tooltip": {
+          "content": "Export vCards (addresses) of marked addresses for importing into external address applications (such as Apple address book). Please do not forget to set encoding to utf-8 in your address applications."
+        }
+      },
+      "vCardSingleExport": "Export vCard",
+      "vCardsImport": {
+        "clickToEdit": "Click on a row to edit the address and compare fields.",
+        "dataLoaded": "VCF data has been loaded. Select the fields you want to apply.",
+        "description": "Here, vCards (.vcf file format) can be imported into the address book. Existing addresses are not duplicated, but simply supplemented (e.g., with phone numbers or email addresses).\n\nAddresses can then be compared and imported manually, even field by field.",
+        "dropHint": "Drop VCF file here",
+        "dropInfo": "Matching address will be selected automatically",
+        "dropLabel": "Or drop VCF file",
+        "error": {
+          "parsing": "Error parsing VCF file"
+        },
+        "imageTooLarge": "The image of the vCard is too large to be taken over.",
+        "importImage": "Take over the image",
+        "title": "Import of vcards (.vcf)",
+        "wrongFileType": "Wrong file type. Please use \".vcf\" only."
+      }
+    },
     "business": "business",
+    "cardDAV": {
+      "infopage": {
+        "description": "You may use the CardDAV service of ProjectForge by creating a CardDAV account in your address book software (such as Apple's address book).",
+        "description2": "Only your favorite addresses will be synchronized. If you delete any address, they will not be deleted on the server, they will only be removed from you personal favorites.",
+        "description3": "Insert and update of addresses is only possible through ProjectForge's web app due to avoiding doublets etc.",
+        "title": "How to use CardDAV service"
+      }
+    },
     "city": "City",
+    "columnHead": {
+      "myFavorites": "F"
+    },
     "communicationLanguage": "Language of communication",
     "contactStatus": {
       "_": "Contact status",
@@ -80,6 +130,13 @@
     },
     "division": "Division",
     "emails": "e-mails",
+    "favorites": {
+      "info": "You may synchronize your favorite addresses via CardDAV with your address book app or export them as Excel etc."
+    },
+    "filter": {
+      "invalidAddresses": "Invalid addresses",
+      "myFavorites": "my favorites"
+    },
     "fingerprint": "Finger print",
     "form": {
       "_": "Form",
@@ -88,6 +145,17 @@
       "miss": "Miss",
       "mister": "Mister",
       "unknown": "unknown"
+    },
+    "heading": {
+      "businessAddress": "Business address",
+      "businessContact": "Business contact",
+      "personalData": "Personal data",
+      "postalAddress": "Postal address",
+      "privateAddress": "Private address"
+    },
+    "image": "Image",
+    "import": {
+      "entryExpired": "This entry of the import is no longer available (an import is kept for 30 minutes). Please upload the VCF file again."
     },
     "myCurrentCallerId": {
       "_": "Caller id",
@@ -101,6 +169,37 @@
         "content": "Define your phone ids (internal phone number of the phone system). After you can make a direct phone call on the selected phone by simply clicking on the desired phone number below."
       }
     },
+    "parseText": {
+      "addressBlock": "Address Block",
+      "addressType": {
+        "business": "Business Address",
+        "postal": "Postal/Mailing Address",
+        "private": "Private Address"
+      },
+      "applied": "Fields successfully applied",
+      "button": {
+        "_": "Import Data (Text/VCard)",
+        "tooltip": "Paste email signatures or other text, or drop a VCard file to import address data"
+      },
+      "confidence": {
+        "high": "High confidence - value is very likely correct",
+        "low": "Low confidence - manual review recommended",
+        "medium": "Medium confidence - please verify"
+      },
+      "error": {
+        "emptyInput": "Please enter text to parse"
+      },
+      "fieldsParsed": "Parsed Fields",
+      "info": {
+        "noChanges": "No new or changed fields detected. All parsed values match current form data."
+      },
+      "inputLabel": "Paste email signature or contact information:",
+      "inputPlaceholder": "Paste address text here...\n\nExample:\nDr. Merle Musterfrau\nSenior Manager\nExample GmbH\nMusterstraße 1-5\n12345 Musterstadt\nTel: +49 30 12345678\nm.musterfrau@example.com",
+      "remapTo": "Map to:",
+      "warning": {
+        "nameDifferent": "Name differs from current address"
+      }
+    },
     "phone": "Phone",
     "phoneCall": {
       "number": {
@@ -109,6 +208,7 @@
       },
       "title": "Direct calling telephone system"
     },
+    "phoneNumbers": "Phone numbers",
     "phoneType": {
       "business": "Business phone",
       "fax": "Fax",
@@ -119,7 +219,9 @@
     "positionText": "Position",
     "postal": "postal",
     "private": "private",
+    "privateEmail": "Private e-mail",
     "publicKey": "Public key",
+    "removeAddress": "Remove address",
     "sendSms": {
       "message": "Message",
       "phoneNumber": "Cellular number",
@@ -127,18 +229,103 @@
       "title": "Send text message"
     },
     "state": "State",
-    "title": "Title",
+    "title": {
+      "_": "Title",
+      "add": "Add new address",
+      "list": "Address list"
+    },
+    "validation": {
+      "duplicateFound": "Possible Duplicate Found",
+      "duplicateWarning": "The following address(es) with this name already exist:"
+    },
+    "view": {
+      "title": "View address"
+    },
     "website": "Website",
     "zipCode": "Zip code"
   },
   "addressbook": {
     "description": "Description",
+    "fullAccess": {
+      "groups": "Full access (groups)",
+      "tooltip": "Users have write and read access to all addresses assigned to this address book.",
+      "users": "Full access (users)"
+    },
     "owner": "Owner",
-    "title": "Title"
+    "readonlyAccess": {
+      "groups": "Read-only access (groups)",
+      "tooltip": "Users have only read access to all addresses assigned to this address book.",
+      "users": "Read-only access (users)"
+    },
+    "title": {
+      "_": "Title",
+      "add": "Add Addressbook",
+      "heading": "Addressbook",
+      "list": "List of addressbooks"
+    }
   },
   "administration": {
     "configuration": {
       "_": "Configuration",
+      "accounting": {
+        "add": "Add row",
+        "creditorsAccountNumberRanges": "Account numbers of creditors",
+        "debitorsAccountNumberRanges": "Account numbers of debitors",
+        "error": {
+          "accountRange": "{arg0}: no valid account numbers: {arg1} (e.g. 4000-4799 or 6300,6800-6855).",
+          "duplicateId": "{arg0}: the id {arg1} is used by another row already.",
+          "firstProjectNumber": "{arg0}: the first proposed project number {arg1} isn''t in 0-{arg2}.",
+          "firstProjectNumberRange": "First proposed project number: there is no number range with the prefix {arg0}.",
+          "id": "{arg0}: the id {arg1} is no valid name (letters, digits and _, starting with a letter).",
+          "unknownRow": "{arg0}: there is no row with the id {arg1}.",
+          "value": "{arg0}: the value can''t be compiled (formula or Groovy script)."
+        },
+        "firstProjectNumbers": "First proposed project number",
+        "heading": "Heading of the business assessment",
+        "help": {
+          "accountRange": "DATEV accounts whose records are summed up in this row: single accounts and ranges, separated by commas, e.g. 4000-4799 or 6300,6800-6855. Empty for calculated rows and separator lines.",
+          "creditors": "Account numbers of the creditors (e.g. 70000-79999): the account selection of creditors offers these accounts only. Empty: all accounts.",
+          "debitors": "Account numbers of the debitors (e.g. 10000-12999): the account selection of debitors offers these accounts only. Empty: all accounts.",
+          "firstProjectNumbers": "Per number range: the local project number from which the next free project number is proposed for a new project, e.g. 1 for 5.###.01 instead of 5.###.00. Lower numbers can still be entered by hand and are proposed once all higher ones are taken. Empty: 0.",
+          "heading": "Heading shown above the business assessment.",
+          "id": "Name of the row in formulas and scripts of other rows: letters, digits and _, starting with a letter. A row without id can't be referred to.",
+          "indent": "Indentation of the title in the business assessment, e.g. 1 or 2 for sub rows. Empty: none.",
+          "keyRow": "Row (by its id) the business assessment takes this key figure of, e.g. for the statistics of the accounting records.",
+          "no": "Number shown in front of the title, e.g. the row number of the DATEV business assessment. Without any function otherwise.",
+          "order": "Order: a record belongs to the first row from the top whose accounts match its account or contra account. Calculated rows are calculated from the top as well, so a calculated row a formula refers to has to be above it.",
+          "priority": "Priority: importance of the row. A short form of the business assessment (e.g. in reports or scripts) contains only rows of high or highest priority. Empty: middle.",
+          "rows": "The rows of the business assessment in the order shown. A row either sums up the records of its accounts, or calculates its amount by its value, or is an empty separator line (only a number or nothing).",
+          "scale": "Number of fraction digits of the amount, e.g. 4 for a ratio. Empty: 2.",
+          "title": "Text of the row shown in the business assessment.",
+          "unit": "Unit shown behind the amount, e.g. %. Empty: the currency.",
+          "value": "Value: = followed by a formula of row ids (e.g. =umsatzErloese+bestVerdg), or a Groovy script returning the amount, in which the rows are available as variables by their ids. Empty: the sum of the records of the accounts."
+        },
+        "invalidJson": "The stored value is no valid JSON object; the defaults are shown.",
+        "merchandisePurchase": "Row of the merchandise purchase",
+        "moveDown": "Move {arg0} down",
+        "moveUp": "Move {arg0} up",
+        "notGiven": "–",
+        "overallPerformance": "Row of the overall performance",
+        "preliminaryResult": "Row of the preliminary result",
+        "remove": "Remove {arg0}",
+        "row": {
+          "accountRange": "Accounts",
+          "id": "Id",
+          "indent": "Indent",
+          "no": "No.",
+          "priority": "Priority",
+          "scale": "Digits",
+          "title": "Title",
+          "unit": "Unit",
+          "value": {
+            "_": "Value",
+            "placeholder": "Value: formula of row ids such as =umsatzErloese+bestVerdg, or a Groovy script returning the amount (empty: sum of the accounts)"
+          }
+        },
+        "rows": "Rows of the business assessment (BWA)",
+        "summary": "Debitors {arg0}, creditors {arg1}, {arg2} rows of the business assessment",
+        "summaryFirstProjectNumbers": "first proposed project numbers {arg0}"
+      },
       "categories": {
         "finance": "Finance",
         "hr": "Human resources",
@@ -148,6 +335,24 @@
         "timesheet": "Time sheets"
       },
       "category": "Category",
+      "contractTypes": {
+        "add": "Add contract type",
+        "error": {
+          "duplicate": "Contract type {arg0}: the value is used more than once.",
+          "label": "Contract type {arg0}: the label is missing.",
+          "value": "Contract type {arg0}: the value is missing."
+        },
+        "help": {
+          "label": "Name of the type shown in the selection of the contracts.",
+          "value": "Short form stored in the contract, e.g. NDA. Unique; changing it later doesn't change the contracts of the former value."
+        },
+        "invalidJson": "The stored value is no valid JSON array; no contract types are shown.",
+        "label": "Label",
+        "moveDown": "Move {arg0} down",
+        "moveUp": "Move {arg0} up",
+        "remove": "Remove {arg0}",
+        "value": "Value"
+      },
       "editPage": {
         "hint": "This parameter is maintained on a page of its own.",
         "link": "Open the editor"
@@ -160,8 +365,79 @@
         "vacationTaskNotBookable": "No time sheets can be booked on the vacation task ''{arg0}'' (closed, deleted or closed for booking).",
         "vacationTaskNotFound": "No task with the id {arg0}."
       },
+      "holidays": {
+        "add": "Add holiday",
+        "dayOfMonth": "Day",
+        "error": {
+          "date": "Holiday {arg0}: no valid day and month.",
+          "duplicate": "Holiday {arg0}: the pre-defined holiday is configured more than once.",
+          "label": "Holiday {arg0}: the label is missing.",
+          "workFraction": "Holiday {arg0}: the work fraction must be between 0 and 1.",
+          "year": "Holiday {arg0}: no valid year."
+        },
+        "help": {
+          "dayOfMonth": "Day of the month of an own holiday (1-31).",
+          "holiday": "Own holiday or one of the pre-defined holidays to change.",
+          "ignore": "The pre-defined holiday doesn't apply (e.g. Shrove Tuesday, if it's a working day).",
+          "label": "Name shown in the calendar. For a pre-defined holiday optional: replaces its name.",
+          "month": "Month of an own holiday (1 = January, 12 = December).",
+          "own": "Own holidays are added with label, day and month: every year, or in the given year only (e.g. a moved working day).",
+          "predefinedHolidays": "The pre-defined (German) holidays apply without any entry. An entry is needed only to change one: ignore it, rename it or make it a partial working day.",
+          "workFraction": "Share of a full working day, e.g. 0.5 for a half working day (Christmas Eve, New Year's Eve). Only for working days; empty: a full working day.",
+          "workingDay": "Whether an own holiday is a working day (e.g. with a work fraction) or a day off. Pre-defined holidays keep their own setting.",
+          "year": "Only in this year (e.g. a bridge day). Empty: every year."
+        },
+        "holiday": "Holiday",
+        "ignore": "Ignore",
+        "ignored": "ignored",
+        "invalidJson": "The stored value is no valid JSON array; no holidays are shown.",
+        "label": "Label",
+        "month": "Month",
+        "own": "Own holiday",
+        "predefined": "Date and working day as pre-defined",
+        "remove": "Remove {arg0}",
+        "workFraction": "Work fraction",
+        "workingDay": "Working day",
+        "year": "Year"
+      },
+      "jira": {
+        "add": "Add server",
+        "baseUrl": "Browse url",
+        "browseBaseUrl": "Default browse url",
+        "error": {
+          "browseBaseUrl": "Default browse url {arg0}: no http(s) url.",
+          "duplicate": "Project {arg0} is hosted on server {arg1} and server {arg2}.",
+          "project": "Server {arg0}: {arg1} is no valid project key (letters, digits, underscore; starting with at least two letters).",
+          "projectsMissing": "Server {arg0}: the projects are missing.",
+          "serverUrl": "Server {arg0}: {arg1} is no http(s) url.",
+          "serverUrlMissing": "Server {arg0}: the browse url is missing."
+        },
+        "help": {
+          "baseUrl": "Url the issue key is appended to, e.g. https://customer.acme.com/jira/browse/ (with closing slash).",
+          "browseBaseUrl": "Url the issue key (e.g. PROJECTFORGE-222) is appended to, if its project isn't hosted on one of the servers below, e.g. https://jira.acme.com/jira/browse/ (with closing slash). Without default url and servers, no issues are linked.",
+          "projects": "Keys of the projects hosted on this server, comma separated, e.g. ACME, ADMIN. A project is hosted on one server only.",
+          "servers": "Further JIRA servers by the projects hosted on them. The issues of all other projects are linked to the default browse url."
+        },
+        "invalidJson": "The stored value is no valid JSON object; no JIRA settings are shown.",
+        "moveDown": "Move {arg0} down",
+        "moveUp": "Move {arg0} up",
+        "projects": "Projects",
+        "remove": "Remove {arg0}",
+        "servers": "Servers",
+        "summary": {
+          "servers": "{arg0} server(s)"
+        }
+      },
       "json": {
-        "invalid": "No valid JSON."
+        "invalid": "No valid JSON.",
+        "mode": {
+          "_": "View",
+          "form": "Form",
+          "json": "JSON"
+        },
+        "notReadable": "Not readable: {arg0}",
+        "switchInvalid": "No valid JSON: correct it first to switch to the form.",
+        "unknownFields": "Fields the form doesn't know are dropped as soon as the value is changed in the form."
       },
       "param": {
         "calendarDomain": {
@@ -190,13 +466,17 @@
           "label": "Feed-back"
         },
         "fibu": {
+          "accounting": {
+            "_": "Accounting",
+            "description": "Account number ranges of debitors and creditors (e.g. \"10000-12999\") and the schema of the business assessment (BWA) with its rows: number, id, account range, value (a formula starting with \"=\" or a Groovy script), priority, title, indent, scale and unit. See the administration guide."
+          },
           "contributionMargin": {
             "_": "Contribution margin",
             "description": "Settings of the contribution margin (order book and scripts): the revenue accounts, the hourly rate for the time sheets of months without imported accounting records, the target percentage with the red threshold of the traffic light, and the assignment of cost 2 units without an own project to a project."
           },
           "costConfigured": {
             "_": "Cost-unit accounting configured?",
-            "description": "If you need  cost-unit accounting (refer to the documentation) please enable this feature. Afterwards the entities such as projects, customers etc. are usable. But note: The project entity doesn't make any sense without cost-unit accounting! Please use the structure tree instead for defining your hierarchy (customer -> project -> release -> working package ...). Any change may be activated only after a re-login."
+            "description": "Enables cost-unit accounting (Kost1/Kost2, refer to the documentation): cost units of projects and their cost 2 types, cost assignments of invoices and the related evaluations. Customers and projects are usable without it, with free numbers or those of the configured number ranges. Any change may be activated only after a re-login."
           },
           "customerGroups": {
             "_": "Customer groups and business units",
@@ -211,15 +491,27 @@
             "description": "Settings of the forecast (order statistics): the hint on the planning date shown in its tooltip."
           }
         },
+        "groupNomenclature": {
+          "_": "Group nomenclature",
+          "description": "Naming convention of the groups (description, pattern and suffixes), which the project and structure wizards follow when suggesting names of new groups."
+        },
+        "holidays": {
+          "_": "Holidays",
+          "description": "Additional holidays (label, month, day of month, optional year) and changes of the pre-defined ones by id (e.g. XMAS_EVE): ignore, label, working day, work fraction (e.g. 0.5 for a half working day)."
+        },
         "hr": {
           "emailaddress": {
             "_": "HR-Emailaddress",
             "description": "Mailaddress of HR for request of leave"
           }
         },
+        "jira": {
+          "_": "JIRA",
+          "description": "JIRA servers issue keys (e.g. PROJECTFORGE-222) in time sheets and tasks are linked to: a default browse url and further servers by the projects hosted on them. Without any url, no issues are linked."
+        },
         "lanesAndPlanes": {
           "_": "Lanes & Planes",
-          "description": "Settings of the push of the employees to the travel management Lanes & Planes: the invoice profile ids, the general Kost1 sent to all users as cost centers, the general Kost2 sent to all users as cost units, the patterns of the Kost2 sent to the users who may book them, the additional users who aren't employees, the names of the cost centers and cost units already existing in Lanes & Planes and the confirmed email changes. The technical settings (activation, API key, dry run) are in projectforge.properties."
+          "description": "Settings of the push of the employees to the travel management Lanes & Planes: the invoice profile ids, the general Kost1 sent to all users as cost centers, the general Kost2 sent to all users as cost units, the patterns of the Kost2 sent to the users who may book them, the additional users who aren't employees, the names of the cost centers and cost units already existing in Lanes & Planes and the emails of the employees in Lanes & Planes. The technical settings (activation, API key, dry run) are in projectforge.properties."
         },
         "messageOfTheDay": {
           "_": "Message of the day",
@@ -228,6 +520,12 @@
         "minPasswordLength": {
           "_": "Minimal Password Length",
           "description": "The minimal length of the user passwords."
+        },
+        "orga": {
+          "contractTypes": {
+            "_": "Contract types",
+            "description": "Types of contracts selectable in the contracts: a list of entries with value (short form, e.g. NDA) and label (e.g. Non-disclosure agreement)."
+          }
         },
         "organization": {
           "_": "Organization",
@@ -275,7 +573,7 @@
           },
           "warnMissingKost2": {
             "_": "Report time sheets without Kost2?",
-            "description": "If enabled, a time sheet saved without Kost2 (on a structure element without Kost2) gets a hint to contact the project management or accounting, and the notification rule \"Time sheets without Kost2\" applies. Booking without Kost2 stays possible. Only applies with cost-unit accounting enabled."
+            "description": "If enabled, a time sheet saved without Kost2 (on a structure element without Kost2) gets a hint to contact the project management or accounting, the notification rule \"Time sheets without Kost2\" applies and such entries are marked in the monthly report. Booking without Kost2 stays possible. Only applies with cost-unit accounting enabled."
           }
         },
         "timesheetTags": {
@@ -365,16 +663,82 @@
       "encrytpedAes128": "Encrypted (AES-128)",
       "encrytpedAes256": "Encrypted (AES-256, very secure)",
       "standard": "No encryption"
-    }
+    },
+    "zipTooLarge": "The selected files exceed {arg0} in total. Please select fewer files or download them one by one."
   },
   "attachments": {
     "_": "Attachments",
     "short": "Att."
   },
   "attr": {
+    "currentlyValid": "Currently valid",
     "validSince": "Valid since"
   },
+  "availability": {
+    "chart": {
+      "ariaLabel": "Chart of this entry and the overlapping absences of the substitutes",
+      "own": "This entry"
+    },
+    "comment": {
+      "_": "Public comment",
+      "tooltip": "Visible to everybody who may see the entry, e.g. colleagues in the calendar."
+    },
+    "conflict": {
+      "info": "A conflict exists: At least at one day no substitute is available (on vacation or not available). Please choose other or further substitutes."
+    },
+    "conflicts": "Conflicts",
+    "endDate": "End date",
+    "entry": {
+      "add": "Add entry"
+    },
+    "internalComment": {
+      "_": "Internal comment",
+      "tooltip": "Only visible to the person concerned and to HR staff."
+    },
+    "location": {
+      "_": "Location",
+      "onSite": "On-site",
+      "remote": "Remote",
+      "tooltip": "Optional, e.g. remote for mobile work or a workation."
+    },
+    "notSpecified": "Not specified",
+    "startDate": "Start date",
+    "status": {
+      "_": "Availability",
+      "notAvailable": "Not available",
+      "reachableIfNeeded": "Reachable if needed",
+      "remoteReachable": "Remotely reachable"
+    },
+    "substitutes": {
+      "_": "Substitutes",
+      "absences": "Absences of the substitutes",
+      "kind": "Kind",
+      "tooltip": "Optional: who stands in during the period. If all of them are away on a day (on vacation or not available), the entry is shown as a conflict."
+    },
+    "switchToVacationButton": {
+      "_": "Edit as vacation",
+      "tooltip": "Opens a new leave application with this entry's person, period, comment and substitutes. It is only created when you save it; an availability entry already saved stays as it is and may be deleted afterwards."
+    },
+    "title": {
+      "_": "Availability",
+      "add": "Create availability entry",
+      "edit": "Edit availability entry",
+      "heading": "Availability",
+      "list": "Availability list"
+    },
+    "type": {
+      "_": "Type",
+      "tooltip": "Optional. Only visible to the person concerned and to HR staff; everybody else sees the status only."
+    },
+    "user": "Person",
+    "workingDays": "Working days"
+  },
   "back": "Back",
+  "birthdayButler": {
+    "organization": {
+      "notSet": "No organization is configured (projectforge.birthdaybutler.organization in projectforge.properties)."
+    }
+  },
   "book": {
     "abstract": "Abstract",
     "authors": "Authors",
@@ -435,17 +799,40 @@
     "dayOfWeekShortLabel": "D",
     "defaultCalendar": "Default calendar",
     "filter": {
+      "absenceKinds": {
+        "_": "Show",
+        "tooltip": "What is shown of the absences: vacations, not available, remotely reachable etc. Only vacations and \"not available\" count as absent for the substitutes of a vacation. Not for the team calendars: they show the absences they include."
+      },
       "vacation": {
         "groups": {
-          "_": "Vacation groups",
-          "tooltip": "For these groups any vacation of their users will be displayed."
+          "_": "Absences: groups",
+          "tooltip": "For the members of these groups the absences are shown: vacations and availability entries."
         },
         "users": {
-          "_": "Vacation users",
-          "tooltip": "For these users any vacation will be displayed."
+          "_": "Absences: persons",
+          "tooltip": "For these persons the absences are shown: vacations and availability entries."
         }
       },
       "visible": "visible"
+    },
+    "holiday": {
+      "ascension": "Ascension",
+      "ashWednesday": "Ash Wednesday",
+      "corpusChristi": "Corpus Christi",
+      "easterMonday": "Easter Monday",
+      "easterSunday": "Easter Sunday",
+      "firstXmasDay": "First Christmas day",
+      "goodFriday": "Good Friday",
+      "maundyThursday": "Maundy Thursday",
+      "newYear": "New year",
+      "newYearsEve": "New year's eve",
+      "palmSunday": "Palm Sunday",
+      "secondXmasDay": "Second Christmas day",
+      "shroveMonday": "Shrove Monday",
+      "shroveTuesday": "Shrove Tuesday",
+      "whitMonday": "Whit Monday",
+      "whitSunday": "Whit Sunday",
+      "xmasEve": "Christmas Eve"
     },
     "month": {
       "_": "Month",
@@ -511,8 +898,7 @@
           "info": "This color is used for vacations chosen in view settings (gear).\n\nIf you wish different colors for different vacations of people and/or teams, please simply create a new vacation calendar with groups and people [here](/next/teamCal/new)."
         }
       },
-      "intro": "Please note: You may customize the colors of other calendars by simply clicking one calendar pill in the calendar chooser at the top of the calendar page.",
-      "title": "Calendar settings"
+      "intro": "Please note: You may customize the colors of other calendars by simply clicking one calendar pill in the calendar chooser at the top of the calendar page."
     },
     "short": {
       "yearToDate": "Y→"
@@ -572,12 +958,245 @@
   },
   "changes": "Changes",
   "charactersLeft": "characters left.",
+  "chat": {
+    "backToHost": "Back",
+    "conversation": {
+      "empty": "No messages yet.",
+      "loadOlder": "Load older messages",
+      "members": "Members",
+      "membersCount": "Members ({arg0})",
+      "membersMe": "(you)",
+      "mute": "Mute",
+      "muted": "Muted: new messages aren't notified, mentions are.",
+      "newMessages": "New",
+      "nextUnread": "Jump to the next unread message ({arg0} unread)",
+      "notFound": "The conversation doesn't exist or isn't accessible.",
+      "polling": "Live updates interrupted, new messages are checked periodically.",
+      "pollingLabel": "Delayed",
+      "readOnly": "This conversation is read-only.",
+      "unmute": "Unmute"
+    },
+    "dataTransfer": {
+      "_": "Data transfer",
+      "empty": "No chats in data transfer areas yet: every area is a chat room for everybody with access to it.",
+      "open": "Go to the data transfer area"
+    },
+    "description": {
+      "hide": "Hide description",
+      "show": "Show description"
+    },
+    "direct": {
+      "_": "Direct messages",
+      "empty": "No direct messages yet.",
+      "error": {
+        "self": "You can't send a direct message to yourself."
+      },
+      "info": "Anybody shown in the user selection can be written to.",
+      "new": "Direct message",
+      "open": "Open",
+      "send": "Send direct message",
+      "start": "Start chat",
+      "startOrSendFile": "Start chat / send file",
+      "user": "Person"
+    },
+    "emoji": {
+      "empty": "No emoji found",
+      "insert": "Insert emoji",
+      "loading": "Loading…",
+      "more": "More emoji",
+      "search": "Search emoji",
+      "siren": {
+        "blue": "Blue siren",
+        "red": "Red siren"
+      }
+    },
+    "file": {
+      "add": "Attach files",
+      "addHint": "Attach files. They can also simply be dropped into the message window.",
+      "directTarget": "Files go into the personal box of {arg0} in the data transfer.",
+      "download": "Download",
+      "error": {
+        "tooLarge": "The file \"{arg0}\" is too large (at most {arg1}).",
+        "tooLargeTogether": "All files together are too large for one message.",
+        "tooMany": "At most {arg0} files per message.",
+        "unavailable": "Without the data transfer plugin activated, no files can be exchanged in the chat."
+      },
+      "expiryDays": {
+        "_": "Files available",
+        "info": "The files of the room are kept that long in its data transfer area \"Chat: …\", then they are deleted."
+      },
+      "notAvailable": "File no longer available",
+      "openArea": "Open in data transfer",
+      "remove": "Remove file"
+    },
+    "linkHint": "Chat and encrypted communication",
+    "linkHintDataTransfer": "Chat, encrypted communication and data exchange",
+    "mention": {
+      "noResults": "Nobody found."
+    },
+    "message": {
+      "cancel": "Cancel",
+      "codeBlock": "Code block of several lines: Enter starts a new line, Ctrl+Enter (Mac: ⌘+Enter) sends.",
+      "copyLink": "Copy link",
+      "delete": {
+        "_": "Delete",
+        "confirm": "Delete this message?"
+      },
+      "deleted": "Message deleted",
+      "edit": "Edit",
+      "edited": "edited",
+      "hidden": "Message hidden by a moderator",
+      "hiddenReason": "Hidden by {arg0}: {arg1}",
+      "hide": {
+        "_": "Hide",
+        "reason": "Reason for hiding"
+      },
+      "history": "History",
+      "linkCopied": "Link copied.",
+      "markUnread": "Mark as unread",
+      "placeholder": "Write a message, @ mentions somebody",
+      "quote": {
+        "_": "Quote",
+        "of": "Quote of {arg0}, show the message",
+        "remove": "Remove quote"
+      },
+      "react": "Add reaction",
+      "reply": "Reply in thread",
+      "save": "Save",
+      "seen": "Read",
+      "seenBy": "Read by {arg0}",
+      "send": "Send",
+      "unhide": "Show again"
+    },
+    "notification": {
+      "secret": {
+        "title": "{arg0} wants to start a confidential conversation"
+      }
+    },
+    "room": {
+      "delete": {
+        "_": "Delete chat room",
+        "confirm": "Delete the chat room \"{arg0}\" with all its messages and files? This can''t be undone."
+      },
+      "description": "Description",
+      "edit": "Edit chat room",
+      "moderators": {
+        "_": "Moderators",
+        "info": "Moderators take part in the room. Like the owner, they edit and delete the room, hide messages of others with a reason (e.g. off-topic or confidential content) and see the history of edited messages."
+      },
+      "name": "Name",
+      "new": "New chat room",
+      "owner": {
+        "_": "Owner",
+        "info": "Whoever creates the room always takes part and moderates it."
+      },
+      "participantGroups": "Participating groups",
+      "participantUsers": "Participating users",
+      "participants": "{arg0} participants",
+      "unread": "{arg0} unread"
+    },
+    "rooms": {
+      "_": "Chat rooms",
+      "empty": "No chat rooms yet: create one and choose its participants."
+    },
+    "search": {
+      "_": "Search",
+      "hits": "{arg0} matches",
+      "kind": {
+        "chatRoom": "Chat room",
+        "direct": "Direct message"
+      },
+      "messages": "Found messages",
+      "noResults": "No messages found.",
+      "placeholder": "Search messages"
+    },
+    "secret": {
+      "accept": "Accept",
+      "action": "Confidential conversation",
+      "alert": {
+        "allowNotifications": "Allow browser notifications",
+        "log": "Last signals",
+        "logBlocked": "Silent (blocked by the browser)",
+        "logClear": "Clear",
+        "logEmpty": "Nothing signalled yet.",
+        "logMuted": "Silent (sound switched off)",
+        "logRang": "Rang",
+        "logSecretOffer": "Confidential conversation offered by {arg0}",
+        "notificationsDenied": "Browser notifications are blocked for this site. They can be allowed again in the site settings of the browser.",
+        "notificationsStatus": "Browser notifications:",
+        "settings": "Sound and notifications",
+        "sound": "Sound when a confidential conversation is offered",
+        "statusDefault": "not asked yet",
+        "statusDenied": "blocked",
+        "statusGranted": "allowed",
+        "statusUnsupported": "not supported by this browser",
+        "testSound": "Test sound",
+        "title": "{arg0}: confidential conversation"
+      },
+      "close": "Close",
+      "decline": "Decline",
+      "discard": "Discard",
+      "discardConfirm": "If it is open in another window, it ends there too.",
+      "elsewhere": "A confidential conversation with {arg0} runs in another window, or it can no longer be opened here (the page was reloaded).",
+      "empty": "No messages yet. Write the first one to {arg0}.",
+      "end": "End conversation",
+      "ended": "The conversation has ended (declined, ended by the other side, expired, or the other side left).",
+      "error": {
+        "decrypt": "The message could not be decrypted.",
+        "missing": "A message of the other side is missing.",
+        "unsupported": "This browser offers no encryption here (a secure connection is needed)."
+      },
+      "fingerprint": "Fingerprint",
+      "info": "End-to-end encrypted: texts are encrypted in one browser and decrypted only in the other. ProjectForge relays them without being able to read them and stores nothing. Both have to be online; the conversation ends when one side ends or leaves it, after 10 minutes without a message and after 2 hours at the latest.",
+      "limit": "This protects against database backups, logs and administrators looking into data. Compare the fingerprint on both sides, e.g. by phone: if it differs, a manipulated server is involved. It does not protect the screen or the clipboard of either side.",
+      "new": "Encrypted chat",
+      "newInfo": "Choose the person to start an end-to-end encrypted conversation with. Anybody shown in the user selection can be asked.",
+      "newTooltip": "Starts an end-to-end encrypted conversation with one person. Nothing is stored, and both have to be online.",
+      "next": "Next",
+      "offered": "{arg0} wants to start a confidential conversation.",
+      "read": "Read",
+      "receiveTitle": "Confidential conversation with {arg0}",
+      "send": "Encrypt and send",
+      "sendTitle": "Confidential conversation with {arg0}",
+      "start": "Start",
+      "text": "Confidential text",
+      "waitingForAccept": "Waiting for {arg0} to accept…",
+      "waitingForSender": "Connecting with {arg0}…"
+    },
+    "thread": {
+      "follow": "Follow",
+      "lastReply": "Last reply {arg0}",
+      "newReplies": "New",
+      "placeholder": "Reply in thread",
+      "replies": "{arg0} replies",
+      "reply": "1 reply",
+      "title": "Thread",
+      "unfollow": "Unfollow"
+    },
+    "title": "Chat"
+  },
   "clone": "Clone",
   "close": "Close",
   "codeEditor": {
     "addCursor": "Add a cursor",
     "copyLine": "Copy line up / down",
     "deleteLine": "Delete line",
+    "diff": {
+      "_": "Show changes",
+      "backup": "Backup of {arg0}",
+      "backupWithoutDate": "Last backup (database)",
+      "copyAll": "Copy all",
+      "edited": "Edited (not saved)",
+      "historyVersion": "Before the change of {arg0} ({arg1})",
+      "left": "Left version",
+      "noBackups": "There are no backups yet.",
+      "noHistory": "The value hasn't been changed yet.",
+      "none": "No changes.",
+      "right": "Right version",
+      "showAll": "Show all lines",
+      "stored": "Stored",
+      "title": "Compare versions"
+    },
     "indent": "Indent",
     "key": {
       "click": "click",
@@ -604,7 +1223,8 @@
       "replaceAll": "replace all",
       "replaceOne": "replace",
       "replacedMatches": "replaced $ matches",
-      "replacedOnLine": "replaced match on line $"
+      "replacedOnLine": "replaced match on line $",
+      "unchangedLines": "$ unchanged lines"
     },
     "previousMatch": "Previous match",
     "rectangularSelection": "Rectangular selection",
@@ -621,6 +1241,9 @@
   "color": {
     "error": {
       "unknownFormat": "Color code in unsupported format. Supported hex formats: #abc or #abcdef"
+    },
+    "picker": {
+      "custom": "Custom colour"
     }
   },
   "columns": {
@@ -645,6 +1268,7 @@
         "reconcile": "Reconcile",
         "selectAll": "Select all"
       },
+      "additionalChanges": "Additional changes",
       "clearStorage": "Clear"
     },
     "recurrence": {
@@ -658,6 +1282,10 @@
         "yearly": "Yearly"
       }
     }
+  },
+  "contact": {
+    "firstname": "Firstname",
+    "name": "Name"
   },
   "contactPerson": "Contact person",
   "contactPersons": "Contact persons",
@@ -737,6 +1365,12 @@
   },
   "edit": "Edit",
   "email": "E-mail",
+  "emptyInBrackets": "<empty>",
+  "entityRefs": {
+    "paste": {
+      "foreign": "The clipboard holds no entries of this kind."
+    }
+  },
   "error": {
     "_": "An error occurs: {arg0}",
     "endDateBeforeBeginDate": "End date can't be before begin date.",
@@ -792,6 +1426,57 @@
       "contributionMargin": {
         "_": "Contribution margin",
         "bookingImportEnd": "Accounting records are imported up to {arg0}. The later months (lighter) are preliminary: invoices as revenue, time sheets × hourly rate as costs.",
+        "breakdown": {
+          "calculated": "The values of orders and structure elements are calculated, as the accounting records know the project (kost2) only: revenue from the invoice positions of the order positions, costs from the time sheets × hourly rate ({arg0}). Time sheets go to the order positions of the nearest structure element upwards. What can''t be assigned, and the difference to the accounting records, stays with the project as residual, so the rows of a project add up to its contribution margin.",
+          "chart": "Contribution margin monthly: {arg0}",
+          "column": {
+            "order": "Project / order",
+            "task": "Project / structure element"
+          },
+          "empty": "No revenue or costs found.",
+          "hourlyRateMissing": "No hourly rate is configured (Administration → Configuration), so the orders and structure elements have no costs of time sheets.",
+          "orders": "Orders",
+          "residual": {
+            "_": "Not assignable",
+            "accounting": {
+              "_": "Difference to accounting: {arg0}",
+              "tooltip": "E.g. other costs on the cost units of the project (external services, travel expenses), salaries instead of the hourly rate, invoices booked on other projects."
+            },
+            "invoices": "Invoices without order: {arg0}",
+            "invoicesTask": "Invoices without structure element: {arg0}",
+            "timesheets": "Time sheets without order: {arg0}"
+          },
+          "selectRow": "Select a row to see its months in the chart.",
+          "tasks": "Structure elements"
+        },
+        "bubbles": {
+          "_": "Contribution margin bubbles",
+          "anonymous": "Other projects (anonymous)",
+          "grouping": {
+            "_": "One bubble per",
+            "CUSTOMER": "Customer",
+            "CUSTOMER_GROUP": "Customer group",
+            "PROJECT": "Project",
+            "PROJECT_GROUP": "Project group",
+            "tooltip": "Projects without a project or customer group get a bubble of their own (customer group: one per customer)."
+          },
+          "legend": {
+            "anonymous": "pale: other projects (anonymous)",
+            "default": "without business unit colour"
+          },
+          "noRevenue": "no revenue",
+          "others": {
+            "_": "Show other projects anonymously",
+            "tooltip": "Also shows, for comparison, the projects the business unit and customer filter select (e.g. all of a business unit), ignoring the project filter, whose contribution margin you may not see: pale, without names, grouped the same way."
+          },
+          "own": "Own projects",
+          "projectCount": "Projects",
+          "showTitles": {
+            "_": "Show titles",
+            "tooltip": "Labels the own bubbles with their short title and DB %: the name of the group or customer, for a single project its short name (else its name). Switched off, the names are in the tooltip only."
+          },
+          "size": "Bubble size: DB1"
+        },
         "config": {
           "addAssignment": "Add assignment",
           "bands": "Red below {arg0} %, yellow below {arg1} %, green from {arg1} %.",
@@ -1131,6 +1816,11 @@
     },
     "businessUnits": {
       "add": "Add business unit",
+      "color": {
+        "_": "Colour",
+        "remove": "Remove colour",
+        "tooltip": "The colour of the bubbles of the business unit in the contribution margin bubble chart of the statistics. Bubbles of several or uncoloured business units keep the default colour."
+      },
       "empty": "No business units yet.",
       "groups": "Customer groups",
       "members": "Covers ({arg0})",
@@ -1167,15 +1857,28 @@
     },
     "currencyConversion": {
       "conversionRate": "Conversion rate",
-      "inverseConversionRate": "Inverse conversion rate"
+      "currentInverseRate": "Current inverse exchange rate",
+      "currentRate": "Current exchange rate",
+      "inverseConversionRate": "Inverse conversion rate",
+      "rates": "Conversion rates"
     },
     "currencyPair": {
       "_": "Currency pair",
       "currencyCode": {
         "tooltip": "ISO currency code (3 letters) is recommended, e.g. USD, EUR, GBP.\n\nThese codes are also used when importing or creating currencies in the system."
       },
+      "insert": {
+        "hint": "Please create the currency pair first. Conversion rates can be added after creation."
+      },
+      "onlineRates": {
+        "info": "**Automatic exchange rates**: ProjectForge can automatically fetch current exchange rates from online sources. When you add conversion rates, the system will attempt to retrieve the latest rates for the specified date, making it very easy to maintain up-to-date currency pairs."
+      },
       "sourceCurrency": "Source currency",
-      "targetCurrency": "Target currency"
+      "targetCurrency": "Target currency",
+      "title": {
+        "add": "Add currency pair",
+        "list": "List of currency pairs"
+      }
     },
     "customerGroups": {
       "add": "Add customer group",
@@ -1186,10 +1889,29 @@
         "invalidText": "Neither a name nor a valid pattern."
       },
       "groups": "Customer groups",
-      "intro": "Customers that belong together (ACME Germany, ACME Logistics, ACME Holding) form a group, which the customer filters of the order book, the invoices, the projects and the cost 2 offer like a single customer. Business units combine groups and customers and get a filter of their own. A customer belongs to at most one group, a group or customer to at most one business unit.",
+      "intro": "Customers that belong together (ACME Germany, ACME Logistics, ACME Holding) form a group, which the customer filters of the order book, the invoices, the projects and the cost 2 offer like a single customer. Business units combine groups and customers and get a filter of their own. A customer belongs to at most one group, a group or customer to at most one business unit. Project groups do the same for the projects of the project filters.",
       "matches": "Matches {arg0} customers",
       "matchesNone": "Matches no customer yet",
+      "members": {
+        "more": "… and {arg0} more",
+        "tooltip": "Comprises"
+      },
       "name": "Name",
+      "orderAccess": {
+        "_": "Order access",
+        "add": "Add order access",
+        "empty": "No order access granted yet.",
+        "ineffective": {
+          "_": "Without effect for {arg0} users",
+          "deactivated": "deactivated",
+          "noOrderBookRight": "no access to the order book (right)",
+          "noProjectManager": "neither project manager nor project assistant"
+        },
+        "intro": "Grants read access to all orders of the chosen customers, customer groups and business units, including their invoices, forecast and contribution margins. Only users who are project managers or project assistants (PF_ProjectManager, PF_ProjectAssistant) and have access to the order book are granted. Changing an order still requires being its contact person or a project manager of its project.",
+        "remove": "Remove order access {arg0}",
+        "userGroups": "Groups (their members)",
+        "users": "Users"
+      },
       "remove": "Remove customer group {arg0}",
       "saved": "Customer groups saved.",
       "texts": "Customer names",
@@ -1206,7 +1928,7 @@
         },
         "format": {
           "accounts": "Chart of accounts: the sheet \"Kontenplan\" (also prefixed by the month, e. g. \"07_Kontenplan\") with the columns Konto and Beschriftung. Only the account names are imported, all other account data is kept.",
-          "intro": "The original Excel file of the tax office (.xlsx / .xls) can be uploaded unchanged. Report sheets such as BWA, SuSa or USt are ignored.",
+          "intro": "The original Excel file of the tax office (.xlsx / .xls) can be uploaded unchanged, one upload fills both tabs. Report sheets such as BWA, SuSa or USt are ignored.",
           "records": "Accounting records: the month sheet (e. g. \"07\") is the booking month. Records dated in a later month are assigned to this booking month but keep their real voucher date.",
           "title": "File format of the import file"
         },
@@ -1214,7 +1936,23 @@
       }
     },
     "eInvoiceChecker": {
-      "description": "Upload a ZUGFeRD PDF or XRechnung XML file to inspect the contained invoice data."
+      "amountDue": "Amount due",
+      "amounts": "Amounts",
+      "attachments": "Attachments",
+      "buyer": "Buyer",
+      "buyerReference": "Buyer reference (Leitweg-ID)",
+      "description": "Upload a ZUGFeRD PDF or XRechnung XML file to inspect the contained invoice data.",
+      "documentTypeCode": "Document type code",
+      "format": "Format",
+      "invalid": "The e-invoice has validation errors.",
+      "lineItems": "Line items",
+      "metadata": "Invoice data",
+      "mimeType": "MIME type",
+      "profile": "Profile",
+      "seller": "Seller",
+      "title": "E-Invoice Checker",
+      "unit": "Unit",
+      "valid": "The e-invoice is valid."
     },
     "eingangsrechnung": {
       "_": "Creditor invoice",
@@ -1233,6 +1971,7 @@
           "positions": "invoice positions"
         }
       },
+      "markedOverdue": "Overdue or due within 2 working days",
       "multiselected": {
         "title": "Multiple selection incoming invoices"
       },
@@ -1345,7 +2084,6 @@
       "wochenstunden": "Hours per week",
       "zipCode": "Zip code"
     },
-    "employees": "Employees",
     "fakturiert": "invoiced",
     "headOfBusinessManager": "Head of business manager",
     "konto": {
@@ -1442,7 +2180,8 @@
       "_": "Cost 2",
       "art": "Type",
       "error": {
-        "projektNeededForNummernkreis": "The project is required for number range 4 and 5."
+        "projektNeededForNummernkreis": "The project is required for cost units of a number range.",
+        "projektWithoutNumberRange": "Cost units (Kost2) can only be created for projects of a number range: the number of the project belongs to no configured number range."
       },
       "id": "Cost 2 id",
       "kost2s": "cost 2 ids",
@@ -1472,6 +2211,16 @@
       },
       "workFraction": "Work time fraction"
     },
+    "kostSearch": {
+      "dock": "Show on every page",
+      "dockTooltip": "Keeps the cost search floating over every page and returns to the previous page, as ALT-K (macOS: Option-K) does here.",
+      "hint": "Pick a cost unit to get its number and name, e.g. for copying them. With ALT-K (macOS: Option-K) the cost search floats over every page.",
+      "number": "Number",
+      "panel": {
+        "toggle": "Show or hide the cost search on every page (ALT-K, macOS: Option-K)"
+      },
+      "popOut": "Open in a separate window"
+    },
     "kunde": {
       "_": "Customer",
       "division": "Division",
@@ -1485,12 +2234,20 @@
         "tooltip": "This account number is part of the export of invoices and may be overwritten by any account number of a project which may be assigned to the invoice."
       },
       "kunden": "Customers",
+      "legend": {
+        "inactive": "Ended, non-active or non-existent"
+      },
       "list": {
         "select": {
           "title": "Select customer"
         }
       },
       "name": "Customer's name",
+      "nextFreeNumber": "Next free number of number range {arg0}: {arg1}",
+      "numberRanges": {
+        "info": "Customer numbers of the number ranges: {arg0}. Other numbers are free (no cost units are generated for their projects).",
+        "infoNoFree": "Customer numbers of the number ranges: {arg0}."
+      },
       "nummer": "Customer's number",
       "pleaseSelectKunde": "Please select customer",
       "select": "Customer select",
@@ -1536,6 +2293,10 @@
         "noData": "No work time in this period to compute an invoicing quota from.",
         "title": "Invoicing quota of the last 12 months"
       },
+      "missingKost2": {
+        "_": "without Kost2",
+        "tooltip": "Booked without Kost2: please contact the project management or accounting."
+      },
       "showInvoicingQuota": "Show invoicing quota",
       "tab": {
         "report": "Monthly report"
@@ -1570,9 +2331,21 @@
       }
     },
     "probabilityOfOccurrence": "Probability of occurrence in %",
+    "projectGroup": "Project group",
+    "projectGroups": {
+      "add": "Add project group",
+      "empty": "No project groups yet.",
+      "intro": "Projects that belong together under a common parent project form a project group, which the project filters of the order book, the invoices, the projects, the cost 2, the timesheets and the order statistics offer like a single project. A project belongs to at most one project group.",
+      "projects": "Projects",
+      "remove": "Remove project group {arg0}",
+      "title": "Project groups"
+    },
     "projectManager": "Project manager",
     "projekt": {
       "_": "Project",
+      "contacts": {
+        "info": "Contact persons have access to the project and to its orders and invoices."
+      },
       "edit": {
         "kost2DeactivateHint": "Unchecking sets the cost 2 unit non-active: no new bookings, existing time sheets keep it.",
         "kost2LockedEnded": "The project is ended, and so are its cost 2 units (checked): they can no longer be changed.",
@@ -1588,6 +2361,9 @@
           "tooltip": "Projects with at least one of the selected cost 2 types non-active or missing."
         }
       },
+      "freeProjektnummer": {
+        "info": "Free project number (the customer belongs to no number range). Empty: the next free number is assigned on saving."
+      },
       "identifier": "Identifier",
       "internKost2_4": "Internal: Koststellen 2-4",
       "konto": {
@@ -1596,6 +2372,9 @@
       "lastActivity": "Last activity",
       "lastOrder": "Last order",
       "lastTimesheet": "Last time sheet",
+      "legend": {
+        "ended": "Ended"
+      },
       "leiter": "Project manager",
       "list": {
         "select": {
@@ -1619,17 +2398,21 @@
         "title": "Multiple selection projects"
       },
       "name": "Name",
+      "nextFreeNumber": "Next free number: {arg0}",
       "nummer": "Number",
       "pleaseSelectProjekt": "Please choose project",
       "projektManagerGroup": "Group of project managers",
       "projekte": "Projects",
+      "projektnummer": "Project number",
       "status": {
         "acquisition": "acquisition",
+        "active": "active",
         "build": "build phase",
         "ended": "ended",
         "maintenance": "maintenance",
         "none": "none",
         "onhold": "on hold",
+        "paused": "paused",
         "productive": "productive (without maintenance)"
       },
       "title": {
@@ -1639,8 +2422,10 @@
         "list": "List of projects"
       },
       "validation": {
+        "localNumberOutOfRange": "The number must be between 0 and {arg0} in the number range of the customer.",
         "numberLocked": "Number and customer can no longer be changed: the project already has cost units (Kost2), which carry this number.",
-        "numbernotfreeforcustomer": "Number already exists for other customer project"
+        "numbernotfreeforcustomer": "Number already exists for other customer project",
+        "projektnummerExists": "Project number {arg0} is already used by another project."
       },
       "wizard": {
         "notYetAvailable": "Wizard not yet available. Please note: You need only and only project objects if you want to do cost-unit accounting! Please refer to the documentation first. If you don't need it, please use the structure tree instead for defining a hierarchy of customers, projects etc."
@@ -1957,10 +2742,12 @@
     "selectAll": "Select all",
     "selection": "Selection",
     "show": "Show filter",
+    "showInactive": "Show inactive",
     "startsWith": "Starts with",
     "timeFrom": "From (time)",
     "timeTo": "To (time)",
     "title": "Filter",
+    "typeToSearch": "Type to search…",
     "value": "Value",
     "valueNotSet": "(not set)",
     "valueTo": "To"
@@ -2063,12 +2850,6 @@
     "male": "male",
     "unknown": "unknown"
   },
-  "goreact": {
-    "menu": {
-      "classics": "Old version",
-      "classicsInfo": "The old version will be removed shortly."
-    }
-  },
   "group": {
     "_": "Group",
     "assignedUsers": "Assigned users",
@@ -2087,6 +2868,45 @@
       "_": "Local group",
       "not": "Common group",
       "tooltip": "Local groups will not be synchronized with an external user management system (such as LDAP)."
+    },
+    "members": {
+      "tooltip": {
+        "count": "{arg0} members",
+        "loading": "Loading members …",
+        "none": "No members",
+        "notVisible": "The members are only visible to members of the group and to administrators."
+      }
+    },
+    "nomenclature": {
+      "_": "Naming convention",
+      "description": {
+        "_": "Description",
+        "tooltip": "Explains the convention; shown in the wizards next to the names of new groups."
+      },
+      "example": {
+        "_": "Example",
+        "customer": "Customer",
+        "project": "Project"
+      },
+      "externalSuffix": "Suffix of the group of externals",
+      "invalidJson": "The stored value is no valid JSON; the defaults are shown and replace it on saving.",
+      "letterCase": {
+        "_": "Letter case",
+        "keep": "Keep as built",
+        "lower": "lower case",
+        "tooltip": "Applies to the whole suggested name, suffix included.",
+        "upper": "UPPER CASE"
+      },
+      "managerSuffix": "Suffix of the manager group",
+      "pattern": {
+        "_": "Pattern of the base name",
+        "placeholders": "Placeholders",
+        "tooltip": "The base name of the groups of a project, built from the placeholders below; an empty identifier is replaced by the name. Empty: the name of the project."
+      },
+      "suffix": {
+        "tooltip": "Appended with a hyphen. Empty: the default of the wizard."
+      },
+      "teamSuffix": "Suffix of the team group"
     },
     "owner": "Group owner",
     "pleaseSelectGroup": "Please select group",
@@ -2161,6 +2981,10 @@
     }
   },
   "id": "Id",
+  "imageEditor": {
+    "title": "Edit image",
+    "zoom": "Zoom"
+  },
   "import": {
     "_": "Import",
     "confirmMessage": "Would you like to import the selected entries now? This operation cannot be undone.",
@@ -2272,31 +3096,23 @@
         "lastName": "Last name",
         "tooltip": "Users of Lanes & Planes who aren't employees, e.g. an external accountant. Sent with name, email and invoice profiles only, so their role, managers and cost centers are kept. Otherwise they would be deactivated by the push, and if one of them has responsibilities (e.g. as accountant), the whole push fails. Not needed for the service admin of Lanes & Planes and for guest profiles: the import doesn't touch them."
       },
-      "confirmedEmailChanges": {
-        "_": "Confirmed email changes",
-        "tooltip": "Lanes & Planes identifies users by their email only. If the email of an employee changes, the old one is still sent (see the problem dashboard), otherwise the user would be deactivated and created anew. Change the email in Lanes & Planes by hand first, then enter the new email here. The entry can be removed after the next push."
-      },
       "existingCostObjects": {
         "_": "Existing names in Lanes & Planes",
         "textHint": "One name per line, or the comma separated list of the column cost_centers of the user export.",
         "tooltip": "Cost centers and cost units already existing in Lanes & Planes (e.g. entered by hand), exactly as named there, starting with the number without dots, e.g. 50123401 Project - Travel costs. A Kost1 or Kost2 with this number is sent with this name as ident and name, so Lanes & Planes reuses it. Lanes & Planes doesn't accept a name a second time (deleted entries included): without this entry the import of every user with this Kost fails."
       },
-      "existingUserEmails": {
-        "_": "Existing users in Lanes & Planes (emails)",
-        "tooltip": "The emails of the users in Lanes & Planes, pasted from the column email of the user export (CSV), as the interface can't read users. An employee not sent yet whose email isn't listed, but one of the alternative or former emails of the user, is sent with that one, otherwise Lanes & Planes would create the user anew. Like a changed email it is held back until the email was changed in Lanes & Planes and confirmed below. Empty: not checked."
-      },
       "generalKost1": {
         "_": "General Kost1 (cost centers)",
-        "tooltip": "Sent to all users as cost centers (cost_centers). Formatted number like 1.005.01.00. Without entries, the cost centers maintained in Lanes & Planes are kept."
+        "tooltip": "Sent to all users as cost centers (cost_centers). Formatted number like 1.900.01.00. Without entries, the cost centers maintained in Lanes & Planes are kept."
       },
       "generalKost2": {
         "_": "General Kost2 (cost units)",
-        "tooltip": "Sent to all users as cost units (cost_units) in addition to the bookable Kost2, independent of their booking rights, e.g. internal Kost2 like trainings or sales. Formatted number like 5.999.10.09."
+        "tooltip": "Sent to all users as cost units (cost_units) in addition to the bookable Kost2, independent of their booking rights, e.g. internal Kost2 like trainings or sales. Formatted number like 5.900.10.01."
       },
       "invalidJson": "The stored value is no valid JSON; the defaults are shown and replace it on saving.",
       "kost2Patterns": {
         "_": "Patterns of the bookable Kost2",
-        "tooltip": "The Kost2 a user may book time sheets on are sent to the user as cost units (cost_units) only if they match one of these patterns: * stands for any characters, ? for a single one, e.g. 5.*.02. Without patterns, all bookable Kost2 are sent."
+        "tooltip": "The Kost2 a user may book time sheets on are sent to the user as cost units (cost_units) only if they match one of these patterns: * stands for any characters, ? for a single one, e.g. 5.*.02. Without patterns, all bookable Kost2 are sent. Several patterns in one row, separated by comma (e.g. 5.*.19, 5.*.20): per project only the Kost2 of the first matching pattern is sent."
       },
       "kostNotFound": "not found",
       "mode": {
@@ -2304,8 +3120,14 @@
         "text": "Text"
       },
       "remove": "Remove {arg0}",
-      "summary": "{arg0} general Kost1 · {arg1} general Kost2 · {arg2} patterns · {arg3} additional users · {arg4} existing names",
-      "textHint": "One entry per line, or separated by commas or semicolons, e.g. pasted from a CSV file."
+      "summary": "{arg0} general Kost1 · {arg1} general Kost2 · {arg2} patterns · {arg3} additional users · {arg4} existing names · {arg5} emails in Lanes & Planes",
+      "textHint": "One entry per line, or separated by commas or semicolons, e.g. pasted from a CSV file.",
+      "userEmails": {
+        "_": "Emails in Lanes & Planes",
+        "email": "Email in Lanes & Planes",
+        "tooltip": "Lanes & Planes identifies users by their email only. An employee is always sent with the email entered here, even if the email changes in ProjectForge (e.g. after a marriage): otherwise Lanes & Planes would deactivate the user and create a new one. Before the first push, enter only the employees whose email in Lanes & Planes differs from ProjectForge (see the user export of Lanes & Planes). Every push adds the employees sent without an entry. To change an email, change it in Lanes & Planes by hand first, then here.",
+        "user": "User"
+      }
     }
   },
   "lastUpdate": "last modification",
@@ -2362,6 +3184,9 @@
       "contractPersonA": "contract person A",
       "contractPersonB": "contract person B",
       "number": "Contract number",
+      "sections": {
+        "general": "Contract"
+      },
       "signerA": "signer A",
       "signerB": "signer B",
       "signing": "signing",
@@ -2374,8 +3199,13 @@
         "suspended": "suspended",
         "unknown": "unknown"
       },
+      "title": {
+        "add": "New contract",
+        "list": "List of contracts"
+      },
       "type": "Type",
       "validity": {
+        "_": "Validity",
         "from": "Validity from",
         "until": "Validity until"
       }
@@ -2467,6 +3297,7 @@
     "fields": {
       "changed": "Changed fields"
     },
+    "info": "Please see the log viewer for checking what happened.",
     "mode": {
       "append": "Append",
       "delete": {
@@ -2479,16 +3310,43 @@
     },
     "restore": "Restore selected",
     "restoreConfirm": "Do you really want to restore the {arg0} selected entries?",
+    "selectFirst": "Select first {arg0}",
     "selectedEntries": "Selected entries"
   },
   "menu": {
     "2FASetup": "Two-factor authentication",
     "addNewEntry": "New entry",
     "administration": "Administration",
+    "availability": "Availability",
+    "birthdayButler": "Birthday butler",
     "calendar": "Calendar",
     "changePassword": "Change password",
     "changeWlanPassword": "Change WLAN/Samba password",
     "common": "Common",
+    "customizer": {
+      "addGroup": "Add Group",
+      "alreadyAdded": "Already in your menu",
+      "customMenuSection": "Your Menu",
+      "dropItemsHere": "Drop items here",
+      "editGroupName": "Edit group name",
+      "emptyMenuText": "Drag entries from below up here — or click an entry to add it.",
+      "emptyMenuTitle": "Your menu is empty",
+      "errorLoadingMenu": "Error loading menu data. Please try again.",
+      "errorSavingMenu": "Error saving menu. Please try again.",
+      "groupName": "Group name",
+      "loadDefault": "Load Default",
+      "menuSavedSuccessfully": "Menu saved successfully",
+      "noResults": "No entries found",
+      "removeFromFavorites": "Remove from favorites",
+      "removeFromGroup": "Remove from group",
+      "removeGroup": "Remove group",
+      "saveChanges": "Save Changes",
+      "searchHint": "Click an entry or drag it up into your menu.",
+      "subtitle": "Compose your personal navigation menu: drag entries from the list below up into your menu — or click them. Groups appear as drop-down menus.",
+      "templateTitle": "Available Entries",
+      "title": "Customize Your Menu",
+      "undo": "Undo"
+    },
     "favorites": {
       "more": "More favorites"
     },
@@ -2523,8 +3381,10 @@
     "gear": {
       "feedback": "Send feedback"
     },
+    "hr": "HR",
     "hrList": "HR planning",
     "hrPlanningList": "HR planning list",
+    "logout": "Logout",
     "main": {
       "short": "Menu",
       "title": "Main menu"
@@ -2535,6 +3395,12 @@
       "fileprefix": "MonthlyEmployeeReport"
     },
     "myAccount": "My account",
+    "orga": {
+      "_": "Organization",
+      "postausgang": "Outbox",
+      "posteingang": "Inbox",
+      "visitorbook": "Visitorbook"
+    },
     "personalStatistics": "My statistics",
     "phoneCall": "Direct call",
     "pluginAdmin": "Plugins",
@@ -2604,15 +3470,18 @@
     "action": {
       "preview": "Preview",
       "testToMe": "Send test to me",
+      "testToMeInfo": "Sends the rule to yourself only, at once through all channels of its delivery (e-mail too), regardless of their delays.",
       "trigger": "Trigger now",
       "triggerConfirm": "Run the rule now for all recipients? Recipients already notified for the same period are not notified again."
     },
     "center": "Notifications",
+    "centerArchived": "Archived entries",
+    "centerArchivedEmpty": "No archived entries of the last 90 days.",
     "centerEmpty": "No open notifications.",
     "channels": {
       "IN_APP": "In the app",
       "MAIL": "E-mail",
-      "SMS": "SMS (not yet supported)"
+      "SMS": "SMS"
     },
     "created": "Created",
     "delivery": {
@@ -2622,6 +3491,7 @@
       "info": "The steps are delivered after the given time since the notification was created. A step \"only if not confirmed\" is skipped once the recipient has confirmed the notification or its cause is resolved.",
       "onlyIfUnacknowledged": "Only if not confirmed",
       "removeStep": "Remove step",
+      "smsNotConfigured": "not configured",
       "unit": {
         "days": "days",
         "hours": "hours",
@@ -2639,6 +3509,11 @@
     "error": {
       "manualDoneNotAllowed": "This notification is finished automatically as soon as its cause is resolved."
     },
+    "finish": "End",
+    "finishConfirm": "End this notification? It is marked as expired and disappears for its recipient.",
+    "finishPending": "End all pending",
+    "finishPendingConfirm": "End all pending notifications of this rule? They are marked as expired and disappear for their recipients.",
+    "finished": "{arg0} notification(s) ended.",
     "log": "Sent notifications",
     "logEmpty": "No notifications sent yet.",
     "logEmptyFilter": "No notifications match the filter.",
@@ -2646,6 +3521,7 @@
     "open": "Open",
     "params": {
       "daysBeforeExpiry": "Days before expiry",
+      "dueWorkingDays": "Working days before the due date (invoices overdue for up to 90 days included)",
       "kost2MissingMonths": "Months looked at (current month included)",
       "passwordMaxAgeDays": "Password older than (days)",
       "referredMonth": {
@@ -2664,7 +3540,9 @@
       "none": "Nobody to notify today.",
       "period": "Period",
       "recipients": "{arg0} recipient(s)",
-      "sample": "Sample for you"
+      "sample": "Sample for you",
+      "sms": "SMS ({arg0} characters)",
+      "withExamples": "With example values"
     },
     "recipient": "Recipient",
     "recipients": {
@@ -2687,13 +3565,25 @@
         "dayOfWeek": "A weekday is required.",
         "daysBeforeExpiry": "The number of days must not be negative.",
         "delay": "The time of a delivery step must not be negative.",
+        "dueWorkingDays": "The number of working days must be between 0 and 30.",
         "kost2MissingMonths": "The number of months must be between 1 and 12.",
         "noDeliveryStep": "At least one delivery step is required.",
-        "passwordMaxAgeDays": "The number of days must be at least 1."
+        "passwordMaxAgeDays": "The number of days must be at least 1.",
+        "recipientsRequired": "Recipients are required: no user is concerned by an invoice.",
+        "smsTextLength": "The SMS text must not be longer than {arg0} characters."
       },
       "lastRun": "Last run",
+      "legend": {
+        "inactive": "Inactive"
+      },
+      "link": "\"Open\" button",
+      "linkMode": {
+        "DEFAULT": "Default of the trigger",
+        "NONE": "No button"
+      },
       "list": "Notification rules",
       "manualDone": "The recipient may mark it as done",
+      "manualDoneForced": "Always allowed for a manual rule with banner: nothing else finishes the banner.",
       "menuBadge": "Counter in the menu",
       "name": "Name",
       "newTitle": "New notification rule",
@@ -2707,15 +3597,20 @@
         "message": "Message"
       },
       "title": "Notification rules",
+      "trigger": {
+        "inactive": "The rule is inactive: activate and save it first."
+      },
       "warning": {
         "warnMissingKost2Off": "The configuration parameter \"Report time sheets without Kost2?\" is disabled (or cost-unit accounting is): this rule notifies nobody until it is enabled."
       }
     },
     "ruleName": "Rule",
     "ruleTypes": {
+      "CREDITOR_INVOICES_DUE": "Creditor invoices due",
       "MANUAL": "Manual (no condition)",
       "PASSWORD_NOT_CHANGED": "Password not changed for a long time",
       "TIMESHEETS_MISSING": "Missing time sheets",
+      "TIMESHEETS_TO_ACCEPT": "Time sheets to be accepted",
       "TIMESHEETS_WITHOUT_KOST2": "Time sheets without Kost2",
       "VACATION_LEFT": "Expiring vacation days"
     },
@@ -2738,6 +3633,8 @@
       "URGENT": "Urgent"
     },
     "severity": "Severity",
+    "smsText": "SMS text",
+    "smsTextInfo": "Plain text with the same variables as the text, sent to the mobile phone number of the recipients (users without one get no SMS). If empty, the subject and the link are sent. Cut to {arg0} characters.",
     "status": "Status",
     "statuses": {
       "ACKNOWLEDGED": "Confirmed",
@@ -2755,14 +3652,19 @@
     },
     "subject": "Subject",
     "subsystemDetail": "{arg0} active rule(s), {arg1} pending notification(s), {arg2} due delivery step(s)",
-    "testDelivered": "Test sent: {arg0}",
+    "testDelivered": "Test sent at once (regardless of the delays): {arg0}",
     "testFailed": "Not sent: {arg0}",
     "testMissingText": "Subject and text are required for a test.",
     "text": "Text",
     "triggerErrors": "{arg0} error(s): {arg1}",
     "triggerResult": "{arg0} notification(s) created for {arg1} recipient(s).",
     "variable": {
+      "creditorInvoiceLink": "Link to the creditor invoices",
+      "creditorInvoicesDueCount": "Number of creditor invoices due",
+      "creditorInvoicesDueList": "Creditor invoices due (creditor, reference, due date, amount)",
+      "creditorInvoicesDueSum": "Gross sum of the creditor invoices due",
       "daysLeft": "Vacation days left",
+      "dueWorkingDays": "Working days before the due date",
       "expiryDate": "Expiry date",
       "firstName": "First name",
       "fullName": "Full name",
@@ -2776,6 +3678,10 @@
       "passwordMaxAgeDays": "Maximum age of the password (days)",
       "period": "Period",
       "timesheetLink": "Link to the time sheets",
+      "timesheetsToAcceptCount": "Number of time sheets to be accepted",
+      "timesheetsToAcceptHours": "Hours to be accepted",
+      "timesheetsToAcceptLink": "Link to the time sheets to be accepted",
+      "timesheetsToAcceptTasks": "Structure elements with time sheets to be accepted",
       "timesheetsWithoutKost2Count": "Number of time sheets without Kost2",
       "timesheetsWithoutKost2Hours": "Hours booked without Kost2",
       "timesheetsWithoutKost2Tasks": "Structure elements booked without Kost2",
@@ -2786,6 +3692,13 @@
       "unbookedWorkingDays": "Working days without time sheets (no vacation)",
       "unbookedWorkingDaysCount": "Number of working days without time sheets (no vacation)",
       "vacationLink": "Link to the vacation"
+    },
+    "variables": {
+      "common": "General",
+      "example": "e.g.",
+      "info": "In subject and text the variables are replaced by their values.",
+      "ruleType": "For this rule type",
+      "title": "Available variables"
     }
   },
   "operation": {
@@ -2813,20 +3726,47 @@
     },
     "postausgang": {
       "empfaenger": "Receiver",
-      "person": "FAO"
+      "person": "FAO",
+      "title": {
+        "add": "New outbox entry",
+        "heading": "Outbox",
+        "list": "Outbox"
+      }
     },
     "posteingang": {
       "absender": "Sender",
-      "person": "Person"
+      "person": "Person",
+      "title": {
+        "add": "New inbox entry",
+        "heading": "Inbox",
+        "list": "Inbox"
+      }
     },
     "visitorbook": {
       "company": "Company",
       "contactPersons": "Contact persons",
+      "existing": {
+        "hint": "Already recorded – pick one to add the visit to it:",
+        "lastVisit": "Last visit: {arg0} (visits: {arg1})",
+        "noVisit": "No visit yet"
+      },
       "firstname": "Firstname",
+      "lastVisit": {
+        "_": "Last visit",
+        "arrived": "Last arrival time",
+        "departed": "Last departure time"
+      },
       "lastname": "Lastname",
+      "numberOfVisits": "Number of visits",
       "timeofvisit": {
+        "_": "Time of visit",
         "arrive": "Arrivaltime (HH:MM)",
         "depart": "Departuretime (HH:MM)"
+      },
+      "title": {
+        "add": "Add visitor",
+        "heading": "Visitorbook",
+        "list": "Visitorbook list"
       },
       "visitortype": {
         "_": "Visitor type",
@@ -2835,10 +3775,12 @@
         "normal": "Normal",
         "supplier": "Supplier",
         "workman": "Workman"
-      }
+      },
+      "visits": "Visits"
     }
   },
   "organization": "Organization",
+  "parse": "Parse",
   "password": {
     "_": "Password",
     "forgotten": {
@@ -2848,7 +3790,8 @@
       },
       "mailSentTo": "Mail with reset link mailed to ''{arg0}''. Please check also Your spam folder and check, if Your username or e-mail is correct.",
       "request": "Request reset",
-      "title": "Forgotten password"
+      "title": "Forgotten password",
+      "tooManyRequests": "Too many password reset requests. Please try again later."
     },
     "reset": {
       "error": "No valid password reset session found. The session is already used, expired, or non-existing. Please retry.",
@@ -2898,28 +3841,480 @@
         "_": "Bank account",
         "bank": "Bank",
         "bic": "BIC",
+        "fullAccessGroups": "Full access (groups)",
+        "fullAccessUsers": "Full access (users)",
         "iban": "IBAN",
         "importSettings": "Settings for import of transactions",
         "name": "Name",
+        "readonlyAccessGroups": "Read-only access (groups)",
+        "readonlyAccessUsers": "Read-only access (users)",
         "record": {
+          "accountIban": "IBAN of account",
+          "accountName": "Name of account",
           "amount": "Amount",
+          "cashflow": "Cash flow",
           "checksum": {
             "_": "Checksum",
             "info": "The checksum is calculated while importing records for detecting any later manipulation of date, amount, iban of receiver/sender etc."
           },
+          "checksumErrors": "Checksum error",
           "collectionReference": "Collection reference",
           "currency": "Currency",
           "customerReference": "Customer reference",
           "date": "Date",
           "debteeId": "Debtee id",
+          "doublets": "Doublets",
+          "import": {
+            "description": "Upload the transactions of a bank account as a csv file, as the online banking exports it. The columns are mapped by the import settings of the account. A transaction imported before is updated, not doubled, so files with overlapping periods may be imported several times.\n\n**Transactions of the file's period missing in the file are offered as deleted.** Deselect them before the import if they are to be kept.",
+            "error": {
+              "noBankAccountGiven": "No bank account given. Import cancelled."
+            },
+            "title": "Import bank account records"
+          },
+          "income": "Income",
           "info": "Info",
           "mandateReference": "Mandate reference",
+          "outgo": "Outgo",
           "receiverSender": "Receiver/Payer",
+          "references": "References",
           "subject": "Subject",
+          "title": {
+            "add": "New transaction",
+            "edit": "Edit transaction",
+            "list": "List of transactions"
+          },
+          "transaction": "Transaction",
           "type": "Type",
           "valueDate": "Value date"
+        },
+        "title": {
+          "add": "New bank account",
+          "edit": "Edit bank account",
+          "list": "Bank accounts"
         }
       }
+    },
+    "cveradar": {
+      "advisories": {
+        "none": "No client advisories right now.",
+        "todo": "What to do"
+      },
+      "ai": {
+        "content": "AI texts",
+        "import": {
+          "apply": "Import",
+          "file": "Choose file…",
+          "info": "Drop the JSON file here, choose it or paste the text.",
+          "invalid": "Invalid response",
+          "title": "Import AI response",
+          "valid": "The response matches the schema."
+        },
+        "longDescription": "Long description",
+        "marker": {
+          "released": "AI-generated, released",
+          "unreleased": "AI-generated, not released"
+        },
+        "none": "No AI response imported yet.",
+        "prompt": {
+          "approvedOnly": "Use this prompt only with: {arg0}",
+          "copied": "Prompt copied.",
+          "copy": "Copy prompt",
+          "instruction": "Analyse the following vulnerability for an IT company. Answer in German, only with JSON exactly in the format of the example at the end.",
+          "title": "Prompt for an approved AI system",
+          "withInventory": "Include technologies and versions in use (never names or codes of systems)"
+        },
+        "release": "Release for employees",
+        "risk": "Risk assessment",
+        "shortDescription": "Short description"
+      },
+      "apply": "Apply",
+      "back": "Back",
+      "baseline": {
+        "edit": {
+          "info": "Takes effect immediately in all instances without a deviation. Their findings resolved by it go to \"fix planned\" until each instance confirms the fix.",
+          "title": "Change version of {arg0}"
+        },
+        "info": "Components and technologies maintained once for all instances; instances only record deviations.",
+        "newVersion": "New version (now {arg0})",
+        "preview": {
+          "deviating": "Unchanged (own version)",
+          "fixPlanned": "Findings set to \"fix planned\"",
+          "inheriting": "Takes effect in"
+        },
+        "title": "Baseline",
+        "version": "baseline {arg0}"
+      },
+      "campaign": {
+        "answer": "Answer",
+        "answerFor": "Answer for {arg0}",
+        "answered": "{arg0} of {arg1} answered",
+        "deadline": "deadline {arg0}",
+        "hiddenInstances": "+{arg0} instances of other teams, not visible",
+        "info": "Every team answers for each of its instances; the answer sets the status of the instance's findings.",
+        "mandatory": "mandatory",
+        "open": "open",
+        "target": {
+          "CLIENTS": "All employees",
+          "TEAMS": "Teams"
+        },
+        "title": "Feedback {arg0}"
+      },
+      "clientAnswer": {
+        "DONE": "Done",
+        "NOT_AFFECTED": "Not affected",
+        "QUESTION": "Question/problem"
+      },
+      "column": {
+        "assignee": "Assignee",
+        "code": "Code",
+        "component": "Component",
+        "confidentiality": "Confidentiality",
+        "cve": "CVE",
+        "cvss": "CVSS",
+        "deviations": "Deviations",
+        "due": "Due",
+        "epss": "EPSS",
+        "exposed": "Internet",
+        "findingStatus": "Findings by status",
+        "group": "Responsible group",
+        "instance": "Instance",
+        "instances": "Instances",
+        "name": "Name",
+        "priority": "Prio",
+        "published": "Published",
+        "site": "Site",
+        "stage": "Stage",
+        "status": "Status",
+        "technologies": "Technologies",
+        "technology": "Technology",
+        "title": "Description"
+      },
+      "confidentiality": {
+        "CONFIDENTIAL": "Confidential",
+        "INTERNAL": "Internal",
+        "STRICTLY_CONFIDENTIAL": "Strictly confidential"
+      },
+      "criticality": {
+        "HIGH": "High",
+        "LOW": "Low",
+        "MEDIUM": "Medium",
+        "VERY_HIGH": "Very high"
+      },
+      "dashboard": {
+        "acknowledged": "acknowledged: {arg0}",
+        "campaigns": "Running campaigns",
+        "escalations": "Escalations",
+        "newToday": "New (24 h)",
+        "openPriority": "Open {arg0}",
+        "overdue": "Overdue",
+        "trend": {
+          "closed": "closed",
+          "open": "open",
+          "title": "Findings of the last 30 days"
+        },
+        "triageOverdue": "Triage overdue"
+      },
+      "demo": "Demo",
+      "deviation": "deviation",
+      "discussion": {
+        "newPost": "New post (Markdown)",
+        "post": "Post",
+        "scope": {
+          "INTERNAL": "Internal",
+          "PUBLIC": "Public discussion",
+          "label": "Visible for"
+        },
+        "title": "Discussion"
+      },
+      "error": {
+        "expiryRequired": "A risk acceptance needs a period of validity.",
+        "noAccess": "Not allowed for this role.",
+        "notAssignee": "The binding priority is set by the assignee or the security officer.",
+        "openFindings": "Can be closed only when every finding is fixed, mitigated, not affected or accepted as a risk.",
+        "reasonRequired": "A reason is required.",
+        "riskNeedsManagement": "From P2 on, the management approves as well; the prototype does not show this."
+      },
+      "escalation": {
+        "acknowledgedBy": "Acknowledged by",
+        "active": "Escalated: SO and management are called in",
+        "automatic": "automatic by rule (P1, or KEV with an instance on the internet)",
+        "start": {
+          "info": "Calls in the security officer and the management immediately, by banner and mail.",
+          "title": "Escalate"
+        },
+        "title": "Escalation"
+      },
+      "exploitability": {
+        "HIGH": "high",
+        "LOW": "low",
+        "MEDIUM": "medium",
+        "NONE": "none"
+      },
+      "filter": {
+        "all": "All",
+        "technology": {
+          "label": "Technology",
+          "placeholder": "Technology, e.g. spring boot < 3.5.7"
+        },
+        "withVulns": "Only with CVEs"
+      },
+      "findingBucket": {
+        "done": "{arg0} done",
+        "inProgress": "{arg0} in progress",
+        "open": "{arg0} open"
+      },
+      "findingStatus": {
+        "AFFECTED": "Affected",
+        "FIXED": "Fixed",
+        "FIX_PLANNED": "Fix planned",
+        "IN_REVIEW": "In review",
+        "MITIGATED": "Mitigated",
+        "NEW": "New",
+        "NOT_AFFECTED": "Not affected",
+        "RISK_ACCEPTED": "Risk accepted"
+      },
+      "findings": {
+        "confirmFixed": "Confirm fixed…",
+        "fixedVersion": "Fixed version",
+        "openOf": "{arg0} of {arg1} open",
+        "openOnly": "Open only",
+        "riskAccepted": {
+          "info": "Risk acceptance needs the security officer (from P2 on also the management) and an expiry date."
+        },
+        "riskExpiresInDays": "Valid for (days)",
+        "setStatus": "Set status…"
+      },
+      "group": {
+        "overridden": "overridden on the system"
+      },
+      "hiddenSystems": "+{arg0} more affected systems, not visible",
+      "hiddenSystemsShort": "+{arg0} hidden",
+      "inherited": {
+        "from": "from {arg0}"
+      },
+      "instance": {
+        "contact": "Contact",
+        "default": "default instance",
+        "exposed": "reachable from the internet",
+        "internal": "internal only",
+        "openFindings": "{arg0} open",
+        "raised": "raised on the instance",
+        "tenant": "Tenant"
+      },
+      "inventory": {
+        "hiddenSystems": "+{arg0} more systems, not visible for this role",
+        "vulnCount": "{arg0} CVE(s)"
+      },
+      "kev": {
+        "info": "Listed in the CISA catalogue of known exploited vulnerabilities: actively exploited.",
+        "label": "KEV"
+      },
+      "level": {
+        "AREA": "Area",
+        "COMPONENT": "Component",
+        "INSTANCE": "Instance",
+        "SYSTEM": "System"
+      },
+      "masterDataOnly": {
+        "info": "Only the master data of this system is visible for this role (code, name, group, level). Components and findings require a grant.",
+        "short": "master data only"
+      },
+      "matrix": {
+        "actions": "Deviation of {arg0}",
+        "apply": "Apply to the baseline",
+        "info": "Technology × instance. Coloured cells deviate from the baseline; click one to apply it to the baseline or to reset it.",
+        "kind": {
+          "ADDED": "additional",
+          "REMOVED": "missing",
+          "VERSION": "other version"
+        },
+        "reset": "Reset deviation"
+      },
+      "measures": {
+        "fixVersion": "Fix version",
+        "nonTechMeasures": "Measures for non-techies",
+        "none": "Not yet described.",
+        "remediation": "Remediation",
+        "techMeasures": "Measures for techies",
+        "workaround": "Workaround"
+      },
+      "menu": "CVE-Radar",
+      "myAreas": {
+        "findings": "Open findings of my systems",
+        "groups": "My groups: {arg0}",
+        "openFeedback": "My open feedback",
+        "systems": "My systems"
+      },
+      "no": "no",
+      "nobody": "nobody",
+      "none": "None.",
+      "notFound": "Not found or not visible for this role.",
+      "origin": {
+        "CI": "CI pipeline",
+        "MANUAL": "manual",
+        "SBOM": "SBOM file"
+      },
+      "persona": "Act as",
+      "possiblyAffected": {
+        "info": "The inventory has no exact version of this technology, so the match is uncertain.",
+        "label": "possibly"
+      },
+      "priority": {
+        "binding": "Binding priority",
+        "suggested": "Suggestion {arg0}: {arg1}"
+      },
+      "priorityReason": {
+        "cvssP2": "CVSS ≥ 9 → P2",
+        "cvssP3": "CVSS ≥ 7 → P3",
+        "cvssP4": "CVSS < 7 → P4",
+        "epss": "EPSS ≥ 30 % +1",
+        "exposed": "critical instance on the internet +1",
+        "instances": "affected instances +1",
+        "kev": "KEV +1"
+      },
+      "prototype": {
+        "banner": "Demo with fictitious test data; changes are kept in this browser only.",
+        "reset": {
+          "info": "Restores the test data as delivered; all changes are lost.",
+          "label": "Reset test data"
+        }
+      },
+      "qa": {
+        "audience": {
+          "NONTECH": "everybody",
+          "TECH": "techies"
+        },
+        "title": "Questions & answers"
+      },
+      "ratings": {
+        "binding": "Binding priority {arg0}: {arg1}",
+        "deviates": "Deviates from the binding priority",
+        "deviatesSuggestion": "Deviates from the suggestion",
+        "exploitability": "Exploitability here",
+        "noBinding": "No binding priority yet; suggestion {arg0}.",
+        "none": "No ratings yet.",
+        "notRelevant": "Closed as not relevant: {arg0}",
+        "own": "My rating",
+        "save": "Save rating"
+      },
+      "reason": "Reason",
+      "role": {
+        "CA": "CVE-Radar admin",
+        "EMPLOYEE": "Employee",
+        "MG": "Management",
+        "SO": "Security officer",
+        "ST": "Security team",
+        "TEAM": "Area/system team"
+      },
+      "save": "Save",
+      "saved": "Saved (test data only).",
+      "sbom": {
+        "change": {
+          "NEW": "new",
+          "REMOVED": "removed",
+          "VERSION": "version"
+        },
+        "import": "Import SBOM…",
+        "noChange": "No difference.",
+        "sample": "Sample file: {arg0}",
+        "target": {
+          "baseline": {
+            "info": "Replaces the technologies of the component in the baseline; all instances without a deviation follow."
+          },
+          "instance": {
+            "info": "The differences from the baseline become deviations of this instance."
+          },
+          "label": "Into"
+        }
+      },
+      "selected": "Selected: {arg0}",
+      "system": {
+        "criticality": "Criticality",
+        "grants": "Grants",
+        "tab": {
+          "findings": "Findings",
+          "matrix": "Comparison",
+          "overview": "Master data & instances"
+        },
+        "type": "Type"
+      },
+      "systemType": {
+        "APPLICATION": "Application",
+        "CLIENT": "Client",
+        "NETWORK": "Network device",
+        "SAAS": "SaaS",
+        "SERVER": "Server"
+      },
+      "tab": {
+        "advisories": "Client advisories",
+        "dashboard": "Dashboard",
+        "feedback": "Feedback",
+        "findings": "Findings",
+        "myAreas": "My areas",
+        "systems": "Systems & components",
+        "vulnerabilities": "Vulnerabilities (CVEs)"
+      },
+      "tabHint": {
+        "advisories": "Advisories for employees about the standard client, with instructions and confirmation.",
+        "dashboard": "The situation at a glance: open findings per priority, overdue items, escalations and the response rate of the campaigns.",
+        "feedback": "Running and finished feedback campaigns with their response rate.",
+        "findings": "Every finding on its own: vulnerability × component × instance, with status and deadline. Many findings can be worked on at once here, e.g. confirmed fixed across several instances.",
+        "myAreas": "The own areas and systems with their open findings.",
+        "systems": "All systems with their instances and components. Each row shows which vulnerabilities affect it and how far their processing is. A click on the code expands or collapses a node, a click elsewhere opens the system.",
+        "vulnerabilities": "All imported vulnerabilities with their processing status, priority and the status of their findings. A click opens the vulnerability; several ticked ones can be worked on together."
+      },
+      "teamAnswer": {
+        "FIXED": "Affected – fixed",
+        "IN_PROGRESS": "Affected – in progress",
+        "NOT_AFFECTED": "Not affected",
+        "RISK_ACCEPTED": "Risk accepted (needs SO approval)",
+        "planned": "planned for {arg0}",
+        "plannedInDays": "Planned in days",
+        "version": "version {arg0}"
+      },
+      "title": "CVE-Radar",
+      "tree": {
+        "collapse": "Collapse",
+        "expand": "Expand"
+      },
+      "triage": {
+        "assign": "Assign…",
+        "notRelevant": "Not relevant…",
+        "priority": "Set priority",
+        "setPriority": "Set priority…",
+        "takeOver": "I'm on it"
+      },
+      "triageStatus": {
+        "CLOSED": "Closed",
+        "IN_REMEDIATION": "In remediation",
+        "IN_TRIAGE": "In triage",
+        "NEW": "New",
+        "NOT_RELEVANT": "Not relevant",
+        "RATED": "Rated"
+      },
+      "unknown": "unknown",
+      "versionNowUnaffected": "Inventory already has an unaffected version — please confirm",
+      "vuln": {
+        "affectedRanges": "Affected configurations",
+        "cwe": "CWE",
+        "description": "Description (NVD)",
+        "modified": "Modified",
+        "nvdStatus": "NVD status",
+        "references": "Other references",
+        "remediationHints": "Remediation hints",
+        "tab": {
+          "ai": "AI",
+          "discussion": "Discussion & Q&A",
+          "findingsCount": "Findings ({arg0})",
+          "measures": "Measures",
+          "overview": "Overview",
+          "ratings": "Ratings"
+        }
+      },
+      "vulnerabilities": {
+        "withFindingsOnly": "Only with findings"
+      },
+      "yes": "yes"
     },
     "datatransfer": {
       "access": {
@@ -2946,6 +4341,14 @@
         "events": "Events of the last 30 days"
       },
       "button": {
+        "chat": {
+          "_": "Chat",
+          "info": "Chat with everybody who has access to this area. Files sent in the chat go into this area."
+        },
+        "directMessage": {
+          "_": "Direct message",
+          "info": "Write to the owner of this personal box directly. Files sent in the chat go into this box."
+        },
         "downloadAll": {
           "_": "Download all",
           "info": "Download all files in one ZIP archive."
@@ -2985,6 +4388,7 @@
             "info": "Please renew the link if you assume that this token was leaked. The old one will be invalid after clicking the save button."
           }
         },
+        "loginFailed": "Login failed. Please check the password (case sensitive!).",
         "password": {
           "_": "Password",
           "info": "This password improves security and is protected by brute-force protection.",
@@ -2999,13 +4403,23 @@
             "info": "If enabled, this area is accessible for external uploads via link (including access token) and password.",
             "title": "External upload"
           }
+        },
+        "userInfo": {
+          "_": "Your name or e-mail",
+          "info": "This is an optional field to let the owners of this data transfer area know who you are."
         }
       },
       "gateway": {
         "externalAccess": {
-          "edit": "External access can''t be configured here. To do so, a data transfer area must be created and administered on the server {arg0}.",
-          "list": "External access (read/write) can''t be configured here. Data transfer areas with external access must be created and administered on the server {arg0}."
-        }
+          "edit": "External access cannot be enabled on this server.",
+          "list": "External access (read/write) cannot be enabled on this server.",
+          "viaGateway": "External access runs via the server {arg0}: the area is transferred there, the external link points there, and external users download and upload the files there. Internally, the files of the area are managed there, too."
+        },
+        "files": {
+          "onGateway": "The external access of this area runs via another server, and so do its files: new files are uploaded there, not here. Files stored here before can still be downloaded and deleted."
+        },
+        "listManagedByMainInstance": "The data transfer areas are administered in the main instance of ProjectForge: they can be neither created, changed nor deleted here. Here, only their files can be managed.",
+        "managedByMainInstance": "This area is administered in the main instance of ProjectForge: it can be neither changed nor deleted here. Here, only its files can be managed."
       },
       "internal": {
         "link": "Internal link"
@@ -3023,6 +4437,9 @@
         "info": "For sending files to another single user, use his/her personal data transfer box.",
         "select": "Choose the user whose personal box you want to open.",
         "title": "Personal box of {arg0}"
+      },
+      "syntheticArea": {
+        "readOnly": "The files of this area are added and changed only where they belong (e.g. in the chat)."
       },
       "tab": {
         "files": "Files",
@@ -3193,11 +4610,18 @@
     "marketing": {
       "addressCampaign": {
         "_": "Address campaign",
+        "active": "Active",
         "edit": {
           "warning": {
             "doNotChangeValues": "A modification of the values can delete existing values which are already assigned to addresses!"
           }
         },
+        "inactiveReadOnly": "Inactive: the values of this campaign can't be changed any more.",
+        "lastUpdateOfAddress": "Last update of address",
+        "legend": {
+          "inactive": "Inactive (values can't be changed any more)"
+        },
+        "noCampaignSelected": "No address campaign selected.",
         "title": {
           "add": "Add new address campaign",
           "list": "Address campaign list"
@@ -3206,14 +4630,53 @@
           "format": "Please enter a list of semicolon separated values: value 1; value 2; value 3",
           "invalidFormat": "Invalid format: expected format is: value 1; value 2; value 3"
         }
+      },
+      "addressCampaignValue": {
+        "_": "Address campaign value",
+        "adopt": "Adopt",
+        "adoptComments": "also adopt the comments (appended to an existing one)",
+        "adoptOnlyEmpty": "only where no value is set yet",
+        "adoptValues": "Adopt the values of the comparison campaign",
+        "comparison": "Comparison",
+        "comparisonComment": "Comparison comment",
+        "comparisonValue": "Comparison value",
+        "error": {
+          "addressOrCampaignNotGiven": "Address or address campaign is not given."
+        },
+        "title": {
+          "add": "Add new address campaign value",
+          "list": "Address campaign value list"
+        }
       }
     },
     "memo": {
       "memo": "Memo",
       "owner": "Owner",
-      "subject": "Subject"
+      "subject": "Subject",
+      "title": {
+        "add": "Add new memo",
+        "heading": "Memos",
+        "list": "Memo list"
+      }
     },
     "merlin": {
+      "accessGroups": {
+        "_": "Groups with file access",
+        "info": "Members of these groups (if given) will have access to the files of this area."
+      },
+      "accessUsers": {
+        "_": "Users with file access",
+        "info": "These users (if given) will have access to the files of this area."
+      },
+      "admins": {
+        "_": "Admins",
+        "info": "Admins have full access to this area and its settings. They are also allowed to change admins, enabling external access and deleting this area."
+      },
+      "documentation": "Documentation of the templates",
+      "exportExcelTemplate": {
+        "_": "Export configuration template",
+        "info": "Use this template for configuring your Word® template (defining dependent variables etc.)"
+      },
       "fileNamePattern": {
         "_": "File pattern",
         "info": "File pattern of generated files (may contain variables such as ${user} or ${date}), e.g., '${date}-contract-${user}'."
@@ -3228,21 +4691,137 @@
           "info": "If selected, Word® documents will be converted to PDF. The layout and content of the resulting PDF file may differ, please check carefully!"
         }
       },
+      "menu": {
+        "examples": {
+          "_": "Merlin examples",
+          "contract": "A contract example",
+          "letter": "A letter example"
+        }
+      },
       "name": "Template name",
+      "serial": {
+        "template": {
+          "download": {
+            "_": "Excel® for serial execution",
+            "base": "Empty Excel® sheet",
+            "employees": "Excel® sheet with all active employees",
+            "info": "Download of a template sheet (Excel®) for easy generation of serial letters.",
+            "users": "Excel® sheet with all active users"
+          }
+        }
+      },
       "template": {
         "dataTransferUsage": {
           "_": "Enable personal box",
-          "info": "You may send the generated documents (serial execution) directly to the user's personal inboxes of the plugin DataTransfer. Please download the Excel template on the execution page for usage of #PersonalBox...."
+          "info": "You may send the generated documents (serial execution) directly to the user's personal inboxes of the plugin DataTransfer. Please download the Excel template on the execution page for usage of #PersonalBox....",
+          "resultZip": "Result archive of your Merlin run."
         }
+      },
+      "templateConfigurationFile": {
+        "_": "Template configuration",
+        "info": "The latest xlsx file of the attachments is used."
+      },
+      "templateExecutor": {
+        "execute": "Execute",
+        "heading": "Execution of Word® template"
+      },
+      "title": {
+        "add": "Add new Word® template",
+        "heading": "Word® template",
+        "list": "List of Word® templates"
+      },
+      "upload": {
+        "serialExecution": {
+          "_": "Serial execution file (xlsx)",
+          "info": "Upload of a serial execution Excel® file to execute."
+        }
+      },
+      "variable": {
+        "add": "Add new variable",
+        "allowedValues": {
+          "_": "Allowed values",
+          "info": "Allowed values should be given as csv or one per line: \"one\", \"two\", \"three\" or: one, two, three."
+        },
+        "dependsOn": "Depends on",
+        "edit": "Edit variable",
+        "mapping": {
+          "_": "Mapping",
+          "info": "Mapping values may be given in comma separated form, e.g., one, two, three..."
+        },
+        "master": {
+          "_": "Master variable",
+          "info": "Master variables are those with variables depends on or use in conditional expressions (if-expressions).",
+          "values": "Master values"
+        },
+        "maxValue": "Maximum value",
+        "minValue": "Minimum value",
+        "name": "Name",
+        "required": "Required",
+        "scale": {
+          "_": "Scale",
+          "info": "Float numbers will be rounded, scale is the number of fraction digits. If not given, all fraction digits will be shown."
+        },
+        "sortName": {
+          "_": "Name for sorting",
+          "info": "Input variables are displayed for usage in alphabetical order (ordered by name). If this name for sorting is given, it will be used for sorting instead of the variable's name."
+        },
+        "type": {
+          "_": "Type",
+          "DATE": "DATE",
+          "FLOAT": "FLOAT",
+          "INT": "INTEGER (INT)",
+          "STRING": "STRING",
+          "dependent": "Dependent"
+        },
+        "unique": "Unique",
+        "used": "Used"
+      },
+      "variables": {
+        "_": "Variables",
+        "conditionals": "Conditionals",
+        "dependant": {
+          "_": "Dependent variables",
+          "info": "Unused variables in the template are displayed in light gray color."
+        },
+        "input": {
+          "_": "Input Variables",
+          "info": "Master variables with dependent variables or used by conditional expressions are highlighted in red."
+        }
+      },
+      "viewLogs": "View logs",
+      "wordTemplateFile": {
+        "_": "Word® template",
+        "info": "The latest docx file of the attachments is used."
       }
     },
     "skillmatrix": {
-      "interest": "Interest",
+      "interest": {
+        "_": "Interest",
+        "0": "Not rated",
+        "1": "Interest",
+        "2": "Deep interest",
+        "3": "Going crazy!"
+      },
       "owner": "Owner",
-      "rating": "Self-rating",
-      "skill": "Skill"
+      "rating": {
+        "_": "Self-rating",
+        "0": "Not rated",
+        "1": "Basic",
+        "2": "Advanced",
+        "3": "Expert"
+      },
+      "skill": "Skill",
+      "title": {
+        "add": "Add new skill",
+        "list": "Skillmatrix"
+      }
     },
     "teamcal": {
+      "absenceKinds": {
+        "_": "Absences shown",
+        "tooltip": "Which absences of the people above the calendar includes: vacations, not available, remotely reachable etc. Applies to the calendar view and to the subscription of the calendar."
+      },
+      "absences": "Absences",
       "access": {
         "_": "Access right",
         "groups": "Groups",
@@ -3427,8 +5006,14 @@
         "timesheets": "You can subscribe your time sheets in your personal calendar (e.g. Apple iCal oder Microsoft Outlook).",
         "tooltip": "You can subscribe this calendar in your personal calendar (e.g. Apple iCal oder Microsoft Outlook)."
       },
-      "switchToTeamEventButton": "Switch to events",
-      "switchToTimesheetButton": "Switch to time sheet",
+      "switchToTeamEventButton": {
+        "_": "Edit as event",
+        "tooltip": "Opens a new event with this time sheet's period, location and description. It is only created when you save it; a time sheet already saved stays as it is."
+      },
+      "switchToTimesheetButton": {
+        "_": "Edit as time sheet",
+        "tooltip": "Opens a new time sheet with this event's period, location, subject and note. It is only created when you save it; an event already saved stays as it is."
+      },
       "title": {
         "_": "Title",
         "add": "Add calendar",
@@ -3489,16 +5074,109 @@
     }
   },
   "poll": {
-    "attendees": "Attendees",
-    "deadline": "Deadline",
+    "answer": {
+      "for": "Answers of",
+      "lastUpdate": "Last saved",
+      "notOpen": "The poll is finished, the answers can no longer be changed.",
+      "save": "Save answers",
+      "saved": "The answers are saved.",
+      "title": "Answer the poll"
+    },
+    "answers": "Answers",
+    "attendeeGroups": "Attending groups",
+    "attendees": {
+      "_": "Attendees",
+      "tooltip": "The attendees answer the poll. All members of an attending group take part, also those joining it later."
+    },
+    "deadline": {
+      "_": "Deadline",
+      "tooltip": "Answers are taken until the end of this day. The poll is finished the next morning."
+    },
     "description": "Description",
+    "error": {
+      "oneQuestionRequired": "At least one question is required."
+    },
+    "finish": {
+      "_": "Finish poll",
+      "confirm": "Finish the poll now? Afterwards, answers can no longer be given or changed. Everybody is informed by mail, the users with full access get the results.",
+      "done": "The poll is finished."
+    },
+    "fullAccess": {
+      "tooltip": "The owner and the users with full access edit the poll, see all answers, finish it and answer on behalf of attendees."
+    },
+    "fullAccessGroups": "Groups with full access",
+    "fullAccessUsers": "Users with full access",
+    "heading": {
+      "access": "Attendees and access",
+      "general": "Poll",
+      "invitation": "Invitation mail",
+      "questions": "Questions"
+    },
+    "info": "All attendees and the users with full access get an invitation mail when the poll is saved for the first time (a template: when it is saved as a poll). The attendees can change their answers until the deadline. The day after, the poll is finished and the users with full access get the results.",
+    "invitation": {
+      "subject": {
+        "_": "Subject",
+        "tooltip": "Leave empty for the standard subject."
+      },
+      "text": {
+        "_": "Text",
+        "tooltip": "Leave empty for the standard text. The link to the poll and its deadline are added below the text."
+      }
+    },
     "location": "Location",
+    "option": {
+      "_": "Option",
+      "add": "Add option",
+      "remove": "Remove option"
+    },
     "owner": "Owner",
-    "state": "State",
-    "title": "Title"
+    "question": {
+      "_": "Question",
+      "add": "Add question",
+      "moveDown": "Move down",
+      "moveUp": "Move up",
+      "remove": "Remove question"
+    },
+    "questionTemplate": {
+      "_": "Take questions from a template",
+      "taken": "The questions of the template were added."
+    },
+    "questionType": {
+      "_": "Type of question",
+      "MULTIPLE_CHOICE": "Multiple choice",
+      "SINGLE_CHOICE": "Single choice",
+      "TEXT": "Text"
+    },
+    "questions": "Questions",
+    "response": {
+      "owner": "Attendee"
+    },
+    "results": {
+      "_": "Results",
+      "answered": "{arg0} of {arg1} attendees answered",
+      "missing": "No answers yet",
+      "notAttendee": "not an attendee"
+    },
+    "state": {
+      "_": "State",
+      "finished": "Finished",
+      "running": "Running",
+      "template": "Template"
+    },
+    "template": {
+      "_": "Template",
+      "info": "A template is never sent: its questions are taken into other polls, or it is cloned. Saved without this mark, it becomes a poll, and its attendees are invited."
+    },
+    "title": {
+      "_": "Title",
+      "add": "New poll",
+      "edit": "Edit poll",
+      "list": "Polls"
+    }
   },
   "preview": "Preview",
   "print": "Print",
+  "printView": "print view",
   "priority": {
     "_": "Priority",
     "high": "high",
@@ -3506,6 +5184,85 @@
     "least": "least",
     "low": "low",
     "middle": "middle"
+  },
+  "project": {
+    "wizard": {
+      "action": {
+        "customerNotCreated": "The customer is not created yet: {arg0}",
+        "newCustomer": "The customer {arg0} is created.",
+        "newProject": "The project {arg0} is created.",
+        "noGroups": "No groups are selected, so no access rights are created.",
+        "projectNotCreated": "The project is not created yet: {arg0}"
+      },
+      "customer": {
+        "intro": "The customer of the project: an existing one, or a new one that is created together with the project - or on its own."
+      },
+      "element": {
+        "autoReuse": "An element of this title exists already, so it is used: {arg0}",
+        "customerIntro": "A new element below a picked one, titled with the name of the customer, or an existing element; its title may differ from the name.",
+        "existing": "Use an existing element",
+        "new": "Create a new element",
+        "projectIntro": "A new element below the customer's, titled with the name of the project, or an existing element below it that has no project yet; its title may differ. The element is linked to the project and gets the access rights of the groups."
+      },
+      "existing": {
+        "customer": "Existing customer",
+        "group": "Existing group"
+      },
+      "finish": {
+        "_": "Set up project",
+        "customer": "Create customer"
+      },
+      "intro": "This wizard sets up a new customer and/or a new project in one go: the customer (existing or new), the project, its structure element and, if wanted, the groups of its team, managers and externals together with their access rights. Nothing is saved before the wizard is finished, and then everything at once.",
+      "managerGroup": {
+        "projectManagerGroup": "This group also becomes the project manager group of the project."
+      },
+      "new": {
+        "customer": "New customer",
+        "group": "New group",
+        "project": "New project"
+      },
+      "none": {
+        "group": "No group",
+        "project": "No project"
+      },
+      "notAllowed": "The customer wizard is only available to users who may create customers or projects and structure elements.",
+      "pageTitle": "Customer wizard",
+      "parentTask": {
+        "customerOnly": {
+          "intro": "Optional: the structure element of the new customer, a new one below a picked element, titled with the name of the customer, or an existing one. Without an element, only the customer is created."
+        },
+        "existingCustomer": {
+          "_": "Structure element of the customer",
+          "intro": "The element of the customer, preset from its projects where known. The structure element of the project lies below it."
+        },
+        "heading": "Structure elements",
+        "intro": "The structure elements of the customer and the project: new ones, or existing ones.",
+        "newCustomer": "Parent of the customer's structure element",
+        "newPath": "Path of the structure elements:",
+        "structure": {
+          "_": "The element of a customer is the parent of the elements of all its projects. It may be placed below a customer group, a business unit or the like, or on the top level.",
+          "title": "How the structure is meant"
+        }
+      },
+      "preview": {
+        "existingElement": "existing",
+        "newElement": "new"
+      },
+      "project": {
+        "intro": "The new project. Its number follows the number range of the customer."
+      },
+      "result": {
+        "created": "new",
+        "customerElement": "Structure element of the customer",
+        "existing": "existing",
+        "projectElement": "Structure element of the project",
+        "title": "What the wizard set up"
+      },
+      "running": {
+        "_": "Setting up the project …",
+        "customer": "Creating the customer …"
+      }
+    }
   },
   "projectmanagement": {
     "personDays": {
@@ -3518,7 +5275,7 @@
     "deleteRowQuestion": "Do you really want to remove this entry? It is deleted when the form is saved.",
     "forceDeleteQuestion": "ATTENTION!!! Do you really want to destroy this object including all history entries? This option is irrevocable!!!!!",
     "leaveUnsavedChanges": "There are unsaved changes. Do you really want to leave this page?",
-    "markAsDeletedQuestion": "Do you want to mark this object as deleted?"
+    "markAsDeletedQuestion": "Do you want to mark this object as deleted? It can be restored later."
   },
   "rating": "Rating",
   "recursive": "recursive",
@@ -3531,6 +5288,8 @@
   "richTextEditor": {
     "bold": "Bold",
     "bulletList": "Bulleted list",
+    "code": "Code",
+    "codeBlock": "Code block",
     "color": {
       "_": "Text colour",
       "blue": "Blue",
@@ -3549,6 +5308,7 @@
     },
     "orderedList": "Numbered list",
     "paragraph": "Normal text",
+    "strike": "Strikethrough",
     "table": {
       "_": "Table",
       "addColumnAfter": "Insert column to the right",
@@ -3625,6 +5385,7 @@
         "pageContext": "Started from: {arg0}. The script gets the current filter of this page as variable `pageContext`."
       },
       "includes": "Embedded scripts",
+      "input": "Input",
       "name": "Name",
       "output": "Output",
       "pageButtons": "Page buttons",
@@ -3659,6 +5420,7 @@
     "area": "Area",
     "durationOfSearch": "duration of search",
     "error": "Unfortunately an internal error occurred.",
+    "invalidSyntax": "The search term isn't a valid search syntax (e.g. a colon after a word or an unclosed quotation mark), so there is no result.",
     "lastDay": "Last day.",
     "lastDays": "Last {arg0} days.",
     "lastHour": "Last hour",
@@ -3691,9 +5453,14 @@
     "_": "Select",
     "checklist": {
       "andMore": "and {arg0} more",
+      "fromAll": "Choose from all",
+      "fromAllHint": "All values, also those not in the current result.",
+      "narrowsHint": "Only values of the entries the other filters match: narrows the current result.",
+      "noneForOtherFilters": "No entries match the other filters. Set or widen them first (e.g. the period), or choose from all.",
       "selectedOf": "{arg0} of {arg1} selected",
       "truncated": "Showing {arg0} of {arg1} entries; refine the search to see the rest."
     },
+    "inactive": "inactive",
     "placeholder": "Select..."
   },
   "selectAll": "Select all",
@@ -3931,10 +5698,6 @@
           "_": "Export 2FA configuration",
           "tooltip": "Export 2FA configuration including all ProjectForge rest end points and configuration of projectforge.properties."
         },
-        "exportConfiguration": {
-          "_": "Export configuration",
-          "tooltip": "Exports the config.xml which represents the currently used configuration of ProjectForge. The exported file may differ from the config.xml."
-        },
         "formatLogEntries": {
           "_": "Format log entries",
           "textarea": {
@@ -3950,7 +5713,7 @@
         "reindex": "Reindex",
         "rereadConfiguration": {
           "_": "Reread configuration",
-          "tooltip": "Rereads the config.xml configuration. You can use this to tell ProjectForge that you've modified the config.xml file. ProjectForge reads the config.xml during the start-up phase."
+          "tooltip": "Rereads the configuration parameters, e.g. after a parameter was modified directly in the data base. Usually not needed: changes on the configuration page apply at once."
         },
         "resetIdpPasswordSync": {
           "_": "Reset IdP password sync",
@@ -3962,6 +5725,21 @@
           "tooltip": "Export the database schema (tables, constraints etc.). The database dialect of the currently used database is used."
         },
         "setAlertMessage": "Set system alert message",
+        "sipgate": {
+          "downloadConfiguration": {
+            "_": "Download Sipgate configuration",
+            "tooltip": "Downloads the configuration of Sipgate (users, devices, numbers etc.) as Excel file."
+          },
+          "resetContacts": {
+            "_": "Reset Sipgate contacts",
+            "question": "Do you really want to reset the Sipgate contacts? They are synchronized again with the local addresses afterwards.",
+            "tooltip": "Synchronizes and resets the Sipgate contacts. May be used for re-organizing contacts in Sipgate with duplicated numbers."
+          },
+          "synchronize": {
+            "_": "Synchronize Sipgate",
+            "tooltip": "Synchronizes the contacts of Sipgate with the local addresses and reloads the remote configuration (users, devices, numbers etc.)."
+          }
+        },
         "testDatabase": {
           "_": "Test database",
           "tooltip": "Runs a database load test (development mode only, see the log files)."
@@ -3980,6 +5758,7 @@
           "misc": {
             "logEntries": "Format log entries"
           },
+          "sipgate": "Sipgate",
           "systemChecksAndFunctionality": {
             "configuration": "Configuration"
           }
@@ -4081,6 +5860,71 @@
       "restartRequired": "Please note: (de)activation of plugins will take effect only after restart!",
       "title": "Plugins"
     },
+    "propertiesEditor": {
+      "activeDiffers": "The running system uses another value: a restart is pending or the value is overridden.",
+      "activeSource": "Overridden by: {arg0}",
+      "activeValue": "Active value",
+      "addParameter": {
+        "_": "Add parameter",
+        "exists": "This parameter exists already.",
+        "invalid": "Invalid key (letters, digits, '.', '-', '_' and [n] only).",
+        "key": "Key",
+        "value": "Value"
+      },
+      "backupInfo": "Before every save, a copy of the file with a timestamp is placed next to it (e.g. projectforge.properties.2026-10-20_09-30-15.bak). The file is rewritten sorted by groups; own comments stay above their parameter.",
+      "cardInfo": "Edits the parameters of projectforge.properties in ProjectForge's home directory: grouped by topic, with descriptions and defaults.",
+      "changeCount": "{arg0} changed",
+      "confirm": {
+        "description": "The following parameters will be changed in projectforge.properties. A backup is written before.",
+        "title": "Save projectforge.properties?"
+      },
+      "default": "Default",
+      "delete": "Remove",
+      "deleteAll": "Remove all ({arg0})",
+      "deleteInfo": "Deletes the parameter from projectforge.properties (the backup made on saving keeps it).",
+      "diff": {
+        "current": "Current file",
+        "ignoreOrder": "Ignore order",
+        "info": "Compares projectforge.properties with its backups, or two backups with each other. Values of secrets are not shown, only whether they changed.",
+        "title": "Compare projectforge.properties"
+      },
+      "example": "Example",
+      "expertWarning": "Internal settings: only change them if you know exactly what you are doing. A wrong value may prevent ProjectForge from starting.",
+      "fileComment": "Own comment in projectforge.properties",
+      "filter": {
+        "inFile": "Set in projectforge.properties",
+        "modified": "Modified"
+      },
+      "group": {
+        "obsolete": "No longer used",
+        "other": "Other"
+      },
+      "inFileCount": "{arg0} set",
+      "noResults": "No parameters found.",
+      "notWritable": "projectforge.properties doesn't exist or can't be written (missing write permission for the file or its directory). The parameters are shown read-only.",
+      "obsoleteInfo": "In ProjectForge's namespace (projectforge.*, pf.*), but not known to ProjectForge (any more): a removed option or a typo. It has no effect.",
+      "optional": "optional",
+      "otherInfo": "Not known to ProjectForge, e.g. a setting of Spring Boot or of a library. Please check whether it is still needed and for typos.",
+      "removed": "removed (default applies)",
+      "reset": {
+        "_": "Reset to default",
+        "tooltip": "Removes the parameter from projectforge.properties, so the default applies again."
+      },
+      "restartRequired": "Changes take effect only after a restart of ProjectForge!",
+      "search": "Search key or description",
+      "secret": {
+        "notSet": "Not set",
+        "set": "Set (the value is not shown)"
+      },
+      "secretChanged": "new value",
+      "status": {
+        "obsolete": "no longer used",
+        "unknown": "unknown"
+      },
+      "title": "Configuration file (projectforge.properties)",
+      "undo": "Undo change",
+      "unset": "not set (default applies)"
+    },
     "scheduler": {
       "abandoned": {
         "_": "Terminated runs still running: {arg0}",
@@ -4171,7 +6015,91 @@
       "tooltip": "If checked (also inherited by sub elements) time sheets booked here may overlap in time with time sheets of other projects (shared costs). Overlapping time is counted proportionally in attendance and monthly reports (e.g. 1h + overlapping 1h = 0.5h each). Overlapping time sheets on the same cost 2 or within the same project or overlap group (configuration) remain unsupported. A setting of the cost 2 takes precedence."
     },
     "assignedUser": "Responsible user",
+    "bookingGrant": {
+      "acceptanceRequired": "To be accepted",
+      "add": "Grant booking",
+      "badge": {
+        "_": "{arg0} ad hoc booking(s)",
+        "upcoming": "from {arg0}"
+      },
+      "confirm": {
+        "_": "Confirm",
+        "confirm": "Confirm this proposed grant? The time sheets booked by it from now on don't have to be accepted anymore, the ones booked so far still do."
+      },
+      "error": {
+        "endBeforeStart": "The end of the period is before its start.",
+        "invalidKost2": "A cost unit isn't one of its structure element.",
+        "noTask": "Please select at least one structure element.",
+        "notConfirmable": "The grant is revoked or confirmed already.",
+        "periodNotSet": "Please enter the period.",
+        "periodTooLong": "A proposed grant is valid for 31 days at most.",
+        "proposalTooFarAhead": "A proposed grant ends 31 days from today at the latest.",
+        "taskNotBookable": "No time sheets can be booked on this structure element.",
+        "taskTwice": "A structure element is selected twice.",
+        "userChanged": "The user of a grant can't be changed.",
+        "userNotSet": "Please select at least one user."
+      },
+      "grantedBy": "Granted by",
+      "kost2": {
+        "all": "All cost units",
+        "selected": "{arg0} cost unit(s)"
+      },
+      "mail": {
+        "acceptanceRequired": "Your time sheets will be checked and accepted by the project management, maybe on another structure element or cost unit.",
+        "greeting": "Hello {arg0},",
+        "subject": {
+          "_": "Booking time sheets on {arg0}",
+          "multiple": "Booking time sheets on {arg0} structure elements"
+        },
+        "text": "{arg0} has granted you the booking of own time sheets for the period {arg1} on the following structure elements. You can book your time sheets by the links:"
+      },
+      "none": "No ad hoc bookings granted.",
+      "pending": {
+        "_": "{arg0} to accept",
+        "tooltip": "{arg0} time sheet(s) booked by a proposed grant to be accepted"
+      },
+      "positions": {
+        "_": "Structure elements",
+        "add": "Add sub element",
+        "hidden": "and {arg0} more structure element(s)",
+        "truncated": "Only the first {arg0} sub elements are offered. For a deeper one, open its own structure element."
+      },
+      "proposal": {
+        "info": "A grant can't be given here, but proposed: the colleague helping out books right away, the project management accepts the time sheets afterwards (maybe on another structure element or cost unit). Valid for 31 days at most."
+      },
+      "propose": "Propose booking",
+      "proposed": {
+        "_": "Proposed",
+        "tooltip": "Proposed without the right to grant: the time sheets booked by it are to be accepted by the project management."
+      },
+      "revoke": {
+        "_": "Revoke",
+        "confirm": "Revoke this grant on all its structure elements? The time sheets booked so far are kept."
+      },
+      "status": {
+        "_": "Status",
+        "ACTIVE": "Active",
+        "EXPIRED": "Expired",
+        "REVOKED": "Revoked",
+        "UPCOMING": "Upcoming"
+      },
+      "users": "Users",
+      "validFrom": "Valid from",
+      "validUntil": "Valid until"
+    },
+    "bookingGrants": {
+      "_": "Ad hoc bookings",
+      "info": "Colleagues helping out may book their own time sheets on this structure element or its sub elements for a period, without being member of a group. They see nothing else of the project: only the granted structure elements and the titles of their ancestors."
+    },
     "consumption": "Consumption",
+    "consumptionTooltip": {
+      "booked": "Booked",
+      "budget": "Budget",
+      "overbooked": "Overbooked",
+      "overbookedTitle": "{arg0} overbooked",
+      "remaining": "Remaining",
+      "remainingTitle": "remaining: {arg0}"
+    },
     "deleted": "deleted",
     "edit": {
       "maxHoursIngoredDueToAssignedOrders": "Order positions are assigned to this node or a subnode. By default their person days sum is used; the entered maximum hours are only applied if the option \"Maximum hours take priority\" is set. A zero value suppresses displaying a maximum value in the consumption bar."
@@ -4236,7 +6164,6 @@
       "_": "Protection of privacy",
       "tooltip": "If checked then users don't have access to the time sheets of other users assigned to this structure element or any sub element."
     },
-    "recursive": "incl. all structure sub elements",
     "reference": "Reference",
     "selectPanel": {
       "info": "You may select folders by clicking in other columns of the row than the first.\\\n**Keyboard:** **↑ / ↓** – move between the elements · **→ / ←** – expand and collapse the focused element · **Enter** – select the focused element",
@@ -4287,6 +6214,7 @@
         "select": "Select structure element"
       }
     },
+    "withoutSubTasks": "without structure sub elements",
     "wizard": {
       "action": {
         "_": "Action",
@@ -4361,6 +6289,12 @@
   },
   "timesheet": {
     "_": "Time-sheet",
+    "acceptance": {
+      "accept": "Accept",
+      "acceptOnSave": "Accept on save",
+      "info": "Booked by an ad hoc booking proposed by {arg0}: to be accepted by the project management, maybe on another structure element or cost unit."
+    },
+    "acceptancePending": "To be accepted",
     "ai": {
       "timeSavedByAI": {
         "_": "Time savings AI",
@@ -4404,12 +6338,18 @@
       "vacationNotConfigured": "No vacation cost unit is configured: please choose structure element and cost unit yourself.",
       "vacationPlaceholder": "Choose a vacation"
     },
+    "bookingGrant": "Ad hoc booking",
     "description": "Activity report",
     "duration": "Duration",
     "iCalSubscription": "Subscribe time sheets in iCal format (*.ics) for the logged-in user.",
     "icsExport": "ics export",
     "location": "Location",
     "massupdate": {
+      "acceptPending": {
+        "info": "Accepts the selected time sheets booked by a proposed ad hoc booking, with the structure element and cost unit chosen above, if any. Nothing changes about this for the others."
+      },
+      "remapKost2": "Remap cost unit by type (structure element stays)",
+      "remapKost2Info": "Each time sheet keeps its structure element. A cost unit the structure element no longer offers is replaced by its cost unit of the same type (last 2 digits), e.g. 5.900.11.01 -> 7.900.01.01 after a project was linked.",
       "taskNotApplied": "The structure element is not selected (checkbox) and will therefore not be changed.",
       "updateTask": "Update structure element for all time sheets."
     },
@@ -4474,6 +6414,50 @@
   "uptodate": "up-to-date",
   "user": {
     "_": "User",
+    "My2FA": {
+      "expired": "For the requested action a 2FA is required not older than {arg0}.",
+      "required": {
+        "_": "A (new) two-factor authentication is required for proceeding.",
+        "extended": "A (new) two-factor authentication is required for proceeding due to security reasons. You may request a code (see link below code field) or, if configured, use Your authenticator app."
+      },
+      "setup": {
+        "authenticator": {
+          "info": "### Setup your smart phone\n\n1. Scan this barcode in Your Authenticator-App.\n2. Done.\n\nEvery time ProjectForge requests a code, enter the displayed code in your Authenticator app.\n\nYou may setup others Authenticator apps on different devices as a backup, if you want.\n\nThe code displayed in your Authenticator app is valid for up to 30 seconds after disappearing in your app.",
+          "intro": "Please, use your 2FA Authenticator app, such as Microsoft or Google Authenticator as a second factor.",
+          "title": "Authenticator apps"
+        },
+        "authenticatorKey": "Authenticator key",
+        "check": {
+          "fail": "Code check failed."
+        },
+        "check2FA": "Check 2FA now",
+        "disableAuthenticatorApp": {
+          "_": "Disable Authenticator app",
+          "confirmMessage": "Do you want to disable or renew the token for Authenticator apps now? All Authenticator apps will be invalidated.",
+          "info": "Click this button to disable or renew Authentificator apps. A two-factor authentication not older than 10 minutes is required."
+        },
+        "enableAuthenticatorApp": {
+          "_": "Enable Authenticator app",
+          "confirmMessage": "Do you want to setup an Authenticator apps? Afterwards a second factor is required on login. This operation can be undone.",
+          "info": "Click this button to setup an Authentificator app."
+        },
+        "info": {
+          "1": "### Second factor authentication (2FA)\n\n* ProjectForge supports 2FA for more security. Authenticator apps, mobile phones if texting is configured and/or e-mail are supported.\n* Every time ProjectForge requests a code, you may enter it from your Authenticator app or request a one-time-password by e-mail or as text message.\n\nPlease use the stay-logged-in functionality on login to prevent annoying 2FA requests!",
+          "2": "It's highly recommended to configure a second factor via Authenticator App and/or WebAuthn (e.g. Fido2) and, if available a mobile phone number for a second factor via text messages.\n\nSome security relevant functionalities such as password reset are only available, if a second factor is configured (Authenticator-App, mobile phone, or WebAuthn).",
+          "3": "Feel free to test 2FA codes here. Modifications on this setup pages need a current 2FA authentification as well.",
+          "title": "Two-factor authentication"
+        },
+        "showAuthenticatorKey": "Show authenticator key",
+        "sms": {
+          "info": {
+            "_": "You may configure here your mobile phone number for receiving one time passwords on demand as text message.",
+            "title": "SMS configuration"
+          },
+          "mobileNumberRecommended": "It's highly recommended to configure Your mobile number here as a second factor.\n\nYou may get a second factor as a text message as an alternative.\n\nIf you want to change Your mobile number, a (new) 2FA is required (see above)."
+        },
+        "title": "Setup of two-factor-authentication (2FA)"
+      }
+    },
     "My2FACode": {
       "authentification": {
         "info": "A second factor is required for proceeding.\n\nPlease enter any 2nd factor (e.g. OTP) you have (requested): from Your Authenticator-App or received by SMS or mail or you may use any WebAuthn token you have registered."
@@ -4491,27 +6475,32 @@
       },
       "lastSuccessful2FA": "Last successful 2 FA",
       "password": {
-        "info": "The password is only needed as an additional factor if you received the code via e-mail.",
         "wrong": "Password check failed."
       },
       "sendCode": {
         "mail": {
           "_": "Request mail code",
-          "info": "Send code as e-mail. The code will be valid up to 2 minutes and your password is required when validating the sent code.",
           "message": "Your code is: {arg0}",
           "sentSuccessfully": "Mail was successfully sent to Your e-mail address at {arg0}",
           "title": "Message from ProjectForge"
         },
         "sms": {
           "_": "Request SMS code",
-          "info": "Request code as text message to your mobile phone. The code will be valid up to 2 minutes.",
           "sentSuccessfully": "Message successfully sent to Your mobile phone at {arg0}."
         }
       },
       "title": "Two-factor authentication"
     },
+    "activated": {
+      "_": "Activated",
+      "tooltip": "Deactivated users have no system access."
+    },
     "add": {
       "optionalPassword": "You may set an initial password."
+    },
+    "adminUsers": {
+      "_": "Admin users",
+      "none": "Non-admin users"
     },
     "alternativeEmails": {
       "_": "Alternative e-mail addresses",
@@ -4557,7 +6546,30 @@
         "qrCode": "QR code for setting up a client app with this token."
       }
     },
+    "avatar": {
+      "_": "Avatar",
+      "edit": "Edit",
+      "error": {
+        "unsupportedImage": "Only images of the types PNG, JPEG and GIF can be used as avatar."
+      },
+      "hint": "Shown in the chat and in the user menu to all users sharing at least one group.",
+      "remove": {
+        "_": "Remove",
+        "confirm": "Remove the avatar?"
+      },
+      "removed": "The avatar has been removed.",
+      "saved": "The avatar has been saved.",
+      "upload": "Upload image"
+    },
     "changePassword": {
+      "error": {
+        "noCharacter": "Password must have at minimum one letter.",
+        "noNonCharacter": "Password must have at minimum one non-letter.",
+        "notMinLength": "Password must have at least {arg0} characters.",
+        "oldPasswdEqualsNew": "New password should not be the same as the old one.",
+        "oldPasswordWrong": "Old password does not match.",
+        "passwordQualityCheck": "Password must have at least {arg0} characters and at minimum one letter and one non-letter character."
+      },
       "msg": {
         "passwordSuccessfullyChanged": "Password successfully changed."
       },
@@ -4566,36 +6578,70 @@
       "oldPassword": "Old password",
       "password": {
         "lastChange": "Last change of password"
-      }
+      },
+      "title": "Change own password"
     },
     "changeWlanPassword": {
+      "error": {
+        "loginPasswordWrong": "The login password is not correct."
+      },
       "lastChange": "Last change of WLAN/Samba password",
       "loginPassword": "Login password",
-      "newPassword": "New WLAN password"
+      "newPassword": "New WLAN password",
+      "title": "Change WLAN/Samba password"
     },
     "deactivated": "deactivated",
     "defaultLocale": "Default (browser)",
+    "error": {
+      "emailUsedByOtherUser": "{arg0} is already used by the user {arg1}.",
+      "invalidEmail": "Invalid e-mail address: {arg0}",
+      "passwordAndRepeatDoesNotMatch": "Password and password repeat does not match.",
+      "usernameAlreadyExists": "User name already exists."
+    },
+    "filter": {
+      "hrPlanning": "HR planning",
+      "privileged": "Privileged users",
+      "restricted": "Restricted users",
+      "status": "State",
+      "syncStatus": "Sync state",
+      "type": "Type"
+    },
     "formerEmails": {
       "_": "Former e-mail addresses",
       "info": "E-mail addresses of the user no longer in use (e.g. after a change of name), comma separated. They may be needed by the synchronization runs of external systems (e.g. Lanes & Planes)."
     },
     "gpgPublicKey": "GPG public key",
-    "hrPlanningEnabled": "HR planning",
+    "hrPlanningEnabled": {
+      "_": "HR planning",
+      "not": "No HR planning",
+      "tooltip": "Should the user be available in HR planning?"
+    },
     "jiraUsername": {
       "_": "JIRA user name",
       "tooltip": "Only needed, if the ProjectForge user name differs from the JIRA user name and the user want to work with JIRA inside ProjectForge."
     },
     "ldapValues": "LDAP",
+    "legend": {
+      "deactivated": "Deactivated"
+    },
+    "list": {
+      "select": {
+        "title": "Select user"
+      }
+    },
     "localUser": {
       "_": "Local user",
       "not": "Common user",
       "tooltip": "Local users will not be synchronized with an external user management system (such as LDAP)."
     },
     "locale": "Language",
+    "menu": {
+      "editRights": "User rights"
+    },
     "mobilePhone": {
       "_": "Mobile phone",
       "info": "Mobile phone usable as a 2nd factor (required e.g. for password reset or other services).\n\nYou may configure this field by any admin or by configuring your two-factor-authentication.",
-      "invalidFormat": "Valid characters for phone numbers are '+' as first char, '-', '/' and spaces. The leading country code is optional, e.g.: +49 561 316793-0 or 0561 316793-0"
+      "invalidFormat": "Valid characters for phone numbers are '+' as first char, '-', '/' and spaces. The leading country code is optional, e.g.: +49 123 456789-0 or 0123 456789-0"
     },
     "myAccount": {
       "defaultValue": "Default: {arg0}",
@@ -4606,6 +6652,7 @@
         "settings": "Settings",
         "tokens": "Access tokens"
       },
+      "teamcalwhitelist": "Calendar whitelist for calendar software",
       "title": {
         "edit": "Edit my account"
       }
@@ -4618,17 +6665,29 @@
         "title": "Direct call"
       }
     },
+    "restricted": {
+      "_": "restricted",
+      "not": "not restricted"
+    },
     "restrictedUser": {
       "_": "Restricted user",
       "tooltip": "A restricted user has only the ability to log-in and to change his password, but the user is synchronized with the external user management system."
     },
     "rights": {
-      "none": "No right is configurable with the assigned groups."
+      "none": "No right is configurable with the assigned groups.",
+      "title": {
+        "edit": "Edit user rights"
+      }
     },
     "sshPublicKey": "SSH public key",
     "title": {
       "add": "Add new user",
-      "list": "List of users"
+      "edit": "Edit user",
+      "heading": "Users",
+      "list": {
+        "_": "List of users",
+        "select": "Select user"
+      }
     },
     "tooltip": {
       "assignedGroups": "The groups determine the rights. They are assigned by the administration.",
@@ -4641,7 +6700,9 @@
       "timeZone": "All times (time sheets, calendar events) are shown and entered in this time zone.",
       "username": "The login name. Only the administration can change it."
     },
-    "username": "User name"
+    "unassignedGroups": "Unassigned groups",
+    "username": "User name",
+    "users": "Users"
   },
   "username": "User name",
   "vacation": {
@@ -4659,7 +6720,7 @@
       "uncovered": "No substitute"
     },
     "conflict": {
-      "info": "A conflict exists: At least at one day no substitute is available. Please choose other or further substitutes."
+      "info": "A conflict exists: At least at one day no substitute is available (on vacation or not available). Please choose other or further substitutes."
     },
     "conflicts": "Conflicts",
     "countPerDay": "vacation hours per day",
@@ -4669,6 +6730,10 @@
       "sendmail": "Something went wrong while sending a mail for application for leave"
     },
     "export": {
+      "absenceKinds": {
+        "_": "Show",
+        "tooltip": "Which absences of the chosen employees are shown and exported: vacations and the availability entries by their status (e.g. parental leave, workation). The comments of availability entries only if the entries are visible in the availability list, too."
+      },
       "dayWidth": {
         "_": "Day width",
         "auto": "Automatic",
@@ -4687,6 +6752,7 @@
       "legend": {
         "holidayOrWeekend": "Weekend or holiday"
       },
+      "persons": "People",
       "print": {
         "tooltip": "Prints the calendar shown (or saves it as PDF in the print dialog), scaled down to the width of the page."
       },
@@ -4717,6 +6783,7 @@
     },
     "leaveOfYear": "Leave account of year {arg0}",
     "leaveaccount": {
+      "availabilities": "Availability entries",
       "title": "Leave account"
     },
     "mail": {
@@ -4748,6 +6815,16 @@
     "previousyearleave": "Previous year leave",
     "previousyearleaveunused": "Unused previous year leave until {arg0}",
     "previousyearleaveused": "Previous year leave used",
+    "quickView": {
+      "button": "Who is available?",
+      "empty": "No absences in this period.",
+      "selectHint": "Choose one or more people to see their vacations and availability entries of the coming weeks.",
+      "teamCalendar": "Team calendar",
+      "teamCalendarHint": "Choose groups and longer periods in the team vacation calendar.",
+      "title": "Availability at a glance",
+      "user": "People",
+      "weeks": "Weeks"
+    },
     "recalculateRemainingLeave": "Recalculate remaining leave",
     "remainingLeaveFromYear": "Remaining leave from {arg0}.",
     "remainingLeaveFromYearUnused": "Unused remaining leave from {arg0}.",
@@ -4780,6 +6857,10 @@
       "info": "Leave days are displayed on demand in the calendar view. They also may be defined as calendars (see list of calendars) for users and/or groups. These calendars can be subscribed for usage in 3rd party calendar tools."
     },
     "subtotal": "Subtotal",
+    "switchToAvailabilityButton": {
+      "_": "Edit as absence",
+      "tooltip": "Opens a new availability entry with this leave's person, period, comment and substitutes. It is only created when you save it; a leave entry already saved stays as it is and may be deleted afterwards."
+    },
     "title": {
       "add": "Create leave application",
       "edit": "Edit leave application",
@@ -4825,7 +6906,14 @@
   "values": "Values",
   "webauthn": {
     "entry": {
-      "displayName": "Display name",
+      "delete": {
+        "question": "Do you really want to delete this WebAuthn token? It can no longer be used as second factor afterwards."
+      },
+      "displayName": {
+        "_": "Display name",
+        "info": "Feel free to enter any name to identify your WebAuthn token."
+      },
+      "edit": "Edit WebAuthn entry",
       "signCount": {
         "_": "Sign count",
         "info": "Counter of authentications (will be incremented on every token usage)"
@@ -4836,7 +6924,11 @@
       "userNotOwnerOrEntryDoesnotExist": "The user has no access to this foreign webauthn entry or no such entry exists.",
       "validate": "Error while validating authentication."
     },
+    "info": "WebAuthn is a modern and secure standard for having secure 2FA hardware tokens. You may here register your hardware tokens.",
     "registration": {
+      "2FARequired": {
+        "info": "Please renew Your 2FA before registering Your WebAuthn token."
+      },
       "button": {
         "authenticate": {
           "_": "WebAuthn",
@@ -4844,7 +6936,8 @@
         },
         "register": "Register"
       }
-    }
+    },
+    "title": "WebAuthn (Fido2 etc.)"
   },
   "yes": "Yes"
 }

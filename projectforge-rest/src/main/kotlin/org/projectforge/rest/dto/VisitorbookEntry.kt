@@ -44,16 +44,18 @@ class VisitorbookEntry(
         visitorbookId = src?.visitorbook?.id
     }
 
-    fun cloneAsDO(): VisitorbookEntryDO {
+    /**
+     * @param visitorbookId The visitor the visit is filed under, taken from the database by the caller rather than
+     * from [VisitorbookEntry.visitorbookId] of the request (a posted id must not move a visit to another visitor).
+     */
+    fun cloneAsDO(visitorbookId: Long): VisitorbookEntryDO {
         val result = VisitorbookEntryDO()
         result.id = id
         result.dateOfVisit = dateOfVisit
         result.arrived = arrived
         result.departed = departed
         result.comment = comment
-        visitorbookId?.let {
-            result.visitorbook = VisitorbookDO().also { it.id = visitorbookId }
-        }
+        result.visitorbook = VisitorbookDO().also { it.id = visitorbookId }
         return result
     }
 

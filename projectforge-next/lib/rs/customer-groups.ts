@@ -4,6 +4,7 @@ import type { ValidationError } from "./types";
 import type {
   CustomerGroupsData,
   CustomerGroupsValues,
+  OrderAccessValues,
 } from "@/components/features/customer-groups/types";
 
 /** The customer groups and business units (finance and controlling only, 403 otherwise). */
@@ -22,6 +23,22 @@ export function saveCustomerGroups(
   values: CustomerGroupsValues
 ): Promise<EntityWriteResult> {
   return postEntityAction("customerGroups", "save", values);
+}
+
+/**
+ * The unsaved configuration as it would be stored (JSON, ids only): what the diff compares with the stored
+ * value and the former ones of the history. Nothing is stored.
+ */
+export async function customerGroupsToJson(
+  values: CustomerGroupsValues,
+  signal?: AbortSignal
+): Promise<string> {
+  const result = await request<{ json?: string | null }>(
+    "/rs/customerGroups/toJson",
+    { method: "POST", body: JSON.stringify(values) },
+    signal
+  );
+  return result.json ?? "";
 }
 
 /** Mirror of `CustomerGroupService.CustomerMatches`; Spring omits an empty list (`NON_NULL`). */
@@ -111,6 +128,28 @@ export function fetchBusinessUnitMembers(
   return request<Record<string, BusinessUnitMember[]>>(
     "/rs/customerGroups/businessUnitMembers",
     { method: "POST", body: JSON.stringify(values) },
+    signal
+  );
+}
+
+/** Mirror of `CustomerGroupRest.IneffectiveGrantee`. */
+export interface IneffectiveGrantee {
+  /** The user's full name. */
+  name: string;
+  reason: "DEACTIVATED" | "NO_PROJECT_MANAGER" | "NO_ORDER_BOOK_RIGHT";
+}
+
+/**
+ * The users each of the unsaved order access grants names (directly or by a group) but has no effect
+ * for, by grant key; a grant effective for all is missing. Nothing is stored.
+ */
+export function fetchOrderAccessInfo(
+  orderAccess: OrderAccessValues[],
+  signal?: AbortSignal
+): Promise<Record<string, IneffectiveGrantee[]>> {
+  return request<Record<string, IneffectiveGrantee[]>>(
+    "/rs/customerGroups/orderAccessInfo",
+    { method: "POST", body: JSON.stringify({ orderAccess }) },
     signal
   );
 }

@@ -148,7 +148,7 @@ open class LoginNextRest {
      * Cancels a pending 2FA (or logs the user out) and clears the stay-logged-in cookie.
      */
     @AccessChecked("PUBLIC: logout of the own session")
-    @GetMapping("cancel")
+    @PostMapping("cancel")
     fun cancel(request: HttpServletRequest, response: HttpServletResponse): NextActionResult {
         loginServiceRest.logout(request, response)
         return NextActionResult(success = true)

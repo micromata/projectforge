@@ -2,7 +2,7 @@ import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import type { ArrayRow } from "@/lib/field-array";
 
 /**
- * Mirror of `CustomerGroupPageRest.CustomerSetData`: the members a group and a business unit share.
+ * Mirror of `CustomerGroupRest.CustomerSetData`: the members a group and a business unit share.
  * Spring omits empty fields (`NON_NULL`), hence the optional ones; [toFormValues] fills them in.
  */
 export interface CustomerSetData {
@@ -22,18 +22,54 @@ export interface BusinessUnitData extends CustomerSetData {
   groups?: string[];
   /** Tasks whose projects count to the business unit if their customer leads to none. */
   tasks?: EntityRef[];
+  /** Hex code of the business unit's bubbles in the contribution margin chart, e.g. `#ffcb00`. */
+  color?: string | null;
 }
 
-/** Mirror of `CustomerGroupPageRest.CustomerGroupsData` (GET `/rs/customerGroups`). */
+/**
+ * Mirror of `CustomerGroupRest.OrderAccessData`: read access to all orders of the customers, groups
+ * and business units for the users and the members of the user groups (project managers and assistants
+ * only).
+ */
+export interface OrderAccessData {
+  key?: string | null;
+  name?: string | null;
+  remark?: string | null;
+  users?: EntityRef[];
+  /** Groups of users, not customer groups. */
+  userGroups?: EntityRef[];
+  customers?: EntityRef[];
+  /** Keys of the customer groups. */
+  groups?: string[];
+  /** Keys of the business units. */
+  businessUnits?: string[];
+}
+
+/**
+ * Mirror of `CustomerGroupRest.ProjectGroupData`: projects offered as one entry in the project
+ * filters of the lists.
+ */
+export interface ProjectGroupData {
+  /** Stable key the filters refer to (`pg:<key>`). */
+  key?: string | null;
+  name?: string | null;
+  projects?: EntityRef[];
+}
+
+/** Mirror of `CustomerGroupRest.CustomerGroupsData` (GET `/rs/customerGroups`). */
 export interface CustomerGroupsData {
   groups?: CustomerGroupData[];
   businessUnits?: BusinessUnitData[];
+  orderAccess?: OrderAccessData[];
+  projectGroups?: ProjectGroupData[];
   /** Free text about the definition as a whole: how the groups and business units are drawn. */
   remark?: string | null;
   /** Epoch millis of the stored value, sent back on save for the optimistic lock. */
   lastUpdate?: number | null;
   /** The stored `ConfigurationDO` row, whose change history the page shows; null before the first save. */
   id?: number | null;
+  /** The value as stored (JSON, ids only), the base of the diff (CustomerGroupsDiffButton). */
+  storedJson?: string | null;
 }
 
 /**
@@ -50,11 +86,32 @@ export interface CustomerSetValues extends ArrayRow {
 export interface BusinessUnitValues extends CustomerSetValues {
   groups: string[];
   tasks: EntityRef[];
+  /** `""`: none. */
+  color: string;
+}
+
+export interface OrderAccessValues extends ArrayRow {
+  key: string;
+  name: string;
+  remark: string;
+  users: EntityRef[];
+  userGroups: EntityRef[];
+  customers: EntityRef[];
+  groups: string[];
+  businessUnits: string[];
+}
+
+export interface ProjectGroupValues extends ArrayRow {
+  key: string;
+  name: string;
+  projects: EntityRef[];
 }
 
 export interface CustomerGroupsValues {
   groups: CustomerSetValues[];
   businessUnits: BusinessUnitValues[];
+  orderAccess: OrderAccessValues[];
+  projectGroups: ProjectGroupValues[];
   remark: string;
   lastUpdate: number | null;
 }

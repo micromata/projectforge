@@ -13,6 +13,7 @@ import {
   type MenuEntry,
 } from "@/lib/menu-search";
 import { useNavigateMenuUrl } from "@/hooks/use-navigate-menu-url";
+import { useFeatureEnabled } from "@/hooks/use-feature-enabled";
 import {
   CommandEmpty,
   CommandGroup,
@@ -24,6 +25,9 @@ import { QuickDataHits } from "@/components/shared/quick-data-hits";
 
 /** The full-text search over the business data, i.e. the entry MenuItemDefId.SEARCH points at (now migrated to next). */
 const DATA_SEARCH_URL = "next/search";
+
+/** The feature of the data search (`MenuItemDefId.SEARCH`). */
+const SEARCH_FEATURE = "SEARCH";
 
 /** Only ever a cmdk item value, never shown: the recents render under a translated heading. */
 const RECENT_GROUP = "recent";
@@ -53,6 +57,8 @@ export function QuickAccessResults({
   const navigate = useNavigateMenuUrl();
   const { data: menu } = useMenu();
   const { recentKeys, remember } = useRecentMenuEntries();
+  // The data search may be switched off (projectforge.features.*, e.g. on the gateway): then the menu only.
+  const dataSearch = useFeatureEnabled(SEARCH_FEATURE) && !!term.trim();
 
   const entries = useMemo(
     () =>
@@ -119,14 +125,20 @@ export function QuickAccessResults({
           </CommandGroup>
         ))}
         {/* The live data hits sit below the menu: the menu is the primary answer, the data the next
-          best, and the full search (pinned below) the fallback. */}
-        {term.trim() && <QuickDataHits term={term} onNavigate={onNavigate} />}
+          best, and the full search (pinned below) the fallback. With the chat on, the users found lead the
+          data hits (to be written to), see QuickDataHits. */}
+        {dataSearch && (
+          <QuickDataHits term={term} part="users" onNavigate={onNavigate} />
+        )}
+        {dataSearch && (
+          <QuickDataHits term={term} part="others" onNavigate={onNavigate} />
+        )}
       </CommandList>
       {/* Pinned below the scroll area, not the last row inside it: the way out of a dead end must stay
           on screen even when the hits above fill the list and scroll it. What the user typed may well
           be a customer's name rather than a menu entry. Outside the CommandList it is no cmdk item, so
           arrow keys skip it — a click or Tab reaches it, as a footer action should. */}
-      {term.trim() && (
+      {dataSearch && (
         <div className="shrink-0 border-t p-1">
           <button
             type="button"

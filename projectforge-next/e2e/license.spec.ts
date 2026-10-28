@@ -3,6 +3,7 @@ import { label, userFormat } from "./fixtures/format";
 import { LICENSE_METADATA } from "../lib/metadata/license.generated";
 import { LICENSE_PAGE } from "../components/features/license/license.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The license page of the licensemanagement plugin ("Licenses / Hardware") against the live backend (see
@@ -14,8 +15,8 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 test.describe("license", { tag: "@parallel" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get("/rs/license/filter/reset", {
-        headers: { "X-PF-Frontend": "next" },
+      .post("/rs/license/filter/reset", {
+        headers: await writeHeaders(page.request),
       })
       .catch(() => undefined);
   });
@@ -46,7 +47,7 @@ test.describe("license", { tag: "@parallel" }, () => {
   }) => {
     const { t } = await userFormat(page);
     let saveAttempted = false;
-    await page.route("**/rs/license/saveorupdate*", (route) => {
+    await page.route("**/rs/license/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
@@ -61,7 +62,7 @@ test.describe("license", { tag: "@parallel" }, () => {
     await expect(
       page.getByText(t("attachment.onlyAvailableAfterSave"))
     ).toBeVisible();
-    await page.getByRole("button", { name: t("save") }).click();
+    await page.getByRole("button", { name: t("create") }).click();
 
     for (const key of [
       "plugins.licensemanagement.product",

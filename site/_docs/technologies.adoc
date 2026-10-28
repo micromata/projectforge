@@ -3,6 +3,8 @@ title: Technologies
 subtitle: Enthusiasm for technology as well as a passion for software development resulted in the emergence of a product based on state-of-the-art technologies, which will be improved continuously.
 author: kai
 tags: [technologies]
+# Only in English (no German page): the German pages link it in English. See site/README.adoc.
+untranslated: true
 ---
 :hide-uri-scheme:
 

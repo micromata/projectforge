@@ -1,0 +1,63 @@
+server {
+  listen 80;
+  listen [::]:80;
+  server_name projectforge.example.com;
+  location / { return 301 https://$host$request_uri; }
+}
+
+server {
+  listen              443 ssl;
+  listen              [::]:443 ssl;
+  server_name         projectforge.example.com;
+  ssl_certificate     /etc/ssl/projectforge.crt;
+  ssl_certificate_key /etc/ssl/projectforge.key;
+
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers on;
+  ssl_dhparam /etc/nginx/dhparam.pem;
+  ssl_ciphers EECDH+AESGCM:EDH+AESGCM;
+  ssl_ecdh_curve secp384r1; # Requires nginx >= 1.1.0
+  ssl_session_timeout  10m;
+  ssl_session_cache shared:SSL:10m;
+  ssl_session_tickets off; # Requires nginx >= 1.5.9
+  ssl_stapling on; # Requires nginx >= 1.3.7
+  ssl_stapling_verify on; # Requires nginx => 1.3.7
+  # X-Frame-Options, X-Content-Type-Options, Content-Security-Policy, Referrer-Policy etc. are sent by ProjectForge
+  # itself (SecurityHeaderFilter). Don't add them here: a header sent twice with different values is ignored.
+  # HSTS: ProjectForge sends it itself only if it knows the request was https (server.forward-headers-strategy=native
+  # in projectforge.properties, X-Forwarded-Proto below), then drop this line. Add includeSubDomains (and preload) only
+  # if every subdomain is served via https.
+  add_header Strict-Transport-Security "max-age=31536000" always;
+
+  # Largest file a user may upload (attachments, data transfer areas).
+  # nginx' default is 1 MB, and exceeding it is answered with 413 - so this must be at least
+  # spring.servlet.multipart.max-request-size, or ProjectForge never sees the request at all.
+  # Mind every proxy in front of this one (a load balancer, an SSO proxy such as Authentik):
+  # each enforces its own limit and the smallest one wins.
+  client_max_body_size 10G;
+
+  location / {
+    proxy_set_header        Host $host;
+    proxy_set_header        X-Real-IP $remote_addr;
+    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header        X-Forwarded-Proto $scheme;
+
+    proxy_pass              http://localhost:8080;
+
+    # Stream the body through instead of spooling the whole upload to client_body_temp_path
+    # first. Without this a large upload needs its size in free disk space before it starts.
+    proxy_request_buffering  off;
+
+    # Generous enough for a large upload over a slow line: the defaults (60s, and the 90s this
+    # template used to carry) cut the connection while the body is still on its way.
+    client_body_timeout     600s;
+    proxy_read_timeout      600s;
+    proxy_send_timeout      600s;
+    send_timeout            600s;
+
+    proxy_redirect          http://localhost:8080 https://projectforge.example.com;
+
+    # auth_basic            "Username and Password Required";
+    # auth_basic_user_file  /etc/nginx/.htpasswd;
+  }
+}

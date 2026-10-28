@@ -29,10 +29,8 @@ import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.jcr.FileInfo
-import org.projectforge.plugins.merlin.MerlinTemplateDO
 import org.projectforge.plugins.merlin.MerlinTemplateDao
 import org.projectforge.rest.AttachmentsActionListener
-import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.ui.*
 import org.springframework.http.ResponseEntity
 
@@ -106,47 +104,24 @@ class MerlinAttachmentsActionListener(
     return createResponseEntity(obj, list, TargetType.CLOSE_MODAL)
   }
 
+  /**
+   * The new list of attachments and the name of the current Word® template. The client analyzes the template
+   * afterwards (`merlin/analyze`), because the variables of the unsaved form are to be kept.
+   */
   private fun createResponseEntity(
     obj: ExtendedBaseDO<Long>,
     list: List<Attachment>?,
     targetType: TargetType
   ): ResponseEntity<*> {
-    val result = MerlinPagesRest.updateLayoutAndData(obj as MerlinTemplateDO)
-    val dto = result.second
-    val ui = result.first
+    val wordTemplateFileName = list?.sortedByDescending { it.created }?.find { it.fileExtension == "docx" }?.name
     val data = mapOf(
       "attachments" to list,
-      "wordTemplateFileName" to (dto.wordTemplateFileName ?: "---"),
+      "wordTemplateFileName" to wordTemplateFileName,
     )
     return ResponseEntity.ok()
       .body(
         ResponseAction(targetType = targetType, merge = true)
           .addVariable("data", data)
-          .addVariable("ui", ui)
       )
-  }
-
-  override fun createAttachmentLayout(
-    id: Long,
-    category: String,
-    fileId: String,
-    listId: String?,
-    attachment: Attachment,
-    writeAccess: Boolean,
-    restClass: Class<*>,
-    encryptionSupport: Boolean,
-    data: AttachmentsServicesRest.AttachmentData?
-  ): UILayout {
-    return super.createAttachmentLayout(
-      id,
-      category,
-      fileId,
-      listId,
-      attachment,
-      writeAccess,
-      restClass,
-      encryptionSupport = false,
-      data = data,
-    )
   }
 }

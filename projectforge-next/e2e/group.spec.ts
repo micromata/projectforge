@@ -28,7 +28,9 @@ test.describe("group page", { tag: "@parallel" }, () => {
     // The filter is stored per user and per entity: a status left behind by another run (or by the
     // case below) would decide whether the seeded group is in the list at all.
     await page.request
-      .get("/rs/group/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/group/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 
@@ -233,7 +235,9 @@ test.describe("group page", { tag: "@parallel" }, () => {
     // The logged-in context of the seeds: the plain `request` fixture has no session, so its reset was
     // refused and left the filter behind.
     await seedRequest
-      .get("/rs/group/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/group/filter/reset", {
+        headers: await writeHeaders(seedRequest),
+      })
       .catch(() => undefined);
   });
 });
@@ -242,8 +246,8 @@ test.describe("group page", { tag: "@parallel" }, () => {
  * The same list for a user who may read it but not add to it — the rights case of every hand-built list
  * (see useEditTargets), with `group` as the entity that has it: `GroupDao.hasUserSelectAccess` answers
  * true for everyone, while inserting is the admin group's (`GroupDao.hasAccess`), so `listMeta` answers
- * `userAccess.insert: false` for a plain user. Legacy leaves the create entry out of the page menu in
- * that case (`AbstractPagesRest.createListLayout`); next offered its "+" to everyone.
+ * `userAccess.insert: false` for a plain user. Legacy left the create entry out of the page menu in
+ * that case; next offered its "+" to everyone.
  *
  * The row click goes with it (`userAccess.update`, which `GroupEntityRest.listUpdateAccess` answers for
  * administrators only — Wicket's `GroupListPage` renders the name as a plain label without it). That one

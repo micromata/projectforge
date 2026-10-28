@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.banking
 
-import org.bouncycastle.asn1.x500.style.RFC4519Style.title
 import org.projectforge.Constants
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsBridge
@@ -61,7 +60,7 @@ open class BankAccountDO : BaseUserGroupRightsDO(), DisplayNameCapable {
           sb.append(it).append(" ")
         }
       }
-      sb.append(title)
+      sb.append(name ?: "")
       return sb.toString()
     }
 
@@ -73,7 +72,7 @@ open class BankAccountDO : BaseUserGroupRightsDO(), DisplayNameCapable {
   override var owner: PFUserDO? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.name", type = PropertyType.INPUT)
-  @FullTextField
+  @FullTextField(analyzer = "wordPartsAnalyzer")
   @get:Column(length = Constants.LENGTH_TITLE, nullable = false)
   open var name: String? = null
 

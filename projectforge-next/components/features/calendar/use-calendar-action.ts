@@ -11,17 +11,14 @@ import { parseCalendarEditTarget } from "./calendar-edit-target";
 import { toTeamEventRoute } from "./team-event-route";
 import { toTimesheetRoute } from "./timesheet-route";
 
-/** `returnToCaller` for the pages the calendar opens, so their Save/Cancel comes back here. */
-const RETURN_TO_CALENDAR = encodeURIComponent("/next/calendar");
-
 /** Epoch seconds, the form the legacy `eventClick` urls use and `TimesheetEntityRest` parses. */
 function epochSeconds(date: Date | null): number | undefined {
   return date ? Math.floor(date.getTime() / 1000) : undefined;
 }
 
 /**
- * Where a click on an existing event navigates, by `extendedProps.category` (see the routing table in
- * MIGRATION-calendar.md). `timesheet-stats` goes nowhere; a break opens a new timesheet for its span;
+ * Where a click on an existing event navigates, by `extendedProps.category`:
+ * `timesheet-stats` goes nowhere; a break opens a new timesheet for its span;
  * vacation and birthday open their own views; everything else opens `/<category>/edit/<id>`. The urls
  * are unprefixed frontend paths, so `resolveMenuUrl` maps them onto this app under its base path.
  */
@@ -61,18 +58,16 @@ function eventClickUrl(event: EventClickArg["event"]): string | null {
     case "vacation":
       // Save and cancel return to the calendar (see VACATION_PAGE.returnTargets, whose default is the list).
       return id != null ? `/vacation/${id}?returnTo=/calendar` : null;
+    case "availability":
+      // Save and cancel return to the calendar (see AVAILABILITY_PAGE.returnTargets, whose default is the list).
+      return id != null ? `/availability/${id}?returnTo=/calendar` : null;
     case "address":
-      // A birthday opens the address view. That page isn't migrated yet, so keep it on the legacy
-      // React app (`react/` prefix → external, full page load); without it `resolveMenuUrl` would
-      // treat the path as this app's own route and land on the unfinished Next address page. The
-      // backend builds the same `react/addressView/dynamic/{id}` for the unmigrated category.
-      return id != null
-        ? `/react/addressView/dynamic/${id}?returnToCaller=${RETURN_TO_CALENDAR}`
-        : null;
+      // A birthday opens the view of the address, whose "back" returns to the calendar (see AddressView).
+      return id != null ? `/address/${id}?returnTo=/calendar` : null;
     default:
-      return category && id != null
-        ? `/${category}/edit/${id}?startDate=${start ?? ""}&endDate=${end ?? ""}`
-        : null;
+      // No other category has an edit page in this app (`calEvent` only exists with
+      // `calendar.useNewCalendarEvents`), so the click opens nothing.
+      return null;
   }
 }
 

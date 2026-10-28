@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { HighlightedText } from "@/components/shared/highlighted-text";
 import { BooleanCell } from "@/components/data-table/cells/boolean-cell";
+import { isRefArray, RefList } from "@/components/shared/ref-list";
 import type { FieldMetadata } from "@/lib/metadata/types";
 
 export interface DeclaredCellContext {
@@ -53,7 +54,7 @@ export function declaredCell(
   }
 
   switch (field.dataType) {
-    // A tick for true, nothing for false — the same visual language the dynamic grid's BooleanCell
+    // A tick for true, nothing for false — the same visual language the grid's BooleanCell
     // and the legacy Wicket lists use, rather than a raw "true"/"false" string.
     case "BOOLEAN":
       return (
@@ -96,6 +97,13 @@ export function declaredCell(
         </span>
       );
     default:
+      // Several references (a group's members, a user's groups): each struck through on its own when no
+      // longer live — a single one is struck by the column itself (see use-declared-columns).
+      if (isRefArray(value)) {
+        return (
+          <RefList refs={value} highlight={highlight} className={className} />
+        );
+      }
       return <span className={className}>{mark(cellText(value))}</span>;
   }
 }

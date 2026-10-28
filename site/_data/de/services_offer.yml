@@ -1,0 +1,19 @@
+# "Unser Angebot" on the German services page
+
+- title: Hosting
+  desc: Wir betreiben die ProjectForge-Instanz, spielen Updates ein und kümmern uns um Backups und Monitoring.
+
+- title: Einführung
+  desc: Wir helfen beim Aufsetzen von Strukturbaum, Gruppen und Zugriffsrechten, Kostenrechnung und Urlaubsverwaltung – für einen schnellen Start auf solidem Fundament.
+
+- title: Datenimport
+  desc: Wir übernehmen Kunden, Projekte, Aufträge, Zeitberichte oder Buchhaltungsdaten aus bestehenden Tools und Tabellen.
+
+- title: Integration
+  desc: Wir binden ProjectForge an LDAP, Keycloak oder Authentik, den Mailserver, DATEV-Abläufe oder die Telefonanlage an.
+
+- title: Support
+  desc: Reaktionszeiten und Kontaktwege, die zum Unternehmen passen.
+
+- title: Erweiterungen
+  desc: Eigene Auswertungen, Skripte, Plugins oder Funktionen – entwickelt vom ProjectForge-Team.

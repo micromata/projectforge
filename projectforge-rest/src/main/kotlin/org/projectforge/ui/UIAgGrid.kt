@@ -23,18 +23,13 @@
 
 package org.projectforge.ui
 
-import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.Constants
 import org.projectforge.business.user.UserLocale
 import org.projectforge.common.DateFormatType
-import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.rest.UserStatusRest
 import org.projectforge.rest.core.aggrid.SortModelEntry
-import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.filter.PAGINATION_PAGE_SIZES
-import java.io.Serializable
 import java.text.DecimalFormatSymbols
 import kotlin.reflect.KProperty
 
@@ -45,31 +40,11 @@ open class UIAgGrid(
     val id: String,
     var columnDefs: MutableList<UIAgGridColumnDef> = mutableListOf(),
     val listPageTable: Boolean = false,
-    var rowSelection: RowSelection? = null,
 ) : UIElement(if (listPageTable) UIElementType.AG_GRID_LIST_PAGE else UIElementType.AG_GRID) {
-    class RowSelection(multi: Boolean) {
-        /** singleRow, multiRow or null */
-        val mode: String = if (multi) "multiRow" else "singleRow"
-        @Suppress("unused") // Needed by AgGrid
-        val enableClickSelection: Boolean? = if (multi) true else null
-    }
-
-    /**
-     * For multi row selection, this column definition is used (col with checkboxes).
-     */
-    var selectionColumnDef: UIAgGridColumnDef? = null
-
-    var multiSelectButtonTitle: String? = null
-    var multiSelectButtonConfirmMessage: String? = null
 
     var sortModel: List<SortModelEntry>? = null
 
     var filterModel: Map<String, Any>? = null
-
-    /**
-     * This url should be called with all selected rows to proceed the user action (mass update, export etc.)
-     */
-    var urlAfterMultiSelect: String? = null
 
     /**
      * After row click a post to this url should be initiated (not yet implemented).
@@ -91,16 +66,6 @@ open class UIAgGrid(
      * The function receives the AG-Grid row click event as parameter.
      */
     var rowClickFunction: String? = null
-
-    /**
-     * Call this url (GET) for getting url to redirect to.
-     */
-    var handleCancelUrl: String? = null
-
-    /**
-     * Tell the client, which entities were selected (for recovering, e.g. after reload or back button).
-     */
-    var selectedEntities: Collection<Serializable>? = null
 
     var pagination: Boolean? = null
 
@@ -312,31 +277,6 @@ open class UIAgGrid(
 
     fun getColumnDefById(field: String): UIAgGridColumnDef {
         return columnDefs.find { it.field == field }!!
-    }
-
-    /**
-     * Enables row selection if magic filter contains this flag: [MultiSelectionSupport.isMultiSelection].
-     * @return this for chaining.
-     */
-    fun withMultiRowSelection(
-        request: HttpServletRequest,
-        magicFilter: MagicFilter
-    ): UIAgGrid {
-        val multiSelectionMode = MultiSelectionSupport.isMultiSelection(request, magicFilter)
-        if (multiSelectionMode) {
-            withMultiRowSelection()
-        }
-        return this
-    }
-
-    /**
-     * Enables multi row selection
-     * @return this for chaining.
-     */
-    fun withMultiRowSelection(): UIAgGrid {
-        rowSelection = RowSelection(true)
-        multiSelectButtonTitle = translate("next")
-        return this
     }
 
     fun withGetRowClass(getRowClass: String): UIAgGrid {

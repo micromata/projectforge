@@ -9,9 +9,10 @@
 
 import type { Attachment } from "./attachments";
 import { request } from "./client";
+import type { InactiveFlags } from "@/lib/page-def/reference";
 
 /** A user or group as the area references it: the id is what the backend stores. */
-export type DataTransferRef = {
+export type DataTransferRef = InactiveFlags & {
   id: number;
   displayName?: string;
 };
@@ -80,6 +81,21 @@ export interface DataTransferView {
   /** There are files, and not more than one gigabyte of them. */
   downloadAllAvailable: boolean;
   maxUploadSizeKB: number;
+  /**
+   * Main instance: the area's external access runs via the gateway, its files are there (the area on the
+   * gateway, same id). No upload here then.
+   */
+  gatewayUrl?: string | null;
+  /** Gateway: pushed by the main instance and administered there only. */
+  managedByMainInstance?: boolean;
+  /** A synthetic area (e.g. of a chat conversation): its files come from there, no upload here. */
+  syntheticArea?: boolean;
+  /** The area is a chat room as well: no personal box, no synthetic area, not on the gateway. */
+  chatAvailable?: boolean;
+  /** The owner of a personal box: whom a direct message from it goes to. */
+  personalBoxUserId?: number | null;
+  /** Unread messages in the chat of the area, or in the direct message with the owner of another one's box. */
+  chatUnread?: number;
 }
 
 /** One entry of the activities, `DataTransferAuditDO` with its computed fields. */
@@ -115,9 +131,13 @@ export interface DataTransferOption {
 export interface DataTransferOptions {
   expiryDays: DataTransferOption[];
   maxUploadSizes: DataTransferOption[];
-  /** False: no external access configurable here (gateway mode), it's administered on `gatewayHost`. */
+  /** False: external access can't be switched on here (only off). */
   externalAccessAllowed: boolean;
-  gatewayHost: string;
+  /** External access is configured here, but runs on the gateway `gatewayUrl` (link, transfers, files). */
+  externalAccessViaGateway: boolean;
+  gatewayUrl?: string | null;
+  /** This is the gateway: only areas pushed by the main instance, read-only, no personal boxes. */
+  gatewayMode: boolean;
 }
 
 /** The id the backend reads as "the personal box of the logged-in user". */

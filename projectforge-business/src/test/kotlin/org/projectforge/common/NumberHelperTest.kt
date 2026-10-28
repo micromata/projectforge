@@ -292,12 +292,12 @@ class NumberHelperTest {
         Assertions.assertEquals("4", extractPhonenumber("+4", "+49"))
         Assertions.assertEquals("0", extractPhonenumber("+49", "+49"))
         Assertions.assertEquals("01", extractPhonenumber("+491", "+49"))
-        Assertions.assertEquals("05613167930", extractPhonenumber("0561 / 316793-0", null))
-        Assertions.assertEquals("00495613167930", extractPhonenumber("+49 561 / 316793-0", null))
-        Assertions.assertEquals("05613167930", extractPhonenumber("+49 561 / 316793-0", "+49"))
-        Assertions.assertEquals("00445613167930", extractPhonenumber("+44 561 / 316793-0", "+49"))
-        Assertions.assertEquals("00445613167930", extractPhonenumber("+44 561 / 31:6793-0", "+49"))
-        Assertions.assertEquals("00445613167930", extractPhonenumber("+44 561 / 31 h6793-0", "+49"))
+        Assertions.assertEquals("01234567890", extractPhonenumber("0123 / 456789-0", null))
+        Assertions.assertEquals("00491234567890", extractPhonenumber("+49 123 / 456789-0", null))
+        Assertions.assertEquals("01234567890", extractPhonenumber("+49 123 / 456789-0", "+49"))
+        Assertions.assertEquals("00441234567890", extractPhonenumber("+44 123 / 456789-0", "+49"))
+        Assertions.assertEquals("00441234567890", extractPhonenumber("+44 123 / 45:6789-0", "+49"))
+        Assertions.assertEquals("00441234567890", extractPhonenumber("+44 123 / 45 h6789-0", "+49"))
         Assertions.assertEquals(
             "1234567890",
             extractPhonenumber("\u202D1234567890\u202C", "+49")

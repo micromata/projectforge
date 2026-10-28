@@ -210,6 +210,10 @@ internal class ForecastExportInvoices { // open needed by Wicket.
             invoice.kundeAsString
         )
         sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.PROJECT.header, invoice.projekt?.name)
+        ctx.projectGroupNameOf(projectId)?.let {
+            ctx.hasProjectGroupEntries = true
+            sheet.setStringValue(rowNumber, ForecastExportContext.PROJECT_GROUP_HEADER, it)
+        }
         sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.SUBJECT.header, invoice.betreff)
         sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.POS_TEXT.header, pos.text)
         invoice.bezahlDatum?.let {
@@ -271,6 +275,7 @@ internal class ForecastExportInvoices { // open needed by Wicket.
                     projectId = projectId ?: ForecastExportContext.PROJECT_ID_NONE,
                     customer = invoice.kundeAsString,
                     project = invoice.projekt?.name,
+                    projectGroup = ctx.projectGroupNameOf(projectId),
                     subject = invoice.betreff,
                     positionText = pos.text,
                     orderId = if (orderPosId != null) order?.id else null,

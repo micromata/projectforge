@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { BASE_PATH } from "./lib/config";
+import { BASE_PATH, PUBLIC_ASSET_PREFIX } from "./lib/config";
 
 const isProd = process.env.NODE_ENV === "production";
 const backendUrl = process.env.PF_BACKEND_URL ?? "http://localhost:8080";
@@ -12,12 +12,19 @@ const nextConfig: NextConfig = {
   // Prod ships as a static export (no Node server); Spring serves the assets.
   //
   // Dev must NOT use it: with `output: "export"` the dev server rejects any dynamic param that
-  // `generateStaticParams()` does not list, so every deep link (/next/book/5, /next/address/edit/42)
+  // `generateStaticParams()` does not list, so every deep link (/next/book/5, /next/contract/edit/42)
   // answers 500 - exactly the urls that need testing. Those work in prod because Spring falls back
   // to the SPA shell (404.html) and the client reads the params at runtime; the dev server has no
   // such fallback and insists on pre-rendering instead. `npm run build` (the CI gate) still runs
   // with the export on, so export-incompatible code is caught there.
   output: isProd ? "export" : undefined,
+  // The assets (_next/static: scripts, styles, fonts) are linked as /next/public/_next/..., although the
+  // export keeps them in _next/ (Spring serves them under both paths, see WebApplicationConfig). The
+  // external access of a data transfer area (/next/public/datatransfer/<token>) is opened to anonymous
+  // users by an authenticating proxy in front of ProjectForge, which then has to open just /next/public
+  // rather than the assets of the whole app. The export allows one prefix only, so it applies to every
+  // page. Dev serves its assets itself and keeps /next/_next.
+  assetPrefix: isProd ? `${BASE_PATH}${PUBLIC_ASSET_PREFIX}` : undefined,
   // Emit <route>/index.html so Spring can serve clean nested paths, and give
   // deep links (e.g. /next/book/5) a canonical trailing-slash URL. Paths
   // without their own file fall back to the SPA shell (404.html) via Spring's
@@ -29,12 +36,16 @@ const nextConfig: NextConfig = {
   // redirect, Spring serves the pre-rendered <route>/index.html), so switching it off makes dev
   // behave like prod rather than diverging from it.
   skipTrailingSlashRedirect: true,
+  // Dev-only as well (the static export has no server to compress): gzip buffered the server-sent events of the
+  // chat proxied below, no event arrived and the chat fell back to polling every 3 s (use-chat-live.ts). Locally
+  // the size gained by compression doesn't matter.
+  compress: false,
   turbopack: {
     root: __dirname,
   },
   experimental: {
     // Dev-only, for the rewrites below: the proxy gives up after 30s by default and answers 500,
-    // while the forecast export of the whole order book takes just over that on a real database
+    // while the forecast export of the whole order book takes just over that on a large database
     // (ForecastExport walks every order and every invoice of three years). Prod has no proxy — Spring
     // serves both — so this only makes dev behave like it.
     proxyTimeout: 300_000,
@@ -56,6 +67,12 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/rsPublic/:path*`,
         basePath: false,
       },
+      // The icons, which the root layout links at the root (served by Spring, see app/layout.tsx).
+      ...["/favicon.ico", "/apple-touch-icon.png"].map((icon) => ({
+        source: icon,
+        destination: `${backendUrl}${icon}`,
+        basePath: false as const,
+      })),
     ];
   },
 };

@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.AuftragForecastType
 import org.projectforge.business.fibu.AuftragsCache
 import org.projectforge.business.fibu.AuftragsPositionDO
 import org.projectforge.business.fibu.AuftragsStatus
+import org.projectforge.business.fibu.ContactUserIds
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.OrderInfo
 import org.projectforge.business.fibu.OrderPositionInfo
@@ -54,6 +55,11 @@ class Auftrag(
     var personDays: BigDecimal? = null,
     var referenz: String? = null,
     var assignedPersons: String? = null,
+    /**
+     * The persons of [assignedPersons] as references, for the list column (struck through when no longer active).
+     * Only the lean list row ([copyFrom4ListRow]) carries it, instead of the string.
+     */
+    var assignedPersonList: List<User>? = null,
     var contactPerson: User? = null,
     /**
      * The further contact persons next to [contactPerson], see [AuftragDO.additionalContactUserIds].
@@ -147,7 +153,7 @@ class Auftrag(
      *
      * [AuftragDO.positionen] and [AuftragDO.paymentSchedules] are `FetchType.LAZY`, so reading either one
      * is a select per order — and each position pulls its task, and each task its parents. Over a list of
-     * some 7000 orders that is what turned `initialList` into 26 MB in 99 seconds, while Wicket's list
+     * thousands of orders that turned `initialList` into several MB of JSON and minutes of loading, while Wicket's list
      * stayed fast: it reads the same sums from [AuftragsCache], which preloads positions and schedules in
      * three bulk selects (see its `refresh`) and never walks a lazy collection.
      *
@@ -174,7 +180,7 @@ class Auftrag(
             Customer(it)
         }
         this.project = src.projekt?.let {
-            Project(it)
+            Project(it).labelWithCustomer(it)
         }
         val orderInfo = orderInfo(src)
         personDays = orderInfo.personDays
@@ -205,12 +211,12 @@ class Auftrag(
      * leaves out — `formattedNettoSumme` & co., and the nested `contactPerson`/`customer`/`project`. Hence
      * two fillings of one DTO rather than two DTOs.
      *
-     * Measured over the order book of a real installation (7132 rows), 1755 B/row become 741 B/row. What
+     * On a large order book (several thousand rows) a row shrinks to less than half its size. What
      * is left out and why:
      * - the four `formatted*` sums (~141 B/row): the client formats currency in the user's locale
      *   (`lib/format.ts`), and a string column would sort "900,00" after "1.100,00" anyway.
-     * - [contactPerson] and the [additionalContacts]: the column shows the derived
-     *   [assignedPersons] string, nothing of the users themselves.
+     * - [contactPerson] and the [additionalContacts]: the column shows the derived [assignedPersonList], the
+     *   users by name only (with their inactive flags).
      * - [customer] and [project] as objects (~257 B/row): only their `displayName` is a column, so the row
      *   carries a [Customer]/[Project] holding that name and nothing else.
      * - `bemerkung`, `statusBeschreibung`, `bindungsFrist`, `beauftragungs*`, `kundeText`, `forecastType`,
@@ -257,7 +263,8 @@ class Auftrag(
         // [ForecastUtils.getProbabilityOfAccurence]). The edit form keeps the entered value (see [copyFrom]).
         probabilityOfOccurrence =
             if (src.status == AuftragsStatus.BEAUFTRAGT) null else src.probabilityOfOccurrence
-        assignedPersons = src.assignedPersons
+        // The persons as references, not the [assignedPersons] string: the column strikes a leaver through.
+        assignedPersonList = User.toContactList(src.contactPerson?.id, src.additionalContactUserIds)
         attachmentsCounter = src.attachmentsCounter
         attachmentsSize = src.attachmentsSize
         val orderInfo = orderInfo(src)
@@ -315,8 +322,8 @@ class Auftrag(
     override fun copyTo(dest: AuftragDO) {
         super.copyTo(dest)
         // Without duplicates and without the main contact person, who is a contact anyway.
-        dest.additionalContactUserIds = additionalContacts?.mapNotNull { it.id }?.distinct()
-            ?.filter { it != contactPerson?.id }?.takeIf { it.isNotEmpty() }?.joinToString(", ")
+        dest.additionalContactUserIds =
+            ContactUserIds.normalize(contactPerson?.id, additionalContacts?.map { it.id })
         dest.kunde = customer?.id?.let { id -> KundeDO().also { it.id = id } }
         dest.projekt = project?.id?.let { id -> ProjektDO().also { it.id = id } }
         dest.positionen = positionen?.map { dto ->

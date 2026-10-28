@@ -1,6 +1,8 @@
+import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { PF_USER_METADATA } from "@/lib/metadata/pf-user.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { UserAccessFields } from "./user-access-fields";
+import { UserAvatarSection } from "./user-avatar-section";
 import { USER_COLUMNS } from "./user-columns";
 import { UserGroupsField } from "./user-groups-field";
 import { UserLdapFields } from "./user-ldap-fields";
@@ -42,6 +44,10 @@ export const USER_PAGE = definePage<
   titleKey: "user.title.list",
   columns: USER_COLUMNS,
   listActions: UserListActions,
+  // A deactivated user reads struck through (thin, grey), as the selection boxes strike them
+  // (DEACTIVATED_REF_CLASS), set apart from a deleted one.
+  inactiveLabelKey: "user.legend.deactivated",
+  rowClassName: (row) => (row.deactivated ? INACTIVE_ROW_CLASS : undefined),
   edit: {
     schema: userSchema,
     fieldNames: USER_FIELDS,
@@ -77,6 +83,13 @@ export const USER_PAGE = definePage<
           { name: "restrictedUser" },
           { name: "description", span: 3, rows: 3 },
         ],
+      },
+      {
+        // Changed at once, not with the save: so only for an existing user.
+        id: "avatar",
+        titleKey: "user.avatar._",
+        visible: ({ data }) => data?.id != null,
+        fields: [{ custom: UserAvatarSection, span: 3 }],
       },
       {
         id: "settings",

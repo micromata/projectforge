@@ -5,7 +5,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useFormatContext } from "@/hooks/use-format";
 import type { ForecastProjectRow, ForecastTables } from "@/lib/rs/order";
 import {
+  hasProjectGroup,
   moneyColumn,
+  projectGroupColumns,
   textColumn,
 } from "../statistics/statistics-table-columns";
 import { ForecastWarningList } from "./forecast-warning-list";
@@ -32,6 +34,7 @@ export function ForecastProjectTable({
   const ctx = useFormatContext();
   const rows = tables.projects;
   const withPlan = rows.some((row) => row.plan != null);
+  const withProjectGroup = hasProjectGroup(rows);
   const columns = useMemo<ColumnDef<Row, unknown>[]>(
     () => [
       textColumn<Row>(
@@ -49,6 +52,7 @@ export function ForecastProjectTable({
         meta: { label: t.project },
         cell: ({ row }) => row.original.project ?? row.original.projectId,
       },
+      ...projectGroupColumns<Row>(withProjectGroup, t.projectGroup),
       moneyColumn<Row>("forecast", t.forecast, (row) => row.forecast, ctx),
       ...(withPlan
         ? [moneyColumn<Row>("plan", t.plan, (row) => row.plan, ctx)]
@@ -94,7 +98,7 @@ export function ForecastProjectTable({
         },
       },
     ],
-    [t, ctx, withPlan]
+    [t, ctx, withPlan, withProjectGroup]
   );
   return (
     <StatisticsTable<Row>

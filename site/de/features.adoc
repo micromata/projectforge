@@ -1,0 +1,208 @@
+---
+layout: page
+title: Funktionen
+description: "Aufträge, Projekte, Zeitberichte, Urlaub, E-Rechnungen, Forecast und Liquidität – alle Funktionen von ProjectForge in einer Open-Source-Web-App auf dem eigenen Server."
+width: expand
+content_class: pf-adoc-sections
+hero:
+    title: Funktionen
+    subtitle: Alles, was ein Dienstleister zwischen Vertrieb und Buchhaltung braucht – verbunden in einer Web-App auf dem eigenen Server.
+cta:
+    title: Lust, es auszuprobieren?
+    subtitle: ProjectForge herunterladen und dem Schnellstart folgen.
+    tone: plain
+    buttons:
+      - title: ProjectForge herunterladen
+        url: /de/download/
+      - title: Schnellstart
+        url: /de/docs/quickstart/
+permalink: /de/features/
+author: kai
+tags: [features]
+---
+:hide-uri-scheme:
+:imagesdir: /uploads/screenshots
+:page-liquid:
+
+:last-update-label: Copyright (C) 2001-2026, Zuletzt aktualisiert
+
+++++
+{% include boxes.html data="features_toc" columns="4" %}
+++++
+
+ProjectForge verbindet Aufträge, Projekte, Zeitberichte, Personal, Rechnungen und Liquidität. Alle Funktionen arbeiten auf denselben Daten: Was das Team heute bucht, steht morgen im Forecast – ohne Exporte, Importe oder Tabellen dazwischen.
+Alle Funktionen sind Teil der kostenlosen Open-Source-Edition. Die Benutzer brauchen nur einen Webbrowser.
+
+[[projects_orders]]
+== Projekte & Aufträge
+
+_Jeden Auftrag, jedes Budget und den Stand jedes Projekts kennen._
+
+Auftragsbuch:: Angebote und Aufträge mit Positionen, Budgets, Zahlungsplänen und beliebig vielen Ansprechpartnern. ProjectForge meldet, wann etwas fakturiert werden kann – und wann ein Auftrag kurz davor ist, überfakturiert zu werden.
+Strukturbaum:: Kunden, Projekte und Phasen in einer beliebig tiefen Hierarchie strukturieren. Pro Gruppe und Strukturelement festlegen, wer was sehen, verwalten und buchen darf.
+Projekt-Assistent:: Ein neues Projekt mit seinen Strukturelementen, Gruppen und Zugriffsrechten in einem Schritt anlegen.
+Verbrauchsbalken:: Auf einen Blick sehen, welche Strukturelemente im Budget liegen und welche heißlaufen.
+Ressourcenplanung:: Das Personal Woche für Woche über alle Projekte planen, damit Projektleitung und Mitarbeitende immer wissen, wer woran arbeitet.
+Gantt-Diagramme:: Den Plan für das Team und die Kunden visualisieren.
+
+[.pf-screenshots]
+--
+image::2026-OrderBook.png[Auftragsbuch,link=/uploads/screenshots/2026-OrderBook.png]
+image::2026-TaskTree.png[Strukturbaum mit Verbrauchsbalken,link=/uploads/screenshots/2026-TaskTree.png]
+--
+
+[[time_tracking]]
+== Zeiterfassung
+
+_Zeitbuchung dauert Sekunden, nicht einen ganzen Freitagnachmittag._
+
+Zeitberichte mit Vorlagen:: Wiederkehrende Arbeit mit einem Klick aus den Favoriten buchen.
+Buchen aus dem Kalender:: Die Buchungen neben den Terminen sehen oder mehrere Tage auf einmal buchen – Feiertage und Wochenenden werden automatisch übersprungen.
+Keine Doppelbuchungen:: Überlappende Buchungen werden verhindert – es sei denn, sie sind für geteilte Kosten ausdrücklich erlaubt.
+Berichte und Statistiken:: Monatsberichte der Mitarbeitenden und persönliche Statistiken für Mitarbeitende, Projektleitung und Lohnbuchhaltung.
+Massenänderung:: Viele Buchungen auswählen und auf einmal ändern.
+
+image::2026-Timesheets.png[Zeitberichte,link=/uploads/screenshots/2026-Timesheets.png]
+
+[[leave_availability]]
+== Urlaub & Verfügbarkeit
+
+_Wer ist weg, wer vertritt, wer ist erreichbar – auf einen Blick, ohne zusätzliches HR-Tool._
+
+Urlaubsanträge:: Urlaub beantragen, genehmigen lassen, alle Beteiligten werden benachrichtigt. Jeder Antrag zeigt seine Tage als Balken – Wochenenden, Feiertage und die Tage, an denen keine Vertretung im Dienst ist.
+Vertretungen:: Die Urlaube und Abwesenheiten der Vertretungen stehen direkt im Formular, so fallen Lücken im Team auf, bevor der Urlaub genehmigt wird.
+Urlaubskonten:: Ansprüche, Überträge und Resturlaub – immer korrekt, mit den Urlauben und Abwesenheiten des Jahres in einer Ansicht.
+Aus Urlaub wird ein Zeitbericht:: Genehmigter Urlaub wird jede Nacht automatisch als Zeitbericht gebucht.
+Verfügbarkeit:: Elternzeit, Workation, Krankheit oder Freizeitausgleich (die Arten sind konfigurierbar): Alle, auch Freelancer, tragen Zeiträume eingeschränkter Verfügbarkeit ein – nicht verfügbar, remote erreichbar oder nur in dringenden Fällen erreichbar, mit Ort und einem Kommentar für das Team.
+Verfügbarkeit auf einen Blick:: Ein paar Kolleginnen und Kollegen auswählen und ihre Urlaube und Abwesenheiten der nächsten Wochen als Balken sehen – direkt aus dem Kalender, dem Urlaubskonto und den Listen.
+Abwesenheiten im Kalender:: Urlaube und Verfügbarkeitseinträge der eigenen Gruppen im Kalender, in Teamkalendern und ihren ICS-Abonnements – jeder Kalender entscheidet, welche Arten er zeigt.
+Team-Urlaubskalender:: Die Urlaube ganzer Gruppen pro Quartal oder Jahr, druckbar und als Excel-Export.
+Datenschutz eingebaut:: Kolleginnen und Kollegen sehen, was für sie wichtig ist – den Status ab heute. Der Grund einer Abwesenheit bleibt bei der betroffenen Person und HR.
+
+++++
+{% include screenshot-gallery.html key="leave_availability" %}
+++++
+
+[[people_skills]]
+== Personal & Skills
+
+_Mitarbeitende, Gehälter und Skills an einem Ort._
+
+Mitarbeitende und Gehälter:: Stammdaten und Gehälter, importierbar aus Excel und exportierbar nach DATEV.
+Skill-Matrix:: Wer kann was? Das Team bewertet seine eigenen Fähigkeiten und Interessen – eine große Hilfe bei der Besetzung neuer Projekte.
+
+[[finance_e_invoicing]]
+== Finanzen & E-Rechnung
+
+_Von gebuchten Stunden zur rechtskonformen Rechnung – XRechnung und ZUGFeRD inklusive._
+
+Debitorenrechnungen:: Rechnungspositionen verknüpft mit Aufträgen und Projekten, Word-Vorlagen für das eigene Layout, PDF-Ausgabe und Stornorechnungen.
+E-Rechnung:: PEPPOL-fähige XRechnungen und ZUGFeRD-Rechnungen erstellen, vor dem Export auf Vollständigkeit geprüft – und empfangene E-Rechnungen mit dem eingebauten E-Rechnungs-Checker prüfen.
+Kreditorenrechnungen:: Eingangsrechnungen erfassen oder importieren und Kostenträgern zuordnen.
+Kostenrechnung:: Kostenträger und Konten liefern saubere Ergebnisse pro Projekt, Kunde und Abteilung.
+Währungen:: Beträge in Fremdwährungen mit Online-Wechselkursen.
+
+image::2026-Invoice.png[Debitorenrechnungen,link=/uploads/screenshots/2026-Invoice.png]
+
+[[controlling_liquidity]]
+== Controlling & Liquidität
+
+_Schon heute wissen, wie das nächste Quartal aussieht._
+
+Forecast:: Erwarteter Umsatz Monat für Monat, verglichen mit den Vorjahren, als Excel-Export.
+Kennzahlen und Diagramme:: Auftragsstatistiken, Deckungsbeiträge und Fakturierungsquote auf frei anordenbaren Diagramm-Kacheln.
+Liquiditätsplanung:: Erwartete Zahlungen, wiederkehrende Serien und Rechnungen in einer Liquiditätsvorschau.
+Bankkonten:: Kontoauszüge importieren und die Umsätze der Konten durchsuchen.
+DATEV:: Buchungssätze und Eingangsrechnungen aus DATEV importieren und betriebswirtschaftliche Auswertungen (BWA) erhalten.
+
+[.pf-screenshots]
+--
+image::2026-Statistics.png[Statistiken und Forecast,link=/uploads/screenshots/2026-Statistics.png]
+image::2026-Liquidity.png[Liquiditätsvorschau,link=/uploads/screenshots/2026-Liquidity.png]
+--
+
+[[collaboration]]
+== Zusammenarbeit
+
+_Chat, Teamkalender, Adressbuch, Dateiaustausch und Word-Vorlagen – das, was das Team ohnehin täglich braucht._
+
+Chat:: Räume für Teams und Projekte und Direktnachrichten, mit Dateien, Reaktionen, Threads und @-Erwähnungen – live und auf dem eigenen Server. Vertrauliche Nachrichten wie Passwörter gehen Ende-zu-Ende-verschlüsselt und werden nur einmal angezeigt (link:/de/docs/userguide/#chat[Benutzerhandbuch]).
+Teamkalender:: Gemeinsame Kalender mit Feiertagen und Geburtstagen. Per ICS auf jedem Gerät abonnierbar, externe Kalender lassen sich in ProjectForge anzeigen.
+Adressbuch:: Gemeinsame Adressen, per CardDAV aufs Telefon synchronisiert, vCard-Export.
+Datentransfer:: Dateien mit Kolleginnen, Kollegen und Kunden teilen – geschützt durch Passwort und Ablaufdatum, mit vollständigem Aktivitätsprotokoll.
+Word-Vorlagen:: Verträge und Serienbriefe aus eigenen Word-Vorlagen erzeugen, als Word oder PDF.
+Umfragen:: Das Team fragen und schnell eine Antwort bekommen.
+Büroorganisation:: Verträge, Post-Eingangs- und -Ausgangsbuch, Besucherbuch, Bibliothek, Softwarelizenzen und Hardware.
+
+[.pf-screenshots]
+--
+image::2026-ChatRoom-de.png[Chatraum eines Projekts,link=/uploads/screenshots/2026-ChatRoom-de.png]
+image::2026-Calendar.png[Teamkalender mit Urlauben und Feiertagen,link=/uploads/screenshots/2026-Calendar.png]
+image::2026-DataTransfer.png[Datentransfer,link=/uploads/screenshots/2026-DataTransfer.png]
+--
+
+[[easy_to_use]]
+== Einfache Bedienung
+
+_Ein Werkzeug, das man gern öffnet._
+
+Moderne Oberfläche:: Schnell und responsiv – auf Desktop, Tablet und Telefon. Im hellen oder dunklen Design.
+Globale Suche:: Jeden Kunden, jedes Projekt, jede Rechnung und jede Adresse in Sekunden finden.
+Das eigene Menü:: Favoritenleiste, zuletzt genutzte Seiten und ein anpassbares Menü.
+Excel überall:: Jede Liste nach Excel exportieren.
+Historie:: Jede Änderung wird mit Wer und Wann protokolliert – und lässt sich kommentieren.
+Zwei Sprachen:: Deutsche und englische Oberfläche, Mails in der Sprache des Empfängers.
+
+[.pf-screenshots]
+--
+image::2026-Menu.png[Hauptmenü und Favoriten,link=/uploads/screenshots/2026-Menu.png]
+image::2026-Dark.png[Dunkles Design,link=/uploads/screenshots/2026-Dark.png]
+--
+
+[[data_sovereignty]]
+== Digitale Souveränität & DSGVO
+
+_Die eigenen Daten bleiben die eigenen – auf dem eigenen Server, nach eigenen Regeln._
+
+Selbst betrieben:: Läuft auf dem eigenen Server, im eigenen Rechenzentrum oder bei einem selbst gewählten Hoster. Die eigene Organisation entscheidet, wo die Daten liegen, wer darauf zugreift, wie lange sie aufbewahrt werden und wann aktualisiert wird.
+Keine fremde Cloud:: Keine Telemetrie, kein Tracking, keine Skripte, Schriften oder Bilder von anderen Hosts – die Content Security Policy des Browsers verweigert sie.
+Open Source:: Der Code ist für alle prüfbar. Die Daten liegen in der eigenen PostgreSQL-Datenbank, ohne Abhängigkeit vom Anbieter.
+DSGVO:: Die Verarbeitung personenbezogener Daten wird eine Frage der eigenen Richtlinien, ohne Auftragsverarbeiter außerhalb der eigenen Kontrolle. Fein abgestufte Rechte, die Änderungshistorie und Datenschutz durch Voreinstellungen helfen dabei – der Grund einer Abwesenheit etwa bleibt bei der Person selbst und HR.
+Vertraulicher Chat:: Passwörter und Zugangsdaten gehen Ende-zu-Ende-verschlüsselt von Browser zu Browser – nie gespeichert, weder in der Datenbank noch in Logs, Backups oder Mails. Auch Administratoren lesen Gespräche nicht mit.
+
+image::2026-ChatSecretDialog-de.png[Vertrauliches Gespräch mit Fingerabdruck,link=/uploads/screenshots/2026-ChatSecretDialog-de.png]
+
+Mehr dazu unter link:/de/docs/userguide/#data_sovereignty_and_gdpr[Digitale Souveränität und DSGVO] im Benutzerhandbuch.
+
+[[security_integration]]
+== Sicherheit & Integration
+
+_Passt sich der IT an, nicht umgekehrt._
+
+Single Sign-on:: Keycloak oder Authentik, oder LDAP – als Client oder als Master der Benutzer und Gruppen (inklusive POSIX- und Samba-Konten).
+Zwei-Faktor-Login:: Authenticator-Apps, WebAuthn-Sicherheitsschlüssel, Codes per Mail oder SMS.
+Feingranulare Rechte:: Gruppen, Rollen und Zugriffsrechte pro Strukturelement.
+Externes Gateway:: Kalender, Kontakte und Dateiaustausch nach außen anbieten, ohne das Hauptsystem freizugeben.
+Integrationen:: Zugangstokens für REST-Clients und Kalender-Abonnements, Telefonie-Integration (Sipgate-Direktwahl, SMS), Verknüpfung von Jira-Issues.
+
+
+[[operations_extensibility]]
+== Betrieb & Erweiterbarkeit
+
+_Einfach zu betreiben, einfach zu erweitern._
+
+Docker oder JAR:: Läuft überall, wo Java läuft, im Produktivbetrieb mit PostgreSQL. Datenbankmigrationen laufen beim Update automatisch.
+System-Dashboard:: Probleme, Statistiken, geplante Jobs und Caches an einem Ort – dazu eine Fehlerzusammenfassung per Mail.
+Log-Viewer:: Live-Log und Volltextsuche in den Logdateien mit Kontext, direkt im Browser.
+Skripte:: Kotlin- und Groovy-Skripte für eigene Auswertungen und Exporte – sogar als Buttons auf ausgewählten Seiten.
+Plugins:: ProjectForge mit eigenen Modulen erweitern.
+Open Source:: Kotlin, Spring Boot und Next.js. Code lesen, ändern, mitwirken.
+
+image::2026-SystemDashboard.png[System-Dashboard mit den Teilsystemen und ihren Fehlern,link=/uploads/screenshots/2026-SystemDashboard.png]
+
+[[requirements]]
+== Technische Voraussetzungen
+
+- Server: Docker-Image oder ausführbares JAR (Java 21 oder neuer) für Linux, macOS und Windows, siehe link:/docs/installation/[Installation] (englisch).
+- Datenbank: PostgreSQL für den Produktivbetrieb, eine eingebettete Datenbank zur Evaluierung.
+- Benutzer: ein aktueller Webbrowser – auf dem Client muss nichts installiert werden.

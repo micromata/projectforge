@@ -23,6 +23,8 @@
 
 package org.projectforge.business.fibu.customergroup
 
+import org.projectforge.business.calendar.CalendarStyle
+
 data class CustomerGroupError(val fieldId: String, val messageKey: String, val params: List<Any?> = emptyList())
 
 /**
@@ -31,7 +33,7 @@ data class CustomerGroupError(val fieldId: String, val messageKey: String, val p
  *
  * Claimed twice is checked twice over:
  * - by the rules themselves: the same customer number in two sets, or a name pattern covering another set's
- *   (`dhl*` and `dh*`, `ACME AG` and `ACME*`), whether a matching customer exists yet or not;
+ *   (`acme*` and `ac*`, `ACME AG` and `ACME*`), whether a matching customer exists yet or not;
  * - by the data: every customer entity of the [CustomerDirectory] (by number and by name) and every free-text
  *   customer in use is run against all sets, which also finds what overlapping patterns of different kinds
  *   catch (`ACME*` and `*Logistics` both claiming "ACME Logistics").
@@ -50,11 +52,110 @@ class CustomerGroupValidator(private val directory: CustomerDirectory) {
         checkSets(config.businessUnits, BUSINESS_UNITS, errors)
         val buOfGroup = checkBusinessUnitGroups(config, errors)
         checkTasks(config.businessUnits, errors)
+        checkColors(config.businessUnits, errors)
         checkClaims(groupClaims(config.groups), GROUPS, ERROR_CUSTOMER_IN_TWO_GROUPS, errors)
         checkClaims(
             businessUnitClaims(config, buOfGroup), BUSINESS_UNITS, ERROR_MEMBER_IN_TWO_BUSINESS_UNITS, errors,
         )
+        checkOrderAccess(config, errors)
+        checkProjectGroups(config, errors)
         return errors
+    }
+
+    /**
+     * A unique name, at least one project, all of them known, and none in two project groups. Reported on both
+     * groups, as a customer in two groups.
+     */
+    private fun checkProjectGroups(config: CustomerGroupConfig, errors: MutableList<CustomerGroupError>) {
+        val otherKeys = (config.groups + config.businessUnits).mapNotNull { it.key } + config.orderAccess.mapNotNull { it.key }
+        val keys = otherKeys.toMutableSet()
+        val firstByName = mutableMapOf<String, Int>()
+        val duplicates = sortedSetOf<Int>()
+        val groupOfProject = mutableMapOf<Long, Int>()
+        config.projectGroups.forEachIndexed { i, group ->
+            val prefix = "$PROJECT_GROUPS[$i]"
+            val name = group.name?.trim()
+            if (name.isNullOrEmpty()) {
+                errors.add(CustomerGroupError("$prefix.name", ERROR_NAME_REQUIRED))
+            } else {
+                firstByName.putIfAbsent(name.lowercase(), i)?.let { first -> duplicates += listOf(first, i) }
+            }
+            group.key?.let { key ->
+                if (!KEY_REGEX.matches(key) || !keys.add(key)) {
+                    errors.add(CustomerGroupError("$prefix.name", ERROR_INVALID_KEY, listOf(key)))
+                }
+            }
+            if (group.projects.isEmpty()) {
+                errors.add(CustomerGroupError("$prefix.projects", ERROR_PROJECT_GROUP_EMPTY))
+            }
+            group.projects.distinct().forEach { projektId ->
+                if (!directory.projects.containsKey(projektId)) {
+                    errors.add(CustomerGroupError("$prefix.projects", ERROR_UNKNOWN_PROJECT, listOf(projektId)))
+                    return@forEach
+                }
+                groupOfProject.putIfAbsent(projektId, i)?.let { other ->
+                    val project = projectName(projektId)
+                    errors.add(
+                        CustomerGroupError(
+                            "$prefix.projects", ERROR_PROJECT_IN_TWO_GROUPS, listOf(project, config.projectGroups[other].name),
+                        )
+                    )
+                    errors.add(
+                        CustomerGroupError(
+                            "$PROJECT_GROUPS[$other].projects", ERROR_PROJECT_IN_TWO_GROUPS, listOf(project, group.name),
+                        )
+                    )
+                }
+            }
+        }
+        duplicates.forEach { i ->
+            errors.add(
+                CustomerGroupError("$PROJECT_GROUPS[$i].name", ERROR_DUPLICATE_NAME, listOf(config.projectGroups[i].name?.trim()))
+            )
+        }
+    }
+
+    /**
+     * A name, someone granted and something granted, all of it known. Whether a user granted is a project manager
+     * or assistant is not checked: memberships change at any time, and the access check leaves out the others
+     * anyway (the editor shows them as a hint).
+     */
+    private fun checkOrderAccess(config: CustomerGroupConfig, errors: MutableList<CustomerGroupError>) {
+        val groupKeys = config.groups.mapNotNull { it.key }.toSet()
+        val businessUnitKeys = config.businessUnits.mapNotNull { it.key }.toSet()
+        val keys = (config.groups + config.businessUnits).mapNotNull { it.key }.toMutableSet()
+        config.orderAccess.forEachIndexed { i, grant ->
+            val prefix = "$ORDER_ACCESS[$i]"
+            if (grant.name.isNullOrBlank()) {
+                errors.add(CustomerGroupError("$prefix.name", ERROR_NAME_REQUIRED))
+            }
+            grant.key?.let { key ->
+                if (!KEY_REGEX.matches(key) || !keys.add(key)) {
+                    errors.add(CustomerGroupError("$prefix.name", ERROR_INVALID_KEY, listOf(key)))
+                }
+            }
+            if (grant.userIds.isEmpty() && grant.groupIds.isEmpty()) {
+                errors.add(CustomerGroupError("$prefix.users", ERROR_GRANT_NOBODY))
+            }
+            if (grant.customers.isEmpty() && grant.groups.isEmpty() && grant.businessUnits.isEmpty()) {
+                errors.add(CustomerGroupError("$prefix.customers", ERROR_GRANT_NOTHING))
+            }
+            grant.userIds.filterNot { directory.userExists(it) }.forEach {
+                errors.add(CustomerGroupError("$prefix.users", ERROR_UNKNOWN_USER, listOf(it)))
+            }
+            grant.groupIds.filterNot { directory.groupExists(it) }.forEach {
+                errors.add(CustomerGroupError("$prefix.userGroups", ERROR_UNKNOWN_USER_GROUP, listOf(it)))
+            }
+            grant.customers.filterNot { directory.customers.containsKey(it) }.forEach {
+                errors.add(CustomerGroupError("$prefix.customers", ERROR_UNKNOWN_CUSTOMER, listOf(it)))
+            }
+            grant.groups.filterNot { it in groupKeys }.forEach {
+                errors.add(CustomerGroupError("$prefix.groups", ERROR_UNKNOWN_GROUP, listOf(it)))
+            }
+            grant.businessUnits.filterNot { it in businessUnitKeys }.forEach {
+                errors.add(CustomerGroupError("$prefix.businessUnits", ERROR_UNKNOWN_BUSINESS_UNIT, listOf(it)))
+            }
+        }
     }
 
     private fun checkSets(sets: List<CustomerSet>, list: String, errors: MutableList<CustomerGroupError>) {
@@ -144,6 +245,16 @@ class CustomerGroupValidator(private val directory: CustomerDirectory) {
                         )
                     )
                 }
+            }
+        }
+    }
+
+    /** A colour, if any, is a hex code as the calendars have them. */
+    private fun checkColors(businessUnits: List<BusinessUnit>, errors: MutableList<CustomerGroupError>) {
+        businessUnits.forEachIndexed { i, bu ->
+            val color = bu.color?.takeIf { it.isNotBlank() } ?: return@forEachIndexed
+            if (!CalendarStyle.validateHexCode(color.trim().lowercase())) {
+                errors.add(CustomerGroupError("$BUSINESS_UNITS[$i].color", ERROR_INVALID_COLOR, listOf(color)))
             }
         }
     }
@@ -256,11 +367,15 @@ class CustomerGroupValidator(private val directory: CustomerDirectory) {
 
     private fun customerName(id: Long): String = directory.customers[id]?.let { "$id $it" } ?: "$id"
 
+    private fun projectName(id: Long): String = directory.projectName(id) ?: "$id"
+
     private fun taskTitle(id: Long): String = directory.taskTitle(id) ?: "$id"
 
     companion object {
         const val GROUPS = "groups"
         const val BUSINESS_UNITS = "businessUnits"
+        const val ORDER_ACCESS = "orderAccess"
+        const val PROJECT_GROUPS = "projectGroups"
 
         /** Keys are assigned by the server (or a client for a group a business unit refers to in the same save). */
         val KEY_REGEX = Regex("^[a-z0-9]{4,20}$")
@@ -279,9 +394,18 @@ class CustomerGroupValidator(private val directory: CustomerDirectory) {
         const val ERROR_UNKNOWN_GROUP = "fibu.customerGroups.error.unknownGroup"
         const val ERROR_GROUP_IN_TWO_BUSINESS_UNITS = "fibu.customerGroups.error.groupInTwoBusinessUnits"
         const val ERROR_MEMBER_IN_TWO_BUSINESS_UNITS = "fibu.customerGroups.error.memberInTwoBusinessUnits"
+        const val ERROR_INVALID_COLOR = "fibu.customerGroups.error.invalidColor"
         const val ERROR_UNKNOWN_TASK = "fibu.customerGroups.error.unknownTask"
         const val ERROR_TASK_OVERLAP = "fibu.customerGroups.error.taskOverlap"
         const val ERROR_TASK_CONTAINS = "fibu.customerGroups.error.taskContains"
+        const val ERROR_GRANT_NOBODY = "fibu.customerGroups.error.grantNobody"
+        const val ERROR_GRANT_NOTHING = "fibu.customerGroups.error.grantNothing"
+        const val ERROR_UNKNOWN_USER = "fibu.customerGroups.error.unknownUser"
+        const val ERROR_UNKNOWN_USER_GROUP = "fibu.customerGroups.error.unknownUserGroup"
+        const val ERROR_UNKNOWN_BUSINESS_UNIT = "fibu.customerGroups.error.unknownBusinessUnit"
+        const val ERROR_PROJECT_GROUP_EMPTY = "fibu.projectGroups.error.empty"
+        const val ERROR_UNKNOWN_PROJECT = "fibu.projectGroups.error.unknownProject"
+        const val ERROR_PROJECT_IN_TWO_GROUPS = "fibu.projectGroups.error.projectInTwoGroups"
         const val ERROR_TOO_LARGE = "fibu.customerGroups.error.tooLarge"
         const val ERROR_MODIFIED_MEANWHILE = "fibu.customerGroups.error.modifiedMeanwhile"
     }

@@ -115,8 +115,8 @@ test.describe("creditor invoice import", { tag: "@lane-creditor" }, () => {
         })
         .click();
 
-      // Commit the ticked row: the endpoint enqueues the import job and answers a job id, on which the
-      // page navigates back to the list.
+      // Commit the ticked row: the endpoint enqueues the import job and answers a job id; the page stays
+      // for the next reconcile.
       const committed = page.waitForResponse(
         (r) => r.url().includes("/rs/incomingInvoiceImport/commit") && r.ok()
       );
@@ -124,7 +124,7 @@ test.describe("creditor invoice import", { tag: "@lane-creditor" }, () => {
         .getByRole("button", { name: format.t("common.import.action.commit") })
         .click();
       await committed;
-      await expect(page).toHaveURL(new RegExp(`${ROUTE}$`));
+      await expect(page).toHaveURL(/\/creditor-invoice-import$/);
 
       // The job runs asynchronously, so the invoice appears a moment later — poll for it, then read it
       // back: the creditor and reference round-trip from the CSV through the import into the ledger.

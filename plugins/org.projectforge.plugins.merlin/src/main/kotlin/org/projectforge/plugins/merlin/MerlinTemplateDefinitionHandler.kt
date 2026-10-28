@@ -83,7 +83,8 @@ open class MerlinTemplateDefinitionHandler {
    * If the template definition is read from Excel file, the variables of the given dto will be updated.
    */
   fun readOrCreateTemplateDefinitionFrom(dto: MerlinTemplate): TemplateDefinition {
-    val id = dto.id!!
+    // A new template (not yet saved) has no attachments, so its variables are all there is:
+    val id = dto.id ?: return createTemplateDefinitionFromDto(dto)
     // No variables defined, so try to read from uploaded Excel:
     val list = merlinHandler.getAttachments(id) ?: return createTemplateDefinitionFromDto(dto)
     val excelAttachment = list.find { it.fileExtension == "xlsx" }

@@ -664,9 +664,14 @@ open class AttachmentsService {
             val user = userGroupCache.getUser(it)
             attachment.createdByUser = user?.getFullname()
             attachment.createdByUserId = user?.id
+            attachment.createdByUserDeleted = user?.deleted?.takeIf { it }
+            attachment.createdByUserDeactivated = user?.deactivated?.takeIf { it }
         }
         NumberHelper.parseLong(fileObject.lastUpdateByUser, false)?.let {
-            attachment.lastUpdateByUser = userGroupCache.getUser(it)?.getFullname()
+            val user = userGroupCache.getUser(it)
+            attachment.lastUpdateByUser = user?.getFullname()
+            attachment.lastUpdateByUserDeleted = user?.deleted?.takeIf { it }
+            attachment.lastUpdateByUserDeactivated = user?.deactivated?.takeIf { it }
         }
         return attachment
     }

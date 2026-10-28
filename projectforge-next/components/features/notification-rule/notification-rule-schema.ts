@@ -60,6 +60,7 @@ export const notificationRuleSchema = z.object({
   daysBeforeExpiry: count,
   passwordMaxAgeDays: count,
   kost2MissingMonths: count,
+  dueWorkingDays: count,
   recipientGroups: z.array(ref),
   recipientUsers: z.array(ref),
   allEmployees: z.boolean(),
@@ -71,9 +72,12 @@ export const notificationRuleSchema = z.object({
   display: m.enumField("display"),
   manualDone: m.booleanField("manualDone"),
   menuBadge: m.nullableString("menuBadge"),
+  linkMode: z.enum(["DEFAULT", "NONE", "MENU_ITEM"]),
+  linkMenuItem: z.string().nullable(),
   subject: m.requiredString("subject"),
   // The editor writes "" for an empty text, so a required string catches it.
   text: m.requiredString("text"),
+  smsText: m.nullableString("smsText"),
   editableByGroups: z.array(ref),
   /** Read-only, sent back untouched (the backend keeps its own value anyway). */
   lastRun: z.string().nullable(),

@@ -145,7 +145,7 @@ class NextTwoFactorSupport {
     }
 
     /**
-     * Same messages as used by [My2FAServicesRest.checkOTP] for the UILayout based clients.
+     * The message for a failed check of a code.
      */
     private fun getMessage(result: OTPCheckResult): String {
         result.userMessage?.let { return it } // Brute force protection: "Please wait x seconds".

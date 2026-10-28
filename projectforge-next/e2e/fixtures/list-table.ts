@@ -1,4 +1,10 @@
-import { expect, type Locator, type Page } from "@playwright/test";
+import {
+  expect,
+  type APIRequestContext,
+  type Locator,
+  type Page,
+} from "@playwright/test";
+import { writeHeaders } from "./seed";
 
 /**
  * The rows of a list, and how to wait for them — for every spec that reads a cell.
@@ -47,4 +53,25 @@ export async function waitForRow(
   const row = listRows(scope).filter({ hasText: text }).first();
   await expect(row).toBeVisible({ timeout });
   return row;
+}
+
+/**
+ * Whether the account sees any entry of `entity` at all (`POST /rs/<entity>/list` with an empty filter).
+ *
+ * For a spec reading the stored rows, which skips on a database without them — a freshly seeded slot
+ * holds no accounts, for instance — rather than waiting for rows that never come.
+ */
+export async function hasEntries(
+  request: APIRequestContext,
+  entity: string
+): Promise<boolean> {
+  const response = await request.post(`/rs/${entity}/list`, {
+    headers: await writeHeaders(request),
+    data: {},
+  });
+  if (!response.ok()) return true;
+  const { resultSet = [] } = (await response.json()) as {
+    resultSet?: unknown[];
+  };
+  return resultSet.length > 0;
 }

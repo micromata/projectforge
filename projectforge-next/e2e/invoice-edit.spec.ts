@@ -9,7 +9,7 @@ import {
 import { formatDateInput } from "../lib/date-parse";
 import { formatNumberInput } from "../lib/number-parse";
 import { INVOICE_PAGE } from "../components/features/invoice/invoice.page";
-import { MARKER, uniqueSuffix } from "./fixtures/seed";
+import { MARKER, uniqueSuffix, writeHeaders } from "./fixtures/seed";
 import {
   createInvoice as seedInvoice,
   fetchInvoice,
@@ -21,8 +21,7 @@ import type { Page } from "@playwright/test";
 
 /**
  * The edit form of an outgoing invoice against the live backend — the deepest form of the migration:
- * positions, and inside each of them the cost assignments its net sum is split across (see
- * MIGRATION.md).
+ * positions, and inside each of them the cost assignments its net sum is split across.
  *
  * Every case works on an invoice it created itself and marks as deleted afterwards, whatever happened
  * in between. Two reasons it cannot read one of the database instead: the list here is a production
@@ -60,8 +59,8 @@ test.describe("outgoing invoice edit", { tag: "@lane-invoice" }, () => {
       // A criterion another run left behind decides which rows the list shows, and the row of a planned
       // invoice has to be among them (see invoice-selection.spec.ts, which resets it for the same reason).
       await page.request
-        .get(`/rs/${INVOICE_PAGE.entity}/filter/reset`, {
-          headers: { "X-PF-Frontend": "next" },
+        .post(`/rs/${INVOICE_PAGE.entity}/filter/reset`, {
+          headers: await writeHeaders(page.request),
         })
         .catch(() => undefined);
       await goto(page, "/invoice");
@@ -542,11 +541,12 @@ test.describe("outgoing invoice edit", { tag: "@lane-invoice" }, () => {
       // The regression this guards is what `arrayFieldNames` exists for: the backend names `positionen`
       // as the field, no `<form.Field>` is mounted for a collection itself, and without the array
       // names the message would be written into a slot nobody renders — a save that silently does
-      // nothing (see applyServerValidationErrors).
+      // nothing (see applyServerValidationErrors). Scoped to the toasts, because the empty list of
+      // positions says the same text the moment the last row is deleted, before any save.
       await expect(
-        page.getByText(
-          format.t("fibu.rechnung.error.rechnungHatKeinePositionen")
-        )
+        page
+          .locator("[data-sonner-toaster]")
+          .getByText(format.t("fibu.rechnung.error.rechnungHatKeinePositionen"))
       ).toBeVisible();
       // And the page stays, so the invoice can be repaired rather than lost.
       await expect(page).toHaveURL(new RegExp(`/invoice/${id}$`));

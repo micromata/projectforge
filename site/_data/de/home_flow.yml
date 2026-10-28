@@ -1,0 +1,26 @@
+# "So greift alles ineinander" on the German home page: from order to numbers
+
+- step: 1
+  title: Auftrag gewinnen
+  desc: Angebote und Aufträge mit Budgets, Zahlungsplänen und Ansprechpartnern im Blick.
+  url: /de/features/#projects_orders
+
+- step: 2
+  title: Projekt planen
+  desc: Im Strukturbaum aufteilen, Personal planen und festlegen, wer wo buchen darf.
+  url: /de/features/#projects_orders
+
+- step: 3
+  title: Zeit buchen
+  desc: Das Team bucht in Sekunden – aus Vorlagen, dem Kalender oder für mehrere Tage auf einmal.
+  url: /de/features/#time_tracking
+
+- step: 4
+  title: Rechnung schreiben
+  desc: Aus Auftragspositionen werden Rechnungen, exportiert als XRechnung oder ZUGFeRD.
+  url: /de/features/#finance_e_invoicing
+
+- step: 5
+  title: Zahlen kennen
+  desc: Forecast, Deckungsbeiträge, Fakturierungsquote und Liquidität – immer aktuell.
+  url: /de/features/#controlling_liquidity

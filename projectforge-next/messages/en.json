@@ -55,7 +55,7 @@
   },
   "order": {
     "legend": {
-      "deleted": "Deleted / rejected / replaced",
+      "rejected": "Rejected / replaced",
       "toBeInvoiced": "To be invoiced",
       "commissioned": "Commissioned / LOI"
     },

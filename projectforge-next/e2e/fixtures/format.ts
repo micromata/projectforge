@@ -26,6 +26,8 @@ import type { UserData, UserStatus } from "../../lib/rs/types";
 export interface UserFormat {
   /** Formatting context of the user — locale, time zone, currency (as useFormatContext builds it). */
   context: FormatContext;
+  /** The language of the user's interface, as next-intl's `useLocale()` returns it (`de`, `en`). */
+  locale: string;
   /**
    * Looks up a dotted message key, e.g. `book.lendOut`, substituting `{argN}` placeholders — the
    * generator turns the bundle's `{0}` into `{arg0}`, so a plural label like "Letzte {arg0} Tage"
@@ -54,6 +56,7 @@ export async function userFormat(page: Page): Promise<UserFormat> {
   const messages = applyCustomerOverrides(MESSAGES[locale], overrides);
   return {
     context,
+    locale,
     t: translateMessages(locale, messages),
     date: (value) => formatDate(value, context),
     timestamp: (value) => formatTimestampMinutes(value, context),

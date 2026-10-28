@@ -90,6 +90,13 @@ object Constants {
   const val NEXT_APP_PATH = "next/"
 
   /**
+   * Where the production build of projectforge-next links its assets (`assetPrefix` in next.config.ts), although
+   * the export keeps them in `_next/`: below the public pages, so an authenticating proxy in front of ProjectForge
+   * that opens `/next/public` for the external access of a data transfer area doesn't have to open more.
+   */
+  const val NEXT_PUBLIC_ASSETS_PATH = "${NEXT_APP_PATH}public/_next/"
+
+  /**
    * The only login page of the application, served by projectforge-next. Both frontends (next and the legacy
    * React app) redirect unauthenticated users here.
    *

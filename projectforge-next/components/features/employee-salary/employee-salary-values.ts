@@ -1,5 +1,6 @@
 import type { EmployeeSalaryValues } from "./employee-salary-schema";
 import type { EmployeeSalaryDetail } from "./types";
+import { toPickerRef } from "@/lib/page-def/reference";
 
 /**
  * A field Spring left out of the JSON (`JsonInclude.Include.NON_NULL`, see types.ts) arrives as
@@ -11,13 +12,8 @@ export function toFormValues(
 ): EmployeeSalaryValues {
   return {
     id: salary.id ?? null,
-    // The reference the picker binds to: {id, displayName}, all the server needs to resolve it by id.
-    employee: salary.employee
-      ? {
-          id: salary.employee.id,
-          displayName: salary.employee.displayName ?? "",
-        }
-      : null,
+    // The reference the picker binds to (see toPickerRef).
+    employee: toPickerRef(salary.employee),
     year: salary.year ?? null,
     month: salary.month ?? null,
     type: salary.type ?? null,

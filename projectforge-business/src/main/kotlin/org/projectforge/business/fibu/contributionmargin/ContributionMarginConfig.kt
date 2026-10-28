@@ -25,6 +25,7 @@ package org.projectforge.business.fibu.contributionmargin
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.fibu.numberrange.NumberRangeService
 import org.projectforge.framework.json.JsonUtils
 import java.math.BigDecimal
 
@@ -55,7 +56,7 @@ class ContributionMarginConfig(
 ) {
   /**
    * Assigns the kost2 without an own project whose number starts with [kost2] (nummernkreis, bereich,
-   * teilbereich, e.g. `6.000.10`, any kost2 type) to the project with the kost [project] (e.g. `5.999.10`).
+   * teilbereich, e.g. `6.000.10`, any kost2 type) to the project with the kost [project] (e.g. `5.900.10`).
    */
   class Kost2Assignment(var kost2: String? = null, var project: String? = null) {
     /** An empty row of the editor, ignored. */
@@ -150,10 +151,13 @@ class ContributionMarginConfig(
       }
     }
 
-    /** Parses a kost number of three parts like `6.000.10`, or null. */
+    /**
+     * Parses a kost number without Kost2 type like `6.000.10` or `1.0007.3` (segmented by its number range), or
+     * null. Returns nummernkreis, bereich and teilbereich in the storage format of Kost2DO.
+     * @see org.projectforge.business.fibu.numberrange.NumberRanges.parseKost2Prefix
+     */
     fun parseKostNumber(value: String?): List<Int>? {
-      val parts = value?.trim()?.split('.')?.map { it.trim().toIntOrNull() ?: return null } ?: return null
-      return if (parts.size == 3) parts else null
+      return NumberRangeService.current.parseKost2Prefix(value)?.toList()
     }
   }
 }

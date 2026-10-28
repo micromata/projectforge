@@ -210,3 +210,54 @@ function taskLeafOf(path: string): string {
   const segments = path.split(" | ");
   return segments[segments.length - 1] || path;
 }
+
+/**
+ * The values once the backend offers other filter fields for them (`ResultSet.reloadUI`): the address campaign
+ * values offer the values of the campaign just selected. A field no longer offered is dropped (it could neither
+ * be seen nor cleared, but would still filter), and a list value no longer among the choices of its field is
+ * taken out of it - a value "Ja" of last campaign's filter leaves the list of a campaign without "Ja" empty.
+ *
+ * Only what changed between the two answers is touched: a field that wasn't offered before either (the period
+ * or the page size of the list itself) is kept, and so is a list whose choices are as before (a free text value
+ * of the order book's customers isn't among them).
+ *
+ * @return The values as they are if nothing is to be pruned, so the caller can tell by identity.
+ */
+export function prunedFilterValues(
+  values: FilterValues,
+  previous: FilterElement[],
+  elements: FilterElement[]
+): FilterValues {
+  const before = new Map(previous.map((element) => [element.id, element]));
+  const now = new Map(elements.map((element) => [element.id, element]));
+  let changed = false;
+  const result: FilterValues = {};
+  for (const [field, value] of Object.entries(values)) {
+    const old = before.get(field);
+    const element = now.get(field);
+    if (old && !element) {
+      changed = true;
+      continue;
+    }
+    const choices = element?.values;
+    if (old && choices && value.values && !sameChoices(old.values, choices)) {
+      const ids = new Set(choices.map((choice) => choice.id));
+      const kept = value.values.filter((id) => ids.has(id));
+      if (kept.length !== value.values.length) {
+        changed = true;
+        if (kept.length > 0) result[field] = { ...value, values: kept };
+        continue;
+      }
+    }
+    result[field] = value;
+  }
+  return changed ? result : values;
+}
+
+function sameChoices(
+  a: FilterElement["values"],
+  b: FilterElement["values"]
+): boolean {
+  if (!a || !b) return a === b;
+  return a.length === b.length && a.every((choice, i) => choice.id === b[i].id);
+}

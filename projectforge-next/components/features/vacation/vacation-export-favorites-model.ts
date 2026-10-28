@@ -1,11 +1,11 @@
 /**
  * The comparisons behind the favorites of the team vacation calendar (useVacationExportFavorites): a favorite and
- * the choice on screen are both sets of employees and groups, so order and duplicates mean nothing.
+ * the choice on screen are both sets of users and groups, so order and duplicates mean nothing.
  */
 
-/** The employees and groups of a favorite or of the choice on screen. */
+/** The users and groups of a favorite or of the choice on screen. */
 export interface VacationExportIds {
-  employeeIds: number[];
+  userIds: number[];
   groupIds: number[];
 }
 
@@ -21,9 +21,7 @@ export function sameChoice(
   a: VacationExportIds,
   b: VacationExportIds
 ): boolean {
-  return (
-    sameIds(a.employeeIds, b.employeeIds) && sameIds(a.groupIds, b.groupIds)
-  );
+  return sameIds(a.userIds, b.userIds) && sameIds(a.groupIds, b.groupIds);
 }
 
 /** The id of the first favorite holding exactly the choice, null if none does. */

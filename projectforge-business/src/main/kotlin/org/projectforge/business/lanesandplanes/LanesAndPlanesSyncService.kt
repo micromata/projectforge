@@ -26,7 +26,7 @@ package org.projectforge.business.lanesandplanes
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.logging.error
 import org.projectforge.common.logging.warn
-import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.framework.configuration.ApplicationDirectories
 import org.projectforge.framework.integration.IntegrationConfig
 import org.projectforge.framework.integration.IntegrationErrors
 import org.projectforge.framework.integration.PooledHttpClients
@@ -90,34 +90,22 @@ open class LanesAndPlanesSyncService(
                 run.abort("build failed: ${ex.message}")
                 return
             }
-            val stateFile = File(ConfigXml.getInstance().workingDirectory, STATE_FILENAME)
-            val state = LanesAndPlanesEmailHolds.load(stateFile)
+            val stateFile = File(ApplicationDirectories.workingDirectory, STATE_FILENAME)
+            val state = LanesAndPlanesPushState.load(stateFile)
             if (state == null && !config.dryRun) {
                 log.warn(LanesAndPlanesLogEvents.STATE_MISSING) {
-                    "Lanes & Planes: push state ${stateFile.absolutePath} missing or not readable: changed emails " +
-                            "aren't held back and the number of users isn't compared with the last push. Expected " +
-                            "on the very first push only."
+                    "Lanes & Planes: push state ${stateFile.absolutePath} missing or not readable: the number of " +
+                            "users isn't compared with the last push. Expected on the very first push only."
                 }
             }
-            val holds = LanesAndPlanesEmailHolds.apply(
-                result.request.users, state?.emailsByIdent ?: emptyMap(), settings.confirmedEmails,
-                settings.existingEmails, result.otherEmailsByIdent,
-            )
-            if (holds.unknownIdents.isNotEmpty()) {
+            val users = result.request.users
+            if (result.newUserEmails.isNotEmpty()) {
                 log.info {
-                    "Lanes & Planes: ${holds.unknownIdents.size} employees are sent with an email unknown to " +
-                            "Lanes & Planes (not in the existing user emails), so they are created anew: users " +
-                            "#${holds.unknownIdents.joinToString(", #")}."
+                    "Lanes & Planes: ${result.newUserEmails.size} employees without an email of the configuration " +
+                            "are sent with their ProjectForge email (stored in the configuration after the push): " +
+                            "users #${result.newUserEmails.keys.sorted().joinToString(", #")}."
                 }
             }
-            holds.holds.forEach { hold ->
-                log.warn(LanesAndPlanesLogEvents.EMAIL_CHANGED) {
-                    "Lanes & Planes: the email of user #${hold.ident} changed from '${hold.sentEmail}' to " +
-                            "'${hold.newEmail}', still sending '${hold.sentEmail}'. Change it in Lanes & Planes, " +
-                            "then add '${hold.newEmail}' to the confirmed email changes of the configuration."
-                }
-            }
-            val users = holds.users
             refuseReason(users.size, settings, state?.users)?.let { reason ->
                 log.error(LanesAndPlanesLogEvents.PUSH_REFUSED) { "Lanes & Planes push refused: $reason" }
                 run.abort(reason)
@@ -125,7 +113,7 @@ open class LanesAndPlanesSyncService(
             }
             val json = JsonUtils.toJson(LanesAndPlanesUsersRequest(users), ignoreNullableProps = true)
             if (config.dryRun) {
-                val file = File(ConfigXml.getInstance().workingDirectory, DRY_RUN_FILENAME)
+                val file = File(ApplicationDirectories.workingDirectory, DRY_RUN_FILENAME)
                 file.writeText(json)
                 log.info {
                     "Lanes & Planes dry run (projectforge.lanesandplanes.dryRun=true): ${users.size} users with " +
@@ -136,7 +124,8 @@ open class LanesAndPlanesSyncService(
                             "${users.count { it.creditorAccount != null }} with creditor account, " +
                             "${users.sumOf { countExisting(it, settings) }} cost objects with an existing L&P name, " +
                             "${settings.additionalUserList.size} additional users, " +
-                            "${holds.holds.size} changed emails held back, " +
+                            "${result.differingEmails} with an L&P email differing from ProjectForge, " +
+                            "${result.newUserEmails.size} emails to be stored in the configuration, " +
                             "written to ${file.absolutePath}, nothing sent."
                 }
                 run.finish()
@@ -163,9 +152,16 @@ open class LanesAndPlanesSyncService(
             }
             lastPushedHash = hash
             try {
-                LanesAndPlanesEmailHolds.save(stateFile, users)
+                LanesAndPlanesPushState.save(stateFile, users.size)
             } catch (ex: Exception) {
                 log.error(ex) { "Lanes & Planes: push state ${stateFile.absolutePath} not written: ${ex.message}" }
+            }
+            try {
+                settingsService.addUserEmails(result.newUserEmails)
+            } catch (ex: Exception) {
+                // Repeated by the next push: the payload is the same, but the emails are still missing.
+                lastPushedHash = null
+                log.error(ex) { "Lanes & Planes: emails of the pushed users not stored in the configuration: ${ex.message}" }
             }
             run.finish()
         } finally {
@@ -217,7 +213,7 @@ open class LanesAndPlanesSyncService(
 
         private const val DRY_RUN_FILENAME = "lanes-and-planes-users.json"
 
-        /** The emails of the last successful push by ident, see [LanesAndPlanesEmailHolds]. */
+        /** The number of users of the last successful push, see [LanesAndPlanesPushState]. */
         private const val STATE_FILENAME = "lanes-and-planes-state.json"
 
         internal fun gzip(json: String): ByteArray {

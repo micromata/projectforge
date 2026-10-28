@@ -52,6 +52,15 @@ open class DataTransferAccessChecker(
    */
   override fun checkUploadAccess(user: PFUserDO?, path: String, id: Any, subPath: String?) {
     checkAccess(user, id) // Upload access is given, if select/download access is given
+    val dbo = getDataTransferArea(user, id)!!
+    if (dataTransferAreaDao.getAreaHost(dbo) != null) {
+      // Files come into a synthetic area only from its module (e.g. a message of the chat).
+      throw AccessException(user, SYNTHETIC_AREA_READ_ONLY)
+    }
+    if (dataTransferAreaDao.externalAccessConfig.isOnGateway(dbo)) {
+      // The files of an area with external access via the gateway are there, existing ones may still be deleted here.
+      throw AccessException("plugins.datatransfer.gateway.files.uploadNotAllowed", dataTransferAreaDao.externalAccessConfig.gatewayPublicUrl)
+    }
   }
 
   /**
@@ -59,6 +68,13 @@ open class DataTransferAccessChecker(
    */
   override fun checkDownloadAccess(user: PFUserDO?, path: String, id: Any, file: FileObject, subPath: String?) {
     val dbo = getDataTransferArea(user, id)
+    dataTransferAreaDao.getAreaHost(dbo)?.let { host ->
+      checkAccess(user, id)
+      if (!host.isFileAccessible(dbo!!.id!!, file.fileId ?: "", user!!)) {
+        throw AccessException(user, "access.exception.noAccess")
+      }
+      return
+    }
     if (dbo!!.isPersonalBox()) {
       if (user!!.id == dbo.getPersonalBoxUserId()) {
         // User has full access to his own personal box.
@@ -92,6 +108,9 @@ open class DataTransferAccessChecker(
    * @param subPath Equals to listId.
    */
   override fun checkUpdateAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?) {
+    if (dataTransferAreaDao.getAreaHost(getDataTransferArea(user, id)) != null) {
+      throw AccessException(user, SYNTHETIC_AREA_READ_ONLY) // The files are those of the module (e.g. a chat message).
+    }
     /*user!!
     val dbo = dataTransferAreaDao.internalGetById(id as Long)
     if (dataTransferAreaDao.hasAccess(user, dbo, dbo, OperationType.UPDATE, throwException = false)) {
@@ -101,13 +120,21 @@ open class DataTransferAccessChecker(
     // Later: User has only update access to own attachments. For now: all users with dbo select access have also update access
     // of attachments.
     //dataTransferAreaDao.hasAccess(user, dbo, dbo, OperationType.SELECT, throwException = true)
-    checkUploadAccess(user, path, id, subPath)
+    checkAccess(user, id)
   }
 
   /**
    * @param subPath Equals to listId.
    */
   override fun checkDeleteAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?) {
+    val dbo = getDataTransferArea(user, id)
+    dataTransferAreaDao.getAreaHost(dbo)?.let { host ->
+      checkAccess(user, id)
+      if (!host.hasDeleteAccess(dbo!!.id!!, fileId, user!!)) {
+        throw AccessException(user, "access.exception.noAccess")
+      }
+      return
+    }
     checkUpdateAccess(user, path, id, fileId, subPath)
   }
 
@@ -141,6 +168,9 @@ open class DataTransferAccessChecker(
   }
 
   private fun hasAccess(user: PFUserDO?, dbo: DataTransferAreaDO, attachment: Attachment): Boolean {
+    dataTransferAreaDao.getAreaHost(dbo)?.let { host ->
+      return user != null && host.isFileAccessible(dbo.id!!, attachment.fileId ?: "", user)
+    }
     if (!dbo.isPersonalBox()) {
       return true
     }
@@ -150,5 +180,9 @@ open class DataTransferAccessChecker(
       return true
     }
     return user.id == attachment.createdByUserId // User can see only attachments of other personal boxes if they have uploaded them.
+  }
+
+  companion object {
+    private const val SYNTHETIC_AREA_READ_ONLY = "plugins.datatransfer.syntheticArea.readOnly"
   }
 }

@@ -1,0 +1,30 @@
+# Navigation of the site header of the German pages (see _data/navigation_header.yml).
+
+links:
+  - title: Funktionen
+    url: /de/features/
+
+  - title: Doku
+    url: /de/docs/quickstart/
+    match: /docs/
+
+  - title: Services
+    url: /de/services/
+
+  - title: FAQ
+    url: /de/#faq
+
+  - title: Über uns
+    url: /de/about/
+
+  - title: GitHub
+    url: https://github.com/micromata/projectforge/
+
+actions:
+  - title: Changelog
+    url: /de/changelog-posts/
+    style: ghost
+
+  - title: Download
+    url: /de/download/
+    style: primary

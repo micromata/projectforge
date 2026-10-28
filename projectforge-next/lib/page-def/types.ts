@@ -2,12 +2,13 @@
  * One entry in the colour legend below a list table.
  *
  * The `className` is one of the `row-*` tokens defined in `globals.css`; `labelKey` is a full
- * i18n key. Set `strikethrough` for entries whose rows are also struck through (row-deleted).
+ * i18n key. Set `strikethrough` for entries whose rows are also struck through, to the way they are:
+ * `"deleted"` (row-deleted, red) or `"inactive"` (row-inactive, thin grey).
  */
 export interface LegendEntry {
   className: string;
   labelKey: string;
-  strikethrough?: boolean;
+  strikethrough?: "deleted" | "inactive";
 }
 
 /**
@@ -43,6 +44,14 @@ interface ColumnBase<Row> {
   minSize?: number;
   /** Extra classes of the default cell; ignored when `cell` is given. */
   className?: string;
+  /**
+   * Extra classes of the table cell itself (`<td>`), for every renderer: a tinted background that sets a
+   * column apart from the others — the comparison campaign's values beside the campaign's own (see
+   * ADDRESS_CAMPAIGN_VALUE_PAGE). A background colour given here replaces the cell's opaque default, so it has
+   * to be opaque itself (mixed with the background, not translucent), or a pinned column lets the scrolling
+   * ones show through.
+   */
+  cellClassName?: string;
   /** Overrides the alignment derived from the data type (numbers right, everything else left). */
   align?: "left" | "right";
   /**
@@ -251,6 +260,11 @@ export interface DeclaredField<M extends EntityMetadata> extends FieldBase {
   alignNumber?: "left" | "right";
   /** Larger and in the accent colour — for the one value a reader looks for first. */
   emphasized?: boolean;
+  /**
+   * Its text in red: a value everybody who sees the entry reads (an availability's public comment), so the
+   * user minds what is entered. A textarea only (`rows`).
+   */
+  publicText?: boolean;
   /**
    * Shown but not editable — a value the backend assigns and the user only reads, like an order's
    * number (`AuftragDao.getNextNumber` on the first save). Hiding it would be worse: it is how an
@@ -560,7 +574,7 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    *
    * They run through the form's own submit, i.e. the same Zod validation, values and 406 handling
    * (see lib/rs/submit-meta.ts); declaring the names is all the renderer needs to route
-   * `meta.action` to `/rs/{entity}/{action}` instead of `saveorupdate`. What *triggers* them stays
+   * `meta.action` to `/rs/{entity}/{action}` instead of `insert`/`update`. What *triggers* them stays
    * the entity's own business: a section's `render` puts the buttons where they belong.
    */
   actions?: readonly string[];
@@ -568,7 +582,7 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    * Redirects the plain Save to one of the declared {@link actions}, chosen from the form values.
    *
    * The Save button always submits `action: "save"` (SAVE_META); when this hook returns an action name
-   * that {@link actions} lists, that submit posts to `/rs/{entity}/{action}` instead of `saveorupdate`,
+   * that {@link actions} lists, that submit posts to `/rs/{entity}/{action}` instead of `insert`/`update`,
    * while still navigating away the way a save does (the further-action branch that stays on the page is
    * only for a button carrying its own meta). Returning `undefined` — or omitting the hook — keeps the
    * ordinary save.
@@ -592,6 +606,12 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    *   is the case — it persists without a detour through the add form (see runClone).
    */
   clone?: boolean | "autosave";
+  /**
+   * Shows the form read-only where the entry may not be saved (`writeAccess` false), the way a deleted entry
+   * is shown — instead of editable fields without a save button. For an entity whose entries are closed at
+   * some point, a finished poll: whoever opens it reads it, nobody changes it.
+   */
+  readOnlyWithoutWriteAccess?: boolean;
   /**
    * Turns this entry into an entry of a *different* entity — a time sheet into a calendar event and
    * back (`plugins.teamcal.switchToTeamEventButton` / `switchToTimesheetButton`).
@@ -684,7 +704,7 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
  */
 export interface MassUpdateDef {
   /**
-   * REST base of the mass update page, e.g. `invoiceSelected` (`AbstractMultiSelectedPage`).
+   * REST base of the mass update page, e.g. `invoiceSelected` (`AbstractMassUpdateRest`).
    *
    * Not `${entity}Selected`: the backend mounts these pages under the *entity's* legacy name, which
    * for the outgoing invoice is `invoice` and not `outgoingInvoice`.
@@ -782,11 +802,18 @@ export interface PageDef<
   /**
    * Overrides the label of the always-present `row-deleted` legend entry.
    *
-   * Defaults to `table.legend.deleted` ("Deleted"). Use when the page applies `row-deleted` to
-   * more states than just hard-deleted rows — e.g. the order book colours ABGELEHNT and ERSETZT
-   * the same way and needs "Deleted / rejected / replaced".
+   * Defaults to `table.legend.deleted` ("Deleted"). Rarely needed: a state that is no longer live but
+   * not deleted (ended, cancelled, rejected, inactive) takes `row-inactive` and [inactiveLabelKey]
+   * instead, so it doesn't read as deleted.
    */
   deletedLabelKey?: string;
+
+  /**
+   * The label of the `row-inactive` legend entry (thin grey strike), added right after the deleted one —
+   * for a page whose `rowClassName` returns `INACTIVE_ROW_CLASS` for entries no longer live but not
+   * deleted, e.g. an ended project or a cancelled invoice. No entry without it.
+   */
+  inactiveLabelKey?: string;
 
   /**
    * Row highlight class, e.g. `"row-red"` — the semantic classes in `globals.css`.
@@ -807,12 +834,19 @@ export interface PageDef<
    */
   onRowClick?: (row: Row) => string | undefined;
   /**
+   * Opens a row in a dialog over the list instead of navigating to its page — the address view, which the
+   * legacy React list showed as a modal: a quick look (a phone number, an e-mail) that leaves the list, its
+   * filter and its scroll position where they were. The page of the entry stays what direct links (a search
+   * hit, a link of another page) open. [onRowClick] wins where it names a route.
+   */
+  rowDialog?: ComponentType<{ id: number; onClose: () => void }>;
+  /**
    * The form of this list is another entity's, declared by a page of its own under the same [route] —
    * for a list whose rows are the *parts* of what is edited: the HR planning list shows the entries of
    * the planned weeks (`hrPlanningEntry`), and the add button and a row open the week itself
    * (`hrPlanning`, see HR_PLANNING_PAGE).
    *
-   * Without [edit] the list would lead to the legacy pages (see useEditTargets); this says the form is
+   * Without [edit] a row click and the add button lead nowhere (see useEditTargets); this says the form is
    * this app's all the same. The add button opens `<route>/new`, a row [onRowClick]'s target — the id of
    * an entry is not the id of the form's entity, so such a page has to name it there.
    */
@@ -872,8 +906,7 @@ export interface PageDef<
    *
    * A page without it is a complete list: the columns, the filters, the favorites and the column
    * state are the list's own business, and none of `EntityListPage` reads this. What changes is
-   * only where a row click and the add button lead — to the legacy page the backend names
-   * (`listMeta.legacyEditPage`, see useEditTargets), instead of `${route}/${id}`. Declaring an
+   * that a row click and the add button lead nowhere (see useEditTargets). Declaring an
    * `edit` half nobody renders, just to satisfy the type, would mean inventing a schema and a
    * section that no form validates.
    *

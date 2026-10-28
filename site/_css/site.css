@@ -438,6 +438,134 @@
   margin: 0;
   border: 0;
 }
+/* Line numbers of [source,…,linenums]: a table of rouge, numbers in the first cell. */
+.prose .listingblock table.linenotable,
+.prose .listingblock table.linenotable td {
+  display: table;
+  width: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.prose .listingblock table.linenotable td {
+  display: table-cell;
+  vertical-align: top;
+}
+.prose .listingblock table.linenotable td pre {
+  padding: 0;
+  background: none;
+  overflow: visible;
+}
+.prose .listingblock table.linenotable td.linenos {
+  padding-right: 1em;
+  color: var(--color-muted-foreground);
+  text-align: right;
+  user-select: none;
+}
+
+/*
+ * Copy button of the code blocks (assets/js/copy-code.js): above the code, right-aligned in the line of the block
+ * title (file name) or in a line of its own.
+ */
+.prose .pf-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2rem;
+  margin-top: 1.25em;
+  margin-bottom: 0.375rem;
+}
+.prose .pf-code-untitled {
+  margin-top: 0.5em;
+}
+.prose .pf-code-header + .content pre,
+.prose .pf-code-header + .highlight pre,
+.prose .pf-code-header + .highlight {
+  margin-top: 0;
+}
+.pf-code-copy {
+  flex: none;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+}
+.pf-code-copy:hover {
+  color: var(--color-foreground);
+  background: var(--color-secondary);
+}
+.pf-code-copy:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 1px;
+}
+.pf-code-copy.pf-code-copied {
+  color: var(--color-brand-teal-dark);
+}
+
+/* Syntax highlighting of the code blocks (rouge, for AsciiDoc and Markdown), light colors in the style of GitHub. */
+.highlight .c, .highlight .ch, .highlight .cd, .highlight .cm, .highlight .cpf, .highlight .c1, .highlight .cs {
+  color: #6e7781;
+  font-style: italic;
+}
+.highlight .cp {
+  color: #6e7781;
+}
+.highlight .k, .highlight .kc, .highlight .kd, .highlight .kn, .highlight .kp, .highlight .kr, .highlight .kv,
+.highlight .ow {
+  color: #cf222e;
+}
+.highlight .kt, .highlight .nc, .highlight .nn, .highlight .ne {
+  color: #953800;
+}
+.highlight .s, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .dl, .highlight .sd, .highlight .s2,
+.highlight .sh, .highlight .s1, .highlight .sx, .highlight .ss {
+  color: #0a3069;
+}
+.highlight .se, .highlight .si, .highlight .sr {
+  color: #116329;
+}
+.highlight .m, .highlight .mb, .highlight .mf, .highlight .mh, .highlight .mi, .highlight .il, .highlight .mo,
+.highlight .mx {
+  color: #0550ae;
+}
+.highlight .nb, .highlight .bp, .highlight .nl {
+  color: #8250df;
+}
+.highlight .nf, .highlight .fm {
+  color: #6639ba;
+}
+.highlight .nv, .highlight .vc, .highlight .vg, .highlight .vi, .highlight .vm, .highlight .na, .highlight .no {
+  color: #0550ae;
+}
+.highlight .nt {
+  color: #116329;
+}
+.highlight .nd {
+  color: #8250df;
+}
+.highlight .gd {
+  color: #82071e;
+  background-color: #ffebe9;
+}
+.highlight .gi {
+  color: #116329;
+  background-color: #dafbe1;
+}
+.highlight .gh, .highlight .gu {
+  color: #0550ae;
+  font-weight: 600;
+}
+.highlight .err {
+  color: inherit;
+}
 .prose #toc,
 .prose .toc {
   border: 1px solid var(--color-border);
@@ -718,51 +846,94 @@ a.changelog-pill-docker:hover {
   width: 100%;
   height: auto;
 }
+/* Several screenshots of a section, one below the other: [.pf-screenshots] block around the images. */
+.pf-adoc-sections .pf-screenshots > .content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
 .pf-adoc-sections .imageblock .title {
   margin-top: 0.5rem;
   font-size: 13px;
   line-height: 20px;
   color: var(--color-muted-foreground);
 }
+/* Several screenshots of a section with short captions (_includes/screenshot-gallery.html). */
+.pf-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem 1rem;
+}
+@media (width < 36rem) {
+  .pf-gallery {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.pf-gallery figure {
+  margin: 0;
+}
+/* An odd number of screenshots: the first one takes the whole width, the grid has no gap at the end. */
+.pf-gallery > figure:first-child:nth-last-child(odd) {
+  grid-column: 1 / -1;
+}
+.pf-gallery a {
+  display: block;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-card);
+}
+.pf-gallery img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.pf-gallery figcaption {
+  margin-top: 0.375rem;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--color-muted-foreground);
+}
+.pf-adoc-sections .pf-gallery a {
+  text-decoration: none;
+}
 /* Sections without a screenshot keep a readable line length. */
-.pf-adoc-sections > .sect1:not(:has(.imageblock)) > h2,
-.pf-adoc-sections > .sect1:not(:has(.imageblock)) > .sectionbody {
+.pf-adoc-sections > .sect1:not(:has(.imageblock, .pf-gallery)) > h2,
+.pf-adoc-sections > .sect1:not(:has(.imageblock, .pf-gallery)) > .sectionbody {
   max-width: var(--container-narrow);
 }
 @media (width >= 56.25rem) {
-  .pf-adoc-sections > .sect1:has(.imageblock) {
+  /* Heading, subtitle and list on the left; a screenshot column taller than the text extends the last row only. */
+  .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto 1fr;
     column-gap: 3rem;
   }
-  .pf-adoc-sections > .sect1:has(.imageblock) > h2 {
+  .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) > h2 {
     grid-column: 1;
   }
-  .pf-adoc-sections > .sect1:has(.imageblock) > .sectionbody {
+  .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) > .sectionbody {
     display: contents;
   }
-  .pf-adoc-sections > .sect1:has(.imageblock) > .sectionbody > :not(.imageblock) {
+  .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) > .sectionbody > :not(.imageblock, .pf-gallery, .pf-screenshots) {
     grid-column: 1;
   }
-  .pf-adoc-sections > .sect1:has(.imageblock) > .sectionbody > .dlist,
-  .pf-adoc-sections > .sect1:has(.imageblock) > .sectionbody > .ulist {
+  .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) > .sectionbody > .dlist,
+  .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) > .sectionbody > .ulist {
     margin-top: 1.5rem;
   }
-  .pf-adoc-sections > .sect1:has(.imageblock) > .sectionbody > .imageblock {
+  .pf-adoc-sections > .sect1:has(.imageblock, .pf-gallery) > .sectionbody > :is(.imageblock, .pf-gallery, .pf-screenshots) {
     grid-column: 2;
     grid-row: 1 / span 3;
     align-self: center;
   }
-  .pf-adoc-sections > .sect1:has(.imageblock) > .sectionbody > .imageblock + .imageblock {
-    grid-row: 4;
-    margin-top: 1.5rem;
-  }
   /* Every other band mirrors: screenshot left, text right. */
-  .pf-adoc-sections > .sect1:nth-child(even of .sect1):has(.imageblock) > h2,
-  .pf-adoc-sections > .sect1:nth-child(even of .sect1):has(.imageblock) > .sectionbody > :not(.imageblock) {
+  .pf-adoc-sections > .sect1:nth-child(even of .sect1):has(.imageblock, .pf-gallery) > h2,
+  .pf-adoc-sections > .sect1:nth-child(even of .sect1):has(.imageblock, .pf-gallery) > .sectionbody > :not(.imageblock, .pf-gallery, .pf-screenshots) {
     grid-column: 2;
   }
-  .pf-adoc-sections > .sect1:nth-child(even of .sect1):has(.imageblock) > .sectionbody > .imageblock {
+  .pf-adoc-sections > .sect1:nth-child(even of .sect1):has(.imageblock, .pf-gallery) > .sectionbody > :is(.imageblock, .pf-gallery, .pf-screenshots) {
     grid-column: 1;
   }
 }

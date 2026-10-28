@@ -31,7 +31,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import jakarta.servlet.http.HttpServletRequest
@@ -48,7 +48,10 @@ open class LogoutRest {
   @Autowired
   private lateinit var loginService: LoginService
 
-  @GetMapping
+  /**
+   * POST only: a GET would let any link or `<img>` log the user out.
+   */
+  @PostMapping
   fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseAction {
     loginService.logout(request, response)
     return ResponseAction(

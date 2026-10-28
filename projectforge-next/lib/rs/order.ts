@@ -291,6 +291,8 @@ export interface ForecastProjectRow {
   projectId: number;
   customer: string | null;
   project: string | null;
+  /** The project group the project belongs to; omitted for none. */
+  projectGroup?: string | null;
   /** Remaining forecast plus the invoices (IST) of the 12 months. */
   forecast: number;
   /** Null if no planning date was given. */
@@ -319,6 +321,8 @@ export interface ForecastPositionRow {
   projectId: number | null;
   customer: string | null;
   project: string | null;
+  /** The project group the project belongs to; omitted for none. */
+  projectGroup?: string | null;
   title: string | null;
   /** Only given if it differs from the order's title. */
   positionTitle: string | null;
@@ -359,6 +363,8 @@ export interface ForecastInvoiceRow {
   projectId: number;
   customer: string | null;
   project: string | null;
+  /** The project group the project belongs to; omitted for none. */
+  projectGroup?: string | null;
   subject: string | null;
   positionText: string | null;
   orderId: number | null;
@@ -429,6 +435,8 @@ export interface ContributionMarginProject extends ContributionMarginSums {
   kost: string | null;
   customer: string | null;
   project: string | null;
+  /** The project group the project belongs to; omitted for none. */
+  projectGroup?: string | null;
 }
 
 /**
@@ -505,6 +513,85 @@ export function fetchContributionMargin(
   );
 }
 
+/** What one bubble of the contribution margin bubble chart stands for (`ContributionMarginBubbleGrouping`). */
+export type ContributionMarginBubbleGrouping =
+  | "PROJECT"
+  | "PROJECT_GROUP"
+  | "CUSTOMER"
+  | "CUSTOMER_GROUP";
+
+/** The grouping and the switch of the bubble chart, remembered per user. */
+export interface ContributionMarginBubbleSettings {
+  grouping: ContributionMarginBubbleGrouping;
+  /** Whether the projects the user may not see are shown as well, anonymous. */
+  includeOthers: boolean;
+  /** Whether the own bubbles are labelled with their short title and DB %. */
+  showProjects: boolean;
+}
+
+/**
+ * One bubble: revenue (x), DB % (y) and DB1 (size) of a group of projects in the period. A bubble of other
+ * projects (`own` false) is anonymous: neither label nor project count.
+ */
+export interface ContributionMarginBubble {
+  label: string | null;
+  own: boolean;
+  revenue: number;
+  /** Positive amount. */
+  costs: number;
+  profit: number;
+  /** 0 for a loss, null without positive revenue. */
+  percentage: number | null;
+  projectCount: number | null;
+  /** The colour of the business unit all its projects belong to; omitted for mixed or uncoloured ones. */
+  color?: string | null;
+  /** The short names (identifier, else name) of the projects of an own bubble. */
+  projects?: string[] | null;
+  /** The short title: the group name, for a project by itself its identifier (else its name). */
+  title?: string | null;
+}
+
+/** A business unit of the legend with its colour. */
+export interface ContributionMarginBubbleUnit {
+  name: string;
+  color: string;
+}
+
+export interface ContributionMarginBubbles {
+  bubbles: ContributionMarginBubble[];
+  targetPercentage: number;
+  redThreshold: number;
+  /** The business units whose colour occurs in the bubbles. */
+  businessUnits?: ContributionMarginBubbleUnit[];
+}
+
+/** The stored grouping and switch of the bubble chart, or the backend's defaults. */
+export function fetchContributionMarginBubbleSettings(
+  signal?: AbortSignal
+): Promise<ContributionMarginBubbleSettings> {
+  return request<ContributionMarginBubbleSettings>(
+    "/rs/order/contributionMargin/bubbles/settings",
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * The bubbles of the projects of the filtered orders; with `includeOthers` also those of the projects the user
+ * may not see, anonymous. Stores grouping and switch, not the filter.
+ */
+export function fetchContributionMarginBubbles(
+  filter: MagicFilter,
+  settings: ContributionMarginSettings & ContributionMarginBubbleSettings,
+  signal?: AbortSignal
+): Promise<ContributionMarginBubbles> {
+  return request<ContributionMarginBubbles>(
+    "/rs/order/contributionMargin/bubbles",
+    { method: "POST", body: JSON.stringify({ filter, ...settings }) },
+    signal
+  );
+}
+
 /** The sums of a project in a month of the period (`ContributionMarginMonthRow`). */
 export interface ContributionMarginMonthRow {
   /** `yyyy-MM`. */
@@ -513,6 +600,8 @@ export interface ContributionMarginMonthRow {
   kost: string | null;
   customer: string | null;
   project: string | null;
+  /** The project group the project belongs to; omitted for none. */
+  projectGroup?: string | null;
   revenue: number;
   /** Positive amounts. */
   costs: number;
@@ -532,6 +621,8 @@ export interface ContributionMarginInvoiceRow {
   kost: string | null;
   customer: string | null;
   project: string | null;
+  /** The project group the project belongs to; omitted for none. */
+  projectGroup?: string | null;
   subject: string | null;
   netSum: number;
   status: string | null;
@@ -552,6 +643,8 @@ export interface ContributionMarginTimesheetRow {
   kost2: string | null;
   customer: string | null;
   project: string | null;
+  /** The project group the project belongs to; omitted for none. */
+  projectGroup?: string | null;
   hours: number | null;
   /** Positive amount. */
   costs: number;
@@ -576,6 +669,91 @@ export function fetchContributionMarginDetails(
   return request<ContributionMarginDetails>(
     "/rs/order/contributionMargin/details",
     { method: "POST", body: JSON.stringify({ filter, ...settings }) },
+    signal
+  );
+}
+
+/** What the contribution margin is broken down by below the projects (`ContributionMarginLevel`). */
+export type ContributionMarginLevel = "ORDER" | "TASK";
+
+export type ContributionMarginRowType =
+  | "PROJECT"
+  | "ORDER"
+  | "ORDER_POSITION"
+  | "TASK"
+  | "RESIDUAL";
+
+/** The monthly values of a row of the breakdown, as in ContributionMarginData, and its sums. */
+export interface ContributionMarginSeries {
+  revenue: number[];
+  /** Positive amounts. */
+  costs: number[];
+  profit: number[];
+  percentage: (number | null)[];
+  prevYear: number[];
+  prevYearPercentage: (number | null)[];
+  sums: ContributionMarginSums;
+}
+
+/**
+ * What the residual of a project consists of in the period (`ContributionMarginResidual`): the contribution
+ * margin of the project less the calculated values of its orders or tasks.
+ */
+export interface ContributionMarginResidual {
+  invoicesWithoutAssignment: number;
+  /** Positive amount; always 0 by tasks. */
+  timesheetsWithoutAssignment: number;
+  /** The difference between the accounting records and the calculated values. */
+  accountingDifference: number;
+}
+
+/** One row of the breakdown, in tree order (`ContributionMarginBreakdownRow`). */
+export interface ContributionMarginBreakdownRow {
+  id: string;
+  parentId: string | null;
+  type: ContributionMarginRowType;
+  depth: number;
+  hasChildren: boolean;
+  projectId: number;
+  orderId?: number | null;
+  orderPositionId?: number | null;
+  taskId?: number | null;
+  /** Null for the residual. */
+  label?: string | null;
+  kost?: string | null;
+  customer?: string | null;
+  projectGroup?: string | null;
+  series: ContributionMarginSeries;
+  residual?: ContributionMarginResidual | null;
+}
+
+/** The contribution margin broken down by orders or tasks (`ContributionMarginBreakdown`). */
+export interface ContributionMarginBreakdown {
+  level: ContributionMarginLevel;
+  months: string[];
+  preliminary: boolean[];
+  lastMonth: string | null;
+  valuesEnd: string | null;
+  /** Null if no hourly rate is configured: the orders and tasks have no time sheet costs at all. */
+  hourlyRate: number | null;
+  targetPercentage: number;
+  redThreshold: number;
+  rows: ContributionMarginBreakdownRow[];
+}
+
+/**
+ * The contribution margin of the same filter and start date as {@link fetchContributionMargin}, broken down
+ * by orders or tasks. Stores neither filter nor start date.
+ */
+export function fetchContributionMarginBreakdown(
+  filter: MagicFilter,
+  settings: ContributionMarginSettings,
+  level: ContributionMarginLevel,
+  signal?: AbortSignal
+): Promise<ContributionMarginBreakdown> {
+  return request<ContributionMarginBreakdown>(
+    "/rs/order/contributionMargin/breakdown",
+    { method: "POST", body: JSON.stringify({ filter, ...settings, level }) },
     signal
   );
 }

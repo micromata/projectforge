@@ -46,9 +46,6 @@ export interface ValueComboboxProps {
  * list is as tall as its longest field and breaks the row rhythm around it. Where there is no grid
  * to keep and a popover of its own would land on top of another one, use [ValueOptionList]
  * directly.
- *
- * [DynamicSelect] renders the same shape but cannot use this: it also has to offer a server
- * lookup and a value the user typed, and its state lives in the layout context.
  */
 export function ValueCombobox({
   id,
@@ -88,8 +85,16 @@ export function ValueCombobox({
               )}
               {selected.map((value) => {
                 const label = labelOf(options, value);
+                // A picked inactive value (a closed campaign) reads muted here as well.
+                const inactive = options.find(
+                  (it) => it.value === value
+                )?.inactive;
                 return multi ? (
-                  <Badge key={value} variant="secondary">
+                  <Badge
+                    key={value}
+                    variant="secondary"
+                    className={cn(inactive && "text-muted-foreground")}
+                  >
                     {label}
                     <span
                       role="button"
@@ -104,7 +109,12 @@ export function ValueCombobox({
                     </span>
                   </Badge>
                 ) : (
-                  <span key={value}>{label}</span>
+                  <span
+                    key={value}
+                    className={cn(inactive && "text-muted-foreground")}
+                  >
+                    {label}
+                  </span>
                 );
               })}
             </span>

@@ -117,7 +117,7 @@ object GlobalExceptionRegistry {
         registerExInfo(AsyncRequestNotUsableException::class.java, "Asyn client connection lost (OK)", LogLevel.INFO)
         registerExInfo(AsyncRequestTimeoutException::class.java, "Asyn client connection lost (OK)", LogLevel.INFO)
         registerExInfo(java.lang.IllegalStateException::class.java, knownExceptionMessagePart = "Cannot start async")
-        registerExInfo(NoResourceFoundException::class.java, "Resource not found", status = HttpStatus.NOT_FOUND)
+        registerExInfo(NoResourceFoundException::class.java, "Resource not found", LogLevel.WARN, status = HttpStatus.NOT_FOUND)
         registerExInfo(
             InternalErrorException::class.java,
             "Csrf error",

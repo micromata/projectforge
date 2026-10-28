@@ -15,9 +15,10 @@ import { compareText } from "@/lib/format";
 import type { CustomerGroupsValues } from "./types";
 
 /**
- * The customer groups of a business unit, picked from the groups of this very form — so a group added
- * a moment ago can be assigned before anything is saved (its key is assigned on adding, see [newKey]).
- * A group without a name yet is not offered: there would be nothing to recognise it by.
+ * The customer groups of a business unit or grant, picked from the groups of this very form — so a group
+ * added a moment ago can be assigned before anything is saved (its key is assigned on adding, see
+ * [newKey]). With `source="businessUnits"`, the business units of the form instead (for a grant). A row
+ * without a name yet is not offered: there would be nothing to recognise it by.
  *
  * Offered and shown alphabetically; the stored order of the keys means nothing.
  */
@@ -26,7 +27,8 @@ export function GroupsSelectField({
   label,
   hint,
   className,
-}: BaseFieldProps) {
+  source = "groups",
+}: BaseFieldProps & { source?: "groups" | "businessUnits" }) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
@@ -34,7 +36,7 @@ export function GroupsSelectField({
   const groups = useStore(
     form.store,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (s: any) => (s.values as CustomerGroupsValues).groups
+    (s: any) => (s.values as CustomerGroupsValues)[source]
   );
   const options = groups
     .filter((group) => group.name.trim())

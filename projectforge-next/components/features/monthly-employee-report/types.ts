@@ -1,3 +1,5 @@
+import type { UserRef } from "@/lib/page-def/reference";
+
 /**
  * The monthly employee report ("Monatsbericht"), mirroring the backend DTO
  * (`org.projectforge.rest.dto.MonthlyEmployeeReport*`). All durations, percentages and dates arrive
@@ -20,6 +22,8 @@ export interface MonthlyReportRow {
   perWeek: MonthlyReportCell[];
   sum: string;
   aiTimeSavings: string;
+  /** A task row booked without Kost2; only set while the db-param `timesheet.warnMissingKost2` is on. */
+  missingKost2?: boolean;
 }
 
 /**
@@ -52,8 +56,8 @@ export interface MonthlyReportWeek {
 }
 
 export interface MonthlyReport {
-  userId?: number | null;
-  userName: string;
+  /** The user the report is about, struck through in the picker when no longer active. */
+  user: UserRef;
   maySelectOtherUsers: boolean;
   year: number;
   /** 1-based: 1 = January, ..., 12 = December. */

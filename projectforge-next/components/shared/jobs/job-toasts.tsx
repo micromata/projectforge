@@ -12,7 +12,7 @@ import {
 import { useJobStore } from "@/store/job-store";
 import { JobProgressToast } from "./job-progress-toast";
 
-/** Same interval the legacy job monitor polls with (CustomizedJobsMonitor). */
+/** Same interval the job monitor page polls with (JobsMonitorPage). */
 const POLL_INTERVAL_MS = 2000;
 
 /** Toasts are addressed by the job they show, so a poll updates one instead of stacking a new one. */

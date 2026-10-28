@@ -30,6 +30,9 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityDao
+import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeService
@@ -51,12 +54,16 @@ import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.core.AbstractEntityRest
+import org.projectforge.rest.core.SessionCsrfService
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Vacation
+import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockHttpSession
+import org.springframework.http.ResponseEntity
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -78,6 +85,12 @@ class VacationEntityRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var conflictingVacationsCache: ConflictingVacationsCache
+
+    @Autowired
+    private lateinit var availabilityDao: AvailabilityDao
+
+    @Autowired
+    private lateinit var sessionCsrfService: SessionCsrfService
 
     @Test
     fun `a new entry is of the own employee unless HR staff presets another one`() {
@@ -433,7 +446,7 @@ class VacationEntityRestTest : AbstractTestBase() {
         initTestDB.addGroup("VacationEntityRestTest.leak", own.user!!.username!!, colleague.user!!.username!!)
         val monday = LocalDate.of(LocalDate.now().year + 8, 2, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
         val friday = monday.plusDays(4)
-        // Long past: before the 31 days a colleague's vacation is visible.
+        // Long past: before today and before the current year, at least for the most part.
         val pastMonday = LocalDate.now().minusDays(120).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
         val pastFriday = pastMonday.plusDays(4)
         logon(hr.user!!)
@@ -480,16 +493,60 @@ class VacationEntityRestTest : AbstractTestBase() {
             assertNull(reduced.replacement)
             assertNull(reduced.special)
         }
-        // Their vacation long past isn't told, though it still is a conflict of the entry.
+        // Their vacation long past, too: a vacation tells no sickness, so its days within the entry's period are told
+        // (AbsenceVisibility; the past of an availability entry isn't, see AvailabilityEntityRestTest).
         stats(stranger, pastMonday, pastFriday).let {
-            assertTrue(it.conflictingVacations!!.isEmpty())
+            val reduced = it.conflictingVacations!!.single()
+            assertEquals(pastMonday, reduced.startDate)
+            assertNull(reduced.id)
             assertEquals(true, it.conflict)
-            assertEquals(0, it.chartDays!!.count { day -> day.uncovered })
+            assertEquals(5, it.chartDays!!.count { day -> day.uncovered })
         }
         // Nor does a period longer than the chart draws.
         stats(colleague, monday.minusDays(500), friday).let {
             assertNull(it.conflictingVacations)
             assertNull(it.chartDays)
+        }
+    }
+
+    @Test
+    fun `the manager approves and rejects an entry as the form posts it`() {
+        val own = createEmployee("approve-own")
+        val manager = createEmployee("approve-manager")
+        val hr = createEmployee("approve-hr", hrAccess = true)
+        val monday = LocalDate.of(LocalDate.now().year + 8, 2, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
+        val today = LocalDate.now()
+        logon(hr.user!!)
+        // Stored without the half day flags (nullable columns, e.g. entries of the former pages), as applied for.
+        fun insert(start: LocalDate, end: LocalDate) = vacationDao.insert(vacation(own, replacement = hr, start, end).also {
+            it.manager = manager
+            it.status = VacationStatus.IN_PROGRESS
+            it.special = false
+        })
+        val futureId = insert(monday, monday.plusDays(4))
+        val runningId = insert(today.minusDays(2), today.plusDays(2)) // Begun already: the manager still approves it.
+
+        logon(manager.user!!)
+        fun save(id: Long?, status: VacationStatus): ResponseEntity<ResponseAction> {
+            // As the form posts the opened entry: the half day checkboxes unchecked, i.e. false (vacation-values.ts).
+            val dto = vacationEntityRest.transformFromDB(vacationDao.find(id)!!, editMode = true).also {
+                it.halfDayBegin = it.halfDayBegin == true
+                it.halfDayEnd = it.halfDayEnd == true
+                it.special = it.special == true
+                it.status = status
+            }
+            val request = MockHttpServletRequest().also { it.setSession(MockHttpSession()) }
+            val postData = PostData(dto, watchFieldsTriggered = null, serverData = sessionCsrfService.createServerData(request))
+            return vacationEntityRest.saveOrUpdate(request, postData)
+        }
+        listOf(
+            futureId to VacationStatus.APPROVED,
+            futureId to VacationStatus.REJECTED,
+            runningId to VacationStatus.APPROVED,
+        ).forEach { (id, status) ->
+            val response = save(id, status)
+            assertEquals(200, response.statusCode.value(), "$status: ${response.body?.validationErrors?.map { it.message }}")
+            assertEquals(status, vacationDao.find(id)!!.status)
         }
     }
 
@@ -545,6 +602,66 @@ class VacationEntityRestTest : AbstractTestBase() {
         assertTrue(conflictingVacationsCache.hasConflict(ownId))
         val opened = vacationEntityRest.transformFromDB(vacationDao.find(ownId)!!, editMode = true)
         assertEquals(true, opened.conflict)
+    }
+
+    @Test
+    fun `a substitute not available makes a conflict, a reachable one is shown only`() {
+        val own = createEmployee("absent-own")
+        val other = createEmployee("absent-other")
+        val hr = createEmployee("absent-hr", hrAccess = true)
+        val monday = LocalDate.of(LocalDate.now().year + 9, 2, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
+        val friday = monday.plusDays(4)
+        logon(hr.user!!)
+        val ownId = vacationDao.insert(vacation(own, replacement = other, monday, friday))
+        conflictingVacationsCache.forceReload()
+        assertFalse(conflictingVacationsCache.hasConflict(ownId))
+
+        // The substitute not available on three days: a conflict, without anybody opening the vacation.
+        val availabilityId = availabilityDao.insert(AvailabilityDO().also {
+            it.user = other.user
+            it.startDate = monday
+            it.endDate = monday.plusDays(2)
+            it.status = AvailabilityStatus.NOT_AVAILABLE
+            it.type = "Sickness"
+            it.comment = "Back on Thursday"
+        })
+        assertTrue(conflictingVacationsCache.hasConflict(ownId))
+        fun stats() = vacationEntityRest.stats(
+            PostData(
+                Vacation(
+                    employee = Employee(own.id), startDate = monday, endDate = friday,
+                    manager = Employee(other.id), replacement = Employee(other.id),
+                ), watchFieldsTriggered = null, serverData = null
+            )
+        )
+        // HR staff see the type and the public comment.
+        stats().replacementAvailabilities!!.single().let {
+            assertEquals("Sickness", it.label)
+            assertEquals("Back on Thursday", it.comment)
+            assertEquals(other.id, it.employee?.id)
+        }
+        logon(own.user!!)
+        stats().let {
+            assertEquals(true, it.conflict)
+            assertEquals(3, it.chartDays!!.count { day -> day.uncovered })
+            val entry = it.replacementAvailabilities!!.single()
+            assertEquals(true, entry.absent)
+            assertEquals(monday, entry.startDate)
+            assertEquals(translate("availability.status.notAvailable"), entry.label, "Not the type: it's personal.")
+            assertEquals("Back on Thursday", entry.comment, "The public comment is public.")
+        }
+
+        // Remotely reachable: on duty, the entry is told only.
+        logon(hr.user!!)
+        availabilityDao.update(availabilityDao.find(availabilityId)!!.also {
+            it.status = AvailabilityStatus.REMOTE_REACHABLE
+        })
+        assertFalse(conflictingVacationsCache.hasConflict(ownId))
+        logon(own.user!!)
+        stats().let {
+            assertEquals(false, it.conflict)
+            assertEquals(false, it.replacementAvailabilities!!.single().absent)
+        }
     }
 
     private fun vacation(

@@ -25,6 +25,8 @@ package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
+import org.projectforge.business.availability.AbsenceService
+import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeService
@@ -33,8 +35,6 @@ import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
-import org.projectforge.common.DateFormatType
-import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -50,12 +50,15 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.dto.Availability
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Vacation
 import org.projectforge.rest.dto.VacationChartDay
+import org.projectforge.rest.dto.VacationReplacementAvailability
 import org.projectforge.ui.AutoCompletion
 import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.TargetType
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterBooleanElement
@@ -70,7 +73,6 @@ import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Year
-import java.time.temporal.ChronoUnit
 
 /**
  * The layout-free REST endpoint of the vacation entries (menu "Vacation"), serving the hand-built list and edit
@@ -92,6 +94,12 @@ class VacationEntityRest :
     AbstractDTOEntityRest<VacationDO, Vacation, VacationDao>(VacationDao::class.java, "vacation.title") {
 
     @Autowired
+    private lateinit var absenceService: AbsenceService
+
+    @Autowired
+    private lateinit var availabilityRest: AvailabilityEntityRest
+
+    @Autowired
     private lateinit var caches: PfCaches
 
     @Autowired
@@ -106,6 +114,12 @@ class VacationEntityRest :
     @Autowired
     private lateinit var vacationService: VacationService
 
+    @Autowired
+    private lateinit var employeeCache: EmployeeCache
+
+    @Autowired
+    private lateinit var substituteAbsenceReducer: SubstituteAbsenceReducer
+
     /**
      * What the form shows beside its fields, as it follows the form ([stats]). The same names as in [Vacation],
      * whose fields the client updates with it.
@@ -118,6 +132,7 @@ class VacationEntityRest :
         var vacationDaysLeftAfterThis: BigDecimal? = null,
         var vacationDaysLeftAfterThisString: String? = null,
         var conflictingVacations: List<Vacation>? = null,
+        var replacementAvailabilities: List<VacationReplacementAvailability>? = null,
         var conflict: Boolean? = null,
         var allowedStatus: List<VacationStatus>? = null,
         var chartDays: List<VacationChartDay>? = null,
@@ -126,14 +141,20 @@ class VacationEntityRest :
     /**
      * Columns a database `ORDER BY` can't sort as shown, see [computedSortProperties]: the mode (own, replacement,
      * manager, other) is computed from the logged-in user, the status is shown translated (sorted as displayed,
-     * not by the enum's name) and the working days are computed from the period.
+     * not by the enum's name), the working days are computed from the period and the begin is the one shown.
      */
     override val computedSortProperties: Map<String, (VacationDO) -> Comparable<*>?>
         get() = mapOf(
             "vacationModeString" to { vacation -> translate(vacation.getVacationmode().i18nKey) },
             "status" to { vacation -> vacation.status?.let { translate(it.i18nKey) } },
-            "workingDaysFormatted" to { vacation -> VacationService.getVacationDays(vacation) },
+            "workingDaysFormatted" to { vacation -> VacationService.getVacationDays(shown(vacation)) },
+            // As shown: the database's order would tell the real begin of a vacation clipped for the viewer.
+            "startDate" to { vacation -> shown(vacation).startDate },
         )
+
+    /** The vacation as the logged-in user may see it ([AbsenceService.shownTo]), the list checked the access. */
+    private fun shown(vacation: VacationDO): VacationDO =
+        absenceService.shownTo(ThreadLocalUserContext.loggedInUser, vacation) ?: vacation
 
     override fun transformForDB(dto: Vacation): VacationDO {
         val vacationDO = VacationDO()
@@ -148,7 +169,14 @@ class VacationEntityRest :
     override fun transformFromDB(obj: VacationDO, editMode: Boolean): Vacation {
         val vacation = Vacation()
         caches.initialize(obj)
-        vacation.copyFrom(obj)
+        // As far as the logged-in user may see it (the dao checked the access): e.g. of a group mate from 1 January on,
+        // its real begin (and its timestamps, which would tell it) not sent.
+        val shown = absenceService.shownTo(ThreadLocalUserContext.loggedInUser, obj) ?: obj
+        vacation.copyFrom(shown)
+        if (shown !== obj) {
+            vacation.startHidden = true
+            vacation.startDateFormatted = null // E.g. the form's title.
+        }
         if (conflictingVacationsCache.hasConflict(obj.id)) {
             vacation.conflict = true
         }
@@ -157,7 +185,7 @@ class VacationEntityRest :
             vacation.employeeEditable = hasHrRights()
             applyStats(vacation, computeStats(vacation, updateCache = true, withDaysLeft = mayReadDaysLeft(obj)))
         } else {
-            applyListDays(vacation, obj)
+            applyListDays(vacation, shown)
         }
         return vacation
     }
@@ -165,7 +193,9 @@ class VacationEntityRest :
     /**
      * The list's rows with the days without any substitute on duty of the entries the conflict cache flags (few, as
      * it holds current and future ones only): checked against the vacations of all their substitutes at once
-     * ([VacationService.getUncoveredDays]), nothing is written to the cache.
+     * ([VacationService.getUncoveredDays]), nothing is written to the cache. For anybody but HR staff from today on
+     * only (and the conflict flag by them): a past day would tell that the substitutes were away, e.g. sick (see
+     * [SubstituteAbsenceReducer]).
      */
     override fun postProcessResultSet(
         resultSet: ResultSet<VacationDO>,
@@ -176,8 +206,15 @@ class VacationEntityRest :
         val conflicting = resultSet.resultSet.filter { conflictingVacationsCache.hasConflict(it.id) && inBarRange(it) }
         if (conflicting.isNotEmpty()) {
             val uncovered = vacationService.getUncoveredDays(conflicting)
+            val today = if (hasHrRights()) null else LocalDate.now()
             result.resultSet.forEach { row ->
-                (row as? Vacation)?.let { dto -> dto.uncoveredDays = uncovered[dto.id] }
+                (row as? Vacation)?.let { dto ->
+                    val days = uncovered[dto.id] ?: return@let
+                    dto.uncoveredDays = if (today == null) days else days.filter { it >= today }
+                    if (dto.uncoveredDays.isNullOrEmpty()) {
+                        dto.conflict = null
+                    }
+                }
             }
         }
         return result
@@ -223,6 +260,47 @@ class VacationEntityRest :
         val employee = Employee()
         employeeDao.find(id, checkAccess = false)?.let { employee.copyFromMinimal(it) }
         return employee
+    }
+
+    /**
+     * Prepares a new availability entry from the posted vacation ("Als Abwesenheit bearbeiten"), see
+     * [AvailabilityEntityRest.cloneFromVacation]. The vacation itself stays as it is.
+     */
+    @AccessChecked("DAO: select access; the prepared entry is saved (and access-checked) only by the availability's save")
+    @PostMapping("switch2Availability")
+    fun switch2Availability(request: HttpServletRequest, @RequestBody postData: PostData<Vacation>): ResponseAction {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        return availabilityRest.cloneFromVacation(request, postData.data)
+    }
+
+    /**
+     * A new vacation prepared from an availability entry (the switch from its form, see
+     * [AvailabilityEntityRest.switch2Vacation]): its user's employee, period, comment and substitutes (the first
+     * one as replacement, the others as other replacements). Status, location, type and internal comment have no
+     * counterpart and are dropped; manager and status are the presets of any new vacation ([newBaseDTO]).
+     * Nothing is saved; the prepared vacation travels under `variables.data`, where the client (`convertEntity` in
+     * projectforge-next) reads it.
+     */
+    fun cloneFromAvailability(request: HttpServletRequest, availability: Availability): ResponseAction {
+        val vacation = newBaseDTO(request)
+        if (hasHrRights()) {
+            // Anybody else gets the own employee anyway (newBaseDTO), as for any new vacation.
+            employeeCache.getEmployeeByUserId(availability.user?.id)?.let { vacation.employee = createEmployee(it) }
+        }
+        vacation.startDate = availability.startDate
+        vacation.endDate = availability.endDate
+        vacation.comment = availability.comment
+        val replacements = availability.substitutes.orEmpty()
+            .mapNotNull { employeeCache.getEmployeeByUserId(it.id) }
+            .filter { it.id != vacation.employee?.id }
+            .distinctBy { it.id }
+            .mapNotNull { createEmployee(it) }
+        if (replacements.isNotEmpty()) {
+            vacation.replacement = replacements.first()
+            vacation.otherReplacements = replacements.drop(1)
+        }
+        applyStats(vacation, computeStats(vacation, updateCache = false, withDaysLeft = true))
+        return ResponseAction(targetType = TargetType.UPDATE).addVariable("data", vacation)
     }
 
     /** Saves the edited entry's employee, manager and replacement as the preset of the next new one. */
@@ -283,6 +361,8 @@ class VacationEntityRest :
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<VacationDO>> {
         val filters = mutableListOf<CustomResultFilter<VacationDO>>()
+        var until: LocalDate? = null
+        var year: Int? = null
         if (!vacationService.hasLoggedInUserUnrestrictedVacationView()) {
             filters.add(createVisibilityFilter())
         }
@@ -301,14 +381,23 @@ class VacationEntityRest :
         }
         source.entries.find { it.field == "year" }?.let { entry ->
             entry.synthetic = true
-            NumberHelper.parseInteger(entry.plainValue)?.let { filters.add(VacationYearFilter(it)) }
+            year = NumberHelper.parseInteger(entry.plainValue)
         }
         // The vacations overlapping the period, by their dates in the query (not a search of the period's text):
         // ending on or after its begin and beginning on or before its end. Either bound may be open.
         source.entries.find { it.field == "period" }?.let { entry ->
             entry.synthetic = true
             PFDayUtils.parseDate(entry.value.fromValue)?.let { target.add(QueryFilter.ge("endDate", it)) }
-            PFDayUtils.parseDate(entry.value.toValue)?.let { target.add(QueryFilter.le("startDate", it)) }
+            until = PFDayUtils.parseDate(entry.value.toValue)?.also { target.add(QueryFilter.le("startDate", it)) }
+        }
+        if (until != null || year != null) {
+            // By the part shown, not the real begin the query and the year read (AbsenceService.shownTo).
+            val viewer = ThreadLocalUserContext.loggedInUser
+            filters.add(
+                ShownAbsenceFilter(
+                    { absenceService.shownTo(viewer, it) }, { it.startDate }, { it.endDate }, until, year,
+                )
+            )
         }
         // The pickers send the employee as `value.id`, which the generic processor doesn't read.
         source.entries.find { it.field == "employee" }?.let { entry ->
@@ -417,84 +506,22 @@ class VacationEntityRest :
         // A period the chart draws only: the overlaps of a mistyped (or crafted) decade aren't searched for.
         if (startDate != null && endDate != null && inBarRange(vacationDO)) {
             val vacationOverlaps = vacationService.getVacationOverlaps(vacationDO, updateCache = updateCache)
-            val uncoveredDays = vacationOverlaps.uncoveredDays
-            // The substitutes' vacations are conflicts whoever they are: the entry needs them on duty.
-            result.conflict = vacationOverlaps.conflict
-            if (baseDao.hasHrRights(user)) {
-                // Without their comments: the substitutes' entries are read past the DAO's privacy check
-                // (VacationDao.afterLoad), and neither the chart nor the table shows them.
-                result.conflictingVacations =
-                    vacationOverlaps.otherVacations.map { other -> Vacation(other).also { it.comment = null } }
-                result.chartDays = chartDays(startDate, endDate, uncoveredDays.toSet())
-            } else {
-                // The substitutes are posted, so anybody could name anybody: the vacations the user may read anyway
-                // (VacationDao.hasUserSelectAccess) are shown in full, all others reduced to their dates and status
-                // (reducedConflict), and only from visibleFrom on, as the list shows a colleague's vacations. So
-                // naming somebody tells no more than whether they are away while the entry's own period runs.
-                val visibleFrom = LocalDate.now().minusDays(VISIBLE_PAST_DAYS)
-                val readable = vacationOverlaps.otherVacations.filter { baseDao.hasUserSelectAccess(user, it, false) }
-                result.conflictingVacations = vacationOverlaps.otherVacations.mapNotNull { other ->
-                    if (readable.contains(other)) {
-                        Vacation(other).also { it.comment = null }
-                    } else {
-                        reducedConflict(other, maxOf(startDate, visibleFrom), endDate)
-                    }
-                }
-                // Before visibleFrom, a day is drawn uncovered only if the readable vacations alone say so.
-                val shownUncovered = uncoveredDays.filter { it >= visibleFrom } +
-                        visibleUncoveredDays(vacationDO, uncoveredDays.filter { it < visibleFrom }, readable)
-                result.chartDays = chartDays(startDate, endDate, shownUncovered.toSet())
+            val substitutes = vacationService.collectAllReplacements(vacationDO).map {
+                SubstituteAbsenceReducer.Substitute(it.id, employeeCache.getUserByEmployee(it.id)?.id)
             }
+            val shown = substituteAbsenceReducer.reduce(
+                user, startDate, endDate, substitutes,
+                vacationOverlaps.otherVacations, vacationOverlaps.availabilities, vacationOverlaps.uncoveredDays,
+            )
+            // The substitutes' vacations are conflicts whoever they are (the entry needs them on duty), as far as
+            // the user may be told of them.
+            result.conflict = shown.conflict
+            result.conflictingVacations = shown.substituteVacations
+            result.replacementAvailabilities = shown.substituteAvailabilities
+            result.chartDays = shown.chartDays
         }
         result.allowedStatus = baseDao.getAllowedStatus(user, vacationDO)
         return result
-    }
-
-    /**
-     * A substitute's vacation the user may not read otherwise, as a conflict of the edited entry: only its days from
-     * [from] to [until] (the part of the entry's period the user may be told about) with their status; no id,
-     * comment, manager, substitutes or special flag. Null if nothing of it falls in there.
-     */
-    private fun reducedConflict(other: VacationDO, from: LocalDate, until: LocalDate): Vacation? {
-        val otherStart = other.startDate ?: return null
-        val otherEnd = other.endDate ?: return null
-        val start = maxOf(otherStart, from)
-        val end = minOf(otherEnd, until)
-        if (end < start) {
-            return null
-        }
-        return Vacation(
-            employee = caches.getEmployeeIfNotInitialized(other.employee)?.let { Employee().apply { copyFromMinimal(it) } },
-            startDate = start,
-            startDateFormatted = PFDayUtils.format(start, DateFormatType.DATE),
-            endDate = end,
-            endDateFormatted = PFDayUtils.format(end, DateFormatType.DATE),
-            // A half day cut off by the period isn't one of the days shown.
-            halfDayBegin = other.halfDayBegin == true && start == otherStart,
-            halfDayEnd = other.halfDayEnd == true && end == otherEnd,
-            status = other.status,
-            statusString = other.status?.let { translate(it.i18nKey) },
-        ).also {
-            it.workingDays = VacationService.getVacationDays(start, end, it.halfDayBegin, it.halfDayEnd)
-            it.workingDaysFormatted = VacationStats.format(it.workingDays)
-        }
-    }
-
-    /**
-     * The [uncovered] days (all substitutes away) that the [visible] vacations alone tell: those on which every
-     * substitute has one of them. As [VacationService.getVacationOverlaps] counts, restricted to what is shown.
-     */
-    private fun visibleUncoveredDays(
-        vacation: VacationDO,
-        uncovered: List<LocalDate>,
-        visible: List<VacationDO>,
-    ): List<LocalDate> {
-        val replacements = vacationService.collectAllReplacements(vacation)
-        return uncovered.filter { date ->
-            replacements.all { replacement ->
-                visible.any { it.employee?.id == replacement.id && it.isInBetween(date) }
-            }
-        }
     }
 
     /**
@@ -524,22 +551,10 @@ class VacationEntityRest :
         dto.vacationDaysLeftAfterThis = stats.vacationDaysLeftAfterThis
         dto.vacationDaysLeftAfterThisString = stats.vacationDaysLeftAfterThisString
         dto.conflictingVacations = stats.conflictingVacations
+        dto.replacementAvailabilities = stats.replacementAvailabilities
         dto.conflict = stats.conflict
         dto.allowedStatus = stats.allowedStatus
         dto.chartDays = stats.chartDays
-    }
-
-    /**
-     * The axis of the form's chart: the period with [CHART_MARGIN_DAYS] before and after, so the vacations of the
-     * substitutes show where they begin and end. None for a period beyond [CHART_MAX_DAYS] (a mistyped year).
-     */
-    private fun chartDays(startDate: LocalDate, endDate: LocalDate, uncovered: Set<LocalDate>): List<VacationChartDay>? {
-        val first = startDate.minusDays(CHART_MARGIN_DAYS)
-        val last = endDate.plusDays(CHART_MARGIN_DAYS)
-        if (last < first || ChronoUnit.DAYS.between(first, last) > CHART_MAX_DAYS) {
-            return null
-        }
-        return VacationChartDay.listOf(first, last, uncovered)
     }
 
     /** The list starts with the vacations overlapping the current calendar year (the pinned period). */
@@ -561,27 +576,12 @@ class VacationEntityRest :
     }
 
     companion object {
-        private const val CHART_MARGIN_DAYS = 3L
-        private const val CHART_MAX_DAYS = 400L
-
-        /** The days back a colleague's vacation is visible (VacationDao.hasUserSelectAccess). */
-        private const val VISIBLE_PAST_DAYS = 31L
-
-        /** A period the days bar draws (list and vacation account): not beyond [CHART_MAX_DAYS] (a mistyped year). */
-        internal fun inBarRange(obj: VacationDO): Boolean {
-            val startDate = obj.startDate ?: return false
-            val endDate = obj.endDate ?: return false
-            return endDate >= startDate && ChronoUnit.DAYS.between(startDate, endDate) <= CHART_MAX_DAYS
-        }
+        /** A period the days bar draws (list and vacation account), see [SubstituteAbsenceReducer.inChartRange]. */
+        internal fun inBarRange(obj: VacationDO): Boolean =
+            SubstituteAbsenceReducer.inChartRange(obj.startDate, obj.endDate)
 
         /** The weekends and holidays of the vacation for the days bar; null for a period it doesn't draw. */
-        internal fun barNonWorkingDays(obj: VacationDO): List<LocalDate>? {
-            if (!inBarRange(obj)) {
-                return null
-            }
-            val holidays = Holidays.instance
-            return generateSequence(obj.startDate!!) { it.plusDays(1) }.takeWhile { it <= obj.endDate!! }
-                .filter { !holidays.isWorkingDay(it) }.toList()
-        }
+        internal fun barNonWorkingDays(obj: VacationDO): List<LocalDate>? =
+            SubstituteAbsenceReducer.barNonWorkingDays(obj.startDate, obj.endDate)
     }
 }

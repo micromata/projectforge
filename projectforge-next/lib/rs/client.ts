@@ -1,7 +1,5 @@
 import type {
-  DynamicPageResponse,
   FilterFavoritesResponse,
-  InitialListData,
   ListMetaData,
   ListPageRequest,
   MagicFilter,
@@ -41,14 +39,25 @@ export function setTwoFactorHandler(handler: TwoFactorHandler | null): void {
   twoFactorHandler = handler;
 }
 
+/**
+ * Asks for a second factor without a request having been refused, e.g. before a WebAuthn registration
+ * (its challenge is spent by the attempt, so it can't simply be repeated after a 403).
+ *
+ * @returns true once the 2FA succeeded, false if it was cancelled (or no dialog is registered).
+ */
+export function requestSecondFactor(expiryMillis?: number): Promise<boolean> {
+  return twoFactorHandler
+    ? twoFactorHandler(expiryMillis)
+    : Promise.resolve(false);
+}
+
 // --- CSRF token ---
 
 /**
  * CSRF token of the session, sent with every state-changing call (see RestCsrfProtection).
  *
  * Kept in a module variable rather than localStorage on purpose: an XSS must not be able to read it,
- * and a reload fetches userStatus anyway. The UILayout pages have their own per-page token inside
- * `serverData` (see components/dynamic/) and don't use this one.
+ * and a reload fetches userStatus anyway.
  */
 let csrfToken: string | null = null;
 
@@ -94,8 +103,8 @@ interface RetriesUsed {
 /**
  * Sends a request and hands back the raw Response, 2FA and CSRF retry included.
  *
- * Dynamic pages need this instead of request(): their protocol uses the status code (406 carries
- * validation errors) and the content type (octet-stream is a download) as data.
+ * Action calls need this instead of request() (see lib/rs/dynamic.ts): their protocol uses the status
+ * code (406 carries validation errors) and the content type (octet-stream is a download) as data.
  */
 export async function rawRequest(
   path: string,
@@ -119,8 +128,8 @@ export async function rawRequest(
       ...(init.body instanceof FormData
         ? {}
         : { "Content-Type": "application/json" }),
-      // Tells the backend to answer with plain JSON instead of a UILayout
-      // ResponseAction (RestAuthenticationUtils.isNextClient).
+      // Identifies this app (RestAuthenticationUtils.isNextClient): lists answer with the lean rows of
+      // the page instead of the full DTO. Not a security feature, the backend checks every client alike.
       "X-PF-Frontend": "next",
       // Central CSRF protection: no call site can forget it. Only sent where the
       // backend checks it, so a stale token can't break a read.
@@ -248,7 +257,7 @@ export function fetchNew<O>(
   );
 }
 
-// Entity writes (saveorupdate, markAsDeleted, …) live in ./entity.ts: they speak the
+// Entity writes (insert, update, markAsDeleted, …) live in ./entity.ts: they speak the
 // ResponseAction protocol, where 406 carries the validation errors, so they need the raw
 // Response rather than request()'s parsed body.
 
@@ -285,21 +294,20 @@ export async function fetchUserStatus(
 
 export async function logout(signal?: AbortSignal): Promise<unknown> {
   try {
-    return await request<unknown>("/rs/logout", { method: "GET" }, signal);
+    return await request<unknown>("/rs/logout", { method: "POST" }, signal);
   } finally {
     // The token belonged to the session that just ended; the next login fetches a new one.
     setCsrfToken(null);
   }
 }
 
-// --- Saved list filters (AbstractPagesRest "filter/*", stored in the user's prefs) ---
+// --- Saved list filters (AbstractEntityRest "filter/*", stored in the user's prefs) ---
 
 /**
  * Applies a saved filter and returns the list page state for it.
  *
  * The endpoint also makes it the user's current filter server-side, so the answer is the same payload
- * the page loaded initially: [ListMetaData] for a hand built page, `InitialListData` for one rendered
- * from a `UILayout` (see `AbstractPagesRest.selectFavoriteFilter`). Only the fields both share are
+ * the page loaded initially (see `AbstractEntityRest.selectFavoriteFilter`). Only the filter fields are
  * read here.
  */
 export function selectFilterFavorite(
@@ -309,7 +317,7 @@ export function selectFilterFavorite(
 ): Promise<FilterFavoritesResponse> {
   return request<FilterFavoritesResponse>(
     `/rs/${entity}/filter/select?id=${id}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
@@ -348,12 +356,12 @@ export function renameFilterFavorite(
 ): Promise<FilterFavoritesResponse> {
   return request<FilterFavoritesResponse>(
     `/rs/${entity}/filter/rename?id=${id}&newName=${encodeURIComponent(newName)}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
 
-/** GET despite deleting — the endpoint is shared with the legacy frontend. */
+/** Deletes a saved filter. */
 export function deleteFilterFavorite(
   entity: string,
   id: number,
@@ -361,7 +369,7 @@ export function deleteFilterFavorite(
 ): Promise<FilterFavoritesResponse> {
   return request<FilterFavoritesResponse>(
     `/rs/${entity}/filter/delete?id=${id}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
@@ -394,25 +402,11 @@ export async function reportMenuUsage(key: string): Promise<void> {
   }
 }
 
-// --- Dynamic Pages ---
-
-export function fetchInitialList(
-  category: string,
-  signal?: AbortSignal
-): Promise<InitialListData> {
-  return request<InitialListData>(
-    `/rs/${category}/initialList`,
-    { method: "GET" },
-    signal
-  );
-}
+// --- List pages ---
 
 /**
  * Everything a hand built list page needs beside its rows: the filter fields of the entity, the filter
  * the user left the page with, and their saved filters (`AbstractEntityRest.requestListMeta`).
- *
- * The layout free counterpart of {@link fetchInitialList}, which additionally builds the whole page
- * layout and — for a client that fetches the rows itself — the whole result set.
  */
 export function fetchListMeta(
   entity: string,
@@ -424,40 +418,3 @@ export function fetchListMeta(
     signal
   );
 }
-
-export function fetchListData(
-  category: string,
-  filter: MagicFilter,
-  signal?: AbortSignal
-): Promise<DynamicPageResponse> {
-  return request<DynamicPageResponse>(
-    `/rs/${category}/list`,
-    { method: "POST", body: JSON.stringify(filter) },
-    signal
-  );
-}
-
-/**
- * @param search extra query parameters to forward verbatim (without `id`), e.g. the `startDate`/
- *   `endDate`/`firstHour` a calendar hands a new timesheet: `TimesheetEntityRest` reads them from
- *   the request to preset the times. `id` travels as its own argument, so it never belongs here.
- */
-export function fetchDynamic(
-  category: string,
-  type?: string,
-  id?: string | number,
-  search?: string,
-  signal?: AbortSignal
-): Promise<DynamicPageResponse> {
-  const path = type ? `/rs/${category}/${type}` : `/rs/${category}/dynamic`;
-  const query = new URLSearchParams(search ?? "");
-  if (id != null) query.set("id", String(id));
-  const suffix = query.toString();
-  return request<DynamicPageResponse>(
-    `${path}${suffix ? `?${suffix}` : ""}`,
-    { method: "GET" },
-    signal
-  );
-}
-
-// Actions of a dynamic page are sent by lib/rs/dynamic.ts - they need the raw Response.

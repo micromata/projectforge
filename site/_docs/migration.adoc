@@ -3,6 +3,8 @@ title: Migration
 subtitle: What to do when updating ProjectForge – most migrations run automatically.
 author: kai
 tags: [migration,config]
+# Only in English (no German page): the German pages link it in English. See site/README.adoc.
+untranslated: true
 ---
 :hide-uri-scheme:
 
@@ -17,15 +19,52 @@ Only a few changes, e.g. in configuration files or scripts, need your attention.
 
 TIP: Always back up your database (and, if you still use it, the JCR repository) before an update. See link:/docs/adminguide/#backup[Admin guide – Backup] and link:/docs/installation/[Installation].
 
-=== Version 9.0.x -> 9.1
+=== Version 9.1.x -> 9.2
 
 . Java 21
 +
-From version 9.1 on, ProjectForge requires Java 21 or newer: it is compiled for Java 21, the executable JAR no longer
+From version 9.2 on, ProjectForge requires Java 21 or newer: it is compiled for Java 21, the executable JAR no longer
 starts on Java 17 (`UnsupportedClassVersionError`). Install Java 21 or newer before the update. The Docker image
 already contains Java 21, nothing to do there.
 
 === Version 9.0.x
+
+. config.xml replaced by configuration parameters (9.0.11)
++
+The file `config.xml` in the home directory isn't used anymore. Its settings are taken over automatically on the first
+start: the holidays, the JIRA servers, the contract types and the accounting settings (account number ranges and
+business assessment) into the configuration parameters _Holidays_, _JIRA_, _Contract types_ and _Accounting_
+(_Administration_ -> _Configuration_, JSON values), each only if the parameter is still empty. Directories differing from
+the defaults (`jcrDirectory`, `workingDirectory`, `tempDirectory`, `backupDirectory`) are written to
+`projectforge.properties` as `projectforge.dir.jcr`, `projectforge.dir.work`, `projectforge.dir.tmp` and
+`projectforge.dir.backup`; `databaseDirectory`, `loggingDirectory`, `storageConfig` and `portletMode` were already
+without effect. Afterwards `config.xml` is renamed to `config.xml.migrated`, which may be removed. If the take-over
+fails (e.g. `projectforge.properties` not writable), the file is kept, the system dashboard reports it and the take-over
+is retried on the next start. The export of `config.xml` (_Administration_ -> _System_) is removed.
+
+. Project contact persons (9.0.11)
++
+Projects now have one contact person plus any number of further contact persons, as orders do, instead of the fixed
+roles project manager, head of business and key account manager. The database migration (Flyway `V9.0.11.1`,
+`V9.0.11.2`) runs automatically: the project manager becomes the contact person (or else the head of business, or else
+the key account manager), the others become further contact persons; the old fields remain in the database. All contact
+persons have the access the three roles had. If your scripts read the old fields, switch them to the contact persons.
+
+. Project numbers and number ranges (9.0.8)
++
+Customers and projects no longer depend on cost units: every project has a system-wide unique project number, and
+number ranges of customers and projects (with their mapping to Kost2) are configured in `projectforge.properties`
+(`projectforge.fibu.number-ranges.*`), see
+link:/docs/adminguide/#number_ranges_of_customers_projects_and_cost_units[Admin guide – Number ranges].
+The database migration (Flyway `V9.0.8.4`) runs automatically and numbers the existing projects as their Kost2 were
+built: customer projects `5.<customer>.<project>`, internal projects `4.<number>.<project>`.
+An installation with Kost2 of such projects keeps the former ranges 4 and 5 without any configuration. If you
+configure ranges, only these apply: configure the ranges 4 and 5 as well.
+Projects the migration couldn't number (customer above 999 or project number above 99) are reported by a warning on
+start; they get a number on their next save.
+Patterns of the invoicing quota apply to the Kost2 numbers as their range segments them; alternatively,
+`projectforge.invoicing-quota.billed-by-invoiced-kost2-types=true` counts the Kost2 of customer projects with an
+invoiced Kost2 type as billed.
 
 . Log viewer and vacation settings (9.0.5)
 +
@@ -58,6 +97,8 @@ The files (attachments, Merlin templates etc.) can now be stored in the database
 Existing installations stay on the JCR until you switch with `projectforge.files.store=db`; after switching, the files
 are copied in the background and verified by size and checksum. Data transfer files are then kept in the file system
 (directory `datatransfer` of the ProjectForge home directory). Switching back remains possible.
+ProjectForge 9.1.x is the last release with JCR support (and the last one running on Java 17): migrate with 9.1.x before
+updating to 9.2 or later, which have no JCR any more.
 Please refer to link:/docs/adminguide/#moving_the_files_out_of_the_jcr[Admin guide – Moving the files out of the JCR]
 and adjust your backups: a main dump of the database plus a dump of the files.
 
@@ -92,7 +133,8 @@ Hibernate Search was upgraded. If searching shows incomplete results after the u
 Legacy XML user preferences are migrated to the JSON store automatically.
 . Java
 +
-Java 17 or newer is still required, as for 8.x (the Docker image already contains Java).
+Java 17 or newer is still required, as for 8.x (the Docker image already contains Java). 9.1.x is the last release
+that runs on Java 17; later releases require Java 21.
 . Stricter validation of REST writes (8.2 snapshots)
 +
 Saving an entity through the REST API (`AbstractEntityRest.saveOrUpdate` and everything built on it,

@@ -2,7 +2,14 @@
 
 import { useTranslations } from "next-intl";
 import { CopyButton } from "@/components/shared/copy-button";
-import { zipModeMessageKey, type Attachment } from "@/lib/rs/attachments";
+import {
+  attachmentUserFlags,
+  zipModeMessageKey,
+  type Attachment,
+} from "@/lib/rs/attachments";
+import { useAttachmentService } from "./attachment-service";
+import { inactiveRefClass, type InactiveFlags } from "@/lib/page-def/reference";
+import { cn } from "@/lib/utils";
 
 interface Props {
   attachment: Attachment;
@@ -21,6 +28,7 @@ interface Props {
 export function AttachmentMetadata({ attachment }: Props) {
   const t = useTranslations();
   const zipMode = zipModeMessageKey(attachment.zipMode);
+  const { userInfo } = useAttachmentService();
 
   return (
     <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -35,9 +43,21 @@ export function AttachmentMetadata({ attachment }: Props) {
         value={t(zipMode ?? "attachment.zip.standard")}
       />
       <Field label={t("created")} value={attachment.createdFormatted} />
-      <Field label={t("createdBy")} value={attachment.createdByUser} />
+      {userInfo && (
+        <Field
+          label={t("createdBy")}
+          value={attachment.createdByUser}
+          inactive={attachmentUserFlags(attachment, "createdByUser")}
+        />
+      )}
       <Field label={t("modified")} value={attachment.lastUpdateTimeAgo} />
-      <Field label={t("modifiedBy")} value={attachment.lastUpdateByUser} />
+      {userInfo && (
+        <Field
+          label={t("modifiedBy")}
+          value={attachment.lastUpdateByUser}
+          inactive={attachmentUserFlags(attachment, "lastUpdateByUser")}
+        />
+      )}
       {attachment.checksum && (
         <div className="sm:col-span-2">
           <Field
@@ -55,10 +75,13 @@ function Field({
   label,
   value,
   copyable,
+  inactive,
 }: {
   label: string;
   value?: string | null;
   copyable?: boolean;
+  /** Whether the user shown is still active: struck through if not (see inactiveRefClass). */
+  inactive?: InactiveFlags;
 }) {
   return (
     <div className="min-w-0">
@@ -66,7 +89,14 @@ function Field({
       <dd className="flex items-start gap-1">
         {/* A dash for an empty value, as the legacy ReadonlyField does — an empty line would read
             as a missing field rather than a missing value. */}
-        <span className="min-w-0 flex-1 break-all text-xs">{value || "–"}</span>
+        <span
+          className={cn(
+            "min-w-0 flex-1 break-all text-xs",
+            value && inactiveRefClass(inactive)
+          )}
+        >
+          {value || "–"}
+        </span>
         {copyable && value && (
           <CopyButton
             value={value}

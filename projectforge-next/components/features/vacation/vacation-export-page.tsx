@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -18,6 +18,11 @@ import {
 import { boundsOfPeriod, currentAnchorOf } from "@/lib/date-period-bounds";
 import { isIsoDate } from "@/lib/date-period-math";
 import { formatDateRange, type FormatContext } from "@/lib/format";
+import {
+  ABSENCE_KINDS,
+  sortAbsenceKinds,
+  type AbsenceKind,
+} from "@/lib/rs/absence-kinds";
 import { RsError } from "@/lib/rs/client";
 import {
   downloadVacationExportExcel,
@@ -33,19 +38,24 @@ import type {
 } from "./types";
 import { VacationExportFilterRow } from "./vacation-export-filter-row";
 import { VacationTeamChart } from "./vacation-team-chart";
-import { chartWidthOf, type VacationChartWidth } from "./vacation-chart-width";
+import {
+  chartWidthOf,
+  type ChartWidth,
+} from "@/components/shared/absence-chart/absence-chart-width";
 import { useVacationExportFavorites } from "./use-vacation-export-favorites";
+import { toPickerRef } from "@/lib/page-def/reference";
 
 /** The arts the team calendar pages through, the quarter first (the default). */
 const KINDS = periodKindsOf(["quarter", "year"]);
 
 /**
  * The team vacation calendar (`/next/vacationExport`), successor of the React page `react/vacationExport/dynamic`:
- * the vacations of the chosen employees and groups, shown per quarter or calendar year, and as Excel workbook
- * with a sheet per period (VacationExcelExporter) starting with the period shown.
+ * the vacations of the chosen users and groups, shown per quarter or calendar year, and as Excel workbook
+ * with a sheet per period (VacationExcelExporter) starting with the period shown. Optionally with the availability
+ * entries of the same users, as their vacations, in the chart and the workbook.
  *
- * The employees and groups chosen are stored by the backend (shown again on the next visit); the period is
- * kept in the url (`?period=quarter&from=2026-10-01`).
+ * The users and groups chosen and whether availabilities are shown are stored by the backend (shown again on
+ * the next visit); the period is kept in the url (`?period=quarter&from=2026-10-01`).
  *
  * Printed (the filter row's print button), it is the title, the period and the calendar shown: the choice
  * itself is not printed, the names are in the chart.
@@ -90,7 +100,7 @@ export function VacationExportPage() {
 }
 
 function toRef(ref: VacationExportRef): EntityRef {
-  return { id: ref.id, displayName: ref.displayName ?? "" };
+  return toPickerRef(ref)!;
 }
 
 /**
@@ -126,6 +136,19 @@ function clampPeriod(
   return { kind: period.kind, anchor: currentAnchorOf(period.kind, ctx) };
 }
 
+/**
+ * The kinds of the url: `all` (linked from the availability list), a comma separated list or the former
+ * `?showAvailabilities=true` (all of them); null if it asks for none.
+ */
+function absenceKindsOfUrl(params: URLSearchParams): AbsenceKind[] | null {
+  const value = params.get("absenceKinds");
+  if (value === "all" || params.get("showAvailabilities") === "true") {
+    return [...ABSENCE_KINDS];
+  }
+  const kinds = sortAbsenceKinds(value?.split(","));
+  return kinds.length > 0 ? kinds : null;
+}
+
 function VacationExportContent({
   initial,
 }: {
@@ -134,14 +157,32 @@ function VacationExportContent({
   const t = useTranslations();
   const ctx = useFormatContext();
   const params = useSearchParams();
-  const [employees, setEmployees] = useState<EntityRef[]>(() =>
-    initial.employees.map(toRef)
+  const [users, setUsers] = useState<EntityRef[]>(() =>
+    initial.users.map(toRef)
   );
   const [groups, setGroups] = useState<EntityRef[]>(() =>
     initial.groups.map(toRef)
   );
+  // `?absenceKinds=all` (the availability list) or a list of kinds, otherwise the stored choice.
+  const [absenceKinds, setAbsenceKinds] = useState<AbsenceKind[]>(
+    () => absenceKindsOfUrl(params) ?? sortAbsenceKinds(initial.absenceKinds)
+  );
+  // Applied once: kept in the url, a reload or going back would apply it again against a choice made here.
+  useEffect(() => {
+    if (
+      params.get("absenceKinds") !== null ||
+      params.get("showAvailabilities") !== null
+    ) {
+      updateSearchParams(
+        { absenceKinds: null, showAvailabilities: null },
+        "replace"
+      );
+    }
+    // Only on mount: the parameter is read by the initial state above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const min = initial.earliestDate ?? null;
-  const [dayWidth, setDayWidth] = useState<VacationChartWidth>(() =>
+  const [dayWidth, setDayWidth] = useState<ChartWidth>(() =>
     chartWidthOf(initial.dayWidth)
   );
   const [period, setPeriod] = useState<Period>(() =>
@@ -154,23 +195,24 @@ function VacationExportContent({
   );
   const favorites = useVacationExportFavorites({
     initial: initial.favorites,
-    employees,
+    users,
     groups,
-    apply: (nextEmployees, nextGroups) => {
-      setEmployees(nextEmployees.map(toRef));
+    apply: (nextUsers, nextGroups) => {
+      setUsers(nextUsers.map(toRef));
       setGroups(nextGroups.map(toRef));
     },
   });
   const bounds = boundsOfPeriod(period.kind, period.anchor, ctx);
   const body: VacationExportRequest = {
-    employeeIds: employees.map((e) => e.id),
+    userIds: users.map((e) => e.id),
     groupIds: groups.map((g) => g.id),
     periodKind: period.kind.id,
     dayWidth,
     from: bounds.from,
     until: bounds.to,
+    absenceKinds,
   };
-  const hasSelection = employees.length > 0 || groups.length > 0;
+  const hasSelection = users.length > 0 || groups.length > 0;
 
   // Also asked with nothing chosen: the backend stores the choice, an emptied one included.
   const view = useQuery({
@@ -194,18 +236,20 @@ function VacationExportContent({
     <>
       <VacationExportFilterRow
         kinds={KINDS}
-        employees={employees}
+        users={users}
         groups={groups}
         period={period}
         min={min}
         dayWidth={dayWidth}
+        absenceKinds={absenceKinds}
         favorites={favorites}
         exporting={excel.isPending}
         canPrint={hasSelection && hasRows}
-        onEmployeesChange={setEmployees}
+        onUsersChange={setUsers}
         onGroupsChange={setGroups}
         onPeriodChange={selectPeriod}
         onDayWidthChange={setDayWidth}
+        onAbsenceKindsChange={setAbsenceKinds}
         onExport={() => excel.mutate()}
       />
       <p className="hidden text-sm tabular-nums print:block">
@@ -227,7 +271,11 @@ function VacationExportContent({
           <p className="text-sm text-muted-foreground">{t("loading")}</p>
         )}
       {hasSelection && view.data && hasRows && (
-        <VacationTeamChart view={view.data} dayWidth={dayWidth} />
+        <VacationTeamChart
+          view={view.data}
+          dayWidth={dayWidth}
+          absenceKinds={absenceKinds}
+        />
       )}
       {hasSelection && view.data && !hasRows && !view.isPlaceholderData && (
         <p className="text-sm text-muted-foreground">

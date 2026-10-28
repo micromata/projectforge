@@ -6,8 +6,10 @@ import { useFormatContext } from "@/hooks/use-format";
 import type { ContributionMarginInvoiceRow } from "@/lib/rs/order";
 import {
   dateColumn,
+  hasProjectGroup,
   linkColumn,
   moneyColumn,
+  projectGroupColumns,
   textColumn,
 } from "../statistics/statistics-table-columns";
 import { StatisticsTable } from "../statistics/statistics-table";
@@ -23,6 +25,7 @@ type Row = ContributionMarginInvoiceRow;
 export function ContributionMarginInvoiceTable({ rows }: { rows: Row[] }) {
   const t = useStatisticsLabels();
   const ctx = useFormatContext();
+  const withProjectGroup = hasProjectGroup(rows);
   const columns = useMemo<ColumnDef<Row, unknown>[]>(
     () => [
       linkColumn<Row>(
@@ -44,6 +47,7 @@ export function ContributionMarginInvoiceTable({ rows }: { rows: Row[] }) {
         t.total
       ),
       textColumn<Row>("project", t.project, (row) => row.project, 200),
+      ...projectGroupColumns<Row>(withProjectGroup, t.projectGroup),
       textColumn<Row>("kost", t.kost, (row) => row.kost, 90),
       textColumn<Row>("subject", t.subject, (row) => row.subject, 240),
       textColumn<Row>("status", t.status, (row) => row.status, 110),
@@ -65,7 +69,7 @@ export function ContributionMarginInvoiceTable({ rows }: { rows: Row[] }) {
         className: (row) => (row.preliminary ? PRELIMINARY_CLASS : undefined),
       }),
     ],
-    [t, ctx]
+    [t, ctx, withProjectGroup]
   );
   return (
     <StatisticsTable<Row>

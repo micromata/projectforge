@@ -30,18 +30,27 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.integration.IntegrationConfig
+import org.projectforge.framework.integration.SyncCounts
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.gateway.push.GatewaySyncPushService
 import org.projectforge.gateway.push.MockIcsRequest
 import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
+import org.projectforge.plugins.datatransfer.DataTransferExternalAccessConfig
 import org.projectforge.rest.pub.CalendarSubscriptionServiceRest
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.reactive.function.client.ClientResponse
+import org.springframework.web.reactive.function.client.WebClient
+import reactor.core.publisher.Mono
 
 class GatewaySyncPushServiceTest {
 
@@ -138,18 +147,87 @@ class GatewaySyncPushServiceTest {
         verify(serviceRest, times(2)).exportCalendar(any())
     }
 
+    /**
+     * The gateway looks up a subscription by its decrypted parameters (GatewayIcsParams), so the push sends them
+     * normalized, the way the gateway normalizes the subscription urls of the UI.
+     */
+    @Test
+    fun addIcsEntrySendsNormalizedParams() {
+        val serviceRest = mock<CalendarSubscriptionServiceRest>()
+        whenever(serviceRest.exportCalendar(any())).thenReturn(ResponseEntity.ok("BEGIN:VCALENDAR"))
+        val userAuthenticationsService = mock<UserAuthenticationsService>()
+        whenever(userAuthenticationsService.internalGetToken(any(), eq(UserTokenType.CALENDAR_REST)))
+            .thenReturn("stored-token")
+        val service = createService(serviceRest, userAuthenticationsService)
+        val addIcsEntry = GatewaySyncPushService::class.java.declaredMethods.single { it.name == "addIcsEntry" }
+            .also { it.isAccessible = true }
+        val entries = mutableListOf<SyncIcsEntryDto>()
+        addIcsEntry.invoke(service, 1L, "t1", "teamCals=7", entries, null, null)
+        addIcsEntry.invoke(service, 1L, "t1", "weekOfYears=true", entries, null, null)
+        assertEquals(listOf("teamCals=7", "weekOfYears=true"), entries.map { it.params })
+    }
+
+    /**
+     * The absences a team calendar includes are those the user may see, decided for each user (group mates, HR staff,
+     * managers, substitutes): such a calendar is not shared with the other users of the same access class.
+     */
+    @Test
+    fun teamCalIcsKeyIsPerUserForCalendarsWithAbsences() {
+        val service = createService(mock())
+        val teamCalIcsKey = GatewaySyncPushService::class.java.declaredMethods.single { it.name == "teamCalIcsKey" }
+            .also { it.isAccessible = true }
+        val user = PFUserDO().also { it.id = 42; it.username = "kai" }
+        val cal = TeamCalDO().also { it.id = 7; it.owner = user }
+        try {
+            ThreadLocalUserContext.userContext = UserContext.createTestInstance(user)
+            val sharedKey = teamCalIcsKey.invoke(service, cal, user) as String
+            assertTrue(sharedKey.startsWith("7:read:"))
+            assertFalse(sharedKey.contains("42"), "Without absences: shared by all users of the access class.")
+            cal.includeLeaveDaysForGroups = "3"
+            assertEquals("$sharedKey:user-42", teamCalIcsKey.invoke(service, cal, user))
+        } finally {
+            ThreadLocalUserContext.clear()
+        }
+    }
+
+    /**
+     * When the external access no longer runs via the gateway (LOCAL or NONE), an empty list is pushed: the gateway
+     * withdraws the areas pushed before, their external links don't stay valid there.
+     */
+    @Test
+    fun dataTransferAreasArePushedEmptyIfNotViaGateway() {
+        val persistenceService = mock<PfPersistenceService>()
+        val service = createService(mock(), persistenceService = persistenceService)
+        var path: String? = null
+        val webClient = WebClient.builder().exchangeFunction { request ->
+            path = request.url().path
+            Mono.just(ClientResponse.create(HttpStatus.OK).header("Content-Type", "application/json").body("{}").build())
+        }.build()
+        GatewaySyncPushService::class.java.getDeclaredField("webClient\$delegate").also {
+            it.isAccessible = true
+            it.set(service, lazyOf(webClient))
+        }
+        val push = GatewaySyncPushService::class.java.declaredMethods.single { it.name == "pushDataTransferAreas" }
+            .also { it.isAccessible = true }
+        push.invoke(service, true, SyncCounts())
+        assertEquals("/datatransferareas", path, "Pushed, so the gateway withdraws its areas.")
+        verifyNoInteractions(persistenceService)
+    }
+
     private fun createService(
         serviceRest: CalendarSubscriptionServiceRest,
         userAuthenticationsService: UserAuthenticationsService = mock(),
+        persistenceService: PfPersistenceService = mock(),
     ): GatewaySyncPushService {
         val service = GatewaySyncPushService(
             config = mock(),
             userDao = mock(),
             userGroupCache = mock(),
             addressDao = mock(),
-            persistenceService = mock(),
+            persistenceService = persistenceService,
             userAuthenticationsService = userAuthenticationsService,
             teamCalCache = mock(),
+            dataTransferExternalAccessConfig = DataTransferExternalAccessConfig(),
             integrationConfig = IntegrationConfig(),
         )
         GatewaySyncPushService::class.java.getDeclaredField("calendarSubscriptionServiceRest").also {

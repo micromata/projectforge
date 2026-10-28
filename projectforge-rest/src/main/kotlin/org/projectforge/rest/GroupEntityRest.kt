@@ -27,6 +27,7 @@ import de.micromata.merlin.excel.ExcelWorkbook
 import jakarta.validation.Valid
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.SystemStatus
+import org.projectforge.business.group.GroupNomenclatureConfig
 import org.projectforge.business.ldap.GroupDOConverter
 import org.projectforge.business.ldap.LdapGroupValues
 import org.projectforge.business.ldap.LdapPosixGroupsUtils
@@ -47,6 +48,7 @@ import org.projectforge.framework.time.DateHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.PostData
@@ -56,9 +58,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.*
 
@@ -206,6 +210,37 @@ class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
         return dto
     }
 
+    /**
+     * The naming convention of groups (configuration parameter `groupNomenclature`): its description is shown at
+     * the name of a group, and the wizards suggest names following it.
+     */
+    @AccessChecked("Logged-in user; only the configured naming convention, no data")
+    @GetMapping("nomenclature")
+    fun nomenclature(): GroupNomenclatureConfig {
+        return GroupNomenclatureConfig.get()
+    }
+
+    /**
+     * The members of a group, for the tooltip of a group's pill in the pickers of projectforge-next (a calendar's
+     * access list, the groups of a user). Only for whom may see the group ([GroupDao.hasUserSelectAccess]: admins,
+     * finance and controlling, its own members); anybody else is told so rather than refused, so the tooltip can
+     * say it, and an unknown id answers the same as a forbidden one. Served from the [UserGroupCache], no database.
+     */
+    @AccessChecked("DAO: select access to the group (GroupDao.hasUserSelectAccess with the object)")
+    @GetMapping("members")
+    fun members(@RequestParam id: Long): GroupMembers {
+        val group = userGroupCache.getGroup(id)
+        if (group == null || !baseDao.hasLoggedInUserSelectAccess(group, false)) {
+            return GroupMembers(visible = false)
+        }
+        val members = group.assignedUsers.orEmpty()
+            .mapNotNull { userService.getUser(it.id) }
+            .filter { !it.deleted }
+            .map { GroupMembers.Member(it.id!!, it.displayName, it.deactivated) }
+            .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.displayName })
+        return GroupMembers(visible = true, members = members)
+    }
+
     @PostMapping("createGid")
     fun createGid(@Valid @RequestBody postData: PostData<Group>):
             ResponseAction {
@@ -339,8 +374,18 @@ class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
 
     override val autoCompleteSearchFields = arrayOf("name", "organization")
 
+    /** Groups named like the search term first, before the groups only of an organization named like it. */
+    override val autoCompletePrimarySearchFields = arrayOf("name")
+
     companion object {
         /** The posix gid range, as Wicket's GroupEditForm allowed it. */
         internal val GID_RANGE = 1..65535
     }
+}
+
+/**
+ * Answer of [GroupEntityRest.members]: the members of a group, if the logged-in user may see them ([visible]).
+ */
+data class GroupMembers(val visible: Boolean, val members: List<Member> = emptyList()) {
+    data class Member(val id: Long, val displayName: String, val deactivated: Boolean)
 }

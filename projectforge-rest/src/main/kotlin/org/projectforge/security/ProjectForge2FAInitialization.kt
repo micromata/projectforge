@@ -26,24 +26,30 @@ package org.projectforge.security
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.plugins.core.IProjectForge2FAInitialization
 import org.projectforge.rest.*
+import org.projectforge.rest.admin.AdminCachesRest
 import org.projectforge.rest.admin.AdminErrorsRest
 import org.projectforge.rest.admin.AdminLogViewerRest
 import org.projectforge.rest.admin.AdminSchedulerRest
+import org.projectforge.rest.admin.PropertiesEditorRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.fibu.*
 import org.projectforge.rest.fibu.importer.DatevAccountImportRest
 import org.projectforge.rest.fibu.importer.DatevRecordImportRest
+import org.projectforge.rest.fibu.importer.EmployeeSalaryImportRest
+import org.projectforge.rest.fibu.importer.IncomingInvoiceImportRest
 import org.projectforge.rest.fibu.kost.Kost1EntityRest
 import org.projectforge.rest.fibu.kost.Kost2EntityRest
 import org.projectforge.rest.hr.HRPlanningEntityRest
 import org.projectforge.rest.hr.HRPlanningEntryEntityRest
 import org.projectforge.rest.hr.HRViewRest
-import org.projectforge.rest.hr.LeaveAccountEntryPagesRest
+import org.projectforge.rest.hr.LeaveAccountEntryEntityRest
 import org.projectforge.rest.orga.*
 import org.projectforge.rest.scripting.MyScriptEntityRest
 import org.projectforge.rest.scripting.MyScriptExecuteRest
 import org.projectforge.rest.scripting.ScriptEntityRest
 import org.projectforge.rest.scripting.ScriptExecuteRest
+import org.projectforge.rest.sipgate.SipgateAdminRest
+import org.projectforge.rest.task.TaskWizardRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 import jakarta.annotation.PostConstruct
@@ -64,15 +70,36 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     // The pages of projectforge-next are static files served by a resource handler (see WebApplicationConfig), so
     // no filter sees their urls and a client side navigation doesn't even reach the server: only their rest calls
     // are left to gate. Hence WRITE:<category> for the saves and the *Rest classes for the reading shortcuts
-    // (NextMigration2FATest keeps the gates the former Wicket pages /wa/... had).
+    // (PageRoutes2FATest keeps the gates the former Wicket pages /wa/... had).
     registerShortCutValues(
       My2FAShortCut.ADMIN_WRITE,
       "WRITE:user;WRITE:group;WRITE:access;WRITE:configuration;",
     )
     // The System page (SystemRest, /rs/system), successor of Wicket's admin page, and the Plugins page
     // (PluginAdminRest, /rs/pluginList), successor of Wicket's PluginListPage: both legacy pages were gated by
-    // ADMIN_WRITE as a whole, so the whole rest path keeps the write period.
-    registerShortCutClasses(My2FAShortCut.ADMIN_WRITE, SystemRest::class.java, PluginAdminRest::class.java)
+    // ADMIN_WRITE as a whole, so the whole rest path keeps the write period. The same for the properties editor
+    // (PropertiesEditorRest, /rs/propertiesEditor): projectforge.properties holds the credentials and security keys.
+    // The structure wizard (TaskWizardRest, /rs/taskWizard) grants access rights, as WRITE:access does.
+    // The url of a class is a prefix (^/rs/system.*), which would gate /rs/systemStatistics, open to every user, as
+    // well: hence the path of SystemRest only.
+    registerShortCutPaths(My2FAShortCut.ADMIN_WRITE, SystemRest::class.java)
+    registerShortCutClasses(
+      My2FAShortCut.ADMIN_WRITE,
+      PluginAdminRest::class.java,
+      PropertiesEditorRest::class.java,
+      TaskWizardRest::class.java,
+    )
+    // Interventions in the running system (caches) and in Sipgate (its configuration holds the credentials):
+    registerShortCutMethods(
+      My2FAShortCut.ADMIN_WRITE,
+      AdminCachesRest::refresh,
+      AdminCachesRest::terminate,
+      AdminCachesRest::refreshAll,
+      SipgateAdminRest::downloadConfiguration,
+      SipgateAdminRest::synchronize,
+      SipgateAdminRest::resetContacts,
+    )
+    registerShortCutPaths(My2FAShortCut.ADMIN, SystemRest::class.java)
     registerShortCutClasses(
       My2FAShortCut.ADMIN,
       UserEntityRest::class.java,
@@ -83,7 +110,9 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       GroupAccessEntityRest::class.java,
       PluginAdminRest::class.java,
       ConfigurationEntityRest::class.java,
-      SystemRest::class.java,
+      AdminCachesRest::class.java,
+      SipgateAdminRest::class.java,
+      TaskWizardRest::class.java,
     )
 
     registerShortCutValues(
@@ -98,10 +127,10 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       My2FAShortCut.HR,
       // The HR view, successor of Wicket's /wa/hrList:
       HRViewRest::class.java,
-      LeaveAccountEntryPagesRest::class.java,
+      LeaveAccountEntryEntityRest::class.java,
       HRPlanningEntityRest::class.java,
       HRPlanningEntryEntityRest::class.java,
-      EmployeePagesRest::class.java,
+      EmployeeEntityRest::class.java,
     )
 
     registerShortCutValues(
@@ -109,20 +138,30 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       "WRITE:incomingInvoice;WRITE:outgoingInvoice;WRITE:project;",
       // The entity of WRITE: is the rest category (/rs/order), which for the order is not the identifier of its
       // dao ("auftrag").
-      "WRITE:order;WRITE:account;WRITE:cost1;WRITE:cost2;WRITE:cost2Type;WRITE:customer;",
+      "WRITE:order;WRITE:account;WRITE:cost1;WRITE:cost2;WRITE:cost2Type;WRITE:customer;WRITE:currencyPair;",
     )
     // The DATEV import (successor of Wicket's /wa/datevImport) writes as a whole, so its whole rest paths keep the
     // write period, as Wicket's page did. Of the report objectives (successor of /wa/reportObjectives) only the
     // import was a write (Wicket's /wa/reportEdit); evaluating them is reading, gated by FINANCE below.
+    // The same for the other imports: they write without passing the save of their entity, so WRITE:<category>
+    // doesn't catch them. The rates of a currency pair are written by their own endpoints (CurrencyPairEntityRest.*Rate).
     registerShortCutClasses(
       My2FAShortCut.FINANCE_WRITE,
       DatevRecordImportRest::class.java,
       DatevAccountImportRest::class.java,
+      EmployeeSalaryImportRest::class.java,
+      IncomingInvoiceImportRest::class.java,
     )
+    // The project wizard creates customer, project, groups and their access rights in one go:
     registerShortCutMethods(
       My2FAShortCut.FINANCE_WRITE,
       ReportObjectivesPageRest::upload,
       ReportObjectivesPageRest::paste,
+      CustomerGroupRest::save,
+      ProjectWizardRest::execute,
+      CurrencyPairEntityRest::insertRate,
+      CurrencyPairEntityRest::updateRate,
+      CurrencyPairEntityRest::deleteRate,
     )
 
     registerShortCutValues(
@@ -142,10 +181,13 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       IncomingInvoiceEntityRest::class.java,
       OutgoingInvoiceEntityRest::class.java,
       CustomerPagesRest::class.java,
-      ProjectEntityRest::class.java, ProjectMultiSelectedPageRest::class.java,
+      ProjectEntityRest::class.java, ProjectMassUpdateRest::class.java,
       OrderEntityRest::class.java,
-      EingangsrechnungMultiSelectedPageRest::class.java,
-      RechnungMultiSelectedPageRest::class.java,
+      IncomingInvoiceMassUpdateRest::class.java,
+      OutgoingInvoiceMassUpdateRest::class.java,
+      EmployeeSalaryImportRest::class.java,
+      IncomingInvoiceImportRest::class.java,
+      CurrencyPairEntityRest::class.java,
     )
 
     my2FARequestHandler.registerShortCutValues(
@@ -154,10 +196,17 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     )
     registerShortCutClasses(
       My2FAShortCut.ORGA,
-      PostausgangPagesRest::class.java,
-      PosteingangPagesRest::class.java,
-      VisitorbookPagesRest::class.java,
-      ContractPagesRest::class.java,
+      PostausgangEntityRest::class.java,
+      PosteingangEntityRest::class.java,
+      VisitorbookEntityRest::class.java,
+      ContractEntityRest::class.java,
+    )
+    // The visits of a visitor are written by their own endpoints, which WRITE:visitorbook doesn't catch:
+    registerShortCutMethods(
+      My2FAShortCut.ORGA_WRITE,
+      VisitorbookEntityRest::insertEntry,
+      VisitorbookEntityRest::updateEntry,
+      VisitorbookEntityRest::deleteEntry,
     )
 
     my2FARequestHandler.registerShortCutValues(
@@ -173,7 +222,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     registerShortCutClasses(
       My2FAShortCut.MY_ACCOUNT,
       MyAccountRest::class.java,
-      // My2FASetupPageRest::class.java, // Check done by this page itself.
+      // My2FASetupRest::class.java, // Check done by its endpoints (fresh 2FA for any change).
     )
     // Logging other users out of all their devices and renewing their tokens are admin operations on foreign
     // accounts:
@@ -184,8 +233,8 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     )
     registerShortCutClasses(
       My2FAShortCut.PASSWORD,
-      ChangePasswordPageRest::class.java,
-      ChangeWlanPasswordPageRest::class.java
+      ChangePasswordRest::class.java,
+      ChangeWlanPasswordRest::class.java
     )
   }
 
@@ -204,6 +253,16 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
   ) {
     restClasses.forEach { restClass ->
       my2FARequestHandler.registerShortCutValues(shortCut, RestResolver.getRestUrl(restClass))
+    }
+  }
+
+  /**
+   * As [registerShortCutClasses], but only the path of each class and its sub paths (`/rs/system`, `/rs/system/...`),
+   * not every url the path is a prefix of (`/rs/systemStatistics`).
+   */
+  private fun registerShortCutPaths(shortCut: My2FAShortCut, vararg restClasses: Class<*>) {
+    restClasses.forEach { restClass ->
+      my2FARequestHandler.registerShortCutValues(shortCut, "^${RestResolver.getRestUrl(restClass)}(/.*)?$")
     }
   }
 

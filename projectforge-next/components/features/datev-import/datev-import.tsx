@@ -14,7 +14,8 @@ import { DATEV_RECORD_IMPORT_COLUMNS } from "./record-columns";
 
 /**
  * The DATEV import: two tabs, each a consumer of the generic {@link ImportFeature} with its own upload,
- * preview and commit, and both accepting the same original file of the tax office. The records tab shows the
+ * preview and commit, and both accepting the same original file of the tax office. An upload on one tab fills the
+ * other one as well, if the file has its part (`relatedImports`, see the backend's `afterUpload`). The records tab shows the
  * BWA of the importable records above the preview (`meta.bwa`, see DatevRecordImportRest), so it can be checked
  * against the tax office's BWA sheet before committing. The open tab lives in the url (`?tab=`, see
  * useTabParam): the uploaded preview is kept in the session and survives a reload, so the tab has to as well.
@@ -31,6 +32,7 @@ export function DatevImport() {
       fileAccept: ".xlsx,.xls",
       returnRoute: "/accounting-record",
       stayAfterCommit: true,
+      relatedImports: [ACCOUNT_ENTITY],
       renderAboveTable: (view) => (
         <AccountingRecordBwa
           statistics={view.meta?.bwa as BwaStatistics | undefined}
@@ -47,6 +49,7 @@ export function DatevImport() {
       fileAccept: ".xlsx,.xls",
       returnRoute: "/account",
       stayAfterCommit: true,
+      relatedImports: [RECORD_ENTITY],
     }),
     []
   );

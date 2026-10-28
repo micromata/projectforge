@@ -70,6 +70,8 @@ export interface ImportView<Read extends ImportRead = ImportRead> {
   info?: ImportStorageInfo;
   entries: ImportEntry<Read>[];
   meta?: Record<string, unknown>;
+  /** Notes about the upload just done (translated), e.g. that it filled a related import as well. Upload answer only. */
+  uploadNotes?: string[];
 }
 
 /** `ImportStorage.DisplayOptions` — which statuses the reconcile answer includes. All optional/nullable. */
@@ -125,6 +127,11 @@ export interface ImportConfig {
   /** i18n key of a markdown guide shown below the drop area (file sources, steps, supported columns). */
   helpKey?: string;
   columns: ImportColumn[];
+  /**
+   * Properties the backend diffs that have no column of their own, e.g. the receiver of an invoice: their label
+   * and format for the list of changes in the status cell (see changesNotShownOf). Never rendered as columns.
+   */
+  diffOnlyFields?: ImportColumn[];
   /** `<input accept>` value for the drop step, e.g. `.csv`. */
   fileAccept: string;
   /** Where committing returns to, e.g. `/creditor-invoice`. Unused with [stayAfterCommit]. */
@@ -139,6 +146,11 @@ export interface ImportConfig {
   selectableStatuses?: ImportStatus[];
   /** Further multipart fields sent with the upload, e.g. the target calendar of the ICS import. */
   uploadFields?: Record<string, string>;
+  /**
+   * REST path bases of related imports an upload may fill as well (e.g. the two tabs of the DATEV import, reading
+   * the same file): their state is reloaded after an upload.
+   */
+  relatedImports?: string[];
   /** Optional import specific content above the drop step, e.g. the choice of the target calendar. */
   renderBeforeDrop?: () => ReactNode;
   /** Optional import specific content between the controls and the preview table, e.g. a summary of `meta`. */

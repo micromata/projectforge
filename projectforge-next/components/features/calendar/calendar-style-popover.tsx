@@ -30,7 +30,7 @@ export function CalendarStylePopover({
   const t = useTranslations();
 
   return (
-    <div className="flex w-56 flex-col gap-3">
+    <div className="flex w-72 flex-col gap-3">
       <p className="truncate text-sm font-semibold">{title}</p>
       <div className="flex items-center gap-2">
         <Checkbox

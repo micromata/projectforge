@@ -1,0 +1,1630 @@
+---
+title: Benutzerhandbuch
+subtitle: Hinweise, Tipps und Best Practices für die Arbeit mit ProjectForge
+author: kai
+tags: [userguide]
+---
+:hide-uri-scheme:
+:experimental:
+
+:toc:
+:toclevels: 4
+
+:last-update-label: Copyright (C) 2001-2026, Zuletzt aktualisiert
+
+:sectnums:
+
+[[introduction]]
+== Einführung
+
+Dieses Handbuch sammelt Hinweise, Tipps und Best Practices für die Arbeit mit ProjectForge®. Es beschreibt
+nicht jedes einzelne Feld: Die meisten Seiten erklären sich über ihre Beschriftungen und Tooltips selbst.
+
+Seit Version 9.0 hat ProjectForge® eine vollständig überarbeitete Benutzeroberfläche. Dieses Handbuch
+beschreibt die aktuelle Oberfläche.
+
+* Neu bei ProjectForge? Der link:/de/docs/quickstart/[Schnellstart] zeigt Schritt für Schritt, wie Benutzer,
+Gruppen, Strukturelemente und Kostenträger angelegt werden.
+* Installation, Konfiguration und Plugins sind im link:/de/docs/adminguide/[Administrationshandbuch]
+beschrieben.
+
+*Hinweis*
+
+____
+Sichtbar sind nur die Menüeinträge und Seiten, auf die du Zugriff hast. Manche Funktionen müssen außerdem
+erst von der Administration aktiviert oder konfiguriert werden (z. B. Plugins, Telefonie, CardDAV oder
+E-Rechnungen). Fehlt etwas, das hier beschrieben ist, hilft die Administration weiter.
+____
+
+[[common_concepts]]
+== Grundlegende Konzepte
+
+[[main_menu]]
+=== Hauptmenü
+
+Die Schaltfläche *Menü* oben links öffnet das Hauptmenü (Tastenkürzel kbd:[Ctrl+K], unter macOS
+kbd:[Cmd+K]). Es zeigt alle Einträge, auf die du Zugriff hast, gruppiert nach *Allgemein*,
+*Projektmanagement*, *HR*, *Fibu*, *Kost*, *Reporting*, *Organisation*, *Administration* und
+*Verschiedenes*.
+
+* *Menü durchsuchen:* Einfach lostippen. ProjectForge® durchsucht die Titel der Menüeinträge und die
+Gruppennamen (die Eingabe „fibu“ listet den ganzen Bereich auf). Unterhalb der Menüeinträge erscheinen
+passende Datensätze, z. B. Adressen oder Projekte. Die letzte Zeile *"..." in allen Daten suchen* öffnet
+die globale Suche. Mit den Pfeiltasten und kbd:[Enter] lässt sich durch die Treffer navigieren.
+* *Zuletzt verwendet:* Solange das Suchfeld leer ist, stehen die zuletzt verwendeten Einträge oben.
+Sie werden auf dem Server gespeichert und sind daher auch auf anderen Geräten und in anderen Browsern
+verfügbar.
+
+[[favorites_bar_and_personal_menu]]
+=== Favoritenleiste und persönliches Menü
+
+Neben der Menü-Schaltfläche befindet sich die persönliche *Favoritenleiste*. Sie kann einzelne Einträge
+und Ordner enthalten. Einträge, die nicht mehr in die Leiste passen, wandern in das Menü *...*. Manche
+Einträge zeigen einen Zähler, z. B. die Anzahl offener Urlaubsanträge.
+
+Die Favoriten lassen sich über *Mein Menü gestalten* im Benutzermenü (oben rechts, mit deinem Namen)
+ändern: Einträge aus der Vorlage rechts in das eigene Menü links ziehen (oder einfach anklicken), Gruppen
+anlegen, umbenennen und entfernen und die Änderungen speichern. *Standard wiederherstellen* stellt das
+Standardmenü wieder her.
+
+Das Benutzermenü enthält außerdem *Feedback senden*, *Mein Zugang*, *2. Faktor einrichten*,
+*Urlaubskonto* (für Mitarbeitende), Einträge von Plugins (z. B. die *Persönliche Box* von Datentransfer),
+*Erscheinungsbild* und *Abmelden*.
+
+[[global_search]]
+=== Globale Suche
+
+Unter _Allgemein > Suche_ (oder über die letzte Zeile der Menüsuche) lassen sich mehrere Bereiche
+gleichzeitig durchsuchen: Adressen, Kunden, Projekte, Benutzer, Gruppen, Strukturelemente, Bücher und
+Mitarbeitende. Durchsucht werden nur Bereiche, für die du Leserechte hast.
+
+* Über die Bereichskacheln lässt sich die Suche auf einzelne Bereiche einschränken, *In allen Bereichen
+suchen* hebt die Einschränkung wieder auf.
+* *Alle in ... anzeigen* öffnet die Liste des Bereichs mit dem bereits eingetragenen Suchbegriff.
+* Der Suchbegriff ist Teil der Seitenadresse, eine Suche lässt sich also als Lesezeichen speichern oder an
+Kolleg:innen schicken.
+
+[[full_indexed_search]]
+=== Volltextsuche
+
+Die meisten Listen haben ein Suchfeld (*Liste durchsuchen...*). Die Suche startet bereits während der
+Eingabe, kbd:[Esc] leert das Feld. Das Suchfeld unterstützt die Lucene-Abfragesyntax, alle Details
+beschreibt die
+https://lucene.apache.org/core/9_12_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html[Syntax des Lucene-Query-Parsers,window=_blank].
+
+Die folgende Tabelle zeigt einige häufig verwendete Abfragen.
+
+[cols="1,4",]
+|===
+|Ausdruck |Funktion
+
+|abc |Das Suchergebnis enthält alle Objekte mit Feldern, die Wörter enthalten, die mit 'abc' beginnen.
+Groß- und Kleinschreibung spielen keine Rolle.
+
+|+++*+++abc+++*+++ |Das Suchergebnis enthält alle Objekte mit Feldern, die Wörter enthalten, in denen
+'abc' vorkommt. Groß- und Kleinschreibung spielen keine Rolle.
+
+|meier~ |Unscharfe Suche: Auch Wörter mit ähnlicher Schreibweise wie 'mayer' werden gefunden.
+
+|abc def |Sucht nach Objekten mit Wörtern, die mit 'abc' oder 'def' beginnen.
+
+|+abc -def |Sucht nach Objekten, die das Wort 'abc', aber nicht das Wort 'def' enthalten (ohne
+automatische Platzhalter, siehe unten; `+abc* -def*` für Wörter, die mit 'abc', aber nicht mit 'def'
+beginnen).
+
+|name:abc def |Sucht nach allen Objekten, deren Feld 'name' das Wort 'abc' enthält, und sucht 'def' in
+allen Feldern.
+|===
+
+[[automatic_wildcards]]
+==== Automatische Platzhalter
+
+*Hinweis*
+
+____
+Besteht der Suchbegriff nur aus Buchstaben, Ziffern, Leerzeichen und den Zeichen `@._-+*`, hängt
+ProjectForge® an jedes Wort automatisch den Platzhalter '*' an. Wörter, die auf '*' enden, Wörter, die mit
+'+' oder '-' beginnen (Lucene-Operatoren), und die Schlüsselwörter AND, OR und NOT bleiben unverändert. Ein
+Suchbegriff, der mit '+' oder '-' beginnt, wird so verwendet, wie er eingegeben wurde, ebenso alle anderen
+Ausdrücke (z. B. mit ':', '~', '"' oder Klammern). Ein Wort mit einem Trennzeichen darin wie `acme-pop`
+wird wie eingegeben und in seinen Teilen gesucht: `acme-pop*` oder sowohl `acme*` als auch `pop*`.
+
+Beginnt der Suchbegriff mit einem Apostroph ('), unterbleibt jede Veränderung: Der Apostroph wird entfernt
+und der Rest exakt wie eingegeben verwendet.
+____
+
+[cols="1,3",]
+|===
+|Ausdruck |Veränderung durch ProjectForge
+
+|hello |hello*
+
+|hello ProjectForge |hello* ProjectForge*
+
+|hello AND world |hello* AND world*
+
+|name:hello |name:hello +
+(keine Ersetzung wegen ':'.)
+
+|+hello -world |+hello -world +
+(keine Ersetzung wegen des führenden '+'.)
+
+|'hello |hello +
+(keine Ersetzung wegen des führenden Apostrophs.)
+|===
+
+[[filtering_lists]]
+=== Listen filtern
+
+Über jeder Liste befindet sich die Filterleiste:
+
+* *Filter hinzufügen* bietet alle durchsuchbaren Felder der Liste als Filter an, *Alle Filter* zeigt alle
+aktiven Filter auf einmal. *Zurücksetzen* und *Alle löschen* entfernen die Filter wieder.
+* *Zeitraumfilter* (z. B. *Zeitraum* der Zeitberichte) bieten Schnellauswahlen wie Woche, Monat oder
+Jahr bis heute sowie Pfeile zum Blättern in den vorherigen oder nächsten Zeitraum.
+* *Geändert* filtert die Liste über die Änderungshistorie: nach dem Benutzer, der eine Änderung
+vorgenommen hat, nach dem Zeitpunkt der Änderung (z. B. letzte 10 Minuten, heute, seit gestern) oder nach
+geänderten Werten. Das ist praktisch, um z. B. alle Objekte zu finden, die du in der letzten Stunde
+geändert hast.
+* *Gelöscht* zeigt als gelöscht markierte Einträge, die sich so wiederherstellen lassen.
+
+Die letzten Filtereinstellungen werden für jede Liste auf dem Server gespeichert. Sie bleiben also nach
+einem Neuladen erhalten und sind auf allen deinen Geräten verfügbar.
+
+[[favorite_filters]]
+==== Favoritenfilter
+
+Über *Favoriten* in der Filterleiste lassen sich häufig benötigte Filtereinstellungen speichern: *Neuer
+Filter* speichert die aktuellen Einstellungen unter einem frei wählbaren Namen. Ein Sternchen markiert
+einen Favoriten, dessen Einstellungen geändert wurden, *Änderungen speichern* übernimmt die Änderungen.
+Favoriten lassen sich jederzeit umbenennen und löschen.
+
+[[links_and_bookmarks]]
+==== Links und Lesezeichen
+
+Alle Seiten haben stabile Adressen: Sie lassen sich als Lesezeichen im Browser speichern oder per E-Mail
+verschicken. Bearbeitungsseiten werden über die Id des Objekts adressiert, Listenseiten akzeptieren einen
+Suchbegriff (`?q=...`). Filtereinstellungen sind nicht Teil der Adresse, dafür gibt es die
+Favoritenfilter.
+
+[[multi_selection_and_mass_update]]
+=== Mehrfachauswahl und Massenänderung
+
+Viele Listen (z. B. Zeitberichte, Debitorenrechnungen, Kreditorenrechnungen, Gehälter, Projekte,
+Kostenträger und Liquiditätseinträge) unterstützen die Änderung vieler Einträge auf einmal:
+
+. In der Werkzeugleiste der Liste auf *Mehrfachauswahl* klicken.
+. Die gewünschten Einträge auswählen: Ein Klick wählt einen Eintrag aus, kbd:[Ctrl] (macOS: kbd:[Cmd]) +
+Klick schaltet einzelne Einträge um, kbd:[Shift] + Klick wählt einen Bereich aus, die Checkbox im
+Tabellenkopf wählt alle aus.
+. Auf *Massenänderung* klicken. Für jedes Feld lässt sich wählen, ob ein Wert gesetzt (überschrieben),
+Text angehängt, Text gesucht und ersetzt oder der Wert gelöscht werden soll.
+
+Bis zu 100 Einträge lassen sich auf einmal ändern. Nach der Änderung zeigt ProjectForge® die Anzahl der
+geänderten Einträge und bietet eine Excel-Datei mit allen Änderungen an. Ausgewählte Einträge lassen sich
+auch auf einmal löschen oder wiederherstellen.
+
+[[export]]
+=== Export
+
+Listen mit Exportfunktion bieten in der Werkzeugleiste ein Menü *Export*. *Excel-Export* exportiert die
+aktuell gefilterte Liste. Manche Listen bieten weitere Exporte, z. B. die Kostzuweisungen von Rechnungen,
+den Forecast des Auftragsbuchs oder ein PDF der Zeitberichte.
+
+[[auto_completion]]
+=== Autovervollständigung
+
+Viele Felder (z. B. Benutzer, Strukturelemente, Kostenträger oder Kunden) schlagen schon während der
+Eingabe Einträge vor, meist nach 2 Zeichen. Mit den Pfeiltasten nach oben und unten und kbd:[Enter] lässt
+sich ein Eintrag ohne Maus auswählen. Die Auswahl von Strukturelementen bietet zusätzlich die zuletzt
+verwendeten Strukturelemente und die eigenen Favoriten an.
+
+[[history_of_changes]]
+=== Änderungshistorie
+
+Fast alle Objekte führen eine vollständige Änderungshistorie. Der Abschnitt *Änderungshistorie* unten auf
+einer Bearbeitungsseite zeigt, wann ein Objekt angelegt und geändert wurde, von wem und welche Felder
+geändert wurden (alter und neuer Wert).
+
+Bei Benutzern und Gruppen lässt sich beim Speichern zusätzlich ein *Änderungskommentar* eingeben (z. B.
+warum ein Recht vergeben wurde) oder später über *Kommentar anhängen* ergänzen. Diese Kommentare
+erscheinen in der Historie.
+
+[[appearance]]
+=== Erscheinungsbild
+
+Über *Erscheinungsbild* im Benutzermenü lässt sich zwischen dem Design *Hell* und *Dunkel* wechseln oder
+die Einstellung des Betriebssystems übernehmen (*System*). Die Einstellung wird für deinen Benutzer
+gespeichert und gilt auf allen deinen Geräten.
+
+[[stay_logged_in]]
+=== Angemeldet bleiben
+
+Auf der Anmeldeseite lässt sich *An diesem Browser angemeldet bleiben.* ankreuzen:
+
+* ProjectForge® speichert dann ein Cookie in diesem Browser. Es bleibt 30 Tage nach seiner letzten Nutzung
+gültig und wird bei jeder Nutzung erneuert.
+* *Abmelden* entfernt nur das Cookie des aktuellen Browsers.
+* Eine Änderung des Passworts meldet alle Geräte ab.
+* Unter *Mein Zugang* sind alle angemeldet bleibenden Geräte zu sehen (Browser, IP-Adresse, letzter
+Zugriff). *Abmelden* in der Zeile eines Geräts meldet nur dieses Gerät ab, *Auf allen Geräten abmelden.*
+meldet alle ab, einschließlich des aktuellen.
+
+[[two_factor_authentication]]
+=== Zweifaktor-Authentifizierung
+
+Die Administration kann sensible Bereiche (z. B. Administration, Finanzen oder HR) zusätzlich zum Passwort
+durch einen zweiten Faktor schützen. Die eigenen Faktoren werden im Benutzermenü unter *2. Faktor
+einrichten* konfiguriert:
+
+* *Authenticator-Apps:* Den angezeigten QR-Code mit einer Authenticator-App auf dem Smartphone scannen
+(zeitbasierte Einmalpasswörter, TOTP).
+* *WebAuthn (Fido2 etc.):* Einen Hardware-Token wie einen YubiKey registrieren. Ein Klick auf einen
+registrierten Token benennt ihn um oder löscht ihn.
+* *SMS-Konfiguration:* Einmalcodes per SMS erhalten (falls konfiguriert).
+* Codes lassen sich auch per E-Mail versenden, sofern die Administration dies nicht abgeschaltet hat.
+
+Das Anzeigen des Authenticator-Schlüssels und jede Änderung auf dieser Seite erfordern einen zweiten
+Faktor, der nicht älter als 10 Minuten ist; sonst fragt ProjectForge® zuerst nach einem Code. Mit *2FA
+jetzt prüfen* lässt sich ein Code ausprobieren.
+
+Erfordert eine Seite oder Aktion einen zweiten Faktor, der fehlt oder abgelaufen ist, fragt ProjectForge®
+nach einem Code und fährt anschließend fort. Welche Bereiche geschützt sind und wie lange ein zweiter
+Faktor gültig bleibt, legt die Administration fest, siehe
+link:/de/docs/adminguide/#2fa_two_factor_authentication[Administrationshandbuch: 2FA].
+
+[[my_account]]
+=== Mein Zugang
+
+Unter *Mein Zugang* lassen sich die persönlichen Einstellungen pflegen, z. B. Name, Zeitzone, Sprache,
+Datumsformate, die eigenen Telefon-Ids für die Direktwahl sowie die öffentlichen GPG- und SSH-Schlüssel.
+
+Hier befinden sich auch die persönlichen *Schlüssel* (Authentifizierungs-Token): für Kalenderabonnements,
+für CardDAV und für REST-Clients. Jeder Schlüssel lässt sich erneuern: Alle URLs und Clients mit dem alten
+Schlüssel funktionieren dann sofort nicht mehr. Genau das ist gewünscht, wenn eine Abonnement-URL in
+falsche Hände geraten ist.
+
+[[calendar]]
+== Kalender
+
+Der Kalender ist eine der wichtigsten Funktionen von ProjectForge®. Hier lassen sich Zeitberichte und
+persönliche Termine ebenso wie Teamtermine komfortabel organisieren.
+
+[[views_and_navigation]]
+=== Ansichten und Navigation
+
+Der Kalender bietet folgende Ansichten: *Monat*, *Woche* und *Tag*, Monat und Woche jeweils auch ohne
+Wochenenden (*Werktage*), eine Wochenübersicht (*Übersicht*) und eine Liste aller Einträge (*Agenda*).
+
+Zum Blättern dienen *Heute*, die Pfeil-Schaltflächen und *Datum auswählen* (eine Monatsauswahl mit
+Jahresauswahl). In der Wochen- und Tagesansicht markiert eine Linie die aktuelle Uhrzeit. ProjectForge®
+merkt sich die zuletzt verwendete Ansicht und das Datum.
+
+[[calendars_colors_and_favorites]]
+=== Kalender, Farben und Favoriten
+
+* Die anzuzeigenden Kalender auswählen: alle Teamkalender, auf die du Zugriff hast, sowie *Geburtstage*
+(alle Adressen) und *Geburtstage (Adressfavoriten)*.
+* Ein Klick auf einen Kalender ändert seine Farbe oder blendet ihn vorübergehend aus.
+* Der Einstellungsdialog (Zahnrad-Symbol) enthält den *Standardkalender* für neue Termine, die anzuzeigenden
+Zeitberichte (die eigenen oder, falls erlaubt, die anderer Benutzer), *Pausen*, den Urlaub von Gruppen und
+Benutzern (*Urlaub von Gruppen*, *Urlaub von Benutzern*), die Rastergröße, den Tagesbeginn und die Farben.
+* Verschiedene Kombinationen lassen sich als *Favoriten* speichern und mit zwei Klicks wechseln.
+
+Feiertage und Wochenenden sind hervorgehoben.
+
+[[holidays]]
+=== Feiertage
+
+ProjectForge® unterstützt die deutschen Feiertage von Haus aus (in der Grundkonfiguration zählen
+Heiligabend und Silvester als halbe Arbeitstage). Die Administration kann im Konfigurationsparameter _Feiertage_
+(_Administration_ -> _Konfiguration_) eigene Feiertage ergänzen oder die eingebauten ändern.
+
+[[support_of_different_time_zones]]
+=== Unterstützung verschiedener Zeitzonen
+
+ProjectForge® unterstützt gleichzeitig verschiedene Zeitzonen. Alle Benutzer können ihre Zeitzone unter
+*Mein Zugang* wählen, z. B. auf Reisen.
+
+[[creating_and_changing_entries]]
+=== Einträge anlegen und ändern
+
+* *Anlegen:* Einen Zeitraum im Kalender markieren oder auf *+* klicken (oder kbd:[N] drücken). Ist ein
+Standardkalender gewählt, entsteht ein neuer Termin, andernfalls ein neuer Zeitbericht.
+* *Verschieben und Größe ändern:* Einen Eintrag auf eine andere Uhrzeit ziehen oder seine Dauer ändern.
+ProjectForge® öffnet das Bearbeitungsformular mit den neuen Zeiten; die Änderung wird beim Speichern
+übernommen.
+* *Kopieren:* *Klonen* im Bearbeitungsformular eines Zeitberichts oder Termins verwenden.
+* *Als andere Art bearbeiten:* Ein Termin lässt sich als Zeitbericht bearbeiten (*Als Zeitbuchung
+bearbeiten*) und umgekehrt (*Als Termin bearbeiten*). Dabei öffnet sich ein neuer Eintrag mit den
+übernommenen Zeiten und Texten, der beim Speichern angelegt wird; ein bereits gespeicherter Eintrag bleibt
+unverändert.
+* *Pausen:* Lücken zwischen den Zeitberichten eines Tages können als Pausen angezeigt werden. Ein Klick auf
+eine Pause bucht einen Zeitbericht für diese Lücke.
+
+[[book_several_days]]
+=== Mehrere Tage buchen
+
+*Mehrere Tage buchen* in der Werkzeugleiste bucht an jedem Arbeitstag eines Zeitraums einen Zeitbericht,
+z. B. für eine Schulung oder einen längeren Einsatz beim Kunden:
+
+. Zeitraum (höchstens ein Monat), Startzeit, Stunden pro Tag, Strukturelement, Kostenträger, Ort und
+Beschreibung wählen (oder eine der eigenen Vorlagen bzw. einen der letzten Einträge verwenden).
+. Die *Vorschau* prüfen: Wochenenden und Feiertage werden übersprungen. An einem bereits gebuchten Tag wird
+der Zeitbericht nur gebucht, wenn er nicht mit einem bestehenden kollidiert (eine Überschneidung mit einem
+<<shared_cost_element,Strukturelement mit geteilten Kosten>> ist erlaubt).
+. Auf *Buchen* klicken.
+
+Mit *Urlaub übernehmen* lässt sich einer der eigenen Urlaubsanträge wählen (abgestimmt oder in Abstimmung,
+ein Jahr zurück und voraus); seine Tage werden auf den von der Administration konfigurierten
+Urlaubs-Kostenträger gebucht. Ist kein Urlaubs-Kostenträger konfiguriert, werden Strukturelement und
+Kostenträger selbst gewählt.
+
+[[team_calendars]]
+=== Teamkalender
+
+Unter _Allgemein > Kalenderliste_ werden Teamkalender verwaltet. Jeder Kalender hat einen Eigentümer und
+kann mit Gruppen und Benutzern in drei Zugriffsarten geteilt werden:
+
+. *Vollzugriff* +
+Die zugeordneten Gruppen und Benutzer können alle Termine des Kalenders lesen, anlegen, ändern und
+löschen.
+. *Nur lesend* +
+Die zugeordneten Gruppen und Benutzer können alle Termine lesen, einschließlich Abonnement und Download.
+. *Minimalzugriff* +
+Die zugeordneten Gruppen und Benutzer sehen nur Beginn und Ende der Termine, einschließlich Abonnement und
+Download. Alle anderen Eigenschaften der Termine wie Titel, Ort, Notizen usw. werden entfernt.
+
+image::/uploads/userguide/PF-TeamCal-Access.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 1: |Der Zugriff auf jeden Kalender lässt sich für Gruppen und/oder Benutzer konfigurieren.
+|===
+
+Ein Teamkalender kann auch den Urlaub ausgewählter Benutzer und Gruppen anzeigen (Abschnitt *Urlaub*).
+
+[[recurring_events]]
+=== Serientermine
+
+ProjectForge® unterstützt Serientermine. Bei der Änderung eines Serientermins wird unter *Alle Änderungen
+betreffen:* gewählt, ob die Änderung für *Nur dieses Ereignis*, für *Alle Ereignisse* oder für *Alle
+zukünftigen Ereignisse* gilt.
+
+Teilnehmende importierter Termine werden angezeigt, ProjectForge® verschickt aber keine Einladungen.
+
+[[calendar_subscriptions_ics]]
+=== Kalenderabonnements (ics)
+
+Die Kalender von ProjectForge® lassen sich in jeder Kalenderanwendung abonnieren, die ics-Abonnements
+unterstützt (z. B. Apple Kalender, Google Kalender, Microsoft Outlook oder Thunderbird):
+
+* *Mehr > Abonnement* im Kalender bietet Abonnements für die eigenen Zeitberichte (*Zeitberichte
+exportieren*), die Feiertage (*Feiertage exportieren*) und die Kalenderwochen (*Kalenderwochen
+exportieren*).
+* Die Bearbeitungsseite jedes Teamkalenders zeigt die Abonnement-URL dieses Kalenders, mit oder ohne
+Erinnerungen.
+
+Die Dialoge zeigen die URL zum Kopieren und einen QR-Code für das Smartphone. Die Abonnements sind nur
+lesend: Änderungen erfolgen in ProjectForge®. (ProjectForge® bietet keinen CalDAV-Server.)
+
+*Hinweis*
+
+____
+Die Abonnement-URL enthält deinen persönlichen, verschlüsselten Kalenderschlüssel. Halte sie geheim! Im
+Zweifel den *Schlüssel für Kalenderexport* unter *Mein Zugang* erneuern. Alle bisherigen Abonnement-URLs
+funktionieren danach nicht mehr.
+____
+
+Einzelne Termine lassen sich auch als ics-Datei herunterladen (*Export ics*).
+
+image::/uploads/userguide/PF-TeamCal-ical.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 2: |Beispiel für abonnierte Kalender von ProjectForge im Kalender von Apple.
+|===
+
+[[subscribing_external_calendars]]
+=== Externe Kalender abonnieren
+
+Ein Teamkalender kann einen externen Kalender abonnieren (z. B. von Google oder Apple iCloud): Auf der
+Bearbeitungsseite des Teamkalenders *Externes Abonnement* ankreuzen, die *Kalender-URL* eintragen und ein
+*Aktualisierungsintervall* wählen. Die Termine abonnierter Kalender sind nur lesend. Lässt sich der externe
+Kalender längere Zeit nicht lesen (Standard: 90 Tage), wird das Abonnement automatisch abgeschaltet und
+ein Hinweis in der Beschreibung des Kalenders ergänzt.
+
+[[importing_events]]
+=== Termine importieren
+
+*Mehr > Ereignisse importieren* im Kalender (oder auf der Bearbeitungsseite eines Teamkalenders) importiert
+Termine aus ics-Dateien:
+
+. Den Zielkalender wählen und eine `.ics`-Datei ablegen oder auswählen. Dateien mit mehreren Terminen
+werden unterstützt.
+. Die Vorschau prüfen: Neue und geänderte Termine sind markiert.
+. Den Import *Übernehmen*.
+
+Termine werden an ihrer eindeutigen Id (UID) erkannt: Ein bereits im Kalender vorhandener Termin wird
+aktualisiert statt doppelt importiert.
+
+[[leave]]
+== Urlaub
+
+[[application_for_leave]]
+=== Urlaubsantrag
+
+Unter _Allgemein > Urlaubseinträge_ wird Urlaub beantragt; dort sind auch die Urlaubsanträge des Teams zu
+sehen.
+
+* *Startdatum* und *Enddatum* wählen. Der erste und der letzte Tag können halbe Urlaubstage sein
+(*Halber Urlaubstag am ersten Tag*, *Halber Urlaubstag am letzten Tag*). ProjectForge® zeigt die Anzahl
+der Arbeitstage und die verfügbaren Urlaubstage.
+* Unter *Abstimmung* die Person wählen, die den Antrag genehmigt, sowie die *Vertretung* (und optional
+*Weitere Vertretungen*).
+* *Sonderurlaub* ankreuzen für Urlaub, der nicht vom Urlaubskonto abgeht. Sonderurlaub wird von HR
+genehmigt.
+
+Neue Anträge erhalten den Status *In Abstimmung*. Die genehmigende Person setzt den Status auf
+*Abgestimmt* oder *Abgelehnt*. ProjectForge® merkt sich die zuletzt verwendete genehmigende Person und
+Vertretung.
+
+Die genehmigende Person, die Vertretungen und du selbst werden per E-Mail über neue und geänderte Anträge
+benachrichtigt (sofern ein Mailserver konfiguriert ist).
+
+Ein versehentlich als Urlaub erfasster Antrag lässt sich als Verfügbarkeitseintrag bearbeiten (*Als
+Abwesenheit bearbeiten*) und ein Verfügbarkeitseintrag als Antrag (*Als Urlaub bearbeiten*). Person,
+Zeitraum, Kommentar und Vertretungen werden in einen neuen Eintrag übernommen, der beim Speichern angelegt
+wird; ein bereits gespeicherter Eintrag bleibt unverändert bestehen und kann danach gelöscht werden.
+
+*Regeln*
+
+* Es können nicht mehr Urlaubstage beantragt werden als verfügbar sind (außer Sonderurlaub). Resturlaub
+aus dem Vorjahr kann bis zum konfigurierten Datum genommen werden (standardmäßig der 31. März).
+* Urlaubszeiträume derselben Person dürfen sich nicht überschneiden.
+* Ein Antrag lässt sich zurückziehen (Status *Abgelehnt*) oder ein genehmigter Antrag löschen, solange der
+Urlaub noch nicht begonnen hat.
+* Urlaub in der Vergangenheit kann nur von HR eingetragen werden.
+
+*Konflikte*
+
+ProjectForge® warnt, wenn es mindestens einen Tag gibt, an dem keine der Vertretungen verfügbar ist, weil
+sie selbst im Urlaub sind. In diesem Fall andere oder weitere Vertretungen wählen. Die Liste der
+Urlaubsanträge lässt sich nach Konflikten filtern.
+
+[[leave_account]]
+=== Urlaubskonto
+
+Unter _Administration > Urlaubskonto_ (sichtbar für Mitarbeitende mit Jahresurlaub) befindet sich die
+Urlaubsstatistik für das Vorjahr und das laufende Jahr: Jahresurlaub, Urlaub aus dem Vorjahr, genehmigter
+Urlaub und Urlaub in Abstimmung, Sonderurlaub und die verfügbaren Urlaubstage. Korrekturen durch HR werden
+als *Urlaubskontokorrekturen* aufgeführt (gepflegt unter _HR > Urlaubskontokorrekturen_).
+
+Das Urlaubskonto bietet außerdem eine Abonnement-URL für die Urlaubstage der Mitarbeitenden.
+
+[[automatic_booking_of_vacation]]
+=== Automatische Buchung von Urlaub
+
+ProjectForge® kann genehmigten Urlaub (einschließlich Sonderurlaub) jede Nacht automatisch als
+Zeitberichte buchen, wenn die Administration das Urlaubs-Strukturelement und den Urlaubs-Kostenträger
+konfiguriert und *Urlaub als Zeitberichte buchen (Tage zurück beim ersten Lauf)* auf einen Wert größer 0
+gesetzt hat (unter _Administration > Konfiguration_; Standard 0, d. h. abgeschaltet, höchstens 7):
+
+* Gebucht werden nur vergangene Arbeitstage bis gestern, nie im Voraus, und nur Tage ohne jeden
+Zeitbericht.
+* Jeder Tag wird nur einmal verarbeitet: Ein Lauf bucht die Tage seit dem letzten erfolgreichen Lauf,
+höchstens aber die konfigurierte Anzahl Tage zurück; Nächte, in denen der Job nicht lief, werden so
+nachgeholt. Ein von Hand gelöschter Urlaubs-Zeitbericht wird nicht erneut gebucht.
+* Die Stunden pro Tag ergeben sich aus der Wochenarbeitszeit (halbe Urlaubstage erhalten die Hälfte der
+Stunden). Die Beschreibung lautet „Urlaub“.
+* Urlaub, der erst genehmigt wird, nachdem seine Tage bereits verarbeitet wurden, wird nicht automatisch
+gebucht. Stattdessen <<book_several_days,Mehrere Tage buchen>> mit *Urlaub übernehmen* verwenden.
+
+Der *Monatsbericht* weist Arbeitstage und Urlaubstage ohne Zeitberichte getrennt aus.
+
+[[hr]]
+== HR
+
+* _HR > Mitarbeitende_ enthält die Daten der Mitarbeitenden wie Personalnummer, Eintritts- und
+Austrittsdatum und die Werte mit Gültigkeitsdatum: *Urlaubstage pro Jahr*, *Wochenstunden* und
+*Mitarbeiter:instatus*.
+* _HR > Gehälter_ enthält die monatlichen Gehälter der Mitarbeitenden. Sie werden für die
+Kostenträgerrechnung verwendet.
+* _Projektmanagement > Personalplanung_ gibt einen Überblick über die geplanten Arbeitsstunden der
+Mitarbeitenden in Projekten pro Woche.
+
+[[import_of_salaries]]
+=== Import von Gehältern
+
+Gehälter lassen sich über *Gehälterimport* aus einer Excel-Datei (.xlsx oder .xls) importieren. Folgende
+Spalten sind erforderlich:
+
+* `Abrechnungsmonat`: Monat des Gehalts im Format yyyy/MM,
+* `Pers.Nr.` (oder `Personalnummer`): Personalnummer der Mitarbeiterin bzw. des Mitarbeiters,
+* `Gesamtkosten` (oder `bruttoMitAgAnteil`): Bruttogehalt einschließlich des Arbeitgeberanteils.
+
+Zeilen mit unbekannter Personalnummer werden als fehlerhaft markiert und übersprungen.
+
+[[address_book]]
+== Adressbuch
+
+[[address_books]]
+=== Adressbücher
+
+Adressen sind in Adressbüchern organisiert (_Allgemein > Adressbücher_). Jedes Adressbuch hat einen
+Eigentümer und kann mit Benutzern und Gruppen geteilt werden, mit *Vollzugriff* (Lese- und Schreibzugriff
+auf alle Adressen dieses Adressbuchs) oder *Nur lesend*. Eine Adresse kann zu mehreren Adressbüchern
+gehören. Adressen ohne Adressbuch gehören zum globalen Adressbuch.
+
+[[reverse_search_of_phone_numbers]]
+=== Rückwärtssuche von Telefonnummern
+
+ProjectForge® nimmt jede Telefonnummer ohne Sonderzeichen und Leerzeichen in den Suchindex auf. Die
+Eingabe eines beliebigen Teils der Telefonnummer findet die zugehörige Adresse (sofern vorhanden).
+
+*Hinweis*
+
+____
+Manchmal hilft es, die Ländervorwahl wegzulassen, um die Adresse zu finden.
+____
+
+[[personal_favorites]]
+=== Persönliche Favoriten
+
+Auf der Bearbeitungsseite einer Adresse markiert *Favorit* die Adresse als persönlichen Favoriten. Die
+eigenen Favoriten sind in der Liste hervorgehoben (und lassen sich über *meine Favoriten* filtern).
+
+Favoriten sind die Grundlage für den Export von Adressen in das persönliche Adressbuch (z. B. Apple
+Kontakte) und für die Synchronisation mit Mobilgeräten:
+
+* *Export vCards* im Exportmenü der Adressliste lädt alle eigenen Favoriten als vCard-Datei (vcf)
+herunter. Eine einzelne Adresse lässt sich auf ihrer Bearbeitungsseite über *Export vCard* exportieren.
+* *CardDAV* (sofern von der Administration aktiviert) synchronisiert die Favoriten mit der
+Adressbuch-Anwendung. *Einrichten des CardDAV-Services* im Exportmenü zeigt Server, Pfad und Zugangsdaten.
+Wird ein Kontakt in der Adressbuch-Anwendung entfernt, wird er aus den Favoriten entfernt; über CardDAV
+lassen sich keine Kontakte anlegen oder ändern.
+
+*Hinweis*
+
+____
+In der Adressbuch-Software bitte UTF-8 als Zeichenkodierung verwenden!
+____
+
+[[hint_for_apple_contacts]]
+==== Hinweis für Apple Kontakte
+
+Mehrfache Exporte von Adressen können zu mehrfachen Notizeinträgen führen. Das im Menü der Adressliste
+angebotene Apple-Script (*Apple-Script*) entfernt solche mehrfachen Notizeinträge:
+
+[source,linenums,applescript]
+----
+tell application "Address Book"
+repeat with thisPerson in every person
+if (exists (note of thisPerson)) and ((note of thisPerson) contains "CLASS: WORK") then
+log "Name: " & (name of thisPerson)
+delete note of thisPerson
+end if
+end repeat
+save
+end tell
+----
+
+. Das Script lässt sich direkt im Apple-Script-Editor ausführen.
+(Das Ergebnis 'missing value' ist zu erwarten.)
+. Anschließend den ProjectForge®-Download (vCard) erneut importieren.
+
+[[export_of_the_list_of_addresses]]
+=== Export der Adressliste
+
+Die aktuell angezeigte Adressliste lässt sich als Excel-Datei exportieren (*Excel-Export*). Aus
+Datenschutzgründen werden nur die eigenen Favoriten exportiert. Mitglieder der Gruppen `PF_Finance` oder
+`PF_Marketing` können alle Adressen der Liste exportieren.
+
+[[direct_call_and_text_messages]]
+=== Direktwahl und SMS
+
+Ist die Telefonanlage des Unternehmens angebunden (siehe
+link:/de/docs/adminguide/#phone_calls_and_texting_with_projectforge[Administrationshandbuch]), lassen sich
+Telefonate direkt aus ProjectForge® starten (_Allgemein > Direktwahl_): Die Nummer eingeben oder einen
+Namen bzw. eine Organisation eintippen und die Adresse wählen. Telefonnummern in der Adressliste sind mit
+der Direktwahl verlinkt und werden vergrößert, wenn die Maus darüber fährt.
+
+Vorher bitte die eigenen Telefon-Ids (kommagetrennt) unter *Mein Zugang* eintragen.
+
+Ist ein SMS-Gateway konfiguriert, lassen sich über _Allgemein > SMS senden_ Textnachrichten verschicken.
+
+[[chat]]
+== Chat
+
+Der Chat (_Allgemein > Chat_) bringt Gespräche dorthin, wo die Arbeit ist: Räume für Teams, Projekte oder
+Kunden, Direktnachrichten an jede Kollegin und jeden Kollegen und ein Chat in jedem Datentransfer-Bereich.
+Nachrichten kommen live an, und alles bleibt auf dem Server der eigenen Installation.
+
+image::/uploads/screenshots/2026-ChatList-de.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 3: |Die Chat-Seite mit den Direktnachrichten, den Chaträumen und ihren ungelesenen Nachrichten.
+|===
+
+[[chat_rooms]]
+=== Chaträume
+
+Chaträume kann jede und jeder anlegen (*Neuer Chatraum*) und die Teilnehmenden wählen: Benutzer und Gruppen.
+Die Gruppenmitgliedschaft wird beim Zugriff geprüft – wer später in eine Gruppe kommt, ist sofort dabei, wer
+sie verlässt, ist draußen. Besitzer und Moderatoren eines Raums bearbeiten oder löschen ihn, blenden
+Nachrichten anderer mit einer Begründung aus (z. B. themenfremd oder vertraulich) und sehen die Historie
+bearbeiteter Nachrichten.
+
+Dateien eines Raums liegen in seinem Datentransfer-Bereich „Chat: …“ und bleiben so lange, wie der Raum es
+festlegt (*Dateien verfügbar*, standardmäßig 30 Tage); danach werden sie gelöscht.
+
+Auch jeder Datentransfer-Bereich ist ein Chatraum, für alle mit Zugriff auf den Bereich.
+
+image::/uploads/screenshots/2026-ChatRoom-de.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 4: |Ein Projektraum mit Code-Block, Bild, Reaktionen und einem Thread.
+|===
+
+[[chat_direct_messages]]
+=== Direktnachrichten
+
+Eine Direktnachricht (*Direktnachricht*) geht an eine Person: Angeschrieben werden kann jede, die in der
+Benutzerauswahl erscheint. Pro Paar gibt es ein Gespräch. Unter der eigenen letzten Nachricht zeigt ein kleiner
+Avatar, dass die Gegenseite sie gelesen hat (siehe Abbildung 6). Dateien einer Direktnachricht landen in der
+persönlichen Box der Empfängerin oder des Empfängers im Datentransfer.
+
+[[chat_writing_messages]]
+=== Nachrichten schreiben
+
+* *Formatierung*: fett, kursiv, Listen, Links und Code-Blöcke. Im Code-Block beginnt kbd:[Enter] eine neue
+  Zeile, kbd:[Strg+Enter] (Mac: kbd:[⌘+Enter]) sendet.
+* *@Erwähnungen*: Ein `@` schlägt die Teilnehmenden vor; wer erwähnt wird, wird sofort benachrichtigt.
+* *Zitate* und *Emoji-Reaktionen* auf jede Nachricht.
+* *Dateien jeder Art*: anhängen, einfügen oder einfach ins Nachrichtenfenster ziehen. Bilder erscheinen als
+  Vorschau und werden per Klick vergrößert.
+* Eigene Nachrichten *bearbeiten und löschen*; eine bearbeitete Nachricht ist markiert, Moderatoren sehen ihre
+  Historie.
+* *Link kopieren* liefert einen Link auf eine einzelne Nachricht.
+
+[[chat_threads]]
+=== Threads
+
+*Im Thread antworten* beginnt einen Thread zu einer Nachricht, damit eine Nebendiskussion den Raum nicht
+unterbricht. Die Nachricht zeigt die Zahl der Antworten und ihre Autoren; ein Klick öffnet den Thread neben
+dem Gespräch. Die Autorin oder der Autor der Nachricht und alle, die antworten, folgen dem Thread; *Folgen* und
+*Nicht mehr folgen* ändern das. Threads mit neuen Antworten sind markiert.
+
+image::/uploads/screenshots/2026-ChatThread-de.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 5: |Ein geöffneter Thread neben dem Gespräch des Raums.
+|===
+
+[[chat_unread_messages_and_notifications]]
+=== Ungelesene Nachrichten und Benachrichtigungen
+
+* Das Chat-Symbol in der Kopfleiste zählt die ungelesenen Nachrichten, die Liste der Gespräche zeigt sie je Raum.
+* Eine Linie *Neu* zeigt, wo die ungelesenen Nachrichten beginnen; ein Knopf springt zur nächsten ungelesenen.
+* *Als ungelesen markieren* an einer Nachricht holt ein Gespräch für später zurück.
+* *Stummschalten* macht ein Gespräch leise: Neue Nachrichten werden nicht mehr gemeldet, Erwähnungen schon.
+* Erwähnungen, Direktnachrichten und Antworten in gefolgten Threads werden in der App und per Mail gemeldet.
+  Eine Mail geht nur für das, was in der App nicht gesehen wurde, und enthält nie den Text der Nachricht.
+
+[[chat_search]]
+=== Suche
+
+Die Suche der Chat-Seite findet Nachrichten in allen Gesprächen, an denen man teilnimmt; die Suche in einem
+Gespräch sucht nur dort. Ein Treffer führt zu seinem Gespräch.
+
+[[chat_confidential_conversations]]
+=== Vertrauliche Gespräche (Ende-zu-Ende-verschlüsselt)
+
+Für ein Passwort, einen Zugangscode oder anderes, das nirgends liegen bleiben darf, bietet eine
+Direktnachricht ein *Vertrauliches Gespräch*: ein Live-Gespräch zweier Browser, Ende-zu-Ende-verschlüsselt. Die
+Texte werden in einem Browser verschlüsselt und erst im anderen entschlüsselt. ProjectForge leitet sie weiter,
+ohne sie lesen zu können, und speichert nichts.
+
+So funktioniert es:
+
+. Gestartet wird es mit *Verschlüsselter Chat* auf der Chat-Seite (Person wählen) oder mit der Aktion
+  *Vertrauliches Gespräch* in einer Direktnachricht.
+. Die Gegenseite wird auf jeder geöffneten Seite von ProjectForge aufmerksam gemacht, auch in einem Tab im
+  Hintergrund: durch einen Ton, eine Browser-Benachrichtigung (falls erlaubt), einen blinkenden Tab-Titel und
+  den Zähler des Chat-Symbols. Ton und Benachrichtigungen werden unter *Ton und Benachrichtigungen* eingestellt.
+  Beantwortet wird das Angebot in der Direktnachricht: *Annehmen* oder *Ablehnen*.
+. Beide Seiten sehen denselben *Fingerabdruck*. Ihn vergleichen, z. B. am Telefon: Weicht er ab, ist ein
+  manipulierter Server im Spiel.
+. Den vertraulichen Text schreiben und *Verschlüsseln und senden*. Eine Nachricht wird der Gegenseite einmal
+  gezeigt und auf dem Server gelöscht, sobald sie abgeholt ist; der Absender sieht *Gelesen*.
+. *Gespräch beenden* beendet es für beide Seiten, und auf der Seite bleibt nichts davon zurück.
+
+image::/uploads/screenshots/2026-ChatSecretOffer-de.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 6: |Der Empfänger bekommt in der Direktnachricht ein vertrauliches Gespräch angeboten.
+|===
+
+image::/uploads/screenshots/2026-ChatSecretDialog-de.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 7: |Ein vertrauliches Gespräch mit seinem Fingerabdruck; die erste Nachricht ist gelesen.
+|===
+
+Beide Seiten müssen online sein. Das Gespräch endet außerdem nach 10 Minuten ohne Nachricht, spätestens nach
+2 Stunden und wenn eine Seite die Seite schließt oder neu lädt (ihr Schlüssel ist damit weg). Eine Nachricht
+darf bis zu 16 KB groß sein; Dateien lassen sich nicht senden. Vertrauliche Gespräche gibt es nur in
+Direktnachrichten, nicht in Räumen.
+
+Wovor es schützt: vor Datenbank-Backups, Logdateien, dem Chatverlauf und Administratoren, die in Daten schauen –
+keines davon enthält je den Text. Bildschirm und Zwischenablage der Beteiligten sind nicht geschützt. Der
+Browser braucht eine sichere Verbindung (https).
+
+Technisch erzeugt jeder Browser für das Gespräch ein Schlüsselpaar (WebCrypto, ECDH P-256); der private
+Schlüssel lässt sich nicht exportieren und liegt nur im Speicher der Seite. Der gemeinsame Schlüssel wird aus
+beiden abgeleitet (HKDF-SHA-256) und verschlüsselt jede Nachricht mit AES-GCM (256 Bit) und einem frischen
+Initialisierungsvektor; Gespräch, Absender und ein Zähler sind in jede Nachricht eingebunden, sodass sich eine
+Nachricht weder unbemerkt wiederholen noch umsortieren lässt. Der Server sieht nur die öffentlichen Schlüssel
+und den Chiffretext, hält sie im Speicher und löscht sie beim Abholen. Der Fingerabdruck umfasst beide
+öffentlichen Schlüssel – sein Vergleich deckt einen Server auf, der eigene Schlüssel dazwischengeschoben hat.
+
+[[chat_privacy]]
+=== Wer mitliest
+
+Ein Gespräch lesen nur seine Teilnehmenden: die Mitglieder eines Raums, die beiden Personen einer
+Direktnachricht, alle mit Zugriff auf einen Datentransfer-Bereich. Die Administratorrolle gibt keinen Zugriff
+auf Gespräche. Nachrichten und Dateien liegen in der Datenbank und im Datentransfer der eigenen Installation,
+siehe <<data_sovereignty_and_gdpr>>.
+
+[[structure_elements_in_projectforge_former_tasks]]
+== Strukturelemente in ProjectForge (früher Aufgaben)
+
+Der Begriff 'Strukturelement' wird allgemein verwendet und steht für Kunden, Projekte, Releases,
+Arbeitspakete usw. Strukturelemente sind hierarchisch im *Strukturbaum* organisiert (_Projektmanagement >
+Strukturbaum_). Zugriffsrechte können von Strukturelementen abhängen (und werden, falls so konfiguriert,
+von übergeordneten Strukturelementen abgeleitet). Zeitberichte werden immer auf Strukturelemente gebucht.
+
+image::/uploads/userguide/TaskTree.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 8: |Hierarchie der Strukturelemente in ProjectForge®
+|===
+
+Die folgende Tabelle beschreibt die Felder von Strukturelementen:
+
+[cols="1,3",]
+|===
+|Feld |Beschreibung
+
+|Übergeordnetes Strukturelement |Das Strukturelement ist ein untergeordnetes Strukturelement des
+übergeordneten Strukturelements. Das Strukturelement an der Spitze der Hierarchie ist der Wurzelknoten,
+das einzige Strukturelement ohne übergeordnetes Strukturelement.
+
+|Titel |
+
+|Referenz |Mehrzweckfeld, optional. Dieses Feld wird an alle untergeordneten Strukturelemente vererbt,
+sofern es dort nicht überschrieben wird. Das ist z. B. für Exporte nützlich.
+
+|Status |Nicht geöffnet, geöffnet oder geschlossen. Auf geschlossene Strukturelemente kann nicht mehr
+gebucht werden.
+
+|Priorität |
+
+|Kurzbeschreibung |
+
+|Beschreibung |
+
+|Maximalstunden |Falls angegeben, wird der Verbrauch im Strukturbaum und beim Buchen eines Zeitberichts
+angezeigt, siehe <<consumption>>. Ist *Maximalstunden haben Vorrang* angekreuzt, werden die
+Maximalstunden auch dann verwendet, wenn Auftragspositionen zugeordnet sind.
+
+|Verantwortliche:r |ProjectForge®-Benutzer zur Information.
+
+|Kost2-Liste |Alle Kost2-Werte sind projektspezifisch, wenn diesem Strukturelement oder einem
+übergeordneten Strukturelement ein Projekt zugeordnet ist. Die Negativliste legt Kost2-Einträge fest, die
+vom zugeordneten Projekt ausgeschlossen werden. Ist kein Projekt zugeordnet, lassen sich die Kost2-Werte
+über eine Positivliste konfigurieren.
+
+|Zeitbuchungen |Erben (Standard), geöffnet, nur Blattknoten, keine Buchung oder vollständig geschlossen,
+siehe <<booking_rules>>.
+
+|Zeitberichtsschutz bis |Falls gesetzt, lassen sich nur Zeitberichte mit einem Beginn nach dem angegebenen
+Datum anlegen und ändern, siehe <<time_sheet_protection>>.
+
+|Datenschutz |Falls angekreuzt, sind die Zeitberichte dieses Strukturelements und aller untergeordneten
+Strukturelemente für andere Benutzer unsichtbar (außer für die Mitglieder der Finanzbuchhaltung).
+
+|Strukturelement mit geteilten Kosten |Falls angekreuzt (wird an alle untergeordneten Strukturelemente
+vererbt), dürfen sich hier gebuchte Zeitberichte zeitlich mit Zeitberichten anderer Projekte
+überschneiden, siehe <<shared_cost_element>>. Anders als die übrigen Felder dieses Abschnitts kann es von
+allen geändert werden, die das Strukturelement bearbeiten dürfen.
+
+|Ganttwerte |Beginn- und Endedatum, Dauer, Fortschritt und Vorgänger für das Gantt-Diagramm
+(_Projektmanagement > Gantt_).
+|===
+
+Die Felder des Abschnitts *Finanzbuchhaltung* (außer *Strukturelement mit geteilten Kosten*) dürfen nur
+von der Finanzbuchhaltung geändert werden (Kost2-Liste und Buchungsstatus auch von den Projektleitungen des
+zugeordneten Projekts).
+
+[[consumption]]
+=== Verbrauch
+
+Verbrauchsbalken werden im Strukturbaum und bei jeder Buchung von Zeitberichten angezeigt. Der Tooltip
+zeigt die gebuchten und die geplanten Personentage (1 Personentag = 8 Stunden) einschließlich aller
+untergeordneten Strukturelemente, den Prozentsatz und den Zeitraum der Buchungen. Ein Klick auf einen
+Balken zeigt die gebuchten Zeitberichte.
+
+Der Planwert stammt aus den Maximalstunden des Strukturelements oder, falls Auftragspositionen zugeordnet
+sind, aus den beauftragten Personentagen.
+
+[cols="1,2",]
+|===
+|Verbrauch |Darstellung
+
+|Kein Budget angegeben |Nur gebuchte Personentage, kein Prozentsatz.
+
+|0-80% |Grüner Balken.
+
+|80%-90% |Gelber Balken.
+
+|90%-100% |Dunkelgelber Balken.
+
+|über 100% |Die Spur des Balkens wird rot: Das Budget ist überschritten.
+|===
+
+Bei abgeschlossenen (geschlossenen) Strukturelementen bleibt der Balken bis 100% grün; von 100% bis 110%
+zeigt er eine leichte Budgetüberschreitung (rote Spur mit neutralem Balken), oberhalb von 110% die normale
+Budgetüberschreitung.
+
+[[suppressing_the_status_of_consumption_bars]]
+==== Status von Verbrauchsbalken unterdrücken
+
+Wird 0 als Maximalstunden eines Strukturelements eingetragen, unterbleibt die Statusanzeige (Planwert und
+Prozentsatz) des Verbrauchsbalkens, auch wenn Auftragspositionen zugeordnet sind. Das ist sinnvoll, um ein
+Team nicht zu demotivieren, oder wenn nicht alle Aufträge mit Budgets einem Strukturelement zugeordnet
+sind.
+
+[[booking_rules]]
+=== Buchung von Zeitberichten
+
+Zeitberichte müssen einem Strukturelement zugeordnet sein. Zur Verbesserung der Qualität der Zeitberichte
+prüft ProjectForge® die folgenden Regeln. Ist eine Regel nicht erfüllt, kann auf dieses Strukturelement
+keine Arbeitszeit gebucht werden:
+
+. Der Benutzer benötigt Zugriff auf dieses Strukturelement oder ein übergeordnetes Strukturelement
+einschließlich des Rechts, Zeitberichte zu buchen.
+. Das Strukturelement und seine übergeordneten Elemente dürfen nicht geschlossen oder gelöscht sein.
+. Das Projekt des Strukturelements (das nächste zugeordnete Projekt im Strukturbaum) darf nicht beendet
+oder gelöscht sein.
+. Das Strukturelement oder ein übergeordnetes Strukturelement kann einen Zeitberichtsschutz haben. Für
+Tage vor dem Schutzdatum lassen sich dann keine Zeitberichte ändern oder hinzufügen.
+. Der Buchungsstatus des Strukturelements (oder des nächsten übergeordneten Elements mit einem anderen
+Buchungsstatus als 'erben') darf nicht 'keine Buchung' sein, und kein übergeordnetes Element darf
+'vollständig geschlossen' sein.
+. Ist das Strukturelement kein Blattelement (hat es untergeordnete Elemente), darf der Buchungsstatus
+nicht 'nur Blattknoten' sein.
+. Kein untergeordnetes Strukturelement darf eine zugeordnete Auftragsposition haben. Diese Regel ist
+wichtig, weil ProjectForge® sonst den Verbrauch der durch Aufträge festgelegten Budgets nicht berechnen
+kann.
+
+Weitere Prüfungen: Ein Zeitbericht muss eine Dauer haben (höchstens 14 Stunden) und darf sich nicht mit
+einem anderen Zeitbericht desselben Benutzers überschneiden, außer bei einem Strukturelement mit geteilten
+Kosten (siehe unten).
+
+[[shared_cost_element]]
+==== Strukturelement mit geteilten Kosten
+
+Zeitberichte desselben Benutzers dürfen sich zeitlich überschneiden, wenn mindestens einer der beiden auf
+ein Strukturelement mit geteilten Kosten gebucht ist und beide nicht zum selben Projekt gehören. Ein
+Zeitbericht gilt als auf geteilte Kosten gebucht, wenn bei seinem Kost2 *Geteilte Kosten* auf Ja steht.
+Lässt der Kost2 das Feld leer (*Wie Strukturelement*) oder gibt es keinen Kost2, entscheidet die Checkbox
+*Strukturelement mit geteilten Kosten* des Strukturelements (oder eines übergeordneten Elements). Ein auf
+Nein gesetzter Kost2 hat Vorrang: Seine Zeitberichte zählen nicht als geteilt, auch nicht auf einem
+Strukturelement mit geteilten Kosten.
+
+Niemals erlaubt, ob geteilt oder nicht, sind Überschneidungen:
+
+* auf demselben Kost2 oder, wenn keiner der beiden Zeitberichte einen Kost2 hat, auf demselben
+Strukturelement,
+* innerhalb desselben Projekts,
+* innerhalb derselben Überlappungsgruppe: Die Administration kann unter _Administration > Konfiguration_
+Gruppen von Kost2 festlegen (*Überlappungsgruppen für Zeitberichte*, z. B. `6` für alle Kost2 6.*); jede
+Gruppe zählt wie ein Projekt.
+
+Überlappende Zeit wird in Anwesenheit, Statistiken und im Monatsbericht anteilig gezählt: z. B. zählen
+1 Stunde auf Projekt A plus eine überlappende Stunde auf Projekt B je 0,5 Stunden. Für den Aufwand eines
+Projekts (z. B. Abrechnung und Projektexporte) zählt jeder Zeitbericht mit seiner vollen Dauer.
+
+Ist ein Strukturelement geschützt, lassen sich weiterhin Felder ändern, die keine finanziellen Parameter
+betreffen (etwa Beschreibung und Ort, nicht aber Zeiten oder Kostenträger). Tippfehler usw. in
+Zeitberichten lassen sich also korrigieren.
+
+[[time_sheets]]
+== Zeitberichte
+
+Zeitberichte werden im Kalender oder unter _Projektmanagement > Zeitberichte_ gebucht.
+
+[[templates_and_recent_entries]]
+=== Vorlagen und letzte Einträge
+
+Über dem Bearbeitungsformular eines Zeitberichts befinden sich die *Vorlagen* und die *Zuletzt
+verwendet*-Einträge. Sie übernehmen, was gebucht wurde (Strukturelement, Kostenträger, Ort, Beschreibung
+usw.), nicht aber die Zeit. Häufig gebuchte Zeitberichte lassen sich als benannte Vorlagen speichern.
+
+[[time_sheet_protection]]
+=== Schutz
+
+Zeitberichte lassen sich für Strukturelemente (einschließlich aller untergeordneten Strukturelemente) nach
+Datum schützen. Dieser Schutz stellt sicher, dass niemand Zeitberichte mit einem Datum vor dem Ende des
+Schutzes (*Zeitberichtsschutz bis*) ändern kann. +
+Das ist sinnvoll, wenn die Zeitberichte abgerechnet oder von anderen Buchhaltungssystemen übernommen
+wurden. Zeitberichte mit einem Datum vor dem Schutzdatum können nur von Mitgliedern der Finanzbuchhaltung
+geändert werden (was Zeiten und Kostenzuweisungen betrifft).
+
+[[cost_units]]
+=== Kostenträger
+
+* Einem Strukturelement lassen sich Projekte und/oder Kost2 zuordnen.
+* Ist ein Projekt zugeordnet, werden alle vorhandenen Kost2 dieses Projekts automatisch diesem
+Strukturelement zugeordnet.
+* Ist einem Strukturelement weder ein Projekt noch ein Kostenträger zugeordnet, gelten alle Einstellungen
+des übergeordneten Strukturelements. Findet sich dort keine solche Einstellung, wird das darüberliegende
+Element verwendet usw.
+* Verwendet werden nur Kostenträger ohne Status oder mit dem Status 'aktiv'.
+
+Ist einem Strukturelement (direkt oder abgeleitet) ein Kost2 zugeordnet, muss beim Buchen von
+Zeitberichten ein passender Kostenträger gewählt werden.
+
+*Hinweis*
+
+____
+Fehlen Kostenträger, lassen sie sich über die Bearbeitungsseite des Projekts hinzufügen (mit Status
+'aktiv'). +
+Sollen Kostenträger deaktiviert werden, lässt sich ihr Status auf 'nicht aktiv' oder 'beendet' setzen, oder
+sie werden über die Negativ- oder Positivliste des Strukturelements entfernt.
+____
+
+[[monthly_employee_report]]
+=== Monatsbericht
+
+Der *Monatsbericht* (_Projektmanagement > Monatsbericht_) fasst die Zeitberichte einer Person für einen
+Monat zusammen, ebenso die Arbeitstage und Urlaubstage ohne Zeitberichte. Er steht auch als PDF mit
+Feldern für die Unterschriften der Person und der Projektleitung zur Verfügung.
+
+[[my_statistics]]
+=== Meine Statistiken
+
+_Projektmanagement > Meine Statistiken_ vergleicht die gebuchten Stunden mit den Sollstunden und zeigt,
+wie zeitnah die Zeitberichte gebucht werden. Zeitnahes Buchen der Zeitberichte ist für ein erfolgreiches
+Projektmanagement unerlässlich!
+
+[[jira_support]]
+=== JIRA-Unterstützung
+
+JIRA-Issues werden unterstützt, sofern die Administration dies konfiguriert hat. Enthalten der
+Tätigkeitsbericht oder die Referenz von Zeitberichten JIRA-Issue-Schlüssel, werden diese als Links auf das
+konfigurierte JIRA-System angezeigt.
+
+[[cost_unit_accounting]]
+=== Kostenträgerrechnung
+
+[[fraction_of_working_time]]
+==== Arbeitszeitanteil
+
+Für einzelne Kost2 oder Kost2-Arten lässt sich ein Anteil konfigurieren (Standard ist 1). Beispiel: Soll
+Reisezeit nur zur Hälfte als Arbeitszeit zählen, wird der Anteil auf 0,5 gesetzt. Der Monatsbericht
+berücksichtigt diesen Anteil.
+
+[[order_book]]
+== Auftragsbuch
+
+Angebote und Aufträge werden im *Auftragsbuch* verwaltet. Sie lassen sich Projektleitungen zuordnen, die
+dann Zugriff auf ihre Aufträge und Angebote haben. Mitglieder der Verwaltung können Zugriff auf alle
+Aufträge haben, wenn sie das entsprechende Recht besitzen (siehe Benutzerverwaltung von ProjectForge®).
+
+* Aufträge enthalten Positionen (Auftragsart, Zahlungsart, Personentage, Nettosumme, Leistungszeitraum,
+Strukturelement usw.) und optional einen Zahlungsplan.
+* Nur die Finanzbuchhaltung kann Positionen und Zahlungspläne als vollständig abgerechnet markieren.
+* Das Exportmenü bietet einen *Forecast* der gefilterten Aufträge als Excel-Datei. Weitere Statistiken wie
+Forecast und Deckungsbeitrag stehen unter _Fibu > Statistiken_ zur Verfügung (bzw. unter
+_Projektmanagement > Statistiken_ für Benutzer ohne Fibu-Menü).
+
+[[e_mail_notification]]
+=== E-Mail-Benachrichtigung
+
+Beim Speichern eines Auftrags können die Ansprechpersonen und alle am Auftrag beteiligten Benutzer (sofern
+sie Zugriff darauf haben) per E-Mail mit einem Link auf den Auftrag benachrichtigt werden. Wird *E-Mail-Benachrichtigung
+versenden?* abgewählt, unterbleibt die Benachrichtigung.
+
+[[financial_administration_with_projectforge]]
+== Finanzbuchhaltung mit ProjectForge®
+
+[[invoices]]
+=== Rechnungen
+
+ProjectForge® unterstützt die Verwaltung von Ausgangs- und Eingangsrechnungen (Debitoren und Kreditoren):
+
+* Rechnungen können beliebig viele Positionen enthalten.
+* Ist das Kostenmodul konfiguriert, lässt sich der Betrag jeder Position einem oder beliebig vielen
+Kostenträgern zuordnen.
+* *Rechnung exportieren* erzeugt aus einer gespeicherten Rechnung ein Word-Dokument auf Basis der
+Rechnungsvorlage des Unternehmens.
+
+[[assignment_of_cost_units]]
+==== Zuordnung von Kostenträgern
+
+Für ein besseres Verständnis empfiehlt es sich, diese Funktion einfach auszuprobieren. +
+Positionen von Rechnungen lassen sich Kost1 und Kost2 zuordnen (*Kostzuweisungen*). Eine
+Autovervollständigung hilft, die Kostenträger sehr schnell zu finden. Eingegeben werden können sowohl
+Nummern von Kostenträgern als auch Text (z. B. die Beschreibung, der Kunde oder die Art eines
+Kostenträgers). +
+Beliebig viele Zuordnungen werden unterstützt. Der Betrag lässt sich als Betrag oder als Prozentwert
+angeben (z. B. 10%). ProjectForge® hebt Positionen hervor, deren Betrag noch nicht vollständig zugeordnet
+ist (*Kostzuweisungfehlbetrag*).
+
+Bereits gespeicherte Positionen und Zuordnungen werden zunächst als gelöscht markiert und lassen sich bis
+zum Speichern der Rechnung wiederherstellen.
+
+[[clone_and_cancellation]]
+==== Klonen und Stornieren
+
+Vorhandene Rechnungen lassen sich klonen, um neue Rechnungen schneller zu erfassen:
+
+* Das Datum wird durch 'heute' ersetzt, die Fälligkeiten werden aus den Zahlungsbedingungen neu berechnet.
+* Die Positionen und alle vorhandenen Kostenzuweisungen werden kopiert.
+* Die Rechnungsnummer wird beim Speichern vergeben. Zahlungsdaten und Anhänge werden nicht kopiert.
+
+*Storno erzeugen* bereitet für eine Ausgangsrechnung eine Stornorechnung mit negierten Beträgen vor. Beim
+Speichern erhält die ursprüngliche Rechnung den Status storniert.
+
+[[e_invoices_xrechnung_and_zugferd]]
+=== E-Rechnungen (XRechnung und ZUGFeRD)
+
+Ausgangsrechnungen lassen sich als elektronische Rechnungen exportieren (sofern die Administration die
+Verkäuferdaten konfiguriert hat):
+
+* *Speichern und XRechnung* speichert die Rechnung, validiert sie und lädt sie als XRechnung (XML)
+herunter.
+* *Speichern und ZUGFeRD* erzeugt eine ZUGFeRD-Rechnung (PDF/A-3 mit eingebettetem XML, Profil EN16931).
+Grundlage ist das hochgeladene *Rechnungs-PDF* oder, falls keines hochgeladen ist, das aus der
+Word-Vorlage erzeugte PDF.
+
+Fehlende Daten (z. B. die Adresse des Kunden oder die Bankverbindung des Verkäufers) werden vor dem Export
+gemeldet. *Aus Konto ergänzen* übernimmt die E-Rechnungsdaten aus dem Konto des Kunden.
+
+Der *E-Rechnungs-Checker* (_Fibu > E-Rechnungs-Checker_) zeigt den Inhalt beliebiger ZUGFeRD-PDF- oder
+XRechnung-XML-Dateien an (Verkäufer, Käufer, Positionen, Beträge, Anhänge) und prüft die wichtigsten
+Pflichtfelder. Eine vollständige offizielle Validierung ersetzt er nicht.
+
+[[incoming_invoices]]
+=== Kreditorenrechnungen
+
+Kreditorenrechnungen lassen sich aus DATEV-CSV-Exporten importieren (*Kreditorenrechnungen hochladen* in
+der Liste der Kreditorenrechnungen). Der Hilfetext auf der Importseite beschreibt die erwarteten
+DATEV-Exporte. Wie bei allen Importen von ProjectForge® wird die Vorschau geprüft (neue, geänderte,
+unveränderte und fehlerhafte Einträge), die Einträge ausgewählt und übernommen.
+
+*Überweisungen exportieren* erzeugt für eine oder mehrere Kreditorenrechnungen eine SEPA-Überweisungsdatei
+(pain.001).
+
+[[bank_accounts]]
+=== Bankkonten
+
+Unter _Fibu > Bankkonten_ werden die eigenen Bankkonten verwaltet und ihre Umsätze aus CSV-Dateien
+importiert. Die Spaltenzuordnung wird je Bankkonto konfiguriert (*Importeinstellungen*). Bereits
+importierte Umsätze werden aktualisiert, nicht dupliziert; überlappende Zeiträume lassen sich also erneut
+importieren.
+
+[[liquidity_planning_forecast]]
+=== Liquiditätsplanung / Vorschau
+
+Auf Basis der Rechnungen und zusätzlicher Liquiditätseinträge (außer Rechnungen) lässt sich mit
+ProjectForge® der Cashflow sehr einfach steuern, einschließlich einer Vorschau (_Reporting > Liquidität_).
+
+[[liquidity_entries_and_series]]
+==== Liquiditätseinträge und Serien
+
+Liquiditätseinträge haben ein Zahlungsdatum, einen Betrag, einen Betreff und einen Kommentar. Sie lassen
+sich nach Ablauf des Zahlungsdatums automatisch als bezahlt markieren.
+
+Wiederkehrende Zahlungen wie Miete oder Leasingraten werden einmal als Serie erfasst: *Diesen Eintrag als
+Serie wiederholen* ankreuzen, das Intervall (*Alle N Monate*) und optional die *Anzahl Raten* eingeben
+(leer bedeutet endlos).
+
+* Die Vorkommen einer Serie werden automatisch angezeigt, aber nicht gespeichert.
+* Wird ein einzelnes Vorkommen geöffnet und gespeichert (z. B. um seinen Betrag zu ändern oder es als
+bezahlt zu markieren) oder per Massenänderung geändert oder gelöscht, wird es zu einem eigenständigen
+Eintrag (*Fixiert*), der späteren Änderungen der Serie nicht mehr folgt.
+* Bei der Änderung einer Serie wird gewählt, ob die Änderung für die ganze Serie oder ab einem bestimmten
+Datum gilt (*Ab einem Datum ändern*). Im zweiten Fall behalten frühere Vorkommen ihre Werte, und das
+Intervall lässt sich nicht ändern (die Fortsetzung behält das Intervall der Serie).
+
+[[forecast]]
+==== Vorschau
+
+Die *Liquiditätsvorschau* zeigt den erwarteten Kontostand für die nächsten Tage (bis zu 600) ausgehend von
+einem Startbetrag. Ein Stichtag in der Vergangenheit erlaubt es, eine frühere Vorschau mit der
+tatsächlichen Entwicklung zu vergleichen. *Excel-Export* lädt die Vorschau mit allen Einträgen und
+Rechnungen herunter.
+
+[[calculation_of_expected_dates_of_payments]]
+==== Berechnung der erwarteten Zahlungstermine
+
+ProjectForge® verwendet Fälligkeiten für die Vorschau von Cashflow und Kontostand. Für Rechnungen berechnet
+ProjectForge® zusätzlich die erwarteten Zahlungstermine auf Basis der bezahlten Rechnungen der letzten
+12 Monate, in dieser Reihenfolge:
+
+. Projekt: Gibt es bereits bezahlte Rechnungen für dasselbe Projekt?
+. Kundennummer: Gibt es bereits bezahlte Rechnungen für denselben Kunden (gruppiert nach der
+Kundennummer)?
+. Konto: Gibt es bereits bezahlte Rechnungen für dasselbe Konto?
+. Kundentext: Gibt es bereits bezahlte Rechnungen für den Kunden (vollständiger Text)?
+. Kundenkurztext: Gibt es bereits bezahlte Rechnungen für den Kunden (der Anfang des Kundentexts wird
+verwendet)?
+
+Wird eine bezahlte Rechnung gefunden (beginnend beim Projekt), dient die mittlere Zahlungsdauer dieser
+Rechnungen (gewichtet nach Betrag) zur Berechnung des erwarteten Zahlungstermins. Für
+Kreditorenrechnungen gilt dasselbe.
+
+Die Liquiditätsplanung ist ein Plugin, das bei der Einrichtung von ProjectForge® automatisch aktiviert
+wird; zur Verwaltung von Plugins siehe das
+link:/de/docs/adminguide/#plugins[Administrationshandbuch].
+
+[[datev_import]]
+=== DATEV-Import
+
+Die Konten (Kontenplan) und die Buchungssätze werden aus den Excel-Dateien importiert, die das Steuerbüro
+liefert (_Reporting > Datev-Import_). Die originale Excel-Datei (.xlsx oder .xls) kann unverändert
+hochgeladen werden; Auswertungsblätter wie BWA, SuSa oder USt werden ignoriert.
+
+Die Importseite hat zwei Reiter:
+
+* *Buchungssätze:* Die Monatsblätter („01“, „02“, ..., „12“) enthalten die Buchungssätze des
+Buchungsmonats. Hat die Datei kein Monatsblatt, wird der Monat aus dem Dateinamen übernommen (z. B.
+`2026-07_...`). Buchungssätze mit einem Datum in einem späteren Monat werden dem Buchungsmonat zugeordnet,
+behalten aber ihr tatsächliches Datum. Das Kalenderjahr wird automatisch aus den Daten der Buchungssätze
+ermittelt.
+* *Kontenplan:* Das Blatt "Kontenplan" (auch mit vorangestelltem Monat, z. B. "07_Kontenplan") mit den
+Spalten "Konto" und "Beschriftung". Importiert werden nur die Kontenbezeichnungen, vorhandene Konten
+werden nicht gelöscht.
+
+Spalten werden an ihren Überschriften erkannt, ihre Reihenfolge spielt keine Rolle und zusätzliche Spalten
+werden ignoriert. Für die Buchungssätze werden folgende Spalten verwendet:
+
+* "Satz-Nr.", "Betrag", "SH", "Konto", "Gegenkonto", "Datum", "Beleg", "Text", "Menge",
+* "Kostenstelle/-träger" (oder "Kst." oder "Kost2") wird als Kost2 interpretiert,
+* "Alt.-Kst." (oder "Kost1") wird als Kost1 interpretiert,
+* "Bemerkung" (oder "Kommentar") ist optional und kann zusätzliche Informationen oder Markierungen
+enthalten.
+
+image::/uploads/userguide/Datev-Import-Buchungssaetze.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 9: |Excel-Format für den DATEV-Import von Buchungssätzen
+|===
+
+Der Import läuft in denselben Schritten ab wie alle Importe von ProjectForge®:
+
+. Die Datei hochladen. Fehler (z. B. ein ungültiges Zahlenformat) werden mit Blatt, Zeile und Spalte
+angezeigt.
+. Die Vorschau zeigt die neuen, geänderten, unveränderten und fehlerhaften Buchungssätze (bei geänderten
+auch den bisherigen Wert) sowie die daraus resultierende betriebswirtschaftliche Auswertung (BWA).
+. Die zu übernehmenden Buchungssätze auswählen (oder *Alle auswählen*) und *Übernehmen*. Dieser Schritt
+lässt sich wiederholen, bis alle Buchungssätze übernommen sind.
+
+Importierte Buchungssätze sind unter _Reporting > Buchungssätze_ aufgeführt, einschließlich einer
+betriebswirtschaftlichen Auswertung (BWA) des gewählten Zeitraums.
+
+[[reporting_via_report_objectives]]
+=== Reporting über Report-Objectives
+
+Unter _Reporting > Report-Objectives_ wird eine XML-Datei mit der Beschreibung der Report-Objectives
+hochgeladen (oder eingefügt), ein Zeitraum gewählt und der Report erstellt. Das XML bleibt bis zum Logout
+erhalten. Beispiel:
+
+[source,xml,linenums]
+----
+<ReportObjective title="Customer ACME" id="ACME" suppressOther="true" suppressDuplicates="true">
+  <kost1-include>3.*</kost1-include>
+  <kost1-exclude>*.01</kost1-exclude>
+  <kost1-exclude>*.12</kost1-exclude>
+  <kost2-include>5.*</kost2-include>
+  <kost2-exclude>*.02</kost2-exclude>
+  <kost2-exclude>*.11</kost2-exclude>
+  <ReportObjective title="Project ACME-WEB-Portal" id="ACME-WEB-Portal">
+    <kost2-include>5.020.01.*</kost2-include>
+  </ReportObjective>
+  <ReportObjective title="Project ACME-Java-Migration" id="ACME-Java-Migration">
+    <kost2-include>5.020.02.*</kost2-include>
+  </ReportObjective>
+</ReportObjective>
+----
+
+. Ist eine Include-Liste leer, passen alle Buchungssätze auf diese Include-Liste (Platzhalter).
+. Ist eine Include-Liste nicht leer, muss mindestens ein Eintrag passen.
+. Bei mehreren Include-Listen muss ein Buchungssatz zu allen Include-Listen passen (logisches 'und').
+. Passt ein Buchungssatz auf mindestens einen Eintrag einer Exclude-Liste, wird er ausgeschlossen.
+
+Zur Auswertung der regulären Ausdrücke wird die Methode `String.matches(regExp)` verwendet. Für ein
+besseres Verständnis hilft die Ausdruckssyntax der Java-Klasse `java.util.regex.Pattern`. Zur
+Vereinfachung verändert ProjectForge® die konfigurierten Ausdrücke vor der Verwendung automatisch: Alle
+Punkte ('.') werden maskiert und der Platzhalter '*' wird durch '.*' ersetzt. Ein vorangestellter Apostroph
+verhindert diese automatische Veränderung, z. B. wird "'^5\.510.*" nicht verändert (nur der Apostroph
+selbst wird vor der Auswertung entfernt). +
+Beispiele:
+
+* +++"3.*"+++ -> +++"3\..*"+++ (passt auf alle Zeichenketten, die mit "3." beginnen).
+* +++"*.02"+++ -> +++".*\.02"+++ (passt auf alle Zeichenketten, die auf ".02" enden).
+* +++"'^5.02.*"+++ -> +++"^5.02.*"+++ (passt auf alle Zeichenketten, die mit "5", einem beliebigen Zeichen und "02" beginnen).
+
+(Diese Ersetzungsstrategie dient der Bequemlichkeit, denn '.' bedeutet normalerweise ein beliebiges
+Zeichen und '*' ein mehrfaches Vorkommen des Zeichens vor dem Sternchen: "3.1*" passt beispielsweise auf
+"3x1111", aber nicht auf "3.120.08.02".)
+
+*Hinweis*
+
+____
+Ein untergeordnetes ReportObjective kann nur aus Einträgen des übergeordneten ReportObjective bestehen (nur
+eine Teilmenge)!
+____
+
+Die Buchungssätze jedes Report-Objectives lassen sich direkt aus dem Report öffnen.
+
+[[scripting_in_projectforge]]
+== Scripting in ProjectForge®
+
+In ProjectForge® lassen sich Scripte bearbeiten, speichern und ausführen (_Reporting > Scriptliste_), um
+aus der Datenbank von ProjectForge® Excel-Dateien, Diagramme usw. zu erzeugen. Scripte werden in Kotlin
+oder Groovy geschrieben. Ein Script-Editor mit Syntaxhervorhebung, die Liste der verfügbaren Variablen und
+einige Beispiele sind eingebaut.
+
+* Scripte können bis zu 6 Parameter definieren (z. B. Zahlen, Texte, Datumswerte, Zeiträume,
+Strukturelemente oder Benutzer), die vor der Ausführung abgefragt werden.
+* Zu einem Script lässt sich eine Datei hochladen (z. B. eine Excel-Vorlage), um sie zu lesen oder zu
+verändern.
+* Scripte lassen sich mit Benutzern und Gruppen teilen. Diese finden sie unter _Projektmanagement > Meine
+Scripte_ und können sie ausführen, ohne den Quellcode zu sehen.
+
+[[examples]]
+=== Beispiele
+
+Die vordefinierten Beispielscripte vermitteln einen Eindruck davon, wie leistungsfähig das Scripting in
+ProjectForge® ist.
+
+[[example_easy_excel_file_generation]]
+==== Beispiel: Einfache Erzeugung einer Excel-Datei
+
+[source,kotlin,linenums]
+----
+// Simple Kotlin script
+val users = userDao.list.filter { it.hasSystemAccess() }
+val workbook = ExcelUtils.prepareWorkbook("Userlist.xlsx")
+val sheet = workbook.createOrGetSheet("Users")
+sheet.registerColumns(
+  "Username|20", // Title Username is also property name, length = 20
+  "Full name|fullname|30", // Title differs from property name
+  "Email|30",
+  "Id|10",
+  "Description|50",
+)
+sheet.createRow().fillHeadRow()
+users.forEach { user ->
+  val row = sheet.createRow()
+  ExcelUtils.autoFill(row, user)
+}
+sheet.setAutoFilter() // optional Excel auto filter
+workbook
+----
+
+[[example_usage_of_projectforge_filters]]
+==== Beispiel: Verwendung von ProjectForge®-Filtern
+
+[source,kotlin,linenums]
+----
+val filter = TimesheetFilter()
+filter.startTime = PFDateTime.withDate(2026, Month.JANUARY, 1).utilDate
+filter.stopTime = PFDateTime.withDate(2026, Month.JUNE, 30).utilDate
+val list = timesheetDao.select(filter)
+
+"Number of found time sheets: ${list.size}"
+----
+
+PFDateTime und PFDay verwenden standardmäßig automatisch die Zeitzone des aktuell angemeldeten Benutzers.
+
+[[access_rights_daos]]
+=== Zugriffsrechte (DAOs)
+
+Auf alle Datenbankeinträge lässt sich über die DAOs (Data Access Objects) von ProjectForge® zugreifen. Die
+DAOs stellen sicher, dass nur Entitäten zurückgegeben werden, auf die der Benutzer Zugriff hat. Alle
+Entitäten ohne Zugriff des Benutzers entfernen die DAOs aus den Ergebnislisten.
+
+[[creation_of_diagrams_and_charts]]
+=== Erstellung von Diagrammen
+
+Diagramme lassen sich mit https://www.jfree.org/jfreechart/[JFreeChart,window=_blank] erstellen.
+
+image::/uploads/userguide/ExportJFreeChart.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 10: |Beispiel für ein Script, das ein Diagramm erzeugt
+|===
+
+[source,groovy,linenums]
+----
+import org.jfree.chart.*
+import org.jfree.data.general.*
+import org.projectforge.export.*
+
+DefaultPieDataset dataset = new DefaultPieDataset()
+dataset.setValue("Linux", 15)
+dataset.setValue("Mac", 8)
+dataset.setValue("Windows", 70)
+dataset.setValue("Others", 7)
+JFreeChart chart = ChartFactory.createPieChart("Operating systems of our users", dataset, true, true, false)
+
+ExportJFreeChart export = new ExportJFreeChart(chart, 800, 600)
+return export
+----
+
+[[creation_of_zip_archives_containing_multiple_files]]
+=== Erstellung von Zip-Archiven mit mehreren Dateien
+
+Es lassen sich Zip-Dateien mit mehreren Dateien (Excel-Tabellen und Diagramme) erstellen. Optional kann
+das Archiv mit einem Passwort verschlüsselt werden.
+
+[source,kotlin,linenums]
+----
+// org.projectforge.business.scripting.ExportZipArchive and ExcelUtils are imported by default.
+import org.projectforge.export.ExportJFreeChart
+
+val zip = ExportZipArchive("my-first-archive") // File name will be: my-first-archive.zip
+val workbook = ExcelUtils.prepareWorkbook("sheet.xlsx")
+// ... fill the workbook, see above
+zip.add("sheet.xlsx", workbook)
+val chart = ExportJFreeChart(...)
+zip.add("chart.png", chart)
+zip
+----
+
+Der optionale Parameter `encryptionPassword` (z. B. `ExportZipArchive("my-first-archive",
+encryptionPassword = "...")`) verschlüsselt das Archiv.
+
+[[nested_and_indexed_properties]]
+=== Verschachtelte und indizierte Properties
+
+Bean-Properties lassen sich in der üblichen Notation verwenden:
+
+[source,groovy,linenums]
+----
+sheet.propertyNames = ["user.username", "description", "startTime", "stopTime",
+         "kost2.kost2Art.fakturiert"]
+----
+
+Verschachtelte und indizierte Properties werden ebenfalls unterstützt: `users[3].name` oder
+`result.userList[0]`.
+
+[[import_of_excel_files]]
+=== Import von Excel-Dateien
+
+Abbildung 11 zeigt eine Beispieldatei.
+
+image::/uploads/userguide/Excel-import-example.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 11: |Beispieldatei für einen Excel-Import
+|===
+
+Die zum Script hochgeladene Datei steht als Variable `file` (Byte-Array) zur Verfügung, ihr Name als
+`filename`. Das folgende Groovy-Beispiel liest sie mit `ExportWorkbook`, das nur das .xls-Format
+unterstützt.
+
+[source,groovy,linenums]
+----
+import java.text.*
+import org.projectforge.business.excel.*
+NumberFormat nf = NumberFormat.getCurrencyInstance(Locale.UK)
+
+ExportWorkbook workbook = new ExportWorkbook(file) // The file uploaded to this script.
+ExportSheet sheet = workbook.getSheet("Sheet-1") // Gets sheet with the given title.
+result = ""
+total = 0.0
+
+for (int i = 1; i < sheet.rows.size(); i++) {
+  row = sheet.getRow(i)
+  no = row.getCell(0).getNumericCellValue()
+  name = row.getCell(1).getStringCellValue()
+  amount = row.getCell(2).getNumericCellValue()
+  total += amount
+  result += (int)no + ". The amount of " + name + " is: " + nf.format(amount) + "\n"
+}
+result += "The total amount is: " + nf.format(total)
+return result
+----
+
+Die Ausgabe lautet:
+
+[source,linenums,shell]
+----
+1. The amount of Susan is: £50.23
+2. The amount of Hugo is: £17.00
+3. The amount of Lisa is: £15.00
+4. The amount of Mona is: £10.00
+The total amount is: £92.23
+----
+
+[[miscellaneous]]
+== Verschiedenes
+
+[[data_transfer]]
+=== Datentransfer
+
+_Verschiedenes > Datentransfer_ ist der einfache Weg, Dateien mit Kolleg:innen und externen Partnern
+auszutauschen:
+
+* Die *Persönliche Box* dient dazu, Dateien an einen einzelnen anderen Benutzer zu senden. Dateien werden
+nach 60 Tagen gelöscht.
+* *Gemeinsame Bereiche* sind für die zugeordneten Admins, Benutzer und Gruppen zugänglich. Beobachter
+werden per E-Mail über Uploads und externe Downloads benachrichtigt.
+* Ein gemeinsamer Bereich lässt sich für externe Downloads und/oder Uploads freigeben: Externe Partner
+erhalten einen Link und ein Passwort (beide lassen sich jederzeit erneuern).
+* Jeder Bereich hat eine Ablauffrist (z. B. 7 Tage), nach der Dateien automatisch gelöscht werden. Bei
+längeren Ablauffristen wird vorab über Dateien informiert, die gelöscht werden. Die maximale Dateigröße
+wird je Bereich konfiguriert.
+* *Alles herunterladen* lädt alle Dateien eines Bereichs als Zip-Archiv herunter.
+
+[[further_features]]
+=== Weitere Funktionen
+
+* *Umfragen* (_Verschiedenes > Umfragen_): Umfragen mit Einfachauswahl-, Mehrfachauswahl- und Textfragen
+erstellen (auch aus Vorlagen), Benutzer:innen und Gruppen einladen und die Ergebnisse auf der Seite oder als
+Excel-Datei ansehen. Wer Vollzugriff hat, bearbeitet die Umfrage, sieht alle Antworten und antwortet
+stellvertretend für Teilnehmer:innen.
+* *Merlin-Word®-Vorlagen* (_Verschiedenes > Merlin-Word®-Vorlagen_): Word-Dokumente wie Verträge oder
+Briefe aus Vorlagen mit Variablen erzeugen, auch als Serienbriefe aus einer Excel-Tabelle.
+* *Lizenzen / Hardware* (_Verschiedenes > Lizenzen / Hardware_): Softwarelizenzen, Lizenzschlüssel und
+ihre Nutzung verwalten.
+* *Skillmatrix* (_Projektmanagement_): eigene Fähigkeiten und Interessen bewerten und die Fähigkeiten der
+Kolleg:innen sehen.
+
+[[data_protection]]
+== Datenschutz
+
+[[data_sovereignty_and_gdpr]]
+=== Digitale Souveränität und DSGVO
+
+ProjectForge® läuft auf einem Server nach Wahl – dem eigenen, im eigenen Rechenzentrum oder bei einem
+selbst gewählten Hoster. Alle Daten bleiben dort: die Datenbank, die Dateien des Datentransfers, der Chat, die
+Dokumente. Nichts geht in eine Cloud des Herstellers oder Dritter, es gibt keine Telemetrie, und die Seiten
+laden keine Skripte, Schriften oder Bilder von anderen Hosts (die Content Security Policy verweigert sie).
+
+Das ist hier mit digitaler Souveränität gemeint: Die eigene Organisation entscheidet, wo die Daten liegen, wer
+darauf zugreift, wie lange sie aufbewahrt werden und wann ProjectForge® aktualisiert wird. Der Quellcode ist
+offen (Open Source) und für alle prüfbar, und eine Abhängigkeit vom Anbieter entsteht nicht: Die Daten liegen
+in einer eigenen PostgreSQL-Datenbank.
+
+Für die DSGVO wird die Verarbeitung personenbezogener Daten damit eine Frage der eigenen Richtlinien, ohne
+Auftragsverarbeiter außerhalb der eigenen Kontrolle. ProjectForge® unterstützt sie mit fein abgestuften
+Zugriffsrechten, der Änderungshistorie (siehe <<history_of_changes_2>>), Datenschutz durch Voreinstellungen
+(z. B. sehen den Grund einer Abwesenheit nur die Person selbst und HR) und Gesprächen, die niemand sonst liest
+(siehe <<chat_privacy>>). Ob eine Installation die DSGVO erfüllt, hängt von ihrem Betrieb ab; ProjectForge®
+liefert die Mittel, keine rechtliche Bewertung.
+
+[[confidential_chat_messages]]
+=== Vertrauliche Chat-Nachrichten
+
+Die Texte eines vertraulichen Gesprächs sind Ende-zu-Ende-verschlüsselt und werden nie gespeichert: weder in
+der Datenbank noch in Logdateien, Backups oder Mails (siehe <<chat_confidential_conversations>>).
+
+[[passwords]]
+=== Passwörter
+
+Passwörter werden in der Datenbank nur als gesalzene und gepfefferte Hashes gespeichert. Direkt nach der
+Verwendung von Passwörtern (etwa auf der Anmeldeseite) werden alle Passwortvariablen gelöscht. Passwörter
+erscheinen in keinem Eintrag einer Logdatei.
+
+[[history_of_changes_2]]
+=== Änderungshistorie
+
+Alle Änderungen an Entitäten (Anlegen, Ändern, Löschen) werden mit Zeitstempel, dem auslösenden Benutzer
+und den geänderten Feldern mit altem und neuem Wert gespeichert. Die Änderungshistorie wird auf der
+Bearbeitungsseite einer Entität angezeigt. Einzelne spezielle Felder sind nicht Teil dieses
+Historienmechanismus.
+
+[[logging]]
+=== Protokollierung
+
+Zugriffsverletzungen und Aktionen von Benutzern (etwa Änderungen an Entitäten) sowie alle Fehlermeldungen
+werden in Logdateien gespeichert. Die Logdatei ist wichtig für die Analyse von Fehlern usw.
+
+[[phone_calls_and_text_messages]]
+=== Telefonate und SMS
+
+Über ProjectForge® gestartete Telefonate und versendete SMS werden protokolliert, einschließlich des
+Benutzers und der beteiligten Telefonnummern.
+
+[[glossary]]
+== Glossar
+
+Die Entwickler von ProjectForge® haben für einige Finanzbegriffe die deutsche Sprache verwendet. Heute ist
+Englisch die Hauptsprache der Entwicklung (für Klassen, Dokumentation usw.). Hier finden sich
+Übersetzungen und Beschreibungen häufig verwendeter Begriffe.
+
+[cols="1,1,3",]
+|===
+|Deutsch |Englisch |Beschreibung
+
+|Aufgabe |task |Der Begriff Aufgabe wurde durch 'Strukturelement' ersetzt, weil solche Elemente nicht nur
+Aufgaben darstellen, sondern Kunden, Projekte, Releases, Aufgaben usw.
+
+|Auftrag |order |
+
+|Beleg |receipt |
+
+|Betrag |amount |
+
+|Brutto |gross (amount) |
+
+|Buchungssatz |accounting record |Buchungssätze sind Entitäten, die aus externen Finanzsystemen importiert
+werden (z. B. DATEV in Deutschland). Der empfohlene Ablauf ist, Rechnungen, Gehälter der Mitarbeitenden
+usw. mit ProjectForge® zu verwalten und die Daten dann in das externe Finanzsystem zu übernehmen. Die
+zurückimportierten Buchungssätze sollten mit den Daten in ProjectForge® übereinstimmen. +
+ProjectForge® und die Scripte funktionieren auch ohne Buchungssätze; die ursprünglichen Entitäten wie
+Rechnungen usw. lassen sich direkt in Scripten verwenden. +
+Der Plural von Buchungssatz lautet: Buchungssätze
+
+|BWA |business assessment |Begriff im Finanzmodul von ProjectForge® (betriebswirtschaftliche Auswertung).
+
+|DATEV |  |In Deutschland verbreitete Software für die Finanzbuchhaltung. ProjectForge® bietet
+Importschnittstellen.
+
+|Datum |date |
+
+|Eingangsrechnung |incoming invoice |Wird für Eingangsrechnungen (Kreditoren) verwendet.
+
+|fakturiert |invoiced |
+
+|Fibu |financial administration |Fibu ist die Abkürzung des deutschen Begriffs
+'Finanzbuchhaltung'.
+
+|Gegenkonto |contra account |Begriff im Finanzmodul von ProjectForge®.
+
+|Kontenplan |chart of accounts |Begriff im Finanzmodul von ProjectForge®.
+
+|Konto |account |Begriff im Finanzmodul von ProjectForge®.
+
+|Kost |cost |Begriff im Finanzmodul von ProjectForge®. Kost1/Kost2 -> cost 1/cost 2 ist die Kurzform von
+'Kostenträger' (cost unit).
+
+|Kostenträger |cost unit |Begriff im Finanzmodul von ProjectForge®.
+
+|Kostenträgerart |type of cost unit |Begriff im Finanzmodul von ProjectForge®. Beispiele für
+Kostenträgerarten sind: 'Reisen', 'Akquise', 'Meetings' usw. Die Arten sind anpassbar und dienen dazu,
+verschiedene Kostenarten in Projekten und/oder unternehmensweit festzulegen.
+
+|Kostenzuweisung |cost assignment |Begriff im Finanzmodul von ProjectForge®. Kosten wie Gehälter der
+Mitarbeitenden, Positionen von Rechnungen (eingehend und ausgehend) usw. werden Kostenträgern zugewiesen.
+
+|Kunde |customer |
+
+|Menge |quantity |
+
+|Netto |net (amount) |
+
+|Projekt |project |
+
+|Rechnung |invoice |Wird für Ausgangsrechnungen (Debitoren) verwendet.
+
+|Sonderurlaub |special leave |Urlaub, der nicht vom Urlaubskonto abgeht.
+
+|Urlaub |vacation, leave |
+|===

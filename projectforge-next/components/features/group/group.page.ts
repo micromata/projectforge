@@ -5,6 +5,7 @@ import { GroupListActions } from "./group-list-actions";
 import { groupSchema, GROUP_FIELDS, type GroupValues } from "./group-schema";
 import { emptyGroupValues, toFormValues } from "./group-values";
 import { LdapGidField } from "./ldap-gid-field";
+import { GroupNameField } from "./group-name-field";
 import { LocalGroupField } from "./local-group-field";
 import { MemberEmailsField } from "./member-emails-field";
 import type { GroupDetail, GroupListRow } from "./types";
@@ -42,12 +43,11 @@ export const GROUP_PAGE = definePage<
     { name: "organization", size: 200, wrap: true },
     { name: "description", size: 320, wrap: true },
     {
-      // The members, joined as the legacy list shows them (`SHOW_LIST_OF_DISPLAYNAMES`). No sorting:
-      // the backend orders by entity property, and a collection is none.
+      // The members, as the legacy list shows them (`SHOW_LIST_OF_DISPLAYNAMES`), each struck through
+      // when it left (see RefList). No sorting: the backend orders by entity property, and a collection is none.
       id: "assignedUsers",
       labelKey: "group.assignedUsers",
-      accessor: (row) =>
-        row.assignedUsers?.map((user) => user.displayName).join(", "),
+      accessor: (row) => row.assignedUsers,
       size: 320,
       sortable: false,
       wrap: true,
@@ -77,7 +77,8 @@ export const GROUP_PAGE = definePage<
         id: "general",
         titleKey: "group._",
         fields: [
-          { name: "name", span: 2 },
+          // With the configured naming convention as its hint (see GroupNameField).
+          { custom: GroupNameField, span: 2 },
           // Whether the group is exported to an external user management system at all — read before
           // anything below it, hence beside the name and not further down.
           // Only where an external user management system is in use (see LocalGroupField).

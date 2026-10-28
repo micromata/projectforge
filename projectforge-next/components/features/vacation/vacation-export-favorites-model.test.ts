@@ -20,17 +20,17 @@ describe("sameIds", () => {
 });
 
 describe("sameChoice", () => {
-  it("compares employees and groups each as a set", () => {
+  it("compares users and groups each as a set", () => {
     expect(
       sameChoice(
-        { employeeIds: [2, 1], groupIds: [7] },
-        { employeeIds: [1, 2], groupIds: [7] }
+        { userIds: [2, 1], groupIds: [7] },
+        { userIds: [1, 2], groupIds: [7] }
       )
     ).toBe(true);
     expect(
       sameChoice(
-        { employeeIds: [1], groupIds: [7] },
-        { employeeIds: [1], groupIds: [] }
+        { userIds: [1], groupIds: [7] },
+        { userIds: [1], groupIds: [] }
       )
     ).toBe(false);
   });
@@ -38,19 +38,19 @@ describe("sameChoice", () => {
 
 describe("favoriteIdHolding", () => {
   const favorites = [
-    { id: 1, employeeIds: [1], groupIds: [] },
-    { id: 2, employeeIds: [3, 2], groupIds: [9] },
+    { id: 1, userIds: [1], groupIds: [] },
+    { id: 2, userIds: [3, 2], groupIds: [9] },
   ];
 
   it("finds the favorite holding the choice, in whatever order", () => {
     expect(
-      favoriteIdHolding(favorites, { employeeIds: [2, 3], groupIds: [9] })
+      favoriteIdHolding(favorites, { userIds: [2, 3], groupIds: [9] })
     ).toBe(2);
   });
 
   it("answers null without one", () => {
     expect(
-      favoriteIdHolding(favorites, { employeeIds: [2], groupIds: [9] })
+      favoriteIdHolding(favorites, { userIds: [2], groupIds: [9] })
     ).toBeNull();
   });
 });

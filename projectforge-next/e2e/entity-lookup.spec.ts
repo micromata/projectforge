@@ -1,11 +1,16 @@
 import type { Locator } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
-import { LOOKUP_PAGE_SIZE } from "../lib/rs/autocomplete-url";
+import {
+  EMPTY_TERM_MAX_ENTRIES,
+  LOOKUP_PAGE_SIZE,
+} from "../lib/rs/autocomplete-url";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
- * An entity picker offers what there is: entries the moment it opens, without a term, and more of
- * them while the user scrolls (see useEntityLookup).
+ * An entity picker lists a short list the moment it opens, but asks to type for a long one — its first
+ * entries in alphabetical order are hardly ever the one wanted — and loads more of the matches of a
+ * term while the user scrolls (see useEntityLookup).
  *
  * The books list's "geändert durch" is the picker under test — an OBJECT filter against
  * `user/autosearch`, which has several hundred entries and therefore a second page. Worth an e2e test
@@ -18,7 +23,9 @@ import { LOOKUP_PAGE_SIZE } from "../lib/rs/autocomplete-url";
 test.describe("entity lookup", { tag: "@lane-book" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/book/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 
@@ -26,11 +33,13 @@ test.describe("entity lookup", { tag: "@lane-book" }, () => {
     // The logged-in context of the seeds: the plain `request` fixture has no session, so its reset was
     // refused and left the filter behind.
     await seedRequest
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/book/filter/reset", {
+        headers: await writeHeaders(seedRequest),
+      })
       .catch(() => undefined);
   });
 
-  test("shows entries on opening and loads more on scrolling", async ({
+  test("asks to type for a long list and loads more matches on scrolling", async ({
     loggedInPage: page,
   }) => {
     const { t } = await userFormat(page);
@@ -47,23 +56,40 @@ test.describe("entity lookup", { tag: "@lane-book" }, () => {
     const list = popover.getByRole("listbox");
     const entries = list.getByRole("option");
 
-    // Nothing typed: this is the whole point — the box used to stay empty until two characters.
+    // Nothing typed: a short list is shown whole, a long one not at all — the hint asks to type.
+    const hint = popover.getByText(t("filter.typeToSearch"));
+    await expect
+      .poll(async () => (await hint.isVisible()) || (await entries.count()) > 0)
+      .toBe(true);
+    if (await hint.isVisible()) {
+      expect(await entries.count()).toBe(0);
+    } else {
+      expect(await entries.count()).toBeLessThan(EMPTY_TERM_MAX_ENTRIES);
+    }
+
+    // A term lists its matches, the first page of them. The users are matched by the prefixes of their
+    // words, so the term is taken from the short list where it is shown — a handful of seeded users need
+    // not hold a word starting with "er", which a long list of names is full of.
+    const term = (await hint.isVisible())
+      ? "er"
+      : (await entries.first().innerText()).trim().slice(0, 2);
+    const search = popover.getByPlaceholder(t("filter.search"));
+    await search.fill(term);
     await expect.poll(() => entries.count()).toBeGreaterThan(0);
     const first = await entries.count();
-    // …and only the first page of them, not every user the installation has.
     expect(first).toBeLessThanOrEqual(LOOKUP_PAGE_SIZE);
 
-    // Scrolling to the end asks for the next page. Skipped when this installation has fewer users
+    // Scrolling to the end asks for the next page. Skipped when this installation has fewer matches
     // than one page, where there is nothing left to load.
     test.skip(
       first < LOOKUP_PAGE_SIZE,
-      "this installation has less than one page of users"
+      "this installation has less than one page of matching users"
     );
     await scrollToBottom(list);
     await expect.poll(() => entries.count()).toBeGreaterThan(first);
 
     // The term still narrows the list, and does so from the first page again.
-    await popover.getByPlaceholder(t("filter.search")).fill("zzzzz");
+    await search.fill("zzzzz");
     await expect.poll(() => entries.count()).toBe(0);
   });
 });

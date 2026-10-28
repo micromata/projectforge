@@ -23,7 +23,13 @@
 
 package org.projectforge.business.fibu.kost;
 
-import org.projectforge.framework.configuration.ConfigXml;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.projectforge.framework.configuration.ConfigurationJsonValues;
+import org.projectforge.framework.configuration.ConfigurationParam;
+import org.projectforge.framework.configuration.SecretFieldToString;
+import org.projectforge.framework.json.JsonUtils;
 import org.projectforge.framework.utils.IntRanges;
 import org.projectforge.framework.xmlstream.AliasMap;
 import org.projectforge.framework.xmlstream.XmlField;
@@ -31,39 +37,99 @@ import org.projectforge.framework.xmlstream.XmlObject;
 import org.projectforge.framework.xmlstream.XmlObjectReader;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
- * Used in config.xml for the definition of the used business assessment schema. The business assessment is displayed in different
- * accounting areas, such as for DATEV accounting records.
+ * The accounting settings: the account number ranges of debitors and creditors and the used business assessment
+ * schema. The business assessment is displayed in different accounting areas, such as for DATEV accounting records.
+ * Stored as JSON in the configuration parameter fibu.accounting, the xml annotations are only used for reading the
+ * former config.xml.
  *
  * @author Kai Reinhard
  *
  */
 @XmlObject(alias = "accounting")
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE,
+    isGetterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AccountingConfig implements Serializable
 {
   private static final long serialVersionUID = 21261507180352913L;
 
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccountingConfig.class);
+
+  private static String cachedJson;
+
+  private static AccountingConfig cachedInstance;
+
   private BusinessAssessmentConfig businessAssessment;
 
   @XmlField(alias = "debitorsAccountNumberRanges")
+  @JsonProperty("debitorsAccountNumberRanges")
   private String debitorsAccountNumberRangesString;
 
   @XmlField(alias = "creditorsAccountNumberRanges")
+  @JsonProperty("creditorsAccountNumberRanges")
   private String creditorsAccountNumberRangesString;
 
   /**
-   * Gets the default configuration from config.xml.
+   * The first local project number proposed for a new project per prefix of a number range, e. g. {5: 1} for
+   * 5.###.01 instead of 5.###.00. Only the proposal: lower numbers may still be given. Not given: 0.
    */
-  public static AccountingConfig getInstance()
+  @JsonProperty("firstProjectNumbers")
+  private Map<Integer, Integer> firstProjectNumbers;
+
+  /**
+   * Gets the configuration of the parameter fibu.accounting. It's cached as long as the parameter isn't changed, so
+   * the scripts of the business assessment rows are compiled once.
+   */
+  public static synchronized AccountingConfig getInstance()
   {
-    return ConfigXml.getInstance().getAccountingConfig();
+    final String json = ConfigurationJsonValues.get(ConfigurationParam.FIBU_ACCOUNTING);
+    if (cachedInstance == null || !java.util.Objects.equals(json, cachedJson)) {
+      cachedInstance = parse(json);
+      cachedJson = json;
+    }
+    return cachedInstance;
+  }
+
+  /**
+   * @return The configuration of the given JSON value, an empty one if blank or not readable.
+   */
+  public static AccountingConfig parse(final String json)
+  {
+    if (json == null || json.isBlank()) {
+      return new AccountingConfig();
+    }
+    try {
+      final AccountingConfig config = JsonUtils.fromJson(json, AccountingConfig.class, false);
+      return config != null ? config : new AccountingConfig();
+    } catch (final Exception ex) {
+      log.warn("Accounting: configuration (fibu.accounting) not readable, using an empty one: " + ex.getMessage());
+      return new AccountingConfig();
+    }
   }
 
   public static void registerXmlObjects(final XmlObjectReader reader, final AliasMap aliasMap)
   {
     aliasMap.put(BusinessAssessmentRowConfig.class, "row");
     reader.initialize(BusinessAssessmentConfig.class);
+  }
+
+  /**
+   * @return The configured number ranges of the account numbers for the debitors as given, e. g. "10000-12999".
+   */
+  public String getDebitorsAccountNumberRangesString()
+  {
+    return debitorsAccountNumberRangesString;
+  }
+
+  /**
+   * @return The configured number ranges of the account numbers for the creditors as given, e. g. "70000-79999".
+   */
+  public String getCreditorsAccountNumberRangesString()
+  {
+    return creditorsAccountNumberRangesString;
   }
 
   /**
@@ -84,9 +150,22 @@ public class AccountingConfig implements Serializable
     return (IntRanges) new IntRanges(creditorsAccountNumberRangesString).setNullRangeMatchesAlways(true);
   }
 
-  public void reset()
+  /**
+   * @return The first proposed local project numbers by prefix of the number range, null if not configured.
+   */
+  public Map<Integer, Integer> getFirstProjectNumbers()
   {
-    businessAssessment = null;
+    return firstProjectNumbers;
+  }
+
+  /**
+   * @param prefix The prefix of the number range.
+   * @return The first local project number proposed in the number range, 0 if not configured.
+   */
+  public int getFirstProjectNumber(final int prefix)
+  {
+    final Integer value = firstProjectNumbers != null ? firstProjectNumbers.get(prefix) : null;
+    return value != null ? value : 0;
   }
 
   /**
@@ -98,11 +177,11 @@ public class AccountingConfig implements Serializable
   }
 
   /**
-   * @see ConfigXml#toString(Object)
+   * @see SecretFieldToString#toString(Object)
    */
   @Override
   public String toString()
   {
-    return ConfigXml.toString(this);
+    return SecretFieldToString.toString(this);
   }
 }

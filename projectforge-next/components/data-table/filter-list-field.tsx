@@ -28,6 +28,7 @@ export function ListField({
     element.values?.map((option) => ({
       value: option.id,
       label: option.displayName,
+      inactive: option.inactive,
     })) ?? [];
   // An emptied field is dropped from the filter, as everywhere else.
   const onValues = (values: string[]) =>

@@ -128,17 +128,16 @@ class AddressImportStorage : ImportStorage<AddressImportDTO>(
         // Load database addresses for matching
         if (rereadDatabaseEntries || databaseAddresses == null) {
             val addressDao = ApplicationContextProvider.getApplicationContext().getBean(AddressDao::class.java)
-            databaseAddresses = addressDao.selectAll(checkAccess = false)
+            // Only the addresses the user may see: the comparison shows the stored values of a match.
+            databaseAddresses = addressDao.selectAll(checkAccess = true)
             log.debug { "=== DATABASE ADDRESSES LOADED: ${databaseAddresses?.size ?: 0} addresses ===" }
         }
 
-        // Save IMPORTED status for entries before clearing (preserve user-processed entries)
-        val importedStatuses = mutableMapOf<Int, ImportEntry.Status>()
-        pairEntries.forEachIndexed { index, entry ->
-            if (entry.status == ImportEntry.Status.IMPORTED) {
-                importedStatuses[index] = entry.status
-            }
-        }
+        // Save IMPORTED status for entries before clearing (preserve user-processed entries). Kept by the read
+        // vCard entry (the same instance after rebuilding), not by position: the sorted order may change.
+        val importedReads = pairEntries
+            .filter { it.status == ImportEntry.Status.IMPORTED }
+            .mapNotNull { it.read }
 
         // Clear existing pair entries before rebuilding
         clearEntries()
@@ -185,10 +184,9 @@ class AddressImportStorage : ImportStorage<AddressImportDTO>(
         }
 
         // Restore IMPORTED status for entries that were previously marked
-        importedStatuses.forEach { (index, status) ->
-            if (index >= 0 && index < pairEntries.size) {
-                pairEntries[index].status = status
-                log.debug { "Restored IMPORTED status for entry at index $index" }
+        pairEntries.forEach { entry ->
+            if (entry.read != null && importedReads.any { it === entry.read }) {
+                entry.status = ImportEntry.Status.IMPORTED
             }
         }
 

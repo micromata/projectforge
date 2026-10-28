@@ -59,14 +59,11 @@ export function useAddEntryKeyboardShortcut(
  * `addHref` — the button carrying it (see AddEntryButton) may run an action instead, and owns that
  * shortcut itself then.
  */
-export function useAddEntryShortcut(addHref?: string, isLegacy = false) {
+export function useAddEntryShortcut(addHref?: string) {
   const router = useRouter();
   const navigate = useCallback(() => {
     if (!addHref) return;
-    // The add page of a list whose form is still the legacy one belongs to another app and needs a
-    // full page load, exactly as the button beside it does (see useEditTargets).
-    if (isLegacy) window.location.href = addHref;
-    else navigateInGesture(router, addHref);
-  }, [addHref, isLegacy, router]);
+    navigateInGesture(router, addHref);
+  }, [addHref, router]);
   useAddEntryKeyboardShortcut(navigate, { enabled: Boolean(addHref) });
 }

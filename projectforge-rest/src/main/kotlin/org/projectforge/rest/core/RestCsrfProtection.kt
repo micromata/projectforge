@@ -46,19 +46,15 @@ private val log = KotlinLogging.logger {}
  * including one triggered by a foreign site. Two independent barriers guard against that:
  *
  * 1. **[checkSameSite] (all clients, all methods).** `Sec-Fetch-Site` is set by the browser itself and
- *    cannot be forged by the calling page, so it is the only barrier that also covers the legacy
- *    state-changing `@GetMapping`s (`filter/delete`, `filter/rename`, `filterReset`, `cancel`, …),
- *    which are triggerable by a plain `<img src>` and carry no token anywhere.
- * 2. **[checkToken] (projectforge-next, state-changing methods).** The session's token from
+ *    cannot be forged by the calling page, so it also covers a GET, which carries no token. State changing
+ *    endpoints are POST/PUT/DELETE only; a GET triggerable by a plain `<img src>` must change nothing.
+ * 2. **[checkToken] (all clients, state-changing methods).** The session's token from
  *    [SessionCsrfService], sent by projectforge-next in the [CSRF_TOKEN_HEADER]. Covers browsers too old
  *    to send `Sec-Fetch-Site`. A header is used rather than a body field: it also works for calls
  *    without a body and cannot be set cross-site without a preflight.
  *
- *    Only next clients are checked here, because only they send the header: the UILayout clients carry
- *    their token in `PostData.serverData` and are validated inside the endpoints
- *    ([SessionCsrfService.validateCsrfToken]) - reading the body in a filter would consume the stream.
- *    An attacker omitting the `X-PF-Frontend` header therefore skips this barrier, but not barrier 1,
- *    which is the reason barrier 1 must not be conditional on the client.
+ *    Neither barrier depends on what the client claims to be (`X-PF-Frontend`): that header is set by the
+ *    caller, so an attacker would simply omit it.
  *
  * Neither barrier applies to pure REST clients authenticated by an access token
  * ([RestAuthenticationInfo.loggedInByAuthenticationToken]): they don't rely on an ambient cookie, so
@@ -85,7 +81,7 @@ open class RestCsrfProtection {
             deny(request, response, "Cross-site request denied")
             return false
         }
-        if (RestAuthenticationUtils.isNextClient(request) && isStateChangingMethod(request.method) && !checkToken(request)) {
+        if (isStateChangingMethod(request.method) && !checkToken(request)) {
             // Expected after a session renewal, the next client refreshes its token and retries (see deny).
             deny(request, response, "CSRF token check failed", expected = true)
             return false
@@ -99,11 +95,8 @@ open class RestCsrfProtection {
      * `Sec-Fetch-Site` is absent for clients that are not modern browsers (curl, the DAV clients, older
      * browsers) - those fall through to the token check, which is why this must not be the only barrier.
      *
-     * Residual risk: a browser too old to send the header and not identifying itself as next
-     * (`X-PF-Frontend`) passes both barriers. The `SameSite=Lax` session cookie covers that for POSTs;
-     * what stays open are the legacy state-changing `@GetMapping`s (`filter/delete`, `filter/rename`,
-     * `filterReset`, `cancel`), which the cookie's Lax mode lets through. Fixing that means turning them
-     * into POSTs, which touches the React frontend as well.
+     * A browser too old to send the header is stopped by the token for POST/PUT/DELETE. A GET carries no token,
+     * which is why a state changing endpoint must not accept GET.
      */
     private fun checkSameSite(request: HttpServletRequest): Boolean {
         return isSameSiteRequest(request)
@@ -133,24 +126,20 @@ open class RestCsrfProtection {
         }
         SecurityLogging.logSecurityWarn(request, this::class.java, "CSRF CHECK FAILED", msg)
         response.status = HttpStatus.FORBIDDEN.value()
-        if (RestAuthenticationUtils.isNextClient(request)) {
-            // projectforge-next refreshes its token (via /rs/userStatus) and repeats the call once,
-            // see lib/rs/client.ts. A ResponseAction would be unreadable for it.
-            //
-            // This is the normal (not the exceptional) path whenever the session was renewed under the
-            // client's feet: a stay-logged-in login creates a fresh session - and therefore a fresh token -
-            // inside LoginService.checkStayLoggedIn, which runs in authenticate() just before this check.
-            // The retry makes that invisible to the user, whereas the UILayout clients get a
-            // "errorpage.csrfError" validation message and have to submit a second time.
-            response.contentType = MediaType.APPLICATION_JSON_VALUE
-            response.writer.write("""{"csrfTokenRequired":true}""")
-        }
+        // projectforge-next refreshes its token (via /rs/userStatus) and repeats the call once, see
+        // lib/rs/client.ts.
+        //
+        // This is the normal (not the exceptional) path whenever the session was renewed under the client's
+        // feet: a stay-logged-in login creates a fresh session - and therefore a fresh token - inside
+        // LoginService.checkStayLoggedIn, which runs in authenticate() just before this check. The retry makes
+        // that invisible to the user.
+        response.contentType = MediaType.APPLICATION_JSON_VALUE
+        response.writer.write("""{"csrfTokenRequired":true}""")
     }
 
     companion object {
         /**
-         * Header used by projectforge-next (lib/rs/client.ts) to send the session's CSRF token. The UILayout
-         * based clients send it inside `PostData.serverData` instead (see [SessionCsrfService]).
+         * Header used by projectforge-next (lib/rs/client.ts) to send the session's CSRF token.
          */
         const val CSRF_TOKEN_HEADER = "X-PF-CSRF-Token"
 
@@ -176,8 +165,8 @@ open class RestCsrfProtection {
             }
             // "same-site" is denied on purpose, although the session cookie would be sent (SameSite=Lax):
             // every rest call originates from a page of this very app, so it is always "same-origin". Allowing
-            // "same-site" would let a compromised sibling subdomain through - and such a request wouldn't be
-            // stopped by the token check either, because an attacker simply omits the X-PF-Frontend header.
+            // "same-site" would let a compromised sibling subdomain past this barrier, leaving the token as the only
+            // one (and a GET with none at all).
             if (PFSpringConfiguration.getInstance()?.corsFilterEnabled == true) {
                 // Development only: the frontend may be served by its own dev server on another origin.
                 // Never enabled in production (see PFSpringConfiguration.logCorsFilterWarning).
@@ -188,8 +177,7 @@ open class RestCsrfProtection {
         }
 
         /**
-         * Only these are checked for a token. The legacy state-changing GETs are covered by
-         * [checkSameSite] alone (they exist for the React app and carry no token).
+         * Only these are checked for a token. A GET must change nothing (see the class comment).
          */
         fun isStateChangingMethod(method: String?): Boolean {
             return when (method?.uppercase()) {

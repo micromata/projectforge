@@ -32,7 +32,7 @@ export function TaskSelectField({
   required: requiredOverride,
   onPicked,
   openTreeOnAncestorClick,
-  linkCurrentToTimesheets,
+  showConsumption,
 }: BaseFieldProps & {
   /** The path may be read but not changed (see DeclaredField.readOnly). */
   disabled?: boolean;
@@ -48,10 +48,10 @@ export function TaskSelectField({
    */
   openTreeOnAncestorClick?: boolean;
   /**
-   * Make the task segment of the path — the task itself, not its ancestors — a link to the time sheets
-   * booked on it (see [TaskPath]). Off by default; the order position turns it on.
+   * Show the consumption bar of the task beside the field — the way to its time sheets (see
+   * TaskSelectControl). Off by default; the order position turns it on.
    */
-  linkCurrentToTimesheets?: boolean;
+  showConsumption?: boolean;
   /**
    * What else changing the task means for the form — a time sheet's cost unit belongs to the task it was
    * chosen under, so picking another one drops it (see TaskKost2Section).
@@ -109,13 +109,14 @@ export function TaskSelectField({
               taskId={taskId}
               ariaLabel={label}
               disabled={disabled}
+              required={required}
               onOpen={() => {
                 setRootAtId(null);
                 setOpen(true);
               }}
               onSelect={change}
               openTreeOnAncestorClick={openTreeOnAncestorClick}
-              linkCurrentToTimesheets={linkCurrentToTimesheets}
+              showConsumption={showConsumption}
               onDrillDown={(task) => {
                 setRootAtId(task.id);
                 setOpen(true);

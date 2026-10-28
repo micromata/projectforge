@@ -25,3 +25,37 @@ npm run dev
 ----
 `npm run dev` builds the CSS, rebuilds it on every change and runs `bundle exec jekyll serve --livereload`.
 For a single build: `npm run build:css && bundle exec jekyll build`.
+
+== Languages: English and German
+
+The site is English (`/`) and German (`/de/`), see `languages` in `_config.yml`. A German page has the url of its
+English page with the prefix `/de`; the language switch in the header and the `hreflang` links are derived from that.
+The switch keeps the section (`#anchor`, the same in both languages) and the query. On a page that exists in one language
+only, it leads back to the last page read in the other language, or to its home page (`assets/js/lang-switch.js`).
+
+[cols="1,1"]
+|===
+| English | German
+
+| `index.adoc`, `features.adoc`, `misc/faqs.md`, … | `de/index.adoc`, `de/features.adoc`, `de/misc/faqs.md` (permalink with `/de`)
+| `_docs/<name>.adoc` | `_docs/de/<name>.adoc` (url `/de/docs/<name>/`, no permalink needed)
+| `_faqs/<name>.md` | `_faqs/de/<name>.md`
+| `_data/<name>.yml` | `_data/de/<name>.yml` (same structure, German texts and `/de` urls)
+| `_data/translation.yml`, key `en` | same file, key `de` (texts of layouts and includes)
+| `_changelogs/`, `changelog-posts.adoc` | `_changelogs/de/`, `de/changelog-posts.adoc`, generated from `changelog/changelog.de.json`
+|===
+
+* Every change of an English page goes into its German page in the same commit. `SiteTranslationTest`
+  (`projectforge-application`) fails if they are out of step: missing pages, other headings or anchors, images,
+  cross references, includes, data structure, or a German page linking the English version of a translated page.
+* Every heading of a translated page has an explicit anchor (`[[id]]`, `[id=…]` if it starts with a digit), the same
+  in both languages: the app links into the docs (e.g. `/docs/userguide/#full_indexed_search`, German
+  `/de/docs/userguide/#full_indexed_search`) and cross references (`<<id>>`, never `<<Title>>`) work in both.
+* A page without a German version says `untranslated: true` in its front matter (the technical docs `installation`,
+  `development`, `technologies`, `migration` and the legal pages). The German navigation links it in English,
+  marked with (EN).
+* A screenshot of a gallery (`img` in `_data/de/*.yml`) or of a German page (`image::`) may have a German version
+  `<name>-de.png` next to the English one, e.g. those of `projectforge-next/e2e/tools/site-screenshots.mjs`;
+  otherwise both languages show the same.
+* German texts don't use the formal "Sie" (see `CLAUDE.md`), UI labels are those of the app's German texts
+  (`I18nResources_de.properties`, `projectforge-next/messages/`).

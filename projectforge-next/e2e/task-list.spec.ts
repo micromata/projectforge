@@ -10,7 +10,7 @@ import type { ListMetaData, MagicFilter } from "../lib/rs/types";
 import type { SeededTask } from "./fixtures/seed";
 
 /**
- * The task list — step 4 of projectforge-next/MIGRATION.md, the second perspective on the same tasks
+ * The task list — the second perspective on the same tasks
  * the structure tree shows.
  *
  * Its inventory is `TaskListPage.createColumns`: ten columns, three of which show a value that is not
@@ -40,7 +40,9 @@ test.describe("task list", { tag: "@lane-task" }, () => {
     variables = await listVariables(page.request);
     // A criterion another run left in the account's stored filter would empty the list under test.
     await page.request
-      .get("/rs/task/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/task/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 

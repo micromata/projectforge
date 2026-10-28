@@ -101,6 +101,11 @@ public class UserRightServiceImpl implements UserRightService, Serializable {
                 .setReadOnlyForControlling();
         addRight(UserRightCategory.FIBU, UserRightId.FIBU_CURRENCY_CONVERSION, FALSE_READONLY_READWRITE, FIBU_ORGA_GROUPS)
                 .setReadOnlyForControlling();
+        // Customers, like projects (ProjektRight): project managers and assistants read only.
+        addRight(UserRightCategory.FIBU, UserRightId.FIBU_CUSTOMER, FALSE_READONLY_READWRITE, FIBU_ORGA_PM_GROUPS)
+                .setAvailableGroupRightValues(ProjectForgeGroup.PROJECT_MANAGER, UserRightValue.READONLY)
+                .setAvailableGroupRightValues(ProjectForgeGroup.PROJECT_ASSISTANT, UserRightValue.READONLY)
+                .setReadOnlyForControlling();
         addRight(UserRightCategory.ORGA, UserRightId.ORGA_CONTRACTS, FALSE_READONLY_READWRITE, FIBU_ORGA_GROUPS)
                 .setReadOnlyForControlling();
         addRight(UserRightCategory.ORGA, UserRightId.ORGA_INCOMING_MAIL, FALSE_READONLY_READWRITE, FIBU_ORGA_GROUPS)

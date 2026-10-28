@@ -196,8 +196,8 @@ class Configuration(
         if (configurationParamMap == null) {
             for ((key, value1) in newMap) {
                 val value = value1 ?: continue
-                if (key.editPage != null) {
-                    // A structured value (the customer groups' JSON) would flood the log.
+                if (key.editPage != null || key.type == ConfigurationType.JSON) {
+                    // A structured value (e.g. the customer groups' JSON) would flood the log.
                     log.info { key.key + "=<" + value.toString().length + " characters>" }
                 } else {
                     log.info { key.key + "=" + value }
@@ -213,6 +213,11 @@ class Configuration(
             private set
 
         private var instanceSet = false
+
+        /** False in test cases without Spring context (and before the start-up created the instance). */
+        @JvmStatic
+        val instanceInitialized: Boolean
+            get() = instanceSet
 
         /**
          * Validates the domain.

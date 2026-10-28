@@ -318,6 +318,19 @@ class GenerateChangelogMainTest {
     )
     // A published release directly after a published one lists its own changes only.
     assertEquals(listOf("r0"), GenerateChangelogMain.aggregatedReleases(root, "8.3.0").map { it["id"].asText() })
+    // A mini release has a GitHub release of its own, with its own changes only.
+    assertEquals(listOf("r2"), GenerateChangelogMain.aggregatedReleases(root, "8.3.2").map { it["id"].asText() })
+    val mini = GenerateChangelogMain.releaseNotesMarkdown(root, "8.3.2")
+    assertTrue(
+      mini.startsWith(
+        "# ProjectForge 8.3.2\n\nMini release: tagged only, without jar or docker image, build it from the source code. " +
+          "Ready-made binaries: https://github.com/micromata/projectforge/releases/latest\n"
+      ), mini
+    )
+    assertFalse(mini.contains("Also includes"), mini)
+    assertFalse(mini.contains("fix 1"), mini)
+    assertTrue(mini.contains("- feature 2"), mini)
+    assertFalse(GenerateChangelogMain.releaseNotesMarkdown(root, "8.3.3").contains("Mini release"))
   }
 
   @Test
@@ -649,6 +662,41 @@ class GenerateChangelogMainTest {
       """.trimIndent(),
       adoc
     )
+  }
+
+  @Test
+  fun theGermanPagesOfTheWebsiteHaveGermanLabels() {
+    val root = ObjectMapper().readTree(
+      """
+      {"releases": [
+        {"id": "r1", "version": "9.0.1", "date": "2026-10-07", "title": "Update veröffentlicht", "tag": "9.0.1-RELEASE",
+         "sha256": "${"a".repeat(64)}", "overview": ["Thema"], "sections": [{"type": "fixed", "items": ["Fehler"]}]},
+        {"id": "r0", "version": "9.0.0", "date": "2026-10-06", "title": "Major", "tag": "9.0.0-RELEASE",
+         "sections": [{"type": "added", "items": ["Feature"]}]},
+        {"id": "s", "version": "8.2-SNAPSHOT", "date": "2026-10-05", "title": "Snapshot", "fromCommit": "aaaaaaa",
+         "toCommit": "bbbbbbb", "sections": [{"type": "added", "items": ["früh"]}]}
+      ]}
+      """.trimIndent()
+    )
+    val adoc = GenerateChangelogMain.groupToAdoc(GenerateChangelogMain.groups(root).single(), 3, GenerateChangelogMain.SITE_DE)
+    listOf(
+      "// Generated from changelog/changelog.json and changelog/changelog.de.json by GenerateChangelogMain — do not edit.",
+      "Neu in ProjectForge 9: <<release-r0,ProjectForge 9.0.0>> ↓",
+      "=== Update veröffentlicht",
+      "__2026-10-07, Tag https://github.com/micromata/projectforge/tree/9.0.1-RELEASE[9.0.1-RELEASE]__",
+      "SHA-256 von projectforge-application-9.0.1.jar:",
+      ".Überblick",
+      ".Alle Änderungen",
+      ".Entwicklungs-Snapshots (1)",
+      "__2026-10-05, Snapshot-Build https://github.com/micromata/projectforge/commit/bbbbbbb[develop@bbbbbbb], " +
+        "https://github.com/micromata/projectforge/compare/aaaaaaa..bbbbbbb[Änderungen seit aaaaaaa]__",
+    ).forEach { assertTrue(adoc.contains(it), "Missing in the German page: $it\n$adoc") }
+    listOf("What's new", ".Overview", ".All changes", "snapshot build", ", tag ").forEach {
+      assertFalse(adoc.contains(it), "English label '$it' in the German page:\n$adoc")
+    }
+    val page = GenerateChangelogMain.postsPage(root["releases"].filter { it["tag"] != null }, GenerateChangelogMain.SITE_DE)
+    assertTrue(page.contains("permalink: /de/changelog-posts/"), page)
+    assertTrue(page.contains("Aktuelles Release: **ProjectForge 9.0.1** (2026-10-07, Tag "), page)
   }
 
   @Test

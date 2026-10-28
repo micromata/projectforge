@@ -159,9 +159,9 @@ class OutgoingInvoiceKostZuweisungSaveTest : AbstractTestBase() {
             }
             Kost2DO().also {
                 it.projekt = project
-                it.nummernkreis = project.nummernkreis
+                it.nummernkreis = project.nummernkreis!!
                 it.bereich = project.bereich!!
-                it.teilbereich = project.nummer
+                it.teilbereich = project.teilbereich!!
                 it.kost2Art = art
                 kost2Dao.insert(it, checkAccess = false)
             }

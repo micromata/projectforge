@@ -40,6 +40,10 @@ class BankAccount(
   var minimalAccessUsers: List<User>? = null,
   var importSettings: String? = null,
 ) : BaseDTO<BankAccountDO>(id = id) {
+  /**
+   * Read only: the help on [importSettings] (markdown), with the current settings of every importable field.
+   */
+  var importSettingsHelp: String? = null
 
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyFrom(src: BankAccountDO) {

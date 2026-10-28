@@ -127,6 +127,25 @@ export async function markAsDeleted(
   }
 }
 
+/**
+ * Deletes a non-historized entity for good (`RestPaths.DELETE`) — the backend refuses [markAsDeleted]
+ * for one (a data transfer area, a memo), so this is its cleanup.
+ */
+export async function deleteEntity(
+  request: APIRequestContext,
+  entity: string,
+  id: number
+): Promise<void> {
+  const data = await fetchEntity<Record<string, unknown>>(request, entity, id);
+  const res = await request.delete(`/rs/${entity}/delete`, {
+    headers: await writeHeaders(request),
+    data: { data },
+  });
+  if (!res.ok()) {
+    throw new Error(`Could not delete ${entity} ${id}: HTTP ${res.status()}`);
+  }
+}
+
 /** Reads an entity back as its page's DTO — what a write has to be given in full. */
 export async function fetchEntity<T>(
   request: APIRequestContext,
@@ -440,17 +459,27 @@ export interface SeededCustomer {
  * undeleted and renamed first ([recycleCustomer]). Only without one is a free number probed, descending
  * from 999: the high end of the range is the part a real chart of accounts is least likely to use. A
  * taken number is answered by the next candidate; anything else fails at once.
+ *
+ * `pool` is the probed numbers, highest first: the number ranges specs need customers of another number
+ * range (see number-ranges.spec.ts). `recycle: false` takes a fresh number, for a recycled customer
+ * whose project numbers are used up.
  */
 export async function createCustomer(
   request: APIRequestContext,
-  suffix = uniqueSuffix()
+  suffix = uniqueSuffix(),
+  {
+    pool = CUSTOMER_POOL,
+    recycle = true,
+  }: { pool?: CustomerPool; recycle?: boolean } = {}
 ): Promise<SeededCustomer> {
   const name = `${MARKER} customer ${suffix}`;
-  const recycled = await recycleCustomer(request, name);
+  const recycled = recycle
+    ? await recycleCustomer(request, name, pool)
+    : undefined;
   if (recycled) {
     return { ...recycled, suffix };
   }
-  for (let nummer = 999; nummer >= 900; nummer--) {
+  for (let nummer = pool.high; nummer >= pool.low; nummer--) {
     try {
       const id = await insert(request, "customer", {
         nummer,
@@ -468,9 +497,18 @@ export async function createCustomer(
     }
   }
   throw new Error(
-    "Could not find a free customer number in 900..999 — see KundeDao.onInsertOrModify."
+    `Could not find a free customer number in ${pool.low}..${pool.high} — see KundeDao.onInsertOrModify.`
   );
 }
+
+/** Customer numbers probed by [createCustomer], from `high` down to `low`. */
+export interface CustomerPool {
+  high: number;
+  low: number;
+}
+
+/** The default pool: the top of the former customer range 0-999 (number range 5). */
+export const CUSTOMER_POOL: CustomerPool = { high: 999, low: 900 };
 
 /**
  * Undeletes a deleted customer of the tests' own in the probed range and gives it `name`, or answers
@@ -481,9 +519,10 @@ export async function createCustomer(
  */
 async function recycleCustomer(
   request: APIRequestContext,
-  name: string
+  name: string,
+  pool: CustomerPool
 ): Promise<Omit<SeededCustomer, "suffix"> | undefined> {
-  for (let nummer = 999; nummer >= 900; nummer--) {
+  for (let nummer = pool.high; nummer >= pool.low; nummer--) {
     const res = await request.get(`/rs/customer/${nummer}`, {
       headers: { "X-PF-Frontend": "next" },
     });
@@ -521,7 +560,10 @@ async function recycleCustomer(
 
 export interface SeededProject {
   id: number;
-  /** The project's two digits, unique within its customer. */
+  /**
+   * The project's local number, unique within its customer (two digits in number range 5); the project
+   * number itself without number range.
+   */
   nummer: number;
   name: string;
   /** The run's own suffix, the one word of the name that hits this run only. */
@@ -536,14 +578,19 @@ export interface SeededProject {
  * by `ProjectEntityRest.validate`), so it is probed descending from 99 like the customer's own. The
  * customer is the run's seeded one, so the first candidate is free unless an earlier test of the same
  * worker took it. The status stays unset (NONE), so the project is in the default "not ended" list.
+ *
+ * `maxLocal` is the highest local number of the customer's number range (99 for range 5). Without a
+ * number range the backend assigns the next free project number, which is the local number then, too
+ * (`ProjektDao.assignProjektnummer`), so `nummer` is read back.
  */
 export async function createProject(
   request: APIRequestContext,
   customer: SeededCustomer,
-  suffix = uniqueSuffix()
+  suffix = uniqueSuffix(),
+  maxLocal = 99
 ): Promise<SeededProject> {
   const name = `${MARKER} project ${suffix}`;
-  for (let nummer = 99; nummer >= 0; nummer--) {
+  for (let nummer = maxLocal; nummer >= 0; nummer--) {
     try {
       const id = await insert(request, "project", {
         nummer,
@@ -551,7 +598,12 @@ export async function createProject(
         customer: { id: customer.id },
         description: `${MARKER} project ${suffix}`,
       });
-      return { id, nummer, name, suffix, customer };
+      const stored = await fetchEntity<{ nummer: number }>(
+        request,
+        "project",
+        id
+      );
+      return { id, nummer: stored.nummer, name, suffix, customer };
     } catch (cause) {
       if (!/Number already exists|Nummer bereits/i.test(String(cause))) {
         throw cause;
@@ -583,13 +635,16 @@ export async function findProjectWithCustomer(
   });
   if (!res.ok()) return null;
   const body = (await res.json()) as {
-    resultSet?: { name?: string; customer?: unknown }[];
+    resultSet?: { name?: string; customer?: unknown; status?: string }[];
   };
   // Not one of the tests' own: the customer lane marks its seeded project deleted while other
-  // lanes run, so the pick could vanish from the autocomplete between search and click.
+  // lanes run, so the pick could vanish from the autocomplete between search and click. Not an ended
+  // one either: the autocomplete leaves those out unless asked for inactive entries
+  // (`ProjectEntityRest.isInactiveAutoCompleteEntry`).
   const project = (body.resultSet ?? []).find(
     (row) =>
       row.customer != null &&
+      row.status !== "ENDED" &&
       (row.name?.length ?? 0) >= 2 &&
       !row.name!.startsWith(MARKER)
   );
@@ -597,7 +652,7 @@ export async function findProjectWithCustomer(
   // `EntityAutocomplete` has `minChars = 2` and asks the backend for nothing shorter, so a
   // one-letter term would look like "no project matched". The full name is the most selective term
   // available and keeps the pick unambiguous — without the characters the autosearch reads as query
-  // syntax: a name like "KCE (myDHL Express)" taken literally matches nothing, its words do.
+  // syntax: a name like "ACME (Express Service)" taken literally matches nothing, its words do.
   const searchTerm = project.name
     .replace(/[+\-!(){}[\]^"~*?:\\/&|]/g, " ")
     .replace(/\s+/g, " ")

@@ -1,5 +1,5 @@
 /**
- * The subscription links of ProjectForge's own calendar feeds (`CalendarSubscriptionInfoPageRest.getInfo`):
+ * The subscription links of ProjectForge's own calendar feeds (`CalendarSubscriptionInfoRest.getInfo`):
  * the logged-in user's time sheets, the holidays and the weeks of year. Each url carries the user's
  * personal, encrypted token, hence the security advice that comes with it.
  */
@@ -16,8 +16,8 @@ export type CalendarSubscriptionType =
 export interface CalendarSubscriptionInfo {
   headline?: string;
   url?: string;
-  /** Root-relative url of the QR code image; the text to encode goes into its `text` parameter. */
-  barcodeUrl?: string;
+  /** The QR code of [url] as data url (the url carries the token, so it is never part of an image url). */
+  qrCode?: string;
   securityAdviseHeadline?: string;
   securityAdvise?: string;
   /**
@@ -25,6 +25,8 @@ export interface CalendarSubscriptionInfo {
    * where [url] includes them.
    */
   urlWithoutExportedReminders?: string;
+  /** The QR code of [urlWithoutExportedReminders] as data url. */
+  qrCodeWithoutExportedReminders?: string;
   /** Whether the reminders are exported by default (owner, full and read-only access). */
   remindersExportDefaultValue?: boolean;
 }

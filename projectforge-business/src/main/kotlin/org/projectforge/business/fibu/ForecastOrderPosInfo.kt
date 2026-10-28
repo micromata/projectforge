@@ -146,6 +146,16 @@ class ForecastOrderPosInfo(
         weightedNetSumWithoutPaymentSchedule = weightedNetSum - sumPaymentSchedule
         if (weightedNetSumWithoutPaymentSchedule.compareTo(BigDecimal.ZERO) != 0) {
             // handle diff
+            val overdueMonth = overdueMonth
+            if (overdueMonth != null) {
+                // Completed, but not (fully) invoiced after the performance period: nothing to distribute, it is to
+                // be invoiced right now.
+                val value = minOf(weightedNetSumWithoutPaymentSchedule, toBeInvoicedSum)
+                if (value.abs() > BigDecimal.ONE) { // Ignore rounding errors.
+                    setMonthValue(overdueMonth, value)
+                }
+                return
+            }
             when (orderPosInfo.paymentType) {
                 AuftragsPositionsPaymentType.FESTPREISPAKET -> { // fill rest at end of project time
                     val month = months.last()
@@ -418,6 +428,23 @@ class ForecastOrderPosInfo(
     val orderPosString: String
         get() = "$orderNumber.$orderPosNumber"
 
+    /**
+     * For a completed, still open position ([ForecastUtils.isCompletedAndOpen]) whose performance period (including the
+     * following month for retroactive forecast types) ended before the base month: the first month of the forecast, in
+     * which the rest still has to be invoiced. Null otherwise.
+     */
+    private val overdueMonth: PFDay?
+        get() {
+            if (!ForecastUtils.isCompletedAndOpen(orderInfo, orderPosInfo, baseMonth)) {
+                return null
+            }
+            val forecastType = ForecastUtils.getForecastType(orderInfo, orderPosInfo)
+            val lastPerformanceMonth = periodOfPerformanceEnd.beginOfMonth
+            val first = if (forecastType == AuftragForecastType.CURRENT_MONTH) baseMonth else baseMonth.plusMonths(1)
+            val end = if (forecastType == AuftragForecastType.CURRENT_MONTH) lastPerformanceMonth else lastPerformanceMonth.plusMonths(1)
+            return if (end < baseMonth) first else null
+        }
+
     private fun createMonths() {
         var month = periodOfPerformanceBegin.beginOfMonth
         var monthUntil = periodOfPerformanceEnd.beginOfMonth
@@ -425,6 +452,7 @@ class ForecastOrderPosInfo(
             // Add one more month, because the forecast revenue is in the following month, so one month after end of performance period.
             monthUntil = monthUntil.plusMonths(1)
         }
+        overdueMonth?.let { if (it > monthUntil) monthUntil = it }
         val lastScheduleDate = PFDay.fromOrNull(paymentSchedules.maxOfOrNull { it.scheduleDate ?: LocalDate.MIN })
         if (lastScheduleDate != null && lastScheduleDate > monthUntil) {
             monthUntil = lastScheduleDate

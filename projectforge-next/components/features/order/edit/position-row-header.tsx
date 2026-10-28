@@ -1,6 +1,5 @@
 "use client";
 
-import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Calculator01Icon, Invoice01Icon } from "@hugeicons/core-free-icons";
@@ -21,6 +20,7 @@ import { TaskChip } from "@/components/shared/tasks/task-chip";
 import type { OrderPositionValues } from "../order-schema";
 import type { OrderPositionSums } from "@/lib/rs/order";
 import type { PositionInvoiceInfo } from "../types";
+import { InvoiceNumber } from "./invoice-number";
 
 const p = fromMetadata(AUFTRAGS_POSITION_METADATA);
 
@@ -218,22 +218,10 @@ export function PositionRowHeader({
                 size={12}
                 className="text-muted-foreground"
               />
-              {canOpenInvoice ? (
-                /* `/invoice/{id}`, not `/outgoingInvoice/edit/{id}`: the generic route answers
-                   notFound() for a hand-built entity. Guarded, as in position-invoices.tsx: this
-                   link sits inside the order's own form and leads out of it. */
-                <GuardedLink
-                  href={`/invoice/${invoice.id}`}
-                  className="text-primary underline-offset-2 hover:underline"
-                  aria-label={`${t("fibu.rechnung._")} ${invoice.nummer}`}
-                >
-                  {invoice.nummer}
-                </GuardedLink>
-              ) : (
-                /* No select access on outgoing invoices: the number is shown, but not as a link the
-                   invoice page would refuse to open (see position-invoices.tsx). */
-                <span>{invoice.nummer}</span>
-              )}
+              <InvoiceNumber
+                invoice={invoice}
+                canOpenInvoice={canOpenInvoice}
+              />
             </span>
           </HintTooltip>
         )),

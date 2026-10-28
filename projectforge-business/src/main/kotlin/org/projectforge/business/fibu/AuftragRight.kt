@@ -24,14 +24,11 @@
 package org.projectforge.business.fibu
 
 import org.apache.commons.collections4.CollectionUtils
-import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.user.*
-import org.projectforge.business.user.UserGroupCache.Companion.getInstance
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.web.WicketSupport
-import java.time.LocalDate
 
 /**
  * User [UserRightValue.PARTLYREADWRITE] for users who are members of FIBU_ORGA_GROUPS **and** of
@@ -64,6 +61,8 @@ class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
      * nicht älter ca. 5 Jahre (ca. 1800 Tage) ist. <br></br>
      * Ebenso sehen Projektmanager und Projektassistenten einen Auftrag analog zu einer Kontaktperson, sofern sie Mitglied
      * der ProjektManagerGroup des zugordneten Projekts sind. <br></br>
+     * Read access only: project managers and assistants also see the orders an order access grant gives them
+     * ([org.projectforge.business.fibu.customergroup.OrderAccessGrant], see [OrderSelectAccess]). <br></br>
      * Nur Mitglieder der FINANCE_GROUP dürfen für Aufträge das Flag "vollständig fakturiert" ändern.
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.hasAccess
@@ -72,7 +71,6 @@ class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
         user: PFUserDO, obj: AuftragDO?, oldObj: AuftragDO?,
         operationType: OperationType
     ): Boolean {
-        val userGroupCache = getInstance()
         val accessChecker = WicketSupport.getAccessChecker()
         if (operationType == OperationType.SELECT) {
             if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP)) {
@@ -151,36 +149,15 @@ class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
         ) {
             // No further access checking (but not for users with right PARTLY_READWRITE.
         } else if (obj != null) {
-            // User should be a PROJECT_MANAGER or PROJECT_ASSISTANT or user has PARTLYREADWRITE access:
-            var hasAccess = false
-            // The contact person and the additional contacts alike.
-            if (obj.isContact(user.id)) {
-                hasAccess = true
+            // User should be a PROJECT_MANAGER or PROJECT_ASSISTANT or user has PARTLYREADWRITE access: tied to the
+            // order, or granted it for reading only.
+            val includeGrants = operationType == OperationType.SELECT
+            if (!OrderSelectAccess.hasAccess(user, OrderAccessFacts.of(obj), includeGrants)) {
+                return false
             }
-            obj.projekt?.let { projektRef ->
-                // The next/REST layer checks this against the posted order, whose projekt is a stub
-                // carrying only its id (Auftrag.copyTo), so its projektManagerGroup and the two managers
-                // are null there. Resolve the full project from the cache by id, or the project manager
-                // access path would silently fail in the next frontend while it works from Wicket's fully
-                // loaded entity (contact person still matches, as it is compared by id alone).
-                val projekt = ProjektCache.instance.getProjekt(projektRef.id) ?: projektRef
-                if (userGroupCache.isUserMemberOfGroup(user.id, projekt.projektManagerGroupId)
-                    || projekt.headOfBusinessManagerId == user.id
-                    || projekt.salesManagerId == user.id
-                ) {
-                    hasAccess = true
-                }
-            }
-            if (hasAccess) {
-                if (!AuftragsCache.instance.isVollstaendigFakturiert(obj)) {
-                    return true
-                }
-                (obj.periodOfPerformanceEnd ?: obj.angebotsDatum)?.let { endDate ->
-                    val days = LocalDate.now().toEpochDay() - endDate.toEpochDay()
-                    return days <= MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER
-                }
-            }
-            return false
+            // On update and delete the stored order decides as well, not only the posted one: otherwise anybody
+            // could take over a foreign order by posting it with the own project or as its contact person.
+            return oldObj == null || OrderSelectAccess.hasAccess(user, OrderAccessFacts.of(oldObj), includeGrants)
         }
         return true
     }

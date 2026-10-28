@@ -27,6 +27,7 @@ import java.security.MessageDigest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.integration.SyncStatsRegistry
 import org.projectforge.gateway.sync.dto.SyncAddressDto
+import org.projectforge.gateway.sync.dto.SyncDataTransferAreaDto
 import org.projectforge.gateway.sync.dto.SyncFavoritesDto
 import org.projectforge.gateway.sync.dto.SyncGroupDto
 import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
@@ -115,6 +116,23 @@ class GatewaySyncController(
         }
         log.info { "Receiving sync: favorites of ${favorites.size} users" }
         val result = measure("favorites") { gatewaySyncService.syncFavorites(favorites) }
+        return ResponseEntity.ok(result)
+    }
+
+    /**
+     * The complete list of the main instance's areas with external access: areas pushed before and missing here
+     * are marked as deleted.
+     */
+    @PostMapping("/datatransferareas")
+    fun syncDataTransferAreas(
+        @RequestHeader("X-Gateway-Secret") secret: String,
+        @RequestBody areas: List<SyncDataTransferAreaDto>,
+    ): ResponseEntity<Any> {
+        if (!authenticateSecret(secret)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        }
+        log.info { "Receiving sync: ${areas.size} data transfer areas" }
+        val result = measure("datatransferareas") { gatewaySyncService.syncDataTransferAreas(areas) }
         return ResponseEntity.ok(result)
     }
 

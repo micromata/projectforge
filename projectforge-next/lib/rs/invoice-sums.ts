@@ -39,6 +39,11 @@ export interface InvoiceSums {
   kostZuweisungenFehlbetrag?: number | null;
   bezahlt?: boolean | null;
   ueberfaellig?: boolean | null;
+  /**
+   * Incoming invoice only: overdue, or due within 2 working days (`RechnungInfo.isMarkedOverdue`) — what
+   * its form shows as overdue. Holidays aware, so it comes from here rather than from the dates.
+   */
+  markedOverdue?: boolean | null;
   positions?: InvoicePositionSums[] | null;
 }
 

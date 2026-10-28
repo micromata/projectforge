@@ -22,6 +22,12 @@ export const TASK_ROUTE = "/task";
 export const TASK_WIZARD_ROUTE = "/taskWizard";
 
 /**
+ * Route of the project wizard, which sets up customer, project, structure element, groups and their
+ * rights in one go. Here for the same reason as [TASK_WIZARD_ROUTE]: the tree's action bar names it.
+ */
+export const PROJECT_WIZARD_ROUTE = "/projectWizard";
+
+/**
  * The element the wizard opens on, as a parameter of its url — how the task's own form starts the
  * wizard for the element on screen (see TASK_PAGE.crossLinks).
  *
@@ -74,6 +80,22 @@ export const TASK_TREE_VIEW_SCOPE = "taskTree";
  */
 export function taskHref(id: number, options?: { returnTo?: string }): string {
   return `${TASK_ROUTE}/${id}${query(options)}`;
+}
+
+/**
+ * The id of the task form's section of the ad hoc booking grants, the anchor a link to it carries (the
+ * form opens the section the url's hash names, see EditPageShell).
+ */
+export const TASK_BOOKING_GRANTS_SECTION = "bookingGrants";
+
+/**
+ * The url of a task's form opened at its ad hoc booking grants — where the tree's badge of them leads.
+ */
+export function taskBookingGrantsHref(
+  id: number,
+  options?: { returnTo?: string }
+): string {
+  return `${taskHref(id, options)}#${TASK_BOOKING_GRANTS_SECTION}`;
 }
 
 /**

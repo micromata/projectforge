@@ -93,7 +93,7 @@ export interface ViewLabels {
 }
 
 /**
- * All-day event ordering by category (calendar weeks first, then birthdays, holidays, vacations, then
+ * All-day event ordering by category (calendar weeks first, then birthdays, holidays, vacations, availabilities, then
  * the rest). Lower rank sorts higher in the all-day row. The categories are `FullCalendarEvent.Category`
  * strings, carried in each event's `extendedProps.category`.
  */
@@ -102,6 +102,7 @@ const ALL_DAY_CATEGORY_RANK: Readonly<Record<string, number>> = {
   address: 1, // birthdays
   holiday: 2,
   vacation: 3,
+  availability: 4,
 };
 /** Categories not in {@link ALL_DAY_CATEGORY_RANK} (teamEvent, calEvent, timesheet) sort after the ranked ones. */
 const UNRANKED_CATEGORY = 100;

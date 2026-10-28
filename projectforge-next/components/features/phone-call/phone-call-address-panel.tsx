@@ -3,9 +3,11 @@
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SmartPhone01Icon, TelephoneIcon } from "@hugeicons/core-free-icons";
+import { DialogFrame } from "@/components/shared/dialog-frame";
 import { SectionCard } from "@/components/shared/section-card";
 import { Button } from "@/components/ui/button";
 import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
+import { cn } from "@/lib/utils";
 import type { AddressInfo, AddressPhoneNumber } from "./types";
 
 type Translate = ReturnType<typeof useTranslations>;
@@ -42,18 +44,28 @@ function isMobile(phoneType: AddressPhoneNumber["phoneType"]): boolean {
 export function PhoneCallAddressPanel({
   address,
   onPick,
+  inDialog,
 }: {
   address: AddressInfo;
   onPick: (number: string) => void;
+  /** In PhoneCallDialog: a plain column, and the name is no link — the dialog is opened from the address. */
+  inDialog?: boolean;
 }) {
   const t = useTranslations();
-  // The address view still lives in the legacy React app; a plain anchor leaves this app with a full load.
+  // The view of the address (`/next/address/{id}?returnTo=/phoneCall`, see PhoneCallRest.addressInfo).
   const viewHref = toAbsoluteUrl(resolveMenuUrl(address.viewUrl));
+  const Card = inDialog ? DialogFrame : SectionCard;
   return (
-    <SectionCard className="w-full md:w-96 md:shrink-0">
-      <a href={viewHref} className="mb-3 block font-medium hover:underline">
-        {address.fullName}
-      </a>
+    <Card
+      className={cn("w-full md:shrink-0", inDialog ? "md:w-64" : "md:w-96")}
+    >
+      {inDialog ? (
+        <p className="mb-3 font-medium">{address.fullName}</p>
+      ) : (
+        <a href={viewHref} className="mb-3 block font-medium hover:underline">
+          {address.fullName}
+        </a>
+      )}
       <ul className="flex flex-col gap-1">
         {address.numbers.map((entry) => (
           <li key={`${entry.phoneType}-${entry.number}`}>
@@ -81,6 +93,6 @@ export function PhoneCallAddressPanel({
           </li>
         ))}
       </ul>
-    </SectionCard>
+    </Card>
   );
 }

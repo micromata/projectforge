@@ -45,7 +45,7 @@ import org.springframework.mock.web.MockHttpSession
 /**
  * The invariant server-side paging rests on: a paged order list ([getListPage]) is the same result the
  * non-paged `POST list` ([getList]) returns, only cut into pages — same rows, same order, same total. If
- * the two ever drift, the footer's total or a page boundary would lie. See `MIGRATION-list-paging.md`.
+ * the two ever drift, the footer's total or a page boundary would lie. See `dev-docs/next/list-paging.md`.
  */
 class OrderListPageTest : AbstractTestBase() {
     @Autowired

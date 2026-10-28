@@ -1,0 +1,44 @@
+= ProjectForge development documentation
+Micromata GmbH, Version {version}
+:toc:
+:toclevels: 4
+
+:last-update-label: Copyright (C) 2024, Last updated
+
+ifdef::env-github,env-browser[:outfilesuffix: .adoc]
+link:index{outfilesuffix}[Top]
+
+:sectnums:
+
+== How to deploy a new release?
+
+The version is set only by the release script (`gradle.properties`, `version=`). Releases are numbered
+`X.Y.Z`; `X.Y.0` opens a new version and needs a news entry.
+
+1. Write the changelog: `changelog/changelog.json` (English) and its German translation
+   `changelog/changelog.de.json`. The release `X.Y.Z` goes on top of `releases` with the tag `X.Y.Z-RELEASE`.
+2. `bin/pfDev.sh release X.Y.Z`: checks the changelog, sets the version, runs `gen` and the build with all
+   tests, commits and tags `X.Y.Z-RELEASE`, then commits the next `X.Y.(Z+1)-SNAPSHOT`. Nothing is pushed.
+3. `bin/pfDev.sh publish X.Y.Z`: pushes the branch and the tag, and creates the GitHub release with the notes
+   generated from the changelog and the jar attached. It asks before each step.
+4. Docker images, each architecture built natively (docker or podman). Log in first with an organization access
+   token of `micromata`: `podman login docker.io -u micromata` (or `docker login -u micromata`), the token as
+   password. A password doesn't work with 2FA. The token needs *Image Push* on `micromata/projectforge`, and
+   *read public repositories* for pulling the base image `eclipse-temurin`. Without the latter, pull the base
+   image before logging in (`podman pull docker.io/eclipse-temurin:21-jre-jammy`).
+    a. On the arm64 machine (e.g. the Mac): `docker/push-release.sh X.Y.Z arch`. It pushes
+       `micromata/projectforge:X.Y.Z-arm64` and shows the commands for the other machine.
+    b. On the amd64 machine (e.g. a Linux server): `git fetch --tags`, update the branch, then
+       `docker/push-release.sh X.Y.Z arch`. The jar is downloaded from the GitHub release.
+    c. On either machine: `docker/push-release.sh X.Y.Z manifest`. It pushes the multi-arch tags `X.Y.Z` and
+       `latest`.
+    d. Check https://hub.docker.com/r/micromata/projectforge/tags: both architectures, amd64 and arm64.
+
+A mini release without downloads (no jar or docker images) gets `"published": false` in its entry in
+`changelog/changelog.json`. `bin/pfDev.sh publish X.Y.Z` then pushes the branch and the tag and creates a GitHub
+release with the notes of its own changes, without a jar and never marked as latest (the latest GitHub release is
+the download of the website); step 4 is skipped. The release notes of the next published release also contain the
+changes of all unpublished releases since the last published one. For releases already tagged and pushed without a
+GitHub release, `bin/pfDev.sh github-release X.Y.Z...` creates them (oldest first), nothing is pushed.
+
+For testing docker images first, please refer `/docker/README.adoc`.

@@ -34,6 +34,7 @@ import org.projectforge.ProjectForgeApp
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.jcr.FileStoreMigrationService
 import org.projectforge.framework.i18n.I18nHelper
+import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.web.WicketSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -197,6 +198,15 @@ open class PluginAdminService {
         }
     }
 
+    /**
+     * Activates the plugins stored as active by [afterSetup] right away, so a fresh system has them (and their
+     * database migrations) without a restart. Plugins already active (forced by projectforge.plugins.active) are
+     * left alone.
+     */
+    open fun activatePluginsAfterSetup() {
+        initializeActivePlugins(onlyConfiguredActive = true, skipInitialized = true)
+    }
+
     open fun initializeAllPluginsForUnitTest() {
         WicketSupport.register(applicationContext)
         initializeActivePlugins(false)
@@ -220,7 +230,7 @@ open class PluginAdminService {
             }
         }
 
-    private fun initializeActivePlugins(onlyConfiguredActive: Boolean) {
+    private fun initializeActivePlugins(onlyConfiguredActive: Boolean, skipInitialized: Boolean = false) {
         val plugins = allPlugins
         val forced = forcedActivePlugins
         val activatedPluginsByConfig = if (forced != null) {
@@ -243,6 +253,9 @@ open class PluginAdminService {
                 log.info { "Skipping not activated plugin '${plugin.info.name}'." }
                 continue
             }
+            if (skipInitialized && plugin.initialized) {
+                continue
+            }
             log.info { "Processing activated plugin: '${plugin.info.name}'." }
             activatePlugin(plugin)
             activatedCount++
@@ -263,7 +276,8 @@ open class PluginAdminService {
         factory.initializeBean(plugin, plugin.id)
         factory.autowireBean(plugin)
         PluginsRegistry.instance().register(plugin)
-        plugin.init()
+        // The menu entries the plugin registers belong to its feature (see FeatureService).
+        applicationContext.getBean(MenuCreator::class.java).registeringPlugin(plugin.id) { plugin.init() }
         // Register the plugin's i18n resource bundles globally, so plugin translations are resolved
         // regardless of whether Wicket is active. Plugin initialization was moved from WicketApplication.init()
         // to the Spring lifecycle (ApplicationReadyEvent), which runs after Wicket servlet init and is skipped
@@ -284,6 +298,8 @@ open class PluginAdminService {
 
     companion object {
         const val PLUGIN_BANKING_ID = "banking"
+        // Not initially activated: a UI prototype with test data so far.
+        const val PLUGIN_CVE_RADAR_ID = "cveradar"
         const val PLUGIN_DATA_TRANSFER_ID = "datatransfer"
         const val PLUGIN_LICENSE_MANAGEMENT_ID = "licenseManagementPlugin"
         // Must match the id used by LiquidityPlanningPlugin's constructor:
