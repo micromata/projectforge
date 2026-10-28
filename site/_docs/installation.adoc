@@ -343,5 +343,6 @@ Before every update, please also have a look at the link:/docs/migration/[Migrat
 
 == Supported Java versions
 
-ProjectForge is compiled for Java 17 and runs on Java 17 or newer. We run it in production on Java 21. From version
+ProjectForge is compiled for Java 17 and runs on Java 17 or newer. We run it in production on Java 21. 9.1.x is the last
+release that runs on Java 17 (and supports the JCR), later releases require Java 21. From version
 9.0.6 on, our Docker image is based on Eclipse Temurin 21 (JRE). With Docker, you don't need to install Java at all.

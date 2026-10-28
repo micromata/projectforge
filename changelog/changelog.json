@@ -1,6 +1,48 @@
 {
   "releases": [
     {
+      "id": "9-1-0",
+      "version": "9.1.0",
+      "date": "2026-10-28",
+      "title": "ProjectForge 9.1: new file store, chat, more pages migrated, last release with JCR and Java 17",
+      "tag": "9.1.0-RELEASE",
+      "downloadLink": true,
+      "sha256": "4a44437a42a8bdfaeaef8ca915d4edd0635b16cd4a5a83bcb53f5854fe31e743",
+      "intro": [
+        "ProjectForge 9.1 sums up all 9.0.x builds since 9.0.0: a file store in the database replacing the JCR, a chat, many pages migrated to the new interface, contribution margins per order and structure element, notifications, a system dashboard and a lot of security hardening.",
+        "{red}**Last release with JCR and Java 17**{/red} - 9.1.x is the last line that runs on Java 17 and supports the JCR (Apache Oak). Releases from 9.2 on have no JCR any more, the files are kept in the database and in the file system. **If you still use the JCR, migrate with 9.1.x first** (`projectforge.files.store=db`, check the report), before you update to 9.2 or later. See the admin guide, \"Moving the files out of the JCR\".",
+        "**Before updating** - Back up the database (and the JCR, if you still use it); its schema is migrated automatically at the first start."
+      ],
+      "summary": [
+        "{red}**Last release with JCR and Java 17**{/red}: migrate the JCR with 9.1.x before updating to 9.2+",
+        "**New file store** in the database replacing the JCR",
+        "**Chat**: rooms, direct messages, confidential conversations, files, avatars, data transfer chats",
+        "**Contribution margin** per order and structure element, **forecast** and **customer wizard**",
+        "**Security hardening**: stricter access checks, CSP, CSRF for every session, `config.xml` replaced by configuration parameters",
+        "More pages migrated: users, addresses, vacation, employees, banking, polls, contracts and more"
+      ],
+      "overview": [
+        "**JCR and Java 17:** 9.1.x is the last release that supports the JCR and runs on Java 17. Migrate the files with 9.1.x before updating to 9.2 or later, which require Java 21 (the Docker image already is based on it).",
+        "**File store:** with `projectforge.files.store=db` all files are stored in the database (schema `pf_files`), data transfer files in the file system, compressed and optionally encrypted at rest; the JCR files are copied in the background and verified by size and checksum, with a report. Backups: a main dump plus a dump of the files.",
+        "**Chat:** rooms and direct messages with formatting, files, threads, mentions, quotes, search, avatars, end-to-end encrypted confidential conversations and a chat in every data transfer area.",
+        "**Statistics:** contribution margin per order and structure element with a bubble chart, faster forecast and contribution margin, rearrangeable chart tiles, forecast snapshot date, liquidity forecast with a free number of days.",
+        "**Customers and projects:** customer wizard, projects independent of cost units with configurable number ranges, project contacts instead of fixed roles, project groups, order access of project managers per customer, customer group or business unit, new user right Customers.",
+        "**Time sheets and vacation:** book several days at once, ad hoc bookings, no overlaps on the same cost 2, vacation booked as time sheets automatically, availability entries, team vacation calendar.",
+        "**Migrated to the new interface:** users, team calendars, addresses and campaigns, leave applications and account, employees, scripts, polls, contracts, banking, visitor book, memos, Merlin templates, my account and more; the former React interface is removed.",
+        "**Notifications and operations:** rules notifying in the app, by mail and SMS, a system dashboard with scheduler and caches, an admin log viewer and an editor for `projectforge.properties`; `config.xml` is replaced by configuration parameters.",
+        "**Security:** stricter access checks, Content Security Policy, CSRF check for every changing request, POST only for changes, brute force protection for password changes, optional second factor on more pages.",
+        "**Search and usability:** search ignores accents and umlaut spellings, selection boxes without inactive entries and name matches first, a German version of the website."
+      ],
+      "sections": [
+        {
+          "type": "changed",
+          "items": [
+            "9.1.x is the last release that runs on Java 17 and supports the JCR (Apache Oak). From 9.2 on there is no JCR any more and Java 21 is required. Installations still using the JCR have to migrate their files with 9.1.x first (admin guide, \"Moving the files out of the JCR\"); a JCR backup ZIP can't be imported by later releases."
+          ]
+        }
+      ]
+    },
+    {
       "id": "9-0-19",
       "version": "9.0.19",
       "date": "2026-10-28",
