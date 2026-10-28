@@ -972,12 +972,18 @@
       "nextUnread": "Jump to the next unread message ({arg0} unread)",
       "notFound": "The conversation doesn't exist or isn't accessible.",
       "polling": "Live updates interrupted, new messages are checked periodically.",
+      "pollingLabel": "Delayed",
       "readOnly": "This conversation is read-only.",
       "unmute": "Unmute"
     },
     "dataTransfer": {
       "_": "Data transfer",
-      "empty": "No chats in data transfer areas yet: every area is a chat room for everybody with access to it."
+      "empty": "No chats in data transfer areas yet: every area is a chat room for everybody with access to it.",
+      "open": "Go to the data transfer area"
+    },
+    "description": {
+      "hide": "Hide description",
+      "show": "Show description"
     },
     "direct": {
       "_": "Direct messages",
@@ -1109,7 +1115,22 @@
       "action": "Confidential conversation",
       "alert": {
         "allowNotifications": "Allow browser notifications",
+        "log": "Last signals",
+        "logBlocked": "Silent (blocked by the browser)",
+        "logClear": "Clear",
+        "logEmpty": "Nothing signalled yet.",
+        "logMuted": "Silent (sound switched off)",
+        "logRang": "Rang",
+        "logSecretOffer": "Confidential conversation offered by {arg0}",
+        "notificationsDenied": "Browser notifications are blocked for this site. They can be allowed again in the site settings of the browser.",
+        "notificationsStatus": "Browser notifications:",
+        "settings": "Sound and notifications",
         "sound": "Sound when a confidential conversation is offered",
+        "statusDefault": "not asked yet",
+        "statusDenied": "blocked",
+        "statusGranted": "allowed",
+        "statusUnsupported": "not supported by this browser",
+        "testSound": "Test sound",
         "title": "{arg0}: confidential conversation"
       },
       "close": "Close",
@@ -1128,6 +1149,10 @@
       "fingerprint": "Fingerprint",
       "info": "End-to-end encrypted: texts are encrypted in one browser and decrypted only in the other. ProjectForge relays them without being able to read them and stores nothing. Both have to be online; the conversation ends when one side ends or leaves it, after 10 minutes without a message and after 2 hours at the latest.",
       "limit": "This protects against database backups, logs and administrators looking into data. Compare the fingerprint on both sides, e.g. by phone: if it differs, a manipulated server is involved. It does not protect the screen or the clipboard of either side.",
+      "new": "Encrypted chat",
+      "newInfo": "Choose the person to start an end-to-end encrypted conversation with. Anybody shown in the user selection can be asked.",
+      "newTooltip": "Starts an end-to-end encrypted conversation with one person. Nothing is stored, and both have to be online.",
+      "next": "Next",
       "offered": "{arg0} wants to start a confidential conversation.",
       "read": "Read",
       "receiveTitle": "Confidential conversation with {arg0}",
@@ -1442,7 +1467,7 @@
           "noRevenue": "no revenue",
           "others": {
             "_": "Show other projects anonymously",
-            "tooltip": "Also shows, for comparison, the projects the filter selects (e.g. all of a business unit) whose contribution margin you may not see: pale, without names, grouped the same way."
+            "tooltip": "Also shows, for comparison, the projects the business unit and customer filter select (e.g. all of a business unit), ignoring the project filter, whose contribution margin you may not see: pale, without names, grouped the same way."
           },
           "own": "Own projects",
           "projectCount": "Projects",
@@ -2822,12 +2847,6 @@
     "female": "female",
     "male": "male",
     "unknown": "unknown"
-  },
-  "goreact": {
-    "menu": {
-      "classics": "Old version",
-      "classicsInfo": "The old version will be removed shortly."
-    }
   },
   "group": {
     "_": "Group",

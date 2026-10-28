@@ -972,12 +972,18 @@
       "nextUnread": "Zur nächsten ungelesenen Nachricht springen ({arg0} ungelesen)",
       "notFound": "Die Unterhaltung gibt es nicht oder sie ist nicht zugänglich.",
       "polling": "Live-Aktualisierung unterbrochen, neue Nachrichten werden regelmäßig abgefragt.",
+      "pollingLabel": "Verzögert",
       "readOnly": "Diese Unterhaltung ist schreibgeschützt.",
       "unmute": "Stummschaltung aufheben"
     },
     "dataTransfer": {
       "_": "Datentransfer",
-      "empty": "Noch keine Chats in Datentransferbereichen: Jeder Bereich ist ein Chatraum für alle mit Zugriff darauf."
+      "empty": "Noch keine Chats in Datentransferbereichen: Jeder Bereich ist ein Chatraum für alle mit Zugriff darauf.",
+      "open": "Zum Datentransferbereich"
+    },
+    "description": {
+      "hide": "Beschreibung ausblenden",
+      "show": "Beschreibung einblenden"
     },
     "direct": {
       "_": "Direktnachrichten",
@@ -1109,7 +1115,22 @@
       "action": "Vertrauliches Gespräch",
       "alert": {
         "allowNotifications": "Browser-Benachrichtigungen erlauben",
+        "log": "Letzte Signale",
+        "logBlocked": "Still (vom Browser blockiert)",
+        "logClear": "Leeren",
+        "logEmpty": "Noch nichts signalisiert.",
+        "logMuted": "Still (Ton ausgeschaltet)",
+        "logRang": "Geklingelt",
+        "logSecretOffer": "Vertrauliches Gespräch angeboten von {arg0}",
+        "notificationsDenied": "Browser-Benachrichtigungen sind für diese Seite blockiert. Das lässt sich in den Seiteneinstellungen des Browsers wieder ändern.",
+        "notificationsStatus": "Browser-Benachrichtigungen:",
+        "settings": "Ton und Benachrichtigungen",
         "sound": "Ton, wenn ein vertrauliches Gespräch angeboten wird",
+        "statusDefault": "noch nicht gefragt",
+        "statusDenied": "blockiert",
+        "statusGranted": "erlaubt",
+        "statusUnsupported": "von diesem Browser nicht unterstützt",
+        "testSound": "Ton testen",
         "title": "{arg0}: vertrauliches Gespräch"
       },
       "close": "Schließen",
@@ -1128,6 +1149,10 @@
       "fingerprint": "Fingerabdruck",
       "info": "Ende-zu-Ende-verschlüsselt: Texte werden in einem Browser verschlüsselt und erst im anderen entschlüsselt. ProjectForge leitet sie weiter, ohne sie lesen zu können, und speichert nichts. Beide müssen online sein; das Gespräch endet, wenn eine Seite es beendet oder verlässt, nach 10 Minuten ohne Nachricht und spätestens nach 2 Stunden.",
       "limit": "Das schützt vor Datenbank-Backups, Logs und Administratoren, die in Daten schauen. Den Fingerabdruck auf beiden Seiten vergleichen, z. B. am Telefon: Weicht er ab, ist ein manipulierter Server im Spiel. Bildschirm und Zwischenablage der Beteiligten sind nicht geschützt.",
+      "new": "Verschlüsselter Chat",
+      "newInfo": "Hier wird die Person gewählt, mit der ein Ende-zu-Ende-verschlüsseltes Gespräch beginnen soll. Angefragt werden kann jede Person, die in der Personenauswahl erscheint.",
+      "newTooltip": "Startet ein Ende-zu-Ende-verschlüsseltes Gespräch mit einer Person. Es wird nichts gespeichert, und beide müssen online sein.",
+      "next": "Weiter",
       "offered": "{arg0} möchte ein vertrauliches Gespräch beginnen.",
       "read": "Gelesen",
       "receiveTitle": "Vertrauliches Gespräch mit {arg0}",
@@ -1442,7 +1467,7 @@
           "noRevenue": "kein Umsatz",
           "others": {
             "_": "Andere Projekte anonym anzeigen",
-            "tooltip": "Zeigt zum Vergleich auch die Projekte, die der Filter auswählt (z. B. alle einer Business Unit), deren Deckungsbeitrag sonst nicht sichtbar ist: blass, ohne Namen, gleich gruppiert."
+            "tooltip": "Zeigt zum Vergleich auch die Projekte, die der Business-Unit- und Kunden-Filter auswählen (z. B. alle einer Business Unit), unabhängig vom Projektfilter, deren Deckungsbeitrag sonst nicht sichtbar ist: blass, ohne Namen, gleich gruppiert."
           },
           "own": "Eigene Projekte",
           "projectCount": "Projekte",
@@ -2822,12 +2847,6 @@
     "female": "weiblich",
     "male": "männlich",
     "unknown": "unbekannt"
-  },
-  "goreact": {
-    "menu": {
-      "classics": "Alte Version",
-      "classicsInfo": "Die alte Version wird in Kürze entfernt."
-    }
   },
   "group": {
     "_": "Gruppe",

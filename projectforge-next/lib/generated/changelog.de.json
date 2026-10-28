@@ -2,18 +2,12 @@
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
   "unreleased" : {
     "id" : "unreleased",
-    "version" : "9.0.18",
-    "date" : "2026-10-27",
+    "version" : "9.0.19",
+    "date" : "2026-10-23",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Optionaler MCP-Prototyp für Lesezugriffe mit OAuth-Freigabe über die bestehende ProjectForge-Browsersitzung, auswählbaren und durch Benutzerrechte begrenzten Scopes, PKCE und an die Sitzung gebundenem Zugriff. KI-Agenten durchsuchen Projekte, Kunden, Aufgaben, Zeitbuchungen, Adressen und Rechnungen mit den Filtern der Listenseiten, lesen einzelne Einträge mit allen Feldern und laden angehängte Dateien herunter.", "Chat: In einer Direktnachricht steht unter der neuesten eigenen Nachricht, die das Gegenüber gelesen hat, \"Gelesen\" mit dessen Avatar." ]
-    }, {
-      "type" : "improved",
-      "items" : [ "Chat: Die Suche bietet auch Benutzer ohne bisherige Direktnachricht an; ein Klick startet die Unterhaltung.", "Chat: der gesamte Emoji-Katalog mit Suche und Kategorien („Weitere Emojis“), erst beim Öffnen geladen, für Reaktionen und über einen neuen Button in der Formatierungsleiste für Nachrichten; das Sirenen-Emoji blinkt, neue Emojis :siren-blue: und :siren-red:.", "Chat: Ein angebotenes vertrauliches Gespräch erreicht den Empfänger jetzt auf jeder Seite, auch in einem Tab im Hintergrund: ein Ton (abschaltbar), ein blinkender Tab-Titel, ein Punkt am Tab-Symbol und, falls erlaubt, eine Browser-Benachrichtigung.", "Datentransfer: Persönliche Boxen stehen immer ganz oben in der Liste, auch bei der Suche nach einem Benutzer." ]
-    }, {
-      "type" : "fixed",
-      "items" : [ "Chat: Das Aktionsmenü einer Nachricht überdeckt nicht mehr die Trennlinie darüber.", "Forecast: Abgeschlossene, noch nicht vollständig fakturierte Aufträge erscheinen wieder in der Statistik und im Excel-Export, mit ihrem offenen Betrag im aktuellen (bzw. Folgemonat)." ]
+      "items" : [ "Optionaler MCP-Prototyp für Lesezugriffe mit OAuth-Freigabe über die bestehende ProjectForge-Browsersitzung, auswählbaren und durch Benutzerrechte begrenzten Scopes, PKCE und an die Sitzung gebundenem Zugriff. KI-Agenten durchsuchen Projekte, Kunden, Aufgaben, Zeitbuchungen, Adressen und Rechnungen mit den Filtern der Listenseiten, lesen einzelne Einträge mit allen Feldern und laden angehängte Dateien herunter." ]
     } ]
   },
   "groups" : [ {
@@ -68,6 +62,25 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-0-19",
+      "version" : "9.0.19",
+      "date" : "2026-10-28",
+      "title" : "ProjectForge 9.0.19 veröffentlicht",
+      "tag" : "9.0.19-RELEASE",
+      "published" : false,
+      "summary" : [ "**Chat**: vollständiger Emoji-Katalog, verschlüsselter Chat aus der Chatliste, Lesebestätigung, Einstellungen für Signale", "Forecast: abgeschlossene, noch nicht fakturierte Aufträge wieder aufgeführt", "Deckungsbeitrags-Bubbles: andere Projekte ignorieren den Projektfilter" ],
+      "overview" : [ "**Chat:** der gesamte Emoji-Katalog mit Suche für Reaktionen und Nachrichten, Nachrichten und Raumbeschreibungen nutzen denselben Rich-Text-Editor (Tabellen, Code, Emojis), ein blinkendes Sirenen-Emoji.", "**Chat:** ein angebotenes vertrauliches Gespräch erreicht den Empfänger auf jeder Seite mit Ton, blinkendem Tab-Titel und Browser-Benachrichtigung; ein Button in der Chatliste startet einen verschlüsselten Chat, ein Zahnrad stellt Ton und Benachrichtigungen ein und zeigt ein Protokoll der letzten Signale.", "**Chat:** \"Gelesen\" mit Avatar unter der neuesten gelesenen Nachricht einer Direktnachricht, die Suche bietet auch Benutzer ohne bisherige Direktnachricht an, Chats von Datentransferbereichen tragen eine Pille zum Bereich, das Aktionsmenü überdeckt die Trennlinie nicht mehr.", "**Forecast:** abgeschlossene, noch nicht vollständig fakturierte Aufträge erscheinen wieder in der Statistik und im Excel-Export.", "**Deckungsbeitrags-Bubbles:** die anonymen anderen Projekte ignorieren den Projektfilter.", "**Datentransfer:** persönliche Boxen stehen immer ganz oben, auch bei der Suche nach einem Benutzer." ],
+      "sections" : [ {
+        "type" : "added",
+        "items" : [ "Chat: Zahnrad in der Chatliste für Ton und Browser-Benachrichtigungen, mit einem Protokoll der letzten Signale (ob der Browser geklingelt hat, wann und warum).", "Chat: In einer Direktnachricht steht unter der neuesten eigenen Nachricht, die das Gegenüber gelesen hat, \"Gelesen\" mit dessen Avatar.", "Chat: Button \"Verschlüsselter Chat\" in der Chatliste, um durch Auswahl einer Person ein Ende-zu-Ende-verschlüsseltes Gespräch zu starten." ]
+      }, {
+        "type" : "improved",
+        "items" : [ "Chat: Chats von Datentransferbereichen sind in der Liste und im Titel mit der Pille \"Datentransfer\" gekennzeichnet, die zum Bereich führt.", "Chat: Die Suche bietet auch Benutzer ohne bisherige Direktnachricht an; ein Klick startet die Unterhaltung.", "Chat: der gesamte Emoji-Katalog mit Suche und Kategorien („Weitere Emojis“), erst beim Öffnen geladen, für Reaktionen und über einen neuen Button in der Formatierungsleiste für Nachrichten; das Sirenen-Emoji blinkt, neue Emojis :siren-blue: und :siren-red:.", "Chat: Ein angebotenes vertrauliches Gespräch erreicht den Empfänger jetzt auf jeder Seite, auch in einem Tab im Hintergrund: ein Ton (abschaltbar), ein blinkender Tab-Titel, ein Punkt am Tab-Symbol und, falls erlaubt, eine Browser-Benachrichtigung.", "Chat: Nachrichten und Raumbeschreibungen nutzen denselben Rich-Text-Editor. Nachrichten können Tabellen enthalten, Raumbeschreibungen Code und Emojis. Die erste Zeile einer Raumbeschreibung wird als Teaser angezeigt, der Rest klappt aus.", "Datentransfer: Persönliche Boxen stehen immer ganz oben in der Liste, auch bei der Suche nach einem Benutzer." ]
+      }, {
+        "type" : "fixed",
+        "items" : [ "Deckungsbeitrags-Bubbles: Die anonymen anderen Projekte ignorieren jetzt den Projektfilter (Business-Unit- und Kunden-Filter gelten weiter) und erscheinen daher auch bei gefiltertem Projekt.", "Chat: Das Aktionsmenü einer Nachricht überdeckt nicht mehr die Trennlinie darüber.", "Forecast: Abgeschlossene, noch nicht vollständig fakturierte Aufträge erscheinen wieder in der Statistik und im Excel-Export, mit ihrem offenen Betrag im aktuellen (bzw. Folgemonat)." ]
+      } ]
+    }, {
       "id" : "9-0-18",
       "version" : "9.0.18",
       "date" : "2026-10-27",
