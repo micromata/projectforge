@@ -146,4 +146,4 @@ ALTER TABLE t_fibu_buchungssatz_kost2_share
 -- DROP TABLE IF EXISTS t_fibu_kost2_reallocation_timesheet;
 -- DROP TABLE IF EXISTS t_fibu_kost2_reallocation_rule;
 -- DROP TABLE IF EXISTS t_fibu_kost2_reallocation;
--- DELETE FROM t_flyway_schema_version WHERE version = '9.0.19.1';
+-- DELETE FROM t_flyway_schema_version WHERE version = '9.0.20.1';
