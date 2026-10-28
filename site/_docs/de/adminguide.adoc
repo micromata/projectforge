@@ -449,6 +449,40 @@ einschließlich des Kontexts eines Logeintrags. Die Zählerstände werden in der
 (`projectforge.support.logAggregation.*` und `projectforge.scheduler.stats.*` in `application.properties`, bereinigt
 durch den täglichen Datenschutz-Job).
 
+[[mcp_server]]
+=== MCP-Server für KI-Agenten (Prototyp)
+
+ProjectForge kann unter `/mcp` einen lesenden MCP-Server (Model Context Protocol) anbieten, über den KI-Agenten wie
+Claude Desktop oder Claude Code Projekte, Kunden, Aufgaben, Zeitbuchungen, Adressen und Rechnungen lesen. Der Agent sieht
+nur, was der Benutzer in ProjectForge sehen darf; ändern kann er nichts.
+
+Der Agent registriert sich selbst und öffnet ProjectForge im Browser (OAuth mit PKCE). Dort meldet sich der Benutzer wie
+gewohnt an (einschließlich des zweiten Faktors) und gibt dem Agenten den Zugriff auf ausgewählte Datenarten frei.
+Datenarten, die der Benutzer nicht lesen darf oder für die sein zweiter Faktor nicht frisch genug ist, werden nicht
+angeboten. Der Zugriff endet mit der Browser-Sitzung, spätestens nach einer Stunde; der Agent fragt dann erneut.
+
+Der Agent sucht in den Daten wie die Listenseiten (Volltext, die Filter der Liste, Sortierung), liest einzelne Einträge
+mit allen Feldern der Bearbeitungsseite und lädt angehängte Dateien herunter (bis 5 MB, keine verschlüsselten). Private
+Daten von Adressen (private Telefonnummern, E-Mail und Anschrift, Geburtstag) gibt er nie heraus.
+
+Grenzen des Prototyps:
+
+- Nur Clients mit einem Callback auf dem eigenen Rechner (`localhost`, `127.0.0.1`, `[::1]`), also Desktop-Apps und
+  Kommandozeilen-Werkzeuge, keine Web-Clients.
+- Tokens werden im Speicher gehalten: Nach einem Neustart von ProjectForge fragen die Agenten die Benutzer erneut.
+- Die Freigabeseite gibt es nur auf Deutsch.
+
+Der MCP-Server ist standardmäßig aus. Die Ressource ist die externe https-URL des Endpunkts; hinter einem Reverse Proxy
+müssen `/mcp`, `/mcp/oauth/` und `/.well-known/oauth-*` an ProjectForge weitergeleitet werden.
+
+.Datei: `projectforge.properties`
+----
+projectforge.mcp.enabled=true
+projectforge.mcp.resource=https://projectforge.acme.com/mcp
+# Optional: behält die von Benutzern freigegebenen Clients über einen Neustart (absoluter Pfad). Standard: nur im Speicher.
+projectforge.mcp.client-registry-file=/home/projectforge/ProjectForge/mcp-clients.properties
+----
+
 [[phone_calls_and_texting_with_projectforge]]
 === Telefonieren und SMS mit ProjectForge
 

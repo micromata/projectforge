@@ -39,6 +39,7 @@ import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.jcr.FileInfo
 import org.projectforge.jcr.RepoService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -239,6 +240,33 @@ class OutgoingInvoicePdfTest : AbstractTestBase() {
     }
 
     /** A minimal but real PDF, so nothing along the way rejects it for its content. */
+    /**
+     * The reads of the MCP server (`org.projectforge.mcp.McpDatasets` in projectforge-application) for an attachment:
+     * the edit page's entry first, then the file's info and content with the access checker of the download route.
+     * Here and not in `McpEntityRestReadsTest`, because it needs this class's JCR repository: a further one per test
+     * class costs the test JVM too much memory.
+     */
+    @Test
+    fun `the MCP reads of an attachment are allowed for the finance user and refused for an ordinary user`() {
+        logon(TEST_FINANCE_USER)
+        val id = insertInvoice("Invoice MCP attachment")
+        val jcrPath = outgoingInvoiceEntityRest.jcrPath!!
+        val checker = outgoingInvoiceEntityRest.attachmentsAccessChecker
+        val fileId = attachmentsService.addAttachment(jcrPath, id, FileInfo("notes.txt"), "Call back".toByteArray(),
+            enableSearchIndex = false, accessChecker = checker).fileId!!
+
+        assertEquals(HttpStatus.OK, outgoingInvoiceEntityRest.getItem(id).statusCode)
+        assertEquals("notes.txt", attachmentsService.getAttachmentInfo(jcrPath, id, fileId, checker)?.name)
+        val (_, content) = attachmentsService.getAttachmentInputStream(jcrPath, id, fileId, checker,
+            baseDao = outgoingInvoiceEntityRest.baseDao)!!
+        assertEquals("Call back", content.use { String(it.readBytes()) })
+
+        logon(TEST_USER)
+        assertThrows<AccessException> { outgoingInvoiceEntityRest.getItem(id) }
+        assertThrows<AccessException> { attachmentsService.getAttachmentInfo(jcrPath, id, fileId, checker) }
+        assertThrows<AccessException> { attachmentsService.getAttachmentInputStream(jcrPath, id, fileId, checker) }
+    }
+
     private fun pdf(name: String): MockMultipartFile {
         return MockMultipartFile("file", name, "application/pdf", "%PDF-1.4\n%%EOF\n".toByteArray())
     }

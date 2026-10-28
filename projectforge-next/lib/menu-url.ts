@@ -37,7 +37,7 @@ export function resolveMenuUrl(url: string | undefined | null): MenuTarget {
     return { kind: "internal", href: `/${rest}` };
   }
 
-  if (path.startsWith(REACT_PREFIX) || path.startsWith(WICKET_PREFIX)) {
+  if (path.startsWith(REACT_PREFIX) || path.startsWith(WICKET_PREFIX) || path.startsWith("mcp/oauth/")) {
     return { kind: "external", href: `/${path}` };
   }
 

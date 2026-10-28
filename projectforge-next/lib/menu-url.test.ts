@@ -165,3 +165,11 @@ describe("toAbsoluteUrl", () => {
     expect(toAbsoluteUrl({ kind: "internal", href: "#" })).toBe("#");
   });
 });
+
+
+describe("MCP authorization return", () => {
+  it("returns to the server endpoint after login without a Next base-path prefix", () => {
+    const url = "/mcp/oauth/authorize?state=abc&client_id=123";
+    expect(toAbsoluteUrl(resolveMenuUrl(sanitizeRedirectUrl(url)))).toBe(url);
+  });
+});
