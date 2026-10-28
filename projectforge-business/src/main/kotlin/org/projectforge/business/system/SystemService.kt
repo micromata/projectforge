@@ -92,7 +92,7 @@ class SystemService {
     }
 
     /**
-     * Search for abandoned tasks, corrupted JCR/Data transfer etc.
+     * Search for abandoned tasks, corrupted data transfer files etc.
      * The result will also be written in the user's personal data transfer box, if plugin data-transfer is enabled.
      */
     fun checkSystemIntegrity(): String {
@@ -101,7 +101,7 @@ class SystemService {
             return internalCheckSystemIntegrity()
         }
         val user = requiredLoggedInUser
-        Thread { // Can't run it in a Kotlin coroutine, because JCR code has something like runInSession.
+        Thread { // Runs in the background, the result is written to the personal box of the user.
             val start = System.currentTimeMillis()
             log.info { "Check system integrity started..." }
             try {

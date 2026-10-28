@@ -40,7 +40,6 @@ version exists, it is in parentheses.
 | mockito-kotlin | 6.4.0 | 6.x | |
 | kotlin-logging | `io.github.oshai` 7.0.6 (develop) | – | out of scope, logging is addressed separately |
 | logback | 1.5.38 | 1.5.38 (Boot 4.1); 1.6.x is optional | |
-| Jackrabbit Oak | 1.92.0 | 2.x (2.6.0) | independent of Spring; storage format must be checked |
 
 Java target stays at 17 for now: Boot 4 still requires only Java 17. If an upgrade fails because of
 Java 17 (a library requiring 21, or Gradle/Kotlin tooling), switch to Java 21 as part of that phase. The
@@ -69,7 +68,7 @@ Counted in `plugins/` and `projectforge-*` (main and test, Kotlin and Java), exc
 Phase 0 (on Boot 3.5, independent, can start now)
    └─> Phase 1: Boot 4 + Spring 7 + Hibernate 7 + Tomcat 11  (still Jackson 2)
           └─> Phase 2: Jackson 3 (+ webauthn4j 0.31)
-                 └─> Phase 3: remaining majors (Flyway, HikariCP, Groovy 5, Oak 2, …)
+                 └─> Phase 3: remaining majors (Flyway, HikariCP, Groovy 5, …)
 ```
 
 Boot 4, Spring 7, Spring Data 4, Hibernate 7, Hibernate Search 8 and Tomcat 11 only fit together and
@@ -132,8 +131,6 @@ Phase 0 (preparations on Boot 3.5: Kotlin 2.3, JUnit 6, Gradle 9, dead code remo
 - [ ] HikariCP 7.
 - [ ] Groovy 5: drop the `extra["groovy.version"]` pin in the application build; user scripts (`ScriptDO` type GROOVY) – run the Groovy test scripts; communicate breaking
       changes to script authors.
-- [ ] Jackrabbit Oak 2.x: check the storage format of the existing repositories (attachments!) and
-      `RepoBackupService` backup/restore before switching.
 - [ ] Optional: logback 1.6, log4j 2.26, mockserver 6+, alphanumeric-comparator 2.0, apacheds 2.0.
 
 ## Kotlin scripting engine (in every phase)
@@ -157,7 +154,7 @@ path (see `JarExtractor.createFixedTempDirectory`). Check for each phase:
 - Fat jar smoke test on a pfDev slot (HSQLDB) and against a production-like PostgreSQL database:
   start incl. Flyway, login (password, passkey/WebAuthn, OAuth2/Keycloak), full-text search (old and new entries),
   list/edit pages of next and React, invoice PDF/ZUGFeRD (Mustang), Excel export (POI), iCal export,
-  CardDAV, Kotlin and Groovy scripting, attachments (JCR/Oak), DATEV import.
+  CardDAV, Kotlin and Groovy scripting, attachments (file store), DATEV import.
 - Compare the dependency tree before and after (`./gradlew :projectforge-application:dependencies
   --configuration runtimeClasspath`) for unwanted downgrades or two versions of the same library.
 

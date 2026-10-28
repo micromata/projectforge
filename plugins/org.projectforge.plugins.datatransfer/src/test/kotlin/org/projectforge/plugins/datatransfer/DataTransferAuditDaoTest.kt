@@ -26,7 +26,7 @@ package org.projectforge.plugins.datatransfer
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
-import org.projectforge.framework.jcr.AttachmentsEventType
+import org.projectforge.framework.files.AttachmentsEventType
 import org.projectforge.framework.time.PFDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.temporal.ChronoUnit

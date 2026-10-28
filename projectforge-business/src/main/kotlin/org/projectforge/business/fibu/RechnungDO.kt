@@ -30,7 +30,7 @@ import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.jcr.AttachmentsInfo
+import org.projectforge.framework.files.AttachmentsInfo
 import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.history.PersistenceBehavior

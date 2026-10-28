@@ -12,8 +12,6 @@ export interface SystemAdminData {
   alertMessageSampleMaintenance: string;
   /** The localized copy&paste new-release-notice sample, with the next full hour and the next release. */
   alertMessageSampleRelease: string;
-  /** True if all files are stored by the file store (`projectforge.files.store=db`), false: JCR. */
-  allFilesInFileStore: boolean;
   /** True if Sipgate is configured: the menu bar offers its actions then. */
   sipgateConfigured: boolean;
 }

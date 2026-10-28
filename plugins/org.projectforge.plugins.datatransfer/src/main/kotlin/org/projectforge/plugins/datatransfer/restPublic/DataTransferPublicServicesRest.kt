@@ -29,10 +29,10 @@ import jakarta.servlet.http.HttpServletResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.NumberOfBytes
 import org.projectforge.framework.api.TechnicalException
-import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsService
-import org.projectforge.jcr.FileInfo
-import org.projectforge.jcr.FileObject
+import org.projectforge.framework.files.Attachment
+import org.projectforge.framework.files.AttachmentsService
+import org.projectforge.files.FileInfo
+import org.projectforge.files.FileObject
 import org.projectforge.login.LoginService
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
@@ -111,7 +111,7 @@ class DataTransferPublicServicesRest {
         }
         val result =
             attachmentsService.getAttachmentInputStream(
-                dataTransferAreaEntityRest.jcrPath!!,
+                dataTransferAreaEntityRest.attachmentsPath!!,
                 id,
                 fileId,
                 attachmentsAccessChecker,
@@ -152,7 +152,7 @@ class DataTransferPublicServicesRest {
             attachmentsAccessChecker,
             area,
             dto.areaName,
-            jcrPath = dataTransferAreaEntityRest.jcrPath!!,
+            attachmentsPath = dataTransferAreaEntityRest.attachmentsPath!!,
             id,
             dto.attachments,
             byExternalUser = getExternalUserString(request, sessionData.userInfo)
@@ -188,7 +188,7 @@ class DataTransferPublicServicesRest {
         val dto = convert(request, area, sessionData.userInfo)
         val fileIdList = fileIds.split(",")
         val attachments = attachmentsService.getAttachments(
-            dataTransferAreaEntityRest.jcrPath!!,
+            dataTransferAreaEntityRest.attachmentsPath!!,
             id,
             attachmentsAccessChecker,
         )
@@ -207,7 +207,7 @@ class DataTransferPublicServicesRest {
             attachmentsAccessChecker,
             area,
             dto.areaName,
-            jcrPath = dataTransferAreaEntityRest.jcrPath!!,
+            attachmentsPath = dataTransferAreaEntityRest.attachmentsPath!!,
             id,
             attachments,
             byExternalUser = getExternalUserString(request, sessionData.userInfo)
@@ -249,7 +249,7 @@ class DataTransferPublicServicesRest {
         }
         val selectedAttachments =
             attachmentsService.getAttachments(
-                dataTransferAreaEntityRest.jcrPath!!,
+                dataTransferAreaEntityRest.attachmentsPath!!,
                 id,
                 attachmentsAccessChecker
             )
@@ -271,7 +271,7 @@ class DataTransferPublicServicesRest {
                     }
                 } else {
                     attachmentsService.deleteAttachment(
-                        dataTransferAreaEntityRest.jcrPath!!,
+                        dataTransferAreaEntityRest.attachmentsPath!!,
                         fileId,
                         dataTransferAreaDao,
                         area,
@@ -318,7 +318,7 @@ class DataTransferPublicServicesRest {
 
         val attachment = file.inputStream.use { inputStream ->
             attachmentsService.addAttachment(
-                dataTransferAreaEntityRest.jcrPath!!,
+                dataTransferAreaEntityRest.attachmentsPath!!,
                 fileInfo = FileInfo(file.originalFilename, fileSize = file.size),
                 inputStream = inputStream,
                 baseDao = dataTransferAreaDao,
@@ -369,7 +369,7 @@ class DataTransferPublicServicesRest {
         }
 
         attachmentsService.deleteAttachment(
-            dataTransferAreaEntityRest.jcrPath!!,
+            dataTransferAreaEntityRest.attachmentsPath!!,
             fileId,
             dataTransferAreaDao,
             area,
@@ -411,7 +411,7 @@ class DataTransferPublicServicesRest {
         }
 
         attachmentsService.changeFileInfo(
-            dataTransferAreaEntityRest.jcrPath!!,
+            dataTransferAreaEntityRest.attachmentsPath!!,
             fileId,
             dataTransferAreaDao,
             area,
@@ -460,7 +460,7 @@ class DataTransferPublicServicesRest {
             ?: return RestUtils.badRequest("File not found.")
         val encrypted = inputStream.use { istream ->
             attachmentsServicesRest.encryptFile(
-                dataTransferAreaEntityRest.jcrPath!!,
+                dataTransferAreaEntityRest.attachmentsPath!!,
                 dataTransferAreaDao,
                 area,
                 attachmentsAccessChecker,
@@ -508,7 +508,7 @@ class DataTransferPublicServicesRest {
 
     private fun getInputStream(area: DataTransferAreaDO, fileId: String): Pair<FileObject, InputStream>? {
         val pair = attachmentsService.getAttachmentInputStream(
-            dataTransferAreaEntityRest.jcrPath!!,
+            dataTransferAreaEntityRest.attachmentsPath!!,
             area.id!!,
             fileId,
             attachmentsAccessChecker,
@@ -552,7 +552,7 @@ class DataTransferPublicServicesRest {
             area.externalDownloadEnabled,
             area.id!!,
             attachmentsService.getAttachments(
-                dataTransferAreaEntityRest.jcrPath!!,
+                dataTransferAreaEntityRest.attachmentsPath!!,
                 area.id!!,
                 attachmentsAccessChecker
             )

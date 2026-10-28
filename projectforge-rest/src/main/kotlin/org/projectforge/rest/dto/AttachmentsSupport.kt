@@ -24,8 +24,8 @@
 package org.projectforge.rest.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsInfo
+import org.projectforge.framework.files.Attachment
+import org.projectforge.framework.files.AttachmentsInfo
 import org.projectforge.framework.utils.NumberHelper
 import jakarta.persistence.Transient
 

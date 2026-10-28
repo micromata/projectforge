@@ -46,7 +46,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.common.BeanHelper
-import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.files.Attachment
 import org.projectforge.framework.json.HibernateProxySerializer
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.entities.GroupDO

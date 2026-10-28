@@ -89,7 +89,7 @@ test.describe("all-filters dialog", { tag: "@isolated" }, () => {
     const dialog = page.getByRole("dialog");
 
     // `attachmentsNames` has no @PropertyInfo; AttachmentsFilterSupport labels it. `attachmentsIds`
-    // (JCR file ids) is index plumbing and not offered at all. (The "more fields" group for fields
+    // (file ids of the file store) is index plumbing and not offered at all. (The "more fields" group for fields
     // without a translation is covered by filter-groups.test.ts — no list has one on every instance.)
     await expect(
       dialog.getByText(format.t("attachment.filter.fileNames"), { exact: true })

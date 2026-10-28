@@ -5,13 +5,13 @@ import { purgeTestAttachments } from "./fixtures/attachments";
 import { createBook, type SeededBook } from "./fixtures/seed";
 
 /**
- * The attachments section of the book edit page, against the live JCR.
+ * The attachments section of the book edit page, against the live file store.
  *
  * Unlike the other book specs this one writes: there is no way to see an upload, a rename or the
  * backend's duplicate check without performing them. Everything it creates it deletes again through
  * the UI, and the file names carry the `pf-e2e-` prefix so a leftover is recognizable.
  *
- * A book of its own (`createBook`): the files go onto a real JCR node, and doing that to a row of the
+ * A book of its own (`createBook`): the files go into the real file store, and doing that to a row of the
  * production copy would mean uploading into a customer's document set.
  */
 

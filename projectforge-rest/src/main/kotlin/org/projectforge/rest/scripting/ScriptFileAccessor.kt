@@ -24,7 +24,7 @@
 package org.projectforge.rest.scripting
 
 import org.projectforge.business.scripting.ScriptDO
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.rest.core.AbstractEntityRest
 
 /**
@@ -36,7 +36,7 @@ class ScriptFileAccessor(
   private val scriptDO: ScriptDO,
 ) {
   val attachments =
-    attachmentsService.getAttachments(scriptPagesRest.jcrPath!!, scriptDO.id!!, scriptPagesRest.attachmentsAccessChecker)
+    attachmentsService.getAttachments(scriptPagesRest.attachmentsPath!!, scriptDO.id!!, scriptPagesRest.attachmentsAccessChecker)
 
   /**
    * Backward compatibility.
@@ -67,7 +67,7 @@ class ScriptFileAccessor(
       throw IllegalArgumentException("File not found under name '$name'.")
     }
     val istream = attachmentsService.getAttachmentInputStream(
-      scriptPagesRest.jcrPath!!,
+      scriptPagesRest.attachmentsPath!!,
       scriptDO.id!!,
       fileId,
       scriptPagesRest.attachmentsAccessChecker

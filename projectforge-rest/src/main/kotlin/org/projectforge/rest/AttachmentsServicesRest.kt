@@ -33,14 +33,14 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.common.ZipMode
 import org.projectforge.common.ZipUtils
-import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsAccessChecker
-import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.Attachment
+import org.projectforge.framework.files.AttachmentsAccessChecker
+import org.projectforge.framework.files.AttachmentsDaoAccessChecker
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.jcr.FileInfo
-import org.projectforge.jcr.FileObject
+import org.projectforge.files.FileInfo
+import org.projectforge.files.FileObject
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -138,14 +138,14 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         val obj = getDataObject(pagesRest, data.id) // Check data object availability.
 
         attachmentsService.changeFileInfo(
-            pagesRest.jcrPath!!, data.fileId, pagesRest.baseDao, obj, attachment.name, attachment.description,
+            pagesRest.attachmentsPath!!, data.fileId, pagesRest.baseDao, obj, attachment.name, attachment.description,
             pagesRest.attachmentsAccessChecker, data.listId
         )
         val actionListener = getListener(category)
         return actionListener.afterModification(
             attachment,
             obj,
-            pagesRest.jcrPath!!,
+            pagesRest.attachmentsPath!!,
             pagesRest.attachmentsAccessChecker,
             listId
         )
@@ -160,7 +160,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         val pagesRest = getPagesRest(data.category, data.listId)
         val obj = getDataObject(pagesRest, data.id) // Check data object availability.
         attachmentsService.deleteAttachment(
-            pagesRest.jcrPath!!,
+            pagesRest.attachmentsPath!!,
             data.fileId,
             pagesRest.baseDao,
             obj,
@@ -170,7 +170,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         val actionListener = getListener(category)
         return actionListener.afterDeletion(
             obj,
-            pagesRest.jcrPath!!,
+            pagesRest.attachmentsPath!!,
             pagesRest.attachmentsAccessChecker,
             data.listId,
         )
@@ -188,7 +188,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         val data = postData.data
         result.inputStream!!.use { istream ->
             encryptFile(
-                pagesRest.jcrPath!!,
+                pagesRest.attachmentsPath!!,
                 pagesRest.baseDao,
                 result.obj!!,
                 pagesRest.attachmentsAccessChecker,
@@ -210,7 +210,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
                         "data",
                         actionListener.createResponseData(
                             obj,
-                            pagesRest.jcrPath!!,
+                            pagesRest.attachmentsPath!!,
                             pagesRest.attachmentsAccessChecker,
                             data.listId
                         )
@@ -242,7 +242,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
      * @return The encrypted file, which replaces the original.
      */
     fun encryptFile(
-        jcrPath: String,
+        attachmentsPath: String,
         baseDao: BaseDao<out ExtendedBaseDO<Long>>,
         obj: ExtendedBaseDO<Long>,
         accessChecker: AttachmentsAccessChecker,
@@ -268,7 +268,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
             }
             val attachment = FileInputStream(tmpFile).use { istream ->
                 attachmentsService.addAttachment(
-                    jcrPath,
+                    attachmentsPath,
                     fileInfo = FileInfo(
                         newFilename,
                         fileSize = tmpFile.length(),
@@ -285,7 +285,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
                 )
             }
             attachmentsService.deleteAttachment(
-                jcrPath,
+                attachmentsPath,
                 fileId,
                 baseDao,
                 obj,
@@ -348,7 +348,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         val obj = getDataObject(pagesRest, data.id) // Check data object availability.
 
         val pair = attachmentsService.getAttachmentInputStream(
-            pagesRest.jcrPath!!, data.id, data.fileId, pagesRest.attachmentsAccessChecker, data.listId
+            pagesRest.attachmentsPath!!, data.id, data.fileId, pagesRest.attachmentsAccessChecker, data.listId
         )
         if (pair?.second == null) {
             log.error { "Can't encrypt zip file. Not found as inputstream: $attachment" }
@@ -397,7 +397,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         }
         val attachment = file.inputStream.use { inputStream ->
             attachmentsService.addAttachment(
-                pagesRest.jcrPath!!,
+                pagesRest.attachmentsPath!!,
                 fileInfo = fileInfo,
                 inputStream = inputStream,
                 baseDao = pagesRest.baseDao,
@@ -410,7 +410,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         return actionListener.afterUpload(
             attachment,
             obj,
-            pagesRest.jcrPath!!,
+            pagesRest.attachmentsPath!!,
             pagesRest.attachmentsAccessChecker,
             listId
         )
@@ -430,7 +430,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
 
         val result =
             attachmentsService.getAttachmentInputStream(
-                pagesRest.jcrPath!!,
+                pagesRest.attachmentsPath!!,
                 id,
                 fileId,
                 pagesRest.attachmentsAccessChecker,
@@ -466,7 +466,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         val pagesRest = getPagesRest(category, listId)
         log.info { "User tries to download multiple attachments: ${paramsToString(category, id, fileIds, listId)}." }
         val fileIdList = fileIds.split(",")
-        val attachments = attachmentsService.getAttachments(pagesRest.jcrPath!!, id, pagesRest.attachmentsAccessChecker)
+        val attachments = attachmentsService.getAttachments(pagesRest.attachmentsPath!!, id, pagesRest.attachmentsAccessChecker)
             ?.filter { attachment ->
                 fileIdList.any { attachment.fileId?.startsWith(it) == true }
             }
@@ -478,7 +478,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
             attachmentsService,
             pagesRest.attachmentsAccessChecker,
             basefilename,
-            pagesRest.jcrPath!!,
+            pagesRest.attachmentsPath!!,
             id,
             attachments,
         )
@@ -502,12 +502,12 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         val pagesRest = getPagesRest(category, listId)
         val obj = getDataObject(pagesRest, id) // Check data object availability.
         val selectedAttachments =
-            attachmentsService.getAttachments(pagesRest.jcrPath!!, id, pagesRest.attachmentsAccessChecker)
+            attachmentsService.getAttachments(pagesRest.attachmentsPath!!, id, pagesRest.attachmentsAccessChecker)
                 ?.filter { fileIds.contains(it.fileId) }
         selectedAttachments?.forEach {
             it.fileId?.let { fileId ->
                 attachmentsService.deleteAttachment(
-                    pagesRest.jcrPath!!,
+                    pagesRest.attachmentsPath!!,
                     fileId,
                     pagesRest.baseDao,
                     obj,
@@ -524,7 +524,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
                         "data",
                         actionListener.createResponseData(
                             obj,
-                            pagesRest.jcrPath!!,
+                            pagesRest.attachmentsPath!!,
                             pagesRest.attachmentsAccessChecker,
                             data.listId
                         )
@@ -540,19 +540,19 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
             ?: throw UnsupportedOperationException("PagesRest class for category '$category' not known (registered).")
         pagesRest.attachmentsAccessChecker.let {
             if (it is AttachmentsDaoAccessChecker<*>) {
-                it.checkJcrActivity(listId)
+                it.checkAttachmentsSupported(listId)
             }
             return pagesRest
         }
     }
 
     fun getAttachment(
-        jcrPath: String,
+        attachmentsPath: String,
         attachmentsAccessChecker: AttachmentsAccessChecker,
         data: AttachmentsServicesRest.AttachmentData
     ): Attachment {
         return attachmentsService.getAttachmentInfo(
-            jcrPath,
+            attachmentsPath,
             data.id,
             data.fileId,
             attachmentsAccessChecker,
@@ -568,7 +568,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         pagesRest: AbstractEntityRest<*, *, *>,
         data: AttachmentsServicesRest.AttachmentData
     ): Attachment {
-        return getAttachment(pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, data)
+        return getAttachment(pagesRest.attachmentsPath!!, pagesRest.attachmentsAccessChecker, data)
     }
 
     internal fun getDataObject(pagesRest: AbstractEntityRest<*, *, *>, id: Long): ExtendedBaseDO<Long> {

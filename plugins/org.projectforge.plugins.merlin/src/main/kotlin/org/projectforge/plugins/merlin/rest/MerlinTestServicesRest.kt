@@ -25,9 +25,9 @@ package org.projectforge.plugins.merlin.rest
 
 import de.micromata.merlin.word.templating.VariableType
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.jcr.FileInfo
+import org.projectforge.files.FileInfo
 import org.projectforge.plugins.merlin.MerlinHandler
 import org.projectforge.plugins.merlin.MerlinTemplate
 import org.projectforge.plugins.merlin.MerlinTemplateDao
@@ -154,7 +154,7 @@ class MerlinTestServicesRest {
     dto.id = dbo.id
     applicationContext.getResource("classpath:examples/$filename").inputStream.use { istream ->
       attachmentsService.addAttachment(
-        merlinHandler.jcrPath,
+        merlinHandler.attachmentsPath,
         FileInfo(filename),
         istream,
         merlinTemplateDao,

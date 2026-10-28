@@ -29,8 +29,8 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.test.AbstractTestBase
-import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.Attachment
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.login.LoginService
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicNextRest
@@ -61,7 +61,7 @@ class DataTransferPublicNextRestTest : AbstractTestBase() {
 
     @PostConstruct
     private fun postConstruct() {
-        initJCRTestRepo(MODUL_NAME, "publicNextRestTestRepo")
+        initTestFileStore()
     }
 
     @Test

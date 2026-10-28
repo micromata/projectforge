@@ -38,8 +38,7 @@ import org.projectforge.business.fibu.RechnungTyp
 import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
-import org.projectforge.framework.jcr.AttachmentsService
-import org.projectforge.jcr.RepoService
+import org.projectforge.framework.files.AttachmentsService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
@@ -50,7 +49,7 @@ import java.time.LocalDate
  * The invoice PDF of an outgoing invoice — the three endpoints of [OutgoingInvoiceEntityRest] Wicket has as
  * the `fibu.rechnung.invoicePdf` fieldset of its e-invoice dialog.
  *
- * Three things are worth asserting, and none of them is the JCR itself:
+ * Three things are worth asserting, and none of them is the file store itself:
  *
  * - the round trip, i.e. that an uploaded PDF is what the info endpoint answers afterwards and that deleting
  *   it leaves none — the marker (`__INVOICE_PDF__`) is what ties the three calls together, so a mismatch
@@ -60,7 +59,7 @@ import java.time.LocalDate
  *   AttachmentSection) and a server that hid it would break Wicket's own list;
  * - that a file which is not a PDF is refused with the backend's own text instead of being dropped in
  *   silence, which is what Wicket does (`processInvoicePdfUpload` checks the extension and returns);
- * - that both writes appear in the invoice's change history, since the JCR keeps none of its own: the file is
+ * - that both writes appear in the invoice's change history, since the file store keeps none of its own: the file is
  *   gone for good, and the entry naming it is what is left afterwards.
  */
 class OutgoingInvoicePdfTest : AbstractTestBase() {
@@ -74,19 +73,11 @@ class OutgoingInvoicePdfTest : AbstractTestBase() {
     @Autowired
     private lateinit var attachmentsService: AttachmentsService
 
-    @Autowired
-    private lateinit var repoService: RepoService
-
     @PostConstruct
     private fun postConstruct() {
-        // The JCR is a repository on disk, and the endpoints under test store into it; without this the
-        // application's own one would be used (see AbstractTestBase.initJCRTestRepo).
-        initJCRTestRepo(MODULE_NAME, "outgoingInvoicePdfTestRepo")
-    }
-
-    /** Releases the repository directory again, as `DataTransferJCRCleanUpJobTest` does. */
-    override fun afterAll() {
-        repoService.shutdown()
+        // The endpoints under test store into the file store, which needs its schema and starts empty (see
+        // AbstractTestBase.initTestFileStore).
+        initTestFileStore()
     }
 
     @Test
@@ -106,7 +97,7 @@ class OutgoingInvoicePdfTest : AbstractTestBase() {
         assertEquals("invoice.pdf", outgoingInvoiceEntityRest.getInvoicePdfInfo(id).pdf?.name)
         // And it is a regular attachment of the invoice, carrying the marker as its description — which is
         // how `exportAsZUGFeRD` finds it and how the client knows to hide it.
-        val attachments = attachmentsService.internalGetAttachments(EInvoiceExportService.JCR_PATH, id)
+        val attachments = attachmentsService.internalGetAttachments(EInvoiceExportService.ATTACHMENTS_PATH, id)
         assertEquals(1, attachments.size)
         assertEquals(EInvoiceExportService.INVOICE_PDF_MARKER, attachments.first().description)
         // The very file id the info answers: it is what the form's download link is built from, so the two
@@ -131,7 +122,7 @@ class OutgoingInvoicePdfTest : AbstractTestBase() {
 
         assertEquals("second.pdf", outgoingInvoiceEntityRest.getInvoicePdfInfo(id).pdf?.name)
         // Not two files: `uploadInvoicePdf` deletes the previous one, or the export would have to pick.
-        assertEquals(1, attachmentsService.internalGetAttachments(EInvoiceExportService.JCR_PATH, id).size)
+        assertEquals(1, attachmentsService.internalGetAttachments(EInvoiceExportService.ATTACHMENTS_PATH, id).size)
     }
 
     @Test
@@ -155,7 +146,7 @@ class OutgoingInvoicePdfTest : AbstractTestBase() {
 
         outgoingInvoiceEntityRest.deleteInvoicePdf(id)
 
-        // The delete overwrites the sentence, so the history holds both — the file is gone from the JCR,
+        // The delete overwrites the sentence, so the history holds both — the file is gone from the file store,
         // which keeps no history of its own, and this is all that is left of it.
         assertTrue(
             lastUserAction(id)?.contains("deleted") == true,
@@ -233,7 +224,7 @@ class OutgoingInvoicePdfTest : AbstractTestBase() {
         logon(TEST_FINANCE_USER)
 
         // Not a 200 with `pdf: null`: that would read as "this invoice has no PDF" for an invoice that
-        // doesn't exist, and the upload would create a JCR node nobody owns.
+        // doesn't exist, and the upload would create a file store path nobody owns.
         assertThrows<AccessException> { outgoingInvoiceEntityRest.getInvoicePdfInfo(-1L) }
         assertThrows<AccessException> { outgoingInvoiceEntityRest.deleteInvoicePdf(-1L) }
     }
@@ -261,10 +252,5 @@ class OutgoingInvoicePdfTest : AbstractTestBase() {
             },
         )
         return rechnungDao.insert(invoice)
-    }
-
-    companion object {
-        /** Module directory this test runs in — `initJCRTestRepo` insists on it (see `TestUtils`). */
-        private const val MODULE_NAME = "projectforge-rest"
     }
 }

@@ -27,7 +27,7 @@ import org.projectforge.Constants
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.i18n.TimeLeft
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.files.Attachment
 import org.projectforge.framework.time.PFDateTime
 import java.util.*
 

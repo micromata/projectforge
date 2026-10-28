@@ -23,8 +23,8 @@
 
 package org.projectforge.plugins.datatransfer.rest
 
-import org.projectforge.framework.jcr.AttachmentsAccessChecker
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.AttachmentsAccessChecker
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
@@ -41,18 +41,18 @@ class DataTransferAttachmentsActionListener(
 
     override fun createResponseData(
         obj: ExtendedBaseDO<Long>,
-        jcrPath: String,
+        attachmentsPath: String,
         attachmentsAccessChecker: AttachmentsAccessChecker,
         listId: String?
     ): Any {
         if (obj is DataTransferAreaDO) {
             val dbObj = dataTransferAreaDao.find(obj.id, checkAccess = false)!! // Get fresh db version.
             val area = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao)
-            area.attachments = attachmentsService.getAttachments(jcrPath, dbObj.id!!, attachmentsAccessChecker, listId)
+            area.attachments = attachmentsService.getAttachments(attachmentsPath, dbObj.id!!, attachmentsAccessChecker, listId)
             return area
         } else {
             // Shouldn't occur.
-            return super.createResponseData(obj, jcrPath, attachmentsAccessChecker, listId)
+            return super.createResponseData(obj, attachmentsPath, attachmentsAccessChecker, listId)
         }
     }
 

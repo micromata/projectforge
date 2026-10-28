@@ -26,8 +26,7 @@ package org.projectforge.plugins.datatransfer
 import org.projectforge.PageRoutes
 import org.projectforge.business.admin.SystemStatistics
 import org.projectforge.business.configuration.ConfigurationService
-import org.projectforge.jcr.RepoBackupService
-import org.projectforge.jcr.RepoService
+import org.projectforge.files.store.FileStore
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.builder.MenuCreator
@@ -58,10 +57,9 @@ class DataTransferPlugin :
         val dataTransferAreaDao = WicketSupport.get(DataTransferAreaDao::class.java)
         val menuCreator = WicketSupport.get(MenuCreator::class.java)
         val systemStatistics = WicketSupport.get(SystemStatistics::class.java)
-        WicketSupport.get(RepoBackupService::class.java).registerNodePathToIgnore(dataTransferAreaEntityRest.jcrPath!!)
-        // Files of data transfer areas are stored in the file system by the new file store (projectforge.files.store=db):
-        WicketSupport.get(RepoService::class.java).registerFileSystemPath(
-            dataTransferAreaEntityRest.jcrPath!!,
+        // Files of data transfer areas are stored by the file store in the file system (not in the data base):
+        WicketSupport.get(FileStore::class.java).registerFileSystemPath(
+            dataTransferAreaEntityRest.attachmentsPath!!,
             File(WicketSupport.get(ConfigurationService::class.java).applicationHomeDir, FILE_SYSTEM_DIR),
         )
 

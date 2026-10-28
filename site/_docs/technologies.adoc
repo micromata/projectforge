@@ -87,9 +87,6 @@ newer, Java 21 in production).
 |Flyway |11 |Database migrations.
 |PostgreSQL / HSQLDB |driver 42.7 / 2.7 |Databases: PostgreSQL in production, HSQLDB for tests and test instances.
 |Jackson |2.21 |JSON for the REST API.
-|Apache Jackrabbit Oak |1.92 |JCR document storage, only for existing installations with JCR data
-(`projectforge.files.store=jcr`). New installations store attachments in the database and DataTransfer files
-in the file system (`db`, the default); JCR files are migrated on start-up when switched to `db`.
 |Groovy / Kotlin Script |Groovy 4.0 |Scripting of reports (e. g. Excel exports) by users.
 |Apache POI |5.5 |Creation and manipulation of Excel and Word files (also in user scripts).
 |Merlin |1.1 |Excel and Word templates.
