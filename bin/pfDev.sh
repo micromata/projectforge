@@ -43,7 +43,8 @@ Commands:
                    asking (otherwise the tests would fail on them late). Runs the tests (unless --skip-tests), before anything is changed;
                    then folds changelog/unreleased/ into the entry, sets the version,
                    runs gen and a clean build, commits and tags, then commits the next
-                   X.Y.(Z+1)-SNAPSHOT. Nothing is pushed.
+                   X.Y.(Z+1)-SNAPSHOT. Finally asks whether to run publish (push +
+                   GitHub release); declined, nothing is pushed.
   publish <X.Y.Z>  Pushes the release and its tag and creates its GitHub release (notes
                    generated from the changelog, the jar attached if wanted, e.g. not for
                    minor releases); asks before each step. The docker
@@ -369,7 +370,14 @@ release() {
     echo "Note: the build changed files that weren't committed:"
     git status --short
   fi
-  echo "Released $version (tag $tag), now on $next. Nothing is pushed yet: pfDev.sh publish $version"
+  echo "Released $version (tag $tag), now on $next."
+  # Pushes the branch and the tag and creates the GitHub release (publish asks before each step), so a release is
+  # not forgotten on GitHub. Declined: nothing is pushed, publish can follow by hand.
+  if confirm "Publish $version now (push, GitHub release)?"; then
+    publish "$version"
+  else
+    echo "Nothing is pushed yet: pfDev.sh publish $version"
+  fi
 }
 
 # Whether the release <version> of changelog.json is published (jar, docker images; a mini release isn't): true or false.
