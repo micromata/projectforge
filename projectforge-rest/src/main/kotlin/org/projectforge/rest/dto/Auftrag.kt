@@ -35,7 +35,7 @@ import org.projectforge.business.fibu.OrderInfo
 import org.projectforge.business.fibu.OrderPositionInfo
 import org.projectforge.business.fibu.PaymentScheduleDO
 import org.projectforge.business.fibu.ProjektDO
-import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.files.Attachment
 import org.projectforge.framework.utils.NumberFormatter
 import java.math.BigDecimal
 import java.time.LocalDate

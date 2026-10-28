@@ -31,7 +31,7 @@ const INACTIVE_STATUS: ReadonlySet<KundeStatus> = new Set([
  * describe: the number (editable only while adding — see CustomerNumberField) and the account (a
  * foreign DO with no metadata — see CustomerKontoField).
  *
- * One section and no attachments: the entity has no `jcrPath`. Its change history is a tab of its
+ * One section and no attachments: the entity has no `attachmentsPath`. Its change history is a tab of its
  * own, which `KUNDE_METADATA.historizable` says.
  *
  * Customer favorites (`UserPrefArea.KUNDE_FAVORITE`) are deliberately not carried over — the same

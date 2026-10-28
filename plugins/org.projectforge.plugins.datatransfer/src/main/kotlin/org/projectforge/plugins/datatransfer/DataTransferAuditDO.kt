@@ -29,7 +29,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.Constants
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.jcr.AttachmentsEventType
+import org.projectforge.framework.files.AttachmentsEventType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 import jakarta.persistence.*

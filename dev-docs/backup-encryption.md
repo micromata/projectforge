@@ -1,7 +1,7 @@
 # Backup encryption with age
 
 ## Goal
-- Backups (SQL dumps, files dumps, JCR ZIPs) exist only in encrypted form on the server, at the rsync target and in
+- Backups (SQL dumps, files dumps) exist only in encrypted form on the server, at the rsync target and in
   the archive.
 - The server holds only the public key. An attacker who takes over the server can't read old backups with it (the
   current data would be exposed anyway).
@@ -27,26 +27,14 @@
 
 ## Where to encrypt
 
-### Option A (recommended): in the backup script, no change to ProjectForge
+### In the backup script, no change to ProjectForge
 `pforgebackup.sh` (adminguide, "Backup script") encrypts directly, without a plaintext intermediate file:
 
     pg_dump -U projectforge -N pf_files | gzip | age -R $RECIPIENTS -o $BACKUPFILE.gz.age
     pg_dump -U projectforge -n pf_files -Fc -Z 1 | age -R $RECIPIENTS -o $FILES_BACKUPFILE.age
 
-- Use `set -o pipefail` so a failing pg_dump aborts the script. Write to a `.tmp` file first and rename afterwards
-  (same as the JCR ZIP).
-- As long as the JCR ZIP exists, a second cron entry encrypts it after it's finished (around 03:00):
-  `age -R … -o x.zip.age x.zip && rm x.zip`.
+- Use `set -o pipefail` so a failing pg_dump aborts the script. Write to a `.tmp` file first and rename afterwards.
 - The public key is **not** stored in `projectforge.properties`.
-
-### Option B: ProjectForge encrypts itself
-Only worthwhile if the JCR ZIP must never be on disk unencrypted.
-- New property `projectforge.backup.ageRecipientsFile=/home/projectforge/backup-recipients.txt`, pointing to the same
-  file as the script (single source). If empty, nothing changes.
-- `RepoBackupService.createBackupFile()` writes the `ZipOutputStream` through an age stream (Java library, e.g.
-  `com.exceptionfactory.jagged`) to `….zip.age`.
-- Effort: small, but hardly worth it, since `RepoBackupService` goes away with the JCR replacement
-  (`dev-docs/jcr-replacement.md`).
 
 ## Purging (`DatabaseBackupPurgeJob`)
 - `BackupFilesPurging` groups by the text in front of the date in the file name (series) and ignores everything

@@ -40,7 +40,7 @@ projectforge-caldav/src/main/resources/milton.license.properties
 projectforge-caldav/src/main/resources/milton.license.sig
 derby.log
 projectforge-repository/jackrabbit
-projectforge-jcr/test/out
+projectforge-files/test/out
 projectforge-rest/test/out
 plugins/org.projectforge.plugins.datatransfer/test
 plugins/org.projectforge.plugins.merlin/test

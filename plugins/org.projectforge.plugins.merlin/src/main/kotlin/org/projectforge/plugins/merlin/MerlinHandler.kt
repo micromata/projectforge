@@ -27,10 +27,10 @@ import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.WordTemplateChecker
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.datatransfer.DataTransferBridge
-import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsAccessChecker
-import org.projectforge.framework.jcr.AttachmentsService
-import org.projectforge.jcr.FileObject
+import org.projectforge.framework.files.Attachment
+import org.projectforge.framework.files.AttachmentsAccessChecker
+import org.projectforge.framework.files.AttachmentsService
+import org.projectforge.files.FileObject
 import org.projectforge.plugins.core.PluginAdminService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -55,7 +55,7 @@ open class MerlinHandler {
 
   internal lateinit var attachmentsAccessChecker: AttachmentsAccessChecker // Set by MerlinPagesRest
 
-  internal lateinit var jcrPath: String // Set by MerlinPagesRest
+  internal lateinit var attachmentsPath: String // Set by MerlinPagesRest
 
   class Result(val statistics: MerlinStatistics, val dto: MerlinTemplate) {
     var wordDocument: WordDocument? = null
@@ -83,7 +83,7 @@ open class MerlinHandler {
   }
 
   internal fun getAttachments(id: Long): List<Attachment>? {
-    return attachmentsService.getAttachments(jcrPath, id, attachmentsAccessChecker)?.sortedByDescending { it.created }
+    return attachmentsService.getAttachments(attachmentsPath, id, attachmentsAccessChecker)?.sortedByDescending { it.created }
   }
 
   internal fun getWordTemplate(list: List<Attachment>): Attachment? {
@@ -94,7 +94,7 @@ open class MerlinHandler {
     val list = getAttachments(id) ?: return null
     val wordAttachment = getWordTemplate(list) ?: return null
     return attachmentsService.getAttachmentInputStream(
-      jcrPath,
+      attachmentsPath,
       id,
       wordAttachment.fileId!!,
       accessChecker = attachmentsAccessChecker,

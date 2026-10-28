@@ -33,11 +33,10 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.jcr.RepoService
 import org.projectforge.plugins.merlin.MerlinExecutionData
 import org.projectforge.plugins.merlin.MerlinHandler
 import org.projectforge.plugins.merlin.MerlinRunner
@@ -75,9 +74,6 @@ class MerlinEntityRestTest : AbstractTestBase() {
     private lateinit var merlinTestServicesRest: MerlinTestServicesRest
 
     @Autowired
-    private lateinit var repoService: RepoService
-
-    @Autowired
     private lateinit var attachmentsService: AttachmentsService
 
     @Autowired
@@ -92,12 +88,8 @@ class MerlinEntityRestTest : AbstractTestBase() {
 
     @PostConstruct
     private fun postConstruct() {
-        // The Word® templates are attachments in the JCR (see AbstractTestBase.initJCRTestRepo).
-        initJCRTestRepo(MODULE_NAME, "merlinEntityRestTestRepo")
-    }
-
-    override fun afterAll() {
-        repoService.shutdown()
+        // The Word® templates are attachments in the file store (see AbstractTestBase.initTestFileStore).
+        initTestFileStore()
     }
 
     @Test
@@ -218,7 +210,7 @@ class MerlinEntityRestTest : AbstractTestBase() {
     fun `deleting a template deletes its attachments, too`() {
         logon(TEST_USER)
         val id = createLetter()
-        val stored = { attachmentsService.internalGetAttachments(merlinHandler.jcrPath, id) }
+        val stored = { attachmentsService.internalGetAttachments(merlinHandler.attachmentsPath, id) }
         assertTrue(stored().isNotEmpty(), "The Word® template of the example.")
         val dto = merlinEntityRest.getItem(id).body as MerlinTemplate
         val request = MockHttpServletRequest()
@@ -263,11 +255,6 @@ class MerlinEntityRestTest : AbstractTestBase() {
         @Suppress("UNCHECKED_CAST")
         val body = merlinTestServicesRest.letter().body as Map<String, Any?>
         return body["id"] as Long
-    }
-
-    companion object {
-        /** Module directory this test runs in — `initJCRTestRepo` insists on it (see `TestUtils`). */
-        private const val MODULE_NAME = "org.projectforge.plugins.merlin"
     }
 
     private fun <T : Any> post(data: T) = PostData(data, watchFieldsTriggered = null, serverData = null)

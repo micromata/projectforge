@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.datatransfer.restPublic
 
-import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.files.Attachment
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO

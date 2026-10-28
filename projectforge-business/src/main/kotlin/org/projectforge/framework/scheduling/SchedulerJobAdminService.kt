@@ -256,7 +256,7 @@ class SchedulerJobAdminService(
             slow7d = stats?.slowCount ?: 0,
             avgDurationMs7d = stats?.avgDurationMs,
             maxDurationMs7d = stats?.maxDurationMs,
-            // A disabled job may be run manually (e.g. the JCR sanity check, run nightly by the sanity checks).
+            // A disabled job may be run manually (e.g. the file store sanity check, run nightly by the sanity checks).
             runNowAllowed = state.entry != null && inactiveReason == null && !snapshot.running &&
                     schedule !is ResolvedSchedule.Invalid,
             terminateAllowed = snapshot.running && snapshot.runningThreadKnown,

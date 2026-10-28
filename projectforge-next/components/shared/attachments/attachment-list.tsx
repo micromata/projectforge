@@ -19,7 +19,7 @@ import { AttachmentUploadRow } from "./attachment-upload-row";
 export interface AttachmentListProps {
   /** Rest path of the entity, i.e. `AbstractEntityRest.category` — "book", "contract", … */
   entity: string;
-  /** null for an entity that isn't saved yet: the JCR needs a persisted id to attach to. */
+  /** null for an entity that isn't saved yet: the file store needs a persisted id to attach to. */
   id: number | null;
   /** Only downloads are offered — for a user without write access to the entity. */
   readOnly?: boolean;

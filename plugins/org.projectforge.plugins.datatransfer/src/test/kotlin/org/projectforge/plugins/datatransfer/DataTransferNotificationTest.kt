@@ -25,7 +25,7 @@ package org.projectforge.plugins.datatransfer
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.framework.jcr.AttachmentsEventType
+import org.projectforge.framework.files.AttachmentsEventType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 class DataTransferNotificationTest {

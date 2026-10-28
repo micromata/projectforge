@@ -75,11 +75,11 @@ class TestUtils(modulName: String) {
 
     /*
     Automatic detection:
-            var uriString = this::class.java.protectionDomain.codeSource.location.toString().removeSuffix("/src/main/kotlin/org/projectforge/jcr")
+            var uriString = this::class.java.protectionDomain.codeSource.location.toString().removeSuffix("/src/main/kotlin/org/projectforge/files")
           Assertions.assertTrue(uriString.startsWith("file:"), "We're not running in a normal file system. Can't proceed with tests.")
           uriString = uriString.removePrefix("file:")
           Assertions.assertTrue(uriString.contains("/$MODULE_NAME"), "Where we're running? '/$MODULE_NAME' expected in path to find sources for testing, but not found '$uriString'.")
-          // Determine location of module projectforge-jcr
+          // Determine location of module projectforge-files
           while (uriString.contains("/$MODULE_NAME/")) {
               uriString = uriString.substring(0, uriString.lastIndexOf('/'))
           }

@@ -32,7 +32,7 @@ import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.common.NumberOfBytes
 import org.projectforge.framework.access.AccessException
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.model.rest.RestPaths
@@ -151,7 +151,7 @@ class DataTransferFilesRest {
             dataTransferAreaEntityRest.attachmentsAccessChecker,
             dbObj,
             dto.areaName,
-            jcrPath = dataTransferAreaEntityRest.jcrPath!!,
+            attachmentsPath = dataTransferAreaEntityRest.attachmentsPath!!,
             id,
             dto.attachments,
             byUser = ThreadLocalUserContext.loggedInUser
@@ -269,7 +269,7 @@ class DataTransferFilesRest {
             dto.externalPassword = dbObj.externalPassword
         }
         dto.attachments = attachmentsService.getAttachments(
-            dataTransferAreaEntityRest.jcrPath!!,
+            dataTransferAreaEntityRest.attachmentsPath!!,
             id,
             dataTransferAreaEntityRest.attachmentsAccessChecker
         )

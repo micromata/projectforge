@@ -26,7 +26,7 @@ package org.projectforge.plugins.datatransfer
 import jakarta.annotation.PostConstruct
 import org.projectforge.business.jobs.CronSanityCheckJob
 import org.projectforge.common.extensions.format
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.jobs.AbstractJob
 import org.projectforge.jobs.JobExecutionContext
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
@@ -54,7 +54,7 @@ class DataTransferSanityCheckJob : AbstractJob("Check data transfer files.") {
 
     override fun executeJob() {
         var areaCounter = 0
-        var missingInJcrCounter = 0
+        var missingInFileStoreCounter = 0
         var orphanedCounter = 0
         var fileCounter = 0
         dataTransferAreaDao.selectAll(checkAccess = false).forEach { area ->
@@ -62,7 +62,7 @@ class DataTransferSanityCheckJob : AbstractJob("Check data transfer files.") {
             val areaName = "'${area.displayName}'"
             try {
                 val attachments = attachmentsService.getAttachments(
-                    dataTransferAreaEntityRest.jcrPath!!,
+                    dataTransferAreaEntityRest.attachmentsPath!!,
                     area.id!!,
                     dataTransferAreaEntityRest.attachmentsAccessChecker,
                     checkAccess = false,
@@ -83,15 +83,15 @@ class DataTransferSanityCheckJob : AbstractJob("Check data transfer files.") {
                     jobExecutionContext.addWarning("Attachments counter in area $areaName is ${attachmentsCounter}, but found ${attachments?.size} attachments.")
                 }
                 val areaAttachmentIds = area.attachmentsIds?.split(" ")?.filter { it.isNotBlank() } ?: emptyList()
-                val jcrAttachmentIds = attachments?.map { it.fileId.toString() } ?: emptyList()
-                val missingInJcr = areaAttachmentIds - jcrAttachmentIds
-                val unknown = jcrAttachmentIds - areaAttachmentIds
-                if (missingInJcr.isNotEmpty()) {
-                    jobExecutionContext.addError("${missingInJcr.size}/$attachmentsCounter attachments missing in JCR for area $areaName: ${missingInJcr.joinToString()}")
-                    missingInJcrCounter += missingInJcr.size
+                val storedAttachmentIds = attachments?.map { it.fileId.toString() } ?: emptyList()
+                val missingInFileStore = areaAttachmentIds - storedAttachmentIds
+                val unknown = storedAttachmentIds - areaAttachmentIds
+                if (missingInFileStore.isNotEmpty()) {
+                    jobExecutionContext.addError("${missingInFileStore.size}/$attachmentsCounter attachments missing in file store for area $areaName: ${missingInFileStore.joinToString()}")
+                    missingInFileStoreCounter += missingInFileStore.size
                 }
                 if (unknown.isNotEmpty()) {
-                    jobExecutionContext.addWarning("${unknown.size} unknown (orphaned) attachments in JCR for area $areaName: ${unknown.joinToString()}")
+                    jobExecutionContext.addWarning("${unknown.size} unknown (orphaned) attachments in file store for area $areaName: ${unknown.joinToString()}")
                     orphanedCounter += unknown.size
                 }
             } catch (ex: Exception) {
@@ -99,8 +99,8 @@ class DataTransferSanityCheckJob : AbstractJob("Check data transfer files.") {
             }
         }
         val baseMsg = "Checked ${fileCounter.format()} files in ${areaCounter.format()} data transfer areas"
-        if (missingInJcrCounter > 0 ) {
-            jobExecutionContext.addError("$baseMsg: $missingInJcrCounter missed, $orphanedCounter orphaned attachments.")
+        if (missingInFileStoreCounter > 0 ) {
+            jobExecutionContext.addError("$baseMsg: $missingInFileStoreCounter missed, $orphanedCounter orphaned attachments.")
         } else if (orphanedCounter > 0) {
             jobExecutionContext.addWarning("$baseMsg: $orphanedCounter orphaned attachments.")
         } else {

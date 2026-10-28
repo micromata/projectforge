@@ -8,7 +8,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { fetchSystemAdminData } from "@/lib/rs/system";
 import { AlertMessageCard } from "./alert-message-card";
 import { FormatLogEntriesCard } from "./format-log-entries-card";
-import { JcrCard } from "./jcr-card";
 import { ReindexCard } from "./reindex-card";
 import { SystemMenuBar } from "./system-menu-bar";
 
@@ -16,8 +15,8 @@ import { SystemMenuBar } from "./system-menu-bar";
  * The System (administration) page ("/next/system"), successor of Wicket's `wa/admin`. A standalone,
  * action-driven admin page: a menu bar on top with the one-click actions (configuration incl. the
  * projectforge.properties editor, checks, database, Sipgate if configured, development), below it the cards that need input or
- * show progress: the site-wide alert message, reindexing the search indices, the JCR replacement and
- * formatting log entries. Admin-group only — every endpoint self-checks. The Wicket page is gone; old
+ * show progress: the site-wide alert message, reindexing the search indices and formatting log
+ * entries. Admin-group only — every endpoint self-checks. The Wicket page is gone; old
  * `wa/admin` links are redirected here.
  */
 export function SystemPage() {
@@ -58,7 +57,6 @@ export function SystemPage() {
             />
             <AlertMessageCard data={query.data} />
             <ReindexCard data={query.data} />
-            <JcrCard data={query.data} />
             <FormatLogEntriesCard />
           </>
         )}

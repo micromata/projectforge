@@ -20,7 +20,7 @@ export const GROUP_LIST_QUERY_KEY = ["group"] as const;
  * Declared here is order and width, plus the three fields the declaration cannot describe because
  * GroupDO has no such property: the members, the LDAP gid and the computed mail addresses.
  *
- * One section and no attachments: the entity has no `jcrPath`. Its change history is a tab of its
+ * One section and no attachments: the entity has no `attachmentsPath`. Its change history is a tab of its
  * own, which `GROUP_METADATA.historizable` says.
  */
 export const GROUP_PAGE = definePage<

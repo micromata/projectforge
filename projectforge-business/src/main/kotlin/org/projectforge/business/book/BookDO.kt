@@ -30,7 +30,7 @@ import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
-import org.projectforge.framework.jcr.AttachmentsInfo
+import org.projectforge.framework.files.AttachmentsInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate

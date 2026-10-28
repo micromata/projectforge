@@ -32,7 +32,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.I18nHelper
-import org.projectforge.framework.jcr.AttachmentsInfo
+import org.projectforge.framework.files.AttachmentsInfo
 import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.candh.CandHIgnore
 import org.projectforge.framework.persistence.entities.DefaultBaseDO

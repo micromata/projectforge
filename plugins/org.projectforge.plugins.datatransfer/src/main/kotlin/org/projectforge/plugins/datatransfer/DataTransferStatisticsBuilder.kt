@@ -27,7 +27,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.admin.SystemStatisticsData
 import org.projectforge.business.admin.SystemsStatisticsBuilderInterface
 import org.projectforge.common.extensions.abbreviate
-import org.projectforge.framework.jcr.AttachmentsInfo
+import org.projectforge.framework.files.AttachmentsInfo
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
@@ -66,7 +66,7 @@ open class DataTransferStatisticsBuilder() : SystemsStatisticsBuilderInterface {
 
             stats.add(
                 "datatransfer:${dbo.id}",
-                "data transfer (part of JCR)",
+                "data transfer (part of file store)",
                 "'${dbo.areaName.abbreviate(8)}",
                 "$size: admins=[$admins]$accessUserString$accessGroupString$externalAccess$expiryDays"
             )

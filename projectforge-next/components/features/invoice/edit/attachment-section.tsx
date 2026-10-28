@@ -26,7 +26,7 @@ export const INVOICE_PDF_MARKER = "__INVOICE_PDF__";
  * to (InvoicePdfField in EInvoiceSection) instead of that marker.
  *
  * @param invoiceId null for an invoice being added — nothing can be attached before the first save, since
- * the JCR node hangs off the persisted id.
+ * the attachments hang off the persisted id.
  */
 export function AttachmentSection({ invoiceId }: { invoiceId: number | null }) {
   const t = useTranslations();
