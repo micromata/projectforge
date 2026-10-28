@@ -8,7 +8,7 @@ interface AttachmentsSummaryProps {
   /**
    * Count and total size in one, as the backend formatted it in the user's locale
    * ("5,2MB (3)"). Taken as it is — reformatting here would be a second place to be wrong.
-   * @see org.projectforge.framework.jcr.AttachmentsInfo.getAttachmentsSizeFormatted
+   * @see org.projectforge.framework.files.AttachmentsInfo.getAttachmentsSizeFormatted
    */
   formatted?: string | null;
   /** Accessible name, e.g. "3 attachments, 5,2MB". The visible text is the icon's label. */

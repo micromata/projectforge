@@ -25,12 +25,12 @@ package org.projectforge.plugins.datatransfer
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.jcr.AttachmentsEventType
+import org.projectforge.framework.files.AttachmentsEventType
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.jcr.FileInfo
+import org.projectforge.files.FileInfo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.temporal.ChronoUnit

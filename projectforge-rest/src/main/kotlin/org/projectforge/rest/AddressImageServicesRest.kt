@@ -29,8 +29,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressImageDao
 import org.projectforge.business.address.ImageType
 import org.projectforge.common.DataSizeConfig
-import org.projectforge.jcr.FileInfo
-import org.projectforge.jcr.FileSizeStandardChecker
+import org.projectforge.files.FileInfo
+import org.projectforge.files.FileSizeStandardChecker
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AccessChecked

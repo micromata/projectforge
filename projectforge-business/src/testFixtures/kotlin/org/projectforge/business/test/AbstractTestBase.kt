@@ -60,7 +60,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.jcr.RepoService
+import org.projectforge.files.store.FileStore
 import org.projectforge.mail.SendMail.Companion.internalSetTestMode
 import org.projectforge.plugins.core.AbstractPlugin.Companion.internalJunitTestMode
 import org.projectforge.plugins.core.PluginAdminService
@@ -125,7 +125,7 @@ abstract class AbstractTestBase protected constructor() {
     private lateinit var caches: PfCaches
 
     @Autowired
-    private lateinit var repoService: RepoService
+    private lateinit var fileStore: FileStore
 
     @Autowired
     private lateinit var systemStatus: SystemStatus
@@ -179,7 +179,7 @@ abstract class AbstractTestBase protected constructor() {
 
     protected var mCount: Int = 0
 
-    private var testRepoDir: File? = null
+    private var initTestFileStore = false
 
     init {
         System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, File(Constants.BUILD_DIR, "ProjectForgeTest").absolutePath)
@@ -204,13 +204,11 @@ abstract class AbstractTestBase protected constructor() {
             instance = this // Store instance for afterAll method.
             // System.out.println("******** " + instance.getClass());
         }
-        if (testRepoDir != null) {
+        if (initTestFileStore) {
             PfFilesTestSchema.ensure(dataSource)
-            repoService.internalResetForJunitTestCases()
-            repoService.init(testRepoDir!!)
-            // A fresh repository (as before for each test class with its own JCR repository):
-            repoService.fileStore?.internalClearForJunitTestCases()
-            testRepoDir = null // Don't initialize twice.
+            // A fresh file store for each test class:
+            fileStore.internalClearForJunitTestCases()
+            initTestFileStore = false // Don't initialize twice.
         }
         if (!initialized) {
             initialized = true
@@ -271,15 +269,11 @@ abstract class AbstractTestBase protected constructor() {
     }
 
     /**
-     * Test cases using the jcr repo should init it. See DataTransferJCRCleanUpJobTest of plugin datatransfer as an example.
-     *
-     * @param modulName    Maven module name (dir) of your current tested module.
-     * @param testRepoName Unique test repoName like "datatransferTestRepo"
+     * Test cases using the file store (attachments) should init it: the schema of the file store is created and all
+     * files of former test classes are deleted. See DataTransferCleanUpJobTest of plugin datatransfer as an example.
      */
-    protected fun initJCRTestRepo(modulName: String, testRepoName: String): File {
-        val testUtils = TestUtils(modulName)
-        testRepoDir = testUtils.deleteAndCreateTestFile(testRepoName)
-        return testRepoDir!!
+    protected fun initTestFileStore() {
+        initTestFileStore = true
     }
 
     protected fun clearDatabase() {

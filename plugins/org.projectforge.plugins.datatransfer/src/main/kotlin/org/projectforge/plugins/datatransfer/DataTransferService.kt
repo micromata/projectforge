@@ -30,12 +30,12 @@ import org.projectforge.common.extensions.formatBytes
 import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.datatransfer.DataTransferFile
 import org.projectforge.datatransfer.DataTransferInterface
-import org.projectforge.framework.jcr.AttachmentsAccessChecker
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.AttachmentsAccessChecker
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.jcr.FileInfo
-import org.projectforge.jcr.FileObject
-import org.projectforge.jcr.RepoService
+import org.projectforge.files.FileInfo
+import org.projectforge.files.FileObject
+import org.projectforge.files.store.FileStore
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
 import org.springframework.beans.factory.annotation.Autowired
@@ -65,9 +65,9 @@ class DataTransferService : DataTransferInterface {
     private lateinit var pluginAdminService: PluginAdminService
 
     @Autowired
-    private lateinit var repoService: RepoService
+    private lateinit var fileStore: FileStore
 
-    val jcrPath: String by lazy { dataTransferAreaEntityRest.jcrPath!! }
+    val attachmentsPath: String by lazy { dataTransferAreaEntityRest.attachmentsPath!! }
 
     @PostConstruct
     private fun postConstruct() {
@@ -98,7 +98,7 @@ class DataTransferService : DataTransferInterface {
             ?: throw IllegalStateException("Personal box not found for user with ID $reveiverId.")
         try {
             attachmentsService.addAttachment(
-                dataTransferAreaEntityRest.jcrPath!!,
+                dataTransferAreaEntityRest.attachmentsPath!!,
                 fileInfo = FileInfo(
                     filename,
                     fileSize = content.size.toLong(),
@@ -143,7 +143,7 @@ class DataTransferService : DataTransferInterface {
 
     override fun deleteArea(areaId: Long) {
         val area = dataTransferAreaDao.find(areaId, checkAccess = false) ?: return
-        val deleted = repoService.deleteAllFilesBelow(attachmentsService.getPath(jcrPath, areaId))
+        val deleted = fileStore.deleteAllFilesBelow(attachmentsService.getPath(attachmentsPath, areaId))
         dataTransferAreaDao.delete(area, checkAccess = false) // Not historizable, so not only marked as deleted.
         log.info { "Synthetic data transfer area #$areaId '${area.areaName}' deleted with ${deleted.size} file(s)." }
     }
@@ -165,7 +165,7 @@ class DataTransferService : DataTransferInterface {
         val area = dataTransferAreaDao.find(areaId, checkAccess = false)?.takeIf { !it.deleted }
             ?: throw IllegalArgumentException("Data transfer area #$areaId not found.")
         val attachment = attachmentsService.addAttachment(
-            jcrPath,
+            attachmentsPath,
             fileInfo = FileInfo(fileName, fileSize = content.size.toLong()),
             content = content,
             baseDao = dataTransferAreaDao,
@@ -177,19 +177,19 @@ class DataTransferService : DataTransferInterface {
     }
 
     override fun getFile(areaId: Long, fileId: String): Pair<FileObject, InputStream>? {
-        val fileObject = repoService.getFileInfo(attachmentsService.getPath(jcrPath, areaId), AttachmentsService.DEFAULT_NODE, fileId = fileId)
+        val fileObject = fileStore.getFileInfo(attachmentsService.getPath(attachmentsPath, areaId), AttachmentsService.DEFAULT_NODE, fileId = fileId)
             ?: return null
-        val inputStream = repoService.retrieveFileInputStream(fileObject) ?: return null
+        val inputStream = fileStore.retrieveFileInputStream(fileObject) ?: return null
         return Pair(fileObject, inputStream)
     }
 
     override fun deleteFile(areaId: Long, fileId: String): Boolean {
         val area = dataTransferAreaDao.find(areaId, checkAccess = false) ?: return false
-        return attachmentsService.internalDeleteAttachment(jcrPath, fileId, dataTransferAreaDao, area)
+        return attachmentsService.internalDeleteAttachment(attachmentsPath, fileId, dataTransferAreaDao, area)
     }
 
     override fun getFileIds(areaId: Long): Set<String> {
-        return attachmentsService.internalGetAttachments(jcrPath, areaId).mapNotNullTo(mutableSetOf()) { it.fileId }
+        return attachmentsService.internalGetAttachments(attachmentsPath, areaId).mapNotNullTo(mutableSetOf()) { it.fileId }
     }
 
     /**

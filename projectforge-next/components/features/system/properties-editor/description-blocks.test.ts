@@ -4,25 +4,25 @@ import { descriptionBlocks } from "./description-blocks";
 describe("descriptionBlocks", () => {
   it("reflows wrapped lines into paragraphs and list items", () => {
     const text = [
-      "Store of the files:",
-      "- not given (default): db for new installations, jcr if the JCR",
-      "  already contains data.",
-      "- jcr: all files are stored in the JCR.",
-      "The nightly JCR backup keeps running",
+      "Mode of the export:",
+      "- not given (default): csv for new installations, xlsx if the",
+      "  template already exists.",
+      "- xlsx: all sheets are exported as Excel.",
+      "The nightly export keeps running",
       "in both modes.",
     ].join("\n");
     expect(descriptionBlocks(text)).toEqual([
-      { kind: "paragraph", text: "Store of the files:" },
+      { kind: "paragraph", text: "Mode of the export:" },
       {
         kind: "list",
         items: [
-          "not given (default): db for new installations, jcr if the JCR already contains data.",
-          "jcr: all files are stored in the JCR.",
+          "not given (default): csv for new installations, xlsx if the template already exists.",
+          "xlsx: all sheets are exported as Excel.",
         ],
       },
       {
         kind: "paragraph",
-        text: "The nightly JCR backup keeps running in both modes.",
+        text: "The nightly export keeps running in both modes.",
       },
     ]);
   });

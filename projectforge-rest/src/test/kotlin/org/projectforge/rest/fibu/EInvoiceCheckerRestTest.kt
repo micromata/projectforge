@@ -44,10 +44,10 @@ import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.access.AccessException
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
-import org.projectforge.jcr.RepoService
+import org.projectforge.files.store.FileStore
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockHttpServletRequest
@@ -160,7 +160,7 @@ class EInvoiceCheckerRestTest : AbstractTestBase() {
             sellerConfig,
             Mockito.mock(InvoiceService::class.java),
             Mockito.mock(AttachmentsService::class.java),
-            Mockito.mock(RepoService::class.java),
+            Mockito.mock(FileStore::class.java),
             Mockito.mock(RechnungDao::class.java),
         )
         val konto = KontoDO().apply {

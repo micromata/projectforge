@@ -78,6 +78,10 @@ class ApplicationPropertiesMetadataTest {
         val domain = metadata.getParam("projectforge.domain")!!
         assertTrue(domain.description!!.startsWith("The external url"))
         assertEquals("http://localhost:8080", domain.defaultValue)
+        // Renamed keys default to the former ones, the default of the former one is shown:
+        assertEquals("100MB", metadata.getParam("projectforge.files.maxDefaultFileSize")!!.defaultValue)
+        assertEquals("100MB", PropertiesMetadata.defaultOf("\${projectforge.jcr.maxDefaultFileSize:100MB}"))
+        assertEquals("\${projectforge.base.dir}/logs", PropertiesMetadata.defaultOf("\${projectforge.base.dir}/logs"))
 
         val plugins = metadata.getParam("projectforge.plugins.active")!!
         assertTrue(plugins.optional)

@@ -25,7 +25,7 @@ interface Props {
  * the path everything else takes.
  *
  * Size is not checked here. The limit is the backend's (`FileSizeChecker`, configurable per
- * installation via `projectforge.jcr.maxDefaultFileSize`), it rejects an oversized file with a
+ * installation via `projectforge.files.maxDefaultFileSize`), it rejects an oversized file with a
  * translated message, and duplicating the number here would be a second place to get it wrong.
  */
 export function AttachmentDropZone({ onFiles, disabled, children }: Props) {

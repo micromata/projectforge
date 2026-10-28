@@ -156,7 +156,7 @@ class LogFileParser(
         private val DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
 
         /**
-         * `[---]2026-10-05 00:47:30.182 [-]ERROR kai@127.0.0.1 o.p.jcr.JCRCheckSanityCheckJob    : message`. The
+         * `[---]2026-10-05 00:47:30.182 [-]ERROR kai@127.0.0.1 o.p.files.FileStoreSanityCheckJob  : message`. The
          * logger is padded to 40 characters, so it is followed by at least one blank; user and ip may be empty, and
          * a request's sessions follow them as ` sessions=[http=…]` (`LoggingFilter`).
          */

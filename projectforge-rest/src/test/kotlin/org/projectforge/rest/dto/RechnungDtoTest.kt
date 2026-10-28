@@ -297,7 +297,7 @@ class RechnungDtoTest : AbstractTestBase() {
 
     @Test
     fun `a clone has no attachments, the files staying with the original`() {
-        // They live in JCR under the old invoice's id, so a counter naming them would promise files that
+        // They live in the file store under the old invoice's id, so a counter naming them would promise files that
         // aren't there.
         val dto = clonedInvoice()
 

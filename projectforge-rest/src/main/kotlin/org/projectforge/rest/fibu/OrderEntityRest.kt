@@ -361,7 +361,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     /**
      * Enable attachments for this entity.
      */
-    enableJcr()
+    enableAttachments()
   }
 
   /**
@@ -1442,7 +1442,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
      *   first save ([OrderEntityRest.transformForDB] -> `AuftragDao.getNextNumber`).
      * - A fresh draft: [AuftragsStatus.IN_ERSTELLUNG] and dated today (date of entry and of offer), with
      *   the date of decision and the date of assignment cleared — those belong to the original's history.
-     * - No attachments: the files live in JCR under the old order's id and are not copied.
+     * - No attachments: the files live in the file store under the old order's id and are not copied.
      * - Every position and payment schedule loses its id, so the save writes new rows and
      *   [assignNumbersToNewRows] numbers them from 1. Positions the user marked deleted are left out
      *   entirely — they are on their way out of the *old* order and mean nothing in a new one. The `number`

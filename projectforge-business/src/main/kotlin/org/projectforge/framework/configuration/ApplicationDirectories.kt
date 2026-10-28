@@ -43,24 +43,17 @@ object ApplicationDirectories {
         /** The default sub directory of the base dir. */
         val defaultName: String,
     ) {
-        /** The file repository (JCR). */
-        JCR("projectforge.dir.jcr", "jcr"),
-
         /** Working files, e.g. states of synchronizations. */
         WORK("projectforge.dir.work", "work"),
 
         /** Temporary files, e.g. debug logs. */
         TMP("projectforge.dir.tmp", "tmp"),
 
-        /** Backups, e.g. of the JCR and of scripts. */
+        /** Backups, e.g. of the data base and of scripts. */
         BACKUP("projectforge.dir.backup", "backup"),
     }
 
     private val dirs = mutableMapOf<Dir, File>()
-
-    @JvmStatic
-    val jcrDirectory: File
-        get() = get(Dir.JCR)
 
     @JvmStatic
     val workingDirectory: File

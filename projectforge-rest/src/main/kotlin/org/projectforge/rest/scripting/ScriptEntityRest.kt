@@ -33,7 +33,7 @@ import org.projectforge.business.scripting.ScriptBackupInfo
 import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.business.scripting.ScriptDao
 import org.projectforge.business.scripting.ScriptExecutor
-import org.projectforge.jcr.FileInfo
+import org.projectforge.files.FileInfo
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
@@ -83,7 +83,7 @@ class ScriptEntityRest : AbstractDTOEntityRest<ScriptDO, Script, ScriptDao>(
         /**
          * Enable attachments for this entity.
          */
-        enableJcr()
+        enableAttachments()
     }
 
     override fun newBaseDO(request: HttpServletRequest?): ScriptDO {
@@ -204,7 +204,7 @@ class ScriptEntityRest : AbstractDTOEntityRest<ScriptDO, Script, ScriptDao>(
                 // Migration of field script.file to DataTransfer
                 val fileInfo = FileInfo(obj.filename, fileSize = bytes.size.toLong())
                 attachmentsService.addAttachment(
-                    jcrPath!!, fileInfo, bytes, baseDao, obj, attachmentsAccessChecker, allowDuplicateFiles = true
+                    attachmentsPath!!, fileInfo, bytes, baseDao, obj, attachmentsAccessChecker, allowDuplicateFiles = true
                 )
                 obj.file = null
                 obj.filename = null

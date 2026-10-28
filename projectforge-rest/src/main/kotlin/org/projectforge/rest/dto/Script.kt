@@ -28,7 +28,7 @@ import org.projectforge.business.scripting.ScriptParameter
 import org.projectforge.business.scripting.ScriptParameterType
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.user.UserDao
-import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.files.Attachment
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.TimePeriod
 import org.projectforge.registry.Registry

@@ -24,8 +24,8 @@
 package org.projectforge.plugins.datatransfer
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.jcr.FileInfo
-import org.projectforge.jcr.FileSizeChecker
+import org.projectforge.files.FileInfo
+import org.projectforge.files.FileSizeChecker
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao.Companion.calculateMaxUploadFileSize
 
 private val log = KotlinLogging.logger {}
