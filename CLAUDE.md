@@ -103,7 +103,7 @@ Rules from security reviews; each one was broken somewhere before.
   for the user it is meant for.
 
 ## Code Style Guidelines
-- Use Kotlin JVM target 17 for all code; legacy code is in Java
+- Use Kotlin JVM target 21 for all code; legacy code is in Java
 - Follow standard Kotlin naming conventions (camelCase for variables/functions, PascalCase for classes)
 - Include standard ProjectForge license header in all new files
 - Organize imports with Kotlin stdlib first, followed by domain/project imports
