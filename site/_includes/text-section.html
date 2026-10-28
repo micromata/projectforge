@@ -3,7 +3,8 @@
     Parameters: key (entry of the data file), data (data file in _data, default: home_sections),
     background (muted for a grey band).
     Entry fields: title, subtitle, text (markdown), bullets (list, markdown), img, img_caption, reverse (screenshot
-    left), button_text (default: "Learn more"), button_url, button_style (default: outline).
+    left), gallery (key of _data/feature_galleries.yml: a grid of screenshots instead of img), button_text (default:
+    "Learn more"), button_url, button_style (default: outline).
     German pages use the data file of the same name in _data/de/. Renders nothing if the key is missing.
 {% endcomment %}
 {%- assign source = include.data | default: 'home_sections' -%}
@@ -11,8 +12,8 @@
 {%- assign section = data[include.key] -%}
 {% if section %}
 <section class="py-16 max-sm:py-12{% if include.background == 'muted' %} border-y border-border bg-secondary{% endif %}" id="{{ include.key }}">
-    <div class="pf-container{% if section.img %} grid items-center gap-8 md:grid-cols-2 md:gap-12{% else %} pf-narrow{% endif %}">
-        <div class="{% if section.img and section.reverse %}md:order-2{% endif %}">
+    <div class="pf-container{% if section.img or section.gallery %} grid items-center gap-8 md:grid-cols-2 md:gap-12{% else %} pf-narrow{% endif %}">
+        <div class="{% if section.reverse %}{% if section.img or section.gallery %}md:order-2{% endif %}{% endif %}">
             {%- if section.title %}
             <h2 class="web-headline">{{ section.title }}</h2>
             {%- endif %}
@@ -37,7 +38,11 @@
             </div>
             {%- endif %}
         </div>
-        {%- if section.img %}
+        {%- if section.gallery %}
+        <div>
+            {% include screenshot-gallery.html key=section.gallery %}
+        </div>
+        {%- elsif section.img %}
         <div>
             {%- assign img_alt = section.img_alt | default: section.title %}
             {% include image-col.html img=section.img alt=img_alt caption=section.img_caption %}

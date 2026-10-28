@@ -343,7 +343,7 @@ class AutoCompleteObjectsTest : AbstractTestBase() {
             it.name = "$word running"
             it.internKost2_4 = 995
             it.nummer = 95
-            it.status = ProjektStatus.BUILD
+            it.status = ProjektStatus.ACTIVE
         }
         projektDao.insert(running)
         // Only the own projects: the name parts of other tests' projects (the PREFIX) match the word as well.

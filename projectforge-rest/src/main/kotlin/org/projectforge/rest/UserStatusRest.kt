@@ -28,6 +28,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.PageRoutes
 import org.projectforge.SystemAlertMessage
+import org.projectforge.business.chat.ChatUnreadCounter
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.notification.NotificationDao
 import org.projectforge.business.user.UserAvatarCache
@@ -43,6 +44,7 @@ import org.projectforge.framework.time.PFDateCompatibilityUtils
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.login.LoginService
+import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.SessionCsrfService
 import org.projectforge.rest.feature.FeaturePathIndex
@@ -90,6 +92,9 @@ open class UserStatusRest {
 
   @Autowired
   private lateinit var sessionCsrfService: SessionCsrfService
+
+  @Autowired
+  private lateinit var chatUnreadCounter: ChatUnreadCounter
 
   data class UserData(
     var username: String? = null,
@@ -195,6 +200,11 @@ open class UserStatusRest {
      * found" for them (the server answers 404 anyway, but not on navigating inside the app).
      */
     val featureRoutes: FeaturePathIndex.NextRoutes? = null,
+    /**
+     * The unread messages of the user in all their chat rooms and direct messages, for the badge of the top bar
+     * (so the client needn't load both lists for it). 0 if the chat is switched off or counting fails.
+     */
+    val chatUnread: Int = 0,
   )
 
   @GetMapping
@@ -250,6 +260,7 @@ open class UserStatusRest {
         migratedCategories = PageRoutes.categories,
         disabledFeatures = featureService.disabledFeatureIds(),
         featureRoutes = featurePathIndex.nextRoutes(),
+        chatUnread = if (featureService.isEnabled(MenuItemDefId.CHAT)) chatUnreadCounter.countUnread() else 0,
         notifications = user.id?.let { userId ->
           runCatching { notificationDao.summary(userId) }
             .onFailure { log.error(it) { "Can't read the notifications of user #$userId: ${it.message}" } }

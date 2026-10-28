@@ -64,7 +64,7 @@ class Kost2EffectiveStatusTest : AbstractTestBase() {
     fun `effectiveStatus mit aktivem Projekt entspricht eigenem Status`() {
         // Projekt ACTIVE (und andere nicht-ENDED Status) → effectiveStatus == own status
         val projekt = ProjektDO()
-        projekt.status = ProjektStatus.PRODUCTIVE
+        projekt.status = ProjektStatus.ACTIVE
         projekt.deleted = false
 
         val kost2 = Kost2DO()
@@ -111,7 +111,7 @@ class Kost2EffectiveStatusTest : AbstractTestBase() {
     fun `effectiveStatus mit geloeschtem Projekt ist ENDED`() {
         // Projekt deleted=true → effectiveStatus == ENDED
         val projekt = ProjektDO()
-        projekt.status = ProjektStatus.PRODUCTIVE // Status ist nicht ENDED
+        projekt.status = ProjektStatus.ACTIVE // Status ist nicht ENDED
         projekt.deleted = true // Aber Projekt ist gelöscht
 
         val kost2 = Kost2DO()
@@ -155,23 +155,15 @@ class Kost2EffectiveStatusTest : AbstractTestBase() {
         assertEquals(KostentraegerStatus.ACTIVE, kost2.effectiveKostentraegerStatus)
 
         // ACQUISITION
-        projekt.status = ProjektStatus.ACQUISISTION
+        projekt.status = ProjektStatus.ACQUISITION
         assertEquals(KostentraegerStatus.ACTIVE, kost2.effectiveKostentraegerStatus)
 
-        // ON_HOLD
-        projekt.status = ProjektStatus.ON_HOLD
+        // ACTIVE
+        projekt.status = ProjektStatus.ACTIVE
         assertEquals(KostentraegerStatus.ACTIVE, kost2.effectiveKostentraegerStatus)
 
-        // BUILD
-        projekt.status = ProjektStatus.BUILD
-        assertEquals(KostentraegerStatus.ACTIVE, kost2.effectiveKostentraegerStatus)
-
-        // PRODUCTIVE
-        projekt.status = ProjektStatus.PRODUCTIVE
-        assertEquals(KostentraegerStatus.ACTIVE, kost2.effectiveKostentraegerStatus)
-
-        // MAINTENANCE
-        projekt.status = ProjektStatus.MAINTENANCE
+        // PAUSED
+        projekt.status = ProjektStatus.PAUSED
         assertEquals(KostentraegerStatus.ACTIVE, kost2.effectiveKostentraegerStatus)
     }
 }

@@ -27,7 +27,9 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookStatus
+import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -121,6 +123,19 @@ class HistoryValueServiceTest : AbstractTestBase() {
         // Date-only and numeric base types have no time zone and are shown exactly as stored.
         Assertions.assertEquals("2010-02-22", historyValueService.format("2010-02-22", "java.sql.Date"))
         Assertions.assertEquals("4455.00", historyValueService.format("4455.00", "java.math.BigDecimal"))
+    }
+
+    @Test
+    fun `former project status values are shown with their former texts`() {
+        val type = ProjektStatus::class.java.name
+        Assertions.assertEquals(translate("fibu.projekt.status.build"), historyValueService.format("BUILD", type))
+        Assertions.assertEquals(translate("fibu.projekt.status.onhold"), historyValueService.format("ON_HOLD", type))
+        Assertions.assertEquals(
+            translate("fibu.projekt.status.acquisition"),
+            historyValueService.format("ACQUISISTION", type),
+        )
+        Assertions.assertEquals(translate("fibu.projekt.status.active"), historyValueService.format("ACTIVE", type))
+        Assertions.assertNotEquals("BUILD", historyValueService.format("BUILD", type))
     }
 
     private fun assertTypeClassName(expected: String, propertyType: String) {

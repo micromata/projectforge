@@ -89,6 +89,8 @@ The files (attachments, Merlin templates etc.) can now be stored in the database
 Existing installations stay on the JCR until you switch with `projectforge.files.store=db`; after switching, the files
 are copied in the background and verified by size and checksum. Data transfer files are then kept in the file system
 (directory `datatransfer` of the ProjectForge home directory). Switching back remains possible.
+ProjectForge 9.1.x is the last release with JCR support (and the last one running on Java 17): migrate with 9.1.x before
+updating to 9.2 or later, which have no JCR any more.
 Please refer to link:/docs/adminguide/#moving_the_files_out_of_the_jcr[Admin guide – Moving the files out of the JCR]
 and adjust your backups: a main dump of the database plus a dump of the files.
 
@@ -123,7 +125,8 @@ Hibernate Search was upgraded. If searching shows incomplete results after the u
 Legacy XML user preferences are migrated to the JSON store automatically.
 . Java
 +
-Java 17 or newer is still required, as for 8.x (the Docker image already contains Java).
+Java 17 or newer is still required, as for 8.x (the Docker image already contains Java). 9.1.x is the last release
+that runs on Java 17; later releases require Java 21.
 . Stricter validation of REST writes (8.2 snapshots)
 +
 Saving an entity through the REST API (`AbstractEntityRest.saveOrUpdate` and everything built on it,

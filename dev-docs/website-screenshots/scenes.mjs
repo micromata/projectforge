@@ -76,11 +76,5 @@ export default [
   } },
   // Sample problems of dashboard-problems.kts: tiles with figures and trend bars.
   { name: "2026-SystemDashboard", path: "/systemDashboard", wait: 3500, dark: true, height: 640, act: closeBanners },
-  // Sample chat of chat-seed.mjs.
-  { name: "2026-Chat", path: "/chat", wait: 2000, act: async (p) => {
-      await closeBanners(p);
-      await p.getByText("Fleet Tracking Platform", { exact: true }).first().click();
-      await p.waitForTimeout(3000);
-  } },
   { name: "2026-Dark", path: "/finance/statistics", wait: 5000, dark: true },
 ];
