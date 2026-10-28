@@ -14,7 +14,8 @@ updates:
   text: >-
     Updating is easy: stop ProjectForge, start the new version. Database schema and data are migrated
     automatically on the first start. Back up your database before, and check the
-    [Migration guide](/docs/migration/) for the few changes that need your attention.
+    [Migration guide](/docs/migration/) for the few changes that need your attention. 9.1.x is the last release
+    with Java 17 and JCR support: if you still use the JCR, migrate with 9.1.x before updating to 9.2 or later.
   button_text: Migration guide
   button_url: /docs/migration/
 

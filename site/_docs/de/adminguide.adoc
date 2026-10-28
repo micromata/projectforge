@@ -1493,6 +1493,10 @@ Bei einem beschädigten JCR-Repository oder für ein vollständiges Backup hilft
 [[moving_the_files_out_of_the_jcr]]
 ==== Dateien aus dem JCR übernehmen
 
+IMPORTANT: ProjectForge 9.1.x ist das letzte Release, das mit Java 17 läuft und das JCR unterstützt. Ab 9.2 gibt es
+kein JCR (Apache Oak) mehr, die Dateien liegen nur noch in der Datenbank und im Dateisystem. Wer noch das JCR nutzt,
+muss zuerst mit 9.1.x migrieren, bevor auf 9.2 oder neuer aktualisiert wird, wie unten beschrieben.
+
 Das JCR (Apache Oak) wird durch einen neuen Dateispeicher ersetzt: Die Dateien werden in der Datenbank gespeichert (Schema `pf_files`), die Datentransfer-Dateien im Dateisystem (`<home>/datatransfer`). Der Speicher wird in `projectforge.properties` gewählt:
 
 [source,properties]
@@ -1511,10 +1515,10 @@ Nach dem Umstellen auf `db` und einem Neustart kopiert ProjectForge alle Dateien
 * Sollen die Datentransfer-Dateien verschlüsselt werden, muss der Schlüssel vor dem Umstellen auf `db` konfiguriert werden, siehe <<encryption_of_the_data_transfer_files,Verschlüsselung der Datentransfer-Dateien>>. Die Kopien im JCR bleiben unverschlüsselt, bis sie ablaufen oder das JCR entfernt wird.
 * Das nächtliche JCR-Backup läuft in beiden Modi weiter, solange das JCR existiert. Mit `db` sind die Dateien Teil des Datei-Dumps (Schema `pf_files`, siehe <<backup_script,Backup-Skript>>), die Datentransfer-Dateien archiviert das Backup-Skript (`<home>/datatransfer`).
 
-Vor dem Update auf ein Release ohne JCR entweder auf `db` umstellen und eine erfolgreiche Migration abwarten oder
-unmittelbar vor dem Update ein frisches JCR-Backup-ZIP erzeugen (Systemseite, Karte „Dokumenten-Repository (JCR)“,
-_JCR-Backup-ZIP erzeugen_): Das nächste Release importiert die Dokumente aus diesem ZIP in die Datenbank. Das ZIP
-enthält keine Datentransfer-Dateien.
+Vor dem Update auf 9.2 oder neuer mit 9.1.x auf `db` umstellen und eine erfolgreiche Migration abwarten (Bericht
+`<home>/jcr-migration-report.txt` prüfen). Releases ohne JCR können das JCR nicht lesen und importieren auch kein
+JCR-Backup-ZIP: Eine Installation, die die Migration übersprungen hat, muss zuerst auf 9.1.x zurück. Danach kann das
+Verzeichnis `<home>/jcr` gelöscht werden.
 
 [[automatical_backup]]
 === Automatisches Backup
