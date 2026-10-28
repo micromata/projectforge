@@ -35,7 +35,7 @@
   },
   "overview": {
     "en": [
-      "**JCR and Java 17:** 9.1.x is the last release that supports the JCR and runs on Java 17. Migrate the files with 9.1.x before updating to 9.2 or later; the Docker image is based on Java 21.",
+      "**JCR and Java 17:** 9.1.x is the last release that supports the JCR and runs on Java 17. Migrate the files with 9.1.x before updating to 9.2 or later, which require Java 21 (the Docker image already is based on it).",
       "**File store:** with `projectforge.files.store=db` all files are stored in the database (schema `pf_files`), data transfer files in the file system, compressed and optionally encrypted at rest; the JCR files are copied in the background and verified by size and checksum, with a report. Backups: a main dump plus a dump of the files.",
       "**Chat:** rooms and direct messages with formatting, files, threads, mentions, quotes, search, avatars, end-to-end encrypted confidential conversations and a chat in every data transfer area.",
       "**Statistics:** contribution margin per order and structure element with a bubble chart, faster forecast and contribution margin, rearrangeable chart tiles, forecast snapshot date, liquidity forecast with a free number of days.",
@@ -47,7 +47,7 @@
       "**Search and usability:** search ignores accents and umlaut spellings, selection boxes without inactive entries and name matches first, a German version of the website."
     ],
     "de": [
-      "**JCR und Java 17:** 9.1.x ist das letzte Release, das das JCR unterstützt und mit Java 17 läuft. Die Dateien mit 9.1.x migrieren, bevor auf 9.2 oder neuer aktualisiert wird; das Docker-Image basiert auf Java 21.",
+      "**JCR und Java 17:** 9.1.x ist das letzte Release, das das JCR unterstützt und mit Java 17 läuft. Die Dateien mit 9.1.x migrieren, bevor auf 9.2 oder neuer aktualisiert wird, die Java 21 voraussetzen (das Docker-Image basiert bereits darauf).",
       "**Dateispeicher:** mit `projectforge.files.store=db` liegen alle Dateien in der Datenbank (Schema `pf_files`), Datentransfer-Dateien im Dateisystem, komprimiert und optional verschlüsselt; die JCR-Dateien werden im Hintergrund kopiert und über Größe und Prüfsumme verifiziert, mit Bericht. Backups: ein Haupt-Dump plus ein Dump der Dateien.",
       "**Chat:** Räume und Direktnachrichten mit Formatierung, Dateien, Threads, Erwähnungen, Zitaten, Suche, Avatare, Ende-zu-Ende-verschlüsselte vertrauliche Gespräche und ein Chat in jedem Datentransfer-Bereich.",
       "**Statistik:** Deckungsbeitrag je Auftrag und Strukturelement mit Bubble-Chart, schnelleres Forecast und Deckungsbeitrag, anordenbare Diagramm-Kacheln, Stichtag für den Forecast, Liquiditätsvorschau mit frei wählbarer Tageszahl.",
