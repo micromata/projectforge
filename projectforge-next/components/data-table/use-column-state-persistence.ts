@@ -88,6 +88,9 @@ export function useColumnStatePersistenceByUrl(
   const latest = useRef(state);
   // While set, writes are dropped: the state they would send is known to be outdated.
   const suspended = useRef<Promise<unknown> | null>(null);
+  // The state the server has (as far as we know): the one the table mounted with, then the last one written.
+  // Posting a state equal to it would only touch the user prefs on every page view.
+  const persisted = useRef<{ url: string; state: string } | null>(null);
 
   const serialized = JSON.stringify(state);
 
@@ -97,10 +100,17 @@ export function useColumnStatePersistenceByUrl(
 
   useEffect(() => {
     if (!url) return;
+    // Mounted once the stored state has been read, so the first state is the stored one: nothing to write yet.
+    if (persisted.current?.url !== url)
+      persisted.current = { url, state: serialized };
+    if (serialized === persisted.current.state) return;
 
     const post = () => {
       timer.current = null;
       if (suspended.current) return;
+      const body = JSON.stringify(latest.current);
+      if (body === persisted.current?.state) return;
+      persisted.current = { url, state: body };
       void saveColumnStatesToUrl(url, latest.current).catch(() => {
         // Losing a layout preference must never surface as a user error.
       });

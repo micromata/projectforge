@@ -259,6 +259,8 @@ object ElementsRegistry {
         }
         if (propertyInfo == null) {
             log.warn { "@PropertyInfo '$clazz:$property' not found." }
+            // Kept, so the warning appears once, not with every request (e.g. for each list page opened).
+            ensureClassMap(clazz)[property] = elementInfo
             return elementInfo
         }
         val colinfo = getColumnMetadata(clazz, property)

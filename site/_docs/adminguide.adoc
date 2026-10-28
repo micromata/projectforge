@@ -1461,6 +1461,10 @@ If you have a corrupted JCR repository or if you want to make a full backup, ref
 [[moving_the_files_out_of_the_jcr]]
 ==== Moving the files out of the JCR
 
+IMPORTANT: ProjectForge 9.1.x is the last release that runs on Java 17 and supports the JCR. From 9.2 on, there is no
+JCR (Apache Oak) any more, the files are kept in the database and in the file system only. If you still use the JCR,
+migrate with 9.1.x first, before you update to 9.2 or later, as described below.
+
 The JCR (Apache Oak) is going to be replaced by a new file store: the files are stored in the data base (schema `pf_files`), the data transfer files in the file system (`<home>/datatransfer`). The store is chosen in `projectforge.properties`:
 
 [source,properties]
@@ -1479,10 +1483,10 @@ After switching to `db` and restarting, ProjectForge copies all files of the JCR
 * If the data transfer files should be encrypted, configure the key before switching to `db`, see <<encryption_of_the_data_transfer_files>>. The copies in the JCR remain unencrypted until they expire or the JCR is removed.
 * The nightly JCR backup keeps running in both modes as long as the JCR exists. With `db`, the files are part of the files dump (schema `pf_files`, see <<backup_script>>), the data transfer files are archived by the backup script (`<home>/datatransfer`).
 
-Before updating to a release without JCR, either switch to `db` and wait for a successful migration, or create a
-fresh JCR backup ZIP right before the update (system page, card "Document repository (JCR)", _Create JCR backup ZIP_):
-the next release imports the documents from this ZIP into the database. The ZIP doesn't contain the data transfer
-files.
+Before updating to 9.2 or later, switch to `db` with 9.1.x and wait for a successful migration (check the report
+`<home>/jcr-migration-report.txt`). Releases without JCR can't read the JCR, and they don't import a JCR backup ZIP:
+an installation that skipped the migration has to go back to 9.1.x first. Afterwards, the directory `<home>/jcr` can be
+deleted.
 
 [[automatical_backup]]
 === Automatical backup

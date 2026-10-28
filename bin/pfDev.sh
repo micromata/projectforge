@@ -380,7 +380,7 @@ release() {
   echo "Released $version (tag $tag), now on $next."
   # Pushes the branch and the tag and creates the GitHub release (publish asks before each step), so a release is
   # not forgotten on GitHub. Declined: nothing is pushed, publish can follow by hand.
-  if confirm "Publish $version now (push, GitHub release)?"; then
+  if confirm_yes "Publish $version now (push, GitHub release)?"; then
     publish "$version"
   else
     echo "Nothing is pushed yet: pfDev.sh publish $version"
