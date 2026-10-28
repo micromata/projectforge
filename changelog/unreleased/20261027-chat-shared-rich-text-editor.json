@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Chat: messages and room descriptions use the same rich text editor. Messages can contain tables, room descriptions code and emoji. The first line of a room description is shown as a teaser, the rest folds out.",
-  "de": "Chat: Nachrichten und Raumbeschreibungen nutzen denselben Rich-Text-Editor. Nachrichten können Tabellen enthalten, Raumbeschreibungen Code und Emojis. Die erste Zeile einer Raumbeschreibung wird als Teaser angezeigt, der Rest klappt aus."
-}
