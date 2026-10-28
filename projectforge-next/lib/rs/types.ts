@@ -225,6 +225,8 @@ export interface UserStatus {
   showInactivePersons?: boolean;
   /** JIRA config for client-side issue linking, only where JIRA is configured (see JiraConfig). */
   jira?: JiraConfig;
+  /** Unread chat messages in all rooms and direct messages, for the top bar's badge. */
+  chatUnread?: number;
   /**
    * The summary of the user's notifications visible in the app; the notification center loads them only
    * when it changes (see components/shared/notifications).

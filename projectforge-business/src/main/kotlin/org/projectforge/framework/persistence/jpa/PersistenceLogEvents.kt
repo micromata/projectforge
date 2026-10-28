@@ -35,4 +35,13 @@ object PersistenceLogEvents {
                 "The exception is rethrown, so a request shows the user an error.",
         action = "Analyze the stack trace. Constraint violations or lock timeouts may also point to inconsistent data or a database problem.",
     )
+
+    @JvmField
+    val ENTITY_NOT_FOUND = LogEvent(
+        code = "persistence.entityNotFound",
+        category = LogCategory.CLIENT,
+        explanation = "An object was requested by an id that doesn't exist (any more): mostly a stale link, bookmark " +
+                "or an open page of an entry deleted meanwhile.",
+        action = "Nothing, unless it is frequent for one type: then look for a caller using ids of entries deleted for good.",
+    )
 }
