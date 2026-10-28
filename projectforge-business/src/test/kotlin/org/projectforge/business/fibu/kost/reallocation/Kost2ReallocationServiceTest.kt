@@ -26,6 +26,7 @@ package org.projectforge.business.fibu.kost.reallocation
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -57,6 +58,7 @@ import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
@@ -64,6 +66,9 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Date
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * The Kost2 reallocation with the situation of the dev doc: a sub task with time sheets on the collective kost2 S was
@@ -307,14 +312,171 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         assertEquals(f.t0.id, timesheetDao.find(own.id, checkAccess = false)!!.kost2Id)
     }
 
-    private fun newRun(f: Fixture) = Kost2ReallocationDO().also {
+    @Test
+    fun `concurrent applies of the same run apply it once`() {
+        val f = Fixture(69)
+        val run = f.createRun()
+        val start = CountDownLatch(1)
+        val executor = Executors.newFixedThreadPool(2)
+        val results = try {
+            val futures = (1..2).map {
+                executor.submit<Result<Unit>> {
+                    logon(TEST_FINANCE_USER)
+                    start.await()
+                    runCatching { service.apply(run.id!!, emptyList()); Unit }
+                }
+            }
+            start.countDown()
+            futures.map { it.get(60, TimeUnit.SECONDS) }
+        } finally {
+            executor.shutdownNow()
+        }
+        assertEquals(1, results.count { it.isSuccess }, "$results")
+        val failure = results.single { it.isFailure }.exceptionOrNull()
+        assertEquals("fibu.kost2Reallocation.error.notDraft", (failure as? UserException)?.i18nKey, "$failure")
+        // Applied once: one set of shares and one log entry per time sheet.
+        assertShares(f.salary1, f.t0 to "-600.00", f.s0 to "-400.00")
+        assertEquals(5, shareDao.selectAllOfRun(run.id!!).size, "salary1 (2), salary2, revenue and other costs.")
+        assertEquals(f.subTimesheets.size, service.getTimesheetLog(run).size)
+    }
+
+    @Test
+    fun `revert skips a deleted time sheet and refuses a changed kost2`() {
+        val f = Fixture(70)
+        val run = f.createRun()
+        service.apply(run.id!!, emptyList())
+        val deleted = timesheetDao.find(f.subTimesheets.first().id, checkAccess = false)!!
+        timesheetDao.markAsDeleted(deleted, checkAccess = false)
+        // Another kost2 on a moved time sheet (the validation of an update would refuse S1 in the target task tree):
+        val changedId = f.subTimesheets.last().id
+        timesheetDao.reallocate(timesheetDao.find(changedId, checkAccess = false)!!, f.subTask, f.s1)
+        val ex = assertThrows<UserException> { service.revert(run.id!!) }
+        assertEquals("fibu.kost2Reallocation.error.revertTimesheetChanged", ex.i18nKey)
+        // Back on the kost2 of the run: the revert restores all but the deleted time sheet.
+        timesheetDao.reallocate(timesheetDao.find(changedId, checkAccess = false)!!, f.subTask, f.t0)
+        service.revert(run.id!!)
+        assertEquals(Kost2ReallocationStatus.REVERTED, runDao.find(run.id, checkAccess = false)!!.status)
+        assertEquals(f.t0.id, timesheetDao.find(deleted.id, checkAccess = false)!!.kost2Id, "Deleted: left as it is.")
+        f.subTimesheets.drop(1).forEach { assertEquals(f.s0.id, timesheetDao.find(it.id, checkAccess = false)!!.kost2Id) }
+        f.records.forEach { assertTrue(shareService.activeShares(it).isEmpty(), "Original state.") }
+    }
+
+    @Test
+    fun `status transitions are checked`() {
+        val f = Fixture(71)
+        val run = f.createRun()
+        assertErrorKey("fibu.kost2Reallocation.error.notApplied") { service.revert(run.id!!) }
+        assertErrorKey("fibu.kost2Reallocation.error.notApplied") { service.reapply(run.id!!) }
+        service.apply(run.id!!, emptyList())
+        service.revert(run.id!!)
+        assertErrorKey("fibu.kost2Reallocation.error.notApplied") { service.revert(run.id!!) }
+        assertErrorKey("fibu.kost2Reallocation.error.notApplied") { service.reapply(run.id!!) }
+        assertErrorKey("fibu.kost2Reallocation.error.notApplied") { service.preview(run.id!!, emptyList()) }
+        assertErrorKey("fibu.kost2Reallocation.error.notDraft") { service.apply(run.id!!, emptyList()) }
+        f.records.forEach { assertTrue(shareService.activeShares(it).isEmpty(), "Original state.") }
+        // A deleted draft is gone for the service.
+        val deleted = f.createRun()
+        runDao.markAsDeleted(deleted)
+        assertErrorKey("fibu.kost2Reallocation.error.runNotFound") { service.preview(deleted.id!!, emptyList()) }
+        assertErrorKey("fibu.kost2Reallocation.error.runNotFound") { service.apply(deleted.id!!, emptyList()) }
+    }
+
+    @Test
+    fun `rules match by their account range, the first matching rule of a source wins`() {
+        val f = Fixture(72)
+        // Revenue (4400) by the first rule to T0, the other costs (4900) by the second one to S1, the salary records
+        // by neither (no rule covers 6000 explicitly): their split goes to T0, the target of the first rule of S0.
+        val run = f.createRun(withRule = false)
+        f.rule(run, f.s0, f.t0, kontoFrom = 4400, kontoTo = 4400)
+        f.rule(run, f.s0, f.s1)
+        val preview = service.preview(run.id!!, emptyList())
+        assertAmounts(preview, f.revenue, f.t0 to "2000.00")
+        assertAmounts(preview, f.otherCosts, f.s1 to "-300.00")
+        assertAmounts(preview, f.salary1, f.t0 to "-600.00", f.s0 to "-400.00")
+        assertAmounts(preview, f.salary2, f.t0 to "-500.00")
+        // A rule covering the salary account explicitly moves the rest of the split, too; other accounts stay.
+        val salaryRun = f.createRun(withRule = false)
+        f.rule(salaryRun, f.s0, f.t0, kontoFrom = 6000, kontoTo = 6000)
+        val salaryPreview = service.preview(salaryRun.id!!, emptyList())
+        assertAmounts(salaryPreview, f.salary1, f.t0 to "-1000.00")
+        assertAmounts(salaryPreview, f.salary2, f.t0 to "-500.00")
+        assertNull(salaryPreview.records.find { it.record.id == f.revenue.id }, "No rule for the revenue account.")
+        assertNull(salaryPreview.records.find { it.record.id == f.otherCosts.id })
+    }
+
+    @Test
+    fun `a period without records and time sheets changes nothing`() {
+        val f = Fixture(73)
+        val run = newRun(f, month = MONTH + 1)
+        runDao.insert(run)
+        val preview = service.preview(run.id!!, emptyList())
+        assertTrue(preview.records.isEmpty())
+        assertTrue(preview.timesheets.isEmpty())
+        assertEquals(emptyList<String>(), preview.warnings)
+        service.apply(run.id!!, emptyList())
+        assertTrue(service.getTimesheetLog(run).isEmpty())
+        service.revert(run.id!!)
+        assertEquals(Kost2ReallocationStatus.REVERTED, runDao.find(run.id, checkAccess = false)!!.status)
+        f.subTimesheets.forEach { assertEquals(f.s0.id, timesheetDao.find(it.id, checkAccess = false)!!.kost2Id) }
+    }
+
+    @Test
+    fun `missing salary data gives warnings, the other salaries are split`() {
+        val f = Fixture(74)
+        // No salary stored for the first employee, no salary record for the second one.
+        persistenceService.runInTransaction { context ->
+            context.executeUpdate(
+                "update EmployeeSalaryDO s set s.deleted = true where s.employee.id in (select e.id from EmployeeDO e where e.user.id = :userId)",
+                Pair("userId", f.user1.id),
+            )
+        }
+        buchungssatzDao.markAsDeleted(buchungssatzDao.find(f.salary2.id, checkAccess = false)!!, checkAccess = false)
+        val run = f.createRun()
+        val preview = service.preview(run.id!!, emptyList())
+        val period = "$YEAR-$MONTH"
+        assertTrue(
+            preview.warnings.contains(translateMsg("fibu.kost2Reallocation.warning.noSalary", f.user1.getFullname(), period)),
+            "${preview.warnings}",
+        )
+        assertTrue(
+            preview.warnings.contains(
+                translateMsg("fibu.kost2Reallocation.warning.noSalaryRecord", f.user2.getFullname(), period, f.s0.formattedNumber)
+            ),
+            "${preview.warnings}",
+        )
+        assertAmounts(preview, f.salary1, f.t0 to "-600.00", f.s0 to "-400.00")
+        assertNull(preview.records.find { it.record.id == f.salary2.id })
+    }
+
+    @Test
+    fun `an employee without kost1 gives a warning, the salary stays`() {
+        val f = Fixture(75)
+        persistenceService.runInTransaction { context ->
+            context.executeUpdate("update EmployeeDO e set e.kost1 = null where e.user.id = :userId", Pair("userId", f.user2.id))
+        }
+        employeeCache.forceReload()
+        val run = f.createRun()
+        val preview = service.preview(run.id!!, emptyList())
+        assertTrue(
+            preview.warnings.contains(translateMsg("fibu.kost2Reallocation.warning.noKost1", f.user2.getFullname())),
+            "${preview.warnings}",
+        )
+        assertNull(preview.records.find { it.record.id == f.salary2.id })
+        assertAmounts(preview, f.salary1, f.t0 to "-600.00", f.s0 to "-400.00")
+    }
+
+    private fun assertErrorKey(i18nKey: String, block: () -> Unit) {
+        assertEquals(i18nKey, assertThrows<UserException> { block() }.i18nKey)
+    }
+
+    private fun newRun(f: Fixture, month: Int = MONTH) = Kost2ReallocationDO().also {
         it.description = "Run ${f.n}"
         it.projekt = f.targetProject
         it.task = f.targetTask
         it.fromYear = YEAR
-        it.fromMonth = MONTH
+        it.fromMonth = month
         it.toYear = YEAR
-        it.toMonth = MONTH
+        it.toMonth = month
     }
 
     private fun assertAmounts(plan: Kost2ReallocationPlan, record: BuchungssatzDO, vararg expected: Pair<Kost2DO, String>) {
@@ -423,6 +585,13 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
                 }
             }
             return runDao.find(run.id, checkAccess = false)!!
+        }
+
+        fun rule(run: Kost2ReallocationDO, source: Kost2DO, target: Kost2DO, kontoFrom: Int? = null, kontoTo: Int? = null) {
+            ruleDao.insert(Kost2ReallocationRuleDO().also {
+                it.run = run; it.sourceKost2 = source; it.targetKost2 = target
+                it.kontoFrom = kontoFrom; it.kontoTo = kontoTo
+            })
         }
 
         fun timesheet(user: PFUserDO, task: TaskDO, kost2: Kost2DO, day: Int, hours: Int): TimesheetDO {

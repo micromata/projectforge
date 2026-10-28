@@ -243,6 +243,22 @@ class DatevImportRestTest {
     }
 
     @Test
+    fun `the import job discards the shares of records whose kost2 or amount changed, compared with the database`() {
+        val otherKost2 = Kost2DO().also { it.id = 22L }
+        val stored = (100L..104L).map { id -> stored(id = id, satznr = id.toInt(), betrag = "99.00", datum = LocalDate.of(2026, 7, 1)) }
+        val toPersist = listOf(
+            stored(id = 100L, satznr = 100, betrag = "99.00", datum = LocalDate.of(2026, 7, 1)), // unchanged
+            stored(id = 101L, satznr = 101, betrag = "99.0", datum = LocalDate.of(2026, 7, 1)), // scale only
+            stored(id = 102L, satznr = 102, betrag = "98.00", datum = LocalDate.of(2026, 7, 1)), // amount
+            stored(id = 103L, satznr = 103, betrag = "99.00", datum = LocalDate.of(2026, 7, 1)).also { it.kost2 = otherKost2 },
+            stored(id = 105L, satznr = 105, betrag = "1.00", datum = LocalDate.of(2026, 7, 1)), // not stored
+        )
+        // #104 is stored with shares, but not part of the import: it stays.
+        assertEquals(listOf(102L, 103L), DatevRecordImportJob.changedRecordIds(toPersist, stored))
+        assertEquals(emptyList<Long>(), DatevRecordImportJob.changedRecordIds(emptyList(), stored))
+    }
+
+    @Test
     fun `chart of accounts is read from the month prefixed sheet, not from the balance list`() {
         val storage = DatevAccountImportStorage { listOf(konto(1L, 4400, "Erlöse alt")) }
         storage.filename = FILENAME

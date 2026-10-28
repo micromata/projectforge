@@ -146,11 +146,7 @@ class DatevRecordImportJob(
         if (reallocatedIds.isEmpty()) {
             return emptyList()
         }
-        return buchungssatzDao.select(reallocatedIds, checkAccess = false).orEmpty().filter { stored ->
-            val satz = byId[stored.id] ?: return@filter false
-            val storedBetrag = stored.betrag
-            satz.kost2?.id != stored.kost2?.id || storedBetrag == null || satz.betrag?.compareTo(storedBetrag) != 0
-        }.mapNotNull { it.id }
+        return changedRecordIds(toPersist, buchungssatzDao.select(reallocatedIds, checkAccess = false).orEmpty())
     }
 
     private fun buildRecord(read: DatevRecordImportDTO): BuchungssatzDO? {
@@ -202,5 +198,18 @@ class DatevRecordImportJob(
 
     companion object {
         private const val INSERT_BLOCK_SIZE = 50
+
+        /**
+         * The ids of the [stored] records whose kost2 or amount differs from the record of the same id in [toPersist]
+         * (an amount differing in the scale only is unchanged). Stored records not to persist are left out.
+         */
+        internal fun changedRecordIds(toPersist: List<BuchungssatzDO>, stored: List<BuchungssatzDO>): List<Long> {
+            val byId = toPersist.filter { it.id != null }.associateBy { it.id!! }
+            return stored.filter { record ->
+                val satz = byId[record.id] ?: return@filter false
+                val storedBetrag = record.betrag
+                satz.kost2?.id != record.kost2?.id || storedBetrag == null || satz.betrag?.compareTo(storedBetrag) != 0
+            }.mapNotNull { it.id }
+        }
     }
 }
