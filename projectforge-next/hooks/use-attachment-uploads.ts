@@ -16,6 +16,8 @@ export interface UploadJob {
   size: number;
   /** 0-100, or null while the browser cannot tell the total. */
   percent: number | null;
+  /** Smoothed upload speed in bytes per second, or null until two progress events allow a measurement. */
+  bytesPerSecond: number | null;
   /** waiting → sending → the server's verdict. */
   state: "queued" | "sending" | "failed";
   /** Why it failed; already translated when it comes from the backend. */
@@ -32,6 +34,11 @@ export interface UseAttachmentUploadsOptions {
 }
 
 let nextJobId = 0;
+
+/** Progress events closer together than this are folded into the next one — their rate would be noise. */
+const MIN_SAMPLE_MILLIS = 250;
+/** Weight of the newest sample in the smoothed speed. */
+const SMOOTHING = 0.3;
 
 /**
  * Uploads files in parallel and tracks each one's progress separately, as the legacy
@@ -78,7 +85,9 @@ export function useAttachmentUploads(
       if (cancelled.current.delete(job.id)) return;
       const controller = new AbortController();
       controllers.current.set(job.id, controller);
-      patch(job.id, { state: "sending", percent: 0 });
+      patch(job.id, { state: "sending", percent: 0, bytesPerSecond: null });
+      let sample = { time: performance.now(), loaded: 0 };
+      let speed: number | null = null;
       try {
         const result = await uploadAttachment(
           entity,
@@ -86,7 +95,19 @@ export function useAttachmentUploads(
           file,
           undefined,
           {
-            onProgress: ({ percent }) => patch(job.id, { percent }),
+            onProgress: ({ percent, loaded }) => {
+              const now = performance.now();
+              if (now - sample.time >= MIN_SAMPLE_MILLIS) {
+                const current =
+                  ((loaded - sample.loaded) / (now - sample.time)) * 1000;
+                speed =
+                  speed == null
+                    ? current
+                    : SMOOTHING * current + (1 - SMOOTHING) * speed;
+                sample = { time: now, loaded };
+              }
+              patch(job.id, { percent, bytesPerSecond: speed });
+            },
             signal: controller.signal,
           },
           base
@@ -124,6 +145,7 @@ export function useAttachmentUploads(
           name: file.name,
           size: file.size,
           percent: null,
+          bytesPerSecond: null,
           state: tooLarge ? "failed" : "queued",
           error: tooLarge ? tooLargeMessage : undefined,
         };

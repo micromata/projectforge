@@ -6,6 +6,8 @@ import { Cancel01Icon, AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { formatTransferRate } from "@/lib/format";
+import { useFormatContext } from "@/hooks/use-format";
 import type { UploadJob } from "@/hooks/use-attachment-uploads";
 
 interface Props {
@@ -22,6 +24,7 @@ interface Props {
  */
 export function AttachmentUploadRow({ job, onCancel }: Props) {
   const t = useTranslations();
+  const formatContext = useFormatContext();
   const failed = job.state === "failed";
   // The bar is indeterminate until the first progress event; showing 0 % would look stuck.
   const percent = job.percent ?? 0;
@@ -56,8 +59,13 @@ export function AttachmentUploadRow({ job, onCancel }: Props) {
                 job.state === "queued" && "opacity-50"
               )}
             />
-            <span className="w-9 shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
+            <span className="shrink-0 whitespace-nowrap text-right text-[11px] tabular-nums text-muted-foreground">
               {job.percent == null ? "…" : `${job.percent} %`}
+              {job.state === "sending" && job.bytesPerSecond != null && (
+                <span className="ml-2 inline-block min-w-16">
+                  {formatTransferRate(job.bytesPerSecond, formatContext)}
+                </span>
+              )}
             </span>
           </div>
         )}
