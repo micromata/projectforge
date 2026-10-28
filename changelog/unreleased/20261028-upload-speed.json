@@ -1,7 +1,5 @@
-[
-  {
-    "type": "added",
-    "en": "Data transfer (also public): the upload shows its current speed in kB/s or MB/s.",
-    "de": "Datentransfer (auch öffentlich): Der Upload zeigt die aktuelle Geschwindigkeit in kB/s bzw. MB/s an."
-  }
-]
+{
+  "type": "added",
+  "en": "Data transfer (also public): the upload shows its current speed in kB/s or MB/s.",
+  "de": "Datentransfer (auch öffentlich): Der Upload zeigt die aktuelle Geschwindigkeit in kB/s bzw. MB/s an."
+}

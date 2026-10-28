@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Projects: the status is one of acquisition, active, paused and ended (or not set). Existing projects were mapped: build phase, productive and maintenance became active, on hold became paused. The history still shows the former values.",
+  "de": "Projekte: Der Status ist Akquise, aktiv, pausiert oder beendet (oder nicht gesetzt). Bestehende Projekte wurden umgestellt: Entwicklungsphase, produktiv und Wartung wurden zu aktiv, vorübergehend nicht aktiv zu pausiert. Die Historie zeigt weiterhin die früheren Werte."
+}

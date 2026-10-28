@@ -27,6 +27,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.DisplayNameCapable
@@ -230,6 +231,7 @@ class HistoryValueService private constructor() {
 
     internal fun formatI18nEnum(valueString: String, propertyType: String): String {
         val type = getClass(propertyType) ?: return valueString
+        legacyEnumI18nKeys[type]?.get(valueString)?.let { return translate(it) }
         val i18nEnum = I18nEnum.create(type, valueString) as? I18nEnum ?: return valueString
         return translate(i18nEnum.i18nKey)
     }
@@ -316,6 +318,19 @@ class HistoryValueService private constructor() {
             propertyType ?: return ""
             return propertyType.substringBefore("_$$").substringBefore("$")
         }
+
+        /**
+         * Enum constants removed or renamed, but still in the history: enum class -> former constant name -> i18n key.
+         */
+        private val legacyEnumI18nKeys: Map<Class<*>, Map<String, String>> = mapOf(
+            ProjektStatus::class.java to mapOf(
+                "ACQUISISTION" to "fibu.projekt.status.acquisition",
+                "ON_HOLD" to "fibu.projekt.status.onhold",
+                "BUILD" to "fibu.projekt.status.build",
+                "PRODUCTIVE" to "fibu.projekt.status.productive",
+                "MAINTENANCE" to "fibu.projekt.status.maintenance",
+            ),
+        )
 
         /**
          * Base types carrying a time of day: stored as UTC and therefore reformatted into the user's time zone
