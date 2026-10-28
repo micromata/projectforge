@@ -334,25 +334,29 @@ open class ContributionMarginService {
     }
     // An invoice may be booked into a month before or after its date.
     val bookedInvoices = bookedInvoices(from.minusMonths(2), until, config.isRevenueAccount)
-    val invoiceEntries = selectInvoices(projectIds, from.minusMonths(1), until.plusMonths(1))
+    val allKost2ToProject = kost2ToProject(null, config)
+    val projectIdSet = projectIds.toSet()
+    val invoiceEntries = selectInvoices(projectIds, allKost2ToProject, from.minusMonths(1), until.plusMonths(1))
       .filter { it.status != RechnungStatus.GEPLANT }
       .flatMap { invoice ->
-        val projectId = invoice.projekt?.id ?: return@flatMap emptyList()
         val date = bookedInvoices.bookedDate(invoice)?.localDate ?: invoice.datum ?: return@flatMap emptyList()
         if (date < from || date > until) {
           return@flatMap emptyList()
         }
-        rechnungCache.getRechnungInfo(invoice.id)?.positions.orEmpty().filter { !it.deleted }.map { pos ->
+        positionsOf(invoice).flatMap { pos ->
           val orderPosition = rechnungCache.getOrderPositionInfoOfInvoicePos(pos.id)
-          ContributionMarginEntry(
-            projectId,
-            date,
-            revenue = pos.netSum,
-            type = ContributionMarginEntryType.INVOICE,
-            text = "Invoice #${invoice.nummer}.${pos.number}",
-            orderPositionId = orderPosition?.id,
-            taskId = orderPosition?.taskId,
-          )
+          ContributionMarginCalculator.invoiceShares(invoice, pos, allKost2ToProject, projectIdSet).map { share ->
+            ContributionMarginEntry(
+              share.projectId,
+              date,
+              revenue = share.netSum,
+              type = ContributionMarginEntryType.INVOICE,
+              kost2Id = share.kost2Id,
+              text = "Invoice #${invoice.nummer}.${pos.number}",
+              orderPositionId = orderPosition?.id,
+              taskId = orderPosition?.taskId,
+            )
+          }
         }
       }
     val hourlyRate = config.effectiveHourlyRate ?: return invoiceEntries
@@ -475,11 +479,15 @@ open class ContributionMarginService {
     bookingImportEnd: LocalDate?,
     config: ContributionMarginConfig,
   ): Map<Long, ContributionMarginCache.ProjectPart> {
-    val source = load(projectIds, calculator.prevPrevYearBegin, calculator.periodValuesEnd, bookingImportEnd, config)
+    val allKost2ToProject = kost2ToProject(null, config)
+    val source = load(
+      projectIds, calculator.prevPrevYearBegin, calculator.periodValuesEnd, bookingImportEnd, config, allKost2ToProject,
+    )
     val invoiceRows = if (calculator.periodValuesEnd < calculator.periodBegin) {
       emptyList()
     } else {
-      invoiceRows(selectInvoices(projectIds, calculator.periodBegin, calculator.periodValuesEnd), source)
+      val invoices = selectInvoices(projectIds, allKost2ToProject, calculator.periodBegin, calculator.periodValuesEnd)
+      invoiceRows(invoices, source, allKost2ToProject, projectIds)
     }
     val entriesByProject = source.entries.groupBy { it.projectId }
     val rowsByProject = invoiceRows.groupBy { it.projectId }
@@ -489,35 +497,41 @@ open class ContributionMarginService {
   }
 
   /** One row per position of the invoices (planned ones excluded, as they aren't issued yet). */
-  private fun invoiceRows(invoices: List<RechnungDO>, source: ContributionMarginSource): List<ContributionMarginInvoiceRow> {
+  private fun invoiceRows(
+    invoices: List<RechnungDO>,
+    source: ContributionMarginSource,
+    kost2ToProject: Map<Long, Long>,
+    projectIds: Collection<Long>,
+  ): List<ContributionMarginInvoiceRow> {
+    val projectIdSet = projectIds.toSet()
     return invoices.filter { it.status != RechnungStatus.GEPLANT }.flatMap { invoice ->
-      val projectId = invoice.projekt?.id
-      val info = projectId?.let { projectInfo(it) }
-      val customer = caches.getKundeIfNotInitialized(invoice.kunde)?.name ?: invoice.kundeText ?: info?.customer
       val bookedDate = source.bookedInvoices.bookedDate(invoice)?.localDate
       val preliminary = source.isPreliminaryRevenue(invoice)
       val status = invoice.status?.i18nKey?.let { translate(it) }
-      val positions = rechnungCache.getRechnungInfo(invoice.id)?.positions ?: emptyList()
-      positions.map { pos ->
+      positionsOf(invoice).flatMap { pos ->
         val orderPos = rechnungCache.getOrderPositionInfoOfInvoicePos(pos.id)
-        ContributionMarginInvoiceRow(
-          invoiceId = invoice.id,
-          date = invoice.datum,
-          number = invoice.nummer,
-          positionNumber = pos.number,
-          projectId = projectId,
-          kost = info?.kost,
-          customer = customer,
-          project = info?.project,
-          projectGroup = info?.projectGroup,
-          subject = invoice.betreff,
-          netSum = pos.netSum,
-          status = status,
-          orderId = orderPos?.auftragId,
-          order = orderPos?.let { "${it.auftragNummer}.${it.number}" },
-          bookedDate = bookedDate,
-          preliminary = preliminary,
-        )
+        ContributionMarginCalculator.invoiceShares(invoice, pos, kost2ToProject, projectIdSet).map { share ->
+          val projectId = share.projectId
+          val info = projectInfo(projectId)
+          ContributionMarginInvoiceRow(
+            invoiceId = invoice.id,
+            date = invoice.datum,
+            number = invoice.nummer,
+            positionNumber = pos.number,
+            projectId = projectId,
+            kost = info?.kost,
+            customer = caches.getKundeIfNotInitialized(invoice.kunde)?.name ?: invoice.kundeText ?: info?.customer,
+            project = info?.project,
+            projectGroup = info?.projectGroup,
+            subject = invoice.betreff,
+            netSum = share.netSum,
+            status = status,
+            orderId = orderPos?.auftragId,
+            order = orderPos?.let { "${it.auftragNummer}.${it.number}" },
+            bookedDate = bookedDate,
+            preliminary = preliminary,
+          )
+        }
       }
     }.sortedWith(compareBy({ it.date }, { it.number }, { it.positionNumber }))
   }
@@ -543,11 +557,12 @@ open class ContributionMarginService {
     until: LocalDate,
     bookingImportEnd: LocalDate?,
     config: ContributionMarginConfig,
+    allKost2ToProject: Map<Long, Long> = kost2ToProject(null, config),
   ): ContributionMarginSource {
     val isRevenueAccount = config.isRevenueAccount
     val hourlyRate = config.effectiveHourlyRate
     val preliminaryBegin = ContributionMarginCalculator.preliminaryBegin(bookingImportEnd, from, until)
-    val kost2ToProject = kost2ToProject(projectIds, config)
+    val kost2ToProject = if (projectIds == null) allKost2ToProject else allKost2ToProject.filterValues { it in projectIds }
     val records = if (projectIds == null) {
       selectRecords(null, from, until)
     } else {
@@ -567,8 +582,10 @@ open class ContributionMarginService {
       BookedInvoices(allRecords, isRevenueAccount)
     }
     if (preliminaryBegin != null) {
-      val invoices = selectInvoices(projectIds, preliminaryBegin, until)
-      entries += ContributionMarginCalculator.invoiceEntries(invoices, preliminaryBegin, until, bookedInvoices)
+      val invoices = selectInvoices(projectIds, allKost2ToProject, preliminaryBegin, until)
+      entries += ContributionMarginCalculator.invoiceEntries(
+        invoices, preliminaryBegin, until, bookedInvoices, allKost2ToProject, projectIds?.toSet(), ::positionsOf,
+      )
       if (hourlyRate != null) {
         entries += timesheetEntries(kost2ToProject, preliminaryBegin, until, hourlyRate)
       }
@@ -645,18 +662,59 @@ open class ContributionMarginService {
       .firstNotNullOfOrNull { it.projekt?.id }
   }
 
-  private fun selectInvoices(projectIds: Collection<Long>?, from: LocalDate, until: LocalDate): List<RechnungDO> {
+  /** The ids of the (not deleted) invoices in [from]..[until] with a cost assignment on one of the given kost2. */
+  internal fun invoiceIdsOfKost2(kost2Ids: Collection<Long>, from: LocalDate, until: LocalDate): List<Long> {
+    return kost2Ids.chunked(CHUNK_SIZE).flatMap { chunk ->
+      persistenceService.executeQuery(
+        "select distinct r.id from RechnungDO r join r.positionen p join p.kostZuweisungen k" +
+            " where k.kost2.id in :kost2Ids and r.datum between :from and :until and r.deleted = false",
+        Long::class.javaObjectType,
+        "kost2Ids" to chunk,
+        "from" to from,
+        "until" to until,
+      )
+    }.distinct()
+  }
+
+  /**
+   * The positions of the invoice (not deleted ones). Without cached infos (e.g. while the cache is refreshing),
+   * the invoice counts as a single position of its net sum, without cost assignments.
+   */
+  private fun positionsOf(invoice: RechnungDO): List<InvoicePosition> {
+    val positions = rechnungCache.getRechnungInfo(invoice.id)?.positions
+      ?: return listOf(InvoicePosition(null, 1, invoice.info.netSum, BigDecimal.ZERO, emptyList()))
+    return positions.filter { !it.deleted }.map { InvoicePosition(it) }
+  }
+
+  /**
+   * The invoices in [from]..[until] of the given projects (all if null): those of the project itself or with
+   * a cost assignment on one of its kost2 ([kost2ToProject]). Which part belongs to which project is up to
+   * [ContributionMarginCalculator.invoiceShares].
+   */
+  private fun selectInvoices(
+    projectIds: Collection<Long>?,
+    kost2ToProject: Map<Long, Long>,
+    from: LocalDate,
+    until: LocalDate,
+  ): List<RechnungDO> {
     if (projectIds == null) {
       val queryFilter = queryFilter()
       queryFilter.add(between("datum", from, until))
       return rechnungDao.select(queryFilter, checkAccess = false)
     }
-    return projectIds.chunked(CHUNK_SIZE).flatMap { chunk ->
+    val projectIdSet = projectIds.toSet()
+    val invoices = projectIds.chunked(CHUNK_SIZE).flatMap { chunk ->
       val queryFilter = queryFilter()
       queryFilter.add(isIn("projekt.id", chunk))
       queryFilter.add(between("datum", from, until))
       rechnungDao.select(queryFilter, checkAccess = false)
+    }.associateBy { it.id }
+    val assignedIds = invoiceIdsOfKost2(kost2ToProject.filterValues { it in projectIdSet }.keys, from, until)
+        .filter { it !in invoices }
+    if (assignedIds.isEmpty()) {
+      return invoices.values.toList()
     }
+    return invoices.values + assignedIds.chunked(CHUNK_SIZE).flatMap { rechnungDao.select(it, checkAccess = false).orEmpty() }
   }
 
   private fun timesheetEntries(

@@ -872,6 +872,10 @@ a.changelog-pill-docker:hover {
 .pf-gallery figure {
   margin: 0;
 }
+/* An odd number of screenshots: the first one takes the whole width, the grid has no gap at the end. */
+.pf-gallery > figure:first-child:nth-last-child(odd) {
+  grid-column: 1 / -1;
+}
 .pf-gallery a {
   display: block;
   border: 1px solid var(--color-border);

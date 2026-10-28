@@ -35,6 +35,8 @@ class KostZuweisungInfo(kostZuweisung: KostZuweisungDO) : Serializable {
 
     val id = kostZuweisung.id
     val netto = kostZuweisung.netto
+    val kost1Id = kostZuweisung.kost1Id
+    val kost2Id = kostZuweisung.kost2Id
     val kost1: Kost
     val kost2: Kost
 

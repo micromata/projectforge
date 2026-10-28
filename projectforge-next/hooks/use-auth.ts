@@ -44,6 +44,8 @@ export function useAuth() {
     jira: query.data?.jira ?? null,
     /** The summary of the notifications visible in the app, null before the status is loaded. */
     notifications: query.data?.notifications ?? null,
+    /** The unread chat messages of the user (rooms and direct messages), 0 before the status is loaded. */
+    chatUnread: query.data?.chatUnread ?? 0,
     /** The ids of the switched off features, see useFeatureEnabled. */
     disabledFeatures: query.data?.disabledFeatures ?? EMPTY,
     /** The next routes of the switched off features, see FeatureGuard. */
