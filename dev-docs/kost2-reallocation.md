@@ -1,6 +1,6 @@
 # Kost2-Reallokation von Buchungssätzen (rückwirkender Projektumzug)
 
-Status: Phasen 1–3 sind umgesetzt (Migration `V9.1.1.2__RELEASE-Kost2Reallocation.sql`), Phase 4 und 5 sind offen.
+Status: Phasen 1–3 sind umgesetzt (Migration `V9.2.0.2__RELEASE-Kost2Reallocation.sql`), Phase 4 und 5 sind offen.
 Ziel-Release: das nächste (`version` in `gradle.properties`).
 
 Dieses Dokument ist auf Deutsch geschrieben, weil es ein Buchhaltungsthema ist. Bezeichner im Code bleiben englisch.
