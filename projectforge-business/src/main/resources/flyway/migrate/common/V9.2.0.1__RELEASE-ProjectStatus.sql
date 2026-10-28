@@ -21,4 +21,4 @@ WHERE status = 'NONE';
 -- UPDATE t_fibu_projekt SET status = 'ACQUISISTION' WHERE status = 'ACQUISITION';
 -- UPDATE t_fibu_projekt SET status = 'BUILD' WHERE status = 'ACTIVE';
 -- UPDATE t_fibu_projekt SET status = 'ON_HOLD' WHERE status = 'PAUSED';
--- DELETE FROM t_flyway_schema_version WHERE version = '9.1.1.1';
+-- DELETE FROM t_flyway_schema_version WHERE version = '9.2.0.1';
