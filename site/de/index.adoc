@@ -4,6 +4,10 @@ width: expand
 permalink: /de/
 description: "Das Open-Source-Backoffice für projektgetriebene Unternehmen: Projekte, Zeit, Personal und Geld an einem Ort. Selbst gehostet, gemacht für DACH und die EU."
 hero:
+    announcement:
+      label: "Release 9.1.0"
+      text: "Komplett neu gestaltet: neuer Dateispeicher, Chat, Deckungsbeitrag und mehr Sicherheit"
+      url: /de/changelog-posts/#release-9-1-0
     title: Vom Auftrag bis zur Rechnung – ein Ort für Projekte, Zeit, Personal und Geld.
     subtitle: ProjectForge ist das Open-Source-Backoffice für projektgetriebene Unternehmen. Selbst gehostet, gemacht für DACH und die EU, kostenlos und ohne Einschränkungen.
     images:

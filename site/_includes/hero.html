@@ -2,10 +2,18 @@
     Page hero from the front matter (page.hero): title, subtitle, buttons (title, url, style: primary or
     outline), note (small print below the buttons), image (screenshot below, path in /uploads/) and image_alt, or images
     (up to three screenshots with src and alt, shown as an overlapping collage: back left, back right, front).
+    announcement (label, text and url) shows a pill link above the title, e.g. for a new release.
 {%- endcomment -%}
 {%- assign hero = page.hero -%}
 <section class="pt-24 pb-16 text-center max-sm:pt-16 max-sm:pb-12">
     <div class="pf-container">
+        {%- if hero.announcement %}
+        <a class="mx-auto inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-[14px] leading-5 text-foreground no-underline shadow-sm hover:bg-muted" href="{{ hero.announcement.url | relative_url }}">
+            <span class="font-semibold text-primary">{{ hero.announcement.label }}</span>
+            <span>{{ hero.announcement.text }}</span>
+            <span aria-hidden="true">→</span>
+        </a>
+        {%- endif %}
         <h1 class="web-display mx-auto mt-4 max-w-[20ch]">{{ hero.title }}</h1>
         {%- if hero.subtitle %}
         <p class="web-lead mx-auto mt-6 max-w-[640px] text-secondary-foreground">{{ hero.subtitle }}</p>
