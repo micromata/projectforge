@@ -24,7 +24,7 @@
 
 package org.projectforge.plugins.todo
 
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
@@ -51,11 +51,11 @@ class ToDoPlugin : AbstractPlugin(
         register(entry)
 
         // Register the menu entry as sub menu entry of the misc menu. The to-dos are migrated to projectforge-next
-        // (see NextMigration.MIGRATED), their Wicket pages are removed. The badge counts the recent to-dos of the
+        // (see PageRoutes.MIGRATED), their Wicket pages are removed. The badge counts the recent to-dos of the
         // logged-in user.
         WicketSupport.get(MenuCreator::class.java).register(
             MenuItemDefId.MISC,
-            MenuItemDef(ID, "plugins.todo.menu", NextMigration.listUrl(CATEGORY)).also {
+            MenuItemDef(ID, "plugins.todo.menu", PageRoutes.listUrl(CATEGORY)).also {
                 it.badgeCounter = { toDoDao.getOpenToDoEntries(null) }
             }
         )

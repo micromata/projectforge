@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.core
 
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -64,20 +64,8 @@ class ListMetaData(
      * label, type and the value list of a select.
      */
     val filterElements: List<UILabelledElement>,
-    /** Url template of the page a row leads to, with [NextMigration.ID_PLACEHOLDER] for the id. */
+    /** Url template of the page a row leads to, with [PageRoutes.ID_PLACEHOLDER] for the id. */
     val standardEditPage: String,
-    /**
-     * The way back to the legacy list page, or null if this page has no legacy counterpart any more
-     * (see `NextMigration.NextPage.legacyApp`).
-     */
-    val legacyListPage: String?,
-    /**
-     * Whether [legacyListPage] is offered as an entry of the list's gear menu instead of the prominent
-     * button (see `NextMigration.NextPage.legacyListInMenu`). The escape hatch stays loud while a new
-     * page still has gaps; a trusted page demotes it into the menu, per entity. Only meaningful with a
-     * non-null [legacyListPage] - a page with no way back offers nothing either way.
-     */
-    val legacyListInMenu: Boolean,
     /**
      * Whether the full re-index is the only re-index of this list, offered to every user: the entity is small
      * enough for a full run to take seconds (see `BaseDao.isFullReindexSmall`). Otherwise the list offers
@@ -86,14 +74,6 @@ class ListMetaData(
     val fullReindexOnly: Boolean = false,
     /** The limit of [fullReindexOnly], named by the explanation of the admins' full re-index entry. */
     val fullReindexMaxEntries: Long = BaseDao.FULL_REINDEX_MAX_ENTRIES_FOR_NON_ADMINS,
-    /** The legacy edit page with [NextMigration.ID_PLACEHOLDER] for the id, or null. */
-    val legacyEditPage: String?,
-    /**
-     * The legacy page for adding an entry, or null. Served next to [legacyEditPage], because it isn't
-     * derivable from it: the Wicket edit page carries the id as a query parameter, so dropping the
-     * placeholder is a per-app rule, not a suffix cut.
-     */
-    val legacyNewEntryPage: String?,
     /**
      * What the logged-in user may do with this entity: insert, update, delete, see the history.
      *

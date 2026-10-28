@@ -8,13 +8,15 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { UnreadBadge } from "@/components/shared/unread-badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ChatMessage } from "@/lib/rs/chat-types";
+import { cn } from "@/lib/utils";
 import { useChatContext } from "./chat-context";
 import { ChatSearch } from "./chat-search";
 
 /**
- * The head of a conversation: search, muting (NOT-07), a note while live updates fall back to polling and the
+ * The head of a conversation: search, muting (NOT-07), a status pill while live updates fall back to polling and the
  * unread messages not seen yet, whose badge jumps to the next one.
  */
 export function ChatPanelHeader({
@@ -23,12 +25,15 @@ export function ChatPanelHeader({
   polling,
   unreadCount,
   onNextUnread,
+  inline = false,
 }: {
   onJump: (message: ChatMessage) => void;
   onMute: () => void;
   polling: boolean;
   unreadCount: number;
   onNextUnread: () => void;
+  /** Shown within another row (the page's title row): no row of its own with a border. */
+  inline?: boolean;
 }) {
   const t = useTranslations();
   const { conversation } = useChatContext();
@@ -39,14 +44,27 @@ export function ChatPanelHeader({
     arg0: unreadCount,
   });
   return (
-    <div className="flex shrink-0 items-center gap-1 border-b px-2 py-1">
-      <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-        {polling
-          ? t("chat.conversation.polling")
-          : conversation.muted
-            ? t("chat.conversation.muted")
-            : ""}
+    <div
+      className={cn(
+        "flex shrink-0 items-center gap-1",
+        !inline && "border-b px-2 py-1"
+      )}
+    >
+      <span
+        className={cn(
+          "min-w-0 truncate text-xs text-muted-foreground",
+          !inline && "flex-1"
+        )}
+      >
+        {!polling && conversation.muted ? t("chat.conversation.muted") : ""}
       </span>
+      {polling && (
+        <HintTooltip text={t("chat.conversation.polling")}>
+          <Badge variant="outline" className="shrink-0">
+            {t("chat.conversation.pollingLabel")}
+          </Badge>
+        </HintTooltip>
+      )}
       <ChatSearch onJump={onJump} />
       <HintTooltip
         text={conversation.muted ? t("chat.conversation.muted") : null}

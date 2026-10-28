@@ -25,7 +25,7 @@ package org.projectforge.rest
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.business.address.*
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.framework.i18n.translate
@@ -149,7 +149,7 @@ class AddressEntityRest : AbstractDTOEntityRest<AddressDO, Address, AddressDao>(
      * A row and a search hit lead to the view of an address (`next/address/:id`), not to its form.
      */
     override fun getStandardEditPage(): String {
-        return "${NextMigration.listUrl(category)}/${NextMigration.ID_PLACEHOLDER}"
+        return "${PageRoutes.listUrl(category)}/${PageRoutes.ID_PLACEHOLDER}"
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {

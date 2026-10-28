@@ -72,7 +72,7 @@ export function withPinnedFirst(
  *
  * Both cases come from a stored order written for another set of columns: a column added later, or
  * the layout of the legacy React grid, which kept its state under the same category and with its own
- * column ids (`statusAsString` where the page now has `status`) — see NextMigration. Applied at render
+ * column ids (`statusAsString` where the page now has `status`) — see PageRoutes. Applied at render
  * time like withLockedFirst, so nothing has to be migrated in what the user persisted.
  *
  * @param order The stored order; empty means "as the columns are declared" and is returned as is.

@@ -358,9 +358,6 @@ function DeclaredList<
           // Only where this user may add one: without the right the button is left out, as the
           // legacy page leaves the create entry out of its menu (see useEditTargets.canAdd).
           addHref={targets.canAdd ? targets.addHref : undefined}
-          addIsLegacy={targets.legacy}
-          // The button, unless this entity has demoted the way back into the gear menu below.
-          legacyUrl={list.legacyInMenu ? undefined : list.legacyUrl}
           experimental={page.experimental}
           selectionToggle={
             page.massUpdate &&
@@ -381,11 +378,7 @@ function DeclaredList<
             </>
           }
           gearMenu={
-            <ListGearMenu
-              entity={page.entity}
-              // Present only for an entity that has moved its way back in here (see legacyInMenu).
-              legacyUrl={list.legacyInMenu ? list.legacyUrl : undefined}
-            >
+            <ListGearMenu entity={page.entity}>
               {GearMenuActions && <GearMenuActions />}
             </ListGearMenu>
           }

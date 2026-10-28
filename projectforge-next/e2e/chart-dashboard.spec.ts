@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { isPluginActive } from "./fixtures/plugins";
 
 /**
  * The chart dashboard (components/shared/dashboard/), on the liquidity forecast: a tile's width is changed
@@ -11,6 +12,13 @@ import { userFormat } from "./fixtures/format";
  * test resets it at the end.
  */
 test.describe("chart dashboard", { tag: "@parallel" }, () => {
+  test.beforeEach(async ({ loggedInPage: page }) => {
+    test.skip(
+      !(await isPluginActive(page.request, "liquidplanning")),
+      "the liquidity planning plugin is not active on this instance"
+    );
+  });
+
   test("stores a tile's width and resets the layout", async ({
     loggedInPage: page,
   }) => {

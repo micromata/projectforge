@@ -24,7 +24,7 @@
 package org.projectforge.menu.builder
 
 import org.projectforge.Constants
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 
 enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = null) {
     // Main menus in alphabetical order
@@ -131,7 +131,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // Migrated to projectforge-next (SearchRest); the Wicket search page was removed.
     SEARCH("menu.search", "${Constants.NEXT_APP_PATH}search"), //
     // Migrated to projectforge-next; the Wicket page was removed. The tree and not the
-    // category's list (next/task, NextMigration.listUrl): the entity has two perspectives in projectforge-next.
+    // category's list (next/task, PageRoutes.listUrl): the entity has two perspectives in projectforge-next.
     TASK_TREE("menu.taskTree", "${Constants.NEXT_APP_PATH}taskTree"), //
     TIMESHEET_LIST("menu.timesheetList", getListUrl("timesheet")), //
     USER_LIST("menu.userList", getListUrl("user")), //
@@ -151,16 +151,16 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
 }
 
 /**
- * Url of a list page, pointing at whichever frontend currently serves it. [NextMigration] decides:
+ * Url of a list page, pointing at whichever frontend currently serves it. [PageRoutes] decides:
  * migrated pages resolve to `next/<route>`, all others to `react/<category>`. Switching a page is
- * therefore an entry in [NextMigration], not an edit here - that keeps the menu url and the server
+ * therefore an entry in [PageRoutes], not an edit here - that keeps the menu url and the server
  * side redirect targets (see `PagesResolver`) from drifting apart.
  *
  * @param category The REST category (derived from the `@RequestMapping` of the `*PagesRest` class),
  * e.g. `book` - *not* the route of the next page, which may differ.
  */
 private fun getListUrl(category: String): String {
-    return NextMigration.listUrl(category)
+    return PageRoutes.listUrl(category)
 }
 
 private fun getReactListUrl(name: String): String {

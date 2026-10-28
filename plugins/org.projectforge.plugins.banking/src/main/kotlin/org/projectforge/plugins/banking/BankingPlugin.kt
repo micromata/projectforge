@@ -24,7 +24,7 @@
 package org.projectforge.plugins.banking
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
@@ -69,7 +69,7 @@ class BankingPlugin : AbstractPlugin(
             MenuItemDefId.FIBU,
             MenuItemDef(info.id,
                 "plugins.banking.menu",
-                NextMigration.listUrl(BANK_ACCOUNT_CATEGORY),
+                PageRoutes.listUrl(BANK_ACCOUNT_CATEGORY),
                 checkAccess =
                 { bankAccountDao.hasLoggedInUserSelectAccess(false) }),
         );
@@ -81,7 +81,7 @@ class BankingPlugin : AbstractPlugin(
     companion object {
         const val RESOURCE_BUNDLE_NAME = "BankingI18nResources"
 
-        /** The REST category and next route of the bank accounts (see [NextMigration]). */
+        /** The REST category and next route of the bank accounts (see [PageRoutes]). */
         const val BANK_ACCOUNT_CATEGORY = "bankAccount"
     }
 }

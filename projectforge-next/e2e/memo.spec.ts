@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { label, userFormat } from "./fixtures/format";
+import { isPluginActive } from "./fixtures/plugins";
 import { listRows } from "./fixtures/list-table";
 import { MEMO_METADATA } from "../lib/metadata/memo.generated";
 import { MEMO_PAGE } from "../components/features/memo/memo.page";
@@ -12,6 +13,13 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
  * their requests. That a memo is its owner's only is the backend's (MemoEntityRestTest).
  */
 test.describe("memo", { tag: "@parallel" }, () => {
+  test.beforeEach(async ({ loggedInPage: page }) => {
+    test.skip(
+      !(await isPluginActive(page.request, "memo")),
+      "the memo plugin is not active on this instance"
+    );
+  });
+
   test("shows the declared columns under the labels of MemoDO", async ({
     loggedInPage: page,
   }) => {

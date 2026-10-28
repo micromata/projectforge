@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.merlin
 
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.jcr.AttachmentsService
@@ -69,7 +69,7 @@ class MerlinPlugin :
         menuCreator.register(
             MenuItemDefId.MISC,
             // Migrated to projectforge-next (MerlinEntityRest, MerlinExecuteRest); the React pages were removed.
-            MenuItemDef(info.id, "plugins.merlin.menu", NextMigration.listUrl(CATEGORY))
+            MenuItemDef(info.id, "plugins.merlin.menu", PageRoutes.listUrl(CATEGORY))
         )
 
         // All the i18n stuff:

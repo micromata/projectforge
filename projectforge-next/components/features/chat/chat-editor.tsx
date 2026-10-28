@@ -1,16 +1,20 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import type { EditorView } from "@tiptap/pm/view";
-import { pasteMarkdownAs } from "@/components/shared/rich-text-extensions";
+import {
+  CHAT_MESSAGE_FEATURES,
+  pasteMarkdownAs,
+} from "@/components/shared/rich-text-extensions";
+import { RichTextToolbar } from "@/components/shared/rich-text-toolbar";
 import {
   RICH_TEXT_MUTED_CLASSES,
   sanitizeChatHtml,
 } from "@/components/shared/rich-text";
 import { cn } from "@/lib/utils";
 import { chatEditorExtensions } from "./chat-editor-extensions";
-import { ChatFormatToolbar } from "./chat-format-toolbar";
 import { MentionSuggestionList } from "./mention-suggestion-list";
 import type { ChatEditorHandle } from "./types";
 import { useMentionSuggestion } from "./use-mention-suggestion";
@@ -47,8 +51,9 @@ function pastedFiles(data: DataTransfer | null): File[] {
 }
 
 /**
- * The editor of a chat message (TipTap) with its formatting toolbar: bold, italic, underline, strike-through,
- * colours, lists, links, code and mentions with suggestions (`@`). Enter submits, Shift+Enter starts a new line
+ * The editor of a chat message (TipTap) with the toolbar of the shared rich text editor
+ * ([CHAT_MESSAGE_FEATURES]: bold, italic, underline, strike-through, colours, lists, tables, links, code, emoji) and
+ * mentions with suggestions (`@`). Enter submits, Shift+Enter starts a new line
  * (paragraph, list item); after ``` Enter starts a code block, in which Enter starts a new line as well and
  * Ctrl/Cmd+Enter submits (which it does anywhere). Pasted files go
  * to [onFiles]. Dropped files are left to the drop zone around it (ChatComposer), the editor only keeps them
@@ -71,6 +76,7 @@ export const ChatEditor = forwardRef<
     className?: string;
   }
 >(function ChatEditor(props, ref) {
+  const tChat = useTranslations("chat.message");
   const mention = useMentionSuggestion(props.conversationId);
   // The editor keeps the callbacks of its creation; this ref hands it the current ones.
   const propsRef = useRef(props);
@@ -148,7 +154,11 @@ export const ChatEditor = forwardRef<
 
   return (
     <div className={cn("min-w-0 flex-1", props.className)}>
-      <ChatFormatToolbar editor={editor} />
+      <RichTextToolbar
+        editor={editor}
+        features={CHAT_MESSAGE_FEATURES}
+        codeBlockHint={tChat("codeBlock")}
+      />
       <EditorContent editor={editor} />
       <MentionSuggestionList
         state={mention.state}

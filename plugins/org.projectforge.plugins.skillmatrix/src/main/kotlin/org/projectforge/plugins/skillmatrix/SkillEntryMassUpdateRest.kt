@@ -25,7 +25,7 @@ package org.projectforge.plugins.skillmatrix
 
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.business.PfCaches
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
@@ -69,7 +69,7 @@ class SkillEntryMassUpdateRest : AbstractMassUpdateRest<SkillEntryDO>() {
 
     override val layoutContext: LayoutContext = LayoutContext(SkillEntryDO::class.java)
 
-    override val listPageUrl: String = "/${NextMigration.listUrl(SkillMatrixPlugin.CATEGORY)}"
+    override val listPageUrl: String = "/${PageRoutes.listUrl(SkillMatrixPlugin.CATEGORY)}"
 
     @PostConstruct
     private fun postConstruct() {

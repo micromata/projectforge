@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.marketing
 
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.business.address.AddressDao
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
@@ -56,14 +56,14 @@ class MarketingPlugin : AbstractPlugin("marketing", "Marketing", "Marketing plug
             .setSearchable(false)
 
         // Register the menu entries as sub menu entries of the misc menu. The campaigns are migrated to
-        // projectforge-next (see NextMigration.MIGRATED), their Wicket pages are removed.
+        // projectforge-next (see PageRoutes.MIGRATED), their Wicket pages are removed.
         val menuCreator = WicketSupport.get(MenuCreator::class.java)
         menuCreator.register(
             MenuItemDefId.MISC,
             MenuItemDef(
                 ADDRESS_CAMPAIGN_ID,
                 "plugins.marketing.addressCampaign.menu",
-                NextMigration.listUrl(ADDRESS_CAMPAIGN_ID)
+                PageRoutes.listUrl(ADDRESS_CAMPAIGN_ID)
             )
         )
         // The campaign values are migrated as well. Spelled out: the REST category is singular, the menu id plural.
@@ -72,7 +72,7 @@ class MarketingPlugin : AbstractPlugin("marketing", "Marketing", "Marketing plug
             MenuItemDef(
                 ADDRESS_CAMPAIGN_VALUE_ID,
                 "plugins.marketing.addressCampaignValue.menu",
-                NextMigration.listUrl("addressCampaignValue")
+                PageRoutes.listUrl("addressCampaignValue")
             )
         )
 

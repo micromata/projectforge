@@ -57,6 +57,20 @@ class ChatHtmlSanitizerTest {
     }
 
     @Test
+    fun `tables are kept with numeric spans only, headings are not`() {
+        val result = sanitize(
+            """<table style="width:9px" onclick="x()"><thead><tr><th colspan="2">Head</th></tr></thead>""" +
+                """<tbody><tr><td colspan="x" rowspan="2" onmouseover="y()">A</td><td>B</td></tr></tbody></table><h1>Title</h1>"""
+        )
+        assertEquals(
+            """<table><thead><tr><th colspan="2">Head</th></tr></thead>""" +
+                """<tbody><tr><td rowspan="2">A</td><td>B</td></tr></tbody></table>Title""",
+            result.html,
+        )
+        assertEquals("Head A B Title", result.text)
+    }
+
+    @Test
     fun `mentions are kept for accepted users only, named by the caller`() {
         val result = sanitize(
             """<p><span data-type="mention" data-id="42" data-label="Fake" style="color: red">@Fake</span>
