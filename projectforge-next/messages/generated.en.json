@@ -4359,6 +4359,23 @@
           "hint": "The vulnerabilities imported from the NVD, from the configured CVSS score on. A click on the CVE opens it at the NVD."
         }
       },
+      "statistics": {
+        "cases": {
+          "series": "Cases",
+          "title": "Reported cases"
+        },
+        "empty": "Nothing in this period.",
+        "granularity": {
+          "_": "Period",
+          "day": "Day",
+          "month": "Month",
+          "week": "Week"
+        },
+        "vulnerabilities": {
+          "series": "Vulnerabilities",
+          "title": "Vulnerabilities published by the NVD"
+        }
+      },
       "system": {
         "criticality": "Criticality",
         "grants": "Grants",
@@ -4382,6 +4399,7 @@
         "feedback": "Feedback",
         "findings": "Findings",
         "myAreas": "My areas",
+        "statistics": "Statistics",
         "systems": "Systems & components",
         "vulnerabilities": "Vulnerabilities (CVEs)"
       },

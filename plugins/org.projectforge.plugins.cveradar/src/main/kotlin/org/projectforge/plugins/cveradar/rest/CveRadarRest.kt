@@ -35,6 +35,7 @@ import org.projectforge.plugins.cveradar.CveRadarConfig
 import org.projectforge.plugins.cveradar.CveRadarService
 import org.projectforge.plugins.cveradar.CvrCaseStatusService
 import org.projectforge.plugins.cveradar.CvrDeviceService
+import org.projectforge.plugins.cveradar.CvrStatisticsService
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrClientAnswer
 import org.projectforge.plugins.cveradar.model.CvrDeviceDO
@@ -53,6 +54,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.Date
 
@@ -76,6 +78,9 @@ class CveRadarRest {
 
     @Autowired
     private lateinit var service: CveRadarService
+
+    @Autowired
+    private lateinit var statisticsService: CvrStatisticsService
 
     @Autowired
     private lateinit var statusService: CvrCaseStatusService
@@ -129,6 +134,19 @@ class CveRadarRest {
         val devices = deviceService.selectDevices()
         val findings = deviceService.selectFindings(devices.mapNotNull { it.id }).groupBy { it.deviceId }
         return devices.map { deviceRow(it, findings[it.id] ?: emptyList()) }
+    }
+
+    @AccessChecked("CveRadarAccess.checkReader: read-only or read-write right; counts only")
+    @GetMapping("statistics/reported")
+    fun reportedStatistics(@RequestParam granularity: CvrStatisticsService.Granularity): ReportedStatistics {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        access.checkReader(user)
+        val zone = ThreadLocalUserContext.timeZone.toZoneId()
+        return ReportedStatistics(
+            granularity,
+            statisticsService.casesCreated(granularity, zone),
+            statisticsService.vulnerabilitiesPublished(granularity, zone),
+        )
     }
 
     @AccessChecked("own user only: own devices (by the user id of the session), released cases, own groups' checks")

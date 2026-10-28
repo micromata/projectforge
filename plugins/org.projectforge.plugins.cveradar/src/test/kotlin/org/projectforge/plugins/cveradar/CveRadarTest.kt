@@ -47,6 +47,7 @@ import org.projectforge.plugins.cveradar.model.CvrDeviceDO
 import org.projectforge.plugins.cveradar.model.CvrScanFindingDO
 import org.projectforge.plugins.cveradar.model.CvrTeamAnswer
 import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
+import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.projectforge.plugins.cveradar.rest.CloseRequest
 import org.projectforge.plugins.cveradar.rest.ConfirmRequest
 import org.projectforge.plugins.cveradar.rest.CveRadarRest
@@ -84,7 +85,7 @@ class CveRadarTest : AbstractTestBase() {
     init {
         listOf(
             CvrCaseDO::class.java, CvrTeamCheckDO::class.java, CvrConfirmationDO::class.java,
-            CvrDeviceDO::class.java, CvrScanFindingDO::class.java,
+            CvrDeviceDO::class.java, CvrScanFindingDO::class.java, CvrVulnerabilityDO::class.java,
         ).forEach { MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(it.canonicalName) }
     }
 
@@ -105,6 +106,16 @@ class CveRadarTest : AbstractTestBase() {
         assertEquals(case.code, caseDao.find(case.id)!!.code)
         rest.devices()
         assertTrue(rest.status(case.id!!).canEdit)
+    }
+
+    @Test
+    fun `the statistics are for readers only`() {
+        logon(TEST_USER)
+        assertThrows(AccessException::class.java) { rest.reportedStatistics(CvrStatisticsService.Granularity.DAY) }
+        logon(user("reader2", UserRightValue.READONLY))
+        val statistics = rest.reportedStatistics(CvrStatisticsService.Granularity.MONTH)
+        assertEquals(CvrStatisticsService.MONTHS.toInt(), statistics.cases.size)
+        assertEquals(CvrStatisticsService.MONTHS.toInt(), statistics.vulnerabilities.size)
     }
 
     @Test

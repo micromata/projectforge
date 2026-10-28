@@ -4359,6 +4359,23 @@
           "hint": "Die aus der NVD importierten Schwachstellen ab dem eingestellten CVSS-Wert. Ein Klick auf die CVE öffnet sie bei der NVD."
         }
       },
+      "statistics": {
+        "cases": {
+          "series": "Fälle",
+          "title": "Gemeldete Fälle"
+        },
+        "empty": "Im Zeitraum nichts vorhanden.",
+        "granularity": {
+          "_": "Zeitraum",
+          "day": "Tag",
+          "month": "Monat",
+          "week": "Woche"
+        },
+        "vulnerabilities": {
+          "series": "Schwachstellen",
+          "title": "Von der NVD veröffentlichte Schwachstellen"
+        }
+      },
       "system": {
         "criticality": "Kritikalität",
         "grants": "Freigaben",
@@ -4382,6 +4399,7 @@
         "feedback": "Feedback",
         "findings": "Befunde",
         "myAreas": "Meine Bereiche",
+        "statistics": "Statistik",
         "systems": "Systeme & Komponenten",
         "vulnerabilities": "Schwachstellen (CVEs)"
       },

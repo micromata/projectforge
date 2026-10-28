@@ -24,6 +24,7 @@
 package org.projectforge.plugins.cveradar.rest
 
 import org.projectforge.plugins.cveradar.CvrCaseStatusService
+import org.projectforge.plugins.cveradar.CvrStatisticsService
 import org.projectforge.plugins.cveradar.model.CvrCaseKind
 import org.projectforge.plugins.cveradar.model.CvrCaseStatus
 import org.projectforge.plugins.cveradar.model.CvrClientAnswer
@@ -146,3 +147,10 @@ class TeamCheckAnswerRequest(var answer: CvrTeamAnswer? = null, var comment: Str
 class ConfirmRequest(var answer: CvrClientAnswer? = null, var comment: String? = null)
 
 class CveRadarError(val message: String)
+
+/** The cases created and the NVD vulnerabilities published per day, week or month (the statistics tab). */
+class ReportedStatistics(
+    val granularity: CvrStatisticsService.Granularity,
+    val cases: List<CvrStatisticsService.Bucket>,
+    val vulnerabilities: List<CvrStatisticsService.Bucket>,
+)
