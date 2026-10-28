@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "9.1.x is the last release that runs on Java 17 and supports the JCR (Apache Oak). From 9.2 on there is no JCR any more and a newer Java version is required. Installations still using the JCR have to migrate their files with 9.1.x first (admin guide, \"Moving the files out of the JCR\"); a JCR backup ZIP can't be imported by later releases.",
+  "de": "9.1.x ist das letzte Release, das mit Java 17 läuft und das JCR (Apache Oak) unterstützt. Ab 9.2 gibt es kein JCR mehr und eine neuere Java-Version ist erforderlich. Installationen, die noch das JCR nutzen, müssen ihre Dateien zuerst mit 9.1.x migrieren (Administrationshandbuch, „Dateien aus dem JCR übernehmen“); ein JCR-Backup-ZIP lässt sich von späteren Releases nicht importieren."
+}
