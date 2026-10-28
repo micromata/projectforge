@@ -24,6 +24,9 @@
 - title: Einfache Bedienung
   icon: mouse-pointer-click
   url: /de/features/#easy_to_use
+- title: Digitale Souveränität & DSGVO
+  icon: lock
+  url: /de/features/#data_sovereignty
 - title: Sicherheit & Integration
   icon: shield-check
   url: /de/features/#security_integration

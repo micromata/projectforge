@@ -620,6 +620,150 @@ Please enter your personal phone ids (comma separated) under *My account* first.
 
 If an SMS gateway is configured, you may send text messages via _Common > Send SMS_.
 
+[[chat]]
+== Chat
+
+The chat (_Common > Chat_) brings conversations to where the work is: rooms for teams, projects or
+customers, direct messages to any colleague and a chat in every data transfer area. Messages arrive live,
+and everything stays on the server of your own installation.
+
+image::/uploads/screenshots/2026-ChatList.png[image]
+
+[cols="1,4",]
+|===
+|Figure 3: |The chat page with the direct messages, the chat rooms and their unread messages.
+|===
+
+[[chat_rooms]]
+=== Chat rooms
+
+Anybody may create a chat room (*New chat room*) and choose its participants: users and groups. Group
+membership is checked at the moment of access, so whoever joins a group later is in at once, and whoever
+leaves it is out. The owner of a room and its moderators edit or delete the room, hide messages of others
+with a reason (e.g. off-topic or confidential content) and see the history of edited messages.
+
+Files sent in a room are stored in its data transfer area "Chat: …" and kept as long as the room says
+(*Files available*, 30 days by default); then they are deleted.
+
+Every data transfer area is a chat room as well, for everybody with access to the area.
+
+image::/uploads/screenshots/2026-ChatRoom.png[image]
+
+[cols="1,4",]
+|===
+|Figure 4: |A project room with a code block, an image, reactions and a thread.
+|===
+
+[[chat_direct_messages]]
+=== Direct messages
+
+A direct message (*Direct message*) goes to one person: anybody shown in the user selection can be written
+to. There is one conversation per pair of users. Below your own last message a small avatar shows that the
+other side has read it (see figure 6). Files of a direct message go into the personal box of the recipient in the data
+transfer.
+
+[[chat_writing_messages]]
+=== Writing messages
+
+* *Formatting*: bold, italic, lists, links and code blocks. In a code block, kbd:[Enter] starts a new line,
+  kbd:[Ctrl+Enter] (Mac: kbd:[⌘+Enter]) sends.
+* *@mentions*: typing `@` suggests the participants; whoever is mentioned is notified at once.
+* *Quotes* and *emoji reactions* on any message.
+* *Files of any type*: attach them, paste them or simply drop them into the message window. Images are shown
+  as thumbnails and enlarged by a click.
+* *Edit and delete* your own messages; an edited message is marked, and moderators see its history.
+* *Copy link* gives a link to a single message.
+
+[[chat_threads]]
+=== Threads
+
+*Reply in thread* starts a thread on a message, so a side discussion doesn't interrupt the room. The
+message shows the number of replies and their authors; a click opens the thread beside the conversation.
+The author of the message and whoever replies follow the thread; *Follow* and *Unfollow* change that. Threads with new replies are
+marked.
+
+image::/uploads/screenshots/2026-ChatThread.png[image]
+
+[cols="1,4",]
+|===
+|Figure 5: |An open thread beside the conversation of the room.
+|===
+
+[[chat_unread_messages_and_notifications]]
+=== Unread messages and notifications
+
+* The chat symbol in the top bar counts the unread messages, the list of conversations shows them per room.
+* A line marked *New* shows where the unread messages start; a button jumps to the next unread one.
+* *Mark as unread* on a message brings a conversation back for later.
+* *Mute* silences a conversation: new messages are no longer notified, mentions still are.
+* Mentions, direct messages and replies in followed threads are notified in the app and by mail. A mail is
+  sent only for what wasn't seen in the app, and it never contains the text of the message.
+
+[[chat_search]]
+=== Search
+
+The search of the chat page finds messages in all conversations you take part in; the search of a
+conversation looks only in this one. A hit leads to its conversation.
+
+[[chat_confidential_conversations]]
+=== Confidential conversations (end-to-end encrypted)
+
+For a password, an access code or anything else that must not stay anywhere, a direct message offers a
+*Confidential conversation*: a live conversation of two browsers, end-to-end encrypted. The texts are
+encrypted in one browser and decrypted only in the other. ProjectForge relays them without being able to
+read them and stores nothing.
+
+How it works:
+
+. Start it with *Encrypted chat* on the chat page (choose the person) or with the action *Confidential
+  conversation* in a direct message.
+. The other side is alerted on whatever page of ProjectForge is open, also in a background tab: by a sound,
+  a browser notification (if allowed), a blinking tab title and the counter of the chat symbol. Sound and
+  notifications are set in *Sound and notifications*. The offer is answered in the direct message:
+  *Accept* or *Decline*.
+. Both sides see the same *fingerprint*. Compare it, e.g. by phone: if it differs, a manipulated server is
+  involved.
+. Write the confidential text and *Encrypt and send*. A message is shown once to the other side and deleted
+  on the server as soon as it is picked up; the sender sees *Read*.
+. *End conversation* ends it for both sides, and nothing of it is left on the page.
+
+image::/uploads/screenshots/2026-ChatSecretOffer.png[image]
+
+[cols="1,4",]
+|===
+|Figure 6: |The recipient is offered a confidential conversation in the direct message.
+|===
+
+image::/uploads/screenshots/2026-ChatSecretDialog.png[image]
+
+[cols="1,4",]
+|===
+|Figure 7: |A confidential conversation with its fingerprint; the first message has been read.
+|===
+
+Both sides have to be online. The conversation also ends after 10 minutes without a message, after 2 hours at
+the latest, and when one side closes or reloads the page (its key is gone with it). A message may have up to
+16 KB; files can't be sent. Confidential conversations exist only in direct messages, not in rooms.
+
+What it protects against: database backups, log files, the chat history and administrators looking into
+data – none of them ever contains the text. It does not protect the screen or the clipboard of either side.
+The browser needs a secure connection (https).
+
+Technically, each browser creates a key pair for the conversation (WebCrypto, ECDH P-256); the private key
+can't be exported and lives only in the memory of the page. The common key is derived from both (HKDF-SHA-256)
+and encrypts each message with AES-GCM (256 bit) and a fresh initialization vector; conversation, sender and a
+counter are bound into each message, so a message can neither be replayed nor reordered unnoticed. The server
+only sees the public keys and the cipher text, keeps them in memory and deletes them when they are picked up.
+The fingerprint covers both public keys, so comparing it reveals a server that put its own keys in between.
+
+[[chat_privacy]]
+=== Who reads along
+
+Only the participants of a conversation read it: the members of a room, the two people of a direct
+message, those with access to a data transfer area. The administrator role grants no access to
+conversations. Messages and files are stored in the database and the data transfer of your own
+installation, see <<data_sovereignty_and_gdpr>>.
+
 [[structure_elements_in_projectforge_former_tasks]]
 == Structure elements in ProjectForge (former tasks)
 
@@ -632,7 +776,7 @@ image::/uploads/userguide/TaskTree.png[image]
 
 [cols="1,4",]
 |===
-|Figure 3: |Hierarchy of structure elements in ProjectForge®
+|Figure 8: |Hierarchy of structure elements in ProjectForge®
 |===
 
 The following table describes the fields of structure elements:
@@ -1034,7 +1178,7 @@ image::/uploads/userguide/Datev-Import-Buchungssaetze.png[image]
 
 [cols="1,4",]
 |===
-|Figure 4: |Excel format for the DATEV import of accounting records
+|Figure 9: |Excel format for the DATEV import of accounting records
 |===
 
 The import works in the same steps as all imports of ProjectForge®:
@@ -1177,7 +1321,7 @@ image::/uploads/userguide/ExportJFreeChart.png[image]
 
 [cols="1,4",]
 |===
-|Figure 5: |Example of a script producing a chart
+|Figure 10: |Example of a script producing a chart
 |===
 
 [source,groovy,linenums]
@@ -1236,13 +1380,13 @@ Nested and indexed properties are supported as well: `users[3].name` or `result.
 [[import_of_excel_files]]
 === Import of Excel files
 
-Figure 6 shows an example file.
+Figure 11 shows an example file.
 
 image::/uploads/userguide/Excel-import-example.png[image]
 
 [cols="1,4",]
 |===
-|Figure 6: |Example file for an Excel import
+|Figure 11: |Example file for an Excel import
 |===
 
 The file uploaded to the script is available as variable `file` (byte array) and its name as
@@ -1319,6 +1463,30 @@ your colleagues.
 
 [[data_protection]]
 == Data protection
+
+[[data_sovereignty_and_gdpr]]
+=== Data sovereignty and GDPR
+
+ProjectForge® runs on a server of your choice – your own, in your data center, or hosted by a provider you
+choose. All data stays there: the database, the files of the data transfer, the chat, the documents. Nothing
+is sent to a cloud of the vendor or of a third party, there is no telemetry, and the pages load no scripts,
+fonts or images from other hosts (the Content Security Policy refuses them).
+
+This is what digital sovereignty means here: you decide where the data lives, who has access to it, how long
+it is kept and when ProjectForge® is updated. The source code is open (open source) and can be checked by
+anybody, and there is no vendor lock-in: the data is in a PostgreSQL database of your own.
+
+For the GDPR this makes the processing of personal data a matter of your own policies, without a processor
+outside your control. ProjectForge® supports them with fine-grained access rights, the history of changes
+(see <<history_of_changes_2>>), data protection by default (e.g. the reason of an absence stays
+with the person concerned and HR) and conversations nobody else reads (see <<chat_privacy>>). Whether an installation complies
+with the GDPR depends on its operation; ProjectForge® provides the means, not a legal assessment.
+
+[[confidential_chat_messages]]
+=== Confidential chat messages
+
+The texts of a confidential conversation are end-to-end encrypted and never stored: neither in the
+database, nor in log files, backups or mails (see <<chat_confidential_conversations>>).
 
 [[passwords]]
 === Passwords

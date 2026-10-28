@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Contribution margin: the preliminary revenue of unbooked outgoing invoices is taken from the cost assignments of the invoice positions (kost2 → project) if they are completely defined; otherwise from the project of the invoice as before.",
+  "de": "Deckungsbeitrag: Der vorläufige Umsatz noch nicht gebuchter Debitorenrechnungen wird aus den Kostzuweisungen der Rechnungspositionen (Kost2 → Projekt) übernommen, wenn diese vollständig definiert sind; sonst wie bisher aus dem Projekt der Rechnung."
+}

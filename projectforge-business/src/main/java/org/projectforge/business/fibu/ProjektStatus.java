@@ -28,15 +28,15 @@ import org.projectforge.common.i18n.I18nEnum;
 public enum ProjektStatus implements I18nEnum
 {
 
-  /** Projektstatus nicht gesetzt. */
+  /** Status not set (persisted as null). */
   NONE("none"),
-  /** Projekt befindet sich noch in der Akquisephase. */
-  ACQUISISTION("acquisition"),
-  /** Projekt ist vorübergehend (noch) nicht aktiv. */
-  ON_HOLD("onhold"), /** Projekt wird aktuell entwickelt. */
-  BUILD("build"), /** Projekt ist produktiv und wird NICHT gewartet. */
-  PRODUCTIVE("productive"), /** Projekt ist produktiv und wird (hoffentlich) gewartet. */
-  MAINTENANCE("maintenance"), /** Projekt ist beendet. */
+  /** The project is still in acquisition. */
+  ACQUISITION("acquisition"),
+  /** The project is active. */
+  ACTIVE("active"),
+  /** The project is paused. */
+  PAUSED("paused"),
+  /** The project is ended. */
   ENDED("ended");
 
    private String key;
