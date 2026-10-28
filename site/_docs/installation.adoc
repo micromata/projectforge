@@ -31,7 +31,7 @@ link:/docs/development/[Development guide].
 
 [cols="1,3"]
 |===
-h|Java | Java 17 or newer (only needed without Docker). ProjectForge is compiled for Java 17; we run it in production on Java 21. From version 9.0.6 on, our Docker image is based on Eclipse Temurin 21 (JRE).
+h|Java | Java 21 or newer from version 9.2 on (only needed without Docker; 8.0 to 9.1.x: Java 17 or newer). ProjectForge is compiled for Java 21 and runs in production on Java 21. From version 9.0.6 on, our Docker image is based on Eclipse Temurin 21 (JRE).
 h|Database | PostgreSQL 13 or newer for productive use. For tests and small installations, the embedded database (HSQLDB) works out of the box.
 h|Operating system | Docker images for Linux on amd64 and arm64 (also running on macOS with Intel or Apple silicon). The JAR runs wherever Java runs (Linux, macOS, Windows).
 h|Browser | Any current browser (Chrome, Firefox, Safari, Edge).
@@ -125,7 +125,7 @@ your own stack based on it, publish the port of ProjectForge on `127.0.0.1` only
 
 If you don't want to use Docker, you can run ProjectForge from the executable JAR file.
 
-1. Install Java 17 or newer (e.g. OpenJDK or Eclipse Temurin), check with `java -version`.
+1. Install Java 21 or newer (e.g. OpenJDK or Eclipse Temurin; ProjectForge 8.0 to 9.1.x also runs on Java 17), check with `java -version`.
 2. Download `projectforge-application-<version>.jar` from https://github.com/micromata/projectforge/releases[GitHub releases].
 3. First start in the foreground (so the setup wizard can be shown): `java -jar projectforge-application-<version>.jar`
 4. Follow the setup wizard (see below), then complete the <<The setup page,setup page>> in your browser
@@ -343,6 +343,5 @@ Before every update, please also have a look at the link:/docs/migration/[Migrat
 
 == Supported Java versions
 
-ProjectForge is compiled for Java 17 and runs on Java 17 or newer. We run it in production on Java 21. 9.1.x is the last
-release that runs on Java 17 (and supports the JCR), later releases require Java 21. From version
+From version 9.2 on, ProjectForge is compiled for Java 21 and runs on Java 21 or newer (8.0 to 9.1.x: Java 17 or newer). We run it in production on Java 21. From version
 9.0.6 on, our Docker image is based on Eclipse Temurin 21 (JRE). With Docker, you don't need to install Java at all.

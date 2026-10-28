@@ -26,12 +26,12 @@ package org.projectforge.plugins.datatransfer
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.io.IOUtils
 import org.mockito.Mockito
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.jcr.FileObject
+import org.projectforge.files.FileObject
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
 import org.projectforge.rest.AttachmentsServicesRest
@@ -103,19 +103,19 @@ class DataTransferTestService {
     ageInDays: Int = 0,
     fileSuffix: String? = null
   ): FileObject? {
-    val path = "/ProjectForge/${dataTransferAreaEntityRest.jcrPath}"
+    val path = "/ProjectForge/${dataTransferAreaEntityRest.attachmentsPath}"
     val file = FileObject()
     file.fileName = filename ?: "build.gradle-$ageInDays${fileSuffix ?: ""}.kts"
     file.description = "This is the gradle build file."
     file.parentNodePath = path
     file.relPath = "${area.id}/attachments"
-    file.created = Date(System.currentTimeMillis() - ageInDays * DataTransferJCRCleanUpJob.MILLIS_PER_DAY)
+    file.created = Date(System.currentTimeMillis() - ageInDays * DataTransferCleanUpJob.MILLIS_PER_DAY)
     file.createdByUser = "fin"
     file.lastUpdate = file.created
     file.lastUpdateByUser = "kai"
     try {
       val attachment = attachmentsService.addAttachment(
-        dataTransferAreaEntityRest.jcrPath!!,
+        dataTransferAreaEntityRest.attachmentsPath!!,
         fileInfo = file,
         content = File("build.gradle.kts").readBytes(),
         baseDao = dataTransferAreaDao,

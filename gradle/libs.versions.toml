@@ -16,7 +16,6 @@ com-zaxxer-hikaricp = "6.3.3"
 commons-beanutils = "1.11.0"
 commons-io = "2.22.0"
 de-micromata-merlin = "1.1.16"
-io-dropwizard-metrics-core = "4.2.40"
 io-spring-dependency-management = "1.1.7" # io.spring.dependency-management.gradle.plugin
 fr-opensagres-xdocreport-poi-xwpf-converter-pdf = "2.2.0"
 jakarta-activation-api = "2.1.4"
@@ -25,7 +24,6 @@ org-eclipse-angus-jakarta-mail = "2.0.5"
 jakarta-persistence-api = "3.2.0"
 jakarta-servlet-api = "6.1.0"
 jakarta-validation = "3.1.1"
-javax-jcr = "2.0"
 joda-time-joda-time = "2.15.0"
 net-lingala-zip4j-zip4j = "2.11.6"
 net-sf-mpxj = "16.9.0"
@@ -35,7 +33,6 @@ org-apache-commons-text = "1.15.0"
 org-apache-groovy = "4.0.33"
 org-apache-httpcomponents-client5-httpclient5 = "5.6.4"
 org-apache-httpcomponents-core5 = "5.4.4" # Needed by httpclient5
-org-apache-jackrabbit-oak = "1.92.0"
 org-apache-poi = "5.5.1"
 org-apache-poi-ooxml = "5.5.1"
 org-apache-xmlgraphics-batik = "1.19"
@@ -113,7 +110,6 @@ commons-beanutils = { module = "commons-beanutils:commons-beanutils", version.re
 commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
 de-micromata-merlin-core = { module = "de.micromata.merlin:merlin-core", version.ref = "de-micromata-merlin" }
 fr-opensagres-xdocrepor-poi-xwpf-converter-pdf = { module = "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.pdf", version.ref = "fr-opensagres-xdocreport-poi-xwpf-converter-pdf" }
-io-dropwizard-metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "io-dropwizard-metrics-core" }
 io-github-oshai-kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "io-github-oshai-kotlin-logging" }
 jakarta-activation-api = { module = "jakarta.activation:jakarta.activation-api", version.ref = "jakarta-activation-api" }
 jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation-api" }
@@ -121,7 +117,6 @@ org-eclipse-angus-jakarta-mail = { module = "org.eclipse.angus:jakarta.mail", ve
 jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jakarta-persistence-api" }
 jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet-api" }
 jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation" }
-javax-jcr = { module = "javax.jcr:jcr", version.ref = "javax-jcr" }
 jboss-logging = { module = "org.jboss.logging:jboss-logging", version.ref = "jboss-logging" }
 joda-time-joda-time = { module = "joda-time:joda-time", version.ref = "joda-time-joda-time" }
 net-lingala-zip4j-zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "net-lingala-zip4j-zip4j" }
@@ -136,9 +131,6 @@ org-apache-groovy-json = { module = "org.apache.groovy:groovy-json", version.ref
 org-apache-groovy-templates = { module = "org.apache.groovy:groovy-templates", version.ref = "org-apache-groovy" }
 org-apache-groovy-xml = { module = "org.apache.groovy:groovy-xml", version.ref = "org-apache-groovy" }
 org-apache-httpcomponents-client5-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "org-apache-httpcomponents-client5-httpclient5" }
-org-apache-jackrabbit-oak-jcr = { module = "org.apache.jackrabbit:oak-jcr", version.ref = "org-apache-jackrabbit-oak" }
-org-apache-jackrabbit-oak-segment-tar = { module = "org.apache.jackrabbit:oak-segment-tar", version.ref = "org-apache-jackrabbit-oak" }
-org-apache-jackrabbit-oak-store-document = { module = "org.apache.jackrabbit:oak-store-document", version.ref = "org-apache-jackrabbit-oak" }
 org-apache-logging-log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "org-apache-logging-log4j" }
 org-apache-logging-log4j-to-slf4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref = "org-apache-logging-log4j" }
 org-apache-poi = { module = "org.apache.poi:poi", version.ref = "org-apache-poi" }
@@ -183,7 +175,6 @@ org-slf4j-jul-to-slf4j = { module = "org.slf4j:jul-to-slf4j", version.ref = "org
 org-slf4j-jcl-over-slf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "org-slf4j" }
 org-springframework-boot = { module = "org.springframework.boot:spring-boot", version.ref = "org-springframework-boot" }
 org-springframework-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "org-springframework-boot" }
-org-springframework-boot-jdbc = { module = "org.springframework.boot:spring-boot-jdbc", version.ref = "org-springframework-boot" }
 org-springframework-boot-web-server = { module = "org.springframework.boot:spring-boot-web-server", version.ref = "org-springframework-boot" } # ServerProperties
 org-springframework-boot-restclient = { module = "org.springframework.boot:spring-boot-restclient", version.ref = "org-springframework-boot" } # RestTemplateBuilder
 org-springframework-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "org-springframework-boot" }

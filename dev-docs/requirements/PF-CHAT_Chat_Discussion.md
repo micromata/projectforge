@@ -259,7 +259,7 @@ Modelled on an OTR session: for a password or a key that must not stay in the ch
 | Need | Building block |
 |---|---|
 | Rich text editing and rendering | `components/shared/rich-text-editor.tsx`, `components/shared/rich-text.tsx` (sanitized) |
-| File storage | `AttachmentsService` / JCR, file storage of `org.projectforge.plugins.datatransfer` |
+| File storage | `AttachmentsService` / file store, file storage of `org.projectforge.plugins.datatransfer` |
 | Live updates | Spring `SseEmitter` (`SseEmitterTool` polls and has no event ids, so not reused) |
 | Notifications, digest, badge | `business/notification/` (`NotificationDO`, rule handler, in-app/mail senders) |
 | History of edits | `DefaultBaseDO` history, `HistoryUserCommentSupport` |

@@ -150,6 +150,15 @@ class PropertiesMetadata(
 
         fun isSecret(key: String): Boolean = secretRegex.containsMatchIn(key.substringAfterLast('.'))
 
+        /** A value given only by another key with a default, e.g. `${projectforge.jcr.maxDefaultFileSize:100MB}`. */
+        private val fallbackRegex = Regex("""^\$\{[^:{}]+:([^{}]*)}$""")
+
+        /**
+         * The default shown: the default of a value given only by another key (a renamed key, which is still read), the
+         * value otherwise.
+         */
+        internal fun defaultOf(value: String): String = fallbackRegex.matchEntire(value.trim())?.groupValues?.get(1) ?: value
+
         fun typeOf(value: String?): Type =
             if (value != null && (value.equals("true", true) || value.equals("false", true))) Type.BOOLEAN else Type.STRING
 
@@ -224,7 +233,7 @@ class PropertiesMetadata(
                         } else {
                             comment
                         }
-                        val defaultValue = if (line.commentedOut) null else line.value
+                        val defaultValue = if (line.commentedOut) null else defaultOf(line.value)
                         val example = if (line.commentedOut) line.value else null
                         blockParams.add(
                             Param(

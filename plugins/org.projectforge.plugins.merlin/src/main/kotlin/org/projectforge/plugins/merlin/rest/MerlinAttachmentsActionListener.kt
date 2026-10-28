@@ -24,11 +24,11 @@
 package org.projectforge.plugins.merlin.rest
 
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsAccessChecker
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.Attachment
+import org.projectforge.framework.files.AttachmentsAccessChecker
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.jcr.FileInfo
+import org.projectforge.files.FileInfo
 import org.projectforge.plugins.merlin.MerlinTemplateDao
 import org.projectforge.rest.AttachmentsActionListener
 import org.projectforge.ui.*
@@ -67,18 +67,18 @@ class MerlinAttachmentsActionListener(
   override fun afterUpload(
     attachment: Attachment,
     obj: ExtendedBaseDO<Long>,
-    jcrPath: String,
+    attachmentsPath: String,
     attachmentsAccessChecker: AttachmentsAccessChecker,
     listId: String?
   ): ResponseEntity<*> {
-    val list = attachmentsService.getAttachments(jcrPath, obj.id!!, attachmentsAccessChecker, listId)
+    val list = attachmentsService.getAttachments(attachmentsPath, obj.id!!, attachmentsAccessChecker, listId)
     list?.forEach { element ->
       // If docx/xlsx is uploaded, backup all previous existing docx/xlsx.
       if (element.fileExtension == attachment.fileExtension && element.fileId != attachment.fileId) {
         // docx and not the current uploaded file. So rename all other docx elements as backup-files.
         val newFileName = "${element.name}.backup"
         attachmentsService.changeFileInfo(
-          jcrPath,
+          attachmentsPath,
           element.fileId!!,
           baseDao = baseDao,
           obj,
@@ -96,11 +96,11 @@ class MerlinAttachmentsActionListener(
   override fun afterModification(
     attachment: Attachment,
     obj: ExtendedBaseDO<Long>,
-    jcrPath: String,
+    attachmentsPath: String,
     attachmentsAccessChecker: AttachmentsAccessChecker,
     listId: String?
   ): ResponseEntity<*> {
-    val list = attachmentsService.getAttachments(jcrPath, obj.id!!, attachmentsAccessChecker, listId)
+    val list = attachmentsService.getAttachments(attachmentsPath, obj.id!!, attachmentsAccessChecker, listId)
     return createResponseEntity(obj, list, TargetType.CLOSE_MODAL)
   }
 

@@ -25,10 +25,10 @@ package org.projectforge.plugins.datatransfer.rest
 
 import jakarta.servlet.http.HttpServletResponse
 import org.projectforge.framework.configuration.ApplicationContextProvider
-import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsAccessChecker
-import org.projectforge.framework.jcr.AttachmentsEventType
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.Attachment
+import org.projectforge.framework.files.AttachmentsAccessChecker
+import org.projectforge.framework.files.AttachmentsEventType
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAuditDao
@@ -44,7 +44,7 @@ object DataTransferRestUtils {
         attachmentsAccessChecker: AttachmentsAccessChecker,
         dbObj: DataTransferAreaDO,
         areaName: String?,
-        jcrPath: String,
+        attachmentsPath: String,
         id: Long,
         attachments: List<Attachment>? = null,
         byUser: PFUserDO? = null,
@@ -55,7 +55,7 @@ object DataTransferRestUtils {
             attachmentsService,
             attachmentsAccessChecker,
             areaName,
-            jcrPath,
+            attachmentsPath,
             id,
             attachments,
         )

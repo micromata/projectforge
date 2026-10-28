@@ -24,7 +24,7 @@
 package org.projectforge.datatransfer
 
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.jcr.FileObject
+import org.projectforge.files.FileObject
 import java.io.InputStream
 
 /**

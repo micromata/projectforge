@@ -9,7 +9,7 @@ plugins {
 
 tasks.withType<KotlinCompile> {
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
     }
 }
 
@@ -20,7 +20,7 @@ tasks.test {
 dependencies {
     api(project(":projectforge-common"))
     api(project(":projectforge-model"))
-    api(project(":projectforge-jcr"))
+    api(project(":projectforge-files"))
     api(libs.de.micromata.merlin.core)
     api(libs.jakarta.activation.api)
     api(libs.jakarta.annotation.api)

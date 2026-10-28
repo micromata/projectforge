@@ -3,6 +3,10 @@ layout: page
 width: expand
 permalink: /
 hero:
+    announcement:
+      label: "Release 9.1.0"
+      text: "Completely redesigned: new file store, chat, contribution margin and security hardening"
+      url: /changelog-posts/#release-9-1-0
     title: From order to invoice – one place for projects, time, people and money.
     subtitle: ProjectForge is the open-source back office for project-driven companies. Self-hosted, made for DACH and the EU, free without limits.
     images:

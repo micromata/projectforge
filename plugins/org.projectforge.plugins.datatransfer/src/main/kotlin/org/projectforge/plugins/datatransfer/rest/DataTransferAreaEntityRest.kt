@@ -91,7 +91,7 @@ class DataTransferAreaEntityRest :
 
     @PostConstruct
     private fun postConstruct() {
-        enableJcr(
+        enableAttachments(
             attachmentsAccessChecker = DataTransferAccessChecker(baseDao)
         )
     }

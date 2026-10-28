@@ -41,6 +41,29 @@ object ConfigurationLogEvents {
                 "(logged on every start as long as it is set).",
     )
 
+    /** See [ConfigurationRenamedProperties]. */
+    @JvmField
+    val RENAMED_PROPERTY_SET = LogEvent(
+        code = "configuration.renamedPropertySet",
+        category = LogCategory.CONFIG,
+        notify = LogNotify.DIGEST_IF_NEW,
+        explanation = "A property of projectforge.properties was renamed by an update. The former key is still read, " +
+                "as long as the new key isn't given.",
+        action = "Rename the property in projectforge.properties as written in the log message (logged on every " +
+                "start as long as the former key is set).",
+    )
+
+    /** See [ConfigurationRenamedProperties]. */
+    @JvmField
+    val OBSOLETE_PROPERTY_SET = LogEvent(
+        code = "configuration.obsoletePropertySet",
+        category = LogCategory.CONFIG,
+        notify = LogNotify.DIGEST_IF_NEW,
+        explanation = "A property of projectforge.properties has no effect any more, its function was removed by an " +
+                "update (e.g. the JCR with 9.2).",
+        action = "Remove the property from projectforge.properties (logged on every start as long as it is set).",
+    )
+
     /** See [ConfigXmlMigration]. */
     @JvmField
     val CONFIG_XML_NOT_MIGRATED = LogEvent(

@@ -3,7 +3,7 @@ import type { Page } from "@playwright/test";
 /**
  * Removes the attachments an earlier run left on an entity, through the REST API.
  *
- * The attachment specs write to a *real* book, and the JCR keeps no history of a removed file, so
+ * The attachment specs write to a *real* book, and the file store keeps no history of a removed file, so
  * every one of them deletes what it uploaded. What they cannot do is delete what a run that was
  * killed mid-test uploaded — and a leftover is not inert: the column spec asserts the count the list
  * shows ("(1)"), and the duplicate spec asserts a single refusal row, so one stray file makes both
@@ -31,7 +31,7 @@ export async function purgeTestAttachments(
   );
   if (leftovers.length === 0) return;
 
-  // multiDelete rather than a loop: every single delete rewrites the entity's JCR node and answers
+  // multiDelete rather than a loop: every single delete rewrites the entity's attachments and answers
   // with the whole remaining list (see lib/rs/attachments.ts).
   const status = await page.request.get("/rs/userStatus", { headers });
   const { csrfToken } = (await status.json()) as { csrfToken: string };

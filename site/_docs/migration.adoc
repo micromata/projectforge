@@ -17,7 +17,38 @@ untranslated: true
 Most migrations – the database schema as well as its content – run automatically when a newer version starts for the first time.
 Only a few changes, e.g. in configuration files or scripts, need your attention. They are listed below, newest first.
 
-TIP: Always back up your database (and, if you still use it, the JCR repository) before an update. See link:/docs/adminguide/#backup[Admin guide – Backup] and link:/docs/installation/[Installation].
+TIP: Always back up your database before an update. See link:/docs/adminguide/#backup[Admin guide – Backup] and link:/docs/installation/[Installation].
+
+=== Version 9.2.x
+
+. JCR removed (9.2.0)
++
+There is no JCR (Apache Oak) any more, all files are served by the file store (database, data transfer files in the
+file system). If you still use the JCR, update to 9.1.x first, switch there to `projectforge.files.store=db` and wait
+for a successful migration (`Result: OK` in `<home>/jcr-migration-report.txt`). ProjectForge 9.2 refuses to start, if
+the JCR contains data, which wasn't migrated (to force the start of a JCR without files to keep:
+`projectforge.files.ignoreLegacyJcr=true`). It also refuses to start with `projectforge.files.store=jcr`: files
+uploaded after switching back to the JCR weren't migrated. Afterwards, `<home>/jcr` may be deleted after a backup.
+The properties `projectforge.files.store`, `oak.datasource.*` and `projectforge.jcr.*` have no effect any more and may be
+removed from `projectforge.properties`, except two renamed ones: `projectforge.jcr.maxDefaultFileSize` is now
+`projectforge.files.maxDefaultFileSize`, `projectforge.jcr.cron.sanityCheck` is now `projectforge.files.cron.sanityCheck`.
+The former keys are still read. `projectforge.dir.jcr` and `oak.datasource.url` are only read by the start-up check
+for files which weren't migrated: remove them together with the former JCR, not before. As long as renamed or obsolete
+keys are set, every start logs a warning (also shown on the system dashboard).
+Scripts have to use the new packages and names:
+`org.projectforge.framework.jcr` (e.g. `AttachmentsService`) is now `org.projectforge.framework.files`,
+`org.projectforge.jcr` (e.g. `FileObject`, `FileInfo`, `FileSizeChecker`) is now `org.projectforge.files`, the
+properties `jcrPath` and the functions `enableJcr()` of the REST services with attachments are now `attachmentsPath` and
+`enableAttachments()`. `RepoService` is replaced by `org.projectforge.files.store.FileStore`.
+See link:/docs/adminguide/#moving_the_files_out_of_the_jcr[Admin guide – Updating from an installation with JCR].
+
+=== Version 9.1.x -> 9.2
+
+. Java 21
++
+From version 9.2 on, ProjectForge requires Java 21 or newer: it is compiled for Java 21, the executable JAR no longer
+starts on Java 17 (`UnsupportedClassVersionError`). Install Java 21 or newer before the update. The Docker image
+already contains Java 21, nothing to do there.
 
 === Version 9.0.x
 
@@ -91,7 +122,7 @@ are copied in the background and verified by size and checksum. Data transfer fi
 (directory `datatransfer` of the ProjectForge home directory). Switching back remains possible.
 ProjectForge 9.1.x is the last release with JCR support (and the last one running on Java 17): migrate with 9.1.x before
 updating to 9.2 or later, which have no JCR any more.
-Please refer to link:/docs/adminguide/#moving_the_files_out_of_the_jcr[Admin guide – Moving the files out of the JCR]
+Please refer to link:/docs/adminguide/#moving_the_files_out_of_the_jcr[Admin guide – Updating from an installation with JCR]
 and adjust your backups: a main dump of the database plus a dump of the files.
 
 . Order contact persons (9.0.2)

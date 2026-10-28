@@ -49,11 +49,11 @@ import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecifica
 import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.renderer.LibreOfficeService
 import org.projectforge.framework.renderer.PdfFontProvider
 import org.projectforge.framework.renderer.PdfFontService
-import org.projectforge.jcr.RepoService
+import org.projectforge.files.store.FileStore
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -69,14 +69,14 @@ class EInvoiceExportService(
     val sellerConfig: EInvoiceSellerConfig,
     private val invoiceService: InvoiceService,
     private val attachmentsService: AttachmentsService,
-    private val repoService: RepoService,
+    private val fileStore: FileStore,
     private val rechnungDao: RechnungDao,
     // Optional only for unit tests constructing the service by hand; Spring always injects them.
     private val pdfFontService: PdfFontService? = null,
     private val libreOfficeService: LibreOfficeService? = null,
 ) {
     companion object {
-        const val JCR_PATH = "org.projectforge.rechnung"
+        const val ATTACHMENTS_PATH = "org.projectforge.rechnung"
         const val INVOICE_PDF_MARKER = "__INVOICE_PDF__"
     }
 
@@ -133,7 +133,7 @@ class EInvoiceExportService(
 
     private fun embedAttachmentsInPdf(pdfBytes: ByteArray, invoice: RechnungDO): ByteArray {
         val invoiceId = invoice.id ?: return pdfBytes
-        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        val attachments = attachmentsService.internalGetAttachments(ATTACHMENTS_PATH, invoiceId)
             .filter { it.description != INVOICE_PDF_MARKER }
         if (attachments.isEmpty()) return pdfBytes
 
@@ -145,10 +145,10 @@ class EInvoiceExportService(
 
             attachments.forEach { attachment ->
                 val fileId = attachment.fileId ?: return@forEach
-                val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
-                val fileObject = repoService.getFileInfo(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
+                val nodePath = attachmentsService.getPath(ATTACHMENTS_PATH, invoiceId)
+                val fileObject = fileStore.getFileInfo(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
                     ?: return@forEach
-                if (!repoService.retrieveFile(fileObject)) return@forEach
+                if (!fileStore.retrieveFile(fileObject)) return@forEach
                 val content = fileObject.content ?: return@forEach
                 val fileName = attachment.name ?: "attachment"
                 val mimeType = java.net.URLConnection.guessContentTypeFromName(fileName) ?: "application/octet-stream"
@@ -180,13 +180,13 @@ class EInvoiceExportService(
 
     fun getUploadedInvoicePdf(invoiceId: Long?): ByteArray? {
         invoiceId ?: return null
-        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        val attachments = attachmentsService.internalGetAttachments(ATTACHMENTS_PATH, invoiceId)
         val pdfAttachment = attachments.firstOrNull { it.description == INVOICE_PDF_MARKER } ?: return null
         val fileId = pdfAttachment.fileId ?: return null
-        val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
-        val fileObject = repoService.getFileInfo(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
+        val nodePath = attachmentsService.getPath(ATTACHMENTS_PATH, invoiceId)
+        val fileObject = fileStore.getFileInfo(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
             ?: return null
-        if (!repoService.retrieveFile(fileObject)) return null
+        if (!fileStore.retrieveFile(fileObject)) return null
         log.info { "Using uploaded invoice PDF '${pdfAttachment.name}' for invoice id=$invoiceId" }
         return fileObject.content
     }
@@ -198,12 +198,11 @@ class EInvoiceExportService(
 
     fun uploadInvoicePdf(invoiceId: Long, fileName: String, pdfContent: ByteArray) {
         val replaced = deleteUploadedInvoicePdfInternal(invoiceId)
-        val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
-        repoService.ensureNode(null, nodePath)
-        val fileInfo = org.projectforge.jcr.FileInfo(fileName = fileName, description = INVOICE_PDF_MARKER)
-        val fileObject = org.projectforge.jcr.FileObject(nodePath, AttachmentsService.DEFAULT_NODE, fileInfo = fileInfo)
+        val nodePath = attachmentsService.getPath(ATTACHMENTS_PATH, invoiceId)
+        val fileInfo = org.projectforge.files.FileInfo(fileName = fileName, description = INVOICE_PDF_MARKER)
+        val fileObject = org.projectforge.files.FileObject(nodePath, AttachmentsService.DEFAULT_NODE, fileInfo = fileInfo)
         fileObject.content = pdfContent
-        repoService.storeFile(fileObject, InternalFileSizeChecker)
+        fileStore.storeFile(fileObject, InternalFileSizeChecker)
         log.info { "Uploaded invoice PDF '$fileName' (${pdfContent.size} bytes) for invoice id=$invoiceId" }
         // The replaced file is named too: an upload onto a stored PDF is one action of the user, and the
         // history entry it leaves is the only place afterwards saying which file it took the place of.
@@ -221,18 +220,18 @@ class EInvoiceExportService(
      * @return the name of the file that was there, or null if this invoice had no invoice PDF.
      */
     private fun deleteUploadedInvoicePdfInternal(invoiceId: Long): String? {
-        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        val attachments = attachmentsService.internalGetAttachments(ATTACHMENTS_PATH, invoiceId)
         val pdfAttachment = attachments.firstOrNull { it.description == INVOICE_PDF_MARKER } ?: return null
         val fileId = pdfAttachment.fileId ?: return null
-        val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
-        val fileObject = org.projectforge.jcr.FileObject(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
-        repoService.deleteFile(fileObject)
+        val nodePath = attachmentsService.getPath(ATTACHMENTS_PATH, invoiceId)
+        val fileObject = org.projectforge.files.FileObject(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
+        fileStore.deleteFile(fileObject)
         log.info { "Deleted uploaded invoice PDF for invoice id=$invoiceId" }
         return pdfAttachment.name
     }
 
     /**
-     * Writes the invoice's attachment info after a write to its JCR node, as
+     * Writes the invoice's attachment info after a write to its attachments, as
      * `AttachmentsService.updateAttachmentsInfo` does for every other attachment.
      *
      * [lastUserAction] is what makes the write appear in the invoice's change history: the four counter and
@@ -242,7 +241,7 @@ class EInvoiceExportService(
      */
     private fun updateAttachmentsCounter(invoiceId: Long, lastUserAction: String? = null) {
         val invoice = rechnungDao.find(invoiceId, checkAccess = false) ?: return
-        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        val attachments = attachmentsService.internalGetAttachments(ATTACHMENTS_PATH, invoiceId)
         invoice.attachmentsCounter = if (attachments.isNotEmpty()) attachments.size else null
         invoice.attachmentsSize = if (attachments.isNotEmpty()) attachments.sumOf { it.size ?: 0L } else null
         invoice.attachmentsNames = if (attachments.isNotEmpty()) attachments.joinToString(" ") { it.name ?: "" } else null
@@ -251,18 +250,18 @@ class EInvoiceExportService(
         rechnungDao.updateAny(invoice, checkAccess = false)
     }
 
-    private object InternalFileSizeChecker : org.projectforge.jcr.FileSizeChecker {
+    private object InternalFileSizeChecker : org.projectforge.files.FileSizeChecker {
         override val maxFileSize: Long = 50 * 1024 * 1024 // 50 MB
-        override fun checkSize(file: org.projectforge.jcr.FileInfo, data: Any?, displayUserMessage: Boolean) {
+        override fun checkSize(file: org.projectforge.files.FileInfo, data: Any?, displayUserMessage: Boolean) {
             if ((file.size ?: 0) > maxFileSize) {
                 throw IllegalStateException("Invoice PDF too large (max 50 MB)")
             }
         }
     }
 
-    fun getUploadedInvoicePdfInfo(invoiceId: Long?): org.projectforge.framework.jcr.Attachment? {
+    fun getUploadedInvoicePdfInfo(invoiceId: Long?): org.projectforge.framework.files.Attachment? {
         invoiceId ?: return null
-        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        val attachments = attachmentsService.internalGetAttachments(ATTACHMENTS_PATH, invoiceId)
         return attachments.firstOrNull { it.description == INVOICE_PDF_MARKER }
     }
 
@@ -420,7 +419,7 @@ class EInvoiceExportService(
             mustangInvoice.addItem(buildItem(pos, invoice))
         }
 
-        // Embed file attachments from JCR
+        // Embed file attachments from the file store
         embedAttachments(mustangInvoice, invoice)
 
         return mustangInvoice
@@ -428,14 +427,14 @@ class EInvoiceExportService(
 
     private fun embedAttachments(mustangInvoice: Invoice, invoice: RechnungDO) {
         val invoiceId = invoice.id ?: return
-        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        val attachments = attachmentsService.internalGetAttachments(ATTACHMENTS_PATH, invoiceId)
             .filter { it.description != INVOICE_PDF_MARKER }
         attachments.forEach { attachment ->
             val fileId = attachment.fileId ?: return@forEach
-            val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
-            val fileObject = repoService.getFileInfo(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
+            val nodePath = attachmentsService.getPath(ATTACHMENTS_PATH, invoiceId)
+            val fileObject = fileStore.getFileInfo(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
                 ?: return@forEach
-            if (repoService.retrieveFile(fileObject)) {
+            if (fileStore.retrieveFile(fileObject)) {
                 val content = fileObject.content ?: return@forEach
                 val fileName = attachment.name ?: "attachment"
                 val mimeType = java.net.URLConnection.guessContentTypeFromName(fileName) ?: "application/octet-stream"

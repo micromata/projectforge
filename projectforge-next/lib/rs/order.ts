@@ -256,7 +256,16 @@ export interface ForecastChartData {
   planningDate: string | null;
   /** The snapshot date the forecast was actually calculated from (`yyyy-MM-dd`), null for today's. */
   snapshotDate?: string | null;
+  /** Remaining forecast per month by kind, adding up to `forecastByStatus`. */
+  forecastByKind?: Partial<Record<ForecastKind, number[]>>;
+  /** Net sums of the invoices with status 'planned' per month: a "thereof" of the forecast, not part of `ist`. */
+  plannedInvoices?: number[];
 }
+
+export type ForecastKind =
+  | "COMMISSIONED_FIXED"
+  | "COMMISSIONED_TIME_AND_MATERIALS"
+  | "WEIGHTED";
 
 /** The stored parameters of the charts tab, or the backend's defaults (begin of the year, no plan). */
 export function fetchForecastChartSettings(

@@ -33,7 +33,7 @@ import {
  * Takes a file the same three ways the attachment section takes one: the button, the file dialog, and a drop
  * anywhere on the field.
  *
- * Offered for a stored invoice only, as Wicket offers it: the file hangs off the invoice's JCR node, which
+ * Offered for a stored invoice only, as Wicket offers it: the file hangs off the invoice's id in the file store, which
  * needs the persisted id — the same reason attachments say so in their own words.
  */
 export function InvoicePdfField({ invoiceId }: { invoiceId: number | null }) {

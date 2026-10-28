@@ -13,13 +13,13 @@ plugins {
 // Same targets as buildlogic.pf-module-conventions (not applied here). Without them compileJava would
 // follow the running JDK (e.g. 21) and clash with the Kotlin target 17.
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 tasks.withType<KotlinCompile> {
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
     }
 }
 
@@ -169,14 +169,12 @@ dependencies {
     implementation(libs.commons.io)
     implementation(libs.de.micromata.merlin.core)
     implementation(libs.fr.opensagres.xdocrepor.poi.xwpf.converter.pdf)
-    implementation(libs.io.dropwizard.metrics.core)
     implementation(libs.io.github.oshai.kotlin.logging)
     implementation(libs.jakarta.activation.api)
     implementation(libs.jakarta.annotation.api)
     implementation(libs.jakarta.persistence.api)
     implementation(libs.jakarta.servlet.api)
     implementation(libs.jakarta.validation.api)
-    implementation(libs.javax.jcr)
     implementation(libs.jboss.logging)
     implementation(libs.joda.time.joda.time)
     implementation(libs.org.eclipse.angus.jakarta.mail)
@@ -192,9 +190,6 @@ dependencies {
     implementation(libs.org.apache.commons.lang3)
     implementation(libs.org.apache.commons.text)
     implementation(libs.org.apache.httpcomponents.client5.httpclient5)
-    implementation(libs.org.apache.jackrabbit.oak.jcr)
-    implementation(libs.org.apache.jackrabbit.oak.segment.tar)
-    implementation(libs.org.apache.jackrabbit.oak.store.document)
     implementation(libs.org.apache.tomcat.embed.core)
     implementation(libs.org.apache.tomcat.embed.websocket)
     implementation(libs.org.apache.tomcat.embed.el)

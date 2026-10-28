@@ -28,8 +28,8 @@ import org.apache.commons.io.IOUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.projectforge.framework.jcr.AttachmentsService
-import org.projectforge.jcr.FileObject
+import org.projectforge.framework.files.AttachmentsService
+import org.projectforge.files.FileObject
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicServicesRest
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicSession
 import org.projectforge.business.test.AbstractTestBase
@@ -59,7 +59,7 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
 
   @PostConstruct
   private fun postConstruct() {
-    initJCRTestRepo(MODUL_NAME, "publicAccessTestRepo")
+    initTestFileStore()
   }
 
   @Test

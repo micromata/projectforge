@@ -24,7 +24,7 @@
 package org.projectforge.plugins.merlin
 
 import de.micromata.merlin.word.templating.TemplateDefinition
-import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.files.Attachment
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO

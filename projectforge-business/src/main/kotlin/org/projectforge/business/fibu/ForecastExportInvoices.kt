@@ -58,13 +58,14 @@ internal class ForecastExportInvoices { // open needed by Wicket.
     internal fun fillInvoices(ctx: ForecastExportContext) {
         val firstMonthCol = ctx.invoicesSheet.getColumnDef(ForecastExportContext.MonthCol.MONTH1.header)!!.columnNumber
         for (invoice in ctx.invoices) {
-            if (invoice.status == RechnungStatus.GEPLANT || invoice.status == RechnungStatus.STORNIERT ||
-                invoice.typ == RechnungTyp.CANCELLATION
-            ) {
-                // Ignore planned and cancelled invoices, and cancellations: the latter would otherwise count
-                // negatively against an original that is ignored as STORNIERT already.
+            if (invoice.status == RechnungStatus.STORNIERT || invoice.typ == RechnungTyp.CANCELLATION) {
+                // Ignore cancelled invoices and cancellations: the latter would otherwise count negatively against
+                // an original that is ignored as STORNIERT already.
                 continue
             }
+            // Planned invoices aren't revenue yet: their order positions are still part of the remaining forecast,
+            // so they are only reported (ForecastChartData.plannedInvoices), never added to the IST sums.
+            val planned = invoice.status == RechnungStatus.GEPLANT
             // Resolve the lazy kunde/projekt proxies from the caches once per invoice (avoids an n+1: reading
             // invoice.kundeAsString below would otherwise trigger one SELECT on T_FIBU_KUNDE per invoice). The
             // identifier read inside getXIfNotInitialized is free (KundeDO.nummer/ProjektDO.id are the @Id).
@@ -93,6 +94,15 @@ internal class ForecastExportInvoices { // open needed by Wicket.
                 }
                 var monthIndex = getMonthIndex(ctx, PFDay.fromOrNow(invoice.datum))
                 if (monthIndex !in -24..11) {
+                    return@forEach // continue
+                }
+                if (planned) {
+                    if (monthIndex >= 0) {
+                        val projectId = invoice.projekt?.id ?: order?.projektId ?: ForecastExportContext.PROJECT_ID_NONE
+                        ctx.chartTotals.addInvoice(
+                            ForecastChartTotals.InvoiceKind.PLANNED_INVOICE, projectId, monthIndex, pos.netSum
+                        )
+                    }
                     return@forEach // continue
                 }
                 if (monthIndex >= 0) {
@@ -263,7 +273,8 @@ internal class ForecastExportInvoices { // open needed by Wicket.
             ForecastChartTotals.InvoiceKind.IST -> ForecastInvoiceRow.Kind.IST
             ForecastChartTotals.InvoiceKind.PREV_YEAR -> ForecastInvoiceRow.Kind.PREV_YEAR
             ForecastChartTotals.InvoiceKind.PREV_PREV_YEAR -> ForecastInvoiceRow.Kind.PREV_PREV_YEAR
-            ForecastChartTotals.InvoiceKind.PLANNING -> null // Part of the plan sums only.
+            ForecastChartTotals.InvoiceKind.PLANNING, ForecastChartTotals.InvoiceKind.PLANNED_INVOICE ->
+                null // Part of the plan sums only resp. never reaches here (planned invoices return early).
         }
         if (tableKind != null) {
             ctx.tables.addInvoice(

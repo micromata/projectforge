@@ -215,9 +215,6 @@ open class ConfigurationService {
   open var maxFileSizeXmlDumpImport: String? = null
 
   /** See [ApplicationDirectories]. */
-  @Value("\${projectforge.dir.jcr:}")
-  private var jcrDir: String? = null
-
   @Value("\${projectforge.dir.work:}")
   private var workDir: String? = null
 
@@ -236,7 +233,6 @@ open class ConfigurationService {
     val directories = ConfigXmlMigration.takeOverDirectories(
       applicationHomeDir,
       mapOf(
-        ApplicationDirectories.Dir.JCR to jcrDir,
         ApplicationDirectories.Dir.WORK to workDir,
         ApplicationDirectories.Dir.TMP to tmpDir,
         ApplicationDirectories.Dir.BACKUP to backupDir,

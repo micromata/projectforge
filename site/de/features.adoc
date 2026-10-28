@@ -203,6 +203,6 @@ image::2026-SystemDashboard.png[System-Dashboard mit den Teilsystemen und ihren 
 [[requirements]]
 == Technische Voraussetzungen
 
-- Server: Docker-Image oder ausführbares JAR (Java 17 oder neuer) für Linux, macOS und Windows, siehe link:/docs/installation/[Installation] (englisch).
+- Server: Docker-Image oder ausführbares JAR (Java 21 oder neuer) für Linux, macOS und Windows, siehe link:/docs/installation/[Installation] (englisch).
 - Datenbank: PostgreSQL für den Produktivbetrieb, eine eingebettete Datenbank zur Evaluierung.
 - Benutzer: ein aktueller Webbrowser – auf dem Client muss nichts installiert werden.

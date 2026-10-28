@@ -24,10 +24,10 @@
 package org.projectforge.plugins.datatransfer.restPublic
 
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsAccessChecker
+import org.projectforge.framework.files.Attachment
+import org.projectforge.framework.files.AttachmentsAccessChecker
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.jcr.FileObject
+import org.projectforge.files.FileObject
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferFileSizeChecker

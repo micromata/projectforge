@@ -28,7 +28,7 @@ import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookStatus
 import org.projectforge.business.book.BookType
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.files.Attachment
 import java.time.LocalDate
 
 class Book(

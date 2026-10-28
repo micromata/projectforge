@@ -71,7 +71,7 @@ class ContractEntityRest
     /**
      * Enable attachments for this entity.
      */
-    enableJcr()
+    enableAttachments()
     JacksonConfiguration.registerAllowedUnknownProperties(Contract::class.java, "statusAsString")
   }
 

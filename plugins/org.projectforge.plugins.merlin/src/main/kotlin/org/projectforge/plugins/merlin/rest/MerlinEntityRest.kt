@@ -30,7 +30,7 @@ import jakarta.validation.Valid
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.jcr.RepoService
+import org.projectforge.files.store.FileStore
 import org.projectforge.plugins.merlin.*
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -95,13 +95,13 @@ class MerlinEntityRest :
     private lateinit var merlinTemplateDefinitionHandler: MerlinTemplateDefinitionHandler
 
     @Autowired
-    private lateinit var repoService: RepoService
+    private lateinit var fileStore: FileStore
 
     @PostConstruct
     private fun postConstruct() {
-        enableJcr()
+        enableAttachments()
         merlinHandler.attachmentsAccessChecker = attachmentsAccessChecker
-        merlinHandler.jcrPath = jcrPath!!
+        merlinHandler.attachmentsPath = attachmentsPath!!
     }
 
     /**
@@ -116,7 +116,7 @@ class MerlinEntityRest :
     ): ResponseAction {
         if (event == RestButtonEvent.DELETE) {
             obj.id?.let { id ->
-                val files = repoService.deleteAllFilesBelow(attachmentsService.getPath(jcrPath!!, id))
+                val files = fileStore.deleteAllFilesBelow(attachmentsService.getPath(attachmentsPath!!, id))
                 log.info { "Merlin template #$id deleted with its ${files.size} attachment(s)." }
             }
         }

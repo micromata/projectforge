@@ -64,7 +64,7 @@ public class SourceFileHeadersMain {
     validateAndFixHeaders(new File(baseDir, "projectforge-carddav").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-common").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-commons-test").getAbsolutePath(), true, autoFixFiles);
-    validateAndFixHeaders(new File(baseDir, "projectforge-jcr").getAbsolutePath(), true, autoFixFiles);
+    validateAndFixHeaders(new File(baseDir, "projectforge-files").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-model").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-repository").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-rest").getAbsolutePath(), true, autoFixFiles);

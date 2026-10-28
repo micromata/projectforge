@@ -27,7 +27,7 @@ package org.projectforge.plugins.datatransfer.restPublic
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.files.Attachment
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.rest.config.Rest

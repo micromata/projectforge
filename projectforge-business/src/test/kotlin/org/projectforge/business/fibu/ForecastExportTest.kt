@@ -650,6 +650,16 @@ class ForecastExportTest : AbstractTestBase() {
             chartData.forecastByStatus.values.any { values -> values.any { it.signum() != 0 } },
             "Forecast values expected."
         )
+        // The kinds (fixed / time and materials / weighted) split the very same forecast the statuses do:
+        assertAmounts(
+            List(12) { i -> chartData.forecastByKind.values.sumOf { it[i] } },
+            List(12) { i -> chartData.forecastByStatus.values.sumOf { it[i] } },
+            "kinds"
+        )
+        Assertions.assertTrue(
+            chartData.forecastByKind[ForecastChartData.ForecastKind.WEIGHTED]!!.any { it.signum() != 0 },
+            "The not yet commissioned positions are weighted."
+        )
 
         // The status sums of the template (SUMIFS) compare against the German status labels:
         val user = ThreadLocalUserContext.loggedInUser!!
@@ -975,6 +985,32 @@ class ForecastExportTest : AbstractTestBase() {
         pos.periodOfPerformanceType = periodOfPerformanceType
         order.addPosition(pos)
         return pos
+    }
+
+    /**
+     * A planned invoice isn't revenue yet: it must not be part of IST, but be reported as "thereof planned".
+     */
+    @Test
+    fun plannedInvoiceIsNotIstTest() {
+        logon(TEST_FINANCE_USER)
+        val today = PFDay.now()
+        val baseDate = today.plusMonths(-2)
+        val order = createTimeAndMaterials(
+            AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT, 1000.0, baseDate,
+            baseDate, baseDate.plusMonths(4), baseDate
+        )
+        val filter = AuftragFilter()
+        filter.periodOfPerformanceStartDate = baseDate.localDate
+        val istBefore = forecastExport.chartData(filter, distributeUnusedBudget = true)!!.ist
+        val planned = createInvoice(today)
+        planned.status = RechnungStatus.GEPLANT
+        addPosition(planned, 777.0, order.getPosition(1)!!)
+        rechnungDao.insert(planned)
+        auftragsCache.setExpired()
+        val chartData = forecastExport.chartData(filter, distributeUnusedBudget = true)!!
+        val index = chartData.months.indexOf("${today.year}-${today.monthValue.toString().padStart(2, '0')}")
+        assertAmount(chartData.plannedInvoices[index], 777.0)
+        assertAmounts(istBefore, chartData.ist, "IST unchanged by the planned invoice")
     }
 
     private fun createInvoice(date: PFDay): RechnungDO {

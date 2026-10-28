@@ -26,7 +26,7 @@ package org.projectforge.plugins.datatransfer.rest
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.persistence.Transient
 import org.projectforge.framework.i18n.TimeAgo
-import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.files.Attachment
 import org.projectforge.plugins.datatransfer.DataTransferAreaCapacity
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao

@@ -1166,7 +1166,7 @@ open class ForecastExport { // open needed by Wicket.
             if (isPlanningSheet) {
                 ctx.chartTotals.addPlanningForecast(pos.status, order.projektId, offset, chartValue)
             } else {
-                ctx.chartTotals.addForecast(pos.status, offset, chartValue)
+                ctx.chartTotals.addForecast(pos.status, pos.paymentType, offset, chartValue)
             }
             if (monthEntry.lostBudgetWarning) {
                 val errorStyle = when {
