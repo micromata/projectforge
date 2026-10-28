@@ -126,7 +126,7 @@ image::2026-Liquidity.png[Liquidity forecast,link=/uploads/screenshots/2026-Liqu
 
 _Chat, team calendars, address book, file sharing and Word templates – the everyday things your team needs anyway._
 
-Chat:: Rooms for teams and projects and direct messages, with files, reactions, threads and @mentions – live, on your own server. Confidential messages such as passwords travel end-to-end encrypted and are shown only once.
+Chat:: Rooms for teams and projects and direct messages, with files, reactions, threads and @mentions – live, on your own server. Confidential messages such as passwords travel end-to-end encrypted and are shown only once (link:/docs/userguide/#chat[user guide]).
 Team calendars:: Shared calendars with holidays and birthdays. Subscribe to them on any device via ICS and show external calendars inside ProjectForge.
 Address book:: Shared addresses, synchronized to your phone via CardDAV, vCard export.
 Data transfer:: Share files with colleagues and customers – protected by password and expiry date, with a full activity log.
@@ -136,7 +136,7 @@ Office organization:: Contracts, incoming and outgoing mail log, visitor book, l
 
 [.pf-screenshots]
 --
-image::2026-Chat.png[Chat room of a project,link=/uploads/screenshots/2026-Chat.png]
+image::2026-ChatRoom.png[Chat room of a project,link=/uploads/screenshots/2026-ChatRoom.png]
 image::2026-Calendar.png[Team calendar with leave and holidays,link=/uploads/screenshots/2026-Calendar.png]
 image::2026-DataTransfer.png[Data transfer,link=/uploads/screenshots/2026-DataTransfer.png]
 --
@@ -158,6 +158,21 @@ Two languages:: English and German interface, mails in the language of the recip
 image::2026-Menu.png[Main menu and favorites,link=/uploads/screenshots/2026-Menu.png]
 image::2026-Dark.png[Dark theme,link=/uploads/screenshots/2026-Dark.png]
 --
+
+[[data_sovereignty]]
+== Data Sovereignty & GDPR
+
+_Your data stays yours – on your server, under your rules._
+
+Self-hosted:: Runs on your own server, in your data center or with a hoster you choose. You decide where the data lives, who has access, how long it is kept and when you update.
+No third-party cloud:: No telemetry, no tracking, no scripts, fonts or images from other hosts – the Content Security Policy of the browser refuses them.
+Open source:: The code can be checked by anybody. Your data is in your own PostgreSQL database, without vendor lock-in.
+GDPR:: Processing personal data becomes a matter of your own policies, without a processor outside your control. Fine-grained rights, the history of changes and privacy by default support you – the reason of an absence, for example, stays with the person concerned and HR.
+Confidential chat:: Passwords and access data travel end-to-end encrypted between two browsers – never stored, not in the database, logs, backups or mails. Administrators can't read conversations either.
+
+image::2026-ChatSecretDialog.png[Confidential conversation with its fingerprint,link=/uploads/screenshots/2026-ChatSecretDialog.png]
+
+See also link:/docs/userguide/#data_sovereignty_and_gdpr[Data sovereignty and GDPR] in the user guide.
 
 [[security_integration]]
 == Security & Integration

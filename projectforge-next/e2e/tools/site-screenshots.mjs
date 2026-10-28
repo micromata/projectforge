@@ -13,6 +13,10 @@
  * format of the installation, so the user's locale and date formats are switched for the German shots and switched
  * back afterwards.
  *
+ * The chat shots need the sample chat of dev-docs/website-screenshots/chat-seed.mjs. The ones of a confidential
+ * conversation (ChatSecretOffer, ChatSecretDialog) log in a second sample user (max) as its other side; the
+ * conversation is ended afterwards.
+ *
  * Never run it against the main instance: its database is a copy of production, and the screenshots are published.
  *
  * The shots match the other ones of the website (dev-docs/website-screenshots/shoot.mjs): a viewport of 1440×860 at a
@@ -49,6 +53,17 @@ const LANGUAGES = {
     suffix: "",
     quickViewButton: /Who is available/,
     quickViewTitle: "Availability at a glance",
+    threadReplies: "3 replies",
+    secretAction: "Confidential conversation",
+    secretStart: "Start",
+    secretAccept: "Accept",
+    secretDecline: "Decline",
+    secretDialog: /^Confidential conversation with /,
+    secretText: "Confidential text",
+    secretSend: "Encrypt and send",
+    secretEnd: "End conversation",
+    secretMessage: "VPN password of the test system: 7rQ#m2-Lx9!vK",
+    secretAnswer: "Got it, thanks – works.",
   },
   de: {
     browser: "de-DE",
@@ -61,6 +76,17 @@ const LANGUAGES = {
     suffix: "-de",
     quickViewButton: /Wer ist verfügbar/,
     quickViewTitle: "Verfügbarkeit auf einen Blick",
+    threadReplies: "3 Antworten",
+    secretAction: "Vertrauliches Gespräch",
+    secretStart: "Starten",
+    secretAccept: "Annehmen",
+    secretDecline: "Ablehnen",
+    secretDialog: /^Vertrauliches Gespräch mit /,
+    secretText: "Vertraulicher Text",
+    secretSend: "Verschlüsseln und senden",
+    secretEnd: "Gespräch beenden",
+    secretMessage: "VPN-Passwort des Testsystems: 7rQ#m2-Lx9!vK",
+    secretAnswer: "Angekommen, danke – klappt.",
   },
 };
 const langs = (process.env.PF_LANGS ?? "en,de").split(",");
@@ -96,6 +122,30 @@ async function pick(page, trigger, text) {
     .first()
     .click();
   await page.waitForTimeout(1500);
+}
+
+/** The sample chat (chat-seed.mjs): its project room, and the partner of laura's direct message. */
+const CHAT_ROOM = "Fleet Tracking Platform";
+const CHAT_PARTNER = "max";
+const CHAT_PARTNER_NAME = "Max Bach";
+
+/** Closes the notification banners on top of the page (sample messages of the chat seed notify, too). */
+async function closeBanners(page) {
+  const banner = page.getByTestId("notification-banner");
+  // Bounded, in case a banner doesn't close or new ones keep coming.
+  for (let i = 0; i < 10 && (await banner.count()); i++) {
+    await banner.first().locator("button").last().click();
+    await page.waitForTimeout(300);
+  }
+}
+
+/** Opens a conversation of the chat page by the name shown in its list. */
+async function openChat(page, name) {
+  await open(page, "/chat");
+  await closeBanners(page);
+  await page.getByText(name, { exact: true }).first().click();
+  await page.waitForURL(/\/chat\/\d+/);
+  await settle(page);
 }
 
 /** The screenshots, by file name (2026-<name>.png). */
@@ -147,20 +197,40 @@ const SHOTS = {
   TeamVacationCalendar: async (page) => {
     await open(page, "/vacationExport");
   },
+  // The sample chat of dev-docs/website-screenshots/chat-seed.mjs.
+  ChatRoom: async (page) => {
+    await openChat(page, CHAT_ROOM);
+  },
+  ChatThread: async (page, lang) => {
+    await openChat(page, CHAT_ROOM);
+    await page
+      .getByRole("button", { name: lang.threadReplies })
+      .first()
+      .click();
+    await page.waitForTimeout(2500);
+  },
+  ChatList: async (page) => {
+    await open(page, "/chat");
+    await closeBanners(page);
+  },
 };
 
-const names =
-  process.argv.length > 2 ? process.argv.slice(2) : Object.keys(SHOTS);
-const unknown = names.filter((name) => !SHOTS[name]);
+/**
+ * The screenshots of a confidential conversation: both sides have to be logged in at the same time, so they are
+ * taken by one run with a second browser context (the sample user CHAT_PARTNER).
+ */
+const SECRET_SHOTS = ["ChatSecretOffer", "ChatSecretDialog"];
+
+const known = [...Object.keys(SHOTS), ...SECRET_SHOTS];
+const names = process.argv.length > 2 ? process.argv.slice(2) : known;
+const unknown = names.filter((name) => !known.includes(name));
 if (unknown.length) {
-  console.error(
-    `unknown: ${unknown.join(", ")}; known: ${Object.keys(SHOTS).join(", ")}`
-  );
+  console.error(`unknown: ${unknown.join(", ")}; known: ${known.join(", ")}`);
   process.exit(2);
 }
 
-/** A browser context in the given language, logged in as the sample user. */
-async function login(browser, lang) {
+/** A browser context in the given language, logged in as the given sample user. */
+async function login(browser, lang, user = USER) {
   const context = await browser.newContext({
     viewport: { width: 1440, height: 860 },
     deviceScaleFactor: 2,
@@ -198,7 +268,7 @@ async function login(browser, lang) {
       k.startsWith("__reactProps$")
     )
   );
-  await page.fill("#username", USER);
+  await page.fill("#username", user);
   await page.fill("#password", PASSWORD);
   await page.click('button[type="submit"]');
   for (let i = 0; i < 40 && page.url().includes("/login"); i++)
@@ -230,14 +300,18 @@ const ACCOUNT_FIELDS = [
  */
 async function setUserSettings(page, settings) {
   const origin = new URL(BASE).origin;
-  const account = await (await page.request.get(`${origin}/rs/myAccount`)).json();
+  const account = await (
+    await page.request.get(`${origin}/rs/myAccount`)
+  ).json();
   const data = Object.fromEntries(
     ACCOUNT_FIELDS.map((field) => [field, account.data[field] ?? null])
   );
   const previous = Object.fromEntries(
     Object.keys(settings).map((field) => [field, data[field]])
   );
-  if (Object.keys(settings).every((field) => previous[field] === settings[field]))
+  if (
+    Object.keys(settings).every((field) => previous[field] === settings[field])
+  )
     return null;
   const { csrfToken } = await (
     await page.request.get(`${origin}/rs/userStatus`)
@@ -254,31 +328,141 @@ async function setUserSettings(page, settings) {
   return previous;
 }
 
-const browser = await chromium.launch();
-let failed = false;
-for (const key of langs) {
+/** Takes a screenshot of the page into the website's folder, scaled down like the others. */
+async function shoot(page, name, key) {
   const lang = LANGUAGES[key];
-  let { context, page } = await login(browser, lang);
+  const file = path.join(OUT, `2026-${name}${lang.suffix}.png`);
+  await page.screenshot({ path: file });
+  execFileSync("sips", ["-Z", "1920", file], { stdio: "ignore" });
+  console.log(`${name} (${key}): ${file}`);
+}
+
+/**
+ * A context of the user in the given language: logs in, switches the user's settings to the language and answers
+ * them with the previous settings (null if nothing changed), to be restored afterwards.
+ */
+async function loginInLanguage(browser, lang, user = USER) {
+  let { context, page } = await login(browser, lang, user);
   const previousSettings = await setUserSettings(page, lang.account);
   if (previousSettings) {
     // The session keeps the settings of the login (dates formatted by the server), so log in anew.
     await context.close();
-    ({ context, page } = await login(browser, lang));
+    try {
+      ({ context, page } = await login(browser, lang, user));
+    } catch (error) {
+      const again = await login(browser, lang, user).catch(() => null);
+      if (again) {
+        await setUserSettings(again.page, previousSettings).catch(() => {});
+        await again.context.close();
+      }
+      throw error;
+    }
   }
+  return { context, page, previousSettings };
+}
+
+/**
+ * laura offers max a confidential conversation in their direct message, max sees the offer (ChatSecretOffer) and
+ * accepts it, both exchange a text, laura's dialog with the fingerprint is taken (ChatSecretDialog). Afterwards
+ * the conversation is declined or ended, also after a failure, so nothing of it is left.
+ */
+async function secretConversation(browser, key, page, wanted) {
+  const lang = LANGUAGES[key];
+  const partner = await loginInLanguage(browser, lang, CHAT_PARTNER);
+  const offer = partner.page.getByTestId("chat-secret-offer");
+  const sendDialog = page.getByRole("dialog", { name: lang.secretDialog });
+  const receiveDialog = partner.page.getByRole("dialog", {
+    name: lang.secretDialog,
+  });
   try {
-    for (const name of names) {
-      const file = path.join(OUT, `2026-${name}${lang.suffix}.png`);
+    await openChat(page, CHAT_PARTNER_NAME);
+    const conversation = new URL(page.url()).pathname.replace(
+      /^.*\/chat\//,
+      ""
+    );
+    await open(partner.page, `/chat/${conversation}`);
+    await closeBanners(partner.page);
+    await page.getByRole("button", { name: lang.secretAction }).click();
+    await sendDialog.getByRole("button", { name: lang.secretStart }).click();
+    await offer.waitFor({ timeout: 15_000 });
+    await partner.page.waitForTimeout(1500);
+    if (wanted.includes("ChatSecretOffer"))
+      await shoot(partner.page, "ChatSecretOffer", key);
+    if (!wanted.includes("ChatSecretDialog")) return;
+    await offer.getByRole("button", { name: lang.secretAccept }).click();
+    await sendDialog
+      .getByTestId("chat-secret-fingerprint")
+      .waitFor({ timeout: 15_000 });
+    await sendDialog
+      .getByRole("textbox", { name: lang.secretText })
+      .fill(lang.secretMessage);
+    await sendDialog.getByRole("button", { name: lang.secretSend }).click();
+    await receiveDialog
+      .getByTestId("chat-secret-text")
+      .waitFor({ timeout: 15_000 });
+    await receiveDialog
+      .getByRole("textbox", { name: lang.secretText })
+      .fill(lang.secretAnswer);
+    await receiveDialog.getByRole("button", { name: lang.secretSend }).click();
+    await sendDialog
+      .getByTestId("chat-secret-text")
+      .waitFor({ timeout: 15_000 });
+    await page.waitForTimeout(2500);
+    await shoot(page, "ChatSecretDialog", key);
+  } finally {
+    // Whatever state it reached: an offer is declined, a running conversation ended.
+    const button = async (locator, name) => {
+      const it = locator.getByRole("button", { name });
+      if (await it.isVisible().catch(() => false))
+        await it.click().catch(() => {});
+    };
+    await button(offer, lang.secretDecline);
+    await button(receiveDialog, lang.secretEnd);
+    await button(sendDialog, lang.secretEnd);
+    await page.waitForTimeout(1500);
+    if (partner.previousSettings)
+      await setUserSettings(partner.page, partner.previousSettings);
+    await partner.context.close();
+  }
+}
+
+const browser = await chromium.launch();
+let failed = false;
+for (const key of langs) {
+  const lang = LANGUAGES[key];
+  const { context, page, previousSettings } = await loginInLanguage(
+    browser,
+    lang
+  );
+  try {
+    for (const name of names.filter((it) => SHOTS[it])) {
       try {
         await SHOTS[name](page, lang);
-        await page.screenshot({ path: file });
-        execFileSync("sips", ["-Z", "1920", file], { stdio: "ignore" });
-        console.log(`${name} (${key}): ${file}`);
+        await shoot(page, name, key);
       } catch (error) {
         failed = true;
         console.error(`${name} (${key}): ${error.message.split("\n")[0]}`);
         // What the page showed when it failed, for finding the step that broke.
         await page
-          .screenshot({ path: `/tmp/site-screenshot-${name}${lang.suffix}-failed.png` })
+          .screenshot({
+            path: `/tmp/site-screenshot-${name}${lang.suffix}-failed.png`,
+          })
+          .catch(() => {});
+      }
+    }
+    const secretShots = names.filter((it) => SECRET_SHOTS.includes(it));
+    if (secretShots.length) {
+      try {
+        await secretConversation(browser, key, page, secretShots);
+      } catch (error) {
+        failed = true;
+        console.error(
+          `${secretShots.join(", ")} (${key}): ${error.message.split("\n")[0]}`
+        );
+        await page
+          .screenshot({
+            path: `/tmp/site-screenshot-ChatSecret${lang.suffix}-failed.png`,
+          })
           .catch(() => {});
       }
     }

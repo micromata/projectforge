@@ -6,10 +6,24 @@ dach:
   text: >-
     Import your DATEV accounting records and incoming invoices, export salaries, create PEPPOL-ready
     e-invoices in XRechnung and ZUGFeRD, checked for completeness before export. Public holidays, leave accounts and an
-    English/German interface are built in. And because ProjectForge runs on your own server,
-    GDPR is a matter of your own policies – not of someone else's cloud.
+    English/German interface are built in.
   img: screenshots/2026-Liquidity.png
   img_caption: The liquidity forecast combines invoices, expected payments and recurring series.
+
+sovereignty:
+  title: Your data. Your server. Your rules.
+  subtitle: Digital sovereignty instead of dependence – and GDPR as a matter of your own policies.
+  text: >-
+    ProjectForge runs where you want it: on your own server, in your data center or with a hoster you choose.
+    Orders, timesheets, salaries, files and chats stay there – no vendor cloud, no third-party tracking.
+  bullets:
+    - "**Self-hosted** – you decide where the data lives, who has access, how long it is kept and when you update."
+    - "**No data in someone else's cloud** – no telemetry, no external scripts, fonts or trackers; the browser loads everything from your server."
+    - "**Open source** – the code can be checked by anybody, and your data is in your own PostgreSQL database: no vendor lock-in."
+    - "**GDPR-ready by design** – fine-grained rights, a full history of changes, privacy by default and chats that only their participants read in the app."
+    - "**End-to-end encrypted** confidential chat messages – never stored, not even in backups."
+  button_text: Data sovereignty and GDPR
+  button_url: /docs/userguide/#data_sovereignty_and_gdpr
 
 security:
   title: Sleep well, admins.
@@ -38,8 +52,7 @@ chat:
     - "**Formatting, code blocks, emoji reactions and threads** – @mentions notify at once, in the app and by mail."
     - "**Confidential messages** for a password: end-to-end encrypted, never stored by the server, shown only once."
     - "**Unread at a glance** – mark a message unread, threads with new replies are marked, mails only for what wasn't seen in the app."
-  img: screenshots/2026-Chat.png
-  img_caption: A project room with a code block, an image, reactions and a thread.
+  gallery: chat
   button_text: All collaboration features
   button_url: /features/#collaboration
 

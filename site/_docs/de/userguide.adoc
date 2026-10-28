@@ -633,6 +633,154 @@ Vorher bitte die eigenen Telefon-Ids (kommagetrennt) unter *Mein Zugang* eintrag
 
 Ist ein SMS-Gateway konfiguriert, lassen sich über _Allgemein > SMS senden_ Textnachrichten verschicken.
 
+[[chat]]
+== Chat
+
+Der Chat (_Allgemein > Chat_) bringt Gespräche dorthin, wo die Arbeit ist: Räume für Teams, Projekte oder
+Kunden, Direktnachrichten an jede Kollegin und jeden Kollegen und ein Chat in jedem Datentransfer-Bereich.
+Nachrichten kommen live an, und alles bleibt auf dem Server der eigenen Installation.
+
+image::/uploads/screenshots/2026-ChatList-de.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 3: |Die Chat-Seite mit den Direktnachrichten, den Chaträumen und ihren ungelesenen Nachrichten.
+|===
+
+[[chat_rooms]]
+=== Chaträume
+
+Chaträume kann jede und jeder anlegen (*Neuer Chatraum*) und die Teilnehmenden wählen: Benutzer und Gruppen.
+Die Gruppenmitgliedschaft wird beim Zugriff geprüft – wer später in eine Gruppe kommt, ist sofort dabei, wer
+sie verlässt, ist draußen. Besitzer und Moderatoren eines Raums bearbeiten oder löschen ihn, blenden
+Nachrichten anderer mit einer Begründung aus (z. B. themenfremd oder vertraulich) und sehen die Historie
+bearbeiteter Nachrichten.
+
+Dateien eines Raums liegen in seinem Datentransfer-Bereich „Chat: …“ und bleiben so lange, wie der Raum es
+festlegt (*Dateien verfügbar*, standardmäßig 30 Tage); danach werden sie gelöscht.
+
+Auch jeder Datentransfer-Bereich ist ein Chatraum, für alle mit Zugriff auf den Bereich.
+
+image::/uploads/screenshots/2026-ChatRoom-de.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 4: |Ein Projektraum mit Code-Block, Bild, Reaktionen und einem Thread.
+|===
+
+[[chat_direct_messages]]
+=== Direktnachrichten
+
+Eine Direktnachricht (*Direktnachricht*) geht an eine Person: Angeschrieben werden kann jede, die in der
+Benutzerauswahl erscheint. Pro Paar gibt es ein Gespräch. Unter der eigenen letzten Nachricht zeigt ein kleiner
+Avatar, dass die Gegenseite sie gelesen hat (siehe Abbildung 6). Dateien einer Direktnachricht landen in der
+persönlichen Box der Empfängerin oder des Empfängers im Datentransfer.
+
+[[chat_writing_messages]]
+=== Nachrichten schreiben
+
+* *Formatierung*: fett, kursiv, Listen, Links und Code-Blöcke. Im Code-Block beginnt kbd:[Enter] eine neue
+  Zeile, kbd:[Strg+Enter] (Mac: kbd:[⌘+Enter]) sendet.
+* *@Erwähnungen*: Ein `@` schlägt die Teilnehmenden vor; wer erwähnt wird, wird sofort benachrichtigt.
+* *Zitate* und *Emoji-Reaktionen* auf jede Nachricht.
+* *Dateien jeder Art*: anhängen, einfügen oder einfach ins Nachrichtenfenster ziehen. Bilder erscheinen als
+  Vorschau und werden per Klick vergrößert.
+* Eigene Nachrichten *bearbeiten und löschen*; eine bearbeitete Nachricht ist markiert, Moderatoren sehen ihre
+  Historie.
+* *Link kopieren* liefert einen Link auf eine einzelne Nachricht.
+
+[[chat_threads]]
+=== Threads
+
+*Im Thread antworten* beginnt einen Thread zu einer Nachricht, damit eine Nebendiskussion den Raum nicht
+unterbricht. Die Nachricht zeigt die Zahl der Antworten und ihre Autoren; ein Klick öffnet den Thread neben
+dem Gespräch. Die Autorin oder der Autor der Nachricht und alle, die antworten, folgen dem Thread; *Folgen* und
+*Nicht mehr folgen* ändern das. Threads mit neuen Antworten sind markiert.
+
+image::/uploads/screenshots/2026-ChatThread-de.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 5: |Ein geöffneter Thread neben dem Gespräch des Raums.
+|===
+
+[[chat_unread_messages_and_notifications]]
+=== Ungelesene Nachrichten und Benachrichtigungen
+
+* Das Chat-Symbol in der Kopfleiste zählt die ungelesenen Nachrichten, die Liste der Gespräche zeigt sie je Raum.
+* Eine Linie *Neu* zeigt, wo die ungelesenen Nachrichten beginnen; ein Knopf springt zur nächsten ungelesenen.
+* *Als ungelesen markieren* an einer Nachricht holt ein Gespräch für später zurück.
+* *Stummschalten* macht ein Gespräch leise: Neue Nachrichten werden nicht mehr gemeldet, Erwähnungen schon.
+* Erwähnungen, Direktnachrichten und Antworten in gefolgten Threads werden in der App und per Mail gemeldet.
+  Eine Mail geht nur für das, was in der App nicht gesehen wurde, und enthält nie den Text der Nachricht.
+
+[[chat_search]]
+=== Suche
+
+Die Suche der Chat-Seite findet Nachrichten in allen Gesprächen, an denen man teilnimmt; die Suche in einem
+Gespräch sucht nur dort. Ein Treffer führt zu seinem Gespräch.
+
+[[chat_confidential_conversations]]
+=== Vertrauliche Gespräche (Ende-zu-Ende-verschlüsselt)
+
+Für ein Passwort, einen Zugangscode oder anderes, das nirgends liegen bleiben darf, bietet eine
+Direktnachricht ein *Vertrauliches Gespräch*: ein Live-Gespräch zweier Browser, Ende-zu-Ende-verschlüsselt. Die
+Texte werden in einem Browser verschlüsselt und erst im anderen entschlüsselt. ProjectForge leitet sie weiter,
+ohne sie lesen zu können, und speichert nichts.
+
+So funktioniert es:
+
+. Gestartet wird es mit *Verschlüsselter Chat* auf der Chat-Seite (Person wählen) oder mit der Aktion
+  *Vertrauliches Gespräch* in einer Direktnachricht.
+. Die Gegenseite wird auf jeder geöffneten Seite von ProjectForge aufmerksam gemacht, auch in einem Tab im
+  Hintergrund: durch einen Ton, eine Browser-Benachrichtigung (falls erlaubt), einen blinkenden Tab-Titel und
+  den Zähler des Chat-Symbols. Ton und Benachrichtigungen werden unter *Ton und Benachrichtigungen* eingestellt.
+  Beantwortet wird das Angebot in der Direktnachricht: *Annehmen* oder *Ablehnen*.
+. Beide Seiten sehen denselben *Fingerabdruck*. Ihn vergleichen, z. B. am Telefon: Weicht er ab, ist ein
+  manipulierter Server im Spiel.
+. Den vertraulichen Text schreiben und *Verschlüsseln und senden*. Eine Nachricht wird der Gegenseite einmal
+  gezeigt und auf dem Server gelöscht, sobald sie abgeholt ist; der Absender sieht *Gelesen*.
+. *Gespräch beenden* beendet es für beide Seiten, und auf der Seite bleibt nichts davon zurück.
+
+image::/uploads/screenshots/2026-ChatSecretOffer-de.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 6: |Der Empfänger bekommt in der Direktnachricht ein vertrauliches Gespräch angeboten.
+|===
+
+image::/uploads/screenshots/2026-ChatSecretDialog-de.png[Bild]
+
+[cols="1,4",]
+|===
+|Abbildung 7: |Ein vertrauliches Gespräch mit seinem Fingerabdruck; die erste Nachricht ist gelesen.
+|===
+
+Beide Seiten müssen online sein. Das Gespräch endet außerdem nach 10 Minuten ohne Nachricht, spätestens nach
+2 Stunden und wenn eine Seite die Seite schließt oder neu lädt (ihr Schlüssel ist damit weg). Eine Nachricht
+darf bis zu 16 KB groß sein; Dateien lassen sich nicht senden. Vertrauliche Gespräche gibt es nur in
+Direktnachrichten, nicht in Räumen.
+
+Wovor es schützt: vor Datenbank-Backups, Logdateien, dem Chatverlauf und Administratoren, die in Daten schauen –
+keines davon enthält je den Text. Bildschirm und Zwischenablage der Beteiligten sind nicht geschützt. Der
+Browser braucht eine sichere Verbindung (https).
+
+Technisch erzeugt jeder Browser für das Gespräch ein Schlüsselpaar (WebCrypto, ECDH P-256); der private
+Schlüssel lässt sich nicht exportieren und liegt nur im Speicher der Seite. Der gemeinsame Schlüssel wird aus
+beiden abgeleitet (HKDF-SHA-256) und verschlüsselt jede Nachricht mit AES-GCM (256 Bit) und einem frischen
+Initialisierungsvektor; Gespräch, Absender und ein Zähler sind in jede Nachricht eingebunden, sodass sich eine
+Nachricht weder unbemerkt wiederholen noch umsortieren lässt. Der Server sieht nur die öffentlichen Schlüssel
+und den Chiffretext, hält sie im Speicher und löscht sie beim Abholen. Der Fingerabdruck umfasst beide
+öffentlichen Schlüssel – sein Vergleich deckt einen Server auf, der eigene Schlüssel dazwischengeschoben hat.
+
+[[chat_privacy]]
+=== Wer mitliest
+
+Ein Gespräch lesen nur seine Teilnehmenden: die Mitglieder eines Raums, die beiden Personen einer
+Direktnachricht, alle mit Zugriff auf einen Datentransfer-Bereich. Die Administratorrolle gibt keinen Zugriff
+auf Gespräche. Nachrichten und Dateien liegen in der Datenbank und im Datentransfer der eigenen Installation,
+siehe <<data_sovereignty_and_gdpr>>.
+
 [[structure_elements_in_projectforge_former_tasks]]
 == Strukturelemente in ProjectForge (früher Aufgaben)
 
@@ -645,7 +793,7 @@ image::/uploads/userguide/TaskTree.png[Bild]
 
 [cols="1,4",]
 |===
-|Abbildung 3: |Hierarchie der Strukturelemente in ProjectForge®
+|Abbildung 8: |Hierarchie der Strukturelemente in ProjectForge®
 |===
 
 Die folgende Tabelle beschreibt die Felder von Strukturelementen:
@@ -1060,7 +1208,7 @@ image::/uploads/userguide/Datev-Import-Buchungssaetze.png[Bild]
 
 [cols="1,4",]
 |===
-|Abbildung 4: |Excel-Format für den DATEV-Import von Buchungssätzen
+|Abbildung 9: |Excel-Format für den DATEV-Import von Buchungssätzen
 |===
 
 Der Import läuft in denselben Schritten ab wie alle Importe von ProjectForge®:
@@ -1207,7 +1355,7 @@ image::/uploads/userguide/ExportJFreeChart.png[Bild]
 
 [cols="1,4",]
 |===
-|Abbildung 5: |Beispiel für ein Script, das ein Diagramm erzeugt
+|Abbildung 10: |Beispiel für ein Script, das ein Diagramm erzeugt
 |===
 
 [source,groovy,linenums]
@@ -1267,13 +1415,13 @@ Verschachtelte und indizierte Properties werden ebenfalls unterstützt: `users[3
 [[import_of_excel_files]]
 === Import von Excel-Dateien
 
-Abbildung 6 zeigt eine Beispieldatei.
+Abbildung 11 zeigt eine Beispieldatei.
 
 image::/uploads/userguide/Excel-import-example.png[Bild]
 
 [cols="1,4",]
 |===
-|Abbildung 6: |Beispieldatei für einen Excel-Import
+|Abbildung 11: |Beispieldatei für einen Excel-Import
 |===
 
 Die zum Script hochgeladene Datei steht als Variable `file` (Byte-Array) zur Verfügung, ihr Name als
@@ -1350,6 +1498,32 @@ Kolleg:innen sehen.
 
 [[data_protection]]
 == Datenschutz
+
+[[data_sovereignty_and_gdpr]]
+=== Digitale Souveränität und DSGVO
+
+ProjectForge® läuft auf einem Server nach Wahl – dem eigenen, im eigenen Rechenzentrum oder bei einem
+selbst gewählten Hoster. Alle Daten bleiben dort: die Datenbank, die Dateien des Datentransfers, der Chat, die
+Dokumente. Nichts geht in eine Cloud des Herstellers oder Dritter, es gibt keine Telemetrie, und die Seiten
+laden keine Skripte, Schriften oder Bilder von anderen Hosts (die Content Security Policy verweigert sie).
+
+Das ist hier mit digitaler Souveränität gemeint: Die eigene Organisation entscheidet, wo die Daten liegen, wer
+darauf zugreift, wie lange sie aufbewahrt werden und wann ProjectForge® aktualisiert wird. Der Quellcode ist
+offen (Open Source) und für alle prüfbar, und eine Abhängigkeit vom Anbieter entsteht nicht: Die Daten liegen
+in einer eigenen PostgreSQL-Datenbank.
+
+Für die DSGVO wird die Verarbeitung personenbezogener Daten damit eine Frage der eigenen Richtlinien, ohne
+Auftragsverarbeiter außerhalb der eigenen Kontrolle. ProjectForge® unterstützt sie mit fein abgestuften
+Zugriffsrechten, der Änderungshistorie (siehe <<history_of_changes_2>>), Datenschutz durch Voreinstellungen
+(z. B. sehen den Grund einer Abwesenheit nur die Person selbst und HR) und Gesprächen, die niemand sonst liest
+(siehe <<chat_privacy>>). Ob eine Installation die DSGVO erfüllt, hängt von ihrem Betrieb ab; ProjectForge®
+liefert die Mittel, keine rechtliche Bewertung.
+
+[[confidential_chat_messages]]
+=== Vertrauliche Chat-Nachrichten
+
+Die Texte eines vertraulichen Gesprächs sind Ende-zu-Ende-verschlüsselt und werden nie gespeichert: weder in
+der Datenbank noch in Logdateien, Backups oder Mails (siehe <<chat_confidential_conversations>>).
 
 [[passwords]]
 === Passwörter
