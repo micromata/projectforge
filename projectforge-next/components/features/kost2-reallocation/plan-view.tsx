@@ -28,7 +28,7 @@ export function PlanView({ plan }: { plan: Kost2ReallocationPlan }) {
   const format = useFormatContext();
   const sums = useMemo<ColumnDef<Kost2ReallocationSum, unknown>[]>(
     () => [
-      column("kost2", t("fibu.kost2"), (r) => r.kost2, 140),
+      column("kost2", t("fibu.kost2._"), (r) => r.kost2, 140),
       column(
         "before",
         t("fibu.kost2Reallocation.before"),
@@ -71,21 +71,21 @@ export function PlanView({ plan }: { plan: Kost2ReallocationPlan }) {
       column("user", t("timesheet.user"), (r) => r.user, 160),
       column(
         "month",
-        t("calendar.month"),
+        t("calendar.month._"),
         (r) => `${r.year}-${String(r.month).padStart(2, "0")}`,
         90
       ),
       column("hours", t("hours"), (r) => r.hours.toFixed(2), 70),
       column(
         "task",
-        t("task"),
+        t("task._"),
         (r) =>
           r.oldTask === r.newTask ? r.oldTask : `${r.oldTask} → ${r.newTask}`,
         360
       ),
       column(
         "kost2",
-        t("fibu.kost2"),
+        t("fibu.kost2._"),
         (r) => `${r.oldKost2} → ${r.newKost2}`,
         220
       ),

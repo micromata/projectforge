@@ -255,6 +255,17 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
         return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP)
     }
 
+    /**
+     * A kost2 share of the effective view (a transient copy with the id of the stored record, see
+     * [BuchungssatzDO.originalRecord]) must never be saved: its amount is the share only.
+     */
+    override fun onInsertOrModify(obj: BuchungssatzDO, operationType: OperationType) {
+        if (obj.originalRecord != null) {
+            throw IllegalArgumentException("A kost2 share of the accounting record #${obj.id} (effective view) can't be saved.")
+        }
+        super.onInsertOrModify(obj, operationType)
+    }
+
     override fun newInstance(): BuchungssatzDO {
         return BuchungssatzDO()
     }

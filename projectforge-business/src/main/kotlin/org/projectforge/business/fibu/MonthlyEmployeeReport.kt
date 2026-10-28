@@ -290,15 +290,15 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
         val splitDurations = TimesheetOverlapUtils.splitDurations(bufferedSheets.map { it.first })
         for ((sheet, hasSelectAccess) in bufferedSheets) {
             val attendanceDuration = sheet.id?.let { splitDurations[it] } ?: sheet.duration
-            val sheetId = sheet.id
-            val sheetKost2Id = sheet.kost2Id
-            if (hasSelectAccess && sheetId != null && sheetKost2Id != null && weeks.any { it.matchWeek(sheet) }) {
-                kost2TimesheetAttendances[sheetId] = Kost2TimesheetAttendance(sheetId, sheetKost2Id, attendanceDuration)
-            }
             var added = false
             for (week in weeks) {
                 if (week.matchWeek(sheet)) {
                     week.addEntry(sheet, hasSelectAccess, attendanceDuration)
+                    val sheetId = sheet.id
+                    val sheetKost2Id = sheet.kost2Id
+                    if (hasSelectAccess && sheetId != null && sheetKost2Id != null) {
+                        kost2TimesheetAttendances[sheetId] = Kost2TimesheetAttendance(sheetId, sheetKost2Id, attendanceDuration)
+                    }
                     added = true
                     break
                 }

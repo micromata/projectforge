@@ -155,6 +155,8 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         val expanded = shareService.expand(f.records.map { buchungssatzDao.find(it.id, checkAccess = false)!! })
         assertEquals(sum(f.records), expanded.sumOf { it.betrag!! })
         assertEquals(BigDecimal("600.00"), expanded.filter { it.kost2?.id == f.t0.id }.sumOf { it.betrag!! })
+        // A share of the effective view can't be saved (it carries the id of the stored record).
+        assertThrows<IllegalArgumentException> { buchungssatzDao.update(expanded.first { it.originalRecord != null }) }
         // An applied run can't be edited, deleted or applied again.
         assertThrows<UserException> { service.apply(run.id!!, emptyList()) }
         val stored = runDao.find(run.id, checkAccess = false)!!

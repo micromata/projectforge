@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 import {
   fetchKost2ReallocationRun,
+  type Kost2ReallocationPlan,
   type Kost2ReallocationRun,
 } from "@/lib/rs/kost2-reallocation";
 import { PlanView } from "./plan-view";
@@ -48,13 +49,21 @@ function Section({
   );
 }
 
-function WizardBody({ run }: { run: Kost2ReallocationRun | null }) {
+function WizardBody({
+  run,
+  plan,
+  setPlan,
+}: {
+  run: Kost2ReallocationRun | null;
+  plan: Kost2ReallocationPlan | null;
+  setPlan: (plan: Kost2ReallocationPlan | null) => void;
+}) {
   const t = useTranslations();
   const [draft, setDraft] = useState<RunDraft>(
     run ? toDraft(run) : emptyRunDraft()
   );
   const [manualIds, setManualIds] = useState<Set<number>>(new Set());
-  const actions = useRunActions(run?.id ?? null, draft, manualIds);
+  const actions = useRunActions(run?.id ?? null, draft, manualIds, setPlan);
   const readOnly = run != null && run.status !== "DRAFT";
   const title = draft.description || t("fibu.kost2Reallocation.title");
   useDocumentTitle(title);
@@ -104,7 +113,7 @@ function WizardBody({ run }: { run: Kost2ReallocationRun | null }) {
                 </Button>
               </div>
             )}
-            {actions.plan && <PlanView plan={actions.plan} />}
+            {plan && <PlanView plan={plan} />}
           </Section>
         </div>
         <WizardActions run={run} actions={actions} />
@@ -115,6 +124,7 @@ function WizardBody({ run }: { run: Kost2ReallocationRun | null }) {
 
 /** The Kost2 reallocation wizard of one run (`runId` null: a new draft): define, select time sheets, preview, apply. */
 export function Kost2ReallocationWizard({ runId }: { runId: number | null }) {
+  const [plan, setPlan] = useState<Kost2ReallocationPlan | null>(null);
   const query = useQuery({
     queryKey: runKey(runId),
     queryFn: ({ signal }) => fetchKost2ReallocationRun(runId!, signal),
@@ -132,6 +142,14 @@ export function Kost2ReallocationWizard({ runId }: { runId: number | null }) {
       </PageShell>
     );
   }
-  // Remounted when the server's run changes (saved, applied, reverted): the local draft starts from it.
-  return <WizardBody key={query.dataUpdatedAt} run={query.data ?? null} />;
+  // Remounted when the server's run changes (saved, applied, reverted): the local draft starts from it. The plan
+  // is kept here, so a preview (which saves first) stays on screen.
+  return (
+    <WizardBody
+      key={query.dataUpdatedAt}
+      run={query.data ?? null}
+      plan={plan}
+      setPlan={setPlan}
+    />
+  );
 }

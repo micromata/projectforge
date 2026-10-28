@@ -65,8 +65,8 @@ export function TimesheetsTable({
         150
       ),
       col("hours", t("hours"), (r) => r.hours.toFixed(2), 70),
-      col("task", t("task"), (r) => r.task, 300),
-      col("kost2", t("fibu.kost2"), (r) => r.kost2, 110),
+      col("task", t("task._"), (r) => r.task, 300),
+      col("kost2", t("fibu.kost2._"), (r) => r.kost2, 110),
       col("description", t("description"), (r) => r.description, 300),
     ];
   }, [t, format, selected, onToggle]);

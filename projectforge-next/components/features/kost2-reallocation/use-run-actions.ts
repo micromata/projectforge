@@ -22,17 +22,18 @@ export const runKey = (id: number | null) => ["kost2Reallocation", "run", id];
 /**
  * The actions of the wizard on one run. Every action but the preview first saves the draft, so the server always
  * calculates from what is on screen (it takes the run from its database, never from the request). A refused
- * action — HTTP 406 — leaves its reason in `error`; nothing was written then.
+ * action — HTTP 406 — leaves its reason in `error`; nothing was written then. The plan (preview or result) is kept
+ * by the caller, above the remount of the form after a save.
  */
 export function useRunActions(
   runId: number | null,
   draft: RunDraft,
-  manualIds: Set<number>
+  manualIds: Set<number>,
+  setPlan: (plan: Kost2ReallocationPlan | null) => void
 ) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
-  const [plan, setPlan] = useState<Kost2ReallocationPlan | null>(null);
 
   const body = (): Kost2ReallocationRun => ({
     ...draft,
@@ -95,7 +96,11 @@ export function useRunActions(
   });
   const revert = useMutation({
     mutationFn: () => revertKost2Reallocation(runId!),
-    onSuccess: (res) => !refused(res) && stored(res.value),
+    onSuccess: (res) => {
+      if (refused(res)) return;
+      setPlan(null);
+      stored(res.value);
+    },
   });
   const remove = useMutation({
     mutationFn: () => deleteKost2ReallocationRun(runId!),
@@ -116,7 +121,6 @@ export function useRunActions(
     revert,
     remove,
     error,
-    plan,
     pending,
   };
 }

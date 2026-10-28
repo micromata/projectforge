@@ -719,10 +719,11 @@ open class ContributionMarginService {
     val sharedIds = shareDao.selectActiveRecordIdsByKost2(
       kost2Ids, from.year * 100 + from.monthValue, until.year * 100 + until.monthValue,
     ) - ownIds
-    val shared = if (sharedIds.isEmpty()) {
-      emptyList()
-    } else {
-      buchungssatzDao.select(sharedIds, checkAccess = false).orEmpty().filter { !it.deleted }
+    // Loaded with the same period predicates as the own records (the period of the share query only narrows the ids).
+    val shared = sharedIds.chunked(CHUNK_SIZE).flatMap { chunk ->
+      val queryFilter = recordsQueryFilter(from, until)
+      queryFilter.add(isIn("id", chunk))
+      buchungssatzDao.select(queryFilter, checkAccess = false)
     }
     val kost2IdSet = kost2Ids.toSet()
     return inRange(shareService.expand(own + shared).filter { it.kost2?.id in kost2IdSet })

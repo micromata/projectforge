@@ -103,7 +103,7 @@ export function TimesheetsStep({
             disabled={taskId == null || load.isPending}
             onClick={() => load.mutate(taskId)}
           >
-            {t("search")}
+            {t("search._")}
           </Button>
         </div>
       )}
