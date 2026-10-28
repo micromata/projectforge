@@ -72,7 +72,8 @@ class KostZuweisungExportTest : AbstractTestBase() {
         val project = ProjektDO().also { project ->
             project.name = "Test Project for KostZuweisungExportTest"
             project.internKost2_4 = 100
-            project.nummer = 78
+            // 4.100.77 and 4.100.78 are taken by RechnungHistoryTest and ContributionMarginServiceTest.
+            project.nummer = 76
             projektDao.insert(project, checkAccess = false)
         }
         val kost1 = createKost1()
