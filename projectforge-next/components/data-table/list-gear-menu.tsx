@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DescribedMenuItem } from "@/components/shared/described-menu-item";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
-import { LegacyMenuItem } from "@/components/shared/legacy-page-link";
 import { useAuth } from "@/hooks/use-auth";
 import { useFormatContext } from "@/hooks/use-format";
 import { useListMeta } from "@/hooks/use-list-meta";
@@ -24,12 +23,6 @@ import { cn } from "@/lib/utils";
 export interface ListGearMenuProps {
   /** Backend entity, e.g. "book" — maps to /rs/{entity}/reindexNewest and friends. */
   entity: string;
-  /**
-   * The way back to the legacy list page, offered as the top entry when this entity has demoted it
-   * from the prominent button into the menu (`ListMetaData.legacyListInMenu`, see LegacyMenuItem).
-   * Absent while the entity still shows the button, or once it has no legacy counterpart at all.
-   */
-  legacyUrl?: string;
   /**
    * Additional entries of a specific list page, appended below the standard ones — as
    * [GearMenuItem]s, so they carry their explanation like the standard ones do.
@@ -48,7 +41,6 @@ export interface ListGearMenuProps {
  */
 export function ListGearMenu({
   entity,
-  legacyUrl,
   children,
   className,
 }: ListGearMenuProps) {
@@ -117,14 +109,6 @@ export function ListGearMenu({
         {/* No separator of their own: they are maintenance entries like the ones above, and a child
             may well render nothing for this user (see OrderGearMenuActions). */}
         {children}
-        {/* Last and parted from the maintenance entries: it leaves the page rather than acting on it,
-            and once every page is trusted it is the entry that goes away with the legacy app. */}
-        {legacyUrl && (
-          <>
-            <DropdownMenuSeparator />
-            <LegacyMenuItem url={legacyUrl} />
-          </>
-        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -73,7 +73,7 @@ export interface TaskConsumption {
  * One order booked against a task, `TaskServicesRest.Task.Order`.
  *
  * The `url` is the backend's: the order's page may be Wicket's or this app's, which only
- * `NextMigration` knows.
+ * `PageRoutes` knows.
  */
 export interface TaskOrder {
   number: string;

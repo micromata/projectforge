@@ -1,39 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { sanitizeChatHtml } from "@/components/shared/rich-text";
 import { cn } from "@/lib/utils";
-
-const SIREN = "🚨";
-
-/** Wraps the siren emoji in the text (not in attributes) in a span that flashes, see `.siren-blink` in globals.css. */
-function flashSirens(html: string): string {
-  if (!html.includes(SIREN) || typeof document === "undefined") return html;
-  const template = document.createElement("template");
-  template.innerHTML = html;
-  const walker = document.createTreeWalker(
-    template.content,
-    NodeFilter.SHOW_TEXT
-  );
-  const texts: Text[] = [];
-  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-    if ((node as Text).data.includes(SIREN)) texts.push(node as Text);
-  }
-  for (const text of texts) {
-    const fragment = document.createDocumentFragment();
-    text.data.split(SIREN).forEach((part, index) => {
-      if (index > 0) {
-        const span = document.createElement("span");
-        span.className = "siren-blink";
-        span.textContent = SIREN;
-        fragment.append(span);
-      }
-      fragment.append(part);
-    });
-    text.replaceWith(fragment);
-  }
-  return template.innerHTML;
-}
+import { CUSTOM_EMOJIS } from "@/components/shared/emoji/custom-emoji";
+import { decorateEmoji } from "@/components/shared/emoji/decorate-emoji";
 
 /** The content of a chat message, sanitized ([sanitizeChatHtml]), with the mentions highlighted. */
 export function ChatHtml({
@@ -43,7 +15,12 @@ export function ChatHtml({
   html: string;
   className?: string;
 }) {
-  const sanitized = useMemo(() => flashSirens(sanitizeChatHtml(html)), [html]);
+  const t = useTranslations();
+  const sanitized = useMemo(
+    () =>
+      decorateEmoji(sanitizeChatHtml(html), (code) => t(CUSTOM_EMOJIS[code])),
+    [html, t]
+  );
   return (
     <div
       className={cn(

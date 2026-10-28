@@ -27,7 +27,7 @@ package org.projectforge.rest.feature
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.Test
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.feature.CoreFeatures
 import org.projectforge.feature.FeatureDefinition
 import org.projectforge.plugins.core.AbstractPlugin
@@ -93,7 +93,7 @@ class FeatureCoverageTest {
         return restControllers().filter { RestControllerPaths.pluginOf(it, plugins) != null }
             .flatMap { RestControllerPaths.categoryKeys(it) }
             .filter { it.startsWith(FeatureDefinition.REST_PREFIX) }
-            .map { "${FeatureDefinition.NEXT_PREFIX}${NextMigration.routeOrCategory(it.removePrefix(FeatureDefinition.REST_PREFIX))}" }
+            .map { "${FeatureDefinition.NEXT_PREFIX}${PageRoutes.routeOrCategory(it.removePrefix(FeatureDefinition.REST_PREFIX))}" }
             .toSet()
     }
 

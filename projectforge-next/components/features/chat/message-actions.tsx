@@ -20,7 +20,7 @@ import { BASE_PATH } from "@/lib/config";
 import { toast } from "@/lib/toast";
 import type { ChatMessage } from "@/lib/rs/chat-types";
 import { useChatContext } from "./chat-context";
-import { EmojiPicker } from "./emoji-picker";
+import { EmojiPicker } from "@/components/shared/emoji/emoji-picker";
 import { HideMessageDialog } from "./hide-message-dialog";
 import { MessageHistoryDialog } from "./message-history-dialog";
 import { useMessageMutations } from "./use-message-mutations";

@@ -846,7 +846,7 @@ export interface PageDef<
    * the planned weeks (`hrPlanningEntry`), and the add button and a row open the week itself
    * (`hrPlanning`, see HR_PLANNING_PAGE).
    *
-   * Without [edit] the list would lead to the legacy pages (see useEditTargets); this says the form is
+   * Without [edit] a row click and the add button lead nowhere (see useEditTargets); this says the form is
    * this app's all the same. The add button opens `<route>/new`, a row [onRowClick]'s target — the id of
    * an entry is not the id of the form's entity, so such a page has to name it there.
    */
@@ -906,8 +906,7 @@ export interface PageDef<
    *
    * A page without it is a complete list: the columns, the filters, the favorites and the column
    * state are the list's own business, and none of `EntityListPage` reads this. What changes is
-   * only where a row click and the add button lead — to the legacy page the backend names
-   * (`listMeta.legacyEditPage`, see useEditTargets), instead of `${route}/${id}`. Declaring an
+   * that a row click and the add button lead nowhere (see useEditTargets). Declaring an
    * `edit` half nobody renders, just to satisfy the type, would mean inventing a schema and a
    * section that no form validates.
    *

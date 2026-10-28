@@ -56,8 +56,7 @@ import org.springframework.web.bind.annotation.RestController
  * permission matrix, migrated from the Wicket `AccessListPage`/`AccessEditPage`.
  *
  * Layout free ([AbstractDTOEntityRest]): the hand built next page brings its own layout, so there is no
- * server side `createListLayout`/`createEditLayout` here. There is no way back to the Wicket page
- * (`NextMigration`, `offerLegacyLink = false`); its old urls are redirected by `OrphanedLinkFilter`.
+ * server side `createListLayout`/`createEditLayout` here.
  */
 @RestController
 @RequestMapping("${Rest.URL}/access")

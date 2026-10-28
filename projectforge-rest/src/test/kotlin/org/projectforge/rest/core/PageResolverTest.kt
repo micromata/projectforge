@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.rest.BookEntityRest
 import org.projectforge.rest.orga.PostausgangEntityRest
 
@@ -71,13 +71,13 @@ class PageResolverTest {
         assertEquals("next/book?str=test", PagesResolver.getListPageUrl(BookEntityRest::class.java, mapOf("str" to "test")))
         // book is hand built in projectforge-next, so its edit route is /book/<id>, not /book/edit/<id>:
         assertEquals("next/book/42", PagesResolver.getEditPageUrl(BookEntityRest::class.java, 42))
-        assertEquals("next/book/new", NextMigration.newEntryUrl("book"))
-        assertEquals("next/book/:id", NextMigration.standardEditPage("book"))
+        assertEquals("next/book/new", PageRoutes.newEntryUrl("book"))
+        assertEquals("next/book/:id", PageRoutes.standardEditPage("book"))
         // Not migrated (a category of no page, every React list is migrated by now): unchanged, and the category is
         // used as the route.
-        assertFalse(NextMigration.isMigrated(NOT_MIGRATED))
-        assertEquals("react/$NOT_MIGRATED/edit", NextMigration.newEntryUrl(NOT_MIGRATED))
-        assertEquals("react/$NOT_MIGRATED/edit/:id", NextMigration.standardEditPage(NOT_MIGRATED))
+        assertFalse(PageRoutes.isMigrated(NOT_MIGRATED))
+        assertEquals("react/$NOT_MIGRATED/edit", PageRoutes.newEntryUrl(NOT_MIGRATED))
+        assertEquals("react/$NOT_MIGRATED/edit/:id", PageRoutes.standardEditPage(NOT_MIGRATED))
     }
 
     /**
@@ -89,32 +89,15 @@ class PageResolverTest {
      */
     @Test
     fun rowClickUrlTest() {
-        assertEquals("next/book/:id", NextMigration.standardEditPage("book"))
+        assertEquals("next/book/:id", PageRoutes.standardEditPage("book"))
         assertNotEquals(
-            "${NextMigration.newEntryUrl("book")}/:id",
-            NextMigration.standardEditPage("book"),
+            "${PageRoutes.newEntryUrl("book")}/:id",
+            PageRoutes.standardEditPage("book"),
             "The new entry url is not a template of the edit url."
         )
-        assertEquals("react/$NOT_MIGRATED/edit/:id", NextMigration.standardEditPage(NOT_MIGRATED))
+        assertEquals("react/$NOT_MIGRATED/edit/:id", PageRoutes.standardEditPage(NOT_MIGRATED))
         // group has been hand built in projectforge-next since, and follows book's shape.
-        assertEquals("next/group/:id", NextMigration.standardEditPage("group"))
-    }
-
-    /**
-     * The way back to the legacy page, offered by projectforge-next while the migration runs. Not
-     * derivable from the next url: the app it leads back to isn't (React or Wicket), and a
-     * route need not name its category.
-     */
-    @Test
-    fun legacyPageTest() {
-        // book has no way back: its React page is gone (BookEntityRest serves no layout), so
-        // projectforge-next offers no legacy link for it.
-        assertNull(NextMigration.legacyListUrl("book"))
-        assertNull(NextMigration.legacyEditPage("book"))
-        assertNull(NextMigration.legacyNewEntryUrl("book"))
-        // Not migrated: the legacy page is the page itself.
-        assertEquals(NextMigration.listUrl(NOT_MIGRATED), NextMigration.legacyListUrl(NOT_MIGRATED))
-        assertEquals(NextMigration.standardEditPage(NOT_MIGRATED), NextMigration.legacyEditPage(NOT_MIGRATED))
+        assertEquals("next/group/:id", PageRoutes.standardEditPage("group"))
     }
 
     companion object {

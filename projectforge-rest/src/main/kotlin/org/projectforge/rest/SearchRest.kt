@@ -24,7 +24,7 @@
 package org.projectforge.rest
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskFilter
 import org.projectforge.business.user.PFUserFilter
@@ -130,7 +130,7 @@ class SearchRest {
       // to it pre-filtered with the term. Keyed by the rest category (orderBook → order), same as the hit
       // "more in …" url in [searchArea].
       val rest = restByDoClass.getValue(entry.getDOClass())
-      SearchArea(entry.id, translate(entry.i18nTitleHeading), NextMigration.listUrl(rest.category))
+      SearchArea(entry.id, translate(entry.i18nTitleHeading), PageRoutes.listUrl(rest.category))
     }
   }
 
@@ -213,7 +213,7 @@ class SearchRest {
       SearchHit(
         id = id,
         displayName = (dataObject as? DisplayNameCapable)?.displayName ?: dataObject.toString(),
-        viewUrl = if (withPages) editPage.replace(NextMigration.ID_PLACEHOLDER, id.toString()) else null,
+        viewUrl = if (withPages) editPage.replace(PageRoutes.ID_PLACEHOLDER, id.toString()) else null,
         statusLabel = if ((dataObject as? TaskDO)?.status == TaskStatus.C) translate("task.status.closed") else null,
       )
     }
@@ -224,7 +224,7 @@ class SearchRest {
     // with the term pre-filled (the frontend appends `?q=<term>`). A next list seeds its search box from
     // `?q=` client-side (see the next EntityListPage). Keyed by the
     // rest category, not the registry id, so the `orderBook` → `order` route difference is resolved right.
-    val listUrl = if (withPages) NextMigration.listUrl(rest.category) else null
+    val listUrl = if (withPages) PageRoutes.listUrl(rest.category) else null
     return SearchAreaResult(entry.id, translate(entry.i18nTitleHeading), hasMore, hits, listUrl)
   }
 

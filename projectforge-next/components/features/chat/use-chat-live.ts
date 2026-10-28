@@ -12,6 +12,12 @@ const SSE_FAILURES_BEFORE_POLLING = 3;
  * connection is open, but nothing arrives): polling then.
  */
 const SSE_FIRST_EVENT_MS = 10_000;
+/**
+ * The request may wait before the connection opens: a browser allows six connections per host on HTTP/1.1, and the
+ * other event streams of the page (`use-user-events.ts`) or of a page just left take theirs. Waiting is no sign of
+ * buffering, so the first event is only expected [SSE_FIRST_EVENT_MS] after the connection opened, this long at most.
+ */
+const SSE_CONNECT_MS = 40_000;
 const POLL_VISIBLE_MS = 3_000;
 const POLL_HIDDEN_MS = 30_000;
 /** A tab hidden that long stops asking: otherwise an idle tab would keep its session alive forever. */
@@ -96,10 +102,11 @@ export function useChatLive(
       withCredentials: true,
     });
     let failures = 0;
-    const buffered = setTimeout(() => {
+    const fallBack = () => {
       source.close();
       setMode("polling");
-    }, SSE_FIRST_EVENT_MS);
+    };
+    let buffered = setTimeout(fallBack, SSE_CONNECT_MS);
     source.addEventListener("change", (event) => {
       clearTimeout(buffered);
       const seq = Number(
@@ -112,6 +119,8 @@ export function useChatLive(
     source.addEventListener("read", () => onReadRef.current?.());
     source.onopen = () => {
       failures = 0;
+      clearTimeout(buffered);
+      buffered = setTimeout(fallBack, SSE_FIRST_EVENT_MS);
       onSecretRef.current?.(); // Offers made while closed (hidden tab) announced no event here.
     };
     source.onerror = () => {

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import type { ChatReaction } from "@/lib/rs/chat-types";
 import { cn } from "@/lib/utils";
-import { EmojiGlyph, emojiLabel } from "./custom-emoji";
+import { EmojiGlyph, emojiLabel } from "@/components/shared/emoji/custom-emoji";
 
 /**
  * The reactions of a message: per emoji the count, who reacted on hover; a click adds the own reaction or takes

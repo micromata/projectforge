@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { EntityMultiAutocomplete } from "@/components/shared/entity-multi-autocomplete";
 import { RichTextEditor } from "@/components/shared/rich-text-editor";
+import { DESCRIPTION_FEATURES } from "@/components/shared/rich-text-extensions";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { FieldDescription } from "@/components/ui/field";
@@ -68,6 +69,7 @@ export function ChatRoomForm({
           </Label>
           <RichTextEditor
             id="chatRoomDescription"
+            features={DESCRIPTION_FEATURES}
             value={value.description}
             onChange={(html) => set({ description: html || null })}
           />

@@ -25,7 +25,7 @@ package org.projectforge.rest.task
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.ProjektDO
@@ -155,7 +155,7 @@ class TaskServicesRest {
         val title: String,
         /** One line per position of this order on the task — the tooltip's body. */
         val text: String,
-        /** Url of the order's page, ready to use (see [NextMigration.standardEditPage]). */
+        /** Url of the order's page, ready to use (see [PageRoutes.standardEditPage]). */
         val url: String,
     )
 
@@ -467,9 +467,9 @@ class TaskServicesRest {
                         title = title,
                         text = text,
                         // The order's own page, wherever it is served: the url is a per-page decision the
-                        // client can't make (see NextMigration).
-                        url = NextMigration.standardEditPage(ORDER_CATEGORY)
-                            .replace(NextMigration.ID_PLACEHOLDER, "${orderPositions.first().auftragId}"),
+                        // client can't make (see PageRoutes).
+                        url = PageRoutes.standardEditPage(ORDER_CATEGORY)
+                            .replace(PageRoutes.ID_PLACEHOLDER, "${orderPositions.first().auftragId}"),
                     )
                 }
             task.orderList = orderList.toMutableList()

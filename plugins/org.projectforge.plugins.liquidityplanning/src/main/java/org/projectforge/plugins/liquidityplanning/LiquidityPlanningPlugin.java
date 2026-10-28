@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import org.projectforge.NextMigration;
+import org.projectforge.PageRoutes;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuItemDef;
@@ -71,11 +71,11 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
         register(entry);
 
         // Register the menu entry as sub menu entry of the reporting menu. The pages are migrated to
-        // projectforge-next (see NextMigration.MIGRATED), their Wicket pages are removed.
+        // projectforge-next (see PageRoutes.MIGRATED), their Wicket pages are removed.
         MenuItemDef menuEntry = MenuItemDef.create(ID, "plugins.liquidityplanning.menu");
         menuEntry.setRequiredUserRightId(LiquidityplanningPluginUserRightId.PLUGIN_LIQUIDITY_PLANNING);
         menuEntry.setRequiredUserRightValues(UserRightService.READONLY_READWRITE);
-        menuEntry.setUrl(NextMigration.INSTANCE.listUrl("liquidity"));
+        menuEntry.setUrl(PageRoutes.INSTANCE.listUrl("liquidity"));
         WicketSupport.get(MenuCreator.class).register(MenuItemDefId.REPORTING, menuEntry);
 
         // Define the access management:

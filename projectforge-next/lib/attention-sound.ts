@@ -41,20 +41,30 @@ const NOTE_START_S = 0.22;
 const NOTE_DECAY_S = 0.4;
 const PEAK_GAIN = 0.5;
 
-/** Plays the signal, if switched on and allowed by the browser; silently nothing otherwise. */
-export function playAttentionSound(): void {
-  if (!isAttentionSoundOn()) return;
+/** What became of a call of playAttentionSound. */
+export type AttentionSoundOutcome = "played" | "muted" | "blocked";
+
+/**
+ * Plays the signal, if switched on and allowed by the browser. "muted": switched off; "blocked": the browser
+ * keeps the sound back (no interaction with the page yet) or has no Web Audio.
+ */
+export async function playAttentionSound(
+  options: { force?: boolean } = {}
+): Promise<AttentionSoundOutcome> {
+  if (!options.force && !isAttentionSoundOn()) return "muted";
   const ctx = audioContext();
-  if (!ctx) return;
+  if (!ctx) return "blocked";
   // A page with an interaction since it was loaded may resume; the sound then starts a moment later.
   if (ctx.state !== "running") {
-    void ctx
-      .resume()
-      .then(() => ctx.state === "running" && playNotes(ctx))
-      .catch(() => {});
-    return;
+    try {
+      await ctx.resume();
+    } catch {
+      return "blocked";
+    }
+    if ((ctx.state as AudioContextState) !== "running") return "blocked";
   }
   playNotes(ctx);
+  return "played";
 }
 
 function playNotes(ctx: AudioContext): void {

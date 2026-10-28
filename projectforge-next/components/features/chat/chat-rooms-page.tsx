@@ -5,9 +5,14 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, Message01Icon } from "@hugeicons/core-free-icons";
+import {
+  Add01Icon,
+  LockPasswordIcon,
+  Message01Icon,
+} from "@hugeicons/core-free-icons";
 import { matchesSearchTerm } from "@/components/data-table/filter-groups";
 import { FormAlert } from "@/components/shared/form-alert";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { SearchInput } from "@/components/shared/list/search-input";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
@@ -26,11 +31,12 @@ import { ChatDirectCandidates } from "./chat-direct-candidates";
 import { ChatDirectDialog } from "./chat-direct-dialog";
 import { ChatDirectList } from "./chat-direct-list";
 import { ChatHostList } from "./chat-host-list";
+import { ChatSecretDialog } from "./chat-secret-dialog";
 import { ChatRoomDialog } from "./chat-room-dialog";
 import { ChatRoomList } from "./chat-room-list";
 import { ChatMessageSearch } from "./chat-search-hit-list";
 import { useDirectCandidates } from "./use-direct-candidates";
-import { SecretAlertSettings } from "./secret-alert-settings";
+import { ChatAlertSettingsPopover } from "./chat-alert-settings-popover";
 
 /**
  * The chat of the user (`/next/chat`): the direct messages (PF-CHAT-DM), the chat rooms (PF-CHAT-ROOM, ROOM-06) and
@@ -61,6 +67,7 @@ export function ChatRoomsPage() {
   });
   const [dialog, setDialog] = useState<{ roomId: number | null } | null>(null);
   const [directDialog, setDirectDialog] = useState(false);
+  const [secretDialog, setSecretDialog] = useState(false);
   const [search, setSearch] = useState("");
   const directFound = useMemo(
     () =>
@@ -100,17 +107,27 @@ export function ChatRoomsPage() {
           <HugeiconsIcon icon={Message01Icon} data-icon="inline-start" />
           {t("chat.direct.new")}
         </Button>
+        <HintTooltip text={t("chat.secret.newTooltip")}>
+          <Button variant="outline" onClick={() => setSecretDialog(true)}>
+            <HugeiconsIcon
+              icon={LockPasswordIcon}
+              strokeWidth={2}
+              data-icon="inline-start"
+            />
+            {t("chat.secret.new")}
+          </Button>
+        </HintTooltip>
         <Button onClick={() => setDialog({ roomId: null })}>
           <HugeiconsIcon icon={Add01Icon} data-icon="inline-start" />
           {t("chat.room.new")}
         </Button>
+        {/* Where the user finds how a confidential conversation offered draws attention, without being offered one. */}
+        <ChatAlertSettingsPopover />
       </PageTitleRow>
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 pt-3">
         <div className="relative w-64 max-w-full">
           <SearchInput value={search} onChange={setSearch} focusIfIdle />
         </div>
-        {/* Where the user finds how a confidential conversation offered draws attention, without being offered one. */}
-        <SecretAlertSettings />
       </div>
       <section
         className="flex flex-col gap-3 px-4 pt-2 pb-4"
@@ -198,6 +215,10 @@ export function ChatRoomsPage() {
       <ChatDirectDialog
         open={directDialog}
         onClose={() => setDirectDialog(false)}
+      />
+      <ChatSecretDialog
+        open={secretDialog}
+        onClose={() => setSecretDialog(false)}
       />
       <ChatRoomDialog
         open={dialog != null}

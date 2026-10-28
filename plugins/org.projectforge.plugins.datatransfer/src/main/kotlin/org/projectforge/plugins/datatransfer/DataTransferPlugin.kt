@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.business.admin.SystemStatistics
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.jcr.RepoBackupService
@@ -70,7 +70,7 @@ class DataTransferPlugin :
 
         menuCreator.register(
             MenuItemDefId.MISC,
-            MenuItemDef(info.id, "plugins.datatransfer.menu", NextMigration.listUrl(DataTransferUtils.ROUTE))
+            MenuItemDef(info.id, "plugins.datatransfer.menu", PageRoutes.listUrl(DataTransferUtils.ROUTE))
         )
 
         menuCreator.registerPluginMenu(

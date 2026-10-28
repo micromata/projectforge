@@ -27,7 +27,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.DisplayNameCapable
@@ -241,7 +241,7 @@ constructor(
      */
     open val autoCompletePrimarySearchFields: Array<String>? = null
 
-    open val addNewEntryUrl: String by lazy { NextMigration.newEntryUrl(category) }
+    open val addNewEntryUrl: String by lazy { PageRoutes.newEntryUrl(category) }
 
     /**
      * Relative rest path (without leading /rs
@@ -258,7 +258,7 @@ constructor(
     }
 
     /**
-     * The url template of the page a row of the list page leads to, with [NextMigration.ID_PLACEHOLDER]
+     * The url template of the page a row of the list page leads to, with [PageRoutes.ID_PLACEHOLDER]
      * for the id. Without leading slash. Overridden by pages whose rows don't open an edit form (the
      * address view page, the script execution page, the Wicket project edit page ...).
      *
@@ -266,7 +266,7 @@ constructor(
      * url of the grid from it.
      */
     open fun getStandardEditPage(): String {
-        return NextMigration.standardEditPage(category)
+        return PageRoutes.standardEditPage(category)
     }
 
     // ------------------------------------------------------------------------------------------
@@ -373,15 +373,8 @@ constructor(
             filterFavorite = favorites.get(filter.id),
             filterElements = elements,
             standardEditPage = getStandardEditPage(),
-            // Escape hatches ("way back" to the legacy page), marked so OrphanedLinkFilter lets them
-            // reach it instead of bending them straight back to next (see NextMigration.withEscapeHatchMarker).
-            legacyListPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyListUrl(category)),
-            // Whether that way back is offered in the gear menu instead of the prominent button, per entity.
-            legacyListInMenu = NextMigration.legacyListInMenu(category),
             // From EntityCountCache, so no count(*) per list load (see BaseDao.countReindexEntries).
             fullReindexOnly = baseDao.isFullReindexSmall(),
-            legacyEditPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyEditPage(category)),
-            legacyNewEntryPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyNewEntryUrl(category)),
             userAccess = userAccess,
             // What this user last ticked for a mass update, so a reload (or a detour through the legacy
             // app) restores it. Read under this rest class, the identifier startSelection registers and
@@ -896,7 +889,7 @@ constructor(
      * A page that offers no lean row is unaffected - [createListRow] falls back to the full DTO.
      */
     protected fun useListRow(request: HttpServletRequest): Boolean {
-        return RestAuthenticationUtils.isNextClient(request) && NextMigration.isMigrated(category)
+        return RestAuthenticationUtils.isNextClient(request) && PageRoutes.isMigrated(category)
     }
 
     /**

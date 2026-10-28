@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import { ExperimentalBadge } from "@/components/shared/experimental-badge";
-import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 
 export interface PageTitleRowProps {
@@ -11,8 +10,6 @@ export interface PageTitleRowProps {
   category?: string;
   /** Heading of the page, e.g. "List view". */
   title: string;
-  /** The legacy page this one replaces (`ListMetaData.legacyListPage`), see LegacyPageLink. */
-  legacyUrl?: string;
   /** The page belongs to an unfinished feature: a large red badge beside the title (see ExperimentalBadge). */
   experimental?: boolean;
   /** The text of that badge instead of "Experimental", e.g. "Demo" for a prototype on test data. */
@@ -20,12 +17,14 @@ export interface PageTitleRowProps {
   /** Fills the flexible space between the title and the actions — a header-level control such as the
       calendar's chooser field. Left empty it is just the spacer that pushes the actions right. */
   center?: ReactNode;
-  /** The page's own actions, right of the legacy link. */
+  /** Beside the title, e.g. a pill marking what the page is about. */
+  titleAddon?: ReactNode;
+  /** The page's own actions. */
   children?: ReactNode;
 }
 
 /**
- * The head row of a page: where it sits, what it is called, the way back to Wicket, and the actions.
+ * The head row of a page: where it sits, what it is called, and the actions.
  *
  * One component for the list toolbar and the structure tree page, which are two perspectives on the
  * same tasks and looked like two different applications while each built its own header (see
@@ -34,10 +33,10 @@ export interface PageTitleRowProps {
 export function PageTitleRow({
   category,
   title,
-  legacyUrl,
   experimental,
   experimentalLabel,
   center,
+  titleAddon,
   children,
 }: PageTitleRowProps) {
   useDocumentTitle(title);
@@ -50,7 +49,14 @@ export function PageTitleRow({
             {category}
           </p>
         )}
-        <h1 className="text-lg font-bold tracking-tight">{title}</h1>
+        {titleAddon ? (
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-bold tracking-tight">{title}</h1>
+            {titleAddon}
+          </div>
+        ) : (
+          <h1 className="text-lg font-bold tracking-tight">{title}</h1>
+        )}
       </div>
       {experimental && <ExperimentalBadge label={experimentalLabel} />}
       {/* The flexible middle: a header control if the page gives one, otherwise a plain spacer that
@@ -60,8 +66,6 @@ export function PageTitleRow({
           with its middle. Their own row keeps them centered among themselves. Not printed: nothing on
           paper can be clicked. */}
       <div className="flex items-center gap-3 self-start print:hidden">
-        {/* Leftmost of the actions: it leaves the page, the ones to its right act on it. */}
-        <LegacyPageLink url={legacyUrl} />
         {children}
       </div>
     </div>

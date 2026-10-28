@@ -24,7 +24,7 @@
 package org.projectforge.business.vacation.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.vacation.model.VacationDO
@@ -304,12 +304,12 @@ open class VacationSendMailService {
         }
 
         /**
-         * The edit page of the vacation entry, wherever it is served ([NextMigration]). No way back to the vacation
+         * The edit page of the vacation entry, wherever it is served ([PageRoutes]). No way back to the vacation
          * account: the edit page of projectforge-next returns to the vacation list.
          */
         fun getLinkToVacationEntry(id: String): String {
             return sendMail.buildUrl(
-                NextMigration.standardEditPage("vacation").replace(NextMigration.ID_PLACEHOLDER, id)
+                PageRoutes.standardEditPage("vacation").replace(PageRoutes.ID_PLACEHOLDER, id)
             )
         }
 

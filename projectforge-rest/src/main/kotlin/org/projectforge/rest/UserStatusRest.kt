@@ -26,7 +26,7 @@ package org.projectforge.rest
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
-import org.projectforge.NextMigration
+import org.projectforge.PageRoutes
 import org.projectforge.SystemAlertMessage
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.notification.NotificationDao
@@ -174,7 +174,7 @@ open class UserStatusRest {
      */
     val legacyBannerFeedbackText: String? = null,
     /**
-     * The REST categories that have a projectforge-next version ([NextMigration.categories]). The old
+     * The REST categories that have a projectforge-next version ([PageRoutes.categories]). The old
      * React web app shows the warning banner only on a page whose category is in this set - a page that
      * hasn't been migrated has no new version to point to. The React route's first path segment is the
      * category (the legacy app mounts pages under `<category>`), so the client matches on it.
@@ -247,7 +247,7 @@ open class UserStatusRest {
         JiraUtils.getClientConfig().takeIf { it.configured },
         legacyBannerText = translate("legacyVersion.banner.text"),
         legacyBannerFeedbackText = translate("legacyVersion.banner.feedback"),
-        migratedCategories = NextMigration.categories,
+        migratedCategories = PageRoutes.categories,
         disabledFeatures = featureService.disabledFeatureIds(),
         featureRoutes = featurePathIndex.nextRoutes(),
         notifications = user.id?.let { userId ->

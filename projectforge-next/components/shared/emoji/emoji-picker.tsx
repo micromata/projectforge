@@ -102,7 +102,12 @@ export function EmojiPicker({
       </PopoverTrigger>
       <PopoverContent className="w-auto gap-1 p-1.5" align="start">
         {full ? (
-          <EmojiFullPicker onPick={pick} />
+          <>
+            <div className="flex gap-0.5 border-b pb-1">
+              {Object.keys(CUSTOM_EMOJIS).map(button)}
+            </div>
+            <EmojiFullPicker onPick={pick} />
+          </>
         ) : (
           <>
             {recent.length > 0 && (
@@ -111,9 +116,6 @@ export function EmojiPicker({
               </div>
             )}
             <div className="grid grid-cols-8 gap-0.5">{EMOJIS.map(button)}</div>
-            <div className="flex gap-0.5 border-t pt-1">
-              {Object.keys(CUSTOM_EMOJIS).map(button)}
-            </div>
             <Button
               type="button"
               variant="ghost"

@@ -90,7 +90,6 @@ export function EntityEditPage<
               title={regions.title}
               trailing={regions.trailing}
               crossLinks={regions.crossLinks}
-              legacyUrl={regions.legacyUrl}
               deleted={regions.deleted}
               experimental={page.experimental}
             />
