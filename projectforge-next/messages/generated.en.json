@@ -1618,6 +1618,15 @@
           }
         },
         "chart": {
+          "breakdown": {
+            "_": "Breakdown of the forecast",
+            "fixed": "Commissioned fixed price / flat rate",
+            "ist": "Invoiced",
+            "planned": "thereof invoice planned",
+            "timeAndMaterials": "Commissioned time & materials (run rate)",
+            "total": "Forecast incl. invoiced",
+            "weighted": "Not yet commissioned (weighted)"
+          },
           "cumulative": "Revenue forecast cumulated",
           "empty": "Neither order positions nor invoices found for the forecast.",
           "ist": "Invoiced",

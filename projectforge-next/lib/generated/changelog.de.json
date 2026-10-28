@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.19",
+    "date" : "2026-10-28",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Auftragsstatistik, Prognose: neue Tabelle \"Aufschlüsselung der Prognose\" je Monat mit den fakturierten Summen, der Rest-Prognose beauftragter Festpreis- und Pauschalpositionen, beauftragter Time-&-Materials-Positionen (Run-Rate) und noch nicht beauftragter Positionen (gewichtet) sowie dem Teil der Prognose, für den bereits eine Rechnung geplant ist." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

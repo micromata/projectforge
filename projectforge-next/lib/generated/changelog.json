@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.19",
+    "date" : "2026-10-28",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Order statistics, forecast: new table \"Breakdown of the forecast\" per month with the invoiced sums, the remaining forecast of commissioned fixed price and flat rate positions, of commissioned time & materials positions (run rate) and of not yet commissioned positions (weighted), and the part of the forecast for which an invoice is already planned." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

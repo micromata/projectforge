@@ -1618,6 +1618,15 @@
           }
         },
         "chart": {
+          "breakdown": {
+            "_": "Aufschlüsselung der Prognose",
+            "fixed": "Beauftragt Festpreis / Pauschale",
+            "ist": "Fakturiert",
+            "planned": "davon Rechnung geplant",
+            "timeAndMaterials": "Beauftragt Time & Materials (Run-Rate)",
+            "total": "Prognose inkl. fakturiert",
+            "weighted": "Noch nicht beauftragt (gewichtet)"
+          },
           "cumulative": "Umsatzprognose kumuliert",
           "empty": "Weder Auftragspositionen noch Rechnungen für den Forecast gefunden.",
           "ist": "IST",
