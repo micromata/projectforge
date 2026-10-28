@@ -41,9 +41,7 @@ version exists, it is in parentheses.
 | kotlin-logging | `io.github.oshai` 7.0.6 (develop) | – | out of scope, logging is addressed separately |
 | logback | 1.5.38 | 1.5.38 (Boot 4.1); 1.6.x is optional | |
 
-Java target stays at 17 for now: Boot 4 still requires only Java 17. If an upgrade fails because of
-Java 17 (a library requiring 21, or Gradle/Kotlin tooling), switch to Java 21 as part of that phase. The
-switch is prepared in a separate branch.
+Java target: 21 from 9.2 on (Boot 4 itself still requires only Java 17; 9.1.x is the last release on Java 17).
 
 ## Impact on the code (inventory)
 

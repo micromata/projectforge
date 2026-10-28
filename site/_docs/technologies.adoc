@@ -33,7 +33,7 @@ The user interface is responsive and works on desktops, tablets and smartphones.
 
 == Requirements for the ProjectForge server
 
-* Java 17 or newer (the code is compiled for Java 17); Micromata runs it in production on Java 21, and the
+* Java 21 or newer (the code is compiled for Java 21); Micromata runs it in production on Java 21, and the
   Docker image is based on Eclipse Temurin 21.
 * PostgreSQL as database for productive use. An embedded HSQLDB is available for tests and evaluation.
 * Linux, macOS or Windows -- or Docker: images for amd64 and arm64 are available as `micromata/projectforge`.
@@ -78,7 +78,7 @@ Details are described in link:/docs/development/[Development].
 |===
 |Technology |Version |Usage
 
-|Kotlin / Java |Kotlin 2.3, Java 17 |Programming languages of the backend (compiled for Java 17, runs on Java 17 or
+|Kotlin / Java |Kotlin 2.3, Java 21 |Programming languages of the backend (compiled for Java 21, runs on Java 21 or
 newer, Java 21 in production).
 |Spring Boot / Spring Framework |4.1 / 7.0 |Application framework, embedded Tomcat 11.
 |Spring Security |7.1 |Security framework; two-factor authentication, e. g. with WebAuthn security keys (WebAuthn4J).

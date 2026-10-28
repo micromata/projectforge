@@ -42,6 +42,14 @@ properties `jcrPath` and the functions `enableJcr()` of the REST services with a
 `enableAttachments()`. `RepoService` is replaced by `org.projectforge.files.store.FileStore`.
 See link:/docs/adminguide/#moving_the_files_out_of_the_jcr[Admin guide – Updating from an installation with JCR].
 
+=== Version 9.1.x -> 9.2
+
+. Java 21
++
+From version 9.2 on, ProjectForge requires Java 21 or newer: it is compiled for Java 21, the executable JAR no longer
+starts on Java 17 (`UnsupportedClassVersionError`). Install Java 21 or newer before the update. The Docker image
+already contains Java 21, nothing to do there.
+
 === Version 9.0.x
 
 . config.xml replaced by configuration parameters (9.0.11)
