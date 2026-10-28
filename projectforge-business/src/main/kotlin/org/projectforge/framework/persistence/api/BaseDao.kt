@@ -32,6 +32,7 @@ import org.apache.commons.lang3.Validate
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserRight
 import org.projectforge.common.i18n.UserException
+import org.projectforge.common.logging.warn
 import org.projectforge.common.mgc.MGCClassUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
@@ -44,6 +45,7 @@ import org.projectforge.framework.persistence.database.EntityCountCache
 import org.projectforge.framework.persistence.entities.HistoryUserCommentSupport
 import org.projectforge.framework.persistence.history.*
 import org.projectforge.framework.persistence.jpa.PersistenceCallsRecorder
+import org.projectforge.framework.persistence.jpa.PersistenceLogEvents
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.search.HibernateSearchDependentObjectsReindexer
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
@@ -223,7 +225,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         id ?: return null
         val obj = persistenceService.find(doClass, id, attached = attached)
         if (obj == null) {
-            log.error { "Can't load object of type ${doClass.name}. Object with given id #$id not found." }
+            log.warn(PersistenceLogEvents.ENTITY_NOT_FOUND) { "Can't load object of type ${doClass.name}. Object with given id #$id not found." }
             return null
         }
         return obj
