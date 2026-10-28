@@ -20,7 +20,7 @@ CREATE TABLE T_PLUGIN_CVERADAR_VULNERABILITY
     cvss40_severity   CHARACTER VARYING(20),
     cvss40_vector     CHARACTER VARYING(255),
     cwes              CHARACTER VARYING(1000),
-    raw_document      BYTEA,
+    raw_document      BLOB,
     CONSTRAINT t_plugin_cveradar_vulnerability_pkey PRIMARY KEY (pk),
     CONSTRAINT unique_t_plugin_cveradar_vulnerability_cve_id UNIQUE (cve_id)
 );
@@ -36,3 +36,9 @@ CREATE TABLE T_PLUGIN_CVERADAR_IMPORT_STATE
     last_error         CHARACTER VARYING(4000),
     CONSTRAINT t_plugin_cveradar_import_state_pkey PRIMARY KEY (source)
 );
+
+-- Rollback:
+-- DROP TABLE IF EXISTS T_PLUGIN_CVERADAR_IMPORT_STATE;
+-- DROP INDEX IF EXISTS idx_t_plugin_cveradar_vulnerability_nvd_modified;
+-- DROP TABLE IF EXISTS T_PLUGIN_CVERADAR_VULNERABILITY;
+-- DELETE FROM t_flyway_cveradar_schema_version WHERE version = '9.2.0.2';
