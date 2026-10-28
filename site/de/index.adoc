@@ -45,19 +45,23 @@ hero:
 ++++
 
 ++++
-{% include text-section.html key="security" %}
+{% include text-section.html key="sovereignty" %}
 ++++
 
 ++++
-{% include text-section.html key="chat" background="muted" %}
+{% include text-section.html key="security" background="muted" %}
 ++++
 
 ++++
-{% include text-section.html key="proof" %}
+{% include text-section.html key="chat" %}
 ++++
 
 ++++
-{% include text-section.html key="services" background="muted" %}
+{% include text-section.html key="proof" background="muted" %}
+++++
+
+++++
+{% include text-section.html key="services" %}
 ++++
 
 ++++

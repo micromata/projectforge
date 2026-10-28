@@ -6,10 +6,25 @@ dach:
   text: >-
     DATEV-Buchungssätze und Eingangsrechnungen importieren, Gehälter exportieren, PEPPOL-fähige E-Rechnungen
     als XRechnung und ZUGFeRD erstellen, vor dem Export auf Vollständigkeit geprüft. Feiertage, Urlaubskonten und eine
-    deutsch-englische Oberfläche sind eingebaut. Und weil ProjectForge auf dem eigenen Server läuft, ist die
-    DSGVO eine Frage der eigenen Richtlinien – nicht der Cloud eines anderen.
+    deutsch-englische Oberfläche sind eingebaut.
   img: screenshots/2026-Liquidity.png
   img_caption: Die Liquiditätsplanung verbindet Rechnungen, erwartete Zahlungen und wiederkehrende Serien.
+
+sovereignty:
+  title: Deine Daten. Dein Server. Deine Regeln.
+  subtitle: Digitale Souveränität statt Abhängigkeit – und die DSGVO als Frage der eigenen Richtlinien.
+  text: >-
+    ProjectForge läuft dort, wo es laufen soll: auf dem eigenen Server, im eigenen Rechenzentrum oder bei einem selbst
+    gewählten Hoster. Aufträge, Zeitberichte, Gehälter, Dateien und Chats bleiben dort – keine Hersteller-Cloud,
+    kein Tracking durch Dritte.
+  bullets:
+    - "**Selbst betrieben** – die eigene Organisation entscheidet, wo die Daten liegen, wer darauf zugreift, wie lange sie aufbewahrt werden und wann aktualisiert wird."
+    - "**Keine Daten in fremder Cloud** – keine Telemetrie, keine externen Skripte, Schriften oder Tracker; der Browser lädt alles vom eigenen Server."
+    - "**Open Source** – der Code ist für alle prüfbar, und die Daten liegen in der eigenen PostgreSQL-Datenbank: keine Abhängigkeit vom Anbieter."
+    - "**DSGVO-tauglich von Grund auf** – fein abgestufte Rechte, eine lückenlose Änderungshistorie, Datenschutz durch Voreinstellungen und Chats, die in der App nur die Teilnehmenden lesen."
+    - "**Ende-zu-Ende-verschlüsselte** vertrauliche Chat-Nachrichten – nie gespeichert, nicht einmal in Backups."
+  button_text: Digitale Souveränität und DSGVO
+  button_url: /de/docs/userguide/#data_sovereignty_and_gdpr
 
 security:
   title: Ruhige Nächte für Admins.
@@ -39,7 +54,7 @@ chat:
     - "**Formatierung, Codeblöcke, Emoji-Reaktionen und Threads** – @-Erwähnungen benachrichtigen sofort, in der App und per Mail."
     - "**Vertrauliche Nachrichten** für ein Passwort: Ende-zu-Ende-verschlüsselt, vom Server nie gespeichert, nur einmal angezeigt."
     - "**Ungelesenes auf einen Blick** – Nachrichten als ungelesen markieren, Threads mit neuen Antworten sind gekennzeichnet, Mails nur für das, was in der App nicht gesehen wurde."
-  img: screenshots/2026-Chat.png
+  img: screenshots/2026-ChatRoom-de.png
   img_caption: Ein Projektraum mit Codeblock, Bild, Reaktionen und Thread.
   button_text: Alle Funktionen zur Zusammenarbeit
   button_url: /de/features/#collaboration

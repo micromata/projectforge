@@ -126,7 +126,7 @@ image::2026-Liquidity.png[Liquiditätsvorschau,link=/uploads/screenshots/2026-Li
 
 _Chat, Teamkalender, Adressbuch, Dateiaustausch und Word-Vorlagen – das, was das Team ohnehin täglich braucht._
 
-Chat:: Räume für Teams und Projekte und Direktnachrichten, mit Dateien, Reaktionen, Threads und @-Erwähnungen – live und auf dem eigenen Server. Vertrauliche Nachrichten wie Passwörter gehen Ende-zu-Ende-verschlüsselt und werden nur einmal angezeigt.
+Chat:: Räume für Teams und Projekte und Direktnachrichten, mit Dateien, Reaktionen, Threads und @-Erwähnungen – live und auf dem eigenen Server. Vertrauliche Nachrichten wie Passwörter gehen Ende-zu-Ende-verschlüsselt und werden nur einmal angezeigt (link:/de/docs/userguide/#chat[Benutzerhandbuch]).
 Teamkalender:: Gemeinsame Kalender mit Feiertagen und Geburtstagen. Per ICS auf jedem Gerät abonnierbar, externe Kalender lassen sich in ProjectForge anzeigen.
 Adressbuch:: Gemeinsame Adressen, per CardDAV aufs Telefon synchronisiert, vCard-Export.
 Datentransfer:: Dateien mit Kolleginnen, Kollegen und Kunden teilen – geschützt durch Passwort und Ablaufdatum, mit vollständigem Aktivitätsprotokoll.
@@ -136,7 +136,7 @@ Büroorganisation:: Verträge, Post-Eingangs- und -Ausgangsbuch, Besucherbuch, B
 
 [.pf-screenshots]
 --
-image::2026-Chat.png[Chatraum eines Projekts,link=/uploads/screenshots/2026-Chat.png]
+image::2026-ChatRoom-de.png[Chatraum eines Projekts,link=/uploads/screenshots/2026-ChatRoom-de.png]
 image::2026-Calendar.png[Teamkalender mit Urlauben und Feiertagen,link=/uploads/screenshots/2026-Calendar.png]
 image::2026-DataTransfer.png[Datentransfer,link=/uploads/screenshots/2026-DataTransfer.png]
 --
@@ -158,6 +158,21 @@ Zwei Sprachen:: Deutsche und englische Oberfläche, Mails in der Sprache des Emp
 image::2026-Menu.png[Hauptmenü und Favoriten,link=/uploads/screenshots/2026-Menu.png]
 image::2026-Dark.png[Dunkles Design,link=/uploads/screenshots/2026-Dark.png]
 --
+
+[[data_sovereignty]]
+== Digitale Souveränität & DSGVO
+
+_Die eigenen Daten bleiben die eigenen – auf dem eigenen Server, nach eigenen Regeln._
+
+Selbst betrieben:: Läuft auf dem eigenen Server, im eigenen Rechenzentrum oder bei einem selbst gewählten Hoster. Die eigene Organisation entscheidet, wo die Daten liegen, wer darauf zugreift, wie lange sie aufbewahrt werden und wann aktualisiert wird.
+Keine fremde Cloud:: Keine Telemetrie, kein Tracking, keine Skripte, Schriften oder Bilder von anderen Hosts – die Content Security Policy des Browsers verweigert sie.
+Open Source:: Der Code ist für alle prüfbar. Die Daten liegen in der eigenen PostgreSQL-Datenbank, ohne Abhängigkeit vom Anbieter.
+DSGVO:: Die Verarbeitung personenbezogener Daten wird eine Frage der eigenen Richtlinien, ohne Auftragsverarbeiter außerhalb der eigenen Kontrolle. Fein abgestufte Rechte, die Änderungshistorie und Datenschutz durch Voreinstellungen helfen dabei – der Grund einer Abwesenheit etwa bleibt bei der Person selbst und HR.
+Vertraulicher Chat:: Passwörter und Zugangsdaten gehen Ende-zu-Ende-verschlüsselt von Browser zu Browser – nie gespeichert, weder in der Datenbank noch in Logs, Backups oder Mails. Auch Administratoren lesen Gespräche nicht mit.
+
+image::2026-ChatSecretDialog-de.png[Vertrauliches Gespräch mit Fingerabdruck,link=/uploads/screenshots/2026-ChatSecretDialog-de.png]
+
+Mehr dazu unter link:/de/docs/userguide/#data_sovereignty_and_gdpr[Digitale Souveränität und DSGVO] im Benutzerhandbuch.
 
 [[security_integration]]
 == Sicherheit & Integration

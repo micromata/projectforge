@@ -199,6 +199,8 @@ class SiteTranslationTest {
     /** The number of table delimiters (`|===`, two per table). */
     val tables: Int,
     val includes: List<String>,
+    /** The value of `:imagesdir:`, which relative image paths are resolved against. */
+    val imagesDir: String? = null,
   )
 
   private fun compareStructure(english: AdocStructure, german: AdocStructure, englishWhere: String, where: String, errors: MutableList<String>) {
@@ -215,7 +217,13 @@ class SiteTranslationTest {
       if (a != b) errors.add("$where: the $name differ from $englishWhere: $b instead of $a.")
     }
     same("attributes", english.attributes, german.attributes)
-    same("images", english.images, german.images)
+    // A German page may show the German version of a screenshot instead of the English one.
+    same("images", english.images, german.images.mapIndexed { i, image ->
+      english.images.getOrNull(i)?.takeIf { germanImage(it) == image }?.also {
+        val file = (if (image.startsWith("/") || german.imagesDir == null) image else "${german.imagesDir}/$image").removePrefix("/")
+        if (!File(siteDir, file).isFile) errors.add("$where: site/$file doesn't exist.")
+      } ?: image
+    })
     same("cross references", english.xrefs, german.xrefs)
     same("tables", english.tables, german.tables)
     same("Liquid includes", english.includes, german.includes)
@@ -229,6 +237,7 @@ class SiteTranslationTest {
     val headings = mutableListOf<String>()
     val unanchored = mutableListOf<String>()
     val attributes = mutableListOf<String>()
+    var imagesDir: String? = null
     var tables = 0
     var block: String? = null
     val lines = stripFrontMatter(text).split('\n')
@@ -245,6 +254,7 @@ class SiteTranslationTest {
       content.appendLine(line)
       if (line == "|===") tables++
       ATTRIBUTE_REGEX.matchEntire(line)?.let { attributes.add(it.groupValues[1]) }
+      if (line.startsWith(":imagesdir:")) imagesDir = line.removePrefix(":imagesdir:").trim().trimEnd('/')
       HEADING_REGEX.matchEntire(line)?.let { heading ->
         val anchor = lines.subList(0, index).asReversed().takeWhile { it.startsWith("[") }
           .firstNotNullOfOrNull { attributeLine -> ANCHOR_REGEXES.firstNotNullOfOrNull { it.matchEntire(attributeLine)?.groupValues?.get(1) } }
@@ -261,6 +271,7 @@ class SiteTranslationTest {
       xrefs = XREF_REGEX.findAll(body).map { it.groupValues[1] }.toSet(),
       tables = tables,
       includes = includes(text),
+      imagesDir = imagesDir,
     )
   }
 
