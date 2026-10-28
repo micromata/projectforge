@@ -273,6 +273,13 @@ confirm() {
   [[ "$answer" == [yY] ]]
 }
 
+# Like confirm, but Enter means yes.
+confirm_yes() {
+  local answer
+  read -r -p "$1 [Y/n] " answer
+  [[ -z "$answer" || "$answer" == [yY] ]]
+}
+
 RELEASE_USAGE="Usage: pfDev.sh release X.Y.Z [--skip-tests] / pfDev.sh publish X.Y.Z / pfDev.sh github-release X.Y.Z..."
 
 release() {
@@ -402,13 +409,13 @@ publish() {
   fi
   # A mini release ("published": false) gets a GitHub release with its own notes, but no jar or docker images.
   if [[ "$(release_published "$version")" == false ]]; then
-    confirm "Push $(git branch --show-current) and the tag $tag (mini release: no jar or docker images)?" || exit 1
+    confirm_yes "Push $(git branch --show-current) and the tag $tag (mini release: no jar or docker images)?" || exit 1
     git push --follow-tags
     github_release "$version"
     echo "Its changes are also part of the release notes of the next published release."
     return
   fi
-  confirm "Push $(git branch --show-current) and the tag $tag?" || exit 1
+  confirm_yes "Push $(git branch --show-current) and the tag $tag?" || exit 1
   git push --follow-tags
   github_release "$version"
   echo "Next, the docker images: docker/push-release.sh $version arch (on an arm64 and an amd64 machine)"
@@ -466,7 +473,7 @@ github_release() {
   echo "----- $notes -----"
   cat "$notes"
   echo "-----"
-  confirm "Create the GitHub release $tag (notes from the changelog)?" || return 0
+  confirm_yes "Create the GitHub release $tag (notes from the changelog)?" || return 0
   if [[ "$(release_published "$version")" == true ]]; then
     # Jars of minor releases may stay off GitHub (space), SourceForge has them. Without a jar, the release has no
     # Jar (GitHub) pill on the website.
