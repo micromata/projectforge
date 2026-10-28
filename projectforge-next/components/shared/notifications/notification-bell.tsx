@@ -60,7 +60,7 @@ export function NotificationBell() {
         <BellOpenMarker />
         <MenubarLabel>{t("center")}</MenubarLabel>
         <MenubarSeparator />
-        <div className="max-h-[70vh] space-y-1 overflow-y-auto">
+        <div className="max-h-[70vh] space-y-1 overflow-y-auto overflow-x-hidden">
           {notifications.length === 0 ? (
             <p className="px-2 py-1.5 text-sm text-muted-foreground">
               {t("centerEmpty")}
@@ -90,7 +90,7 @@ function ArchivedSection() {
   const [shown, setShown] = useState(false);
   return (
     <div>
-      <MenubarSeparator />
+      <MenubarSeparator className="mx-0" />
       <Button
         variant="ghost"
         size="sm"
