@@ -214,15 +214,59 @@ class ContributionMarginCalculatorTest {
     val planned = invoice(17212, LocalDate.of(2026, 9, 1), "300", RechnungStatus.GEPLANT)
     val tooLate = invoice(17213, LocalDate.of(2027, 1, 4), "200")
     val invoices = listOf(bookedInJuly, issued, covered, planned, tooLate)
-    val entries = ContributionMarginCalculator.invoiceEntries(invoices, preliminaryBegin, until, booked)
+    val entries = ContributionMarginCalculator.invoiceEntries(
+      invoices, preliminaryBegin, until, booked, emptyMap(), null, ::singlePosition,
+    )
     assertEquals(listOf(BigDecimal("700")), entries.map { it.revenue })
     assertEquals(ContributionMarginEntryType.INVOICE, entries.single().type)
-    assertEquals("Invoice #17210", entries.single().text)
+    assertEquals("Invoice #17210.1", entries.single().text)
 
     val source = ContributionMarginSource(entries, LocalDate.of(2024, 1, 1), until, null, preliminaryBegin, null, booked)
     assertEquals(listOf(issued), invoices.filter { source.isPreliminaryRevenue(it) })
     // Without preliminary days, no invoice is preliminary:
     assertFalse(ContributionMarginCalculator.isPreliminaryRevenue(issued, null, until, booked))
+  }
+
+  @Test
+  fun `invoice revenue follows complete cost assignments, else the project of the invoice`() {
+    val kost2ToProject = mapOf(KOST2_A to PROJECT_A, KOST2_B to PROJECT_B)
+    val invoice = invoice(17210, LocalDate.of(2026, 8, 4), "700") // Project A.
+    fun position(shortfall: String, vararg assignments: CostAssignment) =
+      InvoicePosition(1L, 1, BigDecimal("700"), BigDecimal(shortfall), assignments.toList())
+
+    fun shares(position: InvoicePosition, projectIds: Set<Long>? = null) =
+      ContributionMarginCalculator.invoiceShares(invoice, position, kost2ToProject, projectIds)
+        .map { Triple(it.projectId, it.kost2Id, it.netSum) }
+    // Complete: split to the projects of the kost2, whatever the project of the invoice is.
+    val split = position(
+      "0",
+      CostAssignment(1L, KOST2_B, BigDecimal("500")),
+      CostAssignment(1L, KOST2_A, BigDecimal("200")),
+    )
+    assertEquals(
+      listOf(Triple(PROJECT_B, KOST2_B, BigDecimal("500")), Triple(PROJECT_A, KOST2_A, BigDecimal("200"))),
+      shares(split),
+    )
+    assertEquals(listOf(Triple(PROJECT_B, KOST2_B, BigDecimal("500"))), shares(split, setOf(PROJECT_B)))
+    // Without assignment, with a shortfall, without kost1 or with an unknown kost2: the invoice's project.
+    val whole = listOf(Triple(PROJECT_A, null, BigDecimal("700")))
+    assertEquals(whole, shares(position("0")))
+    assertEquals(
+      whole,
+      shares(position("100", CostAssignment(1L, KOST2_B, BigDecimal("600")))),
+    )
+    assertEquals(
+      whole,
+      shares(position("0", CostAssignment(null, KOST2_B, BigDecimal("700")))),
+    )
+    assertEquals(
+      whole,
+      shares(position("0", CostAssignment(1L, 999L, BigDecimal("700")))),
+    )
+    // No project at all:
+    invoice.projekt = null
+    assertTrue(shares(position("0")).isEmpty())
+    assertEquals(listOf(Triple(PROJECT_B, KOST2_B, BigDecimal("500"))), shares(split, setOf(PROJECT_B)))
   }
 
   @Test
@@ -416,10 +460,15 @@ class ContributionMarginCalculatorTest {
     it.info = RechnungInfo(it).also { info -> info.netSum = BigDecimal(netSum) }
   }
 
+  private fun singlePosition(invoice: RechnungDO) = listOf(
+    InvoicePosition(null, 1, invoice.info.netSum, BigDecimal.ZERO, emptyList())
+  )
+
   companion object {
     private const val PROJECT_A = 1L
     private const val PROJECT_B = 2L
     private const val KOST2_A = 101L
+    private const val KOST2_B = 102L
     private const val HOUR = 3_600_000L
   }
 }

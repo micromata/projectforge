@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu.contributionmargin
 
 import org.projectforge.business.fibu.RechnungDO
+import org.projectforge.business.fibu.RechnungPosInfo
 import org.projectforge.business.fibu.RechnungStatus
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.scripting.support.BookedInvoices
@@ -44,6 +45,30 @@ enum class ContributionMarginEntryType {
   TIMESHEET,
 }
 
+/** A cost assignment (net amount on kost1/kost2) of an invoice position. */
+class CostAssignment(val kost1Id: Long?, val kost2Id: Long?, val netto: BigDecimal?)
+
+/** An invoice position as far as the contribution margin needs it (from [RechnungPosInfo]). */
+class InvoicePosition(
+  val id: Long?,
+  val number: Short,
+  val netSum: BigDecimal,
+  /** The net sum minus the sum of the cost assignments: 0 if they cover it, negative if they exceed it. */
+  val assignmentShortfall: BigDecimal,
+  val assignments: List<CostAssignment>,
+) {
+  constructor(info: RechnungPosInfo) : this(
+    info.id,
+    info.number,
+    info.netSum,
+    info.kostZuweisungNetFehlbetrag.negate(),
+    info.kostZuweisungen.orEmpty().map { CostAssignment(it.kost1Id, it.kost2Id, it.netto) },
+  )
+}
+
+/** The part of an invoice position that belongs to one project (and kost2, if from a cost assignment). */
+class InvoiceShare(val projectId: Long, val kost2Id: Long?, val netSum: BigDecimal)
+
 /**
  * An amount of the contribution margin: revenue (positive) or costs (negative as booked, a credit positive)
  * of a project at a date.
@@ -54,7 +79,7 @@ class ContributionMarginEntry(
   val revenue: BigDecimal = BigDecimal.ZERO,
   val costs: BigDecimal = BigDecimal.ZERO,
   val type: ContributionMarginEntryType = ContributionMarginEntryType.RECORD,
-  /** The kost2 of the accounting record or time sheet; null for invoices. */
+  /** The kost2 of the accounting record, time sheet or invoice cost assignment; null for an invoice without one. */
   val kost2Id: Long? = null,
   /** The account number of the accounting record. */
   val account: Int? = null,
@@ -373,25 +398,69 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
           && !bookedInvoices.isBooked(invoice)
     }
 
-    /** The preliminary revenue ([isPreliminaryRevenue]) of the invoices with a project as entries. */
+    /**
+     * Whether the cost assignments of the position cover its net sum and are completely defined: at least one,
+     * each with kost1, kost2 (of a project, see [kost2ToProject]) and net amount.
+     */
+    fun hasCompleteCostAssignments(position: InvoicePosition, kost2ToProject: Map<Long, Long>): Boolean {
+      return position.assignments.isNotEmpty()
+          && position.assignments.all { it.kost1Id != null && it.netto != null && kost2ToProject.containsKey(it.kost2Id) }
+          && position.assignmentShortfall.signum() == 0
+    }
+
+    /**
+     * The projects of an invoice position with their parts of the net sum: one per cost assignment (by the
+     * project of its kost2) if they are completely defined ([hasCompleteCostAssignments]), else the whole position
+     * at the invoice's project (none without one).
+     *
+     * @param projectIds Only the shares of these projects (all if null).
+     */
+    fun invoiceShares(
+      invoice: RechnungDO,
+      position: InvoicePosition,
+      kost2ToProject: Map<Long, Long>,
+      projectIds: Set<Long>?,
+    ): List<InvoiceShare> {
+      val shares = if (hasCompleteCostAssignments(position, kost2ToProject)) {
+        position.assignments.map { InvoiceShare(kost2ToProject.getValue(it.kost2Id!!), it.kost2Id, it.netto!!) }
+      } else {
+        val projectId = invoice.projekt?.id ?: return emptyList()
+        listOf(InvoiceShare(projectId, null, position.netSum))
+      }
+      return if (projectIds == null) shares else shares.filter { it.projectId in projectIds }
+    }
+
+    /**
+     * The preliminary revenue ([isPreliminaryRevenue]) of the invoices as entries, per position and project
+     * ([invoiceShares]).
+     *
+     * @param positionsOf The (not deleted) positions of an invoice.
+     */
     fun invoiceEntries(
       invoices: Collection<RechnungDO>,
       preliminaryBegin: LocalDate?,
       until: LocalDate,
       bookedInvoices: BookedInvoices,
+      kost2ToProject: Map<Long, Long>,
+      projectIds: Set<Long>?,
+      positionsOf: (RechnungDO) -> List<InvoicePosition>,
     ): List<ContributionMarginEntry> {
-      return invoices.mapNotNull { invoice ->
-        val projectId = invoice.projekt?.id ?: return@mapNotNull null
+      return invoices.flatMap { invoice ->
         if (!isPreliminaryRevenue(invoice, preliminaryBegin, until, bookedInvoices)) {
-          return@mapNotNull null
+          return@flatMap emptyList()
         }
-        ContributionMarginEntry(
-          projectId,
-          invoice.datum!!,
-          revenue = invoice.info.netSum,
-          type = ContributionMarginEntryType.INVOICE,
-          text = "Invoice #${invoice.nummer}",
-        )
+        positionsOf(invoice).flatMap { position ->
+          invoiceShares(invoice, position, kost2ToProject, projectIds).map { share ->
+            ContributionMarginEntry(
+              share.projectId,
+              invoice.datum!!,
+              revenue = share.netSum,
+              type = ContributionMarginEntryType.INVOICE,
+              kost2Id = share.kost2Id,
+              text = "Invoice #${invoice.nummer}.${position.number}",
+            )
+          }
+        }
       }
     }
 
