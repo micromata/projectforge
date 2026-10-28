@@ -15,6 +15,9 @@ Neu in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
 [.changelog-source]
 __2026-10-28, Tag https://github.com/micromata/projectforge/tree/9.1.0-RELEASE[9.1.0-RELEASE]__ +++{% include release-pills.html tag="9.1.0-RELEASE" docker="9.1.0" %}+++
 
+[.changelog-checksum]
+SHA-256 von projectforge-application-9.1.0.jar: `+4a44437a42a8bdfaeaef8ca915d4edd0635b16cd4a5a83bcb53f5854fe31e743+`
+
 - [red]##**Letztes Release mit JCR und Java 17**##: das JCR mit 9.1.x migrieren, bevor auf 9.2+ aktualisiert wird
 - **Neuer Dateispeicher** in der Datenbank statt des JCR
 - **Chat**: Räume, Direktnachrichten, vertrauliche Gespräche, Dateien, Avatare, Datentransfer-Chats

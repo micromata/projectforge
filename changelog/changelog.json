@@ -7,6 +7,7 @@
       "title": "ProjectForge 9.1: new file store, chat, more pages migrated, last release with JCR and Java 17",
       "tag": "9.1.0-RELEASE",
       "downloadLink": true,
+      "sha256": "4a44437a42a8bdfaeaef8ca915d4edd0635b16cd4a5a83bcb53f5854fe31e743",
       "intro": [
         "ProjectForge 9.1 sums up all 9.0.x builds since 9.0.0: a file store in the database replacing the JCR, a chat, many pages migrated to the new interface, contribution margins per order and structure element, notifications, a system dashboard and a lot of security hardening.",
         "{red}**Last release with JCR and Java 17**{/red} - 9.1.x is the last line that runs on Java 17 and supports the JCR (Apache Oak). Releases from 9.2 on have no JCR any more, the files are kept in the database and in the file system. **If you still use the JCR, migrate with 9.1.x first** (`projectforge.files.store=db`, check the report), before you update to 9.2 or later. See the admin guide, \"Moving the files out of the JCR\".",
