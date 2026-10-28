@@ -52,8 +52,7 @@ chat:
     - "**Formatting, code blocks, emoji reactions and threads** – @mentions notify at once, in the app and by mail."
     - "**Confidential messages** for a password: end-to-end encrypted, never stored by the server, shown only once."
     - "**Unread at a glance** – mark a message unread, threads with new replies are marked, mails only for what wasn't seen in the app."
-  img: screenshots/2026-ChatRoom.png
-  img_caption: A project room with a code block, an image, reactions and a thread.
+  gallery: chat
   button_text: All collaboration features
   button_url: /features/#collaboration
 

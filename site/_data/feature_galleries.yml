@@ -1,4 +1,5 @@
-# Screenshot galleries of the features page (_includes/screenshot-gallery.html), one list per section key.
+# Screenshot galleries of the features and the home page (_includes/screenshot-gallery.html, `gallery` of
+# _includes/text-section.html), one list per section key.
 # Taken on a slot instance with the test data of the setup (bin/pfDev.sh setup <slot>) and
 # projectforge-next/e2e/tools/site-screenshots.mjs.
 
@@ -15,3 +16,15 @@ leave_availability:
     caption: Availability of colleagues at a glance
   - img: screenshots/2026-TeamVacationCalendar.png
     caption: Team vacation calendar per quarter
+
+chat:
+  - img: screenshots/2026-ChatRoom.png
+    caption: A project room with code, an image, reactions and a thread
+  - img: screenshots/2026-ChatThread.png
+    caption: A thread with its replies, to follow
+  - img: screenshots/2026-ChatList.png
+    caption: Rooms and direct messages with unread badges
+  - img: screenshots/2026-ChatSecretOffer.png
+    caption: The offer of a confidential conversation, shown on any page
+  - img: screenshots/2026-ChatSecretDialog.png
+    caption: A confidential conversation, end-to-end encrypted, with its fingerprint

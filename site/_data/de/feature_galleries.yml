@@ -1,5 +1,5 @@
-# Screenshot galleries of the German features page (_includes/screenshot-gallery.html), one list per section key
-# (see _data/feature_galleries.yml).
+# Screenshot galleries of the German features and home page (_includes/screenshot-gallery.html), one list per
+# section key (see _data/feature_galleries.yml).
 
 leave_availability:
   - img: screenshots/2026-VacationList-de.png
@@ -14,3 +14,15 @@ leave_availability:
     caption: Verfügbarkeit der Kolleginnen und Kollegen auf einen Blick
   - img: screenshots/2026-TeamVacationCalendar-de.png
     caption: Team-Urlaubskalender pro Quartal
+
+chat:
+  - img: screenshots/2026-ChatRoom-de.png
+    caption: Projektraum mit Code, Bild, Reaktionen und Thread
+  - img: screenshots/2026-ChatThread-de.png
+    caption: Thread mit seinen Antworten, zum Folgen
+  - img: screenshots/2026-ChatList-de.png
+    caption: Räume und Direktnachrichten mit Ungelesen-Zählern
+  - img: screenshots/2026-ChatSecretOffer-de.png
+    caption: Angebot eines vertraulichen Gesprächs, auf jeder Seite
+  - img: screenshots/2026-ChatSecretDialog-de.png
+    caption: Vertrauliches Gespräch, Ende-zu-Ende-verschlüsselt, mit Fingerprint

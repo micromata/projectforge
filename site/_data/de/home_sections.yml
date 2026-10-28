@@ -54,8 +54,7 @@ chat:
     - "**Formatierung, Codeblöcke, Emoji-Reaktionen und Threads** – @-Erwähnungen benachrichtigen sofort, in der App und per Mail."
     - "**Vertrauliche Nachrichten** für ein Passwort: Ende-zu-Ende-verschlüsselt, vom Server nie gespeichert, nur einmal angezeigt."
     - "**Ungelesenes auf einen Blick** – Nachrichten als ungelesen markieren, Threads mit neuen Antworten sind gekennzeichnet, Mails nur für das, was in der App nicht gesehen wurde."
-  img: screenshots/2026-ChatRoom-de.png
-  img_caption: Ein Projektraum mit Codeblock, Bild, Reaktionen und Thread.
+  gallery: chat
   button_text: Alle Funktionen zur Zusammenarbeit
   button_url: /de/features/#collaboration
 
