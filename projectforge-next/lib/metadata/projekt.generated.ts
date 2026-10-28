@@ -108,24 +108,16 @@ export const PROJEKT_METADATA = {
           i18nKey: "fibu.projekt.status.none",
         },
         {
-          value: "ACQUISISTION",
+          value: "ACQUISITION",
           i18nKey: "fibu.projekt.status.acquisition",
         },
         {
-          value: "ON_HOLD",
-          i18nKey: "fibu.projekt.status.onhold",
+          value: "ACTIVE",
+          i18nKey: "fibu.projekt.status.active",
         },
         {
-          value: "BUILD",
-          i18nKey: "fibu.projekt.status.build",
-        },
-        {
-          value: "PRODUCTIVE",
-          i18nKey: "fibu.projekt.status.productive",
-        },
-        {
-          value: "MAINTENANCE",
-          i18nKey: "fibu.projekt.status.maintenance",
+          value: "PAUSED",
+          i18nKey: "fibu.projekt.status.paused",
         },
         {
           value: "ENDED",

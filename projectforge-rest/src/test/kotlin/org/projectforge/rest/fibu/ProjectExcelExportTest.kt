@@ -73,7 +73,7 @@ class ProjectExcelExportTest : AbstractTestBase() {
             project.identifier = "PEE"
             project.internKost2_4 = 733
             project.nummer = 12
-            project.status = ProjektStatus.BUILD
+            project.status = ProjektStatus.ACTIVE
             project.description = "A description"
             project.contactPerson = contact
             project.konto = konto
@@ -96,7 +96,7 @@ class ProjectExcelExportTest : AbstractTestBase() {
         // Numeric cells: the project number as assigned on insert (a free one without number ranges).
         val projektnummer = projektDao.find(inserted.id, checkAccess = false)!!.projektnummer!!
         assertEquals(projektnummer.toDouble(), row.getCell(1).numericCellValue)
-        assertEquals(translate(ProjektStatus.BUILD.i18nKey), row.getCell(headers.indexOf(translate("status"))).stringCellValue)
+        assertEquals(translate(ProjektStatus.ACTIVE.i18nKey), row.getCell(headers.indexOf(translate("status"))).stringCellValue)
         assertEquals(
             contact.getFullname(),
             row.getCell(headers.indexOf(translate("contactPerson"))).stringCellValue,

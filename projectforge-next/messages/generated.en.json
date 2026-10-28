@@ -2406,11 +2406,13 @@
       "projektnummer": "Project number",
       "status": {
         "acquisition": "acquisition",
+        "active": "active",
         "build": "build phase",
         "ended": "ended",
         "maintenance": "maintenance",
         "none": "none",
         "onhold": "on hold",
+        "paused": "paused",
         "productive": "productive (without maintenance)"
       },
       "title": {

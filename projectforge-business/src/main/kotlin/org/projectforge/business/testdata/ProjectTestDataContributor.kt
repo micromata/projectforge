@@ -110,7 +110,7 @@ open class ProjectTestDataContributor : TestDataContributor {
                 it.name = p.name
                 it.identifier = p.identifier
                 it.kunde = kunde
-                it.status = ProjektStatus.BUILD
+                it.status = ProjektStatus.ACTIVE
                 it.task = projectTask
                 it.contactPerson = ctx.user("joe")
                 it.additionalContactUserIds = ContactUserIds.normalize(it.contactPerson?.id, listOf(ctx.user("laura").id))

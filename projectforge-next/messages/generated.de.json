@@ -2406,11 +2406,13 @@
       "projektnummer": "Projektnummer",
       "status": {
         "acquisition": "Akquise",
+        "active": "aktiv",
         "build": "Entwicklungsphase",
         "ended": "beendet",
         "maintenance": "Wartung",
         "none": "Nicht gesetzt.",
         "onhold": "vorrübergehend (noch) nicht aktiv",
+        "paused": "pausiert",
         "productive": "produktiv (ohne Wartung)"
       },
       "title": {
