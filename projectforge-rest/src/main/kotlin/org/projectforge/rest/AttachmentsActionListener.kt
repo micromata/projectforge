@@ -23,11 +23,11 @@
 
 package org.projectforge.rest
 
-import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsAccessChecker
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.Attachment
+import org.projectforge.framework.files.AttachmentsAccessChecker
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.jcr.FileInfo
+import org.projectforge.files.FileInfo
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.springframework.http.ResponseEntity
@@ -54,14 +54,14 @@ open class AttachmentsActionListener(
     open fun afterUpload(
         attachment: Attachment,
         obj: ExtendedBaseDO<Long>,
-        jcrPath: String,
+        attachmentsPath: String,
         attachmentsAccessChecker: AttachmentsAccessChecker,
         listId: String?
     ): ResponseEntity<*> {
         return ResponseEntity.ok()
             .body(
                 ResponseAction(targetType = TargetType.UPDATE, merge = true)
-                    .addVariable("data", createResponseData(obj, jcrPath, attachmentsAccessChecker, listId))
+                    .addVariable("data", createResponseData(obj, attachmentsPath, attachmentsAccessChecker, listId))
             )
     }
 
@@ -71,14 +71,14 @@ open class AttachmentsActionListener(
     open fun afterModification(
         attachment: Attachment,
         obj: ExtendedBaseDO<Long>,
-        jcrPath: String,
+        attachmentsPath: String,
         attachmentsAccessChecker: AttachmentsAccessChecker,
         listId: String?
     ): ResponseEntity<*> {
         return ResponseEntity.ok()
             .body(
                 ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
-                    .addVariable("data", createResponseData(obj, jcrPath, attachmentsAccessChecker, listId))
+                    .addVariable("data", createResponseData(obj, attachmentsPath, attachmentsAccessChecker, listId))
             )
     }
 
@@ -87,24 +87,24 @@ open class AttachmentsActionListener(
      */
     open fun afterDeletion(
         obj: ExtendedBaseDO<Long>,
-        jcrPath: String,
+        attachmentsPath: String,
         attachmentsAccessChecker: AttachmentsAccessChecker,
         listId: String?
     ): ResponseEntity<*> {
         return ResponseEntity.ok()
             .body(
                 ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
-                    .addVariable("data", createResponseData(obj, jcrPath, attachmentsAccessChecker, listId))
+                    .addVariable("data", createResponseData(obj, attachmentsPath, attachmentsAccessChecker, listId))
             )
     }
 
     open fun createResponseData(
         obj: ExtendedBaseDO<Long>,
-        jcrPath: String,
+        attachmentsPath: String,
         attachmentsAccessChecker: AttachmentsAccessChecker,
         listId: String?,
     ): Any {
-        val list = attachmentsService.getAttachments(jcrPath, obj.id!!, attachmentsAccessChecker, listId) ?: emptyList()
+        val list = attachmentsService.getAttachments(attachmentsPath, obj.id!!, attachmentsAccessChecker, listId) ?: emptyList()
         return AttachmentsServicesRest.ResponseData(list)
     }
 

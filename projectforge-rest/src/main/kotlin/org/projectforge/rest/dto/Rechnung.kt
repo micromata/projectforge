@@ -27,7 +27,7 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.*
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.files.Attachment
 import java.math.BigDecimal
 import java.time.LocalDate
 

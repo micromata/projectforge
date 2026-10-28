@@ -33,7 +33,7 @@ import org.projectforge.business.scripting.xstream.ScriptCallData
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.export.ExportJFreeChart
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper

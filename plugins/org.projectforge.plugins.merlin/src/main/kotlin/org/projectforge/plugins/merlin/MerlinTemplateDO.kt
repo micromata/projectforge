@@ -26,7 +26,7 @@ package org.projectforge.plugins.merlin
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.jcr.AttachmentsInfo
+import org.projectforge.framework.files.AttachmentsInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import java.util.*

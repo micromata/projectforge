@@ -27,7 +27,7 @@ import { variantLabel } from "./invoice-export-menu";
  * Wicket's `fibu.rechnung.eInvoice.saveAndOpen` and its two export buttons, in one step each.
  *
  * **Why each button saves.** Everything on the e-invoice path works on the *stored* invoice (the ZUGFeRD
- * export reads the PDF and the attachments from the JCR by id, so it cannot do otherwise), while the form
+ * export reads the PDF and the attachments from the file store by id, so it cannot do otherwise), while the form
  * above may have unsaved changes. Exporting without saving would hand out a document that does not match
  * the form the user is looking at, and a separate save button next to it would make that the user's problem.
  * Wicket writes as well before it exports (`getBaseDao().update(data)`); the difference is that here the

@@ -30,7 +30,7 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.ToStringUtil.Companion.toJsonString
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.jcr.AttachmentsInfo
+import org.projectforge.framework.files.AttachmentsInfo
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import java.util.*
 import jakarta.persistence.*

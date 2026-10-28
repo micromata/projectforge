@@ -217,7 +217,6 @@ open class ConfigXmlMigration {
         /** The directories of config.xml differing from the defaults. */
         internal fun directoryValues(legacy: LegacyConfigXml): Map<Dir, String> {
             return mapOf(
-                Dir.JCR to legacy.jcrDirectory,
                 Dir.WORK to legacy.workingDirectory,
                 Dir.TMP to legacy.tempDirectory,
                 Dir.BACKUP to legacy.backupDirectory,

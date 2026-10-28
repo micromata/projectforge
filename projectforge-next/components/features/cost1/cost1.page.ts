@@ -17,7 +17,7 @@ export const COST1_LIST_QUERY_KEY = ["cost1"] as const;
  * is nothing but order, width and the one field the declaration cannot describe: the number, whose
  * four parts are one control (see CostNumberField).
  *
- * One section and no attachments: the entity has no `jcrPath`, so there is nothing to attach. Its
+ * One section and no attachments: the entity has no `attachmentsPath`, so there is nothing to attach. Its
  * change history is a tab of its own, which nothing here says — `KOST1_METADATA.historizable` does
  * (Kost1DO's own `@WithHistory` is commented out, but `DefaultBaseDO` brings one).
  */

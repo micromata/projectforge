@@ -36,7 +36,7 @@ import org.projectforge.business.chat.ChatNotifier
 import org.projectforge.business.chat.ChatService
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
-import org.projectforge.jcr.FileObject
+import org.projectforge.files.FileObject
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -66,7 +66,7 @@ class DataTransferChatHostTest : AbstractTestBase() {
 
     @PostConstruct
     private fun postConstruct() {
-        initJCRTestRepo(MODUL_NAME, "chatHostTestRepo")
+        initTestFileStore()
     }
 
     @Test

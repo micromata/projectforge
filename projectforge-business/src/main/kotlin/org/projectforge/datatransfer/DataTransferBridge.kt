@@ -26,7 +26,7 @@ package org.projectforge.datatransfer
 import jakarta.annotation.PostConstruct
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.jcr.FileObject
+import org.projectforge.files.FileObject
 import org.springframework.stereotype.Service
 import java.io.InputStream
 

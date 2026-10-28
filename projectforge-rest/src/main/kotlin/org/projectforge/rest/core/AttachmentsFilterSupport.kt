@@ -25,7 +25,7 @@ package org.projectforge.rest.core
 
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.jcr.AttachmentsInfo
+import org.projectforge.framework.files.AttachmentsInfo
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -42,7 +42,7 @@ import org.projectforge.ui.filter.UIFilterListElement
  * The "has attachments" filter:
  *
  * [AttachmentsInfo.attachmentsCounter] is kept up to date by
- * [org.projectforge.framework.jcr.AttachmentsService], so the filter is a plain query predicate and
+ * [org.projectforge.framework.files.AttachmentsService], so the filter is a plain query predicate and
  * needs no [org.projectforge.framework.persistence.api.impl.CustomResultFilter].
  *
  * The filter field isn't a searchable property of the data object (it's `@JsonIgnore` and carries no
@@ -67,10 +67,10 @@ object AttachmentsFilterSupport {
 
   /**
    * Whether this list page can offer the filter: the entity has to support attachments
-   * ([AbstractEntityRest.enableJcr]) and its data object has to store their number.
+   * ([AbstractEntityRest.enableAttachments]) and its data object has to store their number.
    */
   fun supported(pagesRest: AbstractEntityRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>): Boolean {
-    return pagesRest.jcrPath != null && AttachmentsInfo::class.java.isAssignableFrom(pagesRest.baseDao.doClass)
+    return pagesRest.attachmentsPath != null && AttachmentsInfo::class.java.isAssignableFrom(pagesRest.baseDao.doClass)
   }
 
   fun addFilterElement(elements: MutableList<UILabelledElement>) {

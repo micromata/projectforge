@@ -205,12 +205,11 @@ class ConfigXmlMigrationTest {
 
             val dirs = ConfigXmlMigration.takeOverDirectories(
                 homeDir.absolutePath,
-                mapOf(Dir.JCR to null, Dir.WORK to null, Dir.TMP to "/tmp/pf", Dir.BACKUP to ""),
+                mapOf(Dir.WORK to null, Dir.TMP to "/tmp/pf", Dir.BACKUP to ""),
             )
             // The working directory of config.xml (property not given), the temp dir of the property:
             Assertions.assertEquals("myWork", dirs[Dir.WORK])
             Assertions.assertEquals("/tmp/pf", dirs[Dir.TMP])
-            Assertions.assertTrue(dirs[Dir.JCR].isNullOrBlank())
             val properties = File(homeDir, "projectforge.properties").readText()
             Assertions.assertTrue(properties.contains("projectforge.dir.work=myWork"), properties)
             Assertions.assertTrue(properties.contains("projectforge.dir.tmp=/tmp/pf"), properties)

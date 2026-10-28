@@ -25,10 +25,10 @@ package org.projectforge.plugins.datatransfer
 
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsAccessChecker
+import org.projectforge.framework.files.Attachment
+import org.projectforge.framework.files.AttachmentsAccessChecker
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.jcr.FileObject
+import org.projectforge.files.FileObject
 
 /**
  * Checks access to attachments by external anonymous users.

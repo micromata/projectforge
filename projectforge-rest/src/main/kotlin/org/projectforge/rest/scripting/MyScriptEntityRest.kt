@@ -28,10 +28,10 @@ import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.scripting.MyScriptDao
 import org.projectforge.business.scripting.ScriptDO
-import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.AttachmentsDaoAccessChecker
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.jcr.FileSizeStandardChecker
+import org.projectforge.files.FileSizeStandardChecker
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
@@ -66,9 +66,9 @@ class MyScriptEntityRest : AbstractDTOEntityRest<ScriptDO, Script, MyScriptDao>(
         val maxFileSize = attachmentsService.maxDefaultFileSize.toBytes()
         val maxFileSizeSpringProperty = AttachmentsService.MAX_DEFAULT_FILE_SIZE_SPRING_PROPERTY
 
-        this.jcrPath = scriptEntityRest.jcrPath
+        this.attachmentsPath = scriptEntityRest.attachmentsPath
         this.attachmentsAccessChecker = AttachmentsDaoAccessChecker(
-            baseDao, jcrPath, null, FileSizeStandardChecker(maxFileSize, maxFileSizeSpringProperty)
+            baseDao, attachmentsPath, null, FileSizeStandardChecker(maxFileSize, maxFileSizeSpringProperty)
         )
     }
 

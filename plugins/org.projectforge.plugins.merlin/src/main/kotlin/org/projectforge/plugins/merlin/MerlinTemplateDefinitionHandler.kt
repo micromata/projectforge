@@ -26,8 +26,8 @@ package org.projectforge.plugins.merlin
 import de.micromata.merlin.excel.ExcelWorkbook
 import de.micromata.merlin.word.templating.*
 import org.apache.commons.io.FilenameUtils
-import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.Attachment
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -105,7 +105,7 @@ open class MerlinTemplateDefinitionHandler {
   private fun readTemplateDefinition(id: Long, attachment: Attachment?): TemplateDefinition? {
     attachment ?: return null
     val attPair = attachmentsService.getAttachmentInputStream(
-      merlinHandler.jcrPath,
+      merlinHandler.attachmentsPath,
       id,
       attachment.fileId!!,
       accessChecker = merlinHandler.attachmentsAccessChecker,

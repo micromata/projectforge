@@ -326,7 +326,7 @@ function LoadedAttachmentFiles({
           onOpenChange={(open) => !open && setDeleting([])}
           title={t("delete")}
           description={
-            // The final question in both cases, not markAsDeletedQuestion: the JCR keeps no history
+            // The final question in both cases, not markAsDeletedQuestion: the file store keeps no history
             // of removed files, so this cannot be undone.
             deleting.length === 1
               ? t("question.deleteQuestion")
