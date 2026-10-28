@@ -170,7 +170,8 @@ push_manifests() {
   confirm "Push $REPO:$VERSION and $REPO:latest from $amd64 and $arm64?" || exit 1
   for tag in "$VERSION" latest; do
     if [ "$TOOL" = podman ]; then
-      podman manifest exists "$REPO:$tag" && podman manifest rm "$REPO:$tag" >/dev/null
+      # The local name may be a manifest list or a plain image (e. g. an earlier pull of latest): remove either.
+      podman rmi -f "$REPO:$tag" >/dev/null 2>&1 || true
       # docker:// reads the images from the registry, both must have been pushed by `arch`.
       podman manifest create "$REPO:$tag" "docker://$amd64" "docker://$arm64"
       podman manifest push --all "$REPO:$tag" "docker://$REPO:$tag"
