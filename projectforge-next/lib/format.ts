@@ -359,6 +359,20 @@ export function formatElapsed(millis: number, ctx: FormatContext): string {
   return `${unit(Math.floor(minutes / 60), "hour")}, ${unit(minutes % 60, "minute")}`;
 }
 
+/**
+ * A transfer speed in bytes per second as `850 kB/s` or `1,2 MB/s` (decimal units, the number in the user's
+ * locale).
+ */
+export function formatTransferRate(
+  bytesPerSecond: number,
+  ctx: FormatContext
+): string {
+  const kilo = Math.round(bytesPerSecond / 1000);
+  // Rounded first, so 999.6 kB/s doesn't read "1000 kB/s".
+  if (kilo < 1000) return `${formatNumber(kilo, ctx, 0)} kB/s`;
+  return `${formatNumber(bytesPerSecond / 1_000_000, ctx, 1)} MB/s`;
+}
+
 export function formatNumber(
   value: unknown,
   ctx: FormatContext,

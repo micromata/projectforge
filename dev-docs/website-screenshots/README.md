@@ -68,4 +68,12 @@ To start over with fresh data: `bin/pfDev.sh reset 5`, then step 1.
 `scenes.mjs` defines name, page and interactions per picture. The calendar scene replaces the raw i18n key
 "calendar.day" of the day view button by "Day" (a frontend bug, remove the workaround once it is fixed).
 The gallery of leave and availability (`2026-Vacation*`, `2026-Availability*`, `2026-TeamVacationCalendar`) is
-taken by `projectforge-next/e2e/tools/site-screenshots.mjs`, with the same viewport and scaling.
+taken by `projectforge-next/e2e/tools/site-screenshots.mjs`, with the same viewport and scaling, in English and
+German (`-de`). So are the chat pictures of the website and the user guide (`2026-Chat*`, sample chat of
+`chat-seed.mjs`); the two of a confidential conversation (`ChatSecretOffer`, `ChatSecretDialog`) log in `max` as
+the other side and end the conversation afterwards:
+```
+cd projectforge-next
+PF_PASS='Screenshots-2026!' PF_BASE=http://localhost:8085/next node e2e/tools/site-screenshots.mjs \
+  ChatList ChatRoom ChatThread ChatSecretOffer ChatSecretDialog
+```

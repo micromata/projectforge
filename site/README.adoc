@@ -54,7 +54,8 @@ only, it leads back to the last page read in the other language, or to its home 
 * A page without a German version says `untranslated: true` in its front matter (the technical docs `installation`,
   `development`, `technologies`, `migration` and the legal pages). The German navigation links it in English,
   marked with (EN).
-* A screenshot of a gallery (`img` in `_data/de/*.yml`) may have a German version `<name>-de.png` next to the English
-  one, e.g. those of `projectforge-next/e2e/tools/site-screenshots.mjs`; otherwise both languages show the same.
+* A screenshot of a gallery (`img` in `_data/de/*.yml`) or of a German page (`image::`) may have a German version
+  `<name>-de.png` next to the English one, e.g. those of `projectforge-next/e2e/tools/site-screenshots.mjs`;
+  otherwise both languages show the same.
 * German texts don't use the formal "Sie" (see `CLAUDE.md`), UI labels are those of the app's German texts
   (`I18nResources_de.properties`, `projectforge-next/messages/`).

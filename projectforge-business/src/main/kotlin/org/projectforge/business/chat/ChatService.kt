@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import java.util.Date
 
@@ -51,6 +52,11 @@ private val log = KotlinLogging.logger {}
 open class ChatService {
     @Autowired
     private lateinit var chatAccess: ChatAccess
+
+    /** Lazy: the counter itself uses this service. */
+    @Autowired
+    @Lazy
+    private lateinit var unreadCounter: ChatUnreadCounter
 
     @Autowired
     private lateinit var chatMessageDao: ChatMessageDao
@@ -480,6 +486,7 @@ open class ChatService {
             updateLastRead(pc, conversationId, user.id!!, message.id!!)
         }
         notifier.resolve(conversationId, user.id!!)
+        unreadCounter.invalidate(user.id!!)
         if (raised && context.conversation.hostType == ChatDirectChatHost.HOST_TYPE) {
             publishRead(conversationId, user.id!!)
         }
@@ -511,6 +518,7 @@ open class ChatService {
             state.lastReadMessageId = message.id!! - 1
             if (state.id == null) pc.em.persist(state)
         }
+        unreadCounter.invalidate(user.id!!)
     }
 
     /** Mutes the conversation for the logged-in user (no notifications about new messages, except mentions). */
@@ -848,7 +856,9 @@ open class ChatService {
 
     /** The message, without access check. */
     open fun findMessage(id: Long?): ChatMessageDO? {
-        return chatMessageDao.find(id, checkAccess = false)
+        // Not via ChatMessageDao.find: a message deleted meanwhile (a client acting on a stale id) is no error to log.
+        id ?: return null
+        return persistenceService.find(ChatMessageDO::class.java, id)
     }
 
     /** The messages of the conversation with the given ids (e.g. the quoted ones), without access check. */

@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import { useQueryClient, type QueryKey } from "@tanstack/react-query";
+import { fetchUserStatus, RsError } from "@/lib/rs/client";
+import { OFFERS_MAX_AGE_MS } from "@/hooks/use-chat-secret-offers";
 import { CHAT_SECRET_OFFERS_QUERY_KEY } from "@/lib/rs/chat-secret";
 import { USER_EVENTS_URL } from "@/lib/rs/user-events";
 
@@ -32,14 +34,20 @@ export function useUserEvents() {
   useEffect(() => {
     let source: EventSource | null = null;
     let failures = 0;
+    let disposed = false;
     let lastActivity = Date.now();
     let hiddenTimer: ReturnType<typeof setTimeout> | undefined;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
+    // Queries loaded a moment ago (the first load of the page) needn't be loaded again for the stream's opening.
     const refreshAll = () =>
-      Object.values(EVENT_QUERIES).forEach(
-        (queryKey) => void queryClient.invalidateQueries({ queryKey })
-      );
+      Object.values(EVENT_QUERIES).forEach((queryKey) => {
+        const updatedAt =
+          queryClient.getQueryState(queryKey)?.dataUpdatedAt ?? 0;
+        if (Date.now() - updatedAt > OFFERS_MAX_AGE_MS) {
+          void queryClient.invalidateQueries({ queryKey });
+        }
+      });
     const close = () => {
       source?.close();
       source = null;
@@ -62,7 +70,21 @@ export function useUserEvents() {
         // The browser reconnects by itself, unless the request failed (e.g. logged out): closed then.
         close();
         if (++failures >= FAILURES_BEFORE_PAUSE) return; // Again when shown.
-        retryTimer = setTimeout(reopen, RETRY_MS);
+        // An EventSource doesn't tell why it failed: with an expired session every retry would be refused
+        // (and logged) by the server. Ask for the user status; a 401 pauses the stream until the tab is shown again.
+        fetchUserStatus().then(
+          () => {
+            if (!disposed) retryTimer = setTimeout(reopen, RETRY_MS);
+          },
+          (error: unknown) => {
+            if (disposed) return;
+            if (error instanceof RsError && error.status === 401) {
+              failures = FAILURES_BEFORE_PAUSE;
+            } else {
+              retryTimer = setTimeout(reopen, RETRY_MS);
+            }
+          }
+        );
       };
     };
     const reopen = () => {
@@ -88,6 +110,7 @@ export function useUserEvents() {
     window.addEventListener("pointerdown", onActivity, true);
     window.addEventListener("keydown", onActivity, true);
     return () => {
+      disposed = true;
       clearTimeout(hiddenTimer);
       close();
       document.removeEventListener("visibilitychange", onVisibility);
