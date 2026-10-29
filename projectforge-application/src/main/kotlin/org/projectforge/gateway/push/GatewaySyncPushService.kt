@@ -29,6 +29,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressImageDO
+import org.projectforge.business.address.ContactImageUrl
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.admin.right.TeamCalRight
@@ -371,7 +372,7 @@ class GatewaySyncPushService(
         }
     }
 
-    private fun addressUid(address: AddressDO): String = address.uid ?: "pf-${address.id}"
+    private fun addressUid(address: AddressDO): String = ContactImageUrl.addressUid(address)
 
     /**
      * Pushes the complete list of CardDAV favorites (user name and address uid), if changed since the last push.
@@ -386,7 +387,7 @@ class GatewaySyncPushService(
         )
         val dtos = rows
             .filter { it[0] != null }
-            .groupBy({ it[0] as String }, { (it[1] as String?) ?: "pf-${it[2]}" })
+            .groupBy({ it[0] as String }, { ContactImageUrl.addressUid(it[1] as String?, it[2]) })
             .map { (username, uids) -> SyncFavoritesDto(username = username, addressUids = uids.sorted()) }
             .sortedBy { it.username }
         val hash = dtos.hashCode()

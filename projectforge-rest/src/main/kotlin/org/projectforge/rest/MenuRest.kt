@@ -95,8 +95,9 @@ class MenuRest {
       }
     }
     add(MenuItem(MenuItemDefId.FEEDBACK))
-    add(MenuItem(MenuItemDef(MenuItemDefId.MY_ACCOUNT)))
     add(MenuItem(MenuItemDef(MenuItemDefId.CUSTOMIZE_MENU)))
+    add(MenuItem(MenuItemDef(MenuItemDefId.MY_ACCOUNT)))
+    add(MenuItem(MenuItemDef(MenuItemDefId.MY_BUSINESS_CARDS)))
     add(MenuItem(MenuItemDef(MenuItemDefId.MY_2FA_SETUP, badgeCounter = { my2FASetupMenuBadge.badgeCounter })))
     if (!accessChecker.isRestrictedUser) {
       if (ThreadLocalUserContext.userContext!!.employeeId != null) {
