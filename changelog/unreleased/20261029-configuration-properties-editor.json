@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "The system configuration page now offers the projectforge.properties editor and the comparison with its backups for administrators, as the System page does.",
+  "de": "Die Seite Systemkonfiguration bietet für Administratoren jetzt auch den Editor für projectforge.properties und den Vergleich mit den Backups, wie die Seite System."
+}

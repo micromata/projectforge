@@ -7,6 +7,7 @@ import {
   type ConfigurationValues,
 } from "./schema";
 import { emptyConfigurationValues, toFormValues } from "./values";
+import { ConfigurationListActions } from "./configuration-list-actions";
 import { ConfigurationAccessNote } from "./edit/configuration-access-note";
 import { ConfigurationValueField } from "./edit/configuration-value-field";
 import { ConfigurationValueCell } from "./list/configuration-value-cell";
@@ -154,7 +155,9 @@ export const CONFIGURATION_PAGE = definePage<
     row.editPage
       ? `/${row.editPage}?returnTo=${CONFIGURATION_ROUTE}`
       : undefined,
-  // No massUpdate and no listActions: the parameter set is fixed and each parameter is edited on its own.
+  // The projectforge.properties editor and comparison, for admins (as on the System page).
+  listActions: ConfigurationListActions,
+  // No massUpdate: the parameter set is fixed and each parameter is edited on its own.
   edit: {
     schema: configurationSchema,
     fieldNames: CONFIGURATION_FIELDS,
