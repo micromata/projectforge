@@ -5,7 +5,11 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ContactBookIcon, FileImportIcon } from "@hugeicons/core-free-icons";
+import {
+  ContactBookIcon,
+  FileImportIcon,
+  QrCodeIcon,
+} from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import {
   ExcelExportMenuItem,
@@ -26,7 +30,8 @@ import { CardDavInfoDialog } from "./carddav-info-dialog";
 /**
  * The toolbar of the address list, as the former list offered it: the VCF import, and the exports — the
  * filtered list as Excel, the favorites as vCards (to import into an address book app) and as Excel, and the
- * CardDAV access data where the CardDAV server is enabled (`variables.carddavEnabled`).
+ * CardDAV access data where the CardDAV server is enabled (`variables.carddavEnabled`). Besides, the own digital
+ * business cards (also in the user menu).
  */
 export function AddressListActions({ filter }: { filter: MagicFilter }) {
   const t = useTranslations();
@@ -47,6 +52,14 @@ export function AddressListActions({ filter }: { filter: MagicFilter }) {
       >
         <HugeiconsIcon icon={FileImportIcon} />
         {t("import._")}
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => navigateInGesture(router, "/myBusinessCards")}
+      >
+        <HugeiconsIcon icon={QrCodeIcon} />
+        {t("menu.myBusinessCards")}
       </Button>
       <ExportMenu
         isPending={

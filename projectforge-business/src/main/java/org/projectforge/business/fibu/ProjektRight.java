@@ -27,7 +27,7 @@ import org.projectforge.business.user.*;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.web.WicketSupport;
+import org.projectforge.framework.SpringBeans;
 
 /**
  * @author Kai Reinhard
@@ -58,7 +58,7 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
   @Override
   public boolean hasSelectAccess(final PFUserDO user)
   {
-    return WicketSupport.getAccessChecker().isAvailable(user, UserRightId.PM_PROJECT);
+    return SpringBeans.getAccessChecker().isAvailable(user, UserRightId.PM_PROJECT);
   }
 
   @Override
@@ -67,7 +67,7 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
     if (obj == null) {
       return true;
     }
-    var accessChecker = WicketSupport.getAccessChecker();
+    var accessChecker = SpringBeans.getAccessChecker();
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP)) {
       return true;
     }
@@ -102,7 +102,7 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
   public boolean hasAccess(final PFUserDO user, final ProjektDO obj, final ProjektDO oldObj,
       final OperationType operationType)
   {
-    return WicketSupport.getAccessChecker().hasRight(user, getId(), UserRightValue.READWRITE);
+    return SpringBeans.getAccessChecker().hasRight(user, getId(), UserRightValue.READWRITE);
   }
 
   /**
@@ -113,7 +113,7 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
   @Override
   public boolean hasHistoryAccess(final PFUserDO user, final ProjektDO obj)
   {
-    var accessChecker = WicketSupport.getAccessChecker();
+    var accessChecker = SpringBeans.getAccessChecker();
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP)) {
       return true;
     }

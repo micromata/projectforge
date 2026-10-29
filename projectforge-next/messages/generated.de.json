@@ -782,6 +782,61 @@
       "short": "Jahr"
     }
   },
+  "businessCard": {
+    "address": {
+      "_": "Aus Adresse übernehmen",
+      "suggestion": "Wahrscheinlich die eigene Adresse",
+      "tooltip": "Die Daten der Adresse werden in die Karte kopiert und lassen sich danach ändern. Spätere Änderungen der Adresse ändern die Karte nicht."
+    },
+    "birthday": "Geburtstag",
+    "businessPhone": "Telefon",
+    "cardName": "Name der Karte",
+    "city": "Ort",
+    "comment": "Notiz",
+    "country": "Land",
+    "delete": {
+      "question": "Die Visitenkarte löschen?"
+    },
+    "division": "Abteilung",
+    "downloadVCard": "vCard herunterladen",
+    "email": "E-Mail",
+    "fax": "Fax",
+    "firstName": "Vorname",
+    "includePhoto": {
+      "_": "Foto veröffentlichen",
+      "noGateway": "Es ist kein Gateway konfiguriert, Fotos können nicht veröffentlicht werden.",
+      "notAllowed": "Das Foto kann nur aus der eigenen Adresse veröffentlicht werden.",
+      "tooltip": "Das Foto der Adresse wird auf dem Gateway veröffentlicht und in der vCard verlinkt. Nur für die eigene Adresse möglich (ihre E-Mail-Adresse ist eine der eigenen)."
+    },
+    "lastName": "Nachname",
+    "limit": "Höchstens {arg0} Visitenkarten.",
+    "mobilePhone": "Mobil",
+    "new": "Neue Visitenkarte",
+    "none": "Noch keine Visitenkarten.",
+    "organization": "Organisation",
+    "positionText": "Position",
+    "privateCity": "Ort (privat)",
+    "privateCountry": "Land (privat)",
+    "privateEmail": "E-Mail (privat)",
+    "privateMobilePhone": "Mobil (privat)",
+    "privatePhone": "Telefon (privat)",
+    "privateStreet": "Straße (privat)",
+    "privateZipCode": "PLZ (privat)",
+    "qrCode": {
+      "_": "QR-Code",
+      "dense": "Viele Felder machen den QR-Code dicht und schwer lesbar: Nicht Benötigtes besser weglassen."
+    },
+    "saved": "Die Visitenkarte ist gespeichert.",
+    "section": {
+      "business": "Geschäftlich",
+      "card": "Karte",
+      "private": "Privat"
+    },
+    "street": "Straße",
+    "title": "Titel",
+    "website": "Website",
+    "zipCode": "PLZ"
+  },
   "calendar": {
     "calendarYear": "Kalenderjahr",
     "chooseDate": "Datum auswählen",
@@ -3406,6 +3461,7 @@
       "fileprefix": "Monatsbericht"
     },
     "myAccount": "Mein Zugang",
+    "myBusinessCards": "Meine Visitenkarten",
     "orga": {
       "_": "Organisation",
       "postausgang": "Postausgang",

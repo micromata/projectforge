@@ -31,7 +31,7 @@ import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.security.My2FAShortCut
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 
 private val log = KotlinLogging.logger {}
 
@@ -46,8 +46,8 @@ class BankingPlugin : AbstractPlugin(
 ) {
 
     override fun initialize() {
-        val bankAccountDao = WicketSupport.get(BankAccountDao::class.java)
-        val menuCreator = WicketSupport.get(MenuCreator::class.java)
+        val bankAccountDao = SpringBeans.get(BankAccountDao::class.java)
+        val menuCreator = SpringBeans.get(MenuCreator::class.java)
         // Register it:
         register(id, BankAccountDao::class.java, bankAccountDao, "plugins.banking")
         // Bank accounts and their records are for the finance group only (BankAccountDao). The import of the records

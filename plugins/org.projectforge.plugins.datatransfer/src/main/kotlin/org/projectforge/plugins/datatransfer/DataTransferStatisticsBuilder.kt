@@ -31,7 +31,7 @@ import org.projectforge.framework.files.AttachmentsInfo
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 
 private val log = KotlinLogging.logger {}
 
@@ -40,11 +40,11 @@ private val log = KotlinLogging.logger {}
  */
 open class DataTransferStatisticsBuilder() : SystemsStatisticsBuilderInterface {
     override fun addStatisticsEntries(stats: SystemStatisticsData) {
-        if (!WicketSupport.getAccessChecker().isUserMemberOfAdminGroup(ThreadLocalUserContext.loggedInUser)) {
+        if (!SpringBeans.getAccessChecker().isUserMemberOfAdminGroup(ThreadLocalUserContext.loggedInUser)) {
             // Do nothing for non-admins.
             return
         }
-        val dataTransferAreaDao = WicketSupport.get(DataTransferAreaDao::class.java)
+        val dataTransferAreaDao = SpringBeans.get(DataTransferAreaDao::class.java)
         val list = dataTransferAreaDao.selectAll(checkAccess = false)
         list.sortedByDescending { it.attachmentsSize }.forEachIndexed { index, dbo ->
             if (dbo.attachmentsCounter ?: 0 == 0 || index >= 30) {

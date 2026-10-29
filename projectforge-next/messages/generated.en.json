@@ -782,6 +782,61 @@
       "short": "Year"
     }
   },
+  "businessCard": {
+    "address": {
+      "_": "Take over from address",
+      "suggestion": "Probably your own address",
+      "tooltip": "The data of the address is copied into the card and can be changed afterwards. Later changes of the address don't change the card."
+    },
+    "birthday": "Birthday",
+    "businessPhone": "Phone",
+    "cardName": "Name of the card",
+    "city": "City",
+    "comment": "Note",
+    "country": "Country",
+    "delete": {
+      "question": "Delete the business card?"
+    },
+    "division": "Division",
+    "downloadVCard": "Download vCard",
+    "email": "E-mail",
+    "fax": "Fax",
+    "firstName": "First name",
+    "includePhoto": {
+      "_": "Publish photo",
+      "noGateway": "No gateway is configured, photos can't be published.",
+      "notAllowed": "The photo can only be published from your own address.",
+      "tooltip": "The photo of the address is published on the gateway and linked in the vCard. Only possible for your own address (its e-mail address is one of yours)."
+    },
+    "lastName": "Last name",
+    "limit": "At most {arg0} business cards.",
+    "mobilePhone": "Mobile",
+    "new": "New business card",
+    "none": "No business cards yet.",
+    "organization": "Organization",
+    "positionText": "Position",
+    "privateCity": "Private city",
+    "privateCountry": "Private country",
+    "privateEmail": "Private e-mail",
+    "privateMobilePhone": "Private mobile",
+    "privatePhone": "Private phone",
+    "privateStreet": "Private street",
+    "privateZipCode": "Private ZIP code",
+    "qrCode": {
+      "_": "QR code",
+      "dense": "Many fields make the QR code dense and hard to scan: leave out what isn't needed."
+    },
+    "saved": "The business card is saved.",
+    "section": {
+      "business": "Business",
+      "card": "Card",
+      "private": "Private"
+    },
+    "street": "Street",
+    "title": "Title",
+    "website": "Website",
+    "zipCode": "ZIP code"
+  },
   "calendar": {
     "calendarYear": "Calendar year",
     "chooseDate": "Choose date",
@@ -3406,6 +3461,7 @@
       "fileprefix": "MonthlyEmployeeReport"
     },
     "myAccount": "My account",
+    "myBusinessCards": "My business cards",
     "orga": {
       "_": "Organization",
       "postausgang": "Outbox",

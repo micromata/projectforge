@@ -34,7 +34,7 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.registry.Registry
 import org.projectforge.registry.RegistryEntry
 import org.projectforge.security.My2FAShortCut
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 import java.io.Serializable
 import java.util.Objects
 import javax.sql.DataSource
@@ -153,26 +153,26 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
      * @return this for chaining.
      */
     protected fun registerRight(right: UserRight?): AbstractPlugin {
-        WicketSupport.get(UserRightService::class.java).addRight(right)
+        SpringBeans.get(UserRightService::class.java).addRight(right)
         return this
     }
 
     fun registerShortCutValues(shortCut: My2FAShortCut, vararg values: String) {
-        WicketSupport.get(IProjectForge2FAInitialization::class.java).registerShortCutValues(shortCut, *values)
+        SpringBeans.get(IProjectForge2FAInitialization::class.java).registerShortCutValues(shortCut, *values)
     }
 
     /**
      * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
      */
     fun registerShortCutClasses(shortCut: My2FAShortCut, vararg restClasses: Class<*>) {
-        WicketSupport.get(IProjectForge2FAInitialization::class.java).registerShortCutClasses(shortCut, *restClasses)
+        SpringBeans.get(IProjectForge2FAInitialization::class.java).registerShortCutClasses(shortCut, *restClasses)
     }
 
     /**
      * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
      */
     fun registerShortCutMethods(shortCut: My2FAShortCut, restClass: Class<*>, vararg methods: KFunction<*>) {
-        WicketSupport.get(IProjectForge2FAInitialization::class.java)
+        SpringBeans.get(IProjectForge2FAInitialization::class.java)
             .registerShortCutMethods(shortCut, restClass, *methods)
     }
 
@@ -180,7 +180,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
      * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
      */
     fun registerShortCutMethods(shortCut: My2FAShortCut, vararg methods: KFunction<*>) {
-        WicketSupport.get(IProjectForge2FAInitialization::class.java).registerShortCutMethods(shortCut, *methods)
+        SpringBeans.get(IProjectForge2FAInitialization::class.java).registerShortCutMethods(shortCut, *methods)
     }
 
     /**
@@ -196,7 +196,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
         }
         log.info { "Initializing flyway with locations for plugin '$id': ${flywayClasspath.joinToString(",") { it }}" }
         val flyway = Flyway.configure()
-            .dataSource(WicketSupport.get(DataSource::class.java))
+            .dataSource(SpringBeans.get(DataSource::class.java))
             .table("t_flyway_${id.lowercase()}_schema_version")
             .locations(*flywayClasspath)
             .baselineVersion(flywayBaselineVersion)
@@ -216,7 +216,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
      * '/${plugin.package}/flyway/dbmigration'
      */
     protected open fun buildFlywayClasspath(): Array<String> {
-        val vendor = WicketSupport.get(DataSource::class.java).connection.use { connection ->
+        val vendor = SpringBeans.get(DataSource::class.java).connection.use { connection ->
             DatabaseDialect.getFlywayVendorName(connection.metaData.databaseProductName)
         }
         // Class.packageName since java 9, but want to be compatible with Java 8:

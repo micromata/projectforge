@@ -66,7 +66,7 @@ import org.projectforge.plugins.core.AbstractPlugin.Companion.internalJunitTestM
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.core.PluginsRegistry
 import org.projectforge.registry.Registry
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -147,7 +147,7 @@ abstract class AbstractTestBase protected constructor() {
         }
         if (!pluginsInitialized) {
             pluginsInitialized = true
-            WicketSupport.register(applicationContext)
+            SpringBeans.register(applicationContext)
             var webRegistryClazz: Class<*>? = null
             try {
                 // Wicket package not available for compilation.

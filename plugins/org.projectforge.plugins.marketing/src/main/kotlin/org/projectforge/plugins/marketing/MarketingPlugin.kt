@@ -29,7 +29,7 @@ import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 
 /**
  * Your plugin initialization. Register all your components such as i18n files, data-access object etc.
@@ -38,8 +38,8 @@ import org.projectforge.web.WicketSupport
  */
 class MarketingPlugin : AbstractPlugin("marketing", "Marketing", "Marketing plugin for address campaigns.") {
     override fun initialize() {
-        val addressCampaignDao = WicketSupport.get(AddressCampaignDao::class.java)
-        val addressCampaignValueDao = WicketSupport.get(AddressCampaignValueDao::class.java)
+        val addressCampaignDao = SpringBeans.get(AddressCampaignDao::class.java)
+        val addressCampaignValueDao = SpringBeans.get(AddressCampaignValueDao::class.java)
         // Register it:
         register(
             ADDRESS_CAMPAIGN_ID,
@@ -57,7 +57,7 @@ class MarketingPlugin : AbstractPlugin("marketing", "Marketing", "Marketing plug
 
         // Register the menu entries as sub menu entries of the misc menu. The campaigns are migrated to
         // projectforge-next (see PageRoutes.MIGRATED), their Wicket pages are removed.
-        val menuCreator = WicketSupport.get(MenuCreator::class.java)
+        val menuCreator = SpringBeans.get(MenuCreator::class.java)
         menuCreator.register(
             MenuItemDefId.MISC,
             MenuItemDef(
@@ -84,7 +84,7 @@ class MarketingPlugin : AbstractPlugin("marketing", "Marketing", "Marketing plug
         // All the i18n stuff:
         addResourceBundle(RESOURCE_BUNDLE_NAME)
 
-        WicketSupport.get(AddressDao::class.java).register(MarketingPluginAddressDeletionListener(addressCampaignDao))
+        SpringBeans.get(AddressDao::class.java).register(MarketingPluginAddressDeletionListener(addressCampaignDao))
     }
 
     companion object {

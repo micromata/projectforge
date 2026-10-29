@@ -33,7 +33,7 @@ import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.menu.builder.MenuCreator
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.event.ApplicationReadyEvent
@@ -166,7 +166,7 @@ open class PluginAdminService {
     @EventListener(ApplicationReadyEvent::class)
     fun onApplicationReady() {
         log.info { "Initializing plugins on application ready..." }
-        WicketSupport.register(applicationContext)
+        SpringBeans.register(applicationContext)
         initializeActivePlugins(true)
     }
 
@@ -197,7 +197,7 @@ open class PluginAdminService {
     }
 
     open fun initializeAllPluginsForUnitTest() {
-        WicketSupport.register(applicationContext)
+        SpringBeans.register(applicationContext)
         initializeActivePlugins(false)
     }
 
@@ -256,7 +256,7 @@ open class PluginAdminService {
             // == null), so a user's plugin right (e.g. PLUGIN_LIQUIDITY_PLANNING = READWRITE) is left out of the
             // rights cache and access is wrongly denied until the next scheduled refresh. Reload now that all
             // plugin rights are known, so those rows are cached from the first request on.
-            WicketSupport.get(UserGroupCache::class.java).forceReload()
+            SpringBeans.get(UserGroupCache::class.java).forceReload()
         }
     }
 

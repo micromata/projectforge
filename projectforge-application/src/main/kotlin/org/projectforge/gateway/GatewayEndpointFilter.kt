@@ -31,6 +31,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
+import org.projectforge.business.address.ContactImageUrl
 import org.projectforge.rest.config.AttachmentCategoryRequests
 import org.projectforge.rest.config.AttachmentCategoryRequests.ATTACHMENTS_URL
 import org.projectforge.rest.config.AttachmentCategoryRequests.BODY_CATEGORY_URLS
@@ -58,6 +59,8 @@ class GatewayEndpointFilter : Filter {
         "/.well-known/carddav",
         "/export/ProjectForge.ics",
         "/rsPublic/datatransfer/",
+        // The contact image of an address under a signed url (GatewayContactImageController).
+        ContactImageUrl.PATH,
         "/api/gateway/sync/",
         "/login/oauth2/",
         "/oauth2/",

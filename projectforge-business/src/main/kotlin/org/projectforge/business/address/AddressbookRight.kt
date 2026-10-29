@@ -29,7 +29,7 @@ import org.projectforge.business.user.UserRightCategory
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 
 /**
  * @author Florian Blumenstein
@@ -43,7 +43,7 @@ class AddressbookRight : BaseUserGroupRight<AddressbookDO>(
      */
     override fun hasSelectAccess(user: PFUserDO?, obj: AddressbookDO): Boolean {
         return super.hasSelectAccess(user, obj)
-                || WicketSupport.getAccessChecker().isUserMemberOfGroup(user, ProjectForgeGroup.ORGA_TEAM)
+                || SpringBeans.getAccessChecker().isUserMemberOfGroup(user, ProjectForgeGroup.ORGA_TEAM)
     }
 
     companion object {

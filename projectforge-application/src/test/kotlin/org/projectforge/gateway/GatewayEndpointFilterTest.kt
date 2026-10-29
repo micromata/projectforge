@@ -62,6 +62,7 @@ class GatewayEndpointFilterTest {
     fun allowsDataTransferPublic() {
         assertAllowed("/rsPublic/datatransfer/download/abc123")
         assertAllowed("/rsPublic/datatransfer/next/state")
+        assertAllowed("/rsPublic/contactImage/dWlk/signature")
     }
 
     @Test

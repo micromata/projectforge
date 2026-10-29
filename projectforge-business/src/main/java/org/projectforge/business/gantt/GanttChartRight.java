@@ -30,7 +30,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.web.WicketSupport;
+import org.projectforge.framework.SpringBeans;
 
 /**
  *
@@ -103,7 +103,7 @@ public class GanttChartRight extends UserRightAccessCheck<GanttChartDO>
 
   private boolean hasAccess(final PFUserDO user, final GanttChartDO obj, final GanttAccess access)
   {
-    var accessChecker = WicketSupport.getAccessChecker();
+    var accessChecker = SpringBeans.getAccessChecker();
     if (accessChecker.userEqualsToContextUser(obj.getOwner())) {
       // Owner has always access:
       return true;

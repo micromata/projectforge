@@ -14,6 +14,7 @@ The documentation for users and administrators is on the website (`site/`, https
 | [major-upgrades.md](major-upgrades.md)                | Plan      | Spring Boot 4 / Hibernate 7 done; Jackson 3 and the remaining majors open             |
 | [kost2-reallocation.md](kost2-reallocation.md)        | Plan      | Retroactive Kost2 reallocation of accounting records; not started                     |
 | [backup-encryption.md](backup-encryption.md)          | Proposal  | Encrypting backups with `age`; not implemented                                        |
+| [digital-business-card.md](digital-business-card.md)  | Plan      | Digital business cards: QR/vCard and photo via gateway done; Apple Wallet pass open    |
 | [ios-app-wails3.md](ios-app-wails3.md)                | Proposal  | iOS chat app with Wails v3: effort estimate and push (APNs) design; not started       |
 | [reviews/pr-391-mcp-server.md](reviews/pr-391-mcp-server.md) | Review | PR #391 remote MCP server: findings, open                                       |
 | [cve-radar-db-reset.md](cve-radar-db-reset.md)        | Temporary | CVE-Radar: drop the plugin tables, restore the imported CVEs; remove once released    |

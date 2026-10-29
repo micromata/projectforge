@@ -27,7 +27,7 @@ import org.projectforge.business.user.*;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.web.WicketSupport;
+import org.projectforge.framework.SpringBeans;
 
 /**
  *
@@ -66,7 +66,7 @@ public class HRPlanningRight extends UserRightAccessCheck<HRPlanningDO>
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final HRPlanningDO obj)
   {
-    var accessChecker = WicketSupport.getAccessChecker();
+    var accessChecker = SpringBeans.getAccessChecker();
     if (accessChecker.userEquals(user, obj.getUser())) {
       return true;
     }
@@ -77,7 +77,7 @@ public class HRPlanningRight extends UserRightAccessCheck<HRPlanningDO>
   public boolean hasAccess(final PFUserDO user, final HRPlanningDO obj, final HRPlanningDO oldObj,
       final OperationType operationType)
   {
-    return WicketSupport.getAccessChecker().hasRight(user, getId(), UserRightValue.READWRITE);
+    return SpringBeans.getAccessChecker().hasRight(user, getId(), UserRightValue.READWRITE);
   }
 
   /**
@@ -88,6 +88,6 @@ public class HRPlanningRight extends UserRightAccessCheck<HRPlanningDO>
   @Override
   public boolean hasHistoryAccess(final PFUserDO user, final HRPlanningDO obj)
   {
-    return WicketSupport.getAccessChecker().hasRight(user, getId(), UserRightValue.READONLY, UserRightValue.READWRITE);
+    return SpringBeans.getAccessChecker().hasRight(user, getId(), UserRightValue.READONLY, UserRightValue.READWRITE);
   }
 }

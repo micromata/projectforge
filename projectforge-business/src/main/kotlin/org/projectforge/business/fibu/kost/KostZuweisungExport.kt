@@ -49,7 +49,7 @@ import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.CurrencyHelper
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
@@ -270,7 +270,7 @@ class KostZuweisungExport {
 
         val filter = QueryFilter()
         filter.addOrder(SortProperty.Companion.desc("lastUpdate"))
-        val list = WicketSupport.get(KontoDao::class.java).select(filter)
+        val list = SpringBeans.get(KontoDao::class.java).select(filter)
 
         val mapping = PropertyMapping()
         for (konto in list) {
