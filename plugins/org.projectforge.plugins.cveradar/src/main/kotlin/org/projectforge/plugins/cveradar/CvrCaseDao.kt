@@ -85,8 +85,6 @@ class CvrCaseDao : CvrBaseDao<CvrCaseDO>(CvrCaseDO::class.java) {
         obj.priorityReason = obj.priorityReason?.trim()?.takeIf { it.isNotEmpty() }
         obj.fixVersion = obj.fixVersion?.trim()?.takeIf { it.isNotEmpty() }
         obj.referenceLinks = CvrReferenceLinks.normalize(obj.referenceLinks)
-        obj.scanPluginIds = CvrCaseDO.splitList(obj.scanPluginIds).joinToString(",").takeIf { it.isNotEmpty() }
-        obj.cveIds = CvrCaseDO.splitList(obj.cveIds).map { it.uppercase() }.joinToString(",").takeIf { it.isNotEmpty() }
         obj.minClientAgentVersion = obj.minClientAgentVersion?.trim()?.takeIf { it.isNotEmpty() }
         obj.clientAgentCheckId = obj.clientAgentCheckId?.trim()?.takeIf { it.isNotEmpty() }
     }

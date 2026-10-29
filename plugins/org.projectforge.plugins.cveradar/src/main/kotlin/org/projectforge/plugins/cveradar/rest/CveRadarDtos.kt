@@ -45,23 +45,12 @@ class CaseRef(
     val clientAdvisory: Boolean,
     val minClientAgentVersion: String?,
     val clientAgentCheckId: String?,
-    val scanPluginIds: String?,
-    val cveIds: String?,
     val closeReason: String?,
 )
 
 class OpenItem(val key: String, val count: Int)
 
 class DeviceCounts(val fixed: Int, val open: Int, val confirmed: Int, val noData: Int, val inactive: Int)
-
-class ScanFindingRow(
-    val pluginId: String?,
-    val pluginName: String?,
-    val severity: Int?,
-    val cveIds: String?,
-    val firstSeen: Date?,
-    val lastSeen: Date?,
-)
 
 class DeviceRow(
     val id: Long,
@@ -72,12 +61,10 @@ class DeviceRow(
     val agentVersion: String?,
     val agentVersionAt: Date?,
     val lastSeen: Date?,
-    val lastScanSync: Date?,
     /** Within the closure overview: the state of the device for the case. */
     val state: CvrCaseStatusService.DeviceState? = null,
     val checkPassed: Boolean? = null,
     val confirmation: CvrClientAnswer? = null,
-    val openFindings: List<ScanFindingRow>,
 )
 
 class TeamCheckRow(

@@ -41,12 +41,6 @@ export const CVR_CASE_METADATA = {
       i18nKey: "created",
       required: false,
     },
-    cveIds: {
-      dataType: "STRING",
-      i18nKey: "plugins.cveradar.case.cveIds",
-      required: false,
-      maxLength: 1000,
-    },
     deleted: {
       dataType: "BOOLEAN",
       i18nKey: "deleted",
@@ -135,12 +129,6 @@ export const CVR_CASE_METADATA = {
       i18nKey: "plugins.cveradar.case.referenceLinks",
       required: false,
       maxLength: 4000,
-    },
-    scanPluginIds: {
-      dataType: "STRING",
-      i18nKey: "plugins.cveradar.case.scanPluginIds",
-      required: false,
-      maxLength: 1000,
     },
     status: {
       dataType: "STRING",

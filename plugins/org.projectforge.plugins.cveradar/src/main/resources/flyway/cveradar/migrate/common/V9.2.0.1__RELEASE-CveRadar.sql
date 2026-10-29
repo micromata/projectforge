@@ -1,6 +1,6 @@
 -- CVE-Radar R0 (dev-docs/requirements/PF-CVR_CVE-Radar_Vulnerability_Management.md): cases (vulnerabilities and incidents)
--- with their fix criteria, team checks, the confirmations of the employees, and the devices with the findings of the
--- vulnerability scanner and the versions/checks of the client agent (filled by the syncs only).
+-- with their fix criteria, team checks, the confirmations of the employees, and the devices with the versions/checks of
+-- the client agent (filled by the sync only).
 CREATE TABLE T_PLUGIN_CVERADAR_CASE
 (
     pk                       BIGINT                      NOT NULL,
@@ -23,8 +23,6 @@ CREATE TABLE T_PLUGIN_CVERADAR_CASE
     client_advisory          BOOLEAN                     NOT NULL,
     min_client_agent_version CHARACTER VARYING(50),
     client_agent_check_id    CHARACTER VARYING(100),
-    scan_plugin_ids          CHARACTER VARYING(1000),
-    cve_ids                  CHARACTER VARYING(1000),
     close_reason             CHARACTER VARYING(4000),
     CONSTRAINT t_plugin_cveradar_case_pkey PRIMARY KEY (pk),
     CONSTRAINT unique_t_plugin_cveradar_case_code UNIQUE (code)
@@ -119,10 +117,7 @@ CREATE TABLE T_PLUGIN_CVERADAR_DEVICE
     username         CHARACTER VARYING(255),
     user_fk          BIGINT,
     hostname         CHARACTER VARYING(255),
-    scan_asset_id    CHARACTER VARYING(50),
-    scan_asset_name  CHARACTER VARYING(255),
     last_seen        TIMESTAMP WITHOUT TIME ZONE,
-    last_scan_sync   TIMESTAMP WITHOUT TIME ZONE,
     agent_version    CHARACTER VARYING(50),
     agent_version_at TIMESTAMP WITHOUT TIME ZONE,
     agent_checks     CHARACTER VARYING(4000),
@@ -138,27 +133,7 @@ CREATE INDEX idx_t_plugin_cveradar_device_serial
 CREATE INDEX idx_t_plugin_cveradar_device_user_fk
     ON T_PLUGIN_CVERADAR_DEVICE (user_fk);
 
-CREATE TABLE T_PLUGIN_CVERADAR_SCAN_FINDING
-(
-    pk          BIGINT                      NOT NULL,
-    device_fk   BIGINT                      NOT NULL,
-    plugin_id   CHARACTER VARYING(50)       NOT NULL,
-    plugin_name CHARACTER VARYING(1000),
-    severity    INTEGER,
-    cve_ids     CHARACTER VARYING(4000),
-    first_seen  TIMESTAMP WITHOUT TIME ZONE,
-    last_seen   TIMESTAMP WITHOUT TIME ZONE,
-    status      CHARACTER VARYING(20)       NOT NULL,
-    resolved_at TIMESTAMP WITHOUT TIME ZONE,
-    CONSTRAINT t_plugin_cveradar_scan_finding_pkey PRIMARY KEY (pk),
-    CONSTRAINT unique_t_plugin_cveradar_scan_finding UNIQUE (device_fk, plugin_id)
-);
-
-ALTER TABLE T_PLUGIN_CVERADAR_SCAN_FINDING
-    ADD CONSTRAINT fk_t_plugin_cveradar_scan_finding_device FOREIGN KEY (device_fk) REFERENCES T_PLUGIN_CVERADAR_DEVICE (pk);
-
 -- Rollback:
--- DROP TABLE IF EXISTS T_PLUGIN_CVERADAR_SCAN_FINDING;
 -- DROP TABLE IF EXISTS T_PLUGIN_CVERADAR_DEVICE;
 -- DROP TABLE IF EXISTS T_PLUGIN_CVERADAR_CONFIRMATION;
 -- DROP TABLE IF EXISTS T_PLUGIN_CVERADAR_RATING;

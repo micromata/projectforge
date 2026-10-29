@@ -30,11 +30,10 @@ import org.projectforge.framework.integration.IntegrationConfig
 import org.projectforge.framework.integration.PooledHttpClients
 
 /**
- * The HTTP calls of the connectors: pooled clients with the timeouts of [IntegrationConfig] (ids [TENABLE],
- * [GRAYLOG], [NVD]) and a size limit of every response (EXT-06, SEC-05). Error messages never contain request headers.
+ * The HTTP calls of the connectors: pooled clients with the timeouts of [IntegrationConfig] (ids [GRAYLOG],
+ * [NVD]) and a size limit of every response (EXT-06, SEC-05). Error messages never contain request headers.
  */
 internal object CveRadarHttp {
-    const val TENABLE = "cveradar-tenable"
     const val GRAYLOG = "cveradar-graylog"
     const val NVD = IntegrationConfig.CVERADAR_NVD
 

@@ -34,7 +34,6 @@ import org.projectforge.plugins.cveradar.model.CvrCaseStatus
 import org.projectforge.plugins.cveradar.model.CvrConfirmationDO
 import org.projectforge.plugins.cveradar.model.CvrDeviceDO
 import org.projectforge.plugins.cveradar.model.CvrRatingDO
-import org.projectforge.plugins.cveradar.model.CvrScanFindingDO
 import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.projectforge.plugins.cveradar.rest.CveRadarRest
@@ -65,7 +64,7 @@ class CvrChatHostTest : CveRadarTestBase() {
     init {
         listOf(
             CvrCaseDO::class.java, CvrTeamCheckDO::class.java, CvrConfirmationDO::class.java, CvrDeviceDO::class.java,
-            CvrScanFindingDO::class.java, CvrVulnerabilityDO::class.java, CvrRatingDO::class.java,
+            CvrVulnerabilityDO::class.java, CvrRatingDO::class.java,
         ).forEach { MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(it.canonicalName) }
     }
 

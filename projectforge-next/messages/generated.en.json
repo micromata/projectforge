@@ -4034,7 +4034,6 @@
         "closeReason": "Reason of closing",
         "code": "Id",
         "codeHint": "CVE id of a vulnerability; an incident without id gets the next one of the year.",
-        "cveIds": "CVE ids",
         "error": {
           "codeExists": "The id {arg0} exists already.",
           "conflict": "This case was changed in the meantime (at {arg0}). Please reload it and repeat your change.",
@@ -4046,9 +4045,6 @@
           "CVE": "Vulnerability (CVE)",
           "INCIDENT": "Incident"
         },
-        "list": {
-          "hint": "Several values separated by commas."
-        },
         "minClientAgentVersion": "Minimum version of the client agent",
         "new": {
           "hint": "The closure overview with team checks and devices is available after the first save."
@@ -4057,7 +4053,6 @@
         "priority": "Priority",
         "priorityReason": "Reason of the priority",
         "referenceLinks": "Own references",
-        "scanPluginIds": "Scanner plugin ids",
         "section": {
           "advisory": "Client advisory",
           "criteria": "Fix criteria",
@@ -4168,7 +4163,6 @@
         "confirmation": "Confirmation",
         "hostname": "Host name",
         "lastSeen": "Last reported",
-        "openFindings": "Open scan findings",
         "serialNumber": "Serial number",
         "state": {
           "CONFIRMED": "Confirmed",
@@ -4316,13 +4310,13 @@
       },
       "live": {
         "devices": {
-          "hint": "All devices as the vulnerability scanner and the log server report them. Personal data: visible to the security team only.",
+          "hint": "All devices as the log server reports them. Personal data: visible to the security team only.",
           "title": "Devices"
         },
         "entry": "Real data:",
         "my": {
           "devices": "My devices",
-          "hint": "The measures to confirm, the open checks of your groups and your devices as the vulnerability scanner and the log server report them.",
+          "hint": "The measures to confirm, the open checks of your groups and your devices as the log server reports them.",
           "noDevices": "No devices reported for you.",
           "teamChecks": "Checks of my groups",
           "title": "My CVE-Radar"

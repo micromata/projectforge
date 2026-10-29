@@ -55,8 +55,6 @@ class CvrCase(
     var clientAdvisory: Boolean = false,
     var minClientAgentVersion: String? = null,
     var clientAgentCheckId: String? = null,
-    var scanPluginIds: String? = null,
-    var cveIds: String? = null,
     var closeReason: String? = null,
 ) : BaseDTO<CvrCaseDO>() {
     override fun copyFrom(src: CvrCaseDO) {
@@ -69,8 +67,6 @@ class CvrCase(
         referenceLinks = src.referenceLinks
         minClientAgentVersion = src.minClientAgentVersion
         clientAgentCheckId = src.clientAgentCheckId
-        scanPluginIds = src.scanPluginIds
-        cveIds = src.cveIds
         closeReason = src.closeReason
     }
 
@@ -108,8 +104,6 @@ class CvrCase(
         dest.clientAdvisory = clientAdvisory
         dest.minClientAgentVersion = minClientAgentVersion
         dest.clientAgentCheckId = clientAgentCheckId
-        dest.scanPluginIds = scanPluginIds
-        dest.cveIds = cveIds
         dest.closeReason = closeReason
     }
 }
