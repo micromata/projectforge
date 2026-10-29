@@ -39,6 +39,11 @@ export interface ListToolbarProps {
    * Absent for a list with no mass update, which has nothing to select for.
    */
   selectionToggle?: ReactNode;
+  /**
+   * The menu of the area the list belongs to (see PageDef.listMenu), the right-most control: the other pages
+   * of the area carry it at the same place, so it doesn't move when one switches between them.
+   */
+  menu?: ReactNode;
   /** Column visibility/pinning panel, rendered once the table instance exists. */
   columnPanel?: ReactNode;
   /** Active filters as editable pills plus the "all filters" trigger. */
@@ -64,6 +69,7 @@ export function ListToolbar({
   experimental,
   actions,
   selectionToggle,
+  menu,
   columnPanel,
   filterPills,
   notice,
@@ -88,6 +94,12 @@ export function ListToolbar({
         </>
       )}
       {addHref && <AddEntryButton href={addHref} />}
+      {menu && (
+        <>
+          <Separator orientation="vertical" className="!h-5 !self-center" />
+          {menu}
+        </>
+      )}
     </>
   );
   return (
