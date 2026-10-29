@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Invoice lists: an invoice that was marked as paid could stay in the filter \"unpaid\" (and in its sums) after a mass update, even after the caches were refreshed.",
+  "de": "Rechnungslisten: eine als bezahlt markierte Rechnung konnte nach einer Massenänderung im Filter \"unbezahlt\" (und in dessen Summen) bleiben, auch nach einem Refresh der Caches."
+}
