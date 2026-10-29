@@ -86,3 +86,43 @@ enum class CvrClientAnswer : I18nEnum {
     override val i18nKey: String
         get() = "plugins.cveradar.clientAnswer.$name"
 }
+
+/** The type of a system of the inventory (INV-03). */
+enum class CvrSystemType : I18nEnum {
+    APPLICATION, SERVER, SAAS, NETWORK, CLIENT;
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.systemType.$name"
+}
+
+/** The criticality of a system (INV-03), inherited downwards (INV-07). */
+enum class CvrCriticality : I18nEnum {
+    LOW, MEDIUM, HIGH, VERY_HIGH;
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.criticality.$name"
+}
+
+/** The confidentiality level of a system (VIS-01), inherited downwards, raised on an instance only (INV-07). */
+enum class CvrConfidentiality : I18nEnum {
+    INTERNAL, CONFIDENTIAL, STRICTLY_CONFIDENTIAL;
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.confidentiality.$name"
+}
+
+/** A technology is a product or an ecosystem (INV-23). */
+enum class CvrTechnologyKind : I18nEnum {
+    PRODUCT, ECOSYSTEM;
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.technologyKind.$name"
+}
+
+/** Where an entry of the inventory comes from (INV-16). */
+enum class CvrOrigin : I18nEnum {
+    MANUAL, SBOM, CI;
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.origin.$name"
+}

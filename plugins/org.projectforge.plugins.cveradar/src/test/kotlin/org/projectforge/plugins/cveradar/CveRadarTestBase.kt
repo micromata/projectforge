@@ -26,8 +26,21 @@ package org.projectforge.plugins.cveradar
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.plugins.cveradar.model.CvrAreaDO
+import org.projectforge.plugins.cveradar.model.CvrCaseDO
+import org.projectforge.plugins.cveradar.model.CvrComponentDO
+import org.projectforge.plugins.cveradar.model.CvrConfirmationDO
+import org.projectforge.plugins.cveradar.model.CvrDeviceDO
+import org.projectforge.plugins.cveradar.model.CvrImportStateDO
+import org.projectforge.plugins.cveradar.model.CvrInstanceDO
+import org.projectforge.plugins.cveradar.model.CvrRatingDO
+import org.projectforge.plugins.cveradar.model.CvrSystemDO
+import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
+import org.projectforge.plugins.cveradar.model.CvrTechnologyDO
+import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -43,6 +56,17 @@ abstract class CveRadarTestBase : AbstractTestBase() {
 
     @Autowired
     private lateinit var testUserGroupCache: UserGroupCache
+
+    init {
+        // All entities of the plugin for every test class: the scan happens once, so the outcome must not depend on
+        // which test class runs first.
+        listOf(
+            CvrCaseDO::class.java, CvrTeamCheckDO::class.java, CvrConfirmationDO::class.java, CvrDeviceDO::class.java,
+            CvrVulnerabilityDO::class.java, CvrImportStateDO::class.java, CvrRatingDO::class.java,
+            CvrAreaDO::class.java, CvrSystemDO::class.java, CvrInstanceDO::class.java, CvrComponentDO::class.java,
+            CvrTechnologyDO::class.java,
+        ).forEach { MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(it.canonicalName) }
+    }
 
     /** A new user with the given role (null: none) in the groups configured for the roles (created on first use). */
     protected fun user(name: String, role: CvrRole?): PFUserDO {
@@ -63,6 +87,9 @@ abstract class CveRadarTestBase : AbstractTestBase() {
         }
         return initTestDB.getUser(username)!!
     }
+
+    /** Makes the user a member of the group (created on first use). */
+    protected fun addToGroup(user: PFUserDO, groupName: String) = addToGroup(user, groupName) {}
 
     private fun addToGroup(user: PFUserDO, groupName: String, configure: (String) -> Unit) {
         val group: GroupDO = initTestDB.getGroup(groupName) ?: initTestDB.addGroup(groupName)

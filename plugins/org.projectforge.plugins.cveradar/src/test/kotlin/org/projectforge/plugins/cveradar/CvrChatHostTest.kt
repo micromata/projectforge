@@ -27,15 +27,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrCaseKind
 import org.projectforge.plugins.cveradar.model.CvrCaseStatus
-import org.projectforge.plugins.cveradar.model.CvrConfirmationDO
-import org.projectforge.plugins.cveradar.model.CvrDeviceDO
-import org.projectforge.plugins.cveradar.model.CvrRatingDO
-import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
-import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.projectforge.plugins.cveradar.rest.CveRadarRest
 import org.projectforge.plugins.cveradar.rest.CloseRequest
 import org.projectforge.plugins.cveradar.rest.TeamCheckRequest
@@ -60,13 +54,6 @@ class CvrChatHostTest : CveRadarTestBase() {
 
     @Autowired
     private lateinit var teamCheckDao: CvrTeamCheckDao
-
-    init {
-        listOf(
-            CvrCaseDO::class.java, CvrTeamCheckDO::class.java, CvrConfirmationDO::class.java, CvrDeviceDO::class.java,
-            CvrVulnerabilityDO::class.java, CvrRatingDO::class.java,
-        ).forEach { MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(it.canonicalName) }
-    }
 
     @Test
     fun `all readers discuss a case, others don't, a closed case is read-only`() {
