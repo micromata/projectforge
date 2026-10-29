@@ -497,6 +497,7 @@
   {"i18nKey":"plugins.cveradar.vuln.tab.overview","bundleName":"CveRadarI18nResources","translation":"Overview","translationDE":"Überblick","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.vuln.tab.ratings","bundleName":"CveRadarI18nResources","translation":"Ratings","translationDE":"Bewertungen","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.vulnerabilities.legend.rejected","bundleName":"CveRadarI18nResources","translation":"Rejected by the NVD","translationDE":"Von der NVD zurückgewiesen","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"plugins.cveradar.vulnerabilities.nvdLink","bundleName":"CveRadarI18nResources","translation":"Open at the NVD","translationDE":"Bei der NVD öffnen","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.vulnerabilities.title","bundleName":"CveRadarI18nResources","translation":"Vulnerabilities (NVD)","translationDE":"Schwachstellen (NVD)","usedInClasses":["org.projectforge.plugins.cveradar.rest.CvrVulnerabilityEntityRest"],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.vulnerabilities.withFindingsOnly","bundleName":"CveRadarI18nResources","translation":"Only with findings","translationDE":"Nur mit Befunden","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.yes","bundleName":"CveRadarI18nResources","translation":"yes","translationDE":"ja","usedInClasses":[],"usedInFiles":[]},

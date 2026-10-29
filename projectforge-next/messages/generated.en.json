@@ -4611,6 +4611,7 @@
         "legend": {
           "rejected": "Rejected by the NVD"
         },
+        "nvdLink": "Open at the NVD",
         "title": "Vulnerabilities (NVD)",
         "withFindingsOnly": "Only with findings"
       },

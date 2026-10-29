@@ -4611,6 +4611,7 @@
         "legend": {
           "rejected": "Von der NVD zurückgewiesen"
         },
+        "nvdLink": "Bei der NVD öffnen",
         "title": "Schwachstellen (NVD)",
         "withFindingsOnly": "Nur mit Befunden"
       },
