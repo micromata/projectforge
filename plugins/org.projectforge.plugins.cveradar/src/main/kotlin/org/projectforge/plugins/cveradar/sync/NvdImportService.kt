@@ -28,9 +28,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.plugins.cveradar.CveRadarConfig
+import org.projectforge.plugins.cveradar.CvrCaseDao
+import org.projectforge.plugins.cveradar.CvrVulnerabilityDao
 import org.projectforge.plugins.cveradar.model.CvrImportStateDO
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
-import org.projectforge.plugins.cveradar.CvrVulnerabilityDao
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.ByteArrayOutputStream
@@ -59,6 +60,9 @@ class NvdImportService {
 
     @Autowired
     private lateinit var nvdApiClient: NvdApiClient
+
+    @Autowired
+    private lateinit var caseDao: CvrCaseDao
 
     @Autowired
     private lateinit var vulnerabilityDao: CvrVulnerabilityDao
@@ -126,6 +130,7 @@ class NvdImportService {
             copy(cve, vulnerability)
             vulnerabilityDao.insert(vulnerability, checkAccess = false)
             vulnerabilityDao.reindex(vulnerability)
+            caseDao.linkToVulnerability(vulnerability)
             result.created++
             return
         }
@@ -184,6 +189,7 @@ class NvdImportService {
             dest.cvss40Severity = cve.cvss4?.severity
             dest.cvss40Vector = cve.cvss4?.vector
             dest.cwes = cve.cwes.joinToString(", ").take(CvrVulnerabilityDO.CWES_LENGTH).ifEmpty { null }
+            dest.kevAdded = cve.kevAdded?.let { Date.from(it) }
             dest.rawDocument = gzip(cve.rawJson)
         }
 

@@ -24,8 +24,6 @@
 package org.projectforge.plugins.cveradar
 
 import org.projectforge.business.user.UserGroupCache
-import org.projectforge.business.user.UserRightValue
-import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.core.PluginAdminService
@@ -33,18 +31,20 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 /**
- * Who may do what in the CVE-Radar (R0):
- * - security team (ST): read-write right; sees and edits everything, incl. the devices of all persons (VIS-15),
- * - readers (e.g. management): read-only right; cases and the closure overview with counts only, no persons,
- * - security officer (SO): a member of the configured group ([CveRadarConfig.securityOfficerGroup]) with the
- *   read-write right; closes a case with open items (CLS-05),
- * - everybody: the own devices and the confirmation of client measures (CLS-04).
+ * Who may do what in the CVE-Radar: the roles are given by membership in PF groups, named in the configuration
+ * ([CveRadarConfig.readGroup], [CveRadarConfig.writeGroup], [CveRadarConfig.securityOfficerGroup]). The roles build on
+ * each other, [roles] is the only place deciding them:
+ * - [CvrRole.READER] (e.g. management): reads the vulnerabilities, cases, ratings, measures, the closure overview with
+ *   counts only (no persons), discusses in the case discussion,
+ * - [CvrRole.SECURITY_TEAM] (ST): edits everything, sees the devices of all persons (VIS-15), moderates the chats,
+ * - [CvrRole.SECURITY_OFFICER] (SO): additionally closes a case with open items (CLS-05) and sets the binding priority
+ *   of cases of others,
+ * - everybody: the own devices and the confirmation of client measures (CLS-04), the team checks of the own groups.
+ *
+ * A group that isn't configured or doesn't exist grants nothing; the PF admin role alone grants no access (VIS-05).
  */
 @Service
 class CveRadarAccess {
-    @Autowired
-    private lateinit var accessChecker: AccessChecker
-
     @Autowired
     private lateinit var config: CveRadarConfig
 
@@ -59,26 +59,37 @@ class CveRadarAccess {
      * only, and an inactive plugin answers nothing.
      */
     fun checkPluginActive() {
-        if (!pluginAdminService.isActive(PluginAdminService.PLUGIN_CVE_RADAR_ID)) {
+        if (!isPluginActive()) {
             throw AccessException(NO_ACCESS)
         }
     }
 
-    fun isSecurityTeam(user: PFUserDO): Boolean {
-        return accessChecker.hasRight(user, CveRadarRightId.PLUGIN_CVERADAR, false, UserRightValue.READWRITE)
-    }
+    fun isPluginActive(): Boolean = pluginAdminService.isActive(PluginAdminService.PLUGIN_CVE_RADAR_ID)
 
-    fun isReader(user: PFUserDO): Boolean {
-        return accessChecker.hasRight(
-            user, CveRadarRightId.PLUGIN_CVERADAR, false, UserRightValue.READONLY, UserRightValue.READWRITE,
-        )
-    }
-
-    fun isSecurityOfficer(user: PFUserDO): Boolean {
-        if (!isSecurityTeam(user)) {
-            return false
+    /** The roles of the user, each one including the weaker ones. */
+    fun roles(user: PFUserDO): Set<CvrRole> {
+        val roles = mutableSetOf<CvrRole>()
+        if (isMemberOfNamed(user, config.readGroup)) {
+            roles.add(CvrRole.READER)
         }
-        val name = config.securityOfficerGroup.takeIf { it.isNotBlank() } ?: return false
+        if (isMemberOfNamed(user, config.writeGroup)) {
+            roles.add(CvrRole.READER)
+            roles.add(CvrRole.SECURITY_TEAM)
+        }
+        if (isMemberOfNamed(user, config.securityOfficerGroup)) {
+            roles.addAll(CvrRole.entries)
+        }
+        return roles
+    }
+
+    fun isSecurityTeam(user: PFUserDO): Boolean = CvrRole.SECURITY_TEAM in roles(user)
+
+    fun isReader(user: PFUserDO): Boolean = CvrRole.READER in roles(user)
+
+    fun isSecurityOfficer(user: PFUserDO): Boolean = CvrRole.SECURITY_OFFICER in roles(user)
+
+    private fun isMemberOfNamed(user: PFUserDO, groupName: String): Boolean {
+        val name = groupName.trim().takeIf { it.isNotEmpty() } ?: return false
         val group = userGroupCache.getGroupByName(name) ?: return false
         return userGroupCache.isUserMemberOfGroup(user.id, group.id)
     }

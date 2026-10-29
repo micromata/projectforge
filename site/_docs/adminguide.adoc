@@ -1741,27 +1741,40 @@ Activate the plugin `cveradar` under _Administration_ -> _Plugins_ (or with
 [[cve_radar_rights]]
 ==== Rights and roles
 
-The right _CVE-Radar_ is given per user (edit the user, _Edit user rights_):
+The roles are PF groups; their names are configured (see <<cve_radar_settings>>), the groups themselves are created and
+maintained like any other group under _Administration_ -> _Groups_. Each role includes the weaker ones, a group that
+isn't configured or doesn't exist gives nobody the role, and the PF admin role alone grants no access to the CVE-Radar.
 
-[cols="1,3"]
+[cols="1,1,3"]
 |===
-|Right |Who and what
+|Role |Property |Who and what
 
-|_Read and write_
-|The security team: cases, team checks, the devices with their persons, closing of cases, the vulnerabilities from the NVD.
+|Readers
+|`readGroup`, e.g. `cve-read`
+|E.g. the management: the vulnerabilities from the NVD, cases with their ratings and measures, the closure overviews
+(counts only, no persons, no devices). They take part in the discussion of a case.
 
-|_Read-only_
-|Readers, e.g. the management: the vulnerabilities from the NVD, cases and closure overviews, as counts only (no persons, no devices).
+|Security team
+|`writeGroup`, e.g. `cve-read-write`
+|Opens, takes over and assigns cases, rates, sets the status and the measures, requests team checks, sees the devices
+with their persons, moderates the discussions.
 
-|none
-|Every employee: on _My CVE-Radar_ the own devices, the cases released to the clients (to confirm the measures) and the
-team checks of the own groups.
+|Security officers
+|`securityOfficerGroup`
+|Additionally set the binding priority of cases of others and close a case with open items (with a reason).
+
+|everybody
+|
+|On _My CVE-Radar_ the own devices, the cases released to the clients (to confirm the measures) and the team checks of
+the own groups.
 |===
 
-* Security officers are the members of the group named in `projectforge.plugin.cveradar.securityOfficerGroup`; they need
-  the right _Read and write_ as well. Only they close a case with open items (with a reason). If the property is empty,
-  nobody may.
-* A team check is answered by the members of the requested group, no CVE-Radar right is needed for it.
+* The binding priority of a case is set, with a reason, by its assignee, or by a security officer. While nobody is
+  assigned, any member of the security team may; they become the assignee.
+* A team check is answered by the members of the requested group, no CVE-Radar group is needed for it. The file of a
+  team check, with its own discussion, is open to this group, the security team and the security officers only.
+* The discussion of a case is open to all readers. Project and system details belong into the file of a team check, not
+  there.
 
 [[cve_radar_settings]]
 ==== General settings
@@ -1777,7 +1790,9 @@ projectforge.plugin.cveradar.caseIdPrefix=INC
 projectforge.plugin.cveradar.clientActiveDays=30
 # Devices not reported for more days are deleted with their scan findings (personal data).
 projectforge.plugin.cveradar.deviceRetentionDays=365
-# PF group of the security officers.
+# PF groups of the roles (see above).
+projectforge.plugin.cveradar.readGroup=cve-read
+projectforge.plugin.cveradar.writeGroup=cve-read-write
 projectforge.plugin.cveradar.securityOfficerGroup=security-officers
 ----
 
@@ -1869,7 +1884,7 @@ projectforge.plugin.cveradar.nvd.cron=0 17 */2 * * *
 * The score is the one of the NVD; as long as the NVD hasn't rated a vulnerability, the score of the assigning
   authority (CNA) counts. A vulnerability without any score is imported as soon as it is rated.
 * A stored vulnerability is always updated, also when the NVD rejects it (shown struck through) or rates it lower.
-* Reading the list needs the right _CVE-Radar_ (see <<cve_radar_rights>>).
+* Reading the list needs a role of the CVE-Radar (see <<cve_radar_rights>>). A row opens the file of the vulnerability.
 * The API key is sent as header only and is never logged or shown by the properties editor.
 
 [[cve_radar_jobs]]
@@ -1887,6 +1902,25 @@ projectforge.plugin.cveradar.nvd.cron=0 17 */2 * * *
 * An outgoing proxy isn't supported yet: ProjectForge must reach both hosts directly.
 * Keys and the token are never shown by the properties editor. Instead of `projectforge.properties` they may be given
   as environment variables, e.g. `PROJECTFORGE_PLUGIN_CVERADAR_TENABLE_SECRETKEY`.
+
+[[cve_radar_file]]
+==== The file of a CVE
+
+A row of the list of vulnerabilities opens the file of the CVE: the NVD data (the remediation hints of the references
+apart from the others), the ratings, the measures, the discussion and the team checks.
+
+* *Opening:* At first the file is the NVD page only. The first click on _Open file_ (or on _Start the discussion_) creates
+  the case of the CVE; all readers may. The NVD import changes nothing of the case.
+* *Rating:* Every member of the security team gives a rating of their own (priority, exploitability here, reason);
+  they stand side by side, deviations are marked. The suggested priority comes from the CVSS score, a listing in the
+  CISA KEV catalogue raises it by one step. The binding priority is set by the assignee or a security officer, with a
+  reason.
+* *Measures:* Fix version, workaround, own references (http and https links only) and the measures for techies and
+  non-techies as formatted text.
+* *Editing at the same time:* If someone changed the case meanwhile, the server refuses the change; the file is reloaded
+  and the change repeated.
+* *Discussion:* The chat of the file is open to all readers. Team checks have a file of their own with a discussion of
+  its own, which only the asked group, the security team and the security officers see.
 
 [[cve_radar_first_case]]
 ==== A first case without connectors

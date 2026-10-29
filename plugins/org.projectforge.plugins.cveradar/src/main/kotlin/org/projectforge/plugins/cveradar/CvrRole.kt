@@ -23,23 +23,7 @@
 
 package org.projectforge.plugins.cveradar
 
-import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
-import org.projectforge.business.user.HibernateSearchUserRightIdTypeBinder
-import org.projectforge.framework.persistence.api.IUserRightId
-
-/**
- * The right of the CVE-Radar (NFR-06): read-write for the security team, read-only for the overview (e.g.
- * management, auditors). Given per user; the PF admin role alone grants nothing (VIS-05).
- */
-@Indexed
-@TypeBinding(binder = TypeBinderRef(type = HibernateSearchUserRightIdTypeBinder::class))
-enum class CveRadarRightId(override val id: String, override val orderString: String, override val i18nKey: String) :
-    IUserRightId {
-    PLUGIN_CVERADAR("PLUGIN_CVERADAR", "plugin50", "plugins.cveradar.right");
-
-    override fun toString(): String {
-        return id
-    }
+/** The roles of the CVE-Radar, given by PF groups ([CveRadarAccess.roles]); each one includes the weaker ones. */
+enum class CvrRole {
+    READER, SECURITY_TEAM, SECURITY_OFFICER
 }

@@ -1025,8 +1025,10 @@
         "_": "Files available",
         "info": "The files of the room are kept that long in its data transfer area \"Chat: …\", then they are deleted."
       },
+      "next": "Next image",
       "notAvailable": "File no longer available",
       "openArea": "Open in data transfer",
+      "previous": "Previous image",
       "remove": "Remove file"
     },
     "linkHint": "Chat and encrypted communication",
@@ -1618,6 +1620,15 @@
           }
         },
         "chart": {
+          "breakdown": {
+            "_": "Breakdown of the forecast",
+            "fixed": "Commissioned fixed price / flat rate",
+            "ist": "Invoiced",
+            "planned": "thereof invoice planned",
+            "timeAndMaterials": "Commissioned time & materials (run rate)",
+            "total": "Forecast incl. invoiced",
+            "weighted": "Not yet commissioned (weighted)"
+          },
           "cumulative": "Revenue forecast cumulated",
           "empty": "Neither order positions nor invoices found for the forecast.",
           "ist": "Invoiced",
@@ -2406,11 +2417,13 @@
       "projektnummer": "Project number",
       "status": {
         "acquisition": "acquisition",
+        "active": "active",
         "build": "build phase",
         "ended": "ended",
         "maintenance": "maintenance",
         "none": "none",
         "onhold": "on hold",
+        "paused": "paused",
         "productive": "productive (without maintenance)"
       },
       "title": {
@@ -3968,8 +3981,10 @@
         "cveIds": "CVE ids",
         "error": {
           "codeExists": "The id {arg0} exists already.",
+          "conflict": "This case was changed in the meantime (at {arg0}). Please reload it and repeat your change.",
           "cveId": "A CVE needs its CVE id, e.g. CVE-2026-12345."
         },
+        "fixVersion": "Fix version",
         "kind": {
           "_": "Kind",
           "CVE": "Vulnerability (CVE)",
@@ -3984,19 +3999,26 @@
         },
         "nonTechMeasures": "Measures for non-techies",
         "priority": "Priority",
+        "priorityReason": "Reason of the priority",
+        "referenceLinks": "Own references",
         "scanPluginIds": "Scanner plugin ids",
         "section": {
+          "advisory": "Client advisory",
           "criteria": "Fix criteria",
           "general": "Case",
           "measures": "Measures"
         },
         "status": "Status",
-        "techMeasures": "Measures for techies"
+        "techMeasures": "Measures for techies",
+        "workaround": "Workaround"
       },
       "cases": {
         "add": "New case",
         "edit": "Edit case",
         "list": "Cases"
+      },
+      "chat": {
+        "caseNotice": "Everybody with access to the CVE-Radar reads along here. Please name no details of projects or systems: those belong in the file of the team check, which only the asked group, the security team and the security officer see."
       },
       "clientAnswer": {
         "DONE": "Done",
@@ -4137,6 +4159,40 @@
         "MEDIUM": "medium",
         "NONE": "none"
       },
+      "file": {
+        "assignInfo": "Only active members of the security team can be assigned.",
+        "chatUnavailable": "The discussion isn't available.",
+        "closure": "Closure overview",
+        "error": {
+          "action": "This action isn't possible.",
+          "assignee": "The assignee must be an active member of the security team.",
+          "closed": "The case is closed.",
+          "massFailed": "Could not be saved, see the log.",
+          "massLimit": "At most {arg0} vulnerabilities at once.",
+          "priorityReason": "The binding priority needs a reason.",
+          "priorityRights": "The binding priority is set by the assignee or the security officer.",
+          "reassignRights": "The case is assigned to somebody else: it is handed over by its assignee or the security officer.",
+          "status": "This status can't be set here. Close as not relevant with a reason, or from the closure overview."
+        },
+        "noCaseYet": "Nobody has opened a file for this vulnerability yet. The discussion starts with it.",
+        "open": "Open file",
+        "openFirst": "Open the file first (button above).",
+        "openTeamCheck": "Open file",
+        "priorityInfo": "The binding priority is set by the assignee or the security officer. Without an assignee you become it.",
+        "setPriority": "Set binding priority…",
+        "startDiscussion": "Open the file and start the discussion",
+        "suggested": "suggested",
+        "tab": {
+          "discussion": "Discussion",
+          "measures": "Measures",
+          "overview": "NVD data",
+          "ratings": "Ratings",
+          "teamChecks": "Team checks"
+        },
+        "teamChecksInfo": "Projects and systems are discussed in the file of a team check. Only the asked group, the security team and the security officer see it.",
+        "teamChecksNone": "No team checks yet.",
+        "title": "CVE file"
+      },
       "filter": {
         "all": "All",
         "technology": {
@@ -4240,10 +4296,12 @@
         "reset": "Reset deviation"
       },
       "measures": {
+        "edit": "Edit measures",
         "fixVersion": "Fix version",
         "nonTechMeasures": "Measures for non-techies",
         "none": "Not yet described.",
         "remediation": "Remediation",
+        "save": "Save measures",
         "techMeasures": "Measures for techies",
         "workaround": "Workaround"
       },
@@ -4306,8 +4364,14 @@
         },
         "title": "Questions & answers"
       },
+      "rating": {
+        "exploitability": "Exploitability here",
+        "reason": "Reason"
+      },
       "ratings": {
         "binding": "Binding priority {arg0}: {arg1}",
+        "count": "Ratings",
+        "delete": "Delete my rating",
         "deviates": "Deviates from the binding priority",
         "deviatesSuggestion": "Deviates from the suggestion",
         "exploitability": "Exploitability here",
@@ -4318,7 +4382,6 @@
         "save": "Save rating"
       },
       "reason": "Reason",
-      "right": "CVE-Radar",
       "role": {
         "CA": "CVE-Radar admin",
         "EMPLOYEE": "Employee",
@@ -4442,6 +4505,11 @@
         "reason": "Reason",
         "subject": "Project or system"
       },
+      "teamCheckFile": {
+        "info": "Team check of {arg0}, asked of the group {arg1}. Here projects and systems may be named: only this group, the security team and the security officer see this file.",
+        "title": "Team check",
+        "toCase": "To the file of the CVE"
+      },
       "title": "CVE-Radar",
       "tree": {
         "collapse": "Collapse",
@@ -4474,6 +4542,7 @@
         "cvss40Vector": "Vector CVSS 4.0",
         "cwe": "CWE",
         "description": "Description (NVD)",
+        "kev": "Known exploited (KEV) since",
         "modified": "Modified",
         "nvdStatus": "NVD status",
         "references": "Other references",
@@ -5862,7 +5931,6 @@
           "tooltip": "Runs some sanity checks (structure tree, data transfer, etc.)."
         },
         "clearAlertMessage": "Clear alert message",
-        "createJcrBackupZip": "Create JCR backup ZIP",
         "createMissingDatabaseIndices": {
           "_": "Create database indices",
           "tooltip": "Creates missing database indices. You can call this script time by time to ensure that there is now missing database indice which may decrease the system's performance. Usually the database indices are created automatically after any update."
@@ -5885,7 +5953,6 @@
             "tooltip": "Insert your log file snippets here."
           }
         },
-        "migrateJcrFiles": "Migrate files out of the JCR",
         "optimizeAddressImages": {
           "_": "Optimize address images",
           "question": "Do you really want to shrink and rebuild all address images? On large systems this may take a while.",
@@ -5935,7 +6002,6 @@
           "checks": "Checks",
           "databaseActions": "Database actions",
           "development": "Development",
-          "jcr": "Document repository (JCR)",
           "misc": {
             "logEntries": "Format log entries"
           },
@@ -5943,19 +6009,6 @@
           "systemChecksAndFunctionality": {
             "configuration": "Configuration"
           }
-        }
-      },
-      "jcr": {
-        "createJcrBackupZip": {
-          "info": "Writes a backup ZIP of all documents (without DataTransfer files) into the backup directory. The next release imports the documents from this ZIP into the database, so create a fresh one right before the update."
-        },
-        "migrateJcrFiles": {
-          "info": "Copies all files out of the JCR into the file store (documents into the database, DataTransfer files into the file system). The JCR keeps them, so switching back or a rollback to the former release is possible. Files already migrated are skipped, so it may run again. Each file is verified by size and checksum; the report is written to jcr-migration-report.txt in the ProjectForge home directory.",
-          "question": "Migrate the files out of the JCR now? With large data volumes this takes a while."
-        },
-        "store": {
-          "db": "Files are stored in the file store (projectforge.files.store=db): documents in the database, DataTransfer files in the file system. Files not yet migrated are still read from the JCR; the migration starts automatically on start-up until a run finished without errors.",
-          "jcr": "All files are stored in the JCR (projectforge.files.store=jcr). To switch, set projectforge.files.store=db in projectforge.properties and restart; the files are migrated then."
         }
       },
       "logViewer": {

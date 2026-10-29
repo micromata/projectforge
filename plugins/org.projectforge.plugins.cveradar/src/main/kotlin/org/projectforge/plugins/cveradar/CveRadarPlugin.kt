@@ -50,7 +50,6 @@ class CveRadarPlugin : AbstractPlugin(ID, "CVE-Radar", "Vulnerability management
             VULNERABILITY_CATEGORY, CvrVulnerabilityDao::class.java, WicketSupport.get(CvrVulnerabilityDao::class.java),
             "plugins.cveradar.vulnerability",
         )
-        registerRight(CveRadarRight())
         val menuCreator = WicketSupport.get(MenuCreator::class.java)
         // A new page of projectforge-next without a legacy version, so no PageRoutes entry:
         menuCreator.register(MenuItemDefId.MISC, MenuItemDef(info.id, "plugins.cveradar.menu", "next/cveradar"))

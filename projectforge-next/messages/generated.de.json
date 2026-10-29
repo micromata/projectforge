@@ -1025,8 +1025,10 @@
         "_": "Dateien verfügbar",
         "info": "Die Dateien des Raums werden so lange in seinem Datentransferbereich „Chat: …“ aufbewahrt und danach gelöscht."
       },
+      "next": "Nächstes Bild",
       "notAvailable": "Datei nicht mehr verfügbar",
       "openArea": "Im Datentransfer öffnen",
+      "previous": "Vorheriges Bild",
       "remove": "Datei entfernen"
     },
     "linkHint": "Chat und verschlüsselte Kommunikation",
@@ -1618,6 +1620,15 @@
           }
         },
         "chart": {
+          "breakdown": {
+            "_": "Aufschlüsselung der Prognose",
+            "fixed": "Beauftragt Festpreis / Pauschale",
+            "ist": "Fakturiert",
+            "planned": "davon Rechnung geplant",
+            "timeAndMaterials": "Beauftragt Time & Materials (Run-Rate)",
+            "total": "Prognose inkl. fakturiert",
+            "weighted": "Noch nicht beauftragt (gewichtet)"
+          },
           "cumulative": "Umsatzprognose kumuliert",
           "empty": "Weder Auftragspositionen noch Rechnungen für den Forecast gefunden.",
           "ist": "IST",
@@ -2406,11 +2417,13 @@
       "projektnummer": "Projektnummer",
       "status": {
         "acquisition": "Akquise",
+        "active": "aktiv",
         "build": "Entwicklungsphase",
         "ended": "beendet",
         "maintenance": "Wartung",
         "none": "Nicht gesetzt.",
         "onhold": "vorrübergehend (noch) nicht aktiv",
+        "paused": "pausiert",
         "productive": "produktiv (ohne Wartung)"
       },
       "title": {
@@ -3968,8 +3981,10 @@
         "cveIds": "CVE-IDs",
         "error": {
           "codeExists": "Die Kennung {arg0} gibt es schon.",
+          "conflict": "Dieser Fall wurde inzwischen geändert (um {arg0}). Bitte neu laden und die Änderung wiederholen.",
           "cveId": "Eine CVE braucht ihre CVE-ID, z. B. CVE-2026-12345."
         },
+        "fixVersion": "Fix-Version",
         "kind": {
           "_": "Art",
           "CVE": "Schwachstelle (CVE)",
@@ -3984,19 +3999,26 @@
         },
         "nonTechMeasures": "Maßnahmen für Non-Techies",
         "priority": "Priorität",
+        "priorityReason": "Begründung der Priorität",
+        "referenceLinks": "Eigene Referenzen",
         "scanPluginIds": "Plugin-IDs des Scanners",
         "section": {
+          "advisory": "Client-Hinweis",
           "criteria": "Behebungskriterien",
           "general": "Fall",
           "measures": "Maßnahmen"
         },
         "status": "Status",
-        "techMeasures": "Maßnahmen für Techies"
+        "techMeasures": "Maßnahmen für Techies",
+        "workaround": "Workaround"
       },
       "cases": {
         "add": "Neuer Fall",
         "edit": "Fall bearbeiten",
         "list": "Fälle"
+      },
+      "chat": {
+        "caseNotice": "Hier lesen alle mit Zugang zum CVE-Radar mit. Bitte keine Details zu Projekten oder Systemen nennen: Die gehören in die Akte der Team-Prüfung, die nur die gefragte Gruppe, das Security-Team und der Security Officer sehen."
       },
       "clientAnswer": {
         "DONE": "Erledigt",
@@ -4137,6 +4159,40 @@
         "MEDIUM": "mittel",
         "NONE": "keine"
       },
+      "file": {
+        "assignInfo": "Zugewiesen werden können nur aktive Mitglieder des Security-Teams.",
+        "chatUnavailable": "Die Diskussion ist nicht verfügbar.",
+        "closure": "Abschlussübersicht",
+        "error": {
+          "action": "Diese Aktion ist nicht möglich.",
+          "assignee": "Bearbeiter:in muss ein aktives Mitglied des Security-Teams sein.",
+          "closed": "Der Fall ist geschlossen.",
+          "massFailed": "Konnte nicht gespeichert werden, siehe Log.",
+          "massLimit": "Höchstens {arg0} Schwachstellen auf einmal.",
+          "priorityReason": "Die verbindliche Priorität braucht eine Begründung.",
+          "priorityRights": "Die verbindliche Priorität setzen die bearbeitende Person oder der Security Officer.",
+          "reassignRights": "Der Fall ist jemand anderem zugewiesen: Abgeben können ihn nur die bearbeitende Person oder der Security Officer.",
+          "status": "Dieser Status lässt sich hier nicht setzen. Als nicht relevant mit Begründung schließen oder über die Abschlussübersicht."
+        },
+        "noCaseYet": "Zu dieser Schwachstelle wurde noch keine Akte geöffnet. Mit ihr beginnt die Diskussion.",
+        "open": "Akte öffnen",
+        "openFirst": "Zuerst die Akte öffnen (Button oben).",
+        "openTeamCheck": "Akte öffnen",
+        "priorityInfo": "Die verbindliche Priorität setzen die bearbeitende Person oder der Security Officer. Ohne Bearbeiter:in wirst du es.",
+        "setPriority": "Verbindliche Priorität setzen…",
+        "startDiscussion": "Akte öffnen und Diskussion beginnen",
+        "suggested": "Vorschlag",
+        "tab": {
+          "discussion": "Diskussion",
+          "measures": "Maßnahmen",
+          "overview": "NVD-Daten",
+          "ratings": "Bewertungen",
+          "teamChecks": "Team-Prüfungen"
+        },
+        "teamChecksInfo": "Projekte und Systeme werden in der Akte einer Team-Prüfung besprochen. Sie sehen nur die gefragte Gruppe, das Security-Team und der Security Officer.",
+        "teamChecksNone": "Noch keine Team-Prüfungen.",
+        "title": "CVE-Akte"
+      },
       "filter": {
         "all": "Alle",
         "technology": {
@@ -4240,10 +4296,12 @@
         "reset": "Abweichung zurücksetzen"
       },
       "measures": {
+        "edit": "Maßnahmen bearbeiten",
         "fixVersion": "Fix-Version",
         "nonTechMeasures": "Maßnahmen für Nicht-Techies",
         "none": "Noch nicht beschrieben.",
         "remediation": "Behebung",
+        "save": "Maßnahmen speichern",
         "techMeasures": "Maßnahmen für Techies",
         "workaround": "Workaround"
       },
@@ -4306,8 +4364,14 @@
         },
         "title": "Fragen & Antworten"
       },
+      "rating": {
+        "exploitability": "Ausnutzbarkeit hier",
+        "reason": "Begründung"
+      },
       "ratings": {
         "binding": "Verbindliche Priorität {arg0}: {arg1}",
+        "count": "Bewertungen",
+        "delete": "Meine Bewertung löschen",
         "deviates": "Weicht von der verbindlichen Priorität ab",
         "deviatesSuggestion": "Weicht vom Vorschlag ab",
         "exploitability": "Ausnutzbarkeit bei uns",
@@ -4318,7 +4382,6 @@
         "save": "Bewertung speichern"
       },
       "reason": "Begründung",
-      "right": "CVE-Radar",
       "role": {
         "CA": "CVE-Radar-Admin",
         "EMPLOYEE": "Mitarbeiter:in",
@@ -4442,6 +4505,11 @@
         "reason": "Begründung",
         "subject": "Projekt oder System"
       },
+      "teamCheckFile": {
+        "info": "Team-Prüfung zu {arg0}, gefragt ist die Gruppe {arg1}. Hier dürfen Projekte und Systeme genannt werden: Diese Akte sehen nur diese Gruppe, das Security-Team und der Security Officer.",
+        "title": "Team-Prüfung",
+        "toCase": "Zur Akte der CVE"
+      },
       "title": "CVE-Radar",
       "tree": {
         "collapse": "Zuklappen",
@@ -4474,6 +4542,7 @@
         "cvss40Vector": "Vektor CVSS 4.0",
         "cwe": "CWE",
         "description": "Beschreibung (NVD)",
+        "kev": "Aktiv ausgenutzt (KEV) seit",
         "modified": "Geändert",
         "nvdStatus": "NVD-Status",
         "references": "Weitere Referenzen",
@@ -5862,7 +5931,6 @@
           "tooltip": "Runs some sanity checks (structure tree, data transfer, etc.)."
         },
         "clearAlertMessage": "Clear alert message",
-        "createJcrBackupZip": "JCR-Backup-ZIP erzeugen",
         "createMissingDatabaseIndices": {
           "_": "Create database indices",
           "tooltip": "Creates missing database indices. You can call this script time by time to ensure that there is now missing database indice which may decrease the system's performance. Usually the database indices are created automatically after any update."
@@ -5885,7 +5953,6 @@
             "tooltip": "Insert your log file snippets here."
           }
         },
-        "migrateJcrFiles": "Dateien aus dem JCR übernehmen",
         "optimizeAddressImages": {
           "_": "Adressbilder optimieren",
           "question": "Sollen wirklich alle Adressbilder verkleinert und neu erzeugt werden? Auf großen Systemen kann dies eine Weile dauern.",
@@ -5935,7 +6002,6 @@
           "checks": "Prüfungen",
           "databaseActions": "Datenbank-Aktionen",
           "development": "Entwicklung",
-          "jcr": "Dokumenten-Repository (JCR)",
           "misc": {
             "logEntries": "Format log entries"
           },
@@ -5943,19 +6009,6 @@
           "systemChecksAndFunctionality": {
             "configuration": "Konfiguration"
           }
-        }
-      },
-      "jcr": {
-        "createJcrBackupZip": {
-          "info": "Schreibt ein Backup-ZIP aller Dokumente (ohne DataTransfer-Dateien) in das Backup-Verzeichnis. Das nächste Release importiert die Dokumente aus diesem ZIP in die Datenbank, daher am besten direkt vor dem Update ein frisches erzeugen."
-        },
-        "migrateJcrFiles": {
-          "info": "Kopiert alle Dateien aus dem JCR in den neuen Datei-Store (Dokumente in die Datenbank, DataTransfer-Dateien ins Dateisystem). Das JCR behält sie, ein Zurückschalten oder ein Rollback auf das vorherige Release ist also möglich. Bereits übernommene Dateien werden übersprungen, ein erneuter Lauf ist also möglich. Jede Datei wird über Größe und Checksumme geprüft; der Report liegt in jcr-migration-report.txt im ProjectForge-Home-Verzeichnis.",
-          "question": "Sollen die Dateien jetzt aus dem JCR übernommen werden? Bei großen Datenmengen dauert das eine Weile."
-        },
-        "store": {
-          "db": "Dateien liegen im neuen Datei-Store (projectforge.files.store=db): Dokumente in der Datenbank, DataTransfer-Dateien im Dateisystem. Noch nicht übernommene Dateien werden weiter aus dem JCR gelesen; die Übernahme startet beim Start automatisch, bis ein Lauf ohne Fehler durchgelaufen ist.",
-          "jcr": "Alle Dateien liegen im JCR (projectforge.files.store=jcr). Zum Umschalten projectforge.files.store=db in projectforge.properties setzen und neu starten; die Dateien werden dann übernommen."
         }
       },
       "logViewer": {

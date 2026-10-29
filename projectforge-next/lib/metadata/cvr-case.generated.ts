@@ -58,6 +58,12 @@ export const CVR_CASE_METADATA = {
       required: false,
       maxLength: 20000,
     },
+    fixVersion: {
+      dataType: "STRING",
+      i18nKey: "plugins.cveradar.case.fixVersion",
+      required: false,
+      maxLength: 255,
+    },
     id: {
       dataType: "LONG",
       i18nKey: "id",
@@ -118,6 +124,18 @@ export const CVR_CASE_METADATA = {
         },
       ],
     },
+    priorityReason: {
+      dataType: "STRING",
+      i18nKey: "plugins.cveradar.case.priorityReason",
+      required: false,
+      maxLength: 4000,
+    },
+    referenceLinks: {
+      dataType: "STRING",
+      i18nKey: "plugins.cveradar.case.referenceLinks",
+      required: false,
+      maxLength: 4000,
+    },
     scanPluginIds: {
       dataType: "STRING",
       i18nKey: "plugins.cveradar.case.scanPluginIds",
@@ -166,6 +184,12 @@ export const CVR_CASE_METADATA = {
       i18nKey: "title",
       required: true,
       maxLength: 1000,
+    },
+    workaround: {
+      dataType: "STRING",
+      i18nKey: "plugins.cveradar.case.workaround",
+      required: false,
+      maxLength: 20000,
     },
   },
 } as const satisfies EntityMetadata;

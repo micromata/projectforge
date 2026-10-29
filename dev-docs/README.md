@@ -16,6 +16,7 @@ The documentation for users and administrators is on the website (`site/`, https
 | [backup-encryption.md](backup-encryption.md)          | Proposal  | Encrypting backups with `age`; not implemented                                        |
 | [ios-app-wails3.md](ios-app-wails3.md)                | Proposal  | iOS chat app with Wails v3: effort estimate and push (APNs) design; not started       |
 | [reviews/pr-391-mcp-server.md](reviews/pr-391-mcp-server.md) | Review | PR #391 remote MCP server: findings, open                                       |
-| [requirements/](requirements/)                        | Plans     | Specifications: chat (in implementation), CVE radar (prototype only)                  |
+| [cve-radar-db-reset.md](cve-radar-db-reset.md)        | Temporary | CVE-Radar: drop the plugin tables, restore the imported CVEs; remove once released    |
+| [requirements/](requirements/)                        | Plans     | Specifications: chat (in implementation), CVE radar (in implementation)               |
 | [website-screenshots/](website-screenshots/README.md) | Tooling   | Scripts that shoot the website screenshots                                            |
 | [misc/](misc/)                                        | Assets    | nginx example configuration, forecast probabilities fixture                           |
