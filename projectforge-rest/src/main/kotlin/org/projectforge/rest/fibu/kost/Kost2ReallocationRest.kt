@@ -111,7 +111,6 @@ class Kost2ReallocationRest {
         var id: Long? = null,
         var description: String? = null,
         var projekt: Ref? = null,
-        var taskId: Long? = null,
         var fromYear: Int? = null,
         var fromMonth: Int? = null,
         var toYear: Int? = null,
@@ -127,13 +126,7 @@ class Kost2ReallocationRest {
 
     class DefaultRulesRequest(var projektId: Long? = null, var sourceKost2Ids: List<Long> = emptyList())
 
-    class TimesheetsRequest(
-        var runId: Long? = null,
-        /** The (collective) tasks to search for time sheets to select by hand; none: no search. */
-        var taskIds: List<Long> = emptyList(),
-        var userId: Long? = null,
-        var text: String? = null,
-    )
+    class TimesheetsRequest(var runId: Long? = null)
 
     class TimesheetRow(
         val id: Long,
@@ -146,9 +139,9 @@ class Kost2ReallocationRest {
         val description: String?,
     )
 
-    class TimesheetsResponse(val detected: List<TimesheetRow>, val found: List<TimesheetRow>)
+    class TimesheetsResponse(val detected: List<TimesheetRow>)
 
-    class RunRequest(var runId: Long? = null, var manualTimesheetIds: List<Long> = emptyList())
+    class RunRequest(var runId: Long? = null)
 
     class AmountRow(val kost2: String, val amount: BigDecimal)
 
@@ -174,7 +167,6 @@ class Kost2ReallocationRest {
         val oldKost2: String?,
         val newKost2: String?,
         val hours: BigDecimal,
-        val manual: Boolean,
     )
 
     class SumRow(val kost2: String, val before: BigDecimal, val after: BigDecimal)
@@ -253,7 +245,6 @@ class Kost2ReallocationRest {
                     ?: throw UserException("validation.error.fieldRequired", translate("description"))
                 run.projekt = caches.getProjekt(data.projekt?.id)
                     ?: throw UserException("validation.error.fieldRequired", translate("fibu.kost2Reallocation.targetProject"))
-                run.task = data.taskId?.let { taskTree.getTaskById(it) }
                 run.fromYear = data.fromYear
                 run.fromMonth = data.fromMonth
                 run.toYear = data.toYear
@@ -303,32 +294,26 @@ class Kost2ReallocationRest {
         }
     }
 
-    /** The detected time sheets of the run, and the time sheets found on the given tasks (to select by hand). */
+    /** The detected time sheets of the run. */
     @AccessChecked("FINANCE group (Kost2ReallocationService.checkAccess)")
     @PostMapping("timesheets")
     fun timesheets(@RequestBody request: TimesheetsRequest): ResponseEntity<*> {
         return handle {
             val run = service.getRun(request.runId ?: throw UserException("fibu.kost2Reallocation.error.runNotFound"))
-            val found = if (request.taskIds.isEmpty()) emptyList() else {
-                service.searchTimesheets(run, request.taskIds, request.userId, request.text).take(MAX_FOUND)
-            }
-            TimesheetsResponse(
-                detected = service.detectTimesheets(run).map { toRow(it) },
-                found = found.map { toRow(it) },
-            )
+            TimesheetsResponse(detected = service.detectTimesheets(run).map { toRow(it) })
         }
     }
 
     @AccessChecked("FINANCE group (Kost2ReallocationService.checkAccess)")
     @PostMapping("preview")
     fun preview(@RequestBody request: RunRequest): ResponseEntity<*> {
-        return handle { toResponse(service.preview(runId(request), request.manualTimesheetIds)) }
+        return handle { toResponse(service.preview(runId(request))) }
     }
 
     @AccessChecked("FINANCE group (Kost2ReallocationService.checkAccess)")
     @PostMapping("apply")
     fun apply(@RequestBody request: RunRequest): ResponseEntity<*> {
-        return handle { toResponse(service.apply(runId(request), request.manualTimesheetIds)) }
+        return handle { toResponse(service.apply(runId(request))) }
     }
 
     @AccessChecked("FINANCE group (Kost2ReallocationService.checkAccess)")
@@ -371,7 +356,6 @@ class Kost2ReallocationRest {
             id = run.id,
             description = run.description,
             projekt = projektRef(run.projekt?.id),
-            taskId = run.task?.id,
             fromYear = run.fromYear,
             fromMonth = run.fromMonth,
             toYear = run.toYear,
@@ -431,7 +415,6 @@ class Kost2ReallocationRest {
                     oldKost2 = kost2Number(move.oldKost2Id),
                     newKost2 = kost2Number(move.newKost2Id),
                     hours = hours(move.millis),
-                    manual = move.manual,
                 )
             },
             sums = plan.sumsByKost2.map { (kost2Id, sums) ->
@@ -483,7 +466,6 @@ class Kost2ReallocationRest {
     }
 
     companion object {
-        private const val MAX_FOUND = 500
 
         private const val MILLIS_PER_HOUR = 3_600_000L
     }

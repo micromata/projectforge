@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { FormActionBar } from "@/components/shared/form-action-bar";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Button } from "@/components/ui/button";
 import type { Kost2ReallocationRun } from "@/lib/rs/kost2-reallocation";
 import type { useRunActions } from "./use-run-actions";
@@ -59,37 +60,57 @@ export function WizardActions({
         </Button>
         {draft && (
           <>
-            <Button
-              variant="outline"
-              disabled={actions.pending}
-              onClick={() => actions.save.mutate()}
+            <HintTooltip
+              text={t("fibu.kost2Reallocation.tooltip.save")}
+              side="top"
             >
-              {t("save")}
-            </Button>
-            <Button
-              disabled={actions.pending}
-              onClick={() => setConfirm("apply")}
+              <Button
+                variant="outline"
+                disabled={actions.pending}
+                onClick={() => actions.save.mutate()}
+              >
+                {t("save")}
+              </Button>
+            </HintTooltip>
+            <HintTooltip
+              text={t("fibu.kost2Reallocation.tooltip.apply")}
+              side="top"
             >
-              {t("fibu.kost2Reallocation.apply")}
-            </Button>
+              <Button
+                disabled={actions.pending}
+                onClick={() => setConfirm("apply")}
+              >
+                {t("fibu.kost2Reallocation.apply")}
+              </Button>
+            </HintTooltip>
           </>
         )}
         {applied && run?.needsReapply && (
-          <Button
-            disabled={actions.pending}
-            onClick={() => actions.reapply.mutate()}
+          <HintTooltip
+            text={t("fibu.kost2Reallocation.tooltip.reapply")}
+            side="top"
           >
-            {t("fibu.kost2Reallocation.reapply")}
-          </Button>
+            <Button
+              disabled={actions.pending}
+              onClick={() => actions.reapply.mutate()}
+            >
+              {t("fibu.kost2Reallocation.reapply")}
+            </Button>
+          </HintTooltip>
         )}
         {applied && (
-          <Button
-            variant="outline"
-            disabled={actions.pending}
-            onClick={() => setConfirm("revert")}
+          <HintTooltip
+            text={t("fibu.kost2Reallocation.tooltip.revert")}
+            side="top"
           >
-            {t("fibu.kost2Reallocation.revert")}
-          </Button>
+            <Button
+              variant="outline"
+              disabled={actions.pending}
+              onClick={() => setConfirm("revert")}
+            >
+              {t("fibu.kost2Reallocation.revert")}
+            </Button>
+          </HintTooltip>
         )}
         <div className="flex-1" />
         {draft && run && (

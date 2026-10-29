@@ -9,7 +9,6 @@ CREATE TABLE t_fibu_kost2_reallocation
     last_update TIMESTAMP WITHOUT TIME ZONE,
     description VARCHAR(1000)               NOT NULL,
     projekt_fk  BIGINT                      NOT NULL,
-    task_fk     BIGINT,
     from_year   INTEGER                     NOT NULL,
     from_month  INTEGER                     NOT NULL,
     to_year     INTEGER                     NOT NULL,
@@ -26,10 +25,6 @@ CREATE INDEX idx_fk_t_fibu_kost2_reallocation_projekt_fk
 ALTER TABLE t_fibu_kost2_reallocation
     ADD CONSTRAINT fk_t_fibu_kost2_reallocation_projekt_fk
         FOREIGN KEY (projekt_fk) REFERENCES t_fibu_projekt (pk);
-
-ALTER TABLE t_fibu_kost2_reallocation
-    ADD CONSTRAINT fk_t_fibu_kost2_reallocation_task_fk
-        FOREIGN KEY (task_fk) REFERENCES t_task (pk);
 
 -- The rules A -> B of a run, optionally restricted to an account range.
 CREATE TABLE t_fibu_kost2_reallocation_rule
@@ -146,4 +141,4 @@ ALTER TABLE t_fibu_buchungssatz_kost2_share
 -- DROP TABLE IF EXISTS t_fibu_kost2_reallocation_timesheet;
 -- DROP TABLE IF EXISTS t_fibu_kost2_reallocation_rule;
 -- DROP TABLE IF EXISTS t_fibu_kost2_reallocation;
--- DELETE FROM t_flyway_schema_version WHERE version = '9.2.0.2';
+-- DELETE FROM t_flyway_schema_version WHERE version = '9.2.0.3';

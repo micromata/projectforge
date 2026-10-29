@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { FormAlert } from "@/components/shared/form-alert";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import { useDocumentTitle } from "@/hooks/use-document-title";
@@ -25,7 +26,6 @@ import { WizardActions } from "./wizard-actions";
 const toDraft = (run: Kost2ReallocationRun): RunDraft => ({
   description: run.description ?? "",
   projekt: run.projekt ?? null,
-  taskId: run.taskId ?? null,
   fromYear: run.fromYear ?? null,
   fromMonth: run.fromMonth ?? null,
   toYear: run.toYear ?? null,
@@ -62,8 +62,7 @@ function WizardBody({
   const [draft, setDraft] = useState<RunDraft>(
     run ? toDraft(run) : emptyRunDraft()
   );
-  const [manualIds, setManualIds] = useState<Set<number>>(new Set());
-  const actions = useRunActions(run?.id ?? null, draft, manualIds, setPlan);
+  const actions = useRunActions(run?.id ?? null, draft, setPlan);
   const readOnly = run != null && run.status !== "DRAFT";
   const title = draft.description || t("fibu.kost2Reallocation.title");
   useDocumentTitle(title);
@@ -93,24 +92,21 @@ function WizardBody({
           </Section>
           {run?.id != null && (
             <Section title={t("fibu.kost2Reallocation.step.timesheets")}>
-              <TimesheetsStep
-                runId={run.id}
-                manualIds={manualIds}
-                onManualIdsChange={setManualIds}
-                readOnly={readOnly}
-              />
+              <TimesheetsStep runId={run.id} />
             </Section>
           )}
           <Section title={t("fibu.kost2Reallocation.step.preview")}>
             {!readOnly && (
               <div>
-                <Button
-                  variant="outline"
-                  disabled={actions.pending}
-                  onClick={() => actions.preview.mutate()}
-                >
-                  {t("fibu.kost2Reallocation.preview")}
-                </Button>
+                <HintTooltip text={t("fibu.kost2Reallocation.tooltip.preview")}>
+                  <Button
+                    variant="outline"
+                    disabled={actions.pending}
+                    onClick={() => actions.preview.mutate()}
+                  >
+                    {t("fibu.kost2Reallocation.preview")}
+                  </Button>
+                </HintTooltip>
               </div>
             )}
             {plan && <PlanView plan={plan} />}
@@ -143,8 +139,7 @@ export function Kost2ReallocationWizard({ runId }: { runId: number | null }) {
     );
   }
   // Remounted when another run is shown or its status changes (applied, reverted): the local draft starts from it
-  // then. A save (also the one before a preview) keeps the form, the time sheets found and the ones ticked by hand,
-  // which apply sends. The plan is kept here, so it stays on screen across the remount of an apply.
+  // then. A save (also the one before a preview) keeps the form. The plan is kept here, so it stays on screen across the remount of an apply.
   const run = query.data ?? null;
   return (
     <WizardBody

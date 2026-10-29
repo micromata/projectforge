@@ -8,12 +8,12 @@ import {
   type EntityRef,
 } from "@/components/shared/entity-autocomplete";
 import { EntityMultiAutocomplete } from "@/components/shared/entity-multi-autocomplete";
-import { TaskSelect } from "@/components/shared/tasks/task-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchKost2ReallocationDefaultRules } from "@/lib/rs/kost2-reallocation";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { HintedLabel } from "./hinted-label";
 import { PeriodFields } from "./period-fields";
 import { RulesTable } from "./rules-table";
 import type { RunDraft } from "./types";
@@ -22,7 +22,7 @@ const PROJECT_URL = "project/autosearch?search=:search";
 const KOST2_URL = "cost2/autosearch?search=:search";
 
 /**
- * Step 1: what the run reallocates — the target project (and the task of time sheets selected by hand), the
+ * Step 1: what the run reallocates — the target project, the
  * period, and the rules A → B for the other records. The default rules map each source cost unit to the
  * target project's cost unit of the same type.
  */
@@ -52,7 +52,11 @@ export function RunDefinitionStep({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <Label htmlFor="kr-description">{t("description")}</Label>
+        <HintedLabel
+          htmlFor="kr-description"
+          label={t("description")}
+          hint={t("fibu.kost2Reallocation.tooltip.description")}
+        />
         <Input
           id="kr-description"
           value={draft.description}
@@ -62,7 +66,10 @@ export function RunDefinitionStep({
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="flex flex-col gap-1">
-          <Label>{t("fibu.kost2Reallocation.targetProject")}</Label>
+          <HintedLabel
+            label={t("fibu.kost2Reallocation.targetProject")}
+            hint={t("fibu.kost2Reallocation.tooltip.targetProject")}
+          />
           <EntityAutocomplete
             url={PROJECT_URL}
             value={draft.projekt}
@@ -71,18 +78,13 @@ export function RunDefinitionStep({
             onChange={(projekt) => set({ projekt })}
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <Label>{t("fibu.kost2Reallocation.targetTask")}</Label>
-          <TaskSelect
-            value={draft.taskId}
-            onChange={(taskId) => set({ taskId })}
-            aria-label={t("fibu.kost2Reallocation.targetTask")}
-          />
-        </div>
       </div>
       <PeriodFields draft={draft} readOnly={readOnly} onChange={set} />
       <div className="flex flex-col gap-2">
-        <Label>{t("fibu.kost2Reallocation.sourceKost2")}</Label>
+        <HintedLabel
+          label={t("fibu.kost2Reallocation.sourceKost2")}
+          hint={t("fibu.kost2Reallocation.tooltip.sourceKost2")}
+        />
         <div className="flex items-start gap-2">
           <EntityMultiAutocomplete
             className="flex-1"
@@ -92,19 +94,24 @@ export function RunDefinitionStep({
             aria-label={t("fibu.kost2Reallocation.sourceKost2")}
             removeLabel={(entry) => `${t("delete")}: ${entry.displayName}`}
           />
-          <Button
-            type="button"
-            variant="outline"
-            disabled={
-              readOnly ||
-              !draft.projekt ||
-              sources.length === 0 ||
-              fill.isPending
-            }
-            onClick={() => fill.mutate()}
-          >
-            {t("fibu.kost2Reallocation.defaultRules")}
-          </Button>
+          {/* A span: a disabled button raises no pointer events, so it couldn't show the hint itself. */}
+          <HintTooltip text={t("fibu.kost2Reallocation.tooltip.defaultRules")}>
+            <span>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={
+                  readOnly ||
+                  !draft.projekt ||
+                  sources.length === 0 ||
+                  fill.isPending
+                }
+                onClick={() => fill.mutate()}
+              >
+                {t("fibu.kost2Reallocation.defaultRules")}
+              </Button>
+            </span>
+          </HintTooltip>
         </div>
         <RulesTable
           rules={draft.rules}
@@ -113,7 +120,11 @@ export function RunDefinitionStep({
         />
       </div>
       <div className="flex flex-col gap-1">
-        <Label htmlFor="kr-comment">{t("comment")}</Label>
+        <HintedLabel
+          htmlFor="kr-comment"
+          label={t("comment")}
+          hint={t("fibu.kost2Reallocation.tooltip.comment")}
+        />
         <Textarea
           id="kr-comment"
           rows={2}

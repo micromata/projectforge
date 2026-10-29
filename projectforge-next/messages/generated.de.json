@@ -1746,6 +1746,13 @@
       },
       "invoicedExceedsCommissioned": "Der fakturierte Betrag übersteigt den beauftragten Betrag – bitte auf eine falsch zugeordnete Rechnung prüfen.",
       "mail": {
+        "digest": {
+          "changed": "Geändert",
+          "created": "Angelegt",
+          "deleted": "Gelöscht",
+          "intro": "diese Aufträge wurden seit der letzten Zusammenfassung angelegt, geändert oder gelöscht:",
+          "subject": "Auftragsänderungen: {arg0}"
+        },
         "intro": "der Auftrag #{arg0} wurde ge&auml;ndert bzw. angelegt."
       },
       "nettoSumme": {
@@ -1757,7 +1764,22 @@
         "immediately": "sofort"
       },
       "notification": {
-        "error": "Der Auftrag wurde gespeichert, aber die E-Mail-Benachrichtigung konnte nicht versandt werden: {arg0}"
+        "error": "Der Auftrag wurde gespeichert, aber die E-Mail-Benachrichtigung konnte nicht versandt werden: {arg0}",
+        "mode": {
+          "daily": "Tägliche Zusammenfassung",
+          "immediate": "Sofort",
+          "muted": "Stumm"
+        },
+        "prefs": {
+          "adopt": "{arg0} \"{arg1}\" als Ausnahme übernehmen",
+          "customer": "Kunde",
+          "default": "Standard",
+          "description": "Hier kann festgelegt werden, ob bei jeder Änderung eines Auftrags sofort eine E-Mail kommt, einmal täglich eine Zusammenfassung oder gar keine. Eine Regel für ein Projekt oder einen Kunden hat Vorrang vor dem Standard.",
+          "precedence": "Haben ein Projekt und dessen Kunde unterschiedliche Regeln, gilt die speziellere: Die Regel des Projekts geht vor der Regel des Kunden, diese geht vor dem Standard.",
+          "project": "Projekt",
+          "rules": "Ausnahmen für Projekte und Kunden",
+          "title": "Auftragsbenachrichtigungen"
+        }
       },
       "nummer": {
         "_": "Nummer",
@@ -2280,7 +2302,6 @@
       "detect": "Zeitberichte erkennen",
       "detected": "Erkannte Zeitberichte",
       "discarded": "Reallokation verworfen (Läufe)",
-      "found": "Gefundene Zeitberichte (von Hand auswählen)",
       "fromMonth": "Von Monat",
       "fromYear": "Von Jahr",
       "needsReapply": "Anteile wurden durch einen Datev-Reimport verworfen, erneut anzuwenden",
@@ -2296,7 +2317,6 @@
         "source": "Quell-Kost2",
         "target": "Ziel-Kost2"
       },
-      "searchTask": "Sammel-Strukturelement zum Suchen",
       "shares": "Kost2-Anteile",
       "sourceKost2": "Quell-Kost2 (Sammel-Kost2)",
       "status": {
@@ -2311,11 +2331,32 @@
       },
       "sums": "Summen je Kost2",
       "targetProject": "Zielprojekt",
-      "targetTask": "Ziel-Strukturelement",
       "timesheets": "Umzuziehende Zeitberichte",
       "title": "Kost2-Reallokation",
       "toMonth": "Bis Monat",
-      "toYear": "Bis Jahr"
+      "toYear": "Bis Jahr",
+      "tooltip": {
+        "apply": "Speichert die Kost2-Anteile und verschiebt die Zeitberichte. Wird abgelehnt, solange die Vorschau Fehler zeigt. Der Lauf kann danach zurückgenommen werden.",
+        "comment": "Interne Notiz zum Lauf, z. B. wer ihn warum angefordert hat.",
+        "defaultRules": "Erzeugt je Quell-Kost2 eine Regel: Sie geht auf die Kost2 des Zielprojekts mit derselben Kost2-Art. Ersetzt die Regeln darunter.",
+        "description": "Freier Text, an dem der Lauf in der Liste erkannt wird, z. B. der Anlass der Umbuchung.",
+        "detect": "Sucht die Zeitberichte des Zeitraums, deren Strukturelement im Strukturbaum des Zielprojekts liegt, deren Kost2 aber zu einem anderen Projekt gehört. Sie ziehen mit dem Lauf um.",
+        "detected": "Ziehen mit dem Lauf um: Ihr Strukturelement liegt im Strukturbaum des Zielprojekts, ihre Kost2 gehört nicht zum Zielprojekt.",
+        "periodFrom": "Erster Monat des Laufs: Die Buchungssätze und Gehälter der Monate von hier bis zum letzten Monat werden umgebucht.",
+        "periodTo": "Letzter Monat des Laufs (einschließlich). Derselbe Monat wie der erste ergibt einen einzelnen Monat.",
+        "preview": "Berechnet, was der Lauf ändern würde, ohne etwas umzubuchen. Der Entwurf wird vorher gespeichert.",
+        "reapply": "Speichert die Anteile erneut, die ein DATEV-Reimport verworfen hat. Die Zeitberichte bleiben, wie sie sind.",
+        "records": "Je Buchungssatz: die Beträge je Kost2 vor und nach dem Lauf. Die ursprüngliche Buchung bleibt bestehen, die Anteile werden daneben gespeichert.",
+        "revert": "Löscht die Anteile des Laufs, stellt die vorherigen wieder her und verschiebt die Zeitberichte zurück. Nur möglich, wenn kein späterer Lauf dieselben Buchungssätze geändert hat und die Zeitberichte unverändert sind.",
+        "ruleKonto": "Optionaler Kontenbereich (einschließlich), auf den die Regel beschränkt ist, z. B. 8000 bis 8999 nur für Erlöse. Ohne Bereich zählen alle Konten. Eine Regel verschiebt Gehaltsbuchungssätze (Konto 6000) nur, wenn ihr Bereich 6000 ausdrücklich nennt; sonst werden sie nach den Stunden der verschobenen Zeitberichte aufgeteilt.",
+        "ruleSource": "Die Kost2, deren Buchungssätze umgebucht werden.",
+        "ruleTarget": "Die Kost2 des Zielprojekts, auf die die Buchungssätze der Quelle gehen.",
+        "save": "Speichert den Entwurf. Es wird noch nichts umgebucht.",
+        "sourceKost2": "Die Sammel-Kost2, auf die Stunden und Kosten bisher gebucht wurden, z. B. die eines gemeinsamen Projekts. Ihre Buchungssätze und Zeitberichte ziehen auf das Zielprojekt um. „Standardregeln“ leitet die Regeln darunter daraus ab.",
+        "sums": "Die vom Lauf geänderten Buchungssätze, je Kost2 summiert, vorher und nachher.",
+        "targetProject": "Das Projekt, auf das Kosten und Stunden umziehen. Seine Kost2 erhalten die umgebuchten Buchungssätze und Zeitberichte.",
+        "timesheets": "Die Zeitberichte, die der Lauf verschiebt: andere Kost2 und, bei den von Hand ausgewählten, anderes Strukturelement, mit den Stunden, wie sie der Gehaltsexport zählt."
+      }
     },
     "kost2art": {
       "kost2arten": "Kost2-Arten",
@@ -4264,6 +4305,8 @@
       },
       "file": {
         "assignInfo": "Zugewiesen werden können nur aktive Mitglieder des Security-Teams.",
+        "badge": "Akte",
+        "badgeHint": "Zu diesem CVE besteht eine Akte mit Diskussion, Bewertungen und Maßnahmen. Ein Klick auf die Zeile öffnet sie.",
         "chatUnavailable": "Die Diskussion ist nicht verfügbar.",
         "closure": "Abschlussübersicht",
         "error": {
@@ -4442,6 +4485,12 @@
         "P3": "P3",
         "P4": "P4",
         "binding": "Verbindliche Priorität",
+        "hint": {
+          "P1": "Kritisch: sofort handeln. Typisch bei einer Schwachstelle aus dem KEV-Katalog oder bei Ausnutzung auf einem exponierten System. Kürzeste Triage- und Behebungsfristen.",
+          "P2": "Hoch: zeitnah beheben. Typisch bei einem CVSS-Wert ab 9 oder einer durch ein zusätzliches Risiko angehobenen P3.",
+          "P3": "Mittel: im regulären Wartungszyklus beheben. Typisch bei einem CVSS-Wert ab 7.",
+          "P4": "Niedrig: bei Gelegenheit beheben, z. B. mit dem nächsten Update. Typisch bei einem CVSS-Wert unter 7."
+        },
         "suggested": "Vorschlag {arg0}: {arg1}"
       },
       "priorityReason": {
@@ -4485,6 +4534,21 @@
         "save": "Bewertung speichern"
       },
       "reason": "Begründung",
+      "rights": {
+        "cases": "{arg0} sehen die Fälle. {arg1} legen sie an und bearbeiten sie.",
+        "closure": "{arg0} sehen nur Zahlen, keine Personen. {arg1} sehen die Geräte der Personen, legen Teamprüfungen an und schließen Fälle. Ein Fall mit offenen Punkten wird nur von {arg2} geschlossen.",
+        "devices": "Nur das {arg1} sieht die Geräte, sie sind personenbezogen.",
+        "file": "{arg0} lesen die Akte und diskutieren mit. {arg1} übernehmen, bewerten und pflegen die Maßnahmen und Teamprüfungen. Die verbindliche Priorität setzen die bearbeitende Person oder {arg2}; einen von anderen übernommenen Fall weisen nur {arg2} neu zu.",
+        "label": "Rechte auf dieser Seite",
+        "list": "{arg0} sehen die Liste und öffnen die Akten. {arg1} bearbeiten mehrere Einträge gemeinsam (übernehmen, Priorität, Status). Alle anderen landen bei „Meine“.",
+        "my": "Alle Angemeldeten sehen hier die eigenen Geräte, die Maßnahmen zum Bestätigen und die Prüfungen der eigenen Gruppen.",
+        "role": {
+          "officer": "Security Officer",
+          "reader": "Leser:innen",
+          "team": "Security-Team"
+        },
+        "teamcheck": "Mitglieder der geprüften Gruppe und das {arg1} antworten. Teamprüfungen anlegen und löschen nur das {arg1}."
+      },
       "role": {
         "CA": "CVE-Radar-Admin",
         "EMPLOYEE": "Mitarbeiter:in",
@@ -4589,7 +4653,7 @@
       },
       "teamCheck": {
         "add": "Team-Prüfung anfordern",
-        "addInfo": "Die Gruppe prüft, ob das Projekt oder System betroffen ist, und antwortet wie beim Team-Feedback.",
+        "addInfo": "Die Gruppe prüft, ob das Projekt oder System betroffen ist, und antwortet wie beim Team-Feedback. Ihre Mitglieder finden die Prüfung unter „Mein CVE-Radar“ („Prüfungen meiner Gruppen“); eine Benachrichtigung per Mail gibt es noch nicht, die Gruppe also bitte informieren.",
         "answer": "Antwort",
         "answeredBy": "Beantwortet von",
         "comment": "Kommentar, Version oder geplanter Termin",
@@ -4631,7 +4695,15 @@
         "IN_TRIAGE": "In Triage",
         "NEW": "Neu",
         "NOT_RELEVANT": "Nicht relevant",
-        "RATED": "Bewertet"
+        "RATED": "Bewertet",
+        "hint": {
+          "CLOSED": "Erledigt: behoben, entschärft oder akzeptiert. Ein abgeschlossener Fall wird nicht mehr geändert.",
+          "IN_REMEDIATION": "Maßnahmen sind beschlossen und werden umgesetzt (Update, Workaround, …).",
+          "IN_TRIAGE": "Jemand prüft, ob die Schwachstelle uns betrifft und wie schwer sie wiegt.",
+          "NEW": "Noch nicht angesehen. Wartet darauf, dass jemand sie übernimmt.",
+          "NOT_RELEVANT": "Betrifft uns nicht. Braucht eine Begründung; ein abgeschlossener Fall wird nicht mehr geändert.",
+          "RATED": "Die Einschätzung ist abgeschlossen, eine verbindliche Priorität ist gesetzt."
+        }
       },
       "unknown": "unbekannt",
       "versionNowUnaffected": "Inventar hat bereits eine unkritische Version – bitte bestätigen",
@@ -4664,6 +4736,7 @@
         "legend": {
           "rejected": "Von der NVD zurückgewiesen"
         },
+        "nvdLink": "Bei der NVD öffnen",
         "title": "Schwachstellen (NVD)",
         "withFindingsOnly": "Nur mit Befunden"
       },

@@ -67,8 +67,8 @@ private val log = KotlinLogging.logger {}
  * - **Salary records** (account 6000 / counter account 3791, one per employee, month and kost2) are split by the hours
  *   of the time sheets to move: share B = effective amount on A × millis of the moved time sheets on A / current
  *   millis on A (the working time fraction is the same for all time sheets of a kost2). The time sheets to move are
- *   detected by their task in the task tree of the target project with a kost2 of another project, or are selected by
- *   hand (booked directly on a collective task, they get the target task).
+ *   detected by their task in the task tree of the target project with a kost2 of another project. Moving time
+ *   sheets in the task tree is not part of the run, it is done beforehand.
  * - **Rules A -> B** move the other records of the source kost2 (optionally of an account range) completely. Salary
  *   records are left to the time sheets, unless the account range of a rule covers the salary account explicitly.
  *
@@ -170,30 +170,11 @@ open class Kost2ReallocationService {
         }
     }
 
-    /**
-     * Time sheets of the period on the given (collective) tasks and their sub tasks, outside the task tree of the target
-     * project, for the selection by hand (mixed case). Optionally of a user only and with the given text in the
-     * description.
-     */
-    open fun searchTimesheets(
-        run: Kost2ReallocationDO, taskIds: Collection<Long>, userId: Long?, text: String?,
-    ): List<TimesheetDO> {
-        checkAccess()
-        val projekt = caches.getProjekt(run.projekt?.id) ?: return emptyList()
-        val excluded = projekt.task?.id?.let { taskTree.getDescendantTaskIds(it, true).filterNotNull().toSet() }.orEmpty()
-        val allTaskIds = taskIds.flatMap { taskTree.getDescendantTaskIds(it, true).filterNotNull() }.toSet() - excluded
-        val search = text?.trim()?.lowercase()?.takeIf { it.isNotEmpty() }
-        return selectTimesheets(run, allTaskIds).filter { timesheet ->
-            timesheet.kost2Id != null && (userId == null || timesheet.userId == userId) &&
-                    (search == null || timesheet.description?.lowercase()?.contains(search) == true)
-        }
-    }
-
     /** The calculation of the run without any change (preview). */
-    open fun preview(runId: Long, manualTimesheetIds: Collection<Long>): Kost2ReallocationPlan {
+    open fun preview(runId: Long): Kost2ReallocationPlan {
         val run = getRun(runId)
         return if (run.status == Kost2ReallocationStatus.DRAFT) {
-            calculateDraft(run, manualTimesheetIds)
+            calculateDraft(run)
         } else {
             calculateReapply(run)
         }
@@ -203,11 +184,11 @@ open class Kost2ReallocationService {
      * Applies the draft: stores the shares, then moves the time sheets (with a log entry each) and marks the run as
      * applied. All or nothing.
      */
-    open fun apply(runId: Long, manualTimesheetIds: Collection<Long>): Kost2ReallocationPlan {
+    open fun apply(runId: Long): Kost2ReallocationPlan {
         getRun(runId)
         val (run, plan) = persistenceService.runInTransaction { context ->
             val run = lockRun(context, runId, Kost2ReallocationStatus.DRAFT, "fibu.kost2Reallocation.error.notDraft")
-            val plan = calculateDraft(run, manualTimesheetIds)
+            val plan = calculateDraft(run)
             checkNoErrors(plan)
             persistShares(run, plan)
             plan.timesheets.forEach { move -> moveTimesheet(run, move) }
@@ -335,10 +316,10 @@ open class Kost2ReallocationService {
         return run.status == Kost2ReallocationStatus.APPLIED && recordIdsToReapply(run).isNotEmpty()
     }
 
-    private fun calculateDraft(run: Kost2ReallocationDO, manualTimesheetIds: Collection<Long>): Kost2ReallocationPlan {
+    private fun calculateDraft(run: Kost2ReallocationDO): Kost2ReallocationPlan {
         val context = Context()
         val warnings = mutableListOf<String>()
-        val moves = moves(context, run, manualTimesheetIds, warnings)
+        val moves = moves(context, run, warnings)
         return calculate(context, run, moves, reapply = false, initialWarnings = warnings)
     }
 
@@ -354,29 +335,19 @@ open class Kost2ReallocationService {
     }
 
     /**
-     * The time sheets to move: the detected ones and the ones selected by hand (the latter onto the target task of the
-     * run), each to the kost2 of the target project given by the rule of its kost2 or of the same kost2 type. Time
-     * sheets without target kost2 are left out (with a warning).
+     * The detected time sheets, each to the kost2 of the target project given by the rule of its kost2 or of the same
+     * kost2 type (their task stays). Time sheets without target kost2 are left out (with a warning).
      */
     private fun moves(
-        context: Context, run: Kost2ReallocationDO, manualTimesheetIds: Collection<Long>, warnings: MutableList<String>,
+        context: Context, run: Kost2ReallocationDO, warnings: MutableList<String>,
     ): List<Kost2ReallocationPlan.TimesheetMove> {
-        val detected = detectTimesheets(run)
-        val detectedIds = detected.mapNotNull { it.id }.toSet()
-        val manualIds = manualTimesheetIds.toSet() - detectedIds
-        val manual = if (manualIds.isEmpty()) emptyList() else {
-            timesheetDao.select(manualIds, checkAccess = false).orEmpty().filter { !it.deleted && it.kost2Id != null }
-        }
-        val targetTask = if (manual.isNotEmpty()) {
-            taskTree.getTaskById(run.task?.id) ?: throw UserException("fibu.kost2Reallocation.error.targetTaskRequired")
-        } else null
+        val timesheets = detectTimesheets(run)
         val rules = getRules(run)
         val targetKost2s = kostCache.getActiveKost2ForProjekt(run.projekt?.id)
         val result = mutableListOf<Kost2ReallocationPlan.TimesheetMove>()
-        val timesheets = detected.map { it to false } + manual.map { it to true }
         // The month of a time sheet and its attendance millis as counted by the salary export.
-        val attendances = attendances(context, run, timesheets.map { it.first })
-        timesheets.forEach { (timesheet, isManual) ->
+        val attendances = attendances(context, run, timesheets)
+        timesheets.forEach { timesheet ->
             val oldKost2 = caches.getKost2(timesheet.kost2Id) ?: return@forEach
             val newKost2 = rules.find { it.sourceKost2?.id == oldKost2.id }?.targetKost2?.id?.let { caches.getKost2(it) }
                 ?: TimesheetKost2Mapper.sameKost2Art(oldKost2, targetKost2s)
@@ -398,11 +369,10 @@ open class Kost2ReallocationService {
                     year = attendance.year,
                     month = attendance.month,
                     oldTaskId = timesheet.taskId!!,
-                    newTaskId = if (isManual) targetTask!!.id!! else timesheet.taskId!!,
+                    newTaskId = timesheet.taskId!!,
                     oldKost2Id = oldKost2.id!!,
                     newKost2Id = newKost2.id!!,
                     millis = attendance.millis,
-                    manual = isManual,
                 )
             )
         }
@@ -631,7 +601,6 @@ open class Kost2ReallocationService {
                 oldKost2Id = oldKost2Id,
                 newKost2Id = newKost2Id,
                 millis = entry.millis,
-                manual = entry.oldTask?.id != entry.newTask?.id,
             )
         }
         val splitRecordIds = shareDao.selectAllOfRun(run.id!!)

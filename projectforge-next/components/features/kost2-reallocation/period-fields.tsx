@@ -2,11 +2,12 @@
 
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { HintedLabel } from "./hinted-label";
 import type { RunDraft } from "./types";
 
 function NumberInput({
   label,
+  hint,
   value,
   onChange,
   disabled,
@@ -14,6 +15,7 @@ function NumberInput({
   max,
 }: {
   label: string;
+  hint: string;
   value: number | null;
   onChange: (value: number | null) => void;
   disabled: boolean;
@@ -21,8 +23,8 @@ function NumberInput({
   max: number;
 }) {
   return (
-    <div className="flex w-24 flex-col gap-1">
-      <Label>{label}</Label>
+    <div className="flex w-32 flex-col gap-1">
+      <HintedLabel label={label} hint={hint} />
       <Input
         type="number"
         min={min}
@@ -52,6 +54,7 @@ export function PeriodFields({
     <div className="flex flex-wrap gap-4">
       <NumberInput
         label={t("fibu.kost2Reallocation.fromYear")}
+        hint={t("fibu.kost2Reallocation.tooltip.periodFrom")}
         value={draft.fromYear}
         disabled={readOnly}
         min={2000}
@@ -60,6 +63,7 @@ export function PeriodFields({
       />
       <NumberInput
         label={t("fibu.kost2Reallocation.fromMonth")}
+        hint={t("fibu.kost2Reallocation.tooltip.periodFrom")}
         value={draft.fromMonth}
         disabled={readOnly}
         min={1}
@@ -68,6 +72,7 @@ export function PeriodFields({
       />
       <NumberInput
         label={t("fibu.kost2Reallocation.toYear")}
+        hint={t("fibu.kost2Reallocation.tooltip.periodTo")}
         value={draft.toYear}
         disabled={readOnly}
         min={2000}
@@ -76,6 +81,7 @@ export function PeriodFields({
       />
       <NumberInput
         label={t("fibu.kost2Reallocation.toMonth")}
+        hint={t("fibu.kost2Reallocation.tooltip.periodTo")}
         value={draft.toMonth}
         disabled={readOnly}
         min={1}

@@ -53,8 +53,6 @@ export interface Kost2ReallocationRun {
   id?: number | null;
   description?: string | null;
   projekt?: Kost2ReallocationRef | null;
-  /** The target task of the time sheets selected by hand. */
-  taskId?: number | null;
   fromYear?: number | null;
   fromMonth?: number | null;
   toYear?: number | null;
@@ -82,7 +80,6 @@ export interface Kost2ReallocationTimesheet {
 
 export interface Kost2ReallocationTimesheets {
   detected: Kost2ReallocationTimesheet[];
-  found: Kost2ReallocationTimesheet[];
 }
 
 export interface Kost2ReallocationAmount {
@@ -114,7 +111,6 @@ export interface Kost2ReallocationMove {
   oldKost2?: string | null;
   newKost2?: string | null;
   hours: number;
-  manual: boolean;
 }
 
 export interface Kost2ReallocationSum {
@@ -213,14 +209,9 @@ export function fetchKost2ReallocationDefaultRules(
   );
 }
 
-/** The detected time sheets of the run, and the ones found on the given tasks to select by hand. */
+/** The detected time sheets of the run. */
 export function fetchKost2ReallocationTimesheets(
-  body: {
-    runId: number;
-    taskIds: number[];
-    userId?: number | null;
-    text?: string | null;
-  },
+  body: { runId: number },
   signal?: AbortSignal
 ): Promise<Kost2ReallocationResult<Kost2ReallocationTimesheets>> {
   return post<Kost2ReallocationTimesheets>("timesheets", body, signal);
@@ -228,21 +219,15 @@ export function fetchKost2ReallocationTimesheets(
 
 export function previewKost2Reallocation(
   runId: number,
-  manualTimesheetIds: number[],
   signal?: AbortSignal
 ): Promise<Kost2ReallocationResult<Kost2ReallocationPlan>> {
-  return post<Kost2ReallocationPlan>(
-    "preview",
-    { runId, manualTimesheetIds },
-    signal
-  );
+  return post<Kost2ReallocationPlan>("preview", { runId }, signal);
 }
 
 export function applyKost2Reallocation(
-  runId: number,
-  manualTimesheetIds: number[]
+  runId: number
 ): Promise<Kost2ReallocationResult<Kost2ReallocationPlan>> {
-  return post<Kost2ReallocationPlan>("apply", { runId, manualTimesheetIds });
+  return post<Kost2ReallocationPlan>("apply", { runId });
 }
 
 /** Restores the shares discarded by a DATEV reimport. */

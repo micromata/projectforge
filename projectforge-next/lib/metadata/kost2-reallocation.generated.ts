@@ -71,11 +71,6 @@ export const KOST2_REALLOCATION_METADATA = {
         },
       ],
     },
-    task: {
-      dataType: "TASK",
-      i18nKey: "fibu.kost2Reallocation.targetTask",
-      required: false,
-    },
     toMonth: {
       dataType: "INT",
       i18nKey: "fibu.kost2Reallocation.toMonth",

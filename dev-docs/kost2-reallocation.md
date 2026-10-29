@@ -1,6 +1,6 @@
 # Kost2-Reallokation von Buchungssätzen (rückwirkender Projektumzug)
 
-Status: Phasen 1–3 sind umgesetzt (Migration `V9.2.0.2__RELEASE-Kost2Reallocation.sql`), Phase 4 und 5 sind offen.
+Status: Phasen 1–3 sind umgesetzt (Migration `V9.2.0.3__RELEASE-Kost2Reallocation.sql`), Phase 4 und 5 sind offen.
 Ziel-Release: das nächste (`version` in `gradle.properties`).
 
 Dieses Dokument ist auf Deutsch geschrieben, weil es ein Buchhaltungsthema ist. Bezeichner im Code bleiben englisch.
@@ -135,14 +135,15 @@ Abgleich in `DatevRecordImportStorage` und im Job:
 
 1. **Lauf festlegen:**
    - Quelle: Sammel-Kost2 und/oder Tasks.
-   - Ziel: Projekt, Ziel-Task, Zeitraum.
+   - Ziel: Projekt, Zeitraum.
    - Kost2-Zuordnung je Kost2-Art: Standardregeln, änderbar.
 
 2. **Zu reallokierende Zeitberichte:**
    - **Automatisch erkannt:** Task im Task-Teilbaum des Zielprojekts (`TaskTree`), Kost2 gehört nicht zum Zielprojekt,
      im Zeitraum.
-   - **Zusätzlich von Hand (gemischter Fall):** Zeitberichte direkt auf dem Sammeltask, ausgewählt nach Zeitraum,
-     Mitarbeiter, Task und Text. Sie bekommen beim Anwenden auch einen Ziel-Task.
+   - **Umzug im Task-Baum ist nicht Teil des Laufs:** Zeitberichte, die direkt auf dem Sammeltask liegen, werden vorher
+     und getrennt in den Teilbaum des Zielprojekts verschoben (z. B. mit der Massenänderung der Zeitberichte). Der Lauf
+     erkennt sie danach automatisch. Der Task eines Zeitberichts ändert sich durch den Lauf nie.
    - Ziel-Kost2 je Zeitbericht: die Kost2 des Zielprojekts mit derselben Kost2-Art (Standardregeln aus Schritt 1).
    - Die Zuordnungslogik von `TimesheetMassUpdateRest` (taskAndKost2 / KOST2_REMAP) wandert in einen Service, den
      beide nutzen.
@@ -190,7 +191,7 @@ Abgleich in `DatevRecordImportStorage` und im Job:
    - Vorschau: ein Diff je Satz (Original, alte Anteile, neue Anteile), Summen je Kost2, die Fehler und die Warnungen aus Schritt 3.
    - Anwenden, in einer Transaktion:
      1. die Anteile speichern;
-     2. danach die Zeitberichte aus Schritt 2 umstellen: Kost2 → B, bei den von Hand ausgewählten auch der Task;
+     2. danach die Zeitberichte aus Schritt 2 umstellen: Kost2 → B (der Task bleibt);
      3. je Zeitbericht einen Protokolleintrag schreiben.
    - Die Reihenfolge ist wichtig: Nach dem Umstellen ist das Merkmal aus Schritt 2 weg.
    - Privilegierter Pfad für FINANCE, in beide Richtungen getestet (`TimesheetDao.reallocate`):
@@ -201,6 +202,20 @@ Abgleich in `DatevRecordImportStorage` und im Job:
    - Revert: löscht die Anteile des Laufs und stellt die Zeitberichte laut Protokoll auf alten Task und alte Kost2
      zurück. Nur erlaubt, wenn kein späterer Lauf dieselben Sätze oder Zeitberichte geändert hat.
    - Ein späterer Lauf arbeitet auf den effektiven Anteilen. Er kann z. B. den Restanteil auf A weiter aufteilen.
+
+## Entscheidung: Zeitberichte werden wirklich umgestellt
+Erwogen wurde ein zusätzliches Feld am Zeitbericht (wie die Anteile der Buchungssätze) statt einer Änderung von Task und
+Kost2. Verworfen:
+- Es änderte `t_timesheet`; die Migration ist heute rein additiv.
+- Alle Verbraucher von `timesheet.kost2` (`MonthlyEmployeeReport`, `ContributionMargin*`, `EmployeeSalaryExportDao`,
+  Export, Filter, Suchindex, Massenänderung, Kalender, Wicket) müssten auf eine effektive Kost2 umgestellt werden und
+  liefen damit auch für Nutzer, die nie umschlüsseln, über neuen Code.
+- Task-basierte Auswertungen (Ist-Stunden der Auftragspositionen) folgten dem Feld nicht.
+
+Ein Feld bleibt ein möglicher Ausbau, falls das Zurücknehmen in der Praxis scheitert.
+
+**Vor dem ersten produktiven Anwenden** einen Datenbank-Stand sichern: Er ist der einzige vollständige Rückweg, weil
+das Zurücknehmen verweigert wird, sobald ein umgestellter Zeitbericht danach geändert wurde.
 
 ## Phasen
 1. Datenmodell, Anteils-DAO, `expand`, die Verbraucher (Deckungsbeitrag, Reporting, Scripting), Anzeige und

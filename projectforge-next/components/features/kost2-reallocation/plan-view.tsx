@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data-table";
 import { column } from "./column";
+import { HintedHeading } from "./hinted-label";
 import { FormAlert } from "@/components/shared/form-alert";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency, type FormatContext } from "@/lib/format";
@@ -117,17 +118,20 @@ export function PlanView({ plan }: { plan: Kost2ReallocationPlan }) {
           {warning}
         </FormAlert>
       ))}
-      <h3 className="text-sm font-semibold">
-        {t("fibu.kost2Reallocation.sums")}
-      </h3>
+      <HintedHeading
+        label={t("fibu.kost2Reallocation.sums")}
+        hint={t("fibu.kost2Reallocation.tooltip.sums")}
+      />
       {table(sums, plan.sums)}
-      <h3 className="text-sm font-semibold">
-        {t("fibu.buchungssaetze")} ({plan.records.length})
-      </h3>
+      <HintedHeading
+        label={`${t("fibu.buchungssaetze")} (${plan.records.length})`}
+        hint={t("fibu.kost2Reallocation.tooltip.records")}
+      />
       {table(records, plan.records)}
-      <h3 className="text-sm font-semibold">
-        {t("fibu.kost2Reallocation.timesheets")} ({plan.timesheets.length})
-      </h3>
+      <HintedHeading
+        label={`${t("fibu.kost2Reallocation.timesheets")} (${plan.timesheets.length})`}
+        hint={t("fibu.kost2Reallocation.tooltip.timesheets")}
+      />
       {table(moves, plan.timesheets)}
     </div>
   );

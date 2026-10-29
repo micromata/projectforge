@@ -53,7 +53,7 @@ class Kost2ReallocationPlan(
     /**
      * A time sheet moved from [oldKost2Id] (and [oldTaskId]) to [newKost2Id] (and [newTaskId]). [millis] is its
      * attendance duration counted by the salary export in [year]/[month]. [timesheet] is null for a re-apply (the
-     * time sheet was moved already, the move is taken from the log). [manual] for a time sheet selected by hand.
+     * time sheet was moved already, the move is taken from the log).
      */
     class TimesheetMove(
         val timesheet: TimesheetDO?,
@@ -66,7 +66,6 @@ class Kost2ReallocationPlan(
         val oldKost2Id: Long,
         val newKost2Id: Long,
         val millis: Long,
-        val manual: Boolean,
     )
 
     /** The sums of the effective amounts of the changed records by kost2 id, before and after the run. */

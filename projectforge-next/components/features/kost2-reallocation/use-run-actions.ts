@@ -28,7 +28,6 @@ export const runKey = (id: number | null) => ["kost2Reallocation", "run", id];
 export function useRunActions(
   runId: number | null,
   draft: RunDraft,
-  manualIds: Set<number>,
   setPlan: (plan: Kost2ReallocationPlan | null) => void
 ) {
   const router = useRouter();
@@ -72,13 +71,11 @@ export function useRunActions(
     onSuccess: (res) => !refused(res) && stored(res.value),
   });
   const preview = useMutation({
-    mutationFn: () =>
-      afterSave((id) => previewKost2Reallocation(id, [...manualIds])),
+    mutationFn: () => afterSave((id) => previewKost2Reallocation(id)),
     onSuccess: (r) => r && (setPlan(r.value), stored(r.run)),
   });
   const apply = useMutation({
-    mutationFn: () =>
-      afterSave((id) => applyKost2Reallocation(id, [...manualIds])),
+    mutationFn: () => afterSave((id) => applyKost2Reallocation(id)),
     onSuccess: async (r) => {
       if (!r) return;
       setPlan(r.value);

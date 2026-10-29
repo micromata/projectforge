@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data-table";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Input } from "@/components/ui/input";
 import type { Kost2ReallocationRule } from "@/lib/rs/kost2-reallocation";
 
@@ -24,14 +25,22 @@ export function RulesTable({
   const columns = useMemo<ColumnDef<Kost2ReallocationRule, unknown>[]>(() => {
     const update = (index: number, patch: Partial<Kost2ReallocationRule>) =>
       onChange(rules.map((r, i) => (i === index ? { ...r, ...patch } : r)));
+    const header = (label: string, hint: string) => (
+      <HintTooltip text={hint} openOnTap>
+        <span className="cursor-help underline decoration-dotted underline-offset-4">
+          {label}
+        </span>
+      </HintTooltip>
+    );
     const text = (
       id: string,
       label: string,
+      hint: string,
       cell: (rule: Kost2ReallocationRule) => string | undefined,
       size: number
     ): ColumnDef<Kost2ReallocationRule, unknown> => ({
       id,
-      header: label,
+      header: () => header(label, hint),
       size,
       enableSorting: false,
       meta: { label },
@@ -42,7 +51,8 @@ export function RulesTable({
       labelKey: string
     ): ColumnDef<Kost2ReallocationRule, unknown> => ({
       id,
-      header: t(labelKey),
+      header: () =>
+        header(t(labelKey), t("fibu.kost2Reallocation.tooltip.ruleKonto")),
       size: 130,
       enableSorting: false,
       meta: { label: t(labelKey) },
@@ -65,12 +75,14 @@ export function RulesTable({
       text(
         "source",
         t("fibu.kost2Reallocation.rule.source"),
+        t("fibu.kost2Reallocation.tooltip.ruleSource"),
         (r) => r.sourceKost2?.displayName,
         280
       ),
       text(
         "target",
         t("fibu.kost2Reallocation.rule.target"),
+        t("fibu.kost2Reallocation.tooltip.ruleTarget"),
         (r) => r.targetKost2?.displayName,
         280
       ),

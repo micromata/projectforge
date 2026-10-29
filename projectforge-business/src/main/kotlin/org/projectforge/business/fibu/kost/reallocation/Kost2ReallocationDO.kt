@@ -29,7 +29,6 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.business.fibu.ProjektDO
-import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.json.IdOnlySerializer
@@ -65,13 +64,6 @@ open class Kost2ReallocationDO : DefaultBaseDO(), DisplayNameCapable {
     @get:JoinColumn(name = "projekt_fk", nullable = false)
     @JsonSerialize(using = IdOnlySerializer::class)
     open var projekt: ProjektDO? = null
-
-    /** The target task of the time sheets selected by hand (booked directly on a collective task). */
-    @PropertyInfo(i18nKey = "fibu.kost2Reallocation.targetTask")
-    @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "task_fk")
-    @JsonSerialize(using = IdOnlySerializer::class)
-    open var task: TaskDO? = null
 
     @PropertyInfo(i18nKey = "fibu.kost2Reallocation.fromYear", required = true)
     @GenericField

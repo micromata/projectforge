@@ -1746,6 +1746,13 @@
       },
       "invoicedExceedsCommissioned": "The invoiced amount exceeds the commissioned amount – please check for an incorrectly assigned invoice.",
       "mail": {
+        "digest": {
+          "changed": "Changed",
+          "created": "Created",
+          "deleted": "Deleted",
+          "intro": "these orders have been created, changed or deleted since the last summary:",
+          "subject": "Order changes: {arg0}"
+        },
         "intro": "the order #{arg0} was created or changed."
       },
       "nettoSumme": {
@@ -1757,7 +1764,22 @@
         "immediately": "immediately"
       },
       "notification": {
-        "error": "The order was saved, but the e-mail notification could not be sent: {arg0}"
+        "error": "The order was saved, but the e-mail notification could not be sent: {arg0}",
+        "mode": {
+          "daily": "Daily summary",
+          "immediate": "Immediately",
+          "muted": "Muted"
+        },
+        "prefs": {
+          "adopt": "Add {arg0} \"{arg1}\" as an exception",
+          "customer": "Customer",
+          "default": "Default",
+          "description": "Choose whether you receive an e-mail for each change of an order at once, as a daily summary or not at all. A rule for a project or customer overrides the default.",
+          "precedence": "If a project and its customer have different rules, the more specific one applies: the rule of the project comes before the rule of the customer, which comes before the default.",
+          "project": "Project",
+          "rules": "Exceptions for projects and customers",
+          "title": "Order notifications"
+        }
       },
       "nummer": {
         "_": "Number",
@@ -2280,7 +2302,6 @@
       "detect": "Detect time sheets",
       "detected": "Detected time sheets",
       "discarded": "Reallocation discarded (runs)",
-      "found": "Time sheets found (select by hand)",
       "fromMonth": "From month",
       "fromYear": "From year",
       "needsReapply": "shares were discarded by a DATEV reimport, to be re-applied",
@@ -2296,7 +2317,6 @@
         "source": "Source cost 2",
         "target": "Target cost 2"
       },
-      "searchTask": "Collective structure element to search",
       "shares": "Cost 2 shares",
       "sourceKost2": "Source cost 2 (collective)",
       "status": {
@@ -2311,11 +2331,32 @@
       },
       "sums": "Sums per cost 2",
       "targetProject": "Target project",
-      "targetTask": "Target task",
       "timesheets": "Time sheets to move",
       "title": "Cost 2 reallocation",
       "toMonth": "To month",
-      "toYear": "To year"
+      "toYear": "To year",
+      "tooltip": {
+        "apply": "Stores the cost unit shares and moves the time sheets. Refused as long as the preview shows errors. The run can be reverted afterwards.",
+        "comment": "Internal note on the run, e.g. who asked for it and why.",
+        "defaultRules": "Creates one rule per source cost unit: it goes to the cost unit of the target project with the same cost 2 type. Replaces the rules below.",
+        "description": "Free text to recognise the run in the list, e.g. the reason for the reallocation.",
+        "detect": "Searches the time sheets of the period whose task is in the task tree of the target project, but whose cost unit belongs to another project. They move with the run.",
+        "detected": "Move with the run: their task is in the task tree of the target project, their cost unit isn''t one of the target project.",
+        "periodFrom": "First month of the run: the accounting records and salaries of the months from here to the last month are reallocated.",
+        "periodTo": "Last month of the run (inclusive). The same month as the first one reallocates a single month.",
+        "preview": "Calculates what the run would change, without reallocating anything. The draft is saved first.",
+        "reapply": "Stores the shares again which a DATEV reimport discarded. The time sheets stay as they are.",
+        "records": "Per accounting record: the amounts per cost unit before and after the run. The original booking stays; the shares are stored beside it.",
+        "revert": "Deletes the shares of the run, restores the previous ones and moves the time sheets back. Only possible if no later run changed the same records and the time sheets are unchanged.",
+        "ruleKonto": "Optional account range (inclusive) the rule is limited to, e.g. 8000 to 8999 for revenue only. Without a range, all accounts count. A rule moves salary records (account 6000) only if its range names 6000 explicitly; otherwise they are split by the hours of the moved time sheets.",
+        "ruleSource": "The cost unit whose accounting records are reallocated.",
+        "ruleTarget": "The cost unit of the target project the accounting records of the source go to.",
+        "save": "Stores the draft. Nothing is reallocated yet.",
+        "sourceKost2": "The collective cost units the hours and costs were booked on so far, e.g. those of a shared project. Their records and time sheets move to the target project. \"Default rules\" derives the rules below from them.",
+        "sums": "The accounting records changed by the run, summed per cost unit, before and after.",
+        "targetProject": "The project the costs and hours move to. Its cost units (cost 2) receive the reallocated accounting records and time sheets.",
+        "timesheets": "The time sheets the run moves: other cost unit and, for those selected by hand, other task, with the hours as counted by the salary export."
+      }
     },
     "kost2art": {
       "kost2arten": "Cost 2 types",
@@ -4264,6 +4305,8 @@
       },
       "file": {
         "assignInfo": "Only active members of the security team can be assigned.",
+        "badge": "File",
+        "badgeHint": "A case file exists for this CVE: discussion, ratings and measures. A click on the row opens it.",
         "chatUnavailable": "The discussion isn't available.",
         "closure": "Closure overview",
         "error": {
@@ -4442,6 +4485,12 @@
         "P3": "P3",
         "P4": "P4",
         "binding": "Binding priority",
+        "hint": {
+          "P1": "Critical: act immediately. Typically a vulnerability listed in the KEV catalogue or exploited on an exposed system. Shortest triage and remediation deadlines.",
+          "P2": "High: fix soon. Typically a CVSS score of 9 or more, or a P3 raised by an additional risk.",
+          "P3": "Medium: fix in the regular maintenance cycle. Typically a CVSS score of 7 or more.",
+          "P4": "Low: fix when convenient, e.g. with the next update. Typically a CVSS score below 7."
+        },
         "suggested": "Suggestion {arg0}: {arg1}"
       },
       "priorityReason": {
@@ -4485,6 +4534,21 @@
         "save": "Save rating"
       },
       "reason": "Reason",
+      "rights": {
+        "cases": "{arg0} see the cases. {arg1} create and edit them.",
+        "closure": "{arg0} see counts only, no persons. {arg1} see the devices of the persons, create team checks and close cases. A case with open items is closed by {arg2} only.",
+        "devices": "Only the {arg1} see the devices, they are personal data.",
+        "file": "{arg0} read the file and join the discussion. {arg1} take over, rate, and maintain the measures and team checks. The binding priority is set by the assignee or {arg2}; only {arg2} reassign a case that somebody else has taken over.",
+        "label": "Rights on this page",
+        "list": "{arg0} see the list and open the files. {arg1} edit several entries at once (take over, priority, status). Everybody else is sent to \"My\".",
+        "my": "Everybody logged in sees their own devices, the measures to confirm and the checks of their own groups here.",
+        "role": {
+          "officer": "Security officers",
+          "reader": "Readers",
+          "team": "Security team"
+        },
+        "teamcheck": "Members of the checked group and the {arg1} answer. Only the {arg1} create and delete team checks."
+      },
       "role": {
         "CA": "CVE-Radar admin",
         "EMPLOYEE": "Employee",
@@ -4589,7 +4653,7 @@
       },
       "teamCheck": {
         "add": "Request team check",
-        "addInfo": "The group checks whether the project or system is affected and answers like team feedback.",
+        "addInfo": "The group checks whether the project or system is affected and answers like team feedback. Its members find the check under \"My CVE-Radar\" (\"Checks of my groups\"); they are not notified by mail yet, so let them know.",
         "answer": "Answer",
         "answeredBy": "Answered by",
         "comment": "Comment, version or planned date",
@@ -4631,7 +4695,15 @@
         "IN_TRIAGE": "In triage",
         "NEW": "New",
         "NOT_RELEVANT": "Not relevant",
-        "RATED": "Rated"
+        "RATED": "Rated",
+        "hint": {
+          "CLOSED": "Done: fixed, mitigated or accepted. A closed case is not changed any more.",
+          "IN_REMEDIATION": "Measures are decided and being carried out (update, workaround, …).",
+          "IN_TRIAGE": "Somebody is assessing whether the vulnerability affects us and how severe it is.",
+          "NEW": "Not looked at yet. Waits for somebody to take it over.",
+          "NOT_RELEVANT": "Does not affect us. Needs a reason; a closed case is not changed any more.",
+          "RATED": "The assessment is done and a binding priority is set."
+        }
       },
       "unknown": "unknown",
       "versionNowUnaffected": "Inventory already has an unaffected version — please confirm",
@@ -4664,6 +4736,7 @@
         "legend": {
           "rejected": "Rejected by the NVD"
         },
+        "nvdLink": "Open at the NVD",
         "title": "Vulnerabilities (NVD)",
         "withFindingsOnly": "Only with findings"
       },

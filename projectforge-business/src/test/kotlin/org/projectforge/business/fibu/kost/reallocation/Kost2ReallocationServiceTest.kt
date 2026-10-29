@@ -138,7 +138,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         val detected = service.detectTimesheets(run)
         assertEquals(f.subTimesheets.map { it.id }.toSet(), detected.map { it.id }.toSet(), "Only the moved sub task.")
 
-        val preview = service.preview(run.id!!, emptyList())
+        val preview = service.preview(run.id!!)
         assertEquals(emptyList<String>(), preview.warnings)
         assertAmounts(preview, f.salary1, f.t0 to "-600.00", f.s0 to "-400.00")
         assertAmounts(preview, f.salary2, f.t0 to "-500.00")
@@ -146,7 +146,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         assertAmounts(preview, f.otherCosts, f.t0 to "-300.00")
         assertEquals(f.subTimesheets.size, preview.timesheets.size)
 
-        service.apply(run.id!!, emptyList())
+        service.apply(run.id!!)
         assertEquals(Kost2ReallocationStatus.APPLIED, runDao.find(run.id, checkAccess = false)!!.status)
         assertShares(f.salary1, f.t0 to "-600.00", f.s0 to "-400.00")
         assertShares(f.salary2, f.t0 to "-500.00")
@@ -163,7 +163,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         // A share of the effective view can't be saved (it carries the id of the stored record).
         assertThrows<IllegalArgumentException> { buchungssatzDao.update(expanded.first { it.originalRecord != null }) }
         // An applied run can't be edited, deleted or applied again.
-        assertThrows<UserException> { service.apply(run.id!!, emptyList()) }
+        assertThrows<UserException> { service.apply(run.id!!) }
         val stored = runDao.find(run.id, checkAccess = false)!!
         stored.description = "changed"
         assertThrows<UserException> { runDao.update(stored) }
@@ -174,19 +174,20 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
     fun `second run on the same month, revert in reverse order`() {
         val f = Fixture(62)
         val run1 = f.createRun()
-        service.apply(run1.id!!, emptyList())
-        // Second run: the time sheets booked directly on the collective task, selected by hand.
+        service.apply(run1.id!!)
+        // Second run: the time sheets booked directly on the collective task, moved into the task tree of the target
+        // project beforehand (separately), so the run detects them.
+        f.collectiveTimesheets.forEach { timesheetDao.reallocate(timesheetDao.find(it.id, checkAccess = false)!!, f.targetTask, f.s0) }
         val run2 = f.createRun(withRule = false)
-        val manual = service.searchTimesheets(run2, listOf(f.collectiveTask.id!!), f.user1.id, null)
-        assertEquals(f.collectiveTimesheets.map { it.id }.toSet(), manual.map { it.id }.toSet())
-        val preview = service.preview(run2.id!!, manual.mapNotNull { it.id })
+        assertEquals(f.collectiveTimesheets.map { it.id }.toSet(), service.detectTimesheets(run2).map { it.id }.toSet())
+        val preview = service.preview(run2.id!!)
         assertAmounts(preview, f.salary1, f.t0 to "-1000.00")
-        service.apply(run2.id!!, manual.mapNotNull { it.id })
+        service.apply(run2.id!!)
         assertShares(f.salary1, f.t0 to "-1000.00")
         f.collectiveTimesheets.forEach {
             val timesheet = timesheetDao.find(it.id, checkAccess = false)!!
             assertEquals(f.t0.id, timesheet.kost2Id)
-            assertEquals(f.targetTask.id, timesheet.taskId, "Selected by hand: moved to the target task.")
+            assertEquals(f.targetTask.id, timesheet.taskId, "The task isn't changed by the run.")
         }
         // Run 1 can't be reverted before run 2 (which superseded its shares).
         assertThrows<UserException> { service.revert(run1.id!!) }
@@ -197,7 +198,6 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         (f.subTimesheets + f.collectiveTimesheets).forEach { original ->
             val timesheet = timesheetDao.find(original.id, checkAccess = false)!!
             assertEquals(original.kost2Id, timesheet.kost2Id)
-            assertEquals(original.taskId, timesheet.taskId)
         }
         assertEquals(Kost2ReallocationStatus.REVERTED, runDao.find(run1.id, checkAccess = false)!!.status)
     }
@@ -206,7 +206,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
     fun `discarded shares are re-applied from the log`() {
         val f = Fixture(63)
         val run = f.createRun()
-        service.apply(run.id!!, emptyList())
+        service.apply(run.id!!)
         logon(TEST_FINANCE_USER)
         assertFalse(service.needsReapply(runDao.find(run.id, checkAccess = false)!!))
         // A DATEV reimport changed the amount of the first salary record (unchanged here, the shares are discarded only).
@@ -229,7 +229,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         timesheet.kost2 = f.s1
         timesheetDao.update(timesheet, checkAccess = false)
         val run = f.createRun()
-        val warnings = service.preview(run.id!!, emptyList()).warnings
+        val warnings = service.preview(run.id!!).warnings
         assertEquals(1, warnings.size, "$warnings")
         assertTrue(warnings.first().contains(f.user1.getFullname()), warnings.first())
     }
@@ -249,7 +249,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         val targetId = f.targetProject.id!!
         assertEquals(BigDecimal("200.00"), recordSum(collectiveId))
         assertEquals(BigDecimal.ZERO, recordSum(targetId).stripTrailingZeros())
-        service.apply(run.id!!, emptyList())
+        service.apply(run.id!!)
         assertEquals(BigDecimal("-400.00"), recordSum(collectiveId), "The rest of the first salary stays.")
         assertEquals(BigDecimal("600.00"), recordSum(targetId), "Salaries (-1100), revenue (2000) and costs (-300).")
         service.revert(run.id!!)
@@ -261,7 +261,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
     fun `revert is refused after a moved time sheet was changed`() {
         val f = Fixture(67)
         val run = f.createRun()
-        service.apply(run.id!!, emptyList())
+        service.apply(run.id!!)
         // Somebody moved a time sheet of the run to another task after the apply.
         val changed = timesheetDao.find(f.subTimesheets.first().id, checkAccess = false)!!
         changed.task = f.targetTask
@@ -279,7 +279,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         val run = f.createRun()
         // A second rule T0 -> S1: the revenue on S0 goes to T0 by the first rule only, not on to S1.
         ruleDao.insert(Kost2ReallocationRuleDO().also { it.run = run; it.sourceKost2 = f.t0; it.targetKost2 = f.s1 })
-        val preview = service.preview(run.id!!, emptyList())
+        val preview = service.preview(run.id!!)
         assertAmounts(preview, f.revenue, f.t0 to "2000.00")
         assertAmounts(preview, f.otherCosts, f.t0 to "-300.00")
     }
@@ -290,7 +290,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         val run = f.createRun()
         logon(TEST_USER)
         assertThrows<AccessException> { service.checkAccess() }
-        assertThrows<AccessException> { service.preview(run.id!!, emptyList()) }
+        assertThrows<AccessException> { service.preview(run.id!!) }
         assertThrows<AccessException> { runDao.insert(newRun(f)) }
         assertFalse(runDao.hasLoggedInUserInsertAccess())
         assertFalse(shareDao.hasLoggedInUserInsertAccess())
@@ -323,7 +323,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
                 executor.submit<Result<Unit>> {
                     logon(TEST_FINANCE_USER)
                     start.await()
-                    runCatching { service.apply(run.id!!, emptyList()); Unit }
+                    runCatching { service.apply(run.id!!); Unit }
                 }
             }
             start.countDown()
@@ -344,7 +344,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
     fun `revert skips a deleted time sheet and refuses a changed kost2`() {
         val f = Fixture(70)
         val run = f.createRun()
-        service.apply(run.id!!, emptyList())
+        service.apply(run.id!!)
         val deleted = timesheetDao.find(f.subTimesheets.first().id, checkAccess = false)!!
         timesheetDao.markAsDeleted(deleted, checkAccess = false)
         // Another kost2 on a moved time sheet (the validation of an update would refuse S1 in the target task tree):
@@ -367,18 +367,18 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         val run = f.createRun()
         assertErrorKey("fibu.kost2Reallocation.error.notApplied") { service.revert(run.id!!) }
         assertErrorKey("fibu.kost2Reallocation.error.notApplied") { service.reapply(run.id!!) }
-        service.apply(run.id!!, emptyList())
+        service.apply(run.id!!)
         service.revert(run.id!!)
         assertErrorKey("fibu.kost2Reallocation.error.notApplied") { service.revert(run.id!!) }
         assertErrorKey("fibu.kost2Reallocation.error.notApplied") { service.reapply(run.id!!) }
-        assertErrorKey("fibu.kost2Reallocation.error.notApplied") { service.preview(run.id!!, emptyList()) }
-        assertErrorKey("fibu.kost2Reallocation.error.notDraft") { service.apply(run.id!!, emptyList()) }
+        assertErrorKey("fibu.kost2Reallocation.error.notApplied") { service.preview(run.id!!) }
+        assertErrorKey("fibu.kost2Reallocation.error.notDraft") { service.apply(run.id!!) }
         f.records.forEach { assertTrue(shareService.activeShares(it).isEmpty(), "Original state.") }
         // A deleted draft is gone for the service.
         val deleted = f.createRun()
         runDao.markAsDeleted(deleted)
-        assertErrorKey("fibu.kost2Reallocation.error.runNotFound") { service.preview(deleted.id!!, emptyList()) }
-        assertErrorKey("fibu.kost2Reallocation.error.runNotFound") { service.apply(deleted.id!!, emptyList()) }
+        assertErrorKey("fibu.kost2Reallocation.error.runNotFound") { service.preview(deleted.id!!) }
+        assertErrorKey("fibu.kost2Reallocation.error.runNotFound") { service.apply(deleted.id!!) }
     }
 
     @Test
@@ -389,7 +389,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         val run = f.createRun(withRule = false)
         f.rule(run, f.s0, f.t0, kontoFrom = 4400, kontoTo = 4400)
         f.rule(run, f.s0, f.s1)
-        val preview = service.preview(run.id!!, emptyList())
+        val preview = service.preview(run.id!!)
         assertAmounts(preview, f.revenue, f.t0 to "2000.00")
         assertAmounts(preview, f.otherCosts, f.s1 to "-300.00")
         assertAmounts(preview, f.salary1, f.t0 to "-600.00", f.s0 to "-400.00")
@@ -397,7 +397,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         // A rule covering the salary account explicitly moves the rest of the split, too; other accounts stay.
         val salaryRun = f.createRun(withRule = false)
         f.rule(salaryRun, f.s0, f.t0, kontoFrom = 6000, kontoTo = 6000)
-        val salaryPreview = service.preview(salaryRun.id!!, emptyList())
+        val salaryPreview = service.preview(salaryRun.id!!)
         assertAmounts(salaryPreview, f.salary1, f.t0 to "-1000.00")
         assertAmounts(salaryPreview, f.salary2, f.t0 to "-500.00")
         assertNull(salaryPreview.records.find { it.record.id == f.revenue.id }, "No rule for the revenue account.")
@@ -409,11 +409,11 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         val f = Fixture(73)
         val run = newRun(f, month = MONTH + 1)
         runDao.insert(run)
-        val preview = service.preview(run.id!!, emptyList())
+        val preview = service.preview(run.id!!)
         assertTrue(preview.records.isEmpty())
         assertTrue(preview.timesheets.isEmpty())
         assertEquals(emptyList<String>(), preview.warnings)
-        service.apply(run.id!!, emptyList())
+        service.apply(run.id!!)
         assertTrue(service.getTimesheetLog(run).isEmpty())
         service.revert(run.id!!)
         assertEquals(Kost2ReallocationStatus.REVERTED, runDao.find(run.id, checkAccess = false)!!.status)
@@ -432,7 +432,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         }
         buchungssatzDao.markAsDeleted(buchungssatzDao.find(f.salary2.id, checkAccess = false)!!, checkAccess = false)
         val run = f.createRun()
-        val preview = service.preview(run.id!!, emptyList())
+        val preview = service.preview(run.id!!)
         val period = "$YEAR-$MONTH"
         assertTrue(
             preview.warnings.contains(translateMsg("fibu.kost2Reallocation.warning.noSalary", f.user1.getFullname(), period)),
@@ -455,7 +455,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         }
         employeeCache.forceReload()
         val run = f.createRun()
-        val preview = service.preview(run.id!!, emptyList())
+        val preview = service.preview(run.id!!)
         assertEquals(listOf(translateMsg("fibu.kost2Reallocation.error.noKost1", f.user2.getFullname())), preview.errors)
         assertNull(preview.records.find { it.record.id == f.salary2.id })
         assertAmounts(preview, f.salary1, f.t0 to "-600.00", f.s0 to "-400.00")
@@ -466,7 +466,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
     fun `a re-apply whose salary record is gone is refused`() {
         val f = Fixture(76)
         val run = f.createRun()
-        service.apply(run.id!!, emptyList())
+        service.apply(run.id!!)
         // A DATEV reimport discarded the shares, the salary record of the second employee went to another kost1.
         shareDao.discardForRecords(listOf(f.salary2.id!!))
         persistenceService.runInTransaction { context ->
@@ -478,7 +478,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
             )
         }
         kostCache.forceReload()
-        val preview = service.preview(run.id!!, emptyList())
+        val preview = service.preview(run.id!!)
         assertEquals(
             listOf(translateMsg("fibu.kost2Reallocation.error.salaryRecordUnmatched", f.salary2.satznr.toString(), "$YEAR-$MONTH")),
             preview.errors,
@@ -490,7 +490,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
 
     /** Apply refuses the plan with errors and changes nothing. */
     private fun assertApplyRefused(f: Fixture, run: Kost2ReallocationDO) {
-        assertErrorKey("fibu.kost2Reallocation.error.salarySplitMissing") { service.apply(run.id!!, emptyList()) }
+        assertErrorKey("fibu.kost2Reallocation.error.salarySplitMissing") { service.apply(run.id!!) }
         assertEquals(Kost2ReallocationStatus.DRAFT, runDao.find(run.id, checkAccess = false)!!.status)
         f.records.forEach { assertTrue(shareService.activeShares(it).isEmpty(), "No shares.") }
         f.subTimesheets.forEach { assertEquals(f.s0.id, timesheetDao.find(it.id, checkAccess = false)!!.kost2Id, "Not moved.") }
@@ -504,7 +504,6 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
     private fun newRun(f: Fixture, month: Int = MONTH) = Kost2ReallocationDO().also {
         it.description = "Run ${f.n}"
         it.projekt = f.targetProject
-        it.task = f.targetTask
         it.fromYear = YEAR
         it.fromMonth = month
         it.toYear = YEAR

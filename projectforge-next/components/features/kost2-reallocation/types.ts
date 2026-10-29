@@ -7,7 +7,6 @@ import type {
 export interface RunDraft {
   description: string;
   projekt: Kost2ReallocationRef | null;
-  taskId: number | null;
   fromYear: number | null;
   fromMonth: number | null;
   toYear: number | null;
@@ -23,7 +22,6 @@ export const emptyRunDraft = (): RunDraft => {
   return {
     description: "",
     projekt: null,
-    taskId: null,
     fromYear: previous.getFullYear(),
     fromMonth: previous.getMonth() + 1,
     toYear: previous.getFullYear(),
