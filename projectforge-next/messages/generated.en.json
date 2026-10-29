@@ -782,6 +782,61 @@
       "short": "Year"
     }
   },
+  "businessCard": {
+    "address": {
+      "_": "Take over from address",
+      "suggestion": "Probably your own address",
+      "tooltip": "The data of the address is copied into the card and can be changed afterwards. Later changes of the address don't change the card."
+    },
+    "birthday": "Birthday",
+    "businessPhone": "Phone",
+    "cardName": "Name of the card",
+    "city": "City",
+    "comment": "Note",
+    "country": "Country",
+    "delete": {
+      "question": "Delete the business card?"
+    },
+    "division": "Division",
+    "downloadVCard": "Download vCard",
+    "email": "E-mail",
+    "fax": "Fax",
+    "firstName": "First name",
+    "includePhoto": {
+      "_": "Publish photo",
+      "noGateway": "No gateway is configured, photos can't be published.",
+      "notAllowed": "The photo can only be published from your own address.",
+      "tooltip": "The photo of the address is published on the gateway and linked in the vCard. Only possible for your own address (its e-mail address is one of yours)."
+    },
+    "lastName": "Last name",
+    "limit": "At most {arg0} business cards.",
+    "mobilePhone": "Mobile",
+    "new": "New business card",
+    "none": "No business cards yet.",
+    "organization": "Organization",
+    "positionText": "Position",
+    "privateCity": "Private city",
+    "privateCountry": "Private country",
+    "privateEmail": "Private e-mail",
+    "privateMobilePhone": "Private mobile",
+    "privatePhone": "Private phone",
+    "privateStreet": "Private street",
+    "privateZipCode": "Private ZIP code",
+    "qrCode": {
+      "_": "QR code",
+      "dense": "Many fields make the QR code dense and hard to scan: leave out what isn't needed."
+    },
+    "saved": "The business card is saved.",
+    "section": {
+      "business": "Business",
+      "card": "Card",
+      "private": "Private"
+    },
+    "street": "Street",
+    "title": "Title",
+    "website": "Website",
+    "zipCode": "ZIP code"
+  },
   "calendar": {
     "calendarYear": "Calendar year",
     "chooseDate": "Choose date",
@@ -972,6 +1027,7 @@
       "nextUnread": "Jump to the next unread message ({arg0} unread)",
       "notFound": "The conversation doesn't exist or isn't accessible.",
       "polling": "Live updates interrupted, new messages are checked periodically.",
+      "pollingLabel": "Delayed",
       "readOnly": "This conversation is read-only.",
       "unmute": "Unmute"
     },
@@ -979,6 +1035,10 @@
       "_": "Data transfer",
       "empty": "No chats in data transfer areas yet: every area is a chat room for everybody with access to it.",
       "open": "Go to the data transfer area"
+    },
+    "description": {
+      "hide": "Hide description",
+      "show": "Show description"
     },
     "direct": {
       "_": "Direct messages",
@@ -1020,8 +1080,10 @@
         "_": "Files available",
         "info": "The files of the room are kept that long in its data transfer area \"Chat: …\", then they are deleted."
       },
+      "next": "Next image",
       "notAvailable": "File no longer available",
       "openArea": "Open in data transfer",
+      "previous": "Previous image",
       "remove": "Remove file"
     },
     "linkHint": "Chat and encrypted communication",
@@ -1613,6 +1675,15 @@
           }
         },
         "chart": {
+          "breakdown": {
+            "_": "Breakdown of the forecast",
+            "fixed": "Commissioned fixed price / flat rate",
+            "ist": "Invoiced",
+            "planned": "thereof invoice planned",
+            "timeAndMaterials": "Commissioned time & materials (run rate)",
+            "total": "Forecast incl. invoiced",
+            "weighted": "Not yet commissioned (weighted)"
+          },
           "cumulative": "Revenue forecast cumulated",
           "empty": "Neither order positions nor invoices found for the forecast.",
           "ist": "Invoiced",
@@ -2453,11 +2524,13 @@
       "projektnummer": "Project number",
       "status": {
         "acquisition": "acquisition",
+        "active": "active",
         "build": "build phase",
         "ended": "ended",
         "maintenance": "maintenance",
         "none": "none",
         "onhold": "on hold",
+        "paused": "paused",
         "productive": "productive (without maintenance)"
       },
       "title": {
@@ -2894,12 +2967,6 @@
     "female": "female",
     "male": "male",
     "unknown": "unknown"
-  },
-  "goreact": {
-    "menu": {
-      "classics": "Old version",
-      "classicsInfo": "The old version will be removed shortly."
-    }
   },
   "group": {
     "_": "Group",
@@ -3447,6 +3514,7 @@
       "fileprefix": "MonthlyEmployeeReport"
     },
     "myAccount": "My account",
+    "myBusinessCards": "My business cards",
     "orga": {
       "_": "Organization",
       "postausgang": "Outbox",
@@ -4011,10 +4079,82 @@
         },
         "title": "Feedback {arg0}"
       },
+      "case": {
+        "assignee": "Assignee",
+        "clientAdvisory": "Released to employees",
+        "clientAdvisoryHint": "Every employee sees the case with the measures for non-techies and confirms them, unless the own devices prove the fix already.",
+        "clientAgentCheckId": "Check of the client agent",
+        "closeReason": "Reason of closing",
+        "code": "Id",
+        "codeHint": "CVE id of a vulnerability; an incident without id gets the next one of the year.",
+        "error": {
+          "codeExists": "The id {arg0} exists already.",
+          "conflict": "This case was changed in the meantime (at {arg0}). Please reload it and repeat your change.",
+          "cveId": "A CVE needs its CVE id, e.g. CVE-2026-12345."
+        },
+        "fixVersion": "Fix version",
+        "kind": {
+          "_": "Kind",
+          "CVE": "Vulnerability (CVE)",
+          "INCIDENT": "Incident"
+        },
+        "minClientAgentVersion": "Minimum version of the client agent",
+        "new": {
+          "hint": "The closure overview with team checks and devices is available after the first save."
+        },
+        "nonTechMeasures": "Measures for non-techies",
+        "priority": "Priority",
+        "priorityReason": "Reason of the priority",
+        "referenceLinks": "Own references",
+        "section": {
+          "advisory": "Client advisory",
+          "criteria": "Fix criteria",
+          "general": "Case",
+          "measures": "Measures"
+        },
+        "status": "Status",
+        "techMeasures": "Measures for techies",
+        "workaround": "Workaround"
+      },
+      "cases": {
+        "add": "New case",
+        "edit": "Edit case",
+        "list": "Cases"
+      },
+      "chat": {
+        "caseNotice": "Everybody with access to the CVE-Radar reads along here. Please name no details of projects or systems: those belong in the file of the team check, which only the asked group, the security team and the security officer see."
+      },
       "clientAnswer": {
         "DONE": "Done",
         "NOT_AFFECTED": "Not affected",
         "QUESTION": "Question/problem"
+      },
+      "closure": {
+        "closable": "Can be closed: every criterion is met.",
+        "close": "Close case",
+        "closeWithOpenItems": "There are open items: only the security officer closes the case now, with a reason.",
+        "confirmations": "Confirmed by employees",
+        "devices": "Devices",
+        "editCase": "Edit",
+        "error": {
+          "alreadyClosed": "The case is already closed.",
+          "openItems": "The case has open items; only the security officer may close it now.",
+          "reason": "A reason is required for closing."
+        },
+        "inactive": "Inactive devices",
+        "noCriteria": "No fix criteria: only team checks and confirmations count.",
+        "notClosable": "Not closable yet:",
+        "open": {
+          "devicesNoData": "{arg0} devices without data or confirmation",
+          "devicesOpen": "{arg0} devices not fixed",
+          "questions": "{arg0} open questions of employees",
+          "riskAccepted": "{arg0} risks accepted (decision of the security officer)",
+          "teamChecks": "{arg0} team checks not answered or in progress"
+        },
+        "openOverview": "Open closure overview",
+        "questions": "Questions",
+        "teamChecks": "Team checks",
+        "title": "Closure overview"
       },
       "column": {
         "assignee": "Assignee",
@@ -4068,6 +4208,24 @@
       },
       "demo": "Demo",
       "deviation": "deviation",
+      "device": {
+        "agentVersion": "Agent version",
+        "check": "Check",
+        "checkFailed": "failed",
+        "checkPassed": "passed",
+        "confirmation": "Confirmation",
+        "hostname": "Host name",
+        "lastSeen": "Last reported",
+        "serialNumber": "Serial number",
+        "state": {
+          "CONFIRMED": "Confirmed",
+          "FIXED": "Fixed",
+          "NO_DATA": "No data",
+          "OPEN": "Not fixed"
+        },
+        "stateLabel": "State",
+        "user": "User"
+      },
       "discussion": {
         "newPost": "New post (Markdown)",
         "post": "Post",
@@ -4079,9 +4237,11 @@
         "title": "Discussion"
       },
       "error": {
+        "answer": "An answer is required.",
         "expiryRequired": "A risk acceptance needs a period of validity.",
         "noAccess": "Not allowed for this role.",
         "notAssignee": "The binding priority is set by the assignee or the security officer.",
+        "notFound": "Not found.",
         "openFindings": "Can be closed only when every finding is fixed, mitigated, not affected or accepted as a risk.",
         "reasonRequired": "A reason is required.",
         "riskNeedsManagement": "From P2 on, the management approves as well; the prototype does not show this."
@@ -4101,6 +4261,40 @@
         "LOW": "low",
         "MEDIUM": "medium",
         "NONE": "none"
+      },
+      "file": {
+        "assignInfo": "Only active members of the security team can be assigned.",
+        "chatUnavailable": "The discussion isn't available.",
+        "closure": "Closure overview",
+        "error": {
+          "action": "This action isn't possible.",
+          "assignee": "The assignee must be an active member of the security team.",
+          "closed": "The case is closed.",
+          "massFailed": "Could not be saved, see the log.",
+          "massLimit": "At most {arg0} vulnerabilities at once.",
+          "priorityReason": "The binding priority needs a reason.",
+          "priorityRights": "The binding priority is set by the assignee or the security officer.",
+          "reassignRights": "The case is assigned to somebody else: it is handed over by its assignee or the security officer.",
+          "status": "This status can't be set here. Close as not relevant with a reason, or from the closure overview."
+        },
+        "noCaseYet": "Nobody has opened a file for this vulnerability yet. The discussion starts with it.",
+        "open": "Open file",
+        "openFirst": "Open the file first (button above).",
+        "openTeamCheck": "Open file",
+        "priorityInfo": "The binding priority is set by the assignee or the security officer. Without an assignee you become it.",
+        "setPriority": "Set binding priority…",
+        "startDiscussion": "Open the file and start the discussion",
+        "suggested": "suggested",
+        "tab": {
+          "discussion": "Discussion",
+          "measures": "Measures",
+          "overview": "NVD data",
+          "ratings": "Ratings",
+          "teamChecks": "Team checks"
+        },
+        "teamChecksInfo": "Projects and systems are discussed in the file of a team check. Only the asked group, the security team and the security officer see it.",
+        "teamChecksNone": "No team checks yet.",
+        "title": "CVE file"
       },
       "filter": {
         "all": "All",
@@ -4167,6 +4361,28 @@
         "INSTANCE": "Instance",
         "SYSTEM": "System"
       },
+      "live": {
+        "devices": {
+          "hint": "All devices as the log server reports them. Personal data: visible to the security team only.",
+          "title": "Devices"
+        },
+        "entry": "Real data:",
+        "my": {
+          "devices": "My devices",
+          "hint": "The measures to confirm, the open checks of your groups and your devices as the log server reports them.",
+          "noDevices": "No devices reported for you.",
+          "teamChecks": "Checks of my groups",
+          "title": "My CVE-Radar"
+        },
+        "nav": {
+          "cases": "Cases",
+          "devices": "Devices",
+          "my": "My CVE-Radar",
+          "prototype": "Demo",
+          "vulnerabilities": "Vulnerabilities"
+        },
+        "saved": "Saved."
+      },
       "masterDataOnly": {
         "info": "Only the master data of this system is visible for this role (code, name, group, level). Components and findings require a grant.",
         "short": "master data only"
@@ -4183,14 +4399,23 @@
         "reset": "Reset deviation"
       },
       "measures": {
+        "edit": "Edit measures",
         "fixVersion": "Fix version",
         "nonTechMeasures": "Measures for non-techies",
         "none": "Not yet described.",
         "remediation": "Remediation",
+        "save": "Save measures",
         "techMeasures": "Measures for techies",
         "workaround": "Workaround"
       },
       "menu": "CVE-Radar",
+      "my": {
+        "error": {
+          "question": "Please describe the question or problem."
+        },
+        "fixedByEvidence": "Your devices already report the fix, no confirmation is needed.",
+        "question": "Question or problem"
+      },
       "myAreas": {
         "findings": "Open findings of my systems",
         "groups": "My groups: {arg0}",
@@ -4212,6 +4437,10 @@
         "label": "possibly"
       },
       "priority": {
+        "P1": "P1",
+        "P2": "P2",
+        "P3": "P3",
+        "P4": "P4",
         "binding": "Binding priority",
         "suggested": "Suggestion {arg0}: {arg1}"
       },
@@ -4238,8 +4467,14 @@
         },
         "title": "Questions & answers"
       },
+      "rating": {
+        "exploitability": "Exploitability here",
+        "reason": "Reason"
+      },
       "ratings": {
         "binding": "Binding priority {arg0}: {arg1}",
+        "count": "Ratings",
+        "delete": "Delete my rating",
         "deviates": "Deviates from the binding priority",
         "deviatesSuggestion": "Deviates from the suggestion",
         "exploitability": "Exploitability here",
@@ -4280,6 +4515,33 @@
         }
       },
       "selected": "Selected: {arg0}",
+      "start": {
+        "demo": {
+          "hint": "All planned functions of the CVE-Radar as a clickable prototype with fictitious test data.",
+          "link": "Open demo",
+          "title": "Demo"
+        },
+        "vulnerabilities": {
+          "hint": "The vulnerabilities imported from the NVD, from the configured CVSS score on. A click on the CVE opens it at the NVD."
+        }
+      },
+      "statistics": {
+        "cases": {
+          "series": "Cases",
+          "title": "Reported cases"
+        },
+        "empty": "Nothing in this period.",
+        "granularity": {
+          "_": "Period",
+          "day": "Day",
+          "month": "Month",
+          "week": "Week"
+        },
+        "vulnerabilities": {
+          "series": "Vulnerabilities",
+          "title": "Vulnerabilities published by the NVD"
+        }
+      },
       "system": {
         "criticality": "Criticality",
         "grants": "Grants",
@@ -4303,6 +4565,7 @@
         "feedback": "Feedback",
         "findings": "Findings",
         "myAreas": "My areas",
+        "statistics": "Statistics",
         "systems": "Systems & components",
         "vulnerabilities": "Vulnerabilities (CVEs)"
       },
@@ -4323,6 +4586,32 @@
         "planned": "planned for {arg0}",
         "plannedInDays": "Planned in days",
         "version": "version {arg0}"
+      },
+      "teamCheck": {
+        "add": "Request team check",
+        "addInfo": "The group checks whether the project or system is affected and answers like team feedback.",
+        "answer": "Answer",
+        "answeredBy": "Answered by",
+        "comment": "Comment, version or planned date",
+        "date": "Date",
+        "delete": "Delete",
+        "deleteFor": "Delete team check {arg0}",
+        "error": {
+          "caseClosed": "The case is closed.",
+          "group": "Please choose a group.",
+          "reason": "A reason is required for \"not affected\" and \"risk accepted\".",
+          "subject": "Please name the project or system."
+        },
+        "group": "Group",
+        "none": "No team checks.",
+        "open": "open",
+        "reason": "Reason",
+        "subject": "Project or system"
+      },
+      "teamCheckFile": {
+        "info": "Team check of {arg0}, asked of the group {arg1}. Here projects and systems may be named: only this group, the security team and the security officer see this file.",
+        "title": "Team check",
+        "toCase": "To the file of the CVE"
       },
       "title": "CVE-Radar",
       "tree": {
@@ -4348,12 +4637,20 @@
       "versionNowUnaffected": "Inventory already has an unaffected version — please confirm",
       "vuln": {
         "affectedRanges": "Affected configurations",
+        "cvss31Score": "CVSS 3.x",
+        "cvss31Severity": "Severity CVSS 3.x",
+        "cvss31Vector": "Vector CVSS 3.x",
+        "cvss40Score": "CVSS 4.0",
+        "cvss40Severity": "Severity CVSS 4.0",
+        "cvss40Vector": "Vector CVSS 4.0",
         "cwe": "CWE",
         "description": "Description (NVD)",
+        "kev": "Known exploited (KEV) since",
         "modified": "Modified",
         "nvdStatus": "NVD status",
         "references": "Other references",
         "remediationHints": "Remediation hints",
+        "severity": "Severity",
         "tab": {
           "ai": "AI",
           "discussion": "Discussion & Q&A",
@@ -4364,6 +4661,10 @@
         }
       },
       "vulnerabilities": {
+        "legend": {
+          "rejected": "Rejected by the NVD"
+        },
+        "title": "Vulnerabilities (NVD)",
         "withFindingsOnly": "Only with findings"
       },
       "yes": "yes"
@@ -5733,7 +6034,6 @@
           "tooltip": "Runs some sanity checks (structure tree, data transfer, etc.)."
         },
         "clearAlertMessage": "Clear alert message",
-        "createJcrBackupZip": "Create JCR backup ZIP",
         "createMissingDatabaseIndices": {
           "_": "Create database indices",
           "tooltip": "Creates missing database indices. You can call this script time by time to ensure that there is now missing database indice which may decrease the system's performance. Usually the database indices are created automatically after any update."
@@ -5756,7 +6056,6 @@
             "tooltip": "Insert your log file snippets here."
           }
         },
-        "migrateJcrFiles": "Migrate files out of the JCR",
         "optimizeAddressImages": {
           "_": "Optimize address images",
           "question": "Do you really want to shrink and rebuild all address images? On large systems this may take a while.",
@@ -5806,7 +6105,6 @@
           "checks": "Checks",
           "databaseActions": "Database actions",
           "development": "Development",
-          "jcr": "Document repository (JCR)",
           "misc": {
             "logEntries": "Format log entries"
           },
@@ -5814,19 +6112,6 @@
           "systemChecksAndFunctionality": {
             "configuration": "Configuration"
           }
-        }
-      },
-      "jcr": {
-        "createJcrBackupZip": {
-          "info": "Writes a backup ZIP of all documents (without DataTransfer files) into the backup directory. The next release imports the documents from this ZIP into the database, so create a fresh one right before the update."
-        },
-        "migrateJcrFiles": {
-          "info": "Copies all files out of the JCR into the file store (documents into the database, DataTransfer files into the file system). The JCR keeps them, so switching back or a rollback to the former release is possible. Files already migrated are skipped, so it may run again. Each file is verified by size and checksum; the report is written to jcr-migration-report.txt in the ProjectForge home directory.",
-          "question": "Migrate the files out of the JCR now? With large data volumes this takes a while."
-        },
-        "store": {
-          "db": "Files are stored in the file store (projectforge.files.store=db): documents in the database, DataTransfer files in the file system. Files not yet migrated are still read from the JCR; the migration starts automatically on start-up until a run finished without errors.",
-          "jcr": "All files are stored in the JCR (projectforge.files.store=jcr). To switch, set projectforge.files.store=db in projectforge.properties and restart; the files are migrated then."
         }
       },
       "logViewer": {
