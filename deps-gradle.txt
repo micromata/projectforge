@@ -1,4 +1,4 @@
-Calculating task graph as no cached configuration is available for tasks: dependencies --configuration runtimeClasspath
+Calculating task graph as no cached configuration is available for tasks: :modul:dependencies --configuration runtimeClasspath
 > Task :buildSrc:checkKotlinGradlePluginConfigurationErrors SKIPPED
 > Task :buildSrc:generateExternalPluginSpecBuilders UP-TO-DATE
 > Task :buildSrc:extractPrecompiledScriptPluginPlugins UP-TO-DATE
@@ -12,5 +12,7 @@ Calculating task graph as no cached configuration is available for tasks: depend
 > Task :buildSrc:processResources UP-TO-DATE
 > Task :buildSrc:classes UP-TO-DATE
 > Task :buildSrc:jar UP-TO-DATE
+
+[Incubating] Problems report is available at: file:///Users/kai/workspace/Micromata/ProjectForge-cve-radar/build/reports/problems/problems-report.html
 9 actionable tasks: 9 up-to-date
 Configuration cache entry stored.

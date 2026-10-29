@@ -4465,7 +4465,7 @@
           "NPM": "npm package-lock.json",
           "unknown": "nicht erkannt"
         },
-        "hintGradle": "Gradle: den Befehl für das Modul aufrufen, das ausgeliefert wird (:modul ersetzen; bei einem Projekt mit nur einem Modul weglassen), und die Datei hochladen. Das Hauptprojekt eines Builds mit mehreren Modulen hat keinen eigenen runtimeClasspath. Die Module, von denen das ausgelieferte abhängt, stehen in der Ausgabe schon mit.",
+        "hintGradle": "Gradle: den Befehl für das Modul aufrufen, das ausgeliefert wird, und die Datei hochladen. MODUL durch dessen Namen ersetzen (./gradlew projects listet sie auf; bei einem Projekt mit nur einem Modul genügt ./gradlew dependencies ...). Das Hauptprojekt eines Builds mit mehreren Modulen hat keinen eigenen runtimeClasspath. Die Module, von denen das ausgelieferte abhängt, stehen in der Ausgabe schon mit.",
         "hintJar": "Alternative ohne Build: die Dateinamen des ausgelieferten Jars. Die groupId steht nicht im Dateinamen; sie kommt aus dem Technologiekatalog, wenn der Name dort eindeutig ist, sonst bleibt sie offen.",
         "hintMaven": "Maven: den Befehl aufrufen und die Datei hochladen. Alle Module landen in einer Datei, Test-Abhängigkeiten fehlen.",
         "hintNode": "Node: die package-lock.json des Projekts hochladen.",
