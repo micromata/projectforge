@@ -185,6 +185,27 @@ class MailTemplatesPreviewTest : AbstractTestBase() {
     }
 
     @Test
+    fun orderDigestNotification() {
+        val subject = "Auftragsänderungen: 3"
+        val mail = htmlMail(subject)
+        val data = mutableMapOf<String, Any?>(
+            "subject" to subject,
+            "entries" to listOf(
+                mapOf("number" to 7299, "title" to "Relaunch Kundenportal <b>(Phase 2)</b>", "operation" to "UPDATE", "link" to "https://projectforge.example.org/next/order/4711"),
+                mapOf("number" to 7300, "title" to "Wartung 2027", "operation" to "INSERT", "link" to null),
+                mapOf("number" to 7001, "title" to "Altauftrag", "operation" to "DELETE", "link" to null),
+            ),
+        )
+        mail.content = sendMail.renderGroovyTemplate(
+            mail, "mail/orderDigestNotification.html", data, translate(Locale.GERMAN, "fibu.auftrag"), recipient,
+        )
+        Assertions.assertTrue(mail.content.contains("#7299"), mail.content)
+        Assertions.assertTrue(mail.content.contains("Angelegt"), mail.content)
+        Assertions.assertFalse(mail.content.contains("<b>(Phase 2)</b>"), "The title must be escaped: ${mail.content}")
+        MailPreview.write(sendMail, "orderDigestNotification", mail)
+    }
+
+    @Test
     fun errorDigestMail() {
         val collector = ErrorDigestCollector()
         collector.add(digestOccurrence(SupportLogEvents.EXTERNAL_UNREACHABLE, "Gateway not reachable at https://gw.example.org/heartbeat, sync skipped: 502 Bad Gateway", "GatewaySyncPushService:490", LogLevel.WARN))
