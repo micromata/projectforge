@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
@@ -50,6 +51,16 @@ import org.springframework.beans.factory.annotation.Autowired
  * may hang below several frameworks, nodes are merged and deleted without losing the references of the inventory.
  */
 class CvrCatalogTest : CveRadarTestBase() {
+    @Autowired
+    private lateinit var catalogService: CvrCatalogService
+
+    /** Done by the plugin when it starts. */
+    @BeforeEach
+    fun seedEcosystems() {
+        logon(TEST_ADMIN_USER)
+        catalogService.ensureEcosystems()
+    }
+
     @Autowired
     private lateinit var rest: CvrCatalogRest
 
@@ -96,6 +107,11 @@ class CvrCatalogTest : CveRadarTestBase() {
         assertThrows(UserException::class.java) {
             rest.create(CatalogNodeRequest(kind = CvrCatalogKind.ECOSYSTEM, name = "Again", ecosystemKey = "Maven"))
         }
+        val renamed = assertThrows(UserException::class.java, {
+            rest.update(maven(), CatalogNodeRequest(kind = CvrCatalogKind.ECOSYSTEM, name = "Java", ecosystemKey = "maven2", purlType = "maven"))
+        }, "the key of an ecosystem stays")
+        assertEquals(CvrCatalogService.ERROR_ECOSYSTEM_KEY, renamed.i18nKey)
+        rest.update(maven(), CatalogNodeRequest(kind = CvrCatalogKind.ECOSYSTEM, name = "Java/Maven", ecosystemKey = "Maven", purlType = "maven"))
     }
 
     @Test

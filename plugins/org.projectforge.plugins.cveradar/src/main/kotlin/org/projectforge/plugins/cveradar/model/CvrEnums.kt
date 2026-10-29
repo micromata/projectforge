@@ -125,6 +125,11 @@ enum class CvrOrigin : I18nEnum {
 
     override val i18nKey: String
         get() = "plugins.cveradar.origin.$name"
+
+    companion object {
+        /** The libraries read from lists (INV-26): kept apart from the technologies edited in the component dialog. */
+        val LIBRARY_LISTS = setOf(LOCKFILE, BUILD_LIST, JAR_LIST)
+    }
 }
 
 /** The level of a node of the technology catalogue (INV-28). */

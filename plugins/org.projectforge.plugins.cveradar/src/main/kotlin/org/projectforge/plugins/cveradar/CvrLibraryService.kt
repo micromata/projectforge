@@ -51,15 +51,16 @@ class CvrLibraryService {
     @Autowired
     private lateinit var technologyDao: CvrTechnologyDao
 
-    fun preview(component: CvrComponentDO, request: LibraryRequest): LibraryDiff = plan(component, request).diff()
+    fun preview(component: CvrComponentDO, request: LibraryRequest): LibraryDiff =
+        plan(component, request, Catalog(catalogNodes())).diff()
 
-    fun apply(component: CvrComponentDO, request: LibraryRequest): LibraryDiff {
-        val plan = plan(component, request)
-        val catalog = catalogNodes()
+    /** In one transaction: a failure leaves the component as it was. */
+    fun apply(component: CvrComponentDO, request: LibraryRequest): LibraryDiff = persistenceService.runInTransaction {
+        val catalog = Catalog(catalogNodes())
+        val plan = plan(component, request, catalog)
         plan.added.forEach { (entry, origin) ->
-            val node = catalog[Triple(entry.ecosystem, entry.group?.replace("%40", "@"), entry.name)]
-                ?: catalog.values.filter { entry.group == null && it.purlType == entry.ecosystem && it.purlName == entry.name }
-                    .singleOrNull()
+            val node = catalog.byPurl[Triple(entry.ecosystem, entry.group?.replace("%40", "@"), entry.name)]
+                ?: if (entry.group == null) catalog.byName[entry.ecosystem to entry.name]?.singleOrNull() else null
             technologyDao.insert(
                 CvrTechnologyDO().also {
                     it.component = component
@@ -67,7 +68,7 @@ class CvrLibraryService {
                     it.product = entry.product.take(255)
                     it.version = entry.version.take(100)
                     it.ecosystem = entry.ecosystem
-                    it.purl = entry.purl.take(500)
+                    it.purl = storedPurl(entry)
                     it.catalogNode = node
                     it.vendor = node?.cpeVendor?.take(100)
                     it.origin = origin
@@ -79,7 +80,7 @@ class CvrLibraryService {
         plan.removed.forEach {
             technologyDao.markAsDeleted(technologyDao.find(it.id, checkAccess = false)!!, checkAccess = false)
         }
-        return plan.diff()
+        plan.diff()
     }
 
     private class Plan(
@@ -106,9 +107,8 @@ class CvrLibraryService {
         private fun line(entry: LibraryEntry) = LibraryLine(entry.ecosystem, entry.group, entry.name, entry.version)
     }
 
-    private fun plan(component: CvrComponentDO, request: LibraryRequest): Plan {
+    private fun plan(component: CvrComponentDO, request: LibraryRequest, catalog: Catalog): Plan {
         val parsed = LibraryListParser.parseAll(request.files.map { (it.name ?: "").take(255) to (it.text ?: "") })
-        val catalog = catalogNodes().values
         val wanted = LinkedHashMap<String, Pair<LibraryEntry, CvrOrigin>>()
         parsed.forEach { file ->
             val origin = when (file.format) {
@@ -116,16 +116,14 @@ class CvrLibraryService {
                 LibraryFormat.JAR -> CvrOrigin.JAR_LIST
                 else -> CvrOrigin.BUILD_LIST
             }
-            file.entries.map { resolveGroup(it, catalog) }.forEach { wanted.putIfAbsent(it.purl, it to origin) }
+            // Keyed like the stored purl, so a very long one isn't added again on every upload.
+            file.entries.map { resolveGroup(it, catalog) }.forEach { wanted.putIfAbsent(storedPurl(it), it to origin) }
         }
         val existing = persistenceService.executeQuery(
-            "from CvrTechnologyDO t where t.deleted = false and t.component.id = :component and " +
-                "(t.origin = :lockfile or t.origin = :buildList or t.origin = :jarList)",
+            "from CvrTechnologyDO t where t.deleted = false and t.component.id = :component and t.origin in :origins",
             CvrTechnologyDO::class.java,
             Pair("component", component.id),
-            Pair("lockfile", CvrOrigin.LOCKFILE),
-            Pair("buildList", CvrOrigin.BUILD_LIST),
-            Pair("jarList", CvrOrigin.JAR_LIST),
+            Pair("origins", CvrOrigin.LIBRARY_LISTS),
         )
         val known = existing.mapNotNull { it.purl }.toSet()
         return Plan(
@@ -140,19 +138,26 @@ class CvrLibraryService {
      * A jar name has no groupId; it is taken from the catalogue where exactly one library node has this name
      * (nothing is looked up elsewhere).
      */
-    private fun resolveGroup(entry: LibraryEntry, catalog: Collection<CvrCatalogNodeDO>): LibraryEntry {
+    private fun resolveGroup(entry: LibraryEntry, catalog: Catalog): LibraryEntry {
         if (entry.group != null) return entry
-        val node = catalog.filter { it.purlType == entry.ecosystem && it.purlName == entry.name && it.purlNamespace != null }
-            .singleOrNull() ?: return entry
+        val node = catalog.byName[entry.ecosystem to entry.name]?.filter { it.purlNamespace != null }?.singleOrNull()
+            ?: return entry
         return entry.copy(group = node.purlNamespace)
     }
 
-    /** The library nodes of the catalogue by purl type, namespace and name. */
-    private fun catalogNodes(): Map<Triple<String, String?, String>, CvrCatalogNodeDO> =
+    private fun storedPurl(entry: LibraryEntry) = entry.purl.take(500)
+
+    /** The library nodes of the catalogue by purl type, namespace and name, and by purl type and name. */
+    private class Catalog(nodes: List<CvrCatalogNodeDO>) {
+        val byPurl = nodes.associateBy { Triple(it.purlType!!, it.purlNamespace?.replace("%40", "@"), it.purlName!!) }
+        val byName = nodes.groupBy { it.purlType!! to it.purlName!! }
+    }
+
+    private fun catalogNodes(): List<CvrCatalogNodeDO> =
         persistenceService.executeQuery(
             "from CvrCatalogNodeDO e where e.deleted = false and e.purlName is not null and e.purlType is not null",
             CvrCatalogNodeDO::class.java,
-        ).associateBy { Triple(it.purlType!!, it.purlNamespace?.replace("%40", "@"), it.purlName!!) }
+        )
 
     companion object {
         private const val MAX_LINES = 200

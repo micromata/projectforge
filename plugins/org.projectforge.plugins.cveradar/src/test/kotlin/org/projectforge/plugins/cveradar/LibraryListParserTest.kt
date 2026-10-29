@@ -72,6 +72,8 @@ class LibraryListParserTest {
                 jakarta.servlet:jakarta.servlet-api:jar:6.0.0:provided
             +- org.slf4j:slf4j-api:jar:2.0.9:compile
             |  \- org.x:y:jar:1.0:runtime
+            [INFO] +- org.apache.commons:commons-lang3:jar:3.14.0:compile
+            [INFO] |  \- org.x:y:jar:1.0:runtime
         """.trimIndent()
         val file = LibraryListParser.parse("deps-maven.txt", text)
         assertEquals(LibraryFormat.MAVEN, file.format)
@@ -81,8 +83,10 @@ class LibraryListParserTest {
                 "pkg:maven/io.netty/netty-transport-native-epoll@4.1.100.Final",
                 "pkg:maven/org.slf4j/slf4j-api@2.0.9",
                 "pkg:maven/org.x/y@1.0",
+                "pkg:maven/org.apache.commons/commons-lang3@3.14.0",
             ),
             purls(file),
+            "the console output of dependency:tree keeps its [INFO] prefix",
         )
     }
 

@@ -371,8 +371,9 @@ class CvrInventoryService {
         requested: List<TechnologyRequest>,
         existing: List<CvrTechnologyDO>,
     ) {
-        // Libraries read from lists (INV-26) are not part of the dialog; only the ones entered by hand are.
-        val byId = existing.filter { it.origin == CvrOrigin.MANUAL }.associateBy { it.id }
+        // Libraries read from lists (INV-26) are not part of the dialog.
+        val editable = existing.filter { it.origin !in CvrOrigin.LIBRARY_LISTS }
+        val byId = editable.associateBy { it.id }
         val kept = mutableSetOf<Long>()
         requested.forEach { request ->
             val product = request.product.clean(255) ?: throw UserException(ERROR_TECHNOLOGY)
@@ -394,7 +395,7 @@ class CvrInventoryService {
                 technologyDao.update(technology, checkAccess = false)
             }
         }
-        existing.filter { it.origin == CvrOrigin.MANUAL && it.id !in kept }.forEach {
+        editable.filter { it.id !in kept }.forEach {
             technologyDao.markAsDeleted(technologyDao.find(it.id, checkAccess = false)!!, checkAccess = false)
         }
     }

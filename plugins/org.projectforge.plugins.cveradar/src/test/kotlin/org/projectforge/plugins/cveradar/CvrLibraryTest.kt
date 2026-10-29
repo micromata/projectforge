@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.access.AccessException
 import org.projectforge.plugins.cveradar.model.CvrCatalogKind
@@ -48,6 +49,16 @@ import org.springframework.beans.factory.annotation.Autowired
  * are merged, `replace` removes what is missing, technologies entered by hand stay, the catalogue is linked.
  */
 class CvrLibraryTest : CveRadarTestBase() {
+    @Autowired
+    private lateinit var catalogService: CvrCatalogService
+
+    /** Done by the plugin when it starts. */
+    @BeforeEach
+    fun seedEcosystems() {
+        logon(TEST_ADMIN_USER)
+        catalogService.ensureEcosystems()
+    }
+
     @Autowired
     private lateinit var rest: CvrInventoryRest
 
