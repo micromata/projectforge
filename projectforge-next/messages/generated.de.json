@@ -1071,6 +1071,7 @@
       "directTarget": "Dateien landen im Datentransfer in der persönlichen Box von {arg0}.",
       "download": "Herunterladen",
       "error": {
+        "notAllowed": "In dieser Unterhaltung werden keine Dateien ausgetauscht.",
         "tooLarge": "Die Datei „{arg0}“ ist zu groß (höchstens {arg1}).",
         "tooLargeTogether": "Alle Dateien zusammen sind für eine Nachricht zu groß.",
         "tooMany": "Höchstens {arg0} Dateien pro Nachricht.",
@@ -1080,6 +1081,7 @@
         "_": "Dateien verfügbar",
         "info": "Die Dateien des Raums werden so lange in seinem Datentransferbereich „Chat: …“ aufbewahrt und danach gelöscht."
       },
+      "expiryHint": "Anhänge werden nach {arg0} Tagen gelöscht.",
       "next": "Nächstes Bild",
       "notAvailable": "Datei nicht mehr verfügbar",
       "openArea": "Im Datentransfer öffnen",
@@ -4147,7 +4149,7 @@
         "OSV": "OSV-Ökosystemliste"
       },
       "chat": {
-        "caseNotice": "Hier lesen alle mit Zugang zum CVE-Radar mit. Bitte keine Details zu Projekten oder Systemen nennen: Die gehören in die Akte der Team-Prüfung, die nur die gefragte Gruppe, das Security-Team und der Security Officer sehen."
+        "caseNotice": "Hier lesen alle mit Zugang zum CVE-Radar mit. Bitte keine Details zu Projekten oder Systemen nennen, weder im Text noch in Anhängen (Screenshots, Logs, Konfigurationen): Die gehören in die Akte der Team-Prüfung, die nur die gefragte Gruppe, das Security-Team und der Security Officer sehen."
       },
       "clientAnswer": {
         "DONE": "Erledigt",

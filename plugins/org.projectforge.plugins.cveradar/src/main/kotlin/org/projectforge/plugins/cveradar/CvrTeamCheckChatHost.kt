@@ -112,7 +112,7 @@ class CvrTeamCheckChatHost : ChatHost {
     override val searchableAcrossConversations: Boolean
         get() = false
 
-    override fun filesAllowed(hostId: Long, channel: String): Boolean = false
+    override fun fileExpiryDays(hostId: Long, channel: String): Int = CvrCaseChatHost.FILE_EXPIRY_DAYS
 
     private fun check(hostId: Long, channel: String = CHANNEL): CvrTeamCheckDO? {
         if (channel != CHANNEL || !access.isPluginActive()) {

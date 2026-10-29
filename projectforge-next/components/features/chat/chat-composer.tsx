@@ -6,6 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AttachmentIcon, SentIcon } from "@hugeicons/core-free-icons";
 import { AttachmentDropZone } from "@/components/shared/attachments/attachment-drop-zone";
+import { FormAlert } from "@/components/shared/form-alert";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
@@ -44,7 +45,7 @@ export function ChatComposer({
   const draft = useChatDraft(conversation.id, threadRootId, conversation.me.id);
   const [hasText, setHasText] = useState(!!draft.initial);
   const pending = usePendingFiles(conversation);
-  const { quoting, setQuoting } = useChatContext();
+  const { quoting, setQuoting, writingNotice } = useChatContext();
   const inThread = threadRootId != null;
   const quote = inThread ? quoting.thread : quoting.main;
   useEffect(() => {
@@ -89,6 +90,12 @@ export function ChatComposer({
               onRemove={() => setQuoting(inThread, null)}
             />
           )}
+          {writingNotice && (hasText || pending.files.length > 0) && (
+            // E.g. that everybody reads the discussion of a case: shown while writing, when it matters.
+            <FormAlert tone="warning" className="mx-2 mt-2">
+              {writingNotice}
+            </FormAlert>
+          )}
           <PendingFiles files={pending.files} onRemove={pending.remove} />
           {pending.files.length > 0 && (
             <p
@@ -99,10 +106,18 @@ export function ChatComposer({
             >
               {pending.tooLarge
                 ? t("chat.file.error.tooLargeTogether")
-                : conversation.directPartner &&
-                  t("chat.file.directTarget", {
-                    arg0: conversation.directPartner.displayName,
-                  })}
+                : [
+                    conversation.directPartner &&
+                      t("chat.file.directTarget", {
+                        arg0: conversation.directPartner.displayName,
+                      }),
+                    conversation.fileExpiryDays != null &&
+                      t("chat.file.expiryHint", {
+                        arg0: conversation.fileExpiryDays,
+                      }),
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
             </p>
           )}
           <div className="flex items-end gap-1 p-2">

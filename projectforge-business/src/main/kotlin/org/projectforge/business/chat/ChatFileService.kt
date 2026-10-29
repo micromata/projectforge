@@ -107,9 +107,14 @@ open class ChatFileService : DataTransferAreaHost {
     open val filesAvailable: Boolean
         get() = dataTransferBridge.fileStorageAvailable
 
-    /** Can files be exchanged in the conversation (data transfer available)? */
+    /** Does the host of the conversation take files at all (independent of the data transfer)? */
+    open fun filesAllowed(context: ChatAccess.Context): Boolean {
+        return context.host.filesAllowed(context.hostId, context.channel)
+    }
+
+    /** Can files be exchanged in the conversation (allowed by the host, data transfer available)? */
     open fun filesEnabled(context: ChatAccess.Context): Boolean {
-        return filesAvailable && context.host.filesAllowed(context.hostId, context.channel)
+        return filesAvailable && filesAllowed(context)
     }
 
     /**
@@ -137,6 +142,10 @@ open class ChatFileService : DataTransferAreaHost {
         }
         if (uploads.size > maxPerMessage) {
             throw UserException(ERROR_TOO_MANY, maxPerMessage)
+        }
+        // Checked here, not only by hiding the button: a posted file must not land in a conversation without files.
+        if (!filesAllowed(context)) {
+            throw UserException(ERROR_NOT_ALLOWED)
         }
         val areaId = targetAreaId(context, create = true) ?: throw UserException(ERROR_UNAVAILABLE)
         val maxSize = dataTransferBridge.getMaxUploadSize(areaId) ?: 0
@@ -187,6 +196,14 @@ open class ChatFileService : DataTransferAreaHost {
                 setAreaId(conversationId, saved)
             }
         }
+    }
+
+    /**
+     * The days the files of the conversation are kept: fixed by its host, otherwise those of its area, null if it has
+     * none (yet).
+     */
+    open fun fileExpiryDays(context: ChatAccess.Context): Int? {
+        return context.host.fileExpiryDays(context.hostId, context.channel) ?: getExpiryDays(context.conversationId)
     }
 
     /** The days the files of the conversation are kept, null if it has no area (yet). */
@@ -286,7 +303,8 @@ open class ChatFileService : DataTransferAreaHost {
         if (!create) {
             return null
         }
-        saveArea(context.conversationId, context.host.title(context.hostId, context.channel) ?: context.title, null)
+        val title = context.host.title(context.hostId, context.channel) ?: context.title
+        saveArea(context.conversationId, title, context.host.fileExpiryDays(context.hostId, context.channel))
         return chatAccess.findConversation(context.conversationId)?.fileAreaId
     }
 
@@ -313,6 +331,7 @@ open class ChatFileService : DataTransferAreaHost {
         const val ERROR_TOO_MANY = "chat.file.error.tooMany"
         const val ERROR_TOO_LARGE = "chat.file.error.tooLarge"
         const val ERROR_UNAVAILABLE = "chat.file.error.unavailable"
+        const val ERROR_NOT_ALLOWED = "chat.file.error.notAllowed"
 
         /** The file ids of the data transfer (random, alphanumeric). */
         private val FILE_ID_PATTERN = Regex("[A-Za-z0-9_-]{1,100}")

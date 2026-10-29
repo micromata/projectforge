@@ -1071,6 +1071,7 @@
       "directTarget": "Files go into the personal box of {arg0} in the data transfer.",
       "download": "Download",
       "error": {
+        "notAllowed": "No files are exchanged in this conversation.",
         "tooLarge": "The file \"{arg0}\" is too large (at most {arg1}).",
         "tooLargeTogether": "All files together are too large for one message.",
         "tooMany": "At most {arg0} files per message.",
@@ -1080,6 +1081,7 @@
         "_": "Files available",
         "info": "The files of the room are kept that long in its data transfer area \"Chat: …\", then they are deleted."
       },
+      "expiryHint": "Attachments are deleted after {arg0} days.",
       "next": "Next image",
       "notAvailable": "File no longer available",
       "openArea": "Open in data transfer",
@@ -4147,7 +4149,7 @@
         "OSV": "OSV ecosystem list"
       },
       "chat": {
-        "caseNotice": "Everybody with access to the CVE-Radar reads along here. Please name no details of projects or systems: those belong in the file of the team check, which only the asked group, the security team and the security officer see."
+        "caseNotice": "Everybody with access to the CVE-Radar reads along here. Please name no details of projects or systems, neither in the text nor in attachments (screenshots, logs, configurations): those belong in the file of the team check, which only the asked group, the security team and the security officer see."
       },
       "clientAnswer": {
         "DONE": "Done",

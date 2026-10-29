@@ -12,7 +12,8 @@ const PREVIEW_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
  * The files of the message being written (ATT-01): kept here and sent with the message, so nothing unsent lands in
  * the data transfer (for a direct message: in the personal box of the recipient). Images get a local preview.
  * Number and size are checked here for a quick answer; the server checks them again (the size against the data
- * transfer area). Without the data transfer, a dropped or pasted file only gets the hint.
+ * transfer area). Without files (not allowed by the host, no data transfer), a dropped or pasted file only gets the
+ * hint saying which.
  */
 export function usePendingFiles(conversation: ChatConversation) {
   const t = useTranslations();
@@ -24,6 +25,7 @@ export function usePendingFiles(conversation: ChatConversation) {
   }, [files]);
   const {
     filesEnabled,
+    filesAllowed,
     maxFilesPerMessage,
     maxFileSize,
     maxFileSizeFormatted,
@@ -33,7 +35,13 @@ export function usePendingFiles(conversation: ChatConversation) {
     (added: File[]) => {
       if (added.length === 0) return;
       if (!filesEnabled) {
-        toast.error(t("chat.file.error.unavailable"));
+        toast.error(
+          t(
+            filesAllowed
+              ? "chat.file.error.unavailable"
+              : "chat.file.error.notAllowed"
+          )
+        );
         return;
       }
       const free = maxFilesPerMessage - filesRef.current.length;
@@ -63,7 +71,14 @@ export function usePendingFiles(conversation: ChatConversation) {
         })),
       ]);
     },
-    [filesEnabled, maxFilesPerMessage, maxFileSize, maxFileSizeFormatted, t]
+    [
+      filesEnabled,
+      filesAllowed,
+      maxFilesPerMessage,
+      maxFileSize,
+      maxFileSizeFormatted,
+      t,
+    ]
   );
 
   const revoke = (list: PendingFile[]) =>

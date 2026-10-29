@@ -106,4 +106,10 @@ interface ChatHost {
      * effects, unlike [fileAreaId] (which may create a personal box): asked on every read of the conversation.
      */
     fun filesAllowed(hostId: Long, channel: String): Boolean = true
+
+    /**
+     * The days the files of the conversation are kept in its synthetic area (one of the choices of the data transfer),
+     * null for the default of the data transfer. Fixed by the host, not chosen by the users (unlike a room).
+     */
+    fun fileExpiryDays(hostId: Long, channel: String): Int? = null
 }
