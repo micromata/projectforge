@@ -31,8 +31,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
-import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.core.PluginsRegistry
 import org.projectforge.plugins.cveradar.CvrCaseStatusService.DeviceState
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
@@ -42,8 +40,6 @@ import org.projectforge.plugins.cveradar.model.CvrClientAnswer
 import org.projectforge.plugins.cveradar.model.CvrConfirmationDO
 import org.projectforge.plugins.cveradar.model.CvrDeviceDO
 import org.projectforge.plugins.cveradar.model.CvrTeamAnswer
-import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
-import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.projectforge.plugins.cveradar.rest.CloseRequest
 import org.projectforge.plugins.cveradar.rest.ConfirmRequest
 import org.projectforge.plugins.cveradar.rest.CveRadarRest
@@ -77,14 +73,6 @@ class CveRadarTest : CveRadarTestBase() {
 
     @Autowired
     private lateinit var statusService: CvrCaseStatusService
-
-    init {
-        listOf(
-            CvrCaseDO::class.java, CvrTeamCheckDO::class.java, CvrConfirmationDO::class.java,
-            CvrDeviceDO::class.java, CvrVulnerabilityDO::class.java,
-            org.projectforge.plugins.cveradar.model.CvrRatingDO::class.java,
-        ).forEach { MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(it.canonicalName) }
-    }
 
     @Test
     fun `an ordinary user sees neither cases nor devices, the security team does`() {

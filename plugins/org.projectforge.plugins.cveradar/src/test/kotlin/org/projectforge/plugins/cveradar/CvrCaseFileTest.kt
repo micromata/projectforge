@@ -33,16 +33,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
-import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrCaseStatus
-import org.projectforge.plugins.cveradar.model.CvrConfirmationDO
-import org.projectforge.plugins.cveradar.model.CvrDeviceDO
 import org.projectforge.plugins.cveradar.model.CvrExploitability
 import org.projectforge.plugins.cveradar.model.CvrImportStateDO
 import org.projectforge.plugins.cveradar.model.CvrPriority
-import org.projectforge.plugins.cveradar.model.CvrRatingDO
-import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.projectforge.plugins.cveradar.rest.CvrCaseFileRest
 import org.projectforge.plugins.cveradar.rest.MassRequest
@@ -81,14 +76,6 @@ class CvrCaseFileTest : CveRadarTestBase() {
 
     @Autowired
     private lateinit var rest: org.projectforge.plugins.cveradar.rest.CveRadarRest
-
-    init {
-        listOf(
-            CvrCaseDO::class.java, CvrTeamCheckDO::class.java, CvrConfirmationDO::class.java,
-            CvrDeviceDO::class.java, CvrVulnerabilityDO::class.java,
-            CvrImportStateDO::class.java, CvrRatingDO::class.java,
-        ).forEach { MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(it.canonicalName) }
-    }
 
     /** Every test imports from the start of the import period, without watermark. */
     @BeforeEach
