@@ -101,8 +101,9 @@ class CvrInventoryService {
         val parent = request.parentId?.let { view.area(it) }
         val group = request.groupId?.let { findGroup(it) }
         if (parent == null) {
-            // A root belongs to a group of the creator, so it isn't lost for everybody (the officer chooses freely).
-            if (group == null || !(view.officer || access.isMemberOf(user, group.id))) {
+            // A group for a root is one of the creator (the officer chooses freely). Without a group only the officer
+            // sees the area.
+            if (group != null && !(view.officer || access.isMemberOf(user, group.id))) {
                 throw UserException(ERROR_GROUP)
             }
         } else if (!view.canWriteArea(parent)) {
@@ -125,9 +126,6 @@ class CvrInventoryService {
             throw AccessException(user, CveRadarAccess.NO_ACCESS)
         }
         val group = request.groupId?.let { findGroup(it) }
-        if (group == null && area.parentId == null) {
-            throw UserException(ERROR_GROUP)
-        }
         val stored = areaDao.find(id, checkAccess = false) ?: throw UserException(ERROR_NOT_FOUND)
         stored.code = checkedCode(request.code, view.model, exceptArea = area.id)
         stored.name = checkedName(request.name)

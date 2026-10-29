@@ -64,7 +64,7 @@ class CvrInventoryTest : CveRadarTestBase() {
     private fun groupId(name: String): Long = (initTestDB.getGroup(name) ?: initTestDB.addGroup(name)).id!!
 
     @Test
-    fun `a root area needs a group of the creator, below it the write access to the parent`() {
+    fun `the group of a root area is one of the creator, below it the write access to the parent is needed`() {
         val owner = user("inv-owner", null)
         val groupId = groupId("cveradar-inv-g1")
         val other = user("inv-other", null)
@@ -73,7 +73,6 @@ class CvrInventoryTest : CveRadarTestBase() {
         assertThrows(UserException::class.java) { rest.createArea(AreaRequest(code = "IV1", name = "A", groupId = groupId)) }
         addToGroup(owner, "cveradar-inv-g1")
         logon(owner)
-        assertThrows(UserException::class.java) { rest.createArea(AreaRequest(code = "IV1", name = "A")) }
         val area = rest.createArea(AreaRequest(code = "iv1", name = "Acme", groupId = groupId))
         assertEquals(setOf("IV1"), rows(owner).keys.filter { it.startsWith("IV") }.toSet(), "the code is normalised")
         assertThrows(UserException::class.java) { rest.createArea(AreaRequest(code = "IV1", name = "Again", groupId = groupId)) }

@@ -4345,7 +4345,7 @@
           "code": "Das Kürzel darf nur Buchstaben, Ziffern, Punkt, Bindestrich und Unterstrich enthalten (bis 50 Zeichen).",
           "codeExists": "Das Kürzel {arg0} ist schon vergeben.",
           "cycle": "Ein Bereich lässt sich nicht unter sich selbst hängen.",
-          "group": "Eine Gruppe wird gebraucht, und du musst Mitglied sein.",
+          "group": "Die Gruppe gibt es nicht, oder du bist nicht Mitglied.",
           "lastInstance": "Die letzte Instanz eines Systems bleibt.",
           "name": "Ein Name wird gebraucht.",
           "notEmpty": "Darunter gibt es noch Einträge. Zuerst löschen oder umhängen.",
@@ -4357,6 +4357,11 @@
         "filter": "Filtern nach Kürzel, Name oder Technologie (z. B. log4j < 2.17)",
         "group": "Gruppe",
         "groupFrom": "von {arg0}",
+        "groupInfo": {
+          "area": "Optional. Ohne Gruppe gelten die Gruppen der Bereiche darüber. Eine hier gewählte Gruppe sieht und ändert diesen Bereich mit allem darunter zusätzlich.",
+          "root": "Optional, aber ohne Gruppe sieht nur der Security Officer den Bereich, nach dem Speichern auch du nicht. Die Gruppe sieht und ändert diesen Bereich mit allem darunter, gewählt werden kann eine Gruppe, in der du Mitglied bist. Der Security Officer kann den Bereich später umhängen, etwa unter einen Kunden.",
+          "system": "Optional. Die Gruppen der Bereiche darüber sehen und ändern das System ohnehin; eine hier gewählte Gruppe kommt hinzu, etwa für das Team, das es betreibt."
+        },
         "hiddenSystems": "+{arg0} weitere Systeme, für diese Rolle nicht sichtbar",
         "hint": "Die Systeme als Baum: Bereiche beliebiger Tiefe, darunter Systeme mit ihren Instanzen (Installationen) und Komponenten. Jeder Knoten wird von den Gruppen gesehen und geändert, die an ihm und an den Bereichen darüber genannt sind.",
         "kind": "Art",
@@ -4369,7 +4374,6 @@
         "purl": "Package-URL (purl)",
         "raiseInfo": "Eine Instanz darf Vertraulichkeit und Kritikalität ihres Systems nur anheben, nicht absenken.",
         "removeTechnology": "Entfernen",
-        "rootAreaInfo": "Die gewählte Gruppe sieht und ändert den Bereich mit allem darunter. Du musst selbst Mitglied sein; der Security Officer kann den Bereich später umhängen, etwa unter einen Kunden.",
         "save": "Speichern",
         "site": "Standort",
         "stage": "Stage",

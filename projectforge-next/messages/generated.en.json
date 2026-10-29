@@ -4345,7 +4345,7 @@
           "code": "The code needs letters, digits, dot, dash or underscore only (up to 50 characters).",
           "codeExists": "The code {arg0} is in use already.",
           "cycle": "An area can't be moved below itself.",
-          "group": "A group is needed, and you have to be a member of it.",
+          "group": "The group doesn't exist, or you are not a member of it.",
           "lastInstance": "The last instance of a system stays.",
           "name": "A name is needed.",
           "notEmpty": "There are entries below it. Delete or move them first.",
@@ -4357,6 +4357,11 @@
         "filter": "Filter by code, name or technology (e.g. log4j < 2.17)",
         "group": "Group",
         "groupFrom": "from {arg0}",
+        "groupInfo": {
+          "area": "Optional. Without a group, the groups of the areas above apply. A group chosen here also sees and changes this area and everything below it.",
+          "root": "Optional, but without a group only the security officer sees the area, not even you after saving. The group sees and changes this area and everything below it; choose one you are a member of. The security officer can move the area later, e.g. below a customer.",
+          "system": "Optional. The groups of the areas above see and change the system anyway; a group chosen here is added, e.g. for the team that runs it."
+        },
         "hiddenSystems": "+{arg0} more systems, not visible for this role",
         "hint": "The systems as a tree: areas of any depth, below them systems with their instances (installations) and components. Each node is seen and changed by the groups named on it and on the areas above it.",
         "kind": "Kind",
@@ -4369,7 +4374,6 @@
         "purl": "Package URL (purl)",
         "raiseInfo": "An instance may only raise the confidentiality and criticality of its system, not lower them.",
         "removeTechnology": "Remove",
-        "rootAreaInfo": "The group chosen sees and changes the area and everything below it. You have to be a member of it yourself; the security officer can move the area later, e.g. below a customer.",
         "save": "Save",
         "site": "Site",
         "stage": "Stage",
