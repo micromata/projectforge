@@ -4472,7 +4472,6 @@
         "intro": "Die Bibliotheken kommen aus den Build-Werkzeugen des Projekts, auch die transitiven. Mehrere Dateien können auf einmal hochgeladen werden; sie werden zusammengeführt. Gelesen werden nur Namen und Versionen, nichts wird ausgeführt und die Dateien werden nicht gespeichert.",
         "more": "… und {arg0} weitere",
         "notRecognised": "Nicht erkannt, ignoriert: {arg0}",
-        "preview": "Vorschau",
         "removeAll": "Alle hochgeladenen Bibliotheken entfernen",
         "removeAllQuestion": "Alle {arg0} für diese Komponente hochgeladenen Bibliotheken entfernen? Von Hand eingetragene Technologien bleiben.",
         "removeFile": "{arg0} entfernen",

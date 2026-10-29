@@ -4472,7 +4472,6 @@
         "intro": "The libraries come from the build tools of the project, including the transitive ones. Several files can be uploaded at once; they are merged. Only the names and versions are read, nothing is executed and the files are not stored.",
         "more": "… and {arg0} more",
         "notRecognised": "Not recognised, ignored: {arg0}",
-        "preview": "Preview",
         "removeAll": "Remove all uploaded libraries",
         "removeAllQuestion": "Remove all {arg0} libraries uploaded for this component? Technologies entered by hand stay.",
         "removeFile": "Remove {arg0}",
