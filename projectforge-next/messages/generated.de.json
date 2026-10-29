@@ -4090,6 +4090,62 @@
         "edit": "Fall bearbeiten",
         "list": "Fälle"
       },
+      "catalog": {
+        "add": "Darunter hinzufügen",
+        "addNode": "Technologie anlegen",
+        "aliases": "Aliase (einer je Zeile)",
+        "cpe": "CPE",
+        "cpeProduct": "CPE-Produkt",
+        "cpeVendor": "CPE-Hersteller",
+        "createTitle": "Neue Technologie",
+        "delete": "Löschen",
+        "deleteQuestion": "{arg0} löschen? Gelöscht wird nur ein Eintrag ohne Einträge darunter und ohne Technologien, die auf ihn verweisen. Sonst in einen anderen Eintrag zusammenführen.",
+        "ecosystemKey": "Ökosystem der OSV-Daten (z. B. Maven)",
+        "editTitle": "Technologie bearbeiten",
+        "empty": "Der Katalog ist leer.",
+        "error": {
+          "cycle": "Ein Eintrag kann nicht zu sich selbst oder zu einem Eintrag darunter gehören.",
+          "ecosystemKey": "Ein Ökosystem braucht einen eigenen OSV-Schlüssel, andere Ebenen haben keinen.",
+          "kind": "Eine Ebene wird gebraucht.",
+          "merge": "Dorthin lässt sich der Eintrag nicht zusammenführen. Ein Ökosystem wird nicht zusammengeführt, und nicht in einen Eintrag darunter.",
+          "name": "Ein Name wird gebraucht.",
+          "notEmpty": "Darunter gibt es Einträge, oder Technologien verweisen darauf. Stattdessen in einen anderen Eintrag zusammenführen.",
+          "notFound": "Den Katalogeintrag gibt es nicht (mehr).",
+          "parent": "Über einem Ökosystem steht nichts.",
+          "purl": "Ein purl-Name braucht einen purl-Typ.",
+          "purlExists": "Dieses purl hat schon ein anderer Eintrag."
+        },
+        "filter": "Filtern nach Name, Alias, CPE oder purl",
+        "hint": "Der Technologiekatalog als Baum: Ökosysteme (z. B. Java/Maven), darunter Produkte und Frameworks, darunter Bibliotheken. Eine Bibliothek kann zu mehreren Frameworks gehören und steht dann unter jedem. Die Technologien der Systeme verweisen auf diese Einträge. Gepflegt wird der Katalog vom Security-Team.",
+        "kind": "Ebene",
+        "merge": "Zusammenführen",
+        "mergeHint": "Die Technologien der Systeme und die Einträge darunter wandern zum gewählten Eintrag, Name und Aliase dieses Eintrags werden dort Aliase, dieser Eintrag wird gelöscht.",
+        "mergeInto": "Zusammenführen in",
+        "mergeTitle": "In einen anderen Eintrag zusammenführen",
+        "node": "Katalogeintrag",
+        "notInCatalog": "nicht im Katalog",
+        "origin": "Quelle",
+        "parents": "Gehört zu",
+        "parentsHint": "Alle Einträge, zu denen dieser gehört. Eine Bibliothek mehrerer Frameworks nennt alle.",
+        "pick": "Aus dem Katalog",
+        "pickHint": "Übernimmt Produkt, Hersteller, Ökosystem, CPE und purl; die Version bleibt dir.",
+        "purl": "purl",
+        "purlName": "purl-Name",
+        "purlNamespace": "purl-Namespace (z. B. groupId)",
+        "purlType": "purl-Typ (z. B. maven)",
+        "save": "Speichern",
+        "title": "Technologien",
+        "usage": "In Verwendung"
+      },
+      "catalogKind": {
+        "ECOSYSTEM": "Ökosystem",
+        "LIBRARY": "Bibliothek",
+        "PRODUCT": "Produkt / Framework"
+      },
+      "catalogOrigin": {
+        "MANUAL": "manuell",
+        "OSV": "OSV-Ökosystemliste"
+      },
       "chat": {
         "caseNotice": "Hier lesen alle mit Zugang zum CVE-Radar mit. Bitte keine Details zu Projekten oder Systemen nennen: Die gehören in die Akte der Team-Prüfung, die nur die gefragte Gruppe, das Security-Team und der Security Officer sehen."
       },
@@ -4407,6 +4463,7 @@
         },
         "nav": {
           "cases": "Fälle",
+          "catalog": "Technologien",
           "devices": "Geräte",
           "inventory": "Systeme",
           "my": "Mein CVE-Radar",
@@ -4525,6 +4582,7 @@
       "reason": "Begründung",
       "rights": {
         "cases": "{arg0} sehen die Fälle. {arg1} legen sie an und bearbeiten sie.",
+        "catalog": "Alle Angemeldeten lesen den Katalog und wählen daraus, wenn sie die Technologien einer Komponente eintragen. {arg1} und {arg2} pflegen ihn.",
         "closure": "{arg0} sehen nur Zahlen, keine Personen. {arg1} sehen die Geräte der Personen, legen Teamprüfungen an und schließen Fälle. Ein Fall mit offenen Punkten wird nur von {arg2} geschlossen.",
         "devices": "Nur das {arg1} sieht die Geräte, sie sind personenbezogen.",
         "file": "{arg0} lesen die Akte und diskutieren mit. {arg1} übernehmen, bewerten und pflegen die Maßnahmen und Teamprüfungen. Die verbindliche Priorität setzen die bearbeitende Person oder {arg2}; einen von anderen übernommenen Fall weisen nur {arg2} neu zu.",

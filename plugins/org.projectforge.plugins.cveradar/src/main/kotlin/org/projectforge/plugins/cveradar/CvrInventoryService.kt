@@ -31,6 +31,7 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.cveradar.model.CvrAreaDO
+import org.projectforge.plugins.cveradar.model.CvrCatalogNodeDO
 import org.projectforge.plugins.cveradar.model.CvrComponentDO
 import org.projectforge.plugins.cveradar.model.CvrConfidentiality
 import org.projectforge.plugins.cveradar.model.CvrCriticality
@@ -69,6 +70,9 @@ class CvrInventoryService {
 
     @Autowired
     private lateinit var areaDao: CvrAreaDao
+
+    @Autowired
+    private lateinit var catalogService: CvrCatalogService
 
     @Autowired
     private lateinit var componentDao: CvrComponentDao
@@ -359,6 +363,7 @@ class CvrInventoryService {
             technology.ecosystem = request.ecosystem.clean(50)
             technology.cpe = request.cpe.clean(500)
             technology.purl = request.purl.clean(500)
+            technology.catalogNode = request.catalogNodeId?.let { catalogService.checkedNode(it) }
             if (technology.id == null) {
                 technology.originDate = LocalDate.now()
                 technologyDao.insert(technology, checkAccess = false)
@@ -470,6 +475,7 @@ class CvrInventoryService {
             instances = all("CvrInstanceDO", CvrInstanceDO::class.java).associateBy { it.id!! },
             components = all("CvrComponentDO", CvrComponentDO::class.java).associateBy { it.id!! },
             technologies = all("CvrTechnologyDO", CvrTechnologyDO::class.java),
+            catalogNames = all("CvrCatalogNodeDO", CvrCatalogNodeDO::class.java).associate { it.id!! to it.name },
         )
     }
 
@@ -479,6 +485,7 @@ class CvrInventoryService {
         val instances: Map<Long, CvrInstanceDO>,
         val components: Map<Long, CvrComponentDO>,
         val technologies: List<CvrTechnologyDO>,
+        val catalogNames: Map<Long, String?>,
     )
 
     /** The inventory as one user sees it. */
@@ -630,7 +637,8 @@ class CvrInventoryService {
                 "C${component.id}", component.id!!, InventoryLevel.COMPONENT, parentKey, "$base-${component.code}",
                 component.code, component.name, false, canEdit,
                 technologies = techByComponent[component.id].orEmpty().sortedBy { it.product?.lowercase() }.map {
-                    TechnologyView(it.id!!, it.kind, it.vendor, it.product, it.version, it.ecosystem, it.cpe, it.purl, it.origin)
+                    TechnologyView(it.id!!, it.kind, it.vendor, it.product, it.version, it.ecosystem, it.cpe, it.purl, it.origin,
+                        it.catalogNodeId, it.catalogNodeId?.let { id -> model.catalogNames[id] })
                 },
                 lastUpdate = component.lastUpdate,
             )

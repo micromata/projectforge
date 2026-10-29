@@ -31,6 +31,8 @@ import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.cveradar.model.CvrAreaDO
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
+import org.projectforge.plugins.cveradar.model.CvrCatalogEdgeDO
+import org.projectforge.plugins.cveradar.model.CvrCatalogNodeDO
 import org.projectforge.plugins.cveradar.model.CvrComponentDO
 import org.projectforge.plugins.cveradar.model.CvrConfirmationDO
 import org.projectforge.plugins.cveradar.model.CvrDeviceDO
@@ -64,7 +66,7 @@ abstract class CveRadarTestBase : AbstractTestBase() {
             CvrCaseDO::class.java, CvrTeamCheckDO::class.java, CvrConfirmationDO::class.java, CvrDeviceDO::class.java,
             CvrVulnerabilityDO::class.java, CvrImportStateDO::class.java, CvrRatingDO::class.java,
             CvrAreaDO::class.java, CvrSystemDO::class.java, CvrInstanceDO::class.java, CvrComponentDO::class.java,
-            CvrTechnologyDO::class.java,
+            CvrTechnologyDO::class.java, CvrCatalogNodeDO::class.java, CvrCatalogEdgeDO::class.java,
         ).forEach { MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(it.canonicalName) }
     }
 

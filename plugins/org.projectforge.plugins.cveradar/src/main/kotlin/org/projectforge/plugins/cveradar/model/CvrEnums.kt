@@ -126,3 +126,19 @@ enum class CvrOrigin : I18nEnum {
     override val i18nKey: String
         get() = "plugins.cveradar.origin.$name"
 }
+
+/** The level of a node of the technology catalogue (INV-28). */
+enum class CvrCatalogKind : I18nEnum {
+    ECOSYSTEM, PRODUCT, LIBRARY;
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.catalogKind.$name"
+}
+
+/** Where a node of the technology catalogue comes from (INV-29). */
+enum class CvrCatalogOrigin : I18nEnum {
+    MANUAL, OSV;
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.catalogOrigin.$name"
+}

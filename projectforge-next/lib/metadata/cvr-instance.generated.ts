@@ -86,6 +86,12 @@ export const CVR_INSTANCE_METADATA = {
       i18nKey: "modified",
       required: false,
     },
+    name: {
+      dataType: "STRING",
+      i18nKey: "plugins.cveradar.inventory.name",
+      required: false,
+      maxLength: 255,
+    },
     site: {
       dataType: "STRING",
       i18nKey: "plugins.cveradar.inventory.site",

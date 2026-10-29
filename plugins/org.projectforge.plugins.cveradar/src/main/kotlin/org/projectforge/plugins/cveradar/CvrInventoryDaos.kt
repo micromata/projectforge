@@ -29,6 +29,8 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.cveradar.model.CvrAreaDO
+import org.projectforge.plugins.cveradar.model.CvrCatalogEdgeDO
+import org.projectforge.plugins.cveradar.model.CvrCatalogNodeDO
 import org.projectforge.plugins.cveradar.model.CvrComponentDO
 import org.projectforge.plugins.cveradar.model.CvrInstanceDO
 import org.projectforge.plugins.cveradar.model.CvrSystemDO
@@ -75,4 +77,15 @@ class CvrComponentDao : CvrInventoryBaseDao<CvrComponentDO>(CvrComponentDO::clas
 @Service
 class CvrTechnologyDao : CvrInventoryBaseDao<CvrTechnologyDO>(CvrTechnologyDO::class.java) {
     override fun newInstance(): CvrTechnologyDO = CvrTechnologyDO()
+}
+
+/** The catalogue is read and changed through [CvrCatalogService] only, which checks the security team. */
+@Service
+class CvrCatalogNodeDao : CvrInventoryBaseDao<CvrCatalogNodeDO>(CvrCatalogNodeDO::class.java) {
+    override fun newInstance(): CvrCatalogNodeDO = CvrCatalogNodeDO()
+}
+
+@Service
+class CvrCatalogEdgeDao : CvrInventoryBaseDao<CvrCatalogEdgeDO>(CvrCatalogEdgeDO::class.java) {
+    override fun newInstance(): CvrCatalogEdgeDO = CvrCatalogEdgeDO()
 }

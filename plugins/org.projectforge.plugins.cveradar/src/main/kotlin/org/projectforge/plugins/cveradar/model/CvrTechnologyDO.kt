@@ -47,13 +47,23 @@ import java.time.LocalDate
 @Entity
 @Table(
     name = "T_PLUGIN_CVERADAR_TECHNOLOGY",
-    indexes = [Index(name = "idx_fk_t_plugin_cveradar_technology_component_fk", columnList = "component_fk")],
+    indexes = [
+        Index(name = "idx_fk_t_plugin_cveradar_technology_component_fk", columnList = "component_fk"),
+        Index(name = "idx_fk_t_plugin_cveradar_technology_catalog_node_fk", columnList = "catalog_node_fk"),
+    ],
 )
 open class CvrTechnologyDO : DefaultBaseDO() {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "component_fk", nullable = false)
     @JsonSerialize(using = IdOnlySerializer::class)
     open var component: CvrComponentDO? = null
+
+    /** The node of the technology catalogue (INV-28); null: "not in catalogue". */
+    @PropertyInfo(i18nKey = "plugins.cveradar.catalog.node")
+    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "catalog_node_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
+    open var catalogNode: CvrCatalogNodeDO? = null
 
     @PropertyInfo(i18nKey = "plugins.cveradar.inventory.kind")
     @get:Enumerated(EnumType.STRING)
@@ -96,4 +106,8 @@ open class CvrTechnologyDO : DefaultBaseDO() {
     val componentId: Long?
         @Transient
         get() = component?.id
+
+    val catalogNodeId: Long?
+        @Transient
+        get() = catalogNode?.id
 }

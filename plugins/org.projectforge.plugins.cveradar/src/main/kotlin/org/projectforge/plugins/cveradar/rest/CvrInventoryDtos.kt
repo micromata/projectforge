@@ -44,6 +44,9 @@ class TechnologyView(
     val cpe: String?,
     val purl: String?,
     val origin: CvrOrigin?,
+    /** The node of the technology catalogue (INV-28); none: "not in catalogue". */
+    val catalogNodeId: Long? = null,
+    val catalogName: String? = null,
 )
 
 /**
@@ -138,6 +141,7 @@ class TechnologyRequest(
     val ecosystem: String? = null,
     val cpe: String? = null,
     val purl: String? = null,
+    val catalogNodeId: Long? = null,
 )
 
 class ComponentRequest(

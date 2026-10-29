@@ -4090,6 +4090,62 @@
         "edit": "Edit case",
         "list": "Cases"
       },
+      "catalog": {
+        "add": "Add below",
+        "addNode": "Add technology",
+        "aliases": "Aliases (one per line)",
+        "cpe": "CPE",
+        "cpeProduct": "CPE product",
+        "cpeVendor": "CPE vendor",
+        "createTitle": "New technology",
+        "delete": "Delete",
+        "deleteQuestion": "Delete {arg0}? Only an entry without entries below and without technologies referring to it can be deleted. Otherwise merge it into another one.",
+        "ecosystemKey": "Ecosystem of the OSV data (e.g. Maven)",
+        "editTitle": "Edit technology",
+        "empty": "The catalogue is empty.",
+        "error": {
+          "cycle": "An entry can't belong to itself or to an entry below it.",
+          "ecosystemKey": "An ecosystem needs its own OSV ecosystem key; other levels have none.",
+          "kind": "A level is needed.",
+          "merge": "That entry can't be merged there. An ecosystem isn't merged, and not into an entry below itself.",
+          "name": "A name is needed.",
+          "notEmpty": "There are entries below it or technologies referring to it. Merge it into another entry instead.",
+          "notFound": "The catalogue entry doesn't exist (any more).",
+          "parent": "An ecosystem has nothing above it.",
+          "purl": "A purl name needs a purl type.",
+          "purlExists": "Another entry has this purl already."
+        },
+        "filter": "Filter by name, alias, CPE or purl",
+        "hint": "The technology catalogue as a tree: ecosystems (e.g. Java/Maven), below them products and frameworks, below those libraries. A library can belong to several frameworks and then shows below each of them. Technologies of the systems refer to these entries. The security team maintains the catalogue.",
+        "kind": "Level",
+        "merge": "Merge",
+        "mergeHint": "The technologies of the systems and the entries below move to the chosen entry, the name and aliases of this one become aliases of it, and this one is deleted.",
+        "mergeInto": "Merge into",
+        "mergeTitle": "Merge into another entry",
+        "node": "Catalogue entry",
+        "notInCatalog": "not in catalogue",
+        "origin": "Source",
+        "parents": "Belongs to",
+        "parentsHint": "All entries this one belongs to. A library of several frameworks lists them all.",
+        "pick": "From the catalogue",
+        "pickHint": "Takes over product, vendor, ecosystem, CPE and purl; the version stays yours.",
+        "purl": "purl",
+        "purlName": "purl name",
+        "purlNamespace": "purl namespace (e.g. groupId)",
+        "purlType": "purl type (e.g. maven)",
+        "save": "Save",
+        "title": "Technologies",
+        "usage": "In use"
+      },
+      "catalogKind": {
+        "ECOSYSTEM": "Ecosystem",
+        "LIBRARY": "Library",
+        "PRODUCT": "Product / framework"
+      },
+      "catalogOrigin": {
+        "MANUAL": "manual",
+        "OSV": "OSV ecosystem list"
+      },
       "chat": {
         "caseNotice": "Everybody with access to the CVE-Radar reads along here. Please name no details of projects or systems: those belong in the file of the team check, which only the asked group, the security team and the security officer see."
       },
@@ -4407,6 +4463,7 @@
         },
         "nav": {
           "cases": "Cases",
+          "catalog": "Technologies",
           "devices": "Devices",
           "inventory": "Systems",
           "my": "My CVE-Radar",
@@ -4525,6 +4582,7 @@
       "reason": "Reason",
       "rights": {
         "cases": "{arg0} see the cases. {arg1} create and edit them.",
+        "catalog": "Everybody logged in reads the catalogue and picks from it when entering the technologies of a component. The {arg1} and the {arg2} maintain it.",
         "closure": "{arg0} see counts only, no persons. {arg1} see the devices of the persons, create team checks and close cases. A case with open items is closed by {arg2} only.",
         "devices": "Only the {arg1} see the devices, they are personal data.",
         "file": "{arg0} read the file and join the discussion. {arg1} take over, rate, and maintain the measures and team checks. The binding priority is set by the assignee or {arg2}; only {arg2} reassign a case that somebody else has taken over.",
