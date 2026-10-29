@@ -456,6 +456,53 @@ class NotificationServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun dailyReminderLimitTest() {
+        val user = initTestDB.addUser("notification-daily-limit-user")
+        val delivery = NotificationDelivery(
+            listOf(
+                NotificationDeliveryStep(NotificationChannel.IN_APP, 0),
+                NotificationDeliveryStep(NotificationChannel.SMS, 60),
+            )
+        )
+        var smsCount = 0
+        val sms = object : NotificationChannelSender {
+            override val channel = NotificationChannel.SMS
+            override fun deliver(notification: NotificationDO, recipient: PFUserDO, now: Date): String? {
+                ++smsCount
+                return null
+            }
+        }
+        val senderList = ReflectionTestUtils.getField(notificationService, "senderList") as List<*>
+        ReflectionTestUtils.setField(notificationService, "senderList", senderList + sms)
+        try {
+            val rule = insertRule(NotificationRuleType.MANUAL, user, delivery)
+            // A manual rule notifies on every trigger: two notifications on the same day.
+            notificationService.trigger(rule)
+            notificationService.trigger(rule)
+            val notifications = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).sortedBy { it.id }
+            assertEquals(2, notifications.size)
+            val later = Date(notifications[0].created!!.time + 61 * 60_000L)
+            notificationService.deliverDueSteps(notifications[0], later)
+            notificationService.deliverDueSteps(notifications[1], later)
+            assertEquals(1, smsCount, "At most one SMS a day and rule.")
+            val skipped = notificationDao.findById(notifications[1].id)!!.readDeliveryState().steps[1]
+            assertTrue(skipped.skipped)
+            assertEquals("Already reminded today.", skipped.error)
+            assertNotNull(notificationDao.findById(notifications[1].id)!!.inAppSince, "The in-app step isn't limited.")
+            // The next day it reminds again:
+            notificationService.trigger(rule)
+            val third = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).maxBy { it.id!! }
+            notificationService.deliverDueSteps(third, Date(later.time + 25 * 3600_000L))
+            assertEquals(2, smsCount)
+            // Tests aren't limited, and don't count:
+            repeat(2) { assertEquals(listOf(NotificationChannel.IN_APP, NotificationChannel.SMS), notificationService.sendTestToMe(rule, user).delivered) }
+            assertEquals(4, smsCount)
+        } finally {
+            ReflectionTestUtils.setField(notificationService, "senderList", senderList)
+        }
+    }
+
+    @Test
     fun linkTest() {
         val user = initTestDB.addUser("notification-link-user")
         val rule = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery())

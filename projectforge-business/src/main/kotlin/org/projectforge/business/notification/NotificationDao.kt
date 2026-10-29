@@ -180,6 +180,17 @@ class NotificationDao {
         )
     }
 
+    /** The notifications of the rule for the recipient created since the given date (delivery state included). */
+    fun findByRuleAndRecipientSince(ruleId: Long, recipientId: Long, since: Date): List<NotificationDO> {
+        return persistenceService.executeQuery(
+            "from NotificationDO n where n.ruleId = :ruleId and n.recipientId = :recipientId and n.created >= :since",
+            NotificationDO::class.java,
+            Pair("ruleId", ruleId),
+            Pair("recipientId", recipientId),
+            Pair("since", since),
+        )
+    }
+
     /** The pending notifications of the given rules. */
     fun findPendingByRules(ruleIds: Collection<Long>): List<NotificationDO> {
         return persistenceService.executeQueryBatched(
