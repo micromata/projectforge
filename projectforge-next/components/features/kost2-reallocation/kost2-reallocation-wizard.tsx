@@ -142,12 +142,14 @@ export function Kost2ReallocationWizard({ runId }: { runId: number | null }) {
       </PageShell>
     );
   }
-  // Remounted when the server's run changes (saved, applied, reverted): the local draft starts from it. The plan
-  // is kept here, so a preview (which saves first) stays on screen.
+  // Remounted when another run is shown or its status changes (applied, reverted): the local draft starts from it
+  // then. A save (also the one before a preview) keeps the form, the time sheets found and the ones ticked by hand,
+  // which apply sends. The plan is kept here, so it stays on screen across the remount of an apply.
+  const run = query.data ?? null;
   return (
     <WizardBody
-      key={query.dataUpdatedAt}
-      run={query.data ?? null}
+      key={`${run?.id ?? "new"}:${run?.status ?? ""}`}
+      run={run}
       plan={plan}
       setPlan={setPlan}
     />

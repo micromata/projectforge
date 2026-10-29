@@ -82,8 +82,10 @@ export function useRunActions(
     onSuccess: async (r) => {
       if (!r) return;
       setPlan(r.value);
-      queryClient.removeQueries({ queryKey: runKey(r.run.id ?? null) });
-      router.replace(`/kost2-reallocation/${r.run.id}`);
+      queryClient.invalidateQueries({ queryKey: KOST2_REALLOCATION_RUNS_KEY });
+      // Refetched (the status changed), which remounts the wizard read-only; a new run moves to its own url.
+      if (runId == null) router.replace(`/kost2-reallocation/${r.run.id}`);
+      else await queryClient.invalidateQueries({ queryKey: runKey(runId) });
     },
   });
   const reapply = useMutation({
