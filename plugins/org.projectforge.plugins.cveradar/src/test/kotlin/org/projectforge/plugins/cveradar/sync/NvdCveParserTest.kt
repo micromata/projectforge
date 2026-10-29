@@ -123,6 +123,7 @@ class NvdCveParserTest {
             status: String = "Analyzed",
             lastModified: String = "2026-10-20T08:00:00.000",
             metrics: String = "",
+            kevAdded: String? = null,
         ): String = """
             {"id":"$id","sourceIdentifier":"cna@example.org","published":"2026-10-01T12:15:07.123",
              "lastModified":"$lastModified","vulnStatus":"$status",
@@ -131,6 +132,7 @@ class NvdCveParserTest {
              "weaknesses":[{"source":"nvd@nist.gov","type":"Primary","description":[{"lang":"en","value":"CWE-79"},{"lang":"en","value":"NVD-CWE-noinfo"}]},
                            {"source":"cna@example.org","type":"Secondary","description":[{"lang":"en","value":"CWE-89"},{"lang":"en","value":"CWE-79"}]}],
              "references":[{"url":"https://example.org/advisory","source":"cna@example.org","tags":["Vendor Advisory"]}],
+             ${kevAdded?.let { """"cisaExploitAdd":"$it",""" } ?: ""}
              "configurations":[]}
         """.trimIndent()
     }

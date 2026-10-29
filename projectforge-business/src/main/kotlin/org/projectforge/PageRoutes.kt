@@ -495,11 +495,12 @@ object PageRoutes {
             legacyApp = null,
         ),
         // The vulnerabilities imported from the NVD by the CVE-Radar (plugin cveradar, CvrVulnerabilityEntityRest),
-        // listed on its start page (components/features/cve-radar/vulnerabilities). Read only and without a page of
-        // their own yet; new in next: no legacy page, so no way back and no redirect (legacyApp = null).
+        // listed on its start page (components/features/cve-radar/vulnerabilities). A row opens the file of the
+        // vulnerability (`cveradar/vulnerability/<id>`); new in next: no legacy page, so no way back and no redirect
+        // (legacyApp = null).
         "cvrvulnerability" to Page(
             route = "cveradar",
-            editRoute = "cveradar/$ID_PLACEHOLDER",
+            editRoute = "cveradar/vulnerability/$ID_PLACEHOLDER",
             newEntryRoute = "cveradar/new",
             legacyApp = null,
         ),

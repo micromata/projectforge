@@ -35,6 +35,7 @@ import org.projectforge.plugins.cveradar.model.CvrClientAnswer
 import org.projectforge.plugins.cveradar.model.CvrConfirmationDO
 import org.projectforge.plugins.cveradar.model.CvrTeamAnswer
 import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
+import org.projectforge.plugins.cveradar.rest.TeamCheckFile
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -152,6 +153,34 @@ class CveRadarService {
         check.answeredBy = PFUserDO().also { it.id = user.id }
         teamCheckDao.update(check, checkAccess = false)
         return check
+    }
+
+    /**
+     * The file of a team check (CLS-03): visible to the members of the asked group and the security team only, as the
+     * discussion there may name projects and systems.
+     */
+    fun teamCheckFile(user: PFUserDO, checkId: Long): TeamCheckFile {
+        val check = teamCheckDao.find(checkId, checkAccess = false)?.takeIf { !it.deleted }
+            ?: throw UserException(ERROR_NOT_FOUND)
+        val member = access.isMemberOf(user, check.groupId)
+        if (!access.isSecurityTeam(user) && !member) {
+            throw AccessException(user, CveRadarAccess.NO_ACCESS)
+        }
+        val case = caseDao.find(check.caseId, checkAccess = false)
+        return TeamCheckFile(
+            id = check.id!!,
+            caseId = case?.id,
+            caseCode = case?.code,
+            caseTitle = case?.title,
+            caseStatus = case?.status,
+            groupName = userGroupCache.getGroup(check.groupId)?.name,
+            subject = check.subject,
+            answer = check.answer,
+            comment = check.comment,
+            answerDate = check.answerDate,
+            answeredBy = userGroupCache.getUser(check.answeredBy?.id)?.displayName,
+            canAnswer = case?.status?.isClosed != true,
+        )
     }
 
     /** The open team checks of the user's groups (not of closed cases). */

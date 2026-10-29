@@ -90,11 +90,23 @@ open class CvrCaseDO : DefaultBaseDO() {
     @get:Column(length = 20, nullable = false)
     open var status: CvrCaseStatus? = null
 
+    /** The binding priority (PRIO-02, TRI-03); the ratings of the team members are [CvrRatingDO]. */
     @PropertyInfo(i18nKey = "plugins.cveradar.case.priority")
     @GenericField
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 5)
     open var priority: CvrPriority? = null
+
+    /** Why the binding priority was set or changed (PRIO-02). */
+    @PropertyInfo(i18nKey = "plugins.cveradar.case.priorityReason")
+    @get:Column(name = "priority_reason", length = Constants.LENGTH_TEXT)
+    open var priorityReason: String? = null
+
+    /** The imported vulnerability of a case of kind CVE, null for an incident or before the NVD import. */
+    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "vulnerability_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
+    open var vulnerability: CvrVulnerabilityDO? = null
 
     @PropertyInfo(i18nKey = "plugins.cveradar.case.assignee")
     @IndexedEmbedded(includeDepth = 1)
@@ -104,15 +116,30 @@ open class CvrCaseDO : DefaultBaseDO() {
     @JsonSerialize(using = IdOnlySerializer::class)
     open var assignee: PFUserDO? = null
 
-    /** Technical steps, commands, fix versions (ACT-01), Markdown. */
+    /** Technical steps, commands, fix versions (ACT-01), rich text (HTML) or Markdown. */
     @PropertyInfo(i18nKey = "plugins.cveradar.case.techMeasures")
     @get:Column(name = "tech_measures", length = LENGTH_MARKDOWN)
     open var techMeasures: String? = null
 
-    /** Understandable step-by-step guide for the employees (ACT-01, ACT-03), Markdown. */
+    /** Understandable step-by-step guide for the employees (ACT-01, ACT-03), rich text (HTML) or Markdown. */
     @PropertyInfo(i18nKey = "plugins.cveradar.case.nonTechMeasures")
     @get:Column(name = "non_tech_measures", length = LENGTH_MARKDOWN)
     open var nonTechMeasures: String? = null
+
+    /** The version fixing the vulnerability (PRIO-05). */
+    @PropertyInfo(i18nKey = "plugins.cveradar.case.fixVersion")
+    @get:Column(name = "fix_version", length = 255)
+    open var fixVersion: String? = null
+
+    /** What to do as long as no fix is applied (PRIO-05), rich text (HTML, sanitized when rendered). */
+    @PropertyInfo(i18nKey = "plugins.cveradar.case.workaround")
+    @get:Column(length = LENGTH_MARKDOWN)
+    open var workaround: String? = null
+
+    /** Own references, one `https://… label` per line (PRIO-05); the server accepts http(s) links only. */
+    @PropertyInfo(i18nKey = "plugins.cveradar.case.referenceLinks")
+    @get:Column(name = "reference_links", length = Constants.LENGTH_TEXT)
+    open var referenceLinks: String? = null
 
     /**
      * Released to all employees (ACT-02): they see the case with its non-techie measures and confirm them, unless
@@ -147,6 +174,10 @@ open class CvrCaseDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "plugins.cveradar.case.closeReason")
     @get:Column(name = "close_reason", length = Constants.LENGTH_TEXT)
     open var closeReason: String? = null
+
+    val vulnerabilityId: Long?
+        @Transient
+        get() = vulnerability?.id
 
     val assigneeId: Long?
         @Transient

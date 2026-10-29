@@ -13,9 +13,13 @@ CREATE TABLE T_PLUGIN_CVERADAR_CASE
     description              CHARACTER VARYING(20000),
     status                   CHARACTER VARYING(20)       NOT NULL,
     priority                 CHARACTER VARYING(5),
+    priority_reason          CHARACTER VARYING(4000),
     assignee_fk              BIGINT,
     tech_measures            CHARACTER VARYING(20000),
     non_tech_measures        CHARACTER VARYING(20000),
+    fix_version              CHARACTER VARYING(255),
+    workaround               CHARACTER VARYING(20000),
+    reference_links          CHARACTER VARYING(4000),
     client_advisory          BOOLEAN                     NOT NULL,
     min_client_agent_version CHARACTER VARYING(50),
     client_agent_check_id    CHARACTER VARYING(100),
@@ -31,6 +35,31 @@ ALTER TABLE T_PLUGIN_CVERADAR_CASE
 
 CREATE INDEX idx_fk_t_plugin_cveradar_case_assignee_fk
     ON T_PLUGIN_CVERADAR_CASE (assignee_fk);
+
+-- The rating of a case by one member of the security team (PF-CVR TRI-03): one per person and case.
+CREATE TABLE T_PLUGIN_CVERADAR_RATING
+(
+    pk             BIGINT                      NOT NULL,
+    created        TIMESTAMP WITHOUT TIME ZONE,
+    deleted        BOOLEAN                     NOT NULL,
+    last_update    TIMESTAMP WITHOUT TIME ZONE,
+    case_fk        BIGINT                      NOT NULL,
+    user_fk        BIGINT                      NOT NULL,
+    priority       CHARACTER VARYING(5)        NOT NULL,
+    exploitability CHARACTER VARYING(20)       NOT NULL,
+    reason         CHARACTER VARYING(4000),
+    CONSTRAINT t_plugin_cveradar_rating_pkey PRIMARY KEY (pk),
+    CONSTRAINT unique_t_plugin_cveradar_rating_case_user UNIQUE (case_fk, user_fk)
+);
+
+ALTER TABLE T_PLUGIN_CVERADAR_RATING
+    ADD CONSTRAINT fk_t_plugin_cveradar_rating_case FOREIGN KEY (case_fk) REFERENCES T_PLUGIN_CVERADAR_CASE (pk);
+
+ALTER TABLE T_PLUGIN_CVERADAR_RATING
+    ADD CONSTRAINT fk_t_plugin_cveradar_rating_user FOREIGN KEY (user_fk) REFERENCES T_PF_USER (pk);
+
+CREATE INDEX idx_fk_t_plugin_cveradar_rating_user_fk
+    ON T_PLUGIN_CVERADAR_RATING (user_fk);
 
 CREATE TABLE T_PLUGIN_CVERADAR_TEAM_CHECK
 (
@@ -132,6 +161,7 @@ ALTER TABLE T_PLUGIN_CVERADAR_SCAN_FINDING
 -- DROP TABLE IF EXISTS T_PLUGIN_CVERADAR_SCAN_FINDING;
 -- DROP TABLE IF EXISTS T_PLUGIN_CVERADAR_DEVICE;
 -- DROP TABLE IF EXISTS T_PLUGIN_CVERADAR_CONFIRMATION;
+-- DROP TABLE IF EXISTS T_PLUGIN_CVERADAR_RATING;
 -- DROP TABLE IF EXISTS T_PLUGIN_CVERADAR_TEAM_CHECK;
 -- DROP TABLE IF EXISTS T_PLUGIN_CVERADAR_CASE;
 -- DELETE FROM t_flyway_cveradar_schema_version WHERE version = '9.2.0.1';

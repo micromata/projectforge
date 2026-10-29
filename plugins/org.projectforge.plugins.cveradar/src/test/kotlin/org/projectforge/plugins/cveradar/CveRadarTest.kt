@@ -29,13 +29,10 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.projectforge.business.test.AbstractTestBase
-import org.projectforge.business.user.UserRightValue
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.plugins.core.PluginsRegistry
 import org.projectforge.plugins.cveradar.CvrCaseStatusService.DeviceState
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
@@ -63,7 +60,7 @@ import java.util.Date
  * CVE-Radar R0: access of the security team, of readers and of ordinary users (SEC-07), the sync of scan findings
  * (EXT-02), the closure overview (CLS-02) with team checks (CLS-03) and confirmations (CLS-04), and closing (CLS-05).
  */
-class CveRadarTest : AbstractTestBase() {
+class CveRadarTest : CveRadarTestBase() {
     @Autowired
     private lateinit var caseDao: CvrCaseDao
 
@@ -86,12 +83,13 @@ class CveRadarTest : AbstractTestBase() {
         listOf(
             CvrCaseDO::class.java, CvrTeamCheckDO::class.java, CvrConfirmationDO::class.java,
             CvrDeviceDO::class.java, CvrScanFindingDO::class.java, CvrVulnerabilityDO::class.java,
+            org.projectforge.plugins.cveradar.model.CvrRatingDO::class.java,
         ).forEach { MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(it.canonicalName) }
     }
 
     @Test
     fun `an ordinary user sees neither cases nor devices, the security team does`() {
-        val st = user("st1", UserRightValue.READWRITE)
+        val st = user("st1", CvrRole.SECURITY_TEAM)
         logon(st)
         val case = insertCase("access")
         logon(TEST_USER)
@@ -112,7 +110,7 @@ class CveRadarTest : AbstractTestBase() {
     fun `the statistics are for readers only`() {
         logon(TEST_USER)
         assertThrows(AccessException::class.java) { rest.reportedStatistics(CvrStatisticsService.Granularity.DAY) }
-        logon(user("reader2", UserRightValue.READONLY))
+        logon(user("reader2", CvrRole.READER))
         val statistics = rest.reportedStatistics(CvrStatisticsService.Granularity.MONTH)
         assertEquals(CvrStatisticsService.MONTHS.toInt(), statistics.cases.size)
         assertEquals(CvrStatisticsService.MONTHS.toInt(), statistics.vulnerabilities.size)
@@ -120,7 +118,7 @@ class CveRadarTest : AbstractTestBase() {
 
     @Test
     fun `no endpoint answers while the plugin isn't activated`() {
-        logon(user("st7", UserRightValue.READWRITE))
+        logon(user("st7", CvrRole.SECURITY_TEAM))
         rest.checkPluginActive()
         caseRest.checkPluginActive()
         val plugins = PluginsRegistry.instance().plugins
@@ -136,14 +134,14 @@ class CveRadarTest : AbstractTestBase() {
 
     @Test
     fun `a reader sees the closure overview without persons`() {
-        val st = user("st2", UserRightValue.READWRITE)
+        val st = user("st2", CvrRole.SECURITY_TEAM)
         logon(st)
         val case = insertCase("reader", minVersion = "2.0")
         val checkId = rest.createTeamCheck(case.id!!, TeamCheckRequest(getGroupId(TEST_GROUP), "Project R"))
             .teamChecks.single().id
         logon(TEST_USER)
         rest.answerTeamCheck(checkId, TeamCheckAnswerRequest(CvrTeamAnswer.NOT_AFFECTED, "not used"))
-        val reader = user("reader1", UserRightValue.READONLY)
+        val reader = user("reader1", CvrRole.READER)
         logon(reader)
         val view = rest.status(case.id!!)
         assertNull(view.deviceRows, "no devices with persons for a reader (VIS-15)")
@@ -163,7 +161,7 @@ class CveRadarTest : AbstractTestBase() {
 
     @Test
     fun `an incident gets the next id of the year, a CVE needs its id`() {
-        logon(user("st3", UserRightValue.READWRITE))
+        logon(user("st3", CvrRole.SECURITY_TEAM))
         val first = insertCase("code1")
         val second = insertCase("code2")
         val prefix = "${config.caseIdPrefix}-${java.time.Year.now().value}-"
@@ -242,7 +240,7 @@ class CveRadarTest : AbstractTestBase() {
 
     @Test
     fun `team checks are answered by the group only, then the case can be closed`() {
-        val st = user("st4", UserRightValue.READWRITE)
+        val st = user("st4", CvrRole.SECURITY_TEAM)
         logon(st)
         val case = insertCase("teamcheck")
         val view = rest.createTeamCheck(case.id!!, TeamCheckRequest(getGroupId(TEST_GROUP), "Project X"))
@@ -271,9 +269,8 @@ class CveRadarTest : AbstractTestBase() {
 
     @Test
     fun `not relevant closes like closed, with reason and with open items by the security officer only`() {
-        val so = user("so2", UserRightValue.READWRITE)
-        val soGroup = initTestDB.addGroup("cveradar-so-test2", so.username!!)
-        logon(user("st6", UserRightValue.READWRITE))
+        val so = user("so2", CvrRole.SECURITY_OFFICER)
+        logon(user("st6", CvrRole.SECURITY_TEAM))
         val case = insertCase("notrelevant")
         rest.createTeamCheck(case.id!!, TeamCheckRequest(getGroupId(TEST_GROUP), "Project Z"))
         fun errors(reason: String?) = mutableListOf<ValidationError>().also { errors ->
@@ -286,13 +283,8 @@ class CveRadarTest : AbstractTestBase() {
         }
         assertEquals(1, errors(null).size, "a reason is needed")
         assertEquals(1, errors("not used here").size, "open items: security officer only")
-        config.securityOfficerGroup = soGroup.name!!
-        try {
-            logon(so)
-            assertTrue(errors("not used here").isEmpty())
-        } finally {
-            config.securityOfficerGroup = ""
-        }
+        logon(so)
+        assertTrue(errors("not used here").isEmpty())
     }
 
     @Test
@@ -310,24 +302,19 @@ class CveRadarTest : AbstractTestBase() {
 
     @Test
     fun `only the security officer closes a case with open items`() {
-        val so = user("so1", UserRightValue.READWRITE)
-        val soGroup = initTestDB.addGroup("cveradar-so-test", so.username!!)
-        logon(so)
+        val so = user("so1", CvrRole.SECURITY_OFFICER)
+        logon(user("st8", CvrRole.SECURITY_TEAM))
         val case = insertCase("so")
         rest.createTeamCheck(case.id!!, TeamCheckRequest(getGroupId(TEST_GROUP), "Project Y"))
         assertThrows(UserException::class.java) { rest.close(case.id!!, CloseRequest("risk accepted")) }
-        config.securityOfficerGroup = soGroup.name!!
-        try {
-            assertTrue(rest.status(case.id!!).canCloseWithOpenItems)
-            assertEquals(CvrCaseStatus.CLOSED, rest.close(case.id!!, CloseRequest("risk accepted")).case.status)
-        } finally {
-            config.securityOfficerGroup = ""
-        }
+        logon(so)
+        assertTrue(rest.status(case.id!!).canCloseWithOpenItems)
+        assertEquals(CvrCaseStatus.CLOSED, rest.close(case.id!!, CloseRequest("risk accepted")).case.status)
     }
 
     @Test
     fun `employees see released cases and their own devices only and confirm for themselves`() {
-        logon(user("st5", UserRightValue.READWRITE))
+        logon(user("st5", CvrRole.SECURITY_TEAM))
         val released = insertCase("released") { it.clientAdvisory = true; it.nonTechMeasures = "Update." }
         val internal = insertCase("internal")
         deviceService.applyScanAsset(
@@ -350,19 +337,6 @@ class CveRadarTest : AbstractTestBase() {
             CvrClientAnswer.DONE,
             deviceService.selectConfirmations(released.id!!).single { it.userId == getUserId(TEST_USER) }.answer,
         )
-    }
-
-    private fun user(name: String, right: UserRightValue): PFUserDO {
-        val username = "${javaClass.simpleName}.$name"
-        initTestDB.getUser(username)?.let { return it }
-        logon(TEST_ADMIN_USER)
-        val user = PFUserDO().also {
-            it.username = username
-            it.firstname = name
-            it.lastname = "CveRadar"
-            it.addRight(UserRightDO(CveRadarRightId.PLUGIN_CVERADAR, right))
-        }
-        return initTestDB.addUser(user)
     }
 
     private fun newCase(title: String) = CvrCaseDO().also {

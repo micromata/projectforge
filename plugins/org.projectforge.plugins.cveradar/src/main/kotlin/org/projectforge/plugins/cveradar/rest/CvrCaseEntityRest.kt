@@ -31,6 +31,7 @@ import org.projectforge.plugins.cveradar.CveRadarAccess
 import org.projectforge.plugins.cveradar.CveRadarPlugin
 import org.projectforge.plugins.cveradar.CveRadarService
 import org.projectforge.plugins.cveradar.CvrCaseDao
+import org.projectforge.plugins.cveradar.CvrCaseFileService
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrCaseKind
 import org.projectforge.plugins.cveradar.model.CvrCaseStatus
@@ -45,7 +46,7 @@ import org.springframework.web.bind.annotation.RestController
 /**
  * The layout-free REST endpoint of the cases (`/rs/cvrcase`), serving the list and the edit form of
  * projectforge-next (components/features/cve-radar/cases). Access by the dao: read with the read-only right, write
- * with the read-write right ([org.projectforge.plugins.cveradar.CveRadarRight]).
+ * by the security team ([org.projectforge.plugins.cveradar.CveRadarAccess]).
  *
  * Closing through the form follows the rules of the close action (CLS-05): with a reason, and with open items by a
  * security officer only.
@@ -58,6 +59,9 @@ class CvrCaseEntityRest : AbstractDTOEntityRest<CvrCaseDO, CvrCase, CvrCaseDao>(
 ) {
     @Autowired
     private lateinit var access: CveRadarAccess
+
+    @Autowired
+    private lateinit var fileService: CvrCaseFileService
 
     @Autowired
     private lateinit var cveRadarService: CveRadarService
@@ -87,6 +91,35 @@ class CvrCaseEntityRest : AbstractDTOEntityRest<CvrCaseDO, CvrCase, CvrCaseDao>(
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: CvrCase) {
         super.validate(validationErrors, dto)
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val existing = dto.id?.let { baseDao.find(it, checkAccess = false) }
+        if (existing == null) {
+            if (dto.priority != null && dto.priorityReason.isNullOrBlank()) {
+                validationErrors.add(
+                    ValidationError(translateMsg(UserException(CvrCaseFileService.ERROR_PRIORITY_REASON)), fieldId = "priorityReason"),
+                )
+            }
+        } else {
+            try {
+                // Conflict detection (TRI-04): the editor sends the lastUpdate it loaded, without it nothing is saved.
+                baseDao.checkNotChanged(existing.id!!, dto.lastUpdate)
+            } catch (ex: UserException) {
+                validationErrors.add(ValidationError(translateMsg(ex)))
+                return
+            }
+            if (dto.priority != existing.priority) {
+                // The binding priority (PRIO-02, TRI-03): with a reason, by the assignee or a security officer.
+                if (dto.priorityReason.isNullOrBlank()) {
+                    validationErrors.add(
+                        ValidationError(translateMsg(UserException(CvrCaseFileService.ERROR_PRIORITY_REASON)), fieldId = "priorityReason"),
+                    )
+                } else if (!fileService.canSetPriority(user, existing)) {
+                    validationErrors.add(
+                        ValidationError(translateMsg(UserException(CvrCaseFileService.ERROR_PRIORITY_RIGHTS)), fieldId = "priority"),
+                    )
+                }
+            }
+        }
         // NOT_RELEVANT closes the case as well (CvrCaseStatus.isClosed): same rules as CLOSED (CLS-05).
         if (dto.status?.isClosed != true) {
             return

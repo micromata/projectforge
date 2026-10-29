@@ -43,9 +43,15 @@ class CvrCase(
     var description: String? = null,
     var status: CvrCaseStatus? = null,
     var priority: CvrPriority? = null,
+    var priorityReason: String? = null,
     var assignee: User? = null,
     var techMeasures: String? = null,
     var nonTechMeasures: String? = null,
+    var fixVersion: String? = null,
+    var workaround: String? = null,
+    var referenceLinks: String? = null,
+    /** The imported vulnerability of a case of kind CVE; read-only, derived from the code on the server. */
+    var vulnerabilityId: Long? = null,
     var clientAdvisory: Boolean = false,
     var minClientAgentVersion: String? = null,
     var clientAgentCheckId: String? = null,
@@ -58,6 +64,9 @@ class CvrCase(
         description = src.description
         techMeasures = src.techMeasures
         nonTechMeasures = src.nonTechMeasures
+        fixVersion = src.fixVersion
+        workaround = src.workaround
+        referenceLinks = src.referenceLinks
         minClientAgentVersion = src.minClientAgentVersion
         clientAgentCheckId = src.clientAgentCheckId
         scanPluginIds = src.scanPluginIds
@@ -74,6 +83,8 @@ class CvrCase(
         title = src.title
         status = src.status
         priority = src.priority
+        priorityReason = src.priorityReason
+        vulnerabilityId = src.vulnerabilityId
         clientAdvisory = src.clientAdvisory
         assignee = PfCaches.instance.getUser(src.assigneeId)?.let { User(id = it.id, displayName = it.displayName) }
     }
@@ -87,9 +98,13 @@ class CvrCase(
         dest.description = description
         dest.status = status
         dest.priority = priority
+        dest.priorityReason = priorityReason
         dest.assignee = assignee?.id?.let { PFUserDO().also { user -> user.id = it } }
         dest.techMeasures = techMeasures
         dest.nonTechMeasures = nonTechMeasures
+        dest.fixVersion = fixVersion
+        dest.workaround = workaround
+        dest.referenceLinks = referenceLinks
         dest.clientAdvisory = clientAdvisory
         dest.minClientAgentVersion = minClientAgentVersion
         dest.clientAgentCheckId = clientAgentCheckId
