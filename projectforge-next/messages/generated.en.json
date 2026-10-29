@@ -4211,6 +4211,8 @@
       },
       "file": {
         "assignInfo": "Only active members of the security team can be assigned.",
+        "badge": "File",
+        "badgeHint": "A case file exists for this CVE: discussion, ratings and measures. A click on the row opens it.",
         "chatUnavailable": "The discussion isn't available.",
         "closure": "Closure overview",
         "error": {

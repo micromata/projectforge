@@ -4211,6 +4211,8 @@
       },
       "file": {
         "assignInfo": "Zugewiesen werden können nur aktive Mitglieder des Security-Teams.",
+        "badge": "Akte",
+        "badgeHint": "Zu diesem CVE besteht eine Akte mit Diskussion, Bewertungen und Maßnahmen. Ein Klick auf die Zeile öffnet sie.",
         "chatUnavailable": "Die Diskussion ist nicht verfügbar.",
         "closure": "Abschlussübersicht",
         "error": {
