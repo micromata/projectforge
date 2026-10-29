@@ -4559,7 +4559,7 @@
       },
       "teamCheck": {
         "add": "Team-Prüfung anfordern",
-        "addInfo": "Die Gruppe prüft, ob das Projekt oder System betroffen ist, und antwortet wie beim Team-Feedback.",
+        "addInfo": "Die Gruppe prüft, ob das Projekt oder System betroffen ist, und antwortet wie beim Team-Feedback. Ihre Mitglieder finden die Prüfung unter „Mein CVE-Radar“ („Prüfungen meiner Gruppen“); eine Benachrichtigung per Mail gibt es noch nicht, die Gruppe also bitte informieren.",
         "answer": "Antwort",
         "answeredBy": "Beantwortet von",
         "comment": "Kommentar, Version oder geplanter Termin",

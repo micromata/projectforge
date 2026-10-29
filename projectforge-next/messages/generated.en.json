@@ -4559,7 +4559,7 @@
       },
       "teamCheck": {
         "add": "Request team check",
-        "addInfo": "The group checks whether the project or system is affected and answers like team feedback.",
+        "addInfo": "The group checks whether the project or system is affected and answers like team feedback. Its members find the check under \"My CVE-Radar\" (\"Checks of my groups\"); they are not notified by mail yet, so let them know.",
         "answer": "Answer",
         "answeredBy": "Answered by",
         "comment": "Comment, version or planned date",
