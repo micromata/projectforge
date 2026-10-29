@@ -55,6 +55,7 @@ CREATE TABLE T_PLUGIN_CVERADAR_INSTANCE
     last_update     TIMESTAMP WITHOUT TIME ZONE,
     system_fk       BIGINT                      NOT NULL,
     code            CHARACTER VARYING(50),
+    name            CHARACTER VARYING(255),
     site            CHARACTER VARYING(100),
     stage           CHARACTER VARYING(100),
     tenant          CHARACTER VARYING(255),
