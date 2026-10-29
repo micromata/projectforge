@@ -103,6 +103,16 @@ class CvrInventoryRest {
     fun updateComponent(@PathVariable id: Long, @RequestBody request: ComponentRequest) =
         service.updateComponent(user, id, request)
 
+    @AccessChecked("CvrInventoryService.previewLibraries: write access to the stored component's system")
+    @PostMapping("component/{id}/libraries/preview")
+    fun previewLibraries(@PathVariable id: Long, @RequestBody request: LibraryRequest): LibraryDiff =
+        service.previewLibraries(user, id, request)
+
+    @AccessChecked("CvrInventoryService.applyLibraries: write access to the stored component's system")
+    @PostMapping("component/{id}/libraries/apply")
+    fun applyLibraries(@PathVariable id: Long, @RequestBody request: LibraryRequest): LibraryDiff =
+        service.applyLibraries(user, id, request)
+
     @AccessChecked("CvrInventoryService.move: write access to the node and the target, the officer anywhere")
     @PostMapping("{level}/{id}/move")
     fun move(@PathVariable level: InventoryLevel, @PathVariable id: Long, @RequestBody request: MoveRequest) =

@@ -4448,6 +4448,40 @@
         "INSTANCE": "Instance",
         "SYSTEM": "System"
       },
+      "libraries": {
+        "added": "New",
+        "apply": "Apply",
+        "choose": "Choose files",
+        "entries": "{arg0} entries",
+        "error": {
+          "tooLarge": "The file {arg0} is larger than {arg1} MB.",
+          "tooManyEntries": "The files name more than {arg0} libraries.",
+          "tooManyFiles": "At most {arg0} files at once."
+        },
+        "format": {
+          "GRADLE": "Gradle dependencies",
+          "MAVEN": "Maven dependency list",
+          "NPM": "npm package-lock.json",
+          "unknown": "not recognised"
+        },
+        "hintGradle": "Gradle: run the command and upload the file. For several modules, run it for each module (:module:dependencies) and upload all files.",
+        "hintMaven": "Maven: run the command and upload the file. All modules end up in one file, test dependencies are left out.",
+        "hintNode": "Node: upload the package-lock.json of the project.",
+        "intro": "The libraries come from the build tools of the project, including the transitive ones. Several files can be uploaded at once; they are merged. Only the names and versions are read, nothing is executed and the files are not stored.",
+        "more": "… and {arg0} more",
+        "notRecognised": "Not recognised, ignored: {arg0}",
+        "preview": "Preview",
+        "removeAll": "Remove all uploaded libraries",
+        "removeAllQuestion": "Remove all {arg0} libraries uploaded for this component? Technologies entered by hand stay.",
+        "removed": "Removed",
+        "replace": "Replace the libraries uploaded earlier",
+        "replaceHint": "Off: the files only add to what is there. On: libraries from earlier uploads that are in none of these files are removed. Technologies entered by hand stay in both cases.",
+        "saveFirst": "Save the component first, then upload the libraries of the project.",
+        "summary": "{arg0} libraries from lists: {arg1}",
+        "title": "Libraries of the project",
+        "unchanged": "Unchanged",
+        "upload": "Upload libraries"
+      },
       "live": {
         "devices": {
           "hint": "All devices as the log server reports them. Personal data: visible to the security team only.",
@@ -4516,7 +4550,9 @@
       "none": "None.",
       "notFound": "Not found or not visible for this role.",
       "origin": {
+        "BUILD_LIST": "list of the build tool",
         "CI": "CI pipeline",
+        "LOCKFILE": "lockfile",
         "MANUAL": "manual",
         "SBOM": "SBOM file"
       },

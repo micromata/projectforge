@@ -121,7 +121,7 @@ enum class CvrTechnologyKind : I18nEnum {
 
 /** Where an entry of the inventory comes from (INV-16). */
 enum class CvrOrigin : I18nEnum {
-    MANUAL, SBOM, CI;
+    MANUAL, SBOM, CI, LOCKFILE, BUILD_LIST;
 
     override val i18nKey: String
         get() = "plugins.cveradar.origin.$name"

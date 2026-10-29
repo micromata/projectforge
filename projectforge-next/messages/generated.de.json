@@ -4448,6 +4448,40 @@
         "INSTANCE": "Instanz",
         "SYSTEM": "System"
       },
+      "libraries": {
+        "added": "Neu",
+        "apply": "Übernehmen",
+        "choose": "Dateien wählen",
+        "entries": "{arg0} Einträge",
+        "error": {
+          "tooLarge": "Die Datei {arg0} ist größer als {arg1} MB.",
+          "tooManyEntries": "Die Dateien nennen mehr als {arg0} Bibliotheken.",
+          "tooManyFiles": "Höchstens {arg0} Dateien auf einmal."
+        },
+        "format": {
+          "GRADLE": "Gradle-Abhängigkeiten",
+          "MAVEN": "Maven-Abhängigkeitsliste",
+          "NPM": "npm package-lock.json",
+          "unknown": "nicht erkannt"
+        },
+        "hintGradle": "Gradle: den Befehl aufrufen und die Datei hochladen. Bei mehreren Modulen den Befehl je Modul aufrufen (:modul:dependencies) und alle Dateien hochladen.",
+        "hintMaven": "Maven: den Befehl aufrufen und die Datei hochladen. Alle Module landen in einer Datei, Test-Abhängigkeiten fehlen.",
+        "hintNode": "Node: die package-lock.json des Projekts hochladen.",
+        "intro": "Die Bibliotheken kommen aus den Build-Werkzeugen des Projekts, auch die transitiven. Mehrere Dateien können auf einmal hochgeladen werden; sie werden zusammengeführt. Gelesen werden nur Namen und Versionen, nichts wird ausgeführt und die Dateien werden nicht gespeichert.",
+        "more": "… und {arg0} weitere",
+        "notRecognised": "Nicht erkannt, ignoriert: {arg0}",
+        "preview": "Vorschau",
+        "removeAll": "Alle hochgeladenen Bibliotheken entfernen",
+        "removeAllQuestion": "Alle {arg0} für diese Komponente hochgeladenen Bibliotheken entfernen? Von Hand eingetragene Technologien bleiben.",
+        "removed": "Entfällt",
+        "replace": "Früher hochgeladene Bibliotheken ersetzen",
+        "replaceHint": "Aus: die Dateien ergänzen nur, was da ist. An: Bibliotheken früherer Uploads, die in keiner dieser Dateien stehen, werden entfernt. Von Hand eingetragene Technologien bleiben in beiden Fällen.",
+        "saveFirst": "Zuerst die Komponente speichern, danach die Bibliotheken des Projekts hochladen.",
+        "summary": "{arg0} Bibliotheken aus Listen: {arg1}",
+        "title": "Bibliotheken des Projekts",
+        "unchanged": "Unverändert",
+        "upload": "Bibliotheken hochladen"
+      },
       "live": {
         "devices": {
           "hint": "Alle Geräte, wie der Log-Server sie meldet. Personenbezogene Daten: nur für das Security-Team sichtbar.",
@@ -4516,7 +4550,9 @@
       "none": "Keine.",
       "notFound": "Nicht gefunden oder für diese Rolle nicht sichtbar.",
       "origin": {
+        "BUILD_LIST": "Liste des Build-Werkzeugs",
         "CI": "CI-Pipeline",
+        "LOCKFILE": "Lockfile",
         "MANUAL": "manuell",
         "SBOM": "SBOM-Datei"
       },

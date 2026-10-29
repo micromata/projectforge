@@ -44,6 +44,8 @@ import org.projectforge.plugins.cveradar.model.CvrTechnologyKind
 import org.projectforge.plugins.cveradar.rest.AreaRequest
 import org.projectforge.plugins.cveradar.rest.ComponentRequest
 import org.projectforge.plugins.cveradar.rest.InstanceRequest
+import org.projectforge.plugins.cveradar.rest.LibraryDiff
+import org.projectforge.plugins.cveradar.rest.LibraryRequest
 import org.projectforge.plugins.cveradar.rest.InventoryLevel
 import org.projectforge.plugins.cveradar.rest.InventoryRow
 import org.projectforge.plugins.cveradar.rest.InventoryTree
@@ -73,6 +75,9 @@ class CvrInventoryService {
 
     @Autowired
     private lateinit var catalogService: CvrCatalogService
+
+    @Autowired
+    private lateinit var libraryService: CvrLibraryService
 
     @Autowired
     private lateinit var componentDao: CvrComponentDao
@@ -344,13 +349,30 @@ class CvrInventoryService {
         syncTechnologies(stored, request.technologies, view.model.technologies.filter { it.componentId == id })
     }
 
+    fun previewLibraries(user: PFUserDO, componentId: Long, request: LibraryRequest): LibraryDiff =
+        libraryService.preview(writableComponent(user, componentId), request)
+
+    fun applyLibraries(user: PFUserDO, componentId: Long, request: LibraryRequest): LibraryDiff =
+        libraryService.apply(writableComponent(user, componentId), request)
+
+    /** The stored component, if the user may change its system; the component always comes from the database. */
+    private fun writableComponent(user: PFUserDO, id: Long): CvrComponentDO {
+        val view = View(user, load())
+        val system = view.model.systems[view.systemIdOf(view.component(id))] ?: throw UserException(ERROR_NOT_FOUND)
+        if (!view.canWriteSystem(system)) {
+            throw AccessException(user, CveRadarAccess.NO_ACCESS)
+        }
+        return componentDao.find(id, checkAccess = false) ?: throw UserException(ERROR_NOT_FOUND)
+    }
+
     /** Takes over the technologies of the request: the ones with an id of this component are changed, the rest created, missing ones removed. */
     private fun syncTechnologies(
         component: CvrComponentDO,
         requested: List<TechnologyRequest>,
         existing: List<CvrTechnologyDO>,
     ) {
-        val byId = existing.associateBy { it.id }
+        // Libraries read from lists (INV-26) are not part of the dialog; only the ones entered by hand are.
+        val byId = existing.filter { it.origin == CvrOrigin.MANUAL }.associateBy { it.id }
         val kept = mutableSetOf<Long>()
         requested.forEach { request ->
             val product = request.product.clean(255) ?: throw UserException(ERROR_TECHNOLOGY)
@@ -372,7 +394,7 @@ class CvrInventoryService {
                 technologyDao.update(technology, checkAccess = false)
             }
         }
-        existing.filter { it.id !in kept }.forEach {
+        existing.filter { it.origin == CvrOrigin.MANUAL && it.id !in kept }.forEach {
             technologyDao.markAsDeleted(technologyDao.find(it.id, checkAccess = false)!!, checkAccess = false)
         }
     }
