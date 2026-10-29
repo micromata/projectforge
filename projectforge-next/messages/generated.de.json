@@ -4464,7 +4464,7 @@
           "NPM": "npm package-lock.json",
           "unknown": "nicht erkannt"
         },
-        "hintGradle": "Gradle: den Befehl aufrufen und die Datei hochladen. Bei mehreren Modulen den Befehl je Modul aufrufen (:modul:dependencies) und alle Dateien hochladen.",
+        "hintGradle": "Gradle: den Befehl für das Modul aufrufen, das ausgeliefert wird (:modul ersetzen; bei einem Projekt mit nur einem Modul weglassen), und die Datei hochladen. Das Hauptprojekt eines Builds mit mehreren Modulen hat keinen eigenen runtimeClasspath. Die Module, von denen das ausgelieferte abhängt, stehen in der Ausgabe schon mit.",
         "hintMaven": "Maven: den Befehl aufrufen und die Datei hochladen. Alle Module landen in einer Datei, Test-Abhängigkeiten fehlen.",
         "hintNode": "Node: die package-lock.json des Projekts hochladen.",
         "intro": "Die Bibliotheken kommen aus den Build-Werkzeugen des Projekts, auch die transitiven. Mehrere Dateien können auf einmal hochgeladen werden; sie werden zusammengeführt. Gelesen werden nur Namen und Versionen, nichts wird ausgeführt und die Dateien werden nicht gespeichert.",

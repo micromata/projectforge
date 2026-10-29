@@ -4464,7 +4464,7 @@
           "NPM": "npm package-lock.json",
           "unknown": "not recognised"
         },
-        "hintGradle": "Gradle: run the command and upload the file. For several modules, run it for each module (:module:dependencies) and upload all files.",
+        "hintGradle": "Gradle: run the command for the module that is delivered (replace :module; in a single-module build leave it out) and upload the file. A root project of a multi-module build has no runtimeClasspath of its own. The modules the delivered one depends on are in the output already.",
         "hintMaven": "Maven: run the command and upload the file. All modules end up in one file, test dependencies are left out.",
         "hintNode": "Node: upload the package-lock.json of the project.",
         "intro": "The libraries come from the build tools of the project, including the transitive ones. Several files can be uploaded at once; they are merged. Only the names and versions are read, nothing is executed and the files are not stored.",
