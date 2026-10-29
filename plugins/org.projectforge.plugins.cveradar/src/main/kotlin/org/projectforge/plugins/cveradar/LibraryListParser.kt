@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.common.i18n.UserException
 
 /** The formats of the lists a component's libraries are read from. */
-enum class LibraryFormat { NPM, MAVEN, GRADLE }
+enum class LibraryFormat { NPM, MAVEN, GRADLE, JAR }
 
 /**
  * One library of a list: [ecosystem] is the purl type (`maven`, `npm`), [group] the groupId (npm: the scope with its
@@ -66,6 +66,7 @@ object LibraryListParser {
     private const val ID = "[A-Za-z0-9_.\\-]+"
     private val MAVEN_LINE = Regex("""^[\s|+\\\-]*($ID):($ID):($ID):(?:($ID):)?($ID):(compile|runtime|provided|test|system|import)(?:\s.*)?$""")
     private val GRADLE_LINE = Regex("""^[\s|]*[+\\]---\s+([^\s:]+):([^\s:]+)(?::(\S+))?(?:\s+->\s+(\S+))?(.*)$""")
+    private val JAR_NAME = Regex("""^(.+?)-(\d.*?)(?:-(?:sources|javadoc|tests|test-sources|all|linux-\S+|osx-\S+|macos-\S+|windows-\S+))?\.jar$""", RegexOption.IGNORE_CASE)
     private val GRADLE_RANGE = Regex("""\{(?:strictly|require|prefer|reject)?\s*([^}\s]+)[^}]*}""")
 
     /** All files, parsed; the entries of all of them together are limited. */
@@ -88,8 +89,12 @@ object LibraryListParser {
         val gradle = lines.mapNotNull { parseGradleLine(it) }
         val maven = lines.mapNotNull { parseMavenLine(it) }
         // The line pattern of the format with more entries wins; the other one hardly matches the text of a tool.
+        if (gradle.isEmpty() && maven.isEmpty()) {
+            // Neither tool: perhaps the file names of a jar (`unzip -l`, `ls`, `jar tf`).
+            val jars = lines.flatMap { parseJarLine(it) }.distinct()
+            return ParsedLibraryFile(name, if (jars.isEmpty()) null else LibraryFormat.JAR, jars)
+        }
         return when {
-            gradle.isEmpty() && maven.isEmpty() -> ParsedLibraryFile(name, null, emptyList())
             gradle.size > maven.size -> ParsedLibraryFile(name, LibraryFormat.GRADLE, gradle.distinct())
             else -> ParsedLibraryFile(name, LibraryFormat.MAVEN, maven.distinct())
         }
@@ -128,6 +133,16 @@ object LibraryListParser {
         }
         return entries.distinct()
     }
+
+    /**
+     * The jar names in a line (`unzip -l`, `unzip -t`, `ls`, `find`, `jar tf`): the path is dropped, the name is
+     * `artifactId-version[-classifier].jar` where the version starts with a digit. The groupId isn't in a name.
+     */
+    private fun parseJarLine(line: String): List<LibraryEntry> =
+        line.split(Regex("\\s+")).filter { it.endsWith(".jar", ignoreCase = true) }.mapNotNull { token ->
+            val match = JAR_NAME.matchEntire(token.substringAfterLast('/')) ?: return@mapNotNull null
+            LibraryEntry("maven", null, match.groupValues[1], match.groupValues[2])
+        }
 
     private fun parseMavenLine(line: String): LibraryEntry? {
         val match = MAVEN_LINE.matchEntire(line.trimEnd()) ?: return null

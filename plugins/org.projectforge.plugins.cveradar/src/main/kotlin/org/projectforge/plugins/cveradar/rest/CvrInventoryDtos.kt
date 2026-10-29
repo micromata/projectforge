@@ -177,4 +177,6 @@ class LibraryDiff(
     val removed: List<LibraryLine>,
     val removedCount: Int,
     val unchangedCount: Int,
+    /** New libraries whose groupId is unknown (jar listings): no complete purl. */
+    val withoutGroupIdCount: Int = 0,
 )

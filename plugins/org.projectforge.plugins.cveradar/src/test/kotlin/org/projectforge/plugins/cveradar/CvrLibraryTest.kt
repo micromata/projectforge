@@ -125,6 +125,19 @@ class CvrLibraryTest : CveRadarTestBase() {
         assertEquals(0, libraries("LIB1-S-APP").size)
         assertNotNull(rest.tree().rows.single { it.code == "LIB1-S-APP" }.technologies.singleOrNull { it.origin == CvrOrigin.MANUAL })
 
+        // A jar listing has no groupId: the catalogue gives it where the name is unique, the rest is counted.
+        val jars = "BOOT-INF/lib/jackson-databind-2.17.2.jar\nBOOT-INF/lib/mystery-1.0.jar\n"
+        val jarDiff = rest.applyLibraries(component, LibraryRequest(listOf(LibraryFile("jars.txt", jars)), false))
+        assertEquals(2, jarDiff.addedCount)
+        assertEquals(1, jarDiff.withoutGroupIdCount)
+        val fromJars = libraries("LIB1-S-APP").filter { it.origin == CvrOrigin.JAR_LIST }
+        assertEquals(
+            "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.17.2",
+            fromJars.single { it.product == "jackson-databind" }.purl,
+        )
+        assertEquals(jackson, fromJars.single { it.product == "jackson-databind" }.catalogNodeId)
+        assertEquals("pkg:maven/mystery@1.0", fromJars.single { it.product == "mystery" }.purl)
+
         logon(outsider)
         assertThrows(AccessException::class.java) { rest.previewLibraries(component, request(mavenA, false)) }
         assertThrows(AccessException::class.java) { rest.applyLibraries(component, request(mavenA, false)) }

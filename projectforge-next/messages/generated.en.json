@@ -4460,11 +4460,13 @@
         },
         "format": {
           "GRADLE": "Gradle dependencies",
+          "JAR": "List of jar files",
           "MAVEN": "Maven dependency list",
           "NPM": "npm package-lock.json",
           "unknown": "not recognised"
         },
         "hintGradle": "Gradle: run the command for the module that is delivered (replace :module; in a single-module build leave it out) and upload the file. A root project of a multi-module build has no runtimeClasspath of its own. The modules the delivered one depends on are in the output already.",
+        "hintJar": "Alternative without a build: the file names of the delivered jar. The groupId is not in a file name; it is taken from the technology catalogue where the name is unique, otherwise it stays open.",
         "hintMaven": "Maven: run the command and upload the file. All modules end up in one file, test dependencies are left out.",
         "hintNode": "Node: upload the package-lock.json of the project.",
         "intro": "The libraries come from the build tools of the project, including the transitive ones. Several files can be uploaded at once; they are merged. Only the names and versions are read, nothing is executed and the files are not stored.",
@@ -4480,7 +4482,8 @@
         "summary": "{arg0} libraries from lists: {arg1}",
         "title": "Libraries of the project",
         "unchanged": "Unchanged",
-        "upload": "Upload libraries"
+        "upload": "Upload libraries",
+        "withoutGroupId": "New without a groupId (no complete purl): {arg0}"
       },
       "live": {
         "devices": {
@@ -4552,6 +4555,7 @@
       "origin": {
         "BUILD_LIST": "list of the build tool",
         "CI": "CI pipeline",
+        "JAR_LIST": "Jar list",
         "LOCKFILE": "lockfile",
         "MANUAL": "manual",
         "SBOM": "SBOM file"

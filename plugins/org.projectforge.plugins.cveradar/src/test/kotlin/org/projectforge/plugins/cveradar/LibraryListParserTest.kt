@@ -116,6 +116,36 @@ class LibraryListParserTest {
     }
 
     @Test
+    fun `jar names from unzip, ls and jar tf are read without a groupId`() {
+        val text = """
+            Archive:  app.jar
+              Length      Date    Time    Name
+            ---------  ---------- -----   ----
+             2093125  2026-10-01 10:00   BOOT-INF/lib/jackson-databind-2.17.2.jar
+              123456  2026-10-01 10:00   BOOT-INF/lib/netty-transport-native-epoll-4.1.100.Final-linux-x86_64.jar
+                 999  2026-10-01 10:00   BOOT-INF/lib/guava-33.0.0-jre.jar
+                 999  2026-10-01 10:00   BOOT-INF/lib/jakarta.annotation-api-2.1.1.jar
+                 999  2026-10-01 10:00   BOOT-INF/lib/lib-1.0-sources.jar
+                 999  2026-10-01 10:00   BOOT-INF/lib/own.jar
+            testing: BOOT-INF/lib/commons-lang3-3.14.0.jar   OK
+        """.trimIndent()
+        val file = LibraryListParser.parse("jars.txt", text)
+        assertEquals(LibraryFormat.JAR, file.format)
+        assertEquals(
+            listOf(
+                "pkg:maven/jackson-databind@2.17.2",
+                "pkg:maven/netty-transport-native-epoll@4.1.100.Final",
+                "pkg:maven/guava@33.0.0-jre",
+                "pkg:maven/jakarta.annotation-api@2.1.1",
+                "pkg:maven/lib@1.0",
+                "pkg:maven/commons-lang3@3.14.0",
+            ),
+            purls(file),
+        )
+        assertNull(file.entries.first().group)
+    }
+
+    @Test
     fun `a file without a known format is reported, the limits are enforced, a purl reads back`() {
         assertNull(LibraryListParser.parse("notes.txt", "hello\nworld").format)
         assertNull(LibraryListParser.parse("broken.json", "{not json").format)
