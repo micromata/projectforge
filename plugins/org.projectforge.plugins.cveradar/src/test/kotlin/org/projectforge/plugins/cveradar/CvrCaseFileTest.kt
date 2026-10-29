@@ -42,7 +42,6 @@ import org.projectforge.plugins.cveradar.model.CvrExploitability
 import org.projectforge.plugins.cveradar.model.CvrImportStateDO
 import org.projectforge.plugins.cveradar.model.CvrPriority
 import org.projectforge.plugins.cveradar.model.CvrRatingDO
-import org.projectforge.plugins.cveradar.model.CvrScanFindingDO
 import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.projectforge.plugins.cveradar.rest.CvrCaseFileRest
@@ -86,7 +85,7 @@ class CvrCaseFileTest : CveRadarTestBase() {
     init {
         listOf(
             CvrCaseDO::class.java, CvrTeamCheckDO::class.java, CvrConfirmationDO::class.java,
-            CvrDeviceDO::class.java, CvrScanFindingDO::class.java, CvrVulnerabilityDO::class.java,
+            CvrDeviceDO::class.java, CvrVulnerabilityDO::class.java,
             CvrImportStateDO::class.java, CvrRatingDO::class.java,
         ).forEach { MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(it.canonicalName) }
     }

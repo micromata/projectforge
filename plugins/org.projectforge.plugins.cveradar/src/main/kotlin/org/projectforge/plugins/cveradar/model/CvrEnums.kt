@@ -86,6 +86,3 @@ enum class CvrClientAnswer : I18nEnum {
     override val i18nKey: String
         get() = "plugins.cveradar.clientAnswer.$name"
 }
-
-/** A scan finding still reported by the scanner, or not any more by its latest sync (EXT-02). */
-enum class CvrScanFindingStatus { OPEN, RESOLVED }

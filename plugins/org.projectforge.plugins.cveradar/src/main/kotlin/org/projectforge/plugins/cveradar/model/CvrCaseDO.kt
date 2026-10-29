@@ -159,17 +159,6 @@ open class CvrCaseDO : DefaultBaseDO() {
     @get:Column(name = "client_agent_check_id", length = 100)
     open var clientAgentCheckId: String? = null
 
-    /** Fix criterion: ids of scanner plugins, comma separated; an open scan finding of one of them is open (CLS-01). */
-    @PropertyInfo(i18nKey = "plugins.cveradar.case.scanPluginIds")
-    @get:Column(name = "scan_plugin_ids", length = 1000)
-    open var scanPluginIds: String? = null
-
-    /** Fix criterion: CVE ids, comma separated; an open scan finding naming one of them is open (CLS-01). */
-    @PropertyInfo(i18nKey = "plugins.cveradar.case.cveIds")
-    @FullTextField
-    @get:Column(name = "cve_ids", length = 1000)
-    open var cveIds: String? = null
-
     /** Reason of closing (CLS-05). */
     @PropertyInfo(i18nKey = "plugins.cveradar.case.closeReason")
     @get:Column(name = "close_reason", length = Constants.LENGTH_TEXT)
@@ -185,11 +174,5 @@ open class CvrCaseDO : DefaultBaseDO() {
 
     companion object {
         const val LENGTH_MARKDOWN = 20000
-
-        /** Splits a comma (or blank) separated list, e.g. [scanPluginIds]. */
-        fun splitList(value: String?): List<String> {
-            return value?.split(',', ';', ' ', '\n')?.map { it.trim() }?.filter { it.isNotEmpty() }?.distinct()
-                ?: emptyList()
-        }
     }
 }

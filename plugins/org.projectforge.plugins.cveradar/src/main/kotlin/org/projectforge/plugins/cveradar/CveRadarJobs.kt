@@ -31,14 +31,13 @@ import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.cveradar.sync.GraylogSyncService
 import org.projectforge.plugins.cveradar.sync.NvdImportService
-import org.projectforge.plugins.cveradar.sync.TenableSyncService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 /**
- * The syncs of the external sources (EXT-01, EXT-04) and the import from the NVD (IMP-03), also startable in the jobs
- * monitor. Inactive while the plugin isn't activated or the source isn't configured. Every sync of a device source
+ * The sync of the external source (EXT-04) and the import from the NVD (IMP-03), also startable in the jobs
+ * monitor. Inactive while the plugin isn't activated or the source isn't configured. The sync of the devices
  * also deletes the outdated devices (EXT-07).
  */
 @Service
@@ -61,30 +60,13 @@ class CveRadarJobs {
     @Autowired
     private lateinit var schedulerJobRunner: SchedulerJobRunner
 
-    @Autowired
-    private lateinit var tenableSyncService: TenableSyncService
-
     @PostConstruct
     private fun postConstruct() {
-        schedulerJobRunner.register(TENABLE_JOB, ::tenableSync) {
-            inactiveReason() ?: if (!config.tenable.isConfigured()) "Tenable.sc isn't configured." else null
-        }
         schedulerJobRunner.register(GRAYLOG_JOB, ::graylogSync) {
             inactiveReason() ?: if (!config.graylog.isConfigured()) "Graylog isn't configured." else null
         }
         schedulerJobRunner.register(NVD_JOB, ::nvdImport) {
             inactiveReason() ?: if (!config.nvd.enabled) "The NVD import isn't enabled." else null
-        }
-    }
-
-    @Scheduled(cron = TENABLE_CRON)
-    fun tenableSync() {
-        schedulerJobRunner.runAsync(TENABLE_JOB) { run ->
-            val summary = tenableSyncService.sync()
-            run.note("$summary${deleteOutdated()}")
-            if (summary.failedAssets > 0) {
-                run.fail("${summary.failedAssets} assets failed, see the log.")
-            }
         }
     }
 
@@ -112,16 +94,9 @@ class CveRadarJobs {
     }
 
     companion object {
-        private const val TENABLE_CRON = "\${projectforge.plugin.cveradar.tenable.cron:0 40 5 * * *}"
-
         private const val GRAYLOG_CRON = "\${projectforge.plugin.cveradar.graylog.cron:0 15 * * * *}"
 
         private const val NVD_CRON = "\${projectforge.plugin.cveradar.nvd.cron:0 17 */2 * * *}"
-
-        val TENABLE_JOB = SchedulerJobDefinition(
-            "cveradar.tenable", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "tenableSync",
-            SchedulerSchedule.Cron(TENABLE_CRON),
-        )
 
         val GRAYLOG_JOB = SchedulerJobDefinition(
             "cveradar.graylog", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "graylogSync",

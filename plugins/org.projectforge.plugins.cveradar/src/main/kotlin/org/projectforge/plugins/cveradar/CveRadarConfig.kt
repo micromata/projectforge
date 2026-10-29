@@ -40,7 +40,7 @@ open class CveRadarConfig {
     /** A device not reported for more days is inactive (EXT-07): not counted in the closure overview. */
     var clientActiveDays: Int = 30
 
-    /** Devices not reported for more days are deleted with their scan findings (EXT-07). */
+    /** Devices not reported for more days are deleted (EXT-07). */
     var deviceRetentionDays: Int = 365
 
     /** Name of the PF group of the readers (role [CvrRole.READER]), e.g. `cve-read`; empty: nobody. */
@@ -52,34 +52,9 @@ open class CveRadarConfig {
     /** Name of the PF group of the security officers (CLS-05), empty: nobody closes a case with open items. */
     var securityOfficerGroup: String = ""
 
-    var tenable = Tenable()
-
     var graylog = Graylog()
 
     var nvd = Nvd()
-
-    /** Vulnerability scanner Tenable.sc (EXT-01 – EXT-03). */
-    class Tenable {
-        /** Base url, e.g. `https://tenable.example.org`; empty: inactive. */
-        var url: String = ""
-
-        /** API key of a user with read access (Tenable.sc: My Account → API keys). */
-        var accessKey: String = ""
-
-        var secretKey: String = ""
-
-        /** Severities imported (Tenable: 0 info, 1 low, 2 medium, 3 high, 4 critical). */
-        var severities: String = "2,3,4"
-
-        /**
-         * Regular expression with the named groups `serial` and `user`, applied to the name of every asset (asset
-         * list) of Tenable.sc. Only matching assets are clients and imported; empty: inactive.
-         */
-        var assetPattern: String = ""
-
-        fun isConfigured(): Boolean = url.isNotBlank() && accessKey.isNotBlank() && secretKey.isNotBlank() &&
-                assetPattern.isNotBlank()
-    }
 
     /** Log server Graylog with the messages of the client agents (EXT-04, EXT-05). */
     class Graylog {

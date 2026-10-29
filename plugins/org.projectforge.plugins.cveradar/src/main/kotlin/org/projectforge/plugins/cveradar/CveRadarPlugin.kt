@@ -34,7 +34,7 @@ import org.projectforge.framework.SpringBeans
  * CVE-Radar (vulnerability management, see dev-docs/requirements/PF-CVR_CVE-Radar_Vulnerability_Management.md).
  *
  * Real data: the vulnerabilities imported from the NVD (start page /next/cveradar), cases (vulnerabilities and
- * incidents) with fix criteria and closure overview, team checks, devices from the vulnerability scanner and the log
+ * incidents) with fix criteria and closure overview, team checks, devices from the log
  * server ([CveRadarJobs]) and the employees' confirmations. The UI prototype on test data bundled with the frontend
  * is at /next/cveradar/demo. The plugin is not activated initially; an admin switches it on in the plugin
  * administration.

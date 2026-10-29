@@ -217,6 +217,7 @@ nur mit einem neuen Wert überschrieben werden.
 * Vor jedem Speichern wird eine Kopie der Datei mit Zeitstempel daneben abgelegt
   (`projectforge.properties.<yyyy-MM-dd_HH-mm-ss>.bak`). Die Datei wird nach Gruppen sortiert geschrieben;
   eigene Kommentare bleiben über dem Parameter, über dem sie standen.
+* Die Beschreibungen enthalten Links auf die passenden Abschnitte dieses Handbuchs.
 * Änderungen werden erst nach einem Neustart von ProjectForge wirksam.
 * Ein Wert, den das laufende System anders verwendet (ein Neustart steht aus oder der Wert kommt aus
   einer Umgebungsvariablen oder der Kommandozeile), wird markiert.
@@ -1767,8 +1768,8 @@ Erfassung und Darstellung der Fähigkeiten der Mitarbeitenden, gepflegt von den 
 
 Schwachstellenmanagement für das Security-Team: Fälle (Schwachstellen mit CVE-ID und Vorfälle ohne), Team-Prüfungen
 von Projekten und Systemen, die Bestätigungen der Mitarbeitenden und eine Abschlussübersicht, die zeigt, ob ein Fall
-geschlossen werden kann. Als Nachweis auf den Client-Geräten lassen sich ein Schwachstellenscanner (Tenable.sc) und ein
-zentraler Log-Server (Graylog) mit den Meldungen eines Client-Agents anbinden; beides ist optional.
+geschlossen werden kann. Als Nachweis auf den Client-Geräten lässt sich ein zentraler Log-Server (Graylog) mit den Meldungen eines
+Client-Agents anbinden; das ist optional.
 
 Das Plugin ist in Entwicklung. Die Seite _Verschiedenes_ -> _CVE-Radar_ listet die aus der NVD importierten
 Schwachstellen (siehe <<cve_radar_nvd>>); auch die Seiten _Fälle_, _Geräte_ und _Mein CVE-Radar_ arbeiten mit echten
@@ -1842,34 +1843,7 @@ projectforge.plugin.cveradar.writeGroup=cve-read-write
 projectforge.plugin.cveradar.securityOfficerGroup=security-officers
 ----
 
-Die veralteten Geräte löschen die Jobs der Anbindungen (siehe <<cve_radar_jobs>>).
-
-[[cve_radar_tenable]]
-==== Schwachstellenscanner (Tenable.sc)
-
-ProjectForge liest die Assets und ihre Befunde über die REST-API von Tenable.sc. Jedes Asset (Asset-Liste), dessen Name
-zu `assetPattern` passt, ist ein Client-Gerät: Die benannten Gruppen `serial` und `user` des Musters liefern seine
-Seriennummer und den Benutzernamen, der dem gleichnamigen ProjectForge-Benutzer zugeordnet wird.
-
-[source,properties]
-----
-projectforge.plugin.cveradar.tenable.url=https://tenable.example.org
-# API-Keys eines Tenable.sc-Benutzers mit reinem Lesezugriff (My Account -> API keys).
-projectforge.plugin.cveradar.tenable.accessKey=...
-projectforge.plugin.cveradar.tenable.secretKey=...
-# Importierte Schweregrade: 0 info, 1 low, 2 medium, 3 high, 4 critical.
-projectforge.plugin.cveradar.tenable.severities=2,3,4
-# Z. B. Assets mit Namen wie "C02XYZ123_jane.doe".
-projectforge.plugin.cveradar.tenable.assetPattern=(?<serial>[A-Z0-9]+)_(?<user>[a-z0-9.]+)
-# Täglich um 5:40 (UTC).
-projectforge.plugin.cveradar.tenable.cron=0 40 5 * * *
-----
-
-* Die Anbindung ist inaktiv, solange die URL, einer der Keys oder das Muster leer ist.
-* Ein Befund, den der Scanner nicht mehr meldet, ist _laut Scan behoben_; ein behobener, der wieder gemeldet wird, wird
-  wieder geöffnet.
-* Lassen sich die Befunde eines Assets nicht vollständig lesen, wird das Asset übersprungen und behält seine Befunde;
-  der Job meldet es als fehlgeschlagen.
+Die veralteten Geräte löscht der Job der Anbindung (siehe <<cve_radar_jobs>>).
 
 [[cve_radar_log_server]]
 ==== Log-Server (Graylog)
@@ -1938,18 +1912,17 @@ projectforge.plugin.cveradar.nvd.cron=0 17 */2 * * *
 [[cve_radar_jobs]]
 ==== Jobs und Verbindungen
 
-* Die Anbindungen und der NVD-Import laufen als Jobs, _CVE-Radar: Schwachstellenscanner_, _CVE-Radar: Client-Agents_ und
+* Die Anbindung und der NVD-Import laufen als Jobs, _CVE-Radar: Client-Agents_ und
   _CVE-Radar: NVD-Import_, aufgeführt
   unter _Administration_ -> _Jobmonitor_. Dort lassen sie sich sofort starten (_Jetzt starten_); solange ihre Quelle nicht
-  konfiguriert ist, werden sie als inaktiv mit dem Grund angezeigt. Die Zusammenfassung jedes Laufs (Geräte, neue,
-  wieder geöffnete und behobene Befunde) steht im Lauf und im Log, Fehler sind Teil des Fehler-Digests.
+  konfiguriert ist, werden sie als inaktiv mit dem Grund angezeigt. Die Zusammenfassung jedes Laufs steht im Lauf und im Log, Fehler sind Teil des Fehler-Digests.
 * Timeouts und die maximale Größe einer Antwort werden pro Verbindung mit
-  `projectforge.integration.clients.cveradar-tenable.*`, `projectforge.integration.clients.cveradar-graylog.*` und
+  `projectforge.integration.clients.cveradar-graylog.*` und
   `projectforge.integration.clients.cveradar-nvd.*` eingestellt (z. B. `responseTimeoutMs`, `maxResponseBytes`, Default
   50 MB; bei der NVD 180 s und 200 MB, da eine Seite bis zu 2000 Schwachstellen enthält).
 * Ein ausgehender Proxy wird noch nicht unterstützt: ProjectForge muss beide Hosts direkt erreichen.
 * Keys und Token zeigt der Properties-Editor nie an. Statt in `projectforge.properties` können sie als
-  Umgebungsvariablen gesetzt werden, z. B. `PROJECTFORGE_PLUGIN_CVERADAR_TENABLE_SECRETKEY`.
+  Umgebungsvariablen gesetzt werden, z. B. `PROJECTFORGE_PLUGIN_CVERADAR_GRAYLOG_TOKEN`.
 
 [[cve_radar_file]]
 ==== Die Akte einer CVE
@@ -1984,7 +1957,7 @@ Ein Fall lässt sich ganz ohne Anbindung durchspielen:
   Begründung (_Fall schließen_).
 
 Laufen die Anbindungen, sind die Fix-Kriterien des Falls der Nachweis auf den Geräten: eine Mindestversion des
-Client-Agents, die ID einer Prüfung des Agents und die Plugin-IDs oder CVEs des Scanners.
+Client-Agents und die ID einer Prüfung des Agents.
 
 [[further_plugins]]
 === Weitere Plugins
