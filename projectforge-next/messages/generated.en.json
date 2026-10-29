@@ -1746,6 +1746,13 @@
       },
       "invoicedExceedsCommissioned": "The invoiced amount exceeds the commissioned amount – please check for an incorrectly assigned invoice.",
       "mail": {
+        "digest": {
+          "changed": "Changed",
+          "created": "Created",
+          "deleted": "Deleted",
+          "intro": "these orders have been created, changed or deleted since the last summary:",
+          "subject": "Order changes: {arg0}"
+        },
         "intro": "the order #{arg0} was created or changed."
       },
       "nettoSumme": {
@@ -1757,7 +1764,22 @@
         "immediately": "immediately"
       },
       "notification": {
-        "error": "The order was saved, but the e-mail notification could not be sent: {arg0}"
+        "error": "The order was saved, but the e-mail notification could not be sent: {arg0}",
+        "mode": {
+          "daily": "Daily summary",
+          "immediate": "Immediately",
+          "muted": "Muted"
+        },
+        "prefs": {
+          "adopt": "Add {arg0} \"{arg1}\" as an exception",
+          "customer": "Customer",
+          "default": "Default",
+          "description": "Choose whether you receive an e-mail for each change of an order at once, as a daily summary or not at all. A rule for a project or customer overrides the default.",
+          "precedence": "If a project and its customer have different rules, the more specific one applies: the rule of the project comes before the rule of the customer, which comes before the default.",
+          "project": "Project",
+          "rules": "Exceptions for projects and customers",
+          "title": "Order notifications"
+        }
       },
       "nummer": {
         "_": "Number",
@@ -4297,7 +4319,63 @@
         "tenant": "Tenant"
       },
       "inventory": {
+        "actions": "Actions",
+        "add": "Add below",
+        "addArea": "Create area",
+        "addLevel": {
+          "AREA": "Area",
+          "COMPONENT": "Component",
+          "INSTANCE": "Instance (installation)",
+          "SYSTEM": "System"
+        },
+        "addTechnology": "Add technology",
+        "asSystem": "as the system",
+        "code": "Code",
+        "collapseAll": "Collapse all",
+        "confidentiality": "Confidentiality",
+        "cpe": "CPE",
+        "create": "New",
+        "delete": "Delete",
+        "deleteQuestion": "Delete {arg0}? Only a node without children can be deleted.",
+        "description": "Description",
+        "ecosystem": "Ecosystem (e.g. maven)",
+        "edit": "Edit",
+        "empty": "Nothing to see yet. Create an area with a group of yours and put your systems below it.",
+        "error": {
+          "code": "The code needs letters, digits, dot, dash or underscore only (up to 50 characters).",
+          "codeExists": "The code {arg0} is in use already.",
+          "cycle": "An area can't be moved below itself.",
+          "group": "A group is needed, and you have to be a member of it.",
+          "lastInstance": "The last instance of a system stays.",
+          "name": "A name is needed.",
+          "notEmpty": "There are entries below it. Delete or move them first.",
+          "notFound": "The entry doesn't exist (any more).",
+          "target": "This can't be moved there.",
+          "technology": "A technology needs a product."
+        },
+        "expandAll": "Expand all",
+        "filter": "Filter by code, name or technology (e.g. log4j < 2.17)",
+        "group": "Group",
+        "groupFrom": "from {arg0}",
         "hiddenSystems": "+{arg0} more systems, not visible for this role",
+        "hint": "The systems as a tree: areas of any depth, below them systems with their instances (installations) and components. Each node is seen and changed by the groups named on it and on the areas above it.",
+        "kind": "Kind",
+        "move": "Move",
+        "moveInfo": "The groups of the target area see and change the node afterwards. Only the security officer moves a node below areas of others or to the top level.",
+        "moveRoot": "(top level)",
+        "moveTarget": "Below area",
+        "name": "Name",
+        "product": "Product or ecosystem",
+        "purl": "Package URL (purl)",
+        "raiseInfo": "An instance may only raise the confidentiality and criticality of its system, not lower them.",
+        "removeTechnology": "Remove",
+        "rootAreaInfo": "The group chosen sees and changes the area and everything below it. You have to be a member of it yourself; the security officer can move the area later, e.g. below a customer.",
+        "save": "Save",
+        "site": "Site",
+        "stage": "Stage",
+        "title": "Systems",
+        "vendor": "Vendor",
+        "version": "Version",
         "vulnCount": "{arg0} CVE(s)"
       },
       "kev": {
@@ -4326,6 +4404,7 @@
         "nav": {
           "cases": "Cases",
           "devices": "Devices",
+          "inventory": "Systems",
           "my": "My CVE-Radar",
           "prototype": "Demo",
           "vulnerabilities": "Vulnerabilities"
@@ -4445,6 +4524,7 @@
         "closure": "{arg0} see counts only, no persons. {arg1} see the devices of the persons, create team checks and close cases. A case with open items is closed by {arg2} only.",
         "devices": "Only the {arg1} see the devices, they are personal data.",
         "file": "{arg0} read the file and join the discussion. {arg1} take over, rate, and maintain the measures and team checks. The binding priority is set by the assignee or {arg2}; only {arg2} reassign a case that somebody else has taken over.",
+        "inventory": "Everybody logged in creates areas with a group of their own. The groups named on an area and on the areas above it see and change it with everything below. The {arg1} read systems that are internal; confidential ones are for those groups and the {arg2} only. The {arg2} also move areas, e.g. below a customer. Everybody sees the way to what they may see, but not the other areas on that way.",
         "label": "Rights on this page",
         "list": "{arg0} see the list and open the files. {arg1} edit several entries at once (take over, priority, status). Everybody else is sent to \"My\".",
         "my": "Everybody logged in sees their own devices, the measures to confirm and the checks of their own groups here.",
@@ -4582,6 +4662,10 @@
         "info": "Team check of {arg0}, asked of the group {arg1}. Here projects and systems may be named: only this group, the security team and the security officer see this file.",
         "title": "Team check",
         "toCase": "To the file of the CVE"
+      },
+      "technologyKind": {
+        "ECOSYSTEM": "Ecosystem",
+        "PRODUCT": "Product"
       },
       "title": "CVE-Radar",
       "tree": {

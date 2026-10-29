@@ -41,7 +41,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -74,7 +73,7 @@ class CvrInventoryRest {
     fun createArea(@RequestBody request: AreaRequest): Long = service.createArea(user, request)
 
     @AccessChecked("CvrInventoryService.updateArea: write access to the stored area")
-    @PutMapping("area/{id}")
+    @PostMapping("area/{id}/update")
     fun updateArea(@PathVariable id: Long, @RequestBody request: AreaRequest) = service.updateArea(user, id, request)
 
     @AccessChecked("CvrInventoryService.createSystem: write access to the stored area")
@@ -82,7 +81,7 @@ class CvrInventoryRest {
     fun createSystem(@RequestBody request: SystemRequest): Long = service.createSystem(user, request)
 
     @AccessChecked("CvrInventoryService.updateSystem: write access to the stored system")
-    @PutMapping("system/{id}")
+    @PostMapping("system/{id}/update")
     fun updateSystem(@PathVariable id: Long, @RequestBody request: SystemRequest) =
         service.updateSystem(user, id, request)
 
@@ -91,7 +90,7 @@ class CvrInventoryRest {
     fun createInstance(@RequestBody request: InstanceRequest): Long = service.createInstance(user, request)
 
     @AccessChecked("CvrInventoryService.updateInstance: write access to the stored system")
-    @PutMapping("instance/{id}")
+    @PostMapping("instance/{id}/update")
     fun updateInstance(@PathVariable id: Long, @RequestBody request: InstanceRequest) =
         service.updateInstance(user, id, request)
 
@@ -100,7 +99,7 @@ class CvrInventoryRest {
     fun createComponent(@RequestBody request: ComponentRequest): Long = service.createComponent(user, request)
 
     @AccessChecked("CvrInventoryService.updateComponent: write access to the stored system")
-    @PutMapping("component/{id}")
+    @PostMapping("component/{id}/update")
     fun updateComponent(@PathVariable id: Long, @RequestBody request: ComponentRequest) =
         service.updateComponent(user, id, request)
 
