@@ -4389,6 +4389,12 @@
         "P3": "P3",
         "P4": "P4",
         "binding": "Binding priority",
+        "hint": {
+          "P1": "Critical: act immediately. Typically a vulnerability listed in the KEV catalogue or exploited on an exposed system. Shortest triage and remediation deadlines.",
+          "P2": "High: fix soon. Typically a CVSS score of 9 or more, or a P3 raised by an additional risk.",
+          "P3": "Medium: fix in the regular maintenance cycle. Typically a CVSS score of 7 or more.",
+          "P4": "Low: fix when convenient, e.g. with the next update. Typically a CVSS score below 7."
+        },
         "suggested": "Suggestion {arg0}: {arg1}"
       },
       "priorityReason": {
@@ -4578,7 +4584,15 @@
         "IN_TRIAGE": "In triage",
         "NEW": "New",
         "NOT_RELEVANT": "Not relevant",
-        "RATED": "Rated"
+        "RATED": "Rated",
+        "hint": {
+          "CLOSED": "Done: fixed, mitigated or accepted. A closed case is not changed any more.",
+          "IN_REMEDIATION": "Measures are decided and being carried out (update, workaround, …).",
+          "IN_TRIAGE": "Somebody is assessing whether the vulnerability affects us and how severe it is.",
+          "NEW": "Not looked at yet. Waits for somebody to take it over.",
+          "NOT_RELEVANT": "Does not affect us. Needs a reason; a closed case is not changed any more.",
+          "RATED": "The assessment is done and a binding priority is set."
+        }
       },
       "unknown": "unknown",
       "versionNowUnaffected": "Inventory already has an unaffected version — please confirm",

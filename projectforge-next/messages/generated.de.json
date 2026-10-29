@@ -4389,6 +4389,12 @@
         "P3": "P3",
         "P4": "P4",
         "binding": "Verbindliche Priorität",
+        "hint": {
+          "P1": "Kritisch: sofort handeln. Typisch bei einer Schwachstelle aus dem KEV-Katalog oder bei Ausnutzung auf einem exponierten System. Kürzeste Triage- und Behebungsfristen.",
+          "P2": "Hoch: zeitnah beheben. Typisch bei einem CVSS-Wert ab 9 oder einer durch ein zusätzliches Risiko angehobenen P3.",
+          "P3": "Mittel: im regulären Wartungszyklus beheben. Typisch bei einem CVSS-Wert ab 7.",
+          "P4": "Niedrig: bei Gelegenheit beheben, z. B. mit dem nächsten Update. Typisch bei einem CVSS-Wert unter 7."
+        },
         "suggested": "Vorschlag {arg0}: {arg1}"
       },
       "priorityReason": {
@@ -4578,7 +4584,15 @@
         "IN_TRIAGE": "In Triage",
         "NEW": "Neu",
         "NOT_RELEVANT": "Nicht relevant",
-        "RATED": "Bewertet"
+        "RATED": "Bewertet",
+        "hint": {
+          "CLOSED": "Erledigt: behoben, entschärft oder akzeptiert. Ein abgeschlossener Fall wird nicht mehr geändert.",
+          "IN_REMEDIATION": "Maßnahmen sind beschlossen und werden umgesetzt (Update, Workaround, …).",
+          "IN_TRIAGE": "Jemand prüft, ob die Schwachstelle uns betrifft und wie schwer sie wiegt.",
+          "NEW": "Noch nicht angesehen. Wartet darauf, dass jemand sie übernimmt.",
+          "NOT_RELEVANT": "Betrifft uns nicht. Braucht eine Begründung; ein abgeschlossener Fall wird nicht mehr geändert.",
+          "RATED": "Die Einschätzung ist abgeschlossen, eine verbindliche Priorität ist gesetzt."
+        }
       },
       "unknown": "unbekannt",
       "versionNowUnaffected": "Inventar hat bereits eine unkritische Version – bitte bestätigen",
