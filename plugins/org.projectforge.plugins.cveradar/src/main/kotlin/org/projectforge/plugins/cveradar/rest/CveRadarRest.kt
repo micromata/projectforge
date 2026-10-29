@@ -177,6 +177,11 @@ class CveRadarRest {
             teamChecks = service.myTeamChecks(user).map { teamCheckRow(user, it) },
             reader = access.isReader(user),
             securityTeam = access.isSecurityTeam(user),
+            groups = RoleGroups(
+                read = config.readGroup.trim(),
+                write = config.writeGroup.trim(),
+                securityOfficer = config.securityOfficerGroup.trim(),
+            ),
         )
     }
 

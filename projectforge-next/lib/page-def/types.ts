@@ -881,6 +881,12 @@ export interface PageDef<
    */
   listActions?: ComponentType<{ filter: MagicFilter }>;
   /**
+   * The menu of the area the list belongs to (a plugin's pages, see `SectionNav`), at the far right of the
+   * toolbar — after the gear menu and "add", where the area's other pages carry it too, so it stays put when
+   * one switches between them.
+   */
+  listMenu?: ComponentType;
+  /**
    * Maintenance entries of a specific list, appended to the gear menu below the standard re-index
    * entries — the order book's cache refresh (see OrderGearMenuActions). Rendered inside the menu, so
    * the component should yield `GearMenuItem`s.

@@ -34,6 +34,7 @@ import org.projectforge.framework.cache.CacheListener
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap
@@ -94,12 +95,26 @@ class ListPageChangeCounter {
     private lateinit var baseDaos: List<BaseDao<*>>
 
     @Autowired
+    private lateinit var persistenceService: PfPersistenceService
+
+    @Autowired
     private lateinit var rechnungCache: RechnungCache
 
     private val counters = ConcurrentHashMap<Class<*>, AtomicLong>()
 
     private fun bump(doClass: Class<*>) {
         counters.getOrPut(doClass) { AtomicLong() }.incrementAndGet()
+    }
+
+    /**
+     * Bumps once more when the transaction of the change ends. The first bump comes before the commit, while the
+     * database and the full text index still hold the old state: a list built by another request in between
+     * (e.g. while the NVD import runs its long transaction) was cached with the new counter and the old result,
+     * and stayed so until its TTL ended. Hibernate Search registered its synchronization with the first entity
+     * event of the transaction, so it has written the index before this one runs.
+     */
+    private fun bumpAfterCompletion(doClass: Class<*>) {
+        persistenceService.runAfterTransactionCompletion { bump(doClass) }
     }
 
     @PostConstruct
@@ -110,6 +125,7 @@ class ListPageChangeCounter {
             (dao as BaseDao<ExtendedBaseDO<Long>>).register(object : BaseDOModifiedListener<ExtendedBaseDO<Long>> {
                 override fun afterInsertOrModify(obj: ExtendedBaseDO<Long>, operationType: OperationType) {
                     bump(doClass)
+                    bumpAfterCompletion(doClass)
                 }
             })
         }

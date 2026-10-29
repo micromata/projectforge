@@ -337,6 +337,7 @@ function DeclaredList<
   useAccessDeniedRedirect(denied);
   const ListActions = page.listActions;
   const GearMenuActions = page.gearMenuActions;
+  const ListMenu = page.listMenu;
   const mode = list.selectionMode;
   const table = list.table;
   // Both the shortcut and the bar's button mean the whole result set, which is the set the table's own
@@ -387,6 +388,7 @@ function DeclaredList<
               )}
             </>
           }
+          menu={ListMenu && <ListMenu />}
           gearMenu={
             <ListGearMenu entity={page.entity}>
               {GearMenuActions && <GearMenuActions />}

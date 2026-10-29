@@ -123,7 +123,11 @@ class MyView(
     /** Whether the user has the right of the CVE-Radar (shows the links to cases and devices). */
     val reader: Boolean,
     val securityTeam: Boolean,
+    /** The PF groups behind the roles, for the help texts of the pages (empty: not configured). */
+    val groups: RoleGroups,
 )
+
+class RoleGroups(val read: String, val write: String, val securityOfficer: String)
 
 class CloseRequest(var reason: String? = null)
 
