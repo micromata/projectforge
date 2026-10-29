@@ -126,6 +126,10 @@ class CvrInventoryService {
             throw AccessException(user, CveRadarAccess.NO_ACCESS)
         }
         val group = request.groupId?.let { findGroup(it) }
+        // Only a group of the editor can be newly assigned (the officer chooses freely); keeping or clearing it is free.
+        if (group != null && group.id != area.groupId && !(view.officer || access.isMemberOf(user, group.id))) {
+            throw UserException(ERROR_GROUP)
+        }
         val stored = areaDao.find(id, checkAccess = false) ?: throw UserException(ERROR_NOT_FOUND)
         stored.code = checkedCode(request.code, view.model, exceptArea = area.id)
         stored.name = checkedName(request.name)

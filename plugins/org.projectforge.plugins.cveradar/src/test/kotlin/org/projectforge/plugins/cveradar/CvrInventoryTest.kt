@@ -78,6 +78,12 @@ class CvrInventoryTest : CveRadarTestBase() {
         assertThrows(UserException::class.java) { rest.createArea(AreaRequest(code = "IV1", name = "Again", groupId = groupId)) }
         val sub = rest.createArea(AreaRequest(parentId = area, code = "IV1-L", name = "Logistics"))
         assertNotNull(rows(owner)["IV1-L"])
+        assertThrows(UserException::class.java, {
+            rest.updateArea(area, AreaRequest(code = "IV1", name = "Acme", groupId = groupId("cveradar-inv-foreign")))
+        }, "a group the editor isn't a member of can't be assigned")
+        val loose = rest.createArea(AreaRequest(code = "IV1-LOOSE", name = "No group"))
+        assertTrue(rows(owner).keys.none { it == "IV1-LOOSE" }, "a root without a group is for the security officer only")
+        assertTrue(loose > 0)
         logon(other)
         assertThrows(AccessException::class.java) { rest.createArea(AreaRequest(parentId = area, code = "IV1-X", name = "X")) }
         assertThrows(AccessException::class.java) { rest.updateArea(sub, AreaRequest(code = "IV1-L", name = "Hijacked")) }
