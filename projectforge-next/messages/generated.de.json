@@ -4471,6 +4471,7 @@
         "hintNode": "Node: die package-lock.json des Projekts hochladen.",
         "intro": "Die Bibliotheken kommen aus den Build-Werkzeugen des Projekts, auch die transitiven. Mehrere Dateien können auf einmal hochgeladen werden; sie werden zusammengeführt. Gelesen werden nur Namen und Versionen, nichts wird ausgeführt und die Dateien werden nicht gespeichert.",
         "more": "… und {arg0} weitere",
+        "noMatch": "Nichts passt.",
         "notRecognised": "Nicht erkannt, ignoriert: {arg0}",
         "removeAll": "Alle hochgeladenen Bibliotheken entfernen",
         "removeAllQuestion": "Alle {arg0} für diese Komponente hochgeladenen Bibliotheken entfernen? Von Hand eingetragene Technologien bleiben.",
@@ -4479,10 +4480,14 @@
         "replace": "Früher hochgeladene Bibliotheken ersetzen",
         "replaceHint": "Aus: die Dateien ergänzen nur, was da ist. An: Bibliotheken früherer Uploads, die in keiner dieser Dateien stehen, werden entfernt. Von Hand eingetragene Technologien bleiben in beiden Fällen.",
         "saveFirst": "Zuerst die Komponente speichern, danach die Bibliotheken des Projekts hochladen.",
+        "search": "Suchen nach Name, Version oder purl",
+        "shown": "{arg0} von {arg1} angezeigt",
         "summary": "{arg0} Bibliotheken aus Listen: {arg1}",
         "title": "Bibliotheken des Projekts",
         "unchanged": "Unverändert",
         "upload": "Bibliotheken hochladen",
+        "view": "Bibliotheken anzeigen",
+        "viewTitle": "Technologien und Bibliotheken von {arg0}",
         "withoutGroupId": "Neu ohne groupId (keine vollständige purl): {arg0}"
       },
       "live": {

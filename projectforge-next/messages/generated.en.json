@@ -4471,6 +4471,7 @@
         "hintNode": "Node: upload the package-lock.json of the project.",
         "intro": "The libraries come from the build tools of the project, including the transitive ones. Several files can be uploaded at once; they are merged. Only the names and versions are read, nothing is executed and the files are not stored.",
         "more": "… and {arg0} more",
+        "noMatch": "Nothing matches.",
         "notRecognised": "Not recognised, ignored: {arg0}",
         "removeAll": "Remove all uploaded libraries",
         "removeAllQuestion": "Remove all {arg0} libraries uploaded for this component? Technologies entered by hand stay.",
@@ -4479,10 +4480,14 @@
         "replace": "Replace the libraries uploaded earlier",
         "replaceHint": "Off: the files only add to what is there. On: libraries from earlier uploads that are in none of these files are removed. Technologies entered by hand stay in both cases.",
         "saveFirst": "Save the component first, then upload the libraries of the project.",
+        "search": "Search by name, version or purl",
+        "shown": "{arg0} of {arg1} shown",
         "summary": "{arg0} libraries from lists: {arg1}",
         "title": "Libraries of the project",
         "unchanged": "Unchanged",
         "upload": "Upload libraries",
+        "view": "Show libraries",
+        "viewTitle": "Technologies and libraries of {arg0}",
         "withoutGroupId": "New without a groupId (no complete purl): {arg0}"
       },
       "live": {
