@@ -3,12 +3,12 @@
 import { useId, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
-  Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { GuardedDialog } from "@/components/shared/guarded-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -98,7 +98,7 @@ export function AttachmentEditDialog({
   );
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <GuardedDialog open onOpenChange={(open) => !open && onClose()}>
       {/* Wider than the default: the encryption options lay out in one row. */}
       <DialogContent onKeyDown={onKeyDown} className="sm:max-w-2xl">
         <DialogHeader>
@@ -167,6 +167,6 @@ export function AttachmentEditDialog({
           </div>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+    </GuardedDialog>
   );
 }

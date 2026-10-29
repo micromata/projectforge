@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Order statistics, forecast: new table \"Breakdown of the forecast\" per month with the invoiced sums, the remaining forecast of commissioned fixed price and flat rate positions, of commissioned time & materials positions (run rate) and of not yet commissioned positions (weighted), and the part of the forecast for which an invoice is already planned.",
+  "de": "Auftragsstatistik, Prognose: neue Tabelle \"Aufschlüsselung der Prognose\" je Monat mit den fakturierten Summen, der Rest-Prognose beauftragter Festpreis- und Pauschalpositionen, beauftragter Time-&-Materials-Positionen (Run-Rate) und noch nicht beauftragter Positionen (gewichtet) sowie dem Teil der Prognose, für den bereits eine Rechnung geplant ist."
+}

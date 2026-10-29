@@ -26,8 +26,7 @@ package org.projectforge.plugins.datatransfer
 import org.projectforge.PageRoutes
 import org.projectforge.business.admin.SystemStatistics
 import org.projectforge.business.configuration.ConfigurationService
-import org.projectforge.jcr.RepoBackupService
-import org.projectforge.jcr.RepoService
+import org.projectforge.files.store.FileStore
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.builder.MenuCreator
@@ -38,7 +37,7 @@ import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.datatransfer.rest.DataTransferArea
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
 import org.projectforge.rest.config.JacksonConfiguration
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 import java.io.File
 
 /**
@@ -54,15 +53,14 @@ class DataTransferPlugin :
     ) {
 
     override fun initialize() {
-        val dataTransferAreaEntityRest = WicketSupport.get(DataTransferAreaEntityRest::class.java)
-        val dataTransferAreaDao = WicketSupport.get(DataTransferAreaDao::class.java)
-        val menuCreator = WicketSupport.get(MenuCreator::class.java)
-        val systemStatistics = WicketSupport.get(SystemStatistics::class.java)
-        WicketSupport.get(RepoBackupService::class.java).registerNodePathToIgnore(dataTransferAreaEntityRest.jcrPath!!)
-        // Files of data transfer areas are stored in the file system by the new file store (projectforge.files.store=db):
-        WicketSupport.get(RepoService::class.java).registerFileSystemPath(
-            dataTransferAreaEntityRest.jcrPath!!,
-            File(WicketSupport.get(ConfigurationService::class.java).applicationHomeDir, FILE_SYSTEM_DIR),
+        val dataTransferAreaEntityRest = SpringBeans.get(DataTransferAreaEntityRest::class.java)
+        val dataTransferAreaDao = SpringBeans.get(DataTransferAreaDao::class.java)
+        val menuCreator = SpringBeans.get(MenuCreator::class.java)
+        val systemStatistics = SpringBeans.get(SystemStatistics::class.java)
+        // Files of data transfer areas are stored by the file store in the file system (not in the data base):
+        SpringBeans.get(FileStore::class.java).registerFileSystemPath(
+            dataTransferAreaEntityRest.attachmentsPath!!,
+            File(SpringBeans.get(ConfigurationService::class.java).applicationHomeDir, FILE_SYSTEM_DIR),
         )
 
         // Register it:
@@ -105,7 +103,7 @@ class DataTransferPlugin :
             // DataTransfer menu already set in user's favorite menu.
             return
         }
-        val menuCreator = WicketSupport.get(MenuCreator::class.java)
+        val menuCreator = SpringBeans.get(MenuCreator::class.java)
         menu.add(menuCreator.findById(PluginAdminService.PLUGIN_DATA_TRANSFER_ID))
     }
 

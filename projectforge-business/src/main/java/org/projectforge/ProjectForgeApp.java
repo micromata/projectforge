@@ -38,12 +38,11 @@ import org.projectforge.database.DatabaseSupport;
 import org.projectforge.export.MyXlsExportContext;
 import org.projectforge.framework.configuration.ApplicationDirectories;
 import org.projectforge.framework.configuration.PFSpringConfiguration;
+import org.projectforge.framework.files.LegacyJcrGuard;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
-import org.projectforge.jcr.RepoBackupService;
-import org.projectforge.jcr.RepoService;
 import org.projectforge.registry.Registry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -112,9 +111,7 @@ public class ProjectForgeApp {
 
     private Environment environment;
 
-    private RepoService repoService;
-
-    private RepoBackupService repoBackupService;
+    private LegacyJcrGuard legacyJcrGuard;
 
     private ShutdownService shutdownService;
 
@@ -142,8 +139,7 @@ public class ProjectForgeApp {
                     DatabaseService databaseService,
                     DomainService domainService,
                     Environment environment,
-                    RepoService repoService,
-                    RepoBackupService repoBackupService,
+                    LegacyJcrGuard legacyJcrGuard,
                     ShutdownService shutdownService,
                     SystemInfoCache systemInfoCache,
                     SystemStatus systemStatus) {
@@ -151,8 +147,7 @@ public class ProjectForgeApp {
         this.databaseService = databaseService;
         this.domainService = domainService;
         this.environment = environment;
-        this.repoService = repoService;
-        this.repoBackupService = repoBackupService;
+        this.legacyJcrGuard = legacyJcrGuard;
         this.shutdownService = shutdownService;
         this.systemInfoCache = systemInfoCache;
         this.systemStatus = systemStatus;
@@ -161,10 +156,9 @@ public class ProjectForgeApp {
     @PostConstruct
     void postConstruct() {
         Registry.getInstance().init(applicationContext);
-        if (!junitTestMode) { // On test cases on repo will be used, if any.
-            repoService.init(ApplicationDirectories.getJcrDirectory());
+        if (!junitTestMode) {
+            legacyJcrGuard.check(); // Refuses the start, if the former JCR contains files not migrated by 9.1.x.
         }
-        repoBackupService.initBackupDir(ApplicationDirectories.getBackupDirectory());
     }
 
     @EventListener(ApplicationReadyEvent.class)

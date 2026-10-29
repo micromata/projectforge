@@ -28,7 +28,7 @@ import org.projectforge.framework.time.DayHolder
 import org.projectforge.framework.time.PFDay.Companion.from
 import org.projectforge.framework.time.PFDay.Companion.fromOrNull
 import org.projectforge.statistics.IntAggregatedValues
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 import java.io.Serializable
 import java.time.LocalDate
 import java.util.*
@@ -170,7 +170,7 @@ class LiquidityForecast() : Serializable {
             if (customerId != null) {
                 ensureAndAddDebitorPaymentValue("customer#$customerId", timeForPayment, amount)
             }
-            val account = WicketSupport.get(KontoCache::class.java).getKonto(invoice)
+            val account = SpringBeans.get(KontoCache::class.java).getKonto(invoice)
             val accountId = account?.id
             if (accountId != null) {
                 ensureAndAddDebitorPaymentValue("account#$accountId", timeForPayment, amount)
@@ -205,7 +205,7 @@ class LiquidityForecast() : Serializable {
                         KundeFormatter.formatKundeAsString(customer, null))) {
             return
         }
-        val account = WicketSupport.get(KontoCache::class.java).getKonto(invoice)
+        val account = SpringBeans.get(KontoCache::class.java).getKonto(invoice)
         if (account != null
                 && setExpectedDateOfPayment(entry, dateOfInvoice, "account#" + account.id,
                         "" + account.nummer + " - " + account.bezeichnung)) {
@@ -295,7 +295,7 @@ class LiquidityForecast() : Serializable {
         if (dateOfInvoice == null) {
             dateOfInvoice = DayHolder().localDate
         }
-        val account = WicketSupport.get(KontoCache::class.java).getKontoIfNotInitialized(invoice.konto)
+        val account = SpringBeans.get(KontoCache::class.java).getKontoIfNotInitialized(invoice.konto)
         if (account != null
                 && setExpectedDateOfCreditorPayment(entry, dateOfInvoice, "account#" + account.id,
                         "" + account.nummer + " - " + account.bezeichnung)) {

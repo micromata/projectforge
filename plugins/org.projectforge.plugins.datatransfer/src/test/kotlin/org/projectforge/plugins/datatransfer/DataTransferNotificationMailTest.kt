@@ -28,17 +28,17 @@ import org.apache.commons.lang3.StringUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.configuration.DomainService
-import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsEventType
+import org.projectforge.framework.files.Attachment
+import org.projectforge.framework.files.AttachmentsEventType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.jcr.FileInfo
+import org.projectforge.files.FileInfo
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.test.MailPreview
 import org.projectforge.mail.SendMail
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAuditDao
-import org.projectforge.plugins.datatransfer.DataTransferJCRCleanUpJob
+import org.projectforge.plugins.datatransfer.DataTransferCleanUpJob
 import org.projectforge.plugins.datatransfer.DataTransferNotificationMailService
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
@@ -193,7 +193,7 @@ class DataTransferNotificationMailTest : AbstractTestBase() {
             attachment,
             area,
             PFDateTime.now().plusDays(expiresInDays.toLong()).utilDate,
-            expiresInDays * DataTransferJCRCleanUpJob.MILLIS_PER_DAY,
+            expiresInDays * DataTransferCleanUpJob.MILLIS_PER_DAY,
             Locale.GERMAN,
         )
         return info

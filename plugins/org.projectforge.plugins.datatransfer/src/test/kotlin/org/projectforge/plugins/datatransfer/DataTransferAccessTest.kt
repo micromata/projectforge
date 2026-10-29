@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.jcr.FileObject
+import org.projectforge.files.FileObject
 import org.projectforge.plugins.datatransfer.rest.DataTransferFilesRest
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -52,7 +52,7 @@ class DataTransferAccessTest : AbstractTestBase() {
 
     @PostConstruct
     private fun postConstruct() {
-        initJCRTestRepo(MODUL_NAME, "accessTestRepo")
+        initTestFileStore()
     }
 
     // @PostConstruct doesn't work, data base is initialized later.

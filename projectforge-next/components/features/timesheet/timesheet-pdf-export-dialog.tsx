@@ -6,13 +6,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { GuardedDialog } from "@/components/shared/guarded-dialog";
 import { Label } from "@/components/ui/label";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Spinner } from "@/components/shared/spinner";
@@ -96,7 +96,7 @@ export function TimesheetPdfExportDialog({
   );
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <GuardedDialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent onKeyDown={onKeyDown}>
         <DialogHeader>
           <DialogTitle>{t("timesheet.pdfExport.title")}</DialogTitle>
@@ -162,6 +162,6 @@ export function TimesheetPdfExportDialog({
           </HintTooltip>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+    </GuardedDialog>
   );
 }

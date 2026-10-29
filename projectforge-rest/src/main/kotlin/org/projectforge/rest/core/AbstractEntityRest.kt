@@ -38,9 +38,9 @@ import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.jcr.AttachmentsAccessChecker
-import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.AttachmentsAccessChecker
+import org.projectforge.framework.files.AttachmentsDaoAccessChecker
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
@@ -50,7 +50,7 @@ import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.history.HistoryFormatService
 import org.projectforge.framework.persistence.search.SearchStringTokenizer
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.jcr.FileSizeStandardChecker
+import org.projectforge.files.FileSizeStandardChecker
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.aggrid.AGGridSupport
@@ -117,10 +117,10 @@ constructor(
 
     companion object {
         const val USER_PREF_PARAM_HIGHLIGHT_ROW = "highlightedRow"
-        private const val JCR_PATH_PREFIX: String = "org.projectforge"
+        private const val ATTACHMENTS_PATH_PREFIX: String = "org.projectforge"
 
-        fun getJcrPath(identifier: String): String {
-            return "$JCR_PATH_PREFIX.$identifier"
+        fun getAttachmentsPath(identifier: String): String {
+            return "$ATTACHMENTS_PATH_PREFIX.$identifier"
         }
 
         // For caching the historizable flag:
@@ -1030,7 +1030,7 @@ constructor(
             result.writeAccess = userAccess?.update ?: baseDao.hasLoggedInUserUpdateAccess(item, item, false)
             result.deleteAccess = userAccess?.delete ?: baseDao.hasLoggedInUserDeleteAccess(item, item, false)
         }
-        jcrPath?.let {
+        attachmentsPath?.let {
             if (result is AttachmentsSupport) {
                 result.attachments = attachmentsService.getAttachments(it, id, attachmentsAccessChecker)
             }
@@ -1764,15 +1764,15 @@ constructor(
     // ------------------------------------------------------------------------------------------
 
     /**
-     * A unique id which is used as parent node for all attachments. Use [enableJcr] for creating unique nodes.
-     * @return unique jcr path if attachments are supported or null, if no attachment support is given (download, upload and list).
+     * A unique id which is used as parent node for all attachments. Use [enableAttachments] for creating unique nodes.
+     * @return unique path in the file store, if attachments are supported or null, if no attachment support is given (download, upload and list).
      * @see [org.projectforge.rest.orga.ContractEntityRest] as an example.
      */
-    open var jcrPath: String? = null  // open needed by Wicket's SpringBean for proxying.
+    open var attachmentsPath: String? = null  // open needed by Wicket's SpringBean for proxying.
         protected set
 
     /**
-     * Might be initialized by [enableJcr] with default dao access checker.
+     * Might be initialized by [enableAttachments] with default dao access checker.
      */
     open lateinit var attachmentsAccessChecker: AttachmentsAccessChecker // open needed by Wicket's SpringBean for proxying.
         protected set
@@ -1782,14 +1782,14 @@ constructor(
     }
 
     /**
-     * Call this method for enabling jcr support.
-     * jcr part will be set to '$prefix.${baseDao.identifier}', must be unique.
+     * Call this method for enabling attachments.
+     * The path in the file store will be set to '$prefix.${baseDao.identifier}', must be unique.
      * @param identifier Uses [BaseDao.identifier] at default value.
      * @param supportedListIds Each entity may support multiple lists of attachments. This specifies the available lists in
      * *addition* to [AttachmentsDaoAccessChecker.DEFAULT_LIST_OF_ATTACHMENTS].
      */
     @JvmOverloads
-    fun enableJcr(
+    fun enableAttachments(
         supportedListIds: Array<String>? = null,
         identifier: String? = null,
         attachmentsAccessChecker: AttachmentsAccessChecker? = null,
@@ -1799,16 +1799,16 @@ constructor(
         maxFileSize: Long = attachmentsService.maxDefaultFileSize.toBytes(),
         maxFileSizeSpringProperty: String = AttachmentsService.MAX_DEFAULT_FILE_SIZE_SPRING_PROPERTY
     ) {
-        jcrPath = if (identifier != null) {
-            getJcrPath(identifier)
+        attachmentsPath = if (identifier != null) {
+            getAttachmentsPath(identifier)
         } else {
             baseDao.identifier.let {
-                getJcrPath(it)
+                getAttachmentsPath(it)
             }
         }
         this.attachmentsAccessChecker =
             attachmentsAccessChecker ?: AttachmentsDaoAccessChecker(
-                baseDao, jcrPath, supportedListIds, FileSizeStandardChecker(maxFileSize, maxFileSizeSpringProperty)
+                baseDao, attachmentsPath, supportedListIds, FileSizeStandardChecker(maxFileSize, maxFileSizeSpringProperty)
             )
     }
 

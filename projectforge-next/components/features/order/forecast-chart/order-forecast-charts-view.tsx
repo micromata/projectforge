@@ -22,6 +22,7 @@ import type { MagicFilter } from "@/lib/rs/types";
 import { OrderForecastCumulativeChart } from "./order-forecast-cumulative-chart";
 import { OrderForecastMonthlyChart } from "./order-forecast-monthly-chart";
 import { StatisticsDateField } from "../statistics/statistics-date-field";
+import { ForecastBreakdownTable } from "./forecast-breakdown-table";
 import { ForecastTables } from "./forecast-tables";
 import { ForecastVariantField } from "./forecast-variant-field";
 import { PlanningDateTooltip } from "./planning-date-tooltip";
@@ -243,6 +244,7 @@ function OrderForecastCharts({
               },
             ]}
           />
+          <ForecastBreakdownTable data={query.data} />
           <ForecastTables
             filter={filter}
             filterKey={filterKey}

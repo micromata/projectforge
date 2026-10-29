@@ -52,6 +52,10 @@ public class LegacyConfigXml {
 
     private String loggingDirectory;
 
+    /**
+     * Not used anymore (the JCR was removed with 9.2), only read by the start-up guard for files of the former JCR,
+     * which weren't migrated.
+     */
     private String jcrDirectory;
 
     private String workingDirectory;

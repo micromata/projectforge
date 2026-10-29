@@ -27,8 +27,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.extensions.format
 import org.projectforge.common.extensions.formatBytes
 import org.projectforge.framework.persistence.database.DatabaseBackupPurgeJob
-import org.projectforge.jcr.RepoBackupService
-import org.projectforge.jcr.RepoService
+import org.projectforge.files.store.FileStore
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -41,32 +40,22 @@ class DiskUsageStatisticsBuilder : SystemsStatisticsBuilderInterface {
   private lateinit var databaseBackupPurgeJob: DatabaseBackupPurgeJob
 
   @Autowired
-  private lateinit var repoService: RepoService
-
-  @Autowired
-  private lateinit var repoBackupService: RepoBackupService
+  private lateinit var fileStore: FileStore
 
   override val group = "disk usage"
 
   override fun addStatisticsEntries(stats: SystemStatisticsData) {
-    stats.addDiskUsage("jcrDiskUsage", "disk usage", "'JCR storage", repoService.fileStoreLocation)
-    repoService.fileStore?.let { fileStore ->
-      fileStore.fileSystemDirs.forEachIndexed { index, dir ->
-        stats.addDiskUsage("fileStoreDiskUsage$index", "disk usage", "'File store (${dir.name})", dir)
-      }
-      try {
-        val info = fileStore.getStatistics().joinToString(", ") {
-          "${it.storage}: ${it.count.format()} files (${it.size.formatBytes()}, stored ${it.storedSize.formatBytes()})"
-        }
-        stats.add("fileStoreStatistics", "disk usage", "'File store", info)
-      } catch (ex: Exception) {
-        log.error(ex) { "Can't get statistics of file store: ${ex.message}" }
-      }
+    fileStore.fileSystemDirs.forEachIndexed { index, dir ->
+      stats.addDiskUsage("fileStoreDiskUsage$index", "disk usage", "'File store (${dir.name})", dir)
     }
-    stats.addDiskUsage(
-      "jcrBackupDiskUsage", "disk usage", "'JCR backup storage",
-      repoBackupService.backupDirectory
-    )
+    try {
+      val info = fileStore.getStatistics().joinToString(", ") {
+        "${it.storage}: ${it.count.format()} files (${it.size.formatBytes()}, stored ${it.storedSize.formatBytes()})"
+      }
+      stats.add("fileStoreStatistics", "disk usage", "'File store", info)
+    } catch (ex: Exception) {
+      log.error(ex) { "Can't get statistics of file store: ${ex.message}" }
+    }
     stats.addDiskUsage(
       "backupDirDiskUsage", "disk usage", "'Backup storage",
       databaseBackupPurgeJob.dbBackupDir

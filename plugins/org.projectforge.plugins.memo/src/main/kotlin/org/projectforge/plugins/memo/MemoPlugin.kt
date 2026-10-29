@@ -29,7 +29,7 @@ import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 
 /**
  * Your plugin initialization. Register all your components such as i18n files, data-access object etc.
@@ -40,8 +40,8 @@ class MemoPlugin : AbstractPlugin(ID, "Memo", "Personal text memos of users.") {
 
 
     override fun initialize() {
-        val memoDao = WicketSupport.get(MemoDao::class.java)
-        val menuCreator = WicketSupport.get(MenuCreator::class.java)
+        val memoDao = SpringBeans.get(MemoDao::class.java)
+        val menuCreator = SpringBeans.get(MenuCreator::class.java)
 
         // DatabaseUpdateDao is needed by the updater:
         // Register it:

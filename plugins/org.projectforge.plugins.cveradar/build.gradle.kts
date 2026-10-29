@@ -7,12 +7,16 @@ plugins {
 
 tasks.withType<KotlinCompile> {
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
     }
 }
 
 dependencies {
     api(project(":projectforge-rest"))
+    testImplementation(project(":projectforge-business"))
+    testImplementation(testFixtures(project(":projectforge-business")))
+    testImplementation(project(":projectforge-commons-test"))
+    testImplementation(libs.org.springframework.boot.starter.test)
 }
 
 description = "org.projectforge.plugins.cveradar"

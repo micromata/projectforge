@@ -41,7 +41,6 @@ import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
-import org.projectforge.jcr.RepoService
 import org.projectforge.rest.core.SessionCsrfService
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Rechnung
@@ -83,21 +82,13 @@ class OutgoingInvoiceEInvoiceTest : AbstractTestBase() {
     private lateinit var sellerConfig: EInvoiceSellerConfig
 
     @Autowired
-    private lateinit var repoService: RepoService
-
-    @Autowired
     private lateinit var sessionCsrfService: SessionCsrfService
 
     @PostConstruct
     private fun postConstruct() {
-        // Both exports read the JCR — XRechnung embeds the regular attachments into the XML, ZUGFeRD into the
-        // PDF — so a repository has to exist even for an invoice that has none.
-        initJCRTestRepo(MODULE_NAME, "outgoingInvoiceEInvoiceTestRepo")
-    }
-
-    /** Releases the repository directory again, as `OutgoingInvoicePdfTest` does. */
-    override fun afterAll() {
-        repoService.shutdown()
+        // Both exports read the file store — XRechnung embeds the regular attachments into the XML, ZUGFeRD into
+        // the PDF — so its schema has to exist even for an invoice that has none.
+        initTestFileStore()
     }
 
     /** The configuration is a singleton bean of the shared context, so no case may leave its seller behind. */
@@ -326,8 +317,6 @@ class OutgoingInvoiceEInvoiceTest : AbstractTestBase() {
     }
 
     companion object {
-        /** Module directory this test runs in — `initJCRTestRepo` insists on it (see `TestUtils`). */
-        private const val MODULE_NAME = "projectforge-rest"
         private const val IBAN = "DE02120300000000202051"
     }
 }

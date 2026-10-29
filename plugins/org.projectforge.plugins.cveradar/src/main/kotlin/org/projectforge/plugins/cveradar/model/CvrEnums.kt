@@ -1,0 +1,83 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.plugins.cveradar.model
+
+import org.projectforge.common.i18n.I18nEnum
+
+/** A vulnerability with CVE id, or an incident without one (IMP-14). */
+enum class CvrCaseKind : I18nEnum {
+    CVE, INCIDENT;
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.case.kind.$name"
+}
+
+/** The processing status (TRI-05). */
+enum class CvrCaseStatus : I18nEnum {
+    NEW, IN_TRIAGE, RATED, IN_REMEDIATION, CLOSED, NOT_RELEVANT;
+
+    val isClosed: Boolean
+        get() = this == CLOSED || this == NOT_RELEVANT
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.triageStatus.$name"
+}
+
+/** The internal priority P1 – P4 (PRIO-01). */
+enum class CvrPriority : I18nEnum {
+    P1, P2, P3, P4;
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.priority.$name"
+}
+
+/** The answer of a team (FB-03), also of a team check (CLS-03). */
+enum class CvrTeamAnswer : I18nEnum {
+    NOT_AFFECTED, FIXED, IN_PROGRESS, RISK_ACCEPTED;
+
+    /**
+     * Whether the check is done: not affected or fixed. A risk accepted needs the security officer, who closes a case
+     * with open items (CLS-05).
+     */
+    val isDone: Boolean
+        get() = this == NOT_AFFECTED || this == FIXED
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.teamAnswer.$name"
+}
+
+/** The confirmation of an employee (FB-05, CLS-04). */
+enum class CvrClientAnswer : I18nEnum {
+    DONE, NOT_AFFECTED, QUESTION;
+
+    /** Whether the answer confirms the measures: done or not affected, a question doesn't. */
+    val isConfirmed: Boolean
+        get() = this != QUESTION
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.clientAnswer.$name"
+}
+
+/** A scan finding still reported by the scanner, or not any more by its latest sync (EXT-02). */
+enum class CvrScanFindingStatus { OPEN, RESOLVED }

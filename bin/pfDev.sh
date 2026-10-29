@@ -117,7 +117,7 @@ parse_slot() {
 }
 
 # Creates the home dir of a slot instance: the main instance's configuration with its own HSQLDB.
-# The database, JCR and search index of the main instance are not copied — they belong to its DB.
+# The database and search index of the main instance are not copied — they belong to its DB.
 init_slot_home() {
   local src="$MAIN_HOME"
   if [[ ! -f "$src/projectforge.properties" ]]; then

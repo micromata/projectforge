@@ -28,7 +28,7 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.web.WicketSupport;
+import org.projectforge.framework.SpringBeans;
 
 import java.util.Collection;
 
@@ -76,10 +76,10 @@ public class UserRightAccessCheck<O> extends UserRight {
   public boolean hasAccess(final PFUserDO user, final O obj, final O oldObj,
                            final OperationType operationType) {
     if (operationType == OperationType.SELECT) {
-      return WicketSupport.getAccessChecker().hasRight(user, this.getId(), false, UserRightValue.READONLY,
+      return SpringBeans.getAccessChecker().hasRight(user, this.getId(), false, UserRightValue.READONLY,
           UserRightValue.READWRITE);
     } else {
-      return WicketSupport.getAccessChecker().hasRight(user, this.getId(), false, UserRightValue.READWRITE);
+      return SpringBeans.getAccessChecker().hasRight(user, this.getId(), false, UserRightValue.READWRITE);
     }
   }
 

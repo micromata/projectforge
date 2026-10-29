@@ -30,7 +30,7 @@ import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 
 private val log = KotlinLogging.logger {}
 
@@ -45,8 +45,8 @@ class SkillMatrixPlugin : AbstractPlugin(
 ) {
 
     override fun initialize() {
-        val skillEntryDao = WicketSupport.get(SkillEntryDao::class.java)
-        val menuCreator = WicketSupport.get(MenuCreator::class.java)
+        val skillEntryDao = SpringBeans.get(SkillEntryDao::class.java)
+        val menuCreator = SpringBeans.get(MenuCreator::class.java)
         // Register it:
         register(id, SkillEntryDao::class.java, skillEntryDao, "plugins.skillmatrix")
 

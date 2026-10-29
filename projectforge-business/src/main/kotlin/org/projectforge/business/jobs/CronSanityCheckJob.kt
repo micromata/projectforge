@@ -34,7 +34,7 @@ import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.time.DateHelper
-import org.projectforge.jcr.JCRCheckSanityCheckJob
+import org.projectforge.files.FileStoreSanityCheckJob
 import org.projectforge.jobs.AbstractJob
 import org.projectforge.jobs.JobExecutionContext
 import org.projectforge.jobs.JobListExecutionContext
@@ -59,7 +59,7 @@ class CronSanityCheckJob {
     private val jobs = mutableListOf<AbstractJob>()
 
     @Autowired
-    private lateinit var jcrCheckSanityJob: JCRCheckSanityCheckJob
+    private lateinit var fileStoreSanityCheckJob: FileStoreSanityCheckJob
 
     @Autowired
     private lateinit var sendMail: SendMail
@@ -74,7 +74,7 @@ class CronSanityCheckJob {
     private fun postConstruct() {
         schedulerJobRunner.register(SCHEDULER_JOB, ::cron)
         registerJob(SystemSanityCheckJob(taskDao))
-        registerJob(jcrCheckSanityJob) // JCRCheckSanityJob is a plugin job, and it is registered here, because CronSanityCheckJob is not known by JCR.
+        registerJob(fileStoreSanityCheckJob) // Registered here, because CronSanityCheckJob is not known by projectforge-files.
     }
 
     // For testing: @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)

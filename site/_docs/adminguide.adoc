@@ -142,8 +142,7 @@ database user also needs the right to create schemas, which the owner of the dat
 . To re-use an existing database, restore a dump, see <<restoring_a_backup>>.
 
 Recommended settings in `postgresql.conf` (`max_connections` must be larger than ProjectForge's connection pool,
-`spring.datasource.hikari.maximum-pool-size`, default 100). If the JCR still uses PostgreSQL as well
-(`oak.datasource.url` given), its own pool adds up to 10 more connections (`oak.datasource.hikari.maximum-pool-size`):
+`spring.datasource.hikari.maximum-pool-size`, default 100):
 
 ----
 max_connections = 120
@@ -180,16 +179,15 @@ directory and rebuild the indices via _Administration_ -> _System_ -> _Reindex_.
 
 |`datatransfer` |The files of the data transfer areas (plugin _Data transfer_).
 
-|`jcr` |The former document repository (JCR), only for installations not yet migrated, see <<moving_the_files_out_of_the_jcr>>.
+|`jcr` |The former document repository (JCR), not used anymore since 9.2. May be deleted, see <<moving_the_files_out_of_the_jcr>>.
 
 |`work` |Working directory, e.g. for states of synchronizations.
 
 |`tmp` |Temporary files, e.g. debug logs.
 |===
 
-The directories `jcr`, `work`, `tmp` and `backup` may be placed elsewhere by the properties `projectforge.dir.jcr`,
-`projectforge.dir.work`, `projectforge.dir.tmp` and `projectforge.dir.backup` (absolute or relative to the home
-directory).
+The directories `work`, `tmp` and `backup` may be placed elsewhere by the properties `projectforge.dir.work`,
+`projectforge.dir.tmp` and `projectforge.dir.backup` (absolute or relative to the home directory).
 
 [[configuration_file_application_properties]]
 === Configuration file application.properties
@@ -1390,7 +1388,7 @@ database (see <<backup_script>>).
 ==== Embedded database (HSQLDB)
 
 With the embedded database, everything is located in ProjectForge's home directory: the database (`database`), the
-configuration files, your `resources`, the data transfer files (`datatransfer`) and, if still used, the JCR (`jcr`).
+configuration files, your `resources` and the data transfer files (`datatransfer`).
 The files of the file store are part of the embedded database. For a backup, stop ProjectForge and copy the whole home
 directory (e.g. `tar czf projectforge-home_2026-10-06.tar.gz -C $HOME ProjectForge`); `logs` and `hibernateSearch`
 may be left out. For restoring, stop ProjectForge, replace the home directory by the copy and start ProjectForge
@@ -1400,7 +1398,7 @@ If the data transfer files are encrypted, the key mustn't be part of this backup
 [[postgresql_dumps]]
 ==== PostgreSQL dumps
 
-The files of the new file store (attachments of contracts, orders, invoices etc., see <<moving_the_files_out_of_the_jcr>>) are stored in the own schema `pf_files`. This schema may become large, so two dumps are made:
+The files of the file store (attachments of contracts, orders, invoices etc.) are stored in the own schema `pf_files`. This schema may become large, so two dumps are made:
 
 * The main dump without the files: `pg_dump -N pf_files ...` (excludes the schema `pf_files`).
 * The dump of the files only: `pg_dump -n pf_files -Fc ...` (custom format, restorable in parallel by `pg_restore -j`).
@@ -1448,45 +1446,23 @@ If you want to use productive data in a test system, change the users' e-mail ad
 test database first, so nobody gets notifications from the test system. Please also mind data protection.
 ____
 
-[[jcr_repository]]
-==== JCR repository
-
-Only relevant for installations still using the JCR (`projectforge.files.store=jcr`), see <<moving_the_files_out_of_the_jcr>>.
-The JCR repository contains the uploaded files (contracts, orders etc.). Its nightly backups are written to the backup directory.
-
-For restoring a JCR backup, please refer the file `backupReadme.txt` inside the backup zip file.
-
-If you have a corrupted JCR repository or if you want to make a full backup, refer `backupReadme.txt` as well. You will also find the readme here: `https://github.com/micromata/projectforge/blob/develop/projectforge-jcr/src/main/resources/backupReadme.txt`.
-
 [[moving_the_files_out_of_the_jcr]]
-==== Moving the files out of the JCR
+==== Updating from an installation with JCR
 
-IMPORTANT: ProjectForge 9.1.x is the last release that runs on Java 17 and supports the JCR. From 9.2 on, there is no
-JCR (Apache Oak) any more, the files are kept in the database and in the file system only. If you still use the JCR,
-migrate with 9.1.x first, before you update to 9.2 or later, as described below.
+Since 9.2 there is no JCR (Apache Oak) any more: all files are stored in the data base (schema `pf_files`), the data
+transfer files in the file system (`<home>/datatransfer`). ProjectForge 9.1.x is the last release supporting the JCR.
+If you still use the JCR, update to 9.1.x first, switch there to `projectforge.files.store=db` and wait for a
+successful migration (`Result: OK` in the report `<home>/jcr-migration-report.txt`), see the admin guide of 9.1.x.
+Releases without JCR can't read the JCR, and they don't import a JCR backup ZIP.
 
-The JCR (Apache Oak) is going to be replaced by a new file store: the files are stored in the data base (schema `pf_files`), the data transfer files in the file system (`<home>/datatransfer`). The store is chosen in `projectforge.properties`:
-
-[source,properties]
-----
-# jcr: all files stay in the JCR (as before).
-# db: all files are stored in the new file store.
-projectforge.files.store=db
-----
-
-If not configured, `db` is used for new installations and `jcr` for installations with an existing JCR (unless the new file store already contains files of the data base storage, then `db`). So nothing changes for an existing installation until you switch to `db`.
-
-After switching to `db` and restarting, ProjectForge copies all files of the JCR in the background. Every file is verified by size and SHA-256 checksum. The result is written to `<home>/jcr-migration-report.txt`; the migration is started on every start-up until a run finished without errors. It may also be started manually on the system page (card "Document repository (JCR)").
-
-* All files are copied, the JCR keeps them. So you may switch back to `jcr` or roll back to the former release; only files uploaded under `db` are missing after a rollback.
-* Data transfer files need disk space twice (JCR and `<home>/datatransfer`) until they expire. Deleted files are deleted in both stores.
-* If the data transfer files should be encrypted, configure the key before switching to `db`, see <<encryption_of_the_data_transfer_files>>. The copies in the JCR remain unencrypted until they expire or the JCR is removed.
-* The nightly JCR backup keeps running in both modes as long as the JCR exists. With `db`, the files are part of the files dump (schema `pf_files`, see <<backup_script>>), the data transfer files are archived by the backup script (`<home>/datatransfer`).
-
-Before updating to 9.2 or later, switch to `db` with 9.1.x and wait for a successful migration (check the report
-`<home>/jcr-migration-report.txt`). Releases without JCR can't read the JCR, and they don't import a JCR backup ZIP:
-an installation that skipped the migration has to go back to 9.1.x first. Afterwards, the directory `<home>/jcr` can be
-deleted.
+On start-up, ProjectForge refuses to start, if the former JCR (`<home>/jcr`, `projectforge.dir.jcr`, the
+`jcrDirectory` of a former `config.xml` or `oak.datasource.url`) contains data, which wasn't migrated: the files would
+be missing otherwise. This is the case without a successful migration report, with `projectforge.files.store=jcr`
+(files uploaded after switching back to the JCR) and if the file store contains no file from before the migration
+(database restored to a state before the migration). If the JCR doesn't contain any files to keep, the start may be
+forced by `projectforge.files.ignoreLegacyJcr=true`. After a successful start, the directory `<home>/jcr` (or the Oak
+tables of `oak.datasource.url`) isn't used anymore and may be deleted after a backup. Remove `projectforge.dir.jcr` and
+`oak.datasource.url` from `projectforge.properties` together with the JCR, not before.
 
 [[automatical_backup]]
 === Automatical backup
@@ -1688,9 +1664,8 @@ installations. The files are stored in `datatransfer` of the home directory and 
 [[encryption_of_the_data_transfer_files]]
 ==== Encryption of the data transfer files
 
-With the new file store (`projectforge.files.store=db`, see <<moving_the_files_out_of_the_jcr>>), the data transfer
-files are stored compressed (unless already compressed by their format, e.g. zip, pdf, videos) and, if a key is
-configured, encrypted (AES-256). So copies of the home directory (e.g. backups) don't contain them in plain text:
+The data transfer files are stored compressed (unless already compressed by their format, e.g. zip, pdf, videos) and,
+if a key is configured, encrypted (AES-256). So copies of the home directory (e.g. backups) don't contain them in plain text:
 
 [source,properties]
 ----
@@ -1704,7 +1679,6 @@ projectforge.files.fileSystemEncryptionKey=...
   sanity check reports them). A missing or changed key is also logged as error on start ("Encrypted files below …
   can't be read").
 * Only files stored after configuring the key are encrypted, files stored before keep their format and stay readable.
-  So configure the key before switching to `db`: the files copied from the JCR are encrypted right away.
 * The attachments stored in the data base (schema `pf_files`) aren't encrypted, only the data transfer files.
 * The costs are low: encryption runs with several GB/s per core (Java 21), compressing a text file of 10 GB takes
   about a minute.
@@ -1745,6 +1719,189 @@ for contracts, serial documents etc.
 === Skill matrix
 
 Capture and represent the skills of the employees, managed by the users themselves.
+
+[[cve_radar]]
+=== CVE-Radar
+
+Vulnerability management for the security team: cases (vulnerabilities with CVE id and incidents without one), team
+checks of projects and systems, the confirmations of the employees and a closure overview, which shows whether a case
+can be closed. As evidence on the client devices, a vulnerability scanner (Tenable.sc) and a central log server
+(Graylog) with the messages of a client agent can be connected; both are optional.
+
+The plugin is under development. The page _Miscellaneous_ -> _CVE-Radar_ lists the vulnerabilities imported from the
+NVD (see <<cve_radar_nvd>>); the pages _Cases_, _Devices_ and _My CVE-Radar_ work on real data as well. The remaining
+functions can be tried as a prototype with fictitious demo data, linked prominently on the start page.
+
+[[cve_radar_activation]]
+==== Activation
+
+Activate the plugin `cveradar` under _Administration_ -> _Plugins_ (or with
+`projectforge.plugins.ensure-active=cveradar` in `projectforge.properties`) and restart ProjectForge, see <<plugins>>.
+
+[[cve_radar_rights]]
+==== Rights and roles
+
+The right _CVE-Radar_ is given per user (edit the user, _Edit user rights_):
+
+[cols="1,3"]
+|===
+|Right |Who and what
+
+|_Read and write_
+|The security team: cases, team checks, the devices with their persons, closing of cases, the vulnerabilities from the NVD.
+
+|_Read-only_
+|Readers, e.g. the management: the vulnerabilities from the NVD, cases and closure overviews, as counts only (no persons, no devices).
+
+|none
+|Every employee: on _My CVE-Radar_ the own devices, the cases released to the clients (to confirm the measures) and the
+team checks of the own groups.
+|===
+
+* Security officers are the members of the group named in `projectforge.plugin.cveradar.securityOfficerGroup`; they need
+  the right _Read and write_ as well. Only they close a case with open items (with a reason). If the property is empty,
+  nobody may.
+* A team check is answered by the members of the requested group, no CVE-Radar right is needed for it.
+
+[[cve_radar_settings]]
+==== General settings
+
+All settings are in `projectforge.properties` (or in the properties editor, see <<properties_editor>>) and take effect
+after a restart:
+
+[source,properties]
+----
+# Ids of incidents without CVE: INC-2026-1, INC-2026-2, ... (letters and digits only).
+projectforge.plugin.cveradar.caseIdPrefix=INC
+# A device not reported for more days is inactive and not counted in the closure overview.
+projectforge.plugin.cveradar.clientActiveDays=30
+# Devices not reported for more days are deleted with their scan findings (personal data).
+projectforge.plugin.cveradar.deviceRetentionDays=365
+# PF group of the security officers.
+projectforge.plugin.cveradar.securityOfficerGroup=security-officers
+----
+
+The outdated devices are deleted by the jobs of the connectors (see <<cve_radar_jobs>>).
+
+[[cve_radar_tenable]]
+==== Vulnerability scanner (Tenable.sc)
+
+ProjectForge reads the assets and their findings through the REST API of Tenable.sc. Every asset (asset list) whose
+name matches `assetPattern` is a client device: the named groups `serial` and `user` of the pattern give its serial
+number and the user name, which is mapped to the ProjectForge user of the same name.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.tenable.url=https://tenable.example.org
+# API keys of a Tenable.sc user with read access only (My Account -> API keys).
+projectforge.plugin.cveradar.tenable.accessKey=...
+projectforge.plugin.cveradar.tenable.secretKey=...
+# Severities imported: 0 info, 1 low, 2 medium, 3 high, 4 critical.
+projectforge.plugin.cveradar.tenable.severities=2,3,4
+# E.g. assets named like "C02XYZ123_jane.doe".
+projectforge.plugin.cveradar.tenable.assetPattern=(?<serial>[A-Z0-9]+)_(?<user>[a-z0-9.]+)
+# Daily at 5:40 (UTC).
+projectforge.plugin.cveradar.tenable.cron=0 40 5 * * *
+----
+
+* The connector is inactive while url, one of the keys or the pattern is empty.
+* A finding no longer reported by the scanner is _resolved by scan_, a resolved one reported again is reopened.
+* If the findings of an asset can't be read completely, the asset is skipped and keeps its findings; the job reports
+  it as failed.
+
+[[cve_radar_log_server]]
+==== Log server (Graylog)
+
+The client agent (e.g. of the client management tool) logs its version and, optionally, the results of its checks to a
+central log server. ProjectForge searches these messages with the search API of Graylog and keeps the newest version
+and the newest result of every check per device.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.graylog.url=https://graylog.example.org
+# Access token of a Graylog user with read access to the stream.
+projectforge.plugin.cveradar.graylog.token=...
+# Stream with the messages of the client agents; empty: all streams the user may read.
+projectforge.plugin.cveradar.graylog.streamId=...
+# Query selecting the messages and the period searched, back from now.
+projectforge.plugin.cveradar.graylog.query=source:client-agent
+projectforge.plugin.cveradar.graylog.rangeSeconds=86400
+projectforge.plugin.cveradar.graylog.limit=10000
+# Field names of the messages.
+projectforge.plugin.cveradar.graylog.userField=agent_user
+projectforge.plugin.cveradar.graylog.serialField=agent_serial
+projectforge.plugin.cveradar.graylog.hostField=agent_host
+projectforge.plugin.cveradar.graylog.versionField=agent_version
+projectforge.plugin.cveradar.graylog.checkIdField=agent_check_id
+projectforge.plugin.cveradar.graylog.checkResultField=agent_check_result
+# Hourly at minute 15.
+projectforge.plugin.cveradar.graylog.cron=0 15 * * * *
+----
+
+* Mandatory are url, token, query, `userField` and at least one of `versionField` and `checkIdField`; otherwise the
+  connector is inactive.
+* Devices are matched by serial number; without serial field by user name and host name.
+* A check result `passed`, `true` or `ok` counts as passed, anything else as failed.
+
+[[cve_radar_nvd]]
+==== Vulnerabilities from the NVD
+
+ProjectForge imports the vulnerabilities (CVEs) from the National Vulnerability Database (NVD API 2.0) and lists them on
+the start page _Miscellaneous_ -> _CVE-Radar_. The import is off by default, as it needs internet access.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.nvd.enabled=true
+# Optional: an API key raises the rate limit from 5 to 50 requests in 30 seconds
+# (https://nvd.nist.gov/developers/request-an-api-key).
+projectforge.plugin.cveradar.nvd.apiKey=...
+# The first run imports the vulnerabilities modified in the last 30 days (no back-fill of history).
+projectforge.plugin.cveradar.nvd.initialDays=30
+# New vulnerabilities from this CVSS score on.
+projectforge.plugin.cveradar.nvd.minCvss=7.0
+# Every 2 hours at minute 17 (UTC).
+projectforge.plugin.cveradar.nvd.cron=0 17 */2 * * *
+----
+
+* The first run imports the vulnerabilities modified in the last `initialDays`, every run after that the ones modified
+  since the last complete run (in pieces of at most 120 days, as the NVD allows). A run aborted by an error continues
+  there.
+* The score is the one of the NVD; as long as the NVD hasn't rated a vulnerability, the score of the assigning
+  authority (CNA) counts. A vulnerability without any score is imported as soon as it is rated.
+* A stored vulnerability is always updated, also when the NVD rejects it (shown struck through) or rates it lower.
+* Reading the list needs the right _CVE-Radar_ (see <<cve_radar_rights>>).
+* The API key is sent as header only and is never logged or shown by the properties editor.
+
+[[cve_radar_jobs]]
+==== Jobs and connections
+
+* The connectors and the NVD import run as jobs, _CVE-Radar: vulnerability scanner_, _CVE-Radar: client agents_ and
+  _CVE-Radar: NVD import_, listed under
+  _Administration_ -> _Job monitor_. There they can be started at once (_Run now_); while their source isn't configured, they
+  are shown as inactive with the reason. The summary of every run (devices, new, reopened and resolved findings) is
+  shown in the run and logged, errors are part of the error digest.
+* Timeouts and the max size of a response are set per connection with
+  `projectforge.integration.clients.cveradar-tenable.*`, `projectforge.integration.clients.cveradar-graylog.*` and
+  `projectforge.integration.clients.cveradar-nvd.*` (e.g. `responseTimeoutMs`, `maxResponseBytes`, default 50 MB; for
+  the NVD 180 s and 200 MB, as a page has up to 2000 vulnerabilities).
+* An outgoing proxy isn't supported yet: ProjectForge must reach both hosts directly.
+* Keys and the token are never shown by the properties editor. Instead of `projectforge.properties` they may be given
+  as environment variables, e.g. `PROJECTFORGE_PLUGIN_CVERADAR_TENABLE_SECRETKEY`.
+
+[[cve_radar_first_case]]
+==== A first case without connectors
+
+A case can be worked through without any connector:
+
+. _Cases_ -> _New case_: an incident (the id is given automatically) or a CVE, with the measures for techies and
+  non-techies. _Released to employees_ shows it to every employee on _My CVE-Radar_.
+. In the closure overview of the case: _Request team check_ for every project or system, with the group that checks it.
+. The groups answer their checks, the employees confirm the measures on _My CVE-Radar_.
+. As soon as nothing is open, the closure overview shows _Can be closed_; the security team closes the case with a
+  reason (_Close case_).
+
+With the connectors running, the fix criteria of the case are the evidence on the devices: a minimum version of the
+client agent, the id of a check of the agent and the plugin ids or CVEs of the scanner.
 
 [[further_plugins]]
 === Further plugins

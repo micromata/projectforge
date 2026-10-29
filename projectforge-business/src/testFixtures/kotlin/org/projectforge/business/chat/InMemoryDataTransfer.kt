@@ -27,7 +27,7 @@ import org.projectforge.common.i18n.UserException
 import org.projectforge.datatransfer.DataTransferFile
 import org.projectforge.datatransfer.DataTransferInterface
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.jcr.FileObject
+import org.projectforge.files.FileObject
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicLong
 

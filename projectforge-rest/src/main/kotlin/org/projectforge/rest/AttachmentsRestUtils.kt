@@ -24,9 +24,9 @@
 package org.projectforge.rest
 
 import de.micromata.merlin.utils.ReplaceUtils
-import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsAccessChecker
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.Attachment
+import org.projectforge.framework.files.AttachmentsAccessChecker
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.RestUtils
 import java.util.zip.ZipEntry
@@ -42,7 +42,7 @@ object AttachmentsRestUtils {
     attachmentsService: AttachmentsService,
     attachmentsAccessChecker: AttachmentsAccessChecker,
     filebasename: String?,
-    jcrPath: String,
+    attachmentsPath: String,
     id: Long,
     attachments: List<Attachment>? = null,
   ) {
@@ -58,7 +58,7 @@ object AttachmentsRestUtils {
       for (attachment in attachments) {
         zipOutputStream.putNextEntry(ZipEntry(attachment.name ?: "unknown"))
         val result = attachmentsService.getAttachmentInputStream(
-          jcrPath,
+          attachmentsPath,
           id,
           attachment.fileId!!,
           attachmentsAccessChecker

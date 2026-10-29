@@ -1,5 +1,5 @@
 /**
- * Attachments of an entity (`AttachmentsServicesRest`, JCR-backed).
+ * Attachments of an entity (`AttachmentsServicesRest`, backed by the file store).
  *
  * The same endpoints the UILayout pages use, so they speak the `PostData`/`ResponseAction`
  * protocol (see ./entity.ts) rather than the plain JSON of client.ts. Two consequences shape
@@ -55,7 +55,7 @@ export function zipModeMessageKey(zipMode: ZipMode | null | undefined) {
   return zipMode ? `attachment.zip.${ZIP_MODE_KEYS[zipMode]}` : null;
 }
 
-/** org.projectforge.framework.jcr.Attachment, as it arrives on the wire. */
+/** org.projectforge.framework.files.Attachment, as it arrives on the wire. */
 /** Whether the creating or last modifying user of an attachment is still active, for inactiveRefClass. */
 export function attachmentUserFlags(
   attachment: Attachment,
@@ -68,7 +68,7 @@ export function attachmentUserFlags(
 }
 
 export interface Attachment {
-  /** Assigned by the JCR; identifies the file in every call below. */
+  /** Assigned by the file store; identifies the file in every call below. */
   fileId: string;
   name: string;
   size?: number | null;
@@ -257,7 +257,7 @@ export function modifyAttachment(
   );
 }
 
-/** Deletes an attachment. Irreversible — the JCR keeps no history of removed files. */
+/** Deletes an attachment. Irreversible — the file store keeps no history of removed files. */
 export function deleteAttachment(
   ref: AttachmentRef,
   signal?: AbortSignal
@@ -272,7 +272,7 @@ export function deleteAttachment(
 /**
  * Deletes several attachments in one call (`multiDelete`).
  *
- * Not a loop over [deleteAttachment]: every single delete rewrites the entity's JCR node and
+ * Not a loop over [deleteAttachment]: every single delete rewrites the entity's attachments and
  * answers with a full list, so n calls would mean n round trips and n snapshots racing each other
  * in the cache. The backend deletes what the user may delete and answers with the one list that
  * remains.

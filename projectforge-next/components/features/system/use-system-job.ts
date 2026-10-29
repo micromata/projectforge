@@ -9,7 +9,7 @@ import { useJobStore } from "@/store/job-store";
 const POLL_INTERVAL_MS = 2000;
 
 /**
- * Starts a background job of the System page (reindex, JCR backup ZIP, JCR migration) and follows its
+ * Starts a background job of the System page (e.g. reindex) and follows its
  * progress on the page.
  *
  * The backend answers with the id of a background job (a full run takes minutes); this polls the job

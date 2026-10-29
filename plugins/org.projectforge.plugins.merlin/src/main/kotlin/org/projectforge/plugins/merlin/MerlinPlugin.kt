@@ -26,7 +26,7 @@ package org.projectforge.plugins.merlin
 import org.projectforge.PageRoutes
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
@@ -37,7 +37,7 @@ import org.projectforge.plugins.merlin.rest.MerlinAttachmentsActionListener
 import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.admin.LogViewerRest
 import org.projectforge.rest.config.JacksonConfiguration
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 
 /**
  * Your plugin initialization. Register all your components such as i18n files, data-access object etc.
@@ -52,10 +52,10 @@ class MerlinPlugin :
     ) {
 
     override fun initialize() {
-        val merlinTemplateDao = WicketSupport.get(MerlinTemplateDao::class.java)
-        val menuCreator = WicketSupport.get(MenuCreator::class.java)
-        val attachmentsService = WicketSupport.get(AttachmentsService::class.java)
-        val attachmentsServicesRest = WicketSupport.get(AttachmentsServicesRest::class.java)
+        val merlinTemplateDao = SpringBeans.get(MerlinTemplateDao::class.java)
+        val menuCreator = SpringBeans.get(MenuCreator::class.java)
+        val attachmentsService = SpringBeans.get(AttachmentsService::class.java)
+        val attachmentsServicesRest = SpringBeans.get(AttachmentsServicesRest::class.java)
         // Register it:
         register(MerlinTemplateDao::class.java, merlinTemplateDao, "plugins.merlin")
 

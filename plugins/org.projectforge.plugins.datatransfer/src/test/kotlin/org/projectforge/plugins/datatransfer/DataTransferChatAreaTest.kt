@@ -41,7 +41,7 @@ import org.projectforge.business.chat.ChatService
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.QueryFilter
-import org.projectforge.jcr.FileObject
+import org.projectforge.files.FileObject
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -74,7 +74,7 @@ class DataTransferChatAreaTest : AbstractTestBase() {
 
     @PostConstruct
     private fun postConstruct() {
-        initJCRTestRepo(MODUL_NAME, "chatAreaTestRepo")
+        initTestFileStore()
     }
 
     @Test

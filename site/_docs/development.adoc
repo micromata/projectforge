@@ -21,7 +21,7 @@ link:/docs/installation/[Installation]. The steps below are for developers who w
 
 What you need:
 
-* a JDK 17 or newer, JDK 21 recommended (the code is compiled for Java 17, see
+* a JDK 21 or newer (the code is compiled for Java 21, see
   link:/docs/technologies/[Technologies]),
 * git,
 * Node.js with npm, only for the Next.js dev server (`bin/pfDev.sh dev`); the Gradle build downloads its own
@@ -75,12 +75,9 @@ of the pages not yet hand-built.
 |The frontend: Next.js 16, React 19, TypeScript, TanStack Table/Query/Form, Tailwind CSS 4. Built as a static
 export and served by Spring Boot under `/next` -- no Node.js process in production.
 
-|`projectforge-jcr`, `projectforge-carddav`, `projectforge-idp`
-|The JCR document store (Apache Jackrabbit Oak) of existing installations, CardDAV for addresses, user and group
-sync with an identity provider (Keycloak, authentik). Attachments are stored by the file store configured with
-`projectforge.files.store`: `db` (default for new installations) keeps documents in the database and
-DataTransfer files in the file system; `jcr` is only used by existing installations with JCR data, whose files
-are migrated to `db` on start-up when switched.
+|`projectforge-files`, `projectforge-carddav`, `projectforge-idp`
+|The file store (attachments in the database, DataTransfer files in the file system), CardDAV for addresses, user
+and group sync with an identity provider (Keycloak, authentik).
 
 |`plugins/*`
 |The built-in plugins, see <<Writing own plugins>>.
@@ -162,8 +159,8 @@ used as well, and new code is written in Kotlin.
 * Null safety.
 * Full interoperability with the existing Java code.
 
-Java and Kotlin sources are both compiled for Java 17 (`jvmTarget = 17`, see
-`buildSrc/src/main/kotlin/buildlogic.pf-module-conventions.gradle.kts`); the application runs on Java 17 or
+Java and Kotlin sources are both compiled for Java 21 (`jvmTarget = 21`, see
+`buildSrc/src/main/kotlin/buildlogic.pf-module-conventions.gradle.kts`); the application runs on Java 21 or
 newer. Micromata runs ProjectForge in production on Java 21, the Docker image is based on Eclipse Temurin 21.
 
 === Entities (BaseDO)
@@ -500,7 +497,7 @@ Notes:
 * `setup` needs the `projectforge.properties` of the main home dir (`~/ProjectForge`). It copies
   `projectforge.properties`, `config.xml` (if not yet migrated), `resources` and `styles` from there and
   appends a block that switches to an own HSQLDB in `~/ProjectForge-n/database` and turns off sending mails
-  and the gateway push. Database, search index and JCR of the main instance are not copied.
+  and the gateway push. Database and search index of the main instance are not copied.
 * Port, domain, base dir and cookie name are passed by `pfDev.sh` as system properties, so the main
   instance's settings stay untouched. A slot start doesn't change the remembered default home dir either.
 * The cookie name differs per slot because browsers keep cookies per host, not per port: with the same name,

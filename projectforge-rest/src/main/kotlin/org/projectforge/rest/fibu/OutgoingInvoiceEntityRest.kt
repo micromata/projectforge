@@ -60,7 +60,7 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.files.Attachment
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -113,8 +113,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The list of outgoing invoices (Debitorenrechnungen), layout free.
  *
- * `open` for the same reason [OrderEntityRest] is: Wicket asks for this bean through `WicketSupport`,
- * which proxies it (`RechnungEditForm` reads the attachment settings and the access checker from here).
+ * `open` for the same reason [OrderEntityRest] is: the bean is proxied by Spring.
  *
  * Answers the list, its statistics, its two exports, the multi selection the mass update page runs on
  * ([OutgoingInvoiceMassUpdateRest]) and the read/write path of the hand built edit page of
@@ -126,7 +125,7 @@ private val log = KotlinLogging.logger {}
  */
 @RestController
 @RequestMapping("${Rest.URL}/outgoingInvoice")
-open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSupport.
+open class OutgoingInvoiceEntityRest : // open: proxied by Spring.
     AbstractDTOEntityRest<RechnungDO, Rechnung, RechnungDao>(
         RechnungDao::class.java,
         "fibu.rechnung.title",
@@ -172,7 +171,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
 
     @PostConstruct
     private fun postConstruct() {
-        enableJcr()
+        enableAttachments()
     }
 
     /**
@@ -553,7 +552,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     /**
      * Which file is stored as *the* invoice PDF of this invoice, or that there is none.
      *
-     * The invoice PDF is a JCR attachment like any other, marked as this one by its description
+     * The invoice PDF is an attachment like any other, marked as this one by its description
      * ([EInvoiceExportService.INVOICE_PDF_MARKER]); the ZUGFeRD export takes it as the document to embed the
      * XML into, and converts the Word template only where it is missing (`exportAsZUGFeRD`). So it is not a
      * second attachment list — it is one file with a role, which is why it has endpoints of its own instead
@@ -651,7 +650,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * A list of sentences and not of keys, because [EInvoiceExportService.validate] translates them itself —
      * every caller puts them in front of a user unchanged, so a key would only have to be resolved twice.
      *
-     * The stored invoice, as everything else on this path: the ZUGFeRD export reads the JCR by the invoice
+     * The stored invoice, as everything else on this path: the ZUGFeRD export reads the file store by the invoice
      * id, so there is no posted state it could validate instead.
      */
     @AccessChecked("FIBU_ORGA_GROUPS + single invoice detail access + DAO find (checkEInvoiceReadAccess)")
@@ -668,7 +667,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * Saves the posted invoice and lets the caller ask [validateEInvoice] again — Wicket's
      * `fibu.rechnung.eInvoice.saveAndOpen`.
      *
-     * Everything on the e-invoice path works on the *stored* invoice (the ZUGFeRD export reads the JCR by the
+     * Everything on the e-invoice path works on the *stored* invoice (the ZUGFeRD export reads the file store by the
      * invoice id, so it could not do otherwise), while the form on screen may have unsaved changes. This is the
      * one button that closes that gap: it writes what the user sees, so the checklist below it and the two
      * exports speak about the same invoice.
@@ -748,7 +747,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      *
      * The document it embeds into is the uploaded invoice PDF, and the Word template converted to PDF only
      * where none was uploaded (`exportAsZUGFeRD`); the regular attachments of the invoice are embedded as
-     * files, the marked invoice PDF is not. All of that is read from the JCR by the invoice id — which is why
+     * files, the marked invoice PDF is not. All of that is read from the file store by the invoice id — which is why
      * this endpoint could not work on a posted state even if it wanted to.
      *
      * `variant` chooses the Word template for that conversion, as it does for [exportInvoiceWord]; where an
@@ -856,7 +855,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      *
      * The second check is [RechnungDao]'s own and is the one that matters — uploading a PDF changes what an
      * e-invoice of this invoice looks like, so it is a write to the invoice even though no column of it moves.
-     * `find` is the read check; without it an unknown id would be answered by an upload into a JCR node
+     * `find` is the read check; without it an unknown id would be answered by an upload into a file store path
      * nobody owns.
      */
     private fun checkInvoicePdfWriteAccess(id: Long): RechnungDO {
@@ -1485,7 +1484,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
          *   `KostZuweisungDO.newClone` drop nothing but the id either). Positions the user had marked as
          *   deleted are left out entirely — they are on their way out of the *old* invoice and have no
          *   meaning in a new one.
-         * - No attachments: the files live in JCR under the old invoice's id and are not copied, as Wicket
+         * - No attachments: the files live in the file store under the old invoice's id and are not copied, as Wicket
          *   copies none.
          *
          * The read-only sums are left as they are: the form asks [recalculate] for them as soon as it is
@@ -1776,7 +1775,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
          *
          * Well below what the storage itself refuses (`EInvoiceExportService` checks 50 MB): a scanned or
          * exported invoice of that size is a mistake, and saying so on the upload is more useful than
-         * discovering it in the JCR.
+         * discovering it in the file store.
          */
         private const val MAX_INVOICE_PDF_MEGA_BYTES = 20L
 

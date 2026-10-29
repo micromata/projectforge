@@ -10,7 +10,7 @@ import { createInvoice, removeInvoice } from "./fixtures/invoice";
  * of the form (see InvoicePdfField).
  *
  * The one thing only a running system can show is what one upload turns into on that section: the file is
- * stored as a regular JCR attachment marked `__INVOICE_PDF__`, so it appears twice — as the value of the
+ * stored as a regular attachment marked `__INVOICE_PDF__`, so it appears twice — as the value of the
  * field and as a row of the attachment list. Downloadable and deletable from both, as the Wicket-era page
  * had it, and a delete on either side has to reach the other one: the two are separate queries of one file
  * (see AttachmentSection). What the row does not offer is the rename, which would overwrite the marker.
@@ -28,7 +28,7 @@ const PDF = {
   buffer: Buffer.from("%PDF-1.4\n%%EOF\n"),
 };
 
-// A live backend plus the JCR, and the first navigation to a route waits for the dev server to compile it.
+// A live backend plus the file store, and the first navigation to a route waits for the dev server to compile it.
 test.describe.configure({ timeout: 120_000 });
 
 test.describe("outgoing invoice PDF", { tag: "@parallel" }, () => {
@@ -43,7 +43,7 @@ test.describe("outgoing invoice PDF", { tag: "@parallel" }, () => {
   });
 
   test.afterEach(async ({ loggedInPage: page }) => {
-    // The invoice goes, but the JCR node hangs off its id and a soft delete doesn't touch it — so the
+    // The invoice goes, but the attachments hang off its id and a soft delete doesn't touch it — so the
     // files are removed first, and by name rather than by what the case believes it uploaded.
     if (id != null) await purgeTestAttachments(page, "outgoingInvoice", id);
     await removeInvoice(page, id);
@@ -115,7 +115,7 @@ test.describe("outgoing invoice PDF", { tag: "@parallel" }, () => {
       page.getByRole("button", { name: `${t("delete")}: ${name}` })
     ).toBeVisible();
 
-    // The row's delete, which asks first — an attachment is gone for good, the JCR keeps no history.
+    // The row's delete, which asks first — an attachment is gone for good, the file store keeps no history.
     // The confirmation is looked up inside the dialog, as book-attachments.spec.ts explains: the bare
     // label outside it would still match the row's own button while the dialog is mounting.
     await page.getByRole("button", { name: `${t("delete")}: ${name}` }).click();

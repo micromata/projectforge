@@ -37,8 +37,8 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.ConfigurationChecker
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.jcr.AttachmentsEventListener
-import org.projectforge.framework.jcr.AttachmentsEventType
+import org.projectforge.framework.files.AttachmentsEventListener
+import org.projectforge.framework.files.AttachmentsEventType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
@@ -47,7 +47,7 @@ import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.jcr.FileInfo
+import org.projectforge.files.FileInfo
 import org.projectforge.rest.config.RestUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value

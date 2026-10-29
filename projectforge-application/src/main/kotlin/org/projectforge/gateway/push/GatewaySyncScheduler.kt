@@ -64,7 +64,7 @@ class GatewaySyncScheduler(
 
     /**
      * Without an initial delay a fixed-delay job runs as soon as the scheduler starts, i.e. before
-     * [org.springframework.boot.context.event.ApplicationReadyEvent] — before plugins and WicketSupport are
+     * [org.springframework.boot.context.event.ApplicationReadyEvent] — before plugins and SpringBeans are
      * registered (NPE in the access checks). A long start-up (production database) can outlast the initial
      * delay, hence the check as well (the job is inactive then, the run isn't counted).
      */

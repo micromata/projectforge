@@ -32,7 +32,7 @@ import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.web.WicketSupport;
+import org.projectforge.framework.SpringBeans;
 
 /**
  * @author Kai Reinhard
@@ -54,13 +54,13 @@ public class AddressCampaignRight extends UserRightAccessCheck<AddressCampaignDO
   @Override
   public boolean hasAccess(final PFUserDO user, final AddressCampaignDO obj, final AddressCampaignDO oldObj,
                            final OperationType operationType) {
-    var accessChecker = WicketSupport.getAccessChecker();
+    var accessChecker = SpringBeans.getAccessChecker();
     if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.MARKETING_GROUP)) {
       return true;
     }
     if (operationType != OperationType.SELECT) {
       return false;
     }
-    return WicketSupport.get(AddressbookDao.class).hasAccessToGlobalAddressBook(user);
+    return SpringBeans.get(AddressbookDao.class).hasAccessToGlobalAddressBook(user);
   }
 }

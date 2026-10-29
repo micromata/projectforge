@@ -60,7 +60,20 @@ class ForecastChartData(
      * or null for the current order book.
      */
     val snapshotDate: LocalDate? = null,
+    /**
+     * The remaining forecast per month by kind, adding up to the sum of [forecastByStatus]: the commissioned positions
+     * (fixed price and flat rate resp. time and materials, the latter extrapolated by its run rate) and all not yet
+     * commissioned ones (weighted by their probability).
+     */
+    val forecastByKind: Map<ForecastKind, List<BigDecimal>> = emptyMap(),
+    /**
+     * The net sums of the invoices with status 'planned' per month. They aren't part of [ist], their order positions
+     * are still part of the remaining forecast, so this is a "thereof" of it, not an addition.
+     */
+    val plannedInvoices: List<BigDecimal> = emptyList(),
 ) {
+    enum class ForecastKind { COMMISSIONED_FIXED, COMMISSIONED_TIME_AND_MATERIALS, WEIGHTED }
+
     /**
      * Per month IST plus the remaining forecast, the base of the cumulated forecast curve, as 'Gesamt' of the Excel
      * sheet 'Umsatz kumuliert'. Not the max of both: the remaining forecast of the current month is already reduced by
@@ -79,14 +92,28 @@ class ForecastChartData(
  * [build] applies the same rule.
  */
 internal class ForecastChartTotals {
-    enum class InvoiceKind { IST, PLANNING, PREV_YEAR, PREV_PREV_YEAR }
+    enum class InvoiceKind { IST, PLANNING, PREV_YEAR, PREV_PREV_YEAR, PLANNED_INVOICE }
 
     private val forecastByStatus = ForecastUtils.auftragsPositionsStatusToShow.associateWith { newMonths() }
+    private val forecastByKind = ForecastChartData.ForecastKind.entries.associateWith { newMonths() }
     private val planningForecastByProject = mutableMapOf<Long?, Array<BigDecimal>>()
     private val invoicesByProject = InvoiceKind.entries.associateWith { mutableMapOf<Long?, Array<BigDecimal>>() }
 
-    fun addForecast(status: AuftragsStatus, monthIndex: Int, value: BigDecimal) {
-        forecastByStatus[status]?.add(monthIndex, value) // Other statuses aren't part of the Excel sums either.
+    fun addForecast(
+        status: AuftragsStatus,
+        paymentType: AuftragsPositionsPaymentType?,
+        monthIndex: Int,
+        value: BigDecimal,
+    ) {
+        val sums = forecastByStatus[status] ?: return // Other statuses aren't part of the Excel sums either.
+        sums.add(monthIndex, value)
+        val kind = when {
+            status != AuftragsStatus.BEAUFTRAGT -> ForecastChartData.ForecastKind.WEIGHTED
+            paymentType == AuftragsPositionsPaymentType.TIME_AND_MATERIALS ->
+                ForecastChartData.ForecastKind.COMMISSIONED_TIME_AND_MATERIALS
+            else -> ForecastChartData.ForecastKind.COMMISSIONED_FIXED
+        }
+        forecastByKind.getValue(kind).add(monthIndex, value)
     }
 
     fun addPlanningForecast(status: AuftragsStatus, projectId: Long?, monthIndex: Int, value: BigDecimal) {
@@ -149,6 +176,8 @@ internal class ForecastChartTotals {
             plan = plan,
             planningDate = planningDate,
             snapshotDate = snapshotDate,
+            forecastByKind = forecastByKind.mapValues { it.value.toList() },
+            plannedInvoices = sumVisible(invoicesByProject[InvoiceKind.PLANNED_INVOICE]!!).toList(),
         )
     }
 

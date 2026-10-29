@@ -42,8 +42,6 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.I18nKeysUsageInterface
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.jcr.FileStoreMigrationService
-import org.projectforge.framework.jcr.JcrBackupZipJob
 import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.framework.persistence.api.ReindexSettings
 import org.projectforge.framework.persistence.database.DatabaseDao
@@ -53,7 +51,6 @@ import org.projectforge.framework.persistence.search.HibernateSearchReindexer
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DatePrecision
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.jcr.RepoBackupService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AccessChecked
@@ -118,12 +115,6 @@ class SystemRest {
     private lateinit var hibernateSearchReindexer: HibernateSearchReindexer
 
     @Autowired
-    private lateinit var repoBackupService: RepoBackupService
-
-    @Autowired
-    private lateinit var fileStoreMigrationService: FileStoreMigrationService
-
-    @Autowired
     private lateinit var sipgateConfiguration: SipgateConfiguration
 
     /**
@@ -157,8 +148,6 @@ class SystemRest {
         val alertMessageSampleMaintenance: String,
         /** The localized copy&paste new-release-notice sample, with the next full hour and the next release. */
         val alertMessageSampleRelease: String,
-        /** True, if all files are stored by the file store (projectforge.files.store=db), false: JCR. */
-        val allFilesInFileStore: Boolean,
         /** True, if Sipgate is configured: the System page offers its actions then (SipgateAdminRest). */
         val sipgateConfigured: Boolean,
     )
@@ -171,7 +160,7 @@ class SystemRest {
     class ReindexRequest(var newestNEntries: Int? = null, var fromDate: LocalDate? = null)
 
     /**
-     * The id of the started job ([ReindexJob], [JcrBackupZipJob], [org.projectforge.framework.jcr.RepoMigrationJob]), which the frontend polls (see
+     * The id of the started job (e.g. [ReindexJob]), which the frontend polls (see
      * JobsMonitorRest) for the progress.
      */
     class JobResponse(val jobId: Int)
@@ -195,7 +184,6 @@ class SystemRest {
                 nextFullHour,
                 nextRelease(),
             ),
-            allFilesInFileStore = fileStoreMigrationService.allFilesInFileStore,
             sipgateConfigured = sipgateConfiguration.isConfigured(),
         )
     }
@@ -331,30 +319,6 @@ class SystemRest {
             )
         )
         return JobResponse(job.id)
-    }
-
-    // ------------------------------------------------------------------------------------------
-    // JCR replacement: backup ZIP of the JCR, migration of the files out of Oak (DataTransfer files and, with
-    // projectforge.files.store=db, all files).
-    // ------------------------------------------------------------------------------------------
-
-    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
-    @PostMapping("createJcrBackupZip")
-    fun createJcrBackupZip(): JobResponse {
-        checkWriteAccess()
-        log.info { "Administration: create JCR backup ZIP." }
-        val job = jobHandler.addJob(
-            JcrBackupZipJob(repoBackupService, title = translate("system.admin.button.createJcrBackupZip"))
-        )
-        return JobResponse(job.id)
-    }
-
-    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
-    @PostMapping("migrateJcrFiles")
-    fun migrateJcrFiles(): JobResponse {
-        checkWriteAccess()
-        log.info { "Administration: migrate files out of the JCR into the file store (all files=${fileStoreMigrationService.allFilesInFileStore})." }
-        return JobResponse(fileStoreMigrationService.startMigration().id)
     }
 
     // ------------------------------------------------------------------------------------------

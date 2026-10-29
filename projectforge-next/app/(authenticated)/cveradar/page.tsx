@@ -1,7 +1,7 @@
 "use client";
 
-import { CveRadarStartPage } from "@/components/features/cve-radar/cve-radar-start-page";
+import { StartPage } from "@/components/features/cve-radar/live/start-page";
 
 export default function CveRadarPage() {
-  return <CveRadarStartPage />;
+  return <StartPage />;
 }

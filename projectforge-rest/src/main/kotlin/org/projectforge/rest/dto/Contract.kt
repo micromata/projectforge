@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractStatus
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.files.Attachment
 import java.time.LocalDate
 
 class Contract(id: Long? = null,

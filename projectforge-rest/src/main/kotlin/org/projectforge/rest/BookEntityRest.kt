@@ -54,7 +54,7 @@ class BookEntityRest : AbstractDTOEntityRest<BookDO, Book, BookDao>(BookDao::cla
     /**
      * Enable attachments for this entity.
      */
-    enableJcr()
+    enableAttachments()
     JacksonConfiguration.registerAllowedUnknownProperties(Book::class.java, "statusAsString")
     JacksonConfiguration.registerAllowedUnknownProperties(Book::class.java, "typeAsString")
   }

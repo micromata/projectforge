@@ -249,7 +249,7 @@ export function eInvoiceQueryKey(id: number | null) {
  *
  * Both exports refuse an invoice that isn't ready, and a refused download says nothing about which field to
  * correct. Of the stored invoice, like the exports themselves: the ZUGFeRD path reads the PDF and the
- * attachments from the JCR by id, so there is no unsaved state it could be asked about.
+ * attachments from the file store by id, so there is no unsaved state it could be asked about.
  */
 export function fetchEInvoiceValidation(
   id: number,
