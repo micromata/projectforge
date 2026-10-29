@@ -90,21 +90,3 @@ export interface MyAccountTokenInfo {
   /** REST client token only: the QR code for setting up a client app (data url). */
   qrCodeUrl?: string | null;
 }
-
-export type OrderNotificationMode = "IMMEDIATE" | "DAILY" | "MUTED";
-
-/** Mirror of `MyAccountRest.OrderNotificationRule`: a project or customer with its own mode. */
-export interface OrderNotificationRule {
-  type: "PROJECT" | "CUSTOMER";
-  id: number;
-  /** For display only, ignored on saving. */
-  displayName?: string | null;
-  mode: OrderNotificationMode;
-}
-
-/** Mirror of `MyAccountRest.OrderNotificationSettings`. */
-export interface OrderNotificationSettings {
-  defaultMode: OrderNotificationMode;
-  rules?: OrderNotificationRule[];
-  writeAccess?: boolean;
-}

@@ -782,6 +782,61 @@
       "short": "Jahr"
     }
   },
+  "businessCard": {
+    "address": {
+      "_": "Aus Adresse übernehmen",
+      "suggestion": "Wahrscheinlich die eigene Adresse",
+      "tooltip": "Die Daten der Adresse werden in die Karte kopiert und lassen sich danach ändern. Spätere Änderungen der Adresse ändern die Karte nicht."
+    },
+    "birthday": "Geburtstag",
+    "businessPhone": "Telefon",
+    "cardName": "Name der Karte",
+    "city": "Ort",
+    "comment": "Notiz",
+    "country": "Land",
+    "delete": {
+      "question": "Die Visitenkarte löschen?"
+    },
+    "division": "Abteilung",
+    "downloadVCard": "vCard herunterladen",
+    "email": "E-Mail",
+    "fax": "Fax",
+    "firstName": "Vorname",
+    "includePhoto": {
+      "_": "Foto veröffentlichen",
+      "noGateway": "Es ist kein Gateway konfiguriert, Fotos können nicht veröffentlicht werden.",
+      "notAllowed": "Das Foto kann nur aus der eigenen Adresse veröffentlicht werden.",
+      "tooltip": "Das Foto der Adresse wird auf dem Gateway veröffentlicht und in der vCard verlinkt. Nur für die eigene Adresse möglich (ihre E-Mail-Adresse ist eine der eigenen)."
+    },
+    "lastName": "Nachname",
+    "limit": "Höchstens {arg0} Visitenkarten.",
+    "mobilePhone": "Mobil",
+    "new": "Neue Visitenkarte",
+    "none": "Noch keine Visitenkarten.",
+    "organization": "Organisation",
+    "positionText": "Position",
+    "privateCity": "Ort (privat)",
+    "privateCountry": "Land (privat)",
+    "privateEmail": "E-Mail (privat)",
+    "privateMobilePhone": "Mobil (privat)",
+    "privatePhone": "Telefon (privat)",
+    "privateStreet": "Straße (privat)",
+    "privateZipCode": "PLZ (privat)",
+    "qrCode": {
+      "_": "QR-Code",
+      "dense": "Viele Felder machen den QR-Code dicht und schwer lesbar: Nicht Benötigtes besser weglassen."
+    },
+    "saved": "Die Visitenkarte ist gespeichert.",
+    "section": {
+      "business": "Geschäftlich",
+      "card": "Karte",
+      "private": "Privat"
+    },
+    "street": "Straße",
+    "title": "Titel",
+    "website": "Website",
+    "zipCode": "PLZ"
+  },
   "calendar": {
     "calendarYear": "Kalenderjahr",
     "chooseDate": "Datum auswählen",
@@ -1716,9 +1771,11 @@
           "muted": "Stumm"
         },
         "prefs": {
+          "adopt": "{arg0} \"{arg1}\" als Ausnahme übernehmen",
           "customer": "Kunde",
           "default": "Standard",
           "description": "Hier kann festgelegt werden, ob bei jeder Änderung eines Auftrags sofort eine E-Mail kommt, einmal täglich eine Zusammenfassung oder gar keine. Eine Regel für ein Projekt oder einen Kunden hat Vorrang vor dem Standard.",
+          "precedence": "Haben ein Projekt und dessen Kunde unterschiedliche Regeln, gilt die speziellere: Die Regel des Projekts geht vor der Regel des Kunden, diese geht vor dem Standard.",
           "project": "Projekt",
           "rules": "Ausnahmen für Projekte und Kunden",
           "title": "Auftragsbenachrichtigungen"
@@ -3426,6 +3483,7 @@
       "fileprefix": "Monatsbericht"
     },
     "myAccount": "Mein Zugang",
+    "myBusinessCards": "Meine Visitenkarten",
     "orga": {
       "_": "Organisation",
       "postausgang": "Postausgang",
@@ -3990,10 +4048,82 @@
         },
         "title": "Feedback {arg0}"
       },
+      "case": {
+        "assignee": "Bearbeitung",
+        "clientAdvisory": "Für Mitarbeitende freigegeben",
+        "clientAdvisoryHint": "Alle Mitarbeitenden sehen den Fall mit den Maßnahmen für Non-Techies und bestätigen sie, sofern ihre Geräte die Behebung nicht schon belegen.",
+        "clientAgentCheckId": "Prüfung des Client-Agents",
+        "closeReason": "Begründung des Abschlusses",
+        "code": "Kennung",
+        "codeHint": "CVE-ID einer Schwachstelle; ein Vorfall ohne Kennung erhält die nächste des Jahres.",
+        "error": {
+          "codeExists": "Die Kennung {arg0} gibt es schon.",
+          "conflict": "Dieser Fall wurde inzwischen geändert (um {arg0}). Bitte neu laden und die Änderung wiederholen.",
+          "cveId": "Eine CVE braucht ihre CVE-ID, z. B. CVE-2026-12345."
+        },
+        "fixVersion": "Fix-Version",
+        "kind": {
+          "_": "Art",
+          "CVE": "Schwachstelle (CVE)",
+          "INCIDENT": "Vorfall"
+        },
+        "minClientAgentVersion": "Mindestversion des Client-Agents",
+        "new": {
+          "hint": "Die Abschlussübersicht mit Team-Prüfungen und Geräten gibt es nach dem ersten Speichern."
+        },
+        "nonTechMeasures": "Maßnahmen für Non-Techies",
+        "priority": "Priorität",
+        "priorityReason": "Begründung der Priorität",
+        "referenceLinks": "Eigene Referenzen",
+        "section": {
+          "advisory": "Client-Hinweis",
+          "criteria": "Behebungskriterien",
+          "general": "Fall",
+          "measures": "Maßnahmen"
+        },
+        "status": "Status",
+        "techMeasures": "Maßnahmen für Techies",
+        "workaround": "Workaround"
+      },
+      "cases": {
+        "add": "Neuer Fall",
+        "edit": "Fall bearbeiten",
+        "list": "Fälle"
+      },
+      "chat": {
+        "caseNotice": "Hier lesen alle mit Zugang zum CVE-Radar mit. Bitte keine Details zu Projekten oder Systemen nennen: Die gehören in die Akte der Team-Prüfung, die nur die gefragte Gruppe, das Security-Team und der Security Officer sehen."
+      },
       "clientAnswer": {
         "DONE": "Erledigt",
         "NOT_AFFECTED": "Nicht betroffen",
         "QUESTION": "Frage/Problem"
+      },
+      "closure": {
+        "closable": "Schließbar: alle Kriterien sind erfüllt.",
+        "close": "Fall schließen",
+        "closeWithOpenItems": "Es gibt offene Punkte: Schließen kann den Fall jetzt nur der Security Officer, mit Begründung.",
+        "confirmations": "Von Mitarbeitenden bestätigt",
+        "devices": "Geräte",
+        "editCase": "Bearbeiten",
+        "error": {
+          "alreadyClosed": "Der Fall ist schon geschlossen.",
+          "openItems": "Der Fall hat offene Punkte; schließen darf ihn jetzt nur der Security Officer.",
+          "reason": "Zum Schließen ist eine Begründung nötig."
+        },
+        "inactive": "Inaktive Geräte",
+        "noCriteria": "Keine Behebungskriterien: es zählen nur Team-Prüfungen und Bestätigungen.",
+        "notClosable": "Noch nicht schließbar:",
+        "open": {
+          "devicesNoData": "{arg0} Geräte ohne Daten oder Bestätigung",
+          "devicesOpen": "{arg0} Geräte nicht behoben",
+          "questions": "{arg0} offene Rückfragen von Mitarbeitenden",
+          "riskAccepted": "{arg0} akzeptierte Risiken (Entscheidung des Security Officers)",
+          "teamChecks": "{arg0} Team-Prüfungen unbeantwortet oder in Arbeit"
+        },
+        "openOverview": "Abschlussübersicht öffnen",
+        "questions": "Rückfragen",
+        "teamChecks": "Team-Prüfungen",
+        "title": "Abschlussübersicht"
       },
       "column": {
         "assignee": "Bearbeitung",
@@ -4047,6 +4177,24 @@
       },
       "demo": "Demo",
       "deviation": "Abweichung",
+      "device": {
+        "agentVersion": "Agent-Version",
+        "check": "Prüfung",
+        "checkFailed": "nicht bestanden",
+        "checkPassed": "bestanden",
+        "confirmation": "Bestätigung",
+        "hostname": "Hostname",
+        "lastSeen": "Zuletzt gemeldet",
+        "serialNumber": "Seriennummer",
+        "state": {
+          "CONFIRMED": "Bestätigt",
+          "FIXED": "Behoben",
+          "NO_DATA": "Ohne Daten",
+          "OPEN": "Nicht behoben"
+        },
+        "stateLabel": "Stand",
+        "user": "Person"
+      },
       "discussion": {
         "newPost": "Neuer Beitrag (Markdown)",
         "post": "Beitrag senden",
@@ -4058,9 +4206,11 @@
         "title": "Diskussion"
       },
       "error": {
+        "answer": "Eine Antwort ist nötig.",
         "expiryRequired": "Eine Risikoakzeptanz braucht eine Gültigkeitsdauer.",
         "noAccess": "Für diese Rolle nicht erlaubt.",
         "notAssignee": "Die verbindliche Priorität setzt, wer die Schwachstelle bearbeitet, oder der Security Officer.",
+        "notFound": "Nicht gefunden.",
         "openFindings": "Erst schließbar, wenn alle Befunde behoben, abgeschwächt, nicht betroffen oder als Risiko akzeptiert sind.",
         "reasonRequired": "Eine Begründung ist erforderlich.",
         "riskNeedsManagement": "Ab P2 genehmigt zusätzlich die Geschäftsleitung; das zeigt der Prototyp nicht."
@@ -4080,6 +4230,40 @@
         "LOW": "gering",
         "MEDIUM": "mittel",
         "NONE": "keine"
+      },
+      "file": {
+        "assignInfo": "Zugewiesen werden können nur aktive Mitglieder des Security-Teams.",
+        "chatUnavailable": "Die Diskussion ist nicht verfügbar.",
+        "closure": "Abschlussübersicht",
+        "error": {
+          "action": "Diese Aktion ist nicht möglich.",
+          "assignee": "Bearbeiter:in muss ein aktives Mitglied des Security-Teams sein.",
+          "closed": "Der Fall ist geschlossen.",
+          "massFailed": "Konnte nicht gespeichert werden, siehe Log.",
+          "massLimit": "Höchstens {arg0} Schwachstellen auf einmal.",
+          "priorityReason": "Die verbindliche Priorität braucht eine Begründung.",
+          "priorityRights": "Die verbindliche Priorität setzen die bearbeitende Person oder der Security Officer.",
+          "reassignRights": "Der Fall ist jemand anderem zugewiesen: Abgeben können ihn nur die bearbeitende Person oder der Security Officer.",
+          "status": "Dieser Status lässt sich hier nicht setzen. Als nicht relevant mit Begründung schließen oder über die Abschlussübersicht."
+        },
+        "noCaseYet": "Zu dieser Schwachstelle wurde noch keine Akte geöffnet. Mit ihr beginnt die Diskussion.",
+        "open": "Akte öffnen",
+        "openFirst": "Zuerst die Akte öffnen (Button oben).",
+        "openTeamCheck": "Akte öffnen",
+        "priorityInfo": "Die verbindliche Priorität setzen die bearbeitende Person oder der Security Officer. Ohne Bearbeiter:in wirst du es.",
+        "setPriority": "Verbindliche Priorität setzen…",
+        "startDiscussion": "Akte öffnen und Diskussion beginnen",
+        "suggested": "Vorschlag",
+        "tab": {
+          "discussion": "Diskussion",
+          "measures": "Maßnahmen",
+          "overview": "NVD-Daten",
+          "ratings": "Bewertungen",
+          "teamChecks": "Team-Prüfungen"
+        },
+        "teamChecksInfo": "Projekte und Systeme werden in der Akte einer Team-Prüfung besprochen. Sie sehen nur die gefragte Gruppe, das Security-Team und der Security Officer.",
+        "teamChecksNone": "Noch keine Team-Prüfungen.",
+        "title": "CVE-Akte"
       },
       "filter": {
         "all": "Alle",
@@ -4146,6 +4330,28 @@
         "INSTANCE": "Instanz",
         "SYSTEM": "System"
       },
+      "live": {
+        "devices": {
+          "hint": "Alle Geräte, wie der Log-Server sie meldet. Personenbezogene Daten: nur für das Security-Team sichtbar.",
+          "title": "Geräte"
+        },
+        "entry": "Echte Daten:",
+        "my": {
+          "devices": "Meine Geräte",
+          "hint": "Die zu bestätigenden Maßnahmen, die offenen Prüfungen der eigenen Gruppen und die eigenen Geräte, wie der Log-Server sie meldet.",
+          "noDevices": "Für dich sind keine Geräte gemeldet.",
+          "teamChecks": "Prüfungen meiner Gruppen",
+          "title": "Mein CVE-Radar"
+        },
+        "nav": {
+          "cases": "Fälle",
+          "devices": "Geräte",
+          "my": "Mein CVE-Radar",
+          "prototype": "Demo",
+          "vulnerabilities": "Schwachstellen"
+        },
+        "saved": "Gespeichert."
+      },
       "masterDataOnly": {
         "info": "Für diese Rolle sind nur die Stammdaten dieses Systems sichtbar (Kürzel, Name, Gruppe, Stufe). Komponenten und Befunde erfordern eine Freigabe.",
         "short": "nur Stammdaten"
@@ -4162,14 +4368,23 @@
         "reset": "Abweichung zurücksetzen"
       },
       "measures": {
+        "edit": "Maßnahmen bearbeiten",
         "fixVersion": "Fix-Version",
         "nonTechMeasures": "Maßnahmen für Nicht-Techies",
         "none": "Noch nicht beschrieben.",
         "remediation": "Behebung",
+        "save": "Maßnahmen speichern",
         "techMeasures": "Maßnahmen für Techies",
         "workaround": "Workaround"
       },
       "menu": "CVE-Radar",
+      "my": {
+        "error": {
+          "question": "Bitte die Frage oder das Problem beschreiben."
+        },
+        "fixedByEvidence": "Deine Geräte melden die Behebung schon, eine Bestätigung ist nicht nötig.",
+        "question": "Frage oder Problem"
+      },
       "myAreas": {
         "findings": "Offene Befunde meiner Systeme",
         "groups": "Meine Gruppen: {arg0}",
@@ -4191,6 +4406,10 @@
         "label": "möglicherweise"
       },
       "priority": {
+        "P1": "P1",
+        "P2": "P2",
+        "P3": "P3",
+        "P4": "P4",
         "binding": "Verbindliche Priorität",
         "suggested": "Vorschlag {arg0}: {arg1}"
       },
@@ -4217,8 +4436,14 @@
         },
         "title": "Fragen & Antworten"
       },
+      "rating": {
+        "exploitability": "Ausnutzbarkeit hier",
+        "reason": "Begründung"
+      },
       "ratings": {
         "binding": "Verbindliche Priorität {arg0}: {arg1}",
+        "count": "Bewertungen",
+        "delete": "Meine Bewertung löschen",
         "deviates": "Weicht von der verbindlichen Priorität ab",
         "deviatesSuggestion": "Weicht vom Vorschlag ab",
         "exploitability": "Ausnutzbarkeit bei uns",
@@ -4259,6 +4484,33 @@
         }
       },
       "selected": "Ausgewählt: {arg0}",
+      "start": {
+        "demo": {
+          "hint": "Alle geplanten Funktionen des CVE-Radars als klickbarer Prototyp mit fiktiven Testdaten.",
+          "link": "Demo öffnen",
+          "title": "Demo"
+        },
+        "vulnerabilities": {
+          "hint": "Die aus der NVD importierten Schwachstellen ab dem eingestellten CVSS-Wert. Ein Klick auf die CVE öffnet sie bei der NVD."
+        }
+      },
+      "statistics": {
+        "cases": {
+          "series": "Fälle",
+          "title": "Gemeldete Fälle"
+        },
+        "empty": "Im Zeitraum nichts vorhanden.",
+        "granularity": {
+          "_": "Zeitraum",
+          "day": "Tag",
+          "month": "Monat",
+          "week": "Woche"
+        },
+        "vulnerabilities": {
+          "series": "Schwachstellen",
+          "title": "Von der NVD veröffentlichte Schwachstellen"
+        }
+      },
       "system": {
         "criticality": "Kritikalität",
         "grants": "Freigaben",
@@ -4282,6 +4534,7 @@
         "feedback": "Feedback",
         "findings": "Befunde",
         "myAreas": "Meine Bereiche",
+        "statistics": "Statistik",
         "systems": "Systeme & Komponenten",
         "vulnerabilities": "Schwachstellen (CVEs)"
       },
@@ -4302,6 +4555,32 @@
         "planned": "geplant bis {arg0}",
         "plannedInDays": "Geplant in Tagen",
         "version": "Version {arg0}"
+      },
+      "teamCheck": {
+        "add": "Team-Prüfung anfordern",
+        "addInfo": "Die Gruppe prüft, ob das Projekt oder System betroffen ist, und antwortet wie beim Team-Feedback.",
+        "answer": "Antwort",
+        "answeredBy": "Beantwortet von",
+        "comment": "Kommentar, Version oder geplanter Termin",
+        "date": "Datum",
+        "delete": "Löschen",
+        "deleteFor": "Team-Prüfung {arg0} löschen",
+        "error": {
+          "caseClosed": "Der Fall ist geschlossen.",
+          "group": "Bitte eine Gruppe wählen.",
+          "reason": "Für „nicht betroffen\" und „Risiko akzeptiert\" ist eine Begründung nötig.",
+          "subject": "Bitte das Projekt oder System nennen."
+        },
+        "group": "Gruppe",
+        "none": "Keine Team-Prüfungen.",
+        "open": "offen",
+        "reason": "Begründung",
+        "subject": "Projekt oder System"
+      },
+      "teamCheckFile": {
+        "info": "Team-Prüfung zu {arg0}, gefragt ist die Gruppe {arg1}. Hier dürfen Projekte und Systeme genannt werden: Diese Akte sehen nur diese Gruppe, das Security-Team und der Security Officer.",
+        "title": "Team-Prüfung",
+        "toCase": "Zur Akte der CVE"
       },
       "title": "CVE-Radar",
       "tree": {
@@ -4327,12 +4606,20 @@
       "versionNowUnaffected": "Inventar hat bereits eine unkritische Version – bitte bestätigen",
       "vuln": {
         "affectedRanges": "Betroffene Konfigurationen",
+        "cvss31Score": "CVSS 3.x",
+        "cvss31Severity": "Schweregrad CVSS 3.x",
+        "cvss31Vector": "Vektor CVSS 3.x",
+        "cvss40Score": "CVSS 4.0",
+        "cvss40Severity": "Schweregrad CVSS 4.0",
+        "cvss40Vector": "Vektor CVSS 4.0",
         "cwe": "CWE",
         "description": "Beschreibung (NVD)",
+        "kev": "Aktiv ausgenutzt (KEV) seit",
         "modified": "Geändert",
         "nvdStatus": "NVD-Status",
         "references": "Weitere Referenzen",
         "remediationHints": "Hinweise zur Behebung",
+        "severity": "Schweregrad",
         "tab": {
           "ai": "KI",
           "discussion": "Diskussion & Q&A",
@@ -4343,6 +4630,10 @@
         }
       },
       "vulnerabilities": {
+        "legend": {
+          "rejected": "Von der NVD zurückgewiesen"
+        },
+        "title": "Schwachstellen (NVD)",
         "withFindingsOnly": "Nur mit Befunden"
       },
       "yes": "ja"

@@ -17,6 +17,7 @@ import { useExportDownload } from "@/hooks/use-export-download";
 import { useListMeta } from "@/hooks/use-list-meta";
 import { downloadOrderExcel } from "@/lib/rs/order";
 import type { MagicFilter } from "@/lib/rs/types";
+import { OrderNotificationButton } from "./order-notification-button";
 import { ForecastExportDialog } from "./forecast-export-dialog";
 import { ORDER_ENTITY } from "./order.page";
 import {
@@ -65,6 +66,7 @@ export function OrderListActions({ filter }: { filter: MagicFilter }) {
           label={t("fibu.auftrag.contributionMargin._")}
         />
       )}
+      <OrderNotificationButton />
       <ExportMenu isPending={excel.isPending}>
         <ExcelExportMenuItem onSelect={() => excel.mutate()} />
         <ExportMenuItem

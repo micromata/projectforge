@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
 import { writeHeaders } from "./fixtures/seed";
@@ -8,8 +9,8 @@ interface Settings {
 }
 
 /**
- * The order notification settings of the my-account page (`MyAccountRest.orderNotificationPrefs`): a default
- * mode and exceptions for projects and customers, saved at once. The settings of the logged-in test user are
+ * The order notification settings (`MyAccountRest.orderNotificationPrefs`, edited in a dialog of the order pages): a default
+ * mode and exceptions for projects and customers, saved with the dialog's Save. The settings of the logged-in test user are
  * restored at the end of every test.
  */
 test.describe("order notification prefs", () => {
@@ -57,29 +58,50 @@ test.describe("order notification prefs", () => {
     });
   });
 
-  test("a change on the page is saved and survives a reload", async ({
-    loggedInPage: page,
-  }) => {
+  const openDialog = async (page: Page) => {
     const { t } = await userFormat(page);
-    await goto(page, "/myAccount");
+    await goto(page, "/order");
     await page
-      .getByRole("tab", { name: t("fibu.auftrag.notification.prefs.title") })
+      .getByRole("button", {
+        name: t("fibu.auftrag.notification.prefs.title"),
+      })
       .click();
-    await page
+    const dialog = page.getByRole("dialog");
+    await dialog
       .getByRole("combobox", {
         name: t("fibu.auftrag.notification.prefs.default"),
       })
       .click();
     await page
-      .getByRole("option", { name: t("fibu.auftrag.notification.mode.muted") })
+      .getByRole("option", { name: t("fibu.auftrag.notification.mode.daily") })
       .click();
-    await expect
-      .poll(async () => {
-        const s: Settings = await (
-          await page.request.get("/rs/myAccount/orderNotificationPrefs")
-        ).json();
-        return s.defaultMode;
-      })
-      .toBe("MUTED");
+    return { t, dialog };
+  };
+  const storedDefault = async (page: Page) =>
+    (
+      (await (
+        await page.request.get("/rs/myAccount/orderNotificationPrefs")
+      ).json()) as Settings
+    ).defaultMode;
+
+  test("the dialog of the order list saves with Save", async ({
+    loggedInPage: page,
+  }) => {
+    const { t, dialog } = await openDialog(page);
+    expect(await storedDefault(page), "nothing is saved before Save").toBe(
+      original.defaultMode
+    );
+    await dialog.getByRole("button", { name: t("save") }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect.poll(() => storedDefault(page)).toBe("DAILY");
+  });
+
+  test("the dialog of the order list discards its changes with Cancel", async ({
+    loggedInPage: page,
+  }) => {
+    const { t, dialog } = await openDialog(page);
+    await dialog.getByRole("button", { name: t("cancel") }).click();
+    await expect(dialog).toHaveCount(0);
+    expect(await storedDefault(page)).toBe(original.defaultMode);
   });
 });

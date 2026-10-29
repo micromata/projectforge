@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Delete02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
@@ -15,52 +14,37 @@ import {
 } from "@/components/ui/select";
 import { EntityAutocomplete } from "@/components/shared/entity-autocomplete";
 import {
-  fetchOrderNotificationSettings,
-  ORDER_NOTIFICATION_QUERY_KEY,
-  saveOrderNotificationSettings,
-} from "@/lib/rs/my-account";
-import { toast } from "@/lib/toast";
-import type {
-  OrderNotificationMode,
-  OrderNotificationRule,
-  OrderNotificationSettings,
-} from "./types";
+  type OrderNotificationMode,
+  type OrderNotificationRule,
+  type OrderNotificationSettings,
+} from "@/lib/rs/order-notification";
 
 const MODES: OrderNotificationMode[] = ["IMMEDIATE", "DAILY", "MUTED"];
 
 /**
  * How the user is notified by e-mail about changes of orders: a default for all orders and exceptions for
- * single projects or customers (the project wins over its customer). Saved at once with every change, like the
- * tokens and devices beside it — it is not part of the form's save.
+ * single projects or customers. Works on a draft held by the caller ([OrderNotificationDialog]), which saves
+ * it or throws it away.
  */
-export function MyAccountOrderNotifications({
-  canWrite,
+export function OrderNotificationsEditor({
+  settings,
+  onChange: save,
+  editable,
+  suggestions = [],
 }: {
-  /** False for a restricted or demo user (a shared account): read-only. */
-  canWrite: boolean;
+  settings: OrderNotificationSettings;
+  onChange: (settings: OrderNotificationSettings) => void;
+  editable: boolean;
+  /**
+   * The project and customer of the order at hand: each one without a rule yet is offered as a link that adds
+   * it as an exception.
+   */
+  suggestions?: Pick<OrderNotificationRule, "type" | "id" | "displayName">[];
 }) {
   const t = useTranslations();
-  const queryClient = useQueryClient();
-  const [busy, setBusy] = useState(false);
   const [ruleType, setRuleType] =
     useState<OrderNotificationRule["type"]>("PROJECT");
-  const query = useQuery({
-    queryKey: ORDER_NOTIFICATION_QUERY_KEY,
-    queryFn: ({ signal }) => fetchOrderNotificationSettings(signal),
-  });
-  if (query.isPending) {
-    return <p className="text-sm text-muted-foreground">{t("loading")}</p>;
-  }
-  if (!query.data) {
-    return (
-      <p className="text-sm text-destructive">
-        {t("access.exception.noAccess")}
-      </p>
-    );
-  }
-  const settings = query.data;
   const rules = settings.rules ?? [];
-  const editable = canWrite && settings.writeAccess !== false && !busy;
 
   const modeLabel = (mode: OrderNotificationMode) => {
     switch (mode) {
@@ -70,18 +54,6 @@ export function MyAccountOrderNotifications({
         return t("fibu.auftrag.notification.mode.daily");
       case "MUTED":
         return t("fibu.auftrag.notification.mode.muted");
-    }
-  };
-
-  const save = async (next: OrderNotificationSettings) => {
-    setBusy(true);
-    try {
-      const saved = await saveOrderNotificationSettings(next);
-      queryClient.setQueryData(ORDER_NOTIFICATION_QUERY_KEY, saved);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : String(error));
-    } finally {
-      setBusy(false);
     }
   };
 
@@ -95,7 +67,7 @@ export function MyAccountOrderNotifications({
       disabled={!editable}
       onValueChange={(mode) => onChange(mode as OrderNotificationMode)}
     >
-      <SelectTrigger className="w-56" aria-label={label}>
+      <SelectTrigger size="sm" className="w-52" aria-label={label}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -116,21 +88,21 @@ export function MyAccountOrderNotifications({
   const changeRule = (index: number, rule: OrderNotificationRule | null) => {
     const next = rules.filter((_, i) => i !== index);
     if (rule) next.splice(index, 0, rule);
-    void save({ ...settings, rules: next });
+    save({ ...settings, rules: next });
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-sm text-muted-foreground">
+    <div className="flex flex-col gap-2">
+      <p className="text-xs text-muted-foreground">
         {t("fibu.auftrag.notification.prefs.description")}
       </p>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="w-40 text-sm font-medium">
+        <span className="w-24 text-sm font-medium">
           {t("fibu.auftrag.notification.prefs.default")}
         </span>
         {modeSelect(
           settings.defaultMode,
-          (defaultMode) => void save({ ...settings, defaultMode }),
+          (defaultMode) => save({ ...settings, defaultMode }),
           t("fibu.auftrag.notification.prefs.default")
         )}
       </div>
@@ -140,12 +112,14 @@ export function MyAccountOrderNotifications({
       {rules.map((rule, index) => (
         <div
           key={`${rule.type}-${rule.id}`}
-          className="flex flex-wrap items-center gap-2 rounded-md border p-2"
+          className="flex items-center gap-2 border-b py-1"
         >
-          <span className="w-40 text-sm text-muted-foreground">
+          <span className="w-16 shrink-0 text-xs text-muted-foreground">
             {typeLabel(rule.type)}
           </span>
-          <span className="min-w-40 flex-1 text-sm">{rule.displayName}</span>
+          <span className="min-w-0 flex-1 text-sm leading-tight">
+            {rule.displayName}
+          </span>
           {modeSelect(
             rule.mode,
             (mode) => changeRule(index, { ...rule, mode }),
@@ -154,6 +128,7 @@ export function MyAccountOrderNotifications({
           <Button
             variant="ghost"
             size="icon"
+            className="size-7 shrink-0"
             disabled={!editable}
             aria-label={t("delete")}
             onClick={() => changeRule(index, null)}
@@ -162,17 +137,38 @@ export function MyAccountOrderNotifications({
           </Button>
         </div>
       ))}
-      {canWrite && (
+      {editable &&
+        suggestions
+          .filter((s) => !rules.some((r) => r.type === s.type && r.id === s.id))
+          .map((s) => (
+            <Button
+              key={`${s.type}-${s.id}`}
+              variant="link"
+              className="h-auto self-start p-0"
+              onClick={() =>
+                save({
+                  ...settings,
+                  rules: [...rules, { ...s, mode: "DAILY" }],
+                })
+              }
+            >
+              {t("fibu.auftrag.notification.prefs.adopt", {
+                arg0: typeLabel(s.type),
+                arg1: s.displayName ?? s.id,
+              })}
+            </Button>
+          ))}
+      {editable && (
         <div className="flex flex-wrap items-center gap-2">
           <Select
             value={ruleType}
-            disabled={!editable}
             onValueChange={(type) =>
               setRuleType(type as OrderNotificationRule["type"])
             }
           >
             <SelectTrigger
-              className="w-40"
+              size="sm"
+              className="w-28"
               aria-label={t("fibu.auftrag.notification.prefs.rules")}
             >
               <SelectValue />
@@ -195,11 +191,16 @@ export function MyAccountOrderNotifications({
               ) {
                 return;
               }
-              void save({
+              save({
                 ...settings,
                 rules: [
                   ...rules,
-                  { type: ruleType, id: picked.id, mode: "DAILY" },
+                  {
+                    type: ruleType,
+                    id: picked.id,
+                    displayName: picked.displayName,
+                    mode: "DAILY",
+                  },
                 ],
               });
             }}

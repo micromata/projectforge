@@ -12,7 +12,6 @@ import type {
   MyAccountToken,
   MyAccountTokenInfo,
   MyAccountTokenType,
-  OrderNotificationSettings,
 } from "@/components/features/my-account/types";
 import type { MyAccountValues } from "@/components/features/my-account/schema";
 
@@ -65,30 +64,4 @@ export function logoutAllMyAccountDevices(): Promise<MyAccountDevice[]> {
   return request<MyAccountDevice[]>("/rs/myAccount/logoutAllDevices", {
     method: "POST",
   });
-}
-
-export const ORDER_NOTIFICATION_QUERY_KEY = [
-  "myAccount",
-  "orderNotificationPrefs",
-] as const;
-
-/** The user's order notification settings: default mode and the exceptions for projects and customers. */
-export function fetchOrderNotificationSettings(
-  signal?: AbortSignal
-): Promise<OrderNotificationSettings> {
-  return request<OrderNotificationSettings>(
-    "/rs/myAccount/orderNotificationPrefs",
-    { method: "GET" },
-    signal
-  );
-}
-
-/** Saves the order notification settings. Answers them as saved. */
-export function saveOrderNotificationSettings(
-  settings: OrderNotificationSettings
-): Promise<OrderNotificationSettings> {
-  return request<OrderNotificationSettings>(
-    "/rs/myAccount/orderNotificationPrefs",
-    { method: "POST", body: JSON.stringify(settings) }
-  );
 }
