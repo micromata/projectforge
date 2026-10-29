@@ -88,6 +88,12 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     private lateinit var kundeDao: KundeDao
 
     @Autowired
+    private lateinit var orderNotificationPrefService: OrderNotificationPrefService
+
+    @Autowired
+    private lateinit var orderNotificationQueueDao: OrderNotificationQueueDao
+
+    @Autowired
     private lateinit var projektDao: ProjektDao
 
     @Autowired
@@ -550,6 +556,9 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      * ([IntegrationErrors.isConnectionError]) the remaining recipients are skipped: each of them would delay the save
      * by the SMTP timeout just to fail the same way.
      *
+     * Each recipient's [OrderNotificationMode] for the order applies: a muted recipient gets nothing, a recipient of the
+     * daily summary gets the change queued for the digest mail instead of a mail now.
+     *
      * @return true if at least one mail was sent.
      */
     fun sendNotificationIfRequired(
@@ -576,6 +585,17 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         var failure: Exception? = null
         for ((index, recipient) in recipients.withIndex()) {
             try {
+                when (orderNotificationPrefService.resolve(recipient.id!!, auftrag)) {
+                    OrderNotificationMode.MUTED -> continue
+                    OrderNotificationMode.DAILY -> {
+                        // Collected for the daily digest (OrderNotificationDigestService), not mailed now.
+                        orderNotificationQueueDao.enqueue(
+                            recipient.id!!, auftrag.id!!, auftrag.nummer, auftrag.titel, operationType.name, requestUrl,
+                        )
+                        continue
+                    }
+                    else -> {}
+                }
                 if (sendNotification(auftrag, recipient, subject, requestUrl, history.take(10))) {
                     sent = true
                 }

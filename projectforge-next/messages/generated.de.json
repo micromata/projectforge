@@ -1025,8 +1025,10 @@
         "_": "Dateien verfügbar",
         "info": "Die Dateien des Raums werden so lange in seinem Datentransferbereich „Chat: …“ aufbewahrt und danach gelöscht."
       },
+      "next": "Nächstes Bild",
       "notAvailable": "Datei nicht mehr verfügbar",
       "openArea": "Im Datentransfer öffnen",
+      "previous": "Vorheriges Bild",
       "remove": "Datei entfernen"
     },
     "linkHint": "Chat und verschlüsselte Kommunikation",
@@ -1689,6 +1691,13 @@
       },
       "invoicedExceedsCommissioned": "Der fakturierte Betrag übersteigt den beauftragten Betrag – bitte auf eine falsch zugeordnete Rechnung prüfen.",
       "mail": {
+        "digest": {
+          "changed": "Geändert",
+          "created": "Angelegt",
+          "deleted": "Gelöscht",
+          "intro": "diese Aufträge wurden seit der letzten Zusammenfassung angelegt, geändert oder gelöscht:",
+          "subject": "Auftragsänderungen: {arg0}"
+        },
         "intro": "der Auftrag #{arg0} wurde ge&auml;ndert bzw. angelegt."
       },
       "nettoSumme": {
@@ -1700,7 +1709,20 @@
         "immediately": "sofort"
       },
       "notification": {
-        "error": "Der Auftrag wurde gespeichert, aber die E-Mail-Benachrichtigung konnte nicht versandt werden: {arg0}"
+        "error": "Der Auftrag wurde gespeichert, aber die E-Mail-Benachrichtigung konnte nicht versandt werden: {arg0}",
+        "mode": {
+          "daily": "Tägliche Zusammenfassung",
+          "immediate": "Sofort",
+          "muted": "Stumm"
+        },
+        "prefs": {
+          "customer": "Kunde",
+          "default": "Standard",
+          "description": "Hier kann festgelegt werden, ob bei jeder Änderung eines Auftrags sofort eine E-Mail kommt, einmal täglich eine Zusammenfassung oder gar keine. Eine Regel für ein Projekt oder einen Kunden hat Vorrang vor dem Standard.",
+          "project": "Projekt",
+          "rules": "Ausnahmen für Projekte und Kunden",
+          "title": "Auftragsbenachrichtigungen"
+        }
       },
       "nummer": {
         "_": "Nummer",

@@ -25,6 +25,7 @@ import {
 } from "@/lib/rs/configuration";
 import { MY_ACCOUNT_QUERY_KEY, saveMyAccount } from "@/lib/rs/my-account";
 import { MyAccountDevices } from "./my-account-devices";
+import { MyAccountOrderNotifications } from "./my-account-order-notifications";
 import { MyAccountTokens } from "./my-account-tokens";
 import {
   EMPTY_VALUES,
@@ -161,6 +162,11 @@ export function MyAccountForm({ init }: { init: MyAccountInit }) {
           )}
         </div>
       ),
+    },
+    {
+      id: "orderNotifications",
+      label: t("fibu.auftrag.notification.prefs.title"),
+      content: <MyAccountOrderNotifications canWrite={!readOnly} />,
     },
     {
       id: "tokens",

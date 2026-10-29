@@ -25,6 +25,12 @@ package org.projectforge.rest
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.PfCaches
+import org.projectforge.business.fibu.KundeDao
+import org.projectforge.business.fibu.OrderNotificationMode
+import org.projectforge.business.fibu.OrderNotificationPrefService
+import org.projectforge.business.fibu.OrderNotificationPrefs
+import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.login.Login
 import org.projectforge.business.sipgate.SipgateConfiguration
@@ -89,6 +95,15 @@ class MyAccountRest {
 
     @Autowired
     private lateinit var groupService: GroupService
+
+    @Autowired
+    private lateinit var kundeDao: KundeDao
+
+    @Autowired
+    private lateinit var orderNotificationPrefService: OrderNotificationPrefService
+
+    @Autowired
+    private lateinit var projektDao: ProjektDao
 
     @Autowired
     private lateinit var sipgateConfiguration: SipgateConfiguration
@@ -385,6 +400,84 @@ class MyAccountRest {
         return getDevices(userId, request)
     }
 
+    /** One exception of the order notification settings: a project or a customer with its own mode. */
+    class OrderNotificationRule(
+        /** `PROJECT` or `CUSTOMER`. */
+        val type: String? = null,
+        val id: Long? = null,
+        /** For display only, ignored on saving. */
+        val displayName: String? = null,
+        val mode: OrderNotificationMode? = null,
+    )
+
+    class OrderNotificationSettings(
+        val defaultMode: OrderNotificationMode? = null,
+        val rules: List<OrderNotificationRule> = emptyList(),
+        /** For display only, ignored on saving: false for a restricted or demo user (a shared account). */
+        val writeAccess: Boolean = true,
+    )
+
+    /** The logged-in user's own order notification settings (see [OrderNotificationPrefs]). */
+    @AccessChecked("Own user only (logged-in user's settings)")
+    @GetMapping("orderNotificationPrefs")
+    fun getOrderNotificationPrefs(): OrderNotificationSettings {
+        val prefs = orderNotificationPrefService.get(ThreadLocalUserContext.loggedInUserId!!)
+        val caches = PfCaches.instance
+        val rules = prefs.projectModes.mapNotNull { (id, mode) ->
+            caches.getProjekt(id)?.takeIf { projektDao.hasLoggedInUserSelectAccess(it, false) }
+                ?.let { OrderNotificationRule(PROJECT, id, it.displayName, mode) }
+        } + prefs.customerModes.mapNotNull { (id, mode) ->
+            caches.getKunde(id)?.takeIf { kundeDao.hasLoggedInUserSelectAccess(it, false) }
+                ?.let { OrderNotificationRule(CUSTOMER, id, it.displayName, mode) }
+        }
+        return OrderNotificationSettings(
+            defaultMode = prefs.defaultMode,
+            rules = rules,
+            writeAccess = !accessChecker.isRestrictedOrDemoUser,
+        )
+    }
+
+    /**
+     * Saves the order notification settings of the logged-in user. A posted rule for a project or customer the user may not
+     * read, or that doesn't exist, is dropped (stored rules the user can't see stay untouched): the user's own settings must not become a way to look up their names.
+     * @return The settings as saved.
+     */
+    @AccessChecked("Own user only (logged-in user's settings)")
+    @PostMapping("orderNotificationPrefs")
+    fun saveOrderNotificationPrefs(@RequestBody postData: OrderNotificationSettings): OrderNotificationSettings {
+        accessChecker.checkRestrictedOrDemoUser()
+        val caches = PfCaches.instance
+        val userId = ThreadLocalUserContext.loggedInUserId!!
+        val prefs = OrderNotificationPrefs(postData.defaultMode ?: OrderNotificationMode.IMMEDIATE)
+        // Rules the user can't see (any more) aren't posted by the client, but still apply: keep them.
+        val stored = orderNotificationPrefService.get(userId)
+        stored.projectModes.forEach { (id, mode) ->
+            if (caches.getProjekt(id)?.let { projektDao.hasLoggedInUserSelectAccess(it, false) } != true) {
+                prefs.projectModes[id] = mode
+            }
+        }
+        stored.customerModes.forEach { (id, mode) ->
+            if (caches.getKunde(id)?.let { kundeDao.hasLoggedInUserSelectAccess(it, false) } != true) {
+                prefs.customerModes[id] = mode
+            }
+        }
+        postData.rules.forEach { rule ->
+            val id = rule.id ?: return@forEach
+            val mode = rule.mode ?: return@forEach
+            when (rule.type) {
+                PROJECT -> if (caches.getProjekt(id)?.let { projektDao.hasLoggedInUserSelectAccess(it, false) } == true) {
+                    prefs.projectModes[id] = mode
+                }
+
+                CUSTOMER -> if (caches.getKunde(id)?.let { kundeDao.hasLoggedInUserSelectAccess(it, false) } == true) {
+                    prefs.customerModes[id] = mode
+                }
+            }
+        }
+        orderNotificationPrefService.save(userId, prefs)
+        return getOrderNotificationPrefs()
+    }
+
     private fun createData(user: PFUserDO, request: HttpServletRequest): MyAccountData {
         val userId = user.id!!
         return MyAccountData(
@@ -444,6 +537,9 @@ class MyAccountRest {
     }
 
     companion object {
+        private const val PROJECT = "PROJECT"
+        private const val CUSTOMER = "CUSTOMER"
+
         /** The access tokens the user sees, copies and renews here, in the order of the page. */
         private val TOKEN_TYPES = listOf(UserTokenType.CALENDAR_REST, UserTokenType.DAV_TOKEN, UserTokenType.REST_CLIENT)
     }

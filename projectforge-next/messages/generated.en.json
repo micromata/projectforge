@@ -1025,8 +1025,10 @@
         "_": "Files available",
         "info": "The files of the room are kept that long in its data transfer area \"Chat: …\", then they are deleted."
       },
+      "next": "Next image",
       "notAvailable": "File no longer available",
       "openArea": "Open in data transfer",
+      "previous": "Previous image",
       "remove": "Remove file"
     },
     "linkHint": "Chat and encrypted communication",
@@ -1689,6 +1691,13 @@
       },
       "invoicedExceedsCommissioned": "The invoiced amount exceeds the commissioned amount – please check for an incorrectly assigned invoice.",
       "mail": {
+        "digest": {
+          "changed": "Changed",
+          "created": "Created",
+          "deleted": "Deleted",
+          "intro": "these orders have been created, changed or deleted since the last summary:",
+          "subject": "Order changes: {arg0}"
+        },
         "intro": "the order #{arg0} was created or changed."
       },
       "nettoSumme": {
@@ -1700,7 +1709,20 @@
         "immediately": "immediately"
       },
       "notification": {
-        "error": "The order was saved, but the e-mail notification could not be sent: {arg0}"
+        "error": "The order was saved, but the e-mail notification could not be sent: {arg0}",
+        "mode": {
+          "daily": "Daily summary",
+          "immediate": "Immediately",
+          "muted": "Muted"
+        },
+        "prefs": {
+          "customer": "Customer",
+          "default": "Default",
+          "description": "Choose whether you receive an e-mail for each change of an order at once, as a daily summary or not at all. A rule for a project or customer overrides the default.",
+          "project": "Project",
+          "rules": "Exceptions for projects and customers",
+          "title": "Order notifications"
+        }
       },
       "nummer": {
         "_": "Number",
