@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { AddEntryButton } from "@/components/shared/add-entry-button";
 import { PageTitleRow } from "@/components/shared/page-title-row";
@@ -9,6 +10,11 @@ import { SearchInput } from "./search-input";
 export interface ListToolbarProps {
   /** Heading of the page, e.g. "Bücherliste". */
   title: string;
+  /**
+   * The host already shows the heading (an embedded list under a tab): no title row of its own, its
+   * actions move to the right end of the search row.
+   */
+  compact?: boolean;
   /** The menu parent above it, e.g. "Allgemein" — where the entry sits in the main menu. */
   category: string;
   searchValue: string;
@@ -50,6 +56,7 @@ export interface ListToolbarProps {
 /** The head of every list page: where it sits, what it is called, search, filters and "add". */
 export function ListToolbar({
   title,
+  compact = false,
   category,
   searchValue,
   onSearchChange,
@@ -62,33 +69,45 @@ export function ListToolbar({
   notice,
   gearMenu,
 }: ListToolbarProps) {
+  const controls = (
+    <>
+      {selectionToggle}
+      {actions}
+      {/* Divider only with a menu beside it *and* something to separate it from: it parts the
+          list's own actions from "add", which creates an entity. */}
+      {gearMenu && (
+        <>
+          {gearMenu}
+          {/* `!self-center`: with an explicit height the primitive's `self-stretch` degrades to
+              flex-start and hangs the line above the buttons. The `!` is needed because the
+              primitive's `data-vertical:self-stretch` carries an attribute selector and would
+              otherwise outweigh a plain `self-center`. */}
+          {addHref && (
+            <Separator orientation="vertical" className="!h-5 !self-center" />
+          )}
+        </>
+      )}
+      {addHref && <AddEntryButton href={addHref} />}
+    </>
+  );
   return (
     <div className="border-b bg-background">
-      <PageTitleRow
-        title={title}
-        category={category}
-        experimental={experimental}
-      >
-        {selectionToggle}
-        {actions}
-        {/* Divider only with a menu beside it *and* something to separate it from: it parts the
-            list's own actions from "add", which creates an entity. */}
-        {gearMenu && (
-          <>
-            {gearMenu}
-            {/* `!self-center`: with an explicit height the primitive's `self-stretch` degrades to
-                flex-start and hangs the line above the buttons. The `!` is needed because the
-                primitive's `data-vertical:self-stretch` carries an attribute selector and would
-                otherwise outweigh a plain `self-center`. */}
-            {addHref && (
-              <Separator orientation="vertical" className="!h-5 !self-center" />
-            )}
-          </>
-        )}
-        {addHref && <AddEntryButton href={addHref} />}
-      </PageTitleRow>
+      {!compact && (
+        <PageTitleRow
+          title={title}
+          category={category}
+          experimental={experimental}
+        >
+          {controls}
+        </PageTitleRow>
+      )}
 
-      <div className="flex items-center gap-3 px-4 py-2.5">
+      <div
+        className={cn(
+          "flex items-center gap-3 px-4 pb-2.5",
+          compact ? "pt-2.5" : "py-2.5"
+        )}
+      >
         <div className="relative max-w-md flex-1">
           <SearchInput
             value={searchValue}
@@ -96,6 +115,9 @@ export function ListToolbar({
             focusIfIdle
           />
         </div>
+        {compact && (
+          <div className="ml-auto flex items-center gap-3">{controls}</div>
+        )}
       </div>
 
       {/* Filters left, table settings right: both act on the list below, not on the page. The notice

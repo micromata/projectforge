@@ -217,6 +217,7 @@ nur mit einem neuen Wert überschrieben werden.
 * Vor jedem Speichern wird eine Kopie der Datei mit Zeitstempel daneben abgelegt
   (`projectforge.properties.<yyyy-MM-dd_HH-mm-ss>.bak`). Die Datei wird nach Gruppen sortiert geschrieben;
   eigene Kommentare bleiben über dem Parameter, über dem sie standen.
+* Die Beschreibungen enthalten Links auf die passenden Abschnitte dieses Handbuchs.
 * Änderungen werden erst nach einem Neustart von ProjectForge wirksam.
 * Ein Wert, den das laufende System anders verwendet (ein Neustart steht aus oder der Wert kommt aus
   einer Umgebungsvariablen oder der Kommandozeile), wird markiert.
@@ -1761,6 +1762,202 @@ Verträge, Serienbriefe usw.
 === Skill-Matrix
 
 Erfassung und Darstellung der Fähigkeiten der Mitarbeitenden, gepflegt von den Benutzern selbst.
+
+[[cve_radar]]
+=== CVE-Radar
+
+Schwachstellenmanagement für das Security-Team: Fälle (Schwachstellen mit CVE-ID und Vorfälle ohne), Team-Prüfungen
+von Projekten und Systemen, die Bestätigungen der Mitarbeitenden und eine Abschlussübersicht, die zeigt, ob ein Fall
+geschlossen werden kann. Als Nachweis auf den Client-Geräten lässt sich ein zentraler Log-Server (Graylog) mit den Meldungen eines
+Client-Agents anbinden; das ist optional.
+
+Das Plugin ist in Entwicklung. Die Seite _Verschiedenes_ -> _CVE-Radar_ listet die aus der NVD importierten
+Schwachstellen (siehe <<cve_radar_nvd>>); auch die Seiten _Fälle_, _Geräte_ und _Mein CVE-Radar_ arbeiten mit echten
+Daten. Die übrigen Funktionen lassen sich als Prototyp mit fiktiven Demodaten ausprobieren, der auf der Startseite
+prominent verlinkt ist.
+
+[[cve_radar_activation]]
+==== Aktivierung
+
+Das Plugin `cveradar` unter _Administration_ -> _Plugins_ aktivieren (oder mit
+`projectforge.plugins.ensure-active=cveradar` in `projectforge.properties`) und ProjectForge neu starten, siehe
+<<plugins>>.
+
+[[cve_radar_rights]]
+==== Rechte und Rollen
+
+Die Rollen sind PF-Gruppen; ihre Namen werden konfiguriert (siehe <<cve_radar_settings>>), die Gruppen selbst legt und
+pflegt man wie jede andere Gruppe unter _Administration_ -> _Gruppen_. Jede Rolle schließt die schwächeren ein, eine
+nicht konfigurierte oder nicht vorhandene Gruppe gibt niemandem die Rolle, und die PF-Admin-Rolle allein gibt keinen
+Zugang zum CVE-Radar.
+
+[cols="1,1,3"]
+|===
+|Rolle |Eigenschaft |Wer und was
+
+|Lesende
+|`readGroup`, z. B. `cve-read`
+|Z. B. die Geschäftsführung: die Schwachstellen aus der NVD, Fälle mit ihren Bewertungen und Maßnahmen, die
+Abschlussübersichten (nur Zahlen, keine Personen, keine Geräte). Sie nehmen an der Diskussion eines Falls teil.
+
+|Security-Team
+|`writeGroup`, z. B. `cve-read-write`
+|Öffnet, übernimmt und weist Fälle zu, bewertet, setzt Status und Maßnahmen, fragt Team-Prüfungen an, sieht die Geräte
+mit ihren Personen und moderiert die Diskussionen.
+
+|Security Officer
+|`securityOfficerGroup`
+|Setzen zusätzlich die verbindliche Priorität von Fällen anderer und schließen einen Fall mit offenen Punkten (mit
+Begründung).
+
+|alle
+|
+|Auf _Mein CVE-Radar_ die eigenen Geräte, die für Mitarbeitende freigegebenen Fälle (zum Bestätigen der Maßnahmen) und
+die Team-Prüfungen der eigenen Gruppen.
+|===
+
+* Die verbindliche Priorität eines Falls setzt, mit Begründung, die bearbeitende Person oder ein Security Officer. Solange
+  niemand zugewiesen ist, darf jedes Mitglied des Security-Teams; es wird dann die bearbeitende Person.
+* Eine Team-Prüfung beantworten die Mitglieder der angefragten Gruppe, dafür ist keine CVE-Radar-Gruppe nötig. Die Akte
+  einer Team-Prüfung mit ihrer eigenen Diskussion sehen nur diese Gruppe, das Security-Team und die Security Officer.
+* Die Diskussion eines Falls steht allen Lesenden offen. Details zu Projekten und Systemen gehören in die Akte einer
+  Team-Prüfung, nicht dorthin.
+
+[[cve_radar_settings]]
+==== Allgemeine Einstellungen
+
+Alle Einstellungen stehen in `projectforge.properties` (oder im Properties-Editor, siehe <<properties_editor>>) und
+wirken nach einem Neustart:
+
+[source,properties]
+----
+# IDs von Vorfällen ohne CVE: INC-2026-1, INC-2026-2, ... (nur Buchstaben und Ziffern).
+projectforge.plugin.cveradar.caseIdPrefix=INC
+# Ein Gerät, das länger nicht gemeldet wurde, ist inaktiv und zählt in der Abschlussübersicht nicht mit.
+projectforge.plugin.cveradar.clientActiveDays=30
+# Geräte, die länger nicht gemeldet wurden, werden mit ihren Scanbefunden gelöscht (personenbezogene Daten).
+projectforge.plugin.cveradar.deviceRetentionDays=365
+# PF-Gruppen der Rollen (siehe oben).
+projectforge.plugin.cveradar.readGroup=cve-read
+projectforge.plugin.cveradar.writeGroup=cve-read-write
+projectforge.plugin.cveradar.securityOfficerGroup=security-officers
+----
+
+Die veralteten Geräte löscht der Job der Anbindung (siehe <<cve_radar_jobs>>).
+
+[[cve_radar_log_server]]
+==== Log-Server (Graylog)
+
+Der Client-Agent (z. B. des Client-Management-Tools) loggt seine Version und optional die Ergebnisse seiner Prüfungen an
+einen zentralen Log-Server. ProjectForge sucht diese Meldungen über die Such-API von Graylog und behält pro Gerät die
+neueste Version und das neueste Ergebnis jeder Prüfung.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.graylog.url=https://graylog.example.org
+# Access-Token eines Graylog-Benutzers mit Lesezugriff auf den Stream.
+projectforge.plugin.cveradar.graylog.token=...
+# Stream mit den Meldungen der Client-Agents; leer: alle Streams, die der Benutzer lesen darf.
+projectforge.plugin.cveradar.graylog.streamId=...
+# Abfrage, die die Meldungen auswählt, und der durchsuchte Zeitraum ab jetzt rückwärts.
+projectforge.plugin.cveradar.graylog.query=source:client-agent
+projectforge.plugin.cveradar.graylog.rangeSeconds=86400
+projectforge.plugin.cveradar.graylog.limit=10000
+# Feldnamen der Meldungen.
+projectforge.plugin.cveradar.graylog.userField=agent_user
+projectforge.plugin.cveradar.graylog.serialField=agent_serial
+projectforge.plugin.cveradar.graylog.hostField=agent_host
+projectforge.plugin.cveradar.graylog.versionField=agent_version
+projectforge.plugin.cveradar.graylog.checkIdField=agent_check_id
+projectforge.plugin.cveradar.graylog.checkResultField=agent_check_result
+# Stündlich zur Minute 15.
+projectforge.plugin.cveradar.graylog.cron=0 15 * * * *
+----
+
+* Pflicht sind URL, Token, Abfrage, `userField` und mindestens eins von `versionField` und `checkIdField`; sonst ist
+  die Anbindung inaktiv.
+* Geräte werden über die Seriennummer zugeordnet, ohne Seriennummernfeld über Benutzer- und Hostnamen.
+* Ein Prüfergebnis `passed`, `true` oder `ok` gilt als bestanden, alles andere als nicht bestanden.
+
+[[cve_radar_nvd]]
+==== Schwachstellen aus der NVD
+
+ProjectForge importiert die Schwachstellen (CVEs) aus der National Vulnerability Database (NVD API 2.0) und listet sie auf
+der Startseite _Verschiedenes_ -> _CVE-Radar_. Der Import ist standardmäßig aus, da er Internetzugriff braucht.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.nvd.enabled=true
+# Optional: Ein API-Key hebt das Limit von 5 auf 50 Anfragen in 30 Sekunden
+# (https://nvd.nist.gov/developers/request-an-api-key).
+projectforge.plugin.cveradar.nvd.apiKey=...
+# Der erste Lauf importiert die in den letzten 30 Tagen geänderten Schwachstellen (kein Nachladen der Historie).
+projectforge.plugin.cveradar.nvd.initialDays=30
+# Neue Schwachstellen ab diesem CVSS-Wert.
+projectforge.plugin.cveradar.nvd.minCvss=7.0
+# Alle 2 Stunden zur Minute 17 (UTC).
+projectforge.plugin.cveradar.nvd.cron=0 17 */2 * * *
+----
+
+* Der erste Lauf importiert die in den letzten `initialDays` geänderten Schwachstellen, jeder weitere die seit dem letzten
+  vollständigen Lauf geänderten (in Abschnitten von höchstens 120 Tagen, wie es die NVD erlaubt). Ein durch einen Fehler
+  abgebrochener Lauf setzt dort wieder an.
+* Es zählt der Wert der NVD; solange die NVD eine Schwachstelle nicht bewertet hat, gilt der Wert der vergebenden Stelle
+  (CNA). Eine Schwachstelle ohne jeden Wert wird importiert, sobald sie bewertet ist.
+* Eine gespeicherte Schwachstelle wird immer aktualisiert, auch wenn die NVD sie zurückweist (durchgestrichen
+  dargestellt) oder niedriger bewertet.
+* Die Liste lesen darf, wer eine Rolle des CVE-Radars hat (siehe <<cve_radar_rights>>). Eine Zeile öffnet die Akte der Schwachstelle.
+* Der API-Key wird nur als Header gesendet und weder geloggt noch vom Properties-Editor angezeigt.
+
+[[cve_radar_jobs]]
+==== Jobs und Verbindungen
+
+* Die Anbindung und der NVD-Import laufen als Jobs, _CVE-Radar: Client-Agents_ und
+  _CVE-Radar: NVD-Import_, aufgeführt
+  unter _Administration_ -> _Jobmonitor_. Dort lassen sie sich sofort starten (_Jetzt starten_); solange ihre Quelle nicht
+  konfiguriert ist, werden sie als inaktiv mit dem Grund angezeigt. Die Zusammenfassung jedes Laufs steht im Lauf und im Log, Fehler sind Teil des Fehler-Digests.
+* Timeouts und die maximale Größe einer Antwort werden pro Verbindung mit
+  `projectforge.integration.clients.cveradar-graylog.*` und
+  `projectforge.integration.clients.cveradar-nvd.*` eingestellt (z. B. `responseTimeoutMs`, `maxResponseBytes`, Default
+  50 MB; bei der NVD 180 s und 200 MB, da eine Seite bis zu 2000 Schwachstellen enthält).
+* Ein ausgehender Proxy wird noch nicht unterstützt: ProjectForge muss beide Hosts direkt erreichen.
+* Keys und Token zeigt der Properties-Editor nie an. Statt in `projectforge.properties` können sie als
+  Umgebungsvariablen gesetzt werden, z. B. `PROJECTFORGE_PLUGIN_CVERADAR_GRAYLOG_TOKEN`.
+
+[[cve_radar_file]]
+==== Die Akte einer CVE
+
+Eine Zeile der Liste der Schwachstellen öffnet die Akte der CVE: die NVD-Daten (die Hinweise zur Behebung der
+Referenzen getrennt von den übrigen), die Bewertungen, die Maßnahmen, die Diskussion und die Team-Prüfungen.
+
+* *Öffnen:* Die Akte ist zunächst nur die NVD-Seite. Der erste Klick auf _Akte öffnen_ (oder auf _Diskussion beginnen_)
+  legt den Fall zur CVE an; das dürfen alle Lesenden. Der NVD-Import ändert am Fall nichts.
+* *Bewerten:* Jedes Mitglied des Security-Teams gibt eine eigene Bewertung ab (Priorität, Ausnutzbarkeit hier,
+  Begründung); sie stehen nebeneinander, Abweichungen sind markiert. Die vorgeschlagene Priorität kommt aus dem
+  CVSS-Wert, eine Aufnahme in den KEV-Katalog der CISA hebt sie um eine Stufe. Die verbindliche Priorität setzt die
+  bearbeitende Person oder ein Security Officer, mit Begründung.
+* *Maßnahmen:* Fix-Version, Workaround, eigene Referenzen (nur http- und https-Links) und die Maßnahmen für Techies und
+  Nicht-Techies als formatierter Text.
+* *Gleichzeitig bearbeiten:* Hat jemand den Fall inzwischen geändert, lehnt der Server die Änderung ab; die Akte wird
+  neu geladen und die Änderung wiederholt.
+* *Diskussion:* Der Chat der Akte steht allen Lesenden offen. Zu Team-Prüfungen gibt es eine eigene Akte mit eigener
+  Diskussion, die nur die gefragte Gruppe, das Security-Team und die Security Officer sehen.
+
+[[cve_radar_first_case]]
+==== Ein erster Fall ohne Anbindungen
+
+Ein Fall lässt sich ganz ohne Anbindung durchspielen:
+
+. _Fälle_ -> _Neuer Fall_: ein Vorfall (die ID wird automatisch vergeben) oder eine CVE, mit den Maßnahmen für Techies
+  und Non-Techies. _Für Mitarbeitende freigegeben_ zeigt ihn allen Mitarbeitenden auf _Mein CVE-Radar_.
+. In der Abschlussübersicht des Falls: _Team-Prüfung anfordern_ für jedes Projekt oder System, mit der Gruppe, die es
+  prüft.
+. Die Gruppen beantworten ihre Prüfungen, die Mitarbeitenden bestätigen die Maßnahmen auf _Mein CVE-Radar_.
+. Sobald nichts mehr offen ist, zeigt die Abschlussübersicht _Schließbar_; das Security-Team schließt den Fall mit
+  Begründung (_Fall schließen_).
+
+Laufen die Anbindungen, sind die Fix-Kriterien des Falls der Nachweis auf den Geräten: eine Mindestversion des
+Client-Agents und die ID einer Prüfung des Agents.
 
 [[further_plugins]]
 === Weitere Plugins

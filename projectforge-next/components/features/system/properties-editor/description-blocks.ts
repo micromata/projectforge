@@ -9,8 +9,9 @@ export type DescriptionBlock =
  * application.properties): `- ` starts a list item, an indented line continues the line above, and any
  * other line continues a paragraph. A blank line ends a paragraph.
  *
- * No markdown on purpose: the descriptions are full of `*` (cron expressions), `_` and `<home>`,
- * which markdown would turn into emphasis or swallow as HTML.
+ * No full markdown on purpose: the descriptions are full of `*` (cron expressions), `_` and `<home>`,
+ * which markdown would turn into emphasis or swallow as HTML. The inline subset (`code`, **bold**,
+ * links) is handled by `inlineSegments`.
  */
 export function descriptionBlocks(description: string): DescriptionBlock[] {
   const blocks: DescriptionBlock[] = [];

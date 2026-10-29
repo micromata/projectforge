@@ -4,13 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { GuardedDialog } from "@/components/shared/guarded-dialog";
 import { Spinner } from "@/components/shared/spinner";
 import {
   changePasswordQueryKey,
@@ -48,7 +48,7 @@ export function ChangePasswordDialog({
       : t("menu.changePassword");
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <GuardedDialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -70,7 +70,7 @@ export function ChangePasswordDialog({
           />
         )}
       </DialogContent>
-    </Dialog>
+    </GuardedDialog>
   );
 }
 

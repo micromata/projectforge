@@ -113,8 +113,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The list of outgoing invoices (Debitorenrechnungen), layout free.
  *
- * `open` for the same reason [OrderEntityRest] is: Wicket asks for this bean through `WicketSupport`,
- * which proxies it (`RechnungEditForm` reads the attachment settings and the access checker from here).
+ * `open` for the same reason [OrderEntityRest] is: the bean is proxied by Spring.
  *
  * Answers the list, its statistics, its two exports, the multi selection the mass update page runs on
  * ([OutgoingInvoiceMassUpdateRest]) and the read/write path of the hand built edit page of
@@ -126,7 +125,7 @@ private val log = KotlinLogging.logger {}
  */
 @RestController
 @RequestMapping("${Rest.URL}/outgoingInvoice")
-open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSupport.
+open class OutgoingInvoiceEntityRest : // open: proxied by Spring.
     AbstractDTOEntityRest<RechnungDO, Rechnung, RechnungDao>(
         RechnungDao::class.java,
         "fibu.rechnung.title",

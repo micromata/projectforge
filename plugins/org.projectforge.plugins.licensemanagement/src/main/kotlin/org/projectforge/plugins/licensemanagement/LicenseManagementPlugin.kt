@@ -32,7 +32,7 @@ import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.licensemanagement.rest.LicenseEntityRest
 import org.projectforge.registry.RegistryEntry
 import org.projectforge.security.My2FAShortCut
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 
 /**
  * @author Kai Reinhard
@@ -46,7 +46,7 @@ class LicenseManagementPlugin : AbstractPlugin(
      * @see org.projectforge.plugins.core.AbstractPlugin.initialize
      */
     override fun initialize() {
-        val licenseDao = WicketSupport.get(LicenseDao::class.java)
+        val licenseDao = SpringBeans.get(LicenseDao::class.java)
         // Writes go through the standard REST paths (WRITE:license) and the file endpoints, which aren't
         // standard paths and are therefore registered explicitly.
         registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:license;/rs/license/file")
@@ -62,7 +62,7 @@ class LicenseManagementPlugin : AbstractPlugin(
         // Register the menu entry as sub menu entry of the misc menu. The licenses are migrated to
         // projectforge-next (see PageRoutes.MIGRATED), their Wicket pages are removed. The menu id
         // stays ID, LicensePluginService derives the menu visibility from it.
-        WicketSupport.get(MenuCreator::class.java).register(
+        SpringBeans.get(MenuCreator::class.java).register(
             MenuItemDefId.MISC,
             MenuItemDef(ID, "plugins.licensemanagement.menu", PageRoutes.listUrl(CATEGORY))
         )

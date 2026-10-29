@@ -34,7 +34,7 @@ import org.projectforge.plugins.liquidityplanning.rest.LiquidityEntityRest;
 import org.projectforge.plugins.liquidityplanning.rest.LiquiditySeriesRest;
 import org.projectforge.registry.RegistryEntry;
 import org.projectforge.security.My2FAShortCut;
-import org.projectforge.web.WicketSupport;
+import org.projectforge.framework.SpringBeans;
 
 /**
  * @author Kai Reinhard
@@ -58,7 +58,7 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
      */
     @Override
     protected void initialize() {
-        LiquidityEntryDao liquidityEntryDao = WicketSupport.get(LiquidityEntryDao.class);
+        LiquidityEntryDao liquidityEntryDao = SpringBeans.get(LiquidityEntryDao.class);
         // WRITE:liquidity is the category of LiquidityEntityRest (/rs/liquidity).
         registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:liquidity");
         registerShortCutClasses(My2FAShortCut.FINANCE, LiquidityEntityRest.class);
@@ -76,7 +76,7 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
         menuEntry.setRequiredUserRightId(LiquidityplanningPluginUserRightId.PLUGIN_LIQUIDITY_PLANNING);
         menuEntry.setRequiredUserRightValues(UserRightService.READONLY_READWRITE);
         menuEntry.setUrl(PageRoutes.INSTANCE.listUrl("liquidity"));
-        WicketSupport.get(MenuCreator.class).register(MenuItemDefId.REPORTING, menuEntry);
+        SpringBeans.get(MenuCreator.class).register(MenuItemDefId.REPORTING, menuEntry);
 
         // Define the access management:
         registerRight(new LiquidityPlanningRight());

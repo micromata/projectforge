@@ -468,6 +468,11 @@ class NotificationService {
                 step.error = if (sender == null) "Channel ${step.channel} not supported." else "Recipient not available."
                 return@forEach
             }
+            if (step.channel in DAILY_LIMITED_CHANNELS && remindedToday(notification, step.channel, now)) {
+                step.skipped = true
+                step.error = "Already reminded today."
+                return@forEach
+            }
             if (step.channel == NotificationChannel.MAIL && run.mailServerUnreachable) {
                 ++run.postponedMails // Stays due, no attempt counted: the next run tries again.
                 return@forEach
@@ -504,6 +509,25 @@ class NotificationService {
         given.nextDeliveryAt = notification.nextDeliveryAt
         given.inAppSince = notification.inAppSince
         return RunResult(errors = errors, lastError = lastError)
+    }
+
+    /**
+     * Has the recipient already got a mail or SMS (the channel) of the rule today? A rule reminds at most once a day
+     * per channel, whatever the cause of a second notification is (the next day it reminds again). Tests have no rule.
+     */
+    private fun remindedToday(notification: NotificationDO, channel: NotificationChannel, now: Date): Boolean {
+        val ruleId = notification.ruleId ?: return false
+        val recipientId = notification.recipientId ?: return false
+        val today = toLocalDate(now)
+        // Notifications of the rule share its cascade: one created before today may send its last step today. The
+        // extra two days cover the time zone and retries, the exact day is checked below.
+        val maxDelayMinutes = notification.readDelivery().steps.maxOfOrNull { it.delayMinutes.coerceAtLeast(0) } ?: 0
+        val since = Date(now.time - maxDelayMinutes * 60_000L - 2 * 24 * 3600_000L)
+        return notificationDao.findByRuleAndRecipientSince(ruleId, recipientId, since).any { other ->
+            other.id != notification.id && other.readDeliveryState().steps.any {
+                it.channel == channel && it.sentAt?.let { sentAt -> toLocalDate(sentAt) == today } == true
+            }
+        }
     }
 
     private fun recipientsOf(
@@ -587,6 +611,9 @@ class NotificationService {
 
         /** See [notifyDirect]. */
         internal const val DIRECT_DELIVERY_GRACE_MILLIS = 5 * 60_000L
+
+        /** The channels limited to one reminder a day and rule (see [remindedToday]). */
+        private val DAILY_LIMITED_CHANNELS = setOf(NotificationChannel.MAIL, NotificationChannel.SMS)
 
         /** The variables of all rule types. */
         val COMMON_VARIABLES = listOf("firstName", "lastName", "fullName", "nickname")

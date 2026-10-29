@@ -6,12 +6,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormAlert } from "@/components/shared/form-alert";
 import { Spinner } from "@/components/shared/spinner";
 import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { GuardedDialog } from "@/components/shared/guarded-dialog";
 import {
   CHAT_ROOMS_QUERY_KEY,
   deleteChatRoom,
@@ -91,7 +91,7 @@ export function ChatRoomDialog({
   const title = roomId == null ? t("chat.room.new") : t("chat.room.edit");
 
   return (
-    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+    <GuardedDialog open={open} onOpenChange={(next) => !next && onClose()}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -119,6 +119,6 @@ export function ChatRoomDialog({
           />
         )}
       </DialogContent>
-    </Dialog>
+    </GuardedDialog>
   );
 }

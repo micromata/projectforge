@@ -28,30 +28,46 @@ import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 
 /**
  * CVE-Radar (vulnerability management, see dev-docs/requirements/PF-CVR_CVE-Radar_Vulnerability_Management.md).
  *
- * For now only a UI prototype for the review of the specification: the pages under /next/cveradar work on test
- * data bundled with the frontend, so the plugin registers nothing but its menu entry and texts. It is not
- * activated initially; an admin switches it on in the plugin administration.
+ * Real data: the vulnerabilities imported from the NVD (start page /next/cveradar), cases (vulnerabilities and
+ * incidents) with fix criteria and closure overview, team checks, devices from the log
+ * server ([CveRadarJobs]) and the employees' confirmations. The UI prototype on test data bundled with the frontend
+ * is at /next/cveradar/demo. The plugin is not activated initially; an admin switches it on in the plugin
+ * administration.
  */
-class CveRadarPlugin : AbstractPlugin(ID, "CVE-Radar", "Vulnerability management (prototype with test data).") {
+class CveRadarPlugin : AbstractPlugin(ID, "CVE-Radar", "Vulnerability management.") {
 
     override fun initialize() {
-        val menuCreator = WicketSupport.get(MenuCreator::class.java)
+        val caseDao = SpringBeans.get(CvrCaseDao::class.java)
+        val teamCheckDao = SpringBeans.get(CvrTeamCheckDao::class.java)
+        register(CASE_CATEGORY, CvrCaseDao::class.java, caseDao, "plugins.cveradar.case")
+        register("cvrteamcheck", CvrTeamCheckDao::class.java, teamCheckDao, "plugins.cveradar.teamCheck")
+        register(
+            VULNERABILITY_CATEGORY, CvrVulnerabilityDao::class.java, SpringBeans.get(CvrVulnerabilityDao::class.java),
+            "plugins.cveradar.vulnerability",
+        )
+        val menuCreator = SpringBeans.get(MenuCreator::class.java)
         // A new page of projectforge-next without a legacy version, so no PageRoutes entry:
         menuCreator.register(MenuItemDefId.MISC, MenuItemDef(info.id, "plugins.cveradar.menu", "next/cveradar"))
         addResourceBundle(RESOURCE_BUNDLE_NAME)
     }
 
-    /** The prototype's pages have no REST category to derive them from. */
+    /** The start page and the prototype's pages have no REST category to derive them from. */
     override val featureNextRoutes: List<String>
         get() = listOf("cveradar")
 
     companion object {
         const val ID = PluginAdminService.PLUGIN_CVE_RADAR_ID
         const val RESOURCE_BUNDLE_NAME = "CveRadarI18nResources"
+
+        /** The REST category of the cases (`/rs/cvrcase`) and the route of their next pages. */
+        const val CASE_CATEGORY = "cvrcase"
+
+        /** The vulnerabilities imported from the NVD (`/rs/cvrvulnerability`), listed on the start page. */
+        const val VULNERABILITY_CATEGORY = "cvrvulnerability"
     }
 }

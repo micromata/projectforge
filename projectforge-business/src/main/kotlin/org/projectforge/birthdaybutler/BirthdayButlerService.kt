@@ -37,6 +37,7 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressStatus
+import org.projectforge.business.address.AddressUserMatcher
 import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.user.UserDao
@@ -271,10 +272,7 @@ class BirthdayButlerService {
         val activeUsers = userDao.selectAll(checkAccess = false).filter { it.hasSystemAccess() }
         val foundUsers = mutableListOf<BirthdayUser>()
         addressList.forEach { address ->
-            activeUsers.firstOrNull { user ->
-                address.firstName?.trim()?.equals(user.firstname?.trim(), ignoreCase = true) == true &&
-                        address.name?.trim()?.equals(user.lastname?.trim(), ignoreCase = true) == true
-            }?.let { user ->
+            activeUsers.firstOrNull { user -> AddressUserMatcher.nameMatches(address, user) }?.let { user ->
                 foundUsers.add(BirthdayUser(address, user))
             }
         }
