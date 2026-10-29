@@ -21,18 +21,19 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.cveradar
-
-import org.projectforge.business.user.UserRightAccessCheck
-import org.projectforge.business.user.UserRightCategory
-import org.projectforge.framework.persistence.api.UserRightService
+package org.projectforge.plugins.cveradar.model
 
 /**
- * Read-only or read-write, given per user ([CveRadarRightId.PLUGIN_CVERADAR]): the default checks of
- * [UserRightAccessCheck] (select: read-only or read-write, everything else: read-write).
+ * What the list of the vulnerabilities shows of the case of a vulnerability: filled per page by
+ * [org.projectforge.plugins.cveradar.rest.CvrVulnerabilityEntityRest], not stored. Without a case only the suggested
+ * priority is set.
  */
-class CveRadarRight : UserRightAccessCheck<Any>(
-    CveRadarRightId.PLUGIN_CVERADAR,
-    UserRightCategory.PLUGINS,
-    *UserRightService.FALSE_READONLY_READWRITE,
+class CvrTriageInfo(
+    val caseId: Long? = null,
+    val status: CvrCaseStatus? = null,
+    val priority: CvrPriority? = null,
+    val suggestedPriority: CvrPriority? = null,
+    val assigneeId: Long? = null,
+    val assigneeName: String? = null,
+    val ratingCount: Int = 0,
 )

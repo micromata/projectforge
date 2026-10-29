@@ -1785,27 +1785,42 @@ Das Plugin `cveradar` unter _Administration_ -> _Plugins_ aktivieren (oder mit
 [[cve_radar_rights]]
 ==== Rechte und Rollen
 
-Das Recht _CVE-Radar_ wird pro Benutzer vergeben (Benutzer bearbeiten, _Benutzer:innenrechte bearbeiten_):
+Die Rollen sind PF-Gruppen; ihre Namen werden konfiguriert (siehe <<cve_radar_settings>>), die Gruppen selbst legt und
+pflegt man wie jede andere Gruppe unter _Administration_ -> _Gruppen_. Jede Rolle schließt die schwächeren ein, eine
+nicht konfigurierte oder nicht vorhandene Gruppe gibt niemandem die Rolle, und die PF-Admin-Rolle allein gibt keinen
+Zugang zum CVE-Radar.
 
-[cols="1,3"]
+[cols="1,1,3"]
 |===
-|Recht |Wer und was
+|Rolle |Eigenschaft |Wer und was
 
-|_Lesend und schreibend_
-|Das Security-Team: Fälle, Team-Prüfungen, die Geräte mit ihren Personen, das Schließen von Fällen, die Schwachstellen aus der NVD.
+|Lesende
+|`readGroup`, z. B. `cve-read`
+|Z. B. die Geschäftsführung: die Schwachstellen aus der NVD, Fälle mit ihren Bewertungen und Maßnahmen, die
+Abschlussübersichten (nur Zahlen, keine Personen, keine Geräte). Sie nehmen an der Diskussion eines Falls teil.
 
-|_Nur lesend_
-|Lesende, z. B. die Geschäftsführung: die Schwachstellen aus der NVD, Fälle und Abschlussübersichten, nur als Zahlen (keine Personen, keine Geräte).
+|Security-Team
+|`writeGroup`, z. B. `cve-read-write`
+|Öffnet, übernimmt und weist Fälle zu, bewertet, setzt Status und Maßnahmen, fragt Team-Prüfungen an, sieht die Geräte
+mit ihren Personen und moderiert die Diskussionen.
 
-|keins
-|Alle Mitarbeitenden: auf _Mein CVE-Radar_ die eigenen Geräte, die für Mitarbeitende freigegebenen Fälle (zum
-Bestätigen der Maßnahmen) und die Team-Prüfungen der eigenen Gruppen.
+|Security Officer
+|`securityOfficerGroup`
+|Setzen zusätzlich die verbindliche Priorität von Fällen anderer und schließen einen Fall mit offenen Punkten (mit
+Begründung).
+
+|alle
+|
+|Auf _Mein CVE-Radar_ die eigenen Geräte, die für Mitarbeitende freigegebenen Fälle (zum Bestätigen der Maßnahmen) und
+die Team-Prüfungen der eigenen Gruppen.
 |===
 
-* Security Officer sind die Mitglieder der Gruppe, die in `projectforge.plugin.cveradar.securityOfficerGroup` steht;
-  sie brauchen zusätzlich das Recht _Lesend und schreibend_. Nur sie schließen einen Fall mit offenen Punkten (mit
-  Begründung). Ist die Eigenschaft leer, darf das niemand.
-* Eine Team-Prüfung beantworten die Mitglieder der angefragten Gruppe, dafür ist kein CVE-Radar-Recht nötig.
+* Die verbindliche Priorität eines Falls setzt, mit Begründung, die bearbeitende Person oder ein Security Officer. Solange
+  niemand zugewiesen ist, darf jedes Mitglied des Security-Teams; es wird dann die bearbeitende Person.
+* Eine Team-Prüfung beantworten die Mitglieder der angefragten Gruppe, dafür ist keine CVE-Radar-Gruppe nötig. Die Akte
+  einer Team-Prüfung mit ihrer eigenen Diskussion sehen nur diese Gruppe, das Security-Team und die Security Officer.
+* Die Diskussion eines Falls steht allen Lesenden offen. Details zu Projekten und Systemen gehören in die Akte einer
+  Team-Prüfung, nicht dorthin.
 
 [[cve_radar_settings]]
 ==== Allgemeine Einstellungen
@@ -1821,7 +1836,9 @@ projectforge.plugin.cveradar.caseIdPrefix=INC
 projectforge.plugin.cveradar.clientActiveDays=30
 # Geräte, die länger nicht gemeldet wurden, werden mit ihren Scanbefunden gelöscht (personenbezogene Daten).
 projectforge.plugin.cveradar.deviceRetentionDays=365
-# PF-Gruppe der Security Officer.
+# PF-Gruppen der Rollen (siehe oben).
+projectforge.plugin.cveradar.readGroup=cve-read
+projectforge.plugin.cveradar.writeGroup=cve-read-write
 projectforge.plugin.cveradar.securityOfficerGroup=security-officers
 ----
 
@@ -1915,7 +1932,7 @@ projectforge.plugin.cveradar.nvd.cron=0 17 */2 * * *
   (CNA). Eine Schwachstelle ohne jeden Wert wird importiert, sobald sie bewertet ist.
 * Eine gespeicherte Schwachstelle wird immer aktualisiert, auch wenn die NVD sie zurückweist (durchgestrichen
   dargestellt) oder niedriger bewertet.
-* Die Liste lesen darf, wer das Recht _CVE-Radar_ hat (siehe <<cve_radar_rights>>).
+* Die Liste lesen darf, wer eine Rolle des CVE-Radars hat (siehe <<cve_radar_rights>>). Eine Zeile öffnet die Akte der Schwachstelle.
 * Der API-Key wird nur als Header gesendet und weder geloggt noch vom Properties-Editor angezeigt.
 
 [[cve_radar_jobs]]
@@ -1933,6 +1950,25 @@ projectforge.plugin.cveradar.nvd.cron=0 17 */2 * * *
 * Ein ausgehender Proxy wird noch nicht unterstützt: ProjectForge muss beide Hosts direkt erreichen.
 * Keys und Token zeigt der Properties-Editor nie an. Statt in `projectforge.properties` können sie als
   Umgebungsvariablen gesetzt werden, z. B. `PROJECTFORGE_PLUGIN_CVERADAR_TENABLE_SECRETKEY`.
+
+[[cve_radar_file]]
+==== Die Akte einer CVE
+
+Eine Zeile der Liste der Schwachstellen öffnet die Akte der CVE: die NVD-Daten (die Hinweise zur Behebung der
+Referenzen getrennt von den übrigen), die Bewertungen, die Maßnahmen, die Diskussion und die Team-Prüfungen.
+
+* *Öffnen:* Die Akte ist zunächst nur die NVD-Seite. Der erste Klick auf _Akte öffnen_ (oder auf _Diskussion beginnen_)
+  legt den Fall zur CVE an; das dürfen alle Lesenden. Der NVD-Import ändert am Fall nichts.
+* *Bewerten:* Jedes Mitglied des Security-Teams gibt eine eigene Bewertung ab (Priorität, Ausnutzbarkeit hier,
+  Begründung); sie stehen nebeneinander, Abweichungen sind markiert. Die vorgeschlagene Priorität kommt aus dem
+  CVSS-Wert, eine Aufnahme in den KEV-Katalog der CISA hebt sie um eine Stufe. Die verbindliche Priorität setzt die
+  bearbeitende Person oder ein Security Officer, mit Begründung.
+* *Maßnahmen:* Fix-Version, Workaround, eigene Referenzen (nur http- und https-Links) und die Maßnahmen für Techies und
+  Nicht-Techies als formatierter Text.
+* *Gleichzeitig bearbeiten:* Hat jemand den Fall inzwischen geändert, lehnt der Server die Änderung ab; die Akte wird
+  neu geladen und die Änderung wiederholt.
+* *Diskussion:* Der Chat der Akte steht allen Lesenden offen. Zu Team-Prüfungen gibt es eine eigene Akte mit eigener
+  Diskussion, die nur die gefragte Gruppe, das Security-Team und die Security Officer sehen.
 
 [[cve_radar_first_case]]
 ==== Ein erster Fall ohne Anbindungen

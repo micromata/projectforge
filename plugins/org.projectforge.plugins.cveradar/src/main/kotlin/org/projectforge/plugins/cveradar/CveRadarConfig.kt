@@ -43,6 +43,12 @@ open class CveRadarConfig {
     /** Devices not reported for more days are deleted with their scan findings (EXT-07). */
     var deviceRetentionDays: Int = 365
 
+    /** Name of the PF group of the readers (role [CvrRole.READER]), e.g. `cve-read`; empty: nobody. */
+    var readGroup: String = ""
+
+    /** Name of the PF group of the security team (role [CvrRole.SECURITY_TEAM]), e.g. `cve-read-write`; empty: nobody. */
+    var writeGroup: String = ""
+
     /** Name of the PF group of the security officers (CLS-05), empty: nobody closes a case with open items. */
     var securityOfficerGroup: String = ""
 

@@ -23,21 +23,16 @@
 
 package org.projectforge.plugins.cveradar
 
-import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.plugins.cveradar.model.CvrCaseStatus
 import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
 import org.springframework.stereotype.Service
 
 /**
- * The team checks (CLS-03): created and changed by the security team ([CveRadarRight]); a member of the asked group
+ * The team checks (CLS-03): created and changed by the security team ([CveRadarAccess]); a member of the asked group
  * answers through [CveRadarService.answerTeamCheck], which checks the membership against the stored check.
  */
 @Service
-class CvrTeamCheckDao : BaseDao<CvrTeamCheckDO>(CvrTeamCheckDO::class.java) {
-    init {
-        userRightId = CveRadarRightId.PLUGIN_CVERADAR
-    }
-
+class CvrTeamCheckDao : CvrBaseDao<CvrTeamCheckDO>(CvrTeamCheckDO::class.java) {
     override fun newInstance(): CvrTeamCheckDO {
         return CvrTeamCheckDO()
     }

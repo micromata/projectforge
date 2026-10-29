@@ -52,6 +52,14 @@ enum class CvrPriority : I18nEnum {
         get() = "plugins.cveradar.priority.$name"
 }
 
+/** How likely a vulnerability is exploited in our own environment, as rated by a member of the security team (TRI-03). */
+enum class CvrExploitability : I18nEnum {
+    HIGH, MEDIUM, LOW, NONE;
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.exploitability.$name"
+}
+
 /** The answer of a team (FB-03), also of a team check (CLS-03). */
 enum class CvrTeamAnswer : I18nEnum {
     NOT_AFFECTED, FIXED, IN_PROGRESS, RISK_ACCEPTED;

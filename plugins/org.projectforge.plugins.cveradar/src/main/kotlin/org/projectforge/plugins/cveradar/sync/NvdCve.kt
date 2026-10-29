@@ -45,6 +45,8 @@ data class NvdCve(
     val cvss3: NvdCvss?,
     val cvss4: NvdCvss?,
     val cwes: List<String>,
+    /** When the CISA added it to its catalogue of actively exploited vulnerabilities (KEV), null if not listed. */
+    val kevAdded: Instant? = null,
     /** The `cve` object of the NVD as JSON. */
     val rawJson: String,
 ) {

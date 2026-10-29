@@ -72,6 +72,7 @@ object NvdCveParser {
                 .flatMap { weakness -> weakness.path("description").mapNotNull { it.textOrNull("value") } }
                 .filter { CWE_REGEX.matches(it) } // Not NVD-CWE-noinfo, NVD-CWE-Other.
                 .distinct(),
+            kevAdded = cve.textOrNull("cisaExploitAdd")?.let { parseDate(it) },
             rawJson = objectMapper.writeValueAsString(cve),
         )
     }
@@ -103,6 +104,14 @@ object NvdCveParser {
             } catch (_: DateTimeParseException) {
                 null
             }
+        }
+    }
+
+    private fun parseDate(value: String): Instant? {
+        return try {
+            java.time.LocalDate.parse(value.take(10)).atStartOfDay().toInstant(ZoneOffset.UTC)
+        } catch (_: DateTimeParseException) {
+            null
         }
     }
 
