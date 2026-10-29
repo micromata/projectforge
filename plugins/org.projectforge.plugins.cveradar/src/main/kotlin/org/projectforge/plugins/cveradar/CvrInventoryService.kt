@@ -291,6 +291,7 @@ class CvrInventoryService {
                 throw UserException(ERROR_CODE_EXISTS, it)
             }
         }
+        instance.name = request.name.clean(255)
         instance.site = request.site.clean(100)
         instance.stage = request.stage.clean(100)
         instance.tenant = request.tenant.clean(255)
@@ -602,7 +603,7 @@ class CvrInventoryService {
             val contact = userGroupCache.getUser(instance.contact?.id)
             return InventoryRow(
                 "I${instance.id}", instance.id!!, InventoryLevel.INSTANCE, parentKey,
-                system.code + (instance.code?.let { "-$it" } ?: ""), instance.code, instance.code ?: system.name, false,
+                system.code + (instance.code?.let { "-$it" } ?: ""), instance.code, instance.name ?: system.name, false,
                 canEdit, systemType = system.type,
                 criticality = instance.criticality ?: system.criticality,
                 confidentiality = instance.confidentiality ?: system.confidentiality,

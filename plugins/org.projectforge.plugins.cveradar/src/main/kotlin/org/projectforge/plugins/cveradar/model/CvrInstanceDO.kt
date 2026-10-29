@@ -64,6 +64,11 @@ open class CvrInstanceDO : DefaultBaseDO() {
     @get:Column(length = 50)
     open var code: String? = null
 
+    /** A readable name, e.g. "Headquarters production"; null shows the name of the system. */
+    @PropertyInfo(i18nKey = "plugins.cveradar.inventory.name")
+    @get:Column(length = 255)
+    open var name: String? = null
+
     @PropertyInfo(i18nKey = "plugins.cveradar.inventory.site")
     @get:Column(length = 100)
     open var site: String? = null

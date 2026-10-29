@@ -118,6 +118,7 @@ class InstanceRequest(
     /** When creating: the system. Ignored when changing. */
     val systemId: Long? = null,
     val code: String? = null,
+    val name: String? = null,
     val site: String? = null,
     val stage: String? = null,
     val tenant: String? = null,
