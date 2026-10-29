@@ -129,6 +129,8 @@ export interface Kost2ReallocationPlan {
   timesheets: Kost2ReallocationMove[];
   sums: Kost2ReallocationSum[];
   warnings: string[];
+  /** Errors refuse apply and re-apply (a salary which can't be split by the moved time sheets). */
+  errors: string[];
 }
 
 /** A refused action (HTTP 406) carries its reason; nothing was written then. */

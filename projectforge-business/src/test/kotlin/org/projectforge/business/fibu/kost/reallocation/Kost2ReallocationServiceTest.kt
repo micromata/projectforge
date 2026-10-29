@@ -421,7 +421,7 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
     }
 
     @Test
-    fun `missing salary data gives warnings, the other salaries are split`() {
+    fun `a missing salary record refuses the apply, a missing salary gives a warning`() {
         val f = Fixture(74)
         // No salary stored for the first employee, no salary record for the second one.
         persistenceService.runInTransaction { context ->
@@ -438,18 +438,17 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
             preview.warnings.contains(translateMsg("fibu.kost2Reallocation.warning.noSalary", f.user1.getFullname(), period)),
             "${preview.warnings}",
         )
-        assertTrue(
-            preview.warnings.contains(
-                translateMsg("fibu.kost2Reallocation.warning.noSalaryRecord", f.user2.getFullname(), period, f.s0.formattedNumber)
-            ),
-            "${preview.warnings}",
+        assertEquals(
+            listOf(translateMsg("fibu.kost2Reallocation.error.noSalaryRecord", f.user2.getFullname(), period, f.s0.formattedNumber)),
+            preview.errors,
         )
         assertAmounts(preview, f.salary1, f.t0 to "-600.00", f.s0 to "-400.00")
         assertNull(preview.records.find { it.record.id == f.salary2.id })
+        assertApplyRefused(f, run)
     }
 
     @Test
-    fun `an employee without kost1 gives a warning, the salary stays`() {
+    fun `an employee without kost1 refuses the apply`() {
         val f = Fixture(75)
         persistenceService.runInTransaction { context ->
             context.executeUpdate("update EmployeeDO e set e.kost1 = null where e.user.id = :userId", Pair("userId", f.user2.id))
@@ -457,12 +456,45 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
         employeeCache.forceReload()
         val run = f.createRun()
         val preview = service.preview(run.id!!, emptyList())
-        assertTrue(
-            preview.warnings.contains(translateMsg("fibu.kost2Reallocation.warning.noKost1", f.user2.getFullname())),
-            "${preview.warnings}",
-        )
+        assertEquals(listOf(translateMsg("fibu.kost2Reallocation.error.noKost1", f.user2.getFullname())), preview.errors)
         assertNull(preview.records.find { it.record.id == f.salary2.id })
         assertAmounts(preview, f.salary1, f.t0 to "-600.00", f.s0 to "-400.00")
+        assertApplyRefused(f, run)
+    }
+
+    @Test
+    fun `a re-apply whose salary record is gone is refused`() {
+        val f = Fixture(76)
+        val run = f.createRun()
+        service.apply(run.id!!, emptyList())
+        // A DATEV reimport discarded the shares, the salary record of the second employee went to another kost1.
+        shareDao.discardForRecords(listOf(f.salary2.id!!))
+        persistenceService.runInTransaction { context ->
+            val kost1 = Kost1DO().also { it.nummernkreis = 3; it.bereich = f.n; it.teilbereich = 9; context.em.persist(it) }
+            context.executeUpdate(
+                "update BuchungssatzDO b set b.kost1 = :kost1 where b.id = :id",
+                Pair("kost1", kost1),
+                Pair("id", f.salary2.id),
+            )
+        }
+        kostCache.forceReload()
+        val preview = service.preview(run.id!!, emptyList())
+        assertEquals(
+            listOf(translateMsg("fibu.kost2Reallocation.error.salaryRecordUnmatched", f.salary2.satznr.toString(), "$YEAR-$MONTH")),
+            preview.errors,
+        )
+        assertErrorKey("fibu.kost2Reallocation.error.salarySplitMissing") { service.reapply(run.id!!) }
+        assertTrue(shareService.activeShares(f.salary2).isEmpty(), "Nothing was re-applied.")
+        assertTrue(service.needsReapply(runDao.find(run.id, checkAccess = false)!!))
+    }
+
+    /** Apply refuses the plan with errors and changes nothing. */
+    private fun assertApplyRefused(f: Fixture, run: Kost2ReallocationDO) {
+        assertErrorKey("fibu.kost2Reallocation.error.salarySplitMissing") { service.apply(run.id!!, emptyList()) }
+        assertEquals(Kost2ReallocationStatus.DRAFT, runDao.find(run.id, checkAccess = false)!!.status)
+        f.records.forEach { assertTrue(shareService.activeShares(it).isEmpty(), "No shares.") }
+        f.subTimesheets.forEach { assertEquals(f.s0.id, timesheetDao.find(it.id, checkAccess = false)!!.kost2Id, "Not moved.") }
+        assertTrue(service.getTimesheetLog(run).isEmpty())
     }
 
     private fun assertErrorKey(i18nKey: String, block: () -> Unit) {

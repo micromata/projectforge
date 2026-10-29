@@ -157,6 +157,9 @@ Abgleich in `DatevRecordImportStorage` und im Job:
      Z. 107, `MonthlyEmployeeReportEntry.getMillis`). Der Arbeitsanteil (`workFraction`) kürzt sich heraus, weil
      beide Werte auf derselben Kost2 liegen.
    - Der Rest bleibt auf A.
+   - Fehlt die Kost1 des Mitarbeiters oder ein Gehaltssatz auf A, ist das ein Fehler des Plans: Anwenden und erneutes
+     Anwenden lehnen ab. Sonst würden die Zeitberichte ohne ihr Gehalt umziehen, und ein späterer Lauf würde den Rest
+     auf A durch zu wenige Stunden teilen.
    - Ein späterer Lauf auf denselben Monat bleibt ohne Rückrechnung richtig:
      - Der erste Lauf hat seine Zeitberichte schon umgestellt und den Anteil auf A verringert.
      - Restanteil auf A / aktuelle Millis auf A ist also weiterhin der ursprüngliche Betrag je Stunde.
@@ -184,7 +187,7 @@ Abgleich in `DatevRecordImportStorage` und im Job:
    die Ziel-Kost2.
 
 7. **Vorschau, Anwenden, Revert:**
-   - Vorschau: ein Diff je Satz (Original, alte Anteile, neue Anteile), Summen je Kost2 und die Warnungen aus Schritt 3.
+   - Vorschau: ein Diff je Satz (Original, alte Anteile, neue Anteile), Summen je Kost2, die Fehler und die Warnungen aus Schritt 3.
    - Anwenden, in einer Transaktion:
      1. die Anteile speichern;
      2. danach die Zeitberichte aus Schritt 2 umstellen: Kost2 → B, bei den von Hand ausgewählten auch der Task;

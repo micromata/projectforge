@@ -208,6 +208,7 @@ open class Kost2ReallocationService {
         val (run, plan) = persistenceService.runInTransaction { context ->
             val run = lockRun(context, runId, Kost2ReallocationStatus.DRAFT, "fibu.kost2Reallocation.error.notDraft")
             val plan = calculateDraft(run, manualTimesheetIds)
+            checkNoErrors(plan)
             persistShares(run, plan)
             plan.timesheets.forEach { move -> moveTimesheet(run, move) }
             run.status = Kost2ReallocationStatus.APPLIED
@@ -231,6 +232,7 @@ open class Kost2ReallocationService {
         val (run, plan) = persistenceService.runInTransaction { context ->
             val run = lockRun(context, runId, Kost2ReallocationStatus.APPLIED, "fibu.kost2Reallocation.error.notApplied")
             val plan = calculateReapply(run)
+            checkNoErrors(plan)
             persistShares(run, plan)
             run to plan
         }
@@ -306,6 +308,16 @@ open class Kost2ReallocationService {
             throw UserException(errorKey)
         }
         return run
+    }
+
+    /**
+     * A plan with errors isn't applied: the time sheets would move without their salary (it would stay on A, and a
+     * later run would split the rest of A by too few hours).
+     */
+    private fun checkNoErrors(plan: Kost2ReallocationPlan) {
+        if (plan.errors.isNotEmpty()) {
+            throw UserException("fibu.kost2Reallocation.error.salarySplitMissing", plan.errors.joinToString("; "))
+        }
     }
 
     /** The not deleted rules of the run. */
@@ -419,28 +431,35 @@ open class Kost2ReallocationService {
 
     /**
      * Calculates the new effective amounts of the records of the period: first the salary records by the moves, then
-     * the rules.
+     * the rules. A salary which can't be split by the moves (no kost1 of the employee, no salary record on A) is an
+     * error of the plan; on a re-apply, a salary record split by the run which no move matches anymore.
      * @param restrictRecordIds Only these records (re-apply).
+     * @param splitRecordIds The records of [restrictRecordIds] split by the moves when the run was applied (re-apply).
      * @param extraMillis The millis moved away from A already, to add to the current millis on A (re-apply).
      */
     private fun calculate(
         context: Context, run: Kost2ReallocationDO, moves: List<Kost2ReallocationPlan.TimesheetMove>, reapply: Boolean,
-        restrictRecordIds: Set<Long>? = null, extraMillis: (MonthKey) -> Long = { 0L },
+        restrictRecordIds: Set<Long>? = null, splitRecordIds: Set<Long> = emptySet(), extraMillis: (MonthKey) -> Long = { 0L },
         initialWarnings: List<String> = emptyList(),
     ): Kost2ReallocationPlan {
         val warnings = initialWarnings.toMutableList()
+        val errors = mutableListOf<String>()
         val records = selectRecords(run).filter { restrictRecordIds == null || it.id in restrictRecordIds }
         val sharesByRecord = shareService.activeSharesByRecordId(records.mapNotNull { it.id })
         val initial = records.associate { it.id!! to shareService.effectiveAmounts(it, sharesByRecord[it.id]) }
         val working = initial.mapValues { (_, amounts) -> LinkedHashMap(amounts) }
         val salaryRecordIds = records.filter { isSalaryRecord(it) }.mapNotNull { it.id }.toSet()
-        // Salary records: split by the millis of the moved time sheets.
+        val split = mutableSetOf<Long>()
+        // Salary records: split by the millis of the moved time sheets. On a re-apply, only some records are given:
+        // a move without salary record among them is no error (checked by the records split by the run below).
         moves.groupBy { MonthKey(it.userId, it.year, it.month, it.oldKost2Id) }.forEach { (key, group) ->
             val kost1Id = employeeCache.getEmployeeByUserId(key.userId)?.kost1?.id
             val userName = userGroupCache.getUser(key.userId)?.getFullname() ?: "#${key.userId}"
             val kost2Number = caches.getKost2(key.kost2Id)?.formattedNumber ?: "#${key.kost2Id}"
             if (kost1Id == null) {
-                warnings.add(translateMsg("fibu.kost2Reallocation.warning.noKost1", userName))
+                if (!reapply) {
+                    errors.add(translateMsg("fibu.kost2Reallocation.error.noKost1", userName))
+                }
                 return@forEach
             }
             val salaryRecords = records.filter { record ->
@@ -448,9 +467,11 @@ open class Kost2ReallocationService {
                         record.month == key.month && working[record.id]!!.containsKey(key.kost2Id)
             }
             if (salaryRecords.isEmpty()) {
-                warnings.add(
-                    translateMsg("fibu.kost2Reallocation.warning.noSalaryRecord", userName, "${key.year}-${key.month}", kost2Number)
-                )
+                if (!reapply) {
+                    errors.add(
+                        translateMsg("fibu.kost2Reallocation.error.noSalaryRecord", userName, "${key.year}-${key.month}", kost2Number)
+                    )
+                }
                 return@forEach
             }
             val current = context.report(key.userId, key.year, key.month)?.kost2TimesheetAttendances?.values
@@ -463,6 +484,7 @@ open class Kost2ReallocationService {
                 warnings.add(translateMsg("fibu.kost2Reallocation.warning.millisExceeded", userName, "${key.year}-${key.month}", kost2Number))
             }
             salaryRecords.forEach { record ->
+                split.add(record.id!!)
                 val amounts = working[record.id]!!
                 val amountA = amounts.remove(key.kost2Id) ?: return@forEach
                 val targets = selectedByTarget.keys.toList()
@@ -476,6 +498,9 @@ open class Kost2ReallocationService {
                     amounts[key.kost2Id] = (amounts[key.kost2Id] ?: BigDecimal.ZERO) + parts.last()
                 }
             }
+        }
+        records.filter { it.id in splitRecordIds && it.id !in split }.forEach { record ->
+            errors.add(translateMsg("fibu.kost2Reallocation.error.salaryRecordUnmatched", record.satznr.toString(), "${record.year}-${record.month}"))
         }
         // Rules A -> B: the other records (salary records only, if the account range covers them explicitly). The rules
         // read the amounts before the rules, so they don't chain (A -> B and B -> C moves A to B only), and each source
@@ -513,7 +538,7 @@ open class Kost2ReallocationService {
         if (!reapply) {
             warnings.addAll(plausibilityWarnings(context, moves, records, salaryRecordIds, initial))
         }
-        return Kost2ReallocationPlan(run, changes, if (reapply) emptyList() else moves, warnings)
+        return Kost2ReallocationPlan(run, changes, if (reapply) emptyList() else moves, warnings, errors)
     }
 
     /**
@@ -609,7 +634,13 @@ open class Kost2ReallocationService {
                 manual = entry.oldTask?.id != entry.newTask?.id,
             )
         }
-        return calculate(Context(), run, moves, reapply = true, restrictRecordIds = recordIds, extraMillis = { extra[it] ?: 0L })
+        val splitRecordIds = shareDao.selectAllOfRun(run.id!!)
+            .filter { it.source == Kost2ShareSource.SALARY && it.buchungssatz?.id in recordIds }
+            .mapNotNull { it.buchungssatz?.id }.toSet()
+        return calculate(
+            Context(), run, moves, reapply = true, restrictRecordIds = recordIds, splitRecordIds = splitRecordIds,
+            extraMillis = { extra[it] ?: 0L },
+        )
     }
 
     /** The records with shares of the run which were all discarded (DATEV reimport). */

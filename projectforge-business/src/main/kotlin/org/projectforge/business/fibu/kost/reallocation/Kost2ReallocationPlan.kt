@@ -29,13 +29,15 @@ import java.math.BigDecimal
 
 /**
  * The result of the calculation of a [Kost2ReallocationDO]: the new kost2 shares of the records and the time sheets
- * to move. It is shown as preview and persisted by apply (re-apply: the shares only).
+ * to move. It is shown as preview and persisted by apply (re-apply: the shares only). A plan with [errors] is shown,
+ * but refused by apply and re-apply.
  */
 class Kost2ReallocationPlan(
     val run: Kost2ReallocationDO,
     val records: List<RecordChange>,
     val timesheets: List<TimesheetMove>,
     val warnings: List<String>,
+    val errors: List<String> = emptyList(),
 ) {
     /**
      * A record with its effective amounts by kost2 id before ([oldAmounts]) and after the run ([newAmounts]). [salary]

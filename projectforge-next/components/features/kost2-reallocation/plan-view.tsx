@@ -22,7 +22,10 @@ function formatAmounts(list: Kost2ReallocationAmount[], format: FormatContext) {
     .join(" | ");
 }
 
-/** What a run changes (the preview, or the result of applying it): warnings, sums, records and time sheets. */
+/**
+ * What a run changes (the preview, or the result of applying it): errors (refusing the apply), warnings, sums,
+ * records and time sheets.
+ */
 export function PlanView({ plan }: { plan: Kost2ReallocationPlan }) {
   const t = useTranslations();
   const format = useFormatContext();
@@ -104,6 +107,11 @@ export function PlanView({ plan }: { plan: Kost2ReallocationPlan }) {
 
   return (
     <div className="flex flex-col gap-3">
+      {plan.errors.map((error, i) => (
+        <FormAlert key={`error-${i}`} tone="error">
+          {error}
+        </FormAlert>
+      ))}
       {plan.warnings.map((warning, i) => (
         <FormAlert key={i} tone="warning">
           {warning}

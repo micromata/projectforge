@@ -184,6 +184,7 @@ class Kost2ReallocationRest {
         val timesheets: List<MoveRow>,
         val sums: List<SumRow>,
         val warnings: List<String>,
+        val errors: List<String>,
     )
 
     @Autowired
@@ -437,6 +438,7 @@ class Kost2ReallocationRest {
                 SumRow(kost2 = kost2Number(kost2Id) ?: "#$kost2Id", before = sums.first, after = sums.second)
             },
             warnings = plan.warnings,
+            errors = plan.errors,
         )
     }
 
