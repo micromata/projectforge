@@ -46,7 +46,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.withDate
 import org.projectforge.framework.utils.NumberHelper.formatFraction2
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.Serializable
@@ -214,7 +214,7 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
      */
     init {
         this.user = user
-        setEmployee(WicketSupport.get(EmployeeCache::class.java).getEmployeeByUserId(user.id))
+        setEmployee(SpringBeans.get(EmployeeCache::class.java).getEmployeeByUserId(user.id))
     }
 
     /**
@@ -235,7 +235,7 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
 
     fun init() {
         if (this.user != null) {
-            this.employee = WicketSupport.get(EmployeeCache::class.java).getEmployeeByUserId(
+            this.employee = SpringBeans.get(EmployeeCache::class.java).getEmployeeByUserId(
                 user!!.id
             )
         }
@@ -355,10 +355,10 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
         val monthHolder = MonthHolder(this.fromDateTime)
         this.numberOfWorkingDays = monthHolder.numberOfWorkingDays
         // The same days as the notifications about missing time sheets show, the vacation days among them separately.
-        val vacationDays = WicketSupport.get(UnbookedDaysCalculator::class.java)?.vacationDays(employee, yearMonth).orEmpty()
+        val vacationDays = SpringBeans.get(UnbookedDaysCalculator::class.java)?.vacationDays(employee, yearMonth).orEmpty()
         unbookedDays = UnbookedDaysCalculator.unbookedDays(yearMonth, bookedDays, vacationDays)
         if (calculateVacationStats) {
-            val vacationService = WicketSupport.get(VacationService::class.java)
+            val vacationService = SpringBeans.get(VacationService::class.java)
             if (vacationService != null && this.employee != null && employee!!.user != null) {
                 if (vacationService.hasAccessToVacationService(employee!!.user, false)) {
                     val stats = vacationService.getVacationStats(employee!!)
@@ -369,7 +369,7 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
                 }
             }
         }
-        val invoicingQuotaService = WicketSupport.get(InvoicingQuotaService::class.java)
+        val invoicingQuotaService = SpringBeans.get(InvoicingQuotaService::class.java)
         // Computed only if the logged-in user may see it: the own quota, the quota of others only as member of a
         // configured group. So no page (Wicket, REST) can show it to anybody else.
         if (invoicingQuotaService?.isEnabled() == true && invoicingQuotaService.mayViewQuotaOf(user?.id)) {

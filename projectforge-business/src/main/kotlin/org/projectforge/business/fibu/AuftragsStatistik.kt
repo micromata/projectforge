@@ -100,8 +100,8 @@ class AuftragsStatistik() : Serializable {
     }
 
     fun add(auftrag: AuftragDO) {
-        // From the cache singleton rather than through WicketSupport: the statistics are built for the
-        // rest list as well (see OrderEntityRest.postProcessResultSet), where no Wicket page is involved.
+        // From the cache singleton rather than through SpringBeans: the statistics are built for the
+        // rest list (see OrderEntityRest.postProcessResultSet).
         add(AuftragsCache.instance.getOrderInfo(auftrag))
     }
 

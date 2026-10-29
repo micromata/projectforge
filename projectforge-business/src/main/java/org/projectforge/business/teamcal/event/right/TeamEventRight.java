@@ -33,7 +33,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.web.WicketSupport;
+import org.projectforge.framework.SpringBeans;
 
 import java.util.Objects;
 
@@ -169,7 +169,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
       return true;
     }
     final Long userId = user.getId();
-    if (teamCalRight.hasFullAccess(calendar, userId) || WicketSupport.getAccessChecker().isDemoUser()) {
+    if (teamCalRight.hasFullAccess(calendar, userId) || SpringBeans.getAccessChecker().isDemoUser()) {
       return true;
     }
     return false;

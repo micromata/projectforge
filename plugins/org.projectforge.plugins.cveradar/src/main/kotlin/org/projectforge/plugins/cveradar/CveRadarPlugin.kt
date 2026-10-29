@@ -28,7 +28,7 @@ import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 
 /**
  * CVE-Radar (vulnerability management, see dev-docs/requirements/PF-CVR_CVE-Radar_Vulnerability_Management.md).
@@ -42,16 +42,16 @@ import org.projectforge.web.WicketSupport
 class CveRadarPlugin : AbstractPlugin(ID, "CVE-Radar", "Vulnerability management.") {
 
     override fun initialize() {
-        val caseDao = WicketSupport.get(CvrCaseDao::class.java)
-        val teamCheckDao = WicketSupport.get(CvrTeamCheckDao::class.java)
+        val caseDao = SpringBeans.get(CvrCaseDao::class.java)
+        val teamCheckDao = SpringBeans.get(CvrTeamCheckDao::class.java)
         register(CASE_CATEGORY, CvrCaseDao::class.java, caseDao, "plugins.cveradar.case")
         register("cvrteamcheck", CvrTeamCheckDao::class.java, teamCheckDao, "plugins.cveradar.teamCheck")
         register(
-            VULNERABILITY_CATEGORY, CvrVulnerabilityDao::class.java, WicketSupport.get(CvrVulnerabilityDao::class.java),
+            VULNERABILITY_CATEGORY, CvrVulnerabilityDao::class.java, SpringBeans.get(CvrVulnerabilityDao::class.java),
             "plugins.cveradar.vulnerability",
         )
         registerRight(CveRadarRight())
-        val menuCreator = WicketSupport.get(MenuCreator::class.java)
+        val menuCreator = SpringBeans.get(MenuCreator::class.java)
         // A new page of projectforge-next without a legacy version, so no PageRoutes entry:
         menuCreator.register(MenuItemDefId.MISC, MenuItemDef(info.id, "plugins.cveradar.menu", "next/cveradar"))
         addResourceBundle(RESOURCE_BUNDLE_NAME)

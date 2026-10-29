@@ -31,7 +31,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.web.WicketSupport;
+import org.projectforge.framework.SpringBeans;
 
 import java.util.Objects;
 
@@ -137,7 +137,7 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
       }
     }
     if (toDo.getTaskId() != null) {
-      return WicketSupport.getAccessChecker().hasPermission(user, toDo.getTaskId(), AccessType.TASKS, operationType,
+      return SpringBeans.getAccessChecker().hasPermission(user, toDo.getTaskId(), AccessType.TASKS, operationType,
           false);
     } else {
       return false;

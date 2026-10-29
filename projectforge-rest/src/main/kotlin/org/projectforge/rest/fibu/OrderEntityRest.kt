@@ -98,7 +98,7 @@ private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/order")
-open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
+open class OrderEntityRest : // open: proxied by Spring.
   AbstractDTOEntityRest<AuftragDO, Auftrag, AuftragDao>(
     AuftragDao::class.java,
     "fibu.auftrag.title",
