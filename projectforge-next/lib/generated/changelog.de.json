@@ -3,7 +3,7 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.1.0",
-    "date" : "2026-10-28",
+    "date" : "2026-10-29",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
@@ -14,6 +14,9 @@
     }, {
       "type" : "changed",
       "items" : [ "Ab Version 9.2 ist Java 21 Voraussetzung: ProjectForge wird für Java 21 kompiliert, das ausführbare JAR startet nicht mehr unter Java 17. Das Docker-Image enthält bereits Java 21.", "Deckungsbeitrag: Der vorläufige Umsatz noch nicht gebuchter Debitorenrechnungen wird aus den Kostzuweisungen der Rechnungspositionen (Kost2 → Projekt) übernommen, wenn diese vollständig definiert sind; sonst wie bisher aus dem Projekt der Rechnung.", "Dateien: Das JCR (Apache Oak) wurde entfernt, alle Dateien liegen im Dateispeicher (Anhänge in der Datenbank, Datentransfer-Dateien im Dateisystem). Eine Installation, die noch das JCR nutzt, muss zuerst mit 9.1.x migrieren: ProjectForge verweigert den Start, wenn das JCR nicht migrierte Dateien enthält. JCR-Backup und Migration wurden von der Systemseite entfernt, projectforge.jcr.maxDefaultFileSize heißt jetzt projectforge.files.maxDefaultFileSize (der alte Schlüssel wird weiterhin gelesen, mit einer Warnung beim Start, bis er umbenannt ist; entfallene JCR-Properties werden ebenfalls gemeldet).", "Projekte: Der Status ist Akquise, aktiv, pausiert oder beendet (oder nicht gesetzt). Bestehende Projekte wurden umgestellt: Entwicklungsphase, produktiv und Wartung wurden zu aktiv, vorübergehend nicht aktiv zu pausiert. Die Historie zeigt weiterhin die früheren Werte." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Rechnungslisten: eine als bezahlt markierte Rechnung konnte nach einer Massenänderung im Filter \"unbezahlt\" (und in dessen Summen) bleiben, auch nach einem Refresh der Caches." ]
     } ]
   },
   "groups" : [ {

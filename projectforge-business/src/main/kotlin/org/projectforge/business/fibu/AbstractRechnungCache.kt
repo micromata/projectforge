@@ -47,11 +47,34 @@ abstract class AbstractRechnungCache(
 
     protected var invoicePosInfoMap = ConcurrentHashMap<Long, RechnungPosInfo>()
 
+    /**
+     * The infos put by [update] while a [refresh] is running. The refresh reads the database in its own connection,
+     * so it doesn't see the still uncommitted change of an update running at the same time (e.g. a mass update:
+     * a refresh started between two of its updates). Without these, the refresh would replace the fresh infos by
+     * the outdated ones read before the commit. Guarded by [refreshUpdatesLock].
+     */
+    private val updatedDuringRefresh = HashMap<Long, RechnungInfo>()
+    private val refreshUpdatesLock = Any()
+    private var refreshRunning = false
+
     open fun update(invoice: AbstractRechnungDO) {
         // useCaches = false: a cached RechnungPosInfo still references the outdated RechnungInfo (it's a val).
         val rechnungInfo = RechnungCalculator.calculate(invoice, useCaches = false)
         invoiceInfoMap[invoice.id!!] = rechnungInfo
         updatePositions(rechnungInfo)
+        rememberUpdateDuringRefresh(rechnungInfo)
+    }
+
+    /**
+     * Keeps the given freshly calculated info if a [refresh] is running, so the refresh can apply it on top of
+     * the data it has read (see [updatedDuringRefresh]).
+     */
+    protected fun rememberUpdateDuringRefresh(rechnungInfo: RechnungInfo) {
+        synchronized(refreshUpdatesLock) {
+            if (refreshRunning) {
+                updatedDuringRefresh[rechnungInfo.id] = rechnungInfo
+            }
+        }
     }
 
     /**
@@ -168,6 +191,21 @@ abstract class AbstractRechnungCache(
     override fun refresh() {
         log.info { "Initializing cache (${entityName})..." }
         val duration = LogDuration()
+        synchronized(refreshUpdatesLock) {
+            updatedDuringRefresh.clear()
+            refreshRunning = true
+        }
+        try {
+            doRefresh(duration)
+        } finally {
+            synchronized(refreshUpdatesLock) {
+                refreshRunning = false
+                updatedDuringRefresh.clear()
+            }
+        }
+    }
+
+    private fun doRefresh(duration: LogDuration) {
         // This method must not be synchronized because it works with new copies of maps.
         log.info { "Getting all invoices ($entityName)..." }
         val nInvoiceInfoMap = ConcurrentHashMap<Long, RechnungInfo>()
@@ -186,6 +224,14 @@ abstract class AbstractRechnungCache(
         }
         this.invoiceInfoMap = nInvoiceInfoMap
         this.invoicePosInfoMap = nInvoicePosInfoMap
+        // Updates made while the database was read are newer than what was read (see updatedDuringRefresh). Applied
+        // after the swap: an update arriving later writes into the new maps itself.
+        synchronized(refreshUpdatesLock) {
+            updatedDuringRefresh.values.forEach { info ->
+                nInvoiceInfoMap[info.id] = info
+                updatePositions(info)
+            }
+        }
         log.info { "Initializing cache (${entityName}) done: ${duration.toSeconds()}." }
     }
 }
