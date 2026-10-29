@@ -7,12 +7,12 @@ import { Settings02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { GuardedDialog } from "@/components/shared/guarded-dialog";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
@@ -56,7 +56,7 @@ export function CalendarSettingsDialog({
   const showsOwn = (filter?.timesheetUserId ?? 0) > 0;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <GuardedDialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           type="button"
@@ -220,6 +220,6 @@ export function CalendarSettingsDialog({
           )}
         </div>
       </DialogContent>
-    </Dialog>
+    </GuardedDialog>
   );
 }

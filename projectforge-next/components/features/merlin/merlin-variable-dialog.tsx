@@ -4,12 +4,12 @@ import { useState, type KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
 import {
-  Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { GuardedDialog } from "@/components/shared/guarded-dialog";
 import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/shared/form-alert";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
@@ -73,7 +73,7 @@ export function MerlinVariableDialog({
     // React bubbles the events of the portal along the component tree — into the edit form around, whose
     // own Return shortcut would save the template while this dialog is open.
     <div className="contents" onKeyDown={(event) => event.stopPropagation()}>
-      <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <GuardedDialog open onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-2xl" onKeyDown={onKeyDown}>
           <DialogHeader>
             <DialogTitle>
@@ -122,7 +122,7 @@ export function MerlinVariableDialog({
             </div>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </GuardedDialog>
     </div>
   );
 }

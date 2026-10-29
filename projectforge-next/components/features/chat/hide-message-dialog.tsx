@@ -4,13 +4,13 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { GuardedDialog } from "@/components/shared/guarded-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -27,7 +27,7 @@ export function HideMessageDialog({
   const t = useTranslations();
   const [reason, setReason] = useState("");
   return (
-    <Dialog
+    <GuardedDialog
       open={open}
       onOpenChange={(next) => {
         if (!next) setReason("");
@@ -67,6 +67,6 @@ export function HideMessageDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+    </GuardedDialog>
   );
 }

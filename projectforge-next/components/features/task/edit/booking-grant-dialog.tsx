@@ -4,12 +4,12 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import {
-  Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { GuardedDialog } from "@/components/shared/guarded-dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
@@ -94,7 +94,7 @@ export function BookingGrantDialog({
   return (
     // Keeps Return inside the dialog from saving the task form around it (see ValidityEntryDialog).
     <div className="contents" onKeyDown={(event) => event.stopPropagation()}>
-      <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <GuardedDialog open onOpenChange={(open) => !open && onClose()}>
         <DialogContent
           className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
           onOpenAutoFocus={(event) => event.preventDefault()}
@@ -187,7 +187,7 @@ export function BookingGrantDialog({
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </GuardedDialog>
     </div>
   );
 }
