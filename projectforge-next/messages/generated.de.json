@@ -4391,7 +4391,67 @@
         "tenant": "Mandant"
       },
       "inventory": {
+        "actions": "Aktionen",
+        "add": "Darunter hinzufügen",
+        "addArea": "Bereich anlegen",
+        "addLevel": {
+          "AREA": "Bereich",
+          "COMPONENT": "Komponente",
+          "INSTANCE": "Instanz (Installation)",
+          "SYSTEM": "System"
+        },
+        "addTechnology": "Technologie hinzufügen",
+        "asSystem": "wie das System",
+        "code": "Kürzel",
+        "collapseAll": "Alle zuklappen",
+        "confidentiality": "Vertraulichkeit",
+        "cpe": "CPE",
+        "create": "Neu",
+        "delete": "Löschen",
+        "deleteQuestion": "{arg0} löschen? Gelöscht wird nur ein Knoten ohne Unterknoten.",
+        "description": "Beschreibung",
+        "ecosystem": "Ökosystem (z. B. maven)",
+        "edit": "Bearbeiten",
+        "empty": "Noch nichts zu sehen. Einen Bereich mit einer eigenen Gruppe anlegen und die Systeme darunter einordnen.",
+        "error": {
+          "code": "Das Kürzel darf nur Buchstaben, Ziffern, Punkt, Bindestrich und Unterstrich enthalten (bis 50 Zeichen).",
+          "codeExists": "Das Kürzel {arg0} ist schon vergeben.",
+          "cycle": "Ein Bereich lässt sich nicht unter sich selbst hängen.",
+          "group": "Die Gruppe gibt es nicht, oder du bist nicht Mitglied.",
+          "lastInstance": "Die letzte Instanz eines Systems bleibt.",
+          "name": "Ein Name wird gebraucht.",
+          "notEmpty": "Darunter gibt es noch Einträge. Zuerst löschen oder umhängen.",
+          "notFound": "Den Eintrag gibt es nicht (mehr).",
+          "target": "Dorthin lässt sich das nicht umhängen.",
+          "technology": "Eine Technologie braucht ein Produkt."
+        },
+        "expandAll": "Alle aufklappen",
+        "filter": "Filtern nach Kürzel, Name oder Technologie (z. B. log4j < 2.17)",
+        "group": "Gruppe",
+        "groupFrom": "von {arg0}",
+        "groupInfo": {
+          "area": "Optional. Ohne Gruppe gelten die Gruppen der Bereiche darüber. Eine hier gewählte Gruppe sieht und ändert diesen Bereich mit allem darunter zusätzlich.",
+          "root": "Optional, aber ohne Gruppe sieht nur der Security Officer den Bereich, nach dem Speichern auch du nicht. Die Gruppe sieht und ändert diesen Bereich mit allem darunter, gewählt werden kann eine Gruppe, in der du Mitglied bist. Der Security Officer kann den Bereich später umhängen, etwa unter einen Kunden.",
+          "system": "Optional. Die Gruppen der Bereiche darüber sehen und ändern das System ohnehin; eine hier gewählte Gruppe kommt hinzu, etwa für das Team, das es betreibt."
+        },
         "hiddenSystems": "+{arg0} weitere Systeme, für diese Rolle nicht sichtbar",
+        "hint": "Die Systeme als Baum: Bereiche beliebiger Tiefe, darunter Systeme mit ihren Instanzen (Installationen) und Komponenten. Jeder Knoten wird von den Gruppen gesehen und geändert, die an ihm und an den Bereichen darüber genannt sind.",
+        "kind": "Art",
+        "move": "Umhängen",
+        "moveInfo": "Die Gruppen des Zielbereichs sehen und ändern den Knoten danach. Unter Bereiche anderer oder auf die oberste Ebene hängt nur der Security Officer um.",
+        "moveRoot": "(oberste Ebene)",
+        "moveTarget": "Unter Bereich",
+        "name": "Name",
+        "product": "Produkt oder Ökosystem",
+        "purl": "Package-URL (purl)",
+        "raiseInfo": "Eine Instanz darf Vertraulichkeit und Kritikalität ihres Systems nur anheben, nicht absenken.",
+        "removeTechnology": "Entfernen",
+        "save": "Speichern",
+        "site": "Standort",
+        "stage": "Stage",
+        "title": "Systeme",
+        "vendor": "Hersteller",
+        "version": "Version",
         "vulnCount": "{arg0} CVE(s)"
       },
       "kev": {
@@ -4420,6 +4480,7 @@
         "nav": {
           "cases": "Fälle",
           "devices": "Geräte",
+          "inventory": "Systeme",
           "my": "Mein CVE-Radar",
           "prototype": "Demo",
           "vulnerabilities": "Schwachstellen"
@@ -4539,6 +4600,7 @@
         "closure": "{arg0} sehen nur Zahlen, keine Personen. {arg1} sehen die Geräte der Personen, legen Teamprüfungen an und schließen Fälle. Ein Fall mit offenen Punkten wird nur von {arg2} geschlossen.",
         "devices": "Nur das {arg1} sieht die Geräte, sie sind personenbezogen.",
         "file": "{arg0} lesen die Akte und diskutieren mit. {arg1} übernehmen, bewerten und pflegen die Maßnahmen und Teamprüfungen. Die verbindliche Priorität setzen die bearbeitende Person oder {arg2}; einen von anderen übernommenen Fall weisen nur {arg2} neu zu.",
+        "inventory": "Alle Angemeldeten legen Bereiche mit einer eigenen Gruppe an. Die Gruppen an einem Bereich und an den Bereichen darüber sehen und ändern ihn mit allem darunter. {arg1} lesen Systeme der Stufe „intern“; vertrauliche sind nur für diese Gruppen und {arg2}. {arg2} hängen Bereiche auch um, etwa unter einen Kunden. Den Weg zu dem, was sie sehen dürfen, sehen alle, die übrigen Bereiche auf diesem Weg nicht.",
         "label": "Rechte auf dieser Seite",
         "list": "{arg0} sehen die Liste und öffnen die Akten. {arg1} bearbeiten mehrere Einträge gemeinsam (übernehmen, Priorität, Status). Alle anderen landen bei „Meine“.",
         "my": "Alle Angemeldeten sehen hier die eigenen Geräte, die Maßnahmen zum Bestätigen und die Prüfungen der eigenen Gruppen.",
@@ -4676,6 +4738,10 @@
         "info": "Team-Prüfung zu {arg0}, gefragt ist die Gruppe {arg1}. Hier dürfen Projekte und Systeme genannt werden: Diese Akte sehen nur diese Gruppe, das Security-Team und der Security Officer.",
         "title": "Team-Prüfung",
         "toCase": "Zur Akte der CVE"
+      },
+      "technologyKind": {
+        "ECOSYSTEM": "Ökosystem",
+        "PRODUCT": "Produkt"
       },
       "title": "CVE-Radar",
       "tree": {
