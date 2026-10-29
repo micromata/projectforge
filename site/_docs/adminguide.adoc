@@ -210,6 +210,7 @@ Passwords, keys and tokens are never shown: a secret can only be set to a new va
 * Before every save, a copy of the file with a timestamp is placed next to it
   (`projectforge.properties.<yyyy-MM-dd_HH-mm-ss>.bak`). The file is written sorted by groups; your own
   comments stay above the parameter they were written above.
+* The descriptions contain links to the matching sections of this guide.
 * Changes take effect only after a restart of ProjectForge.
 * A value the running system uses differently (a restart is pending, or the value is set by an
   environment variable or the command line) is marked.
