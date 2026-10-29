@@ -24,6 +24,7 @@
 
 package org.projectforge.plugins.cveradar.rest
 
+import org.projectforge.plugins.cveradar.LibraryFormat
 import org.projectforge.plugins.cveradar.model.CvrConfidentiality
 import org.projectforge.plugins.cveradar.model.CvrCriticality
 import org.projectforge.plugins.cveradar.model.CvrOrigin
@@ -156,3 +157,26 @@ class ComponentRequest(
 
 /** The area to move below, null: to the root. */
 class MoveRequest(val targetAreaId: Long? = null)
+
+/** A list a component's libraries are read from (npm `package-lock.json`, output of Maven or Gradle). */
+class LibraryFile(val name: String? = null, val text: String? = null)
+
+/** [replace]: libraries read from lists earlier and missing in these files are removed; otherwise the files only add. */
+class LibraryRequest(val files: List<LibraryFile> = emptyList(), val replace: Boolean = false)
+
+class LibraryLine(val ecosystem: String, val group: String?, val name: String, val version: String)
+
+/** What was found in a file; [format] null: not recognised. */
+class LibraryFileView(val name: String, val format: LibraryFormat?, val count: Int)
+
+/** The lines of [added] and [removed] are cut to a few; the counts are complete. */
+class LibraryDiff(
+    val files: List<LibraryFileView>,
+    val added: List<LibraryLine>,
+    val addedCount: Int,
+    val removed: List<LibraryLine>,
+    val removedCount: Int,
+    val unchangedCount: Int,
+    /** New libraries whose groupId is unknown (jar listings): no complete purl. */
+    val withoutGroupIdCount: Int = 0,
+)

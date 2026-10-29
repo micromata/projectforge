@@ -96,8 +96,12 @@ export interface ChatConversation {
   me: ChatRef;
   /** The other one of a direct message, null for other conversations. */
   directPartner: ChatRef | null;
-  /** Can files be attached (data transfer plugin active)? */
+  /** Can files be attached (allowed by the host, data transfer plugin active)? */
   filesEnabled: boolean;
+  /** Does the host take files at all? If not, no files whether the data transfer is active or not. */
+  filesAllowed: boolean;
+  /** The days the files are kept, if fixed by the host or known by the area of the conversation. */
+  fileExpiryDays: number | null;
   maxFilesPerMessage: number;
   /** The largest file the conversation takes now (bytes), null if unknown: the server checks it anyway. */
   maxFileSize: number | null;

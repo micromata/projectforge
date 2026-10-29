@@ -38,6 +38,7 @@ export function ChatPanel({
   highlightId = null,
   threadRootId: initialThreadRootId = null,
   headerSlot = null,
+  showNotice = false,
   className,
 }: {
   conversationId: number;
@@ -45,6 +46,11 @@ export function ChatPanel({
   threadRootId?: number | null;
   /** An element of the host page (e.g. its title row) to show search, muting and the like in, instead of a row of its own. */
   headerSlot?: HTMLElement | null;
+  /**
+   * Shows the notice of the host above the composer while writing (the conversation page shows it permanently itself,
+   * above its description).
+   */
+  showNotice?: boolean;
   className?: string;
 }) {
   const t = useTranslations();
@@ -145,6 +151,7 @@ export function ChatPanel({
       conversation
         ? {
             conversation,
+            writingNotice: showNotice ? (conversation.notice ?? null) : null,
             sync: live.sync,
             openThread,
             jump,
@@ -159,6 +166,7 @@ export function ChatPanel({
         : null,
     [
       conversation,
+      showNotice,
       live.sync,
       openThread,
       jump,

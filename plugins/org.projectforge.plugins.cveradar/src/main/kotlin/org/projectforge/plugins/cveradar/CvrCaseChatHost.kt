@@ -57,6 +57,9 @@ class CvrCaseChatHost : ChatHost {
     @Autowired
     private lateinit var ratingDao: CvrRatingDao
 
+    @Autowired
+    private lateinit var vulnerabilityDao: CvrVulnerabilityDao
+
     override val hostType: String = HOST_TYPE
 
     @PostConstruct
@@ -72,9 +75,16 @@ class CvrCaseChatHost : ChatHost {
 
     override fun channels(hostId: Long): List<String> = if (case(hostId) != null) listOf(CHANNEL) else emptyList()
 
+    /**
+     * Code and title, e.g. "CVE-2026-111497 – A buffer overflow in …" (also the name of the data transfer area of its
+     * files). A case opened from its CVE has the CVE id as title: then the beginning of the NVD description is taken.
+     */
     override fun title(hostId: Long, channel: String): String? {
         val case = case(hostId, channel) ?: return null
-        return listOfNotNull(case.code, case.title?.takeIf { it != case.code }).joinToString(" – ")
+        val title = case.title?.takeIf { it.isNotBlank() && it != case.code }
+            ?: case.vulnerability?.id?.let { vulnerabilityDao.find(it, checkAccess = false)?.description }
+                ?.let { abbreviate(it) }
+        return listOfNotNull(case.code, title).joinToString(" – ")
     }
 
     /** The discussion is open to all readers, so no details of projects and systems belong here. */
@@ -108,8 +118,8 @@ class CvrCaseChatHost : ChatHost {
         return ids
     }
 
-    /** Files aren't exchanged in the discussion of a case, as texts and links serve it (and the data transfer needs a plugin). */
-    override fun filesAllowed(hostId: Long, channel: String): Boolean = false
+    /** The files of a discussion go after [FILE_EXPIRY_DAYS]; the notice says no details belong in them either. */
+    override fun fileExpiryDays(hostId: Long, channel: String): Int = FILE_EXPIRY_DAYS
 
     private fun case(hostId: Long, channel: String = CHANNEL): CvrCaseDO? {
         if (channel != CHANNEL || !access.isPluginActive()) {
@@ -121,5 +131,20 @@ class CvrCaseChatHost : ChatHost {
     companion object {
         const val HOST_TYPE = "cvrCase"
         const val CHANNEL = "internal"
+
+        private const val TITLE_LENGTH = 60
+
+        /** The first words of [text], up to [TITLE_LENGTH] characters, with an ellipsis if cut. */
+        internal fun abbreviate(text: String): String {
+            val flat = text.replace(Regex("\\s+"), " ").trim()
+            if (flat.length <= TITLE_LENGTH) {
+                return flat
+            }
+            val cut = flat.take(TITLE_LENGTH - 1).substringBeforeLast(' ').ifEmpty { flat.take(TITLE_LENGTH - 1) }
+            return "$cut…"
+        }
+
+        /** The days the files of the CVE-Radar conversations are kept (cases and team checks). */
+        const val FILE_EXPIRY_DAYS = 30
     }
 }

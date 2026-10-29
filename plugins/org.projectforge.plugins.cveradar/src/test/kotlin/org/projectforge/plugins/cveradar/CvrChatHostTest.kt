@@ -26,18 +26,27 @@ package org.projectforge.plugins.cveradar
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.projectforge.business.chat.InMemoryDataTransfer
+import org.projectforge.datatransfer.DataTransferBridge
+import org.projectforge.framework.access.AccessException
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrCaseKind
 import org.projectforge.plugins.cveradar.model.CvrCaseStatus
 import org.projectforge.plugins.cveradar.rest.CveRadarRest
 import org.projectforge.plugins.cveradar.rest.CloseRequest
 import org.projectforge.plugins.cveradar.rest.TeamCheckRequest
+import org.projectforge.rest.chat.ChatOpenRequest
+import org.projectforge.rest.chat.ChatRest
+import org.projectforge.rest.chat.ChatSendRequest
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.mock.web.MockMultipartFile
 
 /**
  * Who reads, writes and moderates the discussion of a case (all readers) and of a team check (its group and the
- * security team only), and that a closed case is read-only (CTX-05).
+ * security team only), that a closed case is read-only (CTX-05), and the files of a discussion (kept 30 days, for its
+ * readers only).
  */
 class CvrChatHostTest : CveRadarTestBase() {
     @Autowired
@@ -48,6 +57,12 @@ class CvrChatHostTest : CveRadarTestBase() {
 
     @Autowired
     private lateinit var checkHost: CvrTeamCheckChatHost
+
+    @Autowired
+    private lateinit var chatRest: ChatRest
+
+    @Autowired
+    private lateinit var dataTransferBridge: DataTransferBridge
 
     @Autowired
     private lateinit var rest: CveRadarRest
@@ -107,5 +122,51 @@ class CvrChatHostTest : CveRadarTestBase() {
         assertFalse(checkHost.searchableAcrossConversations)
         assertTrue(getUserId(TEST_USER) in checkHost.participantIds(id, channel))
         assertTrue(checkHost.title(id, channel)!!.endsWith("Project D"))
+    }
+
+    @Test
+    fun `files of a discussion are kept 30 days in an area of the conversation, readers only download them`() {
+        val dataTransfer = InMemoryDataTransfer()
+        dataTransferBridge.register(dataTransfer)
+        try {
+            val reader = user("reader3", CvrRole.READER)
+            logon(user("st3", CvrRole.SECURITY_TEAM))
+            val case = CvrCaseDO().also {
+                it.kind = CvrCaseKind.INCIDENT
+                it.title = "Chat 3"
+                it.status = CvrCaseStatus.NEW
+            }
+            caseDao.insert(case)
+            logon(reader)
+            val conversationId = chatRest.open(
+                ChatOpenRequest(CvrCaseChatHost.HOST_TYPE, case.id!!, CvrCaseChatHost.CHANNEL),
+            ).conversationId!!
+            val conversation = chatRest.getConversation(conversationId)
+            assertTrue(conversation.filesEnabled && conversation.filesAllowed)
+            assertEquals(CvrCaseChatHost.FILE_EXPIRY_DAYS, conversation.fileExpiryDays, "known before the first file")
+            assertTrue(conversation.notice!!.isNotBlank())
+            val file = MockMultipartFile("files", "advisory.txt", "text/plain", "patch 2.3.1".toByteArray())
+            val sent = chatRest.sendWithFiles(conversationId, ChatSendRequest(html = "<p>advisory</p>"), listOf(file))
+            val area = dataTransfer.areas.values.single()
+            assertEquals(CvrCaseChatHost.FILE_EXPIRY_DAYS, area.expiryDays)
+            assertTrue(area.name.contains("Chat 3"), area.name)
+            val fileId = sent.files.single().fileId
+            assertEquals(200, chatRest.downloadFile(conversationId, fileId, null).statusCode.value())
+            suppressErrorLogs {
+                logon(user("outsider3", null))
+                assertThrows(AccessException::class.java) { chatRest.downloadFile(conversationId, fileId, null) }
+            }
+        } finally {
+            dataTransferBridge.register(null)
+        }
+    }
+
+    @Test
+    fun `the NVD description in the title of a case is cut at a word`() {
+        val description = "A buffer overflow vulnerability in the Brotli decoder (c/dec/decode.c) in Google Brotli versions" +
+                " 1.0.3 through 1.2.0 allows a remote attacker to crash"
+        val short = CvrCaseChatHost.abbreviate(description)
+        assertEquals("A buffer overflow vulnerability in the Brotli decoder…", short)
+        assertEquals("Short text", CvrCaseChatHost.abbreviate(" Short\n text "))
     }
 }

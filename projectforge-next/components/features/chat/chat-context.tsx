@@ -6,6 +6,11 @@ import type { ChatConversation, ChatMessage } from "@/lib/rs/chat-types";
 /** What the parts of an open conversation share: the conversation and its actions. */
 export interface ChatContextValue {
   conversation: ChatConversation;
+  /**
+   * The notice of the host shown above the composer while a message is written (embedded panels, where a permanent
+   * notice would take too much room), null for none.
+   */
+  writingNotice: string | null;
   /** Fetches the changes since the last known one (after an own action). */
   sync: () => Promise<void>;
   /** Opens the thread, scrolled to the reply [focusId] (otherwise to its end). */

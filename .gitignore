@@ -74,3 +74,8 @@ venv
 # from projectforge-next (whose own .gitignore covers the same directories).
 /test-results/
 /playwright-report/
+
+# Outputs of the library-list hints of the CVE-Radar upload dialog
+deps-gradle.txt
+deps-maven.txt
+jars.txt

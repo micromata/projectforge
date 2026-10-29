@@ -163,6 +163,8 @@ class ChatRest {
                 directHost.partnerId(context.hostId, context.user.id)?.let { converter.ref(it) }
             } else null,
             filesEnabled = fileService.filesEnabled(context),
+            filesAllowed = fileService.filesAllowed(context),
+            fileExpiryDays = fileService.fileExpiryDays(context),
             maxFilesPerMessage = fileService.maxPerMessage,
             maxFileSize = maxFileSize,
             maxFileSizeFormatted = maxFileSize?.let { FormatterUtils.formatBytes(it) },

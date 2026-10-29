@@ -23,12 +23,15 @@
 
 package org.projectforge.plugins.cveradar
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.framework.SpringBeans
+
+private val log = KotlinLogging.logger {}
 
 /**
  * CVE-Radar (vulnerability management, see dev-docs/requirements/PF-CVR_CVE-Radar_Vulnerability_Management.md).
@@ -54,6 +57,9 @@ class CveRadarPlugin : AbstractPlugin(ID, "CVE-Radar", "Vulnerability management
         // A new page of projectforge-next without a legacy version, so no PageRoutes entry:
         menuCreator.register(MenuItemDefId.MISC, MenuItemDef(info.id, "plugins.cveradar.menu", "next/cveradar"))
         addResourceBundle(RESOURCE_BUNDLE_NAME)
+        // Here and not on first read: a GET must not write.
+        runCatching { SpringBeans.get(CvrCatalogService::class.java).ensureEcosystems() }
+            .onFailure { log.error(it) { "Can't create the ecosystems of the technology catalogue: ${it.message}" } }
     }
 
     /** The start page and the prototype's pages have no REST category to derive them from. */

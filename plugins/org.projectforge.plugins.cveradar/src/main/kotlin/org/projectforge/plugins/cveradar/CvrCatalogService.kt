@@ -42,7 +42,7 @@ import org.springframework.stereotype.Service
 /**
  * The technology catalogue (INV-28): ecosystems, products/frameworks and libraries as a graph shown as a tree. Everybody
  * logged in reads it and picks from it; the security team maintains it. The ecosystems of the OSV data are created
- * on first use ([ensureEcosystems]). Ids and parents always come from the database, never from the request.
+ * when the plugin starts ([ensureEcosystems]). Ids and parents always come from the database, never from the request.
  */
 @Service
 class CvrCatalogService {
@@ -61,12 +61,8 @@ class CvrCatalogService {
     @Autowired
     private lateinit var technologyDao: CvrTechnologyDao
 
-    @Volatile
-    private var seeded = false
-
     /** The catalogue as flat rows in tree order: roots first, ecosystems before the rest, then by name. */
     fun tree(user: PFUserDO): CatalogTree {
-        ensureEcosystems()
         val model = load()
         val usage = model.technologies.groupingBy { it.catalogNodeId }.eachCount()
         val rows = mutableListOf<CatalogRow>()
@@ -81,7 +77,6 @@ class CvrCatalogService {
 
     /** Nodes whose name, alias, CPE or purl contains the term, for the picker of a technology. */
     fun autosearch(term: String?, maxResults: Int): List<CatalogRef> {
-        ensureEcosystems()
         val model = load()
         val needle = term?.trim()?.lowercase().orEmpty()
         return model.nodes.values
@@ -93,7 +88,7 @@ class CvrCatalogService {
 
     // --- Maintenance (security team) ---
 
-    fun create(user: PFUserDO, request: CatalogNodeRequest): Long {
+    fun create(user: PFUserDO, request: CatalogNodeRequest): Long = persistenceService.runInTransaction {
         access.checkSecurityTeam(user)
         val model = load()
         val node = CvrCatalogNodeDO().also { it.origin = CvrCatalogOrigin.MANUAL }
@@ -101,10 +96,10 @@ class CvrCatalogService {
         apply(node, request, model)
         val id = nodeDao.insert(node, checkAccess = false)
         syncEdges(node, parents, emptyList())
-        return id
+        id
     }
 
-    fun update(user: PFUserDO, id: Long, request: CatalogNodeRequest) {
+    fun update(user: PFUserDO, id: Long, request: CatalogNodeRequest) = persistenceService.runInTransaction {
         access.checkSecurityTeam(user)
         val model = load()
         val stored = nodeDao.find(id, checkAccess = false)?.takeIf { !it.deleted } ?: throw UserException(ERROR_NOT_FOUND)
@@ -118,7 +113,7 @@ class CvrCatalogService {
      * Folds the node into [targetId]: the technologies of the inventory and the edges move to the target, name and
      * aliases of the node become aliases of the target, the node is deleted. An ecosystem isn't merged.
      */
-    fun merge(user: PFUserDO, id: Long, targetId: Long?) {
+    fun merge(user: PFUserDO, id: Long, targetId: Long?) = persistenceService.runInTransaction {
         access.checkSecurityTeam(user)
         val model = load()
         val source = model.nodes[id] ?: throw UserException(ERROR_NOT_FOUND)
@@ -153,7 +148,7 @@ class CvrCatalogService {
     }
 
     /** Only a node without children and without technologies referring to it. */
-    fun delete(user: PFUserDO, id: Long) {
+    fun delete(user: PFUserDO, id: Long) = persistenceService.runInTransaction {
         access.checkSecurityTeam(user)
         val model = load()
         val node = model.nodes[id] ?: throw UserException(ERROR_NOT_FOUND)
@@ -174,7 +169,6 @@ class CvrCatalogService {
      */
     @Synchronized
     fun ensureEcosystems() {
-        if (seeded) return
         val existing = persistenceService.executeQuery("from CvrCatalogNodeDO e", CvrCatalogNodeDO::class.java)
             .mapNotNull { it.ecosystemKey }.toSet()
         ECOSYSTEMS.filter { it.first !in existing }.forEach { (key, name, purlType) ->
@@ -189,7 +183,6 @@ class CvrCatalogService {
                 checkAccess = false,
             )
         }
-        seeded = true
     }
 
     // --- Internals ---
@@ -199,8 +192,11 @@ class CvrCatalogService {
         val ecosystemKey = request.ecosystemKey.clean(50)
         if (kind == CvrCatalogKind.ECOSYSTEM) {
             if (ecosystemKey == null) throw UserException(ERROR_ECOSYSTEM_KEY)
-        } else if (ecosystemKey != null || node.ecosystemKey != null) {
-            // The key belongs to an ecosystem for good (it names the OSV data).
+        } else if (ecosystemKey != null) {
+            throw UserException(ERROR_ECOSYSTEM_KEY)
+        }
+        if (node.ecosystemKey != null && node.ecosystemKey != ecosystemKey) {
+            // The key belongs to an ecosystem for good (it names the OSV data, and the seed would bring it back).
             throw UserException(ERROR_ECOSYSTEM_KEY)
         }
         if (ecosystemKey != null && ecosystemKey in model.allKeys(except = node.id)) {

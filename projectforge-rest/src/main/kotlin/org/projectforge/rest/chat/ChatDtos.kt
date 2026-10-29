@@ -142,8 +142,12 @@ class ChatConversation(
     val me: ChatRef,
     /** The other one of a direct message, null for other conversations. */
     val directPartner: ChatRef?,
-    /** Can files be attached (data transfer available)? */
+    /** Can files be attached (allowed by the host, data transfer available)? */
     val filesEnabled: Boolean,
+    /** Does the host take files at all? If not, [filesEnabled] is false whether the data transfer is available or not. */
+    val filesAllowed: Boolean,
+    /** The days the files are kept, if fixed by the host or known by the area of the conversation; shown when attaching. */
+    val fileExpiryDays: Int?,
     val maxFilesPerMessage: Int,
     /** The largest file (bytes) the conversation takes now, null if unknown (no write access) or no files. */
     val maxFileSize: Long?,

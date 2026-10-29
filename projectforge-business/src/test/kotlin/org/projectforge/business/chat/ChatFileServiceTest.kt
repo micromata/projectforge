@@ -28,13 +28,17 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.zip.CRC32
 import javax.imageio.ImageIO
 
-/** The images of the chat: the type by content, metadata removed, huge images refused before decoding. */
+/**
+ * The files of the chat: refused for a host without files, the type of an image by content, metadata removed, huge
+ * images refused before decoding. That files are taken where allowed shows `DataTransferChatAreaTest`.
+ */
 class ChatFileServiceTest {
     @Test
     fun `the type is detected by the content`() {
@@ -56,6 +60,34 @@ class ChatFileServiceTest {
             ChatFileService.stripMetadata(bomb, ChatFileService.ImageType.PNG)
         }
         assertFalse(ChatFileService.pixels("no image".toByteArray()) != null)
+    }
+
+    @Test
+    fun `a posted file is refused by a host without files, before anything is stored`() {
+        val conversation = ChatConversationDO().also { it.id = 1; it.hostId = 2; it.channel = "internal" }
+        val context = ChatAccess.Context(conversation, NoFilesHost(), PFUserDO(), "case", canWrite = true, isModerator = false)
+        val service = ChatFileService()
+        assertFalse(service.filesAllowed(context))
+        val ex = assertThrows(UserException::class.java) {
+            service.store(context, listOf(ChatFileService.Upload("notes.txt", "notes".toByteArray())))
+        }
+        assertEquals(ChatFileService.ERROR_NOT_ALLOWED, ex.i18nKey)
+        assertEquals(emptyList<ChatAttachment>(), service.store(context, emptyList()), "a message without files passes")
+    }
+
+    /** A host like the discussion of a CVE case: written by everybody, no files. */
+    private class NoFilesHost : ChatHost {
+        override val hostType = "noFiles"
+        override val searchableAcrossConversations = false
+        override val usesOwnFileArea = false
+        override fun channels(hostId: Long) = listOf("internal")
+        override fun title(hostId: Long, channel: String) = "case"
+        override fun link(hostId: Long): String? = null
+        override fun hasReadAccess(user: PFUserDO, hostId: Long, channel: String) = true
+        override fun hasWriteAccess(user: PFUserDO, hostId: Long, channel: String) = true
+        override fun isModerator(user: PFUserDO, hostId: Long, channel: String) = false
+        override fun participantIds(hostId: Long, channel: String) = emptySet<Long>()
+        override fun filesAllowed(hostId: Long, channel: String) = false
     }
 
     private fun png(width: Int, height: Int): ByteArray {
