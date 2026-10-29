@@ -1025,8 +1025,10 @@
         "_": "Dateien verfügbar",
         "info": "Die Dateien des Raums werden so lange in seinem Datentransferbereich „Chat: …“ aufbewahrt und danach gelöscht."
       },
+      "next": "Nächstes Bild",
       "notAvailable": "Datei nicht mehr verfügbar",
       "openArea": "Im Datentransfer öffnen",
+      "previous": "Vorheriges Bild",
       "remove": "Datei entfernen"
     },
     "linkHint": "Chat und verschlüsselte Kommunikation",
@@ -1618,6 +1620,15 @@
           }
         },
         "chart": {
+          "breakdown": {
+            "_": "Aufschlüsselung der Prognose",
+            "fixed": "Beauftragt Festpreis / Pauschale",
+            "ist": "Fakturiert",
+            "planned": "davon Rechnung geplant",
+            "timeAndMaterials": "Beauftragt Time & Materials (Run-Rate)",
+            "total": "Prognose inkl. fakturiert",
+            "weighted": "Noch nicht beauftragt (gewichtet)"
+          },
           "cumulative": "Umsatzprognose kumuliert",
           "empty": "Weder Auftragspositionen noch Rechnungen für den Forecast gefunden.",
           "ist": "IST",
@@ -2406,11 +2417,13 @@
       "projektnummer": "Projektnummer",
       "status": {
         "acquisition": "Akquise",
+        "active": "aktiv",
         "build": "Entwicklungsphase",
         "ended": "beendet",
         "maintenance": "Wartung",
         "none": "Nicht gesetzt.",
         "onhold": "vorrübergehend (noch) nicht aktiv",
+        "paused": "pausiert",
         "productive": "produktiv (ohne Wartung)"
       },
       "title": {
@@ -5862,7 +5875,6 @@
           "tooltip": "Runs some sanity checks (structure tree, data transfer, etc.)."
         },
         "clearAlertMessage": "Clear alert message",
-        "createJcrBackupZip": "JCR-Backup-ZIP erzeugen",
         "createMissingDatabaseIndices": {
           "_": "Create database indices",
           "tooltip": "Creates missing database indices. You can call this script time by time to ensure that there is now missing database indice which may decrease the system's performance. Usually the database indices are created automatically after any update."
@@ -5885,7 +5897,6 @@
             "tooltip": "Insert your log file snippets here."
           }
         },
-        "migrateJcrFiles": "Dateien aus dem JCR übernehmen",
         "optimizeAddressImages": {
           "_": "Adressbilder optimieren",
           "question": "Sollen wirklich alle Adressbilder verkleinert und neu erzeugt werden? Auf großen Systemen kann dies eine Weile dauern.",
@@ -5935,7 +5946,6 @@
           "checks": "Prüfungen",
           "databaseActions": "Datenbank-Aktionen",
           "development": "Entwicklung",
-          "jcr": "Dokumenten-Repository (JCR)",
           "misc": {
             "logEntries": "Format log entries"
           },
@@ -5943,19 +5953,6 @@
           "systemChecksAndFunctionality": {
             "configuration": "Konfiguration"
           }
-        }
-      },
-      "jcr": {
-        "createJcrBackupZip": {
-          "info": "Schreibt ein Backup-ZIP aller Dokumente (ohne DataTransfer-Dateien) in das Backup-Verzeichnis. Das nächste Release importiert die Dokumente aus diesem ZIP in die Datenbank, daher am besten direkt vor dem Update ein frisches erzeugen."
-        },
-        "migrateJcrFiles": {
-          "info": "Kopiert alle Dateien aus dem JCR in den neuen Datei-Store (Dokumente in die Datenbank, DataTransfer-Dateien ins Dateisystem). Das JCR behält sie, ein Zurückschalten oder ein Rollback auf das vorherige Release ist also möglich. Bereits übernommene Dateien werden übersprungen, ein erneuter Lauf ist also möglich. Jede Datei wird über Größe und Checksumme geprüft; der Report liegt in jcr-migration-report.txt im ProjectForge-Home-Verzeichnis.",
-          "question": "Sollen die Dateien jetzt aus dem JCR übernommen werden? Bei großen Datenmengen dauert das eine Weile."
-        },
-        "store": {
-          "db": "Dateien liegen im neuen Datei-Store (projectforge.files.store=db): Dokumente in der Datenbank, DataTransfer-Dateien im Dateisystem. Noch nicht übernommene Dateien werden weiter aus dem JCR gelesen; die Übernahme startet beim Start automatisch, bis ein Lauf ohne Fehler durchgelaufen ist.",
-          "jcr": "Alle Dateien liegen im JCR (projectforge.files.store=jcr). Zum Umschalten projectforge.files.store=db in projectforge.properties setzen und neu starten; die Dateien werden dann übernommen."
         }
       },
       "logViewer": {

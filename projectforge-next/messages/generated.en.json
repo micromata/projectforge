@@ -1025,8 +1025,10 @@
         "_": "Files available",
         "info": "The files of the room are kept that long in its data transfer area \"Chat: …\", then they are deleted."
       },
+      "next": "Next image",
       "notAvailable": "File no longer available",
       "openArea": "Open in data transfer",
+      "previous": "Previous image",
       "remove": "Remove file"
     },
     "linkHint": "Chat and encrypted communication",
@@ -1618,6 +1620,15 @@
           }
         },
         "chart": {
+          "breakdown": {
+            "_": "Breakdown of the forecast",
+            "fixed": "Commissioned fixed price / flat rate",
+            "ist": "Invoiced",
+            "planned": "thereof invoice planned",
+            "timeAndMaterials": "Commissioned time & materials (run rate)",
+            "total": "Forecast incl. invoiced",
+            "weighted": "Not yet commissioned (weighted)"
+          },
           "cumulative": "Revenue forecast cumulated",
           "empty": "Neither order positions nor invoices found for the forecast.",
           "ist": "Invoiced",
@@ -2406,11 +2417,13 @@
       "projektnummer": "Project number",
       "status": {
         "acquisition": "acquisition",
+        "active": "active",
         "build": "build phase",
         "ended": "ended",
         "maintenance": "maintenance",
         "none": "none",
         "onhold": "on hold",
+        "paused": "paused",
         "productive": "productive (without maintenance)"
       },
       "title": {
@@ -5862,7 +5875,6 @@
           "tooltip": "Runs some sanity checks (structure tree, data transfer, etc.)."
         },
         "clearAlertMessage": "Clear alert message",
-        "createJcrBackupZip": "Create JCR backup ZIP",
         "createMissingDatabaseIndices": {
           "_": "Create database indices",
           "tooltip": "Creates missing database indices. You can call this script time by time to ensure that there is now missing database indice which may decrease the system's performance. Usually the database indices are created automatically after any update."
@@ -5885,7 +5897,6 @@
             "tooltip": "Insert your log file snippets here."
           }
         },
-        "migrateJcrFiles": "Migrate files out of the JCR",
         "optimizeAddressImages": {
           "_": "Optimize address images",
           "question": "Do you really want to shrink and rebuild all address images? On large systems this may take a while.",
@@ -5935,7 +5946,6 @@
           "checks": "Checks",
           "databaseActions": "Database actions",
           "development": "Development",
-          "jcr": "Document repository (JCR)",
           "misc": {
             "logEntries": "Format log entries"
           },
@@ -5943,19 +5953,6 @@
           "systemChecksAndFunctionality": {
             "configuration": "Configuration"
           }
-        }
-      },
-      "jcr": {
-        "createJcrBackupZip": {
-          "info": "Writes a backup ZIP of all documents (without DataTransfer files) into the backup directory. The next release imports the documents from this ZIP into the database, so create a fresh one right before the update."
-        },
-        "migrateJcrFiles": {
-          "info": "Copies all files out of the JCR into the file store (documents into the database, DataTransfer files into the file system). The JCR keeps them, so switching back or a rollback to the former release is possible. Files already migrated are skipped, so it may run again. Each file is verified by size and checksum; the report is written to jcr-migration-report.txt in the ProjectForge home directory.",
-          "question": "Migrate the files out of the JCR now? With large data volumes this takes a while."
-        },
-        "store": {
-          "db": "Files are stored in the file store (projectforge.files.store=db): documents in the database, DataTransfer files in the file system. Files not yet migrated are still read from the JCR; the migration starts automatically on start-up until a run finished without errors.",
-          "jcr": "All files are stored in the JCR (projectforge.files.store=jcr). To switch, set projectforge.files.store=db in projectforge.properties and restart; the files are migrated then."
         }
       },
       "logViewer": {
