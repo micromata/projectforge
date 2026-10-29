@@ -101,6 +101,9 @@ open class IntegrationConfig {
         const val GATEWAY = "gateway"
         const val LANES_AND_PLANES = "lanes-and-planes"
 
+        /** The import of the CVE-Radar (plugin cveradar) from the NVD API. */
+        const val CVERADAR_NVD = "cveradar-nvd"
+
         /**
          * Used, if neither the id nor the default is configured.
          */
@@ -122,6 +125,8 @@ open class IntegrationConfig {
             // The full user import (all employees with their cost units) is one big request.
             LANES_AND_PLANES to IntegrationSettings(responseTimeoutMs = 60_000),
             ICAL to IntegrationSettings(maxResponseBytes = 10L * 1024 * 1024),
+            // A page of the NVD has up to 2000 vulnerabilities with their configurations, the NVD answers slowly.
+            CVERADAR_NVD to IntegrationSettings(responseTimeoutMs = 180_000, maxResponseBytes = 200L * 1024 * 1024),
         )
 
         private var instance: IntegrationConfig? = null

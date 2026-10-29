@@ -31,7 +31,7 @@ import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.registry.RegistryEntry
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 
 /**
  * @author Kai Reinhard
@@ -45,7 +45,7 @@ class ToDoPlugin : AbstractPlugin(
      * @see org.projectforge.plugins.core.AbstractPlugin.initialize
      */
     override fun initialize() {
-        val toDoDao = WicketSupport.get(ToDoDao::class.java)
+        val toDoDao = SpringBeans.get(ToDoDao::class.java)
         val entry = RegistryEntry(ID, ToDoDao::class.java, toDoDao, "plugins.todo")
         // The ToDoDao is automatically available by the scripting engine!
         register(entry)
@@ -53,7 +53,7 @@ class ToDoPlugin : AbstractPlugin(
         // Register the menu entry as sub menu entry of the misc menu. The to-dos are migrated to projectforge-next
         // (see PageRoutes.MIGRATED), their Wicket pages are removed. The badge counts the recent to-dos of the
         // logged-in user.
-        WicketSupport.get(MenuCreator::class.java).register(
+        SpringBeans.get(MenuCreator::class.java).register(
             MenuItemDefId.MISC,
             MenuItemDef(ID, "plugins.todo.menu", PageRoutes.listUrl(CATEGORY)).also {
                 it.badgeCounter = { toDoDao.getOpenToDoEntries(null) }

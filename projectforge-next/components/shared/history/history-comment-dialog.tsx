@@ -4,13 +4,13 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "@/lib/toast";
 import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { GuardedDialog } from "@/components/shared/guarded-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -62,7 +62,7 @@ export function HistoryCommentDialog({
   const onKeyDown = useSubmitShortcut(() => void submit(), canSubmit);
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <GuardedDialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent onKeyDown={onKeyDown}>
         <DialogHeader>
           <DialogTitle>{t("history.entry")}</DialogTitle>
@@ -109,6 +109,6 @@ export function HistoryCommentDialog({
           </HintTooltip>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+    </GuardedDialog>
   );
 }

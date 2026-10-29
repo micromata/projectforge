@@ -6,13 +6,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { GuardedDialog } from "@/components/shared/guarded-dialog";
 import { Label } from "@/components/ui/label";
 import { DateInput } from "@/components/shared/date-input";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
@@ -98,7 +98,7 @@ export function ForecastExportDialog({
   );
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <GuardedDialog open onOpenChange={(open) => !open && onClose()}>
       {/* Radix focuses the first field when the dialog opens, and focusing [DateInput] opens its
           calendar — over the very date it is showing. The dialog opens with nothing focused instead;
           the remembered answer is usually the one wanted, and Tab reaches the field. */}
@@ -177,6 +177,6 @@ export function ForecastExportDialog({
           </HintTooltip>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+    </GuardedDialog>
   );
 }

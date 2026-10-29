@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
+import org.projectforge.framework.cache.CacheListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -98,6 +99,14 @@ class RechnungCache(rechnungJdbcService: RechnungJdbcService) :
         synchronized(invoiceInfoMap) {
             updatePositions(rechnungInfo)
         }
+        rememberUpdateDuringRefresh(rechnungInfo)
+    }
+
+    /**
+     * Registers the listener also on the cache of the incoming invoices, which is internal to this package.
+     */
+    fun registerEingangsrechnungListener(listener: CacheListener) {
+        eingangsrechnungCache.register(listener)
     }
 
     fun update(invoice: EingangsrechnungDO) {

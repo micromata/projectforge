@@ -26,7 +26,11 @@ package org.projectforge.rest.core
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.fibu.EingangsrechnungDO
+import org.projectforge.business.fibu.RechnungCache
+import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.cache.CacheListener
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -79,13 +83,24 @@ class CachedIdList(
  * self-heals). This is a cheap, coarse invalidation: any change to the entity invalidates every user's cached
  * lists of it, which is fine — the id list is cheap to rebuild and correctness never depends on it (a stale
  * list can only yield a short page, never a forbidden or wrong row, see [ListPageCache]).
+ *
+ * The invoice lists filter and sum by the [RechnungCache] infos (paid, overdue, sums), not by the database: a
+ * refresh of that cache also bumps the counter, otherwise an id list built from outdated infos would survive the
+ * refresh that corrects them (until its TTL ends or the filter changes).
  */
 @Service
 class ListPageChangeCounter {
     @Autowired
     private lateinit var baseDaos: List<BaseDao<*>>
 
+    @Autowired
+    private lateinit var rechnungCache: RechnungCache
+
     private val counters = ConcurrentHashMap<Class<*>, AtomicLong>()
+
+    private fun bump(doClass: Class<*>) {
+        counters.getOrPut(doClass) { AtomicLong() }.incrementAndGet()
+    }
 
     @PostConstruct
     private fun registerListeners() {
@@ -94,10 +109,16 @@ class ListPageChangeCounter {
             @Suppress("UNCHECKED_CAST")
             (dao as BaseDao<ExtendedBaseDO<Long>>).register(object : BaseDOModifiedListener<ExtendedBaseDO<Long>> {
                 override fun afterInsertOrModify(obj: ExtendedBaseDO<Long>, operationType: OperationType) {
-                    counters.getOrPut(doClass) { AtomicLong() }.incrementAndGet()
+                    bump(doClass)
                 }
             })
         }
+        rechnungCache.register(object : CacheListener {
+            override fun onAfterCacheRefresh() = bump(RechnungDO::class.java)
+        })
+        rechnungCache.registerEingangsrechnungListener(object : CacheListener {
+            override fun onAfterCacheRefresh() = bump(EingangsrechnungDO::class.java)
+        })
         log.info { "Registered list-page change counter on ${baseDaos.size} DAOs." }
     }
 

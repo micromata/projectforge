@@ -28,7 +28,7 @@ import org.projectforge.business.user.*
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.web.WicketSupport
+import org.projectforge.framework.SpringBeans
 
 /**
  * User [UserRightValue.PARTLYREADWRITE] for users who are members of FIBU_ORGA_GROUPS **and** of
@@ -48,7 +48,7 @@ class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
      * @see org.projectforge.business.user.UserRightAccessCheck.hasSelectAccess
      */
     override fun hasSelectAccess(user: PFUserDO): Boolean {
-        return WicketSupport.getAccessChecker().hasRight(
+        return SpringBeans.getAccessChecker().hasRight(
             user, id, UserRightValue.READONLY,
             UserRightValue.PARTLYREADWRITE,
             UserRightValue.READWRITE
@@ -71,7 +71,7 @@ class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
         user: PFUserDO, obj: AuftragDO?, oldObj: AuftragDO?,
         operationType: OperationType
     ): Boolean {
-        val accessChecker = WicketSupport.getAccessChecker()
+        val accessChecker = SpringBeans.getAccessChecker()
         if (operationType == OperationType.SELECT) {
             if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP)) {
                 return true

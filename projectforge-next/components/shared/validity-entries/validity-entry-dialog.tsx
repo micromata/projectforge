@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
 import {
-  Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { GuardedDialog } from "@/components/shared/guarded-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -171,7 +171,7 @@ export function ValidityEntryDialog<T extends ValidityEntry>({
     // form around this section, whose own Return shortcut would save the employee (and leave the page)
     // while the confirmation or a write of this dialog is open. Stopped here, for both dialogs.
     <div className="contents" onKeyDown={(event) => event.stopPropagation()}>
-      <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <GuardedDialog open onOpenChange={(open) => !open && onClose()}>
         {/* Radix focuses the first field when the dialog opens, and focusing [DateInput] opens its
             calendar — over the fields below it. The dialog opens with nothing focused instead (as the
             forecast export does); Tab reaches the date. */}
@@ -247,7 +247,7 @@ export function ValidityEntryDialog<T extends ValidityEntry>({
             </div>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </GuardedDialog>
       {onDelete && (
         <ConfirmDialog
           open={confirmDelete}

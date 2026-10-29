@@ -30,7 +30,7 @@ import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.web.WicketSupport;
+import org.projectforge.framework.SpringBeans;
 
 /**
  * @author Kai Reinhard
@@ -54,7 +54,7 @@ public class AddressCampaignValueRight extends UserRightAccessCheck<AddressCampa
       final AddressCampaignValueDO oldObj,
       final OperationType operationType)
   {
-    var addressDao = WicketSupport.get(AddressDao.class);
+    var addressDao = SpringBeans.get(AddressDao.class);
     if (operationType.isIn(OperationType.SELECT, OperationType.INSERT) && obj == null) {
       return addressDao.hasInsertAccess(user);
     }
@@ -76,7 +76,7 @@ public class AddressCampaignValueRight extends UserRightAccessCheck<AddressCampa
     if (obj == null || obj.getAddressCampaign() == null || obj.getAddressCampaign().getId() == null) {
       return false;
     }
-    final AddressCampaignDO campaign = WicketSupport.get(AddressCampaignDao.class)
+    final AddressCampaignDO campaign = SpringBeans.get(AddressCampaignDao.class)
         .find(obj.getAddressCampaign().getId(), false, false);
     return campaign != null && !campaign.getActive();
   }

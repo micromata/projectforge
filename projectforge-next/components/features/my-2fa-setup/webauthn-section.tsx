@@ -6,13 +6,13 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, FingerPrintIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { GuardedDialog } from "@/components/shared/guarded-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -188,7 +188,7 @@ function RegisterDialog({
   };
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <GuardedDialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("webauthn.title")}</DialogTitle>
@@ -224,7 +224,7 @@ function RegisterDialog({
           </DialogFooter>
         </form>
       </DialogContent>
-    </Dialog>
+    </GuardedDialog>
   );
 }
 
@@ -259,7 +259,7 @@ function EditDialog({
   };
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <GuardedDialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("webauthn.entry.edit")}</DialogTitle>
@@ -328,6 +328,6 @@ function EditDialog({
           }
         />
       </DialogContent>
-    </Dialog>
+    </GuardedDialog>
   );
 }

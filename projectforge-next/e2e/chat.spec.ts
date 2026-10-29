@@ -503,6 +503,63 @@ test.describe("chat", { tag: "@parallel" }, () => {
     }
   });
 
+  test("several images of a message stand side by side and are paged in the full size view", async ({
+    loggedInPage: page,
+  }) => {
+    test.skip(
+      !(await isPluginActive(page.request, "datatransfer")),
+      "Data transfer plugin not active."
+    );
+    const name = `ZZ e2e chat images ${uniqueSuffix()}`;
+    const saved = await page.request.post("/rs/chatRoom/save", {
+      headers: await writeHeaders(page.request),
+      data: { name, users: [], fileExpiryDays: 7 },
+    });
+    expect(saved.ok()).toBeTruthy();
+    const room = (await saved.json()) as { id: number; conversationId: number };
+    try {
+      const { t } = await userFormat(page);
+      await goto(page, `/chat/${room.conversationId}`);
+      const png = Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+        "base64"
+      );
+      await page.locator('input[type="file"]').setInputFiles(
+        ["e2e-first.png", "e2e-second.png"].map((fileName) => ({
+          name: fileName,
+          mimeType: "image/png",
+          buffer: png,
+        }))
+      );
+      await page
+        .getByRole("textbox", { name: t("chat.message.placeholder") })
+        .press("Enter");
+      // Side by side, no pager in the message.
+      const first = page.getByRole("button", { name: "e2e-first.png" });
+      await expect(first).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "e2e-second.png" })
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: t("chat.file.next") })
+      ).toHaveCount(0);
+      // The full size view pages by arrow keys.
+      await first.click();
+      const dialog = page.getByRole("dialog");
+      await expect(dialog.getByText("1 / 2")).toBeVisible();
+      await page.keyboard.press("ArrowRight");
+      await expect(dialog.getByText("2 / 2")).toBeVisible();
+      await page.keyboard.press("ArrowLeft");
+      await expect(dialog.getByText("1 / 2")).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(dialog).toHaveCount(0);
+    } finally {
+      await page.request.delete(`/rs/chatRoom/${room.id}`, {
+        headers: await writeHeaders(page.request),
+      });
+    }
+  });
+
   test("colours, inline code and a code block of several lines", async ({
     loggedInPage: page,
   }) => {

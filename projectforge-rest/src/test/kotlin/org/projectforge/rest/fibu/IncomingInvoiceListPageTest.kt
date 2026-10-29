@@ -33,9 +33,11 @@ import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.rest.core.ListPageCache
+import org.projectforge.rest.core.ListPageChangeCounter
 import org.projectforge.rest.core.getList
 import org.projectforge.rest.core.getListPage
 import org.springframework.beans.factory.annotation.Autowired
@@ -56,6 +58,9 @@ class IncomingInvoiceListPageTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var listPageCache: ListPageCache
+
+    @Autowired
+    private lateinit var listPageChangeCounter: ListPageChangeCounter
 
     private lateinit var request: HttpServletRequest
 
@@ -96,6 +101,19 @@ class IncomingInvoiceListPageTest : AbstractTestBase() {
         assertTrue(removed !in after.ids, "The deleted invoice is no longer in any page.")
         assertEquals(after.ids.distinct(), after.ids, "No row appears twice across the page boundaries.")
         assertEquals(wholeListIds(MagicFilter()), after.ids)
+    }
+
+    @Test
+    fun `a refresh of the invoice cache invalidates the cached id lists`() {
+        // The lists filter and sum by the cache infos: an id list built from outdated infos must not survive the
+        // refresh that corrects them.
+        val before = listPageChangeCounter.getCounter(EingangsrechnungDO::class.java)
+        val cache = AbstractCache.allCaches().first { it::class.simpleName == "EingangsrechnungCache" }
+        cache.forceReload()
+        assertTrue(
+            listPageChangeCounter.getCounter(EingangsrechnungDO::class.java) > before,
+            "A refresh of the incoming invoice cache bumps the change counter of the list pages.",
+        )
     }
 
     /** Asserts that walking every page of [filter] yields exactly the non-paged `POST list` result. */

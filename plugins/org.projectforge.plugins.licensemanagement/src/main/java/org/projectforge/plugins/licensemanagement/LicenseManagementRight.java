@@ -31,7 +31,7 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.web.WicketSupport;
+import org.projectforge.framework.SpringBeans;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -65,7 +65,7 @@ public class LicenseManagementRight extends UserRightAccessCheck<LicenseDO>
       // Visible for new objects (created by current user):
       return true;
     }
-    if (WicketSupport.getAccessChecker().isLoggedInUserMemberOfAdminGroup()) {
+    if (SpringBeans.getAccessChecker().isLoggedInUserMemberOfAdminGroup()) {
       // Administrators have always access:
       return true;
     }

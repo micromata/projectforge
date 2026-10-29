@@ -83,6 +83,11 @@ export interface EntityListPageProps<
    * liquidity page shows this list in one tab and its forecast in another, under a single shell.
    */
   embedded?: boolean;
+  /**
+   * With `embedded`: the host shows the heading already (a tab), so the list leaves out its own title
+   * row and puts its gear menu and actions into the search row.
+   */
+  compact?: boolean;
 }
 
 /**
@@ -102,6 +107,7 @@ export function EntityListPage<
   filterOverride,
   transient = false,
   embedded = false,
+  compact = false,
 }: EntityListPageProps<Row, Values, Data, M>) {
   // Column layout is stored server-side per entity, so it follows the user across devices (see
   // AbstractPagesRest.columnStates). The table only mounts once it has arrived: the state seeds
@@ -152,6 +158,7 @@ export function EntityListPage<
       restoredFilter={restoredFilter}
       transient={transient}
       embedded={embedded}
+      compact={compact}
     />
   );
 }
@@ -203,12 +210,14 @@ function DeclaredList<
   restoredFilter,
   transient = false,
   embedded = false,
+  compact = false,
 }: {
   page: PageDef<Row, Values, Data, M>;
   storedState: ColumnState;
   restoredFilter?: MagicFilter;
   transient?: boolean;
   embedded?: boolean;
+  compact?: boolean;
 }) {
   const t = useTranslations();
   // Where "add" and a row click lead: this app's form, or the legacy one for a page whose list is
@@ -348,6 +357,7 @@ function DeclaredList<
     <ListPageShell
       toolbar={
         <ListToolbar
+          compact={embedded && compact}
           // Through leafKeyOf: a title key may be a namespace as well (`task.title.list` is both the
           // heading and the parent of `task.title.list.select`), and the bare key would throw.
           title={t(leafKeyOf(page.titleKey, t.has))}
