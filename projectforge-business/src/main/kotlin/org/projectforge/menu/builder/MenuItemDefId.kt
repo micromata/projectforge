@@ -102,6 +102,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "next/monthlyEmployeeReport"), //
     // Migrated to projectforge-next (MyAccountRest); the React pages were removed.
     MY_ACCOUNT("menu.myAccount", "next/myAccount"), //
+    // Next only, in the user menu (MenuRest), not in the main menu: the digital business cards (BusinessCardRest).
+    MY_BUSINESS_CARDS("menu.myBusinessCards", "next/myBusinessCards"), //
     CUSTOMIZE_MENU("menu.customizeMenu", "${Constants.NEXT_APP_PATH}customizeMenu"), //
     // Migrated to projectforge-next (My2FASetupRest); the React pages were removed.
     MY_2FA_SETUP("menu.2FASetup", "next/2FASetup"), //

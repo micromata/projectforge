@@ -1,0 +1,19 @@
+{
+  "type": "added",
+  "en": "Digital business cards",
+  "de": "Digitale Visitenkarten",
+  "items": [
+    {
+      "en": "Several cards per user, each with a QR code (vCard) to show, e.g. as a screenshot. Reached from the user menu and the address list.",
+      "de": "Mehrere Karten pro Benutzer, jede mit einem QR-Code (vCard) zum Vorzeigen, z. B. als Screenshot. Erreichbar über das Benutzermenü und die Adressliste."
+    },
+    {
+      "en": "The data is taken over from an address of the address book (the own one is suggested), picked per field and editable; private data only if ticked.",
+      "de": "Die Daten werden aus einer Adresse des Adressbuchs übernommen (die eigene wird vorgeschlagen), pro Feld ausgewählt und lassen sich ändern; private Daten nur nach Auswahl."
+    },
+    {
+      "en": "The photo of the own address can be linked in the vCard: the gateway delivers it under a signed url and needs no further data for it.",
+      "de": "Das Foto der eigenen Adresse kann in der vCard verlinkt werden: Der Gateway liefert es unter einer signierten URL aus und braucht dafür keine weiteren Daten."
+    }
+  ]
+}
