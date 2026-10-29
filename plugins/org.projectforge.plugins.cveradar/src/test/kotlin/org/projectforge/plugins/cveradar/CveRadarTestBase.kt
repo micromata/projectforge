@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired
  */
 abstract class CveRadarTestBase : AbstractTestBase() {
     @Autowired
-    private lateinit var cveRadarConfig: CveRadarConfig
+    protected lateinit var cveRadarConfig: CveRadarConfig
 
     @Autowired
     private lateinit var testGroupDao: GroupDao

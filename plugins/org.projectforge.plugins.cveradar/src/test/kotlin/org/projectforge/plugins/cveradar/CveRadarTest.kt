@@ -322,6 +322,7 @@ class CveRadarTest : CveRadarTestBase() {
         )
         logon(TEST_USER)
         val my = rest.my()
+        assertEquals(cveRadarConfig.securityOfficerGroup.trim(), my.groups.securityOfficer, "the configured groups, for the help texts")
         assertTrue(my.devices.all { it.username == TEST_USER }, "only the own devices")
         assertTrue(my.devices.any { it.serialNumber == "SN-MY1" })
         assertTrue(my.advisories.any { it.id == released.id })

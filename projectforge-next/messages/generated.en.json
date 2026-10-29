@@ -4438,6 +4438,21 @@
         "save": "Save rating"
       },
       "reason": "Reason",
+      "rights": {
+        "cases": "{arg0} see the cases. {arg1} create and edit them.",
+        "closure": "{arg0} see counts only, no persons. {arg1} see the devices of the persons, create team checks and close cases. A case with open items is closed by {arg2} only.",
+        "devices": "Only the {arg1} see the devices, they are personal data.",
+        "file": "{arg0} read the file and join the discussion. {arg1} take over, rate, and maintain the measures and team checks. The binding priority is set by the assignee or {arg2}; only {arg2} reassign a case that somebody else has taken over.",
+        "label": "Rights on this page",
+        "list": "{arg0} see the list and open the files. {arg1} edit several entries at once (take over, priority, status). Everybody else is sent to \"My\".",
+        "my": "Everybody logged in sees their own devices, the measures to confirm and the checks of their own groups here.",
+        "role": {
+          "officer": "Security officers",
+          "reader": "Readers",
+          "team": "Security team"
+        },
+        "teamcheck": "Members of the checked group and the {arg1} answer. Only the {arg1} create and delete team checks."
+      },
       "role": {
         "CA": "CVE-Radar admin",
         "EMPLOYEE": "Employee",

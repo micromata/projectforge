@@ -4438,6 +4438,21 @@
         "save": "Bewertung speichern"
       },
       "reason": "Begründung",
+      "rights": {
+        "cases": "{arg0} sehen die Fälle. {arg1} legen sie an und bearbeiten sie.",
+        "closure": "{arg0} sehen nur Zahlen, keine Personen. {arg1} sehen die Geräte der Personen, legen Teamprüfungen an und schließen Fälle. Ein Fall mit offenen Punkten wird nur von {arg2} geschlossen.",
+        "devices": "Nur das {arg1} sieht die Geräte, sie sind personenbezogen.",
+        "file": "{arg0} lesen die Akte und diskutieren mit. {arg1} übernehmen, bewerten und pflegen die Maßnahmen und Teamprüfungen. Die verbindliche Priorität setzen die bearbeitende Person oder {arg2}; einen von anderen übernommenen Fall weisen nur {arg2} neu zu.",
+        "label": "Rechte auf dieser Seite",
+        "list": "{arg0} sehen die Liste und öffnen die Akten. {arg1} bearbeiten mehrere Einträge gemeinsam (übernehmen, Priorität, Status). Alle anderen landen bei „Meine“.",
+        "my": "Alle Angemeldeten sehen hier die eigenen Geräte, die Maßnahmen zum Bestätigen und die Prüfungen der eigenen Gruppen.",
+        "role": {
+          "officer": "Security Officer",
+          "reader": "Leser:innen",
+          "team": "Security-Team"
+        },
+        "teamcheck": "Mitglieder der geprüften Gruppe und das {arg1} antworten. Teamprüfungen anlegen und löschen nur das {arg1}."
+      },
       "role": {
         "CA": "CVE-Radar-Admin",
         "EMPLOYEE": "Mitarbeiter:in",
