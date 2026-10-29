@@ -4451,7 +4451,7 @@
       "libraries": {
         "added": "New",
         "apply": "Apply",
-        "choose": "Choose files",
+        "drop": "Drop the files here or click to choose them",
         "entries": "{arg0} entries",
         "error": {
           "tooLarge": "The file {arg0} is larger than {arg1} MB.",
@@ -4475,6 +4475,7 @@
         "preview": "Preview",
         "removeAll": "Remove all uploaded libraries",
         "removeAllQuestion": "Remove all {arg0} libraries uploaded for this component? Technologies entered by hand stay.",
+        "removeFile": "Remove {arg0}",
         "removed": "Removed",
         "replace": "Replace the libraries uploaded earlier",
         "replaceHint": "Off: the files only add to what is there. On: libraries from earlier uploads that are in none of these files are removed. Technologies entered by hand stay in both cases.",

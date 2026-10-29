@@ -4451,7 +4451,7 @@
       "libraries": {
         "added": "Neu",
         "apply": "Übernehmen",
-        "choose": "Dateien wählen",
+        "drop": "Dateien hier ablegen oder klicken, um sie zu wählen",
         "entries": "{arg0} Einträge",
         "error": {
           "tooLarge": "Die Datei {arg0} ist größer als {arg1} MB.",
@@ -4475,6 +4475,7 @@
         "preview": "Vorschau",
         "removeAll": "Alle hochgeladenen Bibliotheken entfernen",
         "removeAllQuestion": "Alle {arg0} für diese Komponente hochgeladenen Bibliotheken entfernen? Von Hand eingetragene Technologien bleiben.",
+        "removeFile": "{arg0} entfernen",
         "removed": "Entfällt",
         "replace": "Früher hochgeladene Bibliotheken ersetzen",
         "replaceHint": "Aus: die Dateien ergänzen nur, was da ist. An: Bibliotheken früherer Uploads, die in keiner dieser Dateien stehen, werden entfernt. Von Hand eingetragene Technologien bleiben in beiden Fällen.",
