@@ -26,7 +26,6 @@ package org.projectforge.plugins.cveradar
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrConfirmationDO
 import org.projectforge.plugins.cveradar.model.CvrDeviceDO
-import org.projectforge.plugins.cveradar.model.CvrScanFindingDO
 import org.projectforge.plugins.cveradar.model.CvrTeamAnswer
 import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,7 +34,7 @@ import java.util.Date
 
 /**
  * The closure overview of a case (CLS-02): which devices are fixed by the fix criteria (CLS-01) or confirmed by
- * their user (CLS-04), which scan findings and team checks (CLS-03) are open, and whether the case can be closed.
+ * their user (CLS-04), which team checks (CLS-03) are open, and whether the case can be closed.
  */
 @Service
 class CvrCaseStatusService {
@@ -49,10 +48,10 @@ class CvrCaseStatusService {
     private lateinit var teamCheckDao: CvrTeamCheckDao
 
     enum class DeviceState {
-        /** Proved fixed: agent version or check, and no open scan finding of the case. */
+        /** Proved fixed: agent version or check. */
         FIXED,
 
-        /** Proved open: an open scan finding, a failed check or an agent version below the minimum. */
+        /** Proved open: a failed check or an agent version below the minimum. */
         OPEN,
 
         /** No evidence, but its user confirmed the measures. */
@@ -66,7 +65,6 @@ class CvrCaseStatusService {
     class DeviceStatus(
         val device: CvrDeviceDO,
         val state: DeviceState,
-        val openFindings: List<CvrScanFindingDO>,
         val checkPassed: Boolean?,
         val confirmation: CvrConfirmationDO?,
     )
@@ -95,40 +93,27 @@ class CvrCaseStatusService {
         val activeSince = Date(now.time - config.clientActiveDays * MILLIS_PER_DAY)
         val allDevices = deviceService.selectDevices()
         val active = allDevices.filter { it.lastSeen?.before(activeSince) == false }
-        val findings = deviceService.selectFindings(active.mapNotNull { it.id }).groupBy { it.deviceId }
         val confirmations = case.id?.let { deviceService.selectConfirmations(it) } ?: emptyList()
         val teamChecks = case.id?.let { teamCheckDao.selectByCase(it) } ?: emptyList()
-        return status(case, active, allDevices.size - active.size, findings, confirmations, teamChecks)
+        return status(case, active, allDevices.size - active.size, confirmations, teamChecks)
     }
 
     /** The states of the given (active) devices only, e.g. the own ones of a user, without the case's other items. */
-    fun deviceStates(
-        case: CvrCaseDO,
-        activeDevices: List<CvrDeviceDO>,
-        openFindingsByDevice: Map<Long?, List<CvrScanFindingDO>>,
-    ): List<DeviceStatus> {
-        return status(case, activeDevices, 0, openFindingsByDevice, emptyList(), emptyList()).devices
+    fun deviceStates(case: CvrCaseDO, activeDevices: List<CvrDeviceDO>): List<DeviceStatus> {
+        return status(case, activeDevices, 0, emptyList(), emptyList()).devices
     }
 
     internal fun status(
         case: CvrCaseDO,
         activeDevices: List<CvrDeviceDO>,
         inactiveDevices: Int,
-        openFindingsByDevice: Map<Long?, List<CvrScanFindingDO>>,
         confirmations: List<CvrConfirmationDO>,
         teamChecks: List<CvrTeamCheckDO>,
     ): CaseStatus {
-        val pluginIds = CvrCaseDO.splitList(case.scanPluginIds).toSet()
-        val cveIds = CvrCaseDO.splitList(case.cveIds).map { it.uppercase() }.toSet()
-        val hasScanCriteria = pluginIds.isNotEmpty() || cveIds.isNotEmpty()
         val hasAgentCriteria = !case.minClientAgentVersion.isNullOrBlank() || !case.clientAgentCheckId.isNullOrBlank()
-        val clientsRelevant = hasScanCriteria || hasAgentCriteria || case.clientAdvisory
+        val clientsRelevant = hasAgentCriteria || case.clientAdvisory
         val confirmationByUser = confirmations.associateBy { it.userId }
         val devices = if (!clientsRelevant) emptyList() else activeDevices.map { device ->
-            val open = (openFindingsByDevice[device.id] ?: emptyList()).filter { finding ->
-                pluginIds.contains(finding.pluginId) ||
-                        CvrCaseDO.splitList(finding.cveIds).any { cveIds.contains(it.uppercase()) }
-            }
             val checkPassed = case.clientAgentCheckId?.takeIf { it.isNotBlank() }?.let {
                 deviceService.agentChecks(device)[it]?.passed
             }
@@ -137,15 +122,13 @@ class CvrCaseStatusService {
             val versionTooLow = minVersion != null && !device.agentVersion.isNullOrBlank() && !versionFixed
             val confirmation = device.userId?.let { confirmationByUser[it] }
             val state = when {
-                open.isNotEmpty() || checkPassed == false -> DeviceState.OPEN
+                checkPassed == false -> DeviceState.OPEN
                 versionFixed || checkPassed == true -> DeviceState.FIXED
                 versionTooLow -> DeviceState.OPEN
-                // Only scan criteria: no open finding in a scan of the device is the evidence.
-                !hasAgentCriteria && hasScanCriteria && device.lastScanSync != null -> DeviceState.FIXED
                 confirmation?.answer?.isConfirmed == true -> DeviceState.CONFIRMED
                 else -> DeviceState.NO_DATA
             }
-            DeviceStatus(device, state, open, checkPassed, confirmation)
+            DeviceStatus(device, state, checkPassed, confirmation)
         }
         val openItems = mutableListOf<OpenItem>()
         fun add(key: String, count: Int) {

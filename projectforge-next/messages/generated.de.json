@@ -4034,7 +4034,6 @@
         "closeReason": "Begründung des Abschlusses",
         "code": "Kennung",
         "codeHint": "CVE-ID einer Schwachstelle; ein Vorfall ohne Kennung erhält die nächste des Jahres.",
-        "cveIds": "CVE-IDs",
         "error": {
           "codeExists": "Die Kennung {arg0} gibt es schon.",
           "conflict": "Dieser Fall wurde inzwischen geändert (um {arg0}). Bitte neu laden und die Änderung wiederholen.",
@@ -4046,9 +4045,6 @@
           "CVE": "Schwachstelle (CVE)",
           "INCIDENT": "Vorfall"
         },
-        "list": {
-          "hint": "Mehrere Werte durch Kommas getrennt."
-        },
         "minClientAgentVersion": "Mindestversion des Client-Agents",
         "new": {
           "hint": "Die Abschlussübersicht mit Team-Prüfungen und Geräten gibt es nach dem ersten Speichern."
@@ -4057,7 +4053,6 @@
         "priority": "Priorität",
         "priorityReason": "Begründung der Priorität",
         "referenceLinks": "Eigene Referenzen",
-        "scanPluginIds": "Plugin-IDs des Scanners",
         "section": {
           "advisory": "Client-Hinweis",
           "criteria": "Behebungskriterien",
@@ -4168,7 +4163,6 @@
         "confirmation": "Bestätigung",
         "hostname": "Hostname",
         "lastSeen": "Zuletzt gemeldet",
-        "openFindings": "Offene Scanbefunde",
         "serialNumber": "Seriennummer",
         "state": {
           "CONFIRMED": "Bestätigt",
@@ -4316,13 +4310,13 @@
       },
       "live": {
         "devices": {
-          "hint": "Alle Geräte, wie Schwachstellenscanner und Log-Server sie melden. Personenbezogene Daten: nur für das Security-Team sichtbar.",
+          "hint": "Alle Geräte, wie der Log-Server sie meldet. Personenbezogene Daten: nur für das Security-Team sichtbar.",
           "title": "Geräte"
         },
         "entry": "Echte Daten:",
         "my": {
           "devices": "Meine Geräte",
-          "hint": "Die zu bestätigenden Maßnahmen, die offenen Prüfungen der eigenen Gruppen und die eigenen Geräte, wie Schwachstellenscanner und Log-Server sie melden.",
+          "hint": "Die zu bestätigenden Maßnahmen, die offenen Prüfungen der eigenen Gruppen und die eigenen Geräte, wie der Log-Server sie meldet.",
           "noDevices": "Für dich sind keine Geräte gemeldet.",
           "teamChecks": "Prüfungen meiner Gruppen",
           "title": "Mein CVE-Radar"

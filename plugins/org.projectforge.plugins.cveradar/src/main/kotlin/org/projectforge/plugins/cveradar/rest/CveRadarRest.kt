@@ -39,7 +39,6 @@ import org.projectforge.plugins.cveradar.CvrStatisticsService
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrClientAnswer
 import org.projectforge.plugins.cveradar.model.CvrDeviceDO
-import org.projectforge.plugins.cveradar.model.CvrScanFindingDO
 import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
@@ -132,8 +131,7 @@ class CveRadarRest {
     fun devices(): List<DeviceRow> {
         access.checkSecurityTeam(ThreadLocalUserContext.requiredLoggedInUser)
         val devices = deviceService.selectDevices()
-        val findings = deviceService.selectFindings(devices.mapNotNull { it.id }).groupBy { it.deviceId }
-        return devices.map { deviceRow(it, findings[it.id] ?: emptyList()) }
+        return devices.map { deviceRow(it) }
     }
 
     @AccessChecked("CveRadarAccess.checkReader: read-only or read-write right; counts only")
@@ -156,12 +154,11 @@ class CveRadarRest {
         val userId = user.id!!
         val activeSince = Date(System.currentTimeMillis() - config.clientActiveDays * 24L * 3600 * 1000)
         val devices = deviceService.selectDevicesOfUser(userId)
-        val findings = deviceService.selectFindings(devices.mapNotNull { it.id }).groupBy { it.deviceId }
         val confirmations = deviceService.selectConfirmationsOfUser(userId).associateBy { it.caseId }
         val activeDevices = devices.filter { it.lastSeen?.before(activeSince) == false }
         val advisories = service.releasedCases().map { case ->
             // The own devices only, loaded once for all cases.
-            val ownStates = statusService.deviceStates(case, activeDevices, findings)
+            val ownStates = statusService.deviceStates(case, activeDevices)
             val confirmation = confirmations[case.id]
             Advisory(
                 id = case.id!!,
@@ -175,7 +172,7 @@ class CveRadarRest {
             )
         }
         return MyView(
-            devices = devices.map { deviceRow(it, findings[it.id] ?: emptyList()) },
+            devices = devices.map { deviceRow(it) },
             advisories = advisories,
             teamChecks = service.myTeamChecks(user).map { teamCheckRow(user, it) },
             reader = access.isReader(user),
@@ -207,7 +204,7 @@ class CveRadarRest {
                 inactive = status.inactiveDevices,
             ),
             deviceRows = if (!securityTeam) null else status.devices.map {
-                deviceRow(it.device, it.openFindings, it.state, it.checkPassed, it.confirmation?.answer)
+                deviceRow(it.device, it.state, it.checkPassed, it.confirmation?.answer)
             },
             teamChecks = status.teamChecks.map { teamCheckRow(user, it) },
             confirmations = ConfirmationCounts(
@@ -232,14 +229,11 @@ class CveRadarRest {
         clientAdvisory = case.clientAdvisory,
         minClientAgentVersion = case.minClientAgentVersion,
         clientAgentCheckId = case.clientAgentCheckId,
-        scanPluginIds = case.scanPluginIds,
-        cveIds = case.cveIds,
         closeReason = case.closeReason,
     )
 
     private fun deviceRow(
         device: CvrDeviceDO,
-        findings: List<CvrScanFindingDO>,
         state: CvrCaseStatusService.DeviceState? = null,
         checkPassed: Boolean? = null,
         confirmation: CvrClientAnswer? = null,
@@ -252,13 +246,9 @@ class CveRadarRest {
         agentVersion = device.agentVersion,
         agentVersionAt = device.agentVersionAt,
         lastSeen = device.lastSeen,
-        lastScanSync = device.lastScanSync,
         state = state,
         checkPassed = checkPassed,
         confirmation = confirmation,
-        openFindings = findings.map {
-            ScanFindingRow(it.pluginId, it.pluginName, it.severity, it.cveIds, it.firstSeen, it.lastSeen)
-        },
     )
 
     /**

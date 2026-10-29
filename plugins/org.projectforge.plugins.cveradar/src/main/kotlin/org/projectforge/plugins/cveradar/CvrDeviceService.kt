@@ -32,8 +32,6 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.plugins.cveradar.model.CvrClientAnswer
 import org.projectforge.plugins.cveradar.model.CvrConfirmationDO
 import org.projectforge.plugins.cveradar.model.CvrDeviceDO
-import org.projectforge.plugins.cveradar.model.CvrScanFindingDO
-import org.projectforge.plugins.cveradar.model.CvrScanFindingStatus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.Date
@@ -41,7 +39,7 @@ import java.util.Date
 private val log = KotlinLogging.logger {}
 
 /**
- * Devices, scan findings and confirmations: written by the syncs and by the employees' confirmations, read by the
+ * Devices and confirmations: written by the sync and by the employees' confirmations, read by the
  * closure overview. No access checks here, the callers check (devices are personal data, VIS-15).
  */
 @Service
@@ -51,28 +49,6 @@ class CvrDeviceService {
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
-
-    /** An asset of the scanner, mapped to a device (EXT-03). Values are cut to the column sizes. */
-    class ScanAsset(assetId: String, assetName: String, serialNumber: String, username: String) {
-        val assetId = assetId.take(50)
-        val assetName = assetName.take(255)
-        val serialNumber = serialNumber.take(100)
-        val username = username.take(255)
-    }
-
-    /** A finding of the scanner for an asset (EXT-01). Values are cut to the column sizes. */
-    class ScanVuln(
-        pluginId: String,
-        val pluginName: String? = null,
-        val severity: Int? = null,
-        val cveIds: List<String> = emptyList(),
-        val firstSeen: Date? = null,
-        val lastSeen: Date? = null,
-        hostname: String? = null,
-    ) {
-        val pluginId = pluginId.take(50)
-        val hostname = hostname?.take(255)
-    }
 
     /**
      * A message of the client agent from the log server (EXT-04, EXT-05). Values are cut to the column sizes: one
@@ -97,8 +73,6 @@ class CvrDeviceService {
     /** The latest result of a check of the client agent. */
     class AgentCheck(var passed: Boolean = false, var at: Date? = null)
 
-    class ScanResult(var newFindings: Int = 0, var reopened: Int = 0, var resolved: Int = 0)
-
     fun selectDevices(): List<CvrDeviceDO> {
         return persistenceService.executeQuery("from CvrDeviceDO d order by d.username", CvrDeviceDO::class.java)
     }
@@ -111,28 +85,6 @@ class CvrDeviceService {
         )
     }
 
-    fun selectFindings(deviceIds: Collection<Long>? = null, openOnly: Boolean = true): List<CvrScanFindingDO> {
-        if (deviceIds?.isEmpty() == true) {
-            return emptyList()
-        }
-        val where = mutableListOf<String>()
-        val params = mutableListOf<Pair<String, Any?>>()
-        if (deviceIds != null) {
-            where.add("f.deviceId in :deviceIds")
-            params.add(Pair("deviceIds", deviceIds))
-        }
-        if (openOnly) {
-            where.add("f.status = :status")
-            params.add(Pair("status", CvrScanFindingStatus.OPEN))
-        }
-        val whereClause = if (where.isEmpty()) "" else " where ${where.joinToString(" and ")}"
-        return persistenceService.executeQuery(
-            "from CvrScanFindingDO f$whereClause order by f.severity desc, f.pluginId",
-            CvrScanFindingDO::class.java,
-            *params.toTypedArray(),
-        )
-    }
-
     fun agentChecks(device: CvrDeviceDO): Map<String, AgentCheck> {
         val json = device.agentChecks?.takeIf { it.isNotBlank() } ?: return emptyMap()
         return try {
@@ -141,58 +93,6 @@ class CvrDeviceService {
             log.warn { "Can't read the agent checks of device #${device.id}: ${ex.message}" }
             emptyMap()
         }
-    }
-
-    /**
-     * Stores an asset of the scanner with its findings of the current sync: the device (by serial number) is created
-     * or updated; findings not reported any more are resolved, reported resolved ones are reopened (EXT-02).
-     */
-    fun applyScanAsset(asset: ScanAsset, vulns: List<ScanVuln>, syncTime: Date = Date()): ScanResult {
-        val result = ScanResult()
-        persistenceService.runInTransaction { context ->
-            val device = findOrCreateDevice(context, asset.serialNumber, asset.username, null)
-            device.scanAssetId = asset.assetId
-            device.scanAssetName = asset.assetName
-            device.username = asset.username
-            device.userId = resolveUserId(asset.username)
-            vulns.firstNotNullOfOrNull { it.hostname?.takeIf { name -> name.isNotBlank() } }?.let { device.hostname = it }
-            device.lastSeen = maxOf(device.lastSeen ?: syncTime, syncTime)
-            device.lastScanSync = syncTime
-            context.update(device)
-            val existing = context.executeQuery(
-                "from CvrScanFindingDO f where f.deviceId = :deviceId",
-                CvrScanFindingDO::class.java,
-                Pair("deviceId", device.id),
-                attached = true,
-            ).associateBy { it.pluginId }
-            val reported = vulns.associateBy { it.pluginId }
-            reported.values.forEach { vuln ->
-                val finding = existing[vuln.pluginId] ?: CvrScanFindingDO().also {
-                    it.deviceId = device.id
-                    it.pluginId = vuln.pluginId
-                    result.newFindings++
-                }
-                if (finding.status == CvrScanFindingStatus.RESOLVED) {
-                    result.reopened++
-                }
-                finding.pluginName = vuln.pluginName?.take(1000)
-                finding.severity = vuln.severity
-                finding.cveIds = vuln.cveIds.joinToString(",").take(4000).takeIf { it.isNotEmpty() }
-                finding.firstSeen = vuln.firstSeen ?: finding.firstSeen ?: syncTime
-                finding.lastSeen = vuln.lastSeen ?: syncTime
-                finding.status = CvrScanFindingStatus.OPEN
-                finding.resolvedAt = null
-                if (finding.id == null) context.insert(finding) else context.update(finding)
-            }
-            existing.values.filter { it.status == CvrScanFindingStatus.OPEN && !reported.containsKey(it.pluginId) }
-                .forEach {
-                    it.status = CvrScanFindingStatus.RESOLVED
-                    it.resolvedAt = syncTime
-                    context.update(it)
-                    result.resolved++
-                }
-        }
-        return result
     }
 
     /**
@@ -238,7 +138,7 @@ class CvrDeviceService {
         return updated
     }
 
-    /** Deletes the devices not reported for [retentionDays] with their findings (EXT-07). */
+    /** Deletes the devices not reported for [retentionDays] (EXT-07). */
     fun deleteOutdated(retentionDays: Int, now: Date = Date()): Int {
         val limit = Date(now.time - retentionDays * MILLIS_PER_DAY)
         return persistenceService.runInTransaction { context ->
@@ -248,7 +148,6 @@ class CvrDeviceService {
                 Pair("limit", limit),
             )
             if (ids.isNotEmpty()) {
-                context.executeUpdate("delete from CvrScanFindingDO f where f.deviceId in :ids", Pair("ids", ids))
                 context.executeUpdate("delete from CvrDeviceDO d where d.id in :ids", Pair("ids", ids))
             }
             ids.size

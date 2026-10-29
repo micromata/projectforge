@@ -33,7 +33,7 @@ import jakarta.persistence.Table
 import java.util.Date
 
 /**
- * An employee device (EXT-03, EXT-07), known only from the scanner and the log server, never maintained by hand.
+ * An employee device (EXT-03, EXT-07), known only from the log server, never maintained by hand.
  * Personal data: visible to the security team and the user only (VIS-15).
  */
 @Entity
@@ -68,20 +68,9 @@ open class CvrDeviceDO {
     @get:Column(length = 255)
     open var hostname: String? = null
 
-    /** Id of the asset (list) in the scanner. */
-    @get:Column(name = "scan_asset_id", length = 50)
-    open var scanAssetId: String? = null
-
-    @get:Column(name = "scan_asset_name", length = 255)
-    open var scanAssetName: String? = null
-
     /** Last time any source reported the device. */
     @get:Column(name = "last_seen")
     open var lastSeen: Date? = null
-
-    /** Last sync of the scanner reporting the device. */
-    @get:Column(name = "last_scan_sync")
-    open var lastScanSync: Date? = null
 
     /** Version of the client agent (EXT-04). */
     @get:Column(name = "agent_version", length = 50)

@@ -41,7 +41,6 @@ import org.projectforge.plugins.cveradar.model.CvrCaseStatus
 import org.projectforge.plugins.cveradar.model.CvrClientAnswer
 import org.projectforge.plugins.cveradar.model.CvrConfirmationDO
 import org.projectforge.plugins.cveradar.model.CvrDeviceDO
-import org.projectforge.plugins.cveradar.model.CvrScanFindingDO
 import org.projectforge.plugins.cveradar.model.CvrTeamAnswer
 import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
@@ -57,8 +56,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.util.Date
 
 /**
- * CVE-Radar R0: access of the security team, of readers and of ordinary users (SEC-07), the sync of scan findings
- * (EXT-02), the closure overview (CLS-02) with team checks (CLS-03) and confirmations (CLS-04), and closing (CLS-05).
+ * CVE-Radar R0: access of the security team, of readers and of ordinary users (SEC-07), the sync of the client agents
+ * (EXT-04), the closure overview (CLS-02) with team checks (CLS-03) and confirmations (CLS-04), and closing (CLS-05).
  */
 class CveRadarTest : CveRadarTestBase() {
     @Autowired
@@ -82,7 +81,7 @@ class CveRadarTest : CveRadarTestBase() {
     init {
         listOf(
             CvrCaseDO::class.java, CvrTeamCheckDO::class.java, CvrConfirmationDO::class.java,
-            CvrDeviceDO::class.java, CvrScanFindingDO::class.java, CvrVulnerabilityDO::class.java,
+            CvrDeviceDO::class.java, CvrVulnerabilityDO::class.java,
             org.projectforge.plugins.cveradar.model.CvrRatingDO::class.java,
         ).forEach { MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(it.canonicalName) }
     }
@@ -176,29 +175,31 @@ class CveRadarTest : CveRadarTestBase() {
     }
 
     @Test
-    fun `scan findings not reported any more are resolved and reopened when reported again`() {
-        val asset = CvrDeviceService.ScanAsset("a1", "SN-RESOLVE_testUser", "SN-RESOLVE", TEST_USER)
-        val vulnA = CvrDeviceService.ScanVuln("p-a", "A", 3, listOf("CVE-2026-0001"))
-        val vulnB = CvrDeviceService.ScanVuln("p-b", "B", 2)
-        val first = deviceService.applyScanAsset(asset, listOf(vulnA, vulnB))
-        assertEquals(2, first.newFindings)
-        val second = deviceService.applyScanAsset(asset, listOf(vulnA))
-        assertEquals(1, second.resolved)
-        val third = deviceService.applyScanAsset(asset, listOf(vulnA, vulnB))
-        assertEquals(0, third.newFindings)
-        assertEquals(1, third.reopened)
-        val device = deviceService.selectDevices().single { it.serialNumber == "SN-RESOLVE" }
+    fun `messages of the client agents keep the newest version and check and resolve the user`() {
+        val t0 = Date(1_000_000)
+        val t1 = Date(2_000_000)
+        val record = { at: Date, version: String?, checkId: String?, passed: Boolean? ->
+            CvrDeviceService.AgentRecord(at, TEST_USER, "SN-AGENT", "nb-test", version, checkId, passed)
+        }
+        assertEquals(
+            1,
+            deviceService.applyAgentRecords(
+                listOf(record(t1, "2.6.40", "INC-CHECK", true), record(t0, "2.6.3", "INC-CHECK", false)),
+            ),
+        )
+        deviceService.applyAgentRecords(listOf(record(t0, "2.6.1", null, null)))
+        val device = deviceService.selectDevices().single { it.serialNumber == "SN-AGENT" }
         assertEquals(getUserId(TEST_USER), device.userId, "the user name is resolved to the PF user")
-        assertEquals(2, deviceService.selectFindings(listOf(device.id!!)).size)
+        assertEquals("2.6.40", device.agentVersion, "older messages don't replace the newer ones")
+        assertEquals(true, deviceService.agentChecks(device)["INC-CHECK"]!!.passed)
     }
 
     @Test
-    fun `devices are fixed by version, check or scan, open otherwise or confirmed by their user`() {
+    fun `devices are fixed by version or check, open otherwise or confirmed by their user`() {
         val case = CvrCaseDO().also {
             it.id = 4711
             it.minClientAgentVersion = "2.6.34"
             it.clientAgentCheckId = "INC-CHECK"
-            it.scanPluginIds = "p-ca"
             it.clientAdvisory = true
         }
         fun device(id: Long, version: String? = null, checks: String? = null, userId: Long? = null) =
@@ -213,16 +214,13 @@ class CveRadarTest : CveRadarTestBase() {
         val byCheck = device(2, checks = """{"INC-CHECK":{"passed":true,"at":0}}""")
         val tooOld = device(3, version = "2.6.3")
         val failedCheck = device(4, version = "2.6.40", checks = """{"INC-CHECK":{"passed":false,"at":0}}""")
-        val withFinding = device(5, version = "2.6.40")
-        val noData = device(6)
-        val confirmed = device(7, userId = 99)
-        val finding = CvrScanFindingDO().also { it.deviceId = 5; it.pluginId = "p-ca" }
+        val noData = device(5)
+        val confirmed = device(6, userId = 99)
         val confirmation = CvrConfirmationDO().also { it.userId = 99; it.answer = CvrClientAnswer.DONE }
         val status = statusService.status(
             case,
-            listOf(byVersion, byCheck, tooOld, failedCheck, withFinding, noData, confirmed),
+            listOf(byVersion, byCheck, tooOld, failedCheck, noData, confirmed),
             0,
-            mapOf(5L to listOf(finding)),
             listOf(confirmation),
             emptyList(),
         )
@@ -231,11 +229,10 @@ class CveRadarTest : CveRadarTestBase() {
         assertEquals(DeviceState.FIXED, states[2])
         assertEquals(DeviceState.OPEN, states[3])
         assertEquals(DeviceState.OPEN, states[4], "a failed check beats the version")
-        assertEquals(DeviceState.OPEN, states[5], "an open scan finding of the case")
-        assertEquals(DeviceState.NO_DATA, states[6])
-        assertEquals(DeviceState.CONFIRMED, states[7])
+        assertEquals(DeviceState.NO_DATA, states[5])
+        assertEquals(DeviceState.CONFIRMED, states[6])
         assertFalse(status.closable)
-        assertEquals(mapOf("devicesOpen" to 3, "devicesNoData" to 1), status.openItems.associate { it.key to it.count })
+        assertEquals(mapOf("devicesOpen" to 2, "devicesNoData" to 1), status.openItems.associate { it.key to it.count })
     }
 
     @Test
@@ -317,11 +314,11 @@ class CveRadarTest : CveRadarTestBase() {
         logon(user("st5", CvrRole.SECURITY_TEAM))
         val released = insertCase("released") { it.clientAdvisory = true; it.nonTechMeasures = "Update." }
         val internal = insertCase("internal")
-        deviceService.applyScanAsset(
-            CvrDeviceService.ScanAsset("a2", "SN-MY2_testUser2", "SN-MY2", TEST_USER2), emptyList(),
-        )
-        deviceService.applyScanAsset(
-            CvrDeviceService.ScanAsset("a1", "SN-MY1_testUser", "SN-MY1", TEST_USER), emptyList(),
+        deviceService.applyAgentRecords(
+            listOf(
+                CvrDeviceService.AgentRecord(Date(), TEST_USER2, "SN-MY2", version = "2.6.40"),
+                CvrDeviceService.AgentRecord(Date(), TEST_USER, "SN-MY1", version = "2.6.40"),
+            ),
         )
         logon(TEST_USER)
         val my = rest.my()

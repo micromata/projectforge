@@ -1725,8 +1725,8 @@ Capture and represent the skills of the employees, managed by the users themselv
 
 Vulnerability management for the security team: cases (vulnerabilities with CVE id and incidents without one), team
 checks of projects and systems, the confirmations of the employees and a closure overview, which shows whether a case
-can be closed. As evidence on the client devices, a vulnerability scanner (Tenable.sc) and a central log server
-(Graylog) with the messages of a client agent can be connected; both are optional.
+can be closed. As evidence on the client devices, a central log server (Graylog) with the messages of a client agent can be
+connected; it is optional.
 
 The plugin is under development. The page _Miscellaneous_ -> _CVE-Radar_ lists the vulnerabilities imported from the
 NVD (see <<cve_radar_nvd>>); the pages _Cases_, _Devices_ and _My CVE-Radar_ work on real data as well. The remaining
@@ -1796,33 +1796,7 @@ projectforge.plugin.cveradar.writeGroup=cve-read-write
 projectforge.plugin.cveradar.securityOfficerGroup=security-officers
 ----
 
-The outdated devices are deleted by the jobs of the connectors (see <<cve_radar_jobs>>).
-
-[[cve_radar_tenable]]
-==== Vulnerability scanner (Tenable.sc)
-
-ProjectForge reads the assets and their findings through the REST API of Tenable.sc. Every asset (asset list) whose
-name matches `assetPattern` is a client device: the named groups `serial` and `user` of the pattern give its serial
-number and the user name, which is mapped to the ProjectForge user of the same name.
-
-[source,properties]
-----
-projectforge.plugin.cveradar.tenable.url=https://tenable.example.org
-# API keys of a Tenable.sc user with read access only (My Account -> API keys).
-projectforge.plugin.cveradar.tenable.accessKey=...
-projectforge.plugin.cveradar.tenable.secretKey=...
-# Severities imported: 0 info, 1 low, 2 medium, 3 high, 4 critical.
-projectforge.plugin.cveradar.tenable.severities=2,3,4
-# E.g. assets named like "C02XYZ123_jane.doe".
-projectforge.plugin.cveradar.tenable.assetPattern=(?<serial>[A-Z0-9]+)_(?<user>[a-z0-9.]+)
-# Daily at 5:40 (UTC).
-projectforge.plugin.cveradar.tenable.cron=0 40 5 * * *
-----
-
-* The connector is inactive while url, one of the keys or the pattern is empty.
-* A finding no longer reported by the scanner is _resolved by scan_, a resolved one reported again is reopened.
-* If the findings of an asset can't be read completely, the asset is skipped and keeps its findings; the job reports
-  it as failed.
+The outdated devices are deleted by the job of the connector (see <<cve_radar_jobs>>).
 
 [[cve_radar_log_server]]
 ==== Log server (Graylog)
@@ -1890,18 +1864,18 @@ projectforge.plugin.cveradar.nvd.cron=0 17 */2 * * *
 [[cve_radar_jobs]]
 ==== Jobs and connections
 
-* The connectors and the NVD import run as jobs, _CVE-Radar: vulnerability scanner_, _CVE-Radar: client agents_ and
+* The connector and the NVD import run as jobs, _CVE-Radar: client agents_ and
   _CVE-Radar: NVD import_, listed under
   _Administration_ -> _Job monitor_. There they can be started at once (_Run now_); while their source isn't configured, they
-  are shown as inactive with the reason. The summary of every run (devices, new, reopened and resolved findings) is
+  are shown as inactive with the reason. The summary of every run is
   shown in the run and logged, errors are part of the error digest.
 * Timeouts and the max size of a response are set per connection with
-  `projectforge.integration.clients.cveradar-tenable.*`, `projectforge.integration.clients.cveradar-graylog.*` and
+  `projectforge.integration.clients.cveradar-graylog.*` and
   `projectforge.integration.clients.cveradar-nvd.*` (e.g. `responseTimeoutMs`, `maxResponseBytes`, default 50 MB; for
   the NVD 180 s and 200 MB, as a page has up to 2000 vulnerabilities).
 * An outgoing proxy isn't supported yet: ProjectForge must reach both hosts directly.
 * Keys and the token are never shown by the properties editor. Instead of `projectforge.properties` they may be given
-  as environment variables, e.g. `PROJECTFORGE_PLUGIN_CVERADAR_TENABLE_SECRETKEY`.
+  as environment variables, e.g. `PROJECTFORGE_PLUGIN_CVERADAR_GRAYLOG_TOKEN`.
 
 [[cve_radar_file]]
 ==== The file of a CVE
@@ -1935,7 +1909,7 @@ A case can be worked through without any connector:
   reason (_Close case_).
 
 With the connectors running, the fix criteria of the case are the evidence on the devices: a minimum version of the
-client agent, the id of a check of the agent and the plugin ids or CVEs of the scanner.
+client agent and the id of a check of the agent.
 
 [[further_plugins]]
 === Further plugins
