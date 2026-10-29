@@ -5,7 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   OnChangeFn,
   PaginationState,
@@ -215,22 +215,29 @@ export function useMagicFilterQuery<O>({
   const paged = serverPaging && !columnFilterActive;
   const { pageIndex, pageSize } = pagination;
 
+  // The first paged request of a mounted list rebuilds the backend's cached id list: it is invalidated by
+  // changes through the DAOs only, so a change past them (a restored dump, a direct SQL update) left a stale
+  // result — an empty one for a search term asked before the data was there — until its TTL ended. A reload
+  // of the page now always shows the current result.
+  const rebuilt = useRef(false);
   const query = useQuery<ResultSet<O>>({
     queryKey: paged
       ? [...queryKey, filter, pageIndex, pageSize]
       : [...queryKey, filter],
-    queryFn: ({ signal }) =>
-      paged
-        ? fetchListPage<O>(
-            entity,
-            filter,
-            pageIndex * pageSize,
-            pageSize,
-            false,
-            signal,
-            doNotStore
-          )
-        : fetchList<O>(entity, filter, signal, doNotStore),
+    queryFn: ({ signal }) => {
+      if (!paged) return fetchList<O>(entity, filter, signal, doNotStore);
+      const refresh = !rebuilt.current;
+      rebuilt.current = true;
+      return fetchListPage<O>(
+        entity,
+        filter,
+        pageIndex * pageSize,
+        pageSize,
+        refresh,
+        signal,
+        doNotStore
+      );
+    },
     placeholderData: keepPreviousData,
     // Always asked again, a filter seen a moment ago too (the cached rows show meanwhile): the request is
     // what stores the filter as the user's current one on the backend (getList → saveCurrentFilter). Under

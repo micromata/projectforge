@@ -34,7 +34,10 @@ silently skipped rows and a `COUNT(*)` larger than what the user may see:
   the DAO's list entity graph, chunked `IN` clauses). So DTO mapping, formatting and Jackson run on 50
   rows instead of thousands.
 - **Self-healing cache.** `ListPageChangeCounter` counts inserts/updates/deletes per entity; a cached list
-  built before a change is rebuilt. `refresh` forces a rebuild right after the client's own write. The
+  built before a change is rebuilt. It bumps before the commit and once more when the transaction ends, so a
+  list built in between (old database and index state) isn't taken for current. A change past the DAOs (a
+  restored dump, SQL) isn't counted: the first request of a mounted list therefore sends `refresh`, so a reload
+  of the page always rebuilds. `refresh` also forces a rebuild right after the client's own write. The
   cache is never a correctness authority: every served row is access-checked again, so a stale list can
   at worst give a short page, never a forbidden row.
 - **Sorting** a computed column happens on the id list (`AbstractEntityRest.sortIds`): from a cache value

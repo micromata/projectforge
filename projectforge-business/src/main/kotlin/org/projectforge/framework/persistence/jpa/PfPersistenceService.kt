@@ -85,6 +85,22 @@ open class PfPersistenceService {
     fun isTransactionActive(): Boolean = PfPersistenceContextThreadLocal.getTransactional() != null
 
     /**
+     * Runs [action] when the active transaction of this thread ends (committed or rolled back), after the
+     * synchronizations registered before it (Hibernate Search's index write among them).
+     *
+     * @return false if no transaction is active: nothing is registered, the caller decides.
+     */
+    fun runAfterTransactionCompletion(action: () -> Unit): Boolean {
+        val transaction = PfPersistenceContextThreadLocal.getTransactional()?.em?.unwrap(Session::class.java)
+            ?.transaction?.takeIf { it.isActive } ?: return false
+        transaction.registerSynchronization(object : jakarta.transaction.Synchronization {
+            override fun beforeCompletion() {}
+            override fun afterCompletion(status: Int) = action()
+        })
+        return true
+    }
+
+    /**
      * Re-uses the current EntityManager (context) for the block or a new one, if no EntityManager (context) is set in ThreadLocal before.
      * If a transaction is already running inside the current thread (threadlocal is used), the block will be executed in the same transaction.
      * @see internalRunInNewTransaction
