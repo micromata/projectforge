@@ -2295,9 +2295,10 @@
       "before": "Before",
       "confirm": {
         "apply": "Store the cost 2 shares and move the time sheets to the target project? This changes the evaluations of the projects; the run can be reverted.",
-        "delete": "Delete the draft?",
+        "delete": "Delete the run?",
         "revert": "Delete the shares of the run, restore the previous ones and move the time sheets back?"
       },
+      "copy": "Copy as new draft",
       "defaultRules": "Default rules",
       "detect": "Detect time sheets",
       "detected": "Detected time sheets",
@@ -2319,6 +2320,7 @@
       },
       "shares": "Cost 2 shares",
       "sourceKost2": "Source cost 2 (collective)",
+      "sourceProject": "Source project",
       "status": {
         "APPLIED": "Applied",
         "DRAFT": "Draft",
@@ -2338,6 +2340,7 @@
       "tooltip": {
         "apply": "Stores the cost unit shares and moves the time sheets. Refused as long as the preview shows errors. The run can be reverted afterwards.",
         "comment": "Internal note on the run, e.g. who asked for it and why.",
+        "copy": "Creates a new draft with the description, target project, period and rules of this run, e.g. to reallocate again after a revert. This run stays as it is.",
         "defaultRules": "Creates one rule per source cost unit: it goes to the cost unit of the target project with the same cost 2 type. Replaces the rules below.",
         "description": "Free text to recognise the run in the list, e.g. the reason for the reallocation.",
         "detect": "Searches the time sheets of the period whose task is in the task tree of the target project, but whose cost unit belongs to another project. They move with the run.",
@@ -2352,7 +2355,8 @@
         "ruleSource": "The cost unit whose accounting records are reallocated.",
         "ruleTarget": "The cost unit of the target project the accounting records of the source go to.",
         "save": "Stores the draft. Nothing is reallocated yet.",
-        "sourceKost2": "The collective cost units the hours and costs were booked on so far, e.g. those of a shared project. Their records and time sheets move to the target project. \"Default rules\" derives the rules below from them.",
+        "sourceKost2": "Single collective cost units the hours and costs were booked on so far: those outside of projects, or more besides the projects above. Their records and time sheets move to the target project. \"Default rules\" derives the rules below from them.",
+        "sourceProject": "A project whose cost units were used as collective cost units so far, e.g. 5.999.11. All its cost units are sources. \"Default rules\" derives the rules below from them.",
         "sums": "The accounting records changed by the run, summed per cost unit, before and after.",
         "targetProject": "The project the costs and hours move to. Its cost units (cost 2) receive the reallocated accounting records and time sheets.",
         "timesheets": "The time sheets the run moves: other cost unit and, for those selected by hand, other task, with the hours as counted by the salary export."
@@ -4162,6 +4166,62 @@
         "edit": "Edit case",
         "list": "Cases"
       },
+      "catalog": {
+        "add": "Add below",
+        "addNode": "Add technology",
+        "aliases": "Aliases (one per line)",
+        "cpe": "CPE",
+        "cpeProduct": "CPE product",
+        "cpeVendor": "CPE vendor",
+        "createTitle": "New technology",
+        "delete": "Delete",
+        "deleteQuestion": "Delete {arg0}? Only an entry without entries below and without technologies referring to it can be deleted. Otherwise merge it into another one.",
+        "ecosystemKey": "Ecosystem of the OSV data (e.g. Maven)",
+        "editTitle": "Edit technology",
+        "empty": "The catalogue is empty.",
+        "error": {
+          "cycle": "An entry can't belong to itself or to an entry below it.",
+          "ecosystemKey": "An ecosystem needs its own OSV ecosystem key; other levels have none.",
+          "kind": "A level is needed.",
+          "merge": "That entry can't be merged there. An ecosystem isn't merged, and not into an entry below itself.",
+          "name": "A name is needed.",
+          "notEmpty": "There are entries below it or technologies referring to it. Merge it into another entry instead.",
+          "notFound": "The catalogue entry doesn't exist (any more).",
+          "parent": "An ecosystem has nothing above it.",
+          "purl": "A purl name needs a purl type.",
+          "purlExists": "Another entry has this purl already."
+        },
+        "filter": "Filter by name, alias, CPE or purl",
+        "hint": "The technology catalogue as a tree: ecosystems (e.g. Java/Maven), below them products and frameworks, below those libraries. A library can belong to several frameworks and then shows below each of them. Technologies of the systems refer to these entries. The security team maintains the catalogue.",
+        "kind": "Level",
+        "merge": "Merge",
+        "mergeHint": "The technologies of the systems and the entries below move to the chosen entry, the name and aliases of this one become aliases of it, and this one is deleted.",
+        "mergeInto": "Merge into",
+        "mergeTitle": "Merge into another entry",
+        "node": "Catalogue entry",
+        "notInCatalog": "not in catalogue",
+        "origin": "Source",
+        "parents": "Belongs to",
+        "parentsHint": "All entries this one belongs to. A library of several frameworks lists them all.",
+        "pick": "From the catalogue",
+        "pickHint": "Takes over product, vendor, ecosystem, CPE and purl; the version stays yours.",
+        "purl": "purl",
+        "purlName": "purl name",
+        "purlNamespace": "purl namespace (e.g. groupId)",
+        "purlType": "purl type (e.g. maven)",
+        "save": "Save",
+        "title": "Technologies",
+        "usage": "In use"
+      },
+      "catalogKind": {
+        "ECOSYSTEM": "Ecosystem",
+        "LIBRARY": "Library",
+        "PRODUCT": "Product / framework"
+      },
+      "catalogOrigin": {
+        "MANUAL": "manual",
+        "OSV": "OSV ecosystem list"
+      },
       "chat": {
         "caseNotice": "Everybody with access to the CVE-Radar reads along here. Please name no details of projects or systems: those belong in the file of the team check, which only the asked group, the security team and the security officer see."
       },
@@ -4479,6 +4539,7 @@
         },
         "nav": {
           "cases": "Cases",
+          "catalog": "Technologies",
           "devices": "Devices",
           "inventory": "Systems",
           "my": "My CVE-Radar",
@@ -4597,6 +4658,7 @@
       "reason": "Reason",
       "rights": {
         "cases": "{arg0} see the cases. {arg1} create and edit them.",
+        "catalog": "Everybody logged in reads the catalogue and picks from it when entering the technologies of a component. The {arg1} and the {arg2} maintain it.",
         "closure": "{arg0} see counts only, no persons. {arg1} see the devices of the persons, create team checks and close cases. A case with open items is closed by {arg2} only.",
         "devices": "Only the {arg1} see the devices, they are personal data.",
         "file": "{arg0} read the file and join the discussion. {arg1} take over, rate, and maintain the measures and team checks. The binding priority is set by the assignee or {arg2}; only {arg2} reassign a case that somebody else has taken over.",

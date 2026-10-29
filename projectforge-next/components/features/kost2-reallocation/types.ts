@@ -1,3 +1,4 @@
+import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import type {
   Kost2ReallocationRef,
   Kost2ReallocationRule,
@@ -30,3 +31,14 @@ export const emptyRunDraft = (): RunDraft => {
     rules: [],
   };
 };
+
+/**
+ * The sources "Default rules" derives the rules from. Not saved with the run: kept in the query cache by run
+ * (`sourcesKey`), so they survive the remount after a save and a new run's move to its url. `kost2` null: not chosen yet, the step starts from the source kost2 of the rules then.
+ */
+export interface RunSources {
+  projects: EntityRef[];
+  kost2: EntityRef[] | null;
+}
+
+export const noSources = (): RunSources => ({ projects: [], kost2: null });

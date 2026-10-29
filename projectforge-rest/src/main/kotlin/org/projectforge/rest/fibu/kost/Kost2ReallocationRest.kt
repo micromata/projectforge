@@ -124,7 +124,11 @@ class Kost2ReallocationRest {
         var log: List<LogRow> = emptyList(),
     )
 
-    class DefaultRulesRequest(var projektId: Long? = null, var sourceKost2Ids: List<Long> = emptyList())
+    class DefaultRulesRequest(
+        var projektId: Long? = null,
+        var sourceKost2Ids: List<Long> = emptyList(),
+        var sourceProjektIds: List<Long> = emptyList(),
+    )
 
     class TimesheetsRequest(var runId: Long? = null)
 
@@ -283,13 +287,13 @@ class Kost2ReallocationRest {
         }
     }
 
-    /** The default rules of the target project for the given source kost2 (same kost2 type). */
+    /** The default rules of the target project for the given source kost2 and source projects (same kost2 type). */
     @AccessChecked("FINANCE group (Kost2ReallocationService.defaultRules)")
     @PostMapping("defaultRules")
     fun defaultRules(@RequestBody request: DefaultRulesRequest): List<RuleData> {
         service.checkAccess()
         val projektId = request.projektId ?: return emptyList()
-        return service.defaultRules(projektId, request.sourceKost2Ids).map { (source, target) ->
+        return service.defaultRules(projektId, request.sourceKost2Ids, request.sourceProjektIds).map { (source, target) ->
             RuleData(sourceKost2 = kost2Ref(source), targetKost2 = kost2Ref(target))
         }
     }

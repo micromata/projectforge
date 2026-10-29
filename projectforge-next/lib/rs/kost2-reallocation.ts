@@ -196,15 +196,19 @@ export function deleteKost2ReallocationRun(
   return post<boolean>("delete", { runId });
 }
 
-/** The default rules of the target project for the given source cost units (same cost 2 type). */
+/** The default rules of the target project for the given source cost units and projects (same cost 2 type). */
 export function fetchKost2ReallocationDefaultRules(
   projektId: number,
   sourceKost2Ids: number[],
+  sourceProjektIds: number[],
   signal?: AbortSignal
 ): Promise<Kost2ReallocationRule[]> {
   return request<Kost2ReallocationRule[]>(
     `${BASE}/defaultRules`,
-    { method: "POST", body: JSON.stringify({ projektId, sourceKost2Ids }) },
+    {
+      method: "POST",
+      body: JSON.stringify({ projektId, sourceKost2Ids, sourceProjektIds }),
+    },
     signal
   );
 }

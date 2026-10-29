@@ -50,7 +50,8 @@ Flyway: `V<release>.<n>__RELEASE-Kost2Reallocation.sql` (Release = `version` aus
 2. **`Kost2ReallocationRuleDO`**: Lauf, Quell-Kost2, Ziel-Kost2, optionaler Kontenbereich.
    - Das sind die Regeln A → B.
    - Standardregeln werden aus dem Zielprojekt über die Kost2-Art erzeugt, wie in `TimesheetMassUpdateRest`
-     (Z. 330-347).
+     (Z. 330-347). Als Quelle genügt ein Projekt (z. B. 5.999.11): Es steht für alle seine Kost2 (auch inaktive).
+     Einzelne Sammel-Kost2 außerhalb von Projekten bleiben wählbar.
 3. **`Kost2ReallocationTimesheetDO`**, das Umstellungsprotokoll:
    - Felder: Lauf, Zeitbericht, Benutzer, Jahr, Monat, alter Task, neuer Task, alte Kost2, neue Kost2, Millis.
    - Wird beim Anwenden geschrieben, wenn die Zeitberichte umgestellt werden. Es ist keine Eingabe der Berechnung,
@@ -201,6 +202,9 @@ Abgleich in `DatevRecordImportStorage` und im Job:
    - Die Historie der Zeitberichte bleibt erhalten, weil das Umstellen über `timesheetDao.update` läuft.
    - Revert: löscht die Anteile des Laufs und stellt die Zeitberichte laut Protokoll auf alten Task und alte Kost2
      zurück. Nur erlaubt, wenn kein späterer Lauf dieselben Sätze oder Zeitberichte geändert hat.
+   - Ein zurückgenommener Lauf bleibt zurückgenommen (sein Protokoll gehört zu ihm). Er lässt sich löschen oder „als
+     neuen Entwurf übernehmen“: ein neuer Lauf mit Beschreibung, Zielprojekt, Zeitraum und Regeln. Ein angewendeter Lauf
+     lässt sich nicht löschen.
    - Ein späterer Lauf arbeitet auf den effektiven Anteilen. Er kann z. B. den Restanteil auf A weiter aufteilen.
 
 ## Entscheidung: Zeitberichte werden wirklich umgestellt

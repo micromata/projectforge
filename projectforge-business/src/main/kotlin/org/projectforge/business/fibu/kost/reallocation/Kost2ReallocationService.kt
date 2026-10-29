@@ -140,13 +140,19 @@ open class Kost2ReallocationService {
     }
 
     /**
-     * The default rules for the given source kost2: each one to the kost2 of the target project with the same kost2
-     * type. Source kost2 without such a kost2 of the target project are missing in the result.
+     * The default rules for the given source kost2 and the kost2 of the given source projects (all of them, inactive
+     * ones too: old records sit on them; deleted ones not): each one to the kost2 of the target project with the same kost2 type. Source
+     * kost2 without such a kost2 of the target project are missing in the result.
      */
-    open fun defaultRules(projektId: Long, sourceKost2Ids: Collection<Long>): List<Pair<Kost2DO, Kost2DO>> {
+    open fun defaultRules(
+        projektId: Long,
+        sourceKost2Ids: Collection<Long>,
+        sourceProjektIds: Collection<Long> = emptyList(),
+    ): List<Pair<Kost2DO, Kost2DO>> {
         checkAccess()
         val targetKost2s = kostCache.getActiveKost2ForProjekt(projektId)
-        return sourceKost2Ids.distinct().mapNotNull { sourceId ->
+        val projektKost2Ids = sourceProjektIds.distinct().flatMap { kostCache.getKost2ForProjekt(it) }.mapNotNull { it.id }
+        return (sourceKost2Ids + projektKost2Ids).distinct().mapNotNull { sourceId ->
             val source = caches.getKost2(sourceId) ?: return@mapNotNull null
             if (source.projekt?.id == projektId) {
                 return@mapNotNull null

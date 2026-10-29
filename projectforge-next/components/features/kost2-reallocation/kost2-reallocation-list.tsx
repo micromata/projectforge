@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -21,10 +22,11 @@ export const KOST2_REALLOCATION_RUNS_KEY = ["kost2Reallocation", "runs"];
 
 const pad = (month?: number | null) => String(month ?? "").padStart(2, "0");
 
-/** The runs of the Kost2 reallocation (finance only, enforced by the endpoints): a click opens the wizard. */
+/** The runs of the Kost2 reallocation (finance only, enforced by the endpoints): a click on a row opens its wizard. */
 export function Kost2ReallocationList() {
   const t = useTranslations();
   const format = useFormatContext();
+  const router = useRouter();
   const query = useQuery({
     queryKey: KOST2_REALLOCATION_RUNS_KEY,
     queryFn: ({ signal }) => fetchKost2ReallocationRuns(signal),
@@ -45,19 +47,7 @@ export function Kost2ReallocationList() {
       cell: ({ row }) => cell(row.original),
     });
     return [
-      col(
-        "description",
-        t("description"),
-        (r) => (
-          <Link
-            href={`/kost2-reallocation/${r.id}`}
-            className="font-medium text-primary hover:underline"
-          >
-            {r.description}
-          </Link>
-        ),
-        320
-      ),
+      col("description", t("description"), (r) => r.description, 320),
       col(
         "projekt",
         t("fibu.kost2Reallocation.targetProject"),
@@ -98,6 +88,7 @@ export function Kost2ReallocationList() {
           enableColumnFilters={false}
           manualSorting={false}
           getRowId={(row) => String(row.id)}
+          onRowClick={(row) => router.push(`/kost2-reallocation/${row.id}`)}
         />
       </div>
     </PageShell>

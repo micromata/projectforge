@@ -14,7 +14,8 @@ type Confirm = "apply" | "revert" | "delete";
 
 /**
  * The pinned action bar of the wizard: cancel, save, apply (a draft), re-apply (an applied run whose shares a DATEV
- * reimport discarded) and revert (an applied run); delete (a draft) on the far right. Applying, reverting and
+ * reimport discarded), revert (an applied run) and copy as a new draft (a reverted run, to reallocate again); delete
+ * (a draft or a reverted run) on the far right. Applying, reverting and
  * deleting ask first.
  */
 export function WizardActions({
@@ -29,6 +30,7 @@ export function WizardActions({
   const [confirm, setConfirm] = useState<Confirm | null>(null);
   const draft = !run || run.status === "DRAFT";
   const applied = run?.status === "APPLIED";
+  const reverted = run?.status === "REVERTED";
   // Literal keys: the i18n generator exports no template literals.
   const dialogs = {
     apply: {
@@ -112,8 +114,22 @@ export function WizardActions({
             </Button>
           </HintTooltip>
         )}
+        {reverted && (
+          <HintTooltip
+            text={t("fibu.kost2Reallocation.tooltip.copy")}
+            side="top"
+          >
+            <Button
+              disabled={actions.pending}
+              onClick={() => actions.copy.mutate()}
+            >
+              {t("fibu.kost2Reallocation.copy")}
+            </Button>
+          </HintTooltip>
+        )}
         <div className="flex-1" />
-        {draft && run && (
+        {/* An applied run can't be deleted (the DAO refuses it): it is reverted first. */}
+        {run && !applied && (
           <Button
             variant="destructive"
             disabled={actions.pending}

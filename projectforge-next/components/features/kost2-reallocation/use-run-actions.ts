@@ -18,6 +18,11 @@ import { KOST2_REALLOCATION_RUNS_KEY } from "./kost2-reallocation-list";
 import type { RunDraft } from "./types";
 
 export const runKey = (id: number | null) => ["kost2Reallocation", "run", id];
+export const sourcesKey = (id: number | null) => [
+  "kost2Reallocation",
+  "sources",
+  id,
+];
 
 /**
  * The actions of the wizard on one run. Every action but the preview first saves the draft, so the server always
@@ -53,7 +58,16 @@ export function useRunActions(
   const stored = (run: Kost2ReallocationRun) => {
     queryClient.setQueryData(runKey(run.id ?? null), run);
     queryClient.invalidateQueries({ queryKey: KOST2_REALLOCATION_RUNS_KEY });
-    if (runId == null) router.replace(`/kost2-reallocation/${run.id}`);
+    if (runId == null) moveToUrl(run.id!);
+  };
+  /** A new run moves to its own url, its sources of the default rules with it. */
+  const moveToUrl = (id: number) => {
+    queryClient.setQueryData(
+      sourcesKey(id),
+      queryClient.getQueryData(sourcesKey(null))
+    );
+    queryClient.removeQueries({ queryKey: sourcesKey(null) });
+    router.replace(`/kost2-reallocation/${id}`);
   };
   /** Saves the draft, then the action with the saved run's id. */
   const afterSave = async <T>(
@@ -66,26 +80,33 @@ export function useRunActions(
     return { run: saved.value, value: res.value };
   };
 
+  // A failed request (server down, network) would otherwise vanish silently.
+  const onError = (e: unknown) =>
+    setError(e instanceof Error ? e.message : String(e));
   const save = useMutation({
+    onError,
     mutationFn: () => saveKost2ReallocationRun(body()),
     onSuccess: (res) => !refused(res) && stored(res.value),
   });
   const preview = useMutation({
+    onError,
     mutationFn: () => afterSave((id) => previewKost2Reallocation(id)),
     onSuccess: (r) => r && (setPlan(r.value), stored(r.run)),
   });
   const apply = useMutation({
+    onError,
     mutationFn: () => afterSave((id) => applyKost2Reallocation(id)),
     onSuccess: async (r) => {
       if (!r) return;
       setPlan(r.value);
       queryClient.invalidateQueries({ queryKey: KOST2_REALLOCATION_RUNS_KEY });
       // Refetched (the status changed), which remounts the wizard read-only; a new run moves to its own url.
-      if (runId == null) router.replace(`/kost2-reallocation/${r.run.id}`);
+      if (runId == null) moveToUrl(r.run.id!);
       else await queryClient.invalidateQueries({ queryKey: runKey(runId) });
     },
   });
   const reapply = useMutation({
+    onError,
     mutationFn: () => reapplyKost2Reallocation(runId!),
     onSuccess: (res) => {
       if (refused(res)) return;
@@ -94,6 +115,7 @@ export function useRunActions(
     },
   });
   const revert = useMutation({
+    onError,
     mutationFn: () => revertKost2Reallocation(runId!),
     onSuccess: (res) => {
       if (refused(res)) return;
@@ -101,7 +123,23 @@ export function useRunActions(
       stored(res.value);
     },
   });
+  /** A new draft with the data and rules of this run (a reverted one, to reallocate again); this run stays. */
+  const copy = useMutation({
+    onError,
+    mutationFn: () => saveKost2ReallocationRun({ ...body(), id: null }),
+    onSuccess: (res) => {
+      if (refused(res)) return;
+      queryClient.setQueryData(runKey(res.value.id ?? null), res.value);
+      queryClient.setQueryData(
+        sourcesKey(res.value.id ?? null),
+        queryClient.getQueryData(sourcesKey(runId))
+      );
+      queryClient.invalidateQueries({ queryKey: KOST2_REALLOCATION_RUNS_KEY });
+      router.push(`/kost2-reallocation/${res.value.id}`);
+    },
+  });
   const remove = useMutation({
+    onError,
     mutationFn: () => deleteKost2ReallocationRun(runId!),
     onSuccess: (res) => {
       if (refused(res)) return;
@@ -109,7 +147,7 @@ export function useRunActions(
       router.replace("/kost2-reallocation");
     },
   });
-  const pending = [save, preview, apply, reapply, revert, remove].some(
+  const pending = [save, preview, apply, reapply, revert, copy, remove].some(
     (m) => m.isPending
   );
   return {
@@ -118,6 +156,7 @@ export function useRunActions(
     apply,
     reapply,
     revert,
+    copy,
     remove,
     error,
     pending,

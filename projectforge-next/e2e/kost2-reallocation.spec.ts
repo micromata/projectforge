@@ -126,9 +126,7 @@ test.describe("kost2 reallocation", { tag: "@parallel" }, () => {
         .getByRole("button", { name: deleteLabel, exact: true })
         .click();
       await expect(page).toHaveURL(/\/kost2-reallocation\/?$/);
-      await expect(
-        page.getByRole("link", { name: description, exact: true })
-      ).toHaveCount(0);
+      await expect(page.getByText(description, { exact: true })).toHaveCount(0);
       const runs = await page.request.get(`${RS}/list`, {
         headers: { "X-PF-Frontend": "next" },
       });

@@ -274,6 +274,23 @@ class Kost2ReallocationServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun `default rules of a source project cover all its kost2 once`() {
+        val f = Fixture(99)
+        logon(TEST_FINANCE_USER)
+        val sourceProject = f.s0.projekt!!
+        val explicit = service.defaultRules(f.targetProject.id!!, listOf(f.s0.id!!))
+        val viaProject = service.defaultRules(f.targetProject.id!!, emptyList(), listOf(sourceProject.id!!))
+        assertTrue(viaProject.isNotEmpty())
+        assertTrue(viaProject.map { it.first.id }.containsAll(explicit.map { it.first.id }))
+        // A project and one of its kost2 together give each rule once.
+        val both = service.defaultRules(f.targetProject.id!!, listOf(f.s0.id!!), listOf(sourceProject.id!!))
+        assertEquals(viaProject.map { it.first.id }.toSet(), both.map { it.first.id }.toSet())
+        assertEquals(both.size, both.map { it.first.id }.toSet().size)
+        // The target project itself is no source.
+        assertTrue(service.defaultRules(f.targetProject.id!!, emptyList(), listOf(f.targetProject.id!!)).isEmpty())
+    }
+
+    @Test
     fun `rules don't chain`() {
         val f = Fixture(68)
         val run = f.createRun()

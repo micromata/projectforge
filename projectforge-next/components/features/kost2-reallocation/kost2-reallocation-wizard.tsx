@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormAlert } from "@/components/shared/form-alert";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
@@ -18,8 +18,13 @@ import {
 import { PlanView } from "./plan-view";
 import { RunDefinitionStep } from "./run-definition-step";
 import { TimesheetsStep } from "./timesheets-step";
-import { emptyRunDraft, type RunDraft } from "./types";
-import { runKey, useRunActions } from "./use-run-actions";
+import {
+  emptyRunDraft,
+  noSources,
+  type RunDraft,
+  type RunSources,
+} from "./types";
+import { runKey, sourcesKey, useRunActions } from "./use-run-actions";
 import { statusLabel } from "./status-label";
 import { WizardActions } from "./wizard-actions";
 
@@ -53,10 +58,14 @@ function WizardBody({
   run,
   plan,
   setPlan,
+  sources,
+  setSources,
 }: {
   run: Kost2ReallocationRun | null;
   plan: Kost2ReallocationPlan | null;
   setPlan: (plan: Kost2ReallocationPlan | null) => void;
+  sources: RunSources;
+  setSources: (sources: RunSources) => void;
 }) {
   const t = useTranslations();
   const [draft, setDraft] = useState<RunDraft>(
@@ -88,6 +97,8 @@ function WizardBody({
               draft={draft}
               onChange={setDraft}
               readOnly={readOnly}
+              sources={sources}
+              onSourcesChange={setSources}
             />
           </Section>
           {run?.id != null && (
@@ -121,6 +132,16 @@ function WizardBody({
 /** The Kost2 reallocation wizard of one run (`runId` null: a new draft): define, select time sheets, preview, apply. */
 export function Kost2ReallocationWizard({ runId }: { runId: number | null }) {
   const [plan, setPlan] = useState<Kost2ReallocationPlan | null>(null);
+  const queryClient = useQueryClient();
+  const { data: sources } = useQuery({
+    queryKey: sourcesKey(runId),
+    queryFn: noSources,
+    initialData: noSources,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+  const setSources = (next: RunSources) =>
+    queryClient.setQueryData(sourcesKey(runId), next);
   const query = useQuery({
     queryKey: runKey(runId),
     queryFn: ({ signal }) => fetchKost2ReallocationRun(runId!, signal),
@@ -139,7 +160,9 @@ export function Kost2ReallocationWizard({ runId }: { runId: number | null }) {
     );
   }
   // Remounted when another run is shown or its status changes (applied, reverted): the local draft starts from it
-  // then. A save (also the one before a preview) keeps the form. The plan is kept here, so it stays on screen across the remount of an apply.
+  // then. A save (also the one before a preview) keeps the form. The plan is kept here, so it stays on screen across the remount
+  // of an apply; the sources of the default rules are kept in the query cache by run
+  // (see sourcesKey), also across a new run's move to its url.
   const run = query.data ?? null;
   return (
     <WizardBody
@@ -147,6 +170,8 @@ export function Kost2ReallocationWizard({ runId }: { runId: number | null }) {
       run={run}
       plan={plan}
       setPlan={setPlan}
+      sources={sources}
+      setSources={setSources}
     />
   );
 }
