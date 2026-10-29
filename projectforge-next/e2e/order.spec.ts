@@ -362,6 +362,65 @@ test.describe("order book", { tag: "@lane-order" }, () => {
     ).not.toHaveText(format.t("filter.chooseEntity"));
   });
 
+  test("offers the chosen project as an exception in the notification settings", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const prefsUrl = "/rs/myAccount/orderNotificationPrefs";
+    const original = await (await page.request.get(prefsUrl)).json();
+    await goto(page, "/order/new");
+    await expect(
+      page.getByLabel(label(format, "fibu.auftrag.title"), { exact: true })
+    ).toBeVisible({ timeout: 60_000 });
+    const withCustomer = await findProjectWithCustomer(page.request);
+    test.skip(
+      withCustomer === null,
+      "the account sees no project with a customer (PM_PROJECT right, or an empty database)"
+    );
+    const project = await pickFirst(
+      page,
+      label(format, "fibu.projekt._"),
+      withCustomer!.searchTerm
+    );
+    test.skip(project === null, "no project matched its own name");
+
+    try {
+      await page
+        .getByRole("button", {
+          name: format.t("fibu.auftrag.notification.prefs.title"),
+        })
+        .click();
+      const dialog = page.getByRole("dialog");
+      const adopt = dialog.getByRole("button", {
+        name: new RegExp(
+          `^${escapeRegExp(format.t("fibu.auftrag.notification.prefs.project"))} `
+        ),
+      });
+      await adopt.click();
+      await expect(
+        dialog.getByText(project!, { exact: true }),
+        "the new rule names its project before it is saved"
+      ).toBeVisible();
+      await expect(adopt, "the link is gone once the rule exists").toHaveCount(
+        0
+      );
+      await dialog.getByRole("button", { name: format.t("save") }).click();
+      await expect(dialog).toHaveCount(0);
+      const saved = await (await page.request.get(prefsUrl)).json();
+      expect(
+        saved.rules.some((r: { type: string }) => r.type === "PROJECT")
+      ).toBe(true);
+    } finally {
+      await page.request.post(prefsUrl, {
+        data: {
+          defaultMode: original.defaultMode,
+          rules: original.rules ?? [],
+        },
+        headers: await writeHeaders(page),
+      });
+    }
+  });
+
   test("refuses a position title longer than the column, naming the row", async ({
     loggedInPage: page,
   }) => {

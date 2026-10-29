@@ -1,0 +1,35 @@
+<html>
+#INCLUDE{mail/mailHead.html}
+<body>
+<div id="mail">
+  <div class="container">
+    <div class="content">
+      #INCLUDE{mail/mailOpening.html}
+      <p><%= pf.getI18nString("fibu.auftrag.mail.digest.intro") %></p>
+      <table class="width-3">
+        <% for (entry in entries) { %>
+        <tr>
+          <td>
+            <span class="title">
+              <% if (entry.operation == "INSERT") { %><%= pf.getI18nString("fibu.auftrag.mail.digest.created") %>
+              <% } else if (entry.operation == "DELETE") { %><%= pf.getI18nString("fibu.auftrag.mail.digest.deleted") %>
+              <% } else { %><%= pf.getI18nString("fibu.auftrag.mail.digest.changed") %><% } %>
+            </span>
+            <span class="value">
+              <% if (entry.link) { %><a href="<%= pf.getString(entry.link) %>" target="_blank" rel="noreferrer">#<%= entry.number %></a>
+              <% } else { %>#<%= entry.number %><% } %>
+              <%= pf.getString(entry.title) %>
+            </span>
+          </td>
+        </tr>
+        <% } %>
+      </table>
+
+      #INCLUDE{mail/mailClosing.html}
+      #INCLUDE{mail/mailFooter.html}
+
+    </div>
+  </div>
+</div>
+</body>
+</html>
