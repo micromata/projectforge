@@ -7,12 +7,12 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { GuardedDialog } from "@/components/shared/guarded-dialog";
 import { CheckboxField } from "@/components/shared/form/checkbox-field";
 import {
   useEntityData,
@@ -86,7 +86,7 @@ function CloseToDoButton() {
         <HugeiconsIcon icon={CheckmarkCircle02Icon} size={13} />
         {t("plugins.todo.button.close")}
       </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <GuardedDialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("plugins.todo.closeDialog.heading")}</DialogTitle>
@@ -109,7 +109,7 @@ function CloseToDoButton() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </GuardedDialog>
     </>
   );
 }

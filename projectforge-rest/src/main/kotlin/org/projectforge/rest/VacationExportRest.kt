@@ -203,7 +203,7 @@ class VacationExportRest {
         return userGroupCache.allUsers
             .filter { access.mayPickActive(it) }
             .filter { user ->
-                val fields = listOfNotNull(user.username, user.firstname, user.lastname, user.email).map { it.lowercase() }
+                val fields = listOfNotNull(user.username, user.firstname, user.lastname, user.nickname, user.email).map { it.lowercase() }
                 terms.all { term -> fields.any { it.contains(term) } }
             }
             .map { VacationExportRef(it.id!!, it.getFullname()) }

@@ -147,7 +147,13 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
     }
     // Sorting on the header click, filtering in the header's popover; the sum row follows the filter.
     // The rows of the result set: neither the skeletons nor the empty state's single row (see listRows).
-    const positions = await waitForRows(page);
+    // Scoped to the sub-tab's panel: the monthly table above is a DataTable too, its twelve rows carry
+    // `data-row-id` as well.
+    const positions = await waitForRows(
+      page.getByRole("tabpanel", {
+        name: new RegExp(`^${escape(format.t("fibu.auftrag.positions"))}`),
+      })
+    );
     const total = await positions.count();
     await orderHeader.click();
     await expect(
