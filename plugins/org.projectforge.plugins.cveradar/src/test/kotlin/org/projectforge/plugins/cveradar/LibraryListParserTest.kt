@@ -219,4 +219,74 @@ class LibraryListParserTest {
         assertEquals(listOf("pkg:npm/lodash@4.17.21", "pkg:apk/alpine/zlib@1.3.1-r0?distro=3.19.1"), purls(file))
         assertNull(LibraryListParser.parse("empty.json", """{"bomFormat":"CycloneDX","components":[]}""").format)
     }
+
+    @Test
+    fun `further lockfiles are read, only registry crates, no packages for development`() {
+        val cargo = LibraryListParser.parse(
+            "Cargo.lock",
+            "[[package]]\nname = \"app\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"serde\"\nversion = \"1.0.190\"\n" +
+                "source = \"registry+https://github.com/rust-lang/crates.io-index\"\n",
+        )
+        assertEquals(LibraryFormat.CARGO, cargo.format)
+        assertEquals(listOf("pkg:cargo/serde@1.0.190"), purls(cargo))
+
+        val composer = LibraryListParser.parse(
+            "composer.lock",
+            """{"packages":[{"name":"Symfony/Console","version":"v6.3.4"}],"packages-dev":[{"name":"phpunit/phpunit","version":"10.0.0"}]}""",
+        )
+        assertEquals(LibraryFormat.COMPOSER, composer.format)
+        assertEquals(listOf("pkg:composer/symfony/console@6.3.4"), purls(composer))
+
+        val yarn = LibraryListParser.parse(
+            "yarn.lock",
+            "# yarn lockfile v1\n\n\"@babel/core@^7.0.0\", \"@babel/core@^7.1.0\":\n  version \"7.22.5\"\n  resolved \"x\"\n\n" +
+                "lodash@^4.17.0:\n  version \"4.17.21\"\n",
+        )
+        assertEquals(LibraryFormat.YARN, yarn.format)
+        assertEquals(listOf("pkg:npm/%40babel/core@7.22.5", "pkg:npm/lodash@4.17.21"), purls(yarn))
+
+        val berry = LibraryListParser.parse(
+            "yarn.lock",
+            "__metadata:\n  version: 6\n\n\"app@workspace:.\":\n  version: 0.0.0-use.local\n\n" +
+                "\"lodash@npm:^4.17.0\":\n  version: 4.17.21\n  resolution: \"lodash@npm:4.17.21\"\n",
+        )
+        assertEquals(listOf("pkg:npm/lodash@4.17.21"), purls(berry))
+
+        val go = LibraryListParser.parse(
+            "go.mod",
+            "module example.com/app\n\ngo 1.21\n\nrequire (\n\tgolang.org/x/net v0.17.0\n\tgithub.com/pkg/errors v0.9.1 // indirect\n)\n",
+        )
+        assertEquals(LibraryFormat.GO, go.format)
+        assertEquals(listOf("pkg:golang/golang.org/x/net@v0.17.0", "pkg:golang/github.com/pkg/errors@v0.9.1"), purls(go))
+        assertEquals("golang.org/x/net", go.entries.first().product)
+
+        val pip = LibraryListParser.parse("requirements.txt", "# pinned\nDjango==4.2.7\nrequests[security]==2.31.0 ; python_version>'3'\nPyYAML_x==6.0\n-r other.txt\nflask>=2\nurllib3==2.0.7 \\\n    --hash=sha256:abc\n")
+        assertEquals(LibraryFormat.PIP, pip.format)
+        assertEquals(listOf("pkg:pypi/django@4.2.7", "pkg:pypi/requests@2.31.0", "pkg:pypi/pyyaml-x@6.0", "pkg:pypi/urllib3@2.0.7"), purls(pip))
+    }
+
+    @Test
+    fun `package lists of Debian, Alpine and RPM systems are told apart`() {
+        val dpkg = LibraryListParser.parse(
+            "packages.txt",
+            "ii  libssl3:amd64  3.0.11-1~deb12u2  amd64  Secure Sockets Layer toolkit\nii  openssl  3.0.11-1~deb12u2  amd64  tool\n",
+        )
+        assertEquals(LibraryFormat.DEB, dpkg.format)
+        assertEquals(listOf("pkg:deb/libssl3@3.0.11-1~deb12u2", "pkg:deb/openssl@3.0.11-1~deb12u2"), purls(dpkg))
+        val query = LibraryListParser.parse("p.txt", "bash 5.2.15-2+b2\ncurl 1:7.88.1-10\n")
+        assertEquals(LibraryFormat.DEB, query.format)
+        assertEquals(2, query.entries.size)
+
+        val apk = LibraryListParser.parse("apk.txt", "musl-1.2.4-r2\nlibcrypto3-3.1.4-r0\nalpine-baselayout-data-3.4.3-r1\n")
+        assertEquals(LibraryFormat.APK, apk.format)
+        assertEquals(listOf("pkg:apk/musl@1.2.4-r2", "pkg:apk/libcrypto3@3.1.4-r0", "pkg:apk/alpine-baselayout-data@3.4.3-r1"), purls(apk))
+
+        val rpm = LibraryListParser.parse("rpm.txt", "openssl-libs-3.0.7-24.el9.x86_64\nbash-5.1.8-6.el9.x86_64\ntzdata-2023c-1.el9.noarch\n")
+        assertEquals(LibraryFormat.RPM, rpm.format)
+        assertEquals(listOf("pkg:rpm/openssl-libs@3.0.7-24.el9", "pkg:rpm/bash@5.1.8-6.el9", "pkg:rpm/tzdata@2023c-1.el9"), purls(rpm))
+
+        // The names of jar files in a listing are no packages.
+        val unzip = LibraryListParser.parse("u.txt", "  1234  2024-01-01 12:00   BOOT-INF/lib/spring-core-6.1.2.jar\n")
+        assertEquals(LibraryFormat.JAR, unzip.format)
+    }
 }

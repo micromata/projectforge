@@ -29,7 +29,7 @@ import org.projectforge.common.i18n.UserException
 import java.net.URLDecoder
 
 /** The formats of the lists a component's libraries are read from. */
-enum class LibraryFormat { NPM, MAVEN, GRADLE, JAR, CYCLONEDX, SPDX }
+enum class LibraryFormat { NPM, YARN, PIP, GO, CARGO, COMPOSER, MAVEN, GRADLE, JAR, DEB, APK, RPM, CYCLONEDX, SPDX }
 
 /**
  * One library of a list: [ecosystem] is the purl type (`maven`, `npm`, `pypi`, `deb`, ...), [group] the purl namespace
@@ -87,6 +87,11 @@ object LibraryListParser {
     private val GRADLE_LINE = Regex("""^[\s|]*[+\\]---\s+([^\s:]+):([^\s:]+)(?::(\S+))?(?:\s+->\s+(\S+))?(.*)$""")
     private val JAR_NAME = Regex("""^(.+?)-(\d.*?)(?:-(?:sources|javadoc|tests|test-sources|all|linux-\S+|osx-\S+|macos-\S+|windows-\S+))?\.jar$""", RegexOption.IGNORE_CASE)
     private val GRADLE_RANGE = Regex("""\{(?:strictly|require|prefer|reject)?\s*([^}\s]+)[^}]*}""")
+    private val PIP_LINE = Regex("""^([A-Za-z0-9][A-Za-z0-9._\-]*)(?:\[[^\]]*])?\s*===?\s*([A-Za-z0-9][A-Za-z0-9.!+_\-]*)(?:\s*(?:;|#|--|\\).*)?$""")
+    private val GO_LINE = Regex("""^\s*(?:require\s+)?([a-z0-9][A-Za-z0-9._~\-]*(?:/[A-Za-z0-9._~\-]+)+)\s+(v\d[A-Za-z0-9.+\-]*)(?:\s*//.*)?$""")
+    private val APK_LINE = Regex("""^([a-z0-9][a-z0-9._+\-]*)-(\d[A-Za-z0-9._]*-r\d+)$""")
+    private val RPM_LINE = Regex("""^(?:\d+:)?([A-Za-z0-9][A-Za-z0-9._+\-]*)-(\d[^\s-]*-[^\s-]+)\.(x86_64|aarch64|noarch|i[3-6]86|armv\d\w*|ppc64le|s390x|src)$""")
+    private val DEB_LINE = Regex("""^(?:ii\s+)?((?=[a-z0-9+.\-]*[a-z])[a-z0-9][a-z0-9+.\-]*)(?::[a-z0-9]+)?\s+((?:\d+:)?\d[A-Za-z0-9.+~:\-]*)(?:\s+.*)?$""")
     private val PURL = Regex("""^pkg:/*([A-Za-z][A-Za-z0-9.+\-]*)/(.+?)@([^?#]+)(?:\?([^#]*))?(?:#.*)?$""")
 
     /** All files, parsed; the entries of all of them together are limited. */
@@ -106,6 +111,7 @@ object LibraryListParser {
                 when {
                     root.path("bomFormat").asText() == "CycloneDX" -> LibraryFormat.CYCLONEDX to parseCycloneDx(root)
                     root.has("spdxVersion") -> LibraryFormat.SPDX to parseSpdx(root)
+                    root.path("packages").isArray -> LibraryFormat.COMPOSER to parseComposer(root)
                     else -> LibraryFormat.NPM to parseNpm(root)
                 }
             }.getOrNull()
@@ -113,18 +119,23 @@ object LibraryListParser {
             else ParsedLibraryFile(name, parsed.first, parsed.second)
         }
         val lines = text.lineSequence().toList()
-        val gradle = lines.mapNotNull { parseGradleLine(it) }
-        val maven = lines.mapNotNull { parseMavenLine(it) }
-        // The line pattern of the format with more entries wins; the other one hardly matches the text of a tool.
-        if (gradle.isEmpty() && maven.isEmpty()) {
-            // Neither tool: perhaps the file names of a jar (`unzip -l`, `ls`, `jar tf`).
-            val jars = lines.flatMap { parseJarLine(it) }.distinct()
-            return ParsedLibraryFile(name, if (jars.isEmpty()) null else LibraryFormat.JAR, jars)
-        }
-        return when {
-            gradle.size > maven.size -> ParsedLibraryFile(name, LibraryFormat.GRADLE, gradle.distinct())
-            else -> ParsedLibraryFile(name, LibraryFormat.MAVEN, maven.distinct())
-        }
+        // Lists in lines: the format with the most entries wins, the others hardly match the text of a tool.
+        val candidates = listOf(
+            LibraryFormat.CARGO to parseCargo(lines),
+            LibraryFormat.YARN to parseYarn(lines),
+            LibraryFormat.GO to lines.mapNotNull { parseGoLine(it) },
+            LibraryFormat.PIP to lines.mapNotNull { parsePipLine(it) },
+            LibraryFormat.GRADLE to lines.mapNotNull { parseGradleLine(it) },
+            LibraryFormat.MAVEN to lines.mapNotNull { parseMavenLine(it) },
+            LibraryFormat.APK to lines.mapNotNull { parseApkLine(it) },
+            LibraryFormat.RPM to lines.mapNotNull { parseRpmLine(it) },
+            LibraryFormat.DEB to lines.mapNotNull { parseDebLine(it) },
+        ).map { (format, entries) -> format to entries.distinct() }
+        val best = candidates.filter { it.second.isNotEmpty() }.maxByOrNull { it.second.size }
+        if (best != null) return ParsedLibraryFile(name, best.first, best.second)
+        // None of them: perhaps the file names of a jar (`unzip -l`, `ls`, `jar tf`).
+        val jars = lines.flatMap { parseJarLine(it) }.distinct()
+        return ParsedLibraryFile(name, if (jars.isEmpty()) null else LibraryFormat.JAR, jars)
     }
 
     /**
@@ -205,6 +216,97 @@ object LibraryListParser {
             if (root.path("dependencies").isObject) walk(root.path("dependencies"))
         }
         return entries.distinct()
+    }
+
+    /** The packages of a `composer.lock` (the ones for development are in `packages-dev`); the `v` of a tag is dropped. */
+    private fun parseComposer(root: JsonNode): List<LibraryEntry> =
+        root.path("packages").mapNotNull { pkg ->
+            val name = pkg.path("name").asText("")
+            val version = pkg.path("version").asText("").removePrefix("v")
+            if (!name.contains('/') || version.isEmpty()) null
+            else LibraryEntry("composer", name.substringBefore('/').lowercase(), name.substringAfter('/').lowercase(), version)
+        }.distinct()
+
+    /** The registry crates of a `Cargo.lock` (`[[package]]` with name, version and source; the own crates have no source). */
+    private fun parseCargo(lines: List<String>): List<LibraryEntry> {
+        val entries = mutableListOf<LibraryEntry>()
+        var name: String? = null
+        var version: String? = null
+        var registry = false
+        fun flush() {
+            if (registry && name != null && version != null) entries.add(LibraryEntry("cargo", null, name!!, version!!))
+            name = null; version = null; registry = false
+        }
+        lines.forEach { raw ->
+            val line = raw.trim()
+            when {
+                line == "[[package]]" -> flush()
+                line.startsWith("name = ") -> name = line.substringAfter("= ").trim('"')
+                line.startsWith("version = ") -> version = line.substringAfter("= ").trim('"')
+                line.startsWith("source = ") -> registry = line.contains("registry+")
+            }
+        }
+        flush()
+        return entries
+    }
+
+    /** The resolved packages of a `yarn.lock` (classic: `version "1.2.3"`, berry: `version: 1.2.3`). */
+    private fun parseYarn(lines: List<String>): List<LibraryEntry> {
+        val entries = mutableListOf<LibraryEntry>()
+        var name: String? = null
+        lines.forEach { line ->
+            when {
+                line.isBlank() || line.startsWith("#") -> Unit
+                !line.startsWith(" ") && line.trimEnd().endsWith(":") -> {
+                    // `"@scope/name@^1.0.0", "@scope/name@^1.1.0":` — one name for all its ranges; the own workspaces of
+                    // berry (`app@workspace:.`) are no libraries.
+                    val spec = line.trimEnd().trimEnd(':').split(',').first().trim().trim('"')
+                    val at = spec.indexOf('@', 1)
+                    name = if (at > 0 && !spec.startsWith("workspace:", at + 1)) spec.substring(0, at) else null
+                }
+                name != null && line.trimStart().let { it.startsWith("version ") || it.startsWith("version:") } -> {
+                    val version = line.trim().removePrefix("version").trimStart(':', ' ').trim('"')
+                    val scope = name!!.takeIf { it.startsWith("@") }?.substringBefore('/')
+                    if (version.isNotEmpty()) {
+                        entries.add(LibraryEntry("npm", scope, if (scope != null) name!!.substringAfter('/') else name!!, version))
+                    }
+                    name = null
+                }
+            }
+        }
+        return entries
+    }
+
+    /** `name==1.2.3` of a `requirements.txt` or `pip freeze`; the name as the purl has it (lower case, `-` for `_` and `.`). */
+    private fun parsePipLine(line: String): LibraryEntry? {
+        val match = PIP_LINE.matchEntire(line.trim()) ?: return null
+        val (name, version) = match.destructured
+        return LibraryEntry("pypi", null, name.lowercase().replace(Regex("[_.]+"), "-"), version)
+    }
+
+    /** A module with its version of a `go.mod` (`require` line or block) or of `go list -m all`. */
+    private fun parseGoLine(line: String): LibraryEntry? {
+        val match = GO_LINE.matchEntire(line.trimEnd()) ?: return null
+        val (module, version) = match.destructured
+        return LibraryEntry("golang", module.substringBeforeLast('/'), module.substringAfterLast('/'), version)
+    }
+
+    /** `apk info -v`: `musl-1.2.4-r2`. */
+    private fun parseApkLine(line: String): LibraryEntry? {
+        val (name, version) = APK_LINE.matchEntire(line.trim())?.destructured ?: return null
+        return LibraryEntry("apk", null, name, version)
+    }
+
+    /** `rpm -qa`: `openssl-libs-3.0.7-24.el9.x86_64`; the version is version and release. */
+    private fun parseRpmLine(line: String): LibraryEntry? {
+        val match = RPM_LINE.matchEntire(line.trim()) ?: return null
+        return LibraryEntry("rpm", null, match.groupValues[1], match.groupValues[2])
+    }
+
+    /** `dpkg-query -W -f '${Package} ${Version}\n'` or a line of `dpkg -l` (`ii  name  version  arch  description`). */
+    private fun parseDebLine(line: String): LibraryEntry? {
+        val match = DEB_LINE.matchEntire(line.trim()) ?: return null
+        return LibraryEntry("deb", null, match.groupValues[1], match.groupValues[2])
     }
 
     /**
