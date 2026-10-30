@@ -5,7 +5,9 @@ import { CheckboxField } from "@/components/shared/form/checkbox-field";
 import { CheckboxListField } from "@/components/shared/form/checkbox-list-field";
 import { EntityMultiAutocompleteField } from "@/components/shared/form/entity-multi-autocomplete-field";
 import { EMPLOYEE_METADATA } from "@/lib/metadata/employee.generated";
+import { cn } from "@/lib/utils";
 import { fromMetadata } from "@/lib/validation/from-metadata";
+import { useRuleValue } from "./use-rule-value";
 
 /**
  * The recipients of a rule (NotificationRecipients): groups, single users and employees by status,
@@ -56,6 +58,16 @@ export function AllEmployeesField({ className }: FieldProps) {
 
 export function OnlyAffectedField({ className }: FieldProps) {
   const t = useTranslations("notification.recipients");
+  const tParams = useTranslations("notification.params");
+  const ruleType = useRuleValue("ruleType");
+  // The CVE radar always notifies the responsible teams, the recipients given are in copy.
+  if (ruleType === "CVERADAR_FINDINGS") {
+    return (
+      <p className={cn("text-xs text-muted-foreground", className)}>
+        {tParams("cvrRecipientsInfo")}
+      </p>
+    );
+  }
   return (
     <CheckboxField
       name="onlyAffected"

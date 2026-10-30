@@ -27,6 +27,7 @@ export type NotificationRuleType =
   | "TIMESHEETS_WITHOUT_KOST2"
   | "TIMESHEETS_TO_ACCEPT"
   | "CREDITOR_INVOICES_DUE"
+  | "CVERADAR_FINDINGS"
   | "MANUAL";
 
 /** `NotificationDao.Summary`, sent with the user status (see useAuth). */

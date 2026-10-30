@@ -58,6 +58,12 @@ interface NotificationRuleHandler {
          * [NotificationRuleHandler.variables], which would load them again for every recipient).
          */
         val variablesFor: ((PFUserDO) -> Map<String, String>)? = null,
+        /**
+         * The users of [affected] are the recipients, resolved by the handler from the data and the configured
+         * recipients (e.g. the responsible team of a system plus the configured ones in copy); [restrictsRecipients]
+         * and [NotificationRecipients.onlyAffected] don't apply then.
+         */
+        val affectedAreRecipients: Boolean = false,
     ) {
         /** The link for the given recipient. */
         fun linkFor(user: PFUserDO): String? = link?.replace(USER_ID, "${user.id}")

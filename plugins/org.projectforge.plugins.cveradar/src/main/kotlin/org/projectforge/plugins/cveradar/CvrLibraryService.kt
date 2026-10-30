@@ -130,7 +130,9 @@ class CvrLibraryService {
         parsed.forEach { file ->
             val origin = when (file.format) {
                 LibraryFormat.CYCLONEDX, LibraryFormat.SPDX -> CvrOrigin.SBOM
-                LibraryFormat.NPM -> CvrOrigin.LOCKFILE
+                LibraryFormat.NPM, LibraryFormat.YARN, LibraryFormat.PIP, LibraryFormat.GO, LibraryFormat.CARGO,
+                LibraryFormat.COMPOSER -> CvrOrigin.LOCKFILE
+                LibraryFormat.DEB, LibraryFormat.APK, LibraryFormat.RPM -> CvrOrigin.PACKAGE_LIST
                 LibraryFormat.JAR -> CvrOrigin.JAR_LIST
                 else -> CvrOrigin.BUILD_LIST
             }

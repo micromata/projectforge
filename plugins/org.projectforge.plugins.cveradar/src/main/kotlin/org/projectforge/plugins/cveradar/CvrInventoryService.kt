@@ -118,15 +118,38 @@ class CvrInventoryService {
     class InstanceLabel(val instanceId: Long, val systemId: Long, val area: String?, val system: String, val instance: String?)
 
     /** The instances the user may see, by id: whoever may not see an instance sees its findings as a count only (VIS-04). */
-    fun readableInstances(user: PFUserDO): Map<Long, InstanceLabel> {
-        val view = View(user, load())
-        return view.model.instances.values.filter { view.canReadInstance(it) }.associate { instance ->
-            val system = view.system(instance.systemId!!)
-            instance.id!! to InstanceLabel(
-                instance.id!!, system.id!!, view.chain(view.model.areas[system.areaId]).reversed().joinToString(" / ") { it.code ?: "" }
-                    .takeIf { it.isNotBlank() },
-                system.code + " " + system.name, instance.code,
-            )
+    fun readableInstances(user: PFUserDO): Map<Long, InstanceLabel> = readableInstances(listOf(user))[user.id] ?: emptyMap()
+
+    /** [readableInstances] of several users by user id, from one load of the inventory (e.g. the recipients of a mail). */
+    fun readableInstances(users: Collection<PFUserDO>): Map<Long, Map<Long, InstanceLabel>> {
+        val model = load()
+        return users.associate { user ->
+            val view = View(user, model)
+            user.id!! to model.instances.values.filter { view.canReadInstance(it) }.associate { instance ->
+                val system = view.system(instance.systemId!!)
+                instance.id!! to InstanceLabel(
+                    instance.id!!, system.id!!, view.chain(model.areas[system.areaId]).reversed().joinToString(" / ") { it.code ?: "" }
+                        .takeIf { it.isNotBlank() },
+                    system.code + " " + system.name, instance.code,
+                )
+            }
+        }
+    }
+
+    /**
+     * The responsible group of every instance by instance id: the group of its system, otherwise the nearest one of the
+     * areas above (INV-03); null if there is none.
+     */
+    fun responsibleGroups(): Map<Long, Long?> {
+        val model = load()
+        return model.instances.values.associate { instance ->
+            val system = model.systems[instance.systemId]
+            var area = model.areas[system?.areaId]
+            var depth = 0
+            while (area != null && area.groupId == null && depth++ < MAX_DEPTH) {
+                area = model.areas[area.parentId]
+            }
+            instance.id!! to (system?.groupId ?: area?.groupId)
         }
     }
 

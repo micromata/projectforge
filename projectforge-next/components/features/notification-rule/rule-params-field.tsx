@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { CheckboxField } from "@/components/shared/form/checkbox-field";
 import { NumberField } from "@/components/shared/form/number-field";
 import { SelectField } from "@/components/shared/form/select-field";
 import { cn } from "@/lib/utils";
@@ -82,6 +83,32 @@ export function RuleParamsField({ className }: { className?: string }) {
         maxDigits={2}
         className={className}
       />
+    );
+  }
+  if (ruleType === "CVERADAR_FINDINGS") {
+    return (
+      <div className={cn("grid gap-4 sm:grid-cols-2", className)}>
+        <SelectField
+          name="cvrMinSeverity"
+          label={t("cvrMinSeverity")}
+          metadataLess
+          clearable={false}
+          options={["LOW", "MEDIUM", "HIGH", "CRITICAL"].map((value) => ({
+            value,
+            label: value,
+          }))}
+        />
+        <div className="space-y-2">
+          <CheckboxField
+            name="cvrIncludePossible"
+            label={t("cvrIncludePossible")}
+          />
+          <CheckboxField
+            name="cvrIncludeUnscored"
+            label={t("cvrIncludeUnscored")}
+          />
+        </div>
+      </div>
     );
   }
   return null;

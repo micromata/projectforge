@@ -78,8 +78,13 @@ class NotificationRecipientResolver {
                 userIds.retainAll(affectedUserIds.toSet())
             }
         }
-        val excluded = recipients.excludedEmployeeStatus.toSet()
-        return userIds.mapNotNull { caches.getUser(it) }
+        return users(userIds, recipients.excludedEmployeeStatus)
+    }
+
+    /** The given users, if they have system access and aren't employees of an excluded status, sorted by id. */
+    fun users(userIds: Collection<Long>, excludedEmployeeStatus: Collection<EmployeeStatus> = emptyList()): List<PFUserDO> {
+        val excluded = excludedEmployeeStatus.toSet()
+        return userIds.toSet().mapNotNull { caches.getUser(it) }
             .filter { user -> !user.deleted && user.hasSystemAccess() }
             .filter { user -> excluded.isEmpty() || !isExcluded(user, excluded) }
             .sortedBy { it.id }
