@@ -78,28 +78,28 @@ class CvrFindingService {
         return list(user, vulnerabilityId)
     }
 
-    fun discard(user: PFUserDO, id: Long, reason: String?): FindingList {
+    fun discard(user: PFUserDO, id: Long, reason: String?): FindingList = synchronized(CvrFindingDao.LOCK) {
         val text = reason?.trim()?.takeIf { it.isNotEmpty() } ?: throw UserException(ERROR_REASON)
-        val finding = changeable(user, id)
-        reset(finding, CvrFindingStatus.DISCARDED)
+        val finding = changeable(user, listOf(id)).single()
+        finding.resetStatus(CvrFindingStatus.DISCARDED)
         finding.reason = text.take(TEXT_LENGTH)
         findingDao.update(finding, checkAccess = false)
-        return list(user, finding.vulnerabilityId!!)
+        list(user, finding.vulnerabilityId!!)
     }
 
-    fun restore(user: PFUserDO, id: Long): FindingList {
-        val finding = changeable(user, id)
-        reset(finding, CvrFindingStatus.NEW)
+    fun restore(user: PFUserDO, id: Long): FindingList = synchronized(CvrFindingDao.LOCK) {
+        val finding = changeable(user, listOf(id)).single()
+        finding.resetStatus(CvrFindingStatus.NEW)
         findingDao.update(finding, checkAccess = false)
-        return list(user, finding.vulnerabilityId!!)
+        list(user, finding.vulnerabilityId!!)
     }
 
     /**
      * Sets the status of several findings of one vulnerability (MAT-04, MAT-09 mass action). All are checked before
      * the first one is changed, so a refusal changes nothing. "Risk accepted" is a request (MAT-05): the findings stay
-     * in review until the approvals are in.
+     * in review until the approvals are in; whether the management approves as well is fixed with the request.
      */
-    fun setStatus(user: PFUserDO, request: FindingStatusRequest): FindingList {
+    fun setStatus(user: PFUserDO, request: FindingStatusRequest): FindingList = synchronized(CvrFindingDao.LOCK) {
         val status = request.status?.takeIf { it in SETTABLE } ?: throw UserException(ERROR_STATUS)
         val ids = request.ids?.distinct()?.takeIf { it.isNotEmpty() } ?: throw UserException(CveRadarService.ERROR_NOT_FOUND)
         val reason = request.reason?.trim()?.takeIf { it.isNotEmpty() }?.take(TEXT_LENGTH)
@@ -114,12 +114,13 @@ class CvrFindingService {
         if (status == CvrFindingStatus.RISK_ACCEPTED && !(request.riskExpires?.isAfter(today) ?: false)) {
             throw UserException(ERROR_EXPIRY)
         }
-        val findings = ids.map { changeable(user, it) }
+        val findings = changeable(user, ids)
         if (findings.map { it.vulnerabilityId }.distinct().size > 1) {
             throw UserException(ERROR_STATUS)
         }
+        val needsManagement = status == CvrFindingStatus.RISK_ACCEPTED && priorityNeedsManagement(findings.first().vulnerabilityId!!)
         findings.forEach { finding ->
-            reset(finding, if (status == CvrFindingStatus.RISK_ACCEPTED) CvrFindingStatus.IN_REVIEW else status)
+            finding.resetStatus(if (status == CvrFindingStatus.RISK_ACCEPTED) CvrFindingStatus.IN_REVIEW else status)
             finding.reason = reason
             when (status) {
                 CvrFindingStatus.FIXED -> {
@@ -131,94 +132,94 @@ class CvrFindingService {
                 CvrFindingStatus.RISK_ACCEPTED -> {
                     finding.riskExpires = request.riskExpires
                     finding.riskRequestedBy = user
+                    finding.riskNeedsManagement = needsManagement
                 }
 
                 else -> {}
             }
             findingDao.update(finding, checkAccess = false)
         }
-        return list(user, findings.first().vulnerabilityId!!)
+        list(user, findings.first().vulnerabilityId!!)
     }
 
     /**
-     * Approves a requested risk acceptance as the security officer or, where the priority is P1 or P2, as the
-     * management; with the approvals in, the finding is "risk accepted" (MAT-05). The two approvals come from two
-     * persons.
+     * Approves a requested risk acceptance as the security officer or, where the management approves as well (P1, P2),
+     * as the management; with the approvals in, the finding is "risk accepted" (MAT-05). Requester and approvers are
+     * different persons.
      */
-    fun approveRisk(user: PFUserDO, id: Long): FindingList {
+    fun approveRisk(user: PFUserDO, id: Long): FindingList = synchronized(CvrFindingDao.LOCK) {
         val finding = requested(user, id)
-        val needsManagement = needsManagement(finding.vulnerabilityId!!)
-        if (!finding.riskExpires!!.isAfter(LocalDate.now())) {
-            throw UserException(ERROR_EXPIRY)
-        }
+        val needsManagement = needsManagement(finding)
         when {
-            access.isSecurityOfficer(user) && finding.riskApprovedBySo == null -> finding.riskApprovedBySo = user
-            needsManagement && access.isManagement(user) && finding.riskApprovedByMg == null &&
-                    finding.riskApprovedBySo?.id != user.id -> finding.riskApprovedByMg = user
-
+            mayApproveAsOfficer(user, finding) -> finding.riskApprovedBySo = user
+            mayApproveAsManagement(user, finding, needsManagement) -> finding.riskApprovedByMg = user
             else -> throw AccessException(user, CveRadarAccess.NO_ACCESS)
         }
         if (finding.riskApprovedBySo != null && (!needsManagement || finding.riskApprovedByMg != null)) {
             finding.status = CvrFindingStatus.RISK_ACCEPTED
         }
         findingDao.update(finding, checkAccess = false)
-        return list(user, finding.vulnerabilityId!!)
+        list(user, finding.vulnerabilityId!!)
     }
 
-    /** Refuses a requested risk acceptance (security officer, management from P2 on): the finding is affected again. */
-    fun rejectRisk(user: PFUserDO, id: Long): FindingList {
+    /** Refuses a requested risk acceptance, by whoever may approve it now: the finding is affected again. */
+    fun rejectRisk(user: PFUserDO, id: Long): FindingList = synchronized(CvrFindingDao.LOCK) {
         val finding = requested(user, id)
-        reset(finding, CvrFindingStatus.AFFECTED)
+        if (!canDecide(user, finding, needsManagement(finding))) {
+            throw AccessException(user, CveRadarAccess.NO_ACCESS)
+        }
+        finding.resetStatus(CvrFindingStatus.AFFECTED)
         findingDao.update(finding, checkAccess = false)
-        return list(user, finding.vulnerabilityId!!)
+        list(user, finding.vulnerabilityId!!)
     }
 
-    /** The risk acceptances that ended are affected again (MAT-05); returns their number. */
-    fun expireRiskAcceptances(today: LocalDate = LocalDate.now()): Int {
+    /**
+     * The risk acceptances whose last day is over, and the requests nobody approved in time, are affected again
+     * (MAT-05); returns their number.
+     */
+    fun expireRiskAcceptances(today: LocalDate = LocalDate.now()): Int = synchronized(CvrFindingDao.LOCK) {
         val expired = findingDao.selectExpiredRiskAcceptances(today)
         expired.forEach {
             val reason = it.reason
-            reset(it, CvrFindingStatus.AFFECTED)
+            it.resetStatus(CvrFindingStatus.AFFECTED)
             it.reason = reason
             findingDao.update(it, checkAccess = false)
         }
-        return expired.size
+        expired.size
     }
 
-    /** The status with everything that belongs to another status removed. */
-    private fun reset(finding: CvrFindingDO, status: CvrFindingStatus) {
-        finding.status = status
-        finding.reason = null
-        finding.fixedVersion = null
-        finding.fixedDate = null
-        finding.riskExpires = null
-        finding.riskRequestedBy = null
-        finding.riskApprovedBySo = null
-        finding.riskApprovedByMg = null
-    }
-
-    /** The finding, if the user belongs to the security team and sees its instance. */
-    private fun changeable(user: PFUserDO, id: Long): CvrFindingDO {
+    /** The findings, if the user belongs to the security team and sees their instances. */
+    private fun changeable(user: PFUserDO, ids: List<Long>): List<CvrFindingDO> {
         access.checkSecurityTeam(user)
-        return visible(user, id)
+        val instances = inventoryService.readableInstances(user)
+        return ids.map { visible(user, it, instances) }
     }
 
-    /** The finding with a risk acceptance awaiting approval, for the officer and the management who see its instance. */
+    /**
+     * The finding with a risk acceptance awaiting approval and still running, for the officer and the management who
+     * see its instance.
+     */
     private fun requested(user: PFUserDO, id: Long): CvrFindingDO {
         if (!access.isSecurityOfficer(user) && !access.isManagement(user)) {
             throw AccessException(user, CveRadarAccess.NO_ACCESS)
         }
-        val finding = visible(user, id)
-        if (finding.status != CvrFindingStatus.IN_REVIEW || finding.riskRequestedBy == null || finding.riskExpires == null) {
+        val finding = visible(user, id, inventoryService.readableInstances(user))
+        if (!isRequested(finding)) {
             throw UserException(ERROR_STATUS)
+        }
+        if (finding.riskExpires!!.isBefore(LocalDate.now())) {
+            throw UserException(ERROR_EXPIRY)
         }
         return finding
     }
 
-    private fun visible(user: PFUserDO, id: Long): CvrFindingDO {
+    private fun isRequested(finding: CvrFindingDO): Boolean =
+        finding.status == CvrFindingStatus.IN_REVIEW && finding.riskRequestedBy != null && finding.riskExpires != null
+
+    private fun visible(user: PFUserDO, id: Long, instances: Map<Long, *>): CvrFindingDO {
         val finding = findingDao.find(id, checkAccess = false)?.takeIf { !it.deleted }
             ?: throw UserException(CveRadarService.ERROR_NOT_FOUND)
-        if (finding.instanceId !in inventoryService.readableInstances(user)) {
+        if (finding.instanceId !in instances) {
             throw AccessException(user, CveRadarAccess.NO_ACCESS)
         }
         return finding
@@ -232,8 +233,30 @@ class CvrFindingService {
     }
 
     /** From priority P2 on the management approves a risk acceptance as well (MAT-05). */
-    private fun needsManagement(vulnerabilityId: Long): Boolean =
+    private fun priorityNeedsManagement(vulnerabilityId: Long): Boolean =
         priorityOf(vulnerabilityId).let { it == CvrPriority.P1 || it == CvrPriority.P2 }
+
+    /**
+     * Whether the management approves the requested acceptance: fixed with the request, so a lower priority later
+     * doesn't leave it waiting for an approval nobody may give; a higher one asks for the management as well.
+     */
+    private fun needsManagement(finding: CvrFindingDO, current: Boolean? = null): Boolean =
+        finding.riskNeedsManagement == true || (current ?: priorityNeedsManagement(finding.vulnerabilityId!!))
+
+    /** Nobody approves twice, nor what they requested themselves (four eyes). */
+    private fun isInvolved(user: PFUserDO, finding: CvrFindingDO): Boolean =
+        user.id == finding.riskRequestedBy?.id || user.id == finding.riskApprovedBySo?.id ||
+                user.id == finding.riskApprovedByMg?.id
+
+    private fun mayApproveAsOfficer(user: PFUserDO, finding: CvrFindingDO): Boolean =
+        access.isSecurityOfficer(user) && finding.riskApprovedBySo == null && !isInvolved(user, finding)
+
+    private fun mayApproveAsManagement(user: PFUserDO, finding: CvrFindingDO, needsManagement: Boolean): Boolean =
+        needsManagement && access.isManagement(user) && finding.riskApprovedByMg == null && !isInvolved(user, finding)
+
+    private fun canDecide(user: PFUserDO, finding: CvrFindingDO, needsManagement: Boolean): Boolean =
+        isRequested(finding) && !finding.riskExpires!!.isBefore(LocalDate.now()) &&
+                (mayApproveAsOfficer(user, finding) || mayApproveAsManagement(user, finding, needsManagement))
 
     private fun list(user: PFUserDO, vulnerabilityId: Long): FindingList {
         val all = findingDao.selectByVulnerability(vulnerabilityId)
@@ -241,11 +264,12 @@ class CvrFindingService {
         val (visible, hidden) = all.partition { it.instanceId in instances }
         val components = byId(CvrComponentDO::class.java, visible.mapNotNull { it.componentId })
         val technologies = byId(CvrTechnologyDO::class.java, visible.mapNotNull { it.technologyId })
-        val needsManagement = needsManagement(vulnerabilityId)
+        val priorityNeedsManagement = priorityNeedsManagement(vulnerabilityId)
         val views = visible.map { finding ->
             val instance = instances[finding.instanceId]!!
             val component = components[finding.componentId]
             val technology = technologies[finding.technologyId]
+            val needsManagement = needsManagement(finding, priorityNeedsManagement)
             FindingView(
                 id = finding.id!!, certainty = finding.certainty, status = finding.status, matched = finding.matched,
                 reason = finding.reason, area = instance.area, system = instance.system,
@@ -254,21 +278,12 @@ class CvrFindingService {
                 fixedVersion = finding.fixedVersion, fixedDate = finding.fixedDate, riskExpires = finding.riskExpires,
                 riskRequestedBy = name(finding.riskRequestedBy), riskApprovedBySo = name(finding.riskApprovedBySo),
                 riskApprovedByMg = name(finding.riskApprovedByMg), riskNeedsManagement = needsManagement,
-                canApproveRisk = canApprove(user, finding, needsManagement),
+                canApproveRisk = canDecide(user, finding, needsManagement),
             )
         }.sortedWith(compareBy({ it.status }, { it.certainty }, { it.system }, { it.instance ?: "" }))
         // Only open ones count as hidden: a discarded or done finding says nothing about a system.
         val hiddenOpen = hidden.count { it.status in CvrFindingStatus.OPEN }
         return FindingList(views, hiddenOpen, access.isSecurityTeam(user))
-    }
-
-    private fun canApprove(user: PFUserDO, finding: CvrFindingDO, needsManagement: Boolean): Boolean {
-        if (finding.status != CvrFindingStatus.IN_REVIEW || finding.riskRequestedBy == null) {
-            return false
-        }
-        return (access.isSecurityOfficer(user) && finding.riskApprovedBySo == null) ||
-                (needsManagement && access.isManagement(user) && finding.riskApprovedByMg == null &&
-                        finding.riskApprovedBySo?.id != user.id)
     }
 
     private fun name(user: PFUserDO?): String? = userGroupCache.getUser(user?.id)?.displayName
@@ -292,4 +307,20 @@ class CvrFindingService {
         const val ERROR_EXPIRY = "plugins.cveradar.finding.error.expiry"
         const val ERROR_STATUS = "plugins.cveradar.finding.error.status"
     }
+}
+
+/**
+ * The status with everything that belongs to another status removed (reason, fix, risk acceptance). The one place
+ * doing so, for the service and the matching.
+ */
+internal fun CvrFindingDO.resetStatus(status: CvrFindingStatus) {
+    this.status = status
+    reason = null
+    fixedVersion = null
+    fixedDate = null
+    riskExpires = null
+    riskRequestedBy = null
+    riskApprovedBySo = null
+    riskApprovedByMg = null
+    riskNeedsManagement = null
 }

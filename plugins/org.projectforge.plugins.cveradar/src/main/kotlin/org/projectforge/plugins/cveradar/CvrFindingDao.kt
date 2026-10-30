@@ -39,6 +39,7 @@ import java.time.LocalDate
  */
 @Service
 class CvrFindingDao : CvrBaseDao<CvrFindingDO>(CvrFindingDO::class.java) {
+
     override fun newInstance(): CvrFindingDO = CvrFindingDO()
 
     /** The findings (deleted ones not) of a vulnerability. */
@@ -59,12 +60,17 @@ class CvrFindingDao : CvrBaseDao<CvrFindingDO>(CvrFindingDO::class.java) {
         )
     }
 
-    /** The findings of a risk acceptance that ended on a day before [today] (MAT-05). */
+    /**
+     * The findings whose risk acceptance, or request of one, has its last day before [today] (MAT-05): accepted ones,
+     * and requests in review nobody approved in time.
+     */
     fun selectExpiredRiskAcceptances(today: LocalDate): List<CvrFindingDO> {
         return persistenceService.executeQuery(
-            "select f from CvrFindingDO f where f.deleted = false and f.status = :status and f.riskExpires < :today",
+            "select f from CvrFindingDO f where f.deleted = false and f.riskExpires < :today and " +
+                    "(f.status = :accepted or (f.status = :review and f.riskRequestedBy is not null))",
             CvrFindingDO::class.java,
-            Pair("status", CvrFindingStatus.RISK_ACCEPTED),
+            Pair("accepted", CvrFindingStatus.RISK_ACCEPTED),
+            Pair("review", CvrFindingStatus.IN_REVIEW),
             Pair("today", today),
         )
     }
@@ -96,26 +102,39 @@ class CvrFindingDao : CvrBaseDao<CvrFindingDO>(CvrFindingDO::class.java) {
 
     /**
      * Per vulnerability the findings for the page of a list (TRI-10): the open ones by certainty, and the ones in
-     * progress and done.
+     * progress and done. Counted in the database, as most findings are done after a while.
      */
     fun countsByVulnerabilities(vulnerabilityIds: Collection<Long>): Map<Long, CvrFindingCounts> {
         if (vulnerabilityIds.isEmpty()) {
             return emptyMap()
         }
-        return persistenceService.executeQueryBatched(
-            "select f from CvrFindingDO f where f.deleted = false and f.status <> :discarded and f.vulnerability.id in :ids",
-            CvrFindingDO::class.java,
+        val rows = persistenceService.executeQueryBatched(
+            "select f.vulnerability.id, f.status, f.certainty, count(f) from CvrFindingDO f " +
+                    "where f.deleted = false and f.status <> :discarded and f.vulnerability.id in :ids " +
+                    "group by f.vulnerability.id, f.status, f.certainty",
+            Array<Any?>::class.java,
             "ids",
             vulnerabilityIds,
             Pair("discarded", CvrFindingStatus.DISCARDED),
-        ).groupBy { it.vulnerabilityId!! }.mapValues { (_, findings) ->
-            val open = findings.filter { it.status?.bucket == CvrFindingBucket.OPEN }
-            val affected = open.count { it.certainty == CvrFindingCertainty.AFFECTED }
+        )
+        return rows.groupBy { it[0] as Long }.mapValues { (_, list) ->
+            fun count(predicate: (CvrFindingStatus?, CvrFindingCertainty?) -> Boolean) =
+                list.filter { predicate(it[1] as CvrFindingStatus?, it[2] as CvrFindingCertainty?) }
+                    .sumOf { (it[3] as Number).toInt() }
             CvrFindingCounts(
-                affected, open.size - affected,
-                findings.count { it.status?.bucket == CvrFindingBucket.IN_PROGRESS },
-                findings.count { it.status?.bucket == CvrFindingBucket.DONE },
+                affected = count { s, c -> s?.bucket == CvrFindingBucket.OPEN && c == CvrFindingCertainty.AFFECTED },
+                possible = count { s, c -> s?.bucket == CvrFindingBucket.OPEN && c != CvrFindingCertainty.AFFECTED },
+                inProgress = count { s, _ -> s?.bucket == CvrFindingBucket.IN_PROGRESS },
+                done = count { s, _ -> s?.bucket == CvrFindingBucket.DONE },
             )
         }
+    }
+
+    companion object {
+        /**
+         * Serialises the changes of findings (by hand, the expiry job and the matching): each reads a finding and writes
+         * it back, so two at a time would lose one of the changes, e.g. one of two approvals.
+         */
+        val LOCK = Any()
     }
 }

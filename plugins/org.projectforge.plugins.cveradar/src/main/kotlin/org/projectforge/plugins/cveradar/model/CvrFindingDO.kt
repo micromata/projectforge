@@ -111,7 +111,7 @@ open class CvrFindingDO : DefaultBaseDO() {
     @get:Column(name = "fixed_date")
     open var fixedDate: LocalDate? = null
 
-    /** A risk acceptance (status risk accepted, or requested in review) ends on this day (MAT-05). */
+    /** The last day of a risk acceptance (status risk accepted, or requested in review, MAT-05). */
     @get:Column(name = "risk_expires")
     open var riskExpires: LocalDate? = null
 
@@ -129,6 +129,10 @@ open class CvrFindingDO : DefaultBaseDO() {
     @get:JoinColumn(name = "risk_approved_mg_fk")
     @JsonSerialize(using = IdOnlySerializer::class)
     open var riskApprovedByMg: PFUserDO? = null
+
+    /** Whether the management approves as well: priority P1 or P2 when the risk acceptance was requested (MAT-05). */
+    @get:Column(name = "risk_needs_management")
+    open var riskNeedsManagement: Boolean? = null
 
     val vulnerabilityId: Long?
         @Transient

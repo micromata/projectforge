@@ -114,8 +114,10 @@ class CvrMatchingService {
         return rematchComponents(ids)
     }
 
-    @Synchronized
-    fun rematch(vulnerabilityIds: Collection<Long>? = null, componentIds: Collection<Long>? = null): Result {
+    fun rematch(vulnerabilityIds: Collection<Long>? = null, componentIds: Collection<Long>? = null): Result =
+        synchronized(CvrFindingDao.LOCK) { rematchLocked(vulnerabilityIds, componentIds) }
+
+    private fun rematchLocked(vulnerabilityIds: Collection<Long>?, componentIds: Collection<Long>?): Result {
         val result = Result()
         val model = loadModel(componentIds)
         val hits = if (model.keys.isEmpty()) emptyMap() else findHits(model, vulnerabilityIds)
@@ -184,14 +186,7 @@ class CvrMatchingService {
     }
 
     private fun reopen(finding: CvrFindingDO, hit: Hit) {
-        finding.status = CvrFindingStatus.NEW
-        finding.reason = null
-        finding.fixedVersion = null
-        finding.fixedDate = null
-        finding.riskExpires = null
-        finding.riskRequestedBy = null
-        finding.riskApprovedBySo = null
-        finding.riskApprovedByMg = null
+        finding.resetStatus(CvrFindingStatus.NEW)
         finding.certainty = hit.certainty
         finding.technology = hit.technologyId?.let { persistenceService.getReference(CvrTechnologyDO::class.java, it) }
         finding.matched = hit.matched
@@ -202,29 +197,23 @@ class CvrMatchingService {
     /**
      * The worked-on finding no longer matches. If the version of its technology changed, remember the new one (so a
      * rollback is noticed) and let an open finding wait for the confirmation of the fix (MAT-07, MAT-09); otherwise the
-     * vulnerability data changed and a person decides.
+     * vulnerability data changed and a person decides. A technology replaced by a new entry (another id) has no known
+     * version any more: the finding forgets the matched one, so the next match counts as a change (MAT-13).
      */
     private fun followVersion(finding: CvrFindingDO, versions: Map<Long, String?>, result: Result) {
         val technologyId = finding.technologyId
-        // A technology that was removed has no version any more: an open finding waits for the confirmation.
         val removed = technologyId == null || technologyId !in versions
-        val changed = !removed && versions[technologyId] != finding.matchedVersion
+        val version = if (removed) null else versions[technologyId]
         val open = finding.status?.bucket == CvrFindingBucket.OPEN
-        if (!changed && !(removed && open)) {
+        if (version == finding.matchedVersion && !(removed && open)) {
             result.unchanged++
             return
         }
         if (open) {
-            finding.status = CvrFindingStatus.FIX_PLANNED
-            finding.fixedVersion = if (removed) null else versions[technologyId]
-            finding.riskExpires = null
-            finding.riskRequestedBy = null
-            finding.riskApprovedBySo = null
-            finding.riskApprovedByMg = null
+            finding.resetStatus(CvrFindingStatus.FIX_PLANNED)
+            finding.fixedVersion = version
         }
-        if (changed) {
-            finding.matchedVersion = versions[technologyId]
-        }
+        finding.matchedVersion = version
         findingDao.update(finding, checkAccess = false)
         result.updated++
     }

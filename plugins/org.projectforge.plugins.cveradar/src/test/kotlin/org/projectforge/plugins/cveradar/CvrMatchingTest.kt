@@ -408,8 +408,60 @@ class CvrMatchingTest : CveRadarTestBase() {
         assertFalse(requested.riskNeedsManagement)
         logon(user("mg-fw", CvrRole.MANAGEMENT))
         assertThrows(AccessException::class.java) { fileRest.approveRisk(id) }
+        assertThrows(AccessException::class.java, { fileRest.rejectRisk(id) }, "nor rejects what the officer decides")
         logon(user("so-fw", CvrRole.SECURITY_OFFICER))
         assertEquals(CvrFindingStatus.RISK_ACCEPTED, fileRest.approveRisk(id).findings.first { it.id == id }.status)
+    }
+
+    @Test
+    fun `nobody approves the own request, a lower priority later doesn't drop the management, an unapproved request ends`() {
+        val P = "tomcat10"
+        val vulnerabilityId = importTomcat("CVE-2026-94010", P) // CVSS 9.8: P2.
+        val (_, _, team) = withTomcat("MT10", P, "cveradar-match-g10")
+        val (first, second) = findings(team, vulnerabilityId).findings.map { it.id }
+        val so = user("so-fw", CvrRole.SECURITY_OFFICER)
+        val so2 = user("so2-fw", CvrRole.SECURITY_OFFICER)
+        val mg = user("mg-fw", CvrRole.MANAGEMENT)
+        val tomorrow = LocalDate.now().plusDays(1)
+
+        // The officer requests: another officer approves.
+        status(so, listOf(first), CvrFindingStatus.RISK_ACCEPTED) { reason = "r"; riskExpires = tomorrow }
+        assertFalse(fileRest.findings(vulnerabilityId).findings.first { it.id == first }.canApproveRisk)
+        assertThrows(AccessException::class.java) { fileRest.approveRisk(first) }
+        logon(so2)
+        assertEquals(CvrFindingStatus.IN_REVIEW, fileRest.approveRisk(first).findings.first { it.id == first }.status)
+
+        // The priority drops to P3 after the request: the management still approves, as fixed with the request.
+        persistenceService.runInTransaction {
+            it.executeUpdate("update CvrVulnerabilityDO v set v.cvssScore = 7.5 where v.id = :id", Pair("id", vulnerabilityId))
+        }
+        logon(mg)
+        assertTrue(fileRest.findings(vulnerabilityId).findings.first { it.id == first }.canApproveRisk)
+        assertEquals(CvrFindingStatus.RISK_ACCEPTED, fileRest.approveRisk(first).findings.first { it.id == first }.status)
+
+        // A request nobody approves ends with its last day.
+        status(team, listOf(second), CvrFindingStatus.RISK_ACCEPTED) { reason = "r"; riskExpires = tomorrow }
+        assertEquals(0, findingService.expireRiskAcceptances(tomorrow), "still running on its last day")
+        assertTrue(findingService.expireRiskAcceptances(tomorrow.plusDays(1)) >= 2)
+        val ended = findings(team, vulnerabilityId).findings
+        assertTrue(ended.all { it.status == CvrFindingStatus.AFFECTED && it.riskExpires == null })
+    }
+
+    @Test
+    fun `a technology replaced by a new entry plans the fix, a rollback reopens it`() {
+        val P = "tomcat11"
+        val vulnerabilityId = importTomcat("CVE-2026-94011", P)
+        val (_, component, team) = withTomcat("MT11", P, "cveradar-match-g11")
+        val ids = findings(team, vulnerabilityId).findings.map { it.id }
+        status(team, ids, CvrFindingStatus.AFFECTED)
+        // Without the id of the technology: the old entry is replaced by a new one.
+        logon(team)
+        inventory.updateComponent(component, ComponentRequest(code = "APP", name = "App", technologies = listOf(tomcat(P, "9.0.95", true))))
+        assertTrue(findings(team, vulnerabilityId).findings.all { it.status == CvrFindingStatus.FIX_PLANNED })
+        assertEquals(0, matching.rematch().let { it.created + it.updated + it.removed }, "idempotent")
+        logon(team)
+        inventory.updateComponent(component, ComponentRequest(code = "APP", name = "App", technologies = listOf(tomcat(P, "9.0.80", true))))
+        assertTrue(findings(team, vulnerabilityId).findings.all { it.status == CvrFindingStatus.NEW }, "reopened")
     }
 
     @Test
