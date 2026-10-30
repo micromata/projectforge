@@ -4205,6 +4205,7 @@
         "stage": "Stage",
         "status": "Status",
         "technologies": "Technologien",
+        "technologiesUpdated": "Technologien aktualisiert",
         "technology": "Technologie",
         "title": "Beschreibung"
       },
@@ -4316,6 +4317,7 @@
         "suggested": "Vorschlag",
         "tab": {
           "discussion": "Diskussion",
+          "findings": "Betroffen",
           "measures": "Maßnahmen",
           "overview": "NVD-Daten",
           "ratings": "Bewertungen",
@@ -4332,6 +4334,46 @@
           "placeholder": "Technologie, z. B. spring boot < 3.5.7"
         },
         "withVulns": "Nur mit CVEs"
+      },
+      "finding": {
+        "certainty": {
+          "_": "Sicherheit",
+          "AFFECTED": "Betroffen",
+          "POSSIBLE": "Möglicherweise betroffen"
+        },
+        "column": {
+          "component": "Komponente",
+          "instance": "Instanz",
+          "list": "Betroffen",
+          "system": "System",
+          "technology": "Technologie"
+        },
+        "counts": {
+          "tooltip": "{arg0} betroffen, {arg1} möglicherweise betroffen"
+        },
+        "discard": {
+          "_": "Verwerfen",
+          "info": "Ein Fehltreffer: Diese Technologie ist nicht betroffen. Der nächste Abgleich legt den Befund nicht wieder an. Ein Grund ist nötig."
+        },
+        "discardReason": "Grund",
+        "empty": "Kein Befund: Keine Technologie des Inventars passt zu dieser Schwachstelle.",
+        "error": {
+          "reason": "Zum Verwerfen eines Befunds ist ein Grund nötig."
+        },
+        "filter": {
+          "affected": "Mit Treffern im Inventar"
+        },
+        "hidden": "+{arg0} weitere betroffene Installationen, für dich nicht sichtbar.",
+        "matched": "Treffer",
+        "restore": "Zurücknehmen",
+        "status": {
+          "DISCARDED": "Verworfen",
+          "NEW": "Neu"
+        },
+        "tab": {
+          "_": "Betroffen",
+          "info": "Technologien des Inventars, die zu dieser Schwachstelle passen. Ohne genaue Version oder nur über den Namen ist ein Treffer nur möglich."
+        }
       },
       "findingBucket": {
         "done": "{arg0} erledigt",

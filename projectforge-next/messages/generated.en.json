@@ -4205,6 +4205,7 @@
         "stage": "Stage",
         "status": "Status",
         "technologies": "Technologies",
+        "technologiesUpdated": "Technologies updated",
         "technology": "Technology",
         "title": "Description"
       },
@@ -4316,6 +4317,7 @@
         "suggested": "suggested",
         "tab": {
           "discussion": "Discussion",
+          "findings": "Affected",
           "measures": "Measures",
           "overview": "NVD data",
           "ratings": "Ratings",
@@ -4332,6 +4334,46 @@
           "placeholder": "Technology, e.g. spring boot < 3.5.7"
         },
         "withVulns": "Only with CVEs"
+      },
+      "finding": {
+        "certainty": {
+          "_": "Certainty",
+          "AFFECTED": "Affected",
+          "POSSIBLE": "Possibly affected"
+        },
+        "column": {
+          "component": "Component",
+          "instance": "Instance",
+          "list": "Affected",
+          "system": "System",
+          "technology": "Technology"
+        },
+        "counts": {
+          "tooltip": "{arg0} affected, {arg1} possibly affected"
+        },
+        "discard": {
+          "_": "Discard",
+          "info": "A false positive: this technology is not affected. The next matching does not create the finding again. A reason is required."
+        },
+        "discardReason": "Reason",
+        "empty": "No finding: no technology of the inventory matches this vulnerability.",
+        "error": {
+          "reason": "A reason is required to discard a finding."
+        },
+        "filter": {
+          "affected": "With matches in the inventory"
+        },
+        "hidden": "+{arg0} more affected installations, not visible to you.",
+        "matched": "Match",
+        "restore": "Take back",
+        "status": {
+          "DISCARDED": "Discarded",
+          "NEW": "New"
+        },
+        "tab": {
+          "_": "Affected",
+          "info": "Technologies of the inventory that match this vulnerability. Without an exact version, or only by name, a match is only possible."
+        }
       },
       "findingBucket": {
         "done": "{arg0} done",

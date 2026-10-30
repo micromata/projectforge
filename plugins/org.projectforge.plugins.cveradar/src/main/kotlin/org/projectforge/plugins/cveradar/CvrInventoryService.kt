@@ -24,6 +24,7 @@
 
 package org.projectforge.plugins.cveradar
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
@@ -35,6 +36,8 @@ import org.projectforge.plugins.cveradar.model.CvrCatalogNodeDO
 import org.projectforge.plugins.cveradar.model.CvrComponentDO
 import org.projectforge.plugins.cveradar.model.CvrConfidentiality
 import org.projectforge.plugins.cveradar.model.CvrCriticality
+import org.projectforge.plugins.cveradar.model.CvrFindingCertainty
+import org.projectforge.plugins.cveradar.model.CvrFindingDO
 import org.projectforge.plugins.cveradar.model.CvrInstanceDO
 import org.projectforge.plugins.cveradar.model.CvrOrigin
 import org.projectforge.plugins.cveradar.model.CvrSystemDO
@@ -55,6 +58,8 @@ import org.projectforge.plugins.cveradar.rest.TechnologyView
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+
+private val log = KotlinLogging.logger {}
 
 /**
  * The inventory (INV-01 ff.): areas as a tree of any depth, below them systems with instances and components.
@@ -80,7 +85,13 @@ class CvrInventoryService {
     private lateinit var libraryService: CvrLibraryService
 
     @Autowired
+    private lateinit var matchingService: CvrMatchingService
+
+    @Autowired
     private lateinit var componentDao: CvrComponentDao
+
+    @Autowired
+    private lateinit var findingDao: CvrFindingDao
 
     @Autowired
     private lateinit var instanceDao: CvrInstanceDao
@@ -100,7 +111,23 @@ class CvrInventoryService {
     /** The nodes the user may see, flat and in tree order. */
     fun tree(user: PFUserDO): InventoryTree {
         val view = View(user, load())
-        return view.tree()
+        return view.tree(findingDao.selectAllOpen())
+    }
+
+    /** Where an instance is, for the findings (VIS-02). */
+    class InstanceLabel(val instanceId: Long, val systemId: Long, val area: String?, val system: String, val instance: String?)
+
+    /** The instances the user may see, by id: whoever may not see an instance sees its findings as a count only (VIS-04). */
+    fun readableInstances(user: PFUserDO): Map<Long, InstanceLabel> {
+        val view = View(user, load())
+        return view.model.instances.values.filter { view.canReadInstance(it) }.associate { instance ->
+            val system = view.system(instance.systemId!!)
+            instance.id!! to InstanceLabel(
+                instance.id!!, system.id!!, view.chain(view.model.areas[system.areaId]).reversed().joinToString(" / ") { it.code ?: "" }
+                    .takeIf { it.isNotBlank() },
+                system.code + " " + system.name, instance.code,
+            )
+        }
     }
 
     // --- Areas ---
@@ -274,6 +301,8 @@ class CvrInventoryService {
             .filter { it.systemId == system.id && it.code == null }
             .filter { default -> view.model.components.values.none { it.instanceId == default.id } }
             .forEach { instanceDao.markAsDeleted(instanceDao.find(it.id, checkAccess = false)!!, checkAccess = false) }
+        // The components of the baseline count for the new instance as well.
+        rematch { matchingService.rematchSystem(system.id!!) }
         return id
     }
 
@@ -332,6 +361,7 @@ class CvrInventoryService {
         }
         val id = componentDao.insert(component, checkAccess = false)
         syncTechnologies(component, request.technologies, emptyList())
+        rematch { matchingService.rematchComponents(listOf(id)) }
         return id
     }
 
@@ -347,13 +377,29 @@ class CvrInventoryService {
         stored.name = checkedName(request.name)
         componentDao.update(stored, checkAccess = false)
         syncTechnologies(stored, request.technologies, view.model.technologies.filter { it.componentId == id })
+        rematch { matchingService.rematchComponents(listOf(id)) }
     }
 
     fun previewLibraries(user: PFUserDO, componentId: Long, request: LibraryRequest): LibraryDiff =
         libraryService.preview(writableComponent(user, componentId), request)
 
-    fun applyLibraries(user: PFUserDO, componentId: Long, request: LibraryRequest): LibraryDiff =
-        libraryService.apply(writableComponent(user, componentId), request)
+    fun applyLibraries(user: PFUserDO, componentId: Long, request: LibraryRequest): LibraryDiff {
+        val diff = libraryService.apply(writableComponent(user, componentId), request)
+        rematch { matchingService.rematchComponents(listOf(componentId)) }
+        return diff
+    }
+
+    /**
+     * Matches against the vulnerabilities after a change of the inventory (MAT-01). The change is stored by then, so a
+     * failing match is logged and not passed on: the next change or the start of the plugin matches again.
+     */
+    private fun rematch(action: () -> Unit) {
+        try {
+            action()
+        } catch (ex: Exception) {
+            log.error(ex) { "Matching after a change of the inventory failed: ${ex.message}" }
+        }
+    }
 
     /** The stored component, if the user may change its system; the component always comes from the database. */
     private fun writableComponent(user: PFUserDO, id: Long): CvrComponentDO {
@@ -436,6 +482,7 @@ class CvrInventoryService {
                 // The last instance stays: every system has at least one (INV-04).
                 if (model.instances.values.count { it.systemId == system.id } <= 1) throw UserException(ERROR_LAST_INSTANCE)
                 instanceDao.markAsDeleted(instanceDao.find(id, checkAccess = false)!!, checkAccess = false)
+                rematch { matchingService.rematchSystem(system.id!!) }
             }
 
             InventoryLevel.COMPONENT -> {
@@ -446,6 +493,7 @@ class CvrInventoryService {
                     technologyDao.markAsDeleted(technologyDao.find(it.id, checkAccess = false)!!, checkAccess = false)
                 }
                 componentDao.markAsDeleted(componentDao.find(id, checkAccess = false)!!, checkAccess = false)
+                rematch { matchingService.rematchComponents(listOf(id)) }
             }
         }
     }
@@ -556,7 +604,20 @@ class CvrInventoryService {
                             (instance.confidentiality ?: system.confidentiality) == CvrConfidentiality.INTERNAL)
         }
 
-        fun tree(): InventoryTree {
+        fun tree(findings: List<CvrFindingDO>): InventoryTree {
+            // Findings count only in the instances the user may see (VIS-04).
+            val readableInstanceIds = model.instances.values.filter { canReadInstance(it) }.map { it.id!! }.toSet()
+            val open = findings.filter { it.instanceId in readableInstanceIds }
+            fun counts(list: List<CvrFindingDO>) =
+                list.count { it.certainty == CvrFindingCertainty.AFFECTED }.let { it to list.size - it }
+            val byInstance = open.groupBy { it.instanceId }
+            val byComponent = open.groupBy { it.componentId }
+            val bySystem = open.groupBy { model.instances[it.instanceId]?.systemId }
+            val byArea = mutableMapOf<Long, MutableList<CvrFindingDO>>()
+            open.forEach { finding ->
+                val system = model.systems[model.instances[finding.instanceId]?.systemId]
+                chain(model.areas[system?.areaId]).forEach { byArea.getOrPut(it.id!!) { mutableListOf() }.add(finding) }
+            }
             val readableAreas = model.areas.values.filter { canWriteArea(it) }.map { it.id!! }.toSet()
             val readableSystems = model.systems.values.filter { canReadSystem(it) }.map { it.id!! }.toSet()
             // The areas to show: those readable and the ancestors of every readable area and system.
@@ -571,25 +632,29 @@ class CvrInventoryService {
                 if (depth > MAX_DEPTH) return
                 val readable = area.id in readableAreas
                 val canEdit = readable
-                rows.add(areaRow(area, parentKey, readable, canEdit))
+                rows.add(areaRow(area, parentKey, readable, canEdit, counts(byArea[area.id].orEmpty())))
                 val key = "A${area.id}"
                 childAreas[area.id].orEmpty().sortedBy { it.name?.lowercase() }.forEach { addArea(it, key, depth + 1) }
                 systemsByArea[area.id].orEmpty().sortedBy { it.name?.lowercase() }.forEach { system ->
                     val canEditSystem = canWriteSystem(system)
-                    rows.add(systemRow(system, key, canEditSystem))
+                    rows.add(systemRow(system, key, canEditSystem, counts(bySystem[system.id].orEmpty())))
                     val systemKey = "S${system.id}"
                     val instances = model.instances.values.filter { it.systemId == system.id }
                     val explicit = instances.any { it.code != null }
                     if (explicit) {
                         instances.filter { canReadInstance(it) }.sortedBy { it.code ?: "" }.forEach { instance ->
-                            rows.add(instanceRow(instance, system, systemKey, canEditSystem))
+                            rows.add(instanceRow(instance, system, systemKey, canEditSystem, counts(byInstance[instance.id].orEmpty())))
                             val instanceKey = "I${instance.id}"
                             model.components.values.filter { it.instanceId == instance.id }.sortedBy { it.code }
-                                .forEach { rows.add(componentRow(it, instance, system, instanceKey, canEditSystem, techByComponent)) }
+                                .forEach {
+                                    rows.add(componentRow(it, instance, system, instanceKey, canEditSystem, techByComponent, counts(byComponent[it.id].orEmpty())))
+                                }
                         }
                     }
                     model.components.values.filter { it.systemId == system.id }.sortedBy { it.code }
-                        .forEach { rows.add(componentRow(it, null, system, systemKey, canEditSystem, techByComponent)) }
+                        .forEach {
+                            rows.add(componentRow(it, null, system, systemKey, canEditSystem, techByComponent, counts(byComponent[it.id].orEmpty())))
+                        }
                 }
             }
             childAreas[null].orEmpty().sortedBy { it.name?.lowercase() }.forEach { addArea(it, null, 0) }
@@ -610,7 +675,7 @@ class CvrInventoryService {
 
         private fun groupName(id: Long?): String? = userGroupCache.getGroup(id)?.name
 
-        private fun areaRow(area: CvrAreaDO, parentKey: String?, readable: Boolean, canEdit: Boolean): InventoryRow {
+        private fun areaRow(area: CvrAreaDO, parentKey: String?, readable: Boolean, canEdit: Boolean, found: Pair<Int, Int>): InventoryRow {
             if (!readable) {
                 return InventoryRow("A${area.id}", area.id!!, InventoryLevel.AREA, parentKey, area.code, area.code, area.name, true)
             }
@@ -619,10 +684,11 @@ class CvrInventoryService {
                 "A${area.id}", area.id!!, InventoryLevel.AREA, parentKey, area.code, area.code, area.name, false, canEdit,
                 description = area.description, groupId = area.groupId, groupName = groupName(area.groupId),
                 effectiveGroupName = effective, effectiveGroupFrom = from, lastUpdate = area.lastUpdate,
+                findingCount = found.first, possibleCount = found.second,
             )
         }
 
-        private fun systemRow(system: CvrSystemDO, parentKey: String, canEdit: Boolean): InventoryRow {
+        private fun systemRow(system: CvrSystemDO, parentKey: String, canEdit: Boolean, found: Pair<Int, Int>): InventoryRow {
             val area = model.areas[system.areaId]
             val (effective, from) = effectiveGroup(system.group, area, system.code)
             return InventoryRow(
@@ -630,10 +696,17 @@ class CvrInventoryService {
                 canEdit, description = system.description, groupId = system.groupId, groupName = groupName(system.groupId),
                 effectiveGroupName = effective, effectiveGroupFrom = from, systemType = system.type,
                 criticality = system.criticality, confidentiality = system.confidentiality, lastUpdate = system.lastUpdate,
+                findingCount = found.first, possibleCount = found.second,
             )
         }
 
-        private fun instanceRow(instance: CvrInstanceDO, system: CvrSystemDO, parentKey: String, canEdit: Boolean): InventoryRow {
+        private fun instanceRow(
+            instance: CvrInstanceDO,
+            system: CvrSystemDO,
+            parentKey: String,
+            canEdit: Boolean,
+            found: Pair<Int, Int>,
+        ): InventoryRow {
             val contact = userGroupCache.getUser(instance.contact?.id)
             return InventoryRow(
                 "I${instance.id}", instance.id!!, InventoryLevel.INSTANCE, parentKey,
@@ -643,7 +716,7 @@ class CvrInventoryService {
                 confidentiality = instance.confidentiality ?: system.confidentiality,
                 site = instance.site, stage = instance.stage, tenant = instance.tenant, exposed = instance.exposed,
                 contactId = contact?.id, contactName = contact?.displayName, defaultInstance = instance.code == null,
-                lastUpdate = instance.lastUpdate,
+                lastUpdate = instance.lastUpdate, findingCount = found.first, possibleCount = found.second,
             )
         }
 
@@ -654,6 +727,7 @@ class CvrInventoryService {
             parentKey: String,
             canEdit: Boolean,
             techByComponent: Map<Long?, List<CvrTechnologyDO>>,
+            found: Pair<Int, Int>,
         ): InventoryRow {
             val base = system.code + (instance?.code?.let { "-$it" } ?: "")
             return InventoryRow(
@@ -663,7 +737,8 @@ class CvrInventoryService {
                     TechnologyView(it.id!!, it.kind, it.vendor, it.product, it.version, it.ecosystem, it.cpe, it.purl, it.origin,
                         it.catalogNodeId, it.catalogNodeId?.let { id -> model.catalogNames[id] })
                 },
-                lastUpdate = component.lastUpdate,
+                lastUpdate = component.lastUpdate, technologiesUpdated = techByComponent[component.id].orEmpty().mapNotNull { it.lastUpdate }.maxOrNull(),
+                findingCount = found.first, possibleCount = found.second,
             )
         }
     }

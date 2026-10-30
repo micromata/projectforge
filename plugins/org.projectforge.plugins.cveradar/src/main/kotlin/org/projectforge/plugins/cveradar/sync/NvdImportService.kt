@@ -29,6 +29,7 @@ import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.plugins.cveradar.CveRadarConfig
 import org.projectforge.plugins.cveradar.CvrCaseDao
+import org.projectforge.plugins.cveradar.CvrMatchingService
 import org.projectforge.plugins.cveradar.CvrVulnerabilityDao
 import org.projectforge.plugins.cveradar.model.CvrImportStateDO
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
@@ -68,6 +69,9 @@ class NvdImportService {
     private lateinit var vulnerabilityDao: CvrVulnerabilityDao
 
     @Autowired
+    private lateinit var matchingService: CvrMatchingService
+
+    @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
     class Result {
@@ -77,6 +81,9 @@ class NvdImportService {
 
         /** Below the threshold or not rated yet. */
         var skipped = 0
+
+        /** The new and modified vulnerabilities, to be matched against the inventory (MAT-01). */
+        internal val changedIds = mutableSetOf<Long>()
 
         override fun toString() = "created=$created, updated=$updated, unchanged=$unchanged, skipped=$skipped"
     }
@@ -96,6 +103,7 @@ class NvdImportService {
             }
             state.lastError = null
             log.info { "NVD import finished: $result" }
+            match(result)
             return result
         } catch (ex: Exception) {
             state.lastError = (ex.message ?: ex.javaClass.simpleName).take(4000)
@@ -131,6 +139,7 @@ class NvdImportService {
             vulnerabilityDao.insert(vulnerability, checkAccess = false)
             vulnerabilityDao.reindex(vulnerability)
             caseDao.linkToVulnerability(vulnerability)
+            indexAndRemember(vulnerability, cve, result)
             result.created++
             return
         }
@@ -143,7 +152,23 @@ class NvdImportService {
             result.unchanged++
         } else {
             vulnerabilityDao.reindex(existing)
+            indexAndRemember(existing, cve, result)
             result.updated++
+        }
+    }
+
+    /** The CPE entries of the document are the index of the matching; the vulnerability is matched after the import. */
+    private fun indexAndRemember(vulnerability: CvrVulnerabilityDO, cve: NvdCve, result: Result) {
+        matchingService.replaceIndex(vulnerability.id!!, cve.cpes)
+        result.changedIds.add(vulnerability.id!!)
+    }
+
+    /** A failing match must not fail the import: the next run of the inventory or the startup matches again. */
+    private fun match(result: Result) {
+        try {
+            matchingService.rematchVulnerabilities(result.changedIds)
+        } catch (ex: Exception) {
+            log.error(ex) { "Matching after the NVD import failed: ${ex.message}" }
         }
     }
 

@@ -3,7 +3,7 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.1.0",
-    "date" : "2026-10-29",
+    "date" : "2026-10-30",
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
@@ -22,7 +22,10 @@
       }, {
         "title" : "Digital business cards",
         "items" : [ "Several cards per user, each with a QR code (vCard) to show, e.g. as a screenshot. Reached from the user menu and the address list.", "The data is taken over from an address of the address book (the own one is suggested), picked per field and editable; private data only if ticked.", "The photo of the own address can be linked in the vCard: the gateway delivers it under a signed url and needs no further data for it." ]
-      }, "Order notifications (a button on the order list and beside the e-mail checkbox of each order): choose per user whether the e-mails about changed orders arrive at once, as one daily summary or not at all, as a default and as exceptions for single projects or customers." ]
+      }, "Order notifications (a button on the order list and beside the e-mail checkbox of each order): choose per user whether the e-mails about changed orders arrive at once, as one daily summary or not at all, as a default and as exceptions for single projects or customers.", {
+        "title" : "CVE-Radar: vulnerabilities matched against the inventory",
+        "items" : [ "Every imported vulnerability is matched against the technologies of the inventory, after each import and each change of the inventory: by the CPE or the catalogue entry of a technology, otherwise by its name (then only \"possibly affected\"), with the version ranges of the NVD. A component of a system counts for every instance of it.", "The findings show in the file of a CVE (tab \"Affected\"), as a count with a filter \"With matches in the inventory\" in the list of vulnerabilities and in the inventory tree, where affected rows are highlighted. Installations a person may not see are only counted. The security team discards false positives with a reason.", "The inventory tree shows when the technologies of a component were last updated.", "Discussions about a CVE take attachments, which are deleted after 30 days; the notice about confidential details shows in orange while writing." ]
+      } ]
     }, {
       "type" : "improved",
       "items" : [ "Tables no longer store their unchanged column layout again on every page view.", "Fewer requests per page view: the unread chat count of the top bar comes with the user status instead of two list requests, it is counted once for menu and status, and the event stream stops retrying after the session expired.", "Order statistics, forecast: new table \"Breakdown of the forecast\" per month with the invoiced sums, the remaining forecast of commissioned fixed price and flat rate positions, of commissioned time & materials positions (run rate) and of not yet commissioned positions (weighted), and the part of the forecast for which an invoice is already planned.", "Chat: the images of a message stand side by side (scrolling sideways when there are many), and the full size view pages through them with buttons and arrow keys.", "Dialogs with input fields ask before they are closed by a click beside them, Esc or the close button once something was entered, so the input is no longer lost by accident.", "Properties editor: the descriptions link to the matching sections of the admin guide and support code, bold text and links." ]

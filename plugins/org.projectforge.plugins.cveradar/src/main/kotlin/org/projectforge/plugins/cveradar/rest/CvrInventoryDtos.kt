@@ -87,6 +87,11 @@ class InventoryRow(
     val defaultInstance: Boolean = false,
     val technologies: List<TechnologyView> = emptyList(),
     val lastUpdate: java.util.Date? = null,
+    /** A component: when one of its technologies (a library list included) was last added or changed. */
+    val technologiesUpdated: java.util.Date? = null,
+    /** The open findings (MAT-02) in the instances the user may see: sure ones, and the ones only possible (MAT-03). */
+    val findingCount: Int = 0,
+    val possibleCount: Int = 0,
 )
 
 class InventoryTree(

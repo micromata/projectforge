@@ -37,3 +37,9 @@ class CvrTriageInfo(
     val assigneeName: String? = null,
     val ratingCount: Int = 0,
 )
+
+/**
+ * The open findings of a vulnerability in all instances (MAT-02), for the list only: counts, so everybody sees them
+ * (VIS-04). [affected] are sure ones, [possible] those without an exact version or only by name (MAT-03, MAT-12).
+ */
+class CvrFindingCounts(val affected: Int = 0, val possible: Int = 0)

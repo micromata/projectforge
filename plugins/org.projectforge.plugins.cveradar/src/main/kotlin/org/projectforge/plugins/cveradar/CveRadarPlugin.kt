@@ -60,6 +60,19 @@ class CveRadarPlugin : AbstractPlugin(ID, "CVE-Radar", "Vulnerability management
         // Here and not on first read: a GET must not write.
         runCatching { SpringBeans.get(CvrCatalogService::class.java).ensureEcosystems() }
             .onFailure { log.error(it) { "Can't create the ecosystems of the technology catalogue: ${it.message}" } }
+        // Once, for the vulnerabilities imported before the matching existed; takes a while, so not in the start. The
+        // migration of the plugin runs after initialize(): a try before it fails on the missing table, so retry.
+        Thread({
+            repeat(INDEX_ATTEMPTS) { attempt ->
+                try {
+                    SpringBeans.get(CvrMatchingService::class.java).ensureIndex()
+                    return@Thread
+                } catch (ex: Exception) {
+                    log.warn { "Can't build the CPE index of the vulnerabilities (try ${attempt + 1}): ${ex.message?.take(200)}" }
+                    Thread.sleep(INDEX_RETRY_MILLIS)
+                }
+            }
+        }, "cveradar-cpe-index").also { it.isDaemon = true }.start()
     }
 
     /** The start page and the prototype's pages have no REST category to derive them from. */
@@ -67,6 +80,9 @@ class CveRadarPlugin : AbstractPlugin(ID, "CVE-Radar", "Vulnerability management
         get() = listOf("cveradar")
 
     companion object {
+        private const val INDEX_ATTEMPTS = 10
+        private const val INDEX_RETRY_MILLIS = 15_000L
+
         const val ID = PluginAdminService.PLUGIN_CVE_RADAR_ID
         const val RESOURCE_BUNDLE_NAME = "CveRadarI18nResources"
 

@@ -74,6 +74,7 @@ object NvdCveParser {
                 .distinct(),
             kevAdded = cve.textOrNull("cisaExploitAdd")?.let { parseDate(it) },
             rawJson = objectMapper.writeValueAsString(cve),
+            cpes = if (cve.textOrNull("vulnStatus").equals("Rejected", ignoreCase = true)) emptyList() else NvdCpeParser.parse(cve),
         )
     }
 
