@@ -1,13 +1,115 @@
 ---
 title: "ProjectForge 9"
-date: 2026-10-28
-sort_key: "2026-10-28 0049"
+date: 2026-10-30
+sort_key: "2026-10-30 0050"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json and changelog/changelog.de.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 Neu in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-2-0.changelog-release]
+=== ProjectForge 9.2: Java 21, JCR entfernt, CVE-Radar, digitale Visitenkarten
+
+[.changelog-source]
+__2026-10-30, Tag https://github.com/micromata/projectforge/tree/9.2.0-RELEASE[9.2.0-RELEASE]__ +++{% include release-pills.html tag="9.2.0-RELEASE" docker="9.2.0" %}+++
+
+- [red]##**Java 21 erforderlich**##, **JCR entfernt** (zuvor mit 9.1.x migrieren)
+- **CVE-Radar** (Plugin): NVD-Import, Systeminventar, Abgleich mit Benachrichtigung, Triage
+- **Digitale Visitenkarten** mit QR-Code (vCard)
+- Auftragsbenachrichtigungen pro Benutzer: sofort, Tageszusammenfassung oder keine
+- Forecast: neue Aufschlüsselungstabelle; Korrekturen für veraltete Rechnungslisten und Suchen in seitenweisen Listen
+
+.Überblick
+[%collapsible]
+====
+- **Java 21:** ab 9.2 erforderlich, das ausführbare JAR startet nicht mehr unter Java 17.
+- **Dateien:** das JCR (Apache Oak) ist entfernt, Anhänge liegen in der Datenbank und Datentransfer-Dateien im Dateisystem.
+- **CVE-Radar:** Fälle und Team-Prüfungen, Import der Schwachstellen aus der NVD, Systeminventar mit Technologiekatalog und Bibliotheksimport (SBOM, Lockfiles, Paketlisten), Abgleich der Schwachstellen mit dem Inventar samt Benachrichtigungsregel für neue Befunde, eine Akte je CVE mit Bewertung, Maßnahmen und Diskussion.
+- **Digitale Visitenkarten:** mehrere Karten pro Benutzer mit QR-Code, Daten aus einer Adresse übernommen.
+- **Auftragsbenachrichtigungen:** pro Benutzer sofort, als Tageszusammenfassung oder gar nicht; ein Empfänger erhält höchstens eine Mail und eine SMS pro Regel und Tag.
+- **Forecast und Deckungsbeitrag:** neue Tabelle "Aufschlüsselung des Forecasts", vorläufiger Umsatz nicht gebuchter Rechnungen aus den Kostenzuweisungen.
+- **Projekte:** der Status ist Akquise, aktiv, pausiert oder beendet.
+- **Performance und Bedienung:** weniger Anfragen pro Seitenaufruf, Upload-Geschwindigkeit im Datentransfer, seitliches Blättern der Chat-Bilder, Dialoge fragen vor dem Verwerfen von Eingaben.
+- **Korrekturen:** Rechnungslisten mit veraltetem Bezahlt-Status nach Massenänderung, veraltete Ergebnisse in durchsuchten langen Listen.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+[red]##**Java 21 ist Voraussetzung**## - ProjectForge 9.2 wird für Java 21 kompiliert, das ausführbare JAR startet nicht mehr unter Java 17. Das Docker-Image enthält bereits Java 21.
+
+[red]##**JCR entfernt**## - Dateien liegen im Dateispeicher (Anhänge in der Datenbank, Datentransfer-Dateien im Dateisystem). **Wer noch das JCR nutzt, migriert zuerst mit 9.1.x**, bevor auf 9.2 aktualisiert wird. Siehe Administrationshandbuch, "Dateien aus dem JCR herausholen".
+
+**Vor dem Update** - Datenbank sichern; das Schema wird beim ersten Start automatisch migriert.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **CVE-Radar (Plugin, standardmäßig nicht aktiv): erster Teil mit echten Daten**
+  * Fälle: Schwachstellen und Vorfälle ohne CVE mit Maßnahmen, Behebungskriterien und einer Abschlussübersicht, ob ein Fall geschlossen werden kann.
+  * Team-Prüfungen: Gruppen beantworten, ob ihre Projekte oder Systeme betroffen sind.
+  * Import der Versionen und Prüfergebnisse eines Client-Agents von einem Log-Server (Graylog), konfigurierbar.
+  * Mein CVE-Radar: Mitarbeitende bestätigen die Maßnahmen und sehen ihre eigenen Geräte.
+- **CVE-Radar: Schwachstellen aus der NVD**
+  * Import der Schwachstellen (CVEs) aus der National Vulnerability Database nach Zeitplan und im Jobmonitor, inkrementell und ab einem einstellbaren CVSS-Wert; standardmäßig aus.
+  * Die Startseite des CVE-Radars listet die importierten Schwachstellen mit Wert, Schweregrad, Schwachstellenarten und Daten; der Prototyp mit Testdaten ist auf eine Demo-Seite umgezogen, die von dort verlinkt ist.
+  * Der Tab "Statistik" des CVE-Radars zeigt die gemeldeten Fälle und die von der NVD veröffentlichten Schwachstellen pro Tag, Woche oder Monat.
+- Datentransfer (auch öffentlich): Der Upload zeigt die aktuelle Geschwindigkeit in kB/s bzw. MB/s an.
+- **CVE-Radar: Inventar der Systeme**
+  * Systeme als Baum: Bereiche beliebiger Tiefe, darunter Systeme mit Instanzen (Installationen), Komponenten und Technologien. Alle legen Bereiche für eine eigene Gruppe an; die Gruppen eines Bereichs und der Bereiche darüber sehen und ändern, was darunter hängt, das Security-Team liest interne Systeme.
+  * Bereiche und Systeme lassen sich umhängen; der Security Officer hängt einen Bereich unter einen anderen, etwa unter einen Kunden.
+  * Technologiekatalog: Ökosysteme, Produkte und Frameworks sowie Bibliotheken als Baum (eine Bibliothek kann zu mehreren Frameworks gehören). Das Security-Team pflegt ihn, die Technologien einer Komponente werden daraus gewählt.
+  * Bibliotheken einer Komponente aus Listen: SBOMs (CycloneDX oder SPDX als JSON, alle Ökosysteme und Pakete des Betriebssystems über ihre Package-URL), die Lockfiles von npm, yarn, Composer, Go und Cargo und die festgelegten Requirements von Python, Paketlisten von Debian-, Alpine- und RPM-Systemen, die Ausgabe von Maven oder Gradle oder die Dateinamen eines Jars, mehrere Dateien werden zusammengeführt, auch die transitiven Abhängigkeiten; eine Liste mit Suchfeld zeigt sie an. Die Vorschau vor dem Übernehmen zeigt, was neu ist, entfällt oder in der Version geändert ist. Der Dialog nennt, welche Datei oder welcher Befehl zu nehmen ist.
+- **CVE-Radar: Akte einer CVE mit Bewertungen, Maßnahmen und Diskussion**
+  * Eine Zeile der Schwachstellenliste öffnet die Akte der CVE: NVD-Daten mit den Hinweisen zur Behebung getrennt von den übrigen Referenzen, die Bewertungen der Security-Team-Mitglieder nebeneinander, die verbindliche Priorität mit Begründung, die Maßnahmen für Techies und Nicht-Techies, Fix-Version, Workaround und Referenzen.
+  * Übernehmen, Zuweisen, Status und eine vorgeschlagene Priorität aus dem CVSS-Wert und dem KEV-Katalog der CISA; eine Änderung über einer neueren Fassung des Falls wird abgelehnt.
+  * Diskussion eines Falls im Chat für alle Lesenden; jede Team-Prüfung hat eine eigene Akte mit einer Diskussion, die nur die gefragte Gruppe und das Security-Team sehen.
+  * Die Rollen des CVE-Radars (Lesende, Security-Team, Security Officer) sind PF-Gruppen, die in den Einstellungen `+readGroup+`, `+writeGroup+` und `+securityOfficerGroup+` stehen.
+- **Digitale Visitenkarten**
+  * Mehrere Karten pro Benutzer, jede mit einem QR-Code (vCard) zum Vorzeigen, z. B. als Screenshot. Erreichbar über das Benutzermenü und die Adressliste.
+  * Die Daten werden aus einer Adresse des Adressbuchs übernommen (die eigene wird vorgeschlagen), pro Feld ausgewählt und lassen sich ändern; private Daten nur nach Auswahl.
+  * Das Foto der eigenen Adresse kann in der vCard verlinkt werden: Der Gateway liefert es unter einer signierten URL aus und braucht dafür keine weiteren Daten.
+- Auftragsbenachrichtigungen (ein Button in der Auftragsliste und neben der E-Mail-Checkbox jedes Auftrags): pro Benutzer einstellbar, ob die E-Mails zu geänderten Aufträgen sofort, als tägliche Zusammenfassung oder gar nicht kommen, als Standard und als Ausnahmen für einzelne Projekte oder Kunden.
+- **CVE-Radar: Schwachstellen mit dem Inventar abgeglichen**
+  * Jede importierte Schwachstelle wird mit den Technologien des Inventars abgeglichen, nach jedem Import und jeder Änderung des Inventars oder des Katalogs: über die CPE oder den Katalogeintrag einer Technologie, sonst über ihren Namen (dann nur „möglicherweise betroffen“), mit den Versionsbereichen der NVD. Eine Komponente eines Systems gilt für jede seiner Instanzen.
+  * Die Befunde erscheinen in der Akte einer CVE (Reiter „Betroffen“), als Zahl mit dem Filter „Mit Treffern im Inventar“ in der Liste der Schwachstellen und im Inventarbaum, dort mit farbig markierten Zeilen. Installationen, die jemand nicht sehen darf, werden nur gezählt. Das Security-Team verwirft Fehltreffer mit einer Begründung; ein verworfener Befund bleibt verworfen, auch wenn eine Version geändert und zurückgesetzt wird.
+  * Der Inventarbaum zeigt, wann die Technologien einer Komponente zuletzt aktualisiert wurden.
+  * Diskussionen zu einer CVE nehmen Anhänge auf, die nach 30 Tagen gelöscht werden; der Hinweis auf vertrauliche Details erscheint orange beim Schreiben.
+  * Neuer Regeltyp für Benachrichtigungen „Neue Befunde des CVE-Radars“: Benachrichtigt wird das verantwortliche Team eines betroffenen Systems (die Gruppe des Systems oder des nächsten Bereichs darüber), die Empfänger der Regel in Kopie, direkt nachdem der Abgleich etwas Neues gefunden hat. Eine Regel gilt ab einem CVSS-Schweregrad (bekannt ausgenutzte Schwachstellen immer), wahlweise auch für mögliche Befunde und noch nicht bewertete Schwachstellen. Jede Benachrichtigung nennt nur die für den Empfänger sichtbaren Systeme und jeden Befund einmal; der Text hat Variablen für die Schwachstellen, die Systeme, den höchsten Schweregrad und einen Link.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Tabellen speichern ihr unverändertes Spaltenlayout nicht mehr bei jedem Seitenaufruf erneut.
+- Weniger Requests pro Seitenaufruf: Der Ungelesen-Zähler des Chats in der Kopfleiste kommt mit dem Benutzerstatus statt mit zwei Listen-Requests, wird für Menü und Status nur einmal gezählt, und der Ereignis-Stream versucht es nach abgelaufener Session nicht mehr ständig.
+- Auftragsstatistik, Prognose: neue Tabelle "Aufschlüsselung der Prognose" je Monat mit den fakturierten Summen, der Rest-Prognose beauftragter Festpreis- und Pauschalpositionen, beauftragter Time-&-Materials-Positionen (Run-Rate) und noch nicht beauftragter Positionen (gewichtet) sowie dem Teil der Prognose, für den bereits eine Rechnung geplant ist.
+- Chat: Die Bilder einer Nachricht stehen nebeneinander (bei vielen mit seitlichem Scrollen), und die Großansicht blättert mit Buttons und Pfeiltasten durch sie.
+- Dialoge mit Eingabefeldern fragen nach, bevor sie per Klick daneben, Esc oder Schließen-Button geschlossen werden, sobald etwas eingegeben wurde. Die Eingaben gehen so nicht mehr versehentlich verloren.
+- Properties-Editor: Die Beschreibungen verlinken auf die passenden Abschnitte des Administrationshandbuchs und unterstützen Code, Fettdruck und Links.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- Ab Version 9.2 ist Java 21 Voraussetzung: ProjectForge wird für Java 21 kompiliert, das ausführbare JAR startet nicht mehr unter Java 17. Das Docker-Image enthält bereits Java 21.
+- Deckungsbeitrag: Der vorläufige Umsatz noch nicht gebuchter Debitorenrechnungen wird aus den Kostzuweisungen der Rechnungspositionen (Kost2 → Projekt) übernommen, wenn diese vollständig definiert sind; sonst wie bisher aus dem Projekt der Rechnung.
+- Dateien: Das JCR (Apache Oak) wurde entfernt, alle Dateien liegen im Dateispeicher (Anhänge in der Datenbank, Datentransfer-Dateien im Dateisystem). Eine Installation, die noch das JCR nutzt, muss zuerst mit 9.1.x migrieren: ProjectForge verweigert den Start, wenn das JCR nicht migrierte Dateien enthält. JCR-Backup und Migration wurden von der Systemseite entfernt, projectforge.jcr.maxDefaultFileSize heißt jetzt projectforge.files.maxDefaultFileSize (der alte Schlüssel wird weiterhin gelesen, mit einer Warnung beim Start, bis er umbenannt ist; entfallene JCR-Properties werden ebenfalls gemeldet).
+- Projekte: Der Status ist Akquise, aktiv, pausiert oder beendet (oder nicht gesetzt). Bestehende Projekte wurden umgestellt: Entwicklungsphase, produktiv und Wartung wurden zu aktiv, vorübergehend nicht aktiv zu pausiert. Die Historie zeigt weiterhin die früheren Werte.
+- Die Seite Systemkonfiguration bietet für Administratoren jetzt auch den Editor für projectforge.properties und den Vergleich mit den Backups, wie die Seite System.
+- Benutzermenü: "Mein Menü gestalten" steht vor "Mein Zugang".
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Rechnungslisten: eine als bezahlt markierte Rechnung konnte nach einer Massenänderung im Filter "unbezahlt" (und in dessen Summen) bleiben, auch nach einem Refresh der Caches.
+- Benachrichtigungsregeln: Ein Empfänger erhält pro Regel und Tag höchstens eine E-Mail und eine SMS, auch wenn eine Regel mehrere Benachrichtigungen erzeugt hat. Am nächsten Tag wird erneut erinnert. Tests sind nicht begrenzt.
+- Lange Listen (Aufträge, Rechnungen, Zeitberichte, Buchungssätze, Schwachstellen): Eine Suche konnte nach gleichzeitigen oder direkt in der Datenbank gemachten Änderungen ein veraltetes, z. B. leeres Ergebnis zeigen. Ein Neuladen der Seite zeigt jetzt immer das aktuelle Ergebnis.
+
+++++
+{% include download-link.html %}
+++++
+====
 
 [discrete#release-9-1-0.changelog-release]
 === ProjectForge 9.1: neuer Dateispeicher, Chat, weitere Seiten migriert, letztes Release mit JCR und Java 17

@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Dialogs with input fields ask before they are closed by a click beside them, Esc or the close button once something was entered, so the input is no longer lost by accident.",
-  "de": "Dialoge mit Eingabefeldern fragen nach, bevor sie per Klick daneben, Esc oder Schließen-Button geschlossen werden, sobald etwas eingegeben wurde. Die Eingaben gehen so nicht mehr versehentlich verloren."
-}

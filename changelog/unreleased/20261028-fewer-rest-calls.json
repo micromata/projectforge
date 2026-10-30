@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Fewer requests per page view: the unread chat count of the top bar comes with the user status instead of two list requests, it is counted once for menu and status, and the event stream stops retrying after the session expired.",
-  "de": "Weniger Requests pro Seitenaufruf: Der Ungelesen-Zähler des Chats in der Kopfleiste kommt mit dem Benutzerstatus statt mit zwei Listen-Requests, wird für Menü und Status nur einmal gezählt, und der Ereignis-Stream versucht es nach abgelaufener Session nicht mehr ständig."
-}
