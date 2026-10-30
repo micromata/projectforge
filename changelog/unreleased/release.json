@@ -1,0 +1,58 @@
+{
+  "title": {
+    "en": "ProjectForge 9.2: Java 21, JCR removed, CVE-Radar, digital business cards",
+    "de": "ProjectForge 9.2: Java 21, JCR entfernt, CVE-Radar, digitale Visitenkarten"
+  },
+  "intro": {
+    "en": [
+      "{red}**Java 21 is required**{/red} - ProjectForge 9.2 is compiled for Java 21, the executable JAR no longer starts on Java 17. The Docker image already contains Java 21.",
+      "{red}**JCR removed**{/red} - Files are kept by the file store (attachments in the database, data transfer files in the file system). **If you still use the JCR, migrate with 9.1.x first**, before you update to 9.2. See the admin guide, \"Moving the files out of the JCR\".",
+      "**Before updating** - Back up the database; its schema is migrated automatically at the first start."
+    ],
+    "de": [
+      "{red}**Java 21 ist Voraussetzung**{/red} - ProjectForge 9.2 wird für Java 21 kompiliert, das ausführbare JAR startet nicht mehr unter Java 17. Das Docker-Image enthält bereits Java 21.",
+      "{red}**JCR entfernt**{/red} - Dateien liegen im Dateispeicher (Anhänge in der Datenbank, Datentransfer-Dateien im Dateisystem). **Wer noch das JCR nutzt, migriert zuerst mit 9.1.x**, bevor auf 9.2 aktualisiert wird. Siehe Administrationshandbuch, \"Dateien aus dem JCR herausholen\".",
+      "**Vor dem Update** - Datenbank sichern; das Schema wird beim ersten Start automatisch migriert."
+    ]
+  },
+  "summary": {
+    "en": [
+      "{red}**Java 21 required**{/red}, **JCR removed** (migrate with 9.1.x first)",
+      "**CVE-Radar** (plugin): NVD import, inventory of systems, matching, triage",
+      "**Digital business cards** with QR code (vCard)",
+      "Order notifications per user: at once, daily summary or none",
+      "Forecast: new breakdown table; fixes for stale invoice lists and paged list searches"
+    ],
+    "de": [
+      "{red}**Java 21 erforderlich**{/red}, **JCR entfernt** (zuvor mit 9.1.x migrieren)",
+      "**CVE-Radar** (Plugin): NVD-Import, Systeminventar, Abgleich, Triage",
+      "**Digitale Visitenkarten** mit QR-Code (vCard)",
+      "Auftragsbenachrichtigungen pro Benutzer: sofort, Tageszusammenfassung oder keine",
+      "Forecast: neue Aufschlüsselungstabelle; Korrekturen für veraltete Rechnungslisten und Suchen in seitenweisen Listen"
+    ]
+  },
+  "overview": {
+    "en": [
+      "**Java 21:** required from 9.2 on, the executable JAR no longer starts on Java 17.",
+      "**Files:** the JCR (Apache Oak) is removed, attachments live in the database and data transfer files in the file system.",
+      "**CVE-Radar:** cases and team checks, import of vulnerabilities from the NVD, an inventory of systems with a technology catalogue and SBOM import, matching of vulnerabilities against the inventory, a file per CVE with ratings, measures and discussion.",
+      "**Digital business cards:** several cards per user with a QR code, data taken over from an address.",
+      "**Order notifications:** per user at once, as a daily summary or not at all; a recipient gets at most one mail and one SMS per rule and day.",
+      "**Forecast and contribution margin:** new table \"Breakdown of the forecast\", preliminary revenue of unbooked invoices from the cost assignments.",
+      "**Projects:** the status is acquisition, active, paused or ended.",
+      "**Performance and usability:** fewer requests per page view, upload speed in the data transfer, sideways paging of chat images, dialogs ask before discarding input.",
+      "**Fixes:** invoice lists with stale paid status after a mass update, outdated results in long searched lists."
+    ],
+    "de": [
+      "**Java 21:** ab 9.2 erforderlich, das ausführbare JAR startet nicht mehr unter Java 17.",
+      "**Dateien:** das JCR (Apache Oak) ist entfernt, Anhänge liegen in der Datenbank und Datentransfer-Dateien im Dateisystem.",
+      "**CVE-Radar:** Fälle und Team-Prüfungen, Import der Schwachstellen aus der NVD, Systeminventar mit Technologiekatalog und SBOM-Import, Abgleich der Schwachstellen mit dem Inventar, eine Akte je CVE mit Bewertung, Maßnahmen und Diskussion.",
+      "**Digitale Visitenkarten:** mehrere Karten pro Benutzer mit QR-Code, Daten aus einer Adresse übernommen.",
+      "**Auftragsbenachrichtigungen:** pro Benutzer sofort, als Tageszusammenfassung oder gar nicht; ein Empfänger erhält höchstens eine Mail und eine SMS pro Regel und Tag.",
+      "**Forecast und Deckungsbeitrag:** neue Tabelle \"Aufschlüsselung des Forecasts\", vorläufiger Umsatz nicht gebuchter Rechnungen aus den Kostenzuweisungen.",
+      "**Projekte:** der Status ist Akquise, aktiv, pausiert oder beendet.",
+      "**Performance und Bedienung:** weniger Anfragen pro Seitenaufruf, Upload-Geschwindigkeit im Datentransfer, seitliches Blättern der Chat-Bilder, Dialoge fragen vor dem Verwerfen von Eingaben.",
+      "**Korrekturen:** Rechnungslisten mit veraltetem Bezahlt-Status nach Massenänderung, veraltete Ergebnisse in durchsuchten langen Listen."
+    ]
+  }
+}
