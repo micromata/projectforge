@@ -33,6 +33,7 @@ import org.projectforge.plugins.cveradar.model.CvrComponentDO
 import org.projectforge.plugins.cveradar.model.CvrCpeMatchDO
 import org.projectforge.plugins.cveradar.model.CvrFindingCertainty
 import org.projectforge.plugins.cveradar.model.CvrFindingDO
+import org.projectforge.plugins.cveradar.model.CvrFindingStatus
 import org.projectforge.plugins.cveradar.model.CvrImportStateDO
 import org.projectforge.plugins.cveradar.model.CvrInstanceDO
 import org.projectforge.plugins.cveradar.model.CvrTechnologyDO
@@ -55,12 +56,13 @@ private val log = KotlinLogging.logger {}
  *
  * How a technology meets a vulnerable CPE entry of the NVD document ([CvrCpeMatchDO]):
  * - the product (and vendor) come from the CPE of the technology or from its catalogue node (INV-28): a match is
- *   *affected*; or from its name (lower case, blanks as `_`): a match is only *possible* (MAT-12),
+ *   *affected*; or from its name (lower case, blanks as `_`, the vendor not compared): a match is only *possible*
+ *   (MAT-12),
  * - the version is compared with the version or range of the entry ([VersionComparator]); without a version of the
  *   technology a match is only *possible* (MAT-03).
  *
  * Matching is idempotent: a run creates what is missing, corrects what changed and removes what no longer matches; a
- * discarded finding that still matches is left alone (MAT-06). The scope of a run is a set of vulnerabilities (after
+ * discarded finding is left alone while its component and instance exist, even if it doesn't match for a while (MAT-06). The scope of a run is a set of vulnerabilities (after
  * an import), a set of components (after a change of the inventory) or everything.
  */
 @Service
@@ -116,6 +118,11 @@ class CvrMatchingService {
             findings.drop(1).forEach { remove(it, result) }
             val finding = findings.first()
             when {
+                // A discarded finding stays with its reason while its component and instance exist (MAT-06), so a
+                // version changed and reverted doesn't bring it back as new.
+                hit == null && finding.status == CvrFindingStatus.DISCARDED &&
+                        finding.componentId in model.components && finding.instanceId in model.instances -> result.unchanged++
+
                 hit == null -> remove(finding, result)
                 finding.certainty != hit.certainty || finding.technologyId != hit.technologyId || finding.matched != hit.matched -> {
                     finding.certainty = hit.certainty
@@ -242,7 +249,9 @@ class CvrMatchingService {
             }
             model.keys[technology.id]?.forEach { key ->
                 candidates[key.product]?.forEach candidate@{ match ->
-                    if (key.vendor != null && key.vendor != match.vendor) {
+                    // By name the vendor may be spelled otherwise ("Apache Software Foundation" vs "apache"): a
+                    // match by name is only possible anyway.
+                    if (key.sure && key.vendor != null && key.vendor != match.vendor) {
                         return@candidate
                     }
                     val versionCertainty = versionMatch(technology.version, match) ?: return@candidate

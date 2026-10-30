@@ -34,12 +34,15 @@ import org.junit.jupiter.api.Test
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.plugins.cveradar.model.CvrCatalogKind
 import org.projectforge.plugins.cveradar.model.CvrFindingCertainty
 import org.projectforge.plugins.cveradar.model.CvrFindingStatus
 import org.projectforge.plugins.cveradar.model.CvrImportStateDO
 import org.projectforge.plugins.cveradar.model.CvrTechnologyKind
 import org.projectforge.plugins.cveradar.rest.AreaRequest
+import org.projectforge.plugins.cveradar.rest.CatalogNodeRequest
 import org.projectforge.plugins.cveradar.rest.ComponentRequest
+import org.projectforge.plugins.cveradar.rest.CvrCatalogRest
 import org.projectforge.plugins.cveradar.rest.CvrCaseFileRest
 import org.projectforge.plugins.cveradar.rest.CvrInventoryRest
 import org.projectforge.plugins.cveradar.rest.DiscardRequest
@@ -62,6 +65,9 @@ import java.time.Instant
 class CvrMatchingTest : CveRadarTestBase() {
     @Autowired
     private lateinit var fileRest: CvrCaseFileRest
+
+    @Autowired
+    private lateinit var catalog: CvrCatalogRest
 
     @Autowired
     private lateinit var importService: NvdImportService
@@ -150,11 +156,12 @@ class CvrMatchingTest : CveRadarTestBase() {
         val list = findings(owner, vulnerabilityId)
         assertEquals(0, list.hiddenCount)
         val byComponent = list.findings.groupBy { it.component!!.substringBefore(" ") }
-        assertEquals(setOf("SURE", "NAME", "NOVER"), byComponent.keys, "fixed, too old and another vendor don't match")
+        assertEquals(setOf("SURE", "NAME", "NOVER", "OTHER"), byComponent.keys, "fixed and too old don't match")
         assertEquals(setOf("A", "B"), byComponent.getValue("SURE").map { it.instance }.toSet(), "one finding per instance")
         assertEquals(CvrFindingCertainty.AFFECTED, byComponent.getValue("SURE").first().certainty)
         assertEquals(CvrFindingCertainty.POSSIBLE, byComponent.getValue("NAME").first().certainty)
         assertEquals(CvrFindingCertainty.POSSIBLE, byComponent.getValue("NOVER").first().certainty)
+        assertEquals(CvrFindingCertainty.POSSIBLE, byComponent.getValue("OTHER").first().certainty, "by name, the vendor spelled otherwise")
         assertTrue(byComponent.getValue("SURE").first().matched!!.contains("< 9.0.90"))
     }
 
@@ -195,7 +202,7 @@ class CvrMatchingTest : CveRadarTestBase() {
     fun `matching again changes nothing, a discarded finding stays discarded, a CVE imported later matches as well`() {
         val P = "tomcat3"
         val (system, owner) = system("MT3", "cveradar-match-g3")
-        inventory.createComponent(
+        val component = inventory.createComponent(
             ComponentRequest(systemId = system, code = "APP", name = "App", technologies = listOf(tomcat(P, "9.0.80", true))),
         )
         val vulnerabilityId = importTomcat("CVE-2026-94003", P) // After the inventory: the import matches.
@@ -212,6 +219,13 @@ class CvrMatchingTest : CveRadarTestBase() {
         assertEquals(1, after.findings.count { it.status == CvrFindingStatus.DISCARDED })
         matching.rematch()
         assertEquals(1, findings(team, vulnerabilityId).findings.count { it.status == CvrFindingStatus.DISCARDED }, "not created again")
+        // A version changed and reverted keeps the discarded finding with its reason.
+        logon(owner)
+        inventory.updateComponent(component, ComponentRequest(code = "APP", name = "App", technologies = listOf(tomcat(P, "9.0.95", true))))
+        inventory.updateComponent(component, ComponentRequest(code = "APP", name = "App", technologies = listOf(tomcat(P, "9.0.80", true))))
+        val reverted = findings(team, vulnerabilityId).findings
+        assertEquals(2, reverted.size)
+        assertEquals(listOf("only in the test environment"), reverted.mapNotNull { it.discardReason })
         val restored = fileRest.restoreFinding(first.findings.first().id)
         assertEquals(0, restored.findings.count { it.status == CvrFindingStatus.DISCARDED })
         assertFalse(restored.findings.any { it.discardReason != null })
@@ -250,5 +264,28 @@ class CvrMatchingTest : CveRadarTestBase() {
         logon(TEST_USER)
         assertThrows(AccessException::class.java) { fileRest.findings(vulnerabilityId) }
         assertThrows(AccessException::class.java) { fileRest.discardFinding(own.findings.first().id, DiscardRequest("no")) }
+    }
+
+    @Test
+    fun `a changed CPE of a catalogue node matches its technologies again`() {
+        val P = "tomcat5"
+        val vulnerabilityId = importTomcat("CVE-2026-94005", P)
+        val (system, owner) = system("MT5", "cveradar-match-g5")
+        val team = user("team5", CvrRole.SECURITY_TEAM)
+        logon(team)
+        val node = catalog.create(CatalogNodeRequest(kind = CvrCatalogKind.PRODUCT, name = "Server 5", cpeVendor = "apache", cpeProduct = "other5"))
+        logon(owner)
+        inventory.createComponent(
+            ComponentRequest(
+                systemId = system, code = "APP", name = "App",
+                technologies = listOf(TechnologyRequest(kind = CvrTechnologyKind.PRODUCT, product = "Server 5", version = "9.0.80", catalogNodeId = node)),
+            ),
+        )
+        assertTrue(findings(owner, vulnerabilityId).findings.isEmpty())
+        logon(team)
+        catalog.update(node, CatalogNodeRequest(kind = CvrCatalogKind.PRODUCT, name = "Server 5", cpeVendor = "apache", cpeProduct = P))
+        val list = findings(owner, vulnerabilityId).findings
+        assertEquals(2, list.size, "matched by the new CPE of the node")
+        assertTrue(list.all { it.certainty == CvrFindingCertainty.AFFECTED })
     }
 }
