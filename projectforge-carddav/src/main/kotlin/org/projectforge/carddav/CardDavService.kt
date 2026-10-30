@@ -190,14 +190,6 @@ class CardDavService {
                         )
                     }"
                 }
-                log.info {
-                    "Authenticated user registered: ${
-                        RequestLog.asString(
-                            authInfo.request,
-                            authenticatedUser.username
-                        )
-                    }"
-                }
             }
             authenticatedUser
         }
