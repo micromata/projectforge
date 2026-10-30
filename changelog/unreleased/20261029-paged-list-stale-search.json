@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Long lists (orders, invoices, time sheets, accounting records, vulnerabilities): a search could show an outdated, e.g. empty, result after changes made at the same time or directly in the database. Reloading the page now always shows the current result.",
-  "de": "Lange Listen (Aufträge, Rechnungen, Zeitberichte, Buchungssätze, Schwachstellen): Eine Suche konnte nach gleichzeitigen oder direkt in der Datenbank gemachten Änderungen ein veraltetes, z. B. leeres Ergebnis zeigen. Ein Neuladen der Seite zeigt jetzt immer das aktuelle Ergebnis."
-}
