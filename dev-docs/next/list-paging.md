@@ -26,7 +26,7 @@ silently skipped rows and a `COUNT(*)` larger than what the user may see:
 
 ## How it works
 
-- **One id list per (session, filter).** `getListPage` (`AbstractPagesRestUtils.kt`) runs the unchanged
+- **One id list per (session, filter).** `getListPage` (`EntityRestUtils.kt`) runs the unchanged
   pipeline once — query, access checks, result predicates, custom filters — and keeps only the ordered
   ids. They are cached in the session (`ListPageCache`, via `ExpiringSessionAttributes`), keyed by
   `MagicFilter.resultFingerprint`.

@@ -220,7 +220,7 @@ class ConfigurationEntityRest :
     /**
      * Ensures every parameter of the enum has a DB row before the list is built - the next equivalent of
      * `ConfigurationListPage.init()`, so a fresh database still lists all parameters. This is the only `open`
-     * hook inside the list-query pipeline (`AbstractPagesRestUtils.getList`). Runs with `checkAccess = false`
+     * hook inside the list-query pipeline (`EntityRestUtils.getList`). Runs with `checkAccess = false`
      * internally; adds no filter.
      */
     override fun preProcessMagicFilter(

@@ -324,7 +324,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Spring.
      *
      * It has to happen here and not in [transformForDB]: a number is spent once handed out, so it may only
      * be taken when the invoice is actually about to be inserted — and this hook is the last step before
-     * `insertOrUpdate` (see `AbstractPagesRestUtils.saveOrUpdate`), while `transformForDB` also runs for
+     * `insertOrUpdate` (see `EntityRestUtils.saveOrUpdate`), while `transformForDB` also runs for
      * every validation and every recalculation.
      *
      * [RechnungDao] assigns a number itself only on the transition of a *stored* invoice out of

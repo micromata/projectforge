@@ -230,7 +230,7 @@ class OutgoingInvoiceSaveTest : AbstractTestBase() {
         return errors.filter { it.fieldId?.contains("periodOfPerformance") == true }
     }
 
-    /** The hook as `AbstractPagesRestUtils.saveOrUpdate` calls it: last step before the insert. */
+    /** The hook as `EntityRestUtils.saveOrUpdate` calls it: last step before the insert. */
     @Test
     fun `a planned invoice gets its number when it is issued`() {
         logon(TEST_FINANCE_USER)
