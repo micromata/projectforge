@@ -128,7 +128,7 @@ enum class CvrOrigin : I18nEnum {
 
     companion object {
         /** The libraries read from lists (INV-26): kept apart from the technologies edited in the component dialog. */
-        val LIBRARY_LISTS = setOf(LOCKFILE, BUILD_LIST, JAR_LIST)
+        val LIBRARY_LISTS = setOf(SBOM, LOCKFILE, BUILD_LIST, JAR_LIST)
     }
 }
 

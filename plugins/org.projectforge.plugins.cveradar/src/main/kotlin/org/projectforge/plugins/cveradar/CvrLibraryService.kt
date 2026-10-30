@@ -29,6 +29,7 @@ import org.projectforge.plugins.cveradar.model.CvrComponentDO
 import org.projectforge.plugins.cveradar.model.CvrOrigin
 import org.projectforge.plugins.cveradar.model.CvrTechnologyDO
 import org.projectforge.plugins.cveradar.model.CvrTechnologyKind
+import org.projectforge.plugins.cveradar.rest.LibraryChange
 import org.projectforge.plugins.cveradar.rest.LibraryDiff
 import org.projectforge.plugins.cveradar.rest.LibraryFileView
 import org.projectforge.plugins.cveradar.rest.LibraryLine
@@ -38,8 +39,8 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 
 /**
- * The libraries of a component read from lists (INV-26): the `package-lock.json` of npm, the output of Maven and of
- * Gradle. Several lists are merged; by default they only add to what an earlier upload brought, with `replace` the
+ * The libraries of a component read from lists (INV-14, INV-26): SBOMs, the `package-lock.json` of npm, the output of
+ * Maven and of Gradle. Several lists are merged; by default they only add to what an earlier upload brought, with `replace` the
  * libraries missing in all of them are removed. Technologies entered by hand are never touched. The caller checks the
  * access to the component (see [CvrInventoryService]).
  */
@@ -91,18 +92,34 @@ class CvrLibraryService {
     ) {
         val withoutGroupId get() = added.count { it.first.group == null }
 
-        fun diff() = LibraryDiff(
-            files = files,
-            added = added.take(MAX_LINES).map { line(it.first) },
-            addedCount = added.size,
-            removed = removed.take(MAX_LINES).map { tech ->
+        fun diff(): LibraryDiff {
+            val removedLines = removed.map { tech ->
                 LibraryListParser.fromPurl(tech.purl)?.let { line(it) }
                     ?: LibraryLine(tech.ecosystem ?: "", null, tech.product ?: "", tech.version ?: "")
-            },
-            removedCount = removed.size,
-            unchangedCount = unchanged,
-            withoutGroupIdCount = withoutGroupId,
-        )
+            }
+            // The same library in another version is a change; only where both the stored and the new one are unambiguous.
+            val storedByName = removedLines.groupBy { Triple(it.ecosystem, it.group, it.name) }.filterValues { it.size == 1 }
+            val addedCountByName = added.groupingBy { Triple(it.first.ecosystem, it.first.group, it.first.name) }.eachCount()
+            val changes = added.mapNotNull { (entry, _) ->
+                val key = Triple(entry.ecosystem, entry.group, entry.name)
+                if (addedCountByName[key] != 1) null
+                else storedByName[key]?.single()?.let { LibraryChange(line(entry), it.version) }
+            }
+            val changedNames = changes.map { Triple(it.line.ecosystem, it.line.group, it.line.name) }.toSet()
+            val newOnes = added.filter { Triple(it.first.ecosystem, it.first.group, it.first.name) !in changedNames }
+            val goneOnes = removedLines.filter { Triple(it.ecosystem, it.group, it.name) !in changedNames }
+            return LibraryDiff(
+                files = files,
+                added = newOnes.take(MAX_LINES).map { line(it.first) },
+                addedCount = newOnes.size,
+                removed = goneOnes.take(MAX_LINES),
+                removedCount = goneOnes.size,
+                changed = changes.take(MAX_LINES),
+                changedCount = changes.size,
+                unchangedCount = unchanged,
+                withoutGroupIdCount = withoutGroupId,
+            )
+        }
 
         private fun line(entry: LibraryEntry) = LibraryLine(entry.ecosystem, entry.group, entry.name, entry.version)
     }
@@ -112,6 +129,7 @@ class CvrLibraryService {
         val wanted = LinkedHashMap<String, Pair<LibraryEntry, CvrOrigin>>()
         parsed.forEach { file ->
             val origin = when (file.format) {
+                LibraryFormat.CYCLONEDX, LibraryFormat.SPDX -> CvrOrigin.SBOM
                 LibraryFormat.NPM -> CvrOrigin.LOCKFILE
                 LibraryFormat.JAR -> CvrOrigin.JAR_LIST
                 else -> CvrOrigin.BUILD_LIST

@@ -26,36 +26,55 @@ package org.projectforge.plugins.cveradar
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.common.i18n.UserException
+import java.net.URLDecoder
 
 /** The formats of the lists a component's libraries are read from. */
-enum class LibraryFormat { NPM, MAVEN, GRADLE, JAR }
+enum class LibraryFormat { NPM, MAVEN, GRADLE, JAR, CYCLONEDX, SPDX }
 
 /**
- * One library of a list: [ecosystem] is the purl type (`maven`, `npm`), [group] the groupId (npm: the scope with its
- * `@`), [name] the artifactId (npm: the name without scope).
+ * One library of a list: [ecosystem] is the purl type (`maven`, `npm`, `pypi`, `deb`, ...), [group] the purl namespace
+ * (Maven: the groupId, npm: the scope with its `@`, deb: the distribution), [name] the name (Maven: the artifactId,
+ * npm: the name without scope). [distro] is the `distro` qualifier of an operating system package (`debian-12`): the
+ * same version may be fixed in one release and not in another. The other qualifiers (`arch`, ...) are dropped.
  */
-data class LibraryEntry(val ecosystem: String, val group: String?, val name: String, val version: String) {
+data class LibraryEntry(
+    val ecosystem: String,
+    val group: String?,
+    val name: String,
+    val version: String,
+    val distro: String? = null,
+) {
     /** The package URL with the version; it identifies the entry (npm: `@` of a scope as `%40`). */
     val purl: String
-        get() = "pkg:$ecosystem/${group?.let { "${it.replace("@", "%40")}/" } ?: ""}$name@$version"
+        get() = "pkg:$ecosystem/${group?.let { "${it.replace("@", "%40")}/" } ?: ""}$name@$version" +
+            (distro?.let { "?distro=$it" } ?: "")
 
-    /** The name of the technology: for npm the full name with scope, for Maven the artifactId. */
+    /**
+     * The name of the technology: the full name where the namespace is part of it (npm with scope, Go module, Composer
+     * vendor/package), otherwise the name (the artifactId of Maven, the package of a distribution).
+     */
     val product: String
-        get() = if (ecosystem == "npm" && group != null) "$group/$name" else name
+        get() = if (group != null && ecosystem in WITH_NAMESPACE) "$group/$name" else name
+
+    private companion object {
+        val WITH_NAMESPACE = setOf("npm", "golang", "composer", "swift")
+    }
 }
 
 /** A file of a list with the format found in it (null: not recognised) and its entries. */
 class ParsedLibraryFile(val name: String, val format: LibraryFormat?, val entries: List<LibraryEntry>)
 
 /**
- * Reads the lists a component's libraries come from (INV-26): the `package-lock.json` of npm, the output of
- * `mvn dependency:list` (or `dependency:tree`) and of `gradle dependencies`. The format is told from the content.
+ * Reads the lists a component's libraries come from (INV-14, INV-26): SBOMs (CycloneDX JSON, SPDX JSON), the
+ * `package-lock.json` of npm, the output of `mvn dependency:list` (or `dependency:tree`) and of `gradle dependencies`.
+ * The format is told from the content.
  * Nothing is executed or resolved; the files are untrusted (SEC-05): sizes and counts are limited.
  */
 object LibraryListParser {
     const val MAX_FILES = 10
     const val MAX_FILE_BYTES = 5 * 1024 * 1024
     const val MAX_ENTRIES = 20_000
+    private const val MAX_DEPTH = 20
 
     const val ERROR_TOO_LARGE = "plugins.cveradar.libraries.error.tooLarge"
     const val ERROR_TOO_MANY_FILES = "plugins.cveradar.libraries.error.tooManyFiles"
@@ -68,6 +87,7 @@ object LibraryListParser {
     private val GRADLE_LINE = Regex("""^[\s|]*[+\\]---\s+([^\s:]+):([^\s:]+)(?::(\S+))?(?:\s+->\s+(\S+))?(.*)$""")
     private val JAR_NAME = Regex("""^(.+?)-(\d.*?)(?:-(?:sources|javadoc|tests|test-sources|all|linux-\S+|osx-\S+|macos-\S+|windows-\S+))?\.jar$""", RegexOption.IGNORE_CASE)
     private val GRADLE_RANGE = Regex("""\{(?:strictly|require|prefer|reject)?\s*([^}\s]+)[^}]*}""")
+    private val PURL = Regex("""^pkg:/*([A-Za-z][A-Za-z0-9.+\-]*)/(.+?)@([^?#]+)(?:\?([^#]*))?(?:#.*)?$""")
 
     /** All files, parsed; the entries of all of them together are limited. */
     fun parseAll(files: List<Pair<String, String>>): List<ParsedLibraryFile> {
@@ -81,9 +101,16 @@ object LibraryListParser {
         if (text.length > MAX_FILE_BYTES) throw UserException(ERROR_TOO_LARGE, name, (MAX_FILE_BYTES / 1024 / 1024).toString())
         val trimmed = text.trimStart()
         if (trimmed.startsWith("{")) {
-            val entries = runCatching { parseNpm(objectMapper.readTree(trimmed)) }.getOrNull()
-            return if (entries.isNullOrEmpty()) ParsedLibraryFile(name, null, emptyList())
-            else ParsedLibraryFile(name, LibraryFormat.NPM, entries)
+            val parsed = runCatching {
+                val root = objectMapper.readTree(trimmed)
+                when {
+                    root.path("bomFormat").asText() == "CycloneDX" -> LibraryFormat.CYCLONEDX to parseCycloneDx(root)
+                    root.has("spdxVersion") -> LibraryFormat.SPDX to parseSpdx(root)
+                    else -> LibraryFormat.NPM to parseNpm(root)
+                }
+            }.getOrNull()
+            return if (parsed == null || parsed.second.isEmpty()) ParsedLibraryFile(name, null, emptyList())
+            else ParsedLibraryFile(name, parsed.first, parsed.second)
         }
         val lines = text.lineSequence().toList()
         val gradle = lines.mapNotNull { parseGradleLine(it) }
@@ -100,12 +127,58 @@ object LibraryListParser {
         }
     }
 
-    /** `pkg:maven/group/artifact@1.0` back to an entry; null for anything else. */
+    /**
+     * A package URL with a version (`pkg:maven/group/artifact@1.0`, `pkg:deb/debian/openssl@3.0.11?distro=debian-12`)
+     * as an entry; null without a version or for anything else. The last segment of the path is the name, the ones
+     * before it the namespace.
+     */
     fun fromPurl(purl: String?): LibraryEntry? {
-        val match = Regex("""^pkg:(maven|npm)/(?:([^/@]+)/)?([^/@]+)@(.+)$""").matchEntire(purl ?: return null) ?: return null
-        val (type, group, name, version) = match.destructured
-        return LibraryEntry(type, group.takeIf { it.isNotEmpty() }?.replace("%40", "@"), name, version)
+        val match = PURL.matchEntire(purl?.trim() ?: return null) ?: return null
+        val (type, path, version, qualifiers) = match.destructured
+        val segments = path.trim('/').split('/').filter { it.isNotEmpty() }.map(::decode)
+        if (segments.isEmpty() || segments.any { it.isBlank() }) return null
+        val distro = qualifiers.split('&').firstOrNull { it.startsWith("distro=") }?.substringAfter('=')
+            ?.let(::decode)?.takeIf { it.isNotBlank() }
+        return LibraryEntry(
+            ecosystem = type.lowercase(),
+            group = segments.dropLast(1).joinToString("/").takeIf { it.isNotEmpty() },
+            name = segments.last(),
+            version = decode(version).takeIf { it.isNotBlank() } ?: return null,
+            distro = distro,
+        )
     }
+
+    /** Percent-decoded as UTF-8; a `+` stays a `+` (versions of distributions have it), a broken escape stays as is. */
+    private fun decode(text: String): String =
+        if (!text.contains('%')) text
+        else runCatching { URLDecoder.decode(text.replace("+", "%2B"), Charsets.UTF_8) }.getOrDefault(text)
+
+    /**
+     * The components of a CycloneDX SBOM (nested ones too) by their purl. Components without a purl (files, the
+     * application itself) and those not needed at runtime (scope `excluded` or `optional`) are left out.
+     */
+    private fun parseCycloneDx(root: JsonNode): List<LibraryEntry> {
+        val entries = mutableListOf<LibraryEntry>()
+        fun walk(components: JsonNode, depth: Int) {
+            if (!components.isArray || depth > MAX_DEPTH) return
+            components.forEach { component ->
+                val scope = component.path("scope").asText("")
+                if (scope != "excluded" && scope != "optional") {
+                    fromPurl(component.path("purl").asText(null))?.let { entries.add(it) }
+                }
+                walk(component.path("components"), depth + 1)
+            }
+        }
+        walk(root.path("components"), 0)
+        return entries.distinct()
+    }
+
+    /** The packages of an SPDX document by their purl (external reference of the type `purl`). */
+    private fun parseSpdx(root: JsonNode): List<LibraryEntry> =
+        root.path("packages").flatMap { pkg ->
+            pkg.path("externalRefs").filter { it.path("referenceType").asText() == "purl" }
+                .mapNotNull { fromPurl(it.path("referenceLocator").asText(null)) }
+        }.distinct()
 
     private fun parseNpm(root: JsonNode): List<LibraryEntry> {
         val entries = mutableListOf<LibraryEntry>()

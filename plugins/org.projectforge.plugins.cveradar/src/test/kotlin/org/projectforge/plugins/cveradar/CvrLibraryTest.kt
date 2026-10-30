@@ -122,6 +122,19 @@ class CvrLibraryTest : CveRadarTestBase() {
         assertEquals(1, replaced.removedCount)
         assertEquals(setOf("slf4j-api", "netty-codec"), libraries("LIB1-S-APP").map { it.product }.toSet())
 
+        // The same library in another version is a change, shown as such before it is applied.
+        val bumped = request("    org.slf4j:slf4j-api:jar:2.0.13:compile\n    io.netty:netty-codec:jar:4.1.100.Final:runtime\n", true)
+        val bump = rest.previewLibraries(component, bumped)
+        assertEquals(1, bump.changedCount)
+        assertEquals("2.0.9", bump.changed.single().from)
+        assertEquals("2.0.13", bump.changed.single().line.version)
+        assertEquals(0, bump.addedCount + bump.removedCount)
+        assertEquals(1, bump.unchangedCount)
+        assertEquals(setOf("2.0.9"), libraries("LIB1-S-APP").filter { it.product == "slf4j-api" }.map { it.version }.toSet(), "preview stores nothing")
+        rest.applyLibraries(component, bumped)
+        assertEquals(listOf("2.0.13"), libraries("LIB1-S-APP").filter { it.product == "slf4j-api" }.map { it.version })
+        rest.applyLibraries(component, request(mavenB, true))
+
         // Saving the component dialog (manual technologies only) keeps the libraries; the manual one is untouched.
         val manual = rest.tree().rows.single { it.code == "LIB1-S-APP" }.technologies.single { it.origin == CvrOrigin.MANUAL }
         rest.updateComponent(
@@ -148,6 +161,19 @@ class CvrLibraryTest : CveRadarTestBase() {
         )
         assertEquals(jackson, fromJars.single { it.product == "jackson-databind" }.catalogNodeId)
         assertEquals("pkg:maven/mystery@1.0", fromJars.single { it.product == "mystery" }.purl)
+
+        // An SBOM: the jar of the listing is the same library, the package of the image is new and keeps its distribution.
+        val sbom = """{"bomFormat":"CycloneDX","components":[
+            {"purl":"pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.17.2?type=jar"},
+            {"purl":"pkg:deb/debian/openssl@3.0.11-1~deb12u2?arch=amd64&distro=debian-12"}]}"""
+        val sbomDiff = rest.applyLibraries(component, LibraryRequest(listOf(LibraryFile("bom.json", sbom)), false))
+        assertEquals(LibraryFormat.CYCLONEDX, sbomDiff.files.single().format)
+        assertEquals(1, sbomDiff.unchangedCount)
+        assertEquals(1, sbomDiff.addedCount)
+        val openssl = libraries("LIB1-S-APP").single { it.product == "openssl" }
+        assertEquals(CvrOrigin.SBOM, openssl.origin)
+        assertEquals("deb", openssl.ecosystem)
+        assertEquals("pkg:deb/debian/openssl@3.0.11-1~deb12u2?distro=debian-12", openssl.purl)
 
         logon(outsider)
         assertThrows(AccessException::class.java) { rest.previewLibraries(component, request(mavenA, false)) }

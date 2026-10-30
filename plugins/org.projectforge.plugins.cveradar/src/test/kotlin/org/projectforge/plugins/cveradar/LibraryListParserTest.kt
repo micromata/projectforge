@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.projectforge.common.i18n.UserException
 
-/** The lists the libraries of a component are read from: npm lockfile, Maven and Gradle output. */
+/** The lists the libraries of a component are read from: SBOMs, npm lockfile, Maven and Gradle output. */
 class LibraryListParserTest {
     private fun purls(file: ParsedLibraryFile) = file.entries.map { it.purl }
 
@@ -160,6 +160,63 @@ class LibraryListParserTest {
         val entry = LibraryListParser.fromPurl("pkg:npm/%40angular/core@18.2.1")!!
         assertEquals(LibraryEntry("npm", "@angular", "core", "18.2.1"), entry)
         assertEquals(LibraryEntry("maven", "org.x", "y", "1.0"), LibraryListParser.fromPurl("pkg:maven/org.x/y@1.0"))
-        assertNull(LibraryListParser.fromPurl("pkg:pypi/x@1"))
+        assertEquals(LibraryEntry("pypi", null, "x", "1"), LibraryListParser.fromPurl("pkg:pypi/x@1"))
+        assertEquals(
+            LibraryEntry("golang", "github.com/gin-gonic", "gin", "v1.9.1"),
+            LibraryListParser.fromPurl("pkg:golang/github.com/gin-gonic/gin@v1.9.1"),
+        )
+        assertEquals("github.com/gin-gonic/gin", LibraryListParser.fromPurl("pkg:golang/github.com/gin-gonic/gin@v1.9.1")!!.product)
+        assertNull(LibraryListParser.fromPurl("pkg:pypi/x"), "without a version")
+        assertNull(LibraryListParser.fromPurl("cpe:2.3:a:x:y:1"))
+    }
+
+    @Test
+    fun `a CycloneDX SBOM reads the components by purl, nested ones too, without those not needed at runtime`() {
+        val json = """
+            {"bomFormat":"CycloneDX","specVersion":"1.5",
+             "metadata":{"component":{"type":"application","name":"app","purl":"pkg:maven/org.app/app@1.0"}},
+             "components":[
+              {"type":"library","group":"com.fasterxml.jackson.core","name":"jackson-databind","version":"2.15.2",
+               "purl":"pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.15.2?type=jar",
+               "components":[{"type":"library","name":"inner","purl":"pkg:maven/org.x/inner@1.1"}]},
+              {"type":"library","name":"core","group":"@angular","purl":"pkg:npm/%40angular/core@18.2.1"},
+              {"type":"library","name":"requests","purl":"pkg:pypi/requests@2.31.0"},
+              {"type":"library","name":"openssl","purl":"pkg:deb/debian/openssl@3.0.11-1~deb12u2?arch=amd64&distro=debian-12"},
+              {"type":"library","name":"mocha","purl":"pkg:npm/mocha@10.0.0","scope":"optional"},
+              {"type":"library","name":"junit","purl":"pkg:maven/junit/junit@4.13.2","scope":"excluded"},
+              {"type":"file","name":"README"}
+             ]}
+        """.trimIndent()
+        val file = LibraryListParser.parse("bom.json", json)
+        assertEquals(LibraryFormat.CYCLONEDX, file.format)
+        assertEquals(
+            listOf(
+                "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.15.2", "pkg:maven/org.x/inner@1.1",
+                "pkg:npm/%40angular/core@18.2.1", "pkg:pypi/requests@2.31.0",
+                "pkg:deb/debian/openssl@3.0.11-1~deb12u2?distro=debian-12",
+            ),
+            purls(file),
+            "the app itself, files and the qualifiers but the distribution are left out",
+        )
+        assertEquals("openssl", file.entries.last().product)
+        assertEquals("debian-12", file.entries.last().distro)
+    }
+
+    @Test
+    fun `an SPDX document reads the packages by their purl reference`() {
+        val json = """
+            {"spdxVersion":"SPDX-2.3","SPDXID":"SPDXRef-DOCUMENT","packages":[
+              {"SPDXID":"SPDXRef-root","name":"app"},
+              {"SPDXID":"SPDXRef-1","name":"lodash","versionInfo":"4.17.21","externalRefs":[
+                {"referenceCategory":"SECURITY","referenceType":"cpe23Type","referenceLocator":"cpe:2.3:a:lodash:lodash:4.17.21:*:*:*:*:*:*:*"},
+                {"referenceCategory":"PACKAGE-MANAGER","referenceType":"purl","referenceLocator":"pkg:npm/lodash@4.17.21"}]},
+              {"SPDXID":"SPDXRef-2","name":"zlib","externalRefs":[
+                {"referenceCategory":"PACKAGE_MANAGER","referenceType":"purl","referenceLocator":"pkg:apk/alpine/zlib@1.3.1-r0?arch=x86_64&distro=3.19.1"}]}
+            ]}
+        """.trimIndent()
+        val file = LibraryListParser.parse("sbom.spdx.json", json)
+        assertEquals(LibraryFormat.SPDX, file.format)
+        assertEquals(listOf("pkg:npm/lodash@4.17.21", "pkg:apk/alpine/zlib@1.3.1-r0?distro=3.19.1"), purls(file))
+        assertNull(LibraryListParser.parse("empty.json", """{"bomFormat":"CycloneDX","components":[]}""").format)
     }
 }

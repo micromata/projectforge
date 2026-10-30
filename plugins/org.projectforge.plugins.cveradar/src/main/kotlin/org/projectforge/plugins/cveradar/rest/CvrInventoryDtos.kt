@@ -174,13 +174,21 @@ class LibraryLine(val ecosystem: String, val group: String?, val name: String, v
 /** What was found in a file; [format] null: not recognised. */
 class LibraryFileView(val name: String, val format: LibraryFormat?, val count: Int)
 
-/** The lines of [added] and [removed] are cut to a few; the counts are complete. */
+/** A library whose version differs: [line] has the new one, [from] is the stored one. */
+class LibraryChange(val line: LibraryLine, val from: String)
+
+/**
+ * The lines of [added], [removed] and [changed] are cut to a few; the counts are complete. A library that is removed
+ * in one version and added in another (replace) is a [changed] one, not both.
+ */
 class LibraryDiff(
     val files: List<LibraryFileView>,
     val added: List<LibraryLine>,
     val addedCount: Int,
     val removed: List<LibraryLine>,
     val removedCount: Int,
+    val changed: List<LibraryChange> = emptyList(),
+    val changedCount: Int = 0,
     val unchangedCount: Int,
     /** New libraries whose groupId is unknown (jar listings): no complete purl. */
     val withoutGroupIdCount: Int = 0,

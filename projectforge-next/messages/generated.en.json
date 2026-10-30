@@ -4495,6 +4495,7 @@
       "libraries": {
         "added": "New",
         "apply": "Apply",
+        "changed": "Version changed",
         "drop": "Drop the files here or click to choose them",
         "entries": "{arg0} entries",
         "error": {
@@ -4503,17 +4504,20 @@
           "tooManyFiles": "At most {arg0} files at once."
         },
         "format": {
+          "CYCLONEDX": "CycloneDX SBOM",
           "GRADLE": "Gradle dependencies",
           "JAR": "List of jar files",
           "MAVEN": "Maven dependency list",
           "NPM": "npm package-lock.json",
+          "SPDX": "SPDX SBOM",
           "unknown": "not recognised"
         },
         "hintGradle": "Gradle: run the command for the module that is delivered and upload the file. Replace MODULE by its name (./gradlew projects lists them; in a single-module build use ./gradlew dependencies ...). A root project of a multi-module build has no runtimeClasspath of its own. The modules the delivered one depends on are in the output already.",
         "hintJar": "Alternative without a build: the file names of the delivered jar. The groupId is not in a file name; it is taken from the technology catalogue where the name is unique, otherwise it stays open.",
         "hintMaven": "Maven: run the command and upload the file. All modules end up in one file, test dependencies are left out.",
         "hintNode": "Node: upload the package-lock.json of the project.",
-        "intro": "The libraries come from the build tools of the project, including the transitive ones. Several files can be uploaded at once; they are merged. Only the names and versions are read, nothing is executed and the files are not stored.",
+        "hintSbom": "SBOM (the best way): upload a CycloneDX or SPDX file in JSON. Build plugins (cyclonedx-gradle-plugin, cyclonedx-maven-plugin, cyclonedx-npm), syft or trivy for an image or a directory, and /actuator/sbom of a Spring Boot application produce one. All ecosystems and operating system packages are read by their package URL.",
+        "intro": "The libraries come from an SBOM or the build tools of the project, including the transitive ones. Several files can be uploaded at once; they are merged. Only the names and versions are read, nothing is executed and the files are not stored.",
         "more": "… and {arg0} more",
         "noMatch": "Nothing matches.",
         "notRecognised": "Not recognised, ignored: {arg0}",

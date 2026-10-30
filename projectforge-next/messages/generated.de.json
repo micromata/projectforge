@@ -4495,6 +4495,7 @@
       "libraries": {
         "added": "Neu",
         "apply": "Übernehmen",
+        "changed": "Version geändert",
         "drop": "Dateien hier ablegen oder klicken, um sie zu wählen",
         "entries": "{arg0} Einträge",
         "error": {
@@ -4503,17 +4504,20 @@
           "tooManyFiles": "Höchstens {arg0} Dateien auf einmal."
         },
         "format": {
+          "CYCLONEDX": "CycloneDX-SBOM",
           "GRADLE": "Gradle-Abhängigkeiten",
           "JAR": "Liste von Jar-Dateien",
           "MAVEN": "Maven-Abhängigkeitsliste",
           "NPM": "npm package-lock.json",
+          "SPDX": "SPDX-SBOM",
           "unknown": "nicht erkannt"
         },
         "hintGradle": "Gradle: den Befehl für das Modul aufrufen, das ausgeliefert wird, und die Datei hochladen. MODUL durch dessen Namen ersetzen (./gradlew projects listet sie auf; bei einem Projekt mit nur einem Modul genügt ./gradlew dependencies ...). Das Hauptprojekt eines Builds mit mehreren Modulen hat keinen eigenen runtimeClasspath. Die Module, von denen das ausgelieferte abhängt, stehen in der Ausgabe schon mit.",
         "hintJar": "Alternative ohne Build: die Dateinamen des ausgelieferten Jars. Die groupId steht nicht im Dateinamen; sie kommt aus dem Technologiekatalog, wenn der Name dort eindeutig ist, sonst bleibt sie offen.",
         "hintMaven": "Maven: den Befehl aufrufen und die Datei hochladen. Alle Module landen in einer Datei, Test-Abhängigkeiten fehlen.",
         "hintNode": "Node: die package-lock.json des Projekts hochladen.",
-        "intro": "Die Bibliotheken kommen aus den Build-Werkzeugen des Projekts, auch die transitiven. Mehrere Dateien können auf einmal hochgeladen werden; sie werden zusammengeführt. Gelesen werden nur Namen und Versionen, nichts wird ausgeführt und die Dateien werden nicht gespeichert.",
+        "hintSbom": "SBOM (der beste Weg): eine CycloneDX- oder SPDX-Datei als JSON hochladen. Sie erzeugen Build-Plugins (cyclonedx-gradle-plugin, cyclonedx-maven-plugin, cyclonedx-npm), syft oder trivy für ein Image oder ein Verzeichnis und /actuator/sbom einer Spring-Boot-Anwendung. Alle Ökosysteme und Pakete des Betriebssystems werden über ihre Package-URL gelesen.",
+        "intro": "Die Bibliotheken kommen aus einer SBOM oder den Build-Werkzeugen des Projekts, auch die transitiven. Mehrere Dateien können auf einmal hochgeladen werden; sie werden zusammengeführt. Gelesen werden nur Namen und Versionen, nichts wird ausgeführt und die Dateien werden nicht gespeichert.",
         "more": "… und {arg0} weitere",
         "noMatch": "Nichts passt.",
         "notRecognised": "Nicht erkannt, ignoriert: {arg0}",
