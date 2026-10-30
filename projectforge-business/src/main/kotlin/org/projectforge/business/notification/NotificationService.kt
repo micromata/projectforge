@@ -536,9 +536,13 @@ class NotificationService {
         evaluation: NotificationRuleHandler.Evaluation,
         today: LocalDate,
     ): List<PFUserDO> {
-        val affected = if (evaluation.restrictsRecipients) evaluation.affected.keys else null
-        return recipientResolver.resolve(rule.readRecipients(), affected)
-            .filter { handler.isRelevant(rule, today, it) }
+        val users = if (evaluation.affectedAreRecipients) {
+            recipientResolver.users(evaluation.affected.keys, rule.readRecipients().excludedEmployeeStatus)
+        } else {
+            val affected = if (evaluation.restrictsRecipients) evaluation.affected.keys else null
+            recipientResolver.resolve(rule.readRecipients(), affected)
+        }
+        return users.filter { handler.isRelevant(rule, today, it) }
     }
 
     private fun variablesOf(

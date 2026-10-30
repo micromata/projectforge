@@ -129,6 +129,10 @@ export const NOTIFICATION_RULE_METADATA = {
           i18nKey: "notification.ruleTypes.CREDITOR_INVOICES_DUE",
         },
         {
+          value: "CVERADAR_FINDINGS",
+          i18nKey: "notification.ruleTypes.CVERADAR_FINDINGS",
+        },
+        {
           value: "MANUAL",
           i18nKey: "notification.ruleTypes.MANUAL",
         },

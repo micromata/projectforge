@@ -24,6 +24,7 @@
 
 package org.projectforge.business.notification
 
+import jakarta.persistence.Tuple
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -189,6 +190,16 @@ class NotificationDao {
             Pair("recipientId", recipientId),
             Pair("since", since),
         )
+    }
+
+    /** The period keys of all notifications of the rule by recipient, e.g. to tell what a recipient was notified of. */
+    fun findPeriodKeysByRule(ruleId: Long): Map<Long, List<String>> {
+        return persistenceService.executeQuery(
+            "select n.recipientId as recipientId, n.periodKey as periodKey from NotificationDO n" +
+                    " where n.ruleId = :ruleId and n.periodKey is not null",
+            Tuple::class.java,
+            Pair("ruleId", ruleId),
+        ).groupBy({ it.get("recipientId", Long::class.javaObjectType) }, { it.get("periodKey", String::class.java) })
     }
 
     /** The pending notifications of the given rules. */

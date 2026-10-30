@@ -71,6 +71,9 @@ class CvrMatchingService {
     private lateinit var findingDao: CvrFindingDao
 
     @Autowired
+    private lateinit var findingNotifier: CvrFindingNotifier
+
+    @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
     class Result {
@@ -151,6 +154,9 @@ class CvrMatchingService {
         }
         if (result.created + result.updated + result.removed > 0) {
             log.info { "Matching finished: $result" }
+        }
+        if (result.created > 0) {
+            findingNotifier.findingsCreated()
         }
         return result
     }

@@ -232,9 +232,12 @@ class CvrMatchingTest : CveRadarTestBase() {
 
         // Without the index nothing matches; rebuilt from the stored documents, everything is back.
         persistenceService.runInTransaction { it.executeUpdate("delete from CvrCpeMatchDO") }
-        assertEquals(2, matching.rematch().removed)
+        // The database is shared by the tests: only the findings of this vulnerability are counted.
+        matching.rematch()
+        assertTrue(findings(team, vulnerabilityId).findings.isEmpty())
         matching.rebuildIndex()
-        assertEquals(2, matching.rematch().created)
+        matching.rematch()
+        assertEquals(2, findings(team, vulnerabilityId).findings.size)
     }
 
     @Test

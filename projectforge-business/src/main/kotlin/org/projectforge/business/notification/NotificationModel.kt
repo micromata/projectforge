@@ -53,6 +53,12 @@ enum class NotificationRuleType : I18nEnum {
     /** Unpaid creditor invoices due within some working days or overdue (to be paid in time). */
     CREDITOR_INVOICES_DUE,
 
+    /**
+     * New findings of the CVE radar (plugin): the responsible teams of the affected systems, the configured recipients
+     * in copy, each one told only of the systems visible to them.
+     */
+    CVERADAR_FINDINGS,
+
     /** No condition: all recipients get the notification when it is triggered (by hand or by the schedule). */
     MANUAL;
 
@@ -241,6 +247,15 @@ class NotificationParams(
      * ([org.projectforge.business.fibu.RechnungCalculator.CREDITOR_OVERDUE_WORKING_DAYS]).
      */
     var dueWorkingDays: Int = 2,
+    /**
+     * [NotificationRuleType.CVERADAR_FINDINGS]: the lowest CVSS severity notified (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`);
+     * known exploited vulnerabilities (KEV) are notified regardless.
+     */
+    var cvrMinSeverity: String = "HIGH",
+    /** [NotificationRuleType.CVERADAR_FINDINGS]: also findings only possible (by name or without a version). */
+    var cvrIncludePossible: Boolean = false,
+    /** [NotificationRuleType.CVERADAR_FINDINGS]: also vulnerabilities not yet rated by the NVD (without a CVSS score). */
+    var cvrIncludeUnscored: Boolean = true,
     /** All rule types: the link of the notifications ("Open" in the app). */
     var linkMode: LinkMode = LinkMode.DEFAULT,
     /** [LinkMode.MENU_ITEM]: the id of the menu item (`MenuItemDefId`) linked to. */
