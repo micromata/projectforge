@@ -15,6 +15,9 @@ What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
 [.changelog-source]
 __2026-10-30, tag https://github.com/micromata/projectforge/tree/9.2.0-RELEASE[9.2.0-RELEASE]__ +++{% include release-pills.html tag="9.2.0-RELEASE" docker="9.2.0" %}+++
 
+[.changelog-checksum]
+SHA-256 of projectforge-application-9.2.0.jar: `+3189e644cfef3e1b9d7215147f1617c4b1430b33899ce949608d6d6852303df8+`
+
 - [red]##**Java 21 required**##, **JCR removed** (migrate with 9.1.x first)
 - **CVE-Radar** (plugin): NVD import, inventory of systems, matching with notifications, triage
 - **Digital business cards** with QR code (vCard)

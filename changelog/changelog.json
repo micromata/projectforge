@@ -7,6 +7,7 @@
       "title": "ProjectForge 9.2: Java 21, JCR removed, CVE-Radar, digital business cards",
       "tag": "9.2.0-RELEASE",
       "downloadLink": true,
+      "sha256": "3189e644cfef3e1b9d7215147f1617c4b1430b33899ce949608d6d6852303df8",
       "intro": [
         "{red}**Java 21 is required**{/red} - ProjectForge 9.2 is compiled for Java 21, the executable JAR no longer starts on Java 17. The Docker image already contains Java 21.",
         "{red}**JCR removed**{/red} - Files are kept by the file store (attachments in the database, data transfer files in the file system). **If you still use the JCR, migrate with 9.1.x first**, before you update to 9.2. See the admin guide, \"Moving the files out of the JCR\".",
