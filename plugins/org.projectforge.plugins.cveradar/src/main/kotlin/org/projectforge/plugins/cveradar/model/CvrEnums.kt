@@ -121,14 +121,14 @@ enum class CvrTechnologyKind : I18nEnum {
 
 /** Where an entry of the inventory comes from (INV-16). */
 enum class CvrOrigin : I18nEnum {
-    MANUAL, SBOM, CI, LOCKFILE, BUILD_LIST, JAR_LIST;
+    MANUAL, SBOM, CI, LOCKFILE, BUILD_LIST, JAR_LIST, PACKAGE_LIST;
 
     override val i18nKey: String
         get() = "plugins.cveradar.origin.$name"
 
     companion object {
         /** The libraries read from lists (INV-26): kept apart from the technologies edited in the component dialog. */
-        val LIBRARY_LISTS = setOf(LOCKFILE, BUILD_LIST, JAR_LIST)
+        val LIBRARY_LISTS = setOf(SBOM, LOCKFILE, BUILD_LIST, JAR_LIST, PACKAGE_LIST)
     }
 }
 
