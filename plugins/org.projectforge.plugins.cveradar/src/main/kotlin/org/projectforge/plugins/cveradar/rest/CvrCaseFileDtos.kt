@@ -186,7 +186,8 @@ class FindingView(
     val status: org.projectforge.plugins.cveradar.model.CvrFindingStatus?,
     /** What matched, e.g. the CPE with its version range. */
     val matched: String?,
-    val discardReason: String?,
+    /** Why discarded, not affected, mitigated, or risk accepted (MAT-05). */
+    val reason: String?,
     val area: String?,
     val system: String,
     /** The code of the instance, null for the default instance of the system. */
@@ -194,14 +195,37 @@ class FindingView(
     val component: String?,
     /** The technology that matched, with its version. */
     val technology: String?,
+    /** The version that fixes it, or the one the matching saw after a change of the inventory (MAT-09). */
+    val fixedVersion: String? = null,
+    val fixedDate: java.time.LocalDate? = null,
+    /** A risk acceptance is requested or in force until this day (MAT-05). */
+    val riskExpires: java.time.LocalDate? = null,
+    val riskRequestedBy: String? = null,
+    val riskApprovedBySo: String? = null,
+    val riskApprovedByMg: String? = null,
+    /** Whether the management has to approve as well (priority P1 or P2). */
+    val riskNeedsManagement: Boolean = false,
+    /** Whether the user may approve or reject the requested risk acceptance now. */
+    val canApproveRisk: Boolean = false,
 )
 
 /** The findings of a vulnerability; those in instances the user may not see are only counted (VIS-04). */
 class FindingList(
     val findings: List<FindingView>,
     val hiddenCount: Int,
-    /** Whether the user may discard and restore (the security team). */
+    /** Whether the user may change the status, discard and restore (the security team). */
     val canChange: Boolean,
 )
 
 class DiscardRequest(var reason: String? = null)
+
+/** The status of several findings at once (MAT-04, MAT-09). */
+class FindingStatusRequest(
+    var ids: List<Long>? = null,
+    var status: org.projectforge.plugins.cveradar.model.CvrFindingStatus? = null,
+    var reason: String? = null,
+    var fixedVersion: String? = null,
+    var fixedDate: java.time.LocalDate? = null,
+    /** The last day of a risk acceptance (MAT-05). */
+    var riskExpires: java.time.LocalDate? = null,
+)

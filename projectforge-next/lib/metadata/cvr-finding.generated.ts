@@ -33,12 +33,6 @@ export const CVR_FINDING_METADATA = {
       i18nKey: "deleted",
       required: false,
     },
-    discardReason: {
-      dataType: "STRING",
-      i18nKey: "plugins.cveradar.finding.discardReason",
-      required: false,
-      maxLength: 4000,
-    },
     id: {
       dataType: "LONG",
       i18nKey: "id",
@@ -55,6 +49,12 @@ export const CVR_FINDING_METADATA = {
       required: false,
       maxLength: 1000,
     },
+    reason: {
+      dataType: "STRING",
+      i18nKey: "plugins.cveradar.finding.reason",
+      required: false,
+      maxLength: 4000,
+    },
     status: {
       dataType: "STRING",
       i18nKey: "plugins.cveradar.column.status",
@@ -62,11 +62,39 @@ export const CVR_FINDING_METADATA = {
       enumValues: [
         {
           value: "NEW",
-          i18nKey: "plugins.cveradar.finding.status.NEW",
+          i18nKey: "plugins.cveradar.findingStatus.NEW",
+        },
+        {
+          value: "IN_REVIEW",
+          i18nKey: "plugins.cveradar.findingStatus.IN_REVIEW",
+        },
+        {
+          value: "AFFECTED",
+          i18nKey: "plugins.cveradar.findingStatus.AFFECTED",
+        },
+        {
+          value: "NOT_AFFECTED",
+          i18nKey: "plugins.cveradar.findingStatus.NOT_AFFECTED",
+        },
+        {
+          value: "FIX_PLANNED",
+          i18nKey: "plugins.cveradar.findingStatus.FIX_PLANNED",
+        },
+        {
+          value: "FIXED",
+          i18nKey: "plugins.cveradar.findingStatus.FIXED",
+        },
+        {
+          value: "MITIGATED",
+          i18nKey: "plugins.cveradar.findingStatus.MITIGATED",
+        },
+        {
+          value: "RISK_ACCEPTED",
+          i18nKey: "plugins.cveradar.findingStatus.RISK_ACCEPTED",
         },
         {
           value: "DISCARDED",
-          i18nKey: "plugins.cveradar.finding.status.DISCARDED",
+          i18nKey: "plugins.cveradar.findingStatus.DISCARDED",
         },
       ],
     },

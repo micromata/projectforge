@@ -24,10 +24,13 @@
 
 package org.projectforge.plugins.cveradar
 
+import org.projectforge.plugins.cveradar.model.CvrFindingBucket
 import org.projectforge.plugins.cveradar.model.CvrFindingCertainty
 import org.projectforge.plugins.cveradar.model.CvrFindingDO
+import org.projectforge.plugins.cveradar.model.CvrFindingCounts
 import org.projectforge.plugins.cveradar.model.CvrFindingStatus
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 
 /**
  * The findings (MAT-02): read by the readers and changed by the security team ([CveRadarAccess]), but which one a user
@@ -47,12 +50,22 @@ class CvrFindingDao : CvrBaseDao<CvrFindingDO>(CvrFindingDO::class.java) {
         )
     }
 
-    /** All findings (deleted ones not), for the counts of the inventory tree. */
+    /** All open findings (deleted ones not), for the counts of the inventory tree. */
     fun selectAllOpen(): List<CvrFindingDO> {
         return persistenceService.executeQuery(
-            "select f from CvrFindingDO f where f.deleted = false and f.status = :status",
+            "select f from CvrFindingDO f where f.deleted = false and f.status in :status",
             CvrFindingDO::class.java,
-            Pair("status", CvrFindingStatus.NEW),
+            Pair("status", CvrFindingStatus.OPEN),
+        )
+    }
+
+    /** The findings of a risk acceptance that ended on a day before [today] (MAT-05). */
+    fun selectExpiredRiskAcceptances(today: LocalDate): List<CvrFindingDO> {
+        return persistenceService.executeQuery(
+            "select f from CvrFindingDO f where f.deleted = false and f.status = :status and f.riskExpires < :today",
+            CvrFindingDO::class.java,
+            Pair("status", CvrFindingStatus.RISK_ACCEPTED),
+            Pair("today", today),
         )
     }
 
@@ -72,29 +85,37 @@ class CvrFindingDao : CvrBaseDao<CvrFindingDO>(CvrFindingDO::class.java) {
         }
     }
 
-    /** The ids of the vulnerabilities with an open finding, for the filter of the list. */
+    /** The ids of the vulnerabilities with a finding still open or in progress, for the filter of the list. */
     fun selectVulnerabilityIdsWithFindings(): List<Long> {
         return persistenceService.executeQuery(
-            "select distinct f.vulnerability.id from CvrFindingDO f where f.deleted = false and f.status = :status",
+            "select distinct f.vulnerability.id from CvrFindingDO f where f.deleted = false and f.status in :status",
             Long::class.javaObjectType,
-            Pair("status", CvrFindingStatus.NEW),
+            Pair("status", CvrFindingStatus.PENDING),
         )
     }
 
-    /** Per vulnerability the open findings by certainty, for the page of a list: (affected, possible). */
-    fun countsByVulnerabilities(vulnerabilityIds: Collection<Long>): Map<Long, Pair<Int, Int>> {
+    /**
+     * Per vulnerability the findings for the page of a list (TRI-10): the open ones by certainty, and the ones in
+     * progress and done.
+     */
+    fun countsByVulnerabilities(vulnerabilityIds: Collection<Long>): Map<Long, CvrFindingCounts> {
         if (vulnerabilityIds.isEmpty()) {
             return emptyMap()
         }
         return persistenceService.executeQueryBatched(
-            "select f from CvrFindingDO f where f.deleted = false and f.status = :status and f.vulnerability.id in :ids",
+            "select f from CvrFindingDO f where f.deleted = false and f.status <> :discarded and f.vulnerability.id in :ids",
             CvrFindingDO::class.java,
             "ids",
             vulnerabilityIds,
-            Pair("status", CvrFindingStatus.NEW),
+            Pair("discarded", CvrFindingStatus.DISCARDED),
         ).groupBy { it.vulnerabilityId!! }.mapValues { (_, findings) ->
-            val affected = findings.count { it.certainty == CvrFindingCertainty.AFFECTED }
-            affected to (findings.size - affected)
+            val open = findings.filter { it.status?.bucket == CvrFindingBucket.OPEN }
+            val affected = open.count { it.certainty == CvrFindingCertainty.AFFECTED }
+            CvrFindingCounts(
+                affected, open.size - affected,
+                findings.count { it.status?.bucket == CvrFindingBucket.IN_PROGRESS },
+                findings.count { it.status?.bucket == CvrFindingBucket.DONE },
+            )
         }
     }
 }

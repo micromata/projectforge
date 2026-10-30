@@ -46,6 +46,7 @@ import org.projectforge.plugins.cveradar.rest.CvrCatalogRest
 import org.projectforge.plugins.cveradar.rest.CvrCaseFileRest
 import org.projectforge.plugins.cveradar.rest.CvrInventoryRest
 import org.projectforge.plugins.cveradar.rest.DiscardRequest
+import org.projectforge.plugins.cveradar.rest.FindingStatusRequest
 import org.projectforge.plugins.cveradar.rest.InstanceRequest
 import org.projectforge.plugins.cveradar.rest.InventoryLevel
 import org.projectforge.plugins.cveradar.rest.SystemRequest
@@ -56,6 +57,7 @@ import org.projectforge.plugins.cveradar.sync.NvdCveParserTest.Companion.cve
 import org.projectforge.plugins.cveradar.sync.NvdImportService
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Instant
+import java.time.LocalDate
 
 /**
  * The matching of the vulnerabilities against the inventory (MAT-01 ff.): products by CPE, catalogue or name, the
@@ -76,6 +78,12 @@ class CvrMatchingTest : CveRadarTestBase() {
     private lateinit var inventory: CvrInventoryRest
 
     @Autowired
+    private lateinit var findingDao: CvrFindingDao
+
+    @Autowired
+    private lateinit var findingService: CvrFindingService
+
+    @Autowired
     private lateinit var matching: CvrMatchingService
 
     @Autowired
@@ -94,11 +102,11 @@ class CvrMatchingTest : CveRadarTestBase() {
     private fun groupId(name: String): Long = (initTestDB.getGroup(name) ?: initTestDB.addGroup(name)).id!!
 
     /** A CVE of the product before 9.0.90, from 9.0.0 on; every test has a product of its own, as the tests share the database. */
-    private fun importTomcat(cveId: String, product: String): Long {
+    private fun importTomcat(cveId: String, product: String, score: Double = 9.8): Long {
         logon(TEST_ADMIN_USER)
         val configurations = """{"nodes":[{"operator":"OR","negate":false,"cpeMatch":[
             {"vulnerable":true,"criteria":"cpe:2.3:a:apache:$product:*:*:*:*:*:*:*:*","versionStartIncluding":"9.0.0","versionEndExcluding":"9.0.90"}]}]}"""
-        val metrics = """"cvssMetricV31":[{"type":"Primary","cvssData":{"vectorString":"CVSS:3.1/x","baseScore":9.8,"baseSeverity":"CRITICAL"}}]"""
+        val metrics = """"cvssMetricV31":[{"type":"Primary","cvssData":{"vectorString":"CVSS:3.1/x","baseScore":$score,"baseSeverity":"HIGH"}}]"""
         importService.import(
             { _, _, _ ->
                 NvdCveParser.parsePage(
@@ -122,8 +130,9 @@ class CvrMatchingTest : CveRadarTestBase() {
         return system to owner
     }
 
-    private fun tomcat(product: String, version: String?, withCpe: Boolean = false, vendor: String? = "apache") =
+    private fun tomcat(product: String, version: String?, withCpe: Boolean = false, vendor: String? = "apache", id: Long? = null) =
         TechnologyRequest(
+            id = id,
             kind = CvrTechnologyKind.PRODUCT, vendor = vendor, product = product.replaceFirstChar { it.uppercase() }, version = version,
             cpe = if (withCpe) "cpe:2.3:a:apache:$product:$version:*:*:*:*:*:*:*" else null,
         )
@@ -225,10 +234,10 @@ class CvrMatchingTest : CveRadarTestBase() {
         inventory.updateComponent(component, ComponentRequest(code = "APP", name = "App", technologies = listOf(tomcat(P, "9.0.80", true))))
         val reverted = findings(team, vulnerabilityId).findings
         assertEquals(2, reverted.size)
-        assertEquals(listOf("only in the test environment"), reverted.mapNotNull { it.discardReason })
+        assertEquals(listOf("only in the test environment"), reverted.mapNotNull { it.reason })
         val restored = fileRest.restoreFinding(first.findings.first().id)
         assertEquals(0, restored.findings.count { it.status == CvrFindingStatus.DISCARDED })
-        assertFalse(restored.findings.any { it.discardReason != null })
+        assertFalse(restored.findings.any { it.reason != null })
 
         // Without the index nothing matches; rebuilt from the stored documents, everything is back.
         persistenceService.runInTransaction { it.executeUpdate("delete from CvrCpeMatchDO") }
@@ -287,5 +296,143 @@ class CvrMatchingTest : CveRadarTestBase() {
         val list = findings(owner, vulnerabilityId).findings
         assertEquals(2, list.size, "matched by the new CPE of the node")
         assertTrue(list.all { it.certainty == CvrFindingCertainty.AFFECTED })
+    }
+
+    /** A system with one baseline component holding Tomcat 9.0.80; returns the system, the component and a security team member of the group. */
+    private fun withTomcat(code: String, product: String, group: String): Triple<Long, Long, PFUserDO> {
+        val (system, owner) = system(code, group)
+        val component = inventory.createComponent(
+            ComponentRequest(systemId = system, code = "APP", name = "App", technologies = listOf(tomcat(product, "9.0.80", true))),
+        )
+        val team = user("team-$code", CvrRole.SECURITY_TEAM)
+        addToGroup(team, group)
+        logon(owner)
+        return Triple(system, component, team)
+    }
+
+    private fun status(user: PFUserDO, ids: List<Long>, status: CvrFindingStatus, block: FindingStatusRequest.() -> Unit = {}) =
+        run { logon(user); fileRest.setFindingStatus(FindingStatusRequest(ids = ids, status = status).apply(block)) }
+
+    private fun setVersion(user: PFUserDO, component: Long, product: String, version: String) {
+        logon(user)
+        // The technology keeps its id: it is edited, not replaced.
+        val technologyId = inventory.tree().rows.single { it.id == component && it.level == InventoryLevel.COMPONENT }.technologies.single().id
+        inventory.updateComponent(
+            component,
+            ComponentRequest(code = "APP", name = "App", technologies = listOf(tomcat(product, version, true, id = technologyId))),
+        )
+    }
+
+    @Test
+    fun `the security team sets the status of findings, the reader and the management can't, reasons and a fixed version are required`() {
+        val P = "tomcat6"
+        val vulnerabilityId = importTomcat("CVE-2026-94006", P)
+        val (_, _, team) = withTomcat("MT6", P, "cveradar-match-g6")
+        val ids = findings(team, vulnerabilityId).findings.map { it.id }
+        assertEquals(2, ids.size)
+
+        logon(user("reader-fw", CvrRole.READER))
+        assertThrows(AccessException::class.java) { fileRest.setFindingStatus(FindingStatusRequest(ids = ids, status = CvrFindingStatus.IN_REVIEW)) }
+        logon(user("mg-fw", CvrRole.MANAGEMENT))
+        assertThrows(AccessException::class.java) { fileRest.setFindingStatus(FindingStatusRequest(ids = ids, status = CvrFindingStatus.IN_REVIEW)) }
+
+        assertThrows(UserException::class.java) { status(team, ids, CvrFindingStatus.NOT_AFFECTED) }
+        assertThrows(UserException::class.java) { status(team, ids, CvrFindingStatus.FIXED) }
+        assertThrows(UserException::class.java) { status(team, ids, CvrFindingStatus.DISCARDED) }
+        assertTrue(findings(team, vulnerabilityId).findings.all { it.status == CvrFindingStatus.NEW }, "a refusal changes nothing")
+
+        status(team, ids, CvrFindingStatus.IN_REVIEW)
+        val fixed = status(team, ids, CvrFindingStatus.FIXED) { fixedVersion = "9.0.95" }.findings
+        assertTrue(fixed.all { it.status == CvrFindingStatus.FIXED && it.fixedVersion == "9.0.95" && it.fixedDate == LocalDate.now() })
+        val one = status(team, ids.take(1), CvrFindingStatus.NOT_AFFECTED) { reason = "not reachable" }.findings
+        val notAffected = one.single { it.id == ids.first() }
+        assertEquals("not reachable", notAffected.reason)
+        assertEquals(CvrFindingStatus.NOT_AFFECTED, notAffected.status)
+        assertEquals(null, notAffected.fixedVersion, "another status drops the fixed version")
+        val counts = findingDao.countsByVulnerabilities(listOf(vulnerabilityId)).getValue(vulnerabilityId)
+        assertEquals(0, counts.affected + counts.possible)
+        assertEquals(2, counts.done)
+    }
+
+    @Test
+    fun `a risk acceptance is requested by the team, approved by the officer and, from P2 on, by the management as well`() {
+        val P = "tomcat7"
+        val vulnerabilityId = importTomcat("CVE-2026-94007", P) // CVSS 9.8: P2.
+        val (_, _, team) = withTomcat("MT7", P, "cveradar-match-g7")
+        val id = findings(team, vulnerabilityId).findings.first().id
+        val tomorrow = LocalDate.now().plusDays(1)
+
+        assertThrows(UserException::class.java) { status(team, listOf(id), CvrFindingStatus.RISK_ACCEPTED) { riskExpires = tomorrow } }
+        assertThrows(UserException::class.java) { status(team, listOf(id), CvrFindingStatus.RISK_ACCEPTED) { reason = "r" } }
+        val requested = status(team, listOf(id), CvrFindingStatus.RISK_ACCEPTED) { reason = "r"; riskExpires = tomorrow }
+            .findings.first { it.id == id }
+        assertEquals(CvrFindingStatus.IN_REVIEW, requested.status, "a request only")
+        assertTrue(requested.riskNeedsManagement)
+        assertFalse(requested.canApproveRisk, "the team can't approve")
+        logon(team)
+        assertThrows(AccessException::class.java) { fileRest.approveRisk(id) }
+
+        val so = user("so-fw", CvrRole.SECURITY_OFFICER)
+        val mg = user("mg-fw", CvrRole.MANAGEMENT)
+        logon(so)
+        assertEquals(CvrFindingStatus.IN_REVIEW, fileRest.approveRisk(id).findings.first { it.id == id }.status, "P2 needs the management too")
+        assertThrows(AccessException::class.java) { fileRest.approveRisk(id) }
+        logon(mg)
+        val accepted = fileRest.approveRisk(id).findings.first { it.id == id }
+        assertEquals(CvrFindingStatus.RISK_ACCEPTED, accepted.status)
+        assertEquals(tomorrow, accepted.riskExpires)
+        assertNotNull(accepted.riskApprovedBySo)
+        assertNotNull(accepted.riskApprovedByMg)
+
+        // The acceptance ends: affected again.
+        assertEquals(0, findingService.expireRiskAcceptances(LocalDate.now()))
+        assertTrue(findingService.expireRiskAcceptances(LocalDate.now().plusDays(2)) >= 1)
+        assertEquals(CvrFindingStatus.AFFECTED, findings(team, vulnerabilityId).findings.first { it.id == id }.status)
+
+        // A rejected request is affected again.
+        status(team, listOf(id), CvrFindingStatus.RISK_ACCEPTED) { reason = "r"; riskExpires = tomorrow }
+        logon(so)
+        val rejected = fileRest.rejectRisk(id).findings.first { it.id == id }
+        assertEquals(CvrFindingStatus.AFFECTED, rejected.status)
+        assertEquals(null, rejected.riskExpires)
+    }
+
+    @Test
+    fun `below P2 the officer alone approves a risk acceptance`() {
+        val P = "tomcat8"
+        val vulnerabilityId = importTomcat("CVE-2026-94008", P, score = 7.5) // P3.
+        val (_, _, team) = withTomcat("MT8", P, "cveradar-match-g8")
+        val id = findings(team, vulnerabilityId).findings.first().id
+        val requested = status(team, listOf(id), CvrFindingStatus.RISK_ACCEPTED) { reason = "r"; riskExpires = LocalDate.now().plusDays(30) }
+            .findings.first { it.id == id }
+        assertFalse(requested.riskNeedsManagement)
+        logon(user("mg-fw", CvrRole.MANAGEMENT))
+        assertThrows(AccessException::class.java) { fileRest.approveRisk(id) }
+        logon(user("so-fw", CvrRole.SECURITY_OFFICER))
+        assertEquals(CvrFindingStatus.RISK_ACCEPTED, fileRest.approveRisk(id).findings.first { it.id == id }.status)
+    }
+
+    @Test
+    fun `a fixed version in the baseline plans the fix in every instance, a rollback reopens what was planned or done`() {
+        val P = "tomcat9"
+        val vulnerabilityId = importTomcat("CVE-2026-94009", P)
+        val (_, component, team) = withTomcat("MT9", P, "cveradar-match-g9")
+        val ids = findings(team, vulnerabilityId).findings.map { it.id }
+        status(team, ids, CvrFindingStatus.AFFECTED)
+
+        setVersion(team, component, P, "9.0.95") // The baseline is fixed.
+        val planned = findings(team, vulnerabilityId).findings
+        assertEquals(2, planned.size)
+        assertTrue(planned.all { it.status == CvrFindingStatus.FIX_PLANNED && it.fixedVersion == "9.0.95" }, "planned, not fixed: each instance confirms")
+        assertEquals(0, matching.rematch().let { it.created + it.updated + it.removed }, "idempotent")
+
+        status(team, ids.take(1), CvrFindingStatus.FIXED) { fixedVersion = "9.0.95" }
+        setVersion(team, component, P, "9.0.80") // A rollback.
+        val reopened = findings(team, vulnerabilityId).findings
+        assertTrue(reopened.all { it.status == CvrFindingStatus.NEW }, "planned and done are reopened")
+
+        // What nobody worked on is removed with the match, as before.
+        setVersion(team, component, P, "9.0.95")
+        assertEquals(0, findings(team, vulnerabilityId).findings.count { it.status == CvrFindingStatus.NEW })
     }
 }

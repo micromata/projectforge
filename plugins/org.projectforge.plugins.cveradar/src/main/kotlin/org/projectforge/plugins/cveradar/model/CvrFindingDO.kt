@@ -38,12 +38,15 @@ import jakarta.persistence.Transient
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import java.time.LocalDate
 
 /**
  * A finding (MAT-02): a vulnerability that matches a technology of a component, for one instance (a component of the
  * baseline of a system gives one finding per instance of the system). Created and kept up to date by
- * [org.projectforge.plugins.cveradar.CvrMatchingService]; the only change by hand is discarding a false positive
- * (MAT-06), which the next matching run leaves alone. Historised.
+ * [org.projectforge.plugins.cveradar.CvrMatchingService]; the security team sets the [status] (MAT-04), a false positive
+ * is discarded (MAT-06), which the next matching run leaves alone. A risk acceptance is requested by the team and
+ * approved by the officer, from P2 on by the management as well (MAT-05). Every change is historised.
  */
 @Entity
 @Table(
@@ -92,9 +95,40 @@ open class CvrFindingDO : DefaultBaseDO() {
     @get:Column(length = 1000)
     open var matched: String? = null
 
-    @PropertyInfo(i18nKey = "plugins.cveradar.finding.discardReason")
-    @get:Column(name = "discard_reason", length = 4000)
-    open var discardReason: String? = null
+    /** Why the finding is discarded, not affected, mitigated or risk accepted (MAT-05, MAT-06). */
+    @PropertyInfo(i18nKey = "plugins.cveradar.finding.reason")
+    @get:Column(length = 4000)
+    open var reason: String? = null
+
+    /** The version of the technology when the finding was matched (MAT-07, MAT-09, MAT-13). */
+    @get:Column(name = "matched_version", length = 100)
+    open var matchedVersion: String? = null
+
+    /** The version that fixes the finding (status fixed, or the version the matching saw, MAT-09). */
+    @get:Column(name = "fixed_version", length = 100)
+    open var fixedVersion: String? = null
+
+    @get:Column(name = "fixed_date")
+    open var fixedDate: LocalDate? = null
+
+    /** A risk acceptance (status risk accepted, or requested in review) ends on this day (MAT-05). */
+    @get:Column(name = "risk_expires")
+    open var riskExpires: LocalDate? = null
+
+    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "risk_requested_by_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
+    open var riskRequestedBy: PFUserDO? = null
+
+    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "risk_approved_so_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
+    open var riskApprovedBySo: PFUserDO? = null
+
+    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "risk_approved_mg_fk")
+    @JsonSerialize(using = IdOnlySerializer::class)
+    open var riskApprovedByMg: PFUserDO? = null
 
     val vulnerabilityId: Long?
         @Transient

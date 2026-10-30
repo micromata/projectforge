@@ -37,7 +37,7 @@ import org.springframework.stereotype.Service
 
 /**
  * The sync of the external source (EXT-04) and the import from the NVD (IMP-03), also startable in the jobs
- * monitor. Inactive while the plugin isn't activated or the source isn't configured. The sync of the devices
+ * monitor, and the daily end of the risk acceptances (MAT-05). Inactive while the plugin isn't activated or the source isn't configured. The sync of the devices
  * also deletes the outdated devices (EXT-07).
  */
 @Service
@@ -47,6 +47,9 @@ class CveRadarJobs {
 
     @Autowired
     private lateinit var deviceService: CvrDeviceService
+
+    @Autowired
+    private lateinit var findingService: CvrFindingService
 
     @Autowired
     private lateinit var graylogSyncService: GraylogSyncService
@@ -68,6 +71,7 @@ class CveRadarJobs {
         schedulerJobRunner.register(NVD_JOB, ::nvdImport) {
             inactiveReason() ?: if (!config.nvd.enabled) "The NVD import isn't enabled." else null
         }
+        schedulerJobRunner.register(RISK_JOB, ::expireRiskAcceptances) { inactiveReason() }
     }
 
     @Scheduled(cron = GRAYLOG_CRON)
@@ -81,6 +85,13 @@ class CveRadarJobs {
     fun nvdImport() {
         schedulerJobRunner.runAsync(NVD_JOB) { run ->
             run.note(nvdImportService.import().toString())
+        }
+    }
+
+    @Scheduled(cron = RISK_CRON)
+    fun expireRiskAcceptances() {
+        schedulerJobRunner.runAsync(RISK_JOB) { run ->
+            run.note("${findingService.expireRiskAcceptances()} risk acceptances expired")
         }
     }
 
@@ -98,6 +109,8 @@ class CveRadarJobs {
 
         private const val NVD_CRON = "\${projectforge.plugin.cveradar.nvd.cron:0 17 */2 * * *}"
 
+        private const val RISK_CRON = "\${projectforge.plugin.cveradar.risk.cron:0 30 1 * * *}"
+
         val GRAYLOG_JOB = SchedulerJobDefinition(
             "cveradar.graylog", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "graylogSync",
             SchedulerSchedule.Cron(GRAYLOG_CRON),
@@ -106,6 +119,11 @@ class CveRadarJobs {
         val NVD_JOB = SchedulerJobDefinition(
             "cveradar.nvd", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "nvdImport",
             SchedulerSchedule.Cron(NVD_CRON),
+        )
+
+        val RISK_JOB = SchedulerJobDefinition(
+            "cveradar.risk", SchedulerJobArea.BUSINESS, CveRadarJobs::class.java, "expireRiskAcceptances",
+            SchedulerSchedule.Cron(RISK_CRON),
         )
     }
 }

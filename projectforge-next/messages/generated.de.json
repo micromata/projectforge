@@ -4358,21 +4358,31 @@
         "discardReason": "Grund",
         "empty": "Kein Befund: Keine Technologie des Inventars passt zu dieser Schwachstelle.",
         "error": {
-          "reason": "Zum Verwerfen eines Befunds ist ein Grund nötig."
+          "expiry": "Eine Risikoakzeptanz braucht ein Enddatum in der Zukunft.",
+          "fixedVersion": "Die behobene Version ist anzugeben.",
+          "reason": "Zum Verwerfen eines Befunds ist ein Grund nötig.",
+          "reasonRequired": "Für diesen Status ist ein Grund nötig.",
+          "status": "Dieser Status kann hier nicht gesetzt werden."
         },
         "filter": {
           "affected": "Mit Treffern im Inventar"
         },
         "hidden": "+{arg0} weitere betroffene Installationen, für dich nicht sichtbar.",
         "matched": "Treffer",
+        "reason": "Grund",
         "restore": "Zurücknehmen",
-        "status": {
-          "DISCARDED": "Verworfen",
-          "NEW": "Neu"
+        "risk": {
+          "approve": "Freigeben",
+          "approvedMg": "Freigegeben von der Geschäftsleitung: {arg0}",
+          "approvedSo": "Freigegeben vom Security Officer: {arg0}",
+          "needsManagement": "Ab Priorität P2 gibt auch die Geschäftsleitung frei.",
+          "reject": "Ablehnen",
+          "requested": "Risikoakzeptanz von {arg0} beantragt, gültig bis {arg1}."
         },
+        "riskExpires": "Gültig bis",
         "tab": {
           "_": "Betroffen",
-          "info": "Technologien des Inventars, die zu dieser Schwachstelle passen. Ohne genaue Version oder nur über den Namen ist ein Treffer nur möglich."
+          "info": "Technologien des Inventars, die zu dieser Schwachstelle passen. Ohne genaue Version oder nur über den Namen ist ein Treffer nur möglich. Das Security-Team setzt den Status je Installation; eine Risikoakzeptanz gibt der Security Officer frei."
         }
       },
       "findingBucket": {
@@ -4382,6 +4392,7 @@
       },
       "findingStatus": {
         "AFFECTED": "Betroffen",
+        "DISCARDED": "Verworfen",
         "FIXED": "Behoben",
         "FIX_PLANNED": "Behebung geplant",
         "IN_REVIEW": "In Prüfung",
@@ -4392,6 +4403,7 @@
       },
       "findings": {
         "confirmFixed": "Behoben bestätigen…",
+        "fixedDate": "Behoben am",
         "fixedVersion": "Behobene Version",
         "openOf": "{arg0} von {arg1} offen",
         "openOnly": "Nur offene",

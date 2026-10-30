@@ -31,6 +31,7 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.plugins.cveradar.model.CvrCatalogNodeDO
 import org.projectforge.plugins.cveradar.model.CvrComponentDO
 import org.projectforge.plugins.cveradar.model.CvrCpeMatchDO
+import org.projectforge.plugins.cveradar.model.CvrFindingBucket
 import org.projectforge.plugins.cveradar.model.CvrFindingCertainty
 import org.projectforge.plugins.cveradar.model.CvrFindingDO
 import org.projectforge.plugins.cveradar.model.CvrFindingStatus
@@ -62,8 +63,16 @@ private val log = KotlinLogging.logger {}
  *   technology a match is only *possible* (MAT-03).
  *
  * Matching is idempotent: a run creates what is missing, corrects what changed and removes what no longer matches; a
- * discarded finding is left alone while its component and instance exist, even if it doesn't match for a while (MAT-06). The scope of a run is a set of vulnerabilities (after
- * an import), a set of components (after a change of the inventory) or everything.
+ * discarded finding is left alone while its component and instance exist, even if it doesn't match for a while (MAT-06).
+ * The scope of a run is a set of vulnerabilities (after an import), a set of components (after a change of the
+ * inventory) or everything.
+ *
+ * A finding a person has worked on (any status but new) is kept when it stops matching, and follows the version of its
+ * technology ([CvrFindingDO.matchedVersion]):
+ * - the version changes and the vulnerability no longer matches: an open finding becomes *fix planned* with the new
+ *   version (MAT-07, MAT-09: the rollout can lag behind, so "fixed" is confirmed by a person, in every instance),
+ * - the version changes and the vulnerability matches again, e.g. after a rollback: a finding that was planned or done
+ *   is reopened as *new* (MAT-13); the earlier status stays in the history.
  */
 @Service
 class CvrMatchingService {
@@ -85,7 +94,7 @@ class CvrMatchingService {
     /** What a technology looks for: a product, the vendor if known, and whether the source is sure. */
     private class Key(val vendor: String?, val product: String, val sure: Boolean)
 
-    private class Hit(val technologyId: Long?, val certainty: CvrFindingCertainty, val matched: String)
+    private class Hit(val technologyId: Long?, val version: String?, val certainty: CvrFindingCertainty, val matched: String)
 
     /** After the import: the new and modified vulnerabilities against the whole inventory. */
     fun rematchVulnerabilities(vulnerabilityIds: Collection<Long>): Result =
@@ -112,22 +121,33 @@ class CvrMatchingService {
         val hits = if (model.keys.isEmpty()) emptyMap() else findHits(model, vulnerabilityIds)
         val existing = findingDao.selectInScope(vulnerabilityIds, componentIds)
             .groupBy { Triple(it.vulnerabilityId!!, it.componentId!!, it.instanceId!!) }
+        val versions = model.technologies.associate { it.id!! to it.version?.trim()?.takeIf { v -> v.isNotEmpty() } }
         existing.forEach { (key, findings) ->
             val hit = hits[key]
             // A duplicate (should not exist) is removed.
             findings.drop(1).forEach { remove(it, result) }
             val finding = findings.first()
+            val present = finding.componentId in model.components && finding.instanceId in model.instances
+            val status = finding.status
             when {
                 // A discarded finding stays with its reason while its component and instance exist (MAT-06), so a
                 // version changed and reverted doesn't bring it back as new.
-                hit == null && finding.status == CvrFindingStatus.DISCARDED &&
-                        finding.componentId in model.components && finding.instanceId in model.instances -> result.unchanged++
+                hit == null && status == CvrFindingStatus.DISCARDED && present -> result.unchanged++
+
+                hit == null && status != CvrFindingStatus.NEW && present -> followVersion(finding, versions, result)
 
                 hit == null -> remove(finding, result)
-                finding.certainty != hit.certainty || finding.technologyId != hit.technologyId || finding.matched != hit.matched -> {
+                reopens(finding, hit) -> {
+                    reopen(finding, hit)
+                    result.updated++
+                }
+
+                finding.certainty != hit.certainty || finding.technologyId != hit.technologyId || finding.matched != hit.matched ||
+                        finding.matchedVersion != hit.version -> {
                     finding.certainty = hit.certainty
                     finding.technology = hit.technologyId?.let { persistenceService.getReference(CvrTechnologyDO::class.java, it) }
                     finding.matched = hit.matched
+                    finding.matchedVersion = hit.version
                     findingDao.update(finding, checkAccess = false)
                     result.updated++
                 }
@@ -144,6 +164,7 @@ class CvrMatchingService {
                     it.technology = hit.technologyId?.let { id -> persistenceService.getReference(CvrTechnologyDO::class.java, id) }
                     it.certainty = hit.certainty
                     it.matched = hit.matched
+                    it.matchedVersion = hit.version
                 },
                 checkAccess = false,
             )
@@ -153,6 +174,59 @@ class CvrMatchingService {
             log.info { "Matching finished: $result" }
         }
         return result
+    }
+
+    /** A planned or done finding whose technology changed its version and matches again, e.g. after a rollback (MAT-13). */
+    private fun reopens(finding: CvrFindingDO, hit: Hit): Boolean {
+        val status = finding.status ?: return false
+        return (status == CvrFindingStatus.FIX_PLANNED || status.bucket == CvrFindingBucket.DONE) &&
+                finding.matchedVersion != hit.version
+    }
+
+    private fun reopen(finding: CvrFindingDO, hit: Hit) {
+        finding.status = CvrFindingStatus.NEW
+        finding.reason = null
+        finding.fixedVersion = null
+        finding.fixedDate = null
+        finding.riskExpires = null
+        finding.riskRequestedBy = null
+        finding.riskApprovedBySo = null
+        finding.riskApprovedByMg = null
+        finding.certainty = hit.certainty
+        finding.technology = hit.technologyId?.let { persistenceService.getReference(CvrTechnologyDO::class.java, it) }
+        finding.matched = hit.matched
+        finding.matchedVersion = hit.version
+        findingDao.update(finding, checkAccess = false)
+    }
+
+    /**
+     * The worked-on finding no longer matches. If the version of its technology changed, remember the new one (so a
+     * rollback is noticed) and let an open finding wait for the confirmation of the fix (MAT-07, MAT-09); otherwise the
+     * vulnerability data changed and a person decides.
+     */
+    private fun followVersion(finding: CvrFindingDO, versions: Map<Long, String?>, result: Result) {
+        val technologyId = finding.technologyId
+        // A technology that was removed has no version any more: an open finding waits for the confirmation.
+        val removed = technologyId == null || technologyId !in versions
+        val changed = !removed && versions[technologyId] != finding.matchedVersion
+        val open = finding.status?.bucket == CvrFindingBucket.OPEN
+        if (!changed && !(removed && open)) {
+            result.unchanged++
+            return
+        }
+        if (open) {
+            finding.status = CvrFindingStatus.FIX_PLANNED
+            finding.fixedVersion = if (removed) null else versions[technologyId]
+            finding.riskExpires = null
+            finding.riskRequestedBy = null
+            finding.riskApprovedBySo = null
+            finding.riskApprovedByMg = null
+        }
+        if (changed) {
+            finding.matchedVersion = versions[technologyId]
+        }
+        findingDao.update(finding, checkAccess = false)
+        result.updated++
     }
 
     private fun remove(finding: CvrFindingDO, result: Result) {
@@ -260,7 +334,7 @@ class CvrMatchingService {
                     } else {
                         CvrFindingCertainty.POSSIBLE
                     }
-                    val hit = Hit(technology.id, certainty, describe(match))
+                    val hit = Hit(technology.id, technology.version?.trim()?.takeIf { it.isNotEmpty() }, certainty, describe(match))
                     instanceIds.forEach { instanceId ->
                         val triple = Triple(match.vulnerability!!.id!!, component.id!!, instanceId)
                         val old = hits[triple]

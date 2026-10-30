@@ -1807,8 +1807,13 @@ mit ihren Personen und moderiert die Diskussionen.
 
 |Security Officer
 |`securityOfficerGroup`
-|Setzen zusätzlich die verbindliche Priorität von Fällen anderer und schließen einen Fall mit offenen Punkten (mit
-Begründung).
+|Setzen zusätzlich die verbindliche Priorität von Fällen anderer, schließen einen Fall mit offenen Punkten (mit
+Begründung) und geben die Risikoakzeptanz eines Befunds frei.
+
+|Geschäftsleitung
+|`managementGroup`
+|Liest wie die Lesenden und gibt die Risikoakzeptanz eines Befunds ab Priorität P2 neben dem Security Officer frei
+(zwei Personen).
 
 |alle
 |
@@ -1841,6 +1846,7 @@ projectforge.plugin.cveradar.deviceRetentionDays=365
 projectforge.plugin.cveradar.readGroup=cve-read
 projectforge.plugin.cveradar.writeGroup=cve-read-write
 projectforge.plugin.cveradar.securityOfficerGroup=security-officers
+projectforge.plugin.cveradar.managementGroup=management
 ----
 
 Die veralteten Geräte löscht der Job der Anbindung (siehe <<cve_radar_jobs>>).

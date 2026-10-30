@@ -4358,21 +4358,31 @@
         "discardReason": "Reason",
         "empty": "No finding: no technology of the inventory matches this vulnerability.",
         "error": {
-          "reason": "A reason is required to discard a finding."
+          "expiry": "A risk acceptance needs an end date in the future.",
+          "fixedVersion": "Name the fixed version.",
+          "reason": "A reason is required to discard a finding.",
+          "reasonRequired": "A reason is required for this status.",
+          "status": "This status can't be set here."
         },
         "filter": {
           "affected": "With matches in the inventory"
         },
         "hidden": "+{arg0} more affected installations, not visible to you.",
         "matched": "Match",
+        "reason": "Reason",
         "restore": "Take back",
-        "status": {
-          "DISCARDED": "Discarded",
-          "NEW": "New"
+        "risk": {
+          "approve": "Approve",
+          "approvedMg": "Approved by the management: {arg0}",
+          "approvedSo": "Approved by the security officer: {arg0}",
+          "needsManagement": "From priority P2 on the management approves as well.",
+          "reject": "Reject",
+          "requested": "Risk acceptance requested by {arg0}, valid until {arg1}."
         },
+        "riskExpires": "Valid until",
         "tab": {
           "_": "Affected",
-          "info": "Technologies of the inventory that match this vulnerability. Without an exact version, or only by name, a match is only possible."
+          "info": "Technologies of the inventory that match this vulnerability. Without an exact version or only by name a match is only possible. The security team sets the status per installation; a risk acceptance is approved by the security officer."
         }
       },
       "findingBucket": {
@@ -4382,6 +4392,7 @@
       },
       "findingStatus": {
         "AFFECTED": "Affected",
+        "DISCARDED": "Discarded",
         "FIXED": "Fixed",
         "FIX_PLANNED": "Fix planned",
         "IN_REVIEW": "In review",
@@ -4392,6 +4403,7 @@
       },
       "findings": {
         "confirmFixed": "Confirm fixed…",
+        "fixedDate": "Fixed on",
         "fixedVersion": "Fixed version",
         "openOf": "{arg0} of {arg1} open",
         "openOnly": "Open only",

@@ -88,6 +88,24 @@ class CvrCaseFileRest {
         return findingService.discard(ThreadLocalUserContext.requiredLoggedInUser, id, request.reason)
     }
 
+    @AccessChecked("CvrFindingService.setStatus: security team, in instances it may see")
+    @PostMapping("finding/status")
+    fun setFindingStatus(@RequestBody request: FindingStatusRequest): FindingList {
+        return findingService.setStatus(ThreadLocalUserContext.requiredLoggedInUser, request)
+    }
+
+    @AccessChecked("CvrFindingService.approveRisk: security officer, management from P2 on, in instances they see")
+    @PostMapping("finding/{id}/approveRisk")
+    fun approveRisk(@PathVariable id: Long): FindingList {
+        return findingService.approveRisk(ThreadLocalUserContext.requiredLoggedInUser, id)
+    }
+
+    @AccessChecked("CvrFindingService.rejectRisk: security officer, management, in instances they see")
+    @PostMapping("finding/{id}/rejectRisk")
+    fun rejectRisk(@PathVariable id: Long): FindingList {
+        return findingService.rejectRisk(ThreadLocalUserContext.requiredLoggedInUser, id)
+    }
+
     @AccessChecked("CvrFindingService.restore: security team, in instances it may see")
     @PostMapping("finding/{id}/restore")
     fun restoreFinding(@PathVariable id: Long): FindingList {

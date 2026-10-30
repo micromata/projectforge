@@ -156,10 +156,33 @@ enum class CvrFindingCertainty : I18nEnum {
         get() = "plugins.cveradar.finding.certainty.$name"
 }
 
-/** The status of a finding (MAT-06): new, or discarded as a false positive. */
-enum class CvrFindingStatus : I18nEnum {
-    NEW, DISCARDED;
+/** The summary of the status of findings in lists and the inventory tree (TRI-10, INV-22). */
+enum class CvrFindingBucket {
+    OPEN, IN_PROGRESS, DONE
+}
+
+/**
+ * The status of a finding (MAT-04, based on VEX): new → in review → affected / not affected → fix planned → fixed /
+ * mitigated / risk accepted; or discarded as a false positive (MAT-06), which counts nowhere.
+ */
+enum class CvrFindingStatus(val bucket: CvrFindingBucket?) : I18nEnum {
+    NEW(CvrFindingBucket.OPEN),
+    IN_REVIEW(CvrFindingBucket.OPEN),
+    AFFECTED(CvrFindingBucket.OPEN),
+    NOT_AFFECTED(CvrFindingBucket.DONE),
+    FIX_PLANNED(CvrFindingBucket.IN_PROGRESS),
+    FIXED(CvrFindingBucket.DONE),
+    MITIGATED(CvrFindingBucket.DONE),
+    RISK_ACCEPTED(CvrFindingBucket.DONE),
+    DISCARDED(null);
 
     override val i18nKey: String
-        get() = "plugins.cveradar.finding.status.$name"
+        get() = "plugins.cveradar.findingStatus.$name"
+
+    companion object {
+        val OPEN = entries.filter { it.bucket == CvrFindingBucket.OPEN }
+
+        /** Open or in progress: the vulnerability still concerns the instance (filter of the list). */
+        val PENDING = entries.filter { it.bucket == CvrFindingBucket.OPEN || it.bucket == CvrFindingBucket.IN_PROGRESS }
+    }
 }

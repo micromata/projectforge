@@ -88,6 +88,7 @@ abstract class CveRadarTestBase : AbstractTestBase() {
             CvrRole.READER -> addToGroup(user, "cveradar-read-test") { cveRadarConfig.readGroup = it }
             CvrRole.SECURITY_TEAM -> addToGroup(user, "cveradar-write-test") { cveRadarConfig.writeGroup = it }
             CvrRole.SECURITY_OFFICER -> addToGroup(user, "cveradar-so-test") { cveRadarConfig.securityOfficerGroup = it }
+            CvrRole.MANAGEMENT -> addToGroup(user, "cveradar-mg-test") { cveRadarConfig.managementGroup = it }
             null -> {}
         }
         return initTestDB.getUser(username)!!

@@ -181,6 +181,7 @@ class CveRadarRest {
                 read = config.readGroup.trim(),
                 write = config.writeGroup.trim(),
                 securityOfficer = config.securityOfficerGroup.trim(),
+                management = config.managementGroup.trim(),
             ),
         )
     }

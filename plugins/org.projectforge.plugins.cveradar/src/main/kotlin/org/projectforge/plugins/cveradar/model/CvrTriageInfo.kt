@@ -39,7 +39,8 @@ class CvrTriageInfo(
 )
 
 /**
- * The open findings of a vulnerability in all instances (MAT-02), for the list only: counts, so everybody sees them
- * (VIS-04). [affected] are sure ones, [possible] those without an exact version or only by name (MAT-03, MAT-12).
+ * The findings of a vulnerability in all instances (MAT-02), for the list only: counts, so everybody sees them
+ * (VIS-04). Of the open ones [affected] are sure, [possible] are those without an exact version or only by name
+ * (MAT-03, MAT-12); [inProgress] and [done] are counted by status (TRI-10).
  */
-class CvrFindingCounts(val affected: Int = 0, val possible: Int = 0)
+class CvrFindingCounts(val affected: Int = 0, val possible: Int = 0, val inProgress: Int = 0, val done: Int = 0)

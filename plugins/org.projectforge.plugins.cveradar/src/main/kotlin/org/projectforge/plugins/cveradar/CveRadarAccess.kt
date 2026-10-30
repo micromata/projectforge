@@ -39,6 +39,7 @@ import org.springframework.stereotype.Service
  * - [CvrRole.SECURITY_TEAM] (ST): edits everything, sees the devices of all persons (VIS-15), moderates the chats,
  * - [CvrRole.SECURITY_OFFICER] (SO): additionally closes a case with open items (CLS-05) and sets the binding priority
  *   of cases of others,
+ * - [CvrRole.MANAGEMENT] (MG): a reader who approves the risk acceptances from priority P2 on besides the SO (MAT-05),
  * - everybody: the own devices and the confirmation of client measures (CLS-04), the team checks of the own groups.
  *
  * A group that isn't configured or doesn't exist grants nothing; the PF admin role alone grants no access (VIS-05).
@@ -77,7 +78,11 @@ class CveRadarAccess {
             roles.add(CvrRole.SECURITY_TEAM)
         }
         if (isMemberOfNamed(user, config.securityOfficerGroup)) {
-            roles.addAll(CvrRole.entries)
+            roles.addAll(CvrRole.entries.filter { it != CvrRole.MANAGEMENT })
+        }
+        if (isMemberOfNamed(user, config.managementGroup)) {
+            roles.add(CvrRole.READER)
+            roles.add(CvrRole.MANAGEMENT)
         }
         return roles
     }
@@ -87,6 +92,8 @@ class CveRadarAccess {
     fun isReader(user: PFUserDO): Boolean = CvrRole.READER in roles(user)
 
     fun isSecurityOfficer(user: PFUserDO): Boolean = CvrRole.SECURITY_OFFICER in roles(user)
+
+    fun isManagement(user: PFUserDO): Boolean = CvrRole.MANAGEMENT in roles(user)
 
     private fun isMemberOfNamed(user: PFUserDO, groupName: String): Boolean {
         val name = groupName.trim().takeIf { it.isNotEmpty() } ?: return false

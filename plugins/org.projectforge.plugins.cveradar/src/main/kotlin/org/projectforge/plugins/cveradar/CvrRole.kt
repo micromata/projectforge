@@ -23,7 +23,11 @@
 
 package org.projectforge.plugins.cveradar
 
-/** The roles of the CVE-Radar, given by PF groups ([CveRadarAccess.roles]); each one includes the weaker ones. */
+/**
+ * The roles of the CVE-Radar, given by PF groups ([CveRadarAccess.roles]); each of reader, security team and security
+ * officer includes the weaker ones. [MANAGEMENT] (MG) is a reader who additionally approves risk acceptances from P2 on
+ * (MAT-05); it is no part of the officer, so the approval takes two persons.
+ */
 enum class CvrRole {
-    READER, SECURITY_TEAM, SECURITY_OFFICER
+    READER, SECURITY_TEAM, SECURITY_OFFICER, MANAGEMENT
 }

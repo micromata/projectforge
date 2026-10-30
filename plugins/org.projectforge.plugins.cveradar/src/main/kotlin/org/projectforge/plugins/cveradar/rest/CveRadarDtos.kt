@@ -127,7 +127,7 @@ class MyView(
     val groups: RoleGroups,
 )
 
-class RoleGroups(val read: String, val write: String, val securityOfficer: String)
+class RoleGroups(val read: String, val write: String, val securityOfficer: String, val management: String = "")
 
 class CloseRequest(var reason: String? = null)
 

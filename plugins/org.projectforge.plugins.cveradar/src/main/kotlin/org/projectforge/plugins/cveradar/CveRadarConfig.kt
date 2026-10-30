@@ -52,6 +52,9 @@ open class CveRadarConfig {
     /** Name of the PF group of the security officers (CLS-05), empty: nobody closes a case with open items. */
     var securityOfficerGroup: String = ""
 
+    /** Name of the PF group of the management (role [CvrRole.MANAGEMENT], MAT-05); empty: nobody. */
+    var managementGroup: String = ""
+
     var graylog = Graylog()
 
     var nvd = Nvd()

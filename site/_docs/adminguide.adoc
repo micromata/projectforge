@@ -1762,7 +1762,13 @@ with their persons, moderates the discussions.
 
 |Security officers
 |`securityOfficerGroup`
-|Additionally set the binding priority of cases of others and close a case with open items (with a reason).
+|Additionally set the binding priority of cases of others, close a case with open items (with a reason) and approve the
+risk acceptance of a finding.
+
+|Management
+|`managementGroup`
+|Reads like the readers and approves the risk acceptance of a finding from priority P2 on besides the security officer
+(two persons).
 
 |everybody
 |
@@ -1795,6 +1801,7 @@ projectforge.plugin.cveradar.deviceRetentionDays=365
 projectforge.plugin.cveradar.readGroup=cve-read
 projectforge.plugin.cveradar.writeGroup=cve-read-write
 projectforge.plugin.cveradar.securityOfficerGroup=security-officers
+projectforge.plugin.cveradar.managementGroup=management
 ----
 
 The outdated devices are deleted by the job of the connector (see <<cve_radar_jobs>>).

@@ -562,7 +562,8 @@ class CvrInventoryService {
     /** The inventory as one user sees it. */
     private inner class View(val user: PFUserDO, val model: Model) {
         val officer = access.isSecurityOfficer(user)
-        private val team = access.isSecurityTeam(user)
+        // The management reads internal systems like the security team (VIS-02); it writes nothing here.
+        private val team = access.isSecurityTeam(user) || access.isManagement(user)
 
         fun area(id: Long): CvrAreaDO = model.areas[id] ?: throw UserException(ERROR_NOT_FOUND)
 
