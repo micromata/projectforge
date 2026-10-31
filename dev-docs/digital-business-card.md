@@ -118,7 +118,7 @@ from the request; state changes only with POST/PUT/DELETE. A plain REST controll
    with address suggestion, field checkboxes, live QR preview, vCard download). Reached from the user menu
    (`MenuItemDefId.MY_BUSINESS_CARDS`, added in `MenuRest` only, not in the main menu) and a button of the address list.
 6. Done: `PassKitService`, `WalletConfiguration` (`wallet.*`), `GET /rs/myBusinessCards/pkpass`, Wallet button in the tile.
-7. Done: admin guide EN and DE (certificate, photo url and its limit). Open: extend `HOWTO-TEST-GATEWAY.md`, `limit_req` for
+7. Done: admin guide EN and DE (certificate, photo url and its limit). Open: `limit_req` for
    `/rsPublic/contactImage/` in the nginx example. Done: changelog entries (`changelog/unreleased/20261029-*`), i18n.
 8. Later: re-evaluate Google Wallet (Google Cloud account, signed JWT "Save to Wallet" links).
 
