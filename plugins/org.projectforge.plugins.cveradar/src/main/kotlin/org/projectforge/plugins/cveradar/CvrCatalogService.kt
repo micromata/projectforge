@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.cveradar
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -38,6 +39,8 @@ import org.projectforge.plugins.cveradar.rest.CatalogRow
 import org.projectforge.plugins.cveradar.rest.CatalogTree
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+
+private val log = KotlinLogging.logger {}
 
 /**
  * The technology catalogue (INV-28): ecosystems, products/frameworks and libraries as a graph shown as a tree. Everybody
@@ -60,6 +63,9 @@ class CvrCatalogService {
 
     @Autowired
     private lateinit var technologyDao: CvrTechnologyDao
+
+    @Autowired
+    private lateinit var matchingService: CvrMatchingService
 
     /** The catalogue as flat rows in tree order: roots first, ecosystems before the rest, then by name. */
     fun tree(user: PFUserDO): CatalogTree {
@@ -99,21 +105,35 @@ class CvrCatalogService {
         id
     }
 
-    fun update(user: PFUserDO, id: Long, request: CatalogNodeRequest) = persistenceService.runInTransaction {
-        access.checkSecurityTeam(user)
-        val model = load()
-        val stored = nodeDao.find(id, checkAccess = false)?.takeIf { !it.deleted } ?: throw UserException(ERROR_NOT_FOUND)
-        val parents = checkedParents(request, model, id)
-        apply(stored, request, model)
-        nodeDao.update(stored, checkAccess = false)
-        syncEdges(stored, parents, model.edgesOfChild(id))
+    fun update(user: PFUserDO, id: Long, request: CatalogNodeRequest) {
+        val componentIds = persistenceService.runInTransaction {
+            access.checkSecurityTeam(user)
+            val model = load()
+            val stored = nodeDao.find(id, checkAccess = false)?.takeIf { !it.deleted } ?: throw UserException(ERROR_NOT_FOUND)
+            val parents = checkedParents(request, model, id)
+            val cpe = Pair(stored.cpeVendor, stored.cpeProduct)
+            apply(stored, request, model)
+            nodeDao.update(stored, checkAccess = false)
+            syncEdges(stored, parents, model.edgesOfChild(id))
+            // The CPE of the node is a key of the matching of its technologies.
+            if (cpe == Pair(stored.cpeVendor, stored.cpeProduct)) emptySet() else componentsOf(model, id)
+        }
+        rematch(componentIds)
     }
 
     /**
      * Folds the node into [targetId]: the technologies of the inventory and the edges move to the target, name and
      * aliases of the node become aliases of the target, the node is deleted. An ecosystem isn't merged.
      */
-    fun merge(user: PFUserDO, id: Long, targetId: Long?) = persistenceService.runInTransaction {
+    fun merge(user: PFUserDO, id: Long, targetId: Long?) {
+        val componentIds = persistenceService.runInTransaction {
+            mergeNodes(user, id, targetId)
+        }
+        rematch(componentIds)
+    }
+
+    /** The components whose technologies moved to the target (they now match by its CPE). */
+    private fun mergeNodes(user: PFUserDO, id: Long, targetId: Long?): Set<Long> {
         access.checkSecurityTeam(user)
         val model = load()
         val source = model.nodes[id] ?: throw UserException(ERROR_NOT_FOUND)
@@ -145,6 +165,19 @@ class CvrCatalogService {
             removeEdge(edge)
         }
         nodeDao.markAsDeleted(nodeDao.find(source.id, checkAccess = false)!!, checkAccess = false)
+        return componentsOf(model, source.id!!)
+    }
+
+    private fun componentsOf(model: Model, nodeId: Long): Set<Long> =
+        model.technologies.filter { it.catalogNodeId == nodeId }.mapNotNull { it.componentId }.toSet()
+
+    /** After the transaction; a failure doesn't undo the change of the catalogue. */
+    private fun rematch(componentIds: Set<Long>) {
+        try {
+            matchingService.rematchComponents(componentIds)
+        } catch (ex: Exception) {
+            log.error(ex) { "Matching after a change of the catalogue failed: ${ex.message}" }
+        }
     }
 
     /** Only a node without children and without technologies referring to it. */

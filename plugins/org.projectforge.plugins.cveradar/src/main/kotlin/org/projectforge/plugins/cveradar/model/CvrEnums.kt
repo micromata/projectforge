@@ -121,14 +121,14 @@ enum class CvrTechnologyKind : I18nEnum {
 
 /** Where an entry of the inventory comes from (INV-16). */
 enum class CvrOrigin : I18nEnum {
-    MANUAL, SBOM, CI, LOCKFILE, BUILD_LIST, JAR_LIST;
+    MANUAL, SBOM, CI, LOCKFILE, BUILD_LIST, JAR_LIST, PACKAGE_LIST;
 
     override val i18nKey: String
         get() = "plugins.cveradar.origin.$name"
 
     companion object {
         /** The libraries read from lists (INV-26): kept apart from the technologies edited in the component dialog. */
-        val LIBRARY_LISTS = setOf(LOCKFILE, BUILD_LIST, JAR_LIST)
+        val LIBRARY_LISTS = setOf(SBOM, LOCKFILE, BUILD_LIST, JAR_LIST, PACKAGE_LIST)
     }
 }
 
@@ -146,4 +146,20 @@ enum class CvrCatalogOrigin : I18nEnum {
 
     override val i18nKey: String
         get() = "plugins.cveradar.catalogOrigin.$name"
+}
+
+/** How sure a finding is (MAT-03, MAT-12): a derived or name-based match, or one without an exact version, is only possible. */
+enum class CvrFindingCertainty : I18nEnum {
+    AFFECTED, POSSIBLE;
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.finding.certainty.$name"
+}
+
+/** The status of a finding (MAT-06): new, or discarded as a false positive. */
+enum class CvrFindingStatus : I18nEnum {
+    NEW, DISCARDED;
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.finding.status.$name"
 }

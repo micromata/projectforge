@@ -73,7 +73,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
                 missedInCache.add(it)
             }
         }
-        log.info { "Got ${result.size} addresses from cache and must load ${missedInCache.size} from data base..." }
+        log.debug { "Got ${result.size} addresses from cache and must load ${missedInCache.size} from data base..." }
         if (missedInCache.size > 0) {
             addressDao.select(missedInCache, checkAccess = false)?.forEach {
                 val image = addressImageCache.getImage(it.id!!)

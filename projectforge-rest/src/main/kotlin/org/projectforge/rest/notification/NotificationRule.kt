@@ -63,6 +63,9 @@ class NotificationRule(
     var passwordMaxAgeDays: Int = 90,
     var kost2MissingMonths: Int = 2,
     var dueWorkingDays: Int = 2,
+    var cvrMinSeverity: String = "HIGH",
+    var cvrIncludePossible: Boolean = false,
+    var cvrIncludeUnscored: Boolean = true,
     var recipientGroups: List<Group> = emptyList(),
     var recipientUsers: List<User> = emptyList(),
     var allEmployees: Boolean = false,
@@ -105,6 +108,9 @@ class NotificationRule(
         passwordMaxAgeDays = params.passwordMaxAgeDays
         kost2MissingMonths = params.kost2MissingMonths
         dueWorkingDays = params.dueWorkingDays
+        cvrMinSeverity = params.cvrMinSeverity
+        cvrIncludePossible = params.cvrIncludePossible
+        cvrIncludeUnscored = params.cvrIncludeUnscored
         linkMode = params.linkMode
         linkMenuItem = params.linkMenuItem
         val recipients = src.readRecipients()
@@ -124,7 +130,8 @@ class NotificationRule(
         dest.params = JsonUtils.toJson(
             NotificationParams(
                 referredMonth, vacationExpiry, daysBeforeExpiry, passwordMaxAgeDays, kost2MissingMonths, dueWorkingDays,
-                linkMode, linkMenuItem = linkMenuItem?.takeIf { linkMode == NotificationParams.LinkMode.MENU_ITEM && it.isNotBlank() },
+                cvrMinSeverity = cvrMinSeverity, cvrIncludePossible = cvrIncludePossible,
+                cvrIncludeUnscored = cvrIncludeUnscored, linkMode = linkMode, linkMenuItem = linkMenuItem?.takeIf { linkMode == NotificationParams.LinkMode.MENU_ITEM && it.isNotBlank() },
             )
         )
         dest.recipients = JsonUtils.toJson(

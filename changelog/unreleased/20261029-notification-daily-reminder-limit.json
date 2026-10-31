@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Notification rules: a recipient gets at most one mail and one SMS per rule and day, even if a rule created several notifications. The next day, it reminds again. Tests are not limited.",
-  "de": "Benachrichtigungsregeln: Ein Empfänger erhält pro Regel und Tag höchstens eine E-Mail und eine SMS, auch wenn eine Regel mehrere Benachrichtigungen erzeugt hat. Am nächsten Tag wird erneut erinnert. Tests sind nicht begrenzt."
-}

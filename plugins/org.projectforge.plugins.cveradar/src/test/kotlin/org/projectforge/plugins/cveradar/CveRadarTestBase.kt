@@ -33,6 +33,8 @@ import org.projectforge.plugins.cveradar.model.CvrAreaDO
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrCatalogEdgeDO
 import org.projectforge.plugins.cveradar.model.CvrCatalogNodeDO
+import org.projectforge.plugins.cveradar.model.CvrCpeMatchDO
+import org.projectforge.plugins.cveradar.model.CvrFindingDO
 import org.projectforge.plugins.cveradar.model.CvrComponentDO
 import org.projectforge.plugins.cveradar.model.CvrConfirmationDO
 import org.projectforge.plugins.cveradar.model.CvrDeviceDO
@@ -67,6 +69,7 @@ abstract class CveRadarTestBase : AbstractTestBase() {
             CvrVulnerabilityDO::class.java, CvrImportStateDO::class.java, CvrRatingDO::class.java,
             CvrAreaDO::class.java, CvrSystemDO::class.java, CvrInstanceDO::class.java, CvrComponentDO::class.java,
             CvrTechnologyDO::class.java, CvrCatalogNodeDO::class.java, CvrCatalogEdgeDO::class.java,
+            CvrCpeMatchDO::class.java, CvrFindingDO::class.java,
         ).forEach { MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(it.canonicalName) }
     }
 

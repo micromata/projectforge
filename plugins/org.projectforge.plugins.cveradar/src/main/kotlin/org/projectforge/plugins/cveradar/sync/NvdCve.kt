@@ -49,6 +49,8 @@ data class NvdCve(
     val kevAdded: Instant? = null,
     /** The `cve` object of the NVD as JSON. */
     val rawJson: String,
+    /** The vulnerable CPE entries of its configurations (MAT-01). */
+    val cpes: List<NvdCpeEntry> = emptyList(),
 ) {
     /**
      * The rating counting for the threshold and the lists (IMP-10): the higher one of the NVD, without one the higher

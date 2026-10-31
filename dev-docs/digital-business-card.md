@@ -1,6 +1,6 @@
 # Digital business cards (QR code, vCard, Apple Wallet)
 
-Status: in implementation (everything but the Wallet pass done).
+Status: implemented; open: manual test of the pass on an iPhone.
 
 ## Goal
 
@@ -117,8 +117,8 @@ from the request; state changes only with POST/PUT/DELETE. A plain REST controll
 5. Done: `BusinessCardRest` (`/rs/myBusinessCards`) and the next page `myBusinessCards` (list with QR codes, editor
    with address suggestion, field checkboxes, live QR preview, vCard download). Reached from the user menu
    (`MenuItemDefId.MY_BUSINESS_CARDS`, added in `MenuRest` only, not in the main menu) and a button of the address list.
-6. `PassKitService`, configuration, Wallet button.
-7. Docs: admin guide EN and DE (certificate, photo url and its limit), extend `HOWTO-TEST-GATEWAY.md`, `limit_req` for
+6. Done: `PassKitService`, `WalletConfiguration` (`wallet.*`), `GET /rs/myBusinessCards/pkpass`, Wallet button in the tile.
+7. Done: admin guide EN and DE (certificate, photo url and its limit). Open: `limit_req` for
    `/rsPublic/contactImage/` in the nginx example. Done: changelog entries (`changelog/unreleased/20261029-*`), i18n.
 8. Later: re-evaluate Google Wallet (Google Cloud account, signed JWT "Save to Wallet" links).
 

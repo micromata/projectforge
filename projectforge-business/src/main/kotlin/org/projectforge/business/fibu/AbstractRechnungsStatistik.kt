@@ -104,6 +104,10 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
             // list showing only one of them doesn't show its amount either.
             return
         }
+        if (rechnungInfo.isPlanned) {
+            // Not issued yet, so no revenue (same as RechnungDO.isValid).
+            return
+        }
         // Get system default currency
         val systemCurrency = configurationService.currency ?: "EUR"
         val rechnungCurrency = rechnungInfo.currency ?: systemCurrency

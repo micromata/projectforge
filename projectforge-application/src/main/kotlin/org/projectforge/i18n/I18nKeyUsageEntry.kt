@@ -105,18 +105,22 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
         // No such classes.
         return null
       }
-      return try {
-        val clazz = Class.forName(className)
-        classCacheMap[file] = clazz
-        clazz
-      } catch (ex: Throwable) {
-        if (showError) {
-          val msg = "*** Class '$className' not found (file=${file.absolutePath}): ${ex.message}"
-          log.warn { msg }
-          println(msg)
+      // A file with top-level declarations only (no class named like the file) is compiled to <Name>Kt.
+      val candidates = if (file.extension == "kt") listOf(className, "${className}Kt") else listOf(className)
+      for (candidate in candidates) {
+        try {
+          val clazz = Class.forName(candidate)
+          classCacheMap[file] = clazz
+          return clazz
+        } catch (ex: Throwable) {
+          // Try next candidate.
         }
-        null
       }
+      // Files declaring several classes (or none) have no class of their own: the caller records the file instead.
+      if (showError) {
+        log.debug { "No class found for file ${file.absolutePath} (tried ${candidates.joinToString()}), using the file." }
+      }
+      return null
     }
   }
 }

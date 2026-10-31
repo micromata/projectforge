@@ -274,7 +274,7 @@ open class OrderEntityRest : // open: proxied by Spring.
    * affects the case of an explicit request only.
    *
    * A failing notification must never fail the save: this hook runs after the order has been committed
-   * (`AbstractPagesRestUtils.saveOrUpdate`), so an exception escaping here would answer a written order
+   * (`EntityRestUtils.saveOrUpdate`), so an exception escaping here would answer a written order
    * with HTTP 406 and the client would show an error for a change that did happen. It must not stay
    * silent either — the user asked for the mail, and a save reported as successful while the mail was
    * never sent is the worst of the two. Hence it is remembered here and attached to the response as a
@@ -311,7 +311,7 @@ open class OrderEntityRest : // open: proxied by Spring.
    *
    * Here rather than in [onAfterSaveOrUpdate], because that hook has no response to write to yet: the
    * action is built afterwards, by the [onAfterSave]/[onAfterUpdate] this method backs (see
-   * `AbstractPagesRestUtils.saveOrUpdate`). The two run in the same request on the same thread, which is
+   * `EntityRestUtils.saveOrUpdate`). The two run in the same request on the same thread, which is
    * what the thread local hands the message over by — and why it is cleared here, so a message left
    * behind by an earlier request of the same worker thread can't surface on an unrelated save.
    */

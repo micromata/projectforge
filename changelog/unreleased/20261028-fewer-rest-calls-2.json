@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Tables no longer store their unchanged column layout again on every page view.",
-  "de": "Tabellen speichern ihr unverändertes Spaltenlayout nicht mehr bei jedem Seitenaufruf erneut."
-}

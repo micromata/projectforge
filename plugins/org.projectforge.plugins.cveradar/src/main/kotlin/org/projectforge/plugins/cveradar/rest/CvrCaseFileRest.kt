@@ -29,6 +29,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.cveradar.CveRadarAccess
 import org.projectforge.plugins.cveradar.CveRadarService
+import org.projectforge.plugins.cveradar.CvrFindingService
 import org.projectforge.plugins.cveradar.CvrCaseFileService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
@@ -60,6 +61,9 @@ class CvrCaseFileRest {
     private lateinit var fileService: CvrCaseFileService
 
     @Autowired
+    private lateinit var findingService: CvrFindingService
+
+    @Autowired
     private lateinit var service: CveRadarService
 
     /** Called by Spring before every endpoint of this controller. */
@@ -70,6 +74,24 @@ class CvrCaseFileRest {
     @GetMapping("vulnerability/{id}")
     fun vulnerability(@PathVariable id: Long): CaseFile {
         return fileService.viewVulnerability(ThreadLocalUserContext.requiredLoggedInUser, id)
+    }
+
+    @AccessChecked("CvrFindingService.findings: readers; findings of instances the user may not see are counted only (VIS-04)")
+    @GetMapping("vulnerability/{id}/findings")
+    fun findings(@PathVariable id: Long): FindingList {
+        return findingService.findings(ThreadLocalUserContext.requiredLoggedInUser, id)
+    }
+
+    @AccessChecked("CvrFindingService.discard: security team, in instances it may see")
+    @PostMapping("finding/{id}/discard")
+    fun discardFinding(@PathVariable id: Long, @RequestBody request: DiscardRequest): FindingList {
+        return findingService.discard(ThreadLocalUserContext.requiredLoggedInUser, id, request.reason)
+    }
+
+    @AccessChecked("CvrFindingService.restore: security team, in instances it may see")
+    @PostMapping("finding/{id}/restore")
+    fun restoreFinding(@PathVariable id: Long): FindingList {
+        return findingService.restore(ThreadLocalUserContext.requiredLoggedInUser, id)
     }
 
     @AccessChecked("CveRadarService.getCase (reader) in CvrCaseFileService.viewCase")

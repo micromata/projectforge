@@ -176,3 +176,32 @@ class TeamCheckFile(
     val answeredBy: String?,
     val canAnswer: Boolean,
 )
+
+// The findings of a vulnerability (MAT-02), mirrored by projectforge-next/lib/rs/cve-radar-file.ts.
+
+/** A finding in an instance the user may see (VIS-02). */
+class FindingView(
+    val id: Long,
+    val certainty: org.projectforge.plugins.cveradar.model.CvrFindingCertainty?,
+    val status: org.projectforge.plugins.cveradar.model.CvrFindingStatus?,
+    /** What matched, e.g. the CPE with its version range. */
+    val matched: String?,
+    val discardReason: String?,
+    val area: String?,
+    val system: String,
+    /** The code of the instance, null for the default instance of the system. */
+    val instance: String?,
+    val component: String?,
+    /** The technology that matched, with its version. */
+    val technology: String?,
+)
+
+/** The findings of a vulnerability; those in instances the user may not see are only counted (VIS-04). */
+class FindingList(
+    val findings: List<FindingView>,
+    val hiddenCount: Int,
+    /** Whether the user may discard and restore (the security team). */
+    val canChange: Boolean,
+)
+
+class DiscardRequest(var reason: String? = null)

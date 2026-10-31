@@ -36,7 +36,7 @@ package org.projectforge.rest.dto
  * what a list row gets: filling the flags costs DAO calls per row and no list offers a save button.
  *
  * A hint for the UI in every case, never an authorization - the DAO stays the authority and answers a
- * write it refuses with HTTP 406 (`AbstractPagesRestUtils.handleException`).
+ * write it refuses with HTTP 406 (`EntityRestUtils.handleException`).
  *
  * Per-*field* rights are not this: they are specific to one entity and stay in its `transformFromDB`
  * (see [Auftrag.vollstaendigFakturiertWriteAccess], [Task.kost2AndBookingStatusWriteAccess]).

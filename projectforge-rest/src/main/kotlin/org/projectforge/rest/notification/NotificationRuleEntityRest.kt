@@ -216,6 +216,9 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
                 validationErrors += ValidationError(translate("notification.rule.error.recipientsRequired"), fieldId = "recipientGroups")
             }
         }
+        if (dto.ruleType == NotificationRuleType.CVERADAR_FINDINGS && dto.cvrMinSeverity !in CVR_SEVERITIES) {
+            validationErrors += ValidationError(translate("notification.rule.error.cvrMinSeverity"), fieldId = "cvrMinSeverity")
+        }
     }
 
     /** A rule of time sheets without cost 2 unit notifies nobody, as long as these aren't reported at all. */
@@ -423,5 +426,8 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         private const val MAX_PREVIEW_RECIPIENTS = 50
         private const val MAX_LOG_ENTRIES = 500
         private const val MAX_SMS_TEXT_LENGTH = 1000
+
+        /** The CVSS severities a rule of the CVE radar may start from. */
+        private val CVR_SEVERITIES = setOf("LOW", "MEDIUM", "HIGH", "CRITICAL")
     }
 }
