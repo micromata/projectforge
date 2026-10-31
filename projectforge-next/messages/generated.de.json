@@ -4515,6 +4515,9 @@
         "drop": "Dateien hier ablegen oder klicken, um sie zu wählen",
         "entries": "{arg0} Einträge",
         "error": {
+          "archiveInvalid": "Die Datei {arg0} ist kein lesbares Zip.",
+          "archiveTooLarge": "{arg0} ist größer als {arg1} MB.",
+          "archiveTooManyFiles": "Das Zip {arg0} enthält zu viele Dateien; aus den Zips eines Uploads werden höchstens {arg1} Listen gelesen.",
           "tooLarge": "Die Datei {arg0} ist größer als {arg1} MB.",
           "tooManyEntries": "Die Dateien nennen mehr als {arg0} Bibliotheken.",
           "tooManyFiles": "Höchstens {arg0} Dateien auf einmal."
@@ -4537,14 +4540,16 @@
           "YARN": "yarn.lock",
           "unknown": "nicht erkannt"
         },
+        "guide": "Benutzerhandbuch: Bibliotheken einer Komponente, ein Script für ein Zip",
         "hintGradle": "Den Befehl für das Modul aufrufen, das ausgeliefert wird, und die Datei hochladen. MODUL durch dessen Namen ersetzen (./gradlew projects listet sie auf; bei einem Projekt mit nur einem Modul genügt ./gradlew dependencies ...). Das Hauptprojekt eines Builds mit mehreren Modulen hat keinen eigenen runtimeClasspath. Die Module, von denen das ausgelieferte abhängt, stehen in der Ausgabe schon mit.",
         "hintJar": "Ohne Build: die Dateinamen des ausgelieferten Jars. Die groupId steht nicht im Dateinamen; sie kommt aus dem Technologiekatalog, wenn der Name dort eindeutig ist, sonst bleibt sie offen.",
         "hintLockfiles": "Die Lockfile des Projekts hochladen, so wie sie im Repository liegt: yarn.lock (klassisch und Berry), pnpm-lock.yaml (ohne devDependencies), composer.lock von PHP (ohne packages-dev), Cargo.lock von Rust (nur Crates aus der Registry, nicht die eigenen), go.mod von Go oder für Python eine requirements.txt mit festen Versionen (name==1.2.3, auch mit --hash). Ohne feste Versionen den Befehl in der Umgebung der Anwendung aufrufen. Noch nicht gelesen werden poetry.lock und Pipfile.lock.",
         "hintMaven": "Den Befehl aufrufen und die Datei hochladen. Alle Module landen in einer Datei, Test-Abhängigkeiten fehlen.",
         "hintNode": "Die package-lock.json des Projekts hochladen. Gelesen werden alle installierten Pakete, auch die transitiven; Pakete nur für die Entwicklung (dev) bleiben draußen.",
-        "hintOs": "Pakete des Betriebssystems eines Hosts oder Containers: dpkg-query, apk info -v oder rpm -qa. Der Abgleich ist hier ungenau, weil Distributionen Schwachstellen in ihren Paketen beheben, ohne die Version zu ändern; besser ist eine SBOM von syft mit Angabe der Distribution.",
+        "hintOs": "Pakete des Betriebssystems eines Container-Images (der Befehl, z. B. für eclipse-temurin, Ubuntu) oder eines Hosts (derselbe ohne docker run). Native Bibliotheken wie brotli (libbrotli1), zlib oder OpenSSL zeigen sich nur hier, nicht in den Bibliotheken des Builds. Alpine: apk info -v, Red Hat: rpm -qa, ohne Paketmanager (distroless): eine SBOM von syft. Der Abgleich ist hier ungenau, weil Distributionen Schwachstellen in ihren Paketen beheben, ohne die Version zu ändern.",
         "hintSbom": "Der beste Weg: eine CycloneDX- oder SPDX-Datei als JSON hochladen. Sie erzeugen Build-Plugins (cyclonedx-gradle-plugin, cyclonedx-maven-plugin, cyclonedx-npm), syft oder trivy für ein Image oder ein Verzeichnis und /actuator/sbom einer Spring-Boot-Anwendung. Alle Ökosysteme und Pakete des Betriebssystems werden über ihre Package-URL gelesen.",
-        "intro": "Die Bibliotheken kommen aus einer SBOM oder den Build-Werkzeugen des Projekts, auch die transitiven. Mehrere Dateien können auf einmal hochgeladen werden; sie werden zusammengeführt. Gelesen werden nur Namen und Versionen, nichts wird ausgeführt und die Dateien werden nicht gespeichert.",
+        "hintZip": "Alle Listen der Komponente in einem Zip: Ein Script im Projekt sammelt sie (Lockfiles des Frontends, SBOM oder Ausgabe von Maven/Gradle, Paketlisten der Images) und packt sie, etwa in der Build-Pipeline. Gelesen werden nur Dateien mit den Endungen .json, .lock, .lockfile, .yaml, .yml, .txt oder .mod; Dateien und Verzeichnisse mit einem Punkt am Anfang (.npmrc, .env) und alle anderen bleiben ungelesen. Ein Beispiel-Script steht im Benutzerhandbuch (Link unten).",
+        "intro": "Die Bibliotheken kommen aus einer SBOM oder den Build-Werkzeugen des Projekts, auch die transitiven. Mehrere Dateien oder ein Zip können auf einmal hochgeladen werden; sie werden zusammengeführt. Gelesen werden nur Namen und Versionen, nichts wird ausgeführt und die Dateien werden nicht gespeichert.",
         "more": "… und {arg0} weitere",
         "noMatch": "Nichts passt.",
         "notRecognised": "Nicht erkannt, ignoriert: {arg0}",
@@ -4564,7 +4569,8 @@
           "MAVEN": "Maven",
           "NODE": "Node (package-lock.json)",
           "OS": "Pakete des Betriebssystems (Debian, Alpine, RPM)",
-          "SBOM": "SBOM (CycloneDX, SPDX) – empfohlen"
+          "SBOM": "SBOM (CycloneDX, SPDX) – empfohlen",
+          "ZIP": "Alles in einem Zip (Script im Projekt)"
         },
         "sourceLabel": "Herkunft der Liste",
         "summary": "{arg0} Bibliotheken aus Listen: {arg1}",

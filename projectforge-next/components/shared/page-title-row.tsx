@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { ExperimentalBadge } from "@/components/shared/experimental-badge";
 import { useDocumentTitle } from "@/hooks/use-document-title";
+import { cn } from "@/lib/utils";
 
 export interface PageTitleRowProps {
   /** The menu parent above the title, e.g. "Structure tree" — where the page sits in the main menu.
@@ -21,6 +22,9 @@ export interface PageTitleRowProps {
   titleAddon?: ReactNode;
   /** The page's own actions. */
   children?: ReactNode;
+  /** Too narrow for title, center and actions in one line: the actions move to a line of their own instead of
+      being covered by the center, which keeps the width of its content (tabs that don't shrink). */
+  wrap?: boolean;
 }
 
 /**
@@ -38,10 +42,16 @@ export function PageTitleRow({
   center,
   titleAddon,
   children,
+  wrap = false,
 }: PageTitleRowProps) {
   useDocumentTitle(title);
   return (
-    <div className="flex items-center gap-3 px-4 pt-3">
+    <div
+      className={cn(
+        "flex items-center gap-3 px-4 pt-3",
+        wrap && "flex-wrap gap-y-2"
+      )}
+    >
       <div className="shrink-0">
         {category && (
           // Not printed: where the page sits in the menu says nothing on paper.
@@ -61,11 +71,18 @@ export function PageTitleRow({
       {experimental && <ExperimentalBadge label={experimentalLabel} />}
       {/* The flexible middle: a header control if the page gives one, otherwise a plain spacer that
           pushes the actions to the right edge. `min-w-0` lets an input here shrink instead of overflow. */}
-      <div className="min-w-0 flex-1">{center}</div>
+      <div className={cn("min-w-0", wrap ? "flex-[1_1_auto]" : "flex-1")}>
+        {center}
+      </div>
       {/* `self-start`: the actions line up with the top of the two-line title block rather than
           with its middle. Their own row keeps them centered among themselves. Not printed: nothing on
           paper can be clicked. */}
-      <div className="flex items-center gap-3 self-start print:hidden">
+      <div
+        className={cn(
+          "flex items-center gap-3 self-start print:hidden",
+          wrap && "ml-auto"
+        )}
+      >
         {children}
       </div>
     </div>

@@ -67,7 +67,7 @@ class ParsedLibraryFile(val name: String, val format: LibraryFormat?, val entrie
 /**
  * Reads the lists a component's libraries come from (INV-14, INV-26): SBOMs (CycloneDX JSON, SPDX JSON), the
  * `package-lock.json` of npm, the lockfiles of yarn and pnpm, the output of `mvn dependency:list` (or `dependency:tree`)
- * and of `gradle dependencies`.
+ * and of `gradle dependencies`, also from a zip ([LibraryArchive]).
  * The format is told from the content.
  * Nothing is executed or resolved; the files are untrusted (SEC-05): sizes and counts are limited.
  */
@@ -96,9 +96,11 @@ object LibraryListParser {
     private val PNPM_RUNTIME = setOf("dependencies", "optionalDependencies")
     private val PURL = Regex("""^pkg:/*([A-Za-z][A-Za-z0-9.+\-]*)/(.+?)@([^?#]+)(?:\?([^#]*))?(?:#.*)?$""")
 
-    /** All files, parsed; the entries of all of them together are limited. */
+    /**
+     * All files, parsed; the entries of all of them together are limited. The number of uploaded files is checked by
+     * the caller ([MAX_FILES]), the files of a zip by [LibraryArchive].
+     */
     fun parseAll(files: List<Pair<String, String>>): List<ParsedLibraryFile> {
-        if (files.size > MAX_FILES) throw UserException(ERROR_TOO_MANY_FILES, MAX_FILES.toString())
         val parsed = files.map { (name, text) -> parse(name, text) }
         if (parsed.sumOf { it.entries.size } > MAX_ENTRIES) throw UserException(ERROR_TOO_MANY_ENTRIES, MAX_ENTRIES.toString())
         return parsed

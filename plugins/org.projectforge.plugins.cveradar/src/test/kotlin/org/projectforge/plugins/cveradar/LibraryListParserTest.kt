@@ -154,9 +154,6 @@ class LibraryListParserTest {
         assertNull(LibraryListParser.parse("notes.txt", "hello\nworld").format)
         assertNull(LibraryListParser.parse("broken.json", "{not json").format)
         assertThrows(UserException::class.java) { LibraryListParser.parse("big.txt", "x".repeat(LibraryListParser.MAX_FILE_BYTES + 1)) }
-        assertThrows(UserException::class.java) {
-            LibraryListParser.parseAll((1..LibraryListParser.MAX_FILES + 1).map { "f$it" to "" })
-        }
         val entry = LibraryListParser.fromPurl("pkg:npm/%40angular/core@18.2.1")!!
         assertEquals(LibraryEntry("npm", "@angular", "core", "18.2.1"), entry)
         assertEquals(LibraryEntry("maven", "org.x", "y", "1.0"), LibraryListParser.fromPurl("pkg:maven/org.x/y@1.0"))

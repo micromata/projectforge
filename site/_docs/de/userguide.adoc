@@ -1482,6 +1482,73 @@ längeren Ablauffristen wird vorab über Dateien informiert, die gelöscht werde
 wird je Bereich konfiguriert.
 * *Alles herunterladen* lädt alle Dateien eines Bereichs als Zip-Archiv herunter.
 
+[[cve_radar_libraries]]
+=== CVE-Radar: Bibliotheken einer Komponente
+
+Der CVE-Radar gleicht Schwachstellen mit den Bibliotheken einer Komponente ab. Sie werden im Inventar hochgeladen
+(_Bibliotheken hochladen_ einer Komponente): eine SBOM, die Lockfiles (npm, yarn, pnpm, Composer, Cargo, Go, Python),
+die Ausgabe von Maven oder Gradle, Jar-Listen und die Paketlisten des Betriebssystems. Der Dialog nennt für jede davon
+die Datei oder den Befehl. Gelesen werden nur Namen und Versionen, nichts wird ausgeführt und die Dateien werden nicht
+gespeichert.
+
+Eine Komponente hat oft mehrere davon: die Lockfile des Frontends, die Bibliotheken des Backends, die Pakete ihrer
+Images. Am besten sammelt sie ein *Script im Projekt* (z. B. `collect-libraries.sh`) und packt sie in ein Zip, das so
+hochgeladen wird. Läuft es in der Build-Pipeline oder vor einem Release, gehören die Listen immer zur ausgelieferten
+Version, und niemand muss sie von Hand zusammensuchen. Ein Beispiel, an die Pfade des Projekts anzupassen:
+
+[source,bash]
+----
+#!/usr/bin/env bash
+# Sammelt die Listen der Bibliotheken für den CVE-Radar in libraries.zip.
+set -euo pipefail
+out="$(mktemp -d)"
+trap 'rm -rf "$out"' EXIT
+
+# Frontend: die Lockfile, so wie sie im Repository liegt.
+mkdir -p "$out/frontend"
+cp frontend/pnpm-lock.yaml "$out/frontend/"   # oder package-lock.json, yarn.lock
+
+# Backend: eine SBOM (am besten) oder die Ausgabe des Build-Werkzeugs.
+syft dir:backend -o cyclonedx-json="$out/backend-bom.json"
+# mvn -f backend dependency:list -DincludeScope=runtime -DoutputFile="$out/deps-maven.txt"
+
+# Images: die Pakete des Betriebssystems.
+for image in registry.example.org/app:1.4.2; do
+  name="$(basename "${image%%:*}")"
+  docker run --rm --entrypoint dpkg-query "$image" -W -f '${Package} ${Version}\n' > "$out/os-$name.txt"
+  # Alpine: docker run --rm --entrypoint apk "$image" info -v > "$out/os-$name.txt"
+done
+
+rm -f libraries.zip
+(cd "$out" && zip -qr - .) > libraries.zip
+----
+
+* Aus einem Zip werden nur Dateien mit den Endungen `.json`, `.lock`, `.lockfile`, `.yaml`, `.yml`, `.txt` oder
+  `.mod` gelesen, in beliebigen Verzeichnissen; das Format wird am Inhalt erkannt. Dateien und Verzeichnisse mit
+  einem Punkt am Anfang (`.npmrc`, `.env`), `gradle.properties`, `settings.xml` und alle anderen Dateien bleiben
+  ungelesen, ein Zip im Zip wird nicht entpackt.
+* Grenzen: 10 MB je Zip, 5 MB je Datei, 50 MB und 100 Listen aus den Zips eines Uploads.
+* Die Vorschau zeigt jede Datei des Zips mit ihrem Format und der Zahl der Bibliotheken; eine nicht erkannte Datei
+  ist markiert, so fällt ein Fehler des Scripts auf, bevor etwas übernommen wird.
+* Mit _Früher hochgeladene Bibliotheken ersetzen_ werden die Bibliotheken entfernt, die im Upload fehlen: immer das vollständige Zip der Komponente
+  hochladen.
+
+*Pakete eines Container-Images.* Java-Images bringen oft native Bibliotheken des Betriebssystems mit, z. B. brotli
+(`libbrotli1`), zlib oder OpenSSL; deren Schwachstellen zeigen sich nur in der Paketliste des Images, nicht in den
+Bibliotheken des Builds. Für `eclipse-temurin` (Ubuntu) und andere Images auf Basis von Debian oder Ubuntu:
+
+[source,bash]
+----
+docker run --rm --entrypoint dpkg-query eclipse-temurin:21-jre -W -f '${Package} ${Version}\n' > os-temurin.txt
+grep brotli os-temurin.txt   # z. B. libbrotli1 1.1.0-2build2
+----
+
+Die Alpine-Variante (`eclipse-temurin:21-jre-alpine`) listet mit `apk info -v`, Images auf Basis von Red Hat (UBI)
+mit `rpm -qa`. Images ohne Paketmanager (distroless, scratch) brauchen eine SBOM des Images:
+`syft eclipse-temurin:21-jre -o cyclonedx-json > os-temurin.json`. Die Version eines Distributionspakets ist nur ein
+Hinweis: Die Distributionen portieren Fixes zurück, ohne die Version des Originals zu ändern; ob die installierte
+Version betroffen ist, sagt der Security-Tracker der Distribution (z. B. von Ubuntu oder Debian).
+
 [[further_features]]
 === Weitere Funktionen
 

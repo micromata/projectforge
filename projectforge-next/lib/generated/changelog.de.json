@@ -9,7 +9,7 @@
       "type" : "added",
       "items" : [ "Digitale Visitenkarten: Karte zum Apple Wallet hinzufügen (braucht ein Pass-Type-ID-Zertifikat, siehe Administrationshandbuch).", {
         "title" : "CVE-Radar: weitere Wege, die Bibliotheken einer Komponente hochzuladen",
-        "items" : [ "Die Lockfile von pnpm (pnpm-lock.yaml, Versionen 5, 6 und 9) wird gelesen, ohne die Entwicklungsabhängigkeiten." ]
+        "items" : [ "Alle Listen einer Komponente lassen sich in einem Zip hochladen, gesammelt von einem Script im Projekt (das Benutzerhandbuch hat ein Beispiel): Lockfiles, SBOMs, Ausgabe der Build-Werkzeuge und Paketlisten der Images. Gelesen werden nur die Dateien solcher Listen; Dateien, die Tokens enthalten können (.npmrc, .env, gradle.properties, settings.xml), bleiben ungelesen. Die Vorschau zeigt jede Datei des Zips mit ihrem Format.", "Die Lockfile von pnpm (pnpm-lock.yaml, Versionen 5, 6 und 9) wird gelesen, ohne die Entwicklungsabhängigkeiten.", "Der Upload-Dialog zeigt, wie sich die Pakete eines Container-Images auflisten lassen (z. B. eclipse-temurin: dpkg-query, apk, rpm oder eine SBOM von syft), in denen native Bibliotheken wie brotli, zlib oder OpenSSL auftauchen, und verlinkt das Kapitel im Benutzerhandbuch." ]
       } ]
     } ]
   },

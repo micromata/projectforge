@@ -9,7 +9,7 @@
       "type" : "added",
       "items" : [ "Digital business cards: add a card to the Apple Wallet (needs a Pass Type ID certificate, see the admin guide).", {
         "title" : "CVE-Radar: more ways to upload the libraries of a component",
-        "items" : [ "The lockfile of pnpm (pnpm-lock.yaml, versions 5, 6 and 9) is read, without the development dependencies." ]
+        "items" : [ "All lists of a component can be uploaded in one zip, collected by a script of the project (the user guide has an example): lockfiles, SBOMs, output of the build tools and package lists of the images. Only the files of such lists are read; files that may hold tokens (.npmrc, .env, gradle.properties, settings.xml) are skipped unread. The preview shows every file of the zip with its format.", "The lockfile of pnpm (pnpm-lock.yaml, versions 5, 6 and 9) is read, without the development dependencies.", "The upload dialog shows how to list the packages of a container image (e.g. eclipse-temurin: dpkg-query, apk, rpm or an SBOM from syft), where native libraries such as brotli, zlib or OpenSSL show up, and links to the chapter of the user guide." ]
       } ]
     } ]
   },

@@ -1447,6 +1447,71 @@ be notified in advance of files being deleted (for longer expiry periods). The m
 configured per area.
 * *Download all* downloads all files of an area as zip archive.
 
+[[cve_radar_libraries]]
+=== CVE-Radar: libraries of a component
+
+The CVE-Radar matches vulnerabilities against the libraries of a component. They are uploaded in the inventory
+(_Upload libraries_ of a component): an SBOM, the lockfiles (npm, yarn, pnpm, Composer, Cargo, Go, Python), the output
+of Maven or Gradle, jar listings and the package lists of the operating system. The dialog shows which file or command
+to take for each of them. Only names and versions are read, nothing is executed, and the files are not stored.
+
+A component often has several of them: the lockfile of the frontend, the libraries of the backend, the packages of
+its images. These are best collected by a *script in the project* (e.g. `collect-libraries.sh`), which packs them
+into one zip; the zip is uploaded as it is. Run it in the build pipeline or before a release, so the lists always
+belong to the delivered version and nobody collects them by hand. An example, to be adapted to the paths of the
+project:
+
+[source,bash]
+----
+#!/usr/bin/env bash
+# Collects the lists of the libraries for the CVE-Radar into libraries.zip.
+set -euo pipefail
+out="$(mktemp -d)"
+trap 'rm -rf "$out"' EXIT
+
+# Frontend: the lockfile as it is in the repository.
+mkdir -p "$out/frontend"
+cp frontend/pnpm-lock.yaml "$out/frontend/"   # or package-lock.json, yarn.lock
+
+# Backend: an SBOM (best) or the output of the build tool.
+syft dir:backend -o cyclonedx-json="$out/backend-bom.json"
+# mvn -f backend dependency:list -DincludeScope=runtime -DoutputFile="$out/deps-maven.txt"
+
+# Images: the packages of the operating system.
+for image in registry.example.org/app:1.4.2; do
+  name="$(basename "${image%%:*}")"
+  docker run --rm --entrypoint dpkg-query "$image" -W -f '${Package} ${Version}\n' > "$out/os-$name.txt"
+  # Alpine: docker run --rm --entrypoint apk "$image" info -v > "$out/os-$name.txt"
+done
+
+rm -f libraries.zip
+(cd "$out" && zip -qr - .) > libraries.zip
+----
+
+* From a zip only files ending in `.json`, `.lock`, `.lockfile`, `.yaml`, `.yml`, `.txt` or `.mod` are read, in
+  any directory; the format is told from the content. Files and directories starting with a dot (`.npmrc`, `.env`),
+  `gradle.properties`, `settings.xml` and all other files are skipped unread, a zip in the zip isn't unpacked.
+* Limits: 10 MB per zip, 5 MB per file, 50 MB and 100 lists from the zips of an upload.
+* The preview lists every file of the zip with its format and the number of libraries; a file that isn't recognised
+  is marked, so a mistake of the script is seen before anything is applied.
+* With _Replace the libraries uploaded earlier_, the libraries missing in the upload are removed: always upload the complete zip of the component.
+
+*Packages of a container image.* Java images often bring native libraries of the operating system, e.g. brotli
+(`libbrotli1`), zlib or OpenSSL; their vulnerabilities show only in the package list of the image, not in the
+libraries of the build. For `eclipse-temurin` (Ubuntu) and other Debian- or Ubuntu-based images:
+
+[source,bash]
+----
+docker run --rm --entrypoint dpkg-query eclipse-temurin:21-jre -W -f '${Package} ${Version}\n' > os-temurin.txt
+grep brotli os-temurin.txt   # e.g. libbrotli1 1.1.0-2build2
+----
+
+The Alpine variant (`eclipse-temurin:21-jre-alpine`) lists with `apk info -v`, Red Hat based images (UBI) with
+`rpm -qa`. Images without a package manager (distroless, scratch) need an SBOM of the image:
+`syft eclipse-temurin:21-jre -o cyclonedx-json > os-temurin.json`. A version of a distribution package is only a
+hint: the distributions backport fixes without changing the upstream version, so the security tracker of the
+distribution (e.g. Ubuntu or Debian) tells whether the installed version is affected.
+
 [[further_features]]
 === Further features
 

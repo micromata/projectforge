@@ -23,3 +23,8 @@ function webDocsLink(locale: string): string {
 export function luceneQueryDocsUrl(locale: string): string {
   return `${webDocsLink(locale)}/userguide/#full_indexed_search`;
 }
+
+/** The user guide's chapter on the libraries of a CVE-Radar component: the formats, a script collecting them in a zip. */
+export function cveRadarLibrariesDocsUrl(locale: string): string {
+  return `${webDocsLink(locale)}/userguide/#cve_radar_libraries`;
+}
