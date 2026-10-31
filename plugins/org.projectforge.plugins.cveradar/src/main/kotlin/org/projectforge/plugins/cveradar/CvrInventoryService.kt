@@ -160,13 +160,16 @@ class CvrInventoryService {
         val parent = request.parentId?.let { view.area(it) }
         val group = request.groupId?.let { findGroup(it) }
         if (parent == null) {
-            // A group for a root is one of the creator (the officer chooses freely). Without a group only the officer
-            // sees the area.
+            // A group for a root is one of the creator (the officer chooses freely).
             if (group != null && !(view.officer || access.isMemberOf(user, group.id))) {
                 throw UserException(ERROR_GROUP)
             }
         } else if (!view.canWriteArea(parent)) {
             throw AccessException(user, CveRadarAccess.NO_ACCESS)
+        }
+        // Without a group a root would be the officer's only: the creator wouldn't see it after saving.
+        if (!view.keepsAccess(parent, group?.id)) {
+            throw UserException(ERROR_LOCKED_OUT)
         }
         val area = CvrAreaDO().also {
             it.parent = parent
@@ -188,6 +191,9 @@ class CvrInventoryService {
         // Only a group of the editor can be newly assigned (the officer chooses freely); keeping or clearing it is free.
         if (group != null && group.id != area.groupId && !(view.officer || access.isMemberOf(user, group.id))) {
             throw UserException(ERROR_GROUP)
+        }
+        if (!view.keepsAccess(view.model.areas[area.parentId], group?.id)) {
+            throw UserException(ERROR_LOCKED_OUT)
         }
         val stored = areaDao.find(id, checkAccess = false) ?: throw UserException(ERROR_NOT_FOUND)
         stored.code = checkedCode(request.code, view.model, exceptArea = area.id)
@@ -271,6 +277,9 @@ class CvrInventoryService {
         val system = view.system(id)
         if (!view.canWriteSystem(system)) {
             throw AccessException(user, CveRadarAccess.NO_ACCESS)
+        }
+        if (!view.keepsAccess(view.model.areas[system.areaId], request.groupId)) {
+            throw UserException(ERROR_LOCKED_OUT)
         }
         val stored = systemDao.find(id, checkAccess = false) ?: throw UserException(ERROR_NOT_FOUND)
         applySystem(stored, request, view.model, except = system)
@@ -614,6 +623,9 @@ class CvrInventoryService {
 
         fun canWriteArea(area: CvrAreaDO): Boolean = isMember(chain(area).map { it.groupId })
 
+        /** Whether the user still may change a node below [area] with the group [groupId]: a change never locks out its author. */
+        fun keepsAccess(area: CvrAreaDO?, groupId: Long?): Boolean = isMember(chain(area).map { it.groupId } + groupId)
+
         fun canWriteSystem(system: CvrSystemDO): Boolean =
             isMember(chain(model.areas[system.areaId]).map { it.groupId } + system.groupId)
 
@@ -777,6 +789,7 @@ class CvrInventoryService {
         const val ERROR_CODE_EXISTS = "plugins.cveradar.inventory.error.codeExists"
         const val ERROR_NAME = "plugins.cveradar.inventory.error.name"
         const val ERROR_GROUP = "plugins.cveradar.inventory.error.group"
+        const val ERROR_LOCKED_OUT = "plugins.cveradar.inventory.error.lockedOut"
         const val ERROR_CYCLE = "plugins.cveradar.inventory.error.cycle"
         const val ERROR_TARGET = "plugins.cveradar.inventory.error.target"
         const val ERROR_NOT_EMPTY = "plugins.cveradar.inventory.error.notEmpty"

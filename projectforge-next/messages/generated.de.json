@@ -4461,6 +4461,7 @@
           "cycle": "Ein Bereich lässt sich nicht unter sich selbst hängen.",
           "group": "Die Gruppe gibt es nicht, oder du bist nicht Mitglied.",
           "lastInstance": "Die letzte Instanz eines Systems bleibt.",
+          "lockedOut": "Bitte eine Gruppe wählen, in der du Mitglied bist: sonst wäre der Eintrag nach dem Speichern für dich nicht mehr sichtbar.",
           "name": "Ein Name wird gebraucht.",
           "notEmpty": "Darunter gibt es noch Einträge. Zuerst löschen oder umhängen.",
           "notFound": "Den Eintrag gibt es nicht (mehr).",
@@ -4473,7 +4474,7 @@
         "groupFrom": "von {arg0}",
         "groupInfo": {
           "area": "Optional. Ohne Gruppe gelten die Gruppen der Bereiche darüber. Eine hier gewählte Gruppe sieht und ändert diesen Bereich mit allem darunter zusätzlich.",
-          "root": "Optional, aber ohne Gruppe sieht nur der Security Officer den Bereich, nach dem Speichern auch du nicht. Die Gruppe sieht und ändert diesen Bereich mit allem darunter, gewählt werden kann eine Gruppe, in der du Mitglied bist. Der Security Officer kann den Bereich später umhängen, etwa unter einen Kunden.",
+          "root": "Pflichtfeld: Die Gruppe sieht und ändert diesen Bereich mit allem darunter, gewählt werden kann eine Gruppe, in der du Mitglied bist. Der Security Officer kann den Bereich später umhängen, etwa unter einen Kunden.",
           "system": "Optional. Die Gruppen der Bereiche darüber sehen und ändern das System ohnehin; eine hier gewählte Gruppe kommt hinzu, etwa für das Team, das es betreibt."
         },
         "hiddenSystems": "+{arg0} weitere Systeme, für diese Rolle nicht sichtbar",

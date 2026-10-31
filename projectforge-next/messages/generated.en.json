@@ -4461,6 +4461,7 @@
           "cycle": "An area can't be moved below itself.",
           "group": "The group doesn't exist, or you are not a member of it.",
           "lastInstance": "The last instance of a system stays.",
+          "lockedOut": "Please choose a group you are a member of: otherwise you couldn't see the entry after saving.",
           "name": "A name is needed.",
           "notEmpty": "There are entries below it. Delete or move them first.",
           "notFound": "The entry doesn't exist (any more).",
@@ -4473,7 +4474,7 @@
         "groupFrom": "from {arg0}",
         "groupInfo": {
           "area": "Optional. Without a group, the groups of the areas above apply. A group chosen here also sees and changes this area and everything below it.",
-          "root": "Optional, but without a group only the security officer sees the area, not even you after saving. The group sees and changes this area and everything below it; choose one you are a member of. The security officer can move the area later, e.g. below a customer.",
+          "root": "Required: the group sees and changes this area and everything below it; choose one you are a member of. The security officer can move the area later, e.g. below a customer.",
           "system": "Optional. The groups of the areas above see and change the system anyway; a group chosen here is added, e.g. for the team that runs it."
         },
         "hiddenSystems": "+{arg0} more systems, not visible for this role",
