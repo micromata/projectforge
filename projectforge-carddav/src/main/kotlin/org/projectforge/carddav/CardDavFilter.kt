@@ -95,7 +95,7 @@ class CardDavFilter : Filter {
             )
             return
         }
-        log.info { "Call for us: ${RequestLog.asString(request)}" }
+        log.debug { "Call for us: ${RequestLog.asString(request)}" }
         cardDavService.dispatch(request, response as HttpServletResponse)
     }
 

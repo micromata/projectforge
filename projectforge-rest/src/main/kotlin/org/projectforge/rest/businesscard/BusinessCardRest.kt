@@ -28,7 +28,9 @@ import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.ContactImageUrl
 import org.projectforge.business.address.businesscard.BusinessCard
 import org.projectforge.business.address.businesscard.BusinessCardService
+import org.projectforge.business.address.businesscard.PassKitService
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.calendar.BarcodeServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -38,7 +40,9 @@ import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -59,6 +63,9 @@ class BusinessCardRest {
 
     @Autowired
     private lateinit var addressDao: AddressDao
+
+    @Autowired
+    private lateinit var passKitService: PassKitService
 
     @Autowired
     private lateinit var contactImageUrl: ContactImageUrl
@@ -86,6 +93,8 @@ class BusinessCardRest {
         val maxCards: Int,
         /** Without a gateway there is no photo url (photos can't be published). */
         val gatewayConfigured: Boolean,
+        /** The Apple Wallet certificate is configured: the page offers "Add to Wallet". */
+        val walletConfigured: Boolean,
     )
 
     @AccessChecked("Own user only (business cards of the logged-in user)")
@@ -96,6 +105,7 @@ class BusinessCardRest {
             suggestion = businessCardService.suggestAddresses().firstOrNull()?.let { BusinessCardService.createFrom(it) },
             maxCards = BusinessCardService.MAX_CARDS_PER_USER,
             gatewayConfigured = contactImageUrl.gatewayPublicUrl.isNotBlank(),
+            walletConfigured = passKitService.isConfigured(),
         )
     }
 
@@ -156,6 +166,28 @@ class BusinessCardRest {
         val name = listOfNotNull(card.firstName, card.lastName).joinToString(" ").ifBlank { card.cardName ?: "card" }
         val filename = ReplaceUtils.encodeFilename(name, true) + ".vcf"
         return RestUtils.downloadFile(filename, businessCardService.buildVCard(card))
+    }
+
+    /**
+     * The Apple Wallet pass of the own card (Safari on the iPhone offers "Add to Wallet"). Reads only, so GET.
+     */
+    @AccessChecked("Own user only (business cards of the logged-in user)")
+    @GetMapping("pkpass")
+    fun downloadPass(@RequestParam("id") id: String): ResponseEntity<*> {
+        if (!passKitService.isConfigured()) {
+            return ResponseEntity<Any>(HttpStatus.NOT_FOUND)
+        }
+        val card = businessCardService.get(id) ?: return ResponseEntity<Any>(HttpStatus.NOT_FOUND)
+        val photoSource = businessCardService.photoSource(card)
+        val pass = passKitService.buildPass(
+            card, businessCardService.buildVCard(card, photoSource), businessCardService.buildPhoto(card, photoSource),
+            ThreadLocalUserContext::getLocalizedString,
+        )
+        val name = listOfNotNull(card.firstName, card.lastName).joinToString(" ").ifBlank { card.cardName ?: "card" }
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${ReplaceUtils.encodeFilename(name, true)}.pkpass\"")
+            .contentType(MediaType.parseMediaType("application/vnd.apple.pkpass"))
+            .body(pass)
     }
 
     private fun preview(card: BusinessCard): Preview {

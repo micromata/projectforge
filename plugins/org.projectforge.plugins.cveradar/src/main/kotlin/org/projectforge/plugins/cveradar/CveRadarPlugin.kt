@@ -57,18 +57,18 @@ class CveRadarPlugin : AbstractPlugin(ID, "CVE-Radar", "Vulnerability management
         // A new page of projectforge-next without a legacy version, so no PageRoutes entry:
         menuCreator.register(MenuItemDefId.MISC, MenuItemDef(info.id, "plugins.cveradar.menu", "next/cveradar"))
         addResourceBundle(RESOURCE_BUNDLE_NAME)
-        // Here and not on first read: a GET must not write.
-        runCatching { SpringBeans.get(CvrCatalogService::class.java).ensureEcosystems() }
-            .onFailure { log.error(it) { "Can't create the ecosystems of the technology catalogue: ${it.message}" } }
-        // Once, for the vulnerabilities imported before the matching existed; takes a while, so not in the start. The
-        // migration of the plugin runs after initialize(): a try before it fails on the missing table, so retry.
+        // The ecosystems of the catalogue are created here and not on first read (a GET must not write), and the
+        // vulnerabilities imported before the matching existed are indexed once; takes a while, so not in the start.
+        // The migration of the plugin runs after initialize() (on the first activation the tables don't exist yet),
+        // so a try before it fails on the missing table: retry.
         Thread({
             repeat(INDEX_ATTEMPTS) { attempt ->
                 try {
+                    SpringBeans.get(CvrCatalogService::class.java).ensureEcosystems()
                     SpringBeans.get(CvrMatchingService::class.java).ensureIndex()
                     return@Thread
                 } catch (ex: Exception) {
-                    log.warn { "Can't build the CPE index of the vulnerabilities (try ${attempt + 1}): ${ex.message?.take(200)}" }
+                    log.warn { "Can't create the ecosystems or build the CPE index of the vulnerabilities (try ${attempt + 1}): ${ex.message?.take(200)}" }
                     Thread.sleep(INDEX_RETRY_MILLIS)
                 }
             }

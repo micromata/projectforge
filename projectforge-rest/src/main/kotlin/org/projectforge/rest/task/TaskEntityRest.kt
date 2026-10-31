@@ -196,7 +196,7 @@ class TaskEntityRest
      * the form and therefore only for Wicket, so a save through the rest api slips past it.
      *
      * The message lands at its field ([ValidationError.fieldId]), which is what the next form needs to
-     * show it there instead of in the general area (`AbstractPagesRestUtils.handleException` does the same
+     * show it there instead of in the general area (`EntityRestUtils.handleException` does the same
      * with a `UserException.causedByField`).
      *
      * Not here either: the ranges of `progress`, `maxHours` and `duration`. They are declared on the

@@ -724,7 +724,7 @@ constructor(
      * value a *loaded* entity sorts by.
      *
      * Declaring a column here is all a page needs: the query drops these properties before it runs (see
-     * `AbstractPagesRestUtils.buildQueryFilter`, where `addOrder` would otherwise swallow them and ship an
+     * `EntityRestUtils.buildQueryFilter`, where `addOrder` would otherwise swallow them and ship an
      * unordered query), and the generic [filterList]/[sortIds] sort by them afterwards. The empty default
      * means no computed column, so both generic paths are no-ops — every page without one is untouched.
      */

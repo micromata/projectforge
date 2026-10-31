@@ -198,6 +198,17 @@ open class BusinessCardService {
     }
 
     /**
+     * The photo bytes for the Wallet pass (embedded there), under the same conditions as the photo url of the vCard.
+     */
+    open fun buildPhoto(card: BusinessCard, photoSource: AddressDO? = photoSource(card)): ByteArray? {
+        if (!card.includePhoto) {
+            return null
+        }
+        photoSource ?: return null
+        return addressImageDao.findImage(photoSource.id!!, fetchImage = true, checkAccess = false)?.image
+    }
+
+    /**
      * The source address of the card, if its photo may be published: not deleted, readable for the logged-in user and
      * the user's own address. Own means one of the user's e-mail addresses is the address's (see
      * [AddressUserMatcher.emailMatches]); the name isn't enough: the user can change it (My account), and two

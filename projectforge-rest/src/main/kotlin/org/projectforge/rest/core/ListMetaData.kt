@@ -94,7 +94,7 @@ class ListMetaData(
      *
      * Served here rather than on [ResultSet.selectedEntityIds], which carries the same ids for the
      * legacy grid: that one is only filled in the `?multiSelectionMode=true` branch of
-     * `AbstractPagesRestUtils`, which replaces the result set with `getListByIds` and flips the
+     * `EntityRestUtils`, which replaces the result set with `getListByIds` and flips the
      * user's stored filter - a list-wide mode, where this is one restored detail of a normal list.
      */
     val selectedIds: Collection<Serializable>? = null,

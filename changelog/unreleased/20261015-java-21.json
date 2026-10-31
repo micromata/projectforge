@@ -1,5 +1,0 @@
-{
-  "type": "changed",
-  "en": "Java 21 is required from version 9.2 on: ProjectForge is compiled for Java 21, the executable JAR no longer starts on Java 17. The Docker image already contains Java 21.",
-  "de": "Ab Version 9.2 ist Java 21 Voraussetzung: ProjectForge wird für Java 21 kompiliert, das ausführbare JAR startet nicht mehr unter Java 17. Das Docker-Image enthält bereits Java 21."
-}

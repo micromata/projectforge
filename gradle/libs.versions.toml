@@ -39,6 +39,7 @@ org-apache-xmlgraphics-batik = "1.19"
 org-apache-xmlgraphics-fop = "2.11"
 org-apache-xmlgraphics-commons = "2.11"
 org-bouncycastle-bcprov-jdk18on = "1.86"
+org-bouncycastle-bcpkix-jdk18on = "1.86"
 org-dom4j = "2.2.0"
 org-flywaydb = "11.20.3"
 org-hibernate-search = "8.4.0.Final"
@@ -145,6 +146,7 @@ org-apache-xmlgraphics-batik-svg-dom = { module = "org.apache.xmlgraphics:batik-
 org-apache-xmlgraphics-fop = { module = "org.apache.xmlgraphics:fop", version.ref = "org-apache-xmlgraphics-fop" }
 org-apache-xmlgraphics-commons = { module = "org.apache.xmlgraphics:xmlgraphics-commons", version.ref = "org-apache-xmlgraphics-commons" }
 org-bouncycastle-bcprov-jdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "org-bouncycastle-bcprov-jdk18on" }
+org-bouncycastle-bcpkix-jdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "org-bouncycastle-bcpkix-jdk18on" }
 org-dom4j = { module = "org.dom4j:dom4j", version.ref = "org-dom4j" }
 org-flywaydb-core = { module = "org.flywaydb:flyway-core", version.ref = "org-flywaydb" }
 org-flywaydb-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "org-flywaydb" }

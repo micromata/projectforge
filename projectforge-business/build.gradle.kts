@@ -65,6 +65,7 @@ dependencies {
     api(libs.org.springframework.spring.web)
     api(libs.commons.io)
     api(libs.org.bouncycastle.bcprov.jdk18on)
+    api(libs.org.bouncycastle.bcpkix.jdk18on)
     api(libs.org.dom4j)
     api(libs.org.apache.httpcomponents.client5.httpclient5)
     api(libs.org.flywaydb.core)
