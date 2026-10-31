@@ -226,7 +226,9 @@ It also records which old `/wa` or `/react` URLs are redirected (`legacyApp`).
 
 Three shells, used by every page:
 
-- `PageShell` — brand stripe, top navigation, scrollable main area.
+- `PageShell` — brand stripe, top navigation, scrollable main area. `<main>` has a floor (`min-h-96`) and
+  the shell root scrolls when rows + floor exceed the height (phone in landscape); intermediate flex
+  columns keep `min-h-0`, otherwise desktop pages would scroll too.
 - `ListPageShell` — toolbar, an optional banner for result-set aggregates, the table.
 - `EditPageShell` — header, tab strip, optional sticky banner, the scrollable sections column,
   the bottom action bar. Anchor tabs are coupled positionally to the sections and driven by
