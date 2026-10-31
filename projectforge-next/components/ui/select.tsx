@@ -107,8 +107,12 @@ function SelectLabel({
 function SelectItem({
   className,
   children,
+  description,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Item>) {
+}: React.ComponentProps<typeof SelectPrimitive.Item> & {
+  /** A line below the value explaining it; only in the open list, not in the closed select. */
+  description?: React.ReactNode
+}) {
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
@@ -123,7 +127,16 @@ function SelectItem({
           <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} className="pointer-events-none" />
         </SelectPrimitive.ItemIndicator>
       </span>
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+      {description ? (
+        <div className="flex max-w-80 flex-col pr-6">
+          <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+          <div className="text-[0.625rem]/snug whitespace-normal text-muted-foreground">
+            {description}
+          </div>
+        </div>
+      ) : (
+        <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+      )}
     </SelectPrimitive.Item>
   )
 }

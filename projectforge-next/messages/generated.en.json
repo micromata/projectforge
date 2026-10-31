@@ -4082,7 +4082,11 @@
         "kind": {
           "_": "Kind",
           "CVE": "Vulnerability (CVE)",
-          "INCIDENT": "Incident"
+          "INCIDENT": "Incident",
+          "hint": {
+            "CVE": "A published vulnerability with a CVE id. Affected are the instances whose technologies match it (findings).",
+            "INCIDENT": "A vulnerability without CVE id, e.g. a compromised certificate authority; gets an id of its own. Affected and fixed is told by the fix criteria and the team checks."
+          }
         },
         "minClientAgentVersion": "Minimum version of the client agent",
         "new": {

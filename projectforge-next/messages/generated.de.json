@@ -4082,7 +4082,11 @@
         "kind": {
           "_": "Art",
           "CVE": "Schwachstelle (CVE)",
-          "INCIDENT": "Vorfall"
+          "INCIDENT": "Vorfall",
+          "hint": {
+            "CVE": "Eine veröffentlichte Schwachstelle mit CVE-ID. Betroffen sind die Instanzen, deren Technologien zu ihr passen (Befunde).",
+            "INCIDENT": "Eine Schwachstelle ohne CVE-ID, z. B. eine kompromittierte Zertifizierungsstelle; sie bekommt eine eigene ID. Ob betroffen und behoben, zeigen die Behebungskriterien und die Team-Prüfungen."
+          }
         },
         "minClientAgentVersion": "Mindestversion des Client-Agents",
         "new": {

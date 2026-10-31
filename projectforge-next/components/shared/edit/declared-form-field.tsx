@@ -184,10 +184,18 @@ export function DeclaredFormField<M extends EntityMetadata>({
         {...common}
         disabled={readOnly}
         emphasized={field.emphasized}
-        options={meta.enumValues.map((v) => ({
-          value: v.value,
-          label: v.i18nKey ? translate(v.i18nKey) : v.value,
-        }))}
+        options={meta.enumValues.map((v) => {
+          const hintKey =
+            field.optionHintKeyPrefix && field.optionHintKeyPrefix + v.value;
+          return {
+            value: v.value,
+            label: v.i18nKey ? translate(v.i18nKey) : v.value,
+            description:
+              hintKey && translate.has(hintKey)
+                ? translate(hintKey)
+                : undefined,
+          };
+        })}
       />
     );
   }
