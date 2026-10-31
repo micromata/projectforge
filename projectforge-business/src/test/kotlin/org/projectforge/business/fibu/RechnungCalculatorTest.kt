@@ -172,6 +172,31 @@ class RechnungCalculatorTest : AbstractTestBase() {
     }
 
     @Test
+    fun `a planned invoice counts in no statistics sum`() {
+        AbstractRechnungsStatistik.configurationService = configurationService
+        AbstractRechnungsStatistik.currencyConversionService = currencyConversionService
+        val statistics = RechnungsStatistik()
+        RechnungDO().also { invoice ->
+            invoice.addPosition(createPositionInfo("1", "100", "0.19"))
+            invoice.faelligkeit = LocalDate.now().minusDays(1)
+            invoice.status = RechnungStatus.GEPLANT
+            statistics.add(RechnungCalculator.calculate(invoice))
+        }
+        assertEquals(0, statistics.counter, "counter")
+        assertEquals(0, BigDecimal.ZERO.compareTo(statistics.netto), "netto")
+        assertEquals(0, BigDecimal.ZERO.compareTo(statistics.brutto), "brutto")
+        assertEquals(0, BigDecimal.ZERO.compareTo(statistics.offen), "offen")
+        assertEquals(0, BigDecimal.ZERO.compareTo(statistics.ueberfaellig), "ueberfaellig")
+        RechnungDO().also { invoice ->
+            invoice.addPosition(createPositionInfo("1", "100", "0.19"))
+            invoice.status = RechnungStatus.GESTELLT
+            statistics.add(RechnungCalculator.calculate(invoice))
+        }
+        assertEquals(1, statistics.counter, "counter")
+        assertEquals(0, BigDecimal("100").compareTo(statistics.netto), "netto")
+    }
+
+    @Test
     fun `test rounding`() {
         RechnungDO().also { invoice ->
             invoice.addPosition(createPositionInfo("0.75", "118.75", "0.19", "79.06")) // -10.00

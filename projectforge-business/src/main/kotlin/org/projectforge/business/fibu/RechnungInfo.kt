@@ -104,6 +104,12 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
         get() = status == RechnungStatus.STORNIERT || typ == RechnungTyp.CANCELLATION
 
     /**
+     * A planned invoice is not issued yet: it is no revenue and counts in no statistics.
+     */
+    val isPlanned: Boolean
+        get() = status == RechnungStatus.GEPLANT
+
+    /**
      * @return The total sum of all cost assignment net amounts of all positions.
      */
     var kostZuweisungenNetSum = BigDecimal.ZERO
