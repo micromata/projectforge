@@ -59,6 +59,14 @@ export function deleteBusinessCard(id: string): Promise<unknown> {
   });
 }
 
+/**
+ * Where the Apple Wallet pass of a card comes from. A plain link rather than a fetch: Safari on the iPhone has to
+ * open the `.pkpass` itself to offer "Add to Wallet". Same-origin, cookie-authenticated, reads only.
+ */
+export function businessCardPassUrl(id: string): string {
+  return `${BASE}/pkpass?id=${encodeURIComponent(id)}`;
+}
+
 export function downloadBusinessCardVCard(id: string): Promise<void> {
   return downloadFile(`${BASE}/vcf?id=${encodeURIComponent(id)}`);
 }

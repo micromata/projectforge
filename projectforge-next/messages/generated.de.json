@@ -783,6 +783,7 @@
     }
   },
   "businessCard": {
+    "addToWallet": "Zum Wallet hinzufügen",
     "address": {
       "_": "Aus Adresse übernehmen",
       "suggestion": "Wahrscheinlich die eigene Adresse",
@@ -803,10 +804,10 @@
     "fax": "Fax",
     "firstName": "Vorname",
     "includePhoto": {
-      "_": "Foto veröffentlichen",
-      "noGateway": "Es ist kein Gateway konfiguriert, Fotos können nicht veröffentlicht werden.",
-      "notAllowed": "Das Foto kann nur aus der eigenen Adresse veröffentlicht werden.",
-      "tooltip": "Das Foto der Adresse wird auf dem Gateway veröffentlicht und in der vCard verlinkt. Nur für die eigene Adresse möglich (ihre E-Mail-Adresse ist eine der eigenen)."
+      "_": "Foto verwenden",
+      "noGateway": "Es ist kein Gateway konfiguriert: Das Foto ist nur auf dem Wallet-Pass, nicht im QR-Code verlinkt.",
+      "notAllowed": "Das Foto kann nur aus der eigenen Adresse verwendet werden: Deren E-Mail-Adresse muss eine der E-Mail-Adressen des eigenen Benutzerkontos sein.",
+      "tooltip": "Das Foto der Adresse wird im Wallet-Pass eingebettet und, mit Gateway, dort veröffentlicht und in der vCard des QR-Codes verlinkt. Nur für die eigene Adresse möglich (ihre E-Mail-Adresse ist eine der eigenen)."
     },
     "lastName": "Nachname",
     "limit": "Höchstens {arg0} Visitenkarten.",
