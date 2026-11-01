@@ -1,5 +1,24 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.1",
+    "date" : "2026-11-01",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ {
+        "title" : "CVE-Radar: notification without details and about outdated lists of libraries",
+        "items" : [ "A new notification rule \"New findings of the CVE radar\" starts with a text that names no details (\"there may be updates\") and a link to the list; the new variable cvrListLink always links to the list.", "New rule type \"Outdated lists of libraries of the CVE radar\": the responsible team of a component whose list of libraries was applied more than a number of days ago (30 by default) is told, at most once a week, and the notification is resolved by an update of the list. The day of the last list is now recorded per component." ]
+      }, {
+        "title" : "Mobile app (in preparation)",
+        "items" : [ "Behind an SSO proxy (e.g. Authentik as forward auth) the app gets the proxy's session from the browser login (`projectforge.app.proxyCookies`); when it expires, the app logs in again in the browser.", "The login of the app offers the recently used servers, and the logout works even if the server can't be reached." ]
+      } ]
+    }, {
+      "type" : "changed",
+      "items" : [ "Faster first page of big lists: the CVE-Radar start page no longer loads every vulnerability to build the list" ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

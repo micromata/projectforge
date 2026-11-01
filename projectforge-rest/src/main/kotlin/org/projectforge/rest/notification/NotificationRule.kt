@@ -66,6 +66,7 @@ class NotificationRule(
     var cvrMinSeverity: String = "HIGH",
     var cvrIncludePossible: Boolean = false,
     var cvrIncludeUnscored: Boolean = true,
+    var cvrMaxAgeDays: Int = 30,
     var recipientGroups: List<Group> = emptyList(),
     var recipientUsers: List<User> = emptyList(),
     var allEmployees: Boolean = false,
@@ -111,6 +112,7 @@ class NotificationRule(
         cvrMinSeverity = params.cvrMinSeverity
         cvrIncludePossible = params.cvrIncludePossible
         cvrIncludeUnscored = params.cvrIncludeUnscored
+        cvrMaxAgeDays = params.cvrMaxAgeDays
         linkMode = params.linkMode
         linkMenuItem = params.linkMenuItem
         val recipients = src.readRecipients()
@@ -131,7 +133,7 @@ class NotificationRule(
             NotificationParams(
                 referredMonth, vacationExpiry, daysBeforeExpiry, passwordMaxAgeDays, kost2MissingMonths, dueWorkingDays,
                 cvrMinSeverity = cvrMinSeverity, cvrIncludePossible = cvrIncludePossible,
-                cvrIncludeUnscored = cvrIncludeUnscored, linkMode = linkMode, linkMenuItem = linkMenuItem?.takeIf { linkMode == NotificationParams.LinkMode.MENU_ITEM && it.isNotBlank() },
+                cvrIncludeUnscored = cvrIncludeUnscored, cvrMaxAgeDays = cvrMaxAgeDays, linkMode = linkMode, linkMenuItem = linkMenuItem?.takeIf { linkMode == NotificationParams.LinkMode.MENU_ITEM && it.isNotBlank() },
             )
         )
         dest.recipients = JsonUtils.toJson(

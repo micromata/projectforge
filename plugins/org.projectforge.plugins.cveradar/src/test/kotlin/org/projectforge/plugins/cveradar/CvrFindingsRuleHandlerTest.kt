@@ -104,7 +104,7 @@ class CvrFindingsRuleHandlerTest : CveRadarTestBase() {
             it.recipients = JsonUtils.toJson(NotificationRecipients(userIds = ccUserIds))
             it.delivery = JsonUtils.toJson(NotificationDelivery(listOf(NotificationDeliveryStep(NotificationChannel.IN_APP))))
             it.subject = "{{cvrVulnerabilityCount}} new: {{cvrMaxSeverity}}"
-            it.text = "<p>{{cvrVulnerabilityList}}</p><p>{{cvrSystemList}}</p>"
+            it.text = "<p>{{cvrVulnerabilityList}}</p><p>{{cvrSystemList}}</p><p>{{cvrListLink}}</p>"
         }
         notificationRuleDao.insert(rule, checkAccess = false)
         return rule
@@ -155,6 +155,7 @@ class CvrFindingsRuleHandlerTest : CveRadarTestBase() {
             assertTrue(body.contains("CVE-2026-95001 (CRITICAL 9.8)"), body)
             assertTrue(body.contains("NA1-S Shop (PROD)"), body)
             assertFalse(body.contains("CVE-2026-95002"), "below the severity")
+            assertTrue(body.contains("/cveradar"), body)
         }
         listOf(noReader, outsider, blind).forEach { assertTrue(notifications(rule, it).isEmpty(), "${it.username} is not notified") }
 
