@@ -23,24 +23,25 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/api/api_exception.dart';
+import '../../core/auth/auth_controller.dart';
 import '../../core/i18n/translations.dart';
 import '../../core/widgets/error_view.dart';
 import 'business_card.dart';
-import 'business_card_editor_screen.dart';
 import 'business_card_qr_screen.dart';
 import 'business_cards_controller.dart';
 import 'vcard_share.dart';
 
-/// The own business cards: tap shows the QR code to scan, the menu edits, shares or deletes a card.
+/// The own business cards: tap shows the QR code to scan, the menu shares a card. Cards are created and edited in
+/// the web version, which the link at the end opens.
 class BusinessCardsScreen extends ConsumerWidget {
   const BusinessCardsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cards = ref.watch(businessCardsProvider);
-    final data = cards.value;
     return Scaffold(
       body: cards.when(
         skipLoadingOnRefresh: true,
@@ -52,7 +53,7 @@ class BusinessCardsScreen extends ConsumerWidget {
         data: (data) => RefreshIndicator(
           onRefresh: () => ref.read(businessCardsProvider.notifier).refresh(),
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 88),
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
             children: [
               if (data.fromCache)
                 Padding(
@@ -74,43 +75,13 @@ class BusinessCardsScreen extends ConsumerWidget {
                 ),
               for (final info in data.cards)
                 _CardTile(info: info, offline: data.fromCache),
+              if (!data.fromCache) const _CreateOnDesktopLink(),
             ],
           ),
         ),
       ),
-      floatingActionButton:
-          data == null || data.fromCache || data.cards.length >= data.maxCards
-          ? null
-          : FloatingActionButton.extended(
-              icon: const Icon(Icons.add),
-              label: Text(context.t('businessCard.new')),
-              onPressed: () => _openEditor(
-                context,
-                ref,
-                data.suggestion?.copy() ?? BusinessCard({}),
-                data,
-              ),
-            ),
     );
   }
-}
-
-Future<void> _openEditor(
-  BuildContext context,
-  WidgetRef ref,
-  BusinessCard card,
-  BusinessCards data,
-) async {
-  final saved = await Navigator.of(context).push<bool>(
-    MaterialPageRoute(
-      builder: (_) => BusinessCardEditorScreen(
-        initial: card,
-        fromAddress: card.id == null && card.addressId != null,
-        gatewayConfigured: data.gatewayConfigured,
-      ),
-    ),
-  );
-  if (saved == true) await ref.read(businessCardsProvider.notifier).refresh();
 }
 
 class _CardTile extends ConsumerWidget {
@@ -151,14 +122,9 @@ class _CardTile extends ConsumerWidget {
             : PopupMenuButton<String>(
                 onSelected: (action) => _onAction(context, ref, action),
                 itemBuilder: (_) => [
-                  PopupMenuItem(value: 'edit', child: Text(context.t('edit'))),
                   PopupMenuItem(
                     value: 'share',
                     child: Text(context.t('app.vCard.share')),
-                  ),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Text(context.t('delete')),
                   ),
                 ],
               ),
@@ -174,43 +140,34 @@ class _CardTile extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     try {
       switch (action) {
-        case 'edit':
-          final data = ref.read(businessCardsProvider).value;
-          if (data != null) {
-            await _openEditor(context, ref, info.card.copy(), data);
-          }
         case 'share':
           final repository = ref.read(businessCardsRepositoryProvider);
           if (repository != null) await shareVCard(repository, info.card);
-        case 'delete':
-          if (await _confirmDelete(context)) {
-            await ref
-                .read(businessCardsProvider.notifier)
-                .delete(info.card.id!);
-          }
       }
     } on ApiException catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(e.message)));
     }
   }
+}
 
-  Future<bool> _confirmDelete(BuildContext context) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        content: Text(context.t('businessCard.delete.question')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(context.t('cancel')),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(context.t('delete')),
-          ),
-        ],
+/// Cards are created in the web version: opens its page in the system browser.
+class _CreateOnDesktopLink extends ConsumerWidget {
+  const _CreateOnDesktopLink();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final serverUrl = ref.watch(authControllerProvider).session?.serverUrl;
+    if (serverUrl == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: TextButton.icon(
+        icon: const Icon(Icons.open_in_new),
+        label: Text(context.t('app.businessCard.createOnDesktop')),
+        onPressed: () => launchUrl(
+          Uri.parse(serverUrl).resolve('/next/myBusinessCards'),
+          mode: LaunchMode.externalApplication,
+        ),
       ),
     );
-    return result == true;
   }
 }

@@ -10,8 +10,8 @@ projectforge-next does; nothing of the next frontend is reused but the texts.
 
 ## Phases
 
-1. Login (WebAuthn or OTP as second factor) and the own digital business cards (`/rs/myBusinessCards`). Done, apart
-   from the manual tests on a device.
+1. Login (WebAuthn or OTP as second factor) and the own digital business cards (`/rs/myBusinessCards`), shown only:
+   they are created and edited in the web version, which a link opens. Done, apart from the manual tests on a device.
 2. Timesheets: week list (`POST /rs/timesheet/listPage`), new and edited bookings (`newEntry`, `insert`/`update`),
    task (`/rs/task/tree/autosearch?onlyBookable=true`, `/rs/task/recent/list`), kost2 (`/rs/task/info/{id}`),
    recent sheets and templates (`recentList`, `/rs/timesheet/favorites`).

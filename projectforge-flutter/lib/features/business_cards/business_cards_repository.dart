@@ -51,56 +51,7 @@ class BusinessCardsRepository {
     }
   }
 
-  /// A new card (not stored) with the data of the address.
-  Future<BusinessCard> fromAddress(int addressId) async => BusinessCard(
-    await _api.get<Map<String, dynamic>>(
-      '$_base/fromAddress',
-      query: {'id': addressId},
-    ),
-  );
-
-  /// The QR code of the card as it is being edited; nothing is stored.
-  Future<BusinessCardPreview> preview(BusinessCard card) async =>
-      BusinessCardPreview.fromJson(
-        await _api.post<Map<String, dynamic>>(
-          '$_base/preview',
-          data: card.json,
-        ),
-      );
-
-  /// Inserts (no id) or updates the card. Throws an [ApiException] with the validation errors on a refusal.
-  Future<BusinessCardInfo> save(BusinessCard card) async {
-    final response = await _api.post<Map<String, dynamic>>(
-      '$_base/save',
-      data: {'data': card.json},
-    );
-    final variables = response['variables'] as Map<String, dynamic>;
-    return BusinessCardInfo.fromJson(variables['data'] as Map<String, dynamic>);
-  }
-
-  Future<void> delete(String id) =>
-      _api.post<void>('$_base/delete', query: {'id': id});
-
   /// The card as vCard file.
   Future<List<int>> vCard(String id) =>
       _api.download('$_base/vcf', query: {'id': id});
-
-  /// Addresses readable by the user, for taking over the data of another one.
-  Future<List<({int id, String displayName})>> searchAddresses(
-    String search,
-  ) async {
-    final list = await _api.get<List<dynamic>>(
-      '/rs/address/autosearch',
-      query: {'search': search, 'maxResults': 20},
-    );
-    return list
-        .cast<Map<String, dynamic>>()
-        .map(
-          (it) => (
-            id: it['id'] as int,
-            displayName: it['displayName'] as String? ?? '',
-          ),
-        )
-        .toList();
-  }
 }

@@ -4,6 +4,7 @@
   "app.login.failed": "Die Anmeldung ist fehlgeschlagen.",
   "app.login.info": "Die Anmeldung öffnet sich im Browser: Dort werden Passwort und zweiter Faktor wie gewohnt eingegeben.",
   "app.logout.question": "Die App abmelden? Sie kann erst nach einer neuen Anmeldung wieder genutzt werden.",
+  "app.businessCard.createOnDesktop": "Visitenkarten erstellen und bearbeiten: in der Webversion",
   "app.offline": "Keine Verbindung zum Server: die Karten nach dem letzten Stand.",
   "app.server.invalid": "Das ist keine gültige Server-Adresse.",
   "app.server.label": "Server",

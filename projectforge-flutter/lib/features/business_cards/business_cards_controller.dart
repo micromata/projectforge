@@ -41,7 +41,7 @@ final businessCardsProvider =
       BusinessCardsController.new,
     );
 
-/// The list of the own business cards.
+/// The list of the own business cards (created and edited in the web version).
 class BusinessCardsController extends AsyncNotifier<BusinessCards> {
   @override
   Future<BusinessCards> build() =>
@@ -52,10 +52,5 @@ class BusinessCardsController extends AsyncNotifier<BusinessCards> {
 
   Future<void> refresh() async {
     state = await AsyncValue.guard(_repository.load);
-  }
-
-  Future<void> delete(String id) async {
-    await _repository.delete(id);
-    await refresh();
   }
 }
