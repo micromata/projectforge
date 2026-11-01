@@ -25,6 +25,9 @@ export interface PageTitleRowProps {
   /** Too narrow for title, center and actions in one line: the actions move to a line of their own instead of
       being covered by the center, which keeps the width of its content (tabs that don't shrink). */
   wrap?: boolean;
+  /** Below sm the center takes a full-width line of its own under title and actions, instead of being squeezed
+      between them — for a field that grows, such as the calendar chooser. */
+  centerBelow?: boolean;
 }
 
 /**
@@ -43,13 +46,15 @@ export function PageTitleRow({
   titleAddon,
   children,
   wrap = false,
+  centerBelow = false,
 }: PageTitleRowProps) {
   useDocumentTitle(title);
   return (
     <div
       className={cn(
         "flex items-center gap-3 px-3 pt-2 sm:px-4 sm:pt-3",
-        wrap && "flex-wrap gap-y-2"
+        wrap && "flex-wrap gap-y-2",
+        centerBelow && "max-sm:flex-wrap max-sm:gap-y-2"
       )}
     >
       <div className="shrink-0">
@@ -71,7 +76,13 @@ export function PageTitleRow({
       {experimental && <ExperimentalBadge label={experimentalLabel} />}
       {/* The flexible middle: a header control if the page gives one, otherwise a plain spacer that
           pushes the actions to the right edge. `min-w-0` lets an input here shrink instead of overflow. */}
-      <div className={cn("min-w-0", wrap ? "flex-[1_1_auto]" : "flex-1")}>
+      <div
+        className={cn(
+          "min-w-0",
+          wrap ? "flex-[1_1_auto]" : "flex-1",
+          centerBelow && "max-sm:order-last max-sm:basis-full"
+        )}
+      >
         {center}
       </div>
       {/* `self-start`: the actions line up with the top of the two-line title block rather than
@@ -80,7 +91,9 @@ export function PageTitleRow({
       <div
         className={cn(
           "flex flex-wrap items-center gap-2 self-start sm:gap-3 print:hidden",
-          wrap && "ml-auto"
+          wrap && "ml-auto",
+          // On its line below sm the center no longer pushes the actions right.
+          centerBelow && "max-sm:ml-auto"
         )}
       >
         {children}

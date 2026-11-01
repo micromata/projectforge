@@ -54,11 +54,13 @@ export function CalendarFavoritesMenu({
           variant="outline"
           size="sm"
           className="relative h-7 gap-1.5"
+          aria-label={t("favorites._")}
         >
           <HugeiconsIcon icon={Bookmark02Icon} size={14} aria-hidden />
           {/* `favorites` is both a label and the parent of `favorites.saveModification`, so the bundle
-              exports it as a subtree with the label on a `_` leaf. */}
-          <span>{t("favorites._")}</span>
+              exports it as a subtree with the label on a `_` leaf. Icon only on a phone, so the actions fit
+              beside the title. */}
+          <span className="hidden sm:inline">{t("favorites._")}</span>
           {isFilterModified && (
             <span
               className="absolute -top-1 -right-1 size-2 rounded-full bg-primary"
