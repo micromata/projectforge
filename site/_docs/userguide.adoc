@@ -1570,6 +1570,27 @@ and the instances they matched in. The most urgent come first.
   verified. The assessment of the security team takes precedence. Copy the prompt or download it as a file.
 * The answer of the AI system is a proposal: check versions and build snippets before using them.
 
+[[cve_radar_adhoc_check]]
+=== CVE-Radar: ad-hoc check of files
+
+_CVE-Radar > Ad-hoc check_ checks files against all vulnerabilities without touching the inventory. Everybody with the
+reader role may use it; nothing is stored, and the result stays with the person who started the check (it is dropped
+about an hour after the end).
+
+* Drop or choose up to 10 files: the lists of libraries known from the upload to a component (lockfiles such as
+  `package-lock.json`, `yarn.lock` or `pnpm-lock.yaml`, SBOMs in CycloneDX or SPDX, output of Maven or Gradle,
+  package lists of containers), or a zip with such lists. Which formats there are and how to produce them is described
+  in <<cve_radar_libraries,CVE-Radar: libraries of a component>>; the page links to it.
+* A bar per file shows how many of its packages are checked. The packages are compared with the vulnerabilities
+  imported from the NVD with the rules of the inventory: a match by CPE or the catalogue entry with a version range
+  is _affected_, one by name or without a version only _possibly affected_. Only vulnerabilities imported so far
+  count, i.e. those above the configured minimum score.
+* The result lists the vulnerabilities, the most urgent first, with the package, its version and the file. The case of
+  the security team (priority, fix version) is shown where there is one.
+* As with the findings of a project, the result can be downloaded as JSON and comes with a prompt for an approved AI
+  system that asks how to fix every vulnerability. _Replace the names of the files_ (on by default) turns them into
+  `F1`, `F2`, … because their paths often carry project names.
+
 [[further_features]]
 === Further features
 
