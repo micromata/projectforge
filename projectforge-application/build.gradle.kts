@@ -253,6 +253,10 @@ tasks.named<Test>("test") {
         exclude("_site/**", "node_modules/**", ".jekyll-cache/**", "assets/css/main.css", "_data/binaries.json")
     }).withPropertyName("site").withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.dir(rootProject.file("changelog")).withPropertyName("changelog").withPathSensitivity(PathSensitivity.RELATIVE)
+    // GenerateFlutterI18nMessagesTest scans the Dart sources of the app and compares its generated catalogs.
+    inputs.files(rootProject.fileTree("projectforge-flutter") {
+        include("lib/**/*.dart", "assets/i18n/**")
+    }).withPropertyName("flutterI18n").withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 tasks.named("processResources") {

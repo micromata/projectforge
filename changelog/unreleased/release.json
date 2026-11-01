@@ -1,0 +1,36 @@
+{
+  "title": {
+    "en": "ProjectForge 9.2.1: CVE-Radar with AI prompts and ad-hoc check, Apple Wallet, mobile layout",
+    "de": "ProjectForge 9.2.1: CVE-Radar mit KI-Prompts und Ad-hoc-Prüfung, Apple Wallet, mobiles Layout"
+  },
+  "summary": {
+    "en": [
+      "**CVE-Radar**: ad-hoc check of uploaded files, findings report and case research with prompts for an approved AI system",
+      "**Digital business cards** in the Apple Wallet",
+      "More room for content on **mobile devices**",
+      "Fix: planned invoices no longer count in the invoice statistics"
+    ],
+    "de": [
+      "**CVE-Radar**: Ad-hoc-Prüfung hochgeladener Dateien, Findings-Report und Fallrecherche mit Prompts für ein freigegebenes KI-System",
+      "**Digitale Visitenkarten** im Apple Wallet",
+      "Mehr Platz für Inhalte auf **mobilen Geräten**",
+      "Korrektur: Geplante Rechnungen zählen nicht mehr in der Rechnungsstatistik"
+    ]
+  },
+  "overview": {
+    "en": [
+      "**CVE-Radar:** ad-hoc check of lockfiles, SBOMs or a zip of such lists against all vulnerabilities without storing anything; export of the open findings of a project with a prompt for advice on the fix; research of a new case with an AI system; download and import of a case as JSON; upload of all lists of a component in one zip and the lockfile of pnpm.",
+      "**Digital business cards:** add a card to the Apple Wallet (needs a Pass Type ID certificate).",
+      "**Mobile app (in preparation):** login via the browser with second factor, the own business cards also without network, connected apps listed in My account.",
+      "**Mobile devices:** on narrow or low screens the logo row and the status bar are hidden, smaller paddings, a compact list footer, scrollable tabs; very low screens scroll.",
+      "**Fixes:** planned invoices no longer count in the statistics of the invoice list."
+    ],
+    "de": [
+      "**CVE-Radar:** Ad-hoc-Prüfung von Lockfiles, SBOMs oder einem Zip solcher Listen gegen alle Schwachstellen, ohne etwas zu speichern; Export der offenen Findings eines Projekts mit einem Prompt für Vorschläge zur Behebung; Recherche eines neuen Falls mit einem KI-System; Fall als JSON herunterladen und importieren; Upload aller Listen einer Komponente in einem Zip und die Lockfile von pnpm.",
+      "**Digitale Visitenkarten:** Karte zum Apple Wallet hinzufügen (braucht ein Pass-Type-ID-Zertifikat).",
+      "**Mobile App (in Vorbereitung):** Anmeldung über den Browser mit zweitem Faktor, die eigenen Visitenkarten auch ohne Netz, verbundene Apps in Mein Zugang.",
+      "**Mobile Geräte:** auf schmalen oder niedrigen Bildschirmen sind Logo-Zeile und Statusleiste ausgeblendet, kleinere Abstände, ein kompakter Listenfuß, scrollbare Tabs; sehr niedrige Bildschirme scrollen.",
+      "**Korrekturen:** Geplante Rechnungen zählen nicht mehr in der Statistik der Rechnungsliste."
+    ]
+  }
+}

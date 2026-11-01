@@ -32,6 +32,7 @@ import org.projectforge.business.ldap.LdapMasterLoginHandler
 import org.projectforge.business.ldap.LdapSlaveLoginHandler
 import org.projectforge.business.login.*
 import org.springframework.util.ClassUtils
+import org.projectforge.business.user.AppDeviceDao
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserPrefCache
 import org.projectforge.business.user.UserTokenType
@@ -57,6 +58,9 @@ open class LoginService {
 
     @Autowired
     private lateinit var applicationContext: ApplicationContext
+
+    @Autowired
+    private lateinit var appDeviceDao: AppDeviceDao
 
     @Autowired
     private lateinit var cookieService: CookieService
@@ -157,7 +161,69 @@ open class LoginService {
             logout(request, response)
             return false
         }
+        if (!isAppDeviceOfSessionValid(request, userContext)) {
+            log.info { "App device of the web session of user #${userContext.user?.id} was logged out: logged out." }
+            logout(request, response)
+            return false
+        }
         return !userContext.new2FARequired
+    }
+
+    /**
+     * A web session of the mobile app ([appWebLogin]) lives only as long as the app: logged out in "My account", by
+     * the admin, by a password change or expired, its sessions end as well. Checked at most every
+     * [CHECK_APP_DEVICE_INTERVAL_MS].
+     */
+    private fun isAppDeviceOfSessionValid(request: HttpServletRequest, userContext: UserContext): Boolean {
+        val session = request.getSession(false) ?: return true
+        val deviceId = session.getAttribute(SESSION_KEY_APP_DEVICE_ID) as? Long ?: return true
+        val lastCheck = session.getAttribute(SESSION_KEY_LAST_APP_DEVICE_CHECK) as? Long
+        if (lastCheck != null && System.currentTimeMillis() - lastCheck < CHECK_APP_DEVICE_INTERVAL_MS) {
+            return true
+        }
+        if (!appDeviceDao.isValid(userContext.user?.id, deviceId)) {
+            return false
+        }
+        session.setAttribute(SESSION_KEY_LAST_APP_DEVICE_CHECK, System.currentTimeMillis())
+        return true
+    }
+
+    /**
+     * Logs the user of a mobile app into a new web session, for the ProjectForge pages the app shows in its WebView
+     * (`POST /rs/app/webSession`). The caller has authenticated the request by the app token, the user and the device
+     * come from its row in the database.
+     *
+     * The session inherits the second factor of the app's browser login ([lastSuccessful2FA]) and nothing else. It gets
+     * a new id ([internalLogin], session fixation) and is bound to the device ([isAppDeviceOfSessionValid]).
+     *
+     * @return false, if the second factor of the app is too old for a login (`projectforge.2fa.loginExpiryDays`): no
+     * session then, the app has to log in again in the browser.
+     */
+    fun appWebLogin(request: HttpServletRequest, user: PFUserDO, lastSuccessful2FA: Long?, deviceId: Long): Boolean {
+        val userId = user.id ?: return false
+        val userContext = UserContext(user)
+        userContext.lastSuccessful2FA = lastSuccessful2FA
+        userContext.authenticatorAppConfigured = userAuthenticationsService.isAuthenticatorAppConfigured(userId)
+        if (check2FARequiredAfterLogin(userContext)) {
+            return false
+        }
+        internalLogin(request, userContext)
+        request.getSession(false)?.let { session ->
+            session.setAttribute(SESSION_KEY_APP_DEVICE_ID, deviceId)
+            session.setAttribute(SESSION_KEY_LAST_APP_DEVICE_CHECK, System.currentTimeMillis())
+            session.setAttribute(SESSION_KEY_LAST_2FA_AFTER_LOGIN_CHECK, System.currentTimeMillis())
+        }
+        log.info { "User #$userId logged in to a web session by the token of app device #$deviceId." }
+        return true
+    }
+
+    /**
+     * The rule of a login (`projectforge.2fa.loginExpiryDays`) for a client without a session, which never logs in
+     * again: the mobile app, whose [UserContext.lastSuccessful2FA] is the second factor of its browser login. Too
+     * old, its requests are refused until it logs in again in the browser (see `RestAuthenticationUtils.doFilter`).
+     */
+    fun is2FARequiredAfterLogin(userContext: UserContext): Boolean {
+        return check2FARequiredAfterLogin(userContext)
     }
 
     /**
@@ -367,6 +433,14 @@ open class LoginService {
         // Check hourly
         private const val CHECK_2FA_AFTER_LOGIN_INTERVAL_MS = 3_600_000
 
+        /** The app device a web session belongs to, see [appWebLogin]. */
+        private const val SESSION_KEY_APP_DEVICE_ID = "LoginService.appDeviceId"
+
+        /** Time of the last check of the app device of a web session. Public for the tests (pretending the check is due). */
+        const val SESSION_KEY_LAST_APP_DEVICE_CHECK = "LoginService.lastAppDeviceCheck"
+
+        private const val CHECK_APP_DEVICE_INTERVAL_MS = 60_000
+
         /**
          * Used for storing given userContext in user's session. A new session id is generated (avoids attack with session fixation).
          * Should only be used internally by [LoginService] itself and setup page.
@@ -394,6 +468,15 @@ open class LoginService {
         @JvmStatic
         fun internalLoginInCurrentSession(request: HttpServletRequest, userContext: UserContext) {
             request.getSession(true).setAttribute(SESSION_KEY_USER, userContext)
+        }
+
+        /**
+         * @return true, if the session of the request was opened by an app token ([appWebLogin]). Such a session
+         * must not register further apps: a stolen token would otherwise mint new ones, which outlive its revocation.
+         */
+        @JvmStatic
+        fun isAppWebSession(request: HttpServletRequest): Boolean {
+            return request.getSession(false)?.getAttribute(SESSION_KEY_APP_DEVICE_ID) != null
         }
 
         @JvmStatic

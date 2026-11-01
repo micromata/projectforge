@@ -219,6 +219,8 @@ class FeaturePathIndex {
          */
         val CORE_REST = setOf(
             ATTACHMENTS,
+            // Login of the mobile app.
+            "appAuth",
             "historyEntries",
             "logout",
             "menu",
@@ -234,6 +236,8 @@ class FeaturePathIndex {
 
         /** The REST categories below `/rsPublic` of the app itself (login, setup, status, texts, logos): always reachable. */
         val CORE_REST_PUBLIC = setOf(
+            // Login of the mobile app.
+            "appAuth",
             "authenticationCredentials",
             "heartbeat",
             "i18nCustomerOverrides",

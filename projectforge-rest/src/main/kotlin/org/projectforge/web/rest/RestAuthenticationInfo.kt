@@ -23,6 +23,7 @@
 
 package org.projectforge.web.rest
 
+import org.projectforge.business.user.AppDeviceDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.web.WebUtils
 import org.springframework.http.HttpStatus
@@ -56,4 +57,10 @@ class RestAuthenticationInfo(var request: HttpServletRequest,
      * This flag is used for disabling CSRF protection, because this isn't needed by pure REST clients (only for Web clients).
      */
     var loggedInByAuthenticationToken = false
+
+    /**
+     * The app the request comes from, if authenticated by an app token (see
+     * [RestAuthenticationUtils.appTokenAuthentication]). Its last second factor is taken for the 2FA checks.
+     */
+    var appDevice: AppDeviceDO? = null
 }

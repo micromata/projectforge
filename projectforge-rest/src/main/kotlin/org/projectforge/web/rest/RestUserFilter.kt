@@ -50,6 +50,9 @@ class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
         return
       }
     }
+    if (restAuthenticationUtils.appTokenAuthentication(authInfo)) {
+      return // The request carries the token of the mobile app, valid or not.
+    }
     restAuthenticationUtils.tokenAuthentication(authInfo, UserTokenType.REST_CLIENT, false)
     if (authInfo.success) {
       return

@@ -128,7 +128,7 @@ class FeatureCoverageTest {
     }
 
     companion object {
-        /** Pages of the app itself, always reachable. */
-        private val CORE_NEXT = setOf("changelog")
+        /** Pages of the app itself, always reachable (appLogin: login of the mobile app). */
+        private val CORE_NEXT = setOf("appLogin", "changelog")
     }
 }

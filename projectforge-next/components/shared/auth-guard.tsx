@@ -16,7 +16,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      const returnUrl = encodeURIComponent(initialPathname.current);
+      // The query string belongs to the target as well (e.g. the challenge of the app login, /appLogin?…).
+      // Read here and not via useSearchParams, which would need a Suspense boundary above this guard; the
+      // address bar still shows the requested url, as this runs before the redirect below.
+      const returnUrl = encodeURIComponent(
+        initialPathname.current + window.location.search
+      );
       router.replace(`/login?returnUrl=${returnUrl}`);
     }
   }, [isLoading, isAuthenticated, router]);

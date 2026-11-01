@@ -29,6 +29,7 @@ import org.projectforge.rest.core.RestLogEvents
 import org.projectforge.Constants
 import org.projectforge.SystemStatus
 import org.projectforge.business.login.LoginProtection
+import org.projectforge.business.user.AppDeviceDao
 import org.projectforge.business.user.UserAccessLogEntries
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
@@ -39,6 +40,7 @@ import org.projectforge.login.LoginService
 import org.projectforge.rest.Authentication
 import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
+import org.projectforge.rest.app.AppAuthRest
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.core.RestCsrfProtection
 import org.projectforge.rest.pub.next.RestError
@@ -68,6 +70,12 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class RestAuthenticationUtils {
+  @Autowired
+  private lateinit var appDeviceDao: AppDeviceDao
+
+  @Autowired
+  private lateinit var loginService: LoginService
+
   @Autowired
   private lateinit var userAuthenticationsService: UserAuthenticationsService
 
@@ -247,6 +255,36 @@ open class RestAuthenticationUtils {
   }
 
   /**
+   * Tries an authorization by the token of the mobile app (header `Authorization: PFApp <token>`, see
+   * [org.projectforge.business.user.AppAuthService]). The token alone identifies the app and its user.
+   *
+   * @return true if the request carries an app token, valid or not: no other authentication is tried then, a wrong
+   * app token is a failed login.
+   */
+  fun appTokenAuthentication(authInfo: RestAuthenticationInfo): Boolean {
+    val token = getAppToken(authInfo.request) ?: return false
+    if (checkLoginProtection(authInfo, UserTokenType.REST_CLIENT)) {
+      return true // Logging is done by check method.
+    }
+    val device = appDeviceDao.getValidDevice(token)
+    val user = device?.user
+    if (device == null || user == null || !user.hasSystemAccess()) {
+      // Usually an app whose token was revoked (logout in the web, password change) or has expired.
+      logWarn(authInfo, "App token unknown, expired or of a user without system access. Rest call denied.")
+      authInfo.resultCode = HttpStatus.UNAUTHORIZED
+      return true
+    }
+    authInfo.user = user
+    authInfo.loggedInByAuthenticationToken = true // No session, no cookies: no CSRF protection needed.
+    authInfo.appDevice = device
+    appDeviceDao.updateLastAccessIfDue(device, authInfo.request)
+    if (log.isDebugEnabled()) {
+      logDebug(authInfo, "User '${user.username}' authenticated by the token of app device #${device.id}.")
+    }
+    return true
+  }
+
+  /**
    * Re-usable doFilter method. Checks the system status and calls given authenticate method. In case of success, the
    * authenticated user will be put to the [ThreadLocalUserContext], calls the doFilter method and will be removed after request was finished.
    * @param request
@@ -297,10 +335,16 @@ open class RestAuthenticationUtils {
       if (!restCsrfProtection.checkRequest(request, response, authInfo)) {
         return // Cross-site request: the error response was already written.
       }
+      if (isLogin2FAOfAppExpired(authInfo)) {
+        // A browser would have to log in again with a second factor: so does the app (ApiClient renews its login).
+        log.info { "2FA of app device #${authInfo.appDevice?.id} too old for a login (projectforge.2fa.loginExpiryDays): ${request.requestURI}" }
+        writeTwoFactorRequired(response, null)
+        return
+      }
       val expiryMillis = my2FARequestHandler.handleRequest(authInfo.request)
       if (expiryMillis != null) {
         log.info { "2FA is required for this request: ${authInfo.request.requestURI}" }
-        if (authInfo.loggedInByAuthenticationToken) {
+        if (authInfo.loggedInByAuthenticationToken && authInfo.appDevice == null) {
           // A client authenticated by an authentication token can't do a 2FA at all: it has no session, so
           // registerUser creates a fresh UserContext for every request and UserContext.lastSuccessful2FA is always
           // null (My2FAExpiryPeriod.valid). Such a request is therefore permanently denied and the client only needs
@@ -313,18 +357,35 @@ open class RestAuthenticationUtils {
           sendError(response, HttpStatus.FORBIDDEN.value(), "Access denied: 2FA required, not available for rest clients.")
           return
         }
-        // projectforge-next opens its own 2FA dialog and repeats the request afterwards (see lib/rs/client.ts).
-        response.status = HttpStatus.FORBIDDEN.value()
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE)
-        response.writer.write(
-          JsonUtils.toJson(TwoFactorRequired(expiryMillis = expiryMillis), ignoreNullableProps = true)
-        )
+        // projectforge-next opens its own 2FA dialog and repeats the request afterwards (see lib/rs/client.ts). The
+        // app does its 2FA in the browser (a new login, AppAuthService) and repeats the request with its new token.
+        writeTwoFactorRequired(response, expiryMillis)
       } else {
         doFilter()
       }
     } finally {
       unregister(request, response, authInfo)
     }
+  }
+
+  /**
+   * The app never logs in again by itself: its second factor (of the browser login) is checked against
+   * `projectforge.2fa.loginExpiryDays` like a login of the browser. Its logout is always allowed, so it can delete
+   * its token.
+   */
+  private fun isLogin2FAOfAppExpired(authInfo: RestAuthenticationInfo): Boolean {
+    authInfo.appDevice ?: return false
+    if (authInfo.request.requestURI == AppAuthRest.LOGOUT_URL) {
+      return false
+    }
+    val userContext = ThreadLocalUserContext.userContext ?: return true
+    return loginService.is2FARequiredAfterLogin(userContext)
+  }
+
+  private fun writeTwoFactorRequired(response: HttpServletResponse, expiryMillis: Long?) {
+    response.status = HttpStatus.FORBIDDEN.value()
+    response.setContentType(MediaType.APPLICATION_JSON_VALUE)
+    response.writer.write(JsonUtils.toJson(TwoFactorRequired(expiryMillis = expiryMillis), ignoreNullableProps = true))
   }
 
   @JvmOverloads
@@ -353,6 +414,10 @@ open class RestAuthenticationUtils {
     val clientIpAddress = authInfo.clientIpAddress
     LoginProtection.instance().clearLoginTimeOffset(authInfo.userString, user.id, clientIpAddress, userTokenType?.name)
     userContext.loggedInByAuthenticationToken = authInfo.loggedInByAuthenticationToken
+    authInfo.appDevice?.let { device ->
+      // The app has no session: its last second factor is the one done in the browser when its token was issued.
+      userContext.lastSuccessful2FA = device.last2FA?.time
+    }
     val settings = getConnectionSettings(request)
     ConnectionSettings.set(settings)
     log.info { "User: ${user.username} calls RestURL: ${request.requestURI} with ip: $clientIpAddress" }
@@ -450,6 +515,23 @@ open class RestAuthenticationUtils {
      * the static export is served under [Constants.NEXT_APP_PATH].
      */
     const val NEXT_CLIENT_HEADER = "X-PF-Frontend"
+
+    /**
+     * Scheme of the app token in the `Authorization` header: `Authorization: PFApp <token>`.
+     */
+    const val APP_TOKEN_SCHEME = "PFApp"
+
+    /**
+     * @return The app token of the `Authorization` header, or null if the header has another scheme or is missing.
+     */
+    fun getAppToken(request: HttpServletRequest): String? {
+      val header = request.getHeader("Authorization") ?: return null
+      val prefix = "$APP_TOKEN_SCHEME "
+      if (!header.startsWith(prefix, ignoreCase = true)) {
+        return null
+      }
+      return header.substring(prefix.length).trim().ifBlank { null }
+    }
 
     /**
      * Both the header and the Referer are under the client's control, so this is **not** a trust boundary and must
