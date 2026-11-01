@@ -1549,6 +1549,68 @@ mit `rpm -qa`. Images ohne Paketmanager (distroless, scratch) brauchen eine SBOM
 Hinweis: Die Distributionen portieren Fixes zurück, ohne die Version des Originals zu ändern; ob die installierte
 Version betroffen ist, sagt der Security-Tracker der Distribution (z. B. von Ubuntu oder Debian).
 
+[[cve_radar_case_ai]]
+=== CVE-Radar: Fall mit KI recherchieren
+
+Einen neuen Fall zu recherchieren, mit oder ohne CVE, dauert: Was ist betroffen, wie ernst ist es, welche Version
+behebt es, was hilft bis dahin? _Mit KI recherchieren_ (Liste der Fälle oder neuer Fall; nur Security-Team) bereitet
+diese Recherche für ein freigegebenes KI-System vor. Eine direkte Anbindung an ein KI-System gibt es nicht: Der Prompt
+wird dorthin kopiert, die Antwort wieder eingefügt.
+
+. Art (CVE oder Vorfall), die CVE-ID, falls es eine gibt, worum es geht, die Quellen (eine URL pro Zeile) und weitere
+  Hinweise eintragen. Ist die CVE schon im NVD-Import, gehen ihre Beschreibung, CVSS, CWE und Referenzen mit in den
+  Prompt; gibt es schon einen Fall zu ihr, verlinkt der Dialog stattdessen diesen.
+. _Prompt erstellen_ zeigt den Prompt in einem eigenen Schritt: kopieren oder als Datei herunterladen und in ein
+  freigegebenes KI-System geben. Jeder Schritt hat den Weg zurück, die Eingaben bleiben erhalten. Der Prompt verlangt einen JSON-Block in festem Format: Titel,
+  Zusammenfassung, Priorität mit Begründung, Fix-Version, Workaround, Maßnahmen für Techies und Non-Techies,
+  Freigabe für Mitarbeitende, Referenzen, betroffene Versionen, offene Fragen und Quellen. Die Bedeutung der
+  Prioritäten P1 bis P4 steht im Prompt.
+. Die Antwort einfügen (oder ihre Datei hineinziehen). Text um den JSON-Block herum stört nicht. Die Antwort wird
+  gegen das Format geprüft; was nicht passt, wird je Feld genannt.
+. Die Vorschau zeigt jeden Wert mit einem Kopier-Knopf und taugt so auch als Vorlage für einen bestehenden Fall.
+  _Fall anlegen_ legt einen neuen Fall an, mit sich selbst in Bearbeitung, und öffnet seine Akte.
+
+* Der Prompt verlässt ProjectForge: keine Namen interner Systeme, Kunden oder Personen, keine internen Hostnamen oder
+  Zugangsdaten. Nur freigegebene KI-Systeme verwenden.
+* Die Antwort ist ein Vorschlag: Betroffene Versionen, offene Fragen und Quellen kommen in die Beschreibung, markiert
+  als mit Unterstützung eines KI-Systems erstellt. Vor der Freigabe für die Mitarbeitenden alles prüfen, vor allem die
+  Priorität und die Maßnahmen.
+* Was das KI-System nicht wissen kann, bleibt weg: Bearbeitung, Team-Prüfungen und die Behebungskriterien des
+  Client-Agents.
+
+[[cve_radar_case_file]]
+=== CVE-Radar: Fall herunterladen und importieren
+
+_Als JSON herunterladen_ in der Akte eines Falls speichert den Fall als Datei: Art, Kennung, Titel, Beschreibung,
+Priorität mit Begründung, Fix-Version, Workaround, Maßnahmen, Referenzen, Freigabe für Mitarbeitende und die
+Behebungskriterien des Client-Agents, so wie sie gespeichert sind. Status, Bearbeitung, Bewertungen, Team-Prüfungen und
+die Diskussion gehören nicht dazu.
+
+_Fall importieren_ (Liste der Fälle oder neuer Fall; nur Security-Team) legt aus einer solchen Datei einen neuen Fall
+an, z. B. um einen Fall in eine andere Instanz von ProjectForge zu übernehmen: Datei einfügen oder hineinziehen,
+Vorschau prüfen, _Fall anlegen_. Der neue Fall ist bei einem selbst in Bearbeitung, seine Akte öffnet sich. Eine CVE,
+zu der es schon einen Fall gibt, wird abgewiesen; ein Vorfall bekommt die nächste Kennung des Jahres.
+Auch die Antwort einer KI auf den Prompt von <<cve_radar_case_ai,Mit KI recherchieren>> wird angenommen, z. B. als
+Datei gespeichert; beim Kopieren typografisch gewordene Anführungszeichen (`“…”`) werden begradigt.
+
+[[cve_radar_finding_report]]
+=== CVE-Radar: Findings eines Projekts exportieren
+
+Die offenen Findings eines Knotens im Inventar (Bereich, System, Instanz oder Komponente) und darunter lassen sich als
+eine JSON-Datei exportieren: das Download-Symbol in der Zeile eines Knotens mit Findings (_CVE-Radar > Systeme_). Sie
+enthält, was man sehen darf: je Schwachstelle die Daten der NVD (Beschreibung, CVSS, CWE, KEV, Referenzen), den Fall
+des Security-Teams (Priorität, Fix-Version, Workaround, Maßnahmen) und die gefundenen Technologien mit Versionen,
+Paket-URLs und den Instanzen, in denen sie gefunden wurden. Das Dringendste steht vorn.
+
+* _Interne Namen ersetzen_ (vorab eingeschaltet) ersetzt Codes und Namen von Bereichen, Systemen, Instanzen und
+  Komponenten durch neutrale (`S1`, `S1-I1`, `C1`). Die Namen der Bibliotheken und Produkte bleiben stehen.
+* Der Dialog hat dazu einen Prompt für ein freigegebenes KI-System, mit dem Report im Anhang: Er fragt, wie jede
+  Schwachstelle in diesem Projekt am besten behoben wird. Ist das Projekt wirklich betroffen, welche Version behebt
+  es und wie wird sie bei einer transitiven Abhängigkeit erzwungen (overrides, constraints, dependencyManagement),
+  was hilft bis dahin, wie lässt sich die Behebung prüfen. Die Bewertung des Security-Teams hat Vorrang. Den Prompt
+  kopieren oder als Datei herunterladen.
+* Die Antwort des KI-Systems ist ein Vorschlag: Versionen und Ausschnitte für die Build-Dateien vor dem Einsatz prüfen.
+
 [[further_features]]
 === Weitere Funktionen
 

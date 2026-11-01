@@ -4033,6 +4033,15 @@
         "risk": "Risikoeinschätzung",
         "shortDescription": "Kurzbeschreibung"
       },
+      "aiPrompt": {
+        "copied": "Prompt kopiert.",
+        "copy": "Prompt kopieren",
+        "copyFailed": "Kopieren hat nicht geklappt: den Prompt stattdessen herunterladen.",
+        "download": "Als Datei herunterladen",
+        "info": "Den Prompt kopieren oder als Datei herunterladen und in ein freigegebenes KI-System einfügen.",
+        "label": "Prompt",
+        "step": "Schritt {arg0} von {arg1}: {arg2}"
+      },
       "apply": "Übernehmen",
       "back": "Zurück",
       "baseline": {
@@ -4066,6 +4075,53 @@
         "title": "Feedback {arg0}"
       },
       "case": {
+        "ai": {
+          "affected": "Betroffen",
+          "answer": {
+            "info": "Die Antwort des KI-Systems hier einfügen oder ihre Datei hierher ziehen.",
+            "invalid": "Die Antwort passt nicht zum Format",
+            "label": "Antwort des KI-Systems"
+          },
+          "back": {
+            "input": "Zurück zu den Angaben",
+            "prompt": "Zurück zum Prompt"
+          },
+          "button": "Mit KI recherchieren",
+          "caseExists": "Für {arg0} gibt es schon einen Fall.",
+          "confirm": {
+            "answer": "Fall anlegen",
+            "input": "Prompt erstellen",
+            "prompt": "Weiter zur Antwort"
+          },
+          "cveId": "CVE-ID",
+          "description": "Der Prompt wird in ein freigegebenes KI-System kopiert; dessen Antwort legt hier nach einer Vorschau den Fall an.",
+          "error": {
+            "required": "{arg0} fehlt.",
+            "tooLong": "{arg0} ist zu lang (höchstens {arg1} Zeichen)."
+          },
+          "marker": "Mit Unterstützung eines KI-Systems erstellt (Format {arg0}), vor der Freigabe prüfen.",
+          "notes": "Weitere Hinweise",
+          "nvdFound": "{arg0} ist im NVD-Import: Beschreibung, CVSS, CWE und Referenzen gehen in den Prompt mit.",
+          "nvdMissing": "{arg0} ist (noch) nicht im NVD-Import.",
+          "openQuestions": "Offene Fragen",
+          "preview": "Vorschau: Jeder Wert lässt sich einzeln kopieren, z. B. in einen bestehenden Fall.",
+          "privacy": "Der Prompt verlässt ProjectForge: keine Namen interner Systeme, Kunden oder Personen, keine internen Hostnamen oder Zugangsdaten eintragen.",
+          "prompt": {
+            "fields": "Bedeutung der Felder:\n- kind: CVE (Schwachstelle mit CVE-ID) oder INCIDENT (ohne CVE-ID, z. B. ein kompromittiertes Paket oder eine Lücke vor ihrer Veröffentlichung).\n- title: ein kurzer, sprechender Titel (Produkt und Art der Lücke).\n- summary: worum es geht, was betroffen ist, wie die Lücke ausgenutzt wird und wie ernst sie ist (Markdown, wenige Absätze).\n- priority und priorityReason: ein Vorschlag nach der Skala unten mit kurzer Begründung; ohne belastbare Grundlage beide leer lassen.\n- fixVersion: die erste Version, die das Problem behebt.\n- workaround: was hilft, solange nicht aktualisiert werden kann (Markdown).\n- techMeasures: konkrete Schritte für Entwicklung und Betrieb: prüfen, aktualisieren, konfigurieren, wo sinnvoll mit Befehlen (Markdown).\n- nonTechMeasures: was alle Mitarbeitenden tun sollen, ohne Fachbegriffe; leer, wenn nichts zu tun ist (Markdown).\n- clientAdvisory: true, wenn alle Mitarbeitenden informiert werden sollen, z. B. bei Browsern, Betriebssystemen oder Office-Software auf ihren Geräten.\n- references: Advisories, Patches und Analysen mit kurzem Label, nur https.\n- affected: betroffene Produkte mit ihren Versionsbereichen.\n- openQuestions: was unklar blieb oder intern geprüft werden muss.\n- sources: alle genutzten Quellen.",
+            "instruction": "Recherchiere den folgenden Sicherheitsfall (eine Schwachstelle oder einen Vorfall) für ein IT-Unternehmen mit eigener Softwareentwicklung, Servern und Arbeitsplatzrechnern. Nutze die angegebenen Quellen und die Advisories der Hersteller und Distributionen. Erfinde nichts: Was sich nicht belegen lässt, bleibt leer oder kommt in openQuestions. Schreibe auf Deutsch, sachlich, knapp und ohne Anrede mit „Sie“. Antworte ausschließlich mit einem JSON-Block, genau im Format des Beispiels am Ende; Markdown nur innerhalb der Textfelder.",
+            "priorities": "Skala der Prioritäten:"
+          },
+          "sources": "Quellen",
+          "step": {
+            "answer": "Antwort und Vorschau",
+            "input": "Angaben",
+            "prompt": "Prompt"
+          },
+          "title": "Fall mit KI recherchieren",
+          "topic": "Worum geht es?",
+          "topicPlaceholder": "Z. B. Produkt, Version, was beobachtet oder gemeldet wurde",
+          "urls": "Quellen (eine URL pro Zeile)"
+        },
         "assignee": "Bearbeitung",
         "clientAdvisory": "Für Mitarbeitende freigegeben",
         "clientAdvisoryHint": "Alle Mitarbeitenden sehen den Fall mit den Maßnahmen für Non-Techies und bestätigen sie, sofern ihre Geräte die Behebung nicht schon belegen.",
@@ -4078,7 +4134,18 @@
           "conflict": "Dieser Fall wurde inzwischen geändert (um {arg0}). Bitte neu laden und die Änderung wiederholen.",
           "cveId": "Eine CVE braucht ihre CVE-ID, z. B. CVE-2026-12345."
         },
+        "export": {
+          "button": "Als JSON herunterladen"
+        },
         "fixVersion": "Fix-Version",
+        "import": {
+          "button": "Fall importieren",
+          "description": "Ein als JSON heruntergeladener Fall (Fall-Datei, Als JSON herunterladen), z. B. aus einer anderen Instanz von ProjectForge, oder die Antwort einer KI auf den Prompt von Mit KI recherchieren. Er wird als neuer Fall angelegt, mit sich selbst in Bearbeitung; Status, Bewertungen, Team-Prüfungen und Diskussion gehören nicht dazu.",
+          "info": "Die Fall-Datei oder die KI-Antwort hier einfügen, die Datei auf dieses Feld ziehen oder auswählen.",
+          "invalid": "Weder eine gültige Fall-Datei noch eine gültige KI-Antwort",
+          "label": "Fall-Datei oder KI-Antwort",
+          "title": "Fall importieren"
+        },
         "kind": {
           "_": "Art",
           "CVE": "Schwachstelle (CVE)",
@@ -4398,6 +4465,22 @@
         "done": "{arg0} erledigt",
         "inProgress": "{arg0} in Arbeit",
         "open": "{arg0} offen"
+      },
+      "findingReport": {
+        "anonymize": {
+          "_": "Interne Namen ersetzen (S1, S1-I1, C1)",
+          "hint": "Für ein KI-System außerhalb des Unternehmens eingeschaltet lassen. Die Namen der Bibliotheken und Produkte bleiben stehen."
+        },
+        "button": "Findings exportieren",
+        "description": "Die offenen Findings dieses Knotens und darunter als JSON, dazu ein Prompt für ein KI-System, das Vorschläge zur Behebung macht.",
+        "download": "JSON herunterladen",
+        "empty": "Hier gibt es keine offenen Findings.",
+        "privacy": "Nur ein freigegebenes KI-System verwenden. Der Report enthält die Produkte, Versionen und Bibliotheken des Projekts.",
+        "prompt": {
+          "instruction": "Du bist Expertin oder Experte für Software-Sicherheit. Unten steht ein Report bekannter Schwachstellen (CVEs), die in einem Softwareprojekt gefunden wurden, als JSON. Erarbeite für jede Schwachstelle, wie sie in diesem Projekt am besten behoben wird:\n1. Betroffenheit prüfen: Vergleiche die Version der Technologie (technology.version) mit den betroffenen Versionen. certainty AFFECTED: über CPE oder Paket-URL mit Versionsbereich gefunden; POSSIBLE: nur über den Namen oder ohne Version gefunden, also zuerst prüfen.\n2. Behebung: die Zielversion (die niedrigste Version mit dem Fix, ohne Breaking Changes, falls es die Wahl gibt) und der Weg dorthin. Bei einer transitiven Abhängigkeit (siehe purl und ecosystem): welche direkte Abhängigkeit zu aktualisieren ist oder wie die Version erzwungen wird (z. B. overrides in npm/pnpm, resolutions in Yarn, constraints in Gradle, dependencyManagement in Maven), mit dem konkreten Ausschnitt der Build-Datei.\n3. Gibt es noch keinen Fix: ein Workaround oder eine Maßnahme zur Eindämmung.\n4. Prüfung: wie sich zeigen lässt, dass es behoben ist (Befehl, Test, erneuter Export der Lockfile).\nDie Bewertung des Security-Teams im Feld case (fixVersion, workaround, techMeasures) hat Vorrang. Reihenfolge: zuerst die im KEV-Katalog (kevAdded), dann nach der Priorität des Falls (P1 zuerst), dann nach CVSS. Erfinde keine Versionen; nenne die Quellen und kennzeichne, was unsicher ist. Antworte auf Deutsch in Markdown, ohne Anrede mit „Sie“: zuerst eine Tabelle (CVE, Technologie, aktuelle Version, Zielversion, Aufwand), dann ein Abschnitt je Schwachstelle; fasse CVEs zusammen, die dieselbe Aktualisierung behebt."
+        },
+        "summary": "{arg0} Schwachstellen, {arg1} Findings",
+        "title": "Findings exportieren: {arg0}"
       },
       "findingStatus": {
         "AFFECTED": "Betroffen",

@@ -126,12 +126,64 @@ class CvrInventoryService {
         return users.associate { user ->
             val view = View(user, model)
             user.id!! to model.instances.values.filter { view.canReadInstance(it) }.associate { instance ->
+                instance.id!! to view.label(instance)
+            }
+        }
+    }
+
+    /**
+     * What a report of the open findings below a node covers: the node and the instances below it the user may read
+     * (VIS-02), a component only its own findings. A node the user can't read is refused, an area also if nothing
+     * below it is readable.
+     */
+    class ReportScope(
+        val level: InventoryLevel,
+        val code: String?,
+        val name: String?,
+        val instances: Map<Long, InstanceLabel>,
+        val componentId: Long?,
+    )
+
+    fun reportScope(user: PFUserDO, level: InventoryLevel, id: Long): ReportScope {
+        val view = View(user, load())
+        val model = view.model
+        val readable = model.instances.values.filter { view.canReadInstance(it) }
+        fun refused(): Nothing = throw AccessException(user, CveRadarAccess.NO_ACCESS)
+        fun scope(code: String?, name: String?, instances: List<CvrInstanceDO>, componentId: Long? = null) =
+            ReportScope(level, code, name, instances.associate { it.id!! to view.label(it) }, componentId)
+        return when (level) {
+            InventoryLevel.AREA -> {
+                val area = view.area(id)
+                val below = readable.filter { instance ->
+                    view.chain(model.areas[model.systems[instance.systemId]?.areaId]).any { it.id == id }
+                }
+                if (!view.canWriteArea(area) && below.isEmpty()) refused()
+                scope(area.code, area.name, below)
+            }
+
+            InventoryLevel.SYSTEM -> {
+                val system = view.system(id)
+                if (!view.canReadSystem(system)) refused()
+                scope(system.code, system.name, readable.filter { it.systemId == id })
+            }
+
+            InventoryLevel.INSTANCE -> {
+                val instance = view.instance(id)
+                if (!view.canReadInstance(instance)) refused()
                 val system = view.system(instance.systemId!!)
-                instance.id!! to InstanceLabel(
-                    instance.id!!, system.id!!, view.chain(model.areas[system.areaId]).reversed().joinToString(" / ") { it.code ?: "" }
-                        .takeIf { it.isNotBlank() },
-                    system.code + " " + system.name, instance.code,
-                )
+                scope(system.code + (instance.code?.let { "-$it" } ?: ""), instance.name ?: system.name, listOf(instance))
+            }
+
+            InventoryLevel.COMPONENT -> {
+                val component = view.component(id)
+                val systemId = view.systemIdOf(component) ?: refused()
+                val instances = readable.filter {
+                    if (component.instanceId != null) it.id == component.instanceId else it.systemId == systemId
+                }
+                if (instances.isEmpty()) refused()
+                // As in the tree: system, instance (if the component belongs to one), component.
+                val instanceCode = component.instanceId?.let { view.instance(it).code }?.let { "-$it" } ?: ""
+                scope("${view.system(systemId).code}$instanceCode-${component.code}", component.name, instances, id)
             }
         }
     }
@@ -603,6 +655,16 @@ class CvrInventoryService {
         fun instance(id: Long): CvrInstanceDO = model.instances[id] ?: throw UserException(ERROR_NOT_FOUND)
 
         fun component(id: Long): CvrComponentDO = model.components[id] ?: throw UserException(ERROR_NOT_FOUND)
+
+        /** Where an instance is: the codes of the areas above, the system, the code of the instance. */
+        fun label(instance: CvrInstanceDO): InstanceLabel {
+            val system = system(instance.systemId!!)
+            return InstanceLabel(
+                instance.id!!, system.id!!, chain(model.areas[system.areaId]).reversed().joinToString(" / ") { it.code ?: "" }
+                    .takeIf { it.isNotBlank() },
+                system.code + " " + system.name, instance.code,
+            )
+        }
 
         fun systemIdOf(component: CvrComponentDO): Long? =
             component.systemId ?: model.instances[component.instanceId]?.systemId

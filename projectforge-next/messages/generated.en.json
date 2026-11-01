@@ -4033,6 +4033,15 @@
         "risk": "Risk assessment",
         "shortDescription": "Short description"
       },
+      "aiPrompt": {
+        "copied": "Prompt copied.",
+        "copy": "Copy prompt",
+        "copyFailed": "Copying failed: download the prompt instead.",
+        "download": "Download as a file",
+        "info": "Copy the prompt or download it as a file, and paste it into an approved AI system.",
+        "label": "Prompt",
+        "step": "Step {arg0} of {arg1}: {arg2}"
+      },
       "apply": "Apply",
       "back": "Back",
       "baseline": {
@@ -4066,6 +4075,53 @@
         "title": "Feedback {arg0}"
       },
       "case": {
+        "ai": {
+          "affected": "Affected",
+          "answer": {
+            "info": "Paste the answer of the AI system here or drop its file.",
+            "invalid": "The answer does not match the format",
+            "label": "Answer of the AI system"
+          },
+          "back": {
+            "input": "Back to the details",
+            "prompt": "Back to the prompt"
+          },
+          "button": "Research with AI",
+          "caseExists": "There is a case for {arg0} already.",
+          "confirm": {
+            "answer": "Create case",
+            "input": "Create prompt",
+            "prompt": "Continue with the answer"
+          },
+          "cveId": "CVE id",
+          "description": "The prompt is copied into an approved AI system; its answer creates the case here, after a preview.",
+          "error": {
+            "required": "{arg0} is missing.",
+            "tooLong": "{arg0} is too long (at most {arg1} characters)."
+          },
+          "marker": "Created with the help of an AI system (format {arg0}), check before releasing.",
+          "notes": "Further notes",
+          "nvdFound": "{arg0} is in the NVD import: its description, CVSS, CWE and references go into the prompt.",
+          "nvdMissing": "{arg0} is not in the NVD import (yet).",
+          "openQuestions": "Open questions",
+          "preview": "Preview: every value can be copied on its own, e.g. into an existing case.",
+          "privacy": "The prompt leaves ProjectForge: no names of internal systems, customers or persons, no internal host names or credentials.",
+          "prompt": {
+            "fields": "Meaning of the fields:\n- kind: CVE (vulnerability with a CVE id) or INCIDENT (without CVE id, e.g. a compromised package or a vulnerability before its publication).\n- title: a short, telling title (product and kind of the vulnerability).\n- summary: what it is about, what is affected, how it is exploited and how serious it is (Markdown, a few paragraphs).\n- priority and priorityReason: a proposal on the scale below with a short reason; both empty without a sound basis.\n- fixVersion: the first version that fixes the problem.\n- workaround: what helps as long as no update is possible (Markdown).\n- techMeasures: concrete steps for development and operations: check, update, configure, with commands where useful (Markdown).\n- nonTechMeasures: what every employee should do, without jargon; empty if there is nothing to do (Markdown).\n- clientAdvisory: true if all employees should be informed, e.g. for browsers, operating systems or office software on their devices.\n- references: advisories, patches and analyses with a short label, https only.\n- affected: affected products with their version ranges.\n- openQuestions: what remained unclear or has to be checked internally.\n- sources: all sources used.",
+            "instruction": "Research the following security case (a vulnerability or an incident) for an IT company with its own software development, servers and workstations. Use the given sources and the advisories of the vendors and distributions. Invent nothing: what cannot be backed by a source stays empty or goes into openQuestions. Write in English, factual and concise. Answer with one JSON block only, exactly in the format of the example at the end; Markdown only inside the text fields.",
+            "priorities": "Scale of the priorities:"
+          },
+          "sources": "Sources",
+          "step": {
+            "answer": "Answer and preview",
+            "input": "Details",
+            "prompt": "Prompt"
+          },
+          "title": "Research a case with AI",
+          "topic": "What is it about?",
+          "topicPlaceholder": "E.g. product, version, what was observed or reported",
+          "urls": "Sources (one URL per line)"
+        },
         "assignee": "Assignee",
         "clientAdvisory": "Released to employees",
         "clientAdvisoryHint": "Every employee sees the case with the measures for non-techies and confirms them, unless the own devices prove the fix already.",
@@ -4078,7 +4134,18 @@
           "conflict": "This case was changed in the meantime (at {arg0}). Please reload it and repeat your change.",
           "cveId": "A CVE needs its CVE id, e.g. CVE-2026-12345."
         },
+        "export": {
+          "button": "Download as JSON"
+        },
         "fixVersion": "Fix version",
+        "import": {
+          "button": "Import case",
+          "description": "A case downloaded as JSON (case file, Download as JSON), e.g. from another instance of ProjectForge, or the answer of an AI system to the prompt of Research with AI. It is created as a new case assigned to oneself; status, ratings, team checks and discussion are not part of it.",
+          "info": "Paste the case file or the AI answer here, drag the file onto this field or choose it.",
+          "invalid": "Neither a valid case file nor a valid AI answer",
+          "label": "Case file or AI answer",
+          "title": "Import case"
+        },
         "kind": {
           "_": "Kind",
           "CVE": "Vulnerability (CVE)",
@@ -4398,6 +4465,22 @@
         "done": "{arg0} done",
         "inProgress": "{arg0} in progress",
         "open": "{arg0} open"
+      },
+      "findingReport": {
+        "anonymize": {
+          "_": "Replace internal names (S1, S1-I1, C1)",
+          "hint": "Leave it on for an AI system outside the company. The names of libraries and products stay."
+        },
+        "button": "Export findings",
+        "description": "The open findings of this node and below as JSON, and a prompt for an AI system that suggests how to fix them.",
+        "download": "Download JSON",
+        "empty": "There are no open findings here.",
+        "privacy": "Use an approved AI system only. The report contains the products, versions and libraries of the project.",
+        "prompt": {
+          "instruction": "You are an expert in software security. Below is a report of known vulnerabilities (CVEs) found in a software project, as JSON. For every vulnerability, work out the best way to fix it in this project:\n1. Check whether the project is really affected: compare the version of the technology (technology.version) with the affected versions. certainty AFFECTED: matched by CPE or package URL with a version range; POSSIBLE: matched by the name only or without a version, so check it first.\n2. The fix: the target version (the lowest version with the fix, without breaking changes if there is a choice) and the way there. For a transitive dependency (see purl and ecosystem): which direct dependency to update, or how to force the version (e.g. overrides in npm/pnpm, resolutions in Yarn, constraints in Gradle, dependencyManagement in Maven), with the concrete snippet of the build file.\n3. If there is no fix yet: a workaround or a mitigation.\n4. Verification: how to show that it is fixed (command, test, exporting the lockfile again).\nThe assessment of the security team in the field case (fixVersion, workaround, techMeasures) takes precedence. Order: first those in the KEV catalogue (kevAdded), then by the priority of the case (P1 first), then by CVSS. Don't invent versions; name your sources and mark what is uncertain. Answer in English, in Markdown: first a table (CVE, technology, current version, target version, effort), then one section per vulnerability; combine CVEs fixed by the same update."
+        },
+        "summary": "{arg0} vulnerabilities, {arg1} findings",
+        "title": "Export findings: {arg0}"
       },
       "findingStatus": {
         "AFFECTED": "Affected",
