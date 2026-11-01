@@ -163,7 +163,10 @@ class AppAuthService {
      */
     fun exchange(code: String?, codeVerifier: String?, request: HttpServletRequest?): Exchanged? {
         code ?: return null
-        val pending = pendingCodes.remove(code) ?: return null
+        val pending = pendingCodes.remove(code)
+        // The open codes hold the cookies of the proxy: no longer than needed.
+        purgeExpiredCodes()
+        pending ?: return null
         if (pending.expiresAt < System.currentTimeMillis()) {
             log.info { "App authorization code of user #${pending.userId} expired." }
             return null
@@ -212,11 +215,17 @@ class AppAuthService {
         }
         // The session cookie of ProjectForge may be renamed (server.servlet.session.cookie.name).
         val ownCookies = OWN_COOKIES + (serverProperties.servlet.session.cookie.name ?: DEFAULT_SESSION_COOKIE)
-        return cookies.filter { cookie ->
-            cookie.name !in ownCookies && !cookie.value.isNullOrEmpty() && patterns.any { pattern ->
+        val matching = cookies.filter { cookie ->
+            cookie.name !in ownCookies && patterns.any { pattern ->
                 if (pattern.endsWith('*')) cookie.name.startsWith(pattern.trimEnd('*')) else cookie.name == pattern
             }
-        }.associate { it.name to it.value }
+        }
+        // A name sent twice may come from another (sub)domain (cookie tossing): which one is the proxy's can't be told.
+        val ambiguous = matching.groupingBy { it.name }.eachCount().filterValues { it > 1 }.keys
+        if (ambiguous.isNotEmpty()) {
+            log.warn { "Proxy cookies not handed over to the app, sent more than once by the browser: ${ambiguous.joinToString()}" }
+        }
+        return matching.filter { it.name !in ambiguous && !it.value.isNullOrEmpty() }.associate { it.name to it.value }
     }
 
     /**

@@ -175,6 +175,13 @@ class AppAuthServiceTest : AbstractTestBase() {
                 "Nor the renamed session cookie of ProjectForge.",
             )
             serverProperties.servlet.session.cookie.name = null
+            Assertions.assertEquals(
+                setOf("authentik_proxy_other"),
+                appAuthService.proxyCookiesOf(
+                    cookies + Cookie("authentik_proxy_fea57981", "tossed") + Cookie("authentik_proxy_other", "y")
+                ).keys,
+                "A name sent twice (e.g. set by another subdomain) is ambiguous.",
+            )
 
             val user = getUser(TEST_USER)
             appDeviceDao.deleteAll(user.id)

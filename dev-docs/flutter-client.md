@@ -69,7 +69,8 @@ files, WebView data), starts the tabs anew (`HomeScreen` keyed by device) and fa
 **Behind an SSO proxy** (e.g. Authentik as forward auth in nginx): the proxy lets only requests with its session
 cookie through, which the browser has, but not the app. The cookies named in `projectforge.app.proxyCookies`
 (e.g. `authentik_proxy_*`; a bare `*` is ignored) are taken by `POST /rs/appAuth/authorize` from the browser login
-(never the cookies of ProjectForge itself, nor its session cookie under another name), kept with the code and handed
+(never the cookies of ProjectForge itself, nor its session cookie under another name, nor a name the browser sends
+twice, e.g. one set by another subdomain), kept with the code and handed
 to the app with its token (`TokenResponse.proxyCookies`). The app keeps them with the token, sends them with every
 request and puts them into the WebView. A refusal of the proxy (a 401 without a json content type, a redirect) isn't a
 logout: the app logs in again in the browser, which brings fresh cookies, and repeats the request once. If that doesn't
