@@ -26,16 +26,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/auth/auth_controller.dart';
 import 'core/i18n/translations.dart';
+import 'core/theme/theme_controller.dart';
 import 'features/home/home_screen.dart';
 import 'features/login/login_screen.dart';
 
-class ProjectForgeApp extends StatelessWidget {
+class ProjectForgeApp extends ConsumerWidget {
   const ProjectForgeApp({super.key, required this.translations});
 
   final Translations translations;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // ProjectForge blue, as the logo of the web app.
     const seed = Color(0xFF1F5E9E);
     return TranslationsScope(
@@ -48,6 +49,7 @@ class ProjectForgeApp extends StatelessWidget {
           brightness: Brightness.dark,
           useMaterial3: true,
         ),
+        themeMode: ref.watch(themeModeProvider),
         home: const _AuthGate(),
       ),
     );

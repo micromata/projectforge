@@ -273,6 +273,9 @@ class _WebScreenState extends ConsumerState<WebScreen> {
               javaScriptCanOpenWindowsAutomatically: false,
               supportMultipleWindows: false,
               useOnDownloadStart: true,
+              // Until the page paints, the background of the app (dark or light) instead of white.
+              transparentBackground: true,
+              underPageBackgroundColor: Theme.of(context).colorScheme.surface,
               // Only pages of the server, never files of the device.
               allowFileAccess: false,
               allowContentAccess: false,

@@ -162,17 +162,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         appBar: appBar,
         body: Row(
           children: [
+            // Icons only, and only half of the side's inset: the few icons stand at the top, clear of the camera
+            // in the middle of the side.
             SafeArea(
+              left: false,
               right: false,
-              child: NavigationRail(
-                selectedIndex: selectedIndex,
-                onDestinationSelected: select,
-                labelType: NavigationRailLabelType.selected,
-                minWidth: 64,
-                destinations: [
-                  for (final destination in destinations)
-                    _railDestination(context, destination, unread),
-                ],
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: MediaQuery.paddingOf(context).left / 2,
+                ),
+                child: NavigationRail(
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: select,
+                  labelType: NavigationRailLabelType.none,
+                  minWidth: 56,
+                  destinations: [
+                    for (final destination in destinations)
+                      _railDestination(context, destination, unread),
+                  ],
+                ),
               ),
             ),
             Expanded(
@@ -185,18 +193,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       appBar: appBar,
       body: appBar == null ? SafeArea(bottom: false, child: body) : body,
-      bottomNavigationBar: NavigationBarTheme(
-        data: const NavigationBarThemeData(
-          height: 56,
-          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-        ),
-        child: NavigationBar(
-          selectedIndex: selectedIndex,
-          onDestinationSelected: select,
-          destinations: [
-            for (final destination in destinations)
-              _barDestination(context, destination, unread),
-          ],
+      // Slim: icons only (the label is their semantics and tooltip), and only half of the home indicator's inset
+      // below them, enough to keep them clear of it.
+      bottomNavigationBar: ColoredBox(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.paddingOf(context).bottom / 2,
+          ),
+          child: MediaQuery.removePadding(
+            // The context is the one outside of the Scaffold: its top inset (the status bar) has to go too.
+            context: context,
+            removeTop: true,
+            removeBottom: true,
+            child: NavigationBarTheme(
+              data: const NavigationBarThemeData(
+                height: 44,
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+              ),
+              child: NavigationBar(
+                selectedIndex: selectedIndex,
+                onDestinationSelected: select,
+                destinations: [
+                  for (final destination in destinations)
+                    _barDestination(context, destination, unread),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

@@ -96,6 +96,9 @@ open class UserStatusRest {
   @Autowired
   private lateinit var chatUnreadCounter: ChatUnreadCounter
 
+  @Autowired
+  private lateinit var uiSettingsRest: UISettingsRest
+
   data class UserData(
     var username: String? = null,
     var organization: String? = null,
@@ -205,6 +208,11 @@ open class UserStatusRest {
      * (so the client needn't load both lists for it). 0 if the chat is switched off or counting fails.
      */
     val chatUnread: Int = 0,
+    /**
+     * The user's theme of projectforge-next (`light`, `dark`, `system`, see [UISettingsRest.getTheme]): the mobile
+     * app shows its own screens in it too and follows a change made in the web pages with the next poll.
+     */
+    val theme: String? = null,
   )
 
   @GetMapping
@@ -268,6 +276,7 @@ open class UserStatusRest {
             .onFailure { log.error(it) { "Can't read the notifications of user #$userId: ${it.message}" } }
             .getOrNull()
         },
+        theme = runCatching { uiSettingsRest.getTheme().theme }.getOrNull(),
       ),
       HttpStatus.OK
     )

@@ -53,4 +53,7 @@ class UserStatus {
   /// The id of the newest one: with [openNotifications] it tells when the list has to be loaded again.
   int? get latestNotificationId =>
       (_notifications['latestId'] as num?)?.toInt();
+
+  /// The user's theme of the web pages (`UISettingsRest`): `light`, `dark` or `system`, null from an older server.
+  String? get theme => json['theme'] as String?;
 }
