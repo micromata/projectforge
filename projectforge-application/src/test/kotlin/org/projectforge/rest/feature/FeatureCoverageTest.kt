@@ -128,7 +128,10 @@ class FeatureCoverageTest {
     }
 
     companion object {
-        /** Pages of the app itself, always reachable (appLogin: login of the mobile app). */
-        private val CORE_NEXT = setOf("appLogin", "changelog")
+        /**
+         * Pages of the app itself, always reachable (appLogin: login of the mobile app; notifications: the
+         * notification center of the bell, REST category `notification` is core as well).
+         */
+        private val CORE_NEXT = setOf("appLogin", "changelog", "notifications")
     }
 }

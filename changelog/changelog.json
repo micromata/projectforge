@@ -1,6 +1,87 @@
 {
   "releases": [
     {
+      "id": "9-2-2",
+      "version": "9.2.2",
+      "date": "2026-11-02",
+      "title": "ProjectForge 9.2.2: mobile app with notifications and address book, CVE-Radar notifications",
+      "tag": "9.2.2-RELEASE",
+      "published": false,
+      "summary": [
+        "**Mobile app** (in preparation): notifications with push and an address book",
+        "**CVE-Radar**: notifications about new findings and outdated lists of libraries",
+        "Fix: Kost2 sometimes missing in the structure tree, the project list and time sheets",
+        "Fix: a later payment schedule also defers the invoice of a finished order position"
+      ],
+      "overview": [
+        "**Mobile app (in preparation):** notifications of the web version with push messages (iPhone, APNs); an address book like the Contacts app, also offline; login behind an SSO proxy, recently used servers, more room for the pages and the light or dark appearance of the web pages.",
+        "**CVE-Radar:** a notification rule for new findings without details, a rule type for outdated lists of libraries of a component, a description tab in the file of a case, and a faster start page.",
+        "**Calendar on small screens:** the calendar chooser has a line of its own instead of being covered.",
+        "**Fixes:** Kost2 no longer missing in overviews such as the structure tree, the project list or the cost unit selection of a time sheet (e.g. after a project was reactivated); in the order book a payment schedule dated in a following month also defers the invoice of a finished position; the file of a CVE-Radar case without a CVE opens again."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            {
+              "title": "Mobile app: notifications and push (iPhone)",
+              "items": [
+                "The notifications of the web version (rules, chat) are shown in the app as well: a bell with the count, the list with the archive, and confirming or finishing them; a link opens the page in the app.",
+                "A new notification wakes the app with a push message (APNs, `projectforge.push.apns.*`), without its content in the message. Without a configured key nothing is sent and the app polls as before."
+              ]
+            },
+            {
+              "title": "Mobile app (in preparation): time sheets",
+              "items": [
+                "The app books time sheets on the phone: a week strip with the daily totals, the bookings of the day with the gaps between them (a tap books a gap), recent bookings and templates to start from, a task search, and the cost unit chosen automatically where the task has only one. The server's checks (overlap, closed tasks, protected periods) apply as in the web version.",
+                "A timer in the app starts and stops a booking on the device; stopping opens the form with the time rounded to 5 minutes.",
+                "The time sheet list of the web pages switches to the app's tab; the form of a single booking stays in the web pages when opened from a link."
+              ]
+            },
+            {
+              "title": "CVE-Radar: notification without details and about outdated lists of libraries",
+              "items": [
+                "A new notification rule \"New findings of the CVE radar\" starts with a text that names no details (\"there may be updates\") and a link to the list; the new variable cvrListLink always links to the list.",
+                "New rule type \"Outdated lists of libraries of the CVE radar\": the responsible team of a component whose list of libraries was applied more than a number of days ago (30 by default) is told, at most once a week, and the notification is resolved by an update of the list. The day of the last list is now recorded per component."
+              ]
+            },
+            {
+              "title": "Mobile app (in preparation)",
+              "items": [
+                "Behind an SSO proxy (e.g. Authentik as forward auth) the app gets the proxy's session from the browser login (`projectforge.app.proxyCookies`); when it expires, the app logs in again in the browser.",
+                "The login of the app offers the recently used servers, and the logout works even if the server can't be reached.",
+                "Business cards are stored in the app and shown offline too; they are reloaded silently when the tab is opened and by a button, and can be added to the Apple Wallet if the server is configured for it (iPhone), also by the link of the web page in the app.",
+                "The app gives more room to the pages: no title bar above the web pages and the chat, a slim navigation bar with icons only, and in landscape a narrow navigation at the side.",
+                "In the app, the menu entries \"Chat\" and \"My business cards\" and the bell of the web pages switch to the app's own tab; the new settings of the app can keep each of them in the web version.",
+                "The app has an address book like the Contacts app: a search field, sections with an index at the side, and tapping a number offers a call or a message, a mail address opens the mail app. All addresses are stored on the device (also offline) and updated silently; editing opens the form of the web pages, and the address list of the web pages switches to the app's tab.",
+                "The app's own screens follow the light or dark appearance chosen in the web pages (also offline), and the web pages no longer flash white while loading."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "changed",
+          "items": [
+            "Faster first page of big lists: the CVE-Radar start page no longer loads every vulnerability to build the list"
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Calendar on small screens: the calendar chooser has a line of its own under the title and the buttons instead of being covered by them.",
+            {
+              "title": "CVE-Radar: the file of an incident opens again and has a tab for its description",
+              "items": [
+                "The file of a case without a CVE showed an empty page. It now opens on the new first tab \"Description\", which shows the description of the case and lets the security team edit it with a rich text editor."
+              ]
+            },
+            "Kost2 sometimes missing in overviews such as the structure tree, the project list or the cost unit selection of a time sheet, although it existed: for instance after a project was reactivated, or for a cost unit created while the caches were being reloaded in the background.",
+            "Order book: a payment schedule dated in a following month now also defers the invoice of a finished position (filter \"to be invoiced\", next invoice date)"
+          ]
+        }
+      ]
+    },
+    {
       "id": "9-2-1",
       "version": "9.2.1",
       "date": "2026-11-01",
