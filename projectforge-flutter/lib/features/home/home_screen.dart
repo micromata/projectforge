@@ -64,6 +64,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// The WebViews are created when their tab is opened first, and then kept (with their page) while switching.
   final _opened = <_Destination>{};
 
+  /// Keeps the tabs (the WebViews with their pages) while the frame around them changes: with or without the bar of
+  /// the native tab, portrait or landscape. Otherwise they would be created again, back on their start page.
+  final _bodyKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -106,6 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         MediaQuery.orientationOf(context) == Orientation.landscape;
     final selectedIndex = destinations.indexOf(current);
     final body = IndexedStack(
+      key: _bodyKey,
       index: selectedIndex,
       children: [
         for (final destination in destinations)
