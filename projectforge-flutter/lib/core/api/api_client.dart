@@ -29,9 +29,15 @@ import 'api_exception.dart';
 ///
 /// - Every request carries `Authorization: PFApp <token>`: no session, no cookies, hence no CSRF token.
 /// - `X-PF-Frontend: next` selects the lean list rows projectforge-next gets.
-/// - A 401 means the token is gone (logged out in the web, expired, password changed): [onUnauthorized].
+/// - A 401 of the server (json body) means the token is gone (logged out in the web, expired, password changed):
+///   [onUnauthorized].
 /// - A 403 with `twoFactorRequired` means the second factor of the app's login is too old for this url: the app
 ///   logs in again in the browser ([onReauthenticate]) and repeats the request once with the new token.
+/// - An SSO proxy in front of the server (e.g. Authentik) gets its cookies ([proxyCookies]). A refusal of the proxy
+///   (a 401 without a json body, a redirect to its login) means they expired: the app logs in again in the browser,
+///   which brings fresh ones, and repeats the request once.
+/// - Requests the app makes on its own (polling) pass `renewLogin: false`: a browser login opens only for something
+///   the user does, never out of the blue (and not again every minute after the user cancelled it).
 class ApiClient {
   ApiClient({
     required this.serverUrl,
@@ -39,8 +45,10 @@ class ApiClient {
     required this.appVersion,
     required this.onUnauthorized,
     required this.onReauthenticate,
+    Map<String, String> Function()? proxyCookies,
     Dio? dio,
-  }) : dio = dio ?? Dio() {
+  }) : proxyCookies = proxyCookies ?? _noCookies,
+       dio = dio ?? Dio() {
     this.dio.options
       ..baseUrl = serverUrl
       ..connectTimeout = const Duration(seconds: 15)
@@ -53,6 +61,12 @@ class ApiClient {
   }
 
   static const _retriedKey = 'pfRetried';
+  static const _noRenewalKey = 'pfNoRenewal';
+
+  /// The text of a refusal by an SSO proxy, see [toApiException].
+  static const proxyRefusedKey = 'app.proxy.refused';
+
+  static Map<String, String> _noCookies() => const {};
 
   final String serverUrl;
   final String appVersion;
@@ -65,11 +79,40 @@ class ApiClient {
   /// Does a new login in the browser; answers false if the user cancelled.
   final Future<bool> Function() onReauthenticate;
 
-  Future<T> get<T>(String path, {Map<String, dynamic>? query}) =>
-      _call(() => dio.get<T>(path, queryParameters: query));
+  /// The current cookies of the SSO proxy in front of the server (name to value), empty without one.
+  final Map<String, String> Function() proxyCookies;
 
-  Future<T> post<T>(String path, {Object? data, Map<String, dynamic>? query}) =>
-      _call(() => dio.post<T>(path, data: data, queryParameters: query));
+  /// A new login in the browser didn't satisfy the proxy (e.g. no proxy cookies configured at the server): the proxy
+  /// refusals of this login aren't answered by a new browser login again, which would only open it on every request.
+  bool _proxyRenewalUseless = false;
+
+  /// @param renewLogin False: a refusal doesn't start a new login in the browser (polling in the background).
+  Future<T> get<T>(
+    String path, {
+    Map<String, dynamic>? query,
+    bool renewLogin = true,
+  }) => _call(
+    () =>
+        dio.get<T>(path, queryParameters: query, options: _options(renewLogin)),
+  );
+
+  /// @param renewLogin False: a refusal doesn't start a new login in the browser (the logout).
+  Future<T> post<T>(
+    String path, {
+    Object? data,
+    Map<String, dynamic>? query,
+    bool renewLogin = true,
+  }) => _call(
+    () => dio.post<T>(
+      path,
+      data: data,
+      queryParameters: query,
+      options: _options(renewLogin),
+    ),
+  );
+
+  static Options? _options(bool renewLogin) =>
+      renewLogin ? null : Options(extra: {_noRenewalKey: true});
 
   /// As [post], with the whole response (its headers, e.g. `set-cookie`).
   Future<Response<T>> postForResponse<T>(String path, {Object? data}) async {
@@ -108,6 +151,12 @@ class ApiClient {
     options.headers['Authorization'] = 'PFApp ${token()}';
     options.headers['X-PF-Frontend'] = 'next';
     options.headers['X-PF-App-Version'] = appVersion;
+    final cookies = proxyCookies();
+    if (cookies.isNotEmpty) {
+      options.headers['Cookie'] = cookies.entries
+          .map((it) => '${it.key}=${it.value}')
+          .join('; ');
+    }
     handler.next(options);
   }
 
@@ -116,16 +165,23 @@ class ApiClient {
     ErrorInterceptorHandler handler,
   ) async {
     final response = error.response;
-    if (response?.statusCode == 401) {
+    final extra = error.requestOptions.extra;
+    final proxyRefused = isProxyRefusal(response);
+    if (response?.statusCode == 401 && !proxyRefused) {
       onUnauthorized();
-    } else if (response?.statusCode == 403 &&
-        _isTwoFactorRequired(response?.data) &&
-        error.requestOptions.extra[_retriedKey] != true) {
+    } else if ((proxyRefused && !_proxyRenewalUseless ||
+            response?.statusCode == 403 &&
+                _isTwoFactorRequired(response?.data)) &&
+        extra[_retriedKey] != true &&
+        extra[_noRenewalKey] != true) {
       if (await onReauthenticate()) {
         final options = error.requestOptions..extra[_retriedKey] = true;
         try {
           return handler.resolve(await dio.fetch(options));
         } on DioException catch (retryError) {
+          if (proxyRefused && isProxyRefusal(retryError.response)) {
+            _proxyRenewalUseless = true;
+          }
           return handler.next(retryError);
         }
       }
@@ -136,12 +192,31 @@ class ApiClient {
   static bool _isTwoFactorRequired(Object? data) =>
       data is Map && data['twoFactorRequired'] == true;
 
+  /// An answer of an SSO proxy in front of the server, not of ProjectForge: a 401 without the json of the server
+  /// (RestAuthenticationUtils.sendError), or a redirect (to the proxy's login; the api itself never redirects).
+  ///
+  /// Told by the content type, not by the parsed data: a download gets the json of a 401 as bytes.
+  static bool isProxyRefusal(Response<dynamic>? response) {
+    final status = response?.statusCode;
+    if (status == null) return false;
+    if (status >= 300 && status < 400) return true;
+    final contentType = response!.headers.value(Headers.contentTypeHeader);
+    return status == 401 && !(contentType?.contains('json') ?? false);
+  }
+
   /// The server's answer as [ApiException]: the validation errors of a 406, the message of the json error body,
   /// or no status at all if the server wasn't reached.
   static ApiException toApiException(DioException e) {
     final response = e.response;
     if (response == null) {
       return ApiException(e.message ?? e.type.name);
+    }
+    if (isProxyRefusal(response)) {
+      return ApiException(
+        'HTTP ${response.statusCode}',
+        statusCode: response.statusCode,
+        messageKey: proxyRefusedKey,
+      );
     }
     final data = response.data;
     if (data is Map<String, dynamic>) {

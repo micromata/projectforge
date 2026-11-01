@@ -24,11 +24,13 @@
 
 package org.projectforge.business.user
 
+import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.time.TimeUnit
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.web.server.autoconfigure.ServerProperties
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -40,6 +42,9 @@ class AppAuthServiceTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var appDeviceDao: AppDeviceDao
+
+    @Autowired
+    private lateinit var serverProperties: ServerProperties
 
     @Test
     fun codeFlowTest() {
@@ -139,6 +144,50 @@ class AppAuthServiceTest : AbstractTestBase() {
         Assertions.assertNull(appAuthService.exchange(codes.first(), VERIFIER, null), "The oldest code was dropped.")
         Assertions.assertNotNull(appAuthService.exchange(codes.last(), VERIFIER, null))
         appDeviceDao.deleteAll(user.id)
+    }
+
+    /**
+     * Only the configured cookies of an SSO proxy reach the app, never the ones of ProjectForge, and only with the code
+     * exchange.
+     */
+    @Test
+    fun proxyCookiesTest() {
+        val cookies = arrayOf(
+            Cookie("authentik_proxy_fea57981", "proxySession"),
+            Cookie("other", "x"),
+            Cookie("JSESSIONID", "session"),
+            Cookie("stayLoggedIn", "token"),
+            Cookie("authentik_proxy_empty", ""),
+        )
+        Assertions.assertTrue(appAuthService.proxyCookiesOf(cookies).isEmpty(), "Nothing configured.")
+        try {
+            appAuthService.proxyCookieNames = " authentik_proxy_* , JSESSIONID,stay*"
+            val proxyCookies = appAuthService.proxyCookiesOf(cookies)
+            Assertions.assertEquals(mapOf("authentik_proxy_fea57981" to "proxySession"), proxyCookies)
+            Assertions.assertTrue(appAuthService.proxyCookiesOf(null).isEmpty())
+            appAuthService.proxyCookieNames = "*, **"
+            Assertions.assertTrue(appAuthService.proxyCookiesOf(cookies).isEmpty(), "A bare * matches nothing.")
+            appAuthService.proxyCookieNames = " authentik_proxy_* , JSESSIONID,stay*"
+            serverProperties.servlet.session.cookie.name = "authentik_proxy_session"
+            Assertions.assertEquals(
+                setOf("authentik_proxy_fea57981"),
+                appAuthService.proxyCookiesOf(cookies + Cookie("authentik_proxy_session", "pf")).keys,
+                "Nor the renamed session cookie of ProjectForge.",
+            )
+            serverProperties.servlet.session.cookie.name = null
+
+            val user = getUser(TEST_USER)
+            appDeviceDao.deleteAll(user.id)
+            val now = System.currentTimeMillis()
+            val url = appAuthService.authorize(user, now, CHALLENGE, STATE, "iPhone", "ios", null, proxyCookies)!!
+            Assertions.assertFalse(url.contains("proxySession"), "Not in the callback url.")
+            Assertions.assertEquals(proxyCookies, exchange(url)!!.proxyCookies)
+            Assertions.assertTrue(exchange(authorize(user, now))!!.proxyCookies.isEmpty())
+            appDeviceDao.deleteAll(user.id)
+        } finally {
+            appAuthService.proxyCookieNames = ""
+            serverProperties.servlet.session.cookie.name = null
+        }
     }
 
     @Test

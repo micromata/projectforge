@@ -24,7 +24,9 @@
 package org.projectforge.business.user
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.user.filter.CookieService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.TimeUnit
@@ -33,6 +35,8 @@ import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
 import org.projectforge.security.ConstantTimeCompare
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.web.server.autoconfigure.ServerProperties
 import org.springframework.stereotype.Service
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -56,6 +60,10 @@ private val log = KotlinLogging.logger {}
  *
  * The codes live in memory only: they are valid for [CODE_EXPIRY_MILLIS], a restart just makes the user log in once
  * again.
+ *
+ * A server behind an SSO proxy (e.g. Authentik as forward auth) is reachable only with the proxy's session cookie,
+ * which the browser has, but not the app. The cookies named in `projectforge.app.proxyCookies` of the browser login
+ * are kept with the code and handed to the app with its token ([proxyCookiesOf]): the app sends them with each request.
  */
 @Service
 class AppAuthService {
@@ -68,6 +76,17 @@ class AppAuthService {
     @Autowired
     private lateinit var userDao: UserDao
 
+    @Autowired
+    private lateinit var serverProperties: ServerProperties
+
+    /**
+     * Names of the cookies of an SSO proxy in front of the server, a trailing `*` matches a prefix (e.g.
+     * `authentik_proxy_*`). Empty: nothing is handed over. A bare `*` is ignored: it would hand over every cookie the
+     * browser sends to this host, those of other applications of the domain too.
+     */
+    @Value("\${projectforge.app.proxyCookies:}")
+    internal var proxyCookieNames: String = ""
+
     private class PendingCode(
         val userId: Long,
         val challenge: String,
@@ -75,12 +94,21 @@ class AppAuthService {
         val platform: String?,
         val renewDeviceId: Long?,
         val last2FA: Long,
+        val proxyCookies: Map<String, String>,
         val expiresAt: Long,
         /** For telling the oldest, see [dropOldestCodes]. */
         val issued: Long = System.nanoTime(),
     )
 
-    class Exchanged(val user: PFUserDO, val device: AppDeviceDO, val token: String)
+    /**
+     * @param proxyCookies The cookies of the SSO proxy of the browser login (name to value), see [proxyCookiesOf].
+     */
+    class Exchanged(
+        val user: PFUserDO,
+        val device: AppDeviceDO,
+        val token: String,
+        val proxyCookies: Map<String, String>,
+    )
 
     private val pendingCodes = ConcurrentHashMap<String, PendingCode>()
 
@@ -89,6 +117,7 @@ class AppAuthService {
      * @param lastSuccessful2FA The last second factor of the session, checked by the caller to be fresh.
      * @param renewDeviceId An app already registered asks for a new second factor: its row is kept (with a new
      * token), if it belongs to [user]; otherwise a new device is registered.
+     * @param proxyCookies The cookies of the SSO proxy of the browser session, see [proxyCookiesOf].
      * @return The url the browser is redirected to (the app's callback with the code), or null for an invalid
      * challenge or state.
      */
@@ -100,6 +129,7 @@ class AppAuthService {
         deviceName: String?,
         platform: String?,
         renewDeviceId: Long?,
+        proxyCookies: Map<String, String> = emptyMap(),
     ): String? {
         val userId = user.id ?: return null
         if (challenge == null || !CHALLENGE_REGEX.matches(challenge) || state == null || !STATE_REGEX.matches(state)) {
@@ -118,9 +148,11 @@ class AppAuthService {
             platform = AppDeviceDao.sanitize(platform, AppDeviceDO.MAX_PLATFORM_LENGTH),
             renewDeviceId = renewId,
             last2FA = lastSuccessful2FA,
+            proxyCookies = proxyCookies,
             expiresAt = System.currentTimeMillis() + CODE_EXPIRY_MILLIS,
         )
-        log.info { "App authorization code issued for user #$userId (device: $name, renew: $renewId)." }
+        // The cookies are credentials of the proxy: never their values in the log.
+        log.info { "App authorization code issued for user #$userId (device: $name, renew: $renewId, proxy cookies: ${proxyCookies.size})." }
         return "$APP_REDIRECT_URL?code=${encode(code)}&state=${encode(state)}"
     }
 
@@ -151,13 +183,40 @@ class AppAuthService {
         pending.renewDeviceId?.let { deviceId ->
             appDeviceDao.renewDevice(pending.userId, deviceId, last2FA, request)?.let { token ->
                 appDeviceDao.getOfUser(pending.userId, deviceId)?.let { device ->
-                    return Exchanged(user, device, token)
+                    return Exchanged(user, device, token, pending.proxyCookies)
                 }
             }
         }
         val (device, token) = appDeviceDao.createDevice(user, pending.deviceName, pending.platform, last2FA, request)
         sendConnectedMail(user, device)
-        return Exchanged(user, device, token)
+        return Exchanged(user, device, token, pending.proxyCookies)
+    }
+
+    /**
+     * The cookies of the SSO proxy among [cookies] (of the browser login), as configured in
+     * `projectforge.app.proxyCookies`. Never the cookies of ProjectForge itself (session, stay-logged-in): the app
+     * has its own token.
+     *
+     * @return Name to value, empty if nothing is configured.
+     */
+    fun proxyCookiesOf(cookies: Array<Cookie>?): Map<String, String> {
+        val patterns = proxyCookieNames.split(',').map { it.trim() }.filter { pattern ->
+            (pattern.isNotEmpty() && pattern.trimEnd('*').isNotEmpty()).also { valid ->
+                if (!valid && pattern.isNotEmpty()) {
+                    log.warn { "projectforge.app.proxyCookies: '$pattern' ignored, it would match every cookie." }
+                }
+            }
+        }
+        if (patterns.isEmpty() || cookies == null) {
+            return emptyMap()
+        }
+        // The session cookie of ProjectForge may be renamed (server.servlet.session.cookie.name).
+        val ownCookies = OWN_COOKIES + (serverProperties.servlet.session.cookie.name ?: DEFAULT_SESSION_COOKIE)
+        return cookies.filter { cookie ->
+            cookie.name !in ownCookies && !cookie.value.isNullOrEmpty() && patterns.any { pattern ->
+                if (pattern.endsWith('*')) cookie.name.startsWith(pattern.trimEnd('*')) else cookie.name == pattern
+            }
+        }.associate { it.name to it.value }
     }
 
     /**
@@ -218,6 +277,14 @@ class AppAuthService {
         const val MAX_2FA_AGE_MINUTES = 10L
 
         private const val CODE_LENGTH = 32
+
+        private const val DEFAULT_SESSION_COOKIE = "JSESSIONID"
+
+        private val OWN_COOKIES = setOf(
+            DEFAULT_SESSION_COOKIE,
+            CookieService.COOKIE_NAME_FOR_STAY_LOGGED_IN,
+            CookieService.COOKIE_NAME_FOR_LAST_2FA,
+        )
 
         /** Open codes of a user at a time (e.g. several attempts in the browser). */
         internal const val MAX_PENDING_CODES_PER_USER = 5

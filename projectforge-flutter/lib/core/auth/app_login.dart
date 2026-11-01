@@ -104,6 +104,7 @@ class AppLogin {
         deviceId: json['deviceId'] as int,
         username: json['username'] as String?,
         fullname: json['fullname'] as String?,
+        proxyCookies: Session.proxyCookiesFromJson(json['proxyCookies']),
       );
     } on DioException catch (e) {
       throw ApiClient.toApiException(e);

@@ -72,6 +72,7 @@ class WebSessionRepository {
       final response = await _api.postForResponse<Map<String, dynamic>>(
         '/rs/appAuth/webSession',
       );
+      await _cookies.setProxyCookies(_api.serverUrl, _api.proxyCookies());
       await _cookies.setCookies(
         _api.serverUrl,
         response.headers['set-cookie'] ?? const [],

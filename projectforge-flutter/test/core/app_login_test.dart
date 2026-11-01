@@ -26,6 +26,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:projectforge_app/core/api/api_exception.dart';
 import 'package:projectforge_app/core/auth/app_login.dart';
 import 'package:projectforge_app/core/auth/pkce.dart';
+import 'package:projectforge_app/core/auth/session.dart';
 
 import 'fake_adapter.dart';
 
@@ -41,6 +42,7 @@ void main() {
           'fullname': 'Kai R',
           'deviceId': 3,
           'token': 'secret',
+          'proxyCookies': {'authentik_proxy_1': 'proxySession'},
         },
       ),
     );
@@ -70,6 +72,22 @@ void main() {
     );
     expect(session.token, 'secret');
     expect(session.deviceId, 3);
+    expect(session.proxyCookies, {'authentik_proxy_1': 'proxySession'});
+    expect(
+      Session.fromJson(session.toJson()).proxyCookies,
+      session.proxyCookies,
+      reason: 'Kept in the key chain with the token.',
+    );
+  });
+
+  test('a stored session of an older version has no proxy cookies', () {
+    final session = Session.fromJson({
+      'serverUrl': 'https://pf.example.com',
+      'token': 'secret',
+      'userId': 7,
+      'deviceId': 3,
+    });
+    expect(session.proxyCookies, isEmpty);
   });
 
   test('refuses a callback with another state', () async {

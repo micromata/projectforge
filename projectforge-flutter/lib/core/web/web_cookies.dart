@@ -51,6 +51,30 @@ class WebCookies {
     }
   }
 
+  /// Sets the cookies of an SSO proxy in front of the server (name to value, see `Session.proxyCookies`) in the
+  /// WebView: otherwise the proxy shows its login instead of the pages.
+  Future<void> setProxyCookies(
+    String serverUrl,
+    Map<String, String> cookies,
+  ) async {
+    if (cookies.isEmpty) return;
+    try {
+      final url = WebUri(serverUrl);
+      for (final cookie in cookies.entries) {
+        await CookieManager.instance().setCookie(
+          url: url,
+          name: cookie.key,
+          value: cookie.value,
+          path: '/',
+          isSecure: url.scheme == 'https',
+          isHttpOnly: true,
+        );
+      }
+    } on MissingPluginException {
+      // No WebView platform (tests).
+    }
+  }
+
   /// The `Cookie` header of the WebView for [url] (its web session), for a download the app does in place of the
   /// WebView. Null if there is none.
   Future<String?> cookieHeader(Uri url) async {

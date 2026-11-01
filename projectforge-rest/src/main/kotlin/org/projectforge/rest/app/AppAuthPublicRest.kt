@@ -61,6 +61,11 @@ class AppAuthPublicRest {
         val deviceId: Long,
         /** Sent as `Authorization: PFApp <token>` with every request. Shown nowhere, stored in the key chain. */
         val token: String,
+        /**
+         * The cookies of an SSO proxy in front of the server (name to value), taken from the browser login: the app
+         * sends them with each request and puts them into its WebView. Empty without such a proxy.
+         */
+        val proxyCookies: Map<String, String>,
     )
 
     /**
@@ -100,6 +105,7 @@ class AppAuthPublicRest {
                 fullname = user.getFullname(),
                 deviceId = exchanged.device.id!!,
                 token = exchanged.token,
+                proxyCookies = exchanged.proxyCookies,
             )
         )
     }

@@ -30,6 +30,8 @@ class ChatStatusRepository {
 
   final ApiClient _api;
 
-  Future<ChatStatus> load() async =>
-      ChatStatus(await _api.get<Map<String, dynamic>>('/rs/userStatus'));
+  /// Polled in the background: a refusal never opens a login in the browser (see ApiClient).
+  Future<ChatStatus> load() async => ChatStatus(
+    await _api.get<Map<String, dynamic>>('/rs/userStatus', renewLogin: false),
+  );
 }

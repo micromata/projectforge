@@ -34,6 +34,7 @@ class Session {
     required this.deviceId,
     this.username,
     this.fullname,
+    this.proxyCookies = const {},
   });
 
   factory Session.fromJson(Map<String, dynamic> json) => Session(
@@ -43,7 +44,13 @@ class Session {
     deviceId: json['deviceId'] as int,
     username: json['username'] as String?,
     fullname: json['fullname'] as String?,
+    proxyCookies: proxyCookiesFromJson(json['proxyCookies']),
   );
+
+  /// The `proxyCookies` of the server's answer or of a stored session (absent before this field existed).
+  static Map<String, String> proxyCookiesFromJson(Object? json) => json is Map
+      ? json.map((key, value) => MapEntry('$key', '$value'))
+      : const {};
 
   final String serverUrl;
   final String token;
@@ -52,6 +59,10 @@ class Session {
   final String? username;
   final String? fullname;
 
+  /// The cookies of an SSO proxy in front of the server (e.g. Authentik), taken from the browser login: sent with
+  /// each request and put into the WebView, otherwise the proxy refuses the app. Empty without such a proxy.
+  final Map<String, String> proxyCookies;
+
   Session withToken(String token) => Session(
     serverUrl: serverUrl,
     token: token,
@@ -59,6 +70,7 @@ class Session {
     deviceId: deviceId,
     username: username,
     fullname: fullname,
+    proxyCookies: proxyCookies,
   );
 
   Map<String, dynamic> toJson() => {
@@ -68,11 +80,12 @@ class Session {
     'deviceId': deviceId,
     'username': username,
     'fullname': fullname,
+    'proxyCookies': proxyCookies,
   };
 }
 
-/// Keeps the [Session] in the key chain (iOS) or the keystore backed storage (Android), and the last server url
-/// for the next login.
+/// Keeps the [Session] in the key chain (iOS) or the keystore backed storage (Android), and the servers of the last
+/// logins for the next one.
 class SessionStore {
   SessionStore([FlutterSecureStorage? storage])
     : _storage =
@@ -85,7 +98,14 @@ class SessionStore {
           );
 
   static const _sessionKey = 'session';
-  static const _serverUrlKey = 'serverUrl';
+
+  /// The servers of the last logins, most recent first (urls only).
+  static const _serversKey = 'servers';
+
+  /// The single last server of older versions, read once for [servers].
+  static const _legacyServerUrlKey = 'serverUrl';
+
+  static const maxServers = 10;
 
   final FlutterSecureStorage _storage;
 
@@ -104,10 +124,36 @@ class SessionStore {
 
   Future<void> save(Session session) async {
     await _storage.write(key: _sessionKey, value: jsonEncode(session.toJson()));
-    await _storage.write(key: _serverUrlKey, value: session.serverUrl);
+    final servers = (await this.servers())
+      ..remove(session.serverUrl)
+      ..insert(0, session.serverUrl);
+    await _writeServers(servers.take(maxServers).toList());
   }
 
+  /// Forgets the session, but not the servers: they are offered by the next login.
   Future<void> clear() => _storage.delete(key: _sessionKey);
 
-  Future<String?> lastServerUrl() => _storage.read(key: _serverUrlKey);
+  /// The servers of the last logins, most recent first.
+  Future<List<String>> servers() async {
+    final json = await _storage.read(key: _serversKey);
+    if (json == null) {
+      final legacy = await _storage.read(key: _legacyServerUrlKey);
+      return legacy == null ? [] : [legacy];
+    }
+    try {
+      return (jsonDecode(json) as List).cast<String>().toList();
+    } on Object {
+      return [];
+    }
+  }
+
+  Future<void> removeServer(String serverUrl) async {
+    final servers = (await this.servers())..remove(serverUrl);
+    await _writeServers(servers);
+  }
+
+  Future<void> _writeServers(List<String> servers) async {
+    await _storage.write(key: _serversKey, value: jsonEncode(servers));
+    await _storage.delete(key: _legacyServerUrlKey);
+  }
 }
