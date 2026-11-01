@@ -66,7 +66,7 @@ export function EditPageTabs({
   return (
     <div
       role="tablist"
-      className="flex shrink-0 flex-wrap items-end border-b-[1.5px] border-border bg-background px-6"
+      className="flex shrink-0 flex-nowrap items-end overflow-x-auto border-b-[1.5px] border-border bg-background px-3 sm:flex-wrap sm:overflow-x-visible sm:px-6"
     >
       {tabs.map((tab, i) => {
         // activeId wins: while a tab beside the form is open, the form's scroll position says nothing

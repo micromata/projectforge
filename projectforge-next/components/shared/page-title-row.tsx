@@ -48,7 +48,7 @@ export function PageTitleRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 px-4 pt-3",
+        "flex items-center gap-3 px-3 pt-2 sm:px-4 sm:pt-3",
         wrap && "flex-wrap gap-y-2"
       )}
     >
@@ -79,7 +79,7 @@ export function PageTitleRow({
           paper can be clicked. */}
       <div
         className={cn(
-          "flex items-center gap-3 self-start print:hidden",
+          "flex flex-wrap items-center gap-2 self-start sm:gap-3 print:hidden",
           wrap && "ml-auto"
         )}
       >

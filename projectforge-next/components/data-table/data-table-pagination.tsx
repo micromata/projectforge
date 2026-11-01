@@ -46,8 +46,9 @@ export function DataTablePagination<TData>({
     // Three columns rather than `justify-between`: the two outer ones are equally wide whatever they
     // hold, so the strip in the middle stays where it is when the range label grows a digit ("51-100"
     // after "1-50"). With `min-w-0` and a truncated label, because a label wider than its share would
-    // push the middle aside again.
-    <div className="grid grid-cols-[1fr_auto_1fr] items-center border-t px-4 py-2">
+    // push the middle aside again. On a narrow screen only the range and the arrows around the current page:
+    // no page size and no other page numbers, so it is two columns there.
+    <div className="grid grid-cols-[1fr_auto] items-center border-t px-3 py-1.5 sm:grid-cols-[1fr_auto_1fr] sm:px-4 sm:py-2">
       <span className="min-w-0 truncate text-xs font-medium text-muted-foreground tabular-nums">
         {label}
       </span>
@@ -79,7 +80,7 @@ export function DataTablePagination<TData>({
             <span
               key={`gap-${i}`}
               aria-hidden
-              className="pagination-slot h-7 text-center text-xs leading-7 text-muted-foreground"
+              className="pagination-slot hidden h-7 text-center text-xs leading-7 text-muted-foreground sm:block"
             >
               {PAGE_GAP}
             </span>
@@ -92,7 +93,7 @@ export function DataTablePagination<TData>({
                 "pagination-slot h-7 rounded-sm border px-2 text-xs font-medium",
                 slot - 1 === pageIndex
                   ? "border-primary bg-primary text-primary-foreground"
-                  : "bg-background text-muted-foreground hover:bg-muted"
+                  : "hidden bg-background text-muted-foreground hover:bg-muted sm:block"
               )}
             >
               {slot}
@@ -111,7 +112,7 @@ export function DataTablePagination<TData>({
           <HugeiconsIcon icon={ArrowRight01Icon} size={13} />
         </Button>
       </div>
-      <div className="flex min-w-0 items-center justify-end gap-2">
+      <div className="hidden min-w-0 items-center justify-end gap-2 sm:flex">
         <span className="truncate text-xs text-muted-foreground">
           {t("rowsPerPage")}
         </span>
