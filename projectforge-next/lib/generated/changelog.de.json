@@ -8,15 +8,21 @@
     "sections" : [ {
       "type" : "added",
       "items" : [ {
+        "title" : "Mobile App: Benachrichtigungen und Push (iPhone)",
+        "items" : [ "Die Benachrichtigungen der Web-Version (Regeln, Chat) werden auch in der App gezeigt: eine Glocke mit der Anzahl, die Liste mit dem Archiv sowie Bestätigen und Erledigen; ein Link öffnet die Seite in der App.", "Eine neue Benachrichtigung weckt die App mit einer Push-Nachricht (APNs, `projectforge.push.apns.*`), ohne ihren Inhalt in der Nachricht. Ohne konfigurierten Schlüssel wird nichts gesendet und die App fragt wie bisher regelmäßig ab." ]
+      }, {
         "title" : "CVE-Radar: Benachrichtigung ohne Details und über veraltete Bibliothekslisten",
         "items" : [ "Eine neue Benachrichtigungsregel „Neue Befunde des CVE-Radars“ beginnt mit einem Text ohne Details („es gibt möglicherweise Updates“) und einem Link auf die Liste; die neue Variable cvrListLink verlinkt immer auf die Liste.", "Neuer Regeltyp „Veraltete Bibliothekslisten des CVE-Radars“: Das verantwortliche Team einer Komponente, deren Bibliotheksliste vor mehr als einer Anzahl Tage übernommen wurde (vorab 30), wird höchstens einmal pro Woche benachrichtigt, und eine Aktualisierung der Liste erledigt die Benachrichtigung. Der Tag der letzten Liste wird jetzt je Komponente gespeichert." ]
       }, {
         "title" : "Mobile App (in Vorbereitung)",
-        "items" : [ "Hinter einem SSO-Proxy (z. B. Authentik als Forward Auth) bekommt die App die Sitzung des Proxys aus der Anmeldung im Browser (`projectforge.app.proxyCookies`); läuft sie ab, meldet sich die App erneut im Browser an.", "Die Anmeldung der App bietet die zuletzt benutzten Server an, und das Abmelden klappt auch, wenn der Server nicht erreichbar ist." ]
+        "items" : [ "Hinter einem SSO-Proxy (z. B. Authentik als Forward Auth) bekommt die App die Sitzung des Proxys aus der Anmeldung im Browser (`projectforge.app.proxyCookies`); läuft sie ab, meldet sich die App erneut im Browser an.", "Die Anmeldung der App bietet die zuletzt benutzten Server an, und das Abmelden klappt auch, wenn der Server nicht erreichbar ist.", "Visitenkarten werden in der App gespeichert und auch offline gezeigt; sie werden beim Öffnen des Tabs still und per Button neu geladen und lassen sich in den Apple Wallet übernehmen, wenn der Server dafür konfiguriert ist (iPhone), auch über den Link der Webseite in der App.", "Die App gibt den Seiten mehr Platz: keine Titelleiste über den Webseiten und dem Chat, eine schmalere Navigationsleiste und im Querformat die Navigation an der Seite." ]
       } ]
     }, {
       "type" : "changed",
       "items" : [ "Schnellere erste Seite großer Listen: die Startseite des CVE-Radars lädt nicht mehr alle Schwachstellen, um die Liste aufzubauen" ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Kalender auf kleinen Bildschirmen: Die Kalenderauswahl hat eine eigene Zeile unter Titel und Schaltflächen, statt von ihnen verdeckt zu werden." ]
     } ]
   },
   "groups" : [ {

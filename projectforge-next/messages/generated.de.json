@@ -3664,6 +3664,14 @@
       "sms": "SMS ({arg0} Zeichen)",
       "withExamples": "Mit Beispielwerten"
     },
+    "push": {
+      "chat": {
+        "text": "Zum Lesen die App öffnen.",
+        "title": "Neue Chat-Nachricht"
+      },
+      "text": "Zum Ansehen die App öffnen.",
+      "title": "Neue Benachrichtigung"
+    },
     "recipient": "Empfänger",
     "recipients": {
       "allEmployees": "Alle Mitarbeitenden",

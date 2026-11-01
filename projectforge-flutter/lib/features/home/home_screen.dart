@@ -27,8 +27,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/auth/session.dart';
 import '../../core/i18n/translations.dart';
+import '../../core/push/push_service.dart';
+import '../../core/status/user_status_controller.dart';
 import '../business_cards/business_cards_screen.dart';
-import '../chat/chat_status_controller.dart';
+import '../notifications/notification_bell.dart';
+import '../notifications/notification_text.dart';
 import '../web/web_screen.dart';
 
 /// The tabs of the logged-in app.
@@ -49,18 +52,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   _Destination _current = _Destination.businessCards;
 
-  /// The page the business cards ask the web tab to show (their creation and editing).
+  /// The page the business cards ask the web tab to show (their creation and editing, a link of a notification).
   WebTarget? _webTarget;
+
+  /// The page of the chat tab other than its start page (a link of a notification).
+  WebTarget? _chatTarget;
 
   /// The WebViews are created when their tab is opened first, and then kept (with their page) while switching.
   final _opened = <_Destination>{};
 
   @override
+  void initState() {
+    super.initState();
+    // Asks for the permission to show pushes, registers and hands the token to the server.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(pushServiceProvider)?.start().catchError((Object _) {});
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final session = ref.watch(authControllerProvider).session;
-    final chatStatus = ref.watch(chatStatusProvider).value;
+    ref.listen(pushLinkProvider, (_, link) {
+      if (link == null) return;
+      ref.read(pushLinkProvider.notifier).clear();
+      _openLink(link);
+    });
+    // The number on the icon follows the notifications.
+    ref.listen(userStatusProvider.select((s) => s.value?.openNotifications), (
+      _,
+      count,
+    ) {
+      if (count != null) ref.read(pushServiceProvider)?.setBadge(count);
+    });
+    final userStatus = ref.watch(userStatusProvider).value;
     // Unknown (not loaded yet, offline): shown, the server refuses it anyway if it is switched off.
-    final chatEnabled = chatStatus?.enabled ?? true;
+    final chatEnabled = userStatus?.chatEnabled ?? true;
     final destinations = [
       _Destination.businessCards,
       if (chatEnabled) _Destination.chat,
@@ -69,7 +96,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final current = destinations.contains(_current)
         ? _current
         : _Destination.businessCards;
-    final unread = chatStatus?.unread ?? 0;
+    final unread = userStatus?.chatUnread ?? 0;
     final landscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
     final selectedIndex = destinations.indexOf(current);
@@ -86,7 +113,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ? WebScreen(
                       key: const ValueKey(_Destination.chat),
                       active: current == destination,
-                      initialPath: _chatPath,
+                      initialPath: _chatTarget?.path ?? _chatPath,
+                      target: _chatTarget,
                     )
                   : const SizedBox.shrink(),
             _Destination.web =>
@@ -112,6 +140,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 icon: const Icon(Icons.refresh),
                 onPressed: () => refreshBusinessCards(context, ref),
               ),
+              NotificationBell(onOpenLink: _openLink),
               _accountMenu(context, session),
             ],
           )
@@ -221,6 +250,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     label: Text(_label(context, destination)),
   );
 
+  /// Shows the page of a link of a notification (see [webPathOfLink]): the chat in its tab, everything else in the web tab.
+  void _openLink(String link) {
+    final path = webPathOfLink(link);
+    if (path == null) return;
+    if (isChatPath(path)) {
+      _chatTarget = WebTarget(path);
+      _select(_current, _Destination.chat);
+    } else {
+      _webTarget = WebTarget(path);
+      _select(_current, _Destination.web);
+    }
+  }
+
   void _openBusinessCardsPage() {
     _webTarget = WebTarget('/next/myBusinessCards');
     _select(_current, _Destination.web);
@@ -233,7 +275,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
     // Reading in the chat (or in the pages) changes the count: no need to wait for the next poll.
     if (previous != destination) {
-      ref.read(chatStatusProvider.notifier).refresh();
+      ref.read(userStatusProvider.notifier).refresh();
     }
   }
 

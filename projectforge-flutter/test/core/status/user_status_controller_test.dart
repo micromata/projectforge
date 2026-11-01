@@ -25,31 +25,42 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:projectforge_app/core/api/api_client.dart';
-import 'package:projectforge_app/features/chat/chat_status.dart';
-import 'package:projectforge_app/features/chat/chat_status_controller.dart';
-import 'package:projectforge_app/features/chat/chat_status_repository.dart';
+import 'package:projectforge_app/core/status/user_status.dart';
+import 'package:projectforge_app/core/status/user_status_controller.dart';
+import 'package:projectforge_app/core/status/user_status_repository.dart';
 
-import '../../core/fake_adapter.dart';
+import '../fake_adapter.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('unread count and switched off chat', () {
-    expect(ChatStatus({'chatUnread': 3}).unread, 3);
-    expect(ChatStatus({}).unread, 0);
-    expect(ChatStatus({}).enabled, isTrue);
+    expect(UserStatus({'chatUnread': 3}).chatUnread, 3);
+    expect(UserStatus({}).chatUnread, 0);
+    expect(UserStatus({}).chatEnabled, isTrue);
     expect(
-      ChatStatus({
+      UserStatus({
         'disabledFeatures': ['CALENDAR'],
-      }).enabled,
+      }).chatEnabled,
       isTrue,
     );
     expect(
-      ChatStatus({
+      UserStatus({
         'disabledFeatures': ['CHAT'],
-      }).enabled,
+      }).chatEnabled,
       isFalse,
     );
+  });
+
+  test('summary of the notifications', () {
+    expect(UserStatus({}).openNotifications, 0);
+    expect(UserStatus({}).maxSeverity, isNull);
+    final status = UserStatus({
+      'notifications': {'openCount': 2, 'maxSeverity': 'URGENT', 'latestId': 7},
+    });
+    expect(status.openNotifications, 2);
+    expect(status.maxSeverity, 'URGENT');
+    expect(status.latestNotificationId, 7);
   });
 
   test('offline the last status stays', () async {
@@ -65,8 +76,8 @@ void main() {
     });
     final container = ProviderContainer(
       overrides: [
-        chatStatusRepositoryProvider.overrideWithValue(
-          ChatStatusRepository(
+        userStatusRepositoryProvider.overrideWithValue(
+          UserStatusRepository(
             ApiClient(
               serverUrl: 'https://pf.example.com',
               token: () => 'token',
@@ -81,10 +92,10 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    expect((await container.read(chatStatusProvider.future)).unread, 2);
+    expect((await container.read(userStatusProvider.future)).chatUnread, 2);
     expect(adapter.requests.single.path, '/rs/userStatus');
     offline = true;
-    await container.read(chatStatusProvider.notifier).refresh();
-    expect(container.read(chatStatusProvider).value?.unread, 2);
+    await container.read(userStatusProvider.notifier).refresh();
+    expect(container.read(userStatusProvider).value?.chatUnread, 2);
   });
 }

@@ -245,6 +245,56 @@ interface (`/export/sms`).
 The menu visibility (`projectforge.menu.visibility.*`) is something else: it hides menu entries for groups of users
 only, the functions stay reachable.
 
+[[mobile_app]]
+=== Mobile app
+
+The mobile app logs in in the system browser (password and second factor as in the web) and then gets a token of
+its own. Settings in `projectforge.properties`:
+
+[source,properties]
+----
+# Days without any request after which the token of an app is invalid (default 90).
+projectforge.app.tokenExpiryDays=90
+# Cookies of an SSO proxy in front of ProjectForge, handed to the app (see below).
+projectforge.app.proxyCookies=authentik_proxy_*
+# Push messages (iPhone), see below.
+projectforge.push.apns.keyFile=/path/to/AuthKey_ABC1234567.p8
+projectforge.push.apns.keyId=ABC1234567
+projectforge.push.apns.teamId=DEF1234567
+projectforge.push.apns.topic=de.projectforge.mobileapp
+----
+
+[[mobile_app_proxy_cookies]]
+==== Behind an SSO proxy
+
+If an SSO proxy (e.g. Authentik as forward auth in nginx) stands in front of ProjectForge, it lets only requests with
+its own session cookie through. The browser has this cookie, the app doesn't. `projectforge.app.proxyCookies` names
+the cookies of the proxy, separated by commas; a trailing `*` matches a prefix (`authentik_proxy_*`). During the
+login in the browser the server takes these cookies from the request and hands them to the app together with its
+token. The app sends them with every request and puts them into its web views.
+
+* Name only the cookies of the proxy: a bare `*` is ignored, and the cookies of ProjectForge itself are never handed
+  over. A cookie the browser sends twice (e.g. one set by another subdomain) is not taken.
+* If the proxy refuses the app (its session expired), the app logs in again in the browser, which brings fresh
+  cookies and needs a second factor of ProjectForge. Therefore the app has to log in again after each expiry of the
+  proxy session (e.g. the token validity of the Authentik provider).
+* The app gets the proxy session of the browser, not one of its own. With forward auth on domain level it can reach
+  every application behind the proxy. Logging out the app in "My account" does not end the proxy session, and a
+  logout at the proxy in the browser shuts the app out as well.
+
+[[mobile_app_push]]
+==== Push messages
+
+A new notification can wake the app with a push message through Apple's push service (APNs). The server sends it
+itself: it needs an APNs authentication key (`AuthKey_<keyId>.p8`) of the Apple developer account the app belongs to
+(`keyFile`, `keyId`, `teamId`, and the bundle id of the app as `topic`). Without `keyFile` no push is sent, and the
+app asks for new notifications from time to time as before.
+
+The key belongs to the publisher of the app. The pushes therefore work for installations that have the publisher's key
+or their own build of the app. The message contains no content of the notification, only a generic text, the link and
+the number of open notifications; the app loads the content itself. Debug builds of the app use the sandbox of APNs,
+release builds the production service.
+
 [[customization]]
 === Customization
 

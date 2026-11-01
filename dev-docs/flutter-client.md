@@ -30,7 +30,7 @@ next (SSE on the web session's cookie). Native is only what a page can't do:
   contains `CHAT`).
 - **Files:** uploads through the file input of the page (WKWebView and the Android WebView open the system picker;
   iOS needs `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`), downloads see "Web pages in the app".
-- **Push** (phase 3, see below): a tap opens `/next/chat/{id}` in the chat tab.
+- **Push** (see "Notifications and push"): a tap opens `/next/chat/{id}` in the chat tab.
 
 ## Login
 
@@ -135,23 +135,37 @@ I18nResources bundles: the keys the Dart sources name literally (`t('businessCar
 `PREFIXES`. Flat, placeholders as `{0}`. App only texts are hand-written in `assets/i18n/app.<locale>.json`.
 `GenerateFlutterI18nMessagesTest` fails if the generated files are out of date.
 
-## Push notifications (phase 3)
+## Notifications and push
 
-In the background iOS suspends the app and no SSE connection survives, so only APNs (and FCM on Android) can wake
-the user.
+The notifications of the web version (`NotificationDO`, rules and chat, see `business/notification/`) are shown in the
+app natively (`lib/features/notifications/`): the bell in the bar of the business cards tab (count and colour from the
+summary in `GET /rs/userStatus`), the list with the archive, "confirm" and "mark as done" as in the web, and "open",
+which shows the link in the chat or web tab (`webPathOfLink`: only paths of the own server). The list is loaded again
+when the summary (count, newest id) of the user status changes; the user status (`lib/core/status/`) is polled every
+60 s in the foreground and refreshed by a push.
 
-- The app asks for the permission after login, registers for remote notifications and hands the device token to
-  the server with a `POST` (stored at `AppDeviceDO`: token, environment sandbox/production).
-- The server sends with a token based APNs key (`.p8`, no yearly certificate renewal) and FCM; it removes a token on
-  `410 Unregistered`/`BadDeviceToken`.
-- Only when the recipient doesn't watch the conversation via SSE (the rule of the existing notifications).
-- The payload carries no message text: a generic text, the conversation id and a counter. The app loads the content
-  when opened. A text on the lock screen would need a Notification Service Extension: not in the first version.
+In the background iOS suspends the app and no SSE connection survives, so only APNs can wake the user (Android with
+FCM follows).
+
+- **Registration:** after login the app asks for the permission, registers for remote notifications and hands the token
+  to the server with `POST /rs/appAuth/pushToken` (token, `SANDBOX` for debug and `PRODUCTION` for release builds),
+  stored at its `AppDeviceDO` (`push_token`, `push_environment`). The device is the one of the app token, a token known
+  on another device is moved. The logout deletes the device and with it the token. Native part: `AppDelegate.swift`,
+  channel `projectforge/push`; Dart: `core/push/push_service.dart`.
+- **Sending:** the push accompanies the in-app step of the delivery cascade: when a notification becomes visible for
+  the recipient (`NotificationService.deliverDueSteps`, "test to me" of a rule), `PushNotifier` sends in the background
+  to every registered app of the recipient (`PushSender`, `ApnsPushSender`: HTTP/2 to APNs, ES256 provider token
+  of the `.p8` key, `projectforge.push.apns.*`). A token refused with 410/`BadDeviceToken` is forgotten. Without
+  `keyFile` nothing is sent. The chat doesn't push for a conversation the recipient watches or has muted, as for the
+  other channels (`ChatNotifier`).
+- **Payload:** no content, as Apple sees it: a generic text (`notification.push.*`, in the language of the recipient),
+  the link, the notification id and the badge (count of the visible notifications), a sound only for IMPORTANT and
+  URGENT. A Notification Service Extension for text on the lock screen isn't in the first version.
+- **Tap:** the link is opened in the chat or web tab, also when the push started the app (`launchLink`).
 - Real APNs delivery needs a physical device; sandbox and production differ, test via TestFlight.
-- Open: who sends for a self-hosted installation. The store app has one APNs key and one FCM project: either a push
-  relay of the app's publisher, to which each server sends only device token, conversation id and counter (as
-  Nextcloud does), or the server sends itself with keys from its configuration (only for installations with the
-  publisher's keys or an own build of the app). The server side gets a `PushSender` interface either way.
+- Open: who sends for a self-hosted installation. The store app has one APNs key: for now the server sends itself with
+  keys from its configuration (installations with the publisher's keys or an own build of the app); a push relay of the
+  app's publisher, to which each server sends only token and ids (as Nextcloud does), would be a second `PushSender`.
 
 ## Open points
 

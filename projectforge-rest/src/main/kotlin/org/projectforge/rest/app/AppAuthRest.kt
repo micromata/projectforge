@@ -27,7 +27,9 @@ package org.projectforge.rest.app
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.user.AppAuthService
+import org.projectforge.business.user.AppDeviceDO
 import org.projectforge.business.user.AppDeviceDao
+import org.projectforge.business.user.PushEnvironment
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.TimeUnit
@@ -151,6 +153,51 @@ class AppAuthRest {
         return ResponseEntity.ok(WebSessionResponse(startUrl = WEB_START_URL))
     }
 
+    class PushTokenRequest(
+        /** The APNs device token (hex). */
+        val token: String? = null,
+        /** `SANDBOX` (debug builds) or `PRODUCTION`. */
+        val environment: String? = null,
+    )
+
+    /**
+     * The app hands over its push token (APNs), so the server can wake it for a notification. The device is the one
+     * of the app token of this request, nothing posted; a token already known on another device is moved here.
+     */
+    @AccessChecked("Own app only (the device of the app token of this request). CSRF token not required (app token)")
+    @PostMapping("pushToken")
+    fun pushToken(request: HttpServletRequest, @RequestBody body: PushTokenRequest): ResponseEntity<*> {
+        val token = body.token?.trim()
+        val environment = PushEnvironment.entries.firstOrNull { it.name == body.environment }
+        if (token == null || environment == null || !PUSH_TOKEN_REGEX.matches(token)) {
+            return ResponseEntity.badRequest().build<Any>()
+        }
+        val device = ownDevice(request) ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Any>()
+        appDeviceDao.setPushToken(ThreadLocalUserContext.loggedInUserId, device.id, token.lowercase(), environment)
+        return ResponseEntity.ok().build<Any>()
+    }
+
+    /**
+     * The app no longer wants pushes (the user switched them off, the app logs out).
+     */
+    @AccessChecked("Own app only (the device of the app token of this request). CSRF token not required (app token)")
+    @PostMapping("pushToken/remove")
+    fun removePushToken(request: HttpServletRequest): ResponseEntity<*> {
+        val device = ownDevice(request) ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Any>()
+        appDeviceDao.setPushToken(ThreadLocalUserContext.loggedInUserId, device.id, null, null)
+        return ResponseEntity.ok().build<Any>()
+    }
+
+    /** The device of the app token of this request, null for a browser session or a REST client token. */
+    private fun ownDevice(request: HttpServletRequest): AppDeviceDO? {
+        val userContext = ThreadLocalUserContext.userContext
+        if (userContext?.loggedInByAuthenticationToken != true) {
+            return null
+        }
+        val device = appDeviceDao.getValidDevice(RestAuthenticationUtils.getAppToken(request)) ?: return null
+        return device.takeIf { it.user?.id == userContext.user?.id }
+    }
+
     /**
      * The app logs itself out: its token is deleted. The device is the one of the token, nothing posted.
      */
@@ -165,6 +212,8 @@ class AppAuthRest {
     }
 
     companion object {
+        private val PUSH_TOKEN_REGEX = Regex("[0-9a-fA-F]{32,200}")
+
         const val WEB_START_URL = "/next/"
 
         /** Allowed even with a second factor too old for a login, see [RestAuthenticationUtils]. */

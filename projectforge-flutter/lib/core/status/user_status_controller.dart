@@ -26,33 +26,33 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/api/api_exception.dart';
-import '../../core/auth/auth_controller.dart';
-import 'chat_status.dart';
-import 'chat_status_repository.dart';
+import '../api/api_exception.dart';
+import '../auth/auth_controller.dart';
+import 'user_status.dart';
+import 'user_status_repository.dart';
 
-final chatStatusRepositoryProvider = Provider<ChatStatusRepository?>((ref) {
+final userStatusRepositoryProvider = Provider<UserStatusRepository?>((ref) {
   final api = ref.watch(apiClientProvider);
-  return api == null ? null : ChatStatusRepository(api);
+  return api == null ? null : UserStatusRepository(api);
 });
 
-final chatStatusProvider =
-    AsyncNotifierProvider<ChatStatusController, ChatStatus>(
-      ChatStatusController.new,
+final userStatusProvider =
+    AsyncNotifierProvider<UserStatusController, UserStatus>(
+      UserStatusController.new,
     );
 
-/// The unread chat messages for the badge of the chat tab, reloaded every [interval] while the app is in the
-/// foreground, on resuming it and on [refresh] (e.g. leaving the chat tab). Pushes follow (dev-docs/flutter-client.md).
+/// The user status for the badge of the chat tab and the bell of the notifications, reloaded every [interval] while the app is in the
+/// foreground, on resuming it and on [refresh] (e.g. leaving the chat tab) and when a push arrives.
 ///
 /// The app token has no session, so the polling keeps nothing alive; the server caches the count for some seconds.
-class ChatStatusController extends AsyncNotifier<ChatStatus> {
+class UserStatusController extends AsyncNotifier<UserStatus> {
   static const interval = Duration(seconds: 60);
 
   Timer? _timer;
 
   @override
-  Future<ChatStatus> build() {
-    final repository = ref.watch(chatStatusRepositoryProvider)!;
+  Future<UserStatus> build() {
+    final repository = ref.watch(userStatusRepositoryProvider)!;
     final lifecycle = AppLifecycleListener(
       onResume: () {
         refresh();
@@ -80,7 +80,7 @@ class ChatStatusController extends AsyncNotifier<ChatStatus> {
 
   /// Loads the status again; offline (or on an error) the last one stays.
   Future<void> refresh() async {
-    final repository = ref.read(chatStatusRepositoryProvider);
+    final repository = ref.read(userStatusRepositoryProvider);
     if (repository == null) return;
     try {
       final status = await repository.load();

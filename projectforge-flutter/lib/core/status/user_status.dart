@@ -21,20 +21,36 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-/// What the app shows of the chat outside of its pages: the badge of the tab. Taken from the user status
-/// (`UserStatusRest.Result`, `GET /rs/userStatus`), the json map is kept.
-class ChatStatus {
-  ChatStatus(this.json);
+/// What the app shows of the server outside of its pages: the badge of the chat tab and the bell of the
+/// notifications. Taken from the user status (`UserStatusRest.Result`, `GET /rs/userStatus`), the json map is kept.
+class UserStatus {
+  UserStatus(this.json);
 
   /// The feature id of the chat (`MenuItemDefId.CHAT`) in `disabledFeatures`.
-  static const featureId = 'CHAT';
+  static const chatFeatureId = 'CHAT';
 
   final Map<String, dynamic> json;
 
   /// The unread messages in all chat rooms and direct messages (`chatUnread`).
-  int get unread => (json['chatUnread'] as num?)?.toInt() ?? 0;
+  int get chatUnread => (json['chatUnread'] as num?)?.toInt() ?? 0;
 
   /// False if the chat is switched off on the server (`disabledFeatures`): the app shows no chat tab.
-  bool get enabled => !(json['disabledFeatures'] as List<dynamic>? ?? const [])
-      .contains(featureId);
+  bool get chatEnabled =>
+      !(json['disabledFeatures'] as List<dynamic>? ?? const []).contains(
+        chatFeatureId,
+      );
+
+  Map<String, dynamic> get _notifications =>
+      json['notifications'] as Map<String, dynamic>? ?? const {};
+
+  /// The notifications visible to the user (`NotificationDao.Summary.openCount`).
+  int get openNotifications =>
+      (_notifications['openCount'] as num?)?.toInt() ?? 0;
+
+  /// The most severe of them: `INFO`, `IMPORTANT`, `URGENT`, null without any.
+  String? get maxSeverity => _notifications['maxSeverity'] as String?;
+
+  /// The id of the newest one: with [openNotifications] it tells when the list has to be loaded again.
+  int? get latestNotificationId =>
+      (_notifications['latestId'] as num?)?.toInt();
 }

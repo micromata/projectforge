@@ -8,15 +8,21 @@
     "sections" : [ {
       "type" : "added",
       "items" : [ {
+        "title" : "Mobile app: notifications and push (iPhone)",
+        "items" : [ "The notifications of the web version (rules, chat) are shown in the app as well: a bell with the count, the list with the archive, and confirming or finishing them; a link opens the page in the app.", "A new notification wakes the app with a push message (APNs, `projectforge.push.apns.*`), without its content in the message. Without a configured key nothing is sent and the app polls as before." ]
+      }, {
         "title" : "CVE-Radar: notification without details and about outdated lists of libraries",
         "items" : [ "A new notification rule \"New findings of the CVE radar\" starts with a text that names no details (\"there may be updates\") and a link to the list; the new variable cvrListLink always links to the list.", "New rule type \"Outdated lists of libraries of the CVE radar\": the responsible team of a component whose list of libraries was applied more than a number of days ago (30 by default) is told, at most once a week, and the notification is resolved by an update of the list. The day of the last list is now recorded per component." ]
       }, {
         "title" : "Mobile app (in preparation)",
-        "items" : [ "Behind an SSO proxy (e.g. Authentik as forward auth) the app gets the proxy's session from the browser login (`projectforge.app.proxyCookies`); when it expires, the app logs in again in the browser.", "The login of the app offers the recently used servers, and the logout works even if the server can't be reached." ]
+        "items" : [ "Behind an SSO proxy (e.g. Authentik as forward auth) the app gets the proxy's session from the browser login (`projectforge.app.proxyCookies`); when it expires, the app logs in again in the browser.", "The login of the app offers the recently used servers, and the logout works even if the server can't be reached.", "Business cards are stored in the app and shown offline too; they are reloaded silently when the tab is opened and by a button, and can be added to the Apple Wallet if the server is configured for it (iPhone), also by the link of the web page in the app.", "The app gives more room to the pages: no title bar above the web pages and the chat, a slimmer navigation bar, and in landscape the navigation at the side." ]
       } ]
     }, {
       "type" : "changed",
       "items" : [ "Faster first page of big lists: the CVE-Radar start page no longer loads every vulnerability to build the list" ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Calendar on small screens: the calendar chooser has a line of its own under the title and the buttons instead of being covered by them." ]
     } ]
   },
   "groups" : [ {

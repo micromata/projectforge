@@ -21,17 +21,17 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import '../../core/api/api_client.dart';
-import 'chat_status.dart';
+import '../api/api_client.dart';
+import 'user_status.dart';
 
-/// The chat's part of the user status (`UserStatusRest`, `GET /rs/userStatus`).
-class ChatStatusRepository {
-  ChatStatusRepository(this._api);
+/// The user status (`UserStatusRest`, `GET /rs/userStatus`).
+class UserStatusRepository {
+  UserStatusRepository(this._api);
 
   final ApiClient _api;
 
   /// Polled in the background: a refusal never opens a login in the browser (see ApiClient).
-  Future<ChatStatus> load() async => ChatStatus(
+  Future<UserStatus> load() async => UserStatus(
     await _api.get<Map<String, dynamic>>('/rs/userStatus', renewLogin: false),
   );
 }

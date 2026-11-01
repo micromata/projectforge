@@ -57,5 +57,12 @@
   "login" : "Login",
   "menu.logout" : "Logout",
   "menu.myBusinessCards" : "My business cards",
+  "notification.acknowledge" : "Confirm",
+  "notification.center" : "Notifications",
+  "notification.centerArchived" : "Archived entries",
+  "notification.centerArchivedEmpty" : "No archived entries of the last 90 days.",
+  "notification.centerEmpty" : "No open notifications.",
+  "notification.markDone" : "Mark as done",
+  "notification.open" : "Open",
   "refresh" : "refresh"
 }

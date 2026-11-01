@@ -57,5 +57,12 @@
   "login" : "Anmelden",
   "menu.logout" : "Abmelden",
   "menu.myBusinessCards" : "Meine Visitenkarten",
+  "notification.acknowledge" : "Bestätigen",
+  "notification.center" : "Benachrichtigungen",
+  "notification.centerArchived" : "Archivierte Einträge",
+  "notification.centerArchivedEmpty" : "Keine archivierten Einträge der letzten 90 Tage.",
+  "notification.centerEmpty" : "Keine offenen Benachrichtigungen.",
+  "notification.markDone" : "Als erledigt markieren",
+  "notification.open" : "Öffnen",
   "refresh" : "Neu laden"
 }

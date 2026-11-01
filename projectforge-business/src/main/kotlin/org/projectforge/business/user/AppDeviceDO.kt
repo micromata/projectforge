@@ -26,6 +26,8 @@ package org.projectforge.business.user
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -73,6 +75,14 @@ import java.util.Date
     NamedQuery(
         name = AppDeviceDO.UPDATE_LAST_ACCESS,
         query = "update AppDeviceDO t set t.lastAccess = :lastAccess, t.lastAccessIp = :lastAccessIp, t.appVersion = :appVersion where t.id = :id",
+    ),
+    NamedQuery(
+        name = AppDeviceDO.FIND_PUSH_BY_USER,
+        query = "from AppDeviceDO t where t.user.id = :userId and t.pushToken is not null",
+    ),
+    NamedQuery(
+        name = AppDeviceDO.CLEAR_PUSH_TOKEN,
+        query = "update AppDeviceDO t set t.pushToken = null, t.pushEnvironment = null where t.pushToken = :pushToken and t.id <> :exceptId",
     ),
     NamedQuery(
         name = AppDeviceDO.DELETE_BY_USER,
@@ -145,7 +155,23 @@ open class AppDeviceDO {
     @get:Column(name = "last_2fa")
     open var last2FA: Date? = null
 
+    /**
+     * The APNs device token of the app (hex), null if it has none (no permission, push not set up). Set by the app
+     * itself ([AppDeviceDao.setPushToken]), used by the push sender only; never sent back to a client.
+     */
+    @get:Column(name = "push_token", length = MAX_PUSH_TOKEN_LENGTH)
+    open var pushToken: String? = null
+
+    /**
+     * Which APNs endpoint [pushToken] belongs to: a token sent to the wrong one fails with `BadDeviceToken`.
+     */
+    @get:Column(name = "push_environment", length = MAX_PLATFORM_LENGTH)
+    @get:Enumerated(EnumType.STRING)
+    open var pushEnvironment: PushEnvironment? = null
+
     companion object {
+        internal const val FIND_PUSH_BY_USER = "AppDeviceDO_FindPushByUser"
+        internal const val CLEAR_PUSH_TOKEN = "AppDeviceDO_ClearPushToken"
         internal const val FIND_BY_TOKEN_HASH = "AppDeviceDO_FindByTokenHash"
         internal const val FIND_BY_USER = "AppDeviceDO_FindByUser"
         internal const val FIND_BY_ID_AND_USER = "AppDeviceDO_FindByIdAndUser"
@@ -157,5 +183,9 @@ open class AppDeviceDO {
         const val MAX_DEVICE_NAME_LENGTH = 100
         const val MAX_PLATFORM_LENGTH = 20
         const val MAX_APP_VERSION_LENGTH = 50
+        const val MAX_PUSH_TOKEN_LENGTH = 200
     }
 }
+
+/** The APNs endpoint a push token belongs to (debug builds of the app use the sandbox). */
+enum class PushEnvironment { SANDBOX, PRODUCTION }

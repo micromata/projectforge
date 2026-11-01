@@ -201,6 +201,60 @@ class AppDeviceDao {
     }
 
     /**
+     * Stores the push token of an app (or removes it, [token] null). A token belongs to one app: the same token on
+     * another row (a phone handed over, an app installed anew) is cleared.
+     *
+     * @param userId The logged-in user: a device of another user is never touched.
+     * @return false, if the device isn't (or no longer) one of the user's.
+     */
+    fun setPushToken(userId: Long?, id: Long?, token: String?, environment: PushEnvironment?): Boolean {
+        userId ?: return false
+        id ?: return false
+        return persistenceService.runInTransaction { context ->
+            val entry = context.selectNamedSingleResult(
+                AppDeviceDO.FIND_BY_ID_AND_USER,
+                AppDeviceDO::class.java,
+                Pair("id", id),
+                Pair("userId", userId),
+            ) ?: return@runInTransaction false
+            if (token != null) {
+                context.executeNamedUpdate(
+                    AppDeviceDO.CLEAR_PUSH_TOKEN,
+                    Pair("pushToken", token),
+                    Pair("exceptId", id),
+                )
+            }
+            entry.pushToken = token
+            entry.pushEnvironment = if (token != null) environment else null
+            context.em.merge(entry)
+            context.em.flush()
+            true
+        }
+    }
+
+    /**
+     * Forgets a push token the push service refused (unregistered, bad token).
+     */
+    fun clearPushToken(token: String?) {
+        token ?: return
+        persistenceService.runInTransaction { context ->
+            context.executeNamedUpdate(AppDeviceDO.CLEAR_PUSH_TOKEN, Pair("pushToken", token), Pair("exceptId", -1L))
+        }
+    }
+
+    /**
+     * The apps of a user that can receive pushes.
+     */
+    fun getPushDevices(userId: Long?): List<AppDeviceDO> {
+        userId ?: return emptyList()
+        return persistenceService.executeNamedQuery(
+            AppDeviceDO.FIND_PUSH_BY_USER,
+            AppDeviceDO::class.java,
+            Pair("userId", userId),
+        )
+    }
+
+    /**
      * Logs out one app of a user. The user is part of the condition, so an id of another user's device deletes
      * nothing.
      *
