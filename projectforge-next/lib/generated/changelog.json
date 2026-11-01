@@ -22,7 +22,10 @@
       "items" : [ "Faster first page of big lists: the CVE-Radar start page no longer loads every vulnerability to build the list" ]
     }, {
       "type" : "fixed",
-      "items" : [ "Calendar on small screens: the calendar chooser has a line of its own under the title and the buttons instead of being covered by them." ]
+      "items" : [ "Calendar on small screens: the calendar chooser has a line of its own under the title and the buttons instead of being covered by them.", {
+        "title" : "CVE-Radar: the file of an incident opens again and has a tab for its description",
+        "items" : [ "The file of a case without a CVE showed an empty page. It now opens on the new first tab \"Description\", which shows the description of the case and lets the security team edit it with a rich text editor." ]
+      } ]
     } ]
   },
   "groups" : [ {

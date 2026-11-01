@@ -40,6 +40,7 @@ import org.projectforge.plugins.cveradar.model.CvrImportStateDO
 import org.projectforge.plugins.cveradar.model.CvrPriority
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.projectforge.plugins.cveradar.rest.CvrCaseFileRest
+import org.projectforge.plugins.cveradar.rest.DescriptionRequest
 import org.projectforge.plugins.cveradar.rest.MassRequest
 import org.projectforge.plugins.cveradar.rest.MeasuresRequest
 import org.projectforge.plugins.cveradar.rest.RatingRequest
@@ -110,7 +111,24 @@ class CvrCaseFileTest : CveRadarTestBase() {
         }
         assertThrows(AccessException::class.java) { fileRest.rate(caseId, RatingRequest(lastUpdate, CvrPriority.P1, CvrExploitability.HIGH)) }
         assertThrows(AccessException::class.java) { fileRest.measures(caseId, MeasuresRequest(lastUpdate, techMeasures = "x")) }
+        assertThrows(AccessException::class.java) { fileRest.description(caseId, DescriptionRequest(lastUpdate, "x")) }
         assertThrows(AccessException::class.java) { caseDao.update(caseDao.find(caseId, checkAccess = false)!!) }
+    }
+
+    @Test
+    fun `the security team saves the description without touching the measures, a stale version is refused`() {
+        val vulnerability = vulnerability("CVE-2026-93020")
+        logon(user("st20", CvrRole.SECURITY_TEAM))
+        val file = fileRest.open(vulnerability.id!!)
+        val caseId = file.case!!.id
+        val measures = fileRest.measures(caseId, MeasuresRequest(file.case.lastUpdate, techMeasures = "<p>Update</p>"))
+        val saved = fileRest.description(caseId, DescriptionRequest(measures.case!!.lastUpdate, "**Short** text"))
+        assertEquals("**Short** text", saved.case!!.description)
+        assertEquals("<p>Update</p>", saved.case.techMeasures, "the measures stay")
+        val ex = assertThrows(UserException::class.java) {
+            fileRest.description(caseId, DescriptionRequest(file.case.lastUpdate, "stale"))
+        }
+        assertEquals("plugins.cveradar.case.error.conflict", ex.i18nKey)
     }
 
     @Test

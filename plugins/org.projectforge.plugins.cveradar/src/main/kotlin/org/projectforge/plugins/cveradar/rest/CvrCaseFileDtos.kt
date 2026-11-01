@@ -65,6 +65,8 @@ class CaseFileView(
     val code: String?,
     val kind: CvrCaseKind?,
     val title: String?,
+    /** Markdown (import) or HTML (rich text editor), to render sanitized (AI-09). */
+    val description: String?,
     val status: CvrCaseStatus?,
     val priority: CvrPriority?,
     val priorityReason: String?,
@@ -140,6 +142,11 @@ class RatingRequest(
     val priority: CvrPriority? = null,
     val exploitability: CvrExploitability? = null,
     val reason: String? = null,
+)
+
+class DescriptionRequest(
+    val lastUpdate: Date? = null,
+    val description: String? = null,
 )
 
 class MeasuresRequest(

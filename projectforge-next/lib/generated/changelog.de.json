@@ -22,7 +22,10 @@
       "items" : [ "Schnellere erste Seite großer Listen: die Startseite des CVE-Radars lädt nicht mehr alle Schwachstellen, um die Liste aufzubauen" ]
     }, {
       "type" : "fixed",
-      "items" : [ "Kalender auf kleinen Bildschirmen: Die Kalenderauswahl hat eine eigene Zeile unter Titel und Schaltflächen, statt von ihnen verdeckt zu werden." ]
+      "items" : [ "Kalender auf kleinen Bildschirmen: Die Kalenderauswahl hat eine eigene Zeile unter Titel und Schaltflächen, statt von ihnen verdeckt zu werden.", {
+        "title" : "CVE-Radar: Die Akte eines Vorfalls öffnet sich wieder und hat einen Tab für ihre Beschreibung",
+        "items" : [ "Die Akte eines Falls ohne CVE zeigte eine leere Seite. Sie öffnet sich jetzt beim neuen ersten Tab „Beschreibung“, der die Beschreibung des Falls zeigt und dem Security-Team das Bearbeiten mit einem Richtext-Editor erlaubt." ]
+      } ]
     } ]
   },
   "groups" : [ {
