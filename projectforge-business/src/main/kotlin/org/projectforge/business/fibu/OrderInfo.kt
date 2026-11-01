@@ -250,8 +250,8 @@ class OrderInfo : Serializable {
 
     /**
      * True if something has to be invoiced right now, regardless of any date: a finished position (or a
-     * commissioned position of a finished order) not yet fully invoiced, or a reached payment schedule
-     * without a date.
+     * commissioned position of a finished order) not yet fully invoiced and without reached payment schedules
+     * (those decide by their dates), or a reached payment schedule without a date.
      */
     var toBeInvoicedImmediately: Boolean = false
 
@@ -293,8 +293,8 @@ class OrderInfo : Serializable {
 
     /**
      * @param cutoff Reached payment schedules dated after this day are to be invoiced in following months.
-     * @return true if a reached payment schedule not yet invoiced is dated after the given cutoff (a schedule of a
-     * finished position doesn't count, it's due immediately). An order may also be [isToBeInvoicedBy] the same
+     * @return true if a reached payment schedule not yet invoiced is dated after the given cutoff, also one of a
+     * finished position. An order may also be [isToBeInvoicedBy] the same
      * cutoff, if other amounts are due already. False for orders loaded from a snapshot, which have no dates.
      */
     fun isToBeInvoicedAfter(cutoff: LocalDate): Boolean {
@@ -317,16 +317,19 @@ class OrderInfo : Serializable {
     }
 
     /**
-     * @return true if the given position is to be invoiced until the given cutoff: it is finished (see
-     * [OrderPositionInfo.toBeInvoicedByStatus]) or has a reached payment schedule dated until the cutoff (or undated).
+     * @return true if the given position is to be invoiced until the given cutoff: it has a reached payment schedule
+     * dated until the cutoff (or undated), or, if it has no reached payment schedule, it is finished (see
+     * [OrderPositionInfo.toBeInvoicedByStatus]). Reached payment schedules of a finished position decide by their dates.
      */
     fun isPositionToBeInvoicedBy(pos: OrderPositionInfo, cutoff: LocalDate): Boolean {
         if (!pos.toBeInvoiced) {
             return false
         }
-        return pos.toBeInvoicedByStatus || paymentScheduleEntries?.any {
-            it.positionNumber == pos.number && it.toBeInvoiced && it.scheduleDate?.isAfter(cutoff) != true
-        } == true
+        val schedules = paymentScheduleEntries?.filter { it.positionNumber == pos.number && it.toBeInvoiced }
+        if (schedules.isNullOrEmpty()) {
+            return pos.toBeInvoicedByStatus
+        }
+        return schedules.any { it.scheduleDate?.isAfter(cutoff) != true }
     }
 
     var notYetInvoicedSum = BigDecimal.ZERO
@@ -410,19 +413,19 @@ class OrderInfo : Serializable {
 
     /**
      * Splits the to-be-invoiced amounts into the immediately due ones and the dated payment schedules, the
-     * same way [calculateToBeInvoicedSum] sums them: a payment schedule of a finished position is due
-     * immediately, whatever date it has.
+     * same way [calculateToBeInvoicedSum] sums them. Reached payment schedules decide by their dates, also those of
+     * a finished position; a finished position without reached payment schedule is due immediately.
      */
     private fun calculateInvoiceDates(positionInfos: Collection<OrderPositionInfo>?) {
         val reachedSchedules = paymentScheduleEntries?.filter { it.toBeInvoiced } ?: emptyList()
-        val finishedPositions = positionInfos?.filter { it.toBeInvoicedByStatus }?.map { it.number }?.toSet() ?: emptySet()
-        val (immediate, dated) = reachedSchedules.partition {
-            it.scheduleDate == null || finishedPositions.contains(it.positionNumber)
-        }
-        toBeInvoicedImmediately = toBeInvoiced && (finishedPositions.isNotEmpty() || immediate.isNotEmpty())
+        val posWithPaymentReached = reachedSchedules.map { it.positionNumber }.toSet()
+        val finishedWithoutSchedule =
+            positionInfos?.filter { it.toBeInvoicedByStatus && !posWithPaymentReached.contains(it.number) }
+                ?: emptyList()
+        val (immediate, dated) = reachedSchedules.partition { it.scheduleDate == null }
+        toBeInvoicedImmediately = toBeInvoiced && (finishedWithoutSchedule.isNotEmpty() || immediate.isNotEmpty())
         nextInvoiceDate = if (toBeInvoiced) reachedSchedules.mapNotNull { it.scheduleDate }.minOrNull() else null
         datedToBeInvoicedSchedules = dated
-        val posWithPaymentReached = reachedSchedules.map { it.positionNumber }.toSet()
         toBeInvoicedImmediatelySum = immediate.sumOf { it.amount ?: BigDecimal.ZERO } +
                 (positionInfos?.filter { !posWithPaymentReached.contains(it.number) }?.sumOf { it.toBeInvoicedSum }
                     ?: BigDecimal.ZERO)

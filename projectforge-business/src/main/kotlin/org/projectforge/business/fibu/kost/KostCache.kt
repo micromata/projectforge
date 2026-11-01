@@ -75,6 +75,22 @@ class KostCache : AbstractCache() {
 
     private var kost2EntriesExists = false
 
+    /**
+     * The cost units put by [updateKost1]/[updateKost2] while a [refresh] is running. The refresh reads the database in
+     * its own connection before such a change is committed; without these, it would publish the outdated state and a
+     * new Kost2 (e.g. created by ProjektKost2Service.activate) would be missing until the next refresh. Guarded by
+     * [refreshUpdatesLock].
+     */
+    private val kost1UpdatedDuringRefresh = mutableMapOf<Long, Kost1DO>()
+    private val kost2UpdatedDuringRefresh = mutableMapOf<Long, Kost2DO>()
+    private val refreshUpdatesLock = Any()
+    private var refreshRunning = false
+
+    /**
+     * For tests only: called by [refresh] after the database was read, right before the new maps are published.
+     */
+    internal var beforePublishHook: (() -> Unit)? = null
+
     @PostConstruct
     private fun postConstruct() {
         kundeDao.register(object : BaseDOModifiedListener<KundeDO> {
@@ -384,8 +400,15 @@ class KostCache : AbstractCache() {
     fun updateKost2(kost2: Kost2DO) {
         val kost2Id = kost2.id ?: return
         checkRefresh()
-        synchronized(kost2Map) {
-            kost2Map[kost2Id] = kost2
+        // Under refreshUpdatesLock: the refresh publishes its maps under it, so the change is either written into the
+        // published map or applied to it.
+        synchronized(refreshUpdatesLock) {
+            synchronized(kost2Map) {
+                kost2Map[kost2Id] = kost2
+            }
+            if (refreshRunning) {
+                kost2UpdatedDuringRefresh[kost2Id] = kost2
+            }
         }
     }
 
@@ -395,8 +418,15 @@ class KostCache : AbstractCache() {
     fun updateKost1(kost1: Kost1DO) {
         val kost1Id = kost1.id ?: return
         checkRefresh()
-        synchronized(kost2Map) {
-            kost1Map[kost1Id] = kost1
+        // Under refreshUpdatesLock: the refresh publishes its maps under it, so the change is either written into the
+        // published map or applied to it.
+        synchronized(refreshUpdatesLock) {
+            synchronized(kost1Map) {
+                kost1Map[kost1Id] = kost1
+            }
+            if (refreshRunning) {
+                kost1UpdatedDuringRefresh[kost1Id] = kost1
+            }
         }
     }
 
@@ -428,6 +458,23 @@ class KostCache : AbstractCache() {
      * loaded by [loadKost2Arts]) would stay uninitialized.
      */
     override fun refresh() {
+        synchronized(refreshUpdatesLock) {
+            kost1UpdatedDuringRefresh.clear()
+            kost2UpdatedDuringRefresh.clear()
+            refreshRunning = true
+        }
+        try {
+            doRefresh()
+        } finally {
+            synchronized(refreshUpdatesLock) {
+                refreshRunning = false
+                kost1UpdatedDuringRefresh.clear()
+                kost2UpdatedDuringRefresh.clear()
+            }
+        }
+    }
+
+    private fun doRefresh() {
         log.info { "Initializing KostCache ..." }
         val (newKost1Map, newKost2Map, kost2Arts) = persistenceService.runIsolatedReadOnly { context ->
             // This method must not be synchronized because it works with a new copy of maps.
@@ -449,8 +496,15 @@ class KostCache : AbstractCache() {
             log.info { "Initializing of KostCache done. ${context.formatStats()}" }
             Triple(kost1s, kost2s, arts)
         }
-        this.kost1Map = newKost1Map
-        this.kost2Map = newKost2Map
+        beforePublishHook?.invoke()
+        // Changes made while the database was read are newer than what was read (see kost2UpdatedDuringRefresh).
+        // Applied and published under the lock of the changes: a change arriving later writes into the new maps.
+        synchronized(refreshUpdatesLock) {
+            newKost1Map.putAll(kost1UpdatedDuringRefresh)
+            newKost2Map.putAll(kost2UpdatedDuringRefresh)
+            this.kost1Map = newKost1Map
+            this.kost2Map = newKost2Map
+        }
         kost2EntriesExists = newKost2Map.values.any { !it.deleted }
         setKost2Arts(kost2Arts)
     }
