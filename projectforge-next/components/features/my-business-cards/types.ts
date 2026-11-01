@@ -125,6 +125,7 @@ export interface MyBusinessCardsInit {
   suggestion: BusinessCard | null;
   maxCards: number;
   gatewayConfigured: boolean;
+  walletConfigured: boolean;
 }
 
 /** From this length on the QR code gets dense (see BusinessCardRest.Preview.vCardLength). */

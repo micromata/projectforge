@@ -3,16 +3,21 @@
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
-import { downloadBusinessCardVCard } from "@/lib/rs/my-business-cards";
+import {
+  businessCardPassUrl,
+  downloadBusinessCardVCard,
+} from "@/lib/rs/my-business-cards";
 import { BusinessCardQrPreview } from "./business-card-qr-preview";
 import type { BusinessCardInfo } from "./types";
 
 /** One card of the list: its name, its QR code (to show or to screenshot) and what can be done with it. */
 export function BusinessCardTile({
   info,
+  walletConfigured,
   onEdit,
 }: {
   info: BusinessCardInfo;
+  walletConfigured: boolean;
   onEdit: () => void;
 }) {
   const t = useTranslations();
@@ -31,6 +36,13 @@ export function BusinessCardTile({
         <Button variant="outline" size="sm" onClick={() => void download()}>
           {t("businessCard.downloadVCard")}
         </Button>
+        {walletConfigured && (
+          <Button variant="outline" size="sm" asChild>
+            <a href={businessCardPassUrl(info.card.id!)}>
+              {t("businessCard.addToWallet")}
+            </a>
+          </Button>
+        )}
       </div>
     </div>
   );

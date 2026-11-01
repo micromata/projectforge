@@ -508,6 +508,55 @@ random secret key in `projectforge.properties` (e.g. generated with `openssl ran
 projectforge.phoneLookupKey=<your-random-secret>
 ----
 
+[[digital_business_cards]]
+=== Digital business cards
+
+Users create their business cards under _My business cards_ in the user menu: a QR code with the contact data (vCard)
+taken from an address. Two optional features need configuration.
+
+[[business_card_photo]]
+==== Photo
+
+A photo is not part of the QR code but a signed url on the public gateway (`projectforge.gateway.push.publicUrl`,
+see <<external_gateway_mode>>); it is only offered for the user's own address. A url that was handed out stays valid
+as long as the address and its image exist: switching off the photo of a card does not revoke it, only deleting the
+image or changing `projectforge.security.authenticationTokenEncryptionKey` does. Add a `limit_req` for
+`/rsPublic/contactImage/` to the reverse proxy of the gateway.
+
+[[business_card_wallet]]
+==== Apple Wallet
+
+With a Pass Type ID certificate each card can be added to the Apple Wallet (a `.pkpass` file, no app needed). The
+certificate stays on the main instance, never on the gateway. Without the settings the button is not shown.
+
+Set up once per installation, with an Apple Developer account:
+
+. Developer portal, _Certificates, Identifiers & Profiles_, _Identifiers_, _Pass Type IDs_: create a Pass Type ID, e.g.
+  `pass.com.acme.projectforge.businesscard`. It is independent of the signing certificates of apps.
+. In this Pass Type ID: _Create Certificate_ with a certificate signing request, download `pass.cer`.
+. Import `pass.cer` into the keychain (next to the private key of the request) and export both as `pass.p12`.
+. Download the intermediate certificate _Apple Worldwide Developer Relations - G4_ (apple.com/certificateauthority).
+. Configure it in `projectforge.properties`:
+
+[source,properties,linenums]
+----
+wallet.passcertificate.path=/etc/projectforge/wallet/pass.p12
+wallet.passcertificate.password=<password of the p12>
+wallet.wwdrcertificate.path=/etc/projectforge/wallet/AppleWWDRCAG4.cer
+wallet.teamIdentifier=<team id of the developer account>
+wallet.passTypeIdentifier=pass.com.acme.projectforge.businesscard
+wallet.organizationName=ACME GmbH
+# Optional: colors (rgb(r, g, b)) and logo (png) of the pass
+wallet.backgroundColor=rgb(255, 255, 255)
+wallet.foregroundColor=rgb(33, 37, 41)
+wallet.labelColor=rgb(108, 117, 125)
+wallet.logoFile=/etc/projectforge/wallet/logo.png
+----
+
+The certificate is valid for about one year. Before it expires, create a new one for the same Pass Type ID (steps 2
+and 3) and replace `pass.p12`; passes already in a Wallet keep working. A newer `.p12` is read at the next start.
+An issued pass is not updated afterwards: a changed card has to be added again.
+
 [[number_ranges_of_customers_projects_and_cost_units]]
 === Number ranges of customers, projects and cost units
 

@@ -96,6 +96,7 @@ export function MyBusinessCardsPage() {
             <BusinessCardTile
               key={info.card.id}
               info={info}
+              walletConfigured={data.walletConfigured}
               onEdit={() => setEditing(info.card)}
             />
           ))}

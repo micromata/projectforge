@@ -141,6 +141,39 @@ Test of the timeout: let the push url point to a port which accepts connections 
 *aborted* and `timeouts=1` on the statistics page.
 
 
+**Business card photo url:** a digital business card with *Use photo* has a `PHOTO;VALUE=URI:` line in the vCard of its
+QR code, pointing to `<gateway>/rsPublic/contactImage/{base64url(addressUid)}/{signature}`. The gateway serves the
+image statelessly (signature check, no login). Prerequisites on the main instance: the gateway push is enabled, the
+addresses are pushed (`projectforge.gateway.push.syncAddresses=true`, wait for a sync) and both instances share
+`projectforge.security.authenticationTokenEncryptionKey` (the signature key is derived from it). The photo is only
+offered for the user's own address: one of the e-mail addresses of the account (also the alternative ones) must be an
+e-mail address of the address. In a test installation add the address' e-mail to the account first.
+
+```bash
+# 1. My business cards: create a card from the own address, tick "Use photo", download the vCard (button) and take
+#    the url from the PHOTO line
+grep -a '^PHOTO' Kai_Reinhard.vcf
+
+# 2. 200 and the image (content type image/png or image/jpeg), no login needed
+curl -s -o /tmp/photo.img -w "%{http_code} %{content_type}\n" "<url from the PHOTO line>"
+
+# 3. 404 without a hint: tampered signature, unknown uid
+curl -s -o /dev/null -w "%{http_code}\n" "http://localhost:8090/rsPublic/contactImage/<uid>/AAAA"
+curl -s -o /dev/null -w "%{http_code}\n" "http://localhost:8090/rsPublic/contactImage/AAAA/AAAA"
+```
+
+Without a gateway (or key) the card has no `PHOTO` line; the QR code works without a photo. After deleting the image in
+the address the url answers 404 with the next sync. A handed-out url stays valid as long as address and image exist;
+switching off *Use photo* does not revoke it. Rate limiting of `/rsPublic/contactImage/` belongs to the reverse proxy
+(`limit_req`), not tested here.
+
+**Apple Wallet pass:** independent of the gateway (the certificate stays on the main instance). Set the `wallet.*`
+properties of the admin guide (*Digital business cards*), restart and open *My business cards* in Safari on the iPhone
+(a pass can't be added from a desktop browser): the *Add to Wallet* button downloads the `.pkpass`. If the iPhone
+doesn't offer to add it, the `passTypeIdentifier` doesn't match the subject (UID) of the certificate; check with
+`openssl pkcs12 -in pass.p12 -nokeys -legacy | openssl x509 -noout -subject`. An iPhone can't reach `localhost`: use
+the LAN address of the Mac or transfer the file (AirDrop) for a first test.
+
 ### 5. Comparison with the main instance
 
 `GatewayCompare` (test sources of `projectforge-application`, package `org.projectforge.gateway.compare`) sends the
