@@ -78,7 +78,7 @@ import java.util.Date
     ),
     NamedQuery(
         name = AppDeviceDO.FIND_PUSH_BY_USER,
-        query = "from AppDeviceDO t where t.user.id = :userId and t.pushToken is not null",
+        query = "from AppDeviceDO t where t.user.id = :userId and t.pushToken is not null and t.lastAccess >= :expireBefore",
     ),
     NamedQuery(
         name = AppDeviceDO.CLEAR_PUSH_TOKEN,

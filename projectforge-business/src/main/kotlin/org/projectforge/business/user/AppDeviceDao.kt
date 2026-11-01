@@ -243,7 +243,7 @@ class AppDeviceDao {
     }
 
     /**
-     * The apps of a user that can receive pushes.
+     * The apps of a user that can receive pushes (not the ones whose token has expired).
      */
     fun getPushDevices(userId: Long?): List<AppDeviceDO> {
         userId ?: return emptyList()
@@ -251,6 +251,7 @@ class AppDeviceDao {
             AppDeviceDO.FIND_PUSH_BY_USER,
             AppDeviceDO::class.java,
             Pair("userId", userId),
+            Pair("expireBefore", expireBefore()),
         )
     }
 

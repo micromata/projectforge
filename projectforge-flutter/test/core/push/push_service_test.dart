@@ -97,6 +97,17 @@ void main() {
     });
   });
 
+  test(
+    'the signing told by the native part wins over the build mode',
+    () async {
+      native({'granted': true, 'environment': 'SANDBOX'});
+      final push = service(production: true);
+      await push.start();
+      await fromNative('token', 'ab12');
+      expect(adapter.requests.single.data['environment'], 'SANDBOX');
+    },
+  );
+
   test('release builds use production', () async {
     native({'granted': true});
     final push = service(production: true);

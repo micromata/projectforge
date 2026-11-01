@@ -74,9 +74,24 @@ import UserNotifications
         let link = self?.launchLink
         self?.launchLink = nil
         self?.pushStarted = true
-        result(["granted": granted, "launchLink": link as Any])
+        result(["granted": granted, "launchLink": link as Any, "environment": self?.apsEnvironment() as Any])
       }
     }
+  }
+
+  /// `SANDBOX` or `PRODUCTION`, as the app is signed: read from the provisioning profile (`aps-environment`), which
+  /// a build started from Xcode has even in release mode. Builds from the store or TestFlight have none: production.
+  private func apsEnvironment() -> String? {
+    guard let url = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
+      let data = try? Data(contentsOf: url),
+      let text = String(data: data, encoding: .isoLatin1),
+      let key = text.range(of: "<key>aps-environment</key>"),
+      let open = text.range(of: "<string>", range: key.upperBound..<text.endIndex),
+      let close = text.range(of: "</string>", range: open.upperBound..<text.endIndex)
+    else {
+      return nil
+    }
+    return text[open.upperBound..<close.lowerBound] == "development" ? "SANDBOX" : "PRODUCTION"
   }
 
   override func application(

@@ -50,8 +50,8 @@ class PushService {
   final ApiClient _api;
   final MethodChannel _channel;
 
-  /// Debug builds are signed for the sandbox of APNs, release builds (TestFlight, store) for production: a token is
-  /// valid for one of them only.
+  /// Fallback if the signing is unknown: debug builds are signed for the sandbox of APNs, release builds (TestFlight,
+  /// store) for production. A token is valid for one of them only.
   final bool _production;
 
   /// A push was tapped: its link (empty if it has none).
@@ -62,12 +62,16 @@ class PushService {
 
   String? _sentToken;
 
+  /// As the app is signed, told by the native part; null: [_production] decides.
+  String? _signedEnvironment;
+
   /// Asks for the permission (the system asks once), registers at APNs and hands the token to the server. A push
   /// that started the app is passed to [onLink].
   Future<void> start() async {
     _channel.setMethodCallHandler(_onCall);
     final answer = await _channel.invokeMapMethod<String, dynamic>('start');
     final link = answer?['launchLink'] as String?;
+    _signedEnvironment = answer?['environment'] as String?;
     if (link != null) onLink(link);
   }
 
@@ -94,7 +98,8 @@ class PushService {
         '/rs/appAuth/pushToken',
         data: {
           'token': token,
-          'environment': _production ? 'PRODUCTION' : 'SANDBOX',
+          'environment':
+              _signedEnvironment ?? (_production ? 'PRODUCTION' : 'SANDBOX'),
         },
         renewLogin: false,
       );
