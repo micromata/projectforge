@@ -128,7 +128,7 @@ open class CvrCaseDO : DefaultBaseDO() {
 
     /** The version fixing the vulnerability (PRIO-05). */
     @PropertyInfo(i18nKey = "plugins.cveradar.case.fixVersion")
-    @get:Column(name = "fix_version", length = 255)
+    @get:Column(name = "fix_version", length = LENGTH_FIX_VERSION)
     open var fixVersion: String? = null
 
     /** What to do as long as no fix is applied (PRIO-05), rich text (HTML, sanitized when rendered). */
@@ -151,12 +151,12 @@ open class CvrCaseDO : DefaultBaseDO() {
 
     /** Fix criterion: a device with this version of the client agent or higher is fixed (CLS-01). */
     @PropertyInfo(i18nKey = "plugins.cveradar.case.minClientAgentVersion")
-    @get:Column(name = "min_client_agent_version", length = 50)
+    @get:Column(name = "min_client_agent_version", length = LENGTH_MIN_CLIENT_AGENT_VERSION)
     open var minClientAgentVersion: String? = null
 
     /** Fix criterion: a device whose client agent reports this check as passed is fixed (CLS-01, EXT-05). */
     @PropertyInfo(i18nKey = "plugins.cveradar.case.clientAgentCheckId")
-    @get:Column(name = "client_agent_check_id", length = 100)
+    @get:Column(name = "client_agent_check_id", length = LENGTH_CLIENT_AGENT_CHECK_ID)
     open var clientAgentCheckId: String? = null
 
     /** Reason of closing (CLS-05). */
@@ -174,5 +174,8 @@ open class CvrCaseDO : DefaultBaseDO() {
 
     companion object {
         const val LENGTH_MARKDOWN = 20000
+        const val LENGTH_FIX_VERSION = 255
+        const val LENGTH_MIN_CLIENT_AGENT_VERSION = 50
+        const val LENGTH_CLIENT_AGENT_CHECK_ID = 100
     }
 }

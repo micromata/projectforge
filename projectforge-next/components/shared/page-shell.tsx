@@ -43,9 +43,13 @@ export function PageShell({ children }: PageShellProps) {
     // an edit page falls below the fold — reachable only by scrolling the outer <main>, never the
     // inner form column. `100dvh` tracks the visible viewport, so the bar stays anchored at the true
     // bottom and <main> keeps no extra overflow to scroll.
+    // On a short viewport (a phone in landscape) the fixed rows would squeeze <main> to nothing and the
+    // content below them would be unreachable. <main> therefore has a floor (`min-h-96`) and this box
+    // scrolls (`overflow-y-auto`) once rows + floor exceed the height: the rows scroll away, the content
+    // and its pinned action bar stay reachable. On a normal screen nothing overflows and nothing changes.
     // Printed (`print:`), the page is only its content, as long as it is: no header, navigation or status
     // bar, and no box of the window's height clipping everything below the first page.
-    <div className="relative flex h-dvh flex-col overflow-hidden print:block print:h-auto print:overflow-visible">
+    <div className="relative flex h-dvh flex-col overflow-x-hidden overflow-y-auto print:block print:h-auto print:overflow-visible">
       {/* `contents`: on screen as if the wrapper weren't there, the rows stay items of the column. */}
       <div className="contents print:hidden">
         <LogoRow />
@@ -57,7 +61,7 @@ export function PageShell({ children }: PageShellProps) {
         <NotificationBanners />
       </div>
       <main
-        className="flex min-h-0 flex-1 flex-col overflow-auto print:block print:overflow-visible"
+        className="flex min-h-96 flex-1 flex-col overflow-auto print:block print:overflow-visible"
         onScroll={collapse.onScroll}
       >
         {children}

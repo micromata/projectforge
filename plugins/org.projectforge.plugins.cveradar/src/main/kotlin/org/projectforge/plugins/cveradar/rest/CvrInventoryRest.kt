@@ -29,6 +29,7 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.cveradar.CveRadarAccess
+import org.projectforge.plugins.cveradar.CvrFindingReportService
 import org.projectforge.plugins.cveradar.CvrInventoryService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
@@ -43,6 +44,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -54,6 +56,9 @@ import org.springframework.web.bind.annotation.RestController
 class CvrInventoryRest {
     @Autowired
     private lateinit var access: CveRadarAccess
+
+    @Autowired
+    private lateinit var reportService: CvrFindingReportService
 
     @Autowired
     private lateinit var service: CvrInventoryService
@@ -117,6 +122,15 @@ class CvrInventoryRest {
     @PostMapping("{level}/{id}/move")
     fun move(@PathVariable level: InventoryLevel, @PathVariable id: Long, @RequestBody request: MoveRequest) =
         service.move(user, level, id, request.targetAreaId)
+
+    /** A GET: the report changes nothing. */
+    @AccessChecked("CvrFindingReportService.report: reader role, read access to the node, only the instances the user may read")
+    @GetMapping("{level}/{id}/findings/report")
+    fun findingReport(
+        @PathVariable level: InventoryLevel,
+        @PathVariable id: Long,
+        @RequestParam(defaultValue = "true") anonymize: Boolean,
+    ): FindingReport = reportService.report(user, level, id, anonymize)
 
     @AccessChecked("CvrInventoryService.delete: write access to the stored node, empty nodes only")
     @PostMapping("{level}/{id}/delete")

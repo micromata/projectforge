@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -104,6 +105,24 @@ class CvrCaseFileRest {
     @PostMapping("vulnerability/{id}/open")
     fun open(@PathVariable id: Long): CaseFile {
         return fileService.openCase(ThreadLocalUserContext.requiredLoggedInUser, id)
+    }
+
+    @AccessChecked("CvrCaseFileService.aiContext: readers")
+    @GetMapping("ai/context")
+    fun aiContext(@RequestParam cveId: String): AiCaseContext {
+        return fileService.aiContext(ThreadLocalUserContext.requiredLoggedInUser, cveId)
+    }
+
+    @AccessChecked("CvrCaseFileService.exportCase: readers")
+    @GetMapping("case/{id}/export")
+    fun exportCase(@PathVariable id: Long): CaseExport {
+        return fileService.exportCase(ThreadLocalUserContext.requiredLoggedInUser, id)
+    }
+
+    @AccessChecked("CvrCaseFileService.importCase: security team; assignee is the logged-in user, the vulnerability from the database")
+    @PostMapping("case/import")
+    fun importCase(@RequestBody request: CaseImportRequest): CaseFile {
+        return fileService.importCase(ThreadLocalUserContext.requiredLoggedInUser, request)
     }
 
     @AccessChecked("CvrCaseFileService.triage: security team; binding priority by the assignee or a security officer")

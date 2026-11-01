@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.plugins.cveradar.model.CvrCatalogKind
 import org.projectforge.plugins.cveradar.model.CvrOrigin
@@ -174,6 +175,24 @@ class CvrLibraryTest : CveRadarTestBase() {
         assertEquals(CvrOrigin.SBOM, openssl.origin)
         assertEquals("deb", openssl.ecosystem)
         assertEquals("pkg:deb/debian/openssl@3.0.11-1~deb12u2?distro=debian-12", openssl.purl)
+
+        // A zip collected by a script of the project: every list in it, the files that may hold tokens unread.
+        val pnpm = "lockfileVersion: '9.0'\nimporters:\n  .:\n    dependencies:\n      left-pad:\n        specifier: 1.3.0\n        version: 1.3.0\nsnapshots:\n  left-pad@1.3.0: {}\n"
+        val zip = LibraryArchiveTest.zip(
+            "frontend/pnpm-lock.yaml" to pnpm,
+            "os/packages.txt" to "zlib1g 1:1.2.13.dfsg-1\n",
+            "frontend/.npmrc" to "_authToken=secret",
+        )
+        val zipDiff = rest.applyLibraries(component, LibraryRequest(listOf(LibraryFile("libraries.zip", data = zip)), false))
+        assertEquals(
+            listOf("libraries.zip/frontend/pnpm-lock.yaml" to LibraryFormat.PNPM, "libraries.zip/os/packages.txt" to LibraryFormat.DEB),
+            zipDiff.files.map { it.name to it.format },
+        )
+        assertEquals(CvrOrigin.LOCKFILE, libraries("LIB1-S-APP").single { it.product == "left-pad" }.origin)
+        assertEquals(CvrOrigin.PACKAGE_LIST, libraries("LIB1-S-APP").single { it.product == "zlib1g" }.origin)
+        assertThrows(UserException::class.java) {
+            rest.previewLibraries(component, LibraryRequest((0..LibraryListParser.MAX_FILES).map { LibraryFile("f$it.txt", "") }))
+        }
 
         logon(outsider)
         assertThrows(AccessException::class.java) { rest.previewLibraries(component, request(mavenA, false)) }
