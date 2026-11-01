@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
+import { isInApp } from "@/lib/app-mode";
 import type { MenuItem } from "@/lib/rs/types";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -59,7 +60,9 @@ export function UserMenu({
   const isLogout = (item: MenuItem) =>
     item.key === "LOGOUT" || item.url === "logout";
   const linkEntries = entries.filter((item) => !isLogout(item));
-  const hasLogout = entries.some(isLogout);
+  // In the WebView of the app, a logout would be undone at once (the app opens a new session with its token):
+  // logging out is the app's own menu.
+  const hasLogout = entries.some(isLogout) && !isInApp();
   const pathname = usePathname();
 
   return (

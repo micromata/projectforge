@@ -48,3 +48,19 @@ for d in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
   magick ../../../../../assets/icon/app-icon.png -filter Lanczos -resize ${d#*:}x${d#*:} -strip mipmap-${d%%:*}/ic_launcher.png
 done
 ```
+
+## Release (iOS, App Store / TestFlight)
+
+Bundle ID `de.projectforge.mobileapp` (iOS and Android), team `E4Q65AC7LP`, automatic signing. Push Notifications is the
+only capability of the App ID (`ios/Runner/Runner.entitlements`; Xcode switches `aps-environment` to `production` for
+distribution builds).
+
+```bash
+projectforge-flutter/bin/pfApp.sh check
+projectforge-flutter/bin/pfApp.sh build-ios --release   # flutter build ipa; raise the build number in pubspec.yaml
+```
+
+One-time portal steps (App ID, APNs keys, store listing): [APPLE-SETUP.md](APPLE-SETUP.md).
+
+Upload `build/ios/ipa/*.ipa` with Transporter or the Xcode Organizer, then test via TestFlight before submitting. The
+APNs auth keys (`.p8`, one for sandbox and one for production) belong to the server configuration, never to the repo.

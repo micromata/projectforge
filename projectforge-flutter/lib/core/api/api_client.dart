@@ -69,6 +69,15 @@ class ApiClient {
   Future<T> post<T>(String path, {Object? data, Map<String, dynamic>? query}) =>
       _call(() => dio.post<T>(path, data: data, queryParameters: query));
 
+  /// As [post], with the whole response (its headers, e.g. `set-cookie`).
+  Future<Response<T>> postForResponse<T>(String path, {Object? data}) async {
+    try {
+      return await dio.post<T>(path, data: data);
+    } on DioException catch (e) {
+      throw toApiException(e);
+    }
+  }
+
   Future<T> put<T>(String path, {Object? data}) =>
       _call(() => dio.put<T>(path, data: data));
 

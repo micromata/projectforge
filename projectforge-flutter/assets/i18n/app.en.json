@@ -8,5 +8,7 @@
   "app.server.label": "Server",
   "app.server.unreachable": "The server can't be reached.",
   "app.session.expired": "The app has been logged out (in the web, by a password change or after a longer time without usage). Please log in again.",
-  "app.vCard.share": "Share vCard"
+  "app.vCard.share": "Share vCard",
+  "app.web": "ProjectForge",
+  "app.web.failed": "The pages of ProjectForge couldn't be opened."
 }

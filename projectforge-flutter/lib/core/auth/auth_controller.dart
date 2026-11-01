@@ -26,6 +26,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../api/api_client.dart';
 import '../api/api_exception.dart';
 import '../cache/json_cache.dart';
+import '../web/web_cookies.dart';
 import 'app_login.dart';
 import 'device_description.dart';
 import 'session.dart';
@@ -45,6 +46,7 @@ class AuthState {
 final sessionStoreProvider = Provider<SessionStore>((ref) => SessionStore());
 final appLoginProvider = Provider<AppLogin>((ref) => AppLogin());
 final jsonCacheProvider = Provider<JsonCache>((ref) => JsonCache());
+final webCookiesProvider = Provider<WebCookies>((ref) => WebCookies());
 final deviceDescriptionProvider = FutureProvider<DeviceDescription>(
   (ref) => DeviceDescription.load(),
 );
@@ -158,6 +160,8 @@ class AuthController extends Notifier<AuthState> {
   Future<void> _forget(String? messageKey) async {
     await ref.read(sessionStoreProvider).clear();
     await ref.read(jsonCacheProvider).clearAll();
+    // The web session of the WebView: its server side ends with the app's token (LoginService.appWebLogin).
+    await ref.read(webCookiesProvider).clear();
     state = AuthState(AuthStatus.loggedOut, messageKey: messageKey);
   }
 }

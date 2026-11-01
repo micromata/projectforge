@@ -31,6 +31,7 @@ import org.projectforge.business.user.AppDeviceDao
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.TimeUnit
+import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.pub.next.TwoFactorRequired
@@ -48,7 +49,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * The logged-in half of the app login (see [AppAuthService]): the page `/next/appLogin` asks for the one-time code of
- * the app, and the app logs itself out.
+ * the app, the app opens a web session for its WebView, and the app logs itself out.
  */
 @RestController
 @RequestMapping("${Rest.URL}/appAuth")
@@ -61,6 +62,9 @@ class AppAuthRest {
 
     @Autowired
     private lateinit var appDeviceDao: AppDeviceDao
+
+    @Autowired
+    private lateinit var loginService: LoginService
 
     @Autowired
     private lateinit var my2FAService: My2FAService
@@ -79,18 +83,24 @@ class AppAuthRest {
         val redirectUrl: String,
     )
 
+    class WebSessionResponse(
+        /** The page the WebView of the app opens with the session cookie of this response. */
+        val startUrl: String,
+    )
+
     /**
      * Issues the one-time code for the app. Only for a browser session (a rest client or another app can't
      * register an app) and only after a second factor of at most [AppAuthService.MAX_2FA_AGE_MINUTES] minutes: the
      * token of the app is good for the 2FA protected urls as long as this second factor. Without a fresh one the
      * answer is the 403 of [TwoFactorRequired], so projectforge-next opens its 2FA dialog and repeats the call.
      */
-    @AccessChecked("Logged-in user of a browser session (no token clients), fresh 2FA required. CSRF token required")
+    @AccessChecked("Logged-in user of a browser session (no token clients, no web session of an app), fresh 2FA required. CSRF token required")
     @PostMapping("authorize")
-    fun authorize(@RequestBody body: AuthorizeRequest): ResponseEntity<*> {
+    fun authorize(request: HttpServletRequest, @RequestBody body: AuthorizeRequest): ResponseEntity<*> {
         val userContext = ThreadLocalUserContext.userContext
         val user = userContext?.user
-        if (user == null || userContext.loggedInByAuthenticationToken) {
+        // The web session of an app (its WebView) is a browser session, but its credential is the app token.
+        if (user == null || userContext.loggedInByAuthenticationToken || LoginService.isAppWebSession(request)) {
             log.warn { "App authorization refused: not a browser session." }
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Any>()
         }
@@ -113,6 +123,34 @@ class AppAuthRest {
     }
 
     /**
+     * Opens a web session for the ProjectForge pages the app shows in its WebView: the session cookie comes with the
+     * response (`Set-Cookie`), the app hands it to the WebView. Only for the app token, neither for a browser session
+     * nor a REST client token. User and device are the ones of the token, nothing posted.
+     *
+     * The session has the second factor of the app's login and ends with the app (see [LoginService.appWebLogin]). Is
+     * that second factor too old for a login, the answer is the 403 of [TwoFactorRequired]: the app logs in again in the
+     * browser and repeats the call.
+     */
+    @AccessChecked("Own app only (the device of the app token of this request), session of its user")
+    @PostMapping("webSession")
+    fun webSession(request: HttpServletRequest): ResponseEntity<*> {
+        val userContext = ThreadLocalUserContext.userContext
+        val device = if (userContext?.loggedInByAuthenticationToken == true) {
+            appDeviceDao.getValidDevice(RestAuthenticationUtils.getAppToken(request))
+        } else null
+        val user = userContext?.user
+        val deviceId = device?.id
+        if (user == null || deviceId == null || device.user?.id != user.id) {
+            log.warn { "Web session for an app refused: not authenticated by an app token." }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Any>()
+        }
+        if (!loginService.appWebLogin(request, user, device.last2FA?.time, deviceId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(TwoFactorRequired())
+        }
+        return ResponseEntity.ok(WebSessionResponse(startUrl = WEB_START_URL))
+    }
+
+    /**
      * The app logs itself out: its token is deleted. The device is the one of the token, nothing posted.
      */
     @AccessChecked("Own app only (the device of the app token of this request)")
@@ -123,5 +161,9 @@ class AppAuthRest {
             ?: return ResponseEntity.badRequest().build<Any>()
         appDeviceDao.deleteOfUser(userId, device.id)
         return ResponseEntity.ok().build<Any>()
+    }
+
+    companion object {
+        const val WEB_START_URL = "/next/"
     }
 }

@@ -8,5 +8,7 @@
   "app.server.label": "Server",
   "app.server.unreachable": "Der Server ist nicht erreichbar.",
   "app.session.expired": "Die App wurde abgemeldet (im Web, durch eine Passwortänderung oder nach längerer Zeit ohne Nutzung). Bitte neu anmelden.",
-  "app.vCard.share": "vCard teilen"
+  "app.vCard.share": "vCard teilen",
+  "app.web": "ProjectForge",
+  "app.web.failed": "Die Seiten von ProjectForge konnten nicht geöffnet werden."
 }

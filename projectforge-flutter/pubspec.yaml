@@ -45,6 +45,8 @@ dependencies:
   path_provider: ^2.1.6
   device_info_plus: ^13.3.0
   package_info_plus: ^10.2.2
+  flutter_inappwebview: ^6.1.5
+  url_launcher: ^6.3.3
 
 dev_dependencies:
   flutter_test:

@@ -26,6 +26,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api/api_exception.dart';
 import '../../core/i18n/translations.dart';
+import '../../core/widgets/error_view.dart';
 import 'business_card.dart';
 import 'business_card_editor_screen.dart';
 import 'business_card_qr_screen.dart';
@@ -44,7 +45,7 @@ class BusinessCardsScreen extends ConsumerWidget {
       body: cards.when(
         skipLoadingOnRefresh: true,
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => _ErrorView(
+        error: (error, _) => ErrorView(
           message: error.toString(),
           onRetry: () => ref.read(businessCardsProvider.notifier).refresh(),
         ),
@@ -212,26 +213,4 @@ class _CardTile extends ConsumerWidget {
     );
     return result == true;
   }
-}
-
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) => Center(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(message, textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          OutlinedButton(onPressed: onRetry, child: Text(context.t('refresh'))),
-        ],
-      ),
-    ),
-  );
 }

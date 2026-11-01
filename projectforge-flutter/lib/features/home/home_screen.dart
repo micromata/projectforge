@@ -27,18 +27,35 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/i18n/translations.dart';
 import '../business_cards/business_cards_screen.dart';
+import '../web/web_screen.dart';
 
-/// The start page of the logged-in app. For now the business cards only; timesheets and chat follow as further
-/// destinations.
-class HomeScreen extends ConsumerWidget {
+/// The start page of the logged-in app: the business cards and the ProjectForge pages (WebView). Timesheets and chat
+/// follow as further destinations.
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  static const _webTab = 1;
+
+  int _tab = 0;
+
+  /// The WebView is created when its tab is opened first, and then kept (with its page) while switching.
+  bool _webOpened = false;
+
+  @override
+  Widget build(BuildContext context) {
     final session = ref.watch(authControllerProvider).session;
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.t('menu.myBusinessCards')),
+        title: Text(
+          _tab == _webTab
+              ? context.t('app.web')
+              : context.t('menu.myBusinessCards'),
+        ),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.account_circle),
@@ -58,7 +75,34 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: const BusinessCardsScreen(),
+      body: IndexedStack(
+        index: _tab,
+        children: [
+          const BusinessCardsScreen(),
+          _webOpened
+              ? WebScreen(active: _tab == _webTab)
+              : const SizedBox.shrink(),
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _tab,
+        onDestinationSelected: (index) => setState(() {
+          _tab = index;
+          _webOpened |= index == _webTab;
+        }),
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.contact_page_outlined),
+            selectedIcon: const Icon(Icons.contact_page),
+            label: context.t('menu.myBusinessCards'),
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.public_outlined),
+            selectedIcon: const Icon(Icons.public),
+            label: context.t('app.web'),
+          ),
+        ],
+      ),
     );
   }
 

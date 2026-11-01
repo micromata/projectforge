@@ -1,4 +1,4 @@
-package org.projectforge.app
+package de.projectforge.mobileapp
 
 import io.flutter.embedding.android.FlutterActivity
 

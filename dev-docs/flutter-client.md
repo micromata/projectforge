@@ -1,6 +1,7 @@
 # Mobile app (Flutter)
 
-Status: phase 1 in implementation (app login and digital business cards done), timesheets and chat open.
+Status: phase 1 in implementation (app login, digital business cards and the web pages in a WebView done), timesheets
+and chat open.
 
 The app lives in [`projectforge-flutter/`](../projectforge-flutter/README.md): Flutter, iOS and Android, not part of
 the Gradle build (own CI job `.github/workflows/flutter.yml`). Dev helpers (run against a slot server, simulator,
@@ -44,6 +45,36 @@ devices" delete the apps of the user.
 as in the web. Too old, the server answers 403 `twoFactorRequired` (unlike a REST client token, which is refused
 for good); the app logs in again in the browser with its `deviceId`, which keeps the row and renews token and
 `last_2fa`, and repeats the request (`ApiClient`).
+
+## Web pages in the app
+
+Everything without a native screen is shown as the normal web pages (next, and the legacy pages it links to) in a
+WebView, the tab "ProjectForge" (`lib/features/web/`, `flutter_inappwebview`). A WebView needs a session cookie, the
+app has only its token:
+
+1. The app calls `POST /rs/appAuth/webSession` with its token (`AppAuthRest.webSession`). Only for an app token,
+   neither for a browser session nor a REST client token; user and device are the ones of the token.
+2. `LoginService.appWebLogin` opens a new session (new id, `internalLogin`) with the second factor of the app's
+   browser login as `lastSuccessful2FA`. Is that one too old for a login (`projectforge.2fa.loginExpiryDays`), the
+   answer is the 403 `twoFactorRequired` and the `ApiClient` renews the login in the browser.
+3. The app hands the `Set-Cookie` of the answer to the WebView (`WebCookies`) and loads the start page `/next/`.
+
+- **Bound to the app:** the session carries the device id; `LoginService.checkLogin` checks once a minute that the
+  device still exists, so logging out the app (here, in "My account", by a password change, expiry) ends its web
+  sessions too. The app's logout deletes the cookies of the WebView.
+- **No further apps:** such a session is refused by `POST /rs/appAuth/authorize`. A stolen token would otherwise
+  register new apps that outlive its revocation.
+- **Session lost** (timeout, server restart): next shows `/next/login?returnUrl=…`; the app sees it
+  (`shouldOverrideUrlLoading`, `onUpdateVisitedHistory` for client side navigations), opens a new session and returns
+  to `returnUrl` (only a path of the own server). At most once per 30 s, otherwise an error with "retry".
+- **Navigation:** the own server stays in the WebView; other sites, `mailto:`, `tel:` open in the system.
+- **App mode of next:** the user agent carries `ProjectForgeApp/<version>` (`lib/app-mode.ts`): next hides its
+  logout, the app has its own. Only for the UI, never a security check.
+- **No JavaScript handlers** in the WebView: the pages never get hold of the app token.
+
+Open: downloads and uploads in the WebView; the 2FA dialog of next offers WebAuthn, which doesn't work in a WebView
+for self-hosted servers (OTP does): in app mode it should offer "confirm in the browser" (the app's renewal, then a
+new web session).
 
 ## Texts
 

@@ -8,6 +8,10 @@
       "de": "Die ProjectForge-App für iOS und Android meldet sich über den Browser an, mit Passwort und zweitem Faktor (WebAuthn oder Code) wie gewohnt; vor dem Verbinden einer App fragt der Browser noch einmal nach. Die erste Version zeigt die eigenen digitalen Visitenkarten, auch ohne Netz."
     },
     {
+      "en": "All other pages of ProjectForge open inside the app, without a second login. Logging out the app ends them as well.",
+      "de": "Alle anderen Seiten von ProjectForge öffnen sich in der App, ohne zweite Anmeldung. Mit dem Abmelden der App enden auch sie."
+    },
+    {
       "en": "My account: the connected apps with their last usage, each can be logged out. A password change logs out all apps; an app unused for 90 days is logged out automatically.",
       "de": "Mein Zugang: die verbundenen Apps mit ihrer letzten Nutzung, jede kann abgemeldet werden. Eine Passwortänderung meldet alle Apps ab; eine 90 Tage nicht genutzte App wird automatisch abgemeldet."
     }

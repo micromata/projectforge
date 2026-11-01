@@ -192,6 +192,15 @@ class AppDeviceDao {
     }
 
     /**
+     * @return true, if the device is one of the given user's and its token hasn't expired. For the web sessions
+     * of an app, see [org.projectforge.login.LoginService.appWebLogin].
+     */
+    fun isValid(userId: Long?, id: Long?): Boolean {
+        val lastAccess = getOfUser(userId, id)?.lastAccess ?: return false
+        return !lastAccess.before(expireBefore())
+    }
+
+    /**
      * Logs out one app of a user. The user is part of the condition, so an id of another user's device deletes
      * nothing.
      *

@@ -149,4 +149,9 @@ open class My2FARequestConfiguration {
     this.expiryPeriodHours8 = expiryPeriodHours8
 
   }
+
+  /** For test cases of other modules, see [loginExpiryDays]. */
+  fun internalSetLoginExpiryDays4TestCases(days: Int?) {
+    loginExpiryDays = days
+  }
 }
