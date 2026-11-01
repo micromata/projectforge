@@ -64,5 +64,6 @@
   "notification.centerEmpty" : "Keine offenen Benachrichtigungen.",
   "notification.markDone" : "Als erledigt markieren",
   "notification.open" : "Öffnen",
-  "refresh" : "Neu laden"
+  "refresh" : "Neu laden",
+  "settings" : "Einstellungen"
 }

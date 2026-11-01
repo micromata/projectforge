@@ -28,10 +28,13 @@ import '../../core/auth/auth_controller.dart';
 import '../../core/auth/session.dart';
 import '../../core/i18n/translations.dart';
 import '../../core/push/push_service.dart';
+import '../../core/settings/app_settings.dart';
 import '../../core/status/user_status_controller.dart';
+import '../../core/web/native_page.dart';
 import '../business_cards/business_cards_screen.dart';
 import '../notifications/notification_bell.dart';
 import '../notifications/notification_text.dart';
+import '../settings/settings_screen.dart';
 import '../web/web_screen.dart';
 
 /// The tabs of the logged-in app.
@@ -64,6 +67,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    // Loaded before the web pages ask for a native tab (see _openNative).
+    ref.read(appSettingsProvider);
     // Asks for the permission to show pushes, registers and hands the token to the server.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(pushServiceProvider)?.start().catchError((Object _) {});
@@ -124,6 +129,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       active: current == destination,
                       initialPath: _webTarget?.path,
                       target: _webTarget,
+                      onNativePage: (page) => _openNative(page, chatEnabled),
                     )
                   : const SizedBox.shrink(),
           },
@@ -196,7 +202,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     Session? session,
   ) => PopupMenuButton<String>(
     icon: const Icon(Icons.account_circle),
-    onSelected: (_) => _logout(context, ref),
+    onSelected: (action) => switch (action) {
+      'settings' => Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
+      _ => _logout(context, ref),
+    },
     itemBuilder: (_) => [
       PopupMenuItem<String>(
         enabled: false,
@@ -204,6 +215,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           '${session?.fullname ?? session?.username ?? ''}\n${session?.serverUrl ?? ''}',
         ),
       ),
+      PopupMenuItem(value: 'settings', child: Text(context.t('settings'))),
       PopupMenuItem(value: 'logout', child: Text(context.t('menu.logout'))),
     ],
   );
@@ -261,6 +273,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       _webTarget = WebTarget(path);
       _select(_current, _Destination.web);
     }
+  }
+
+  /// The web tab navigates to a page with a native tab: that tab is shown instead (the chat only if enabled), unless
+  /// the settings keep the page in the web version.
+  bool _openNative(NativePage page, bool chatEnabled) {
+    final settings = ref.read(appSettingsProvider).value ?? const AppSettings();
+    if (!settings.opensInApp(page)) return false;
+    final destination = switch (page) {
+      NativePage.chat => chatEnabled ? _Destination.chat : null,
+      NativePage.businessCards => _Destination.businessCards,
+    };
+    if (destination == null) return false;
+    _select(_current, destination);
+    return true;
   }
 
   void _openBusinessCardsPage() {

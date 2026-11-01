@@ -22,6 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:projectforge_app/core/web/native_page.dart';
 import 'package:projectforge_app/core/web/web_cookies.dart';
 import 'package:projectforge_app/features/web/web_navigation.dart';
 
@@ -142,5 +143,28 @@ void main() {
     expect(cookie.path, '/');
     expect(cookie.httpOnly, isTrue);
     expect(cookie.secure, isFalse);
+  });
+
+  test('the chat and the business cards have a native tab', () {
+    for (final (url, page) in [
+      ('https://pf.example.org/next/chat', NativePage.chat),
+      ('https://pf.example.org/next/chat/', NativePage.chat),
+      ('https://pf.example.org/next/chat/5?message=7', NativePage.chat),
+      ('https://pf.example.org/next/myBusinessCards', NativePage.businessCards),
+      (
+        'https://pf.example.org/next/myBusinessCards/',
+        NativePage.businessCards,
+      ),
+      (
+        'https://pf.example.org/next/myBusinessCards?id=3',
+        NativePage.businessCards,
+      ),
+      ('https://pf.example.org/next/chatty', null),
+      ('https://pf.example.org/next/timesheet', null),
+      ('https://pf.example.org/rs/myBusinessCards/pkpass?id=3', null),
+      ('https://other.example.org/next/chat', null),
+    ]) {
+      expect(navigation.nativePage(Uri.parse(url)), page, reason: url);
+    }
   });
 }

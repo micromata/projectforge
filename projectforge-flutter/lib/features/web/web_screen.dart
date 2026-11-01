@@ -31,6 +31,7 @@ import '../../core/api/api_exception.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/i18n/translations.dart';
 import '../../core/wallet/wallet_pass.dart';
+import '../../core/web/native_page.dart';
 import '../../core/widgets/error_view.dart';
 import 'web_download.dart';
 import 'web_navigation.dart';
@@ -49,6 +50,7 @@ class WebScreen extends ConsumerStatefulWidget {
     required this.active,
     this.initialPath,
     this.target,
+    this.onNativePage,
   });
 
   /// The screen is the visible tab: the back gesture goes back in the WebView history.
@@ -59,6 +61,10 @@ class WebScreen extends ConsumerStatefulWidget {
 
   /// A page other tabs ask this one to show; a new instance loads its path again, even the same one.
   final WebTarget? target;
+
+  /// The pages navigate to a page with a native tab (e.g. the chat of the menu): true if the app shows its tab
+  /// instead, the WebView then stays on its page. Not called for a page this screen was asked to load itself.
+  final bool Function(NativePage page)? onNativePage;
 
   @override
   ConsumerState<WebScreen> createState() => _WebScreenState();
@@ -85,6 +91,10 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   bool _canGoBack = false;
   bool _opening = false;
   DateTime? _lastOpened;
+
+  /// The native page [_open] loaded itself (e.g. the editing of the business cards): it stays in the WebView until
+  /// the user leaves it.
+  NativePage? _requestedNative;
 
   WebNavigation get _navigation => WebNavigation(
     Uri.parse(ref.read(authControllerProvider).session!.serverUrl),
@@ -118,6 +128,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
       final startPath = await (renew ? sessions.renew() : sessions.ensure());
       if (renew) _lastOpened = DateTime.now();
       final url = _navigation.url(path ?? startPath);
+      _requestedNative = _navigation.nativePage(url);
       if (_controller == null) {
         setState(() => _startUrl = url);
       } else {
@@ -179,6 +190,14 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     }
   }
 
+  /// True if the app shows [url] in its native tab instead (see [WebScreen.onNativePage]).
+  bool _handOver(Uri url) {
+    final page = _navigation.nativePage(url);
+    if (page == _requestedNative) return false;
+    _requestedNative = null;
+    return page != null && (widget.onNativePage?.call(page) ?? false);
+  }
+
   Future<NavigationActionPolicy> _shouldOverrideUrlLoading(
     InAppWebViewController controller,
     NavigationAction action,
@@ -194,6 +213,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
           _onLoginPage(url);
           return NavigationActionPolicy.CANCEL;
         }
+        if (_handOver(url)) return NavigationActionPolicy.CANCEL;
         return NavigationActionPolicy.ALLOW;
       case WebNavigationTarget.external:
         await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -209,6 +229,11 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     WebUri? url,
   ) async {
     if (url != null && _navigation.isLoginPage(url)) _onLoginPage(url);
+    if (url != null && _handOver(url) && await controller.canGoBack()) {
+      // Back to the page the user came from, the native page is shown in its tab.
+      await controller.goBack();
+      return;
+    }
     final canGoBack = await controller.canGoBack();
     if (mounted && canGoBack != _canGoBack) {
       setState(() => _canGoBack = canGoBack);

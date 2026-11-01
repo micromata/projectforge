@@ -21,6 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+import '../../core/web/native_page.dart';
+
 /// Where a navigation of the WebView goes, decided by [WebNavigation.decide].
 enum WebNavigationTarget {
   /// A page of the own server: stays in the WebView.
@@ -73,6 +75,20 @@ class WebNavigation {
   bool isLoginPage(Uri url) =>
       isSameOrigin(url) &&
       (url.path == _loginPath || url.path == '$_loginPath/');
+
+  /// The page of the server the app has a native tab for: the chat (and its sub pages, e.g. `/next/chat/5`) and the
+  /// own business cards. Null for other pages and other origins.
+  NativePage? nativePage(Uri url) {
+    if (!isSameOrigin(url)) return null;
+    final path = url.path;
+    if (path == '/next/chat' || path.startsWith('/next/chat/')) {
+      return NativePage.chat;
+    }
+    if (path == '/next/myBusinessCards' || path == '/next/myBusinessCards/') {
+      return NativePage.businessCards;
+    }
+    return null;
+  }
 
   /// The page to return to after a new web session: the `returnUrl` of the login page (a path below `/next`, as
   /// built by next's AuthGuard), or [defaultPath]. Only a plain path of the own server, never another host.

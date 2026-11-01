@@ -18,6 +18,10 @@
     {
       "en": "The app gives more room to the pages: no title bar above the web pages and the chat, a slimmer navigation bar, and in landscape the navigation at the side.",
       "de": "Die App gibt den Seiten mehr Platz: keine Titelleiste über den Webseiten und dem Chat, eine schmalere Navigationsleiste und im Querformat die Navigation an der Seite."
+    },
+    {
+      "en": "In the app, the menu entries \"Chat\" and \"My business cards\" of the web pages switch to the app's own tab; the new settings of the app can keep each of them in the web version.",
+      "de": "In der App wechseln die Menüpunkte „Chat“ und „Meine Visitenkarten“ der Webseiten auf den eigenen Tab der App; in den neuen Einstellungen der App kann jeder davon in der Webversion bleiben."
     }
   ]
 }

@@ -16,5 +16,7 @@
   "app.session.expired": "Die App wurde abgemeldet (im Web, durch eine Passwortänderung oder nach längerer Zeit ohne Nutzung). Bitte neu anmelden.",
   "app.vCard.share": "vCard teilen",
   "app.web": "ProjectForge",
-  "app.web.failed": "Die Seiten von ProjectForge konnten nicht geöffnet werden."
+  "app.web.failed": "Die Seiten von ProjectForge konnten nicht geöffnet werden.",
+  "app.settings.openInApp": "In der App öffnen",
+  "app.settings.openInApp.info": "Diese Menüpunkte der Webseiten wechseln auf den Tab der App. Ausgeschaltet bleibt die Webversion, z. B. falls die App-Version mit dem Server nicht funktioniert."
 }

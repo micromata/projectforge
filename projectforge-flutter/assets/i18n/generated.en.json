@@ -64,5 +64,6 @@
   "notification.centerEmpty" : "No open notifications.",
   "notification.markDone" : "Mark as done",
   "notification.open" : "Open",
-  "refresh" : "refresh"
+  "refresh" : "refresh",
+  "settings" : "Settings"
 }
