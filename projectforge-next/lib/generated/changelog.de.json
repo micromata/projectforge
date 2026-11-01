@@ -4,7 +4,9 @@
     "id" : "unreleased",
     "version" : "9.2.1",
     "date" : "2026-11-01",
-    "title" : "Noch nicht veröffentlicht",
+    "title" : "ProjectForge 9.2.2: Mobile App mit Benachrichtigungen und Adressbuch, CVE-Radar-Benachrichtigungen",
+    "summary" : [ "**Mobile App** (in Vorbereitung): Benachrichtigungen mit Push und Adressbuch", "**CVE-Radar**: Benachrichtigungen über neue Befunde und veraltete Bibliothekslisten", "Korrektur: Kost2 fehlte manchmal im Strukturbaum, in der Projektliste und bei Zeitberichten", "Korrektur: Ein späterer Zahlplan schiebt auch die Rechnung einer abgeschlossenen Auftragsposition" ],
+    "overview" : [ "**Mobile App (in Vorbereitung):** Benachrichtigungen der Web-Version mit Push-Nachrichten (iPhone, APNs); ein Adressbuch wie die Kontakte-App, auch offline; Anmeldung hinter einem SSO-Proxy, zuletzt benutzte Server, mehr Platz für die Seiten und das helle oder dunkle Erscheinungsbild der Webseiten.", "**CVE-Radar:** eine Benachrichtigungsregel für neue Befunde ohne Details, ein Regeltyp für veraltete Bibliothekslisten einer Komponente, ein Tab für die Beschreibung in der Akte eines Falls und eine schnellere Startseite.", "**Kalender auf kleinen Bildschirmen:** Die Kalenderauswahl hat eine eigene Zeile, statt verdeckt zu werden.", "**Korrekturen:** Kost2 fehlt nicht mehr in Übersichten wie dem Strukturbaum, der Projektliste oder der Kost2-Auswahl eines Zeitberichts (z. B. nach dem Reaktivieren eines Projekts); im Auftragsbuch schiebt ein Zahlplan mit Datum in einem Folgemonat auch die Rechnung einer abgeschlossenen Position; die Akte eines CVE-Radar-Falls ohne CVE öffnet sich wieder." ],
     "sections" : [ {
       "type" : "added",
       "items" : [ {
