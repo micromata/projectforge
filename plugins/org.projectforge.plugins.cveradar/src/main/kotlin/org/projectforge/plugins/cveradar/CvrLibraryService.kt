@@ -57,7 +57,7 @@ class CvrLibraryService {
         plan(component, request, Catalog(catalogNodes())).diff()
 
     /** In one transaction: a failure leaves the component as it was. */
-    fun apply(component: CvrComponentDO, request: LibraryRequest): LibraryDiff = persistenceService.runInTransaction {
+    fun apply(component: CvrComponentDO, request: LibraryRequest): LibraryDiff = persistenceService.runInTransaction { context ->
         val catalog = Catalog(catalogNodes())
         val plan = plan(component, request, catalog)
         plan.added.forEach { (entry, origin) ->
@@ -81,6 +81,10 @@ class CvrLibraryService {
         plan.removed.forEach {
             technologyDao.markAsDeleted(technologyDao.find(it.id, checkAccess = false)!!, checkAccess = false)
         }
+        // Also if nothing changed: the list is up to date then. The loaded component must not write the old day back.
+        component.librariesDate = LocalDate.now()
+        context.em.createQuery("update CvrComponentDO c set c.librariesDate = :date where c.id = :id")
+            .setParameter("date", LocalDate.now()).setParameter("id", component.id).executeUpdate()
         plan.diff()
     }
 

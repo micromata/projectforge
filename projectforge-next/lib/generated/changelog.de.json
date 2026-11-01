@@ -1,5 +1,24 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.1",
+    "date" : "2026-11-01",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ {
+        "title" : "CVE-Radar: Benachrichtigung ohne Details und über veraltete Bibliothekslisten",
+        "items" : [ "Eine neue Benachrichtigungsregel „Neue Befunde des CVE-Radars“ beginnt mit einem Text ohne Details („es gibt möglicherweise Updates“) und einem Link auf die Liste; die neue Variable cvrListLink verlinkt immer auf die Liste.", "Neuer Regeltyp „Veraltete Bibliothekslisten des CVE-Radars“: Das verantwortliche Team einer Komponente, deren Bibliotheksliste vor mehr als einer Anzahl Tage übernommen wurde (vorab 30), wird höchstens einmal pro Woche benachrichtigt, und eine Aktualisierung der Liste erledigt die Benachrichtigung. Der Tag der letzten Liste wird jetzt je Komponente gespeichert." ]
+      }, {
+        "title" : "Mobile App (in Vorbereitung)",
+        "items" : [ "Hinter einem SSO-Proxy (z. B. Authentik als Forward Auth) bekommt die App die Sitzung des Proxys aus der Anmeldung im Browser (`projectforge.app.proxyCookies`); läuft sie ab, meldet sich die App erneut im Browser an.", "Die Anmeldung der App bietet die zuletzt benutzten Server an, und das Abmelden klappt auch, wenn der Server nicht erreichbar ist." ]
+      } ]
+    }, {
+      "type" : "changed",
+      "items" : [ "Schnellere erste Seite großer Listen: die Startseite des CVE-Radars lädt nicht mehr alle Schwachstellen, um die Liste aufzubauen" ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

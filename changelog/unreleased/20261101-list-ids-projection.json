@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Faster first page of big lists: the CVE-Radar start page no longer loads every vulnerability to build the list",
+  "de": "Schnellere erste Seite großer Listen: die Startseite des CVE-Radars lädt nicht mehr alle Schwachstellen, um die Liste aufzubauen"
+}

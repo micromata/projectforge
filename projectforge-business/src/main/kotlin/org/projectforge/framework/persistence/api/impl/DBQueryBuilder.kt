@@ -35,7 +35,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * @param projection For [selectDistinct] instead of [result]: no order by (a distinct query can't order by what
- * it doesn't select, and the values come unordered anyway).
+ * it doesn't select, and the values come unordered anyway), unless [ordered]: [selectIds] keeps the order of the query.
  */
 class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
     private val baseDao: BaseDao<O>,
@@ -43,6 +43,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
     private val queryFilter: QueryFilter,
     dbFilter: DBFilter,
     private val projection: Boolean = false,
+    ordered: Boolean = false,
 ) {
 
     enum class Mode {
@@ -132,7 +133,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
         // A column of the list may be made of several database columns — a cost number is four (see
         // Kost1EntityRest.postProcessMagicFilter) — so one requested sort can be more than one order.
         var maxOrder = MAX_ORDERS
-        for (sortProperty in dbFilter.sortProperties.takeUnless { projection }.orEmpty()) {
+        for (sortProperty in dbFilter.sortProperties.takeUnless { projection && !ordered }.orEmpty()) {
             addOrder(sortProperty)
             if (--maxOrder <= 0)
                 break
@@ -161,6 +162,12 @@ class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
     fun selectDistinct(paths: List<String>): List<Array<Any?>> {
         check(projectable) { "The query needs the entities: full text search or result predicates." }
         return dbQueryBuilderByCriteria.selectDistinct(paths)
+    }
+
+    /** See [DBQueryBuilderByCriteria.selectIds]; only if [projectable]. */
+    fun selectIds(accessPaths: List<String>): List<Array<Any?>> {
+        check(projectable) { "The query needs the entities: full text search or result predicates." }
+        return dbQueryBuilderByCriteria.selectIds(accessPaths)
     }
 
     /**

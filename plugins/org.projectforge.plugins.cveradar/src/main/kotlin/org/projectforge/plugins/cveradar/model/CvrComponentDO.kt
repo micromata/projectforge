@@ -33,9 +33,11 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Transient
+import java.time.LocalDate
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * A component, e.g. the application or the database of a system. Either of the baseline of a system (every instance
@@ -69,6 +71,14 @@ open class CvrComponentDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "name")
     @get:Column(length = 255, nullable = false)
     open var name: String? = null
+
+    /**
+     * The day the lists of libraries (INV-26) of this component were applied the last time, also if they changed
+     * nothing; null: never (or before this was recorded). The notification about outdated lists looks at it.
+     */
+    @NoHistory
+    @get:Column(name = "libraries_date")
+    open var librariesDate: LocalDate? = null
 
     val systemId: Long?
         @Transient

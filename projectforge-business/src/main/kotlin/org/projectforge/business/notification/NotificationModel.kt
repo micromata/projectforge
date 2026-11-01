@@ -59,6 +59,12 @@ enum class NotificationRuleType : I18nEnum {
      */
     CVERADAR_FINDINGS,
 
+    /**
+     * Lists of libraries of the CVE radar (plugin) not updated for a number of days: the responsible teams of the
+     * systems, whose findings may be outdated, the configured recipients in copy.
+     */
+    CVERADAR_STALE_LISTS,
+
     /** No condition: all recipients get the notification when it is triggered (by hand or by the schedule). */
     MANUAL;
 
@@ -256,6 +262,8 @@ class NotificationParams(
     var cvrIncludePossible: Boolean = false,
     /** [NotificationRuleType.CVERADAR_FINDINGS]: also vulnerabilities not yet rated by the NVD (without a CVSS score). */
     var cvrIncludeUnscored: Boolean = true,
+    /** [NotificationRuleType.CVERADAR_STALE_LISTS]: a list of libraries older than this many days is outdated. */
+    var cvrMaxAgeDays: Int = 30,
     /** All rule types: the link of the notifications ("Open" in the app). */
     var linkMode: LinkMode = LinkMode.DEFAULT,
     /** [LinkMode.MENU_ITEM]: the id of the menu item (`MenuItemDefId`) linked to. */

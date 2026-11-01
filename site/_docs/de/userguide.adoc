@@ -1632,6 +1632,27 @@ können sie nutzen; es wird nichts gespeichert, und das Ergebnis bleibt bei der 
   freigegebenes KI-System, der fragt, wie jede Schwachstelle behoben wird. _Namen der Dateien ersetzen_ (vorab
   eingeschaltet) macht daraus `F1`, `F2`, … weil im Pfad oft Projektnamen stehen.
 
+[[cve_radar_notifications]]
+=== CVE-Radar: Benachrichtigungen
+
+Benachrichtigungen richtet ein Admin als Regeln ein (Seite _Benachrichtigungsregeln_). Zwei Regeltypen
+gehören zum CVE-Radar. Solange keine solche Regel existiert, wird niemand benachrichtigt; Empfänger und Zustellung (in
+der App, per Mail) wählt der Admin für jede Regel.
+
+* *Neue Befunde des CVE-Radars*: Das verantwortliche Team eines betroffenen Systems (die Gruppe des Systems oder des
+  nächsten Bereichs darüber) wird direkt benachrichtigt, nachdem der Abgleich etwas Neues gefunden hat; die Empfänger der
+  Regel bekommen es in Kopie. Eine Regel gilt ab einem CVSS-Schweregrad (bekannt ausgenutzte Schwachstellen immer),
+  wahlweise auch für mögliche Befunde und noch nicht bewertete Schwachstellen. Eine neue Regel beginnt mit einem Text
+  ohne Details: _Für ein System in eurer Verantwortung gibt es möglicherweise Updates_, mit einem Link auf die Liste;
+  dort entscheidet sich, wer was sehen darf. Mit den Variablen der Regel kann der Text stattdessen die Schwachstellen und
+  Systeme nennen.
+* *Veraltete Bibliothekslisten des CVE-Radars*: Die Befunde einer Komponente sind nur so gut wie ihre Bibliotheksliste.
+  Wurde die letzte Liste einer Komponente vor mehr als der angegebenen Anzahl Tage übernommen (vorab 30), werden das
+  verantwortliche Team und die Empfänger in Kopie benachrichtigt, höchstens einmal pro Woche; die Benachrichtigung
+  erledigt sich, sobald die Liste aktualisiert ist. Komponenten, die nie eine Liste aus einer Datei hatten, bleiben außen
+  vor.
+* Jede Person erfährt nur von den Systemen und Instanzen, die sie sehen darf.
+
 [[further_features]]
 === Weitere Funktionen
 

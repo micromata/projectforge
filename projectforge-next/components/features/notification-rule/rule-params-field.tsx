@@ -85,6 +85,18 @@ export function RuleParamsField({ className }: { className?: string }) {
       />
     );
   }
+  if (ruleType === "CVERADAR_STALE_LISTS") {
+    return (
+      <NumberField
+        name="cvrMaxAgeDays"
+        label={t("cvrMaxAgeDays")}
+        metadataLess
+        fractionDigits={0}
+        maxDigits={3}
+        className={className}
+      />
+    );
+  }
   if (ruleType === "CVERADAR_FINDINGS") {
     return (
       <div className={cn("grid gap-4 sm:grid-cols-2", className)}>

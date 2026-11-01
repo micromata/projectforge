@@ -26,6 +26,7 @@ export function toFormValues(
     cvrMinSeverity: rule.cvrMinSeverity ?? "HIGH",
     cvrIncludePossible: rule.cvrIncludePossible ?? false,
     cvrIncludeUnscored: rule.cvrIncludeUnscored ?? true,
+    cvrMaxAgeDays: rule.cvrMaxAgeDays ?? 30,
     recipientGroups: rule.recipientGroups ?? [],
     recipientUsers: rule.recipientUsers ?? [],
     allEmployees: rule.allEmployees ?? false,
