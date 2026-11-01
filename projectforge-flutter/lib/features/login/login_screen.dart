@@ -48,15 +48,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _busy = false;
   String? _error;
 
+  /// The servers of the last logins, most recent first.
+  List<String> _servers = const [];
+
   @override
   void initState() {
     super.initState();
-    ref.read(authControllerProvider.notifier).lastServerUrl().then((url) {
-      // The development server of `bin/pfApp.sh run <slot>` (only set by it), otherwise the last server.
-      final preset = _devServerUrl.isNotEmpty ? _devServerUrl : url;
-      if (preset != null && mounted && _server.text.isEmpty) {
+    _loadServers().then((_) {
+      // The last server, otherwise the development server of `bin/pfApp.sh run <slot>` (only set by it).
+      final preset = _servers.firstOrNull ?? _devServerUrl;
+      if (preset.isNotEmpty && mounted && _server.text.isEmpty) {
         _server.text = preset;
       }
+    });
+  }
+
+  Future<void> _loadServers() async {
+    final servers = await ref.read(authControllerProvider.notifier).servers();
+    if (mounted) setState(() => _servers = servers);
+  }
+
+  Future<void> _removeServer(String serverUrl) async {
+    await ref.read(authControllerProvider.notifier).removeServer(serverUrl);
+    await _loadServers();
+  }
+
+  void _select(String serverUrl) {
+    setState(() {
+      _server.text = serverUrl;
+      _error = null;
     });
   }
 
@@ -93,6 +113,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final message = widget.messageKey;
+    // The development server is offered, but only stored by a login.
+    final devServer =
+        _devServerUrl.isNotEmpty && !_servers.contains(_devServerUrl)
+        ? _devServerUrl
+        : null;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -131,6 +156,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       errorMaxLines: 3,
                     ),
                   ),
+                  if (_servers.isNotEmpty || devServer != null) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      context.t('app.server.recent'),
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                    for (final server in _servers)
+                      _ServerTile(
+                        serverUrl: server,
+                        onTap: _busy ? null : () => _select(server),
+                        onRemove: _busy ? null : () => _removeServer(server),
+                      ),
+                    if (devServer != null)
+                      _ServerTile(
+                        serverUrl: devServer,
+                        onTap: _busy ? null : () => _select(devServer),
+                      ),
+                  ],
                   const SizedBox(height: 16),
                   Text(
                     context.t('app.login.info'),
@@ -155,4 +198,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
   }
+}
+
+/// A server of the last logins: a tap puts it into the field, [onRemove] (if given) removes it from the list.
+class _ServerTile extends StatelessWidget {
+  const _ServerTile({required this.serverUrl, this.onTap, this.onRemove});
+
+  final String serverUrl;
+  final VoidCallback? onTap;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    dense: true,
+    contentPadding: EdgeInsets.zero,
+    leading: const Icon(Icons.dns_outlined),
+    title: Text(serverUrl),
+    onTap: onTap,
+    trailing: onRemove == null
+        ? null
+        : IconButton(
+            icon: const Icon(Icons.close),
+            tooltip: context.t('app.server.remove'),
+            onPressed: onRemove,
+          ),
+  );
 }

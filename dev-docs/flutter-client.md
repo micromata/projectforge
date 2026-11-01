@@ -66,6 +66,23 @@ for good); the app logs in again in the browser with its `deviceId`, which keeps
 anew for that user: the app then logs the old user out (`/rs/appAuth/logout`), forgets their data (cache, shared
 files, WebView data), starts the tabs anew (`HomeScreen` keyed by device) and fails the request.
 
+**Behind an SSO proxy** (e.g. Authentik as forward auth in nginx): the proxy lets only requests with its session
+cookie through, which the browser has, but not the app. The cookies named in `projectforge.app.proxyCookies`
+(e.g. `authentik_proxy_*`; a bare `*` is ignored) are taken by `POST /rs/appAuth/authorize` from the browser login
+(never the cookies of ProjectForge itself, nor its session cookie under another name), kept with the code and handed
+to the app with its token (`TokenResponse.proxyCookies`). The app keeps them with the token, sends them with every
+request and puts them into the WebView. A refusal of the proxy (a 401 without a json content type, a redirect) isn't a
+logout: the app logs in again in the browser, which brings fresh cookies, and repeats the request once. If that doesn't
+satisfy the proxy either, it isn't tried again until the next login (`app.proxy.refused`). Requests the app makes on
+its own (the badge of the chat) never open the browser (`renewLogin: false`), only something the user does. After each
+expiry of the proxy session (the token validity of the Authentik provider) the user logs in again in the browser, with
+a second factor of ProjectForge.
+
+The app gets the proxy session of the browser itself, not one of its own: with forward auth on domain level it lets
+the app through to every application behind the proxy, logging out the app in "My account" doesn't end it, and a
+logout at the proxy in the browser shuts the app out too (it then logs in again in the browser). The admin guide has
+to say so once the app is distributed.
+
 **On the device:** the token is in the keychain (`first_unlock_this_device`, not in backups) or the keystore; Android
 has no backups at all (`allowBackup="false"`). The logout deletes the cache, the files handed to the share sheet
 (`SharedFiles`: downloads, vCards) and the cookies, cache and web storage of the WebView.
@@ -142,4 +159,7 @@ the user.
 - Android: plain http to the development server (`10.0.2.2`) needs a debug network security config.
 - Release signing: the Android release build is still signed with the debug key (`android/app/build.gradle.kts`).
 - Store presence: app icons, privacy declarations, review notes (a chat is user generated content: report and block).
-- User and admin guide (EN+DE) once the app is distributed.
+- User and admin guide (EN+DE) once the app is distributed, with the SSO proxy (`projectforge.app.proxyCookies`).
+- Behind an SSO proxy, the first login without a proxy session ended once on "The link of the app is invalid"; the
+  second attempt worked. Probably the proxy's redirects to its login lost the query of `/next/appLogin` (`challenge`,
+  `state`). If it happens again: note the url of the error page and the server log.

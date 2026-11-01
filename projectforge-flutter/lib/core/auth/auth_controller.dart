@@ -71,6 +71,8 @@ final apiClientProvider = Provider<ApiClient?>((ref) {
   return ApiClient(
     serverUrl: session.serverUrl,
     token: () => ref.read(authControllerProvider).session?.token,
+    proxyCookies: () =>
+        ref.read(authControllerProvider).session?.proxyCookies ?? const {},
     appVersion: ref.read(deviceDescriptionProvider).value?.appVersion ?? '',
     onUnauthorized: controller.onUnauthorized,
     onReauthenticate: controller.reauthenticate,
@@ -94,8 +96,11 @@ class AuthController extends Notifier<AuthState> {
         : AuthState(AuthStatus.loggedIn, session: session);
   }
 
-  Future<String?> lastServerUrl() =>
-      ref.read(sessionStoreProvider).lastServerUrl();
+  /// The servers of the last logins, most recent first (offered by the login).
+  Future<List<String>> servers() => ref.read(sessionStoreProvider).servers();
+
+  Future<void> removeServer(String serverUrl) =>
+      ref.read(sessionStoreProvider).removeServer(serverUrl);
 
   /// Logs in at [serverInput] (as typed by the user) in the browser.
   ///
@@ -144,6 +149,10 @@ class AuthController extends Notifier<AuthState> {
       }
       await ref.read(sessionStoreProvider).save(renewed);
       state = AuthState(AuthStatus.loggedIn, session: renewed);
+      // The web session stays, but the WebView needs the fresh cookies of an SSO proxy.
+      await ref
+          .read(webCookiesProvider)
+          .setProxyCookies(renewed.serverUrl, renewed.proxyCookies);
       return true;
     } on Object {
       return false;
@@ -155,7 +164,9 @@ class AuthController extends Notifier<AuthState> {
   /// for the renewal was the old user's and fails.
   Future<void> _switchTo(Session renewed) async {
     try {
-      await ref.read(apiClientProvider)?.post<void>('/rs/appAuth/logout');
+      await ref
+          .read(apiClientProvider)
+          ?.post<void>('/rs/appAuth/logout', renewLogin: false);
     } on ApiException {
       // The old token expires anyway.
     }
@@ -165,11 +176,17 @@ class AuthController extends Notifier<AuthState> {
   }
 
   /// Logs the app out at the server (its token is deleted) and here.
+  ///
+  /// The server gets a few seconds and whatever fails: the app is logged out here in any case, so the user reaches
+  /// the login (and another server) even if the server isn't available.
   Future<void> logout() async {
     try {
-      await ref.read(apiClientProvider)?.post<void>('/rs/appAuth/logout');
-    } on ApiException {
-      // Offline or already logged out: the token is forgotten here anyway.
+      await ref
+          .read(apiClientProvider)
+          ?.post<void>('/rs/appAuth/logout', renewLogin: false)
+          .timeout(const Duration(seconds: 3));
+    } on Object {
+      // Offline, timed out or already logged out: the token is forgotten here anyway.
     }
     await _forget(null);
   }

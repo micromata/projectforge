@@ -14,6 +14,14 @@
     {
       "en": "My account: the connected apps with their last usage, each can be logged out. A password change logs out all apps; an app unused for 90 days is logged out automatically.",
       "de": "Mein Zugang: die verbundenen Apps mit ihrer letzten Nutzung, jede kann abgemeldet werden. Eine Passwortänderung meldet alle Apps ab; eine 90 Tage nicht genutzte App wird automatisch abgemeldet."
+    },
+    {
+      "en": "Behind an SSO proxy (e.g. Authentik as forward auth) the app gets the proxy's session from the browser login (`projectforge.app.proxyCookies`); when it expires, the app logs in again in the browser.",
+      "de": "Hinter einem SSO-Proxy (z. B. Authentik als Forward Auth) bekommt die App die Sitzung des Proxys aus der Anmeldung im Browser (`projectforge.app.proxyCookies`); läuft sie ab, meldet sich die App erneut im Browser an."
+    },
+    {
+      "en": "The login of the app offers the recently used servers, and the logout works even if the server can't be reached.",
+      "de": "Die Anmeldung der App bietet die zuletzt benutzten Server an, und das Abmelden klappt auch, wenn der Server nicht erreichbar ist."
     }
   ]
 }

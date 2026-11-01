@@ -27,9 +27,13 @@ class ApiException implements Exception {
     this.message, {
     this.statusCode,
     this.validationErrors = const [],
+    this.messageKey,
   });
 
   final String message;
+
+  /// An app text (i18n key) instead of [message], for a refusal that isn't the server's (e.g. of an SSO proxy).
+  final String? messageKey;
   final int? statusCode;
 
   /// The field errors of a 406 (`ResponseAction.validationErrors` of the server).

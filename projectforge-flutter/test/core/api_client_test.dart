@@ -32,6 +32,7 @@ void main() {
   late String token;
   late int unauthorized;
   late int reauthentications;
+  late Map<String, String> proxyCookies;
 
   ApiClient client(FakeAdapter adapter, {bool reauthSucceeds = true}) =>
       ApiClient(
@@ -41,9 +42,13 @@ void main() {
         onUnauthorized: () => unauthorized++,
         onReauthenticate: () async {
           reauthentications++;
-          if (reauthSucceeds) token = 'renewed';
+          if (reauthSucceeds) {
+            token = 'renewed';
+            proxyCookies = {'authentik_proxy_1': 'fresh'};
+          }
           return reauthSucceeds;
         },
+        proxyCookies: () => proxyCookies,
         dio: Dio()..httpClientAdapter = adapter,
       );
 
@@ -51,7 +56,18 @@ void main() {
     token = 'first';
     unauthorized = 0;
     reauthentications = 0;
+    proxyCookies = const {};
   });
+
+  /// An SSO proxy (Authentik) lets only requests with its fresh cookie through, otherwise it answers itself.
+  FakeAdapter proxy({
+    required int status,
+    Object body = const RawBody('<html></html>'),
+  }) => FakeAdapter(
+    (options) => options.headers['Cookie'] == 'authentik_proxy_1=fresh'
+        ? (status: 200, body: {'ok': true})
+        : (status: status, body: body),
+  );
 
   test('sends the app token and the client headers', () async {
     final adapter = FakeAdapter((_) => (status: 200, body: {'ok': true}));
@@ -60,6 +76,101 @@ void main() {
     expect(headers['Authorization'], 'PFApp first');
     expect(headers['X-PF-Frontend'], 'next');
     expect(headers['X-PF-App-Version'], '1.0.0+1');
+    expect(headers.containsKey('Cookie'), isFalse, reason: 'No proxy.');
+  });
+
+  test('sends the cookies of an SSO proxy', () async {
+    proxyCookies = {'authentik_proxy_1': 'a', 'other': 'b'};
+    final adapter = FakeAdapter((_) => (status: 200, body: {'ok': true}));
+    await client(adapter).get<Object>('/rs/x');
+    expect(
+      adapter.requests.single.headers['Cookie'],
+      'authentik_proxy_1=a; other=b',
+    );
+  });
+
+  test(
+    'a refusal of the proxy renews the login instead of logging out',
+    () async {
+      for (final status in [401, 302]) {
+        reauthentications = 0;
+        proxyCookies = {'authentik_proxy_1': 'expired'};
+        final adapter = proxy(status: status);
+        final result = await client(adapter).get<Map<String, dynamic>>('/rs/x');
+        expect(result['ok'], true, reason: '$status');
+        expect(reauthentications, 1);
+        expect(adapter.requests.length, 2);
+      }
+      expect(unauthorized, 0);
+    },
+  );
+
+  test('a cancelled renewal fails with the text of the proxy', () async {
+    await expectLater(
+      client(proxy(status: 401), reauthSucceeds: false).get<Object>('/rs/x'),
+      throwsA(
+        isA<ApiException>().having(
+          (e) => e.messageKey,
+          'messageKey',
+          ApiClient.proxyRefusedKey,
+        ),
+      ),
+    );
+    expect(unauthorized, 0);
+  });
+
+  test(
+    'a renewal the proxy doesn\'t accept either isn\'t tried again',
+    () async {
+      final adapter = FakeAdapter(
+        (_) => (status: 401, body: const RawBody('<html></html>')),
+      );
+      final api = client(adapter);
+      for (var i = 0; i < 2; i++) {
+        await expectLater(
+          api.get<Object>('/rs/x'),
+          throwsA(isA<ApiException>()),
+        );
+      }
+      expect(reauthentications, 1);
+      expect(adapter.requests.length, 3);
+      expect(unauthorized, 0);
+    },
+  );
+
+  test('the logout never renews the login', () async {
+    await expectLater(
+      client(proxy(status: 401))
+          .post<void>('/rs/appAuth/logout', renewLogin: false),
+      throwsA(isA<ApiException>()),
+    );
+    expect(reauthentications, 0);
+  });
+
+  test('polling in the background never renews the login', () async {
+    await expectLater(
+      client(proxy(status: 401))
+          .get<Object>('/rs/userStatus', renewLogin: false),
+      throwsA(
+        isA<ApiException>().having(
+          (e) => e.messageKey,
+          'messageKey',
+          ApiClient.proxyRefusedKey,
+        ),
+      ),
+    );
+    expect(reauthentications, 0);
+    expect(unauthorized, 0);
+  });
+
+  test('a 401 of the server logs the app out, also for a download', () async {
+    final adapter = FakeAdapter((_) => (status: 401, body: {'status': 401}));
+    await expectLater(
+      client(adapter).download('/rs/vcard'),
+      throwsA(isA<ApiException>()),
+    );
+    expect(unauthorized, 1);
+    expect(reauthentications, 0);
   });
 
   test('401 logs the app out', () async {

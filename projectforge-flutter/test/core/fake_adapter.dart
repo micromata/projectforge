@@ -41,15 +41,30 @@ class FakeAdapter implements HttpClientAdapter {
   ) async {
     requests.add(options);
     final answer = handler(options);
+    final body = answer.body;
     return ResponseBody.fromString(
-      answer.body == null ? '' : jsonEncode(answer.body),
+      switch (body) {
+        null => '',
+        RawBody() => body.text,
+        _ => jsonEncode(body),
+      },
       answer.status,
       headers: {
-        Headers.contentTypeHeader: [Headers.jsonContentType],
+        Headers.contentTypeHeader: [
+          body is RawBody ? body.contentType : Headers.jsonContentType,
+        ],
       },
     );
   }
 
   @override
   void close({bool force = false}) {}
+}
+
+/// A body sent as it is, not as json (e.g. the html page of an SSO proxy).
+class RawBody {
+  const RawBody(this.text, {this.contentType = 'text/html'});
+
+  final String text;
+  final String contentType;
 }

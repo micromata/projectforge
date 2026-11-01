@@ -125,7 +125,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
         );
       }
     } on ApiException catch (e) {
-      if (mounted) _showError(e.message);
+      if (mounted) _showError(context.errorText(e));
     } finally {
       _opening = false;
     }

@@ -118,6 +118,7 @@ class AppAuthRest {
             deviceName = body.deviceName,
             platform = body.platform,
             renewDeviceId = body.deviceId,
+            proxyCookies = appAuthService.proxyCookiesOf(request.cookies),
         ) ?: return ResponseEntity.badRequest().build<Any>()
         return ResponseEntity.ok(AuthorizeResponse(redirectUrl))
     }

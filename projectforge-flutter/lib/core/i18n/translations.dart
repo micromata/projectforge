@@ -27,6 +27,8 @@ import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../api/api_exception.dart';
+
 /// The texts of the app: the catalog generated from the I18nResources bundles of the server
 /// (`assets/i18n/generated.<locale>.json`, see GenerateFlutterI18nMessagesMain) with the hand-written texts of the
 /// app (`assets/i18n/app.<locale>.json`) laid over it.
@@ -91,4 +93,11 @@ class TranslationsScope extends InheritedWidget {
 extension TranslationsContext on BuildContext {
   String t(String key, [List<Object?> args = const []]) =>
       TranslationsScope.of(this).t(key, args);
+
+  /// The text of a failed call: the app text of an [ApiException] with a [ApiException.messageKey], otherwise the
+  /// message (of the server).
+  String errorText(Object error) {
+    final key = error is ApiException ? error.messageKey : null;
+    return key != null ? t(key) : error.toString();
+  }
 }

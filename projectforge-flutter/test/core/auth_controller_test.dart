@@ -73,16 +73,19 @@ void main() {
   late _FakeWebCookies cookies;
   late FakeAdapter api;
 
+  /// The requests of the browser login (systemStatus, token).
+  late FakeAdapter loginApi;
+
   /// The browser login answers [userId] and [deviceId] (the server's answer for the user logged in there).
   ProviderContainer container({required int userId, required int deviceId}) {
+    loginApi = FakeAdapter(
+      (_) => (
+        status: 200,
+        body: {'userId': userId, 'deviceId': deviceId, 'token': 'new'},
+      ),
+    );
     final login = AppLogin(
-      dio: Dio()
-        ..httpClientAdapter = FakeAdapter(
-          (_) => (
-            status: 200,
-            body: {'userId': userId, 'deviceId': deviceId, 'token': 'new'},
-          ),
-        ),
+      dio: Dio()..httpClientAdapter = loginApi,
       openBrowser: (url) async =>
           'projectforge://auth?code=c&state=${Uri.parse(url).queryParameters['state']}',
     );
@@ -165,4 +168,31 @@ void main() {
       expect(cookies.cleared, 1);
     },
   );
+
+  for (final stored in [null, userA]) {
+    test(
+      'the start needs no server (${stored == null ? 'logged out' : 'logged in'})',
+      () async {
+        store.session = stored;
+        final c = container(userId: 1, deviceId: 10);
+        c.read(authControllerProvider);
+        await Future<void>.delayed(Duration.zero);
+        expect(
+          c.read(authControllerProvider).status,
+          stored == null ? AuthStatus.loggedOut : AuthStatus.loggedIn,
+        );
+        expect(api.requests, isEmpty);
+        expect(loginApi.requests, isEmpty);
+      },
+    );
+  }
+
+  test('the logout reaches the login although the server fails', () async {
+    api = FakeAdapter((_) => throw StateError('server down'));
+    final c = container(userId: 1, deviceId: 10);
+    final controller = await loggedIn(c);
+    await controller.logout();
+    expect(c.read(authControllerProvider).status, AuthStatus.loggedOut);
+    expect(store.session, isNull);
+  });
 }

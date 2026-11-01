@@ -48,7 +48,7 @@ class BusinessCardsScreen extends ConsumerWidget {
         skipLoadingOnRefresh: true,
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => ErrorView(
-          message: error.toString(),
+          message: context.errorText(error),
           onRetry: () => ref.read(businessCardsProvider.notifier).refresh(),
         ),
         data: (data) => RefreshIndicator(
@@ -146,7 +146,8 @@ class _CardTile extends ConsumerWidget {
           if (repository != null) await shareVCard(repository, info.card);
       }
     } on ApiException catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+      if (!context.mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(context.errorText(e))));
     }
   }
 }
