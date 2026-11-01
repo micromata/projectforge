@@ -1,7 +1,7 @@
 # Mobile app (Flutter)
 
-Status: phase 1 in implementation (app login, digital business cards and the web pages in a WebView done), timesheets
-and chat open.
+Status: phase 1 in implementation (app login, digital business cards and the web pages in a WebView done), the chat
+tab done (WebView with badge), timesheets and push open.
 
 The app lives in [`projectforge-flutter/`](../projectforge-flutter/README.md): Flutter, iOS and Android, not part of
 the Gradle build (own CI job `.github/workflows/flutter.yml`). Dev helpers (run against a slot server, simulator,
@@ -15,8 +15,22 @@ projectforge-next does; nothing of the next frontend is reused but the texts.
 2. Timesheets: week list (`POST /rs/timesheet/listPage`), new and edited bookings (`newEntry`, `insert`/`update`),
    task (`/rs/task/tree/autosearch?onlyBookable=true`, `/rs/task/recent/list`), kost2 (`/rs/task/info/{id}`),
    recent sheets and templates (`recentList`, `/rs/timesheet/favorites`).
-3. Chat: conversations (`/rs/chatDirect`, `/rs/chatRoom`, `/rs/chat`), live updates via SSE with `Last-Event-ID`
-   and `/changes` as polling fallback, then push notifications (see below).
+3. Chat: the chat of next in a WebView (see below), then push notifications (see below).
+
+## Chat
+
+The chat of next (editor, threads, mentions, reactions, files, moderation, search, confidential chats) is big and
+keeps growing: native screens would have to repeat every feature, and app and web would drift apart. So the tab
+"Chat" shows `/next/chat` in a second WebView (`HomeScreen`, `WebScreen(initialPath:)`), with the live updates of
+next (SSE on the web session's cookie). Native is only what a page can't do:
+
+- **Badge:** the unread messages (`chatUnread` of `GET /rs/userStatus`) at the tab (`lib/features/chat/`), loaded
+  every 60 s in the foreground, on resuming the app and on switching tabs. The app token has no session to keep
+  alive, `ChatUnreadCounter` caches the count. The tab is missing if the chat is switched off (`disabledFeatures`
+  contains `CHAT`).
+- **Files:** uploads through the file input of the page (WKWebView and the Android WebView open the system picker;
+  iOS needs `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`), downloads see "Web pages in the app".
+- **Push** (phase 3, see below): a tap opens `/next/chat/{id}` in the chat tab.
 
 ## Login
 
@@ -71,8 +85,16 @@ app has only its token:
 - **App mode of next:** the user agent carries `ProjectForgeApp/<version>` (`lib/app-mode.ts`): next hides its
   logout, the app has its own. Only for the UI, never a security check.
 - **No JavaScript handlers** in the WebView: the pages never get hold of the app token.
+- **One session for all tabs:** the WebViews (pages, chat) share the cookie jar, so `WebSessionRepository` opens one
+  web session (`ensure`) and renews it once for all tabs (`renew`), otherwise each tab would replace the other's
+  cookie.
+- **Downloads** (`onDownloadStartRequest`, e.g. a chat file): `WebDownload` loads the file with the WebView's session
+  cookie, never with the app token (the url is chosen by the page), only from the own server and without following
+  redirects, and offers it in the share sheet (also "save to files"). Open: downloads built in the page as a `blob:`
+  url (the Excel exports, `lib/rs/download.ts`) can't be loaded by the app and fail with a message; they need the
+  blob's bytes from the page (`onDownloadStartRequest` gives only the url).
 
-Open: downloads and uploads in the WebView; the 2FA dialog of next offers WebAuthn, which doesn't work in a WebView
+Open: the 2FA dialog of next offers WebAuthn, which doesn't work in a WebView
 for self-hosted servers (OTP does): in app mode it should offer "confirm in the browser" (the app's renewal, then a
 new web session).
 
@@ -96,6 +118,10 @@ the user.
 - The payload carries no message text: a generic text, the conversation id and a counter. The app loads the content
   when opened. A text on the lock screen would need a Notification Service Extension: not in the first version.
 - Real APNs delivery needs a physical device; sandbox and production differ, test via TestFlight.
+- Open: who sends for a self-hosted installation. The store app has one APNs key and one FCM project: either a push
+  relay of the app's publisher, to which each server sends only device token, conversation id and counter (as
+  Nextcloud does), or the server sends itself with keys from its configuration (only for installations with the
+  publisher's keys or an own build of the app). The server side gets a `PushSender` interface either way.
 
 ## Open points
 

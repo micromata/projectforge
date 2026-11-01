@@ -24,12 +24,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/api/api_exception.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/i18n/translations.dart';
 import '../../core/widgets/error_view.dart';
+import 'web_download.dart';
 import 'web_navigation.dart';
 import 'web_session_repository.dart';
 
@@ -37,12 +39,17 @@ import 'web_session_repository.dart';
 /// server opens for the app token ([WebSessionRepository]). The session is renewed when the pages land on the login
 /// page (timeout, server restart).
 ///
+/// Several tabs show a WebView each (the pages, the chat), all with the same web session.
+///
 /// The WebView gets no JavaScript handlers: the app token must stay out of reach of the pages.
 class WebScreen extends ConsumerStatefulWidget {
-  const WebScreen({super.key, required this.active});
+  const WebScreen({super.key, required this.active, this.initialPath});
 
   /// The screen is the visible tab: the back gesture goes back in the WebView history.
   final bool active;
+
+  /// The page shown first (e.g. `/next/chat`), default: the start page of the server.
+  final String? initialPath;
 
   @override
   ConsumerState<WebScreen> createState() => _WebScreenState();
@@ -71,17 +78,18 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     _pullToRefresh = PullToRefreshController(
       onRefresh: () => _controller?.reload(),
     );
-    _open(null);
+    _open(widget.initialPath);
   }
 
-  /// Opens a new web session and loads [path] (default: the start page of the server).
-  Future<void> _open(String? path) async {
+  /// Loads [path] (default: the start page of the server) with the web session of the app, a new one if [renew].
+  Future<void> _open(String? path, {bool renew = false}) async {
     if (_opening) return;
     _opening = true;
     setState(() => _error = null);
     try {
-      final startPath = await ref.read(webSessionRepositoryProvider)!.open();
-      _lastOpened = DateTime.now();
+      final sessions = ref.read(webSessionRepositoryProvider)!;
+      final startPath = await (renew ? sessions.renew() : sessions.ensure());
+      if (renew) _lastOpened = DateTime.now();
       final url = _navigation.url(path ?? startPath);
       if (_controller == null) {
         setState(() => _startUrl = url);
@@ -113,7 +121,24 @@ class _WebScreenState extends ConsumerState<WebScreen> {
       _showError(context.t('app.web.failed'));
       return;
     }
-    _open(_navigation.returnPath(url));
+    _open(_navigation.returnPath(url), renew: true);
+  }
+
+  /// A download of the pages (e.g. a chat file): loaded by the app and offered in the share sheet.
+  Future<void> _onDownloadStart(DownloadStartRequest request) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.t('app.download.failed');
+    try {
+      final file = await WebDownload(
+        navigation: _navigation,
+        cookieHeader: ref.read(webCookiesProvider).cookieHeader,
+      ).load(request.url, suggestedFilename: request.suggestedFilename);
+      await SharePlus.instance.share(
+        ShareParams(files: [XFile(file.path, mimeType: request.mimeType)]),
+      );
+    } on Exception {
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+    }
   }
 
   Future<NavigationActionPolicy> _shouldOverrideUrlLoading(
@@ -156,7 +181,10 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   Widget build(BuildContext context) {
     final error = _error;
     if (error != null) {
-      return ErrorView(message: error, onRetry: () => _open(null));
+      return ErrorView(
+        message: error,
+        onRetry: () => _open(widget.initialPath, renew: true),
+      );
     }
     final startUrl = _startUrl;
     if (startUrl == null) {
@@ -167,7 +195,8 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     return PopScope(
       canPop: !widget.active || !_canGoBack,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _controller?.goBack();
+        // Every WebView tab gets the gesture: only the visible one goes back.
+        if (!didPop && widget.active) _controller?.goBack();
       },
       child: Stack(
         children: [
@@ -180,6 +209,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
               allowsBackForwardNavigationGestures: true,
               javaScriptCanOpenWindowsAutomatically: false,
               supportMultipleWindows: false,
+              useOnDownloadStart: true,
             ),
             pullToRefreshController: _pullToRefresh,
             onWebViewCreated: (controller) => _controller = controller,
@@ -190,6 +220,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
               setState(() => _progress = progress / 100);
             },
             onLoadStop: (_, _) => _pullToRefresh?.endRefreshing(),
+            onDownloadStartRequest: (_, request) => _onDownloadStart(request),
           ),
           if (_progress < 1) LinearProgressIndicator(value: _progress),
         ],

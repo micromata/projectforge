@@ -36,23 +36,50 @@ final webSessionRepositoryProvider = Provider<WebSessionRepository?>((ref) {
 
 /// The web session of the WebView (AppAuthRest.webSession, `POST /rs/appAuth/webSession`): the server opens it for
 /// the app token and sends its cookie, which goes into the WebView.
+///
+/// All WebViews of the app (the tabs "ProjectForge" and "Chat") share one cookie jar and so one session: a tab
+/// takes the opened one ([ensure]), a renewal is done once for all of them ([renew]). The repository lives as long as
+/// the login (it is rebuilt with the [ApiClient]).
 class WebSessionRepository {
   WebSessionRepository(this._api, this._cookies);
 
   final ApiClient _api;
   final WebCookies _cookies;
+  Future<String>? _session;
+  Future<String>? _pending;
 
-  /// Opens a new web session; a second factor too old for it is renewed in the browser by the [ApiClient].
+  /// The opened web session, or a new one if none was opened yet (or the last attempt failed).
   ///
   /// @return The path of the start page.
-  Future<String> open() async {
-    final response = await _api.postForResponse<Map<String, dynamic>>(
-      '/rs/appAuth/webSession',
-    );
-    await _cookies.setCookies(
-      _api.serverUrl,
-      response.headers['set-cookie'] ?? const [],
-    );
-    return response.data?['startUrl'] as String? ?? WebNavigation.defaultPath;
+  Future<String> ensure() => _session ??= _open();
+
+  /// A new web session (the old one is gone: timeout, server restart). Concurrent renewals share one request.
+  ///
+  /// @return The path of the start page.
+  Future<String> renew() {
+    final pending = _pending;
+    if (pending != null) return pending;
+    final renewal = _open();
+    _pending = renewal;
+    _session = renewal;
+    return renewal.whenComplete(() => _pending = null);
+  }
+
+  /// Opens a new web session; a second factor too old for it is renewed in the browser by the [ApiClient]. A failed
+  /// attempt isn't kept, the next [ensure] tries again.
+  Future<String> _open() async {
+    try {
+      final response = await _api.postForResponse<Map<String, dynamic>>(
+        '/rs/appAuth/webSession',
+      );
+      await _cookies.setCookies(
+        _api.serverUrl,
+        response.headers['set-cookie'] ?? const [],
+      );
+      return response.data?['startUrl'] as String? ?? WebNavigation.defaultPath;
+    } on Object {
+      _session = null;
+      rethrow;
+    }
   }
 }

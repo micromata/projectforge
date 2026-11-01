@@ -51,6 +51,19 @@ class WebCookies {
     }
   }
 
+  /// The `Cookie` header of the WebView for [url] (its web session), for a download the app does in place of the
+  /// WebView. Null if there is none.
+  Future<String?> cookieHeader(Uri url) async {
+    final cookies = await CookieManager.instance().getCookies(
+      url: WebUri.uri(url),
+    );
+    final header = cookies
+        .where((it) => '${it.value}'.isNotEmpty)
+        .map((it) => '${it.name}=${it.value}')
+        .join('; ');
+    return header.isEmpty ? null : header;
+  }
+
   /// Removes all cookies and the cache of the WebView (logout of the app).
   Future<void> clear() async {
     try {

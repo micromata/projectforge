@@ -9,7 +9,7 @@
       "type" : "added",
       "items" : [ {
         "title" : "Mobile app (in preparation)",
-        "items" : [ "The ProjectForge app for iOS and Android logs in via the browser, with password and second factor (WebAuthn or code) as usual; the browser asks once more before an app is connected. The first version shows the own digital business cards, also without network.", "My account: the connected apps with their last usage, each can be logged out. A password change logs out all apps; an app unused for 90 days is logged out automatically." ]
+        "items" : [ "The ProjectForge app for iOS and Android logs in via the browser, with password and second factor (WebAuthn or code) as usual; the browser asks once more before an app is connected. The first version shows the own digital business cards, also without network.", "All other pages of ProjectForge open inside the app, without a second login. Logging out the app ends them as well.", "My account: the connected apps with their last usage, each can be logged out. A password change logs out all apps; an app unused for 90 days is logged out automatically." ]
       } ]
     } ]
   },

@@ -27,10 +27,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/i18n/translations.dart';
 import '../business_cards/business_cards_screen.dart';
+import '../chat/chat_status_controller.dart';
 import '../web/web_screen.dart';
 
-/// The start page of the logged-in app: the business cards and the ProjectForge pages (WebView). Timesheets and chat
-/// follow as further destinations.
+/// The tabs of the logged-in app.
+enum _Destination { businessCards, chat, web }
+
+/// The start page of the logged-in app: the business cards, the chat and the ProjectForge pages. The chat is the
+/// chat of next in a WebView (one implementation for web and app), the app adds the badge of the unread messages.
+/// Timesheets follow as a further destination.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -39,23 +44,35 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  static const _webTab = 1;
+  static const _chatPath = '/next/chat';
 
-  int _tab = 0;
+  _Destination _current = _Destination.businessCards;
 
-  /// The WebView is created when its tab is opened first, and then kept (with its page) while switching.
-  bool _webOpened = false;
+  /// The WebViews are created when their tab is opened first, and then kept (with their page) while switching.
+  final _opened = <_Destination>{};
 
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(authControllerProvider).session;
+    final chatStatus = ref.watch(chatStatusProvider).value;
+    // Unknown (not loaded yet, offline): shown, the server refuses it anyway if it is switched off.
+    final chatEnabled = chatStatus?.enabled ?? true;
+    final destinations = [
+      _Destination.businessCards,
+      if (chatEnabled) _Destination.chat,
+      _Destination.web,
+    ];
+    final current = destinations.contains(_current)
+        ? _current
+        : _Destination.businessCards;
+    final unread = chatStatus?.unread ?? 0;
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _tab == _webTab
-              ? context.t('app.web')
-              : context.t('menu.myBusinessCards'),
-        ),
+        title: Text(switch (current) {
+          _Destination.businessCards => context.t('menu.myBusinessCards'),
+          _Destination.chat => context.t('chat.title'),
+          _Destination.web => context.t('app.web'),
+        }),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.account_circle),
@@ -76,34 +93,73 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       ),
       body: IndexedStack(
-        index: _tab,
+        index: destinations.indexOf(current),
         children: [
-          const BusinessCardsScreen(),
-          _webOpened
-              ? WebScreen(active: _tab == _webTab)
-              : const SizedBox.shrink(),
+          for (final destination in destinations)
+            switch (destination) {
+              _Destination.businessCards => const BusinessCardsScreen(),
+              _Destination.chat =>
+                _opened.contains(destination)
+                    ? WebScreen(
+                        key: const ValueKey(_Destination.chat),
+                        active: current == destination,
+                        initialPath: _chatPath,
+                      )
+                    : const SizedBox.shrink(),
+              _Destination.web =>
+                _opened.contains(destination)
+                    ? WebScreen(
+                        key: const ValueKey(_Destination.web),
+                        active: current == destination,
+                      )
+                    : const SizedBox.shrink(),
+            },
         ],
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: (index) => setState(() {
-          _tab = index;
-          _webOpened |= index == _webTab;
-        }),
+        selectedIndex: destinations.indexOf(current),
+        onDestinationSelected: (index) => _select(current, destinations[index]),
         destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.contact_page_outlined),
-            selectedIcon: const Icon(Icons.contact_page),
-            label: context.t('menu.myBusinessCards'),
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.public_outlined),
-            selectedIcon: const Icon(Icons.public),
-            label: context.t('app.web'),
-          ),
+          for (final destination in destinations)
+            switch (destination) {
+              _Destination.businessCards => NavigationDestination(
+                icon: const Icon(Icons.contact_page_outlined),
+                selectedIcon: const Icon(Icons.contact_page),
+                label: context.t('menu.myBusinessCards'),
+              ),
+              _Destination.chat => NavigationDestination(
+                icon: Badge(
+                  label: Text('$unread'),
+                  isLabelVisible: unread > 0,
+                  child: const Icon(Icons.chat_bubble_outline),
+                ),
+                selectedIcon: Badge(
+                  label: Text('$unread'),
+                  isLabelVisible: unread > 0,
+                  child: const Icon(Icons.chat_bubble),
+                ),
+                label: context.t('chat.title'),
+              ),
+              _Destination.web => NavigationDestination(
+                icon: const Icon(Icons.public_outlined),
+                selectedIcon: const Icon(Icons.public),
+                label: context.t('app.web'),
+              ),
+            },
         ],
       ),
     );
+  }
+
+  void _select(_Destination previous, _Destination destination) {
+    setState(() {
+      _current = destination;
+      _opened.add(destination);
+    });
+    // Reading in the chat (or in the pages) changes the count: no need to wait for the next poll.
+    if (previous != destination) {
+      ref.read(chatStatusProvider.notifier).refresh();
+    }
   }
 
   Future<void> _logout(BuildContext context, WidgetRef ref) async {

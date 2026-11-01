@@ -74,5 +74,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>To take a photo and attach it to a chat message.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>To attach photos and videos to a chat message.</string>
 </dict>
 </plist>
