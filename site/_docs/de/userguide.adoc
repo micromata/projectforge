@@ -1611,6 +1611,27 @@ Paket-URLs und den Instanzen, in denen sie gefunden wurden. Das Dringendste steh
   kopieren oder als Datei herunterladen.
 * Die Antwort des KI-Systems ist ein Vorschlag: Versionen und Ausschnitte für die Build-Dateien vor dem Einsatz prüfen.
 
+[[cve_radar_adhoc_check]]
+=== CVE-Radar: Ad-hoc-Prüfung von Dateien
+
+_CVE-Radar > Ad-hoc-Prüfung_ prüft Dateien gegen alle Schwachstellen, ohne das Inventar anzufassen. Alle mit Leserolle
+können sie nutzen; es wird nichts gespeichert, und das Ergebnis bleibt bei der Person, die die Prüfung gestartet hat
+(es wird etwa eine Stunde nach dem Ende verworfen).
+
+* Bis zu 10 Dateien hineinziehen oder auswählen: die Listen von Bibliotheken, die vom Upload in eine Komponente bekannt
+  sind (Lockfiles wie `package-lock.json`, `yarn.lock` oder `pnpm-lock.yaml`, SBOMs in CycloneDX oder SPDX, Ausgaben
+  von Maven oder Gradle, Paketlisten von Containern), oder ein zip mit solchen Listen. Welche Formate es gibt und wie
+  man sie erzeugt, steht in <<cve_radar_libraries,CVE-Radar: Bibliotheken einer Komponente>>; die Seite verlinkt es.
+* Ein Balken je Datei zeigt, wie viele ihrer Pakete geprüft sind. Die Pakete werden mit den aus der NVD importierten
+  Schwachstellen nach den Regeln des Inventars verglichen: Ein Treffer über CPE oder den Katalogeintrag mit
+  Versionsbereich ist _betroffen_, einer über den Namen oder ohne Version nur _möglicherweise betroffen_. Es zählen nur
+  die bisher importierten Schwachstellen, also die oberhalb der eingestellten Mindestbewertung.
+* Das Ergebnis listet die Schwachstellen auf, die dringendsten zuerst, mit Paket, Version und Datei. Der Fall des
+  Security-Teams (Priorität, Fix-Version) steht dabei, wenn es einen gibt.
+* Wie bei den Findings eines Projekts lässt sich das Ergebnis als JSON herunterladen, dazu gibt es einen Prompt für ein
+  freigegebenes KI-System, der fragt, wie jede Schwachstelle behoben wird. _Namen der Dateien ersetzen_ (vorab
+  eingeschaltet) macht daraus `F1`, `F2`, … weil im Pfad oft Projektnamen stehen.
+
 [[further_features]]
 === Weitere Funktionen
 

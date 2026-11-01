@@ -8,6 +8,9 @@
     "sections" : [ {
       "type" : "added",
       "items" : [ "Digital business cards: add a card to the Apple Wallet (needs a Pass Type ID certificate, see the admin guide).", {
+        "title" : "CVE-Radar: ad-hoc check of uploaded files against all vulnerabilities",
+        "items" : [ "The new page Ad-hoc check takes lockfiles, SBOMs, build tool output or a zip with such lists and checks every package against the imported vulnerabilities, with a progress bar per file. Nothing is stored; every reader may check, and only the person who started a check sees its result.", "The result lists the vulnerabilities with package, version, file and the case of the security team, can be downloaded as JSON, and comes with a prompt asking an approved AI system how to fix them. The names of the files are replaced by default." ]
+      }, {
         "title" : "CVE-Radar: research a new case with an AI system",
         "items" : [ "Research with AI (security team) builds a prompt for an approved AI system from the CVE id or a description of the incident, sources and notes, with the NVD data of an imported CVE. There is no direct connection: the prompt is copied there, its answer pasted back. The dialog has three steps (details, prompt, answer), each with the way back; the prompt can be copied or downloaded as a file.", "The answer (one JSON block) is checked and shown as a preview with a copy button per value; Create case creates the case with title, description, priority and reason, fix version, workaround, measures and references, marked as created with the help of an AI system." ]
       }, {
@@ -20,6 +23,9 @@
         "title" : "CVE-Radar: more ways to upload the libraries of a component",
         "items" : [ "All lists of a component can be uploaded in one zip, collected by a script of the project (the user guide has an example): lockfiles, SBOMs, output of the build tools and package lists of the images. Only the files of such lists are read; files that may hold tokens (.npmrc, .env, gradle.properties, settings.xml) are skipped unread. The preview shows every file of the zip with its format.", "The lockfile of pnpm (pnpm-lock.yaml, versions 5, 6 and 9) is read, without the development dependencies.", "The upload dialog shows how to list the packages of a container image (e.g. eclipse-temurin: dpkg-query, apk, rpm or an SBOM from syft), where native libraries such as brotli, zlib or OpenSSL show up, and links to the chapter of the user guide." ]
       } ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Outgoing invoices: planned invoices no longer count in the statistics of the invoice list (gross, net, open, overdue)." ]
     } ]
   },
   "groups" : [ {

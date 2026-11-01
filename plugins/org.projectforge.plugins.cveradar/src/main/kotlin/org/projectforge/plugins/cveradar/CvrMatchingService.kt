@@ -212,10 +212,13 @@ class CvrMatchingService {
         return Model(instances, activeComponents, active, keys.filterValues { it.isNotEmpty() })
     }
 
-    private fun keysOf(technology: CvrTechnologyDO, node: CvrCatalogNodeDO?): List<Key> {
+    private fun keysOf(technology: CvrTechnologyDO, node: CvrCatalogNodeDO?): List<Key> =
+        keysOf(technology.cpe, technology.vendor, technology.product, node)
+
+    private fun keysOf(cpe: String?, vendor: String?, product: String?, node: CvrCatalogNodeDO?): List<Key> {
         val keys = mutableListOf<Key>()
-        technology.cpe?.let { cpe ->
-            val fields = NvdCpeParser.splitCpe(cpe.trim())
+        cpe?.let {
+            val fields = NvdCpeParser.splitCpe(it.trim())
             if (fields.size >= 5 && fields[0] == "cpe" && fields[3] != "*" && fields[4] != "*") {
                 keys.add(Key(fields[3].lowercase(), fields[4].lowercase(), true))
             }
@@ -223,8 +226,8 @@ class CvrMatchingService {
         node?.cpeProduct?.takeIf { it.isNotBlank() }?.let {
             keys.add(Key(node.cpeVendor?.takeIf { v -> v.isNotBlank() }?.lowercase(), it.trim().lowercase(), true))
         }
-        technology.product?.takeIf { it.isNotBlank() }?.let {
-            keys.add(Key(technology.vendor?.takeIf { v -> v.isNotBlank() }?.let(::normalize), normalize(it), false))
+        product?.takeIf { it.isNotBlank() }?.let {
+            keys.add(Key(vendor?.takeIf { v -> v.isNotBlank() }?.let(::normalize), normalize(it), false))
         }
         return keys.distinctBy { Triple(it.vendor, it.product, it.sure) }
     }
@@ -253,31 +256,77 @@ class CvrMatchingService {
             if (instanceIds.isEmpty()) {
                 return@forEach
             }
-            model.keys[technology.id]?.forEach { key ->
-                candidates[key.product]?.forEach candidate@{ match ->
-                    // By name the vendor may be spelled otherwise ("Apache Software Foundation" vs "apache"): a
-                    // match by name is only possible anyway.
-                    if (key.sure && key.vendor != null && key.vendor != match.vendor) {
-                        return@candidate
-                    }
-                    val versionCertainty = versionMatch(technology.version, match) ?: return@candidate
-                    val certainty = if (key.sure && versionCertainty == CvrFindingCertainty.AFFECTED) {
-                        CvrFindingCertainty.AFFECTED
-                    } else {
-                        CvrFindingCertainty.POSSIBLE
-                    }
-                    val hit = Hit(technology.id, certainty, describe(match))
-                    instanceIds.forEach { instanceId ->
-                        val triple = Triple(match.vulnerability!!.id!!, component.id!!, instanceId)
-                        val old = hits[triple]
-                        if (old == null || (old.certainty == CvrFindingCertainty.POSSIBLE && certainty == CvrFindingCertainty.AFFECTED)) {
-                            hits[triple] = hit
-                        }
+            hitsOf(technology.id, technology.version, model.keys[technology.id].orEmpty(), candidates).forEach { (vulnerabilityId, hit) ->
+                instanceIds.forEach { instanceId ->
+                    val triple = Triple(vulnerabilityId, component.id!!, instanceId)
+                    val old = hits[triple]
+                    if (old == null || (old.certainty == CvrFindingCertainty.POSSIBLE && hit.certainty == CvrFindingCertainty.AFFECTED)) {
+                        hits[triple] = hit
                     }
                 }
             }
         }
         return hits
+    }
+
+    /** The best hit per vulnerability for a technology with this [version] and these [keys]; [candidates] by product. */
+    private fun hitsOf(
+        technologyId: Long?,
+        version: String?,
+        keys: List<Key>,
+        candidates: Map<String?, List<CvrCpeMatchDO>>,
+    ): Map<Long, Hit> {
+        val hits = mutableMapOf<Long, Hit>()
+        keys.forEach { key ->
+            candidates[key.product]?.forEach candidate@{ match ->
+                // By name the vendor may be spelled otherwise ("Apache Software Foundation" vs "apache"): a
+                // match by name is only possible anyway.
+                if (key.sure && key.vendor != null && key.vendor != match.vendor) {
+                    return@candidate
+                }
+                val versionCertainty = versionMatch(version, match) ?: return@candidate
+                val certainty = if (key.sure && versionCertainty == CvrFindingCertainty.AFFECTED) {
+                    CvrFindingCertainty.AFFECTED
+                } else {
+                    CvrFindingCertainty.POSSIBLE
+                }
+                val vulnerabilityId = match.vulnerability!!.id!!
+                val old = hits[vulnerabilityId]
+                if (old == null || (old.certainty == CvrFindingCertainty.POSSIBLE && certainty == CvrFindingCertainty.AFFECTED)) {
+                    hits[vulnerabilityId] = Hit(technologyId, certainty, describe(match))
+                }
+            }
+        }
+        return hits
+    }
+
+    // --- Libraries outside the inventory (ad-hoc check) ---
+
+    /** A library that is not stored: what [keysOf] needs of a technology, and its version. */
+    internal class Query(val cpe: String?, val vendor: String?, val product: String?, val version: String?, val node: CvrCatalogNodeDO?)
+
+    /** What a library matched: the vulnerability, how sure and the CPE entry that did. */
+    internal class QueryHit(val vulnerabilityId: Long, val certainty: CvrFindingCertainty, val matched: String)
+
+    /**
+     * The libraries against all vulnerabilities of the index, nothing stored: per library (same order) the best hit
+     * per vulnerability, with the rules of the inventory. The candidates are loaded for the products of these
+     * libraries only, so a caller passes them in blocks.
+     */
+    internal fun match(queries: List<Query>): List<List<QueryHit>> {
+        val keys = queries.map { keysOf(it.cpe, it.vendor, it.product, it.node) }
+        val products = keys.flatten().map { it.product }.toSet()
+        if (products.isEmpty()) {
+            return queries.map { emptyList() }
+        }
+        val candidates = persistenceService.executeQueryBatched(
+            "select m from CvrCpeMatchDO m where m.vulnerability.deleted = false and m.product in :ids",
+            CvrCpeMatchDO::class.java, "ids", products,
+        ).groupBy { it.product }
+        return queries.mapIndexed { index, query ->
+            hitsOf(null, query.version, keys[index], candidates)
+                .map { (vulnerabilityId, hit) -> QueryHit(vulnerabilityId, hit.certainty, hit.matched) }
+        }
     }
 
     // --- The index of the CPE entries ---

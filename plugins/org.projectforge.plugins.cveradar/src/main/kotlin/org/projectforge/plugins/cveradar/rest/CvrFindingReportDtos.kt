@@ -48,7 +48,8 @@ class FindingReport(
     val vulnerabilities: List<ReportVulnerability>,
 )
 
-class FindingReportScope(val level: InventoryLevel, val code: String?, val name: String?)
+/** A node of the inventory ([level], [code], [name]), or the files of an ad-hoc check ([adHoc], no level). */
+class FindingReportScope(val level: InventoryLevel?, val code: String?, val name: String?, val adHoc: Boolean = false)
 
 class ReportVulnerability(
     val cveId: String?,

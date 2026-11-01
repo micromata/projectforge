@@ -82,27 +82,16 @@ class CvrFindingReportService {
         val components = byId(CvrComponentDO::class.java, findings.mapNotNull { it.componentId })
         val technologies = byId(CvrTechnologyDO::class.java, findings.mapNotNull { it.technologyId })
         val names = Names(anonymize)
-        val reported = findings.filter { it.vulnerabilityId in vulnerabilities }.groupBy { it.vulnerabilityId!! }
-            .map { (vulnerabilityId, list) ->
-                val vulnerability = vulnerabilities.getValue(vulnerabilityId)
-                val case = cases[vulnerabilityId]
-                val view = caseFileService.vulnerabilityView(vulnerability)
-                ReportVulnerability(
-                    cveId = vulnerability.cveId, nvdStatus = vulnerability.nvdStatus, published = vulnerability.published,
-                    description = vulnerability.description, cvssScore = vulnerability.cvssScore,
-                    severity = vulnerability.severity, cvss31Vector = vulnerability.cvss31Vector,
-                    cvss40Vector = vulnerability.cvss40Vector, cwes = view.cwes, kevAdded = vulnerability.kevAdded,
-                    references = (view.remediationReferences + view.otherReferences).take(MAX_REFERENCES),
-                    case = case?.let { caseOf(it) },
-                    findings = findingsOf(list, scope.instances, components, technologies, names),
-                ) to case
-            }
-            .sortedWith(
-                compareBy<Pair<ReportVulnerability, CvrCaseDO?>> { it.first.kevAdded == null }
-                    .thenBy { it.second?.priority?.ordinal ?: Int.MAX_VALUE }
-                    .thenByDescending { it.first.cvssScore }
-                    .thenBy { it.first.cveId },
-            ).map { it.first }
+        val reported = sorted(
+            findings.filter { it.vulnerabilityId in vulnerabilities }.groupBy { it.vulnerabilityId!! }
+                .map { (vulnerabilityId, list) ->
+                    val case = cases[vulnerabilityId]
+                    reportVulnerability(
+                        vulnerabilities.getValue(vulnerabilityId), case,
+                        findingsOf(list, scope.instances, components, technologies, names),
+                    ) to case
+                },
+        )
         return FindingReport(
             schemaVersion = SCHEMA_VERSION,
             generated = Date(),
@@ -117,6 +106,50 @@ class CvrFindingReportService {
             vulnerabilities = reported,
         )
     }
+
+    /**
+     * The report of an ad-hoc check (see [CvrAdHocCheckService]): per vulnerability the findings in the uploaded
+     * files, which the caller built; the vulnerabilities are read here. Anything for a deleted one is left out.
+     */
+    fun adHocReport(findings: Map<Long, List<ReportFinding>>, anonymize: Boolean): FindingReport {
+        val vulnerabilities = byId(CvrVulnerabilityDO::class.java, findings.keys).filterValues { !it.deleted }
+        val cases = caseDao.selectByVulnerabilityIds(vulnerabilities.keys)
+        val reported = sorted(
+            vulnerabilities.map { (id, vulnerability) ->
+                reportVulnerability(vulnerability, cases[id], findings.getValue(id)) to cases[id]
+            },
+        )
+        return FindingReport(
+            schemaVersion = SCHEMA_VERSION,
+            generated = Date(),
+            scope = FindingReportScope(null, null, null, adHoc = true),
+            anonymized = anonymize,
+            vulnerabilityCount = reported.size,
+            findingCount = reported.sumOf { it.findings.size },
+            vulnerabilities = reported,
+        )
+    }
+
+    private fun reportVulnerability(vulnerability: CvrVulnerabilityDO, case: CvrCaseDO?, findings: List<ReportFinding>): ReportVulnerability {
+        val view = caseFileService.vulnerabilityView(vulnerability)
+        return ReportVulnerability(
+            cveId = vulnerability.cveId, nvdStatus = vulnerability.nvdStatus, published = vulnerability.published,
+            description = vulnerability.description, cvssScore = vulnerability.cvssScore,
+            severity = vulnerability.severity, cvss31Vector = vulnerability.cvss31Vector,
+            cvss40Vector = vulnerability.cvss40Vector, cwes = view.cwes, kevAdded = vulnerability.kevAdded,
+            references = (view.remediationReferences + view.otherReferences).take(MAX_REFERENCES),
+            case = case?.let { caseOf(it) },
+            findings = findings,
+        )
+    }
+
+    /** The most urgent first: in the KEV catalogue, then by the priority of the case, then by the CVSS score. */
+    private fun sorted(list: List<Pair<ReportVulnerability, CvrCaseDO?>>): List<ReportVulnerability> = list.sortedWith(
+        compareBy<Pair<ReportVulnerability, CvrCaseDO?>> { it.first.kevAdded == null }
+            .thenBy { it.second?.priority?.ordinal ?: Int.MAX_VALUE }
+            .thenByDescending { it.first.cvssScore }
+            .thenBy { it.first.cveId },
+    ).map { it.first }
 
     /** One entry per system, component, technology and kind of match, with the instances it matched in. */
     private fun findingsOf(
