@@ -30,3 +30,21 @@ an OTP.
 `assets/i18n/generated.<locale>.json` is generated from the server's I18nResources by `bin/pfDev.sh gen`, never
 edited by hand; app only texts go into `assets/i18n/app.<locale>.json`. Keys are always written out literally:
 `context.t('businessCard.new')`.
+
+## App icon
+
+`assets/icon/app-icon.png` (1024 × 1024, opaque) is the ProjectForge wordmark with the flame, rendered from the parts of
+the website logo (`site/_includes/logo.html`: Archivo Narrow bold italic, `projectforge-flame.svg`). The platform icons
+are scaled from it:
+
+```bash
+cd ios/Runner/Assets.xcassets/AppIcon.appiconset
+for f in Icon-App-*.png; do
+  px=$(sed -E 's/Icon-App-([0-9.]+)x[0-9.]+@([0-9])x\.png/\1 \2/' <<<"$f" | awk '{printf "%d", $1*$2}')
+  magick ../../../../assets/icon/app-icon.png -filter Lanczos -resize ${px}x${px} -alpha off -strip "$f"
+done
+cd ../../../../android/app/src/main/res
+for d in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
+  magick ../../../../../assets/icon/app-icon.png -filter Lanczos -resize ${d#*:}x${d#*:} -strip mipmap-${d%%:*}/ic_launcher.png
+done
+```
