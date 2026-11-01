@@ -159,7 +159,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _openBusinessCardsPage() {
-    _webTarget = const WebTarget('/next/myBusinessCards');
+    _webTarget = WebTarget('/next/myBusinessCards');
     _select(_current, _Destination.web);
   }
 

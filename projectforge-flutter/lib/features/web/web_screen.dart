@@ -64,8 +64,10 @@ class WebScreen extends ConsumerStatefulWidget {
 }
 
 /// A request to show [path] (e.g. `/next/myBusinessCards`) in a [WebScreen].
+///
+/// Not const: const instances with the same path would be identical, and the same page wouldn't be loaded again.
 class WebTarget {
-  const WebTarget(this.path);
+  WebTarget(this.path);
 
   final String path;
 }
