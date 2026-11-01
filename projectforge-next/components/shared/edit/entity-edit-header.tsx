@@ -53,7 +53,7 @@ export function EntityEditHeader({
   const t = useTranslations();
   useDocumentTitle(title);
   return (
-    <div className="border-b border-border bg-background px-6 pb-1.5 pt-2">
+    <div className="border-b border-border bg-background px-3 pb-1.5 pt-2 sm:px-6">
       <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
         {category}
       </p>
