@@ -82,7 +82,8 @@ export const MessageItem = memo(function MessageItem({
       >
         {!continued && <MessageHeader message={message} />}
         {/* The actions sit beside the bubble (left of an own one), top aligned; the bubble leaves them room. In a
-            narrow column (phone, thread panel) there is none, so they overlap the bubble's upper corner instead. */}
+            narrow column (phone, thread panel) there is none, so they overlap the bubble's upper corner on the outer side
+            and grow inwards (a short bubble would otherwise push them out of the column). */}
         <div
           className={cn(
             "relative min-w-0",
@@ -103,8 +104,8 @@ export const MessageItem = memo(function MessageItem({
               className={cn(
                 "absolute -top-3 z-10 hidden group-focus-within:flex group-hover:flex has-data-[state=open]:flex pointer-coarse:flex @min-[32rem]/message:top-0",
                 message.own
-                  ? "left-2 @min-[32rem]/message:right-full @min-[32rem]/message:left-auto @min-[32rem]/message:mr-1"
-                  : "right-2 @min-[32rem]/message:left-full @min-[32rem]/message:right-auto @min-[32rem]/message:ml-1"
+                  ? "right-2 @min-[32rem]/message:right-full @min-[32rem]/message:mr-1"
+                  : "left-2 @min-[32rem]/message:left-full @min-[32rem]/message:ml-1"
               )}
             >
               <MessageActions
