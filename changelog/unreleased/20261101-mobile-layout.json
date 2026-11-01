@@ -4,8 +4,8 @@
   "de": "Mehr Platz für Inhalte auf mobilen Geräten",
   "items": [
     {
-      "en": "On narrow screens the logo row and the status bar are hidden, and the paddings of edit pages, tabs, action bar and list footer are smaller.",
-      "de": "Auf schmalen Bildschirmen sind Logo-Zeile und Statusleiste ausgeblendet, und die Abstände von Bearbeitungsseiten, Tabs, Aktionsleiste und Listenfuß sind kleiner."
+      "en": "On narrow screens the logo row and the status bar are hidden, and the paddings of edit pages, tabs, action bar and list footer are smaller; changelog, version and copyright are in the user menu there.",
+      "de": "Auf schmalen Bildschirmen sind Logo-Zeile und Statusleiste ausgeblendet, und die Abstände von Bearbeitungsseiten, Tabs, Aktionsleiste und Listenfuß sind kleiner; Changelog, Version und Copyright stehen dort im Benutzermenü."
     },
     {
       "en": "The list footer shows only the range and the page buttons around the current page; the tabs of an edit page scroll horizontally.",
