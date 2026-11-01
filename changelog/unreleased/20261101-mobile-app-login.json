@@ -1,0 +1,15 @@
+{
+  "type": "added",
+  "en": "Mobile app (in preparation)",
+  "de": "Mobile App (in Vorbereitung)",
+  "items": [
+    {
+      "en": "The ProjectForge app for iOS and Android logs in via the browser, with password and second factor (WebAuthn or code) as usual; the browser asks once more before an app is connected. The first version shows the own digital business cards, also without network.",
+      "de": "Die ProjectForge-App für iOS und Android meldet sich über den Browser an, mit Passwort und zweitem Faktor (WebAuthn oder Code) wie gewohnt; vor dem Verbinden einer App fragt der Browser noch einmal nach. Die erste Version zeigt die eigenen digitalen Visitenkarten, auch ohne Netz."
+    },
+    {
+      "en": "My account: the connected apps with their last usage, each can be logged out. A password change logs out all apps; an app unused for 90 days is logged out automatically.",
+      "de": "Mein Zugang: die verbundenen Apps mit ihrer letzten Nutzung, jede kann abgemeldet werden. Eine Passwortänderung meldet alle Apps ab; eine 90 Tage nicht genutzte App wird automatisch abgemeldet."
+    }
+  ]
+}

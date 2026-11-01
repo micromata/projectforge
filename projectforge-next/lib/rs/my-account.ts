@@ -7,6 +7,7 @@
 import { request } from "./client";
 import { postEntityAction, type EntityWriteResult } from "./entity";
 import type {
+  MyAccountAppDevice,
   MyAccountDevice,
   MyAccountInit,
   MyAccountToken,
@@ -64,4 +65,14 @@ export function logoutAllMyAccountDevices(): Promise<MyAccountDevice[]> {
   return request<MyAccountDevice[]>("/rs/myAccount/logoutAllDevices", {
     method: "POST",
   });
+}
+
+/** Logs out one app of the user (deletes its token). Answers the remaining apps. */
+export function logoutMyAccountAppDevice(
+  id: number
+): Promise<MyAccountAppDevice[]> {
+  return request<MyAccountAppDevice[]>(
+    `/rs/myAccount/logoutAppDevice?id=${encodeURIComponent(id)}`,
+    { method: "POST" }
+  );
 }

@@ -1,0 +1,12 @@
+{
+  "_comment": "Texts of the app without a counterpart in the I18nResources bundles of the server. Everything else comes from generated.en.json (bin/pfDev.sh gen).",
+  "app.login.failed": "The login failed.",
+  "app.login.info": "The login opens in the browser: there you enter your password and your second factor as usual.",
+  "app.logout.question": "Log out the app? It can only be used again after a new login.",
+  "app.offline": "No connection to the server: the cards as last loaded.",
+  "app.server.invalid": "This is no valid server address.",
+  "app.server.label": "Server",
+  "app.server.unreachable": "The server can't be reached.",
+  "app.session.expired": "The app has been logged out (in the web, by a password change or after a longer time without usage). Please log in again.",
+  "app.vCard.share": "Share vCard"
+}

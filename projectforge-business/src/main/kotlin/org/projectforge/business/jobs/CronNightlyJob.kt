@@ -26,6 +26,7 @@ package org.projectforge.business.jobs
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import org.projectforge.common.logging.error
+import org.projectforge.business.user.AppDeviceDao
 import org.projectforge.business.user.StayLoggedInTokenDao
 import org.projectforge.common.scheduling.SchedulerJobArea
 import org.projectforge.common.scheduling.SchedulerJobDefinition
@@ -53,6 +54,9 @@ class CronNightlyJob {
     private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
 
     @Autowired
+    private lateinit var appDeviceDao: AppDeviceDao
+
+    @Autowired
     private lateinit var schedulerJobRunner: SchedulerJobRunner
 
     @PostConstruct
@@ -68,6 +72,7 @@ class CronNightlyJob {
             // (StayLoggedInTokenDao.getValidToken), so a job that doesn't run can't extend a token's life.
             try {
                 stayLoggedInTokenDao.purgeExpired()
+                appDeviceDao.purgeExpired()
             } catch (ex: Throwable) {
                 log.error(JobLogEvents.NIGHTLY_TOKEN_PURGE_FAILED, ex) { "While purging expired stay-logged-in tokens: " + ex.message }
                 run.fail("Purging expired stay-logged-in tokens failed: ${ex.message}", ex)

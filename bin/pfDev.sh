@@ -10,6 +10,7 @@ set -euo pipefail
 # Repo root = parent of bin/, resolved from this script's own location.
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NEXT="$ROOT/projectforge-next"
+APP="$ROOT/projectforge-flutter"
 GRADLEW="$ROOT/gradlew"
 
 usage() {
@@ -86,6 +87,10 @@ database.
                    Spring, the Next export is refreshed first (processResources, a
                    no-op if current); skipped with --dev / --port <n> (dev server)
   e2e:ui [slot] …  Playwright e2e tests in UI mode
+  app [slot] […]   The app (projectforge-flutter) against :8080+slot, same as
+                   projectforge-flutter/bin/pfApp.sh run [slot] […] — that script
+                   has the other app helpers (sim, build-ios, check, …)
+  app-check        App quality gates (pfApp.sh check)
   ps               List the running servers of all slots (:8080–:8089 and
                    :3000–:3009) with PID and working dir (i.e. worktree)
   stop [slot]      Stop the Spring (:8080+slot) and the next dev server
@@ -610,6 +615,13 @@ case "$cmd" in
     ;;
   build)
     cd "$NEXT" && exec npm run build "$@"
+    ;;
+  app)
+    ((SLOT == 0)) || set -- "$SLOT" "$@"
+    exec "$APP/bin/pfApp.sh" run "$@"
+    ;;
+  app-check)
+    exec "$APP/bin/pfApp.sh" check
     ;;
   e2e)
     export PROJECTFORGE_HOME="$PF_HOME"

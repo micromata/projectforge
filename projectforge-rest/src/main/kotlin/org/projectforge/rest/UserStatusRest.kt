@@ -209,7 +209,9 @@ open class UserStatusRest {
 
   @GetMapping
   fun loginTest(request: HttpServletRequest): ResponseEntity<Result> {
-    val user = LoginService.getUser(request) ?: return ResponseEntity(HttpStatus.UNAUTHORIZED)
+    // A rest client authenticated by a token (e. g. the app) has no session: its user is the one of the request.
+    val user = LoginService.getUser(request) ?: ThreadLocalUserContext.loggedInUser
+    ?: return ResponseEntity(HttpStatus.UNAUTHORIZED)
     var employeeId: Long? = user.getTransientAttribute("employeeId") as Long?
     if (employeeId == null) {
       employeeId = employeeDao.findEmployeeIdByByUserId(user.id) ?: -1

@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.0",
+    "date" : "2026-11-01",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ {
+        "title" : "Mobile App (in Vorbereitung)",
+        "items" : [ "Die ProjectForge-App für iOS und Android meldet sich über den Browser an, mit Passwort und zweitem Faktor (WebAuthn oder Code) wie gewohnt; vor dem Verbinden einer App fragt der Browser noch einmal nach. Die erste Version zeigt die eigenen digitalen Visitenkarten, auch ohne Netz.", "Mein Zugang: die verbundenen Apps mit ihrer letzten Nutzung, jede kann abgemeldet werden. Eine Passwortänderung meldet alle Apps ab; eine 90 Tage nicht genutzte App wird automatisch abgemeldet." ]
+      } ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

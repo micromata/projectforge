@@ -24,6 +24,7 @@ import {
   TIME_ZONE_SUGGEST_QUERY_KEY,
 } from "@/lib/rs/configuration";
 import { MY_ACCOUNT_QUERY_KEY, saveMyAccount } from "@/lib/rs/my-account";
+import { MyAccountAppDevices } from "./my-account-app-devices";
 import { MyAccountDevices } from "./my-account-devices";
 import { MyAccountTokens } from "./my-account-tokens";
 import {
@@ -174,6 +175,16 @@ export function MyAccountForm({ init }: { init: MyAccountInit }) {
       label: t("login.stayLoggedIn.devices._"),
       content: (
         <MyAccountDevices devices={data.devices ?? []} canLogout={!readOnly} />
+      ),
+    },
+    {
+      id: "appDevices",
+      label: t("mobileApp.devices._"),
+      content: (
+        <MyAccountAppDevices
+          devices={data.appDevices ?? []}
+          canLogout={!readOnly}
+        />
       ),
     },
     {

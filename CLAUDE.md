@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   participants)
 
 ## Generated files
-- Never edit `projectforge-next/messages/generated.*.json` or
+- Never edit `projectforge-next/messages/generated.*.json`, `projectforge-flutter/assets/i18n/generated.*.json` or
   `projectforge-application/src/main/resources/i18nKeys.json` by hand. They are produced only by the
   generator (`bin/pfDev.sh gen`, i.e. `developmentMainForRelease`), which may be run after an i18n change;
   a manual change would be overwritten on the next run anyway.

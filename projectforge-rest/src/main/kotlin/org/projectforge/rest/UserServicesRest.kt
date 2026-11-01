@@ -25,6 +25,7 @@ package org.projectforge.rest
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.user.AppDeviceDao
 import org.projectforge.business.user.StayLoggedInTokenDao
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
@@ -52,6 +53,9 @@ open class UserServicesRest {
   private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
 
   @Autowired
+  private lateinit var appDeviceDao: AppDeviceDao
+
+  @Autowired
   private lateinit var sessionCsrfService: SessionCsrfService
 
   /**
@@ -70,6 +74,7 @@ open class UserServicesRest {
     accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
     sessionCsrfService.validateCsrfToken(request, postData, "Logout of all devices")?.let { return it }
     stayLoggedInTokenDao.deleteAll(userId)
+    appDeviceDao.deleteAll(userId) // The apps of the user as well (e. g. a lost phone).
     postData.data.stayLoggedInDevices = 0
     postData.data.stayLoggedInLastAccessTimeAgo = null
     return UIToast.createToastResponseEntity(
