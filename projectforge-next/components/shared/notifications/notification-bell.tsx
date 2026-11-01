@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -16,7 +16,9 @@ import {
   MenubarSeparator,
   MenubarTrigger,
 } from "@/components/ui/menubar";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { isInApp } from "@/lib/app-mode";
 import { MenuCounterBadge } from "@/components/shared/menu-counter-badge";
 import { cn } from "@/lib/utils";
 import { useNotificationStore } from "@/store/notification-store";
@@ -35,22 +37,47 @@ import {
 export function NotificationBell() {
   const t = useTranslations("notification");
   const notifications = bySeverity(useMyNotifications());
+  // Not in the static page, so the first render agrees with it.
+  const inApp = useSyncExternalStore(
+    () => () => {},
+    isInApp,
+    () => false
+  );
+  const trigger = cn(
+    buttonVariants({ variant: "ghost", size: "sm" }),
+    "relative shrink-0 cursor-pointer"
+  );
+  const icon = (
+    <>
+      <HugeiconsIcon icon={Notification03Icon} size={18} />
+      <MenuCounterBadge
+        badge={{ counter: notifications.length }}
+        variant="corner"
+      />
+    </>
+  );
+  // The app has its own list: it takes over this url (and the page is the fallback if its setting says so).
+  if (inApp) {
+    return (
+      <GuardedLink
+        href="/notifications"
+        className={trigger}
+        aria-label={t("center")}
+        data-testid="notification-bell"
+      >
+        {icon}
+      </GuardedLink>
+    );
+  }
   return (
     <MenubarMenu>
       <HintTooltip text={t("center")}>
         <MenubarTrigger
-          className={cn(
-            buttonVariants({ variant: "ghost", size: "sm" }),
-            "relative shrink-0 cursor-pointer"
-          )}
+          className={trigger}
           aria-label={t("center")}
           data-testid="notification-bell"
         >
-          <HugeiconsIcon icon={Notification03Icon} size={18} />
-          <MenuCounterBadge
-            badge={{ counter: notifications.length }}
-            variant="corner"
-          />
+          {icon}
         </MenubarTrigger>
       </HintTooltip>
       <MenubarContent
@@ -85,7 +112,7 @@ export function NotificationBell() {
  * done, …), so one confirmed by mistake can still be read. Hidden again when the menu closes (the
  * state is unmounted with it).
  */
-function ArchivedSection() {
+export function ArchivedSection() {
   const t = useTranslations("notification");
   const [shown, setShown] = useState(false);
   return (

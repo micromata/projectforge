@@ -20,8 +20,8 @@
       "de": "Die App gibt den Seiten mehr Platz: keine Titelleiste über den Webseiten und dem Chat, eine schmale Navigationsleiste nur mit Symbolen und im Querformat eine schmale Navigation an der Seite."
     },
     {
-      "en": "In the app, the menu entries \"Chat\" and \"My business cards\" of the web pages switch to the app's own tab; the new settings of the app can keep each of them in the web version.",
-      "de": "In der App wechseln die Menüpunkte „Chat“ und „Meine Visitenkarten“ der Webseiten auf den eigenen Tab der App; in den neuen Einstellungen der App kann jeder davon in der Webversion bleiben."
+      "en": "In the app, the menu entries \"Chat\" and \"My business cards\" and the bell of the web pages switch to the app's own tab; the new settings of the app can keep each of them in the web version.",
+      "de": "In der App wechseln die Menüpunkte „Chat“ und „Meine Visitenkarten“ sowie die Glocke der Webseiten auf den eigenen Tab bzw. die eigene Liste der App; in den neuen Einstellungen der App kann jeder davon in der Webversion bleiben."
     },
     {
       "en": "The app's own screens follow the light or dark appearance chosen in the web pages (also offline), and the web pages no longer flash white while loading.",

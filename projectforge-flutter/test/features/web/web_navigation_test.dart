@@ -159,6 +159,7 @@ void main() {
         'https://pf.example.org/next/myBusinessCards?id=3',
         NativePage.businessCards,
       ),
+      ('https://pf.example.org/next/notifications', NativePage.notifications),
       ('https://pf.example.org/next/chatty', null),
       ('https://pf.example.org/next/timesheet', null),
       ('https://pf.example.org/rs/myBusinessCards/pkpass?id=3', null),

@@ -59,5 +59,6 @@ class SettingsScreen extends ConsumerWidget {
   static String _label(BuildContext context, NativePage page) => switch (page) {
     NativePage.chat => context.t('chat.title'),
     NativePage.businessCards => context.t('menu.myBusinessCards'),
+    NativePage.notifications => context.t('notification.center'),
   };
 }

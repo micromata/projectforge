@@ -34,6 +34,7 @@ import '../../core/web/native_page.dart';
 import '../business_cards/business_cards_screen.dart';
 import '../notifications/notification_bell.dart';
 import '../notifications/notification_text.dart';
+import '../notifications/notifications_screen.dart';
 import '../settings/settings_screen.dart';
 import '../web/web_screen.dart';
 
@@ -312,7 +313,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final destination = switch (page) {
       NativePage.chat => chatEnabled ? _Destination.chat : null,
       NativePage.businessCards => _Destination.businessCards,
+      NativePage.notifications => null,
     };
+    if (page == NativePage.notifications) {
+      // No tab: the list lies over the tabs, like the bell of the business cards tab opens it.
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => NotificationsScreen(onOpenLink: _openLink),
+        ),
+      );
+      return true;
+    }
     if (destination == null) return false;
     _select(_current, destination);
     return true;

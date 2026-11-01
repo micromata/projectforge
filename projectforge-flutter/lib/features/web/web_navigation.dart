@@ -76,8 +76,8 @@ class WebNavigation {
       isSameOrigin(url) &&
       (url.path == _loginPath || url.path == '$_loginPath/');
 
-  /// The page of the server the app has a native tab for: the chat (and its sub pages, e.g. `/next/chat/5`) and the
-  /// own business cards. Null for other pages and other origins.
+  /// The page of the server the app has a native tab for: the chat (and its sub pages, e.g. `/next/chat/5`), the
+  /// own business cards and the notifications. Null for other pages and other origins.
   NativePage? nativePage(Uri url) {
     if (!isSameOrigin(url)) return null;
     final path = url.path;
@@ -86,6 +86,9 @@ class WebNavigation {
     }
     if (path == '/next/myBusinessCards' || path == '/next/myBusinessCards/') {
       return NativePage.businessCards;
+    }
+    if (path == '/next/notifications' || path == '/next/notifications/') {
+      return NativePage.notifications;
     }
     return null;
   }
