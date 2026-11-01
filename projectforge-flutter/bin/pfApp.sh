@@ -16,14 +16,15 @@ usage() {
 pfApp.sh <command> [slot] [args…] — ProjectForge app dev helper
 
 Commands:
-  run [slot] [--android] [args…]
+  run [slot] [--android] [--ipad] [args…]
                    flutter run with the server of the slot (:8080+slot) preset in the
                    login; warns if it doesn't answer. Without -d it boots an iOS
                    simulator (if none is running) and runs there. --android: the server as
-                   10.0.2.2 (how the Android emulator reaches the Mac). Args are
+                   10.0.2.2 (how the Android emulator reaches the Mac). --ipad: the
+                   simulator is an iPad Pro 13-inch (if none is running). Args are
                    forwarded (e.g. pfApp.sh run 1 -d "iPhone 18 Pro")
-  sim [name]       Boot an iOS simulator (default: the first available iPhone) and
-                   open Simulator.app
+  sim [name|ipad]  Boot an iOS simulator (default: the first available iPhone; ipad: the
+                   first iPad Pro 13-inch) and open Simulator.app
   devices          Devices flutter can run on, and the available iOS simulators
   check            Quality gates: dart format (check only) → flutter analyze → flutter test
   test [args…]     flutter test, args forwarded (e.g. test test/core/pkce_test.dart)
@@ -82,14 +83,16 @@ open_simulator_app() {
     echo "(No simulator window: open it in Xcode, Window → Devices.)"
 }
 
-# Boots the iOS simulator named $1 (or the first available iPhone), unless one is running already.
+# Boots the iOS simulator named $1 (ipad: the first iPad Pro 13-inch; none: the first available iPhone), unless one is running already.
 boot_simulator() {
   local name="${1:-}" line udid
   if xcrun simctl list devices booted 2>/dev/null | grep -q "(Booted)"; then
     open_simulator_app
     return 0
   fi
-  if [[ -n "$name" ]]; then
+  if [[ "$name" == ipad ]]; then
+    line="$(xcrun simctl list devices available | grep -m1 "    iPad Pro 13-inch" || true)"
+  elif [[ -n "$name" ]]; then
     line="$(xcrun simctl list devices available | grep -F -m1 "    $name (" || true)"
   else
     line="$(xcrun simctl list devices available | grep -m1 "    iPhone" || true)"
@@ -105,10 +108,11 @@ boot_simulator() {
 }
 
 cmd_run() {
-  local host=localhost device_given="" args=()
+  local host=localhost device_given="" sim_name="" args=()
   for arg in "$@"; do
     case "$arg" in
       --android) host=10.0.2.2 ;;
+      --ipad) sim_name=ipad ;;
       -d | --device-id | -d=* | --device-id=*) device_given=yes; args+=("$arg") ;;
       *) args+=("$arg") ;;
     esac
@@ -119,7 +123,7 @@ cmd_run() {
     echo "Warning: no server answers on :$SPRING_PORT (start it with: $start)." >&2
   fi
   if [[ -z "$device_given" && "$host" == localhost && "$(uname)" == Darwin ]]; then
-    boot_simulator
+    boot_simulator "$sim_name"
     # Explicitly: an iPhone in reach (wireless debugging) is an iOS device as well, flutter would ask which one.
     local udid
     udid="$(xcrun simctl list devices booted | grep -m1 -oE '[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}' || true)"
