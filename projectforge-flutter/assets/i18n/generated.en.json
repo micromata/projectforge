@@ -53,13 +53,9 @@
   "businessCard.zipCode" : "ZIP code",
   "cancel" : "Cancel",
   "chat.title" : "Chat",
-  "delete" : "Delete",
-  "edit" : "Edit",
   "key" : "Key",
   "login" : "Login",
   "menu.logout" : "Logout",
   "menu.myBusinessCards" : "My business cards",
-  "refresh" : "refresh",
-  "save" : "Save",
-  "search" : "Search"
+  "refresh" : "refresh"
 }

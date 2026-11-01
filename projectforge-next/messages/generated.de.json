@@ -4024,6 +4024,44 @@
       }
     },
     "cveradar": {
+      "adhoc": {
+        "again": "Andere Dateien prüfen",
+        "anonymize": {
+          "_": "Namen der Dateien ersetzen",
+          "hint": "Die Dateien heißen im Report und im Prompt F1, F2, … (im Pfad stehen oft Projektnamen). Die Pakete bleiben stehen."
+        },
+        "cancel": "Abbrechen",
+        "check": "Prüfen",
+        "description": "Listen von Bibliotheken (Lockfiles wie package-lock.json oder pnpm-lock.yaml, SBOMs, Ausgaben von Maven oder Gradle oder ein zip mit solchen Listen) werden gegen alle aus der NVD importierten Schwachstellen geprüft. Es wird nichts gespeichert; das Ergebnis bleibt bei der Person, die die Prüfung gestartet hat.",
+        "drop": "Dateien wählen…",
+        "error": {
+          "noFiles": "Keine Dateien zu prüfen.",
+          "notFinished": "Die Prüfung ist noch nicht fertig.",
+          "notFound": "Diese Prüfung gibt es nicht (mehr).",
+          "running": "Eine Prüfung von dir läuft noch."
+        },
+        "filesSelected": "Zu prüfende Dateien",
+        "guide": "Benutzerhandbuch: welche Formate unterstützt werden und wie man sie erzeugt",
+        "hits": "{arg0} Treffer",
+        "info": "Die Dateien hierher ziehen oder auswählen: bis zu {arg0} Dateien, ein zip zählt als eine.",
+        "noPackages": "Keine Pakete erkannt",
+        "progress": "{arg0} von {arg1} Paketen",
+        "remove": "Entfernen",
+        "result": {
+          "certainty": "Sicherheit",
+          "empty": "Keine bekannte Schwachstelle trifft auf die Pakete dieser Dateien zu.",
+          "packages": "Pakete",
+          "title": "Ergebnis"
+        },
+        "state": {
+          "cancelled": "Abgebrochen",
+          "failed": "Fehlgeschlagen",
+          "finished": "Fertig",
+          "running": "Prüfung läuft…"
+        },
+        "summary": "{arg0} von {arg1} Paketen geprüft: {arg2} Schwachstellen, {arg3} Treffer.",
+        "title": "Ad-hoc-Prüfung"
+      },
       "advisories": {
         "none": "Aktuell keine Client-Hinweise.",
         "todo": "Was ist zu tun?"
@@ -4710,6 +4748,7 @@
           "title": "Mein CVE-Radar"
         },
         "nav": {
+          "adhoc": "Ad-hoc-Prüfung",
           "cases": "Fälle",
           "catalog": "Technologien",
           "devices": "Geräte",
@@ -4833,6 +4872,7 @@
       },
       "reason": "Begründung",
       "rights": {
+        "adhoc": "{arg0} prüfen eigene Dateien gegen alle Schwachstellen. Es wird nichts gespeichert; das Ergebnis sieht nur, wer die Prüfung gestartet hat.",
         "cases": "{arg0} sehen die Fälle. {arg1} legen sie an und bearbeiten sie.",
         "catalog": "Alle Angemeldeten lesen den Katalog und wählen daraus, wenn sie die Technologien einer Komponente eintragen. {arg1} und {arg2} pflegen ihn.",
         "closure": "{arg0} sehen nur Zahlen, keine Personen. {arg1} sehen die Geräte der Personen, legen Teamprüfungen an und schließen Fälle. Ein Fall mit offenen Punkten wird nur von {arg2} geschlossen.",

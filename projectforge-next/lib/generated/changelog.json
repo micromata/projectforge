@@ -4,10 +4,15 @@
     "id" : "unreleased",
     "version" : "9.2.0",
     "date" : "2026-11-01",
-    "title" : "Not yet released",
+    "title" : "ProjectForge 9.2.1: CVE-Radar with AI prompts and ad-hoc check, Apple Wallet, mobile layout",
+    "summary" : [ "**CVE-Radar**: ad-hoc check of uploaded files, findings report and case research with prompts for an approved AI system", "**Digital business cards** in the Apple Wallet", "More room for content on **mobile devices**", "Fix: planned invoices no longer count in the invoice statistics" ],
+    "overview" : [ "**CVE-Radar:** ad-hoc check of lockfiles, SBOMs or a zip of such lists against all vulnerabilities without storing anything; export of the open findings of a project with a prompt for advice on the fix; research of a new case with an AI system; download and import of a case as JSON; upload of all lists of a component in one zip and the lockfile of pnpm.", "**Digital business cards:** add a card to the Apple Wallet (needs a Pass Type ID certificate).", "**Mobile app (in preparation):** login via the browser with second factor, the own business cards also without network, connected apps listed in My account.", "**Mobile devices:** on narrow or low screens the logo row and the status bar are hidden, smaller paddings, a compact list footer, scrollable tabs; very low screens scroll.", "**Fixes:** planned invoices no longer count in the statistics of the invoice list." ],
     "sections" : [ {
       "type" : "added",
       "items" : [ "Digital business cards: add a card to the Apple Wallet (needs a Pass Type ID certificate, see the admin guide).", {
+        "title" : "CVE-Radar: ad-hoc check of uploaded files against all vulnerabilities",
+        "items" : [ "The new page Ad-hoc check takes lockfiles, SBOMs, build tool output or a zip with such lists and checks every package against the imported vulnerabilities, with a progress bar per file. Nothing is stored; every reader may check, and only the person who started a check sees its result.", "The result lists the vulnerabilities with package, version, file and the case of the security team, can be downloaded as JSON, and comes with a prompt asking an approved AI system how to fix them. The names of the files are replaced by default." ]
+      }, {
         "title" : "CVE-Radar: research a new case with an AI system",
         "items" : [ "Research with AI (security team) builds a prompt for an approved AI system from the CVE id or a description of the incident, sources and notes, with the NVD data of an imported CVE. There is no direct connection: the prompt is copied there, its answer pasted back. The dialog has three steps (details, prompt, answer), each with the way back; the prompt can be copied or downloaded as a file.", "The answer (one JSON block) is checked and shown as a preview with a copy button per value; Create case creates the case with title, description, priority and reason, fix version, workaround, measures and references, marked as created with the help of an AI system." ]
       }, {
@@ -22,6 +27,12 @@
       }, {
         "title" : "Mobile app (in preparation)",
         "items" : [ "The ProjectForge app for iOS and Android logs in via the browser, with password and second factor (WebAuthn or code) as usual; the browser asks once more before an app is connected. The first version shows the own digital business cards, also without network.", "All other pages of ProjectForge open inside the app, without a second login. Logging out the app ends them as well.", "My account: the connected apps with their last usage, each can be logged out. A password change logs out all apps; an app unused for 90 days is logged out automatically." ]
+      } ]
+    }, {
+      "type" : "changed",
+      "items" : [ {
+        "title" : "More room for content on mobile devices",
+        "items" : [ "On narrow or low screens (e.g. a phone in landscape) the logo row and the status bar are hidden, and the paddings of edit pages, tabs, action bar and list footer are smaller; changelog, version and copyright are in the user menu there.", "The list footer shows only the range and the page buttons around the current page; the tabs of an edit page scroll horizontally.", "The menu of an area at the top right of its pages (e.g. CVE-Radar) is a single menu button on narrow screens; on the file of a CVE-Radar case the header scrolls with the content on narrow or low screens." ]
       } ]
     }, {
       "type" : "fixed",

@@ -4024,6 +4024,44 @@
       }
     },
     "cveradar": {
+      "adhoc": {
+        "again": "Check other files",
+        "anonymize": {
+          "_": "Replace the names of the files",
+          "hint": "The files become F1, F2, … in the report and the prompt (they often carry project names in their path). The packages stay."
+        },
+        "cancel": "Cancel",
+        "check": "Check",
+        "description": "Lists of libraries (lockfiles such as package-lock.json or pnpm-lock.yaml, SBOMs, output of Maven or Gradle, or a zip with such lists) are checked against all vulnerabilities imported from the NVD. Nothing is stored; the result stays with the person who started the check.",
+        "drop": "Choose files…",
+        "error": {
+          "noFiles": "No files to check.",
+          "notFinished": "The check is not finished yet.",
+          "notFound": "This check does not exist (any more).",
+          "running": "A check of yours is still running."
+        },
+        "filesSelected": "Files to check",
+        "guide": "User guide: the supported formats and how to produce them",
+        "hits": "{arg0} matches",
+        "info": "Drop the files here or choose them: up to {arg0} files, a zip counts as one.",
+        "noPackages": "No packages recognised",
+        "progress": "{arg0} of {arg1} packages",
+        "remove": "Remove",
+        "result": {
+          "certainty": "Certainty",
+          "empty": "No known vulnerability matches the packages of these files.",
+          "packages": "Packages",
+          "title": "Result"
+        },
+        "state": {
+          "cancelled": "Cancelled",
+          "failed": "Failed",
+          "finished": "Done",
+          "running": "Checking…"
+        },
+        "summary": "{arg0} of {arg1} packages checked: {arg2} vulnerabilities, {arg3} matches.",
+        "title": "Ad-hoc check"
+      },
       "advisories": {
         "none": "No client advisories right now.",
         "todo": "What to do"
@@ -4710,6 +4748,7 @@
           "title": "My CVE-Radar"
         },
         "nav": {
+          "adhoc": "Ad-hoc check",
           "cases": "Cases",
           "catalog": "Technologies",
           "devices": "Devices",
@@ -4833,6 +4872,7 @@
       },
       "reason": "Reason",
       "rights": {
+        "adhoc": "{arg0} check files of their own against all vulnerabilities. Nothing is stored; the result is seen only by the person who started the check.",
         "cases": "{arg0} see the cases. {arg1} create and edit them.",
         "catalog": "Everybody logged in reads the catalogue and picks from it when entering the technologies of a component. The {arg1} and the {arg2} maintain it.",
         "closure": "{arg0} see counts only, no persons. {arg1} see the devices of the persons, create team checks and close cases. A case with open items is closed by {arg2} only.",

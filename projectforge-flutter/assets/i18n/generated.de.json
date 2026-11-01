@@ -53,13 +53,9 @@
   "businessCard.zipCode" : "PLZ",
   "cancel" : "Abbrechen",
   "chat.title" : "Chat",
-  "delete" : "Löschen",
-  "edit" : "Bearbeiten",
   "key" : "Schlüssel",
   "login" : "Anmelden",
   "menu.logout" : "Abmelden",
   "menu.myBusinessCards" : "Meine Visitenkarten",
-  "refresh" : "Neu laden",
-  "save" : "Speichern",
-  "search" : "Suchen"
+  "refresh" : "Neu laden"
 }
