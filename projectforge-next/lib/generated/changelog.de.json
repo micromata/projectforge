@@ -11,6 +11,9 @@
         "title" : "Mobile App: Benachrichtigungen und Push (iPhone)",
         "items" : [ "Die Benachrichtigungen der Web-Version (Regeln, Chat) werden auch in der App gezeigt: eine Glocke mit der Anzahl, die Liste mit dem Archiv sowie Bestätigen und Erledigen; ein Link öffnet die Seite in der App.", "Eine neue Benachrichtigung weckt die App mit einer Push-Nachricht (APNs, `projectforge.push.apns.*`), ohne ihren Inhalt in der Nachricht. Ohne konfigurierten Schlüssel wird nichts gesendet und die App fragt wie bisher regelmäßig ab." ]
       }, {
+        "title" : "Mobile App (in Vorbereitung): Zeitberichte",
+        "items" : [ "Die App bucht Zeitberichte am Smartphone: eine Wochenleiste mit den Tagessummen, die Buchungen des Tages mit den Lücken dazwischen (ein Tipp bucht eine Lücke), zuletzt verwendete Buchungen und Vorlagen als Ausgangspunkt, eine Suche nach Strukturelementen und die automatisch gewählte Kostenstelle, wenn das Strukturelement nur eine hat. Die Prüfungen des Servers (Überschneidung, geschlossene Strukturelemente, geschützte Zeiträume) gelten wie in der Webversion.", "Ein Timer in der App startet und stoppt eine Buchung auf dem Gerät; beim Stoppen öffnet sich das Formular mit der auf 5 Minuten gerundeten Zeit.", "Die Zeitberichtsliste der Webseiten wechselt auf den Tab der App; das Formular einer einzelnen Buchung bleibt beim Öffnen über einen Link in den Webseiten." ]
+      }, {
         "title" : "CVE-Radar: Benachrichtigung ohne Details und über veraltete Bibliothekslisten",
         "items" : [ "Eine neue Benachrichtigungsregel „Neue Befunde des CVE-Radars“ beginnt mit einem Text ohne Details („es gibt möglicherweise Updates“) und einem Link auf die Liste; die neue Variable cvrListLink verlinkt immer auf die Liste.", "Neuer Regeltyp „Veraltete Bibliothekslisten des CVE-Radars“: Das verantwortliche Team einer Komponente, deren Bibliotheksliste vor mehr als einer Anzahl Tage übernommen wurde (vorab 30), wird höchstens einmal pro Woche benachrichtigt, und eine Aktualisierung der Liste erledigt die Benachrichtigung. Der Tag der letzten Liste wird jetzt je Komponente gespeichert." ]
       }, {
@@ -25,7 +28,7 @@
       "items" : [ "Kalender auf kleinen Bildschirmen: Die Kalenderauswahl hat eine eigene Zeile unter Titel und Schaltflächen, statt von ihnen verdeckt zu werden.", {
         "title" : "CVE-Radar: Die Akte eines Vorfalls öffnet sich wieder und hat einen Tab für ihre Beschreibung",
         "items" : [ "Die Akte eines Falls ohne CVE zeigte eine leere Seite. Sie öffnet sich jetzt beim neuen ersten Tab „Beschreibung“, der die Beschreibung des Falls zeigt und dem Security-Team das Bearbeiten mit einem Richtext-Editor erlaubt." ]
-      } ]
+      }, "Kost2 fehlte manchmal in Übersichten wie dem Strukturbaum, der Projektliste oder der Kost2-Auswahl eines Zeitberichts, obwohl sie vorhanden war: etwa nach dem Reaktivieren eines Projekts oder bei einer Kost2, die während des Neuladens der Caches im Hintergrund angelegt wurde.", "Auftragsbuch: Ein Zahlplan mit Datum in einem Folgemonat schiebt nun auch die Rechnung einer abgeschlossenen Position (Filter \"zu fakturieren\", nächste Rechnung)" ]
     } ]
   },
   "groups" : [ {

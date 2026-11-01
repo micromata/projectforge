@@ -22,6 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/auth/auth_controller.dart';
@@ -50,6 +51,11 @@ class ProjectForgeApp extends ConsumerWidget {
           useMaterial3: true,
         ),
         themeMode: ref.watch(themeModeProvider),
+        // The date picker and the like in the language of the texts.
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        supportedLocales: [
+          for (final it in Translations.supportedLocales) Locale(it),
+        ],
         home: const _AuthGate(),
       ),
     );

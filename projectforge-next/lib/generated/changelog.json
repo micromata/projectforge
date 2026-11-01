@@ -11,6 +11,9 @@
         "title" : "Mobile app: notifications and push (iPhone)",
         "items" : [ "The notifications of the web version (rules, chat) are shown in the app as well: a bell with the count, the list with the archive, and confirming or finishing them; a link opens the page in the app.", "A new notification wakes the app with a push message (APNs, `projectforge.push.apns.*`), without its content in the message. Without a configured key nothing is sent and the app polls as before." ]
       }, {
+        "title" : "Mobile app (in preparation): time sheets",
+        "items" : [ "The app books time sheets on the phone: a week strip with the daily totals, the bookings of the day with the gaps between them (a tap books a gap), recent bookings and templates to start from, a task search, and the cost unit chosen automatically where the task has only one. The server's checks (overlap, closed tasks, protected periods) apply as in the web version.", "A timer in the app starts and stops a booking on the device; stopping opens the form with the time rounded to 5 minutes.", "The time sheet list of the web pages switches to the app's tab; the form of a single booking stays in the web pages when opened from a link." ]
+      }, {
         "title" : "CVE-Radar: notification without details and about outdated lists of libraries",
         "items" : [ "A new notification rule \"New findings of the CVE radar\" starts with a text that names no details (\"there may be updates\") and a link to the list; the new variable cvrListLink always links to the list.", "New rule type \"Outdated lists of libraries of the CVE radar\": the responsible team of a component whose list of libraries was applied more than a number of days ago (30 by default) is told, at most once a week, and the notification is resolved by an update of the list. The day of the last list is now recorded per component." ]
       }, {
@@ -25,7 +28,7 @@
       "items" : [ "Calendar on small screens: the calendar chooser has a line of its own under the title and the buttons instead of being covered by them.", {
         "title" : "CVE-Radar: the file of an incident opens again and has a tab for its description",
         "items" : [ "The file of a case without a CVE showed an empty page. It now opens on the new first tab \"Description\", which shows the description of the case and lets the security team edit it with a rich text editor." ]
-      } ]
+      }, "Kost2 sometimes missing in overviews such as the structure tree, the project list or the cost unit selection of a time sheet, although it existed: for instance after a project was reactivated, or for a cost unit created while the caches were being reloaded in the background.", "Order book: a payment schedule dated in a following month now also defers the invoice of a finished position (filter \"to be invoiced\", next invoice date)" ]
     } ]
   },
   "groups" : [ {

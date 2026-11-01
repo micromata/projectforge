@@ -43,7 +43,7 @@ class SettingsScreen extends ConsumerWidget {
             title: Text(context.t('app.settings.openInApp')),
             subtitle: Text(context.t('app.settings.openInApp.info')),
           ),
-          for (final page in NativePage.values)
+          for (final page in switchableNativePages)
             SwitchListTile(
               title: Text(_label(context, page)),
               value: settings.opensInApp(page),
@@ -61,5 +61,6 @@ class SettingsScreen extends ConsumerWidget {
     NativePage.businessCards => context.t('menu.myBusinessCards'),
     NativePage.notifications => context.t('notification.center'),
     NativePage.addresses => context.t('menu.addressList'),
+    NativePage.timesheets => context.t('timesheet.title.heading'),
   };
 }

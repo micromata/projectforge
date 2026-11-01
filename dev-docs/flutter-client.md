@@ -1,7 +1,7 @@
 # Mobile app (Flutter)
 
 Status: phase 1 in implementation (app login, digital business cards and the web pages in a WebView done), the chat
-tab done (WebView with badge), timesheets and push open.
+tab done (WebView with badge), the time sheets implemented (see "Time sheets"), the manual tests on a device open.
 
 The app lives in [`projectforge-flutter/`](../projectforge-flutter/README.md): Flutter, iOS and Android, not part of
 the Gradle build (own CI job `.github/workflows/flutter.yml`). Dev helpers (run against a slot server, simulator,
@@ -12,9 +12,7 @@ projectforge-next does; nothing of the next frontend is reused but the texts.
 
 1. Login (WebAuthn or OTP as second factor) and the own digital business cards (`/rs/myBusinessCards`), shown only:
    they are created and edited in the web version, which a link opens in the web tab. Done, apart from the manual tests on a device.
-2. Timesheets: week list (`POST /rs/timesheet/listPage`), new and edited bookings (`newEntry`, `insert`/`update`),
-   task (`/rs/task/tree/autosearch?onlyBookable=true`, `/rs/task/recent/list`), kost2 (`/rs/task/info/{id}`),
-   recent sheets and templates (`recentList`, `/rs/timesheet/favorites`).
+2. Time sheets: week and day view, booking, timer (see "Time sheets"). Done, apart from the manual tests on a device.
 3. Chat: the chat of next in a WebView (see below), then push notifications (see below).
 
 ## Chat
@@ -31,6 +29,35 @@ next (SSE on the web session's cookie). Native is only what a page can't do:
 - **Files:** uploads through the file input of the page (WKWebView and the Android WebView open the system picker;
   iOS needs `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`), downloads see "Web pages in the app".
 - **Push** (see "Notifications and push"): a tap opens `/next/chat/{id}` in the chat tab.
+
+## Time sheets
+
+A phone books in a few taps, so the tab "Time sheets" (`lib/features/timesheets/`) is not the form of next but a day view:
+
+- **Day and week:** a week strip (Monday to Sunday) with the total of each day; swiping the strip changes the week,
+  swiping the list the day. The day shows its bookings and the **gaps** between them (today up to now, at most 20:00);
+  a tap on a gap books exactly that time. Swipe right duplicates a booking (next free time), swipe left deletes it
+  (with "undo", `undelete`); a long press offers both, edit and the timer.
+- **Server:** `GET /rs/timesheet/appList?from&to` (epoch millis, at most 62 days) answers the user's own sheets in the
+  row shape of the next list plus the configured tags (`TimesheetEntityRest.getAppList`). Everything else is the
+  existing api: `GET {id}` before an edit or delete (the whole DTO goes back, so fields the app doesn't show, e.g. the
+  AI time savings, survive), `PUT insert`/`update`, `DELETE markAsDeleted`, `PUT undelete`, `GET recentList`,
+  `/rs/timesheet/favorites` (templates), `/rs/task/tree/autosearch?onlyBookable=true`, `/rs/task/recent/list`,
+  `/rs/task/info/{id}` (the cost units of a task). An app token needs no CSRF token.
+- **Online only for writing:** the checks of the server (overlap, closed or not bookable tasks, cost unit required,
+  protected period, 5-minute steps, 1 minute to 14 hours) can't be repeated on the device, so the form sends and shows
+  the refusals (`ApiException.validationErrors`: `task`, `kost2`, anything else at the time). The weeks last seen are kept
+  for reading offline (`JsonCache`, deleted on logout).
+- **Form:** *what* first (recent bookings, templates — they fill task, cost unit, location, reference, tag, text, never
+  the times), then *when* in one row (wheel in 5-minute steps, "+15 min", "until now"; a stop before the start means
+  the next day), then the text. The only cost unit of a task is chosen automatically. On a wide screen the form is a
+  side panel instead of a bottom sheet.
+- **Timer:** local, kept in a file of the cache so it survives closing the app; stopping opens the form with the start
+  rounded down and the stop rounded up to 5 minutes. Not on the server, so another device doesn't see it.
+- **Times** are the device's clock (`DateTime` local, sent as UTC instants like next does); days begin at the device's
+  midnight. The daily target of the week strip is a constant (8 h), not the working day of the installation.
+- The list of next (`/next/timesheet`) switches to this tab (`NativePage.timesheets`, switchable in the settings of the
+  app); a single booking opened by a link (`/next/timesheet/5`) stays in the web pages.
 
 ## Login
 
@@ -170,7 +197,8 @@ FCM follows).
 ## Open points
 
 - Manual tests on a device: login with WebAuthn (passkey of the platform and security key), OTP, renewal on a 2FA
-  protected url, logout in the web, QR code offline.
+  protected url, logout in the web, QR code offline,
+  booking, editing and deleting time sheets against a real server (the app was tested with fake responses only).
 - Android: plain http to the development server (`10.0.2.2`) needs a debug network security config.
 - Release signing: the Android release build is still signed with the debug key (`android/app/build.gradle.kts`).
 - Store presence: app icons, privacy declarations, review notes (a chat is user generated content: report and block).

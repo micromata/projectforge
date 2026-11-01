@@ -23,6 +23,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'app.dart';
 import 'core/i18n/translations.dart';
@@ -30,5 +31,7 @@ import 'core/i18n/translations.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final translations = await Translations.load();
+  // The names of the days and months in the language of the texts.
+  await initializeDateFormatting(translations.locale);
   runApp(ProviderScope(child: ProjectForgeApp(translations: translations)));
 }

@@ -1,0 +1,19 @@
+{
+  "type": "added",
+  "en": "Mobile app (in preparation): time sheets",
+  "de": "Mobile App (in Vorbereitung): Zeitberichte",
+  "items": [
+    {
+      "en": "The app books time sheets on the phone: a week strip with the daily totals, the bookings of the day with the gaps between them (a tap books a gap), recent bookings and templates to start from, a task search, and the cost unit chosen automatically where the task has only one. The server's checks (overlap, closed tasks, protected periods) apply as in the web version.",
+      "de": "Die App bucht Zeitberichte am Smartphone: eine Wochenleiste mit den Tagessummen, die Buchungen des Tages mit den Lücken dazwischen (ein Tipp bucht eine Lücke), zuletzt verwendete Buchungen und Vorlagen als Ausgangspunkt, eine Suche nach Strukturelementen und die automatisch gewählte Kostenstelle, wenn das Strukturelement nur eine hat. Die Prüfungen des Servers (Überschneidung, geschlossene Strukturelemente, geschützte Zeiträume) gelten wie in der Webversion."
+    },
+    {
+      "en": "A timer in the app starts and stops a booking on the device; stopping opens the form with the time rounded to 5 minutes.",
+      "de": "Ein Timer in der App startet und stoppt eine Buchung auf dem Gerät; beim Stoppen öffnet sich das Formular mit der auf 5 Minuten gerundeten Zeit."
+    },
+    {
+      "en": "The time sheet list of the web pages switches to the app's tab; the form of a single booking stays in the web pages when opened from a link.",
+      "de": "Die Zeitberichtsliste der Webseiten wechselt auf den Tab der App; das Formular einer einzelnen Buchung bleibt beim Öffnen über einen Link in den Webseiten."
+    }
+  ]
+}

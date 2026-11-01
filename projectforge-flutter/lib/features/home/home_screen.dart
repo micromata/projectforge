@@ -37,14 +37,15 @@ import '../notifications/notification_bell.dart';
 import '../notifications/notification_text.dart';
 import '../notifications/notifications_screen.dart';
 import '../settings/settings_screen.dart';
+import '../timesheets/timesheets_screen.dart';
 import '../web/web_screen.dart';
 
 /// The tabs of the logged-in app.
-enum _Destination { businessCards, addresses, chat, web }
+enum _Destination { businessCards, addresses, timesheets, chat, web }
 
-/// The start page of the logged-in app: the business cards, the addresses, the chat and the ProjectForge pages. The chat is the
-/// chat of next in a WebView (one implementation for web and app), the app adds the badge of the unread messages.
-/// Timesheets follow as a further destination.
+/// The start page of the logged-in app: the business cards, the addresses, the time sheets, the chat and the
+/// ProjectForge pages. The chat is the chat of next in a WebView (one implementation for web and app), the app adds
+/// the badge of the unread messages.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -102,6 +103,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final destinations = [
       _Destination.businessCards,
       _Destination.addresses,
+      if (timesheetsTabEnabled) _Destination.timesheets,
       if (chatEnabled) _Destination.chat,
       _Destination.web,
     ];
@@ -125,6 +127,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               active: current == destination,
               onEdit: (id) => _openWebPage('/next/address/$id/edit'),
               onCreate: () => _openWebPage('/next/address/new/edit'),
+            ),
+            _Destination.timesheets => TimesheetsScreen(
+              active: current == destination,
             ),
             _Destination.chat =>
               _opened.contains(destination)
@@ -151,7 +156,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     void select(int index) => _select(current, destinations[index]);
     // The pages bring their own header: only the native tab has a bar (with the account menu).
     final appBar = switch (current) {
-      _Destination.businessCards || _Destination.addresses => AppBar(
+      _Destination.businessCards ||
+      _Destination.addresses ||
+      _Destination.timesheets => AppBar(
         title: Text(_label(context, current)),
         actions: [
           if (current == _Destination.businessCards)
@@ -263,6 +270,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       switch (destination) {
         _Destination.businessCards => context.t('menu.myBusinessCards'),
         _Destination.addresses => context.t('menu.addressList'),
+        _Destination.timesheets => context.t('timesheet.title.heading'),
         _Destination.chat => context.t('chat.title'),
         _Destination.web => context.t('app.web'),
       };
@@ -274,6 +282,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         _Destination.addresses => Icon(
           selected ? Icons.contacts : Icons.contacts_outlined,
+        ),
+        _Destination.timesheets => Icon(
+          selected ? Icons.schedule : Icons.schedule_outlined,
         ),
         _Destination.chat => Badge(
           label: Text('$unread'),
@@ -323,10 +334,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _openNative(NativePage page, bool chatEnabled) {
     final settings = ref.read(appSettingsProvider).value ?? const AppSettings();
     if (!settings.opensInApp(page)) return false;
+    if (page == NativePage.timesheets && !timesheetsTabEnabled) return false;
     final destination = switch (page) {
       NativePage.chat => chatEnabled ? _Destination.chat : null,
       NativePage.businessCards => _Destination.businessCards,
       NativePage.addresses => _Destination.addresses,
+      NativePage.timesheets => _Destination.timesheets,
       NativePage.notifications => null,
     };
     if (page == NativePage.notifications) {

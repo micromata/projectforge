@@ -145,7 +145,7 @@ void main() {
     expect(cookie.secure, isFalse);
   });
 
-  test('the chat and the business cards have a native tab', () {
+  test('the chat, the business cards, the addresses and the time sheets have a native tab', () {
     for (final (url, page) in [
       ('https://pf.example.org/next/chat', NativePage.chat),
       ('https://pf.example.org/next/chat/', NativePage.chat),
@@ -165,7 +165,10 @@ void main() {
       ('https://pf.example.org/next/address/5', null),
       ('https://pf.example.org/next/address/5/edit', null),
       ('https://pf.example.org/next/chatty', null),
-      ('https://pf.example.org/next/timesheet', null),
+      ('https://pf.example.org/next/timesheet', NativePage.timesheets),
+      ('https://pf.example.org/next/timesheet/', NativePage.timesheets),
+      ('https://pf.example.org/next/timesheet/5', null),
+      ('https://pf.example.org/next/timesheet/new', null),
       ('https://pf.example.org/rs/myBusinessCards/pkpass?id=3', null),
       ('https://other.example.org/next/chat', null),
     ]) {
