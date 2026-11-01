@@ -19,9 +19,9 @@ Commands:
   run [slot] [--android] [--ipad] [args…]
                    flutter run with the server of the slot (:8080+slot) preset in the
                    login; warns if it doesn't answer. Without -d it boots an iOS
-                   simulator (if none is running) and runs there. --android: the server as
+                   simulator (or reuses the running one) and runs there. --android: the server as
                    10.0.2.2 (how the Android emulator reaches the Mac). --ipad: the
-                   simulator is an iPad Pro 13-inch (if none is running). Args are
+                   simulator is an iPad Pro 13-inch, booted alongside a running one. Args are
                    forwarded (e.g. pfApp.sh run 1 -d "iPhone 18 Pro")
   sim [name|ipad]  Boot an iOS simulator (default: the first available iPhone; ipad: the
                    first iPad Pro 13-inch) and open Simulator.app
@@ -83,27 +83,35 @@ open_simulator_app() {
     echo "(No simulator window: open it in Xcode, Window → Devices.)"
 }
 
-# Boots the iOS simulator named $1 (ipad: the first iPad Pro 13-inch; none: the first available iPhone), unless one is running already.
+# Boots the iOS simulator named $1 (ipad: the first iPad Pro 13-inch) and sets SIM_UDID. Without a name an already
+# booted simulator is reused, otherwise the first available iPhone is booted; a named one is booted even if another
+# simulator runs.
+SIM_UDID=""
 boot_simulator() {
-  local name="${1:-}" line udid
-  if xcrun simctl list devices booted 2>/dev/null | grep -q "(Booted)"; then
-    open_simulator_app
-    return 0
-  fi
-  if [[ "$name" == ipad ]]; then
-    line="$(xcrun simctl list devices available | grep -m1 "    iPad Pro 13-inch" || true)"
-  elif [[ -n "$name" ]]; then
-    line="$(xcrun simctl list devices available | grep -F -m1 "    $name (" || true)"
-  else
+  local name="${1:-}" line
+  if [[ -z "$name" ]]; then
+    SIM_UDID="$(xcrun simctl list devices booted 2>/dev/null | grep -m1 -oE '[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}' || true)"
+    if [[ -n "$SIM_UDID" ]]; then
+      open_simulator_app
+      return 0
+    fi
     line="$(xcrun simctl list devices available | grep -m1 "    iPhone" || true)"
+  elif [[ "$name" == ipad ]]; then
+    line="$(xcrun simctl list devices available | grep -m1 "    iPad Pro 13-inch" || true)"
+  else
+    line="$(xcrun simctl list devices available | grep -F -m1 "    $name (" || true)"
   fi
-  udid="$(grep -oE '[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}' <<<"$line" || true)"
-  if [[ -z "$udid" ]]; then
+  SIM_UDID="$(grep -oE '[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}' <<<"$line" || true)"
+  if [[ -z "$SIM_UDID" ]]; then
     echo "No iOS simulator ${name:+named '$name' }available: install a runtime (xcodebuild -downloadPlatform iOS)." >&2
     exit 1
   fi
-  echo "Booting simulator: $(sed -E 's/^ +//; s/ \(.*//' <<<"$line")"
-  xcrun simctl boot "$udid"
+  if grep -q "(Booted)" <<<"$line"; then
+    :
+  else
+    echo "Booting simulator: $(sed -E 's/^ +//; s/ \(.*//' <<<"$line")"
+    xcrun simctl boot "$SIM_UDID"
+  fi
   open_simulator_app
 }
 
@@ -125,9 +133,7 @@ cmd_run() {
   if [[ -z "$device_given" && "$host" == localhost && "$(uname)" == Darwin ]]; then
     boot_simulator "$sim_name"
     # Explicitly: an iPhone in reach (wireless debugging) is an iOS device as well, flutter would ask which one.
-    local udid
-    udid="$(xcrun simctl list devices booted | grep -m1 -oE '[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}' || true)"
-    [[ -z "$udid" ]] || args=(-d "$udid" ${args[@]+"${args[@]}"})
+    args=(-d "$SIM_UDID" ${args[@]+"${args[@]}"})
   fi
   cd "$APP" && exec flutter run --dart-define=PF_SERVER_URL="http://$host:$SPRING_PORT" ${args[@]+"${args[@]}"}
 }
