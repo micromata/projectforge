@@ -3,6 +3,19 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+/*
+ * Whether there is room for the app's chrome (logo row, status bar): neither narrow nor low, as a phone in
+ * landscape is. Width alone (sm) misses the latter. `cramped` is the exact negation.
+ */
+@custom-variant roomy (@media (min-width: 40rem) and (min-height: 32rem));
+@custom-variant cramped {
+  @media (max-width: 39.99rem) {
+    @slot;
+  }
+  @media (max-height: 31.99rem) {
+    @slot;
+  }
+}
 
 @theme inline {
   --color-background: var(--background);

@@ -137,7 +137,7 @@ export function UserMenu({
 }
 
 /**
- * What the status bar shows, for a narrow screen, where that bar is hidden (see StatusBar): the changelog with
+ * What the status bar shows, for a narrow or low screen, where that bar is hidden (see StatusBar): the changelog with
  * version and build date, and the copyright.
  */
 function StatusEntries() {
@@ -145,7 +145,7 @@ function StatusEntries() {
   const { systemData } = useAuth();
   if (!systemData?.version) return null;
   return (
-    <div className="sm:hidden">
+    <div className="roomy:hidden">
       <MenubarSeparator />
       <MenubarItem asChild className={MENU_HOVER_CLASS}>
         <GuardedLink href="/changelog" className="flex flex-col items-start">

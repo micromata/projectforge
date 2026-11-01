@@ -32,7 +32,7 @@ export function LogoRow({ collapsible = true }: LogoRowProps) {
         // the one that interpolates everywhere, and the content's height is known (the wordmark is
         // 43px, the customer logo is bounded to 36px). overflow-hidden is what makes the clipped
         // state read as a collapse instead of an overlap.
-        "hidden shrink-0 items-center justify-between overflow-hidden bg-background px-4 sm:flex",
+        "hidden shrink-0 items-center justify-between overflow-hidden bg-background px-4 roomy:flex",
         "transition-[height] duration-200 ease-out motion-reduce:transition-none",
         collapsed ? "h-0" : "h-12"
       )}

@@ -22,7 +22,7 @@ export function StatusBar() {
   const { systemData } = useAuth();
 
   return (
-    <footer className="hidden h-5 shrink-0 sm:flex items-center justify-between gap-4 bg-status-bar px-4 text-[0.6875rem] leading-none text-status-bar-foreground">
+    <footer className="hidden h-5 shrink-0 roomy:flex items-center justify-between gap-4 bg-status-bar px-4 text-[0.6875rem] leading-none text-status-bar-foreground">
       <div className="flex min-w-0 items-center gap-1.5 truncate">
         <a
           href={COMPANY_URL}
