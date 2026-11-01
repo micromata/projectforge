@@ -100,7 +100,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           for (final destination in destinations)
             switch (destination) {
-              _Destination.businessCards => BusinessCardsScreen(onCreate: _openBusinessCardsPage),
+              _Destination.businessCards => BusinessCardsScreen(
+                onCreate: _openBusinessCardsPage,
+              ),
               _Destination.chat =>
                 _opened.contains(destination)
                     ? WebScreen(
