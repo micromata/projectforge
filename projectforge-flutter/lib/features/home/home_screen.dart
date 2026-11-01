@@ -25,6 +25,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth/auth_controller.dart';
+import '../../core/auth/session.dart';
 import '../../core/i18n/translations.dart';
 import '../business_cards/business_cards_screen.dart';
 import '../chat/chat_status_controller.dart';
@@ -69,94 +70,156 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ? _current
         : _Destination.businessCards;
     final unread = chatStatus?.unread ?? 0;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(switch (current) {
-          _Destination.businessCards => context.t('menu.myBusinessCards'),
-          _Destination.chat => context.t('chat.title'),
-          _Destination.web => context.t('app.web'),
-        }),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.account_circle),
-            onSelected: (_) => _logout(context, ref),
-            itemBuilder: (_) => [
-              PopupMenuItem<String>(
-                enabled: false,
-                child: Text(
-                  '${session?.fullname ?? session?.username ?? ''}\n${session?.serverUrl ?? ''}',
-                ),
+    final landscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
+    final selectedIndex = destinations.indexOf(current);
+    final body = IndexedStack(
+      index: selectedIndex,
+      children: [
+        for (final destination in destinations)
+          switch (destination) {
+            _Destination.businessCards => BusinessCardsScreen(
+              onCreate: _openBusinessCardsPage,
+            ),
+            _Destination.chat =>
+              _opened.contains(destination)
+                  ? WebScreen(
+                      key: const ValueKey(_Destination.chat),
+                      active: current == destination,
+                      initialPath: _chatPath,
+                    )
+                  : const SizedBox.shrink(),
+            _Destination.web =>
+              _opened.contains(destination)
+                  ? WebScreen(
+                      key: const ValueKey(_Destination.web),
+                      active: current == destination,
+                      initialPath: _webTarget?.path,
+                      target: _webTarget,
+                    )
+                  : const SizedBox.shrink(),
+          },
+      ],
+    );
+    void select(int index) => _select(current, destinations[index]);
+    // The pages bring their own header: only the native tab has a bar (with the account menu).
+    final appBar = current == _Destination.businessCards
+        ? AppBar(
+            title: Text(context.t('menu.myBusinessCards')),
+            actions: [
+              IconButton(
+                tooltip: context.t('refresh'),
+                icon: const Icon(Icons.refresh),
+                onPressed: () => refreshBusinessCards(context, ref),
               ),
-              PopupMenuItem(
-                value: 'logout',
-                child: Text(context.t('menu.logout')),
-              ),
+              _accountMenu(context, session),
             ],
-          ),
-        ],
-      ),
-      body: IndexedStack(
-        index: destinations.indexOf(current),
-        children: [
-          for (final destination in destinations)
-            switch (destination) {
-              _Destination.businessCards => BusinessCardsScreen(
-                onCreate: _openBusinessCardsPage,
+          )
+        : null;
+    if (landscape) {
+      // The height is scarce: the navigation stands at the side.
+      return Scaffold(
+        appBar: appBar,
+        body: Row(
+          children: [
+            SafeArea(
+              right: false,
+              child: NavigationRail(
+                selectedIndex: selectedIndex,
+                onDestinationSelected: select,
+                labelType: NavigationRailLabelType.selected,
+                minWidth: 64,
+                destinations: [
+                  for (final destination in destinations)
+                    _railDestination(context, destination, unread),
+                ],
               ),
-              _Destination.chat =>
-                _opened.contains(destination)
-                    ? WebScreen(
-                        key: const ValueKey(_Destination.chat),
-                        active: current == destination,
-                        initialPath: _chatPath,
-                      )
-                    : const SizedBox.shrink(),
-              _Destination.web =>
-                _opened.contains(destination)
-                    ? WebScreen(
-                        key: const ValueKey(_Destination.web),
-                        active: current == destination,
-                        initialPath: _webTarget?.path,
-                        target: _webTarget,
-                      )
-                    : const SizedBox.shrink(),
-            },
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: destinations.indexOf(current),
-        onDestinationSelected: (index) => _select(current, destinations[index]),
-        destinations: [
-          for (final destination in destinations)
-            switch (destination) {
-              _Destination.businessCards => NavigationDestination(
-                icon: const Icon(Icons.contact_page_outlined),
-                selectedIcon: const Icon(Icons.contact_page),
-                label: context.t('menu.myBusinessCards'),
-              ),
-              _Destination.chat => NavigationDestination(
-                icon: Badge(
-                  label: Text('$unread'),
-                  isLabelVisible: unread > 0,
-                  child: const Icon(Icons.chat_bubble_outline),
-                ),
-                selectedIcon: Badge(
-                  label: Text('$unread'),
-                  isLabelVisible: unread > 0,
-                  child: const Icon(Icons.chat_bubble),
-                ),
-                label: context.t('chat.title'),
-              ),
-              _Destination.web => NavigationDestination(
-                icon: const Icon(Icons.public_outlined),
-                selectedIcon: const Icon(Icons.public),
-                label: context.t('app.web'),
-              ),
-            },
-        ],
+            ),
+            Expanded(
+              child: SafeArea(left: false, top: appBar == null, child: body),
+            ),
+          ],
+        ),
+      );
+    }
+    return Scaffold(
+      appBar: appBar,
+      body: appBar == null ? SafeArea(bottom: false, child: body) : body,
+      bottomNavigationBar: NavigationBarTheme(
+        data: const NavigationBarThemeData(
+          height: 56,
+          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        ),
+        child: NavigationBar(
+          selectedIndex: selectedIndex,
+          onDestinationSelected: select,
+          destinations: [
+            for (final destination in destinations)
+              _barDestination(context, destination, unread),
+          ],
+        ),
       ),
     );
   }
+
+  Widget _accountMenu(
+    BuildContext context,
+    Session? session,
+  ) => PopupMenuButton<String>(
+    icon: const Icon(Icons.account_circle),
+    onSelected: (_) => _logout(context, ref),
+    itemBuilder: (_) => [
+      PopupMenuItem<String>(
+        enabled: false,
+        child: Text(
+          '${session?.fullname ?? session?.username ?? ''}\n${session?.serverUrl ?? ''}',
+        ),
+      ),
+      PopupMenuItem(value: 'logout', child: Text(context.t('menu.logout'))),
+    ],
+  );
+
+  static String _label(BuildContext context, _Destination destination) =>
+      switch (destination) {
+        _Destination.businessCards => context.t('menu.myBusinessCards'),
+        _Destination.chat => context.t('chat.title'),
+        _Destination.web => context.t('app.web'),
+      };
+
+  static Widget _icon(_Destination destination, int unread, bool selected) =>
+      switch (destination) {
+        _Destination.businessCards => Icon(
+          selected ? Icons.contact_page : Icons.contact_page_outlined,
+        ),
+        _Destination.chat => Badge(
+          label: Text('$unread'),
+          isLabelVisible: unread > 0,
+          child: Icon(selected ? Icons.chat_bubble : Icons.chat_bubble_outline),
+        ),
+        _Destination.web => Icon(
+          selected ? Icons.public : Icons.public_outlined,
+        ),
+      };
+
+  static NavigationDestination _barDestination(
+    BuildContext context,
+    _Destination destination,
+    int unread,
+  ) => NavigationDestination(
+    icon: _icon(destination, unread, false),
+    selectedIcon: _icon(destination, unread, true),
+    label: _label(context, destination),
+  );
+
+  static NavigationRailDestination _railDestination(
+    BuildContext context,
+    _Destination destination,
+    int unread,
+  ) => NavigationRailDestination(
+    icon: _icon(destination, unread, false),
+    selectedIcon: _icon(destination, unread, true),
+    label: Text(_label(context, destination)),
+  );
 
   void _openBusinessCardsPage() {
     _webTarget = WebTarget('/next/myBusinessCards');

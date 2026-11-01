@@ -81,6 +81,12 @@ class WebDownload {
     return file;
   }
 
+  /// The download is an Apple Wallet pass, which is added to the Wallet rather than shared.
+  static bool isWalletPass({String? mimeType, String? fileName}) =>
+      mimeType?.toLowerCase().startsWith('application/vnd.apple.pkpass') ==
+          true ||
+      fileName?.toLowerCase().endsWith('.pkpass') == true;
+
   /// The name of the file: `filename*` (RFC 5987) or `filename` of [contentDisposition], [suggestedFilename], the
   /// last segment of [url], or `download`. Without any path, so it stays in the download directory.
   static String fileName({

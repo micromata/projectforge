@@ -30,6 +30,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/api/api_exception.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/i18n/translations.dart';
+import '../../core/wallet/wallet_pass.dart';
 import '../../core/widgets/error_view.dart';
 import 'web_download.dart';
 import 'web_navigation.dart';
@@ -159,9 +160,20 @@ class _WebScreenState extends ConsumerState<WebScreen> {
         navigation: _navigation,
         cookieHeader: ref.read(webCookiesProvider).cookieHeader,
       ).load(request.url, suggestedFilename: request.suggestedFilename);
+      if (walletAvailable &&
+          WebDownload.isWalletPass(
+            mimeType: request.mimeType,
+            fileName: file.uri.pathSegments.last,
+          )) {
+        // The pass of a business card ("Add to Wallet" of the page): the Wallet, not the share sheet.
+        await showWalletPass(await file.readAsBytes());
+        return;
+      }
       await SharePlus.instance.share(
         ShareParams(files: [XFile(file.path, mimeType: request.mimeType)]),
       );
+    } on WalletException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.message)));
     } on Exception {
       messenger.showSnackBar(SnackBar(content: Text(failed)));
     }

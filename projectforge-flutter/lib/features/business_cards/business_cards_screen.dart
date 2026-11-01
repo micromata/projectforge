@@ -26,13 +26,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api/api_exception.dart';
 import '../../core/i18n/translations.dart';
+import '../../core/wallet/wallet_pass.dart';
 import '../../core/widgets/error_view.dart';
 import 'business_card.dart';
 import 'business_card_qr_screen.dart';
 import 'business_cards_controller.dart';
 import 'vcard_share.dart';
+import 'wallet_pass.dart';
 
-/// The own business cards: tap shows the QR code to scan, the menu shares a card. Cards are created and edited in
+/// Loads the cards from the server; a failure is reported in a snackbar, the shown cards stay.
+Future<void> refreshBusinessCards(BuildContext context, WidgetRef ref) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final error = await ref.read(businessCardsProvider.notifier).refresh();
+  if (error == null || !context.mounted) return;
+  messenger.showSnackBar(SnackBar(content: Text(context.errorText(error))));
+}
+
+/// The own business cards: tap shows the QR code to scan, the menu shares a card or adds it to the Wallet. Cards are created and edited in
 /// the web pages in the app, which the link at the end opens ([onCreate]).
 class BusinessCardsScreen extends ConsumerWidget {
   const BusinessCardsScreen({super.key, required this.onCreate});
@@ -52,7 +62,7 @@ class BusinessCardsScreen extends ConsumerWidget {
           onRetry: () => ref.read(businessCardsProvider.notifier).refresh(),
         ),
         data: (data) => RefreshIndicator(
-          onRefresh: () => ref.read(businessCardsProvider.notifier).refresh(),
+          onRefresh: () => refreshBusinessCards(context, ref),
           child: ListView(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
             children: [
@@ -75,7 +85,11 @@ class BusinessCardsScreen extends ConsumerWidget {
                   ),
                 ),
               for (final info in data.cards)
-                _CardTile(info: info, offline: data.fromCache),
+                _CardTile(
+                  info: info,
+                  offline: data.fromCache,
+                  walletConfigured: data.walletConfigured,
+                ),
               if (!data.fromCache) _CreateOnDesktopLink(onPressed: onCreate),
             ],
           ),
@@ -86,10 +100,15 @@ class BusinessCardsScreen extends ConsumerWidget {
 }
 
 class _CardTile extends ConsumerWidget {
-  const _CardTile({required this.info, required this.offline});
+  const _CardTile({
+    required this.info,
+    required this.offline,
+    required this.walletConfigured,
+  });
 
   final BusinessCardInfo info;
   final bool offline;
+  final bool walletConfigured;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -115,7 +134,11 @@ class _CardTile extends ConsumerWidget {
         ),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => BusinessCardQrScreen(info: info, offline: offline),
+            builder: (_) => BusinessCardQrScreen(
+              info: info,
+              offline: offline,
+              walletConfigured: walletConfigured,
+            ),
           ),
         ),
         trailing: offline
@@ -127,6 +150,11 @@ class _CardTile extends ConsumerWidget {
                     value: 'share',
                     child: Text(context.t('app.vCard.share')),
                   ),
+                  if (walletConfigured && walletAvailable)
+                    PopupMenuItem(
+                      value: 'wallet',
+                      child: Text(context.t('businessCard.addToWallet')),
+                    ),
                 ],
               ),
       ),
@@ -144,10 +172,15 @@ class _CardTile extends ConsumerWidget {
         case 'share':
           final repository = ref.read(businessCardsRepositoryProvider);
           if (repository != null) await shareVCard(repository, info.card);
+        case 'wallet':
+          final repository = ref.read(businessCardsRepositoryProvider);
+          if (repository != null) await addToWallet(repository, info.card);
       }
     } on ApiException catch (e) {
       if (!context.mounted) return;
       messenger.showSnackBar(SnackBar(content: Text(context.errorText(e))));
+    } on WalletException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.message)));
     }
   }
 }

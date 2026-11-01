@@ -92,7 +92,8 @@ class BusinessCards {
           ? null
           : BusinessCard(json['suggestion'] as Map<String, dynamic>),
       maxCards = json['maxCards'] as int? ?? 20,
-      gatewayConfigured = json['gatewayConfigured'] == true;
+      gatewayConfigured = json['gatewayConfigured'] == true,
+      walletConfigured = json['walletConfigured'] == true;
 
   final List<BusinessCardInfo> cards;
 
@@ -100,5 +101,8 @@ class BusinessCards {
   final BusinessCard? suggestion;
   final int maxCards;
   final bool gatewayConfigured;
+
+  /// The server can build the Apple Wallet pass of a card.
+  final bool walletConfigured;
   final bool fromCache;
 }

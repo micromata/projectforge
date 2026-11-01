@@ -35,6 +35,19 @@ void main() {
     'https://pf.example.org/rs/chat/conversation/1/file/abc?download=true',
   );
 
+  test('a Wallet pass is recognized by its type or its extension', () {
+    expect(
+      WebDownload.isWalletPass(mimeType: 'application/vnd.apple.pkpass'),
+      isTrue,
+    );
+    expect(WebDownload.isWalletPass(fileName: 'Jane Doe.pkpass'), isTrue);
+    expect(
+      WebDownload.isWalletPass(mimeType: 'text/vcard', fileName: 'a.vcf'),
+      isFalse,
+    );
+    expect(WebDownload.isWalletPass(), isFalse);
+  });
+
   group('fileName', () {
     test(
       'Content-Disposition first, the RFC 5987 name before the plain one',

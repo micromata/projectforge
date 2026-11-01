@@ -37,6 +37,12 @@ class BusinessCardsRepository {
   final ApiClient _api;
   final JsonCache _cache;
 
+  /// The cards of the last load, null if there are none (yet). Not marked as offline: the server isn't asked.
+  Future<BusinessCards?> loadCached() async {
+    final cached = await _cache.read(_cacheName);
+    return cached == null ? null : BusinessCards.fromJson(cached);
+  }
+
   /// The cards from the server, or the cached ones if it isn't reachable.
   Future<BusinessCards> load() async {
     try {
@@ -54,4 +60,8 @@ class BusinessCardsRepository {
   /// The card as vCard file.
   Future<List<int>> vCard(String id) =>
       _api.download('$_base/vcf', query: {'id': id});
+
+  /// The card as Apple Wallet pass (`.pkpass`).
+  Future<List<int>> pass(String id) =>
+      _api.download('$_base/pkpass', query: {'id': id});
 }

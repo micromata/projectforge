@@ -10,6 +10,14 @@
     {
       "en": "The login of the app offers the recently used servers, and the logout works even if the server can't be reached.",
       "de": "Die Anmeldung der App bietet die zuletzt benutzten Server an, und das Abmelden klappt auch, wenn der Server nicht erreichbar ist."
+    },
+    {
+      "en": "Business cards are stored in the app and shown offline too; they are reloaded silently when the tab is opened and by a button, and can be added to the Apple Wallet if the server is configured for it (iPhone), also by the link of the web page in the app.",
+      "de": "Visitenkarten werden in der App gespeichert und auch offline gezeigt; sie werden beim Öffnen des Tabs still und per Button neu geladen und lassen sich in den Apple Wallet übernehmen, wenn der Server dafür konfiguriert ist (iPhone), auch über den Link der Webseite in der App."
+    },
+    {
+      "en": "The app gives more room to the pages: no title bar above the web pages and the chat, a slimmer navigation bar, and in landscape the navigation at the side.",
+      "de": "Die App gibt den Seiten mehr Platz: keine Titelleiste über den Webseiten und dem Chat, eine schmalere Navigationsleiste und im Querformat die Navigation an der Seite."
     }
   ]
 }
