@@ -78,7 +78,7 @@ open class CvrCaseDO : DefaultBaseDO() {
     @get:Column(length = Constants.LENGTH_TITLE, nullable = false)
     open var title: String? = null
 
-    /** Markdown, rendered escaped (AI-09). */
+    /** Markdown (import) or HTML (rich text editor), rendered sanitized (AI-09). */
     @PropertyInfo(i18nKey = "description")
     @FullTextField
     @get:Column(length = LENGTH_MARKDOWN)

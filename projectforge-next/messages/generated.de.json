@@ -4403,6 +4403,10 @@
         "triageOverdue": "Triage überfällig"
       },
       "demo": "Demo",
+      "description": {
+        "edit": "Beschreibung bearbeiten",
+        "save": "Beschreibung speichern"
+      },
       "deviation": "Abweichung",
       "device": {
         "agentVersion": "Agent-Version",

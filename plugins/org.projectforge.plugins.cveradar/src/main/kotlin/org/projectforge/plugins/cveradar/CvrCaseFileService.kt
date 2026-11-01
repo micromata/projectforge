@@ -46,6 +46,7 @@ import org.projectforge.plugins.cveradar.rest.FilePermissions
 import org.projectforge.plugins.cveradar.rest.FileTeamCheckView
 import org.projectforge.plugins.cveradar.rest.MassRequest
 import org.projectforge.plugins.cveradar.rest.MassResult
+import org.projectforge.plugins.cveradar.rest.DescriptionRequest
 import org.projectforge.plugins.cveradar.rest.MeasuresRequest
 import org.projectforge.plugins.cveradar.rest.NvdReference
 import org.projectforge.plugins.cveradar.rest.RatingRequest
@@ -281,6 +282,15 @@ class CvrCaseFileService {
         return viewCase(user, caseId)
     }
 
+    /** The description of the case (Markdown from an import or HTML from the editor, rendered sanitized); security team, like the measures. */
+    fun saveDescription(user: PFUserDO, caseId: Long, request: DescriptionRequest): CaseFile {
+        access.checkSecurityTeam(user)
+        val case = editableCase(caseId, request.lastUpdate, openRequired = true)
+        case.description = request.description?.take(CvrCaseDO.LENGTH_MARKDOWN)
+        caseDao.update(case, checkAccess = false)
+        return viewCase(user, caseId)
+    }
+
     /** The NVD data of the CVE and its case, if any, for the prompt of a new case (AI-01); readers may. */
     fun aiContext(user: PFUserDO, cveId: String): AiCaseContext {
         access.checkReader(user)
@@ -445,6 +455,7 @@ class CvrCaseFileService {
             code = case.code,
             kind = case.kind,
             title = case.title,
+            description = case.description,
             status = case.status,
             priority = case.priority,
             priorityReason = case.priorityReason,

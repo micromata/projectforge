@@ -311,6 +311,8 @@
   {"i18nKey":"plugins.cveradar.dashboard.trend.title","bundleName":"CveRadarI18nResources","translation":"Findings of the last 30 days","translationDE":"Befunde der letzten 30 Tage","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.dashboard.triageOverdue","bundleName":"CveRadarI18nResources","translation":"Triage overdue","translationDE":"Triage überfällig","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.demo","bundleName":"CveRadarI18nResources","translation":"Demo","translationDE":"Demo","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"plugins.cveradar.description.edit","bundleName":"CveRadarI18nResources","translation":"Edit description","translationDE":"Beschreibung bearbeiten","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"plugins.cveradar.description.save","bundleName":"CveRadarI18nResources","translation":"Save description","translationDE":"Beschreibung speichern","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.deviation","bundleName":"CveRadarI18nResources","translation":"deviation","translationDE":"Abweichung","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.device.agentVersion","bundleName":"CveRadarI18nResources","translation":"Agent version","translationDE":"Agent-Version","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"plugins.cveradar.device.check","bundleName":"CveRadarI18nResources","translation":"Check","translationDE":"Prüfung","usedInClasses":[],"usedInFiles":[]},

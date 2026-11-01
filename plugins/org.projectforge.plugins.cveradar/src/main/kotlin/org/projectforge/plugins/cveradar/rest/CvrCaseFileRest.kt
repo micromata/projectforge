@@ -149,6 +149,12 @@ class CvrCaseFileRest {
         return fileService.saveMeasures(ThreadLocalUserContext.requiredLoggedInUser, id, request)
     }
 
+    @AccessChecked("CvrCaseFileService.saveDescription: security team")
+    @PostMapping("case/{id}/description")
+    fun description(@PathVariable id: Long, @RequestBody request: DescriptionRequest): CaseFile {
+        return fileService.saveDescription(ThreadLocalUserContext.requiredLoggedInUser, id, request)
+    }
+
     @AccessChecked("CvrCaseFileService.mass: security team, per vulnerability the rules of the single action")
     @PostMapping("mass")
     fun mass(@RequestBody request: MassRequest): List<MassResult> {
