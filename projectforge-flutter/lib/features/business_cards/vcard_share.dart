@@ -23,9 +23,9 @@
 
 import 'dart:io';
 
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../core/cache/shared_files.dart';
 import 'business_card.dart';
 import 'business_cards_repository.dart';
 
@@ -38,7 +38,7 @@ Future<void> shareVCard(
   final name =
       (card.displayName.isNotEmpty ? card.displayName : card.cardName ?? 'card')
           .replaceAll(RegExp(r'[^\w\- ]+', unicode: true), '_');
-  final file = File('${(await getTemporaryDirectory()).path}/$name.vcf');
+  final file = File('${(await SharedFiles().directory()).path}/$name.vcf');
   await file.writeAsBytes(bytes, flush: true);
   await SharePlus.instance.share(
     ShareParams(files: [XFile(file.path, mimeType: 'text/vcard')]),

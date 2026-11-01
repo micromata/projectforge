@@ -26,6 +26,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../api/api_client.dart';
 import '../api/api_exception.dart';
 import '../cache/json_cache.dart';
+import '../cache/shared_files.dart';
 import '../web/web_cookies.dart';
 import 'app_login.dart';
 import 'device_description.dart';
@@ -47,6 +48,7 @@ final sessionStoreProvider = Provider<SessionStore>((ref) => SessionStore());
 final appLoginProvider = Provider<AppLogin>((ref) => AppLogin());
 final jsonCacheProvider = Provider<JsonCache>((ref) => JsonCache());
 final webCookiesProvider = Provider<WebCookies>((ref) => WebCookies());
+final sharedFilesProvider = Provider<SharedFiles>((ref) => SharedFiles());
 final deviceDescriptionProvider = FutureProvider<DeviceDescription>(
   (ref) => DeviceDescription.load(),
 );
@@ -97,11 +99,12 @@ class AuthController extends Notifier<AuthState> {
 
   /// Logs in at [serverInput] (as typed by the user) in the browser.
   ///
-  /// Throws [InvalidServerUrl], [AppLoginCancelled] if the user cancelled, [ApiException] if the server isn't a reachable
+  /// Throws [InvalidServerUrl], [InsecureServerUrl] for plain http in a release build, [AppLoginCancelled] if the user cancelled, [ApiException] if the server isn't a reachable
   /// ProjectForge or refused the code.
   Future<void> login(String serverInput) async {
     final serverUrl = AppLogin.normalizeServerUrl(serverInput);
     if (serverUrl == null) throw InvalidServerUrl();
+    if (AppLogin.isInsecure(serverUrl)) throw InsecureServerUrl();
     final appLogin = ref.read(appLoginProvider);
     await appLogin.systemStatus(serverUrl);
     final device = await ref.read(deviceDescriptionProvider.future);
@@ -134,12 +137,31 @@ class AuthController extends Notifier<AuthState> {
             platform: device.platform,
             deviceId: session.deviceId,
           );
+      if (renewed.userId != session.userId ||
+          renewed.deviceId != session.deviceId) {
+        await _switchTo(renewed);
+        return false;
+      }
       await ref.read(sessionStoreProvider).save(renewed);
       state = AuthState(AuthStatus.loggedIn, session: renewed);
       return true;
     } on Object {
       return false;
     }
+  }
+
+  /// The browser was logged in as another user, for whom the server registered this app anew: the old user is logged
+  /// out (at the server too, best effort), and nothing of them stays (cache, cookies, tabs). The request that asked
+  /// for the renewal was the old user's and fails.
+  Future<void> _switchTo(Session renewed) async {
+    try {
+      await ref.read(apiClientProvider)?.post<void>('/rs/appAuth/logout');
+    } on ApiException {
+      // The old token expires anyway.
+    }
+    await _clearLocalData();
+    await ref.read(sessionStoreProvider).save(renewed);
+    state = AuthState(AuthStatus.loggedIn, session: renewed);
   }
 
   /// Logs the app out at the server (its token is deleted) and here.
@@ -159,9 +181,15 @@ class AuthController extends Notifier<AuthState> {
 
   Future<void> _forget(String? messageKey) async {
     await ref.read(sessionStoreProvider).clear();
-    await ref.read(jsonCacheProvider).clearAll();
-    // The web session of the WebView: its server side ends with the app's token (LoginService.appWebLogin).
-    await ref.read(webCookiesProvider).clear();
+    await _clearLocalData();
     state = AuthState(AuthStatus.loggedOut, messageKey: messageKey);
+  }
+
+  /// The user's data on the device: the cache, the files handed to the share sheet, and the web session and storage
+  /// of the WebView (its server side ends with the app's token, LoginService.appWebLogin).
+  Future<void> _clearLocalData() async {
+    await ref.read(jsonCacheProvider).clearAll();
+    await ref.read(sharedFilesProvider).clearAll();
+    await ref.read(webCookiesProvider).clear();
   }
 }

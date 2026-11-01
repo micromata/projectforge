@@ -6,6 +6,7 @@
   "app.logout.question": "Log out the app? It can only be used again after a new login.",
   "app.businessCard.createOnDesktop": "Create and edit business cards in the web version",
   "app.offline": "No connection to the server: the cards as last loaded.",
+  "app.server.httpsRequired": "The server must be reachable via https.",
   "app.server.invalid": "This is no valid server address.",
   "app.server.label": "Server",
   "app.server.unreachable": "The server can't be reached.",

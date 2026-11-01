@@ -75,7 +75,14 @@ class Session {
 /// for the next login.
 class SessionStore {
   SessionStore([FlutterSecureStorage? storage])
-    : _storage = storage ?? const FlutterSecureStorage();
+    : _storage =
+          storage ??
+          const FlutterSecureStorage(
+            // Not in backups or on another device: the token belongs to this one.
+            iOptions: IOSOptions(
+              accessibility: KeychainAccessibility.first_unlock_this_device,
+            ),
+          );
 
   static const _sessionKey = 'session';
   static const _serverUrlKey = 'serverUrl';

@@ -6,6 +6,7 @@
   "app.logout.question": "Die App abmelden? Sie kann erst nach einer neuen Anmeldung wieder genutzt werden.",
   "app.businessCard.createOnDesktop": "Visitenkarten erstellen und bearbeiten: in der Webversion",
   "app.offline": "Keine Verbindung zum Server: die Karten nach dem letzten Stand.",
+  "app.server.httpsRequired": "Der Server muss über https erreichbar sein.",
   "app.server.invalid": "Das ist keine gültige Server-Adresse.",
   "app.server.label": "Server",
   "app.server.unreachable": "Der Server ist nicht erreichbar.",

@@ -48,6 +48,10 @@ in the web — an authorization code flow with PKCE (`AppAuthService`):
    for 2 minutes and consumed by the first attempt.
 4. The app exchanges code and verifier at `POST /rsPublic/appAuth/token` (throttled per ip address) for its token.
 
+Only https in release builds (`AppLogin.isInsecure`): Dio (`dart:io`) isn't bound by iOS ATS nor by the cleartext
+policy of Android, so plain http would send code, verifier and token in clear. Debug builds allow http for the
+development servers.
+
 Every request then carries `Authorization: PFApp <token>` (`RestAuthenticationUtils.appTokenAuthentication`): no
 session, no cookies, no CSRF token. One row per app in `T_PF_USER_APP_DEVICE` (`AppDeviceDO`, SHA-256 of the token
 only), shown and logged out in "My account" (`MyAccountRest.appDevices`, `logoutAppDevice`). The token expires 90
@@ -58,7 +62,13 @@ devices" delete the apps of the user.
 `UserContext.lastSuccessful2FA` of each request, so the 2FA protected urls (`projectforge.2fa.expiryPeriod.*`) work
 as in the web. Too old, the server answers 403 `twoFactorRequired` (unlike a REST client token, which is refused
 for good); the app logs in again in the browser with its `deviceId`, which keeps the row and renews token and
-`last_2fa`, and repeats the request (`ApiClient`).
+`last_2fa`, and repeats the request (`ApiClient`). If the browser is logged in as another user, the server registers the app
+anew for that user: the app then logs the old user out (`/rs/appAuth/logout`), forgets their data (cache, shared
+files, WebView data), starts the tabs anew (`HomeScreen` keyed by device) and fails the request.
+
+**On the device:** the token is in the keychain (`first_unlock_this_device`, not in backups) or the keystore; Android
+has no backups at all (`allowBackup="false"`). The logout deletes the cache, the files handed to the share sheet
+(`SharedFiles`: downloads, vCards) and the cookies, cache and web storage of the WebView.
 
 ## Web pages in the app
 
@@ -81,7 +91,9 @@ app has only its token:
 - **Session lost** (timeout, server restart): next shows `/next/login?returnUrl=…`; the app sees it
   (`shouldOverrideUrlLoading`, `onUpdateVisitedHistory` for client side navigations), opens a new session and returns
   to `returnUrl` (only a path of the own server). At most once per 30 s, otherwise an error with "retry".
-- **Navigation:** the own server stays in the WebView; other sites, `mailto:`, `tel:` open in the system.
+- **Navigation:** the own server stays in the WebView; other sites, `mailto:`, `tel:` open in the system. `data:`
+  pages are refused (without an address bar they would look like pages of the server), as are unknown schemes; no
+  file or content access.
 - **App mode of next:** the user agent carries `ProjectForgeApp/<version>` (`lib/app-mode.ts`): next hides its
   logout, the app has its own. Only for the UI, never a security check.
 - **No JavaScript handlers** in the WebView: the pages never get hold of the app token.
@@ -128,5 +140,6 @@ the user.
 - Manual tests on a device: login with WebAuthn (passkey of the platform and security key), OTP, renewal on a 2FA
   protected url, logout in the web, QR code offline.
 - Android: plain http to the development server (`10.0.2.2`) needs a debug network security config.
+- Release signing: the Android release build is still signed with the debug key (`android/app/build.gradle.kts`).
 - Store presence: app icons, privacy declarations, review notes (a chat is user generated content: report and block).
 - User and admin guide (EN+DE) once the app is distributed.

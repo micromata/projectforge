@@ -65,6 +65,14 @@ void main() {
         navigation.decide(Uri.parse('intent://scan/#Intent;end')),
         WebNavigationTarget.cancel,
       );
+      expect(
+        navigation.decide(Uri.parse('data:text/html,<form>Login</form>')),
+        WebNavigationTarget.cancel,
+      );
+      expect(
+        navigation.decide(Uri.parse('blob:https://pf.example.org/4711')),
+        WebNavigationTarget.webView,
+      );
     });
   });
 

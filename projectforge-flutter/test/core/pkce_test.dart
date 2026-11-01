@@ -68,4 +68,19 @@ void main() {
     expect(AppLogin.normalizeServerUrl(''), isNull);
     expect(AppLogin.normalizeServerUrl('ftp://pf.example.com'), isNull);
   });
+
+  test('plain http only for development builds', () {
+    expect(
+      AppLogin.isInsecure('http://pf.example.com', allowHttp: false),
+      isTrue,
+    );
+    expect(
+      AppLogin.isInsecure('https://pf.example.com', allowHttp: false),
+      isFalse,
+    );
+    expect(
+      AppLogin.isInsecure('http://localhost:8086', allowHttp: true),
+      isFalse,
+    );
+  });
 }

@@ -64,11 +64,21 @@ class WebCookies {
     return header.isEmpty ? null : header;
   }
 
-  /// Removes all cookies and the cache of the WebView (logout of the app).
+  /// Removes all cookies, the cache and the web storage (localStorage, IndexedDB, …) of the WebView (logout of the
+  /// app): nothing of the pages stays on the device.
   Future<void> clear() async {
     try {
       await CookieManager.instance().deleteAllCookies();
       await InAppWebViewController.clearAllCache();
+      final storage = WebStorageManager.instance();
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        await storage.deleteAllData();
+      } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+        await storage.removeDataModifiedSince(
+          dataTypes: WebsiteDataType.ALL,
+          date: DateTime.fromMillisecondsSinceEpoch(0),
+        );
+      }
     } on MissingPluginException {
       // No WebView platform (tests).
     }

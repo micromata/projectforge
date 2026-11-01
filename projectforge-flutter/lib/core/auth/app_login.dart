@@ -22,6 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
@@ -35,6 +36,9 @@ class AppLoginCancelled implements Exception {}
 
 /// The user typed something that is no server url.
 class InvalidServerUrl implements Exception {}
+
+/// A server url with plain http in a release build: the token would travel in clear.
+class InsecureServerUrl implements Exception {}
 
 /// The login of the app (see AppAuthService of the server): the login page of the server opens in the system
 /// browser, so password, WebAuthn and OTP work as in the web, for any domain. Its callback
@@ -141,6 +145,11 @@ class AppLogin {
         .toString()
         .replaceAll(RegExp(r'[?#]$'), '');
   }
+
+  /// Plain http is only for the development servers (debug builds): the code, its verifier and the token would
+  /// otherwise travel in clear. Dio (dart:io) isn't bound by iOS ATS nor by the cleartext policy of Android.
+  static bool isInsecure(String serverUrl, {bool allowHttp = kDebugMode}) =>
+      !allowHttp && Uri.parse(serverUrl).scheme == 'http';
 
   static Future<String> _authenticateInBrowser(String url) =>
       FlutterWebAuth2.authenticate(url: url, callbackUrlScheme: callbackScheme);

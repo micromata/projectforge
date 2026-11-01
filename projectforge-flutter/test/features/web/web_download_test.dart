@@ -114,7 +114,7 @@ void main() {
         expect(headers['Cookie'], 'JSESSIONID=web');
         expect(headers.containsKey('Authorization'), isFalse);
         expect(adapter.requests.single.followRedirects, isFalse);
-        expect(file.path, endsWith('/downloads/f.txt'));
+        expect(file.path, '${directory.path}/f.txt');
         expect(await file.readAsString(), '"content"');
       },
     );

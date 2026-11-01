@@ -44,7 +44,9 @@ class ApiClient {
     this.dio.options
       ..baseUrl = serverUrl
       ..connectTimeout = const Duration(seconds: 15)
-      ..receiveTimeout = const Duration(seconds: 30);
+      ..receiveTimeout = const Duration(seconds: 30)
+      // The api never redirects: the Authorization header must not follow a redirect elsewhere.
+      ..followRedirects = false;
     this.dio.interceptors.add(
       InterceptorsWrapper(onRequest: _onRequest, onError: _onError),
     );

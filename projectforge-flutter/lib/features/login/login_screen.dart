@@ -77,6 +77,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       // The user closed the browser: nothing to report.
     } on InvalidServerUrl {
       setState(() => _error = context.t('app.server.invalid'));
+    } on InsecureServerUrl {
+      setState(() => _error = context.t('app.server.httpsRequired'));
     } on ApiException catch (e) {
       setState(
         () => _error = e.isOffline

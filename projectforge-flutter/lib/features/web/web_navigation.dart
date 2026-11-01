@@ -45,7 +45,9 @@ class WebNavigation {
 
   static const _loginPath = '/next/login';
   static const _externalSchemes = {'mailto', 'tel', 'sms'};
-  static const _inlineSchemes = {'about', 'blob', 'data'};
+
+  /// Not `data:`: a page of its own, which the app (without an address bar) would show like one of the server.
+  static const _inlineSchemes = {'about', 'blob'};
 
   WebNavigationTarget decide(Uri target) {
     if (target.scheme == 'http' || target.scheme == 'https') {

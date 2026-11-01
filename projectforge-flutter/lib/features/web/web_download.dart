@@ -24,8 +24,8 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:path_provider/path_provider.dart';
 
+import '../../core/cache/shared_files.dart';
 import 'web_navigation.dart';
 
 /// A download started by the pages in the WebView (a chat file, a data transfer file, …), which a WebView doesn't do
@@ -40,7 +40,7 @@ class WebDownload {
     Dio? dio,
     Future<Directory> Function()? directory,
   }) : _dio = dio ?? Dio(),
-       _directory = directory ?? getTemporaryDirectory {
+       _directory = directory ?? SharedFiles().directory {
     _dio.options
       ..connectTimeout = const Duration(seconds: 15)
       ..receiveTimeout = const Duration(minutes: 5)
@@ -76,9 +76,7 @@ class WebDownload {
       suggestedFilename: suggestedFilename,
       url: url,
     );
-    final dir = Directory('${(await _directory()).path}/downloads');
-    await dir.create(recursive: true);
-    final file = File('${dir.path}/$name');
+    final file = File('${(await _directory()).path}/$name');
     await file.writeAsBytes(response.data ?? const [], flush: true);
     return file;
   }

@@ -236,6 +236,9 @@ class _WebScreenState extends ConsumerState<WebScreen> {
               javaScriptCanOpenWindowsAutomatically: false,
               supportMultipleWindows: false,
               useOnDownloadStart: true,
+              // Only pages of the server, never files of the device.
+              allowFileAccess: false,
+              allowContentAccess: false,
             ),
             pullToRefreshController: _pullToRefresh,
             onWebViewCreated: (controller) => _controller = controller,

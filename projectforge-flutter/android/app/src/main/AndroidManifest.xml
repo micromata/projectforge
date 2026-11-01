@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- No backups: the cache, the WebView data and the key store entries of the login stay on this device. -->
     <application
+        android:allowBackup="false"
+        android:fullBackupContent="false"
         android:label="ProjectForge"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
