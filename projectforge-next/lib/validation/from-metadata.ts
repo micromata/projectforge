@@ -46,6 +46,8 @@ type Translate = (key: string) => string;
 export interface SelectOption {
   value: string;
   label: string;
+  /** What the value means, shown below it in the open list (see DeclaredField.optionHintKeyPrefix). */
+  description?: string;
 }
 
 export function fromMetadata<M extends EntityMetadata>(metadata: M) {

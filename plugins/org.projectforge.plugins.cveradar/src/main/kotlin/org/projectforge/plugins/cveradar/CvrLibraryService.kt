@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.cveradar
 
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.plugins.cveradar.model.CvrCatalogNodeDO
 import org.projectforge.plugins.cveradar.model.CvrComponentDO
@@ -40,9 +41,9 @@ import java.time.LocalDate
 
 /**
  * The libraries of a component read from lists (INV-14, INV-26): SBOMs, the `package-lock.json` of npm, the output of
- * Maven and of Gradle. Several lists are merged; by default they only add to what an earlier upload brought, with `replace` the
- * libraries missing in all of them are removed. Technologies entered by hand are never touched. The caller checks the
- * access to the component (see [CvrInventoryService]).
+ * Maven and of Gradle, single or in a zip ([LibraryArchive]). Several lists are merged; by default they only add to what
+ * an earlier upload brought, with `replace` the libraries missing in all of them are removed. Technologies entered by
+ * hand are never touched. The caller checks the access to the component (see [CvrInventoryService]).
  */
 @Service
 class CvrLibraryService {
@@ -125,12 +126,16 @@ class CvrLibraryService {
     }
 
     private fun plan(component: CvrComponentDO, request: LibraryRequest, catalog: Catalog): Plan {
-        val parsed = LibraryListParser.parseAll(request.files.map { (it.name ?: "").take(255) to (it.text ?: "") })
+        if (request.files.size > LibraryListParser.MAX_FILES) {
+            throw UserException(LibraryListParser.ERROR_TOO_MANY_FILES, LibraryListParser.MAX_FILES.toString())
+        }
+        val files = LibraryArchive.expand(request.files.map { Triple((it.name ?: "").take(255), it.text, it.data) })
+        val parsed = LibraryListParser.parseAll(files.map { (name, text) -> name.take(255) to text })
         val wanted = LinkedHashMap<String, Pair<LibraryEntry, CvrOrigin>>()
         parsed.forEach { file ->
             val origin = when (file.format) {
                 LibraryFormat.CYCLONEDX, LibraryFormat.SPDX -> CvrOrigin.SBOM
-                LibraryFormat.NPM, LibraryFormat.YARN, LibraryFormat.PIP, LibraryFormat.GO, LibraryFormat.CARGO,
+                LibraryFormat.NPM, LibraryFormat.YARN, LibraryFormat.PNPM, LibraryFormat.PIP, LibraryFormat.GO, LibraryFormat.CARGO,
                 LibraryFormat.COMPOSER -> CvrOrigin.LOCKFILE
                 LibraryFormat.DEB, LibraryFormat.APK, LibraryFormat.RPM -> CvrOrigin.PACKAGE_LIST
                 LibraryFormat.JAR -> CvrOrigin.JAR_LIST

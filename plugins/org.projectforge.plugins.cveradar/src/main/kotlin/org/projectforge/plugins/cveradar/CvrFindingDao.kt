@@ -47,10 +47,24 @@ class CvrFindingDao : CvrBaseDao<CvrFindingDO>(CvrFindingDO::class.java) {
         )
     }
 
-    /** All findings (deleted ones not), for the counts of the inventory tree. */
+    /** The open findings of the given instances, for the report of a node; none deleted, none of a deleted CVE. */
+    fun selectOpenByInstances(instanceIds: Collection<Long>): List<CvrFindingDO> {
+        if (instanceIds.isEmpty()) {
+            return emptyList()
+        }
+        return persistenceService.executeQueryBatched(
+            "select f from CvrFindingDO f where f.deleted = false and f.vulnerability.deleted = false and f.status = :status and f.instance.id in :ids",
+            CvrFindingDO::class.java,
+            "ids",
+            instanceIds,
+            Pair("status", CvrFindingStatus.NEW),
+        )
+    }
+
+    /** All open findings, for the counts of the inventory tree; none deleted, none of a deleted CVE. */
     fun selectAllOpen(): List<CvrFindingDO> {
         return persistenceService.executeQuery(
-            "select f from CvrFindingDO f where f.deleted = false and f.status = :status",
+            "select f from CvrFindingDO f where f.deleted = false and f.vulnerability.deleted = false and f.status = :status",
             CvrFindingDO::class.java,
             Pair("status", CvrFindingStatus.NEW),
         )

@@ -29,7 +29,7 @@ import org.projectforge.common.i18n.UserException
 import java.net.URLDecoder
 
 /** The formats of the lists a component's libraries are read from. */
-enum class LibraryFormat { NPM, YARN, PIP, GO, CARGO, COMPOSER, MAVEN, GRADLE, JAR, DEB, APK, RPM, CYCLONEDX, SPDX }
+enum class LibraryFormat { NPM, YARN, PNPM, PIP, GO, CARGO, COMPOSER, MAVEN, GRADLE, JAR, DEB, APK, RPM, CYCLONEDX, SPDX }
 
 /**
  * One library of a list: [ecosystem] is the purl type (`maven`, `npm`, `pypi`, `deb`, ...), [group] the purl namespace
@@ -66,7 +66,8 @@ class ParsedLibraryFile(val name: String, val format: LibraryFormat?, val entrie
 
 /**
  * Reads the lists a component's libraries come from (INV-14, INV-26): SBOMs (CycloneDX JSON, SPDX JSON), the
- * `package-lock.json` of npm, the output of `mvn dependency:list` (or `dependency:tree`) and of `gradle dependencies`.
+ * `package-lock.json` of npm, the lockfiles of yarn and pnpm, the output of `mvn dependency:list` (or `dependency:tree`)
+ * and of `gradle dependencies`, also from a zip ([LibraryArchive]).
  * The format is told from the content.
  * Nothing is executed or resolved; the files are untrusted (SEC-05): sizes and counts are limited.
  */
@@ -92,11 +93,14 @@ object LibraryListParser {
     private val APK_LINE = Regex("""^([a-z0-9][a-z0-9._+\-]*)-(\d[A-Za-z0-9._]*-r\d+)$""")
     private val RPM_LINE = Regex("""^(?:\d+:)?([A-Za-z0-9][A-Za-z0-9._+\-]*)-(\d[^\s-]*-[^\s-]+)\.(x86_64|aarch64|noarch|i[3-6]86|armv\d\w*|ppc64le|s390x|src)$""")
     private val DEB_LINE = Regex("""^(?:ii\s+)?((?=[a-z0-9+.\-]*[a-z])[a-z0-9][a-z0-9+.\-]*)(?::[a-z0-9]+)?\s+((?:\d+:)?\d[A-Za-z0-9.+~:\-]*)(?:\s+.*)?$""")
+    private val PNPM_RUNTIME = setOf("dependencies", "optionalDependencies")
     private val PURL = Regex("""^pkg:/*([A-Za-z][A-Za-z0-9.+\-]*)/(.+?)@([^?#]+)(?:\?([^#]*))?(?:#.*)?$""")
 
-    /** All files, parsed; the entries of all of them together are limited. */
+    /**
+     * All files, parsed; the entries of all of them together are limited. The number of uploaded files is checked by
+     * the caller ([MAX_FILES]), the files of a zip by [LibraryArchive].
+     */
     fun parseAll(files: List<Pair<String, String>>): List<ParsedLibraryFile> {
-        if (files.size > MAX_FILES) throw UserException(ERROR_TOO_MANY_FILES, MAX_FILES.toString())
         val parsed = files.map { (name, text) -> parse(name, text) }
         if (parsed.sumOf { it.entries.size } > MAX_ENTRIES) throw UserException(ERROR_TOO_MANY_ENTRIES, MAX_ENTRIES.toString())
         return parsed
@@ -119,6 +123,10 @@ object LibraryListParser {
             else ParsedLibraryFile(name, parsed.first, parsed.second)
         }
         val lines = text.lineSequence().toList()
+        if (lines.firstOrNull { it.isNotBlank() && !it.startsWith("#") }?.startsWith("lockfileVersion:") == true) {
+            val entries = parsePnpm(lines)
+            return ParsedLibraryFile(name, if (entries.isEmpty()) null else LibraryFormat.PNPM, entries)
+        }
         // Lists in lines: the format with the most entries wins, the others hardly match the text of a tool.
         val candidates = listOf(
             LibraryFormat.CARGO to parseCargo(lines),
@@ -278,6 +286,97 @@ object LibraryListParser {
     }
 
     /** `name==1.2.3` of a `requirements.txt` or `pip freeze`; the name as the purl has it (lower case, `-` for `_` and `.`). */
+    /**
+     * The packages of a `pnpm-lock.yaml` needed at runtime. From version 9 on (with `snapshots`) there is no `dev` flag:
+     * the packages are those reached from the `dependencies` and `optionalDependencies` of the importers (the project and
+     * its workspaces) through the dependencies of the snapshots. Before (`packages` only, keys `/name@1.2.3` or
+     * `/name/1.2.3`) the ones marked `dev: true` are left out. Links, local files and tarballs are no registry packages.
+     */
+    private fun parsePnpm(lines: List<String>): List<LibraryEntry> {
+        val roots = mutableListOf<String>()
+        val graph = mutableMapOf<String, MutableList<String>>()
+        val packages = mutableMapOf<String, Boolean>() // key -> dev
+        var section: String? = null
+        var key: String? = null
+        var sub: String? = null
+        var dependency: String? = null
+        var withSnapshots = false
+        var v5 = false
+        lines.forEach { line ->
+            if (line.isBlank() || line.trimStart().startsWith("#")) return@forEach
+            val indent = line.length - line.trimStart().length
+            val (name, value) = yamlKeyValue(line.trim()) ?: return@forEach
+            when (indent) {
+                0 -> {
+                    section = name
+                    if (name == "snapshots") withSnapshots = true
+                    if (name == "lockfileVersion") v5 = (value?.substringBefore('.')?.toIntOrNull() ?: 0) < 6
+                }
+                2 -> { key = name; sub = null; if (section == "packages") packages[name] = false }
+                4 -> {
+                    sub = name
+                    if (section == "packages" && name == "dev" && value == "true") packages[key!!] = true
+                }
+                6 -> when {
+                    sub !in PNPM_RUNTIME -> Unit
+                    section == "importers" -> dependency = name
+                    section == "snapshots" && value != null ->
+                        pnpmKey(name, value)?.let { graph.getOrPut(key!!) { mutableListOf() }.add(it) }
+                }
+                8 -> if (section == "importers" && sub in PNPM_RUNTIME && name == "version" && value != null) {
+                    dependency?.let { pnpmKey(it, value) }?.let { roots.add(it) }
+                }
+            }
+        }
+        val keys = if (withSnapshots) {
+            val visited = LinkedHashSet<String>()
+            val queue = ArrayDeque(roots)
+            while (queue.isNotEmpty()) {
+                val next = queue.removeFirst()
+                if (visited.add(next)) graph[next]?.let { queue.addAll(it) }
+            }
+            visited.toList()
+        } else {
+            packages.filterValues { !it }.keys.filter { it.startsWith("/") }.map { pkg ->
+                val path = pkg.removePrefix("/")
+                // v5: `/@scope/name/1.2.3_peer`, v6: `/@scope/name@1.2.3(peer)`.
+                if (!v5) path else path.substringBeforeLast('/') + "@" + path.substringAfterLast('/').substringBefore('_')
+            }
+        }
+        return keys.mapNotNull { pnpmEntry(it) }.distinct()
+    }
+
+    /** The key of a snapshot a dependency refers to: `name@version(peers)`, or the target of an alias (`name@version`). */
+    private fun pnpmKey(name: String, version: String): String? =
+        when {
+            version.substringBefore('(').contains(':') -> null
+            version.substringBefore('(').indexOf('@', 1) > 0 -> version
+            else -> "$name@$version"
+        }
+
+    private fun pnpmEntry(key: String): LibraryEntry? {
+        val at = key.indexOf('@', 1).takeIf { it > 0 } ?: return null
+        val name = key.substring(0, at)
+        val version = key.substring(at + 1).substringBefore('(')
+        if (version.isEmpty() || version.contains(':') || version.contains('/')) return null
+        val scope = name.takeIf { it.startsWith("@") }?.substringBefore('/')
+        return LibraryEntry("npm", scope, if (scope != null) name.substringAfter('/') else name, version)
+    }
+
+    /** The key (unquoted) and the value of a line of a YAML mapping (`key:` or `key: value`); null for a list item. */
+    private fun yamlKeyValue(text: String): Pair<String, String?>? {
+        if (text.startsWith("- ")) return null
+        val (key, rest) = if (text.startsWith("'") || text.startsWith("\"")) {
+            val end = text.indexOf(text[0], 1).takeIf { it > 0 } ?: return null
+            text.substring(1, end) to text.substring(end + 1)
+        } else {
+            val colon = text.indexOf(": ").takeIf { it > 0 } ?: if (text.endsWith(":")) text.length - 1 else return null
+            text.substring(0, colon) to text.substring(colon)
+        }
+        if (!rest.startsWith(":")) return null
+        return key to rest.substring(1).trim().trim('\'', '"').takeIf { it.isNotEmpty() }
+    }
+
     private fun parsePipLine(line: String): LibraryEntry? {
         val match = PIP_LINE.matchEntire(line.trim()) ?: return null
         val (name, version) = match.destructured
