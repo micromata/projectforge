@@ -1591,6 +1591,25 @@ about an hour after the end).
   system that asks how to fix every vulnerability. _Replace the names of the files_ (on by default) turns them into
   `F1`, `F2`, … because their paths often carry project names.
 
+[[cve_radar_notifications]]
+=== CVE-Radar: notifications
+
+Notifications are set up by an admin as rules (page _Notification rules_). Two rule types belong to the
+CVE-Radar. Nobody is notified until such a rule exists; the admin chooses the recipients and the delivery (in the app,
+by mail) for each rule.
+
+* *New findings of the CVE radar*: the responsible team of an affected system (the group of the system or of the nearest
+  area above) is notified right after the matching found something new; the recipients of the rule get it in copy. A rule
+  starts from a CVSS severity (known exploited vulnerabilities always), optionally with possible findings and
+  vulnerabilities not yet rated. A new rule starts with a text that names no details: _For a system in your
+  responsibility there may be updates_, with a link to the list; who may see what is decided there. The text can name
+  the vulnerabilities and systems with the variables of the rule instead.
+* *Outdated lists of libraries of the CVE radar*: the findings of a component are only as good as its list of libraries.
+  If the last list of a component was applied more than the given number of days ago (30 by default), the responsible
+  team and the recipients in copy are told, at most once a week; the notification is resolved as soon as the list is
+  updated. Components that never had a list from a file are left out.
+* Everybody is told only of the systems and instances they may see.
+
 [[further_features]]
 === Further features
 

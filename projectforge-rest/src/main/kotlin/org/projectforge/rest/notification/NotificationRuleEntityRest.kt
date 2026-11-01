@@ -219,6 +219,9 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         if (dto.ruleType == NotificationRuleType.CVERADAR_FINDINGS && dto.cvrMinSeverity !in CVR_SEVERITIES) {
             validationErrors += ValidationError(translate("notification.rule.error.cvrMinSeverity"), fieldId = "cvrMinSeverity")
         }
+        if (dto.ruleType == NotificationRuleType.CVERADAR_STALE_LISTS && dto.cvrMaxAgeDays !in 1..365) {
+            validationErrors += ValidationError(translate("notification.rule.error.cvrMaxAgeDays"), fieldId = "cvrMaxAgeDays")
+        }
     }
 
     /** A rule of time sheets without cost 2 unit notifies nobody, as long as these aren't reported at all. */

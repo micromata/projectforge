@@ -3614,6 +3614,7 @@
     "params": {
       "cvrIncludePossible": "Auch mögliche Befunde (über den Namen oder ohne Version)",
       "cvrIncludeUnscored": "Auch noch nicht bewertete Schwachstellen (ohne CVSS-Wert)",
+      "cvrMaxAgeDays": "Bibliothekslisten älter als (Tage)",
       "cvrMinSeverity": "Ab CVSS-Schweregrad (bekannt ausgenutzte immer)",
       "cvrRecipientsInfo": "Das verantwortliche Team eines betroffenen Systems (die Gruppe des Systems oder des nächsten Bereichs darüber) bekommt die Benachrichtigung immer; die hier angegebenen Empfänger in Kopie. Genannt werden jeweils nur die sichtbaren Systeme, jeder Befund einmal. Die Regel läuft direkt nach dem Abgleich, sobald er etwas Neues gefunden hat.",
       "daysBeforeExpiry": "Tage vor dem Verfall",
@@ -3657,6 +3658,7 @@
       "editableByGroups": "Bearbeitbar von Gruppen",
       "editableByGroupsInfo": "Leer: von allen Admins und Mitgliedern der Finanzgruppe. Admins können die Regel immer bearbeiten.",
       "error": {
+        "cvrMaxAgeDays": "Die Anzahl der Tage muss zwischen 1 und 365 liegen.",
         "cvrMinSeverity": "Der Schweregrad muss LOW, MEDIUM, HIGH oder CRITICAL sein.",
         "day": "Der Tag muss zwischen 0 und 15 (Arbeitstage vor Monatsende) bzw. 1 und 31 (Tag im Monat) liegen.",
         "dayOfWeek": "Ein Wochentag ist erforderlich.",
@@ -3705,6 +3707,7 @@
     "ruleTypes": {
       "CREDITOR_INVOICES_DUE": "Fällige Kreditorenrechnungen",
       "CVERADAR_FINDINGS": "Neue Befunde des CVE-Radars",
+      "CVERADAR_STALE_LISTS": "Veraltete Bibliothekslisten des CVE-Radars",
       "MANUAL": "Manuell (ohne Bedingung)",
       "PASSWORD_NOT_CHANGED": "Passwort lange nicht geändert",
       "TIMESHEETS_MISSING": "Fehlende Zeitberichte",
@@ -3750,6 +3753,12 @@
     },
     "subject": "Betreff",
     "subsystemDetail": "{arg0} aktive Regel(n), {arg1} offene Benachrichtigung(en), {arg2} fällige Zustellung(en)",
+    "template": {
+      "findingsSubject": "Mögliche Updates für eure Systeme",
+      "findingsText": "<p>Für ein System in eurer Verantwortung gibt es möglicherweise Updates. Details stehen im CVE-Radar: [cvrListLink]</p>",
+      "staleListsSubject": "Bibliotheksliste möglicherweise veraltet",
+      "staleListsText": "<p>Die Bibliotheksliste von [cvrStaleCount] Komponente(n) in eurer Verantwortung wurde zuletzt vor mehr als [cvrMaxAgeDays] Tagen aktualisiert. Neue Schwachstellen werden dann nicht erkannt. Bitte eine aktuelle Liste hochladen: [cvrListLink]</p><p>[cvrStaleList]</p>"
+    },
     "testDelivered": "Test sofort gesendet (unabhängig von den Verzögerungen): {arg0}",
     "testFailed": "Nicht gesendet: {arg0}",
     "testMissingText": "Für einen Test werden Betreff und Text benötigt.",
@@ -3763,9 +3772,13 @@
       "creditorInvoicesDueSum": "Bruttosumme der fälligen Kreditorenrechnungen",
       "cvrFindingCount": "Anzahl neuer Befunde (Schwachstelle × Instanz)",
       "cvrLink": "Link zur Schwachstelle (bei mehreren: zur Liste)",
+      "cvrListLink": "Link zur Liste der Schwachstellen (nennt keine)",
+      "cvrMaxAgeDays": "Tage, nach denen eine Liste veraltet ist",
       "cvrMaxCvss": "Höchster CVSS-Wert",
       "cvrMaxSeverity": "Höchster Schweregrad",
       "cvrMinSeverity": "Schweregrad, ab dem die Regel meldet",
+      "cvrStaleCount": "Anzahl der Komponenten mit veralteter Liste",
+      "cvrStaleList": "Komponenten mit veralteter Liste (System, Instanz, Komponente, Tag der letzten Liste)",
       "cvrSystemList": "Betroffene Systeme (Anzahl Schwachstellen)",
       "cvrVulnerabilityCount": "Anzahl Schwachstellen",
       "cvrVulnerabilityList": "Schwachstellen (CVE, Schweregrad, Systeme und Instanzen, Technologie; ? nur möglich)",

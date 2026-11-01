@@ -3614,6 +3614,7 @@
     "params": {
       "cvrIncludePossible": "Possible findings too (by name or without a version)",
       "cvrIncludeUnscored": "Vulnerabilities not yet rated too (without CVSS score)",
+      "cvrMaxAgeDays": "Lists of libraries older than (days)",
       "cvrMinSeverity": "From CVSS severity on (known exploited ones always)",
       "cvrRecipientsInfo": "The responsible team of an affected system (the group of the system or of the nearest area above) always gets the notification; the recipients given here get it in copy. Each notification names only the systems visible to its recipient, every finding once. The rule runs right after the matching found something new.",
       "daysBeforeExpiry": "Days before expiry",
@@ -3657,6 +3658,7 @@
       "editableByGroups": "Editable by groups",
       "editableByGroupsInfo": "Empty: by all admins and members of the finance group. Admins may always edit the rule.",
       "error": {
+        "cvrMaxAgeDays": "The number of days must be between 1 and 365.",
         "cvrMinSeverity": "The severity must be LOW, MEDIUM, HIGH or CRITICAL.",
         "day": "The day must be between 0 and 15 (working days before the end of the month) or 1 and 31 (day of the month).",
         "dayOfWeek": "A weekday is required.",
@@ -3705,6 +3707,7 @@
     "ruleTypes": {
       "CREDITOR_INVOICES_DUE": "Creditor invoices due",
       "CVERADAR_FINDINGS": "New findings of the CVE radar",
+      "CVERADAR_STALE_LISTS": "Outdated lists of libraries of the CVE radar",
       "MANUAL": "Manual (no condition)",
       "PASSWORD_NOT_CHANGED": "Password not changed for a long time",
       "TIMESHEETS_MISSING": "Missing time sheets",
@@ -3750,6 +3753,12 @@
     },
     "subject": "Subject",
     "subsystemDetail": "{arg0} active rule(s), {arg1} pending notification(s), {arg2} due delivery step(s)",
+    "template": {
+      "findingsSubject": "Possible updates for your systems",
+      "findingsText": "<p>For a system in your responsibility there may be updates. Details are in the CVE radar: [cvrListLink]</p>",
+      "staleListsSubject": "List of libraries possibly outdated",
+      "staleListsText": "<p>The list of libraries of [cvrStaleCount] component(s) in your responsibility was last updated more than [cvrMaxAgeDays] days ago. New vulnerabilities are not found then. Please upload a current list: [cvrListLink]</p><p>[cvrStaleList]</p>"
+    },
     "testDelivered": "Test sent at once (regardless of the delays): {arg0}",
     "testFailed": "Not sent: {arg0}",
     "testMissingText": "Subject and text are required for a test.",
@@ -3763,9 +3772,13 @@
       "creditorInvoicesDueSum": "Gross sum of the creditor invoices due",
       "cvrFindingCount": "Number of new findings (vulnerability × instance)",
       "cvrLink": "Link to the vulnerability (several: to the list)",
+      "cvrListLink": "Link to the list of the vulnerabilities (names none)",
+      "cvrMaxAgeDays": "Days after which a list is outdated",
       "cvrMaxCvss": "Highest CVSS score",
       "cvrMaxSeverity": "Highest severity",
       "cvrMinSeverity": "Severity the rule starts from",
+      "cvrStaleCount": "Number of components with an outdated list",
+      "cvrStaleList": "Components with an outdated list (system, instance, component, day of the last list)",
       "cvrSystemList": "Affected systems (number of vulnerabilities)",
       "cvrVulnerabilityCount": "Number of vulnerabilities",
       "cvrVulnerabilityList": "Vulnerabilities (CVE, severity, systems and instances, technology; ? possible only)",

@@ -95,6 +95,7 @@ class CvrFindingsRuleHandler : NotificationRuleHandler {
         "cvrSystemList",
         "cvrMinSeverity",
         "cvrLink",
+        "cvrListLink",
     )
 
     /** What the variables show of a finding (a real one or an example). */
@@ -209,6 +210,8 @@ class CvrFindingsRuleHandler : NotificationRuleHandler {
             "cvrMinSeverity" to rule.readParams().cvrMinSeverity,
             // One vulnerability: its file; several: the list (of the affected ones by default).
             "cvrLink" to notificationLinks.absolute(single?.let { "$FILE_PATH/$it" } ?: LIST_PATH),
+            // Always the list, naming no vulnerability: for a text without details.
+            "cvrListLink" to notificationLinks.absolute(LIST_PATH),
         )
     }
 

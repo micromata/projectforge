@@ -64,6 +64,7 @@ export const notificationRuleSchema = z.object({
   cvrMinSeverity: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
   cvrIncludePossible: z.boolean(),
   cvrIncludeUnscored: z.boolean(),
+  cvrMaxAgeDays: count,
   recipientGroups: z.array(ref),
   recipientUsers: z.array(ref),
   allEmployees: z.boolean(),
