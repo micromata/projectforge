@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Order book: a payment schedule dated in a following month now also defers the invoice of a finished position (filter \"to be invoiced\", next invoice date)",
+  "de": "Auftragsbuch: Ein Zahlplan mit Datum in einem Folgemonat schiebt nun auch die Rechnung einer abgeschlossenen Position (Filter \"zu fakturieren\", nächste Rechnung)"
+}
