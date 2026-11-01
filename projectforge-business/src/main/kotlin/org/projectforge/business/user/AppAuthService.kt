@@ -25,9 +25,12 @@ package org.projectforge.business.user
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.TimeUnit
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.mail.Mail
+import org.projectforge.mail.SendMail
 import org.projectforge.security.ConstantTimeCompare
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -60,6 +63,9 @@ class AppAuthService {
     private lateinit var appDeviceDao: AppDeviceDao
 
     @Autowired
+    private lateinit var sendMail: SendMail
+
+    @Autowired
     private lateinit var userDao: UserDao
 
     private class PendingCode(
@@ -70,6 +76,8 @@ class AppAuthService {
         val renewDeviceId: Long?,
         val last2FA: Long,
         val expiresAt: Long,
+        /** For telling the oldest, see [dropOldestCodes]. */
+        val issued: Long = System.nanoTime(),
     )
 
     class Exchanged(val user: PFUserDO, val device: AppDeviceDO, val token: String)
@@ -99,18 +107,20 @@ class AppAuthService {
             return null
         }
         purgeExpiredCodes()
+        dropOldestCodes(userId)
         val renewId = renewDeviceId?.takeIf { appDeviceDao.getOfUser(userId, it) != null }
+        val name = AppDeviceDao.sanitize(deviceName, AppDeviceDO.MAX_DEVICE_NAME_LENGTH)
         val code = NumberHelper.getSecureRandomAlphanumeric(CODE_LENGTH)
         pendingCodes[code] = PendingCode(
             userId = userId,
             challenge = challenge,
-            deviceName = deviceName,
-            platform = platform,
+            deviceName = name,
+            platform = AppDeviceDao.sanitize(platform, AppDeviceDO.MAX_PLATFORM_LENGTH),
             renewDeviceId = renewId,
             last2FA = lastSuccessful2FA,
             expiresAt = System.currentTimeMillis() + CODE_EXPIRY_MILLIS,
         )
-        log.info { "App authorization code issued for user #$userId (device: $deviceName, renew: $renewId)." }
+        log.info { "App authorization code issued for user #$userId (device: $name, renew: $renewId)." }
         return "$APP_REDIRECT_URL?code=${encode(code)}&state=${encode(state)}"
     }
 
@@ -146,12 +156,50 @@ class AppAuthService {
             }
         }
         val (device, token) = appDeviceDao.createDevice(user, pending.deviceName, pending.platform, last2FA, request)
+        sendConnectedMail(user, device)
         return Exchanged(user, device, token)
+    }
+
+    /**
+     * Tells the user that an app was connected (not on a renewal): if it wasn't them, they can log it out. A failing
+     * mail never fails the login.
+     */
+    private fun sendConnectedMail(user: PFUserDO, device: AppDeviceDO) {
+        try {
+            val mail = Mail()
+            val locale = UserLocale.determineUserLocale(user)
+            mail.subject = translate(locale, "mobileApp.mail.connected.subject")
+            mail.setTo(user)
+            mail.contentType = Mail.CONTENTTYPE_HTML
+            val data = mutableMapOf<String, Any?>(
+                "deviceName" to device.deviceName,
+                "platform" to device.platform,
+                "created" to device.created,
+                "ip" to device.lastAccessIp,
+                "link" to sendMail.buildUrl("next/myAccount"),
+            )
+            mail.content = sendMail.renderGroovyTemplate(
+                mail, "mail/appDeviceConnectedMail.html", data, mail.subject, user,
+            )
+            sendMail.send(mail)
+        } catch (ex: Exception) {
+            log.warn(ex) { "Can't send the mail about the new app device #${device.id} of user #${user.id}: ${ex.message}" }
+        }
     }
 
     private fun purgeExpiredCodes() {
         val now = System.currentTimeMillis()
         pendingCodes.entries.removeIf { it.value.expiresAt < now }
+    }
+
+    /**
+     * At most [MAX_PENDING_CODES_PER_USER] open codes per user, including the one to be issued: the oldest go.
+     */
+    private fun dropOldestCodes(userId: Long) {
+        pendingCodes.entries.filter { it.value.userId == userId }
+            .sortedBy { it.value.issued }
+            .dropLast(MAX_PENDING_CODES_PER_USER - 1)
+            .forEach { pendingCodes.remove(it.key) }
     }
 
     internal fun clearAll4UnitTests() {
@@ -170,6 +218,9 @@ class AppAuthService {
         const val MAX_2FA_AGE_MINUTES = 10L
 
         private const val CODE_LENGTH = 32
+
+        /** Open codes of a user at a time (e.g. several attempts in the browser). */
+        internal const val MAX_PENDING_CODES_PER_USER = 5
 
         private val CODE_EXPIRY_MILLIS = 2 * TimeUnit.MINUTE.millis
 

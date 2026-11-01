@@ -40,6 +40,7 @@ import org.projectforge.login.LoginService
 import org.projectforge.rest.Authentication
 import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
+import org.projectforge.rest.app.AppAuthRest
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.core.RestCsrfProtection
 import org.projectforge.rest.pub.next.RestError
@@ -71,6 +72,9 @@ private val log = KotlinLogging.logger {}
 open class RestAuthenticationUtils {
   @Autowired
   private lateinit var appDeviceDao: AppDeviceDao
+
+  @Autowired
+  private lateinit var loginService: LoginService
 
   @Autowired
   private lateinit var userAuthenticationsService: UserAuthenticationsService
@@ -331,6 +335,12 @@ open class RestAuthenticationUtils {
       if (!restCsrfProtection.checkRequest(request, response, authInfo)) {
         return // Cross-site request: the error response was already written.
       }
+      if (isLogin2FAOfAppExpired(authInfo)) {
+        // A browser would have to log in again with a second factor: so does the app (ApiClient renews its login).
+        log.info { "2FA of app device #${authInfo.appDevice?.id} too old for a login (projectforge.2fa.loginExpiryDays): ${request.requestURI}" }
+        writeTwoFactorRequired(response, null)
+        return
+      }
       val expiryMillis = my2FARequestHandler.handleRequest(authInfo.request)
       if (expiryMillis != null) {
         log.info { "2FA is required for this request: ${authInfo.request.requestURI}" }
@@ -349,17 +359,33 @@ open class RestAuthenticationUtils {
         }
         // projectforge-next opens its own 2FA dialog and repeats the request afterwards (see lib/rs/client.ts). The
         // app does its 2FA in the browser (a new login, AppAuthService) and repeats the request with its new token.
-        response.status = HttpStatus.FORBIDDEN.value()
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE)
-        response.writer.write(
-          JsonUtils.toJson(TwoFactorRequired(expiryMillis = expiryMillis), ignoreNullableProps = true)
-        )
+        writeTwoFactorRequired(response, expiryMillis)
       } else {
         doFilter()
       }
     } finally {
       unregister(request, response, authInfo)
     }
+  }
+
+  /**
+   * The app never logs in again by itself: its second factor (of the browser login) is checked against
+   * `projectforge.2fa.loginExpiryDays` like a login of the browser. Its logout is always allowed, so it can delete
+   * its token.
+   */
+  private fun isLogin2FAOfAppExpired(authInfo: RestAuthenticationInfo): Boolean {
+    authInfo.appDevice ?: return false
+    if (authInfo.request.requestURI == AppAuthRest.LOGOUT_URL) {
+      return false
+    }
+    val userContext = ThreadLocalUserContext.userContext ?: return true
+    return loginService.is2FARequiredAfterLogin(userContext)
+  }
+
+  private fun writeTwoFactorRequired(response: HttpServletResponse, expiryMillis: Long?) {
+    response.status = HttpStatus.FORBIDDEN.value()
+    response.setContentType(MediaType.APPLICATION_JSON_VALUE)
+    response.writer.write(JsonUtils.toJson(TwoFactorRequired(expiryMillis = expiryMillis), ignoreNullableProps = true))
   }
 
   @JvmOverloads

@@ -114,6 +114,29 @@ class AppTokenAuthenticationTest : AbstractTestBase() {
         }
     }
 
+    /**
+     * The app never logs in again by itself, so the rule of a login (`projectforge.2fa.loginExpiryDays`) applies to
+     * every request: a second factor of its browser login that is too old is answered like a stale one for a
+     * protected url. Only its logout stays possible.
+     */
+    @Test
+    fun loginExpiryTest() {
+        val user = getUser(TEST_USER)
+        val (_, oldToken) = appDeviceDao.createDevice(user, "old", "ios", Date(System.currentTimeMillis() - 31 * TimeUnit.DAY.millis), null)
+        val (_, recentToken) = appDeviceDao.createDevice(user, "recent", "ios", Date(System.currentTimeMillis() - TimeUnit.DAY.millis), null)
+        try {
+            my2FARequestConfiguration.internalSetLoginExpiryDays4TestCases(30)
+            val old = doFilter(oldToken, "${Rest.URL}/myBusinessCards")
+            assertRefused(old, HttpServletResponse.SC_FORBIDDEN)
+            Assertions.assertTrue(old.body.contains("\"twoFactorRequired\":true"), "Body was '${old.body}'.")
+            assertPassed(doFilter(recentToken, "${Rest.URL}/myBusinessCards"))
+            assertPassed(doFilter(oldToken, AppAuthRest.LOGOUT_URL, "POST"))
+        } finally {
+            my2FARequestConfiguration.internalSetLoginExpiryDays4TestCases(null)
+        }
+        assertPassed(doFilter(oldToken, "${Rest.URL}/myBusinessCards")) // Without the rule configured.
+    }
+
     private class Result(val chain: FilterChain, val response: HttpServletResponse, val writer: StringWriter) {
         val body: String
             get() = writer.toString()

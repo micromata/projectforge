@@ -120,6 +120,27 @@ class AppAuthServiceTest : AbstractTestBase() {
         appDeviceDao.deleteAll(otherUser.id)
     }
 
+    /**
+     * The texts of the app end up in memory and log: cleaned and shortened right away. A user holds a few open codes
+     * only, the oldest go.
+     */
+    @Test
+    fun authorizeInputTest() {
+        val user = getUser(TEST_USER)
+        appDeviceDao.deleteAll(user.id)
+        val now = System.currentTimeMillis()
+        val first = param(appAuthService.authorize(user, now, CHALLENGE, STATE, "Pixel\n" + "x".repeat(500), "And\u0000roid", null)!!, "code")
+        val exchanged = appAuthService.exchange(first, VERIFIER, null)!!
+        Assertions.assertEquals(AppDeviceDO.MAX_DEVICE_NAME_LENGTH, exchanged.device.deviceName?.length)
+        Assertions.assertTrue(exchanged.device.deviceName!!.startsWith("Pixelxxx"), "No line break.")
+        Assertions.assertEquals("android", exchanged.device.platform)
+
+        val codes = (1..AppAuthService.MAX_PENDING_CODES_PER_USER + 1).map { param(authorize(user, now)!!, "code") }
+        Assertions.assertNull(appAuthService.exchange(codes.first(), VERIFIER, null), "The oldest code was dropped.")
+        Assertions.assertNotNull(appAuthService.exchange(codes.last(), VERIFIER, null))
+        appDeviceDao.deleteAll(user.id)
+    }
+
     @Test
     fun deviceDaoTest() {
         val user = getUser(TEST_USER)

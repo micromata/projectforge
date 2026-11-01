@@ -165,5 +165,8 @@ class AppAuthRest {
 
     companion object {
         const val WEB_START_URL = "/next/"
+
+        /** Allowed even with a second factor too old for a login, see [RestAuthenticationUtils]. */
+        const val LOGOUT_URL = "${Rest.URL}/appAuth/logout"
     }
 }

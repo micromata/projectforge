@@ -218,6 +218,15 @@ open class LoginService {
     }
 
     /**
+     * The rule of a login (`projectforge.2fa.loginExpiryDays`) for a client without a session, which never logs in
+     * again: the mobile app, whose [UserContext.lastSuccessful2FA] is the second factor of its browser login. Too
+     * old, its requests are refused until it logs in again in the browser (see `RestAuthenticationUtils.doFilter`).
+     */
+    fun is2FARequiredAfterLogin(userContext: UserContext): Boolean {
+        return check2FARequiredAfterLogin(userContext)
+    }
+
+    /**
      * Tries to authenticate the user with the given credentials. Stay-logged-in flag will also be handled.
      * Brute force attacks will be prevented by using [LoginProtection].
      * Handles also 2FA after login.

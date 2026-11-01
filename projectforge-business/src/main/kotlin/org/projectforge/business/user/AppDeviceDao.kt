@@ -72,8 +72,8 @@ class AppDeviceDao {
         val entry = AppDeviceDO()
         entry.user = user
         entry.tokenHash = StayLoggedInTokenDao.hash(token)
-        entry.deviceName = abbreviate(deviceName?.trim()?.ifBlank { null }, AppDeviceDO.MAX_DEVICE_NAME_LENGTH)
-        entry.platform = abbreviate(platform?.trim()?.lowercase()?.ifBlank { null }, AppDeviceDO.MAX_PLATFORM_LENGTH)
+        entry.deviceName = sanitize(deviceName, AppDeviceDO.MAX_DEVICE_NAME_LENGTH)
+        entry.platform = sanitize(platform, AppDeviceDO.MAX_PLATFORM_LENGTH)?.lowercase()
         entry.created = Date()
         entry.lastAccess = entry.created
         entry.lastAccessIp = clientIp(request)
@@ -152,7 +152,7 @@ class AppDeviceDao {
             return
         }
         val date = Date(now)
-        val appVersion = abbreviate(request?.getHeader(APP_VERSION_HEADER), AppDeviceDO.MAX_APP_VERSION_LENGTH)
+        val appVersion = sanitize(request?.getHeader(APP_VERSION_HEADER), AppDeviceDO.MAX_APP_VERSION_LENGTH)
         persistenceService.runInTransaction { context ->
             context.executeNamedUpdate(
                 AppDeviceDO.UPDATE_LAST_ACCESS,
@@ -261,12 +261,7 @@ class AppDeviceDao {
 
     private fun clientIp(request: HttpServletRequest?): String? {
         request ?: return null
-        return abbreviate(WebUtils.getClientIp(request), StayLoggedInTokenDO.MAX_IP_LENGTH)
-    }
-
-    private fun abbreviate(value: String?, maxLength: Int): String? {
-        value ?: return null
-        return if (value.length > maxLength) value.substring(0, maxLength) else value
+        return sanitize(WebUtils.getClientIp(request), StayLoggedInTokenDO.MAX_IP_LENGTH)
     }
 
     companion object {
@@ -285,5 +280,14 @@ class AppDeviceDao {
         private val REFRESH_THRESHOLD_MILLIS = TimeUnit.HOUR.millis
 
         private fun createToken(): String = NumberHelper.getSecureRandomAlphanumeric(TOKEN_LENGTH)
+
+        /**
+         * A text sent by the app (device name, platform, version): without control characters (no forged log lines),
+         * trimmed and shortened to [maxLength], null if blank.
+         */
+        fun sanitize(value: String?, maxLength: Int): String? {
+            val text = value?.filterNot { it.isISOControl() }?.trim()?.ifBlank { null } ?: return null
+            return if (text.length > maxLength) text.substring(0, maxLength) else text
+        }
     }
 }

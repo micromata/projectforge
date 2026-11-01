@@ -7,10 +7,25 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ {
+      "items" : [ "Digital business cards: add a card to the Apple Wallet (needs a Pass Type ID certificate, see the admin guide).", {
+        "title" : "CVE-Radar: research a new case with an AI system",
+        "items" : [ "Research with AI (security team) builds a prompt for an approved AI system from the CVE id or a description of the incident, sources and notes, with the NVD data of an imported CVE. There is no direct connection: the prompt is copied there, its answer pasted back. The dialog has three steps (details, prompt, answer), each with the way back; the prompt can be copied or downloaded as a file.", "The answer (one JSON block) is checked and shown as a preview with a copy button per value; Create case creates the case with title, description, priority and reason, fix version, workaround, measures and references, marked as created with the help of an AI system." ]
+      }, {
+        "title" : "CVE-Radar: download a case as JSON and import it again",
+        "items" : [ "Download as JSON in the file of a case saves its values as stored (without status, assignee, ratings, team checks and discussion).", "Import case (security team) creates a new case from such a file after a preview, e.g. to copy a case into another instance of ProjectForge.", "Import case also takes the answer of an AI system to the prompt of Research with AI, e.g. saved as a file; quotes made typographic by copying are straightened." ]
+      }, {
+        "title" : "CVE-Radar: export the findings of a project, with a prompt for advice on the fix",
+        "items" : [ "The open findings of a node of the inventory and below as one JSON file: per vulnerability the NVD data, the case of the security team and the matched technologies with versions and package URLs. Only what the user may see; internal names are replaced by neutral ones by default.", "A prompt with the report asks an approved AI system how to fix every vulnerability in the project: whether it is really affected, the target version and how to force it for a transitive dependency, a workaround, and how to verify the fix." ]
+      }, {
+        "title" : "CVE-Radar: more ways to upload the libraries of a component",
+        "items" : [ "All lists of a component can be uploaded in one zip, collected by a script of the project (the user guide has an example): lockfiles, SBOMs, output of the build tools and package lists of the images. Only the files of such lists are read; files that may hold tokens (.npmrc, .env, gradle.properties, settings.xml) are skipped unread. The preview shows every file of the zip with its format.", "The lockfile of pnpm (pnpm-lock.yaml, versions 5, 6 and 9) is read, without the development dependencies.", "The upload dialog shows how to list the packages of a container image (e.g. eclipse-temurin: dpkg-query, apk, rpm or an SBOM from syft), where native libraries such as brotli, zlib or OpenSSL show up, and links to the chapter of the user guide." ]
+      }, {
         "title" : "Mobile app (in preparation)",
         "items" : [ "The ProjectForge app for iOS and Android logs in via the browser, with password and second factor (WebAuthn or code) as usual; the browser asks once more before an app is connected. The first version shows the own digital business cards, also without network.", "All other pages of ProjectForge open inside the app, without a second login. Logging out the app ends them as well.", "My account: the connected apps with their last usage, each can be logged out. A password change logs out all apps; an app unused for 90 days is logged out automatically." ]
       } ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Outgoing invoices: planned invoices no longer count in the statistics of the invoice list (gross, net, open, overdue).", "Small screens: on a very low display (e.g. a phone in landscape) the page now scrolls, so the content below the header is reachable." ]
     } ]
   },
   "groups" : [ {

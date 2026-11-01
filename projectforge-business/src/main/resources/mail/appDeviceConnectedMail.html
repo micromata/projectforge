@@ -1,0 +1,29 @@
+<html>
+#INCLUDE{mail/mailHead.html}
+<body>
+<div id="mail">
+  <div class="container">
+    <div class="content">
+      #INCLUDE{mail/mailOpening.html}
+      <p>
+        <%= pf.getI18nString("mobileApp.mail.connected.message") %>
+      </p>
+      <p>
+        <%= pf.getI18nString("mobileApp.devices.device") %>: <%= pf.getString(deviceName) %><br/>
+        <%= pf.getI18nString("mobileApp.devices.platform") %>: <%= pf.getString(platform) %><br/>
+        <%= pf.getI18nString("timestamp") %>: <%= pf.getString(created) %><br/>
+        <%= pf.getI18nString("mobileApp.mail.connected.ip") %>: <%= pf.getString(ip) %>
+      </p>
+      <p>
+        <%= pf.getI18nString("mobileApp.mail.connected.notYou") %>
+      </p>
+      <a href="<%= pf.getString(link) %>" class="button" target="_blank" rel="noreferrer">
+        <%= pf.getI18nString("menu.myAccount") %>
+      </a>
+      #INCLUDE{mail/mailClosing.html}
+      #INCLUDE{mail/mailFooter.html}
+    </div>
+  </div>
+</div>
+</body>
+</html>
