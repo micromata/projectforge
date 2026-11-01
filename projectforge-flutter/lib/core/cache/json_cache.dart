@@ -50,6 +50,13 @@ class JsonCache {
     await file.writeAsString(jsonEncode(json), flush: true);
   }
 
+  /// A directory of the cache for files of its own (images), deleted with it.
+  Future<Directory> directory(String name) async {
+    final dir = Directory('${(await _baseDir()).path}/cache/$name');
+    await dir.create(recursive: true);
+    return dir;
+  }
+
   Future<void> clearAll() async {
     final dir = Directory('${(await _baseDir()).path}/cache');
     if (await dir.exists()) await dir.delete(recursive: true);

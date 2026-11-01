@@ -31,6 +31,7 @@ import '../../core/push/push_service.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/status/user_status_controller.dart';
 import '../../core/web/native_page.dart';
+import '../addresses/addresses_screen.dart';
 import '../business_cards/business_cards_screen.dart';
 import '../notifications/notification_bell.dart';
 import '../notifications/notification_text.dart';
@@ -39,9 +40,9 @@ import '../settings/settings_screen.dart';
 import '../web/web_screen.dart';
 
 /// The tabs of the logged-in app.
-enum _Destination { businessCards, chat, web }
+enum _Destination { businessCards, addresses, chat, web }
 
-/// The start page of the logged-in app: the business cards, the chat and the ProjectForge pages. The chat is the
+/// The start page of the logged-in app: the business cards, the addresses, the chat and the ProjectForge pages. The chat is the
 /// chat of next in a WebView (one implementation for web and app), the app adds the badge of the unread messages.
 /// Timesheets follow as a further destination.
 class HomeScreen extends ConsumerStatefulWidget {
@@ -100,6 +101,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final chatEnabled = userStatus?.chatEnabled ?? true;
     final destinations = [
       _Destination.businessCards,
+      _Destination.addresses,
       if (chatEnabled) _Destination.chat,
       _Destination.web,
     ];
@@ -118,6 +120,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           switch (destination) {
             _Destination.businessCards => BusinessCardsScreen(
               onCreate: _openBusinessCardsPage,
+            ),
+            _Destination.addresses => AddressesScreen(
+              active: current == destination,
+              onEdit: (id) => _openWebPage('/next/address/$id/edit'),
+              onCreate: () => _openWebPage('/next/address/new/edit'),
             ),
             _Destination.chat =>
               _opened.contains(destination)
@@ -143,20 +150,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
     void select(int index) => _select(current, destinations[index]);
     // The pages bring their own header: only the native tab has a bar (with the account menu).
-    final appBar = current == _Destination.businessCards
-        ? AppBar(
-            title: Text(context.t('menu.myBusinessCards')),
-            actions: [
-              IconButton(
-                tooltip: context.t('refresh'),
-                icon: const Icon(Icons.refresh),
-                onPressed: () => refreshBusinessCards(context, ref),
-              ),
-              NotificationBell(onOpenLink: _openLink),
-              _accountMenu(context, session),
-            ],
-          )
-        : null;
+    final appBar = switch (current) {
+      _Destination.businessCards || _Destination.addresses => AppBar(
+        title: Text(_label(context, current)),
+        actions: [
+          if (current == _Destination.businessCards)
+            IconButton(
+              tooltip: context.t('refresh'),
+              icon: const Icon(Icons.refresh),
+              onPressed: () => refreshBusinessCards(context, ref),
+            ),
+          NotificationBell(onOpenLink: _openLink),
+          _accountMenu(context, session),
+        ],
+      ),
+      _ => null,
+    };
     if (landscape) {
       // The height is scarce: the navigation stands at the side.
       return Scaffold(
@@ -253,6 +262,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   static String _label(BuildContext context, _Destination destination) =>
       switch (destination) {
         _Destination.businessCards => context.t('menu.myBusinessCards'),
+        _Destination.addresses => context.t('menu.addressList'),
         _Destination.chat => context.t('chat.title'),
         _Destination.web => context.t('app.web'),
       };
@@ -261,6 +271,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       switch (destination) {
         _Destination.businessCards => Icon(
           selected ? Icons.contact_page : Icons.contact_page_outlined,
+        ),
+        _Destination.addresses => Icon(
+          selected ? Icons.contacts : Icons.contacts_outlined,
         ),
         _Destination.chat => Badge(
           label: Text('$unread'),
@@ -313,6 +326,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final destination = switch (page) {
       NativePage.chat => chatEnabled ? _Destination.chat : null,
       NativePage.businessCards => _Destination.businessCards,
+      NativePage.addresses => _Destination.addresses,
       NativePage.notifications => null,
     };
     if (page == NativePage.notifications) {
@@ -329,8 +343,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return true;
   }
 
-  void _openBusinessCardsPage() {
-    _webTarget = WebTarget('/next/myBusinessCards');
+  void _openBusinessCardsPage() => _openWebPage('/next/myBusinessCards');
+
+  /// Shows a page of the server in the web tab (editing of the native tabs happens there).
+  void _openWebPage(String path) {
+    _webTarget = WebTarget(path);
     _select(_current, _Destination.web);
   }
 

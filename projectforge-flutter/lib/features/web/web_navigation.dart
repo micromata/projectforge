@@ -77,7 +77,7 @@ class WebNavigation {
       (url.path == _loginPath || url.path == '$_loginPath/');
 
   /// The page of the server the app has a native tab for: the chat (and its sub pages, e.g. `/next/chat/5`), the
-  /// own business cards and the notifications. Null for other pages and other origins.
+  /// own business cards, the notifications and the address list (not the view or the form of an address). Null for other pages and other origins.
   NativePage? nativePage(Uri url) {
     if (!isSameOrigin(url)) return null;
     final path = url.path;
@@ -89,6 +89,9 @@ class WebNavigation {
     }
     if (path == '/next/notifications' || path == '/next/notifications/') {
       return NativePage.notifications;
+    }
+    if (path == '/next/address' || path == '/next/address/') {
+      return NativePage.addresses;
     }
     return null;
   }

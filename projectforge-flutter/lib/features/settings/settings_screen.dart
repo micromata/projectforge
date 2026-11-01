@@ -60,5 +60,6 @@ class SettingsScreen extends ConsumerWidget {
     NativePage.chat => context.t('chat.title'),
     NativePage.businessCards => context.t('menu.myBusinessCards'),
     NativePage.notifications => context.t('notification.center'),
+    NativePage.addresses => context.t('menu.addressList'),
   };
 }

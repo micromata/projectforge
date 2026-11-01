@@ -18,5 +18,14 @@
   "app.web": "ProjectForge",
   "app.web.failed": "Die Seiten von ProjectForge konnten nicht geöffnet werden.",
   "app.settings.openInApp": "In der App öffnen",
-  "app.settings.openInApp.info": "Diese Menüpunkte der Webseiten wechseln auf den Tab der App. Ausgeschaltet bleibt die Webversion, z. B. falls die App-Version mit dem Server nicht funktioniert."
+  "app.settings.openInApp.info": "Diese Menüpunkte der Webseiten wechseln auf den Tab der App. Ausgeschaltet bleibt die Webversion, z. B. falls die App-Version mit dem Server nicht funktioniert.",
+  "app.address.call": "Anrufen",
+  "app.address.message": "Nachricht",
+  "app.address.new": "Adresse anlegen",
+  "app.address.none": "Keine Adressen.",
+  "app.address.noMatch": "Keine Treffer.",
+  "app.address.offline": "Keine Verbindung zum Server: die Adressen nach dem letzten Stand.",
+  "app.address.favorites": "Favoriten",
+  "app.address.all": "Alle",
+  "app.address.noFavorites": "Keine Favoriten. Favoriten werden in den Webseiten markiert."
 }

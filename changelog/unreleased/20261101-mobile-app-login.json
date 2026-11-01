@@ -24,6 +24,10 @@
       "de": "In der App wechseln die Menüpunkte „Chat“ und „Meine Visitenkarten“ sowie die Glocke der Webseiten auf den eigenen Tab bzw. die eigene Liste der App; in den neuen Einstellungen der App kann jeder davon in der Webversion bleiben."
     },
     {
+      "en": "The app has an address book like the Contacts app: a search field, sections with an index at the side, and tapping a number offers a call or a message, a mail address opens the mail app. All addresses are stored on the device (also offline) and updated silently; editing opens the form of the web pages, and the address list of the web pages switches to the app's tab.",
+      "de": "Die App hat ein Adressbuch wie die Kontakte-App: Suchfeld, Abschnitte mit Index am Rand, und ein Tipp auf eine Nummer bietet Anruf oder Nachricht an, eine E-Mail-Adresse öffnet das Mailprogramm. Alle Adressen liegen auf dem Gerät (auch offline) und werden still aktualisiert; Bearbeiten öffnet das Formular der Webseiten, und die Adressliste der Webseiten wechselt auf den Tab der App."
+    },
+    {
       "en": "The app's own screens follow the light or dark appearance chosen in the web pages (also offline), and the web pages no longer flash white while loading.",
       "de": "Die eigenen Seiten der App folgen dem in den Webseiten gewählten hellen oder dunklen Erscheinungsbild (auch offline), und die Webseiten blitzen beim Laden nicht mehr weiß auf."
     }

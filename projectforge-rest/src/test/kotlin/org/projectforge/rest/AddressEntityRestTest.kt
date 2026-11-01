@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
+import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.address.AddressImageDao
 import org.projectforge.business.address.AddressStatus
 import org.projectforge.business.address.AddressbookDao
@@ -38,6 +39,7 @@ import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.address.FormOfAddress
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.address.importer.AddressImportStorage
 import org.projectforge.rest.address.importer.AddressImportSupport
 import org.projectforge.rest.core.SessionCsrfService
@@ -119,6 +121,69 @@ class AddressEntityRestTest : AbstractTestBase() {
         assertEquals("View", view.address.name)
         assertEquals(true, view.address.writeAccess)
         assertFalse(view.address.hasImage)
+    }
+
+    @Test
+    fun `the address book of the app lists the visible addresses, a sync only the changed ones`() {
+        logon(ADMIN)
+        val id = insertAddress("AppList-First", "Anna")
+        val first = addressEntityRest.getAppList(null)
+        assertTrue(first.ids.contains(id))
+        val entry = first.addresses.single { it.id == id }
+        assertEquals("AppList-First", entry.name)
+        assertEquals(true, entry.writeAccess)
+        assertFalse(entry.hasImage)
+        assertFalse(first.favoriteIds.contains(id))
+        addressEntityRest.setFavorite(id, true)
+        assertTrue(addressEntityRest.getAppList(first.timestamp + 10_000).favoriteIds.contains(id))
+        // Nothing changed since: the ids are still all there, the addresses none.
+        val none = addressEntityRest.getAppList(first.timestamp + 10_000)
+        assertTrue(none.ids.contains(id))
+        assertTrue(none.addresses.none { it.id == id })
+        // A change is delivered.
+        val second = insertAddress("AppList-Second")
+        val changed = addressEntityRest.getAppList(entry.lastUpdate)
+        assertTrue(changed.addresses.any { it.id == second })
+        assertTrue(changed.addresses.none { it.id == id })
+    }
+
+    @Test
+    fun `the address book of the app has only current addresses`() {
+        logon(ADMIN)
+        val outdated = addressDao.insert(AddressDO().also {
+            it.name = "AppList-Outdated"
+            it.addressStatus = AddressStatus.OUTDATED
+            it.add(addressbookDao.globalAddressbook)
+        })
+        val inactive = addressDao.insert(AddressDO().also {
+            it.name = "AppList-Inactive"
+            it.contactStatus = ContactStatus.NON_ACTIVE
+            it.add(addressbookDao.globalAddressbook)
+        })
+        val current = insertAddress("AppList-Current")
+        val ids = addressEntityRest.getAppList(null).ids
+        assertTrue(ids.contains(current))
+        assertFalse(ids.contains(outdated))
+        assertFalse(ids.contains(inactive))
+    }
+
+    @Test
+    fun `the address book of the app lacks addresses of address books without access`() {
+        logon(ADMIN)
+        val closedBook = AddressbookDO().also {
+            it.title = "AppList-closed"
+            it.fullAccessUserIds = ThreadLocalUserContext.requiredLoggedInUserId.toString()
+        }
+        addressbookDao.insert(closedBook, checkAccess = false)
+        val closed = addressDao.insert(AddressDO().also {
+            it.name = "AppList-Closed"
+            it.add(closedBook)
+        }, checkAccess = false)
+        val open = insertAddress("AppList-Open")
+        assertTrue(addressEntityRest.getAppList(null).ids.containsAll(listOf(closed, open)))
+        logon(TEST_USER)
+        val ids = addressEntityRest.getAppList(null).ids
+        assertFalse(ids.contains(closed))
     }
 
     @Test

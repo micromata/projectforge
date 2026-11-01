@@ -18,5 +18,14 @@
   "app.web": "ProjectForge",
   "app.web.failed": "The pages of ProjectForge couldn't be opened.",
   "app.settings.openInApp": "Open in the app",
-  "app.settings.openInApp.info": "These menu entries of the web pages switch to the tab of the app. Switched off, the web version stays, e.g. if the app's version doesn't work with the server."
+  "app.settings.openInApp.info": "These menu entries of the web pages switch to the tab of the app. Switched off, the web version stays, e.g. if the app's version doesn't work with the server.",
+  "app.address.call": "Call",
+  "app.address.message": "Message",
+  "app.address.new": "New address",
+  "app.address.none": "No addresses.",
+  "app.address.noMatch": "No matches.",
+  "app.address.offline": "No connection to the server: the addresses as of the last sync.",
+  "app.address.favorites": "Favorites",
+  "app.address.all": "All",
+  "app.address.noFavorites": "No favorites. Favorites are marked in the web pages."
 }

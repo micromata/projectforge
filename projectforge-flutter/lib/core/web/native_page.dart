@@ -21,4 +21,4 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 /// A page of the server the app has a tab of its own for.
-enum NativePage { chat, businessCards, notifications }
+enum NativePage { chat, businessCards, notifications, addresses }

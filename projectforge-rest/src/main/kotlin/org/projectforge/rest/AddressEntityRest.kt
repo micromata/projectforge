@@ -52,6 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -74,6 +75,9 @@ class AddressEntityRest : AbstractDTOEntityRest<AddressDO, Address, AddressDao>(
     companion object {
         /** Set by the CardDAV module, if its server is enabled: the list offers its info dialog then. */
         var carddavServerEnabled = false
+
+        /** The sync of the app asks for changes a little before the time of its last answer, see [getAppList]. */
+        private const val APP_LIST_OVERLAP_MILLIS = 5000L
     }
 
     /**
@@ -269,6 +273,127 @@ class AddressEntityRest : AbstractDTOEntityRest<AddressDO, Address, AddressDao>(
                 smsEnabled = smsSenderConfig.isSmsConfigured(),
             )
         )
+    }
+
+    /**
+     * An address as the address book of the app keeps it on the device: everything its list and detail show, so
+     * both work offline.
+     */
+    class AppAddress(
+        val id: Long,
+        val title: String?,
+        val firstName: String?,
+        val name: String?,
+        val organization: String?,
+        val division: String?,
+        val positionText: String?,
+        val businessPhone: String?,
+        val mobilePhone: String?,
+        val fax: String?,
+        val privatePhone: String?,
+        val privateMobilePhone: String?,
+        val email: String?,
+        val privateEmail: String?,
+        val website: String?,
+        val business: AppPostalAddress?,
+        val postal: AppPostalAddress?,
+        val private: AppPostalAddress?,
+        val birthday: LocalDate?,
+        val comment: String?,
+        val hasImage: Boolean,
+        val writeAccess: Boolean,
+        /** Epoch millis of the last change of the address or its image, the version of the image on the device. */
+        val lastUpdate: Long,
+    )
+
+    class AppPostalAddress(
+        val addressText: String?,
+        val addressText2: String?,
+        val zipCode: String?,
+        val city: String?,
+        val state: String?,
+        val country: String?,
+    ) {
+        companion object {
+            fun of(vararg fields: String?): AppPostalAddress? {
+                if (fields.all { it.isNullOrBlank() }) return null
+                return AppPostalAddress(fields[0], fields[1], fields[2], fields[3], fields[4], fields[5])
+            }
+        }
+    }
+
+    /**
+     * @param timestamp The `modifiedSince` of the next request.
+     * @param ids All addresses the user may see: the app drops the other ones it keeps.
+     * @param favoriteIds The ones of them marked as favorite by the user.
+     * @param addresses The addresses changed since `modifiedSince`, all without it.
+     */
+    class AppAddressList(
+        val timestamp: Long,
+        val ids: List<Long>,
+        /** The ids of the favorites of the logged-in user, always all of them (a favorite mark isn't a change of the address). */
+        val favoriteIds: List<Long>,
+        val addresses: List<AppAddress>,
+    )
+
+    /**
+     * The address book of the app: all current addresses (address status up to date, contact status active) the
+     * logged-in user may see, or only the ones changed since
+     * [modifiedSince] (epoch millis, the `timestamp` of the former answer) along with the ids of all of them.
+     */
+    @AccessChecked("DAO: select access (AddressDao.select with checkAccess)")
+    @GetMapping("appList")
+    fun getAppList(@RequestParam("modifiedSince", required = false) modifiedSince: Long?): AppAddressList {
+        // A change saved while this query runs is delivered again next time rather than missed.
+        val timestamp = System.currentTimeMillis() - APP_LIST_OVERLAP_MILLIS
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val list = baseDao.select(QueryFilter(), checkAccess = true).filter {
+            !it.deleted && it.addressStatus == AddressStatus.UPTODATE && it.contactStatus == ContactStatus.ACTIVE
+        }
+        val addresses = list.filter { address ->
+            modifiedSince == null || versionOf(address) > modifiedSince
+        }.map { address ->
+            AppAddress(
+                id = address.id!!,
+                title = address.title,
+                firstName = address.firstName,
+                name = address.name,
+                organization = address.organization,
+                division = address.division,
+                positionText = address.positionText,
+                businessPhone = address.businessPhone,
+                mobilePhone = address.mobilePhone,
+                fax = address.fax,
+                privatePhone = address.privatePhone,
+                privateMobilePhone = address.privateMobilePhone,
+                email = address.email,
+                privateEmail = address.privateEmail,
+                website = address.website,
+                business = AppPostalAddress.of(
+                    address.addressText, address.addressText2, address.zipCode, address.city, address.state,
+                    address.country,
+                ),
+                postal = AppPostalAddress.of(
+                    address.postalAddressText, address.postalAddressText2, address.postalZipCode, address.postalCity,
+                    address.postalState, address.postalCountry,
+                ),
+                private = AppPostalAddress.of(
+                    address.privateAddressText, address.privateAddressText2, address.privateZipCode,
+                    address.privateCity, address.privateState, address.privateCountry,
+                ),
+                birthday = address.birthday,
+                comment = address.comment,
+                hasImage = AddressImageCache.instance.getImage(address.id) != null,
+                writeAccess = baseDao.hasUpdateAccess(user, address, address, throwException = false),
+                lastUpdate = versionOf(address),
+            )
+        }
+        val ids = list.map { it.id!! }
+        return AppAddressList(timestamp, ids, ids.filter { personalAddressCache.isPersonalAddress(it) }, addresses)
+    }
+
+    private fun versionOf(address: AddressDO): Long {
+        return maxOf(address.lastUpdate?.time ?: 0L, address.imageLastUpdate?.time ?: 0L)
     }
 
     /**
