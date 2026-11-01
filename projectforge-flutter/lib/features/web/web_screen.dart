@@ -43,7 +43,12 @@ import 'web_session_repository.dart';
 ///
 /// The WebView gets no JavaScript handlers: the app token must stay out of reach of the pages.
 class WebScreen extends ConsumerStatefulWidget {
-  const WebScreen({super.key, required this.active, this.initialPath});
+  const WebScreen({
+    super.key,
+    required this.active,
+    this.initialPath,
+    this.target,
+  });
 
   /// The screen is the visible tab: the back gesture goes back in the WebView history.
   final bool active;
@@ -51,8 +56,18 @@ class WebScreen extends ConsumerStatefulWidget {
   /// The page shown first (e.g. `/next/chat`), default: the start page of the server.
   final String? initialPath;
 
+  /// A page other tabs ask this one to show; a new instance loads its path again, even the same one.
+  final WebTarget? target;
+
   @override
   ConsumerState<WebScreen> createState() => _WebScreenState();
+}
+
+/// A request to show [path] (e.g. `/next/myBusinessCards`) in a [WebScreen].
+class WebTarget {
+  const WebTarget(this.path);
+
+  final String path;
 }
 
 class _WebScreenState extends ConsumerState<WebScreen> {
@@ -79,6 +94,15 @@ class _WebScreenState extends ConsumerState<WebScreen> {
       onRefresh: () => _controller?.reload(),
     );
     _open(widget.initialPath);
+  }
+
+  @override
+  void didUpdateWidget(WebScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final target = widget.target;
+    if (target != null && !identical(target, oldWidget.target)) {
+      _open(target.path);
+    }
   }
 
   /// Loads [path] (default: the start page of the server) with the web session of the app, a new one if [renew].

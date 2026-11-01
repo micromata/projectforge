@@ -23,10 +23,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/api/api_exception.dart';
-import '../../core/auth/auth_controller.dart';
 import '../../core/i18n/translations.dart';
 import '../../core/widgets/error_view.dart';
 import 'business_card.dart';
@@ -35,9 +33,12 @@ import 'business_cards_controller.dart';
 import 'vcard_share.dart';
 
 /// The own business cards: tap shows the QR code to scan, the menu shares a card. Cards are created and edited in
-/// the web version, which the link at the end opens.
+/// the web pages in the app, which the link at the end opens ([onCreate]).
 class BusinessCardsScreen extends ConsumerWidget {
-  const BusinessCardsScreen({super.key});
+  const BusinessCardsScreen({super.key, required this.onCreate});
+
+  /// Shows the page for creating and editing cards.
+  final VoidCallback onCreate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -75,7 +76,7 @@ class BusinessCardsScreen extends ConsumerWidget {
                 ),
               for (final info in data.cards)
                 _CardTile(info: info, offline: data.fromCache),
-              if (!data.fromCache) const _CreateOnDesktopLink(),
+              if (!data.fromCache) _CreateOnDesktopLink(onPressed: onCreate),
             ],
           ),
         ),
@@ -150,24 +151,19 @@ class _CardTile extends ConsumerWidget {
   }
 }
 
-/// Cards are created in the web version: opens its page in the system browser.
-class _CreateOnDesktopLink extends ConsumerWidget {
-  const _CreateOnDesktopLink();
+/// Cards are created in the web version: the link shows its page in the web tab.
+class _CreateOnDesktopLink extends StatelessWidget {
+  const _CreateOnDesktopLink({required this.onPressed});
+
+  final VoidCallback onPressed;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final serverUrl = ref.watch(authControllerProvider).session?.serverUrl;
-    if (serverUrl == null) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: TextButton.icon(
-        icon: const Icon(Icons.open_in_new),
-        label: Text(context.t('app.businessCard.createOnDesktop')),
-        onPressed: () => launchUrl(
-          Uri.parse(serverUrl).resolve('/next/myBusinessCards'),
-          mode: LaunchMode.externalApplication,
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 8),
+    child: TextButton.icon(
+      icon: const Icon(Icons.edit_note),
+      label: Text(context.t('app.businessCard.createOnDesktop')),
+      onPressed: onPressed,
+    ),
+  );
 }

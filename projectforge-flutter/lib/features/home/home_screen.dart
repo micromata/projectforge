@@ -48,6 +48,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   _Destination _current = _Destination.businessCards;
 
+  /// The page the business cards ask the web tab to show (their creation and editing).
+  WebTarget? _webTarget;
+
   /// The WebViews are created when their tab is opened first, and then kept (with their page) while switching.
   final _opened = <_Destination>{};
 
@@ -97,7 +100,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           for (final destination in destinations)
             switch (destination) {
-              _Destination.businessCards => const BusinessCardsScreen(),
+              _Destination.businessCards => BusinessCardsScreen(onCreate: _openBusinessCardsPage),
               _Destination.chat =>
                 _opened.contains(destination)
                     ? WebScreen(
@@ -111,6 +114,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ? WebScreen(
                         key: const ValueKey(_Destination.web),
                         active: current == destination,
+                        initialPath: _webTarget?.path,
+                        target: _webTarget,
                       )
                     : const SizedBox.shrink(),
             },
@@ -149,6 +154,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       ),
     );
+  }
+
+  void _openBusinessCardsPage() {
+    _webTarget = const WebTarget('/next/myBusinessCards');
+    _select(_current, _Destination.web);
   }
 
   void _select(_Destination previous, _Destination destination) {
