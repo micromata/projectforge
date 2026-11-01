@@ -1,44 +1,5 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
-  "unreleased" : {
-    "id" : "unreleased",
-    "version" : "9.2.0",
-    "date" : "2026-11-01",
-    "title" : "ProjectForge 9.2.1: CVE-Radar mit KI-Prompts und Ad-hoc-Prüfung, Apple Wallet, mobiles Layout",
-    "summary" : [ "**CVE-Radar**: Ad-hoc-Prüfung hochgeladener Dateien, Findings-Report und Fallrecherche mit Prompts für ein freigegebenes KI-System", "**Digitale Visitenkarten** im Apple Wallet", "Mehr Platz für Inhalte auf **mobilen Geräten**", "Korrektur: Geplante Rechnungen zählen nicht mehr in der Rechnungsstatistik" ],
-    "overview" : [ "**CVE-Radar:** Ad-hoc-Prüfung von Lockfiles, SBOMs oder einem Zip solcher Listen gegen alle Schwachstellen, ohne etwas zu speichern; Export der offenen Findings eines Projekts mit einem Prompt für Vorschläge zur Behebung; Recherche eines neuen Falls mit einem KI-System; Fall als JSON herunterladen und importieren; Upload aller Listen einer Komponente in einem Zip und die Lockfile von pnpm.", "**Digitale Visitenkarten:** Karte zum Apple Wallet hinzufügen (braucht ein Pass-Type-ID-Zertifikat).", "**Mobile App (in Vorbereitung):** Anmeldung über den Browser mit zweitem Faktor, die eigenen Visitenkarten auch ohne Netz, verbundene Apps in Mein Zugang.", "**Mobile Geräte:** auf schmalen oder niedrigen Bildschirmen sind Logo-Zeile und Statusleiste ausgeblendet, kleinere Abstände, ein kompakter Listenfuß, scrollbare Tabs; sehr niedrige Bildschirme scrollen.", "**Korrekturen:** Geplante Rechnungen zählen nicht mehr in der Statistik der Rechnungsliste." ],
-    "sections" : [ {
-      "type" : "added",
-      "items" : [ "Digitale Visitenkarten: Karte zum Apple Wallet hinzufügen (braucht ein Pass-Type-ID-Zertifikat, siehe Administrationshandbuch).", {
-        "title" : "CVE-Radar: Ad-hoc-Prüfung hochgeladener Dateien gegen alle Schwachstellen",
-        "items" : [ "Die neue Seite Ad-hoc-Prüfung nimmt Lockfiles, SBOMs, Ausgaben von Build-Werkzeugen oder ein zip mit solchen Listen und prüft jedes Paket gegen die importierten Schwachstellen, mit einem Fortschrittsbalken je Datei. Es wird nichts gespeichert; alle mit Leserolle dürfen prüfen, und das Ergebnis sieht nur, wer die Prüfung gestartet hat.", "Das Ergebnis listet die Schwachstellen mit Paket, Version, Datei und dem Fall des Security-Teams auf, lässt sich als JSON herunterladen und kommt mit einem Prompt, der ein freigegebenes KI-System fragt, wie sie behoben werden. Die Namen der Dateien werden vorab ersetzt." ]
-      }, {
-        "title" : "CVE-Radar: neuen Fall mit einem KI-System recherchieren",
-        "items" : [ "Mit KI recherchieren (Security-Team) baut aus der CVE-ID oder einer Beschreibung des Vorfalls, Quellen und Hinweisen einen Prompt für ein freigegebenes KI-System, mit den NVD-Daten einer importierten CVE. Eine direkte Anbindung gibt es nicht: Der Prompt wird dorthin kopiert, die Antwort wieder eingefügt. Der Dialog hat drei Schritte (Angaben, Prompt, Antwort), jeweils mit dem Weg zurück; der Prompt lässt sich kopieren oder als Datei herunterladen.", "Die Antwort (ein JSON-Block) wird geprüft und als Vorschau mit Kopier-Knopf je Wert gezeigt; Fall anlegen legt den Fall mit Titel, Beschreibung, Priorität und Begründung, Fix-Version, Workaround, Maßnahmen und Referenzen an, markiert als mit Unterstützung eines KI-Systems erstellt." ]
-      }, {
-        "title" : "CVE-Radar: Fall als JSON herunterladen und wieder importieren",
-        "items" : [ "Als JSON herunterladen in der Akte eines Falls speichert seine Werte, so wie sie gespeichert sind (ohne Status, Bearbeitung, Bewertungen, Team-Prüfungen und Diskussion).", "Fall importieren (Security-Team) legt aus einer solchen Datei nach einer Vorschau einen neuen Fall an, z. B. um einen Fall in eine andere Instanz von ProjectForge zu übernehmen.", "Fall importieren nimmt auch die Antwort einer KI auf den Prompt von Mit KI recherchieren an, z. B. als Datei gespeichert; beim Kopieren typografisch gewordene Anführungszeichen werden begradigt." ]
-      }, {
-        "title" : "CVE-Radar: Findings eines Projekts exportieren, mit einem Prompt für Vorschläge zur Behebung",
-        "items" : [ "Die offenen Findings eines Knotens im Inventar und darunter als eine JSON-Datei: je Schwachstelle die NVD-Daten, der Fall des Security-Teams und die gefundenen Technologien mit Versionen und Paket-URLs. Nur, was man sehen darf; interne Namen werden vorab durch neutrale ersetzt.", "Ein Prompt mit dem Report fragt ein freigegebenes KI-System, wie jede Schwachstelle im Projekt am besten behoben wird: ob es wirklich betroffen ist, die Zielversion und wie sie bei einer transitiven Abhängigkeit erzwungen wird, ein Workaround und wie sich die Behebung prüfen lässt." ]
-      }, {
-        "title" : "CVE-Radar: weitere Wege, die Bibliotheken einer Komponente hochzuladen",
-        "items" : [ "Alle Listen einer Komponente lassen sich in einem Zip hochladen, gesammelt von einem Script im Projekt (das Benutzerhandbuch hat ein Beispiel): Lockfiles, SBOMs, Ausgabe der Build-Werkzeuge und Paketlisten der Images. Gelesen werden nur die Dateien solcher Listen; Dateien, die Tokens enthalten können (.npmrc, .env, gradle.properties, settings.xml), bleiben ungelesen. Die Vorschau zeigt jede Datei des Zips mit ihrem Format.", "Die Lockfile von pnpm (pnpm-lock.yaml, Versionen 5, 6 und 9) wird gelesen, ohne die Entwicklungsabhängigkeiten.", "Der Upload-Dialog zeigt, wie sich die Pakete eines Container-Images auflisten lassen (z. B. eclipse-temurin: dpkg-query, apk, rpm oder eine SBOM von syft), in denen native Bibliotheken wie brotli, zlib oder OpenSSL auftauchen, und verlinkt das Kapitel im Benutzerhandbuch." ]
-      }, {
-        "title" : "Mobile App (in Vorbereitung)",
-        "items" : [ "Die ProjectForge-App für iOS und Android meldet sich über den Browser an, mit Passwort und zweitem Faktor (WebAuthn oder Code) wie gewohnt; vor dem Verbinden einer App fragt der Browser noch einmal nach. Die erste Version zeigt die eigenen digitalen Visitenkarten, auch ohne Netz.", "Alle anderen Seiten von ProjectForge öffnen sich in der App, ohne zweite Anmeldung. Mit dem Abmelden der App enden auch sie.", "Mein Zugang: die verbundenen Apps mit ihrer letzten Nutzung, jede kann abgemeldet werden. Eine Passwortänderung meldet alle Apps ab; eine 90 Tage nicht genutzte App wird automatisch abgemeldet." ]
-      } ]
-    }, {
-      "type" : "changed",
-      "items" : [ {
-        "title" : "Mehr Platz für Inhalte auf mobilen Geräten",
-        "items" : [ "Auf schmalen oder niedrigen Bildschirmen (z. B. Smartphone im Querformat) sind Logo-Zeile und Statusleiste ausgeblendet, und die Abstände von Bearbeitungsseiten, Tabs, Aktionsleiste und Listenfuß sind kleiner; Changelog, Version und Copyright stehen dort im Benutzermenü.", "Der Listenfuß zeigt nur noch den Bereich und die Seitenwechsel-Schaltflächen um die aktuelle Seite; die Tabs einer Bearbeitungsseite lassen sich horizontal scrollen.", "Das Menü eines Bereichs oben rechts auf seinen Seiten (z. B. CVE-Radar) ist auf schmalen Bildschirmen eine einzelne Menü-Schaltfläche; in der Akte eines CVE-Radar-Falls scrollt der Kopf auf schmalen oder niedrigen Bildschirmen mit dem Inhalt mit." ]
-      } ]
-    }, {
-      "type" : "fixed",
-      "items" : [ "Ausgangsrechnungen: Geplante Rechnungen zählen nicht mehr in der Statistik der Rechnungsliste (Brutto, Netto, offen, überfällig).", "Kleine Bildschirme: Bei sehr geringer Höhe (z. B. Smartphone im Querformat) scrollt die Seite jetzt, sodass der Inhalt unterhalb des Kopfbereichs erreichbar ist." ]
-    } ]
-  },
   "groups" : [ {
     "major" : "9",
     "head" : {
@@ -91,6 +52,46 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-2-1",
+      "version" : "9.2.1",
+      "date" : "2026-11-01",
+      "title" : "ProjectForge 9.2.1: CVE-Radar mit KI-Prompts und Ad-hoc-Prüfung, Apple Wallet, mobiles Layout",
+      "tag" : "9.2.1-RELEASE",
+      "published" : false,
+      "summary" : [ "**CVE-Radar**: Ad-hoc-Prüfung hochgeladener Dateien, Findings-Report und Fallrecherche mit Prompts für ein freigegebenes KI-System", "**Digitale Visitenkarten** im Apple Wallet", "Mehr Platz für Inhalte auf **mobilen Geräten**", "Korrektur: Geplante Rechnungen zählen nicht mehr in der Rechnungsstatistik" ],
+      "overview" : [ "**CVE-Radar:** Ad-hoc-Prüfung von Lockfiles, SBOMs oder einem Zip solcher Listen gegen alle Schwachstellen, ohne etwas zu speichern; Export der offenen Findings eines Projekts mit einem Prompt für Vorschläge zur Behebung; Recherche eines neuen Falls mit einem KI-System; Fall als JSON herunterladen und importieren; Upload aller Listen einer Komponente in einem Zip und die Lockfile von pnpm.", "**Digitale Visitenkarten:** Karte zum Apple Wallet hinzufügen (braucht ein Pass-Type-ID-Zertifikat).", "**Mobile App (in Vorbereitung):** Anmeldung über den Browser mit zweitem Faktor, die eigenen Visitenkarten auch ohne Netz, verbundene Apps in Mein Zugang.", "**Mobile Geräte:** auf schmalen oder niedrigen Bildschirmen sind Logo-Zeile und Statusleiste ausgeblendet, kleinere Abstände, ein kompakter Listenfuß, scrollbare Tabs; sehr niedrige Bildschirme scrollen.", "**Korrekturen:** Geplante Rechnungen zählen nicht mehr in der Statistik der Rechnungsliste." ],
+      "sections" : [ {
+        "type" : "added",
+        "items" : [ "Digitale Visitenkarten: Karte zum Apple Wallet hinzufügen (braucht ein Pass-Type-ID-Zertifikat, siehe Administrationshandbuch).", {
+          "title" : "CVE-Radar: Ad-hoc-Prüfung hochgeladener Dateien gegen alle Schwachstellen",
+          "items" : [ "Die neue Seite Ad-hoc-Prüfung nimmt Lockfiles, SBOMs, Ausgaben von Build-Werkzeugen oder ein zip mit solchen Listen und prüft jedes Paket gegen die importierten Schwachstellen, mit einem Fortschrittsbalken je Datei. Es wird nichts gespeichert; alle mit Leserolle dürfen prüfen, und das Ergebnis sieht nur, wer die Prüfung gestartet hat.", "Das Ergebnis listet die Schwachstellen mit Paket, Version, Datei und dem Fall des Security-Teams auf, lässt sich als JSON herunterladen und kommt mit einem Prompt, der ein freigegebenes KI-System fragt, wie sie behoben werden. Die Namen der Dateien werden vorab ersetzt." ]
+        }, {
+          "title" : "CVE-Radar: neuen Fall mit einem KI-System recherchieren",
+          "items" : [ "Mit KI recherchieren (Security-Team) baut aus der CVE-ID oder einer Beschreibung des Vorfalls, Quellen und Hinweisen einen Prompt für ein freigegebenes KI-System, mit den NVD-Daten einer importierten CVE. Eine direkte Anbindung gibt es nicht: Der Prompt wird dorthin kopiert, die Antwort wieder eingefügt. Der Dialog hat drei Schritte (Angaben, Prompt, Antwort), jeweils mit dem Weg zurück; der Prompt lässt sich kopieren oder als Datei herunterladen.", "Die Antwort (ein JSON-Block) wird geprüft und als Vorschau mit Kopier-Knopf je Wert gezeigt; Fall anlegen legt den Fall mit Titel, Beschreibung, Priorität und Begründung, Fix-Version, Workaround, Maßnahmen und Referenzen an, markiert als mit Unterstützung eines KI-Systems erstellt." ]
+        }, {
+          "title" : "CVE-Radar: Fall als JSON herunterladen und wieder importieren",
+          "items" : [ "Als JSON herunterladen in der Akte eines Falls speichert seine Werte, so wie sie gespeichert sind (ohne Status, Bearbeitung, Bewertungen, Team-Prüfungen und Diskussion).", "Fall importieren (Security-Team) legt aus einer solchen Datei nach einer Vorschau einen neuen Fall an, z. B. um einen Fall in eine andere Instanz von ProjectForge zu übernehmen.", "Fall importieren nimmt auch die Antwort einer KI auf den Prompt von Mit KI recherchieren an, z. B. als Datei gespeichert; beim Kopieren typografisch gewordene Anführungszeichen werden begradigt." ]
+        }, {
+          "title" : "CVE-Radar: Findings eines Projekts exportieren, mit einem Prompt für Vorschläge zur Behebung",
+          "items" : [ "Die offenen Findings eines Knotens im Inventar und darunter als eine JSON-Datei: je Schwachstelle die NVD-Daten, der Fall des Security-Teams und die gefundenen Technologien mit Versionen und Paket-URLs. Nur, was man sehen darf; interne Namen werden vorab durch neutrale ersetzt.", "Ein Prompt mit dem Report fragt ein freigegebenes KI-System, wie jede Schwachstelle im Projekt am besten behoben wird: ob es wirklich betroffen ist, die Zielversion und wie sie bei einer transitiven Abhängigkeit erzwungen wird, ein Workaround und wie sich die Behebung prüfen lässt." ]
+        }, {
+          "title" : "CVE-Radar: weitere Wege, die Bibliotheken einer Komponente hochzuladen",
+          "items" : [ "Alle Listen einer Komponente lassen sich in einem Zip hochladen, gesammelt von einem Script im Projekt (das Benutzerhandbuch hat ein Beispiel): Lockfiles, SBOMs, Ausgabe der Build-Werkzeuge und Paketlisten der Images. Gelesen werden nur die Dateien solcher Listen; Dateien, die Tokens enthalten können (.npmrc, .env, gradle.properties, settings.xml), bleiben ungelesen. Die Vorschau zeigt jede Datei des Zips mit ihrem Format.", "Die Lockfile von pnpm (pnpm-lock.yaml, Versionen 5, 6 und 9) wird gelesen, ohne die Entwicklungsabhängigkeiten.", "Der Upload-Dialog zeigt, wie sich die Pakete eines Container-Images auflisten lassen (z. B. eclipse-temurin: dpkg-query, apk, rpm oder eine SBOM von syft), in denen native Bibliotheken wie brotli, zlib oder OpenSSL auftauchen, und verlinkt das Kapitel im Benutzerhandbuch." ]
+        }, {
+          "title" : "Mobile App (in Vorbereitung)",
+          "items" : [ "Die ProjectForge-App für iOS und Android meldet sich über den Browser an, mit Passwort und zweitem Faktor (WebAuthn oder Code) wie gewohnt; vor dem Verbinden einer App fragt der Browser noch einmal nach. Die erste Version zeigt die eigenen digitalen Visitenkarten, auch ohne Netz.", "Alle anderen Seiten von ProjectForge öffnen sich in der App, ohne zweite Anmeldung. Mit dem Abmelden der App enden auch sie.", "Mein Zugang: die verbundenen Apps mit ihrer letzten Nutzung, jede kann abgemeldet werden. Eine Passwortänderung meldet alle Apps ab; eine 90 Tage nicht genutzte App wird automatisch abgemeldet." ]
+        } ]
+      }, {
+        "type" : "changed",
+        "items" : [ {
+          "title" : "Mehr Platz für Inhalte auf mobilen Geräten",
+          "items" : [ "Auf schmalen oder niedrigen Bildschirmen (z. B. Smartphone im Querformat) sind Logo-Zeile und Statusleiste ausgeblendet, und die Abstände von Bearbeitungsseiten, Tabs, Aktionsleiste und Listenfuß sind kleiner; Changelog, Version und Copyright stehen dort im Benutzermenü.", "Der Listenfuß zeigt nur noch den Bereich und die Seitenwechsel-Schaltflächen um die aktuelle Seite; die Tabs einer Bearbeitungsseite lassen sich horizontal scrollen.", "Das Menü eines Bereichs oben rechts auf seinen Seiten (z. B. CVE-Radar) ist auf schmalen Bildschirmen eine einzelne Menü-Schaltfläche; in der Akte eines CVE-Radar-Falls scrollt der Kopf auf schmalen oder niedrigen Bildschirmen mit dem Inhalt mit." ]
+        } ]
+      }, {
+        "type" : "fixed",
+        "items" : [ "Ausgangsrechnungen: Geplante Rechnungen zählen nicht mehr in der Statistik der Rechnungsliste (Brutto, Netto, offen, überfällig).", "Kleine Bildschirme: Bei sehr geringer Höhe (z. B. Smartphone im Querformat) scrollt die Seite jetzt, sodass der Inhalt unterhalb des Kopfbereichs erreichbar ist." ]
+      } ]
+    }, {
       "id" : "9-2-0",
       "version" : "9.2.0",
       "date" : "2026-10-30",

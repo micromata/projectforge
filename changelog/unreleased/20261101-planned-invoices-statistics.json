@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Outgoing invoices: planned invoices no longer count in the statistics of the invoice list (gross, net, open, overdue).",
-  "de": "Ausgangsrechnungen: Geplante Rechnungen zählen nicht mehr in der Statistik der Rechnungsliste (Brutto, Netto, offen, überfällig)."
-}
