@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Kost2 sometimes missing in overviews such as the structure tree, the project list or the cost unit selection of a time sheet, although it existed: for instance after a project was reactivated, or for a cost unit created while the caches were being reloaded in the background.",
+  "de": "Kost2 fehlte manchmal in Übersichten wie dem Strukturbaum, der Projektliste oder der Kost2-Auswahl eines Zeitberichts, obwohl sie vorhanden war: etwa nach dem Reaktivieren eines Projekts oder bei einer Kost2, die während des Neuladens der Caches im Hintergrund angelegt wurde."
+}

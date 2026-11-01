@@ -25,6 +25,8 @@ package org.projectforge.business.task
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,6 +42,9 @@ class TaskTreeRefreshRaceTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var taskTree: TaskTree
+
+    @Autowired
+    private lateinit var projektDao: ProjektDao
 
     @Test
     fun `task inserted during a refresh is in the new tree`() {
@@ -125,6 +130,43 @@ class TaskTreeRefreshRaceTest : AbstractTestBase() {
         }
         Assertions.assertTrue(taskTree.status().expired, "Task tree must be expired after the rollback.")
         Assertions.assertNull(taskTree.getTaskNodeById(inserted!!.id))
+    }
+
+    /** A project assigned to a task during a refresh: otherwise the task shows no project (and no Kost2). */
+    @Test
+    fun `project assigned to a task during a refresh is at the task in the new tree`() {
+        logon(ADMIN)
+        val task = insertTask("refreshRace.project", taskTree.rootTaskNode.getTask())
+        var projektId: Long? = null
+        refreshWith {
+            projektId = projektDao.insert(ProjektDO().also {
+                it.name = "refreshRace.project"
+                it.internKost2_4 = 975
+                it.nummer = 15
+                it.task = task
+            }, checkAccess = false)
+        }
+        Assertions.assertEquals(projektId, taskTree.getTaskNodeById(task.id)!!.projekt?.id)
+    }
+
+    @Test
+    fun `project moved to another task is no longer at the former task`() {
+        logon(ADMIN)
+        val root = taskTree.rootTaskNode.getTask()
+        val oldTask = insertTask("refreshRace.projectMove.old", root)
+        val newTask = insertTask("refreshRace.projectMove.new", root)
+        val projektId = projektDao.insert(ProjektDO().also {
+            it.name = "refreshRace.projectMove"
+            it.internKost2_4 = 975
+            it.nummer = 16
+            it.task = oldTask
+        }, checkAccess = false)
+        Assertions.assertEquals(projektId, taskTree.getTaskNodeById(oldTask.id)!!.projekt?.id)
+        val projekt = projektDao.find(projektId, checkAccess = false)!!
+        projekt.task = newTask
+        projektDao.update(projekt, checkAccess = false)
+        Assertions.assertNull(taskTree.getTaskNodeById(oldTask.id)!!.projekt)
+        Assertions.assertEquals(projektId, taskTree.getTaskNodeById(newTask.id)!!.projekt?.id)
     }
 
     private fun insertTask(title: String, parent: TaskDO): TaskDO {

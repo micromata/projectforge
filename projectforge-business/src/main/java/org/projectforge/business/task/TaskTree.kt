@@ -130,6 +130,14 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      */
     private var changesSincePublish = mutableMapOf<Long, TaskDO>()
 
+    /**
+     * The projects assigned to (or removed from, null) tasks since the current tree was published, by task id: the
+     * same as [changesSincePublish] for [internalSetProject]. Without these, a task getting its project while a
+     * refresh runs would show no project and no Kost2 until the next refresh.
+     * Guarded by [changesSincePublishLock].
+     */
+    private var projectChangesSincePublish = mutableMapOf<Long, ProjektDO?>()
+
     private val changesSincePublishLock = Any()
 
     /**
@@ -380,6 +388,10 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     }
 
     fun internalSetProject(taskId: Long, projekt: ProjektDO?) {
+        // Recorded before writing to the current map, as in addOrUpdateTaskNode.
+        synchronized(changesSincePublishLock) {
+            projectChangesSincePublish[taskId] = projekt
+        }
         val node = getTaskNodeById(taskId)
             ?: throw InternalErrorException("Could not found task with id $taskId in internalSetProject")
         node.projekt = projekt
@@ -1010,6 +1022,8 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
             val nodes = synchronized(changesSincePublishLock) {
                 changesSincePublish.values.forEach { task -> applyChange(nTaskMap, newRoot!!, task) }
                 changesSincePublish = mutableMapOf()
+                projectChangesSincePublish.forEach { (taskId, projekt) -> nTaskMap[taskId]?.projekt = projekt }
+                projectChangesSincePublish = mutableMapOf()
                 this.taskMap = nTaskMap
                 this.root = newRoot
                 nTaskMap.values.toList()
