@@ -2,39 +2,21 @@
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
   "unreleased" : {
     "id" : "unreleased",
-    "version" : "9.2.0",
+    "version" : "9.2.1",
     "date" : "2026-11-01",
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Digital business cards: add a card to the Apple Wallet (needs a Pass Type ID certificate, see the admin guide).", {
-        "title" : "CVE-Radar: ad-hoc check of uploaded files against all vulnerabilities",
-        "items" : [ "The new page Ad-hoc check takes lockfiles, SBOMs, build tool output or a zip with such lists and checks every package against the imported vulnerabilities, with a progress bar per file. Nothing is stored; every reader may check, and only the person who started a check sees its result.", "The result lists the vulnerabilities with package, version, file and the case of the security team, can be downloaded as JSON, and comes with a prompt asking an approved AI system how to fix them. The names of the files are replaced by default." ]
-      }, {
-        "title" : "CVE-Radar: research a new case with an AI system",
-        "items" : [ "Research with AI (security team) builds a prompt for an approved AI system from the CVE id or a description of the incident, sources and notes, with the NVD data of an imported CVE. There is no direct connection: the prompt is copied there, its answer pasted back. The dialog has three steps (details, prompt, answer), each with the way back; the prompt can be copied or downloaded as a file.", "The answer (one JSON block) is checked and shown as a preview with a copy button per value; Create case creates the case with title, description, priority and reason, fix version, workaround, measures and references, marked as created with the help of an AI system." ]
-      }, {
-        "title" : "CVE-Radar: download a case as JSON and import it again",
-        "items" : [ "Download as JSON in the file of a case saves its values as stored (without status, assignee, ratings, team checks and discussion).", "Import case (security team) creates a new case from such a file after a preview, e.g. to copy a case into another instance of ProjectForge.", "Import case also takes the answer of an AI system to the prompt of Research with AI, e.g. saved as a file; quotes made typographic by copying are straightened." ]
-      }, {
-        "title" : "CVE-Radar: export the findings of a project, with a prompt for advice on the fix",
-        "items" : [ "The open findings of a node of the inventory and below as one JSON file: per vulnerability the NVD data, the case of the security team and the matched technologies with versions and package URLs. Only what the user may see; internal names are replaced by neutral ones by default.", "A prompt with the report asks an approved AI system how to fix every vulnerability in the project: whether it is really affected, the target version and how to force it for a transitive dependency, a workaround, and how to verify the fix." ]
-      }, {
-        "title" : "CVE-Radar: more ways to upload the libraries of a component",
-        "items" : [ "All lists of a component can be uploaded in one zip, collected by a script of the project (the user guide has an example): lockfiles, SBOMs, output of the build tools and package lists of the images. Only the files of such lists are read; files that may hold tokens (.npmrc, .env, gradle.properties, settings.xml) are skipped unread. The preview shows every file of the zip with its format.", "The lockfile of pnpm (pnpm-lock.yaml, versions 5, 6 and 9) is read, without the development dependencies.", "The upload dialog shows how to list the packages of a container image (e.g. eclipse-temurin: dpkg-query, apk, rpm or an SBOM from syft), where native libraries such as brotli, zlib or OpenSSL show up, and links to the chapter of the user guide." ]
-      }, {
+      "items" : [ {
         "title" : "CVE-Radar: notification without details and about outdated lists of libraries",
         "items" : [ "A new notification rule \"New findings of the CVE radar\" starts with a text that names no details (\"there may be updates\") and a link to the list; the new variable cvrListLink always links to the list.", "New rule type \"Outdated lists of libraries of the CVE radar\": the responsible team of a component whose list of libraries was applied more than a number of days ago (30 by default) is told, at most once a week, and the notification is resolved by an update of the list. The day of the last list is now recorded per component." ]
+      }, {
+        "title" : "Mobile app (in preparation)",
+        "items" : [ "Behind an SSO proxy (e.g. Authentik as forward auth) the app gets the proxy's session from the browser login (`projectforge.app.proxyCookies`); when it expires, the app logs in again in the browser.", "The login of the app offers the recently used servers, and the logout works even if the server can't be reached." ]
       } ]
     }, {
       "type" : "changed",
-      "items" : [ {
-        "title" : "More room for content on mobile devices",
-        "items" : [ "On narrow or low screens (e.g. a phone in landscape) the logo row and the status bar are hidden, and the paddings of edit pages, tabs, action bar and list footer are smaller; changelog, version and copyright are in the user menu there.", "The list footer shows only the range and the page buttons around the current page; the tabs of an edit page scroll horizontally.", "The menu of an area at the top right of its pages (e.g. CVE-Radar) is a single menu button on narrow screens; on the file of a CVE-Radar case the header scrolls with the content on narrow or low screens." ]
-      } ]
-    }, {
-      "type" : "fixed",
-      "items" : [ "Outgoing invoices: planned invoices no longer count in the statistics of the invoice list (gross, net, open, overdue).", "Small screens: on a very low display (e.g. a phone in landscape) the page now scrolls, so the content below the header is reachable." ]
+      "items" : [ "Faster first page of big lists: the CVE-Radar start page no longer loads every vulnerability to build the list" ]
     } ]
   },
   "groups" : [ {
@@ -89,6 +71,46 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-2-1",
+      "version" : "9.2.1",
+      "date" : "2026-11-01",
+      "title" : "ProjectForge 9.2.1: CVE-Radar with AI prompts and ad-hoc check, Apple Wallet, mobile layout",
+      "tag" : "9.2.1-RELEASE",
+      "published" : false,
+      "summary" : [ "**CVE-Radar**: ad-hoc check of uploaded files, findings report and case research with prompts for an approved AI system", "**Digital business cards** in the Apple Wallet", "More room for content on **mobile devices**", "Fix: planned invoices no longer count in the invoice statistics" ],
+      "overview" : [ "**CVE-Radar:** ad-hoc check of lockfiles, SBOMs or a zip of such lists against all vulnerabilities without storing anything; export of the open findings of a project with a prompt for advice on the fix; research of a new case with an AI system; download and import of a case as JSON; upload of all lists of a component in one zip and the lockfile of pnpm.", "**Digital business cards:** add a card to the Apple Wallet (needs a Pass Type ID certificate).", "**Mobile app (in preparation):** login via the browser with second factor, the own business cards also without network, connected apps listed in My account.", "**Mobile devices:** on narrow or low screens the logo row and the status bar are hidden, smaller paddings, a compact list footer, scrollable tabs; very low screens scroll.", "**Fixes:** planned invoices no longer count in the statistics of the invoice list." ],
+      "sections" : [ {
+        "type" : "added",
+        "items" : [ "Digital business cards: add a card to the Apple Wallet (needs a Pass Type ID certificate, see the admin guide).", {
+          "title" : "CVE-Radar: ad-hoc check of uploaded files against all vulnerabilities",
+          "items" : [ "The new page Ad-hoc check takes lockfiles, SBOMs, build tool output or a zip with such lists and checks every package against the imported vulnerabilities, with a progress bar per file. Nothing is stored; every reader may check, and only the person who started a check sees its result.", "The result lists the vulnerabilities with package, version, file and the case of the security team, can be downloaded as JSON, and comes with a prompt asking an approved AI system how to fix them. The names of the files are replaced by default." ]
+        }, {
+          "title" : "CVE-Radar: research a new case with an AI system",
+          "items" : [ "Research with AI (security team) builds a prompt for an approved AI system from the CVE id or a description of the incident, sources and notes, with the NVD data of an imported CVE. There is no direct connection: the prompt is copied there, its answer pasted back. The dialog has three steps (details, prompt, answer), each with the way back; the prompt can be copied or downloaded as a file.", "The answer (one JSON block) is checked and shown as a preview with a copy button per value; Create case creates the case with title, description, priority and reason, fix version, workaround, measures and references, marked as created with the help of an AI system." ]
+        }, {
+          "title" : "CVE-Radar: download a case as JSON and import it again",
+          "items" : [ "Download as JSON in the file of a case saves its values as stored (without status, assignee, ratings, team checks and discussion).", "Import case (security team) creates a new case from such a file after a preview, e.g. to copy a case into another instance of ProjectForge.", "Import case also takes the answer of an AI system to the prompt of Research with AI, e.g. saved as a file; quotes made typographic by copying are straightened." ]
+        }, {
+          "title" : "CVE-Radar: export the findings of a project, with a prompt for advice on the fix",
+          "items" : [ "The open findings of a node of the inventory and below as one JSON file: per vulnerability the NVD data, the case of the security team and the matched technologies with versions and package URLs. Only what the user may see; internal names are replaced by neutral ones by default.", "A prompt with the report asks an approved AI system how to fix every vulnerability in the project: whether it is really affected, the target version and how to force it for a transitive dependency, a workaround, and how to verify the fix." ]
+        }, {
+          "title" : "CVE-Radar: more ways to upload the libraries of a component",
+          "items" : [ "All lists of a component can be uploaded in one zip, collected by a script of the project (the user guide has an example): lockfiles, SBOMs, output of the build tools and package lists of the images. Only the files of such lists are read; files that may hold tokens (.npmrc, .env, gradle.properties, settings.xml) are skipped unread. The preview shows every file of the zip with its format.", "The lockfile of pnpm (pnpm-lock.yaml, versions 5, 6 and 9) is read, without the development dependencies.", "The upload dialog shows how to list the packages of a container image (e.g. eclipse-temurin: dpkg-query, apk, rpm or an SBOM from syft), where native libraries such as brotli, zlib or OpenSSL show up, and links to the chapter of the user guide." ]
+        }, {
+          "title" : "Mobile app (in preparation)",
+          "items" : [ "The ProjectForge app for iOS and Android logs in via the browser, with password and second factor (WebAuthn or code) as usual; the browser asks once more before an app is connected. The first version shows the own digital business cards, also without network.", "All other pages of ProjectForge open inside the app, without a second login. Logging out the app ends them as well.", "My account: the connected apps with their last usage, each can be logged out. A password change logs out all apps; an app unused for 90 days is logged out automatically." ]
+        } ]
+      }, {
+        "type" : "changed",
+        "items" : [ {
+          "title" : "More room for content on mobile devices",
+          "items" : [ "On narrow or low screens (e.g. a phone in landscape) the logo row and the status bar are hidden, and the paddings of edit pages, tabs, action bar and list footer are smaller; changelog, version and copyright are in the user menu there.", "The list footer shows only the range and the page buttons around the current page; the tabs of an edit page scroll horizontally.", "The menu of an area at the top right of its pages (e.g. CVE-Radar) is a single menu button on narrow screens; on the file of a CVE-Radar case the header scrolls with the content on narrow or low screens." ]
+        } ]
+      }, {
+        "type" : "fixed",
+        "items" : [ "Outgoing invoices: planned invoices no longer count in the statistics of the invoice list (gross, net, open, overdue).", "Small screens: on a very low display (e.g. a phone in landscape) the page now scrolls, so the content below the header is reachable." ]
+      } ]
+    }, {
       "id" : "9-2-0",
       "version" : "9.2.0",
       "date" : "2026-10-30",

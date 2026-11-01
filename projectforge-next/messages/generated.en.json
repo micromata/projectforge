@@ -3536,6 +3536,29 @@
     "successfullCompleted": "Successfully completed: {arg0}",
     "title": "Message"
   },
+  "mobileApp": {
+    "devices": {
+      "_": "Apps",
+      "device": "Device",
+      "logout": {
+        "question": "Log out this app? It can only be used again after a new login in the browser.",
+        "successful": "The app has been logged out."
+      },
+      "none": "No app is connected.",
+      "platform": "system",
+      "tooltip": "The ProjectForge app on these devices may access ProjectForge without your password. An app is logged out after a longer time without usage and by every change of your password."
+    },
+    "login": {
+      "cancelled": "The login of the app has been cancelled. You may close this window.",
+      "connect": "Connect app",
+      "done": "The app is connected. You may close this window.",
+      "invalid": "The link of the app is invalid. Please start the login in the app again.",
+      "question": "Should the ProjectForge app on the device \"{arg0}\" get access to your account?",
+      "questionUnknownDevice": "Should the ProjectForge app get access to your account?",
+      "title": "Connect the ProjectForge app",
+      "warning": "Only confirm if you have just started the login in the app yourself."
+    }
+  },
   "modificationTime": "Time of modification",
   "modified": "modified",
   "modifiedBy": "modified by",

@@ -96,6 +96,19 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
     }
 
     /**
+     * The ids of the matching rows in the order of the query, each with the values of the [accessPaths] (see
+     * [selectDistinct] for nested paths); one row per match, a joined collection may repeat an id.
+     */
+    fun selectIds(accessPaths: List<String>): List<Array<Any?>> {
+        check(projection) { "Build the query builder with projection = true." }
+        @Suppress("UNCHECKED_CAST")
+        val cr = ctx.cr as CriteriaQuery<Array<Any?>>
+        val selection = listOf<Expression<*>>(ctx.root.get<Long>("id")) + accessPaths.map { ctx.getOrderField<Any>(it) }
+        cr.select(ctx.cb.array(selection)).where(*predicates.toTypedArray()).orderBy(*order.toTypedArray())
+        return entityManager.createQuery(cr).resultList
+    }
+
+    /**
      * Adds an order by clause that treats entries without a value as the smallest value, so they
      * lead an ascending sort and trail a descending one — reversing the sort brings them into view.
      *
