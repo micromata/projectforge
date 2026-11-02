@@ -35,6 +35,7 @@ class Session {
     this.username,
     this.fullname,
     this.proxyCookies = const {},
+    this.appLoginPath = false,
   });
 
   factory Session.fromJson(Map<String, dynamic> json) => Session(
@@ -45,6 +46,7 @@ class Session {
     username: json['username'] as String?,
     fullname: json['fullname'] as String?,
     proxyCookies: proxyCookiesFromJson(json['proxyCookies']),
+    appLoginPath: json['appLoginPath'] == true,
   );
 
   /// The `proxyCookies` of the server's answer or of a stored session (absent before this field existed).
@@ -63,6 +65,10 @@ class Session {
   /// each request and put into the WebView, otherwise the proxy refuses the app. Empty without such a proxy.
   final Map<String, String> proxyCookies;
 
+  /// The server takes the login parameters in the path too (`/next/appLogin/<login>`, from 9.2.4 on): the next login
+  /// in the browser puts them there, which survives an SSO proxy bringing the browser back without the query.
+  final bool appLoginPath;
+
   Session withToken(String token) => Session(
     serverUrl: serverUrl,
     token: token,
@@ -71,6 +77,7 @@ class Session {
     username: username,
     fullname: fullname,
     proxyCookies: proxyCookies,
+    appLoginPath: appLoginPath,
   );
 
   Map<String, dynamic> toJson() => {
@@ -81,6 +88,7 @@ class Session {
     'username': username,
     'fullname': fullname,
     'proxyCookies': proxyCookies,
+    'appLoginPath': appLoginPath,
   };
 }
 

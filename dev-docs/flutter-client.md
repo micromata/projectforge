@@ -124,7 +124,12 @@ login passes the requested url on as `rd`; nginx configurations of Authentik put
 (`rd=$scheme://$http_host$request_uri`), so everything after the first `&` of the query got lost and the page said
 "The link of the app is invalid". The app therefore sends its parameters also packed into one, first parameter `login`
 (base64url of a json object, `AppLogin.packParams`), which `readAppLoginParams` of next prefers to the single ones
-(still sent for older servers).
+(still sent for older servers). Some proxies bring the browser back without any query (seen with Authentik: the page
+arrived as a bare `/next/appLogin`); a server from 9.2.4 on therefore takes the packed parameter in the path as well,
+`/next/appLogin/<login>` (the route `appLogin/[login]`, preferred to the query). It says so by `appLoginPath` in the
+system status (first login) and the token answer (kept in `Session.appLoginPath` for the renewals; a session of an
+older server asks the system status again). Older servers answer that path with a 404, so the app sends the query only
+to them. The path segment is masked in the client log.
 
 ## Web pages in the app
 

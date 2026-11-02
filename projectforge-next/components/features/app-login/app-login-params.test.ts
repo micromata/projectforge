@@ -30,6 +30,30 @@ describe("readAppLoginParams", () => {
     });
   });
 
+  it("prefers the packed parameter of the path, the proxy may drop the query", () => {
+    const path = pack({ challenge: "pc", state: "ps", device: "Phone" });
+    expect(readAppLoginParams(new URLSearchParams(""), path)).toEqual({
+      challenge: "pc",
+      state: "ps",
+      deviceName: "Phone",
+      platform: null,
+      deviceId: null,
+    });
+    expect(
+      readAppLoginParams(
+        new URLSearchParams(`login=${pack({ challenge: "c", state: "s" })}`),
+        path
+      ).challenge
+    ).toBe("pc");
+  });
+
+  it("falls back to the query if the path holds no readable login", () => {
+    expect(
+      readAppLoginParams(new URLSearchParams("challenge=c&state=s"), "garbage")
+        .challenge
+    ).toBe("c");
+  });
+
   it("reads the single parameters of an older app", () => {
     expect(
       readAppLoginParams(
