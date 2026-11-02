@@ -16,7 +16,7 @@
   <script src="{{ '/assets/js/lang-switch.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>
   <link rel="alternate" type="application/rss+xml" title="{{ site.title | escape }}" href="{{ '/feed.xml' | relative_url }}">
   {% if page.tipue_search_active or layout.tipue_search_active %}
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="{{ '/assets/js/jquery-3.1.1.min.js' | relative_url }}"></script>
   {%- if page.lang == 'de' %}
   <script src="{{ '/assets/tipuesearch/tipuesearch_content.de.js' | relative_url }}"></script>
   <script src="{{ '/assets/tipuesearch/tipuesearch_set.js' | relative_url }}"></script>
