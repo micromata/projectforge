@@ -339,6 +339,8 @@ class RechnungDtoTest : AbstractTestBase() {
 
         // Given on the invoice, so the invoice's: it may name a different contact on purpose.
         assertEquals("Erika Mustermann", dto.customerContactPerson)
+        assertEquals("Einkauf", dto.customerContactDepartment)
+        assertEquals("KST-4711", dto.customerCostCenter)
         assertEquals("Hauptstr. 1", dto.customerAddress)
         assertEquals("34117", dto.customerZipCode)
         // Blank counts as empty: that is what a cleared text box posts.
@@ -375,6 +377,8 @@ class RechnungDtoTest : AbstractTestBase() {
 
     private fun eInvoiceAccount() = KontoDO().also {
         it.contactPerson = "Max Mustermann"
+        it.contactDepartment = "Einkauf"
+        it.costCenter = "KST-4711"
         it.street = "Hauptstr. 1"
         it.zipCode = "34117"
         it.city = "Kassel"

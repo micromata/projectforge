@@ -1545,6 +1545,8 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Spring.
                 if (current.isNullOrBlank() && !value.isNullOrBlank()) set(value)
             }
             fill(dto.customerContactPerson, account.contactPerson) { dto.customerContactPerson = it }
+            fill(dto.customerContactDepartment, account.contactDepartment) { dto.customerContactDepartment = it }
+            fill(dto.customerCostCenter, account.costCenter) { dto.customerCostCenter = it }
             fill(dto.customerAddress, account.street) { dto.customerAddress = it }
             fill(dto.customerZipCode, account.zipCode) { dto.customerZipCode = it }
             fill(dto.customerCity, account.city) { dto.customerCity = it }

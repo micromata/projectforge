@@ -14,6 +14,8 @@ export function toFormValues(konto: KontoDetail): AccountValues {
     bezeichnung: konto.bezeichnung ?? "",
     description: konto.description ?? null,
     contactPerson: konto.contactPerson ?? null,
+    contactDepartment: konto.contactDepartment ?? null,
+    costCenter: konto.costCenter ?? null,
     street: konto.street ?? null,
     zipCode: konto.zipCode ?? null,
     city: konto.city ?? null,

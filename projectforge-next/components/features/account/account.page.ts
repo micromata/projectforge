@@ -76,6 +76,8 @@ export const ACCOUNT_PAGE = definePage<
         ...eInvoiceAddressFields<typeof KONTO_METADATA>({
           names: {
             contactPerson: "contactPerson",
+            contactDepartment: "contactDepartment",
+            costCenter: "costCenter",
             street: "street",
             zipCode: "zipCode",
             city: "city",

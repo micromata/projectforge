@@ -20,6 +20,8 @@ export const accountSchema = z.object({
   bezeichnung: m.requiredString("bezeichnung"),
   description: m.nullableString("description"),
   contactPerson: m.nullableString("contactPerson"),
+  contactDepartment: m.nullableString("contactDepartment"),
+  costCenter: m.nullableString("costCenter"),
   street: m.nullableString("street"),
   zipCode: m.nullableString("zipCode"),
   city: m.nullableString("city"),

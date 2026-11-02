@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "E-invoice: new fields order number (BT-13), department of the orderer (BT-56) and cost center (BT-19) on the invoice and the account (department, cost center); the labels of the invoice and account forms name the e-invoice term (BT-x) the field is sent in. The invoice template gets the variables ${Bestellnummer} and ${Kostenstelle} (with isBestellnummer/isKostenstelle), the department is part of the address.",
+  "de": "E-Rechnung: neue Felder Bestellnummer (BT-13), Abteilung des Bestellers (BT-56) und Kostenstelle (BT-19) an der Rechnung und am Konto (Abteilung, Kostenstelle); die Beschriftungen im Rechnungs- und Kontoformular nennen den E-Rechnungs-Term (BT-x), in dem das Feld übertragen wird. Die Rechnungsvorlage erhält die Variablen ${Bestellnummer} und ${Kostenstelle} (mit isBestellnummer/isKostenstelle), die Abteilung steht in der Adresse."
+}

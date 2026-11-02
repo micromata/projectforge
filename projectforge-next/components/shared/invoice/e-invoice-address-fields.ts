@@ -5,6 +5,8 @@ import type { FieldNameOf, SectionDef } from "@/lib/page-def/types";
 /** The properties an e-invoice is addressed with, by what they mean — each entity names them its own way. */
 export interface EInvoiceAddressNames<M extends EntityMetadata> {
   contactPerson: FieldNameOf<M>;
+  contactDepartment: FieldNameOf<M>;
+  costCenter: FieldNameOf<M>;
   street: FieldNameOf<M>;
   zipCode: FieldNameOf<M>;
   city: FieldNameOf<M>;
@@ -19,11 +21,11 @@ export interface EInvoiceAddressNames<M extends EntityMetadata> {
  * account, where it is kept, and on an outgoing invoice, which is prefilled from it (see
  * `OutgoingInvoiceEntityRest.fillEInvoiceFieldsFromAccount`).
  *
- * The postal address on the left, as it reads on an envelope: contact person, street, then zip code,
+ * The postal address on the left, as it reads on an envelope: contact person and department side by side, street, then zip code,
  * city and country in one line (a four-column grid, so the zip code and the country stay narrow and the
  * city takes the width). On the right, as an aside that stays together however narrow the page gets,
- * what routes the e-invoice: the seller's bank account on top, then VAT id, Leitweg-ID and e-invoice
- * e-mail.
+ * what routes the e-invoice: the seller's bank account on top, then VAT id, Leitweg-ID, e-invoice
+ * e-mail and the cost center the customer books the invoice on.
  *
  * A builder of declarations rather than a component, for two reasons: the properties are named
  * differently on each entity (`zipCode` vs. `customerZipCode`), and declared fields keep their labels,
@@ -43,7 +45,8 @@ export function eInvoiceAddressFields<M extends EntityMetadata>({
   return {
     mainColumns: 4,
     fields: [
-      { name: names.contactPerson, span: 4 },
+      { name: names.contactPerson, span: 2 },
+      { name: names.contactDepartment, span: 2 },
       { name: names.street, span: 4, rows: streetRows },
       { name: names.zipCode },
       { name: names.city, span: 2 },
@@ -55,6 +58,7 @@ export function eInvoiceAddressFields<M extends EntityMetadata>({
       { name: names.vatId },
       { name: names.leitwegId, hintKey: "fibu.konto.leitwegId.tooltip" },
       { name: names.eInvoiceEmail },
+      { name: names.costCenter },
     ],
   };
 }

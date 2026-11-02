@@ -114,6 +114,23 @@ export function useEntityData<T = unknown>(): T | undefined {
 }
 
 /**
+ * The entity and the property a field name belongs to, or undefined outside a form — for a component that
+ * also renders where no [EntityEditFormProvider] is (the label of [FieldShell], see [btNumberOf]).
+ */
+export function useOptionalFieldEntity(
+  name: string | undefined
+): { entity: string; property: string } | undefined {
+  const ctx = useContext(Ctx);
+  if (!ctx || !name) return undefined;
+  const { metadata, namePrefix } = ctx;
+  const property =
+    namePrefix && name.startsWith(namePrefix)
+      ? name.slice(namePrefix.length)
+      : name;
+  return { entity: metadata.entity, property };
+}
+
+/**
  * The whole metadata object, for a component that has to look at several fields at once (see
  * SegmentedNumberField, which needs the `required` flag of every one of its boxes).
  */

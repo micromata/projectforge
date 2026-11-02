@@ -3,7 +3,9 @@
 import { useId, type ReactNode } from "react";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
+import { btNumberOf } from "@/lib/e-invoice-bt-numbers";
 import { FieldHint } from "./field-hint";
+import { useOptionalFieldEntity } from "./form-context";
 
 /**
  * What every field of a hand-built form takes.
@@ -97,6 +99,8 @@ export function FieldShell({
   ids: FieldIds;
   children: ReactNode;
 }) {
+  const owner = useOptionalFieldEntity(name);
+  const btNumber = btNumberOf(owner?.entity, owner?.property);
   return (
     <Field
       data-field={name}
@@ -123,6 +127,17 @@ export function FieldShell({
           >
             {label}
           </FieldLabel>
+          {/* The e-invoice term the field ends up in, beside the label rather than in it: it is no
+              part of the field's name (a screen reader and an exact-label lookup read "Order number"),
+              and not an explanation either (that is the ⓘ). */}
+          {btNumber && (
+            <span
+              data-bt-number
+              className="ml-1.5 shrink-0 text-[10px] font-normal normal-case tracking-normal text-muted-foreground"
+            >
+              ({btNumber})
+            </span>
+          )}
           {/* Not on a field the user cannot fill in: a value only the backend supplies (an order's
               number) is mandatory in the database but never the reader's obligation. */}
           {/* `leading-none`: the marker inherits the field's larger text, whose line box would make
