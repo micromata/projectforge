@@ -165,6 +165,33 @@ void main() {
     expect(unauthorized, 0);
   });
 
+  test(
+    'proxyRefuses tells a refusal of the proxy, never renewing the login',
+    () async {
+      for (final status in [401, 302]) {
+        proxyCookies = {'authentik_proxy_1': 'expired'};
+        expect(
+          await client(proxy(status: status)).proxyRefuses(),
+          isTrue,
+          reason: '$status',
+        );
+        proxyCookies = {'authentik_proxy_1': 'fresh'};
+        expect(
+          await client(proxy(status: status)).proxyRefuses(),
+          isFalse,
+          reason: 'The proxy lets the app through ($status).',
+        );
+      }
+      expect(
+        await client(FakeAdapter((_) => (status: 500, body: {'message': 'x'})))
+            .proxyRefuses(),
+        isFalse,
+        reason: 'An error of the server is no refusal of the proxy.',
+      );
+      expect(reauthentications, 0);
+    },
+  );
+
   test('a 401 of the server logs the app out, also for a download', () async {
     final adapter = FakeAdapter((_) => (status: 401, body: {'status': 401}));
     await expectLater(

@@ -97,6 +97,17 @@ class ApiClient {
   /// by a new browser login again.
   void proxyCookiesRenewed() => _proxyRenewalUseless = false;
 
+  /// Whether the SSO proxy refuses the requests of the app right now (a small request, never a new login): tells
+  /// its login from any other site the WebView is redirected to (e.g. by an open redirect of the server).
+  Future<bool> proxyRefuses() async {
+    try {
+      await get<Object?>('/rs/userStatus', renewLogin: false);
+      return false;
+    } on ApiException catch (e) {
+      return e.messageKey == proxyRefusedKey;
+    }
+  }
+
   /// @param renewLogin False: a refusal doesn't start a new login in the browser (polling in the background).
   Future<T> get<T>(
     String path, {

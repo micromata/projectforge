@@ -102,6 +102,17 @@ class WebNavigation {
       loadingServerPage &&
       behindProxy;
 
+  /// The site of [url] as the bar above another site names it: the host, with a port other than the default and with
+  /// the scheme for anything but https, so `http://pf.example.org` or `pf.example.org:8443` don't pass for the server.
+  static String siteLabel(Uri url) {
+    final host = url.host.contains(':') ? '[${url.host}]' : url.host;
+    return [
+      if (url.scheme != 'https') '${url.scheme}://',
+      host,
+      if (url.hasPort) ':${url.port}',
+    ].join();
+  }
+
   bool isSameOrigin(Uri url) =>
       url.scheme == server.scheme &&
       url.host == server.host &&

@@ -261,6 +261,23 @@ void main() {
       },
     );
 
+    test(
+      'two fresh values without their domains (Android) are not taken',
+      () async {
+        store.session = withProxy;
+        final c = container(userId: 1, deviceId: 10);
+        final controller = await loggedIn(c);
+        expect(
+          await controller.takeProxyCookies([
+            (name: 'authentik_proxy_1', value: 'planted', domain: null),
+            (name: 'authentik_proxy_1', value: 'fresh', domain: null),
+          ]),
+          isFalse,
+        );
+        expect(store.session?.proxyCookies, {'authentik_proxy_1': 'expired'});
+      },
+    );
+
     test('unchanged or missing cookies keep the session', () async {
       store.session = withProxy;
       final c = container(userId: 1, deviceId: 10);
@@ -287,6 +304,34 @@ void main() {
       expect(store.session?.proxyCookies, isEmpty);
     });
   });
+
+  for (final (userId, cleared) in [(2, true), (1, false)]) {
+    test(
+      'the log of an expired login is ${cleared ? 'cleared at the login of another user' : 'kept for the same user'}',
+      () async {
+        final c = container(userId: userId, deviceId: 10);
+        final controller = await loggedIn(c);
+        appLog.info('web', 'Navigation to a page of the user');
+        controller.onUnauthorized();
+        // The local data is deleted first.
+        for (var i = 0; i < 100; i++) {
+          if (c.read(authControllerProvider).status == AuthStatus.loggedOut) {
+            break;
+          }
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+        expect(c.read(authControllerProvider).status, AuthStatus.loggedOut);
+        await controller.login(serverUrl);
+        expect(c.read(authControllerProvider).session?.userId, userId);
+        expect(
+          appLog.entries.map((it) => it.message),
+          cleared
+              ? isNot(contains('Navigation to a page of the user'))
+              : contains('Navigation to a page of the user'),
+        );
+      },
+    );
+  }
 
   test('the logout clears the log of the login', () async {
     final c = container(userId: 1, deviceId: 10);

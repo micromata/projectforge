@@ -141,9 +141,20 @@ class AuthController extends Notifier<AuthState> {
       }
       rethrow;
     }
+    final expired = _expiredLogin;
+    _expiredLogin = null;
+    if (expired != null && expired != _loginKey(session)) {
+      _clearLog('Logged in as another user: log of the expired login cleared');
+    }
     await ref.read(sessionStoreProvider).save(session);
     state = AuthState(AuthStatus.loggedIn, session: session);
   }
+
+  /// The login whose expiry left its log ([onUnauthorized]): cleared once somebody else logs in.
+  String? _expiredLogin;
+
+  static String _loginKey(Session session) =>
+      '${session.serverUrl}#${session.userId}';
 
   /// A new login of this app in the browser, because its second factor is too old for a request. Concurrent
   /// requests share one login.
@@ -199,7 +210,7 @@ class AuthController extends Notifier<AuthState> {
   /// Only the cookies the server named as proxy cookies at the login are taken (`Session.proxyCookies`), never others
   /// of the WebView, and only those of the server's host: a cookie of the same name set for the whole domain may come
   /// from another site of that domain. A name the WebView has twice is taken with the value that differs from the
-  /// stored, expired one.
+  /// stored, expired one; if both differ and the platform doesn't tell their domains (Android), none is taken.
   ///
   /// @param webViewCookies The cookies of the WebView for the server.
   /// @return true if a cookie was renewed.
@@ -225,8 +236,13 @@ class AuthController extends Notifier<AuthState> {
           'The WebView has ${values.length} cookies $name (host and domain)',
         );
       }
-      final fresh = values.where((it) => it != stored).firstOrNull;
-      if (fresh != null) renewed[name] = fresh;
+      final fresh = values.where((it) => it != stored).toSet();
+      if (fresh.length > 1) {
+        // One of them may be set for the whole domain by another site.
+        appLog.warn('auth', 'Cookie $name ambiguous: not taken');
+      } else if (fresh.length == 1) {
+        renewed[name] = fresh.single;
+      }
     }
     if (renewed.isEmpty) {
       appLog.debug('auth', 'Proxy cookies of the WebView unchanged');
@@ -296,7 +312,10 @@ class AuthController extends Notifier<AuthState> {
 
   /// The server refused the token (logged out in the web, expired, password changed).
   void onUnauthorized() {
-    if (state.status == AuthStatus.loggedIn) _forget('app.session.expired');
+    final session = state.session;
+    if (state.status != AuthStatus.loggedIn || session == null) return;
+    _expiredLogin = _loginKey(session);
+    _forget('app.session.expired');
   }
 
   Future<void> _forget(String? messageKey) async {

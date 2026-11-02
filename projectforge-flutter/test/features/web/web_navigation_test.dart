@@ -283,4 +283,20 @@ void main() {
       expect(navigation.nativePage(Uri.parse(url)), page, reason: url);
     }
   });
+
+  test(
+    'siteLabel: the host, with scheme and port where they differ from https',
+    () {
+      for (final (url, label) in [
+        ('https://sso.example.org/if/flow/?rd=x', 'sso.example.org'),
+        ('https://sso.example.org:443/', 'sso.example.org'),
+        ('https://pf.example.org:8443/next/', 'pf.example.org:8443'),
+        ('http://pf.example.org/next/', 'http://pf.example.org'),
+        ('http://pf.example.org:8080/', 'http://pf.example.org:8080'),
+        ('https://[::1]:8443/', '[::1]:8443'),
+      ]) {
+        expect(WebNavigation.siteLabel(Uri.parse(url)), label, reason: url);
+      }
+    },
+  );
 }

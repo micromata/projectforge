@@ -103,9 +103,10 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   /// The pages came back from the login of the SSO proxy: its fresh cookies are taken once they loaded.
   bool _backFromForeignSite = false;
 
-  /// A page of the server is loading (until `onLoadStop`): a redirect to another site now is one of the server or its
-  /// proxy, not a script of a loaded page. A start without end (a load that became a download, a lost callback) counts
-  /// only for [_maxLoadTime].
+  /// A page of the server is loading and not yet committed (`onPageCommitVisible`): a redirect to another site now is
+  /// one of the server or its proxy, not a script of a loaded page. Set for every load of the app itself too
+  /// ([_load]), as Android doesn't pass these through [_shouldOverrideUrlLoading]. A start without end (a load that
+  /// became a download, a lost callback) counts only for [_maxLoadTime].
   DateTime? _serverPageLoadStart;
 
   static const _maxLoadTime = Duration(seconds: 30);
@@ -118,7 +119,8 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   /// The page of the server the current load was asked for, before any redirect: loaded again after a renewal.
   Uri? _requestedUrl;
 
-  /// The renewal of the login for the proxy failed or was cancelled: its login happens in the WebView.
+  /// The renewal of the login for the proxy failed or was cancelled: the next refusal of the proxy (only this one) goes
+  /// to its login in the WebView. Reset once that happens or a page of the server is committed without it.
   bool _proxyLoginInWebView = false;
   bool _renewingProxy = false;
   DateTime? _lastProxyRenewal;
@@ -169,11 +171,10 @@ class _WebScreenState extends ConsumerState<WebScreen> {
       appLog.info('web', 'Load ${LogSanitizer.url(url)}');
       _requestedNative = _navigation.nativePage(url);
       if (_controller == null) {
+        _startServerPageLoad(url);
         setState(() => _startUrl = url);
       } else {
-        await _controller!.loadUrl(
-          urlRequest: URLRequest(url: WebUri.uri(url)),
-        );
+        await _load(url);
       }
     } on ApiException catch (e) {
       appLog.warn('web', 'Pages not opened: $e');
@@ -181,6 +182,17 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     } finally {
       _opening = false;
     }
+  }
+
+  /// Loads [url], a page of the server, as a load of its own (see [_serverPageLoadStart]).
+  Future<void> _load(Uri url) async {
+    _startServerPageLoad(url);
+    await _controller?.loadUrl(urlRequest: URLRequest(url: WebUri.uri(url)));
+  }
+
+  void _startServerPageLoad(Uri url) {
+    _requestedUrl = url;
+    _serverPageLoadStart = DateTime.now();
   }
 
   /// The error replaces the WebView, a retry starts a new one.
@@ -261,13 +273,18 @@ class _WebScreenState extends ConsumerState<WebScreen> {
           ref.read(authControllerProvider).session?.proxyCookies.isNotEmpty ??
           false,
     );
-    if (proxyLogin && !_proxyLoginInWebView) {
-      appLog.info(
-        'web',
-        'Navigation to ${LogSanitizer.url(url)} → login of the SSO proxy (${_describe(action)})',
-      );
-      _renewForProxy();
-      return NavigationActionPolicy.CANCEL;
+    if (proxyLogin) {
+      if (!_proxyLoginInWebView) {
+        appLog.info(
+          'web',
+          'Navigation to ${LogSanitizer.url(url)} → login of the SSO proxy? (${_describe(action)})',
+        );
+        _serverPageLoadStart = null;
+        _renewForProxy(url);
+        return NavigationActionPolicy.CANCEL;
+      }
+      // The one login of the proxy in the WebView the app asked for (_loginInWebView).
+      _proxyLoginInWebView = false;
     }
     final target = navigation.decide(
       url,
@@ -290,25 +307,34 @@ class _WebScreenState extends ConsumerState<WebScreen> {
         _onForeignSite =
             foreign && (url.scheme == 'http' || url.scheme == 'https');
         _foreignHost = _onForeignSite ? url.host : null;
-        if (foreign) return NavigationActionPolicy.ALLOW;
+        if (foreign) {
+          // No longer a page of the server: its redirects aren't the proxy's.
+          _serverPageLoadStart = null;
+          return NavigationActionPolicy.ALLOW;
+        }
         if (navigation.isLoginPage(url)) {
+          _cancelled(redirect);
           _onLoginPage(url);
           return NavigationActionPolicy.CANCEL;
         }
-        if (_handOver(url)) return NavigationActionPolicy.CANCEL;
+        if (_handOver(url)) return _cancelled(redirect);
         // A redirect within the load keeps the page asked for.
-        if (!_loadingServerPage || !redirect) {
-          _requestedUrl = url;
-          _serverPageLoadStart = DateTime.now();
-        }
+        if (!_loadingServerPage || !redirect) _startServerPageLoad(url);
         return NavigationActionPolicy.ALLOW;
       case WebNavigationTarget.external:
+        _cancelled(redirect);
         await _logCookies('Opened outside the app');
         await launchUrl(url, mode: LaunchMode.externalApplication);
         return NavigationActionPolicy.CANCEL;
       case WebNavigationTarget.cancel:
-        return NavigationActionPolicy.CANCEL;
+        return _cancelled(redirect);
     }
+  }
+
+  /// A redirect cancelled here ends the load it belongs to; Android then reports neither its end nor an error.
+  NavigationActionPolicy _cancelled(bool redirect) {
+    if (redirect) _serverPageLoadStart = null;
+    return NavigationActionPolicy.CANCEL;
   }
 
   /// The SSO proxy refused a page and redirects to its login: the login of the app is renewed in the system browser
@@ -316,34 +342,45 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   /// password then) and brings fresh proxy cookies, also into the WebView; then the page is loaded again. The
   /// password of the proxy's login isn't typed into a WebView of the app (RFC 8252). Only if that fails or is
   /// cancelled, or the proxy refuses again right after it, its login happens in the WebView.
-  Future<void> _renewForProxy() async {
+  ///
+  /// Only if the proxy refuses the app too ([ApiClient.proxyRefuses]): another site the server redirects to (an open
+  /// redirect) is opened outside the app, it never gets a login of the app nor the WebView.
+  Future<void> _renewForProxy(Uri target) async {
     if (_renewingProxy) return;
-    final url = _requestedUrl ?? _navigation.url(WebNavigation.defaultPath);
-    final last = _lastProxyRenewal;
-    if (last != null && DateTime.now().difference(last) < _renewalInterval) {
-      appLog.warn(
-        'web',
-        'Refused by the SSO proxy again right after a renewal: its login in the WebView',
-      );
-      _loginInWebView(url);
-      return;
-    }
     _renewingProxy = true;
-    _lastProxyRenewal = DateTime.now();
-    appLog.info(
-      'web',
-      'Login of the SSO proxy: renewal of the login in the system browser',
-    );
+    final url = _requestedUrl ?? _navigation.url(WebNavigation.defaultPath);
     try {
+      final api = ref.read(apiClientProvider);
+      if (api == null || !await api.proxyRefuses()) {
+        appLog.warn(
+          'web',
+          'Redirected to ${LogSanitizer.url(target)}, but the SSO proxy lets the app through: opened outside the app',
+        );
+        await launchUrl(target, mode: LaunchMode.externalApplication);
+        return;
+      }
+      if (!mounted) return;
+      final last = _lastProxyRenewal;
+      if (last != null && DateTime.now().difference(last) < _renewalInterval) {
+        appLog.warn(
+          'web',
+          'Refused by the SSO proxy again right after a renewal: its login in the WebView',
+        );
+        _loginInWebView(url);
+        return;
+      }
+      _lastProxyRenewal = DateTime.now();
+      appLog.info(
+        'web',
+        'Login of the SSO proxy: renewal of the login in the system browser',
+      );
       final renewed = await ref
           .read(authControllerProvider.notifier)
           .reauthenticate();
       if (!mounted) return;
       if (renewed) {
         appLog.info('web', 'Login renewed: load ${LogSanitizer.url(url)}');
-        await _controller?.loadUrl(
-          urlRequest: URLRequest(url: WebUri.uri(url)),
-        );
+        await _load(url);
       } else {
         appLog.info(
           'web',
@@ -358,7 +395,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
 
   void _loginInWebView(Uri url) {
     _proxyLoginInWebView = true;
-    _controller?.loadUrl(urlRequest: URLRequest(url: WebUri.uri(url)));
+    _load(url);
   }
 
   /// The navigation wasn't a link the user tapped: a redirect of a server or a script of the page. iOS tells the
@@ -444,7 +481,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     _foreignHost = null;
     _proxyLoginInWebView = false;
     setState(() => _foreignPage = null);
-    await _controller?.loadUrl(urlRequest: URLRequest(url: WebUri.uri(url)));
+    await _load(url);
   }
 
   /// The bar above another site: its host (the pages have no address bar, the site mustn't pass for the server),
@@ -464,13 +501,16 @@ class _WebScreenState extends ConsumerState<WebScreen> {
               size: 18,
             ),
             const SizedBox(width: 8),
-            // The whole host, scaled down if need be: cut off at its end, `pf.example.org.evil.tld` would pass for
+            // The whole site, scaled down if need be: cut off at its end, `pf.example.org.evil.tld` would pass for
             // the server.
             Expanded(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: AlignmentDirectional.centerStart,
-                child: Text(page.host, style: theme.textTheme.bodyMedium),
+                child: Text(
+                  WebNavigation.siteLabel(page),
+                  style: theme.textTheme.bodyMedium,
+                ),
               ),
             ),
             IconButton(
@@ -562,6 +602,12 @@ class _WebScreenState extends ConsumerState<WebScreen> {
                   onProgressChanged: (_, progress) {
                     setState(() => _progress = progress / 100);
                   },
+                  onPageCommitVisible: (_, url) {
+                    // The page is there: further navigations are no redirects of its load, and a login of the proxy
+                    // in the WebView the app asked for didn't happen.
+                    _serverPageLoadStart = null;
+                    _proxyLoginInWebView = false;
+                  },
                   onLoadStop: (_, url) {
                     _serverPageLoadStart = null;
                     _pullToRefresh?.endRefreshing();
@@ -576,7 +622,10 @@ class _WebScreenState extends ConsumerState<WebScreen> {
                   },
                   onReceivedError: (_, request, error) {
                     if (request.isForMainFrame != false) {
-                      _serverPageLoadStart = null;
+                      // A load cancelled by the next one (e.g. by the app after a renewal): that one keeps its start.
+                      if (error.type != WebResourceErrorType.CANCELLED) {
+                        _serverPageLoadStart = null;
+                      }
                       appLog.warn(
                         'web',
                         'Error ${error.type} loading ${LogSanitizer.url(request.url)}: ${error.description}',
