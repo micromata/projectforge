@@ -156,6 +156,12 @@ class TaskBookingGrantRestTest : AbstractTestBase() {
         // The type-ahead of the time sheet form offers the granted task.
         val found = taskServicesRest.autosearch(search = null, maxResults = 10, onlyBookable = true)
         assertEquals(listOf(fixture.granted.id), found.map { it.id })
+        // Scoped to a task: found below the project, not below the sibling.
+        assertEquals(
+            listOf(fixture.granted.id),
+            taskServicesRest.autosearch(null, 10, true, fixture.project.id).map { it.id },
+        )
+        assertTrue(taskServicesRest.autosearch(null, 10, true, fixture.sibling.id).isEmpty())
 
         // The levels of the app's picker: the ancestor by its title only, not bookable, below it the granted task.
         taskServicesRest.getChildren(null).single { it.id == fixture.project.id }.let {

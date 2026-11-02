@@ -74,6 +74,7 @@
   "app.timesheet.untilNow": "until now",
   "app.timesheet.task.choose": "Choose structure element",
   "app.timesheet.task.search": "Search structure element or path",
+  "app.timesheet.task.searchBelow": "Search in this task and below",
   "app.timesheet.task.hint": "Type part of the name or the path to search.",
   "app.timesheet.task.none": "No bookable structure element found.",
   "app.timesheet.task.onlyBookable": "Only structure elements that may be booked on.",

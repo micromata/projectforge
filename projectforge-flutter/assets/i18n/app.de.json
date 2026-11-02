@@ -74,6 +74,7 @@
   "app.timesheet.untilNow": "bis jetzt",
   "app.timesheet.task.choose": "Strukturelement wählen",
   "app.timesheet.task.search": "Strukturelement oder Pfad suchen",
+  "app.timesheet.task.searchBelow": "In diesem Strukturelement und darunter suchen",
   "app.timesheet.task.hint": "Zum Suchen einen Teil des Namens oder des Pfads eingeben.",
   "app.timesheet.task.none": "Kein buchbares Strukturelement gefunden.",
   "app.timesheet.task.onlyBookable": "Nur Strukturelemente, auf die gebucht werden darf.",

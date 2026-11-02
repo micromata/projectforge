@@ -932,31 +932,40 @@ class TaskServicesRest {
      *
      * @param onlyBookable only the tasks a time sheet may be booked on ([TaskNode.bookableForTimesheets]) —
      * the time sheet form's field, as Wicket's `autocompleteOnlyTaskBookableForTimesheets`.
+     * @param parentId only this task and the tasks below it (the app's search inside a level of the tree).
      */
-    @AccessChecked("DAO: TaskDao.select")
+    @AccessChecked("DAO: TaskDao.select; the parentId only narrows the result")
     @GetMapping("tree/autosearch")
     fun autosearch(
         @RequestParam("search") search: String?,
         @RequestParam("maxResults") maxResults: Int?,
         @RequestParam("onlyBookable") onlyBookable: Boolean?,
+        @RequestParam("parentId") parentId: Long? = null,
     ): List<AbstractEntityRest.DisplayObject> {
         val filter = BaseSearchFilter()
         filter.searchFields = AUTOCOMPLETE_SEARCH_FIELDS
         filter.searchString = search
         val taskTree = TaskTree.instance
+        val parentNode = parentId?.let { taskTree.getTaskNodeById(it) }
+        val inScope = { id: Long? ->
+            parentId == null || (parentNode != null && id != null &&
+                    (id == parentId || taskTree.getTaskNodeById(id)?.let { parentNode.isParentOf(it) } == true))
+        }
         // The tasks of the user's booking grants first: not found by the query, which drops what the user may not see.
         val granted = taskBookingGrantCache.getCurrentTaskIds(ThreadLocalUserContext.loggedInUserId)
+            .filter { inScope(it) }
             .map { AbstractEntityRest.DisplayObject(it, formatPath(it)) }
             .filter { search.isNullOrBlank() || it.displayName?.contains(search.trim(), ignoreCase = true) == true }
             .sortedBy { it.displayName?.lowercase() }
         val found = if (onlyBookable != true) {
             maxResults?.let { filter.maxRows = it }
-            taskDao.select(filter).map { AbstractEntityRest.DisplayObject(it.id, formatPath(it.id)) }
+            taskDao.select(filter).filter { inScope(it.id) }
+                .map { AbstractEntityRest.DisplayObject(it.id, formatPath(it.id)) }
         } else {
             // The limit after the bookable filter, not in the query: most matches may be closed or otherwise not
             // bookable, and a limited query would leave only a few of them.
             taskDao.select(filter)
-                .filter { taskTree.getTaskNodeById(it.id)?.isBookableForTimesheets == true }
+                .filter { inScope(it.id) && taskTree.getTaskNodeById(it.id)?.isBookableForTimesheets == true }
                 .map { AbstractEntityRest.DisplayObject(it.id, formatPath(it.id)) }
         }
         val grantedIds = granted.map { it.id }.toSet()

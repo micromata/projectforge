@@ -152,11 +152,17 @@ class TimesheetsRepository {
     );
   }
 
-  /// The bookable tasks matching [search] (words of the path), the ones of the user's booking grants first.
-  Future<List<TaskRef>> searchTasks(String search) async {
+  /// The bookable tasks matching [search] (words of the path), the ones of the user's booking grants first. With
+  /// [parentId] only that task and the ones below it.
+  Future<List<TaskRef>> searchTasks(String search, {int? parentId}) async {
     final list = await _api.get<List<dynamic>>(
       '$_taskPath/tree/autosearch',
-      query: {'search': search, 'maxResults': 40, 'onlyBookable': true},
+      query: {
+        'search': search,
+        'maxResults': 40,
+        'onlyBookable': true,
+        'parentId': ?parentId,
+      },
     );
     return [
       for (final it in list)

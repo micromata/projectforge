@@ -81,37 +81,10 @@ class _TaskPickerState extends ConsumerState<TaskPicker> {
     });
   }
 
-  /// Closes the levels of the tree and the picker with [task].
-  void _pick(TaskRef task) {
-    final navigator = Navigator.of(context);
-    navigator.popUntil((route) => route.settings.name == TaskPicker.routeName);
-    navigator.pop(task);
-  }
+  void _pick(TaskRef task) => Navigator.of(context).pop(task);
 
-  static String _levelName(int? id) => 'taskLevel:${id ?? ''}';
-
-  void _openLevel(List<_Crumb> path) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        settings: RouteSettings(name: _levelName(path.lastOrNull?.id)),
-        builder: (_) => _TaskLevel(
-          path: path,
-          current: widget.current,
-          onOpen: _openLevel,
-          onJump: _jumpTo,
-          onPick: _pick,
-        ),
-      ),
-    );
-  }
-
-  /// Goes back up to the level of the task [id] (the top level for null).
-  void _jumpTo(int? id) =>
-      Navigator.of(context)
-          .popUntil((route) => route.settings.name == _levelName(id));
-
-  /// The top level and, with a task chosen so far, the levels down to its parent: one route each, so going back
-  /// (the swipe on iOS) goes up the tree.
+  /// The tree, opened at the level of the task chosen so far. Leaving it without a pick (back, the swipe on iOS) also
+  /// closes the picker, so the user is back in the form at once.
   Future<void> _openTree() async {
     var path = const <_Crumb>[];
     final current = widget.current;
@@ -129,10 +102,13 @@ class _TaskPickerState extends ConsumerState<TaskPicker> {
       }
     }
     if (!mounted) return;
-    _openLevel(const []);
-    for (var i = 1; i <= path.length; i++) {
-      _openLevel(path.sublist(0, i));
-    }
+    final navigator = Navigator.of(context);
+    final task = await navigator.push<TaskRef>(
+      MaterialPageRoute(
+        builder: (_) => _TaskTree(initialPath: path, current: current),
+      ),
+    );
+    if (mounted) navigator.pop(task);
   }
 
   @override
@@ -180,16 +156,57 @@ class _TaskPickerState extends ConsumerState<TaskPicker> {
     );
   }
 
-  Widget _results(BuildContext context) {
-    final words = _term.toLowerCase().split(RegExp(r'\s+'));
+  Widget _results(BuildContext context) =>
+      _TaskSearchResults(term: _term, current: widget.current, onPick: _pick);
+
+  Widget _tile(BuildContext context, TaskRef task, List<String> words) =>
+      _taskTile(task, words, task == widget.current, () => _pick(task));
+}
+
+Widget _taskTile(
+  TaskRef task,
+  List<String> words,
+  bool selected,
+  VoidCallback onTap,
+) => ListTile(
+  leading: const Icon(Icons.folder_outlined),
+  title: TaskLabel(task, words: words),
+  selected: selected,
+  onTap: onTap,
+);
+
+/// The bookable tasks matching [term], below the task [parentId] only if given.
+class _TaskSearchResults extends ConsumerWidget {
+  const _TaskSearchResults({
+    required this.term,
+    required this.current,
+    required this.onPick,
+    this.parentId,
+  });
+
+  final String term;
+  final int? parentId;
+  final TaskRef? current;
+  final void Function(TaskRef task) onPick;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final words = term.toLowerCase().split(RegExp(r'\s+'));
+    final search = (term: term, parentId: parentId);
     return ref
-        .watch(taskSearchProvider(_term))
+        .watch(taskSearchProvider(search))
         .when(
           data: (tasks) => tasks.isEmpty
               ? Center(child: Text(context.t('app.timesheet.task.none')))
               : ListView(
                   children: [
-                    for (final task in tasks) _tile(context, task, words),
+                    for (final task in tasks)
+                      _taskTile(
+                        task,
+                        words,
+                        task == current,
+                        () => onPick(task),
+                      ),
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Text(
@@ -202,18 +219,10 @@ class _TaskPickerState extends ConsumerState<TaskPicker> {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => ErrorView(
             message: context.errorText(e),
-            onRetry: () => ref.invalidate(taskSearchProvider(_term)),
+            onRetry: () => ref.invalidate(taskSearchProvider(search)),
           ),
         );
   }
-
-  Widget _tile(BuildContext context, TaskRef task, List<String> words) =>
-      ListTile(
-        leading: const Icon(Icons.folder_outlined),
-        title: TaskLabel(task, words: words),
-        selected: task == widget.current,
-        onTap: () => _pick(task),
-      );
 }
 
 /// A task of the path to a level of the tree.
@@ -224,32 +233,66 @@ class _Crumb {
   final String title;
 }
 
-/// One level of the task tree: the children of the last task of [path] (the top level if empty), the path above them
-/// to go back up.
-class _TaskLevel extends ConsumerWidget {
-  const _TaskLevel({
-    required this.path,
-    required this.current,
-    required this.onOpen,
-    required this.onJump,
-    required this.onPick,
-  });
+/// The task tree, one level at a time in one screen: the children of the last task of the path (the top level if
+/// empty), the path above them to go back up, and a search in the level and below it. Pops the chosen [TaskRef].
+class _TaskTree extends ConsumerStatefulWidget {
+  const _TaskTree({required this.initialPath, required this.current});
 
-  final List<_Crumb> path;
+  /// The level to start at.
+  final List<_Crumb> initialPath;
   final TaskRef? current;
-  final void Function(List<_Crumb> path) onOpen;
-  final void Function(int? id) onJump;
-  final void Function(TaskRef task) onPick;
+
+  @override
+  ConsumerState<_TaskTree> createState() => _TaskTreeState();
+}
+
+class _TaskTreeState extends ConsumerState<_TaskTree> {
+  late var path = widget.initialPath;
+  var _term = '';
+  Timer? _debounce;
+
+  TaskRef? get current => widget.current;
+
+  void onPick(TaskRef task) => Navigator.of(context).pop(task);
+
+  /// Shows the level below the last task of [path]; the search starts empty there.
+  void onOpen(List<_Crumb> path) {
+    _debounce?.cancel();
+    setState(() {
+      this.path = path;
+      _term = '';
+    });
+  }
+
+  /// Goes back up to the level of the task [id] (the top level for null).
+  void onJump(int? id) => onOpen(
+    id == null
+        ? const []
+        : path.sublist(0, path.indexWhere((it) => it.id == id) + 1),
+  );
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _changed(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) setState(() => _term = value.trim());
+    });
+  }
 
   TaskRef _taskOf(int id, String title) =>
       TaskRef(id: id, title: title, parents: [for (final it in path) it.title]);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final parent = path.lastOrNull;
     final children = taskChildrenProvider(parent?.id);
-    // Whether the parent itself may be booked on: as the level above has it (still open beneath this one).
+    // Whether the parent itself may be booked on: as the level above has it.
     final parentBookable =
         parent != null &&
         (ref
@@ -271,66 +314,88 @@ class _TaskLevel extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (path.isNotEmpty) _breadcrumbs(context, theme),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+            child: TextField(
+              key: ValueKey(parent?.id),
+              decoration: InputDecoration(
+                hintText: context.t('app.timesheet.task.searchBelow'),
+                prefixIcon: const Icon(Icons.search),
+                isDense: true,
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: _changed,
+            ),
+          ),
           Expanded(
-            child: ref
-                .watch(children)
-                .when(
-                  data: (list) => ListView(
-                    children: [
-                      if (parentBookable)
-                        ListTile(
-                          leading: const Icon(Icons.check_circle_outline),
-                          title: Text(
-                            context.t('app.timesheet.task.bookOn', [
-                              parent.title,
-                            ]),
-                          ),
-                          selected: current?.id == parent.id,
-                          onTap: () => onPick(
-                            TaskRef(
-                              id: parent.id,
-                              title: parent.title,
-                              parents: [
-                                for (final it in path.take(path.length - 1))
-                                  it.title,
-                              ],
-                            ),
-                          ),
+            child: _term.isNotEmpty
+                ? _TaskSearchResults(
+                    term: _term,
+                    parentId: parent?.id,
+                    current: current,
+                    onPick: onPick,
+                  )
+                : ref
+                      .watch(children)
+                      .when(
+                        data: (list) => ListView(
+                          children: [
+                            if (parentBookable)
+                              ListTile(
+                                leading: const Icon(Icons.check_circle_outline),
+                                title: Text(
+                                  context.t('app.timesheet.task.bookOn', [
+                                    parent.title,
+                                  ]),
+                                ),
+                                selected: current?.id == parent.id,
+                                onTap: () => onPick(
+                                  TaskRef(
+                                    id: parent.id,
+                                    title: parent.title,
+                                    parents: [
+                                      for (final it in path.take(
+                                        path.length - 1,
+                                      ))
+                                        it.title,
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            if (list.isEmpty && !parentBookable)
+                              Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Text(
+                                  context.t('app.timesheet.task.treeEmpty'),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            for (final it in list)
+                              ListTile(
+                                leading: Icon(
+                                  it.hasChildren
+                                      ? Icons.folder_outlined
+                                      : Icons.description_outlined,
+                                ),
+                                title: Text(it.title),
+                                trailing: it.hasChildren
+                                    ? const Icon(Icons.chevron_right)
+                                    : null,
+                                enabled: it.hasChildren || it.bookable,
+                                selected: current?.id == it.id,
+                                onTap: () => it.hasChildren
+                                    ? onOpen([...path, _Crumb(it.id, it.title)])
+                                    : onPick(_taskOf(it.id, it.title)),
+                              ),
+                          ],
                         ),
-                      if (list.isEmpty && !parentBookable)
-                        Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Text(
-                            context.t('app.timesheet.task.treeEmpty'),
-                            textAlign: TextAlign.center,
-                          ),
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
+                        error: (e, _) => ErrorView(
+                          message: context.errorText(e),
+                          onRetry: () => ref.invalidate(children),
                         ),
-                      for (final it in list)
-                        ListTile(
-                          leading: Icon(
-                            it.hasChildren
-                                ? Icons.folder_outlined
-                                : Icons.description_outlined,
-                          ),
-                          title: Text(it.title),
-                          trailing: it.hasChildren
-                              ? const Icon(Icons.chevron_right)
-                              : null,
-                          enabled: it.hasChildren || it.bookable,
-                          selected: current?.id == it.id,
-                          onTap: () => it.hasChildren
-                              ? onOpen([...path, _Crumb(it.id, it.title)])
-                              : onPick(_taskOf(it.id, it.title)),
-                        ),
-                    ],
-                  ),
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => ErrorView(
-                    message: context.errorText(e),
-                    onRetry: () => ref.invalidate(children),
-                  ),
-                ),
+                      ),
           ),
         ],
       ),
