@@ -47,10 +47,12 @@ internal object CveRadarHttp {
     /** @param status The HTTP status of the answer. */
     class HttpException(message: String, val status: Int) : RuntimeException(message)
 
-    fun execute(integrationId: String, request: HttpUriRequestBase, jsonBody: String? = null): String {
+    fun execute(integrationId: String, request: HttpUriRequestBase, jsonBody: String? = null, maxBytesLimit: Long? = null): String {
         jsonBody?.let { request.entity = StringEntity(it, ContentType.APPLICATION_JSON) }
-        val maxBytes = IntegrationConfig.get(integrationId).maxResponseBytes.takeIf { it > 0 }
+        val configured = IntegrationConfig.get(integrationId).maxResponseBytes.takeIf { it > 0 }
             ?: DEFAULT_MAX_RESPONSE_BYTES
+        // A smaller limit of the caller (e.g. one document of a bucket) counts as well.
+        val maxBytes = maxBytesLimit?.let { minOf(it, configured) } ?: configured
         return PooledHttpClients.get(integrationId).execute(request) { response ->
             val body = response.entity?.content?.use { PooledHttpClients.readLimited(it, maxBytes) }
                 ?.toString(Charsets.UTF_8) ?: ""

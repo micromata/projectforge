@@ -123,8 +123,9 @@ class CvrFindingReportService {
     ): FindingReport {
         val vulnerabilities = byId(CvrVulnerabilityDO::class.java, findings.keys).filterValues { !it.deleted }
         val cases = caseDao.selectByVulnerabilityIds(vulnerabilities.keys)
+        val advisoriesOfKey = osvService.advisoriesOf(advisoryFindings.keys)
         val fromAdvisories = advisoryFindings.mapNotNull { (key, list) ->
-            val advisories = osvService.advisoriesOf(key).takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+            val advisories = advisoriesOfKey[key] ?: return@mapNotNull null
             reportVulnerability(osvService.toVulnerability(advisories), null, list) to null
         }
         val reported = sorted(

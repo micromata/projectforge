@@ -375,9 +375,12 @@ class CvrMatchingService {
             val rows = if (scope == null) {
                 persistenceService.executeQueryBatched("$select:ids", Array<Any>::class.java, "ids", names)
             } else {
-                persistenceService.executeQueryBatched(
-                    "$select:names and $scopeField in :ids", Array<Any>::class.java, "ids", scope, Pair("names", names), batchSize = ID_BATCH,
-                )
+                // Both lists are bound: the names in chunks as well, so that no statement exceeds the limit of parameters.
+                names.chunked(ID_BATCH).flatMap { chunk ->
+                    persistenceService.executeQueryBatched(
+                        "$select:names and $scopeField in :ids", Array<Any>::class.java, "ids", scope, Pair("names", chunk), batchSize = ID_BATCH,
+                    )
+                }
             }
             return rows.map { PurlCandidate(it[0] as CvrPurlMatchDO, it[1] as String, it[2] as String, it[3] as Long?) }
                 .groupBy { if (field == "packageName") it.match.packageName!! else it.match.shortName!! }

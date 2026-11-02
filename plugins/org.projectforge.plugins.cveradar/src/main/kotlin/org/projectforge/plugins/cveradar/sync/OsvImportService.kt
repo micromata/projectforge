@@ -157,7 +157,8 @@ class OsvImportService {
             log.warn { "OSV advisory not readable: ${ex.message?.take(200)}" }
             null
         }
-        if (advisory == null || (advisory.malicious && !config.osv.malicious) || (advisory.affected.isEmpty() && advisory.withdrawn == null)) {
+        // One without a package of the ecosystems is stored as well if known: it may have lost them, and its index is replaced.
+        if (advisory == null || (advisory.malicious && !config.osv.malicious)) {
             result.skipped++
             return null
         }

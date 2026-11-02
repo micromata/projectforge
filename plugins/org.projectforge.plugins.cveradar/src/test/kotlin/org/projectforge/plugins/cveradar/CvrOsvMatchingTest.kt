@@ -199,6 +199,25 @@ class CvrOsvMatchingTest : CveRadarTestBase() {
     }
 
     @Test
+    fun `an advisory that lost its packages matches no longer`() {
+        val group = "org.test.osv4"
+        val (system, owner) = system("OSV4", "cveradar-osv-g4")
+        inventory.createComponent(
+            ComponentRequest(systemId = system, code = "APP", name = "App", technologies = listOf(library(group, "core", "2.5"))),
+        )
+        maven("GHSA-osv4-aaaa-bbbb", "$group:core", "3.0", aliases = listOf("CVE-2026-98401"))
+        importOsv()
+        val vulnerability = vulnerabilityDao.findByCveId("CVE-2026-98401")!!
+        assertEquals(1, findings(owner, vulnerability.id!!).size)
+
+        // Corrected: it names a package of an ecosystem that isn't imported only, and isn't withdrawn.
+        bucket["GHSA-osv4-aaaa-bbbb"] = """{"id":"GHSA-osv4-aaaa-bbbb","modified":"2026-10-31T10:00:00Z","aliases":["CVE-2026-98401"],
+            "affected":[{"package":{"ecosystem":"PyPI","name":"other"},"ranges":[{"type":"ECOSYSTEM","events":[{"introduced":"0"},{"fixed":"3.0"}]}]}]}"""
+        importOsv("2026-11-01T12:00:00Z")
+        assertTrue(findings(owner, vulnerability.id!!).isEmpty(), "the index of the advisory was replaced")
+    }
+
+    @Test
     fun `the NVD takes the vulnerability over, a withdrawn advisory matches nothing`() {
         val group = "org.test.osv2"
         val (system, owner) = system("OSV2", "cveradar-osv-g2")

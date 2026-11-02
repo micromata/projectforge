@@ -68,6 +68,9 @@ class CvrOsvAdvisoryService {
         var updated = 0
         var unchanged = 0
 
+        /** Not stored: no package of the ecosystems imported, and not known. */
+        var skipped = 0
+
         /** The new and modified advisories, to be matched against the inventory. */
         val changedAdvisoryIds = mutableSetOf<Long>()
 
@@ -88,13 +91,18 @@ class CvrOsvAdvisoryService {
      * (same modification time) is skipped. An advisory is linked to the stored vulnerability of its key; if its key
      * changed (a GHSA got a CVE id), it leaves the vulnerability of the old key.
      */
+    @Synchronized
     fun store(advisories: List<OsvAdvisory>, result: StoreResult) {
         if (advisories.isEmpty()) return
+        // Only the changed ones are loaded: the entity holds the (large) document.
+        val modifiedBefore = modifiedByOsvId(advisories.map { it.id })
         persistenceService.runInTransaction { context ->
             context.em.unwrap(Session::class.java).jdbcBatchSize = INSERT_BATCH
-            val stored = context.executeQuery(
+            val changedIds = advisories.filter { modifiedBefore[it.id]?.toInstant() != it.modified.truncatedTo(ChronoUnit.MILLIS) }
+                .map { it.id }.filter { it in modifiedBefore }
+            val stored = if (changedIds.isEmpty()) emptyMap() else context.executeQuery(
                 "from CvrOsvAdvisoryDO a where a.osvId in :ids", CvrOsvAdvisoryDO::class.java,
-                Pair("ids", advisories.map { it.id }), attached = true,
+                Pair("ids", changedIds), attached = true,
             ).associateBy { it.osvId!! }
             val vulnerabilityIds = context.executeQuery(
                 "select v.cveId, v.id from CvrVulnerabilityDO v where v.cveId in :keys and v.deleted = false",
@@ -103,8 +111,12 @@ class CvrOsvAdvisoryService {
             advisories.forEach { advisory ->
                 val existing = stored[advisory.id]
                 // The bucket gives nanoseconds, the database keeps milliseconds.
-                if (existing?.modified?.toInstant() == advisory.modified.truncatedTo(ChronoUnit.MILLIS)) {
+                if (existing == null && modifiedBefore[advisory.id] != null) {
                     result.unchanged++
+                    return@forEach
+                }
+                if (existing == null && advisory.affected.isEmpty() && advisory.withdrawn == null) {
+                    result.skipped++
                     return@forEach
                 }
                 val dbObj = existing ?: CvrOsvAdvisoryDO()
@@ -152,6 +164,7 @@ class CvrOsvAdvisoryService {
      * missing one is created from them (unless all of them are withdrawn).
      * @return The id of the vulnerability per key.
      */
+    @Synchronized
     fun materialize(keys: Collection<String>): Map<String, Long> {
         val result = mutableMapOf<String, Long>()
         keys.toSet().forEach { key ->
@@ -222,9 +235,13 @@ class CvrOsvAdvisoryService {
     }
 
     /** All advisories of the key, the preferred one first (see [copy]). */
-    fun advisoriesOf(key: String): List<CvrOsvAdvisoryDO> = persistenceService.executeQuery(
-        "from CvrOsvAdvisoryDO a where a.vulnerabilityKey = :key", CvrOsvAdvisoryDO::class.java, Pair("key", key),
-    ).sortedWith(PREFERRED)
+    fun advisoriesOf(key: String): List<CvrOsvAdvisoryDO> = advisoriesOf(listOf(key))[key].orEmpty()
+
+    /** The advisories of the keys, the preferred first, in one query. */
+    fun advisoriesOf(keys: Collection<String>): Map<String, List<CvrOsvAdvisoryDO>> =
+        persistenceService.executeQueryBatched(
+            "from CvrOsvAdvisoryDO a where a.vulnerabilityKey in :keys", CvrOsvAdvisoryDO::class.java, "keys", keys,
+        ).groupBy { it.vulnerabilityKey!! }.mapValues { it.value.sortedWith(PREFERRED) }
 
     /** A vulnerability (not stored) made of the advisories of one key, e.g. for the report of an ad-hoc check. */
     fun toVulnerability(advisories: List<CvrOsvAdvisoryDO>): CvrVulnerabilityDO =

@@ -93,6 +93,7 @@ object OsvPackages {
         if (!text.contains('%')) text
         else runCatching { java.net.URLDecoder.decode(text.replace("+", "%2B"), Charsets.UTF_8) }.getOrDefault(text)
 
-    private val PURL = Regex("""^pkg:/*([A-Za-z][A-Za-z0-9.+\-]*)/([^@?#]+)(?:@[^?#]*)?(?:\?[^#]*)?(?:#.*)?$""")
+    /** The path may start with a literal `@` (npm scope, the spec writes `%40`). */
+    private val PURL = Regex("""^pkg:/*([A-Za-z][A-Za-z0-9.+\-]*)/(@?[^@?#]+)(?:@[^?#]*)?(?:\?[^#]*)?(?:#.*)?$""")
     private val PYPI_SEPARATORS = Regex("[-_.]+")
 }

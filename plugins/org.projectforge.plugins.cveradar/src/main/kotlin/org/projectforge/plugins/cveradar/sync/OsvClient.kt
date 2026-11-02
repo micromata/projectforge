@@ -60,15 +60,17 @@ class OsvClient : OsvSource {
     private lateinit var config: CveRadarConfig
 
     override fun modifiedSince(ecosystem: String, since: Instant): List<Pair<Instant, String>> =
-        CveRadarHttp.execute(CveRadarHttp.OSV, HttpGet(url(ecosystem, "modified_id.csv"))).lineSequence().mapNotNull { line ->
-            val (time, id) = line.split(',', limit = 2).takeIf { it.size == 2 } ?: return@mapNotNull null
-            val modified = OsvParser.parseTimestamp(time) ?: return@mapNotNull null
-            if (modified < since) null else modified to id.trim()
-        }.toList()
+        // Sorted by the modification time, the latest first: reading stops at the first one older than [since].
+        CveRadarHttp.execute(CveRadarHttp.OSV, HttpGet(url(ecosystem, "modified_id.csv")), maxBytesLimit = MAX_LIST_BYTES)
+            .lineSequence().mapNotNull { line ->
+                val (time, id) = line.split(',', limit = 2).takeIf { it.size == 2 } ?: return@mapNotNull null
+                val modified = OsvParser.parseTimestamp(time) ?: return@mapNotNull null
+                modified to id.trim()
+            }.takeWhile { it.first >= since }.toList()
 
     override fun advisory(ecosystem: String, id: String): String? =
         try {
-            CveRadarHttp.execute(CveRadarHttp.OSV, HttpGet(url(ecosystem, "${encode(id)}.json")))
+            CveRadarHttp.execute(CveRadarHttp.OSV, HttpGet(url(ecosystem, "${encode(id)}.json")), maxBytesLimit = MAX_ENTRY_BYTES)
         } catch (ex: CveRadarHttp.HttpException) {
             if (ex.status != 404) throw ex
             null
@@ -102,5 +104,6 @@ class OsvClient : OsvSource {
     companion object {
         /** The document of one advisory at most (the largest ones list some thousand versions). */
         private const val MAX_ENTRY_BYTES = 5L * 1024 * 1024
+        private const val MAX_LIST_BYTES = 200L * 1024 * 1024
     }
 }

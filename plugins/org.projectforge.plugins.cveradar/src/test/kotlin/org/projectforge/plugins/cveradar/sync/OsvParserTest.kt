@@ -62,6 +62,11 @@ class OsvParserTest {
             OsvParser.parse(advisory("GHSA-aaaa-bbbb-cccc", aliases = listOf("CVE-2026-2000", "CVE-2026-1000")), setOf("PyPI"))!!.vulnerabilityKey,
             "the lowest of several CVE ids",
         )
+        assertEquals(
+            "CVE-2021-9999",
+            OsvParser.parse(advisory("GHSA-aaaa-bbbb-cccc", aliases = listOf("CVE-2021-10000", "CVE-2021-9999")), setOf("PyPI"))!!.vulnerabilityKey,
+            "compared as numbers, not as text",
+        )
         assertNull(OsvParser.parse("""{"id":"GHSA-x"}""", setOf("PyPI")), "no modification time")
     }
 
@@ -95,6 +100,7 @@ class OsvParserTest {
         assertEquals("jackson-databind", OsvPackages.shortName("Maven", "com.fasterxml.jackson.core:jackson-databind"))
         assertEquals(OsvPackages.PurlPackage("Maven", "jackson-databind", true), OsvPackages.ofPurl("pkg:maven/jackson-databind@2.12.0"), "jar listing")
         assertEquals(OsvPackages.PurlPackage("npm", "@angular/core", false), OsvPackages.ofPurl("pkg:npm/%40angular/core@17.0.0"))
+        assertEquals(OsvPackages.PurlPackage("npm", "@angular/core", false), OsvPackages.ofPurl("pkg:npm/@angular/core@17.0.0"), "scope not encoded")
         assertEquals(OsvPackages.PurlPackage("npm", "lodash", false), OsvPackages.ofPurl("pkg:npm/lodash"), "without version")
         assertEquals(OsvPackages.PurlPackage("PyPI", "foo-bar", false), OsvPackages.ofPurl("pkg:pypi/Foo_Bar@1.0"))
         assertEquals(OsvPackages.PurlPackage("Go", "github.com/gin-gonic/gin", false), OsvPackages.ofPurl("pkg:golang/github.com/gin-gonic/gin@v1.9.0"))

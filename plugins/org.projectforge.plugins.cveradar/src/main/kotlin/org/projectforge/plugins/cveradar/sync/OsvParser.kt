@@ -72,12 +72,15 @@ data class OsvAdvisory(
     val vulnerabilityKey: String
         get() {
             val ids = listOf(id) + aliases
-            return (ids.filter { CVE_ID.matches(it) }.minOrNull() ?: ids.firstOrNull { it.startsWith("GHSA-") } ?: id)
+            return (ids.filter { CVE_ID.matches(it) }.minWithOrNull(CVE_ORDER) ?: ids.firstOrNull { it.startsWith("GHSA-") } ?: id)
                 .uppercase().take(30)
         }
 
     companion object {
         private val CVE_ID = Regex("""CVE-\d{4}-\d{4,}""")
+
+        /** By year and number, not as text (`CVE-2021-9999` is lower than `CVE-2021-10000`). */
+        private val CVE_ORDER = compareBy<String>({ it.substring(4, 8).toInt() }, { it.substring(9).toLong() })
     }
 }
 
