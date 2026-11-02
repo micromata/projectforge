@@ -56,7 +56,7 @@ object CoreFeatures {
         MenuItemDefId.CALENDAR to Extras(rest = listOf("calendarSettings", "teamEvent") + CALENDAR_SUBSCRIPTION),
         MenuItemDefId.CALENDAR_LIST to Extras(rest = listOf("teamCalImport", "teamEvent") + CALENDAR_SUBSCRIPTION),
         // The rooms, the direct messages and the confidential conversations of the chat.
-        MenuItemDefId.CHAT to Extras(rest = listOf("chatDirect", "chatRoom", "chatSecret")),
+        MenuItemDefId.CHAT to Extras(rest = listOf("chatBlock", "chatDirect", "chatRoom", "chatSecret")),
         MenuItemDefId.CURRENCY_PAIR_LIST to Extras(rest = listOf("currencyConversionRate")),
         // The number ranges of the number fields of customers and projects.
         MenuItemDefId.CUSTOMER_LIST to Extras(rest = listOf("numberRanges") + PROJECT_WIZARD, next = PROJECT_WIZARD),
