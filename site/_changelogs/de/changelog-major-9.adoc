@@ -1,13 +1,63 @@
 ---
 title: "ProjectForge 9"
 date: 2026-11-02
-sort_key: "2026-11-02 0053"
+sort_key: "2026-11-02 0054"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json and changelog/changelog.de.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 Neu in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-2-4.changelog-release]
+=== ProjectForge 9.2.4: E-Rechnung mit Bestellerfeldern, Mobile App mit mehreren Servern und Strukturbaum, täglicher Fehler-Digest
+
+[.changelog-source]
+__2026-11-02, Tag https://github.com/micromata/projectforge/tree/9.2.4-RELEASE[9.2.4-RELEASE]__ +++{% include release-pills.html tag="9.2.4-RELEASE" docker="9.2.4" mini=true %}+++
+
+- **E-Rechnung**: Bestellnummer, Abteilung und Kostenstelle des Bestellers
+- **Mobile App** (in Vorbereitung): Wechsel zwischen mehreren Servern, Strukturbaum für Zeitberichte
+- App und Server warnen sich gegenseitig, wenn die Gegenseite zu alt ist
+- **Fehler-Digest** einmal täglich statt stündlich
+- Korrektur: Das Verbinden der App hinter einem SSO-Proxy klappt schon beim ersten Versuch
+
+.Überblick
+[%collapsible]
+====
+- **E-Rechnung:** neue Felder Bestellnummer (BT-13), Abteilung des Bestellers (BT-56) und Kostenstelle (BT-19) an der Rechnung und am Konto; die Beschriftungen nennen den E-Rechnungs-Term (BT-x); die Rechnungsvorlage erhält die Variablen Bestellnummer und Kostenstelle, die Abteilung steht in der Adresse.
+- **Mobile App (in Vorbereitung):** Die Anmeldungen mehrerer Server werden gemerkt und der Server lässt sich im Kontomenü wechseln; Zeitberichte wählen das Strukturelement im Strukturbaum, mit einer Suche über den ganzen Pfad, und Kostenträger in einer scrollbaren Auswahlbox; eine Warnung, wenn die App für den Server zu alt ist oder der Server für die App, „Mein Konto“ markiert veraltete Apps.
+- **Fehler-Digest:** Wird einmal täglich um 07:00 Uhr versendet, nur dringende Probleme lösen ihn vorzeitig aus (höchstens einmal pro Stunde); konfigurierbar.
+- **Auftrags-E-Mails:** übersichtlicher, die Buttons stehen oben, dazu ein Button zu den Auftragsbenachrichtigungen.
+- **Korrekturen:** Das Verbinden der App hinter einem SSO-Proxy klappt schon beim ersten Versuch, auch wenn der Proxy den Browser ohne die Parameter des Links zurückschickt.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- App: Eine Warnung, wenn die App für den Server zu alt ist oder der Server für die App; „Mein Konto“ markiert veraltete Apps.
+- App: Die Anmeldungen mehrerer Server werden gemerkt, und der Server lässt sich im Kontomenü wechseln, ohne sich neu anzumelden; dort wird auch ein weiterer Server hinzugefügt.
+- E-Rechnung: neue Felder Bestellnummer (BT-13), Abteilung des Bestellers (BT-56) und Kostenstelle (BT-19) an der Rechnung und am Konto (Abteilung, Kostenstelle); die Beschriftungen im Rechnungs- und Kontoformular nennen den E-Rechnungs-Term (BT-x), in dem das Feld übertragen wird. Die Rechnungsvorlage erhält die Variablen Bestellnummer und Kostenstelle (mit isBestellnummer/isKostenstelle), die Abteilung steht in der Adresse.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- App-Zeitberichte: Das Strukturelement kann im Strukturbaum gewählt werden (Ebene für Ebene, beginnend bei der aktuellen, mit einer Suche in der Ebene und allem darunter), die Suche findet Wörter im ganzen Pfad, der Pfad steht über dem Titel, Kostenträger werden in einer scrollbaren Auswahlbox mit Nummer und Text gewählt, der Zeitberichte-Tab ist nicht mehr als „Under construction“ markiert, und die Vorlagen öffnen sich als Liste statt als Reihe von Chips.
+- Auftrags-E-Mails: übersichtlicher, die Buttons stehen oben, dazu ein Button zu den Auftragsbenachrichtigungen.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- Fehler-Digest: Der reguläre Digest wird einmal täglich um 07:00 Uhr statt stündlich versendet, nur dringende Probleme (Sicherheit, Daten, sofortige Ereignisse) lösen ihn vorzeitig aus, höchstens einmal pro Stunde. Konfigurierbar über projectforge.support.errorDigest.interval, sendAt und urgentMinGap.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- App: Das Verbinden der App hinter einem SSO-Proxy klappt schon beim ersten Versuch, auch wenn der Proxy den Browser nach seiner Anmeldung ohne die Parameter des Links zurückschickt.
+====
 
 [discrete#release-9-2-3.changelog-release]
 === ProjectForge 9.2.3: Kostenträger ohne Punkte kopieren, Kopier-Button an Codeblöcken

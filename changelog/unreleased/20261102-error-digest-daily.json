@@ -1,5 +1,0 @@
-{
-  "type": "changed",
-  "en": "Error digest: the regular digest is sent once a day at 07:00 instead of every hour, only urgent problems (security, data, immediate events) send it early, at most once an hour. Configurable by projectforge.support.errorDigest.interval, sendAt and urgentMinGap.",
-  "de": "Fehler-Digest: Der reguläre Digest wird einmal täglich um 07:00 Uhr statt stündlich versendet, nur dringende Probleme (Sicherheit, Daten, sofortige Ereignisse) lösen ihn vorzeitig aus, höchstens einmal pro Stunde. Konfigurierbar über projectforge.support.errorDigest.interval, sendAt und urgentMinGap."
-}
