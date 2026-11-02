@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.2",
+    "date" : "2026-11-02",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "Chat: Codeblöcke in Nachrichten und Raumbeschreibungen haben einen Button zum Kopieren.", "Rechnungen: Kost1 und Kost2 einer Kostenzuweisung lassen sich ohne Punkte kopieren, z. B. zur Eingabe in ein anderes Buchhaltungssystem." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Scripting: Kotlin-Skripte brachen mit \"Unresolved reference 'cveradar'\" ab, die Klassen der Plugins CVE-Radar und IHK fehlten im Klassenpfad der Skripte." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

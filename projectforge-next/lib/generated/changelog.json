@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.2",
+    "date" : "2026-11-02",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "Chat: code blocks in messages and room descriptions have a copy button.", "Invoices: the cost 1 and cost 2 units of a cost assignment can be copied without dots, e.g. for entering them in another accounting system." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Scripting: Kotlin scripts failed with \"Unresolved reference 'cveradar'\", the classes of the CVE radar and IHK plugins were missing in the script classpath." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {
