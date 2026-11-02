@@ -1756,7 +1756,8 @@
           "intro": "diese Aufträge wurden seit der letzten Zusammenfassung angelegt, geändert oder gelöscht:",
           "subject": "Auftragsänderungen: {arg0}"
         },
-        "intro": "der Auftrag #{arg0} wurde ge&auml;ndert bzw. angelegt."
+        "introChanged": "der folgende Auftrag wurde geändert:",
+        "introCreated": "der folgende Auftrag wurde angelegt:"
       },
       "nettoSumme": {
         "_": "Nettosumme",

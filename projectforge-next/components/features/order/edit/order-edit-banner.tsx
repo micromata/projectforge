@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { AUFTRAG_METADATA } from "@/lib/metadata/auftrag.generated";
 import { fromMetadata } from "@/lib/validation/from-metadata";
+import { OrderNotificationUrlDialog } from "../order-notification-button";
+import { useOrderNotificationSuggestions } from "./send-notification-option";
 import { OrderSumsLine } from "./order-sums-line";
 import type { OrderValues } from "../order-schema";
 
@@ -21,6 +23,7 @@ const m = fromMetadata(AUFTRAG_METADATA);
 export function OrderEditBanner() {
   const t = useTranslations();
   const form = useEntityEditForm();
+  const suggestions = useOrderNotificationSuggestions();
 
   // Subscribe only to the three identifiers so the banner doesn't re-render on every keystroke.
 
@@ -63,6 +66,10 @@ export function OrderEditBanner() {
         )}
       </div>
       <OrderSumsLine className="ml-auto justify-end" />
+      {/* The link of the order mails; here because the banner is there for readers, too (see the dialog). */}
+      {nummer != null && (
+        <OrderNotificationUrlDialog suggestions={suggestions} />
+      )}
     </div>
   );
 }

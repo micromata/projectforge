@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import org.projectforge.PageRoutes
 import org.projectforge.business.user.service.UserPrefService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -52,5 +53,21 @@ class OrderNotificationPrefService {
     companion object {
         const val AREA = "orderNotification"
         const val NAME = "prefs"
+
+        /**
+         * The query parameter opening the notification settings dialog, on the order list or, with the project and
+         * customer of the order offered as exceptions, on the order itself; the counterpart of
+         * `ORDER_NOTIFICATION_SETTINGS_PARAM` in projectforge-next (`order-notification-button.tsx`).
+         */
+        const val SETTINGS_PARAM = "notificationSettings"
+
+        /**
+         * The link to the settings dialog for the order mails.
+         * @param orderUrl The link to the order, if the mail is about a single one: the dialog then opens on it.
+         * Without, the path of the order list, e.g. `next/order?notificationSettings` (to be made absolute).
+         */
+        fun settingsPath(orderUrl: String? = null): String {
+            return "${orderUrl ?: PageRoutes.listUrl("order")}?$SETTINGS_PARAM"
+        }
     }
 }

@@ -1756,7 +1756,8 @@
           "intro": "these orders have been created, changed or deleted since the last summary:",
           "subject": "Order changes: {arg0}"
         },
-        "intro": "the order #{arg0} was created or changed."
+        "introChanged": "the following order was changed:",
+        "introCreated": "the following order was created:"
       },
       "nettoSumme": {
         "_": "Net sum",

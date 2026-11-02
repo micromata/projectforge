@@ -24,6 +24,16 @@
         </tr>
         <% } %>
       </table>
+      <% if (notificationSettingsUrl) { %>
+      <a
+              href="${notificationSettingsUrl}"
+              class="button secondary"
+              target="_blank"
+              rel="noreferrer"
+      >
+        <%= pf.getI18nString("fibu.auftrag.notification.prefs.title") %>
+      </a>
+      <% } %>
 
       #INCLUDE{mail/mailClosing.html}
       #INCLUDE{mail/mailFooter.html}

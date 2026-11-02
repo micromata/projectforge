@@ -102,6 +102,40 @@
             color: #fff;
         }
 
+        /* Less prominent action beside a filled button. */
+        a.button.secondary {
+            padding: 9px 17px;
+            background-color: #fff;
+            color: #009ba3;
+            border: 1px solid #009ba3;
+        }
+
+        a.button.secondary:hover {
+            background-color: #e5f5f6;
+            color: #007480;
+        }
+
+        /* A row of buttons at the top of a mail, reachable without scrolling. */
+        div.actions {
+            margin: 8px 0 20px;
+        }
+
+        div.actions a.button {
+            margin: 0 8px 8px 0;
+        }
+
+        /* A boxed part of a mail, e.g. a position of an order. */
+        div.card {
+            margin-top: 12px;
+            padding: 12px 16px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+        }
+
+        h3.card-title {
+            margin: 0 0 4px;
+        }
+
         @media only screen and (max-width: 1005px) {
             div.container {
                 width: 95%;
@@ -172,6 +206,11 @@
             text-align: left;
         }
 
+        /* Some air between the label/value pairs of the field tables. */
+        table.width-2 td, table.width-3 td {
+            padding-top: .5em;
+        }
+
         table.width-2 td {
             width: 50%;
         }
@@ -192,6 +231,15 @@
             display: block;
             color: #252525;
             font-weight: 400;
+        }
+
+        /* Long texts (comments, descriptions), set off from the short fields. */
+        td span.value.note {
+            margin-top: 2px;
+            padding: 8px 12px;
+            background-color: #fafafa;
+            border-left: 3px solid #e5e5e5;
+            border-radius: 6px;
         }
 
         .no-wrap {
@@ -237,6 +285,24 @@
             background-color: #e5f5f6;
             color: #007480;
             border: 1px solid #b3e1e3;
+        }
+
+        .badge-success {
+            background-color: #e7f6ec;
+            color: #116329;
+            border: 1px solid #b7e2c4;
+        }
+
+        .badge-neutral {
+            background-color: #f5f5f5;
+            color: #737373;
+            border: 1px solid #e5e5e5;
+        }
+
+        /* A badge beside a heading, e.g. the status of an order. */
+        h2 .badge, h3 .badge {
+            margin-left: 8px;
+            vertical-align: middle;
         }
 
         /* Number of entries next to a section title. */
