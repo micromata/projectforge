@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.4",
+    "date" : "2026-11-02",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "Einstellung projectforge.2fa.exemptUsers: Login-Namen, die keinen zweiten Faktor brauchen, z. B. für den Zugang einer App-Store-Prüfung." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {
