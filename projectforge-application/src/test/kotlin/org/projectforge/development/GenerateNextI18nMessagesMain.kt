@@ -293,7 +293,7 @@ object GenerateNextI18nMessagesMain {
    */
   internal fun resolveRootDir(): File = SourcesUtils.getBasePath().toFile()
 
-  private fun readProperties(rootDir: File, suffix: String): Properties {
+  internal fun readProperties(rootDir: File, suffix: String): Properties {
     val main = File(rootDir, "$BUNDLE$suffix.properties")
     require(main.exists()) { "Properties file not found: ${main.absolutePath}" }
     // The main bundle and every plugin bundle ([SortAndCheckI18nPropertiesMain.FILES], the one list of all

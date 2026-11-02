@@ -1,13 +1,174 @@
 ---
 title: "ProjectForge 9"
-date: 2026-10-30
-sort_key: "2026-10-30 0050"
+date: 2026-11-02
+sort_key: "2026-11-02 0053"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-2-3.changelog-release]
+=== ProjectForge 9.2.3: copy cost units without dots, copy button on code blocks
+
+[.changelog-source]
+__2026-11-02, tag https://github.com/micromata/projectforge/tree/9.2.3-RELEASE[9.2.3-RELEASE]__ +++{% include release-pills.html tag="9.2.3-RELEASE" docker="9.2.3" mini=true %}+++
+
+- **Invoices**: copy cost 1 and cost 2 without dots
+- **Chat**: copy button on code blocks
+- Fix: scripts using the classes of the CVE-Radar and IHK plugins run again
+
+.Overview
+[%collapsible]
+====
+- **Invoices:** the cost 1 and cost 2 units of a cost assignment can be copied without dots, in the folded position as well as beside the fields of an open one, e.g. for entering them in another accounting system.
+- **Chat:** code blocks in messages and room descriptions have a copy button.
+- **Fixes:** Kotlin scripts no longer fail with "Unresolved reference 'cveradar'", the classes of the CVE-Radar and IHK plugins are in the script classpath again.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Chat: code blocks in messages and room descriptions have a copy button.
+- Invoices: the cost 1 and cost 2 units of a cost assignment can be copied without dots, e.g. for entering them in another accounting system.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Scripting: Kotlin scripts failed with "Unresolved reference 'cveradar'", the classes of the CVE radar and IHK plugins were missing in the script classpath.
+====
+
+[discrete#release-9-2-2.changelog-release]
+=== ProjectForge 9.2.2: mobile app with notifications and address book, CVE-Radar notifications
+
+[.changelog-source]
+__2026-11-02, tag https://github.com/micromata/projectforge/tree/9.2.2-RELEASE[9.2.2-RELEASE]__ +++{% include release-pills.html tag="9.2.2-RELEASE" docker="9.2.2" mini=true %}+++
+
+- **Mobile app** (in preparation): notifications with push and an address book
+- **CVE-Radar**: notifications about new findings and outdated lists of libraries
+- Fix: Kost2 sometimes missing in the structure tree, the project list and time sheets
+- Fix: a later payment schedule also defers the invoice of a finished order position
+
+.Overview
+[%collapsible]
+====
+- **Mobile app (in preparation):** notifications of the web version with push messages (iPhone, APNs); an address book like the Contacts app, also offline; login behind an SSO proxy, recently used servers, more room for the pages and the light or dark appearance of the web pages.
+- **CVE-Radar:** a notification rule for new findings without details, a rule type for outdated lists of libraries of a component, a description tab in the file of a case, and a faster start page.
+- **Calendar on small screens:** the calendar chooser has a line of its own instead of being covered.
+- **Fixes:** Kost2 no longer missing in overviews such as the structure tree, the project list or the cost unit selection of a time sheet (e.g. after a project was reactivated); in the order book a payment schedule dated in a following month also defers the invoice of a finished position; the file of a CVE-Radar case without a CVE opens again.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **Mobile app: notifications and push (iPhone)**
+  * The notifications of the web version (rules, chat) are shown in the app as well: a bell with the count, the list with the archive, and confirming or finishing them; a link opens the page in the app.
+  * A new notification wakes the app with a push message (APNs, `+projectforge.push.apns.*+`), without its content in the message. Without a configured key nothing is sent and the app polls as before.
+- **Mobile app (in preparation): time sheets**
+  * The app books time sheets on the phone: a week strip with the daily totals, the bookings of the day with the gaps between them (a tap books a gap), recent bookings and templates to start from, a task search, and the cost unit chosen automatically where the task has only one. The server's checks (overlap, closed tasks, protected periods) apply as in the web version.
+  * A timer in the app starts and stops a booking on the device; stopping opens the form with the time rounded to 5 minutes.
+  * The time sheet list of the web pages switches to the app's tab; the form of a single booking stays in the web pages when opened from a link.
+- **CVE-Radar: notification without details and about outdated lists of libraries**
+  * A new notification rule "New findings of the CVE radar" starts with a text that names no details ("there may be updates") and a link to the list; the new variable cvrListLink always links to the list.
+  * New rule type "Outdated lists of libraries of the CVE radar": the responsible team of a component whose list of libraries was applied more than a number of days ago (30 by default) is told, at most once a week, and the notification is resolved by an update of the list. The day of the last list is now recorded per component.
+- **Mobile app (in preparation)**
+  * Behind an SSO proxy (e.g. Authentik as forward auth) the app gets the proxy's session from the browser login (`+projectforge.app.proxyCookies+`); when it expires, the app logs in again in the browser.
+  * The login of the app offers the recently used servers, and the logout works even if the server can't be reached.
+  * Business cards are stored in the app and shown offline too; they are reloaded silently when the tab is opened and by a button, and can be added to the Apple Wallet if the server is configured for it (iPhone), also by the link of the web page in the app.
+  * The app gives more room to the pages: no title bar above the web pages and the chat, a slim navigation bar with icons only, and in landscape a narrow navigation at the side.
+  * In the app, the menu entries "Chat" and "My business cards" and the bell of the web pages switch to the app's own tab; the new settings of the app can keep each of them in the web version.
+  * The app has an address book like the Contacts app: a search field, sections with an index at the side, and tapping a number offers a call or a message, a mail address opens the mail app. All addresses are stored on the device (also offline) and updated silently; editing opens the form of the web pages, and the address list of the web pages switches to the app's tab.
+  * The app's own screens follow the light or dark appearance chosen in the web pages (also offline), and the web pages no longer flash white while loading.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- Faster first page of big lists: the CVE-Radar start page no longer loads every vulnerability to build the list
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Calendar on small screens: the calendar chooser has a line of its own under the title and the buttons instead of being covered by them.
+- **CVE-Radar: the file of an incident opens again and has a tab for its description**
+  * The file of a case without a CVE showed an empty page. It now opens on the new first tab "Description", which shows the description of the case and lets the security team edit it with a rich text editor.
+- Kost2 sometimes missing in overviews such as the structure tree, the project list or the cost unit selection of a time sheet, although it existed: for instance after a project was reactivated, or for a cost unit created while the caches were being reloaded in the background.
+- Order book: a payment schedule dated in a following month now also defers the invoice of a finished position (filter "to be invoiced", next invoice date)
+====
+
+[discrete#release-9-2-1.changelog-release]
+=== ProjectForge 9.2.1: CVE-Radar with AI prompts and ad-hoc check, Apple Wallet, mobile layout
+
+[.changelog-source]
+__2026-11-01, tag https://github.com/micromata/projectforge/tree/9.2.1-RELEASE[9.2.1-RELEASE]__ +++{% include release-pills.html tag="9.2.1-RELEASE" docker="9.2.1" mini=true %}+++
+
+- **CVE-Radar**: ad-hoc check of uploaded files, findings report and case research with prompts for an approved AI system
+- **Digital business cards** in the Apple Wallet
+- More room for content on **mobile devices**
+- Fix: planned invoices no longer count in the invoice statistics
+
+.Overview
+[%collapsible]
+====
+- **CVE-Radar:** ad-hoc check of lockfiles, SBOMs or a zip of such lists against all vulnerabilities without storing anything; export of the open findings of a project with a prompt for advice on the fix; research of a new case with an AI system; download and import of a case as JSON; upload of all lists of a component in one zip and the lockfile of pnpm.
+- **Digital business cards:** add a card to the Apple Wallet (needs a Pass Type ID certificate).
+- **Mobile app (in preparation):** login via the browser with second factor, the own business cards also without network, connected apps listed in My account.
+- **Mobile devices:** on narrow or low screens the logo row and the status bar are hidden, smaller paddings, a compact list footer, scrollable tabs; very low screens scroll.
+- **Fixes:** planned invoices no longer count in the statistics of the invoice list.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Digital business cards: add a card to the Apple Wallet (needs a Pass Type ID certificate, see the admin guide).
+- **CVE-Radar: ad-hoc check of uploaded files against all vulnerabilities**
+  * The new page Ad-hoc check takes lockfiles, SBOMs, build tool output or a zip with such lists and checks every package against the imported vulnerabilities, with a progress bar per file. Nothing is stored; every reader may check, and only the person who started a check sees its result.
+  * The result lists the vulnerabilities with package, version, file and the case of the security team, can be downloaded as JSON, and comes with a prompt asking an approved AI system how to fix them. The names of the files are replaced by default.
+- **CVE-Radar: research a new case with an AI system**
+  * Research with AI (security team) builds a prompt for an approved AI system from the CVE id or a description of the incident, sources and notes, with the NVD data of an imported CVE. There is no direct connection: the prompt is copied there, its answer pasted back. The dialog has three steps (details, prompt, answer), each with the way back; the prompt can be copied or downloaded as a file.
+  * The answer (one JSON block) is checked and shown as a preview with a copy button per value; Create case creates the case with title, description, priority and reason, fix version, workaround, measures and references, marked as created with the help of an AI system.
+- **CVE-Radar: download a case as JSON and import it again**
+  * Download as JSON in the file of a case saves its values as stored (without status, assignee, ratings, team checks and discussion).
+  * Import case (security team) creates a new case from such a file after a preview, e.g. to copy a case into another instance of ProjectForge.
+  * Import case also takes the answer of an AI system to the prompt of Research with AI, e.g. saved as a file; quotes made typographic by copying are straightened.
+- **CVE-Radar: export the findings of a project, with a prompt for advice on the fix**
+  * The open findings of a node of the inventory and below as one JSON file: per vulnerability the NVD data, the case of the security team and the matched technologies with versions and package URLs. Only what the user may see; internal names are replaced by neutral ones by default.
+  * A prompt with the report asks an approved AI system how to fix every vulnerability in the project: whether it is really affected, the target version and how to force it for a transitive dependency, a workaround, and how to verify the fix.
+- **CVE-Radar: more ways to upload the libraries of a component**
+  * All lists of a component can be uploaded in one zip, collected by a script of the project (the user guide has an example): lockfiles, SBOMs, output of the build tools and package lists of the images. Only the files of such lists are read; files that may hold tokens (.npmrc, .env, gradle.properties, settings.xml) are skipped unread. The preview shows every file of the zip with its format.
+  * The lockfile of pnpm (pnpm-lock.yaml, versions 5, 6 and 9) is read, without the development dependencies.
+  * The upload dialog shows how to list the packages of a container image (e.g. eclipse-temurin: dpkg-query, apk, rpm or an SBOM from syft), where native libraries such as brotli, zlib or OpenSSL show up, and links to the chapter of the user guide.
+- **Mobile app (in preparation)**
+  * The ProjectForge app for iOS and Android logs in via the browser, with password and second factor (WebAuthn or code) as usual; the browser asks once more before an app is connected. The first version shows the own digital business cards, also without network.
+  * All other pages of ProjectForge open inside the app, without a second login. Logging out the app ends them as well.
+  * My account: the connected apps with their last usage, each can be logged out. A password change logs out all apps; an app unused for 90 days is logged out automatically.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- **More room for content on mobile devices**
+  * On narrow or low screens (e.g. a phone in landscape) the logo row and the status bar are hidden, and the paddings of edit pages, tabs, action bar and list footer are smaller; changelog, version and copyright are in the user menu there.
+  * The list footer shows only the range and the page buttons around the current page; the tabs of an edit page scroll horizontally.
+  * The menu of an area at the top right of its pages (e.g. CVE-Radar) is a single menu button on narrow screens; on the file of a CVE-Radar case the header scrolls with the content on narrow or low screens.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Outgoing invoices: planned invoices no longer count in the statistics of the invoice list (gross, net, open, overdue).
+- Small screens: on a very low display (e.g. a phone in landscape) the page now scrolls, so the content below the header is reachable.
+====
 
 [discrete#release-9-2-0.changelog-release]
 === ProjectForge 9.2: Java 21, JCR removed, CVE-Radar, digital business cards

@@ -162,8 +162,12 @@ class MailTemplatesPreviewTest : AbstractTestBase() {
             it.bindungsFrist = LocalDate.of(2026, 10, 31)
             it.beauftragungsDatum = LocalDate.of(2026, 9, 15)
             it.contactPerson = recipient
-            it.bemerkung = "Abrechnung monatlich nach Aufwand."
-            it.addPosition(position("Konzeption und Design", "12000", AuftragsPositionsArt.NEUENTWICKLUNG))
+            it.bemerkung = "Abrechnung monatlich nach Aufwand.\nRechnungen bitte an die Buchhaltung, mit Bestellnummer."
+            it.statusBeschreibung = "10.09.: Angebot angenommen, Bestellung folgt.\n15.09.: Bestellung eingegangen."
+            it.addPosition(position("Konzeption und Design", "12000", AuftragsPositionsArt.NEUENTWICKLUNG).also { p ->
+                p.status = AuftragsStatus.ABGESCHLOSSEN
+                p.bemerkung = "Kann direkt nach Abnahme abgerechnet werden."
+            })
             it.addPosition(position("Umsetzung Frontend", "48500", AuftragsPositionsArt.NEUENTWICKLUNG))
         }
         val subject = "Auftrag #7299 wurde geändert."
@@ -171,7 +175,9 @@ class MailTemplatesPreviewTest : AbstractTestBase() {
         val data = mutableMapOf<String, Any?>(
             "contactPerson" to recipient,
             "auftrag" to order,
+            "operationType" to "UPDATE",
             "requestUrl" to "https://projectforge.example.org/next/order/4711",
+            "notificationSettingsUrl" to "https://projectforge.example.org/next/order/4711?notificationSettings",
             "subject" to subject,
             "history" to listOf(
                 history("status", "BEAUFTRAGT", "LOI"),
@@ -195,6 +201,7 @@ class MailTemplatesPreviewTest : AbstractTestBase() {
                 mapOf("number" to 7300, "title" to "Wartung 2027", "operation" to "INSERT", "link" to null),
                 mapOf("number" to 7001, "title" to "Altauftrag", "operation" to "DELETE", "link" to null),
             ),
+            "notificationSettingsUrl" to "https://projectforge.example.org/next/order?notificationSettings",
         )
         mail.content = sendMail.renderGroovyTemplate(
             mail, "mail/orderDigestNotification.html", data, translate(Locale.GERMAN, "fibu.auftrag"), recipient,

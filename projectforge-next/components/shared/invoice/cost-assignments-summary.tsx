@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
 import {
@@ -8,6 +9,7 @@ import {
   formatPercentageDecimal,
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { KostCopyButton } from "./kost-copy-button";
 import { shareOfNetSum } from "./values";
 import type { KostZuweisungValues } from "./kost-zuweisung";
 
@@ -44,9 +46,9 @@ export function CostAssignmentsSummary({
         // The order of the open row's fields, so the two readings match: cost 1, cost 2, amount, the
         // share that is of the position, why.
         const share = shareOfNetSum(assignment.netto, positionNetSum);
-        const parts = [
-          formatDisplayName(assignment.kost1),
-          formatDisplayName(assignment.kost2),
+        const parts: ReactNode[] = [
+          kostWithCopy(assignment.kost1, "kost1"),
+          kostWithCopy(assignment.kost2, "kost2"),
           assignment.netto != null
             ? formatCurrency(assignment.netto, format)
             : "",
@@ -60,7 +62,12 @@ export function CostAssignmentsSummary({
             className="min-w-0 truncate text-xs text-muted-foreground tabular-nums"
           >
             {parts.length > 0 ? (
-              parts.join(" · ")
+              parts.map((part, i) => (
+                <Fragment key={i}>
+                  {i > 0 && " · "}
+                  {part}
+                </Fragment>
+              ))
             ) : (
               <span className="italic">
                 {`${t("fibu.rechnung.showKostZuweisungen")} ${index + 1}`}
@@ -70,5 +77,27 @@ export function CostAssignmentsSummary({
         );
       })}
     </span>
+  );
+}
+
+/**
+ * A cost unit as its display name reads (`1.400.01.00: description`), with the button copying its
+ * number without dots right behind the number — so it is clear which of the two units it copies. Both
+ * units lead the line, so truncating its end leaves the buttons in view.
+ */
+function kostWithCopy(
+  kost: KostZuweisungValues["kost1" | "kost2"],
+  kind: "kost1" | "kost2"
+): ReactNode {
+  const name = formatDisplayName(kost);
+  if (!name) return null;
+  const colon = name.indexOf(":");
+  const number = colon < 0 ? name : name.slice(0, colon);
+  return (
+    <>
+      {number}
+      <KostCopyButton kost={kost} kind={kind} inTrigger className="mx-0.5" />
+      {colon < 0 ? null : name.slice(colon)}
+    </>
   );
 }

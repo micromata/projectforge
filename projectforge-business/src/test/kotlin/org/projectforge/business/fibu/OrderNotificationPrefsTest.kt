@@ -55,4 +55,13 @@ class OrderNotificationPrefsTest {
         assertEquals(OrderNotificationMode.MUTED, prefs.resolve(null, 1L, 2L))
         assertEquals(OrderNotificationMode.IMMEDIATE, prefs.resolve(null, 1L, 3L))
     }
+
+    @Test
+    fun `settings link opens on the order or, without one, on the list`() {
+        assertEquals(
+            "https://pf.example.org/next/order/4711?notificationSettings",
+            OrderNotificationPrefService.settingsPath("https://pf.example.org/next/order/4711"),
+        )
+        assertEquals("next/order?notificationSettings", OrderNotificationPrefService.settingsPath())
+    }
 }

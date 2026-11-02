@@ -144,10 +144,12 @@ export function CalendarPage() {
 
   return (
     <>
-      {/* No category over the title: it would only repeat "Kalender". The chooser rides the title row's
-          flexible middle (a wrapping field that grows down as more are picked) to save a vertical line. */}
+      {/* No category over the title: it would only repeat "Kalender". From sm up the chooser rides the title
+          row's flexible middle (a wrapping field that grows down as more are picked) to save a vertical line;
+          on a phone it would be squeezed there, so it gets a line of its own below title and actions. */}
       <PageTitleRow
         title={t("calendar.title")}
+        centerBelow
         center={
           <CalendarSelect
             teamCalendars={init.teamCalendars ?? []}

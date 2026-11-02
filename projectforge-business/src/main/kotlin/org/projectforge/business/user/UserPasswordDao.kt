@@ -62,6 +62,9 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
     private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
 
     @Autowired
+    private lateinit var appDeviceDao: AppDeviceDao
+
+    @Autowired
     private lateinit var configurationService: ConfigurationService
 
     @Autowired
@@ -179,6 +182,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
                 // Every device has to log in again with the new password (same meaning as renewing the one
                 // shared key had before, see StayLoggedInTokenDO).
                 stayLoggedInTokenDao.deleteAll(userId)
+                appDeviceDao.deleteAll(userId) // The apps as well: a new login in the browser.
                 userAuthenticationsService.renewToken(userId, UserTokenType.REST_CLIENT)
             }
         } else {

@@ -25,9 +25,11 @@ package org.projectforge.plugins.cveradar
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.i18n.translate as i18nTranslate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrCaseKind
@@ -35,12 +37,16 @@ import org.projectforge.plugins.cveradar.model.CvrCaseStatus
 import org.projectforge.plugins.cveradar.model.CvrPriority
 import org.projectforge.plugins.cveradar.model.CvrRatingDO
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
+import org.projectforge.plugins.cveradar.rest.AiCaseContext
+import org.projectforge.plugins.cveradar.rest.CaseExport
+import org.projectforge.plugins.cveradar.rest.CaseImportRequest
 import org.projectforge.plugins.cveradar.rest.CaseFile
 import org.projectforge.plugins.cveradar.rest.CaseFileView
 import org.projectforge.plugins.cveradar.rest.FilePermissions
 import org.projectforge.plugins.cveradar.rest.FileTeamCheckView
 import org.projectforge.plugins.cveradar.rest.MassRequest
 import org.projectforge.plugins.cveradar.rest.MassResult
+import org.projectforge.plugins.cveradar.rest.DescriptionRequest
 import org.projectforge.plugins.cveradar.rest.MeasuresRequest
 import org.projectforge.plugins.cveradar.rest.NvdReference
 import org.projectforge.plugins.cveradar.rest.RatingRequest
@@ -276,6 +282,98 @@ class CvrCaseFileService {
         return viewCase(user, caseId)
     }
 
+    /** The description of the case (Markdown from an import or HTML from the editor, rendered sanitized); security team, like the measures. */
+    fun saveDescription(user: PFUserDO, caseId: Long, request: DescriptionRequest): CaseFile {
+        access.checkSecurityTeam(user)
+        val case = editableCase(caseId, request.lastUpdate, openRequired = true)
+        case.description = request.description?.take(CvrCaseDO.LENGTH_MARKDOWN)
+        caseDao.update(case, checkAccess = false)
+        return viewCase(user, caseId)
+    }
+
+    /** The NVD data of the CVE and its case, if any, for the prompt of a new case (AI-01); readers may. */
+    fun aiContext(user: PFUserDO, cveId: String): AiCaseContext {
+        access.checkReader(user)
+        val code = cveId.trim().uppercase()
+        if (!CvrCaseDao.CVE_REGEX.matches(code)) {
+            throw UserException(ERROR_CVE_ID)
+        }
+        val vulnerability = vulnerabilityDao.findByCveId(code)?.takeIf { !it.deleted }
+        return AiCaseContext(vulnerability?.let { vulnerabilityView(it) }, caseDao.findByCode(code)?.takeIf { !it.deleted }?.id)
+    }
+
+    /** The case as a file to import again ([CaseExport]); readers may, like they read the case. */
+    fun exportCase(user: PFUserDO, caseId: Long): CaseExport {
+        access.checkReader(user)
+        val case = caseDao.find(caseId, checkAccess = false)?.takeIf { !it.deleted }
+            ?: throw UserException(CveRadarService.ERROR_NOT_FOUND)
+        return CaseExport(
+            CASE_EXPORT_FORMAT, CASE_EXPORT_VERSION, Date(),
+            CaseImportRequest(
+                kind = case.kind, code = case.code, title = case.title, description = case.description,
+                priority = case.priority, priorityReason = case.priorityReason, fixVersion = case.fixVersion,
+                workaround = case.workaround, techMeasures = case.techMeasures, nonTechMeasures = case.nonTechMeasures,
+                referenceLinks = case.referenceLinks, clientAdvisory = case.clientAdvisory,
+                minClientAgentVersion = case.minClientAgentVersion, clientAgentCheckId = case.clientAgentCheckId,
+            ),
+        )
+    }
+
+    /**
+     * A new case from the answer of an AI system or from a [CaseExport], checked by the security team in the preview
+     * (AI-04 – AI-08). The content is untrusted: the lengths are checked here, the code, the links and the vulnerability by the dao, the
+     * rich text is sanitized when rendered. The case is new and assigned to the logged-in user; the priority needs a
+     * reason (PRIO-02).
+     */
+    fun importCase(user: PFUserDO, request: CaseImportRequest): CaseFile {
+        access.checkSecurityTeam(user)
+        val kind = request.kind ?: CvrCaseKind.INCIDENT
+        val title = text(request.title, Constants.LENGTH_TITLE, "title") ?: throw UserException(ERROR_AI_REQUIRED, i18nTranslate("title"))
+        val priorityReason = text(request.priorityReason, Constants.LENGTH_TEXT, "plugins.cveradar.case.priorityReason")
+        if (request.priority != null && priorityReason == null) {
+            throw UserException(ERROR_PRIORITY_REASON)
+        }
+        val referenceLinks = CvrReferenceLinks.normalize(request.referenceLinks)
+        text(referenceLinks, Constants.LENGTH_TEXT, "plugins.cveradar.case.referenceLinks")
+        val code = if (kind == CvrCaseKind.CVE) request.code?.trim()?.uppercase() else null
+        // Codes are unique, deleted cases included: a deleted case of the CVE is revived with the imported values.
+        val deleted = code?.let { caseDao.findByCode(it) }?.takeIf { it.deleted }
+        val case = (deleted ?: CvrCaseDO()).also {
+            it.kind = kind
+            // An incident gets the next code of the year (IMP-14), a CVE the one of the request (checked by the dao).
+            it.code = code
+            it.title = title
+            it.description = text(request.description, CvrCaseDO.LENGTH_MARKDOWN, "description")
+            it.status = CvrCaseStatus.NEW
+            it.priority = request.priority
+            it.priorityReason = priorityReason
+            it.assignee = user
+            it.fixVersion = text(request.fixVersion, CvrCaseDO.LENGTH_FIX_VERSION, "plugins.cveradar.case.fixVersion")
+            it.workaround = text(request.workaround, CvrCaseDO.LENGTH_MARKDOWN, "plugins.cveradar.case.workaround")
+            it.techMeasures = text(request.techMeasures, CvrCaseDO.LENGTH_MARKDOWN, "plugins.cveradar.case.techMeasures")
+            it.nonTechMeasures = text(request.nonTechMeasures, CvrCaseDO.LENGTH_MARKDOWN, "plugins.cveradar.case.nonTechMeasures")
+            it.referenceLinks = referenceLinks
+            it.clientAdvisory = request.clientAdvisory
+            it.minClientAgentVersion = text(request.minClientAgentVersion, CvrCaseDO.LENGTH_MIN_CLIENT_AGENT_VERSION, "plugins.cveradar.case.minClientAgentVersion")
+            it.clientAgentCheckId = text(request.clientAgentCheckId, CvrCaseDO.LENGTH_CLIENT_AGENT_CHECK_ID, "plugins.cveradar.case.clientAgentCheckId")
+        }
+        if (deleted != null) {
+            caseDao.undelete(deleted, checkAccess = false) // Takes the values set above along.
+            return viewCase(user, deleted.id!!)
+        }
+        val id = caseDao.insert(case, checkAccess = false)
+        return viewCase(user, id)
+    }
+
+    /** The trimmed text, null if empty; refused if longer than [max] (named by the label of [i18nKey]). */
+    private fun text(value: String?, max: Int, i18nKey: String): String? {
+        val text = value?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        if (text.length > max) {
+            throw UserException(ERROR_AI_TOO_LONG, i18nTranslate(i18nKey), max)
+        }
+        return text
+    }
+
     /** The same action for several vulnerabilities (TRI-07); the files are opened where missing. */
     fun mass(user: PFUserDO, request: MassRequest): List<MassResult> {
         access.checkSecurityTeam(user)
@@ -357,6 +455,7 @@ class CvrCaseFileService {
             code = case.code,
             kind = case.kind,
             title = case.title,
+            description = case.description,
             status = case.status,
             priority = case.priority,
             priorityReason = case.priorityReason,
@@ -386,7 +485,7 @@ class CvrCaseFileService {
         )
     }
 
-    private fun vulnerabilityView(vulnerability: CvrVulnerabilityDO): VulnerabilityView {
+    internal fun vulnerabilityView(vulnerability: CvrVulnerabilityDO): VulnerabilityView {
         val references = references(vulnerability)
         val (remediation, other) = references.partition { reference -> reference.tags.any { it in REMEDIATION_TAGS } }
         return VulnerabilityView(
@@ -450,5 +549,12 @@ class CvrCaseFileService {
         const val ERROR_MASS_FAILED = "plugins.cveradar.file.error.massFailed"
         const val ERROR_MASS_LIMIT = "plugins.cveradar.file.error.massLimit"
         const val ERROR_REASSIGN_RIGHTS = "plugins.cveradar.file.error.reassignRights"
+        const val ERROR_CVE_ID = "plugins.cveradar.case.error.cveId"
+        const val ERROR_AI_REQUIRED = "plugins.cveradar.case.ai.error.required"
+        const val ERROR_AI_TOO_LONG = "plugins.cveradar.case.ai.error.tooLong"
+
+        /** The [CaseExport] of a case, recognized by the import. */
+        const val CASE_EXPORT_FORMAT = "projectforge.cveradar.case"
+        const val CASE_EXPORT_VERSION = "1"
     }
 }

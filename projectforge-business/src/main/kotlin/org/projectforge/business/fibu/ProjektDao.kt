@@ -384,9 +384,10 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     }
 
     override fun afterUpdate(obj: ProjektDO, dbObj: ProjektDO?, isModified: Boolean) {
-        if (dbObj?.task?.id != null && obj.task?.id == null) {
-            // Project task was removed:
-            taskTree.internalSetProject(dbObj.task?.id!!, null)
+        val oldTaskId = dbObj?.task?.id
+        if (oldTaskId != null && obj.task?.id != oldTaskId) {
+            // Project task was removed or replaced: the former task no longer shows the project and its Kost2.
+            taskTree.internalSetProject(oldTaskId, null)
         }
     }
 

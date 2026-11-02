@@ -613,6 +613,25 @@ test.describe("chat", { tag: "@parallel" }, () => {
       );
       await expect(editor).toHaveText("");
 
+      // The copy button of the code block: copies its text, confirms with a tick and offers to copy again.
+      await page
+        .context()
+        .grantPermissions(["clipboard-read", "clipboard-write"]);
+      const codeBlock = t("richTextEditor.codeBlock");
+      await sent.locator("pre").hover();
+      await sent
+        .getByRole("button", { name: `${t("copy")}: ${codeBlock}` })
+        .click();
+      expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+        "fun a() {\n    b()\n}"
+      );
+      await expect(
+        sent.getByRole("button", { name: `${t("copied")}: ${codeBlock}` })
+      ).toBeVisible();
+      await expect(
+        sent.getByRole("button", { name: `${t("copy")}: ${codeBlock}` })
+      ).toBeVisible();
+
       // A code block by ``` and Enter, Tab indenting in it.
       const fenced = `fenced${uniqueSuffix()}`;
       await editor.pressSequentially("```");

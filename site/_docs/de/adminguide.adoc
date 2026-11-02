@@ -252,6 +252,57 @@ und die SMS-Schnittstelle (`/export/sms`).
 Die Sichtbarkeit von Menüs (`projectforge.menu.visibility.*`) ist etwas anderes: Sie blendet Menüeinträge nur für
 Gruppen von Benutzern aus, die Funktionen bleiben erreichbar.
 
+[[mobile_app]]
+=== Mobile App
+
+Die mobile App meldet sich im System-Browser an (Passwort und zweiter Faktor wie im Web) und erhält dann ein eigenes
+Token. Einstellungen in der `projectforge.properties`:
+
+[source,properties]
+----
+# Tage ohne Anfrage, nach denen das Token einer App ungültig ist (Standard 90).
+projectforge.app.tokenExpiryDays=90
+# Cookies eines SSO-Proxys vor ProjectForge, die an die App übergeben werden (siehe unten).
+projectforge.app.proxyCookies=authentik_proxy_*
+# Push-Nachrichten (iPhone), siehe unten.
+projectforge.push.apns.keyFile=/path/to/AuthKey_ABC1234567.p8
+projectforge.push.apns.keyId=ABC1234567
+projectforge.push.apns.teamId=DEF1234567
+projectforge.push.apns.topic=de.projectforge.mobileapp
+----
+
+[[mobile_app_proxy_cookies]]
+==== Hinter einem SSO-Proxy
+
+Steht ein SSO-Proxy (z. B. Authentik als Forward Auth in nginx) vor ProjectForge, lässt er nur Anfragen mit seinem
+eigenen Sitzungs-Cookie durch. Der Browser hat dieses Cookie, die App nicht. `projectforge.app.proxyCookies` nennt die
+Cookies des Proxys, durch Kommas getrennt; ein abschließendes `*` passt auf ein Präfix (`authentik_proxy_*`). Bei der
+Anmeldung im Browser entnimmt der Server diese Cookies der Anfrage und übergibt sie zusammen mit dem Token an die App.
+Die App sendet sie mit jeder Anfrage und legt sie in ihre Web-Ansichten.
+
+* Nur die Cookies des Proxys nennen: Ein einzelnes `*` wird ignoriert, und die Cookies von ProjectForge selbst werden
+  nie übergeben. Ein Cookie, das der Browser doppelt sendet (z. B. von einer anderen Subdomain), wird nicht
+  übernommen.
+* Weist der Proxy die App ab (seine Sitzung ist abgelaufen), meldet sich die App erneut im Browser an, was frische
+  Cookies bringt und einen zweiten Faktor von ProjectForge erfordert. Die App muss sich daher nach jedem Ablauf der
+  Proxy-Sitzung (z. B. der Token-Gültigkeit des Authentik-Providers) neu anmelden.
+* Die App erhält die Proxy-Sitzung des Browsers, keine eigene. Bei Forward Auth auf Domain-Ebene kommt sie damit an
+  jede Anwendung hinter dem Proxy. Das Abmelden der App unter „Mein Konto“ beendet die Proxy-Sitzung nicht, und eine
+  Abmeldung am Proxy im Browser sperrt auch die App aus.
+
+[[mobile_app_push]]
+==== Push-Nachrichten
+
+Eine neue Benachrichtigung kann die App über den Push-Dienst von Apple (APNs) mit einer Push-Nachricht wecken. Der
+Server sendet sie selbst: Er benötigt dazu einen APNs-Authentifizierungsschlüssel (`AuthKey_<keyId>.p8`) des Apple-
+Entwicklerkontos, zu dem die App gehört (`keyFile`, `keyId`, `teamId` und die Bundle-ID der App als `topic`). Ohne
+`keyFile` wird keine Push-Nachricht gesendet, und die App fragt wie bisher gelegentlich nach neuen Benachrichtigungen.
+
+Der Schlüssel gehört dem Herausgeber der App. Pushes funktionieren daher für Installationen, die den Schlüssel des
+Herausgebers haben oder einen eigenen Build der App. Die Nachricht enthält keinen Inhalt der Benachrichtigung, nur
+einen allgemeinen Text, den Link und die Anzahl offener Benachrichtigungen; den Inhalt lädt die App selbst. Debug-Builds
+der App nutzen die Sandbox von APNs, Release-Builds den Produktivdienst.
+
 [[customization]]
 === Anpassungen
 
@@ -422,7 +473,7 @@ personenbezogene Daten enthalten: Das ist vor der Weitergabe an einen externen D
 
 Ein neues Sicherheits- oder Datenproblem (oder eines, das nach seiner Behebung erneut aufgetreten ist) wartet nicht
 auf das Ende des Intervalls: Es löst den Digest vorzeitig aus, sobald es seinen Schwellwert erreicht, höchstens jedoch
-alle 5 Minuten.
+alle `urgentMinGap` (Standard: 1 Stunde), auch nachts. Der reguläre Digest wird standardmäßig einmal täglich um 07:00 Uhr versendet.
 
 Jedes Problem geht an die Empfänger seiner Zielgruppe: Entwicklung (Bugs, Datenprobleme), Administration (externe
 Systeme, Konfiguration, Synchronisationsläufe) oder Sicherheit. Hat eine Zielgruppe keine eigenen Empfänger, erhält
@@ -431,8 +482,12 @@ Systeme, Konfiguration, Synchronisationsläufe) oder Sicherheit. Hat eine Zielgr
 .Datei: `projectforge.properties`
 ----
 projectforge.support.mail=support@acme.com
-# Wie oft der Digest höchstens versendet wird, z. B. 15m, 1h, 1d. 0 deaktiviert den Digest. Standard: 1h
-projectforge.support.errorDigest.interval=1h
+# Wie oft der reguläre Digest versendet wird, z. B. 15m, 1h, 1d. 0 deaktiviert den Digest. Standard: 1d
+projectforge.support.errorDigest.interval=1d
+# Uhrzeit (HH:mm) des regulären Digests bei einem Intervall von mindestens einem Tag. Leer: ab dem letzten Digest gezählt. Standard: 07:00
+projectforge.support.errorDigest.sendAt=07:00
+# Mindestabstand vorzeitiger Digests (dringende Probleme), z. B. 5m, 1h. Standard: 1h
+projectforge.support.errorDigest.urgentMinGap=1h
 # Optional, kommagetrennt, Standard: projectforge.support.mail
 projectforge.support.errorDigest.recipients.developer=dev@acme.com
 projectforge.support.errorDigest.recipients.admin=ops@acme.com

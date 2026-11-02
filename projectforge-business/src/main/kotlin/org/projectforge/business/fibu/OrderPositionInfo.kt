@@ -78,7 +78,8 @@ class OrderPositionInfo(position: AuftragsPositionDO? = null, order: OrderInfo? 
     /**
      * Like [toBeInvoiced], but only by the status of the position or its order, ignoring reached payment
      * schedules: true for a finished position (or a commissioned position of a finished order) not yet fully
-     * invoiced. Such a position is to be invoiced immediately, whatever date its payment schedules have.
+     * invoiced. Such a position is to be invoiced immediately, unless it has reached payment schedules: those decide
+     * by their dates.
      * @see OrderInfo.toBeInvoicedImmediately
      */
     var toBeInvoicedByStatus: Boolean = false

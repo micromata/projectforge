@@ -61,15 +61,8 @@ internal object JarExtractor {
      */
     private val copyJars = listOf(
         "merlin-core",
-        "org.projectforge.plugins.banking",
-        "org.projectforge.plugins.datatransfer",
-        "org.projectforge.plugins.licensemanagement",
-        "org.projectforge.plugins.liquidityplanning",
-        "org.projectforge.plugins.marketing",
-        "org.projectforge.plugins.memo",
-        "org.projectforge.plugins.merlin",
-        "org.projectforge.plugins.skillmatrix",
-        "org.projectforge.plugins.todo",
+        // All plugins: the script header declares the scripting DAOs of every registered plugin.
+        """org\.projectforge\.plugins\.[a-z]+""",
         "poi",
         "poi-ooxml",
         "projectforge-business",

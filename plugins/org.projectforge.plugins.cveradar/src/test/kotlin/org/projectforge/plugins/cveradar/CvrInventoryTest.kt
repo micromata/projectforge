@@ -81,8 +81,15 @@ class CvrInventoryTest : CveRadarTestBase() {
         assertThrows(UserException::class.java, {
             rest.updateArea(area, AreaRequest(code = "IV1", name = "Acme", groupId = groupId("cveradar-inv-foreign")))
         }, "a group the editor isn't a member of can't be assigned")
+        // A change never locks out its author: a root needs a group of the creator, the own group can't be cleared.
+        assertThrows(UserException::class.java) { rest.createArea(AreaRequest(code = "IV1-LOOSE", name = "No group")) }
+        assertThrows(UserException::class.java) { rest.updateArea(area, AreaRequest(code = "IV1", name = "Acme")) }
+        assertNotNull(rows(owner)["IV1"]!!.effectiveGroupName)
+        rest.updateArea(sub, AreaRequest(code = "IV1-L", name = "Logistics")) // Below its parent, a group is optional.
+        logon(user("inv-so1", CvrRole.SECURITY_OFFICER))
         val loose = rest.createArea(AreaRequest(code = "IV1-LOOSE", name = "No group"))
-        assertTrue(rows(owner).keys.none { it == "IV1-LOOSE" }, "a root without a group is for the security officer only")
+        assertNotNull(rows(user("inv-so1", CvrRole.SECURITY_OFFICER))["IV1-LOOSE"], "the officer sees a root without a group")
+        assertTrue(rows(owner).keys.none { it == "IV1-LOOSE" })
         assertTrue(loose > 0)
         logon(other)
         assertThrows(AccessException::class.java) { rest.createArea(AreaRequest(parentId = area, code = "IV1-X", name = "X")) }

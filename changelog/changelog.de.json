@@ -1,5 +1,198 @@
 {
   "releases": {
+    "9-2-3": {
+      "title": "ProjectForge 9.2.3: Kostenträger ohne Punkte kopieren, Kopier-Button an Codeblöcken",
+      "summary": [
+        "**Rechnungen**: Kost1 und Kost2 ohne Punkte kopieren",
+        "**Chat**: Kopier-Button an Codeblöcken",
+        "Fix: Skripte mit Klassen der Plugins CVE-Radar und IHK laufen wieder"
+      ],
+      "overview": [
+        "**Rechnungen:** Kost1 und Kost2 einer Kostenzuweisung lassen sich ohne Punkte kopieren, in der zugeklappten Position wie neben den Feldern einer aufgeklappten, z. B. zur Eingabe in ein anderes Buchhaltungssystem.",
+        "**Chat:** Codeblöcke in Nachrichten und Raumbeschreibungen haben einen Button zum Kopieren.",
+        "**Fixes:** Kotlin-Skripte brechen nicht mehr mit \"Unresolved reference 'cveradar'\" ab, die Klassen der Plugins CVE-Radar und IHK sind wieder im Klassenpfad der Skripte."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Chat: Codeblöcke in Nachrichten und Raumbeschreibungen haben einen Button zum Kopieren.",
+            "Rechnungen: Kost1 und Kost2 einer Kostenzuweisung lassen sich ohne Punkte kopieren, z. B. zur Eingabe in ein anderes Buchhaltungssystem."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Scripting: Kotlin-Skripte brachen mit \"Unresolved reference 'cveradar'\" ab, die Klassen der Plugins CVE-Radar und IHK fehlten im Klassenpfad der Skripte."
+          ]
+        }
+      ]
+    },
+    "9-2-2": {
+      "title": "ProjectForge 9.2.2: Mobile App mit Benachrichtigungen und Adressbuch, CVE-Radar-Benachrichtigungen",
+      "summary": [
+        "**Mobile App** (in Vorbereitung): Benachrichtigungen mit Push und Adressbuch",
+        "**CVE-Radar**: Benachrichtigungen über neue Befunde und veraltete Bibliothekslisten",
+        "Korrektur: Kost2 fehlte manchmal im Strukturbaum, in der Projektliste und bei Zeitberichten",
+        "Korrektur: Ein späterer Zahlplan schiebt auch die Rechnung einer abgeschlossenen Auftragsposition"
+      ],
+      "overview": [
+        "**Mobile App (in Vorbereitung):** Benachrichtigungen der Web-Version mit Push-Nachrichten (iPhone, APNs); ein Adressbuch wie die Kontakte-App, auch offline; Anmeldung hinter einem SSO-Proxy, zuletzt benutzte Server, mehr Platz für die Seiten und das helle oder dunkle Erscheinungsbild der Webseiten.",
+        "**CVE-Radar:** eine Benachrichtigungsregel für neue Befunde ohne Details, ein Regeltyp für veraltete Bibliothekslisten einer Komponente, ein Tab für die Beschreibung in der Akte eines Falls und eine schnellere Startseite.",
+        "**Kalender auf kleinen Bildschirmen:** Die Kalenderauswahl hat eine eigene Zeile, statt verdeckt zu werden.",
+        "**Korrekturen:** Kost2 fehlt nicht mehr in Übersichten wie dem Strukturbaum, der Projektliste oder der Kost2-Auswahl eines Zeitberichts (z. B. nach dem Reaktivieren eines Projekts); im Auftragsbuch schiebt ein Zahlplan mit Datum in einem Folgemonat auch die Rechnung einer abgeschlossenen Position; die Akte eines CVE-Radar-Falls ohne CVE öffnet sich wieder."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            {
+              "title": "Mobile App: Benachrichtigungen und Push (iPhone)",
+              "items": [
+                "Die Benachrichtigungen der Web-Version (Regeln, Chat) werden auch in der App gezeigt: eine Glocke mit der Anzahl, die Liste mit dem Archiv sowie Bestätigen und Erledigen; ein Link öffnet die Seite in der App.",
+                "Eine neue Benachrichtigung weckt die App mit einer Push-Nachricht (APNs, `projectforge.push.apns.*`), ohne ihren Inhalt in der Nachricht. Ohne konfigurierten Schlüssel wird nichts gesendet und die App fragt wie bisher regelmäßig ab."
+              ]
+            },
+            {
+              "title": "Mobile App (in Vorbereitung): Zeitberichte",
+              "items": [
+                "Die App bucht Zeitberichte am Smartphone: eine Wochenleiste mit den Tagessummen, die Buchungen des Tages mit den Lücken dazwischen (ein Tipp bucht eine Lücke), zuletzt verwendete Buchungen und Vorlagen als Ausgangspunkt, eine Suche nach Strukturelementen und die automatisch gewählte Kostenstelle, wenn das Strukturelement nur eine hat. Die Prüfungen des Servers (Überschneidung, geschlossene Strukturelemente, geschützte Zeiträume) gelten wie in der Webversion.",
+                "Ein Timer in der App startet und stoppt eine Buchung auf dem Gerät; beim Stoppen öffnet sich das Formular mit der auf 5 Minuten gerundeten Zeit.",
+                "Die Zeitberichtsliste der Webseiten wechselt auf den Tab der App; das Formular einer einzelnen Buchung bleibt beim Öffnen über einen Link in den Webseiten."
+              ]
+            },
+            {
+              "title": "CVE-Radar: Benachrichtigung ohne Details und über veraltete Bibliothekslisten",
+              "items": [
+                "Eine neue Benachrichtigungsregel „Neue Befunde des CVE-Radars“ beginnt mit einem Text ohne Details („es gibt möglicherweise Updates“) und einem Link auf die Liste; die neue Variable cvrListLink verlinkt immer auf die Liste.",
+                "Neuer Regeltyp „Veraltete Bibliothekslisten des CVE-Radars“: Das verantwortliche Team einer Komponente, deren Bibliotheksliste vor mehr als einer Anzahl Tage übernommen wurde (vorab 30), wird höchstens einmal pro Woche benachrichtigt, und eine Aktualisierung der Liste erledigt die Benachrichtigung. Der Tag der letzten Liste wird jetzt je Komponente gespeichert."
+              ]
+            },
+            {
+              "title": "Mobile App (in Vorbereitung)",
+              "items": [
+                "Hinter einem SSO-Proxy (z. B. Authentik als Forward Auth) bekommt die App die Sitzung des Proxys aus der Anmeldung im Browser (`projectforge.app.proxyCookies`); läuft sie ab, meldet sich die App erneut im Browser an.",
+                "Die Anmeldung der App bietet die zuletzt benutzten Server an, und das Abmelden klappt auch, wenn der Server nicht erreichbar ist.",
+                "Visitenkarten werden in der App gespeichert und auch offline gezeigt; sie werden beim Öffnen des Tabs still und per Button neu geladen und lassen sich in den Apple Wallet übernehmen, wenn der Server dafür konfiguriert ist (iPhone), auch über den Link der Webseite in der App.",
+                "Die App gibt den Seiten mehr Platz: keine Titelleiste über den Webseiten und dem Chat, eine schmale Navigationsleiste nur mit Symbolen und im Querformat eine schmale Navigation an der Seite.",
+                "In der App wechseln die Menüpunkte „Chat“ und „Meine Visitenkarten“ sowie die Glocke der Webseiten auf den eigenen Tab bzw. die eigene Liste der App; in den neuen Einstellungen der App kann jeder davon in der Webversion bleiben.",
+                "Die App hat ein Adressbuch wie die Kontakte-App: Suchfeld, Abschnitte mit Index am Rand, und ein Tipp auf eine Nummer bietet Anruf oder Nachricht an, eine E-Mail-Adresse öffnet das Mailprogramm. Alle Adressen liegen auf dem Gerät (auch offline) und werden still aktualisiert; Bearbeiten öffnet das Formular der Webseiten, und die Adressliste der Webseiten wechselt auf den Tab der App.",
+                "Die eigenen Seiten der App folgen dem in den Webseiten gewählten hellen oder dunklen Erscheinungsbild (auch offline), und die Webseiten blitzen beim Laden nicht mehr weiß auf."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "changed",
+          "items": [
+            "Schnellere erste Seite großer Listen: die Startseite des CVE-Radars lädt nicht mehr alle Schwachstellen, um die Liste aufzubauen"
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Kalender auf kleinen Bildschirmen: Die Kalenderauswahl hat eine eigene Zeile unter Titel und Schaltflächen, statt von ihnen verdeckt zu werden.",
+            {
+              "title": "CVE-Radar: Die Akte eines Vorfalls öffnet sich wieder und hat einen Tab für ihre Beschreibung",
+              "items": [
+                "Die Akte eines Falls ohne CVE zeigte eine leere Seite. Sie öffnet sich jetzt beim neuen ersten Tab „Beschreibung“, der die Beschreibung des Falls zeigt und dem Security-Team das Bearbeiten mit einem Richtext-Editor erlaubt."
+              ]
+            },
+            "Kost2 fehlte manchmal in Übersichten wie dem Strukturbaum, der Projektliste oder der Kost2-Auswahl eines Zeitberichts, obwohl sie vorhanden war: etwa nach dem Reaktivieren eines Projekts oder bei einer Kost2, die während des Neuladens der Caches im Hintergrund angelegt wurde.",
+            "Auftragsbuch: Ein Zahlplan mit Datum in einem Folgemonat schiebt nun auch die Rechnung einer abgeschlossenen Position (Filter \"zu fakturieren\", nächste Rechnung)"
+          ]
+        }
+      ]
+    },
+    "9-2-1": {
+      "title": "ProjectForge 9.2.1: CVE-Radar mit KI-Prompts und Ad-hoc-Prüfung, Apple Wallet, mobiles Layout",
+      "summary": [
+        "**CVE-Radar**: Ad-hoc-Prüfung hochgeladener Dateien, Findings-Report und Fallrecherche mit Prompts für ein freigegebenes KI-System",
+        "**Digitale Visitenkarten** im Apple Wallet",
+        "Mehr Platz für Inhalte auf **mobilen Geräten**",
+        "Korrektur: Geplante Rechnungen zählen nicht mehr in der Rechnungsstatistik"
+      ],
+      "overview": [
+        "**CVE-Radar:** Ad-hoc-Prüfung von Lockfiles, SBOMs oder einem Zip solcher Listen gegen alle Schwachstellen, ohne etwas zu speichern; Export der offenen Findings eines Projekts mit einem Prompt für Vorschläge zur Behebung; Recherche eines neuen Falls mit einem KI-System; Fall als JSON herunterladen und importieren; Upload aller Listen einer Komponente in einem Zip und die Lockfile von pnpm.",
+        "**Digitale Visitenkarten:** Karte zum Apple Wallet hinzufügen (braucht ein Pass-Type-ID-Zertifikat).",
+        "**Mobile App (in Vorbereitung):** Anmeldung über den Browser mit zweitem Faktor, die eigenen Visitenkarten auch ohne Netz, verbundene Apps in Mein Zugang.",
+        "**Mobile Geräte:** auf schmalen oder niedrigen Bildschirmen sind Logo-Zeile und Statusleiste ausgeblendet, kleinere Abstände, ein kompakter Listenfuß, scrollbare Tabs; sehr niedrige Bildschirme scrollen.",
+        "**Korrekturen:** Geplante Rechnungen zählen nicht mehr in der Statistik der Rechnungsliste."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Digitale Visitenkarten: Karte zum Apple Wallet hinzufügen (braucht ein Pass-Type-ID-Zertifikat, siehe Administrationshandbuch).",
+            {
+              "title": "CVE-Radar: Ad-hoc-Prüfung hochgeladener Dateien gegen alle Schwachstellen",
+              "items": [
+                "Die neue Seite Ad-hoc-Prüfung nimmt Lockfiles, SBOMs, Ausgaben von Build-Werkzeugen oder ein zip mit solchen Listen und prüft jedes Paket gegen die importierten Schwachstellen, mit einem Fortschrittsbalken je Datei. Es wird nichts gespeichert; alle mit Leserolle dürfen prüfen, und das Ergebnis sieht nur, wer die Prüfung gestartet hat.",
+                "Das Ergebnis listet die Schwachstellen mit Paket, Version, Datei und dem Fall des Security-Teams auf, lässt sich als JSON herunterladen und kommt mit einem Prompt, der ein freigegebenes KI-System fragt, wie sie behoben werden. Die Namen der Dateien werden vorab ersetzt."
+              ]
+            },
+            {
+              "title": "CVE-Radar: neuen Fall mit einem KI-System recherchieren",
+              "items": [
+                "Mit KI recherchieren (Security-Team) baut aus der CVE-ID oder einer Beschreibung des Vorfalls, Quellen und Hinweisen einen Prompt für ein freigegebenes KI-System, mit den NVD-Daten einer importierten CVE. Eine direkte Anbindung gibt es nicht: Der Prompt wird dorthin kopiert, die Antwort wieder eingefügt. Der Dialog hat drei Schritte (Angaben, Prompt, Antwort), jeweils mit dem Weg zurück; der Prompt lässt sich kopieren oder als Datei herunterladen.",
+                "Die Antwort (ein JSON-Block) wird geprüft und als Vorschau mit Kopier-Knopf je Wert gezeigt; Fall anlegen legt den Fall mit Titel, Beschreibung, Priorität und Begründung, Fix-Version, Workaround, Maßnahmen und Referenzen an, markiert als mit Unterstützung eines KI-Systems erstellt."
+              ]
+            },
+            {
+              "title": "CVE-Radar: Fall als JSON herunterladen und wieder importieren",
+              "items": [
+                "Als JSON herunterladen in der Akte eines Falls speichert seine Werte, so wie sie gespeichert sind (ohne Status, Bearbeitung, Bewertungen, Team-Prüfungen und Diskussion).",
+                "Fall importieren (Security-Team) legt aus einer solchen Datei nach einer Vorschau einen neuen Fall an, z. B. um einen Fall in eine andere Instanz von ProjectForge zu übernehmen.",
+                "Fall importieren nimmt auch die Antwort einer KI auf den Prompt von Mit KI recherchieren an, z. B. als Datei gespeichert; beim Kopieren typografisch gewordene Anführungszeichen werden begradigt."
+              ]
+            },
+            {
+              "title": "CVE-Radar: Findings eines Projekts exportieren, mit einem Prompt für Vorschläge zur Behebung",
+              "items": [
+                "Die offenen Findings eines Knotens im Inventar und darunter als eine JSON-Datei: je Schwachstelle die NVD-Daten, der Fall des Security-Teams und die gefundenen Technologien mit Versionen und Paket-URLs. Nur, was man sehen darf; interne Namen werden vorab durch neutrale ersetzt.",
+                "Ein Prompt mit dem Report fragt ein freigegebenes KI-System, wie jede Schwachstelle im Projekt am besten behoben wird: ob es wirklich betroffen ist, die Zielversion und wie sie bei einer transitiven Abhängigkeit erzwungen wird, ein Workaround und wie sich die Behebung prüfen lässt."
+              ]
+            },
+            {
+              "title": "CVE-Radar: weitere Wege, die Bibliotheken einer Komponente hochzuladen",
+              "items": [
+                "Alle Listen einer Komponente lassen sich in einem Zip hochladen, gesammelt von einem Script im Projekt (das Benutzerhandbuch hat ein Beispiel): Lockfiles, SBOMs, Ausgabe der Build-Werkzeuge und Paketlisten der Images. Gelesen werden nur die Dateien solcher Listen; Dateien, die Tokens enthalten können (.npmrc, .env, gradle.properties, settings.xml), bleiben ungelesen. Die Vorschau zeigt jede Datei des Zips mit ihrem Format.",
+                "Die Lockfile von pnpm (pnpm-lock.yaml, Versionen 5, 6 und 9) wird gelesen, ohne die Entwicklungsabhängigkeiten.",
+                "Der Upload-Dialog zeigt, wie sich die Pakete eines Container-Images auflisten lassen (z. B. eclipse-temurin: dpkg-query, apk, rpm oder eine SBOM von syft), in denen native Bibliotheken wie brotli, zlib oder OpenSSL auftauchen, und verlinkt das Kapitel im Benutzerhandbuch."
+              ]
+            },
+            {
+              "title": "Mobile App (in Vorbereitung)",
+              "items": [
+                "Die ProjectForge-App für iOS und Android meldet sich über den Browser an, mit Passwort und zweitem Faktor (WebAuthn oder Code) wie gewohnt; vor dem Verbinden einer App fragt der Browser noch einmal nach. Die erste Version zeigt die eigenen digitalen Visitenkarten, auch ohne Netz.",
+                "Alle anderen Seiten von ProjectForge öffnen sich in der App, ohne zweite Anmeldung. Mit dem Abmelden der App enden auch sie.",
+                "Mein Zugang: die verbundenen Apps mit ihrer letzten Nutzung, jede kann abgemeldet werden. Eine Passwortänderung meldet alle Apps ab; eine 90 Tage nicht genutzte App wird automatisch abgemeldet."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "changed",
+          "items": [
+            {
+              "title": "Mehr Platz für Inhalte auf mobilen Geräten",
+              "items": [
+                "Auf schmalen oder niedrigen Bildschirmen (z. B. Smartphone im Querformat) sind Logo-Zeile und Statusleiste ausgeblendet, und die Abstände von Bearbeitungsseiten, Tabs, Aktionsleiste und Listenfuß sind kleiner; Changelog, Version und Copyright stehen dort im Benutzermenü.",
+                "Der Listenfuß zeigt nur noch den Bereich und die Seitenwechsel-Schaltflächen um die aktuelle Seite; die Tabs einer Bearbeitungsseite lassen sich horizontal scrollen.",
+                "Das Menü eines Bereichs oben rechts auf seinen Seiten (z. B. CVE-Radar) ist auf schmalen Bildschirmen eine einzelne Menü-Schaltfläche; in der Akte eines CVE-Radar-Falls scrollt der Kopf auf schmalen oder niedrigen Bildschirmen mit dem Inhalt mit."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Ausgangsrechnungen: Geplante Rechnungen zählen nicht mehr in der Statistik der Rechnungsliste (Brutto, Netto, offen, überfällig).",
+            "Kleine Bildschirme: Bei sehr geringer Höhe (z. B. Smartphone im Querformat) scrollt die Seite jetzt, sodass der Inhalt unterhalb des Kopfbereichs erreichbar ist."
+          ]
+        }
+      ]
+    },
     "9-2-0": {
       "title": "ProjectForge 9.2: Java 21, JCR entfernt, CVE-Radar, digitale Visitenkarten",
       "intro": [

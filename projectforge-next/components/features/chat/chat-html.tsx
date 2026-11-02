@@ -1,13 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { sanitizeChatHtml } from "@/components/shared/rich-text";
 import { cn } from "@/lib/utils";
+import { useCodeBlockCopyButtons } from "@/components/shared/use-code-block-copy-buttons";
 import { CUSTOM_EMOJIS } from "@/components/shared/emoji/custom-emoji";
 import { decorateEmoji } from "@/components/shared/emoji/decorate-emoji";
 
-/** The content of a chat message, sanitized ([sanitizeChatHtml]), with the mentions highlighted. */
+/**
+ * The content of a chat message, sanitized ([sanitizeChatHtml]), with the mentions highlighted and a copy button
+ * on every code block.
+ */
 export function ChatHtml({
   html,
   className,
@@ -21,14 +25,20 @@ export function ChatHtml({
       decorateEmoji(sanitizeChatHtml(html), (code) => t(CUSTOM_EMOJIS[code])),
     [html, t]
   );
+  const ref = useRef<HTMLDivElement>(null);
+  const copyButtons = useCodeBlockCopyButtons(ref, sanitized);
   return (
-    <div
-      className={cn(
-        "rich-text space-y-0.5 font-normal break-words text-foreground/85 [&_:is(h1,h2,h3,h4)]:text-sm [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-6 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-6",
-        "[&_[data-type=mention]]:rounded-sm [&_[data-type=mention]]:font-medium [&_[data-type=mention]]:text-primary",
-        className
-      )}
-      dangerouslySetInnerHTML={{ __html: sanitized }}
-    />
+    <>
+      <div
+        ref={ref}
+        className={cn(
+          "rich-text space-y-0.5 font-normal break-words text-foreground/85 [&_:is(h1,h2,h3,h4)]:text-sm [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-6 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-6",
+          "[&_[data-type=mention]]:rounded-sm [&_[data-type=mention]]:font-medium [&_[data-type=mention]]:text-primary",
+          className
+        )}
+        dangerouslySetInnerHTML={{ __html: sanitized }}
+      />
+      {copyButtons}
+    </>
   );
 }

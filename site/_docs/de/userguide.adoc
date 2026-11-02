@@ -1482,6 +1482,177 @@ längeren Ablauffristen wird vorab über Dateien informiert, die gelöscht werde
 wird je Bereich konfiguriert.
 * *Alles herunterladen* lädt alle Dateien eines Bereichs als Zip-Archiv herunter.
 
+[[cve_radar_libraries]]
+=== CVE-Radar: Bibliotheken einer Komponente
+
+Der CVE-Radar gleicht Schwachstellen mit den Bibliotheken einer Komponente ab. Sie werden im Inventar hochgeladen
+(_Bibliotheken hochladen_ einer Komponente): eine SBOM, die Lockfiles (npm, yarn, pnpm, Composer, Cargo, Go, Python),
+die Ausgabe von Maven oder Gradle, Jar-Listen und die Paketlisten des Betriebssystems. Der Dialog nennt für jede davon
+die Datei oder den Befehl. Gelesen werden nur Namen und Versionen, nichts wird ausgeführt und die Dateien werden nicht
+gespeichert.
+
+Eine Komponente hat oft mehrere davon: die Lockfile des Frontends, die Bibliotheken des Backends, die Pakete ihrer
+Images. Am besten sammelt sie ein *Script im Projekt* (z. B. `collect-libraries.sh`) und packt sie in ein Zip, das so
+hochgeladen wird. Läuft es in der Build-Pipeline oder vor einem Release, gehören die Listen immer zur ausgelieferten
+Version, und niemand muss sie von Hand zusammensuchen. Ein Beispiel, an die Pfade des Projekts anzupassen:
+
+[source,bash]
+----
+#!/usr/bin/env bash
+# Sammelt die Listen der Bibliotheken für den CVE-Radar in libraries.zip.
+set -euo pipefail
+out="$(mktemp -d)"
+trap 'rm -rf "$out"' EXIT
+
+# Frontend: die Lockfile, so wie sie im Repository liegt.
+mkdir -p "$out/frontend"
+cp frontend/pnpm-lock.yaml "$out/frontend/"   # oder package-lock.json, yarn.lock
+
+# Backend: eine SBOM (am besten) oder die Ausgabe des Build-Werkzeugs.
+syft dir:backend -o cyclonedx-json="$out/backend-bom.json"
+# mvn -f backend dependency:list -DincludeScope=runtime -DoutputFile="$out/deps-maven.txt"
+
+# Images: die Pakete des Betriebssystems.
+for image in registry.example.org/app:1.4.2; do
+  name="$(basename "${image%%:*}")"
+  docker run --rm --entrypoint dpkg-query "$image" -W -f '${Package} ${Version}\n' > "$out/os-$name.txt"
+  # Alpine: docker run --rm --entrypoint apk "$image" info -v > "$out/os-$name.txt"
+done
+
+rm -f libraries.zip
+(cd "$out" && zip -qr - .) > libraries.zip
+----
+
+* Aus einem Zip werden nur Dateien mit den Endungen `.json`, `.lock`, `.lockfile`, `.yaml`, `.yml`, `.txt` oder
+  `.mod` gelesen, in beliebigen Verzeichnissen; das Format wird am Inhalt erkannt. Dateien und Verzeichnisse mit
+  einem Punkt am Anfang (`.npmrc`, `.env`), `gradle.properties`, `settings.xml` und alle anderen Dateien bleiben
+  ungelesen, ein Zip im Zip wird nicht entpackt.
+* Grenzen: 10 MB je Zip, 5 MB je Datei, 50 MB und 100 Listen aus den Zips eines Uploads.
+* Die Vorschau zeigt jede Datei des Zips mit ihrem Format und der Zahl der Bibliotheken; eine nicht erkannte Datei
+  ist markiert, so fällt ein Fehler des Scripts auf, bevor etwas übernommen wird.
+* Mit _Früher hochgeladene Bibliotheken ersetzen_ werden die Bibliotheken entfernt, die im Upload fehlen: immer das vollständige Zip der Komponente
+  hochladen.
+
+*Pakete eines Container-Images.* Java-Images bringen oft native Bibliotheken des Betriebssystems mit, z. B. brotli
+(`libbrotli1`), zlib oder OpenSSL; deren Schwachstellen zeigen sich nur in der Paketliste des Images, nicht in den
+Bibliotheken des Builds. Für `eclipse-temurin` (Ubuntu) und andere Images auf Basis von Debian oder Ubuntu:
+
+[source,bash]
+----
+docker run --rm --entrypoint dpkg-query eclipse-temurin:21-jre -W -f '${Package} ${Version}\n' > os-temurin.txt
+grep brotli os-temurin.txt   # z. B. libbrotli1 1.1.0-2build2
+----
+
+Die Alpine-Variante (`eclipse-temurin:21-jre-alpine`) listet mit `apk info -v`, Images auf Basis von Red Hat (UBI)
+mit `rpm -qa`. Images ohne Paketmanager (distroless, scratch) brauchen eine SBOM des Images:
+`syft eclipse-temurin:21-jre -o cyclonedx-json > os-temurin.json`. Die Version eines Distributionspakets ist nur ein
+Hinweis: Die Distributionen portieren Fixes zurück, ohne die Version des Originals zu ändern; ob die installierte
+Version betroffen ist, sagt der Security-Tracker der Distribution (z. B. von Ubuntu oder Debian).
+
+[[cve_radar_case_ai]]
+=== CVE-Radar: Fall mit KI recherchieren
+
+Einen neuen Fall zu recherchieren, mit oder ohne CVE, dauert: Was ist betroffen, wie ernst ist es, welche Version
+behebt es, was hilft bis dahin? _Mit KI recherchieren_ (Liste der Fälle oder neuer Fall; nur Security-Team) bereitet
+diese Recherche für ein freigegebenes KI-System vor. Eine direkte Anbindung an ein KI-System gibt es nicht: Der Prompt
+wird dorthin kopiert, die Antwort wieder eingefügt.
+
+. Art (CVE oder Vorfall), die CVE-ID, falls es eine gibt, worum es geht, die Quellen (eine URL pro Zeile) und weitere
+  Hinweise eintragen. Ist die CVE schon im NVD-Import, gehen ihre Beschreibung, CVSS, CWE und Referenzen mit in den
+  Prompt; gibt es schon einen Fall zu ihr, verlinkt der Dialog stattdessen diesen.
+. _Prompt erstellen_ zeigt den Prompt in einem eigenen Schritt: kopieren oder als Datei herunterladen und in ein
+  freigegebenes KI-System geben. Jeder Schritt hat den Weg zurück, die Eingaben bleiben erhalten. Der Prompt verlangt einen JSON-Block in festem Format: Titel,
+  Zusammenfassung, Priorität mit Begründung, Fix-Version, Workaround, Maßnahmen für Techies und Non-Techies,
+  Freigabe für Mitarbeitende, Referenzen, betroffene Versionen, offene Fragen und Quellen. Die Bedeutung der
+  Prioritäten P1 bis P4 steht im Prompt.
+. Die Antwort einfügen (oder ihre Datei hineinziehen). Text um den JSON-Block herum stört nicht. Die Antwort wird
+  gegen das Format geprüft; was nicht passt, wird je Feld genannt.
+. Die Vorschau zeigt jeden Wert mit einem Kopier-Knopf und taugt so auch als Vorlage für einen bestehenden Fall.
+  _Fall anlegen_ legt einen neuen Fall an, mit sich selbst in Bearbeitung, und öffnet seine Akte.
+
+* Der Prompt verlässt ProjectForge: keine Namen interner Systeme, Kunden oder Personen, keine internen Hostnamen oder
+  Zugangsdaten. Nur freigegebene KI-Systeme verwenden.
+* Die Antwort ist ein Vorschlag: Betroffene Versionen, offene Fragen und Quellen kommen in die Beschreibung, markiert
+  als mit Unterstützung eines KI-Systems erstellt. Vor der Freigabe für die Mitarbeitenden alles prüfen, vor allem die
+  Priorität und die Maßnahmen.
+* Was das KI-System nicht wissen kann, bleibt weg: Bearbeitung, Team-Prüfungen und die Behebungskriterien des
+  Client-Agents.
+
+[[cve_radar_case_file]]
+=== CVE-Radar: Fall herunterladen und importieren
+
+_Als JSON herunterladen_ in der Akte eines Falls speichert den Fall als Datei: Art, Kennung, Titel, Beschreibung,
+Priorität mit Begründung, Fix-Version, Workaround, Maßnahmen, Referenzen, Freigabe für Mitarbeitende und die
+Behebungskriterien des Client-Agents, so wie sie gespeichert sind. Status, Bearbeitung, Bewertungen, Team-Prüfungen und
+die Diskussion gehören nicht dazu.
+
+_Fall importieren_ (Liste der Fälle oder neuer Fall; nur Security-Team) legt aus einer solchen Datei einen neuen Fall
+an, z. B. um einen Fall in eine andere Instanz von ProjectForge zu übernehmen: Datei einfügen oder hineinziehen,
+Vorschau prüfen, _Fall anlegen_. Der neue Fall ist bei einem selbst in Bearbeitung, seine Akte öffnet sich. Eine CVE,
+zu der es schon einen Fall gibt, wird abgewiesen; ein Vorfall bekommt die nächste Kennung des Jahres.
+Auch die Antwort einer KI auf den Prompt von <<cve_radar_case_ai,Mit KI recherchieren>> wird angenommen, z. B. als
+Datei gespeichert; beim Kopieren typografisch gewordene Anführungszeichen (`“…”`) werden begradigt.
+
+[[cve_radar_finding_report]]
+=== CVE-Radar: Findings eines Projekts exportieren
+
+Die offenen Findings eines Knotens im Inventar (Bereich, System, Instanz oder Komponente) und darunter lassen sich als
+eine JSON-Datei exportieren: das Download-Symbol in der Zeile eines Knotens mit Findings (_CVE-Radar > Systeme_). Sie
+enthält, was man sehen darf: je Schwachstelle die Daten der NVD (Beschreibung, CVSS, CWE, KEV, Referenzen), den Fall
+des Security-Teams (Priorität, Fix-Version, Workaround, Maßnahmen) und die gefundenen Technologien mit Versionen,
+Paket-URLs und den Instanzen, in denen sie gefunden wurden. Das Dringendste steht vorn.
+
+* _Interne Namen ersetzen_ (vorab eingeschaltet) ersetzt Codes und Namen von Bereichen, Systemen, Instanzen und
+  Komponenten durch neutrale (`S1`, `S1-I1`, `C1`). Die Namen der Bibliotheken und Produkte bleiben stehen.
+* Der Dialog hat dazu einen Prompt für ein freigegebenes KI-System, mit dem Report im Anhang: Er fragt, wie jede
+  Schwachstelle in diesem Projekt am besten behoben wird. Ist das Projekt wirklich betroffen, welche Version behebt
+  es und wie wird sie bei einer transitiven Abhängigkeit erzwungen (overrides, constraints, dependencyManagement),
+  was hilft bis dahin, wie lässt sich die Behebung prüfen. Die Bewertung des Security-Teams hat Vorrang. Den Prompt
+  kopieren oder als Datei herunterladen.
+* Die Antwort des KI-Systems ist ein Vorschlag: Versionen und Ausschnitte für die Build-Dateien vor dem Einsatz prüfen.
+
+[[cve_radar_adhoc_check]]
+=== CVE-Radar: Ad-hoc-Prüfung von Dateien
+
+_CVE-Radar > Ad-hoc-Prüfung_ prüft Dateien gegen alle Schwachstellen, ohne das Inventar anzufassen. Alle mit Leserolle
+können sie nutzen; es wird nichts gespeichert, und das Ergebnis bleibt bei der Person, die die Prüfung gestartet hat
+(es wird etwa eine Stunde nach dem Ende verworfen).
+
+* Bis zu 10 Dateien hineinziehen oder auswählen: die Listen von Bibliotheken, die vom Upload in eine Komponente bekannt
+  sind (Lockfiles wie `package-lock.json`, `yarn.lock` oder `pnpm-lock.yaml`, SBOMs in CycloneDX oder SPDX, Ausgaben
+  von Maven oder Gradle, Paketlisten von Containern), oder ein zip mit solchen Listen. Welche Formate es gibt und wie
+  man sie erzeugt, steht in <<cve_radar_libraries,CVE-Radar: Bibliotheken einer Komponente>>; die Seite verlinkt es.
+* Ein Balken je Datei zeigt, wie viele ihrer Pakete geprüft sind. Die Pakete werden mit den aus der NVD importierten
+  Schwachstellen nach den Regeln des Inventars verglichen: Ein Treffer über CPE oder den Katalogeintrag mit
+  Versionsbereich ist _betroffen_, einer über den Namen oder ohne Version nur _möglicherweise betroffen_. Es zählen nur
+  die bisher importierten Schwachstellen, also die oberhalb der eingestellten Mindestbewertung.
+* Das Ergebnis listet die Schwachstellen auf, die dringendsten zuerst, mit Paket, Version und Datei. Der Fall des
+  Security-Teams (Priorität, Fix-Version) steht dabei, wenn es einen gibt.
+* Wie bei den Findings eines Projekts lässt sich das Ergebnis als JSON herunterladen, dazu gibt es einen Prompt für ein
+  freigegebenes KI-System, der fragt, wie jede Schwachstelle behoben wird. _Namen der Dateien ersetzen_ (vorab
+  eingeschaltet) macht daraus `F1`, `F2`, … weil im Pfad oft Projektnamen stehen.
+
+[[cve_radar_notifications]]
+=== CVE-Radar: Benachrichtigungen
+
+Benachrichtigungen richtet ein Admin als Regeln ein (Seite _Benachrichtigungsregeln_). Zwei Regeltypen
+gehören zum CVE-Radar. Solange keine solche Regel existiert, wird niemand benachrichtigt; Empfänger und Zustellung (in
+der App, per Mail) wählt der Admin für jede Regel.
+
+* *Neue Befunde des CVE-Radars*: Das verantwortliche Team eines betroffenen Systems (die Gruppe des Systems oder des
+  nächsten Bereichs darüber) wird direkt benachrichtigt, nachdem der Abgleich etwas Neues gefunden hat; die Empfänger der
+  Regel bekommen es in Kopie. Eine Regel gilt ab einem CVSS-Schweregrad (bekannt ausgenutzte Schwachstellen immer),
+  wahlweise auch für mögliche Befunde und noch nicht bewertete Schwachstellen. Eine neue Regel beginnt mit einem Text
+  ohne Details: _Für ein System in eurer Verantwortung gibt es möglicherweise Updates_, mit einem Link auf die Liste;
+  dort entscheidet sich, wer was sehen darf. Mit den Variablen der Regel kann der Text stattdessen die Schwachstellen und
+  Systeme nennen.
+* *Veraltete Bibliothekslisten des CVE-Radars*: Die Befunde einer Komponente sind nur so gut wie ihre Bibliotheksliste.
+  Wurde die letzte Liste einer Komponente vor mehr als der angegebenen Anzahl Tage übernommen (vorab 30), werden das
+  verantwortliche Team und die Empfänger in Kopie benachrichtigt, höchstens einmal pro Woche; die Benachrichtigung
+  erledigt sich, sobald die Liste aktualisiert ist. Komponenten, die nie eine Liste aus einer Datei hatten, bleiben außen
+  vor.
+* Jede Person erfährt nur von den Systemen und Instanzen, die sie sehen darf.
+
 [[further_features]]
 === Weitere Funktionen
 

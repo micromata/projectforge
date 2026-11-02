@@ -55,6 +55,9 @@ export default function PasswordForgottenPage() {
             id="usernameEmail"
             type="text"
             autoComplete="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             autoFocus
             required
             value={usernameEmail}

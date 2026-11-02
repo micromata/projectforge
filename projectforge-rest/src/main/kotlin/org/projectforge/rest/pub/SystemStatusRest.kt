@@ -25,6 +25,7 @@ package org.projectforge.rest.pub
 
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.SystemStatus
+import org.projectforge.business.user.AppCompatibility
 import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
@@ -70,7 +71,17 @@ class SystemStatusRest {
          * If given, the client should redirect to this url.
          */
         var setupRedirectUrl: String? = null,
-        var startTimeUTC: Date? = null
+        var startTimeUTC: Date? = null,
+        /**
+         * The ProjectForge app may put its login parameters into the path (`/next/appLogin/<login>`): an SSO proxy
+         * may bring the browser back from its login without the query. Older servers answer that path with a 404.
+         */
+        val appLoginPath: Boolean = true,
+        /**
+         * The oldest app version this server works with ([AppCompatibility.MIN_APP_VERSION]): an older app asks its user
+         * for an update. Public, the app checks it before the login too.
+         */
+        val minAppVersion: String = AppCompatibility.MIN_APP_VERSION,
     )
 
     val systemData: SystemData by lazy {

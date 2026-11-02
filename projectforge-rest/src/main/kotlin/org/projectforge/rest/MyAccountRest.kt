@@ -34,6 +34,8 @@ import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.login.Login
 import org.projectforge.business.sipgate.SipgateConfiguration
+import org.projectforge.business.user.AppCompatibility
+import org.projectforge.business.user.AppDeviceDao
 import org.projectforge.business.user.StayLoggedInTokenDao
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserAvatarDao
@@ -83,6 +85,9 @@ private val log = KotlinLogging.logger {}
 class MyAccountRest {
     @Autowired
     private lateinit var accessChecker: AccessChecker
+
+    @Autowired
+    private lateinit var appDeviceDao: AppDeviceDao
 
     @Autowired
     private lateinit var authenticationsService: UserAuthenticationsService
@@ -147,6 +152,7 @@ class MyAccountRest {
         var groups: String? = null,
         var tokens: List<Token>? = null,
         var devices: List<Device>? = null,
+        var appDevices: List<AppDevice>? = null,
     )
 
     /** An access token of the user: calendar export, DAV or REST client. */
@@ -164,6 +170,22 @@ class MyAccountRest {
         val createdFormatted: String?,
         /** The device this request comes from. */
         val current: Boolean,
+    )
+
+    /**
+     * An installed app of the user (mobile client, see [org.projectforge.business.user.AppDeviceDO]). The token is
+     * never sent.
+     */
+    class AppDevice(
+        val id: Long?,
+        val deviceName: String?,
+        val platform: String?,
+        val appVersion: String?,
+        /** The app is older than [AppCompatibility.MIN_APP_VERSION]: the user should update it. */
+        val outdated: Boolean = false,
+        val lastAccessIp: String?,
+        val lastAccessFormatted: String?,
+        val createdFormatted: String?,
     )
 
     class Options(
@@ -400,6 +422,21 @@ class MyAccountRest {
         return getDevices(userId, request)
     }
 
+    /**
+     * Logs out one app of the user (deletes its token): its next request is refused and it shows its login.
+     *
+     * @return The remaining apps.
+     */
+    @AccessChecked("Own user only (deletes only the logged-in user's apps)")
+    @PostMapping("logoutAppDevice")
+    fun logoutAppDevice(@RequestParam("id") id: Long): List<AppDevice> {
+        accessChecker.checkRestrictedOrDemoUser()
+        val userId = ThreadLocalUserContext.loggedInUserId!!
+        log.info { "User #$userId logs out app device #$id." }
+        appDeviceDao.deleteOfUser(userId, id)
+        return getAppDevices(userId)
+    }
+
     /** One exception of the order notification settings: a project or a customer with its own mode. */
     class OrderNotificationRule(
         /** `PROJECT` or `CUSTOMER`. */
@@ -500,7 +537,23 @@ class MyAccountRest {
             groups = groupService.getGroupnames(userId),
             tokens = TOKEN_TYPES.map { createToken(it, authenticationsService.getTokenData(userId, it)) },
             devices = getDevices(userId, request),
+            appDevices = getAppDevices(userId),
         )
+    }
+
+    private fun getAppDevices(userId: Long): List<AppDevice> {
+        return appDeviceDao.getEntries(userId).map { entry ->
+            AppDevice(
+                id = entry.id,
+                deviceName = entry.deviceName,
+                platform = entry.platform,
+                appVersion = entry.appVersion,
+                outdated = AppCompatibility.isOutdated(entry.appVersion),
+                lastAccessIp = entry.lastAccessIp,
+                lastAccessFormatted = entry.lastAccess?.let { TimeAgo.getDateAndMessage(it) },
+                createdFormatted = entry.created?.let { TimeAgo.getDateAndMessage(it) },
+            )
+        }
     }
 
     private fun getDevices(userId: Long, request: HttpServletRequest): List<Device> {

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
+import { isInApp } from "@/lib/app-mode";
 import type { MenuItem } from "@/lib/rs/types";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -19,9 +20,11 @@ import { MENU_HOVER_CLASS, MenuLink } from "@/components/shared/menu-link";
 import { MenuCounterBadge } from "@/components/shared/menu-counter-badge";
 import { ThemeMenu } from "@/components/shared/theme-menu";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { useAuth } from "@/hooks/use-auth";
 import { useReportMenuUsage } from "@/hooks/use-report-menu-usage";
 
 const MY_ACCOUNT_PATH = "/myAccount";
+const COMPANY_URL = "https://www.micromata.de";
 /** The section id of the avatar in MyAccountForm. */
 const AVATAR_SECTION = "avatar";
 const AVATAR_HREF = `${MY_ACCOUNT_PATH}#${AVATAR_SECTION}`;
@@ -59,7 +62,9 @@ export function UserMenu({
   const isLogout = (item: MenuItem) =>
     item.key === "LOGOUT" || item.url === "logout";
   const linkEntries = entries.filter((item) => !isLogout(item));
-  const hasLogout = entries.some(isLogout);
+  // In the WebView of the app, a logout would be undone at once (the app opens a new session with its token):
+  // logging out is the app's own menu.
+  const hasLogout = entries.some(isLogout) && !isInApp();
   const pathname = usePathname();
 
   return (
@@ -117,6 +122,7 @@ export function UserMenu({
         ))}
         <MenubarSeparator />
         <ThemeMenu />
+        <StatusEntries />
         {hasLogout && (
           <>
             <MenubarSeparator />
@@ -127,5 +133,41 @@ export function UserMenu({
         )}
       </MenubarContent>
     </MenubarMenu>
+  );
+}
+
+/**
+ * What the status bar shows, for a narrow or low screen, where that bar is hidden (see StatusBar): the changelog with
+ * version and build date, and the copyright.
+ */
+function StatusEntries() {
+  const t = useTranslations("statusBar");
+  const { systemData } = useAuth();
+  if (!systemData?.version) return null;
+  return (
+    <div className="roomy:hidden">
+      <MenubarSeparator />
+      <MenubarItem asChild className={MENU_HOVER_CLASS}>
+        <GuardedLink href="/changelog" className="flex flex-col items-start">
+          <span>{t("changelog")}</span>
+          <span className="text-xs text-muted-foreground">
+            {t("version", {
+              version: systemData.version,
+              buildDate: systemData.buildDate,
+            })}
+          </span>
+        </GuardedLink>
+      </MenubarItem>
+      <MenubarItem asChild className={MENU_HOVER_CLASS}>
+        <a
+          href={COMPANY_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="text-xs text-muted-foreground"
+        >
+          {t("copyright", { years: systemData.copyRightYears ?? "" })}
+        </a>
+      </MenubarItem>
+    </div>
   );
 }

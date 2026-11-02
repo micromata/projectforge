@@ -174,6 +174,9 @@ function LoginForm() {
             id="username"
             type="text"
             autoComplete="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             autoFocus
             required
             value={username}

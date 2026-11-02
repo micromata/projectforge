@@ -104,4 +104,35 @@ test.describe("order notification prefs", () => {
     await expect(dialog).toHaveCount(0);
     expect(await storedDefault(page)).toBe(original.defaultMode);
   });
+
+  test("the link of the order mails opens the dialog", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    await goto(page, "/order?notificationSettings");
+    const dialog = page.getByRole("dialog");
+    await expect(
+      dialog.getByText(t("fibu.auftrag.notification.prefs.title"))
+    ).toBeVisible();
+    await dialog.getByRole("button", { name: t("cancel") }).click();
+    await expect(dialog).toHaveCount(0);
+    // Dropped, so a reload doesn't open the dialog again.
+    await expect(page).not.toHaveURL(/notificationSettings/);
+  });
+
+  test("the link of the order mails opens the dialog on the order", async ({
+    loggedInPage: page,
+    seededOrder,
+  }) => {
+    const { t } = await userFormat(page);
+    await goto(page, `/order/${seededOrder.id}?notificationSettings`);
+    const dialog = page.getByRole("dialog");
+    await expect(
+      dialog.getByText(t("fibu.auftrag.notification.prefs.title"))
+    ).toBeVisible();
+    await dialog.getByRole("button", { name: t("cancel") }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(page).not.toHaveURL(/notificationSettings/);
+    await expect(page).toHaveURL(new RegExp(`/order/${seededOrder.id}`));
+  });
 });

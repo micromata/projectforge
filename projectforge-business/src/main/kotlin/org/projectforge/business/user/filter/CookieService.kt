@@ -265,8 +265,8 @@ class CookieService {
      * every successful check.
      */
     private const val COOKIE_STAY_LOGGED_IN_MAX_AGE = 30 * 24 * 3600 // 30 days.
-    private const val COOKIE_NAME_FOR_STAY_LOGGED_IN = "stayLoggedIn"
+    internal const val COOKIE_NAME_FOR_STAY_LOGGED_IN = "stayLoggedIn"
     private const val COOKIE_LAST_2FA_MAX_AGE = 89 * 24 * 3600 // 90 days.
-    private const val COOKIE_NAME_FOR_LAST_2FA = "last2FA"
+    internal const val COOKIE_NAME_FOR_LAST_2FA = "last2FA"
   }
 }

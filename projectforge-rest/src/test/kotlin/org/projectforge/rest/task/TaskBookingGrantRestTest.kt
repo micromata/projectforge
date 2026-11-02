@@ -156,9 +156,29 @@ class TaskBookingGrantRestTest : AbstractTestBase() {
         // The type-ahead of the time sheet form offers the granted task.
         val found = taskServicesRest.autosearch(search = null, maxResults = 10, onlyBookable = true)
         assertEquals(listOf(fixture.granted.id), found.map { it.id })
+        // Scoped to a task: found below the project, not below the sibling.
+        assertEquals(
+            listOf(fixture.granted.id),
+            taskServicesRest.autosearch(null, 10, true, fixture.project.id).map { it.id },
+        )
+        assertTrue(taskServicesRest.autosearch(null, 10, true, fixture.sibling.id).isEmpty())
+
+        // The levels of the app's picker: the ancestor by its title only, not bookable, below it the granted task.
+        taskServicesRest.getChildren(null).single { it.id == fixture.project.id }.let {
+            assertTrue(it.hasChildren)
+            assertFalse(it.bookable)
+        }
+        taskServicesRest.getChildren(fixture.project.id).let { children ->
+            assertEquals(listOf(fixture.granted.id), children.map { it.id })
+            assertTrue(children.single().bookable)
+            assertFalse(children.single().hasChildren)
+        }
+        assertTrue(taskServicesRest.getChildren(fixture.sibling.id).isEmpty())
 
         // Somebody else sees nothing of it.
         logon(fixture.other)
+        assertTrue(taskServicesRest.getChildren(null).none { it.id == fixture.project.id })
+        assertTrue(taskServicesRest.getChildren(fixture.project.id).isEmpty())
         assertTrue(tree().nodes.none { it.id == fixture.project.id || it.id == fixture.granted.id })
         assertEquals(HttpStatus.NOT_FOUND, info(fixture.granted).statusCode)
         assertEquals(HttpStatus.NOT_FOUND, info(fixture.project).statusCode)
@@ -171,6 +191,10 @@ class TaskBookingGrantRestTest : AbstractTestBase() {
             // Only the full info carries the references (createTask).
             assertNotNull(it.body!!.timesheetReferenceList)
         }
+        assertEquals(
+            listOf(fixture.granted.id, fixture.sibling.id),
+            taskServicesRest.getChildren(fixture.project.id).map { it.id },
+        )
     }
 
     @Test

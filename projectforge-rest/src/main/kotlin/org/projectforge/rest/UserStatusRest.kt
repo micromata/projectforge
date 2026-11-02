@@ -96,6 +96,9 @@ open class UserStatusRest {
   @Autowired
   private lateinit var chatUnreadCounter: ChatUnreadCounter
 
+  @Autowired
+  private lateinit var uiSettingsRest: UISettingsRest
+
   data class UserData(
     var username: String? = null,
     var organization: String? = null,
@@ -205,11 +208,18 @@ open class UserStatusRest {
      * (so the client needn't load both lists for it). 0 if the chat is switched off or counting fails.
      */
     val chatUnread: Int = 0,
+    /**
+     * The user's theme of projectforge-next (`light`, `dark`, `system`, see [UISettingsRest.getTheme]): the mobile
+     * app shows its own screens in it too and follows a change made in the web pages with the next poll.
+     */
+    val theme: String? = null,
   )
 
   @GetMapping
   fun loginTest(request: HttpServletRequest): ResponseEntity<Result> {
-    val user = LoginService.getUser(request) ?: return ResponseEntity(HttpStatus.UNAUTHORIZED)
+    // A rest client authenticated by a token (e. g. the app) has no session: its user is the one of the request.
+    val user = LoginService.getUser(request) ?: ThreadLocalUserContext.loggedInUser
+    ?: return ResponseEntity(HttpStatus.UNAUTHORIZED)
     var employeeId: Long? = user.getTransientAttribute("employeeId") as Long?
     if (employeeId == null) {
       employeeId = employeeDao.findEmployeeIdByByUserId(user.id) ?: -1
@@ -266,6 +276,7 @@ open class UserStatusRest {
             .onFailure { log.error(it) { "Can't read the notifications of user #$userId: ${it.message}" } }
             .getOrNull()
         },
+        theme = runCatching { uiSettingsRest.getTheme().theme }.getOrNull(),
       ),
       HttpStatus.OK
     )

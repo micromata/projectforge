@@ -51,15 +51,19 @@ import org.springframework.boot.convert.DurationStyle
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.Duration
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 private val log = KotlinLogging.logger {}
 
 /**
  * Collects the errors of the running system and mails them to the support team
  * ([ConfigurationService.pfSupportMailAddress]) as one digest per interval
- * (`projectforge.support.errorDigest.interval`, default 1 hour, 0 disables it), instead of one mail per
+ * (`projectforge.support.errorDigest.interval`, default 1 day at `sendAt` 07:00, 0 disables it), instead of one mail per
  * error as Wicket's error page did. Nothing collected, no mail.
  *
  * Sources:
@@ -73,7 +77,7 @@ private val log = KotlinLogging.logger {}
  * is never mailed, [LogNotify.DIGEST_IF_NEW] only once, groups below the event's threshold not at all and
  * [LogNotify.IMMEDIATE] sends the digest early (see [DigestNotifyFilter]), as does a new problem (or regression) of the
  * [alarm categories][ALARM_CATEGORIES], security and data, once it reaches its threshold; early, but at most every
- * 5 minutes. An admin may ignore, mute or resolve a
+ * `urgentMinGap` (default 1 hour). An admin may ignore, mute or resolve a
  * problem or override its rule, see [LogGroupDO].
  *
  * Every collected occurrence, reported or not, is also counted in the database by [LogAggregationService] (if
@@ -118,8 +122,14 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
     @Autowired(required = false)
     internal var logGroupAdminService: LogGroupAdminService? = null
 
-    @Value("\${projectforge.support.errorDigest.interval:1h}")
-    private var intervalProperty: String = "1h"
+    @Value("\${projectforge.support.errorDigest.interval:1d}")
+    private var intervalProperty: String = "1d"
+
+    @Value("\${projectforge.support.errorDigest.sendAt:07:00}")
+    private var sendAtProperty: String = "07:00"
+
+    @Value("\${projectforge.support.errorDigest.urgentMinGap:1h}")
+    private var urgentMinGapProperty: String = "1h"
 
     @Value("\${projectforge.support.errorDigest.recipients.developer:}")
     internal var developerRecipients: String = ""
@@ -143,6 +153,11 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
 
     private var interval: Duration = Duration.ZERO
 
+    /** Time of day of the regular digest, null: counted by the interval only. */
+    private var sendAt: LocalTime? = null
+
+    private var urgentMinGap: Duration = Duration.ofHours(1)
+
     /** The digest is mailed: a support mail address and mail are configured. */
     @Volatile
     internal var active = false
@@ -163,7 +178,9 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
         schedulerJobRunner?.register(SCHEDULER_JOB, ::sendIfDue) {
             if (active) null else "No support mail address or no mail configured (or interval=0)."
         }
-        interval = parseInterval(intervalProperty)
+        interval = parseInterval(intervalProperty, Duration.ofDays(1))
+        sendAt = parseSendAt(sendAtProperty)
+        urgentMinGap = parseInterval(urgentMinGapProperty)
         if (interval.isZero) {
             log.info { "Support error digest disabled (projectforge.support.errorDigest.interval=0)." }
         } else if (LogAudience.entries.all { recipientsOf(it) == null } || !configurationService.isSendMailConfigured) {
@@ -175,7 +192,10 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
             active = true
             periodStart = System.currentTimeMillis()
             val recipients = LogAudience.entries.joinToString { "${it.name.lowercase()}: ${recipientsOf(it) ?: "-"}" }
-            log.info { "Support error digest active, sent at most every $interval to $recipients." }
+            log.info {
+                "Support error digest active, sent every $interval" + (sendAt?.let { " (at $it)" } ?: "") +
+                        ", urgent ones early (at most every $urgentMinGap), to $recipients."
+            }
         }
         if (!active && logAggregation?.enabled != true) {
             return
@@ -253,8 +273,11 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
     }
 
     private fun sendIfDueNow() {
-        val elapsed = System.currentTimeMillis() - periodStart
-        if (active && (elapsed >= interval.toMillis() || immediatePending && elapsed >= IMMEDIATE_MIN_GAP_MILLIS)) {
+        val now = System.currentTimeMillis()
+        val elapsed = now - periodStart
+        if (active && (isRegularDue(now, periodStart, interval, sendAt) ||
+                    immediatePending && elapsed >= urgentMinGap.toMillis())
+        ) {
             send()
         }
     }
@@ -401,26 +424,58 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
             }
         }
 
-        /** [LogNotify.IMMEDIATE] and alarms send the digest early, but not more often than this. */
-        private const val IMMEDIATE_MIN_GAP_MILLIS = 5 * Constants.MILLIS_PER_MINUTE
-
         /**
          * A new problem of these categories (or a regression) is an alarm: it sends the digest early, as soon as it
          * reaches its event's threshold, instead of waiting for the end of the interval.
          */
         internal val ALARM_CATEGORIES = setOf(LogCategory.SECURITY, LogCategory.DATA)
 
-        /** `1h`, `15m`, `PT2H`, a plain number in milliseconds; blank or invalid is the default of 1 hour. */
-        internal fun parseInterval(value: String?): Duration {
+        /** `1h`, `15m`, `PT2H`, a plain number in milliseconds; blank or invalid is [default]. */
+        internal fun parseInterval(value: String?, default: Duration = Duration.ofHours(1)): Duration {
             if (value.isNullOrBlank()) {
-                return Duration.ofHours(1)
+                return default
             }
             return try {
                 DurationStyle.detectAndParse(value.trim()).let { if (it.isNegative) Duration.ZERO else it }
             } catch (ex: IllegalArgumentException) {
-                log.warn { "Invalid projectforge.support.errorDigest.interval '$value', using 1h." }
-                Duration.ofHours(1)
+                log.warn { "Invalid projectforge.support.errorDigest duration '$value', using $default." }
+                default
             }
+        }
+
+        /** `HH:mm`; null if blank or invalid (warned). */
+        internal fun parseSendAt(value: String?): LocalTime? {
+            if (value.isNullOrBlank()) {
+                return null
+            }
+            return try {
+                LocalTime.parse(value.trim(), DateTimeFormatter.ofPattern("H:mm"))
+            } catch (ex: DateTimeParseException) {
+                log.warn { "Invalid projectforge.support.errorDigest.sendAt '$value' (expected HH:mm), ignored." }
+                null
+            }
+        }
+
+        /**
+         * The regular digest is due after [interval]; with [sendAt] (and an interval of at least a day) when the time
+         * of day has been passed since the last period start instead.
+         */
+        internal fun isRegularDue(
+            now: Long,
+            periodStart: Long,
+            interval: Duration,
+            sendAt: LocalTime?,
+            zone: ZoneId = ZoneId.systemDefault(),
+        ): Boolean {
+            if (interval.isZero) {
+                return false
+            }
+            if (sendAt == null || interval < Duration.ofDays(1)) {
+                return now - periodStart >= interval.toMillis()
+            }
+            val last = Instant.ofEpochMilli(periodStart).atZone(zone)
+            val next = last.with(sendAt).let { if (it.isAfter(last)) it else it.plusDays(1) }
+            return now >= next.toInstant().toEpochMilli() && now - periodStart >= interval.toMillis() - Constants.MILLIS_PER_DAY
         }
     }
 }

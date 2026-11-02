@@ -33,6 +33,7 @@ import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.utils.HtmlSanitizer
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.mail.MailSendException
+import org.projectforge.business.push.PushNotifier
 import org.projectforge.menu.builder.MenuItemDefId
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
@@ -69,6 +70,9 @@ class NotificationService {
 
     @Autowired
     private lateinit var recipientResolver: NotificationRecipientResolver
+
+    @Autowired
+    private lateinit var pushNotifier: PushNotifier
 
     @Autowired
     private lateinit var handlerList: List<NotificationRuleHandler>
@@ -308,6 +312,7 @@ class NotificationService {
         }
         if (notification.inAppSince != null) {
             notificationDao.insert(notification)
+            pushNotifier.notifyAsync(notification, user)
         }
         return TestResult(delivered, failed)
     }
@@ -456,6 +461,7 @@ class NotificationService {
         val recipient = caches.getUser(notification.recipientId)
         var errors = 0
         var lastError: String? = null
+        var madeVisible = false
         state.steps.filter { !it.isProcessed && it.dueAt?.after(now) != true }.sortedBy { it.step }.forEach { step ->
             val onlyIfUnacknowledged = delivery.steps.getOrNull(step.step)?.onlyIfUnacknowledged == true
             if (!notification.status.isPending || onlyIfUnacknowledged && notification.status != NotificationStatus.OPEN) {
@@ -480,6 +486,9 @@ class NotificationService {
             try {
                 val reason = sender.deliver(notification, recipient, now)
                 if (reason == null) {
+                    if (step.channel == NotificationChannel.IN_APP) {
+                        madeVisible = true
+                    }
                     step.sentAt = now
                 } else {
                     step.skipped = true
@@ -508,6 +517,9 @@ class NotificationService {
         given.deliveryState = notification.deliveryState
         given.nextDeliveryAt = notification.nextDeliveryAt
         given.inAppSince = notification.inAppSince
+        if (madeVisible && recipient != null) {
+            pushNotifier.notifyAsync(notification, recipient)
+        }
         return RunResult(errors = errors, lastError = lastError)
     }
 

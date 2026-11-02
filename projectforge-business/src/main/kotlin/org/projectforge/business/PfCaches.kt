@@ -116,10 +116,11 @@ class PfCaches {
      * @return The filled kost2 for chaining.
      */
     fun initialize(kost2: Kost2DO): Kost2DO {
-        val projekt = getProjektByKost2(kost2.id)
-        val kunde = getKunde(projekt?.kunde?.nummer)
-        projekt?.let { it.kunde = kunde }
-        kost2.let { it.projekt = projekt }
+        // The given kost2 is usually the one held by the KostCache: a cache miss must not wipe its project (or the
+        // project's customer), the Kost2 of a project are found by this reference (KostCache.getKost2ForProjekt).
+        val projekt = getProjektByKost2(kost2.id) ?: return kost2
+        getKunde(projekt.kunde?.nummer)?.let { projekt.kunde = it }
+        kost2.projekt = projekt
         return kost2
     }
 
@@ -304,15 +305,25 @@ class PfCaches {
 
     fun getKost2(kost2Id: Long?): Kost2DO? {
         return kostCache.getKost2(kost2Id)?.also { kost2 ->
-            kost2.projekt = getProjektIfNotInitialized(kost2.projekt)
-            kost2.kost2Art = getKost2ArtIfNotInitialized(kost2.kost2Art)
+            kost2.projekt = currentProjektOf(kost2)
+            getKost2ArtIfNotInitialized(kost2.kost2Art)?.let { kost2.kost2Art = it }
         }
     }
 
     fun getKost2IfNotInitialized(kost2DO: Kost2DO?): Kost2DO? {
         return kostCache.getKost2IfNotInitialized(kost2DO)?.also { kost2 ->
-            kost2.projekt = getProjektIfNotInitialized(kost2.projekt)
+            kost2.projekt = currentProjektOf(kost2)
         }
+    }
+
+    /**
+     * The project of the given (cached) kost2, taken by id from the ProjektCache: the kost2 may hold an outdated copy
+     * of it (e.g. with an old status), which [ProjektCache.getProjektIfNotInitialized] would accept as it is. If the
+     * ProjektCache misses the project, the kost2's own reference is kept rather than wiped.
+     */
+    private fun currentProjektOf(kost2: Kost2DO): ProjektDO? {
+        val projekt = getProjekt(kost2.projekt?.id) ?: kost2.projekt ?: return null
+        return getProjektIfNotInitialized(projekt) ?: projekt
     }
 
     fun getKost2Art(kost2ArtId: Long?): Kost2ArtDO? {
@@ -348,12 +359,14 @@ class PfCaches {
     }
 
     fun getProjektIfNotInitialized(projektDO: ProjektDO?): ProjektDO? {
+        // The project is usually the one held by the ProjektCache: a cache miss keeps its reference instead of
+        // wiping it for everybody.
         return projektCache.getProjektIfNotInitialized(projektDO)?.also { project ->
-            project.konto = getKontoIfNotInitialized(project.konto)
-            project.task = getTaskIfNotInitialized(project.task)
-            project.kunde = getKundeIfNotInitialized(project.kunde)
-            project.contactPerson = getUserIfNotInitialized(project.contactPerson)
-            project.projektManagerGroup = getGroupIfNotInitialized(project.projektManagerGroup)
+            getKontoIfNotInitialized(project.konto)?.let { project.konto = it }
+            getTaskIfNotInitialized(project.task)?.let { project.task = it }
+            getKundeIfNotInitialized(project.kunde)?.let { project.kunde = it }
+            getUserIfNotInitialized(project.contactPerson)?.let { project.contactPerson = it }
+            getGroupIfNotInitialized(project.projektManagerGroup)?.let { project.projektManagerGroup = it }
         }
     }
 

@@ -20,6 +20,19 @@ export interface MyAccountDevice {
   current: boolean;
 }
 
+/** Mirror of `MyAccountRest.AppDevice`: an installed ProjectForge app of the user. */
+export interface MyAccountAppDevice {
+  id: number;
+  deviceName?: string | null;
+  platform?: string | null;
+  appVersion?: string | null;
+  /** Older than the app version the server needs (`AppCompatibility.MIN_APP_VERSION`). */
+  outdated?: boolean;
+  lastAccessIp?: string | null;
+  lastAccessFormatted?: string | null;
+  createdFormatted?: string | null;
+}
+
 /**
  * Mirror of `MyAccountRest.MyAccountData`. Spring omits null values (`NON_NULL`), hence the optional
  * fields. Only [MyAccountValues] is posted back, the rest is for display.
@@ -45,6 +58,7 @@ export interface MyAccountData {
   groups?: string | null;
   tokens?: MyAccountToken[];
   devices?: MyAccountDevice[];
+  appDevices?: MyAccountAppDevice[];
 }
 
 /** Mirror of `MyAccountRest.InitData`. */

@@ -1442,6 +1442,7 @@ open class OrderEntityRest : // open: proxied by Spring.
      *   first save ([OrderEntityRest.transformForDB] -> `AuftragDao.getNextNumber`).
      * - A fresh draft: [AuftragsStatus.IN_ERSTELLUNG] and dated today (date of entry and of offer), with
      *   the date of decision and the date of assignment cleared — those belong to the original's history.
+     * - No customer reference ([AuftragDO.referenz]): it belongs to the original order.
      * - No attachments: the files live in the file store under the old order's id and are not copied.
      * - Every position and payment schedule loses its id, so the save writes new rows and
      *   [assignNumbersToNewRows] numbers them from 1. Positions the user marked deleted are left out
@@ -1471,6 +1472,7 @@ open class OrderEntityRest : // open: proxied by Spring.
       dto.angebotsDatum = today
       dto.entscheidungsDatum = null
       dto.beauftragungsDatum = null
+      dto.referenz = null
       dto.attachments = null
       dto.attachmentsCounter = null
       dto.attachmentsSize = null

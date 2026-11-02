@@ -15,6 +15,7 @@ import { useFieldErrors } from "@/components/shared/form/use-field-errors";
 import { RichText } from "@/components/shared/rich-text";
 import { RichTextEditor } from "@/components/shared/rich-text-editor";
 import { fetchNotificationVariables } from "@/lib/rs/notification";
+import { useRuleTemplate } from "./use-rule-template";
 import { useRuleValue } from "./use-rule-value";
 
 /**
@@ -28,6 +29,7 @@ export function RuleTextField({ className }: { className?: string }) {
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
   const ruleType = useRuleValue("ruleType");
+  useRuleTemplate();
   const { data: variables } = useQuery({
     queryKey: ["notificationRule", "variables", ruleType],
     queryFn: ({ signal }) => fetchNotificationVariables(ruleType, signal),

@@ -97,18 +97,67 @@ class OrderInfoToBeInvoicedDueTest : AbstractTestBase() {
     }
 
     @Test
-    fun `finished position is due immediately, even with a future payment schedule`() {
+    fun `payment schedule of a finished position dated in a following month is not due`() {
         val info = insert(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.ABGESCHLOSSEN, AuftragsStatus.BEAUFTRAGT) { order ->
-            // Of the finished position: due now, whatever its date.
             order.addPaymentSchedule(schedule(80, octoberDate, order.positionen!![0].number))
-            // Of the running position: not due yet.
             order.addPaymentSchedule(schedule(30, octoberDate, order.positionen!![1].number))
+        }
+        assertFalse(info.toBeInvoicedImmediately)
+        assertEquals(octoberDate, info.nextInvoiceDate)
+        assertFalse(info.isToBeInvoicedBy(cutoff))
+        assertSum(110, info.toBeInvoicedSum)
+        assertSum(0, info.toBeInvoicedSumBy(cutoff))
+        assertTrue(info.isToBeInvoicedAfter(cutoff))
+        val (pos1, pos2) = info.infoPositions!!.sortedBy { it.number }
+        assertFalse(info.isPositionToBeInvoicedBy(pos1, cutoff))
+        assertFalse(info.isPositionToBeInvoicedBy(pos2, cutoff))
+        val endOfOctober = LocalDate.of(2026, 10, 31)
+        assertTrue(info.isToBeInvoicedBy(endOfOctober))
+        assertSum(110, info.toBeInvoicedSumBy(endOfOctober))
+        assertTrue(info.isPositionToBeInvoicedBy(pos1, endOfOctober))
+        assertFalse(AuftragNextInvoiceDateFilter(null, cutoff, today = septemberDate).match(info))
+        assertTrue(AuftragNextInvoiceDateFilter(LocalDate.of(2026, 10, 1), null, today = septemberDate).match(info))
+    }
+
+    @Test
+    fun `finished position with a postponed payment schedule after a cancelled invoice is not due`() {
+        // Nothing is invoiced (the invoice was cancelled), the whole position is scheduled for a following month.
+        val info = insert(AuftragsStatus.ABGESCHLOSSEN, AuftragsStatus.ABGESCHLOSSEN) { order ->
+            order.addPaymentSchedule(schedule(100, octoberDate, order.positionen!![0].number))
+        }
+        assertFalse(info.toBeInvoicedImmediately)
+        assertFalse(info.isToBeInvoicedBy(cutoff))
+        assertSum(0, info.toBeInvoicedSumBy(cutoff))
+        assertNull(AuftragNextInvoiceDateFilter.effectiveDate(info, septemberDate)?.takeIf { it <= cutoff })
+        assertEquals(octoberDate, AuftragNextInvoiceDateFilter.effectiveDate(info, septemberDate))
+    }
+
+    @Test
+    fun `finished position with an undated or current payment schedule is due`() {
+        val undated = insert(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.ABGESCHLOSSEN) { order ->
+            order.addPaymentSchedule(schedule(100, null, order.positionen!![0].number))
+        }
+        assertTrue(undated.toBeInvoicedImmediately)
+        assertTrue(undated.isToBeInvoicedBy(cutoff))
+        assertSum(100, undated.toBeInvoicedSumBy(cutoff))
+        val current = insert(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.ABGESCHLOSSEN) { order ->
+            order.addPaymentSchedule(schedule(100, septemberDate, order.positionen!![0].number))
+        }
+        assertFalse(current.toBeInvoicedImmediately)
+        assertTrue(current.isToBeInvoicedBy(cutoff))
+        assertSum(100, current.toBeInvoicedSumBy(cutoff))
+        assertTrue(current.isPositionToBeInvoicedBy(current.infoPositions!!.first(), cutoff))
+    }
+
+    @Test
+    fun `finished position without schedule is due while another finished one is postponed`() {
+        val info = insert(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.ABGESCHLOSSEN, AuftragsStatus.ABGESCHLOSSEN) { order ->
+            order.addPaymentSchedule(schedule(100, octoberDate, order.positionen!![1].number))
         }
         assertTrue(info.toBeInvoicedImmediately)
         assertTrue(info.isToBeInvoicedBy(cutoff))
-        assertSum(110, info.toBeInvoicedSum)
-        assertSum(80, info.toBeInvoicedSumBy(cutoff))
-        // Only the schedule of the running position is left for following months.
+        assertSum(100, info.toBeInvoicedSumBy(cutoff))
+        assertSum(200, info.toBeInvoicedSum)
         assertTrue(info.isToBeInvoicedAfter(cutoff))
         val (pos1, pos2) = info.infoPositions!!.sortedBy { it.number }
         assertTrue(info.isPositionToBeInvoicedBy(pos1, cutoff))

@@ -123,7 +123,10 @@ open class Kost2DO : DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
     @get:Transient
     val effectiveKostentraegerStatus: KostentraegerStatus?
         get() {
-            val projektRef = PfCaches.instance.getProjektIfNotInitialized(projekt) ?: projekt
+            // By id from the ProjektCache: the referenced project may be an outdated copy (e.g. still ENDED after
+            // the project was reactivated), and the Kost2 of the KostCache are only reloaded with it.
+            val projektRef = PfCaches.instance.getProjekt(projekt?.id)
+                ?: PfCaches.instance.getProjektIfNotInitialized(projekt) ?: projekt
 
             if (projektRef != null) {
                 if (projektRef.status == ProjektStatus.ENDED || projektRef.deleted) {

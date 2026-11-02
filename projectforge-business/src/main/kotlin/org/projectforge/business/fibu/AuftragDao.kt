@@ -596,7 +596,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                     }
                     else -> {}
                 }
-                if (sendNotification(auftrag, recipient, subject, requestUrl, history.take(10))) {
+                if (sendNotification(auftrag, operationType, recipient, subject, requestUrl, history.take(10))) {
                     sent = true
                 }
             } catch (ex: Exception) {
@@ -618,6 +618,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
 
     private fun sendNotification(
         auftrag: AuftragDO,
+        operationType: OperationType,
         recipient: PFUserDO,
         subject: String,
         requestUrl: String?,
@@ -626,7 +627,10 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         val data: MutableMap<String, Any?> = HashMap()
         data["contactPerson"] = auftrag.contactPerson
         data["auftrag"] = auftrag
+        data["operationType"] = operationType.name
         data["requestUrl"] = requestUrl
+        data["notificationSettingsUrl"] = requestUrl?.let { OrderNotificationPrefService.settingsPath(it) }
+            ?: sendMail.buildUrl(OrderNotificationPrefService.settingsPath())
         data["history"] = history
         val msg = Mail()
         msg.setTo(recipient)

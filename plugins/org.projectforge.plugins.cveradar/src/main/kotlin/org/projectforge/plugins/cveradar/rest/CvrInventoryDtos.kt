@@ -163,8 +163,11 @@ class ComponentRequest(
 /** The area to move below, null: to the root. */
 class MoveRequest(val targetAreaId: Long? = null)
 
-/** A list a component's libraries are read from (npm `package-lock.json`, output of Maven or Gradle). */
-class LibraryFile(val name: String? = null, val text: String? = null)
+/**
+ * A list a component's libraries are read from (npm `package-lock.json`, output of Maven or Gradle): its [text], or
+ * [data], a zip with several lists as base64url.
+ */
+class LibraryFile(val name: String? = null, val text: String? = null, val data: String? = null)
 
 /** [replace]: libraries read from lists earlier and missing in these files are removed; otherwise the files only add. */
 class LibraryRequest(val files: List<LibraryFile> = emptyList(), val replace: Boolean = false)

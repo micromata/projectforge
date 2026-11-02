@@ -81,9 +81,11 @@ import org.projectforge.ui.filter.addLeading
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDateTime
 import java.util.*
 
@@ -508,6 +510,38 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
             return null
         }
         return configurationService.timesheetNoteSavingsByAI?.takeIf { it.isNotBlank() }
+    }
+
+    /**
+     * The own time sheets of a period for the app, with the tags to choose from.
+     *
+     * @param timesheets Ordered by start, in the shape of a row of the next list (task with its path, cost unit with
+     * project and customer, no AI fields). To edit one, the app loads the whole sheet (`GET {id}`).
+     * @param tags The configured tags, null where none is configured.
+     */
+    class AppTimesheetList(val timesheets: List<Timesheet>, val tags: List<String>?)
+
+    /**
+     * The own, not deleted time sheets of the logged-in user that overlap [from, to) (epoch millis), for the
+     * day and week view of the app. At most [APP_LIST_MAX_DAYS] days at once.
+     */
+    @AccessChecked("DAO: select access (TimesheetDao.select with checkAccess), own time sheets only")
+    @GetMapping("appList")
+    fun getAppList(@RequestParam("from") from: Long, @RequestParam("to") to: Long): AppTimesheetList {
+        if (to <= from || to - from > APP_LIST_MAX_DAYS * 24 * 3600 * 1000L) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid period.")
+        }
+        val filter = TimesheetFilter()
+        filter.userId = ThreadLocalUserContext.loggedInUserId
+        filter.startTime = Date(from)
+        filter.stopTime = Date(to)
+        // The query takes the whole last day of the period (TimesheetDao.internalGetList): cut it again.
+        val list = baseDao.select(filter).filter {
+            val start = it.startTime?.time ?: return@filter false
+            val stop = it.stopTime?.time ?: return@filter false
+            start < to && stop > from
+        }.sortedBy { it.startTime }
+        return AppTimesheetList(list.map { createListRow(it) }, timesheetDao.getTags())
     }
 
     /**
@@ -1197,6 +1231,9 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
     }
 
     companion object {
+        /** The longest period [getAppList] answers. */
+        const val APP_LIST_MAX_DAYS = 62
+
         /** The list columns showing the start pre-formatted (see [postProcessMagicFilter]). */
         private val START_TIME_SORT_ALIASES = setOf("weekOfYear", "dayName")
 

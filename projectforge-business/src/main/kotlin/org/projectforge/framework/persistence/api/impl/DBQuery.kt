@@ -133,9 +133,10 @@ open class DBQuery {
      * once per (user, filter), so the expensive per-row work of [select] — DTO mapping, currency
      * formatting, Jackson serialization — runs on one page of ids instead of on every row.
      *
-     * For now this delegates to [select] and maps the loaded objects to their ids: it saves nothing on the
-     * database but removes everything after it. A `SELECT id` projection is a later optimization and the
-     * only place the row set or its order could drift, so it deliberately does not live here.
+     * A criteria search with nothing to be matched in memory (see [selectDistinct]) selects the ids and the values
+     * of [BaseDao.selectAccessProjection] only: the list of a big table is then not loaded, which for tens of
+     * thousands of rows is the whole cost of the first page. Otherwise this delegates to [select] and maps the loaded
+     * objects to their ids.
      */
     @JvmOverloads
     open fun <O : ExtendedBaseDO<Long>> selectIds(
@@ -144,12 +145,73 @@ open class DBQuery {
         customResultFilters: List<CustomResultFilter<O>>?,
         checkAccess: Boolean = true,
     ): DBIdResult {
+        selectProjectedIds(baseDao, filter, customResultFilters, checkAccess)?.let { return it }
         val list = select(baseDao, filter, customResultFilters, checkAccess)
         val ids = LongArray(list.size)
         list.forEachIndexed { index, obj -> ids[index] = obj.id!! }
         // A full result equal to maxRows is treated as truncated: there may be more rows the cap dropped.
         val truncated = list.size >= filter.maxRows
         return DBIdResult(ids, truncated)
+    }
+
+    /** The ids of [selectIds] without loading the entities, or null if the query needs them. */
+    private fun <O : ExtendedBaseDO<Long>> selectProjectedIds(
+        baseDao: BaseDao<O>,
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<O>>?,
+        checkAccess: Boolean,
+    ): DBIdResult? {
+        val access = baseDao.selectAccessProjection
+        val history = filter.modifiedByUserId != null || filter.modifiedFrom != null || filter.modifiedTo != null ||
+                !filter.searchHistory.isNullOrBlank()
+        if (!customResultFilters.isNullOrEmpty() || history || (checkAccess && access == null)) {
+            return null
+        }
+        if (checkAccess) {
+            baseDao.checkLoggedInUserSelectAccess()
+            if (accessChecker.isRestrictedUser) {
+                return DBIdResult(LongArray(0), false)
+            }
+        }
+        if (filter.sortProperties.isNullOrEmpty()) {
+            baseDao.defaultSortProperties?.forEach { sortProperty ->
+                filter.addOrder(sortProperty)
+            }
+        }
+        val accessPaths = if (checkAccess) access!!.paths else emptyList()
+        val dbFilter = filter.createDBFilter()
+        val rows = try {
+            persistenceService.runReadOnly { context ->
+                val queryBuilder =
+                    DBQueryBuilder(baseDao, context.em, filter, dbFilter, projection = true, ordered = true)
+                if (queryBuilder.projectable) queryBuilder.selectIds(accessPaths) else null
+            }
+        } catch (ex: Exception) {
+            log.error(ex) { "Error while querying ids: ${ex.message}. Magicfilter: ${filter}." }
+            return DBIdResult(LongArray(0), false)
+        } ?: return null
+        val loggedInUser = ThreadLocalUserContext.loggedInUser
+        val granted = mutableMapOf<List<Any?>, Boolean>()
+        // As in privateCreateList: an id once, the access of the rows checked, the caps applied to what is granted.
+        val limit = minOf(dbFilter.maxRows, dbFilter.limitResultSize)
+        val ids = LinkedHashSet<Long>()
+        for (row in rows) {
+            val id = row[0] as Long
+            if (id in ids) {
+                continue
+            }
+            if (checkAccess) {
+                val values = row.drop(1)
+                if (!granted.getOrPut(values) { baseDao.hasSelectAccess(access!!.stubOf(values), loggedInUser!!) }) {
+                    continue
+                }
+            }
+            ids.add(id)
+            if (ids.size >= limit) {
+                break
+            }
+        }
+        return DBIdResult(ids.toLongArray(), ids.size >= filter.maxRows)
     }
 
     /**

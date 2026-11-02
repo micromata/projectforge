@@ -65,6 +65,8 @@ class CaseFileView(
     val code: String?,
     val kind: CvrCaseKind?,
     val title: String?,
+    /** Markdown (import) or HTML (rich text editor), to render sanitized (AI-09). */
+    val description: String?,
     val status: CvrCaseStatus?,
     val priority: CvrPriority?,
     val priorityReason: String?,
@@ -142,6 +144,11 @@ class RatingRequest(
     val reason: String? = null,
 )
 
+class DescriptionRequest(
+    val lastUpdate: Date? = null,
+    val description: String? = null,
+)
+
 class MeasuresRequest(
     val lastUpdate: Date? = null,
     val techMeasures: String? = null,
@@ -205,3 +212,42 @@ class FindingList(
 )
 
 class DiscardRequest(var reason: String? = null)
+
+/**
+ * What the research of a new case by an AI system starts from (AI-01): the NVD data of the CVE if it was imported, and
+ * the case if one exists for it already.
+ */
+class AiCaseContext(val vulnerability: VulnerabilityView?, val caseId: Long?)
+
+/**
+ * A new case: from the answer of an AI system (AI-04 ff.) or from a [CaseExport], as shown to the security team before:
+ * the values of the case, the measures and the workaround as html. Checked again by
+ * [org.projectforge.plugins.cveradar.CvrCaseFileService.importCase].
+ */
+class CaseImportRequest(
+    val kind: CvrCaseKind? = null,
+    val code: String? = null,
+    val title: String? = null,
+    val description: String? = null,
+    val priority: CvrPriority? = null,
+    val priorityReason: String? = null,
+    val fixVersion: String? = null,
+    val workaround: String? = null,
+    val techMeasures: String? = null,
+    val nonTechMeasures: String? = null,
+    val referenceLinks: String? = null,
+    val clientAdvisory: Boolean = false,
+    val minClientAgentVersion: String? = null,
+    val clientAgentCheckId: String? = null,
+)
+
+/**
+ * A case as a file, to import it again, e.g. into another instance of ProjectForge: the values of the case as they are
+ * stored, without its history (status, assignee, ratings, team checks, discussion).
+ */
+class CaseExport(
+    val format: String,
+    val schemaVersion: String,
+    val exported: java.util.Date,
+    val case: CaseImportRequest,
+)

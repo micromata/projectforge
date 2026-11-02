@@ -61,7 +61,7 @@ export function OnlyAffectedField({ className }: FieldProps) {
   const tParams = useTranslations("notification.params");
   const ruleType = useRuleValue("ruleType");
   // The CVE radar always notifies the responsible teams, the recipients given are in copy.
-  if (ruleType === "CVERADAR_FINDINGS") {
+  if (ruleType === "CVERADAR_FINDINGS" || ruleType === "CVERADAR_STALE_LISTS") {
     return (
       <p className={cn("text-xs text-muted-foreground", className)}>
         {tParams("cvrRecipientsInfo")}

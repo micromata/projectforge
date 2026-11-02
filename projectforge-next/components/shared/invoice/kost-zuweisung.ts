@@ -103,3 +103,25 @@ export function emptyKostZuweisungValues(
     kost2: predecessor?.kost2 ?? defaultKost2 ?? null,
   });
 }
+
+/**
+ * The digits of a cost 1 or cost 2 unit without its dots — `5.020.01.02` → `50200102` —, as other
+ * accounting systems (DUO) take it; typing them over from the dotted number is what the copy button
+ * saves.
+ *
+ * Read from `formattedNumber` where the reference carries it, otherwise from the number `displayName`
+ * starts with (`KostFormatter` TEXT: `5.020.01.02: type - project`, `1.400.01.00: description`). Every non-digit is dropped rather
+ * than the dots at known places, as the segments of a number range are configurable. `null` where no
+ * digit is left — no unit, or the formatter's `?.???.??.??` for an unknown one.
+ */
+export function kostDigits(
+  kost: (EntityRefDto & { formattedNumber?: unknown }) | null | undefined
+): string | null {
+  if (kost == null) return null;
+  const number =
+    typeof kost.formattedNumber === "string"
+      ? kost.formattedNumber
+      : kost.displayName?.split(":")[0];
+  const digits = number?.replace(/\D/g, "") ?? "";
+  return digits.length > 0 ? digits : null;
+}

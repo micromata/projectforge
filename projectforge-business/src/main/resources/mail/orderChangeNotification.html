@@ -5,16 +5,32 @@
   <div class="container">
     <div class="content">
       #INCLUDE{mail/mailOpening.html}
-      <% def orderNumber = "<b>${auftrag.nummer}</b>" %>
-      <p><%= pf.getMessage("fibu.auftrag.mail.intro",
-              requestUrl ? "<a href=\"${requestUrl}\" target=\"_blank\" rel=\"noreferrer\">${orderNumber}</a>" : orderNumber) %></p>
+      <%
+        // The colors of the order list (order.page.tsx, rowClassName): active green, escalated red, closed grey.
+        def badgeClass = { status ->
+          switch (status?.name()) {
+            case ["BEAUFTRAGT", "LOI"]: return "badge-success"
+            case "ESKALATION": return "badge-error"
+            case ["ABGELEHNT", "ERSETZT"]: return "badge-neutral"
+            default: return "badge-info"
+          }
+        }
+      %>
+      <p><%= pf.getI18nString(operationType == "INSERT" ? "fibu.auftrag.mail.introCreated" : "fibu.auftrag.mail.introChanged") %></p>
+      <h2 class="section">
+        <% if (requestUrl) { %><a href="<%= pf.getString(requestUrl) %>" target="_blank" rel="noreferrer">#<%= auftrag.nummer %></a><% } else { %>#<%= auftrag.nummer %><% } %>
+        &middot; <%= pf.getString(auftrag.titel) %>
+        <% if (auftrag.status != null) { %><span class="badge <%= badgeClass(auftrag.status) %>"><%= pf.getString(auftrag.status) %></span><% } %>
+      </h2>
+      <div class="actions">
+        <% if (requestUrl) { %>
+        <a href="<%= pf.getString(requestUrl) %>" class="button" target="_blank" rel="noreferrer"><%= pf.getI18nString("fibu.auftrag.title.edit") %></a>
+        <% } %>
+        <% if (notificationSettingsUrl) { %>
+        <a href="<%= pf.getString(notificationSettingsUrl) %>" class="button secondary" target="_blank" rel="noreferrer"><%= pf.getI18nString("fibu.auftrag.notification.prefs.title") %></a>
+        <% } %>
+      </div>
       <table class="width-3">
-        <tr>
-          <td colspan="3">
-            <span class="title"><%= pf.getI18nString("fibu.auftrag.title") %></span>
-            <span class="value"><%= pf.getString(auftrag.titel) %></span>
-          </td>
-        </tr>
         <tr>
           <td colspan="3">
             <span class="title"><%= pf.getI18nString("fibu.projekt") %></span>
@@ -32,15 +48,11 @@
             <span class="title"><%= pf.getI18nString("fibu.auftrag.nettoSumme") %></span>
             <span class="value no-wrap"><%= pf.getCurrency(auftrag.nettoSumme) %></span>
           </td>
-          <% if (auftrag.referenz != null) { %>
-          <td>
+          <td colspan="2">
+            <% if (auftrag.referenz != null) { %>
             <span class="title"><%= pf.getI18nString("fibu.common.reference") %></span>
             <span class="value"><%= pf.getString(auftrag.referenz) %></span>
-          </td>
-          <% } %>
-          <td>
-            <span class="title"><%= pf.getI18nString("status") %></span>
-            <span class="value"><%= pf.getString(auftrag.status) %></span>
+            <% } %>
           </td>
         </tr>
         <tr>
@@ -75,7 +87,7 @@
         <tr>
           <td colspan="3">
             <span class="title"><%= pf.getI18nString("comment") %></span>
-            <span class="value"><%= pf.getString(auftrag.bemerkung) %></span>
+            <span class="value note"><%= pf.getString(auftrag.bemerkung) %></span>
           </td>
         </tr>
         <% } %>
@@ -83,54 +95,45 @@
         <tr>
           <td colspan="3">
             <span class="title"><%= pf.getI18nString("fibu.auftrag.statusBeschreibung") %></span>
-            <span class="value"><%= pf.getString(auftrag.statusBeschreibung) %></span>
+            <span class="value note"><%= pf.getString(auftrag.statusBeschreibung) %></span>
           </td>
         </tr>
-        <% } %>
-        <% for (position in auftrag.positionen) { %>
-        <tr>
-          <th>Position #<%= pf.getString(position.number) %></th>
-        </tr>
-        <tr>
-          <td colspan="3">
-            <span class="title"><%= pf.getI18nString("title") %></span>
-            <span class="value"><%= pf.getString(position.titel) %></span>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <span class="title"><%= pf.getI18nString("status") %></span>
-            <span class="value"><%= pf.getString(position.status) %></span>
-          </td>
-          <td>
-            <span class="title"><%= pf.getI18nString("fibu.auftrag.nettoSumme") %></span>
-            <span class="value no-wrap"><%= pf.getCurrency(position.nettoSumme) %></span>
-          </td>
-          <% if (position.art != null) { %>
-          <td>
-            <span class="title"><%= pf.getI18nString("fibu.auftrag.position.art") %></span>
-            <span class="value"><%= pf.getString(position.art) %></span>
-          </td>
-          <% } %>
-        </tr>
-        <% if (position.bemerkung != null) { %>
-        <tr>
-          <td colspan="3">
-            <span class="title"><%= pf.getI18nString("comment") %></span>
-            <span class="value"><%= pf.getString(position.bemerkung) %></span>
-          </td>
-        </tr>
-        <% } %>
         <% } %>
       </table>
-      <a
-              href="${requestUrl}"
-              class="button"
-              target="_blank"
-              rel="noreferrer"
-      >
-        <%= pf.getI18nString("fibu.auftrag.title.edit") %>
-      </a>
+
+      <% if (auftrag.positionen) { %>
+      <h2 class="section"><%= pf.getI18nString("fibu.auftrag.positions") %></h2>
+      <% for (position in auftrag.positionen) { %>
+      <div class="card">
+        <h3 class="card-title">
+          <%= pf.getI18nString("fibu.auftrag.position") %> #<%= pf.getString(position.number) %><% if (position.titel) { %> &middot; <%= pf.getString(position.titel) %><% } %>
+          <% if (position.status != null) { %><span class="badge <%= badgeClass(position.status) %>"><%= pf.getString(position.status) %></span><% } %>
+        </h3>
+        <table class="width-3">
+          <tr>
+            <td>
+              <span class="title"><%= pf.getI18nString("fibu.auftrag.nettoSumme") %></span>
+              <span class="value no-wrap"><%= pf.getCurrency(position.nettoSumme) %></span>
+            </td>
+            <td colspan="2">
+              <% if (position.art != null) { %>
+              <span class="title"><%= pf.getI18nString("fibu.auftrag.position.art") %></span>
+              <span class="value"><%= pf.getString(position.art) %></span>
+              <% } %>
+            </td>
+          </tr>
+          <% if (position.bemerkung != null) { %>
+          <tr>
+            <td colspan="3">
+              <span class="title"><%= pf.getI18nString("comment") %></span>
+              <span class="value note"><%= pf.getString(position.bemerkung) %></span>
+            </td>
+          </tr>
+          <% } %>
+        </table>
+      </div>
+      <% } %>
+      <% } %>
 
       #INCLUDE{mail/mailHistoryTable.html}
 

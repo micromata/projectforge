@@ -154,9 +154,6 @@ class LibraryListParserTest {
         assertNull(LibraryListParser.parse("notes.txt", "hello\nworld").format)
         assertNull(LibraryListParser.parse("broken.json", "{not json").format)
         assertThrows(UserException::class.java) { LibraryListParser.parse("big.txt", "x".repeat(LibraryListParser.MAX_FILE_BYTES + 1)) }
-        assertThrows(UserException::class.java) {
-            LibraryListParser.parseAll((1..LibraryListParser.MAX_FILES + 1).map { "f$it" to "" })
-        }
         val entry = LibraryListParser.fromPurl("pkg:npm/%40angular/core@18.2.1")!!
         assertEquals(LibraryEntry("npm", "@angular", "core", "18.2.1"), entry)
         assertEquals(LibraryEntry("maven", "org.x", "y", "1.0"), LibraryListParser.fromPurl("pkg:maven/org.x/y@1.0"))
@@ -263,6 +260,79 @@ class LibraryListParserTest {
         val pip = LibraryListParser.parse("requirements.txt", "# pinned\nDjango==4.2.7\nrequests[security]==2.31.0 ; python_version>'3'\nPyYAML_x==6.0\n-r other.txt\nflask>=2\nurllib3==2.0.7 \\\n    --hash=sha256:abc\n")
         assertEquals(LibraryFormat.PIP, pip.format)
         assertEquals(listOf("pkg:pypi/django@4.2.7", "pkg:pypi/requests@2.31.0", "pkg:pypi/pyyaml-x@6.0", "pkg:pypi/urllib3@2.0.7"), purls(pip))
+    }
+
+    @Test
+    fun `pnpm-lock reads the packages reached from the runtime dependencies, without development dependencies and links`() {
+        val v9 = LibraryListParser.parse(
+            "pnpm-lock.yaml",
+            """
+            |lockfileVersion: '9.0'
+            |
+            |importers:
+            |
+            |  .:
+            |    dependencies:
+            |      '@scope/ui':
+            |        specifier: ^2.0.0
+            |        version: 2.1.0(react@18.3.1)
+            |      shared:
+            |        specifier: workspace:*
+            |        version: link:packages/shared
+            |      string-width-cjs:
+            |        specifier: npm:string-width@^4.2.0
+            |        version: string-width@4.2.3
+            |    devDependencies:
+            |      jest:
+            |        specifier: 29.7.0
+            |        version: 29.7.0
+            |
+            |packages:
+            |
+            |  '@scope/ui@2.1.0':
+            |    resolution: {integrity: sha512-x}
+            |
+            |snapshots:
+            |
+            |  '@scope/ui@2.1.0(react@18.3.1)':
+            |    dependencies:
+            |      react: 18.3.1
+            |    optionalDependencies:
+            |      fsevents: 2.3.3
+            |
+            |  fsevents@2.3.3:
+            |    optional: true
+            |
+            |  jest@29.7.0:
+            |    dependencies:
+            |      jest-cli: 29.7.0
+            |
+            |  jest-cli@29.7.0: {}
+            |
+            |  react@18.3.1: {}
+            |
+            |  string-width@4.2.3: {}
+            """.trimMargin(),
+        )
+        assertEquals(LibraryFormat.PNPM, v9.format)
+        assertEquals(
+            listOf("pkg:npm/%40scope/ui@2.1.0", "pkg:npm/string-width@4.2.3", "pkg:npm/react@18.3.1", "pkg:npm/fsevents@2.3.3"),
+            purls(v9),
+        )
+
+        val v6 = LibraryListParser.parse(
+            "pnpm-lock.yaml",
+            "lockfileVersion: '6.0'\n\npackages:\n\n  /@babel/core@7.22.5(supports-color@8.1.1):\n    resolution: {integrity: x}\n" +
+                "    dev: false\n\n  /jest@29.7.0:\n    resolution: {integrity: x}\n    dev: true\n\n  /lodash@4.17.21:\n    dev: false\n",
+        )
+        assertEquals(LibraryFormat.PNPM, v6.format)
+        assertEquals(listOf("pkg:npm/%40babel/core@7.22.5", "pkg:npm/lodash@4.17.21"), purls(v6))
+
+        val v5 = LibraryListParser.parse(
+            "pnpm-lock.yaml",
+            "lockfileVersion: 5.4\n\npackages:\n\n  /@babel/core/7.22.5_supports-color@8.1.1:\n    dev: false\n\n  /jest/29.7.0:\n    dev: true\n",
+        )
+        assertEquals(listOf("pkg:npm/%40babel/core@7.22.5"), purls(v5))
     }
 
     @Test

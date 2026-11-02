@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.cveradar
 
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.plugins.cveradar.model.CvrCatalogNodeDO
 import org.projectforge.plugins.cveradar.model.CvrComponentDO
@@ -40,9 +41,9 @@ import java.time.LocalDate
 
 /**
  * The libraries of a component read from lists (INV-14, INV-26): SBOMs, the `package-lock.json` of npm, the output of
- * Maven and of Gradle. Several lists are merged; by default they only add to what an earlier upload brought, with `replace` the
- * libraries missing in all of them are removed. Technologies entered by hand are never touched. The caller checks the
- * access to the component (see [CvrInventoryService]).
+ * Maven and of Gradle, single or in a zip ([LibraryArchive]). Several lists are merged; by default they only add to what
+ * an earlier upload brought, with `replace` the libraries missing in all of them are removed. Technologies entered by
+ * hand are never touched. The caller checks the access to the component (see [CvrInventoryService]).
  */
 @Service
 class CvrLibraryService {
@@ -56,12 +57,11 @@ class CvrLibraryService {
         plan(component, request, Catalog(catalogNodes())).diff()
 
     /** In one transaction: a failure leaves the component as it was. */
-    fun apply(component: CvrComponentDO, request: LibraryRequest): LibraryDiff = persistenceService.runInTransaction {
+    fun apply(component: CvrComponentDO, request: LibraryRequest): LibraryDiff = persistenceService.runInTransaction { context ->
         val catalog = Catalog(catalogNodes())
         val plan = plan(component, request, catalog)
         plan.added.forEach { (entry, origin) ->
-            val node = catalog.byPurl[Triple(entry.ecosystem, entry.group?.replace("%40", "@"), entry.name)]
-                ?: if (entry.group == null) catalog.byName[entry.ecosystem to entry.name]?.singleOrNull() else null
+            val node = catalog.nodeOf(entry)
             technologyDao.insert(
                 CvrTechnologyDO().also {
                     it.component = component
@@ -81,6 +81,10 @@ class CvrLibraryService {
         plan.removed.forEach {
             technologyDao.markAsDeleted(technologyDao.find(it.id, checkAccess = false)!!, checkAccess = false)
         }
+        // Also if nothing changed: the list is up to date then. The loaded component must not write the old day back.
+        component.librariesDate = LocalDate.now()
+        context.em.createQuery("update CvrComponentDO c set c.librariesDate = :date where c.id = :id")
+            .setParameter("date", LocalDate.now()).setParameter("id", component.id).executeUpdate()
         plan.diff()
     }
 
@@ -125,17 +129,14 @@ class CvrLibraryService {
     }
 
     private fun plan(component: CvrComponentDO, request: LibraryRequest, catalog: Catalog): Plan {
-        val parsed = LibraryListParser.parseAll(request.files.map { (it.name ?: "").take(255) to (it.text ?: "") })
+        if (request.files.size > LibraryListParser.MAX_FILES) {
+            throw UserException(LibraryListParser.ERROR_TOO_MANY_FILES, LibraryListParser.MAX_FILES.toString())
+        }
+        val files = LibraryArchive.expand(request.files.map { Triple((it.name ?: "").take(255), it.text, it.data) })
+        val parsed = LibraryListParser.parseAll(files.map { (name, text) -> name.take(255) to text })
         val wanted = LinkedHashMap<String, Pair<LibraryEntry, CvrOrigin>>()
         parsed.forEach { file ->
-            val origin = when (file.format) {
-                LibraryFormat.CYCLONEDX, LibraryFormat.SPDX -> CvrOrigin.SBOM
-                LibraryFormat.NPM, LibraryFormat.YARN, LibraryFormat.PIP, LibraryFormat.GO, LibraryFormat.CARGO,
-                LibraryFormat.COMPOSER -> CvrOrigin.LOCKFILE
-                LibraryFormat.DEB, LibraryFormat.APK, LibraryFormat.RPM -> CvrOrigin.PACKAGE_LIST
-                LibraryFormat.JAR -> CvrOrigin.JAR_LIST
-                else -> CvrOrigin.BUILD_LIST
-            }
+            val origin = originOf(file.format)
             // Keyed like the stored purl, so a very long one isn't added again on every upload.
             file.entries.map { resolveGroup(it, catalog) }.forEach { wanted.putIfAbsent(storedPurl(it), it to origin) }
         }
@@ -158,7 +159,7 @@ class CvrLibraryService {
      * A jar name has no groupId; it is taken from the catalogue where exactly one library node has this name
      * (nothing is looked up elsewhere).
      */
-    private fun resolveGroup(entry: LibraryEntry, catalog: Catalog): LibraryEntry {
+    internal fun resolveGroup(entry: LibraryEntry, catalog: Catalog): LibraryEntry {
         if (entry.group != null) return entry
         val node = catalog.byName[entry.ecosystem to entry.name]?.filter { it.purlNamespace != null }?.singleOrNull()
             ?: return entry
@@ -168,10 +169,17 @@ class CvrLibraryService {
     private fun storedPurl(entry: LibraryEntry) = entry.purl.take(500)
 
     /** The library nodes of the catalogue by purl type, namespace and name, and by purl type and name. */
-    private class Catalog(nodes: List<CvrCatalogNodeDO>) {
+    internal class Catalog(nodes: List<CvrCatalogNodeDO>) {
         val byPurl = nodes.associateBy { Triple(it.purlType!!, it.purlNamespace?.replace("%40", "@"), it.purlName!!) }
         val byName = nodes.groupBy { it.purlType!! to it.purlName!! }
+
+        /** The node of a library: by its purl, else (without a groupId, a jar name) by its name where that is unique. */
+        fun nodeOf(entry: LibraryEntry): CvrCatalogNodeDO? =
+            byPurl[Triple(entry.ecosystem, entry.group?.replace("%40", "@"), entry.name)]
+                ?: if (entry.group == null) byName[entry.ecosystem to entry.name]?.singleOrNull() else null
     }
+
+    internal fun catalog() = Catalog(catalogNodes())
 
     private fun catalogNodes(): List<CvrCatalogNodeDO> =
         persistenceService.executeQuery(
@@ -181,5 +189,15 @@ class CvrLibraryService {
 
     companion object {
         private const val MAX_LINES = 200
+
+        /** Where the libraries of a list come from, by its format. */
+        internal fun originOf(format: LibraryFormat?) = when (format) {
+            LibraryFormat.CYCLONEDX, LibraryFormat.SPDX -> CvrOrigin.SBOM
+            LibraryFormat.NPM, LibraryFormat.YARN, LibraryFormat.PNPM, LibraryFormat.PIP, LibraryFormat.GO, LibraryFormat.CARGO,
+            LibraryFormat.COMPOSER -> CvrOrigin.LOCKFILE
+            LibraryFormat.DEB, LibraryFormat.APK, LibraryFormat.RPM -> CvrOrigin.PACKAGE_LIST
+            LibraryFormat.JAR -> CvrOrigin.JAR_LIST
+            else -> CvrOrigin.BUILD_LIST
+        }
     }
 }
