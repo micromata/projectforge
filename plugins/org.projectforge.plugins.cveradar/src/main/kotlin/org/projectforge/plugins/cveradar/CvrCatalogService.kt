@@ -37,6 +37,7 @@ import org.projectforge.plugins.cveradar.rest.CatalogNodeRequest
 import org.projectforge.plugins.cveradar.rest.CatalogRef
 import org.projectforge.plugins.cveradar.rest.CatalogRow
 import org.projectforge.plugins.cveradar.rest.CatalogTree
+import org.projectforge.plugins.cveradar.sync.OsvPackages
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -204,13 +205,13 @@ class CvrCatalogService {
     fun ensureEcosystems() {
         val existing = persistenceService.executeQuery("from CvrCatalogNodeDO e", CvrCatalogNodeDO::class.java)
             .mapNotNull { it.ecosystemKey }.toSet()
-        ECOSYSTEMS.filter { it.first !in existing }.forEach { (key, name, purlType) ->
+        OsvPackages.ECOSYSTEMS.filter { it.key !in existing }.forEach { ecosystem ->
             nodeDao.insert(
                 CvrCatalogNodeDO().also {
                     it.kind = CvrCatalogKind.ECOSYSTEM
-                    it.name = name
-                    it.ecosystemKey = key
-                    it.purlType = purlType
+                    it.name = ecosystem.name
+                    it.ecosystemKey = ecosystem.key
+                    it.purlType = ecosystem.purlType
                     it.origin = CvrCatalogOrigin.OSV
                 },
                 checkAccess = false,
@@ -412,17 +413,6 @@ class CvrCatalogService {
         private const val MAX_RESULTS = 100
 
         private val ORDER = compareBy<CvrCatalogNodeDO>({ it.kind != CvrCatalogKind.ECOSYSTEM }, { it.name?.lowercase() })
-
-        /** OSV ecosystem key, name, purl type (INV-23). */
-        private val ECOSYSTEMS = listOf(
-            Triple("Maven", "Java/Maven", "maven"),
-            Triple("npm", "Node/npm", "npm"),
-            Triple("PyPI", "Python/PyPI", "pypi"),
-            Triple("NuGet", ".NET/NuGet", "nuget"),
-            Triple("Packagist", "PHP/Composer", "composer"),
-            Triple("Go", "Go", "golang"),
-            Triple("crates.io", "Rust/Cargo", "cargo"),
-        )
 
         const val ERROR_NOT_FOUND = "plugins.cveradar.catalog.error.notFound"
         const val ERROR_NAME = "plugins.cveradar.catalog.error.name"

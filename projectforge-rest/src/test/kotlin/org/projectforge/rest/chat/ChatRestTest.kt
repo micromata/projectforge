@@ -52,6 +52,9 @@ class ChatRestTest : AbstractTestBase() {
     private lateinit var chatRoomRest: ChatRoomRest
 
     @Autowired
+    private lateinit var chatBlockRest: ChatBlockRest
+
+    @Autowired
     private lateinit var chatDirectRest: ChatDirectRest
 
     @Autowired
@@ -240,6 +243,40 @@ class ChatRestTest : AbstractTestBase() {
             }
         } finally {
             dataTransferBridge.register(null)
+        }
+    }
+
+    @Test
+    fun `a blocked author's messages are marked, a report is accepted from a reader only`() {
+        logon(TEST_USER)
+        val result = chatRoomRest.save(ChatRoom(name = "rest block", users = listOf(ChatRef(getUserId(TEST_USER2), "x"))))
+        val conversationId = result.conversationId!!
+        logon(TEST_USER2)
+        val message = chatRest.send(conversationId, ChatSendRequest(html = "<p>blockable</p>"))
+        val author = getUserId(TEST_USER2)
+
+        logon(TEST_USER)
+        assertFalse(chatRest.getMessages(conversationId, null, null).messages.single().fromBlocked)
+        try {
+            chatBlockRest.block(author)
+            assertEquals(listOf(author), chatBlockRest.list().map { it.id })
+            assertTrue(chatRest.getMessages(conversationId, null, null).messages.single().fromBlocked)
+            logon(TEST_USER2)
+            assertFalse(chatRest.getMessages(conversationId, null, null).messages.single().fromBlocked, "only for the blocker")
+            assertTrue(chatBlockRest.list().isEmpty())
+        } finally {
+            logon(TEST_USER)
+            chatBlockRest.unblock(author)
+        }
+        assertTrue(chatBlockRest.list().isEmpty())
+
+        assertEquals(204, chatRest.report(message.id, ChatReportRequest(reason = "rude")).statusCode.value())
+        suppressErrorLogs {
+            logon(TEST_FINANCE_USER)
+            assertThrows(AccessException::class.java) { chatRest.report(message.id, ChatReportRequest()) }
+            logon(TEST_USER2)
+            assertThrows(UserException::class.java) { chatRest.report(message.id, ChatReportRequest()) }
+            assertThrows(UserException::class.java) { chatBlockRest.block(author) }
         }
     }
 

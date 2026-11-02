@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "App: connecting the app behind an SSO proxy works at the first attempt, also when the proxy brings the browser back from its login without the parameters of the link.",
-  "de": "App: Das Verbinden der App hinter einem SSO-Proxy klappt schon beim ersten Versuch, auch wenn der Proxy den Browser nach seiner Anmeldung ohne die Parameter des Links zurückschickt."
-}

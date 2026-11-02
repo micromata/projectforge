@@ -28,8 +28,20 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.cveradar.model.CvrFindingCertainty
 import java.util.concurrent.CopyOnWriteArrayList
 
-/** A library of an ad-hoc check that matched a vulnerability. */
-internal class AdHocHit(val entry: LibraryEntry, val vulnerabilityId: Long, val certainty: CvrFindingCertainty, val matched: String)
+/**
+ * A library of an ad-hoc check that matched a vulnerability: a stored one ([vulnerabilityId]) or OSV advisories not
+ * linked to one yet ([vulnerabilityKey], see [CvrMatchingService.QueryHit]).
+ */
+internal class AdHocHit(
+    val entry: LibraryEntry,
+    val vulnerabilityId: Long?,
+    val vulnerabilityKey: String?,
+    val certainty: CvrFindingCertainty,
+    val matched: String,
+) {
+    /** The vulnerability, whether stored or not. */
+    val key: Any get() = vulnerabilityId ?: vulnerabilityKey!!
+}
 
 /** A file of an ad-hoc check, read by [CvrAdHocCheckService]; the job counts [checked] and collects the [hits]. */
 internal class AdHocFile(val name: String, val format: LibraryFormat?, val entries: List<LibraryEntry>) {
@@ -68,10 +80,10 @@ internal class CvrAdHocJob(
                 if (!isActive) return
                 val queries = block.map { entry ->
                     val node = catalog.nodeOf(entry)
-                    CvrMatchingService.Query(null, node?.cpeVendor, entry.product, entry.version, node)
+                    CvrMatchingService.Query(null, node?.cpeVendor, entry.product, entry.version, node, entry.purl)
                 }
                 matching.match(queries).forEachIndexed { index, hits ->
-                    hits.forEach { file.hits.add(AdHocHit(block[index], it.vulnerabilityId, it.certainty, it.matched)) }
+                    hits.forEach { file.hits.add(AdHocHit(block[index], it.vulnerabilityId, it.vulnerabilityKey, it.certainty, it.matched)) }
                 }
                 file.checked += block.size
                 processedNumber += block.size

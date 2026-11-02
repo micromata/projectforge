@@ -39,8 +39,6 @@ import org.mustangproject.TradeParty
 import org.mustangproject.SchemedID
 import org.mustangproject.ZUGFeRD.Profiles
 import org.mustangproject.ZUGFeRD.XRExporter
-import org.mustangproject.ZUGFeRD.ZUGFeRD2PullProvider
-import org.mustangproject.ZUGFeRD.ZUGFeRDExporterFromA3
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary
@@ -118,13 +116,16 @@ class EInvoiceExportService(
         val mustangInvoice = buildMustangInvoice(invoice)
 
         val baos = ByteArrayOutputStream()
-        val zugFeRDExporter = ZUGFeRDExporterFromA3()
+        val zugFeRDExporter = EInvoiceZugferdExporter()
+        zugFeRDExporter
             .ignorePDFAErrors()
             .load(ByteArrayInputStream(pdfBytes))
             .setProducer("ProjectForge")
             .setCreator("ProjectForge")
             .setZUGFeRDVersion(2)
-            .setProfile(Profiles.getByName("EN16931"))
+        // After the version, which installs Mustang's own provider; before the profile, which it is handed.
+        zugFeRDExporter.useProvider(EInvoiceXmlProvider())
+        zugFeRDExporter.setProfile(Profiles.getByName("EN16931"))
         zugFeRDExporter.setTransaction(mustangInvoice)
         zugFeRDExporter.export(baos)
         log.info { "ZUGFeRD PDF exported for invoice #${invoice.nummer}" }
@@ -352,8 +353,12 @@ class EInvoiceExportService(
         return errors
     }
 
-    private fun buildMustangInvoice(invoice: RechnungDO): Invoice {
-        val mustangInvoice = Invoice()
+    private fun buildMustangInvoice(invoice: RechnungDO): EInvoiceTransaction {
+        val mustangInvoice = EInvoiceTransaction()
+        // The account as the fallback, as for every buyer field (see buildBuyer).
+        mustangInvoice.buyerAccountingReference = invoice.customerCostCenter
+            ?: (invoice.konto ?: invoice.kunde?.konto)?.costCenter
+        mustangInvoice
             .setNumber(invoice.belegNummer)
             .setIssueDate(toDate(invoice.datum!!))
             .setCurrency(invoice.currency ?: "EUR")
@@ -392,9 +397,13 @@ class EInvoiceExportService(
             mustangInvoice.setReferenceNumber(buyerReference)
         }
 
-        // Buyer order reference (BT-13)
-        if (!invoice.customerref1.isNullOrBlank() && invoice.kunde?.konto?.leitwegId != null) {
-            mustangInvoice.setBuyerOrderReferencedDocument(ReferencedDocument().setIssuerAssignedID(invoice.customerref1))
+        // Buyer order reference (BT-13): the order number, independent of a Leitweg-ID. Without one, the
+        // customer reference as before the field existed: it was sent as BT-13 where the Leitweg-ID took
+        // BT-10, so a re-export of such an invoice keeps its order reference.
+        val orderReference = invoice.customerOrderNumber?.takeIf { it.isNotBlank() }
+            ?: invoice.customerref1?.takeIf { it.isNotBlank() && invoice.kunde?.konto?.leitwegId != null }
+        if (orderReference != null) {
+            mustangInvoice.setBuyerOrderReferencedDocument(ReferencedDocument().setIssuerAssignedID(orderReference.trim()))
         }
 
         // Cash discount (Skonto), none for a cancellation: there is nothing to pay early.
@@ -516,9 +525,13 @@ class EInvoiceExportService(
             buyer.setEmail(buyerEmail)
             buyer.addUriUniversalCommunicationID(SchemedID("EM", buyerEmail))
         }
-        val contactPerson = invoice.customerContactPerson ?: konto?.contactPerson
-        if (!contactPerson.isNullOrBlank()) {
-            buyer.setContact(Contact(contactPerson, null, buyerEmail))
+        // Buyer contact point (BT-56) is one text: the person and/or the department of the orderer.
+        val contactPoint = listOf(
+            invoice.customerContactPerson ?: konto?.contactPerson,
+            invoice.customerContactDepartment ?: konto?.contactDepartment,
+        ).filter { !it.isNullOrBlank() }.joinToString(", ") { it!!.trim() }
+        if (contactPoint.isNotBlank() || !buyerEmail.isNullOrBlank()) {
+            buyer.setContact(Contact(contactPoint.ifBlank { null }, null, buyerEmail?.ifBlank { null }))
         }
         return buyer
     }
@@ -581,7 +594,7 @@ class EInvoiceExportService(
     }
 
     private fun createXRExporter(profileName: String): XRExporter {
-        val provider = ZUGFeRD2PullProvider().apply {
+        val provider = EInvoiceXmlProvider().apply {
             setProfile(Profiles.getByName(profileName))
         }
         val exporter = XRExporter()

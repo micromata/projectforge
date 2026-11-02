@@ -699,6 +699,19 @@ image::/uploads/screenshots/2026-ChatThread.png[image]
 * Mentions, direct messages and replies in followed threads are notified in the app and by mail. A mail is
   sent only for what wasn't seen in the app, and it never contains the text of the message.
 
+[[chat_report_block]]
+=== Reporting and blocking
+
+In the menu of a message of somebody else (click the message to show its actions) *Report* sends the message to the
+administrators, with an optional reason. They get the message text (the first 500 characters), the reporter and the
+author, and can deactivate the account of the author; they can't open the conversation. The report can block the author
+at the same time.
+
+*Block user* (menu of the author, or the button in the head of a direct message) ends the direct messages with this
+user: neither of you can write in the conversation, it stays readable. In rooms, the messages of a blocked user are shown
+folded (*Show* opens one), and you get no notifications, mentions or search hits from them. The blocked user isn't told.
+*Unblock user* removes the block, also in the list *Blocked users* next to the sound settings of the chat.
+
 [[chat_search]]
 === Search
 

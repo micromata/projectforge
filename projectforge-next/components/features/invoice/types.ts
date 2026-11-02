@@ -165,9 +165,12 @@ export interface InvoiceDetail {
   datum?: string | null;
   betreff?: string | null;
   customerref1?: string | null;
+  customerOrderNumber?: string | null;
   attachment?: string | null;
   // The address block of the e-invoice, prefilled from the customer's account where empty.
   customerContactPerson?: string | null;
+  customerContactDepartment?: string | null;
+  customerCostCenter?: string | null;
   customerAddress?: string | null;
   customerZipCode?: string | null;
   customerCity?: string | null;

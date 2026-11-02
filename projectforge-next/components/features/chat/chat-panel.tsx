@@ -65,9 +65,33 @@ export function ChatPanel({
   const { readMark, marks, markUnread, threadOpened, hasUnreadReplies } =
     useReadMark(conversationId, conversation, pause, settled);
   const { quoting, setQuoting } = useQuoting();
+  // Bound to the conversation, so that the actions of another conversation's message are no longer shown.
+  const [actionsState, setActionsState] = useState<{
+    conversationId: number;
+    messageId: number;
+  } | null>(null);
+  const actionsMessageId =
+    actionsState?.conversationId === conversationId
+      ? actionsState.messageId
+      : null;
+  const setActionsMessageId = useCallback(
+    (messageId: number | null) =>
+      setActionsState(
+        messageId === null ? null : { conversationId, messageId }
+      ),
+    [conversationId]
+  );
   const [threadRootId, setThreadRootId] = useState<number | null>(
     initialThreadRootId
   );
+  useEffect(() => {
+    if (actionsMessageId === null) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setActionsMessageId(null);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [actionsMessageId, setActionsMessageId]);
   const [threadFocusId, setThreadFocusId] = useState<number | null>(
     initialThreadRootId ? highlightId : null
   );
@@ -161,6 +185,8 @@ export function ChatPanel({
             readMark,
             hasUnreadReplies,
             markUnread,
+            actionsMessageId,
+            setActionsMessageId,
             observeSeen: unreadJump.observe,
           }
         : null,
@@ -177,6 +203,8 @@ export function ChatPanel({
       readMark,
       hasUnreadReplies,
       markUnread,
+      actionsMessageId,
+      setActionsMessageId,
       unreadJump.observe,
     ]
   );

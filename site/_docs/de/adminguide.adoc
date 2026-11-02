@@ -2017,18 +2017,56 @@ projectforge.plugin.cveradar.nvd.cron=0 17 */2 * * *
 * Die Liste lesen darf, wer eine Rolle des CVE-Radars hat (siehe <<cve_radar_rights>>). Eine Zeile öffnet die Akte der Schwachstelle.
 * Der API-Key wird nur als Header gesendet und weder geloggt noch vom Properties-Editor angezeigt.
 
+[[cve_radar_osv]]
+==== Advisories der Bibliotheken von OSV.dev
+
+Die NVD nennt Bibliotheken oft spät oder unter einem anderen Namen als dem des Pakets (oder wochenlang gar nicht). Deshalb
+importiert ProjectForge zusätzlich die Advisories von OSV.dev (GitHub, PyPA, Go, RustSec, …) für die Ökosysteme der
+Bibliotheken und gleicht sie nach Paket (purl) und Version gegen die Bibliotheken des Inventars ab, also die aus SBOMs,
+Lockfiles und Build-Listen. Der Import ist standardmäßig aus, da er Internetzugriff braucht.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.osv.enabled=true
+# Der öffentliche Bucket von OSV.dev.
+projectforge.plugin.cveradar.osv.url=https://osv-vulnerabilities.storage.googleapis.com
+# Die Ökosysteme (OSV-Schlüssel), durch Komma getrennt.
+projectforge.plugin.cveradar.osv.ecosystems=Maven,npm,PyPI,NuGet,Packagist,Go,crates.io
+# Auch die Schadpakete (MAL-...): einige hunderttausend Advisories, fast alle von npm und PyPI.
+projectforge.plugin.cveradar.osv.malicious=false
+# Alle 6 Stunden zur Minute 47 (UTC).
+projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
+----
+
+* Der erste Lauf liest alle Advisories jedes Ökosystems (die Datei `all.zip` des Buckets, bei npm etwa 250 MB), jeder
+  weitere die seitdem geänderten. Geholt werden nur Dateien von Advisories; nichts vom Inventar verlässt ProjectForge.
+* Ein Advisory wird erst dann eine Schwachstelle der Liste, wenn es eine Bibliothek des Inventars trifft, dann aber
+  unabhängig von seiner Bewertung: Die Schwelle des NVD-Imports (`minCvss`) gilt für Produkte, nicht für eingesetzte
+  Bibliotheken. Die Schwachstelle heißt nach ihrer CVE-ID, ohne eine nach ihrer GHSA-ID (oder der ID der Quelle); die
+  Advisories einer CVE (z. B. von GitHub und von PyPA) werden eine Schwachstelle.
+* Sobald die NVD die CVE ändert, ersetzen deren Daten die der Advisories (vorher Status _OSV_); die Advisories treffen
+  weiterhin.
+* Eine Bibliothek ohne groupId (aus einer Jar-Liste) trifft nur über ihr Artefakt, als _möglicherweise betroffen_.
+  Kennen die Advisories das Paket einer Bibliothek, entscheiden sie: Ein Treffer _möglicherweise betroffen_ derselben
+  Schwachstelle über den Namen der CPE entfällt.
+* Ein zurückgezogenes Advisory trifft nichts mehr; eine Schwachstelle nur aus zurückgezogenen Advisories ist
+  zurückgewiesen.
+* Der Ad-hoc-Check nutzt die Advisories ebenfalls, ohne etwas zu speichern.
+
 [[cve_radar_jobs]]
 ==== Jobs und Verbindungen
 
-* Die Anbindung und der NVD-Import laufen als Jobs, _CVE-Radar: Client-Agents_ und
-  _CVE-Radar: NVD-Import_, aufgeführt
+* Die Anbindung und die Importe laufen als Jobs, _CVE-Radar: Client-Agents_,
+  _CVE-Radar: NVD-Import_ und _CVE-Radar: OSV-Import_, aufgeführt
   unter _Administration_ -> _Jobmonitor_. Dort lassen sie sich sofort starten (_Jetzt starten_); solange ihre Quelle nicht
   konfiguriert ist, werden sie als inaktiv mit dem Grund angezeigt. Die Zusammenfassung jedes Laufs steht im Lauf und im Log, Fehler sind Teil des Fehler-Digests.
 * Timeouts und die maximale Größe einer Antwort werden pro Verbindung mit
   `projectforge.integration.clients.cveradar-graylog.*` und
-  `projectforge.integration.clients.cveradar-nvd.*` eingestellt (z. B. `responseTimeoutMs`, `maxResponseBytes`, Default
-  50 MB; bei der NVD 180 s und 200 MB, da eine Seite bis zu 2000 Schwachstellen enthält).
-* Ein ausgehender Proxy wird noch nicht unterstützt: ProjectForge muss beide Hosts direkt erreichen.
+  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*` eingestellt (z. B.
+  `responseTimeoutMs`, `maxResponseBytes`, Default 50 MB; bei der NVD 180 s und 200 MB, da eine Seite bis zu 2000
+  Schwachstellen enthält; bei OSV.dev 180 s und 1 GB für das Zip eines Ökosystems, das in eine temporäre Datei geladen
+  wird).
+* Ein ausgehender Proxy wird noch nicht unterstützt: ProjectForge muss die Hosts direkt erreichen.
 * Keys und Token zeigt der Properties-Editor nie an. Statt in `projectforge.properties` können sie als
   Umgebungsvariablen gesetzt werden, z. B. `PROJECTFORGE_PLUGIN_CVERADAR_GRAYLOG_TOKEN`.
 

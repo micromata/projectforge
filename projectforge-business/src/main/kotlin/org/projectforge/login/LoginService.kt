@@ -375,6 +375,9 @@ open class LoginService {
      * @return true, if 2FA is required after login, otherwise false.
      */
     private fun check2FARequiredAfterLogin(userContext: UserContext): Boolean {
+        if (my2FARequestConfiguration.isExempt(userContext.user?.username)) {
+            return false
+        }
         my2FARequestConfiguration.loginExpiryDays.let { days ->
             if (days != null) {
                 if (!my2FAService.checklastSuccessful2FA(days.toLong(), My2FAService.Unit.DAYS, userContext)) {

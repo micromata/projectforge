@@ -22,7 +22,11 @@ export function QuotedMessage({ quote }: { quote: ChatQuote }) {
   const { jump } = useChatContext();
   const text =
     quote.excerpt ??
-    (quote.deleted ? t("chat.message.deleted") : t("chat.message.hidden"));
+    (quote.fromBlocked
+      ? t("chat.block.folded")
+      : quote.deleted
+        ? t("chat.message.deleted")
+        : t("chat.message.hidden"));
   const show = (event: MouseEvent<HTMLButtonElement>) => {
     const target = event.currentTarget
       .closest("[data-chat-messages]")

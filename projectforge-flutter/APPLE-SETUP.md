@@ -75,11 +75,15 @@ content (chat messages), identifiers (device id, push token).
 ## 7. App review information
 
 - The app needs a ProjectForge server: provide a reachable test server with a demo user the reviewer can log in with,
-  and say how the login works (system browser, then back to the app); avoid a second factor for this user or explain
-  it in the notes.
+  and say how the login works (system browser, then back to the app); a second factor can't be done by the reviewer: list the
+  account in `projectforge.2fa.exemptUsers` of that server (no 2FA after login, none for registering the app) and
+  remove it after the review. Give the account no rights beyond the defaults. The server URL goes into the review
+  notes only, not into the repository.
 - Contact data for the reviewer.
-- A chat is user generated content (guideline 1.2): reporting and blocking users in the app and a contact for the
-  operator are required.
+- A chat is user generated content (guideline 1.2): reporting a message (the menu of a message, shown by a click on
+  it) and blocking a user (menu of the author, head of a direct message) exist; a report is mailed to the server's
+  administrators, who deactivate the account of the author. Name this in the review notes, and give a contact for
+  the operator (the support url).
 - Export compliance: the app only uses standard HTTPS; `ITSAppUsesNonExemptEncryption` is already `false` in
   `ios/Runner/Info.plist`.
 

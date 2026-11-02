@@ -30,6 +30,7 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.plugins.cveradar.CveRadarConfig
 import org.projectforge.plugins.cveradar.CvrCaseDao
 import org.projectforge.plugins.cveradar.CvrMatchingService
+import org.projectforge.plugins.cveradar.CvrOsvAdvisoryService
 import org.projectforge.plugins.cveradar.CvrVulnerabilityDao
 import org.projectforge.plugins.cveradar.model.CvrImportStateDO
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
@@ -52,7 +53,8 @@ private val log = KotlinLogging.logger {}
  * - the watermark is advanced after each completely imported piece, so an aborted run resumes there,
  * - new vulnerabilities only from [CveRadarConfig.Nvd.minCvss] on (IMP-10); one not rated yet is skipped, it is
  *   modified when the NVD rates it and imported by the run after; a stored one is always updated, also when
- *   rejected (IMP-15) or rated lower.
+ *   rejected (IMP-15) or rated lower. That includes the vulnerabilities made of OSV advisories, whatever their score
+ *   ([CvrOsvAdvisoryService]): the NVD takes them over.
  */
 @Service
 class NvdImportService {
@@ -70,6 +72,9 @@ class NvdImportService {
 
     @Autowired
     private lateinit var matchingService: CvrMatchingService
+
+    @Autowired
+    private lateinit var osvService: CvrOsvAdvisoryService
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
@@ -139,6 +144,11 @@ class NvdImportService {
             vulnerabilityDao.insert(vulnerability, checkAccess = false)
             vulnerabilityDao.reindex(vulnerability)
             caseDao.linkToVulnerability(vulnerability)
+            // The advisories of the CVE belong to it now; a vulnerability they made under another key loses them.
+            osvService.linkToVulnerability(vulnerability).let { before ->
+                osvService.refresh(before)
+                result.changedIds.addAll(before)
+            }
             indexAndRemember(vulnerability, cve, result)
             result.created++
             return

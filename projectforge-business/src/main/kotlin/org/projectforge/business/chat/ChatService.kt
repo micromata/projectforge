@@ -79,6 +79,9 @@ open class ChatService {
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
+    @Autowired
+    private lateinit var blockService: ChatBlockService
+
     @Autowired(required = false)
     private var eventListeners: List<ChatEventListener> = emptyList()
 
@@ -623,8 +626,13 @@ open class ChatService {
         if (term.isEmpty() && authorId == null) {
             return emptyList()
         }
-        val where = StringBuilder("m.conversationId = :conversationId and m.deleted = false and m.hiddenById is null")
-        val params = mutableListOf<Pair<String, Any?>>(Pair("conversationId", context.conversationId))
+        val where = StringBuilder(
+            "m.conversationId = :conversationId and m.deleted = false and m.hiddenById is null and $NOT_BLOCKED_CLAUSE"
+        )
+        val params = mutableListOf<Pair<String, Any?>>(
+            Pair("conversationId", context.conversationId),
+            Pair("userId", context.user.id!!),
+        )
         if (term.isNotEmpty()) {
             // The wildcards of the term are searched as text.
             where.append(" and lower(m.contentText) like :term escape '!'")
@@ -665,10 +673,12 @@ open class ChatService {
         // conversationId, count, newest message id, the newest match first; the wildcards of the term are searched as text.
         val matches = persistenceService.executeQuery(
             "select m.conversationId, count(m), max(m.id) from ChatMessageDO m" +
-                    " where m.deleted = false and m.hiddenById is null and lower(m.contentText) like :term escape '!'" +
+                    " where m.deleted = false and m.hiddenById is null and $NOT_BLOCKED_CLAUSE" +
+                    " and lower(m.contentText) like :term escape '!'" +
                     " group by m.conversationId order by max(m.id) desc",
             Array<Any?>::class.java,
             Pair("term", "%${term.replace(LIKE_SPECIAL_CHARS, "!$1")}%"),
+            Pair("userId", user.id!!),
             maxResults = maxChecked,
         ).map { row -> Triple((row[0] as Number).toLong(), (row[1] as Number).toLong(), (row[2] as Number).toLong()) }
         val contexts = mutableListOf<ChatAccess.Context>()
@@ -705,8 +715,10 @@ open class ChatService {
      */
     open fun mentionCandidates(context: ChatAccess.Context, search: String?, limit: Int = 10): List<PFUserDO> {
         val term = search?.trim()?.lowercase().orEmpty()
+        // Neither the ones the user blocked nor the ones who blocked the user: a mention of them would be dropped.
+        val blocked = blockService.blockedIds(context.user.id!!).toSet() + blockService.blockerIds(context.user.id!!)
         return participants(context)
-            .filter { it.id != context.user.id }
+            .filter { it.id != context.user.id && it.id !in blocked }
             .filter { user ->
                 term.isEmpty() || listOfNotNull(user.getFullname(), user.username, user.nickname, user.firstname, user.lastname)
                     .any { it.lowercase().contains(term) }
@@ -819,7 +831,7 @@ open class ChatService {
 
     /**
      * Deletes the conversations of the host object with their messages (also their history, which holds former texts),
-     * read states and files (the area in the data transfer), e.g. with the deletion of the host object (CTX-05). The notifications about them are
+     * reports, read states and files (the area in the data transfer), e.g. with the deletion of the host object (CTX-05). The notifications about them are
      * resolved. No access check: the caller decides.
      */
     open fun deleteConversations(hostType: String, hostId: Long) {
@@ -841,6 +853,7 @@ open class ChatService {
                     entityName,
                 )
                 pc.executeUpdate("delete from ChatMemberStateDO s where s.conversationId = :conversationId", params)
+                pc.executeUpdate("delete from ChatReportDO r where r.conversationId = :conversationId", params)
                 pc.executeUpdate(
                     "delete from ChatMessageDO m where m.conversationId = :conversationId and m.threadRootId is not null",
                     params,
@@ -990,12 +1003,17 @@ open class ChatService {
         const val MAX_EMOJI_LENGTH = 16
         const val MAX_EMOJIS_PER_MESSAGE = 20
 
+        /** Messages of an author the user (parameter userId) has blocked don't count, aren't found and aren't notified. */
+        private const val NOT_BLOCKED_CLAUSE = "not exists (select b.id from ChatUserBlockDO b" +
+                " where b.blockerId = :userId and b.blockedId = m.authorId)"
+
         /**
          * The messages counting as unread for the user `:userId` (`:userCsv`: [csvPattern]): of others, not deleted or
          * hidden; replies only in threads the user follows (author of the message or follower, not unfollowed, see
          * [threadFollowers]) or is mentioned in.
          */
         private const val UNREAD_CLAUSE = "m.authorId <> :userId and m.deleted = false and m.hiddenById is null" +
+                " and $NOT_BLOCKED_CLAUSE" +
                 " and (m.threadRootId is null or concat(',', m.mentionedIds, ',') like :userCsv" +
                 " or exists (select r.id from ChatMessageDO r where r.id = m.threadRootId" +
                 " and (r.authorId = :userId or concat(',', r.followerIds, ',') like :userCsv)" +

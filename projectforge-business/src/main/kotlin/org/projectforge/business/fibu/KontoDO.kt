@@ -103,6 +103,14 @@ open class KontoDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(name = "contact_person", length = 255)
     open var contactPerson: String? = null
 
+    @PropertyInfo(i18nKey = "fibu.konto.contactDepartment")
+    @get:Column(name = "contact_department", length = 255)
+    open var contactDepartment: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.konto.costCenter")
+    @get:Column(name = "cost_center", length = 255)
+    open var costCenter: String? = null
+
     @PropertyInfo(i18nKey = "fibu.konto.sellerBankAccountName")
     @get:Column(name = "seller_bank_account_name", length = 100)
     open var sellerBankAccountName: String? = null

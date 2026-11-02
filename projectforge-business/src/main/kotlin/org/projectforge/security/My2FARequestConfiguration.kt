@@ -67,6 +67,25 @@ open class My2FARequestConfiguration {
     internal set // internal for test cases
 
   /**
+   * Login names (comma separated, case insensitive) that need no second factor, neither after login nor for
+   * registering the mobile app. Only meant for the account Apple's app review logs in with: it can't read a mail or
+   * an authenticator app. Empty by default; remove the entry after the review.
+   */
+  @Value("\${projectforge.2fa.exemptUsers:}")
+  var exemptUsers: String = ""
+    internal set // internal for test cases
+
+  /**
+   * @return true, if [username] is listed in [exemptUsers].
+   */
+  fun isExempt(username: String?): Boolean {
+    if (username.isNullOrBlank()) {
+      return false
+    }
+    return exemptUsers.split(',').any { it.isNotBlank() && it.trim().equals(username, ignoreCase = true) }
+  }
+
+  /**
    * List of regular expressions. For matching uri's a 2nd factor is mandatory and the 2nd factor expires after 1 minute.
    * Empty means (no 2nd factor).
    */
@@ -148,6 +167,11 @@ open class My2FARequestConfiguration {
     this.expiryPeriodHours1 = expiryPeriodHours1
     this.expiryPeriodHours8 = expiryPeriodHours8
 
+  }
+
+  /** For test cases of other modules, see [exemptUsers]. */
+  fun internalSetExemptUsers4TestCases(usernames: String) {
+    exemptUsers = usernames
   }
 
   /** For test cases of other modules, see [loginExpiryDays]. */

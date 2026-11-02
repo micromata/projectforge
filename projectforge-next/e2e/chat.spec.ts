@@ -69,7 +69,7 @@ test.describe("chat", { tag: "@parallel" }, () => {
       // Live at the other participant, marked as mentioning them.
       const received = other.locator("article").filter({ hasText: "welcome" });
       await expect(received).toBeVisible({ timeout: 10_000 });
-      await received.hover();
+      await received.locator("[aria-expanded]").first().click();
       await received
         .getByRole("button", { name: otherT("chat.message.reply") })
         .click();
@@ -102,6 +102,75 @@ test.describe("chat", { tag: "@parallel" }, () => {
         await outsider.close();
       }
     } finally {
+      await page.request.delete(`/rs/chatRoom/${room.id}`, {
+        headers: await writeHeaders(page.request),
+      });
+      await other.close();
+    }
+  });
+
+  test("a message is reported with the author blocked, and unblocked again", async ({
+    loggedInPage: page,
+    browser,
+  }) => {
+    test.skip(!hasRole("normalo-user"), "No normalo account on this instance.");
+    const { t } = await userFormat(page);
+    const other = await browser.newPage({
+      baseURL: test.info().project.use.baseURL,
+    });
+    await loginWithOwnSession(other, "normalo-user");
+    const otherId = await userId(other);
+    const name = `ZZ e2e chat report ${uniqueSuffix()}`;
+    const saved = await page.request.post("/rs/chatRoom/save", {
+      headers: await writeHeaders(page.request),
+      data: { name, users: [{ id: otherId, displayName: "" }] },
+    });
+    expect(saved.ok()).toBeTruthy();
+    const room = (await saved.json()) as { id: number; conversationId: number };
+    try {
+      const text = `reportable ${uniqueSuffix()}`;
+      const sent = await other.request.post(
+        `/rs/chat/conversation/${room.conversationId}/messages`,
+        {
+          headers: await writeHeaders(other.request),
+          data: { html: `<p>${text}</p>` },
+        }
+      );
+      expect(sent.ok()).toBeTruthy();
+
+      await goto(page, `/chat/${room.conversationId}`);
+      const message = page.locator("article").filter({ hasText: text });
+      await expect(message).toBeVisible();
+      // The actions appear on a click on the message.
+      await message.locator("[aria-expanded]").first().click();
+      await message
+        .getByRole("button", { name: `${t("chat.message.edit")} …` })
+        .click();
+      await page
+        .getByRole("menuitem", { name: t("chat.message.report._") })
+        .click();
+      const dialog = page.getByRole("dialog");
+      await dialog
+        .getByLabel(t("chat.message.report.reason"))
+        .fill("e2e: not a real problem");
+      await dialog.getByLabel(t("chat.message.report.block")).click();
+      await dialog
+        .getByRole("button", { name: t("chat.message.report._") })
+        .click();
+      await expect(page.getByText(t("chat.message.report.done"))).toBeVisible();
+
+      // The author is blocked with the report: the message is folded for the reporter, the author sees it as before.
+      await expect(page.getByText(t("chat.block.folded"))).toBeVisible();
+      const blocked = await page.request.get("/rs/chatBlock");
+      expect(
+        ((await blocked.json()) as { id: number }[]).map((user) => user.id)
+      ).toEqual([otherId]);
+      await goto(other, `/chat/${room.conversationId}`);
+      await expect(other.getByText(text)).toBeVisible();
+    } finally {
+      await page.request.delete(`/rs/chatBlock/${otherId}`, {
+        headers: await writeHeaders(page.request),
+      });
       await page.request.delete(`/rs/chatRoom/${room.id}`, {
         headers: await writeHeaders(page.request),
       });
@@ -678,7 +747,7 @@ test.describe("chat", { tag: "@parallel" }, () => {
         .first();
       await expect(first).toBeVisible();
 
-      await first.hover();
+      await first.locator("[aria-expanded]").first().click();
       await first
         .getByRole("button", { name: t("chat.message.quote._") })
         .click();

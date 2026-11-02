@@ -29,6 +29,7 @@ import org.projectforge.business.chat.ChatAccess
 import org.projectforge.business.chat.ChatDirectChatHost
 import org.projectforge.business.chat.ChatFileService
 import org.projectforge.business.chat.ChatMessageDao
+import org.projectforge.business.chat.ChatReportService
 import org.projectforge.business.chat.ChatService
 import org.projectforge.common.FormatterUtils
 import org.projectforge.common.i18n.UserException
@@ -85,6 +86,9 @@ class ChatRest {
 
     @Autowired
     private lateinit var chatMessageDao: ChatMessageDao
+
+    @Autowired
+    private lateinit var reportService: ChatReportService
 
     @Autowired
     private lateinit var converter: ChatMessageConverter
@@ -272,6 +276,13 @@ class ChatRest {
     @PostMapping("message/{id}/hide")
     fun hide(@PathVariable id: Long, @RequestBody request: ChatHideRequest): ResponseEntity<Unit> {
         chatService.hide(id, request.hidden, request.reason)
+        return ResponseEntity.noContent().build()
+    }
+
+    @AccessChecked("ChatReportService.report: read access of the host to the conversation of the message (from the database), not an own message")
+    @PostMapping("message/{id}/report")
+    fun report(@PathVariable id: Long, @RequestBody request: ChatReportRequest): ResponseEntity<Unit> {
+        reportService.report(id, request.reason, request.block)
         return ResponseEntity.noContent().build()
     }
 

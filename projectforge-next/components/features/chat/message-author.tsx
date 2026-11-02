@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Message01Icon } from "@hugeicons/core-free-icons";
+import { Message01Icon, UserBlock01Icon } from "@hugeicons/core-free-icons";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import {
   DropdownMenu,
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ChatRef } from "@/lib/rs/chat-types";
 import { useChatContext } from "./chat-context";
+import { useBlockUserAction } from "./use-block-user-action";
 import { useOpenDirect } from "@/hooks/use-open-direct";
 import { RefName } from "@/components/shared/ref-list";
 
@@ -31,6 +32,7 @@ export function MessageAuthor({
   const t = useTranslations();
   const { conversation } = useChatContext();
   const openDirect = useOpenDirect();
+  const blockAction = useBlockUserAction(author);
   const content = avatar ? (
     <UserAvatar
       name={author.displayName}
@@ -50,23 +52,33 @@ export function MessageAuthor({
     return content;
   }
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        className="h-fit rounded-sm hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-        aria-label={`${author.displayName}: ${t("chat.direct.send")}`}
-        tabIndex={avatar ? -1 : undefined}
-      >
-        {content}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuItem
-          disabled={openDirect.isPending}
-          onSelect={() => openDirect.mutate(author.id)}
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          className="h-fit rounded-sm hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          aria-label={`${author.displayName}: ${t("chat.direct.send")}`}
+          tabIndex={avatar ? -1 : undefined}
         >
-          <HugeiconsIcon icon={Message01Icon} />
-          {t("chat.direct.send")}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          {content}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem
+            disabled={openDirect.isPending}
+            onSelect={() => openDirect.mutate(author.id)}
+          >
+            <HugeiconsIcon icon={Message01Icon} />
+            {t("chat.direct.send")}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={blockAction.pending}
+            onSelect={blockAction.run}
+          >
+            <HugeiconsIcon icon={UserBlock01Icon} />
+            {blockAction.label}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {blockAction.dialog}
+    </>
   );
 }

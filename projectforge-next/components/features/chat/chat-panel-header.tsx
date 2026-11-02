@@ -14,6 +14,7 @@ import type { ChatMessage } from "@/lib/rs/chat-types";
 import { cn } from "@/lib/utils";
 import { useChatContext } from "./chat-context";
 import { ChatSearch } from "./chat-search";
+import { DirectBlockButton } from "./direct-block-button";
 
 /**
  * The head of a conversation: search, muting (NOT-07), a status pill while live updates fall back to polling and the
@@ -84,6 +85,9 @@ export function ChatPanelHeader({
           />
         </Button>
       </HintTooltip>
+      {conversation.directPartner && (
+        <DirectBlockButton partner={conversation.directPartner} />
+      )}
       {unreadCount > 0 && (
         <HintTooltip text={nextUnreadLabel} plain>
           <Button

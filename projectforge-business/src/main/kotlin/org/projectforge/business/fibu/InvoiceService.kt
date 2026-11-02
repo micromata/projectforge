@@ -137,6 +137,14 @@ open class InvoiceService {
             }
             variables.put("Typ", type)
             variables.put("Kundenreferenz", data.customerref1)
+            // The order number (BT-13) and the cost center (BT-19) of the e-invoice, so the document states what
+            // its XML does. Always set, empty where missing, with a flag for the template's `{if …}`.
+            val orderNumber = data.customerOrderNumber?.trim().orEmpty()
+            val costCenter = (data.customerCostCenter ?: (data.konto ?: data.kunde?.konto)?.costCenter)?.trim().orEmpty()
+            variables.put("Bestellnummer", orderNumber)
+            variables.put("isBestellnummer", orderNumber.isNotEmpty())
+            variables.put("Kostenstelle", costCenter)
+            variables.put("isKostenstelle", costCenter.isNotEmpty())
             variables.put(
                 "Auftragsnummer", data.positionenExcludingDeleted.stream()
                 .filter { pos: RechnungsPositionDO -> pos.auftragsPosition != null && pos.auftragsPosition!!.auftrag != null }
@@ -215,6 +223,7 @@ open class InvoiceService {
         val lines = listOfNotNull(
             (data.konto?.bezeichnung ?: data.kunde?.konto?.bezeichnung ?: data.kunde?.name ?: data.kundeText)?.takeIf { it.isNotBlank() },
             data.customerContactPerson?.takeIf { it.isNotBlank() },
+            data.customerContactDepartment?.takeIf { it.isNotBlank() },
             data.customerAddress?.takeIf { it.isNotBlank() },
             listOfNotNull(
                 data.customerZipCode?.takeIf { it.isNotBlank() },

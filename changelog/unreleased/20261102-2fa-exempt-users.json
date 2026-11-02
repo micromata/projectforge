@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Setting projectforge.2fa.exemptUsers: login names that need no second factor, e.g. for the account of an app store review.",
+  "de": "Einstellung projectforge.2fa.exemptUsers: Login-Namen, die keinen zweiten Faktor brauchen, z. B. für den Zugang einer App-Store-Prüfung."
+}
