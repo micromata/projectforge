@@ -27,9 +27,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
-/// A cookie of the WebView, see [WebCookies.cookies].
-typedef WebViewCookie = ({String name, String value, String? domain});
-
 /// The cookies of the WebView, in which the app shows the ProjectForge pages: the web session opened by the app token
 /// (`POST /rs/appAuth/webSession`) is handed over here, and the app's logout removes it.
 ///
@@ -75,27 +72,6 @@ class WebCookies {
       }
     } on MissingPluginException {
       // No WebView platform (tests).
-    }
-  }
-
-  /// All cookies of the WebView for [serverUrl] (name and value; a name may occur twice, e.g. for the host and for
-  /// its domain), empty without a WebView platform (tests). [domain] is the domain a cookie was set for, null if the
-  /// platform doesn't tell (Android).
-  Future<List<WebViewCookie>> cookies(String serverUrl) async {
-    try {
-      final cookies = await CookieManager.instance().getCookies(
-        url: WebUri(serverUrl),
-      );
-      return [
-        for (final cookie in cookies)
-          (
-            name: cookie.name,
-            value: '${cookie.value ?? ''}',
-            domain: cookie.domain,
-          ),
-      ];
-    } on MissingPluginException {
-      return const [];
     }
   }
 

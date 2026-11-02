@@ -27,6 +27,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/api/api_client.dart';
 import '../../core/api/api_exception.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/i18n/translations.dart';
@@ -94,15 +95,6 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   bool _opening = false;
   DateTime? _lastOpened;
 
-  /// The WebView shows another site than the server: the login of an SSO proxy, see [WebNavigation.decide].
-  bool _onForeignSite = false;
-
-  /// The host of the other site the WebView went to last: its links stay in the WebView, links to a third site don't.
-  String? _foreignHost;
-
-  /// The pages came back from the login of the SSO proxy: its fresh cookies are taken once they loaded.
-  bool _backFromForeignSite = false;
-
   /// A page of the server is loading and not yet committed (`onPageCommitVisible`): a redirect to another site now is
   /// one of the server or its proxy, not a script of a loaded page. Set for every load of the app itself too
   /// ([_load]), as Android doesn't pass these through [_shouldOverrideUrlLoading]. A start without end (a load that
@@ -119,18 +111,8 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   /// The page of the server the current load was asked for, before any redirect: loaded again after a renewal.
   Uri? _requestedUrl;
 
-  /// The renewal of the login for the proxy failed or was cancelled: the next refusal of the proxy (only this one) goes
-  /// to its login in the WebView. Reset once that happens or a page of the server is committed without it.
-  bool _proxyLoginInWebView = false;
   bool _renewingProxy = false;
   DateTime? _lastProxyRenewal;
-
-  /// The page of another site the WebView shows (e.g. the login of an SSO proxy): a bar names its host and offers
-  /// it in the system browser, as the WebView has no address bar. Null on a page of the server.
-  Uri? _foreignPage;
-
-  /// The last page of the server, to return to from another site.
-  Uri? _lastServerPage;
 
   /// The native page [_open] loaded itself (e.g. the editing of the business cards): it stays in the WebView until
   /// the user leaves it.
@@ -274,41 +256,23 @@ class _WebScreenState extends ConsumerState<WebScreen> {
           false,
     );
     if (proxyLogin) {
-      if (!_proxyLoginInWebView) {
-        appLog.info(
-          'web',
-          'Navigation to ${LogSanitizer.url(url)} → login of the SSO proxy? (${_describe(action)})',
-        );
-        _serverPageLoadStart = null;
-        _renewForProxy(url);
-        return NavigationActionPolicy.CANCEL;
-      }
-      // The one login of the proxy in the WebView the app asked for (_loginInWebView).
-      _proxyLoginInWebView = false;
+      appLog.info(
+        'web',
+        'Navigation to ${LogSanitizer.url(url)} → login of the SSO proxy? (${_describe(action)})',
+      );
+      _serverPageLoadStart = null;
+      _renewForProxy(url);
+      return NavigationActionPolicy.CANCEL;
     }
-    final target = navigation.decide(
-      url,
-      redirect: proxyLogin,
-      fromForeignSite: _onForeignSite,
-      foreignHost: _foreignHost,
-      tappedLink: _isTappedLink(action),
-    );
+    final target = navigation.decide(url);
     appLog.info(
       'web',
       'Navigation to ${LogSanitizer.url(url)} → ${target.name} (${_describe(action)})',
     );
     switch (target) {
       case WebNavigationTarget.webView:
-        final foreign = !navigation.isSameOrigin(url);
-        if (_onForeignSite && !foreign) {
-          _backFromForeignSite = true;
-          _proxyLoginInWebView = false;
-        }
-        _onForeignSite =
-            foreign && (url.scheme == 'http' || url.scheme == 'https');
-        _foreignHost = _onForeignSite ? url.host : null;
-        if (foreign) {
-          // No longer a page of the server: its redirects aren't the proxy's.
+        if (!navigation.isSameOrigin(url)) {
+          // An inline page (about:, blob:), no longer a page of the server: its redirects aren't the proxy's.
           _serverPageLoadStart = null;
           return NavigationActionPolicy.ALLOW;
         }
@@ -340,8 +304,8 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   /// The SSO proxy refused a page and redirects to its login: the login of the app is renewed in the system browser
   /// (AuthController.reauthenticate), which shares the session of the proxy's login with the browser (often no
   /// password then) and brings fresh proxy cookies, also into the WebView; then the page is loaded again. The
-  /// password of the proxy's login isn't typed into a WebView of the app (RFC 8252). Only if that fails or is
-  /// cancelled, or the proxy refuses again right after it, its login happens in the WebView.
+  /// password of the proxy's login isn't typed into a WebView of the app (RFC 8252): if the renewal fails or is
+  /// cancelled, or the proxy refuses again right after it, the refusal is shown (a retry renews again).
   ///
   /// Only if the proxy refuses the app too ([ApiClient.proxyRefuses]): another site the server redirects to (an open
   /// redirect) is opened outside the app, it never gets a login of the app nor the WebView.
@@ -364,9 +328,9 @@ class _WebScreenState extends ConsumerState<WebScreen> {
       if (last != null && DateTime.now().difference(last) < _renewalInterval) {
         appLog.warn(
           'web',
-          'Refused by the SSO proxy again right after a renewal: its login in the WebView',
+          'Refused by the SSO proxy again right after a renewal: error shown',
         );
-        _loginInWebView(url);
+        _showError(context.t(ApiClient.proxyRefusedKey));
         return;
       }
       _lastProxyRenewal = DateTime.now();
@@ -382,20 +346,12 @@ class _WebScreenState extends ConsumerState<WebScreen> {
         appLog.info('web', 'Login renewed: load ${LogSanitizer.url(url)}');
         await _load(url);
       } else {
-        appLog.info(
-          'web',
-          'Renewal not done: login of the SSO proxy in the WebView',
-        );
-        _loginInWebView(url);
+        appLog.info('web', 'Renewal not done: refusal of the SSO proxy shown');
+        _showError(context.t(ApiClient.proxyRefusedKey));
       }
     } finally {
       _renewingProxy = false;
     }
-  }
-
-  void _loginInWebView(Uri url) {
-    _proxyLoginInWebView = true;
-    _load(url);
   }
 
   /// The navigation wasn't a link the user tapped: a redirect of a server or a script of the page. iOS tells the
@@ -408,27 +364,6 @@ class _WebScreenState extends ConsumerState<WebScreen> {
           type != NavigationType.FORM_RESUBMITTED;
     }
     return action.isRedirect == true || action.hasGesture == false;
-  }
-
-  /// The user tapped a link: no redirect, script or form (iOS tells forms apart, Android only by their POST).
-  static bool _isTappedLink(NavigationAction action) {
-    if (_isRedirect(action)) return false;
-    final type = action.navigationType;
-    return type != null
-        ? type == NavigationType.LINK_ACTIVATED
-        : action.request.method?.toUpperCase() != 'POST';
-  }
-
-  /// Back from the login of the SSO proxy: the fresh cookies of the proxy in the WebView go into the session of the
-  /// app, so its requests (native tabs, web session) get through again.
-  Future<void> _takeProxyCookies() async {
-    final serverUrl = _navigation.server.toString();
-    final cookies = await ref.read(webCookiesProvider).cookies(serverUrl);
-    appLog.info(
-      'web',
-      'Back from the login of the SSO proxy, cookies of the server: ${LogSanitizer.cookieNames(cookies.map((it) => it.name))}',
-    );
-    await ref.read(authControllerProvider.notifier).takeProxyCookies(cookies);
   }
 
   /// How a navigation came about: a tapped link or a redirect, told differently by iOS and Android.
@@ -454,87 +389,11 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     }
   }
 
-  /// The WebView shows [url]: the bar for another site is shown or hidden.
-  void _onPageShown(Uri? url) {
-    if (url == null || !mounted) return;
-    final http = url.scheme == 'http' || url.scheme == 'https';
-    if (!http) return;
-    if (_navigation.isSameOrigin(url)) {
-      _lastServerPage = url;
-      if (_foreignPage != null) setState(() => _foreignPage = null);
-    } else if (_foreignPage != url) {
-      setState(() => _foreignPage = url);
-    }
-  }
-
-  Future<void> _openInBrowser(Uri url) async {
-    appLog.info('web', 'Opened in the browser: ${LogSanitizer.url(url)}');
-    await launchUrl(url, mode: LaunchMode.externalApplication);
-  }
-
-  /// From another site back to the last page of the server (or the start page).
-  Future<void> _backToServer() async {
-    final url = _lastServerPage ?? _startUrl;
-    if (url == null) return;
-    appLog.info('web', 'Back to the pages: ${LogSanitizer.url(url)}');
-    _onForeignSite = false;
-    _foreignHost = null;
-    _proxyLoginInWebView = false;
-    setState(() => _foreignPage = null);
-    await _load(url);
-  }
-
-  /// The bar above another site: its host (the pages have no address bar, the site mustn't pass for the server),
-  /// "open in the browser" and "back to the pages".
-  Widget _foreignSiteBar(BuildContext context) {
-    final page = _foreignPage;
-    if (page == null) return const SizedBox.shrink();
-    final theme = Theme.of(context);
-    return Material(
-      color: theme.colorScheme.surfaceContainerHighest,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 16),
-        child: Row(
-          children: [
-            Icon(
-              page.scheme == 'https' ? Icons.lock_outline : Icons.public,
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-            // The whole site, scaled down if need be: cut off at its end, `pf.example.org.evil.tld` would pass for
-            // the server.
-            Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: AlignmentDirectional.centerStart,
-                child: Text(
-                  WebNavigation.siteLabel(page),
-                  style: theme.textTheme.bodyMedium,
-                ),
-              ),
-            ),
-            IconButton(
-              tooltip: context.t('app.web.openInBrowser'),
-              icon: const Icon(Icons.open_in_browser),
-              onPressed: () => _openInBrowser(page),
-            ),
-            IconButton(
-              tooltip: context.t('app.web.backToPages'),
-              icon: const Icon(Icons.close),
-              onPressed: _backToServer,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   /// Client side navigations of next (pushState) don't pass [_shouldOverrideUrlLoading].
   Future<void> _onUpdateVisitedHistory(
     InAppWebViewController controller,
     WebUri? url,
   ) async {
-    _onPageShown(url);
     if (url != null && _navigation.isLoginPage(url)) _onLoginPage(url);
     if (url != null && _handOver(url) && await controller.canGoBack()) {
       // Back to the page the user came from, the native page is shown in its tab.
@@ -568,90 +427,71 @@ class _WebScreenState extends ConsumerState<WebScreen> {
         // Every WebView tab gets the gesture: only the visible one goes back.
         if (!didPop && widget.active) _controller?.goBack();
       },
-      // The bar stays the first child, so the WebView is never rebuilt when it shows up.
-      child: Column(
+      child: Stack(
         children: [
-          _foreignSiteBar(context),
-          Expanded(
-            child: Stack(
-              children: [
-                InAppWebView(
-                  initialUrlRequest: URLRequest(url: WebUri.uri(startUrl)),
-                  initialSettings: InAppWebViewSettings(
-                    // Marks the app for next (lib/app-mode.ts), which then e.g. hides its logout.
-                    applicationNameForUserAgent: 'ProjectForgeApp/$appVersion',
-                    useShouldOverrideUrlLoading: true,
-                    allowsBackForwardNavigationGestures: true,
-                    javaScriptCanOpenWindowsAutomatically: false,
-                    supportMultipleWindows: false,
-                    useOnDownloadStart: true,
-                    // Until the page paints, the background of the app (dark or light) instead of white.
-                    transparentBackground: true,
-                    underPageBackgroundColor: Theme.of(context)
-                        .colorScheme
-                        .surface,
-                    // Only pages of the server, never files of the device.
-                    allowFileAccess: false,
-                    allowContentAccess: false,
-                  ),
-                  pullToRefreshController: _pullToRefresh,
-                  onWebViewCreated: (controller) => _controller = controller,
-                  shouldOverrideUrlLoading: _shouldOverrideUrlLoading,
-                  onUpdateVisitedHistory: (controller, url, _) =>
-                      _onUpdateVisitedHistory(controller, url),
-                  onProgressChanged: (_, progress) {
-                    setState(() => _progress = progress / 100);
-                  },
-                  onPageCommitVisible: (_, url) {
-                    // The page is there: further navigations are no redirects of its load, and a login of the proxy
-                    // in the WebView the app asked for didn't happen.
-                    _serverPageLoadStart = null;
-                    _proxyLoginInWebView = false;
-                  },
-                  onLoadStop: (_, url) {
-                    _serverPageLoadStart = null;
-                    _pullToRefresh?.endRefreshing();
-                    appLog.debug('web', 'Loaded ${LogSanitizer.url(url)}');
-                    _onPageShown(url);
-                    if (_backFromForeignSite &&
-                        url != null &&
-                        _navigation.isSameOrigin(url)) {
-                      _backFromForeignSite = false;
-                      _takeProxyCookies();
-                    }
-                  },
-                  onReceivedError: (_, request, error) {
-                    if (request.isForMainFrame != false) {
-                      // A load cancelled by the next one (e.g. by the app after a renewal): that one keeps its start.
-                      if (error.type != WebResourceErrorType.CANCELLED) {
-                        _serverPageLoadStart = null;
-                      }
-                      appLog.warn(
-                        'web',
-                        'Error ${error.type} loading ${LogSanitizer.url(request.url)}: ${error.description}',
-                      );
-                    }
-                  },
-                  onReceivedHttpError: (_, request, response) {
-                    if (request.isForMainFrame != false) {
-                      appLog.warn(
-                        'web',
-                        'HTTP ${response.statusCode} loading ${LogSanitizer.url(request.url)} '
-                            '(content-type: ${response.contentType ?? '-'})',
-                      );
-                      _logCookies('HTTP ${response.statusCode}');
-                    }
-                  },
-                  onDownloadStartRequest: (_, request) {
-                    // The load became a download, its page won't stop loading.
-                    _serverPageLoadStart = null;
-                    _onDownloadStart(request);
-                  },
-                ),
-                if (_progress < 1) LinearProgressIndicator(value: _progress),
-              ],
+          InAppWebView(
+            initialUrlRequest: URLRequest(url: WebUri.uri(startUrl)),
+            initialSettings: InAppWebViewSettings(
+              // Marks the app for next (lib/app-mode.ts), which then e.g. hides its logout.
+              applicationNameForUserAgent: 'ProjectForgeApp/$appVersion',
+              useShouldOverrideUrlLoading: true,
+              allowsBackForwardNavigationGestures: true,
+              javaScriptCanOpenWindowsAutomatically: false,
+              supportMultipleWindows: false,
+              useOnDownloadStart: true,
+              // Until the page paints, the background of the app (dark or light) instead of white.
+              transparentBackground: true,
+              underPageBackgroundColor: Theme.of(context).colorScheme.surface,
+              // Only pages of the server, never files of the device.
+              allowFileAccess: false,
+              allowContentAccess: false,
             ),
+            pullToRefreshController: _pullToRefresh,
+            onWebViewCreated: (controller) => _controller = controller,
+            shouldOverrideUrlLoading: _shouldOverrideUrlLoading,
+            onUpdateVisitedHistory: (controller, url, _) =>
+                _onUpdateVisitedHistory(controller, url),
+            onProgressChanged: (_, progress) {
+              setState(() => _progress = progress / 100);
+            },
+            onPageCommitVisible: (_, url) {
+              // The page is there: further navigations are no redirects of its load.
+              _serverPageLoadStart = null;
+            },
+            onLoadStop: (_, url) {
+              _serverPageLoadStart = null;
+              _pullToRefresh?.endRefreshing();
+              appLog.debug('web', 'Loaded ${LogSanitizer.url(url)}');
+            },
+            onReceivedError: (_, request, error) {
+              if (request.isForMainFrame != false) {
+                // A load cancelled by the next one (e.g. by the app after a renewal): that one keeps its start.
+                if (error.type != WebResourceErrorType.CANCELLED) {
+                  _serverPageLoadStart = null;
+                }
+                appLog.warn(
+                  'web',
+                  'Error ${error.type} loading ${LogSanitizer.url(request.url)}: ${error.description}',
+                );
+              }
+            },
+            onReceivedHttpError: (_, request, response) {
+              if (request.isForMainFrame != false) {
+                appLog.warn(
+                  'web',
+                  'HTTP ${response.statusCode} loading ${LogSanitizer.url(request.url)} '
+                      '(content-type: ${response.contentType ?? '-'})',
+                );
+                _logCookies('HTTP ${response.statusCode}');
+              }
+            },
+            onDownloadStartRequest: (_, request) {
+              // The load became a download, its page won't stop loading.
+              _serverPageLoadStart = null;
+              _onDownloadStart(request);
+            },
           ),
+          if (_progress < 1) LinearProgressIndicator(value: _progress),
         ],
       ),
     );

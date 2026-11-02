@@ -93,10 +93,6 @@ class ApiClient {
   /// refusals of this login aren't answered by a new browser login again, which would only open it on every request.
   bool _proxyRenewalUseless = false;
 
-  /// The cookies of the proxy were renewed elsewhere (a login of the proxy in the WebView): its refusals are answered
-  /// by a new browser login again.
-  void proxyCookiesRenewed() => _proxyRenewalUseless = false;
-
   /// Whether the SSO proxy refuses the requests of the app right now (a small request, never a new login): tells
   /// its login from any other site the WebView is redirected to (e.g. by an open redirect of the server).
   Future<bool> proxyRefuses() async {

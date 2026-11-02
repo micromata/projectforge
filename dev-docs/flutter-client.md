@@ -160,17 +160,8 @@ app has only its token:
     (`AuthController.reauthenticate`): `ASWebAuthenticationSession` shares the proxy's login session with Safari
     (often no password), the token exchange brings fresh proxy cookies, also into the WebView, and the page asked for
     is loaded again. The password of the proxy's login isn't typed into a WebView of the app (RFC 8252).
-  - Only if that is cancelled or fails, or the proxy refuses again within 30 s, the proxy's login happens in the
-    WebView, for the next refusal only (reset as soon as a page of the server is committed without it) (`decide`, `redirect`, `fromForeignSite`: its redirects, forms and links of its own host stay until the
-    pages are back; a tapped link to a third site goes to the system browser). Back on
-    the server, the fresh proxy cookies of the WebView go into the session (`AuthController.takeProxyCookies`: only
-    the names the server sent at the login, only cookies of the server's host, not of a parent domain; on Android,
-    which doesn't tell the domain, none if two fresh values compete), and
-    `ApiClient.proxyCookiesRenewed` allows a browser renewal again.
-  - While the WebView shows another site, a bar above it names its host (there is no address bar, the site mustn't
-    pass for the pages; always the whole host, scaled down rather than cut off, with the scheme for plain http and a
-    port other than the default, `WebNavigation.siteLabel`) and offers "open in the browser" (the current page) and "back to ProjectForge" (the last
-    page of the server).
+  - If that is cancelled or fails, or the proxy refuses again within 30 s, the refusal is shown (`app.proxy.refused`,
+    "retry" renews again). The proxy's login never happens in the WebView, which never shows another site.
 - **App mode of next:** the user agent carries `ProjectForgeApp/<version>` (`lib/app-mode.ts`): next hides its
   logout, the app has its own. Only for the UI, never a security check.
 - **No JavaScript handlers** in the WebView: the pages never get hold of the app token.
@@ -258,4 +249,4 @@ FCM follows).
 - Store presence: app icons, privacy declarations, review notes (a chat is user generated content: report and block).
 - User and admin guide (EN+DE) once the app is distributed, with the SSO proxy (`projectforge.app.proxyCookies`).
 - Behind an SSO proxy, background polling (`renewLogin: false`) stays refused after the proxy session expired until
-  the user opens a web page (login of the proxy in the WebView) or does something in a native tab (browser login).
+  the user opens a web page or does something in a native tab (both renew the login in the browser).

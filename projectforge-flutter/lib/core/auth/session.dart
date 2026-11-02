@@ -73,16 +73,6 @@ class Session {
     proxyCookies: proxyCookies,
   );
 
-  Session withProxyCookies(Map<String, String> proxyCookies) => Session(
-    serverUrl: serverUrl,
-    token: token,
-    userId: userId,
-    deviceId: deviceId,
-    username: username,
-    fullname: fullname,
-    proxyCookies: proxyCookies,
-  );
-
   Map<String, dynamic> toJson() => {
     'serverUrl': serverUrl,
     'token': token,

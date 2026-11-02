@@ -17,8 +17,6 @@
   "app.vCard.share": "vCard teilen",
   "app.web": "ProjectForge",
   "app.web.failed": "Die Seiten von ProjectForge konnten nicht geöffnet werden.",
-  "app.web.openInBrowser": "Im Browser öffnen",
-  "app.web.backToPages": "Zurück zu ProjectForge",
   "app.settings.openInApp": "In der App öffnen",
   "app.settings.openInApp.info": "Diese Menüpunkte der Webseiten wechseln auf den Tab der App. Ausgeschaltet bleibt die Webversion, z. B. falls die App-Version mit dem Server nicht funktioniert.",
   "app.log.title": "Protokoll",
