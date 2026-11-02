@@ -258,6 +258,7 @@ class AuftragDtoTest : AbstractTestBase() {
         assertEquals(TODAY, dto.angebotsDatum)
         assertNull(dto.entscheidungsDatum)
         assertNull(dto.beauftragungsDatum)
+        assertNull(dto.referenz)
         // The content is what a clone is for.
         assertEquals("Test order", dto.titel)
         assertEquals(11L, dto.customer?.id)
@@ -327,6 +328,7 @@ class AuftragDtoTest : AbstractTestBase() {
         order.attachmentsSize = 4096L
         order.entscheidungsDatum = LocalDate.of(2026, 2, 10)
         order.beauftragungsDatum = LocalDate.of(2026, 2, 20)
+        order.referenz = "REF-4711"
         order.positionen?.forEach { it.vollstaendigFakturiert = true }
         order.paymentSchedules?.forEach {
             it.reached = true
