@@ -1,13 +1,47 @@
 ---
 title: "ProjectForge 9"
 date: 2026-11-02
-sort_key: "2026-11-02 0052"
+sort_key: "2026-11-02 0053"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-2-3.changelog-release]
+=== ProjectForge 9.2.3: copy cost units without dots, copy button on code blocks
+
+[.changelog-source]
+__2026-11-02, tag https://github.com/micromata/projectforge/tree/9.2.3-RELEASE[9.2.3-RELEASE]__ +++{% include release-pills.html tag="9.2.3-RELEASE" docker="9.2.3" mini=true %}+++
+
+- **Invoices**: copy cost 1 and cost 2 without dots
+- **Chat**: copy button on code blocks
+- Fix: scripts using the classes of the CVE-Radar and IHK plugins run again
+
+.Overview
+[%collapsible]
+====
+- **Invoices:** the cost 1 and cost 2 units of a cost assignment can be copied without dots, in the folded position as well as beside the fields of an open one, e.g. for entering them in another accounting system.
+- **Chat:** code blocks in messages and room descriptions have a copy button.
+- **Fixes:** Kotlin scripts no longer fail with "Unresolved reference 'cveradar'", the classes of the CVE-Radar and IHK plugins are in the script classpath again.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Chat: code blocks in messages and room descriptions have a copy button.
+- Invoices: the cost 1 and cost 2 units of a cost assignment can be copied without dots, e.g. for entering them in another accounting system.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Scripting: Kotlin scripts failed with "Unresolved reference 'cveradar'", the classes of the CVE radar and IHK plugins were missing in the script classpath.
+====
 
 [discrete#release-9-2-2.changelog-release]
 === ProjectForge 9.2.2: mobile app with notifications and address book, CVE-Radar notifications

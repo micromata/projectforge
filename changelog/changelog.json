@@ -1,6 +1,39 @@
 {
   "releases": [
     {
+      "id": "9-2-3",
+      "version": "9.2.3",
+      "date": "2026-11-02",
+      "title": "ProjectForge 9.2.3: copy cost units without dots, copy button on code blocks",
+      "tag": "9.2.3-RELEASE",
+      "published": false,
+      "summary": [
+        "**Invoices**: copy cost 1 and cost 2 without dots",
+        "**Chat**: copy button on code blocks",
+        "Fix: scripts using the classes of the CVE-Radar and IHK plugins run again"
+      ],
+      "overview": [
+        "**Invoices:** the cost 1 and cost 2 units of a cost assignment can be copied without dots, in the folded position as well as beside the fields of an open one, e.g. for entering them in another accounting system.",
+        "**Chat:** code blocks in messages and room descriptions have a copy button.",
+        "**Fixes:** Kotlin scripts no longer fail with \"Unresolved reference 'cveradar'\", the classes of the CVE-Radar and IHK plugins are in the script classpath again."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Chat: code blocks in messages and room descriptions have a copy button.",
+            "Invoices: the cost 1 and cost 2 units of a cost assignment can be copied without dots, e.g. for entering them in another accounting system."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Scripting: Kotlin scripts failed with \"Unresolved reference 'cveradar'\", the classes of the CVE radar and IHK plugins were missing in the script classpath."
+          ]
+        }
+      ]
+    },
+    {
       "id": "9-2-2",
       "version": "9.2.2",
       "date": "2026-11-02",
