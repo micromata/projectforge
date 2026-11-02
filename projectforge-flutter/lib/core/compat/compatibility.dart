@@ -31,7 +31,7 @@ import '../status/user_status_controller.dart';
 ///
 /// The other direction, the app version a server needs, is declared by the server (`AppCompatibility.MIN_APP_VERSION`,
 /// `systemData.minAppVersion`): only the newer side knows about a break.
-const minServerVersion = '9.2.4';
+const minServerVersion = '9.2.5';
 
 /// Why the app and the server may not work together. Only a warning: nothing is refused.
 sealed class CompatibilityIssue {
