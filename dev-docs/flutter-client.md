@@ -115,6 +115,13 @@ to say so once the app is distributed.
 has no backups at all (`allowBackup="false"`). The logout deletes the cache, the files handed to the share sheet
 (`SharedFiles`: downloads, vCards) and the cookies, cache and web storage of the WebView.
 
+**SSO proxy and the parameters of `/next/appLogin`:** a proxy redirecting a browser without a proxy session to its
+login passes the requested url on as `rd`; nginx configurations of Authentik put it in unencoded
+(`rd=$scheme://$http_host$request_uri`), so everything after the first `&` of the query got lost and the page said
+"The link of the app is invalid". The app therefore sends its parameters also packed into one, first parameter `login`
+(base64url of a json object, `AppLogin.packParams`), which `readAppLoginParams` of next prefers to the single ones
+(still sent for older servers).
+
 ## Web pages in the app
 
 Everything without a native screen is shown as the normal web pages (next, and the legacy pages it links to) in a
@@ -139,6 +146,17 @@ app has only its token:
 - **Navigation:** the own server stays in the WebView; other sites, `mailto:`, `tel:` open in the system. `data:`
   pages are refused (without an address bar they would look like pages of the server), as are unknown schemes; no
   file or content access.
+- **Login of an SSO proxy in the WebView:** when the proxy session expires (e.g. Authentik in forward auth mode), the
+  proxy redirects the pages to its login on another host (`/outpost.goauthentik.io/start` → `sso…/authorize`). Such
+  a redirect (iOS: navigation type other than link or form, Android: `isRedirect` or no gesture) stays in the WebView,
+  and so does everything on that site until the pages are back (`WebNavigation.decide`, `redirect`,
+  `fromForeignSite`); only a link the user taps opens another site in the system browser. Back on the server, the
+  fresh proxy cookies of the WebView go into the session (`AuthController.takeProxyCookies`: only the names the
+  server sent at the login), so the native tabs and the next web session get through again, and
+  `ApiClient.proxyCookiesRenewed` allows a browser renewal again. A site a script of the pages navigates to also
+  stays in the WebView. While the WebView shows another site, a bar above it names its host (there is no address
+  bar, the site mustn't pass for the pages) and offers "open in the browser" (the current page) and "back to
+  ProjectForge" (the last page of the server).
 - **App mode of next:** the user agent carries `ProjectForgeApp/<version>` (`lib/app-mode.ts`): next hides its
   logout, the app has its own. Only for the UI, never a security check.
 - **No JavaScript handlers** in the WebView: the pages never get hold of the app token.
@@ -154,6 +172,23 @@ app has only its token:
 Open: the 2FA dialog of next offers WebAuthn, which doesn't work in a WebView
 for self-hosted servers (OTP does): in app mode it should offer "confirm in the browser" (the app's renewal, then a
 new web session).
+
+## Client log
+
+`core/log/app_log.dart` (`appLog`) records what is needed to find out why something fails, in particular behind
+an SSO proxy: the login (system status with its redirects, browser login, callback, token exchange, names of the
+received proxy cookies), every request of `ApiClient` (failures with status, content type, `Location`, names of the
+sent proxy cookies; successful polling isn't logged), the renewal of the login, the web session, every main frame
+navigation of the WebView with its decision and how it came about (link or redirect), load errors, and uncaught
+errors (`main.dart`).
+
+- Only in memory, at most one day and 2000 entries; nothing is written to a file. In a debug build also on the
+  console.
+- Shown, copied and cleared on the page "Log" (`core/log/log_screen.dart`), reachable from the settings and from the
+  login page (a failed login happens before the settings can be opened).
+- No secrets: urls through `LogSanitizer.url` (query values masked, names kept), cookies only by name, no bodies, no
+  user or device name (only ids). `LogSanitizer.text` masks every message again (`PFApp`/`Bearer` values, JWTs,
+  `token=`, `code=`, `state=`, … and their json fields, mail addresses).
 
 ## Texts
 
@@ -203,6 +238,5 @@ FCM follows).
 - Release signing: the Android release build is still signed with the debug key (`android/app/build.gradle.kts`).
 - Store presence: app icons, privacy declarations, review notes (a chat is user generated content: report and block).
 - User and admin guide (EN+DE) once the app is distributed, with the SSO proxy (`projectforge.app.proxyCookies`).
-- Behind an SSO proxy, the first login without a proxy session ended once on "The link of the app is invalid"; the
-  second attempt worked. Probably the proxy's redirects to its login lost the query of `/next/appLogin` (`challenge`,
-  `state`). If it happens again: note the url of the error page and the server log.
+- Behind an SSO proxy, background polling (`renewLogin: false`) stays refused after the proxy session expired until
+  the user opens a web page (login of the proxy in the WebView) or does something in a native tab (browser login).

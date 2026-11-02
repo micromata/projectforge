@@ -30,6 +30,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/api/api_exception.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/i18n/translations.dart';
+import '../../core/log/app_log.dart';
+import '../../core/log/log_sanitizer.dart';
 import '../../core/wallet/wallet_pass.dart';
 import '../../core/web/native_page.dart';
 import '../../core/widgets/error_view.dart';
@@ -92,6 +94,19 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   bool _opening = false;
   DateTime? _lastOpened;
 
+  /// The WebView shows another site than the server: the login of an SSO proxy, see [WebNavigation.decide].
+  bool _onForeignSite = false;
+
+  /// The pages came back from the login of the SSO proxy: its fresh cookies are taken once they loaded.
+  bool _backFromForeignSite = false;
+
+  /// The page of another site the WebView shows (e.g. the login of an SSO proxy): a bar names its host and offers
+  /// it in the system browser, as the WebView has no address bar. Null on a page of the server.
+  Uri? _foreignPage;
+
+  /// The last page of the server, to return to from another site.
+  Uri? _lastServerPage;
+
   /// The native page [_open] loaded itself (e.g. the editing of the business cards): it stays in the WebView until
   /// the user leaves it.
   NativePage? _requestedNative;
@@ -128,6 +143,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
       final startPath = await (renew ? sessions.renew() : sessions.ensure());
       if (renew) _lastOpened = DateTime.now();
       final url = _navigation.url(path ?? startPath);
+      appLog.info('web', 'Load ${LogSanitizer.url(url)}');
       _requestedNative = _navigation.nativePage(url);
       if (_controller == null) {
         setState(() => _startUrl = url);
@@ -137,6 +153,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
         );
       }
     } on ApiException catch (e) {
+      appLog.warn('web', 'Pages not opened: $e');
       if (mounted) _showError(context.errorText(e));
     } finally {
       _opening = false;
@@ -156,9 +173,14 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     final lastOpened = _lastOpened;
     if (lastOpened != null &&
         DateTime.now().difference(lastOpened) < _renewalInterval) {
+      appLog.warn(
+        'web',
+        'Login page again right after a renewal of the web session: error shown',
+      );
       _showError(context.t('app.web.failed'));
       return;
     }
+    appLog.info('web', 'Login page of the server: renewal of the web session');
     _open(_navigation.returnPath(url), renew: true);
   }
 
@@ -207,8 +229,22 @@ class _WebScreenState extends ConsumerState<WebScreen> {
       return NavigationActionPolicy.ALLOW;
     }
     final navigation = _navigation;
-    switch (navigation.decide(url)) {
+    final target = navigation.decide(
+      url,
+      redirect: _isRedirect(action),
+      fromForeignSite: _onForeignSite,
+    );
+    appLog.info(
+      'web',
+      'Navigation to ${LogSanitizer.url(url)} → ${target.name} (${_describe(action)})',
+    );
+    switch (target) {
       case WebNavigationTarget.webView:
+        final foreign = !navigation.isSameOrigin(url);
+        if (_onForeignSite && !foreign) _backFromForeignSite = true;
+        _onForeignSite =
+            foreign && (url.scheme == 'http' || url.scheme == 'https');
+        if (foreign) return NavigationActionPolicy.ALLOW;
         if (navigation.isLoginPage(url)) {
           _onLoginPage(url);
           return NavigationActionPolicy.CANCEL;
@@ -216,6 +252,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
         if (_handOver(url)) return NavigationActionPolicy.CANCEL;
         return NavigationActionPolicy.ALLOW;
       case WebNavigationTarget.external:
+        await _logCookies('Opened outside the app');
         await launchUrl(url, mode: LaunchMode.externalApplication);
         return NavigationActionPolicy.CANCEL;
       case WebNavigationTarget.cancel:
@@ -223,11 +260,127 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     }
   }
 
+  /// The navigation wasn't a link the user tapped: a redirect of a server or a script of the page. iOS tells the
+  /// type of the navigation, Android whether it is a redirect and whether the user touched the page.
+  static bool _isRedirect(NavigationAction action) {
+    final type = action.navigationType;
+    if (type != null) {
+      return type != NavigationType.LINK_ACTIVATED &&
+          type != NavigationType.FORM_SUBMITTED &&
+          type != NavigationType.FORM_RESUBMITTED;
+    }
+    return action.isRedirect == true || action.hasGesture == false;
+  }
+
+  /// Back from the login of the SSO proxy: the fresh cookies of the proxy in the WebView go into the session of the
+  /// app, so its requests (native tabs, web session) get through again.
+  Future<void> _takeProxyCookies() async {
+    final serverUrl = _navigation.server.toString();
+    final cookies = await ref.read(webCookiesProvider).cookies(serverUrl);
+    appLog.info(
+      'web',
+      'Back from the login of the SSO proxy, cookies of the server: ${LogSanitizer.cookieNames(cookies.map((it) => it.name))}',
+    );
+    await ref.read(authControllerProvider.notifier).takeProxyCookies(cookies);
+  }
+
+  /// How a navigation came about: a tapped link or a redirect, told differently by iOS and Android.
+  static String _describe(NavigationAction action) => [
+    'type: ${action.navigationType ?? '-'}',
+    if (action.isRedirect != null) 'redirect: ${action.isRedirect}',
+    if (action.hasGesture != null) 'gesture: ${action.hasGesture}',
+    'method: ${action.request.method ?? '-'}',
+  ].join(', ');
+
+  /// The names of the cookies the WebView has for the server (e.g. whether the cookie of an SSO proxy is there).
+  Future<void> _logCookies(String reason) async {
+    try {
+      final cookies = await CookieManager.instance().getCookies(
+        url: WebUri.uri(_navigation.server),
+      );
+      appLog.debug(
+        'web',
+        '$reason, cookies of the server: ${LogSanitizer.cookieNames(cookies.map((it) => it.name))}',
+      );
+    } on Object {
+      // Only for the log.
+    }
+  }
+
+  /// The WebView shows [url]: the bar for another site is shown or hidden.
+  void _onPageShown(Uri? url) {
+    if (url == null || !mounted) return;
+    final http = url.scheme == 'http' || url.scheme == 'https';
+    if (!http) return;
+    if (_navigation.isSameOrigin(url)) {
+      _lastServerPage = url;
+      if (_foreignPage != null) setState(() => _foreignPage = null);
+    } else if (_foreignPage != url) {
+      setState(() => _foreignPage = url);
+    }
+  }
+
+  Future<void> _openInBrowser(Uri url) async {
+    appLog.info('web', 'Opened in the browser: ${LogSanitizer.url(url)}');
+    await launchUrl(url, mode: LaunchMode.externalApplication);
+  }
+
+  /// From another site back to the last page of the server (or the start page).
+  Future<void> _backToServer() async {
+    final url = _lastServerPage ?? _startUrl;
+    if (url == null) return;
+    appLog.info('web', 'Back to the pages: ${LogSanitizer.url(url)}');
+    _onForeignSite = false;
+    setState(() => _foreignPage = null);
+    await _controller?.loadUrl(urlRequest: URLRequest(url: WebUri.uri(url)));
+  }
+
+  /// The bar above another site: its host (the pages have no address bar, the site mustn't pass for the server),
+  /// "open in the browser" and "back to the pages".
+  Widget _foreignSiteBar(BuildContext context) {
+    final page = _foreignPage;
+    if (page == null) return const SizedBox.shrink();
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 16),
+        child: Row(
+          children: [
+            Icon(
+              page.scheme == 'https' ? Icons.lock_outline : Icons.public,
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                page.host,
+                style: theme.textTheme.bodyMedium,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            IconButton(
+              tooltip: context.t('app.web.openInBrowser'),
+              icon: const Icon(Icons.open_in_browser),
+              onPressed: () => _openInBrowser(page),
+            ),
+            IconButton(
+              tooltip: context.t('app.web.backToPages'),
+              icon: const Icon(Icons.close),
+              onPressed: _backToServer,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// Client side navigations of next (pushState) don't pass [_shouldOverrideUrlLoading].
   Future<void> _onUpdateVisitedHistory(
     InAppWebViewController controller,
     WebUri? url,
   ) async {
+    _onPageShown(url);
     if (url != null && _navigation.isLoginPage(url)) _onLoginPage(url);
     if (url != null && _handOver(url) && await controller.canGoBack()) {
       // Back to the page the user came from, the native page is shown in its tab.
@@ -261,37 +414,76 @@ class _WebScreenState extends ConsumerState<WebScreen> {
         // Every WebView tab gets the gesture: only the visible one goes back.
         if (!didPop && widget.active) _controller?.goBack();
       },
-      child: Stack(
+      // The bar stays the first child, so the WebView is never rebuilt when it shows up.
+      child: Column(
         children: [
-          InAppWebView(
-            initialUrlRequest: URLRequest(url: WebUri.uri(startUrl)),
-            initialSettings: InAppWebViewSettings(
-              // Marks the app for next (lib/app-mode.ts), which then e.g. hides its logout.
-              applicationNameForUserAgent: 'ProjectForgeApp/$appVersion',
-              useShouldOverrideUrlLoading: true,
-              allowsBackForwardNavigationGestures: true,
-              javaScriptCanOpenWindowsAutomatically: false,
-              supportMultipleWindows: false,
-              useOnDownloadStart: true,
-              // Until the page paints, the background of the app (dark or light) instead of white.
-              transparentBackground: true,
-              underPageBackgroundColor: Theme.of(context).colorScheme.surface,
-              // Only pages of the server, never files of the device.
-              allowFileAccess: false,
-              allowContentAccess: false,
+          _foreignSiteBar(context),
+          Expanded(
+            child: Stack(
+              children: [
+                InAppWebView(
+                  initialUrlRequest: URLRequest(url: WebUri.uri(startUrl)),
+                  initialSettings: InAppWebViewSettings(
+                    // Marks the app for next (lib/app-mode.ts), which then e.g. hides its logout.
+                    applicationNameForUserAgent: 'ProjectForgeApp/$appVersion',
+                    useShouldOverrideUrlLoading: true,
+                    allowsBackForwardNavigationGestures: true,
+                    javaScriptCanOpenWindowsAutomatically: false,
+                    supportMultipleWindows: false,
+                    useOnDownloadStart: true,
+                    // Until the page paints, the background of the app (dark or light) instead of white.
+                    transparentBackground: true,
+                    underPageBackgroundColor: Theme.of(context)
+                        .colorScheme
+                        .surface,
+                    // Only pages of the server, never files of the device.
+                    allowFileAccess: false,
+                    allowContentAccess: false,
+                  ),
+                  pullToRefreshController: _pullToRefresh,
+                  onWebViewCreated: (controller) => _controller = controller,
+                  shouldOverrideUrlLoading: _shouldOverrideUrlLoading,
+                  onUpdateVisitedHistory: (controller, url, _) =>
+                      _onUpdateVisitedHistory(controller, url),
+                  onProgressChanged: (_, progress) {
+                    setState(() => _progress = progress / 100);
+                  },
+                  onLoadStop: (_, url) {
+                    _pullToRefresh?.endRefreshing();
+                    appLog.debug('web', 'Loaded ${LogSanitizer.url(url)}');
+                    _onPageShown(url);
+                    if (_backFromForeignSite &&
+                        url != null &&
+                        _navigation.isSameOrigin(url)) {
+                      _backFromForeignSite = false;
+                      _takeProxyCookies();
+                    }
+                  },
+                  onReceivedError: (_, request, error) {
+                    if (request.isForMainFrame != false) {
+                      appLog.warn(
+                        'web',
+                        'Error ${error.type} loading ${LogSanitizer.url(request.url)}: ${error.description}',
+                      );
+                    }
+                  },
+                  onReceivedHttpError: (_, request, response) {
+                    if (request.isForMainFrame != false) {
+                      appLog.warn(
+                        'web',
+                        'HTTP ${response.statusCode} loading ${LogSanitizer.url(request.url)} '
+                            '(content-type: ${response.contentType ?? '-'})',
+                      );
+                      _logCookies('HTTP ${response.statusCode}');
+                    }
+                  },
+                  onDownloadStartRequest: (_, request) =>
+                      _onDownloadStart(request),
+                ),
+                if (_progress < 1) LinearProgressIndicator(value: _progress),
+              ],
             ),
-            pullToRefreshController: _pullToRefresh,
-            onWebViewCreated: (controller) => _controller = controller,
-            shouldOverrideUrlLoading: _shouldOverrideUrlLoading,
-            onUpdateVisitedHistory: (controller, url, _) =>
-                _onUpdateVisitedHistory(controller, url),
-            onProgressChanged: (_, progress) {
-              setState(() => _progress = progress / 100);
-            },
-            onLoadStop: (_, _) => _pullToRefresh?.endRefreshing(),
-            onDownloadStartRequest: (_, request) => _onDownloadStart(request),
           ),
-          if (_progress < 1) LinearProgressIndicator(value: _progress),
         ],
       ),
     );

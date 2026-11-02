@@ -28,7 +28,7 @@ enum WebNavigationTarget {
   /// A page of the own server: stays in the WebView.
   webView,
 
-  /// Another site, mail, phone: opened by the system (browser, mail app, …).
+  /// Another site the user went to, mail, phone: opened by the system (browser, mail app, …).
   external,
 
   /// Nothing to open (an unknown scheme).
@@ -51,9 +51,20 @@ class WebNavigation {
   /// Not `data:`: a page of its own, which the app (without an address bar) would show like one of the server.
   static const _inlineSchemes = {'about', 'blob'};
 
-  WebNavigationTarget decide(Uri target) {
+  /// Another site stays in the WebView if the pages didn't go there by a link the user tapped: the login of an SSO
+  /// proxy in front of the server, whose session expired. The proxy redirects the pages to its login (another host)
+  /// and, after the login, back to the pages; its cookies have to end up in the WebView, not in the system browser.
+  /// Once on such a site, everything stays in the WebView until the pages are back (its form, its links).
+  ///
+  /// @param redirect The navigation wasn't started by the user (a redirect of a server, a script).
+  /// @param fromForeignSite The WebView shows another site (the login of the proxy).
+  WebNavigationTarget decide(
+    Uri target, {
+    bool redirect = false,
+    bool fromForeignSite = false,
+  }) {
     if (target.scheme == 'http' || target.scheme == 'https') {
-      return isSameOrigin(target)
+      return isSameOrigin(target) || redirect || fromForeignSite
           ? WebNavigationTarget.webView
           : WebNavigationTarget.external;
     }

@@ -36,6 +36,24 @@ test.describe("App login", { tag: "@parallel" }, () => {
     ).toBeVisible();
   });
 
+  test("reads the packed parameter, the only one an SSO proxy kept", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    const login = Buffer.from(
+      JSON.stringify({
+        challenge: CHALLENGE,
+        state: STATE,
+        device: "Test phone",
+        platform: "ios",
+      })
+    ).toString("base64url");
+    await goto(page, `/appLogin?login=${login}`);
+    await expect(page.getByTestId("app-login-question")).toHaveText(
+      t("mobileApp.login.question", { arg0: "Test phone" })
+    );
+  });
+
   test("refuses a link without challenge", async ({ loggedInPage: page }) => {
     const { t } = await userFormat(page);
     await goto(page, `/appLogin?state=${STATE}`);

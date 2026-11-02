@@ -10,22 +10,21 @@ import { AuthCard } from "@/components/shared/auth-card";
 import { RsError } from "@/lib/rs/client";
 import { appCancelUrl, authorizeApp } from "@/lib/rs/app-auth";
 import { toast } from "@/lib/toast";
+import { readAppLoginParams } from "./app-login-params";
 
 type Status = "ask" | "done" | "cancelled" | "invalid";
 
 /**
- * Opened by the ProjectForge app in the system browser (`/appLogin?challenge=…&state=…&device=…`): after the
- * normal login (AuthGuard) the user confirms the app, the server demands a fresh second factor, and the
- * browser hands the one-time code to the app via its callback url (AppAuthService). The explicit
+ * Opened by the ProjectForge app in the system browser (`/appLogin?login=…&challenge=…&state=…`, see
+ * readAppLoginParams): after the normal login (AuthGuard) the user confirms the app, the server demands a
+ * fresh second factor, and the browser hands the one-time code to the app via its callback url
+ * (AppAuthService). The explicit
  * confirmation keeps a link sent by somebody else from connecting an app unnoticed.
  */
 export function AppLoginPage() {
   const t = useTranslations();
-  const params = useSearchParams();
-  const challenge = params.get("challenge");
-  const state = params.get("state");
-  const deviceName = params.get("device");
-  const deviceId = Number(params.get("deviceId")) || null;
+  const { challenge, state, deviceName, platform, deviceId } =
+    readAppLoginParams(useSearchParams());
   const [status, setStatus] = useState<Status>(
     challenge && state ? "ask" : "invalid"
   );
@@ -36,7 +35,7 @@ export function AppLoginPage() {
         challenge: challenge!,
         state: state!,
         deviceName,
-        platform: params.get("platform"),
+        platform,
         deviceId,
       }),
     onSuccess: ({ redirectUrl }) => {

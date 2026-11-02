@@ -57,6 +57,51 @@ void main() {
       }
     });
 
+    test(
+      'a redirect to another site stays in the WebView (login of an SSO proxy)',
+      () {
+        final login = Uri.parse(
+          'https://sso.example.org/application/o/authorize/?client_id=pf',
+        );
+        expect(
+          navigation.decide(login, redirect: true),
+          WebNavigationTarget.webView,
+        );
+        expect(
+          navigation.decide(login),
+          WebNavigationTarget.external,
+          reason: 'A link the user tapped.',
+        );
+        expect(
+          navigation.decide(
+            Uri.parse('https://sso.example.org/if/flow/recovery/'),
+            fromForeignSite: true,
+          ),
+          WebNavigationTarget.webView,
+          reason: 'A link of the login page.',
+        );
+        expect(
+          navigation.decide(
+            Uri.parse('https://pf.example.org/outpost.goauthentik.io/callback'),
+            fromForeignSite: true,
+          ),
+          WebNavigationTarget.webView,
+          reason: 'Back to the pages.',
+        );
+        for (final url in ['mailto:someone@example.org', 'tel:+49123']) {
+          expect(
+            navigation.decide(
+              Uri.parse(url),
+              redirect: true,
+              fromForeignSite: true,
+            ),
+            WebNavigationTarget.external,
+            reason: url,
+          );
+        }
+      },
+    );
+
     test('unknown schemes are not opened', () {
       expect(
         navigation.decide(Uri.parse('javascript:alert(1)')),

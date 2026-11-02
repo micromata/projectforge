@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/i18n/translations.dart';
+import '../../core/log/log_screen.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/web/native_page.dart';
 
@@ -51,6 +52,16 @@ class SettingsScreen extends ConsumerWidget {
                   .read(appSettingsProvider.notifier)
                   .setOpensInApp(page, inApp),
             ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.receipt_long_outlined),
+            title: Text(context.t('app.log.title')),
+            subtitle: Text(context.t('app.log.settingsInfo')),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute<void>(builder: (_) => const LogScreen())),
+          ),
         ],
       ),
     );

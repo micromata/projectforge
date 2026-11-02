@@ -25,6 +25,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api/api_client.dart';
 import '../../core/auth/auth_controller.dart';
+import '../../core/log/app_log.dart';
+import '../../core/log/log_sanitizer.dart';
 import '../../core/web/web_cookies.dart';
 import 'web_navigation.dart';
 
@@ -72,13 +74,19 @@ class WebSessionRepository {
       final response = await _api.postForResponse<Map<String, dynamic>>(
         '/rs/appAuth/webSession',
       );
+      final setCookies = response.headers['set-cookie'] ?? const [];
       await _cookies.setProxyCookies(_api.serverUrl, _api.proxyCookies());
-      await _cookies.setCookies(
-        _api.serverUrl,
-        response.headers['set-cookie'] ?? const [],
+      await _cookies.setCookies(_api.serverUrl, setCookies);
+      final startUrl =
+          response.data?['startUrl'] as String? ?? WebNavigation.defaultPath;
+      appLog.info(
+        'web',
+        'Web session opened, cookies: ${LogSanitizer.cookieNames(WebCookies.parseSetCookies(setCookies).map((it) => it.name))}, '
+            'proxy cookies: ${LogSanitizer.cookieNames(_api.proxyCookies().keys)}, start: ${LogSanitizer.urlString(startUrl)}',
       );
-      return response.data?['startUrl'] as String? ?? WebNavigation.defaultPath;
-    } on Object {
+      return startUrl;
+    } on Object catch (e) {
+      appLog.warn('web', 'Web session not opened: $e');
       _session = null;
       rethrow;
     }

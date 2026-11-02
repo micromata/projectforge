@@ -21,17 +21,37 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'app.dart';
 import 'core/i18n/translations.dart';
+import 'core/log/app_log.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  _logUncaughtErrors();
   final translations = await Translations.load();
   // The names of the days and months in the language of the texts.
   await initializeDateFormatting(translations.locale);
   runApp(ProviderScope(child: ProjectForgeApp(translations: translations)));
+}
+
+/// Errors nobody caught (of the framework and of asynchronous code) go into the client log, in addition to the
+/// default handling.
+void _logUncaughtErrors() {
+  final presentError = FlutterError.onError;
+  FlutterError.onError = (details) {
+    appLog.error('app', 'Flutter error', details.exception, details.stack);
+    presentError?.call(details);
+  };
+  final platformError = PlatformDispatcher.instance.onError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    appLog.error('app', 'Uncaught error', error, stack);
+    return platformError?.call(error, stack) ?? false;
+  };
+  appLog.info('app', 'Started');
 }

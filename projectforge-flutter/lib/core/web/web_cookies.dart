@@ -75,6 +75,22 @@ class WebCookies {
     }
   }
 
+  /// All cookies of the WebView for [serverUrl] (name and value; a name may occur twice, e.g. for the host and for
+  /// its domain), empty without a WebView platform (tests).
+  Future<List<({String name, String value})>> cookies(String serverUrl) async {
+    try {
+      final cookies = await CookieManager.instance().getCookies(
+        url: WebUri(serverUrl),
+      );
+      return [
+        for (final cookie in cookies)
+          (name: cookie.name, value: '${cookie.value ?? ''}'),
+      ];
+    } on MissingPluginException {
+      return const [];
+    }
+  }
+
   /// The `Cookie` header of the WebView for [url] (its web session), for a download the app does in place of the
   /// WebView. Null if there is none.
   Future<String?> cookieHeader(Uri url) async {
@@ -116,7 +132,6 @@ class WebCookies {
       };
 
   /// The cookies of `set-cookie` headers; unparsable or deleting ones (empty value) are skipped.
-  @visibleForTesting
   static List<io.Cookie> parseSetCookies(List<String> setCookieHeaders) {
     final cookies = <io.Cookie>[];
     for (final header in setCookieHeaders) {

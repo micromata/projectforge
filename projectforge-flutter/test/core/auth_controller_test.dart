@@ -195,4 +195,60 @@ void main() {
     expect(c.read(authControllerProvider).status, AuthStatus.loggedOut);
     expect(store.session, isNull);
   });
+
+  group('proxy cookies of the WebView', () {
+    const withProxy = Session(
+      serverUrl: serverUrl,
+      token: 'tokenA',
+      userId: 1,
+      deviceId: 10,
+      proxyCookies: {'authentik_proxy_1': 'expired'},
+    );
+
+    test(
+      'a renewed proxy cookie goes into the session, other cookies not',
+      () async {
+        store.session = withProxy;
+        final c = container(userId: 1, deviceId: 10);
+        final controller = await loggedIn(c);
+        final renewed = await controller.takeProxyCookies([
+          (name: 'JSESSIONID', value: 'web'),
+          (name: 'authentik_proxy_1', value: 'expired'),
+          (name: 'authentik_proxy_1', value: 'fresh'),
+        ]);
+        expect(renewed, isTrue);
+        expect(c.read(authControllerProvider).session?.proxyCookies, {
+          'authentik_proxy_1': 'fresh',
+        });
+        expect(store.session?.proxyCookies, {'authentik_proxy_1': 'fresh'});
+        expect(store.session?.token, 'tokenA');
+      },
+    );
+
+    test('unchanged or missing cookies keep the session', () async {
+      store.session = withProxy;
+      final c = container(userId: 1, deviceId: 10);
+      final controller = await loggedIn(c);
+      expect(
+        await controller.takeProxyCookies([
+          (name: 'authentik_proxy_1', value: 'expired'),
+        ]),
+        isFalse,
+      );
+      expect(await controller.takeProxyCookies(const []), isFalse);
+      expect(store.session?.proxyCookies, {'authentik_proxy_1': 'expired'});
+    });
+
+    test('without proxy cookies at the login nothing is taken', () async {
+      final c = container(userId: 1, deviceId: 10);
+      final controller = await loggedIn(c);
+      expect(
+        await controller.takeProxyCookies([
+          (name: 'authentik_proxy_1', value: 'x'),
+        ]),
+        isFalse,
+      );
+      expect(store.session?.proxyCookies, isEmpty);
+    });
+  });
 }

@@ -23,6 +23,8 @@
 
 import 'package:dio/dio.dart';
 
+import '../log/app_log.dart';
+import '../log/log_sanitizer.dart';
 import 'api_exception.dart';
 
 /// The calls of the app to its ProjectForge server (`/rs`, authenticated by the app token).
@@ -56,12 +58,17 @@ class ApiClient {
       // The api never redirects: the Authorization header must not follow a redirect elsewhere.
       ..followRedirects = false;
     this.dio.interceptors.add(
-      InterceptorsWrapper(onRequest: _onRequest, onError: _onError),
+      InterceptorsWrapper(
+        onRequest: _onRequest,
+        onResponse: _onResponse,
+        onError: _onError,
+      ),
     );
   }
 
   static const _retriedKey = 'pfRetried';
   static const _noRenewalKey = 'pfNoRenewal';
+  static const _startKey = 'pfStart';
 
   /// The text of a refusal by an SSO proxy, see [toApiException].
   static const proxyRefusedKey = 'app.proxy.refused';
@@ -85,6 +92,10 @@ class ApiClient {
   /// A new login in the browser didn't satisfy the proxy (e.g. no proxy cookies configured at the server): the proxy
   /// refusals of this login aren't answered by a new browser login again, which would only open it on every request.
   bool _proxyRenewalUseless = false;
+
+  /// The cookies of the proxy were renewed elsewhere (a login of the proxy in the WebView): its refusals are answered
+  /// by a new browser login again.
+  void proxyCookiesRenewed() => _proxyRenewalUseless = false;
 
   /// @param renewLogin False: a refusal doesn't start a new login in the browser (polling in the background).
   Future<T> get<T>(
@@ -157,7 +168,22 @@ class ApiClient {
           .map((it) => '${it.key}=${it.value}')
           .join('; ');
     }
+    options.extra[_startKey] = DateTime.now();
     handler.next(options);
+  }
+
+  void _onResponse(
+    Response<dynamic> response,
+    ResponseInterceptorHandler handler,
+  ) {
+    // Polling would fill the log, only its failures are of interest.
+    if (response.requestOptions.extra[_noRenewalKey] != true) {
+      appLog.debug(
+        'api',
+        '${_describe(response.requestOptions)} → ${response.statusCode}${_duration(response.requestOptions)}',
+      );
+    }
+    handler.next(response);
   }
 
   Future<void> _onError(
@@ -167,26 +193,80 @@ class ApiClient {
     final response = error.response;
     final extra = error.requestOptions.extra;
     final proxyRefused = isProxyRefusal(response);
+    _logError(error, proxyRefused);
     if (response?.statusCode == 401 && !proxyRefused) {
+      appLog.warn('api', 'Token refused by the server: logged out');
       onUnauthorized();
     } else if ((proxyRefused && !_proxyRenewalUseless ||
             response?.statusCode == 403 &&
                 _isTwoFactorRequired(response?.data)) &&
         extra[_retriedKey] != true &&
         extra[_noRenewalKey] != true) {
+      appLog.info(
+        'api',
+        proxyRefused
+            ? 'Refused by the SSO proxy: new login in the browser'
+            : 'Second factor required: new login in the browser',
+      );
       if (await onReauthenticate()) {
         final options = error.requestOptions..extra[_retriedKey] = true;
         try {
           return handler.resolve(await dio.fetch(options));
         } on DioException catch (retryError) {
           if (proxyRefused && isProxyRefusal(retryError.response)) {
+            appLog.warn(
+              'api',
+              'Still refused by the SSO proxy after the new login: no further logins for this session',
+            );
             _proxyRenewalUseless = true;
           }
           return handler.next(retryError);
         }
       }
+      appLog.info('api', 'New login cancelled or failed');
+    } else if (proxyRefused && _proxyRenewalUseless) {
+      appLog.debug('api', "No new login: a login didn't satisfy the SSO proxy");
     }
     handler.next(error);
+  }
+
+  /// Method and url (query values masked) of a request.
+  static String _describe(RequestOptions options) =>
+      '${options.method} ${LogSanitizer.url(options.uri)}${options.extra[_retriedKey] == true ? ' (retry)' : ''}';
+
+  static String _duration(RequestOptions options) {
+    final start = options.extra[_startKey];
+    return start is DateTime
+        ? ' (${DateTime.now().difference(start).inMilliseconds} ms)'
+        : '';
+  }
+
+  /// What a failure looks like, without bodies, header values or cookie values: enough to tell the server from a
+  /// proxy (content type, redirect target, which cookies were sent).
+  void _logError(DioException error, bool proxyRefused) {
+    final options = error.requestOptions;
+    final response = error.response;
+    final request = _describe(options);
+    if (response == null) {
+      appLog.warn(
+        'api',
+        '$request${_duration(options)} failed: ${error.type.name}${error.message != null ? ' (${error.message})' : ''}',
+      );
+      return;
+    }
+    final headers = response.headers;
+    final details = [
+      'content-type: ${headers.value(Headers.contentTypeHeader) ?? '-'}',
+      if (headers.value('location') != null)
+        'location: ${LogSanitizer.urlString(headers.value('location'))}',
+      if (headers.value('server') != null) 'server: ${headers.value('server')}',
+      'proxy cookies sent: ${LogSanitizer.cookieNames(proxyCookies().keys)}',
+      if (proxyRefused) 'refused by the SSO proxy',
+    ];
+    appLog.warn(
+      'api',
+      '$request → ${response.statusCode}${_duration(options)} (${details.join(', ')})',
+    );
   }
 
   static bool _isTwoFactorRequired(Object? data) =>

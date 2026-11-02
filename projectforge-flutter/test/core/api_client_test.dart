@@ -25,6 +25,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:projectforge_app/core/api/api_client.dart';
 import 'package:projectforge_app/core/api/api_exception.dart';
+import 'package:projectforge_app/core/log/app_log.dart';
 
 import 'fake_adapter.dart';
 
@@ -57,6 +58,7 @@ void main() {
     unauthorized = 0;
     reauthentications = 0;
     proxyCookies = const {};
+    appLog.clear();
   });
 
   /// An SSO proxy (Authentik) lets only requests with its fresh cookie through, otherwise it answers itself.
@@ -258,5 +260,31 @@ void main() {
       api.get<Object>('/rs/x'),
       throwsA(isA<ApiException>().having((e) => e.isOffline, 'offline', true)),
     );
+  });
+
+  test('a refusal of the proxy is logged without token, cookie values or query values', () async {
+    proxyCookies = {'authentik_proxy_1': 'expired'};
+    final adapter = proxy(status: 401);
+    await client(adapter)
+        .get<Object>('/rs/x', query: {'code': 'c0de', 'q': 'secret query'});
+    final log = appLog.text();
+    expect(
+      log,
+      contains('GET https://pf.example.com/rs/x?code=***&q=*** → 401'),
+    );
+    expect(log, contains('content-type: text/html'));
+    expect(log, contains('proxy cookies sent: authentik_proxy_1'));
+    expect(log, contains('refused by the SSO proxy'));
+    expect(log, contains('(retry)'));
+    for (final secret in [
+      'expired',
+      'fresh',
+      'first',
+      'renewed',
+      'c0de',
+      'secret query',
+    ]) {
+      expect(log, isNot(contains(secret)), reason: secret);
+    }
   });
 }

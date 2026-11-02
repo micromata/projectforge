@@ -28,6 +28,7 @@ import '../../core/api/api_exception.dart';
 import '../../core/auth/app_login.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/i18n/translations.dart';
+import '../../core/log/log_screen.dart';
 
 /// The server url and the button opening the login of that server in the browser (password and second factor
 /// are entered there, see AppLogin).
@@ -189,6 +190,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : Text(context.t('login')),
+                  ),
+                  const SizedBox(height: 8),
+                  // What happened in a failed login, e.g. behind an SSO proxy.
+                  TextButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const LogScreen(),
+                      ),
+                    ),
+                    child: Text(context.t('app.log.title')),
                   ),
                 ],
               ),

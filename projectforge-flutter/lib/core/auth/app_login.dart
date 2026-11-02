@@ -21,6 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -28,6 +30,8 @@ import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
 import '../api/api_client.dart';
 import '../api/api_exception.dart';
+import '../log/app_log.dart';
+import '../log/log_sanitizer.dart';
 import 'pkce.dart';
 import 'session.dart';
 
@@ -63,32 +67,45 @@ class AppLogin {
     int? deviceId,
   }) async {
     final pkce = Pkce.create();
+    final loginParams = {
+      'challenge': pkce.challenge,
+      'state': pkce.state,
+      'device': deviceName,
+      'platform': platform,
+      if (deviceId != null) 'deviceId': '$deviceId',
+    };
     final url = Uri.parse('$serverUrl/next/appLogin').replace(
-      queryParameters: {
-        'challenge': pkce.challenge,
-        'state': pkce.state,
-        'device': deviceName,
-        'platform': platform,
-        if (deviceId != null) 'deviceId': '$deviceId',
-      },
+      queryParameters: {'login': packParams(loginParams), ...loginParams},
+    );
+    appLog.info(
+      'login',
+      'Browser login${deviceId != null ? ' (renewal of device $deviceId)' : ''}: ${LogSanitizer.url(url)}',
     );
     final String result;
     try {
       result = await _openBrowser(url.toString());
     } on PlatformException catch (e) {
-      if (e.code == 'CANCELED') throw AppLoginCancelled();
+      if (e.code == 'CANCELED') {
+        appLog.info('login', 'Browser login cancelled');
+        throw AppLoginCancelled();
+      }
+      appLog.error('login', 'Browser login failed', e);
       rethrow;
     }
     final callback = Uri.parse(result);
+    appLog.info('login', 'Callback: ${LogSanitizer.url(callback)}');
     final params = callback.queryParameters;
     if (params['state'] != pkce.state) {
+      appLog.warn('login', 'Callback with another state');
       throw ApiException('Invalid state of the login callback.');
     }
     if (params['error'] != null) {
+      appLog.info('login', 'Callback with error: ${params['error']}');
       throw AppLoginCancelled();
     }
     final code = params['code'];
     if (code == null) {
+      appLog.warn('login', 'Callback without code');
       throw ApiException('No code in the login callback.');
     }
     try {
@@ -96,7 +113,13 @@ class AppLogin {
         '$serverUrl/rsPublic/appAuth/token',
         data: {'code': code, 'codeVerifier': pkce.verifier},
       );
+      _logResponse('Token', response);
       final json = response.data!;
+      appLog.info(
+        'login',
+        'Logged in: user ${json['userId']}, device ${json['deviceId']}, proxy cookies: '
+            '${LogSanitizer.cookieNames(Session.proxyCookiesFromJson(json['proxyCookies']).keys)}',
+      );
       return Session(
         serverUrl: serverUrl,
         token: json['token'] as String,
@@ -107,9 +130,27 @@ class AppLogin {
         proxyCookies: Session.proxyCookiesFromJson(json['proxyCookies']),
       );
     } on DioException catch (e) {
+      _logFailure('Token', e);
       throw ApiClient.toApiException(e);
     }
   }
+
+  /// [params] packed into one query parameter (base64url of a json object, without padding), read by the
+  /// `appLogin` page of next (readAppLoginParams) before the single ones. It goes first: an SSO proxy redirecting
+  /// the browser to its login and back may keep only the first parameter (an unencoded `rd=…?a=1&b=2`). The single
+  /// ones stay for servers of an older version.
+  @visibleForTesting
+  static String packParams(Map<String, String> params) => base64Url
+      .encode(
+        utf8.encode(
+          jsonEncode({
+            ...params,
+            if (params['deviceId'] != null)
+              'deviceId': int.parse(params['deviceId']!),
+          }),
+        ),
+      )
+      .replaceAll('=', '');
 
   /// The public system status of the server (`/rsPublic/systemStatus`): whether it is a ProjectForge at all, its
   /// name and version.
@@ -118,10 +159,40 @@ class AppLogin {
       final response = await _dio.get<Map<String, dynamic>>(
         '$serverUrl/rsPublic/systemStatus',
       );
-      return response.data ?? {};
+      _logResponse('System status', response);
+      final data = response.data ?? {};
+      appLog.info(
+        'login',
+        'Server ${LogSanitizer.urlString(serverUrl)}: ${data['appname'] ?? '-'} ${data['version'] ?? ''}',
+      );
+      return data;
     } on DioException catch (e) {
+      _logFailure('System status', e);
       throw ApiClient.toApiException(e);
     }
+  }
+
+  /// The redirects (e.g. through an SSO proxy) the public requests followed.
+  static void _logResponse(String what, Response<dynamic> response) {
+    final redirects = response.redirects
+        .map((it) => '${it.statusCode} ${LogSanitizer.url(it.location)}')
+        .join(' → ');
+    appLog.debug(
+      'login',
+      '$what → ${response.statusCode}${redirects.isEmpty ? '' : ' after redirects: $redirects'}',
+    );
+  }
+
+  static void _logFailure(String what, DioException e) {
+    final response = e.response;
+    appLog.warn(
+      'login',
+      response == null
+          ? '$what failed: ${e.type.name}${e.message != null ? ' (${e.message})' : ''}'
+          : '$what → ${response.statusCode} '
+                '(content-type: ${response.headers.value(Headers.contentTypeHeader) ?? '-'}, '
+                'url: ${LogSanitizer.url(response.realUri)})',
+    );
   }
 
   /// `https://pf.example.com/next/…` or `pf.example.com` → `https://pf.example.com`; null if it is no url.

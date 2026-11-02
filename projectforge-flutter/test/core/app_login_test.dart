@@ -21,6 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:projectforge_app/core/api/api_exception.dart';
@@ -78,6 +80,43 @@ void main() {
       session.proxyCookies,
       reason: 'Kept in the key chain with the token.',
     );
+  });
+
+  test('the parameters go packed first, so an SSO proxy keeping only the first one passes them on', () async {
+    late String opened;
+    final login = AppLogin(
+      dio: Dio()
+        ..httpClientAdapter = FakeAdapter(
+          (_) =>
+              (status: 200, body: {'userId': 7, 'deviceId': 3, 'token': 't'}),
+        ),
+      openBrowser: (url) async {
+        opened = url;
+        return 'projectforge://auth?code=c&state=${Uri.parse(url).queryParameters['state']}';
+      },
+    );
+    await login.login(
+      serverUrl: 'https://pf.example.com',
+      deviceName: 'Jörgs iPhone',
+      platform: 'ios',
+      deviceId: 3,
+    );
+    final query = Uri.parse(opened).query;
+    expect(query, startsWith('login='));
+    // What an unencoded rd=…?login=…&challenge=… of the proxy leaves over.
+    final kept = Uri.splitQueryString(query.split('&').first)['login']!;
+    final packed = jsonDecode(
+      utf8.decode(base64Url.decode(base64Url.normalize(kept))),
+    ) as Map<String, dynamic>;
+    final single = Uri.parse(opened).queryParameters;
+    expect(packed, {
+      'challenge': single['challenge'],
+      'state': single['state'],
+      'device': 'Jörgs iPhone',
+      'platform': 'ios',
+      'deviceId': 3,
+    });
+    expect(kept, isNot(contains('=')), reason: 'No padding.');
   });
 
   test('a stored session of an older version has no proxy cookies', () {
