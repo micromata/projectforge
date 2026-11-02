@@ -44,7 +44,7 @@ interface I18nEnum {
             return try {
                 clazz.enumConstants.first { it.toString() == value } as? Enum<*>
             } catch (ex: Exception) {
-                log.error { "Can't find enum name '$value' in ${clazz.enumConstants?.joinToString { "$it" }} of class '${clazz.name}" }
+                log.warn { "Can't find enum name '$value' in ${clazz.enumConstants?.joinToString { "$it" }} of class '${clazz.name}" }
                 null
             }
         }
