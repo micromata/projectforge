@@ -179,6 +179,76 @@ class EInvoiceExportServiceTest {
     }
 
     @Test
+    fun exportBuyerReferencesOfTheCustomer() {
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, fileStoreMock, rechnungDaoMock)
+        val invoice = createTestInvoice().apply {
+            customerOrderNumber = "4500123456"
+            customerCostCenter = "KST-4711"
+            customerContactPerson = "Erika Muster"
+            customerContactDepartment = "Einkauf"
+            customerEInvoiceEmail = "einkauf@testkundin.de"
+        }
+
+        val xmlString = String(service.exportAsXRechnung(invoice), Charsets.UTF_8)
+
+        // BT-13, independent of a Leitweg-ID: the customer reference stays what it is (BT-10 fallback).
+        val order = xmlString.substringAfter("<ram:BuyerOrderReferencedDocument>").substringBefore("</ram:BuyerOrderReferencedDocument>")
+        assertTrue(order.contains("<ram:IssuerAssignedID>4500123456</ram:IssuerAssignedID>"), "BT-13: $order")
+        // BT-19 in the settlement header, as its last child.
+        val settlement = xmlString.substringAfter("<ram:ApplicableHeaderTradeSettlement>")
+            .substringBefore("</ram:ApplicableHeaderTradeSettlement>").replace(Regex("\\s+"), "")
+        assertTrue(
+            settlement.endsWith("<ram:ReceivableSpecifiedTradeAccountingAccount><ram:ID>KST-4711</ram:ID></ram:ReceivableSpecifiedTradeAccountingAccount>"),
+            "BT-19: $settlement",
+        )
+        // BT-56 and BT-58 in the contact of the buyer.
+        val buyer = xmlString.substringAfter("<ram:BuyerTradeParty>").substringBefore("</ram:BuyerTradeParty>")
+        assertTrue(buyer.contains("<ram:PersonName>Erika Muster, Einkauf</ram:PersonName>"), "BT-56: $buyer")
+        assertTrue(buyer.contains("<ram:URIID>einkauf@testkundin.de</ram:URIID>"), "BT-58: $buyer")
+    }
+
+    @Test
+    fun exportWithoutBuyerReferences() {
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, fileStoreMock, rechnungDaoMock)
+
+        // No customer reference either: with the fixture's Leitweg-ID it would be sent as BT-13.
+        val invoice = createTestInvoice().apply { customerref1 = null }
+        val xmlString = String(service.exportAsXRechnung(invoice), Charsets.UTF_8)
+
+        assertTrue(!xmlString.contains("BuyerOrderReferencedDocument"), "No order number, no BT-13")
+        assertTrue(!xmlString.contains("ReceivableSpecifiedTradeAccountingAccount"), "No cost center, no BT-19")
+    }
+
+    @Test
+    fun exportBuyerReferencesFallBackForAnInvoiceWithoutTheNewFields() {
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, fileStoreMock, rechnungDaoMock)
+        // An invoice from before the fields: the cost center only on the account, the order number only as
+        // the customer reference of a customer with a Leitweg-ID (the fixture's account has one).
+        val invoice = createTestInvoice().apply {
+            customerref1 = "PO-0815"
+            kunde!!.konto!!.costCenter = "KST-0042"
+        }
+
+        val xmlString = String(service.exportAsXRechnung(invoice), Charsets.UTF_8)
+
+        val order = xmlString.substringAfter("<ram:BuyerOrderReferencedDocument>").substringBefore("</ram:BuyerOrderReferencedDocument>")
+        assertTrue(order.contains("<ram:IssuerAssignedID>PO-0815</ram:IssuerAssignedID>"), "BT-13 from customerref1: $order")
+        assertTrue(xmlString.contains("<ram:ID>KST-0042</ram:ID>"), "BT-19 from the account")
+
+        // The order number wins over the customer reference.
+        invoice.customerOrderNumber = "4500123456"
+        val withOrderNumber = String(service.exportAsXRechnung(invoice), Charsets.UTF_8)
+            .substringAfter("<ram:BuyerOrderReferencedDocument>").substringBefore("</ram:BuyerOrderReferencedDocument>")
+        assertTrue(withOrderNumber.contains("<ram:IssuerAssignedID>4500123456</ram:IssuerAssignedID>"), "BT-13: $withOrderNumber")
+
+        // Without a Leitweg-ID the customer reference is BT-10 and no order reference.
+        invoice.customerOrderNumber = null
+        invoice.kunde!!.konto!!.leitwegId = null
+        val withoutLeitwegId = String(service.exportAsXRechnung(invoice), Charsets.UTF_8)
+        assertTrue(!withoutLeitwegId.contains("BuyerOrderReferencedDocument"), "No BT-13 without a Leitweg-ID")
+    }
+
+    @Test
     fun exportCancellation() {
         val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, fileStoreMock, rechnungDaoMock)
         val invoice = createTestCancellation()

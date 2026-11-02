@@ -162,6 +162,12 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, Attachment
     @get:Column(name = "customerref1")
     open var customerref1: String? = null
 
+    /** The customer's order number, sent as the order reference of the e-invoice (BT-13). */
+    @PropertyInfo(i18nKey = "fibu.rechnung.customerOrderNumber")
+    @FullTextField
+    @get:Column(name = "customer_order_number", length = 255)
+    open var customerOrderNumber: String? = null
+
     @PropertyInfo(i18nKey = "fibu.attachment")
     @FullTextField
     @get:Column(name = "attachment")
@@ -170,6 +176,16 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, Attachment
     @PropertyInfo(i18nKey = "fibu.konto.contactPerson")
     @get:Column(name = "customer_contact_person", length = 255)
     open var customerContactPerson: String? = null
+
+    /** Department or organisational unit of the orderer, part of the buyer contact point (BT-56). */
+    @PropertyInfo(i18nKey = "fibu.konto.contactDepartment")
+    @get:Column(name = "customer_contact_department", length = 255)
+    open var customerContactDepartment: String? = null
+
+    /** The customer's cost center, sent as the buyer accounting reference of the e-invoice (BT-19). */
+    @PropertyInfo(i18nKey = "fibu.konto.costCenter")
+    @get:Column(name = "customer_cost_center", length = 255)
+    open var customerCostCenter: String? = null
 
     @PropertyInfo(i18nKey = "fibu.konto.street")
     @FullTextField

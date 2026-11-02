@@ -20,9 +20,21 @@ export const KONTO_METADATA = {
       required: false,
       maxLength: 100,
     },
+    contactDepartment: {
+      dataType: "STRING",
+      i18nKey: "fibu.konto.contactDepartment",
+      required: false,
+      maxLength: 255,
+    },
     contactPerson: {
       dataType: "STRING",
       i18nKey: "fibu.konto.contactPerson",
+      required: false,
+      maxLength: 255,
+    },
+    costCenter: {
+      dataType: "STRING",
+      i18nKey: "fibu.konto.costCenter",
       required: false,
       maxLength: 255,
     },

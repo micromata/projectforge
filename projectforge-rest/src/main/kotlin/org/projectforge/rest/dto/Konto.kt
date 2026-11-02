@@ -40,6 +40,8 @@ class Konto(
   var leitwegId: String? = null,
   var eInvoiceEmail: String? = null,
   var contactPerson: String? = null,
+  var contactDepartment: String? = null,
+  var costCenter: String? = null,
   var sellerBankAccountName: String? = null,
 ) : BaseDTODisplayObject<KontoDO>(id) {
 

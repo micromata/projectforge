@@ -22,6 +22,8 @@ export interface KontoDetail {
   status?: KontoStatus | null;
   // The e-invoice block (Wicket's `KontoEditForm`, heading `fibu.konto.eInvoice`).
   contactPerson?: string | null;
+  contactDepartment?: string | null;
+  costCenter?: string | null;
   street?: string | null;
   zipCode?: string | null;
   city?: string | null;

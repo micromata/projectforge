@@ -358,6 +358,8 @@ export const INVOICE_PAGE = definePage<
           { custom: CustomerProjectFields },
           { custom: AccountField },
           { name: "customerref1", rows: 2 },
+          // The order number the customer wants on the invoice (BT-13), apart from the reference above.
+          { name: "customerOrderNumber" },
         ],
       },
       {
@@ -406,6 +408,8 @@ export const INVOICE_PAGE = definePage<
         ...eInvoiceAddressFields<typeof RECHNUNG_METADATA>({
           names: {
             contactPerson: "customerContactPerson",
+            contactDepartment: "customerContactDepartment",
+            costCenter: "customerCostCenter",
             street: "customerAddress",
             zipCode: "customerZipCode",
             city: "customerCity",

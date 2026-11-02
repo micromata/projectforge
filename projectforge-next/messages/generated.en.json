@@ -2181,7 +2181,9 @@
       "_": "Account",
       "bezeichnung": "Identifier",
       "city": "City",
+      "contactDepartment": "Department",
       "contactPerson": "Contact person",
+      "costCenter": "Cost center",
       "country": "Country",
       "eInvoice": "E-Invoice",
       "eInvoiceEmail": "E-invoice email",
@@ -2560,6 +2562,7 @@
         }
       },
       "currencyConversionFailed": "Invoice {arg0}: {arg1} → {arg2} on {arg3}",
+      "customerOrderNumber": "Order number",
       "customernr": "Customer no.",
       "datum": {
         "_": "Date of invoice",

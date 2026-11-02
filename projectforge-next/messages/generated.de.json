@@ -2181,7 +2181,9 @@
       "_": "Konto",
       "bezeichnung": "Bezeichnung",
       "city": "Ort",
+      "contactDepartment": "Abteilung",
       "contactPerson": "Ansprechpartner",
+      "costCenter": "Kostenstelle",
       "country": "Land",
       "eInvoice": "E-Rechnung",
       "eInvoiceEmail": "E-Rechnungs-E-Mail",
@@ -2560,6 +2562,7 @@
         }
       },
       "currencyConversionFailed": "Rechnung {arg0}: {arg1} → {arg2} am {arg3}                                                                                                           │",
+      "customerOrderNumber": "Bestellnummer",
       "customernr": "Kundennummer",
       "datum": {
         "_": "Rechnungsdatum",
