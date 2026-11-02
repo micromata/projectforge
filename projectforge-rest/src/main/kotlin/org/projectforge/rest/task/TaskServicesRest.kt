@@ -1000,13 +1000,14 @@ class TaskServicesRest {
         ctx.openedNodes.add(parent.taskId)
         // Table mode: the children are the rows, and none of them is opened, so the walk ends with them.
         buildTree(ctx, Task(parent), parent, indent = 0)
-        return ctx.result.nodes.map {
+        return ctx.result.nodes.mapNotNull {
+            val node = taskTree.getTaskNodeById(it.id) ?: return@mapNotNull null
             TaskChild(
                 id = it.id,
                 title = it.title,
-                hasChildren = it.treeStatus != TreeStatus.LEAF,
-                bookable = it.bookingGrant != BookingGrantNode.PATH &&
-                        taskTree.getTaskNodeById(it.id)?.isBookableForTimesheets == true,
+                // Not only "has children": a level the user would find empty tells that something hidden is below.
+                hasChildren = it.treeStatus != TreeStatus.LEAF && hasVisibleChildren(ctx, node),
+                bookable = it.bookingGrant != BookingGrantNode.PATH && node.isBookableForTimesheets,
             )
         }
     }
