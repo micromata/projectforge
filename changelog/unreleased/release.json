@@ -1,0 +1,38 @@
+{
+  "title": {
+    "en": "ProjectForge 9.2.4: e-invoice buyer fields, mobile app with several servers and task tree, daily error digest",
+    "de": "ProjectForge 9.2.4: E-Rechnung mit Bestellerfeldern, Mobile App mit mehreren Servern und Strukturbaum, täglicher Fehler-Digest"
+  },
+  "summary": {
+    "en": [
+      "**E-invoice**: order number, department and cost center of the buyer",
+      "**Mobile app** (in preparation): switch between several servers, task tree for time sheets",
+      "App and server warn each other if the other side is too old",
+      "**Error digest** once a day instead of every hour",
+      "Fix: connecting the app behind an SSO proxy works at the first attempt"
+    ],
+    "de": [
+      "**E-Rechnung**: Bestellnummer, Abteilung und Kostenstelle des Bestellers",
+      "**Mobile App** (in Vorbereitung): Wechsel zwischen mehreren Servern, Strukturbaum für Zeitberichte",
+      "App und Server warnen sich gegenseitig, wenn die Gegenseite zu alt ist",
+      "**Fehler-Digest** einmal täglich statt stündlich",
+      "Korrektur: Das Verbinden der App hinter einem SSO-Proxy klappt schon beim ersten Versuch"
+    ]
+  },
+  "overview": {
+    "en": [
+      "**E-invoice:** new fields order number (BT-13), department of the orderer (BT-56) and cost center (BT-19) on the invoice and the account; the form labels name the e-invoice term (BT-x); the invoice template gets the variables Bestellnummer and Kostenstelle, the department is part of the address.",
+      "**Mobile app (in preparation):** the logins of several servers are kept and the server can be switched in the account menu; time sheets choose the structure element in the task tree, with a search over the whole path, and cost units in a scrollable selection box; a warning if the app is too old for the server or the server too old for the app, \"My account\" marks outdated apps.",
+      "**Error digest:** sent once a day at 07:00, only urgent problems send it early (at most once an hour); configurable.",
+      "**Order mails:** clearer layout with the buttons at the top and a button to the order notification settings.",
+      "**Fixes:** connecting the app behind an SSO proxy works at the first attempt, also when the proxy returns the browser without the parameters of the link."
+    ],
+    "de": [
+      "**E-Rechnung:** neue Felder Bestellnummer (BT-13), Abteilung des Bestellers (BT-56) und Kostenstelle (BT-19) an der Rechnung und am Konto; die Beschriftungen nennen den E-Rechnungs-Term (BT-x); die Rechnungsvorlage erhält die Variablen Bestellnummer und Kostenstelle, die Abteilung steht in der Adresse.",
+      "**Mobile App (in Vorbereitung):** Die Anmeldungen mehrerer Server werden gemerkt und der Server lässt sich im Kontomenü wechseln; Zeitberichte wählen das Strukturelement im Strukturbaum, mit einer Suche über den ganzen Pfad, und Kostenträger in einer scrollbaren Auswahlbox; eine Warnung, wenn die App für den Server zu alt ist oder der Server für die App, „Mein Konto“ markiert veraltete Apps.",
+      "**Fehler-Digest:** Wird einmal täglich um 07:00 Uhr versendet, nur dringende Probleme lösen ihn vorzeitig aus (höchstens einmal pro Stunde); konfigurierbar.",
+      "**Auftrags-E-Mails:** übersichtlicher, die Buttons stehen oben, dazu ein Button zu den Auftragsbenachrichtigungen.",
+      "**Korrekturen:** Das Verbinden der App hinter einem SSO-Proxy klappt schon beim ersten Versuch, auch wenn der Proxy den Browser ohne die Parameter des Links zurückschickt."
+    ]
+  }
+}
