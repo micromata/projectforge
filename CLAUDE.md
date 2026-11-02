@@ -69,6 +69,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   planned release, rename its scripts to the next release before merging. Check open feature branches for
   versions already taken in the same release.
 
+## Compatibility of app and server
+- Before every release, check and update both minimum versions of the compatibility warning:
+  - `AppCompatibility.MIN_APP_VERSION` (`projectforge-business/.../user/AppCompatibility.kt`): the oldest app
+    version the server still works with. Raise it if the release removes or changes an api older apps use.
+  - `minServerVersion` (`projectforge-flutter/lib/core/compat/compatibility.dart`): the oldest server version the
+    app works with. Raise it if the app needs a feature of a newer server.
+- Only hard breaks raise a minimum; where the app can fall back, use a feature flag in the system status
+  (e.g. `appLoginPath`). Nothing is refused, the app and "My account" only warn. Details:
+  `dev-docs/flutter-client.md`.
+
 ## Security
 Rules from security reviews; each one was broken somewhere before.
 - **Access is checked on the server, per endpoint.** Hiding a page, menu entry or button in the client protects
