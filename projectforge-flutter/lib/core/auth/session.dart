@@ -136,10 +136,11 @@ class SessionStore {
 
   /// Stores [session] as the active login, replacing an older one of its server.
   Future<void> save(Session session) async {
-    await _storage.write(key: _sessionKey, value: jsonEncode(session.toJson()));
+    // Read before the active login is replaced: without the list yet (older version), it is taken from there.
     final sessions = (await this.sessions())
       ..removeWhere((it) => it.serverUrl == session.serverUrl)
       ..insert(0, session);
+    await _storage.write(key: _sessionKey, value: jsonEncode(session.toJson()));
     await _writeSessions(sessions.take(maxServers).toList());
     final servers = (await this.servers())
       ..remove(session.serverUrl)

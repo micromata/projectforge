@@ -89,7 +89,7 @@ void main() {
   );
 
   test(
-    'the single login of an older version is the only stored login',
+    'the single login of an older version is kept when a server is added',
     () async {
       FlutterSecureStorage.setMockInitialValues({
         'session':
@@ -97,6 +97,12 @@ void main() {
       });
       final store = SessionStore();
       expect((await store.sessions()).single.serverUrl, 'https://old');
+      await store.save(session('https://new'));
+      expect((await store.sessions()).map((it) => it.serverUrl), [
+        'https://new',
+        'https://old',
+      ]);
+      expect((await store.load())?.serverUrl, 'https://new');
     },
   );
 
