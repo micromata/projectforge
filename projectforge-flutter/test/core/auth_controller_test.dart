@@ -258,6 +258,9 @@ void main() {
 
     await controller.switchTo(serverB);
     expect(c.read(authControllerProvider).session?.token, 'tokenB');
+    // The cache goes, the WebView data stays (per server, like the stored login).
+    expect(await JsonCache(() async => dir).read('businessCards'), isNull);
+    expect(cookies.cleared, 0);
     expect(old.proxyCookies(), isEmpty);
     await old.post<void>('/rs/x', renewLogin: false);
     expect(seen.last.headers.containsKey('Authorization'), isFalse);

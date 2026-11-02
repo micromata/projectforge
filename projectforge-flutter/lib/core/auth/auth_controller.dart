@@ -181,7 +181,11 @@ class AuthController extends Notifier<AuthState> {
   }
 
   /// Before another login becomes the active one; the current one stays stored. Its server stops pushing (only the
-  /// server shown pushes, so a tapped push belongs to it), and its data leaves the device (cache, files, WebView).
+  /// server shown pushes, so a tapped push belongs to it), and its cache and files leave the device (the cache isn't
+  /// kept per server).
+  ///
+  /// The WebView keeps its data: it is per server anyway, and stays as the login does. Clearing it is what a logout
+  /// does; on iOS it runs on after the call and held up the cookies and pages of the next server for half a minute.
   Future<void> _leave() async {
     if (state.status != AuthStatus.loggedIn) return;
     try {
@@ -192,7 +196,8 @@ class AuthController extends Notifier<AuthState> {
     } on Object {
       // Offline: the push of that server may still arrive.
     }
-    await _clearLocalData();
+    await ref.read(jsonCacheProvider).clearAll();
+    await ref.read(sharedFilesProvider).clearAll();
   }
 
   /// Logs in at [serverInput] (as typed by the user) in the browser.
