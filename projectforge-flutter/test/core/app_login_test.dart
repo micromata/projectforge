@@ -164,4 +164,44 @@ void main() {
       throwsA(isA<AppLoginCancelled>()),
     );
   });
+
+  test('the parameters go into the path too, for a server taking them there', () async {
+    late Uri opened;
+    final login = AppLogin(
+      dio: Dio()
+        ..httpClientAdapter = FakeAdapter(
+          (_) => (
+            status: 200,
+            body: {
+              'userId': 7,
+              'deviceId': 3,
+              'token': 't',
+              'appLoginPath': true,
+            },
+          ),
+        ),
+      openBrowser: (url) async {
+        opened = Uri.parse(url);
+        return 'projectforge://auth?code=c&state=${opened.queryParameters['state']}';
+      },
+    );
+    final session = await login.login(
+      serverUrl: 'https://pf.example.com',
+      deviceName: 'iPhone',
+      platform: 'ios',
+      loginPath: true,
+    );
+    // What a proxy bringing the browser back without the query leaves over.
+    expect(opened.pathSegments, [
+      'next',
+      'appLogin',
+      opened.queryParameters['login'],
+    ]);
+    expect(session.appLoginPath, isTrue);
+    expect(
+      Session.fromJson(session.toJson()).appLoginPath,
+      isTrue,
+      reason: 'Kept for the next login.',
+    );
+  });
 }

@@ -117,6 +117,14 @@ void main() {
   test('url: tokens in the path masked, ids and names kept', () {
     expect(
       LogSanitizer.url(
+        Uri.parse(
+          'https://pf.example.com/next/appLogin/eyJjaGFsbGVuZ2UiOiJjIn0?login=x',
+        ),
+      ),
+      'https://pf.example.com/next/appLogin/***?login=***',
+    );
+    expect(
+      LogSanitizer.url(
         Uri.parse('https://pf.example.com/next/public/datatransfer/abc123'),
       ),
       'https://pf.example.com/next/public/datatransfer/***',

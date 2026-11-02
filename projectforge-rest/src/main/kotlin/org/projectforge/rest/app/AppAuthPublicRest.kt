@@ -66,6 +66,8 @@ class AppAuthPublicRest {
          * sends them with each request and puts them into its WebView. Empty without such a proxy.
          */
         val proxyCookies: Map<String, String>,
+        /** The app may put its login parameters into the path at its next login, see [org.projectforge.rest.pub.SystemStatusRest.SystemData.appLoginPath]. */
+        val appLoginPath: Boolean = true,
     )
 
     /**

@@ -124,7 +124,7 @@ class AuthController extends Notifier<AuthState> {
     final appLogin = ref.read(appLoginProvider);
     final Session session;
     try {
-      await appLogin.systemStatus(serverUrl);
+      final status = await appLogin.systemStatus(serverUrl);
       final device = await ref.read(deviceDescriptionProvider.future);
       appLog.info(
         'auth',
@@ -134,6 +134,7 @@ class AuthController extends Notifier<AuthState> {
         serverUrl: serverUrl,
         deviceName: device.name,
         platform: device.platform,
+        loginPath: status['appLoginPath'] == true,
       );
     } on Object catch (e, stack) {
       if (e is! AppLoginCancelled) {
@@ -163,20 +164,32 @@ class AuthController extends Notifier<AuthState> {
   Future<bool> reauthenticate() => _reauthentication ??= _reauthenticate()
       .whenComplete(() => _reauthentication = null);
 
+  /// Whether the server takes the login parameters in the path, for a session of an older server (it may have been
+  /// updated since): asks its system status. False if that fails, e.g. refused by an SSO proxy.
+  Future<bool> _takesLoginPath(AppLogin appLogin, Session session) async {
+    try {
+      return (await appLogin.systemStatus(session.serverUrl))['appLoginPath'] ==
+          true;
+    } on Object {
+      return false;
+    }
+  }
+
   Future<bool> _reauthenticate() async {
     final session = state.session;
     if (session == null) return false;
     appLog.info('auth', 'Renewal of the login');
     try {
       final device = await ref.read(deviceDescriptionProvider.future);
-      final renewed = await ref
-          .read(appLoginProvider)
-          .login(
-            serverUrl: session.serverUrl,
-            deviceName: device.name,
-            platform: device.platform,
-            deviceId: session.deviceId,
-          );
+      final appLogin = ref.read(appLoginProvider);
+      final renewed = await appLogin.login(
+        serverUrl: session.serverUrl,
+        deviceName: device.name,
+        platform: device.platform,
+        deviceId: session.deviceId,
+        loginPath:
+            session.appLoginPath || await _takesLoginPath(appLogin, session),
+      );
       if (renewed.userId != session.userId ||
           renewed.deviceId != session.deviceId) {
         appLog.warn(

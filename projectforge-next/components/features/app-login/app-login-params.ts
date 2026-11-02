@@ -4,7 +4,9 @@
  * The app sends them twice: packed into one parameter `login` (base64url of a json object, first in the query)
  * and one by one. An SSO proxy in front of the server may keep only the first parameter when it redirects a
  * browser without a proxy session to its login and back (an unencoded `rd=…?a=1&b=2` loses everything after the
- * first `&`); the packed one survives that. An app of an older version sends the single ones only.
+ * first `&`); the packed one survives that. Some proxies bring the browser back without any query: against a server
+ * that can (`appLoginPath` of the system status and the token), the app also puts the packed one into the path
+ * (`/appLogin/<login>`), which wins. An app of an older version sends the single ones only.
  */
 export interface AppLoginParams {
   challenge: string | null;
@@ -24,9 +26,10 @@ interface PackedLogin {
 }
 
 export function readAppLoginParams(
-  params: Pick<URLSearchParams, "get">
+  params: Pick<URLSearchParams, "get">,
+  pathLogin: string | null = null
 ): AppLoginParams {
-  const packed = unpack(params.get("login"));
+  const packed = unpack(pathLogin) ?? unpack(params.get("login"));
   const text = (key: keyof PackedLogin, single: string) => {
     const value = packed?.[key];
     return typeof value === "string" && value

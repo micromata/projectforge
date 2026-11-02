@@ -60,11 +60,13 @@ class AppLogin {
 
   /// @param deviceId The id of this app at the server if it is already registered (a new second factor): the
   /// server keeps its device and only renews its token.
+  /// @param loginPath The server takes the packed parameters in the path too ([Session.appLoginPath]).
   Future<Session> login({
     required String serverUrl,
     required String deviceName,
     required String platform,
     int? deviceId,
+    bool loginPath = false,
   }) async {
     final pkce = Pkce.create();
     final loginParams = {
@@ -74,9 +76,10 @@ class AppLogin {
       'platform': platform,
       if (deviceId != null) 'deviceId': '$deviceId',
     };
-    final url = Uri.parse('$serverUrl/next/appLogin').replace(
-      queryParameters: {'login': packParams(loginParams), ...loginParams},
-    );
+    final packed = packParams(loginParams);
+    final url = Uri.parse(
+      '$serverUrl/next/appLogin${loginPath ? '/$packed' : ''}',
+    ).replace(queryParameters: {'login': packed, ...loginParams});
     appLog.info(
       'login',
       'Browser login${deviceId != null ? ' (renewal of device $deviceId)' : ''}: ${LogSanitizer.url(url)}',
@@ -131,6 +134,7 @@ class AppLogin {
         username: json['username'] as String?,
         fullname: json['fullname'] as String?,
         proxyCookies: proxyCookies,
+        appLoginPath: json['appLoginPath'] == true,
       );
     } on DioException catch (e) {
       _logFailure('Token', e);

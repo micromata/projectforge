@@ -143,12 +143,14 @@ class LogSanitizer {
     return '${url.scheme}:$mask';
   }
 
-  /// A token ([_tokenWord]), or a segment after `public/<area>/` (the external access of an area).
+  /// A token ([_tokenWord]), a segment after `public/<area>/` (the external access of an area), or the packed
+  /// parameters after `appLogin/` (the challenge and state of the login).
   static bool _isSecretSegment(List<String> segments, int index) {
     final segment = segments[index];
     if (segment.isEmpty) return false;
     final public = segments.indexOf('public');
     return (public >= 0 && index >= public + 2) ||
+        (index > 0 && segments[index - 1] == 'appLogin') ||
         _tokenWord.matchAsPrefix(segment)?.end == segment.length;
   }
 
