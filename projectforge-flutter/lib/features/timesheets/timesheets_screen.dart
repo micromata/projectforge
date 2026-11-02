@@ -64,13 +64,18 @@ class _TimesheetsScreenState extends ConsumerState<TimesheetsScreen> {
   void didUpdateWidget(TimesheetsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.active && !oldWidget.active) {
-      final today = dayOf(DateTime.now());
-      if (today != _today) {
-        // Opened on another day than the last time: back to today.
-        _today = today;
-        _select(today);
-      }
-      ref.invalidate(timesheetWeekProvider);
+      // After the frame: didUpdateWidget runs while the tree builds, an invalidated provider then marks the
+      // ProviderScope dirty (setState during build), which breaks the build of the whole tree.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final today = dayOf(DateTime.now());
+        if (today != _today) {
+          // Opened on another day than the last time: back to today.
+          _today = today;
+          _select(today);
+        }
+        ref.invalidate(timesheetWeekProvider);
+      });
     }
   }
 
