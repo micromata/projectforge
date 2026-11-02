@@ -27,6 +27,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/app_version.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/auth/session.dart';
+import '../../core/compat/compatibility.dart';
 import '../../core/i18n/translations.dart';
 import '../../core/push/push_service.dart';
 import '../../core/settings/app_settings.dart';
@@ -76,6 +77,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// the native tab, portrait or landscape. Otherwise they would be created again, back on their start page.
   final _bodyKey = GlobalKey();
 
+  /// The compatibility warning shown last (server and issue): once per server and app start, not on every poll.
+  String? _shownIssue;
+
   @override
   void initState() {
     super.initState();
@@ -102,6 +106,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ) {
       if (count != null) ref.read(pushServiceProvider)?.setBadge(count);
     });
+    ref.listen(compatibilityIssueProvider, (_, issue) {
+      _showCompatibilityIssue(session, issue);
+    });
+    final issue = ref.watch(compatibilityIssueProvider);
     final userStatus = ref.watch(userStatusProvider).value;
     // Unknown (not loaded yet, offline): shown, the server refuses it anyway if it is switched off.
     final chatEnabled = userStatus?.chatEnabled ?? true;
@@ -181,7 +189,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     };
     final actions = [
       NotificationBell(onOpenLink: _openLink),
-      _accountMenu(context, session, current),
+      _accountMenu(context, session, current, issue),
     ];
     if (landscape) {
       // The height is scarce: the navigation stands at the side.
@@ -266,16 +274,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     BuildContext context,
     Session? session,
     _Destination current,
+    CompatibilityIssue? issue,
   ) {
     final version = ref.watch(appVersionProvider).value;
     final webTab = current == _Destination.web || current == _Destination.chat;
     return PopupMenuButton<String>(
       tooltip: context.t('settings'),
-      icon: const Icon(Icons.settings_outlined),
+      // An incompatibility is visible without opening the menu: red gear with an exclamation mark.
+      icon: issue == null
+          ? const Icon(Icons.settings_outlined)
+          : Badge(
+              label: const Text('!'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              child: Icon(
+                Icons.settings_outlined,
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
       onSelected: (action) => switch (action) {
         'reload' => setState(
           () => _restarts[current] = (_restarts[current] ?? 0) + 1,
         ),
+        'compatibility' => null, // Only to read.
         'server' => showServerSwitch(context, ref),
         'settings' => Navigator.of(
           context,
@@ -289,6 +309,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             '${session?.fullname ?? session?.username ?? ''}\n${session?.serverUrl ?? ''}',
           ),
         ),
+        if (issue != null)
+          // Not `enabled: false`: that greys the text out, and a warning has to stand out. Long text, so it wraps.
+          PopupMenuItem<String>(
+            value: 'compatibility',
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 280),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.warning_amber,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _compatibilityText(context, issue),
+                      softWrap: true,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         if (webTab)
           PopupMenuItem(
             value: 'reload',
@@ -306,6 +354,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Text(context.t('app.version', [version])),
           ),
       ],
+    );
+  }
+
+  static String _compatibilityText(
+    BuildContext context,
+    CompatibilityIssue issue,
+  ) => switch (issue) {
+    AppTooOld() => context.t('app.compatibility.appTooOld', [issue.minVersion]),
+    ServerTooOld() => context.t('app.compatibility.serverTooOld', [
+      issue.minVersion,
+    ]),
+  };
+
+  /// Shows [issue] as a banner over the tabs, once per server and app start; the menu keeps showing it.
+  void _showCompatibilityIssue(Session? session, CompatibilityIssue? issue) {
+    final messenger = ScaffoldMessenger.of(context);
+    if (issue == null) {
+      messenger.hideCurrentMaterialBanner();
+      return;
+    }
+    final key =
+        '${session?.serverUrl}#${issue.runtimeType}#${issue.minVersion}';
+    if (key == _shownIssue) return;
+    _shownIssue = key;
+    messenger.showMaterialBanner(
+      MaterialBanner(
+        leading: const Icon(Icons.warning_amber),
+        content: Text(_compatibilityText(context, issue)),
+        actions: [
+          TextButton(
+            onPressed: messenger.hideCurrentMaterialBanner,
+            child: Text(context.t('ok')),
+          ),
+        ],
+      ),
     );
   }
 

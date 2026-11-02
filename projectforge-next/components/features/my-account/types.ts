@@ -26,6 +26,8 @@ export interface MyAccountAppDevice {
   deviceName?: string | null;
   platform?: string | null;
   appVersion?: string | null;
+  /** Older than the app version the server needs (`AppCompatibility.MIN_APP_VERSION`). */
+  outdated?: boolean;
   lastAccessIp?: string | null;
   lastAccessFormatted?: string | null;
   createdFormatted?: string | null;

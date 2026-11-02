@@ -25,6 +25,7 @@ package org.projectforge.rest.pub
 
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.SystemStatus
+import org.projectforge.business.user.AppCompatibility
 import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
@@ -76,6 +77,11 @@ class SystemStatusRest {
          * may bring the browser back from its login without the query. Older servers answer that path with a 404.
          */
         val appLoginPath: Boolean = true,
+        /**
+         * The oldest app version this server works with ([AppCompatibility.MIN_APP_VERSION]): an older app asks its user
+         * for an update. Public, the app checks it before the login too.
+         */
+        val minAppVersion: String = AppCompatibility.MIN_APP_VERSION,
     )
 
     val systemData: SystemData by lazy {

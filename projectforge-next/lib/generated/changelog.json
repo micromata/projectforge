@@ -7,10 +7,10 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "App: the logins of several servers are kept, and the server can be switched in the account menu without logging in again; another server is added there too." ]
+      "items" : [ "App: a warning if the app is too old for the server or the server too old for the app; \"My account\" marks outdated apps.", "App: the logins of several servers are kept, and the server can be switched in the account menu without logging in again; another server is added there too." ]
     }, {
       "type" : "improved",
-      "items" : [ "App time sheets: the structure element can be chosen in the task tree (level by level, starting at the current one, with a search in the level and everything below it), the search finds words of the whole path, the path is shown above the title, cost units are listed with number and text, and the templates open in a list instead of a row of chips.", "Order mails: clearer layout with the buttons at the top, and a button to the order notification settings." ]
+      "items" : [ "App time sheets: the structure element can be chosen in the task tree (level by level, starting at the current one, with a search in the level and everything below it), the search finds words of the whole path, the path is shown above the title, cost units are chosen in a scrollable selection box with number and text, the time sheet tab is no longer marked as under construction, and the templates open in a list instead of a row of chips.", "Order mails: clearer layout with the buttons at the top, and a button to the order notification settings." ]
     }, {
       "type" : "fixed",
       "items" : [ "App: connecting the app behind an SSO proxy works at the first attempt, also when the proxy brings the browser back from its login without the parameters of the link." ]

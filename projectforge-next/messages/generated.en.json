@@ -3548,6 +3548,7 @@
         "successful": "The app has been logged out."
       },
       "none": "No app is connected.",
+      "outdated": "outdated, please update",
       "platform": "system",
       "tooltip": "The ProjectForge app on these devices may access ProjectForge without your password. An app is logged out after a longer time without usage and by every change of your password."
     },

@@ -27,6 +27,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../api/api_client.dart';
 import '../api/api_exception.dart';
 import '../cache/json_cache.dart';
+import '../compat/compatibility.dart';
 import '../cache/shared_files.dart';
 import '../log/app_log.dart';
 import '../log/log_sanitizer.dart';
@@ -217,6 +218,15 @@ class AuthController extends Notifier<AuthState> {
         'auth',
         'Login (app ${device.appVersion}, ${device.platform})',
       );
+      // Only the version the server needs is public, its own is checked after the login (compatibilityIssueProvider).
+      if (compatibilityIssue(
+            appVersion: device.appVersion,
+            serverVersion: null,
+            minAppVersion: status['minAppVersion'] as String?,
+          )
+          case final issue?) {
+        appLog.warn('auth', 'The server needs app version ${issue.minVersion}');
+      }
       session = await appLogin.login(
         serverUrl: serverUrl,
         deviceName: device.name,

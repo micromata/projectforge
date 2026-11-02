@@ -3548,6 +3548,7 @@
         "successful": "Die App wurde abgemeldet."
       },
       "none": "Keine App ist verbunden.",
+      "outdated": "veraltet, bitte aktualisieren",
       "platform": "System",
       "tooltip": "Die ProjectForge-App auf diesen Geräten kann ohne Passwort auf ProjectForge zugreifen. Eine App wird nach längerer Zeit ohne Nutzung und bei jeder Änderung des Passworts abgemeldet."
     },

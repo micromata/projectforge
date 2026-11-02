@@ -221,6 +221,22 @@ errors (`main.dart`).
   further line breaks (U+0085, U+2028/2029) and marks of the text direction, and indents further lines of an entry. Texts of the server (error messages) may still name
   persons: the log stays on the device unless the user copies it.
 
+## Compatibility of app and server
+
+The app comes from the store and connects to servers of different versions. Only the newer side knows about a
+break, so each side declares the minimum it needs from the other:
+
+- `AppCompatibility.MIN_APP_VERSION` (server, projectforge-business): raised in the commit that removes or changes
+  an api older apps use. Published in `SystemData.minAppVersion` (public too); "My account" marks outdated app
+  devices (`AppDevice.outdated`, from their `X-PF-App-Version`).
+- `minServerVersion` (app, `core/compat/compatibility.dart`): raised in the commit that needs a feature of a newer
+  server. Compared with `systemData.version` of the user status: the public system status hides the version, so this
+  is checked only after the login. A snapshot counts as its release.
+
+Only a warning (banner on the home screen once per server and app start, a line in the account menu), nothing is
+refused; unknown or unparseable versions never warn. Prefer a feature flag in the system status (e.g.
+`appLoginPath`) wherever the app can fall back: the minimums are for hard breaks only.
+
 ## Texts
 
 `GenerateFlutterI18nMessagesMain` (run by `bin/pfDev.sh gen`) writes `assets/i18n/generated.<locale>.json` from the

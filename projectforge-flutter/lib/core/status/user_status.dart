@@ -21,8 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-/// What the app shows of the server outside of its pages: the badge of the chat tab and the bell of the
-/// notifications. Taken from the user status (`UserStatusRest.Result`, `GET /rs/userStatus`), the json map is kept.
+/// What the app shows of the server outside of its pages: the badge of the chat tab, the bell of the
+/// notifications and the compatibility warning. Taken from the user status (`UserStatusRest.Result`, `GET /rs/userStatus`), the json map is kept.
 class UserStatus {
   UserStatus(this.json);
 
@@ -56,4 +56,13 @@ class UserStatus {
 
   /// The user's theme of the web pages (`UISettingsRest`): `light`, `dark` or `system`, null from an older server.
   String? get theme => json['theme'] as String?;
+
+  Map<String, dynamic> get _systemData =>
+      json['systemData'] as Map<String, dynamic>? ?? const {};
+
+  /// The version of the server (`SystemStatusRest.SystemData.version`), e.g. `9.2.4` or `9.2.4-SNAPSHOT`.
+  String? get serverVersion => _systemData['version'] as String?;
+
+  /// The oldest app version the server works with (`SystemData.minAppVersion`), null from an older server.
+  String? get minAppVersion => _systemData['minAppVersion'] as String?;
 }

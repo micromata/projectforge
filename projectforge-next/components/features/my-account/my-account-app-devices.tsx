@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Logout01Icon } from "@hugeicons/core-free-icons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { RsError } from "@/lib/rs/client";
@@ -90,6 +91,15 @@ export function MyAccountAppDevices({
                     {[device.platform, device.appVersion]
                       .filter(Boolean)
                       .join(" ")}
+                    {device.outdated && (
+                      <Badge
+                        variant="destructive"
+                        className="ml-2"
+                        data-testid="my-account-app-device-outdated"
+                      >
+                        {t("mobileApp.devices.outdated")}
+                      </Badge>
+                    )}
                   </td>
                   <td className="py-1.5 pr-3 whitespace-nowrap">
                     {device.lastAccessIp}

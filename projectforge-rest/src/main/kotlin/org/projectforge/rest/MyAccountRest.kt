@@ -34,6 +34,7 @@ import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.login.Login
 import org.projectforge.business.sipgate.SipgateConfiguration
+import org.projectforge.business.user.AppCompatibility
 import org.projectforge.business.user.AppDeviceDao
 import org.projectforge.business.user.StayLoggedInTokenDao
 import org.projectforge.business.user.UserAuthenticationsService
@@ -180,6 +181,8 @@ class MyAccountRest {
         val deviceName: String?,
         val platform: String?,
         val appVersion: String?,
+        /** The app is older than [AppCompatibility.MIN_APP_VERSION]: the user should update it. */
+        val outdated: Boolean = false,
         val lastAccessIp: String?,
         val lastAccessFormatted: String?,
         val createdFormatted: String?,
@@ -545,6 +548,7 @@ class MyAccountRest {
                 deviceName = entry.deviceName,
                 platform = entry.platform,
                 appVersion = entry.appVersion,
+                outdated = AppCompatibility.isOutdated(entry.appVersion),
                 lastAccessIp = entry.lastAccessIp,
                 lastAccessFormatted = entry.lastAccess?.let { TimeAgo.getDateAndMessage(it) },
                 createdFormatted = entry.created?.let { TimeAgo.getDateAndMessage(it) },
