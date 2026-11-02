@@ -192,6 +192,48 @@ void main() {
     },
   );
 
+  test(
+    'proxyRefuses asks for the pages with the proxy cookies only, no token',
+    () async {
+      proxyCookies = {'authentik_proxy_1': 'expired'};
+      final adapter = proxy(status: 302);
+      expect(await client(adapter).proxyRefuses(), isTrue);
+      final request = adapter.requests.single;
+      expect(request.path, '/next/');
+      expect(request.method, 'GET');
+      expect(request.headers['Cookie'], 'authentik_proxy_1=expired');
+      expect(request.headers.containsKey('Authorization'), isFalse);
+      expect(request.followRedirects, isFalse);
+    },
+  );
+
+  test('a renewal the proxy didn\'t accept is tried again once other proxy cookies arrive', () async {
+    proxyCookies = {'authentik_proxy_1': 'expired'};
+    final adapter = FakeAdapter(
+      (_) => (status: 401, body: const RawBody('<html></html>')),
+    );
+    final api = ApiClient(
+      serverUrl: 'https://pf.example.com',
+      token: () => token,
+      appVersion: '1.0.0+1',
+      onUnauthorized: () => unauthorized++,
+      // The browser login brings the same, still refused cookie.
+      onReauthenticate: () async {
+        reauthentications++;
+        return true;
+      },
+      proxyCookies: () => proxyCookies,
+      dio: Dio()..httpClientAdapter = adapter,
+    );
+    for (var i = 0; i < 2; i++) {
+      await expectLater(api.get<Object>('/rs/x'), throwsA(isA<ApiException>()));
+    }
+    expect(reauthentications, 1, reason: 'The same cookies: no new login.');
+    proxyCookies = {'authentik_proxy_1': 'other'};
+    await expectLater(api.get<Object>('/rs/x'), throwsA(isA<ApiException>()));
+    expect(reauthentications, 2, reason: 'Other cookies: a new login again.');
+  });
+
   test('a 401 of the server logs the app out, also for a download', () async {
     final adapter = FakeAdapter((_) => (status: 401, body: {'status': 401}));
     await expectLater(

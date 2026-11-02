@@ -22,6 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../log/app_log.dart';
 import '../log/log_sanitizer.dart';
@@ -89,18 +90,49 @@ class ApiClient {
   /// The current cookies of the SSO proxy in front of the server (name to value), empty without one.
   final Map<String, String> Function() proxyCookies;
 
-  /// A new login in the browser didn't satisfy the proxy (e.g. no proxy cookies configured at the server): the proxy
-  /// refusals of this login aren't answered by a new browser login again, which would only open it on every request.
-  bool _proxyRenewalUseless = false;
+  /// The proxy cookies a new login in the browser brought without satisfying the proxy (e.g. no proxy cookies
+  /// configured at the server): while the app has just these, the proxy's refusals aren't answered by a new browser
+  /// login again, which would only open it on every request. A login that brings others may try again.
+  Map<String, String>? _uselessProxyCookies;
 
-  /// Whether the SSO proxy refuses the requests of the app right now (a small request, never a new login): tells
-  /// its login from any other site the WebView is redirected to (e.g. by an open redirect of the server).
+  bool get _proxyRenewalUseless {
+    final useless = _uselessProxyCookies;
+    return useless != null && mapEquals(useless, proxyCookies());
+  }
+
+  /// Whether the SSO proxy refuses the pages right now: tells its login from any other site the WebView is
+  /// redirected to (e.g. by an open redirect of the server). Asks for the start page of next (`/next/`, static, never
+  /// redirected by the server itself) with the proxy cookies only, no token and no session, without following a
+  /// redirect: a proxy that lets the app's `/rs` through but guards the pages is told apart too.
   Future<bool> proxyRefuses() async {
+    final cookies = proxyCookies();
+    final probe = Dio(
+      BaseOptions(
+        baseUrl: serverUrl,
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+        followRedirects: false,
+        validateStatus: (_) => true,
+        responseType: ResponseType.plain,
+        headers: {
+          if (cookies.isNotEmpty)
+            'Cookie': cookies.entries
+                .map((it) => '${it.key}=${it.value}')
+                .join('; '),
+        },
+      ),
+    )..httpClientAdapter = dio.httpClientAdapter;
     try {
-      await get<Object?>('/rs/userStatus', renewLogin: false);
+      final response = await probe.get<String>('/next/');
+      final refused = isProxyRefusal(response);
+      appLog.info(
+        'api',
+        'Probe of the SSO proxy: GET /next/ → ${response.statusCode}${refused ? ' (refused)' : ''}',
+      );
+      return refused;
+    } on DioException catch (e) {
+      appLog.warn('api', 'Probe of the SSO proxy failed: ${e.type.name}');
       return false;
-    } on ApiException catch (e) {
-      return e.messageKey == proxyRefusedKey;
     }
   }
 
@@ -225,7 +257,7 @@ class ApiClient {
               'api',
               'Still refused by the SSO proxy after the new login: no further logins for this session',
             );
-            _proxyRenewalUseless = true;
+            _uselessProxyCookies = proxyCookies();
           }
           return handler.next(retryError);
         }

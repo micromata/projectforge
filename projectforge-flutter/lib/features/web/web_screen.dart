@@ -114,6 +114,10 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   bool _renewingProxy = false;
   DateTime? _lastProxyRenewal;
 
+  /// The error shown is a refusal of the SSO proxy: a retry renews the login in the system browser itself (the
+  /// [ApiClient] may not, see its `_uselessProxyCookies`) and loads the refused page again.
+  bool _proxyRefusalShown = false;
+
   /// The native page [_open] loaded itself (e.g. the editing of the business cards): it stays in the WebView until
   /// the user leaves it.
   NativePage? _requestedNative;
@@ -125,9 +129,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   @override
   void initState() {
     super.initState();
-    _pullToRefresh = PullToRefreshController(
-      onRefresh: () => _controller?.reload(),
-    );
+    _pullToRefresh = PullToRefreshController(onRefresh: _reload);
     _open(widget.initialPath);
   }
 
@@ -160,7 +162,12 @@ class _WebScreenState extends ConsumerState<WebScreen> {
       }
     } on ApiException catch (e) {
       appLog.warn('web', 'Pages not opened: $e');
-      if (mounted) _showError(context.errorText(e));
+      if (mounted) {
+        _showError(
+          context.errorText(e),
+          proxyRefusal: e.messageKey == ApiClient.proxyRefusedKey,
+        );
+      }
     } finally {
       _opening = false;
     }
@@ -177,9 +184,22 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     _serverPageLoadStart = DateTime.now();
   }
 
+  /// The page again (pull to refresh), as a load of its own: Android doesn't pass a reload through
+  /// [_shouldOverrideUrlLoading], a redirect of the proxy wouldn't be recognized otherwise.
+  Future<void> _reload() async {
+    final controller = _controller;
+    if (controller == null) return;
+    final url = await controller.getUrl();
+    if (url != null && _navigation.isSameOrigin(url)) {
+      _startServerPageLoad(url);
+    }
+    await controller.reload();
+  }
+
   /// The error replaces the WebView, a retry starts a new one.
-  void _showError(String message) => setState(() {
+  void _showError(String message, {bool proxyRefusal = false}) => setState(() {
     _error = message;
+    _proxyRefusalShown = proxyRefusal;
     _controller = null;
     _startUrl = null;
     _canGoBack = false;
@@ -330,7 +350,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
           'web',
           'Refused by the SSO proxy again right after a renewal: error shown',
         );
-        _showError(context.t(ApiClient.proxyRefusedKey));
+        _showError(context.t(ApiClient.proxyRefusedKey), proxyRefusal: true);
         return;
       }
       _lastProxyRenewal = DateTime.now();
@@ -347,7 +367,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
         await _load(url);
       } else {
         appLog.info('web', 'Renewal not done: refusal of the SSO proxy shown');
-        _showError(context.t(ApiClient.proxyRefusedKey));
+        _showError(context.t(ApiClient.proxyRefusedKey), proxyRefusal: true);
       }
     } finally {
       _renewingProxy = false;
@@ -406,14 +426,37 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     }
   }
 
+  /// The retry of the error view. After a refusal of the SSO proxy: a new login in the system browser (the user asked
+  /// for it), then the refused page; otherwise a new web session.
+  Future<void> _retry() async {
+    if (!_proxyRefusalShown) {
+      await _open(widget.initialPath, renew: true);
+      return;
+    }
+    final requested = _requestedUrl;
+    final path = requested == null
+        ? widget.initialPath
+        : Uri(
+            path: requested.path,
+            query: requested.hasQuery ? requested.query : null,
+          ).toString();
+    appLog.info('web', 'Retry after a refusal of the SSO proxy: new login');
+    if (!await ref.read(authControllerProvider.notifier).reauthenticate()) {
+      appLog.info('web', 'Renewal not done: refusal of the SSO proxy shown');
+      if (mounted) {
+        _showError(context.t(ApiClient.proxyRefusedKey), proxyRefusal: true);
+      }
+      return;
+    }
+    _lastProxyRenewal = DateTime.now();
+    if (mounted) await _open(path, renew: true);
+  }
+
   @override
   Widget build(BuildContext context) {
     final error = _error;
     if (error != null) {
-      return ErrorView(
-        message: error,
-        onRetry: () => _open(widget.initialPath, renew: true),
-      );
+      return ErrorView(message: error, onRetry: _retry);
     }
     final startUrl = _startUrl;
     if (startUrl == null) {

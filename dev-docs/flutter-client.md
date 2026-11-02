@@ -101,7 +101,8 @@ twice, e.g. one set by another subdomain), kept with the code and handed
 to the app with its token (`TokenResponse.proxyCookies`). The app keeps them with the token, sends them with every
 request and puts them into the WebView. A refusal of the proxy (a 401 without a json content type, a redirect) isn't a
 logout: the app logs in again in the browser, which brings fresh cookies, and repeats the request once. If that doesn't
-satisfy the proxy either, it isn't tried again until the next login (`app.proxy.refused`). Requests the app makes on
+satisfy the proxy either, it isn't tried again by itself while the app has these cookies (`app.proxy.refused`; a
+login that brings others may, and the "retry" of the pages logs in anyway). Requests the app makes on
 its own (the badge of the chat) never open the browser (`renewLogin: false`), only something the user does. After each
 expiry of the proxy session (the token validity of the Authentik provider) the user logs in again in the browser, with
 a second factor of ProjectForge.
@@ -150,18 +151,22 @@ app has only its token:
   redirects a page load to its login on another host (`/outpost.goauthentik.io/start` → `sso…/authorize`). The app
   tells it from other navigations to another site by `WebNavigation.isProxyLogin`: a redirect (iOS: navigation type
   other than link or form, Android: `isRedirect` or no gesture) while a page of the server is still loading (until it
-  is committed, `onPageCommitVisible`; marked for the app's own loads too, which Android doesn't pass through
-  `shouldOverrideUrlLoading`), behind a proxy only (the server sent proxy cookies at the login). A script of a loaded
+  is committed, `onPageCommitVisible`; marked for the app's own loads and pull to refresh too, which Android doesn't
+  pass through `shouldOverrideUrlLoading`), behind a proxy only (the server sent proxy cookies at the login). A script of a loaded
   page (an external menu entry) and a tapped link open the other site in the system browser.
-  - The navigation is cancelled, and the app asks the proxy itself (`ApiClient.proxyRefuses`, `GET /rs/userStatus`
-    without a new login): only if the proxy refuses the app too, it is its login. Otherwise the other site (e.g. an
+  - The navigation is cancelled, and the app asks the proxy itself (`ApiClient.proxyRefuses`: `GET /next/` with the
+    proxy cookies only, no token, no session, redirects not followed; `/next/` is static, the server never redirects
+    it, and a proxy that lets `/rs` through but guards the pages is told apart too): only if the proxy refuses it, it
+    is its login. Otherwise the other site (e.g. an
     open redirect of the server) opens in the system browser, without a login of the app and never in the WebView.
   - The login of the app is renewed in the system browser
     (`AuthController.reauthenticate`): `ASWebAuthenticationSession` shares the proxy's login session with Safari
     (often no password), the token exchange brings fresh proxy cookies, also into the WebView, and the page asked for
     is loaded again. The password of the proxy's login isn't typed into a WebView of the app (RFC 8252).
-  - If that is cancelled or fails, or the proxy refuses again within 30 s, the refusal is shown (`app.proxy.refused`,
-    "retry" renews again). The proxy's login never happens in the WebView, which never shows another site.
+  - If that is cancelled or fails, or the proxy refuses again within 30 s, the refusal is shown (`app.proxy.refused`).
+    Its "retry" renews the login in the system browser itself and then loads the refused page again: the `ApiClient`
+    doesn't start a new browser login while it has the proxy cookies a login brought without satisfying the proxy
+    (only once others arrive), which would otherwise leave the retry without a login. The proxy's login never happens in the WebView, which never shows another site.
 - **App mode of next:** the user agent carries `ProjectForgeApp/<version>` (`lib/app-mode.ts`): next hides its
   logout, the app has its own. Only for the UI, never a security check.
 - **No JavaScript handlers** in the WebView: the pages never get hold of the app token.
