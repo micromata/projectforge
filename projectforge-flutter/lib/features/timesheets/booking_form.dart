@@ -570,27 +570,57 @@ class _BookingFormState extends ConsumerState<BookingForm> {
         ),
       if (task != null && options != null && options.length > 1)
         Padding(
-          padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
-          child: RadioGroup<Kost2Ref>(
-            groupValue: _kost2,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: DropdownButtonFormField<Kost2Ref>(
+            // A new task starts with its own choice (cleared or the only one, see _loadKost2).
+            key: ValueKey(task.id),
+            initialValue: _kost2,
+            isExpanded: true,
+            // Items as high as their two lines (not the fixed 48 that clips them), the menu at most half the screen
+            // high and scrolled within.
+            itemHeight: null,
+            menuMaxHeight: MediaQuery.sizeOf(context).height / 2,
+            decoration: InputDecoration(
+              labelText: context.t('fibu.kost2'),
+              border: const OutlineInputBorder(),
+              enabledBorder: _errors.containsKey('kost2')
+                  ? OutlineInputBorder(
+                      borderSide: BorderSide(color: theme.colorScheme.error),
+                    )
+                  : null,
+            ),
+            // Closed, the field keeps one line; the menu shows the number and the text below it.
+            selectedItemBuilder: (context) => [
+              for (final it in options)
+                Text(it.label, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ],
+            items: [
+              for (final it in options)
+                DropdownMenuItem(
+                  value: it,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        it.number,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      if (it.text.isNotEmpty)
+                        Text(
+                          it.text,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall,
+                        ),
+                    ],
+                  ),
+                ),
+            ],
             onChanged: (it) => setState(() {
               _kost2 = it;
               _errors.remove('kost2');
             }),
-            child: Column(
-              children: [
-                for (final it in options)
-                  RadioListTile<Kost2Ref>(
-                    value: it,
-                    dense: true,
-                    title: Text(
-                      it.number,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: it.text.isEmpty ? null : Text(it.text),
-                  ),
-              ],
-            ),
           ),
         ),
       _ErrorText(_errors['kost2']),

@@ -1,6 +1,5 @@
 {
   "app.version": "Version {0}",
-  "app.underConstruction": "Under construction – diese Seite ist noch in Arbeit und kann Fehler enthalten.",
   "_comment": "Texte der App ohne Gegenstück in den I18nResources des Servers. Alles andere kommt aus generated.de.json (bin/pfDev.sh gen).",
   "app.download.failed": "Die Datei konnte nicht heruntergeladen werden.",
   "app.login.failed": "Die Anmeldung ist fehlgeschlagen.",
