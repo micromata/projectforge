@@ -461,7 +461,7 @@ is. It contains no user names, but messages and requests are as logged and may c
 this before passing it to an external service.
 
 A new security or data problem (or one that occurred again after being resolved) doesn't wait for the end of
-the interval: it sends the digest early, as soon as it reaches its threshold, but at most every 5 minutes.
+the interval: it sends the digest early, as soon as it reaches its threshold, but at most every `urgentMinGap` (default 1 hour), also at night. By default the regular digest is sent once a day at 07:00.
 
 Each problem goes to the recipients of its audience: developers (bugs, data problems), admins (external
 systems, configuration, sync runs) or security. Without recipients of its own, an audience gets the digest
@@ -470,8 +470,12 @@ at `projectforge.support.mail`.
 .File: `projectforge.properties`
 ----
 projectforge.support.mail=support@acme.com
-# How often the digest is sent at most, e.g. 15m, 1h, 1d. 0 disables the digest. Default: 1h
-projectforge.support.errorDigest.interval=1h
+# How often the regular digest is sent, e.g. 15m, 1h, 1d. 0 disables the digest. Default: 1d
+projectforge.support.errorDigest.interval=1d
+# Time of day (HH:mm) of the regular digest if the interval is at least a day. Blank: counted from the last digest. Default: 07:00
+projectforge.support.errorDigest.sendAt=07:00
+# Minimum gap between early digests (urgent problems), e.g. 5m, 1h. Default: 1h
+projectforge.support.errorDigest.urgentMinGap=1h
 # Optional, comma separated, default: projectforge.support.mail
 projectforge.support.errorDigest.recipients.developer=dev@acme.com
 projectforge.support.errorDigest.recipients.admin=ops@acme.com
