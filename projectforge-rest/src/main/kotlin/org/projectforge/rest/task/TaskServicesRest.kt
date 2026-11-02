@@ -932,36 +932,93 @@ class TaskServicesRest {
      *
      * @param onlyBookable only the tasks a time sheet may be booked on ([TaskNode.bookableForTimesheets]) —
      * the time sheet form's field, as Wicket's `autocompleteOnlyTaskBookableForTimesheets`.
+     * @param parentId only this task and the tasks below it (the app's search inside a level of the tree).
      */
-    @AccessChecked("DAO: TaskDao.select")
+    @AccessChecked("DAO: TaskDao.select; the parentId only narrows the result")
     @GetMapping("tree/autosearch")
     fun autosearch(
         @RequestParam("search") search: String?,
         @RequestParam("maxResults") maxResults: Int?,
         @RequestParam("onlyBookable") onlyBookable: Boolean?,
+        @RequestParam("parentId") parentId: Long? = null,
     ): List<AbstractEntityRest.DisplayObject> {
         val filter = BaseSearchFilter()
         filter.searchFields = AUTOCOMPLETE_SEARCH_FIELDS
         filter.searchString = search
         val taskTree = TaskTree.instance
+        val parentNode = parentId?.let { taskTree.getTaskNodeById(it) }
+        val inScope = { id: Long? ->
+            parentId == null || (parentNode != null && id != null &&
+                    (id == parentId || taskTree.getTaskNodeById(id)?.let { parentNode.isParentOf(it) } == true))
+        }
         // The tasks of the user's booking grants first: not found by the query, which drops what the user may not see.
         val granted = taskBookingGrantCache.getCurrentTaskIds(ThreadLocalUserContext.loggedInUserId)
+            .filter { inScope(it) }
             .map { AbstractEntityRest.DisplayObject(it, formatPath(it)) }
             .filter { search.isNullOrBlank() || it.displayName?.contains(search.trim(), ignoreCase = true) == true }
             .sortedBy { it.displayName?.lowercase() }
         val found = if (onlyBookable != true) {
             maxResults?.let { filter.maxRows = it }
-            taskDao.select(filter).map { AbstractEntityRest.DisplayObject(it.id, formatPath(it.id)) }
+            taskDao.select(filter).filter { inScope(it.id) }
+                .map { AbstractEntityRest.DisplayObject(it.id, formatPath(it.id)) }
         } else {
             // The limit after the bookable filter, not in the query: most matches may be closed or otherwise not
             // bookable, and a limited query would leave only a few of them.
             taskDao.select(filter)
-                .filter { taskTree.getTaskNodeById(it.id)?.isBookableForTimesheets == true }
+                .filter { inScope(it.id) && taskTree.getTaskNodeById(it.id)?.isBookableForTimesheets == true }
                 .map { AbstractEntityRest.DisplayObject(it.id, formatPath(it.id)) }
         }
         val grantedIds = granted.map { it.id }.toSet()
         return (granted + found.filter { it.id !in grantedIds })
             .let { list -> maxResults?.let { list.take(it) } ?: list }
+    }
+
+    /**
+     * One level of the tree, as the app browses it: a node with its children not loaded yet.
+     * @param hasChildren Whether the node has children the user may see, i. e. a level below to open.
+     * @param bookable Whether a time sheet may be booked on it ([TaskNode.isBookableForTimesheets]); false for a
+     * node shown by a booking grant's path only.
+     */
+    class TaskChild(val id: Long, val title: String?, val hasChildren: Boolean, val bookable: Boolean)
+
+    /**
+     * The visible children of [parentId] (the root if not given), by the rules of the tree ([buildTree]: select access
+     * or a booking grant's path, closed and deleted tasks left out), for the drill-down task picker of the app.
+     *
+     * Unlike [getTree] without any side effect: neither the user's opened nodes nor the stored filter are read or
+     * changed, so browsing in the app leaves the tree of the web as it is.
+     *
+     * @return the empty list for a parent the user may not see.
+     */
+    @AccessChecked("Nodes filtered by TaskDao select access; nodes of the user's booking grants by title only")
+    @GetMapping("tree/children")
+    fun getChildren(@RequestParam("parentId") parentId: Long?): List<TaskChild> {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val ctx = BuildContext(
+            Result(), user, TaskFilter().also { it.resetMatch() }, mutableSetOf(),
+            grantTaskIds = taskBookingGrantCache.getCurrentTaskIds(user.id),
+            grantPathTaskIds = taskBookingGrantCache.getVisiblePathTaskIds(user.id),
+        )
+        val parent = if (parentId == null) {
+            taskTree.rootTaskNode
+        } else {
+            taskTree.getTaskNodeById(parentId)?.takeIf {
+                taskDao.hasUserSelectAccess(user, it.getTask(), false) || it.taskId in ctx.grantPathTaskIds
+            } ?: return emptyList()
+        }
+        ctx.openedNodes.add(parent.taskId)
+        // Table mode: the children are the rows, and none of them is opened, so the walk ends with them.
+        buildTree(ctx, Task(parent), parent, indent = 0)
+        return ctx.result.nodes.mapNotNull {
+            val node = taskTree.getTaskNodeById(it.id) ?: return@mapNotNull null
+            TaskChild(
+                id = it.id,
+                title = it.title,
+                // Not only "has children": a level the user would find empty tells that something hidden is below.
+                hasChildren = it.treeStatus != TreeStatus.LEAF && hasVisibleChildren(ctx, node),
+                bookable = it.bookingGrant != BookingGrantNode.PATH && node.isBookableForTimesheets,
+            )
+        }
     }
 
     /**

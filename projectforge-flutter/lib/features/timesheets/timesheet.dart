@@ -93,7 +93,8 @@ class TaskRef {
 class Kost2Ref {
   const Kost2Ref({required this.id, required this.label});
 
-  /// A cost unit of `task/info` or of a time sheet (Kotlin `rest.dto.Kost2`).
+  /// A cost unit of a time sheet (Kotlin `rest.dto.Kost2`) or of `task/info` (`TaskServicesRest.Kost2`, the whole
+  /// text as `title`: `5.123.45.01: <Kost2Art> - <project>`).
   factory Kost2Ref.fromJson(Map<String, dynamic> json) {
     final number = json['formattedNumber'] as String?;
     final description = json['description'] as String?;
@@ -101,12 +102,25 @@ class Kost2Ref {
         ? (description == null || description.isEmpty
               ? number
               : '$number $description')
-        : json['displayName'] as String? ?? '#${json['id']}';
+        : json['title'] as String? ??
+              json['displayName'] as String? ??
+              '#${json['id']}';
     return Kost2Ref(id: (json['id'] as num).toInt(), label: label);
   }
 
   final int id;
   final String label;
+
+  static final _numberEnd = RegExp(r':?\s');
+
+  /// The number of [label] (`5.123.45.01`), the whole label if it has no text.
+  String get number => label.split(_numberEnd).first;
+
+  /// The text of [label] after the number, empty if there is none.
+  String get text {
+    final m = _numberEnd.firstMatch(label);
+    return m == null ? '' : label.substring(m.end);
+  }
 
   Map<String, dynamic> toJson() => {'id': id, 'displayName': label};
 
@@ -322,16 +336,51 @@ class TimesheetTemplate {
 
 /// A task with the cost units a booking on it may charge (`GET /rs/task/info/{id}`).
 class TaskInfo {
-  const TaskInfo(this.task, this.kost2List);
+  const TaskInfo(this.task, this.kost2List, {this.pathIds = const []});
 
-  factory TaskInfo.fromJson(Map<String, dynamic> json) =>
-      TaskInfo(TaskRef.fromJson(json), [
-        for (final it in json['kost2List'] as List<dynamic>? ?? const [])
-          Kost2Ref.fromJson(it as Map<String, dynamic>),
-      ]);
+  factory TaskInfo.fromJson(Map<String, dynamic> json) => TaskInfo(
+    TaskRef.fromJson(json),
+    [
+      for (final it in json['kost2List'] as List<dynamic>? ?? const [])
+        Kost2Ref.fromJson(it as Map<String, dynamic>),
+    ],
+    pathIds: [
+      for (final it in json['path'] as List<dynamic>? ?? const [])
+        if (it is Map && it['id'] is num) (it['id'] as num).toInt(),
+    ],
+  );
 
   final TaskRef task;
   final List<Kost2Ref> kost2List;
+
+  /// The ids of the ancestors, from the top, as [TaskRef.parents] has their titles.
+  final List<int> pathIds;
+}
+
+/// A node of one level of the task tree (Kotlin `TaskServicesRest.TaskChild`, `GET /rs/task/tree/children`).
+class TaskChild {
+  const TaskChild({
+    required this.id,
+    required this.title,
+    this.hasChildren = false,
+    this.bookable = false,
+  });
+
+  factory TaskChild.fromJson(Map<String, dynamic> json) => TaskChild(
+    id: (json['id'] as num).toInt(),
+    title: json['title'] as String? ?? '#${json['id']}',
+    hasChildren: json['hasChildren'] as bool? ?? false,
+    bookable: json['bookable'] as bool? ?? false,
+  );
+
+  final int id;
+  final String title;
+
+  /// Whether there is a level below to open.
+  final bool hasChildren;
+
+  /// Whether a time sheet may be booked on it.
+  final bool bookable;
 }
 
 /// What the booking form saves.

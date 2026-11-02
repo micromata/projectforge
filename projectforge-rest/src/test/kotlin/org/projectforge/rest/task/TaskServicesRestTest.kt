@@ -35,6 +35,8 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.task.TaskTree
+import org.projectforge.framework.access.AccessDao
+import org.projectforge.framework.access.AccessType
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.rest.dto.Task
 import org.springframework.mock.web.MockHttpServletRequest
@@ -59,6 +61,9 @@ class TaskServicesRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var kostCache: KostCache
+
+    @Autowired
+    private lateinit var accessDao: AccessDao
 
     @Test
     fun `the preview resolves an unsaved black white list`() {
@@ -198,6 +203,41 @@ class TaskServicesRestTest : AbstractTestBase() {
             assertNull(it.groupAccess)
             assertNull(it.groupAccessList)
         }
+    }
+
+    /**
+     * `tree/children` of the app: a node whose children the user may not see is a leaf for them (no chevron to an
+     * empty level, which would tell that something hidden is below); an ordinary user sees nothing below it either.
+     */
+    @Test
+    fun `a node with hidden children only is a leaf in the levels of the app`() {
+        val (parent, child) = persistenceService.runInTransaction { _ ->
+            logon(ADMIN)
+            val parent = initTestDB.addTask("childrenHidden", "root")
+            val child = initTestDB.addTask("childrenHiddenChild", "childrenHidden")
+            val access = initTestDB.createGroupTaskAccess(
+                initTestDB.addGroup("childrenHiddenGroup", TEST_USER),
+                parent,
+                AccessType.TASKS,
+                accessSelect = true,
+                accessInsert = false,
+                accessUpdate = false,
+                accessDelete = false,
+            )
+            access.recursive = false
+            accessDao.update(access, checkAccess = false)
+            parent to child
+        }
+
+        logon(ADMIN)
+        taskServicesRest.getChildren(parent.id).single { it.id == child.id }
+        assertTrue(taskServicesRest.getChildren(null).single { it.id == parent.id }.hasChildren)
+
+        logon(TEST_USER)
+        taskServicesRest.getChildren(null).single { it.id == parent.id }.let {
+            assertFalse(it.hasChildren, "The only child is hidden from the user.")
+        }
+        assertTrue(taskServicesRest.getChildren(parent.id).none { it.id == child.id })
     }
 
     private fun tree() = taskServicesRest.getTree(

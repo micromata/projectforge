@@ -38,6 +38,7 @@ import '../notifications/notification_bell.dart';
 import '../notifications/notification_text.dart';
 import '../notifications/notifications_screen.dart';
 import '../settings/settings_screen.dart';
+import 'server_switch.dart';
 import '../timesheets/timesheets_screen.dart';
 import '../web/web_screen.dart';
 
@@ -275,6 +276,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         'reload' => setState(
           () => _restarts[current] = (_restarts[current] ?? 0) + 1,
         ),
+        'server' => showServerSwitch(context, ref),
         'settings' => Navigator.of(
           context,
         ).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
@@ -292,6 +294,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             value: 'reload',
             child: Text(context.t('app.web.reload')),
           ),
+        PopupMenuItem(
+          value: 'server',
+          child: Text(context.t('app.server.switch')),
+        ),
         PopupMenuItem(value: 'settings', child: Text(context.t('settings'))),
         PopupMenuItem(value: 'logout', child: Text(context.t('menu.logout'))),
         if (version != null)

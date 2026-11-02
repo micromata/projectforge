@@ -21,6 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../api/api_client.dart';
@@ -70,16 +71,46 @@ final apiClientProvider = Provider<ApiClient?>((ref) {
   final session = ref.read(authControllerProvider).session;
   if (session == null || key.isEmpty) return null;
   final controller = ref.read(authControllerProvider.notifier);
-  return ApiClient(
-    serverUrl: session.serverUrl,
-    token: () => ref.read(authControllerProvider).session?.token,
-    proxyCookies: () =>
-        ref.read(authControllerProvider).session?.proxyCookies ?? const {},
+  return boundApiClient(
+    session,
+    current: () => ref.read(authControllerProvider).session,
     appVersion: ref.read(deviceDescriptionProvider).value?.appVersion ?? '',
     onUnauthorized: controller.onUnauthorized,
     onReauthenticate: controller.reauthenticate,
   );
 });
+
+/// A client for the login [session], bound to it: once the app is switched to another server, a client of the old one
+/// that is still in use (a request on its way, a retry) must not send the token or the SSO proxy cookies of the new
+/// login ([current]) to its server, and its refusal or renewal concerns the old login, not the new one.
+ApiClient boundApiClient(
+  Session session, {
+  required Session? Function() current,
+  required String appVersion,
+  required void Function() onUnauthorized,
+  required Future<bool> Function() onReauthenticate,
+  Dio? dio,
+}) {
+  Session? own() {
+    final now = current();
+    return now?.serverUrl == session.serverUrl &&
+            now?.deviceId == session.deviceId
+        ? now
+        : null;
+  }
+
+  return ApiClient(
+    serverUrl: session.serverUrl,
+    token: () => own()?.token,
+    proxyCookies: () => own()?.proxyCookies ?? const {},
+    appVersion: appVersion,
+    onUnauthorized: () {
+      if (own() != null) onUnauthorized();
+    },
+    onReauthenticate: () async => own() != null && await onReauthenticate(),
+    dio: dio,
+  );
+}
 
 /// Login, logout and the renewal of the login (a new second factor) of the app.
 class AuthController extends Notifier<AuthState> {
@@ -110,8 +141,64 @@ class AuthController extends Notifier<AuthState> {
   /// The servers of the last logins, most recent first (offered by the login).
   Future<List<String>> servers() => ref.read(sessionStoreProvider).servers();
 
-  Future<void> removeServer(String serverUrl) =>
-      ref.read(sessionStoreProvider).removeServer(serverUrl);
+  /// The stored logins, the active one among them, most recent first.
+  Future<List<Session>> sessions() => ref.read(sessionStoreProvider).sessions();
+
+  /// Removes the server from the list. A stored login there (not the active one) is logged out at that server too,
+  /// best effort.
+  Future<void> removeServer(String serverUrl) async {
+    final stored = (await sessions())
+        .where((it) => it.serverUrl == serverUrl)
+        .firstOrNull;
+    if (stored != null && stored.serverUrl != state.session?.serverUrl) {
+      try {
+        await ApiClient(
+              serverUrl: stored.serverUrl,
+              token: () => stored.token,
+              proxyCookies: () => stored.proxyCookies,
+              appVersion:
+                  ref.read(deviceDescriptionProvider).value?.appVersion ?? '',
+              onUnauthorized: () {},
+              onReauthenticate: () async => false,
+            )
+            .post<void>('/rs/appAuth/logout', renewLogin: false)
+            .timeout(const Duration(seconds: 3));
+      } on Object {
+        // Offline or already logged out: the token is forgotten here anyway.
+      }
+    }
+    await ref.read(sessionStoreProvider).removeServer(serverUrl);
+  }
+
+  /// Makes the stored login [target] (of another server) the active one, without the browser.
+  Future<void> switchTo(Session target) async {
+    if (target.serverUrl == state.session?.serverUrl) return;
+    appLog.info('auth', 'Switch to another server');
+    await _leave();
+    LogSanitizer.addSecretNames(target.proxyCookies.keys);
+    await ref.read(sessionStoreProvider).save(target);
+    state = AuthState(AuthStatus.loggedIn, session: target);
+  }
+
+  /// Before another login becomes the active one; the current one stays stored. Its server stops pushing (only the
+  /// server shown pushes, so a tapped push belongs to it), and its cache and files leave the device (the cache isn't
+  /// kept per server).
+  ///
+  /// The WebView keeps its data: it is per server anyway, and stays as the login does. Clearing it is what a logout
+  /// does; on iOS it runs on after the call and held up the cookies and pages of the next server for half a minute.
+  Future<void> _leave() async {
+    if (state.status != AuthStatus.loggedIn) return;
+    try {
+      await ref
+          .read(apiClientProvider)
+          ?.post<void>('/rs/appAuth/pushToken/remove', renewLogin: false)
+          .timeout(const Duration(seconds: 3));
+    } on Object {
+      // Offline: the push of that server may still arrive.
+    }
+    await ref.read(jsonCacheProvider).clearAll();
+    await ref.read(sharedFilesProvider).clearAll();
+  }
 
   /// Logs in at [serverInput] (as typed by the user) in the browser.
   ///
@@ -142,6 +229,8 @@ class AuthController extends Notifier<AuthState> {
       }
       rethrow;
     }
+    // Another server added while logged in: the current login stays stored.
+    await _leave();
     final expired = _expiredLogin;
     _expiredLogin = null;
     if (expired != null && expired != _loginKey(session)) {

@@ -54,11 +54,19 @@ final recentTasksProvider = FutureProvider.autoDispose<List<TaskRef>>(
   (ref) => ref.watch(timesheetsRepositoryProvider)!.recentTasks(),
 );
 
-/// The bookable tasks matching a search term.
+/// The bookable tasks matching a search term, below the task [parentId] only if given.
 final taskSearchProvider = FutureProvider.autoDispose
-    .family<List<TaskRef>, String>(
-      (ref, search) =>
-          ref.watch(timesheetsRepositoryProvider)!.searchTasks(search),
+    .family<List<TaskRef>, ({String term, int? parentId})>(
+      (ref, search) => ref
+          .watch(timesheetsRepositoryProvider)!
+          .searchTasks(search.term, parentId: search.parentId),
+    );
+
+/// One level of the task tree, the top level for null.
+final taskChildrenProvider = FutureProvider.autoDispose
+    .family<List<TaskChild>, int?>(
+      (ref, parentId) =>
+          ref.watch(timesheetsRepositoryProvider)!.taskChildren(parentId),
     );
 
 /// The cost units a booking on the task may charge.

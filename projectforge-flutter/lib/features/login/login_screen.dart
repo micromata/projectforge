@@ -27,16 +27,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/api/api_exception.dart';
 import '../../core/auth/app_login.dart';
 import '../../core/auth/auth_controller.dart';
+import '../../core/auth/session.dart';
 import '../../core/i18n/translations.dart';
 import '../../core/log/log_screen.dart';
 
 /// The server url and the button opening the login of that server in the browser (password and second factor
 /// are entered there, see AppLogin).
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key, this.messageKey});
+  const LoginScreen({super.key, this.messageKey, this.addServer = false});
 
   /// Why the app was logged out (an i18n key), if it was.
   final String? messageKey;
+
+  /// Shown over the app to log in at another server (the current login stays stored): with a way back, closed by the
+  /// login.
+  final bool addServer;
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -52,6 +57,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   /// The servers of the last logins, most recent first.
   List<String> _servers = const [];
 
+  /// The stored logins by server: a tap on such a server switches to it without the browser.
+  Map<String, Session> _sessions = const {};
+
   @override
   void initState() {
     super.initState();
@@ -65,13 +73,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _loadServers() async {
-    final servers = await ref.read(authControllerProvider.notifier).servers();
-    if (mounted) setState(() => _servers = servers);
+    final auth = ref.read(authControllerProvider.notifier);
+    final servers = await auth.servers();
+    final sessions = await auth.sessions();
+    if (mounted) {
+      setState(() {
+        _servers = servers;
+        _sessions = {for (final it in sessions) it.serverUrl: it};
+      });
+    }
   }
 
   Future<void> _removeServer(String serverUrl) async {
     await ref.read(authControllerProvider.notifier).removeServer(serverUrl);
     await _loadServers();
+  }
+
+  /// A server with a stored login is switched to at once, any other one only put into the field.
+  Future<void> _tap(String serverUrl) async {
+    final stored = _sessions[serverUrl];
+    if (stored == null) return _select(serverUrl);
+    await ref.read(authControllerProvider.notifier).switchTo(stored);
+    if (widget.addServer && mounted) Navigator.of(context).pop();
   }
 
   void _select(String serverUrl) {
@@ -94,6 +117,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
     try {
       await ref.read(authControllerProvider.notifier).login(_server.text);
+      if (widget.addServer && mounted) Navigator.of(context).pop();
     } on AppLoginCancelled {
       // The user closed the browser: nothing to report.
     } on InvalidServerUrl {
@@ -120,6 +144,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ? _devServerUrl
         : null;
     return Scaffold(
+      appBar: widget.addServer ? AppBar() : null,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -166,7 +191,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     for (final server in _servers)
                       _ServerTile(
                         serverUrl: server,
-                        onTap: _busy ? null : () => _select(server),
+                        signedIn: _sessions.containsKey(server),
+                        onTap: _busy ? null : () => _tap(server),
                         onRemove: _busy ? null : () => _removeServer(server),
                       ),
                     if (devServer != null)
@@ -213,9 +239,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
 /// A server of the last logins: a tap puts it into the field, [onRemove] (if given) removes it from the list.
 class _ServerTile extends StatelessWidget {
-  const _ServerTile({required this.serverUrl, this.onTap, this.onRemove});
+  const _ServerTile({
+    required this.serverUrl,
+    this.signedIn = false,
+    this.onTap,
+    this.onRemove,
+  });
 
   final String serverUrl;
+
+  /// There is a stored login at the server.
+  final bool signedIn;
   final VoidCallback? onTap;
   final VoidCallback? onRemove;
 
@@ -225,6 +259,7 @@ class _ServerTile extends StatelessWidget {
     contentPadding: EdgeInsets.zero,
     leading: const Icon(Icons.dns_outlined),
     title: Text(serverUrl),
+    subtitle: signedIn ? Text(context.t('app.server.loggedIn')) : null,
     onTap: onTap,
     trailing: onRemove == null
         ? null

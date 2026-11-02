@@ -268,27 +268,8 @@ class _TimesheetsScreenState extends ConsumerState<TimesheetsScreen> {
   Widget build(BuildContext context) {
     final locale = TranslationsScope.of(context).locale;
     final week = _week(_day).value;
-    final scheme = Theme.of(context).colorScheme;
     return Column(
       children: [
-        Material(
-          color: scheme.tertiaryContainer,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                Icon(Icons.construction, color: scheme.onTertiaryContainer),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    context.t('app.underConstruction'),
-                    style: TextStyle(color: scheme.onTertiaryContainer),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {

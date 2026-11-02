@@ -37,7 +37,14 @@ Future<void> main() async {
   final translations = await Translations.load();
   // The names of the days and months in the language of the texts.
   await initializeDateFormatting(translations.locale);
-  runApp(ProviderScope(child: ProjectForgeApp(translations: translations)));
+  runApp(
+    ProviderScope(
+      // A failed load is shown with a button to try again. Riverpod's own retries (ten, with growing pauses) would
+      // keep the spinner up for a minute first.
+      retry: (_, _) => null,
+      child: ProjectForgeApp(translations: translations),
+    ),
+  );
 }
 
 /// Errors nobody caught (of the framework and of asynchronous code) go into the client log, in addition to the

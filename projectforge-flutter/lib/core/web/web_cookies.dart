@@ -32,11 +32,31 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 ///
 /// No JavaScript handlers are registered in the WebView: the pages must never get hold of the app token.
 class WebCookies {
+  /// iOS: a WebView without a page, alive as long as the app, see [_keepStoreAlive].
+  static HeadlessInAppWebView? _storeKeeper;
+
+  /// iOS hands the cookies to the network process of the WebViews. When the last WebView is gone (the tabs of the
+  /// server left by a switch), that process is torn down, and setting the cookies of the next server waited half a
+  /// minute for a new one, with the pages stalled. A WebView kept alive keeps the process.
+  static Future<void> _keepStoreAlive() async {
+    if (_storeKeeper != null || defaultTargetPlatform != TargetPlatform.iOS) {
+      return;
+    }
+    final keeper = HeadlessInAppWebView();
+    _storeKeeper = keeper;
+    try {
+      await keeper.run();
+    } on Object {
+      // Not essential (no WebView platform in tests).
+    }
+  }
+
   /// Sets the cookies of a response's `set-cookie` headers for [serverUrl] in the WebView.
   Future<void> setCookies(
     String serverUrl,
     List<String> setCookieHeaders,
   ) async {
+    await _keepStoreAlive();
     final url = WebUri(serverUrl);
     for (final cookie in parseSetCookies(setCookieHeaders)) {
       await CookieManager.instance().setCookie(
@@ -58,6 +78,7 @@ class WebCookies {
     Map<String, String> cookies,
   ) async {
     if (cookies.isEmpty) return;
+    await _keepStoreAlive();
     try {
       final url = WebUri(serverUrl);
       for (final cookie in cookies.entries) {
