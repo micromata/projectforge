@@ -178,6 +178,8 @@ export function fetchInvoiceFormDefaults(
  */
 export const E_INVOICE_ACCOUNT_FIELDS = [
   "customerContactPerson",
+  "customerContactDepartment",
+  "customerCostCenter",
   "customerAddress",
   "customerZipCode",
   "customerCity",

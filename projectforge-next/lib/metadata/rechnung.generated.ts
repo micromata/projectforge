@@ -66,9 +66,21 @@ export const RECHNUNG_METADATA = {
       required: false,
       maxLength: 100,
     },
+    customerContactDepartment: {
+      dataType: "STRING",
+      i18nKey: "fibu.konto.contactDepartment",
+      required: false,
+      maxLength: 255,
+    },
     customerContactPerson: {
       dataType: "STRING",
       i18nKey: "fibu.konto.contactPerson",
+      required: false,
+      maxLength: 255,
+    },
+    customerCostCenter: {
+      dataType: "STRING",
+      i18nKey: "fibu.konto.costCenter",
       required: false,
       maxLength: 255,
     },
@@ -89,6 +101,12 @@ export const RECHNUNG_METADATA = {
       i18nKey: "fibu.konto.leitwegId",
       required: false,
       maxLength: 50,
+    },
+    customerOrderNumber: {
+      dataType: "STRING",
+      i18nKey: "fibu.rechnung.customerOrderNumber",
+      required: false,
+      maxLength: 255,
     },
     customerVatId: {
       dataType: "STRING",

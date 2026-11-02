@@ -4,9 +4,11 @@ import type { ReactNode } from "react";
 import { FieldError } from "@/components/ui/field";
 import { PeriodStepper } from "@/components/shared/period-stepper";
 import type { PeriodKindId } from "@/lib/date-period";
+import { btNumberOf } from "@/lib/e-invoice-bt-numbers";
 import { cn } from "@/lib/utils";
 import { DatePeriodBoundsRow } from "./date-period-bounds-row";
 import { FieldHint } from "./field-hint";
+import { useOptionalFieldEntity } from "./form-context";
 import { useDatePeriodKind } from "./use-date-period-kind";
 import {
   useDatePeriodGroup,
@@ -78,6 +80,15 @@ export function DatePeriodField({
   disabled,
 }: DatePeriodFieldProps) {
   const { bounds, values, invalid, errors } = useDatePeriodGroup(begin, end);
+  const beginOwner = useOptionalFieldEntity(begin.name);
+  const endOwner = useOptionalFieldEntity(end.name);
+  // The e-invoice terms of the two ends, as one hint behind the label ("BT-73, BT-74").
+  const btNumbers = [
+    btNumberOf(beginOwner?.entity, beginOwner?.property),
+    btNumberOf(endOwner?.entity, endOwner?.property),
+  ]
+    .filter(Boolean)
+    .join(", ");
   const {
     kinds,
     kind,
@@ -103,6 +114,14 @@ export function DatePeriodField({
     >
       <legend className="inline-flex items-center gap-1 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
+        {btNumbers && (
+          <span
+            data-bt-number
+            className="ml-0.5 text-[10px] font-normal normal-case tracking-normal"
+          >
+            ({btNumbers})
+          </span>
+        )}
         {bounds.some((b) => b.required) && !disabled && (
           <span className="ml-0.5 text-primary">*</span>
         )}

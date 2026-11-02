@@ -13,6 +13,7 @@ The documentation for users and administrators is on the website (`site/`, https
 | [file-store.md](file-store.md)                        | Reference | File store (`projectforge-files`), start-up guard for the former JCR; few open points |
 | [major-upgrades.md](major-upgrades.md)                | Plan      | Spring Boot 4 / Hibernate 7 done; Jackson 3 and the remaining majors open             |
 | [kost2-reallocation.md](kost2-reallocation.md)        | Plan      | Retroactive Kost2 reallocation of accounting records; not started                     |
+| [invoice-from-order.md](invoice-from-order.md)        | Plan      | "Create invoice" from an order (positions, order number prefilled); waiting for finance |
 | [backup-encryption.md](backup-encryption.md)          | Proposal  | Encrypting backups with `age`; not implemented                                        |
 | [digital-business-card.md](digital-business-card.md)  | Plan      | Digital business cards: QR/vCard and photo via gateway done; Apple Wallet pass open    |
 | [flutter-client.md](flutter-client.md)                | Plan      | Mobile app (Flutter): app login via browser + PKCE, business cards done; timesheets, chat, push open |

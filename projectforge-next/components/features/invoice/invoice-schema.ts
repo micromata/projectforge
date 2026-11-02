@@ -113,10 +113,13 @@ export const invoiceSchema = z.object({
   project: entityRef,
   konto: entityRef,
   customerref1: m.nullableString("customerref1"),
+  customerOrderNumber: m.nullableString("customerOrderNumber"),
   attachment: m.nullableString("attachment"),
   // The address block of the e-invoice. Prefilled from the customer's account where empty, then the
   // user's — the export itself (XRechnung/ZUGFeRD) is not part of this page yet.
   customerContactPerson: m.nullableString("customerContactPerson"),
+  customerContactDepartment: m.nullableString("customerContactDepartment"),
+  customerCostCenter: m.nullableString("customerCostCenter"),
   customerAddress: m.nullableString("customerAddress"),
   customerZipCode: m.nullableString("customerZipCode"),
   customerCity: m.nullableString("customerCity"),
