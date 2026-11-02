@@ -714,6 +714,20 @@ image::/uploads/screenshots/2026-ChatThread-de.png[Bild]
 * Erwähnungen, Direktnachrichten und Antworten in gefolgten Threads werden in der App und per Mail gemeldet.
   Eine Mail geht nur für das, was in der App nicht gesehen wurde, und enthält nie den Text der Nachricht.
 
+[[chat_report_block]]
+=== Melden und Blockieren
+
+Im Menü einer Nachricht von anderen (Nachricht anklicken, dann erscheinen die Aktionen) schickt *Melden* die Nachricht
+mit einem optionalen Grund an die Administratoren. Sie erhalten den Text der Nachricht (die ersten 500 Zeichen), wer
+gemeldet hat und von wem die Nachricht ist, und können das Konto des Autors deaktivieren; das Gespräch können sie nicht
+öffnen. Beim Melden lässt sich der Autor gleich blockieren.
+
+*Nutzer blockieren* (Menü des Autors oder die Schaltfläche im Kopf einer Direktnachricht) beendet die
+Direktnachrichten mit diesem Nutzer: Keiner von beiden kann im Gespräch schreiben, es bleibt lesbar. In Räumen werden die
+Nachrichten eines blockierten Nutzers eingeklappt angezeigt (*Anzeigen* öffnet eine), und von ihm kommen keine
+Benachrichtigungen, Erwähnungen oder Suchtreffer mehr. Der blockierte Nutzer erfährt davon nichts. *Blockierung
+aufheben* entfernt die Sperre, auch in der Liste *Blockierte Nutzer* neben den Toneinstellungen des Chats.
+
 [[chat_search]]
 === Suche
 

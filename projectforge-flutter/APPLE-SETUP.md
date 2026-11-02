@@ -80,8 +80,10 @@ content (chat messages), identifiers (device id, push token).
   remove it after the review. Give the account no rights beyond the defaults. The server URL goes into the review
   notes only, not into the repository.
 - Contact data for the reviewer.
-- A chat is user generated content (guideline 1.2): reporting and blocking users in the app and a contact for the
-  operator are required.
+- A chat is user generated content (guideline 1.2): reporting a message (the menu of a message, shown by a click on
+  it) and blocking a user (menu of the author, head of a direct message) exist; a report is mailed to the server's
+  administrators, who deactivate the account of the author. Name this in the review notes, and give a contact for
+  the operator (the support url).
 - Export compliance: the app only uses standard HTTPS; `ITSAppUsesNonExemptEncryption` is already `false` in
   `ios/Runner/Info.plist`.
 

@@ -42,6 +42,8 @@ export interface ChatQuote {
   hidden: boolean;
   /** The beginning of its plain text, null if not to be shown. */
   excerpt: string | null;
+  /** The author is blocked by the viewer: the excerpt is withheld. */
+  fromBlocked?: boolean;
 }
 
 /**
@@ -72,6 +74,8 @@ export interface ChatMessage {
   following: boolean;
   own: boolean;
   mentionsMe: boolean;
+  /** Has the logged-in user blocked the author? Shown folded. */
+  fromBlocked?: boolean;
   changeSeq: number;
 }
 

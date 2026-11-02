@@ -22,6 +22,7 @@ import type { ChatMessage } from "@/lib/rs/chat-types";
 import { useChatContext } from "./chat-context";
 import { EmojiPicker } from "@/components/shared/emoji/emoji-picker";
 import { HideMessageDialog } from "./hide-message-dialog";
+import { ReportMessageDialog } from "./report-message-dialog";
 import { MessageHistoryDialog } from "./message-history-dialog";
 import { useMessageMutations } from "./use-message-mutations";
 
@@ -44,6 +45,7 @@ export function MessageActions({
   const mutations = useMessageMutations();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [hiding, setHiding] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const [history, setHistory] = useState(false);
   const writable = conversation.canWrite && !message.deleted && !message.hidden;
   const copyLink = () => {
@@ -51,6 +53,15 @@ export function MessageActions({
     void navigator.clipboard
       .writeText(url)
       .then(() => toast.success(t("chat.message.linkCopied")));
+  };
+  // The plain text of the message, for touch devices where text can't be selected (a tap toggles the actions).
+  const copyText = () => {
+    const text =
+      new DOMParser().parseFromString(message.content ?? "", "text/html").body
+        .textContent ?? "";
+    void navigator.clipboard
+      .writeText(text)
+      .then(() => toast.success(t("chat.message.textCopied")));
   };
   if (message.deleted && !conversation.isModerator) return null;
 
@@ -106,12 +117,22 @@ export function MessageActions({
               {t("chat.message.delete._")}
             </DropdownMenuItem>
           )}
+          {message.content && !message.deleted && !message.hidden && (
+            <DropdownMenuItem onSelect={copyText}>
+              {t("chat.message.copyText")}
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onSelect={copyLink}>
             {t("chat.message.copyLink")}
           </DropdownMenuItem>
           {!message.own && !message.deleted && (
             <DropdownMenuItem onSelect={() => markUnread(message)}>
               {t("chat.message.markUnread")}
+            </DropdownMenuItem>
+          )}
+          {!message.own && !message.deleted && (
+            <DropdownMenuItem onSelect={() => setReporting(true)}>
+              {t("chat.message.report._")}
             </DropdownMenuItem>
           )}
           {conversation.isModerator && !message.deleted && (
@@ -153,6 +174,14 @@ export function MessageActions({
         onConfirm={(reason) => {
           setHiding(false);
           mutations.hide.mutate({ id: message.id, hidden: true, reason });
+        }}
+      />
+      <ReportMessageDialog
+        open={reporting}
+        onOpenChange={setReporting}
+        onConfirm={(reason, block) => {
+          setReporting(false);
+          mutations.report.mutate({ id: message.id, reason, block });
         }}
       />
       <MessageHistoryDialog

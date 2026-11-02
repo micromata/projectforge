@@ -9,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { BlockedUsersList } from "./blocked-users-list";
 import { RingLogView } from "./ring-log-view";
 import { SecretAlertSettings } from "./secret-alert-settings";
 
@@ -33,6 +34,7 @@ export function ChatAlertSettingsPopover() {
         </h2>
         <SecretAlertSettings showTest className="flex-col items-start" />
         <RingLogView />
+        <BlockedUsersList />
       </PopoverContent>
     </Popover>
   );

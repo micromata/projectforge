@@ -67,6 +67,9 @@ class ChatNotifier {
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
+    @Autowired
+    private lateinit var blockService: ChatBlockService
+
     @Autowired(required = false)
     private var eventListeners: List<ChatEventListener> = emptyList()
 
@@ -151,7 +154,9 @@ class ChatNotifier {
      * from the server-sent events only: a chat open in polling mode gets the notification too.
      */
     fun onSecretOffer(conversationId: Long, senderId: Long, recipientId: Long, offeredAt: Long) {
-        if (eventListeners.any { it.isWatching(conversationId, recipientId) }) {
+        if (eventListeners.any { it.isWatching(conversationId, recipientId) } ||
+            blockService.isBlocked(senderId, recipientId)
+        ) {
             return
         }
         executor.execute {
@@ -200,8 +205,10 @@ class ChatNotifier {
                     host.hasReadAccess(user, info.hostId, info.channel)
         }
 
+        // Who blocked the author gets no notification of them, no mention either.
+        val blockers = blockService.blockerIds(info.authorId)
         val mentioned = mutableSetOf<Long>()
-        info.newlyMentionedIds.filter { it != info.authorId }.forEach { userId ->
+        info.newlyMentionedIds.filter { it != info.authorId && it !in blockers }.forEach { userId ->
             val user = userGroupCache.getUser(userId)
             if (!mayRead(user)) {
                 return@forEach
@@ -228,7 +235,7 @@ class ChatNotifier {
         }
         val muted = mutedUserIds(info.conversationId)
         recipients.asSequence()
-            .filter { it != info.authorId && it !in mentioned && it !in muted }
+            .filter { it != info.authorId && it !in mentioned && it !in muted && it !in blockers }
             .filter { userId -> eventListeners.none { it.isWatching(info.conversationId, userId) } }
             .forEach { userId ->
                 val user = userGroupCache.getUser(userId)

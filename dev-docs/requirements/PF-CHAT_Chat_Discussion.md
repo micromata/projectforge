@@ -6,7 +6,7 @@
 | DOC-ID | PF-CHAT-REQ |
 | Status | Draft 0.7 (status of the implementation brought up to date, open points only) |
 | Owner | Kai Reinhard |
-| Date | 2026-10-27 |
+| Date | 2026-11-02 |
 | Stage | R1 released (ProjectForge 9.0.16), R2 in progress |
 | Used by | chat rooms and direct messages (built-in hosts, PF-CHAT-ROOM, PF-CHAT-DM); data transfer areas (PF-CHAT-DT); [PF-CVR – CVE-Radar](PF-CVR_CVE-Radar_Vulnerability_Management.md); later invoices, orders and others |
 
@@ -116,6 +116,7 @@ Priority by MoSCoW: **M** = Must, **S** = Should, **C** = Could, **W** = Won't (
 | MSG-09 | An unsent draft should be kept per user and conversation. | S | |
 | MSG-10 | Users should be able to react to messages and thread replies with emoji, as in Google Chat: quick choice of recently used emoji, per emoji the count and (on hover) who reacted; a second click takes the own reaction back. Reactions are not notified. | S | decision 7 |
 | MSG-11 | A conversation must be shown compactly: messages as bubbles (the own ones on the right), consecutive messages of the same author grouped, a separator per day. | M | mobile first (NFR-02) |
+| MSG-12 | Every message of another user must be reportable with an optional reason. The report is stored once per reporter and message, with an excerpt of the message, and every administrator is notified (in the app and by mail). The reporter may block the author in the same step. | M | app store rule for user generated content; SEC-09 |
 
 ### 5.3 PF-CHAT-THR – Threads
 
@@ -179,6 +180,7 @@ own instead of interleaving with the conversation.
 | SEC-06 | A PF administrator must get no access to conversations through the admin role alone. | M | |
 | SEC-07 | Every access rule comes with a test (refused for an ordinary user, allowed for the user it is meant for). | M | |
 | SEC-08 | A conversation should be exportable (PDF or HTML incl. threads and images) by users with read access, for audits and evidence. | S | |
+| SEC-09 | A report (MSG-12) is the only way chat content leaves a conversation: the excerpt (500 characters) goes to the administrators, nowhere else. They act on the account of the author (deactivate it); they can neither read the conversation nor hide a message (SEC-05, SEC-06). | M | exception to NOT-05, limited to reports |
 
 ### 5.8 PF-CHAT-ROOM – Chat rooms
 
@@ -206,9 +208,11 @@ participants.
 | DM-01 | Every user with system access must always be able to write privately to another user: from the chat page (choosing the user), from a user found in the menu search (button "Start chat / send file", Ctrl/Cmd+Enter; the users of the user selection, also for whom may not open the user pages, there the row starts the chat) and from every conversation (clicking an author). | M | decision 12 |
 | DM-02 | A direct message can be started only with users the user may see in the user selection (as ROOM-05), not with oneself. | M | no widening of visibility |
 | DM-03 | A pair of users has exactly one conversation, whoever starts it; each sees the name of the other one as title. | M | |
-| DM-04 | Both read and write as long as both have system access, without checking the visibility again (whoever got a message may answer); without the system access of the other one it is read-only. Nobody moderates, administrators have no access. | M | |
+| DM-04 | Both read and write as long as both have system access and neither has blocked the other (DM-07), without checking the visibility again (whoever got a message may answer); without the system access of the other one it is read-only. Nobody moderates, administrators have no access. | M | |
 | DM-05 | The chat page must list the direct messages with at least one message (newest first, unread counts); an opened, empty one isn't listed. | M | |
 | DM-06 | New messages are notified as in rooms (in the app at once, by mail if not seen within an hour, once until read) with a text of their own, without the content. | M | NOT-05 |
+| DM-07 | A user must be able to block another one (and unblock them). Between two users with a block no direct message can be started or written, for both; the conversation stays readable. The blocked one isn't told about the block, only that direct messages are not possible. | M | checked on the server (SEC-01), not cached |
+| DM-08 | For the blocker, the messages of a blocked user count as no unread, give no notifications, mentions or search hits and are shown folded (in rooms as well). A block applies at once. | M | |
 
 ### 5.10 PF-CHAT-DT – Data transfer areas
 
@@ -296,10 +300,11 @@ page, thread side panel, mention suggestions, file upload and image viewer.
 | 9 | Chat rooms | Built-in first host with participants (users and groups); the chat area follows in R2 | ROOM-01 – ROOM-09 |
 | 10 | Mentions | `@` with suggestions from the readers of the conversation; checked on the server; notified at once | MSG-07, NOT-03 |
 | 11 | Reactions storage | Stored with the message (emoji → user ids), not historised | MSG-10 |
-| 12 | Direct messages | Built-in host with the pair of users as host object; started only with visible users, then open to both | DM-01 – DM-06 |
+| 12 | Direct messages | Built-in host with the pair of users as host object; started only with visible users, then open to both unless one has blocked the other | DM-01 – DM-08 |
 | 13 | Confidential conversations | A live session of the two browsers (like OTR), end-to-end encrypted, relayed in memory and deleted when taken, until one side ends it; direct messages only | CONF-01 – CONF-10 |
 | 14 | Read state | One mark per user and conversation (the newest message read), for the conversation and its threads; replies count as unread only in threads followed or with a mention; marking unread moves it back; the menu badges come from the notifications and aren't restored by marking unread | NOT-01, NOT-03, NOT-09 |
 | 15 | Data transfer areas | Every ordinary area is a chat room of the users with access, its files go into the area; the personal box of another user leads to the direct message with its owner | DT-01 – DT-07 |
+| 16 | Report and block | A report goes to all administrators (excerpt, no access to the conversation); a block is a row per pair, read on every check; no admin list of reports yet, the measure is deactivating the account | MSG-12, SEC-09, DM-07, DM-08 |
 
 ## 9. Open points and deviations
 

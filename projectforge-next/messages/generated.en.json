@@ -1016,6 +1016,19 @@
   "charactersLeft": "characters left.",
   "chat": {
     "backToHost": "Back",
+    "block": {
+      "blocked": "User blocked",
+      "confirm": "Block {arg0}? Direct messages between you stop, and you get no notifications, mentions or search hits from this user.",
+      "folded": "Message of a blocked user",
+      "list": {
+        "_": "Blocked users",
+        "empty": "You haven't blocked anybody."
+      },
+      "show": "Show",
+      "unblock": "Unblock user",
+      "unblocked": "Block removed",
+      "user": "Block user"
+    },
     "conversation": {
       "empty": "No messages yet.",
       "loadOlder": "Load older messages",
@@ -1045,6 +1058,7 @@
       "_": "Direct messages",
       "empty": "No direct messages yet.",
       "error": {
+        "blocked": "Direct messages with this user aren't possible.",
         "self": "You can't send a direct message to yourself."
       },
       "info": "Anybody shown in the user selection can be written to.",
@@ -1098,6 +1112,7 @@
       "cancel": "Cancel",
       "codeBlock": "Code block of several lines: Enter starts a new line, Ctrl+Enter (Mac: ⌘+Enter) sends.",
       "copyLink": "Copy link",
+      "copyText": "Copy text",
       "delete": {
         "_": "Delete",
         "confirm": "Delete this message?"
@@ -1122,10 +1137,19 @@
       },
       "react": "Add reaction",
       "reply": "Reply in thread",
+      "report": {
+        "_": "Report",
+        "block": "Block the author as well",
+        "description": "The administrators get the message and your reason. Nobody else sees the report, the author isn't told.",
+        "done": "Message reported",
+        "reason": "Reason (optional)",
+        "title": "Report message"
+      },
       "save": "Save",
       "seen": "Read",
       "seenBy": "Read by {arg0}",
       "send": "Send",
+      "textCopied": "Text copied.",
       "unhide": "Show again"
     },
     "notification": {

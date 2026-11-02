@@ -217,6 +217,35 @@ export function hideChatMessage(
   });
 }
 
+/** Reports a message to the administrators, optionally blocking its author as well. */
+export function reportChatMessage(
+  messageId: number,
+  reason: string | null,
+  block: boolean
+) {
+  return chatPost<void>(`${BASE}/message/${messageId}/report`, {
+    reason,
+    block,
+  });
+}
+
+const BLOCK_BASE = "/rs/chatBlock";
+
+export const chatBlockedQueryKey = ["chatBlocked"] as const;
+
+/** The users the logged-in user has blocked. */
+export function fetchBlockedChatUsers(signal?: AbortSignal) {
+  return chatRequest<ChatRef[]>(BLOCK_BASE, { method: "GET" }, signal);
+}
+
+export function blockChatUser(userId: number) {
+  return chatRequest<void>(`${BLOCK_BASE}/${userId}`, { method: "POST" });
+}
+
+export function unblockChatUser(userId: number) {
+  return chatRequest<void>(`${BLOCK_BASE}/${userId}`, { method: "DELETE" });
+}
+
 export function toggleChatReaction(messageId: number, emoji: string) {
   return chatPost<void>(`${BASE}/message/${messageId}/reaction`, { emoji });
 }

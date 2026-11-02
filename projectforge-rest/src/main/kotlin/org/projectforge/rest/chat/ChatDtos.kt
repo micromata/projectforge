@@ -80,6 +80,8 @@ class ChatQuote(
     val hidden: Boolean,
     /** The beginning of its plain text, null if not to be shown. */
     val excerpt: String?,
+    /** The author is blocked by the viewer: the excerpt is withheld. */
+    val fromBlocked: Boolean = false,
 )
 
 /**
@@ -116,6 +118,8 @@ class ChatMessage(
     val own: Boolean,
     /** Is the logged-in user mentioned? */
     val mentionsMe: Boolean,
+    /** Has the logged-in user blocked the author? The client folds the message. */
+    val fromBlocked: Boolean = false,
     val changeSeq: Long,
 )
 
@@ -173,6 +177,9 @@ class ChatSendRequest(val html: String? = null, val threadRootId: Long? = null, 
 class ChatEditRequest(val html: String? = null)
 
 class ChatHideRequest(val hidden: Boolean = true, val reason: String? = null)
+
+/** Reports a message: the reason (optional), and whether the author is blocked as well. */
+class ChatReportRequest(val reason: String? = null, val block: Boolean = false)
 
 class ChatReactionRequest(val emoji: String? = null)
 
