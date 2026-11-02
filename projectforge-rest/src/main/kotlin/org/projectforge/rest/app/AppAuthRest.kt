@@ -37,6 +37,7 @@ import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.pub.next.TwoFactorRequired
+import org.projectforge.security.My2FARequestConfiguration
 import org.projectforge.security.My2FAService
 import org.projectforge.web.rest.RestAuthenticationUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -70,6 +71,9 @@ class AppAuthRest {
 
     @Autowired
     private lateinit var my2FAService: My2FAService
+
+    @Autowired
+    private lateinit var my2FARequestConfiguration: My2FARequestConfiguration
 
     class AuthorizeRequest(
         val challenge: String? = null,
@@ -108,13 +112,15 @@ class AppAuthRest {
         }
         // A demo account is shared: an app of one visitor would stay logged in for all others.
         accessChecker.checkRestrictedOrDemoUser()
-        if (!my2FAService.checklastSuccessful2FA(AppAuthService.MAX_2FA_AGE_MINUTES, My2FAService.Unit.MINUTES)) {
+        // An exempt account (the app review) has no second factor to show: its login counts as one.
+        val exempt = my2FARequestConfiguration.isExempt(user.username)
+        if (!exempt && !my2FAService.checklastSuccessful2FA(AppAuthService.MAX_2FA_AGE_MINUTES, My2FAService.Unit.MINUTES)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(TwoFactorRequired(expiryMillis = AppAuthService.MAX_2FA_AGE_MINUTES * TimeUnit.MINUTE.millis))
         }
         val redirectUrl = appAuthService.authorize(
             user = user,
-            lastSuccessful2FA = userContext.lastSuccessful2FA!!,
+            lastSuccessful2FA = if (exempt) System.currentTimeMillis() else userContext.lastSuccessful2FA!!,
             challenge = body.challenge,
             state = body.state,
             deviceName = body.deviceName,
