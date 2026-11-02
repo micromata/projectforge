@@ -23,19 +23,23 @@
 
 package org.projectforge.plugins.cveradar.sync
 
+import org.apache.hc.client5.http.classic.methods.HttpGet
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase
 import org.apache.hc.core5.http.ContentType
 import org.apache.hc.core5.http.io.entity.StringEntity
 import org.projectforge.framework.integration.IntegrationConfig
 import org.projectforge.framework.integration.PooledHttpClients
+import java.nio.file.Files
+import java.nio.file.Path
 
 /**
  * The HTTP calls of the connectors: pooled clients with the timeouts of [IntegrationConfig] (ids [GRAYLOG],
- * [NVD]) and a size limit of every response (EXT-06, SEC-05). Error messages never contain request headers.
+ * [NVD], [OSV]) and a size limit of every response (EXT-06, SEC-05). Error messages never contain request headers.
  */
 internal object CveRadarHttp {
     const val GRAYLOG = "cveradar-graylog"
     const val NVD = IntegrationConfig.CVERADAR_NVD
+    const val OSV = IntegrationConfig.CVERADAR_OSV
 
     /** Used, if `projectforge.integration.clients.<id>.maxResponseBytes` isn't given. */
     private const val DEFAULT_MAX_RESPONSE_BYTES = 50L * 1024 * 1024
@@ -54,6 +58,33 @@ internal object CveRadarHttp {
                 throw HttpException("${request.method} ${request.requestUri}: HTTP ${response.code} ${body.take(300)}", response.code)
             }
             body
+        }
+    }
+
+    /**
+     * GET of a large answer into the [target] file, streamed, not more than the limit; e.g. a zip, read afterwards.
+     */
+    fun download(integrationId: String, url: String, target: Path) {
+        val maxBytes = IntegrationConfig.get(integrationId).maxResponseBytes.takeIf { it > 0 }
+            ?: DEFAULT_MAX_RESPONSE_BYTES
+        val request = HttpGet(url)
+        PooledHttpClients.get(integrationId).execute(request) { response ->
+            if (response.code !in 200..299) {
+                throw HttpException("${request.method} ${request.requestUri}: HTTP ${response.code}", response.code)
+            }
+            response.entity?.content?.use { input ->
+                Files.newOutputStream(target).use { out ->
+                    val buffer = ByteArray(64 * 1024)
+                    var total = 0L
+                    while (true) {
+                        val read = input.read(buffer)
+                        if (read < 0) break
+                        total += read
+                        if (total > maxBytes) throw PooledHttpClients.ResponseTooLargeException(maxBytes)
+                        out.write(buffer, 0, read)
+                    }
+                }
+            }
         }
     }
 

@@ -69,6 +69,9 @@ class CvrFindingReportService {
     private lateinit var inventoryService: CvrInventoryService
 
     @Autowired
+    private lateinit var osvService: CvrOsvAdvisoryService
+
+    @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
     fun report(user: PFUserDO, level: InventoryLevel, id: Long, anonymize: Boolean): FindingReport {
@@ -110,14 +113,24 @@ class CvrFindingReportService {
     /**
      * The report of an ad-hoc check (see [CvrAdHocCheckService]): per vulnerability the findings in the uploaded
      * files, which the caller built; the vulnerabilities are read here. Anything for a deleted one is left out.
+     * [advisoryFindings]: the findings of OSV advisories not linked to a vulnerability yet, by vulnerability key; the
+     * vulnerability is made of the advisories for the report only, it isn't stored.
      */
-    fun adHocReport(findings: Map<Long, List<ReportFinding>>, anonymize: Boolean): FindingReport {
+    fun adHocReport(
+        findings: Map<Long, List<ReportFinding>>,
+        advisoryFindings: Map<String, List<ReportFinding>>,
+        anonymize: Boolean,
+    ): FindingReport {
         val vulnerabilities = byId(CvrVulnerabilityDO::class.java, findings.keys).filterValues { !it.deleted }
         val cases = caseDao.selectByVulnerabilityIds(vulnerabilities.keys)
+        val fromAdvisories = advisoryFindings.mapNotNull { (key, list) ->
+            val advisories = osvService.advisoriesOf(key).takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+            reportVulnerability(osvService.toVulnerability(advisories), null, list) to null
+        }
         val reported = sorted(
             vulnerabilities.map { (id, vulnerability) ->
                 reportVulnerability(vulnerability, cases[id], findings.getValue(id)) to cases[id]
-            },
+            } + fromAdvisories,
         )
         return FindingReport(
             schemaVersion = SCHEMA_VERSION,
@@ -130,14 +143,15 @@ class CvrFindingReportService {
         )
     }
 
+    /** Works for a vulnerability that isn't stored as well (made of OSV advisories for an ad-hoc check). */
     private fun reportVulnerability(vulnerability: CvrVulnerabilityDO, case: CvrCaseDO?, findings: List<ReportFinding>): ReportVulnerability {
-        val view = caseFileService.vulnerabilityView(vulnerability)
+        val (remediation, other) = caseFileService.partitionedReferences(vulnerability)
         return ReportVulnerability(
             cveId = vulnerability.cveId, nvdStatus = vulnerability.nvdStatus, published = vulnerability.published,
             description = vulnerability.description, cvssScore = vulnerability.cvssScore,
             severity = vulnerability.severity, cvss31Vector = vulnerability.cvss31Vector,
-            cvss40Vector = vulnerability.cvss40Vector, cwes = view.cwes, kevAdded = vulnerability.kevAdded,
-            references = (view.remediationReferences + view.otherReferences).take(MAX_REFERENCES),
+            cvss40Vector = vulnerability.cvss40Vector, cwes = CvrCaseFileService.cwesOf(vulnerability), kevAdded = vulnerability.kevAdded,
+            references = (remediation + other).take(MAX_REFERENCES),
             case = case?.let { caseOf(it) },
             findings = findings,
         )

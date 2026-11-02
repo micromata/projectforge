@@ -175,7 +175,11 @@ class CvrCaseDao : CvrBaseDao<CvrCaseDO>(CvrCaseDO::class.java) {
     companion object {
         private val INSERT_LOCK = Any()
 
-        val CVE_REGEX = Regex("""^CVE-\d{4}-\d{4,}$""")
+        /**
+         * The id of a vulnerability (upper case): a CVE id, or the id of an OSV advisory without CVE (a vulnerability
+         * made of advisories, see [CvrOsvAdvisoryService]): GHSA-XXXX-XXXX-XXXX, PYSEC-2021-19, GO-2022-0001, ...
+         */
+        val CVE_REGEX = Regex("""^(CVE-\d{4}-\d{4,}|GHSA(-[0-9A-Z]{4}){3}|(PYSEC|GO|RUSTSEC|MAL|OSV)-\d{4}-\d+)$""")
 
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf("assignee.username", "assignee.firstname", "assignee.lastname")
     }

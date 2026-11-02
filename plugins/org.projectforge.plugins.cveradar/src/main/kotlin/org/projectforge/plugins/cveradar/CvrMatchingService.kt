@@ -36,11 +36,14 @@ import org.projectforge.plugins.cveradar.model.CvrFindingDO
 import org.projectforge.plugins.cveradar.model.CvrFindingStatus
 import org.projectforge.plugins.cveradar.model.CvrImportStateDO
 import org.projectforge.plugins.cveradar.model.CvrInstanceDO
+import org.projectforge.plugins.cveradar.model.CvrPurlMatchDO
 import org.projectforge.plugins.cveradar.model.CvrTechnologyDO
 import org.projectforge.plugins.cveradar.model.CvrTechnologyKind
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.projectforge.plugins.cveradar.sync.NvdCpeEntry
 import org.projectforge.plugins.cveradar.sync.NvdCpeParser
+import org.projectforge.plugins.cveradar.sync.OsvPackages
+import org.projectforge.plugins.cveradar.sync.OsvPackages.PurlPackage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
@@ -61,6 +64,12 @@ private val log = KotlinLogging.logger {}
  * - the version is compared with the version or range of the entry ([VersionComparator]); without a version of the
  *   technology a match is only *possible* (MAT-03).
  *
+ * How a library meets the affected versions of an OSV advisory ([CvrPurlMatchDO], IMP-13): by the package of its purl
+ * or of its catalogue node, the version compared with the range ([purlVersionMatch]). A Maven library without groupId
+ * (jar listing) meets by its artifact only: *possible*. An advisory not linked to a vulnerability yet becomes one on its
+ * first match ([CvrOsvAdvisoryService.materialize]). Where the advisories of a vulnerability know the package of a
+ * library, their verdict counts: a *possible* match of the same vulnerability by CPE is dropped.
+ *
  * Matching is idempotent: a run creates what is missing, corrects what changed and removes what no longer matches; a
  * discarded finding is left alone while its component and instance exist, even if it doesn't match for a while (MAT-06). The scope of a run is a set of vulnerabilities (after
  * an import), a set of components (after a change of the inventory) or everything.
@@ -72,6 +81,9 @@ class CvrMatchingService {
 
     @Autowired
     private lateinit var findingNotifier: CvrFindingNotifier
+
+    @Autowired
+    private lateinit var osvService: CvrOsvAdvisoryService
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
@@ -89,6 +101,25 @@ class CvrMatchingService {
     private class Key(val vendor: String?, val product: String, val sure: Boolean)
 
     private class Hit(val technologyId: Long?, val certainty: CvrFindingCertainty, val matched: String)
+
+    /** An entry of the purl index with the ids it belongs to; the advisory isn't loaded (its document is large). */
+    private class PurlCandidate(
+        val match: CvrPurlMatchDO,
+        val osvId: String,
+        val key: String,
+        val vulnerabilityId: Long?,
+    )
+
+    /** The candidates of the purl index by package name and (Maven) by artifact. */
+    private class PurlCandidates(val byName: Map<String, List<PurlCandidate>>, val byShortName: Map<String, List<PurlCandidate>>) {
+        val isEmpty get() = byName.isEmpty() && byShortName.isEmpty()
+    }
+
+    /**
+     * The hits of a technology by the purl index per vulnerability key, with the vulnerability if the advisories are
+     * linked to one; [covered]: the keys whose advisories know a package of the technology (whatever the version).
+     */
+    private class PurlHits(val hits: Map<String, Hit>, val vulnerabilityIds: Map<String, Long>, val covered: Set<String>)
 
     /** After the import: the new and modified vulnerabilities against the whole inventory. */
     fun rematchVulnerabilities(vulnerabilityIds: Collection<Long>): Result =
@@ -112,7 +143,7 @@ class CvrMatchingService {
     fun rematch(vulnerabilityIds: Collection<Long>? = null, componentIds: Collection<Long>? = null): Result {
         val result = Result()
         val model = loadModel(componentIds)
-        val hits = if (model.keys.isEmpty()) emptyMap() else findHits(model, vulnerabilityIds)
+        val hits = if (model.keys.isEmpty() && model.packages.isEmpty()) emptyMap() else findHits(model, vulnerabilityIds)
         val existing = findingDao.selectInScope(vulnerabilityIds, componentIds)
             .groupBy { Triple(it.vulnerabilityId!!, it.componentId!!, it.instanceId!!) }
         existing.forEach { (key, findings) ->
@@ -161,6 +192,32 @@ class CvrMatchingService {
         return result
     }
 
+    /**
+     * After the OSV import: the advisories that match the inventory become vulnerabilities (or are linked to the stored
+     * one of their key). The caller matches the returned vulnerabilities then ([rematchVulnerabilities]).
+     * @return The ids of the vulnerabilities of the advisories.
+     */
+    @Synchronized
+    fun materializeAdvisories(advisoryIds: Collection<Long>): Set<Long> {
+        if (advisoryIds.isEmpty()) return emptySet()
+        val model = loadModel(null)
+        val candidates = purlCandidates(model.packages.values.flatten(), "a.id", advisoryIds)
+        if (!candidates.isEmpty) {
+            val keys = mutableSetOf<String>()
+            model.technologies.forEach { technology ->
+                val component = model.components[technology.componentId] ?: return@forEach
+                if (model.instancesOf(component).isEmpty()) return@forEach
+                val purl = purlHitsOf(technology.id, technology.version, model.packages[technology.id].orEmpty(), candidates)
+                keys.addAll(purl.hits.keys.filter { it !in purl.vulnerabilityIds })
+            }
+            osvService.materialize(keys)
+        }
+        return persistenceService.executeQueryBatched(
+            "select a.vulnerability.id from CvrOsvAdvisoryDO a where a.id in :ids and a.vulnerability is not null",
+            Long::class.javaObjectType, "ids", advisoryIds,
+        ).toSet()
+    }
+
     private fun remove(finding: CvrFindingDO, result: Result) {
         findingDao.markAsDeleted(finding, checkAccess = false)
         result.removed++
@@ -173,6 +230,8 @@ class CvrMatchingService {
         val components: Map<Long, CvrComponentDO>,
         val technologies: List<CvrTechnologyDO>,
         val keys: Map<Long, List<Key>>,
+        /** The packages of the technologies with a purl (directly or by their catalogue node). */
+        val packages: Map<Long, List<PurlPackage>>,
     ) {
         /** The instances a component counts for. */
         fun instancesOf(component: CvrComponentDO): List<Long> =
@@ -209,8 +268,12 @@ class CvrMatchingService {
             active.mapNotNull { it.catalogNodeId }.toSet(),
         ).associateBy { it.id!! }
         val keys = active.associate { it.id!! to keysOf(it, nodes[it.catalogNodeId]) }
-        return Model(instances, activeComponents, active, keys.filterValues { it.isNotEmpty() })
+        val packages = active.associate { it.id!! to packagesOf(it.purl, nodes[it.catalogNodeId]) }
+        return Model(instances, activeComponents, active, keys.filterValues { it.isNotEmpty() }, packages.filterValues { it.isNotEmpty() })
     }
+
+    private fun packagesOf(purl: String?, node: CvrCatalogNodeDO?): List<PurlPackage> =
+        listOfNotNull(OsvPackages.ofPurl(purl), node?.let { OsvPackages.of(it.purlType, it.purlNamespace, it.purlName) }).distinct()
 
     private fun keysOf(technology: CvrTechnologyDO, node: CvrCatalogNodeDO?): List<Key> =
         keysOf(technology.cpe, technology.vendor, technology.product, node)
@@ -234,31 +297,62 @@ class CvrMatchingService {
 
     // --- The matching ---
 
-    /** The best hit per vulnerability, component and instance. */
+    /**
+     * The best hit per vulnerability, component and instance. Advisories that match but aren't linked to a vulnerability
+     * yet become one (only without [vulnerabilityIds]: in that scope every advisory is linked).
+     */
     private fun findHits(model: Model, vulnerabilityIds: Collection<Long>?): Map<Triple<Long, Long, Long>, Hit> {
         val byProduct = model.keys.values.flatten().groupBy { it.product }
-        val candidates = if (vulnerabilityIds != null) {
+        val candidates: Map<String?, List<CvrCpeMatchDO>> = if (byProduct.isEmpty()) {
+            emptyMap()
+        } else if (vulnerabilityIds != null) {
             // Restricted to the products of the inventory in the query: a large import changes tens of thousands of CVEs.
             persistenceService.executeQueryBatched(
                 "select m from CvrCpeMatchDO m where m.vulnerability.deleted = false and m.vulnerability.id in :ids and m.product in :products",
                 CvrCpeMatchDO::class.java, "ids", vulnerabilityIds, Pair("products", byProduct.keys), batchSize = ID_BATCH,
-            )
+            ).groupBy { it.product }
         } else {
             persistenceService.executeQueryBatched(
                 "select m from CvrCpeMatchDO m where m.vulnerability.deleted = false and m.product in :ids",
                 CvrCpeMatchDO::class.java, "ids", byProduct.keys,
-            )
-        }.groupBy { it.product }
-        val hits = mutableMapOf<Triple<Long, Long, Long>, Hit>()
-        model.technologies.forEach { technology ->
-            val component = model.components[technology.componentId] ?: return@forEach
+            ).groupBy { it.product }
+        }
+        val purlCandidates = purlCandidates(model.packages.values.flatten(), "v.id", vulnerabilityIds)
+
+        class TechnologyHits(val component: CvrComponentDO, val instanceIds: List<Long>, val cpe: Map<Long, Hit>, val purl: PurlHits)
+
+        val perTechnology = model.technologies.mapNotNull { technology ->
+            val component = model.components[technology.componentId] ?: return@mapNotNull null
             val instanceIds = model.instancesOf(component)
             if (instanceIds.isEmpty()) {
-                return@forEach
+                return@mapNotNull null
             }
-            hitsOf(technology.id, technology.version, model.keys[technology.id].orEmpty(), candidates).forEach { (vulnerabilityId, hit) ->
-                instanceIds.forEach { instanceId ->
-                    val triple = Triple(vulnerabilityId, component.id!!, instanceId)
+            TechnologyHits(
+                component, instanceIds,
+                hitsOf(technology.id, technology.version, model.keys[technology.id].orEmpty(), candidates),
+                purlHitsOf(technology.id, technology.version, model.packages[technology.id].orEmpty(), purlCandidates),
+            )
+        }
+        val vulnerabilityOfKey = perTechnology.flatMap { it.purl.vulnerabilityIds.entries }.associate { it.key to it.value }.toMutableMap()
+        val unlinked = perTechnology.flatMap { it.purl.hits.keys }.filter { it !in vulnerabilityOfKey }.toSet()
+        if (unlinked.isNotEmpty() && vulnerabilityIds == null) {
+            vulnerabilityOfKey.putAll(osvService.materialize(unlinked))
+        }
+        val hits = mutableMapOf<Triple<Long, Long, Long>, Hit>()
+        perTechnology.forEach { technology ->
+            // The advisories that know the package decide: a possible match by CPE of the same vulnerability is dropped.
+            val covered = technology.purl.covered.mapNotNull { vulnerabilityOfKey[it] }.toSet()
+            val merged = technology.cpe.filter { (id, hit) -> hit.certainty == CvrFindingCertainty.AFFECTED || id !in covered }.toMutableMap()
+            technology.purl.hits.forEach { (key, hit) ->
+                val vulnerabilityId = vulnerabilityOfKey[key] ?: return@forEach
+                val old = merged[vulnerabilityId]
+                if (old == null || (old.certainty == CvrFindingCertainty.POSSIBLE && hit.certainty == CvrFindingCertainty.AFFECTED)) {
+                    merged[vulnerabilityId] = hit
+                }
+            }
+            merged.forEach { (vulnerabilityId, hit) ->
+                technology.instanceIds.forEach { instanceId ->
+                    val triple = Triple(vulnerabilityId, technology.component.id!!, instanceId)
                     val old = hits[triple]
                     if (old == null || (old.certainty == CvrFindingCertainty.POSSIBLE && hit.certainty == CvrFindingCertainty.AFFECTED)) {
                         hits[triple] = hit
@@ -267,6 +361,54 @@ class CvrMatchingService {
             }
         }
         return hits
+    }
+
+    /**
+     * The entries of the purl index for these packages, of advisories not withdrawn; restricted to the [scope] ids of
+     * [scopeField] (`v.id`: vulnerabilities, `a.id`: advisories) if given.
+     */
+    private fun purlCandidates(packages: Collection<PurlPackage>, scopeField: String, scope: Collection<Long>?): PurlCandidates {
+        fun load(field: String, names: Set<String>): Map<String, List<PurlCandidate>> {
+            if (names.isEmpty()) return emptyMap()
+            val select = "select m, a.osvId, a.vulnerabilityKey, v.id from CvrPurlMatchDO m join m.advisory a left join a.vulnerability v " +
+                    "where a.withdrawn is null and (v is null or v.deleted = false) and m.$field in "
+            val rows = if (scope == null) {
+                persistenceService.executeQueryBatched("$select:ids", Array<Any>::class.java, "ids", names)
+            } else {
+                persistenceService.executeQueryBatched(
+                    "$select:names and $scopeField in :ids", Array<Any>::class.java, "ids", scope, Pair("names", names), batchSize = ID_BATCH,
+                )
+            }
+            return rows.map { PurlCandidate(it[0] as CvrPurlMatchDO, it[1] as String, it[2] as String, it[3] as Long?) }
+                .groupBy { if (field == "packageName") it.match.packageName!! else it.match.shortName!! }
+        }
+        if (scope != null && scope.isEmpty()) return PurlCandidates(emptyMap(), emptyMap())
+        val (byShortName, byName) = packages.partition { it.byShortName }
+        return PurlCandidates(load("packageName", byName.map { it.name }.toSet()), load("shortName", byShortName.map { it.name }.toSet()))
+    }
+
+    /** The hits of a technology with this [version] and these [packages] by the purl index. */
+    private fun purlHitsOf(technologyId: Long?, version: String?, packages: List<PurlPackage>, candidates: PurlCandidates): PurlHits {
+        val hits = mutableMapOf<String, Hit>()
+        val vulnerabilityIds = mutableMapOf<String, Long>()
+        val covered = mutableSetOf<String>()
+        packages.forEach { pkg ->
+            val list = (if (pkg.byShortName) candidates.byShortName[pkg.name] else candidates.byName[pkg.name]).orEmpty()
+            list.filter { it.match.ecosystem == pkg.ecosystem }.forEach candidate@{ candidate ->
+                candidate.vulnerabilityId?.let { vulnerabilityIds[candidate.key] = it }
+                if (!pkg.byShortName) {
+                    covered.add(candidate.key)
+                }
+                val versionCertainty = purlVersionMatch(version, candidate.match) ?: return@candidate
+                // Without groupId the artifact may be another one of the same name.
+                val certainty = if (pkg.byShortName) CvrFindingCertainty.POSSIBLE else versionCertainty
+                val old = hits[candidate.key]
+                if (old == null || (old.certainty == CvrFindingCertainty.POSSIBLE && certainty == CvrFindingCertainty.AFFECTED)) {
+                    hits[candidate.key] = Hit(technologyId, certainty, describe(candidate.osvId, candidate.match))
+                }
+            }
+        }
+        return PurlHits(hits, vulnerabilityIds, covered)
     }
 
     /** The best hit per vulnerability for a technology with this [version] and these [keys]; [candidates] by product. */
@@ -302,11 +444,21 @@ class CvrMatchingService {
 
     // --- Libraries outside the inventory (ad-hoc check) ---
 
-    /** A library that is not stored: what [keysOf] needs of a technology, and its version. */
-    internal class Query(val cpe: String?, val vendor: String?, val product: String?, val version: String?, val node: CvrCatalogNodeDO?)
+    /** A library that is not stored: what [keysOf] and [packagesOf] need of a technology, and its version. */
+    internal class Query(
+        val cpe: String?,
+        val vendor: String?,
+        val product: String?,
+        val version: String?,
+        val node: CvrCatalogNodeDO?,
+        val purl: String? = null,
+    )
 
-    /** What a library matched: the vulnerability, how sure and the CPE entry that did. */
-    internal class QueryHit(val vulnerabilityId: Long, val certainty: CvrFindingCertainty, val matched: String)
+    /**
+     * What a library matched: the vulnerability, how sure and the entry that did. [vulnerabilityId] is null for
+     * advisories not linked to a vulnerability yet (an ad-hoc check stores nothing); [vulnerabilityKey] names them.
+     */
+    internal class QueryHit(val vulnerabilityId: Long?, val vulnerabilityKey: String?, val certainty: CvrFindingCertainty, val matched: String)
 
     /**
      * The libraries against all vulnerabilities of the index, nothing stored: per library (same order) the best hit
@@ -315,17 +467,27 @@ class CvrMatchingService {
      */
     internal fun match(queries: List<Query>): List<List<QueryHit>> {
         val keys = queries.map { keysOf(it.cpe, it.vendor, it.product, it.node) }
+        val packages = queries.map { packagesOf(it.purl, it.node) }
         val products = keys.flatten().map { it.product }.toSet()
-        if (products.isEmpty()) {
+        if (products.isEmpty() && packages.all { it.isEmpty() }) {
             return queries.map { emptyList() }
         }
         val candidates = persistenceService.executeQueryBatched(
             "select m from CvrCpeMatchDO m where m.vulnerability.deleted = false and m.product in :ids",
             CvrCpeMatchDO::class.java, "ids", products,
         ).groupBy { it.product }
+        val purlCandidates = purlCandidates(packages.flatten(), "v.id", null)
         return queries.mapIndexed { index, query ->
-            hitsOf(null, query.version, keys[index], candidates)
-                .map { (vulnerabilityId, hit) -> QueryHit(vulnerabilityId, hit.certainty, hit.matched) }
+            val purl = purlHitsOf(null, query.version, packages[index], purlCandidates)
+            val covered = purl.covered.mapNotNull { purl.vulnerabilityIds[it] }.toSet()
+            val byCpe = hitsOf(null, query.version, keys[index], candidates)
+                .filter { (id, hit) -> hit.certainty == CvrFindingCertainty.AFFECTED || id !in covered }
+            val linked = purl.hits.filterKeys { it in purl.vulnerabilityIds }.mapKeys { purl.vulnerabilityIds.getValue(it.key) }
+            // One hit per vulnerability, the surer one.
+            (byCpe.keys + linked.keys).map { id ->
+                val hit = listOfNotNull(byCpe[id], linked[id]).minBy { it.certainty.ordinal }
+                QueryHit(id, null, hit.certainty, hit.matched)
+            } + purl.hits.filterKeys { it !in purl.vulnerabilityIds }.map { (key, hit) -> QueryHit(null, key, hit.certainty, hit.matched) }
         }
     }
 
@@ -441,6 +603,50 @@ class CvrMatchingService {
                 VersionComparator.compare(v, match.cpeVersion!!) == 0
             }
             return if (covered) CvrFindingCertainty.AFFECTED else null
+        }
+
+        /**
+         * Whether [version] is covered by the entry of the purl index: null no, AFFECTED yes, POSSIBLE if the version is
+         * unknown (MAT-03). The versions are compared by [VersionComparator] after [normalizeVersion].
+         */
+        internal fun purlVersionMatch(version: String?, match: CvrPurlMatchDO): CvrFindingCertainty? {
+            if (version.isNullOrBlank()) {
+                return CvrFindingCertainty.POSSIBLE
+            }
+            val ecosystem = match.ecosystem
+            val v = normalizeVersion(version, ecosystem)
+            fun cmp(other: String) = VersionComparator.compare(v, normalizeVersion(other, ecosystem))
+            val covered = match.exactVersion?.let { cmp(it) == 0 }
+                ?: ((match.introduced?.let { cmp(it) >= 0 } ?: true) &&
+                        (match.fixed?.let { cmp(it) < 0 } ?: true) &&
+                        (match.lastAffected?.let { cmp(it) <= 0 } ?: true))
+            return if (covered) CvrFindingCertainty.AFFECTED else null
+        }
+
+        /**
+         * A version as [VersionComparator] orders it right: without build metadata (`+…`); Maven without the qualifier
+         * of a release (`5.3.0.RELEASE`, `2.6.0.Final` as `5.3.0`, `2.6.0`); PyPI with a post release as a further
+         * number (`1.0.post1` as `1.0.0.1`: after `1.0`, before `1.0.1`).
+         */
+        internal fun normalizeVersion(version: String, ecosystem: String?): String {
+            val v = version.trim().substringBefore('+')
+            return when (ecosystem) {
+                "Maven" -> v.replace(MAVEN_RELEASE, "")
+                "PyPI" -> v.replace(PYPI_POST, ".0.$1")
+                else -> v
+            }
+        }
+
+        private val MAVEN_RELEASE = Regex("""[.\-](final|release|ga)$""", RegexOption.IGNORE_CASE)
+        private val PYPI_POST = Regex("""[.\-_]?post(\d+)$""", RegexOption.IGNORE_CASE)
+
+        /** The advisory, the package and its range, e.g. `GHSA-… Maven com.fasterxml.jackson.core:jackson-databind (>= 2.0.0, < 2.12.7.1)`. */
+        private fun describe(osvId: String, match: CvrPurlMatchDO): String {
+            val range = match.exactVersion?.let { listOf("= $it") } ?: listOfNotNull(
+                match.introduced?.let { ">= $it" }, match.fixed?.let { "< $it" }, match.lastAffected?.let { "<= $it" },
+            )
+            val versions = if (range.isEmpty()) "all versions" else range.joinToString(", ")
+            return "$osvId ${match.ecosystem} ${match.packageName} ($versions)".take(1000)
         }
 
         /** The CPE with its range, e.g. `cpe:2.3:a:apache:tomcat:*:… (>= 9.0.0, < 9.0.90)`. */

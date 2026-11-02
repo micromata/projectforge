@@ -486,8 +486,7 @@ class CvrCaseFileService {
     }
 
     internal fun vulnerabilityView(vulnerability: CvrVulnerabilityDO): VulnerabilityView {
-        val references = references(vulnerability)
-        val (remediation, other) = references.partition { reference -> reference.tags.any { it in REMEDIATION_TAGS } }
+        val (remediation, other) = partitionedReferences(vulnerability)
         return VulnerabilityView(
             id = vulnerability.id!!,
             cveId = vulnerability.cveId,
@@ -502,14 +501,21 @@ class CvrCaseFileService {
             cvss31Vector = vulnerability.cvss31Vector,
             cvss40Score = vulnerability.cvss40Score,
             cvss40Vector = vulnerability.cvss40Vector,
-            cwes = vulnerability.cwes?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList(),
+            cwes = cwesOf(vulnerability),
             kevAdded = vulnerability.kevAdded,
             remediationReferences = remediation,
             otherReferences = other,
         )
     }
 
-    /** The references of the NVD document: untrusted, so only http(s) links, limited in number and length. */
+    /** The references for fixing it (patch, vendor advisory, mitigation) and the other ones. */
+    internal fun partitionedReferences(vulnerability: CvrVulnerabilityDO): Pair<List<NvdReference>, List<NvdReference>> =
+        references(vulnerability).partition { reference -> reference.tags.any { it in REMEDIATION_TAGS } }
+
+    /**
+     * The references of the NVD document, or of the OSV document of a vulnerability made of advisories (its `type`
+     * as tag, `FIX` as `Patch`): untrusted, so only http(s) links, limited in number and length.
+     */
     internal fun references(vulnerability: CvrVulnerabilityDO): List<NvdReference> {
         val raw = vulnerability.rawDocument ?: return emptyList()
         return try {
@@ -522,7 +528,9 @@ class CvrCaseFileService {
                 NvdReference(
                     url,
                     node.path("source").asText(null)?.take(CvrReferenceLinks.MAX_LABEL_LENGTH),
-                    node.path("tags").mapNotNull { it.asText(null)?.take(50) }.take(10),
+                    node.path("tags").mapNotNull { it.asText(null)?.take(50) }.take(10).ifEmpty {
+                        listOfNotNull(node.path("type").asText(null)?.let { if (it == "FIX") "Patch" else it }?.take(50))
+                    },
                 )
             }.take(CvrReferenceLinks.MAX_LINKS * 2)
         } catch (ex: Exception) {
@@ -536,6 +544,9 @@ class CvrCaseFileService {
     companion object {
         private val OBJECT_MAPPER = ObjectMapper()
         private val REMEDIATION_TAGS = setOf("Patch", "Vendor Advisory", "Mitigation")
+
+        internal fun cwesOf(vulnerability: CvrVulnerabilityDO): List<String> =
+            vulnerability.cwes?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
         private const val MAX_RAW_BYTES = 5_000_000
         private const val MAX_MASS = 200
         private const val TEXT_LENGTH = 4000
