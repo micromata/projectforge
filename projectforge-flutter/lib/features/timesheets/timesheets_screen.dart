@@ -64,13 +64,18 @@ class _TimesheetsScreenState extends ConsumerState<TimesheetsScreen> {
   void didUpdateWidget(TimesheetsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.active && !oldWidget.active) {
-      final today = dayOf(DateTime.now());
-      if (today != _today) {
-        // Opened on another day than the last time: back to today.
-        _today = today;
-        _select(today);
-      }
-      ref.invalidate(timesheetWeekProvider);
+      // After the frame: didUpdateWidget runs while the tree builds, an invalidated provider then marks the
+      // ProviderScope dirty (setState during build), which breaks the build of the whole tree.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final today = dayOf(DateTime.now());
+        if (today != _today) {
+          // Opened on another day than the last time: back to today.
+          _today = today;
+          _select(today);
+        }
+        ref.invalidate(timesheetWeekProvider);
+      });
     }
   }
 
@@ -263,20 +268,45 @@ class _TimesheetsScreenState extends ConsumerState<TimesheetsScreen> {
   Widget build(BuildContext context) {
     final locale = TranslationsScope.of(context).locale;
     final week = _week(_day).value;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        _wide = constraints.maxWidth >= _wideLayout;
-        final main = _main(context, locale, week);
-        return _wide
-            ? Row(
-                children: [
-                  Expanded(child: main),
-                  const VerticalDivider(width: 1),
-                  SizedBox(width: 440, child: _sidePanel(context)),
-                ],
-              )
-            : main;
-      },
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        Material(
+          color: scheme.tertiaryContainer,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Icon(Icons.construction, color: scheme.onTertiaryContainer),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    context.t('app.underConstruction'),
+                    style: TextStyle(color: scheme.onTertiaryContainer),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              _wide = constraints.maxWidth >= _wideLayout;
+              final main = _main(context, locale, week);
+              return _wide
+                  ? Row(
+                      children: [
+                        Expanded(child: main),
+                        const VerticalDivider(width: 1),
+                        SizedBox(width: 440, child: _sidePanel(context)),
+                      ],
+                    )
+                  : main;
+            },
+          ),
+        ),
+      ],
     );
   }
 

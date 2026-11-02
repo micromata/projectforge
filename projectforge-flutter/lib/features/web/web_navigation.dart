@@ -51,26 +51,11 @@ class WebNavigation {
   /// Not `data:`: a page of its own, which the app (without an address bar) would show like one of the server.
   static const _inlineSchemes = {'about', 'blob'};
 
-  /// Another site opens in the system browser, except the login of an SSO proxy ([isProxyLogin]) when the app lets
-  /// it happen in the WebView (its renewal in the system browser failed): the proxy redirects the pages to its login
-  /// and, after the login, back to the pages, its cookies have to end up in the WebView. Once on such a site, its
-  /// redirects, forms and links of its own host stay in the WebView until the pages are back; a link the user taps
-  /// to a third site goes to the system browser (no further passwords typed into the WebView, RFC 8252).
-  ///
-  /// @param redirect The navigation is the login of the proxy and is to stay in the WebView.
-  /// @param fromForeignSite The WebView shows another site (the login of the proxy), of [foreignHost].
-  /// @param tappedLink The user tapped a link (not a redirect, a script or a form).
-  WebNavigationTarget decide(
-    Uri target, {
-    bool redirect = false,
-    bool fromForeignSite = false,
-    String? foreignHost,
-    bool tappedLink = false,
-  }) {
+  /// Another site opens in the system browser, never in the WebView (it has no address bar), also the login of an SSO
+  /// proxy ([isProxyLogin]), which the app renews in the system browser instead.
+  WebNavigationTarget decide(Uri target) {
     if (target.scheme == 'http' || target.scheme == 'https') {
-      final onForeignSite =
-          fromForeignSite && (!tappedLink || target.host == foreignHost);
-      return isSameOrigin(target) || redirect || onForeignSite
+      return isSameOrigin(target)
           ? WebNavigationTarget.webView
           : WebNavigationTarget.external;
     }
@@ -106,6 +91,10 @@ class WebNavigation {
       url.scheme == server.scheme &&
       url.host == server.host &&
       url.port == server.port;
+
+  /// A web page of another site (http or https), never to be shown in the WebView.
+  bool isForeignPage(Uri url) =>
+      (url.scheme == 'http' || url.scheme == 'https') && !isSameOrigin(url);
 
   /// The login page of next: the web session is gone (timeout, server restart), the app opens a new one.
   bool isLoginPage(Uri url) =>
@@ -152,4 +141,11 @@ class WebNavigation {
 
   /// The full url of a [path] of the server.
   Uri url(String path) => server.resolve(path);
+
+  /// The page of the server at [path] (a path, or a url of the server), null if it resolves to another site (e.g.
+  /// `//other.example.org/`, which the WebView would load without asking [decide] on Android).
+  Uri? pageUrl(String path) {
+    final url = this.url(path);
+    return isSameOrigin(url) ? url : null;
+  }
 }

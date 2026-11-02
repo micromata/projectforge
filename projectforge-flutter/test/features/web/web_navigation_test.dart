@@ -58,69 +58,22 @@ void main() {
     });
 
     test(
-      'a redirect to another site stays in the WebView (login of an SSO proxy)',
+      'another site never stays in the WebView, also the login of an SSO proxy',
       () {
-        final login = Uri.parse(
-          'https://sso.example.org/application/o/authorize/?client_id=pf',
-        );
-        expect(
-          navigation.decide(login, redirect: true),
-          WebNavigationTarget.webView,
-        );
-        expect(
-          navigation.decide(login),
-          WebNavigationTarget.external,
-          reason: 'A link the user tapped.',
-        );
         expect(
           navigation.decide(
-            Uri.parse('https://sso.example.org/if/flow/recovery/'),
-            fromForeignSite: true,
-            foreignHost: 'sso.example.org',
-            tappedLink: true,
-          ),
-          WebNavigationTarget.webView,
-          reason: 'A link of the login page.',
-        );
-        expect(
-          navigation.decide(
-            Uri.parse('https://accounts.example.com/signin'),
-            fromForeignSite: true,
-            foreignHost: 'sso.example.org',
-            tappedLink: true,
+            Uri.parse(
+              'https://sso.example.org/application/o/authorize/?client_id=pf',
+            ),
           ),
           WebNavigationTarget.external,
-          reason: 'A link of the login page to a third site.',
-        );
-        expect(
-          navigation.decide(
-            Uri.parse('https://accounts.example.com/signin'),
-            fromForeignSite: true,
-            foreignHost: 'sso.example.org',
-          ),
-          WebNavigationTarget.webView,
-          reason:
-              'A redirect or form of the login page (e.g. a federated login).',
         );
         expect(
           navigation.decide(
             Uri.parse('https://pf.example.org/outpost.goauthentik.io/callback'),
-            fromForeignSite: true,
           ),
           WebNavigationTarget.webView,
-          reason: 'Back to the pages.',
         );
-        for (final url in ['mailto:someone@example.org', 'tel:+49123']) {
-          expect(
-            navigation.decide(
-              Uri.parse(url),
-              redirect: true,
-              fromForeignSite: true,
-            ),
-            WebNavigationTarget.external,
-            reason: url,
-          );
-        }
       },
     );
 
@@ -183,6 +136,43 @@ void main() {
         WebNavigationTarget.webView,
       );
     });
+  });
+
+  test('a page loaded by the app itself is always one of the server', () {
+    for (final path in [
+      '/next/calendar',
+      'https://pf.example.org/next/calendar?id=3',
+      // A url of the server whose path starts with two slashes, loaded again as it was.
+      'https://pf.example.org//evil.example.org/x',
+    ]) {
+      expect(navigation.pageUrl(path)?.host, 'pf.example.org', reason: path);
+    }
+    for (final path in [
+      '//evil.example.org/x',
+      '////evil.example.org/x', // A path rebuilt of the url above: https:////evil… is evil… for the WebView.
+      'https://evil.example.org/',
+      'http://pf.example.org/next/',
+    ]) {
+      expect(navigation.pageUrl(path), isNull, reason: path);
+    }
+  });
+
+  test('a page of another site', () {
+    expect(
+      navigation.isForeignPage(Uri.parse('https://evil.example.org/')),
+      isTrue,
+    );
+    expect(
+      navigation.isForeignPage(Uri.parse('http://pf.example.org/next/')),
+      isTrue,
+    );
+    for (final url in [
+      'https://pf.example.org/next/',
+      'about:blank',
+      'blob:https://pf.example.org/4711',
+    ]) {
+      expect(navigation.isForeignPage(Uri.parse(url)), isFalse, reason: url);
+    }
   });
 
   test('login page of the own server', () {

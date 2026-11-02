@@ -66,7 +66,7 @@ export function OrderListActions({ filter }: { filter: MagicFilter }) {
           label={t("fibu.auftrag.contributionMargin._")}
         />
       )}
-      <OrderNotificationButton />
+      <OrderNotificationButton openFromUrl />
       <ExportMenu isPending={excel.isPending}>
         <ExcelExportMenuItem onSelect={() => excel.mutate()} />
         <ExportMenuItem

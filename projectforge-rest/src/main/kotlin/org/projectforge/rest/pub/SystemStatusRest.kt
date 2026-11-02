@@ -70,7 +70,12 @@ class SystemStatusRest {
          * If given, the client should redirect to this url.
          */
         var setupRedirectUrl: String? = null,
-        var startTimeUTC: Date? = null
+        var startTimeUTC: Date? = null,
+        /**
+         * The ProjectForge app may put its login parameters into the path (`/next/appLogin/<login>`): an SSO proxy
+         * may bring the browser back from its login without the query. Older servers answer that path with a 404.
+         */
+        val appLoginPath: Boolean = true,
     )
 
     val systemData: SystemData by lazy {

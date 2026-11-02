@@ -32,6 +32,9 @@ next (SSE on the web session's cookie). Native is only what a page can't do:
 
 ## Time sheets
 
+The tab is shown but marked "under construction" (banner on top, `app.underConstruction`) until it is tried against a
+real server; `timesheetsTabEnabled` (`lib/core/web/native_page.dart`) hides it again.
+
 A phone books in a few taps, so the tab "Time sheets" (`lib/features/timesheets/`) is not the form of next but a day view:
 
 - **Day and week:** a week strip (Monday to Sunday) with the total of each day; swiping the strip changes the week,
@@ -101,7 +104,8 @@ twice, e.g. one set by another subdomain), kept with the code and handed
 to the app with its token (`TokenResponse.proxyCookies`). The app keeps them with the token, sends them with every
 request and puts them into the WebView. A refusal of the proxy (a 401 without a json content type, a redirect) isn't a
 logout: the app logs in again in the browser, which brings fresh cookies, and repeats the request once. If that doesn't
-satisfy the proxy either, it isn't tried again until the next login (`app.proxy.refused`). Requests the app makes on
+satisfy the proxy either, it isn't tried again by itself while the app has these cookies (`app.proxy.refused`; a
+login that brings others may, and the "retry" of the pages logs in anyway). Requests the app makes on
 its own (the badge of the chat) never open the browser (`renewLogin: false`), only something the user does. After each
 expiry of the proxy session (the token validity of the Authentik provider) the user logs in again in the browser, with
 a second factor of ProjectForge.
@@ -120,7 +124,12 @@ login passes the requested url on as `rd`; nginx configurations of Authentik put
 (`rd=$scheme://$http_host$request_uri`), so everything after the first `&` of the query got lost and the page said
 "The link of the app is invalid". The app therefore sends its parameters also packed into one, first parameter `login`
 (base64url of a json object, `AppLogin.packParams`), which `readAppLoginParams` of next prefers to the single ones
-(still sent for older servers).
+(still sent for older servers). Some proxies bring the browser back without any query (seen with Authentik: the page
+arrived as a bare `/next/appLogin`); a server from 9.2.4 on therefore takes the packed parameter in the path as well,
+`/next/appLogin/<login>` (the route `appLogin/[login]`, preferred to the query). It says so by `appLoginPath` in the
+system status (first login) and the token answer (kept in `Session.appLoginPath` for the renewals; a session of an
+older server asks the system status again). Older servers answer that path with a 404, so the app sends the query only
+to them. The path segment is masked in the client log.
 
 ## Web pages in the app
 
@@ -149,22 +158,31 @@ app has only its token:
 - **SSO proxy refusing the pages:** when the proxy session expires (e.g. Authentik in forward auth mode), the proxy
   redirects a page load to its login on another host (`/outpost.goauthentik.io/start` → `sso…/authorize`). The app
   tells it from other navigations to another site by `WebNavigation.isProxyLogin`: a redirect (iOS: navigation type
-  other than link or form, Android: `isRedirect` or no gesture) while a page of the server is still loading (before
-  `onLoadStop`), behind a proxy only (the server sent proxy cookies at the login). A script of a loaded page (an
-  external menu entry) and a tapped link open the other site in the system browser.
-  - The navigation is cancelled and the login of the app renewed in the system browser
+  other than link or form, Android: `isRedirect` or no gesture) while a page of the server is still loading (until it
+  is committed, `onPageCommitVisible`; marked for the app's own loads and pull to refresh too, which Android doesn't
+  pass through `shouldOverrideUrlLoading`), behind a proxy only (the server sent proxy cookies at the login). A script of a loaded
+  page (an external menu entry) and a tapped link open the other site in the system browser.
+  - The navigation is cancelled, and the app asks the proxy itself (`ApiClient.proxyRefuses`: `GET /next/` with the
+    proxy cookies only, no token, no session, redirects not followed; `/next/` is static, the server never redirects
+    it, and a proxy that lets `/rs` through but guards the pages is told apart too): only if the proxy refuses it, it
+    is its login. Otherwise the other site (e.g. an
+    open redirect of the server) opens in the system browser, without a login of the app and never in the WebView.
+  - The login of the app is renewed in the system browser
     (`AuthController.reauthenticate`): `ASWebAuthenticationSession` shares the proxy's login session with Safari
     (often no password), the token exchange brings fresh proxy cookies, also into the WebView, and the page asked for
     is loaded again. The password of the proxy's login isn't typed into a WebView of the app (RFC 8252).
-  - Only if that is cancelled or fails, or the proxy refuses again within 30 s, the proxy's login happens in the
-    WebView (`decide`, `redirect`, `fromForeignSite`: its redirects, forms and links of its own host stay until the
-    pages are back; a tapped link to a third site goes to the system browser). Back on
-    the server, the fresh proxy cookies of the WebView go into the session (`AuthController.takeProxyCookies`: only
-    the names the server sent at the login, only cookies of the server's host, not of a parent domain), and
-    `ApiClient.proxyCookiesRenewed` allows a browser renewal again.
-  - While the WebView shows another site, a bar above it names its host (there is no address bar, the site mustn't
-    pass for the pages; always the whole host, scaled down rather than cut off) and offers "open in the browser" (the current page) and "back to ProjectForge" (the last
-    page of the server).
+  - A tab not shown (e.g. the chat reloading in the background) doesn't renew: it shows the refusal, so no browser
+    login opens that the user didn't cause.
+  - If that is cancelled or fails, or the proxy refuses again within 30 s, the refusal is shown (`app.proxy.refused`).
+    Its "retry" renews the login in the system browser itself and then loads the refused url again, as it was (a path
+    rebuilt of it could resolve to another site, `//other.host/`); the web session opened then doesn't renew once more
+    (`renewLogin: false`). The `ApiClient` doesn't start a new browser login while it has the proxy cookies a login
+    brought without satisfying the proxy (only once others arrive), which would otherwise leave the retry without a
+    login. The proxy's login never happens in the WebView, which never shows another site.
+- **Only pages of the server in the WebView:** the app loads only urls of the server's origin (`WebNavigation.pageUrl`;
+  its own loads don't pass `shouldOverrideUrlLoading` on Android, this includes the `startUrl` of the server). As a
+  last guard, a page of another site that is committed anyway (`onPageCommitVisible`, e.g. a back navigation on
+  Android) is stopped, replaced by the error and opened in the system browser.
 - **App mode of next:** the user agent carries `ProjectForgeApp/<version>` (`lib/app-mode.ts`): next hides its
   logout, the app has its own. Only for the UI, never a security check.
 - **No JavaScript handlers** in the WebView: the pages never get hold of the app token.
@@ -192,15 +210,15 @@ errors (`main.dart`).
 
 - Only in memory, at most one day and 2000 entries; nothing is written to a file. In a debug build also on the
   console. Cleared by the logout and by a renewal that logged in another user (it names server, pages and ids), kept
-  for an expired login (it tells why).
+  for an expired login (it tells why) until somebody else (another user or server) logs in.
 - Shown, copied and cleared on the page "Log" (`core/log/log_screen.dart`), reachable from the settings and from the
   login page (a failed login happens before the settings can be opened).
 - No secrets: urls through `LogSanitizer.url` (query values masked, names kept; tokens in the path masked, e.g.
   `/next/public/datatransfer/<token>`), cookies only by name, no bodies, no
   user or device name (only ids). `LogSanitizer.text` masks every message again (`PFApp`/`Bearer` values, JWTs,
   `token=`, `code=`, `state=`, … and their json fields, the proxy cookie names of the server, mail addresses, words
-  of 20 and more letters and digits), replaces
-  control characters and indents further lines of an entry. Texts of the server (error messages) may still name
+  of 20 and more letters and digits, urls within a text through `LogSanitizer.url`), replaces control characters,
+  further line breaks (U+0085, U+2028/2029) and marks of the text direction, and indents further lines of an entry. Texts of the server (error messages) may still name
   persons: the log stays on the device unless the user copies it.
 
 ## Texts
@@ -213,7 +231,7 @@ I18nResources bundles: the keys the Dart sources name literally (`t('businessCar
 ## Notifications and push
 
 The notifications of the web version (`NotificationDO`, rules and chat, see `business/notification/`) are shown in the
-app natively (`lib/features/notifications/`): the bell in the bar of the business cards tab (count and colour from the
+app natively (`lib/features/notifications/`): the bell in the navigation, on every tab, next to the gear of the account menu (count and colour from the
 summary in `GET /rs/userStatus`), the list with the archive, "confirm" and "mark as done" as in the web, and "open",
 which shows the link in the chat or web tab (`webPathOfLink`: only paths of the own server). The list is loaded again
 when the summary (count, newest id) of the user status changes; the user status (`lib/core/status/`) is polled every
@@ -252,4 +270,4 @@ FCM follows).
 - Store presence: app icons, privacy declarations, review notes (a chat is user generated content: report and block).
 - User and admin guide (EN+DE) once the app is distributed, with the SSO proxy (`projectforge.app.proxyCookies`).
 - Behind an SSO proxy, background polling (`renewLogin: false`) stays refused after the proxy session expired until
-  the user opens a web page (login of the proxy in the WebView) or does something in a native tab (browser login).
+  the user opens a web page or does something in a native tab (both renew the login in the browser).

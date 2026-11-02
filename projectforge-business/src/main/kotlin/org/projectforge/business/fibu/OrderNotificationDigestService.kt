@@ -137,6 +137,7 @@ class OrderNotificationDigestService {
                 "link" to it.link,
             )
         }
+        data["notificationSettingsUrl"] = sendMail.buildUrl(OrderNotificationPrefService.settingsPath())
         msg.content = sendMail.renderGroovyTemplate(
             msg, "mail/orderDigestNotification.html", data, getLocalizedMessage(recipient.locale, "fibu.auftrag"), recipient,
         )

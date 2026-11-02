@@ -57,11 +57,12 @@ class WebSessionRepository {
 
   /// A new web session (the old one is gone: timeout, server restart). Concurrent renewals share one request.
   ///
+  /// @param renewLogin False: a refusal doesn't start a new login in the browser (the caller just did one).
   /// @return The path of the start page.
-  Future<String> renew() {
+  Future<String> renew({bool renewLogin = true}) {
     final pending = _pending;
     if (pending != null) return pending;
-    final renewal = _open();
+    final renewal = _open(renewLogin: renewLogin);
     _pending = renewal;
     _session = renewal;
     return renewal.whenComplete(() => _pending = null);
@@ -69,10 +70,11 @@ class WebSessionRepository {
 
   /// Opens a new web session; a second factor too old for it is renewed in the browser by the [ApiClient]. A failed
   /// attempt isn't kept, the next [ensure] tries again.
-  Future<String> _open() async {
+  Future<String> _open({bool renewLogin = true}) async {
     try {
       final response = await _api.postForResponse<Map<String, dynamic>>(
         '/rs/appAuth/webSession',
+        renewLogin: renewLogin,
       );
       final setCookies = response.headers['set-cookie'] ?? const [];
       await _cookies.setProxyCookies(_api.serverUrl, _api.proxyCookies());

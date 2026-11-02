@@ -95,7 +95,34 @@ void main() {
     expect(LogSanitizer.text('a\rb\u001b[2Jc\nd'), 'a b [2Jc\nd');
   });
 
+  test('text: other line breaks and marks of the text direction replaced', () {
+    expect(
+      LogSanitizer.text('a\u2028b\u2029c\u0085d\u202ee\u2066f\u200eg\u009bh'),
+      'a b c d e f g h',
+    );
+  });
+
+  test('text: the query values of an url in a text masked', () {
+    final text = LogSanitizer.text(
+      'Failed loading https://pf.example.com/next/x?sid=s3cr3t&rd=https://a.b/c?d=e#frag, '
+      'see "https://pf.example.com/next/" (code 7)',
+    );
+    expect(text, isNot(contains('s3cr3t')));
+    expect(text, isNot(contains('d=e')));
+    expect(text, isNot(contains('frag')));
+    expect(text, contains('https://pf.example.com/next/x?sid=***&rd=***'));
+    expect(text, contains('"https://pf.example.com/next/" (code 7)'));
+  });
+
   test('url: tokens in the path masked, ids and names kept', () {
+    expect(
+      LogSanitizer.url(
+        Uri.parse(
+          'https://pf.example.com/next/appLogin/eyJjaGFsbGVuZ2UiOiJjIn0?login=x',
+        ),
+      ),
+      'https://pf.example.com/next/appLogin/***?login=***',
+    );
     expect(
       LogSanitizer.url(
         Uri.parse('https://pf.example.com/next/public/datatransfer/abc123'),

@@ -21,10 +21,15 @@ type Status = "ask" | "done" | "cancelled" | "invalid";
  * (AppAuthService). The explicit
  * confirmation keeps a link sent by somebody else from connecting an app unnoticed.
  */
-export function AppLoginPage() {
+export function AppLoginPage({
+  packedLogin = null,
+}: {
+  /** The packed parameters of the path (`/appLogin/<login>`), see readAppLoginParams. */
+  packedLogin?: string | null;
+} = {}) {
   const t = useTranslations();
   const { challenge, state, deviceName, platform, deviceId } =
-    readAppLoginParams(useSearchParams());
+    readAppLoginParams(useSearchParams(), packedLogin);
   const [status, setStatus] = useState<Status>(
     challenge && state ? "ask" : "invalid"
   );

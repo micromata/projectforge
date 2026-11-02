@@ -23,9 +23,9 @@
 /// A page of the server the app has a tab of its own for.
 enum NativePage { chat, businessCards, notifications, addresses, timesheets }
 
-/// The time sheet tab is unfinished: hidden (tab, link of the web pages, setting) until it is tried against a real
-/// server.
-const timesheetsTabEnabled = false;
+/// The time sheet tab is unfinished: shown, but marked "under construction" until it is tried against a real server.
+/// `false` hides it (tab, link of the web pages, setting).
+const timesheetsTabEnabled = true;
 
 /// The pages with a native tab the settings can switch.
 Iterable<NativePage> get switchableNativePages => NativePage.values.where(

@@ -72,8 +72,14 @@ class LogSanitizer {
     _extraJson = RegExp('"($alternatives)"(\\s*:\\s*)("[^"]*"|[^\\s,}]+)');
   }
 
-  /// Control characters other than the line break: a text of the server mustn't move the cursor or fake entries.
-  static final _control = RegExp(r'[\x00-\x09\x0b-\x1f\x7f]');
+  /// Control characters other than the line break, further line breaks (NEL, line and paragraph separator) and the
+  /// marks of the text direction: a text of the server mustn't move the cursor, fake entries or reorder the text.
+  static final _control = RegExp(
+    '[\\x00-\\x09\\x0b-\\x1f\\x7f-\\x9f\\u200e\\u200f\\u2028\\u2029\\u202a-\\u202e\\u2066-\\u2069]',
+  );
+
+  /// An url within a text (e.g. of an exception): passed through [url], so the values of its query are masked too.
+  static final _urlInText = RegExp(r'https?://[^\s"<>]+');
 
   /// A mail address (personal data).
   static final _mail = RegExp(r'[\w.+-]+@[\w-]+(\.[\w-]+)+');
@@ -94,6 +100,7 @@ class LogSanitizer {
   static String text(String message) {
     var result = message
         .replaceAll(_control, ' ')
+        .replaceAllMapped(_urlInText, (m) => _urlOfText(m[0]!))
         .replaceAllMapped(_authorization, (m) => '${m[1]} $mask')
         .replaceAll(_jwt, mask)
         .replaceAll(_mail, mask)
@@ -136,17 +143,24 @@ class LogSanitizer {
     return '${url.scheme}:$mask';
   }
 
-  /// A token ([_tokenWord]), or a segment after `public/<area>/` (the external access of an area).
+  /// A token ([_tokenWord]), a segment after `public/<area>/` (the external access of an area), or the packed
+  /// parameters after `appLogin/` (the challenge and state of the login).
   static bool _isSecretSegment(List<String> segments, int index) {
     final segment = segments[index];
     if (segment.isEmpty) return false;
     final public = segments.indexOf('public');
     return (public >= 0 && index >= public + 2) ||
+        (index > 0 && segments[index - 1] == 'appLogin') ||
         _tokenWord.matchAsPrefix(segment)?.end == segment.length;
   }
 
   /// Urls that are personal data as a whole (the address, the number): only their scheme is logged.
   static const _personalSchemes = {'mailto', 'tel', 'sms'};
+
+  static String _urlOfText(String value) {
+    final uri = Uri.tryParse(value);
+    return uri == null ? mask : url(uri);
+  }
 
   /// As [url], for a string that may not be an url.
   static String urlString(String? value) {

@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.3",
+    "date" : "2026-11-02",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Auftrags-E-Mails: übersichtlicher, die Buttons stehen oben, dazu ein Button zu den Auftragsbenachrichtigungen." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

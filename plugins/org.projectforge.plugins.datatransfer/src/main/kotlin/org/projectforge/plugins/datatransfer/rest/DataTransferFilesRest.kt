@@ -49,12 +49,14 @@ import org.projectforge.rest.core.aggrid.GridState
 import org.projectforge.rest.dto.User
 import org.projectforge.rest.dto.datatable.DataTableStateRequest
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
 
 /**
  * The file view of a data transfer area (attachments list including upload/download, info and the observe
@@ -263,7 +265,8 @@ class DataTransferFilesRest {
     }
 
     private fun convertData(id: Long): Pair<DataTransferAreaDO, DataTransferArea> {
-        val dbObj = dataTransferAreaDao.find(id)!!
+        val dbObj = dataTransferAreaDao.find(id)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Data transfer area #$id not found.")
         val dto = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao)
         if (hasEditAccess(dto, dbObj)) {
             dto.externalPassword = dbObj.externalPassword

@@ -1,4 +1,6 @@
 {
+  "app.version": "Version {0}",
+  "app.underConstruction": "Under construction – diese Seite ist noch in Arbeit und kann Fehler enthalten.",
   "_comment": "Texte der App ohne Gegenstück in den I18nResources des Servers. Alles andere kommt aus generated.de.json (bin/pfDev.sh gen).",
   "app.download.failed": "Die Datei konnte nicht heruntergeladen werden.",
   "app.login.failed": "Die Anmeldung ist fehlgeschlagen.",
@@ -17,8 +19,8 @@
   "app.vCard.share": "vCard teilen",
   "app.web": "ProjectForge",
   "app.web.failed": "Die Seiten von ProjectForge konnten nicht geöffnet werden.",
-  "app.web.openInBrowser": "Im Browser öffnen",
-  "app.web.backToPages": "Zurück zu ProjectForge",
+  "app.web.reload": "Seite neu laden",
+  "app.web.stalled": "Die Seite lädt nicht.",
   "app.settings.openInApp": "In der App öffnen",
   "app.settings.openInApp.info": "Diese Menüpunkte der Webseiten wechseln auf den Tab der App. Ausgeschaltet bleibt die Webversion, z. B. falls die App-Version mit dem Server nicht funktioniert.",
   "app.log.title": "Protokoll",

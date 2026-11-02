@@ -24,7 +24,8 @@
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+
+import 'app_version.dart';
 
 /// How the app names its device at the server (shown in "My account", apps), and its version.
 class DeviceDescription {
@@ -40,8 +41,7 @@ class DeviceDescription {
 
   static Future<DeviceDescription> load() async {
     final info = DeviceInfoPlugin();
-    final package = await PackageInfo.fromPlatform();
-    final version = '${package.version}+${package.buildNumber}';
+    final version = await loadAppVersion();
     if (Platform.isIOS) {
       final ios = await info.iosInfo;
       return DeviceDescription(

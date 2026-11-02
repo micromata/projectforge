@@ -24,6 +24,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/auth/app_version.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/auth/session.dart';
 import '../../core/i18n/translations.dart';
@@ -66,6 +67,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   /// The WebViews are created when their tab is opened first, and then kept (with their page) while switching.
   final _opened = <_Destination>{};
+
+  /// The restarts of the WebView tabs asked for in the account menu (see [WebScreen.restarts]).
+  final _restarts = <_Destination, int>{};
 
   /// Keeps the tabs (the WebViews with their pages) while the frame around them changes: with or without the bar of
   /// the native tab, portrait or landscape. Otherwise they would be created again, back on their start page.
@@ -138,6 +142,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       active: current == destination,
                       initialPath: _chatTarget?.path ?? _chatPath,
                       target: _chatTarget,
+                      restarts: _restarts[destination] ?? 0,
                     )
                   : const SizedBox.shrink(),
             _Destination.web =>
@@ -148,13 +153,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       initialPath: _webTarget?.path,
                       target: _webTarget,
                       onNativePage: (page) => _openNative(page, chatEnabled),
+                      restarts: _restarts[destination] ?? 0,
                     )
                   : const SizedBox.shrink(),
           },
       ],
     );
     void select(int index) => _select(current, destinations[index]);
-    // The pages bring their own header: only the native tab has a bar (with the account menu).
+    // The pages bring their own header: only the native tab has a bar. The bell and the account menu stand in the
+    // navigation instead, so they are there on every tab.
     final appBar = switch (current) {
       _Destination.businessCards ||
       _Destination.addresses ||
@@ -167,12 +174,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               icon: const Icon(Icons.refresh),
               onPressed: () => refreshBusinessCards(context, ref),
             ),
-          NotificationBell(onOpenLink: _openLink),
-          _accountMenu(context, session),
         ],
       ),
       _ => null,
     };
+    final actions = [
+      NotificationBell(onOpenLink: _openLink),
+      _accountMenu(context, session, current),
+    ];
     if (landscape) {
       // The height is scarce: the navigation stands at the side.
       return Scaffold(
@@ -193,6 +202,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   onDestinationSelected: select,
                   labelType: NavigationRailLabelType.none,
                   minWidth: 56,
+                  trailing: Column(children: actions),
                   destinations: [
                     for (final destination in destinations)
                       _railDestination(context, destination, unread),
@@ -228,12 +238,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 height: 44,
                 labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
               ),
-              child: NavigationBar(
-                selectedIndex: selectedIndex,
-                onDestinationSelected: select,
-                destinations: [
-                  for (final destination in destinations)
-                    _barDestination(context, destination, unread),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: NavigationBar(
+                      selectedIndex: selectedIndex,
+                      onDestinationSelected: select,
+                      destinations: [
+                        for (final destination in destinations)
+                          _barDestination(context, destination, unread),
+                      ],
+                    ),
+                  ),
+                  ...actions,
                 ],
               ),
             ),
@@ -243,28 +260,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  /// @param current The tab shown: a WebView tab offers a reload, the way out of pages that stay empty.
   Widget _accountMenu(
     BuildContext context,
     Session? session,
-  ) => PopupMenuButton<String>(
-    icon: const Icon(Icons.account_circle),
-    onSelected: (action) => switch (action) {
-      'settings' => Navigator.of(
-        context,
-      ).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
-      _ => _logout(context, ref),
-    },
-    itemBuilder: (_) => [
-      PopupMenuItem<String>(
-        enabled: false,
-        child: Text(
-          '${session?.fullname ?? session?.username ?? ''}\n${session?.serverUrl ?? ''}',
+    _Destination current,
+  ) {
+    final version = ref.watch(appVersionProvider).value;
+    final webTab = current == _Destination.web || current == _Destination.chat;
+    return PopupMenuButton<String>(
+      tooltip: context.t('settings'),
+      icon: const Icon(Icons.settings_outlined),
+      onSelected: (action) => switch (action) {
+        'reload' => setState(
+          () => _restarts[current] = (_restarts[current] ?? 0) + 1,
         ),
-      ),
-      PopupMenuItem(value: 'settings', child: Text(context.t('settings'))),
-      PopupMenuItem(value: 'logout', child: Text(context.t('menu.logout'))),
-    ],
-  );
+        'settings' => Navigator.of(
+          context,
+        ).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
+        _ => _logout(context, ref),
+      },
+      itemBuilder: (_) => [
+        PopupMenuItem<String>(
+          enabled: false,
+          child: Text(
+            '${session?.fullname ?? session?.username ?? ''}\n${session?.serverUrl ?? ''}',
+          ),
+        ),
+        if (webTab)
+          PopupMenuItem(
+            value: 'reload',
+            child: Text(context.t('app.web.reload')),
+          ),
+        PopupMenuItem(value: 'settings', child: Text(context.t('settings'))),
+        PopupMenuItem(value: 'logout', child: Text(context.t('menu.logout'))),
+        if (version != null)
+          PopupMenuItem<String>(
+            enabled: false,
+            child: Text(context.t('app.version', [version])),
+          ),
+      ],
+    );
+  }
 
   static String _label(BuildContext context, _Destination destination) =>
       switch (destination) {

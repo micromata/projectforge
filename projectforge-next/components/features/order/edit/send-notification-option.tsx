@@ -8,19 +8,8 @@ import type { OrderNotificationRule } from "@/lib/rs/order-notification";
 import { OrderNotificationButton } from "../order-notification-button";
 import type { OrderValues } from "../order-schema";
 
-/**
- * Whether saving notifies the contact person by e-mail — beside the save button, because it decides
- * what the save does rather than what the order is (`OrderEntityRest.onAfterSaveOrUpdate`).
- *
- * The backend preselects it whenever the contact person is somebody else (see `toFormValues`); this is
- * where the user overrides that. Wicket puts the same checkbox into a fieldset of its own at the end of
- * the form, which is the one place a reader never looks before pressing save.
- *
- * Beside it, the user's own notification settings (how *they* are notified about orders), which offer the
- * project and customer chosen in the form as exceptions to add.
- */
-export function SendNotificationOption() {
-  const t = useTranslations();
+/** Project and customer chosen in the order form, offered as exceptions in the notification settings. */
+export function useOrderNotificationSuggestions() {
   const form = useEntityEditForm();
   const { project, customer } = useStore(
     form.store,
@@ -40,6 +29,23 @@ export function SendNotificationOption() {
   if (customer) {
     suggestions.push({ type: "CUSTOMER", ...customer });
   }
+  return suggestions;
+}
+
+/**
+ * Whether saving notifies the contact person by e-mail — beside the save button, because it decides
+ * what the save does rather than what the order is (`OrderEntityRest.onAfterSaveOrUpdate`).
+ *
+ * The backend preselects it whenever the contact person is somebody else (see `toFormValues`); this is
+ * where the user overrides that. Wicket puts the same checkbox into a fieldset of its own at the end of
+ * the form, which is the one place a reader never looks before pressing save.
+ *
+ * Beside it, the user's own notification settings (how *they* are notified about orders), which offer the
+ * project and customer chosen in the form as exceptions to add.
+ */
+export function SendNotificationOption() {
+  const t = useTranslations();
+  const suggestions = useOrderNotificationSuggestions();
   return (
     <div className="flex items-center gap-2">
       <CheckboxField
