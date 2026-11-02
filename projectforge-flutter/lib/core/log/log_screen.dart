@@ -53,7 +53,7 @@ class LogScreen extends StatelessWidget {
         title: Text(context.t('app.log.title')),
         actions: [
           IconButton(
-            tooltip: context.t('app.log.copy'),
+            tooltip: context.t('copy'),
             icon: const Icon(Icons.copy),
             onPressed: () => _copy(context),
           ),

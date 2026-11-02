@@ -719,7 +719,7 @@ class _TimesheetsScreenState extends ConsumerState<TimesheetsScreen> {
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.edit_outlined),
-              title: Text(context.t('app.timesheet.edit')),
+              title: Text(context.t('edit')),
               onTap: () {
                 Navigator.pop(menu);
                 _open(BookingStart.of(sheet));

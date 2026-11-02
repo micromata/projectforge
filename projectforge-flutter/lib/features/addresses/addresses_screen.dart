@@ -132,7 +132,7 @@ class _AddressesScreenState extends ConsumerState<AddressesScreen> {
               ButtonSegment(
                 value: true,
                 icon: const Icon(Icons.star_outline),
-                label: Text(context.t('app.address.favorites')),
+                label: Text(context.t('favorites')),
               ),
               ButtonSegment(
                 value: false,

@@ -121,7 +121,7 @@ class AddressDetailScreen extends StatelessWidget {
                     ),
                     _QuickAction(
                       icon: Icons.call,
-                      label: context.t('app.address.call'),
+                      label: context.t('address.directCall.call'),
                       onPressed: phone == null
                           ? null
                           : () => _launch('tel', phone.number),
@@ -237,7 +237,7 @@ class AddressDetailScreen extends StatelessWidget {
             if (!isFax)
               ListTile(
                 leading: const Icon(Icons.call),
-                title: Text(context.t('app.address.call')),
+                title: Text(context.t('address.directCall.call')),
                 onTap: () {
                   Navigator.pop(sheet);
                   _launch('tel', number.number);
