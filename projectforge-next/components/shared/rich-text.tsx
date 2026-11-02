@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import DOMPurify from "dompurify";
 import { looksLikeMarkdown, markdownToHtml } from "@/lib/markdown-to-html";
 import { cn } from "@/lib/utils";
+import { useCodeBlockCopyButtons } from "./use-code-block-copy-buttons";
 
 /** The markup [RichTextEditor] produces; everything else is removed. */
 const ALLOWED_TAGS = [
@@ -179,7 +180,7 @@ export function richTextToPlainText(text: string): string {
  * A rich text of [RichTextEditor] (HTML from the database), rendered sanitized: only the markup the
  * editor writes survives (paragraphs, headings, emphasis, lists, tables, links, text colour), no
  * scripts, no event handlers. A text written before it was rich text (plain text or markdown) is
- * converted first, see [toRichTextHtml].
+ * converted first, see [toRichTextHtml]. With [code], every code block gets a copy button.
  */
 export function RichText({
   html,
@@ -198,14 +199,20 @@ export function RichText({
     const clean = sanitizeRichText(toRichTextHtml(html), { code });
     return decorate ? decorate(clean) : clean;
   }, [html, code, decorate]);
+  const ref = useRef<HTMLDivElement>(null);
+  const copyButtons = useCodeBlockCopyButtons(ref, sanitized);
   return (
-    <div
-      className={cn(
-        // font-normal: the body is font-medium, against which bold text would hardly stand out.
-        "rich-text space-y-1.5 font-normal [&_a]:underline [&_li]:ml-1 [&_ol]:list-decimal [&_ol]:space-y-0.5 [&_ol]:pl-5 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:space-y-0.5 [&_ul]:pl-5",
-        className
-      )}
-      dangerouslySetInnerHTML={{ __html: sanitized }}
-    />
+    <>
+      <div
+        ref={ref}
+        className={cn(
+          // font-normal: the body is font-medium, against which bold text would hardly stand out.
+          "rich-text space-y-1.5 font-normal [&_a]:underline [&_li]:ml-1 [&_ol]:list-decimal [&_ol]:space-y-0.5 [&_ol]:pl-5 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:space-y-0.5 [&_ul]:pl-5",
+          className
+        )}
+        dangerouslySetInnerHTML={{ __html: sanitized }}
+      />
+      {copyButtons}
+    </>
   );
 }

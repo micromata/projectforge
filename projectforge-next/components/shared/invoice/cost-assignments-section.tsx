@@ -109,6 +109,8 @@ export function CostAssignmentsSection({
             netto={assignment.netto}
             positionNetSum={sums?.netSum}
             kost2Id={assignment.kost2?.id}
+            kost1={assignment.kost1}
+            kost2={assignment.kost2}
             renderWarning={renderWarning}
             onRemove={writeAccess ? () => array.remove(index) : undefined}
             onRestore={writeAccess ? () => array.restore(index) : undefined}

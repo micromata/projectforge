@@ -2249,6 +2249,7 @@
       "_": "Cost 1",
       "art": "Type",
       "bereich": "Area",
+      "copyWithoutDots": "Copy cost 1 without dots",
       "endziffer": "Final digits",
       "id": "Cost 1 id",
       "kost1s": "Cost 1 ids",
@@ -2270,6 +2271,7 @@
     "kost2": {
       "_": "Cost 2",
       "art": "Type",
+      "copyWithoutDots": "Copy cost 2 without dots",
       "error": {
         "projektNeededForNummernkreis": "The project is required for cost units of a number range.",
         "projektWithoutNumberRange": "Cost units (Kost2) can only be created for projects of a number range: the number of the project belongs to no configured number range."

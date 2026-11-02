@@ -17,6 +17,8 @@ import { KOST_ZUWEISUNG_METADATA } from "@/lib/metadata/kost-zuweisung.generated
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 import { CostAssignmentShare } from "./cost-assignment-share";
+import { KostCopyButton } from "./kost-copy-button";
+import type { KostZuweisungValues } from "./kost-zuweisung";
 
 /**
  * The dropdown of both cost pickers: their long names (number, type, project, customer) would wrap over
@@ -39,6 +41,9 @@ export interface CostAssignmentRowProps {
   positionNetSum?: number | null;
   /** The chosen cost 2 unit, handed to [renderWarning] so a page can flag it. */
   kost2Id?: number | null;
+  /** The chosen cost units themselves, for their numbers to be copied without dots ([KostCopyButton]). */
+  kost1?: KostZuweisungValues["kost1"];
+  kost2?: KostZuweisungValues["kost2"];
   /**
    * A warning beside the cost 2 field, injected by the page — the outgoing invoice checks the unit
    * against its project (`Kost2Warning`), the incoming invoice has no project and passes nothing. Kept
@@ -64,6 +69,8 @@ export function CostAssignmentRow({
   netto,
   positionNetSum,
   kost2Id,
+  kost1,
+  kost2,
   renderWarning,
   onRemove,
   onRestore,
@@ -109,6 +116,9 @@ export function CostAssignmentRow({
           popoverClassName={WIDE_POPOVER}
           className="min-w-0 flex-1 basis-40"
         />
+        {/* Aligned with the boxes, not with the labels above them; also where the row is read-only, as
+            copying is reading. */}
+        <KostCopyButton kost={kost1} kind="kost1" className="mt-6 size-8" />
         <EntityAutocompleteField
           name={name("kost2")}
           label={label("kost2")}
@@ -120,6 +130,7 @@ export function CostAssignmentRow({
           popoverClassName={WIDE_POPOVER}
           className="min-w-0 flex-1 basis-40"
         />
+        <KostCopyButton kost={kost2} kind="kost2" className="mt-6 size-8" />
         {/* Beside the field it is about, as Wicket outlines that very field — the page decides whether
             there is anything to warn about (see [renderWarning]). */}
         {renderWarning?.(kost2Id)}

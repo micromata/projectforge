@@ -2249,6 +2249,7 @@
       "_": "Kost1",
       "art": "Art",
       "bereich": "Bereich",
+      "copyWithoutDots": "Kost1 ohne Punkte kopieren",
       "endziffer": "Endziffer",
       "id": "Kost1-ID",
       "kost1s": "Kost1s",
@@ -2270,6 +2271,7 @@
     "kost2": {
       "_": "Kost2",
       "art": "Art",
+      "copyWithoutDots": "Kost2 ohne Punkte kopieren",
       "error": {
         "projektNeededForNummernkreis": "Für Kostenträger eines Nummernkreises muss das Projekt angegeben sein.",
         "projektWithoutNumberRange": "Kostenträger (Kost2) gibt es nur für Projekte eines Nummernkreises: Die Nummer des Projekts gehört zu keinem konfigurierten Nummernkreis."
