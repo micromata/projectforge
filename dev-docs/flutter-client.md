@@ -32,6 +32,9 @@ next (SSE on the web session's cookie). Native is only what a page can't do:
 
 ## Time sheets
 
+The tab is shown but marked "under construction" (banner on top, `app.underConstruction`) until it is tried against a
+real server; `timesheetsTabEnabled` (`lib/core/web/native_page.dart`) hides it again.
+
 A phone books in a few taps, so the tab "Time sheets" (`lib/features/timesheets/`) is not the form of next but a day view:
 
 - **Day and week:** a week strip (Monday to Sunday) with the total of each day; swiping the strip changes the week,

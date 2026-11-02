@@ -1,4 +1,5 @@
 {
+  "app.underConstruction": "Under construction – this page is still work in progress and may contain errors.",
   "_comment": "Texts of the app without a counterpart in the I18nResources bundles of the server. Everything else comes from generated.en.json (bin/pfDev.sh gen).",
   "app.download.failed": "The file couldn't be downloaded.",
   "app.login.failed": "The login failed.",

@@ -152,6 +152,11 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('the tab is marked as under construction', (tester) async {
+    await pumpScreen(tester);
+    expect(find.byIcon(Icons.construction), findsOneWidget);
+  });
+
   testWidgets(
     'the day shows its bookings, the total and the gap between them',
     (tester) async {
