@@ -308,6 +308,73 @@ test.describe("invoice cost assignment form", { tag: "@lane-invoice" }, () => {
       await removeInvoice(page, id);
     }
   });
+
+  test("copies the cost unit without dots, from the open and from the folded row", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const projects = await findProjectsWithKost2(page);
+    test.skip(
+      projects === null,
+      "The account sees fewer than two projects with active cost units."
+    );
+    const { first } = projects!;
+    // The digits of the backend's own number, so no cost unit number enters the source.
+    const digits = searchTerm(first.kost2[0].displayName);
+    await page
+      .context()
+      .grantPermissions(["clipboard-read", "clipboard-write"]);
+    const readClipboard = () =>
+      page.evaluate(() => navigator.clipboard.readText());
+    const copyLabel = format.t("fibu.kost2.copyWithoutDots");
+    let id: number | null = null;
+    try {
+      id = await createInvoice(page, [{ ...POSITION, text: `${SUBJECT} 1` }], {
+        subject: SUBJECT,
+        projectId: first.id,
+      });
+      await goto(page, `/invoice/${id}`);
+
+      // Open: the button beside the field, of the cost unit the form proposed.
+      const row = await openStoredPosition(page, format);
+      await row
+        .getByRole("button", {
+          name: format.t("fibu.rechnung.tooltip.addKostZuweisung"),
+        })
+        .click();
+      await expect(
+        row.getByRole("combobox", { name: label(format, "fibu.kost2") })
+      ).toHaveText(first.kost2[0].displayName);
+      await page.evaluate(() => navigator.clipboard.writeText(""));
+      await row.getByRole("button", { name: copyLabel }).click();
+      expect(await readClipboard()).toBe(digits);
+      await expect(
+        row.getByRole("button", { name: format.t("copied") })
+      ).toBeVisible();
+
+      // Folded: the same from the summary — and copying there leaves the row folded, although the
+      // button sits inside the row's trigger.
+      const trigger = row.locator('[data-slot="collapsible-trigger"]');
+      await trigger.click();
+      await expect(trigger).toHaveAttribute("aria-expanded", "false");
+      await page.evaluate(() => navigator.clipboard.writeText(""));
+      const summaryButton = trigger.getByRole("button", { name: copyLabel });
+      await summaryButton.click({ timeout: 10_000 });
+      expect(await readClipboard()).toBe(digits);
+      await expect(trigger).toHaveAttribute("aria-expanded", "false");
+
+      // By keyboard as well, again without opening the row — once the tick has gone again
+      // (COPIED_RESET_MS) and the button is named for copying.
+      await page.evaluate(() => navigator.clipboard.writeText(""));
+      await expect(summaryButton).toBeVisible({ timeout: 10_000 });
+      await summaryButton.focus();
+      await page.keyboard.press("Enter");
+      expect(await readClipboard()).toBe(digits);
+      await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    } finally {
+      await removeInvoice(page, id);
+    }
+  });
 });
 
 /** One position of 1.000 € net — enough for a cost assignment to be proposed an amount. */
