@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Scripting: Kotlin scripts failed with \"Unresolved reference 'cveradar'\", the classes of the CVE radar and IHK plugins were missing in the script classpath.",
+  "de": "Scripting: Kotlin-Skripte brachen mit \"Unresolved reference 'cveradar'\" ab, die Klassen der Plugins CVE-Radar und IHK fehlten im Klassenpfad der Skripte."
+}
