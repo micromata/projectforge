@@ -163,10 +163,18 @@ app has only its token:
     (`AuthController.reauthenticate`): `ASWebAuthenticationSession` shares the proxy's login session with Safari
     (often no password), the token exchange brings fresh proxy cookies, also into the WebView, and the page asked for
     is loaded again. The password of the proxy's login isn't typed into a WebView of the app (RFC 8252).
+  - A tab not shown (e.g. the chat reloading in the background) doesn't renew: it shows the refusal, so no browser
+    login opens that the user didn't cause.
   - If that is cancelled or fails, or the proxy refuses again within 30 s, the refusal is shown (`app.proxy.refused`).
-    Its "retry" renews the login in the system browser itself and then loads the refused page again: the `ApiClient`
-    doesn't start a new browser login while it has the proxy cookies a login brought without satisfying the proxy
-    (only once others arrive), which would otherwise leave the retry without a login. The proxy's login never happens in the WebView, which never shows another site.
+    Its "retry" renews the login in the system browser itself and then loads the refused url again, as it was (a path
+    rebuilt of it could resolve to another site, `//other.host/`); the web session opened then doesn't renew once more
+    (`renewLogin: false`). The `ApiClient` doesn't start a new browser login while it has the proxy cookies a login
+    brought without satisfying the proxy (only once others arrive), which would otherwise leave the retry without a
+    login. The proxy's login never happens in the WebView, which never shows another site.
+- **Only pages of the server in the WebView:** the app loads only urls of the server's origin (`WebNavigation.pageUrl`;
+  its own loads don't pass `shouldOverrideUrlLoading` on Android, this includes the `startUrl` of the server). As a
+  last guard, a page of another site that is committed anyway (`onPageCommitVisible`, e.g. a back navigation on
+  Android) is stopped, replaced by the error and opened in the system browser.
 - **App mode of next:** the user agent carries `ProjectForgeApp/<version>` (`lib/app-mode.ts`): next hides its
   logout, the app has its own. Only for the UI, never a security check.
 - **No JavaScript handlers** in the WebView: the pages never get hold of the app token.

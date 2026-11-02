@@ -138,6 +138,43 @@ void main() {
     });
   });
 
+  test('a page loaded by the app itself is always one of the server', () {
+    for (final path in [
+      '/next/calendar',
+      'https://pf.example.org/next/calendar?id=3',
+      // A url of the server whose path starts with two slashes, loaded again as it was.
+      'https://pf.example.org//evil.example.org/x',
+    ]) {
+      expect(navigation.pageUrl(path)?.host, 'pf.example.org', reason: path);
+    }
+    for (final path in [
+      '//evil.example.org/x',
+      '////evil.example.org/x', // A path rebuilt of the url above: https:////evil… is evil… for the WebView.
+      'https://evil.example.org/',
+      'http://pf.example.org/next/',
+    ]) {
+      expect(navigation.pageUrl(path), isNull, reason: path);
+    }
+  });
+
+  test('a page of another site', () {
+    expect(
+      navigation.isForeignPage(Uri.parse('https://evil.example.org/')),
+      isTrue,
+    );
+    expect(
+      navigation.isForeignPage(Uri.parse('http://pf.example.org/next/')),
+      isTrue,
+    );
+    for (final url in [
+      'https://pf.example.org/next/',
+      'about:blank',
+      'blob:https://pf.example.org/4711',
+    ]) {
+      expect(navigation.isForeignPage(Uri.parse(url)), isFalse, reason: url);
+    }
+  });
+
   test('login page of the own server', () {
     expect(
       navigation.isLoginPage(

@@ -149,6 +149,16 @@ void main() {
     expect(reauthentications, 0);
   });
 
+  test('a web session asked for without renewal opens no login', () async {
+    await expectLater(
+      client(proxy(status: 401))
+          .postForResponse<Object>('/rs/appAuth/webSession', renewLogin: false),
+      throwsA(isA<ApiException>()),
+    );
+    expect(reauthentications, 0);
+    expect(unauthorized, 0);
+  });
+
   test('polling in the background never renews the login', () async {
     await expectLater(
       client(proxy(status: 401))

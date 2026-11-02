@@ -143,15 +143,32 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   }
 
   /// Loads [path] (default: the start page of the server) with the web session of the app, a new one if [renew].
-  Future<void> _open(String? path, {bool renew = false}) async {
+  /// Only a page of the server: the app's own loads don't pass [_shouldOverrideUrlLoading] on Android.
+  ///
+  /// @param renewLogin False: a refusal of the web session doesn't start a new login in the browser (just done).
+  Future<void> _open(
+    String? path, {
+    bool renew = false,
+    bool renewLogin = true,
+  }) async {
     if (_opening) return;
     _opening = true;
     setState(() => _error = null);
     try {
       final sessions = ref.read(webSessionRepositoryProvider)!;
-      final startPath = await (renew ? sessions.renew() : sessions.ensure());
+      final startPath = await (renew
+          ? sessions.renew(renewLogin: renewLogin)
+          : sessions.ensure());
       if (renew) _lastOpened = DateTime.now();
-      final url = _navigation.url(path ?? startPath);
+      final url = _navigation.pageUrl(path ?? startPath);
+      if (url == null) {
+        appLog.warn(
+          'web',
+          'Not a page of the server: ${LogSanitizer.urlString(path ?? startPath)}, not loaded',
+        );
+        if (mounted) _showError(context.t('app.web.failed'));
+        return;
+      }
       appLog.info('web', 'Load ${LogSanitizer.url(url)}');
       _requestedNative = _navigation.nativePage(url);
       if (_controller == null) {
@@ -344,6 +361,15 @@ class _WebScreenState extends ConsumerState<WebScreen> {
         return;
       }
       if (!mounted) return;
+      if (!widget.active) {
+        // No login the user didn't cause (e.g. the chat reloading in the background): the retry of the error renews.
+        appLog.info(
+          'web',
+          'Refused by the SSO proxy in a tab not shown: error shown, no renewal',
+        );
+        _showError(context.t(ApiClient.proxyRefusedKey), proxyRefusal: true);
+        return;
+      }
       final last = _lastProxyRenewal;
       if (last != null && DateTime.now().difference(last) < _renewalInterval) {
         appLog.warn(
@@ -394,6 +420,21 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     'method: ${action.request.method ?? '-'}',
   ].join(', ');
 
+  /// The last guard against another site in the WebView: one that got past [_shouldOverrideUrlLoading] (on Android
+  /// e.g. a load of the app itself or a back navigation) is stopped and opened outside the app instead, the WebView
+  /// is replaced by the error.
+  Future<void> _onPageCommitted(Uri url) async {
+    if (!_navigation.isForeignPage(url)) return;
+    appLog.warn(
+      'web',
+      'Another site in the WebView: ${LogSanitizer.url(url)}, stopped and opened outside the app',
+    );
+    await _controller?.stopLoading();
+    if (!mounted) return;
+    _showError(context.t('app.web.failed'));
+    await launchUrl(url, mode: LaunchMode.externalApplication);
+  }
+
   /// The names of the cookies the WebView has for the server (e.g. whether the cookie of an SSO proxy is there).
   Future<void> _logCookies(String reason) async {
     try {
@@ -433,13 +474,8 @@ class _WebScreenState extends ConsumerState<WebScreen> {
       await _open(widget.initialPath, renew: true);
       return;
     }
-    final requested = _requestedUrl;
-    final path = requested == null
-        ? widget.initialPath
-        : Uri(
-            path: requested.path,
-            query: requested.hasQuery ? requested.query : null,
-          ).toString();
+    // The refused url as it was (a path rebuilt of it could resolve to another site, e.g. of `//other.host/x`).
+    final path = _requestedUrl?.toString() ?? widget.initialPath;
     appLog.info('web', 'Retry after a refusal of the SSO proxy: new login');
     if (!await ref.read(authControllerProvider.notifier).reauthenticate()) {
       appLog.info('web', 'Renewal not done: refusal of the SSO proxy shown');
@@ -449,7 +485,8 @@ class _WebScreenState extends ConsumerState<WebScreen> {
       return;
     }
     _lastProxyRenewal = DateTime.now();
-    if (mounted) await _open(path, renew: true);
+    // The login was just renewed: a refusal now opens no second one.
+    if (mounted) await _open(path, renew: true, renewLogin: false);
   }
 
   @override
@@ -500,6 +537,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
             onPageCommitVisible: (_, url) {
               // The page is there: further navigations are no redirects of its load.
               _serverPageLoadStart = null;
+              if (url != null) _onPageCommitted(url);
             },
             onLoadStop: (_, url) {
               _serverPageLoadStart = null;

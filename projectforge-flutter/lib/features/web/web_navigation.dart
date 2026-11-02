@@ -92,6 +92,10 @@ class WebNavigation {
       url.host == server.host &&
       url.port == server.port;
 
+  /// A web page of another site (http or https), never to be shown in the WebView.
+  bool isForeignPage(Uri url) =>
+      (url.scheme == 'http' || url.scheme == 'https') && !isSameOrigin(url);
+
   /// The login page of next: the web session is gone (timeout, server restart), the app opens a new one.
   bool isLoginPage(Uri url) =>
       isSameOrigin(url) &&
@@ -137,4 +141,11 @@ class WebNavigation {
 
   /// The full url of a [path] of the server.
   Uri url(String path) => server.resolve(path);
+
+  /// The page of the server at [path] (a path, or a url of the server), null if it resolves to another site (e.g.
+  /// `//other.example.org/`, which the WebView would load without asking [decide] on Android).
+  Uri? pageUrl(String path) {
+    final url = this.url(path);
+    return isSameOrigin(url) ? url : null;
+  }
 }

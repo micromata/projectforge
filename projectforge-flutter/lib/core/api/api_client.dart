@@ -165,9 +165,13 @@ class ApiClient {
       renewLogin ? null : Options(extra: {_noRenewalKey: true});
 
   /// As [post], with the whole response (its headers, e.g. `set-cookie`).
-  Future<Response<T>> postForResponse<T>(String path, {Object? data}) async {
+  Future<Response<T>> postForResponse<T>(
+    String path, {
+    Object? data,
+    bool renewLogin = true,
+  }) async {
     try {
-      return await dio.post<T>(path, data: data);
+      return await dio.post<T>(path, data: data, options: _options(renewLogin));
     } on DioException catch (e) {
       throw toApiException(e);
     }
