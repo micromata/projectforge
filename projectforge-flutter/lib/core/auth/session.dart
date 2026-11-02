@@ -92,8 +92,8 @@ class Session {
   };
 }
 
-/// Keeps the [Session] in the key chain (iOS) or the keystore backed storage (Android), and the servers of the last
-/// logins for the next one.
+/// Keeps the [Session] in the key chain (iOS) or the keystore backed storage (Android), the logins at the other servers
+/// (to switch to them without logging in again), and the servers of the last logins for the next one.
 class SessionStore {
   SessionStore([FlutterSecureStorage? storage])
     : _storage =
@@ -105,7 +105,11 @@ class SessionStore {
             ),
           );
 
+  /// The active login.
   static const _sessionKey = 'session';
+
+  /// All logins, one per server, most recent first: the active one and those to switch to.
+  static const _sessionsKey = 'sessions';
 
   /// The servers of the last logins, most recent first (urls only).
   static const _serversKey = 'servers';
@@ -130,16 +134,54 @@ class SessionStore {
     }
   }
 
+  /// Stores [session] as the active login, replacing an older one of its server.
   Future<void> save(Session session) async {
     await _storage.write(key: _sessionKey, value: jsonEncode(session.toJson()));
+    final sessions = (await this.sessions())
+      ..removeWhere((it) => it.serverUrl == session.serverUrl)
+      ..insert(0, session);
+    await _writeSessions(sessions.take(maxServers).toList());
     final servers = (await this.servers())
       ..remove(session.serverUrl)
       ..insert(0, session.serverUrl);
     await _writeServers(servers.take(maxServers).toList());
   }
 
-  /// Forgets the session, but not the servers: they are offered by the next login.
-  Future<void> clear() => _storage.delete(key: _sessionKey);
+  /// Forgets the active session, but not the servers (they are offered by the next login) nor the logins at the other
+  /// servers.
+  Future<void> clear() async {
+    final active = await load();
+    await _storage.delete(key: _sessionKey);
+    if (active != null) await _removeSession(active.serverUrl);
+  }
+
+  /// The stored logins, most recent first. Before this list existed, only the active one.
+  Future<List<Session>> sessions() async {
+    final json = await _storage.read(key: _sessionsKey);
+    if (json == null) {
+      final active = await load();
+      return active == null ? [] : [active];
+    }
+    try {
+      return [
+        for (final it in jsonDecode(json) as List)
+          Session.fromJson(it as Map<String, dynamic>),
+      ];
+    } on Object {
+      return [];
+    }
+  }
+
+  Future<void> _removeSession(String serverUrl) async {
+    final sessions = (await this.sessions())
+      ..removeWhere((it) => it.serverUrl == serverUrl);
+    await _writeSessions(sessions);
+  }
+
+  Future<void> _writeSessions(List<Session> sessions) => _storage.write(
+    key: _sessionsKey,
+    value: jsonEncode([for (final it in sessions) it.toJson()]),
+  );
 
   /// The servers of the last logins, most recent first.
   Future<List<String>> servers() async {
@@ -155,9 +197,13 @@ class SessionStore {
     }
   }
 
+  /// Removes the server from the list, and its stored login (not the active one, which only a logout ends).
   Future<void> removeServer(String serverUrl) async {
     final servers = (await this.servers())..remove(serverUrl);
     await _writeServers(servers);
+    if ((await load())?.serverUrl != serverUrl) {
+      await _removeSession(serverUrl);
+    }
   }
 
   Future<void> _writeServers(List<String> servers) async {

@@ -74,8 +74,11 @@ class _AuthGate extends ConsumerWidget {
         body: Center(child: CircularProgressIndicator()),
       ),
       AuthStatus.loggedOut => LoginScreen(messageKey: auth.messageKey),
-      // Keyed by the device: another user (a renewal in the browser as someone else) starts with fresh tabs.
-      AuthStatus.loggedIn => HomeScreen(key: ValueKey(auth.session?.deviceId)),
+      // Keyed by the login: another user (a renewal in the browser as someone else) or another server starts with
+      // fresh tabs.
+      AuthStatus.loggedIn => HomeScreen(
+        key: ValueKey('${auth.session?.serverUrl}#${auth.session?.deviceId}'),
+      ),
     };
   }
 }

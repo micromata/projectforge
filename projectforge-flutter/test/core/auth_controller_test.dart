@@ -225,6 +225,51 @@ void main() {
     );
   }
 
+  test('a client of the old server sends nothing of the new login and cannot end it', () async {
+    const serverB = Session(
+      serverUrl: 'https://other.example.com',
+      token: 'tokenB',
+      userId: 2,
+      deviceId: 20,
+      proxyCookies: {'proxy': 'secretB'},
+    );
+    final c = container(userId: 1, deviceId: 10);
+    final controller = await loggedIn(c);
+    final seen = <RequestOptions>[];
+    var unauthorized = 0;
+    var renewals = 0;
+    final old = boundApiClient(
+      userA,
+      current: () => c.read(authControllerProvider).session,
+      appVersion: '1',
+      onUnauthorized: () => unauthorized++,
+      onReauthenticate: () async {
+        renewals++;
+        return true;
+      },
+      dio: Dio()
+        ..httpClientAdapter = FakeAdapter((options) {
+          seen.add(options);
+          return (status: 200, body: null);
+        }),
+    );
+    await old.post<void>('/rs/x', renewLogin: false);
+    expect(seen.last.headers['Authorization'], 'PFApp tokenA');
+
+    await controller.switchTo(serverB);
+    expect(c.read(authControllerProvider).session?.token, 'tokenB');
+    expect(old.proxyCookies(), isEmpty);
+    await old.post<void>('/rs/x', renewLogin: false);
+    expect(seen.last.headers.containsKey('Authorization'), isFalse);
+    expect(seen.last.headers.containsKey('Cookie'), isFalse);
+    // A late refusal or renewal of the old server doesn't touch the new login.
+    old.onUnauthorized();
+    expect(await old.onReauthenticate(), isFalse);
+    expect(unauthorized, 0);
+    expect(renewals, 0);
+    expect(c.read(authControllerProvider).status, AuthStatus.loggedIn);
+  });
+
   test('the logout clears the log of the login', () async {
     final c = container(userId: 1, deviceId: 10);
     final controller = await loggedIn(c);

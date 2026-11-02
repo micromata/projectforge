@@ -202,7 +202,9 @@ class ApiClient {
   }
 
   void _onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    options.headers['Authorization'] = 'PFApp ${token()}';
+    // No token (the login this client was made for is gone): the request goes without credentials.
+    final appToken = token();
+    if (appToken != null) options.headers['Authorization'] = 'PFApp $appToken';
     options.headers['X-PF-Frontend'] = 'next';
     options.headers['X-PF-App-Version'] = appVersion;
     final cookies = proxyCookies();

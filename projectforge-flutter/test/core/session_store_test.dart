@@ -66,6 +66,40 @@ void main() {
     expect(await store.servers(), ['https://a']);
   });
 
+  test(
+    'the logins of several servers are kept, a logout ends the active one',
+    () async {
+      FlutterSecureStorage.setMockInitialValues({});
+      final store = SessionStore();
+      await store.save(session('https://a'));
+      await store.save(session('https://b'));
+      await store.save(session('https://a'));
+      expect((await store.sessions()).map((it) => it.serverUrl), [
+        'https://a',
+        'https://b',
+      ]);
+      expect((await store.load())?.serverUrl, 'https://a');
+      await store.clear();
+      expect(await store.load(), isNull);
+      expect((await store.sessions()).map((it) => it.serverUrl), ['https://b']);
+      // A login of another server is forgotten with its server; the active one only by the logout.
+      await store.removeServer('https://b');
+      expect(await store.sessions(), isEmpty);
+    },
+  );
+
+  test(
+    'the single login of an older version is the only stored login',
+    () async {
+      FlutterSecureStorage.setMockInitialValues({
+        'session':
+            '{"serverUrl":"https://old","token":"t","userId":1,"deviceId":1}',
+      });
+      final store = SessionStore();
+      expect((await store.sessions()).single.serverUrl, 'https://old');
+    },
+  );
+
   test('the last server of an older version is taken over', () async {
     FlutterSecureStorage.setMockInitialValues({'serverUrl': 'https://old'});
     final store = SessionStore();
