@@ -43,7 +43,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   German version in the same commit, with the same headings and anchors; `SiteTranslationTest` fails otherwise.
 - Kept in both languages (English → German):
   - pages `site/*.adoc` → `site/de/*.adoc` (`index`, `features`, `about`, `services`, `download`, `search`),
-    `site/misc/faqs.md` → `site/de/misc/faqs.md`; the German permalink is the English one prefixed with `/de`
+    `site/misc/{faqs,privacy-policy}.md` → `site/de/misc/`; the German permalink is the English one prefixed with `/de`
   - docs `site/_docs/{userguide,adminguide,quickstart}.adoc` → `site/_docs/de/` (every heading with an explicit
     anchor `[[id]]`, the same in both; cross references by id, `<<id>>`, never by title)
   - FAQs `site/_faqs/*.md` → `site/_faqs/de/` (same categories)
@@ -54,7 +54,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Generated in both languages, never edited by hand: `site/_changelogs/` + `site/_changelogs/de/`,
   `site/changelog-posts.adoc` + `site/de/changelog-posts.adoc` (see Generated files).
 - English only, marked `untranslated: true` in the front matter: the docs `installation`, `development`,
-  `technologies`, `migration`, the legal pages `site/misc/{imprint,privacy-policy,terms-of-use}.md` and
+  `technologies`, `migration`, the legal pages `site/misc/{imprint,terms-of-use}.md` and
   `site/404.html` (one page with both languages). German pages link them in English, marked (EN). A new page
   needs its German version or this marker.
 

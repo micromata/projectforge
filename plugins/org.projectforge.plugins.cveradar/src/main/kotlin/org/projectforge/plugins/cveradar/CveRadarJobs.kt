@@ -31,12 +31,13 @@ import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.cveradar.sync.GraylogSyncService
 import org.projectforge.plugins.cveradar.sync.NvdImportService
+import org.projectforge.plugins.cveradar.sync.OsvImportService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 /**
- * The sync of the external source (EXT-04) and the import from the NVD (IMP-03), also startable in the jobs
+ * The sync of the external source (EXT-04) and the imports from the NVD (IMP-03) and OSV.dev (IMP-13), also startable in the jobs
  * monitor. Inactive while the plugin isn't activated or the source isn't configured. The sync of the devices
  * also deletes the outdated devices (EXT-07).
  */
@@ -55,6 +56,9 @@ class CveRadarJobs {
     private lateinit var nvdImportService: NvdImportService
 
     @Autowired
+    private lateinit var osvImportService: OsvImportService
+
+    @Autowired
     private lateinit var pluginAdminService: PluginAdminService
 
     @Autowired
@@ -67,6 +71,9 @@ class CveRadarJobs {
         }
         schedulerJobRunner.register(NVD_JOB, ::nvdImport) {
             inactiveReason() ?: if (!config.nvd.enabled) "The NVD import isn't enabled." else null
+        }
+        schedulerJobRunner.register(OSV_JOB, ::osvImport) {
+            inactiveReason() ?: if (!config.osv.enabled) "The OSV import isn't enabled." else null
         }
     }
 
@@ -84,6 +91,13 @@ class CveRadarJobs {
         }
     }
 
+    @Scheduled(cron = OSV_CRON)
+    fun osvImport() {
+        schedulerJobRunner.runAsync(OSV_JOB) { run ->
+            run.note(osvImportService.import().toString())
+        }
+    }
+
     private fun deleteOutdated(): String {
         val deleted = deviceService.deleteOutdated(config.deviceRetentionDays)
         return if (deleted > 0) ", $deleted outdated devices deleted" else ""
@@ -98,6 +112,8 @@ class CveRadarJobs {
 
         private const val NVD_CRON = "\${projectforge.plugin.cveradar.nvd.cron:0 17 */2 * * *}"
 
+        private const val OSV_CRON = "\${projectforge.plugin.cveradar.osv.cron:0 47 */6 * * *}"
+
         val GRAYLOG_JOB = SchedulerJobDefinition(
             "cveradar.graylog", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "graylogSync",
             SchedulerSchedule.Cron(GRAYLOG_CRON),
@@ -106,6 +122,11 @@ class CveRadarJobs {
         val NVD_JOB = SchedulerJobDefinition(
             "cveradar.nvd", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "nvdImport",
             SchedulerSchedule.Cron(NVD_CRON),
+        )
+
+        val OSV_JOB = SchedulerJobDefinition(
+            "cveradar.osv", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "osvImport",
+            SchedulerSchedule.Cron(OSV_CRON),
         )
     }
 }

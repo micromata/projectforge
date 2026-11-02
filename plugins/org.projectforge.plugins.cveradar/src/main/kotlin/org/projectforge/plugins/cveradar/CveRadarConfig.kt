@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.cveradar
 
+import org.projectforge.plugins.cveradar.sync.OsvPackages
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
 
@@ -55,6 +56,8 @@ open class CveRadarConfig {
     var graylog = Graylog()
 
     var nvd = Nvd()
+
+    var osv = Osv()
 
     /** Log server Graylog with the messages of the client agents (EXT-04, EXT-05). */
     class Graylog {
@@ -119,5 +122,31 @@ open class CveRadarConfig {
 
         override fun toString(): String =
             "Nvd(enabled=$enabled, url=$url, apiKey=${if (apiKey.isBlank()) "<none>" else "***"}, initialDays=$initialDays, minCvss=$minCvss)"
+    }
+
+    /**
+     * Import of the advisories of OSV.dev for the libraries (IMP-13) from its public bucket: all advisories of an
+     * ecosystem once (`all.zip`), afterwards the modified ones (`modified_id.csv`). Nothing of the inventory is sent.
+     */
+    class Osv {
+        /** Imports from OSV.dev (needs internet access); off: inactive. */
+        var enabled: Boolean = false
+
+        var url: String = "https://osv-vulnerabilities.storage.googleapis.com"
+
+        /** The OSV keys of the ecosystems imported, comma separated; see [OsvPackages.ECOSYSTEMS]. */
+        var ecosystems: String = "Maven,npm,PyPI,NuGet,Packagist,Go,crates.io"
+
+        /**
+         * Also the malicious packages (OSV ids `MAL-…`): some hundred thousand advisories, almost all of npm and PyPI;
+         * off by default.
+         */
+        var malicious: Boolean = false
+
+        /** The known ecosystems of [ecosystems]. */
+        val ecosystemKeys: List<String>
+            get() = ecosystems.split(',').map { it.trim() }.filter { OsvPackages.ecosystem(it) != null }.distinct()
+
+        override fun toString(): String = "Osv(enabled=$enabled, url=$url, ecosystems=$ecosystems, malicious=$malicious)"
     }
 }

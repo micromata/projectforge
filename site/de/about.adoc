@@ -26,4 +26,4 @@ Die Inhalte dieser Website dürfen weder verändert noch verbreitet werden. Eben
 
 Kai Reinhard ist nicht verantwortlich für die Inhalte externer Websites, auf die verlinkt wird.
 
-Siehe auch link:/misc/imprint.html[Impressum], link:/misc/terms-of-use.html[Nutzungsbedingungen] und link:/misc/privacy-policy.html[Datenschutzerklärung].
+Siehe auch link:/misc/imprint.html[Impressum], link:/misc/terms-of-use.html[Nutzungsbedingungen] und link:/de/misc/privacy-policy.html[Datenschutzerklärung].

@@ -1965,19 +1965,55 @@ projectforge.plugin.cveradar.nvd.cron=0 17 */2 * * *
 * Reading the list needs a role of the CVE-Radar (see <<cve_radar_rights>>). A row opens the file of the vulnerability.
 * The API key is sent as header only and is never logged or shown by the properties editor.
 
+[[cve_radar_osv]]
+==== Advisories of the libraries from OSV.dev
+
+The NVD often names libraries late or under another name than the package (or not at all for weeks). Therefore
+ProjectForge also imports the advisories of OSV.dev (GitHub, PyPA, Go, RustSec, ...) for the ecosystems of the
+libraries and matches them by package (purl) and version against the libraries of the inventory, i.e. the ones from
+SBOMs, lockfiles and build lists. The import is off by default, as it needs internet access.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.osv.enabled=true
+# The public bucket of OSV.dev.
+projectforge.plugin.cveradar.osv.url=https://osv-vulnerabilities.storage.googleapis.com
+# The ecosystems (OSV keys), comma separated.
+projectforge.plugin.cveradar.osv.ecosystems=Maven,npm,PyPI,NuGet,Packagist,Go,crates.io
+# Also the malicious packages (MAL-...): some hundred thousand advisories, almost all of npm and PyPI.
+projectforge.plugin.cveradar.osv.malicious=false
+# Every 6 hours at minute 47 (UTC).
+projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
+----
+
+* The first run reads all advisories of each ecosystem (the file `all.zip` of the bucket, npm about 250 MB), every run
+  after that the ones modified since. Only files of advisories are fetched; nothing of the inventory leaves
+  ProjectForge.
+* An advisory becomes a vulnerability of the list only when it matches a library of the inventory, then whatever its
+  score: the threshold of the NVD import (`minCvss`) holds for products, not for libraries in use. The vulnerability
+  is named by its CVE id, without one by its GHSA id (or the id of the source); the advisories of one CVE (e.g. of
+  GitHub and of PyPA) become one vulnerability.
+* As soon as the NVD modifies the CVE, its data replace the ones of the advisories (status _OSV_ before); the
+  advisories keep matching.
+* A library without groupId (a jar listing) matches by its artifact only, as _possible_. Where the advisories know the
+  package of a library, they decide: a _possible_ match of the same vulnerability by the name of the CPE is dropped.
+* A withdrawn advisory matches nothing any more; a vulnerability made of withdrawn advisories only is rejected.
+* The ad-hoc check uses the advisories as well, without storing anything.
+
 [[cve_radar_jobs]]
 ==== Jobs and connections
 
-* The connector and the NVD import run as jobs, _CVE-Radar: client agents_ and
-  _CVE-Radar: NVD import_, listed under
+* The connector and the imports run as jobs, _CVE-Radar: client agents_,
+  _CVE-Radar: NVD import_ and _CVE-Radar: OSV import_, listed under
   _Administration_ -> _Job monitor_. There they can be started at once (_Run now_); while their source isn't configured, they
   are shown as inactive with the reason. The summary of every run is
   shown in the run and logged, errors are part of the error digest.
 * Timeouts and the max size of a response are set per connection with
   `projectforge.integration.clients.cveradar-graylog.*` and
-  `projectforge.integration.clients.cveradar-nvd.*` (e.g. `responseTimeoutMs`, `maxResponseBytes`, default 50 MB; for
-  the NVD 180 s and 200 MB, as a page has up to 2000 vulnerabilities).
-* An outgoing proxy isn't supported yet: ProjectForge must reach both hosts directly.
+  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*` (e.g.
+  `responseTimeoutMs`, `maxResponseBytes`, default 50 MB; for the NVD 180 s and 200 MB, as a page has up to 2000
+  vulnerabilities; for OSV.dev 180 s and 1 GB for the zip of an ecosystem, downloaded into a temporary file).
+* An outgoing proxy isn't supported yet: ProjectForge must reach the hosts directly.
 * Keys and the token are never shown by the properties editor. Instead of `projectforge.properties` they may be given
   as environment variables, e.g. `PROJECTFORGE_PLUGIN_CVERADAR_GRAYLOG_TOKEN`.
 
