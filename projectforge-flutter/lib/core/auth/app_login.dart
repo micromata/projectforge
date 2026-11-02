@@ -115,10 +115,13 @@ class AppLogin {
       );
       _logResponse('Token', response);
       final json = response.data!;
+      final proxyCookies = Session.proxyCookiesFromJson(json['proxyCookies']);
+      // Their values are credentials of the proxy, whatever the server named them.
+      LogSanitizer.addSecretNames(proxyCookies.keys);
       appLog.info(
         'login',
         'Logged in: user ${json['userId']}, device ${json['deviceId']}, proxy cookies: '
-            '${LogSanitizer.cookieNames(Session.proxyCookiesFromJson(json['proxyCookies']).keys)}',
+            '${LogSanitizer.cookieNames(proxyCookies.keys)}',
       );
       return Session(
         serverUrl: serverUrl,
@@ -127,7 +130,7 @@ class AppLogin {
         deviceId: json['deviceId'] as int,
         username: json['username'] as String?,
         fullname: json['fullname'] as String?,
-        proxyCookies: Session.proxyCookiesFromJson(json['proxyCookies']),
+        proxyCookies: proxyCookies,
       );
     } on DioException catch (e) {
       _logFailure('Token', e);

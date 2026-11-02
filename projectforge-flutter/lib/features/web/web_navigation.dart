@@ -51,12 +51,12 @@ class WebNavigation {
   /// Not `data:`: a page of its own, which the app (without an address bar) would show like one of the server.
   static const _inlineSchemes = {'about', 'blob'};
 
-  /// Another site stays in the WebView if the pages didn't go there by a link the user tapped: the login of an SSO
-  /// proxy in front of the server, whose session expired. The proxy redirects the pages to its login (another host)
-  /// and, after the login, back to the pages; its cookies have to end up in the WebView, not in the system browser.
-  /// Once on such a site, everything stays in the WebView until the pages are back (its form, its links).
+  /// Another site opens in the system browser, except the login of an SSO proxy ([isProxyLogin]) when the app lets
+  /// it happen in the WebView (its renewal in the system browser failed): the proxy redirects the pages to its login
+  /// and, after the login, back to the pages, its cookies have to end up in the WebView. Once on such a site,
+  /// everything stays in the WebView until the pages are back (its form, its links).
   ///
-  /// @param redirect The navigation wasn't started by the user (a redirect of a server, a script).
+  /// @param redirect The navigation is the login of the proxy and is to stay in the WebView.
   /// @param fromForeignSite The WebView shows another site (the login of the proxy).
   WebNavigationTarget decide(
     Uri target, {
@@ -76,6 +76,25 @@ class WebNavigation {
     }
     return WebNavigationTarget.cancel;
   }
+
+  /// A navigation to another site is the login of the SSO proxy in front of the server: a redirect while a page of
+  /// the server loads (the proxy refused it and sends the browser to its login). Not a script of a loaded page (an
+  /// external entry of the menu) and not a link the user tapped, which go to the system browser. Only behind a proxy
+  /// ([behindProxy]: the server named proxy cookies at the login).
+  ///
+  /// @param redirect The navigation wasn't started by the user (a redirect or a script).
+  /// @param loadingServerPage A page of the server is loading and not yet loaded.
+  bool isProxyLogin(
+    Uri target, {
+    required bool redirect,
+    required bool loadingServerPage,
+    required bool behindProxy,
+  }) =>
+      (target.scheme == 'http' || target.scheme == 'https') &&
+      !isSameOrigin(target) &&
+      redirect &&
+      loadingServerPage &&
+      behindProxy;
 
   bool isSameOrigin(Uri url) =>
       url.scheme == server.scheme &&

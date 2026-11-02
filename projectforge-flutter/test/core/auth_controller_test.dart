@@ -33,6 +33,7 @@ import 'package:projectforge_app/core/auth/device_description.dart';
 import 'package:projectforge_app/core/auth/session.dart';
 import 'package:projectforge_app/core/cache/json_cache.dart';
 import 'package:projectforge_app/core/cache/shared_files.dart';
+import 'package:projectforge_app/core/log/app_log.dart';
 import 'package:projectforge_app/core/web/web_cookies.dart';
 
 import 'fake_adapter.dart';
@@ -212,9 +213,9 @@ void main() {
         final c = container(userId: 1, deviceId: 10);
         final controller = await loggedIn(c);
         final renewed = await controller.takeProxyCookies([
-          (name: 'JSESSIONID', value: 'web'),
-          (name: 'authentik_proxy_1', value: 'expired'),
-          (name: 'authentik_proxy_1', value: 'fresh'),
+          (name: 'JSESSIONID', value: 'web', domain: null),
+          (name: 'authentik_proxy_1', value: 'expired', domain: null),
+          (name: 'authentik_proxy_1', value: 'fresh', domain: null),
         ]);
         expect(renewed, isTrue);
         expect(c.read(authControllerProvider).session?.proxyCookies, {
@@ -225,13 +226,48 @@ void main() {
       },
     );
 
+    test(
+      'a cookie of the same name for the whole domain is not taken',
+      () async {
+        store.session = withProxy;
+        final c = container(userId: 1, deviceId: 10);
+        final controller = await loggedIn(c);
+        expect(
+          await controller.takeProxyCookies([
+            (
+              name: 'authentik_proxy_1',
+              value: 'planted',
+              domain: '.example.com',
+            ),
+          ]),
+          isFalse,
+        );
+        expect(
+          await controller.takeProxyCookies([
+            (
+              name: 'authentik_proxy_1',
+              value: 'planted',
+              domain: '.example.com',
+            ),
+            (
+              name: 'authentik_proxy_1',
+              value: 'fresh',
+              domain: 'pf.example.com',
+            ),
+          ]),
+          isTrue,
+        );
+        expect(store.session?.proxyCookies, {'authentik_proxy_1': 'fresh'});
+      },
+    );
+
     test('unchanged or missing cookies keep the session', () async {
       store.session = withProxy;
       final c = container(userId: 1, deviceId: 10);
       final controller = await loggedIn(c);
       expect(
         await controller.takeProxyCookies([
-          (name: 'authentik_proxy_1', value: 'expired'),
+          (name: 'authentik_proxy_1', value: 'expired', domain: null),
         ]),
         isFalse,
       );
@@ -244,11 +280,21 @@ void main() {
       final controller = await loggedIn(c);
       expect(
         await controller.takeProxyCookies([
-          (name: 'authentik_proxy_1', value: 'x'),
+          (name: 'authentik_proxy_1', value: 'x', domain: null),
         ]),
         isFalse,
       );
       expect(store.session?.proxyCookies, isEmpty);
     });
+  });
+
+  test('the logout clears the log of the login', () async {
+    final c = container(userId: 1, deviceId: 10);
+    final controller = await loggedIn(c);
+    appLog.info('web', 'Navigation to a page of the user');
+    await controller.logout();
+    expect(appLog.entries.map((it) => it.message), [
+      'Logged out: log of the login cleared',
+    ]);
   });
 }

@@ -57,6 +57,24 @@ class LogSanitizer {
     caseSensitive: false,
   );
 
+  /// Further names of secrets: the cookies of the SSO proxy, named by the configuration of the server.
+  static final _extraNames = <String>{};
+  static RegExp? _extraParameter;
+  static RegExp? _extraJson;
+
+  /// The values of [names] are masked from now on (e.g. `_oauth2_proxy=…`), like those of [_secretName].
+  static void addSecretNames(Iterable<String> names) {
+    final before = _extraNames.length;
+    _extraNames.addAll(names.where((it) => it.isNotEmpty));
+    if (_extraNames.length == before) return;
+    final alternatives = _extraNames.map(RegExp.escape).join('|');
+    _extraParameter = RegExp('(?<![\\w-])($alternatives)=([^\\s&;,]+)');
+    _extraJson = RegExp('"($alternatives)"(\\s*:\\s*)("[^"]*"|[^\\s,}]+)');
+  }
+
+  /// Control characters other than the line break: a text of the server mustn't move the cursor or fake entries.
+  static final _control = RegExp(r'[\x00-\x09\x0b-\x1f\x7f]');
+
   /// A mail address (personal data).
   static final _mail = RegExp(r'[\w.+-]+@[\w-]+(\.[\w-]+)+');
 
@@ -64,12 +82,23 @@ class LogSanitizer {
   static final _cookiePair = RegExp(r'(^|;\s*)([^=;\s]+)=[^;]*');
 
   /// [message] without anything that looks like a secret.
-  static String text(String message) => message
-      .replaceAllMapped(_authorization, (m) => '${m[1]} $mask')
-      .replaceAll(_jwt, mask)
-      .replaceAll(_mail, mask)
-      .replaceAllMapped(_secretParameter, (m) => '${m[1]}=$mask')
-      .replaceAllMapped(_secretJson, (m) => '"${m[1]}"${m[2]}$mask');
+  static String text(String message) {
+    var result = message
+        .replaceAll(_control, ' ')
+        .replaceAllMapped(_authorization, (m) => '${m[1]} $mask')
+        .replaceAll(_jwt, mask)
+        .replaceAll(_mail, mask)
+        .replaceAllMapped(_secretParameter, (m) => '${m[1]}=$mask')
+        .replaceAllMapped(_secretJson, (m) => '"${m[1]}"${m[2]}$mask');
+    final parameter = _extraParameter;
+    final json = _extraJson;
+    if (parameter != null && json != null) {
+      result = result
+          .replaceAllMapped(parameter, (m) => '${m[1]}=$mask')
+          .replaceAllMapped(json, (m) => '"${m[1]}"${m[2]}$mask');
+    }
+    return result;
+  }
 
   /// Scheme, host, port and path of [url]; the values of its query are masked (their names show what arrived), the
   /// fragment is dropped.

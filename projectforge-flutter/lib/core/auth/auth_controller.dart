@@ -28,6 +28,7 @@ import '../api/api_exception.dart';
 import '../cache/json_cache.dart';
 import '../cache/shared_files.dart';
 import '../log/app_log.dart';
+import '../log/log_sanitizer.dart';
 import '../web/web_cookies.dart';
 import 'app_login.dart';
 import 'device_description.dart';
@@ -92,6 +93,9 @@ class AuthController extends Notifier<AuthState> {
 
   Future<void> _restore() async {
     final session = await ref.read(sessionStoreProvider).load();
+    if (session != null) {
+      LogSanitizer.addSecretNames(session.proxyCookies.keys);
+    }
     appLog.info(
       'auth',
       session == null
@@ -193,21 +197,26 @@ class AuthController extends Notifier<AuthState> {
   /// login): its fresh cookies replace the stored ones, so the requests of the app get through again.
   ///
   /// Only the cookies the server named as proxy cookies at the login are taken (`Session.proxyCookies`), never others
-  /// of the WebView. A name the WebView has twice (host and domain cookie) is taken with the value that differs from
-  /// the stored, expired one.
+  /// of the WebView, and only those of the server's host: a cookie of the same name set for the whole domain may come
+  /// from another site of that domain. A name the WebView has twice is taken with the value that differs from the
+  /// stored, expired one.
   ///
   /// @param webViewCookies The cookies of the WebView for the server.
   /// @return true if a cookie was renewed.
-  Future<bool> takeProxyCookies(
-    List<({String name, String value})> webViewCookies,
-  ) async {
+  Future<bool> takeProxyCookies(List<WebViewCookie> webViewCookies) async {
     final session = state.session;
     if (session == null || session.proxyCookies.isEmpty) return false;
+    final host = Uri.parse(session.serverUrl).host;
     final renewed = <String, String>{};
     for (final MapEntry(key: name, value: stored)
         in session.proxyCookies.entries) {
       final values = webViewCookies
-          .where((it) => it.name == name && it.value.isNotEmpty)
+          .where(
+            (it) =>
+                it.name == name &&
+                it.value.isNotEmpty &&
+                _ofHost(it.domain, host),
+          )
           .map((it) => it.value)
           .toList();
       if (values.length > 1) {
@@ -237,6 +246,13 @@ class AuthController extends Notifier<AuthState> {
     return true;
   }
 
+  /// A cookie set for [host] itself, not for a parent domain (`.example.org`). Null: the platform doesn't tell
+  /// (Android), taken.
+  static bool _ofHost(String? domain, String host) =>
+      domain == null ||
+      domain.isEmpty ||
+      domain.toLowerCase() == host.toLowerCase();
+
   /// The browser was logged in as another user, for whom the server registered this app anew: the old user is logged
   /// out (at the server too, best effort), and nothing of them stays (cache, cookies, tabs). The request that asked
   /// for the renewal was the old user's and fails.
@@ -249,6 +265,7 @@ class AuthController extends Notifier<AuthState> {
       // The old token expires anyway.
     }
     await _clearLocalData();
+    _clearLog('Logged in as another user: log of the previous user cleared');
     await ref.read(sessionStoreProvider).save(renewed);
     state = AuthState(AuthStatus.loggedIn, session: renewed);
   }
@@ -268,7 +285,14 @@ class AuthController extends Notifier<AuthState> {
       // Offline, timed out or already logged out: the token is forgotten here anyway.
     }
     await _forget(null);
+    _clearLog('Logged out: log of the login cleared');
   }
+
+  /// The log of a login isn't left to whoever uses the device next (it names the server, the pages, the ids). Kept
+  /// for an expired login: it tells why, and the same user logs in again.
+  void _clearLog(String reason) => appLog
+    ..clear()
+    ..info('auth', reason);
 
   /// The server refused the token (logged out in the web, expired, password changed).
   void onUnauthorized() {

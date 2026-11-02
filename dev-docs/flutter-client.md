@@ -146,17 +146,24 @@ app has only its token:
 - **Navigation:** the own server stays in the WebView; other sites, `mailto:`, `tel:` open in the system. `data:`
   pages are refused (without an address bar they would look like pages of the server), as are unknown schemes; no
   file or content access.
-- **Login of an SSO proxy in the WebView:** when the proxy session expires (e.g. Authentik in forward auth mode), the
-  proxy redirects the pages to its login on another host (`/outpost.goauthentik.io/start` → `sso…/authorize`). Such
-  a redirect (iOS: navigation type other than link or form, Android: `isRedirect` or no gesture) stays in the WebView,
-  and so does everything on that site until the pages are back (`WebNavigation.decide`, `redirect`,
-  `fromForeignSite`); only a link the user taps opens another site in the system browser. Back on the server, the
-  fresh proxy cookies of the WebView go into the session (`AuthController.takeProxyCookies`: only the names the
-  server sent at the login), so the native tabs and the next web session get through again, and
-  `ApiClient.proxyCookiesRenewed` allows a browser renewal again. A site a script of the pages navigates to also
-  stays in the WebView. While the WebView shows another site, a bar above it names its host (there is no address
-  bar, the site mustn't pass for the pages) and offers "open in the browser" (the current page) and "back to
-  ProjectForge" (the last page of the server).
+- **SSO proxy refusing the pages:** when the proxy session expires (e.g. Authentik in forward auth mode), the proxy
+  redirects a page load to its login on another host (`/outpost.goauthentik.io/start` → `sso…/authorize`). The app
+  tells it from other navigations to another site by `WebNavigation.isProxyLogin`: a redirect (iOS: navigation type
+  other than link or form, Android: `isRedirect` or no gesture) while a page of the server is still loading (before
+  `onLoadStop`), behind a proxy only (the server sent proxy cookies at the login). A script of a loaded page (an
+  external menu entry) and a tapped link open the other site in the system browser.
+  - The navigation is cancelled and the login of the app renewed in the system browser
+    (`AuthController.reauthenticate`): `ASWebAuthenticationSession` shares the proxy's login session with Safari
+    (often no password), the token exchange brings fresh proxy cookies, also into the WebView, and the page asked for
+    is loaded again. The password of the proxy's login isn't typed into a WebView of the app (RFC 8252).
+  - Only if that is cancelled or fails, or the proxy refuses again within 30 s, the proxy's login happens in the
+    WebView (`decide`, `redirect`, `fromForeignSite`: everything on that site stays until the pages are back). Back on
+    the server, the fresh proxy cookies of the WebView go into the session (`AuthController.takeProxyCookies`: only
+    the names the server sent at the login, only cookies of the server's host, not of a parent domain), and
+    `ApiClient.proxyCookiesRenewed` allows a browser renewal again.
+  - While the WebView shows another site, a bar above it names its host (there is no address bar, the site mustn't
+    pass for the pages) and offers "open in the browser" (the current page) and "back to ProjectForge" (the last
+    page of the server).
 - **App mode of next:** the user agent carries `ProjectForgeApp/<version>` (`lib/app-mode.ts`): next hides its
   logout, the app has its own. Only for the UI, never a security check.
 - **No JavaScript handlers** in the WebView: the pages never get hold of the app token.
@@ -183,12 +190,15 @@ navigation of the WebView with its decision and how it came about (link or redir
 errors (`main.dart`).
 
 - Only in memory, at most one day and 2000 entries; nothing is written to a file. In a debug build also on the
-  console.
+  console. Cleared by the logout and by a renewal that logged in another user (it names server, pages and ids), kept
+  for an expired login (it tells why).
 - Shown, copied and cleared on the page "Log" (`core/log/log_screen.dart`), reachable from the settings and from the
   login page (a failed login happens before the settings can be opened).
 - No secrets: urls through `LogSanitizer.url` (query values masked, names kept), cookies only by name, no bodies, no
   user or device name (only ids). `LogSanitizer.text` masks every message again (`PFApp`/`Bearer` values, JWTs,
-  `token=`, `code=`, `state=`, … and their json fields, mail addresses).
+  `token=`, `code=`, `state=`, … and their json fields, the proxy cookie names of the server, mail addresses), replaces
+  control characters and indents further lines of an entry. Texts of the server (error messages) may still name
+  persons: the log stays on the device unless the user copies it.
 
 ## Texts
 

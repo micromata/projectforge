@@ -102,6 +102,47 @@ void main() {
       },
     );
 
+    test('the login of an SSO proxy is a redirect to another site while a page of the server loads', () {
+      final login = Uri.parse(
+        'https://sso.example.org/application/o/authorize/',
+      );
+      bool proxyLogin(
+        Uri url, {
+        bool redirect = true,
+        bool loadingServerPage = true,
+        bool behindProxy = true,
+      }) => navigation.isProxyLogin(
+        url,
+        redirect: redirect,
+        loadingServerPage: loadingServerPage,
+        behindProxy: behindProxy,
+      );
+      expect(proxyLogin(login), isTrue);
+      expect(
+        proxyLogin(login, loadingServerPage: false),
+        isFalse,
+        reason: 'A script of a loaded page (an external entry of the menu).',
+      );
+      expect(
+        proxyLogin(login, redirect: false),
+        isFalse,
+        reason: 'A tapped link.',
+      );
+      expect(
+        proxyLogin(login, behindProxy: false),
+        isFalse,
+        reason: 'No proxy.',
+      );
+      expect(
+        proxyLogin(
+          Uri.parse('https://pf.example.org/outpost.goauthentik.io/start'),
+        ),
+        isFalse,
+        reason: 'The own server.',
+      );
+      expect(proxyLogin(Uri.parse('mailto:someone@example.org')), isFalse);
+    });
+
     test('unknown schemes are not opened', () {
       expect(
         navigation.decide(Uri.parse('javascript:alert(1)')),

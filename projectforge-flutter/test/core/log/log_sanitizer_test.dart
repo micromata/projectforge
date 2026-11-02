@@ -80,6 +80,21 @@ void main() {
     expect(LogSanitizer.text(message), message);
   });
 
+  test('text: values of registered names masked (proxy cookies named by the server)', () {
+    const message =
+        'FormatException: {"_oauth2_proxy": "v4lue"} _oauth2_proxy=v4lue';
+    expect(LogSanitizer.text(message), contains('v4lue'));
+    LogSanitizer.addSecretNames(['_oauth2_proxy']);
+    final text = LogSanitizer.text(message);
+    expect(text, isNot(contains('v4lue')));
+    expect(text, contains('"_oauth2_proxy": ***'));
+    expect(text, contains('_oauth2_proxy=***'));
+  });
+
+  test('text: control characters replaced, line breaks kept', () {
+    expect(LogSanitizer.text('a\rb\u001b[2Jc\nd'), 'a b [2Jc\nd');
+  });
+
   test('cookies: names only', () {
     expect(LogSanitizer.cookieNames(['b', 'a']), 'a, b');
     expect(LogSanitizer.cookieNames(const []), '-');

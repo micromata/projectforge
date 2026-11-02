@@ -59,6 +59,20 @@ void main() {
   });
 
   test(
+    'further lines of an entry are indented, so they never pass for an entry',
+    () {
+      final log = AppLog(clock: () => DateTime(2026, 11, 2, 10))
+        ..warn(
+          'api',
+          'Server says:\n2026-11-02T10:00:00.000 INFO  [auth] Login renewed',
+        );
+      final lines = log.text().split('\n');
+      expect(lines, hasLength(2));
+      expect(lines[1], startsWith('    2026'));
+    },
+  );
+
+  test(
     'listeners are notified once for several entries, after the current task',
     () async {
       final log = AppLog();

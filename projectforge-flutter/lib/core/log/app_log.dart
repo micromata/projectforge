@@ -43,7 +43,7 @@ class LogEntry {
   @override
   String toString() =>
       '${time.toIso8601String()} ${level.name.toUpperCase().padRight(5)} '
-      '[$tag] $message';
+      '[$tag] ${message.replaceAll('\n', '\n    ')}';
 }
 
 /// The log of the app (login, requests, WebView navigation), shown and copied in the settings to find out why
@@ -114,7 +114,8 @@ class AppLog extends ChangeNotifier {
     });
   }
 
-  /// All entries as text, for copying.
+  /// All entries as text, for copying. Further lines of an entry (a stack trace, a text of the server) are
+  /// indented: only the first line of an entry starts with a time.
   String text() => entries.join('\n');
 
   void _prune() {
