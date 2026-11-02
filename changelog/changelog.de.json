@@ -1,5 +1,33 @@
 {
   "releases": {
+    "9-2-3": {
+      "title": "ProjectForge 9.2.3: Kostenträger ohne Punkte kopieren, Kopier-Button an Codeblöcken",
+      "summary": [
+        "**Rechnungen**: Kost1 und Kost2 ohne Punkte kopieren",
+        "**Chat**: Kopier-Button an Codeblöcken",
+        "Fix: Skripte mit Klassen der Plugins CVE-Radar und IHK laufen wieder"
+      ],
+      "overview": [
+        "**Rechnungen:** Kost1 und Kost2 einer Kostenzuweisung lassen sich ohne Punkte kopieren, in der zugeklappten Position wie neben den Feldern einer aufgeklappten, z. B. zur Eingabe in ein anderes Buchhaltungssystem.",
+        "**Chat:** Codeblöcke in Nachrichten und Raumbeschreibungen haben einen Button zum Kopieren.",
+        "**Fixes:** Kotlin-Skripte brechen nicht mehr mit \"Unresolved reference 'cveradar'\" ab, die Klassen der Plugins CVE-Radar und IHK sind wieder im Klassenpfad der Skripte."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Chat: Codeblöcke in Nachrichten und Raumbeschreibungen haben einen Button zum Kopieren.",
+            "Rechnungen: Kost1 und Kost2 einer Kostenzuweisung lassen sich ohne Punkte kopieren, z. B. zur Eingabe in ein anderes Buchhaltungssystem."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Scripting: Kotlin-Skripte brachen mit \"Unresolved reference 'cveradar'\" ab, die Klassen der Plugins CVE-Radar und IHK fehlten im Klassenpfad der Skripte."
+          ]
+        }
+      ]
+    },
     "9-2-2": {
       "title": "ProjectForge 9.2.2: Mobile App mit Benachrichtigungen und Adressbuch, CVE-Radar-Benachrichtigungen",
       "summary": [
