@@ -21,6 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -54,6 +56,7 @@ class WebScreen extends ConsumerStatefulWidget {
     this.initialPath,
     this.target,
     this.onNativePage,
+    this.restarts = 0,
   });
 
   /// The screen is the visible tab: the back gesture goes back in the WebView history.
@@ -68,6 +71,10 @@ class WebScreen extends ConsumerStatefulWidget {
   /// The pages navigate to a page with a native tab (e.g. the chat of the menu): true if the app shows its tab
   /// instead, the WebView then stays on its page. Not called for a page this screen was asked to load itself.
   final bool Function(NativePage page)? onNativePage;
+
+  /// The restarts the user asked for ("Reload page" of the menu): a higher number starts a new WebView with a new
+  /// web session on the current page, as a restart of the app would.
+  final int restarts;
 
   @override
   ConsumerState<WebScreen> createState() => _WebScreenState();
@@ -92,8 +99,21 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   String? _error;
   double _progress = 0;
   bool _canGoBack = false;
-  bool _opening = false;
   DateTime? _lastOpened;
+
+  /// Counts the calls of [_open]: only the latest one loads its page (a former one may still wait for its session,
+  /// e.g. of a renewal hanging in the browser, and mustn't block a restart).
+  int _openings = 0;
+
+  /// The WebView shows a page of the server: until then a spinner, and after [_stallTime] without one a hint to
+  /// reload (a load cancelled without a callback, e.g. a redirect to the SSO proxy, leaves the WebView empty).
+  bool _pageShown = false;
+  bool _stalled = false;
+  Timer? _stallTimer;
+  static const _stallTime = Duration(seconds: 20);
+
+  /// The page of the server shown last: the page of a restart.
+  Uri? _shownUrl;
 
   /// A page of the server is loading and not yet committed (`onPageCommitVisible`): a redirect to another site now is
   /// one of the server or its proxy, not a script of a loaded page. Set for every load of the app itself too
@@ -140,6 +160,13 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     if (target != null && !identical(target, oldWidget.target)) {
       _open(target.path);
     }
+    if (widget.restarts > oldWidget.restarts) _restart(renew: true);
+  }
+
+  @override
+  void dispose() {
+    _stallTimer?.cancel();
+    super.dispose();
   }
 
   /// Loads [path] (default: the start page of the server) with the web session of the app, a new one if [renew].
@@ -151,14 +178,14 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     bool renew = false,
     bool renewLogin = true,
   }) async {
-    if (_opening) return;
-    _opening = true;
+    final opening = ++_openings;
     setState(() => _error = null);
     try {
       final sessions = ref.read(webSessionRepositoryProvider)!;
       final startPath = await (renew
           ? sessions.renew(renewLogin: renewLogin)
           : sessions.ensure());
+      if (!mounted || opening != _openings) return;
       if (renew) _lastOpened = DateTime.now();
       final url = _navigation.pageUrl(path ?? startPath);
       if (url == null) {
@@ -179,15 +206,28 @@ class _WebScreenState extends ConsumerState<WebScreen> {
       }
     } on ApiException catch (e) {
       appLog.warn('web', 'Pages not opened: $e');
-      if (mounted) {
+      if (mounted && opening == _openings) {
         _showError(
           context.errorText(e),
           proxyRefusal: e.messageKey == ApiClient.proxyRefusedKey,
         );
       }
-    } finally {
-      _opening = false;
     }
+  }
+
+  /// A new WebView on the page shown last: asked for by the user ([WebScreen.restarts], the hint of a stalled load),
+  /// or its content process is gone (killed by the system, e.g. while the app was in the background), which leaves
+  /// the WebView empty for good.
+  ///
+  /// @param renew A new web session too (the old one may be what keeps the pages empty).
+  void _restart({required bool renew}) {
+    final path = (_shownUrl ?? _requestedUrl)?.toString() ?? widget.initialPath;
+    appLog.info(
+      'web',
+      'Restart of the WebView${renew ? ' with a new web session' : ''}',
+    );
+    _replaceWebView();
+    _open(path, renew: renew);
   }
 
   /// Loads [url], a page of the server, as a load of its own (see [_serverPageLoadStart]).
@@ -199,6 +239,31 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   void _startServerPageLoad(Uri url) {
     _requestedUrl = url;
     _serverPageLoadStart = DateTime.now();
+    if (!_pageShown) _watchStall();
+  }
+
+  /// Shows the hint of [_pageShown] if the WebView still shows nothing after [_stallTime].
+  void _watchStall() {
+    _stallTimer?.cancel();
+    if (_stalled) setState(() => _stalled = false);
+    _stallTimer = Timer(_stallTime, () {
+      if (!mounted || _pageShown) return;
+      appLog.warn('web', 'No page shown after ${_stallTime.inSeconds} s');
+      setState(() => _stalled = true);
+    });
+  }
+
+  /// Removes the WebView (the next one starts empty, on its own start url).
+  void _replaceWebView() {
+    _stallTimer?.cancel();
+    setState(() {
+      _controller = null;
+      _startUrl = null;
+      _canGoBack = false;
+      _pageShown = false;
+      _stalled = false;
+      _progress = 0;
+    });
   }
 
   /// The page again (pull to refresh), as a load of its own: Android doesn't pass a reload through
@@ -214,13 +279,13 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   }
 
   /// The error replaces the WebView, a retry starts a new one.
-  void _showError(String message, {bool proxyRefusal = false}) => setState(() {
-    _error = message;
-    _proxyRefusalShown = proxyRefusal;
-    _controller = null;
-    _startUrl = null;
-    _canGoBack = false;
-  });
+  void _showError(String message, {bool proxyRefusal = false}) {
+    _replaceWebView();
+    setState(() {
+      _error = message;
+      _proxyRefusalShown = proxyRefusal;
+    });
+  }
 
   /// The pages show the login: the web session is gone. Renewed once per [_renewalInterval], otherwise an error.
   void _onLoginPage(Uri url) {
@@ -455,7 +520,11 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     InAppWebViewController controller,
     WebUri? url,
   ) async {
-    if (url != null && _navigation.isLoginPage(url)) _onLoginPage(url);
+    if (url != null && _navigation.isLoginPage(url)) {
+      _onLoginPage(url);
+    } else if (url != null && _navigation.isSameOrigin(url)) {
+      _shownUrl = url;
+    }
     if (url != null && _handOver(url) && await controller.canGoBack()) {
       // Back to the page the user came from, the native page is shown in its tab.
       await controller.goBack();
@@ -537,7 +606,28 @@ class _WebScreenState extends ConsumerState<WebScreen> {
             onPageCommitVisible: (_, url) {
               // The page is there: further navigations are no redirects of its load.
               _serverPageLoadStart = null;
-              if (url != null) _onPageCommitted(url);
+              if (url == null) return;
+              if (!_pageShown && _navigation.isSameOrigin(url)) {
+                _stallTimer?.cancel();
+                setState(() {
+                  _pageShown = true;
+                  _stalled = false;
+                });
+              }
+              _onPageCommitted(url);
+            },
+            // The content process is gone (iOS: killed while the app was in the background; Android: crashed or
+            // killed, the WebView can't be used anymore): the WebView would stay empty, a new one is started.
+            onWebContentProcessDidTerminate: (_) {
+              appLog.warn('web', 'Content process of the WebView terminated');
+              _restart(renew: false);
+            },
+            onRenderProcessGone: (_, detail) {
+              appLog.warn(
+                'web',
+                'Render process of the WebView gone (crashed: ${detail.didCrash})',
+              );
+              _restart(renew: false);
             },
             onLoadStop: (_, url) {
               _serverPageLoadStart = null;
@@ -573,6 +663,22 @@ class _WebScreenState extends ConsumerState<WebScreen> {
             },
           ),
           if (_progress < 1) LinearProgressIndicator(value: _progress),
+          if (_stalled)
+            Positioned.fill(
+              child: ColoredBox(
+                color: Theme.of(context).colorScheme.surface,
+                child: ErrorView(
+                  message: context.t('app.web.stalled'),
+                  onRetry: () => _restart(renew: true),
+                ),
+              ),
+            )
+          else if (!_pageShown)
+            const Positioned.fill(
+              child: IgnorePointer(
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            ),
         ],
       ),
     );

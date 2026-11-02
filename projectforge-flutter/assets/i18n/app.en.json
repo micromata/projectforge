@@ -19,6 +19,8 @@
   "app.vCard.share": "Share vCard",
   "app.web": "ProjectForge",
   "app.web.failed": "The pages of ProjectForge couldn't be opened.",
+  "app.web.reload": "Reload page",
+  "app.web.stalled": "The page doesn't load.",
   "app.settings.openInApp": "Open in the app",
   "app.settings.openInApp.info": "These menu entries of the web pages switch to the tab of the app. Switched off, the web version stays, e.g. if the app's version doesn't work with the server.",
   "app.log.title": "Log",

@@ -68,6 +68,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// The WebViews are created when their tab is opened first, and then kept (with their page) while switching.
   final _opened = <_Destination>{};
 
+  /// The restarts of the WebView tabs asked for in the account menu (see [WebScreen.restarts]).
+  final _restarts = <_Destination, int>{};
+
   /// Keeps the tabs (the WebViews with their pages) while the frame around them changes: with or without the bar of
   /// the native tab, portrait or landscape. Otherwise they would be created again, back on their start page.
   final _bodyKey = GlobalKey();
@@ -139,6 +142,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       active: current == destination,
                       initialPath: _chatTarget?.path ?? _chatPath,
                       target: _chatTarget,
+                      restarts: _restarts[destination] ?? 0,
                     )
                   : const SizedBox.shrink(),
             _Destination.web =>
@@ -149,6 +153,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       initialPath: _webTarget?.path,
                       target: _webTarget,
                       onNativePage: (page) => _openNative(page, chatEnabled),
+                      restarts: _restarts[destination] ?? 0,
                     )
                   : const SizedBox.shrink(),
           },
@@ -175,7 +180,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     };
     final actions = [
       NotificationBell(onOpenLink: _openLink),
-      _accountMenu(context, session),
+      _accountMenu(context, session, current),
     ];
     if (landscape) {
       // The height is scarce: the navigation stands at the side.
@@ -255,12 +260,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _accountMenu(BuildContext context, Session? session) {
+  /// @param current The tab shown: a WebView tab offers a reload, the way out of pages that stay empty.
+  Widget _accountMenu(
+    BuildContext context,
+    Session? session,
+    _Destination current,
+  ) {
     final version = ref.watch(appVersionProvider).value;
+    final webTab = current == _Destination.web || current == _Destination.chat;
     return PopupMenuButton<String>(
       tooltip: context.t('settings'),
       icon: const Icon(Icons.settings_outlined),
       onSelected: (action) => switch (action) {
+        'reload' => setState(
+          () => _restarts[current] = (_restarts[current] ?? 0) + 1,
+        ),
         'settings' => Navigator.of(
           context,
         ).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
@@ -273,6 +287,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             '${session?.fullname ?? session?.username ?? ''}\n${session?.serverUrl ?? ''}',
           ),
         ),
+        if (webTab)
+          PopupMenuItem(
+            value: 'reload',
+            child: Text(context.t('app.web.reload')),
+          ),
         PopupMenuItem(value: 'settings', child: Text(context.t('settings'))),
         PopupMenuItem(value: 'logout', child: Text(context.t('menu.logout'))),
         if (version != null)
