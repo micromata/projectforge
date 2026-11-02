@@ -7,7 +7,10 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "improved",
-      "items" : [ "Auftrags-E-Mails: übersichtlicher, die Buttons stehen oben, dazu ein Button zu den Auftragsbenachrichtigungen." ]
+      "items" : [ "App-Zeitberichte: Das Strukturelement kann im Strukturbaum gewählt werden (Ebene für Ebene, beginnend bei der aktuellen), die Suche findet Wörter im ganzen Pfad, der Pfad steht über dem Titel, Kostenträger werden mit Nummer und Text aufgelistet, und die Vorlagen öffnen sich als Liste statt als Reihe von Chips.", "Auftrags-E-Mails: übersichtlicher, die Buttons stehen oben, dazu ein Button zu den Auftragsbenachrichtigungen." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "App: Das Verbinden der App hinter einem SSO-Proxy klappt schon beim ersten Versuch, auch wenn der Proxy den Browser nach seiner Anmeldung ohne die Parameter des Links zurückschickt." ]
     } ]
   },
   "groups" : [ {

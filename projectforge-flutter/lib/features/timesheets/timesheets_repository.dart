@@ -173,6 +173,17 @@ class TimesheetsRepository {
     ];
   }
 
+  /// The visible children of [parentId] (of the root if null), for browsing the task tree.
+  Future<List<TaskChild>> taskChildren(int? parentId) async {
+    final list = await _api.get<List<dynamic>>(
+      '$_taskPath/tree/children',
+      query: {'parentId': ?parentId},
+    );
+    return [
+      for (final it in list) TaskChild.fromJson(it as Map<String, dynamic>),
+    ];
+  }
+
   Future<TaskInfo> taskInfo(int id) async => TaskInfo.fromJson(
     await _api.get<Map<String, dynamic>>('$_taskPath/info/$id'),
   );

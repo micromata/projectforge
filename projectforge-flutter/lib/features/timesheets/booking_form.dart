@@ -296,7 +296,23 @@ class _BookingFormState extends ConsumerState<BookingForm> {
     }
   }
 
-  Future<void> _deleteTemplate(TimesheetTemplate template) async {
+  /// The templates in a sheet: one is applied by a tap, deleted by a swipe.
+  Future<void> _showTemplates() async {
+    final template = await showModalBottomSheet<TimesheetTemplate>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (_) => _TemplateSheet(
+        onDelete: _deleteTemplate,
+        onSaveCurrent: _saveAsTemplate,
+      ),
+    );
+    if (template != null) await _applyTemplate(template);
+  }
+
+  /// Whether the template was deleted.
+  Future<bool> _deleteTemplate(TimesheetTemplate template) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -315,25 +331,25 @@ class _BookingFormState extends ConsumerState<BookingForm> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) return false;
     try {
       await ref.read(timesheetsRepositoryProvider)!.deleteTemplate(template.id);
       ref.invalidate(timesheetTemplatesProvider);
+      return true;
     } on ApiException catch (e) {
       if (mounted) setState(() => _errors = {'general': context.errorText(e)});
+      return false;
     }
   }
 
   Future<void> _pickTask(List<BookingWhat> recent) async {
-    final task = await Navigator.of(context).push<TaskRef>(
-      MaterialPageRoute(
-        builder: (_) => TaskPicker(
-          recentFromBookings: [
-            for (final it in recent)
-              if (it.task != null) it.task!,
-          ],
-        ),
-      ),
+    final task = await TaskPicker.open(
+      context,
+      recentFromBookings: [
+        for (final it in recent)
+          if (it.task != null) it.task!,
+      ],
+      current: _task,
     );
     if (task != null) setState(() => _setTask(task));
   }
@@ -482,12 +498,22 @@ class _BookingFormState extends ConsumerState<BookingForm> {
     final task = _task;
     final recent =
         ref.watch(recentBookingsProvider).value ?? const <BookingWhat>[];
-    final templates =
-        ref.watch(timesheetTemplatesProvider).value ??
-        const <TimesheetTemplate>[];
     final options = _kost2Options;
     return [
-      _Label(context.t('app.timesheet.what')),
+      Row(
+        children: [
+          _Label(context.t('app.timesheet.what')),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.only(right: 8, top: 12),
+            child: TextButton.icon(
+              icon: const Icon(Icons.bookmark_outline, size: 18),
+              label: Text(context.t('timesheet.templates')),
+              onPressed: _showTemplates,
+            ),
+          ),
+        ],
+      ),
       if (!_isEdit && recent.isNotEmpty) ...[
         _SubLabel(context.t('timesheet.recent')),
         SizedBox(
@@ -501,26 +527,6 @@ class _BookingFormState extends ConsumerState<BookingForm> {
               what: recent[i],
               selected: _isSame(recent[i]),
               onTap: () => setState(() => _apply(recent[i])),
-            ),
-          ),
-        ),
-      ],
-      if (templates.isNotEmpty) ...[
-        _SubLabel(context.t('timesheet.templates')),
-        SizedBox(
-          height: 40,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: templates.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 8),
-            itemBuilder: (context, i) => GestureDetector(
-              onLongPress: () => _deleteTemplate(templates[i]),
-              child: ActionChip(
-                avatar: const Icon(Icons.bookmark_outline, size: 18),
-                label: Text(templates[i].name),
-                onPressed: () => _applyTemplate(templates[i]),
-              ),
             ),
           ),
         ),
@@ -540,10 +546,9 @@ class _BookingFormState extends ConsumerState<BookingForm> {
           ),
           child: ListTile(
             leading: Icon(task == null ? Icons.search : Icons.folder_outlined),
-            title: Text(task?.title ?? context.t('app.timesheet.task.choose')),
-            subtitle: task == null || task.parents.isEmpty
-                ? null
-                : Text(task.fullPath),
+            title: task == null
+                ? Text(context.t('app.timesheet.task.choose'))
+                : TaskLabel(task),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _pickTask(recent),
           ),
@@ -565,21 +570,27 @@ class _BookingFormState extends ConsumerState<BookingForm> {
         ),
       if (task != null && options != null && options.length > 1)
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            children: [
-              for (final it in options)
-                ChoiceChip(
-                  label: Text(it.label),
-                  selected: _kost2 == it,
-                  onSelected: (_) => setState(() {
-                    _kost2 = it;
-                    _errors.remove('kost2');
-                  }),
-                ),
-            ],
+          padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+          child: RadioGroup<Kost2Ref>(
+            groupValue: _kost2,
+            onChanged: (it) => setState(() {
+              _kost2 = it;
+              _errors.remove('kost2');
+            }),
+            child: Column(
+              children: [
+                for (final it in options)
+                  RadioListTile<Kost2Ref>(
+                    value: it,
+                    dense: true,
+                    title: Text(
+                      it.number,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: it.text.isEmpty ? null : Text(it.text),
+                  ),
+              ],
+            ),
           ),
         ),
       _ErrorText(_errors['kost2']),
@@ -841,6 +852,113 @@ class _SubLabel extends StatelessWidget {
           ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
     ),
   );
+}
+
+/// The templates of the user: a tap pops the chosen one, a swipe deletes, the last row saves the current entry.
+class _TemplateSheet extends ConsumerWidget {
+  const _TemplateSheet({required this.onDelete, required this.onSaveCurrent});
+
+  final Future<bool> Function(TimesheetTemplate template) onDelete;
+  final VoidCallback onSaveCurrent;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final templates = ref.watch(timesheetTemplatesProvider);
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.6,
+      minChildSize: 0.3,
+      builder: (context, controller) => ListView(
+        controller: controller,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(
+              context.t('timesheet.templates'),
+              style: theme.textTheme.titleMedium,
+            ),
+          ),
+          ...templates.when(
+            data: (list) => [
+              if (list.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(context.t('app.timesheet.template.none')),
+                ),
+              for (final it in list)
+                Dismissible(
+                  key: ValueKey(it.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    color: theme.colorScheme.errorContainer,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Icon(
+                      Icons.delete_outline,
+                      color: theme.colorScheme.onErrorContainer,
+                    ),
+                  ),
+                  confirmDismiss: (_) => onDelete(it),
+                  child: ListTile(
+                    leading: const Icon(Icons.bookmark_outline),
+                    title: Text(
+                      it.name,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: _TemplateSubtitle(it),
+                    onTap: () => Navigator.pop(context, it),
+                  ),
+                ),
+            ],
+            loading: () => const [
+              Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            ],
+            error: (e, _) => [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(context.errorText(e)),
+              ),
+            ],
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.bookmark_add_outlined),
+            title: Text(context.t('app.timesheet.template.save')),
+            onTap: () {
+              Navigator.pop(context);
+              onSaveCurrent();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// What a template books: the path of its task (loaded on demand) and its text.
+class _TemplateSubtitle extends ConsumerWidget {
+  const _TemplateSubtitle(this.template);
+
+  final TimesheetTemplate template;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final taskId = template.taskId;
+    final task = taskId == null
+        ? null
+        : ref.watch(taskInfoProvider(taskId)).value?.task;
+    final lines = [
+      if (task != null) task.fullPath,
+      if (template.description.isNotEmpty) template.description,
+    ];
+    return lines.isEmpty
+        ? const SizedBox.shrink()
+        : Text(lines.join('\n'), maxLines: 3, overflow: TextOverflow.ellipsis);
+  }
 }
 
 class _ErrorText extends StatelessWidget {

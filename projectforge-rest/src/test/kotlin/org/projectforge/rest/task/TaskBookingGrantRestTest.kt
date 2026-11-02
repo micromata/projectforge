@@ -157,8 +157,22 @@ class TaskBookingGrantRestTest : AbstractTestBase() {
         val found = taskServicesRest.autosearch(search = null, maxResults = 10, onlyBookable = true)
         assertEquals(listOf(fixture.granted.id), found.map { it.id })
 
+        // The levels of the app's picker: the ancestor by its title only, not bookable, below it the granted task.
+        taskServicesRest.getChildren(null).single { it.id == fixture.project.id }.let {
+            assertTrue(it.hasChildren)
+            assertFalse(it.bookable)
+        }
+        taskServicesRest.getChildren(fixture.project.id).let { children ->
+            assertEquals(listOf(fixture.granted.id), children.map { it.id })
+            assertTrue(children.single().bookable)
+            assertFalse(children.single().hasChildren)
+        }
+        assertTrue(taskServicesRest.getChildren(fixture.sibling.id).isEmpty())
+
         // Somebody else sees nothing of it.
         logon(fixture.other)
+        assertTrue(taskServicesRest.getChildren(null).none { it.id == fixture.project.id })
+        assertTrue(taskServicesRest.getChildren(fixture.project.id).isEmpty())
         assertTrue(tree().nodes.none { it.id == fixture.project.id || it.id == fixture.granted.id })
         assertEquals(HttpStatus.NOT_FOUND, info(fixture.granted).statusCode)
         assertEquals(HttpStatus.NOT_FOUND, info(fixture.project).statusCode)
@@ -171,6 +185,10 @@ class TaskBookingGrantRestTest : AbstractTestBase() {
             // Only the full info carries the references (createTask).
             assertNotNull(it.body!!.timesheetReferenceList)
         }
+        assertEquals(
+            listOf(fixture.granted.id, fixture.sibling.id),
+            taskServicesRest.getChildren(fixture.project.id).map { it.id },
+        )
     }
 
     @Test

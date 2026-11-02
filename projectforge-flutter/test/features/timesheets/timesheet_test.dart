@@ -131,6 +131,16 @@ void main() {
       },
     );
 
+    test('a cost unit of task/info is read from its title', () {
+      final kost2 = Kost2Ref.fromJson({
+        'id': 7,
+        'title': '5.020.01.02: Entwicklung - Projekt',
+      });
+      expect(kost2.number, '5.020.01.02');
+      expect(kost2.text, 'Entwicklung - Projekt');
+      expect(Kost2Ref.fromJson({'id': 8, 'title': '5.020.01.03'}).text, '');
+    });
+
     test('a week holds the bookings per day, their totals and the gaps', () {
       final monday = DateTime(2031, 3, 10);
       final week = TimesheetWeek.fromJson(monday, {

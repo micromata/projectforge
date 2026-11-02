@@ -965,6 +965,53 @@ class TaskServicesRest {
     }
 
     /**
+     * One level of the tree, as the app browses it: a node with its children not loaded yet.
+     * @param hasChildren Whether the node has children the user may see, i. e. a level below to open.
+     * @param bookable Whether a time sheet may be booked on it ([TaskNode.isBookableForTimesheets]); false for a
+     * node shown by a booking grant's path only.
+     */
+    class TaskChild(val id: Long, val title: String?, val hasChildren: Boolean, val bookable: Boolean)
+
+    /**
+     * The visible children of [parentId] (the root if not given), by the rules of the tree ([buildTree]: select access
+     * or a booking grant's path, closed and deleted tasks left out), for the drill-down task picker of the app.
+     *
+     * Unlike [getTree] without any side effect: neither the user's opened nodes nor the stored filter are read or
+     * changed, so browsing in the app leaves the tree of the web as it is.
+     *
+     * @return the empty list for a parent the user may not see.
+     */
+    @AccessChecked("Nodes filtered by TaskDao select access; nodes of the user's booking grants by title only")
+    @GetMapping("tree/children")
+    fun getChildren(@RequestParam("parentId") parentId: Long?): List<TaskChild> {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val ctx = BuildContext(
+            Result(), user, TaskFilter().also { it.resetMatch() }, mutableSetOf(),
+            grantTaskIds = taskBookingGrantCache.getCurrentTaskIds(user.id),
+            grantPathTaskIds = taskBookingGrantCache.getVisiblePathTaskIds(user.id),
+        )
+        val parent = if (parentId == null) {
+            taskTree.rootTaskNode
+        } else {
+            taskTree.getTaskNodeById(parentId)?.takeIf {
+                taskDao.hasUserSelectAccess(user, it.getTask(), false) || it.taskId in ctx.grantPathTaskIds
+            } ?: return emptyList()
+        }
+        ctx.openedNodes.add(parent.taskId)
+        // Table mode: the children are the rows, and none of them is opened, so the walk ends with them.
+        buildTree(ctx, Task(parent), parent, indent = 0)
+        return ctx.result.nodes.map {
+            TaskChild(
+                id = it.id,
+                title = it.title,
+                hasChildren = it.treeStatus != TreeStatus.LEAF,
+                bookable = it.bookingGrant != BookingGrantNode.PATH &&
+                        taskTree.getTaskNodeById(it.id)?.isBookableForTimesheets == true,
+            )
+        }
+    }
+
+    /**
      * The root of the structure tree, as `{id, displayName}`.
      *
      * Every task needs a parent — `TaskDao.checkConstraintVioloation` refuses one without it — and a caller

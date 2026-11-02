@@ -61,6 +61,13 @@ final taskSearchProvider = FutureProvider.autoDispose
           ref.watch(timesheetsRepositoryProvider)!.searchTasks(search),
     );
 
+/// One level of the task tree, the top level for null.
+final taskChildrenProvider = FutureProvider.autoDispose
+    .family<List<TaskChild>, int?>(
+      (ref, parentId) =>
+          ref.watch(timesheetsRepositoryProvider)!.taskChildren(parentId),
+    );
+
 /// The cost units a booking on the task may charge.
 final taskInfoProvider = FutureProvider.autoDispose.family<TaskInfo, int>(
   (ref, id) => ref.watch(timesheetsRepositoryProvider)!.taskInfo(id),
