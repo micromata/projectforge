@@ -24,6 +24,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/auth/app_version.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/auth/session.dart';
 import '../../core/i18n/translations.dart';
@@ -254,29 +255,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _accountMenu(
-    BuildContext context,
-    Session? session,
-  ) => PopupMenuButton<String>(
-    tooltip: context.t('settings'),
-    icon: const Icon(Icons.settings_outlined),
-    onSelected: (action) => switch (action) {
-      'settings' => Navigator.of(
-        context,
-      ).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
-      _ => _logout(context, ref),
-    },
-    itemBuilder: (_) => [
-      PopupMenuItem<String>(
-        enabled: false,
-        child: Text(
-          '${session?.fullname ?? session?.username ?? ''}\n${session?.serverUrl ?? ''}',
+  Widget _accountMenu(BuildContext context, Session? session) {
+    final version = ref.watch(appVersionProvider).value;
+    return PopupMenuButton<String>(
+      tooltip: context.t('settings'),
+      icon: const Icon(Icons.settings_outlined),
+      onSelected: (action) => switch (action) {
+        'settings' => Navigator.of(
+          context,
+        ).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
+        _ => _logout(context, ref),
+      },
+      itemBuilder: (_) => [
+        PopupMenuItem<String>(
+          enabled: false,
+          child: Text(
+            '${session?.fullname ?? session?.username ?? ''}\n${session?.serverUrl ?? ''}',
+          ),
         ),
-      ),
-      PopupMenuItem(value: 'settings', child: Text(context.t('settings'))),
-      PopupMenuItem(value: 'logout', child: Text(context.t('menu.logout'))),
-    ],
-  );
+        PopupMenuItem(value: 'settings', child: Text(context.t('settings'))),
+        PopupMenuItem(value: 'logout', child: Text(context.t('menu.logout'))),
+        if (version != null)
+          PopupMenuItem<String>(
+            enabled: false,
+            child: Text(context.t('app.version', [version])),
+          ),
+      ],
+    );
+  }
 
   static String _label(BuildContext context, _Destination destination) =>
       switch (destination) {
