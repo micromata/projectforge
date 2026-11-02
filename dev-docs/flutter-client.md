@@ -157,12 +157,13 @@ app has only its token:
     (often no password), the token exchange brings fresh proxy cookies, also into the WebView, and the page asked for
     is loaded again. The password of the proxy's login isn't typed into a WebView of the app (RFC 8252).
   - Only if that is cancelled or fails, or the proxy refuses again within 30 s, the proxy's login happens in the
-    WebView (`decide`, `redirect`, `fromForeignSite`: everything on that site stays until the pages are back). Back on
+    WebView (`decide`, `redirect`, `fromForeignSite`: its redirects, forms and links of its own host stay until the
+    pages are back; a tapped link to a third site goes to the system browser). Back on
     the server, the fresh proxy cookies of the WebView go into the session (`AuthController.takeProxyCookies`: only
     the names the server sent at the login, only cookies of the server's host, not of a parent domain), and
     `ApiClient.proxyCookiesRenewed` allows a browser renewal again.
   - While the WebView shows another site, a bar above it names its host (there is no address bar, the site mustn't
-    pass for the pages) and offers "open in the browser" (the current page) and "back to ProjectForge" (the last
+    pass for the pages; always the whole host, scaled down rather than cut off) and offers "open in the browser" (the current page) and "back to ProjectForge" (the last
     page of the server).
 - **App mode of next:** the user agent carries `ProjectForgeApp/<version>` (`lib/app-mode.ts`): next hides its
   logout, the app has its own. Only for the UI, never a security check.
@@ -194,9 +195,11 @@ errors (`main.dart`).
   for an expired login (it tells why).
 - Shown, copied and cleared on the page "Log" (`core/log/log_screen.dart`), reachable from the settings and from the
   login page (a failed login happens before the settings can be opened).
-- No secrets: urls through `LogSanitizer.url` (query values masked, names kept), cookies only by name, no bodies, no
+- No secrets: urls through `LogSanitizer.url` (query values masked, names kept; tokens in the path masked, e.g.
+  `/next/public/datatransfer/<token>`), cookies only by name, no bodies, no
   user or device name (only ids). `LogSanitizer.text` masks every message again (`PFApp`/`Bearer` values, JWTs,
-  `token=`, `code=`, `state=`, … and their json fields, the proxy cookie names of the server, mail addresses), replaces
+  `token=`, `code=`, `state=`, … and their json fields, the proxy cookie names of the server, mail addresses, words
+  of 20 and more letters and digits), replaces
   control characters and indents further lines of an entry. Texts of the server (error messages) may still name
   persons: the log stays on the device unless the user copies it.
 

@@ -97,12 +97,23 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   /// The WebView shows another site than the server: the login of an SSO proxy, see [WebNavigation.decide].
   bool _onForeignSite = false;
 
+  /// The host of the other site the WebView went to last: its links stay in the WebView, links to a third site don't.
+  String? _foreignHost;
+
   /// The pages came back from the login of the SSO proxy: its fresh cookies are taken once they loaded.
   bool _backFromForeignSite = false;
 
   /// A page of the server is loading (until `onLoadStop`): a redirect to another site now is one of the server or its
-  /// proxy, not a script of a loaded page.
-  bool _loadingServerPage = false;
+  /// proxy, not a script of a loaded page. A start without end (a load that became a download, a lost callback) counts
+  /// only for [_maxLoadTime].
+  DateTime? _serverPageLoadStart;
+
+  static const _maxLoadTime = Duration(seconds: 30);
+
+  bool get _loadingServerPage {
+    final start = _serverPageLoadStart;
+    return start != null && DateTime.now().difference(start) < _maxLoadTime;
+  }
 
   /// The page of the server the current load was asked for, before any redirect: loaded again after a renewal.
   Uri? _requestedUrl;
@@ -262,6 +273,8 @@ class _WebScreenState extends ConsumerState<WebScreen> {
       url,
       redirect: proxyLogin,
       fromForeignSite: _onForeignSite,
+      foreignHost: _foreignHost,
+      tappedLink: _isTappedLink(action),
     );
     appLog.info(
       'web',
@@ -276,6 +289,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
         }
         _onForeignSite =
             foreign && (url.scheme == 'http' || url.scheme == 'https');
+        _foreignHost = _onForeignSite ? url.host : null;
         if (foreign) return NavigationActionPolicy.ALLOW;
         if (navigation.isLoginPage(url)) {
           _onLoginPage(url);
@@ -283,8 +297,10 @@ class _WebScreenState extends ConsumerState<WebScreen> {
         }
         if (_handOver(url)) return NavigationActionPolicy.CANCEL;
         // A redirect within the load keeps the page asked for.
-        if (!_loadingServerPage || !redirect) _requestedUrl = url;
-        _loadingServerPage = true;
+        if (!_loadingServerPage || !redirect) {
+          _requestedUrl = url;
+          _serverPageLoadStart = DateTime.now();
+        }
         return NavigationActionPolicy.ALLOW;
       case WebNavigationTarget.external:
         await _logCookies('Opened outside the app');
@@ -357,6 +373,15 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     return action.isRedirect == true || action.hasGesture == false;
   }
 
+  /// The user tapped a link: no redirect, script or form (iOS tells forms apart, Android only by their POST).
+  static bool _isTappedLink(NavigationAction action) {
+    if (_isRedirect(action)) return false;
+    final type = action.navigationType;
+    return type != null
+        ? type == NavigationType.LINK_ACTIVATED
+        : action.request.method?.toUpperCase() != 'POST';
+  }
+
   /// Back from the login of the SSO proxy: the fresh cookies of the proxy in the WebView go into the session of the
   /// app, so its requests (native tabs, web session) get through again.
   Future<void> _takeProxyCookies() async {
@@ -416,6 +441,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     if (url == null) return;
     appLog.info('web', 'Back to the pages: ${LogSanitizer.url(url)}');
     _onForeignSite = false;
+    _foreignHost = null;
     _proxyLoginInWebView = false;
     setState(() => _foreignPage = null);
     await _controller?.loadUrl(urlRequest: URLRequest(url: WebUri.uri(url)));
@@ -438,11 +464,13 @@ class _WebScreenState extends ConsumerState<WebScreen> {
               size: 18,
             ),
             const SizedBox(width: 8),
+            // The whole host, scaled down if need be: cut off at its end, `pf.example.org.evil.tld` would pass for
+            // the server.
             Expanded(
-              child: Text(
-                page.host,
-                style: theme.textTheme.bodyMedium,
-                overflow: TextOverflow.ellipsis,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(page.host, style: theme.textTheme.bodyMedium),
               ),
             ),
             IconButton(
@@ -535,7 +563,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
                     setState(() => _progress = progress / 100);
                   },
                   onLoadStop: (_, url) {
-                    _loadingServerPage = false;
+                    _serverPageLoadStart = null;
                     _pullToRefresh?.endRefreshing();
                     appLog.debug('web', 'Loaded ${LogSanitizer.url(url)}');
                     _onPageShown(url);
@@ -548,7 +576,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
                   },
                   onReceivedError: (_, request, error) {
                     if (request.isForMainFrame != false) {
-                      _loadingServerPage = false;
+                      _serverPageLoadStart = null;
                       appLog.warn(
                         'web',
                         'Error ${error.type} loading ${LogSanitizer.url(request.url)}: ${error.description}',
@@ -565,8 +593,11 @@ class _WebScreenState extends ConsumerState<WebScreen> {
                       _logCookies('HTTP ${response.statusCode}');
                     }
                   },
-                  onDownloadStartRequest: (_, request) =>
-                      _onDownloadStart(request),
+                  onDownloadStartRequest: (_, request) {
+                    // The load became a download, its page won't stop loading.
+                    _serverPageLoadStart = null;
+                    _onDownloadStart(request);
+                  },
                 ),
                 if (_progress < 1) LinearProgressIndicator(value: _progress),
               ],

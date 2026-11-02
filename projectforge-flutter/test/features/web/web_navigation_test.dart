@@ -76,9 +76,31 @@ void main() {
           navigation.decide(
             Uri.parse('https://sso.example.org/if/flow/recovery/'),
             fromForeignSite: true,
+            foreignHost: 'sso.example.org',
+            tappedLink: true,
           ),
           WebNavigationTarget.webView,
           reason: 'A link of the login page.',
+        );
+        expect(
+          navigation.decide(
+            Uri.parse('https://accounts.example.com/signin'),
+            fromForeignSite: true,
+            foreignHost: 'sso.example.org',
+            tappedLink: true,
+          ),
+          WebNavigationTarget.external,
+          reason: 'A link of the login page to a third site.',
+        );
+        expect(
+          navigation.decide(
+            Uri.parse('https://accounts.example.com/signin'),
+            fromForeignSite: true,
+            foreignHost: 'sso.example.org',
+          ),
+          WebNavigationTarget.webView,
+          reason:
+              'A redirect or form of the login page (e.g. a federated login).',
         );
         expect(
           navigation.decide(

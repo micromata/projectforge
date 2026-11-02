@@ -95,6 +95,50 @@ void main() {
     expect(LogSanitizer.text('a\rb\u001b[2Jc\nd'), 'a b [2Jc\nd');
   });
 
+  test('url: tokens in the path masked, ids and names kept', () {
+    expect(
+      LogSanitizer.url(
+        Uri.parse('https://pf.example.com/next/public/datatransfer/abc123'),
+      ),
+      'https://pf.example.com/next/public/datatransfer/***',
+    );
+    expect(
+      LogSanitizer.url(
+        Uri.parse(
+          'https://pf.example.com/rsPublic/x/k7Fq2mZp9RtLw3XyB8nVc1/file?id=1',
+        ),
+      ),
+      'https://pf.example.com/rsPublic/x/***/file?id=***',
+    );
+    expect(
+      LogSanitizer.url(Uri.parse('https://pf.example.com/next/address/42')),
+      'https://pf.example.com/next/address/42',
+    );
+    expect(
+      LogSanitizer.url(
+        Uri.parse('https://pf.example.com/next/timesheet/edit/7'),
+      ),
+      'https://pf.example.com/next/timesheet/edit/7',
+    );
+    expect(
+      LogSanitizer.url(
+        Uri.parse('https://pf.example.com/next/vacationAccount/'),
+      ),
+      'https://pf.example.com/next/vacationAccount/',
+    );
+  });
+
+  test('text: tokens and the external access of an area masked', () {
+    final text = LogSanitizer.text(
+      'Failed: https://pf.example.com/next/public/datatransfer/abc/x and k7Fq2mZp9RtLw3XyB8nVc1, '
+      'package:projectforge_app/features/web/web_screen.dart:443:12',
+    );
+    expect(text, isNot(contains('abc')));
+    expect(text, isNot(contains('k7Fq2')));
+    expect(text, contains('/next/public/datatransfer/***'));
+    expect(text, contains('web_screen.dart:443:12'));
+  });
+
   test('cookies: names only', () {
     expect(LogSanitizer.cookieNames(['b', 'a']), 'a, b');
     expect(LogSanitizer.cookieNames(const []), '-');

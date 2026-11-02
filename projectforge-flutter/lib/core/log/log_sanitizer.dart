@@ -81,6 +81,15 @@ class LogSanitizer {
   /// The cookies of a `Cookie` header (`a=1; b=2`): `a=***; b=***`.
   static final _cookiePair = RegExp(r'(^|;\s*)([^=;\s]+)=[^;]*');
 
+  /// A random token, e.g. in a path (`/next/public/datatransfer/<token>`): at least 20 characters of base64url with
+  /// letters and digits. Ids and names have no such words.
+  static final _tokenWord = RegExp(
+    r'(?<![A-Za-z0-9_-])(?=[A-Za-z0-9_-]*[A-Za-z])(?=[A-Za-z0-9_-]*[0-9])[A-Za-z0-9_-]{20,}(?![A-Za-z0-9_-])',
+  );
+
+  /// The external access of an area (`/public/datatransfer/<token>/…`): everything after the area is its access.
+  static final _publicAccess = RegExp(r'(/public/[^/\s?#]+/)[^\s?#&]+');
+
   /// [message] without anything that looks like a secret.
   static String text(String message) {
     var result = message
@@ -89,7 +98,9 @@ class LogSanitizer {
         .replaceAll(_jwt, mask)
         .replaceAll(_mail, mask)
         .replaceAllMapped(_secretParameter, (m) => '${m[1]}=$mask')
-        .replaceAllMapped(_secretJson, (m) => '"${m[1]}"${m[2]}$mask');
+        .replaceAllMapped(_secretJson, (m) => '"${m[1]}"${m[2]}$mask')
+        .replaceAllMapped(_publicAccess, (m) => '${m[1]}$mask')
+        .replaceAll(_tokenWord, mask);
     final parameter = _extraParameter;
     final json = _extraJson;
     if (parameter != null && json != null) {
@@ -101,18 +112,37 @@ class LogSanitizer {
   }
 
   /// Scheme, host, port and path of [url]; the values of its query are masked (their names show what arrived), the
-  /// fragment is dropped.
+  /// fragment is dropped. Tokens in the path ([_isSecretSegment]) are masked too.
   static String url(Uri? url) {
     if (url == null) return '-';
     if (!_personalSchemes.contains(url.scheme)) {
       final query = url.queryParametersAll.keys.map((it) => '$it=$mask');
+      final segments = url.pathSegments;
+      final masked = [
+        for (var i = 0; i < segments.length; i++)
+          _isSecretSegment(segments, i) ? mask : segments[i],
+      ];
       final base = url
-          .replace(userInfo: '', query: '', fragment: '')
+          .replace(
+            userInfo: '',
+            query: '',
+            fragment: '',
+            pathSegments: masked.contains(mask) ? masked : null,
+          )
           .toString();
       final plain = base.replaceAll(RegExp(r'[?#]+$'), '');
       return query.isEmpty ? plain : '$plain?${query.join('&')}';
     }
     return '${url.scheme}:$mask';
+  }
+
+  /// A token ([_tokenWord]), or a segment after `public/<area>/` (the external access of an area).
+  static bool _isSecretSegment(List<String> segments, int index) {
+    final segment = segments[index];
+    if (segment.isEmpty) return false;
+    final public = segments.indexOf('public');
+    return (public >= 0 && index >= public + 2) ||
+        _tokenWord.matchAsPrefix(segment)?.end == segment.length;
   }
 
   /// Urls that are personal data as a whole (the address, the number): only their scheme is logged.

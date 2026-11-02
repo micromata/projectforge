@@ -53,18 +53,24 @@ class WebNavigation {
 
   /// Another site opens in the system browser, except the login of an SSO proxy ([isProxyLogin]) when the app lets
   /// it happen in the WebView (its renewal in the system browser failed): the proxy redirects the pages to its login
-  /// and, after the login, back to the pages, its cookies have to end up in the WebView. Once on such a site,
-  /// everything stays in the WebView until the pages are back (its form, its links).
+  /// and, after the login, back to the pages, its cookies have to end up in the WebView. Once on such a site, its
+  /// redirects, forms and links of its own host stay in the WebView until the pages are back; a link the user taps
+  /// to a third site goes to the system browser (no further passwords typed into the WebView, RFC 8252).
   ///
   /// @param redirect The navigation is the login of the proxy and is to stay in the WebView.
-  /// @param fromForeignSite The WebView shows another site (the login of the proxy).
+  /// @param fromForeignSite The WebView shows another site (the login of the proxy), of [foreignHost].
+  /// @param tappedLink The user tapped a link (not a redirect, a script or a form).
   WebNavigationTarget decide(
     Uri target, {
     bool redirect = false,
     bool fromForeignSite = false,
+    String? foreignHost,
+    bool tappedLink = false,
   }) {
     if (target.scheme == 'http' || target.scheme == 'https') {
-      return isSameOrigin(target) || redirect || fromForeignSite
+      final onForeignSite =
+          fromForeignSite && (!tappedLink || target.host == foreignHost);
+      return isSameOrigin(target) || redirect || onForeignSite
           ? WebNavigationTarget.webView
           : WebNavigationTarget.external;
     }
