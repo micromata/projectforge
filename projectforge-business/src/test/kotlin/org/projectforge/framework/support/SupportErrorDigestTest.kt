@@ -388,6 +388,31 @@ class SupportErrorDigestTest {
         Assertions.assertEquals(Duration.ofHours(1), SupportErrorDigest.parseInterval("often"))
     }
 
+    @Test
+    fun `regular digest is due at sendAt`() {
+        val zone = java.time.ZoneId.of("Europe/Berlin")
+        fun millis(day: Int, h: Int, m: Int) =
+            java.time.ZonedDateTime.of(2026, 11, day, h, m, 0, 0, zone).toInstant().toEpochMilli()
+
+        val day = Duration.ofDays(1)
+        val at7 = java.time.LocalTime.of(7, 0)
+        val last = millis(2, 7, 0)
+        Assertions.assertFalse(SupportErrorDigest.isRegularDue(millis(3, 6, 59), last, day, at7, zone))
+        Assertions.assertTrue(SupportErrorDigest.isRegularDue(millis(3, 7, 0), last, day, at7, zone))
+        // An urgent digest at night resets the period: the regular one still comes at 07:00.
+        val night = millis(3, 2, 0)
+        Assertions.assertFalse(SupportErrorDigest.isRegularDue(millis(3, 6, 59), night, day, at7, zone))
+        Assertions.assertTrue(SupportErrorDigest.isRegularDue(millis(3, 7, 0), night, day, at7, zone))
+        // Without sendAt, or with a short interval: counted from the last digest.
+        Assertions.assertFalse(SupportErrorDigest.isRegularDue(millis(3, 6, 59), last, day, null, zone))
+        Assertions.assertTrue(SupportErrorDigest.isRegularDue(millis(3, 7, 0), last, day, null, zone))
+        Assertions.assertTrue(SupportErrorDigest.isRegularDue(millis(2, 8, 0), last, Duration.ofHours(1), at7, zone))
+        Assertions.assertFalse(SupportErrorDigest.isRegularDue(millis(9, 8, 0), last, Duration.ZERO, at7, zone))
+        Assertions.assertEquals(java.time.LocalTime.of(7, 0), SupportErrorDigest.parseSendAt("07:00"))
+        Assertions.assertNull(SupportErrorDigest.parseSendAt(""))
+        Assertions.assertNull(SupportErrorDigest.parseSendAt("morning"))
+    }
+
     private fun occurrence(
         event: LogEvent,
         message: String,

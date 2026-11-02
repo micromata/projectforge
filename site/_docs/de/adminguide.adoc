@@ -473,7 +473,7 @@ personenbezogene Daten enthalten: Das ist vor der Weitergabe an einen externen D
 
 Ein neues Sicherheits- oder Datenproblem (oder eines, das nach seiner Behebung erneut aufgetreten ist) wartet nicht
 auf das Ende des Intervalls: Es löst den Digest vorzeitig aus, sobald es seinen Schwellwert erreicht, höchstens jedoch
-alle 5 Minuten.
+alle `urgentMinGap` (Standard: 1 Stunde), auch nachts. Der reguläre Digest wird standardmäßig einmal täglich um 07:00 Uhr versendet.
 
 Jedes Problem geht an die Empfänger seiner Zielgruppe: Entwicklung (Bugs, Datenprobleme), Administration (externe
 Systeme, Konfiguration, Synchronisationsläufe) oder Sicherheit. Hat eine Zielgruppe keine eigenen Empfänger, erhält
@@ -482,8 +482,12 @@ Systeme, Konfiguration, Synchronisationsläufe) oder Sicherheit. Hat eine Zielgr
 .Datei: `projectforge.properties`
 ----
 projectforge.support.mail=support@acme.com
-# Wie oft der Digest höchstens versendet wird, z. B. 15m, 1h, 1d. 0 deaktiviert den Digest. Standard: 1h
-projectforge.support.errorDigest.interval=1h
+# Wie oft der reguläre Digest versendet wird, z. B. 15m, 1h, 1d. 0 deaktiviert den Digest. Standard: 1d
+projectforge.support.errorDigest.interval=1d
+# Uhrzeit (HH:mm) des regulären Digests bei einem Intervall von mindestens einem Tag. Leer: ab dem letzten Digest gezählt. Standard: 07:00
+projectforge.support.errorDigest.sendAt=07:00
+# Mindestabstand vorzeitiger Digests (dringende Probleme), z. B. 5m, 1h. Standard: 1h
+projectforge.support.errorDigest.urgentMinGap=1h
 # Optional, kommagetrennt, Standard: projectforge.support.mail
 projectforge.support.errorDigest.recipients.developer=dev@acme.com
 projectforge.support.errorDigest.recipients.admin=ops@acme.com
