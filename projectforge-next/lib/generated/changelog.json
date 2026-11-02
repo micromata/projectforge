@@ -7,7 +7,7 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Setting projectforge.2fa.exemptUsers: login names that need no second factor, e.g. for the account of an app store review.", "Chat: messages of others can be reported to the administrators, and users can be blocked (no direct messages, no notifications, mentions or search hits of them)." ]
+      "items" : [ "Setting projectforge.2fa.exemptUsers: login names that need no second factor, e.g. for the account of an app store review.", "Chat: messages of others can be reported to the administrators, and users can be blocked (no direct messages, no notifications, mentions or search hits of them).", "CVE-Radar: the libraries of the inventory are matched by package and version against the advisories of OSV.dev (Maven, npm, PyPI, NuGet, Packagist, Go, crates.io), also when the NVD names them late or not at all; a matching advisory becomes a vulnerability whatever its score." ]
     } ]
   },
   "groups" : [ {

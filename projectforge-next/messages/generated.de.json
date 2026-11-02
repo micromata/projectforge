@@ -4245,7 +4245,7 @@
         "error": {
           "codeExists": "Die Kennung {arg0} gibt es schon.",
           "conflict": "Dieser Fall wurde inzwischen geändert (um {arg0}). Bitte neu laden und die Änderung wiederholen.",
-          "cveId": "Eine CVE braucht ihre CVE-ID, z. B. CVE-2026-12345."
+          "cveId": "Eine CVE braucht ihre CVE-ID, z. B. CVE-2026-12345 (oder die ID eines Advisorys ohne CVE, z. B. GHSA-XXXX-XXXX-XXXX)."
         },
         "export": {
           "button": "Als JSON herunterladen"
@@ -5137,6 +5137,7 @@
           "rejected": "Von der NVD zurückgewiesen"
         },
         "nvdLink": "Bei der NVD öffnen",
+        "osvLink": "Bei OSV.dev öffnen",
         "title": "Schwachstellen (NVD)",
         "withFindingsOnly": "Nur mit Befunden"
       },

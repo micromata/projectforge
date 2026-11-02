@@ -7,7 +7,7 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Einstellung projectforge.2fa.exemptUsers: Login-Namen, die keinen zweiten Faktor brauchen, z. B. für den Zugang einer App-Store-Prüfung.", "Chat: Nachrichten anderer können den Administratoren gemeldet und Nutzer blockiert werden (keine Direktnachrichten, keine Benachrichtigungen, Erwähnungen oder Suchtreffer von ihnen)." ]
+      "items" : [ "Einstellung projectforge.2fa.exemptUsers: Login-Namen, die keinen zweiten Faktor brauchen, z. B. für den Zugang einer App-Store-Prüfung.", "Chat: Nachrichten anderer können den Administratoren gemeldet und Nutzer blockiert werden (keine Direktnachrichten, keine Benachrichtigungen, Erwähnungen oder Suchtreffer von ihnen).", "CVE-Radar: Die Bibliotheken des Inventars werden nach Paket und Version gegen die Advisories von OSV.dev abgeglichen (Maven, npm, PyPI, NuGet, Packagist, Go, crates.io), auch wenn die NVD sie spät oder gar nicht nennt; ein passendes Advisory wird unabhängig von seiner Bewertung eine Schwachstelle." ]
     } ]
   },
   "groups" : [ {

@@ -4245,7 +4245,7 @@
         "error": {
           "codeExists": "The id {arg0} exists already.",
           "conflict": "This case was changed in the meantime (at {arg0}). Please reload it and repeat your change.",
-          "cveId": "A CVE needs its CVE id, e.g. CVE-2026-12345."
+          "cveId": "A CVE needs its CVE id, e.g. CVE-2026-12345 (or the id of an advisory without CVE, e.g. GHSA-XXXX-XXXX-XXXX)."
         },
         "export": {
           "button": "Download as JSON"
@@ -5137,6 +5137,7 @@
           "rejected": "Rejected by the NVD"
         },
         "nvdLink": "Open at the NVD",
+        "osvLink": "Open at OSV.dev",
         "title": "Vulnerabilities (NVD)",
         "withFindingsOnly": "Only with findings"
       },
