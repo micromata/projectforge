@@ -223,7 +223,7 @@ I18nResources bundles: the keys the Dart sources name literally (`t('businessCar
 ## Notifications and push
 
 The notifications of the web version (`NotificationDO`, rules and chat, see `business/notification/`) are shown in the
-app natively (`lib/features/notifications/`): the bell in the bar of the business cards tab (count and colour from the
+app natively (`lib/features/notifications/`): the bell in the navigation, on every tab, next to the gear of the account menu (count and colour from the
 summary in `GET /rs/userStatus`), the list with the archive, "confirm" and "mark as done" as in the web, and "open",
 which shows the link in the chat or web tab (`webPathOfLink`: only paths of the own server). The list is loaded again
 when the summary (count, newest id) of the user status changes; the user status (`lib/core/status/`) is polled every

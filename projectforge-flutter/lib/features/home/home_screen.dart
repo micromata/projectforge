@@ -154,7 +154,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ],
     );
     void select(int index) => _select(current, destinations[index]);
-    // The pages bring their own header: only the native tab has a bar (with the account menu).
+    // The pages bring their own header: only the native tab has a bar. The bell and the account menu stand in the
+    // navigation instead, so they are there on every tab.
     final appBar = switch (current) {
       _Destination.businessCards ||
       _Destination.addresses ||
@@ -167,12 +168,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               icon: const Icon(Icons.refresh),
               onPressed: () => refreshBusinessCards(context, ref),
             ),
-          NotificationBell(onOpenLink: _openLink),
-          _accountMenu(context, session),
         ],
       ),
       _ => null,
     };
+    final actions = [
+      NotificationBell(onOpenLink: _openLink),
+      _accountMenu(context, session),
+    ];
     if (landscape) {
       // The height is scarce: the navigation stands at the side.
       return Scaffold(
@@ -193,6 +196,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   onDestinationSelected: select,
                   labelType: NavigationRailLabelType.none,
                   minWidth: 56,
+                  trailing: Column(children: actions),
                   destinations: [
                     for (final destination in destinations)
                       _railDestination(context, destination, unread),
@@ -228,12 +232,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 height: 44,
                 labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
               ),
-              child: NavigationBar(
-                selectedIndex: selectedIndex,
-                onDestinationSelected: select,
-                destinations: [
-                  for (final destination in destinations)
-                    _barDestination(context, destination, unread),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: NavigationBar(
+                      selectedIndex: selectedIndex,
+                      onDestinationSelected: select,
+                      destinations: [
+                        for (final destination in destinations)
+                          _barDestination(context, destination, unread),
+                      ],
+                    ),
+                  ),
+                  ...actions,
                 ],
               ),
             ),
@@ -247,7 +258,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     BuildContext context,
     Session? session,
   ) => PopupMenuButton<String>(
-    icon: const Icon(Icons.account_circle),
+    tooltip: context.t('settings'),
+    icon: const Icon(Icons.settings_outlined),
     onSelected: (action) => switch (action) {
       'settings' => Navigator.of(
         context,
