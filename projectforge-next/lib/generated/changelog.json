@@ -1,26 +1,5 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
-  "unreleased" : {
-    "id" : "unreleased",
-    "version" : "9.2.3",
-    "date" : "2026-11-02",
-    "title" : "ProjectForge 9.2.4: e-invoice buyer fields, mobile app with several servers and task tree, daily error digest",
-    "summary" : [ "**E-invoice**: order number, department and cost center of the buyer", "**Mobile app** (in preparation): switch between several servers, task tree for time sheets", "App and server warn each other if the other side is too old", "**Error digest** once a day instead of every hour", "Fix: connecting the app behind an SSO proxy works at the first attempt" ],
-    "overview" : [ "**E-invoice:** new fields order number (BT-13), department of the orderer (BT-56) and cost center (BT-19) on the invoice and the account; the form labels name the e-invoice term (BT-x); the invoice template gets the variables Bestellnummer and Kostenstelle, the department is part of the address.", "**Mobile app (in preparation):** the logins of several servers are kept and the server can be switched in the account menu; time sheets choose the structure element in the task tree, with a search over the whole path, and cost units in a scrollable selection box; a warning if the app is too old for the server or the server too old for the app, \"My account\" marks outdated apps.", "**Error digest:** sent once a day at 07:00, only urgent problems send it early (at most once an hour); configurable.", "**Order mails:** clearer layout with the buttons at the top and a button to the order notification settings.", "**Fixes:** connecting the app behind an SSO proxy works at the first attempt, also when the proxy returns the browser without the parameters of the link." ],
-    "sections" : [ {
-      "type" : "added",
-      "items" : [ "App: a warning if the app is too old for the server or the server too old for the app; \"My account\" marks outdated apps.", "App: the logins of several servers are kept, and the server can be switched in the account menu without logging in again; another server is added there too.", "E-invoice: new fields order number (BT-13), department of the orderer (BT-56) and cost center (BT-19) on the invoice and the account (department, cost center); the labels of the invoice and account forms name the e-invoice term (BT-x) the field is sent in. The invoice template gets the variables Bestellnummer and Kostenstelle (with isBestellnummer/isKostenstelle), the department is part of the address." ]
-    }, {
-      "type" : "improved",
-      "items" : [ "App time sheets: the structure element can be chosen in the task tree (level by level, starting at the current one, with a search in the level and everything below it), the search finds words of the whole path, the path is shown above the title, cost units are chosen in a scrollable selection box with number and text, the time sheet tab is no longer marked as under construction, and the templates open in a list instead of a row of chips.", "Order mails: clearer layout with the buttons at the top, and a button to the order notification settings." ]
-    }, {
-      "type" : "changed",
-      "items" : [ "Error digest: the regular digest is sent once a day at 07:00 instead of every hour, only urgent problems (security, data, immediate events) send it early, at most once an hour. Configurable by projectforge.support.errorDigest.interval, sendAt and urgentMinGap." ]
-    }, {
-      "type" : "fixed",
-      "items" : [ "App: connecting the app behind an SSO proxy works at the first attempt, also when the proxy brings the browser back from its login without the parameters of the link." ]
-    } ]
-  },
   "groups" : [ {
     "major" : "9",
     "head" : {
@@ -73,6 +52,28 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-2-4",
+      "version" : "9.2.4",
+      "date" : "2026-11-02",
+      "title" : "ProjectForge 9.2.4: e-invoice buyer fields, mobile app with several servers and task tree, daily error digest",
+      "tag" : "9.2.4-RELEASE",
+      "published" : false,
+      "summary" : [ "**E-invoice**: order number, department and cost center of the buyer", "**Mobile app** (in preparation): switch between several servers, task tree for time sheets", "App and server warn each other if the other side is too old", "**Error digest** once a day instead of every hour", "Fix: connecting the app behind an SSO proxy works at the first attempt" ],
+      "overview" : [ "**E-invoice:** new fields order number (BT-13), department of the orderer (BT-56) and cost center (BT-19) on the invoice and the account; the form labels name the e-invoice term (BT-x); the invoice template gets the variables Bestellnummer and Kostenstelle, the department is part of the address.", "**Mobile app (in preparation):** the logins of several servers are kept and the server can be switched in the account menu; time sheets choose the structure element in the task tree, with a search over the whole path, and cost units in a scrollable selection box; a warning if the app is too old for the server or the server too old for the app, \"My account\" marks outdated apps.", "**Error digest:** sent once a day at 07:00, only urgent problems send it early (at most once an hour); configurable.", "**Order mails:** clearer layout with the buttons at the top and a button to the order notification settings.", "**Fixes:** connecting the app behind an SSO proxy works at the first attempt, also when the proxy returns the browser without the parameters of the link." ],
+      "sections" : [ {
+        "type" : "added",
+        "items" : [ "App: a warning if the app is too old for the server or the server too old for the app; \"My account\" marks outdated apps.", "App: the logins of several servers are kept, and the server can be switched in the account menu without logging in again; another server is added there too.", "E-invoice: new fields order number (BT-13), department of the orderer (BT-56) and cost center (BT-19) on the invoice and the account (department, cost center); the labels of the invoice and account forms name the e-invoice term (BT-x) the field is sent in. The invoice template gets the variables Bestellnummer and Kostenstelle (with isBestellnummer/isKostenstelle), the department is part of the address." ]
+      }, {
+        "type" : "improved",
+        "items" : [ "App time sheets: the structure element can be chosen in the task tree (level by level, starting at the current one, with a search in the level and everything below it), the search finds words of the whole path, the path is shown above the title, cost units are chosen in a scrollable selection box with number and text, the time sheet tab is no longer marked as under construction, and the templates open in a list instead of a row of chips.", "Order mails: clearer layout with the buttons at the top, and a button to the order notification settings." ]
+      }, {
+        "type" : "changed",
+        "items" : [ "Error digest: the regular digest is sent once a day at 07:00 instead of every hour, only urgent problems (security, data, immediate events) send it early, at most once an hour. Configurable by projectforge.support.errorDigest.interval, sendAt and urgentMinGap." ]
+      }, {
+        "type" : "fixed",
+        "items" : [ "App: connecting the app behind an SSO proxy works at the first attempt, also when the proxy brings the browser back from its login without the parameters of the link." ]
+      } ]
+    }, {
       "id" : "9-2-3",
       "version" : "9.2.3",
       "date" : "2026-11-02",
