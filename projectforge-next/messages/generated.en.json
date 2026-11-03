@@ -5016,6 +5016,12 @@
         "vulnerabilities": {
           "series": "Vulnerabilities",
           "title": "Vulnerabilities published by the NVD"
+        },
+        "years": {
+          "_": "Look back",
+          "default": "Default",
+          "n": "{arg0} years",
+          "one": "1 year"
         }
       },
       "system": {

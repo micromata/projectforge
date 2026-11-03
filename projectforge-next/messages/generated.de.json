@@ -5016,6 +5016,12 @@
         "vulnerabilities": {
           "series": "Schwachstellen",
           "title": "Von der NVD veröffentlichte Schwachstellen"
+        },
+        "years": {
+          "_": "Rückblick",
+          "default": "Standard",
+          "n": "{arg0} Jahre",
+          "one": "1 Jahr"
         }
       },
       "system": {

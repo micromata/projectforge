@@ -3,11 +3,14 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.5",
-    "date" : "2026-11-03",
+    "date" : "2026-11-04",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "CVE-Radar: Import der Schwachstellen der European Union Vulnerability Database (EUVD) als Ergänzung zur NVD. Er ergänzt EUVD-ID, EPSS und den Tag der Ausnutzung und bringt Schwachstellen, die die NVD noch nicht hat, auch solche ohne CVE-ID. Die EUVD nennt nur Produkte, daher treffen diese als möglich. Standardmäßig aus.", "CVE-Radar: Liste und Akte einer Schwachstelle zeigen als Badges, woher die Daten stammen (NVD, OSV, EUVD), und die Liste hat einen angepinnten Filter zur Auswahl der Quelle." ]
+      "items" : [ "CVE-Radar: Import der Schwachstellen der European Union Vulnerability Database (EUVD) als Ergänzung zur NVD. Er ergänzt EUVD-ID, EPSS und den Tag der Ausnutzung und bringt Schwachstellen, die die NVD noch nicht hat, auch solche ohne CVE-ID. Die EUVD nennt nur Produkte, daher treffen diese als möglich. Standardmäßig aus.", "CVE-Radar: Liste und Akte einer Schwachstelle zeigen als Badges, woher die Daten stammen (NVD, OSV, EUVD), und die Liste hat einen angepinnten Filter zur Auswahl der Quelle.", "App: Die Systemmeldung der Administration (z. B. Wartungsarbeiten) wird wie in der Webversion über den Seiten angezeigt.", "App: Die Web-Tabs haben ein Browser-Menü mit Zurück, Vorwärts, Neu laden, Suchen auf der Seite, Link teilen, Im Browser öffnen und Neustart; Runterziehen zum Neuladen funktioniert jetzt auch auf den Seiten mit Menü, und eine fehlende Verbindung zeigt einen Fehler mit erneutem Versuch statt einer leeren Seite." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "CVE-Radar, Tab \"Statistik\": optional Rückblick auf 1, 2, 5 oder 10 Jahre." ]
     }, {
       "type" : "changed",
       "items" : [ "Digitale Visitenkarten: Das Foto wird über eine öffentliche URL mit zufälligem Token verlinkt (ohne Anmeldung, nicht erratbar), auch ohne Gateway; die URL bleibt beim Ersetzen oder Löschen des Bildes gleich und lässt sich mit \"Foto-Link erneuern\" an der Karte widerrufen. Die Basis-URL lässt sich mit `projectforge.businessCard.photoBaseUrl` festlegen. Das Gateway zusammen mit dem Server aktualisieren; Foto-Links früherer QR-Codes funktionieren nicht mehr." ]
