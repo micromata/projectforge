@@ -325,4 +325,14 @@ class InvoiceServiceTest : AbstractTestBase() {
       Assertions.assertEquals("", it[0])
     }
   }
+
+  @Test
+  fun `quantity and unit price keep all their decimals`() {
+    val sep = java.text.DecimalFormatSymbols.getInstance().decimalSeparator
+    Assertions.assertEquals("2${sep}125", invoiceService.formatWithAllDecimals(BigDecimal("2.125")))
+    Assertions.assertEquals("149${sep}70", invoiceService.formatWithAllDecimals(BigDecimal("149.7")))
+    Assertions.assertEquals("10${sep}00", invoiceService.formatWithAllDecimals(BigDecimal("10")))
+    Assertions.assertEquals("12${sep}345", invoiceService.formatWithAllDecimals(BigDecimal("12.34500")))
+    Assertions.assertEquals("", invoiceService.formatWithAllDecimals(null))
+  }
 }

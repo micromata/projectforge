@@ -438,4 +438,71 @@ class EInvoiceExportServiceTest {
             "Wrong total is reported: ${invalid.validationErrors}",
         )
     }
+
+    /**
+     * The positions of an invoice whose PDF stated another gross sum than its XML: the vat rounded per position
+     * sums up to 2085.21, the vat of the net sum is 2085.20. The XML and [RechnungCalculator] (PDF, UI) agree.
+     */
+    @Test
+    fun `sums of the e-invoice are the sums of the invoice`() {
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, fileStoreMock, rechnungDaoMock)
+        val invoice = createTestInvoice().apply {
+            positionen = mutableListOf(
+                position(1, "2.50", "168.35", "0.19"),
+                position(2, "15.25", "149.70", "0.19"),
+                position(3, "33.75", "149.70", "0.19"),
+                position(4, "9.75", "149.70", "0.19"),
+                position(5, "11.75", "149.70", "0.19"),
+            )
+        }
+        val xml = String(service.exportAsXRechnung(invoice), Charsets.UTF_8)
+        assertEquals("10974.75", xmlAmount(xml, "TaxBasisTotalAmount"))
+        assertEquals("2085.20", xmlAmount(xml, "TaxTotalAmount"))
+        assertEquals("13059.95", xmlAmount(xml, "GrandTotalAmount"))
+        val info = RechnungCalculator.calculate(invoice, useCaches = false)
+        assertEquals(BigDecimal("10974.75"), info.netSum)
+        assertEquals(BigDecimal("2085.20"), info.vatAmount)
+        assertEquals(BigDecimal("13059.95"), info.grossSum)
+    }
+
+    /**
+     * Fractional quantities and unit prices, two vat rates and a cancellation: the export checks its sums against
+     * [RechnungCalculator] and refuses the invoice if they differ, so it succeeding is the assertion.
+     */
+    @Test
+    fun `sums of the e-invoice match for several vat rates and a cancellation`() {
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, fileStoreMock, rechnungDaoMock)
+        val invoice = createTestInvoice().apply {
+            positionen = mutableListOf(
+                position(1, "2.125", "149.70", "0.19"),
+                position(2, "0.333", "99.99", "0.19"),
+                position(3, "7", "12.345", "0.07"),
+                position(4, "1.5", "33.33", "0.07"),
+            )
+        }
+        val xml = String(service.exportAsXRechnung(invoice), Charsets.UTF_8)
+        val info = RechnungCalculator.calculate(invoice, useCaches = false)
+        assertEquals(info.grossSum.toPlainString(), xmlAmount(xml, "GrandTotalAmount"))
+        assertEquals(info.netSum + info.vatAmount, info.grossSum)
+
+        val cancellation = createTestCancellation().apply {
+            positionen = invoice.positionen!!.map { pos ->
+                position(pos.number.toInt(), pos.menge.toString(), pos.einzelNetto!!.negate().toString(), pos.vat.toString())
+            }.toMutableList()
+        }
+        val cancellationXml = String(service.exportAsXRechnung(cancellation), Charsets.UTF_8)
+        assertEquals(info.grossSum.toPlainString(), xmlAmount(cancellationXml, "GrandTotalAmount"))
+    }
+
+    private fun position(number: Int, menge: String, einzelNetto: String, vat: String) = RechnungsPositionDO().also {
+        it.number = number.toShort()
+        it.text = "Position $number"
+        it.menge = BigDecimal(menge)
+        it.einzelNetto = BigDecimal(einzelNetto)
+        it.vat = BigDecimal(vat)
+    }
+
+    private fun xmlAmount(xml: String, element: String): String? {
+        return Regex("<(?:\\w+:)?$element(?:\\s[^>]*)?>([^<]+)<").find(xml)?.groupValues?.get(1)
+    }
 }
