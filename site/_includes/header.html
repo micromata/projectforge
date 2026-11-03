@@ -23,7 +23,7 @@
 {%- endcapture -%}
 <header class="sticky top-0 z-20 border-b border-border bg-background">
     <div class="pf-stripe" aria-hidden="true"></div>
-    <div class="pf-container flex min-h-[68px] items-center gap-8">
+    <div class="pf-container{{ wide_container }} flex min-h-[68px] items-center gap-8">
         <a class="inline-flex rounded-sm text-foreground hover:text-foreground" href="{{ t.home | relative_url }}">{% include logo.html %}</a>
 
         <nav class="hidden flex-1 gap-1 md:flex" aria-label="{{ t.main_navigation }}">

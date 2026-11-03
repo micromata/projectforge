@@ -48,6 +48,12 @@ en:
   # Button of the code blocks (assets/js/copy-code.js).
   copy_code:                  "Copy to clipboard"
   code_copied:                "Copied"
+  # Table of contents and navigation beside the docs (assets/js/doc-toc.js).
+  toc_title:                  "On this page"
+  toc_hide:                   "Hide table of contents"
+  toc_show:                   "Show table of contents"
+  nav_hide:                   "Hide navigation"
+  nav_show:                   "Show navigation"
 
 de:
   home:                       "/de/"
@@ -91,3 +97,9 @@ de:
   # Button of the code blocks (assets/js/copy-code.js).
   copy_code:                  "In die Zwischenablage kopieren"
   code_copied:                "Kopiert"
+  # Table of contents and navigation beside the docs (assets/js/doc-toc.js).
+  toc_title:                  "Auf dieser Seite"
+  toc_hide:                   "Inhaltsverzeichnis ausblenden"
+  toc_show:                   "Inhaltsverzeichnis einblenden"
+  nav_hide:                   "Navigation ausblenden"
+  nav_show:                   "Navigation einblenden"

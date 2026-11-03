@@ -7,6 +7,8 @@
 
     <a class="sr-only rounded-md bg-background px-4 py-2 focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50" href="#main">{{ site.data.translation[page.lang].skip_to_content }}</a>
 
+    {%- comment -%}A doc with a table of contents beside it is wider (_layouts/doc.html).{%- endcomment -%}
+    {%- assign wide_container = '' -%}{%- if content contains 'pf-doc-has-toc' -%}{%- assign wide_container = ' pf-container-wide' -%}{%- endif %}
     {% include header.html %}
 
     <main id="main">
@@ -25,6 +27,9 @@
 
     {%- assign t = site.data.translation[page.lang] %}
     <script src="{{ '/assets/js/copy-code.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-copy="{{ t.copy_code }}" data-copied="{{ t.code_copied }}" defer></script>
+    {%- if page.layout == 'doc' %}
+    <script src="{{ '/assets/js/doc-toc.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>
+    {%- endif %}
 
     {% include hook-pre-closing-body.html %}
 

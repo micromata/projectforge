@@ -8,7 +8,7 @@ tags: [userguide]
 :experimental:
 
 :toc:
-:toclevels: 4
+:toclevels: 3
 
 :last-update-label: Copyright (C) 2001-2026, Last updated
 

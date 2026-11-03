@@ -5,7 +5,7 @@
 {%- assign navigation = site.data[page.lang].navigation_footer | default: site.data.navigation_footer -%}
 <footer class="bg-background">
     <div class="pf-stripe" aria-hidden="true"></div>
-    <div class="pf-container">
+    <div class="pf-container{{ wide_container }}">
         <div class="grid grid-cols-2 gap-8 pt-12 pb-8 md:grid-cols-[1.6fr_repeat(3,1fr)]">
             <div class="col-span-2 md:col-span-1">
                 {% include logo.html %}

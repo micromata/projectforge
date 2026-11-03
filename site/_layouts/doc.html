@@ -17,12 +17,25 @@ layout: default
 {%- endfor %}
 {%- endcapture -%}
 
-<div class="pf-container py-12 md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-12">
+{%- comment -%}
+    Beside the text: the navigation of the docs (left, from md) and, for a doc with a table of contents (:toc:), that
+    (right, from xl; below a drawer opened by a floating button). assets/js/doc-toc.js fills it from the TOC of
+    Asciidoctor, which it replaces on wide screens. Both columns can be hidden to a narrow one with the button to show
+    them again; the inline script applies the choice of the local storage before the first paint. The marker
+    pf-doc-has-toc widens the containers of header and footer too (_layouts/default.html).
+{%- endcomment -%}
+{%- assign has_toc = false -%}{%- if content contains 'id="toc"' -%}{%- assign has_toc = true -%}{%- endif %}
+<div class="pf-doc pf-container py-12 md:grid md:gap-12{% if has_toc %} pf-doc-has-toc pf-container-wide{% endif %}">
+    <script>try { var c = document.currentScript.parentNode.classList; if (localStorage.getItem('pf-doc-nav') === 'hidden') c.add('pf-doc-nav-hidden'); if (localStorage.getItem('pf-doc-toc') === 'hidden') c.add('pf-doc-toc-hidden'); } catch (e) {}</script>
 
     <aside class="hidden md:block">
-        <nav class="sticky top-24" aria-label="{{ t.documentation }}">
-            {{ doc_nav }}
-        </nav>
+        <div class="sticky top-24">
+            <nav class="pf-doc-nav-panel" aria-label="{{ t.documentation }}">
+                <button type="button" class="pf-doc-toggle pf-doc-nav-hide" data-nav-hide title="{{ t.nav_hide }}" aria-label="{{ t.nav_hide }}">{% include icons/panel-left-close.svg %}</button>
+                {{ doc_nav }}
+            </nav>
+            <button type="button" class="pf-doc-toggle pf-doc-show" data-nav-show title="{{ t.nav_show }}" aria-label="{{ t.nav_show }}">{% include icons/panel-left-open.svg %}</button>
+        </div>
     </aside>
 
     <details class="mb-8 rounded-lg border border-border md:hidden">
@@ -54,5 +67,17 @@ layout: default
 
         {% include related-docs.html %}
     </article>
+    {%- if has_toc %}
+
+    <aside class="pf-doc-toc" aria-label="{{ t.toc_title }}">
+        <nav class="pf-doc-toc-nav" id="pf-doc-toc-nav">
+            <div class="mb-2 flex items-center justify-between gap-2">
+                <h2 class="text-xs leading-4 font-bold tracking-wide text-muted-foreground uppercase">{{ t.toc_title }}</h2>
+                <button type="button" class="pf-doc-toggle" data-toc-hide title="{{ t.toc_hide }}" aria-label="{{ t.toc_hide }}">{% include icons/panel-right-close.svg %}</button>
+            </div>
+        </nav>
+        <button type="button" class="pf-doc-toggle pf-doc-show pf-doc-toc-show" data-toc-show aria-controls="pf-doc-toc-nav" aria-expanded="false" title="{{ t.toc_show }}" aria-label="{{ t.toc_show }}">{% include icons/panel-right-open.svg %}</button>
+    </aside>
+    {%- endif %}
 
 </div>
