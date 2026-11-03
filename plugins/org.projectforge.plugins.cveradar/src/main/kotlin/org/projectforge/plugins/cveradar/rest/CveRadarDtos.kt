@@ -139,9 +139,13 @@ class ConfirmRequest(var answer: CvrClientAnswer? = null, var comment: String? =
 
 class CveRadarError(val message: String)
 
-/** The cases created and the NVD vulnerabilities published per day, week or month (the statistics tab). */
+/**
+ * The cases created and the NVD vulnerabilities published per day, week or month (the statistics tab), for the last
+ * [years] years or, without, the default window of the granularity.
+ */
 class ReportedStatistics(
     val granularity: CvrStatisticsService.Granularity,
+    val years: Int?,
     val cases: List<CvrStatisticsService.Bucket>,
     val vulnerabilities: List<CvrStatisticsService.Bucket>,
 )
