@@ -1,5 +1,5 @@
 {
-  "description": "What the app reads of the server api (checked by AppApiContractTest in projectforge-application). Per contract: the Dart files, the endpoints the app calls, and the fields it reads of the answer (paths below the answer class, [] for lists). Every ['key'] a listed Dart file reads must be named here, and everything named here must exist on the server. Removing or renaming a field that is named here breaks the published app: see dev-docs/flutter-client.md, 'Changing an api the app uses'.",
+  "description": "What the app reads of the server api (checked by AppApiContractTest in projectforge-application). Per contract: the Dart files and the endpoints the app calls, each with the controller, the class of its answer (list: true for a list of it) and the fields the app reads of it (paths below the answer class, [] steps into a list). An endpoint without answer is only checked for existing. optionalReads are fields the app reads defensively (a fallback exists): they are listed so the Dart files stay covered, but the server may not have them. Every ['key'] a listed Dart file reads must be named here (in reads, optionalReads or ignoreKeys), and everything in reads must exist on the server. Removing or renaming a field named here breaks the published app: see dev-docs/flutter-client.md, 'Changing an api the app uses'.",
   "contracts": [
     {
       "name": "Digital business cards",
@@ -9,29 +9,217 @@
         "lib/features/business_cards/business_cards_repository.dart",
         "lib/features/business_cards/business_cards_screen.dart"
       ],
-      "controller": "org.projectforge.rest.businesscard.BusinessCardRest",
       "endpoints": [
-        "GET /rs/myBusinessCards",
-        "GET /rs/myBusinessCards/vcf",
-        "GET /rs/myBusinessCards/pkpass"
+        {
+          "call": "GET /rs/myBusinessCards",
+          "controller": "org.projectforge.rest.businesscard.BusinessCardRest",
+          "answer": "org.projectforge.rest.businesscard.BusinessCardRest$InitData",
+          "reads": [
+            "cards[].card.id",
+            "cards[].card.cardName",
+            "cards[].card.addressId",
+            "cards[].card.includePhoto",
+            "cards[].card.title",
+            "cards[].card.firstName",
+            "cards[].card.lastName",
+            "cards[].card.organization",
+            "cards[].preview.qrCodeUrl",
+            "cards[].preview.vCardLength",
+            "cards[].preview.withPhoto",
+            "cards[].preview.photoAllowed",
+            "suggestion",
+            "maxCards",
+            "walletConfigured"
+          ]
+        },
+        {
+          "call": "GET /rs/myBusinessCards/vcf",
+          "controller": "org.projectforge.rest.businesscard.BusinessCardRest"
+        },
+        {
+          "call": "GET /rs/myBusinessCards/pkpass",
+          "controller": "org.projectforge.rest.businesscard.BusinessCardRest"
+        }
+      ]
+    },
+    {
+      "name": "User status",
+      "dartFiles": [
+        "lib/core/status/user_status.dart",
+        "lib/core/status/user_status_controller.dart",
+        "lib/core/status/user_status_repository.dart"
       ],
-      "answer": "org.projectforge.rest.businesscard.BusinessCardRest$InitData",
-      "reads": [
-        "cards[].card.id",
-        "cards[].card.cardName",
-        "cards[].card.addressId",
-        "cards[].card.includePhoto",
-        "cards[].card.title",
-        "cards[].card.firstName",
-        "cards[].card.lastName",
-        "cards[].card.organization",
-        "cards[].preview.qrCodeUrl",
-        "cards[].preview.vCardLength",
-        "cards[].preview.withPhoto",
-        "cards[].preview.photoAllowed",
-        "suggestion",
-        "maxCards",
-        "walletConfigured"
+      "endpoints": [
+        {
+          "call": "GET /rs/userStatus",
+          "controller": "org.projectforge.rest.UserStatusRest",
+          "answer": "org.projectforge.rest.UserStatusRest$Result",
+          "reads": [
+            "chatUnread",
+            "disabledFeatures",
+            "notifications.openCount",
+            "notifications.maxSeverity",
+            "notifications.latestId",
+            "theme",
+            "systemData.version",
+            "systemData.minAppVersion"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Time sheets",
+      "dartFiles": [
+        "lib/features/timesheets/booking_form.dart",
+        "lib/features/timesheets/task_picker.dart",
+        "lib/features/timesheets/time_utils.dart",
+        "lib/features/timesheets/timer_banner.dart",
+        "lib/features/timesheets/timesheet.dart",
+        "lib/features/timesheets/timesheets_controller.dart",
+        "lib/features/timesheets/timesheets_repository.dart",
+        "lib/features/timesheets/timesheets_screen.dart"
+      ],
+      "ignoreKeys": [
+        "user",
+        "start",
+        "what",
+        "time",
+        "general"
+      ],
+      "endpoints": [
+        {
+          "call": "GET /rs/timesheet/appList",
+          "controller": "org.projectforge.rest.TimesheetEntityRest",
+          "answer": "org.projectforge.rest.TimesheetEntityRest$AppTimesheetList",
+          "reads": [
+            "timesheets[].id",
+            "timesheets[].startTime",
+            "timesheets[].stopTime",
+            "timesheets[].acceptance",
+            "timesheets[].task.id",
+            "timesheets[].task.title",
+            "timesheets[].task.path",
+            "timesheets[].kost2.id",
+            "timesheets[].kost2.description",
+            "timesheets[].description",
+            "timesheets[].location",
+            "timesheets[].reference",
+            "timesheets[].tag",
+            "tags",
+            "timesheets[].kost2.formattedNumber"
+          ],
+          "optionalReads": [
+            "timesheets[].task.displayName",
+            "timesheets[].task.path[].title",
+            "timesheets[].kost2.title",
+            "timesheets[].kost2.displayName"
+          ]
+        },
+        {
+          "call": "GET /rs/timesheet/{id}",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "PUT /rs/timesheet/insert",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "PUT /rs/timesheet/update",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "DELETE /rs/timesheet/markAsDeleted",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "PUT /rs/timesheet/undelete",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "GET /rs/timesheet/recentList",
+          "controller": "org.projectforge.rest.TimesheetEntityRest",
+          "answer": "org.projectforge.rest.TimesheetEntityRest$RecentTimesheets",
+          "reads": [
+            "timesheets[].task",
+            "timesheets[].kost2",
+            "timesheets[].description",
+            "timesheets[].location",
+            "timesheets[].reference",
+            "timesheets[].tag"
+          ]
+        },
+        {
+          "call": "GET /rs/timesheet/favorites/list",
+          "controller": "org.projectforge.rest.TimesheetFavoritesRest",
+          "answer": "org.projectforge.business.timesheet.TimesheetFavorite",
+          "list": true,
+          "reads": [
+            "id",
+            "name",
+            "taskId",
+            "cost2Id",
+            "description",
+            "location",
+            "reference",
+            "tag"
+          ]
+        },
+        {
+          "call": "POST /rs/timesheet/favorites/create",
+          "controller": "org.projectforge.rest.TimesheetFavoritesRest"
+        },
+        {
+          "call": "POST /rs/timesheet/favorites/delete",
+          "controller": "org.projectforge.rest.TimesheetFavoritesRest"
+        },
+        {
+          "call": "GET /rs/task/tree/autosearch",
+          "controller": "org.projectforge.rest.task.TaskServicesRest",
+          "answer": "org.projectforge.rest.core.AbstractEntityRest$DisplayObject",
+          "list": true,
+          "reads": [
+            "id",
+            "displayName"
+          ]
+        },
+        {
+          "call": "GET /rs/task/recent/list",
+          "controller": "org.projectforge.rest.task.TaskServicesRest",
+          "answer": "org.projectforge.rest.core.AbstractEntityRest$DisplayObject",
+          "list": true,
+          "reads": [
+            "id",
+            "displayName"
+          ]
+        },
+        {
+          "call": "GET /rs/task/tree/children",
+          "controller": "org.projectforge.rest.task.TaskServicesRest",
+          "answer": "org.projectforge.rest.task.TaskServicesRest$TaskChild",
+          "list": true,
+          "reads": [
+            "id",
+            "title",
+            "hasChildren",
+            "bookable"
+          ]
+        },
+        {
+          "call": "GET /rs/task/info/{id}",
+          "controller": "org.projectforge.rest.task.TaskServicesRest",
+          "answer": "org.projectforge.rest.task.TaskServicesRest$Task",
+          "reads": [
+            "kost2List[].id",
+            "kost2List[].title",
+            "path[].id",
+            "path[].title"
+          ],
+          "optionalReads": [
+            "kost2List[].formattedNumber",
+            "kost2List[].description",
+            "kost2List[].displayName"
+          ]
+        }
       ]
     }
   ]

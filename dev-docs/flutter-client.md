@@ -244,11 +244,14 @@ The store version of the app is old the day after a server release, so the serve
 1. **Adding is free.** New fields and endpoints need no care; the app reads tolerantly (`== true`, `?? default`,
    unknown fields are ignored), and so must new app code.
 2. **The contract test guards it:** `projectforge-flutter/test/contract/app-api-contract.json` names, per feature, the
-   Dart files, the endpoints and the fields of the answer the app reads. `AppApiContractTest` (projectforge-application)
-   fails when the server loses a named field or endpoint, and when a listed Dart file reads a `['key']` the contract
-   doesn't name, so the contract can't go stale. A new app feature adds its entry (answer class, `reads` paths, endpoints,
-   Dart files) in the same commit; so far the digital business cards are covered. Only reads of the answer are
-   checked, not what the app sends.
+   Dart files and the endpoints the app calls, each with its controller, the class of the answer and the fields the app
+   reads of it (`reads`; `optionalReads` for fields it reads defensively and the server may not have; `ignoreKeys` for
+   keys that aren't of the api, e.g. the local timer). `AppApiContractTest` (projectforge-application) fails when the
+   server loses a named field or endpoint, and when a listed Dart file reads a `['key']` the contract doesn't name, so
+   the contract can't go stale. A new app feature adds its entry in the same commit. Covered: digital business cards,
+   user status, time sheets (with the task endpoints). Not yet: app login (`appAuth`, `systemStatus`), addresses,
+   notifications, push token, ui settings, web session. Only reads of the answer are checked, not what the app sends,
+   and endpoints without a typed answer class (e.g. `GET /rs/timesheet/{id}`) only for existing.
    **Before removing or renaming a field, an endpoint or a value, ask what the published app reads:**
    `git grep -n <name> <tag or commit of the published app version> -- projectforge-flutter/lib`
    (the commit `App: version x.y.z+n` of `pubspec.yaml`). Search the name in the dart models and in the tests' fixtures.

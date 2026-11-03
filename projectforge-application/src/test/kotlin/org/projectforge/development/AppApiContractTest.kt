@@ -24,6 +24,7 @@
 package org.projectforge.development
 
 import com.fasterxml.jackson.databind.JavaType
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -49,20 +50,32 @@ class AppApiContractTest {
     private val mapper = ObjectMapper().registerKotlinModule()
     private val contracts = mapper.readTree(File(appDir, "test/contract/app-api-contract.json"))["contracts"]
 
+    private fun JsonNode.texts(field: String): List<String> = this[field]?.map { it.asText() } ?: emptyList()
+
+    private fun endpoints(contract: JsonNode): List<JsonNode> = contract["endpoints"].toList()
+
     @Test
     fun `the contract exists and names fields`() {
         assertTrue(contracts.size() > 0, "No contract found.")
-        contracts.forEach { assertTrue(it["reads"].size() > 0, "${it["name"].asText()} reads nothing.") }
+        contracts.forEach { contract ->
+            assertTrue(endpoints(contract).isNotEmpty(), "${contract["name"].asText()} has no endpoint.")
+            assertTrue(
+                endpoints(contract).any { it.texts("reads").isNotEmpty() },
+                "${contract["name"].asText()} reads nothing."
+            )
+        }
     }
 
     @Test
     fun `the server delivers every field the app reads`() {
         val missing = mutableListOf<String>()
         contracts.forEach { contract ->
-            val root = mapper.constructType(Class.forName(contract["answer"].asText()))
-            contract["reads"].map { it.asText() }.forEach { path ->
-                if (!exists(root, path.split('.'))) {
-                    missing.add("${contract["name"].asText()}: $path")
+            endpoints(contract).filter { it.has("answer") }.forEach { endpoint ->
+                val root = mapper.constructType(Class.forName(endpoint["answer"].asText()))
+                endpoint.texts("reads").forEach { path ->
+                    if (!exists(root, path.split('.'))) {
+                        missing.add("${endpoint["call"].asText()}: $path")
+                    }
                 }
             }
         }
@@ -77,16 +90,13 @@ class AppApiContractTest {
     fun `the server has every endpoint the app calls`() {
         val missing = mutableListOf<String>()
         contracts.forEach { contract ->
-            val controller = Class.forName(contract["controller"].asText())
-            val base = mappingOf(AnnotatedElementUtils.findMergedAnnotation(controller, RequestMapping::class.java))
-            val available = controller.methods.mapNotNull { method ->
-                val mapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping::class.java)
-                    ?: return@mapNotNull null
-                val suffix = mappingOf(mapping)
-                mapping.method.map { "$it ${(base + "/" + suffix).replace(Regex("/+"), "/").trimEnd('/')}" }
-            }.flatten().toSet()
-            contract["endpoints"].map { it.asText() }.filter { it !in available }
-                .forEach { missing.add("${contract["name"].asText()}: $it (has: ${available.sorted()})") }
+            endpoints(contract).forEach { endpoint ->
+                val available = mappingsOf(Class.forName(endpoint["controller"].asText()))
+                val (verb, path) = endpoint["call"].asText().split(' ', limit = 2)
+                if (available.none { (v, p) -> (v == null || v == verb) && matches(p, path) }) {
+                    missing.add("${endpoint["call"].asText()} (${endpoint["controller"].asText()})")
+                }
+            }
         }
         assertTrue(missing.isEmpty(), "The published app calls endpoints the server no longer has: $missing")
     }
@@ -95,29 +105,51 @@ class AppApiContractTest {
     fun `the contract names every key the listed Dart files read`() {
         val unnamed = mutableListOf<String>()
         contracts.forEach { contract ->
-            val named = contract["reads"].map { it.asText().substringAfterLast('.').removeSuffix("[]") }.toSet() +
-                    contract["reads"].flatMap { it.asText().split('.') }.map { it.removeSuffix("[]") }
-            contract["dartFiles"].map { it.asText() }.forEach { path ->
+            val named = mutableSetOf<String>()
+            named.addAll(contract.texts("ignoreKeys"))
+            endpoints(contract).forEach { endpoint ->
+                (endpoint.texts("reads") + endpoint.texts("optionalReads")).forEach { path ->
+                    named.addAll(path.split('.').map { it.removeSuffix("[]") })
+                }
+            }
+            contract.texts("dartFiles").forEach { path ->
                 val file = File(appDir, path)
                 assertTrue(file.isFile, "${file.absolutePath} doesn't exist.")
                 KEY_REGEX.findAll(file.readText()).map { it.groupValues[1] }.toSet()
-                    .filter { it !in named && it !in IGNORED_KEYS }
+                    .filter { it !in named }
                     .forEach { unnamed.add("$path reads '$it'") }
             }
         }
         assertEquals(
             emptyList<String>(), unnamed,
-            "Name these in projectforge-flutter/test/contract/app-api-contract.json (or the app reads something the " +
-                    "server may drop unnoticed)."
+            "Name these in projectforge-flutter/test/contract/app-api-contract.json (reads, optionalReads or " +
+                    "ignoreKeys), or the app reads something the server may drop unnoticed."
         )
     }
 
-    private fun mappingOf(mapping: RequestMapping?): String =
-        (mapping?.path?.firstOrNull() ?: mapping?.value?.firstOrNull() ?: "").let { if (it.startsWith("/")) it else "/$it" }
-            .let { resolvePlaceholders(it) }
+    /** The verb (null: any, a mapping without method) and full path of every request mapping of the controller. */
+    private fun mappingsOf(controller: Class<*>): List<Pair<String?, String>> {
+        val base = pathOf(AnnotatedElementUtils.findMergedAnnotation(controller, RequestMapping::class.java))
+        return controller.methods.flatMap { method ->
+            val mapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping::class.java)
+                ?: return@flatMap emptyList()
+            val verbs = mapping.method.map<RequestMethod, String?> { it.name }.ifEmpty { listOf(null) }
+            val paths = (mapping.path.toList() + mapping.value.toList()).distinct().ifEmpty { listOf("") }
+            verbs.flatMap { verb -> paths.map { verb to "$base/$it".replace(Regex("/+"), "/").trimEnd('/') } }
+        }
+    }
 
-    /** `${Rest.URL}` is a compile time constant, the annotation already holds its value (`/rs`). */
-    private fun resolvePlaceholders(path: String) = path
+    private fun pathOf(mapping: RequestMapping?): String =
+        mapping?.let { (it.path.toList() + it.value.toList()).firstOrNull() } ?: ""
+
+    /** A `{id}` segment in either path stands for any segment. */
+    private fun matches(mappingPath: String, callPath: String): Boolean {
+        val mapping = mappingPath.split('/')
+        val call = callPath.split('/')
+        return mapping.size == call.size && mapping.zip(call).all { (m, c) -> m == c || isVariable(m) || isVariable(c) }
+    }
+
+    private fun isVariable(segment: String) = segment.startsWith("{") && segment.endsWith("}")
 
     /** True if the type has the property of the path; `[]` steps into the elements of a collection. */
     private fun exists(type: JavaType, segments: List<String>): Boolean {
@@ -135,10 +167,7 @@ class AppApiContractTest {
     }
 
     companion object {
-        /** `json['key']`, `card['key']`, `this['key']`. */
-        private val KEY_REGEX = Regex("""\b(?:json|card|this|data|suggestion)\['([A-Za-z0-9_]+)']""")
-
-        /** Keys that are not of the business card api. */
-        private val IGNORED_KEYS = emptySet<String>()
+        /** `json['key']`, `card['key']`, `_errors['key']`, … : any identifier indexed by a string literal. */
+        private val KEY_REGEX = Regex("""\b[A-Za-z_][A-Za-z0-9_]*\['([A-Za-z0-9_]+)']""")
     }
 }
