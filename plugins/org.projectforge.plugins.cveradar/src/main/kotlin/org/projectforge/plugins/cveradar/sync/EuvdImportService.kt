@@ -110,10 +110,21 @@ class EuvdImportService {
         val result = Result()
         val today = LocalDate.ofInstant(now, ZoneOffset.UTC)
         try {
+            runImport(source, state, now, today, result)
+            sweepExploited(source, now, result)
+        } finally {
+            match(result) // Also after a failing piece: the pieces imported before it are matched.
+        }
+        return result
+    }
+
+    private fun runImport(source: EuvdSource, state: CvrImportStateDO, now: Instant, today: LocalDate, result: Result) {
+        try {
             val start = state.lastModWatermark?.let { LocalDate.ofInstant(it.toInstant(), ZoneOffset.UTC).minusDays(config.euvd.rescanDays.toLong()) }
                 ?: today.minusDays(config.euvd.initialDays.toLong())
             splitRange(start, today).forEach { (from, to) ->
-                importRange(source, from, to, true, config.euvd.minCvss, result)
+                // No minimum score in the request: a stored vulnerability is updated whatever the EUVD rates it ([create] checks it).
+                importRange(source, from, to, true, null, result)
                 // Everything published before the end of that week is read; the days after the watermark are read again anyway.
                 state.lastModWatermark = Date.from(minOf(to.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC), now))
                 saveState(state)
@@ -127,9 +138,6 @@ class EuvdImportService {
             state.lastRun = Date.from(now)
             saveState(state)
         }
-        sweepExploited(source, now, result)
-        match(result)
-        return result
     }
 
     /** Once a day: the entries known to be exploited, to update the vulnerabilities stored. A failure doesn't fail the import. */
@@ -142,13 +150,13 @@ class EuvdImportService {
             importRange(source, null, null, false, null, result, exploited = true)
             result.swept = true
             state.lastError = null
+            state.lastRun = Date.from(now)
         } catch (ex: Exception) {
+            // lastRun stays: the next run (in a few hours) tries again.
             log.error(ex) { "EUVD: reading the exploited entries failed: ${ex.message}" }
             state.lastError = (ex.message ?: ex.javaClass.simpleName).take(4000)
-        } finally {
-            state.lastRun = Date.from(now)
-            saveState(state)
         }
+        saveState(state)
     }
 
     private fun importRange(
@@ -177,15 +185,28 @@ class EuvdImportService {
             .toMutableMap()
         val byEuvdId = vulnerabilityDao.findByEuvdIds(items.map { it.id })
         items.forEach { item ->
-            val existing = byKey[item.key] ?: byEuvdId[item.id]
+            val keyed = byKey[item.key]
+            val existing = keyed ?: byEuvdId[item.id]
                 ?: if (item.cveId == null) item.aliases.firstNotNullOfOrNull { byKey[it] } else null
             if (existing == null) {
                 // The EUVD may list one CVE under several ids, also within a page.
                 create(item, createNew, result)?.let { byKey[item.key] = it }
             } else {
+                // The NVD made a record for a CVE the EUVD knew without it: the record of the EUVD id gives way (unique euvd_id).
+                byEuvdId[item.id]?.takeIf { it !== existing && existing.euvdId == null }?.let { retire(it) }
                 update(item, existing, result)
+                existing.cveId?.let { byKey[it] = existing }
             }
         }
+    }
+
+    /** A duplicate made of an EUVD entry: it loses the EUVD id and is marked rejected. */
+    private fun retire(duplicate: CvrVulnerabilityDO) {
+        duplicate.euvdId = null
+        duplicate.nvdStatus = "Rejected"
+        vulnerabilityDao.update(duplicate, checkAccess = false)
+        vulnerabilityDao.reindex(duplicate)
+        matchingService.replaceApproximateIndex(duplicate.id!!, emptyList())
     }
 
     private fun create(item: EuvdItem, createNew: Boolean, result: Result): CvrVulnerabilityDO? {

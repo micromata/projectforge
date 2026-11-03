@@ -62,16 +62,21 @@ class EuvdApiClient : EuvdSource {
         var attempt = 0
         while (true) {
             pause()
-            val status = try {
-                return EuvdParser.parsePage(CveRadarHttp.execute(CveRadarHttp.EUVD, HttpGet(url.toString())))
+            var status: Int? = null
+            val body = try {
+                CveRadarHttp.execute(CveRadarHttp.EUVD, HttpGet(url.toString()))
             } catch (ex: CveRadarHttp.HttpException) {
                 if (ex.status != 429 && ex.status < 500) {
                     throw ex
                 }
-                ex.status
+                status = ex.status
+                null
             } catch (ex: IOException) {
                 log.warn { "EUVD request failed (attempt ${attempt + 1}): ${ex.message}" }
                 null
+            }
+            if (body != null) {
+                return EuvdParser.parsePage(body) // An answer that can't be read isn't retried.
             }
             if (attempt >= BACKOFF_SECONDS.size) {
                 throw IllegalStateException("EUVD not reachable after ${attempt + 1} attempts (last status: $status).")

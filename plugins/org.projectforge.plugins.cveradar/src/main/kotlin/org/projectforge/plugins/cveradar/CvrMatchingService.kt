@@ -432,7 +432,8 @@ class CvrMatchingService {
             candidates[key.product]?.forEach candidate@{ match ->
                 // By name the vendor may be spelled otherwise ("Apache Software Foundation" vs "apache"): a
                 // match by name is only possible anyway.
-                if (key.sure && key.vendor != null && key.vendor != match.vendor && !match.approximate) {
+                // The names of the EUVD give no version, so their vendor has to fit: "server" alone is too common.
+                if (key.vendor != null && key.vendor != match.vendor && (key.sure || match.approximate)) {
                     return@candidate
                 }
                 val versionCertainty = versionMatch(version, match) ?: return@candidate

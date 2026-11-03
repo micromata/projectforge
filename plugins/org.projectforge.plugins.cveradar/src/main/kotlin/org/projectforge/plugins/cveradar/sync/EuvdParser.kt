@@ -66,7 +66,8 @@ object EuvdParser {
         }
         val ids = lines(node.path("aliases").asText(""))
         val cveId = ids.firstOrNull { CVE_ID_REGEX.matches(it) }
-        val vector = node.path("baseScoreVector").asText("").trim().takeIf { it.isNotEmpty() }
+        // Only CVSS 3.x and 4.0 vectors are kept; a CVSS 2 vector would be shown as a 3.1 one.
+        val vector = node.path("baseScoreVector").asText("").trim().takeIf { it.startsWith("CVSS:3") || it.startsWith("CVSS:4") }
         val score = node.path("baseScore").takeIf { it.isNumber }?.decimalValue()
             ?.takeIf { it.signum() > 0 }?.setScale(1, RoundingMode.HALF_UP)
         return EuvdItem(

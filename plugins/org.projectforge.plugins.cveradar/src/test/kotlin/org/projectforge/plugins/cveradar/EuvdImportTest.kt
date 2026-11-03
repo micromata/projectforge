@@ -230,7 +230,8 @@ class EuvdImportTest : CveRadarTestBase() {
         fun hit(vendor: String) = matching.match(
             listOf(CvrMatchingService.Query("cpe:2.3:a:$vendor:eutool8:1.5:*:*:*:*:*:*:*", vendor, "eutool8", "1.5", null)),
         ).single().filter { it.vulnerabilityId == id }
-        assertEquals(CvrFindingCertainty.POSSIBLE, hit("someothervendor").single().certainty, "the vendor may be spelled otherwise")
+        assertEquals(CvrFindingCertainty.POSSIBLE, hit("wlroots").single().certainty, "the vendor of the EUVD")
+        assertTrue(hit("someothervendor").isEmpty(), "the names alone are too common without the vendor")
 
         // Again: the index doesn't change.
         euvdImport.import(FakeEuvd(listOf(item("EUVD-2026-990008", null, products = "eutool8"))), now.plusSeconds(60))
@@ -243,5 +244,18 @@ class EuvdImportTest : CveRadarTestBase() {
             listOf(CvrMatchingService.Query("cpe:2.3:a:vendor:eutool8:1.5:*:*:*:*:*:*:*", "vendor", "eutool8", "1.5", null)),
         ).single().filter { it.vulnerabilityId == id }
         assertEquals(CvrFindingCertainty.AFFECTED, sure.single().certainty)
+    }
+
+    @Test
+    fun `the NVD made a record for a CVE the EUVD knew without it, the EUVD id moves to it`() {
+        logon(TEST_ADMIN_USER)
+        euvdImport.import(FakeEuvd(listOf(item("EUVD-2026-990009", null, products = "eutool9"))), now)
+        nvd("CVE-2026-990009", "eutool9")
+        // Does not fail on the unique EUVD id, a page with two ids of one CVE neither.
+        euvdImport.import(
+            FakeEuvd(listOf(item("EUVD-2026-990009", "CVE-2026-990009", products = "eutool9"), item("EUVD-2026-990010", "CVE-2026-990009", products = "eutool9"))),
+            now.plusSeconds(60),
+        )
+        assertEquals("EUVD-2026-990009", vulnerabilityDao.findByCveId("CVE-2026-990009")!!.euvdId)
     }
 }
