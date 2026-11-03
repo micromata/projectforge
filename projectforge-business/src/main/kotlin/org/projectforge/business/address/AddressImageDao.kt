@@ -349,7 +349,7 @@ open class AddressImageDao {
 
     companion object {
         private const val MAX_SIZE_BYTES_OF_SHRINKED_IMAGES = 100L * Constants.KB
-        private const val MAX_WIDTH_OF_PREVIEW_IMAGES = 50
-        private const val MAX_HEIGHT_OF_PREVIEW_IMAGES = 50
+        private const val MAX_WIDTH_OF_PREVIEW_IMAGES = 160
+        private const val MAX_HEIGHT_OF_PREVIEW_IMAGES = 160
     }
 }
