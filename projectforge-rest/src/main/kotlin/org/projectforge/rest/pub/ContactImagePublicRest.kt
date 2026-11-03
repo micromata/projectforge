@@ -28,6 +28,7 @@ import org.projectforge.business.address.AddressImageDao
 import org.projectforge.business.address.ContactImageUrl
 import org.projectforge.business.address.ImageType
 import org.projectforge.business.login.LoginProtection
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.security.SecurityLogging
 import org.projectforge.web.WebUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,6 +53,7 @@ open class ContactImagePublicRest {
     @Autowired
     private lateinit var addressImageDao: AddressImageDao
 
+    @AccessChecked("PUBLIC: token required")
     @GetMapping("${ContactImageUrl.PATH}{token}")
     fun getImage(request: HttpServletRequest, @PathVariable token: String): ResponseEntity<ByteArray> {
         val clientIp = WebUtils.getClientIp(request)
