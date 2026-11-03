@@ -105,6 +105,9 @@ class CveRadarTest : CveRadarTestBase() {
         val statistics = rest.reportedStatistics(CvrStatisticsService.Granularity.MONTH)
         assertEquals(CvrStatisticsService.MONTHS.toInt(), statistics.cases.size)
         assertEquals(CvrStatisticsService.MONTHS.toInt(), statistics.vulnerabilities.size)
+        val tenYears = rest.reportedStatistics(CvrStatisticsService.Granularity.MONTH, 99)
+        assertEquals(CvrStatisticsService.MAX_YEARS, tenYears.years, "limited to the longest window")
+        assertEquals(CvrStatisticsService.MAX_YEARS * 12, tenYears.cases.size)
     }
 
     @Test

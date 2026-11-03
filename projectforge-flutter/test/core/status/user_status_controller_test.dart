@@ -52,6 +52,15 @@ void main() {
     );
   });
 
+  test('message of the administrators', () {
+    expect(
+      UserStatus({'alertMessage': ' Maintenance '}).alertMessage,
+      'Maintenance',
+    );
+    expect(UserStatus({'alertMessage': ' '}).alertMessage, isNull);
+    expect(UserStatus({}).alertMessage, isNull);
+  });
+
   test('summary of the notifications', () {
     expect(UserStatus({}).openNotifications, 0);
     expect(UserStatus({}).maxSeverity, isNull);

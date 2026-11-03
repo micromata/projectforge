@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.projectforge.plugins.cveradar.CvrStatisticsService.Companion.bucketize
 import org.projectforge.plugins.cveradar.CvrStatisticsService.Granularity
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
@@ -65,6 +66,30 @@ class CvrStatisticsServiceTest {
         assertEquals(LocalDate.of(2026, 10, 1), buckets.last().periodStart)
         assertEquals(1, buckets.last().count)
         assertEquals(1, buckets[buckets.size - 2].count)
+    }
+
+    @Test
+    fun `a window of years covers the last years up to today`() {
+        val months = bucketize(listOf(at("2025-11-01"), at("2025-10-31")), Granularity.MONTH, berlin, today, 1)
+        assertEquals(12, months.size)
+        assertEquals(LocalDate.of(2025, 11, 1), months.first().periodStart)
+        assertEquals(1, months.first().count, "October of the year before is outside")
+        val days = bucketize(emptyList(), Granularity.DAY, berlin, today, 10)
+        assertEquals(LocalDate.of(2016, 10, 29), days.first().periodStart)
+        assertEquals(today, days.last().periodStart)
+        val weeks = bucketize(emptyList(), Granularity.WEEK, berlin, today, 2)
+        // The first week starting after the day two years ago (Saturday, 2024-10-26).
+        assertEquals(LocalDate.of(2024, 10, 28), weeks.first().periodStart)
+        assertEquals(DayOfWeek.MONDAY, weeks.first().periodStart.dayOfWeek)
+    }
+
+    @Test
+    fun `the window is limited to ten years`() {
+        assertEquals(
+            CvrStatisticsService.firstPeriod(Granularity.MONTH, today, CvrStatisticsService.MAX_YEARS),
+            CvrStatisticsService.firstPeriod(Granularity.MONTH, today, 50),
+        )
+        assertEquals(LocalDate.of(2016, 11, 1), CvrStatisticsService.firstPeriod(Granularity.MONTH, today, 50))
     }
 
     @Test

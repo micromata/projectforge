@@ -139,16 +139,22 @@ class CveRadarRest {
         return devices.map { deviceRow(it) }
     }
 
+    /** [years]: the window (1 to [CvrStatisticsService.MAX_YEARS]), the default window of the granularity without. */
     @AccessChecked("CveRadarAccess.checkReader: read-only or read-write right; counts only")
     @GetMapping("statistics/reported")
-    fun reportedStatistics(@RequestParam granularity: CvrStatisticsService.Granularity): ReportedStatistics {
+    fun reportedStatistics(
+        @RequestParam granularity: CvrStatisticsService.Granularity,
+        @RequestParam(required = false) years: Int? = null,
+    ): ReportedStatistics {
         val user = ThreadLocalUserContext.requiredLoggedInUser
         access.checkReader(user)
         val zone = ThreadLocalUserContext.timeZone.toZoneId()
+        val window = years?.coerceIn(1, CvrStatisticsService.MAX_YEARS)
         return ReportedStatistics(
             granularity,
-            statisticsService.casesCreated(granularity, zone),
-            statisticsService.vulnerabilitiesPublished(granularity, zone),
+            window,
+            statisticsService.casesCreated(granularity, zone, window),
+            statisticsService.vulnerabilitiesPublished(granularity, zone, window),
         )
     }
 

@@ -26,6 +26,9 @@ next (SSE on the web session's cookie). Native is only what a page can't do:
   every 60 s in the foreground, on resuming the app and on switching tabs. The app token has no session to keep
   alive, `ChatUnreadCounter` caches the count. The tab is missing if the chat is switched off (`disabledFeatures`
   contains `CHAT`).
+- **System message:** the message of the administrators (`alertMessage` of `GET /rs/userStatus`, e.g. maintenance)
+  is shown by `SystemAlertBanner` above the native pages of `HomeScreen` (the web tab shows it itself, the chat
+  page doesn't). It can't be dismissed and follows the 60 s polling of the user status. The field is part of the published api (contract test).
 - **Files:** uploads through the file input of the page (WKWebView and the Android WebView open the system picker;
   iOS needs `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`), downloads see "Web pages in the app".
 - **Push** (see "Notifications and push"): a tap opens `/next/chat/{id}` in the chat tab.
@@ -194,6 +197,21 @@ app has only its token:
   redirects, and offers it in the share sheet (also "save to files"). Open: downloads built in the page as a `blob:`
   url (the Excel exports, `lib/rs/download.ts`) can't be loaded by the app and fail with a message; they need the
   blob's bytes from the page (`onDownloadStartRequest` gives only the url).
+- **Browser functions** (the WebView has no address bar): the WebView tabs (pages, chat) have browser entries in the
+  "more" menu (⋮) of the navigation, above the account entries, so the bar keeps its slots on every tab (`browserMenuEntries`, driven by a
+  `WebScreenController` per tab): back, forward, reload, find in the page, share the link, open the page in the system browser (no web session there, it may ask for the login) and
+  "Restart page" (a new WebView with a new web session).
+  - **Pull to refresh:** next scrolls in columns inside a box of the window's height (`page-shell.tsx`), the document
+    never. The WebView's own control would never fire there (iOS) or on every downward swipe (Android), so the app
+    switches it off on `/next` pages (`WebNavigation.isNextPage`) and next does it itself in app mode
+    (`hooks/use-pull-to-refresh.ts`: only if no column up from the touched element is scrolled down, not in fields,
+    dialogs and `[data-no-pull-refresh]`, e.g. the chat's message list). The legacy pages keep the WebView's.
+  - **Find in the page:** iOS 16+ the native find navigator of WebKit, Android the `WebFindBar` on the WebView's
+    `findAllAsync`. Not the plugin's JavaScript search (iOS without the navigator, so none on iOS 15): it wraps the
+    matches in elements of its own in the DOM of next, which React then can't update. Virtualized lists find only
+    the rows rendered.
+  - **No connection** (a main frame failing with a network error): the app's error with a retry of the failed page,
+    not the WebView's own error page.
 
 Open: the 2FA dialog of next offers WebAuthn, which doesn't work in a WebView
 for self-hosted servers (OTP does): in app mode it should offer "confirm in the browser" (the app's renewal, then a
@@ -243,11 +261,24 @@ The store version of the app is old the day after a server release, so the serve
 
 1. **Adding is free.** New fields and endpoints need no care; the app reads tolerantly (`== true`, `?? default`,
    unknown fields are ignored), and so must new app code.
-2. **Before removing or renaming a field, an endpoint or a value, ask what the published app reads:**
+2. **The contract test guards it:** `projectforge-flutter/test/contract/app-api-contract.json` names, per feature, the
+   Dart files and the endpoints the app calls, each with its controller, the class of the answer and the fields the app
+   reads of it (`reads`; `optionalReads` for fields it reads defensively and the server may not have; `ignoreKeys` for
+   keys that aren't of the api, e.g. the local timer). `AppApiContractTest` (projectforge-application) fails when the
+   server loses a named field or endpoint, and when a listed Dart file reads a `['key']` the contract doesn't name, so
+   the contract can't go stale. A new app feature adds its entry in the same commit.
+   Covered: digital business cards, user status, time sheets (with the task endpoints), addresses, notifications, app
+   login and session (`appAuth`, `systemStatus`), push registration, theme, the answers to failed requests (`types`:
+   validation errors, second factor required); for requests the fields the app sends (`request` and `sends`, checked
+   against the request class). A Dart file that reads a `['key']` and is in no contract fails the test, so new app code can't bypass it. Only the
+   endpoints with a typed answer class have their fields checked, the others (e.g. `GET /rs/timesheet/{id}`) only for
+   existing.
+   **Before removing or renaming a field, an endpoint or a value, ask what the published app reads:**
    `git grep -n <name> <tag or commit of the published app version> -- projectforge-flutter/lib`
    (the commit `App: version x.y.z+n` of `pubspec.yaml`). Search the name in the dart models and in the tests' fixtures.
-3. **Not read** (or only parsed, never used): remove it at once, as for any server-only change.
-4. **Read:** the server keeps delivering it, marked `@Deprecated("app <= x.y.z reads it, remove with MIN_APP_VERSION > x.y.z")`
+3. **Not read** (or only parsed, never used): remove it at once, as for any server-only change; the contract test
+   then doesn't name it.
+4. **Read** (the contract names it, the test fails when it goes): the server keeps delivering it, marked `@Deprecated("app <= x.y.z reads it, remove with MIN_APP_VERSION > x.y.z")`
    in the KDoc/annotation, with the replacement beside it, and the entry goes into
    [app-api-deprecations.md](app-api-deprecations.md). The next app release stops reading it.
 5. **Clean-up:** an entry goes when `AppCompatibility.MIN_APP_VERSION` is above the last app version that reads it; the
