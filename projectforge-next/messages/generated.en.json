@@ -809,9 +809,9 @@
     "firstName": "First name",
     "includePhoto": {
       "_": "Use photo",
-      "noGateway": "No gateway is configured: the photo is only on the Wallet pass, not linked in the QR code.",
+      "noPhotoUrl": "No public url for the photo is available (no photo base url, gateway or public domain configured): the photo is only on the Wallet pass, not linked in the QR code.",
       "notAllowed": "The photo can only be used from your own address: its e-mail address must be one of the e-mail addresses of your account.",
-      "tooltip": "The photo of the address is embedded in the Wallet pass and, with a gateway, published there and linked in the vCard of the QR code. Only possible for your own address (its e-mail address is one of yours)."
+      "tooltip": "The photo of the address is embedded in the Wallet pass and linked in the vCard of the QR code by a public url with a random token (no login required). Only possible for your own address (its e-mail address is one of yours)."
     },
     "lastName": "Last name",
     "limit": "At most {arg0} business cards.",
@@ -819,6 +819,12 @@
     "new": "New business card",
     "none": "No business cards yet.",
     "organization": "Organization",
+    "photoLink": {
+      "confirmRenew": "Cards, QR codes and vCards that were handed out before will show no photo any more. The QR code of this card gets a new photo link. Renew the link?",
+      "hint": "The photo is linked by a public url that does not change when the image is replaced. Renew the link to revoke it, e.g. if a QR code got into the wrong hands. This affects all cards of this address.",
+      "renew": "Renew photo link",
+      "renewed": "The photo link was renewed."
+    },
     "positionText": "Position",
     "privateCity": "Private city",
     "privateCountry": "Private country",

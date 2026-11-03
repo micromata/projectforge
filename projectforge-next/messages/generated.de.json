@@ -809,9 +809,9 @@
     "firstName": "Vorname",
     "includePhoto": {
       "_": "Foto verwenden",
-      "noGateway": "Es ist kein Gateway konfiguriert: Das Foto ist nur auf dem Wallet-Pass, nicht im QR-Code verlinkt.",
+      "noPhotoUrl": "Es ist keine öffentliche URL für das Foto verfügbar (keine Foto-Basis-URL, kein Gateway und keine öffentliche Domain konfiguriert): Das Foto ist nur auf dem Wallet-Pass, nicht im QR-Code verlinkt.",
       "notAllowed": "Das Foto kann nur aus der eigenen Adresse verwendet werden: Deren E-Mail-Adresse muss eine der E-Mail-Adressen des eigenen Benutzerkontos sein.",
-      "tooltip": "Das Foto der Adresse wird im Wallet-Pass eingebettet und, mit Gateway, dort veröffentlicht und in der vCard des QR-Codes verlinkt. Nur für die eigene Adresse möglich (ihre E-Mail-Adresse ist eine der eigenen)."
+      "tooltip": "Das Foto der Adresse wird im Wallet-Pass eingebettet und in der vCard des QR-Codes über eine öffentliche URL mit zufälligem Token (ohne Anmeldung abrufbar) verlinkt. Nur für die eigene Adresse möglich (ihre E-Mail-Adresse ist eine der eigenen)."
     },
     "lastName": "Nachname",
     "limit": "Höchstens {arg0} Visitenkarten.",
@@ -819,6 +819,12 @@
     "new": "Neue Visitenkarte",
     "none": "Noch keine Visitenkarten.",
     "organization": "Organisation",
+    "photoLink": {
+      "confirmRenew": "Bereits verteilte Karten, QR-Codes und vCards zeigen danach kein Foto mehr. Der QR-Code dieser Karte erhält einen neuen Foto-Link. Link erneuern?",
+      "hint": "Das Foto ist über eine öffentliche URL verlinkt, die sich beim Austausch des Bildes nicht ändert. Mit dem Erneuern wird sie widerrufen, z. B. wenn ein QR-Code in falsche Hände geraten ist. Das betrifft alle Karten dieser Adresse.",
+      "renew": "Foto-Link erneuern",
+      "renewed": "Der Foto-Link wurde erneuert."
+    },
     "positionText": "Position",
     "privateCity": "Ort (privat)",
     "privateCountry": "Land (privat)",

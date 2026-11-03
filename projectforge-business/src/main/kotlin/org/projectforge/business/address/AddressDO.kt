@@ -25,6 +25,7 @@ package org.projectforge.business.address
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
+import org.projectforge.framework.persistence.history.NoHistory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
@@ -279,6 +280,16 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
      */
     @get:Column(name = "image_last_update")
     open var imageLastUpdate: Date? = null
+
+    /**
+     * Random, unguessable token of the public url of the contact image (see [ContactImageUrl]): whoever knows it may
+     * fetch the image without a login. It belongs to the address, so the url stays valid when the image is replaced or
+     * deleted. Only the owner revokes it (renewal, see [AddressImageDao.renewPublicToken]). Never taken over from a
+     * posted address (see AddressDao.copyValues), never exported.
+     */
+    @NoHistory
+    @get:Column(name = "image_public_token", length = 43)
+    open var imagePublicToken: String? = null
 
     @PropertyInfo(i18nKey = "address.addressbooks")
     @get:ManyToMany(fetch = FetchType.LAZY)

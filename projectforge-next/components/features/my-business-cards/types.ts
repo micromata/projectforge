@@ -124,7 +124,7 @@ export interface MyBusinessCardsInit {
   cards: BusinessCardInfo[];
   suggestion: BusinessCard | null;
   maxCards: number;
-  gatewayConfigured: boolean;
+  photoUrlAvailable: boolean;
   walletConfigured: boolean;
 }
 

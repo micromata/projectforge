@@ -70,3 +70,14 @@ export function businessCardPassUrl(id: string): string {
 export function downloadBusinessCardVCard(id: string): Promise<void> {
   return downloadFile(`${BASE}/vcf?id=${encodeURIComponent(id)}`);
 }
+
+/**
+ * Revokes the public photo url of the card's address (all cards of the address get a new one). HTTP 406 if the address
+ * isn't the user's own or has no image.
+ */
+export function renewBusinessCardPhotoLink(id: string): Promise<unknown> {
+  return request<unknown>(
+    `${BASE}/renewPhotoLink?id=${encodeURIComponent(id)}`,
+    { method: "POST" }
+  );
+}

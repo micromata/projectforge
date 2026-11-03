@@ -120,6 +120,18 @@ open class BusinessCardService {
     }
 
     /**
+     * Revokes the public photo url of the card's address: urls handed out before (QR codes, vCards) answer 404 from
+     * now on, the next vCard of the card carries a new one. Also possible when the photo is switched off in the card
+     * (urls may still be out there). The token belongs to the address, so every card of this address gets a new url.
+     * @return true, if the url was renewed, false if the address has no image.
+     * @throws UserException if the card's address isn't the user's own one (see [photoSource]).
+     */
+    open fun renewPhotoLink(card: BusinessCard): Boolean {
+        val source = photoSource(card) ?: throw UserException(ERROR_PHOTO_NOT_OWN_ADDRESS)
+        return addressImageDao.renewPublicToken(source.id!!) != null
+    }
+
+    /**
      * @return true, if a card was deleted.
      */
     open fun delete(id: String?): Boolean {
@@ -178,8 +190,8 @@ open class BusinessCardService {
     }
 
     /**
-     * The vCard of the card (also the content of the QR code). The photo is a url on the gateway, only if the card
-     * wants it, a gateway is configured and the source address is the user's own one (see [photoSource]) and has an
+     * The vCard of the card (also the content of the QR code). The photo is a public url with a random token (see [ContactImageUrl]), only if the
+     * card wants it, a base url is available and the source address is the user's own one (see [photoSource]) and has an
      * image. Otherwise the vCard has no photo (never an error: the address may have become unreadable meanwhile).
      */
     @JvmOverloads
@@ -188,9 +200,12 @@ open class BusinessCardService {
         var photoType: ImageType? = null
         if (card.includePhoto) {
             photoSource?.let { address ->
-                addressImageDao.findImage(address.id!!, checkAccess = false)?.let { image ->
-                    photoUrl = contactImageUrl.url(address)
-                    photoType = image.imageType
+                addressImageDao.findImage(address.id!!, checkAccess = false)?.takeIf { it.id != null }?.let { image ->
+                    // Only creates the token, if there is a base url to publish the image at.
+                    if (contactImageUrl.baseUrl.isNotBlank()) {
+                        photoUrl = contactImageUrl.url(addressImageDao.getOrCreatePublicToken(address.id!!))
+                        photoType = image.imageType
+                    }
                 }
             }
         }
@@ -236,6 +251,7 @@ open class BusinessCardService {
         const val ERROR_LIMIT_REACHED = "businessCard.error.limitReached"
         const val ERROR_UNKNOWN_CARD = "businessCard.error.unknownCard"
         const val ERROR_PHOTO_NOT_OWN_ADDRESS = "businessCard.error.photoNotOwnAddress"
+        const val ERROR_NO_PHOTO = "businessCard.error.noPhoto"
         const val ERROR_INVALID_FIELD = "businessCard.error.invalidField"
         private const val MAX_LENGTH = 255
         private const val MAX_COMMENT_LENGTH = 1000

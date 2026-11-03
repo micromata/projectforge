@@ -37,5 +37,7 @@ data class SyncAddressDto(
     val vCardData: String? = null,
     val imageData: String? = null,
     val imageType: String? = null,
+    /** Random token of the public url of the image (see ContactImageUrl), null if none was created. */
+    val imageToken: String? = null,
     val deleted: Boolean = false,
 )

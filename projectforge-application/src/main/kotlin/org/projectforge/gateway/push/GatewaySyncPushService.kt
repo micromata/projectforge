@@ -367,6 +367,7 @@ class GatewaySyncPushService(
                 privatePhone = address.privatePhone,
                 imageData = imgPair?.first,
                 imageType = imgPair?.second,
+                imageToken = address.imagePublicToken,
                 deleted = address.deleted,
             )
         }

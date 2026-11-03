@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.5",
+    "date" : "2026-11-03",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "changed",
+      "items" : [ "Digital business cards: the photo is linked by a public url with a random token (no login, not guessable), also without a gateway; the url stays the same when the image is replaced or deleted, and can be revoked with \"Renew photo link\" on the card. The base url can be set with `projectforge.businessCard.photoBaseUrl`." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

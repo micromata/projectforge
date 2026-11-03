@@ -25,84 +25,69 @@ package org.projectforge.business.address
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import java.security.MessageDigest
-import java.util.Base64
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
+import java.net.URI
 
 /**
- * The public url of the contact image of an address on the gateway:
- * `<gateway>/rsPublic/contactImage/{base64url(addressUid)}/{signature}`.
+ * The public url of the contact image of an address, e.g. as the photo of a digital business card:
+ * `<base>/rsPublic/contactImage/{token}`.
  *
- * The signature is an HMAC of the address uid, so only urls handed out by the main instance deliver an image and
- * nobody gets one by trying uids. It is stateless: the gateway knows nothing about the business cards, it only checks
- * the signature and delivers the image of the address (which the address push brought there anyway). Both instances
- * share `projectforge.security.authenticationTokenEncryptionKey`, the signing key is derived from it for this
- * purpose only.
+ * The token is random (256 bit, see [AddressImageDao.getOrCreatePublicToken]) and belongs to the image, not to the
+ * address: nothing in the url can be derived or guessed. Replacing the image keeps the url (it then shows the new image), deleting the image revokes it. The
+ * token is pushed to the gateway with the address, so main instance and gateway deliver the image under the same url.
  *
- * A url stays valid as long as the address and its image exist: it can't be revoked, except by deleting the image or
- * changing the key.
+ * The base is, in this order: `projectforge.businessCard.photoBaseUrl` (overrides everything, e.g. a reverse proxy),
+ * the public url of the gateway (`projectforge.gateway.push.publicUrl`, or the push url without the sync api path),
+ * the domain of this instance (`projectforge.domain` plus context path, unless it is localhost).
  */
 @Component
 open class ContactImageUrl(
-    @param:Value("\${projectforge.security.authenticationTokenEncryptionKey:}")
-    private val encryptionKey: String = "",
+    @param:Value("\${projectforge.businessCard.photoBaseUrl:}")
+    private val photoBaseUrlConfig: String = "",
     @param:Value("\${projectforge.gateway.push.publicUrl:}")
     private val gatewayPublicUrlConfig: String = "",
     @param:Value("\${projectforge.gateway.push.url:}")
     private val gatewayPushUrl: String = "",
+    @param:Value("\${projectforge.domain:}")
+    private val domain: String = "",
+    @param:Value("\${projectforge.servletContextPath:}")
+    private val contextPath: String = "",
 ) {
-    private val signingKey: ByteArray? = encryptionKey.takeIf { it.isNotBlank() }?.let {
-        hmac(it.toByteArray(Charsets.UTF_8), PURPOSE)
-    }
+    /**
+     * The root url the images are reachable at for browsers (without trailing slash). Blank, if there is none.
+     */
+    open val baseUrl: String =
+        photoBaseUrlConfig.trim().trimEnd('/').ifBlank {
+            gatewayPublicUrlConfig.trim().ifBlank { gatewayPushUrl.trim().trimEnd('/').removeSuffix(SYNC_API_PATH) }
+                .trimEnd('/')
+        }.ifBlank { domainUrl() }
 
     /**
-     * The root url of the gateway for browsers (without trailing slash): projectforge.gateway.push.publicUrl, or the
-     * push url without the sync api path. Blank, if there is no gateway.
+     * @return The url of the image with the given token, or null if there is no token or base url.
      */
-    open val gatewayPublicUrl: String =
-        gatewayPublicUrlConfig.ifBlank { gatewayPushUrl.trimEnd('/').removeSuffix(SYNC_API_PATH) }.trimEnd('/')
-
-    /**
-     * @return The url, or null if there is no gateway or no key to sign with.
-     */
-    open fun url(addressUid: String?): String? {
-        if (addressUid.isNullOrBlank() || gatewayPublicUrl.isBlank()) {
+    open fun url(token: String?): String? {
+        if (token.isNullOrBlank() || baseUrl.isBlank()) {
             return null
         }
-        val signature = sign(addressUid) ?: return null
-        return "$gatewayPublicUrl$PATH${encodeUid(addressUid)}/$signature"
+        return "$baseUrl$PATH$token"
     }
 
-    open fun url(address: AddressDO): String? = url(addressUid(address))
-
-    /**
-     * @return base64url signature of the address uid or null, if there is no key.
-     */
-    open fun sign(addressUid: String): String? {
-        val key = signingKey ?: return null
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(hmac(key, addressUid))
-    }
-
-    /**
-     * Checks the signature in constant time.
-     */
-    open fun verify(addressUid: String?, signature: String?): Boolean {
-        if (addressUid.isNullOrBlank() || signature.isNullOrBlank()) {
-            return false
+    private fun domainUrl(): String {
+        val root = domain.trim().trimEnd('/')
+        if (root.isBlank() || isLocal(root)) {
+            return ""
         }
-        val expected = sign(addressUid) ?: return false
-        return MessageDigest.isEqual(expected.toByteArray(Charsets.UTF_8), signature.toByteArray(Charsets.UTF_8))
+        val context = contextPath.trim().trim('/')
+        return if (context.isBlank()) root else "$root/$context"
     }
 
-    private fun hmac(key: ByteArray, data: String): ByteArray {
-        val mac = Mac.getInstance(HMAC_ALGORITHM)
-        mac.init(SecretKeySpec(key, HMAC_ALGORITHM))
-        return mac.doFinal(data.toByteArray(Charsets.UTF_8))
+    private fun isLocal(url: String): Boolean {
+        val host = try {
+            URI(url).host
+        } catch (_: Exception) {
+            null
+        }?.lowercase() ?: return true
+        return host == "localhost" || host == "127.0.0.1" || host == "::1" || host == "[::1]" || host.endsWith(".localhost")
     }
-
-    private fun encodeUid(uid: String): String =
-        Base64.getUrlEncoder().withoutPadding().encodeToString(uid.toByteArray(Charsets.UTF_8))
 
     companion object {
         /**
@@ -113,21 +98,7 @@ open class ContactImageUrl(
         /** [addressUid] of an address read as single columns (uid, id), e.g. by a query. */
         fun addressUid(uid: String?, id: Any?): String = uid ?: "pf-$id"
 
-        /**
-         * @return The uid of the path segment, null if it isn't valid base64url.
-         */
-        fun decodeUid(pathSegment: String?): String? {
-            pathSegment ?: return null
-            return try {
-                String(Base64.getUrlDecoder().decode(pathSegment), Charsets.UTF_8)
-            } catch (_: IllegalArgumentException) {
-                null
-            }
-        }
-
         const val PATH = "/rsPublic/contactImage/"
         const val SYNC_API_PATH = "/api/gateway/sync"
-        private const val PURPOSE = "contactImage"
-        private const val HMAC_ALGORITHM = "HmacSHA256"
     }
 }

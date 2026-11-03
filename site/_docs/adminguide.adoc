@@ -571,11 +571,18 @@ taken from an address. Two optional features need configuration.
 [[business_card_photo]]
 ==== Photo
 
-A photo is not part of the QR code but a signed url on the public gateway (`projectforge.gateway.push.publicUrl`,
-see <<external_gateway_mode>>); it is only offered for the user's own address. A url that was handed out stays valid
-as long as the address and its image exist: switching off the photo of a card does not revoke it, only deleting the
-image or changing `projectforge.security.authenticationTokenEncryptionKey` does. Add a `limit_req` for
-`/rsPublic/contactImage/` to the reverse proxy of the gateway.
+A photo is not part of the QR code but a public url (`/rsPublic/contactImage/<token>`, no login) in its vCard; it is
+only offered for the user's own address. The token is random (256 bit) and belongs to the address, so the url can't be
+guessed and stays the same when the image is replaced or deleted (without an image it answers 404; browsers may cache
+the old image for up to an hour). Failed attempts are throttled per client address. Users revoke the url with _Renew
+photo link_ on the card (all cards of the address then get a new one); switching off the photo of a card does not
+revoke it. The images are delivered by the main instance and by the gateway (the token is pushed with the address),
+under the same url.
+
+The base of the url is, in this order: `projectforge.businessCard.photoBaseUrl` (overrides everything, e.g. a reverse
+proxy), the public url of the gateway (`projectforge.gateway.push.publicUrl`, see <<external_gateway_mode>>), the domain
+of the instance (`projectforge.domain`, not if it is `localhost`). Without any, there is no photo url. Add a
+`limit_req` for `/rsPublic/contactImage/` to the reverse proxy.
 
 [[business_card_wallet]]
 ==== Apple Wallet
