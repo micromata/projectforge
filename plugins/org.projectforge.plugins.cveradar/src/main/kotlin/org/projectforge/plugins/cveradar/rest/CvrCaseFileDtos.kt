@@ -110,8 +110,13 @@ class FileTeamCheckView(
     val id: Long,
     val groupName: String?,
     val subject: String?,
+    /** For the group only; empty if every member answers. */
     val answer: CvrTeamAnswer?,
     val answerDate: java.time.LocalDate?,
+    /** Every member answers: the active members and how many of them answered. */
+    val perPerson: Boolean,
+    val members: Int,
+    val answered: Int,
 )
 
 class FilePermissions(
@@ -177,7 +182,19 @@ class MassRequest(
 
 class MassResult(val vulnerabilityId: Long, val cveId: String?, val ok: Boolean, val message: String?)
 
-/** The file of a team check (CLS-03): what is asked, the answer, and the case it belongs to. */
+/** The answer of a member to a team check asking every member. */
+class TeamCheckAnswerView(
+    val user: String?,
+    val answer: CvrTeamAnswer?,
+    val comment: String?,
+    val answerDate: java.time.LocalDate?,
+    val lastUpdate: Date?,
+)
+
+/**
+ * The file of a team check (CLS-03): what is asked, the answer, and the case it belongs to. If every member answers
+ * ([perPerson]), answer, comment, date and answeredBy are the own ones of the user.
+ */
 class TeamCheckFile(
     val id: Long,
     val caseId: Long?,
@@ -191,6 +208,17 @@ class TeamCheckFile(
     val answerDate: java.time.LocalDate?,
     val answeredBy: String?,
     val canAnswer: Boolean,
+    val perPerson: Boolean,
+    /** The active members (every member answers). */
+    val members: Int,
+    /** The active members who answered. */
+    val answered: Int,
+    /** The active members without answer or in progress. */
+    val openMembers: Int,
+    /** All answers, for the security team only. */
+    val answers: List<TeamCheckAnswerView>?,
+    /** The active members without answer, for the security team only. */
+    val missing: List<String>?,
 )
 
 // The findings of a vulnerability (MAT-02), mirrored by projectforge-next/lib/rs/cve-radar-file.ts.

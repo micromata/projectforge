@@ -44,6 +44,7 @@ import org.projectforge.plugins.cveradar.model.CvrOsvAdvisoryDO
 import org.projectforge.plugins.cveradar.model.CvrPurlMatchDO
 import org.projectforge.plugins.cveradar.model.CvrRatingDO
 import org.projectforge.plugins.cveradar.model.CvrSystemDO
+import org.projectforge.plugins.cveradar.model.CvrTeamCheckAnswerDO
 import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
 import org.projectforge.plugins.cveradar.model.CvrTechnologyDO
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
@@ -67,7 +68,7 @@ abstract class CveRadarTestBase : AbstractTestBase() {
         // All entities of the plugin for every test class: the scan happens once, so the outcome must not depend on
         // which test class runs first.
         listOf(
-            CvrCaseDO::class.java, CvrTeamCheckDO::class.java, CvrConfirmationDO::class.java, CvrDeviceDO::class.java,
+            CvrCaseDO::class.java, CvrTeamCheckDO::class.java, CvrTeamCheckAnswerDO::class.java, CvrConfirmationDO::class.java, CvrDeviceDO::class.java,
             CvrVulnerabilityDO::class.java, CvrImportStateDO::class.java, CvrRatingDO::class.java,
             CvrAreaDO::class.java, CvrSystemDO::class.java, CvrInstanceDO::class.java, CvrComponentDO::class.java,
             CvrTechnologyDO::class.java, CvrCatalogNodeDO::class.java, CvrCatalogEdgeDO::class.java,

@@ -5068,6 +5068,7 @@
         "addInfo": "Die Gruppe prüft, ob das Projekt oder System betroffen ist, und antwortet wie beim Team-Feedback. Ihre Mitglieder finden die Prüfung unter „Mein CVE-Radar“ („Prüfungen meiner Gruppen“); eine Benachrichtigung per Mail gibt es noch nicht, die Gruppe also bitte informieren.",
         "answer": "Antwort",
         "answeredBy": "Beantwortet von",
+        "answers": "Antworten der Mitglieder",
         "comment": "Kommentar, Version oder geplanter Termin",
         "date": "Datum",
         "delete": "Löschen",
@@ -5079,8 +5080,13 @@
           "subject": "Bitte das Projekt oder System nennen."
         },
         "group": "Gruppe",
+        "missing": "Noch nicht geantwortet",
+        "myAnswer": "Meine Antwort",
         "none": "Keine Team-Prüfungen.",
         "open": "offen",
+        "perPerson": "Jedes Mitglied antwortet",
+        "perPersonInfo": "Jedes Mitglied antwortet für sich (z. B. prüft den eigenen Client); die Prüfung bleibt offen, bis alle Mitglieder geantwortet haben. Sonst gibt es eine Antwort für die ganze Gruppe.",
+        "progress": "{arg0} von {arg1} beantwortet",
         "reason": "Begründung",
         "subject": "Projekt oder System"
       },

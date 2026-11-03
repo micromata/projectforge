@@ -98,6 +98,14 @@ class CveRadarAccess {
         return groupId != null && userGroupCache.isUserMemberOfGroup(user.id, groupId)
     }
 
+    /** The members of the group who can log in: those asked by a team check (not deleted, with system access). */
+    fun activeMemberIds(groupId: Long?): Set<Long> {
+        groupId ?: return emptySet()
+        return userGroupCache.getMemberIds(listOf(groupId), emptyList())
+            .filter { userGroupCache.getUser(it)?.let { user -> !user.deleted && user.hasSystemAccess() } == true }
+            .toSet()
+    }
+
     fun checkSecurityTeam(user: PFUserDO) {
         if (!isSecurityTeam(user)) {
             throw AccessException(user, NO_ACCESS)

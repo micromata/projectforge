@@ -80,8 +80,19 @@ class TeamCheckRow(
     val answerDate: LocalDate?,
     val answeredBy: String?,
     val lastUpdate: Date?,
-    /** Whether the logged-in user may answer: a member of the group or the security team. */
+    /** Whether the logged-in user may answer: a member of the group or (answer for the group) the security team. */
     val canAnswer: Boolean,
+    /**
+     * Every member answers: answer, comment, answerDate and answeredBy are the own ones of the logged-in user, the
+     * others are counted only.
+     */
+    val perPerson: Boolean = false,
+    /** The active members of the group (every member answers). */
+    val members: Int = 0,
+    /** The active members who answered. */
+    val answered: Int = 0,
+    /** The active members without answer or in progress. */
+    val openMembers: Int = 0,
 )
 
 class ConfirmationCounts(val done: Int, val notAffected: Int, val question: Int)
@@ -131,7 +142,7 @@ class RoleGroups(val read: String, val write: String, val securityOfficer: Strin
 
 class CloseRequest(var reason: String? = null)
 
-class TeamCheckRequest(var groupId: Long? = null, var subject: String? = null)
+class TeamCheckRequest(var groupId: Long? = null, var subject: String? = null, var perPerson: Boolean = false)
 
 class TeamCheckAnswerRequest(var answer: CvrTeamAnswer? = null, var comment: String? = null, var date: LocalDate? = null)
 

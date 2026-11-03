@@ -44,7 +44,8 @@ import java.time.LocalDate
 
 /**
  * A team check (CLS-03): the question to a group whether a project or system (not yet in the inventory) is affected
- * by a case, answered by a member of the group like team feedback (FB-03). Historised.
+ * by a case, answered by a member of the group for the group like team feedback (FB-03), or by every member
+ * ([perPerson], e.g. everyone checks the own client; the answers in [CvrTeamCheckAnswerDO]). Historised.
  */
 @Entity
 @Table(
@@ -72,7 +73,15 @@ open class CvrTeamCheckDO : DefaultBaseDO() {
     @get:Column(length = 255, nullable = false)
     open var subject: String? = null
 
-    /** Null: not answered yet. */
+    /**
+     * Every member answers (answers in [CvrTeamCheckAnswerDO], open until all active members answered); the answer
+     * fields of the check stay empty then.
+     */
+    @PropertyInfo(i18nKey = "plugins.cveradar.teamCheck.perPerson")
+    @get:Column(name = "per_person", nullable = false)
+    open var perPerson: Boolean = false
+
+    /** The answer for the group (not [perPerson]). Null: not answered yet. */
     @PropertyInfo(i18nKey = "plugins.cveradar.teamCheck.answer")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)

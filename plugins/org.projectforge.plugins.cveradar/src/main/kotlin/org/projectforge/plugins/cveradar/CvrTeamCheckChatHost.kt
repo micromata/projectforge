@@ -26,7 +26,6 @@ package org.projectforge.plugins.cveradar
 import jakarta.annotation.PostConstruct
 import org.projectforge.business.chat.ChatHost
 import org.projectforge.business.chat.ChatService
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -55,9 +54,6 @@ class CvrTeamCheckChatHost : ChatHost {
 
     @Autowired
     private lateinit var teamCheckDao: CvrTeamCheckDao
-
-    @Autowired
-    private lateinit var userGroupCache: UserGroupCache
 
     override val hostType: String = HOST_TYPE
 
@@ -101,10 +97,7 @@ class CvrTeamCheckChatHost : ChatHost {
     /** The members of the asked group. */
     override fun participantIds(hostId: Long, channel: String): Set<Long> {
         val check = check(hostId, channel) ?: return emptySet()
-        val groupId = check.groupId ?: return emptySet()
-        return userGroupCache.getMemberIds(listOf(groupId), emptyList())
-            .filter { userGroupCache.getUser(it)?.let { user -> !user.deleted && user.hasSystemAccess() } == true }
-            .toSet()
+        return access.activeMemberIds(check.groupId)
     }
 
 

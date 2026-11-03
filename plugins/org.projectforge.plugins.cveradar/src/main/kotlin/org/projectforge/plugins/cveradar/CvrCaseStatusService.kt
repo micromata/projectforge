@@ -23,11 +23,10 @@
 
 package org.projectforge.plugins.cveradar
 
+import org.projectforge.plugins.cveradar.CvrTeamCheckAnswerService.TeamCheckState
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrConfirmationDO
 import org.projectforge.plugins.cveradar.model.CvrDeviceDO
-import org.projectforge.plugins.cveradar.model.CvrTeamAnswer
-import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.Date
@@ -46,6 +45,9 @@ class CvrCaseStatusService {
 
     @Autowired
     private lateinit var teamCheckDao: CvrTeamCheckDao
+
+    @Autowired
+    private lateinit var teamCheckAnswerService: CvrTeamCheckAnswerService
 
     enum class DeviceState {
         /** Proved fixed: agent version or check. */
@@ -79,7 +81,7 @@ class CvrCaseStatusService {
         val devices: List<DeviceStatus>,
         /** Devices not reported within [CveRadarConfig.clientActiveDays], not counted. */
         val inactiveDevices: Int,
-        val teamChecks: List<CvrTeamCheckDO>,
+        val teamChecks: List<TeamCheckState>,
         val confirmations: List<CvrConfirmationDO>,
         val openItems: List<OpenItem>,
     ) {
@@ -94,7 +96,7 @@ class CvrCaseStatusService {
         val allDevices = deviceService.selectDevices()
         val active = allDevices.filter { it.lastSeen?.before(activeSince) == false }
         val confirmations = case.id?.let { deviceService.selectConfirmations(it) } ?: emptyList()
-        val teamChecks = case.id?.let { teamCheckDao.selectByCase(it) } ?: emptyList()
+        val teamChecks = teamCheckAnswerService.states(case.id?.let { teamCheckDao.selectByCase(it) } ?: emptyList())
         return status(case, active, allDevices.size - active.size, confirmations, teamChecks)
     }
 
@@ -108,7 +110,7 @@ class CvrCaseStatusService {
         activeDevices: List<CvrDeviceDO>,
         inactiveDevices: Int,
         confirmations: List<CvrConfirmationDO>,
-        teamChecks: List<CvrTeamCheckDO>,
+        teamChecks: List<TeamCheckState>,
     ): CaseStatus {
         val hasAgentCriteria = !case.minClientAgentVersion.isNullOrBlank() || !case.clientAgentCheckId.isNullOrBlank()
         val clientsRelevant = hasAgentCriteria || case.clientAdvisory
@@ -136,8 +138,8 @@ class CvrCaseStatusService {
         }
         add("devicesOpen", devices.count { it.state == DeviceState.OPEN })
         add("devicesNoData", devices.count { it.state == DeviceState.NO_DATA })
-        add("teamChecks", teamChecks.count { it.answer == null || it.answer == CvrTeamAnswer.IN_PROGRESS })
-        add("riskAccepted", teamChecks.count { it.answer == CvrTeamAnswer.RISK_ACCEPTED })
+        add("teamChecks", teamChecks.count { it.isOpen })
+        add("riskAccepted", teamChecks.sumOf { it.riskAccepted })
         add("questions", confirmations.count { it.answer?.isConfirmed == false })
         return CaseStatus(case, clientsRelevant, devices, inactiveDevices, teamChecks, confirmations, openItems)
     }
