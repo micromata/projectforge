@@ -31,6 +31,7 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.plugins.cveradar.model.CvrOsvAdvisoryDO
 import org.projectforge.plugins.cveradar.model.CvrPurlMatchDO
+import org.projectforge.plugins.cveradar.model.CvrSource
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.projectforge.plugins.cveradar.sync.OsvAdvisory
 import org.projectforge.plugins.cveradar.sync.OsvAffected
@@ -272,6 +273,17 @@ class CvrOsvAdvisoryService {
         }
     }
 
+    /** The ids of the vulnerabilities (of [ids]) with at least one advisory. */
+    fun idsWithAdvisories(ids: Collection<Long>): Set<Long> =
+        if (ids.isEmpty()) emptySet() else persistenceService.executeQueryBatched(
+            "select distinct a.vulnerability.id from CvrOsvAdvisoryDO a where a.vulnerability.id in :ids", Long::class.javaObjectType, "ids", ids,
+        ).toSet()
+
+    /** The ids of all vulnerabilities with at least one advisory. */
+    fun idsWithAdvisories(): List<Long> = persistenceService.executeQuery(
+        "select distinct a.vulnerability.id from CvrOsvAdvisoryDO a where a.vulnerability is not null", Long::class.javaObjectType,
+    )
+
     /** All advisories of the key, the preferred one first (see [copy]). */
     fun advisoriesOf(key: String): List<CvrOsvAdvisoryDO> = advisoriesOf(listOf(key))[key].orEmpty()
 
@@ -294,6 +306,13 @@ class CvrOsvAdvisoryService {
 
         /** The lowest score of a severity (CVSS 3 ratings). */
         private val SEVERITY_FLOOR = mapOf("CRITICAL" to 9.0, "HIGH" to 7.0, "MEDIUM" to 4.0, "LOW" to 0.1)
+
+        /** The sources of the data: the NVD once it modified the CVE, OSV for linked advisories, the EUVD for its id. */
+        fun sourcesOf(vulnerability: CvrVulnerabilityDO, hasAdvisories: Boolean): List<CvrSource> = listOfNotNull(
+            CvrSource.NVD.takeIf { vulnerability.nvdLastModified != null },
+            CvrSource.OSV.takeIf { hasAdvisories },
+            CvrSource.EUVD.takeIf { vulnerability.euvdId != null },
+        )
 
         /** Not modified by the NVD yet: made of advisories (perhaps rejected since). */
         fun isFromOsv(vulnerability: CvrVulnerabilityDO): Boolean =

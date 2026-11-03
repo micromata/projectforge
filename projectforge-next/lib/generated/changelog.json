@@ -7,7 +7,10 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "CVE-Radar: import of the vulnerabilities of the European Union Vulnerability Database (EUVD) as a supplement to the NVD. It adds the EUVD id, the EPSS and the day of exploitation, and brings vulnerabilities the NVD doesn't have yet, also ones without a CVE id. The EUVD names products only, so these match as possible. Off by default." ]
+      "items" : [ "CVE-Radar: import of the vulnerabilities of the European Union Vulnerability Database (EUVD) as a supplement to the NVD. It adds the EUVD id, the EPSS and the day of exploitation, and brings vulnerabilities the NVD doesn't have yet, also ones without a CVE id. The EUVD names products only, so these match as possible. Off by default.", "CVE-Radar: the list and the file of a vulnerability show where its data comes from (NVD, OSV, EUVD) as badges, and the list has a pinned filter to select by source." ]
+    }, {
+      "type" : "changed",
+      "items" : [ "Digital business cards: the photo is linked by a public url with a random token (no login, not guessable), also without a gateway; the url stays the same when the image is replaced or deleted, and can be revoked with \"Renew photo link\" on the card. The base url can be set with `projectforge.businessCard.photoBaseUrl`. Update the gateway together with the server; photo links of earlier QR codes stop working." ]
     } ]
   },
   "groups" : [ {

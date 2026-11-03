@@ -7,7 +7,10 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "CVE-Radar: Import der Schwachstellen der European Union Vulnerability Database (EUVD) als Ergänzung zur NVD. Er ergänzt EUVD-ID, EPSS und den Tag der Ausnutzung und bringt Schwachstellen, die die NVD noch nicht hat, auch solche ohne CVE-ID. Die EUVD nennt nur Produkte, daher treffen diese als möglich. Standardmäßig aus." ]
+      "items" : [ "CVE-Radar: Import der Schwachstellen der European Union Vulnerability Database (EUVD) als Ergänzung zur NVD. Er ergänzt EUVD-ID, EPSS und den Tag der Ausnutzung und bringt Schwachstellen, die die NVD noch nicht hat, auch solche ohne CVE-ID. Die EUVD nennt nur Produkte, daher treffen diese als möglich. Standardmäßig aus.", "CVE-Radar: Liste und Akte einer Schwachstelle zeigen als Badges, woher die Daten stammen (NVD, OSV, EUVD), und die Liste hat einen angepinnten Filter zur Auswahl der Quelle." ]
+    }, {
+      "type" : "changed",
+      "items" : [ "Digitale Visitenkarten: Das Foto wird über eine öffentliche URL mit zufälligem Token verlinkt (ohne Anmeldung, nicht erratbar), auch ohne Gateway; die URL bleibt beim Ersetzen oder Löschen des Bildes gleich und lässt sich mit \"Foto-Link erneuern\" an der Karte widerrufen. Die Basis-URL lässt sich mit `projectforge.businessCard.photoBaseUrl` festlegen. Das Gateway zusammen mit dem Server aktualisieren; Foto-Links früherer QR-Codes funktionieren nicht mehr." ]
     } ]
   },
   "groups" : [ {

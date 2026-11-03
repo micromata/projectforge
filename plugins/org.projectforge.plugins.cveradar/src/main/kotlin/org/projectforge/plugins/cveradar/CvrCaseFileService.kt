@@ -83,6 +83,9 @@ class CvrCaseFileService {
     private lateinit var ratingDao: CvrRatingDao
 
     @Autowired
+    private lateinit var osvService: CvrOsvAdvisoryService
+
+    @Autowired
     private lateinit var service: CveRadarService
 
     @Autowired
@@ -496,6 +499,7 @@ class CvrCaseFileService {
             epss = vulnerability.epss,
             exploitedSince = vulnerability.exploitedSince,
             euvdOnly = EuvdImportService.isFromEuvd(vulnerability),
+            sources = CvrOsvAdvisoryService.sourcesOf(vulnerability, vulnerability.id!! in osvService.idsWithAdvisories(listOf(vulnerability.id!!))),
             rejected = vulnerability.nvdStatus.equals("Rejected", ignoreCase = true),
             published = vulnerability.published,
             nvdLastModified = vulnerability.nvdLastModified,
