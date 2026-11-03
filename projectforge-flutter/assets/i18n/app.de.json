@@ -1,4 +1,5 @@
 {
+  "app.systemMessage.title": "Systemmeldung",
   "app.version": "Version {0}",
   "app.compatibility.appTooOld": "Dieser Server braucht die App ab Version {0}. Bitte aktualisiere die App, bis dahin funktioniert manches vielleicht nicht.",
   "app.compatibility.serverTooOld": "Diese App braucht ProjectForge ab Version {0} auf dem Server. Manches funktioniert vielleicht nicht, bitte wende dich an die Administration.",

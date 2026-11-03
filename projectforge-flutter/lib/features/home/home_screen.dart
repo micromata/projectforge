@@ -40,6 +40,7 @@ import '../notifications/notification_text.dart';
 import '../notifications/notifications_screen.dart';
 import '../settings/settings_screen.dart';
 import 'server_switch.dart';
+import 'system_alert_banner.dart';
 import '../timesheets/timesheets_screen.dart';
 import '../web/web_screen.dart';
 
@@ -127,6 +128,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final landscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
     final selectedIndex = destinations.indexOf(current);
+    // The pages of the web tab show the message themselves, the chat page doesn't.
+    final showAlert = current != _Destination.web;
     final body = IndexedStack(
       key: _bodyKey,
       index: selectedIndex,
@@ -222,7 +225,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             Expanded(
-              child: SafeArea(left: false, top: appBar == null, child: body),
+              child: SafeArea(
+                left: false,
+                top: appBar == null,
+                child: Column(
+                  children: [
+                    if (showAlert) const SystemAlertBanner(),
+                    Expanded(child: body),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -230,7 +242,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
     return Scaffold(
       appBar: appBar,
-      body: appBar == null ? SafeArea(bottom: false, child: body) : body,
+      body: _withAlert(appBar == null, showAlert, body),
       // Slim: icons only (the label is their semantics and tooltip), the full inset of the home indicator below.
       bottomNavigationBar: ColoredBox(
         color: Theme.of(context).colorScheme.surfaceContainer,
@@ -275,6 +287,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
     );
+  }
+
+  /// The message of the administrators above the page; clear of the status bar if there is no app bar.
+  Widget _withAlert(bool safeTop, bool showAlert, Widget body) {
+    final column = Column(
+      children: [
+        if (showAlert) const SystemAlertBanner(),
+        Expanded(child: body),
+      ],
+    );
+    return safeTop ? SafeArea(bottom: false, child: column) : column;
   }
 
   /// @param current The tab shown: a WebView tab offers a reload, the way out of pages that stay empty.

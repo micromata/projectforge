@@ -26,6 +26,9 @@ next (SSE on the web session's cookie). Native is only what a page can't do:
   every 60 s in the foreground, on resuming the app and on switching tabs. The app token has no session to keep
   alive, `ChatUnreadCounter` caches the count. The tab is missing if the chat is switched off (`disabledFeatures`
   contains `CHAT`).
+- **System message:** the message of the administrators (`alertMessage` of `GET /rs/userStatus`, e.g. maintenance)
+  is shown by `SystemAlertBanner` above the native pages of `HomeScreen` (the web tab shows it itself, the chat
+  page doesn't). It can't be dismissed and follows the 60 s polling of the user status. The field is part of the published api (contract test).
 - **Files:** uploads through the file input of the page (WKWebView and the Android WebView open the system picker;
   iOS needs `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`), downloads see "Web pages in the app".
 - **Push** (see "Notifications and push"): a tap opens `/next/chat/{id}` in the chat tab.

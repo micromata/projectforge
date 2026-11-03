@@ -10,6 +10,8 @@ import { useAuth } from "@/hooks/use-auth";
  * of this app, as in Wicket and the legacy React app, and closeable by nobody - it goes away when
  * the admin clears it.
  *
+ * The colours are the error roles of the app's (Material 3) theme, so the banner looks the same there.
+ *
  * The text is the admin's own, in the language they wrote it in, so nothing here is translated.
  * It arrives with `userStatus`, whose refresh policy (see useAuth) is what lets an announcement
  * reach a tab that is already open.
@@ -24,7 +26,7 @@ export function SystemAlertBanner() {
       data-testid="system-alert-message"
       // shrink-0: PageShell is a flex column of fixed height, and a long message must push the
       // page content down rather than give up its own lines.
-      className="flex shrink-0 items-start gap-2 bg-destructive px-4 py-2 text-sm font-medium text-white"
+      className="flex shrink-0 items-start gap-2 bg-[#ba1a1a] px-4 py-2 text-sm font-medium text-white dark:bg-[#ffb4ab] dark:text-[#690005]"
     >
       <HugeiconsIcon
         icon={Notification03Icon}
