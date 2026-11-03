@@ -33,6 +33,17 @@ enum class CvrCaseKind : I18nEnum {
         get() = "plugins.cveradar.case.kind.$name"
 }
 
+/**
+ * Where the data of a vulnerability comes from. Not stored: derived from the NVD modification time, the advisories of
+ * OSV and the EUVD id ([org.projectforge.plugins.cveradar.CvrOsvAdvisoryService.sourcesOf]).
+ */
+enum class CvrSource : I18nEnum {
+    NVD, OSV, EUVD;
+
+    override val i18nKey: String
+        get() = "plugins.cveradar.source.$name"
+}
+
 /** The processing status (TRI-05). */
 enum class CvrCaseStatus : I18nEnum {
     NEW, IN_TRIAGE, RATED, IN_REMEDIATION, CLOSED, NOT_RELEVANT;

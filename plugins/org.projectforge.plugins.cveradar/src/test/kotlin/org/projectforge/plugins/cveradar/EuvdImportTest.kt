@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.plugins.cveradar.model.CvrCpeMatchDO
 import org.projectforge.plugins.cveradar.model.CvrFindingCertainty
 import org.projectforge.plugins.cveradar.model.CvrImportStateDO
+import org.projectforge.plugins.cveradar.model.CvrSource
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.projectforge.plugins.cveradar.sync.EuvdImportService
 import org.projectforge.plugins.cveradar.sync.EuvdPage
@@ -175,6 +176,8 @@ class EuvdImportTest : CveRadarTestBase() {
         assertEquals("Analyzed", after.nvdStatus)
         assertNotNull(after.nvdLastModified)
         assertTrue(indexOf(after.id!!).none { it.approximate }, "precise by CPE, no entry of the EUVD")
+        assertEquals(listOf(CvrSource.NVD, CvrSource.EUVD), CvrOsvAdvisoryService.sourcesOf(after, hasAdvisories = false))
+        assertEquals(listOf(CvrSource.NVD, CvrSource.OSV, CvrSource.EUVD), CvrOsvAdvisoryService.sourcesOf(after, hasAdvisories = true))
     }
 
     @Test
