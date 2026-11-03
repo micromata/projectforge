@@ -14,14 +14,16 @@ export function BusinessCardMainSection({
   suggestionAddressId,
   onPickAddress,
   includePhoto,
-  gatewayConfigured,
+  photoUrlAvailable,
+  cardId,
   preview,
 }: {
+  cardId: string | null;
   address: EntityRef | null;
   suggestionAddressId: number | null;
   onPickAddress: (ref: EntityRef | null) => void;
   includePhoto: boolean;
-  gatewayConfigured: boolean;
+  photoUrlAvailable: boolean;
   preview: BusinessCardPreview | undefined;
 }) {
   const t = useTranslations();
@@ -38,7 +40,8 @@ export function BusinessCardMainSection({
           includePhoto={includePhoto}
           hasAddress={address != null}
           photoAllowed={preview?.photoAllowed === true}
-          gatewayConfigured={gatewayConfigured}
+          photoUrlAvailable={photoUrlAvailable}
+          cardId={cardId}
         />
       </div>
       <BusinessCardQrPreview preview={preview} />

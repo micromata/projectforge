@@ -569,6 +569,15 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         return AddressDO()
     }
 
+    /**
+     * The public image token comes from the database only: a posted address (edit page, import) never sets, changes
+     * or clears it, otherwise anybody editing the address could revoke or choose the public url of its image.
+     */
+    override fun onUpdate(obj: AddressDO, dbObj: AddressDO) {
+        super.onUpdate(obj, dbObj)
+        obj.imagePublicToken = dbObj.imagePublicToken
+    }
+
     fun findAll(): List<AddressDO?> {
         return selectAll(checkAccess = false)
     }

@@ -237,6 +237,27 @@ Only a warning (banner on the home screen once per server and app start, a line 
 refused; unknown or unparseable versions never warn. Prefer a feature flag in the system status (e.g.
 `appLoginPath`) wherever the app can fall back: the minimums are for hard breaks only.
 
+### Changing an api the app uses
+
+The store version of the app is old the day after a server release, so the server keeps what the published app reads:
+
+1. **Adding is free.** New fields and endpoints need no care; the app reads tolerantly (`== true`, `?? default`,
+   unknown fields are ignored), and so must new app code.
+2. **Before removing or renaming a field, an endpoint or a value, ask what the published app reads:**
+   `git grep -n <name> <tag or commit of the published app version> -- projectforge-flutter/lib`
+   (the commit `App: version x.y.z+n` of `pubspec.yaml`). Search the name in the dart models and in the tests' fixtures.
+3. **Not read** (or only parsed, never used): remove it at once, as for any server-only change.
+4. **Read:** the server keeps delivering it, marked `@Deprecated("app <= x.y.z reads it, remove with MIN_APP_VERSION > x.y.z")`
+   in the KDoc/annotation, with the replacement beside it, and the entry goes into
+   [app-api-deprecations.md](app-api-deprecations.md). The next app release stops reading it.
+5. **Clean-up:** an entry goes when `AppCompatibility.MIN_APP_VERSION` is above the last app version that reads it; the
+   release checklist (CLAUDE.md, "Compatibility of app and server") looks through the register.
+6. **A hard break without a fallback** raises `MIN_APP_VERSION` in the same commit (see above) and says so in the
+   changelog; where the app can fall back, add a feature flag to the system status instead.
+
+The same holds the other way round for `minServerVersion`: the app only calls what servers from that version on
+deliver, or checks a flag.
+
 ## Texts
 
 `GenerateFlutterI18nMessagesMain` (run by `bin/pfDev.sh gen`) writes `assets/i18n/generated.<locale>.json` from the

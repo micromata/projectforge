@@ -177,6 +177,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
       _select(current, destination);
     }
+
     // The pages bring their own header: only the native tab has a bar. The bell and the account menu stand in the
     // navigation instead, so they are there on every tab.
     final appBar = switch (current) {
@@ -205,26 +206,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         appBar: appBar,
         body: Row(
           children: [
-            // Icons only, and only half of the side's inset: the few icons stand at the top, clear of the camera
-            // in the middle of the side.
+            // Icons only, inside the safe area (clear of the camera cutout and the home indicator).
             SafeArea(
-              left: false,
               right: false,
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: MediaQuery.paddingOf(context).left / 2,
-                ),
-                child: NavigationRail(
-                  selectedIndex: selectedIndex,
-                  onDestinationSelected: select,
-                  labelType: NavigationRailLabelType.none,
-                  minWidth: 56,
-                  trailing: Column(children: actions),
-                  destinations: [
-                    for (final destination in destinations)
-                      _railDestination(context, destination, unread),
-                  ],
-                ),
+              child: NavigationRail(
+                selectedIndex: selectedIndex,
+                onDestinationSelected: select,
+                labelType: NavigationRailLabelType.none,
+                minWidth: 56,
+                trailing: Column(children: actions),
+                destinations: [
+                  for (final destination in destinations)
+                    _railDestination(context, destination, unread),
+                ],
               ),
             ),
             Expanded(
@@ -237,13 +231,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       appBar: appBar,
       body: appBar == null ? SafeArea(bottom: false, child: body) : body,
-      // Slim: icons only (the label is their semantics and tooltip), and only half of the home indicator's inset
-      // below them, enough to keep them clear of it.
+      // Slim: icons only (the label is their semantics and tooltip), the full inset of the home indicator below.
       bottomNavigationBar: ColoredBox(
         color: Theme.of(context).colorScheme.surfaceContainer,
         child: Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.paddingOf(context).bottom / 2,
+            bottom: MediaQuery.paddingOf(context).bottom,
           ),
           child: MediaQuery.removePadding(
             // The context is the one outside of the Scaffold: its top inset (the status bar) has to go too.
@@ -255,20 +248,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 height: 44,
                 labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: NavigationBar(
-                      selectedIndex: selectedIndex,
-                      onDestinationSelected: select,
-                      destinations: [
-                        for (final destination in destinations)
-                          _barDestination(context, destination, unread),
-                      ],
+              // A fixed height: the Centers of the actions would otherwise take all the height the Scaffold offers.
+              child: SizedBox(
+                height: 44,
+                child: Row(
+                  children: [
+                    // Every icon gets the same share of the width: the bar's destinations and one slot per action.
+                    Expanded(
+                      flex: destinations.length,
+                      child: NavigationBar(
+                        selectedIndex: selectedIndex,
+                        onDestinationSelected: select,
+                        destinations: [
+                          for (final destination in destinations)
+                            _barDestination(context, destination, unread),
+                        ],
+                      ),
                     ),
-                  ),
-                  ...actions,
-                ],
+                    for (final action in actions)
+                      Expanded(child: Center(child: action)),
+                  ],
+                ),
               ),
             ),
           ),

@@ -587,12 +587,19 @@ Nutzer legen ihre Visitenkarten über _Meine Visitenkarten_ im Benutzermenü an:
 [[business_card_photo]]
 ==== Foto
 
-Ein Foto ist nicht Teil des QR-Codes, sondern eine signierte URL auf dem öffentlichen Gateway
-(`projectforge.gateway.push.publicUrl`, siehe <<external_gateway_mode>>); es wird nur für die eigene Adresse
-angeboten. Eine herausgegebene URL bleibt gültig, solange Adresse und Bild existieren: Das Abschalten des Fotos einer
-Karte widerruft sie nicht, nur das Löschen des Bildes oder ein neuer
-`projectforge.security.authenticationTokenEncryptionKey`. Für `/rsPublic/contactImage/` sollte im Reverse Proxy des
-Gateways ein `limit_req` stehen.
+Ein Foto ist nicht Teil des QR-Codes, sondern eine öffentliche URL (`/rsPublic/contactImage/<token>`, ohne Anmeldung)
+in dessen vCard; es wird nur für die eigene Adresse angeboten. Das Token ist zufällig (256 Bit) und gehört zur Adresse,
+die URL lässt sich also nicht erraten und bleibt beim Ersetzen oder Löschen des Bildes gleich (ohne Bild antwortet sie
+mit 404; Browser können das alte Bild bis zu eine Stunde zwischenspeichern). Fehlgeschlagene Versuche werden je
+Client-Adresse gebremst. Nutzer widerrufen die URL mit _Foto-Link erneuern_ an der Karte (alle Karten der Adresse
+erhalten dann eine neue); das Abschalten des Fotos einer Karte widerruft sie nicht. Die Bilder liefern die
+Hauptinstanz und das Gateway (das Token wird mit der Adresse übertragen) unter derselben URL aus. Das Gateway sollte zusammen mit der Hauptinstanz aktualisiert werden: Ein altes Gateway kennt
+den neuen Pfad nicht und antwortet für die Fotos mit 404.
+
+Die Basis der URL ist, in dieser Reihenfolge: `projectforge.businessCard.photoBaseUrl` (überschreibt alles, z. B. ein
+Reverse Proxy), die öffentliche URL des Gateways (`projectforge.gateway.push.publicUrl`, siehe
+<<external_gateway_mode>>), die Domain der Instanz (`projectforge.domain`, nicht bei `localhost`). Ohne eine davon gibt
+es keine Foto-URL. Für `/rsPublic/contactImage/` sollte im Reverse Proxy ein `limit_req` stehen.
 
 [[business_card_wallet]]
 ==== Apple Wallet

@@ -239,6 +239,8 @@ class FeaturePathIndex {
             // Login of the mobile app.
             "appAuth",
             "authenticationCredentials",
+            // Public url of the contact image (photo of a business card), the random token is the authorization.
+            "contactImage",
             "heartbeat",
             "i18nCustomerOverrides",
             "logo.gif",

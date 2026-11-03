@@ -29,12 +29,12 @@ const EMPTY = S.toFormValues({});
 export function BusinessCardEditor({
   initial,
   suggestionAddressId,
-  gatewayConfigured,
+  photoUrlAvailable,
   onDone,
 }: {
   initial: BusinessCard;
   suggestionAddressId: number | null;
-  gatewayConfigured: boolean;
+  photoUrlAvailable: boolean;
   onDone: () => void;
 }) {
   const t = useTranslations();
@@ -87,7 +87,8 @@ export function BusinessCardEditor({
           suggestionAddressId={suggestionAddressId}
           onPickAddress={(ref) => void takeover.pick(ref)}
           includePhoto={values.includePhoto}
-          gatewayConfigured={gatewayConfigured}
+          photoUrlAvailable={photoUrlAvailable}
+          cardId={initial.id ?? null}
           preview={preview.data}
         />
       ),
