@@ -1,4 +1,5 @@
 {
+  "app.menu.more": "More",
   "app.systemMessage.title": "System message",
   "app.version": "Version {0}",
   "app.compatibility.appTooOld": "This server needs app version {0} or newer. Please update the app, some functions may not work until then.",
@@ -28,7 +29,6 @@
   "app.web.reload": "Reload",
   "app.web.stalled": "The page doesn't load.",
   "app.web.forward": "Forward",
-  "app.web.menu": "Browser functions",
   "app.web.restart": "Restart page (new sign-in)",
   "app.web.find": "Find on page",
   "app.web.find.previous": "Previous match",

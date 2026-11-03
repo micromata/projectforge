@@ -1,4 +1,5 @@
 {
+  "app.menu.more": "Mehr",
   "app.systemMessage.title": "Systemmeldung",
   "app.version": "Version {0}",
   "app.compatibility.appTooOld": "Dieser Server braucht die App ab Version {0}. Bitte aktualisiere die App, bis dahin funktioniert manches vielleicht nicht.",
@@ -28,7 +29,6 @@
   "app.web.reload": "Neu laden",
   "app.web.stalled": "Die Seite lädt nicht.",
   "app.web.forward": "Vorwärts",
-  "app.web.menu": "Browser-Funktionen",
   "app.web.restart": "Seite neu starten (neue Anmeldung)",
   "app.web.find": "Auf der Seite suchen",
   "app.web.find.previous": "Vorheriger Treffer",

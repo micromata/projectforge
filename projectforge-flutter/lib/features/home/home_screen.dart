@@ -214,9 +214,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     };
     final webController = _webControllers[current];
     final actions = [
-      if (webController != null) WebBrowserMenu(controller: webController),
       NotificationBell(onOpenLink: _openLink),
-      _accountMenu(context, session, issue),
+      _moreMenu(context, session, issue, webController),
     ];
     if (landscape) {
       // The height is scarce: the navigation stands at the side.
@@ -315,26 +314,49 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return safeTop ? SafeArea(bottom: false, child: column) : column;
   }
 
+  /// The "more" menu of the navigation: on a WebView tab the browser functions first, then the account, the
+  /// settings and the logout.
+  Widget _moreMenu(
+    BuildContext context,
+    Session? session,
+    CompatibilityIssue? issue,
+    WebScreenController? webController,
+  ) {
+    final version = ref.watch(appVersionProvider).value;
+    return webController == null
+        ? _accountMenu(context, session, issue, null, version)
+        : ListenableBuilder(
+            listenable: webController,
+            builder: (context, _) =>
+                _accountMenu(context, session, issue, webController, version),
+          );
+  }
+
   Widget _accountMenu(
     BuildContext context,
     Session? session,
     CompatibilityIssue? issue,
+    WebScreenController? webController,
+    String? version,
   ) {
-    final version = ref.watch(appVersionProvider).value;
     return PopupMenuButton<String>(
-      tooltip: context.t('settings'),
-      // An incompatibility is visible without opening the menu: red gear with an exclamation mark.
+      tooltip: context.t('app.menu.more'),
+      // An incompatibility is visible without opening the menu: red icon with an exclamation mark.
       icon: issue == null
-          ? const Icon(Icons.settings_outlined)
+          ? const Icon(Icons.more_vert)
           : Badge(
               label: const Text('!'),
               backgroundColor: Theme.of(context).colorScheme.error,
               child: Icon(
-                Icons.settings_outlined,
+                Icons.more_vert,
                 color: Theme.of(context).colorScheme.error,
               ),
             ),
       onSelected: (action) => switch (action) {
+        _ when action.startsWith(browserMenuPrefix) =>
+          webController == null
+              ? null
+              : handleBrowserMenuAction(webController, action),
         'compatibility' => null, // Only to read.
         'server' => showServerSwitch(context, ref),
         'settings' => Navigator.of(
@@ -343,6 +365,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         _ => _logout(context, ref),
       },
       itemBuilder: (_) => [
+        if (webController != null)
+          ...browserMenuEntries(context, webController),
         PopupMenuItem<String>(
           enabled: false,
           child: Text(

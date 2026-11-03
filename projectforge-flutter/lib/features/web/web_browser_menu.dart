@@ -30,65 +30,58 @@ import 'web_screen_controller.dart';
 
 /// The browser functions of a WebView tab, which has no address bar: back, forward, reload in a row on top (as the
 /// menu of Chrome on Android), then the search in the page, sharing the link, the page in the system browser and
-/// the restart of the WebView.
-class WebBrowserMenu extends StatelessWidget {
-  const WebBrowserMenu({super.key, required this.controller});
+/// the restart of the WebView. They are entries of the "more" menu of the navigation, above the entries of the
+/// account; the values start with [browserMenuPrefix] and go to [handleBrowserMenuAction].
+const browserMenuPrefix = 'browser.';
 
-  final WebScreenController controller;
+List<PopupMenuEntry<String>> browserMenuEntries(
+  BuildContext context,
+  WebScreenController controller,
+) => [
+  _Navigation(controller: controller),
+  const PopupMenuDivider(),
+  PopupMenuItem(
+    value: '${browserMenuPrefix}find',
+    enabled: controller.canFind,
+    child: _Entry(Icons.search, context.t('app.web.find')),
+  ),
+  PopupMenuItem(
+    value: '${browserMenuPrefix}share',
+    enabled: controller.url != null,
+    child: _Entry(Icons.share, context.t('app.web.share')),
+  ),
+  PopupMenuItem(
+    value: '${browserMenuPrefix}browser',
+    enabled: controller.url != null,
+    child: _Entry(Icons.open_in_browser, context.t('app.web.openInBrowser')),
+  ),
+  PopupMenuItem(
+    value: '${browserMenuPrefix}restart',
+    child: _Entry(Icons.restart_alt, context.t('app.web.restart')),
+  ),
+  const PopupMenuDivider(),
+];
 
-  @override
-  Widget build(BuildContext context) => ListenableBuilder(
-    listenable: controller,
-    builder: (context, _) => PopupMenuButton<String>(
-      tooltip: context.t('app.web.menu'),
-      icon: const Icon(Icons.more_vert),
-      onSelected: (action) => switch (action) {
-        'find' => controller.openFind(),
-        'share' => _share(),
-        'browser' => _openInBrowser(),
-        _ => controller.restart(),
-      },
-      itemBuilder: (context) => [
-        _Navigation(controller: controller),
-        const PopupMenuDivider(),
-        PopupMenuItem(
-          value: 'find',
-          enabled: controller.canFind,
-          child: _Entry(Icons.search, context.t('app.web.find')),
-        ),
-        PopupMenuItem(
-          value: 'share',
-          enabled: controller.url != null,
-          child: _Entry(Icons.share, context.t('app.web.share')),
-        ),
-        PopupMenuItem(
-          value: 'browser',
-          enabled: controller.url != null,
-          child: _Entry(
-            Icons.open_in_browser,
-            context.t('app.web.openInBrowser'),
-          ),
-        ),
-        const PopupMenuDivider(),
-        PopupMenuItem(
-          value: 'restart',
-          child: _Entry(Icons.restart_alt, context.t('app.web.restart')),
-        ),
-      ],
-    ),
-  );
-
-  Future<void> _share() async {
-    final url = controller.url;
-    if (url == null) return;
-    await SharePlus.instance.share(ShareParams(uri: url));
-  }
-
-  /// The system browser has no web session of the app: it may ask for the login.
-  Future<void> _openInBrowser() async {
-    final url = controller.url;
-    if (url == null) return;
-    await launchUrl(url, mode: LaunchMode.externalApplication);
+Future<void> handleBrowserMenuAction(
+  WebScreenController controller,
+  String action,
+) async {
+  switch (action.substring(browserMenuPrefix.length)) {
+    case 'find':
+      controller.openFind();
+    case 'share':
+      final url = controller.url;
+      if (url != null) {
+        await SharePlus.instance.share(ShareParams(uri: url));
+      }
+    case 'browser':
+      // The system browser has no web session of the app: it may ask for the login.
+      final url = controller.url;
+      if (url != null) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      }
+    default:
+      controller.restart();
   }
 }
 

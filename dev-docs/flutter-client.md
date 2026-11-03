@@ -197,9 +197,9 @@ app has only its token:
   redirects, and offers it in the share sheet (also "save to files"). Open: downloads built in the page as a `blob:`
   url (the Excel exports, `lib/rs/download.ts`) can't be loaded by the app and fail with a message; they need the
   blob's bytes from the page (`onDownloadStartRequest` gives only the url).
-- **Browser functions** (the WebView has no address bar): the WebView tabs (pages, chat) have a menu of their own in
-  the navigation (`WebBrowserMenu`, driven by a `WebScreenController` per tab): back, forward, reload, find in the
-  page, share the link, open the page in the system browser (no web session there, it may ask for the login) and
+- **Browser functions** (the WebView has no address bar): the WebView tabs (pages, chat) have browser entries in the
+  "more" menu (⋮) of the navigation, above the account entries, so the bar keeps its slots on every tab (`browserMenuEntries`, driven by a
+  `WebScreenController` per tab): back, forward, reload, find in the page, share the link, open the page in the system browser (no web session there, it may ask for the login) and
   "Restart page" (a new WebView with a new web session).
   - **Pull to refresh:** next scrolls in columns inside a box of the window's height (`page-shell.tsx`), the document
     never. The WebView's own control would never fire there (iOS) or on every downward swipe (Android), so the app
