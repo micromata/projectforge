@@ -1016,6 +1016,19 @@
   "charactersLeft": "Zeichen übrig.",
   "chat": {
     "backToHost": "Zurück",
+    "block": {
+      "blocked": "Nutzer blockiert",
+      "confirm": "{arg0} blockieren? Direktnachrichten zwischen euch enden, und von diesem Nutzer kommen keine Benachrichtigungen, Erwähnungen oder Suchtreffer mehr.",
+      "folded": "Nachricht eines blockierten Nutzers",
+      "list": {
+        "_": "Blockierte Nutzer",
+        "empty": "Niemand ist blockiert."
+      },
+      "show": "Anzeigen",
+      "unblock": "Blockierung aufheben",
+      "unblocked": "Blockierung aufgehoben",
+      "user": "Nutzer blockieren"
+    },
     "conversation": {
       "empty": "Noch keine Nachrichten.",
       "loadOlder": "Ältere Nachrichten laden",
@@ -1045,6 +1058,7 @@
       "_": "Direktnachrichten",
       "empty": "Noch keine Direktnachrichten.",
       "error": {
+        "blocked": "Direktnachrichten mit diesem Nutzer sind nicht möglich.",
         "self": "An sich selbst lassen sich keine Direktnachrichten schicken."
       },
       "info": "Angeschrieben werden kann jede Person, die in der Personenauswahl erscheint.",
@@ -1098,6 +1112,7 @@
       "cancel": "Abbrechen",
       "codeBlock": "Codeblock mit mehreren Zeilen: Enter beginnt eine neue Zeile, Strg+Enter (Mac: ⌘+Enter) sendet.",
       "copyLink": "Link kopieren",
+      "copyText": "Text kopieren",
       "delete": {
         "_": "Löschen",
         "confirm": "Diese Nachricht löschen?"
@@ -1122,10 +1137,19 @@
       },
       "react": "Reaktion hinzufügen",
       "reply": "Im Thread antworten",
+      "report": {
+        "_": "Melden",
+        "block": "Autor ebenfalls blockieren",
+        "description": "Die Administratoren erhalten die Nachricht und den Grund. Sonst sieht niemand die Meldung, der Autor erfährt nichts davon.",
+        "done": "Nachricht gemeldet",
+        "reason": "Grund (optional)",
+        "title": "Nachricht melden"
+      },
       "save": "Speichern",
       "seen": "Gelesen",
       "seenBy": "Gelesen von {arg0}",
       "send": "Senden",
+      "textCopied": "Text kopiert.",
       "unhide": "Wieder einblenden"
     },
     "notification": {
@@ -2182,7 +2206,9 @@
       "_": "Konto",
       "bezeichnung": "Bezeichnung",
       "city": "Ort",
+      "contactDepartment": "Abteilung",
       "contactPerson": "Ansprechpartner",
+      "costCenter": "Kostenstelle",
       "country": "Land",
       "eInvoice": "E-Rechnung",
       "eInvoiceEmail": "E-Rechnungs-E-Mail",
@@ -2561,6 +2587,7 @@
         }
       },
       "currencyConversionFailed": "Rechnung {arg0}: {arg1} → {arg2} am {arg3}                                                                                                           │",
+      "customerOrderNumber": "Bestellnummer",
       "customernr": "Kundennummer",
       "datum": {
         "_": "Rechnungsdatum",
@@ -4218,7 +4245,7 @@
         "error": {
           "codeExists": "Die Kennung {arg0} gibt es schon.",
           "conflict": "Dieser Fall wurde inzwischen geändert (um {arg0}). Bitte neu laden und die Änderung wiederholen.",
-          "cveId": "Eine CVE braucht ihre CVE-ID, z. B. CVE-2026-12345."
+          "cveId": "Eine CVE braucht ihre CVE-ID, z. B. CVE-2026-12345 (oder die ID eines Advisorys ohne CVE, z. B. GHSA-XXXX-XXXX-XXXX)."
         },
         "export": {
           "button": "Als JSON herunterladen"
@@ -5110,6 +5137,7 @@
           "rejected": "Von der NVD zurückgewiesen"
         },
         "nvdLink": "Bei der NVD öffnen",
+        "osvLink": "Bei OSV.dev öffnen",
         "title": "Schwachstellen (NVD)",
         "withFindingsOnly": "Nur mit Befunden"
       },

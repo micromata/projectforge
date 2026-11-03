@@ -135,6 +135,25 @@ class AppWebSessionTest : AbstractTestBase() {
         Assertions.assertEquals(HttpStatus.OK, appAuthRest.authorize(MockHttpServletRequest(), authorize).statusCode)
     }
 
+    /** The account of the app review has no second factor to show; any other user without one is refused. */
+    @Test
+    fun `exempt user authorizes without a second factor`() {
+        val authorize = AppAuthRest.AuthorizeRequest(challenge = "a".repeat(43), state = "s".repeat(16), deviceName = "x")
+        try {
+            my2FARequestConfiguration.internalSetExemptUsers4TestCases(TEST_ADMIN_USER)
+            logon(TEST_USER)
+            Assertions.assertNull(ThreadLocalUserContext.userContext!!.lastSuccessful2FA)
+            val refused = appAuthRest.authorize(MockHttpServletRequest(), authorize)
+            Assertions.assertEquals(HttpStatus.FORBIDDEN, refused.statusCode)
+            Assertions.assertTrue((refused.body as TwoFactorRequired).twoFactorRequired)
+            logon(TEST_ADMIN_USER)
+            Assertions.assertNull(ThreadLocalUserContext.userContext!!.lastSuccessful2FA)
+            Assertions.assertEquals(HttpStatus.OK, appAuthRest.authorize(MockHttpServletRequest(), authorize).statusCode)
+        } finally {
+            my2FARequestConfiguration.internalSetExemptUsers4TestCases("")
+        }
+    }
+
     @Test
     fun `second factor of the app too old for a login`() {
         val old = Date(System.currentTimeMillis() - 2 * TimeUnit.DAY.millis)

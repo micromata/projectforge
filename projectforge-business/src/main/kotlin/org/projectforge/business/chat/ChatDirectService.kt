@@ -51,13 +51,16 @@ open class ChatDirectService {
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
+    @Autowired
+    private lateinit var blockService: ChatBlockService
+
     /** A conversation of the logged-in user with another one. */
     class Entry(val pair: ChatDirectDO, val partnerId: Long, val conversation: ChatConversationDO)
 
     /**
      * The conversation of the logged-in user with the other user, created if missing.
      * @throws AccessException if the logged-in user may not see the other one (or has no system access).
-     * @throws UserException for the user self.
+     * @throws UserException for the user self, or if one of the two has blocked the other.
      */
     open fun open(otherUserId: Long): ChatAccess.Context {
         val user = ThreadLocalUserContext.requiredLoggedInUser
@@ -70,6 +73,10 @@ open class ChatDirectService {
             !userDao.hasLoggedInUserSelectAccess(other, false)
         ) {
             throw AccessException(user, NO_ACCESS)
+        }
+        if (blockService.isBlocked(userId, otherUserId)) {
+            // The reason isn't told, the one who is blocked shouldn't learn it.
+            throw UserException(ERROR_BLOCKED)
         }
         val pair = findPair(userId, otherUserId) ?: createPair(userId, otherUserId)
         return chatService.open(ChatDirectChatHost.HOST_TYPE, pair.id!!, ChatDirectChatHost.CHANNEL)
@@ -132,6 +139,7 @@ open class ChatDirectService {
 
     companion object {
         const val ERROR_SELF = "chat.direct.error.self"
+        const val ERROR_BLOCKED = "chat.direct.error.blocked"
         private const val NO_ACCESS = "access.exception.noAccess"
     }
 }

@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
 import type { ChatMessage } from "@/lib/rs/chat-types";
 import { cn } from "@/lib/utils";
 import { ChatHtml } from "./chat-html";
@@ -24,10 +26,24 @@ export function MessageBubble({
   onEditDone: () => void;
 }) {
   const t = useTranslations();
+  const [shown, setShown] = useState(false);
   if (editing) {
     return (
       <div className="w-full">
         <MessageEditForm message={message} onDone={onEditDone} />
+      </div>
+    );
+  }
+  // The message of a blocked user stays folded until the reader asks for it.
+  if (message.fromBlocked && !shown && !message.deleted) {
+    return (
+      <div className="flex w-fit items-center gap-2 rounded-2xl bg-muted px-3 py-1.5">
+        <p className="text-sm text-muted-foreground italic">
+          {t("chat.block.folded")}
+        </p>
+        <Button variant="ghost" size="sm" onClick={() => setShown(true)}>
+          {t("chat.block.show")}
+        </Button>
       </div>
     );
   }

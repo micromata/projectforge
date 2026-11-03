@@ -27,13 +27,15 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.i18n.I18nHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Direct messages as host (PF-CHAT-DM): one conversation per pair of users ([ChatDirectDO], channel [CHANNEL]).
- * Both read it as long as they have system access, and write in it as long as the other one has it too; nobody
+ * Both read it as long as they have system access, and write in it as long as the other one has it too and neither
+ * has blocked the other ([ChatBlockService]); nobody
  * moderates, administrators have no access. Whom a user may start one with is checked when the pair is created
  * ([ChatDirectService.open]), not afterwards: whoever got a message may answer.
  *
@@ -49,6 +51,9 @@ class ChatDirectChatHost : ChatHost {
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
+
+    @Autowired
+    private lateinit var blockService: ChatBlockService
 
     private val cache = ConcurrentHashMap<Long, ChatDirectDO>()
 
@@ -81,7 +86,18 @@ class ChatDirectChatHost : ChatHost {
             return false
         }
         val partner = userGroupCache.getUser(pair(hostId)?.partnerOf(user.id)) ?: return false
-        return !partner.deleted && partner.hasSystemAccess()
+        // Not cached with the pair: a block applies at once.
+        return !partner.deleted && partner.hasSystemAccess() && !blockService.isBlocked(user.id, partner.id)
+    }
+
+    /** Tells the one who blocked the other (who is able to undo it) or is blocked that nobody can write. */
+    override fun notice(hostId: Long, channel: String, user: PFUserDO): String? {
+        val partnerId = pair(hostId, channel)?.partnerOf(user.id) ?: return null
+        return when {
+            blockService.hasBlocked(user.id, partnerId) -> I18nHelper.getLocalizedMessage(user, "chat.block.notice.blocker")
+            blockService.hasBlocked(partnerId, user.id) -> I18nHelper.getLocalizedMessage(user, "chat.block.notice.blocked")
+            else -> null
+        }
     }
 
     override fun isModerator(user: PFUserDO, hostId: Long, channel: String): Boolean = false

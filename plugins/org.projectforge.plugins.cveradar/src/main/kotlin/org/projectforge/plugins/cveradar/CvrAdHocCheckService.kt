@@ -94,8 +94,8 @@ class CvrAdHocCheckService {
         val findings = job.files.flatMapIndexed { index, file ->
             val name = if (anonymize) "F${index + 1}" else file.name
             val origin = CvrLibraryService.originOf(file.format)
-            file.hits.distinctBy { listOf(it.vulnerabilityId, it.entry.purl, it.certainty, it.matched) }.map { hit ->
-                hit.vulnerabilityId to ReportFinding(
+            file.hits.distinctBy { listOf(it.key, it.entry.purl, it.certainty, it.matched) }.map { hit ->
+                hit.key to ReportFinding(
                     system = null, instances = emptyList(), component = name, certainty = hit.certainty, matched = hit.matched,
                     technology = ReportTechnology(
                         CvrTechnologyKind.PRODUCT, null, hit.entry.product, hit.entry.version, hit.entry.ecosystem,
@@ -105,7 +105,11 @@ class CvrAdHocCheckService {
             }
         }.groupBy({ it.first }, { it.second })
             .mapValues { (_, list) -> list.sortedWith(compareBy({ it.certainty }, { it.component }, { it.technology?.product })) }
-        return reportService.adHocReport(findings, anonymize)
+        return reportService.adHocReport(
+            findings.filterKeys { it is Long }.mapKeys { it.key as Long },
+            findings.filterKeys { it is String }.mapKeys { it.key as String },
+            anonymize,
+        )
     }
 
     private fun job(user: PFUserDO, jobId: Int): CvrAdHocJob {
@@ -125,7 +129,7 @@ class CvrAdHocCheckService {
         files = job.files.map { AdHocFileStatus(it.name, it.format, it.entries.size, it.checked, it.hits.size, it.done) },
         packageCount = job.files.sumOf { it.entries.size },
         checkedCount = job.files.sumOf { it.checked },
-        vulnerabilityCount = job.files.flatMap { file -> file.hits.map { it.vulnerabilityId } }.toSet().size,
+        vulnerabilityCount = job.files.flatMap { file -> file.hits.map { it.key } }.toSet().size,
         hitCount = job.files.sumOf { it.hits.size },
     )
 

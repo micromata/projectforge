@@ -32,6 +32,10 @@ export interface ChatContextValue {
   hasUnreadReplies: (message: ChatMessage) => boolean;
   /** Marks the conversation unread from the message on. */
   markUnread: (message: ChatMessage) => void;
+  /** The message whose actions (react, quote, reply, menu) are shown: a click on a message shows them, null for none. */
+  actionsMessageId: number | null;
+  /** Shows the actions of the message, null hides them. */
+  setActionsMessageId: (id: number | null) => void;
   /** The ref of a message of others: shown, it counts as seen (no longer unread for the badge). */
   observeSeen: (element: HTMLElement | null) => (() => void) | undefined;
 }

@@ -24,6 +24,7 @@
 package org.projectforge.rest.chat
 
 import org.projectforge.business.chat.ChatAccess
+import org.projectforge.business.chat.ChatBlockService
 import org.projectforge.business.chat.ChatFileService
 import org.projectforge.business.chat.ChatMessageDO
 import org.projectforge.business.chat.ChatRoomDO
@@ -42,6 +43,9 @@ import org.springframework.stereotype.Service
 @Service
 class ChatMessageConverter {
     @Autowired
+    private lateinit var blockService: ChatBlockService
+
+    @Autowired
     private lateinit var chatService: ChatService
 
     @Autowired
@@ -58,14 +62,18 @@ class ChatMessageConverter {
         val replies = chatService.selectReplySummaries(rootIds)
         val existing = existingFileIds(messages)
         val quoted = quotedMessages(context, messages)
-        return messages.map { convert(context, it, replies[it.id], existing, quoted) }
+        val blocked = blockService.blockedIds(context.user.id!!).toSet()
+        return messages.map { convert(context, it, replies[it.id], existing, quoted, blocked) }
     }
 
     fun convert(context: ChatAccess.Context, message: ChatMessageDO): ChatMessage {
         val replies = if (message.threadRootId == null && message.replyCount > 0) {
             chatService.selectReplySummaries(listOf(message.id!!))[message.id]
         } else null
-        return convert(context, message, replies, existingFileIds(listOf(message)), quotedMessages(context, listOf(message)))
+        return convert(
+            context, message, replies, existingFileIds(listOf(message)), quotedMessages(context, listOf(message)),
+            blockService.blockedIds(context.user.id!!).toSet(),
+        )
     }
 
     /** The messages quoted by the given ones, by id, asked once. */
@@ -74,8 +82,9 @@ class ChatMessageConverter {
         return chatService.findMessages(context.conversationId, ids).associateBy { it.id!! }
     }
 
-    private fun quote(context: ChatAccess.Context, quoted: ChatMessageDO): ChatQuote {
-        val showContent = !quoted.deleted && (!quoted.isHidden || context.isModerator)
+    private fun quote(context: ChatAccess.Context, quoted: ChatMessageDO, blocked: Set<Long>): ChatQuote {
+        val fromBlocked = quoted.authorId in blocked
+        val showContent = !quoted.deleted && (!quoted.isHidden || context.isModerator) && !fromBlocked
         return ChatQuote(
             id = quoted.id!!,
             threadRootId = quoted.threadRootId,
@@ -84,6 +93,7 @@ class ChatMessageConverter {
             deleted = quoted.deleted,
             hidden = quoted.isHidden,
             excerpt = if (showContent) excerpt(quoted.contentText) else null,
+            fromBlocked = fromBlocked,
         )
     }
 
@@ -99,6 +109,7 @@ class ChatMessageConverter {
         replies: ChatService.ReplySummary?,
         existingFileIds: Set<String>,
         quoted: Map<Long, ChatMessageDO>,
+        blocked: Set<Long>,
     ): ChatMessage {
         val meId = context.user.id
         val showContent = !message.deleted && (!message.isHidden || context.isModerator)
@@ -114,7 +125,7 @@ class ChatMessageConverter {
             hiddenBy = if (message.isHidden && context.isModerator) ref(message.hiddenById).displayName else null,
             hiddenReason = if (message.isHidden && context.isModerator) message.hiddenReason else null,
             content = if (showContent) message.content else null,
-            quote = if (showContent) message.quotedMessageId?.let { quoted[it] }?.let { quote(context, it) } else null,
+            quote = if (showContent) message.quotedMessageId?.let { quoted[it] }?.let { quote(context, it, blocked) } else null,
             files = if (showContent) message.readAttachments().map {
                 ChatFile(it.areaId, it.fileId, it.name, it.size, FormatterUtils.formatBytes(it.size), it.image, it.fileId in existingFileIds)
             } else emptyList(),
@@ -128,6 +139,7 @@ class ChatMessageConverter {
             following = message.threadRootId == null && meId in chatService.threadFollowers(message),
             own = message.authorId == meId,
             mentionsMe = meId != null && meId in ChatRoomDO.toIds(message.mentionedIds),
+            fromBlocked = message.authorId in blocked,
             changeSeq = message.changeSeq,
         )
     }

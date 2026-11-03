@@ -283,7 +283,7 @@ FCM follows).
   booking, editing and deleting time sheets against a real server (the app was tested with fake responses only).
 - Android: plain http to the development server (`10.0.2.2`) needs a debug network security config.
 - Release signing: the Android release build is still signed with the debug key (`android/app/build.gradle.kts`).
-- Store presence: app icons, privacy declarations, review notes (a chat is user generated content: report and block).
+- Store presence: app icons, privacy declarations, review notes (the chat is user generated content: reporting a message and blocking a user exist, see PF-CHAT MSG-12 and DM-07).
 - User and admin guide (EN+DE) once the app is distributed, with the SSO proxy (`projectforge.app.proxyCookies`).
 - Behind an SSO proxy, background polling (`renewLogin: false`) stays refused after the proxy session expired until
   the user opens a web page or does something in a native tab (both renew the login in the browser).

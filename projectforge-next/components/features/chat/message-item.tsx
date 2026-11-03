@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatTime, formatTimestampMinutes } from "@/lib/format";
 import type { ChatMessage } from "@/lib/rs/chat-types";
@@ -36,10 +36,26 @@ export const MessageItem = memo(function MessageItem({
   readByPartner?: boolean;
 }) {
   const formatContext = useFormatContext();
-  const { conversation, openThread, highlightId, observeSeen } =
-    useChatContext();
+  const {
+    conversation,
+    openThread,
+    highlightId,
+    observeSeen,
+    actionsMessageId,
+    setActionsMessageId,
+  } = useChatContext();
   const { react } = useMessageMutations();
   const [editing, setEditing] = useState(false);
+  // A click or tap on the bubble pins its actions (one message at a time), another one hides them. Beside that, a
+  // mouse shows them on hovering in a wide column; touch devices and narrow columns have the click only.
+  const actionsShown = actionsMessageId === message.id;
+  const toggleActions = (event: MouseEvent | KeyboardEvent) => {
+    if ((event.target as HTMLElement).closest("a, button, img, summary"))
+      return;
+    // Selecting text with the mouse ends in a click as well.
+    if (window.getSelection()?.toString()) return;
+    setActionsMessageId(actionsShown ? null : message.id);
+  };
 
   return (
     <article
@@ -81,9 +97,9 @@ export const MessageItem = memo(function MessageItem({
         )}
       >
         {!continued && <MessageHeader message={message} />}
-        {/* The actions sit beside the bubble (left of an own one), top aligned; the bubble leaves them room. In a
-            narrow column (phone, thread panel) there is none, so they overlap the bubble's upper corner on the outer side
-            and grow inwards (a short bubble would otherwise push them out of the column). */}
+        {/* A click on the bubble shows its actions. They sit beside the bubble (left of an own one), top aligned; the
+            bubble leaves them room. In a narrow column (phone, thread panel) there is none, so they never overlap the
+            text but stand in a row below the bubble. */}
         <div
           className={cn(
             "relative min-w-0",
@@ -92,20 +108,37 @@ export const MessageItem = memo(function MessageItem({
               : "max-w-[85%] @min-[32rem]/message:max-w-[min(85%,calc(100%-7.5rem))]"
           )}
         >
-          <MessageBubble
-            message={message}
-            highlighted={highlightId === message.id}
-            editing={editing}
-            onEditDone={() => setEditing(false)}
-          />
+          <div
+            role="button"
+            tabIndex={0}
+            aria-expanded={actionsShown}
+            onClick={toggleActions}
+            onKeyDown={(event) => {
+              if (event.target !== event.currentTarget) return;
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                toggleActions(event);
+              }
+            }}
+          >
+            <MessageBubble
+              message={message}
+              highlighted={highlightId === message.id}
+              editing={editing}
+              onEditDone={() => setEditing(false)}
+            />
+          </div>
           {!editing && (
             // Stays visible while its emoji picker or menu is open (outside, in a portal): they are anchored to it.
             <div
               className={cn(
-                "absolute -top-3 z-10 hidden group-focus-within:flex group-hover:flex has-data-[state=open]:flex pointer-coarse:flex @min-[32rem]/message:top-0",
+                "z-10 mt-1 @min-[32rem]/message:absolute @min-[32rem]/message:top-0 @min-[32rem]/message:mt-0",
+                actionsShown
+                  ? "flex"
+                  : "hidden has-data-[state=open]:flex @min-[32rem]/message:group-hover:flex",
                 message.own
-                  ? "right-2 @min-[32rem]/message:right-full @min-[32rem]/message:mr-1"
-                  : "left-2 @min-[32rem]/message:left-full @min-[32rem]/message:ml-1"
+                  ? "justify-end @min-[32rem]/message:right-full @min-[32rem]/message:mr-1"
+                  : "justify-start @min-[32rem]/message:left-full @min-[32rem]/message:ml-1"
               )}
             >
               <MessageActions
