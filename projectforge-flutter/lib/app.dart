@@ -44,6 +44,8 @@ class ProjectForgeApp extends ConsumerWidget {
       translations: translations,
       child: MaterialApp(
         title: 'ProjectForge',
+        // No "DEBUG" ribbon in simulator screenshots (a release build never shows it).
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(colorSchemeSeed: seed, useMaterial3: true),
         darkTheme: ThemeData(
           colorSchemeSeed: seed,
