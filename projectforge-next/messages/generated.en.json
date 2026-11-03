@@ -4985,6 +4985,12 @@
         }
       },
       "selected": "Selected: {arg0}",
+      "source": {
+        "_": "Source",
+        "EUVD": "EUVD",
+        "NVD": "NVD",
+        "OSV": "OSV"
+      },
       "start": {
         "demo": {
           "hint": "All planned functions of the CVE-Radar as a clickable prototype with fictitious test data.",
@@ -5132,7 +5138,7 @@
         "cvss40Severity": "Severity CVSS 4.0",
         "cvss40Vector": "Vector CVSS 4.0",
         "cwe": "CWE",
-        "description": "Description (NVD)",
+        "description": "Description",
         "epss": "EPSS (exploitation probability)",
         "euvdApproximate": "Known to the EUVD, which has no CPE: a match is possible by the product names only.",
         "euvdId": "EUVD id",

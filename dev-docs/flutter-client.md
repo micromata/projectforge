@@ -194,6 +194,21 @@ app has only its token:
   redirects, and offers it in the share sheet (also "save to files"). Open: downloads built in the page as a `blob:`
   url (the Excel exports, `lib/rs/download.ts`) can't be loaded by the app and fail with a message; they need the
   blob's bytes from the page (`onDownloadStartRequest` gives only the url).
+- **Browser functions** (the WebView has no address bar): the WebView tabs (pages, chat) have a menu of their own in
+  the navigation (`WebBrowserMenu`, driven by a `WebScreenController` per tab): back, forward, reload, find in the
+  page, share the link, open the page in the system browser (no web session there, it may ask for the login) and
+  "Restart page" (a new WebView with a new web session).
+  - **Pull to refresh:** next scrolls in columns inside a box of the window's height (`page-shell.tsx`), the document
+    never. The WebView's own control would never fire there (iOS) or on every downward swipe (Android), so the app
+    switches it off on `/next` pages (`WebNavigation.isNextPage`) and next does it itself in app mode
+    (`hooks/use-pull-to-refresh.ts`: only if no column up from the touched element is scrolled down, not in fields,
+    dialogs and `[data-no-pull-refresh]`, e.g. the chat's message list). The legacy pages keep the WebView's.
+  - **Find in the page:** iOS 16+ the native find navigator of WebKit, Android the `WebFindBar` on the WebView's
+    `findAllAsync`. Not the plugin's JavaScript search (iOS without the navigator, so none on iOS 15): it wraps the
+    matches in elements of its own in the DOM of next, which React then can't update. Virtualized lists find only
+    the rows rendered.
+  - **No connection** (a main frame failing with a network error): the app's error with a retry of the failed page,
+    not the WebView's own error page.
 
 Open: the 2FA dialog of next offers WebAuthn, which doesn't work in a WebView
 for self-hosted servers (OTP does): in app mode it should offer "confirm in the browser" (the app's renewal, then a

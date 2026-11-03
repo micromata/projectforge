@@ -175,6 +175,23 @@ void main() {
     }
   });
 
+  test('pages of next, not the legacy pages nor another site', () {
+    for (final url in [
+      'https://pf.example.org/next',
+      'https://pf.example.org/next/',
+      'https://pf.example.org/next/timesheet?id=5',
+    ]) {
+      expect(navigation.isNextPage(Uri.parse(url)), isTrue, reason: url);
+    }
+    for (final url in [
+      'https://pf.example.org/wa/wicket/page',
+      'https://pf.example.org/nextcloud/',
+      'https://other.example.org/next/',
+    ]) {
+      expect(navigation.isNextPage(Uri.parse(url)), isFalse, reason: url);
+    }
+  });
+
   test('login page of the own server', () {
     expect(
       navigation.isLoginPage(

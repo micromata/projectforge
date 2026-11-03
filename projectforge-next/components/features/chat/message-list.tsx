@@ -92,6 +92,8 @@ export function MessageList({
       onScroll={onScroll}
       className="min-h-0 flex-1 overflow-y-auto py-2"
       data-chat-messages
+      // At its top it loads older messages: no pull to refresh there (hooks/use-pull-to-refresh.ts).
+      data-no-pull-refresh
       role="log"
       aria-live="polite"
     >
