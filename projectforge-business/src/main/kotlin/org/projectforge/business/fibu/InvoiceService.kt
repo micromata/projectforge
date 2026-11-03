@@ -247,6 +247,15 @@ open class InvoiceService {
         return formatBigDecimal(value.setScale(2, RoundingMode.HALF_UP))
     }
 
+    /**
+     * At least 2 decimals, but every significant one: 2.125 -> "2,125", 149.7 -> "149,70", 10 -> "10,00".
+     */
+    internal fun formatWithAllDecimals(value: BigDecimal?): String {
+        value ?: return ""
+        val scale = maxOf(2, value.stripTrailingZeros().scale())
+        return DecimalFormat("#,##0." + "0".repeat(scale)).format(value.setScale(scale))
+    }
+
     private fun formatBigDecimal(value: BigDecimal?): String {
         value ?: return ""
         val df = when {
@@ -315,8 +324,9 @@ open class InvoiceService {
             variables.put("Posnummer", position.number.toString())
             variables.put("Text", position.text)
             variables.put("Leistungszeitraum", getPeriodOfPerformance(position, invoice))
-            variables.put("Menge", formatCurrencyAmount(position.menge))
-            variables.put("Einzelpreis", formatCurrencyAmount(position.einzelNetto))
+            // Unrounded, as in the e-invoice: a quantity of 2.125 printed as 2.13 wouldn't add up to the amount.
+            variables.put("Menge", formatWithAllDecimals(position.menge))
+            variables.put("Einzelpreis", formatWithAllDecimals(position.einzelNetto))
             variables.put("Betrag", formatCurrencyAmount(position.info.netSum))
             for (cell in newRow.tableCells) {
                 for (cellParagraph in cell.paragraphs) {

@@ -89,6 +89,24 @@ class RechnungCalculatorTest : AbstractTestBase() {
         }
     }
 
+    /**
+     * The vat of the positions, rounded each, sums up to 2085.21, the vat of their net sum is 2085.20: the gross
+     * sum is net plus vat (EN 16931 BR-CO-15), not the sum of the positions' gross amounts (13059.96).
+     */
+    @Test
+    fun `gross sum is net sum plus vat sum`() {
+        RechnungDO().also { invoice ->
+            invoice.addPosition(createPositionInfo("2.50", "168.35", "0.19"))
+            invoice.addPosition(createPositionInfo("15.25", "149.70", "0.19"))
+            invoice.addPosition(createPositionInfo("33.75", "149.70", "0.19"))
+            invoice.addPosition(createPositionInfo("9.75", "149.70", "0.19"))
+            invoice.addPosition(createPositionInfo("11.75", "149.70", "0.19"))
+            val info = calculateAndAssert(invoice, net = "10974.75", gross = "13059.95")
+            assertEquals(BigDecimal("2085.20"), info.vatAmount, "vatAmount")
+            assertEquals(BigDecimal("13059.96"), info.positions!!.sumOf { it.grossSum }, "sum of the positions' gross")
+        }
+    }
+
     @Test
     fun `a creditor invoice is marked as overdue 2 working days before its due date`() {
         val today = PFDay.today()

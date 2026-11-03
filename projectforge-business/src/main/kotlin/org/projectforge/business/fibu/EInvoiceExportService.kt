@@ -38,6 +38,7 @@ import org.mustangproject.ReferencedDocument
 import org.mustangproject.TradeParty
 import org.mustangproject.SchemedID
 import org.mustangproject.ZUGFeRD.Profiles
+import org.mustangproject.ZUGFeRD.TransactionCalculator
 import org.mustangproject.ZUGFeRD.XRExporter
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -87,6 +88,7 @@ class EInvoiceExportService(
         }
 
         val mustangInvoice = buildMustangInvoice(invoice)
+        checkSums(invoice, mustangInvoice)
         val exporter = createXRExporter("XRechnung")
         exporter.setTransaction(mustangInvoice)
 
@@ -114,6 +116,7 @@ class EInvoiceExportService(
             ?: throw IllegalStateException("Could not generate PDF for invoice #${invoice.nummer} (no template configured and no PDF uploaded)")
 
         val mustangInvoice = buildMustangInvoice(invoice)
+        checkSums(invoice, mustangInvoice)
 
         val baos = ByteArrayOutputStream()
         val zugFeRDExporter = EInvoiceZugferdExporter()
@@ -351,6 +354,31 @@ class EInvoiceExportService(
         }
 
         return errors
+    }
+
+    /**
+     * The sums of the e-invoice are calculated by Mustang, those of the invoice document (the PDF of the template,
+     * the UI) by [RechnungCalculator]. Both must be the same, otherwise the recipient rejects the invoice (the
+     * ZUGFeRD PDF would state another amount than its XML). Refuses the export, if they differ.
+     */
+    private fun checkSums(invoice: RechnungDO, mustangInvoice: Invoice) {
+        val calculator = TransactionCalculator(mustangInvoice)
+        val xmlNet = calculator.taxBasis
+        val xmlGross = calculator.grandTotal
+        val xmlVat = xmlGross - xmlNet
+        val info = RechnungCalculator.calculate(invoice, useCaches = false)
+        // A cancellation is stored with negative amounts, but exported with positive ones (see buildItem).
+        val sign = if (invoice.typ == RechnungTyp.CANCELLATION) BigDecimal.ONE.negate() else BigDecimal.ONE
+        val mismatches = listOf(
+            Triple("net", info.netSum * sign, xmlNet),
+            Triple("vat", info.vatAmount * sign, xmlVat),
+            Triple("gross", info.grossSum * sign, xmlGross),
+        ).filter { (_, pf, xml) -> pf.compareTo(xml) != 0 }
+        if (mismatches.isNotEmpty()) {
+            val details = mismatches.joinToString("; ") { (name, pf, xml) -> "$name: invoice $pf, e-invoice $xml" }
+            log.error { "Sums of invoice #${invoice.nummer} differ from its e-invoice: $details" }
+            throw IllegalStateException("Sums of invoice #${invoice.nummer} differ from its e-invoice: $details")
+        }
     }
 
     private fun buildMustangInvoice(invoice: RechnungDO): EInvoiceTransaction {
