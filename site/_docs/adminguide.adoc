@@ -787,7 +787,9 @@ ranges of debitors and creditors are part of this parameter, too. Example:
 ==== Secure passwords
 
 Passwords are never stored in clear text: every password is hashed together with a random salt per user and a
-pepper (see below). The minimum password length is configured under _Administration_ -> _Configuration_.
+pepper (see below). The minimum password length and the number of character classes a password must contain
+(uppercase letters, lowercase letters, digits, special characters, e.g. 3 of 4) are configured under
+_Administration_ -> _Configuration_.
 
 [[protection_against_brute_force_attacks]]
 ==== Protection against brute force attacks

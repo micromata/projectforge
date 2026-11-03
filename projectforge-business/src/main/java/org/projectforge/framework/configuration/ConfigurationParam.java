@@ -174,6 +174,11 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   MIN_PASSWORD_LENGTH("minPasswordLength", ConfigurationType.LONG, 8),
   /**
+   * The number of character classes (uppercase letters, lowercase letters, digits, special characters, 0-4) a
+   * password must contain. 0: at least one letter and one non-letter only.
+   */
+  PASSWORD_MIN_CHARACTER_CLASSES("password.minCharacterClasses", ConfigurationType.LONG, 0),
+  /**
    * Password Flag Check - configuration, that passwords will be checked that passwords have to change each time a new one is entered.
    */
   PASSWORD_FLAG_CHECK_CHANGE("password.flag.checkChange", ConfigurationType.BOOLEAN, true);
@@ -301,6 +306,7 @@ public enum ConfigurationParam implements IConfigurationParam
       case JIRA:
         return ConfigurationCategory.SYSTEM;
       case MIN_PASSWORD_LENGTH:
+      case PASSWORD_MIN_CHARACTER_CLASSES:
       case PASSWORD_FLAG_CHECK_CHANGE:
         return ConfigurationCategory.SECURITY;
       case ORGANIZATION:

@@ -514,6 +514,22 @@ open class ConfigurationService {
       return ConfigurationParam.MIN_PASSWORD_LENGTH.defaultLongValue.toInt()
     }
 
+  /**
+   * The number of character classes (uppercase, lowercase, digit, special character) a password must contain, 0-4.
+   */
+  open val passwordMinCharacterClasses: Int
+    get() {
+      try {
+        configDao.getEntry(ConfigurationParam.PASSWORD_MIN_CHARACTER_CLASSES)?.longValue?.let {
+          return it.toInt().coerceIn(0, 4)
+        }
+      } catch (e: RuntimeException) {
+        // this could happen if the database is not initialized (during projectforge initial setup)
+        log.warn(e) { "Exception while getting the min password character classes configuration." }
+      }
+      return ConfigurationParam.PASSWORD_MIN_CHARACTER_CLASSES.defaultLongValue.toInt()
+    }
+
   // this could happen if the database is not initialized (during projectforge initial setup)
   open val flagCheckPasswordChange: Boolean
     get() {
