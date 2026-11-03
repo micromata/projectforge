@@ -135,6 +135,10 @@ class ChatBlockReportTest : AbstractTestBase() {
         // Only for the blocker.
         logon(TEST_USER2)
         assertEquals(1, chatService.search(chatService.requireContext(conversationId), "blockedmarker77", null).size)
+        assertTrue(
+            chatService.mentionCandidates(chatService.requireContext(conversationId), null).any { it.id == me },
+            "the blocked one isn't told: the blocker is still offered",
+        )
 
         logon(TEST_USER)
         blockService.unblock(author)

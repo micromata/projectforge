@@ -715,8 +715,9 @@ open class ChatService {
      */
     open fun mentionCandidates(context: ChatAccess.Context, search: String?, limit: Int = 10): List<PFUserDO> {
         val term = search?.trim()?.lowercase().orEmpty()
-        // Neither the ones the user blocked nor the ones who blocked the user: a mention of them would be dropped.
-        val blocked = blockService.blockedIds(context.user.id!!).toSet() + blockService.blockerIds(context.user.id!!)
+        // Not the ones the user blocked. The ones who blocked the user stay: missing here, they would tell the block
+        // (the blocked one isn't told), and ChatNotifier drops a mention of them anyway.
+        val blocked = blockService.blockedIds(context.user.id!!).toSet()
         return participants(context)
             .filter { it.id != context.user.id && it.id !in blocked }
             .filter { user ->

@@ -50,7 +50,13 @@ export const MessageItem = memo(function MessageItem({
   // mouse shows them on hovering in a wide column; touch devices and narrow columns have the click only.
   const actionsShown = actionsMessageId === message.id;
   const toggleActions = (event: MouseEvent | KeyboardEvent) => {
-    if ((event.target as HTMLElement).closest("a, button, img, summary"))
+    // While editing, a click places the cursor in the text field and leaves the actions as they are.
+    if (editing) return;
+    if (
+      (event.target as HTMLElement).closest(
+        "a, button, img, summary, input, textarea, select, [contenteditable]"
+      )
+    )
       return;
     // Selecting text with the mouse ends in a click as well.
     if (window.getSelection()?.toString()) return;
