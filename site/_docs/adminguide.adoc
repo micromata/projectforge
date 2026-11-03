@@ -577,7 +577,8 @@ guessed and stays the same when the image is replaced or deleted (without an ima
 the old image for up to an hour). Failed attempts are throttled per client address. Users revoke the url with _Renew
 photo link_ on the card (all cards of the address then get a new one); switching off the photo of a card does not
 revoke it. The images are delivered by the main instance and by the gateway (the token is pushed with the address),
-under the same url.
+under the same url. Update the gateway together with the main instance: an old gateway does not know the new path and
+answers 404 for the photos.
 
 The base of the url is, in this order: `projectforge.businessCard.photoBaseUrl` (overrides everything, e.g. a reverse
 proxy), the public url of the gateway (`projectforge.gateway.push.publicUrl`, see <<external_gateway_mode>>), the domain

@@ -6,8 +6,9 @@ Status: implemented; open: manual test of the pass on an iPhone.
 
 A user creates one or more digital business cards from an address of the address book. A card shows a QR code with
 the contact data (vCard), optionally with a photo, and can be added to the Apple Wallet. The photo is not part of the
-QR code (too large) but a URL on the public gateway. The gateway knows nothing about business cards: it only answers
-the (signed) url of a contact image with the image, which the address push brought there anyway.
+QR code (too large) but a public URL with a random token (`/rsPublic/contactImage/<token>`), delivered by the main
+instance or, if there is one, by the gateway. Neither knows anything about business cards: the url belongs to the
+contact image of an address.
 
 ## Decisions
 
@@ -27,7 +28,7 @@ Safari or Mail on the iPhone opens a `.pkpass` file (`application/vnd.apple.pkpa
   Signing with BouncyCastle.
 - Pass style `generic`, barcode `PKBarcodeFormatQR` with the vCard as message (`messageEncoding` `utf-8`).
 - The photo is **embedded** in the bundle (`thumbnail.png`); Wallet does not load remote images. The photo URL
-  (`PHOTO;VALUE=URI:<gatewayPublicUrl>/…`) only lives in the vCard of the QR code. Some scanners ignore it.
+  (`PHOTO;VALUE=URI:<base url>/rsPublic/contactImage/<token>`) only lives in the vCard of the QR code. Some scanners ignore it.
 - Updating an issued pass would need a web service (`webServiceURL`, push): not in the first version.
 
 ### Certificate setup (once per installation)
@@ -78,24 +79,28 @@ see `AddressUserMatcher`): otherwise anybody who may read an address could make 
 fields may be taken over from any readable address, but then without photo. The service has no user parameter on
 purpose, it always works on the logged-in user.
 
-### Contact image on the gateway (stateless)
+### Public contact image (token)
 
-`GET <gatewayPublicUrl>/rsPublic/contactImage/{base64url(addressUid)}/{signature}`
+`GET <base url>/rsPublic/contactImage/{token}`
 
-- `ContactImageUrl` (business module) builds and checks the url. The signature is an HMAC-SHA256 of the address uid,
-  with a key derived from `projectforge.security.authenticationTokenEncryptionKey`, which both instances share anyway
-  (DAV tokens are pushed encrypted). Nobody gets an image by trying uids. The uid is base64url so that any uid works
-  as a path segment.
-- `GatewayContactImageController` checks the signature, looks up the address by uid and delivers its
-  `AddressImageDO` with the fixed image content type. Anything else (bad signature, unknown or deleted address, no
-  image) is a plain 404 without a hint. `GatewayEndpointFilter` allows the path (`/rsPublic/**` is permitAll already).
-- No new table, no new sync endpoint: the address push already brings every address with its image
-  (`pushAddressBooks`/`toAddressDtos`, only with `projectforge.gateway.push.syncAddresses`). The uid is the pushed one,
-  `ContactImageUrl.addressUid` (shared with the push).
-- Limit: a handed-out url stays valid as long as the address and its image exist. Switching off `includePhoto` does
-  not revoke it, only deleting the image or changing the key does. Recipients import the photo into their address
-  book anyway; mention this in the admin guide.
-- Without a configured gateway (or key) there is no photo url, the card works without a photo.
+- `ContactImageUrl` (business module) builds the url. The base url is, in this order:
+  `projectforge.businessCard.photoBaseUrl`, the public url of the gateway (`projectforge.gateway.push.publicUrl`, or
+  `push.url` without the sync path), `projectforge.domain` plus context path (not if it is localhost). None: no photo
+  url, the card works without photo.
+- The token is random (256 bit, `AddressImageDao.newPublicToken`) and belongs to the **address**
+  (`AddressDO.imagePublicToken`, unique, `@NoHistory`): nothing in the url can be derived or guessed, and it stays the
+  same when the image is replaced or deleted (404 without an image). It is created on first use
+  (`AddressImageDao.getOrCreatePublicToken`, only if there is an image) and comes from the database only: `AddressDao.onUpdate`
+  keeps the stored one, a posted address can neither set nor clear it.
+- `ContactImagePublicRest` (rest module, `/rsPublic`, no login) runs on the main instance and on the gateway. Anything
+  but a hit (unknown token, deleted address, no image) is a plain 404 without a hint; failed lookups are throttled per
+  client ip (`LoginProtection`, type `CONTACT_IMAGE`). `GatewayEndpointFilter` allows the path.
+- The gateway gets the token with the address push (`SyncAddressDto.imageToken`, `GatewaySyncService` stores it at
+  its `AddressDO`); no extra table or endpoint. Gateway and main instance have to be updated together: an old gateway
+  doesn't know the path and answers 404.
+- Revoking: "Renew photo link" on the card (`POST /rs/myBusinessCards/renewPhotoLink`, own address only) replaces the
+  token; urls handed out before answer 404, all cards of the address get the new one. Switching off `includePhoto`
+  does not revoke. Recipients import the photo into their address book anyway; mentioned in the admin guide.
 
 ### REST and UI (Next)
 
@@ -112,8 +117,8 @@ from the request; state changes only with POST/PUT/DELETE. A plain REST controll
 
 1. Done: `BusinessCard`/`BusinessCards` as json in the user preferences and `BusinessCardService` (id, limit, own cards only).
 2. Done: address suggestion (`AddressUserMatcher`), vCard builder (`BusinessCardVCard`).
-3. Done: `ContactImageUrl` and `GatewayContactImageController` (signed contact image url on the gateway).
-4. Done: photo url in the vCard of a card (only with `includePhoto`, a gateway and an image of the own source address).
+3. Done: `ContactImageUrl`, `ContactImagePublicRest` (token url on main instance and gateway), "Renew photo link".
+4. Done: photo url in the vCard of a card (only with `includePhoto`, a base url and an image of the own source address).
 5. Done: `BusinessCardRest` (`/rs/myBusinessCards`) and the next page `myBusinessCards` (list with QR codes, editor
    with address suggestion, field checkboxes, live QR preview, vCard download). Reached from the user menu
    (`MenuItemDefId.MY_BUSINESS_CARDS`, added in `MenuRest` only, not in the main menu) and a button of the address list.
@@ -127,8 +132,9 @@ from the request; state changes only with POST/PUT/DELETE. A plain REST controll
 - vCard with photo URL; `.pkpass` content (ZIP files, manifest hashes, signature verifiable with a test certificate
   via `openssl smime -verify`).
 - Access: another user (and the admin) can neither read, change nor delete a card of the owner.
-- Contact image url: signature valid only for its uid and key; the gateway answers 404 for bad signature, unknown or
-  deleted address and missing image (`ContactImageUrlTest`, `GatewayContactImageControllerTest`).
+- Contact image url: base url order, token stays when the image is replaced or deleted, renewing revokes, a posted
+  address can't set the token, 404 for unknown token, deleted address and missing image, throttling
+  (`ContactImageUrlTest`, `ContactImagePublicRestTest`).
 - Manual with a local gateway (see `HOWTO-TEST-GATEWAY.md`): the photo url of the QR code delivers the image.
 - Manual: scan the QR code with the iPhone camera; open the `.pkpass` in Safari and add it to the Wallet.
 - e2e for the Next pages.
@@ -152,8 +158,8 @@ works for all users of a month), but the rule is reused:
 
 ### Rate limiting of the public gateway endpoint
 
-- Guessing is prevented by the signature (HMAC); invalid requests are answered with a plain 404 and cost almost
-  nothing. No login protection is needed (there is no secret to try).
+- Guessing is prevented by the random token (256 bit) and the throttling per client ip; invalid requests are answered
+  with a plain 404 and cost almost nothing.
 - `PasswordResetRateLimiter` is `internal` and specific (user/mail), so it is not reused. A limit for the download
   volume belongs to the reverse proxy: add `limit_req` for `/rsPublic/contactImage/` to the nginx example
   `docker/compose/gateway/nginx/nginx.conf` (it has none yet) and describe it in the admin guide.

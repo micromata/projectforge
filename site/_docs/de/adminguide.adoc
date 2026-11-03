@@ -593,7 +593,8 @@ die URL lässt sich also nicht erraten und bleibt beim Ersetzen oder Löschen de
 mit 404; Browser können das alte Bild bis zu eine Stunde zwischenspeichern). Fehlgeschlagene Versuche werden je
 Client-Adresse gebremst. Nutzer widerrufen die URL mit _Foto-Link erneuern_ an der Karte (alle Karten der Adresse
 erhalten dann eine neue); das Abschalten des Fotos einer Karte widerruft sie nicht. Die Bilder liefern die
-Hauptinstanz und das Gateway (das Token wird mit der Adresse übertragen) unter derselben URL aus.
+Hauptinstanz und das Gateway (das Token wird mit der Adresse übertragen) unter derselben URL aus. Das Gateway sollte zusammen mit der Hauptinstanz aktualisiert werden: Ein altes Gateway kennt
+den neuen Pfad nicht und antwortet für die Fotos mit 404.
 
 Die Basis der URL ist, in dieser Reihenfolge: `projectforge.businessCard.photoBaseUrl` (überschreibt alles, z. B. ein
 Reverse Proxy), die öffentliche URL des Gateways (`projectforge.gateway.push.publicUrl`, siehe
