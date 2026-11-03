@@ -537,6 +537,10 @@
               "_": "Password has to change",
               "description": "Password has to change each time it is redefined."
             }
+          },
+          "minCharacterClasses": {
+            "_": "Minimal number of character classes",
+            "description": "The number of character classes (uppercase letters, lowercase letters, digits, special characters) a password must contain, 0 to 4. With 0, a password needs at least one letter and one non-letter."
           }
         },
         "pluginsActivated": {
@@ -7376,10 +7380,12 @@
       "error": {
         "noCharacter": "Password must have at minimum one letter.",
         "noNonCharacter": "Password must have at minimum one non-letter.",
+        "notEnoughCharacterClasses": "Password must contain characters of at least {arg0} of the 4 classes uppercase letters, lowercase letters, digits and special characters.",
         "notMinLength": "Password must have at least {arg0} characters.",
         "oldPasswdEqualsNew": "New password should not be the same as the old one.",
         "oldPasswordWrong": "Old password does not match.",
-        "passwordQualityCheck": "Password must have at least {arg0} characters and at minimum one letter and one non-letter character."
+        "passwordQualityCheck": "Password must have at least {arg0} characters and at minimum one letter and one non-letter character.",
+        "passwordQualityCheckCharacterClasses": "Password must have at least {arg0} characters and contain characters of at least {arg1} of the 4 classes uppercase letters, lowercase letters, digits and special characters."
       },
       "msg": {
         "passwordSuccessfullyChanged": "Password successfully changed."

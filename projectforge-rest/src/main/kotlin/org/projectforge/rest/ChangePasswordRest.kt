@@ -288,8 +288,10 @@ class ChangePasswordRest : AbstractDynamicPageRest() {
         "user.changePassword.error.notMinLength",
         "user.changePassword.error.noCharacter",
         "user.changePassword.error.noNonCharacter",
+        "user.changePassword.error.notEnoughCharacterClasses",
         "user.changePassword.error.oldPasswdEqualsNew",
-        "user.changePassword.error.passwordQualityCheck" -> FIELD_NEW_PASSWORD
+        "user.changePassword.error.passwordQualityCheck",
+        "user.changePassword.error.passwordQualityCheckCharacterClasses" -> FIELD_NEW_PASSWORD
 
         else -> null
       }

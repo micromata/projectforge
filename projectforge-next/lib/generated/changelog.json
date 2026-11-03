@@ -3,11 +3,20 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.4",
-    "date" : "2026-11-02",
+    "date" : "2026-11-03",
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Setting projectforge.2fa.exemptUsers: login names that need no second factor, e.g. for the account of an app store review.", "Chat: messages of others can be reported to the administrators, and users can be blocked (no direct messages, no notifications, mentions or search hits of them).", "CVE-Radar: the libraries of the inventory are matched by package and version against the advisories of OSV.dev (Maven, npm, PyPI, NuGet, Packagist, Go, crates.io), also when the NVD names them late or not at all; a matching advisory becomes a vulnerability whatever its score." ]
+      "items" : [ "Setting projectforge.2fa.exemptUsers: login names that need no second factor, e.g. for the account of an app store review.", "Chat: messages of others can be reported to the administrators, and users can be blocked (no direct messages, no notifications, mentions or search hits of them).", "CVE-Radar: the libraries of the inventory are matched by package and version against the advisories of OSV.dev (Maven, npm, PyPI, NuGet, Packagist, Go, crates.io), also when the NVD names them late or not at all; a matching advisory becomes a vulnerability whatever its score.", "Passwords: the number of character classes a password must contain (uppercase letters, lowercase letters, digits, special characters, e.g. 3 of 4) is configurable next to the minimum length." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Address images: larger preview images, so they look sharp in the app's address list (existing previews are renewed when the images are shrunk again in the administration).", "App: the chat tab shows no menu of the web version; tapping the chat button again leads back to the chat start page." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ {
+        "title" : "Invoices: the invoice document and the e-invoice use the same formulas",
+        "items" : [ "The gross sum is the net sum plus the vat sum. It was the sum of the positions' gross amounts, whose vat is rounded per position, and could differ by a cent from the e-invoice, so the recipient could reject the invoice.", "The export of an e-invoice (XRechnung, ZUGFeRD) compares its sums with those of the invoice and refuses the export if they differ.", "The invoice document shows quantity and unit price with all their decimals, as the e-invoice does, instead of rounded to two." ]
+      } ]
     } ]
   },
   "groups" : [ {

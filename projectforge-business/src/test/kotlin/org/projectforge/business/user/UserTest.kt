@@ -228,6 +228,63 @@ class UserTest : AbstractTestBase() {
     }
 
     @Test
+    fun testPasswordCharacterClasses() {
+        val minPwLenEntry = configurationDao.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH)!!
+        val oldMinPwLen = minPwLenEntry.longValue
+        val classesEntry = configurationDao.getEntry(ConfigurationParam.PASSWORD_MIN_CHARACTER_CLASSES)!!
+        val oldClasses = classesEntry.longValue
+        try {
+            minPwLenEntry.longValue = 15
+            configurationDao.update(minPwLenEntry, checkAccess = false)
+            classesEntry.longValue = 3
+            configurationDao.update(classesEntry, checkAccess = false)
+            val classesError = I18nKeyAndParams(MESSAGE_KEY_PASSWORD_CHARACTER_CLASSES_ERROR, 3)
+
+            // Lowercase and digits only: 2 classes, the legacy letter/non-letter errors aren't reported additionally.
+            Assertions.assertEquals(
+                listOf(classesError),
+                passwordQualityService.checkPasswordQuality(STRONGOLDPW, "abcdefghijklmn1".toCharArray()),
+            )
+            Assertions.assertEquals(
+                listOf(classesError),
+                passwordQualityService.checkPasswordQuality(STRONGOLDPW, "abcdefghijklmno".toCharArray()),
+            )
+            Assertions.assertTrue(
+                passwordQualityService.checkPasswordQuality(STRONGOLDPW, "Abcdefghijklm12".toCharArray()).isEmpty(),
+                "Uppercase, lowercase and digits are 3 classes.",
+            )
+            Assertions.assertTrue(
+                passwordQualityService.checkPasswordQuality(STRONGOLDPW, "abcdefghijk m1!".toCharArray()).isEmpty(),
+                "Lowercase, digits and special characters (incl. space) are 3 classes.",
+            )
+            Assertions.assertEquals(
+                listOf(I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 15)),
+                passwordQualityService.checkPasswordQuality(STRONGOLDPW, "Abcd1!".toCharArray()),
+            )
+            Assertions.assertEquals(
+                I18nKeyAndParams("user.changePassword.error.passwordQualityCheckCharacterClasses", 15, 3),
+                passwordQualityService.passwordQualityI18nKeyAndParams,
+            )
+
+            // 0: only one letter and one non-letter are required.
+            classesEntry.longValue = 0
+            configurationDao.update(classesEntry, checkAccess = false)
+            Assertions.assertTrue(
+                passwordQualityService.checkPasswordQuality(STRONGOLDPW, "abcdefghijklmn1".toCharArray()).isEmpty(),
+            )
+            Assertions.assertEquals(
+                listOf(I18nKeyAndParams(MESSAGE_KEY_PASSWORD_NONCHAR_ERROR)),
+                passwordQualityService.checkPasswordQuality(STRONGOLDPW, "abcdefghijklmno".toCharArray()),
+            )
+        } finally {
+            minPwLenEntry.longValue = oldMinPwLen
+            configurationDao.update(minPwLenEntry, checkAccess = false)
+            classesEntry.longValue = oldClasses
+            configurationDao.update(classesEntry, checkAccess = false)
+        }
+    }
+
+    @Test
     fun testUniqueUsernameDO() {
         var user = createTestUser("42")
         val userId1 = userService.insert(user, false)
@@ -285,6 +342,9 @@ class UserTest : AbstractTestBase() {
         private const val MESSAGE_KEY_PASSWORD_CHARACTER_ERROR = "user.changePassword.error.noCharacter"
 
         private const val MESSAGE_KEY_PASSWORD_NONCHAR_ERROR = "user.changePassword.error.noNonCharacter"
+
+        private const val MESSAGE_KEY_PASSWORD_CHARACTER_CLASSES_ERROR =
+            "user.changePassword.error.notEnoughCharacterClasses"
 
         private const val MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR = "user.changePassword.error.oldPasswdEqualsNew"
     }

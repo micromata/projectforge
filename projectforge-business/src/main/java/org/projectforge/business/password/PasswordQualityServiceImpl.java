@@ -49,6 +49,16 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
   private static final String MESSAGE_KEY_PASSWORD_QUALITY_ERROR = "user.changePassword.error.passwordQualityCheck";
 
   /**
+   * Constant MESSAGE_KEY_PASSWORD_QUALITY_CHARACTER_CLASSES_ERROR (quality hint if character classes are required).
+   */
+  private static final String MESSAGE_KEY_PASSWORD_QUALITY_CHARACTER_CLASSES_ERROR = "user.changePassword.error.passwordQualityCheckCharacterClasses";
+
+  /**
+   * Constant MESSAGE_KEY_PASSWORD_CHARACTER_CLASSES_ERROR.
+   */
+  private static final String MESSAGE_KEY_PASSWORD_CHARACTER_CLASSES_ERROR = "user.changePassword.error.notEnoughCharacterClasses";
+
+  /**
    * Constant MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR.
    */
   private static final String MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR = "user.changePassword.error.notMinLength";
@@ -77,12 +87,17 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
   @Override
   public I18nKeyAndParams getPasswordQualityI18nKeyAndParams()
   {
+    final int minCharacterClasses = configurationService.getPasswordMinCharacterClasses();
+    if (minCharacterClasses > 0) {
+      return new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_QUALITY_CHARACTER_CLASSES_ERROR,
+          configurationService.getMinPasswordLength(), minCharacterClasses);
+    }
     return new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_QUALITY_ERROR, configurationService.getMinPasswordLength());
   }
 
   /**
-   * Checks the password quality of a new password. Password must have at least n characters and at minimum one letter
-   * and one non-letter character.
+   * Checks the password quality of a new password. Password must have at least n characters, at minimum one letter
+   * and one non-letter character and, if configured, characters of at least m character classes.
    *
    * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
    */
@@ -93,8 +108,8 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
   }
 
   /**
-   * Checks the password quality of a new password change is required. Password must have at least n characters and at minimum one letter
-   * and one non-letter character.
+   * Checks the password quality of a new password change is required. Password must have at least n characters, at minimum one letter
+   * and one non-letter character and, if configured, characters of at least m character classes.
    *
    * @param newPassword
    * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
@@ -135,16 +150,48 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
     return result;
   }
 
+  /**
+   * Checks for at least one letter and one non-letter. If character classes (uppercase, lowercase, digit, special
+   * character) are required, a password with too few classes gets only this error: the letter/non-letter errors
+   * would be redundant. Special characters are all characters except letters and digits (incl. space); letters
+   * without case (e.g. CJK) count in no class.
+   */
   private void checkForCharsInPassword(final char[] password, final List<I18nKeyAndParams> result)
   {
     boolean letter = false;
     boolean nonLetter = false;
+    boolean upperCase = false;
+    boolean lowerCase = false;
+    boolean digit = false;
+    boolean special = false;
     for (int i = 0; i < password.length; i++) {
       final char ch = password[i];
-      if (!letter && Character.isLetter(ch)) {
+      if (Character.isLetter(ch)) {
         letter = true;
-      } else if (!nonLetter && !Character.isLetter(ch)) {
+      } else {
         nonLetter = true;
+      }
+      if (Character.isUpperCase(ch)) {
+        upperCase = true;
+      } else if (Character.isLowerCase(ch)) {
+        lowerCase = true;
+      } else if (Character.isDigit(ch)) {
+        digit = true;
+      } else if (!Character.isLetterOrDigit(ch)) {
+        special = true;
+      }
+    }
+    final int minCharacterClasses = configurationService.getPasswordMinCharacterClasses();
+    if (minCharacterClasses > 0) {
+      int characterClasses = 0;
+      for (final boolean present : new boolean[]{upperCase, lowerCase, digit, special}) {
+        if (present) {
+          characterClasses++;
+        }
+      }
+      if (characterClasses < minCharacterClasses) {
+        result.add(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_CHARACTER_CLASSES_ERROR, minCharacterClasses));
+        return;
       }
     }
     if (!letter) {

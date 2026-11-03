@@ -816,8 +816,9 @@ Parameter. Beispiel:
 ==== Sichere Passwörter
 
 Passwörter werden nie im Klartext gespeichert: Jedes Passwort wird zusammen mit einem zufälligen Salt pro Benutzer
-und einem Pepper (siehe unten) gehasht. Die Mindestlänge von Passwörtern wird unter _Administration_ ->
-_Konfiguration_ eingestellt.
+und einem Pepper (siehe unten) gehasht. Die Mindestlänge von Passwörtern und die Anzahl der Zeichenklassen, aus
+denen ein Passwort Zeichen enthalten muss (Großbuchstaben, Kleinbuchstaben, Ziffern, Sonderzeichen, z. B. 3 von 4),
+werden unter _Administration_ -> _Konfiguration_ eingestellt.
 
 [[protection_against_brute_force_attacks]]
 ==== Schutz vor Brute-Force-Angriffen

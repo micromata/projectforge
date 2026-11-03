@@ -537,6 +537,10 @@
               "_": "Keine Passwortwiederholung",
               "description": "Ein neues Passwort muss sich vom vorherigen unterscheiden."
             }
+          },
+          "minCharacterClasses": {
+            "_": "Mindestanzahl Zeichenklassen",
+            "description": "Die Anzahl der Zeichenklassen (Großbuchstaben, Kleinbuchstaben, Ziffern, Sonderzeichen), aus denen ein Passwort Zeichen enthalten muss, 0 bis 4. Bei 0 braucht ein Passwort mindestens einen Buchstaben und einen Nicht-Buchstaben."
           }
         },
         "pluginsActivated": {
@@ -7376,10 +7380,12 @@
       "error": {
         "noCharacter": "Passwort muss mindestens einen Buchstaben haben.",
         "noNonCharacter": "Passwort muss mindestens einen Nicht-Buchstaben haben.",
+        "notEnoughCharacterClasses": "Passwort muss Zeichen aus mindestens {arg0} der 4 Klassen Großbuchstaben, Kleinbuchstaben, Ziffern und Sonderzeichen enthalten.",
         "notMinLength": "Passwort muss mindestens {arg0} Zeichen haben.",
         "oldPasswdEqualsNew": "Neues Passwort darf nicht dem alten entsprechen.",
         "oldPasswordWrong": "Das alte Passwort wurde nicht korrekt eingegeben.",
-        "passwordQualityCheck": "Passwort muss mindestens {arg0} Zeichen und sowohl mindestens einen Buchstaben als auch einen Nicht-Buchstaben enthalten."
+        "passwordQualityCheck": "Passwort muss mindestens {arg0} Zeichen und sowohl mindestens einen Buchstaben als auch einen Nicht-Buchstaben enthalten.",
+        "passwordQualityCheckCharacterClasses": "Passwort muss mindestens {arg0} Zeichen haben und Zeichen aus mindestens {arg1} der 4 Klassen Großbuchstaben, Kleinbuchstaben, Ziffern und Sonderzeichen enthalten."
       },
       "msg": {
         "passwordSuccessfullyChanged": "Passwort wurde erfolgreich geändert."
