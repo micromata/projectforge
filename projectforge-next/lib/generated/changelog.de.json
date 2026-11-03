@@ -1,26 +1,5 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
-  "unreleased" : {
-    "id" : "unreleased",
-    "version" : "9.2.4",
-    "date" : "2026-11-03",
-    "title" : "ProjectForge 9.2.5: Melden und Blockieren im Chat, CVE-Radar mit OSV.dev, konfigurierbare Passwortregeln",
-    "summary" : [ "**Chat**: Nachrichten melden, Nutzer blockieren", "**CVE-Radar**: Abgleich der Bibliotheken mit den Advisories von OSV.dev", "**Passwörter**: konfigurierbare Anzahl von Zeichenklassen", "Korrektur: Die Bruttosumme einer Rechnung stimmt auf den Cent mit der E-Rechnung überein" ],
-    "overview" : [ "**Chat:** Nachrichten anderer können den Administratoren gemeldet und Nutzer blockiert werden: keine Direktnachrichten, Benachrichtigungen, Erwähnungen oder Suchtreffer von ihnen.", "**CVE-Radar:** Die Bibliotheken des Inventars werden nach Paket und Version gegen die Advisories von OSV.dev abgeglichen (Maven, npm, PyPI, NuGet, Packagist, Go, crates.io), auch wenn die NVD sie spät oder gar nicht nennt.", "**Anmeldung:** Die Anzahl der Zeichenklassen, die ein Passwort enthalten muss (z. B. 3 von 4), ist neben der Mindestlänge konfigurierbar; Login-Namen in projectforge.2fa.exemptUsers brauchen keinen zweiten Faktor, z. B. der Zugang einer App-Store-Prüfung.", "**Mobile App (in Vorbereitung):** Der Chat-Tab zeigt kein Menü der Webversion, ein erneuter Klick auf den Chat-Button führt zurück zur Chat-Startseite; schärfere Adressbilder in der Adressliste.", "**Korrekturen:** Die Bruttosumme einer Rechnung ist die Nettosumme plus die MwSt-Summe und weicht nicht mehr um einen Cent von der E-Rechnung ab; der Export der E-Rechnung bricht bei abweichenden Summen ab; das Rechnungsdokument zeigt Menge und Einzelpreis mit allen Nachkommastellen." ],
-    "sections" : [ {
-      "type" : "added",
-      "items" : [ "Einstellung projectforge.2fa.exemptUsers: Login-Namen, die keinen zweiten Faktor brauchen, z. B. für den Zugang einer App-Store-Prüfung.", "Chat: Nachrichten anderer können den Administratoren gemeldet und Nutzer blockiert werden (keine Direktnachrichten, keine Benachrichtigungen, Erwähnungen oder Suchtreffer von ihnen).", "CVE-Radar: Die Bibliotheken des Inventars werden nach Paket und Version gegen die Advisories von OSV.dev abgeglichen (Maven, npm, PyPI, NuGet, Packagist, Go, crates.io), auch wenn die NVD sie spät oder gar nicht nennt; ein passendes Advisory wird unabhängig von seiner Bewertung eine Schwachstelle.", "Passwörter: Die Anzahl der Zeichenklassen, aus denen ein Passwort Zeichen enthalten muss (Großbuchstaben, Kleinbuchstaben, Ziffern, Sonderzeichen, z. B. 3 von 4), ist neben der Mindestlänge konfigurierbar." ]
-    }, {
-      "type" : "improved",
-      "items" : [ "Adressbilder: größere Vorschaubilder, damit sie in der Adressliste der App scharf dargestellt werden (vorhandene Vorschaubilder werden erneuert, wenn die Bilder in der Administration erneut verkleinert werden).", "App: Der Chat-Tab zeigt kein Menü der Webversion; ein erneuter Klick auf den Chat-Button führt zurück zur Chat-Startseite." ]
-    }, {
-      "type" : "fixed",
-      "items" : [ {
-        "title" : "Rechnungen: Rechnungsdokument und E-Rechnung rechnen mit denselben Formeln",
-        "items" : [ "Die Bruttosumme ist die Nettosumme plus die MwSt-Summe. Bisher war sie die Summe der Bruttobeträge der Positionen, deren MwSt je Position gerundet ist, und konnte um einen Cent von der E-Rechnung abweichen, sodass der Empfänger die Rechnung ablehnen konnte.", "Der Export einer E-Rechnung (XRechnung, ZUGFeRD) vergleicht ihre Summen mit denen der Rechnung und bricht ab, wenn sie abweichen.", "Das Rechnungsdokument zeigt Menge und Einzelpreis mit allen Nachkommastellen wie die E-Rechnung, statt auf zwei gerundet." ]
-      } ]
-    } ]
-  },
   "groups" : [ {
     "major" : "9",
     "head" : {
@@ -73,6 +52,28 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-2-5",
+      "version" : "9.2.5",
+      "date" : "2026-11-03",
+      "title" : "ProjectForge 9.2.5: Melden und Blockieren im Chat, CVE-Radar mit OSV.dev, konfigurierbare Passwortregeln",
+      "tag" : "9.2.5-RELEASE",
+      "published" : false,
+      "summary" : [ "**Chat**: Nachrichten melden, Nutzer blockieren", "**CVE-Radar**: Abgleich der Bibliotheken mit den Advisories von OSV.dev", "**Passwörter**: konfigurierbare Anzahl von Zeichenklassen", "Korrektur: Die Bruttosumme einer Rechnung stimmt auf den Cent mit der E-Rechnung überein" ],
+      "overview" : [ "**Chat:** Nachrichten anderer können den Administratoren gemeldet und Nutzer blockiert werden: keine Direktnachrichten, Benachrichtigungen, Erwähnungen oder Suchtreffer von ihnen.", "**CVE-Radar:** Die Bibliotheken des Inventars werden nach Paket und Version gegen die Advisories von OSV.dev abgeglichen (Maven, npm, PyPI, NuGet, Packagist, Go, crates.io), auch wenn die NVD sie spät oder gar nicht nennt.", "**Anmeldung:** Die Anzahl der Zeichenklassen, die ein Passwort enthalten muss (z. B. 3 von 4), ist neben der Mindestlänge konfigurierbar; Login-Namen in projectforge.2fa.exemptUsers brauchen keinen zweiten Faktor, z. B. der Zugang einer App-Store-Prüfung.", "**Mobile App (in Vorbereitung):** Der Chat-Tab zeigt kein Menü der Webversion, ein erneuter Klick auf den Chat-Button führt zurück zur Chat-Startseite; schärfere Adressbilder in der Adressliste.", "**Korrekturen:** Die Bruttosumme einer Rechnung ist die Nettosumme plus die MwSt-Summe und weicht nicht mehr um einen Cent von der E-Rechnung ab; der Export der E-Rechnung bricht bei abweichenden Summen ab; das Rechnungsdokument zeigt Menge und Einzelpreis mit allen Nachkommastellen." ],
+      "sections" : [ {
+        "type" : "added",
+        "items" : [ "Einstellung projectforge.2fa.exemptUsers: Login-Namen, die keinen zweiten Faktor brauchen, z. B. für den Zugang einer App-Store-Prüfung.", "Chat: Nachrichten anderer können den Administratoren gemeldet und Nutzer blockiert werden (keine Direktnachrichten, keine Benachrichtigungen, Erwähnungen oder Suchtreffer von ihnen).", "CVE-Radar: Die Bibliotheken des Inventars werden nach Paket und Version gegen die Advisories von OSV.dev abgeglichen (Maven, npm, PyPI, NuGet, Packagist, Go, crates.io), auch wenn die NVD sie spät oder gar nicht nennt; ein passendes Advisory wird unabhängig von seiner Bewertung eine Schwachstelle.", "Passwörter: Die Anzahl der Zeichenklassen, aus denen ein Passwort Zeichen enthalten muss (Großbuchstaben, Kleinbuchstaben, Ziffern, Sonderzeichen, z. B. 3 von 4), ist neben der Mindestlänge konfigurierbar." ]
+      }, {
+        "type" : "improved",
+        "items" : [ "Adressbilder: größere Vorschaubilder, damit sie in der Adressliste der App scharf dargestellt werden (vorhandene Vorschaubilder werden erneuert, wenn die Bilder in der Administration erneut verkleinert werden).", "App: Der Chat-Tab zeigt kein Menü der Webversion; ein erneuter Klick auf den Chat-Button führt zurück zur Chat-Startseite." ]
+      }, {
+        "type" : "fixed",
+        "items" : [ {
+          "title" : "Rechnungen: Rechnungsdokument und E-Rechnung rechnen mit denselben Formeln",
+          "items" : [ "Die Bruttosumme ist die Nettosumme plus die MwSt-Summe. Bisher war sie die Summe der Bruttobeträge der Positionen, deren MwSt je Position gerundet ist, und konnte um einen Cent von der E-Rechnung abweichen, sodass der Empfänger die Rechnung ablehnen konnte.", "Der Export einer E-Rechnung (XRechnung, ZUGFeRD) vergleicht ihre Summen mit denen der Rechnung und bricht ab, wenn sie abweichen.", "Das Rechnungsdokument zeigt Menge und Einzelpreis mit allen Nachkommastellen wie die E-Rechnung, statt auf zwei gerundet." ]
+        } ]
+      } ]
+    }, {
       "id" : "9-2-4",
       "version" : "9.2.4",
       "date" : "2026-11-02",

@@ -1,13 +1,61 @@
 ---
 title: "ProjectForge 9"
-date: 2026-11-02
-sort_key: "2026-11-02 0054"
+date: 2026-11-03
+sort_key: "2026-11-03 0055"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-2-5.changelog-release]
+=== ProjectForge 9.2.5: report and block in the chat, CVE-Radar with OSV.dev, configurable password rules
+
+[.changelog-source]
+__2026-11-03, tag https://github.com/micromata/projectforge/tree/9.2.5-RELEASE[9.2.5-RELEASE]__ +++{% include release-pills.html tag="9.2.5-RELEASE" docker="9.2.5" mini=true %}+++
+
+- **Chat**: report messages, block users
+- **CVE-Radar**: libraries matched against the advisories of OSV.dev
+- **Passwords**: configurable number of character classes
+- Fix: the gross sum of an invoice matches the e-invoice to the cent
+
+.Overview
+[%collapsible]
+====
+- **Chat:** messages of others can be reported to the administrators, and users can be blocked: no direct messages, notifications, mentions or search hits of them.
+- **CVE-Radar:** the libraries of the inventory are matched by package and version against the advisories of OSV.dev (Maven, npm, PyPI, NuGet, Packagist, Go, crates.io), also when the NVD names them late or not at all.
+- **Login:** the number of character classes a password must contain (e.g. 3 of 4) is configurable next to the minimum length; login names in projectforge.2fa.exemptUsers need no second factor, e.g. the account of an app store review.
+- **Mobile app (in preparation):** the chat tab shows no menu of the web version, tapping the chat button again leads back to the chat start page; sharper address images in the address list.
+- **Fixes:** the gross sum of an invoice is the net sum plus the vat sum and no longer differs by a cent from the e-invoice; the e-invoice export refuses sums that differ from the invoice; the invoice document shows quantity and unit price with all their decimals.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Setting projectforge.2fa.exemptUsers: login names that need no second factor, e.g. for the account of an app store review.
+- Chat: messages of others can be reported to the administrators, and users can be blocked (no direct messages, no notifications, mentions or search hits of them).
+- CVE-Radar: the libraries of the inventory are matched by package and version against the advisories of OSV.dev (Maven, npm, PyPI, NuGet, Packagist, Go, crates.io), also when the NVD names them late or not at all; a matching advisory becomes a vulnerability whatever its score.
+- Passwords: the number of character classes a password must contain (uppercase letters, lowercase letters, digits, special characters, e.g. 3 of 4) is configurable next to the minimum length.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Address images: larger preview images, so they look sharp in the app's address list (existing previews are renewed when the images are shrunk again in the administration).
+- App: the chat tab shows no menu of the web version; tapping the chat button again leads back to the chat start page.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- **Invoices: the invoice document and the e-invoice use the same formulas**
+  * The gross sum is the net sum plus the vat sum. It was the sum of the positions' gross amounts, whose vat is rounded per position, and could differ by a cent from the e-invoice, so the recipient could reject the invoice.
+  * The export of an e-invoice (XRechnung, ZUGFeRD) compares its sums with those of the invoice and refuses the export if they differ.
+  * The invoice document shows quantity and unit price with all their decimals, as the e-invoice does, instead of rounded to two.
+====
 
 [discrete#release-9-2-4.changelog-release]
 === ProjectForge 9.2.4: e-invoice buyer fields, mobile app with several servers and task tree, daily error digest
