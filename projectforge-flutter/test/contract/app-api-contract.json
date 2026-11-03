@@ -221,6 +221,110 @@
           ]
         }
       ]
+    },
+    {
+      "name": "App login and session",
+      "notes": "state, error and code are the query parameters of the redirect projectforge://auth built by the server (AppAuthService), serverUrl is the app's own stored session.",
+      "dartFiles": [
+        "lib/core/auth/app_login.dart",
+        "lib/core/auth/auth_controller.dart",
+        "lib/core/auth/session.dart",
+        "lib/features/web/web_session_repository.dart"
+      ],
+      "ignoreKeys": [
+        "state",
+        "error",
+        "code",
+        "serverUrl"
+      ],
+      "endpoints": [
+        {
+          "call": "POST /rsPublic/appAuth/token",
+          "controller": "org.projectforge.rest.app.AppAuthPublicRest",
+          "request": "org.projectforge.rest.app.AppAuthPublicRest$TokenRequest",
+          "sends": [
+            "code",
+            "codeVerifier"
+          ],
+          "answer": "org.projectforge.rest.app.AppAuthPublicRest$TokenResponse",
+          "reads": [
+            "userId",
+            "deviceId",
+            "token",
+            "username",
+            "fullname",
+            "proxyCookies",
+            "appLoginPath"
+          ]
+        },
+        {
+          "call": "GET /rsPublic/systemStatus",
+          "controller": "org.projectforge.rest.pub.SystemStatusRest",
+          "answer": "org.projectforge.rest.pub.SystemStatusRest$SystemData",
+          "reads": [
+            "minAppVersion",
+            "appLoginPath"
+          ],
+          "optionalReads": [
+            "appname",
+            "version"
+          ]
+        },
+        {
+          "call": "POST /rs/appAuth/logout",
+          "controller": "org.projectforge.rest.app.AppAuthRest"
+        },
+        {
+          "call": "POST /rs/appAuth/webSession",
+          "controller": "org.projectforge.rest.app.AppAuthRest",
+          "answer": "org.projectforge.rest.app.AppAuthRest$WebSessionResponse",
+          "reads": [
+            "startUrl"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Push registration",
+      "notes": "launchLink and environment are answers of the native part of the app (method channel), not of the server.",
+      "dartFiles": [
+        "lib/core/push/push_service.dart"
+      ],
+      "ignoreKeys": [
+        "launchLink",
+        "environment"
+      ],
+      "endpoints": [
+        {
+          "call": "POST /rs/appAuth/pushToken",
+          "controller": "org.projectforge.rest.app.AppAuthRest",
+          "request": "org.projectforge.rest.app.AppAuthRest$PushTokenRequest",
+          "sends": [
+            "token",
+            "environment"
+          ]
+        },
+        {
+          "call": "POST /rs/appAuth/pushToken/remove",
+          "controller": "org.projectforge.rest.app.AppAuthRest"
+        }
+      ]
+    },
+    {
+      "name": "Theme",
+      "dartFiles": [
+        "lib/core/theme/theme_controller.dart"
+      ],
+      "endpoints": [
+        {
+          "call": "GET /rs/uiSettings/theme",
+          "controller": "org.projectforge.rest.UISettingsRest",
+          "answer": "org.projectforge.rest.UIThemeSettings",
+          "reads": [
+            "theme"
+          ]
+        }
+      ]
     }
   ]
 }

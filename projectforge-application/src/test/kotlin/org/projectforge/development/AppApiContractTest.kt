@@ -60,8 +60,8 @@ class AppApiContractTest {
         contracts.forEach { contract ->
             assertTrue(endpoints(contract).isNotEmpty(), "${contract["name"].asText()} has no endpoint.")
             assertTrue(
-                endpoints(contract).any { it.texts("reads").isNotEmpty() },
-                "${contract["name"].asText()} reads nothing."
+                endpoints(contract).any { it.texts("reads").isNotEmpty() || it.texts("sends").isNotEmpty() },
+                "${contract["name"].asText()} reads and sends nothing."
             )
         }
     }
@@ -82,6 +82,26 @@ class AppApiContractTest {
         assertTrue(
             missing.isEmpty(),
             "The published app reads fields the server no longer delivers (keep them deprecated or raise " +
+                    "MIN_APP_VERSION, see dev-docs/flutter-client.md): $missing"
+        )
+    }
+
+    @Test
+    fun `the server still takes every field the app sends`() {
+        val missing = mutableListOf<String>()
+        contracts.forEach { contract ->
+            endpoints(contract).filter { it.has("request") }.forEach { endpoint ->
+                val root = mapper.constructType(Class.forName(endpoint["request"].asText()))
+                endpoint.texts("sends").forEach { path ->
+                    if (!exists(root, path.split('.'), deserialize = true)) {
+                        missing.add("${endpoint["call"].asText()}: $path")
+                    }
+                }
+            }
+        }
+        assertTrue(
+            missing.isEmpty(),
+            "The published app sends fields the server no longer reads (keep them deprecated or raise " +
                     "MIN_APP_VERSION, see dev-docs/flutter-client.md): $missing"
         )
     }
@@ -152,18 +172,22 @@ class AppApiContractTest {
     private fun isVariable(segment: String) = segment.startsWith("{") && segment.endsWith("}")
 
     /** True if the type has the property of the path; `[]` steps into the elements of a collection. */
-    private fun exists(type: JavaType, segments: List<String>): Boolean {
+    private fun exists(type: JavaType, segments: List<String>, deserialize: Boolean = false): Boolean {
         if (segments.isEmpty()) {
             return true
         }
         val name = segments.first().removeSuffix("[]")
-        val property = mapper.serializationConfig.introspect(type).findProperties().firstOrNull { it.name == name }
-            ?: return false
+        val properties = if (deserialize) {
+            mapper.deserializationConfig.introspect(type).findProperties()
+        } else {
+            mapper.serializationConfig.introspect(type).findProperties()
+        }
+        val property = properties.firstOrNull { it.name == name } ?: return false
         var next = property.primaryType
         if (segments.first().endsWith("[]")) {
             next = next.contentType ?: return false
         }
-        return exists(next, segments.drop(1))
+        return exists(next, segments.drop(1), deserialize)
     }
 
     companion object {

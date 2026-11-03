@@ -248,10 +248,11 @@ The store version of the app is old the day after a server release, so the serve
    reads of it (`reads`; `optionalReads` for fields it reads defensively and the server may not have; `ignoreKeys` for
    keys that aren't of the api, e.g. the local timer). `AppApiContractTest` (projectforge-application) fails when the
    server loses a named field or endpoint, and when a listed Dart file reads a `['key']` the contract doesn't name, so
-   the contract can't go stale. A new app feature adds its entry in the same commit. Covered: digital business cards,
-   user status, time sheets (with the task endpoints). Not yet: app login (`appAuth`, `systemStatus`), addresses,
-   notifications, push token, ui settings, web session. Only reads of the answer are checked, not what the app sends,
-   and endpoints without a typed answer class (e.g. `GET /rs/timesheet/{id}`) only for existing.
+   the contract can't go stale. A new app feature adds its entry in the same commit.
+   Covered: digital business cards, user status, time sheets (with the task endpoints), app login and session
+   (`appAuth`, `systemStatus`), push registration, theme; for requests the fields the app sends (`request` and `sends`,
+   checked against the request class). Not yet: addresses, notifications. Only the endpoints with a typed answer class
+   have their fields checked, the others (e.g. `GET /rs/timesheet/{id}`) only for existing.
    **Before removing or renaming a field, an endpoint or a value, ask what the published app reads:**
    `git grep -n <name> <tag or commit of the published app version> -- projectforge-flutter/lib`
    (the commit `App: version x.y.z+n` of `pubspec.yaml`). Search the name in the dart models and in the tests' fixtures.
