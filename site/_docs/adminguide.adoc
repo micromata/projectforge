@@ -2011,17 +2011,54 @@ projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
 * A withdrawn advisory matches nothing any more; a vulnerability made of withdrawn advisories only is rejected.
 * The ad-hoc check uses the advisories as well, without storing anything.
 
+[[cve_radar_euvd]]
+==== Vulnerabilities from the EUVD
+
+The European Union Vulnerability Database (EUVD) of the ENISA supplements the NVD. ProjectForge reads its public API
+(no key needed) and adds the EUVD id, the EPSS (probability of exploitation) and the day since the EUVD knows a
+vulnerability to be exploited. It also imports vulnerabilities the NVD doesn't have (yet), among them ones without a
+CVE id. The import is off by default, as it needs internet access.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.euvd.enabled=true
+projectforge.plugin.cveradar.euvd.url=https://euvdservices.enisa.europa.eu/api
+# The first run imports the vulnerabilities published in the last 30 days (no back-fill of history).
+projectforge.plugin.cveradar.euvd.initialDays=30
+# Every run reads the publications of the last 7 days again (rating and CVE id often come later).
+projectforge.plugin.cveradar.euvd.rescanDays=7
+# New vulnerabilities from this CVSS score on.
+projectforge.plugin.cveradar.euvd.minCvss=7.0
+# Pause between two requests in milliseconds.
+projectforge.plugin.cveradar.euvd.pauseMillis=1000
+# Every 2 hours at minute 37 (UTC), after the NVD import.
+projectforge.plugin.cveradar.euvd.cron=0 37 */2 * * *
+----
+
+* The EUVD filters by the day of publication, not by the day of the last change. That is why every run reads the last
+  `rescanDays` days again, and why a change of an older entry reaches ProjectForge only through the daily read of all
+  entries known to be exploited (it updates the vulnerabilities stored, it doesn't add new ones).
+* A vulnerability of the NVD (or of OSV.dev) gets the EUVD id, the EPSS and the day of exploitation, nothing else; only a
+  vulnerability without any rating also gets the CVSS score of the EUVD. The NVD stays the source of the details.
+* A vulnerability the NVD doesn't have is named by its CVE id, without one by its EUVD id (status _EUVD_). Its details
+  come from the EUVD until the NVD modifies the CVE and takes it over. New ones are imported from `minCvss` on; an
+  entry the EUVD hasn't rated is skipped until it is.
+* The EUVD has no CPE and no version ranges, only the names of vendor and product. A library or product whose name
+  equals such a product name is therefore matched as _possible_, never as _affected_. As soon as the NVD gives CPE entries
+  for the CVE, these replace the entries made of the names.
+* The EUVD doesn't document a rate limit; ProjectForge pauses between requests and retries with a growing delay.
+
 [[cve_radar_jobs]]
 ==== Jobs and connections
 
 * The connector and the imports run as jobs, _CVE-Radar: client agents_,
-  _CVE-Radar: NVD import_ and _CVE-Radar: OSV import_, listed under
+  _CVE-Radar: NVD import_, _CVE-Radar: OSV import_ and _CVE-Radar: EUVD import_, listed under
   _Administration_ -> _Job monitor_. There they can be started at once (_Run now_); while their source isn't configured, they
   are shown as inactive with the reason. The summary of every run is
   shown in the run and logged, errors are part of the error digest.
 * Timeouts and the max size of a response are set per connection with
   `projectforge.integration.clients.cveradar-graylog.*` and
-  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*` (e.g.
+  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*`, `projectforge.integration.clients.cveradar-euvd.*` (e.g.
   `responseTimeoutMs`, `maxResponseBytes`, default 50 MB; for the NVD 180 s and 200 MB, as a page has up to 2000
   vulnerabilities; for OSV.dev 180 s and 1 GB for the zip of an ecosystem, downloaded into a temporary file).
 * An outgoing proxy isn't supported yet: ProjectForge must reach the hosts directly.

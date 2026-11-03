@@ -107,6 +107,9 @@ open class IntegrationConfig {
         /** The import of the CVE-Radar (plugin cveradar) from the bucket of OSV.dev. */
         const val CVERADAR_OSV = "cveradar-osv"
 
+        /** The import of the CVE-Radar (plugin cveradar) from the EUVD of the ENISA. */
+        const val CVERADAR_EUVD = "cveradar-euvd"
+
         /**
          * Used, if neither the id nor the default is configured.
          */
@@ -132,6 +135,8 @@ open class IntegrationConfig {
             CVERADAR_NVD to IntegrationSettings(responseTimeoutMs = 180_000, maxResponseBytes = 200L * 1024 * 1024),
             // All advisories of an ecosystem in one zip, npm about 250 MB (most of them malicious packages).
             CVERADAR_OSV to IntegrationSettings(responseTimeoutMs = 180_000, maxResponseBytes = 1024L * 1024 * 1024),
+            // A page of the EUVD has 50 entries.
+            CVERADAR_EUVD to IntegrationSettings(responseTimeoutMs = 60_000, maxResponseBytes = 20L * 1024 * 1024),
         )
 
         private var instance: IntegrationConfig? = null

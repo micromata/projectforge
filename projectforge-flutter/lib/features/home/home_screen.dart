@@ -42,7 +42,9 @@ import '../settings/settings_screen.dart';
 import 'server_switch.dart';
 import 'system_alert_banner.dart';
 import '../timesheets/timesheets_screen.dart';
+import '../web/web_browser_menu.dart';
 import '../web/web_screen.dart';
+import '../web/web_screen_controller.dart';
 
 /// The tabs of the logged-in app.
 enum _Destination { businessCards, addresses, timesheets, chat, web }
@@ -71,8 +73,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// The WebViews are created when their tab is opened first, and then kept (with their page) while switching.
   final _opened = <_Destination>{};
 
-  /// The restarts of the WebView tabs asked for in the account menu (see [WebScreen.restarts]).
-  final _restarts = <_Destination, int>{};
+  /// The browser functions of the WebView tabs, for their menu in the navigation.
+  final _webControllers = {
+    _Destination.chat: WebScreenController(),
+    _Destination.web: WebScreenController(),
+  };
 
   /// Keeps the tabs (the WebViews with their pages) while the frame around them changes: with or without the bar of
   /// the native tab, portrait or landscape. Otherwise they would be created again, back on their start page.
@@ -90,6 +95,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(pushServiceProvider)?.start().catchError((Object _) {});
     });
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _webControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -154,7 +167,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       active: current == destination,
                       initialPath: _chatTarget?.path ?? _chatPath,
                       target: _chatTarget,
-                      restarts: _restarts[destination] ?? 0,
+                      controller: _webControllers[destination],
                     )
                   : const SizedBox.shrink(),
             _Destination.web =>
@@ -165,7 +178,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       initialPath: _webTarget?.path,
                       target: _webTarget,
                       onNativePage: (page) => _openNative(page, chatEnabled),
-                      restarts: _restarts[destination] ?? 0,
+                      controller: _webControllers[destination],
                     )
                   : const SizedBox.shrink(),
           },
@@ -199,9 +212,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       _ => null,
     };
+    final webController = _webControllers[current];
     final actions = [
+      if (webController != null) WebBrowserMenu(controller: webController),
       NotificationBell(onOpenLink: _openLink),
-      _accountMenu(context, session, current, issue),
+      _accountMenu(context, session, issue),
     ];
     if (landscape) {
       // The height is scarce: the navigation stands at the side.
@@ -300,15 +315,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return safeTop ? SafeArea(bottom: false, child: column) : column;
   }
 
-  /// @param current The tab shown: a WebView tab offers a reload, the way out of pages that stay empty.
   Widget _accountMenu(
     BuildContext context,
     Session? session,
-    _Destination current,
     CompatibilityIssue? issue,
   ) {
     final version = ref.watch(appVersionProvider).value;
-    final webTab = current == _Destination.web || current == _Destination.chat;
     return PopupMenuButton<String>(
       tooltip: context.t('settings'),
       // An incompatibility is visible without opening the menu: red gear with an exclamation mark.
@@ -323,9 +335,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
       onSelected: (action) => switch (action) {
-        'reload' => setState(
-          () => _restarts[current] = (_restarts[current] ?? 0) + 1,
-        ),
         'compatibility' => null, // Only to read.
         'server' => showServerSwitch(context, ref),
         'settings' => Navigator.of(
@@ -367,11 +376,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
             ),
-          ),
-        if (webTab)
-          PopupMenuItem(
-            value: 'reload',
-            child: Text(context.t('app.web.reload')),
           ),
         PopupMenuItem(
           value: 'server',

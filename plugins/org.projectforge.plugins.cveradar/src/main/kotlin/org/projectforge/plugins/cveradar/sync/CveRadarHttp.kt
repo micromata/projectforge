@@ -41,6 +41,7 @@ internal object CveRadarHttp {
     const val GRAYLOG = "cveradar-graylog"
     const val NVD = IntegrationConfig.CVERADAR_NVD
     const val OSV = IntegrationConfig.CVERADAR_OSV
+    const val EUVD = IntegrationConfig.CVERADAR_EUVD
 
     /** Used, if `projectforge.integration.clients.<id>.maxResponseBytes` isn't given. */
     private const val DEFAULT_MAX_RESPONSE_BYTES = 50L * 1024 * 1024

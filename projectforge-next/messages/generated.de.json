@@ -4985,6 +4985,12 @@
         }
       },
       "selected": "Ausgewählt: {arg0}",
+      "source": {
+        "_": "Quelle",
+        "EUVD": "EUVD",
+        "NVD": "NVD",
+        "OSV": "OSV"
+      },
       "start": {
         "demo": {
           "hint": "Alle geplanten Funktionen des CVE-Radars als klickbarer Prototyp mit fiktiven Testdaten.",
@@ -5010,6 +5016,12 @@
         "vulnerabilities": {
           "series": "Schwachstellen",
           "title": "Von der NVD veröffentlichte Schwachstellen"
+        },
+        "years": {
+          "_": "Rückblick",
+          "default": "Standard",
+          "n": "{arg0} Jahre",
+          "one": "1 Jahr"
         }
       },
       "system": {
@@ -5126,7 +5138,11 @@
         "cvss40Severity": "Schweregrad CVSS 4.0",
         "cvss40Vector": "Vektor CVSS 4.0",
         "cwe": "CWE",
-        "description": "Beschreibung (NVD)",
+        "description": "Beschreibung",
+        "epss": "EPSS (Wahrscheinlichkeit der Ausnutzung)",
+        "euvdApproximate": "Der EUVD bekannt, die keine CPE liefert: Treffer sind nur über die Produktnamen möglich.",
+        "euvdId": "EUVD-ID",
+        "exploitedSince": "Ausgenutzt (EUVD) seit",
         "kev": "Aktiv ausgenutzt (KEV) seit",
         "modified": "Geändert",
         "nvdStatus": "NVD-Status",

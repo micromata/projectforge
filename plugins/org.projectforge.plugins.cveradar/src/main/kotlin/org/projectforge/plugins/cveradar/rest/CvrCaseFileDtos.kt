@@ -27,6 +27,7 @@ import org.projectforge.plugins.cveradar.model.CvrCaseKind
 import org.projectforge.plugins.cveradar.model.CvrCaseStatus
 import org.projectforge.plugins.cveradar.model.CvrExploitability
 import org.projectforge.plugins.cveradar.model.CvrPriority
+import org.projectforge.plugins.cveradar.model.CvrSource
 import org.projectforge.plugins.cveradar.model.CvrTeamAnswer
 import java.math.BigDecimal
 import java.util.Date
@@ -53,6 +54,14 @@ class VulnerabilityView(
     val cvss40Vector: String?,
     val cwes: List<String>,
     val kevAdded: Date?,
+    /** The id in the EUVD, its EPSS and the day since the EUVD knows it to be exploited (IMP-16). */
+    val euvdId: String?,
+    val epss: BigDecimal?,
+    val exploitedSince: Date?,
+    /** Known to the EUVD only (no CPE of the NVD): a match is possible by the product names only. */
+    val euvdOnly: Boolean,
+    /** Where the data comes from: the NVD, OSV (advisories) and the EUVD. */
+    val sources: List<CvrSource>,
     /** References for remediation (tags Patch, Vendor Advisory, Mitigation, PRIO-04), shown apart from the others. */
     val remediationReferences: List<NvdReference>,
     val otherReferences: List<NvdReference>,

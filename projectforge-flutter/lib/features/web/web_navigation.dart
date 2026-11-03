@@ -101,6 +101,11 @@ class WebNavigation {
       isSameOrigin(url) &&
       (url.path == _loginPath || url.path == '$_loginPath/');
 
+  /// A page of next (below `/next`), not a legacy page (`/wa/`): next scrolls in columns of its own, not the document.
+  bool isNextPage(Uri url) =>
+      isSameOrigin(url) &&
+      (url.path == '/next' || url.path.startsWith('/next/'));
+
   /// The page of the server the app has a native tab for: the chat (and its sub pages, e.g. `/next/chat/5`), the
   /// own business cards, the notifications, the address list (not the view or the form of an address) and the time
   /// sheet list (not the form of a time sheet). Null for other pages and other origins.

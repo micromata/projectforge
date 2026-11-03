@@ -49,17 +49,27 @@ class CvrStatisticsService {
     /** The number of entries of one period, [periodStart] being the first day of the day, week (Monday) or month. */
     class Bucket(val periodStart: LocalDate, val count: Int)
 
-    /** The cases created per period (the date they were reported to the CVE-Radar), oldest first. */
-    fun casesCreated(granularity: Granularity, zone: ZoneId, today: LocalDate = LocalDate.now(zone)): List<Bucket> {
-        val from = firstPeriod(granularity, today)
-        return bucketize(select("select created from CvrCaseDO where created >= :from", from, zone), granularity, zone, today)
+    /**
+     * The cases created per period (the date they were reported to the CVE-Radar), oldest first. [years] is the
+     * window (see [firstPeriod]).
+     */
+    fun casesCreated(
+        granularity: Granularity, zone: ZoneId, years: Int? = null, today: LocalDate = LocalDate.now(zone),
+    ): List<Bucket> {
+        val from = firstPeriod(granularity, today, years)
+        return bucketize(
+            select("select created from CvrCaseDO where created >= :from", from, zone), granularity, zone, today, years,
+        )
     }
 
-    /** The vulnerabilities published by the NVD per period, oldest first. */
-    fun vulnerabilitiesPublished(granularity: Granularity, zone: ZoneId, today: LocalDate = LocalDate.now(zone)): List<Bucket> {
-        val from = firstPeriod(granularity, today)
+    /** The vulnerabilities published by the NVD per period, oldest first. [years] is the window (see [firstPeriod]). */
+    fun vulnerabilitiesPublished(
+        granularity: Granularity, zone: ZoneId, years: Int? = null, today: LocalDate = LocalDate.now(zone),
+    ): List<Bucket> {
+        val from = firstPeriod(granularity, today, years)
         return bucketize(
-            select("select published from CvrVulnerabilityDO where published >= :from", from, zone), granularity, zone, today,
+            select("select published from CvrVulnerabilityDO where published >= :from", from, zone),
+            granularity, zone, today, years,
         )
     }
 
@@ -71,6 +81,9 @@ class CvrStatisticsService {
         const val DAYS = 90L
         const val WEEKS = 52L
         const val MONTHS = 24L
+
+        /** The longest window to look back, in years. */
+        const val MAX_YEARS = 10
 
         fun periodStart(day: LocalDate, granularity: Granularity): LocalDate = when (granularity) {
             Granularity.DAY -> day
@@ -84,22 +97,34 @@ class CvrStatisticsService {
             Granularity.MONTH -> start.plusMonths(1)
         }
 
-        /** The first period of the window ending with the period of [today]. */
-        fun firstPeriod(granularity: Granularity, today: LocalDate): LocalDate = when (granularity) {
-            Granularity.DAY -> today.minusDays(DAYS - 1)
-            Granularity.WEEK -> periodStart(today, granularity).minusWeeks(WEEKS - 1)
-            Granularity.MONTH -> periodStart(today, granularity).minusMonths(MONTHS - 1)
+        /**
+         * The first period of the window ending with the period of [today]. Without [years] the window is [DAYS],
+         * [WEEKS] or [MONTHS] periods long, otherwise it covers the last [years] years (1 to [MAX_YEARS]), e. g.
+         * twelve months for one year.
+         */
+        fun firstPeriod(granularity: Granularity, today: LocalDate, years: Int? = null): LocalDate {
+            if (years != null) {
+                val yearAgo = periodStart(today, granularity).minusYears(years.coerceIn(1, MAX_YEARS).toLong())
+                return next(periodStart(yearAgo, granularity), granularity)
+            }
+            return when (granularity) {
+                Granularity.DAY -> today.minusDays(DAYS - 1)
+                Granularity.WEEK -> periodStart(today, granularity).minusWeeks(WEEKS - 1)
+                Granularity.MONTH -> periodStart(today, granularity).minusMonths(MONTHS - 1)
+            }
         }
 
         /**
          * Counts the dates per period in the time zone of the user. Every period of the window is there, also
          * without entries: a gap on the axis would read as "nothing to count" and is a zero instead.
          */
-        fun bucketize(dates: Collection<Date>, granularity: Granularity, zone: ZoneId, today: LocalDate): List<Bucket> {
+        fun bucketize(
+            dates: Collection<Date>, granularity: Granularity, zone: ZoneId, today: LocalDate, years: Int? = null,
+        ): List<Bucket> {
             val counts = dates.groupingBy { periodStart(Instant.ofEpochMilli(it.time).atZone(zone).toLocalDate(), granularity) }
                 .eachCount()
             val result = mutableListOf<Bucket>()
-            var start = firstPeriod(granularity, today)
+            var start = firstPeriod(granularity, today, years)
             val last = periodStart(today, granularity)
             while (start <= last) {
                 result.add(Bucket(start, counts[start] ?: 0))

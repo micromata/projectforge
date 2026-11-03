@@ -169,7 +169,7 @@ class NvdImportService {
 
     /** The CPE entries of the document are the index of the matching; the vulnerability is matched after the import. */
     private fun indexAndRemember(vulnerability: CvrVulnerabilityDO, cve: NvdCve, result: Result) {
-        matchingService.replaceIndex(vulnerability.id!!, cve.cpes)
+        matchingService.replaceIndex(vulnerability.id!!, cve.cpes, cve.rejected)
         result.changedIds.add(vulnerability.id!!)
     }
 
