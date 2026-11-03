@@ -243,11 +243,24 @@ The store version of the app is old the day after a server release, so the serve
 
 1. **Adding is free.** New fields and endpoints need no care; the app reads tolerantly (`== true`, `?? default`,
    unknown fields are ignored), and so must new app code.
-2. **Before removing or renaming a field, an endpoint or a value, ask what the published app reads:**
+2. **The contract test guards it:** `projectforge-flutter/test/contract/app-api-contract.json` names, per feature, the
+   Dart files and the endpoints the app calls, each with its controller, the class of the answer and the fields the app
+   reads of it (`reads`; `optionalReads` for fields it reads defensively and the server may not have; `ignoreKeys` for
+   keys that aren't of the api, e.g. the local timer). `AppApiContractTest` (projectforge-application) fails when the
+   server loses a named field or endpoint, and when a listed Dart file reads a `['key']` the contract doesn't name, so
+   the contract can't go stale. A new app feature adds its entry in the same commit.
+   Covered: digital business cards, user status, time sheets (with the task endpoints), addresses, notifications, app
+   login and session (`appAuth`, `systemStatus`), push registration, theme, the answers to failed requests (`types`:
+   validation errors, second factor required); for requests the fields the app sends (`request` and `sends`, checked
+   against the request class). A Dart file that reads a `['key']` and is in no contract fails the test, so new app code can't bypass it. Only the
+   endpoints with a typed answer class have their fields checked, the others (e.g. `GET /rs/timesheet/{id}`) only for
+   existing.
+   **Before removing or renaming a field, an endpoint or a value, ask what the published app reads:**
    `git grep -n <name> <tag or commit of the published app version> -- projectforge-flutter/lib`
    (the commit `App: version x.y.z+n` of `pubspec.yaml`). Search the name in the dart models and in the tests' fixtures.
-3. **Not read** (or only parsed, never used): remove it at once, as for any server-only change.
-4. **Read:** the server keeps delivering it, marked `@Deprecated("app <= x.y.z reads it, remove with MIN_APP_VERSION > x.y.z")`
+3. **Not read** (or only parsed, never used): remove it at once, as for any server-only change; the contract test
+   then doesn't name it.
+4. **Read** (the contract names it, the test fails when it goes): the server keeps delivering it, marked `@Deprecated("app <= x.y.z reads it, remove with MIN_APP_VERSION > x.y.z")`
    in the KDoc/annotation, with the replacement beside it, and the entry goes into
    [app-api-deprecations.md](app-api-deprecations.md). The next app release stops reading it.
 5. **Clean-up:** an entry goes when `AppCompatibility.MIN_APP_VERSION` is above the last app version that reads it; the

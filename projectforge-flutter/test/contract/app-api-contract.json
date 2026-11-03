@@ -1,0 +1,492 @@
+{
+  "description": "What the app reads of the server api (checked by AppApiContractTest in projectforge-application). Per contract: the Dart files and the endpoints the app calls, each with the controller, the class of its answer (list: true for a list of it) and the fields the app reads of it (paths below the answer class, [] steps into a list). An endpoint without answer is only checked for existing. optionalReads are fields the app reads defensively (a fallback exists): they are listed so the Dart files stay covered, but the server may not have them. Every ['key'] a listed Dart file reads must be named here (in reads, optionalReads or ignoreKeys), and everything in reads must exist on the server. Removing or renaming a field named here breaks the published app: see dev-docs/flutter-client.md, 'Changing an api the app uses'.",
+  "contracts": [
+    {
+      "name": "Digital business cards",
+      "dartFiles": [
+        "lib/features/business_cards/business_card.dart",
+        "lib/features/business_cards/business_card_qr_screen.dart",
+        "lib/features/business_cards/business_cards_repository.dart",
+        "lib/features/business_cards/business_cards_screen.dart"
+      ],
+      "endpoints": [
+        {
+          "call": "GET /rs/myBusinessCards",
+          "controller": "org.projectforge.rest.businesscard.BusinessCardRest",
+          "answer": "org.projectforge.rest.businesscard.BusinessCardRest$InitData",
+          "reads": [
+            "cards[].card.id",
+            "cards[].card.cardName",
+            "cards[].card.addressId",
+            "cards[].card.includePhoto",
+            "cards[].card.title",
+            "cards[].card.firstName",
+            "cards[].card.lastName",
+            "cards[].card.organization",
+            "cards[].preview.qrCodeUrl",
+            "cards[].preview.vCardLength",
+            "cards[].preview.withPhoto",
+            "cards[].preview.photoAllowed",
+            "suggestion",
+            "maxCards",
+            "walletConfigured"
+          ]
+        },
+        {
+          "call": "GET /rs/myBusinessCards/vcf",
+          "controller": "org.projectforge.rest.businesscard.BusinessCardRest"
+        },
+        {
+          "call": "GET /rs/myBusinessCards/pkpass",
+          "controller": "org.projectforge.rest.businesscard.BusinessCardRest"
+        }
+      ]
+    },
+    {
+      "name": "User status",
+      "dartFiles": [
+        "lib/core/status/user_status.dart",
+        "lib/core/status/user_status_controller.dart",
+        "lib/core/status/user_status_repository.dart"
+      ],
+      "endpoints": [
+        {
+          "call": "GET /rs/userStatus",
+          "controller": "org.projectforge.rest.UserStatusRest",
+          "answer": "org.projectforge.rest.UserStatusRest$Result",
+          "reads": [
+            "chatUnread",
+            "disabledFeatures",
+            "notifications.openCount",
+            "notifications.maxSeverity",
+            "notifications.latestId",
+            "theme",
+            "systemData.version",
+            "systemData.minAppVersion"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Time sheets",
+      "dartFiles": [
+        "lib/features/timesheets/booking_form.dart",
+        "lib/features/timesheets/task_picker.dart",
+        "lib/features/timesheets/time_utils.dart",
+        "lib/features/timesheets/timer_banner.dart",
+        "lib/features/timesheets/timesheet.dart",
+        "lib/features/timesheets/timesheets_controller.dart",
+        "lib/features/timesheets/timesheets_repository.dart",
+        "lib/features/timesheets/timesheets_screen.dart"
+      ],
+      "ignoreKeys": [
+        "user",
+        "start",
+        "what",
+        "time",
+        "general"
+      ],
+      "endpoints": [
+        {
+          "call": "GET /rs/timesheet/appList",
+          "controller": "org.projectforge.rest.TimesheetEntityRest",
+          "answer": "org.projectforge.rest.TimesheetEntityRest$AppTimesheetList",
+          "reads": [
+            "timesheets[].id",
+            "timesheets[].startTime",
+            "timesheets[].stopTime",
+            "timesheets[].acceptance",
+            "timesheets[].task.id",
+            "timesheets[].task.title",
+            "timesheets[].task.path",
+            "timesheets[].kost2.id",
+            "timesheets[].kost2.description",
+            "timesheets[].description",
+            "timesheets[].location",
+            "timesheets[].reference",
+            "timesheets[].tag",
+            "tags",
+            "timesheets[].kost2.formattedNumber"
+          ],
+          "optionalReads": [
+            "timesheets[].task.displayName",
+            "timesheets[].task.path[].title",
+            "timesheets[].kost2.title",
+            "timesheets[].kost2.displayName"
+          ]
+        },
+        {
+          "call": "GET /rs/timesheet/{id}",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "PUT /rs/timesheet/insert",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "PUT /rs/timesheet/update",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "DELETE /rs/timesheet/markAsDeleted",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "PUT /rs/timesheet/undelete",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "GET /rs/timesheet/recentList",
+          "controller": "org.projectforge.rest.TimesheetEntityRest",
+          "answer": "org.projectforge.rest.TimesheetEntityRest$RecentTimesheets",
+          "reads": [
+            "timesheets[].task",
+            "timesheets[].kost2",
+            "timesheets[].description",
+            "timesheets[].location",
+            "timesheets[].reference",
+            "timesheets[].tag"
+          ]
+        },
+        {
+          "call": "GET /rs/timesheet/favorites/list",
+          "controller": "org.projectforge.rest.TimesheetFavoritesRest",
+          "answer": "org.projectforge.business.timesheet.TimesheetFavorite",
+          "list": true,
+          "reads": [
+            "id",
+            "name",
+            "taskId",
+            "cost2Id",
+            "description",
+            "location",
+            "reference",
+            "tag"
+          ]
+        },
+        {
+          "call": "POST /rs/timesheet/favorites/create",
+          "controller": "org.projectforge.rest.TimesheetFavoritesRest"
+        },
+        {
+          "call": "POST /rs/timesheet/favorites/delete",
+          "controller": "org.projectforge.rest.TimesheetFavoritesRest"
+        },
+        {
+          "call": "GET /rs/task/tree/autosearch",
+          "controller": "org.projectforge.rest.task.TaskServicesRest",
+          "answer": "org.projectforge.rest.core.AbstractEntityRest$DisplayObject",
+          "list": true,
+          "reads": [
+            "id",
+            "displayName"
+          ]
+        },
+        {
+          "call": "GET /rs/task/recent/list",
+          "controller": "org.projectforge.rest.task.TaskServicesRest",
+          "answer": "org.projectforge.rest.core.AbstractEntityRest$DisplayObject",
+          "list": true,
+          "reads": [
+            "id",
+            "displayName"
+          ]
+        },
+        {
+          "call": "GET /rs/task/tree/children",
+          "controller": "org.projectforge.rest.task.TaskServicesRest",
+          "answer": "org.projectforge.rest.task.TaskServicesRest$TaskChild",
+          "list": true,
+          "reads": [
+            "id",
+            "title",
+            "hasChildren",
+            "bookable"
+          ]
+        },
+        {
+          "call": "GET /rs/task/info/{id}",
+          "controller": "org.projectforge.rest.task.TaskServicesRest",
+          "answer": "org.projectforge.rest.task.TaskServicesRest$Task",
+          "reads": [
+            "kost2List[].id",
+            "kost2List[].title",
+            "path[].id",
+            "path[].title"
+          ],
+          "optionalReads": [
+            "kost2List[].formattedNumber",
+            "kost2List[].description",
+            "kost2List[].displayName"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "App login and session",
+      "notes": "state, error and code are the query parameters of the redirect projectforge://auth built by the server (AppAuthService), serverUrl is the app's own stored session.",
+      "dartFiles": [
+        "lib/core/auth/app_login.dart",
+        "lib/core/auth/auth_controller.dart",
+        "lib/core/auth/session.dart",
+        "lib/features/web/web_session_repository.dart"
+      ],
+      "ignoreKeys": [
+        "state",
+        "error",
+        "code",
+        "serverUrl"
+      ],
+      "endpoints": [
+        {
+          "call": "POST /rsPublic/appAuth/token",
+          "controller": "org.projectforge.rest.app.AppAuthPublicRest",
+          "request": "org.projectforge.rest.app.AppAuthPublicRest$TokenRequest",
+          "sends": [
+            "code",
+            "codeVerifier"
+          ],
+          "answer": "org.projectforge.rest.app.AppAuthPublicRest$TokenResponse",
+          "reads": [
+            "userId",
+            "deviceId",
+            "token",
+            "username",
+            "fullname",
+            "proxyCookies",
+            "appLoginPath"
+          ]
+        },
+        {
+          "call": "GET /rsPublic/systemStatus",
+          "controller": "org.projectforge.rest.pub.SystemStatusRest",
+          "answer": "org.projectforge.rest.pub.SystemStatusRest$SystemData",
+          "reads": [
+            "minAppVersion",
+            "appLoginPath"
+          ],
+          "optionalReads": [
+            "appname",
+            "version"
+          ]
+        },
+        {
+          "call": "POST /rs/appAuth/logout",
+          "controller": "org.projectforge.rest.app.AppAuthRest"
+        },
+        {
+          "call": "POST /rs/appAuth/webSession",
+          "controller": "org.projectforge.rest.app.AppAuthRest",
+          "answer": "org.projectforge.rest.app.AppAuthRest$WebSessionResponse",
+          "reads": [
+            "startUrl"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Push registration",
+      "notes": "launchLink and environment are answers of the native part of the app (method channel), not of the server.",
+      "dartFiles": [
+        "lib/core/push/push_service.dart"
+      ],
+      "ignoreKeys": [
+        "launchLink",
+        "environment"
+      ],
+      "endpoints": [
+        {
+          "call": "POST /rs/appAuth/pushToken",
+          "controller": "org.projectforge.rest.app.AppAuthRest",
+          "request": "org.projectforge.rest.app.AppAuthRest$PushTokenRequest",
+          "sends": [
+            "token",
+            "environment"
+          ]
+        },
+        {
+          "call": "POST /rs/appAuth/pushToken/remove",
+          "controller": "org.projectforge.rest.app.AppAuthRest"
+        }
+      ]
+    },
+    {
+      "name": "Theme",
+      "dartFiles": [
+        "lib/core/theme/theme_controller.dart"
+      ],
+      "endpoints": [
+        {
+          "call": "GET /rs/uiSettings/theme",
+          "controller": "org.projectforge.rest.UISettingsRest",
+          "answer": "org.projectforge.rest.UIThemeSettings",
+          "reads": [
+            "theme"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Addresses",
+      "dartFiles": [
+        "lib/features/addresses/address.dart",
+        "lib/features/addresses/addresses_repository.dart",
+        "lib/features/addresses/addresses_controller.dart"
+      ],
+      "endpoints": [
+        {
+          "call": "GET /rs/address/appList",
+          "controller": "org.projectforge.rest.AddressEntityRest",
+          "answer": "org.projectforge.rest.AddressEntityRest$AppAddressList",
+          "reads": [
+            "timestamp",
+            "ids",
+            "favoriteIds",
+            "addresses[].id",
+            "addresses[].title",
+            "addresses[].firstName",
+            "addresses[].name",
+            "addresses[].organization",
+            "addresses[].division",
+            "addresses[].positionText",
+            "addresses[].email",
+            "addresses[].privateEmail",
+            "addresses[].website",
+            "addresses[].birthday",
+            "addresses[].comment",
+            "addresses[].hasImage",
+            "addresses[].writeAccess",
+            "addresses[].lastUpdate",
+            "addresses[].business.addressText",
+            "addresses[].business.addressText2",
+            "addresses[].business.zipCode",
+            "addresses[].business.city",
+            "addresses[].business.state",
+            "addresses[].business.country",
+            "addresses[].postal.addressText",
+            "addresses[].postal.addressText2",
+            "addresses[].postal.zipCode",
+            "addresses[].postal.city",
+            "addresses[].postal.state",
+            "addresses[].postal.country",
+            "addresses[].private.addressText",
+            "addresses[].private.addressText2",
+            "addresses[].private.zipCode",
+            "addresses[].private.city",
+            "addresses[].private.state",
+            "addresses[].private.country"
+          ]
+        },
+        {
+          "call": "GET /rs/address/image/{id}",
+          "controller": "org.projectforge.rest.AddressImageServicesRest"
+        },
+        {
+          "call": "GET /rs/address/imagePreview/{id}",
+          "controller": "org.projectforge.rest.AddressImageServicesRest"
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "dartFiles": [
+        "lib/features/notifications/notification.dart",
+        "lib/features/notifications/notifications_repository.dart",
+        "lib/features/notifications/notifications_controller.dart"
+      ],
+      "endpoints": [
+        {
+          "call": "GET /rs/notification/my",
+          "controller": "org.projectforge.rest.notification.NotificationRest",
+          "answer": "org.projectforge.rest.notification.NotificationRest$Notification",
+          "list": true,
+          "reads": [
+            "id",
+            "severity",
+            "display",
+            "status",
+            "manualDone",
+            "title",
+            "body",
+            "link"
+          ]
+        },
+        {
+          "call": "GET /rs/notification/my/archived",
+          "controller": "org.projectforge.rest.notification.NotificationRest",
+          "answer": "org.projectforge.rest.notification.NotificationRest$Notification",
+          "list": true,
+          "reads": [
+            "id",
+            "severity",
+            "display",
+            "status",
+            "manualDone",
+            "title",
+            "body",
+            "link"
+          ]
+        },
+        {
+          "call": "POST /rs/notification/{id}/acknowledge",
+          "controller": "org.projectforge.rest.notification.NotificationRest"
+        },
+        {
+          "call": "POST /rs/notification/{id}/done",
+          "controller": "org.projectforge.rest.notification.NotificationRest"
+        }
+      ]
+    },
+    {
+      "name": "Errors and request headers",
+      "notes": "Answers to failed requests of every endpoint. message is the body of an error the server handled (GlobalDefaultExceptionHandler); Authorization (PFApp <token>), Cookie and the X-PF-* headers are request headers.",
+      "dartFiles": [
+        "lib/core/api/api_client.dart",
+        "lib/core/api/api_exception.dart"
+      ],
+      "ignoreKeys": [
+        "message",
+        "Authorization",
+        "Cookie"
+      ],
+      "types": [
+        {
+          "name": "Refusal with validation errors",
+          "class": "org.projectforge.ui.ResponseAction",
+          "reads": [
+            "validationErrors"
+          ]
+        },
+        {
+          "name": "Validation error",
+          "class": "org.projectforge.ui.ValidationError",
+          "reads": [
+            "fieldId",
+            "messageId",
+            "message"
+          ]
+        },
+        {
+          "name": "Second factor required (403)",
+          "class": "org.projectforge.rest.pub.next.TwoFactorRequired",
+          "reads": [
+            "twoFactorRequired"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Web pages and settings",
+      "notes": "returnUrl is the query parameter of the login page url (LoginServiceRest), webVersion a key of the app's own settings.",
+      "dartFiles": [
+        "lib/features/web/web_navigation.dart",
+        "lib/core/settings/app_settings.dart"
+      ],
+      "ignoreKeys": [
+        "returnUrl",
+        "webVersion"
+      ],
+      "types": []
+    }
+  ]
+}
