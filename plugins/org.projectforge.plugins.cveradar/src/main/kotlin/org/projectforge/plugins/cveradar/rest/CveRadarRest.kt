@@ -36,10 +36,11 @@ import org.projectforge.plugins.cveradar.CveRadarService
 import org.projectforge.plugins.cveradar.CvrCaseStatusService
 import org.projectforge.plugins.cveradar.CvrDeviceService
 import org.projectforge.plugins.cveradar.CvrStatisticsService
+import org.projectforge.plugins.cveradar.CvrTeamCheckAnswerService
+import org.projectforge.plugins.cveradar.CvrTeamCheckAnswerService.TeamCheckState
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrClientAnswer
 import org.projectforge.plugins.cveradar.model.CvrDeviceDO
-import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.pub.next.RestError
@@ -85,6 +86,9 @@ class CveRadarRest {
     private lateinit var statusService: CvrCaseStatusService
 
     @Autowired
+    private lateinit var teamCheckAnswerService: CvrTeamCheckAnswerService
+
+    @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
     /** Called by Spring before every endpoint of this controller. */
@@ -109,7 +113,7 @@ class CveRadarRest {
     @PostMapping("case/{id}/teamCheck")
     fun createTeamCheck(@PathVariable id: Long, @RequestBody request: TeamCheckRequest): ClosureView {
         val user = ThreadLocalUserContext.requiredLoggedInUser
-        service.createTeamCheck(user, id, request.groupId, request.subject)
+        service.createTeamCheck(user, id, request.groupId, request.subject, request.perPerson)
         return closureView(user, service.getCase(user, id))
     }
 
@@ -117,7 +121,8 @@ class CveRadarRest {
     @PostMapping("teamCheck/{id}/answer")
     fun answerTeamCheck(@PathVariable id: Long, @RequestBody request: TeamCheckAnswerRequest): TeamCheckRow {
         val user = ThreadLocalUserContext.requiredLoggedInUser
-        return teamCheckRow(user, service.answerTeamCheck(user, id, request.answer, request.comment, request.date))
+        val check = service.answerTeamCheck(user, id, request.answer, request.comment, request.date)
+        return teamCheckRow(user, teamCheckAnswerService.state(check))
     }
 
     @AccessChecked("CveRadarService.deleteTeamCheck: read-write right")
@@ -180,7 +185,7 @@ class CveRadarRest {
         return MyView(
             devices = devices.map { deviceRow(it) },
             advisories = advisories,
-            teamChecks = service.myTeamChecks(user).map { teamCheckRow(user, it) },
+            teamChecks = teamCheckAnswerService.states(service.myTeamChecks(user)).map { teamCheckRow(user, it) },
             reader = access.isReader(user),
             securityTeam = access.isSecurityTeam(user),
             groups = RoleGroups(
@@ -264,12 +269,37 @@ class CveRadarRest {
 
     /**
      * Who answered and the comment are shown to the security team and to the members of the asked group only; a reader
-     * sees the answer without persons (VIS-10).
+     * sees the answer without persons (VIS-10). If every member answers, the answer is the own one of the user and the
+     * others are counted only (all answers: [CveRadarService.teamCheckFile] for the security team).
      */
-    private fun teamCheckRow(user: PFUserDO, check: CvrTeamCheckDO): TeamCheckRow {
+    private fun teamCheckRow(user: PFUserDO, state: TeamCheckState): TeamCheckRow {
+        val check = state.check
         // Fetched by the queries of CvrTeamCheckDao, otherwise loaded here.
         val case = check.cvrCase?.takeIf { Hibernate.isInitialized(it) } ?: check.caseId?.let { service.findCase(it) }
-        val securityTeamOrMember = access.isSecurityTeam(user) || access.isMemberOf(user, check.groupId)
+        val member = access.isMemberOf(user, check.groupId)
+        val securityTeamOrMember = access.isSecurityTeam(user) || member
+        if (check.perPerson) {
+            val own = state.answerOf(user.id)
+            return TeamCheckRow(
+                id = check.id!!,
+                caseId = check.caseId,
+                caseCode = case?.code,
+                caseTitle = case?.title,
+                groupId = check.groupId,
+                groupName = userGroupCache.getGroup(check.groupId)?.name,
+                subject = check.subject,
+                answer = own?.answer,
+                comment = own?.comment,
+                answerDate = own?.answerDate,
+                answeredBy = own?.let { user.displayName },
+                lastUpdate = own?.lastUpdate ?: check.lastUpdate,
+                canAnswer = case?.status?.isClosed != true && member,
+                perPerson = true,
+                members = state.memberIds.size,
+                answered = state.answered,
+                openMembers = state.openMemberIds.size,
+            )
+        }
         return TeamCheckRow(
             id = check.id!!,
             caseId = check.caseId,

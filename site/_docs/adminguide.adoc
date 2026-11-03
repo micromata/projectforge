@@ -1887,6 +1887,9 @@ the own groups.
   assigned, any member of the security team may; they become the assignee.
 * A team check is answered by the members of the requested group, no CVE-Radar group is needed for it. The file of a
   team check, with its own discussion, is open to this group, the security team and the security officers only.
+* A team check may ask every member (e.g. everyone checks the own client): each one answers for themselves, and the
+  check stays open until all members answered who logged in within `teamCheckActiveDays` (90 by default). The
+  security team sees all answers and who is still missing.
 * The discussion of a case is open to all readers. Project and system details belong into the file of a team check, not
   there.
 
@@ -1904,6 +1907,8 @@ projectforge.plugin.cveradar.caseIdPrefix=INC
 projectforge.plugin.cveradar.clientActiveDays=30
 # Devices not reported for more days are deleted with their scan findings (personal data).
 projectforge.plugin.cveradar.deviceRetentionDays=365
+# A team check asking every member waits for the members logged in within so many days only.
+projectforge.plugin.cveradar.teamCheckActiveDays=90
 # PF groups of the roles (see above).
 projectforge.plugin.cveradar.readGroup=cve-read
 projectforge.plugin.cveradar.writeGroup=cve-read-write

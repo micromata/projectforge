@@ -5016,12 +5016,6 @@
         "vulnerabilities": {
           "series": "Vulnerabilities",
           "title": "Vulnerabilities published by the NVD"
-        },
-        "years": {
-          "_": "Look back",
-          "default": "Default",
-          "n": "{arg0} years",
-          "one": "1 year"
         }
       },
       "system": {
@@ -5074,6 +5068,7 @@
         "addInfo": "The group checks whether the project or system is affected and answers like team feedback. Its members find the check under \"My CVE-Radar\" (\"Checks of my groups\"); they are not notified by mail yet, so let them know.",
         "answer": "Answer",
         "answeredBy": "Answered by",
+        "answers": "Answers of the members",
         "comment": "Comment, version or planned date",
         "date": "Date",
         "delete": "Delete",
@@ -5085,8 +5080,13 @@
           "subject": "Please name the project or system."
         },
         "group": "Group",
+        "missing": "Not answered yet",
+        "myAnswer": "My answer",
         "none": "No team checks.",
         "open": "open",
+        "perPerson": "Every member answers",
+        "perPersonInfo": "Every member answers for themselves (e.g. checks the own client); the check stays open until all members answered who logged in lately (within 90 days by default). Otherwise one answer for the whole group.",
+        "progress": "{arg0} of {arg1} answered",
         "reason": "Reason",
         "subject": "Project or system"
       },

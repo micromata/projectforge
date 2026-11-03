@@ -35,6 +35,7 @@ import org.projectforge.plugins.cveradar.model.CvrClientAnswer
 import org.projectforge.plugins.cveradar.model.CvrConfirmationDO
 import org.projectforge.plugins.cveradar.model.CvrTeamAnswer
 import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
+import org.projectforge.plugins.cveradar.rest.TeamCheckAnswerView
 import org.projectforge.plugins.cveradar.rest.TeamCheckFile
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -60,6 +61,9 @@ class CveRadarService {
 
     @Autowired
     private lateinit var teamCheckDao: CvrTeamCheckDao
+
+    @Autowired
+    private lateinit var teamCheckAnswerService: CvrTeamCheckAnswerService
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
@@ -102,7 +106,14 @@ class CveRadarService {
         return case
     }
 
-    fun createTeamCheck(user: PFUserDO, caseId: Long, groupId: Long?, subject: String?): CvrTeamCheckDO {
+    /** [perPerson]: every member answers (e.g. for the own client), otherwise one answer for the group. */
+    fun createTeamCheck(
+        user: PFUserDO,
+        caseId: Long,
+        groupId: Long?,
+        subject: String?,
+        perPerson: Boolean = false,
+    ): CvrTeamCheckDO {
         access.checkSecurityTeam(user)
         val case = getCase(user, caseId)
         val group = groupId?.let { userGroupCache.getGroup(it) }?.takeIf { !it.deleted }
@@ -112,6 +123,7 @@ class CveRadarService {
             it.cvrCase = case
             it.group = GroupDO().also { g -> g.id = group.id }
             it.subject = text
+            it.perPerson = perPerson
         }
         teamCheckDao.insert(check)
         return check
@@ -125,7 +137,8 @@ class CveRadarService {
 
     /**
      * The answer of a member of the asked group (or of the security team) for the stored check; only the answer
-     * fields are taken from the request (SEC-04).
+     * fields are taken from the request (SEC-04). If every member answers, the answer is the own one of the user
+     * (members only), replacing the own earlier one; otherwise the answer for the group, replacing the earlier one.
      */
     fun answerTeamCheck(
         user: PFUserDO,
@@ -136,7 +149,8 @@ class CveRadarService {
     ): CvrTeamCheckDO {
         val check = teamCheckDao.find(checkId, checkAccess = false)?.takeIf { !it.deleted }
             ?: throw UserException(ERROR_NOT_FOUND)
-        if (!access.isSecurityTeam(user) && !access.isMemberOf(user, check.groupId)) {
+        val member = access.isMemberOf(user, check.groupId)
+        if (!member && (check.perPerson || !access.isSecurityTeam(user))) {
             throw AccessException(user, CveRadarAccess.NO_ACCESS)
         }
         val case = caseDao.find(check.caseId, checkAccess = false)
@@ -147,8 +161,13 @@ class CveRadarService {
         if ((answer == CvrTeamAnswer.NOT_AFFECTED || answer == CvrTeamAnswer.RISK_ACCEPTED) && comment.isNullOrBlank()) {
             throw UserException(ERROR_REASON)
         }
+        val text = comment?.trim()?.take(4000)?.takeIf { it.isNotEmpty() }
+        if (check.perPerson) {
+            teamCheckAnswerService.answer(check, user, answer, text, date)
+            return check
+        }
         check.answer = answer
-        check.comment = comment?.trim()?.take(4000)?.takeIf { it.isNotEmpty() }
+        check.comment = text
         check.answerDate = date
         check.answeredBy = PFUserDO().also { it.id = user.id }
         teamCheckDao.update(check, checkAccess = false)
@@ -157,16 +176,21 @@ class CveRadarService {
 
     /**
      * The file of a team check (CLS-03): visible to the members of the asked group and the security team only, as the
-     * discussion there may name projects and systems.
+     * discussion there may name projects and systems. If every member answers, a member sees the own answer, the
+     * security team all answers and the members still open.
      */
     fun teamCheckFile(user: PFUserDO, checkId: Long): TeamCheckFile {
         val check = teamCheckDao.find(checkId, checkAccess = false)?.takeIf { !it.deleted }
             ?: throw UserException(ERROR_NOT_FOUND)
         val member = access.isMemberOf(user, check.groupId)
-        if (!access.isSecurityTeam(user) && !member) {
+        val securityTeam = access.isSecurityTeam(user)
+        if (!securityTeam && !member) {
             throw AccessException(user, CveRadarAccess.NO_ACCESS)
         }
         val case = caseDao.find(check.caseId, checkAccess = false)
+        val state = teamCheckAnswerService.state(check)
+        val own = state.answerOf(user.id)
+        val open = case?.status?.isClosed != true
         return TeamCheckFile(
             id = check.id!!,
             caseId = case?.id,
@@ -175,11 +199,34 @@ class CveRadarService {
             caseStatus = case?.status,
             groupName = userGroupCache.getGroup(check.groupId)?.name,
             subject = check.subject,
-            answer = check.answer,
-            comment = check.comment,
-            answerDate = check.answerDate,
-            answeredBy = userGroupCache.getUser(check.answeredBy?.id)?.displayName,
-            canAnswer = case?.status?.isClosed != true,
+            answer = if (check.perPerson) own?.answer else check.answer,
+            comment = if (check.perPerson) own?.comment else check.comment,
+            answerDate = if (check.perPerson) own?.answerDate else check.answerDate,
+            answeredBy = if (check.perPerson) {
+                own?.let { user.displayName }
+            } else {
+                userGroupCache.getUser(check.answeredBy?.id)?.displayName
+            },
+            canAnswer = open && (member || (!check.perPerson && securityTeam)),
+            perPerson = check.perPerson,
+            members = state.memberIds.size,
+            answered = state.answered,
+            openMembers = state.openMemberIds.size,
+            answers = if (check.perPerson && securityTeam) {
+                state.answers.sortedByDescending { it.lastUpdate }.map {
+                    TeamCheckAnswerView(
+                        user = userGroupCache.getUser(it.userId)?.displayName,
+                        answer = it.answer,
+                        comment = it.comment,
+                        answerDate = it.answerDate,
+                        lastUpdate = it.lastUpdate,
+                    )
+                }
+            } else null,
+            missing = if (check.perPerson && securityTeam) {
+                state.openMemberIds.filter { state.answerOf(it) == null }
+                    .mapNotNull { userGroupCache.getUser(it)?.displayName }.sorted()
+            } else null,
         )
     }
 
