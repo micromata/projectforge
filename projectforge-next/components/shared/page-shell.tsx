@@ -9,6 +9,7 @@ import { StatusBar } from "@/components/shared/status-bar";
 import { SystemAlertBanner } from "@/components/shared/system-alert-banner";
 import { TopNavigation } from "@/components/shared/top-navigation";
 import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
+import { isInApp } from "@/lib/app-mode";
 import { useUIStore } from "@/store/ui-store";
 
 interface PageShellProps {
@@ -21,6 +22,9 @@ export function PageShell({ children }: PageShellProps) {
   const collapse = useCollapseOnScroll();
   const setLogoCollapsed = useUIStore((s) => s.setLogoCollapsed);
   const pathname = usePathname();
+  // The chat tab of the app has its own native navigation: no logo, menu or status bar there (they would lead
+  // the tab away from the chat, which then shows a foreign page when the user returns).
+  const bare = isInApp() && pathname.startsWith("/chat");
 
   // Going from one entry to the next (/book/1 -> /book/2) reconciles the same elements, so no scroll
   // column unmounts and the hook's own cleanup does not run - but the new page starts at the top, so
@@ -52,13 +56,17 @@ export function PageShell({ children }: PageShellProps) {
     <div className="relative flex h-dvh flex-col overflow-x-hidden overflow-y-auto print:block print:h-auto print:overflow-visible">
       {/* `contents`: on screen as if the wrapper weren't there, the rows stay items of the column. */}
       <div className="contents print:hidden">
-        <LogoRow />
-        <BrandStripe />
-        <TopNavigation />
-        {/* Here and not in the authenticated layout: the announcement belongs under the navigation of
+        {!bare && (
+          <>
+            <LogoRow />
+            <BrandStripe />
+            <TopNavigation />
+            {/* Here and not in the authenticated layout: the announcement belongs under the navigation of
             every page, as in Wicket, and this shell is what every page of this app is built from. */}
-        <SystemAlertBanner />
-        <NotificationBanners />
+            <SystemAlertBanner />
+            <NotificationBanners />
+          </>
+        )}
       </div>
       <main
         className="flex min-h-96 flex-1 flex-col overflow-auto print:block print:overflow-visible"
@@ -68,9 +76,7 @@ export function PageShell({ children }: PageShellProps) {
       </main>
       {/* Sibling of <main>, not inside it: shrink-0 keeps the strip pinned at the true bottom while
           <main> takes the remaining height, exactly as Wicket's footer sits below the scroll area. */}
-      <div className="contents print:hidden">
-        <StatusBar />
-      </div>
+      <div className="contents print:hidden">{!bare && <StatusBar />}</div>
     </div>
   );
 }

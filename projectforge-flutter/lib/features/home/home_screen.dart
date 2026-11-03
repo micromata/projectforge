@@ -168,7 +168,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           },
       ],
     );
-    void select(int index) => _select(current, destinations[index]);
+    void select(int index) {
+      final destination = destinations[index];
+      if (destination == _Destination.chat && current == destination) {
+        // Tapping the chat again leads back to its start page (the rooms), wherever the chat has got to.
+        setState(() => _chatTarget = WebTarget(_chatPath));
+        return;
+      }
+      _select(current, destination);
+    }
     // The pages bring their own header: only the native tab has a bar. The bell and the account menu stand in the
     // navigation instead, so they are there on every tab.
     final appBar = switch (current) {
