@@ -52,15 +52,22 @@ class AppApiContractTest {
 
     private fun JsonNode.texts(field: String): List<String> = this[field]?.map { it.asText() } ?: emptyList()
 
-    private fun endpoints(contract: JsonNode): List<JsonNode> = contract["endpoints"].toList()
+    private fun endpoints(contract: JsonNode): List<JsonNode> = contract["endpoints"]?.toList() ?: emptyList()
+
+    /** Classes the app reads without an endpoint of their own, e.g. the answers of failed requests. */
+    private fun types(contract: JsonNode): List<JsonNode> = contract["types"]?.toList() ?: emptyList()
 
     @Test
     fun `the contract exists and names fields`() {
         assertTrue(contracts.size() > 0, "No contract found.")
         contracts.forEach { contract ->
-            assertTrue(endpoints(contract).isNotEmpty(), "${contract["name"].asText()} has no endpoint.")
+            val all = endpoints(contract) + types(contract)
             assertTrue(
-                endpoints(contract).any { it.texts("reads").isNotEmpty() || it.texts("sends").isNotEmpty() },
+                all.isNotEmpty() || contract.texts("ignoreKeys").isNotEmpty(),
+                "${contract["name"].asText()} has nothing."
+            )
+            assertTrue(
+                all.isEmpty() || all.any { it.texts("reads").isNotEmpty() || it.texts("sends").isNotEmpty() },
                 "${contract["name"].asText()} reads and sends nothing."
             )
         }
@@ -75,6 +82,14 @@ class AppApiContractTest {
                 endpoint.texts("reads").forEach { path ->
                     if (!exists(root, path.split('.'))) {
                         missing.add("${endpoint["call"].asText()}: $path")
+                    }
+                }
+            }
+            types(contract).forEach { type ->
+                val root = mapper.constructType(Class.forName(type["class"].asText()))
+                type.texts("reads").forEach { path ->
+                    if (!exists(root, path.split('.'))) {
+                        missing.add("${type["name"].asText()}: $path")
                     }
                 }
             }
@@ -127,7 +142,7 @@ class AppApiContractTest {
         contracts.forEach { contract ->
             val named = mutableSetOf<String>()
             named.addAll(contract.texts("ignoreKeys"))
-            endpoints(contract).forEach { endpoint ->
+            (endpoints(contract) + types(contract)).forEach { endpoint ->
                 (endpoint.texts("reads") + endpoint.texts("optionalReads")).forEach { path ->
                     named.addAll(path.split('.').map { it.removeSuffix("[]") })
                 }
@@ -144,6 +159,21 @@ class AppApiContractTest {
             emptyList<String>(), unnamed,
             "Name these in projectforge-flutter/test/contract/app-api-contract.json (reads, optionalReads or " +
                     "ignoreKeys), or the app reads something the server may drop unnoticed."
+        )
+    }
+
+    @Test
+    fun `every Dart file that reads keys is part of the contract`() {
+        val listed = contracts.flatMap { it.texts("dartFiles") }.toSet()
+        val libDir = File(appDir, "lib")
+        val unlisted = libDir.walkTopDown().filter { it.isFile && it.extension == "dart" }
+            .filter { KEY_REGEX.containsMatchIn(it.readText()) }
+            .map { it.relativeTo(appDir).invariantSeparatorsPath }
+            .filter { it !in listed }.sorted().toList()
+        assertEquals(
+            emptyList<String>(), unlisted,
+            "These Dart files read ['keys'] of a json answer: add them to a contract in " +
+                    "projectforge-flutter/test/contract/app-api-contract.json (new endpoints included)."
         )
     }
 

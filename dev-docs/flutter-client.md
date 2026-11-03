@@ -249,10 +249,12 @@ The store version of the app is old the day after a server release, so the serve
    keys that aren't of the api, e.g. the local timer). `AppApiContractTest` (projectforge-application) fails when the
    server loses a named field or endpoint, and when a listed Dart file reads a `['key']` the contract doesn't name, so
    the contract can't go stale. A new app feature adds its entry in the same commit.
-   Covered: digital business cards, user status, time sheets (with the task endpoints), app login and session
-   (`appAuth`, `systemStatus`), push registration, theme; for requests the fields the app sends (`request` and `sends`,
-   checked against the request class). Not yet: addresses, notifications. Only the endpoints with a typed answer class
-   have their fields checked, the others (e.g. `GET /rs/timesheet/{id}`) only for existing.
+   Covered: digital business cards, user status, time sheets (with the task endpoints), addresses, notifications, app
+   login and session (`appAuth`, `systemStatus`), push registration, theme, the answers to failed requests (`types`:
+   validation errors, second factor required); for requests the fields the app sends (`request` and `sends`, checked
+   against the request class). A Dart file that reads a `['key']` and is in no contract fails the test, so new app code can't bypass it. Only the
+   endpoints with a typed answer class have their fields checked, the others (e.g. `GET /rs/timesheet/{id}`) only for
+   existing.
    **Before removing or renaming a field, an endpoint or a value, ask what the published app reads:**
    `git grep -n <name> <tag or commit of the published app version> -- projectforge-flutter/lib`
    (the commit `App: version x.y.z+n` of `pubspec.yaml`). Search the name in the dart models and in the tests' fixtures.

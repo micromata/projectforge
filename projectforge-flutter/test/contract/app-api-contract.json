@@ -325,6 +325,168 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Addresses",
+      "dartFiles": [
+        "lib/features/addresses/address.dart",
+        "lib/features/addresses/addresses_repository.dart",
+        "lib/features/addresses/addresses_controller.dart"
+      ],
+      "endpoints": [
+        {
+          "call": "GET /rs/address/appList",
+          "controller": "org.projectforge.rest.AddressEntityRest",
+          "answer": "org.projectforge.rest.AddressEntityRest$AppAddressList",
+          "reads": [
+            "timestamp",
+            "ids",
+            "favoriteIds",
+            "addresses[].id",
+            "addresses[].title",
+            "addresses[].firstName",
+            "addresses[].name",
+            "addresses[].organization",
+            "addresses[].division",
+            "addresses[].positionText",
+            "addresses[].email",
+            "addresses[].privateEmail",
+            "addresses[].website",
+            "addresses[].birthday",
+            "addresses[].comment",
+            "addresses[].hasImage",
+            "addresses[].writeAccess",
+            "addresses[].lastUpdate",
+            "addresses[].business.addressText",
+            "addresses[].business.addressText2",
+            "addresses[].business.zipCode",
+            "addresses[].business.city",
+            "addresses[].business.state",
+            "addresses[].business.country",
+            "addresses[].postal.addressText",
+            "addresses[].postal.addressText2",
+            "addresses[].postal.zipCode",
+            "addresses[].postal.city",
+            "addresses[].postal.state",
+            "addresses[].postal.country",
+            "addresses[].private.addressText",
+            "addresses[].private.addressText2",
+            "addresses[].private.zipCode",
+            "addresses[].private.city",
+            "addresses[].private.state",
+            "addresses[].private.country"
+          ]
+        },
+        {
+          "call": "GET /rs/address/image/{id}",
+          "controller": "org.projectforge.rest.AddressImageServicesRest"
+        },
+        {
+          "call": "GET /rs/address/imagePreview/{id}",
+          "controller": "org.projectforge.rest.AddressImageServicesRest"
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "dartFiles": [
+        "lib/features/notifications/notification.dart",
+        "lib/features/notifications/notifications_repository.dart",
+        "lib/features/notifications/notifications_controller.dart"
+      ],
+      "endpoints": [
+        {
+          "call": "GET /rs/notification/my",
+          "controller": "org.projectforge.rest.notification.NotificationRest",
+          "answer": "org.projectforge.rest.notification.NotificationRest$Notification",
+          "list": true,
+          "reads": [
+            "id",
+            "severity",
+            "display",
+            "status",
+            "manualDone",
+            "title",
+            "body",
+            "link"
+          ]
+        },
+        {
+          "call": "GET /rs/notification/my/archived",
+          "controller": "org.projectforge.rest.notification.NotificationRest",
+          "answer": "org.projectforge.rest.notification.NotificationRest$Notification",
+          "list": true,
+          "reads": [
+            "id",
+            "severity",
+            "display",
+            "status",
+            "manualDone",
+            "title",
+            "body",
+            "link"
+          ]
+        },
+        {
+          "call": "POST /rs/notification/{id}/acknowledge",
+          "controller": "org.projectforge.rest.notification.NotificationRest"
+        },
+        {
+          "call": "POST /rs/notification/{id}/done",
+          "controller": "org.projectforge.rest.notification.NotificationRest"
+        }
+      ]
+    },
+    {
+      "name": "Errors and request headers",
+      "notes": "Answers to failed requests of every endpoint. message is the body of an error the server handled (GlobalDefaultExceptionHandler); Authorization (PFApp <token>), Cookie and the X-PF-* headers are request headers.",
+      "dartFiles": [
+        "lib/core/api/api_client.dart",
+        "lib/core/api/api_exception.dart"
+      ],
+      "ignoreKeys": [
+        "message",
+        "Authorization",
+        "Cookie"
+      ],
+      "types": [
+        {
+          "name": "Refusal with validation errors",
+          "class": "org.projectforge.ui.ResponseAction",
+          "reads": [
+            "validationErrors"
+          ]
+        },
+        {
+          "name": "Validation error",
+          "class": "org.projectforge.ui.ValidationError",
+          "reads": [
+            "fieldId",
+            "messageId",
+            "message"
+          ]
+        },
+        {
+          "name": "Second factor required (403)",
+          "class": "org.projectforge.rest.pub.next.TwoFactorRequired",
+          "reads": [
+            "twoFactorRequired"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Web pages and settings",
+      "notes": "returnUrl is the query parameter of the login page url (LoginServiceRest), webVersion a key of the app's own settings.",
+      "dartFiles": [
+        "lib/features/web/web_navigation.dart",
+        "lib/core/settings/app_settings.dart"
+      ],
+      "ignoreKeys": [
+        "returnUrl",
+        "webVersion"
+      ],
+      "types": []
     }
   ]
 }
