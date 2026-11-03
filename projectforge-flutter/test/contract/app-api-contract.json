@@ -1,0 +1,38 @@
+{
+  "description": "What the app reads of the server api (checked by AppApiContractTest in projectforge-application). Per contract: the Dart files, the endpoints the app calls, and the fields it reads of the answer (paths below the answer class, [] for lists). Every ['key'] a listed Dart file reads must be named here, and everything named here must exist on the server. Removing or renaming a field that is named here breaks the published app: see dev-docs/flutter-client.md, 'Changing an api the app uses'.",
+  "contracts": [
+    {
+      "name": "Digital business cards",
+      "dartFiles": [
+        "lib/features/business_cards/business_card.dart",
+        "lib/features/business_cards/business_card_qr_screen.dart",
+        "lib/features/business_cards/business_cards_repository.dart",
+        "lib/features/business_cards/business_cards_screen.dart"
+      ],
+      "controller": "org.projectforge.rest.businesscard.BusinessCardRest",
+      "endpoints": [
+        "GET /rs/myBusinessCards",
+        "GET /rs/myBusinessCards/vcf",
+        "GET /rs/myBusinessCards/pkpass"
+      ],
+      "answer": "org.projectforge.rest.businesscard.BusinessCardRest$InitData",
+      "reads": [
+        "cards[].card.id",
+        "cards[].card.cardName",
+        "cards[].card.addressId",
+        "cards[].card.includePhoto",
+        "cards[].card.title",
+        "cards[].card.firstName",
+        "cards[].card.lastName",
+        "cards[].card.organization",
+        "cards[].preview.qrCodeUrl",
+        "cards[].preview.vCardLength",
+        "cards[].preview.withPhoto",
+        "cards[].preview.photoAllowed",
+        "suggestion",
+        "maxCards",
+        "walletConfigured"
+      ]
+    }
+  ]
+}
