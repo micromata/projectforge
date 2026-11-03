@@ -30,6 +30,7 @@ import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrCaseKind
 import org.projectforge.plugins.cveradar.model.CvrCaseStatus
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
+import org.projectforge.plugins.cveradar.sync.OsvParser
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.Year
@@ -177,9 +178,14 @@ class CvrCaseDao : CvrBaseDao<CvrCaseDO>(CvrCaseDO::class.java) {
 
         /**
          * The id of a vulnerability (upper case): a CVE id, or the id of an OSV advisory without CVE (a vulnerability
-         * made of advisories, see [CvrOsvAdvisoryService]): GHSA-XXXX-XXXX-XXXX, PYSEC-2021-19, GO-2022-0001, ...
+         * made of advisories, see [CvrOsvAdvisoryService]): GHSA-XXXX-XXXX-XXXX, PYSEC-2021-19, GO-2022-0001, ... OSV
+         * knows more prefixes than any list here (PSF-, CGA-, DEBIAN-CVE-, ...), so any prefix counts in the forms of its
+         * ids: a year and a number (PSF-2024-1, RHSA-2024:1234) or four times four characters (GHSA, CGA); not longer
+         * than a vulnerability key ([OsvParser.MAX_KEY_LENGTH]).
          */
-        val CVE_REGEX = Regex("""^(CVE-\d{4}-\d{4,}|GHSA(-[0-9A-Z]{4}){3}|(PYSEC|GO|RUSTSEC|MAL|OSV)-\d{4}-\d+)$""")
+        val CVE_REGEX = Regex(
+            """^(?=.{1,${OsvParser.MAX_KEY_LENGTH}}$)(CVE-\d{4}-\d{4,}|(?!CVE-)([A-Z][A-Z0-9]*-)+(\d{4}[-:][A-Z0-9.\-]+|[0-9A-Z]{4}(-[0-9A-Z]{4}){2}))$"""
+        )
 
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf("assignee.username", "assignee.firstname", "assignee.lastname")
     }

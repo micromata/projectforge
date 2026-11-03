@@ -1990,8 +1990,9 @@ projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
   after that the ones modified since. Only files of advisories are fetched; nothing of the inventory leaves
   ProjectForge.
 * An advisory becomes a vulnerability of the list only when it matches a library of the inventory, then whatever its
-  score: the threshold of the NVD import (`minCvss`) holds for products, not for libraries in use. The vulnerability
-  is named by its CVE id, without one by its GHSA id (or the id of the source); the advisories of one CVE (e.g. of
+  score: the threshold of the NVD import (`minCvss`) holds for products, not for libraries in use. It holds for a
+  match that is only possible (a library without version, a jar listing without groupId), else every advisory of an
+  artifact name would become a vulnerability. The vulnerability is named by its CVE id, without one by its GHSA id (or the id of the source); the advisories of one CVE (e.g. of
   GitHub and of PyPA) become one vulnerability.
 * As soon as the NVD modifies the CVE, its data replace the ones of the advisories (status _OSV_ before); the
   advisories keep matching.

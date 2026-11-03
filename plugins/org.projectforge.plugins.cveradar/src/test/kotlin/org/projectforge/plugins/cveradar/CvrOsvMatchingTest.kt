@@ -82,11 +82,15 @@ class CvrOsvMatchingTest : CveRadarTestBase() {
     /** The bucket: the documents by OSV id. */
     private val bucket = mutableMapOf<String, String>()
 
+    /** The ids whose single fetch fails (a server error). */
+    private val failing = mutableSetOf<String>()
+
     private val source = object : OsvSource {
         override fun modifiedSince(ecosystem: String, since: Instant) = bucket.values.mapNotNull { OsvParser.parse(it, setOf(ecosystem)) }
             .filter { it.modified >= since }.map { it.modified to it.id }
 
-        override fun advisory(ecosystem: String, id: String) = bucket[id]
+        override fun advisory(ecosystem: String, id: String) =
+            if (id in failing) throw IllegalStateException("HTTP 503") else bucket[id]
 
         override fun all(ecosystem: String, skip: (String) -> Boolean, consumer: (String) -> Unit) =
             bucket.filterKeys { !skip(it) }.values.forEach(consumer)
@@ -95,6 +99,7 @@ class CvrOsvMatchingTest : CveRadarTestBase() {
     @BeforeEach
     fun prepare() {
         bucket.clear()
+        failing.clear()
         cveRadarConfig.osv.ecosystems = "Maven,npm"
         persistenceService.runInTransaction { context ->
             listOf(NvdImportService.SOURCE, "${OsvImportService.SOURCE_PREFIX}Maven", "${OsvImportService.SOURCE_PREFIX}npm").forEach { source ->
@@ -116,6 +121,7 @@ class CvrOsvMatchingTest : CveRadarTestBase() {
         aliases: List<String> = emptyList(),
         modified: String = "2026-10-30T10:00:00.123456789Z",
         withdrawn: String? = null,
+        vector: String = "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
     ) {
         bucket[id] = """{"id":"$id","modified":"$modified","published":"2026-10-01T00:00:00Z",${withdrawn?.let { "\"withdrawn\":\"$it\"," } ?: ""}
             "aliases":[${aliases.joinToString(",") { "\"$it\"" }}],"summary":"Deserialisation in $pkg","details":"Details.",
@@ -123,7 +129,7 @@ class CvrOsvMatchingTest : CveRadarTestBase() {
               "ranges":[{"type":"ECOSYSTEM","events":[{"introduced":"2.0.0"},{"fixed":"$fixed"}]}]}],
             "references":[{"type":"FIX","url":"https://example.org/fix"}],
             "database_specific":{"severity":"MODERATE","cwe_ids":["CWE-502"]},
-            "severity":[{"type":"CVSS_V3","score":"CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"}]}"""
+            "severity":[{"type":"CVSS_V3","score":"$vector"}]}"""
     }
 
     private fun groupId(name: String): Long = (initTestDB.getGroup(name) ?: initTestDB.addGroup(name)).id!!
@@ -196,6 +202,49 @@ class CvrOsvMatchingTest : CveRadarTestBase() {
         val late = vulnerabilityDao.findByCveId("CVE-2026-98002")
         assertNotNull(late)
         assertEquals(listOf("LATE"), findings(owner, late!!.id!!).map { it.component!!.substringBefore(" ") })
+    }
+
+    @Test
+    fun `a possible match only becomes a vulnerability from the threshold on`() {
+        val group = "org.test.osv5"
+        val (system, owner) = system("OSV5", "cveradar-osv-g5")
+        inventory.createComponent(
+            ComponentRequest(systemId = system, code = "JAR", name = "Jar listing", technologies = listOf(library(null, "osv5lib", "2.5"))),
+        )
+        maven("GHSA-osv5-aaaa-bbbb", "$group:osv5lib", "3.0", aliases = listOf("CVE-2026-98501"))
+        maven(
+            "GHSA-osv5-cccc-dddd", "$group:osv5lib", "3.0", aliases = listOf("CVE-2026-98502"),
+            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+        )
+        importOsv()
+        assertNull(vulnerabilityDao.findByCveId("CVE-2026-98501"), "possible only and CVSS 6.1: below the threshold")
+        val critical = vulnerabilityDao.findByCveId("CVE-2026-98502")
+        assertNotNull(critical, "CVSS 9.8")
+        assertEquals(CvrFindingCertainty.POSSIBLE, findings(owner, critical!!.id!!).single().certainty)
+
+        // With groupId the match is sure: the advisory becomes a vulnerability whatever its score.
+        logon(owner)
+        inventory.createComponent(
+            ComponentRequest(systemId = system, code = "APP", name = "App", technologies = listOf(library(group, "osv5lib", "2.5"))),
+        )
+        assertNotNull(vulnerabilityDao.findByCveId("CVE-2026-98501"))
+    }
+
+    @Test
+    fun `an advisory that can't be fetched is fetched again on the next run, the others are stored`() {
+        maven("GHSA-osv6-aaaa-bbbb", "org.test.osv6:a", "3.0", modified = "2026-10-30T10:00:00Z")
+        importOsv("2026-10-30T12:00:00Z")
+        maven("GHSA-osv6-aaaa-bbbb", "org.test.osv6:a", "3.0", modified = "2026-11-01T08:00:00Z")
+        maven("GHSA-osv6-cccc-dddd", "org.test.osv6:b", "3.0", modified = "2026-11-05T09:00:00Z")
+        failing.add("GHSA-osv6-aaaa-bbbb")
+        val first = importOsv("2026-11-05T10:00:00Z")
+        assertEquals(1, first.stored.created, "the other one is stored")
+        assertEquals(Instant.parse("2026-10-30T10:00:00Z"), advisory("GHSA-osv6-aaaa-bbbb")!!.modified!!.toInstant())
+
+        failing.clear()
+        val second = importOsv("2026-11-08T10:00:00Z")
+        assertEquals(1, second.stored.updated, "fetched again, though older than the other one minus the overlap")
+        assertEquals(Instant.parse("2026-11-01T08:00:00Z"), advisory("GHSA-osv6-aaaa-bbbb")!!.modified!!.toInstant())
     }
 
     @Test

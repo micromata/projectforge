@@ -2042,7 +2042,8 @@ projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
   weitere die seitdem geänderten. Geholt werden nur Dateien von Advisories; nichts vom Inventar verlässt ProjectForge.
 * Ein Advisory wird erst dann eine Schwachstelle der Liste, wenn es eine Bibliothek des Inventars trifft, dann aber
   unabhängig von seiner Bewertung: Die Schwelle des NVD-Imports (`minCvss`) gilt für Produkte, nicht für eingesetzte
-  Bibliotheken. Die Schwachstelle heißt nach ihrer CVE-ID, ohne eine nach ihrer GHSA-ID (oder der ID der Quelle); die
+  Bibliotheken. Sie gilt aber für einen nur möglichen Treffer (eine Bibliothek ohne Version, eine Jar-Liste ohne
+  groupId), sonst würde jedes Advisory eines Artefaktnamens eine Schwachstelle. Die Schwachstelle heißt nach ihrer CVE-ID, ohne eine nach ihrer GHSA-ID (oder der ID der Quelle); die
   Advisories einer CVE (z. B. von GitHub und von PyPA) werden eine Schwachstelle.
 * Sobald die NVD die CVE ändert, ersetzen deren Daten die der Advisories (vorher Status _OSV_); die Advisories treffen
   weiterhin.

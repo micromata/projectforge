@@ -48,7 +48,9 @@ private val log = KotlinLogging.logger {}
  * The advisories of OSV.dev ([CvrOsvAdvisoryDO]) and the vulnerabilities they become (IMP-13):
  * - [store] writes the advisories of an import with their index of affected versions ([CvrPurlMatchDO]),
  * - [materialize] makes a vulnerability of the advisories of a key once they match the inventory, whatever their
- *   score: the threshold of the NVD import (IMP-10) doesn't hold for libraries the inventory has,
+ *   score: the threshold of the NVD import (IMP-10) doesn't hold for libraries the inventory has. It holds for a
+ *   match that is only possible (no version, a jar listing without groupId): otherwise every advisory of an artifact
+ *   name would become a vulnerability,
  * - a vulnerability made of advisories (status [STATUS_OSV]) is taken over by the NVD import as soon as the NVD
  *   modifies the CVE; until then [refresh] keeps it up to date with its advisories.
  */
@@ -56,6 +58,9 @@ private val log = KotlinLogging.logger {}
 class CvrOsvAdvisoryService {
     @Autowired
     private lateinit var caseDao: CvrCaseDao
+
+    @Autowired
+    private lateinit var config: CveRadarConfig
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
@@ -77,6 +82,15 @@ class CvrOsvAdvisoryService {
         /** The vulnerabilities the changed advisories belonged to or belong to now, to be matched again. */
         val vulnerabilityIds = mutableSetOf<Long>()
 
+        internal fun add(other: StoreResult) {
+            created += other.created
+            updated += other.updated
+            unchanged += other.unchanged
+            skipped += other.skipped
+            changedAdvisoryIds.addAll(other.changedAdvisoryIds)
+            vulnerabilityIds.addAll(other.vulnerabilityIds)
+        }
+
         override fun toString() = "created=$created, updated=$updated, unchanged=$unchanged"
     }
 
@@ -89,11 +103,18 @@ class CvrOsvAdvisoryService {
     /**
      * Stores the advisories in one transaction, the index replaced, the inserts sent in JDBC batches. An unchanged one
      * (same modification time) is skipped. An advisory is linked to the stored vulnerability of its key; if its key
-     * changed (a GHSA got a CVE id), it leaves the vulnerability of the old key.
+     * changed (a GHSA got a CVE id), it leaves the vulnerability of the old key. [result] gets the counts and ids only
+     * once the transaction is committed: a rolled back batch adds nothing to be matched.
      */
     @Synchronized
     fun store(advisories: List<OsvAdvisory>, result: StoreResult) {
         if (advisories.isEmpty()) return
+        val batch = StoreResult()
+        storeBatch(advisories, batch)
+        result.add(batch)
+    }
+
+    private fun storeBatch(advisories: List<OsvAdvisory>, result: StoreResult) {
         // Only the changed ones are loaded: the entity holds the (large) document.
         val modifiedBefore = modifiedByOsvId(advisories.map { it.id })
         persistenceService.runInTransaction { context ->
@@ -162,20 +183,28 @@ class CvrOsvAdvisoryService {
     /**
      * The vulnerabilities of the keys (matched by the inventory): a stored one gets the advisories of its key linked, a
      * missing one is created from them (unless all of them are withdrawn).
+     * @param possibleOnly The keys matched as possible only: a missing vulnerability is created only from the threshold
+     * of the NVD import on ([reachesThreshold]).
      * @return The id of the vulnerability per key.
      */
     @Synchronized
-    fun materialize(keys: Collection<String>): Map<String, Long> {
+    fun materialize(keys: Collection<String>, possibleOnly: Set<String> = emptySet()): Map<String, Long> {
         val result = mutableMapOf<String, Long>()
-        keys.toSet().forEach { key ->
-            val advisories = advisoriesOf(key)
-            val existing = vulnerabilityDao.findByCveId(key)
+        val keySet = keys.toSet()
+        // In one query each (the first import of a large inventory has thousands of keys); the advisories only of the
+        // keys without a vulnerability.
+        val existingByKey = vulnerabilityDao.findByCveIds(keySet)
+        val advisoriesByKey = advisoriesOf(keySet - existingByKey.keys)
+        keySet.forEach { key ->
+            val existing = existingByKey[key]
             val vulnerability = if (existing != null) {
                 if (existing.deleted) return@forEach
                 existing
             } else {
+                val advisories = advisoriesByKey[key].orEmpty()
                 if (advisories.none { it.withdrawn == null }) return@forEach
                 val created = toVulnerability(advisories)
+                if (key in possibleOnly && !reachesThreshold(created)) return@forEach
                 vulnerabilityDao.insert(created, checkAccess = false)
                 vulnerabilityDao.reindex(created)
                 caseDao.linkToVulnerability(created)
@@ -186,6 +215,15 @@ class CvrOsvAdvisoryService {
             result[key] = vulnerability.id!!
         }
         return result
+    }
+
+    /**
+     * Whether the vulnerability reaches [CveRadarConfig.Nvd.minCvss]: by its score, without one (CVSS 4 only) by the
+     * lower bound of its severity.
+     */
+    private fun reachesThreshold(vulnerability: CvrVulnerabilityDO): Boolean {
+        val score = vulnerability.cvssScore?.toDouble() ?: SEVERITY_FLOOR[vulnerability.severity] ?: return false
+        return score >= config.nvd.minCvss
     }
 
     /**
@@ -253,6 +291,9 @@ class CvrOsvAdvisoryService {
 
         private const val STATUS_REJECTED = "Rejected"
         private const val INSERT_BATCH = 200
+
+        /** The lowest score of a severity (CVSS 3 ratings). */
+        private val SEVERITY_FLOOR = mapOf("CRITICAL" to 9.0, "HIGH" to 7.0, "MEDIUM" to 4.0, "LOW" to 0.1)
 
         /** Not modified by the NVD yet: made of advisories (perhaps rejected since). */
         fun isFromOsv(vulnerability: CvrVulnerabilityDO): Boolean =

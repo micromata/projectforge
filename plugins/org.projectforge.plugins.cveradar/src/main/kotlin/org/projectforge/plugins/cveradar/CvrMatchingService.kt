@@ -203,14 +203,13 @@ class CvrMatchingService {
         val model = loadModel(null)
         val candidates = purlCandidates(model.packages.values.flatten(), "a.id", advisoryIds)
         if (!candidates.isEmpty) {
-            val keys = mutableSetOf<String>()
-            model.technologies.forEach { technology ->
-                val component = model.components[technology.componentId] ?: return@forEach
-                if (model.instancesOf(component).isEmpty()) return@forEach
+            val hits = model.technologies.flatMap { technology ->
+                val component = model.components[technology.componentId] ?: return@flatMap emptyList()
+                if (model.instancesOf(component).isEmpty()) return@flatMap emptyList()
                 val purl = purlHitsOf(technology.id, technology.version, model.packages[technology.id].orEmpty(), candidates)
-                keys.addAll(purl.hits.keys.filter { it !in purl.vulnerabilityIds })
+                purl.hits.filterKeys { it !in purl.vulnerabilityIds }.entries
             }
-            osvService.materialize(keys)
+            osvService.materialize(hits.map { it.key }, possibleOnly(hits))
         }
         return persistenceService.executeQueryBatched(
             "select a.vulnerability.id from CvrOsvAdvisoryDO a where a.id in :ids and a.vulnerability is not null",
@@ -334,9 +333,9 @@ class CvrMatchingService {
             )
         }
         val vulnerabilityOfKey = perTechnology.flatMap { it.purl.vulnerabilityIds.entries }.associate { it.key to it.value }.toMutableMap()
-        val unlinked = perTechnology.flatMap { it.purl.hits.keys }.filter { it !in vulnerabilityOfKey }.toSet()
+        val unlinked = perTechnology.flatMap { it.purl.hits.entries }.filter { it.key !in vulnerabilityOfKey }
         if (unlinked.isNotEmpty() && vulnerabilityIds == null) {
-            vulnerabilityOfKey.putAll(osvService.materialize(unlinked))
+            vulnerabilityOfKey.putAll(osvService.materialize(unlinked.map { it.key }, possibleOnly(unlinked)))
         }
         val hits = mutableMapOf<Triple<Long, Long, Long>, Hit>()
         perTechnology.forEach { technology ->
@@ -361,6 +360,12 @@ class CvrMatchingService {
             }
         }
         return hits
+    }
+
+    /** The keys of these hits that no technology matched as affected. */
+    private fun possibleOnly(hits: Collection<Map.Entry<String, Hit>>): Set<String> {
+        val affected = hits.filter { it.value.certainty == CvrFindingCertainty.AFFECTED }.map { it.key }.toSet()
+        return hits.map { it.key }.filter { it !in affected }.toSet()
     }
 
     /**
