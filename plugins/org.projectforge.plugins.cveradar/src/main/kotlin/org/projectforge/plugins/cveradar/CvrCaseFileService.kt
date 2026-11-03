@@ -60,6 +60,7 @@ import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.util.Date
 import java.util.zip.GZIPInputStream
+import org.projectforge.plugins.cveradar.sync.EuvdImportService
 
 private val log = KotlinLogging.logger {}
 
@@ -491,6 +492,10 @@ class CvrCaseFileService {
             id = vulnerability.id!!,
             cveId = vulnerability.cveId,
             nvdStatus = vulnerability.nvdStatus,
+            euvdId = vulnerability.euvdId,
+            epss = vulnerability.epss,
+            exploitedSince = vulnerability.exploitedSince,
+            euvdOnly = EuvdImportService.isFromEuvd(vulnerability),
             rejected = vulnerability.nvdStatus.equals("Rejected", ignoreCase = true),
             published = vulnerability.published,
             nvdLastModified = vulnerability.nvdLastModified,

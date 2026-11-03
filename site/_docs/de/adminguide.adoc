@@ -2055,16 +2055,54 @@ projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
   zurückgewiesen.
 * Der Ad-hoc-Check nutzt die Advisories ebenfalls, ohne etwas zu speichern.
 
+[[cve_radar_euvd]]
+==== Schwachstellen aus der EUVD
+
+Die European Union Vulnerability Database (EUVD) der ENISA ergänzt die NVD. ProjectForge liest deren öffentliche API
+(ohne Schlüssel) und ergänzt die EUVD-ID, den EPSS (Wahrscheinlichkeit der Ausnutzung) und den Tag, seit dem die EUVD
+eine Schwachstelle als ausgenutzt kennt. Außerdem importiert es Schwachstellen, die die NVD (noch) nicht hat, darunter
+solche ohne CVE-ID. Der Import ist standardmäßig aus, da er Internetzugriff braucht.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.euvd.enabled=true
+projectforge.plugin.cveradar.euvd.url=https://euvdservices.enisa.europa.eu/api
+# Der erste Lauf importiert die in den letzten 30 Tagen veröffentlichten Schwachstellen (keine Nachladung der Historie).
+projectforge.plugin.cveradar.euvd.initialDays=30
+# Jeder Lauf liest die Veröffentlichungen der letzten 7 Tage erneut (Bewertung und CVE-ID kommen oft später).
+projectforge.plugin.cveradar.euvd.rescanDays=7
+# Neue Schwachstellen ab diesem CVSS-Score.
+projectforge.plugin.cveradar.euvd.minCvss=7.0
+# Pause zwischen zwei Anfragen in Millisekunden.
+projectforge.plugin.cveradar.euvd.pauseMillis=1000
+# Alle 2 Stunden zur Minute 37 (UTC), nach dem NVD-Import.
+projectforge.plugin.cveradar.euvd.cron=0 37 */2 * * *
+----
+
+* Die EUVD filtert nach dem Tag der Veröffentlichung, nicht nach dem der letzten Änderung. Deshalb liest jeder Lauf die
+  letzten `rescanDays` Tage erneut, und die Änderung eines älteren Eintrags kommt nur über das tägliche Lesen aller als
+  ausgenutzt bekannten Einträge an (es aktualisiert die gespeicherten Schwachstellen, legt aber keine neuen an).
+* Eine Schwachstelle der NVD (oder von OSV.dev) bekommt die EUVD-ID, den EPSS und den Tag der Ausnutzung, sonst nichts;
+  nur eine Schwachstelle ganz ohne Bewertung bekommt auch den CVSS-Score der EUVD. Die NVD bleibt die Quelle der Details.
+* Eine Schwachstelle, die die NVD nicht hat, heißt nach ihrer CVE-ID, ohne eine nach ihrer EUVD-ID (Status _EUVD_). Ihre
+  Details stammen aus der EUVD, bis die NVD die CVE ändert und sie übernimmt. Neue werden ab `minCvss` importiert; ein
+  Eintrag, den die EUVD noch nicht bewertet hat, wird übersprungen, bis sie es tut.
+* Die EUVD hat keine CPE und keine Versionsbereiche, nur die Namen von Hersteller und Produkt. Eine Bibliothek oder ein
+  Produkt mit dem Namen eines solchen Produkts trifft deshalb nur als _möglicherweise betroffen_, nie als _betroffen_.
+  Sobald die NVD CPE-Einträge für die CVE liefert, ersetzen diese die aus den Namen gebildeten.
+* Die EUVD dokumentiert kein Rate-Limit; ProjectForge pausiert zwischen den Anfragen und wiederholt mit wachsendem
+  Abstand.
+
 [[cve_radar_jobs]]
 ==== Jobs und Verbindungen
 
 * Die Anbindung und die Importe laufen als Jobs, _CVE-Radar: Client-Agents_,
-  _CVE-Radar: NVD-Import_ und _CVE-Radar: OSV-Import_, aufgeführt
+  _CVE-Radar: NVD-Import_, _CVE-Radar: OSV-Import_ und _CVE-Radar: EUVD-Import_, aufgeführt
   unter _Administration_ -> _Jobmonitor_. Dort lassen sie sich sofort starten (_Jetzt starten_); solange ihre Quelle nicht
   konfiguriert ist, werden sie als inaktiv mit dem Grund angezeigt. Die Zusammenfassung jedes Laufs steht im Lauf und im Log, Fehler sind Teil des Fehler-Digests.
 * Timeouts und die maximale Größe einer Antwort werden pro Verbindung mit
   `projectforge.integration.clients.cveradar-graylog.*` und
-  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*` eingestellt (z. B.
+  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*`, `projectforge.integration.clients.cveradar-euvd.*` eingestellt (z. B.
   `responseTimeoutMs`, `maxResponseBytes`, Default 50 MB; bei der NVD 180 s und 200 MB, da eine Seite bis zu 2000
   Schwachstellen enthält; bei OSV.dev 180 s und 1 GB für das Zip eines Ökosystems, das in eine temporäre Datei geladen
   wird).

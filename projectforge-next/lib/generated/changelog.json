@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.5",
+    "date" : "2026-11-03",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "CVE-Radar: import of the vulnerabilities of the European Union Vulnerability Database (EUVD) as a supplement to the NVD. It adds the EUVD id, the EPSS and the day of exploitation, and brings vulnerabilities the NVD doesn't have yet, also ones without a CVE id. The EUVD names products only, so these match as possible. Off by default." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

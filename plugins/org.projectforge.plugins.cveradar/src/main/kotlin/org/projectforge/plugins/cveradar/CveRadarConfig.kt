@@ -59,6 +59,8 @@ open class CveRadarConfig {
 
     var osv = Osv()
 
+    var euvd = Euvd()
+
     /** Log server Graylog with the messages of the client agents (EXT-04, EXT-05). */
     class Graylog {
         /** Base url, e.g. `https://graylog.example.org`; empty: inactive. */
@@ -148,5 +150,35 @@ open class CveRadarConfig {
             get() = ecosystems.split(',').map { it.trim() }.filter { OsvPackages.ecosystem(it) != null }.distinct()
 
         override fun toString(): String = "Osv(enabled=$enabled, url=$url, ecosystems=$ecosystems, malicious=$malicious)"
+    }
+
+    /**
+     * Import of the vulnerabilities from the EUVD of the ENISA (IMP-16), public API without key. It adds the EUVD id, the
+     * EPSS and the day of the first known exploitation to the vulnerabilities of the NVD, and brings the ones the NVD
+     * doesn't have (yet). It has no CPE: a match by the product names of the EUVD is only possible, never sure.
+     */
+    class Euvd {
+        /** Imports from the EUVD (needs internet access); off: inactive. */
+        var enabled: Boolean = false
+
+        var url: String = "https://euvdservices.enisa.europa.eu/api"
+
+        /** The first run imports the vulnerabilities published in these last days. */
+        var initialDays: Int = 30
+
+        /**
+         * Every run reads the publications of these last days again, as the filter of the EUVD is the publication
+         * day: a rating or a CVE id comes later.
+         */
+        var rescanDays: Int = 7
+
+        /** New vulnerabilities with a lower CVSS score (or not rated yet) aren't imported; stored ones are always updated. */
+        var minCvss: Double = 7.0
+
+        /** Pause between two requests (the EUVD doesn't document a rate limit). */
+        var pauseMillis: Long = 1000
+
+        override fun toString(): String =
+            "Euvd(enabled=$enabled, url=$url, initialDays=$initialDays, rescanDays=$rescanDays, minCvss=$minCvss)"
     }
 }

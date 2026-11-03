@@ -53,6 +53,12 @@ class VulnerabilityView(
     val cvss40Vector: String?,
     val cwes: List<String>,
     val kevAdded: Date?,
+    /** The id in the EUVD, its EPSS and the day since the EUVD knows it to be exploited (IMP-16). */
+    val euvdId: String?,
+    val epss: BigDecimal?,
+    val exploitedSince: Date?,
+    /** Known to the EUVD only (no CPE of the NVD): a match is possible by the product names only. */
+    val euvdOnly: Boolean,
     /** References for remediation (tags Patch, Vendor Advisory, Mitigation, PRIO-04), shown apart from the others. */
     val remediationReferences: List<NvdReference>,
     val otherReferences: List<NvdReference>,
