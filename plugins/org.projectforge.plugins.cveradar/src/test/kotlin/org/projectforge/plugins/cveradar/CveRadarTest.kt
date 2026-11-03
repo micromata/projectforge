@@ -262,8 +262,10 @@ class CveRadarTest : CveRadarTestBase() {
         val reader = user("reader3", CvrRole.READER)
         val m1 = user("member1", null)
         val m2 = user("member2", null)
+        val away = user("member3", null, Date(System.currentTimeMillis() - 100L * 24 * 3600 * 1000))
         addToGroup(m1, "cveradar-every-member")
         addToGroup(m2, "cveradar-every-member")
+        addToGroup(away, "cveradar-every-member")
         logon(st)
         val case = insertCase("permember")
         val checkId = rest.createTeamCheck(
@@ -277,7 +279,7 @@ class CveRadarTest : CveRadarTestBase() {
         val first = rest.answerTeamCheck(checkId, TeamCheckAnswerRequest(CvrTeamAnswer.FIXED, "version 2.1"))
         assertEquals(CvrTeamAnswer.FIXED, first.answer)
         assertEquals(1, first.answered)
-        assertEquals(2, first.members)
+        assertEquals(2, first.members, "not logged in for 100 days: not waited for")
         logon(m2)
         assertNull(rest.my().teamChecks.single { it.id == checkId }.answer, "not the answer of the other member")
         rest.answerTeamCheck(checkId, TeamCheckAnswerRequest(CvrTeamAnswer.IN_PROGRESS, "next week"))
@@ -307,6 +309,11 @@ class CveRadarTest : CveRadarTestBase() {
         assertNull(readerCheck.answeredBy)
         assertNull(readerCheck.comment)
         assertEquals(2, readerCheck.answered)
+
+        logon(away)
+        val late = rest.answerTeamCheck(checkId, TeamCheckAnswerRequest(CvrTeamAnswer.FIXED, "updated"))
+        assertEquals(3, late.answered, "who answers counts")
+        assertEquals(3, late.members)
     }
 
     @Test

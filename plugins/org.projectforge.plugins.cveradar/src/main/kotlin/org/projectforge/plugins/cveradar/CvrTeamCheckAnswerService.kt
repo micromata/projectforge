@@ -52,7 +52,10 @@ class CvrTeamCheckAnswerService {
         val check: CvrTeamCheckDO,
         /** The answers of every member (also of those not in the group any more); empty for an answer for the group. */
         val answers: List<CvrTeamCheckAnswerDO>,
-        /** The active members of the group asked (only if every member answers). */
+        /**
+         * The active members of the group asked (only if every member answers): logged in within
+         * [CveRadarConfig.teamCheckActiveDays], or answered.
+         */
         val memberIds: Set<Long>,
     ) {
         private val answerByUser = answers.associateBy { it.userId }
@@ -88,7 +91,12 @@ class CvrTeamCheckAnswerService {
             .groupBy { it.teamCheckId }
         return checks.map { check ->
             if (check.perPerson) {
-                TeamCheckState(check, answers[check.id] ?: emptyList(), access.activeMemberIds(check.groupId))
+                val checkAnswers = answers[check.id] ?: emptyList()
+                // Who answered counts too: the login time of the cached users may be behind.
+                val answeredIds = checkAnswers.mapNotNull { it.userId }.toSet()
+                val memberIds = access.answeringMemberIds(check.groupId) +
+                        access.activeMemberIds(check.groupId).filter { it in answeredIds }
+                TeamCheckState(check, checkAnswers, memberIds)
             } else {
                 TeamCheckState(check, emptyList(), emptySet())
             }

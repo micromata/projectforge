@@ -1936,6 +1936,9 @@ die Team-Prüfungen der eigenen Gruppen.
   niemand zugewiesen ist, darf jedes Mitglied des Security-Teams; es wird dann die bearbeitende Person.
 * Eine Team-Prüfung beantworten die Mitglieder der angefragten Gruppe, dafür ist keine CVE-Radar-Gruppe nötig. Die Akte
   einer Team-Prüfung mit ihrer eigenen Diskussion sehen nur diese Gruppe, das Security-Team und die Security Officer.
+* Eine Team-Prüfung kann jedes Mitglied fragen (z. B. prüft jeder den eigenen Client): Jedes antwortet für sich, und
+  die Prüfung bleibt offen, bis alle Mitglieder geantwortet haben, die sich innerhalb von `teamCheckActiveDays`
+  angemeldet haben (standardmäßig 90 Tage). Das Security-Team sieht alle Antworten und wer noch fehlt.
 * Die Diskussion eines Falls steht allen Lesenden offen. Details zu Projekten und Systemen gehören in die Akte einer
   Team-Prüfung, nicht dorthin.
 
@@ -1953,6 +1956,8 @@ projectforge.plugin.cveradar.caseIdPrefix=INC
 projectforge.plugin.cveradar.clientActiveDays=30
 # Geräte, die länger nicht gemeldet wurden, werden mit ihren Scanbefunden gelöscht (personenbezogene Daten).
 projectforge.plugin.cveradar.deviceRetentionDays=365
+# Eine Team-Prüfung, die jedes Mitglied fragt, wartet nur auf Mitglieder, die sich in so vielen Tagen angemeldet haben.
+projectforge.plugin.cveradar.teamCheckActiveDays=90
 # PF-Gruppen der Rollen (siehe oben).
 projectforge.plugin.cveradar.readGroup=cve-read
 projectforge.plugin.cveradar.writeGroup=cve-read-write

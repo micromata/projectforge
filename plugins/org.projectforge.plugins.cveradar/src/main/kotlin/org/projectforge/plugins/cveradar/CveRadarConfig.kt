@@ -44,6 +44,12 @@ open class CveRadarConfig {
     /** Devices not reported for more days are deleted (EXT-07). */
     var deviceRetentionDays: Int = 365
 
+    /**
+     * A team check asking every member waits for the members logged in within so many days only (CLS-03): technical
+     * and old accounts would keep it open.
+     */
+    var teamCheckActiveDays: Int = 90
+
     /** Name of the PF group of the readers (role [CvrRole.READER]), e.g. `cve-read`; empty: nobody. */
     var readGroup: String = ""
 

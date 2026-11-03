@@ -49,6 +49,7 @@ import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
 import org.projectforge.plugins.cveradar.model.CvrTechnologyDO
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.springframework.beans.factory.annotation.Autowired
+import java.util.Date
 
 /**
  * Test users of the CVE-Radar: the roles are PF groups named in the configuration, so a user gets a role by membership
@@ -76,8 +77,11 @@ abstract class CveRadarTestBase : AbstractTestBase() {
         ).forEach { MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(it.canonicalName) }
     }
 
-    /** A new user with the given role (null: none) in the groups configured for the roles (created on first use). */
-    protected fun user(name: String, role: CvrRole?): PFUserDO {
+    /**
+     * A new user with the given role (null: none) in the groups configured for the roles (created on first use), logged
+     * in at [lastLogin].
+     */
+    protected fun user(name: String, role: CvrRole?, lastLogin: Date? = Date()): PFUserDO {
         val username = "${javaClass.simpleName}.$name"
         initTestDB.getUser(username)?.let { return it }
         logon(TEST_ADMIN_USER)
@@ -85,6 +89,7 @@ abstract class CveRadarTestBase : AbstractTestBase() {
             it.username = username
             it.firstname = name
             it.lastname = "CveRadar"
+            it.lastLogin = lastLogin
         }
         initTestDB.addUser(user)
         when (role) {

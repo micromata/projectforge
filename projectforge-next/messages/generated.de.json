@@ -5085,7 +5085,7 @@
         "none": "Keine Team-Prüfungen.",
         "open": "offen",
         "perPerson": "Jedes Mitglied antwortet",
-        "perPersonInfo": "Jedes Mitglied antwortet für sich (z. B. prüft den eigenen Client); die Prüfung bleibt offen, bis alle Mitglieder geantwortet haben. Sonst gibt es eine Antwort für die ganze Gruppe.",
+        "perPersonInfo": "Jedes Mitglied antwortet für sich (z. B. prüft den eigenen Client); die Prüfung bleibt offen, bis alle Mitglieder geantwortet haben, die sich zuletzt angemeldet haben (standardmäßig innerhalb von 90 Tagen). Sonst gibt es eine Antwort für die ganze Gruppe.",
         "progress": "{arg0} von {arg1} beantwortet",
         "reason": "Begründung",
         "subject": "Projekt oder System"

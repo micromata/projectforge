@@ -74,7 +74,7 @@ open class CvrTeamCheckDO : DefaultBaseDO() {
     open var subject: String? = null
 
     /**
-     * Every member answers (answers in [CvrTeamCheckAnswerDO], open until all active members answered); the answer
+     * Every member answers (answers in [CvrTeamCheckAnswerDO], open until all active members answered, [org.projectforge.plugins.cveradar.CveRadarConfig.teamCheckActiveDays]); the answer
      * fields of the check stay empty then.
      */
     @PropertyInfo(i18nKey = "plugins.cveradar.teamCheck.perPerson")

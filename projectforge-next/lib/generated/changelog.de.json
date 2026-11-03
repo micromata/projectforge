@@ -11,6 +11,9 @@
     }, {
       "type" : "changed",
       "items" : [ "Digitale Visitenkarten: Das Foto wird über eine öffentliche URL mit zufälligem Token verlinkt (ohne Anmeldung, nicht erratbar), auch ohne Gateway; die URL bleibt beim Ersetzen oder Löschen des Bildes gleich und lässt sich mit \"Foto-Link erneuern\" an der Karte widerrufen. Die Basis-URL lässt sich mit `projectforge.businessCard.photoBaseUrl` festlegen. Das Gateway zusammen mit dem Server aktualisieren; Foto-Links früherer QR-Codes funktionieren nicht mehr." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "CVE-Radar: Eine Team-Prüfung kann jedes Mitglied der Gruppe fragen (z. B. prüft jeder den eigenen Client); jede Antwort wird gespeichert und die Prüfung bleibt offen, bis alle Mitglieder geantwortet haben, die sich in den letzten 90 Tagen angemeldet haben (einstellbar). Bisher ersetzte jede Antwort die vorige." ]
     } ]
   },
   "groups" : [ {
