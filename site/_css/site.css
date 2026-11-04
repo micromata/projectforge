@@ -584,7 +584,8 @@
  * Long docs: the heading of a chapter (level 1 section) sticks below the header until the next chapter pushes it
  * out (doc-toc.js marks it as stuck).
  */
-.prose .sect1 > h2 {
+.prose .sect1 > h2,
+.pf-changelog-major > h2 {
   position: sticky;
   top: 72px; /* height of the sticky header */
   z-index: 10;
@@ -592,11 +593,13 @@
   padding-block: 0.5rem;
   background: var(--color-background);
 }
-.prose .sect1 > h2.pf-stuck {
+.prose .sect1 > h2.pf-stuck,
+.pf-changelog-major > h2.pf-stuck {
   box-shadow: 0 1px 0 var(--color-border), 0 8px 12px -10px rgb(0 0 0 / 0.25);
 }
 /* Anchors within a chapter land below its sticky heading. */
-.prose .sectionbody [id] {
+.prose .sectionbody [id],
+.pf-changelog-major .changelog-release[id] {
   scroll-margin-top: 3.5rem;
 }
 
@@ -738,6 +741,12 @@
   }
   .pf-doc-has-toc {
     grid-template-columns: var(--pf-doc-nav) minmax(0, 1fr) var(--pf-doc-toc);
+  }
+  /* Without navigation (changelog): text and table of contents only. */
+  .pf-doc-has-toc.pf-doc-no-nav {
+    display: grid;
+    gap: 3rem;
+    grid-template-columns: minmax(0, 1fr) var(--pf-doc-toc);
   }
   .pf-doc-has-toc .prose #toc {
     display: none;
@@ -896,9 +905,6 @@ a.changelog-pill-jar:hover {
 a.changelog-pill-docker:hover {
   background: #1d63ed;
   color: #fff;
-}
-.prose details.changelog-snapshots {
-  margin-top: 2.5rem;
 }
 
 /* Change type tags of the changelog (_includes/tag.html, colors in _data/tags.yml). */

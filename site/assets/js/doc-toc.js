@@ -1,5 +1,6 @@
 /*
- * Docs (_layouts/doc.html):
+ * Docs (_layouts/doc.html) and the changelog (_layouts/changelog.html, marked data-changelog-toc, without navigation
+ * and chapters: its table of contents lists the majors and their releases, built from the page):
  * - The heading of the current chapter sticks below the header (CSS); it gets the class pf-stuck while it does, for
  *   its shadow.
  * - The table of contents of Asciidoctor (#toc) is copied into the column beside the text (wide screens, where it
@@ -47,17 +48,49 @@
         });
     }
 
-    columnToggle(layout.querySelector('[data-nav-hide]'), layout.querySelector('[data-nav-show]'), 'pf-doc-nav-hidden',
-        'pf-doc-nav');
+    if (layout.querySelector('[data-nav-hide]')) {
+        columnToggle(layout.querySelector('[data-nav-hide]'), layout.querySelector('[data-nav-show]'),
+            'pf-doc-nav-hidden', 'pf-doc-nav');
+    }
 
-    var chapters = Array.prototype.slice.call(document.querySelectorAll('.prose .sect1 > h2'));
-    var toc = layout.querySelector('.prose #toc');
+    // Changelog: a list of the majors (articles) with their releases (headings), in the markup of Asciidoctor's TOC.
+    function changelogList() {
+        var root = document.createElement('ul');
+        root.className = 'sectlevel1';
+        function item(list, target, text) {
+            var li = document.createElement('li');
+            var a = document.createElement('a');
+            a.href = '#' + target.id;
+            a.textContent = text;
+            li.appendChild(a);
+            list.appendChild(li);
+            return li;
+        }
+        document.querySelectorAll('.pf-changelog-major').forEach(function (major) {
+            var title = major.querySelector('h2');
+            var li = item(root, major, title ? title.textContent.trim() : major.id);
+            var releases = major.querySelectorAll('.changelog-release[id]');
+            if (releases.length) {
+                var sub = document.createElement('ul');
+                sub.className = 'sectlevel2';
+                releases.forEach(function (release) {
+                    // "ProjectForge 9.2.5: headline" → "ProjectForge 9.2.5"
+                    item(sub, release, release.textContent.trim().split(':')[0]);
+                });
+                li.appendChild(sub);
+            }
+        });
+        return root;
+    }
+
+    var chapters = Array.prototype.slice.call(document.querySelectorAll('.prose .sect1 > h2, .pf-changelog-major > h2'));
+    var toc = layout.querySelector('.prose #toc') || (layout.hasAttribute('data-changelog-toc') ? layout : null);
     var nav = layout.querySelector('.pf-doc-toc-nav');
 
     // The links of the column (or drawer) with their headings in document order.
     var entries = [];
     if (toc && nav) {
-        var list = toc.querySelector('ul.sectlevel1');
+        var list = toc === layout ? changelogList() : toc.querySelector('ul.sectlevel1');
         if (list) {
             list = list.cloneNode(true);
             // Chapters and their sections only, the deeper levels stay in the text.

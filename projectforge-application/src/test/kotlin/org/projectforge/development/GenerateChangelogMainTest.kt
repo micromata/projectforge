@@ -138,6 +138,12 @@ class GenerateChangelogMainTest {
     // Without a release X.0, the oldest release of the major opens it.
     assertEquals("r622", groups[2].head!!["id"].asText())
     assertEquals("8", GenerateChangelogMain.majorOf("8.2-SNAPSHOT"))
+    // The website lists each snapshot with the major of its own version.
+    val site = GenerateChangelogMain.groups(root, snapshotsOfOwnMajor = true)
+    assertEquals(listOf("9", "8", "6"), site.map { it.major })
+    assertEquals(listOf("s3"), ids(site[0].snapshots))
+    assertEquals(listOf("s2", "s1"), ids(site[1].snapshots))
+    assertEquals("r80", site[1].head!!["id"].asText())
   }
 
   @Test
@@ -615,6 +621,22 @@ class GenerateChangelogMainTest {
       - bug
       ====
 
+      [discrete#release-s.changelog-release]
+      === Snapshot
+
+      [.changelog-source]
+      __2026-10-05, snapshot build https://github.com/micromata/projectforge/commit/bbbbbbb[develop@bbbbbbb], https://github.com/micromata/projectforge/compare/aaaaaaa..bbbbbbb[changes since aaaaaaa]__ +++{% include release-pills.html %}+++
+
+      .All changes
+      [%collapsible]
+      ====
+
+      ++++
+      {% include tag.html tag="added" %}
+      ++++
+      - early
+      ====
+
       [discrete#release-r0.changelog-release]
       === Major
 
@@ -637,27 +659,6 @@ class GenerateChangelogMainTest {
       {% include download-link.html %}
       ++++
       ====
-
-      .Development snapshots (1)
-      [%collapsible.changelog-snapshots]
-      ======
-
-      [discrete#release-s.changelog-release]
-      === Snapshot
-
-      [.changelog-source]
-      __2026-10-05, snapshot build https://github.com/micromata/projectforge/commit/bbbbbbb[develop@bbbbbbb], https://github.com/micromata/projectforge/compare/aaaaaaa..bbbbbbb[changes since aaaaaaa]__ +++{% include release-pills.html %}+++
-
-      .All changes
-      [%collapsible]
-      ====
-
-      ++++
-      {% include tag.html tag="added" %}
-      ++++
-      - early
-      ====
-      ======
 
       """.trimIndent(),
       adoc
@@ -687,7 +688,6 @@ class GenerateChangelogMainTest {
       "SHA-256 von projectforge-application-9.0.1.jar:",
       ".Überblick",
       ".Alle Änderungen",
-      ".Entwicklungs-Snapshots (1)",
       "__2026-10-05, Snapshot-Build https://github.com/micromata/projectforge/commit/bbbbbbb[develop@bbbbbbb], " +
         "https://github.com/micromata/projectforge/compare/aaaaaaa..bbbbbbb[Änderungen seit aaaaaaa]__",
     ).forEach { assertTrue(adoc.contains(it), "Missing in the German page: $it\n$adoc") }

@@ -53,7 +53,8 @@ import kotlin.system.exitProcess
  * commit range of a snapshot.
  *
  * The releases are grouped by their major version (see [groups]): the release opening it (9.0.0), its updates
- * (9.0.1, 9.0.2, …) and the snapshots of develop leading up to it.
+ * (9.0.1, 9.0.2, …) and the snapshots of develop leading up to it (on the website, the snapshots of its own
+ * major: the 8.2 snapshots to 8).
  *
  * All texts use a small markdown subset that both targets can render (see [validateText]):
  * `**bold**`, `*italic*`, `` `code` ``, `[text](url)`, `- ` list lines, paragraphs via a blank line and
@@ -115,7 +116,6 @@ object GenerateChangelogMain {
     val postsTitle: String,
     val latestRelease: String,
     val whatsNew: String,
-    val snapshots: String,
     val overview: String,
     val allChanges: String,
     val tag: String,
@@ -132,7 +132,6 @@ object GenerateChangelogMain {
     postsTitle = "Changelog",
     latestRelease = "Latest release",
     whatsNew = "What's new in ProjectForge",
-    snapshots = "Development snapshots",
     overview = "Overview",
     allChanges = "All changes",
     tag = "tag",
@@ -149,7 +148,6 @@ object GenerateChangelogMain {
     postsTitle = "Changelog",
     latestRelease = "Aktuelles Release",
     whatsNew = "Neu in ProjectForge",
-    snapshots = "Entwicklungs-Snapshots",
     overview = "Überblick",
     allChanges = "Alle Änderungen",
     tag = "Tag",
@@ -584,7 +582,7 @@ object GenerateChangelogMain {
     listOf(SITE_EN to root, SITE_DE to translate(root, translation)).forEach { (language, siteRoot) ->
       val releases = siteRoot["releases"].toList()
       // Releases are sorted newest first, the rank keeps the order of majors on the website whose newest releases share a date.
-      groups(siteRoot).forEach { group ->
+      groups(siteRoot, snapshotsOfOwnMajor = true).forEach { group ->
         val rank = releases.size - releases.indexOf(group.newest)
         result["${language.changelogsDir}/${groupFileName(group)}"] = groupToAdoc(group, rank, language)
       }
@@ -865,12 +863,13 @@ object GenerateChangelogMain {
   /**
    * The releases grouped by major version, newest first. A tagged release belongs to the major of its version, a
    * snapshot to the major of the release it leads up to: the next newer tagged one (the 8.2 snapshots to 9.0.0),
-   * without one (develop ahead of the latest release) to the major of its own version.
+   * without one (develop ahead of the latest release) to the major of its own version. With [snapshotsOfOwnMajor]
+   * (the website) each snapshot belongs to the major of its own version (the 8.2 snapshots to 8).
    */
-  internal fun groups(root: JsonNode): List<Group> {
+  internal fun groups(root: JsonNode, snapshotsOfOwnMajor: Boolean = false): List<Group> {
     val releases = root["releases"].toList()
     return releases.withIndex().groupBy({ (index, release) ->
-      val target = if (release["tag"] != null) release else releases.take(index).lastOrNull { it["tag"] != null }
+      val target = if (release["tag"] != null || snapshotsOfOwnMajor) release else releases.take(index).lastOrNull { it["tag"] != null }
       majorOf((target ?: release)["version"].asText())
     }, { it.value }).map { (major, members) ->
       val (tagged, snapshots) = members.partition { it["tag"] != null }
@@ -1153,8 +1152,8 @@ object GenerateChangelogMain {
   private fun sortKey(newest: JsonNode, rank: Int): String = "\"${newest["date"].asText()} ${"%04d".format(rank)}\""
 
   /**
-   * The page of a major version: its tagged releases newest first (the opening release last) and, folded, its
-   * snapshots, each release with its summary shown and its overview and all of its changes as collapsible blocks
+   * The page of a major version: its releases newest first, snapshots included (the opening release last), each
+   * release with its summary shown and its overview and all of its changes as collapsible blocks
    * (see [releaseToAdoc]). With updates, the page starts with a link to the opening release (what's new in the major).
    */
   internal fun groupToAdoc(group: Group, rank: Int, language: SiteLanguage = SITE_EN): String {
@@ -1171,15 +1170,9 @@ object GenerateChangelogMain {
       sb.appendLine("[.changelog-major-link]")
       sb.appendLine("${language.whatsNew} ${group.major}: <<${releaseAnchor(head)},ProjectForge ${head["version"].asText()}>> ↓")
     }
-    (group.updates + listOfNotNull(group.head)).forEach { releaseToAdoc(it, sb, "====", language) }
-    if (group.snapshots.isNotEmpty()) {
-      sb.appendLine()
-      sb.appendLine(".${language.snapshots} (${group.snapshots.size})")
-      sb.appendLine("[%collapsible.changelog-snapshots]")
-      sb.appendLine("======")
-      group.snapshots.forEach { releaseToAdoc(it, sb, "====", language) }
-      sb.appendLine("======")
-    }
+    // Snapshots are listed like the other releases, by date (the source is sorted newest first), the opening release last.
+    (group.updates + group.snapshots).sortedByDescending { it["date"].asText() }.plus(listOfNotNull(group.head))
+      .forEach { releaseToAdoc(it, sb, "====", language) }
     return sb.toString()
   }
 
