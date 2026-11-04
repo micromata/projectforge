@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.core
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.persistence.history.WithEditors
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -34,6 +35,8 @@ import org.springframework.stereotype.Service
  * the editors of a list's rows (column) and the entries a user has changed (filter, see [ModifiedByFilterSupport]).
  * "Changed" means created or changed at some point, not only the last change.
  */
+private val log = KotlinLogging.logger {}
+
 @Service
 class HistoryEditorsService {
     @Autowired
@@ -68,9 +71,14 @@ class HistoryEditorsService {
      */
     fun editorsOf(doClass: Class<*>, ids: Collection<Long>): Map<Long, List<String>> {
         if (ids.isEmpty()) return emptyMap()
+        // MEASUREMENT (temporary): how much does the editors column cost? Remove once the numbers are known.
+        val start = System.nanoTime()
+        var chunks = 0
+        var historyRows = 0
         val userIds = mutableMapOf<Long, MutableSet<Long>>()
         persistenceService.runReadOnly { context ->
             ids.distinct().chunked(CHUNK_SIZE).forEach { chunk ->
+                chunks++
                 context.em.createQuery(
                     """
                     SELECT h.entityId, h.modifiedBy
@@ -85,13 +93,20 @@ class HistoryEditorsService {
                     .setParameter("entityName", doClass.name)
                     .setParameter("ids", chunk)
                     .resultList
+                    .onEach { historyRows++ }
                     .forEach { row ->
                         val userId = (row[1] as String).toLongOrNull() ?: return@forEach
                         userIds.getOrPut(row[0] as Long) { linkedSetOf() }.add(userId)
                     }
             }
         }
-        return userIds.mapValues { (_, ids) -> ids.mapNotNull { userGroupCache.getUser(it)?.displayName } }
+        val queryMs = (System.nanoTime() - start) / 1_000_000
+        val result = userIds.mapValues { (_, ids) -> ids.mapNotNull { userGroupCache.getUser(it)?.displayName } }
+        log.info {
+            "Editors ${doClass.simpleName}: ${ids.size} ids, $chunks chunks, $historyRows history rows, " +
+                "${userIds.size} entries with editors, ${(System.nanoTime() - start) / 1_000_000} ms (query $queryMs ms)"
+        }
+        return result
     }
 
     /** Sets the editors of the rows with a stored entry (positive id) with one query for all of them. */
