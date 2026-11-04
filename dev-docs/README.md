@@ -20,7 +20,6 @@ The documentation for users and administrators is on the website (`site/`, https
 | [flutter-client.md](flutter-client.md)                | Plan      | Mobile app (Flutter): app login via browser + PKCE, business cards done; timesheets, chat, push open |
 | [reviews/pr-391-mcp-server.md](reviews/pr-391-mcp-server.md) | Review | PR #391 remote MCP server: findings, open                                       |
 | [cve-radar-db-reset.md](cve-radar-db-reset.md)        | Temporary | CVE-Radar: drop the plugin tables, restore the imported CVEs; remove once released    |
-| [cve-radar-team-check-rescue/](cve-radar-team-check-rescue/README.md) | Temporary | CVE-Radar: restore the overwritten answers of a team check from the history; remove once done |
 | [requirements/](requirements/)                        | Plans     | Specifications: chat (in implementation), CVE radar (in implementation)               |
 | [website-screenshots/](website-screenshots/README.md) | Tooling   | Scripts that shoot the website screenshots                                            |
 | [misc/](misc/)                                        | Assets    | nginx example configuration, forecast probabilities fixture                           |

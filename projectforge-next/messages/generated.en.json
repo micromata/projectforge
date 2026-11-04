@@ -4852,11 +4852,24 @@
       },
       "menu": "CVE-Radar",
       "my": {
+        "answeredByTeamCheck": "Your answer to the check above is also your answer to this case. Something unclear? Then ask here.",
+        "confirm": {
+          "DONE": {
+            "text": "This confirms for you only that you have done the measures on your own devices. The case stays open for everybody else; only the security team closes it. You can change your answer later.",
+            "title": "Done for you?"
+          },
+          "NOT_AFFECTED": {
+            "text": "This confirms for you only that the case doesn't concern you, e.g. because you don't use the software. The case stays open for everybody else; only the security team closes it. You can change your answer later.",
+            "title": "Not affected yourself?"
+          }
+        },
         "error": {
           "question": "Please describe the question or problem."
         },
         "fixedByEvidence": "Your devices already report the fix, no confirmation is needed.",
-        "question": "Question or problem"
+        "ownConfirmation": "Your own answer to this case",
+        "question": "Question or problem",
+        "teamCheckOfGroup": "Check of the group {arg0}"
       },
       "myAreas": {
         "findings": "Open findings of my systems",

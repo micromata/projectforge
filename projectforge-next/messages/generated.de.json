@@ -4852,11 +4852,24 @@
       },
       "menu": "CVE-Radar",
       "my": {
+        "answeredByTeamCheck": "Deine Antwort zur Prüfung oben gilt zugleich als deine Antwort zu diesem Fall. Ist etwas unklar, kannst du hier nachfragen.",
+        "confirm": {
+          "DONE": {
+            "text": "Damit bestätigst du nur für dich selbst, dass du die Maßnahmen an deinen eigenen Geräten umgesetzt hast. Für alle anderen bleibt der Fall offen; schließen kann ihn nur das Security-Team. Die Antwort lässt sich später ändern.",
+            "title": "Bei dir erledigt?"
+          },
+          "NOT_AFFECTED": {
+            "text": "Damit bestätigst du nur für dich selbst, dass dich der Fall nicht betrifft, z. B. weil du die Software nicht verwendest. Für alle anderen bleibt der Fall offen; schließen kann ihn nur das Security-Team. Die Antwort lässt sich später ändern.",
+            "title": "Selbst nicht betroffen?"
+          }
+        },
         "error": {
           "question": "Bitte die Frage oder das Problem beschreiben."
         },
         "fixedByEvidence": "Deine Geräte melden die Behebung schon, eine Bestätigung ist nicht nötig.",
-        "question": "Frage oder Problem"
+        "ownConfirmation": "Deine eigene Antwort zu diesem Fall",
+        "question": "Frage oder Problem",
+        "teamCheckOfGroup": "Prüfung der Gruppe {arg0}"
       },
       "myAreas": {
         "findings": "Offene Befunde meiner Systeme",
