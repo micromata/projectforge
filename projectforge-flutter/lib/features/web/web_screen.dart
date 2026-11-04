@@ -22,6 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -39,7 +40,9 @@ import '../../core/wallet/wallet_pass.dart';
 import '../../core/web/native_page.dart';
 import '../../core/widgets/error_view.dart';
 import 'web_download.dart';
+import 'web_find_bar.dart';
 import 'web_navigation.dart';
+import 'web_screen_controller.dart';
 import 'web_session_repository.dart';
 
 /// The ProjectForge pages (next, and the legacy pages they link to) in a WebView, logged in by a web session the
@@ -56,7 +59,7 @@ class WebScreen extends ConsumerStatefulWidget {
     this.initialPath,
     this.target,
     this.onNativePage,
-    this.restarts = 0,
+    this.controller,
   });
 
   /// The screen is the visible tab: the back gesture goes back in the WebView history.
@@ -72,9 +75,8 @@ class WebScreen extends ConsumerStatefulWidget {
   /// instead, the WebView then stays on its page. Not called for a page this screen was asked to load itself.
   final bool Function(NativePage page)? onNativePage;
 
-  /// The restarts the user asked for ("Reload page" of the menu): a higher number starts a new WebView with a new
-  /// web session on the current page, as a restart of the app would.
-  final int restarts;
+  /// The browser functions of the tab (its menu in the navigation of the home screen).
+  final WebScreenController? controller;
 
   @override
   ConsumerState<WebScreen> createState() => _WebScreenState();
@@ -89,7 +91,8 @@ class WebTarget {
   final String path;
 }
 
-class _WebScreenState extends ConsumerState<WebScreen> {
+class _WebScreenState extends ConsumerState<WebScreen>
+    implements WebScreenCommands {
   /// A renewal of the session at most this often, so a session that can't be opened doesn't loop.
   static const _renewalInterval = Duration(seconds: 30);
 
@@ -99,6 +102,37 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   String? _error;
   double _progress = 0;
   bool _canGoBack = false;
+
+  /// The search in the page: the native find navigator of WebKit on iOS (16 and newer), the [WebFindBar] on Android.
+  /// Not the search of the plugin implemented in JavaScript (iOS without the navigator): it wraps the matches into
+  /// elements of its own, in the DOM of next, which React then can't update anymore.
+  late final FindInteractionController _find;
+  final _findResult = ValueNotifier<WebFindResult?>(null);
+  bool _finding = false;
+  static final _nativeFind = Platform.isIOS && _iosVersion >= 16;
+
+  /// The main version of iOS (`Version 17.2 (Build 21C52)`), 0 if not known.
+  static int get _iosVersion =>
+      int.tryParse(
+        RegExp(r'(\d+)').firstMatch(Platform.operatingSystemVersion)?[1] ?? '',
+      ) ??
+      0;
+
+  /// The navigation of a main frame failed for these reasons: no network or the server can't be reached. The
+  /// WebView would show its own error page (Android) or nothing (iOS), the app shows its error with a retry instead.
+  static final _connectionErrors = {
+    WebResourceErrorType.HOST_LOOKUP,
+    WebResourceErrorType.TIMEOUT,
+    WebResourceErrorType.CANNOT_CONNECT_TO_HOST,
+    WebResourceErrorType.NOT_CONNECTED_TO_INTERNET,
+    WebResourceErrorType.NETWORK_CONNECTION_LOST,
+    WebResourceErrorType.SERVER_UNREACHABLE,
+    WebResourceErrorType.CANNOT_LOAD_FROM_NETWORK,
+    WebResourceErrorType.CONNECTION_ABORTED,
+    WebResourceErrorType.RESET,
+    WebResourceErrorType.INTERNATIONAL_ROAMING_OFF,
+    WebResourceErrorType.DATA_NOT_ALLOWED,
+  };
   DateTime? _lastOpened;
 
   /// Counts the calls of [_open]: only the latest one loads its page (a former one may still wait for its session,
@@ -150,6 +184,12 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   void initState() {
     super.initState();
     _pullToRefresh = PullToRefreshController(onRefresh: _reload);
+    _find = FindInteractionController(
+      onFindResultReceived: (_, active, count, _) {
+        _findResult.value = WebFindResult(active, count);
+      },
+    );
+    widget.controller?.attach(this);
     _open(widget.initialPath);
   }
 
@@ -160,13 +200,51 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     if (target != null && !identical(target, oldWidget.target)) {
       _open(target.path);
     }
-    if (widget.restarts > oldWidget.restarts) _restart(renew: true);
+    if (!identical(widget.controller, oldWidget.controller)) {
+      oldWidget.controller?.detach(this);
+      widget.controller?.attach(this);
+    }
+    if (!widget.active && oldWidget.active) _closeFind();
   }
 
   @override
   void dispose() {
     _stallTimer?.cancel();
+    widget.controller?.detach(this);
+    _findResult.dispose();
     super.dispose();
+  }
+
+  @override
+  bool get canFind => _nativeFind || Platform.isAndroid;
+
+  @override
+  void goBack() => _controller?.goBack();
+
+  @override
+  void goForward() => _controller?.goForward();
+
+  @override
+  void reload() => _reload();
+
+  @override
+  void restart() => _restart(renew: true);
+
+  @override
+  void openFind() {
+    if (_controller == null) return;
+    if (_nativeFind) {
+      _find.presentFindNavigator();
+    } else if (canFind) {
+      _findResult.value = null;
+      setState(() => _finding = true);
+    }
+  }
+
+  void _closeFind() {
+    if (!_finding) return;
+    _find.clearMatches();
+    setState(() => _finding = false);
   }
 
   /// Loads [path] (default: the start page of the server) with the web session of the app, a new one if [renew].
@@ -256,10 +334,12 @@ class _WebScreenState extends ConsumerState<WebScreen> {
   /// Removes the WebView (the next one starts empty, on its own start url).
   void _replaceWebView() {
     _stallTimer?.cancel();
+    widget.controller?.update(canGoBack: false, canGoForward: false);
     setState(() {
       _controller = null;
       _startUrl = null;
       _canGoBack = false;
+      _finding = false;
       _pageShown = false;
       _stalled = false;
       _progress = 0;
@@ -523,24 +603,45 @@ class _WebScreenState extends ConsumerState<WebScreen> {
     if (url != null && _navigation.isLoginPage(url)) {
       _onLoginPage(url);
     } else if (url != null && _navigation.isSameOrigin(url)) {
+      // The matches belong to the page left.
+      if (url.path != _shownUrl?.path) _closeFind();
       _shownUrl = url;
     }
+    if (url != null) _enablePullToRefresh(url);
     if (url != null && _handOver(url) && await controller.canGoBack()) {
       // Back to the page the user came from, the native page is shown in its tab.
       await controller.goBack();
       return;
     }
     final canGoBack = await controller.canGoBack();
-    if (mounted && canGoBack != _canGoBack) {
+    final canGoForward = await controller.canGoForward();
+    if (!mounted) return;
+    widget.controller?.update(
+      canGoBack: canGoBack,
+      canGoForward: canGoForward,
+      url: _shownUrl,
+    );
+    if (canGoBack != _canGoBack) {
       setState(() => _canGoBack = canGoBack);
     }
+  }
+
+  /// The pages of next scroll in columns of their own and bring their own pull to refresh (next:
+  /// hooks/use-pull-to-refresh.ts); the WebView's would never fire there (iOS) or on every downward swipe (Android).
+  /// The legacy pages scroll the document and keep the WebView's.
+  void _enablePullToRefresh(Uri url) {
+    _pullToRefresh?.setEnabled(!_navigation.isNextPage(url));
   }
 
   /// The retry of the error view. After a refusal of the SSO proxy: a new login in the system browser (the user asked
   /// for it), then the refused page; otherwise a new web session.
   Future<void> _retry() async {
     if (!_proxyRefusalShown) {
-      await _open(widget.initialPath, renew: true);
+      // The page that failed (e.g. without network), or the one shown last.
+      await _open(
+        (_requestedUrl ?? _shownUrl)?.toString() ?? widget.initialPath,
+        renew: true,
+      );
       return;
     }
     // The refused url as it was (a path rebuilt of it could resolve to another site, e.g. of `//other.host/x`).
@@ -580,6 +681,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
         children: [
           InAppWebView(
             initialUrlRequest: URLRequest(url: WebUri.uri(startUrl)),
+            findInteractionController: _find,
             initialSettings: InAppWebViewSettings(
               // Marks the app for next (lib/app-mode.ts), which then e.g. hides its logout.
               applicationNameForUserAgent: 'ProjectForgeApp/$appVersion',
@@ -594,6 +696,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
               // Only pages of the server, never files of the device.
               allowFileAccess: false,
               allowContentAccess: false,
+              isFindInteractionEnabled: _nativeFind,
             ),
             pullToRefreshController: _pullToRefresh,
             onWebViewCreated: (controller) => _controller = controller,
@@ -631,6 +734,7 @@ class _WebScreenState extends ConsumerState<WebScreen> {
             },
             onLoadStop: (_, url) {
               _serverPageLoadStart = null;
+              if (url != null) _enablePullToRefresh(url);
               _pullToRefresh?.endRefreshing();
               appLog.debug('web', 'Loaded ${LogSanitizer.url(url)}');
             },
@@ -644,6 +748,10 @@ class _WebScreenState extends ConsumerState<WebScreen> {
                   'web',
                   'Error ${error.type} loading ${LogSanitizer.url(request.url)}: ${error.description}',
                 );
+                if (_connectionErrors.contains(error.type)) {
+                  _pullToRefresh?.endRefreshing();
+                  _showError(context.t('app.web.offline'));
+                }
               }
             },
             onReceivedHttpError: (_, request, response) {
@@ -663,6 +771,17 @@ class _WebScreenState extends ConsumerState<WebScreen> {
             },
           ),
           if (_progress < 1) LinearProgressIndicator(value: _progress),
+          if (_finding)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: WebFindBar(
+                controller: _find,
+                result: _findResult,
+                onClose: () => setState(() => _finding = false),
+              ),
+            ),
           if (_stalled)
             Positioned.fill(
               child: ColoredBox(

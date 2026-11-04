@@ -59,20 +59,29 @@ class OsvClient : OsvSource {
     @Autowired
     private lateinit var config: CveRadarConfig
 
-    override fun modifiedSince(ecosystem: String, since: Instant): List<Pair<Instant, String>> =
-        // Sorted by the modification time, the latest first: reading stops at the first one older than [since].
-        CveRadarHttp.execute(CveRadarHttp.OSV, HttpGet(url(ecosystem, "modified_id.csv")), maxBytesLimit = MAX_LIST_BYTES)
-            .lineSequence().mapNotNull { line ->
-                val (time, id) = line.split(',', limit = 2).takeIf { it.size == 2 } ?: return@mapNotNull null
-                val modified = OsvParser.parseTimestamp(time) ?: return@mapNotNull null
-                modified to id.trim()
-            }.takeWhile { it.first >= since }.toList()
+    override fun modifiedSince(ecosystem: String, since: Instant): List<Pair<Instant, String>> {
+        val result = mutableListOf<Pair<Instant, String>>()
+        // Sorted by the modification time, the latest first: reading (and downloading) stops at the first one older
+        // than [since], the list of a large ecosystem is never read as a whole.
+        CveRadarHttp.readLines(CveRadarHttp.OSV, url(ecosystem, "modified_id.csv"), maxBytesLimit = MAX_LIST_BYTES) { line ->
+            val (time, id) = line.split(',', limit = 2).takeIf { it.size == 2 } ?: return@readLines true
+            val modified = OsvParser.parseTimestamp(time) ?: return@readLines true
+            if (modified < since) return@readLines false
+            result.add(modified to id.trim())
+            true
+        }
+        return result
+    }
 
     override fun advisory(ecosystem: String, id: String): String? =
         try {
             CveRadarHttp.execute(CveRadarHttp.OSV, HttpGet(url(ecosystem, "${encode(id)}.json")), maxBytesLimit = MAX_ENTRY_BYTES)
         } catch (ex: CveRadarHttp.HttpException) {
             if (ex.status != 404) throw ex
+            null
+        } catch (_: PooledHttpClients.ResponseTooLargeException) {
+            // As in the zip: skipped for good, it would fail on every run.
+            log.warn { "OSV advisory $id of $ecosystem skipped: larger than $MAX_ENTRY_BYTES bytes." }
             null
         }
 

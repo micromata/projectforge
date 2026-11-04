@@ -45,6 +45,7 @@ import org.projectforge.plugins.cveradar.rest.ConfirmRequest
 import org.projectforge.plugins.cveradar.rest.CveRadarRest
 import org.projectforge.plugins.cveradar.rest.CvrCase
 import org.projectforge.plugins.cveradar.rest.CvrCaseEntityRest
+import org.projectforge.plugins.cveradar.rest.CvrCaseFileRest
 import org.projectforge.plugins.cveradar.rest.TeamCheckAnswerRequest
 import org.projectforge.plugins.cveradar.rest.TeamCheckRequest
 import org.projectforge.ui.ValidationError
@@ -67,6 +68,9 @@ class CveRadarTest : CveRadarTestBase() {
 
     @Autowired
     private lateinit var deviceService: CvrDeviceService
+
+    @Autowired
+    private lateinit var fileRest: CvrCaseFileRest
 
     @Autowired
     private lateinit var rest: CveRadarRest
@@ -101,6 +105,9 @@ class CveRadarTest : CveRadarTestBase() {
         val statistics = rest.reportedStatistics(CvrStatisticsService.Granularity.MONTH)
         assertEquals(CvrStatisticsService.MONTHS.toInt(), statistics.cases.size)
         assertEquals(CvrStatisticsService.MONTHS.toInt(), statistics.vulnerabilities.size)
+        val tenYears = rest.reportedStatistics(CvrStatisticsService.Granularity.MONTH, 99)
+        assertEquals(CvrStatisticsService.MAX_YEARS, tenYears.years, "limited to the longest window")
+        assertEquals(CvrStatisticsService.MAX_YEARS * 12, tenYears.cases.size)
     }
 
     @Test
@@ -250,6 +257,66 @@ class CveRadarTest : CveRadarTestBase() {
         assertEquals(CvrCaseStatus.CLOSED, closed.case.status)
         assertThrows(UserException::class.java, { rest.close(case.id!!, CloseRequest("other reason")) }, "closed once")
         assertEquals("All projects fixed.", caseDao.find(case.id)!!.closeReason)
+    }
+
+    @Test
+    fun `a team check asking every member keeps the answer of each member and is open until all answered`() {
+        val st = user("st9", CvrRole.SECURITY_TEAM)
+        val reader = user("reader3", CvrRole.READER)
+        val m1 = user("member1", null)
+        val m2 = user("member2", null)
+        val away = user("member3", null, Date(System.currentTimeMillis() - 100L * 24 * 3600 * 1000))
+        addToGroup(m1, "cveradar-every-member")
+        addToGroup(m2, "cveradar-every-member")
+        addToGroup(away, "cveradar-every-member")
+        logon(st)
+        val case = insertCase("permember")
+        val checkId = rest.createTeamCheck(
+            case.id!!, TeamCheckRequest(getGroupId("cveradar-every-member"), "Own client", perPerson = true),
+        ).teamChecks.single().id
+        assertThrows(AccessException::class.java, { rest.answerTeamCheck(checkId, TeamCheckAnswerRequest(CvrTeamAnswer.FIXED)) }, "no answer for others")
+        logon(TEST_USER) // Not member of this group.
+        assertThrows(AccessException::class.java) { rest.answerTeamCheck(checkId, TeamCheckAnswerRequest(CvrTeamAnswer.FIXED)) }
+
+        logon(m1)
+        val first = rest.answerTeamCheck(checkId, TeamCheckAnswerRequest(CvrTeamAnswer.FIXED, "version 2.1"))
+        assertEquals(CvrTeamAnswer.FIXED, first.answer)
+        assertEquals(1, first.answered)
+        assertEquals(2, first.members, "not logged in for 100 days: not waited for")
+        logon(m2)
+        assertNull(rest.my().teamChecks.single { it.id == checkId }.answer, "not the answer of the other member")
+        rest.answerTeamCheck(checkId, TeamCheckAnswerRequest(CvrTeamAnswer.IN_PROGRESS, "next week"))
+        logon(st)
+        var status = rest.status(case.id!!)
+        assertFalse(status.closable, "in progress is open")
+        assertEquals(1, status.teamChecks.single().openMembers)
+
+        logon(m2)
+        rest.answerTeamCheck(checkId, TeamCheckAnswerRequest(CvrTeamAnswer.NOT_AFFECTED, "no such client"))
+        assertEquals(CvrTeamAnswer.NOT_AFFECTED, rest.my().teamChecks.single { it.id == checkId }.answer)
+        val own = fileRest.teamCheck(checkId)
+        assertEquals("no such client", own.comment)
+        assertNull(own.answers, "a member sees the own answer only")
+        logon(m1)
+        assertEquals(CvrTeamAnswer.FIXED, rest.my().teamChecks.single { it.id == checkId }.answer, "the own answer is kept")
+
+        logon(st)
+        status = rest.status(case.id!!)
+        assertTrue(status.closable)
+        val file = fileRest.teamCheck(checkId)
+        assertEquals(2, file.answers!!.size, "each answer is stored")
+        assertEquals(setOf(CvrTeamAnswer.FIXED, CvrTeamAnswer.NOT_AFFECTED), file.answers!!.map { it.answer }.toSet())
+        assertTrue(file.missing!!.isEmpty())
+        logon(reader)
+        val readerCheck = rest.status(case.id!!).teamChecks.single()
+        assertNull(readerCheck.answeredBy)
+        assertNull(readerCheck.comment)
+        assertEquals(2, readerCheck.answered)
+
+        logon(away)
+        val late = rest.answerTeamCheck(checkId, TeamCheckAnswerRequest(CvrTeamAnswer.FIXED, "updated"))
+        assertEquals(3, late.answered, "who answers counts")
+        assertEquals(3, late.members)
     }
 
     @Test

@@ -59,7 +59,7 @@ class GatewayEndpointFilter : Filter {
         "/.well-known/carddav",
         "/export/ProjectForge.ics",
         "/rsPublic/datatransfer/",
-        // The contact image of an address under a signed url (GatewayContactImageController).
+        // The contact image of an address under its public token url (ContactImagePublicRest).
         ContactImageUrl.PATH,
         "/api/gateway/sync/",
         "/login/oauth2/",

@@ -7,7 +7,7 @@ tags: [setup]
 :hide-uri-scheme:
 
 :toc:
-:toclevels: 4
+:toclevels: 3
 
 :last-update-label: Copyright (C) 2001-2026, Last updated
 

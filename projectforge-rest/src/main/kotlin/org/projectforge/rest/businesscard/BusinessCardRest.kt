@@ -80,7 +80,7 @@ class BusinessCardRest {
         val qrCodeUrl: String,
         /** Length of the vCard: the QR code gets dense with a long one, the page warns. */
         val vCardLength: Int,
-        /** The vCard has a photo url (on the gateway). */
+        /** The vCard has a photo url (random token, see ContactImageUrl). */
         val withPhoto: Boolean,
         /** The source address of the card is the user's own one, so its photo may be published. */
         val photoAllowed: Boolean,
@@ -91,8 +91,8 @@ class BusinessCardRest {
         /** A new card from the address that is most likely the user's own one, if any. */
         val suggestion: BusinessCard?,
         val maxCards: Int,
-        /** Without a gateway there is no photo url (photos can't be published). */
-        val gatewayConfigured: Boolean,
+        /** Without a base url (photo base url, gateway or public domain) there is no photo url. */
+        val photoUrlAvailable: Boolean,
         /** The Apple Wallet certificate is configured: the page offers "Add to Wallet". */
         val walletConfigured: Boolean,
     )
@@ -104,7 +104,7 @@ class BusinessCardRest {
             cards = businessCardService.list().map { CardInfo(it, preview(it)) },
             suggestion = businessCardService.suggestAddresses().firstOrNull()?.let { BusinessCardService.createFrom(it) },
             maxCards = BusinessCardService.MAX_CARDS_PER_USER,
-            gatewayConfigured = contactImageUrl.gatewayPublicUrl.isNotBlank(),
+            photoUrlAvailable = contactImageUrl.baseUrl.isNotBlank(),
             walletConfigured = passKitService.isConfigured(),
         )
     }
@@ -157,6 +157,33 @@ class BusinessCardRest {
             return ResponseEntity.notFound().build()
         }
         return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
+    }
+
+    /**
+     * Revokes the public photo url of the card's address (see [BusinessCardService.renewPhotoLink]); answers the card
+     * with its new preview (QR code). 406 if the address isn't the user's own one, or has no image.
+     */
+    @AccessChecked("Own user only (own card, own address). CSRF token required")
+    @PostMapping("renewPhotoLink")
+    fun renewPhotoLink(@RequestParam("id") id: String): ResponseEntity<ResponseAction> {
+        val card = businessCardService.get(id) ?: return ResponseEntity.notFound().build()
+        val renewed = try {
+            businessCardService.renewPhotoLink(card)
+        } catch (ex: UserException) {
+            return ResponseEntity(
+                ResponseAction(validationErrors = listOf(ValidationError.create(ex.i18nKey))),
+                HttpStatus.NOT_ACCEPTABLE,
+            )
+        }
+        if (!renewed) {
+            return ResponseEntity(
+                ResponseAction(validationErrors = listOf(ValidationError.create(BusinessCardService.ERROR_NO_PHOTO))),
+                HttpStatus.NOT_ACCEPTABLE,
+            )
+        }
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.NOTHING).addVariable("data", CardInfo(card, preview(card)))
+        )
     }
 
     @AccessChecked("Own user only (business cards of the logged-in user)")

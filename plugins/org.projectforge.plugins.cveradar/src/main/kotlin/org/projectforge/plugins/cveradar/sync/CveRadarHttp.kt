@@ -29,6 +29,7 @@ import org.apache.hc.core5.http.ContentType
 import org.apache.hc.core5.http.io.entity.StringEntity
 import org.projectforge.framework.integration.IntegrationConfig
 import org.projectforge.framework.integration.PooledHttpClients
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -40,6 +41,7 @@ internal object CveRadarHttp {
     const val GRAYLOG = "cveradar-graylog"
     const val NVD = IntegrationConfig.CVERADAR_NVD
     const val OSV = IntegrationConfig.CVERADAR_OSV
+    const val EUVD = IntegrationConfig.CVERADAR_EUVD
 
     /** Used, if `projectforge.integration.clients.<id>.maxResponseBytes` isn't given. */
     private const val DEFAULT_MAX_RESPONSE_BYTES = 50L * 1024 * 1024
@@ -87,6 +89,41 @@ internal object CveRadarHttp {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * GET of a text answer, read line by line as long as [consumer] wants more (returns true): the rest isn't
+     * downloaded. Not more than the limit of [execute].
+     */
+    fun readLines(integrationId: String, url: String, maxBytesLimit: Long? = null, consumer: (String) -> Boolean) {
+        val configured = IntegrationConfig.get(integrationId).maxResponseBytes.takeIf { it > 0 }
+            ?: DEFAULT_MAX_RESPONSE_BYTES
+        val maxBytes = maxBytesLimit?.let { minOf(it, configured) } ?: configured
+        val request = HttpGet(url)
+        var stopped = false
+        try {
+            PooledHttpClients.get(integrationId).execute(request) { response ->
+                if (response.code !in 200..299) {
+                    throw HttpException("${request.method} ${request.requestUri}: HTTP ${response.code}", response.code)
+                }
+                val reader = response.entity?.content?.bufferedReader(Charsets.UTF_8) ?: return@execute
+                var total = 0L
+                while (true) {
+                    val line = reader.readLine() ?: break
+                    total += line.length + 1
+                    if (total > maxBytes) throw PooledHttpClients.ResponseTooLargeException(maxBytes)
+                    if (!consumer(line)) {
+                        // Closing the answer would read it to its end: the connection is dropped instead.
+                        stopped = true
+                        request.cancel()
+                        break
+                    }
+                }
+            }
+        } catch (ex: IOException) {
+            // The rest of a dropped connection can't be read, which is the point.
+            if (!stopped) throw ex
         }
     }
 

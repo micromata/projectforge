@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.database.TupleUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.security.SecureRandom
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -108,6 +109,74 @@ open class AddressImageDao {
      */
     open fun getPreviewImage(addressId: Long, checkAccess: Boolean = true): ByteArray? {
         return findImage(addressId, fetchPreviewImage = true, checkAccess = checkAccess)?.imagePreview
+    }
+
+    /**
+     * The token of the public url of the image of the address (see [ContactImageUrl]), created on first use. It belongs
+     * to the address, not to the image: replacing or deleting the image keeps it. Creating it touches
+     * [AddressDO.imageLastUpdate], so the next gateway push brings it there. No access checking: the caller decides
+     * that the image may be published (see BusinessCardService.photoSource).
+     * @return The token, or null if the address has no image.
+     */
+    open fun getOrCreatePublicToken(addressId: Long): String? {
+        val hasImage = hasImage(addressId)
+        var token: String? = null
+        persistenceService.runInTransaction { context ->
+            val address = context.find(AddressDO::class.java, addressId, attached = true) ?: return@runInTransaction
+            if (address.deleted || !hasImage) {
+                return@runInTransaction
+            }
+            token = address.imagePublicToken
+            if (token == null) {
+                token = newPublicToken()
+                address.imagePublicToken = token
+                address.imageLastUpdate = Date()
+            }
+        }
+        return token
+    }
+
+    /**
+     * Revokes the public url of the image of the address (it answers 404 from now on) and creates a new token.
+     * No access checking: the caller checks that the address belongs to the logged-in user.
+     * @return The new token, or null if the address has no image.
+     */
+    open fun renewPublicToken(addressId: Long): String? {
+        val hasImage = hasImage(addressId)
+        var token: String? = null
+        persistenceService.runInTransaction { context ->
+            val address = context.find(AddressDO::class.java, addressId, attached = true) ?: return@runInTransaction
+            if (address.deleted || !hasImage) {
+                return@runInTransaction
+            }
+            token = newPublicToken()
+            address.imagePublicToken = token
+            address.imageLastUpdate = Date()
+        }
+        return token
+    }
+
+    private fun hasImage(addressId: Long): Boolean =
+        persistenceService.selectSingleResult(
+            "select i.id from ${AddressImageDO::class.java.name} i where i.address.id = :addressId",
+            Long::class.javaObjectType,
+            Pair("addressId", addressId),
+        ) != null
+
+    /**
+     * The image of the address with the given public token, without any access checking (the token is the
+     * authorization). Null if the token is unknown, the address is deleted or there is no image data.
+     */
+    open fun findByPublicToken(token: String?): AddressImageDO? {
+        if (token.isNullOrBlank() || token.length > MAX_TOKEN_LENGTH) {
+            return null
+        }
+        val addressId = persistenceService.selectSingleResult(
+            "select a.id from ${AddressDO::class.java.name} a where a.imagePublicToken = :token and a.deleted = false",
+            Long::class.javaObjectType,
+            Pair("token", token),
+        ) ?: return null
+        return findImage(addressId, fetchImage = true, checkAccess = false)?.takeIf { it.id != null && it.image != null }
     }
 
     /**
@@ -348,8 +417,18 @@ open class AddressImageDao {
     }
 
     companion object {
+        private const val MAX_TOKEN_LENGTH = 43
+        private val secureRandom = SecureRandom()
+
+        /** 256 bits, base64url without padding (43 characters). */
+        fun newPublicToken(): String {
+            val bytes = ByteArray(32)
+            secureRandom.nextBytes(bytes)
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+        }
+
         private const val MAX_SIZE_BYTES_OF_SHRINKED_IMAGES = 100L * Constants.KB
-        private const val MAX_WIDTH_OF_PREVIEW_IMAGES = 50
-        private const val MAX_HEIGHT_OF_PREVIEW_IMAGES = 50
+        private const val MAX_WIDTH_OF_PREVIEW_IMAGES = 160
+        private const val MAX_HEIGHT_OF_PREVIEW_IMAGES = 160
     }
 }

@@ -44,10 +44,12 @@ import org.projectforge.plugins.cveradar.model.CvrOsvAdvisoryDO
 import org.projectforge.plugins.cveradar.model.CvrPurlMatchDO
 import org.projectforge.plugins.cveradar.model.CvrRatingDO
 import org.projectforge.plugins.cveradar.model.CvrSystemDO
+import org.projectforge.plugins.cveradar.model.CvrTeamCheckAnswerDO
 import org.projectforge.plugins.cveradar.model.CvrTeamCheckDO
 import org.projectforge.plugins.cveradar.model.CvrTechnologyDO
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.springframework.beans.factory.annotation.Autowired
+import java.util.Date
 
 /**
  * Test users of the CVE-Radar: the roles are PF groups named in the configuration, so a user gets a role by membership
@@ -67,7 +69,7 @@ abstract class CveRadarTestBase : AbstractTestBase() {
         // All entities of the plugin for every test class: the scan happens once, so the outcome must not depend on
         // which test class runs first.
         listOf(
-            CvrCaseDO::class.java, CvrTeamCheckDO::class.java, CvrConfirmationDO::class.java, CvrDeviceDO::class.java,
+            CvrCaseDO::class.java, CvrTeamCheckDO::class.java, CvrTeamCheckAnswerDO::class.java, CvrConfirmationDO::class.java, CvrDeviceDO::class.java,
             CvrVulnerabilityDO::class.java, CvrImportStateDO::class.java, CvrRatingDO::class.java,
             CvrAreaDO::class.java, CvrSystemDO::class.java, CvrInstanceDO::class.java, CvrComponentDO::class.java,
             CvrTechnologyDO::class.java, CvrCatalogNodeDO::class.java, CvrCatalogEdgeDO::class.java,
@@ -75,8 +77,11 @@ abstract class CveRadarTestBase : AbstractTestBase() {
         ).forEach { MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(it.canonicalName) }
     }
 
-    /** A new user with the given role (null: none) in the groups configured for the roles (created on first use). */
-    protected fun user(name: String, role: CvrRole?): PFUserDO {
+    /**
+     * A new user with the given role (null: none) in the groups configured for the roles (created on first use), logged
+     * in at [lastLogin].
+     */
+    protected fun user(name: String, role: CvrRole?, lastLogin: Date? = Date()): PFUserDO {
         val username = "${javaClass.simpleName}.$name"
         initTestDB.getUser(username)?.let { return it }
         logon(TEST_ADMIN_USER)
@@ -84,6 +89,7 @@ abstract class CveRadarTestBase : AbstractTestBase() {
             it.username = username
             it.firstname = name
             it.lastname = "CveRadar"
+            it.lastLogin = lastLogin
         }
         initTestDB.addUser(user)
         when (role) {

@@ -67,20 +67,24 @@ data class OsvAdvisory(
 
     /**
      * The id of its vulnerability: the CVE id (the lowest, if it names several), otherwise the GHSA id, otherwise its
-     * own id; upper case. The advisories of one CVE (a GHSA and a PYSEC) agree on it.
+     * own id; upper case. The advisories of one CVE (a GHSA and a PYSEC) agree on it. Never cut: two long ids alike in
+     * their beginning would become one vulnerability, so [OsvParser.parse] skips an advisory whose key is too long.
      */
     val vulnerabilityKey: String
         get() {
             val ids = listOf(id) + aliases
             return (ids.filter { CVE_ID.matches(it) }.minWithOrNull(CVE_ORDER) ?: ids.firstOrNull { it.startsWith("GHSA-") } ?: id)
-                .uppercase().take(30)
+                .uppercase()
         }
 
     companion object {
         private val CVE_ID = Regex("""CVE-\d{4}-\d{4,}""")
 
-        /** By year and number, not as text (`CVE-2021-9999` is lower than `CVE-2021-10000`). */
-        private val CVE_ORDER = compareBy<String>({ it.substring(4, 8).toInt() }, { it.substring(9).toLong() })
+        /**
+         * By year and number, not as text (`CVE-2021-9999` is lower than `CVE-2021-10000`): the number by its length,
+         * then as text (no overflow, whatever the length of an untrusted alias).
+         */
+        private val CVE_ORDER = compareBy<String>({ it.substring(4, 8) }, { it.length }, { it.substring(9) })
     }
 }
 
@@ -98,7 +102,7 @@ object OsvParser {
     /**
      * @param ecosystems The OSV keys of the ecosystems imported (e.g. `Maven`); the affected packages of others are
      * dropped.
-     * @return null, if it has no id or no modification time.
+     * @return null, if it has no id, no modification time or a vulnerability key longer than [MAX_KEY_LENGTH].
      */
     fun parse(json: String, ecosystems: Set<String>): OsvAdvisory? {
         val root = objectMapper.readTree(json)
@@ -122,7 +126,7 @@ object OsvParser {
                 .filter { CWE.matches(it) }.distinct(),
             affected = root.path("affected").mapNotNull { parseAffected(it, ecosystems) },
             rawJson = json,
-        )
+        ).takeIf { it.vulnerabilityKey.length <= MAX_KEY_LENGTH }
     }
 
     private fun parseAffected(node: JsonNode, ecosystems: Set<String>): OsvAffected? {
@@ -173,6 +177,8 @@ object OsvParser {
 
     private fun JsonNode.textOrNull(field: String): String? = path(field).takeIf { it.isTextual }?.asText()
 
+    /** Of a vulnerability key, the length of `CvrVulnerabilityDO.cveId` and `CvrOsvAdvisoryDO.vulnerabilityKey`. */
+    const val MAX_KEY_LENGTH = 30
     private const val MAX_ALIASES = 50
     private val VERSION_RANGES = setOf("ECOSYSTEM", "SEMVER")
     private val SEVERITIES = setOf("LOW", "MEDIUM", "HIGH", "CRITICAL")

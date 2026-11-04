@@ -162,10 +162,15 @@ class BusinessCardServiceTest : AbstractTestBase() {
         val unknown = card("Unknown").also { it.addressId = -1; it.includePhoto = true }
         assertThrows<UserException> { businessCardService.save(unknown) }
         assertFalse(businessCardService.buildVCard(unknown).contains("PHOTO"))
-        // No gateway configured in the tests: no photo url, but the vCard works.
+        // The address has no image: no photo url, but the vCard works.
         val vcard = businessCardService.buildVCard(card("Own").also { it.addressId = own.id; it.includePhoto = true })
         assertFalse(vcard.contains("PHOTO"))
         assertTrue(vcard.contains("FN:"))
+        // The photo link can only be renewed for the own address, and only if there is an image:
+        assertThrows<UserException> { businessCardService.renewPhotoLink(card("Foreign").also { it.addressId = foreign.id }) }
+        assertThrows<UserException> { businessCardService.renewPhotoLink(card("Namesake").also { it.addressId = namesake.id }) }
+        assertThrows<UserException> { businessCardService.renewPhotoLink(unknown) }
+        assertFalse(businessCardService.renewPhotoLink(card("Own").also { it.addressId = own.id }))
     }
 
     @Test

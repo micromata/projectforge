@@ -7,7 +7,7 @@ tags: [adminguide]
 :hide-uri-scheme:
 
 :toc:
-:toclevels: 4
+:toclevels: 3
 
 :last-update-label: Copyright (C) 2001-2026, Zuletzt aktualisiert
 
@@ -587,12 +587,19 @@ Nutzer legen ihre Visitenkarten über _Meine Visitenkarten_ im Benutzermenü an:
 [[business_card_photo]]
 ==== Foto
 
-Ein Foto ist nicht Teil des QR-Codes, sondern eine signierte URL auf dem öffentlichen Gateway
-(`projectforge.gateway.push.publicUrl`, siehe <<external_gateway_mode>>); es wird nur für die eigene Adresse
-angeboten. Eine herausgegebene URL bleibt gültig, solange Adresse und Bild existieren: Das Abschalten des Fotos einer
-Karte widerruft sie nicht, nur das Löschen des Bildes oder ein neuer
-`projectforge.security.authenticationTokenEncryptionKey`. Für `/rsPublic/contactImage/` sollte im Reverse Proxy des
-Gateways ein `limit_req` stehen.
+Ein Foto ist nicht Teil des QR-Codes, sondern eine öffentliche URL (`/rsPublic/contactImage/<token>`, ohne Anmeldung)
+in dessen vCard; es wird nur für die eigene Adresse angeboten. Das Token ist zufällig (256 Bit) und gehört zur Adresse,
+die URL lässt sich also nicht erraten und bleibt beim Ersetzen oder Löschen des Bildes gleich (ohne Bild antwortet sie
+mit 404; Browser können das alte Bild bis zu eine Stunde zwischenspeichern). Fehlgeschlagene Versuche werden je
+Client-Adresse gebremst. Nutzer widerrufen die URL mit _Foto-Link erneuern_ an der Karte (alle Karten der Adresse
+erhalten dann eine neue); das Abschalten des Fotos einer Karte widerruft sie nicht. Die Bilder liefern die
+Hauptinstanz und das Gateway (das Token wird mit der Adresse übertragen) unter derselben URL aus. Das Gateway sollte zusammen mit der Hauptinstanz aktualisiert werden: Ein altes Gateway kennt
+den neuen Pfad nicht und antwortet für die Fotos mit 404.
+
+Die Basis der URL ist, in dieser Reihenfolge: `projectforge.businessCard.photoBaseUrl` (überschreibt alles, z. B. ein
+Reverse Proxy), die öffentliche URL des Gateways (`projectforge.gateway.push.publicUrl`, siehe
+<<external_gateway_mode>>), die Domain der Instanz (`projectforge.domain`, nicht bei `localhost`). Ohne eine davon gibt
+es keine Foto-URL. Für `/rsPublic/contactImage/` sollte im Reverse Proxy ein `limit_req` stehen.
 
 [[business_card_wallet]]
 ==== Apple Wallet
@@ -816,8 +823,9 @@ Parameter. Beispiel:
 ==== Sichere Passwörter
 
 Passwörter werden nie im Klartext gespeichert: Jedes Passwort wird zusammen mit einem zufälligen Salt pro Benutzer
-und einem Pepper (siehe unten) gehasht. Die Mindestlänge von Passwörtern wird unter _Administration_ ->
-_Konfiguration_ eingestellt.
+und einem Pepper (siehe unten) gehasht. Die Mindestlänge von Passwörtern und die Anzahl der Zeichenklassen, aus
+denen ein Passwort Zeichen enthalten muss (Großbuchstaben, Kleinbuchstaben, Ziffern, Sonderzeichen, z. B. 3 von 4),
+werden unter _Administration_ -> _Konfiguration_ eingestellt.
 
 [[protection_against_brute_force_attacks]]
 ==== Schutz vor Brute-Force-Angriffen
@@ -1928,6 +1936,9 @@ die Team-Prüfungen der eigenen Gruppen.
   niemand zugewiesen ist, darf jedes Mitglied des Security-Teams; es wird dann die bearbeitende Person.
 * Eine Team-Prüfung beantworten die Mitglieder der angefragten Gruppe, dafür ist keine CVE-Radar-Gruppe nötig. Die Akte
   einer Team-Prüfung mit ihrer eigenen Diskussion sehen nur diese Gruppe, das Security-Team und die Security Officer.
+* Eine Team-Prüfung kann jedes Mitglied fragen (z. B. prüft jeder den eigenen Client): Jedes antwortet für sich, und
+  die Prüfung bleibt offen, bis alle Mitglieder geantwortet haben, die sich innerhalb von `teamCheckActiveDays`
+  angemeldet haben (standardmäßig 90 Tage). Das Security-Team sieht alle Antworten und wer noch fehlt.
 * Die Diskussion eines Falls steht allen Lesenden offen. Details zu Projekten und Systemen gehören in die Akte einer
   Team-Prüfung, nicht dorthin.
 
@@ -1945,6 +1956,8 @@ projectforge.plugin.cveradar.caseIdPrefix=INC
 projectforge.plugin.cveradar.clientActiveDays=30
 # Geräte, die länger nicht gemeldet wurden, werden mit ihren Scanbefunden gelöscht (personenbezogene Daten).
 projectforge.plugin.cveradar.deviceRetentionDays=365
+# Eine Team-Prüfung, die jedes Mitglied fragt, wartet nur auf Mitglieder, die sich in so vielen Tagen angemeldet haben.
+projectforge.plugin.cveradar.teamCheckActiveDays=90
 # PF-Gruppen der Rollen (siehe oben).
 projectforge.plugin.cveradar.readGroup=cve-read
 projectforge.plugin.cveradar.writeGroup=cve-read-write
@@ -2042,7 +2055,8 @@ projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
   weitere die seitdem geänderten. Geholt werden nur Dateien von Advisories; nichts vom Inventar verlässt ProjectForge.
 * Ein Advisory wird erst dann eine Schwachstelle der Liste, wenn es eine Bibliothek des Inventars trifft, dann aber
   unabhängig von seiner Bewertung: Die Schwelle des NVD-Imports (`minCvss`) gilt für Produkte, nicht für eingesetzte
-  Bibliotheken. Die Schwachstelle heißt nach ihrer CVE-ID, ohne eine nach ihrer GHSA-ID (oder der ID der Quelle); die
+  Bibliotheken. Sie gilt aber für einen nur möglichen Treffer (eine Bibliothek ohne Version, eine Jar-Liste ohne
+  groupId), sonst würde jedes Advisory eines Artefaktnamens eine Schwachstelle. Die Schwachstelle heißt nach ihrer CVE-ID, ohne eine nach ihrer GHSA-ID (oder der ID der Quelle); die
   Advisories einer CVE (z. B. von GitHub und von PyPA) werden eine Schwachstelle.
 * Sobald die NVD die CVE ändert, ersetzen deren Daten die der Advisories (vorher Status _OSV_); die Advisories treffen
   weiterhin.
@@ -2053,16 +2067,54 @@ projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
   zurückgewiesen.
 * Der Ad-hoc-Check nutzt die Advisories ebenfalls, ohne etwas zu speichern.
 
+[[cve_radar_euvd]]
+==== Schwachstellen aus der EUVD
+
+Die European Union Vulnerability Database (EUVD) der ENISA ergänzt die NVD. ProjectForge liest deren öffentliche API
+(ohne Schlüssel) und ergänzt die EUVD-ID, den EPSS (Wahrscheinlichkeit der Ausnutzung) und den Tag, seit dem die EUVD
+eine Schwachstelle als ausgenutzt kennt. Außerdem importiert es Schwachstellen, die die NVD (noch) nicht hat, darunter
+solche ohne CVE-ID. Der Import ist standardmäßig aus, da er Internetzugriff braucht.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.euvd.enabled=true
+projectforge.plugin.cveradar.euvd.url=https://euvdservices.enisa.europa.eu/api
+# Der erste Lauf importiert die in den letzten 30 Tagen veröffentlichten Schwachstellen (keine Nachladung der Historie).
+projectforge.plugin.cveradar.euvd.initialDays=30
+# Jeder Lauf liest die Veröffentlichungen der letzten 7 Tage erneut (Bewertung und CVE-ID kommen oft später).
+projectforge.plugin.cveradar.euvd.rescanDays=7
+# Neue Schwachstellen ab diesem CVSS-Score.
+projectforge.plugin.cveradar.euvd.minCvss=7.0
+# Pause zwischen zwei Anfragen in Millisekunden.
+projectforge.plugin.cveradar.euvd.pauseMillis=1000
+# Alle 2 Stunden zur Minute 37 (UTC), nach dem NVD-Import.
+projectforge.plugin.cveradar.euvd.cron=0 37 */2 * * *
+----
+
+* Die EUVD filtert nach dem Tag der Veröffentlichung, nicht nach dem der letzten Änderung. Deshalb liest jeder Lauf die
+  letzten `rescanDays` Tage erneut, und die Änderung eines älteren Eintrags kommt nur über das tägliche Lesen aller als
+  ausgenutzt bekannten Einträge an (es aktualisiert die gespeicherten Schwachstellen, legt aber keine neuen an).
+* Eine Schwachstelle der NVD (oder von OSV.dev) bekommt die EUVD-ID, den EPSS und den Tag der Ausnutzung, sonst nichts;
+  nur eine Schwachstelle ganz ohne Bewertung bekommt auch den CVSS-Score der EUVD. Die NVD bleibt die Quelle der Details.
+* Eine Schwachstelle, die die NVD nicht hat, heißt nach ihrer CVE-ID, ohne eine nach ihrer EUVD-ID (Status _EUVD_). Ihre
+  Details stammen aus der EUVD, bis die NVD die CVE ändert und sie übernimmt. Neue werden ab `minCvss` importiert; ein
+  Eintrag, den die EUVD noch nicht bewertet hat, wird übersprungen, bis sie es tut.
+* Die EUVD hat keine CPE und keine Versionsbereiche, nur die Namen von Hersteller und Produkt. Eine Bibliothek oder ein
+  Produkt mit dem Namen eines solchen Produkts trifft deshalb nur als _möglicherweise betroffen_, nie als _betroffen_.
+  Sobald die NVD CPE-Einträge für die CVE liefert, ersetzen diese die aus den Namen gebildeten.
+* Die EUVD dokumentiert kein Rate-Limit; ProjectForge pausiert zwischen den Anfragen und wiederholt mit wachsendem
+  Abstand.
+
 [[cve_radar_jobs]]
 ==== Jobs und Verbindungen
 
 * Die Anbindung und die Importe laufen als Jobs, _CVE-Radar: Client-Agents_,
-  _CVE-Radar: NVD-Import_ und _CVE-Radar: OSV-Import_, aufgeführt
+  _CVE-Radar: NVD-Import_, _CVE-Radar: OSV-Import_ und _CVE-Radar: EUVD-Import_, aufgeführt
   unter _Administration_ -> _Jobmonitor_. Dort lassen sie sich sofort starten (_Jetzt starten_); solange ihre Quelle nicht
   konfiguriert ist, werden sie als inaktiv mit dem Grund angezeigt. Die Zusammenfassung jedes Laufs steht im Lauf und im Log, Fehler sind Teil des Fehler-Digests.
 * Timeouts und die maximale Größe einer Antwort werden pro Verbindung mit
   `projectforge.integration.clients.cveradar-graylog.*` und
-  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*` eingestellt (z. B.
+  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*`, `projectforge.integration.clients.cveradar-euvd.*` eingestellt (z. B.
   `responseTimeoutMs`, `maxResponseBytes`, Default 50 MB; bei der NVD 180 s und 200 MB, da eine Seite bis zu 2000
   Schwachstellen enthält; bei OSV.dev 180 s und 1 GB für das Zip eines Ökosystems, das in eine temporäre Datei geladen
   wird).

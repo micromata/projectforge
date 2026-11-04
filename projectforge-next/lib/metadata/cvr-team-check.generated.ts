@@ -67,6 +67,11 @@ export const CVR_TEAM_CHECK_METADATA = {
       i18nKey: "modified",
       required: false,
     },
+    perPerson: {
+      dataType: "BOOLEAN",
+      i18nKey: "plugins.cveradar.teamCheck.perPerson",
+      required: false,
+    },
     subject: {
       dataType: "STRING",
       i18nKey: "plugins.cveradar.teamCheck.subject",

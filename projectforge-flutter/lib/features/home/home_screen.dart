@@ -40,8 +40,11 @@ import '../notifications/notification_text.dart';
 import '../notifications/notifications_screen.dart';
 import '../settings/settings_screen.dart';
 import 'server_switch.dart';
+import 'system_alert_banner.dart';
 import '../timesheets/timesheets_screen.dart';
+import '../web/web_browser_menu.dart';
 import '../web/web_screen.dart';
+import '../web/web_screen_controller.dart';
 
 /// The tabs of the logged-in app.
 enum _Destination { businessCards, addresses, timesheets, chat, web }
@@ -70,8 +73,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// The WebViews are created when their tab is opened first, and then kept (with their page) while switching.
   final _opened = <_Destination>{};
 
-  /// The restarts of the WebView tabs asked for in the account menu (see [WebScreen.restarts]).
-  final _restarts = <_Destination, int>{};
+  /// The browser functions of the WebView tabs, for their menu in the navigation.
+  final _webControllers = {
+    _Destination.chat: WebScreenController(),
+    _Destination.web: WebScreenController(),
+  };
 
   /// Keeps the tabs (the WebViews with their pages) while the frame around them changes: with or without the bar of
   /// the native tab, portrait or landscape. Otherwise they would be created again, back on their start page.
@@ -89,6 +95,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(pushServiceProvider)?.start().catchError((Object _) {});
     });
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _webControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -127,6 +141,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final landscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
     final selectedIndex = destinations.indexOf(current);
+    // The pages of the web tab show the message themselves, the chat page doesn't.
+    final showAlert = current != _Destination.web;
     final body = IndexedStack(
       key: _bodyKey,
       index: selectedIndex,
@@ -151,7 +167,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       active: current == destination,
                       initialPath: _chatTarget?.path ?? _chatPath,
                       target: _chatTarget,
-                      restarts: _restarts[destination] ?? 0,
+                      controller: _webControllers[destination],
                     )
                   : const SizedBox.shrink(),
             _Destination.web =>
@@ -162,13 +178,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       initialPath: _webTarget?.path,
                       target: _webTarget,
                       onNativePage: (page) => _openNative(page, chatEnabled),
-                      restarts: _restarts[destination] ?? 0,
+                      controller: _webControllers[destination],
                     )
                   : const SizedBox.shrink(),
           },
       ],
     );
-    void select(int index) => _select(current, destinations[index]);
+    void select(int index) {
+      final destination = destinations[index];
+      if (destination == _Destination.chat && current == destination) {
+        // Tapping the chat again leads back to its start page (the rooms), wherever the chat has got to.
+        setState(() => _chatTarget = WebTarget(_chatPath));
+        return;
+      }
+      _select(current, destination);
+    }
+
     // The pages bring their own header: only the native tab has a bar. The bell and the account menu stand in the
     // navigation instead, so they are there on every tab.
     final appBar = switch (current) {
@@ -187,9 +212,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       _ => null,
     };
+    final webController = _webControllers[current];
     final actions = [
       NotificationBell(onOpenLink: _openLink),
-      _accountMenu(context, session, current, issue),
+      _moreMenu(context, session, issue, webController),
     ];
     if (landscape) {
       // The height is scarce: the navigation stands at the side.
@@ -197,30 +223,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         appBar: appBar,
         body: Row(
           children: [
-            // Icons only, and only half of the side's inset: the few icons stand at the top, clear of the camera
-            // in the middle of the side.
+            // Icons only, inside the safe area (clear of the camera cutout and the home indicator).
             SafeArea(
-              left: false,
               right: false,
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: MediaQuery.paddingOf(context).left / 2,
-                ),
-                child: NavigationRail(
-                  selectedIndex: selectedIndex,
-                  onDestinationSelected: select,
-                  labelType: NavigationRailLabelType.none,
-                  minWidth: 56,
-                  trailing: Column(children: actions),
-                  destinations: [
-                    for (final destination in destinations)
-                      _railDestination(context, destination, unread),
-                  ],
-                ),
+              child: NavigationRail(
+                selectedIndex: selectedIndex,
+                onDestinationSelected: select,
+                labelType: NavigationRailLabelType.none,
+                minWidth: 56,
+                trailing: Column(children: actions),
+                destinations: [
+                  for (final destination in destinations)
+                    _railDestination(context, destination, unread),
+                ],
               ),
             ),
             Expanded(
-              child: SafeArea(left: false, top: appBar == null, child: body),
+              child: SafeArea(
+                left: false,
+                top: appBar == null,
+                child: Column(
+                  children: [
+                    if (showAlert) const SystemAlertBanner(),
+                    Expanded(child: body),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -228,14 +256,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
     return Scaffold(
       appBar: appBar,
-      body: appBar == null ? SafeArea(bottom: false, child: body) : body,
-      // Slim: icons only (the label is their semantics and tooltip), and only half of the home indicator's inset
-      // below them, enough to keep them clear of it.
+      body: _withAlert(appBar == null, showAlert, body),
+      // Slim: icons only (the label is their semantics and tooltip), the full inset of the home indicator below.
       bottomNavigationBar: ColoredBox(
         color: Theme.of(context).colorScheme.surfaceContainer,
         child: Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.paddingOf(context).bottom / 2,
+            bottom: MediaQuery.paddingOf(context).bottom,
           ),
           child: MediaQuery.removePadding(
             // The context is the one outside of the Scaffold: its top inset (the status bar) has to go too.
@@ -247,20 +274,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 height: 44,
                 labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: NavigationBar(
-                      selectedIndex: selectedIndex,
-                      onDestinationSelected: select,
-                      destinations: [
-                        for (final destination in destinations)
-                          _barDestination(context, destination, unread),
-                      ],
+              // A fixed height: the Centers of the actions would otherwise take all the height the Scaffold offers.
+              child: SizedBox(
+                height: 44,
+                child: Row(
+                  children: [
+                    // Every icon gets the same share of the width: the bar's destinations and one slot per action.
+                    Expanded(
+                      flex: destinations.length,
+                      child: NavigationBar(
+                        selectedIndex: selectedIndex,
+                        onDestinationSelected: select,
+                        destinations: [
+                          for (final destination in destinations)
+                            _barDestination(context, destination, unread),
+                        ],
+                      ),
                     ),
-                  ),
-                  ...actions,
-                ],
+                    for (final action in actions)
+                      Expanded(child: Center(child: action)),
+                  ],
+                ),
               ),
             ),
           ),
@@ -269,32 +303,60 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// @param current The tab shown: a WebView tab offers a reload, the way out of pages that stay empty.
+  /// The message of the administrators above the page; clear of the status bar if there is no app bar.
+  Widget _withAlert(bool safeTop, bool showAlert, Widget body) {
+    final column = Column(
+      children: [
+        if (showAlert) const SystemAlertBanner(),
+        Expanded(child: body),
+      ],
+    );
+    return safeTop ? SafeArea(bottom: false, child: column) : column;
+  }
+
+  /// The "more" menu of the navigation: on a WebView tab the browser functions first, then the account, the
+  /// settings and the logout.
+  Widget _moreMenu(
+    BuildContext context,
+    Session? session,
+    CompatibilityIssue? issue,
+    WebScreenController? webController,
+  ) {
+    final version = ref.watch(appVersionProvider).value;
+    return webController == null
+        ? _accountMenu(context, session, issue, null, version)
+        : ListenableBuilder(
+            listenable: webController,
+            builder: (context, _) =>
+                _accountMenu(context, session, issue, webController, version),
+          );
+  }
+
   Widget _accountMenu(
     BuildContext context,
     Session? session,
-    _Destination current,
     CompatibilityIssue? issue,
+    WebScreenController? webController,
+    String? version,
   ) {
-    final version = ref.watch(appVersionProvider).value;
-    final webTab = current == _Destination.web || current == _Destination.chat;
     return PopupMenuButton<String>(
-      tooltip: context.t('settings'),
-      // An incompatibility is visible without opening the menu: red gear with an exclamation mark.
+      tooltip: context.t('app.menu.more'),
+      // An incompatibility is visible without opening the menu: red icon with an exclamation mark.
       icon: issue == null
-          ? const Icon(Icons.settings_outlined)
+          ? const Icon(Icons.more_vert)
           : Badge(
               label: const Text('!'),
               backgroundColor: Theme.of(context).colorScheme.error,
               child: Icon(
-                Icons.settings_outlined,
+                Icons.more_vert,
                 color: Theme.of(context).colorScheme.error,
               ),
             ),
       onSelected: (action) => switch (action) {
-        'reload' => setState(
-          () => _restarts[current] = (_restarts[current] ?? 0) + 1,
-        ),
+        _ when action.startsWith(browserMenuPrefix) =>
+          webController == null
+              ? null
+              : handleBrowserMenuAction(webController, action),
         'compatibility' => null, // Only to read.
         'server' => showServerSwitch(context, ref),
         'settings' => Navigator.of(
@@ -303,6 +365,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         _ => _logout(context, ref),
       },
       itemBuilder: (_) => [
+        if (webController != null)
+          ...browserMenuEntries(context, webController),
         PopupMenuItem<String>(
           enabled: false,
           child: Text(
@@ -336,11 +400,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
             ),
-          ),
-        if (webTab)
-          PopupMenuItem(
-            value: 'reload',
-            child: Text(context.t('app.web.reload')),
           ),
         PopupMenuItem(
           value: 'server',

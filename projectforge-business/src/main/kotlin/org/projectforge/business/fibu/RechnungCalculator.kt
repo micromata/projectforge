@@ -92,12 +92,13 @@ object RechnungCalculator {
         info.positions?.forEach { posInfo ->
             info.netSum += posInfo.netSum
             info.kostZuweisungenNetSum += posInfo.kostZuweisungNetSum
-            info.grossSum += posInfo.grossSum
         }
         roundAmountIf(info, RechnungInfo::netSum)
         roundAmountIf(info, RechnungInfo::kostZuweisungenNetSum)
-        roundAmountIf(info, RechnungInfo::grossSum)
         info.vatAmount = calculateVatAmountSum(rechnung)
+        // Gross is net plus vat (EN 16931 BR-CO-15), not the sum of the positions' gross amounts: those contain
+        // the vat rounded per position and may differ by some cents from the vat rounded per rate.
+        info.grossSum = info.netSum + info.vatAmount
         info.kostZuweisungenFehlbetrag = info.netSum - info.kostZuweisungenNetSum
         info.grossSumWithDiscount = calculateGrossSumWithDiscount(rechnung)
 

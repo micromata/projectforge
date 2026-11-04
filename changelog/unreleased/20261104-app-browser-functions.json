@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "App: the web tabs have a browser menu with back, forward, reload, find in the page, share link, open in the browser and restart; pull to refresh now also works on the pages with the menu, and a lost connection shows an error with a retry instead of an empty page.",
+  "de": "App: Die Web-Tabs haben ein Browser-Menü mit Zurück, Vorwärts, Neu laden, Suchen auf der Seite, Link teilen, Im Browser öffnen und Neustart; Runterziehen zum Neuladen funktioniert jetzt auch auf den Seiten mit Menü, und eine fehlende Verbindung zeigt einen Fehler mit erneutem Versuch statt einer leeren Seite."
+}

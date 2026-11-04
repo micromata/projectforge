@@ -87,6 +87,7 @@ class BusinessCardRestTest : AbstractTestBase() {
             assertTrue(businessCardRest.getInitialData().cards.none { it.card.id == id })
             assertEquals(HttpStatus.NOT_FOUND, businessCardRest.downloadVCard(id).statusCode)
             assertEquals(HttpStatus.NOT_FOUND, businessCardRest.delete(id).statusCode)
+            assertEquals(HttpStatus.NOT_FOUND, businessCardRest.renewPhotoLink(id).statusCode)
             // Posting the id of somebody else's card doesn't update it:
             assertEquals(HttpStatus.NOT_ACCEPTABLE, businessCardRest.save(post(card("Hijacked", id))).statusCode)
         }
@@ -103,6 +104,12 @@ class BusinessCardRestTest : AbstractTestBase() {
         // The photo of an address that isn't the own one:
         val photo = card("Photo").also { it.addressId = -1; it.includePhoto = true }
         assertEquals(HttpStatus.NOT_ACCEPTABLE, businessCardRest.save(post(photo)).statusCode)
+        // The photo link of a card that isn't from the own address can't be renewed either:
+        val stored = card("Stored").also { it.addressId = -1 }
+        assertEquals(HttpStatus.OK, businessCardRest.save(post(stored)).statusCode)
+        val storedId = businessCardRest.getInitialData().cards.single().card.id!!
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, businessCardRest.renewPhotoLink(storedId).statusCode)
+        assertEquals(HttpStatus.NOT_FOUND, businessCardRest.renewPhotoLink("unknown").statusCode)
         // The preview never fails, it just has no photo:
         assertFalse(businessCardRest.getPreview(photo).withPhoto)
         assertFalse(businessCardRest.getPreview(photo).photoAllowed)

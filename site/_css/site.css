@@ -580,6 +580,197 @@
   margin: 0.25em 0;
 }
 
+/*
+ * Long docs: the heading of a chapter (level 1 section) sticks below the header until the next chapter pushes it
+ * out (doc-toc.js marks it as stuck).
+ */
+.prose .sect1 > h2,
+.pf-changelog-major > h2 {
+  position: sticky;
+  top: 72px; /* height of the sticky header */
+  z-index: 10;
+  margin-bottom: 0.5em;
+  padding-block: 0.5rem;
+  background: var(--color-background);
+}
+.prose .sect1 > h2.pf-stuck,
+.pf-changelog-major > h2.pf-stuck {
+  box-shadow: 0 1px 0 var(--color-border), 0 8px 12px -10px rgb(0 0 0 / 0.25);
+}
+/* Anchors within a chapter land below its sticky heading. */
+.prose .sectionbody [id],
+.pf-changelog-major .changelog-release[id] {
+  scroll-margin-top: 3.5rem;
+}
+
+/*
+ * The columns of the docs (_layouts/doc.html): the navigation from md, the table of contents from xl. Each can be
+ * hidden to a narrow column with the button to show it again (pf-doc-nav-hidden, pf-doc-toc-hidden). Below xl the
+ * table of contents is a drawer from the right, opened by a floating button (pf-doc-toc-open).
+ */
+.pf-doc {
+  --pf-doc-nav: 220px;
+  --pf-doc-toc: 220px;
+}
+.pf-doc-nav-hidden {
+  --pf-doc-nav: 2rem;
+}
+.pf-doc-toc-hidden {
+  --pf-doc-toc: 2rem;
+}
+.pf-doc-toggle {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-md);
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+}
+.pf-doc-toggle:hover {
+  background: var(--color-muted);
+  color: var(--color-foreground);
+}
+.pf-doc-show {
+  display: none;
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+}
+.pf-doc-nav-panel {
+  position: relative;
+}
+.pf-doc-nav-hide {
+  position: absolute;
+  top: -0.5rem;
+  right: 0;
+}
+.pf-doc-nav-hidden .pf-doc-nav-panel {
+  display: none;
+}
+.pf-doc-nav-hidden [data-nav-show] {
+  display: inline-grid;
+}
+.pf-doc-toc-nav {
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.pf-doc-toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.pf-doc-toc-nav > ul {
+  border-left: 1px solid var(--color-border);
+}
+.pf-doc-toc li > ul {
+  display: none;
+}
+.pf-doc-toc li.pf-toc-open > ul {
+  display: block;
+}
+.pf-doc-toc a {
+  display: block;
+  margin-left: -1px;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+  border-left: 2px solid transparent;
+  color: var(--color-secondary-foreground);
+  text-decoration: none;
+}
+.pf-doc-toc ul ul a {
+  padding-left: 1.5rem;
+}
+.pf-doc-toc a:hover {
+  color: var(--color-foreground);
+}
+.pf-doc-toc a[aria-current] {
+  border-left-color: var(--color-link);
+  color: var(--color-link);
+  font-weight: 500;
+}
+@media (min-width: 48rem) {
+  .pf-doc {
+    grid-template-columns: var(--pf-doc-nav) minmax(0, 1fr);
+  }
+}
+@media (max-width: 79.999rem) {
+  /* The aside has no box of its own: the drawer and the button are fixed. */
+  .pf-doc-toc {
+    display: contents;
+  }
+  .pf-doc-toc-nav {
+    position: fixed;
+    top: 72px;
+    right: 0;
+    bottom: 0;
+    z-index: 15;
+    width: min(20rem, 85vw);
+    padding: 1.25rem 1rem 1.25rem 1.25rem;
+    border-left: 1px solid var(--color-border);
+    background: var(--color-background);
+    box-shadow: -12px 0 24px -16px rgb(0 0 0 / 0.3);
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform 0.2s, visibility 0.2s;
+  }
+  .pf-doc-toc-open .pf-doc-toc-nav {
+    transform: none;
+    visibility: visible;
+  }
+  .pf-doc-toc-show,
+  .pf-doc-toc-hidden .pf-doc-toc-show {
+    display: inline-grid;
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 15;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+  }
+  .pf-doc-toc-open .pf-doc-toc-show {
+    display: none;
+  }
+}
+@media (min-width: 80rem) {
+  .pf-container-wide {
+    max-width: 1360px;
+  }
+  .pf-doc-has-toc {
+    grid-template-columns: var(--pf-doc-nav) minmax(0, 1fr) var(--pf-doc-toc);
+  }
+  /* Without navigation (changelog): text and table of contents only. */
+  .pf-doc-has-toc.pf-doc-no-nav {
+    display: grid;
+    gap: 3rem;
+    grid-template-columns: minmax(0, 1fr) var(--pf-doc-toc);
+  }
+  .pf-doc-has-toc .prose #toc {
+    display: none;
+  }
+  .pf-doc-toc-nav {
+    position: sticky;
+    top: 6rem;
+    max-height: calc(100vh - 7.5rem);
+  }
+  .pf-doc-toc-hidden .pf-doc-toc-nav {
+    display: none;
+  }
+  .pf-doc-toc-hidden .pf-doc-toc-show {
+    display: inline-grid;
+    position: sticky;
+    top: 6rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pf-doc-toc-nav {
+    transition: none;
+  }
+}
+
 /* Admonitions (NOTE, TIP, IMPORTANT, WARNING, CAUTION) as tinted callouts with their label. */
 .prose .admonitionblock {
   margin: 1.5em 0;
@@ -714,9 +905,6 @@ a.changelog-pill-jar:hover {
 a.changelog-pill-docker:hover {
   background: #1d63ed;
   color: #fff;
-}
-.prose details.changelog-snapshots {
-  margin-top: 2.5rem;
 }
 
 /* Change type tags of the changelog (_includes/tag.html, colors in _data/tags.yml). */

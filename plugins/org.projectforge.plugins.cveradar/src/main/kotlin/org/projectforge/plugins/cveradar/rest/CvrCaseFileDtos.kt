@@ -27,6 +27,7 @@ import org.projectforge.plugins.cveradar.model.CvrCaseKind
 import org.projectforge.plugins.cveradar.model.CvrCaseStatus
 import org.projectforge.plugins.cveradar.model.CvrExploitability
 import org.projectforge.plugins.cveradar.model.CvrPriority
+import org.projectforge.plugins.cveradar.model.CvrSource
 import org.projectforge.plugins.cveradar.model.CvrTeamAnswer
 import java.math.BigDecimal
 import java.util.Date
@@ -53,6 +54,14 @@ class VulnerabilityView(
     val cvss40Vector: String?,
     val cwes: List<String>,
     val kevAdded: Date?,
+    /** The id in the EUVD, its EPSS and the day since the EUVD knows it to be exploited (IMP-16). */
+    val euvdId: String?,
+    val epss: BigDecimal?,
+    val exploitedSince: Date?,
+    /** Known to the EUVD only (no CPE of the NVD): a match is possible by the product names only. */
+    val euvdOnly: Boolean,
+    /** Where the data comes from: the NVD, OSV (advisories) and the EUVD. */
+    val sources: List<CvrSource>,
     /** References for remediation (tags Patch, Vendor Advisory, Mitigation, PRIO-04), shown apart from the others. */
     val remediationReferences: List<NvdReference>,
     val otherReferences: List<NvdReference>,
@@ -101,8 +110,13 @@ class FileTeamCheckView(
     val id: Long,
     val groupName: String?,
     val subject: String?,
+    /** For the group only; empty if every member answers. */
     val answer: CvrTeamAnswer?,
     val answerDate: java.time.LocalDate?,
+    /** Every member answers: the active members and how many of them answered. */
+    val perPerson: Boolean,
+    val members: Int,
+    val answered: Int,
 )
 
 class FilePermissions(
@@ -168,7 +182,19 @@ class MassRequest(
 
 class MassResult(val vulnerabilityId: Long, val cveId: String?, val ok: Boolean, val message: String?)
 
-/** The file of a team check (CLS-03): what is asked, the answer, and the case it belongs to. */
+/** The answer of a member to a team check asking every member. */
+class TeamCheckAnswerView(
+    val user: String?,
+    val answer: CvrTeamAnswer?,
+    val comment: String?,
+    val answerDate: java.time.LocalDate?,
+    val lastUpdate: Date?,
+)
+
+/**
+ * The file of a team check (CLS-03): what is asked, the answer, and the case it belongs to. If every member answers
+ * ([perPerson]), answer, comment, date and answeredBy are the own ones of the user.
+ */
 class TeamCheckFile(
     val id: Long,
     val caseId: Long?,
@@ -182,6 +208,17 @@ class TeamCheckFile(
     val answerDate: java.time.LocalDate?,
     val answeredBy: String?,
     val canAnswer: Boolean,
+    val perPerson: Boolean,
+    /** The active members (every member answers). */
+    val members: Int,
+    /** The active members who answered. */
+    val answered: Int,
+    /** The active members without answer or in progress. */
+    val openMembers: Int,
+    /** All answers, for the security team only. */
+    val answers: List<TeamCheckAnswerView>?,
+    /** The active members without answer, for the security team only. */
+    val missing: List<String>?,
 )
 
 // The findings of a vulnerability (MAT-02), mirrored by projectforge-next/lib/rs/cve-radar-file.ts.

@@ -133,7 +133,11 @@ class OsvImportService {
         return newest
     }
 
-    /** @return The latest modification time listed, null if none. */
+    /**
+     * An advisory that can't be fetched (a server error) is skipped; the watermark stays before it, so the next run
+     * fetches it again, the others of the list are stored anyway.
+     * @return The latest modification time listed (before the first failed one), null if none.
+     */
     private fun importModified(source: OsvSource, ecosystem: String, ecosystems: Set<String>, watermark: Instant, result: Result): Instant? {
         val modified = source.modifiedSince(ecosystem, watermark.minus(OVERLAP))
             .filter { config.osv.malicious || !it.second.startsWith(MALICIOUS) }
@@ -143,10 +147,22 @@ class OsvImportService {
         val stored = osvService.modifiedByOsvId(modified.map { it.second })
         // The bucket gives nanoseconds, the database keeps milliseconds.
         val todo = modified.filter { (time, id) -> stored[id]?.toInstant() != time.truncatedTo(ChronoUnit.MILLIS) }
+        var failed: Instant? = null
         todo.chunked(BATCH).forEach { chunk ->
-            osvService.store(chunk.mapNotNull { (_, id) -> source.advisory(ecosystem, id)?.let { parse(it, ecosystems, result) } }, result.stored)
+            val advisories = chunk.mapNotNull { (time, id) ->
+                val json = try {
+                    source.advisory(ecosystem, id)
+                } catch (ex: Exception) {
+                    log.warn { "OSV advisory $id of $ecosystem not fetched, again on the next run: ${ex.message?.take(200)}" }
+                    failed = minOf(failed ?: time, time)
+                    null
+                }
+                json?.let { parse(it, ecosystems, result) }
+            }
+            osvService.store(advisories, result.stored)
         }
         result.stored.unchanged += modified.size - todo.size
+        failed?.let { return it.minusNanos(1) }
         return modified.maxOfOrNull { it.first }
     }
 

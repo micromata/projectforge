@@ -3,7 +3,14 @@ layout: default
 ---
 {%- assign t = site.data.translation[page.lang] -%}
 
-<div class="pf-container pf-narrow py-16 max-sm:py-12">
+{%- comment -%}
+    Like the docs (_layouts/doc.html), with the table of contents in a column beside the text, which can be hidden
+    (assets/js/doc-toc.js builds it from the majors and their releases, see data-changelog-toc).
+{%- endcomment -%}
+<div class="pf-doc pf-doc-has-toc pf-doc-no-nav pf-container pf-container-wide py-16 max-sm:py-12" data-changelog-toc>
+    <script>try { if (localStorage.getItem('pf-doc-toc') === 'hidden') document.currentScript.parentNode.classList.add('pf-doc-toc-hidden'); } catch (e) {}</script>
+
+    <div class="mx-auto w-full min-w-0 max-w-(--container-narrow)">
 
     <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
         <h1 class="web-display">{{ page.title | escape }}</h1>
@@ -19,7 +26,7 @@ layout: default
     The majors of the language of the page, the German ones in _changelogs/de/.{% endcomment %}
     {% assign changelogs = site.changelogs | where: "lang", page.lang | sort: 'sort_key' | reverse %}
     {% for changelog in changelogs %}
-        <article class="mt-12 border-t border-border pt-10" id="{{ changelog.slug }}">
+        <article class="pf-changelog-major mt-12 border-t border-border pt-10" id="{{ changelog.slug }}">
             <h2 class="web-headline">{{ changelog.title }}</h2>
             {% if changelog.date %}
             <p class="mt-1 text-sm text-muted-foreground">
@@ -33,6 +40,20 @@ layout: default
         </article>
     {% endfor %}
 
+    </div>
+
+    <aside class="pf-doc-toc" aria-label="{{ t.toc_title }}">
+        <nav class="pf-doc-toc-nav" id="pf-doc-toc-nav">
+            <div class="mb-2 flex items-center justify-between gap-2">
+                <h2 class="text-xs leading-4 font-bold tracking-wide text-muted-foreground uppercase">{{ t.toc_title }}</h2>
+                <button type="button" class="pf-doc-toggle" data-toc-hide title="{{ t.toc_hide }}" aria-label="{{ t.toc_hide }}">{% include icons/panel-right-close.svg %}</button>
+            </div>
+        </nav>
+        <button type="button" class="pf-doc-toggle pf-doc-show pf-doc-toc-show" data-toc-show aria-controls="pf-doc-toc-nav" aria-expanded="false" title="{{ t.toc_show }}" aria-label="{{ t.toc_show }}">{% include icons/panel-right-open.svg %}</button>
+    </aside>
+
 </div>
+
+<script src="{{ '/assets/js/doc-toc.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>
 
 <script src="{{ '/assets/js/changelog.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>

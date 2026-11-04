@@ -361,6 +361,7 @@ class GatewaySyncService(
                 address.businessPhone = dto.businessPhone
                 address.mobilePhone = dto.mobilePhone
                 address.privatePhone = dto.privatePhone
+                address.imagePublicToken = dto.imageToken
                 if (address.id == null) {
                     em.persist(address) // Existing addresses are managed: changes are written on commit.
                 }

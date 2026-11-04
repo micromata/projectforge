@@ -131,7 +131,12 @@ open class ChatReportService {
             notifyAdmins(user.id!!, message, context.title, trimmedReason, snapshot)
         }
         if (blockAuthor) {
-            blockService.block(message.authorId!!)
+            try {
+                blockService.block(message.authorId!!)
+            } catch (ex: UserException) {
+                // The report is made: an author unknown by now must not make it look failed (and repeated).
+                log.info { "Report of message #${message.id}: author #${message.authorId} not blocked: ${ex.i18nKey}" }
+            }
         }
     }
 

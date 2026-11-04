@@ -257,6 +257,10 @@ tasks.named<Test>("test") {
     inputs.files(rootProject.fileTree("projectforge-flutter") {
         include("lib/**/*.dart", "assets/i18n/**")
     }).withPropertyName("flutterI18n").withPathSensitivity(PathSensitivity.RELATIVE)
+    // AppApiContractTest compares the api the app reads (contract file, Dart sources) with the server.
+    inputs.files(rootProject.fileTree("projectforge-flutter") {
+        include("test/contract/**")
+    }).withPropertyName("appApiContract").withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 tasks.named("processResources") {

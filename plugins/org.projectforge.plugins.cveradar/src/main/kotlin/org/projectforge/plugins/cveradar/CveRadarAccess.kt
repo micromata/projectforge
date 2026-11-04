@@ -29,6 +29,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.core.PluginAdminService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.util.Date
 
 /**
  * Who may do what in the CVE-Radar: the roles are given by membership in PF groups, named in the configuration
@@ -96,6 +97,25 @@ class CveRadarAccess {
 
     fun isMemberOf(user: PFUserDO, groupId: Long?): Boolean {
         return groupId != null && userGroupCache.isUserMemberOfGroup(user.id, groupId)
+    }
+
+    /** The members of the group who can log in (not deleted, with system access). */
+    fun activeMemberIds(groupId: Long?): Set<Long> = memberIds(groupId) { true }
+
+    /**
+     * The members a team check asking every member waits for: those who can log in and logged in within
+     * [CveRadarConfig.teamCheckActiveDays] (the login time of the cached users may be a little behind).
+     */
+    fun answeringMemberIds(groupId: Long?): Set<Long> {
+        val since = Date(System.currentTimeMillis() - config.teamCheckActiveDays * 24L * 3600 * 1000)
+        return memberIds(groupId) { user -> user.lastLogin?.before(since) == false }
+    }
+
+    private fun memberIds(groupId: Long?, filter: (PFUserDO) -> Boolean): Set<Long> {
+        groupId ?: return emptySet()
+        return userGroupCache.getMemberIds(listOf(groupId), emptyList())
+            .filter { userGroupCache.getUser(it)?.let { user -> !user.deleted && user.hasSystemAccess() && filter(user) } == true }
+            .toSet()
     }
 
     fun checkSecurityTeam(user: PFUserDO) {

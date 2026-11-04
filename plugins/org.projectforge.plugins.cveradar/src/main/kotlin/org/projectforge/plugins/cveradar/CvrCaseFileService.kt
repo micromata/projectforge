@@ -60,6 +60,7 @@ import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.util.Date
 import java.util.zip.GZIPInputStream
+import org.projectforge.plugins.cveradar.sync.EuvdImportService
 
 private val log = KotlinLogging.logger {}
 
@@ -82,10 +83,16 @@ class CvrCaseFileService {
     private lateinit var ratingDao: CvrRatingDao
 
     @Autowired
+    private lateinit var osvService: CvrOsvAdvisoryService
+
+    @Autowired
     private lateinit var service: CveRadarService
 
     @Autowired
     private lateinit var teamCheckDao: CvrTeamCheckDao
+
+    @Autowired
+    private lateinit var teamCheckAnswerService: CvrTeamCheckAnswerService
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
@@ -430,14 +437,24 @@ class CvrCaseFileService {
         val suggestion = vulnerability?.let {
             CvrPriorityRule.suggest(it.cvssScore, it.kevAdded != null)
         }?.let { SuggestionView(it.priority, it.reasons.map { reason -> reason.key }) }
-        val teamChecks = case?.id?.let { teamCheckDao.selectByCase(it) } ?: emptyList()
+        val teamChecks = teamCheckAnswerService.states(case?.id?.let { teamCheckDao.selectByCase(it) } ?: emptyList())
         return CaseFile(
             vulnerability = vulnerability?.let { vulnerabilityView(it) },
             case = case?.let { caseView(it) },
             suggestion = suggestion,
             ratings = ratings.map { ratingView(user, it, case?.priority) },
-            teamChecks = teamChecks.map {
-                FileTeamCheckView(it.id!!, userGroupCache.getGroup(it.groupId)?.name, it.subject, it.answer, it.answerDate)
+            teamChecks = teamChecks.map { state ->
+                val check = state.check
+                FileTeamCheckView(
+                    id = check.id!!,
+                    groupName = userGroupCache.getGroup(check.groupId)?.name,
+                    subject = check.subject,
+                    answer = check.answer,
+                    answerDate = check.answerDate,
+                    perPerson = check.perPerson,
+                    members = state.memberIds.size,
+                    answered = state.answered,
+                )
             },
             permissions = FilePermissions(
                 canEdit = access.isSecurityTeam(user) && case?.status?.isClosed != true,
@@ -491,6 +508,11 @@ class CvrCaseFileService {
             id = vulnerability.id!!,
             cveId = vulnerability.cveId,
             nvdStatus = vulnerability.nvdStatus,
+            euvdId = vulnerability.euvdId,
+            epss = vulnerability.epss,
+            exploitedSince = vulnerability.exploitedSince,
+            euvdOnly = EuvdImportService.isFromEuvd(vulnerability),
+            sources = CvrOsvAdvisoryService.sourcesOf(vulnerability, vulnerability.id!! in osvService.idsWithAdvisories(listOf(vulnerability.id!!))),
             rejected = vulnerability.nvdStatus.equals("Rejected", ignoreCase = true),
             published = vulnerability.published,
             nvdLastModified = vulnerability.nvdLastModified,

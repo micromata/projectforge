@@ -54,6 +54,12 @@ class UserStatus {
   int? get latestNotificationId =>
       (_notifications['latestId'] as num?)?.toInt();
 
+  /// The message of the administrators (e.g. maintenance, `alertMessage`), null without one.
+  String? get alertMessage {
+    final message = (json['alertMessage'] as String?)?.trim();
+    return message == null || message.isEmpty ? null : message;
+  }
+
   /// The user's theme of the web pages (`UISettingsRest`): `light`, `dark` or `system`, null from an older server.
   String? get theme => json['theme'] as String?;
 

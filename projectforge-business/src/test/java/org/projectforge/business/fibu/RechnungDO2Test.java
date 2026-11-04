@@ -109,7 +109,8 @@ public class RechnungDO2Test
 
     RechnungCalculator.INSTANCE.calculate(rechnung);
     assertEquals(new BigDecimal("89426.25"), rechnung.getInfo().getNetSum().setScale(2, RoundingMode.HALF_DOWN));
-    assertEquals(new BigDecimal("106417.27"), rechnung.getInfo().getGrossSum().setScale(2, RoundingMode.HALF_DOWN));
+    // Net plus vat: the sum of the positions' gross amounts (vat rounded per position) would be 106417.27.
+    assertEquals(new BigDecimal("106417.24"), rechnung.getInfo().getGrossSum().setScale(2, RoundingMode.HALF_DOWN));
     assertEquals(new BigDecimal("16990.99"), rechnung.getInfo().getVatAmount().setScale(2, RoundingMode.HALF_DOWN));
   }
 }

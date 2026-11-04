@@ -23,10 +23,15 @@
 
 package org.projectforge.security
 
+import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.PostConstruct
+import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.framework.access.AccessChecker
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
+
+private val log = KotlinLogging.logger {}
 
 /**
  * For configuration of required 2FA. Uri's for which 2FA is required may be defined as coma separated regex's. Some sets of
@@ -74,6 +79,25 @@ open class My2FARequestConfiguration {
   @Value("\${projectforge.2fa.exemptUsers:}")
   var exemptUsers: String = ""
     internal set // internal for test cases
+
+  /**
+   * Exempt users are a special case of one instance (the app review), never meant for a productive one: hard to miss
+   * in the log of every start.
+   */
+  @PostConstruct
+  private fun logExemptUsers() {
+    val usernames = exemptUsers.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+    if (usernames.isEmpty()) {
+      return
+    }
+    EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.VERY_IMPORTANT, EmphasizedLogSupport.Alignment.LEFT)
+      .setLogLevel(EmphasizedLogSupport.LogLevel.WARN)
+      .log("projectforge.2fa.exemptUsers is set: these users log in WITHOUT a second factor:")
+      .log("  ${usernames.joinToString(", ")}")
+      .log("Only meant for the app review (e.g. Apple's), never for a productive instance.")
+      .log("Remove the entry from projectforge.properties after the review.")
+      .logEnd()
+  }
 
   /**
    * @return true, if [username] is listed in [exemptUsers].

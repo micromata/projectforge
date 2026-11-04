@@ -87,4 +87,11 @@ open class CvrCpeMatchDO {
     /** The CPE as the NVD names it, for the display. */
     @get:Column(length = 500, nullable = false)
     open var criteria: String? = null
+
+    /**
+     * Derived from the product names of the EUVD, not from a CPE (IMP-16): the vendor may be spelled otherwise and no
+     * version range is known, so it matches as possible only. Dropped as soon as the NVD gives CPE entries.
+     */
+    @get:Column(name = "approximate", nullable = false)
+    open var approximate: Boolean = false
 }

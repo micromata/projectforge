@@ -25,10 +25,12 @@ package org.projectforge.plugins.cveradar.sync
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.plugins.cveradar.Cvss3
+import org.projectforge.plugins.cveradar.CvrCaseDao
 import org.projectforge.plugins.cveradar.CvrMatchingService
 import org.projectforge.plugins.cveradar.model.CvrFindingCertainty
 import org.projectforge.plugins.cveradar.model.CvrPurlMatchDO
@@ -67,7 +69,28 @@ class OsvParserTest {
             OsvParser.parse(advisory("GHSA-aaaa-bbbb-cccc", aliases = listOf("CVE-2021-10000", "CVE-2021-9999")), setOf("PyPI"))!!.vulnerabilityKey,
             "compared as numbers, not as text",
         )
+        assertEquals(
+            "CVE-2021-9999",
+            OsvParser.parse(advisory("GHSA-aaaa-bbbb-cccc", aliases = listOf("CVE-2021-99999999999999999999", "CVE-2021-9999")), setOf("PyPI"))!!
+                .vulnerabilityKey,
+            "a number too long for a Long doesn't fail",
+        )
         assertNull(OsvParser.parse("""{"id":"GHSA-x"}""", setOf("PyPI")), "no modification time")
+        assertNull(OsvParser.parse(advisory("PSF-2026-${"1".repeat(30)}"), setOf("PyPI")), "a key too long isn't cut")
+        assertEquals("PSF-2026-1", OsvParser.parse(advisory("PSF-2026-1"), setOf("PyPI"))!!.vulnerabilityKey)
+    }
+
+    @Test
+    fun `any OSV id fitting into a vulnerability key is one for a CVE case`() {
+        listOf(
+            "CVE-2026-12345", "GHSA-AAAA-BBBB-CCCC", "PYSEC-2021-19", "PSF-2026-1", "CGA-X2V3-ABCD-9F8E",
+            "RHSA-2024:1234", "DEBIAN-CVE-2024-1234",
+        ).forEach {
+            assertTrue(CvrCaseDao.CVE_REGEX.matches(it), it)
+        }
+        listOf("CVE-26-1", "2026-1", "-X", "PSF-", "NOT-A-CVE", "PSF-2026-${"1".repeat(30)}", "psf-2026-1").forEach {
+            assertFalse(CvrCaseDao.CVE_REGEX.matches(it), it)
+        }
     }
 
     @Test

@@ -40,6 +40,7 @@ import org.projectforge.plugins.cveradar.model.CvrPurlMatchDO
 import org.projectforge.plugins.cveradar.model.CvrTechnologyDO
 import org.projectforge.plugins.cveradar.model.CvrTechnologyKind
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
+import org.projectforge.plugins.cveradar.sync.EuvdProduct
 import org.projectforge.plugins.cveradar.sync.NvdCpeEntry
 import org.projectforge.plugins.cveradar.sync.NvdCpeParser
 import org.projectforge.plugins.cveradar.sync.OsvPackages
@@ -203,14 +204,13 @@ class CvrMatchingService {
         val model = loadModel(null)
         val candidates = purlCandidates(model.packages.values.flatten(), "a.id", advisoryIds)
         if (!candidates.isEmpty) {
-            val keys = mutableSetOf<String>()
-            model.technologies.forEach { technology ->
-                val component = model.components[technology.componentId] ?: return@forEach
-                if (model.instancesOf(component).isEmpty()) return@forEach
+            val hits = model.technologies.flatMap { technology ->
+                val component = model.components[technology.componentId] ?: return@flatMap emptyList()
+                if (model.instancesOf(component).isEmpty()) return@flatMap emptyList()
                 val purl = purlHitsOf(technology.id, technology.version, model.packages[technology.id].orEmpty(), candidates)
-                keys.addAll(purl.hits.keys.filter { it !in purl.vulnerabilityIds })
+                purl.hits.filterKeys { it !in purl.vulnerabilityIds }.entries
             }
-            osvService.materialize(keys)
+            osvService.materialize(hits.map { it.key }, possibleOnly(hits))
         }
         return persistenceService.executeQueryBatched(
             "select a.vulnerability.id from CvrOsvAdvisoryDO a where a.id in :ids and a.vulnerability is not null",
@@ -334,9 +334,9 @@ class CvrMatchingService {
             )
         }
         val vulnerabilityOfKey = perTechnology.flatMap { it.purl.vulnerabilityIds.entries }.associate { it.key to it.value }.toMutableMap()
-        val unlinked = perTechnology.flatMap { it.purl.hits.keys }.filter { it !in vulnerabilityOfKey }.toSet()
+        val unlinked = perTechnology.flatMap { it.purl.hits.entries }.filter { it.key !in vulnerabilityOfKey }
         if (unlinked.isNotEmpty() && vulnerabilityIds == null) {
-            vulnerabilityOfKey.putAll(osvService.materialize(unlinked))
+            vulnerabilityOfKey.putAll(osvService.materialize(unlinked.map { it.key }, possibleOnly(unlinked)))
         }
         val hits = mutableMapOf<Triple<Long, Long, Long>, Hit>()
         perTechnology.forEach { technology ->
@@ -361,6 +361,12 @@ class CvrMatchingService {
             }
         }
         return hits
+    }
+
+    /** The keys of these hits that no technology matched as affected. */
+    private fun possibleOnly(hits: Collection<Map.Entry<String, Hit>>): Set<String> {
+        val affected = hits.filter { it.value.certainty == CvrFindingCertainty.AFFECTED }.map { it.key }.toSet()
+        return hits.map { it.key }.filter { it !in affected }.toSet()
     }
 
     /**
@@ -426,11 +432,13 @@ class CvrMatchingService {
             candidates[key.product]?.forEach candidate@{ match ->
                 // By name the vendor may be spelled otherwise ("Apache Software Foundation" vs "apache"): a
                 // match by name is only possible anyway.
-                if (key.sure && key.vendor != null && key.vendor != match.vendor) {
+                // The names of the EUVD give no version, so their vendor has to fit: "server" alone is too common.
+                if (key.vendor != null && key.vendor != match.vendor && (key.sure || match.approximate)) {
                     return@candidate
                 }
                 val versionCertainty = versionMatch(version, match) ?: return@candidate
-                val certainty = if (key.sure && versionCertainty == CvrFindingCertainty.AFFECTED) {
+                // An entry made of the product names of the EUVD has neither CPE nor version ranges: never sure.
+                val certainty = if (key.sure && versionCertainty == CvrFindingCertainty.AFFECTED && !match.approximate) {
                     CvrFindingCertainty.AFFECTED
                 } else {
                     CvrFindingCertainty.POSSIBLE
@@ -496,18 +504,30 @@ class CvrMatchingService {
 
     // --- The index of the CPE entries ---
 
-    /** Replaces the index entries of the vulnerability (after the import wrote or changed it). */
-    fun replaceIndex(vulnerabilityId: Long, entries: List<NvdCpeEntry>) =
-        replaceIndex(mapOf(vulnerabilityId to entries))
+    /**
+     * Replaces the index entries of the vulnerability (after the import wrote or changed it). The entries made of the
+     * product names of the EUVD ([CvrCpeMatchDO.approximate]) stay while the NVD has no CPE entries (yet): they go once
+     * it gives some, or if the vulnerability is [rejected].
+     */
+    fun replaceIndex(vulnerabilityId: Long, entries: List<NvdCpeEntry>, rejected: Boolean = false) =
+        replaceIndex(mapOf(vulnerabilityId to entries), setOf(vulnerabilityId).takeIf { rejected }.orEmpty())
 
     /** Replaces the index entries of several vulnerabilities in one transaction, the inserts sent in JDBC batches. */
-    private fun replaceIndex(entries: Map<Long, List<NvdCpeEntry>>) {
+    private fun replaceIndex(entries: Map<Long, List<NvdCpeEntry>>, rejected: Set<Long> = emptySet()) {
         if (entries.isEmpty()) {
             return
         }
         persistenceService.runInTransaction { context ->
             context.em.unwrap(Session::class.java).jdbcBatchSize = INSERT_BATCH
-            context.executeUpdate("delete from CvrCpeMatchDO m where m.vulnerability.id in :ids", Pair("ids", entries.keys))
+            context.executeUpdate(
+                "delete from CvrCpeMatchDO m where m.vulnerability.id in :ids and m.approximate = false", Pair("ids", entries.keys),
+            )
+            val replaced = entries.filter { (id, list) -> list.isNotEmpty() || id in rejected }.keys
+            if (replaced.isNotEmpty()) {
+                context.executeUpdate(
+                    "delete from CvrCpeMatchDO m where m.vulnerability.id in :ids and m.approximate = true", Pair("ids", replaced),
+                )
+            }
             entries.forEach { (vulnerabilityId, list) ->
                 val reference = context.getReference(CvrVulnerabilityDO::class.java, vulnerabilityId)
                 list.forEach { entry ->
@@ -530,6 +550,52 @@ class CvrMatchingService {
         }
     }
 
+    /**
+     * Replaces the approximate index entries of the vulnerability by the products of the EUVD (IMP-16), unless the
+     * vulnerability has CPE entries of the NVD: those are precise. Names as the CPE dictionary spells them
+     * ([normalize]); the match is possible only ([CvrMatchingService.hitsOf]).
+     * @return Whether the index changed.
+     */
+    fun replaceApproximateIndex(vulnerabilityId: Long, products: List<EuvdProduct>): Boolean {
+        val wanted = products.map { Triple(normalize(it.vendor), normalize(it.product), it.version) }
+            .filter { it.second.isNotEmpty() }
+        var changed = false
+        persistenceService.runInTransaction { context ->
+            val stored = context.executeQuery(
+                "from CvrCpeMatchDO m where m.vulnerability.id = :id", CvrCpeMatchDO::class.java, Pair("id", vulnerabilityId),
+            )
+            if (stored.any { !it.approximate }) {
+                return@runInTransaction
+            }
+            val current = stored.map { Triple(it.vendor!!, it.product!!, it.criteria!!) }.toSet()
+            val target = wanted.map { Triple(it.first, it.second, criteriaOf(it.first, it.second, it.third)) }.toSet()
+            if (current == target) {
+                return@runInTransaction
+            }
+            changed = true
+            if (stored.isNotEmpty()) {
+                context.executeUpdate("delete from CvrCpeMatchDO m where m.vulnerability.id = :id", Pair("id", vulnerabilityId))
+            }
+            val reference = context.getReference(CvrVulnerabilityDO::class.java, vulnerabilityId)
+            target.forEach { (vendor, product, criteria) ->
+                context.insert(
+                    CvrCpeMatchDO().also {
+                        it.vulnerability = reference
+                        it.part = "a"
+                        it.vendor = vendor.take(255)
+                        it.product = product.take(255)
+                        it.criteria = criteria
+                        it.approximate = true
+                    },
+                )
+            }
+        }
+        return changed
+    }
+
+    private fun criteriaOf(vendor: String, product: String, version: String?): String =
+        "EUVD: $vendor $product${version?.let { " ($it)" } ?: ""}".take(500)
+
     /** Builds the index from the stored documents (for the vulnerabilities imported before the matching existed). */
     fun rebuildIndex() {
         val ids = persistenceService.executeQuery(
@@ -537,10 +603,12 @@ class CvrMatchingService {
         )
         val mapper = ObjectMapper()
         ids.chunked(INDEX_CHUNK).forEach { chunk ->
-            val entries = persistenceService.executeQuery(
+            val vulnerabilities = persistenceService.executeQuery(
                 "from CvrVulnerabilityDO v where v.id in :ids", CvrVulnerabilityDO::class.java, Pair("ids", chunk),
-            ).associate { vulnerability ->
-                vulnerability.id!! to if (vulnerability.nvdStatus.equals("Rejected", ignoreCase = true)) {
+            )
+            val rejectedIds = vulnerabilities.filter { it.nvdStatus.equals("Rejected", ignoreCase = true) }.map { it.id!! }.toSet()
+            val entries = vulnerabilities.associate { vulnerability ->
+                vulnerability.id!! to if (vulnerability.id in rejectedIds) {
                     emptyList()
                 } else {
                     vulnerability.rawDocument?.let { raw ->
@@ -554,7 +622,7 @@ class CvrMatchingService {
                     } ?: emptyList()
                 }
             }
-            replaceIndex(entries)
+            replaceIndex(entries, rejectedIds)
         }
     }
 

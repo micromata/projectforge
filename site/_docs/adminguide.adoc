@@ -7,7 +7,7 @@ tags: [adminguide]
 :hide-uri-scheme:
 
 :toc:
-:toclevels: 4
+:toclevels: 3
 
 :last-update-label: Copyright (C) 2001-2026, Last updated
 
@@ -571,11 +571,19 @@ taken from an address. Two optional features need configuration.
 [[business_card_photo]]
 ==== Photo
 
-A photo is not part of the QR code but a signed url on the public gateway (`projectforge.gateway.push.publicUrl`,
-see <<external_gateway_mode>>); it is only offered for the user's own address. A url that was handed out stays valid
-as long as the address and its image exist: switching off the photo of a card does not revoke it, only deleting the
-image or changing `projectforge.security.authenticationTokenEncryptionKey` does. Add a `limit_req` for
-`/rsPublic/contactImage/` to the reverse proxy of the gateway.
+A photo is not part of the QR code but a public url (`/rsPublic/contactImage/<token>`, no login) in its vCard; it is
+only offered for the user's own address. The token is random (256 bit) and belongs to the address, so the url can't be
+guessed and stays the same when the image is replaced or deleted (without an image it answers 404; browsers may cache
+the old image for up to an hour). Failed attempts are throttled per client address. Users revoke the url with _Renew
+photo link_ on the card (all cards of the address then get a new one); switching off the photo of a card does not
+revoke it. The images are delivered by the main instance and by the gateway (the token is pushed with the address),
+under the same url. Update the gateway together with the main instance: an old gateway does not know the new path and
+answers 404 for the photos.
+
+The base of the url is, in this order: `projectforge.businessCard.photoBaseUrl` (overrides everything, e.g. a reverse
+proxy), the public url of the gateway (`projectforge.gateway.push.publicUrl`, see <<external_gateway_mode>>), the domain
+of the instance (`projectforge.domain`, not if it is `localhost`). Without any, there is no photo url. Add a
+`limit_req` for `/rsPublic/contactImage/` to the reverse proxy.
 
 [[business_card_wallet]]
 ==== Apple Wallet
@@ -787,7 +795,9 @@ ranges of debitors and creditors are part of this parameter, too. Example:
 ==== Secure passwords
 
 Passwords are never stored in clear text: every password is hashed together with a random salt per user and a
-pepper (see below). The minimum password length is configured under _Administration_ -> _Configuration_.
+pepper (see below). The minimum password length and the number of character classes a password must contain
+(uppercase letters, lowercase letters, digits, special characters, e.g. 3 of 4) are configured under
+_Administration_ -> _Configuration_.
 
 [[protection_against_brute_force_attacks]]
 ==== Protection against brute force attacks
@@ -1877,6 +1887,9 @@ the own groups.
   assigned, any member of the security team may; they become the assignee.
 * A team check is answered by the members of the requested group, no CVE-Radar group is needed for it. The file of a
   team check, with its own discussion, is open to this group, the security team and the security officers only.
+* A team check may ask every member (e.g. everyone checks the own client): each one answers for themselves, and the
+  check stays open until all members answered who logged in within `teamCheckActiveDays` (90 by default). The
+  security team sees all answers and who is still missing.
 * The discussion of a case is open to all readers. Project and system details belong into the file of a team check, not
   there.
 
@@ -1894,6 +1907,8 @@ projectforge.plugin.cveradar.caseIdPrefix=INC
 projectforge.plugin.cveradar.clientActiveDays=30
 # Devices not reported for more days are deleted with their scan findings (personal data).
 projectforge.plugin.cveradar.deviceRetentionDays=365
+# A team check asking every member waits for the members logged in within so many days only.
+projectforge.plugin.cveradar.teamCheckActiveDays=90
 # PF groups of the roles (see above).
 projectforge.plugin.cveradar.readGroup=cve-read
 projectforge.plugin.cveradar.writeGroup=cve-read-write
@@ -1990,8 +2005,9 @@ projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
   after that the ones modified since. Only files of advisories are fetched; nothing of the inventory leaves
   ProjectForge.
 * An advisory becomes a vulnerability of the list only when it matches a library of the inventory, then whatever its
-  score: the threshold of the NVD import (`minCvss`) holds for products, not for libraries in use. The vulnerability
-  is named by its CVE id, without one by its GHSA id (or the id of the source); the advisories of one CVE (e.g. of
+  score: the threshold of the NVD import (`minCvss`) holds for products, not for libraries in use. It holds for a
+  match that is only possible (a library without version, a jar listing without groupId), else every advisory of an
+  artifact name would become a vulnerability. The vulnerability is named by its CVE id, without one by its GHSA id (or the id of the source); the advisories of one CVE (e.g. of
   GitHub and of PyPA) become one vulnerability.
 * As soon as the NVD modifies the CVE, its data replace the ones of the advisories (status _OSV_ before); the
   advisories keep matching.
@@ -2000,17 +2016,54 @@ projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
 * A withdrawn advisory matches nothing any more; a vulnerability made of withdrawn advisories only is rejected.
 * The ad-hoc check uses the advisories as well, without storing anything.
 
+[[cve_radar_euvd]]
+==== Vulnerabilities from the EUVD
+
+The European Union Vulnerability Database (EUVD) of the ENISA supplements the NVD. ProjectForge reads its public API
+(no key needed) and adds the EUVD id, the EPSS (probability of exploitation) and the day since the EUVD knows a
+vulnerability to be exploited. It also imports vulnerabilities the NVD doesn't have (yet), among them ones without a
+CVE id. The import is off by default, as it needs internet access.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.euvd.enabled=true
+projectforge.plugin.cveradar.euvd.url=https://euvdservices.enisa.europa.eu/api
+# The first run imports the vulnerabilities published in the last 30 days (no back-fill of history).
+projectforge.plugin.cveradar.euvd.initialDays=30
+# Every run reads the publications of the last 7 days again (rating and CVE id often come later).
+projectforge.plugin.cveradar.euvd.rescanDays=7
+# New vulnerabilities from this CVSS score on.
+projectforge.plugin.cveradar.euvd.minCvss=7.0
+# Pause between two requests in milliseconds.
+projectforge.plugin.cveradar.euvd.pauseMillis=1000
+# Every 2 hours at minute 37 (UTC), after the NVD import.
+projectforge.plugin.cveradar.euvd.cron=0 37 */2 * * *
+----
+
+* The EUVD filters by the day of publication, not by the day of the last change. That is why every run reads the last
+  `rescanDays` days again, and why a change of an older entry reaches ProjectForge only through the daily read of all
+  entries known to be exploited (it updates the vulnerabilities stored, it doesn't add new ones).
+* A vulnerability of the NVD (or of OSV.dev) gets the EUVD id, the EPSS and the day of exploitation, nothing else; only a
+  vulnerability without any rating also gets the CVSS score of the EUVD. The NVD stays the source of the details.
+* A vulnerability the NVD doesn't have is named by its CVE id, without one by its EUVD id (status _EUVD_). Its details
+  come from the EUVD until the NVD modifies the CVE and takes it over. New ones are imported from `minCvss` on; an
+  entry the EUVD hasn't rated is skipped until it is.
+* The EUVD has no CPE and no version ranges, only the names of vendor and product. A library or product whose name
+  equals such a product name is therefore matched as _possible_, never as _affected_. As soon as the NVD gives CPE entries
+  for the CVE, these replace the entries made of the names.
+* The EUVD doesn't document a rate limit; ProjectForge pauses between requests and retries with a growing delay.
+
 [[cve_radar_jobs]]
 ==== Jobs and connections
 
 * The connector and the imports run as jobs, _CVE-Radar: client agents_,
-  _CVE-Radar: NVD import_ and _CVE-Radar: OSV import_, listed under
+  _CVE-Radar: NVD import_, _CVE-Radar: OSV import_ and _CVE-Radar: EUVD import_, listed under
   _Administration_ -> _Job monitor_. There they can be started at once (_Run now_); while their source isn't configured, they
   are shown as inactive with the reason. The summary of every run is
   shown in the run and logged, errors are part of the error digest.
 * Timeouts and the max size of a response are set per connection with
   `projectforge.integration.clients.cveradar-graylog.*` and
-  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*` (e.g.
+  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*`, `projectforge.integration.clients.cveradar-euvd.*` (e.g.
   `responseTimeoutMs`, `maxResponseBytes`, default 50 MB; for the NVD 180 s and 200 MB, as a page has up to 2000
   vulnerabilities; for OSV.dev 180 s and 1 GB for the zip of an ecosystem, downloaded into a temporary file).
 * An outgoing proxy isn't supported yet: ProjectForge must reach the hosts directly.

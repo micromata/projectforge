@@ -29,6 +29,7 @@ import org.projectforge.common.scheduling.SchedulerJobDefinition
 import org.projectforge.common.scheduling.SchedulerJobRunner
 import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.plugins.core.PluginAdminService
+import org.projectforge.plugins.cveradar.sync.EuvdImportService
 import org.projectforge.plugins.cveradar.sync.GraylogSyncService
 import org.projectforge.plugins.cveradar.sync.NvdImportService
 import org.projectforge.plugins.cveradar.sync.OsvImportService
@@ -37,8 +38,8 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 /**
- * The sync of the external source (EXT-04) and the imports from the NVD (IMP-03) and OSV.dev (IMP-13), also startable in the jobs
- * monitor. Inactive while the plugin isn't activated or the source isn't configured. The sync of the devices
+ * The sync of the external source (EXT-04) and the imports from the NVD (IMP-03), OSV.dev (IMP-13) and the EUVD (IMP-16),
+ * also startable in the jobs monitor. Inactive while the plugin isn't activated or the source isn't configured. The sync of the devices
  * also deletes the outdated devices (EXT-07).
  */
 @Service
@@ -48,6 +49,9 @@ class CveRadarJobs {
 
     @Autowired
     private lateinit var deviceService: CvrDeviceService
+
+    @Autowired
+    private lateinit var euvdImportService: EuvdImportService
 
     @Autowired
     private lateinit var graylogSyncService: GraylogSyncService
@@ -75,6 +79,9 @@ class CveRadarJobs {
         schedulerJobRunner.register(OSV_JOB, ::osvImport) {
             inactiveReason() ?: if (!config.osv.enabled) "The OSV import isn't enabled." else null
         }
+        schedulerJobRunner.register(EUVD_JOB, ::euvdImport) {
+            inactiveReason() ?: if (!config.euvd.enabled) "The EUVD import isn't enabled." else null
+        }
     }
 
     @Scheduled(cron = GRAYLOG_CRON)
@@ -98,6 +105,13 @@ class CveRadarJobs {
         }
     }
 
+    @Scheduled(cron = EUVD_CRON)
+    fun euvdImport() {
+        schedulerJobRunner.runAsync(EUVD_JOB) { run ->
+            run.note(euvdImportService.import().toString())
+        }
+    }
+
     private fun deleteOutdated(): String {
         val deleted = deviceService.deleteOutdated(config.deviceRetentionDays)
         return if (deleted > 0) ", $deleted outdated devices deleted" else ""
@@ -114,6 +128,9 @@ class CveRadarJobs {
 
         private const val OSV_CRON = "\${projectforge.plugin.cveradar.osv.cron:0 47 */6 * * *}"
 
+        // After the NVD (minute 17), so the EUVD supplements what the NVD brought.
+        private const val EUVD_CRON = "\${projectforge.plugin.cveradar.euvd.cron:0 37 */2 * * *}"
+
         val GRAYLOG_JOB = SchedulerJobDefinition(
             "cveradar.graylog", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "graylogSync",
             SchedulerSchedule.Cron(GRAYLOG_CRON),
@@ -122,6 +139,11 @@ class CveRadarJobs {
         val NVD_JOB = SchedulerJobDefinition(
             "cveradar.nvd", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "nvdImport",
             SchedulerSchedule.Cron(NVD_CRON),
+        )
+
+        val EUVD_JOB = SchedulerJobDefinition(
+            "cveradar.euvd", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "euvdImport",
+            SchedulerSchedule.Cron(EUVD_CRON),
         )
 
         val OSV_JOB = SchedulerJobDefinition(

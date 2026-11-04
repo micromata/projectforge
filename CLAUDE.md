@@ -78,6 +78,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Only hard breaks raise a minimum; where the app can fall back, use a feature flag in the system status
   (e.g. `appLoginPath`). Nothing is refused, the app and "My account" only warn. Details:
   `dev-docs/flutter-client.md`.
+- Before removing or renaming a field or endpoint the app uses, check what the published app version reads (`git grep`
+  at its commit); if it reads it, keep it as `@Deprecated` and list it in `dev-docs/app-api-deprecations.md`. At every
+  release go through that register and remove the entries below `MIN_APP_VERSION`.
 
 ## Security
 Rules from security reviews; each one was broken somewhere before.

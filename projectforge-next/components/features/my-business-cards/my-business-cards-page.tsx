@@ -81,7 +81,7 @@ export function MyBusinessCardsPage() {
         <BusinessCardEditor
           initial={editing}
           suggestionAddressId={data.suggestion?.addressId ?? null}
-          gatewayConfigured={data.gatewayConfigured}
+          photoUrlAvailable={data.photoUrlAvailable}
           onDone={() => void done()}
         />
       )}
