@@ -1,3 +1,4 @@
+import { editorsColumn } from "@/components/shared/editors/editors-column";
 import { POSTAUSGANG_METADATA } from "@/lib/metadata/postausgang.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import {
@@ -48,6 +49,7 @@ export const POSTAUSGANG_PAGE = definePage<
     { name: "bemerkung", size: 320, wrap: true },
     { name: "type", size: 140 },
     { name: "lastUpdate", size: 130, hiddenByDefault: true },
+    editorsColumn<PostausgangListRow>(),
   ],
   edit: {
     schema: postausgangSchema,

@@ -1,3 +1,4 @@
+import type { RowWithEditors } from "@/components/shared/editors/editors-column";
 // Mirrors org.projectforge.rest.notification.NotificationRule (projectforge-rest). Keep field names in
 // sync with the Spring DTO.
 
@@ -90,6 +91,7 @@ export interface NotificationRuleDetail {
   lastUpdate?: string | null;
 }
 
-export interface NotificationRuleListRow extends NotificationRuleDetail {
+export interface NotificationRuleListRow
+  extends NotificationRuleDetail, RowWithEditors {
   id: number;
 }

@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.framework.persistence.history.WithEditors
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragForecastType
@@ -102,7 +103,10 @@ class Auftrag(
     override var attachmentsCounter: Int? = null,
     override var attachmentsSize: Long? = null,
     override var attachments: List<Attachment>? = null,
-) : BaseDTO<AuftragDO>(), AttachmentsSupport, EntityAccessSupport {
+) : BaseDTO<AuftragDO>(), AttachmentsSupport, EntityAccessSupport, WithEditors {
+
+    /** The names of everybody who created or changed the entry (list only, see HistoryEditorsService). */
+    override var editors: List<String>? = null
     var pos: String? = null
 
     var formattedNettoSumme: String? = null

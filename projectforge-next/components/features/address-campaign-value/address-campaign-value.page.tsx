@@ -1,4 +1,5 @@
 import { ADDRESS_CAMPAIGN_VALUE_METADATA } from "@/lib/metadata/address-campaign-value.generated";
+import { editorsColumn } from "@/components/shared/editors/editors-column";
 import { definePage } from "@/lib/page-def/define-page";
 import {
   addressCampaignValueSchema,
@@ -135,6 +136,7 @@ export const ADDRESS_CAMPAIGN_VALUE_PAGE = definePage<
       ),
     },
     { name: "lastUpdate", size: 130 },
+    editorsColumn<AddressCampaignValueListRow>(),
     {
       id: "lastUpdateOfAddress",
       labelKey: "plugins.marketing.addressCampaign.lastUpdateOfAddress",

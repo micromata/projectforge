@@ -1,3 +1,4 @@
+import type { RowWithEditors } from "@/components/shared/editors/editors-column";
 // Mirrors org.projectforge.rest.dto.Contract (projectforge-rest). Keep field names in sync with the Spring DTO.
 import type { CONTRACT_METADATA } from "@/lib/metadata/contract.generated";
 
@@ -37,7 +38,7 @@ export interface ContractDetail {
 }
 
 /** Projection used by the list page. */
-export interface ContractListRow {
+export interface ContractListRow extends RowWithEditors {
   id: number;
   number?: number | null;
   date?: string | null;

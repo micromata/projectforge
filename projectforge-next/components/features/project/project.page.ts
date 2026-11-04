@@ -1,3 +1,4 @@
+import { editorsColumn } from "@/components/shared/editors/editors-column";
 import { createElement } from "react";
 import { makeAdditionalContactsField } from "@/components/shared/form/additional-contacts-field";
 import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
@@ -142,6 +143,7 @@ export const PROJECT_PAGE = definePage<
       cell: ({ row }) =>
         createElement(ProjectKost2ArtsCell, { arts: row.original.kost2Arts }),
     },
+    editorsColumn<ProjectListRow>(),
   ],
   // An ended project reads struck through (thin, grey) as the selection boxes strike it
   // (ProjectEntityRest.isInactiveAutoCompleteEntry), set apart from a deleted one.

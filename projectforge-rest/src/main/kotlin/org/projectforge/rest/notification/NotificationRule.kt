@@ -25,6 +25,7 @@
 package org.projectforge.rest.notification
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import org.projectforge.framework.persistence.history.WithEditors
 import org.projectforge.business.fibu.EmployeeStatus
 import org.projectforge.business.notification.NotificationDelivery
 import org.projectforge.business.notification.NotificationDeliveryStep
@@ -87,7 +88,10 @@ class NotificationRule(
     var editableByGroups: List<Group> = emptyList(),
     /** Read-only: the last run by schedule. */
     var lastRun: Date? = null,
-) : BaseDTODisplayObject<NotificationRuleDO>(id = id, displayName = displayName), EntityAccessSupport {
+) : BaseDTODisplayObject<NotificationRuleDO>(id = id, displayName = displayName), EntityAccessSupport, WithEditors {
+    /** The names of everybody who created or changed the entry (list only, see HistoryEditorsService). */
+    override var editors: List<String>? = null
+
     /** The schedule as the rule stores it (the form edits its fields flat). */
     @get:JsonIgnore
     val schedule: NotificationSchedule

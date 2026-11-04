@@ -3056,6 +3056,12 @@
   "history": {
     "entry": "Änderungseintrag",
     "fields": "Felder",
+    "filter": {
+      "modifiedBy": {
+        "_": "Bearbeitet von",
+        "tooltip": "Einträge, die diese Person irgendwann angelegt oder geändert hat."
+      }
+    },
     "newValue": "Neuer Wert",
     "oldValue": "Alter Wert",
     "opType": "Aktion",

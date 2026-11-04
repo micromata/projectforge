@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.framework.persistence.history.WithEditors
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.orga.VisitorType
@@ -40,7 +41,10 @@ class Visitorbook(
     var contactPersonsAsString: String? = null,
     var comment: String? = null,
     var visitortype: VisitorType? = null
-) : BaseDTO<VisitorbookDO>(), EntityAccessSupport {
+) : BaseDTO<VisitorbookDO>(), EntityAccessSupport, WithEditors {
+
+    /** The names of everybody who created or changed the entry (list only, see HistoryEditorsService). */
+    override var editors: List<String>? = null
     override var writeAccess: Boolean? = null
     override var deleteAccess: Boolean? = null
 

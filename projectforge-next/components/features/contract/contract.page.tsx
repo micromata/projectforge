@@ -1,3 +1,4 @@
+import { editorsColumn } from "@/components/shared/editors/editors-column";
 import { CONTRACT_METADATA } from "@/lib/metadata/contract.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { attachmentsColumn } from "@/components/shared/attachments/attachments-column";
@@ -78,6 +79,7 @@ export const CONTRACT_PAGE = definePage<
     { name: "coContractorB", size: 180 },
     { name: "resubmissionOnDate", size: 110 },
     { name: "dueDate", size: 110 },
+    editorsColumn<ContractListRow>(),
   ],
   // A contract is looked for by the year it was dated in, as the year filter of the React list offered it.
   filterPeriodKinds: ["month", "year"],

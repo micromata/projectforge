@@ -32,6 +32,7 @@ import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.plugins.marketing.AddressCampaignValueDO
 import org.projectforge.rest.dto.BaseDTO
+import org.projectforge.framework.persistence.history.WithEditors
 import org.projectforge.rest.dto.EntityAccessSupport
 
 class AddressCampaignValue(
@@ -55,9 +56,11 @@ class AddressCampaignValue(
     /** The value and comment the address has in the comparison campaign, if one is selected. */
     var comparisonValue: String? = null,
     var comparisonComment: String? = null,
+    /** The names of all users who created or changed this value, in the order of their first change (list only). */
+    override var editors: List<String>? = null,
     override var writeAccess: Boolean? = null,
     override var deleteAccess: Boolean? = null,
-) : BaseDTO<AddressCampaignValueDO>(), EntityAccessSupport {
+) : BaseDTO<AddressCampaignValueDO>(), EntityAccessSupport, WithEditors {
 
     /** Takes the value and the comment of the address in the comparison campaign. */
     fun setComparison(comparison: AddressCampaignValueDO) {

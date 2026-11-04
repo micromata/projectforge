@@ -1,3 +1,4 @@
+import type { RowWithEditors } from "@/components/shared/editors/editors-column";
 // Mirrors org.projectforge.rest.dto.Project (projectforge-rest). Keep field names in sync with the
 // Spring DTO. The customer, the account and the cost 2 types have no counterpart in ProjektDO's
 // generated metadata (foreign DOs without `UIDataType`, and a DTO-only list), and `kostFormatted`,
@@ -105,6 +106,6 @@ export interface ProjectDetail {
 }
 
 /** Projection the list page renders — the same DTO, with the id the table keys rows by. */
-export interface ProjectListRow extends ProjectDetail {
+export interface ProjectListRow extends ProjectDetail, RowWithEditors {
   id: number;
 }

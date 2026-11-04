@@ -3056,6 +3056,12 @@
   "history": {
     "entry": "History entry",
     "fields": "Fields",
+    "filter": {
+      "modifiedBy": {
+        "_": "Edited by",
+        "tooltip": "Entries this user has created or changed at some point."
+      }
+    },
     "newValue": "New value",
     "oldValue": "Old value",
     "opType": "Action",

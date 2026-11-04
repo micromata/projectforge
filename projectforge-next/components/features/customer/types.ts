@@ -1,3 +1,4 @@
+import type { RowWithEditors } from "@/components/shared/editors/editors-column";
 // Mirrors org.projectforge.rest.dto.Customer (projectforge-rest). Keep field names in sync with the
 // Spring DTO. Two of its values have no counterpart in KundeDO's generated metadata: `konto` (a
 // foreign DO — `KontoDO` has no `UIDataType`, so `ElementsRegistry` never reports it) and the
@@ -50,6 +51,6 @@ export interface CustomerDetail {
 }
 
 /** Projection the list page renders — the same DTO, with the id the table keys rows by. */
-export interface CustomerListRow extends CustomerDetail {
+export interface CustomerListRow extends CustomerDetail, RowWithEditors {
   id: number;
 }

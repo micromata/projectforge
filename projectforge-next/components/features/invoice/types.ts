@@ -1,3 +1,4 @@
+import type { RowWithEditors } from "@/components/shared/editors/editors-column";
 // Mirrors org.projectforge.rest.dto.Rechnung, RechnungsPosition and KostZuweisung — the lean row of the
 // list ([InvoiceListRow], what `copyFrom4ListRow` fills) and the whole DTO of the edit form
 // ([InvoiceDetail], what `copyFromWithCollections` fills).
@@ -210,7 +211,8 @@ export interface InvoiceDetail {
 }
 
 /** One row of the invoice list. */
-export interface InvoiceListRow extends ListRow, RowWithAttachments {
+export interface InvoiceListRow
+  extends ListRow, RowWithAttachments, RowWithEditors {
   nummer?: number;
   /** What the number column shows: [nummer], or "16956-S" for a cancellation, which has none of its own. */
   belegNummer?: string;

@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.framework.persistence.history.WithEditors
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.*
 import org.projectforge.framework.configuration.Configuration
@@ -78,7 +79,10 @@ class Rechnung(
     override var attachmentsCounter: Int? = null,
     override var attachmentsSize: Long? = null,
     override var attachments: List<Attachment>? = null,
-) : BaseDTO<RechnungDO>(), IRechnung, AttachmentsSupport {
+) : BaseDTO<RechnungDO>(), IRechnung, AttachmentsSupport, WithEditors {
+
+    /** The names of everybody who created or changed the entry (list only, see HistoryEditorsService). */
+    override var editors: List<String>? = null
     override var positionen: MutableList<RechnungsPosition>? = null
 
     var netSum: BigDecimal = BigDecimal.ZERO

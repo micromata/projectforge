@@ -1,3 +1,4 @@
+import { editorsColumn } from "@/components/shared/editors/editors-column";
 import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { NOTIFICATION_RULE_METADATA } from "@/lib/metadata/notification-rule.generated";
 import { definePage } from "@/lib/page-def/define-page";
@@ -70,6 +71,7 @@ export const NOTIFICATION_RULE_PAGE = definePage<
     },
     { name: "description", size: 300 },
     { name: "lastUpdate", size: 130 },
+    editorsColumn<NotificationRuleListRow>(),
   ],
   // An inactive rule reads struck through (thin, grey), so it isn't taken for a running one — nor for a
   // deleted one, which keeps its own strike.

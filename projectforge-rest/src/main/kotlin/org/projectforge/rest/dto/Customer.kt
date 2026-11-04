@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.framework.persistence.history.WithEditors
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.KundeDO
@@ -39,7 +40,10 @@ class Customer(id: Long? = null,
                var description: String? = null,
                var konto: Konto? = null,
                var kost: String? = null,
-) : BaseDTODisplayObject<KundeDO>(id, displayName = displayName), EntityAccessSupport {
+) : BaseDTODisplayObject<KundeDO>(id, displayName = displayName), EntityAccessSupport, WithEditors {
+
+    /** The names of everybody who created or changed the entry (list only, see HistoryEditorsService). */
+    override var editors: List<String>? = null
     override var writeAccess: Boolean? = null
     override var deleteAccess: Boolean? = null
 
