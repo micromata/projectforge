@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "E-invoice: the customer's invoice recipient email (BT-49) and the email of its contact person (BT-58) are separate fields now, on invoice and account. The seller's contact email (BT-43) is prefilled from the configuration and editable on the invoice.",
+  "de": "E-Rechnung: Die E-Mail-Adresse für den Rechnungseingang des Kunden (BT-49) und die des Ansprechpartners (BT-58) sind jetzt getrennte Felder an Rechnung und Konto. Die E-Mail-Adresse des Ansprechpartners des Verkäufers (BT-43) wird aus der Konfiguration vorbelegt und ist an der Rechnung änderbar."
+}

@@ -216,6 +216,14 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, Attachment
     @get:Column(name = "customer_e_invoice_email", length = 255)
     open var customerEInvoiceEmail: String? = null
 
+    @PropertyInfo(i18nKey = "fibu.konto.contactEmail")
+    @get:Column(name = "customer_contact_email", length = 255)
+    open var customerContactEmail: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.rechnung.sellerContactEmail")
+    @get:Column(name = "seller_contact_email", length = 255)
+    open var sellerContactEmail: String? = null
+
     @PropertyInfo(i18nKey = "fibu.rechnung.sellerBankAccount")
     @get:Column(name = "seller_bank_account", length = 34)
     open var sellerBankAccount: String? = null

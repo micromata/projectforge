@@ -23,6 +23,7 @@ export function toFormValues(konto: KontoDetail): AccountValues {
     vatId: konto.vatId ?? null,
     leitwegId: konto.leitwegId ?? null,
     eInvoiceEmail: konto.eInvoiceEmail ?? null,
+    contactEmail: konto.contactEmail ?? null,
     sellerBankAccountName: konto.sellerBankAccountName ?? null,
   };
 }

@@ -419,8 +419,10 @@ export const INVOICE_PAGE = definePage<
             vatId: "customerVatId",
             leitwegId: "customerLeitwegId",
             eInvoiceEmail: "customerEInvoiceEmail",
+            contactEmail: "customerContactEmail",
           },
           sellerBankAccount: SellerBankAccountField,
+          sellerContactEmail: "sellerContactEmail",
           streetRows: 2,
         }),
         // Below those very fields: the invoice PDF, what is still missing for an e-invoice, and the three

@@ -56,6 +56,8 @@ class Rechnung(
     var customerVatId: String? = null,
     var customerLeitwegId: String? = null,
     var customerEInvoiceEmail: String? = null,
+    var customerContactEmail: String? = null,
+    var sellerContactEmail: String? = null,
     /** IBAN of the seller's bank account, one of `EInvoiceSellerConfig.bankAccounts`. */
     var sellerBankAccount: String? = null,
     var periodOfPerformanceBegin: LocalDate? = null,

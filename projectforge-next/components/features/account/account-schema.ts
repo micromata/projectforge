@@ -29,6 +29,7 @@ export const accountSchema = z.object({
   vatId: m.nullableString("vatId"),
   leitwegId: m.nullableString("leitwegId"),
   eInvoiceEmail: m.nullableString("eInvoiceEmail"),
+  contactEmail: m.nullableString("contactEmail"),
   sellerBankAccountName: m.nullableString("sellerBankAccountName"),
 });
 

@@ -2217,11 +2217,12 @@
       "bezeichnung": "Identifier",
       "city": "City",
       "contactDepartment": "Department",
+      "contactEmail": "Contact person email of the customer (BT-58)",
       "contactPerson": "Contact person",
       "costCenter": "Cost center",
       "country": "Country",
       "eInvoice": "E-Invoice",
-      "eInvoiceEmail": "E-invoice email",
+      "eInvoiceEmail": "Invoice recipient email of the customer (BT-49)",
       "leitwegId": {
         "_": "Leitweg-ID",
         "tooltip": "Required for e-invoices to public sector recipients (e.g. 04011000-1234512345-12)"
@@ -2707,6 +2708,7 @@
       "receiver": "Receiver",
       "rechnungen": "Invoices",
       "sellerBankAccount": "Bank account (seller)",
+      "sellerContactEmail": "Contact email (seller, BT-43)",
       "showKostZuweisungen": "Cost id assignments",
       "showTextAreas": "Position texts",
       "skonto": "Discount",

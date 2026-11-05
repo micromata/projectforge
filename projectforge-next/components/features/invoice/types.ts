@@ -179,6 +179,8 @@ export interface InvoiceDetail {
   customerVatId?: string | null;
   customerLeitwegId?: string | null;
   customerEInvoiceEmail?: string | null;
+  customerContactEmail?: string | null;
+  sellerContactEmail?: string | null;
   /** IBAN of the seller's bank account, one of `EInvoiceSellerConfig.bankAccounts`. */
   sellerBankAccount?: string | null;
   periodOfPerformanceBegin?: string | null;

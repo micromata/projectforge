@@ -349,6 +349,7 @@ class RechnungDtoTest : AbstractTestBase() {
         assertEquals("DE123456789", dto.customerVatId)
         assertEquals("04011000-12345-67", dto.customerLeitwegId)
         assertEquals("rechnung@kundin.de", dto.customerEInvoiceEmail)
+        assertEquals("ansprechpartner@kundin.de", dto.customerContactEmail)
         // The account names the bank account, the invoice stores its IBAN.
         assertEquals("DE02120300000000202051", dto.sellerBankAccount)
     }
@@ -386,6 +387,7 @@ class RechnungDtoTest : AbstractTestBase() {
         it.vatId = "DE123456789"
         it.leitwegId = "04011000-12345-67"
         it.eInvoiceEmail = "rechnung@kundin.de"
+        it.contactEmail = "ansprechpartner@kundin.de"
         it.sellerBankAccountName = "Commerzbank"
     }
 

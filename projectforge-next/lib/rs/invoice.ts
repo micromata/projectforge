@@ -187,6 +187,7 @@ export const E_INVOICE_ACCOUNT_FIELDS = [
   "customerVatId",
   "customerLeitwegId",
   "customerEInvoiceEmail",
+  "customerContactEmail",
   "sellerBankAccount",
 ] as const;
 
