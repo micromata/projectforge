@@ -1607,9 +1607,9 @@ about an hour after the end).
 [[cve_radar_notifications]]
 === CVE-Radar: notifications
 
-Notifications are set up by an admin as rules (page _Notification rules_). Two rule types belong to the
-CVE-Radar. Nobody is notified until such a rule exists; the admin chooses the recipients and the delivery (in the app,
-by mail) for each rule.
+Notifications are set up by an admin as rules (page _Notification rules_). Three rule types belong to the
+CVE-Radar. Nobody is notified until such a rule exists; the admin chooses the recipients (except for the reminder of team
+checks) and the delivery (in the app, by mail) for each rule.
 
 * *New findings of the CVE radar*: the responsible team of an affected system (the group of the system or of the nearest
   area above) is notified right after the matching found something new; the recipients of the rule get it in copy. A rule
@@ -1621,6 +1621,11 @@ by mail) for each rule.
   If the last list of a component was applied more than the given number of days ago (30 by default), the responsible
   team and the recipients in copy are told, at most once a week; the notification is resolved as soon as the list is
   updated. Components that never had a list from a file are left out.
+* *Unanswered team checks of a case of the CVE radar*: the rule names a case. The members asked by one of its team
+  checks that every member answers, who haven't answered yet (as the team check lists them under _Not answered yet_), are
+  reminded, at most once a day; how often follows from the schedule of the rule, or it is triggered by hand. Only they
+  are notified, recipients given in the rule aren't used. The notification is resolved as soon as the member answered,
+  and expires when the case is closed.
 * Everybody is told only of the systems and instances they may see.
 
 [[further_features]]

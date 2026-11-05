@@ -19,8 +19,17 @@ const employee = fromMetadata(EMPLOYEE_METADATA);
 
 type FieldProps = { className?: string };
 
+/**
+ * The reminder of unanswered team checks notifies the members not answered yet only: the recipients given would
+ * not be used, so they aren't offered (the excluded statuses still apply).
+ */
+function useRecipientsUnused() {
+  return useRuleValue("ruleType") === "CVERADAR_TEAM_CHECK_UNANSWERED";
+}
+
 export function RecipientGroupsField({ className }: FieldProps) {
   const t = useTranslations("notification.recipients");
+  if (useRecipientsUnused()) return null;
   return (
     <EntityMultiAutocompleteField
       name="recipientGroups"
@@ -34,6 +43,7 @@ export function RecipientGroupsField({ className }: FieldProps) {
 
 export function RecipientUsersField({ className }: FieldProps) {
   const t = useTranslations("notification.recipients");
+  if (useRecipientsUnused()) return null;
   return (
     <EntityMultiAutocompleteField
       name="recipientUsers"
@@ -47,6 +57,7 @@ export function RecipientUsersField({ className }: FieldProps) {
 
 export function AllEmployeesField({ className }: FieldProps) {
   const t = useTranslations("notification.recipients");
+  if (useRecipientsUnused()) return null;
   return (
     <CheckboxField
       name="allEmployees"
@@ -60,6 +71,14 @@ export function OnlyAffectedField({ className }: FieldProps) {
   const t = useTranslations("notification.recipients");
   const tParams = useTranslations("notification.params");
   const ruleType = useRuleValue("ruleType");
+  // The members not answered yet only, the recipients given aren't used.
+  if (ruleType === "CVERADAR_TEAM_CHECK_UNANSWERED") {
+    return (
+      <p className={cn("text-xs text-muted-foreground", className)}>
+        {tParams("cvrTeamCheckRecipientsInfo")}
+      </p>
+    );
+  }
   // The CVE radar always notifies the responsible teams, the recipients given are in copy.
   if (ruleType === "CVERADAR_FINDINGS" || ruleType === "CVERADAR_STALE_LISTS") {
     return (
@@ -80,6 +99,7 @@ export function OnlyAffectedField({ className }: FieldProps) {
 
 export function EmployeeStatusField({ className }: FieldProps) {
   const t = useTranslations();
+  if (useRecipientsUnused()) return null;
   return (
     <CheckboxListField
       name="employeeStatus"

@@ -68,6 +68,7 @@ export interface NotificationRuleDetail {
   cvrIncludePossible?: boolean;
   cvrIncludeUnscored?: boolean;
   cvrMaxAgeDays?: number;
+  cvrCase?: Ref | null;
   recipientGroups?: Ref[];
   recipientUsers?: Ref[];
   allEmployees?: boolean;

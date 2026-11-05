@@ -65,6 +65,7 @@ export const notificationRuleSchema = z.object({
   cvrIncludePossible: z.boolean(),
   cvrIncludeUnscored: z.boolean(),
   cvrMaxAgeDays: count,
+  cvrCase: ref.nullable(),
   recipientGroups: z.array(ref),
   recipientUsers: z.array(ref),
   allEmployees: z.boolean(),

@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { CheckboxField } from "@/components/shared/form/checkbox-field";
+import { EntityAutocompleteField } from "@/components/shared/form/entity-autocomplete-field";
 import { NumberField } from "@/components/shared/form/number-field";
 import { SelectField } from "@/components/shared/form/select-field";
 import { cn } from "@/lib/utils";
@@ -93,6 +94,18 @@ export function RuleParamsField({ className }: { className?: string }) {
         metadataLess
         fractionDigits={0}
         maxDigits={3}
+        className={className}
+      />
+    );
+  }
+  if (ruleType === "CVERADAR_TEAM_CHECK_UNANSWERED") {
+    return (
+      <EntityAutocompleteField
+        name="cvrCase"
+        label={t("cvrCase")}
+        hint={t("cvrCaseInfo")}
+        entity="cvrcase"
+        metadataLess
         className={className}
       />
     );
