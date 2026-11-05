@@ -137,6 +137,10 @@ export const NOTIFICATION_RULE_METADATA = {
           i18nKey: "notification.ruleTypes.CVERADAR_STALE_LISTS",
         },
         {
+          value: "CVERADAR_TEAM_CHECK_UNANSWERED",
+          i18nKey: "notification.ruleTypes.CVERADAR_TEAM_CHECK_UNANSWERED",
+        },
+        {
           value: "MANUAL",
           i18nKey: "notification.ruleTypes.MANUAL",
         },

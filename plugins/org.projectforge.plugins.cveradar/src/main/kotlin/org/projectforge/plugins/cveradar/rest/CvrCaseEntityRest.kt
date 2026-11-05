@@ -72,6 +72,11 @@ class CvrCaseEntityRest : AbstractDTOEntityRest<CvrCaseDO, CvrCase, CvrCaseDao>(
 
     override fun newDTO(): CvrCase = CvrCase()
 
+    /** The picker of a case, e.g. in a notification rule reminding of its team checks. */
+    override val autoCompleteSearchFields = arrayOf("code", "title")
+
+    override fun autoCompleteLabel(obj: CvrCaseDO): String = CvrCaseDao.label(obj)
+
     /** A new case is an incident, new, assigned to the logged-in user. */
     override fun newBaseDO(request: HttpServletRequest?): CvrCaseDO {
         val case = super.newBaseDO(request)

@@ -29,6 +29,7 @@ export type NotificationRuleType =
   | "CREDITOR_INVOICES_DUE"
   | "CVERADAR_FINDINGS"
   | "CVERADAR_STALE_LISTS"
+  | "CVERADAR_TEAM_CHECK_UNANSWERED"
   | "MANUAL";
 
 /** `NotificationDao.Summary`, sent with the user status (see useAuth). */

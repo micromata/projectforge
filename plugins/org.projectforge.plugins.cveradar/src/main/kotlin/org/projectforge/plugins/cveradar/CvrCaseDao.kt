@@ -188,5 +188,8 @@ class CvrCaseDao : CvrBaseDao<CvrCaseDO>(CvrCaseDO::class.java) {
         )
 
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf("assignee.username", "assignee.firstname", "assignee.lastname")
+
+        /** The case as a picker or a notification names it: code and title, e.g. `CVE-2026-12345 – Apache Tomcat`. */
+        fun label(case: CvrCaseDO): String = listOfNotNull(case.code, case.title).joinToString(" – ").ifEmpty { "#${case.id}" }
     }
 }

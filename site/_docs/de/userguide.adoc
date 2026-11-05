@@ -1649,9 +1649,9 @@ können sie nutzen; es wird nichts gespeichert, und das Ergebnis bleibt bei der 
 [[cve_radar_notifications]]
 === CVE-Radar: Benachrichtigungen
 
-Benachrichtigungen richtet ein Admin als Regeln ein (Seite _Benachrichtigungsregeln_). Zwei Regeltypen
-gehören zum CVE-Radar. Solange keine solche Regel existiert, wird niemand benachrichtigt; Empfänger und Zustellung (in
-der App, per Mail) wählt der Admin für jede Regel.
+Benachrichtigungen richtet ein Admin als Regeln ein (Seite _Benachrichtigungsregeln_). Drei Regeltypen
+gehören zum CVE-Radar. Solange keine solche Regel existiert, wird niemand benachrichtigt; Empfänger (außer bei der Erinnerung
+an Teamabfragen) und Zustellung (in der App, per Mail) wählt der Admin für jede Regel.
 
 * *Neue Befunde des CVE-Radars*: Das verantwortliche Team eines betroffenen Systems (die Gruppe des Systems oder des
   nächsten Bereichs darüber) wird direkt benachrichtigt, nachdem der Abgleich etwas Neues gefunden hat; die Empfänger der
@@ -1665,6 +1665,12 @@ der App, per Mail) wählt der Admin für jede Regel.
   verantwortliche Team und die Empfänger in Kopie benachrichtigt, höchstens einmal pro Woche; die Benachrichtigung
   erledigt sich, sobald die Liste aktualisiert ist. Komponenten, die nie eine Liste aus einer Datei hatten, bleiben außen
   vor.
+* *Unbeantwortete Teamabfragen eines Falls des CVE-Radars*: Die Regel nennt einen Fall. Die Mitglieder, die eine seiner
+  Teamabfragen, die jedes Mitglied beantwortet, noch nicht beantwortet haben (wie die Teamabfrage sie unter _Noch nicht
+  geantwortet_ auflistet), werden erinnert, höchstens einmal am Tag; wie oft, ergibt sich aus dem Zeitplan der Regel,
+  oder sie wird von Hand ausgelöst. Nur sie werden benachrichtigt, in der Regel angegebene Empfänger werden nicht
+  verwendet. Die Benachrichtigung erledigt sich, sobald das Mitglied geantwortet hat, und verfällt, wenn der Fall
+  geschlossen wird.
 * Jede Person erfährt nur von den Systemen und Instanzen, die sie sehen darf.
 
 [[further_features]]

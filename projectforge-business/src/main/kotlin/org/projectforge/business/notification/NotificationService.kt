@@ -163,6 +163,16 @@ class NotificationService {
         return EXAMPLE_COMMON_VARIABLES + handler?.exampleVariables(rule, today(), user).orEmpty()
     }
 
+    /** The display names of the entities the params of the rule refer to, see [NotificationRuleHandler.paramDisplayNames]. */
+    fun paramDisplayNames(rule: NotificationRuleDO): Map<String, String> {
+        return rule.ruleType?.let { handlers[it] }?.paramDisplayNames(rule).orEmpty()
+    }
+
+    /** The errors of the params of the rule, see [NotificationRuleHandler.paramErrors]. */
+    fun paramErrors(rule: NotificationRuleDO): Map<String, String> {
+        return rule.ruleType?.let { handlers[it] }?.paramErrors(rule).orEmpty()
+    }
+
     /** Runs the due rules, then checks the pending notifications for resolution. */
     fun runRuleJob(today: LocalDate, now: Date) {
         val start = System.currentTimeMillis()

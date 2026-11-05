@@ -97,6 +97,18 @@ interface NotificationRuleHandler {
      */
     fun exampleVariables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> = emptyMap()
 
+    /**
+     * The display names of the entities referred to by the params of the rule by param name (e.g. `cvrCaseId` to the
+     * case), for the editor: the rest module doesn't know the entities of a plugin.
+     */
+    fun paramDisplayNames(rule: NotificationRuleDO): Map<String, String> = emptyMap()
+
+    /**
+     * The errors of the params of the rule by param name (i18n keys), e.g. a referred entity not found, for the
+     * validation of the editor: the rest module doesn't know the entities of a plugin.
+     */
+    fun paramErrors(rule: NotificationRuleDO): Map<String, String> = emptyMap()
+
     /** May the user be a recipient of the run at all (e.g. employed in the referred month)? */
     fun isRelevant(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Boolean = true
 
