@@ -1,0 +1,46 @@
+# The mobile app (projectforge-app, React Native/Expo) and the TypeScript it shares with projectforge-next
+# (projectforge-shared): type check, lint and unit tests. Its generated i18n catalogs and its api contract are checked by
+# GenerateAppI18nMessagesTest and AppTsApiContractTest in the Gradle build.
+on:
+  push:
+    branches: [ develop ]
+    paths:
+      - 'projectforge-app/**'
+      - 'projectforge-shared/**'
+      - '.github/workflows/app.yml'
+  pull_request:
+    branches: [ develop ]
+    paths:
+      - 'projectforge-app/**'
+      - 'projectforge-shared/**'
+      - '.github/workflows/app.yml'
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projectforge-app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: projectforge-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit && npx tsc -p ../projectforge-shared/tsconfig.json
+
+      - name: Lint
+        run: npx eslint .
+
+      - name: Test
+        run: npx jest --ci

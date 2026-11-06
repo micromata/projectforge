@@ -30,25 +30,24 @@ import org.junit.jupiter.api.Test
 import java.nio.charset.StandardCharsets
 
 /**
- * Guards the generated catalogs of the mobile app, see [GenerateNextI18nMessagesTest] (same reasons, same fix:
+ * Guards the generated catalogs of the mobile apps, see [GenerateNextI18nMessagesTest] (same reasons, same fix:
  * run [DevelopmentMainForRelease]).
  */
-class GenerateFlutterI18nMessagesTest {
+class GenerateAppI18nMessagesTest {
   @Test
   fun generatedCatalogsAreUpToDate() {
     val rootDir = GenerateNextI18nMessagesMain.resolveRootDir()
-    if (!rootDir.resolve("projectforge-flutter").isDirectory) {
-      return
-    }
-    GenerateFlutterI18nMessagesMain.generate(rootDir).forEach { (locale, expected) ->
-      val file = GenerateFlutterI18nMessagesMain.outFile(rootDir, locale)
-      assertTrue(file.isFile, "Generated message catalog is missing: ${file.absolutePath}")
-      assertEquals(
-        expected,
-        file.readText(StandardCharsets.UTF_8),
-        "projectforge-flutter/assets/i18n/generated.$locale.json is out of date or was edited by hand. Please run" +
-            " DevelopmentMainForRelease; hand-written texts belong in assets/i18n/app.$locale.json."
-      )
+    GenerateAppI18nMessagesMain.TARGETS.filter { rootDir.resolve(it.appDir).isDirectory }.forEach { target ->
+      GenerateAppI18nMessagesMain.generate(rootDir, target).forEach { (locale, expected) ->
+        val file = GenerateAppI18nMessagesMain.outFile(rootDir, target, locale)
+        assertTrue(file.isFile, "Generated message catalog is missing: ${file.absolutePath}")
+        assertEquals(
+          expected,
+          file.readText(StandardCharsets.UTF_8),
+          "${target.outDir}/generated.$locale.json is out of date or was edited by hand. Please run" +
+              " DevelopmentMainForRelease; hand-written texts belong in ${target.outDir}/app.$locale.json."
+        )
+      }
     }
   }
 }

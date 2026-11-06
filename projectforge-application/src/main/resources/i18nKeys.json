@@ -4000,7 +4000,7 @@
   {"i18nKey":"notification.logEmpty","bundleName":"I18nResources","translation":"No notifications sent yet.","translationDE":"Noch keine Benachrichtigungen versendet.","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"notification.logEmptyFilter","bundleName":"I18nResources","translation":"No notifications match the filter.","translationDE":"Keine Benachrichtigungen passen zum Filter.","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"notification.markDone","bundleName":"I18nResources","translation":"Mark as done","translationDE":"Als erledigt markieren","usedInClasses":[],"usedInFiles":[]},
-  {"i18nKey":"notification.open","bundleName":"I18nResources","translation":"Open","translationDE":"Öffnen","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"notification.open","bundleName":"I18nResources","translation":"Open","translationDE":"Öffnen","usedInClasses":["org.projectforge.business.notification.MailNotificationSender"],"usedInFiles":[]},
   {"i18nKey":"notification.params.daysBeforeExpiry","bundleName":"I18nResources","translation":"Days before expiry","translationDE":"Tage vor dem Verfall","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"notification.params.dueWorkingDays","bundleName":"I18nResources","translation":"Working days before the due date (invoices overdue for up to 90 days included)","translationDE":"Werktage vor Fälligkeit (inkl. bis zu 90 Tage überfälliger Rechnungen)","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"notification.params.kost2MissingMonths","bundleName":"I18nResources","translation":"Months looked at (current month included)","translationDE":"Betrachtete Monate (inkl. aktuellem Monat)","usedInClasses":[],"usedInFiles":[]},
