@@ -68,7 +68,7 @@ export function LoginScreen({
   const [servers, setServers] = useState<string[]>([]);
   const [sessions, setSessions] = useState<Record<string, Session>>({});
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | undefined>(messageKey ? t(messageKey) : undefined);
+  const [error, setError] = useState<string | undefined>();
 
   const applyServers = useCallback((list: string[], stored: Session[]) => {
     setServers(list);
@@ -142,6 +142,8 @@ export function LoginScreen({
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={[styles.title, { color: colors.text }]}>ProjectForge</Text>
+        {/* Why the app is logged out (e.g. the session expired): stays while the user tries again. */}
+        {messageKey ? <Text style={[styles.error, { color: colors.danger }]}>{t(messageKey)}</Text> : null}
         {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
         <Text style={[styles.label, { color: colors.textMuted }]}>{t('app.server.label')}</Text>
         <TextInput
@@ -200,11 +202,9 @@ export function LoginScreen({
             <Text style={[styles.buttonText, { color: colors.onPrimary }]}>{t('login')}</Text>
           )}
         </Pressable>
-        {!addServer && (
-          <Pressable onPress={onShowLog} style={styles.logLink}>
-            <Text style={{ color: colors.primary }}>{t('app.log.title')}</Text>
-          </Pressable>
-        )}
+        <Pressable onPress={onShowLog} style={styles.logLink}>
+          <Text style={{ color: colors.primary }}>{t('app.log.title')}</Text>
+        </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
