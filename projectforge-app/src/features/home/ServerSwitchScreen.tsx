@@ -23,15 +23,38 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { authController, useAuth } from '../../core/auth/authController';
 import { Session } from '../../core/auth/session';
 import { t } from '../../core/i18n/translations';
 import { useColors } from '../../core/ui/colors';
 
-/** The stored logins at other servers to switch to without the browser, and the login at another server. */
-export function ServerSwitchScreen({ onDone, onAdd }: { onDone: () => void; onAdd: () => void }) {
+/** True without a running timer, otherwise if the user agrees to discard it (the switch clears the data of the app). */
+function timerMayBeDiscarded(timerRunning: boolean): Promise<boolean> {
+  if (!timerRunning) return Promise.resolve(true);
+  return new Promise((resolve) =>
+    Alert.alert('', t('app.server.switch.timer'), [
+      { text: t('cancel'), style: 'cancel', onPress: () => resolve(false) },
+      { text: t('app.server.switch'), style: 'destructive', onPress: () => resolve(true) },
+    ]),
+  );
+}
+
+/**
+ * The stored logins at other servers to switch to without the browser, and the login at another server.
+ *
+ * @param timerRunning The timer of the time sheets runs: discarded by a switch, so the user is asked first.
+ */
+export function ServerSwitchScreen({
+  onDone,
+  onAdd,
+  timerRunning,
+}: {
+  onDone: () => void;
+  onAdd: () => void;
+  timerRunning: boolean;
+}) {
   const colors = useColors();
   const auth = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -49,7 +72,10 @@ export function ServerSwitchScreen({ onDone, onAdd }: { onDone: () => void; onAd
             key={session.serverUrl}
             style={[styles.row, { borderColor: colors.border }]}
             onPress={async () => {
-              if (!current) await authController.switchTo(session);
+              if (!current) {
+                if (!(await timerMayBeDiscarded(timerRunning))) return;
+                await authController.switchTo(session);
+              }
               onDone();
             }}
           >
@@ -63,7 +89,7 @@ export function ServerSwitchScreen({ onDone, onAdd }: { onDone: () => void; onAd
           </Pressable>
         );
       })}
-      <Pressable style={[styles.row, { borderColor: colors.border }]} onPress={onAdd}>
+      <Pressable style={[styles.row, { borderColor: colors.border }]} onPress={async () => (await timerMayBeDiscarded(timerRunning)) && onAdd()}>
         <Ionicons name="add" size={22} color={colors.primary} />
         <Text style={{ color: colors.primary, fontSize: 16 }}>{t('app.server.add')}</Text>
       </Pressable>
