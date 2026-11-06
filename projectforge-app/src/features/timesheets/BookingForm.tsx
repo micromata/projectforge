@@ -279,8 +279,9 @@ export function BookingForm({
   ];
   const kost2Items: MenuItem[] = (kost2Options ?? []).map((it) => ({
     key: String(it.id),
-    label: kost2Text(it) ? `${kost2Number(it)}  ${kost2Text(it)}` : kost2Number(it),
-    icon: it.id === kost2?.id ? 'checkmark' : undefined,
+    label: kost2Number(it),
+    detail: kost2Text(it) || undefined,
+    selected: it.id === kost2?.id,
     onPress: () => {
       setKost2(it);
       clearErrors('kost2');
@@ -479,6 +480,7 @@ export function BookingForm({
       </View>
       <MenuSheet
         visible={menu != null}
+        title={menu === 'kost2' ? t('fibu.kost2') : undefined}
         items={menu === 'form' ? formItems : menu === 'kost2' ? kost2Items : []}
         onClose={() => setMenu(null)}
       />

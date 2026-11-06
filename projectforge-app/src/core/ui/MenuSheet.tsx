@@ -23,7 +23,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { ComponentProps, useRef } from 'react';
-import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useColors } from './colors';
@@ -36,14 +36,29 @@ export interface MenuItem {
   destructive?: boolean;
   /** A text only (e.g. the version), not a choice. */
   info?: boolean;
+  /** A second line below the label, in small letters. */
+  detail?: string;
+  /** The current choice of a picker: marked with a check. */
+  selected?: boolean;
   onPress?: () => void;
 }
 
 /**
- * A menu sliding up from the bottom (the browser functions, the account menu). On iOS the chosen action runs once the
- * menu is gone: a share sheet, the Wallet or an alert can't be presented over a modal that is still being dismissed.
+ * A menu sliding up from the bottom (the browser functions, the account menu, a picker with [title]), scrolled within
+ * if it has more items than fit. On iOS the chosen action runs once the menu is gone: a share sheet, the Wallet or an
+ * alert can't be presented over a modal that is still being dismissed.
  */
-export function MenuSheet({ visible, items, onClose }: { visible: boolean; items: MenuItem[]; onClose: () => void }) {
+export function MenuSheet({
+  visible,
+  items,
+  onClose,
+  title,
+}: {
+  visible: boolean;
+  items: MenuItem[];
+  onClose: () => void;
+  title?: string;
+}) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const pending = useRef<(() => void) | null>(null);
@@ -59,35 +74,47 @@ export function MenuSheet({ visible, items, onClose }: { visible: boolean; items
           style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 8 }]}
           onStartShouldSetResponder={() => true}
         >
-          {items.map((item) => (
-            <Pressable
-              key={item.key}
-              disabled={item.disabled || item.info}
-              style={({ pressed }) => [styles.item, pressed && { backgroundColor: colors.border }]}
-              onPress={() => {
-                pending.current = item.onPress ?? null;
-                onClose();
-                if (Platform.OS !== 'ios') runPending();
-              }}
-            >
-              {item.icon && (
-                <Ionicons
-                  name={item.icon}
-                  size={20}
-                  color={item.disabled ? colors.border : item.destructive ? colors.danger : colors.text}
-                />
-              )}
-              <Text
-                style={[
-                  styles.label,
-                  { color: item.disabled ? colors.border : item.destructive ? colors.danger : colors.text },
-                  item.info && { color: colors.textMuted, fontSize: 14 },
-                ]}
+          {title && <Text style={[styles.title, { color: colors.text, borderColor: colors.border }]}>{title}</Text>}
+          <ScrollView bounces={false}>
+            {items.map((item) => (
+              <Pressable
+                key={item.key}
+                disabled={item.disabled || item.info}
+                style={({ pressed }) => [styles.item, pressed && { backgroundColor: colors.border }]}
+                onPress={() => {
+                  pending.current = item.onPress ?? null;
+                  onClose();
+                  if (Platform.OS !== 'ios') runPending();
+                }}
               >
-                {item.label}
-              </Text>
-            </Pressable>
-          ))}
+                {item.icon && (
+                  <Ionicons
+                    name={item.icon}
+                    size={20}
+                    color={item.disabled ? colors.border : item.destructive ? colors.danger : colors.text}
+                  />
+                )}
+                <View style={styles.texts}>
+                  <Text
+                    style={[
+                      styles.label,
+                      { color: item.disabled ? colors.border : item.destructive ? colors.danger : colors.text },
+                      item.info && { color: colors.textMuted, fontSize: 14 },
+                      item.selected && styles.selected,
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                  {item.detail ? (
+                    <Text style={[styles.detail, { color: colors.textMuted }]} numberOfLines={2}>
+                      {item.detail}
+                    </Text>
+                  ) : null}
+                </View>
+                {item.selected && <Ionicons name="checkmark" size={20} color={colors.primary} />}
+              </Pressable>
+            ))}
+          </ScrollView>
         </View>
       </Pressable>
     </Modal>
@@ -96,7 +123,11 @@ export function MenuSheet({ visible, items, onClose }: { visible: boolean; items
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' },
-  sheet: { borderTopLeftRadius: 12, borderTopRightRadius: 12, paddingTop: 8 },
+  sheet: { maxHeight: '75%', borderTopLeftRadius: 12, borderTopRightRadius: 12, paddingTop: 8 },
+  title: { fontSize: 17, fontWeight: '600', paddingHorizontal: 20, paddingTop: 6, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth },
   item: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingVertical: 13 },
-  label: { fontSize: 16, flexShrink: 1 },
+  texts: { flex: 1 },
+  label: { fontSize: 16 },
+  selected: { fontWeight: '600' },
+  detail: { fontSize: 13, marginTop: 2 },
 });
