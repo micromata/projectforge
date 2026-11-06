@@ -22,8 +22,17 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import { Ionicons } from '@expo/vector-icons';
-import { ComponentProps, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ComponentProps, useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  ScrollViewInstance,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { errorText, t } from '../../core/i18n/translations';
@@ -211,8 +220,16 @@ function TaskTree({
 }) {
   const colors = useColors();
   const [input, setInput] = useState('');
-  const term = useDebounced(input);
+  const debounced = useDebounced(input);
+  // An emptied field shows the tree at once.
+  const term = input.trim() ? debounced : '';
+  const crumbs = useRef<ScrollViewInstance>(null);
   const parent = path[path.length - 1];
+  /** Another level: the search below the former one is cleared. */
+  const go = (target: Crumb[]) => {
+    setInput('');
+    onPath(target);
+  };
   const repo = timesheets.repository();
   const [children, retry] = useLoaded(`children|${parent?.id}`, () =>
     repo?.taskChildren(parent?.id ?? null) ?? Promise.resolve([] as TaskChild[]),
@@ -253,7 +270,7 @@ function TaskTree({
               chevron={it.hasChildren}
               disabled={!it.hasChildren && !it.bookable}
               selected={current?.id === it.id}
-              onPress={() => (it.hasChildren ? onPath([...path, { id: it.id, title }]) : onPick(taskOf(it.id, title)))}
+              onPress={() => (it.hasChildren ? go([...path, { id: it.id, title }]) : onPick(taskOf(it.id, title)))}
             />
           );
         })}
@@ -272,14 +289,22 @@ function TaskTree({
         </Text>
       </View>
       {path.length > 0 && (
-        <ScrollView horizontal style={styles.crumbs} contentContainerStyle={styles.crumbsContent} showsHorizontalScrollIndicator={false}>
-          <Pressable accessibilityLabel={t('app.timesheet.task.tree')} hitSlop={6} onPress={() => onPath([])}>
+        <ScrollView
+          ref={crumbs}
+          horizontal
+          style={styles.crumbs}
+          contentContainerStyle={styles.crumbsContent}
+          showsHorizontalScrollIndicator={false}
+          // The levels next to the current one stay in sight on a long path.
+          onContentSizeChange={() => crumbs.current?.scrollToEnd({ animated: false })}
+        >
+          <Pressable accessibilityLabel={t('app.timesheet.task.tree')} hitSlop={6} onPress={() => go([])}>
             <Ionicons name="home-outline" size={20} color={colors.primary} />
           </Pressable>
           {path.slice(0, -1).map((it, i) => (
             <View key={it.id} style={styles.crumb}>
               <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-              <Pressable hitSlop={6} onPress={() => onPath(path.slice(0, i + 1))}>
+              <Pressable hitSlop={6} onPress={() => go(path.slice(0, i + 1))}>
                 <Text style={{ color: colors.primary }}>{it.title}</Text>
               </Pressable>
             </View>
