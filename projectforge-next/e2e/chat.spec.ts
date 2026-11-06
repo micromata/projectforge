@@ -604,10 +604,13 @@ test.describe("chat", { tag: "@parallel" }, () => {
         .getByRole("textbox", { name: t("chat.message.placeholder") })
         .press("Enter");
       // Side by side, no pager in the message.
-      const first = page.getByRole("button", { name: "e2e-first.png" });
+      const first = page.getByRole("button", {
+        name: "e2e-first.png",
+        exact: true,
+      });
       await expect(first).toBeVisible();
       await expect(
-        page.getByRole("button", { name: "e2e-second.png" })
+        page.getByRole("button", { name: "e2e-second.png", exact: true })
       ).toBeVisible();
       await expect(
         page.getByRole("button", { name: t("chat.file.next") })
@@ -689,16 +692,25 @@ test.describe("chat", { tag: "@parallel" }, () => {
       const codeBlock = t("richTextEditor.codeBlock");
       await sent.locator("pre").hover();
       await sent
-        .getByRole("button", { name: `${t("copy")}: ${codeBlock}` })
+        .getByRole("button", {
+          name: `${t("copy")}: ${codeBlock}`,
+          exact: true,
+        })
         .click();
       expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
         "fun a() {\n    b()\n}"
       );
       await expect(
-        sent.getByRole("button", { name: `${t("copied")}: ${codeBlock}` })
+        sent.getByRole("button", {
+          name: `${t("copied")}: ${codeBlock}`,
+          exact: true,
+        })
       ).toBeVisible();
       await expect(
-        sent.getByRole("button", { name: `${t("copy")}: ${codeBlock}` })
+        sent.getByRole("button", {
+          name: `${t("copy")}: ${codeBlock}`,
+          exact: true,
+        })
       ).toBeVisible();
 
       // A code block by ``` and Enter, Tab indenting in it.
@@ -759,7 +771,7 @@ test.describe("chat", { tag: "@parallel" }, () => {
       await editor.pressSequentially(answer);
       await editor.press("Enter");
       const quoting = page.locator("article").filter({ hasText: answer });
-      const quote = quoting.getByRole("button").filter({ hasText: original });
+      const quote = quoting.locator("button").filter({ hasText: original });
       await expect(quote).toBeVisible();
       await expect(
         page.getByRole("button", { name: t("chat.message.quote.remove") })

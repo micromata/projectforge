@@ -1,3 +1,4 @@
+import type { RowWithEditors } from "@/components/shared/editors/editors-column";
 // Mirrors org.projectforge.plugins.liquidityplanning.LiquidityEntryDO — the plain five-field entity the
 // hand-built LiquidityEntityRest transfers as-is (no DTO in between). The list row and the edit detail are
 // the same shape here; the DO carries nothing the list omits.
@@ -62,7 +63,7 @@ export interface LiquiditySeriesDetail {
 }
 
 /** One row of the liquidity entry list. */
-export interface LiquidityListRow extends ListRow {
+export interface LiquidityListRow extends ListRow, RowWithEditors {
   dateOfPayment?: string;
   amount?: number;
   paid?: boolean;

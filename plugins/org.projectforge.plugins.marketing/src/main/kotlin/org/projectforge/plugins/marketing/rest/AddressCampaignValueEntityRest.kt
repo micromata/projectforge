@@ -48,13 +48,15 @@ import org.projectforge.plugins.marketing.AddressCampaignDao
 import org.projectforge.plugins.marketing.AddressCampaignValueDO
 import org.projectforge.plugins.marketing.AddressCampaignValueDao
 import org.projectforge.plugins.marketing.AddressCampaignValueExport
-import org.projectforge.plugins.marketing.AddressCampaignValueMyEntriesResultFilter
 import org.projectforge.plugins.marketing.InvalidAddressesResultFilter
 import org.projectforge.plugins.marketing.dto.AddressCampaignValue
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.core.HistoryEditorsService
+import org.projectforge.rest.core.ModifiedByFilterSupport
+import org.projectforge.rest.core.ModifiedByResultFilter
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.UISelectValue
@@ -113,6 +115,9 @@ class AddressCampaignValueEntityRest :
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
+
+    @Autowired
+    private lateinit var historyEditorsService: HistoryEditorsService
 
     companion object {
         /**
@@ -224,6 +229,7 @@ class AddressCampaignValueEntityRest :
                 defaultFilter = true,
             )
         )
+        ModifiedByFilterSupport.addFilterElement(elements)
         elements.add(
             UIFilterElement(
                 "invalidAddresses",
@@ -282,8 +288,10 @@ class AddressCampaignValueEntityRest :
         val myEntriesEntry = source.entries.find { it.field == "myEntries" }
         myEntriesEntry?.synthetic = true
         if (myEntriesEntry?.isTrueValue == true) {
-            filters.add(AddressCampaignValueMyEntriesResultFilter(persistenceService, requiredLoggedInUserId))
+            filters.add(ModifiedByResultFilter(historyEditorsService.entityIdsModifiedBy(AddressCampaignValueDO::class.java, requiredLoggedInUserId)))
         }
+        ModifiedByFilterSupport.preProcessMagicFilter(source, AddressCampaignValueDO::class.java, historyEditorsService)
+            ?.let { filters.add(it) }
         val invalidAddressesEntry = source.entries.find { it.field == "invalidAddresses" }
         invalidAddressesEntry?.synthetic = true
         if (invalidAddressesEntry?.isTrueValue == true) {
@@ -426,7 +434,8 @@ class AddressCampaignValueEntityRest :
         val personalAddressMap = personalAddressDao.personalAddressByAddressId
         val comparisonValues = comparison?.id?.let { comparisonValuesOf(it) } ?: emptyMap()
         @Suppress("UNCHECKED_CAST")
-        (newResultSet.resultSet as List<AddressCampaignValue>).forEach { entry ->
+        val rows = newResultSet.resultSet as List<AddressCampaignValue>
+        rows.forEach { entry ->
             entry.isFavoriteCard = personalAddressMap[entry.addressId]?.isFavorite
             entry.addressId?.let { comparisonValues[it] }?.let { entry.setComparison(it) }
         }

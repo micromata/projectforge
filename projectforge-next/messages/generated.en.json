@@ -2217,11 +2217,12 @@
       "bezeichnung": "Identifier",
       "city": "City",
       "contactDepartment": "Department",
+      "contactEmail": "Contact person email of the customer (BT-58)",
       "contactPerson": "Contact person",
       "costCenter": "Cost center",
       "country": "Country",
       "eInvoice": "E-Invoice",
-      "eInvoiceEmail": "E-invoice email",
+      "eInvoiceEmail": "Invoice recipient email of the customer (BT-49)",
       "leitwegId": {
         "_": "Leitweg-ID",
         "tooltip": "Required for e-invoices to public sector recipients (e.g. 04011000-1234512345-12)"
@@ -2607,6 +2608,9 @@
       "discountPercent": "Discount percent",
       "discountZahlungsZiel": "Discount payment target",
       "eInvoice": {
+        "check": {
+          "title": "Check of the generated e-invoice"
+        },
         "createAndOpen": "Create and e-invoice",
         "error": {
           "bankAccountNotConfigured": "No bank account of the seller is configured (projectforge.einvoice.seller.bankAccounts). An administrator has to add one.",
@@ -2707,6 +2711,7 @@
       "receiver": "Receiver",
       "rechnungen": "Invoices",
       "sellerBankAccount": "Bank account (seller)",
+      "sellerContactEmail": "Contact email (seller, BT-43)",
       "showKostZuweisungen": "Cost id assignments",
       "showTextAreas": "Position texts",
       "skonto": "Discount",
@@ -3056,6 +3061,12 @@
   "history": {
     "entry": "History entry",
     "fields": "Fields",
+    "filter": {
+      "modifiedBy": {
+        "_": "Edited by",
+        "tooltip": "Entries this user has created or changed at some point."
+      }
+    },
     "newValue": "New value",
     "oldValue": "Old value",
     "opType": "Action",
@@ -3676,11 +3687,14 @@
     "markDone": "Mark as done",
     "open": "Open",
     "params": {
+      "cvrCase": "Case",
+      "cvrCaseInfo": "The members asked by a team check of the case (every member answers) who haven't answered yet are reminded, as the team check lists them under \"Not answered yet\".",
       "cvrIncludePossible": "Possible findings too (by name or without a version)",
       "cvrIncludeUnscored": "Vulnerabilities not yet rated too (without CVSS score)",
       "cvrMaxAgeDays": "Lists of libraries older than (days)",
       "cvrMinSeverity": "From CVSS severity on (known exploited ones always)",
       "cvrRecipientsInfo": "The responsible team of an affected system (the group of the system or of the nearest area above) always gets the notification; the recipients given here get it in copy. Each notification names only the systems visible to its recipient, every finding once. The rule runs right after the matching found something new.",
+      "cvrTeamCheckRecipientsInfo": "Only the members who haven't answered a team check of the case yet are notified, at most once a day; the notification is done as soon as they answered. Recipients given here aren't used.",
       "daysBeforeExpiry": "Days before expiry",
       "dueWorkingDays": "Working days before the due date (invoices overdue for up to 90 days included)",
       "kost2MissingMonths": "Months looked at (current month included)",
@@ -3730,6 +3744,8 @@
       "editableByGroups": "Editable by groups",
       "editableByGroupsInfo": "Empty: by all admins and members of the finance group. Admins may always edit the rule.",
       "error": {
+        "cvrCaseClosed": "The case is closed, there is nothing to answer any more.",
+        "cvrCaseNotFound": "The case wasn't found.",
         "cvrMaxAgeDays": "The number of days must be between 1 and 365.",
         "cvrMinSeverity": "The severity must be LOW, MEDIUM, HIGH or CRITICAL.",
         "day": "The day must be between 0 and 15 (working days before the end of the month) or 1 and 31 (day of the month).",
@@ -3780,6 +3796,7 @@
       "CREDITOR_INVOICES_DUE": "Creditor invoices due",
       "CVERADAR_FINDINGS": "New findings of the CVE radar",
       "CVERADAR_STALE_LISTS": "Outdated lists of libraries of the CVE radar",
+      "CVERADAR_TEAM_CHECK_UNANSWERED": "Unanswered team checks of a case of the CVE radar",
       "MANUAL": "Manual (no condition)",
       "PASSWORD_NOT_CHANGED": "Password not changed for a long time",
       "TIMESHEETS_MISSING": "Missing time sheets",
@@ -3829,7 +3846,9 @@
       "findingsSubject": "Possible updates for your systems",
       "findingsText": "<p>For a system in your responsibility there may be updates. Details are in the CVE radar: [cvrListLink]</p>",
       "staleListsSubject": "List of libraries possibly outdated",
-      "staleListsText": "<p>The list of libraries of [cvrStaleCount] component(s) in your responsibility was last updated more than [cvrMaxAgeDays] days ago. New vulnerabilities are not found then. Please upload a current list: [cvrListLink]</p><p>[cvrStaleList]</p>"
+      "staleListsText": "<p>The list of libraries of [cvrStaleCount] component(s) in your responsibility was last updated more than [cvrMaxAgeDays] days ago. New vulnerabilities are not found then. Please upload a current list: [cvrListLink]</p><p>[cvrStaleList]</p>",
+      "teamCheckUnansweredSubject": "Your answer to [cvrCaseCode] is missing",
+      "teamCheckUnansweredText": "<p>You haven't answered the team check(s) for [cvrCaseCode] ([cvrCaseTitle]) yet: [cvrTeamCheckList]. Please answer here: [cvrTeamCheckLink]</p>"
     },
     "testDelivered": "Test sent at once (regardless of the delays): {arg0}",
     "testFailed": "Not sent: {arg0}",
@@ -3842,6 +3861,8 @@
       "creditorInvoicesDueCount": "Number of creditor invoices due",
       "creditorInvoicesDueList": "Creditor invoices due (creditor, reference, due date, amount)",
       "creditorInvoicesDueSum": "Gross sum of the creditor invoices due",
+      "cvrCaseCode": "Id of the case (CVE id or incident)",
+      "cvrCaseTitle": "Title of the case",
       "cvrFindingCount": "Number of new findings (vulnerability × instance)",
       "cvrLink": "Link to the vulnerability (several: to the list)",
       "cvrListLink": "Link to the list of the vulnerabilities (names none)",
@@ -3852,6 +3873,9 @@
       "cvrStaleCount": "Number of components with an outdated list",
       "cvrStaleList": "Components with an outdated list (system, instance, component, day of the last list)",
       "cvrSystemList": "Affected systems (number of vulnerabilities)",
+      "cvrTeamCheckCount": "Number of team checks not answered by the recipient",
+      "cvrTeamCheckLink": "Link to the team check (to my CVE radar, if there are several)",
+      "cvrTeamCheckList": "Team checks not answered by the recipient (project or system checked)",
       "cvrVulnerabilityCount": "Number of vulnerabilities",
       "cvrVulnerabilityList": "Vulnerabilities (CVE, severity, systems and instances, technology; ? possible only)",
       "daysLeft": "Vacation days left",
@@ -4852,11 +4876,24 @@
       },
       "menu": "CVE-Radar",
       "my": {
+        "answeredByTeamCheck": "Your answer to the check above is also your answer to this case. Something unclear? Then ask here.",
+        "confirm": {
+          "DONE": {
+            "text": "This confirms for you only that you have done the measures on your own devices. The case stays open for everybody else; only the security team closes it. You can change your answer later.",
+            "title": "Done for you?"
+          },
+          "NOT_AFFECTED": {
+            "text": "This confirms for you only that the case doesn't concern you, e.g. because you don't use the software. The case stays open for everybody else; only the security team closes it. You can change your answer later.",
+            "title": "Not affected yourself?"
+          }
+        },
         "error": {
           "question": "Please describe the question or problem."
         },
         "fixedByEvidence": "Your devices already report the fix, no confirmation is needed.",
-        "question": "Question or problem"
+        "ownConfirmation": "Your own answer to this case",
+        "question": "Question or problem",
+        "teamCheckOfGroup": "Check of the group {arg0}"
       },
       "myAreas": {
         "findings": "Open findings of my systems",
@@ -5073,8 +5110,10 @@
         "add": "Request team check",
         "addInfo": "The group checks whether the project or system is affected and answers like team feedback. Its members find the check under \"My CVE-Radar\" (\"Checks of my groups\"); they are not notified by mail yet, so let them know.",
         "answer": "Answer",
+        "answerNow": "Answer now",
         "answeredBy": "Answered by",
         "answers": "Answers of the members",
+        "changeAnswer": "Change answer",
         "comment": "Comment, version or planned date",
         "date": "Date",
         "delete": "Delete",

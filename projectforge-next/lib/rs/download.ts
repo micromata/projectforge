@@ -59,6 +59,21 @@ export async function downloadFile(
   init?: RequestInit,
   signal?: AbortSignal
 ): Promise<void> {
+  await downloadFileKeeping(path, init, signal);
+}
+
+/** A file as it was saved: what the browser got, and the name it was saved under. */
+export interface DownloadedFile {
+  blob: Blob;
+  filename: string;
+}
+
+/** [downloadFile] that also hands back the file, for a caller that does something more with it (e.g. checks it). */
+export async function downloadFileKeeping(
+  path: string,
+  init?: RequestInit,
+  signal?: AbortSignal
+): Promise<DownloadedFile> {
   const res = await rawRequest(path, init ?? { method: "GET" }, signal);
   if (!res.ok) {
     // A refusal explains itself in the body, and every caller of this puts the message into a toast —
@@ -73,10 +88,12 @@ export async function downloadFile(
       message || `${res.status} ${res.statusText}: ${path}`
     );
   }
-  saveBlob(
-    await responseBlob(res),
-    parseContentDispositionFilename(res.headers.get("Content-Disposition"))
+  const blob = await responseBlob(res);
+  const filename = parseContentDispositionFilename(
+    res.headers.get("Content-Disposition")
   );
+  saveBlob(blob, filename);
+  return { blob, filename };
 }
 
 /**

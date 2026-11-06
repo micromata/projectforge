@@ -1,3 +1,4 @@
+import type { RowWithEditors } from "@/components/shared/editors/editors-column";
 // Mirrors org.projectforge.rest.dto.Auftrag, .AuftragsPosition and .PaymentSchedule
 // (projectforge-rest). Keep the field names in sync with those DTOs — they are what `copyFrom`/`copyTo`
 // read and write, not the DO's.
@@ -178,7 +179,7 @@ export interface OrderDetail {
  * `customer`/`project` arrive as an [EntityRefDto] holding nothing but the `displayName` the cell shows —
  * no id, since the row navigates by its own.
  */
-export interface OrderListRow {
+export interface OrderListRow extends RowWithEditors {
   id: number;
   deleted?: boolean;
   nummer?: number | null;

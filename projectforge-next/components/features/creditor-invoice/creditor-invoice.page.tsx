@@ -1,3 +1,4 @@
+import { editorsColumn } from "@/components/shared/editors/editors-column";
 import { EINGANGSRECHNUNG_METADATA } from "@/lib/metadata/eingangsrechnung.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { InvoiceStatisticsLine } from "@/components/shared/invoice/invoice-statistics-line";
@@ -144,6 +145,7 @@ export const CREDITOR_INVOICE_PAGE = definePage<
       size: 150,
       tooltip: (row) => row.kost2Info,
     },
+    editorsColumn<CreditorInvoiceListRow>(),
   ],
   // Mirrors the legacy grid's `withGetRowClass` (first match wins): overdue and unpaid reads red — a
   // creditor invoice already 2 working days before its due date, so it is paid in time —, anything else

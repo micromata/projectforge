@@ -25,6 +25,7 @@
 package org.projectforge.rest.notification
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import org.projectforge.framework.persistence.history.WithEditors
 import org.projectforge.business.fibu.EmployeeStatus
 import org.projectforge.business.notification.NotificationDelivery
 import org.projectforge.business.notification.NotificationDeliveryStep
@@ -67,6 +68,8 @@ class NotificationRule(
     var cvrIncludePossible: Boolean = false,
     var cvrIncludeUnscored: Boolean = true,
     var cvrMaxAgeDays: Int = 30,
+    /** [NotificationRuleType.CVERADAR_TEAM_CHECK_UNANSWERED]: the case (`params.cvrCaseId`), named by the rest endpoint. */
+    var cvrCase: Ref? = null,
     var recipientGroups: List<Group> = emptyList(),
     var recipientUsers: List<User> = emptyList(),
     var allEmployees: Boolean = false,
@@ -87,11 +90,17 @@ class NotificationRule(
     var editableByGroups: List<Group> = emptyList(),
     /** Read-only: the last run by schedule. */
     var lastRun: Date? = null,
-) : BaseDTODisplayObject<NotificationRuleDO>(id = id, displayName = displayName), EntityAccessSupport {
+) : BaseDTODisplayObject<NotificationRuleDO>(id = id, displayName = displayName), EntityAccessSupport, WithEditors {
+    /** The names of everybody who created or changed the entry (list only, see HistoryEditorsService). */
+    override var editors: List<String>? = null
+
     /** The schedule as the rule stores it (the form edits its fields flat). */
     @get:JsonIgnore
     val schedule: NotificationSchedule
         get() = NotificationSchedule(scheduleMode, scheduleDay, scheduleDayOfWeek)
+
+    /** A reference to an entity of a plugin, which the rest module doesn't know: the display name comes from the handler. */
+    class Ref(var id: Long? = null, var displayName: String? = null)
 
     override var writeAccess: Boolean? = null
     override var deleteAccess: Boolean? = null
@@ -113,6 +122,7 @@ class NotificationRule(
         cvrIncludePossible = params.cvrIncludePossible
         cvrIncludeUnscored = params.cvrIncludeUnscored
         cvrMaxAgeDays = params.cvrMaxAgeDays
+        cvrCase = params.cvrCaseId?.let { Ref(it) }
         linkMode = params.linkMode
         linkMenuItem = params.linkMenuItem
         val recipients = src.readRecipients()
@@ -133,7 +143,8 @@ class NotificationRule(
             NotificationParams(
                 referredMonth, vacationExpiry, daysBeforeExpiry, passwordMaxAgeDays, kost2MissingMonths, dueWorkingDays,
                 cvrMinSeverity = cvrMinSeverity, cvrIncludePossible = cvrIncludePossible,
-                cvrIncludeUnscored = cvrIncludeUnscored, cvrMaxAgeDays = cvrMaxAgeDays, linkMode = linkMode, linkMenuItem = linkMenuItem?.takeIf { linkMode == NotificationParams.LinkMode.MENU_ITEM && it.isNotBlank() },
+                cvrIncludeUnscored = cvrIncludeUnscored, cvrMaxAgeDays = cvrMaxAgeDays,
+                cvrCaseId = cvrCase?.id.takeIf { ruleType == NotificationRuleType.CVERADAR_TEAM_CHECK_UNANSWERED }, linkMode = linkMode, linkMenuItem = linkMenuItem?.takeIf { linkMode == NotificationParams.LinkMode.MENU_ITEM && it.isNotBlank() },
             )
         )
         dest.recipients = JsonUtils.toJson(

@@ -2217,11 +2217,12 @@
       "bezeichnung": "Bezeichnung",
       "city": "Ort",
       "contactDepartment": "Abteilung",
+      "contactEmail": "E-Mail-Adresse Ansprechpartner Kunde (BT-58)",
       "contactPerson": "Ansprechpartner",
       "costCenter": "Kostenstelle",
       "country": "Land",
       "eInvoice": "E-Rechnung",
-      "eInvoiceEmail": "E-Rechnungs-E-Mail",
+      "eInvoiceEmail": "E-Mail-Adresse Rechnungseingang Kunde (BT-49)",
       "leitwegId": {
         "_": "Leitweg-ID",
         "tooltip": "Pflicht für E-Rechnungen an öffentliche Auftraggeber (z.B. 04011000-1234512345-12)"
@@ -2607,6 +2608,9 @@
       "discountPercent": "Skonto Prozent",
       "discountZahlungsZiel": "Skonto Zahlungsziel",
       "eInvoice": {
+        "check": {
+          "title": "Prüfung der erzeugten E-Rechnung"
+        },
         "createAndOpen": "Anlegen und E-Rechnung",
         "error": {
           "bankAccountNotConfigured": "Es ist kein Bankkonto des Verkäufers konfiguriert (projectforge.einvoice.seller.bankAccounts). Ein Administrator muss eines hinterlegen.",
@@ -2707,6 +2711,7 @@
       "receiver": "Empfänger",
       "rechnungen": "Debitorenrechnungen",
       "sellerBankAccount": "Bankverbindung (Verkäufer)",
+      "sellerContactEmail": "E-Mail-Adresse Ansprechpartner (Verkäufer, BT-43)",
       "showKostZuweisungen": "Kostzuweisungen",
       "showTextAreas": "Positionsbeschreibungen",
       "skonto": "Skonto / Fehlbetrag",
@@ -3056,6 +3061,12 @@
   "history": {
     "entry": "Änderungseintrag",
     "fields": "Felder",
+    "filter": {
+      "modifiedBy": {
+        "_": "Bearbeitet von",
+        "tooltip": "Einträge, die diese Person irgendwann angelegt oder geändert hat."
+      }
+    },
     "newValue": "Neuer Wert",
     "oldValue": "Alter Wert",
     "opType": "Aktion",
@@ -3676,11 +3687,14 @@
     "markDone": "Als erledigt markieren",
     "open": "Öffnen",
     "params": {
+      "cvrCase": "Fall",
+      "cvrCaseInfo": "Erinnert werden die Mitglieder einer Teamabfrage des Falls (jedes Mitglied antwortet), die noch nicht geantwortet haben, wie die Teamabfrage sie unter „Noch nicht geantwortet“ auflistet.",
       "cvrIncludePossible": "Auch mögliche Befunde (über den Namen oder ohne Version)",
       "cvrIncludeUnscored": "Auch noch nicht bewertete Schwachstellen (ohne CVSS-Wert)",
       "cvrMaxAgeDays": "Bibliothekslisten älter als (Tage)",
       "cvrMinSeverity": "Ab CVSS-Schweregrad (bekannt ausgenutzte immer)",
       "cvrRecipientsInfo": "Das verantwortliche Team eines betroffenen Systems (die Gruppe des Systems oder des nächsten Bereichs darüber) bekommt die Benachrichtigung immer; die hier angegebenen Empfänger in Kopie. Genannt werden jeweils nur die sichtbaren Systeme, jeder Befund einmal. Die Regel läuft direkt nach dem Abgleich, sobald er etwas Neues gefunden hat.",
+      "cvrTeamCheckRecipientsInfo": "Benachrichtigt werden nur die Mitglieder, die eine Teamabfrage des Falls noch nicht beantwortet haben, höchstens einmal am Tag; die Benachrichtigung ist erledigt, sobald sie geantwortet haben. Hier angegebene Empfänger werden nicht verwendet.",
       "daysBeforeExpiry": "Tage vor dem Verfall",
       "dueWorkingDays": "Werktage vor Fälligkeit (inkl. bis zu 90 Tage überfälliger Rechnungen)",
       "kost2MissingMonths": "Betrachtete Monate (inkl. aktuellem Monat)",
@@ -3730,6 +3744,8 @@
       "editableByGroups": "Bearbeitbar von Gruppen",
       "editableByGroupsInfo": "Leer: von allen Admins und Mitgliedern der Finanzgruppe. Admins können die Regel immer bearbeiten.",
       "error": {
+        "cvrCaseClosed": "Der Fall ist geschlossen, es gibt nichts mehr zu beantworten.",
+        "cvrCaseNotFound": "Der Fall wurde nicht gefunden.",
         "cvrMaxAgeDays": "Die Anzahl der Tage muss zwischen 1 und 365 liegen.",
         "cvrMinSeverity": "Der Schweregrad muss LOW, MEDIUM, HIGH oder CRITICAL sein.",
         "day": "Der Tag muss zwischen 0 und 15 (Arbeitstage vor Monatsende) bzw. 1 und 31 (Tag im Monat) liegen.",
@@ -3780,6 +3796,7 @@
       "CREDITOR_INVOICES_DUE": "Fällige Kreditorenrechnungen",
       "CVERADAR_FINDINGS": "Neue Befunde des CVE-Radars",
       "CVERADAR_STALE_LISTS": "Veraltete Bibliothekslisten des CVE-Radars",
+      "CVERADAR_TEAM_CHECK_UNANSWERED": "Unbeantwortete Teamabfragen eines Falls des CVE-Radars",
       "MANUAL": "Manuell (ohne Bedingung)",
       "PASSWORD_NOT_CHANGED": "Passwort lange nicht geändert",
       "TIMESHEETS_MISSING": "Fehlende Zeitberichte",
@@ -3829,7 +3846,9 @@
       "findingsSubject": "Mögliche Updates für eure Systeme",
       "findingsText": "<p>Für ein System in eurer Verantwortung gibt es möglicherweise Updates. Details stehen im CVE-Radar: [cvrListLink]</p>",
       "staleListsSubject": "Bibliotheksliste möglicherweise veraltet",
-      "staleListsText": "<p>Die Bibliotheksliste von [cvrStaleCount] Komponente(n) in eurer Verantwortung wurde zuletzt vor mehr als [cvrMaxAgeDays] Tagen aktualisiert. Neue Schwachstellen werden dann nicht erkannt. Bitte eine aktuelle Liste hochladen: [cvrListLink]</p><p>[cvrStaleList]</p>"
+      "staleListsText": "<p>Die Bibliotheksliste von [cvrStaleCount] Komponente(n) in eurer Verantwortung wurde zuletzt vor mehr als [cvrMaxAgeDays] Tagen aktualisiert. Neue Schwachstellen werden dann nicht erkannt. Bitte eine aktuelle Liste hochladen: [cvrListLink]</p><p>[cvrStaleList]</p>",
+      "teamCheckUnansweredSubject": "Deine Antwort zu [cvrCaseCode] fehlt noch",
+      "teamCheckUnansweredText": "<p>Die Teamabfrage(n) zu [cvrCaseCode] ([cvrCaseTitle]) hast du noch nicht beantwortet: [cvrTeamCheckList]. Bitte hier antworten: [cvrTeamCheckLink]</p>"
     },
     "testDelivered": "Test sofort gesendet (unabhängig von den Verzögerungen): {arg0}",
     "testFailed": "Nicht gesendet: {arg0}",
@@ -3842,6 +3861,8 @@
       "creditorInvoicesDueCount": "Anzahl fälliger Kreditorenrechnungen",
       "creditorInvoicesDueList": "Fällige Kreditorenrechnungen (Kreditor, Referenz, Fälligkeit, Betrag)",
       "creditorInvoicesDueSum": "Bruttosumme der fälligen Kreditorenrechnungen",
+      "cvrCaseCode": "Kennung des Falls (CVE-Id oder Vorfall)",
+      "cvrCaseTitle": "Titel des Falls",
       "cvrFindingCount": "Anzahl neuer Befunde (Schwachstelle × Instanz)",
       "cvrLink": "Link zur Schwachstelle (bei mehreren: zur Liste)",
       "cvrListLink": "Link zur Liste der Schwachstellen (nennt keine)",
@@ -3852,6 +3873,9 @@
       "cvrStaleCount": "Anzahl der Komponenten mit veralteter Liste",
       "cvrStaleList": "Komponenten mit veralteter Liste (System, Instanz, Komponente, Tag der letzten Liste)",
       "cvrSystemList": "Betroffene Systeme (Anzahl Schwachstellen)",
+      "cvrTeamCheckCount": "Anzahl der vom Empfänger nicht beantworteten Teamabfragen",
+      "cvrTeamCheckLink": "Link zur Teamabfrage (zu Mein CVE-Radar, wenn es mehrere sind)",
+      "cvrTeamCheckList": "Vom Empfänger nicht beantwortete Teamabfragen (geprüftes Projekt oder System)",
       "cvrVulnerabilityCount": "Anzahl Schwachstellen",
       "cvrVulnerabilityList": "Schwachstellen (CVE, Schweregrad, Systeme und Instanzen, Technologie; ? nur möglich)",
       "daysLeft": "Verbleibende Urlaubstage",
@@ -4852,11 +4876,24 @@
       },
       "menu": "CVE-Radar",
       "my": {
+        "answeredByTeamCheck": "Deine Antwort zur Prüfung oben gilt zugleich als deine Antwort zu diesem Fall. Ist etwas unklar, kannst du hier nachfragen.",
+        "confirm": {
+          "DONE": {
+            "text": "Damit bestätigst du nur für dich selbst, dass du die Maßnahmen an deinen eigenen Geräten umgesetzt hast. Für alle anderen bleibt der Fall offen; schließen kann ihn nur das Security-Team. Die Antwort lässt sich später ändern.",
+            "title": "Bei dir erledigt?"
+          },
+          "NOT_AFFECTED": {
+            "text": "Damit bestätigst du nur für dich selbst, dass dich der Fall nicht betrifft, z. B. weil du die Software nicht verwendest. Für alle anderen bleibt der Fall offen; schließen kann ihn nur das Security-Team. Die Antwort lässt sich später ändern.",
+            "title": "Selbst nicht betroffen?"
+          }
+        },
         "error": {
           "question": "Bitte die Frage oder das Problem beschreiben."
         },
         "fixedByEvidence": "Deine Geräte melden die Behebung schon, eine Bestätigung ist nicht nötig.",
-        "question": "Frage oder Problem"
+        "ownConfirmation": "Deine eigene Antwort zu diesem Fall",
+        "question": "Frage oder Problem",
+        "teamCheckOfGroup": "Prüfung der Gruppe {arg0}"
       },
       "myAreas": {
         "findings": "Offene Befunde meiner Systeme",
@@ -5073,8 +5110,10 @@
         "add": "Team-Prüfung anfordern",
         "addInfo": "Die Gruppe prüft, ob das Projekt oder System betroffen ist, und antwortet wie beim Team-Feedback. Ihre Mitglieder finden die Prüfung unter „Mein CVE-Radar“ („Prüfungen meiner Gruppen“); eine Benachrichtigung per Mail gibt es noch nicht, die Gruppe also bitte informieren.",
         "answer": "Antwort",
+        "answerNow": "Jetzt antworten",
         "answeredBy": "Beantwortet von",
         "answers": "Antworten der Mitglieder",
+        "changeAnswer": "Antwort ändern",
         "comment": "Kommentar, Version oder geplanter Termin",
         "date": "Datum",
         "delete": "Löschen",

@@ -157,6 +157,7 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     override fun transformFromDB(obj: NotificationRuleDO, editMode: Boolean): NotificationRule {
         val rule = NotificationRule()
         rule.copyFrom(obj)
+        rule.cvrCase?.displayName = notificationService.paramDisplayNames(obj)["cvrCaseId"]
         return rule
     }
 
@@ -221,6 +222,12 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         }
         if (dto.ruleType == NotificationRuleType.CVERADAR_STALE_LISTS && dto.cvrMaxAgeDays !in 1..365) {
             validationErrors += ValidationError(translate("notification.rule.error.cvrMaxAgeDays"), fieldId = "cvrMaxAgeDays")
+        }
+        if (dto.ruleType == NotificationRuleType.CVERADAR_TEAM_CHECK_UNANSWERED && dto.cvrCase?.id == null) {
+            validationErrors += required("cvrCase", "notification.params.cvrCase")
+        }
+        notificationService.paramErrors(transformForDB(dto)).forEach { (param, i18nKey) ->
+            validationErrors += ValidationError(translate(i18nKey), fieldId = PARAM_FIELDS[param] ?: param)
         }
     }
 
@@ -426,6 +433,9 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     }
 
     companion object {
+        /** The field of the editor by param name, where they differ (see `NotificationRuleHandler.paramErrors`). */
+        private val PARAM_FIELDS = mapOf("cvrCaseId" to "cvrCase")
+
         private const val MAX_PREVIEW_RECIPIENTS = 50
         private const val MAX_LOG_ENTRIES = 500
         private const val MAX_SMS_TEXT_LENGTH = 1000

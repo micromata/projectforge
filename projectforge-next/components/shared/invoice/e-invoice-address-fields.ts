@@ -14,6 +14,7 @@ export interface EInvoiceAddressNames<M extends EntityMetadata> {
   vatId: FieldNameOf<M>;
   leitwegId: FieldNameOf<M>;
   eInvoiceEmail: FieldNameOf<M>;
+  contactEmail: FieldNameOf<M>;
 }
 
 /**
@@ -25,7 +26,7 @@ export interface EInvoiceAddressNames<M extends EntityMetadata> {
  * city and country in one line (a four-column grid, so the zip code and the country stay narrow and the
  * city takes the width). On the right, as an aside that stays together however narrow the page gets,
  * what routes the e-invoice: the seller's bank account on top, then VAT id, Leitweg-ID, e-invoice
- * e-mail and the cost center the customer books the invoice on.
+ * e-mail, the e-mail of the contact person and the cost center the customer books the invoice on.
  *
  * A builder of declarations rather than a component, for two reasons: the properties are named
  * differently on each entity (`zipCode` vs. `customerZipCode`), and declared fields keep their labels,
@@ -35,10 +36,13 @@ export interface EInvoiceAddressNames<M extends EntityMetadata> {
 export function eInvoiceAddressFields<M extends EntityMetadata>({
   names,
   sellerBankAccount,
+  sellerContactEmail,
   streetRows,
 }: {
   names: EInvoiceAddressNames<M>;
   sellerBankAccount: ComponentType<{ className?: string }>;
+  /** The seller's contact email (BT-43), where the entity carries it — an invoice does, an account doesn't. */
+  sellerContactEmail?: FieldNameOf<M>;
   /** Lines of the street box — an invoice's address is a free text of several lines. */
   streetRows?: number;
 }): Pick<SectionDef<M>, "fields" | "aside" | "mainColumns"> {
@@ -55,9 +59,11 @@ export function eInvoiceAddressFields<M extends EntityMetadata>({
     aside: [
       // First: which account the payment goes to is what the reader of this section looks for.
       { custom: sellerBankAccount },
+      ...(sellerContactEmail ? [{ name: sellerContactEmail }] : []),
       { name: names.vatId },
       { name: names.leitwegId, hintKey: "fibu.konto.leitwegId.tooltip" },
       { name: names.eInvoiceEmail },
+      { name: names.contactEmail },
       { name: names.costCenter },
     ],
   };

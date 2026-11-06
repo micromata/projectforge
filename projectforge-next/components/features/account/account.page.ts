@@ -85,6 +85,7 @@ export const ACCOUNT_PAGE = definePage<
             vatId: "vatId",
             leitwegId: "leitwegId",
             eInvoiceEmail: "eInvoiceEmail",
+            contactEmail: "contactEmail",
           },
           sellerBankAccount: AccountSellerBankAccountField,
         }),

@@ -127,6 +127,8 @@ export const invoiceSchema = z.object({
   customerVatId: m.nullableString("customerVatId"),
   customerLeitwegId: m.nullableString("customerLeitwegId"),
   customerEInvoiceEmail: m.nullableString("customerEInvoiceEmail"),
+  customerContactEmail: m.nullableString("customerContactEmail"),
+  sellerContactEmail: m.nullableString("sellerContactEmail"),
   /**
    * The IBAN of one of the seller's bank accounts, chosen from `EInvoiceSellerConfig.bankAccounts` (see
    * SellerBankAccountField). A string and not an id: the accounts come from the application configuration

@@ -65,6 +65,12 @@ enum class NotificationRuleType : I18nEnum {
      */
     CVERADAR_STALE_LISTS,
 
+    /**
+     * Team checks of a case of the CVE radar (plugin) asking every member: the members who haven't answered yet are
+     * reminded (only they, the configured recipients aren't used).
+     */
+    CVERADAR_TEAM_CHECK_UNANSWERED,
+
     /** No condition: all recipients get the notification when it is triggered (by hand or by the schedule). */
     MANUAL;
 
@@ -264,6 +270,8 @@ class NotificationParams(
     var cvrIncludeUnscored: Boolean = true,
     /** [NotificationRuleType.CVERADAR_STALE_LISTS]: a list of libraries older than this many days is outdated. */
     var cvrMaxAgeDays: Int = 30,
+    /** [NotificationRuleType.CVERADAR_TEAM_CHECK_UNANSWERED]: the case whose team checks are reminded of. */
+    var cvrCaseId: Long? = null,
     /** All rule types: the link of the notifications ("Open" in the app). */
     var linkMode: LinkMode = LinkMode.DEFAULT,
     /** [LinkMode.MENU_ITEM]: the id of the menu item (`MenuItemDefId`) linked to. */

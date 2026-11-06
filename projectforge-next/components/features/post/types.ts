@@ -1,3 +1,4 @@
+import type { RowWithEditors } from "@/components/shared/editors/editors-column";
 // Mirrors org.projectforge.business.orga.PosteingangDO and PostausgangDO: both are transferred as they are,
 // without a DTO (PosteingangEntityRest, PostausgangEntityRest are AbstractDOEntityRest). Keep the field names
 // in sync with the entities.
@@ -31,11 +32,11 @@ export interface PostausgangDetail extends PostDetail {
 }
 
 /** Projection the inbox list renders — the same entity, with the id the table keys rows by. */
-export interface PosteingangListRow extends PosteingangDetail {
+export interface PosteingangListRow extends PosteingangDetail, RowWithEditors {
   id: number;
 }
 
 /** Projection the outbox list renders — the same entity, with the id the table keys rows by. */
-export interface PostausgangListRow extends PostausgangDetail {
+export interface PostausgangListRow extends PostausgangDetail, RowWithEditors {
   id: number;
 }

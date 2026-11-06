@@ -22,7 +22,12 @@ import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
 import { useElementWidth } from "@/hooks/use-element-width";
 import { DataTableFooterRow } from "./data-table-footer-row";
 import { DataTablePagination } from "./data-table-pagination";
-import { DataTableRow, pinnedClass, pinnedStyle } from "./data-table-row";
+import {
+  DataTableRow,
+  pinnedClass,
+  pinnedStyle,
+  type PinningSuspension,
+} from "./data-table-row";
 import { TableLoadingOverlay } from "./table-loading-overlay";
 import {
   getScrollParent,
@@ -41,7 +46,8 @@ import type { RowSelection } from "./use-row-selection";
 const ROW_ACTIONS_WIDTH = 80;
 // Column pinning is suspended once the pinned columns would leave the scrollable ones less room than
 // this — at least 40% of the container and never below one default-ish column — so on a narrow screen
-// the non-pinned columns stay reachable instead of being stuck behind a full-width pinned block.
+// the non-pinned columns stay reachable instead of being stuck behind a full-width pinned block. The
+// left-pinned ones go first: the right-pinned (the actions) keep their stick as long as they fit alone.
 const MIN_SCROLL_RATIO = 0.4;
 const MIN_SCROLL_WIDTH = 160;
 // The row height the virtualizer assumes before a row is measured (a one-line row, see the cell padding).
@@ -244,12 +250,20 @@ export function DataTable<TData>({
   // scrollable ones no room (only for a bounded table — an autoHeight one lets the page scroll and has
   // no inner box to measure). The pinning *state* is untouched, so this re-engages as the window widens.
   const containerWidth = useElementWidth(scrollRef);
-  const pinnedWidth = table.getLeftTotalSize() + table.getRightTotalSize();
-  const pinningSuspended =
-    !autoHeight &&
-    containerWidth > 0 &&
-    containerWidth - pinnedWidth <
-      Math.max(MIN_SCROLL_WIDTH, containerWidth * MIN_SCROLL_RATIO);
+  const minScrollWidth = Math.max(
+    MIN_SCROLL_WIDTH,
+    containerWidth * MIN_SCROLL_RATIO
+  );
+  const rightWidth = table.getRightTotalSize();
+  const pinningSuspended: PinningSuspension =
+    autoHeight || containerWidth <= 0
+      ? "none"
+      : containerWidth - rightWidth < minScrollWidth
+        ? "all"
+        : containerWidth - rightWidth - table.getLeftTotalSize() <
+            minScrollWidth
+          ? "left"
+          : "none";
   // In autoHeight the inner div does not scroll — the page does — so the scroll helpers below have to
   // act on that ancestor, not on `scrollRef`. Found once from the mounted table (a settled layout);
   // null otherwise, so the ordinary bounded table keeps using its own container.

@@ -501,7 +501,7 @@ class EInvoiceExportService(
         }
         val contactName = sellerConfig.contactName.ifBlank { sellerConfig.name }
         val contactPhone = sellerConfig.phone.ifBlank { null }
-        val contactEmail = sellerConfig.email.ifBlank { null }
+        val contactEmail = invoice.sellerContactEmail?.ifBlank { null } ?: sellerConfig.defaultContactEmail()
         if (contactPhone != null || contactEmail != null) {
             seller.setContact(Contact(contactName, contactPhone, contactEmail))
         }
@@ -558,8 +558,11 @@ class EInvoiceExportService(
             invoice.customerContactPerson ?: konto?.contactPerson,
             invoice.customerContactDepartment ?: konto?.contactDepartment,
         ).filter { !it.isNullOrBlank() }.joinToString(", ") { it!!.trim() }
-        if (contactPoint.isNotBlank() || !buyerEmail.isNullOrBlank()) {
-            buyer.setContact(Contact(contactPoint.ifBlank { null }, null, buyerEmail?.ifBlank { null }))
+        // Buyer contact email (BT-58) is the one of the contact person, not the electronic address (BT-49).
+        val contactEmail = (invoice.customerContactEmail?.takeIf { it.isNotBlank() } ?: konto?.contactEmail)
+            ?.ifBlank { null }
+        if (contactPoint.isNotBlank() || contactEmail != null) {
+            buyer.setContact(Contact(contactPoint.ifBlank { null }, null, contactEmail))
         }
         return buyer
     }

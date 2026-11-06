@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.framework.persistence.history.WithEditors
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.fibu.ContactUserIds
 import org.projectforge.business.fibu.KostFormatter
@@ -97,7 +98,10 @@ class Project(
      * posted back.
      */
     var numberLocked: Boolean? = null,
-) : BaseDTODisplayObject<ProjektDO>(id, displayName = displayName) {
+) : BaseDTODisplayObject<ProjektDO>(id, displayName = displayName), WithEditors {
+
+    /** The names of everybody who created or changed the entry (list only, see HistoryEditorsService). */
+    override var editors: List<String>? = null
     @get:JsonProperty
     val statusAsString: String?
         get() {

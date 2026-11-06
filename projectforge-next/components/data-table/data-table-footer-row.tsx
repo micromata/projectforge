@@ -3,7 +3,12 @@
 import { flexRender, type Table } from "@tanstack/react-table";
 import { TableCell, TableFooter, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { pinnedClass, pinnedStyle } from "./data-table-row";
+import {
+  isStuck,
+  pinnedClass,
+  pinnedStyle,
+  type PinningSuspension,
+} from "./data-table-row";
 
 /**
  * A sums row below the rows, made of the columns' `footer` definitions, so each sum stands under its own
@@ -21,7 +26,7 @@ export function DataTableFooterRow<TData>({
 }: {
   table: Table<TData>;
   hasRowActions: boolean;
-  suspendPinning: boolean;
+  suspendPinning: PinningSuspension;
   columnLines: boolean;
 }) {
   return (
@@ -35,8 +40,7 @@ export function DataTableFooterRow<TData>({
               // undercut the z-10 every footer cell sticks with, so the scrolled sums painted over it.
               style={{
                 ...pinnedStyle(header.column, false, suspendPinning),
-                ...(header.column.getIsPinned() &&
-                  !suspendPinning && { zIndex: 20 }),
+                ...(isStuck(header.column, suspendPinning) && { zIndex: 20 }),
               }}
               className={cn(
                 "sticky bottom-0 z-10 truncate border-t bg-muted font-semibold",

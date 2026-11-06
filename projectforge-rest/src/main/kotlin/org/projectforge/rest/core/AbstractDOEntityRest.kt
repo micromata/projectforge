@@ -50,6 +50,7 @@ constructor(
         magicFilter: MagicFilter,
     ): ResultSet<*> {
         resultSet.resultSet.forEach { transformFromDB(it) }
+        fillEditors(resultSet.resultSet)
         return resultSet
     }
 

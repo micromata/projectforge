@@ -191,6 +191,18 @@ class CvrDeviceService {
         }
     }
 
+    /** Removes a confirming answer (done, not affected) of the user for the case; a question stays open. */
+    fun withdrawConfirmation(caseId: Long, userId: Long) {
+        persistenceService.runInTransaction { context ->
+            context.executeUpdate(
+                "delete from CvrConfirmationDO c where c.caseId = :caseId and c.userId = :userId and c.answer <> :question",
+                Pair("caseId", caseId),
+                Pair("userId", userId),
+                Pair("question", CvrClientAnswer.QUESTION),
+            )
+        }
+    }
+
     /**
      * The device of the serial number, or (without serial number) the only device of the user with this host name or
      * the only device of the user at all; otherwise a new one.

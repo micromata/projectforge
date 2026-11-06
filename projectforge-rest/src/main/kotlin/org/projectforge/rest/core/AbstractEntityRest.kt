@@ -43,6 +43,7 @@ import org.projectforge.framework.files.AttachmentsDaoAccessChecker
 import org.projectforge.framework.files.AttachmentsService
 import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.framework.persistence.api.*
+import org.projectforge.framework.persistence.history.WithEditors
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.database.DatabaseDao
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
@@ -190,6 +191,9 @@ constructor(
 
     @Autowired
     protected lateinit var accessChecker: AccessChecker
+
+    @Autowired
+    private lateinit var historyEditorsService: HistoryEditorsService
 
     @Autowired
     private lateinit var applicationContext: ApplicationContext
@@ -879,6 +883,17 @@ constructor(
         request: HttpServletRequest,
         magicFilter: MagicFilter,
     ): ResultSet<*>
+
+    /**
+     * Sets the editors of the rows that are [WithEditors] (the data for the client's editors column), with one
+     * history query for all of them. Done by the base classes' [postProcessResultSet], so a list only has to make
+     * its row type a [WithEditors]; rows without a stored entry (virtual ones, negative id) get none.
+     */
+    protected fun fillEditors(rows: List<*>) {
+        val withEditors = rows.filterIsInstance<WithEditors>()
+        if (withEditors.isEmpty()) return
+        historyEditorsService.fillEditors(baseDao.doClass, withEditors) { (it as? IdObject<*>)?.id as? Long }
+    }
 
     /**
      * Whether the rows of this response should be the lean ones of [createListRow].

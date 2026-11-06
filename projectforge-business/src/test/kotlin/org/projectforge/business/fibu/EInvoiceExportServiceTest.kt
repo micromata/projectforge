@@ -186,7 +186,9 @@ class EInvoiceExportServiceTest {
             customerCostCenter = "KST-4711"
             customerContactPerson = "Erika Muster"
             customerContactDepartment = "Einkauf"
-            customerEInvoiceEmail = "einkauf@testkundin.de"
+            customerEInvoiceEmail = "rechnung@testkundin.de"
+            customerContactEmail = "einkauf@testkundin.de"
+            sellerContactEmail = "fakturierung@verkaeufer.de"
         }
 
         val xmlString = String(service.exportAsXRechnung(invoice), Charsets.UTF_8)
@@ -205,6 +207,9 @@ class EInvoiceExportServiceTest {
         val buyer = xmlString.substringAfter("<ram:BuyerTradeParty>").substringBefore("</ram:BuyerTradeParty>")
         assertTrue(buyer.contains("<ram:PersonName>Erika Muster, Einkauf</ram:PersonName>"), "BT-56: $buyer")
         assertTrue(buyer.contains("<ram:URIID>einkauf@testkundin.de</ram:URIID>"), "BT-58: $buyer")
+        assertTrue(buyer.contains("<ram:URIID schemeID=\"EM\">rechnung@testkundin.de</ram:URIID>"), "BT-49: $buyer")
+        val seller = xmlString.substringAfter("<ram:SellerTradeParty>").substringBefore("</ram:SellerTradeParty>")
+        assertTrue(seller.contains("<ram:URIID>fakturierung@verkaeufer.de</ram:URIID>"), "BT-43: $seller")
     }
 
     @Test

@@ -37,6 +37,12 @@ open class EInvoiceSellerConfig {
     var vatId: String = ""
     var taxNumber: String = ""
     var email: String = ""
+
+    /** Email of the seller's contact (BT-43), e.g. the invoicing mailbox. Falls back to [email]. */
+    var contactEmail: String = ""
+
+    /** The preset of an invoice's seller contact email (BT-43): [contactEmail], else [email]; null if neither is set. */
+    fun defaultContactEmail(): String? = contactEmail.ifBlank { email }.ifBlank { null }
     var phone: String = ""
     var contactName: String = ""
     var bankAccounts: MutableList<BankAccountConfig> = mutableListOf()

@@ -26,6 +26,12 @@ export const KONTO_METADATA = {
       required: false,
       maxLength: 255,
     },
+    contactEmail: {
+      dataType: "STRING",
+      i18nKey: "fibu.konto.contactEmail",
+      required: false,
+      maxLength: 255,
+    },
     contactPerson: {
       dataType: "STRING",
       i18nKey: "fibu.konto.contactPerson",

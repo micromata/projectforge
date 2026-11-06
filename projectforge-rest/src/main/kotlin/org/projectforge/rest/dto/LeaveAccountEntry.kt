@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.framework.persistence.history.WithEditors
 import org.projectforge.business.vacation.model.LeaveAccountEntryDO
 import org.projectforge.business.vacation.service.VacationStats
 import org.projectforge.common.DateFormatType
@@ -36,7 +37,10 @@ class LeaveAccountEntry(var employee: Employee? = null,
                         var amount: BigDecimal? = null,
                         var amountFormatted: String? = null,
                         var description: String? = null
-) : BaseDTO<LeaveAccountEntryDO>() {
+) : BaseDTO<LeaveAccountEntryDO>(), WithEditors {
+
+    /** The names of everybody who created or changed the entry (list only, see HistoryEditorsService). */
+    override var editors: List<String>? = null
 
     /**
      * @see copyFrom

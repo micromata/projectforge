@@ -38,7 +38,12 @@ export function useRuleTemplate() {
               subject: t("staleListsSubject"),
               text: variables(t("staleListsText")),
             }
-          : null;
+          : type === "CVERADAR_TEAM_CHECK_UNANSWERED"
+            ? {
+                subject: t("teamCheckUnansweredSubject"),
+                text: variables(t("teamCheckUnansweredText")),
+              }
+            : null;
     const now = {
       subject: form.getFieldValue("subject" as never) as string | null,
       text: form.getFieldValue("text" as never) as string | null,
