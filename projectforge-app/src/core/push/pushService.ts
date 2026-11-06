@@ -65,6 +65,7 @@ export interface PushPlatform {
  * (TestFlight, store) for production. A token is valid for one of them only.
  */
 export class PushService {
+  /** The token sent (or being sent): the token of the registration comes as an event too. */
   private sentToken: string | null = null;
   private lastTap: string | null = null;
   private subscriptions: PushSubscription[] = [];
@@ -116,12 +117,13 @@ export class PushService {
       token,
       environment: this.platform.environment() ?? (this.options.production ? 'PRODUCTION' : 'SANDBOX'),
     };
+    this.sentToken = token;
     try {
       await this.api.post('/rs/appAuth/pushToken', { body, renewLogin: false });
-      this.sentToken = token;
       appLog.debug('push', `Push token sent (${body.environment})`);
     } catch (e) {
       // Offline or refused: tried again with the next start of the app.
+      if (this.sentToken === token) this.sentToken = null;
       appLog.debug('push', `Push token not sent: ${String(e)}`);
     }
   }

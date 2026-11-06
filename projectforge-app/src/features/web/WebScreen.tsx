@@ -68,7 +68,10 @@ interface Props {
   initialPath?: string;
   /** The screen is the visible tab: only it renews a login refused by the SSO proxy. */
   active: boolean;
-  /** The pages navigate to a page with a native tab: true if the app shows that tab instead. */
+  /**
+   * The pages navigate to a page with a native tab: true if the app shows that tab instead. Not called for a page this
+   * screen was asked to load itself.
+   */
   onNativePage?: (page: NativePage) => boolean;
   onStateChange?: (state: WebScreenState) => void;
 }
@@ -121,6 +124,8 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   const requestedUrl = useRef<string | null>(null);
   const shownUrl = useRef<string | null>(null);
   const lastOpened = useRef<number | null>(null);
+  /** The native page this screen was asked to load itself (e.g. the web version of the business cards): not handed over. */
+  const requestedNative = useRef<NativePage | null>(null);
   const lastProxyRenewal = useRef<number | null>(null);
   const renewingProxy = useRef(false);
   const openings = useRef(0);
@@ -206,6 +211,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
           return;
         }
         appLog.info('web', `Load ${LogSanitizer.url(url)}`);
+        requestedNative.current = navigation.nativePage(url);
         load(url.href);
       } catch (e) {
         appLog.warn('web', `Pages not opened: ${String(e)}`);
@@ -292,6 +298,8 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
 
   const handOver = (url: string) => {
     const page = navigation.nativePage(url);
+    if (page === requestedNative.current) return false;
+    requestedNative.current = null;
     return page != null && (onNativePage?.(page) ?? false);
   };
 

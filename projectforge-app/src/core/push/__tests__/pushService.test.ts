@@ -61,6 +61,16 @@ test('token goes to the server once, with the environment', async () => {
   expect(requests[0].body).toEqual({ token: 'ab12', environment: 'SANDBOX' });
 });
 
+test('the token of the registration coming as an event too is sent once', async () => {
+  const { push, requests, listeners, flush } = setup();
+  const started = push.start();
+  await flush();
+  listeners.token!('ab12');
+  await started;
+  await flush();
+  expect(requests).toHaveLength(1);
+});
+
 test('the signing told by the native part wins over the build mode', async () => {
   const { push, requests } = setup({ production: true, environment: 'SANDBOX' });
   await push.start();
