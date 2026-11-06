@@ -25,7 +25,7 @@ import { NativeModule, requireNativeModule } from 'expo';
 
 /**
  * The native parts of the app (ios/PfNativeModule.swift, android/…/PfNativeModule.kt): the cookie jar and website
- * data of the WebViews, the Apple Wallet, the key chain items of the Flutter app.
+ * data of the WebViews, the Apple Wallet, the key chain items of the Flutter app, the APNs environment.
  */
 declare class PfNativeModule extends NativeModule<Record<string, never>> {
   /** Sets the cookies of `Set-Cookie` header values for `url` in the WebViews; answers the names set. */
@@ -48,6 +48,12 @@ declare class PfNativeModule extends NativeModule<Record<string, never>> {
 
   /** Deletes a key chain item of the Flutter app. */
   deleteLegacyKeychain(service: string, key: string): void;
+
+  /**
+   * The APNs environment of the signing (the `aps-environment` of the provisioning profile), null without a profile
+   * (store, TestFlight: production) and on Android.
+   */
+  apsEnvironment(): 'SANDBOX' | 'PRODUCTION' | null;
 }
 
 export default requireNativeModule<PfNativeModule>('PfNative');

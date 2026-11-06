@@ -27,7 +27,7 @@ import WebKit
 
 /// The cookie jar and the website data of the WebViews (WKWebsiteDataStore.default(), the store react-native-webview
 /// uses without incognito; @react-native-cookies/cookies would do it, but doesn't support the New Architecture), the
-/// Apple Wallet and the key chain items of the Flutter app.
+/// Apple Wallet, the key chain items of the Flutter app and the APNs environment of the signing.
 public class PfNativeModule: Module {
   /// A WebView without a page, alive as long as the app: iOS hands the cookies to the network process of the
   /// WebViews, which is torn down with the last WebView; setting cookies then waited for a new one (seen in the
@@ -81,6 +81,25 @@ public class PfNativeModule: Module {
     Function("deleteLegacyKeychain") { (service: String, key: String) in
       SecItemDelete(Self.legacyQuery(service, key) as CFDictionary)
     }
+
+    /// `SANDBOX` or `PRODUCTION`, as the app is signed: read from the provisioning profile (`aps-environment`), which
+    /// a build started from Xcode has even in release mode. Builds from the store or TestFlight have none: null.
+    Function("apsEnvironment") { () -> String? in
+      Self.apsEnvironment()
+    }
+  }
+
+  private static func apsEnvironment() -> String? {
+    guard let url = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
+      let data = try? Data(contentsOf: url),
+      let text = String(data: data, encoding: .isoLatin1),
+      let key = text.range(of: "<key>aps-environment</key>"),
+      let open = text.range(of: "<string>", range: key.upperBound..<text.endIndex),
+      let close = text.range(of: "</string>", range: open.upperBound..<text.endIndex)
+    else {
+      return nil
+    }
+    return text[open.upperBound..<close.lowerBound] == "development" ? "SANDBOX" : "PRODUCTION"
   }
 
   private static func legacyQuery(_ service: String, _ key: String) -> [String: Any] {

@@ -56,6 +56,13 @@ export interface SystemData {
   appLoginPath?: boolean;
 }
 
+/** @request org.projectforge.rest.app.AppAuthRest$PushTokenRequest */
+export interface PushTokenRequest {
+  /** The APNs device token (hex). */
+  token: string;
+  environment: 'SANDBOX' | 'PRODUCTION';
+}
+
 /** @server org.projectforge.rest.app.AppAuthRest$WebSessionResponse */
 export interface WebSessionResponse {
   startUrl: string;

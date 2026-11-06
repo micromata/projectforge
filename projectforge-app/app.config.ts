@@ -61,5 +61,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     allowBackup: false,
     predictiveBackGestureEnabled: false,
   },
-  plugins: ['expo-router', 'expo-web-browser', 'expo-secure-store', 'expo-sharing', 'expo-localization'],
+  plugins: [
+    'expo-router',
+    'expo-web-browser',
+    'expo-secure-store',
+    'expo-sharing',
+    'expo-localization',
+    // APNs directly (ApnsPushSender of the server, no FCM). The entitlement `aps-environment` is development; Xcode
+    // switches it to production for App Store and TestFlight builds.
+    'expo-notifications',
+  ],
 });

@@ -89,5 +89,8 @@ class PfNativeModule : Module() {
     Function("readLegacyKeychain") { _: String, _: String -> null as String? }
 
     Function("deleteLegacyKeychain") { _: String, _: String -> }
+
+    // No APNs on Android.
+    Function("apsEnvironment") { null as String? }
   }
 }

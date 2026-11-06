@@ -21,15 +21,18 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useAuth } from '../../core/auth/authController';
+import { authController, useAuth } from '../../core/auth/authController';
 import { compatibilityIssue } from '../../core/compat/compatibility';
 import { appVersion } from '../../core/platform';
-import { useUserStatus } from '../../core/status/userStatus';
+import { expoPush } from '../../core/push/expoPush';
+import { PushService } from '../../core/push/pushService';
+import { chatEnabled, userStatus, useUserStatus } from '../../core/status/userStatus';
+import { isChatPath, webPathOfLink } from '../../core/web/links';
 import { useColors } from '../../core/ui/colors';
 import { compatibilityText, TabBar } from '../../features/home/TabBar';
 import { webTabs } from '../../features/web/webTabs';
@@ -48,8 +51,35 @@ export default function TabsLayout() {
     minAppVersion: status?.systemData?.minAppVersion,
   });
   const shownIssue = useRef<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => webTabs.reset(), [auth.generation]);
+
+  // Asks for the permission to show pushes, registers and hands the token to the server; a tapped push opens its
+  // link in the chat tab (a page of the chat) or in the pages.
+  useEffect(() => {
+    const api = authController.api;
+    if (Platform.OS !== 'ios' || api == null) return;
+    const service = new PushService(api, expoPush, {
+      production: !__DEV__,
+      onLink: (link) => {
+        const path = webPathOfLink(link);
+        if (path == null) return;
+        const chat = isChatPath(path) && chatEnabled(userStatus.get().status);
+        webTabs.open(chat ? 'chat' : 'pages', path);
+        router.dismissTo(chat ? '/chat' : '/pages');
+      },
+      onReceived: () => void userStatus.refresh(),
+    });
+    void service.start().catch(() => {});
+    return () => service.stop();
+  }, [auth.generation, router]);
+
+  // The number on the icon follows the notifications.
+  const openNotifications = status?.notifications?.openCount;
+  useEffect(() => {
+    if (Platform.OS === 'ios' && openNotifications != null) expoPush.setBadge(openNotifications).catch(() => {});
+  }, [openNotifications]);
 
   // The compatibility warning once per server and app start, not on every poll.
   useEffect(() => {

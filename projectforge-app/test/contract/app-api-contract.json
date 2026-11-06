@@ -21,6 +21,10 @@
           "controller": "org.projectforge.rest.app.AppAuthRest"
         },
         {
+          "call": "POST /rs/appAuth/pushToken",
+          "controller": "org.projectforge.rest.app.AppAuthRest"
+        },
+        {
           "call": "POST /rs/appAuth/pushToken/remove",
           "controller": "org.projectforge.rest.app.AppAuthRest"
         }
