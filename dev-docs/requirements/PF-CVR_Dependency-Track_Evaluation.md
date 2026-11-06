@@ -327,7 +327,7 @@ reverse proxy or via an internal CA whose certificate PF gets in its truststore.
 | `CvrMatchingService`, `VersionComparator` (unless CPE-only systems need it, 7.1) | Cases, ratings, priorities, measures, AI export/import | Webhook endpoint, reconciliation job, upload tokens and SBOM endpoint (section 6) |
 | – (the technology catalogue stays: CPE source of the BOM export, framework exclusion of MAT-11) | Team checks, confirmations, closure overview, technology catalogue | BOM export per instance (CycloneDX writer) |
 | Ad-hoc check, or routed to a temporary DT project | `LibraryListParser` as converter to CycloneDX | Analysis write-back, conflict handling |
-| Corresponding Next.js parts of the vulnerability view; their tables in the Flyway scripts, changed in place while the CVE-Radar is unreleased | Graylog devices, notification rules, chat hosts, EUVD (optional) | System messages in the chat; escalation (ESC, open anyway); EPSS in `CvrPriorityRule` (PRIO-01) and in the threshold of check requests (MAT-11), needed with or without DT |
+| Corresponding Next.js parts of the vulnerability view; their tables, dropped by a new Flyway migration (the CVE-Radar ships since 9.2.1) | Graylog devices, notification rules, chat hosts, EUVD (optional) | System messages in the chat; escalation (ESC, open anyway); EPSS in `CvrPriorityRule` (PRIO-01) and in the threshold of check requests (MAT-11), needed with or without DT |
 
 Estimate for the retirement: about 5–7k LOC backend plus tests and parts of the vulnerability pages in Next.js. The new integration is roughly 2–3k LOC backend plus 0.5–1k LOC for upload tokens (section 6); the workflow parts are unchanged.
 
@@ -369,7 +369,7 @@ uploaded. To check:
 Recommended: the hybrid of section 7, introduced in stages, so the CVE-Radar keeps working throughout.
 
 1. **Spike** (section 10), decision based on its results.
-2. **Switch without parallel operation:** the CVE-Radar is unreleased, so the comparison with the own matching is
-   done once in the spike; DT becomes the only matching source and the parts of section 8 are retired, the Flyway
-   scripts are changed in place. Plan: [PF-CVR_Dependency-Track_Migration.md](PF-CVR_Dependency-Track_Migration.md).
+2. **Switch without parallel operation:** the comparison with the own matching is done once in the spike; DT becomes
+   the only matching source and the parts of section 8 are retired by new Flyway migrations (the CVE-Radar ships since
+   9.2.1). Plan: [PF-CVR_Dependency-Track_Migration.md](PF-CVR_Dependency-Track_Migration.md).
 3. **Build** escalation (ESC) and system chat messages on the PF side, independent of DT.

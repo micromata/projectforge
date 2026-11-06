@@ -16,13 +16,14 @@
 | # | Topic | Decision |
 |---|---|---|
 | D1 | Go/no-go | The spike (phase 0) is a real gate: the build starts only if the criteria of section 3 are met. |
-| D2 | Switch | No parallel operation. The CVE-Radar is unreleased (see [cve-radar-db-reset.md](../cve-radar-db-reset.md)): the comparison with the own matching is done once in the spike, then the own matching is removed. The Flyway scripts `V9.2.0.1`/`V9.2.0.2` are changed in place, no drop migration, no data migration (test data only). |
+| D2 | Switch | No parallel operation: the comparison with the own matching is done once in the spike, then the own matching is removed. |
+| D5 | Database | The CVE-Radar ships since 9.2.1, so its Flyway scripts stay unchanged. New scripts `V<release>.<n>` of the release that ships the switch add the DT columns, rename the vulnerability fields and drop the tables of the own matching (postgresql and hsqldb where the SQL differs). Inventory, catalogue, cases, ratings, team checks and findings are kept; DT's reconciliation updates them. |
 | D3 | Vulnerabilities without finding | Check requests (MAT-11) and vulnerabilities without SBOM components come from DT's vulnerability database. If its API can't deliver them per ecosystem and threshold (spike), a slim OSV import stays for MAT-11 only. |
 | D4 | Names in DT | Projects are named in clear text (`<system> / <instance>`) with tags for area, stage, criticality and exposure; strictly confidential systems and instances are named `pf-<id>` and get no tags. |
 
-Consequences for the evaluation paper: no drop migration (Eval 8, 11); the technology catalogue stays as the source of
-the CPE for technologies without purl or CPE (see 4.2); the status mapping of Eval 7.3 is derived from case and team
-check, since findings only know New and Discarded (see 4.4).
+Consequences for the evaluation paper: drop and rename by new migrations (D5; Eval 8, 11); the technology catalogue
+stays as the source of the CPE for technologies without purl or CPE (see 4.2); the status mapping of Eval 7.3 is
+derived from case and team check, since findings only know New and Discarded (see 4.4).
 
 ## 2. Overview
 
@@ -42,8 +43,9 @@ follow in its own branch.
 
 ## 3. Phase 0 – Spike
 
-DT v5 locally (compose file of phase 1, created here already), the inventory of a test installation exported by a
-throw-away script as CycloneDX (one BOM per instance), plus PF's own SBOM.
+DT 5.2.1 locally (compose file of phase 1, created here already; it needs only PostgreSQL), the inventory of a test
+installation exported by a throw-away script as CycloneDX (one BOM per instance), plus PF's own SBOM. Compose file and
+tools: `docker/compose/dependency-track/` (README there).
 
 The questions of Eval 10, and in addition:
 
@@ -78,7 +80,7 @@ Result: a short report appended to this document; the open "(verify)" marks of t
 
 ### 4.2 Phase 2 – Projects and BOMs (PF → DT)
 
-- **Columns** (in the existing scripts, D2): `dt_project_uuid` on system and instance, `dt_synced` (timestamp) and
+- **Columns** (new migration, D5): `dt_project_uuid` on system and instance, `dt_synced` (timestamp) and
   `dt_sync_pending` on the instance.
 - **Project per instance**, parent project per system (Eval 7.1), named and tagged per D4 by the effective
   confidentiality. A change of the confidentiality renames the projects and replaces the tags.
@@ -111,8 +113,9 @@ Result: a short report appended to this document; the open "(verify)" marks of t
 - **Webhook** `/rsPublic/cveradar/deptrack/notification` (Eval 7.2): the payload is used only to find the project;
   PF then reconciles this project. So nothing of the payload except the project UUID is trusted.
 - **Vulnerability fields:** `nvd_status`, `nvd_last_modified`, `raw_document` become `source_status`,
-  `source_modified`, `raw_document` (DT's vulnerability JSON); `CvrSource` gets `DEPENDENCY_TRACK`; renamed in place.
-  Manual vulnerabilities and incidents (IMP-14) stay as they are.
+  `source_modified`, `raw_document` (DT's vulnerability JSON); `CvrSource` gets `DEPENDENCY_TRACK`; renamed by a new
+  migration (D5). The existing vulnerabilities are kept (cases and findings refer to them) and updated by the
+  reconciliation via the CVE id. Manual vulnerabilities and incidents (IMP-14) stay as they are.
 - The jobs NVD and OSV are switched off here; their removal follows in phase 5.
 - Tests: mapping of findings (alias, without version, discarded stays, removal), webhook authentication and
   throttling (refused without secret, accepted with it).
@@ -152,13 +155,13 @@ Result: a short report appended to this document; the open "(verify)" marks of t
 |---|---|
 | `sync/Nvd*` (import, client, parsers), `sync/Osv*` (unless the MAT-11 fallback needs them), `CvrOsvAdvisoryService`, `CvrOsvAdvisoryDO`, `CvrCpeMatchDO`, `CvrPurlMatchDO`, `CvrImportStateDO` entries of NVD/OSV | `VersionComparator` (used by `CvrCaseStatusService` for fix versions) |
 | `CvrMatchingService` (unless CPE-only systems need it, spike 3) | Technology catalogue (CPE source of the BOM writer, framework exclusion of MAT-11) |
-| Tables of the removed entities in `V9.2.0.1`/`V9.2.0.2` (postgresql and hsqldb), changed in place | `LibraryListParser`, `LibraryArchive`, EUVD import, Graylog, inventory, cases, team checks, chat, notifications |
+| Tables of the removed entities, dropped by a new migration (D5); the rows of NVD/OSV in the import state deleted | `LibraryListParser`, `LibraryArchive`, EUVD import, Graylog, inventory, cases, team checks, chat, notifications |
 | Tests `CvrMatchingTest`, `CvrOsvMatchingTest`, `NvdC*ParserTest`, `OsvParserTest`; adapting `CveRadarTestBase` and the tests that create vulnerabilities via `NvdImportService` | |
 | Configuration `nvd.*`, `osv.*`; jobs; i18n keys of the removed texts | |
 | Next.js: NVD/OSV specific parts of the vulnerability page (CPE configurations, advisories), sources and import status | Next.js: everything else; the vulnerability page shows the DT source and a link into DT for the security team |
 
-Afterwards: update `cve-radar-db-reset.md` (dropped tables), the spec (IMP, MAT notes: "via Dependency-Track"), and
-the evaluation paper (status decided).
+Afterwards: remove `cve-radar-db-reset.md` (the scripts are released, see D5), update the spec (IMP, MAT notes: "via
+Dependency-Track") and the evaluation paper (status decided).
 
 ## 5. Phase 6 – Upload tokens and SBOM endpoint
 
