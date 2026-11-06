@@ -274,6 +274,46 @@ Stay completely in PF (`ChatHost`, `NotificationService`). New gap: `ChatService
 with write access; DT events in the case chat ("new affected instance", "status set in DT") need a system message
 API (sender "system", no mentions, same visibility rules as DISC-05).
 
+### 7.5 Deployment
+
+**DT runs as an internal service in Docker, without public access; PF is the only entry point from outside.**
+
+- **Containers:** docker compose with the DT v5 API server, the frontend and PostgreSQL; image versions pinned, so
+  updates are deliberate and come after a backup.
+- **Database:** an own database and user in an existing PostgreSQL cluster (covered by its backup), or an own
+  PostgreSQL container with its own backup.
+- **Host:** DT is a JVM of its own and needs several GB RAM for the mirrors (NVD, GitHub Advisories, OSV); the first
+  mirror takes hours. The PF host works only with enough headroom; a small VM of its own in the same internal network
+  is cleaner, so load and updates of one don't affect the other.
+- **Additional services:** whether the v5 version chosen still needs Kafka/Redpanda and separate analyser services
+  or only PostgreSQL changes the operating effort considerably (spike item).
+
+Who has to reach whom:
+
+| From | To | Network |
+|---|---|---|
+| CI/CD pipelines | PF (`/rsPublic/cveradar/sbom`, token per target, section 6) | public, as PF today |
+| PF | DT API (BOM upload, analysis write-back, reconciliation pull) | internal |
+| DT | PF webhook (7.2) | internal |
+| DT | NVD, GitHub, OSV, OSS Index, EPSS (outbound) | internet, via the outbound proxy if required |
+| Security team, admins | DT frontend | internal only (optional) |
+
+**Certificates:** no public certificate for DT. If PF and DT share a Docker network or host (port bound to
+localhost only), internal HTTP is sufficient. As soon as the traffic crosses a network (VM of its own), TLS with an
+internal certificate is required, since API key and webhook secret travel with it: terminated by the existing
+reverse proxy or via an internal CA whose certificate PF gets in its truststore.
+
+**PF as proxy:**
+
+- **For the API, yes:** this is the architecture of section 6. PF accepts the uploads, checks token and rights and
+  forwards to DT as `svc:projectforge`; no DT key leaves PF.
+- **For the DT frontend, no:** the SPA has its own login (OIDC/JWT), paths and Content Security Policy. A generic
+  reverse proxy in PF would be extra code and attack surface and would mix the two rights models. If the security
+  team needs the frontend, it gets its own internal host name behind the existing reverse proxy (VPN or IP
+  allowlist, OIDC login), or it is reachable for admins via SSH tunnel only; everyone else works in PF anyway.
+- **PF without DT:** if DT is not reachable, an upload fails with a clear error and the next build retries (section 6),
+  the cases stay usable, and the system status shows DT as unavailable (NFR-05).
+
 ## 8. Retire, keep, build
 
 | Retire | Keep | Build |
@@ -289,8 +329,8 @@ Next.js. The new integration is roughly 2–3k LOC backend plus 0.5–1k LOC for
 
 ## 9. Risks and costs
 
-- **Operation:** another service (DT container plus PostgreSQL, several GB RAM for the mirrors), updates, backup,
-  monitoring. PF without DT must stay usable (plugin inactive or degraded, NFR-05).
+- **Operation:** another service (DT container plus PostgreSQL, several GB RAM for the mirrors, see 7.5), updates,
+  backup, monitoring. PF without DT must stay usable (plugin inactive or degraded, NFR-05).
 - **Two databases:** findings exist in DT and PF; drift is avoided only with the UUID mapping, the reconciliation
   pull and a single writer per field (7.3).
 - **API stability:** v5 offers API v1 and v2 side by side; which one to use for analysis and findings is a spike
@@ -315,7 +355,8 @@ uploaded. To check:
 5. Is there an analysis across projects (same component and vulnerability in many projects)?
 6. Outbound webhook: custom headers or other authentication; payload of `NEW_VULNERABLE_DEPENDENCY`.
 7. Internal components: are they really never sent to external analysers?
-8. Resource use and duration of the initial mirror; proxy configuration.
+8. Resource use and duration of the initial mirror; proxy configuration; additional services needed by v5
+   (Kafka/Redpanda, analysers) besides PostgreSQL.
 9. API keys: expiry, hashing, rotation; behaviour of portfolio access control for service accounts.
 10. Comparison of the findings with the CVE-Radar matching for the same inventory (false positives / negatives).
 
