@@ -25,7 +25,7 @@ import { bufferToBase64url, utf8 } from '@projectforge/shared/base64url';
 import type { SystemData, TokenRequest, TokenResponse } from '@projectforge/shared/rs/app-auth';
 
 import { ApiException } from '../api/apiException';
-import { HTTP_DEFAULTS, HttpFetch } from '../api/http';
+import { HTTP_DEFAULTS, HttpFetch, isRedirect } from '../api/http';
 import { appLog, LogSanitizer } from '../log/appLog';
 import { parseUrl, SafeURL } from '../url';
 import { createPkce, CryptoProvider } from './pkce';
@@ -109,14 +109,11 @@ export class AppLogin {
       appLog.warn('login', 'Callback without code');
       throw new ApiException('No code in the login callback.');
     }
-    const response = await this.http(`${serverUrl}/rsPublic/appAuth/token`, {
-      ...HTTP_DEFAULTS,
+    const response = await this.request('Token', `${serverUrl}/rsPublic/appAuth/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({ code, codeVerifier: pkce.verifier } satisfies TokenRequest),
     });
-    appLog.debug('login', `Token → ${response.status}`);
-    if (!response.ok) throw await ApiException.fromResponse(response);
     const json = (await response.json()) as TokenResponse;
     const proxyCookies = proxyCookiesFromJson(json.proxyCookies);
     appLog.info(
@@ -137,14 +134,58 @@ export class AppLogin {
 
   /** The public system status of the server (`/rsPublic/systemStatus`). */
   async systemStatus(serverUrl: string): Promise<SystemData> {
-    const response = await this.http(`${serverUrl}/rsPublic/systemStatus`, {
-      ...HTTP_DEFAULTS,
+    const response = await this.request('System status', `${serverUrl}/rsPublic/systemStatus`, {
       headers: { Accept: 'application/json' },
     });
-    if (!response.ok) throw await ApiException.fromResponse(response);
     return (await response.json()) as SystemData;
   }
+
+  /**
+   * A public request of the login, logged with its answer or failure. A GET follows redirects within the server (a
+   * canonical path, a load balancer), at most [MAX_REDIRECTS]; a redirect to another host is refused, as every
+   * request of the app (HTTP_DEFAULTS).
+   */
+  private async request(what: string, url: string, init: RequestInit): Promise<Response> {
+    const origin = parseUrl(url)?.origin;
+    const redirects: string[] = [];
+    let current = url;
+    for (;;) {
+      let response: Response;
+      try {
+        response = await this.http(current, { ...HTTP_DEFAULTS, ...init });
+      } catch (e) {
+        appLog.warn('login', `${what} failed: ${String(e)} (url: ${LogSanitizer.url(current)})`);
+        throw e;
+      }
+      const location = response.headers.get('location');
+      const next = location != null ? parseUrl(location, current) : null;
+      const follow =
+        isRedirect(response) &&
+        (init.method ?? 'GET') === 'GET' &&
+        next != null &&
+        next.origin === origin &&
+        redirects.length < MAX_REDIRECTS;
+      if (follow) {
+        redirects.push(`${response.status} ${LogSanitizer.url(next)}`);
+        current = next.href;
+        continue;
+      }
+      const after = redirects.length ? ` after redirects: ${redirects.join(' → ')}` : '';
+      if (response.ok) {
+        appLog.debug('login', `${what} → ${response.status}${after}`);
+        return response;
+      }
+      appLog.warn(
+        'login',
+        `${what} → ${response.status}${after} (content-type: ${response.headers.get('content-type') ?? '-'}, ` +
+          `url: ${LogSanitizer.url(current)}${location != null ? `, location: ${LogSanitizer.url(location)}` : ''})`,
+      );
+      throw await ApiException.fromResponse(response);
+    }
+  }
 }
+
+const MAX_REDIRECTS = 5;
 
 /**
  * [params] packed into one query parameter (base64url of a json object, without padding), read by the `appLogin`

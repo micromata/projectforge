@@ -25,7 +25,7 @@
 import { fakeHttp, FakeAnswer, RecordedRequest } from '../../../testing/fakeHttp';
 import { ApiClient } from '../apiClient';
 import { PROXY_REFUSED_KEY } from '../apiException';
-import { splitSetCookie } from '../http';
+import { splitSetCookie, withTimeout } from '../http';
 
 function client(handler: (request: RecordedRequest) => FakeAnswer, reauthenticate = async () => true) {
   const { http, requests } = fakeHttp(handler);
@@ -121,4 +121,20 @@ test('set-cookie headers joined by commas are split again, not at the comma of a
     ),
   ).toEqual(['JSESSIONID=ABC; Path=/; HttpOnly', 'remember=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/', 'x=1']);
   expect(splitSetCookie(null)).toEqual([]);
+});
+
+test('an answer not arriving in time fails as a server not reached', async () => {
+  let signal: AbortSignal | undefined;
+  const never = withTimeout(
+    (_, init) =>
+      new Promise<Response>((_, reject) => {
+        signal = init.signal ?? undefined;
+        signal?.addEventListener('abort', () => reject(new Error('aborted')));
+      }),
+    10,
+  );
+  await expect(never('https://pf.example.com/rs/x', {})).rejects.toThrow('No answer within 0.01 s');
+  expect(signal?.aborted).toBe(true);
+  const fast = withTimeout(async () => new Response('ok'), 1000);
+  expect(await (await fast('https://pf.example.com/rs/x', {})).text()).toBe('ok');
 });
