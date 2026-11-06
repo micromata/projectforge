@@ -32,7 +32,7 @@ confirmed in the spike (section 10).
 
 | Area | Spec | State |
 |---|---|---|
-| Import NVD (API 2.0, CVSS ≥ 7, KEV), OSV (per ecosystem), EUVD (EPSS, exploitation) | IMP | implemented (`sync/*`, `CveRadarJobs`) |
+| Import NVD (API 2.0, CVSS ≥ 7, KEV), OSV (per ecosystem), EUVD (EPSS, exploitation) | IMP | implemented (`sync/*`, `CveRadarJobs`); EPSS only for vulnerabilities the EUVD knows, not yet used for the priority suggestion (`CvrPriorityRule` uses CVSS and KEV) |
 | Inventory: area tree → system → instance → component → technology, baseline + deviations, confidentiality, criticality | INV-01..12 | implemented (`CvrInventoryService`) |
 | Technology catalogue (ecosystem → product → library) | INV-28..32 | implemented (`CvrCatalogService`) |
 | Uploads: CycloneDX/SPDX JSON, lockfiles, `mvn`/`gradle` lists, jar listings, pip, Go, cargo, composer, deb/apk/rpm, zip | INV-14, 26, 27, 33 | implemented (`LibraryListParser`, `LibraryArchive`) |
@@ -74,7 +74,7 @@ Legend: **DT** – DT covers it as well or better; **PF** – PF covers it, DT d
 
 | Group | DT | PF | Verdict |
 |---|---|---|---|
-| IMP-01..13 vulnerability import (NVD, OSV, KEV, EPSS) | More sources, maintained by the community, mirroring with rate limits built in. KEV flag (verify). | Own importers with resume, history and severity filter. | **DT** |
+| IMP-01..13 vulnerability import (NVD, OSV, KEV, EPSS) | More sources, maintained by the community, mirroring with rate limits built in. KEV flag (verify). EPSS from FIRST for every CVE (verify). | Own importers with resume, history and severity filter; EPSS only via the EUVD, without effect on PRIO-01 or MAT-11 yet. | **DT** |
 | IMP-14 manual vulnerability / incident without CVE | Internal vulnerabilities can be created; incidents without software reference don't fit. | Cases and `INC-yyyy-n` incidents. | **PF** (incidents), DT for internal advisories |
 | IMP-16 EUVD | No source (verify). | Implemented. | **PF** as optional enrichment |
 | INV-01..12 hierarchy, baseline/deviations, criticality, confidentiality, stage, site, exposure | Projects with parent and tags, no inheritance, no confidentiality. | Implemented. | **PF** |
@@ -247,6 +247,8 @@ security team; all other users stay in PF.
   `IntegrationConfig` (timeouts, size limit, proxy), header `X-Api-Key`, key only in the configuration (IMP-05).
 - PF creates or updates `CvrFindingDO` (with DT reference) and groups the findings per vulnerability into the
   existing case; the existing rule `CVERADAR_FINDINGS` (`CvrFindingNotifier`) notifies as today.
+- The EPSS of a DT finding goes into `CvrVulnerabilityDO.epss` too; it takes precedence over the EUVD value, so
+  every CVE has one.
 
 ### 7.3 From PF to DT (triage)
 
@@ -322,7 +324,7 @@ reverse proxy or via an internal CA whose certificate PF gets in its truststore.
 | `CvrMatchingService`, `VersionComparator` (unless CPE-only systems need it, 7.1) | Cases, ratings, priorities, measures, AI export/import | Webhook endpoint, reconciliation job, upload tokens and SBOM endpoint (section 6) |
 | Most of the technology catalogue (INV-28..32) | Team checks, confirmations, closure overview | BOM export per instance (CycloneDX writer) |
 | Ad-hoc check, or routed to a temporary DT project | `LibraryListParser` as converter to CycloneDX | Analysis write-back, conflict handling |
-| Corresponding Next.js pages (catalogue, parts of the vulnerability view) and Flyway tables (drop migration) | Graylog devices, notification rules, chat hosts, EUVD (optional) | System messages in the chat; escalation (ESC, open anyway) |
+| Corresponding Next.js pages (catalogue, parts of the vulnerability view) and Flyway tables (drop migration) | Graylog devices, notification rules, chat hosts, EUVD (optional) | System messages in the chat; escalation (ESC, open anyway); EPSS in `CvrPriorityRule` (PRIO-01) and in the threshold of check requests (MAT-11), needed with or without DT |
 
 Estimate for the retirement: about 5–7k LOC backend plus tests, catalogue and parts of the vulnerability pages in
 Next.js. The new integration is roughly 2–3k LOC backend plus 0.5–1k LOC for upload tokens (section 6); the workflow parts are unchanged.
@@ -348,7 +350,7 @@ Next.js. The new integration is roughly 2–3k LOC backend plus 0.5–1k LOC for
 DT v5 locally via docker compose, PF's own SBOM (CycloneDX Gradle and npm plugins) and one converted lockfile
 uploaded. To check:
 
-1. KEV flag, EPSS and EUVD in DT.
+1. KEV flag, EPSS (for all CVEs? update cycle?) and EUVD in DT.
 2. SPDX support of the BOM upload.
 3. Matching of components with CPE only (appliance, network device) and without version.
 4. Analysis per finding via API: states, justifications, suppression, audit trail; API v1 vs. v2.
