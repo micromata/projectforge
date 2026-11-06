@@ -21,5 +21,6 @@ The documentation for users and administrators is on the website (`site/`, https
 | [reviews/pr-391-mcp-server.md](reviews/pr-391-mcp-server.md) | Review | PR #391 remote MCP server: findings, open                                       |
 | [cve-radar-db-reset.md](cve-radar-db-reset.md)        | Temporary | CVE-Radar: drop the plugin tables, restore the imported CVEs; remove once released    |
 | [requirements/](requirements/)                        | Plans     | Specifications: chat (in implementation), CVE radar (in implementation)               |
+| [requirements/PF-CVR_Dependency-Track_Evaluation.md](requirements/PF-CVR_Dependency-Track_Evaluation.md) | Proposal | CVE radar: Dependency-Track as detection engine, PF keeps assets and workflow; not decided |
 | [website-screenshots/](website-screenshots/README.md) | Tooling   | Scripts that shoot the website screenshots                                            |
 | [misc/](misc/)                                        | Assets    | nginx example configuration, forecast probabilities fixture                           |
