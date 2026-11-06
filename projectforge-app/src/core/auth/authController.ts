@@ -27,6 +27,7 @@ import PfNative from '../../../modules/pf-native/src/PfNativeModule';
 import { WebSessionRepository } from '../../features/web/webSessionRepository';
 import { ApiClient } from '../api/apiClient';
 import { JsonCache } from '../cache/jsonCache';
+import { compatibilityIssue } from '../compat/compatibility';
 import { SharedFiles } from '../files/sharedFiles';
 import { appLog, LogSanitizer } from '../log/appLog';
 import { appVersion, deviceName, platformCrypto, platformHttp, platformName, platformOpenBrowser } from '../platform';
@@ -87,6 +88,8 @@ export function boundApiClient(
  * Login, logout, the switch between the logins at several servers and the renewal of the login (a second factor too
  * old, a refusal of the SSO proxy) of the app. Port of the Flutter app's AuthController.
  */
+const loginKey = (session: Session) => `${session.serverUrl}#${session.userId}`;
+
 class AuthController {
   private state: AuthState = { status: 'restoring', session: null, generation: 0 };
   private listeners = new Set<() => void>();
@@ -145,6 +148,9 @@ class AuthController {
     try {
       const status = await this.appLogin.systemStatus(serverUrl);
       appLog.info('auth', `Login at ${status.appname ?? '?'} ${status.version ?? ''} (app ${appVersion}, ${platformName})`);
+      // Only the version the server needs is public, its own is checked after the login (the compatibility warning).
+      const issue = compatibilityIssue({ appVersion, minAppVersion: status.minAppVersion });
+      if (issue) appLog.warn('auth', `The server needs app version ${issue.minVersion}`);
       session = await this.appLogin.login({
         serverUrl,
         deviceName: deviceName(),
@@ -157,6 +163,11 @@ class AuthController {
     }
     // Another server added while logged in: the current login stays stored.
     await this.leave();
+    const expired = this.expiredLogin;
+    this.expiredLogin = null;
+    if (expired != null && expired !== loginKey(session)) {
+      this.clearLog('Logged in as another user: log of the expired login cleared');
+    }
     LogSanitizer.addSecretNames(Object.keys(session.proxyCookies));
     await sessionStore.save(session);
     this.activate(session, true);
@@ -257,21 +268,30 @@ class AuthController {
     this.clearLog('Logged out: log of the login cleared');
   }
 
+  /**
+   * The login whose expiry left its log ([onUnauthorized]): it tells why, and the same user logs in again; cleared once
+   * somebody else logs in.
+   */
+  private expiredLogin: string | null = null;
+
   /** The server refused the token (logged out in the web, expired, password changed). */
   private onUnauthorized = () => {
-    if (this.state.status !== 'loggedIn') return;
+    const session = this.state.session;
+    if (this.state.status !== 'loggedIn' || session == null) return;
+    this.expiredLogin = loginKey(session);
     void this.forget('app.session.expired');
   };
 
   /**
    * Before another login becomes the active one; the current one stays stored. Its server stops pushing (only the
-   * server shown pushes), and its cache leaves the device (the cache isn't kept per server). The WebView keeps its
+   * server shown pushes), and its cache and shared files leave the device (not kept per server). The WebView keeps its
    * data, which is per server anyway.
    */
   private async leave() {
     if (this.state.status !== 'loggedIn') return;
     await withTimeout(this.api?.post('/rs/appAuth/pushToken/remove', { renewLogin: false }));
     JsonCache.clearAll();
+    SharedFiles.clearAll();
   }
 
   private async forget(messageKey?: string) {
