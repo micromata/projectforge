@@ -230,6 +230,11 @@ class BusinessCardRest {
     }
 
     companion object {
-        private const val QR_SIZE = 400
+        /**
+         * Pixels of the QR code. A vCard with a photo needs well over 100 modules, so a smaller image gives only two
+         * or three pixels per module and blurs when a client scales it up (React Native's Image has no
+         * nearest-neighbour filter). The PNG is black and white and stays small.
+         */
+        private const val QR_SIZE = 800
     }
 }
