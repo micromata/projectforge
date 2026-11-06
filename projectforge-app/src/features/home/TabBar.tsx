@@ -23,7 +23,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter } from 'expo-router';
-import { ComponentProps, useState } from 'react';
+import { ComponentProps, useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -74,6 +74,13 @@ export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: C
   const webTab = focused ? TABS[focused]?.webTab : undefined;
   const unread = status?.chatUnread ?? 0;
   const openNotifications = status?.notifications?.openCount ?? 0;
+
+  // The chat switched off on the server while it is shown: back to the business cards.
+  const chatOff = focused === 'chat' && status != null && !chatEnabled(status);
+  const cardsKey = state.routes.find((it) => it.name === 'cards')?.key;
+  useEffect(() => {
+    if (chatOff && cardsKey) navigateToTab(cardsKey);
+  }, [chatOff, cardsKey, navigateToTab]);
 
   const routes = state.routes.filter(
     (route) =>
@@ -141,9 +148,10 @@ export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: C
                 webTabs.open('chat', CHAT_PATH);
                 return;
               }
-              if (!active) navigateToTab(route.key);
-              // Leaving the chat: the badge at once, not after the next poll.
-              if (!active && focused === 'chat') void userStatus.refresh();
+              if (active) return;
+              navigateToTab(route.key);
+              // The badges at once (e.g. leaving the chat), not after the next poll.
+              void userStatus.refresh();
             }}
           >
             <Ionicons name={tab.icon} size={24} color={active ? colors.primary : colors.textMuted} />

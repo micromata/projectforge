@@ -22,8 +22,8 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import { Tabs, useRouter } from 'expo-router';
-import { useEffect, useRef } from 'react';
-import { Alert, Platform } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { authController, useAuth } from '../../core/auth/authController';
@@ -34,7 +34,8 @@ import { PushService } from '../../core/push/pushService';
 import { chatEnabled, userStatus, useUserStatus } from '../../core/status/userStatus';
 import { isChatPath, webPathOfLink } from '../../core/web/links';
 import { useColors } from '../../core/ui/colors';
-import { compatibilityText, TabBar } from '../../features/home/TabBar';
+import { CompatibilityBanner } from '../../features/home/CompatibilityBanner';
+import { TabBar } from '../../features/home/TabBar';
 import { webTabs } from '../../features/web/webTabs';
 
 /**
@@ -50,7 +51,9 @@ export default function TabsLayout() {
     serverVersion: status?.systemData?.version,
     minAppVersion: status?.systemData?.minAppVersion,
   });
-  const shownIssue = useRef<string | null>(null);
+  // The compatibility warning stays until it is confirmed, once per server and issue (the menu keeps showing it).
+  const issueKey = issue && `${auth.session?.serverUrl}#${issue.kind}#${issue.minVersion}`;
+  const [confirmedIssue, setConfirmedIssue] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => webTabs.reset(), [auth.generation]);
@@ -81,17 +84,11 @@ export default function TabsLayout() {
     if (Platform.OS === 'ios' && openNotifications != null) expoPush.setBadge(openNotifications).catch(() => {});
   }, [openNotifications]);
 
-  // The compatibility warning once per server and app start, not on every poll.
-  useEffect(() => {
-    if (issue == null) return;
-    const key = `${auth.session?.serverUrl}#${issue.kind}#${issue.minVersion}`;
-    if (shownIssue.current === key) return;
-    shownIssue.current = key;
-    Alert.alert(compatibilityText(issue));
-  }, [issue, auth.session?.serverUrl]);
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'left', 'right']}>
+      {issue && issueKey !== confirmedIssue && (
+        <CompatibilityBanner issue={issue} onConfirm={() => setConfirmedIssue(issueKey)} />
+      )}
       <Tabs
         key={auth.generation}
         screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.background } }}
