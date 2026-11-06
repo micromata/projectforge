@@ -1,0 +1,195 @@
+diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
+--- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
++++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
+@@ -67,6 +67,9 @@
+     protected boolean injectedJavaScriptBeforeContentLoadedForMainFrameOnly = true;
+ 
+     protected boolean messagingEnabled = false;
++
++    /** ProjectForge patch: downloads go to the JS (onFileDownload) instead of the DownloadManager. */
++    public boolean hasOnFileDownload = false;
+     protected @Nullable
+     String messagingModuleName;
+     protected @Nullable
+diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
+--- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
++++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
+@@ -85,6 +85,25 @@
+ 
+     @Override
+     public boolean shouldOverrideUrlLoading(WebView view, String url) {
++        return shouldOverrideUrlLoading(view, url, null);
++    }
++
++    /**
++     * ProjectForge patch: the event tells whether the navigation is a redirect, was started by a gesture and is for
++     * the main frame (iOS has its navigationType, Android only these). Needed to tell the login of an SSO proxy (a
++     * redirect while a page loads) from a link the user tapped.
++     */
++    private WritableMap createShouldStartEvent(WebView view, String url, @Nullable WebResourceRequest request) {
++        final WritableMap event = createWebViewEvent(view, url);
++        if (request != null) {
++            event.putBoolean("isRedirect", request.isRedirect());
++            event.putBoolean("hasGesture", request.hasGesture());
++            event.putBoolean("isTopFrame", request.isForMainFrame());
++        }
++        return event;
++    }
++
++    private boolean shouldOverrideUrlLoading(WebView view, String url, @Nullable WebResourceRequest request) {
+         final RNCWebView rncWebView = (RNCWebView) view;
+         final boolean isJsDebugging = rncWebView.getReactApplicationContext().getJavaScriptContextHolder().get() == 0;
+ 
+@@ -93,7 +112,7 @@
+             final double lockIdentifier = lock.first;
+             final AtomicReference<RNCWebViewModuleImpl.ShouldOverrideUrlLoadingLock.ShouldOverrideCallbackState> lockObject = lock.second;
+ 
+-            final WritableMap event = createWebViewEvent(view, url);
++            final WritableMap event = createShouldStartEvent(view, url, request);
+             event.putDouble("lockIdentifier", lockIdentifier);
+             rncWebView.dispatchDirectShouldStartLoadWithRequest(event);
+ 
+@@ -127,7 +146,7 @@
+             int reactTag = RNCWebViewWrapper.getReactTagFromWebView(view);
+             UIManagerHelper.getEventDispatcherForReactTag((ReactContext) view.getContext(), reactTag).dispatchEvent(new TopShouldStartLoadWithRequestEvent(
+                     reactTag,
+-                    createWebViewEvent(view, url)));
++                    createShouldStartEvent(view, url, request)));
+             return true;
+         }
+     }
+@@ -135,7 +154,7 @@
+     @Override
+     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+         final String url = request.getUrl().toString();
+-        return this.shouldOverrideUrlLoading(view, url);
++        return this.shouldOverrideUrlLoading(view, url, request);
+     }
+ 
+     @Override
+diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt
+--- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt
++++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt
+@@ -92,6 +92,22 @@
+             WebView.setWebContentsDebuggingEnabled(true)
+         }
+         webView.setDownloadListener(DownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
++            if (webView.hasOnFileDownload) {
++                // ProjectForge patch: the app loads the file itself (own server only, no redirects), never the
++                // DownloadManager with the session cookie into the public downloads.
++                val data = com.facebook.react.bridge.Arguments.createMap()
++                data.putString("downloadUrl", url)
++                data.putString("mimeType", mimetype)
++                data.putString("contentDisposition", contentDisposition)
++                data.putString("suggestedFilename", URLUtil.guessFileName(url, contentDisposition, mimetype))
++                webView.dispatchEvent(
++                    webView,
++                    com.reactnativecommunity.webview.events.TopFileDownloadEvent(
++                        RNCWebViewWrapper.getReactTagFromWebView(webView), data
++                    )
++                )
++                return@DownloadListener
++            }
+             val module = webView.reactApplicationContext.getNativeModule(RNCWebViewModule::class.java) ?: return@DownloadListener
+             val request: DownloadManager.Request = try {
+                 DownloadManager.Request(Uri.parse(url))
+@@ -525,6 +541,10 @@
+     fun setShowsHorizontalScrollIndicator(viewWrapper: RNCWebViewWrapper, value: Boolean) {
+         val view = viewWrapper.webView
+         view.isHorizontalScrollBarEnabled = value
++    }
++
++    fun setHasOnFileDownload(viewWrapper: RNCWebViewWrapper, value: Boolean) {
++        viewWrapper.webView.hasOnFileDownload = value
+     }
+ 
+     fun setMessagingEnabled(viewWrapper: RNCWebViewWrapper, value: Boolean) {
+diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/events/TopFileDownloadEvent.kt b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/events/TopFileDownloadEvent.kt
+new file mode 100644
+--- /dev/null
++++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/events/TopFileDownloadEvent.kt
+@@ -0,0 +1,24 @@
++package com.reactnativecommunity.webview.events
++
++import com.facebook.react.bridge.WritableMap
++import com.facebook.react.uimanager.events.Event
++import com.facebook.react.uimanager.events.RCTEventEmitter
++
++/**
++ * ProjectForge patch: a download of the page, handed to the JS (onFileDownload, as on iOS).
++ */
++class TopFileDownloadEvent(viewId: Int, private val mEventData: WritableMap) :
++  Event<TopFileDownloadEvent>(viewId) {
++  companion object {
++    const val EVENT_NAME = "topFileDownload"
++  }
++
++  override fun getEventName(): String = EVENT_NAME
++
++  override fun canCoalesce(): Boolean = false
++
++  override fun getCoalescingKey(): Short = 0
++
++  override fun dispatch(rctEventEmitter: RCTEventEmitter) =
++    rctEventEmitter.receiveEvent(viewTag, eventName, mEventData)
++}
+diff --git a/node_modules/react-native-webview/android/src/newarch/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/newarch/com/reactnativecommunity/webview/RNCWebViewManager.java
+--- a/node_modules/react-native-webview/android/src/newarch/com/reactnativecommunity/webview/RNCWebViewManager.java
++++ b/node_modules/react-native-webview/android/src/newarch/com/reactnativecommunity/webview/RNCWebViewManager.java
+@@ -424,7 +424,9 @@
+     public void setTextInteractionEnabled(RNCWebViewWrapper view, boolean value) {}
+ 
+     @Override
+-    public void setHasOnFileDownload(RNCWebViewWrapper view, boolean value) {}
++    public void setHasOnFileDownload(RNCWebViewWrapper view, boolean value) {
++        mRNCWebViewManagerImpl.setHasOnFileDownload(view, value);
++    }
+ 
+     @Override
+     public void setMediaCapturePermissionGrantType(RNCWebViewWrapper view, @Nullable String value) {}
+@@ -539,6 +541,8 @@
+         export.put(TopRenderProcessGoneEvent.EVENT_NAME, MapBuilder.of("registrationName", "onRenderProcessGone"));
+         export.put(TopCustomMenuSelectionEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCustomMenuSelection"));
+         export.put(TopOpenWindowEvent.EVENT_NAME, MapBuilder.of("registrationName", "onOpenWindow"));
++        // ProjectForge patch: the downloads, see RNCWebViewManagerImpl.
++        export.put(com.reactnativecommunity.webview.events.TopFileDownloadEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFileDownload"));
+         return export;
+     }
+ 
+diff --git a/node_modules/react-native-webview/android/src/oldarch/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/oldarch/com/reactnativecommunity/webview/RNCWebViewManager.java
+--- a/node_modules/react-native-webview/android/src/oldarch/com/reactnativecommunity/webview/RNCWebViewManager.java
++++ b/node_modules/react-native-webview/android/src/oldarch/com/reactnativecommunity/webview/RNCWebViewManager.java
+@@ -179,6 +179,11 @@
+         mRNCWebViewManagerImpl.setMediaPlaybackRequiresUserAction(view, value);
+     }
+ 
++    @ReactProp(name = "hasOnFileDownload")
++    public void setHasOnFileDownload(RNCWebViewWrapper view, boolean value) {
++        mRNCWebViewManagerImpl.setHasOnFileDownload(view, value);
++    }
++
+     @ReactProp(name = "messagingEnabled")
+     public void setMessagingEnabled(RNCWebViewWrapper view, boolean value) {
+         mRNCWebViewManagerImpl.setMessagingEnabled(view, value);
+@@ -306,6 +311,8 @@
+         export.put(TopRenderProcessGoneEvent.EVENT_NAME, MapBuilder.of("registrationName", "onRenderProcessGone"));
+         export.put(TopCustomMenuSelectionEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCustomMenuSelection"));
+         export.put(TopOpenWindowEvent.EVENT_NAME, MapBuilder.of("registrationName", "onOpenWindow"));
++        // ProjectForge patch: the downloads, see RNCWebViewManagerImpl.
++        export.put(com.reactnativecommunity.webview.events.TopFileDownloadEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFileDownload"));
+         return export;
+     }
+ 
+diff --git a/node_modules/react-native-webview/src/WebView.android.tsx b/node_modules/react-native-webview/src/WebView.android.tsx
+--- a/node_modules/react-native-webview/src/WebView.android.tsx
++++ b/node_modules/react-native-webview/src/WebView.android.tsx
+@@ -271,6 +271,9 @@
+         onMessage={onMessage}
+         onOpenWindow={onOpenWindow}
+         hasOnOpenWindowEvent={onOpenWindowProp !== undefined}
++        // ProjectForge patch: downloads to the JS (onFileDownload passes with otherProps), see RNCWebViewManagerImpl.
++        // @ts-expect-error hasOnFileDownload is typed for iOS only
++        hasOnFileDownload={!!(otherProps as { onFileDownload?: unknown }).onFileDownload}
+         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+         ref={webViewRef}
+         // TODO: find a better way to type this.

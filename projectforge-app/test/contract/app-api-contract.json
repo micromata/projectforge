@@ -1,0 +1,26 @@
+{
+  "description": "The endpoints the app (projectforge-app) calls, checked by AppTsApiContractTest in projectforge-application. The fields it reads and sends are the TypeScript interfaces of projectforge-shared/src/rs (each with @server or @request and its Kotlin class), checked by the same test. Removing or renaming any of them breaks the published app: see dev-docs/app-api-deprecations.md.",
+  "contracts": [
+    {
+      "name": "App login and session",
+      "endpoints": [
+        {
+          "call": "POST /rsPublic/appAuth/token",
+          "controller": "org.projectforge.rest.app.AppAuthPublicRest"
+        },
+        {
+          "call": "GET /rsPublic/systemStatus",
+          "controller": "org.projectforge.rest.pub.SystemStatusRest"
+        },
+        {
+          "call": "POST /rs/appAuth/logout",
+          "controller": "org.projectforge.rest.app.AppAuthRest"
+        },
+        {
+          "call": "POST /rs/appAuth/webSession",
+          "controller": "org.projectforge.rest.app.AppAuthRest"
+        }
+      ]
+    }
+  ]
+}
