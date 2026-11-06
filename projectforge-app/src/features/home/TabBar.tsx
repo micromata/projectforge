@@ -58,8 +58,9 @@ export function compatibilityText(issue: CompatibilityIssue): string {
 }
 
 /**
- * The navigation of the app: slim, icons only (the label is their accessibility label), with the browser functions of
- * a web tab and the menu of the account at its end, so they are there on every tab (the pages bring their own header).
+ * The navigation of the app: slim, icons only (the label is their accessibility label), with the bell and the "more"
+ * menu at its end (on a web tab with the browser functions first), so they are there on every tab (the pages bring
+ * their own header).
  * The chat tab is missing if the chat is switched off on the server; tapped again it leads back to its rooms.
  */
 export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: CompatibilityIssue | null }) {
@@ -68,7 +69,7 @@ export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: C
   const router = useRouter();
   const { status } = useUserStatus();
   const webStates = useWebTabStates();
-  const [menu, setMenu] = useState<'browser' | 'more' | null>(null);
+  const [menu, setMenu] = useState(false);
   const focused = state.routes[state.index]?.name;
   const webTab = focused ? TABS[focused]?.webTab : undefined;
   const unread = status?.chatUnread ?? 0;
@@ -95,7 +96,9 @@ export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: C
     ];
   };
 
+  /** On a web tab the browser functions first, then the account, the settings and the logout (as in the Flutter app). */
   const moreItems = (): MenuItem[] => [
+    ...(webTab ? browserItems() : []),
     { key: 'version', label: t('app.version', appVersion), info: true },
     ...(issue ? [{ key: 'compatibility', label: compatibilityText(issue), icon: 'warning-outline' as IconName, info: true }] : []),
     { key: 'servers', label: t('app.server.switch'), icon: 'swap-horizontal', onPress: () => router.push('/servers') },
@@ -145,11 +148,6 @@ export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: C
         );
       })}
       <View style={styles.spacer} />
-      {webTab && (
-        <Pressable style={styles.item} accessibilityLabel={t('app.menu.more')} onPress={() => setMenu('browser')}>
-          <Ionicons name="compass-outline" size={24} color={colors.textMuted} />
-        </Pressable>
-      )}
       <Pressable
         style={styles.item}
         accessibilityLabel={t('notification.center')}
@@ -171,14 +169,10 @@ export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: C
           </View>
         )}
       </Pressable>
-      <Pressable style={styles.item} accessibilityLabel={t('app.menu.more')} onPress={() => setMenu('more')}>
+      <Pressable style={styles.item} accessibilityLabel={t('app.menu.more')} onPress={() => setMenu(true)}>
         <Ionicons name="ellipsis-horizontal-circle-outline" size={24} color={issue ? colors.danger : colors.textMuted} />
       </Pressable>
-      <MenuSheet
-        visible={menu != null}
-        items={menu === 'browser' ? browserItems() : menu === 'more' ? moreItems() : []}
-        onClose={() => setMenu(null)}
-      />
+      <MenuSheet visible={menu} items={menu ? moreItems() : []} onClose={() => setMenu(false)} />
     </View>
   );
 }
