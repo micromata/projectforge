@@ -218,7 +218,7 @@ class NotificationSchedule(
 class NotificationParams(
     /** All rule types: the link of the notifications ("Open" in the app). */
     var linkMode: LinkMode = LinkMode.DEFAULT,
-    /** [LinkMode.MENU_ITEM]: the id of the menu item (`MenuItemDefId`) linked to. */
+    /** [LinkMode.MENU_ITEM]: the id of the menu item (`MenuItemDef.id`, also of a plugin) linked to. */
     var linkMenuItem: String? = null,
 ) {
     /** The values of the params of the rule type by key, read through [NotificationRuleParam]. */

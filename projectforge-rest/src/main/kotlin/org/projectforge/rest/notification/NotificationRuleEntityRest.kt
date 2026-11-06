@@ -44,7 +44,7 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.menu.builder.MenuItemDefId
+import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
@@ -187,6 +187,9 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     private lateinit var caches: PfCaches
 
     @Autowired
+    private lateinit var menuCreator: MenuCreator
+
+    @Autowired
     private lateinit var notificationDao: NotificationDao
 
     @Autowired
@@ -252,7 +255,7 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
             validationErrors += ValidationError(translate("notification.rule.error.delay"), fieldId = "deliverySteps")
         }
         if (dto.linkMode == NotificationParams.LinkMode.MENU_ITEM &&
-            MenuItemDefId.entries.none { it.id == dto.linkMenuItem && it.url != null }
+            dto.linkMenuItem?.let { menuCreator.findById(it)?.url } == null
         ) {
             validationErrors += required("linkMenuItem", "notification.rule.link")
         }
@@ -319,12 +322,12 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         return SmsInfo(smsSenderConfig.isSmsConfigured(), smsSenderConfig.smsMaxMessageLength)
     }
 
-    /** The menu items selectable as menu badge, sorted by their translated labels. */
+    /** The menu items selectable as menu badge (also those of the plugins), sorted by their translated labels. */
     @AccessChecked("DAO: NotificationRuleDao insert access (admin/finance, checkInsertAccess)")
     @GetMapping("menuBadges")
     fun getMenuBadges(): List<MenuBadgeOption> {
         checkInsertAccess()
-        return MenuItemDefId.entries.filter { it.url != null }
+        return menuCreator.menuItemDefsWithUrl()
             .map { MenuBadgeOption(it.id, translate(it.i18nKey)) }
             .sortedBy { it.label.lowercase() }
     }

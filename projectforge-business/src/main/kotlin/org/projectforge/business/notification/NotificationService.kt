@@ -34,7 +34,9 @@ import org.projectforge.framework.utils.HtmlSanitizer
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.mail.MailSendException
 import org.projectforge.business.push.PushNotifier
+import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDefId
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -76,6 +78,10 @@ class NotificationService {
 
     @Autowired
     private lateinit var registry: NotificationRuleRegistry
+
+    // A provider: the menu depends on beans (e.g. of the chat) depending on this service.
+    @Autowired
+    private lateinit var menuCreatorProvider: ObjectProvider<MenuCreator>
 
     @Autowired
     private lateinit var senderList: List<NotificationChannelSender>
@@ -620,7 +626,7 @@ class NotificationService {
         return when (params.linkMode) {
             NotificationParams.LinkMode.DEFAULT -> evaluation?.linkFor(user)
             NotificationParams.LinkMode.NONE -> null
-            NotificationParams.LinkMode.MENU_ITEM -> MenuItemDefId.entries.find { it.id == params.linkMenuItem }?.url
+            NotificationParams.LinkMode.MENU_ITEM -> params.linkMenuItem?.let { menuCreatorProvider.getObject().findById(it)?.url }
         }
     }
 

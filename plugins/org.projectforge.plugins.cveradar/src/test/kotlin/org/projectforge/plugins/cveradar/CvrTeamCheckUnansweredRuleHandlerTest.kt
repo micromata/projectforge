@@ -25,6 +25,7 @@
 package org.projectforge.plugins.cveradar
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -48,6 +49,7 @@ import org.projectforge.business.notification.NotificationStatus
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrCaseKind
 import org.projectforge.plugins.cveradar.model.CvrCaseStatus
@@ -208,6 +210,23 @@ class CvrTeamCheckUnansweredRuleHandlerTest : CveRadarTestBase() {
         assertTrue(type.templateSubject!!.contains("{{cvrCaseCode}}"), type.templateSubject)
         val types = ruleRest.getRuleTypes().map { it.key }
         assertTrue(types.indexOf(CvrFindingsRuleHandler.TYPE) < types.indexOf(ManualRuleHandler.TYPE), "$types")
+    }
+
+    @Test
+    fun `the menu entry of the plugin is offered as menu badge and as link`() {
+        logon(TEST_FINANCE_USER)
+        val id = CveRadarPlugin.ID
+        assertTrue(ruleRest.getMenuBadges().any { it.id == id }, "menu badges")
+        assertTrue(ruleRest.getMenuBadges().any { it.id == MenuItemDefId.POLL.id }, "menu badges of the core")
+        val dto = NotificationRule().also {
+            it.copyFrom(rule(null))
+            it.params = emptyMap()
+            it.linkMode = NotificationParams.LinkMode.MENU_ITEM
+        }
+        dto.linkMenuItem = id
+        assertFalse("linkMenuItem" in errors(dto))
+        dto.linkMenuItem = "unknown"
+        assertTrue("linkMenuItem" in errors(dto))
     }
 
     private fun errors(dto: NotificationRule): List<String?> =

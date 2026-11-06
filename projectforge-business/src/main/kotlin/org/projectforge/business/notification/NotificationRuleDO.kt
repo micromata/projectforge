@@ -105,7 +105,10 @@ open class NotificationRuleDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(name = "manual_done", nullable = false)
     open var manualDone: Boolean = false
 
-    /** The id of a menu item (`MenuItemDefId`), whose counter shows the pending notifications of this rule. */
+    /**
+     * The id of a menu item (`MenuItemDef.id`, also of a plugin), whose counter shows the pending notifications of this
+     * rule.
+     */
     @PropertyInfo(i18nKey = "notification.rule.menuBadge")
     @get:Column(name = "menu_badge", length = 100)
     open var menuBadge: String? = null
