@@ -28,11 +28,6 @@
  * scripts, and of flutter_inappwebview without the navigator) breaks the DOM React of next manages. The page's CSP
  * doesn't apply to scripts the app evaluates; the style element needs 'unsafe-inline' for styles (given).
  *
- * WebKit doesn't repaint the text of a range that leaves a highlight (or joins one) when the highlight is replaced:
- * the marks of an earlier query stayed, the current match was painted in part only. The elements of the old and the
- * new ranges get an attribute for two frames whose rule (a transparent outline) makes WebKit paint them again; an
- * attribute, not a class, as React of next manages the class names.
- *
  * The script answers by postMessage: `{ pf: 'find', count, index }`.
  */
 export function findScript(query: string, direction: 'first' | 'next' | 'previous' | 'clear'): string {
@@ -48,28 +43,13 @@ export function findScript(query: string, direction: 'first' | 'next' | 'previou
     var style = document.createElement('style');
     style.id = 'pf-find-style';
     style.textContent = '::highlight(pf-find){background-color:rgba(255,213,0,.55)}' +
-      '::highlight(pf-find-current){background-color:rgba(255,140,0,.9)}' +
-      '[data-pf-find-repaint]{outline:1px solid transparent}';
+      '::highlight(pf-find-current){background-color:rgba(255,140,0,.9)}';
     (document.head || document.documentElement).appendChild(style);
   }
   var query = ${JSON.stringify(query)}, direction = ${JSON.stringify(direction)};
-  var dirty = [];
-  function touch(ranges) {
-    ranges.forEach(function (range) {
-      var element = range.startContainer.parentElement;
-      if (element && dirty.indexOf(element) < 0) dirty.push(element);
-    });
-  }
-  function repaint() {
-    dirty.forEach(function (element) { element.setAttribute('data-pf-find-repaint', ''); });
-    requestAnimationFrame(function () { requestAnimationFrame(function () {
-      dirty.forEach(function (element) { element.removeAttribute('data-pf-find-repaint'); });
-    }); });
-  }
-  touch(state.ranges);
   if (direction === 'clear' || !query) {
     CSS.highlights.delete('pf-find'); CSS.highlights.delete('pf-find-current');
-    state.ranges = []; state.index = -1; state.query = ''; repaint(); answer(); return;
+    state.ranges = []; state.index = -1; state.query = ''; answer(); return;
   }
   if (direction === 'first' || query !== state.query) {
     state.ranges = []; state.query = query;
@@ -99,8 +79,6 @@ export function findScript(query: string, direction: 'first' | 'next' | 'previou
     var element = current.startContainer.parentElement;
     element && element.scrollIntoView({ block: 'center', behavior: 'smooth' });
   } else { CSS.highlights.delete('pf-find-current'); }
-  touch(state.ranges);
-  repaint();
   answer();
 })(); true;`;
 }
