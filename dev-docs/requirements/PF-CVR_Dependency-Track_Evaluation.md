@@ -7,7 +7,7 @@
 | Status | Draft 0.1 (decision paper, not decided) |
 | Owner | Kai Reinhard |
 | Date | 2026-11-06 |
-| Related | [PF-CVR_CVE-Radar_Vulnerability_Management.md](PF-CVR_CVE-Radar_Vulnerability_Management.md) (spec, requirement IDs below refer to it), [PF-CHAT_Chat_Discussion.md](PF-CHAT_Chat_Discussion.md) |
+| Related | [PF-CVR_CVE-Radar_Vulnerability_Management.md](PF-CVR_CVE-Radar_Vulnerability_Management.md) (spec, requirement IDs below refer to it), [PF-CHAT_Chat_Discussion.md](PF-CHAT_Chat_Discussion.md), [PF-CVR_Dependency-Track_Migration.md](PF-CVR_Dependency-Track_Migration.md) (migration plan) |
 
 ---
 
@@ -81,7 +81,7 @@ Legend: **DT** – DT covers it as well or better; **PF** – PF covers it, DT d
 | INV-14/15 SBOM upload, CI upload with token | Core function; API keys per team or service account, workload identity federation. Keys not scopable to one project. | Upload into PF; CI token per system specified, not implemented. | **both**: see section 6 |
 | INV-26/27/33 lockfiles, build lists, jar listings | CycloneDX only (SPDX: verify). | `LibraryListParser`. | **PF** as converter to CycloneDX |
 | INV-17, EXT-04..07 clients, devices, agent checks | No device or agent concept. | Graylog connector. | **PF** |
-| INV-28..32 technology catalogue | Not needed: precise purl matching, repository metadata ("outdated"). | Curated catalogue for estimates. | **DT** (catalogue can mostly go) |
+| INV-28..32 technology catalogue | Not needed: precise purl matching, repository metadata ("outdated"). | Curated catalogue for estimates. | **both**: DT matches; the catalogue stays as CPE source of the BOM export and for MAT-11 |
 | INV-34 own artifacts never looked up externally | "Internal components" are excluded from external analysers (verify scope). | Name patterns. | **DT**, configured |
 | MAT-01..03, 06, 12 matching, possibly affected | Mature CPE/purl matching with version ranges. | Own matching. | **DT** |
 | MAT-04/05, 13 finding status workflow, reasons, reopen | Analysis states, justification, vendor response, audit trail. No approval step for "risk accepted". | Workflow with SO approval. | **both**: PF leads, DT mirrors (7.3) |
@@ -267,6 +267,9 @@ DT's VEX export, policy evaluation and metrics stay consistent.
 | Mitigated | NOT_AFFECTED | PROTECTED_BY_MITIGATING_CONTROL, response WORKAROUND_AVAILABLE |
 | Risk accepted (SO approved) | EXPLOITABLE | response WILL_NOT_FIX, suppressed |
 
+The table follows the statuses of MAT-04. Findings implement only New and Discarded so far; the rest of the workflow
+lives in the case and the team checks, from which the migration plan derives the analysis (its section 4.4).
+
 Analysis changes made directly in DT arrive via `PROJECT_AUDIT_CHANGE` and the pull; PF takes them over only for
 findings not yet worked on in PF and otherwise reports them to the security team as a conflict.
 
@@ -322,12 +325,11 @@ reverse proxy or via an internal CA whose certificate PF gets in its truststore.
 |---|---|---|
 | NVD and OSV import (`sync/Nvd*`, `sync/Osv*`), CPE/purl index (`CvrCpeMatchDO`, `CvrPurlMatchDO`), `CvrOsvAdvisoryDO` | Inventory (area … component), confidentiality, inheritance | DT client, configuration, health in the system status |
 | `CvrMatchingService`, `VersionComparator` (unless CPE-only systems need it, 7.1) | Cases, ratings, priorities, measures, AI export/import | Webhook endpoint, reconciliation job, upload tokens and SBOM endpoint (section 6) |
-| Most of the technology catalogue (INV-28..32) | Team checks, confirmations, closure overview | BOM export per instance (CycloneDX writer) |
+| – (the technology catalogue stays: CPE source of the BOM export, framework exclusion of MAT-11) | Team checks, confirmations, closure overview, technology catalogue | BOM export per instance (CycloneDX writer) |
 | Ad-hoc check, or routed to a temporary DT project | `LibraryListParser` as converter to CycloneDX | Analysis write-back, conflict handling |
-| Corresponding Next.js pages (catalogue, parts of the vulnerability view) and Flyway tables (drop migration) | Graylog devices, notification rules, chat hosts, EUVD (optional) | System messages in the chat; escalation (ESC, open anyway); EPSS in `CvrPriorityRule` (PRIO-01) and in the threshold of check requests (MAT-11), needed with or without DT |
+| Corresponding Next.js parts of the vulnerability view; their tables in the Flyway scripts, changed in place while the CVE-Radar is unreleased | Graylog devices, notification rules, chat hosts, EUVD (optional) | System messages in the chat; escalation (ESC, open anyway); EPSS in `CvrPriorityRule` (PRIO-01) and in the threshold of check requests (MAT-11), needed with or without DT |
 
-Estimate for the retirement: about 5–7k LOC backend plus tests, catalogue and parts of the vulnerability pages in
-Next.js. The new integration is roughly 2–3k LOC backend plus 0.5–1k LOC for upload tokens (section 6); the workflow parts are unchanged.
+Estimate for the retirement: about 5–7k LOC backend plus tests and parts of the vulnerability pages in Next.js. The new integration is roughly 2–3k LOC backend plus 0.5–1k LOC for upload tokens (section 6); the workflow parts are unchanged.
 
 ## 9. Risks and costs
 
@@ -367,8 +369,7 @@ uploaded. To check:
 Recommended: the hybrid of section 7, introduced in stages, so the CVE-Radar keeps working throughout.
 
 1. **Spike** (section 10), decision based on its results.
-2. **Parallel operation:** DT as a second matching source; findings from DT are marked and compared with the own
-   matching for some weeks.
-3. **Switch:** DT becomes the only matching source; the parts of section 8 are retired (drop migration in the
-   release that ships it).
-4. **Build** escalation (ESC) and system chat messages on the PF side, independent of DT.
+2. **Switch without parallel operation:** the CVE-Radar is unreleased, so the comparison with the own matching is
+   done once in the spike; DT becomes the only matching source and the parts of section 8 are retired, the Flyway
+   scripts are changed in place. Plan: [PF-CVR_Dependency-Track_Migration.md](PF-CVR_Dependency-Track_Migration.md).
+3. **Build** escalation (ESC) and system chat messages on the PF side, independent of DT.
