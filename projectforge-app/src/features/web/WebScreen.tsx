@@ -24,6 +24,8 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Platform, Share, StyleSheet, View } from 'react-native';
 import RNWebView, { WebViewMessageEvent, WebViewNavigation } from 'react-native-webview';
+
+import PfNative from '../../../modules/pf-native/src/PfNativeModule';
 import type {
   FileDownloadEvent,
   ShouldStartLoadRequest,
@@ -488,9 +490,16 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       if (shownUrl.current && navigation.isSameOrigin(shownUrl.current)) startServerPageLoad(shownUrl.current);
       webView.current?.reload();
     },
+    // iOS: the find navigator of WebKit (findInPage.ts marked wrong there), else the bar with the script.
     openFind: () => {
-      setFindResult(null);
-      setFinding(true);
+      const showBar = () => {
+        setFindResult(null);
+        setFinding(true);
+      };
+      if (Platform.OS !== 'ios') return showBar();
+      PfNative.presentFindNavigator()
+        .then((shown) => shown || showBar())
+        .catch(showBar);
     },
     share: () => {
       if (shownUrl.current) void Share.share({ url: shownUrl.current, message: shownUrl.current });

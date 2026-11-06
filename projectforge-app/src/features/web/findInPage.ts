@@ -22,8 +22,9 @@
 /////////////////////////////////////////////////////////////////////////////
 
 /**
- * The search in the page, in JavaScript: react-native-webview has no API for it (neither the find navigator of
- * WebKit, iOS 16+, nor WebView.findAllAsync of Android). The matches are marked with the CSS Custom Highlight API
+ * The search in the page, in JavaScript, on Android: react-native-webview has no API for it (no
+ * WebView.findAllAsync). iOS has the find navigator of WebKit (PfNativeModule.presentFindNavigator): the highlights of
+ * this script were painted wrong there (whole words, the marks of earlier queries kept). The matches are marked with the CSS Custom Highlight API
  * (Safari 17.2+, Chrome 105+), which leaves the DOM alone: wrapping them into elements of its own (the way of most
  * scripts, and of flutter_inappwebview without the navigator) breaks the DOM React of next manages. The page's CSP
  * doesn't apply to scripts the app evaluates; the style element needs 'unsafe-inline' for styles (given).

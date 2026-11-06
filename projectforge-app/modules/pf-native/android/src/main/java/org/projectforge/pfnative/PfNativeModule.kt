@@ -92,5 +92,8 @@ class PfNativeModule : Module() {
 
     // No APNs on Android.
     Function("apsEnvironment") { null as String? }
+
+    // The search in the page of Android is the script of the app (findInPage.ts).
+    AsyncFunction("presentFindNavigator") { false }
   }
 }

@@ -54,6 +54,9 @@ declare class PfNativeModule extends NativeModule<Record<string, never>> {
    * (store, TestFlight: production) and on Android.
    */
   apsEnvironment(): 'SANDBOX' | 'PRODUCTION' | null;
+
+  /** Shows the find navigator of WebKit for the WebView on screen (iOS); false if there is none (always on Android). */
+  presentFindNavigator(): Promise<boolean>;
 }
 
 export default requireNativeModule<PfNativeModule>('PfNative');

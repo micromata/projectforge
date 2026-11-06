@@ -87,6 +87,44 @@ public class PfNativeModule: Module {
     Function("apsEnvironment") { () -> String? in
       Self.apsEnvironment()
     }
+
+    /// The find navigator of WebKit (as in Safari) for the WebView on screen. Answers false if there is none.
+    AsyncFunction("presentFindNavigator") { () async -> Bool in
+      await self.presentFindNavigator()
+    }
+  }
+
+  /// The search in the page by WebKit itself: the marks of the CSS Custom Highlight API (the script of the app,
+  /// findInPage.ts) were painted wrong on iOS, whole words marked, the marks of earlier queries kept.
+  @MainActor
+  private func presentFindNavigator() -> Bool {
+    guard let window = UIApplication.shared.connectedScenes
+      .compactMap({ ($0 as? UIWindowScene)?.keyWindow }).first,
+      let webView = Self.visibleWebView(in: window, window: window)
+    else {
+      return false
+    }
+    webView.isFindInteractionEnabled = true
+    webView.findInteraction?.presentFindNavigator(showingReplace: false)
+    return true
+  }
+
+  /// The WebView of the tab shown: the one covering most of the window (the other tabs are hidden or off screen).
+  @MainActor
+  private static func visibleWebView(in view: UIView, window: UIWindow) -> WKWebView? {
+    var best: (WKWebView, CGFloat)?
+    func visit(_ view: UIView) {
+      if view.isHidden || view.alpha < 0.01 { return }
+      if let webView = view as? WKWebView {
+        let visible = webView.convert(webView.bounds, to: window).intersection(window.bounds)
+        let area = visible.isNull ? 0 : visible.width * visible.height
+        if area > 0 && area > (best?.1 ?? 0) { best = (webView, area) }
+        return
+      }
+      view.subviews.forEach(visit)
+    }
+    visit(view)
+    return best?.0
   }
 
   private static func apsEnvironment() -> String? {
