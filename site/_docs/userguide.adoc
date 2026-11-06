@@ -1086,6 +1086,9 @@ template.
 Missing data (e. g. the address of the customer or the bank account of the seller) is reported
 before the export. *Fill in from account* takes over the e-invoice data from the customer's account.
 
+After the export, the generated file is checked by the E-Invoice Checker automatically. A dialog
+reports whether it is valid, with warnings or with errors; the file is downloaded in any case.
+
 The *E-Invoice Checker* (_Finance > E-Invoice Checker_) displays the content of any ZUGFeRD PDF or
 XRechnung XML file (seller, buyer, positions, amounts, attachments) and checks the most important
 mandatory fields. It's not a replacement for a full official validation.

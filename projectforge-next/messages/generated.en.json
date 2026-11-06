@@ -2608,6 +2608,9 @@
       "discountPercent": "Discount percent",
       "discountZahlungsZiel": "Discount payment target",
       "eInvoice": {
+        "check": {
+          "title": "Check of the generated e-invoice"
+        },
         "createAndOpen": "Create and e-invoice",
         "error": {
           "bankAccountNotConfigured": "No bank account of the seller is configured (projectforge.einvoice.seller.bankAccounts). An administrator has to add one.",

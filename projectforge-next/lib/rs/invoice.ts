@@ -10,7 +10,12 @@
  */
 
 import { request } from "./client";
-import { downloadFile, downloadPost } from "./download";
+import {
+  downloadFile,
+  downloadFileKeeping,
+  downloadPost,
+  type DownloadedFile,
+} from "./download";
 import {
   recalculateInvoiceSums,
   type InvoicePositionSums,
@@ -269,8 +274,8 @@ export function fetchEInvoiceValidation(
 export function downloadXRechnung(
   id: number,
   signal?: AbortSignal
-): Promise<void> {
-  return downloadFile(
+): Promise<DownloadedFile> {
+  return downloadFileKeeping(
     `/rs/outgoingInvoice/eInvoice/${id}/xrechnung`,
     { method: "GET" },
     signal
@@ -288,9 +293,9 @@ export function downloadZugferd(
   id: number,
   variant: string,
   signal?: AbortSignal
-): Promise<void> {
+): Promise<DownloadedFile> {
   const query = variant ? `?variant=${encodeURIComponent(variant)}` : "";
-  return downloadFile(
+  return downloadFileKeeping(
     `/rs/outgoingInvoice/eInvoice/${id}/zugferd${query}`,
     { method: "GET" },
     signal

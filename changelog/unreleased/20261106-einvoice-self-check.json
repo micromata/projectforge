@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Creating an e-invoice (XRechnung, ZUGFeRD) now runs the e-invoice checker over the generated file and shows the result (valid, warnings or errors) in a dialog.",
+  "de": "Beim Erzeugen einer E-Rechnung (XRechnung, ZUGFeRD) prüft der E-Rechnungs-Checker jetzt die erzeugte Datei und zeigt das Ergebnis (gültig, Warnungen oder Fehler) in einem Dialog."
+}

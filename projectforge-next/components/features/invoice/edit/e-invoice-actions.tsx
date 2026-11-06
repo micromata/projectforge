@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -10,6 +11,10 @@ import {
   downloadZugferd,
   type EInvoiceValidation,
 } from "@/lib/rs/invoice";
+import {
+  uploadEInvoice,
+  type EInvoiceCheckResult,
+} from "@/lib/rs/e-invoice-checker";
 import { fetchInvoicePdfInfo, invoicePdfQueryKey } from "@/lib/rs/invoice-pdf";
 import type { SubmitMeta } from "@/lib/rs/submit-meta";
 import { ExportButton } from "@/components/shared/export-button";
@@ -21,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useInvoiceFormDefaults } from "../use-invoice-form-defaults";
 import { variantLabel } from "./invoice-export-menu";
+import { EInvoiceCheckDialog } from "./e-invoice-check-dialog";
 
 /**
  * The two buttons of the e-invoice section: save the form, then build the e-invoice from what was saved —
@@ -70,6 +76,10 @@ export function EInvoiceActions({
   });
   const chooseTemplate = variants.length > 1 && invoicePdf.data?.pdf == null;
 
+  const [checkResult, setCheckResult] = useState<EInvoiceCheckResult | null>(
+    null
+  );
+
   const run = useMutation({
     mutationFn: async ({
       kind,
@@ -99,9 +109,18 @@ export function EInvoiceActions({
         toast.error(t("fibu.rechnung.eInvoice.validationErrors"));
         return;
       }
-      await (kind === "xrechnung"
+      const file = await (kind === "xrechnung"
         ? downloadXRechnung(invoiceId)
         : downloadZugferd(invoiceId, variant));
+      // The checker reads the generated file back, as it would any file handed to it. The download is done
+      // by now, so a check that fails to run costs the user a message, not the document.
+      try {
+        setCheckResult(
+          await uploadEInvoice(new File([file.blob], file.filename))
+        );
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : String(error));
+      }
     },
     // The backend's own answer — for a refused export the list of what is missing, which `downloadFile`
     // carries out of the response body (see lib/rs/download.ts).
@@ -116,6 +135,10 @@ export function EInvoiceActions({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      <EInvoiceCheckDialog
+        result={checkResult}
+        onClose={() => setCheckResult(null)}
+      />
       {EXPORTS.map(({ kind, labelKey }) =>
         kind === "zugferd" && chooseTemplate ? (
           <DropdownMenu key={kind}>

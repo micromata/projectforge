@@ -6,6 +6,7 @@ import {
   fetchFormDefaults,
   removeInvoice,
 } from "./fixtures/invoice";
+import { xRechnungFile } from "./fixtures/e-invoice";
 import type { Page } from "@playwright/test";
 
 /**
@@ -219,6 +220,65 @@ test.describe("outgoing invoice e-invoice", { tag: "@parallel" }, () => {
       await expect(checklist).toBeVisible();
       await city.fill("Kassel-Wilhelmshöhe");
       await expect(checklist).toHaveCount(0);
+    } finally {
+      await removeInvoice(page, id);
+    }
+  });
+
+  test("checks the generated XRechnung and shows the verdict in a dialog", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const { t } = format;
+    let id: number | null = null;
+    try {
+      id = await createInvoice(
+        page,
+        [{ number: 1, text: `${SUBJECT} 1`, menge: 1, einzelNetto: 100 }],
+        { subject: SUBJECT }
+      );
+      // A test instance configures no seller and the invoice is planned, so a real export is refused. The
+      // two answers that depend on that are replaced; the save and the checker upload stay the live ones,
+      // and the checker reads the file the export would have handed out.
+      const file = xRechnungFile();
+      await page.route("**/rs/outgoingInvoice/eInvoice/*/validate", (route) =>
+        route.fulfill({ json: { configured: true, errors: [] } })
+      );
+      await page.route("**/rs/outgoingInvoice/eInvoice/*/xrechnung", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: file.mimeType,
+          headers: {
+            "Content-Disposition": `attachment; filename="${file.name}"`,
+          },
+          body: file.buffer,
+        })
+      );
+      await goto(page, `/invoice/${id}`);
+      await waitForForm(page, format);
+
+      const download = page.waitForEvent("download");
+      await page
+        .getByRole("button", {
+          name: t("fibu.rechnung.eInvoice.saveAndXRechnung"),
+        })
+        .click();
+      expect((await download).suggestedFilename()).toBe(file.name);
+
+      const dialog = page.getByTestId("e-invoice-check-dialog");
+      await expect(dialog).toBeVisible();
+      await expect(
+        dialog.getByText(t("fibu.rechnung.eInvoice.check.title"))
+      ).toBeVisible();
+      await expect(dialog).toContainText(file.name);
+      // The verdict is the checker's: valid, or the reasons — either way it names the file's own invoice.
+      await expect(
+        dialog.getByText(
+          new RegExp(
+            `${t("fibu.eInvoiceChecker.valid")}|${t("fibu.eInvoiceChecker.invalid")}`
+          )
+        )
+      ).toBeVisible();
     } finally {
       await removeInvoice(page, id);
     }

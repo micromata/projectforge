@@ -1113,6 +1113,9 @@ Word-Vorlage erzeugte PDF.
 Fehlende Daten (z. B. die Adresse des Kunden oder die Bankverbindung des Verkäufers) werden vor dem Export
 gemeldet. *Aus Konto ergänzen* übernimmt die E-Rechnungsdaten aus dem Konto des Kunden.
 
+Nach dem Export prüft der E-Rechnungs-Checker die erzeugte Datei automatisch. Ein Dialog meldet, ob sie
+gültig ist, Warnungen oder Fehler enthält; die Datei wird in jedem Fall heruntergeladen.
+
 Der *E-Rechnungs-Checker* (_Fibu > E-Rechnungs-Checker_) zeigt den Inhalt beliebiger ZUGFeRD-PDF- oder
 XRechnung-XML-Dateien an (Verkäufer, Käufer, Positionen, Beträge, Anhänge) und prüft die wichtigsten
 Pflichtfelder. Eine vollständige offizielle Validierung ersetzt er nicht.

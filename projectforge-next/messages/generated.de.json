@@ -2608,6 +2608,9 @@
       "discountPercent": "Skonto Prozent",
       "discountZahlungsZiel": "Skonto Zahlungsziel",
       "eInvoice": {
+        "check": {
+          "title": "Prüfung der erzeugten E-Rechnung"
+        },
         "createAndOpen": "Anlegen und E-Rechnung",
         "error": {
           "bankAccountNotConfigured": "Es ist kein Bankkonto des Verkäufers konfiguriert (projectforge.einvoice.seller.bankAccounts). Ein Administrator muss eines hinterlegen.",
