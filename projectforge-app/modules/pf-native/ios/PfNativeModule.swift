@@ -22,10 +22,12 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import ExpoModulesCore
+import PassKit
 import WebKit
 
 /// The cookie jar and the website data of the WebViews (WKWebsiteDataStore.default(), the store react-native-webview
-/// uses without incognito). @react-native-cookies/cookies would do it, but doesn't support the New Architecture.
+/// uses without incognito; @react-native-cookies/cookies would do it, but doesn't support the New Architecture), the
+/// Apple Wallet and the key chain items of the Flutter app.
 public class PfNativeModule: Module {
   /// A WebView without a page, alive as long as the app: iOS hands the cookies to the network process of the
   /// WebViews, which is torn down with the last WebView; setting cookies then waited for a new one (seen in the
@@ -51,6 +53,14 @@ public class PfNativeModule: Module {
     /// Removes all cookies, caches and web storage (localStorage, IndexedDB, …) of the WebViews (logout).
     AsyncFunction("clearAll") { () async in
       await self.clearAll()
+    }
+
+    /// Shows the system sheet to add the pass (a `.pkpass` file at [fileUrl]) to the Wallet.
+    AsyncFunction("addPass") { (fileUrl: String) async throws in
+      guard let url = URL(string: fileUrl), let data = try? Data(contentsOf: url) else {
+        throw WalletException("The pass can't be read.")
+      }
+      try await self.addPass(data)
     }
 
     /// A key chain item of the Flutter app (flutter_secure_storage: generic password, service [service], account
@@ -79,6 +89,26 @@ public class PfNativeModule: Module {
       kSecAttrService as String: service,
       kSecAttrAccount as String: key,
     ]
+  }
+
+  @MainActor
+  private func addPass(_ data: Data) throws {
+    guard PKAddPassesViewController.canAddPasses() else { throw WalletException("Wallet is not available.") }
+    let pass: PKPass
+    do {
+      pass = try PKPass(data: data)
+    } catch {
+      throw WalletException(error.localizedDescription)
+    }
+    if PKPassLibrary().containsPass(pass) { throw WalletException("The pass is already in the Wallet.") }
+    guard let controller = PKAddPassesViewController(pass: pass),
+      var top = UIApplication.shared.connectedScenes
+        .compactMap({ ($0 as? UIWindowScene)?.keyWindow?.rootViewController }).first
+    else {
+      throw WalletException("The pass can't be shown.")
+    }
+    while let presented = top.presentedViewController { top = presented }
+    top.present(controller, animated: true)
   }
 
   @MainActor
@@ -131,4 +161,9 @@ public class PfNativeModule: Module {
 
 internal final class InvalidUrlException: GenericException<String>, @unchecked Sendable {
   override var reason: String { "Invalid url: \(param)" }
+}
+
+/// A pass the Wallet refused or couldn't show, with the reason of iOS.
+internal final class WalletException: GenericException<String>, @unchecked Sendable {
+  override var reason: String { param }
 }

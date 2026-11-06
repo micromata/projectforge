@@ -19,6 +19,40 @@
         {
           "call": "POST /rs/appAuth/webSession",
           "controller": "org.projectforge.rest.app.AppAuthRest"
+        },
+        {
+          "call": "POST /rs/appAuth/pushToken/remove",
+          "controller": "org.projectforge.rest.app.AppAuthRest"
+        }
+      ]
+    },
+    {
+      "name": "User status",
+      "endpoints": [
+        {
+          "call": "GET /rs/userStatus",
+          "controller": "org.projectforge.rest.UserStatusRest"
+        },
+        {
+          "call": "GET /rs/uiSettings/theme",
+          "controller": "org.projectforge.rest.UISettingsRest"
+        }
+      ]
+    },
+    {
+      "name": "Business cards",
+      "endpoints": [
+        {
+          "call": "GET /rs/myBusinessCards",
+          "controller": "org.projectforge.rest.businesscard.BusinessCardRest"
+        },
+        {
+          "call": "GET /rs/myBusinessCards/vcf",
+          "controller": "org.projectforge.rest.businesscard.BusinessCardRest"
+        },
+        {
+          "call": "GET /rs/myBusinessCards/pkpass",
+          "controller": "org.projectforge.rest.businesscard.BusinessCardRest"
         }
       ]
     }

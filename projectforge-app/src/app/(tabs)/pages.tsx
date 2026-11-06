@@ -42,12 +42,17 @@ export default function PagesTab() {
       active={focused}
       onStateChange={(state) => webTabs.setState('pages', state)}
       onNativePage={(page: NativePage) => {
-        // Only the chat has a tab yet; the other native pages come with their tabs.
-        if (page !== 'chat' || !opensInApp(appSettings.get(), page) || !chatEnabled(userStatus.get().status)) {
-          return false;
+        // The other native pages come with their tabs.
+        if (!opensInApp(appSettings.get(), page)) return false;
+        if (page === 'chat' && chatEnabled(userStatus.get().status)) {
+          router.navigate('/chat');
+          return true;
         }
-        router.navigate('/chat');
-        return true;
+        if (page === 'businessCards') {
+          router.navigate('/cards');
+          return true;
+        }
+        return false;
       }}
     />
   );

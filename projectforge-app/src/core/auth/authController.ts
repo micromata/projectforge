@@ -27,6 +27,7 @@ import PfNative from '../../../modules/pf-native/src/PfNativeModule';
 import { WebSessionRepository } from '../../features/web/webSessionRepository';
 import { ApiClient } from '../api/apiClient';
 import { JsonCache } from '../cache/jsonCache';
+import { SharedFiles } from '../files/sharedFiles';
 import { appLog, LogSanitizer } from '../log/appLog';
 import { appVersion, deviceName, platformCrypto, platformHttp, platformName, platformOpenBrowser } from '../platform';
 import { userStatus } from '../status/userStatus';
@@ -279,9 +280,10 @@ class AuthController {
     this.activate(null, true, messageKey);
   }
 
-  /** The user's data on the device: the cache and the web session and storage of the WebView. */
+  /** The user's data on the device: the cache, the shared files and the web session and storage of the WebView. */
   private async clearLocalData() {
     JsonCache.clearAll();
+    SharedFiles.clearAll();
     await this.webCookies.clear().catch((e) => appLog.warn('auth', `WebView data not cleared: ${String(e)}`));
   }
 

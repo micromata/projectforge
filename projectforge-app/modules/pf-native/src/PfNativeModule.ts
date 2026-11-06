@@ -25,7 +25,7 @@ import { NativeModule, requireNativeModule } from 'expo';
 
 /**
  * The native parts of the app (ios/PfNativeModule.swift, android/…/PfNativeModule.kt): the cookie jar and website
- * data of the WebViews, the key chain items of the Flutter app.
+ * data of the WebViews, the Apple Wallet, the key chain items of the Flutter app.
  */
 declare class PfNativeModule extends NativeModule<Record<string, never>> {
   /** Sets the cookies of `Set-Cookie` header values for `url` in the WebViews; answers the names set. */
@@ -36,6 +36,12 @@ declare class PfNativeModule extends NativeModule<Record<string, never>> {
 
   /** Removes all cookies and web storage of the WebViews. */
   clearAll(): Promise<void>;
+
+  /**
+   * Shows the system sheet of iOS to add the pass (a `.pkpass` file at the `file://` url [fileUrl]) to the Wallet.
+   * Rejects with the reason if iOS refuses it (an invalid signature, already in the Wallet); always on Android.
+   */
+  addPass(fileUrl: string): Promise<void>;
 
   /** A key chain item of the Flutter app (flutter_secure_storage), null if there is none (always on Android). */
   readLegacyKeychain(service: string, key: string): string | null;

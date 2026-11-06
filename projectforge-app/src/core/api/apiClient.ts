@@ -70,6 +70,16 @@ export class ApiClient {
     return this.call<T>('POST', path, options);
   }
 
+  /** The bytes of a file (a vCard, a Wallet pass), e.g. `download('/rs/myBusinessCards/vcf', { id })`. */
+  async download(path: string, query: Record<string, string> = {}, options: RequestOptions = {}): Promise<Uint8Array> {
+    const params = Object.entries(query)
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+      .join('&');
+    const response = await this.send('GET', params ? `${path}?${params}` : path, options, false, '*/*');
+    if (!response.ok) throw await ApiException.fromResponse(response);
+    return new Uint8Array(await response.arrayBuffer());
+  }
+
   /** As [post], with the whole response (its headers, e.g. `set-cookie`). */
   async postForResponse(path: string, options: RequestOptions = {}): Promise<Response> {
     const response = await this.send('POST', path, options, false);
@@ -108,8 +118,14 @@ export class ApiClient {
     return (text ? JSON.parse(text) : undefined) as T;
   }
 
-  private async send(method: string, path: string, options: RequestOptions, retried: boolean): Promise<Response> {
-    const response = await this.fetch(method, path, options.body);
+  private async send(
+    method: string,
+    path: string,
+    options: RequestOptions,
+    retried: boolean,
+    accept = 'application/json',
+  ): Promise<Response> {
+    const response = await this.fetch(method, path, options.body, accept);
     const describe = `${method} ${LogSanitizer.url(this.serverUrl + path)}${retried ? ' (retry)' : ''}`;
     if (response.ok) {
       if (options.renewLogin !== false) appLog.debug('api', `${describe} → ${response.status}`);
@@ -137,7 +153,7 @@ export class ApiClient {
           : 'Second factor required: new login in the browser',
       );
       if (await this.opts.onReauthenticate()) {
-        const retry = await this.send(method, path, options, true);
+        const retry = await this.send(method, path, options, true, accept);
         if (proxyRefused && isProxyRefusal(retry)) {
           appLog.warn('api', 'Still refused by the SSO proxy after the new login: no further logins for this session');
           this.uselessProxyCookies = this.proxyCookieKey();
@@ -151,11 +167,11 @@ export class ApiClient {
     return response;
   }
 
-  private fetch(method: string, path: string, body: unknown): Promise<Response> {
+  private fetch(method: string, path: string, body: unknown, accept: string): Promise<Response> {
     const token = this.opts.token();
     const cookie = cookieHeaderOf(this.opts.proxyCookies());
     const headers: Record<string, string> = {
-      Accept: 'application/json',
+      Accept: accept,
       'X-PF-Frontend': 'next',
       'X-PF-App-Version': this.opts.appVersion,
     };

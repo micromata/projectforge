@@ -21,8 +21,6 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import { File, Paths } from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Platform, Share, StyleSheet, View } from 'react-native';
 import RNWebView, { WebViewMessageEvent, WebViewNavigation } from 'react-native-webview';
@@ -35,14 +33,16 @@ import type {
 
 import { ApiException, PROXY_REFUSED_KEY } from '../../core/api/apiException';
 import { authController } from '../../core/auth/authController';
+import { SharedFiles } from '../../core/files/sharedFiles';
 import { errorText, t } from '../../core/i18n/translations';
 import { appLog, LogSanitizer } from '../../core/log/appLog';
 import { ErrorView } from '../../core/ui/ErrorView';
 import { appVersion, platformHttp } from '../../core/platform';
 import { parseUrl } from '../../core/url';
+import { showWalletPass, walletAvailable, WalletException } from '../../core/wallet/walletPass';
 import { FindBar, FindResult } from './FindBar';
 import { findScript } from './findInPage';
-import { WebDownload } from './webDownload';
+import { isWalletPass, WebDownload } from './webDownload';
 import { NativePage, WebNavigation } from './webNavigation';
 
 /** The browser functions of a tab (the menu of the home screen). */
@@ -436,15 +436,17 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         (url) => authController.webCookies.cookieHeader(url),
         platformHttp,
       ).load(nativeEvent.downloadUrl, nativeEvent.suggestedFilename);
-      const file = new File(Paths.cache, download.name);
-      if (file.exists) file.delete();
-      file.create();
-      file.write(download.bytes);
+      if (walletAvailable && isWalletPass(download.mimeType, download.name)) {
+        // The pass of a business card ("Add to Wallet" of the page): the Wallet, not the share sheet.
+        appLog.info('web', `Downloaded ${download.bytes.length} bytes: Wallet`);
+        await showWalletPass(download.bytes);
+        return;
+      }
       appLog.info('web', `Downloaded ${download.bytes.length} bytes: share sheet`);
-      await Sharing.shareAsync(file.uri, { mimeType: download.mimeType });
+      await SharedFiles.share(download.name, download.bytes, download.mimeType);
     } catch (e) {
       appLog.warn('web', `Download failed: ${String(e)}`);
-      Alert.alert(t('app.download.failed'));
+      Alert.alert(e instanceof WalletException ? e.message : t('app.download.failed'));
     }
   };
 

@@ -22,8 +22,8 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import { Ionicons } from '@expo/vector-icons';
-import { ComponentProps } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ComponentProps, useRef } from 'react';
+import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useColors } from './colors';
@@ -39,12 +39,21 @@ export interface MenuItem {
   onPress?: () => void;
 }
 
-/** A menu sliding up from the bottom (the browser functions, the account menu). */
+/**
+ * A menu sliding up from the bottom (the browser functions, the account menu). On iOS the chosen action runs once the
+ * menu is gone: a share sheet, the Wallet or an alert can't be presented over a modal that is still being dismissed.
+ */
 export function MenuSheet({ visible, items, onClose }: { visible: boolean; items: MenuItem[]; onClose: () => void }) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const pending = useRef<(() => void) | null>(null);
+  const runPending = () => {
+    const action = pending.current;
+    pending.current = null;
+    action?.();
+  };
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} onDismiss={runPending}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <View
           style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 8 }]}
@@ -56,8 +65,9 @@ export function MenuSheet({ visible, items, onClose }: { visible: boolean; items
               disabled={item.disabled || item.info}
               style={({ pressed }) => [styles.item, pressed && { backgroundColor: colors.border }]}
               onPress={() => {
+                pending.current = item.onPress ?? null;
                 onClose();
-                item.onPress?.();
+                if (Platform.OS !== 'ios') runPending();
               }}
             >
               {item.icon && (

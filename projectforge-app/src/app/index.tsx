@@ -31,5 +31,5 @@ import { useAuth } from '../core/auth/authController';
  */
 export default function Start() {
   const auth = useAuth();
-  return <Redirect href={auth.status === 'loggedIn' ? '/pages' : '/login'} />;
+  return <Redirect href={auth.status === 'loggedIn' ? '/cards' : '/login'} />;
 }

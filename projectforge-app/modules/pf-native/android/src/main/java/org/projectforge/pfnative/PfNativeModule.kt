@@ -80,6 +80,11 @@ class PfNativeModule : Module() {
       }
     }.runOnQueue(Queues.MAIN)
 
+    /** Apple Wallet passes exist on the iPhone only: the app doesn't offer them here. */
+    AsyncFunction("addPass") { _: String ->
+      throw UnsupportedOperationException("Wallet is not available.")
+    }
+
     /** The Flutter app was never released on Android: nothing to take over (see the iOS implementation). */
     Function("readLegacyKeychain") { _: String, _: String -> null as String? }
 
