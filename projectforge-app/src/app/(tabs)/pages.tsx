@@ -52,6 +52,11 @@ export default function PagesTab() {
           router.navigate('/cards');
           return true;
         }
+        if (page === 'notifications') {
+          // No tab: the list lies over the tabs, like the bell opens it.
+          router.push('/notifications');
+          return true;
+        }
         return false;
       }}
     />

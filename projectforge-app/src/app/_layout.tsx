@@ -63,6 +63,7 @@ export default function RootLayout() {
         <Stack.Protected guard={loggedIn}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="card/[id]" />
+          <Stack.Screen name="notifications" options={{ ...modal, title: t('notification.center') }} />
           <Stack.Screen name="settings" options={{ ...modal, title: t('settings') }} />
           <Stack.Screen name="servers" options={{ ...modal, title: t('app.server.switch') }} />
           <Stack.Screen name="add-server" options={{ ...modal, title: t('app.server.add') }} />

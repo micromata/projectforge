@@ -55,6 +55,27 @@
           "controller": "org.projectforge.rest.businesscard.BusinessCardRest"
         }
       ]
+    },
+    {
+      "name": "Notifications",
+      "endpoints": [
+        {
+          "call": "GET /rs/notification/my",
+          "controller": "org.projectforge.rest.notification.NotificationRest"
+        },
+        {
+          "call": "GET /rs/notification/my/archived",
+          "controller": "org.projectforge.rest.notification.NotificationRest"
+        },
+        {
+          "call": "POST /rs/notification/{id}/acknowledge",
+          "controller": "org.projectforge.rest.notification.NotificationRest"
+        },
+        {
+          "call": "POST /rs/notification/{id}/done",
+          "controller": "org.projectforge.rest.notification.NotificationRest"
+        }
+      ]
     }
   ]
 }

@@ -32,7 +32,7 @@ import { authController } from '../../core/auth/authController';
 import { CompatibilityIssue } from '../../core/compat/compatibility';
 import { t } from '../../core/i18n/translations';
 import { chatEnabled, userStatus, useUserStatus } from '../../core/status/userStatus';
-import { useColors } from '../../core/ui/colors';
+import { severityColor, useColors } from '../../core/ui/colors';
 import { MenuItem, MenuSheet } from '../../core/ui/MenuSheet';
 import { CHAT_PATH, useWebTabStates, WebTab, webTabs } from '../web/webTabs';
 
@@ -69,6 +69,7 @@ export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: C
   const focused = state.routes[state.index]?.name;
   const webTab = focused ? TABS[focused]?.webTab : undefined;
   const unread = status?.chatUnread ?? 0;
+  const openNotifications = status?.notifications?.openCount ?? 0;
 
   const routes = state.routes.filter((route) => TABS[route.name] && (route.name !== 'chat' || chatEnabled(status)));
 
@@ -141,6 +142,27 @@ export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: C
           <Ionicons name="compass-outline" size={24} color={colors.textMuted} />
         </Pressable>
       )}
+      <Pressable
+        style={styles.item}
+        accessibilityLabel={t('notification.center')}
+        onPress={() => router.push('/notifications')}
+      >
+        <Ionicons
+          name={openNotifications > 0 ? 'notifications' : 'notifications-outline'}
+          size={24}
+          color={colors.textMuted}
+        />
+        {openNotifications > 0 && (
+          <View
+            style={[
+              styles.badge,
+              { backgroundColor: severityColor(colors, status?.notifications?.maxSeverity) ?? colors.badge },
+            ]}
+          >
+            <Text style={styles.badgeText}>{openNotifications > 99 ? '99+' : openNotifications}</Text>
+          </View>
+        )}
+      </Pressable>
       <Pressable style={styles.item} accessibilityLabel={t('app.menu.more')} onPress={() => setMenu('more')}>
         <Ionicons name="ellipsis-horizontal-circle-outline" size={24} color={issue ? colors.danger : colors.textMuted} />
       </Pressable>

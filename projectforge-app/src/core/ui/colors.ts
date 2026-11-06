@@ -66,3 +66,17 @@ const DARK: Colors = {
 export function useColors(): Colors {
   return useColorScheme() === 'dark' ? DARK : LIGHT;
 }
+
+/** The colour of a notification's severity (`INFO`, `IMPORTANT`, `URGENT`), null for none. */
+export function severityColor(colors: Colors, severity?: string | null): string | null {
+  switch (severity) {
+    case 'URGENT':
+      return colors.danger;
+    case 'IMPORTANT':
+      return colors.warning;
+    case 'INFO':
+      return colors.primary;
+    default:
+      return null;
+  }
+}
