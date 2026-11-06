@@ -17,6 +17,9 @@ services:
       DT_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/dtrack"
       DT_DATASOURCE_USERNAME: "dtrack"
       DT_DATASOURCE_PASSWORD: "dtrack"
+      # The DNS forwarder of the Podman machine (gvproxy) drops AAAA queries without an answer, so the resolver
+      # of the Alpine image fails both lookups after 5 s ("UnknownHostException: … Try again"). IPv4 only.
+      EXTRA_JAVA_OPTIONS: "-Djava.net.preferIPv4Stack=true"
     ports:
       - "127.0.0.1:8090:8080"
     volumes:

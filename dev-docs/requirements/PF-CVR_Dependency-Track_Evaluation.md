@@ -67,6 +67,22 @@ REST API v1 and API v2 (verify scope), SSO via OIDC, LDAP or local users.
 - Machine access: team API keys, service account API keys, workload identity federation (GitHub Actions, GitLab CI,
   Kubernetes, SPIRE) without stored secrets.
 
+### 2.3 Commercial platforms (Checkmarx One)
+
+Checkmarx One stands here for the commercial AppSec platforms; it answers a different question than the CVE-Radar.
+
+- **Scope:** the own source code (SAST, SCA, IaC, secrets, containers, API, DAST, malicious packages). The CVE-Radar
+  asks which *operated* instance is affected, who has to act and who has rated it, also for technologies without
+  code or build (products, appliances, operating systems via CPE).
+- **Overlap with DT:** only the SCA. Checkmarx adds reachability, its own research and malicious-package data and
+  the integration into IDE and pull requests; DT adds CPE matching and runs internally.
+- **Not covered:** inventory with baseline and deviations, cases, team checks, risk acceptance by the SO,
+  need-to-know, PF login; they would stay in PF anyway.
+- **Operation and costs:** mainly SaaS, so dependency lists or source code leave the house (EU region: verify);
+  licence per contributing developer (verify). DT is open source and internal (7.5).
+- **Combination:** a scanner of the own code can upload its CycloneDX SBOM to PF (6.3), which forwards it to DT like
+  any other BOM; SAST findings stay in the scanner.
+
 ## 3. Coverage per requirement group
 
 Legend: **DT** – DT covers it as well or better; **PF** – PF covers it, DT doesn't or only partly;
@@ -114,7 +130,7 @@ Only features relevant for the target picture. "Where" names the system that sho
 | Internal vulnerabilities | Own advisories for components | **DT** for software, **PF** for incidents | A leaked certificate or a misconfiguration is no component finding; PF incidents cover them with the same workflow. |
 | Projects, versions, hierarchy, tags | Flat inventory of SBOMs, parent projects | **PF** (DT as mirror) | PF has areas, stage, site, criticality, confidentiality, responsible groups and baseline/deviations; DT has no inheritance, every version is a separate SBOM. |
 | SBOM ingestion, dependency graph | CycloneDX incl. transitive dependencies, gzip/zstd, processing token | **DT** | Core competence. PF converts what is no CycloneDX (lockfiles, jar listings) and forwards it. |
-| Component search across the portfolio | Search by name, purl, CPE, hash | **PF** for users, DT for the ST | "Where does Log4j < 2.17 run?" must respect need-to-know (VIS) and show areas and stages; DT shows every project the team may see. |
+| Component search across the portfolio | Search by name, purl, CPE, hash | **PF** | "Where does Log4j < 2.17 run?" must respect need-to-know (VIS) and show areas and stages; DT shows every project the team may see. |
 | Outdated components (repository metadata) | Latest version per component, version distance | **DT** | Free benefit; PF shows it at most as a hint. |
 | Policy engine | Licences, severity, age, version distance, coordinates | **DT** | New capability (licence compliance). Violations reach PF as notification, not as a case. |
 | Audit per finding | Analysis state, justification, vendor response, comments, suppression | **PF** leads, DT mirrors | DT works per project × component. PF needs one case per CVE across all instances, several ratings, binding priority with reason, SO approval for risk acceptance, deadlines – and one place where the team works. |
@@ -123,7 +139,7 @@ Only features relevant for the target picture. "Where" names the system that sho
 | Jira integration | Ticket per notification | **PF** (none) | Cases, team checks and chat are in PF; a second ticket system splits the work. |
 | Comments | Comment trail per finding | **PF** | Chat with channels (internal / public), moderation, files, mentions. |
 | Metrics, risk score, trends | Per project and portfolio | **both** | DT for component and risk trends, PF for organisational key figures (MTTR per priority, deadline compliance, per group, RPT-04). |
-| UI | Full web UI for the portfolio | **PF** for everybody, DT for the ST | Employees and responsible groups get one tool with PF login, German texts and their own view; DT stays an expert tool. |
+| UI | Full web UI for the portfolio | **PF** for everybody, DT for the admins only | Employees, responsible groups, the ST and the SOs get one tool with PF login, German texts and their own view. What they need from DT (components of an instance, policy violations, risk trend) PF shows read-only from the DT API, so the DT frontend needs no access from outside (7.5). |
 | Escalation, feedback, closure, AI export, Q&A | – | **PF** | Not in DT. |
 
 ## 5. Roles and permissions
@@ -145,14 +161,16 @@ that drifts from the first.
 
 ### 5.2 Recommendation
 
-- **Only PF has the full model.** Everybody except the security team and the DT admins works in PF only.
-- **DT accounts via OIDC**, teams synchronised from IdP groups that mirror the PF groups:
+- **Only PF has the full model.** Everybody works in PF, including the security team and the SOs; only the DT
+  admins have DT accounts (local or OIDC):
 
   | DT team / account | Members | Permissions |
   |---|---|---|
   | `svc:projectforge` (service account) | PF integration | `VIEW_PORTFOLIO`, `PORTFOLIO_MANAGEMENT_CREATE/UPDATE/DELETE`, `BOM_UPLOAD`, `VIEW_VULNERABILITY`, `VULNERABILITY_ANALYSIS_UPDATE`, `VIEW_POLICY_VIOLATION`, `PORTFOLIO_ACCESS_CONTROL_BYPASS` |
-  | Security team | PF group of the ST | `VIEW_PORTFOLIO`, `VIEW_VULNERABILITY`, `VIEW_POLICY_VIOLATION`, `POLICY_MANAGEMENT`, `VULNERABILITY_MANAGEMENT` (internal advisories); no `VULNERABILITY_ANALYSIS` – triage happens in PF |
-  | DT admins | Operations | `ACCESS_MANAGEMENT`, `SYSTEM_CONFIGURATION`, `SECRET_MANAGEMENT` |
+  | DT admins | Operations | `ACCESS_MANAGEMENT`, `SYSTEM_CONFIGURATION`, `SECRET_MANAGEMENT`, `POLICY_MANAGEMENT`, `VULNERABILITY_MANAGEMENT` |
+
+- **Policies and internal advisories** are maintained by the DT admins on behalf of the ST, until PF offers them
+  itself (only if needed).
 
 - **Strictly confidential systems:** DT sees them with neutral project names (e.g. `pf-<instance id>`) and without
   revealing tags, so the DT team learns the components but not which system runs them. Alternatively portfolio
@@ -208,8 +226,8 @@ and one place where teams see their uploads.
 
 ## 7. Recommended target architecture
 
-**DT detects, PF owns the assets and the work.** DT is operated as a backend service, normally used only by the
-security team; all other users stay in PF.
+**DT detects, PF owns the assets and the work.** DT is operated as a backend service; all users, the security team
+and the SOs included, stay in PF.
 
 ```
  CI pipeline ──CycloneDX──┐
@@ -301,7 +319,7 @@ Who has to reach whom:
 | PF | DT API (BOM upload, analysis write-back, reconciliation pull) | internal |
 | DT | PF webhook (7.2) | internal |
 | DT | NVD, GitHub, OSV, OSS Index, EPSS (outbound) | internet, via the outbound proxy if required |
-| Security team, admins | DT frontend | internal only (optional) |
+| DT admins | DT frontend and API (the SPA calls the API from the browser) | SSH tunnel only |
 
 **Certificates:** no public certificate for DT. If PF and DT share a Docker network or host (port bound to
 localhost only), internal HTTP is sufficient. As soon as the traffic crosses a network (VM of its own), TLS with an
@@ -313,9 +331,12 @@ reverse proxy or via an internal CA whose certificate PF gets in its truststore.
 - **For the API, yes:** this is the architecture of section 6. PF accepts the uploads, checks token and rights and
   forwards to DT as `svc:projectforge`; no DT key leaves PF.
 - **For the DT frontend, no:** the SPA has its own login (OIDC/JWT), paths and Content Security Policy. A generic
-  reverse proxy in PF would be extra code and attack surface and would mix the two rights models. If the security
-  team needs the frontend, it gets its own internal host name behind the existing reverse proxy (VPN or IP
-  allowlist, OIDC login), or it is reachable for admins via SSH tunnel only; everyone else works in PF anyway.
+  reverse proxy in PF would be extra code and attack surface and would mix the two rights models; under PF's
+  origin, DT's scripts could also act in PF in the name of the logged-in user. Instead PF shows what the ST and
+  the SOs need from DT read-only from the API (section 8), and only the admins reach the frontend, via SSH tunnel.
+  If these views turn out not to be enough, the fallback is forward authentication: the existing reverse proxy
+  routes `/dt/` and `/dt/api/` to DT and asks a PF endpoint (session and CVE-Radar role) before every request
+  (`auth_request`); the frontend runs under a sub-path (`BASE_PATH`, `API_BASE_URL`), DT login stays its own.
 - **PF without DT:** if DT is not reachable, an upload fails with a clear error and the next build retries (section 6),
   the cases stay usable, and the system status shows DT as unavailable (NFR-05).
 
@@ -326,7 +347,7 @@ reverse proxy or via an internal CA whose certificate PF gets in its truststore.
 | NVD and OSV import (`sync/Nvd*`, `sync/Osv*`), CPE/purl index (`CvrCpeMatchDO`, `CvrPurlMatchDO`), `CvrOsvAdvisoryDO` | Inventory (area … component), confidentiality, inheritance | DT client, configuration, health in the system status |
 | `CvrMatchingService`, `VersionComparator` (unless CPE-only systems need it, 7.1) | Cases, ratings, priorities, measures, AI export/import | Webhook endpoint, reconciliation job, upload tokens and SBOM endpoint (section 6) |
 | – (the technology catalogue stays: CPE source of the BOM export, framework exclusion of MAT-11) | Team checks, confirmations, closure overview, technology catalogue | BOM export per instance (CycloneDX writer) |
-| Ad-hoc check, or routed to a temporary DT project | `LibraryListParser` as converter to CycloneDX | Analysis write-back, conflict handling |
+| Ad-hoc check, or routed to a temporary DT project | `LibraryListParser` as converter to CycloneDX | Analysis write-back, conflict handling; read-only DT views (components of an instance, policy violations, risk trend) as far as the ST and the SOs need them |
 | Corresponding Next.js parts of the vulnerability view; their tables, dropped by a new Flyway migration (the CVE-Radar ships since 9.2.1) | Graylog devices, notification rules, chat hosts, EUVD (optional) | System messages in the chat; escalation (ESC, open anyway); EPSS in `CvrPriorityRule` (PRIO-01) and in the threshold of check requests (MAT-11), needed with or without DT |
 
 Estimate for the retirement: about 5–7k LOC backend plus tests and parts of the vulnerability pages in Next.js. The new integration is roughly 2–3k LOC backend plus 0.5–1k LOC for upload tokens (section 6); the workflow parts are unchanged.
@@ -341,7 +362,7 @@ Estimate for the retirement: about 5–7k LOC backend plus tests and parts of th
   item.
 - **Data protection:** DT sends purls to external analysers (OSS Index, Snyk). Own artifacts must be configured as
   internal components (INV-34); analysers not wanted are disabled.
-- **Identity:** DT users via OIDC; only the security team and admins get DT accounts, everything else via PF.
+- **Identity:** only the DT admins get DT accounts; everybody else, the ST and the SOs included, works via PF.
 - **Lost flexibility:** no own "possibly affected" logic for products without exact version (MAT-03); behaviour
   in DT for such components must be checked.
 - **Benefit beyond today:** policies (licences, outdated versions), VEX, broader sources, community maintenance of

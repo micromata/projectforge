@@ -20,6 +20,7 @@
 | D5 | Database | The CVE-Radar ships since 9.2.1, so its Flyway scripts stay unchanged. New scripts `V<release>.<n>` of the release that ships the switch add the DT columns, rename the vulnerability fields and drop the tables of the own matching (postgresql and hsqldb where the SQL differs). Inventory, catalogue, cases, ratings, team checks and findings are kept; DT's reconciliation updates them. |
 | D3 | Vulnerabilities without finding | Check requests (MAT-11) and vulnerabilities without SBOM components come from DT's vulnerability database. If its API can't deliver them per ecosystem and threshold (spike), a slim OSV import stays for MAT-11 only. |
 | D4 | Names in DT | Projects are named in clear text (`<system> / <instance>`) with tags for area, stage, criticality and exposure; strictly confidential systems and instances are named `pf-<id>` and get no tags. |
+| D6 | DT frontend | Not reachable from outside and not proxied by PF; only the DT admins use it, via SSH tunnel. The ST and the SOs see what they need from DT in PF, read-only from the DT API (4.4). Fallback if that is not enough: forward authentication at the reverse proxy (Eval 7.5). |
 
 Consequences for the evaluation paper: drop and rename by new migrations (D5; Eval 8, 11); the technology catalogue
 stays as the source of the CPE for technologies without purl or CPE (see 4.2); the status mapping of Eval 7.3 is
@@ -146,6 +147,10 @@ Result: a short report appended to this document; the open "(verify)" marks of t
   flag (spike 1), a small job reads the CISA KEV JSON and sets `kev_added`.
 - **Ad-hoc check:** `CvrAdHocCheckService` uploads the list into a temporary DT project `pf-adhoc-<uuid>`, waits for
   the processing token, reads the findings and deletes the project; the job keeps its UI.
+- **DT views in PF (D6):** read-only, for the ST and the SOs, same need-to-know as the instance: components of an
+  instance with outdated versions, policy violations, risk trend (`/api/v1/component/project/{uuid}`,
+  `/api/v1/violation/project/{uuid}`, `/api/v1/metrics/project/{uuid}/days/{n}`). Which of them are needed is
+  asked before the build; nothing that changes DT.
 - **EUVD:** stays as enrichment (EUVD id, exploitation day, EPSS for vulnerabilities without DT value); its
   approximate CPE index and the vulnerabilities only the EUVD knows go away.
 
@@ -158,7 +163,7 @@ Result: a short report appended to this document; the open "(verify)" marks of t
 | Tables of the removed entities, dropped by a new migration (D5); the rows of NVD/OSV in the import state deleted | `LibraryListParser`, `LibraryArchive`, EUVD import, Graylog, inventory, cases, team checks, chat, notifications |
 | Tests `CvrMatchingTest`, `CvrOsvMatchingTest`, `NvdC*ParserTest`, `OsvParserTest`; adapting `CveRadarTestBase` and the tests that create vulnerabilities via `NvdImportService` | |
 | Configuration `nvd.*`, `osv.*`; jobs; i18n keys of the removed texts | |
-| Next.js: NVD/OSV specific parts of the vulnerability page (CPE configurations, advisories), sources and import status | Next.js: everything else; the vulnerability page shows the DT source and a link into DT for the security team |
+| Next.js: NVD/OSV specific parts of the vulnerability page (CPE configurations, advisories), sources and import status | Next.js: everything else; the vulnerability page shows the DT source (no link into DT, D6) |
 
 Afterwards: remove `cve-radar-db-reset.md` (the scripts are released, see D5), update the spec (IMP, MAT notes: "via
 Dependency-Track") and the evaluation paper (status decided).
