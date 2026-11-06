@@ -23,7 +23,7 @@
 
 import { useSyncExternalStore } from 'react';
 import * as Clipboard from 'expo-clipboard';
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { t } from '../i18n/translations';
 import { useColors } from '../ui/colors';
@@ -36,15 +36,13 @@ export function LogScreen() {
     (listener) => appLog.subscribe(listener),
     () => appLog.all(),
   );
-  const text = () =>
-    entries.map((it) => `${it.time.toISOString()} ${it.level} ${it.area}: ${it.message}`).join('\n');
   return (
     <View style={[styles.fill, { backgroundColor: colors.background }]}>
       <Text style={[styles.info, { color: colors.textMuted }]}>{t('app.log.info')}</Text>
       <View style={styles.bar}>
         <Pressable
           onPress={async () => {
-            await Clipboard.setStringAsync(text());
+            await Clipboard.setStringAsync(appLog.text());
             Alert.alert(t('app.log.copied'));
           }}
           disabled={!entries.length}
@@ -64,10 +62,19 @@ export function LogScreen() {
             selectable
             style={[
               styles.line,
-              { color: item.level === 'warn' ? colors.warning : item.level === 'error' ? colors.danger : colors.text },
+              {
+                color:
+                  item.level === 'warn'
+                    ? colors.warning
+                    : item.level === 'error'
+                      ? colors.danger
+                      : item.level === 'debug'
+                        ? colors.textMuted
+                        : colors.text,
+              },
             ]}
           >
-            {item.time.toTimeString().substring(0, 8)} {item.area}: {item.message}
+            {item.time.toTimeString().substring(0, 8)} {item.level.toUpperCase().padEnd(5)} [{item.area}] {item.message}
           </Text>
         )}
       />
@@ -79,5 +86,5 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   info: { fontSize: 13, paddingHorizontal: 12, paddingTop: 12 },
   bar: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10 },
-  line: { fontFamily: 'Menlo', fontSize: 11, paddingHorizontal: 8, paddingVertical: 2 },
+  line: { fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }), fontSize: 11, paddingHorizontal: 8, paddingVertical: 2 },
 });

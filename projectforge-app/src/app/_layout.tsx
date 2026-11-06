@@ -29,10 +29,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { authController, useAuth } from '../core/auth/authController';
 import { t } from '../core/i18n/translations';
+import { logUncaughtErrors } from '../core/log/uncaughtErrors';
 import { appSettings } from '../core/settings/appSettings';
 import { useColors } from '../core/ui/colors';
 import { SnackbarHost } from '../core/ui/snackbar';
 
+logUncaughtErrors();
 void SplashScreen.preventAutoHideAsync();
 
 /** The root: restores the login, then the tabs (logged in) or the login, and the screens opened from the menu. */

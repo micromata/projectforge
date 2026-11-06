@@ -30,16 +30,35 @@ export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 export interface LogEntry {
   time: Date;
   level: LogLevel;
+  /** The area: `api`, `login`, `auth`, `web`, `app`, … */
   area: string;
   message: string;
 }
 
-const MAX_ENTRIES = 500;
+/** An entry as a line of the copied log; further lines (a stack trace, a text of the server) are indented. */
+export function logLine(entry: LogEntry): string {
+  return `${entry.time.toISOString()} ${entry.level.toUpperCase().padEnd(5)} [${entry.area}] ${entry.message.replace(/\n/g, '\n    ')}`;
+}
 
-/** The client log of the app (in memory, shown in the app, also on the console of the dev build). */
-class AppLog {
+/**
+ * The log of the app (login, requests, WebView navigation), shown and copied in the app to find out why something
+ * fails, e.g. behind an SSO proxy.
+ * - Only in memory, never written to a file; at most [MAX_AGE] old and at most [maxEntries] entries.
+ * - Every message goes through LogSanitizer.text: no tokens, cookie values, codes or passwords.
+ * - On the console of a dev build only: the system log of a release build is readable by others.
+ */
+export class AppLog {
+  static readonly MAX_AGE = 24 * 60 * 60 * 1000;
+
   private entries: LogEntry[] = [];
   private listeners = new Set<() => void>();
+  private notifying = false;
+
+  constructor(
+    private readonly clock: () => Date = () => new Date(),
+    private readonly maxEntries = 2000,
+    private readonly print = typeof __DEV__ !== 'undefined' && __DEV__ && process.env.NODE_ENV !== 'test',
+  ) {}
 
   debug(area: string, message: string) {
     this.add('debug', area, message);
@@ -53,18 +72,35 @@ class AppLog {
     this.add('warn', area, message);
   }
 
+  /** With the type of [error] and the first frames of its stack, enough to locate it. */
   error(area: string, message: string, error?: unknown) {
-    this.add('error', area, error == null ? message : `${message}: ${String(error)}`);
+    let details = message;
+    if (error != null) {
+      details += error instanceof Error ? `: ${error.name}: ${error.message}` : `: ${String(error)}`;
+      const stack = error instanceof Error ? error.stack : undefined;
+      if (stack) {
+        const frames = stack.split('\n').filter((it) => /^\s*at /.test(it) || /@/.test(it));
+        if (frames.length) details += '\n' + frames.slice(0, 8).map((it) => it.trim()).join('\n');
+      }
+    }
+    this.add('error', area, details);
   }
 
   /** Empties the log (logout, another user): it names the server, the pages, the ids. */
   clear() {
     this.entries = [];
-    this.listeners.forEach((it) => it());
+    this.notify();
   }
 
+  /** The entries, oldest first (the same array until the log changes). */
   all(): readonly LogEntry[] {
+    this.prune();
     return this.entries;
+  }
+
+  /** All entries as text, for copying. */
+  text(): string {
+    return this.all().map(logLine).join('\n');
   }
 
   subscribe(listener: () => void): () => void {
@@ -73,12 +109,31 @@ class AppLog {
   }
 
   private add(level: LogLevel, area: string, message: string) {
-    const entry: LogEntry = { time: new Date(), level, area, message: LogSanitizer.text(message) };
-    this.entries = [...this.entries.slice(-(MAX_ENTRIES - 1)), entry];
-    if (process.env.NODE_ENV !== 'test') {
-      console.log(`[${level}] ${area}: ${entry.message}`);
-    }
-    this.listeners.forEach((it) => it());
+    const entry: LogEntry = { time: this.clock(), level, area, message: LogSanitizer.text(message) };
+    this.entries = [...this.entries, entry];
+    this.prune();
+    if (this.print) console.log(`PF ${logLine(entry)}`);
+    this.notify();
+  }
+
+  /**
+   * Deferred: an entry may be written while a component renders, the log screen must not update then. Several entries
+   * in a row notify once.
+   */
+  private notify() {
+    if (this.notifying) return;
+    this.notifying = true;
+    queueMicrotask(() => {
+      this.notifying = false;
+      this.listeners.forEach((it) => it());
+    });
+  }
+
+  private prune() {
+    const oldest = this.clock().getTime() - AppLog.MAX_AGE;
+    let kept = this.entries.filter((it) => it.time.getTime() >= oldest);
+    if (kept.length > this.maxEntries) kept = kept.slice(kept.length - this.maxEntries);
+    if (kept.length !== this.entries.length) this.entries = kept;
   }
 }
 
