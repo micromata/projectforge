@@ -45,7 +45,7 @@ import { parseUrl } from '../../core/url';
 import { showWalletPass, walletAvailable, WalletException } from '../../core/wallet/walletPass';
 import { FindBar, FindResult } from './FindBar';
 import { findScript } from './findInPage';
-import { isWalletPass, WebDownload } from './webDownload';
+import { BLOB_SCRIPT, blobFile, DownloadedFile, isWalletPass, WebDownload } from './webDownload';
 import { NativePage, WebNavigation } from './webNavigation';
 
 /** The browser functions of a tab (the menu of the home screen). */
@@ -107,8 +107,8 @@ const IOS_CANCELLED = -999;
  *
  * The commit of a page (no `onPageCommitVisible` in react-native-webview) is told by a script at document start
  * (`injectedJavaScriptBeforeContentLoaded`), which posts `{pf: 'commit'}`; its url is the one of the native event,
- * not of the message. That bridge is open to every page, so a message is never more than this signal (and the
- * results of the search).
+ * not of the message. That bridge is open to every page, so a message is never more than this signal, the results
+ * of the search and a file the page made itself (a blob, BLOB_SCRIPT), which only goes to the share sheet.
  */
 export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   { initialPath, active, onNativePage, onStateChange },
@@ -408,7 +408,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   };
 
   const onMessage = (event: WebViewMessageEvent) => {
-    let data: { pf?: string; count?: number; index?: number; supported?: boolean };
+    let data: { pf?: string; count?: number; index?: number; supported?: boolean; name?: unknown; mime?: unknown; data?: unknown };
     try {
       data = JSON.parse(event.nativeEvent.data);
     } catch {
@@ -418,7 +418,24 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       onPageCommitted(event.nativeEvent.url);
     } else if (data?.pf === 'find') {
       setFindResult({ count: data.count ?? 0, index: data.index ?? -1, supported: data.supported !== false });
+    } else if (data?.pf === 'blob') {
+      onBlobDownload(event.nativeEvent.url, data);
     }
+  };
+
+  /** A file the page made itself (an export of next): offered as a download, only from a page of the server. */
+  const onBlobDownload = (pageUrl: string, message: { name?: unknown; mime?: unknown; data?: unknown }) => {
+    if (!navigation.isSameOrigin(pageUrl)) {
+      appLog.warn('web', `File of another site refused: ${LogSanitizer.url(pageUrl)}`);
+      return;
+    }
+    const file = blobFile(message);
+    if (file == null) {
+      appLog.warn('web', 'File of the page not taken (none or too large)');
+      Alert.alert(t('app.download.failed'));
+      return;
+    }
+    void offer(file, 'File of the page');
   };
 
   /** Also the client side navigations of next (pushState). */
@@ -472,16 +489,25 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         (url) => authController.webCookies.cookieHeader(url),
         platformHttp,
       ).load(nativeEvent.downloadUrl, nativeEvent.suggestedFilename);
-      if (walletAvailable && isWalletPass(download.mimeType, download.name)) {
-        // The pass of a business card ("Add to Wallet" of the page): the Wallet, not the share sheet.
-        appLog.info('web', `Downloaded ${download.bytes.length} bytes: Wallet`);
-        await showWalletPass(download.bytes);
-        return;
-      }
-      appLog.info('web', `Downloaded ${download.bytes.length} bytes: share sheet`);
-      await SharedFiles.share(download.name, download.bytes, download.mimeType);
+      await offer(download, 'Downloaded');
     } catch (e) {
       appLog.warn('web', `Download failed: ${String(e)}`);
+      Alert.alert(t('app.download.failed'));
+    }
+  };
+
+  /** A Wallet pass (of a business card, "Add to Wallet" of the page) into the Wallet, any other file to share. */
+  const offer = async (file: DownloadedFile, what: string) => {
+    try {
+      if (walletAvailable && isWalletPass(file.mimeType, file.name)) {
+        appLog.info('web', `${what}: ${file.bytes.length} bytes: Wallet`);
+        await showWalletPass(file.bytes);
+        return;
+      }
+      appLog.info('web', `${what}: ${file.bytes.length} bytes: share sheet`);
+      await SharedFiles.share(file.name, file.bytes, file.mimeType);
+    } catch (e) {
+      appLog.warn('web', `${what} not offered: ${String(e)}`);
       Alert.alert(e instanceof WalletException ? e.message : t('app.download.failed'));
     }
   };
@@ -579,7 +605,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         // Marks the app for next (lib/app-mode.ts), which then e.g. hides its logout.
         applicationNameForUserAgent={`ProjectForgeApp/${appVersion}`}
-        injectedJavaScriptBeforeContentLoaded={COMMIT_SCRIPT}
+        injectedJavaScriptBeforeContentLoaded={COMMIT_SCRIPT + BLOB_SCRIPT}
         injectedJavaScriptBeforeContentLoadedForMainFrameOnly
         onMessage={onMessage}
         onNavigationStateChange={onNavigationStateChange}
