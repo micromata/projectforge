@@ -119,3 +119,8 @@ describe('takeover of the Flutter app', () => {
     expect(await failing.load()).toBeNull();
   });
 });
+
+test('a broken list of servers is no list', async () => {
+  expect(await new SessionStore(memoryStore({ servers: '{' })).servers()).toEqual([]);
+  expect(await new SessionStore(memoryStore({ sessions: '{' })).sessions()).toEqual([]);
+});

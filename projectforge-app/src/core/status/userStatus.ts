@@ -58,7 +58,7 @@ interface State {
  * the polling keeps nothing alive; it never opens a login in the browser (`renewLogin: false`). Port of the Flutter
  * app's UserStatusController and ThemeController.
  */
-class UserStatusStore {
+export class UserStatusStore {
   private state: State = { status: null, theme: 'system' };
   private listeners = new Set<() => void>();
   private api: ApiClient | null = null;
