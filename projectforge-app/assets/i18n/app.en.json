@@ -1,6 +1,5 @@
 {
   "app.menu.more": "More",
-  "app.systemMessage.title": "System message",
   "app.version": "Version {0}",
   "app.compatibility.appTooOld": "This server needs app version {0} or newer. Please update the app, some functions may not work until then.",
   "app.compatibility.serverTooOld": "This app needs ProjectForge {0} or newer on the server. Some functions may not work, please contact your administrator.",

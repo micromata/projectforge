@@ -27,6 +27,9 @@ import { render, screen } from '@testing-library/react-native';
 
 import { AlertBanner } from '../AlertBanner';
 
+// The icons need the fonts of expo-asset, not there in the tests.
+jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
+
 const mockStatus: { current: { alertMessage?: string } | null } = { current: null };
 jest.mock('../../../core/status/userStatus', () => ({
   ...jest.requireActual('../../../core/status/userStatus'),
