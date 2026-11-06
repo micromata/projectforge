@@ -33,15 +33,18 @@ import org.projectforge.business.notification.NotificationDao
 import org.projectforge.business.notification.NotificationParams
 import org.projectforge.business.notification.NotificationRuleDO
 import org.projectforge.business.notification.NotificationRuleDao
-import org.projectforge.business.notification.NotificationRuleType
+import org.projectforge.business.notification.NotificationRecipientMode
+import org.projectforge.business.notification.NotificationRuleHandler
+import org.projectforge.business.notification.NotificationRuleParam
+import org.projectforge.business.notification.NotificationRuleRegistry
+import org.projectforge.business.notification.NotificationDisplay
 import org.projectforge.business.notification.NotificationService
 import org.projectforge.business.notification.NotificationStatus
 import org.projectforge.framework.access.AccessException
-import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.menu.builder.MenuItemDefId
+import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
@@ -68,6 +71,9 @@ private val log = KotlinLogging.logger {}
  * The layout-free REST endpoint of the rules of the notification system, serving the hand-built projectforge-next
  * page (components/features/notification-rule), for admins and finance (see [NotificationRuleDao.hasAccess]).
  *
+ * The rule types are those registered by their handlers ([NotificationRuleRegistry]), described for the editor by
+ * `ruleTypes`; nothing here knows a single type.
+ *
  * Besides the standard list/edit endpoints: the preview, a test to oneself (both of the maybe unsaved rule of the
  * form), the trigger of a saved rule and the log of its notifications, in which editors may end pending ones.
  */
@@ -82,6 +88,41 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
      * how a value looks (e.g. a list of invoices), from synthetic data.
      */
     class Variable(val key: String, val label: String, val common: Boolean, val example: String?)
+
+    /**
+     * A rule type for the editor ([NotificationRuleHandler]): its params, who the recipients are, the texts of a new
+     * rule (variables as `{{key}}`) and the displays for which the recipients may always mark a notification as done.
+     */
+    class RuleType(
+        val key: String,
+        val label: String,
+        val params: List<Param>,
+        val recipientMode: NotificationRecipientMode,
+        val recipientsHint: String?,
+        val requiresRecipients: Boolean,
+        val templateSubject: String?,
+        val templateText: String?,
+        val manualDoneForced: List<NotificationDisplay>,
+    )
+
+    /** A param of a rule type ([NotificationRuleParam]); the value of the form is `params.<key>`. */
+    class Param(
+        val key: String,
+        val type: NotificationRuleParam.Type,
+        val label: String,
+        val hint: String?,
+        /** The value of a new rule (or of a rule just changed to this type). */
+        val default: Any?,
+        /** [NotificationRuleParam.Type.INT]: the range. */
+        val min: Int? = null,
+        val max: Int? = null,
+        /** [NotificationRuleParam.Type.SELECT]. */
+        val options: List<Option>? = null,
+        /** [NotificationRuleParam.Type.ENTITY]: the rest category of the autocompletion. */
+        val entity: String? = null,
+    )
+
+    class Option(val value: String, val label: String)
 
     /** A menu item a rule may show its notifications on as a counter. */
     class MenuBadgeOption(val id: String, val label: String)
@@ -146,10 +187,16 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     private lateinit var caches: PfCaches
 
     @Autowired
+    private lateinit var menuCreator: MenuCreator
+
+    @Autowired
     private lateinit var notificationDao: NotificationDao
 
     @Autowired
     private lateinit var notificationService: NotificationService
+
+    @Autowired
+    private lateinit var registry: NotificationRuleRegistry
 
     @Autowired
     private lateinit var smsSenderConfig: SmsSenderConfig
@@ -157,13 +204,26 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     override fun transformFromDB(obj: NotificationRuleDO, editMode: Boolean): NotificationRule {
         val rule = NotificationRule()
         rule.copyFrom(obj)
-        rule.cvrCase?.displayName = notificationService.paramDisplayNames(obj)["cvrCaseId"]
+        val handler = registry.handler(obj)
+        rule.ruleTypeLabel = handler?.let { translate(it.i18nKey) } ?: obj.ruleType
+        if (handler != null) {
+            val values = registry.values(obj)
+            val names = notificationService.paramDisplayNames(obj)
+            rule.params = handler.params.associate { param ->
+                val value = values[param.key]
+                // An entity as the autocompletion of the editor shows it.
+                param.key to if (param.type == NotificationRuleParam.Type.ENTITY && value != null) {
+                    mapOf("id" to value, "displayName" to names[param.key])
+                } else value
+            }
+        }
         return rule
     }
 
     override fun transformForDB(dto: NotificationRule): NotificationRuleDO {
         val rule = NotificationRuleDO()
         dto.copyTo(rule)
+        registry.writeValues(rule, dto.params)
         return rule
     }
 
@@ -195,43 +255,33 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
             validationErrors += ValidationError(translate("notification.rule.error.delay"), fieldId = "deliverySteps")
         }
         if (dto.linkMode == NotificationParams.LinkMode.MENU_ITEM &&
-            MenuItemDefId.entries.none { it.id == dto.linkMenuItem && it.url != null }
+            dto.linkMenuItem?.let { menuCreator.findById(it)?.url } == null
         ) {
             validationErrors += required("linkMenuItem", "notification.rule.link")
         }
-        if (dto.daysBeforeExpiry < 0) {
-            validationErrors += ValidationError(translate("notification.rule.error.daysBeforeExpiry"), fieldId = "daysBeforeExpiry")
+        val handler = registry.handler(dto.ruleType)
+        if (dto.ruleType != null && handler == null) {
+            validationErrors += ValidationError(translate("notification.rule.error.ruleTypeUnknown"), fieldId = "ruleType")
         }
-        if (dto.ruleType == NotificationRuleType.PASSWORD_NOT_CHANGED && dto.passwordMaxAgeDays < 1) {
-            validationErrors += ValidationError(translate("notification.rule.error.passwordMaxAgeDays"), fieldId = "passwordMaxAgeDays")
+        handler ?: return
+        // E.g. nobody is concerned by an invoice: "only those concerned" without recipients would notify nobody.
+        if (handler.requiresRecipients &&
+            dto.recipientGroups.isEmpty() && dto.recipientUsers.isEmpty() && !dto.allEmployees && dto.employeeStatus.isEmpty()
+        ) {
+            validationErrors += ValidationError(translate("notification.rule.error.recipientsRequired"), fieldId = "recipientGroups")
         }
-        if (dto.ruleType == NotificationRuleType.TIMESHEETS_WITHOUT_KOST2 && dto.kost2MissingMonths !in 1..12) {
-            validationErrors += ValidationError(translate("notification.rule.error.kost2MissingMonths"), fieldId = "kost2MissingMonths")
-        }
-        if (dto.ruleType == NotificationRuleType.CREDITOR_INVOICES_DUE) {
-            if (dto.dueWorkingDays !in 0..30) {
-                validationErrors += ValidationError(translate("notification.rule.error.dueWorkingDays"), fieldId = "dueWorkingDays")
+        val params = handler.params.associateBy { it.key }
+        registry.errors(transformForDB(dto)).forEach { (key, error) ->
+            val message = if (error.i18nKey == NotificationRuleParam.REQUIRED) {
+                translateMsg(error.i18nKey, translate(params[key]?.i18nKey ?: key))
+            } else {
+                translateMsg(error.i18nKey, *error.args)
             }
-            // Nobody is concerned by an invoice, so "only those concerned" without recipients would notify nobody.
-            if (dto.recipientGroups.isEmpty() && dto.recipientUsers.isEmpty() && !dto.allEmployees && dto.employeeStatus.isEmpty()) {
-                validationErrors += ValidationError(translate("notification.rule.error.recipientsRequired"), fieldId = "recipientGroups")
-            }
-        }
-        if (dto.ruleType == NotificationRuleType.CVERADAR_FINDINGS && dto.cvrMinSeverity !in CVR_SEVERITIES) {
-            validationErrors += ValidationError(translate("notification.rule.error.cvrMinSeverity"), fieldId = "cvrMinSeverity")
-        }
-        if (dto.ruleType == NotificationRuleType.CVERADAR_STALE_LISTS && dto.cvrMaxAgeDays !in 1..365) {
-            validationErrors += ValidationError(translate("notification.rule.error.cvrMaxAgeDays"), fieldId = "cvrMaxAgeDays")
-        }
-        if (dto.ruleType == NotificationRuleType.CVERADAR_TEAM_CHECK_UNANSWERED && dto.cvrCase?.id == null) {
-            validationErrors += required("cvrCase", "notification.params.cvrCase")
-        }
-        notificationService.paramErrors(transformForDB(dto)).forEach { (param, i18nKey) ->
-            validationErrors += ValidationError(translate(i18nKey), fieldId = PARAM_FIELDS[param] ?: param)
+            validationErrors += ValidationError(message, fieldId = "$PARAMS_FIELD$key")
         }
     }
 
-    /** A rule of time sheets without cost 2 unit notifies nobody, as long as these aren't reported at all. */
+    /** The warnings of the rule type, e.g. a rule of time sheets without cost 2 unit, as long as these aren't reported. */
     override fun onAfterEdit(
         request: HttpServletRequest,
         obj: NotificationRuleDO,
@@ -239,9 +289,8 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         event: RestButtonEvent,
     ): ResponseAction {
         val responseAction = super.onAfterEdit(request, obj, postData, event)
-        if (obj.ruleType == NotificationRuleType.TIMESHEETS_WITHOUT_KOST2 && !Configuration.instance.isWarnMissingKost2) {
-            responseAction.message =
-                ResponseAction.Message("notification.rule.warning.warnMissingKost2Off", color = UIColor.WARNING)
+        registry.handler(obj)?.warnings(obj)?.firstOrNull()?.let {
+            responseAction.message = ResponseAction.Message(it, color = UIColor.WARNING)
         }
         return responseAction
     }
@@ -249,12 +298,20 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     /** The variables of the texts of the given rule type (the common ones for none). */
     @AccessChecked("DAO: NotificationRuleDao insert access (admin/finance, checkInsertAccess)")
     @GetMapping("variables")
-    fun getVariables(@RequestParam("ruleType", required = false) ruleType: NotificationRuleType?): List<Variable> {
+    fun getVariables(@RequestParam("ruleType", required = false) ruleType: String?): List<Variable> {
         checkInsertAccess()
         val examples = notificationService.exampleVariables(ruleType, ThreadLocalUserContext.requiredLoggedInUser)
         return notificationService.variables(ruleType).map {
             Variable(it, translate("notification.variable.$it"), it in NotificationService.COMMON_VARIABLES, examples[it])
         }
+    }
+
+    /** The registered rule types, in the order of the editor. */
+    @AccessChecked("DAO: NotificationRuleDao insert access (admin/finance, checkInsertAccess)")
+    @GetMapping("ruleTypes")
+    fun getRuleTypes(): List<RuleType> {
+        checkInsertAccess()
+        return registry.all.map { ruleType(it) }
     }
 
     /** Is SMS configured? The editor offers SMS steps only then. */
@@ -265,12 +322,12 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         return SmsInfo(smsSenderConfig.isSmsConfigured(), smsSenderConfig.smsMaxMessageLength)
     }
 
-    /** The menu items selectable as menu badge, sorted by their translated labels. */
+    /** The menu items selectable as menu badge (also those of the plugins), sorted by their translated labels. */
     @AccessChecked("DAO: NotificationRuleDao insert access (admin/finance, checkInsertAccess)")
     @GetMapping("menuBadges")
     fun getMenuBadges(): List<MenuBadgeOption> {
         checkInsertAccess()
-        return MenuItemDefId.entries.filter { it.url != null }
+        return menuCreator.menuItemDefsWithUrl()
             .map { MenuBadgeOption(it.id, translate(it.i18nKey)) }
             .sortedBy { it.label.lowercase() }
     }
@@ -412,6 +469,42 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         )
     }
 
+    private fun ruleType(handler: NotificationRuleHandler): RuleType {
+        // The variables are written as `[key]` in the texts of the bundle (braces are ICU syntax).
+        val template = { key: String? -> key?.let { translate(it).replace(TEMPLATE_VARIABLE, "{{$1}}") } }
+        return RuleType(
+            key = handler.ruleType,
+            label = translate(handler.i18nKey),
+            params = handler.params.map { param(it) },
+            recipientMode = handler.recipientMode,
+            recipientsHint = handler.recipientsHintKey?.let { translate(it) },
+            requiresRecipients = handler.requiresRecipients,
+            templateSubject = template(handler.templateSubjectKey),
+            templateText = template(handler.templateTextKey),
+            manualDoneForced = NotificationDisplay.entries.filter { handler.isManualDoneForced(it) },
+        )
+    }
+
+    private fun param(param: NotificationRuleParam<*>): Param {
+        val label = translate(param.i18nKey)
+        val hint = param.hintKey?.let { translate(it) }
+        return when (param) {
+            is NotificationRuleParam.IntParam -> Param(
+                param.key, param.type, label, hint, param.default, min = param.min, max = param.max,
+            )
+
+            is NotificationRuleParam.SelectParam<*> -> Param(
+                param.key, param.type, label, hint, param.default?.let { param.optionNames[param.options.indexOf(it)] },
+                options = param.optionNames.map {
+                    Option(it, if (param.translateOptions) translate("${param.i18nKey}.$it") else it)
+                },
+            )
+
+            is NotificationRuleParam.EntityParam -> Param(param.key, param.type, label, hint, null, entity = param.entity)
+            else -> Param(param.key, param.type, label, hint, param.default)
+        }
+    }
+
     private fun required(field: String, i18nKey: String): ValidationError {
         return ValidationError(
             translateMsg("validation.error.fieldRequired", translate(i18nKey)),
@@ -433,14 +526,13 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     }
 
     companion object {
-        /** The field of the editor by param name, where they differ (see `NotificationRuleHandler.paramErrors`). */
-        private val PARAM_FIELDS = mapOf("cvrCaseId" to "cvrCase")
+        /** The prefix of the fields of the params in the form (and of their errors). */
+        private const val PARAMS_FIELD = "params."
+
+        private val TEMPLATE_VARIABLE = Regex("""\[(\w+)]""")
 
         private const val MAX_PREVIEW_RECIPIENTS = 50
         private const val MAX_LOG_ENTRIES = 500
         private const val MAX_SMS_TEXT_LENGTH = 1000
-
-        /** The CVSS severities a rule of the CVE radar may start from. */
-        private val CVR_SEVERITIES = setOf("LOW", "MEDIUM", "HIGH", "CRITICAL")
     }
 }

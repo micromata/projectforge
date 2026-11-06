@@ -37,7 +37,7 @@ import java.time.temporal.ChronoUnit
 import java.util.Date
 
 /**
- * Users with system access whose password wasn't changed for more than [NotificationParams.passwordMaxAgeDays] days
+ * Users with system access whose password wasn't changed for more than [MAX_AGE_DAYS] days
  * (the creation of the user counts, if the password was never changed). Only password changes in ProjectForge are
  * known. Each password change is a period of its own: resolved once the password is changed, notified again after the
  * new password got too old.
@@ -53,12 +53,17 @@ class PasswordNotChangedRuleHandler : NotificationRuleHandler {
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
-    override val ruleType = NotificationRuleType.PASSWORD_NOT_CHANGED
+    override val ruleType = TYPE
+
+    override val order = 30
+
+    override val params = listOf(MAX_AGE_DAYS)
+
 
     override val variables = listOf("passwordChangeDate", "passwordAgeDays", "passwordMaxAgeDays", "passwordLink")
 
     override fun evaluate(rule: NotificationRuleDO, today: LocalDate): NotificationRuleHandler.Evaluation {
-        val maxAgeDays = rule.readParams().passwordMaxAgeDays
+        val maxAgeDays = MAX_AGE_DAYS.of(rule)
         val affected = mutableMapOf<Long, Map<String, String>>()
         val periodKeys = mutableMapOf<Long, String>()
         userGroupCache.allUsers.filter { it.hasSystemAccess() }.forEach { user ->
@@ -74,11 +79,11 @@ class PasswordNotChangedRuleHandler : NotificationRuleHandler {
     }
 
     override fun variables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> {
-        return variables(user, rule.readParams().passwordMaxAgeDays, today)
+        return variables(user, MAX_AGE_DAYS.of(rule), today)
     }
 
     override fun exampleVariables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> {
-        return variables(user, rule.readParams().passwordMaxAgeDays, today, today.minusDays(100))
+        return variables(user, MAX_AGE_DAYS.of(rule), today, today.minusDays(100))
     }
 
     /** Resolved if the password was changed (or isn't too old any more), expired if the user has no access any more. */
@@ -87,7 +92,7 @@ class PasswordNotChangedRuleHandler : NotificationRuleHandler {
         notifications: List<NotificationDO>,
         today: LocalDate,
     ): Map<Long, NotificationStatus> {
-        val maxAgeDays = rule.readParams().passwordMaxAgeDays
+        val maxAgeDays = MAX_AGE_DAYS.of(rule)
         val result = mutableMapOf<Long, NotificationStatus>()
         notifications.forEach { notification ->
             val user = caches.getUser(notification.recipientId)
@@ -116,6 +121,13 @@ class PasswordNotChangedRuleHandler : NotificationRuleHandler {
     }
 
     companion object {
+        const val TYPE = "PASSWORD_NOT_CHANGED"
+
+        /** Notify if the password is older than these days. */
+        val MAX_AGE_DAYS = NotificationRuleParam.IntParam(
+            "passwordMaxAgeDays", 90, min = 1, max = 9999, errorKey = "notification.rule.error.passwordMaxAgeDays",
+        )
+
         /**
          * The change password page (path of the next app, see [NotificationLinks]). Not the menu url
          * (`next/changePassword`): [NotificationLinks.absolute] would prefix it with `next/` once more.

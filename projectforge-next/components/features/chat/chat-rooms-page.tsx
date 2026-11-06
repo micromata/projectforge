@@ -76,7 +76,7 @@ export function ChatRoomsPage() {
       ),
     [direct.data, search]
   );
-  const candidates = useDirectCandidates(search, direct.data);
+  const candidates = useDirectCandidates(search);
   const roomsFound = useMemo(
     () =>
       query.data?.filter((room) =>

@@ -10,6 +10,7 @@ The documentation for users and administrators is on the website (`site/`, https
 | [HOWTO-TEST-GATEWAY.md](HOWTO-TEST-GATEWAY.md)        | Reference | Testing the gateway instance locally and on a server                                  |
 | [lanes-and-planes.md](lanes-and-planes.md)            | Reference | Lanes & Planes ExtAPI findings and checklist before the first real push               |
 | [history-n-plus-1.md](history-n-plus-1.md)            | Done      | History re-index removal, `pg_trgm` indexes, batched history loading; few open points |
+| [notification-rules.md](notification-rules.md)        | Reference | Adding a rule type of the notification system (handler, params, texts, tests)          |
 | [file-store.md](file-store.md)                        | Reference | File store (`projectforge-files`), start-up guard for the former JCR; few open points |
 | [major-upgrades.md](major-upgrades.md)                | Plan      | Spring Boot 4 / Hibernate 7 done; Jackson 3 and the remaining majors open             |
 | [kost2-reallocation.md](kost2-reallocation.md)        | Plan      | Retroactive Kost2 reallocation of accounting records; not started                     |

@@ -211,6 +211,21 @@ open class MenuCreator {
         personalMenuPluginEntries.toList().forEach { visitor(it, emptyList()) }
     }
 
+    /**
+     * The entries of the main menu with a page, of the core and of the plugins, top down (e.g. for the menu badge
+     * and the link of a notification rule).
+     */
+    fun menuItemDefsWithUrl(): List<MenuItemDef> {
+        initialize()
+        val result = mutableListOf<MenuItemDef>()
+        fun visit(def: MenuItemDef) {
+            if (def.url != null) result += def
+            def.children?.toList()?.forEach { visit(it) }
+        }
+        menuItemDefHolder.menuItems.toList().forEach { visit(it) }
+        return result
+    }
+
     private fun rememberPlugin(menuId: String) {
         currentPluginId?.let { pluginIdByMenuId[menuId] = it }
         modificationCount++

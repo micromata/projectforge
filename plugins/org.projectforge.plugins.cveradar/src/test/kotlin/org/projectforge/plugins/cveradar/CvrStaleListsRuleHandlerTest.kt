@@ -35,7 +35,6 @@ import org.projectforge.business.notification.NotificationParams
 import org.projectforge.business.notification.NotificationRecipients
 import org.projectforge.business.notification.NotificationRuleDO
 import org.projectforge.business.notification.NotificationRuleDao
-import org.projectforge.business.notification.NotificationRuleType
 import org.projectforge.business.notification.NotificationService
 import org.projectforge.business.notification.NotificationStatus
 import org.projectforge.framework.json.JsonUtils
@@ -69,8 +68,8 @@ class CvrStaleListsRuleHandlerTest : CveRadarTestBase() {
         val rule = NotificationRuleDO().also {
             it.name = "Outdated lists"
             it.active = true
-            it.ruleType = NotificationRuleType.CVERADAR_STALE_LISTS
-            it.params = JsonUtils.toJson(NotificationParams(cvrMaxAgeDays = 30))
+            it.ruleType = CvrStaleListsRuleHandler.TYPE
+            it.params = JsonUtils.toJson(NotificationParams.of("cvrMaxAgeDays" to 30))
             it.recipients = JsonUtils.toJson(NotificationRecipients())
             it.delivery = JsonUtils.toJson(NotificationDelivery(listOf(NotificationDeliveryStep(NotificationChannel.IN_APP))))
             it.subject = "{{cvrStaleCount}} outdated"

@@ -34,7 +34,9 @@ import org.projectforge.framework.utils.HtmlSanitizer
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.mail.MailSendException
 import org.projectforge.business.push.PushNotifier
+import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDefId
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -75,7 +77,11 @@ class NotificationService {
     private lateinit var pushNotifier: PushNotifier
 
     @Autowired
-    private lateinit var handlerList: List<NotificationRuleHandler>
+    private lateinit var registry: NotificationRuleRegistry
+
+    // A provider: the menu depends on beans (e.g. of the chat) depending on this service.
+    @Autowired
+    private lateinit var menuCreatorProvider: ObjectProvider<MenuCreator>
 
     @Autowired
     private lateinit var senderList: List<NotificationChannelSender>
@@ -130,10 +136,6 @@ class NotificationService {
     // Serializes the jobs (and the manual triggers): a new notification must not be delivered twice.
     private val lock = ReentrantLock()
 
-    private val handlers: Map<NotificationRuleType, NotificationRuleHandler> by lazy {
-        handlerList.associateBy { it.ruleType }
-    }
-
     private val senders: Map<NotificationChannel, NotificationChannelSender>
         get() = senderList.associateBy { it.channel } // A few senders: not cached, so a test may replace them.
 
@@ -148,29 +150,24 @@ class NotificationService {
     }
 
     /** The keys of the variables of the given rule type (`{{key}}`), the common ones first. */
-    fun variables(ruleType: NotificationRuleType?): List<String> {
-        return COMMON_VARIABLES + (ruleType?.let { handlers[it]?.variables }.orEmpty())
+    fun variables(ruleType: String?): List<String> {
+        return COMMON_VARIABLES + registry.handler(ruleType)?.variables.orEmpty()
     }
 
     /** Example values of the [variables] of the given rule type (with its default params), formatted for the user. */
-    fun exampleVariables(ruleType: NotificationRuleType?, user: PFUserDO): Map<String, String> {
+    fun exampleVariables(ruleType: String?, user: PFUserDO): Map<String, String> {
         return exampleVariables(NotificationRuleDO().also { it.ruleType = ruleType }, user)
     }
 
     /** Example values of the [variables] of the given rule (maybe unsaved), formatted for the user. */
     fun exampleVariables(rule: NotificationRuleDO, user: PFUserDO): Map<String, String> {
-        val handler = rule.ruleType?.let { handlers[it] }
+        val handler = registry.handler(rule)
         return EXAMPLE_COMMON_VARIABLES + handler?.exampleVariables(rule, today(), user).orEmpty()
     }
 
     /** The display names of the entities the params of the rule refer to, see [NotificationRuleHandler.paramDisplayNames]. */
     fun paramDisplayNames(rule: NotificationRuleDO): Map<String, String> {
-        return rule.ruleType?.let { handlers[it] }?.paramDisplayNames(rule).orEmpty()
-    }
-
-    /** The errors of the params of the rule, see [NotificationRuleHandler.paramErrors]. */
-    fun paramErrors(rule: NotificationRuleDO): Map<String, String> {
-        return rule.ruleType?.let { handlers[it] }?.paramErrors(rule).orEmpty()
+        return registry.handler(rule)?.paramDisplayNames(rule).orEmpty()
     }
 
     /** Runs the due rules, then checks the pending notifications for resolution. */
@@ -183,6 +180,11 @@ class NotificationService {
                 val run = DeliveryRun()
                 notificationRuleDao.selectActive().forEach { rule ->
                     if (!rule.readSchedule().isDue(today) || rule.lastRun?.let { toLocalDate(it) } == today) {
+                        return@forEach
+                    }
+                    if (registry.handler(rule) == null) {
+                        // E.g. the plugin of the type isn't installed any more: the rule waits, it isn't an error.
+                        log.warn { "Notification rule #${rule.id} '${rule.name}' skipped: no handler for its type '${rule.ruleType}'." }
                         return@forEach
                     }
                     val result = runRule(rule, today, now, run)
@@ -448,7 +450,9 @@ class NotificationService {
                     pending.forEach { notificationDao.finish(it, NotificationStatus.EXPIRED) }
                     return@forEach
                 }
-                handler(rule).resolve(rule, pending, today).forEach { (id, status) ->
+                // Without handler (its plugin not installed any more), the notifications stay as they are.
+                val handler = registry.handler(rule) ?: return@forEach
+                handler.resolve(rule, pending, today).forEach { (id, status) ->
                     pending.find { it.id == id }?.let { notificationDao.finish(it, status) }
                 }
             } catch (ex: Exception) {
@@ -598,7 +602,7 @@ class NotificationService {
             it.recipientId = user.id
             it.severity = rule.severity
             it.display = rule.display
-            it.manualDone = rule.manualDone || rule.isManualDoneForced
+            it.manualDone = rule.manualDone || registry.isManualDoneForced(rule)
             it.menuBadge = rule.menuBadge?.takeIf { badge -> badge.isNotBlank() }
             it.title = NotificationTemplate.renderSubject(rule.subject, variables)
             it.body = NotificationTemplate.renderText(rule.text, variables)
@@ -622,13 +626,13 @@ class NotificationService {
         return when (params.linkMode) {
             NotificationParams.LinkMode.DEFAULT -> evaluation?.linkFor(user)
             NotificationParams.LinkMode.NONE -> null
-            NotificationParams.LinkMode.MENU_ITEM -> MenuItemDefId.entries.find { it.id == params.linkMenuItem }?.url
+            NotificationParams.LinkMode.MENU_ITEM -> params.linkMenuItem?.let { menuCreatorProvider.getObject().findById(it)?.url }
         }
     }
 
     private fun handler(rule: NotificationRuleDO): NotificationRuleHandler {
         val ruleType = rule.ruleType ?: throw IllegalArgumentException("Notification rule #${rule.id} has no type.")
-        return handlers[ruleType] ?: throw IllegalArgumentException("No handler for notification rule type $ruleType.")
+        return registry.handler(ruleType) ?: throw IllegalArgumentException("No handler for notification rule type $ruleType.")
     }
 
     companion object {
