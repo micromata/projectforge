@@ -69,6 +69,8 @@ export interface TimesheetKost2 {
   id: number;
   formattedNumber?: string | null;
   description?: string | null;
+  /** `5.123.45.01: <Kost2Art> - <project>`, the only text the rows of `appList` have. */
+  displayName?: string | null;
 }
 
 /** What a new or changed booking sends (inside `{ data }`). @request org.projectforge.rest.dto.Timesheet */

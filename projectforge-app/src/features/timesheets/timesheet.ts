@@ -77,15 +77,15 @@ export interface Kost2Ref {
   label: string;
 }
 
-/** A cost unit of a booking: number and description. */
+/** A cost unit of a booking: number and description, else its display name (the rows of `appList`). */
 export function kost2OfTimesheet(kost2: TimesheetKost2): Kost2Ref {
   const number = kost2.formattedNumber;
-  const label = number ? (kost2.description ? `${number} ${kost2.description}` : number) : `#${kost2.id}`;
+  const label = number ? (kost2.description ? `${number} ${kost2.description}` : number) : (kost2.displayName ?? '');
   return { id: kost2.id, label };
 }
 
 /** A cost unit of `task/info`: the whole text as title (`5.123.45.01: <Kost2Art> - <project>`). */
-export const kost2OfTaskInfo = (kost2: TaskKost2): Kost2Ref => ({ id: kost2.id, label: kost2.title || `#${kost2.id}` });
+export const kost2OfTaskInfo = (kost2: TaskKost2): Kost2Ref => ({ id: kost2.id, label: kost2.title ?? '' });
 
 /** The number of the label (`5.123.45.01`), the whole label if it has no text. */
 export function kost2Number(kost2: Kost2Ref): string {

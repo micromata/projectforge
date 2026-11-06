@@ -30,6 +30,7 @@ import {
   gapsOf,
   kost2Number,
   kost2OfTaskInfo,
+  kost2OfTimesheet,
   kost2Text,
   nextStartOf,
   shortPath,
@@ -86,6 +87,15 @@ describe('time sheet models', () => {
     expect(fullPath(info.task)).toBe('ProjectForge › Dev');
     expect(info.pathIds).toEqual([1]);
     expect(info.kost2List[0].label).toBe('5.020.01.02 - Entwicklung');
+  });
+
+  it('labels a cost unit by its number, else by its display name, never by its id', () => {
+    expect(kost2OfTimesheet({ id: 7, formattedNumber: '5.020.01.02', description: 'Dev' }).label).toBe('5.020.01.02 Dev');
+    // The rows of appList: only the display name.
+    expect(kost2OfTimesheet({ id: 7, displayName: '5.020.01.02: Entwicklung - PF' }).label).toBe(
+      '5.020.01.02: Entwicklung - PF',
+    );
+    expect(kost2OfTimesheet({ id: 7 }).label).toBe('');
   });
 
   it('keeps the json of the server and reads the local time', () => {

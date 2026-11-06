@@ -182,7 +182,7 @@ function BookingCard({ sheet, selected, actions }: { sheet: Timesheet; selected:
         </View>
         <View style={styles.fill}>
           <Text style={[styles.task, { color: colors.text }]}>{what.task ? shortPath(what.task) : ''}</Text>
-          {what.kost2 && <Text style={{ color: colors.textMuted, fontSize: 12 }}>{what.kost2.label}</Text>}
+          {what.kost2?.label ? <Text style={{ color: colors.textMuted, fontSize: 12 }}>{what.kost2.label}</Text> : null}
           {what.description ? (
             <Text style={{ color: colors.text }} numberOfLines={2}>
               {what.description}
