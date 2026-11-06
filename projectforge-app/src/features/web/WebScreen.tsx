@@ -22,7 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Platform, Share, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, BackHandler, Linking, Platform, Share, StyleSheet, View } from 'react-native';
 import RNWebView, { WebViewMessageEvent, WebViewNavigation } from 'react-native-webview';
 
 import PfNative from '../../../modules/pf-native/src/PfNativeModule';
@@ -38,6 +38,7 @@ import { authController } from '../../core/auth/authController';
 import { SharedFiles } from '../../core/files/sharedFiles';
 import { errorText, t } from '../../core/i18n/translations';
 import { appLog, LogSanitizer } from '../../core/log/appLog';
+import { useColors } from '../../core/ui/colors';
 import { ErrorView } from '../../core/ui/ErrorView';
 import { appVersion, platformHttp } from '../../core/platform';
 import { parseUrl } from '../../core/url';
@@ -111,6 +112,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   { initialPath, active, onNativePage, onStateChange },
   ref,
 ) {
+  const colors = useColors();
   const webView = useRef<WebViewInstance>(null);
   const [source, setSource] = useState<{ uri: string } | null>(null);
   const [webViewKey, setWebViewKey] = useState(0);
@@ -128,6 +130,9 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   const lastOpened = useRef<number | null>(null);
   /** The native page this screen was asked to load itself (e.g. the web version of the business cards): not handed over. */
   const requestedNative = useRef<NativePage | null>(null);
+  /** The url of the last client side navigation handed over: its repeated state changes aren't handed over again. */
+  const handedOver = useRef<string | null>(null);
+  const canGoBack = useRef(false);
   const lastProxyRenewal = useRef<number | null>(null);
   const renewingProxy = useRef(false);
   const openings = useRef(0);
@@ -181,13 +186,18 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     [replaceWebView],
   );
 
-  /** Loads [url], a page of the server, as a load of its own (see serverPageLoadStart). */
+  /**
+   * Loads [url], a page of the server, as a load of its own (see serverPageLoadStart). A new entry of the history, so
+   * Back returns to the page shown before; [replace] replaces the current one (the login page of a renewal, which
+   * Back would show again).
+   */
   const load = useCallback(
-    (url: string) => {
+    (url: string, replace = false) => {
       startServerPageLoad(url);
       if (webView.current && source) {
         // A new source with the same uri isn't loaded again by react-native-webview.
-        webView.current.injectJavaScript(`window.location.replace(${JSON.stringify(url)}); true;`);
+        const method = replace ? 'replace' : 'assign';
+        webView.current.injectJavaScript(`window.location.${method}(${JSON.stringify(url)}); true;`);
       } else {
         setSource({ uri: url });
       }
@@ -214,7 +224,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         }
         appLog.info('web', `Load ${LogSanitizer.url(url)}`);
         requestedNative.current = navigation.nativePage(url);
-        load(url.href);
+        load(url.href, renew);
       } catch (e) {
         appLog.warn('web', `Pages not opened: ${String(e)}`);
         if (opening !== openings.current) return;
@@ -420,6 +430,16 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     }
     setPullToRefresh(!navigation.isNextPage(url));
     if (!state.loading) serverPageLoadStart.current = null;
+    if (url !== handedOver.current) {
+      handedOver.current = null;
+      if (state.canGoBack && navigation.isSameOrigin(url) && handOver(url)) {
+        // A link of next to a page with a tab of its own: shown there, back to the page the user came from.
+        handedOver.current = url;
+        webView.current?.goBack();
+        return;
+      }
+    }
+    canGoBack.current = state.canGoBack;
     onStateChange?.({ canGoBack: state.canGoBack, canGoForward: state.canGoForward });
   };
 
@@ -475,6 +495,27 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     lastProxyRenewal.current = Date.now();
     await open(path, true, false);
   };
+
+  // The hardware back of Android goes back in the pages of the tab shown.
+  useEffect(() => {
+    if (!active || Platform.OS !== 'android') return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (!canGoBack.current) return false;
+      webView.current?.goBack();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [active]);
+
+  // The search belongs to the tab shown: closed once another tab is shown.
+  const [shownActive, setShownActive] = useState(active);
+  if (shownActive !== active) {
+    setShownActive(active);
+    if (!active) setFinding(false);
+  }
+  useEffect(() => {
+    if (!active) webView.current?.injectJavaScript(findScript('', 'clear'));
+  }, [active]);
 
   const closeFind = () => {
     if (!finding) return;
@@ -562,7 +603,8 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         // The pages of next bring their own pull to refresh; iOS only (react-native-webview has none on Android).
         pullToRefreshEnabled={pullToRefresh}
         webviewDebuggingEnabled={__DEV__}
-        style={styles.fill}
+        // No white page before the first one is painted (dark theme).
+        style={[styles.fill, { backgroundColor: colors.surface }]}
       />
       {progress < 1 && <View style={[styles.progress, { width: `${Math.round(progress * 100)}%` }]} />}
       {finding && (
