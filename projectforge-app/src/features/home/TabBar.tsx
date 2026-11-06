@@ -90,15 +90,23 @@ export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: C
       { key: 'forward', label: t('app.web.forward'), icon: 'arrow-forward', disabled: !web?.canGoForward, onPress: () => handle?.goForward() },
       { key: 'reload', label: t('app.web.reload'), icon: 'refresh', onPress: () => handle?.reload() },
       { key: 'find', label: t('app.web.find'), icon: 'search', onPress: () => handle?.openFind() },
-      { key: 'share', label: t('app.web.share'), icon: 'share-outline', onPress: () => handle?.share() },
-      { key: 'browser', label: t('app.web.openInBrowser'), icon: 'open-outline', onPress: () => handle?.openInBrowser() },
+      { key: 'share', label: t('app.web.share'), icon: 'share-outline', disabled: !web?.hasPage, onPress: () => handle?.share() },
+      { key: 'browser', label: t('app.web.openInBrowser'), icon: 'open-outline', disabled: !web?.hasPage, onPress: () => handle?.openInBrowser() },
       { key: 'restart', label: t('app.web.restart'), icon: 'reload-circle-outline', onPress: () => handle?.restart() },
     ];
+  };
+
+  /** The user and the server of the login, to read only. */
+  const accountItems = (): MenuItem[] => {
+    const session = authController.getState().session;
+    if (session == null) return [];
+    return [{ key: 'account', label: session.fullname ?? session.username ?? '', detail: session.serverUrl, info: true }];
   };
 
   /** On a web tab the browser functions first, then the account, the settings and the logout (as in the Flutter app). */
   const moreItems = (): MenuItem[] => [
     ...(webTab ? browserItems() : []),
+    ...accountItems(),
     { key: 'version', label: t('app.version', appVersion), info: true },
     ...(issue ? [{ key: 'compatibility', label: compatibilityText(issue), icon: 'warning-outline' as IconName, info: true }] : []),
     { key: 'servers', label: t('app.server.switch'), icon: 'swap-horizontal', onPress: () => router.push('/servers') },

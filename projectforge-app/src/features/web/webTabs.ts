@@ -31,7 +31,7 @@ export type WebTab = 'pages' | 'chat';
 /** The start page of the chat tab (its rooms). */
 export const CHAT_PATH = '/next/chat';
 
-const EMPTY: WebScreenState = { canGoBack: false, canGoForward: false };
+const EMPTY: WebScreenState = { canGoBack: false, canGoForward: false, hasPage: false };
 
 /**
  * The WebView tabs for the navigation around them (the browser menu, a tab asked to show a page): their handles and
@@ -69,7 +69,13 @@ class WebTabs {
 
   setState(tab: WebTab, state: WebScreenState) {
     const old = this.states[tab];
-    if (old.canGoBack === state.canGoBack && old.canGoForward === state.canGoForward) return;
+    if (
+      old.canGoBack === state.canGoBack &&
+      old.canGoForward === state.canGoForward &&
+      old.hasPage === state.hasPage
+    ) {
+      return;
+    }
     this.states = { ...this.states, [tab]: state };
     this.listeners.forEach((it) => it());
   }

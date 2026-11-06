@@ -64,6 +64,8 @@ export interface WebScreenHandle {
 export interface WebScreenState {
   canGoBack: boolean;
   canGoForward: boolean;
+  /** A page of the server is shown: it can be shared or opened in the browser. */
+  hasPage: boolean;
 }
 
 interface Props {
@@ -175,7 +177,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     setStalled(false);
     setFinding(false);
     setProgress(0);
-    onStateChange?.({ canGoBack: false, canGoForward: false });
+    onStateChange?.({ canGoBack: false, canGoForward: false, hasPage: false });
   }, [onStateChange]);
 
   const showError = useCallback(
@@ -440,7 +442,11 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       }
     }
     canGoBack.current = state.canGoBack;
-    onStateChange?.({ canGoBack: state.canGoBack, canGoForward: state.canGoForward });
+    onStateChange?.({
+      canGoBack: state.canGoBack,
+      canGoForward: state.canGoForward,
+      hasPage: shownUrl.current != null,
+    });
   };
 
   const onError = (event: WebViewErrorEvent) => {
