@@ -68,6 +68,7 @@ export default function TabsLayout() {
         tabBar={(props) => <TabBar {...props} issue={issue} />}
       >
         <Tabs.Screen name="cards" />
+        <Tabs.Screen name="addresses" />
         <Tabs.Screen name="pages" />
         <Tabs.Screen name="chat" />
       </Tabs>

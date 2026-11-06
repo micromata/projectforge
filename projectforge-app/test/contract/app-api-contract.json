@@ -76,6 +76,23 @@
           "controller": "org.projectforge.rest.notification.NotificationRest"
         }
       ]
+    },
+    {
+      "name": "Addresses",
+      "endpoints": [
+        {
+          "call": "GET /rs/address/appList",
+          "controller": "org.projectforge.rest.AddressEntityRest"
+        },
+        {
+          "call": "GET /rs/address/image/{id}",
+          "controller": "org.projectforge.rest.AddressImageServicesRest"
+        },
+        {
+          "call": "GET /rs/address/imagePreview/{id}",
+          "controller": "org.projectforge.rest.AddressImageServicesRest"
+        }
+      ]
     }
   ]
 }

@@ -48,8 +48,8 @@ export default function PagesTab() {
           router.navigate('/chat');
           return true;
         }
-        if (page === 'businessCards') {
-          router.navigate('/cards');
+        if (page === 'businessCards' || page === 'addresses') {
+          router.navigate(page === 'businessCards' ? '/cards' : '/addresses');
           return true;
         }
         if (page === 'notifications') {

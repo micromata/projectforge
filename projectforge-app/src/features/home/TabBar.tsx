@@ -44,6 +44,7 @@ export type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['ta
 /** The tabs of the app: route name → icon, label and the web tab it shows (if it is one). */
 export const TABS: Record<string, { icon: IconName; label: () => string; webTab?: WebTab }> = {
   cards: { icon: 'id-card-outline', label: () => t('menu.myBusinessCards') },
+  addresses: { icon: 'people-outline', label: () => t('menu.addressList') },
   pages: { icon: 'globe-outline', label: () => t('app.web'), webTab: 'pages' },
   chat: { icon: 'chatbubbles-outline', label: () => t('chat.title'), webTab: 'chat' },
 };
