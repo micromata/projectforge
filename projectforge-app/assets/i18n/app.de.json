@@ -98,5 +98,6 @@
   "app.timesheet.timer.stop": "Stopp",
   "app.timesheet.timer.discard": "Verwerfen",
   "app.timesheet.timer.since": "seit {0} · {1}",
-  "app.timesheet.timer.sinceNoTask": "seit {0} · Strukturelement beim Stoppen wählen"
+  "app.timesheet.timer.sinceNoTask": "seit {0} · Strukturelement beim Stoppen wählen",
+  "app.notFound": "Nicht gefunden: vielleicht wurde es gelöscht."
 }

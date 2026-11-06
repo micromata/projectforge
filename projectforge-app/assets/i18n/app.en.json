@@ -98,5 +98,6 @@
   "app.timesheet.timer.stop": "Stop",
   "app.timesheet.timer.discard": "Discard",
   "app.timesheet.timer.since": "since {0} · {1}",
-  "app.timesheet.timer.sinceNoTask": "since {0} · choose the structure element when stopping"
+  "app.timesheet.timer.sinceNoTask": "since {0} · choose the structure element when stopping",
+  "app.notFound": "Not found: it may have been deleted."
 }

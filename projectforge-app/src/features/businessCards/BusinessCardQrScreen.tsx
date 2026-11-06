@@ -24,15 +24,25 @@
 import * as Brightness from 'expo-brightness';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { AppState, Image, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import {
+  ActivityIndicator,
+  AppState,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { t } from '../../core/i18n/translations';
+import { errorText, t } from '../../core/i18n/translations';
 import { HeaderAction } from '../../core/ui/ScreenHeader';
 import { walletAvailable } from '../../core/wallet/walletPass';
 import { addToWallet, shareVCard } from './businessCardActions';
 import { displayName } from './businessCards';
-import { useBusinessCards } from './businessCardsStore';
+import { businessCards, useBusinessCards } from './businessCardsStore';
 
 const PADDING = 24;
 
@@ -110,6 +120,22 @@ export function BusinessCardQrScreen({ id, onClose }: { id: string; onClose: () 
             </View>
           </View>
         )}
+        {/* Opened by its id (a restored route): the cards are still loading, or it is gone. */}
+        {!info &&
+          (state.status === 'loading' ? (
+            <ActivityIndicator color="#000" />
+          ) : (
+            <View style={styles.missing}>
+              <Text style={styles.organization}>
+                {state.status === 'error' ? errorText(state.error) : t('app.notFound')}
+              </Text>
+              {state.status === 'error' && (
+                <Pressable hitSlop={8} onPress={() => void businessCards.refresh()}>
+                  <Text style={styles.retry}>{t('refresh')}</Text>
+                </Pressable>
+              )}
+            </View>
+          ))}
       </ScrollView>
     </SafeAreaView>
   );
@@ -126,4 +152,6 @@ const styles = StyleSheet.create({
   detailsLandscape: { alignItems: 'flex-start', flexShrink: 1 },
   name: { color: '#000', fontSize: 22 },
   organization: { color: '#000000a0', fontSize: 16 },
+  missing: { alignItems: 'center', gap: 16 },
+  retry: { color: '#1976d2', fontSize: 16 },
 });

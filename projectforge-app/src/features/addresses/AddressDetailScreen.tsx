@@ -24,15 +24,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { ComponentProps, ReactNode, useState } from 'react';
-import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { i18n, t } from '../../core/i18n/translations';
+import { errorText, i18n, t } from '../../core/i18n/translations';
 import { appLog } from '../../core/log/appLog';
 import { MenuItem, MenuSheet } from '../../core/ui/MenuSheet';
 import { AppPostalAddress, displayName, emails, gradientOf, PhoneNumber, phones, postalLines } from './address';
 import { AddressAvatar } from './AddressAvatar';
-import { useAddresses } from './addressesStore';
+import { addresses, useAddresses } from './addressesStore';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -100,6 +100,23 @@ export function AddressDetailScreen({
     return (
       <SafeAreaView style={[styles.screen, { backgroundColor: '#333' }]}>
         <Bar onClose={onClose} />
+        {/* Opened by its id (a restored route): the addresses are still loading, or it is gone. */}
+        <View style={styles.missing}>
+          {state.status === 'loading' ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Text style={styles.missingText}>
+                {state.status === 'error' ? errorText(state.error) : t('app.notFound')}
+              </Text>
+              {state.status === 'error' && (
+                <Pressable hitSlop={8} onPress={() => void addresses.refresh()}>
+                  <Text style={styles.edit}>{t('refresh')}</Text>
+                </Pressable>
+              )}
+            </>
+          )}
+        </View>
       </SafeAreaView>
     );
   }
@@ -251,6 +268,8 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   bar: { height: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8 },
   edit: { color: '#fff', fontSize: 17, paddingHorizontal: 8 },
+  missing: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
+  missingText: { color: '#fff', fontSize: 16, textAlign: 'center' },
   content: { paddingHorizontal: 16, paddingBottom: 32 },
   center: { alignItems: 'center' },
   name: { color: '#fff', fontSize: 24, fontWeight: '600', textAlign: 'center', marginTop: 16 },
