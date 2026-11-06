@@ -104,6 +104,14 @@ export function TimesheetsScreen({
     [today, day],
   );
 
+  // A booking saved on another day (its date changed in the form): that day is shown.
+  useEffect(() => {
+    timesheets.setDayHandler((target) => {
+      if (!sameDay(target, day) && Math.abs(daysBetween(today, target)) <= RANGE_DAYS) select(target);
+    });
+    return () => timesheets.setDayHandler(null);
+  }, [day, today, select]);
+
   const open = (start: BookingStart) => {
     if (wide) {
       setPanel((it) => ({ start, key: (it?.key ?? 0) + 1 }));
@@ -193,9 +201,7 @@ export function TimesheetsScreen({
     duplicate,
     delete: (sheet) => void remove(sheet),
     menu: setMenuOf,
-    refresh: async () => {
-      timesheets.reloadWeeks();
-    },
+    refresh: () => timesheets.reloadWeeks(),
     retry: () => timesheets.loadWeek(monday, true),
   };
 
@@ -337,6 +343,7 @@ export function TimesheetsScreen({
 export function bookingDone(saved: BookingDraft | null, fromTimer: boolean) {
   if (saved == null) return;
   if (fromTimer) timesheets.stopTimer();
+  timesheets.showDay(saved.start);
   snackbar.show(
     t(
       'app.timesheet.booked',

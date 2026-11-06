@@ -68,6 +68,8 @@ class TimesheetsStore {
 
   /** Deletes a booking with an undo (the screen of the time sheets, which has the list). */
   private deleteHandler: ((id: number) => void) | null = null;
+  /** Shows a day (the screen of the time sheets, which has the pager). */
+  private dayHandler: ((day: Date) => void) | null = null;
 
   getState = () => this.state;
 
@@ -97,16 +99,21 @@ class TimesheetsStore {
     if (repo) void repo.loadTimer().then((timer) => this.repo === repo && this.set({ timer }));
   }
 
-  /** Loads the week of [monday] if it isn't loaded yet ([force]: again, the shown one stays until the answer). */
-  loadWeek(monday: Date, force = false) {
+  /**
+   * Loads the week of [monday] if it isn't loaded yet ([force]: again, the shown one stays until the answer); done
+   * when the answer is there (or the failure).
+   */
+  loadWeek(monday: Date, force = false): Promise<void> {
     const repo = this.repository();
-    if (repo == null) return;
+    if (repo == null) return Promise.resolve();
     const key = monday.getTime();
     const current = this.state.weeks[key];
-    if (current != null && !force) return;
+    if (current != null && !force) return Promise.resolve();
     if (current == null || current.status === 'error') this.setWeek(key, { status: 'loading' });
-    void repo.week(monday).then(
-      (week) => this.repo === repo && this.setWeek(key, { status: 'data', week }),
+    return repo.week(monday).then(
+      (week) => {
+        if (this.repo === repo) this.setWeek(key, { status: 'data', week });
+      },
       (error: unknown) => {
         if (this.repo !== repo) return;
         // A shown week stays, the error is only shown without one.
@@ -116,8 +123,8 @@ class TimesheetsStore {
   }
 
   /** Loads the shown weeks again (after a booking, a deletion, on opening the tab). */
-  reloadWeeks() {
-    for (const key of Object.keys(this.state.weeks)) this.loadWeek(new Date(Number(key)), true);
+  async reloadWeeks(): Promise<void> {
+    await Promise.all(Object.keys(this.state.weeks).map((key) => this.loadWeek(new Date(Number(key)), true)));
   }
 
   loadRecent() {
@@ -141,6 +148,15 @@ class TimesheetsStore {
 
   setDeleteHandler(handler: ((id: number) => void) | null) {
     this.deleteHandler = handler;
+  }
+
+  setDayHandler(handler: ((day: Date) => void) | null) {
+    this.dayHandler = handler;
+  }
+
+  /** Shows [day] in the list (a booking saved on another day). */
+  showDay(day: Date) {
+    this.dayHandler?.(day);
   }
 
   /** The booking form (a screen of its own) asks to delete its booking. */
