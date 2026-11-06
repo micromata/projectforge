@@ -41,7 +41,7 @@ import java.time.format.FormatStyle
 import java.util.Date
 
 /**
- * Time sheets without cost 2 unit within the last months ([NotificationParams.kost2MissingMonths], the current month
+ * Time sheets without cost 2 unit within the last months ([MISSING_MONTHS], the current month
  * included), only if these are to be reported at all ([Configuration.isWarnMissingKost2]). Booked on a task without
  * cost 2 units (e.g. not yet assigned to its project), their hours are missing in the salary export and end up as
  * correction there.
@@ -61,7 +61,16 @@ class TimesheetsWithoutKost2RuleHandler : NotificationRuleHandler {
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
 
-    override val ruleType = NotificationRuleType.TIMESHEETS_WITHOUT_KOST2
+    override val ruleType = TYPE
+
+    override val order = 40
+
+    override val params = listOf(MISSING_MONTHS)
+
+    /** The time sheets without cost 2 unit aren't reported at all, as long as the configuration doesn't warn of them. */
+    override fun warnings(rule: NotificationRuleDO): List<String> =
+        if (Configuration.instance.isWarnMissingKost2) emptyList() else listOf("notification.rule.warning.warnMissingKost2Off")
+
 
     override val variables = listOf(
         "period",
@@ -75,7 +84,7 @@ class TimesheetsWithoutKost2RuleHandler : NotificationRuleHandler {
         if (!Configuration.instance.isWarnMissingKost2) {
             return null
         }
-        val months = rule.readParams().kost2MissingMonths
+        val months = MISSING_MONTHS.of(rule)
         val affected = mutableMapOf<Long, Map<String, String>>()
         timesheetsWithoutKost2(months, today).forEach { (userId, sheets) ->
             val user = caches.getUser(userId) ?: return@forEach
@@ -85,7 +94,7 @@ class TimesheetsWithoutKost2RuleHandler : NotificationRuleHandler {
     }
 
     override fun variables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> {
-        val months = rule.readParams().kost2MissingMonths
+        val months = MISSING_MONTHS.of(rule)
         return variables(user, months, today, timesheetsWithoutKost2(months, today)[user.id].orEmpty())
     }
 
@@ -100,7 +109,7 @@ class TimesheetsWithoutKost2RuleHandler : NotificationRuleHandler {
     ): Map<Long, NotificationStatus> {
         val result = mutableMapOf<Long, NotificationStatus>()
         val sheets = if (Configuration.instance.isWarnMissingKost2) {
-            timesheetsWithoutKost2(rule.readParams().kost2MissingMonths, today)
+            timesheetsWithoutKost2(MISSING_MONTHS.of(rule), today)
         } else emptyMap()
         notifications.groupBy { it.recipientId }.forEach { (recipientId, list) ->
             val newest = list.maxWith(compareBy<NotificationDO> { it.periodKey ?: "" }.thenBy { it.id ?: 0 })
@@ -124,7 +133,7 @@ class TimesheetsWithoutKost2RuleHandler : NotificationRuleHandler {
 
     override fun exampleVariables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> {
         val tasks = listOf("ACME -> Website -> Development", "ACME -> Support")
-        return variables(user, rule.readParams().kost2MissingMonths, today, 3, 16_200_000L, tasks)
+        return variables(user, MISSING_MONTHS.of(rule), today, 3, 16_200_000L, tasks)
     }
 
     private fun variables(
@@ -167,6 +176,13 @@ class TimesheetsWithoutKost2RuleHandler : NotificationRuleHandler {
     }
 
     companion object {
+        const val TYPE = "TIMESHEETS_WITHOUT_KOST2"
+
+        /** The months looked at, the current month included. */
+        val MISSING_MONTHS = NotificationRuleParam.IntParam(
+            "kost2MissingMonths", 2, min = 1, max = 12, errorKey = "notification.rule.error.kost2MissingMonths",
+        )
+
         /** The tasks listed at most in [variables]. */
         private const val MAX_TASKS = 10
 

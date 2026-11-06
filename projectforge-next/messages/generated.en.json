@@ -3747,7 +3747,6 @@
         "cvrCaseClosed": "The case is closed, there is nothing to answer any more.",
         "cvrCaseNotFound": "The case wasn't found.",
         "cvrMaxAgeDays": "The number of days must be between 1 and 365.",
-        "cvrMinSeverity": "The severity must be LOW, MEDIUM, HIGH or CRITICAL.",
         "day": "The day must be between 0 and 15 (working days before the end of the month) or 1 and 31 (day of the month).",
         "dayOfWeek": "A weekday is required.",
         "daysBeforeExpiry": "The number of days must not be negative.",
@@ -3756,7 +3755,9 @@
         "kost2MissingMonths": "The number of months must be between 1 and 12.",
         "noDeliveryStep": "At least one delivery step is required.",
         "passwordMaxAgeDays": "The number of days must be at least 1.",
+        "range": "The value must be between {arg0} and {arg1}.",
         "recipientsRequired": "Recipients are required: no user is concerned by an invoice.",
+        "ruleTypeUnknown": "The rule type isn't known (any more), e.g. its plugin isn't installed.",
         "smsTextLength": "The SMS text must not be longer than {arg0} characters."
       },
       "lastRun": "Last run",

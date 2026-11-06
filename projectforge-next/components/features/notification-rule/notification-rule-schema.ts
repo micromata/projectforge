@@ -5,9 +5,10 @@ import { INTEGER, minMarker, REQUIRED } from "@/lib/validation/markers";
 
 /**
  * The fields mirror org.projectforge.rest.notification.NotificationRule, which keeps the JSON columns of
- * NotificationRuleDO (schedule, params, recipients, delivery) flat. Only the plain columns have
- * metadata; the flat ones are described here, their checks are the backend's
- * (NotificationRuleEntityRest.validate), which answers with these field names.
+ * NotificationRuleDO (schedule, recipients, delivery) flat. Only the plain columns have metadata; the
+ * flat ones are described here, their checks are the backend's (NotificationRuleEntityRest.validate),
+ * which answers with these field names. The params of the rule type are `params.<key>`, described and
+ * checked by the backend only (see RuleParamsField).
  */
 const m = fromMetadata(NOTIFICATION_RULE_METADATA);
 
@@ -35,7 +36,11 @@ export const notificationRuleSchema = z.object({
   name: m.requiredString("name"),
   description: m.nullableString("description"),
   active: m.booleanField("active"),
-  ruleType: m.enumField("ruleType"),
+  // One of the types the backend registered (see useRuleTypes), not an enum of the frontend.
+  ruleType: z
+    .string()
+    .nullable()
+    .refine((v): boolean => !!v, REQUIRED),
   scheduleMode: z.enum([
     "NONE",
     "WORKING_DAYS_BEFORE_MONTH_END",
@@ -55,17 +60,7 @@ export const notificationRuleSchema = z.object({
       "SUNDAY",
     ])
     .nullable(),
-  referredMonth: z.enum(["CURRENT", "PREVIOUS"]),
-  vacationExpiry: z.enum(["CARRY_OVER", "YEAR_END"]),
-  daysBeforeExpiry: count,
-  passwordMaxAgeDays: count,
-  kost2MissingMonths: count,
-  dueWorkingDays: count,
-  cvrMinSeverity: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
-  cvrIncludePossible: z.boolean(),
-  cvrIncludeUnscored: z.boolean(),
-  cvrMaxAgeDays: count,
-  cvrCase: ref.nullable(),
+  params: z.record(z.string(), z.unknown()),
   recipientGroups: z.array(ref),
   recipientUsers: z.array(ref),
   allEmployees: z.boolean(),
@@ -90,10 +85,14 @@ export const notificationRuleSchema = z.object({
 
 export type NotificationRuleValues = z.infer<typeof notificationRuleSchema>;
 
-/** Field names of the form, so a server validation error naming another one becomes a toast. */
-export const NOTIFICATION_RULE_FIELDS = Object.keys(
-  notificationRuleSchema.shape
-) as readonly (keyof NotificationRuleValues)[];
+/**
+ * Field names of the form, so a server validation error naming another one becomes a toast; `params.*`
+ * for the params of the rule type (`params.<key>`).
+ */
+export const NOTIFICATION_RULE_FIELDS: readonly string[] = [
+  ...Object.keys(notificationRuleSchema.shape),
+  "params.*",
+];
 
 export const NOTIFICATION_RULE_ARRAY_FIELDS = [
   "recipientGroups",

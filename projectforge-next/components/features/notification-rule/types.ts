@@ -10,9 +10,6 @@ import type {
 } from "@/lib/rs/notification";
 import type { InactiveFlags } from "@/lib/page-def/reference";
 
-/** The CVSS severities a rule of the CVE radar starts from (NotificationParams.cvrMinSeverity). */
-export type CvssSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
-
 /** Where "Open" of a notification leads: the page of the rule type, nowhere or a menu item. */
 export type LinkMode = "DEFAULT" | "NONE" | "MENU_ITEM";
 
@@ -55,20 +52,13 @@ export interface NotificationRuleDetail {
   description?: string | null;
   active?: boolean;
   ruleType?: NotificationRuleType | null;
+  /** Read-only: the name of the rule type (its key, if the backend has no handler for it). */
+  ruleTypeLabel?: string | null;
   scheduleMode?: ScheduleMode;
   scheduleDay?: number;
   scheduleDayOfWeek?: DayOfWeek | null;
-  referredMonth?: "CURRENT" | "PREVIOUS";
-  vacationExpiry?: "CARRY_OVER" | "YEAR_END";
-  daysBeforeExpiry?: number;
-  passwordMaxAgeDays?: number;
-  kost2MissingMonths?: number;
-  dueWorkingDays?: number;
-  cvrMinSeverity?: CvssSeverity;
-  cvrIncludePossible?: boolean;
-  cvrIncludeUnscored?: boolean;
-  cvrMaxAgeDays?: number;
-  cvrCase?: Ref | null;
+  /** The values of the params of the rule type by key; an entity as `{id, displayName}`. */
+  params?: Record<string, unknown>;
   recipientGroups?: Ref[];
   recipientUsers?: Ref[];
   allEmployees?: boolean;

@@ -27,7 +27,8 @@ import org.projectforge.business.notification.NotificationDO
 import org.projectforge.business.notification.NotificationLinks
 import org.projectforge.business.notification.NotificationRuleDO
 import org.projectforge.business.notification.NotificationRuleHandler
-import org.projectforge.business.notification.NotificationRuleType
+import org.projectforge.business.notification.NotificationRecipientMode
+import org.projectforge.business.notification.NotificationRuleParam
 import org.projectforge.business.notification.NotificationStatus
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
@@ -61,7 +62,25 @@ class CvrTeamCheckUnansweredRuleHandler : NotificationRuleHandler {
     @Autowired
     private lateinit var teamCheckDao: CvrTeamCheckDao
 
-    override val ruleType = NotificationRuleType.CVERADAR_TEAM_CHECK_UNANSWERED
+    @Autowired
+    private lateinit var access: CveRadarAccess
+
+    override val ruleType = TYPE
+
+    override val isAvailable: Boolean
+        get() = access.isPluginActive()
+
+    override val order = 90
+
+    override val params = listOf(CASE)
+
+    override val recipientMode = NotificationRecipientMode.AFFECTED_ONLY
+
+    override val recipientsHintKey = "notification.params.cvrTeamCheckRecipientsInfo"
+
+    override val templateSubjectKey = "notification.template.teamCheckUnansweredSubject"
+
+    override val templateTextKey = "notification.template.teamCheckUnansweredText"
 
     override val variables = listOf(
         "cvrCaseCode", "cvrCaseTitle", "cvrTeamCheckCount", "cvrTeamCheckList", "cvrTeamCheckLink",
@@ -100,14 +119,14 @@ class CvrTeamCheckUnansweredRuleHandler : NotificationRuleHandler {
 
     override fun paramDisplayNames(rule: NotificationRuleDO): Map<String, String> {
         val case = case(rule) ?: return emptyMap()
-        return mapOf("cvrCaseId" to CvrCaseDao.label(case))
+        return mapOf(CASE.key to CvrCaseDao.label(case))
     }
 
     /** The case must exist and be open (a closed one has nothing to answer any more). */
     override fun paramErrors(rule: NotificationRuleDO): Map<String, String> {
-        rule.readParams().cvrCaseId ?: return emptyMap() // Required, checked by the editor.
-        val case = case(rule) ?: return mapOf("cvrCaseId" to ERROR_CASE_NOT_FOUND)
-        return if (case.status?.isClosed == true) mapOf("cvrCaseId" to ERROR_CASE_CLOSED) else emptyMap()
+        CASE.of(rule) ?: return emptyMap() // Required, checked by the param.
+        val case = case(rule) ?: return mapOf(CASE.key to ERROR_CASE_NOT_FOUND)
+        return if (case.status?.isClosed == true) mapOf(CASE.key to ERROR_CASE_CLOSED) else emptyMap()
     }
 
     /**
@@ -160,7 +179,7 @@ class CvrTeamCheckUnansweredRuleHandler : NotificationRuleHandler {
     }
 
     private fun case(rule: NotificationRuleDO): CvrCaseDO? {
-        val id = rule.readParams().cvrCaseId ?: return null
+        val id = CASE.of(rule) ?: return null
         return caseDao.find(id, checkAccess = false)?.takeIf { !it.deleted }
     }
 
@@ -168,6 +187,14 @@ class CvrTeamCheckUnansweredRuleHandler : NotificationRuleHandler {
     private fun openCase(rule: NotificationRuleDO): CvrCaseDO? = case(rule)?.takeIf { it.status?.isClosed != true }
 
     companion object {
+        const val TYPE = "CVERADAR_TEAM_CHECK_UNANSWERED"
+
+        /** The case whose team checks are reminded of. */
+        val CASE = NotificationRuleParam.EntityParam(
+            "cvrCaseId", CveRadarPlugin.CASE_CATEGORY, i18nKey = "notification.params.cvrCase",
+            hintKey = "notification.params.cvrCaseInfo",
+        )
+
         /** The own team checks of the user. */
         const val MY_PATH = "/cveradar/my"
 

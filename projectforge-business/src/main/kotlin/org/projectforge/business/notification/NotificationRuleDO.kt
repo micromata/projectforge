@@ -65,10 +65,10 @@ open class NotificationRuleDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(nullable = false)
     open var active: Boolean = false
 
+    /** The key of the rule type ([NotificationRuleHandler.ruleType], see [NotificationRuleRegistry]). */
     @PropertyInfo(i18nKey = "notification.rule.ruleType")
-    @get:Enumerated(EnumType.STRING)
     @get:Column(name = "rule_type", length = 50, nullable = false)
-    open var ruleType: NotificationRuleType? = null
+    open var ruleType: String? = null
 
     /** JSON of [NotificationSchedule]. */
     @PropertyInfo(i18nKey = "notification.rule.schedule")
@@ -143,17 +143,13 @@ open class NotificationRuleDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(name = "last_run")
     open var lastRun: Date? = null
 
-    /**
-     * A manual rule has no condition, which could resolve a banner: its recipients must be able to mark it as done,
-     * otherwise it would stay forever.
-     */
-    @get:Transient
-    open val isManualDoneForced: Boolean
-        get() = ruleType == NotificationRuleType.MANUAL && display == NotificationDisplay.BANNER
-
     fun readSchedule(): NotificationSchedule = parse(schedule, NotificationSchedule::class.java) { NotificationSchedule() }
 
     fun readParams(): NotificationParams = parse(params, NotificationParams::class.java) { NotificationParams() }
+
+    fun writeParams(value: NotificationParams) {
+        params = JsonUtils.toJson(value)
+    }
 
     fun readRecipients(): NotificationRecipients =
         parse(recipients, NotificationRecipients::class.java) { NotificationRecipients() }

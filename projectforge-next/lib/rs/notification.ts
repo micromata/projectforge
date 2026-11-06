@@ -20,17 +20,44 @@ export type NotificationStatus =
 
 export type NotificationChannel = "IN_APP" | "MAIL" | "SMS";
 
-export type NotificationRuleType =
-  | "TIMESHEETS_MISSING"
-  | "VACATION_LEFT"
-  | "PASSWORD_NOT_CHANGED"
-  | "TIMESHEETS_WITHOUT_KOST2"
-  | "TIMESHEETS_TO_ACCEPT"
-  | "CREDITOR_INVOICES_DUE"
-  | "CVERADAR_FINDINGS"
-  | "CVERADAR_STALE_LISTS"
-  | "CVERADAR_TEAM_CHECK_UNANSWERED"
-  | "MANUAL";
+/** The key of a rule type, registered by its handler in the backend (`NotificationRuleRegistry`). */
+export type NotificationRuleType = string;
+
+/** `NotificationRuleEntityRest.Param`: a setting of a rule type, the form value `params.<key>`. */
+export interface NotificationRuleParam {
+  key: string;
+  type: "INT" | "BOOLEAN" | "SELECT" | "ENTITY";
+  label: string;
+  hint?: string | null;
+  /** The value of a new rule (or of a rule just changed to this type). */
+  default?: unknown;
+  min?: number | null;
+  max?: number | null;
+  options?: { value: string; label: string }[] | null;
+  /** ENTITY: the rest category of the autocompletion, e.g. `cvrcase`. */
+  entity?: string | null;
+}
+
+/** Who the recipients of a rule type are (`NotificationRecipientMode`). */
+export type NotificationRecipientMode =
+  | "RECIPIENTS"
+  | "AFFECTED_AND_COPY"
+  | "AFFECTED_ONLY";
+
+/** `NotificationRuleEntityRest.RuleType`: a rule type as the editor shows it. */
+export interface NotificationRuleTypeInfo {
+  key: NotificationRuleType;
+  label: string;
+  params: NotificationRuleParam[];
+  recipientMode: NotificationRecipientMode;
+  recipientsHint?: string | null;
+  requiresRecipients: boolean;
+  /** Subject and text of a new rule of the type, variables as `{{key}}`. */
+  templateSubject?: string | null;
+  templateText?: string | null;
+  /** The displays for which the recipients may always mark a notification as done. */
+  manualDoneForced: NotificationDisplay[];
+}
 
 /** `NotificationDao.Summary`, sent with the user status (see useAuth). */
 export interface NotificationSummary {
@@ -185,6 +212,17 @@ export function fetchNotificationVariables(
   const query = ruleType ? `?ruleType=${encodeURIComponent(ruleType)}` : "";
   return request<NotificationVariable[]>(
     `/rs/notificationRule/variables${query}`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/** The registered rule types, in the order of the editor. */
+export function fetchNotificationRuleTypes(
+  signal?: AbortSignal
+): Promise<NotificationRuleTypeInfo[]> {
+  return request<NotificationRuleTypeInfo[]>(
+    "/rs/notificationRule/ruleTypes",
     { method: "GET" },
     signal
   );

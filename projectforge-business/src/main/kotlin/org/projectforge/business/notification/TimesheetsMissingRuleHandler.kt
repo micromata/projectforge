@@ -38,7 +38,7 @@ import org.projectforge.framework.configuration.Configuration
 import java.time.format.TextStyle
 
 /**
- * Working days without time sheets in the referred month ([NotificationParams.referredMonth]), the same days as
+ * Working days without time sheets in the referred month ([REFERRED_MONTH]), the same days as
  * "without time sheets" of the monthly report, vacation days included: only days up to the day of the run count
  * (all days of a past month). Resolved once these days are booked. The templates may list all of these days, only
  * the vacation days or only the other working days.
@@ -57,7 +57,12 @@ class TimesheetsMissingRuleHandler : NotificationRuleHandler {
     @Autowired
     private lateinit var unbookedDaysCalculator: UnbookedDaysCalculator
 
-    override val ruleType = NotificationRuleType.TIMESHEETS_MISSING
+    override val ruleType = TYPE
+
+    override val order = 10
+
+    override val params = listOf(REFERRED_MONTH)
+
 
     override val variables = listOf(
         "month",
@@ -72,7 +77,7 @@ class TimesheetsMissingRuleHandler : NotificationRuleHandler {
     )
 
     override fun evaluate(rule: NotificationRuleDO, today: LocalDate): NotificationRuleHandler.Evaluation {
-        val month = rule.readParams().referredMonth.of(today)
+        val month = REFERRED_MONTH.of(rule).of(today)
         val employees = employeeService.selectAllActive(checkAccess = false, showRecentLeft = true)
             .filter { isEmployedIn(it, month) }
         val unbookedDays = unbookedDaysCalculator.unbookedDays(employees, month)
@@ -90,7 +95,7 @@ class TimesheetsMissingRuleHandler : NotificationRuleHandler {
     }
 
     override fun variables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> {
-        val month = rule.readParams().referredMonth.of(today)
+        val month = REFERRED_MONTH.of(rule).of(today)
         val employee = caches.getEmployeeByUserId(user.id)
         val days = employee?.let { unbookedDaysCalculator.unbookedDays(listOf(it), month)[it.id] }
             ?: UnbookedDaysCalculator.unbookedDays(month, emptySet(), emptySet())
@@ -98,7 +103,7 @@ class TimesheetsMissingRuleHandler : NotificationRuleHandler {
     }
 
     override fun exampleVariables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> {
-        val month = rule.readParams().referredMonth.of(today)
+        val month = REFERRED_MONTH.of(rule).of(today)
         // Three working days of the month unbooked, the first of them in a vacation.
         val days = UnbookedDaysCalculator.unbookedDays(month, emptySet(), emptySet()).all.take(3)
         return variables(user, month, UnbookedDaysCalculator.UnbookedDays(days, days.take(1)))
@@ -106,7 +111,7 @@ class TimesheetsMissingRuleHandler : NotificationRuleHandler {
 
     override fun isRelevant(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Boolean {
         val employee = caches.getEmployeeByUserId(user.id) ?: return true // Not an employee, e.g. a single user.
-        return isEmployedIn(employee, rule.readParams().referredMonth.of(today))
+        return isEmployedIn(employee, REFERRED_MONTH.of(rule).of(today))
     }
 
     /** Resolved if no day up to the creation of the notification (within its month) is unbooked any more. */
@@ -150,7 +155,19 @@ class TimesheetsMissingRuleHandler : NotificationRuleHandler {
         )
     }
 
+    enum class ReferredMonth(val offset: Long) {
+        CURRENT(0),
+        PREVIOUS(-1);
+
+        fun of(date: LocalDate): YearMonth = YearMonth.from(date).plusMonths(offset)
+    }
+
     companion object {
+        const val TYPE = "TIMESHEETS_MISSING"
+
+        /** The month of the rule run or the one before. */
+        val REFERRED_MONTH = NotificationRuleParam.SelectParam.ofEnum("referredMonth", ReferredMonth.CURRENT)
+
         const val TIMESHEET_PATH = "/timesheet"
         const val MONTHLY_REPORT_PATH = "/monthlyEmployeeReport"
 

@@ -29,7 +29,8 @@ import org.projectforge.business.notification.NotificationLinks
 import org.projectforge.business.notification.NotificationRecipientResolver
 import org.projectforge.business.notification.NotificationRuleDO
 import org.projectforge.business.notification.NotificationRuleHandler
-import org.projectforge.business.notification.NotificationRuleType
+import org.projectforge.business.notification.NotificationRecipientMode
+import org.projectforge.business.notification.NotificationRuleParam
 import org.projectforge.business.notification.NotificationStatus
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -43,7 +44,7 @@ import java.time.temporal.IsoFields
 
 /**
  * Outdated lists of libraries of the CVE radar: the findings of a component are only as good as its list of libraries
- * (INV-26). Where the last list was applied more than [org.projectforge.business.notification.NotificationParams.cvrMaxAgeDays]
+ * (INV-26). Where the last list was applied more than [MAX_AGE_DAYS]
  * days ago, the responsible team of the affected instances (the group of the system or of the nearest area above) is
  * told, the configured recipients of the rule in copy. A recipient is told only of the instances they may see (VIS-07),
  * at most once a week. A component without a list from a file is left out: nothing is outdated there.
@@ -72,7 +73,23 @@ class CvrStaleListsRuleHandler : NotificationRuleHandler {
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
-    override val ruleType = NotificationRuleType.CVERADAR_STALE_LISTS
+    override val ruleType = TYPE
+
+    override val isAvailable: Boolean
+        get() = access.isPluginActive()
+
+    override val order = 80
+
+    override val params = listOf(MAX_AGE_DAYS)
+
+    override val recipientMode = NotificationRecipientMode.AFFECTED_AND_COPY
+
+    override val recipientsHintKey = "notification.params.cvrRecipientsInfo"
+
+    override val templateSubjectKey = "notification.template.staleListsSubject"
+
+    override val templateTextKey = "notification.template.staleListsText"
+
 
     override val variables = listOf("cvrStaleCount", "cvrStaleList", "cvrMaxAgeDays", "cvrListLink")
 
@@ -117,7 +134,7 @@ class CvrStaleListsRuleHandler : NotificationRuleHandler {
     }
 
     override fun exampleVariables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> {
-        val days = rule.readParams().cvrMaxAgeDays
+        val days = MAX_AGE_DAYS.of(rule)
         return mapOf(
             "cvrStaleCount" to "2",
             "cvrStaleList" to "WEB Shop (PROD) / App (${today.minusDays(days + 12L)}); WEB Shop / Database (${today.minusDays(days + 40L)})",
@@ -168,14 +185,14 @@ class CvrStaleListsRuleHandler : NotificationRuleHandler {
         return mapOf(
             "cvrStaleCount" to byComponent.size.toString(),
             "cvrStaleList" to list.joinToString("; ").ifEmpty { "–" },
-            "cvrMaxAgeDays" to rule.readParams().cvrMaxAgeDays.toString(),
+            "cvrMaxAgeDays" to MAX_AGE_DAYS.of(rule).toString(),
             "cvrListLink" to notificationLinks.absolute(LINK_PATH),
         )
     }
 
     /** The components whose last list is older than the limit of the rule. */
     private fun stale(rule: NotificationRuleDO, today: LocalDate): List<Stale> {
-        val limit = today.minusDays(rule.readParams().cvrMaxAgeDays.coerceAtLeast(1).toLong())
+        val limit = today.minusDays(MAX_AGE_DAYS.of(rule).coerceAtLeast(1).toLong())
         // The newest library added from a list: for the components whose list was applied before the day was recorded.
         val added = persistenceService.executeQuery(
             "select t.component.id as id, max(t.originDate) as day from CvrTechnologyDO t" +
@@ -209,6 +226,13 @@ class CvrStaleListsRuleHandler : NotificationRuleHandler {
     }
 
     companion object {
+        const val TYPE = "CVERADAR_STALE_LISTS"
+
+        /** A list of libraries older than this many days is outdated. */
+        val MAX_AGE_DAYS = NotificationRuleParam.IntParam(
+            "cvrMaxAgeDays", 30, min = 1, max = 365, errorKey = "notification.rule.error.cvrMaxAgeDays",
+        )
+
         /** The outdated lists listed at most in a notification. */
         private const val MAX_LISTED = 10
 

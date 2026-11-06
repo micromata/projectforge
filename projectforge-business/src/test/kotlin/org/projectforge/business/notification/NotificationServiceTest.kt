@@ -82,6 +82,9 @@ class NotificationServiceTest : AbstractTestBase() {
     private lateinit var notificationService: NotificationService
 
     @Autowired
+    private lateinit var registry: NotificationRuleRegistry
+
+    @Autowired
     private lateinit var timesheetDao: TimesheetDao
 
     @Autowired
@@ -91,7 +94,7 @@ class NotificationServiceTest : AbstractTestBase() {
     fun cascadeTest() {
         val user = initTestDB.addUser("notification-cascade-user")
         val rule = insertRule(
-            NotificationRuleType.MANUAL, user,
+            ManualRuleHandler.TYPE, user,
             NotificationDelivery(
                 listOf(
                     NotificationDeliveryStep(NotificationChannel.IN_APP, 0),
@@ -141,7 +144,7 @@ class NotificationServiceTest : AbstractTestBase() {
         val user = initTestDB.addUser("notification-timesheets-user")
         insertEmployee(user)
         val task = initTestDB.addTask("notification-timesheets-task", "root")
-        val rule = insertRule(NotificationRuleType.TIMESHEETS_MISSING, user, NotificationDelivery())
+        val rule = insertRule(TimesheetsMissingRuleHandler.TYPE, user, NotificationDelivery())
         // Wednesday, March 3rd 2032: the 1st, 2nd and 3rd are unbooked.
         val today = LocalDate.of(2032, 3, 3)
         val now = Date.from(today.atTime(12, 0).atZone(ZoneId.of("UTC")).toInstant())
@@ -169,8 +172,8 @@ class NotificationServiceTest : AbstractTestBase() {
     @Test
     fun passwordNotChangedTest() {
         val user = initTestDB.addUser("notification-password-user")
-        val rule = insertRule(NotificationRuleType.PASSWORD_NOT_CHANGED, user, NotificationDelivery())
-        rule.params = JsonUtils.toJson(NotificationParams(passwordMaxAgeDays = 90))
+        val rule = insertRule(PasswordNotChangedRuleHandler.TYPE, user, NotificationDelivery())
+        rule.params = JsonUtils.toJson(NotificationParams.of("passwordMaxAgeDays" to 90))
         val today = LocalDate.of(2032, 3, 3)
         val now = Date.from(today.atTime(12, 0).atZone(ZoneId.of("UTC")).toInstant())
         // Never changed: the creation of the user (today) is long ago in 2032.
@@ -194,7 +197,7 @@ class NotificationServiceTest : AbstractTestBase() {
     fun timesheetsWithoutKost2Test() {
         val user = initTestDB.addUser("notification-kost2-user")
         val task = initTestDB.addTask("notification-kost2-task", "root")
-        val rule = insertRule(NotificationRuleType.TIMESHEETS_WITHOUT_KOST2, user, NotificationDelivery())
+        val rule = insertRule(TimesheetsWithoutKost2RuleHandler.TYPE, user, NotificationDelivery())
         rule.manualDone = true
         // Wednesday, March 3rd 2032: a time sheet of 2 hours on a task without cost 2 units.
         val today = LocalDate.of(2032, 3, 3)
@@ -240,9 +243,9 @@ class NotificationServiceTest : AbstractTestBase() {
     fun creditorInvoicesDueTest() {
         val financeUser = initTestDB.getUser(TEST_FINANCE_USER)!!
         val otherUser = initTestDB.getUser(TEST_USER)!!
-        val rule = insertRule(NotificationRuleType.CREDITOR_INVOICES_DUE, financeUser, NotificationDelivery()) {
+        val rule = insertRule(CreditorInvoicesDueRuleHandler.TYPE, financeUser, NotificationDelivery()) {
             it.recipients = JsonUtils.toJson(NotificationRecipients(userIds = listOf(financeUser.id!!, otherUser.id!!)))
-            it.params = JsonUtils.toJson(NotificationParams(dueWorkingDays = 2))
+            it.params = JsonUtils.toJson(NotificationParams.of("dueWorkingDays" to 2))
         }
         // Far in the past, so no invoice of another test is due: Monday, March 12th 2001.
         val invoice = insertCreditorInvoice("R-2001-1", LocalDate.of(2001, 3, 12))
@@ -264,13 +267,13 @@ class NotificationServiceTest : AbstractTestBase() {
         assertEquals(listOf(overdue90.id, invoice.id), creditorInvoicesDueRuleHandler.dueInvoices(rule, thursday).map { it.invoice.id })
         eingangsrechnungDao.markAsDeleted(overdue90, checkAccess = false)
         // More working days in advance: due already on Wednesday.
-        rule.params = JsonUtils.toJson(NotificationParams(dueWorkingDays = 3))
+        rule.params = JsonUtils.toJson(NotificationParams.of("dueWorkingDays" to 3))
         assertEquals(1, creditorInvoicesDueRuleHandler.dueInvoices(rule, wednesday).size)
-        rule.params = JsonUtils.toJson(NotificationParams(dueWorkingDays = 0))
+        rule.params = JsonUtils.toJson(NotificationParams.of("dueWorkingDays" to 0))
         assertEquals(0, creditorInvoicesDueRuleHandler.dueInvoices(rule, thursday).size, "Not before the due date.")
         assertEquals(1, creditorInvoicesDueRuleHandler.dueInvoices(rule, LocalDate.of(2001, 3, 12)).size)
         // Paid: resolved.
-        rule.params = JsonUtils.toJson(NotificationParams(dueWorkingDays = 2))
+        rule.params = JsonUtils.toJson(NotificationParams.of("dueWorkingDays" to 2))
         val stored = eingangsrechnungDao.find(invoice.id, checkAccess = false)!!
         stored.bezahlDatum = thursday
         stored.zahlBetrag = BigDecimal("100")
@@ -282,14 +285,14 @@ class NotificationServiceTest : AbstractTestBase() {
     @Test
     fun exampleVariablesTest() {
         val user = initTestDB.addUser("notification-examples-user")
-        NotificationRuleType.entries.filter { it != NotificationRuleType.MANUAL }.forEach { type ->
+        registry.all.map { it.ruleType }.filter { it != ManualRuleHandler.TYPE }.forEach { type ->
             val examples = notificationService.exampleVariables(type, user)
             notificationService.variables(type).forEach { key ->
                 assertTrue(!examples[key].isNullOrBlank(), "Example of $key ($type) missing.")
             }
         }
         val rule = NotificationRuleDO().also {
-            it.ruleType = NotificationRuleType.CREDITOR_INVOICES_DUE
+            it.ruleType = CreditorInvoicesDueRuleHandler.TYPE
             it.subject = "{{creditorInvoicesDueCount}} invoices"
             it.text = "<p>{{creditorInvoicesDueList}}</p>"
         }
@@ -302,7 +305,7 @@ class NotificationServiceTest : AbstractTestBase() {
     @Test
     fun expireOfDeletedRuleTest() {
         val user = initTestDB.addUser("notification-deleted-rule-user")
-        val rule = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery())
+        val rule = insertRule(ManualRuleHandler.TYPE, user, NotificationDelivery())
         notificationService.trigger(rule)
         val notification = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single()
         notificationRuleDao.markAsDeleted(rule, checkAccess = false)
@@ -313,7 +316,7 @@ class NotificationServiceTest : AbstractTestBase() {
     @Test
     fun manualBannerTest() {
         val user = initTestDB.addUser("notification-manual-banner-user")
-        val rule = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery()) { it.display = NotificationDisplay.BANNER }
+        val rule = insertRule(ManualRuleHandler.TYPE, user, NotificationDelivery()) { it.display = NotificationDisplay.BANNER }
         assertTrue(notificationRuleDao.findInternal(rule.id)!!.manualDone, "Forced for a manual banner.")
         notificationService.trigger(rule)
         val notification = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single()
@@ -338,12 +341,12 @@ class NotificationServiceTest : AbstractTestBase() {
         val user = initTestDB.addUser("notification-archived-user")
         val otherUser = initTestDB.addUser("notification-archived-other-user")
         val since = Date(System.currentTimeMillis() - 60_000L)
-        val toast = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery())
+        val toast = insertRule(ManualRuleHandler.TYPE, user, NotificationDelivery())
         val mailOnly = insertRule(
-            NotificationRuleType.MANUAL, user,
+            ManualRuleHandler.TYPE, user,
             NotificationDelivery(listOf(NotificationDeliveryStep(NotificationChannel.MAIL, 0))),
         )
-        val other = insertRule(NotificationRuleType.MANUAL, otherUser, NotificationDelivery())
+        val other = insertRule(ManualRuleHandler.TYPE, otherUser, NotificationDelivery())
         notificationService.trigger(toast)
         notificationService.trigger(mailOnly)
         notificationService.trigger(other)
@@ -366,7 +369,7 @@ class NotificationServiceTest : AbstractTestBase() {
                 NotificationDeliveryStep(NotificationChannel.MAIL, 60),
             )
         )
-        val rule = insertRule(NotificationRuleType.MANUAL, user, delivery)
+        val rule = insertRule(ManualRuleHandler.TYPE, user, delivery)
         notificationService.trigger(rule)
         val notification = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single()
         rule.active = false
@@ -396,7 +399,7 @@ class NotificationServiceTest : AbstractTestBase() {
         val first = initTestDB.addUser("notification-unreachable-user1")
         val second = initTestDB.addUser("notification-unreachable-user2")
         val mail = NotificationDelivery(listOf(NotificationDeliveryStep(NotificationChannel.MAIL, 0)))
-        val rule = insertRule(NotificationRuleType.MANUAL, first, mail) {
+        val rule = insertRule(ManualRuleHandler.TYPE, first, mail) {
             it.recipients = JsonUtils.toJson(NotificationRecipients(userIds = listOf(first.id!!, second.id!!)))
         }
         var calls = 0
@@ -429,7 +432,7 @@ class NotificationServiceTest : AbstractTestBase() {
     fun smsTest() {
         val user = initTestDB.addUser("notification-sms-user")
         val sms = NotificationDelivery(listOf(NotificationDeliveryStep(NotificationChannel.SMS, 0)))
-        val rule = insertRule(NotificationRuleType.MANUAL, user, sms) { it.smsText = "SMS for {{firstName}} <b>" }
+        val rule = insertRule(ManualRuleHandler.TYPE, user, sms) { it.smsText = "SMS for {{firstName}} <b>" }
         notificationService.trigger(rule)
         val notification = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single()
         assertEquals("SMS for ${user.firstname ?: ""} <b>", notification.smsText, "Plain text, not escaped.")
@@ -437,7 +440,7 @@ class NotificationServiceTest : AbstractTestBase() {
         assertTrue(step.skipped, "No SMS gateway configured in the tests.")
         assertEquals("SMS isn't configured.", step.error)
         // Without an SMS step, no SMS text:
-        val inApp = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery()) { it.smsText = "SMS" }
+        val inApp = insertRule(ManualRuleHandler.TYPE, user, NotificationDelivery()) { it.smsText = "SMS" }
         notificationService.trigger(inApp)
         assertNull(notificationDao.select(NotificationDao.Filter(ruleId = inApp.id)).single().smsText)
         // Variables make the text longer than its column: cut, the notification is created anyway.
@@ -446,7 +449,7 @@ class NotificationServiceTest : AbstractTestBase() {
             it.firstname = "Bartholomew-Maximilian"
             it.email = "devnull@localhost"
         })
-        val long = insertRule(NotificationRuleType.MANUAL, longUser, sms) {
+        val long = insertRule(ManualRuleHandler.TYPE, longUser, sms) {
             it.smsText = "{{firstName}} ".repeat(1000 / 14)
         }
         notificationService.trigger(long)
@@ -475,7 +478,7 @@ class NotificationServiceTest : AbstractTestBase() {
         val senderList = ReflectionTestUtils.getField(notificationService, "senderList") as List<*>
         ReflectionTestUtils.setField(notificationService, "senderList", senderList + sms)
         try {
-            val rule = insertRule(NotificationRuleType.MANUAL, user, delivery)
+            val rule = insertRule(ManualRuleHandler.TYPE, user, delivery)
             // A manual rule notifies on every trigger: two notifications on the same day.
             notificationService.trigger(rule)
             notificationService.trigger(rule)
@@ -505,7 +508,7 @@ class NotificationServiceTest : AbstractTestBase() {
     @Test
     fun linkTest() {
         val user = initTestDB.addUser("notification-link-user")
-        val rule = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery())
+        val rule = insertRule(ManualRuleHandler.TYPE, user, NotificationDelivery())
         fun linkOfNextTrigger(params: NotificationParams): String? {
             rule.params = JsonUtils.toJson(params)
             notificationRuleDao.update(rule, checkAccess = false)
@@ -540,7 +543,7 @@ class NotificationServiceTest : AbstractTestBase() {
         assertTrue(notificationRuleDao.hasAccess(financeUser, rule, rule, OperationType.UPDATE, false))
         // The notification of another user can't be acknowledged:
         val recipient = initTestDB.addUser("notification-access-user")
-        val manual = insertRule(NotificationRuleType.MANUAL, recipient, NotificationDelivery())
+        val manual = insertRule(ManualRuleHandler.TYPE, recipient, NotificationDelivery())
         notificationService.trigger(manual)
         val notification = notificationDao.select(NotificationDao.Filter(ruleId = manual.id)).single()
         assertFails { notificationDao.acknowledge(notification.id!!, otherUser) }
@@ -576,7 +579,7 @@ class NotificationServiceTest : AbstractTestBase() {
     }
 
     private fun insertRule(
-        type: NotificationRuleType,
+        type: String,
         recipient: PFUserDO,
         delivery: NotificationDelivery,
         init: (NotificationRuleDO) -> Unit = {},
@@ -590,13 +593,13 @@ class NotificationServiceTest : AbstractTestBase() {
         rule.recipients = JsonUtils.toJson(NotificationRecipients(userIds = listOf(recipient.id!!)))
         rule.delivery = JsonUtils.toJson(delivery)
         rule.subject = "Hello {{firstName}}"
-        rule.text = if (type == NotificationRuleType.TIMESHEETS_MISSING) {
+        rule.text = if (type == TimesheetsMissingRuleHandler.TYPE) {
             "<p>{{unbookedDaysCount}} days: {{unbookedDays}}</p>"
-        } else if (type == NotificationRuleType.TIMESHEETS_WITHOUT_KOST2) {
+        } else if (type == TimesheetsWithoutKost2RuleHandler.TYPE) {
             "<p>{{timesheetsWithoutKost2Count}} sheets, {{timesheetsWithoutKost2Hours}} hours: {{timesheetsWithoutKost2Tasks}}</p>"
-        } else if (type == NotificationRuleType.CREDITOR_INVOICES_DUE) {
+        } else if (type == CreditorInvoicesDueRuleHandler.TYPE) {
             "<p>{{creditorInvoicesDueCount}} invoices, {{dueWorkingDays}} working days: {{creditorInvoicesDueList}}</p>"
-        } else if (type == NotificationRuleType.PASSWORD_NOT_CHANGED) {
+        } else if (type == PasswordNotChangedRuleHandler.TYPE) {
             "<p>Changed {{passwordAgeDays}} days ago: {{passwordLink}}</p>"
         } else {
             "<p>Hello {{fullName}}</p>"

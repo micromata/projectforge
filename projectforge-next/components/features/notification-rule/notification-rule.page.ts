@@ -30,6 +30,7 @@ import { RuleActions } from "./rule-actions";
 import { RuleLogTab } from "./rule-log-tab";
 import { RuleParamsField } from "./rule-params-field";
 import { RuleTextField } from "./rule-text-field";
+import { RuleTypeField } from "./rule-type-field";
 import { RuleVariablesField } from "./rule-variables-field";
 import { ScheduleField } from "./schedule-field";
 import { SmsTextField } from "./sms-text-field";
@@ -58,7 +59,12 @@ export const NOTIFICATION_RULE_PAGE = definePage<
   listActions: NotificationRuleListActions,
   columns: [
     { name: "name", size: 260 },
-    { name: "ruleType", size: 200 },
+    {
+      id: "ruleType",
+      labelKey: "notification.rule.ruleType",
+      accessor: (row) => row.ruleTypeLabel,
+      size: 200,
+    },
     { name: "active", size: 90 },
     { name: "severity", size: 110 },
     { name: "display", size: 170 },
@@ -95,7 +101,7 @@ export const NOTIFICATION_RULE_PAGE = definePage<
         fields: [
           { name: "name", span: 3 },
           { name: "active" },
-          { name: "ruleType", span: 2 },
+          { custom: RuleTypeField, span: 2 },
           { custom: RuleParamsField, span: 2 },
           { custom: ScheduleField, span: 4 },
           { name: "description", span: 4, rows: 2 },

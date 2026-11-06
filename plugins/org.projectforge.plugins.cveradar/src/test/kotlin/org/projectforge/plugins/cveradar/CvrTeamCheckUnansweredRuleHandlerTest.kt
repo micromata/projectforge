@@ -26,6 +26,7 @@ package org.projectforge.plugins.cveradar
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.rest.notification.NotificationRule
@@ -35,13 +36,16 @@ import org.projectforge.business.notification.NotificationChannel
 import org.projectforge.business.notification.NotificationDO
 import org.projectforge.business.notification.NotificationDelivery
 import org.projectforge.business.notification.NotificationDeliveryStep
+import org.projectforge.business.notification.ManualRuleHandler
 import org.projectforge.business.notification.NotificationParams
+import org.projectforge.business.notification.NotificationRecipientMode
+import org.projectforge.business.notification.NotificationRuleParam
 import org.projectforge.business.notification.NotificationRecipients
 import org.projectforge.business.notification.NotificationRuleDO
 import org.projectforge.business.notification.NotificationRuleDao
-import org.projectforge.business.notification.NotificationRuleType
 import org.projectforge.business.notification.NotificationService
 import org.projectforge.business.notification.NotificationStatus
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
@@ -82,8 +86,8 @@ class CvrTeamCheckUnansweredRuleHandlerTest : CveRadarTestBase() {
         val rule = NotificationRuleDO().also {
             it.name = "Unanswered team checks"
             it.active = true
-            it.ruleType = NotificationRuleType.CVERADAR_TEAM_CHECK_UNANSWERED
-            it.params = JsonUtils.toJson(NotificationParams(cvrCaseId = caseId))
+            it.ruleType = CvrTeamCheckUnansweredRuleHandler.TYPE
+            it.params = JsonUtils.toJson(NotificationParams.of("cvrCaseId" to caseId))
             it.recipients = JsonUtils.toJson(recipients)
             it.delivery = JsonUtils.toJson(NotificationDelivery(listOf(NotificationDeliveryStep(NotificationChannel.IN_APP))))
             it.subject = "{{cvrCaseCode}} missing"
@@ -176,16 +180,34 @@ class CvrTeamCheckUnansweredRuleHandlerTest : CveRadarTestBase() {
         // A finance member, not in the security team: the rule editors may see the persons.
         logon(TEST_FINANCE_USER)
         assertEquals(listOf(open.getFullname()), ruleRest.preview(dto).recipients)
-        assertEquals(CvrCaseDao.label(case), ruleRest.transformFromDB(rule).cvrCase!!.displayName)
+        assertEquals(CvrCaseDao.label(case), (ruleRest.transformFromDB(rule).params["cvrCaseId"] as Map<*, *>)["displayName"])
         assertTrue(errors(dto).isEmpty())
-        dto.cvrCase = NotificationRule.Ref(-1)
-        assertEquals(listOf("cvrCase"), errors(dto), "case not found")
-        dto.cvrCase = NotificationRule.Ref(case.id)
+        dto.params = emptyMap()
+        assertEquals(listOf("params.cvrCaseId"), errors(dto), "case required")
+        dto.params = mapOf("cvrCaseId" to mapOf("id" to -1))
+        assertEquals(listOf("params.cvrCaseId"), errors(dto), "case not found")
+        dto.params = mapOf("cvrCaseId" to case.id)
         persistenceService.runInTransaction { context ->
             context.em.createQuery("update CvrCaseDO c set c.status = :status where c.id = :id")
                 .setParameter("status", CvrCaseStatus.CLOSED).setParameter("id", case.id).executeUpdate()
         }
-        assertEquals(listOf("cvrCase"), errors(dto), "case closed")
+        assertEquals(listOf("params.cvrCaseId"), errors(dto), "case closed")
+    }
+
+    @Test
+    fun `the rule types are described for the rule editors only`() {
+        logon(TEST_USER)
+        assertThrows(AccessException::class.java) { ruleRest.getRuleTypes() }
+        logon(TEST_FINANCE_USER)
+        val type = ruleRest.getRuleTypes().single { it.key == CvrTeamCheckUnansweredRuleHandler.TYPE }
+        assertEquals(NotificationRecipientMode.AFFECTED_ONLY, type.recipientMode)
+        val case = type.params.single()
+        assertEquals("cvrCaseId", case.key)
+        assertEquals(NotificationRuleParam.Type.ENTITY, case.type)
+        assertEquals(CveRadarPlugin.CASE_CATEGORY, case.entity)
+        assertTrue(type.templateSubject!!.contains("{{cvrCaseCode}}"), type.templateSubject)
+        val types = ruleRest.getRuleTypes().map { it.key }
+        assertTrue(types.indexOf(CvrFindingsRuleHandler.TYPE) < types.indexOf(ManualRuleHandler.TYPE), "$types")
     }
 
     private fun errors(dto: NotificationRule): List<String?> =
