@@ -21,62 +21,213 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
+import { ApiException } from '../../core/api/apiException';
 import { AppLoginCancelled } from '../../core/auth/appLogin';
-import { authController } from '../../core/auth/authController';
+import { authController, InsecureServerUrl, InvalidServerUrl } from '../../core/auth/authController';
+import { Session } from '../../core/auth/session';
+import { t } from '../../core/i18n/translations';
+import { appLog } from '../../core/log/appLog';
+import { useColors } from '../../core/ui/colors';
 
-/** The server url, then the login in the system browser. */
-export function LoginScreen({ message, onShowLog }: { message?: string; onShowLog: () => void }) {
-  const [server, setServer] = useState(process.env.EXPO_PUBLIC_PF_SERVER ?? '');
+/** The development server of `bin/pfApp.sh run <slot>` (only set by it, inlined at bundle time). */
+const DEV_SERVER_URL = process.env.EXPO_PUBLIC_PF_SERVER ?? '';
+
+/**
+ * The server url, then the login in the system browser. The servers of the last logins are offered; one with a stored
+ * login is switched to at once, without the browser. Port of the Flutter app's LoginScreen.
+ *
+ * @param addServer Opened while logged in, to add another server: [onDone] closes it again.
+ */
+export function LoginScreen({
+  messageKey,
+  addServer = false,
+  onDone,
+  onShowLog,
+}: {
+  messageKey?: string;
+  addServer?: boolean;
+  onDone?: () => void;
+  onShowLog: () => void;
+}) {
+  const colors = useColors();
+  const [server, setServer] = useState('');
+  const [servers, setServers] = useState<string[]>([]);
+  const [sessions, setSessions] = useState<Record<string, Session>>({});
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | undefined>(message);
+  const [error, setError] = useState<string | undefined>(messageKey ? t(messageKey) : undefined);
+
+  const applyServers = useCallback((list: string[], stored: Session[]) => {
+    setServers(list);
+    setSessions(Object.fromEntries(stored.map((it) => [it.serverUrl, it])));
+  }, []);
+
+  const loadServers = async () =>
+    applyServers(...(await Promise.all([authController.servers(), authController.sessions()])));
+
+  useEffect(() => {
+    let cancelled = false;
+    void Promise.all([authController.servers(), authController.sessions()]).then(([list, stored]) => {
+      if (cancelled) return;
+      applyServers(list, stored);
+      // The last server, otherwise the development server.
+      const preset = list[0] ?? DEV_SERVER_URL;
+      if (preset) setServer((current) => current || preset);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [applyServers]);
 
   const login = async () => {
     setBusy(true);
     setError(undefined);
     try {
       await authController.login(server);
+      onDone?.();
     } catch (e) {
-      if (!(e instanceof AppLoginCancelled)) setError(String(e));
+      if (e instanceof AppLoginCancelled) {
+        // The user closed the browser: nothing to report.
+      } else if (e instanceof InvalidServerUrl) {
+        setError(t('app.server.invalid'));
+      } else if (e instanceof InsecureServerUrl) {
+        setError(t('app.server.httpsRequired'));
+      } else if (e instanceof ApiException && e.statusCode != null) {
+        setError(`${t('app.login.failed')} (${e.message})`);
+      } else {
+        appLog.warn('login', `Server not reached: ${String(e)}`);
+        setError(t('app.server.unreachable'));
+      }
     } finally {
       setBusy(false);
     }
   };
 
+  /** A server with a stored login is switched to at once, any other one only put into the field. */
+  const tap = async (serverUrl: string) => {
+    const stored = sessions[serverUrl];
+    if (stored == null) {
+      setServer(serverUrl);
+      setError(undefined);
+      return;
+    }
+    await authController.switchTo(stored);
+    onDone?.();
+  };
+
+  const remove = async (serverUrl: string) => {
+    await authController.removeServer(serverUrl);
+    await loadServers();
+  };
+
+  const devServer = DEV_SERVER_URL && !servers.includes(DEV_SERVER_URL) ? DEV_SERVER_URL : null;
+  const offered = [...servers, ...(devServer ? [devServer] : [])];
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>ProjectForge</Text>
-      <Text style={styles.subtitle}>React Native spike</Text>
-      <TextInput
-        style={styles.input}
-        value={server}
-        onChangeText={setServer}
-        placeholder="https://projectforge.example.org"
-        autoCapitalize="none"
-        autoCorrect={false}
-        keyboardType="url"
-        onSubmitEditing={login}
-      />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Pressable style={styles.button} onPress={login} disabled={busy}>
-        {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Log in</Text>}
-      </Pressable>
-      <Pressable onPress={onShowLog}>
-        <Text style={styles.link}>Log</Text>
-      </Pressable>
-    </View>
+    <KeyboardAvoidingView
+      style={[styles.fill, { backgroundColor: colors.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <Text style={[styles.title, { color: colors.text }]}>ProjectForge</Text>
+        {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
+        <Text style={[styles.label, { color: colors.textMuted }]}>{t('app.server.label')}</Text>
+        <TextInput
+          style={[styles.input, { borderColor: colors.border, color: colors.text }]}
+          value={server}
+          onChangeText={setServer}
+          placeholder="projectforge.example.org"
+          placeholderTextColor={colors.textMuted}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="url"
+          returnKeyType="go"
+          onSubmitEditing={login}
+          editable={!busy}
+        />
+        {offered.length > 0 && (
+          <View style={styles.servers}>
+            <Text style={[styles.label, { color: colors.textMuted }]}>{t('app.server.recent')}</Text>
+            {offered.map((url) => {
+              const signedIn = sessions[url] != null;
+              const current = authController.getState().session?.serverUrl === url;
+              return (
+                <View key={url} style={[styles.serverRow, { borderColor: colors.border }]}>
+                  <Pressable style={styles.serverTap} disabled={busy} onPress={() => void tap(url)}>
+                    <Ionicons name="server-outline" size={20} color={colors.textMuted} />
+                    <View style={styles.fill}>
+                      <Text style={{ color: colors.text }} numberOfLines={1}>
+                        {url}
+                      </Text>
+                      {signedIn && <Text style={{ color: colors.textMuted, fontSize: 12 }}>{t('app.server.loggedIn')}</Text>}
+                    </View>
+                  </Pressable>
+                  {url !== devServer && !current && (
+                    <Pressable
+                      accessibilityLabel={t('app.server.remove')}
+                      hitSlop={8}
+                      onPress={() => void remove(url)}
+                    >
+                      <Ionicons name="close" size={20} color={colors.textMuted} />
+                    </Pressable>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+        )}
+        <Text style={[styles.info, { color: colors.textMuted }]}>{t('app.login.info')}</Text>
+        <Pressable
+          style={[styles.button, { backgroundColor: colors.primary }]}
+          onPress={login}
+          disabled={busy || !server.trim()}
+        >
+          {busy ? (
+            <ActivityIndicator color={colors.onPrimary} />
+          ) : (
+            <Text style={[styles.buttonText, { color: colors.onPrimary }]}>{t('login')}</Text>
+          )}
+        </Pressable>
+        {!addServer && (
+          <Pressable onPress={onShowLog} style={styles.logLink}>
+            <Text style={{ color: colors.primary }}>{t('app.log.title')}</Text>
+          </Pressable>
+        )}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24, gap: 12 },
-  title: { fontSize: 28, fontWeight: '600', textAlign: 'center' },
-  subtitle: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 24 },
-  input: { borderWidth: StyleSheet.hairlineWidth, borderColor: '#999', borderRadius: 6, padding: 12, fontSize: 16 },
-  error: { color: '#c62828' },
-  button: { backgroundColor: '#1976d2', borderRadius: 6, padding: 14, alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 16 },
-  link: { color: '#1976d2', textAlign: 'center', marginTop: 12 },
+  fill: { flex: 1 },
+  container: { flexGrow: 1, justifyContent: 'center', padding: 24, gap: 12 },
+  title: { fontSize: 28, fontWeight: '600', textAlign: 'center', marginBottom: 16 },
+  label: { fontSize: 13 },
+  input: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 6, padding: 12, fontSize: 16 },
+  servers: { gap: 4 },
+  serverRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 8,
+  },
+  serverTap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  info: { fontSize: 13 },
+  error: { fontSize: 14 },
+  button: { borderRadius: 6, padding: 14, alignItems: 'center', marginTop: 4 },
+  buttonText: { fontSize: 16 },
+  logLink: { alignItems: 'center', paddingTop: 12 },
 });

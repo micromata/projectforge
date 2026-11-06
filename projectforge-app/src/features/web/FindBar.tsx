@@ -24,6 +24,9 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { t } from '../../core/i18n/translations';
+import { useColors } from '../../core/ui/colors';
+
 export interface FindResult {
   count: number;
   index: number;
@@ -42,22 +45,26 @@ export function FindBar({
   onClose: () => void;
 }) {
   const [query, setQuery] = useState('');
+  const colors = useColors();
   const status =
     result == null || !query
       ? ''
       : !result.supported
-        ? 'Not supported'
-        : result.count === 0
+        ? '–'
+        : result.count === 0 && !result.supported
+          ? '–'
+          : result.count === 0
           ? '0/0'
           : `${result.index + 1}/${result.count}`;
   return (
-    <View style={styles.bar}>
+    <View style={[styles.bar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { backgroundColor: colors.background, color: colors.text }]}
         autoFocus
         autoCapitalize="none"
         autoCorrect={false}
-        placeholder="Find in page"
+        placeholder={t('app.web.find')}
+        placeholderTextColor={colors.textMuted}
         value={query}
         returnKeyType="search"
         onChangeText={(text) => {
@@ -66,15 +73,15 @@ export function FindBar({
         }}
         onSubmitEditing={() => onSearch(query, 'next')}
       />
-      <Text style={styles.status}>{status}</Text>
-      <Pressable style={styles.icon} onPress={() => onSearch(query, 'previous')}>
-        <Text style={styles.iconText}>▲</Text>
+      <Text style={[styles.status, { color: colors.textMuted }]}>{status}</Text>
+      <Pressable style={styles.icon} accessibilityLabel={t('app.web.find.previous')} onPress={() => onSearch(query, 'previous')}>
+        <Text style={[styles.iconText, { color: colors.text }]}>▲</Text>
       </Pressable>
-      <Pressable style={styles.icon} onPress={() => onSearch(query, 'next')}>
-        <Text style={styles.iconText}>▼</Text>
+      <Pressable style={styles.icon} accessibilityLabel={t('app.web.find.next')} onPress={() => onSearch(query, 'next')}>
+        <Text style={[styles.iconText, { color: colors.text }]}>▼</Text>
       </Pressable>
-      <Pressable style={styles.icon} onPress={onClose}>
-        <Text style={styles.iconText}>✕</Text>
+      <Pressable style={styles.icon} accessibilityLabel={t('close')} onPress={onClose}>
+        <Text style={[styles.iconText, { color: colors.text }]}>✕</Text>
       </Pressable>
     </View>
   );
@@ -88,14 +95,12 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f2f2f2',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: '#999',
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
-  input: { flex: 1, fontSize: 16, paddingVertical: 6, paddingHorizontal: 8, backgroundColor: '#fff', borderRadius: 6 },
-  status: { minWidth: 56, textAlign: 'center', color: '#555' },
+  input: { flex: 1, fontSize: 16, paddingVertical: 6, paddingHorizontal: 8, borderRadius: 6 },
+  status: { minWidth: 56, textAlign: 'center' },
   icon: { paddingHorizontal: 10, paddingVertical: 6 },
   iconText: { fontSize: 16 },
 });

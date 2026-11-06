@@ -1,9 +1,0 @@
-{
-  "platforms": ["apple", "android"],
-  "apple": {
-    "modules": ["PfWebSupportModule"]
-  },
-  "android": {
-    "modules": ["org.projectforge.websupport.PfWebSupportModule"]
-  }
-}

@@ -22,6 +22,9 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import { parseUrl, SafeURL } from '../../core/url';
+import type { NativePage } from '../../core/web/nativePage';
+
+export type { NativePage };
 
 /** Where a navigation of the WebView goes, decided by [WebNavigation.decide]. */
 export type WebNavigationTarget =
@@ -31,9 +34,6 @@ export type WebNavigationTarget =
   | 'external'
   /** Nothing to open (an unknown scheme). */
   | 'cancel';
-
-/** The pages the app has a native tab for (the Flutter app's NativePage). */
-export type NativePage = 'chat' | 'businessCards' | 'notifications' | 'addresses' | 'timesheets';
 
 const LOGIN_PATH = '/next/login';
 const EXTERNAL_SCHEMES = new Set(['mailto:', 'tel:', 'sms:']);

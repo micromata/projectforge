@@ -21,7 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import { parseUrl } from '../url';
+import { LogSanitizer } from './logSanitizer';
+
+export { LogSanitizer };
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -32,37 +34,7 @@ export interface LogEntry {
   message: string;
 }
 
-const MASK = '***';
 const MAX_ENTRIES = 500;
-
-/**
- * Keeps secrets out of the log (a reduced port of the Flutter app's LogSanitizer): urls show scheme, host, port and
- * path, the values of their query are masked; cookies only by name; `Authorization` values masked.
- */
-export const LogSanitizer = {
-  url(url: string | URL | null | undefined): string {
-    if (url == null) return '-';
-    const parsed = typeof url === 'string' ? parseUrl(url) : url;
-    if (parsed == null) return MASK;
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return `${parsed.protocol}…`;
-    const names = [...parsed.searchParams.keys()];
-    const query = names.length ? `?${names.map((it) => `${it}=${MASK}`).join('&')}` : '';
-    // The packed login parameters in the path of /next/appLogin/<login>.
-    const path = parsed.pathname.replace(/^(\/next\/appLogin\/).+/, `$1${MASK}`);
-    return `${parsed.protocol}//${parsed.host}${path}${query}`;
-  },
-
-  cookieNames(names: Iterable<string>): string {
-    const list = [...names];
-    return list.length ? list.join(', ') : '-';
-  },
-
-  text(message: string): string {
-    return message
-      .replace(/(PFApp|Bearer)\s+\S+/g, `$1 ${MASK}`)
-      .replace(/https?:\/\/[^\s"<>]+/g, (it) => LogSanitizer.url(it));
-  },
-};
 
 /** The client log of the app (in memory, shown in the app, also on the console of the dev build). */
 class AppLog {
@@ -83,6 +55,12 @@ class AppLog {
 
   error(area: string, message: string, error?: unknown) {
     this.add('error', area, error == null ? message : `${message}: ${String(error)}`);
+  }
+
+  /** Empties the log (logout, another user): it names the server, the pages, the ids. */
+  clear() {
+    this.entries = [];
+    this.listeners.forEach((it) => it());
   }
 
   all(): readonly LogEntry[] {

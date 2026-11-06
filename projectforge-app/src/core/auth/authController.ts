@@ -23,38 +23,77 @@
 
 import { useSyncExternalStore } from 'react';
 
-import { ApiClient } from '../api/apiClient';
-import { appLog } from '../log/appLog';
-import { appVersion, deviceName, platformCrypto, platformHttp, platformName, platformOpenBrowser } from '../platform';
-import { WebCookies } from '../web/webCookies';
-import PfWebSupport from '../../../modules/pf-web-support/src/PfWebSupportModule';
+import PfNative from '../../../modules/pf-native/src/PfNativeModule';
 import { WebSessionRepository } from '../../features/web/webSessionRepository';
+import { ApiClient } from '../api/apiClient';
+import { JsonCache } from '../cache/jsonCache';
+import { appLog, LogSanitizer } from '../log/appLog';
+import { appVersion, deviceName, platformCrypto, platformHttp, platformName, platformOpenBrowser } from '../platform';
+import { userStatus } from '../status/userStatus';
+import { WebCookies } from '../web/webCookies';
 import { AppLogin, AppLoginCancelled, isInsecure, normalizeServerUrl } from './appLogin';
+import { sessionStore } from './secureStorage';
 import { Session } from './session';
-import { SessionStore } from './sessionStore';
 
-export type AuthStatus = 'loading' | 'loggedOut' | 'loggedIn';
+export type AuthStatus = 'restoring' | 'loggedOut' | 'loggedIn';
 
 export interface AuthState {
   status: AuthStatus;
   session: Session | null;
-  /** Counts the logins: the tabs (WebViews) start anew for another one (another user). */
+  /** Counts the logins: the tabs (WebViews) start anew for another one (another server, another user). */
   generation: number;
-  message?: string;
+  /** Why the app was logged out (an i18n key), shown on the login screen. */
+  messageKey?: string;
+}
+
+/** The user typed something that is no server url. */
+export class InvalidServerUrl extends Error {}
+
+/** A server url with plain http in a release build: the token would travel in clear. */
+export class InsecureServerUrl extends Error {}
+
+/**
+ * A client for the login [session], bound to it: once the app is switched to another server, a client of the old one
+ * still in use (a request on its way, a retry) must not send the token or the SSO proxy cookies of the new login to
+ * its server, and its refusal or renewal concerns the old login, not the new one.
+ */
+export function boundApiClient(
+  session: Session,
+  opts: {
+    current: () => Session | null;
+    onUnauthorized: () => void;
+    onReauthenticate: () => Promise<boolean>;
+    http?: typeof platformHttp;
+  },
+): ApiClient {
+  const own = () => {
+    const now = opts.current();
+    return now?.serverUrl === session.serverUrl && now.deviceId === session.deviceId ? now : null;
+  };
+  return new ApiClient(session.serverUrl, {
+    http: opts.http ?? platformHttp,
+    appVersion,
+    token: () => own()?.token ?? null,
+    proxyCookies: () => own()?.proxyCookies ?? {},
+    onUnauthorized: () => {
+      if (own() != null) opts.onUnauthorized();
+    },
+    onReauthenticate: async () => own() != null && (await opts.onReauthenticate()),
+  });
 }
 
 /**
- * The login of the app (the Flutter app's AuthController, reduced to one server): restores the stored session,
- * logs in in the browser, renews the login for a second factor too old or a refusal of the SSO proxy (concurrent
- * requests share one renewal), logs out.
+ * Login, logout, the switch between the logins at several servers and the renewal of the login (a second factor too
+ * old, a refusal of the SSO proxy) of the app. Port of the Flutter app's AuthController.
  */
 class AuthController {
-  private state: AuthState = { status: 'loading', session: null, generation: 0 };
+  private state: AuthState = { status: 'restoring', session: null, generation: 0 };
   private listeners = new Set<() => void>();
   private reauthentication: Promise<boolean> | null = null;
   private appLogin = new AppLogin(platformHttp, platformCrypto, platformOpenBrowser);
 
-  readonly webCookies = new WebCookies(PfWebSupport);
+  readonly webCookies = new WebCookies(PfNative);
+  /** The client of the active login, null while logged out (rebuilt for another login, not for a renewed token). */
   api: ApiClient | null = null;
   webSessions: WebSessionRepository | null = null;
 
@@ -69,29 +108,82 @@ class AuthController {
 
   async restore() {
     try {
-      const session = await SessionStore.load();
-      this.setSession(session, session ? 'loggedIn' : 'loggedOut');
+      await sessionStore.migrate();
+      const session = await sessionStore.load();
+      if (session) LogSanitizer.addSecretNames(Object.keys(session.proxyCookies));
+      appLog.info(
+        'auth',
+        session == null
+          ? 'No stored login'
+          : `Stored login: user ${session.userId}, device ${session.deviceId}, proxy cookies: ${Object.keys(session.proxyCookies).length}`,
+      );
+      this.activate(session, true);
     } catch (e) {
-      appLog.error('auth', 'Stored session not readable', e);
-      this.setSession(null, 'loggedOut');
+      appLog.error('auth', 'Stored login not readable', e);
+      this.activate(null, true);
     }
   }
 
-  /** Logs in at [serverInput] (as typed by the user) in the browser. */
+  /** The servers of the last logins, most recent first (offered by the login). */
+  servers = () => sessionStore.servers();
+
+  /** The stored logins, the active one among them, most recent first. */
+  sessions = () => sessionStore.sessions();
+
+  /**
+   * Logs in at [serverInput] (as typed by the user) in the browser.
+   *
+   * Throws InvalidServerUrl, InsecureServerUrl, AppLoginCancelled if the user cancelled, ApiException if the server
+   * isn't a reachable ProjectForge or refused the code.
+   */
   async login(serverInput: string) {
     const serverUrl = normalizeServerUrl(serverInput);
-    if (serverUrl == null) throw new Error('Not a server url');
-    if (isInsecure(serverUrl)) throw new Error('Plain http only for development builds');
-    const status = await this.appLogin.systemStatus(serverUrl);
-    appLog.info('auth', `Login at ${status.appname ?? '?'} ${status.version ?? ''} (app ${appVersion}, ${platformName})`);
-    const session = await this.appLogin.login({
-      serverUrl,
-      deviceName: deviceName(),
-      platform: platformName,
-      loginPath: status.appLoginPath === true,
-    });
-    await SessionStore.save(session);
-    this.setSession(session, 'loggedIn', true);
+    if (serverUrl == null) throw new InvalidServerUrl();
+    if (isInsecure(serverUrl)) throw new InsecureServerUrl();
+    let session: Session;
+    try {
+      const status = await this.appLogin.systemStatus(serverUrl);
+      appLog.info('auth', `Login at ${status.appname ?? '?'} ${status.version ?? ''} (app ${appVersion}, ${platformName})`);
+      session = await this.appLogin.login({
+        serverUrl,
+        deviceName: deviceName(),
+        platform: platformName,
+        loginPath: status.appLoginPath === true,
+      });
+    } catch (e) {
+      if (!(e instanceof AppLoginCancelled)) appLog.error('auth', 'Login failed', e);
+      throw e;
+    }
+    // Another server added while logged in: the current login stays stored.
+    await this.leave();
+    LogSanitizer.addSecretNames(Object.keys(session.proxyCookies));
+    await sessionStore.save(session);
+    this.activate(session, true);
+  }
+
+  /** Makes the stored login [target] (of another server) the active one, without the browser. */
+  async switchTo(target: Session) {
+    if (target.serverUrl === this.state.session?.serverUrl) return;
+    appLog.info('auth', 'Switch to another server');
+    await this.leave();
+    LogSanitizer.addSecretNames(Object.keys(target.proxyCookies));
+    await sessionStore.save(target);
+    this.activate(target, true);
+  }
+
+  /** Removes the server from the list; a stored login there (not the active one) is logged out at that server too. */
+  async removeServer(serverUrl: string) {
+    const stored = (await this.sessions()).find((it) => it.serverUrl === serverUrl);
+    if (stored && stored.serverUrl !== this.state.session?.serverUrl) {
+      const client = boundApiClient(stored, {
+        current: () => stored,
+        onUnauthorized: () => undefined,
+        onReauthenticate: async () => false,
+      });
+      await withTimeout(client.post('/rs/appAuth/logout', { renewLogin: false }));
+    }
+    await sessionStore.removeServer(serverUrl);
+    this.emit();
   }
 
   /** A new login in the browser (second factor too old, SSO proxy refused); false if cancelled or failed. */
@@ -103,13 +195,12 @@ class AuthController {
     if (session == null) return false;
     appLog.info('auth', 'Renewal of the login');
     try {
-      let loginPath = session.appLoginPath;
-      if (!loginPath) {
-        loginPath = await this.appLogin
+      const loginPath =
+        session.appLoginPath ||
+        (await this.appLogin
           .systemStatus(session.serverUrl)
           .then((it) => it.appLoginPath === true)
-          .catch(() => false);
-      }
+          .catch(() => false));
       const renewed = await this.appLogin.login({
         serverUrl: session.serverUrl,
         deviceName: deviceName(),
@@ -117,19 +208,18 @@ class AuthController {
         deviceId: session.deviceId,
         loginPath,
       });
+      LogSanitizer.addSecretNames(Object.keys(renewed.proxyCookies));
       if (renewed.userId !== session.userId || renewed.deviceId !== session.deviceId) {
         appLog.warn(
           'auth',
           `Renewal logged in user ${renewed.userId}/device ${renewed.deviceId} instead of ${session.userId}/${session.deviceId}: switched`,
         );
-        await this.api?.post('/rs/appAuth/logout', { renewLogin: false }).catch(() => undefined);
-        await this.webCookies.clear();
-        await SessionStore.save(renewed);
-        this.setSession(renewed, 'loggedIn', true);
+        await this.switchUser(renewed);
         return false;
       }
-      await SessionStore.save(renewed);
-      // Same api client and web session (they read the session), but the WebView needs the fresh proxy cookies.
+      await sessionStore.save(renewed);
+      // The same client and web session (they read the session per request), but the WebView needs the fresh cookies
+      // of an SSO proxy.
       this.state = { ...this.state, session: renewed };
       this.emit();
       await this.webCookies.setProxyCookies(renewed.serverUrl, renewed.proxyCookies);
@@ -142,54 +232,104 @@ class AuthController {
     }
   }
 
+  /**
+   * The browser was logged in as another user, for whom the server registered this app anew: the old user is logged
+   * out (at the server too, best effort), and nothing of them stays (cache, cookies, tabs, log).
+   */
+  private async switchUser(renewed: Session) {
+    await withTimeout(this.api?.post('/rs/appAuth/logout', { renewLogin: false }));
+    await this.clearLocalData();
+    this.clearLog('Logged in as another user: log of the previous user cleared');
+    await sessionStore.save(renewed);
+    this.activate(renewed, true);
+  }
+
+  /**
+   * Logs the app out at the server (its token is deleted) and here. The server gets a few seconds and whatever fails:
+   * the app is logged out here in any case.
+   */
   async logout() {
     appLog.info('auth', 'Logout');
-    await Promise.race([
-      this.api?.post('/rs/appAuth/logout', { renewLogin: false }).catch(() => undefined),
-      new Promise((resolve) => setTimeout(resolve, 3000)),
-    ]);
+    await withTimeout(this.api?.post('/rs/appAuth/pushToken/remove', { renewLogin: false }));
+    await withTimeout(this.api?.post('/rs/appAuth/logout', { renewLogin: false }));
     await this.forget();
+    this.clearLog('Logged out: log of the login cleared');
   }
 
+  /** The server refused the token (logged out in the web, expired, password changed). */
   private onUnauthorized = () => {
     if (this.state.status !== 'loggedIn') return;
-    void this.forget('The login of the app has expired.');
+    void this.forget('app.session.expired');
   };
 
-  private async forget(message?: string) {
-    await SessionStore.clear();
-    await this.webCookies.clear();
-    this.setSession(null, 'loggedOut', false, message);
+  /**
+   * Before another login becomes the active one; the current one stays stored. Its server stops pushing (only the
+   * server shown pushes), and its cache leaves the device (the cache isn't kept per server). The WebView keeps its
+   * data, which is per server anyway.
+   */
+  private async leave() {
+    if (this.state.status !== 'loggedIn') return;
+    await withTimeout(this.api?.post('/rs/appAuth/pushToken/remove', { renewLogin: false }));
+    JsonCache.clearAll();
   }
 
-  private setSession(session: Session | null, status: AuthStatus, newLogin = false, message?: string) {
+  private async forget(messageKey?: string) {
+    await sessionStore.clear();
+    await this.clearLocalData();
+    this.activate(null, true, messageKey);
+  }
+
+  /** The user's data on the device: the cache and the web session and storage of the WebView. */
+  private async clearLocalData() {
+    JsonCache.clearAll();
+    await this.webCookies.clear().catch((e) => appLog.warn('auth', `WebView data not cleared: ${String(e)}`));
+  }
+
+  private clearLog(reason: string) {
+    appLog.clear();
+    appLog.info('auth', reason);
+  }
+
+  /** [session] becomes the active login (null: logged out) with a new client, web session and status. */
+  private activate(session: Session | null, newLogin: boolean, messageKey?: string) {
     if (session == null) {
       this.api = null;
       this.webSessions = null;
-    } else if (newLogin || this.api == null || this.api.serverUrl !== session.serverUrl) {
-      const api = new ApiClient(session.serverUrl, {
-        http: platformHttp,
-        appVersion,
-        token: () => this.state.session?.token ?? null,
-        proxyCookies: () => this.state.session?.proxyCookies ?? {},
+      userStatus.stop();
+    } else if (newLogin || this.api == null) {
+      const api = boundApiClient(session, {
+        current: () => this.state.session,
         onUnauthorized: this.onUnauthorized,
         onReauthenticate: this.reauthenticate,
       });
       this.api = api;
-      this.webSessions = new WebSessionRepository(api, this.webCookies, () => this.state.session?.proxyCookies ?? {});
+      this.webSessions = new WebSessionRepository(api, this.webCookies, () => this.ownProxyCookies(session));
     }
     this.state = {
-      status,
+      status: session == null ? 'loggedOut' : 'loggedIn',
       session,
       generation: this.state.generation + (newLogin ? 1 : 0),
-      message,
+      messageKey,
     };
     this.emit();
+    if (session != null && this.api != null && newLogin) void userStatus.start(this.api);
+  }
+
+  /** The proxy cookies of the current login, if it is still the one of [session]. */
+  private ownProxyCookies(session: Session): Record<string, string> {
+    const now = this.state.session;
+    return now?.serverUrl === session.serverUrl && now.deviceId === session.deviceId ? now.proxyCookies : {};
   }
 
   private emit() {
     this.listeners.forEach((it) => it());
   }
+}
+
+/** A call to the server that may fail or hang (logout, push token): a few seconds at most, errors ignored. */
+async function withTimeout(call: Promise<unknown> | undefined, millis = 3000): Promise<void> {
+  if (call == null) return;
+  await Promise.race([call.catch(() => undefined), new Promise((resolve) => setTimeout(resolve, millis))]);
 }
 
 export const authController = new AuthController();

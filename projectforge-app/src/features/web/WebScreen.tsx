@@ -24,7 +24,7 @@
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Linking, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Platform, Share, StyleSheet, View } from 'react-native';
 import RNWebView, { WebViewMessageEvent, WebViewNavigation } from 'react-native-webview';
 import type {
   FileDownloadEvent,
@@ -35,7 +35,9 @@ import type {
 
 import { ApiException, PROXY_REFUSED_KEY } from '../../core/api/apiException';
 import { authController } from '../../core/auth/authController';
+import { errorText, t } from '../../core/i18n/translations';
 import { appLog, LogSanitizer } from '../../core/log/appLog';
+import { ErrorView } from '../../core/ui/ErrorView';
 import { appVersion, platformHttp } from '../../core/platform';
 import { parseUrl } from '../../core/url';
 import { FindBar, FindResult } from './FindBar';
@@ -45,6 +47,8 @@ import { NativePage, WebNavigation } from './webNavigation';
 
 /** The browser functions of a tab (the menu of the home screen). */
 export interface WebScreenHandle {
+  /** Shows [path] (a page of the server), with the web session of the app. */
+  open(path: string): void;
   goBack(): void;
   goForward(): void;
   reload(): void;
@@ -198,7 +202,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         const url = navigation.pageUrl(path ?? startPath);
         if (url == null) {
           appLog.warn('web', `Not a page of the server: ${LogSanitizer.url(path ?? startPath)}, not loaded`);
-          showError('The page could not be loaded.');
+          showError(t('app.web.failed'));
           return;
         }
         appLog.info('web', `Load ${LogSanitizer.url(url)}`);
@@ -207,7 +211,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         appLog.warn('web', `Pages not opened: ${String(e)}`);
         if (opening !== openings.current) return;
         const proxy = e instanceof ApiException && e.messageKey === PROXY_REFUSED_KEY;
-        showError(proxy ? 'The SSO proxy refused the app.' : `The pages could not be opened: ${String(e)}`, proxy);
+        showError(proxy ? t('app.proxy.refused') : errorText(e), proxy);
       }
     },
     [load, navigation, showError],
@@ -236,7 +240,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   const onLoginPage = (url: string) => {
     if (lastOpened.current != null && Date.now() - lastOpened.current < RENEWAL_INTERVAL) {
       appLog.warn('web', 'Login page again right after a renewal of the web session: error shown');
-      showError('The page could not be loaded.');
+      showError(t('app.web.failed'));
       return;
     }
     appLog.info('web', 'Login page of the server: renewal of the web session');
@@ -264,12 +268,12 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       }
       if (!activeRef.current) {
         appLog.info('web', 'Refused by the SSO proxy in a tab not shown: error shown, no renewal');
-        showError('The SSO proxy refused the app.', true);
+        showError(t('app.proxy.refused'), true);
         return;
       }
       if (lastProxyRenewal.current != null && Date.now() - lastProxyRenewal.current < RENEWAL_INTERVAL) {
         appLog.warn('web', 'Refused by the SSO proxy again right after a renewal: error shown');
-        showError('The SSO proxy refused the app.', true);
+        showError(t('app.proxy.refused'), true);
         return;
       }
       lastProxyRenewal.current = Date.now();
@@ -279,7 +283,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         load(url);
       } else {
         appLog.info('web', 'Renewal not done: refusal of the SSO proxy shown');
-        showError('The SSO proxy refused the app.', true);
+        showError(t('app.proxy.refused'), true);
       }
     } finally {
       renewingProxy.current = false;
@@ -369,7 +373,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     if (navigation.isForeignPage(url)) {
       appLog.warn('web', `Another site in the WebView: ${LogSanitizer.url(url)}, stopped and opened outside the app`);
       webView.current?.stopLoading();
-      showError('The page could not be loaded.');
+      showError(t('app.web.failed'));
       void Linking.openURL(url);
       return;
     }
@@ -415,7 +419,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     serverPageLoadStart.current = null;
     appLog.warn('web', `Error ${code} loading ${LogSanitizer.url(url)}: ${description}`);
     const connection = Platform.OS === 'ios' ? IOS_CONNECTION_ERRORS : ANDROID_CONNECTION_ERRORS;
-    if (connection.has(code)) showError('No connection to the server.');
+    if (connection.has(code)) showError(t('app.web.offline'));
   };
 
   const onHttpError = (event: WebViewHttpErrorEvent) => {
@@ -440,6 +444,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       await Sharing.shareAsync(file.uri, { mimeType: download.mimeType });
     } catch (e) {
       appLog.warn('web', `Download failed: ${String(e)}`);
+      Alert.alert(t('app.download.failed'));
     }
   };
 
@@ -452,7 +457,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     appLog.info('web', 'Retry after a refusal of the SSO proxy: new login');
     if (!(await authController.reauthenticate())) {
       appLog.info('web', 'Renewal not done: refusal of the SSO proxy shown');
-      showError('The SSO proxy refused the app.', true);
+      showError(t('app.proxy.refused'), true);
       return;
     }
     lastProxyRenewal.current = Date.now();
@@ -466,6 +471,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   };
 
   useImperativeHandle(ref, () => ({
+    open: (path: string) => void open(path),
     goBack: () => webView.current?.goBack(),
     goForward: () => webView.current?.goForward(),
     reload: () => {
@@ -486,14 +492,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   }));
 
   if (error) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>{error.message}</Text>
-        <Pressable style={styles.button} onPress={retry}>
-          <Text style={styles.buttonText}>Retry</Text>
-        </Pressable>
-      </View>
-    );
+    return <ErrorView message={error.message} onRetry={retry} />;
   }
   if (source == null) {
     return (
@@ -555,11 +554,8 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         />
       )}
       {stalled ? (
-        <View style={[StyleSheet.absoluteFill, styles.center, styles.surface]}>
-          <Text style={styles.errorText}>The page does not load.</Text>
-          <Pressable style={styles.button} onPress={() => restart(true)}>
-            <Text style={styles.buttonText}>Reload</Text>
-          </Pressable>
+        <View style={StyleSheet.absoluteFill}>
+          <ErrorView message={t('app.web.stalled')} onRetry={() => restart(true)} retryLabel={t('app.web.reload')} />
         </View>
       ) : (
         !pageShown && (

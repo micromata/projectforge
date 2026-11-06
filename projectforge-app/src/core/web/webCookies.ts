@@ -23,7 +23,7 @@
 
 import { parseUrl } from '../url';
 
-/** The native side (modules/pf-web-support), replaced in the tests. */
+/** The native side (modules/pf-native), replaced in the tests. */
 export interface WebCookieStore {
   setCookies(url: string, setCookieHeaders: string[]): Promise<string[]>;
   cookieHeader(url: string): Promise<string | null>;

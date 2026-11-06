@@ -78,6 +78,9 @@ parse_slot() {
   fi
   SPRING_PORT=$((8080 + SLOT))
   METRO_PORT=$((19000 + SLOT))
+  # Built into the dev client as its default Metro port: without it, a dev client that doesn't reach Metro falls back
+  # to :8081, the ProjectForge server of slot 1, which then logs the requests for the bundle as suspicious.
+  export RCT_METRO_PORT="$METRO_PORT"
   PROXY_PORT=$((18080 + SLOT))
   SSO_PORT=$((18180 + SLOT))
 }
@@ -188,6 +191,8 @@ cmd_run() {
     return
   fi
   if [[ -z "$device_given" && "$(uname)" == Darwin ]]; then
+    # The simulator reaches Metro on localhost: the LAN address expo announces may be a VPN's or drop.
+    export REACT_NATIVE_PACKAGER_HOSTNAME=localhost
     boot_simulator "$sim_name"
     # Explicitly: an iPhone in reach (wireless debugging) is an iOS device as well, expo would ask which one.
     args=(--device "$SIM_UDID" ${args[@]+"${args[@]}"})
@@ -206,7 +211,8 @@ cmd_metro() {
   ensure_deps
   cd "$APP"
   echo "Server preset in the login: $server, Metro on :$METRO_PORT"
-  EXPO_PUBLIC_PF_SERVER="$server" npx expo start --dev-client --port "$METRO_PORT"
+  REACT_NATIVE_PACKAGER_HOSTNAME="${REACT_NATIVE_PACKAGER_HOSTNAME:-localhost}" EXPO_PUBLIC_PF_SERVER="$server" \
+    npx expo start --dev-client --port "$METRO_PORT"
 }
 
 cmd="${1:-help}"

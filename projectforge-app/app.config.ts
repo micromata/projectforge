@@ -61,5 +61,5 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     allowBackup: false,
     predictiveBackGestureEnabled: false,
   },
-  plugins: ['expo-web-browser', 'expo-secure-store', 'expo-sharing'],
+  plugins: ['expo-router', 'expo-web-browser', 'expo-secure-store', 'expo-sharing', 'expo-localization'],
 });

@@ -1,5 +1,6 @@
 {
   "_generated" : "Generated from I18nResources by GenerateAppI18nMessagesMain (DevelopmentMainForRelease) — do not edit; hand-written texts belong in app.<locale>.json.",
+  "back" : "Zurück",
   "businessCard.addToWallet" : "Zum Wallet hinzufügen",
   "businessCard.address" : "Aus Adresse übernehmen",
   "businessCard.address.suggestion" : "Wahrscheinlich die eigene Adresse",
@@ -55,5 +56,18 @@
   "businessCard.wallet.company" : "Unternehmen",
   "businessCard.wallet.jobTitle" : "Jobtitel",
   "businessCard.website" : "Website",
-  "businessCard.zipCode" : "PLZ"
+  "businessCard.zipCode" : "PLZ",
+  "cancel" : "Abbrechen",
+  "chat.title" : "Chat",
+  "close" : "Schließen",
+  "key" : "Schlüssel",
+  "login" : "Anmelden",
+  "menu.addressList" : "Adressen",
+  "menu.logout" : "Abmelden",
+  "menu.myBusinessCards" : "Meine Visitenkarten",
+  "notification.center" : "Benachrichtigungen",
+  "ok" : "OK",
+  "refresh" : "Neu laden",
+  "settings" : "Einstellungen",
+  "timesheet.title.heading" : "Zeitberichte"
 }

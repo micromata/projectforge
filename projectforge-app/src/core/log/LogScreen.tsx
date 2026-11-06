@@ -22,12 +22,16 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import { useSyncExternalStore } from 'react';
-import { FlatList, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { t } from '../i18n/translations';
+import { useColors } from '../ui/colors';
 import { appLog } from './appLog';
 
-/** The client log (secrets masked by LogSanitizer), newest first. */
-export function LogScreen({ onClose }: { onClose: () => void }) {
+/** The client log (secrets masked by LogSanitizer), newest first; copied for a support request. */
+export function LogScreen() {
+  const colors = useColors();
   const entries = useSyncExternalStore(
     (listener) => appLog.subscribe(listener),
     () => appLog.all(),
@@ -35,20 +39,34 @@ export function LogScreen({ onClose }: { onClose: () => void }) {
   const text = () =>
     entries.map((it) => `${it.time.toISOString()} ${it.level} ${it.area}: ${it.message}`).join('\n');
   return (
-    <View style={styles.fill}>
+    <View style={[styles.fill, { backgroundColor: colors.background }]}>
+      <Text style={[styles.info, { color: colors.textMuted }]}>{t('app.log.info')}</Text>
       <View style={styles.bar}>
-        <Pressable onPress={onClose}>
-          <Text style={styles.action}>Close</Text>
+        <Pressable
+          onPress={async () => {
+            await Clipboard.setStringAsync(text());
+            Alert.alert(t('app.log.copied'));
+          }}
+          disabled={!entries.length}
+        >
+          <Text style={{ color: colors.primary, fontSize: 16 }}>{t('copy')}</Text>
         </Pressable>
-        <Pressable onPress={() => Share.share({ message: text() })}>
-          <Text style={styles.action}>Share</Text>
+        <Pressable onPress={() => appLog.clear()} disabled={!entries.length}>
+          <Text style={{ color: colors.primary, fontSize: 16 }}>{t('app.log.clear')}</Text>
         </Pressable>
       </View>
       <FlatList
         data={[...entries].reverse()}
         keyExtractor={(_, index) => String(index)}
+        ListEmptyComponent={<Text style={[styles.info, { color: colors.textMuted }]}>{t('app.log.empty')}</Text>}
         renderItem={({ item }) => (
-          <Text style={[styles.line, item.level === 'warn' && styles.warn, item.level === 'error' && styles.error]}>
+          <Text
+            selectable
+            style={[
+              styles.line,
+              { color: item.level === 'warn' ? colors.warning : item.level === 'error' ? colors.danger : colors.text },
+            ]}
+          >
             {item.time.toTimeString().substring(0, 8)} {item.area}: {item.message}
           </Text>
         )}
@@ -59,9 +77,7 @@ export function LogScreen({ onClose }: { onClose: () => void }) {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  bar: { flexDirection: 'row', justifyContent: 'space-between', padding: 12 },
-  action: { color: '#1976d2', fontSize: 16 },
+  info: { fontSize: 13, paddingHorizontal: 12, paddingTop: 12 },
+  bar: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10 },
   line: { fontFamily: 'Menlo', fontSize: 11, paddingHorizontal: 8, paddingVertical: 2 },
-  warn: { color: '#e65100' },
-  error: { color: '#c62828' },
 });
