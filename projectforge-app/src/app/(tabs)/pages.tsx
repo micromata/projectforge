@@ -25,6 +25,7 @@ import { useCallback } from 'react';
 
 import { useIsFocused, useRouter } from 'expo-router';
 import { appSettings, opensInApp } from '../../core/settings/appSettings';
+import { TIMESHEETS_TAB_ENABLED } from '../../core/web/nativePage';
 import { chatEnabled, userStatus } from '../../core/status/userStatus';
 import { WebScreen } from '../../features/web/WebScreen';
 import { NativePage } from '../../features/web/webNavigation';
@@ -42,14 +43,13 @@ export default function PagesTab() {
       active={focused}
       onStateChange={(state) => webTabs.setState('pages', state)}
       onNativePage={(page: NativePage) => {
-        // The other native pages come with their tabs.
         if (!opensInApp(appSettings.get(), page)) return false;
         if (page === 'chat' && chatEnabled(userStatus.get().status)) {
           router.navigate('/chat');
           return true;
         }
-        if (page === 'businessCards' || page === 'addresses') {
-          router.navigate(page === 'businessCards' ? '/cards' : '/addresses');
+        if (page === 'businessCards' || page === 'addresses' || (page === 'timesheets' && TIMESHEETS_TAB_ENABLED)) {
+          router.navigate(page === 'businessCards' ? '/cards' : page === 'addresses' ? '/addresses' : '/timesheets');
           return true;
         }
         if (page === 'notifications') {

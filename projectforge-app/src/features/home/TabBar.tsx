@@ -34,6 +34,7 @@ import { t } from '../../core/i18n/translations';
 import { chatEnabled, userStatus, useUserStatus } from '../../core/status/userStatus';
 import { severityColor, useColors } from '../../core/ui/colors';
 import { MenuItem, MenuSheet } from '../../core/ui/MenuSheet';
+import { TIMESHEETS_TAB_ENABLED } from '../../core/web/nativePage';
 import { CHAT_PATH, useWebTabStates, WebTab, webTabs } from '../web/webTabs';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
@@ -45,6 +46,7 @@ export type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['ta
 export const TABS: Record<string, { icon: IconName; label: () => string; webTab?: WebTab }> = {
   cards: { icon: 'id-card-outline', label: () => t('menu.myBusinessCards') },
   addresses: { icon: 'people-outline', label: () => t('menu.addressList') },
+  timesheets: { icon: 'time-outline', label: () => t('timesheet.title.heading') },
   pages: { icon: 'globe-outline', label: () => t('app.web'), webTab: 'pages' },
   chat: { icon: 'chatbubbles-outline', label: () => t('chat.title'), webTab: 'chat' },
 };
@@ -72,7 +74,12 @@ export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: C
   const unread = status?.chatUnread ?? 0;
   const openNotifications = status?.notifications?.openCount ?? 0;
 
-  const routes = state.routes.filter((route) => TABS[route.name] && (route.name !== 'chat' || chatEnabled(status)));
+  const routes = state.routes.filter(
+    (route) =>
+      TABS[route.name] &&
+      (route.name !== 'chat' || chatEnabled(status)) &&
+      (route.name !== 'timesheets' || TIMESHEETS_TAB_ENABLED),
+  );
 
   const browserItems = (): MenuItem[] => {
     const handle = webTab ? webTabs.handle(webTab) : undefined;

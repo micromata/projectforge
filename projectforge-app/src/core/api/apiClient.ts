@@ -70,6 +70,14 @@ export class ApiClient {
     return this.call<T>('POST', path, options);
   }
 
+  put<T>(path: string, options?: RequestOptions): Promise<T> {
+    return this.call<T>('PUT', path, options);
+  }
+
+  delete<T>(path: string, options?: RequestOptions): Promise<T> {
+    return this.call<T>('DELETE', path, options);
+  }
+
   /** The bytes of a file (a vCard, a Wallet pass), e.g. `download('/rs/myBusinessCards/vcf', { id })`. */
   async download(path: string, query: Record<string, string> = {}, options: RequestOptions = {}): Promise<Uint8Array> {
     const params = Object.entries(query)

@@ -69,6 +69,7 @@ export default function TabsLayout() {
       >
         <Tabs.Screen name="cards" />
         <Tabs.Screen name="addresses" />
+        <Tabs.Screen name="timesheets" />
         <Tabs.Screen name="pages" />
         <Tabs.Screen name="chat" />
       </Tabs>
