@@ -7,7 +7,7 @@ import { EntityMultiAutocompleteField } from "@/components/shared/form/entity-mu
 import { EMPLOYEE_METADATA } from "@/lib/metadata/employee.generated";
 import { cn } from "@/lib/utils";
 import { fromMetadata } from "@/lib/validation/from-metadata";
-import { useRuleValue } from "./use-rule-value";
+import { useChosenRuleType } from "./use-rule-types";
 
 /**
  * The recipients of a rule (NotificationRecipients): groups, single users and employees by status,
@@ -20,11 +20,11 @@ const employee = fromMetadata(EMPLOYEE_METADATA);
 type FieldProps = { className?: string };
 
 /**
- * The reminder of unanswered team checks notifies the members not answered yet only: the recipients given would
- * not be used, so they aren't offered (the excluded statuses still apply).
+ * A rule type notifying only those concerned (e.g. the members who haven't answered a team check) doesn't use the
+ * recipients given, so they aren't offered (the excluded statuses still apply).
  */
 function useRecipientsUnused() {
-  return useRuleValue("ruleType") === "CVERADAR_TEAM_CHECK_UNANSWERED";
+  return useChosenRuleType()?.recipientMode === "AFFECTED_ONLY";
 }
 
 export function RecipientGroupsField({ className }: FieldProps) {
@@ -69,21 +69,13 @@ export function AllEmployeesField({ className }: FieldProps) {
 
 export function OnlyAffectedField({ className }: FieldProps) {
   const t = useTranslations("notification.recipients");
-  const tParams = useTranslations("notification.params");
-  const ruleType = useRuleValue("ruleType");
-  // The members not answered yet only, the recipients given aren't used.
-  if (ruleType === "CVERADAR_TEAM_CHECK_UNANSWERED") {
+  const ruleType = useChosenRuleType();
+  // The handler finds those concerned itself (the recipients given in copy, or not used at all): its hint
+  // instead of the checkbox.
+  if (ruleType && ruleType.recipientMode !== "RECIPIENTS") {
     return (
       <p className={cn("text-xs text-muted-foreground", className)}>
-        {tParams("cvrTeamCheckRecipientsInfo")}
-      </p>
-    );
-  }
-  // The CVE radar always notifies the responsible teams, the recipients given are in copy.
-  if (ruleType === "CVERADAR_FINDINGS" || ruleType === "CVERADAR_STALE_LISTS") {
-    return (
-      <p className={cn("text-xs text-muted-foreground", className)}>
-        {tParams("cvrRecipientsInfo")}
+        {ruleType.recipientsHint}
       </p>
     );
   }

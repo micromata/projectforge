@@ -14,10 +14,11 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { APP_TITLE } from "@/lib/window-title";
 
+// The variable font (all weights, 200–800): with a list of static weights, the Turbopack build fails
+// ("next/font/google queries have exactly one entry").
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
-  weight: ["300", "400", "500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({

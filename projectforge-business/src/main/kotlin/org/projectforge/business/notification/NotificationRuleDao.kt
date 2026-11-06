@@ -46,6 +46,9 @@ open class NotificationRuleDao : BaseDao<NotificationRuleDO>(NotificationRuleDO:
     @Autowired
     private lateinit var notificationDao: NotificationDao
 
+    @Autowired
+    private lateinit var registry: NotificationRuleRegistry
+
     override val defaultSortProperties: Array<SortProperty>
         get() = DEFAULT_SORT_PROPERTIES
 
@@ -77,9 +80,9 @@ open class NotificationRuleDao : BaseDao<NotificationRuleDO>(NotificationRuleDO:
         return userGroupCache.isUserMemberOfAdminGroup(user.id) || userGroupCache.isUserMemberOfFinanceGroup(user.id)
     }
 
-    /** Every save path stores the forced option ([NotificationRuleDO.isManualDoneForced]). */
+    /** Every save path stores the forced option ([NotificationRuleHandler.isManualDoneForced]). */
     override fun onInsertOrModify(obj: NotificationRuleDO, operationType: OperationType) {
-        if (obj.isManualDoneForced) {
+        if (registry.isManualDoneForced(obj)) {
             obj.manualDone = true
         }
     }

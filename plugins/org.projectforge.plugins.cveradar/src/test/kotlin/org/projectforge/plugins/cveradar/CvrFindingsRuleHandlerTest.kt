@@ -37,7 +37,6 @@ import org.projectforge.business.notification.NotificationParams
 import org.projectforge.business.notification.NotificationRecipients
 import org.projectforge.business.notification.NotificationRuleDO
 import org.projectforge.business.notification.NotificationRuleDao
-import org.projectforge.business.notification.NotificationRuleType
 import org.projectforge.business.notification.NotificationService
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -99,8 +98,8 @@ class CvrFindingsRuleHandlerTest : CveRadarTestBase() {
         val rule = NotificationRuleDO().also {
             it.name = "New findings"
             it.active = true
-            it.ruleType = NotificationRuleType.CVERADAR_FINDINGS
-            it.params = JsonUtils.toJson(NotificationParams(cvrMinSeverity = "HIGH"))
+            it.ruleType = CvrFindingsRuleHandler.TYPE
+            it.params = JsonUtils.toJson(NotificationParams.of("cvrMinSeverity" to "HIGH"))
             it.recipients = JsonUtils.toJson(NotificationRecipients(userIds = ccUserIds))
             it.delivery = JsonUtils.toJson(NotificationDelivery(listOf(NotificationDeliveryStep(NotificationChannel.IN_APP))))
             it.subject = "{{cvrVulnerabilityCount}} new: {{cvrMaxSeverity}}"

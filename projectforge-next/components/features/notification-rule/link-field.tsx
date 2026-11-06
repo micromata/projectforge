@@ -14,9 +14,12 @@ import { fetchMenuBadgeOptions } from "@/lib/rs/notification";
 import type { LinkMode } from "./types";
 
 const NAME = "linkMenuItem";
-/** The two choices that are no menu item; menu item ids are upper case, so these can't collide. */
-const DEFAULT = "default";
-const NONE = "none";
+/**
+ * The two choices that are no menu item; a menu item id (of the core or of a plugin, e.g. `cveradar`)
+ * has no colon, so these can't collide.
+ */
+const DEFAULT = ":default";
+const NONE = ":none";
 
 /**
  * Where the "Open" button of a notification leads, one combobox for the three link modes: the page

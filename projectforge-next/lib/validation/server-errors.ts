@@ -53,6 +53,8 @@ export interface ServerValidationResult {
  * - An indexed path (`"positionen[0].titel"`) is known when the collection root is in `knownFields`:
  *   the row's `<form.Field>` renders it, and checking the root is enough because errors for all rows
  *   arrive at once while the fields only exist once the row is rendered.
+ * - A field of a group declared as `"params.*"` in `knownFields` (`"params.cvrCaseId"`) is known: the
+ *   form renders the group's fields from data (e.g. the params of a rule type), not from a fixed list.
  * - A bare collection name (`"positionen"`) is NOT known: no `<form.Field name="positionen">` is
  *   mounted, so TanStack Form would silently drop the error. It surfaces as a toast instead.
  */
@@ -64,6 +66,13 @@ function isKnown(
   // Indexed path into a collection: positionen[0].titel
   const root = fieldId.match(/^([^[.]+)\[\d+]\./)?.[1];
   if (root) return knownFields.includes(root);
+  // A field of a group the form renders dynamically, declared as `group.*` (e.g. `params.cvrCaseId`).
+  if (
+    knownFields.some(
+      (f) => f.endsWith(".*") && fieldId.startsWith(f.slice(0, -1))
+    )
+  )
+    return true;
   // Plain field, but not a bare array name (no form.Field is mounted for the collection itself).
   return knownFields.includes(fieldId) && !arrayFields.includes(fieldId);
 }

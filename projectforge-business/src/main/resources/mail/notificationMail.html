@@ -12,6 +12,9 @@
       <h1 class="title"><%= pf.getString(title) %></h1>
       <!-- The text of the notification rule (sanitized rich text, see NotificationTemplate). -->
       <%= body %>
+      <% if (pf.isVariableGiven("linkUrl")) { %>
+      <p><a class="button" href="<%= pf.getString(linkUrl) %>"><%= pf.getString(linkText) %></a></p>
+      <% } %>
       #INCLUDE{mail/mailFooter.html}
     </div>
   </div>

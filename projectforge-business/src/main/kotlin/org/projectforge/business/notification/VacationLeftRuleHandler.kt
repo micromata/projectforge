@@ -38,9 +38,9 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 /**
- * Vacation days left which expire soon ([NotificationParams.vacationExpiry]): the days carried over from the
+ * Vacation days left which expire soon ([EXPIRY]): the days carried over from the
  * previous year at the end of the vacation year, or all days left at the end of the year. Notifies within
- * [NotificationParams.daysBeforeExpiry] days before the expiry. Resolved once no days are left, expired afterwards.
+ * [DAYS_BEFORE_EXPIRY] days before the expiry. Resolved once no days are left, expired afterwards.
  */
 @Service
 class VacationLeftRuleHandler : NotificationRuleHandler {
@@ -56,14 +56,19 @@ class VacationLeftRuleHandler : NotificationRuleHandler {
     @Autowired
     private lateinit var vacationService: VacationService
 
-    override val ruleType = NotificationRuleType.VACATION_LEFT
+    override val ruleType = TYPE
+
+    override val order = 20
+
+    override val params = listOf(EXPIRY, DAYS_BEFORE_EXPIRY)
+
 
     override val variables = listOf("daysLeft", "expiryDate", "vacationLink")
 
     override fun evaluate(rule: NotificationRuleDO, today: LocalDate): NotificationRuleHandler.Evaluation? {
         val params = rule.readParams()
         val expiry = expiryDate(params, today)
-        if (today.isAfter(expiry) || today.isBefore(expiry.minusDays(params.daysBeforeExpiry.coerceAtLeast(0).toLong()))) {
+        if (today.isAfter(expiry) || today.isBefore(expiry.minusDays(DAYS_BEFORE_EXPIRY.of(params).coerceAtLeast(0).toLong()))) {
             return null
         }
         val affected = mutableMapOf<Long, Map<String, String>>()
@@ -120,24 +125,42 @@ class VacationLeftRuleHandler : NotificationRuleHandler {
 
     /** The next expiry date from [today] on. */
     private fun expiryDate(params: NotificationParams, today: LocalDate): LocalDate {
-        return when (params.vacationExpiry) {
-            NotificationParams.VacationExpiry.CARRY_OVER -> vacationService.getEndOfCarryVacationOfPreviousYear(today.year)
-            NotificationParams.VacationExpiry.YEAR_END -> LocalDate.of(today.year, 12, 31)
+        return when (EXPIRY.of(params)) {
+            VacationExpiry.CARRY_OVER -> vacationService.getEndOfCarryVacationOfPreviousYear(today.year)
+            VacationExpiry.YEAR_END -> LocalDate.of(today.year, 12, 31)
         }
     }
 
     private fun daysLeft(employee: EmployeeDO, params: NotificationParams, today: LocalDate): BigDecimal {
         val stats = vacationService.getVacationStats(employee, today.year, baseDate = today)
-        val days = when (params.vacationExpiry) {
-            NotificationParams.VacationExpiry.CARRY_OVER -> stats.remainingLeaveFromPreviousYearUnused
-            NotificationParams.VacationExpiry.YEAR_END -> stats.vacationDaysLeftInYear
+        val days = when (EXPIRY.of(params)) {
+            VacationExpiry.CARRY_OVER -> stats.remainingLeaveFromPreviousYearUnused
+            VacationExpiry.YEAR_END -> stats.vacationDaysLeftInYear
         }
         return days ?: BigDecimal.ZERO
     }
 
-    private fun periodKey(params: NotificationParams, expiry: LocalDate) = "${params.vacationExpiry}-$expiry"
+    private fun periodKey(params: NotificationParams, expiry: LocalDate) = "${EXPIRY.of(params)}-$expiry"
+
+    enum class VacationExpiry {
+        /** The days carried over from the previous year, lost after the end of the vacation year. */
+        CARRY_OVER,
+
+        /** All days left at the end of the year. */
+        YEAR_END,
+    }
 
     companion object {
+        const val TYPE = "VACATION_LEFT"
+
+        /** Which vacation days are about to expire. */
+        val EXPIRY = NotificationRuleParam.SelectParam.ofEnum("vacationExpiry", VacationExpiry.CARRY_OVER)
+
+        /** Notify within these days before the expiry. */
+        val DAYS_BEFORE_EXPIRY = NotificationRuleParam.IntParam(
+            "daysBeforeExpiry", 30, min = 0, max = 999, errorKey = "notification.rule.error.daysBeforeExpiry",
+        )
+
         const val VACATION_PATH = "/vacation"
     }
 }

@@ -41,7 +41,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 /**
- * Unpaid creditor invoices due within the next working days ([NotificationParams.dueWorkingDays], holidays aware),
+ * Unpaid creditor invoices due within the next working days ([DUE_WORKING_DAYS], holidays aware),
  * overdue ones included (up to [MAX_OVERDUE_DAYS], so old unpaid ones don't trigger the rule forever), so they are
  * paid in time. Nobody is concerned by an invoice: the configured recipients (e.g. the accounting group) are notified,
  * but only those with read access to the creditor invoices.
@@ -64,7 +64,15 @@ class CreditorInvoicesDueRuleHandler : NotificationRuleHandler {
     @Autowired
     private lateinit var rechnungCache: RechnungCache
 
-    override val ruleType = NotificationRuleType.CREDITOR_INVOICES_DUE
+    override val ruleType = TYPE
+
+    override val order = 60
+
+    override val params = listOf(DUE_WORKING_DAYS)
+
+    /** Nobody is concerned by an invoice: without recipients, "only those concerned" would notify nobody. */
+    override val requiresRecipients = true
+
 
     override val variables = listOf(
         "dueWorkingDays",
@@ -100,7 +108,7 @@ class CreditorInvoicesDueRuleHandler : NotificationRuleHandler {
     }
 
     private fun variables(rule: NotificationRuleDO, invoices: List<InvoiceRow>, user: PFUserDO): Map<String, String> {
-        val workingDays = rule.readParams().dueWorkingDays
+        val workingDays = DUE_WORKING_DAYS.of(rule)
         val locale = UserLocale.determineUserLocale(user)
         val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)
         val numberFormat = NumberFormat.getNumberInstance(locale).also {
@@ -175,7 +183,7 @@ class CreditorInvoicesDueRuleHandler : NotificationRuleHandler {
 
     /** The invoices due, the earliest due date first. */
     internal fun dueInvoices(rule: NotificationRuleDO, today: LocalDate): List<DueInvoice> {
-        val workingDays = rule.readParams().dueWorkingDays
+        val workingDays = DUE_WORKING_DAYS.of(rule)
         // A generous upper bound of the due date for the query (weekends and holidays in between); the exact check,
         // paid or not included, is RechnungCalculator's.
         val filter = QueryFilter().also {
@@ -192,6 +200,16 @@ class CreditorInvoicesDueRuleHandler : NotificationRuleHandler {
     }
 
     companion object {
+        const val TYPE = "CREDITOR_INVOICES_DUE"
+
+        /**
+         * Unpaid creditor invoices due within these working days (0: from the due date on), overdue ones included.
+         * Independent of the red marking of the list ([RechnungCalculator.CREDITOR_OVERDUE_WORKING_DAYS]).
+         */
+        val DUE_WORKING_DAYS = NotificationRuleParam.IntParam(
+            "dueWorkingDays", 2, min = 0, max = 30, errorKey = "notification.rule.error.dueWorkingDays",
+        )
+
         /** The invoices listed at most in [variables]. */
         private const val MAX_INVOICES = 10
 
