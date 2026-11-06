@@ -64,6 +64,11 @@ export function NotificationsScreen({ onOpenLink }: { onOpenLink: (path: string)
   const load = useCallback(async (): Promise<unknown> => {
     const repo = repository();
     if (repo == null) return null;
+    // Nothing open, as the status says: no request.
+    if (userStatus.get().status?.notifications?.openCount === 0) {
+      setOpen({ status: 'data', value: [] });
+      return null;
+    }
     try {
       const list = await repo.loadOpen();
       setOpen({ status: 'data', value: list });
@@ -91,8 +96,8 @@ export function NotificationsScreen({ onOpenLink }: { onOpenLink: (path: string)
 
   const refresh = async () => {
     setRefreshing(true);
-    const error = await load();
     await userStatus.refresh();
+    const error = await load();
     setRefreshing(false);
     if (error != null) Alert.alert(errorText(error));
   };
@@ -127,9 +132,11 @@ export function NotificationsScreen({ onOpenLink }: { onOpenLink: (path: string)
         <NotificationCard
           key={it.id}
           notification={it}
-          onOpen={(path) => {
-            // Reading it is following the link: the notification is not left open behind.
-            if (canAcknowledge(it)) void act((repo) => repo.acknowledge(it.id));
+          onOpen={async (path) => {
+            // Reading it is following the link: the notification is not left open behind (before the list closes;
+            // a failure doesn't keep the link from opening).
+            if (canAcknowledge(it)) await repository()?.acknowledge(it.id).catch(() => undefined);
+            void userStatus.refresh();
             onOpenLink(path);
           }}
           onAcknowledge={() => void act((repo) => repo.acknowledge(it.id))}
