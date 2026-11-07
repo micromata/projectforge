@@ -94,54 +94,65 @@ export function MenuSheet({
           onStartShouldSetResponder={() => true}
         >
           {title && <Text style={[styles.title, { color: colors.text, borderColor: colors.border }]}>{title}</Text>}
-          <ScrollView bounces={false}>
-            {items.map((item) => (
-              <Pressable
-                key={item.key}
-                disabled={item.disabled || item.info}
-                style={({ pressed }) => [styles.item, pressed && { backgroundColor: colors.border }]}
-                onPress={() => {
-                  pending.current = item.onPress ?? null;
-                  onClose();
-                  if (Platform.OS !== 'ios') runPending();
-                }}
-              >
-                {item.icon && (
-                  <Ionicons
-                    name={item.icon}
-                    size={20}
-                    color={item.disabled ? colors.border : item.destructive ? colors.danger : colors.text}
-                  />
-                )}
-                <View style={styles.texts}>
-                  <Text
-                    style={[
-                      styles.label,
-                      { color: item.disabled ? colors.border : item.destructive ? colors.danger : colors.text },
-                      item.info && { color: colors.textMuted, fontSize: 14 },
-                      item.selected && styles.selected,
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                  {item.detail ? (
-                    <Text style={[styles.detail, { color: colors.textMuted }]} numberOfLines={2}>
-                      {item.detail}
-                    </Text>
-                  ) : null}
-                </View>
-                {item.badge != null && item.badge > 0 && (
-                  <View style={[styles.badge, { backgroundColor: colors.badge }]}>
-                    <Text style={styles.badgeText}>{item.badge > 99 ? '99+' : item.badge}</Text>
-                  </View>
-                )}
-                {item.selected && <Ionicons name="checkmark" size={20} color={colors.primary} />}
-              </Pressable>
-            ))}
-          </ScrollView>
+          <MenuList
+            items={items}
+            onChoose={(item) => {
+              pending.current = item.onPress ?? null;
+              onClose();
+              if (Platform.OS !== 'ios') runPending();
+            }}
+          />
         </View>
       </Pressable>
     </Modal>
+  );
+}
+
+/** The items of a menu, scrolled within if there are more than fit: [onChoose] gets the one tapped. */
+export function MenuList({ items, onChoose }: { items: MenuItem[]; onChoose: (item: MenuItem) => void }) {
+  const colors = useColors();
+  return (
+    <ScrollView bounces={false}>
+      {items.map((item) => (
+        <Pressable
+          key={item.key}
+          disabled={item.disabled || item.info}
+          style={({ pressed }) => [styles.item, pressed && { backgroundColor: colors.border }]}
+          onPress={() => onChoose(item)}
+        >
+          {item.icon && (
+            <Ionicons
+              name={item.icon}
+              size={20}
+              color={item.disabled ? colors.border : item.destructive ? colors.danger : colors.text}
+            />
+          )}
+          <View style={styles.texts}>
+            <Text
+              style={[
+                styles.label,
+                { color: item.disabled ? colors.border : item.destructive ? colors.danger : colors.text },
+                item.info && { color: colors.textMuted, fontSize: 14 },
+                item.selected && styles.selected,
+              ]}
+            >
+              {item.label}
+            </Text>
+            {item.detail ? (
+              <Text style={[styles.detail, { color: colors.textMuted }]} numberOfLines={2}>
+                {item.detail}
+              </Text>
+            ) : null}
+          </View>
+          {item.badge != null && item.badge > 0 && (
+            <View style={[styles.badge, { backgroundColor: colors.badge }]}>
+              <Text style={styles.badgeText}>{item.badge > 99 ? '99+' : item.badge}</Text>
+            </View>
+          )}
+          {item.selected && <Ionicons name="checkmark" size={20} color={colors.primary} />}
+        </Pressable>
+      ))}
+    </ScrollView>
   );
 }
 

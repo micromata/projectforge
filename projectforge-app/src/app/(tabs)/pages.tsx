@@ -29,6 +29,7 @@ import { authController } from '../../core/auth/authController';
 import { appLog } from '../../core/log/appLog';
 import { appSettings, opensInApp } from '../../core/settings/appSettings';
 import { chatEnabled, userStatus } from '../../core/status/userStatus';
+import { tabSheets } from '../../core/ui/tabSheets';
 import { WebMenu } from '../../features/web/WebMenu';
 import { WebScreen } from '../../features/web/WebScreen';
 import { NativePage, WebNavigation } from '../../features/web/webNavigation';
@@ -61,8 +62,8 @@ export default function PagesTab() {
       return true;
     }
     if (page === 'notifications') {
-      // No tab: the list lies over the tabs, like the bell opens it.
-      router.push('/notifications');
+      // No tab: the list lies over the tabs, as the bell opens it.
+      tabSheets.open('notifications');
       return true;
     }
     return false;

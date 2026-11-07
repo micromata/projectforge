@@ -24,19 +24,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { Menus } from '@projectforge/shared/rs/menu';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { GestureDetector } from 'react-native-gesture-handler';
 import {
   ActivityIndicator,
   Alert,
-  Animated,
-  BackHandler,
   FlatList,
   Pressable,
   RefreshControl,
   StyleSheet,
   Text,
   TextInput,
-  useWindowDimensions,
   View,
 } from 'react-native';
 
@@ -47,6 +44,7 @@ import { ThemeMode, userStatus, useUserStatus } from '../../core/status/userStat
 import { useColors } from '../../core/ui/colors';
 import { ErrorView } from '../../core/ui/ErrorView';
 import { KeyboardAvoidingFill } from '../../core/ui/KeyboardAvoidingFill';
+import { SheetPull, TabSheet } from '../../core/ui/TabSheet';
 import { MenuRepository } from './menuRepository';
 import { defaultTab, MenuEntry, menuPath, MenuRow, menuRows, MenuTab, tabBadge } from './menuModel';
 
@@ -58,12 +56,6 @@ let chosenTab: MenuTab | null = null;
 const rememberTab = (tab: MenuTab) => {
   chosenTab = tab;
 };
-
-/** How far (pt) or how fast (pt/s) the sheet must be pulled down to close. */
-const CLOSE_DISTANCE = 120;
-const CLOSE_VELOCITY = 800;
-/** The page left visible above the sheet. */
-const PAGE_PEEK = 44;
 
 const TABS: { tab: MenuTab; label: () => string }[] = [
   { tab: 'favorites', label: () => t('favorites') },
@@ -91,69 +83,14 @@ export function WebMenu({
   onOpen: (path: string) => void;
   onClose: () => void;
 }) {
-  const { height } = useWindowDimensions();
-  const [offset] = useState(() => new Animated.Value(height));
-  const [shown, setShown] = useState(open);
-  if (open && !shown) setShown(true);
-
-  useEffect(() => {
-    if (open) {
-      Animated.spring(offset, { toValue: 0, useNativeDriver: true, bounciness: 0, speed: 18 }).start();
-    } else {
-      Animated.timing(offset, { toValue: height, duration: 200, useNativeDriver: true }).start(({ finished }) => {
-        if (finished) setShown(false);
-      });
-    }
-  }, [open, height, offset]);
-
-  // Pulled down by its top (handle and tabs; the list scrolls itself): far or fast enough closes it, else back up.
-  const pull = useMemo(
-    () =>
-      Gesture.Pan()
-        .runOnJS(true)
-        .activeOffsetY(8)
-        .failOffsetX([-24, 24])
-        .onUpdate((event) => offset.setValue(Math.max(0, event.translationY)))
-        .onEnd((event) => {
-          if (event.translationY > CLOSE_DISTANCE || event.velocityY > CLOSE_VELOCITY) {
-            onClose();
-          } else {
-            Animated.spring(offset, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
-          }
-        }),
-    [offset, onClose],
-  );
-
-  if (!shown) return null;
-  const dim = offset.interpolate({ inputRange: [0, height], outputRange: [0.45, 0], extrapolate: 'clamp' });
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents={open ? 'auto' : 'none'}>
-      <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, { opacity: dim }]}>
-        <Pressable
-          style={styles.fill}
-          accessibilityRole="button"
-          accessibilityLabel={t('app.web.menu.close')}
-          onPress={onClose}
-        />
-      </Animated.View>
-      <Animated.View style={[styles.sheet, { transform: [{ translateY: offset }] }]}>
-        <MenuContent active={active && open} pull={pull} onOpen={onOpen} onClose={onClose} />
-      </Animated.View>
-    </View>
+    <TabSheet open={open} active={active} closeLabel={t('app.web.menu.close')} onClose={onClose}>
+      {(pull) => <MenuContent pull={pull} onOpen={onOpen} />}
+    </TabSheet>
   );
 }
 
-function MenuContent({
-  active,
-  pull,
-  onOpen,
-  onClose,
-}: {
-  active: boolean;
-  pull: ReturnType<typeof Gesture.Pan>;
-  onOpen: (path: string) => void;
-  onClose: () => void;
-}) {
+function MenuContent({ pull, onOpen }: { pull: SheetPull; onOpen: (path: string) => void }) {
   const colors = useColors();
   const api = authController.api;
   const repository = useMemo(() => (api ? new MenuRepository(api) : null), [api]);
@@ -185,15 +122,6 @@ function MenuContent({
   useEffect(() => {
     void load();
   }, [load]);
-
-  useEffect(() => {
-    if (!active) return;
-    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      onClose();
-      return true;
-    });
-    return () => subscription.remove();
-  }, [active, onClose]);
 
   const rows = useMemo(
     () =>
@@ -453,8 +381,6 @@ function Badge({ counter, small = false }: { counter?: number; small?: boolean }
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   loading: { marginTop: 32 },
-  backdrop: { backgroundColor: '#000' },
-  sheet: { position: 'absolute', top: PAGE_PEEK, left: 0, right: 0, bottom: 0 },
   content: { borderTopLeftRadius: 14, borderTopRightRadius: 14, overflow: 'hidden' },
   handleArea: { alignItems: 'center', paddingTop: 6, paddingBottom: 2 },
   handle: { width: 36, height: 5, borderRadius: 3, opacity: 0.5 },

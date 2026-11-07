@@ -23,7 +23,7 @@
 
 import { Tabs, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Platform, useWindowDimensions } from 'react-native';
+import { Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { authController, useAuth } from '../../core/auth/authController';
@@ -36,9 +36,12 @@ import { otherServers, useOtherServers } from '../../core/status/otherServers';
 import { chatEnabled, userStatus, useUserStatus } from '../../core/status/userStatus';
 import { isChatPath, webPathOfLink } from '../../core/web/links';
 import { useColors } from '../../core/ui/colors';
+import { tabSheets } from '../../core/ui/tabSheets';
 import { CompatibilityBanner } from '../../features/home/CompatibilityBanner';
+import { MoreMenu } from '../../features/home/MoreMenu';
 import { askToSwitch } from '../../features/home/switchServer';
 import { TabBar } from '../../features/home/TabBar';
+import { NotificationsSheet } from '../../features/notifications/NotificationsSheet';
 import { timesheets } from '../../features/timesheets/timesheetsStore';
 import { webTabs } from '../../features/web/webTabs';
 
@@ -62,6 +65,11 @@ export default function TabsLayout() {
   // In landscape the tabs are a rail at the side, as in the Flutter app: the height is what the pages lack there.
   const { width, height } = useWindowDimensions();
   const rail = width > height;
+  // The sheets of the tab bar leave the bar free.
+  const [bar, setBar] = useState({ width: 0, height: 0 });
+
+  // Logged out: no sheet is shown at the next login.
+  useEffect(() => tabSheets.close, []);
 
   useEffect(() => webTabs.reset(auth.generation), [auth.generation]);
 
@@ -78,6 +86,7 @@ export default function TabsLayout() {
     const openLink = (link: string, other: Session | null) => {
       const path = webPathOfLink(link);
       const chat = path != null && isChatPath(path) && chatEnabled(userStatus.get().status);
+      tabSheets.close();
       if (other == null) {
         if (path == null) return;
         webTabs.open(chat ? 'chat' : 'pages', path);
@@ -128,21 +137,42 @@ export default function TabsLayout() {
       {issue && issueKey !== confirmedIssue && (
         <CompatibilityBanner issue={issue} onConfirm={() => setConfirmedIssue(issueKey)} />
       )}
-      <Tabs
-        key={auth.generation}
-        screenOptions={{
-          headerShown: false,
-          sceneStyle: { backgroundColor: colors.background },
-          tabBarPosition: rail ? 'left' : 'bottom',
-        }}
-        tabBar={(props) => <TabBar {...props} issue={issue} rail={rail} />}
-      >
-        <Tabs.Screen name="cards" />
-        <Tabs.Screen name="addresses" />
-        <Tabs.Screen name="timesheets" />
-        <Tabs.Screen name="pages" />
-        <Tabs.Screen name="chat" />
-      </Tabs>
+      <View style={styles.fill}>
+        <Tabs
+          key={auth.generation}
+          screenOptions={{
+            headerShown: false,
+            sceneStyle: { backgroundColor: colors.background },
+            tabBarPosition: rail ? 'left' : 'bottom',
+          }}
+          tabBar={(props) => <TabBar {...props} issue={issue} rail={rail} onSize={setBar} />}
+        >
+          <Tabs.Screen name="cards" />
+          <Tabs.Screen name="addresses" />
+          <Tabs.Screen name="timesheets" />
+          <Tabs.Screen name="pages" />
+          <Tabs.Screen name="chat" />
+        </Tabs>
+        {/* Outside the tabs of the login: the notifications stay open after switching to another one. */}
+        <View
+          style={[StyleSheet.absoluteFill, rail ? { left: bar.width } : { bottom: bar.height }]}
+          pointerEvents="box-none"
+        >
+          <NotificationsSheet
+            onOpenLink={(path) => {
+              const chat = isChatPath(path) && chatEnabled(userStatus.get().status);
+              webTabs.open(chat ? 'chat' : 'pages', path);
+              router.navigate(chat ? '/chat' : '/pages');
+            }}
+            onOtherServer={(session) => void askToSwitch(session, timesheets.getState().timer != null)}
+          />
+          <MoreMenu issue={issue} />
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  fill: { flex: 1 },
+});
