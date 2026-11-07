@@ -77,7 +77,13 @@ export function PageShell({ children }: PageShellProps) {
       </div>
       <main
         className="flex min-h-[min(24rem,100dvh)] flex-1 flex-col overflow-auto cramped:[container-type:size] print:block print:overflow-visible"
-        onScroll={collapse.onScroll}
+        onScroll={(event) => {
+          // A list on a phone collapses its header by its table's scroll (useListHeaderCollapse). <main>
+          // may overflow too there (phone landscape), and the collapse shrinks it back to the table: the
+          // clamped scrollTop of 0 would expand the header at once, and the table never stays scrolled.
+          if (useUIStore.getState().listHeaderHeight > 0) return;
+          collapse.onScroll(event);
+        }}
       >
         {children}
       </main>
