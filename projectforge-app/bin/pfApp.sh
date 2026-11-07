@@ -13,7 +13,8 @@ APP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ROOT="$(cd "$APP/.." && pwd)"
 
 # The dev client by default (bundle id de.projectforge.mobileapp.dev, see app.config.ts): it doesn't replace the store
-# app on a device. The release builds set production.
+# app on a device. The release builds set production; eas (store builds, submit) the store app unless given.
+APP_VARIANT_GIVEN="${APP_VARIANT:-}"
 export APP_VARIANT="${APP_VARIANT:-development}"
 
 usage() {
@@ -362,6 +363,8 @@ case "$cmd" in
       source "$APP/.env.local"
       set +a
     fi
+    # A submit profile has no env: without this it would look up the dev app de.projectforge.mobileapp.dev.
+    export APP_VARIANT="${APP_VARIANT_GIVEN:-production}"
     cd "$APP" && exec npx --yes eas-cli@latest "$@"
     ;;
   logs)
