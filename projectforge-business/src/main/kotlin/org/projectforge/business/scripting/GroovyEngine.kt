@@ -163,8 +163,13 @@ class GroovyEngine @JvmOverloads constructor(
   /**
    * Gets i18n message.
    *
+   * The params are inserted as they are, not escaped: templates pass markup on purpose (e.g. `"<b>${month}</b>"`,
+   * a link). Every value a user entered (names, titles, comments, ...) must therefore be escaped by the caller,
+   * via [getString] or an already escaping formatter such as `SendMail.formatUserWithMail`, or it is an HTML
+   * injection into the mail.
+   *
    * @param messageKey
-   * @param params
+   * @param params Inserted unescaped, see above.
    * @see I18nHelper.getLocalizedMessage
    */
   fun getMessage(messageKey: String?, vararg params: Any?): String {
