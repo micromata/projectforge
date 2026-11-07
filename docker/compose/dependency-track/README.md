@@ -21,11 +21,13 @@ podman compose logs -f apiserver
    and the memory used (`podman stats`) for the spike (question 8).
 2. Log in at http://localhost:8091 as `admin` / `admin` and set a new password.
 3. *Administration → Access Management → Teams*: create the team `projectforge` with the permissions `BOM_UPLOAD`,
-   `PORTFOLIO_MANAGEMENT`, `PROJECT_CREATION_UPLOAD`, `VIEW_PORTFOLIO`, `VIEW_VULNERABILITY`,
-   `VULNERABILITY_ANALYSIS`, and generate an API key. The key stays out of the repository.
+   `PORTFOLIO_MANAGEMENT`, `PROJECT_CREATION_UPLOAD`, `VIEW_POLICY_VIOLATION`, `VIEW_PORTFOLIO`,
+   `VIEW_VULNERABILITY`, `VULNERABILITY_ANALYSIS`, and generate an API key. The key stays out of the repository.
 4. *Administration → Analyzers* and *Vulnerability Sources*: enable the internal analyser, OSV (Maven, npm, PyPI,
    NuGet, Packagist, Go, crates.io) and the GitHub Advisories (needs a GitHub token); EPSS is enabled by default.
    Leave the external analysers (OSS Index, Snyk, VulnDB) off: they would send the component list outside.
+   Only the NVD is mirrored by default; without GitHub Advisories and OSV a component with a purl but no CPE gets no
+   findings.
 
 Stop with `podman compose down`; `down -v` also deletes the data, so the next start mirrors everything again.
 
