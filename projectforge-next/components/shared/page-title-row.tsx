@@ -28,6 +28,10 @@ export interface PageTitleRowProps {
   /** Below sm the center takes a full-width line of its own under title and actions, instead of being squeezed
       between them — for a field that grows, such as the calendar chooser. */
   centerBelow?: boolean;
+  /** On a cramped screen (a phone) the row takes one line: no category, the title truncates, and the actions
+      become items of the row itself, so one of them can take a line of its own below (`cramped:basis-full`,
+      see ListToolbar). There is no [center] then. */
+  compactWhenCramped?: boolean;
 }
 
 /**
@@ -47,30 +51,50 @@ export function PageTitleRow({
   children,
   wrap = false,
   centerBelow = false,
+  compactWhenCramped = false,
 }: PageTitleRowProps) {
   useDocumentTitle(title);
+  const titleClass = cn(
+    "text-lg font-bold tracking-tight",
+    compactWhenCramped && "cramped:truncate"
+  );
   return (
     <div
       className={cn(
-        "flex items-center gap-3 px-3 pt-2 sm:px-4 sm:pt-3",
+        // Below sm the actions may not fit beside the title: they wrap onto their own line (right-aligned,
+        // see below) instead of sticking out of the screen.
+        "flex items-center gap-3 px-3 pt-2 max-sm:flex-wrap max-sm:gap-y-2 sm:px-4 sm:pt-3",
         wrap && "flex-wrap gap-y-2",
-        centerBelow && "max-sm:flex-wrap max-sm:gap-y-2"
+        centerBelow && "max-sm:flex-wrap max-sm:gap-y-2",
+        compactWhenCramped && "cramped:flex-wrap cramped:gap-y-2"
       )}
     >
-      <div className="shrink-0">
+      <div
+        className={cn(
+          "shrink-0",
+          // A zero basis: in the wrapping row a title as wide as its text would push the actions onto the next
+          // line before it shrank at all.
+          compactWhenCramped && "cramped:min-w-0 cramped:flex-1"
+        )}
+      >
         {category && (
           // Not printed: where the page sits in the menu says nothing on paper.
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground print:hidden">
+          <p
+            className={cn(
+              "text-[11px] font-medium uppercase tracking-wider text-muted-foreground print:hidden",
+              compactWhenCramped && "cramped:hidden"
+            )}
+          >
             {category}
           </p>
         )}
         {titleAddon ? (
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold tracking-tight">{title}</h1>
+          <div className="flex min-w-0 items-center gap-2">
+            <h1 className={titleClass}>{title}</h1>
             {titleAddon}
           </div>
         ) : (
-          <h1 className="text-lg font-bold tracking-tight">{title}</h1>
+          <h1 className={titleClass}>{title}</h1>
         )}
       </div>
       {experimental && <ExperimentalBadge label={experimentalLabel} />}
@@ -80,7 +104,9 @@ export function PageTitleRow({
         className={cn(
           "min-w-0",
           wrap ? "flex-[1_1_auto]" : "flex-1",
-          centerBelow && "max-sm:order-last max-sm:basis-full"
+          centerBelow && "max-sm:order-last max-sm:basis-full",
+          // The title fills the line itself (no center then).
+          compactWhenCramped && "cramped:hidden"
         )}
       >
         {center}
@@ -90,10 +116,9 @@ export function PageTitleRow({
           paper can be clicked. */}
       <div
         className={cn(
-          "flex flex-wrap items-center gap-2 self-start sm:gap-3 print:hidden",
+          "flex flex-wrap items-center gap-2 self-start max-sm:ml-auto sm:gap-3 print:hidden",
           wrap && "ml-auto",
-          // On its line below sm the center no longer pushes the actions right.
-          centerBelow && "max-sm:ml-auto"
+          compactWhenCramped && "cramped:contents"
         )}
       >
         {children}

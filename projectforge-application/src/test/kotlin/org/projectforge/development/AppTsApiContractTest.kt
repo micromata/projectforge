@@ -42,8 +42,7 @@ import java.io.File
  * The endpoints the app calls are listed in `projectforge-app/test/contract/app-api-contract.json`.
  *
  * A failure is a break for the app: keep the field or endpoint `@Deprecated` and list it in
- * `dev-docs/app-api-deprecations.md`, or raise `AppCompatibility.MIN_APP_VERSION`. The published Flutter app has
- * [AppApiContractTest].
+ * `dev-docs/app-api-deprecations.md`, or raise `AppCompatibility.MIN_APP_VERSION`.
  */
 class AppTsApiContractTest {
     private val rootDir = GenerateChangelogMain.resolveRootDir()
@@ -83,7 +82,7 @@ class AppTsApiContractTest {
     @Test
     fun `the server delivers every field the app reads`() {
         val missing = interfaces.filter { it.server != null }.flatMap { itf ->
-            val names = checks.propertyNames(Class.forName(itf.server))
+            val names = checks.propertyNames(checks.classOf(itf.server!!))
             itf.fields.filter { !it.optionalRead && it.name !in names }.map { "${itf.name}.${it.name} (${itf.server})" }
         }
         assertEquals(
@@ -96,7 +95,7 @@ class AppTsApiContractTest {
     @Test
     fun `the server takes every field the app sends`() {
         val missing = interfaces.filter { it.request != null }.flatMap { itf ->
-            val names = checks.propertyNames(Class.forName(itf.request), deserialize = true)
+            val names = checks.propertyNames(checks.classOf(itf.request!!), deserialize = true)
             itf.fields.filter { it.name !in names }.map { "${itf.name}.${it.name} (${itf.request})" }
         }
         assertEquals(emptyList<String>(), missing, "The app sends fields the server doesn't take.")
@@ -105,7 +104,7 @@ class AppTsApiContractTest {
     @Test
     fun `the server has every endpoint the app calls`() {
         val missing = contracts.flatMap { contract -> contract["endpoints"]?.toList() ?: emptyList() }
-            .filter { !checks.hasEndpoint(Class.forName(it["controller"].asText()), it["call"].asText()) }
+            .filter { !checks.hasEndpoint(checks.classOf(it["controller"].asText()), it["call"].asText()) }
             .map { "${it["call"].asText()} (${it["controller"].asText()})" }
         assertEquals(emptyList<String>(), missing, "The app calls endpoints the server doesn't have.")
     }

@@ -18,9 +18,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   participants)
 
 ## Generated files
-- Never edit `projectforge-next/messages/generated.*.json`, `projectforge-app/assets/i18n/generated.*.json`,
-  `projectforge-flutter/assets/i18n/generated.*.json` or `projectforge-application/src/main/resources/i18nKeys.json` by
-  hand. They are produced only by the
+- Never edit `projectforge-next/messages/generated.*.json`, `projectforge-app/assets/i18n/generated.*.json`
+  or `projectforge-application/src/main/resources/i18nKeys.json` by hand. They are produced only by the
   generator (`bin/pfDev.sh gen`, i.e. `developmentMainForRelease`), which may be run after an i18n change;
   a manual change would be overwritten on the next run anyway.
 - Merges and rebases don't conflict on the generated files (`.gitattributes`: merge driver `pf-generated`, which
@@ -74,11 +73,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Before every release, check and update both minimum versions of the compatibility warning:
   - `AppCompatibility.MIN_APP_VERSION` (`projectforge-business/.../user/AppCompatibility.kt`): the oldest app
     version the server still works with. Raise it if the release removes or changes an api older apps use.
-  - `minServerVersion` (`projectforge-flutter/lib/core/compat/compatibility.dart`): the oldest server version the
+  - `MIN_SERVER_VERSION` (`projectforge-app/src/core/compat/compatibility.ts`): the oldest server version the
     app works with. Raise it if the app needs a feature of a newer server.
 - Only hard breaks raise a minimum; where the app can fall back, use a feature flag in the system status
   (e.g. `appLoginPath`). Nothing is refused, the app and "My account" only warn. Details:
-  `dev-docs/flutter-client.md`.
+  `dev-docs/mobile-app.md`.
 - Before removing or renaming a field or endpoint the app uses, check what the published app version reads (`git grep`
   at its commit); if it reads it, keep it as `@Deprecated` and list it in `dev-docs/app-api-deprecations.md`. At every
   release go through that register and remove the entries below `MIN_APP_VERSION`.

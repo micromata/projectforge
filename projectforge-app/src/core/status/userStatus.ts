@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import type { UIThemeSettings, UserStatusResult } from '@projectforge/shared/rs/user-status';
+import type { UIThemeRequest, UIThemeSettings, UserStatusResult } from '@projectforge/shared/rs/user-status';
 import { useSyncExternalStore } from 'react';
 import { AppState, AppStateStatus, Appearance } from 'react-native';
 
@@ -42,14 +42,24 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 export const parseTheme = (theme?: string | null): ThemeMode =>
   theme === 'light' || theme === 'dark' ? theme : 'system';
 
+/** The user's first day of the week (Monday 1 … Sunday 7), Monday if the server sends none or an invalid one. */
+export const parseFirstDayOfWeek = (value?: number | null): number =>
+  value != null && Number.isInteger(value) && value >= 1 && value <= 7 ? value : 1;
+
 const INTERVAL = 60_000;
+const RELOAD_DELAY = 3_000;
 const THEME_CACHE = 'theme';
+const FIRST_DAY_CACHE = 'firstDayOfWeek';
 
 interface State {
   status: UserStatusResult | null;
   /** The user's theme of the web pages, applied to the app's own screens too. */
   theme: ThemeMode;
+  /** The user's first day of the week (Monday 1 … Sunday 7), stored for a start without the server. */
+  firstDayOfWeek: number;
 }
+
+const INITIAL: State = { status: null, theme: 'system', firstDayOfWeek: 1 };
 
 /**
  * The user status (`GET /rs/userStatus`) for the badge of the chat tab, the bell of the notifications, the message of
@@ -58,11 +68,12 @@ interface State {
  * the polling keeps nothing alive; it never opens a login in the browser (`renewLogin: false`). Port of the Flutter
  * app's UserStatusController and ThemeController.
  */
-class UserStatusStore {
-  private state: State = { status: null, theme: 'system' };
+export class UserStatusStore {
+  private state: State = INITIAL;
   private listeners = new Set<() => void>();
   private api: ApiClient | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
+  private reloadTimer: ReturnType<typeof setTimeout> | null = null;
   private appState: { remove(): void } | null = null;
 
   get = () => this.state;
@@ -80,6 +91,10 @@ class UserStatusStore {
     this.api = api;
     const stored = await JsonCache.read<{ theme?: string }>(THEME_CACHE);
     if (this.api === api && this.state.status == null && stored?.theme) this.setTheme(parseTheme(stored.theme));
+    const firstDay = await JsonCache.read<{ firstDayOfWeek?: number }>(FIRST_DAY_CACHE);
+    if (this.api === api && this.state.status == null && firstDay?.firstDayOfWeek != null) {
+      this.setFirstDayOfWeek(parseFirstDayOfWeek(firstDay.firstDayOfWeek));
+    }
     this.appState = AppState.addEventListener('change', this.onAppState);
     this.startTimer();
     await this.refresh();
@@ -88,10 +103,12 @@ class UserStatusStore {
   /** Logged out or another login: nothing of the last one stays, the theme is the system's. */
   stop() {
     this.stopTimer();
+    if (this.reloadTimer) clearTimeout(this.reloadTimer);
+    this.reloadTimer = null;
     this.appState?.remove();
     this.appState = null;
     this.api = null;
-    this.state = { status: null, theme: 'system' };
+    this.state = INITIAL;
     this.applyTheme();
     this.emit();
   }
@@ -109,10 +126,62 @@ class UserStatusStore {
       } else {
         void this.loadThemeOfOlderServer(api);
       }
+      // An older server sends no first day of the week: the stored one stays.
+      const firstDay = status.userData?.isoFirstDayOfWeekValue;
+      if (firstDay != null) this.setFirstDayOfWeek(parseFirstDayOfWeek(firstDay), true);
       this.emit();
     } catch (e) {
       appLog.debug('status', `User status not loaded: ${String(e)}`);
     }
+  };
+
+  /**
+   * The user chose [theme] in the app: shown at once and stored for the user as the web pages store it (the same
+   * setting, so it follows them on other devices). A failure is thrown, the theme shown before is back then.
+   */
+  chooseTheme = async (theme: ThemeMode) => {
+    const api = this.api;
+    if (api == null) return;
+    const before = this.state.theme;
+    this.setTheme(theme, true);
+    try {
+      const body: UIThemeRequest = { theme };
+      const answer = await api.post<UIThemeSettings | undefined>('/rs/uiSettings/theme', { body });
+      if (this.api === api && answer?.theme) this.setTheme(parseTheme(answer.theme), true);
+    } catch (e) {
+      if (this.api === api) this.setTheme(before, true);
+      throw e;
+    }
+  };
+
+  /**
+   * A push arrived while the app is open: the bell takes its count at once (the server's open count, [badge]), then
+   * the status is loaded ([changed]).
+   */
+  pushed = (badge: number | null) => {
+    const status = this.state.status;
+    if (badge != null && status?.notifications != null && status.notifications.openCount !== badge) {
+      this.state = {
+        ...this.state,
+        status: { ...status, notifications: { ...status.notifications, openCount: badge } },
+      };
+      this.emit();
+    }
+    this.changed();
+  };
+
+  /**
+   * The status changed on the server (a push, a web page read a chat or closed a notification): loaded now and again a
+   * moment later. A request answered just before a commit, or before the server resolved the notifications of a read
+   * chat (on its own thread), would keep the old count until the next poll.
+   */
+  changed = () => {
+    void this.refresh();
+    if (this.reloadTimer) clearTimeout(this.reloadTimer);
+    this.reloadTimer = setTimeout(() => {
+      this.reloadTimer = null;
+      void this.refresh();
+    }, RELOAD_DELAY);
   };
 
   /** A server whose user status has no theme yet: the endpoint of the web pages (`UISettingsRest`). */
@@ -130,6 +199,13 @@ class UserStatusStore {
     if (theme === this.state.theme) return;
     this.state = { ...this.state, theme };
     this.applyTheme();
+    this.emit();
+  }
+
+  private setFirstDayOfWeek(firstDayOfWeek: number, store = false) {
+    if (store) JsonCache.write(FIRST_DAY_CACHE, { firstDayOfWeek });
+    if (firstDayOfWeek === this.state.firstDayOfWeek) return;
+    this.state = { ...this.state, firstDayOfWeek };
     this.emit();
   }
 
@@ -166,4 +242,9 @@ export const userStatus = new UserStatusStore();
 
 export function useUserStatus(): State {
   return useSyncExternalStore(userStatus.subscribe, userStatus.get);
+}
+
+/** The user's first day of the week (Monday 1 … Sunday 7). */
+export function useFirstDayOfWeek(): number {
+  return useSyncExternalStore(userStatus.subscribe, () => userStatus.get().firstDayOfWeek);
 }

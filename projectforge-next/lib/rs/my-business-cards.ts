@@ -67,6 +67,11 @@ export function businessCardPassUrl(id: string): string {
   return `${BASE}/pkpass?id=${encodeURIComponent(id)}`;
 }
 
+/** The small photo of the user's own address (same-origin: the CSP allows no external image hosts). */
+export function businessCardPhotoUrl(addressId: number): string {
+  return `${BASE}/photo?addressId=${addressId}`;
+}
+
 export function downloadBusinessCardVCard(id: string): Promise<void> {
   return downloadFile(`${BASE}/vcf?id=${encodeURIComponent(id)}`);
 }

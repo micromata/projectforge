@@ -12,12 +12,14 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { sendChatMessage } from "@/lib/rs/chat";
+import { UploadError, type UploadProgress } from "@/lib/rs/upload";
 import type { ChatConversation, ChatMessage } from "@/lib/rs/chat-types";
 import { useChatContext } from "./chat-context";
 import { ChatEditor } from "./chat-editor";
 import { PendingFiles } from "./pending-files";
 import { QuoteBar } from "./quote-bar";
 import { SecretSendButton } from "./secret-send-button";
+import { SendingFiles } from "./sending-files";
 import { CHAT_COLUMN_CLASS } from "./chat-column";
 import type { ChatEditorHandle } from "./types";
 import { useChatDraft } from "./use-chat-draft";
@@ -51,15 +53,20 @@ export function ChatComposer({
   useEffect(() => {
     if (quote) editorRef.current?.focus();
   }, [quote]);
+  const [progress, setProgress] = useState<UploadProgress | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const send = useMutation({
-    mutationFn: (html: string) =>
-      sendChatMessage(
+    mutationFn: (html: string) => {
+      abortRef.current = new AbortController();
+      return sendChatMessage(
         conversation.id,
         html,
         threadRootId,
         pending.files.map((it) => it.file),
-        quote?.id ?? null
-      ),
+        quote?.id ?? null,
+        { onProgress: setProgress, signal: abortRef.current.signal }
+      );
+    },
     onSuccess: (message) => {
       editorRef.current?.clear();
       pending.clear();
@@ -68,7 +75,14 @@ export function ChatComposer({
       setHasText(false);
       onSent(message);
     },
-    onError: (error: Error) => toast.error(error.message),
+    // A cancelled upload is the user's own doing: the message stays as it was, nothing to report.
+    onError: (error: Error) =>
+      !(error instanceof UploadError && error.aborted) &&
+      toast.error(error.message),
+    onSettled: () => {
+      abortRef.current = null;
+      setProgress(null);
+    },
   });
   const submit = () => {
     const html = editorRef.current?.getHtml() ?? "";
@@ -97,6 +111,13 @@ export function ChatComposer({
             </FormAlert>
           )}
           <PendingFiles files={pending.files} onRemove={pending.remove} />
+          {send.isPending && pending.files.length > 0 && (
+            <SendingFiles
+              files={pending.files}
+              progress={progress}
+              onCancel={() => abortRef.current?.abort()}
+            />
+          )}
           {pending.files.length > 0 && (
             <p
               className={cn(

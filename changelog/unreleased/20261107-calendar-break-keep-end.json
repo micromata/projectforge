@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Calendar: a time sheet opened from a break keeps its end time when the start time is changed.",
+  "de": "Kalender: Ein aus einem Break geöffneter Zeitbericht behält seine Endezeit, wenn die Startzeit geändert wird."
+}

@@ -25,7 +25,7 @@ import { NativeModule, requireNativeModule } from 'expo';
 
 /**
  * The native parts of the app (ios/PfNativeModule.swift, android/…/PfNativeModule.kt): the cookie jar and website
- * data of the WebViews, the Apple Wallet, the key chain items of the Flutter app.
+ * data of the WebViews, the Apple Wallet, the form of a new contact, the key chain items of the Flutter app, the APNs environment.
  */
 declare class PfNativeModule extends NativeModule<Record<string, never>> {
   /** Sets the cookies of `Set-Cookie` header values for `url` in the WebViews; answers the names set. */
@@ -43,11 +43,26 @@ declare class PfNativeModule extends NativeModule<Record<string, never>> {
    */
   addPass(fileUrl: string): Promise<void>;
 
+  /**
+   * Offers to add the contact of a vCard to the device's contacts: iOS shows the prefilled form of a new contact
+   * ([uri] the `file://` url), Android opens the vCard with the contacts app ([uri] the content uri of the file).
+   */
+  addContact(uri: string): Promise<void>;
+
   /** A key chain item of the Flutter app (flutter_secure_storage), null if there is none (always on Android). */
   readLegacyKeychain(service: string, key: string): string | null;
 
   /** Deletes a key chain item of the Flutter app. */
   deleteLegacyKeychain(service: string, key: string): void;
+
+  /**
+   * The APNs environment of the signing (the `aps-environment` of the provisioning profile), null without a profile
+   * (store, TestFlight: production) and on Android.
+   */
+  apsEnvironment(): 'SANDBOX' | 'PRODUCTION' | null;
+
+  /** Shows the find navigator of WebKit for the WebView on screen (iOS); false if there is none (always on Android). */
+  presentFindNavigator(): Promise<boolean>;
 }
 
 export default requireNativeModule<PfNativeModule>('PfNative');

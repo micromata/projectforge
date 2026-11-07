@@ -370,6 +370,7 @@ function DeclaredList<
           // legacy page leaves the create entry out of its menu (see useEditTargets.canAdd).
           addHref={targets.canAdd ? targets.addHref : undefined}
           experimental={page.experimental}
+          selectionActive={mode.active}
           selectionToggle={
             page.massUpdate &&
             updateAccess !== false && (
@@ -417,6 +418,7 @@ function DeclaredList<
               className="h-6 rounded-full px-2.5 text-xs"
             />
           }
+          filterCount={Object.keys(list.filters.values).length}
           filterPills={
             <FilterPills
               elements={list.filters.elements}

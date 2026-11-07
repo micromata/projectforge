@@ -2,7 +2,6 @@
 # by any bin/pfDev.sh call), regenerate with `bin/pfDev.sh gen` after a merge or rebase.
 projectforge-next/lib/generated/*.json                       merge=pf-generated linguist-generated
 projectforge-next/messages/generated.*.json                  merge=pf-generated linguist-generated
-projectforge-flutter/assets/i18n/generated.*.json            merge=pf-generated linguist-generated
 projectforge-app/assets/i18n/generated.*.json                merge=pf-generated linguist-generated
 projectforge-next/lib/metadata/*.generated.ts                merge=pf-generated linguist-generated
 projectforge-application/src/main/resources/i18nKeys.json    merge=pf-generated linguist-generated

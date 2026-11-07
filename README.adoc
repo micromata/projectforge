@@ -1,77 +1,113 @@
 = ProjectForge - project management solution
 
-ProjectForge is a web-based solution for project management including time tracking, team calendar, gantt-charting, financial administration, issue management,
-controlling and managing work-break-down-structures (e. g. together with JIRA as issue management system).
+ProjectForge is an open source, web-based solution for project management. It covers time tracking, team calendar,
+Gantt charts, financial administration, controlling and work breakdown structures, and works together with
+issue management systems such as Jira. Besides the web application there is a mobile app and a REST API.
 
-== Express installation
+== Screenshots
 
-For a fast installation via docker or executable jar, please refer https://projectforge.org/docs/installation/[Installation].
+Click a picture to see it in full size.
+
+[cols="3*^a", frame=none, grid=none]
+|===
+|image:site/uploads/screenshots/2026-OrderBook.png[Order book,260,link=site/uploads/screenshots/2026-OrderBook.png] +
+Order book
+|image:site/uploads/screenshots/2026-TaskTree.png[Structure tree,260,link=site/uploads/screenshots/2026-TaskTree.png] +
+Structure tree with consumption bars
+|image:site/uploads/screenshots/2026-Timesheets.png[Time sheets,260,link=site/uploads/screenshots/2026-Timesheets.png] +
+Time sheets
+|image:site/uploads/screenshots/2026-Calendar.png[Team calendar,260,link=site/uploads/screenshots/2026-Calendar.png] +
+Team calendar
+|image:site/uploads/screenshots/2026-ChatRoom.png[Chat,260,link=site/uploads/screenshots/2026-ChatRoom.png] +
+Chat
+|image:site/uploads/screenshots/2026-Dark.png[Dark theme,260,link=site/uploads/screenshots/2026-Dark.png] +
+Dark theme
+|===
+
+=== Mobile app for iPhone and iPad
+
+The ProjectForge app (iOS) will be available in the Apple App Store soon.
+
+[cols="4*^a", frame=none, grid=none]
+|===
+|image:site/uploads/screenshots/2026-App-iPhone-Timesheets.png[Time sheets,120,link=site/uploads/screenshots/2026-App-iPhone-Timesheets.png] +
+Time sheets
+|image:site/uploads/screenshots/2026-App-iPhone-StructureTree.png[Structure tree,120,link=site/uploads/screenshots/2026-App-iPhone-StructureTree.png] +
+Structure tree
+|image:site/uploads/screenshots/2026-App-iPhone-Calendar.png[Calendar,120,link=site/uploads/screenshots/2026-App-iPhone-Calendar.png] +
+Calendar
+|image:site/uploads/screenshots/2026-App-iPhone-Chat.png[Chat,120,link=site/uploads/screenshots/2026-App-iPhone-Chat.png] +
+Chat
+|===
+
+[cols="2*^a", frame=none, grid=none]
+|===
+|image:site/uploads/screenshots/2026-App-iPad-Calendar.png[Calendar on the iPad,260,link=site/uploads/screenshots/2026-App-iPad-Calendar.png] +
+Calendar on the iPad
+|image:site/uploads/screenshots/2026-App-iPad-Chat.png[Chat on the iPad,260,link=site/uploads/screenshots/2026-App-iPad-Chat.png] +
+Chat on the iPad
+|===
 
 == Documentation
 
-=== projectforge.org
-Full documentation on: https://projectforge.org/
-Please visit: https://projectforge.org/docs/development/
+* https://projectforge.org/[projectforge.org]: the complete documentation, including the
+  https://projectforge.org/docs/installation/[installation], the https://projectforge.org/docs/userguide/[user guide]
+  and the https://projectforge.org/docs/adminguide/[admin guide].
+* https://projectforge.org/docs/development/[Development guide]: architecture, backend, REST API, frontend, plugins, tests.
+* link:dev-docs/README.md[dev-docs]: reference notes and plans for developers.
+* link:changelog/changelog.json[Changelog] and the documentation of the plugins in link:doc[doc].
 
-== Version 8.0 is out now...
+== Installation
 
-The fastest way of installation of the newest version (8.0). you will find here: https://projectforge.org/docs/installation/[Installation]
+The fastest way is the Docker image or the executable jar, see
+https://projectforge.org/docs/installation/[Installation].
 
-This version contains a lot of cool stuff:
+If you just want to run ProjectForge, download it from https://sourceforge.net/projects/pforge/ and start it with
+`java -jar projectforge-application-X.X.X.jar` (Java 21 or newer).
 
-* New versions of Spring, Spring Boot, Hibernate, Hibernate Search etc.
-* ...
+== Building from source
 
-== Quickstart from command line
-
-[NOTE]
-====
 You only need the following steps for developing ProjectForge.
-If you just want to run it, please download it from https://sourceforge.net/projects/pforge/
-and simply start it `java -jar projectforge-application-X.X.X.jar`.
-
-Or simply use the fastest way: https://projectforge.org/docs/installation/[Installation as docker image]
-====
 
 1. Checkout: `git clone git@github.com:micromata/projectforge.git`
-2. For developing use a JDK 21 or newer: `java -version`.
-3. Build ProjectForge:
-   `./gradlew build -x test` (or `./gradlew.bat build -x test` on Windows)
-4. Run ProjectForge:
-   `java -jar projectforge-application/build/libs/projectforge-application-X.X.X.jar` As an alternative you may run `./gradlew bootRun`.
-5. Open your browser:
-   http://localhost:8080
+2. Use JDK 21 or newer: `java -version`.
+3. Build ProjectForge, including the Next.js frontend in `projectforge-next`: +
+   `./gradlew build -x test` (`gradlew.bat` on Windows)
+4. Run ProjectForge: +
+   `java -jar projectforge-application/build/libs/projectforge-application-X.X.X.jar` or `./gradlew bootRun`
+5. Open http://localhost:8080 in your browser.
 
-=== Configuration of ProjectForge
+For several instances side by side, hot reload of the frontend and test data see `bin/pfDev.sh` and the
+https://projectforge.org/docs/development/[development guide].
 
-No configuration needed. After starting ProjectForge a first time, a console or desktop based wizard is provided for doing
-a quick setup (choose directory and configure optionally some parameters).
+=== IntelliJ
 
-To configure a different directory you have several options (*choose Your favorite*):
+1. Launch IntelliJ IDEA and import the project as Gradle project.
+2. Run `./gradlew clean build -x test` once.
+3. Start `org.projectforge.start.ProjectForgeApplication` (in `projectforge-application/src/main/java`).
+
+== Configuration
+
+No configuration is needed. When ProjectForge is started for the first time, a console or desktop based wizard
+does a quick setup (choose the directory and optionally set some parameters).
+
+To use a different home directory you have several options (*choose your favorite*):
 
 . Create `ProjectForge` as top level directory of your home directory: `$HOME/ProjectForge`, *or*
-. Create a directory named `ProjectForge` and put the jar file somewhere in it or in the same directory. ProjectForge detects the folder `ProjectForge` relative to the executed jar, *or*
-. Create a directory and define it as command line parameter: `java -Dhome.dir=yourdirectory -jar projectforge-application-X.X.X.jar`, *or*
-. Create a directory and define it as system environment variable `PROJECTFORGE_HOME`.
+. Create a directory named `ProjectForge` and put the jar file in it or next to it. ProjectForge detects the folder `ProjectForge` relative to the executed jar, *or*
+. Create a directory and pass it as command line parameter: `java -Dhome.dir=yourdirectory -jar projectforge-application-X.X.X.jar`, *or*
+. Create a directory and set it as environment variable `PROJECTFORGE_HOME`.
 
-Please note the detailed documentations for administrators, developers as well as for users.
-
-Java 21 or newer is required since ProjectForge 9.2 (8.0 to 9.1.x: Java 17 or newer).
-ProjectForge is compiled for Java 21 and runs in production on Java 21 (the Docker image is based on Eclipse Temurin 21).
-
-=== Quickstart with IntelliJ
-
-1. Launch IntelliJ IDEA
-2. Import new project as Gradle project
-3. Run ./gradle clean build -x test (builds the Next.js frontend in projectforge-next as well)
-4. Start by simply running main (in `projectforge-application/src/main/java`): +
-   `org.projectforge.start.ProjectForgeApplication.java`
+All available parameters are listed in
+https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties[application.properties];
+own values go into `projectforge.properties` in the home directory. More details are in the
+https://projectforge.org/docs/adminguide/[admin guide].
 
 == Quickstart with PostgreSQL (optional)
 
 You may use PostgreSQL instead of the built-in data base.
 
-=== Using PostgresSQL (Podman)
+=== Using PostgreSQL (Podman)
 
 * Choose and set a database password: +
  `export PGPASSWORD=mypassword`
@@ -88,7 +124,7 @@ podman run -d \
   -v projectforge-pgdata:/var/lib/postgresql/data \
   docker.io/library/postgres:17
 ----
-* Configure ProjectForge
+* Configure ProjectForge (see <<Configuration>> for the home directory):
 
 .$HOME/ProjectForge/projectforge.properties
 [source,shell]
@@ -100,15 +136,15 @@ spring.datasource.password=${PGPASSWORD}
 spring.datasource.driver-class-name=org.postgresql.Driver
 ----
 
-* Run ProjectForge and enjoy it.
+* Start ProjectForge. For regular operation and backups see the https://projectforge.org/docs/adminguide/[admin guide].
 
-.Some helpful docker commands
+.Helpful Podman commands
 |===
 |Stop|`podman stop projectforge-postgres`
 |Start|`podman start projectforge-postgres`
 |Import dump (optional)|`podman exec -i projectforge-postgres psql -U projectforge -d projectforge < ~/ProjectForgeBackup/pf.sql` +
-Files dump: `podman exec -i projectforge-postgres pg_restore -U projectforge -d projectforge --no-owner < ~/ProjectForgeBackup/projectforge_files_2026-10-20_02-00.dump` +
-Schema `pf_files` (attachments), custom format, so `pg_restore` instead of `psql`. Import it after the main dump and
+Files dump (`projectforge_files.dump`): `podman exec -i projectforge-postgres pg_restore -U projectforge -d projectforge --no-owner < ~/ProjectForgeBackup/projectforge_files.dump` +
+The dump contains the schema `pf_files` (attachments) in custom format, so `pg_restore` instead of `psql`. Import it after the main dump and
 before starting ProjectForge. If the schema already exists, drop it first (`DROP SCHEMA pf_files CASCADE;`) or add
 `--clean --if-exists`. Afterwards run _Administration_ -> _System_ -> _Check system integrity_. See the
 https://projectforge.org/docs/adminguide/#restoring_a_backup[admin guide].
@@ -122,23 +158,12 @@ This is useful for avoiding a lot of external calendar calls of foreign users if
            `podman volume rm projectforge-pgdata`
 |===
 
+== Plugins
 
-== Further configurations
+ProjectForge is extensible by plugins. The built-in plugins live in link:plugins[plugins] as Gradle modules and are
+activated by administrators under _Administration_ -> _Plugins_ (a restart is required), or with
+`projectforge.plugins.ensure-active=datatransfer` (comma-separated ids) in `projectforge.properties`, see
+https://projectforge.org/docs/installation/[Installation].
 
-Please have a lock at all available config parameters: https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties[application.properties]
-
-== Documentation
-
-Refer
-
-* https://github.com/micromata/projectforge/tree/develop/doc[doc (Github)], or
-* https://projectforge.org
-
-== Adding your own plugins
-ProjectForge support plugins. The existing menu can be modified and own entities and functionalities can be added.
-
-Please note: We're working highly on a new release (will be published soon). Wicket will be replaced by ReactJS and Rest technology. The implementation of plugins will be changed as well.
-
-Deploy your plugins by adding your jar(s) to the plugin directory next to the jar file. In eclipse you have to add the plugin project to the run configuration classpath. The jars contains both, the Java classes and the web pages (Wicket-pages). Nothing more is needed.
-Register your plugins in the administration menu at the web gui. You need to restart the server.
-One advantage is that your own plugins are independent from new releases of the ProjectForge core system. In one of the next releases an example plugin will show you how easy it is to extend ProjectForge!
+How to write an own plugin (backend, REST, frontend pages) is described in the
+https://projectforge.org/docs/development/[development guide].

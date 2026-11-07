@@ -21,7 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-// The address book of the app (AddressEntityRest, GET /rs/address/appList; the images of AddressImageServicesRest).
+// The address book of the app (AddressEntityRest, GET /rs/address/appList; the images of AddressImageServicesRest, the vCard of
+// AddressServicesRest).
 // See src/rs/app-auth.ts for @server.
 
 /**
@@ -35,6 +36,8 @@ export interface AppAddressList {
   ids: number[];
   favoriteIds?: number[];
   addresses: AppAddress[];
+  /** The addresses come with their vCards (missing from servers before 9.2.6). */
+  withVCards?: boolean;
 }
 
 /** @server org.projectforge.rest.AddressEntityRest$AppAddress */
@@ -64,6 +67,8 @@ export interface AppAddress {
   writeAccess?: boolean;
   /** The version of the address and its image: an image on the device is valid for the same value. */
   lastUpdate: number;
+  /** The vCard of the address without the photo, for sharing (missing from servers before 9.2.6). */
+  vCard?: string | null;
 }
 
 /** @server org.projectforge.rest.AddressEntityRest$AppPostalAddress */

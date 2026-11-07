@@ -27,7 +27,7 @@ import { fetch as expoFetch } from 'expo/fetch';
 import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 
-import { HttpFetch } from './api/http';
+import { HttpFetch, withTimeout } from './api/http';
 import { CALLBACK_URL, OpenBrowser } from './auth/appLogin';
 import { CryptoProvider } from './auth/pkce';
 import { appLog } from './log/appLog';
@@ -39,9 +39,11 @@ export const platformCrypto: CryptoProvider = {
     new Uint8Array(await Crypto.digest(Crypto.CryptoDigestAlgorithm.SHA256, data as unknown as BufferSource)),
 };
 
-/** expo/fetch, see src/core/api/http.ts. */
-export const platformHttp: HttpFetch = (url, init) =>
-  expoFetch(url, init as Parameters<typeof expoFetch>[1]) as unknown as Promise<Response>;
+/** expo/fetch (see src/core/api/http.ts), the answer within 30 s. */
+export const platformHttp: HttpFetch = withTimeout(
+  (url, init) => expoFetch(url, init as Parameters<typeof expoFetch>[1]) as unknown as Promise<Response>,
+  30_000,
+);
 
 /**
  * The login page in the system browser: ASWebAuthenticationSession on iOS (shares the cookies of Safari, e.g. the
@@ -53,7 +55,15 @@ export const platformOpenBrowser: OpenBrowser = async (url) => {
   return result.type === 'success' ? result.url : null;
 };
 
-export const appVersion: string = Constants.expoConfig?.version ?? '0';
+/** The version of the app as `version+build`, e.g. `1.1.0+6` (as the Flutter app: header, user agent, menu). */
+export const appVersion: string = versionWithBuild(
+  Constants.expoConfig?.version,
+  Platform.OS === 'ios' ? Constants.expoConfig?.ios?.buildNumber : Constants.expoConfig?.android?.versionCode,
+);
+
+export function versionWithBuild(version?: string | null, build?: string | number | null): string {
+  return build != null && `${build}` !== '' ? `${version ?? '0'}+${build}` : (version ?? '0');
+}
 
 export const platformName: string = Platform.OS;
 

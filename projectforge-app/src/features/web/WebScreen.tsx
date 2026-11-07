@@ -22,8 +22,10 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Platform, Share, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, BackHandler, Linking, Platform, Share, StyleSheet, View } from 'react-native';
 import RNWebView, { WebViewMessageEvent, WebViewNavigation } from 'react-native-webview';
+
+import PfNative from '../../../modules/pf-native/src/PfNativeModule';
 import type {
   FileDownloadEvent,
   ShouldStartLoadRequest,
@@ -36,13 +38,16 @@ import { authController } from '../../core/auth/authController';
 import { SharedFiles } from '../../core/files/sharedFiles';
 import { errorText, t } from '../../core/i18n/translations';
 import { appLog, LogSanitizer } from '../../core/log/appLog';
+import { useColors } from '../../core/ui/colors';
 import { ErrorView } from '../../core/ui/ErrorView';
 import { appVersion, platformHttp } from '../../core/platform';
+import { userStatus, useUserStatus } from '../../core/status/userStatus';
 import { parseUrl } from '../../core/url';
 import { showWalletPass, walletAvailable, WalletException } from '../../core/wallet/walletPass';
 import { FindBar, FindResult } from './FindBar';
 import { findScript } from './findInPage';
-import { isWalletPass, WebDownload } from './webDownload';
+import { themeScript } from './themeScript';
+import { BLOB_SCRIPT, blobFile, DownloadedFile, isWalletPass, WebDownload } from './webDownload';
 import { NativePage, WebNavigation } from './webNavigation';
 
 /** The browser functions of a tab (the menu of the home screen). */
@@ -61,6 +66,8 @@ export interface WebScreenHandle {
 export interface WebScreenState {
   canGoBack: boolean;
   canGoForward: boolean;
+  /** A page of the server is shown: it can be shared or opened in the browser. */
+  hasPage: boolean;
 }
 
 interface Props {
@@ -68,7 +75,10 @@ interface Props {
   initialPath?: string;
   /** The screen is the visible tab: only it renews a login refused by the SSO proxy. */
   active: boolean;
-  /** The pages navigate to a page with a native tab: true if the app shows that tab instead. */
+  /**
+   * The pages navigate to a page with a native tab: true if the app shows that tab instead. Not called for a page this
+   * screen was asked to load itself.
+   */
   onNativePage?: (page: NativePage) => boolean;
   onStateChange?: (state: WebScreenState) => void;
 }
@@ -93,19 +103,21 @@ const ANDROID_CONNECTION_ERRORS = new Set([-2, -6, -7, -8]);
 const IOS_CANCELLED = -999;
 
 /**
- * The pages of the server in a WebView, the port of the Flutter app's `lib/features/web/web_screen.dart`:
+ * The pages of the server in a WebView, the port of the the earlier Flutter app's web_screen:
  * the web session comes from the app token, only pages of the own server stay in the WebView, the login of an SSO
  * proxy is renewed in the system browser, the web session is renewed when next shows its login page.
  *
  * The commit of a page (no `onPageCommitVisible` in react-native-webview) is told by a script at document start
  * (`injectedJavaScriptBeforeContentLoaded`), which posts `{pf: 'commit'}`; its url is the one of the native event,
- * not of the message. That bridge is open to every page, so a message is never more than this signal (and the
- * results of the search).
+ * not of the message. That bridge is open to every page, so a message is never more than this signal, the results
+ * of the search, a file the page made itself (a blob, BLOB_SCRIPT), which only goes to the share sheet, and the
+ * signal of next that its badges changed (`{pf: 'status'}`, no data: the user status is loaded again).
  */
 export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   { initialPath, active, onNativePage, onStateChange },
   ref,
 ) {
+  const colors = useColors();
   const webView = useRef<WebViewInstance>(null);
   const [source, setSource] = useState<{ uri: string } | null>(null);
   const [webViewKey, setWebViewKey] = useState(0);
@@ -121,6 +133,11 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   const requestedUrl = useRef<string | null>(null);
   const shownUrl = useRef<string | null>(null);
   const lastOpened = useRef<number | null>(null);
+  /** The native page this screen was asked to load itself (e.g. the web version of the business cards): not handed over. */
+  const requestedNative = useRef<NativePage | null>(null);
+  /** The url of the last client side navigation handed over: its repeated state changes aren't handed over again. */
+  const handedOver = useRef<string | null>(null);
+  const canGoBack = useRef(false);
   const lastProxyRenewal = useRef<number | null>(null);
   const renewingProxy = useRef(false);
   const openings = useRef(0);
@@ -163,7 +180,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     setStalled(false);
     setFinding(false);
     setProgress(0);
-    onStateChange?.({ canGoBack: false, canGoForward: false });
+    onStateChange?.({ canGoBack: false, canGoForward: false, hasPage: false });
   }, [onStateChange]);
 
   const showError = useCallback(
@@ -174,13 +191,18 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     [replaceWebView],
   );
 
-  /** Loads [url], a page of the server, as a load of its own (see serverPageLoadStart). */
+  /**
+   * Loads [url], a page of the server, as a load of its own (see serverPageLoadStart). A new entry of the history, so
+   * Back returns to the page shown before; [replace] replaces the current one (the login page of a renewal, which
+   * Back would show again).
+   */
   const load = useCallback(
-    (url: string) => {
+    (url: string, replace = false) => {
       startServerPageLoad(url);
       if (webView.current && source) {
         // A new source with the same uri isn't loaded again by react-native-webview.
-        webView.current.injectJavaScript(`window.location.replace(${JSON.stringify(url)}); true;`);
+        const method = replace ? 'replace' : 'assign';
+        webView.current.injectJavaScript(`window.location.${method}(${JSON.stringify(url)}); true;`);
       } else {
         setSource({ uri: url });
       }
@@ -206,7 +228,8 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
           return;
         }
         appLog.info('web', `Load ${LogSanitizer.url(url)}`);
-        load(url.href);
+        requestedNative.current = navigation.nativePage(url);
+        load(url.href, renew);
       } catch (e) {
         appLog.warn('web', `Pages not opened: ${String(e)}`);
         if (opening !== openings.current) return;
@@ -292,6 +315,8 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
 
   const handOver = (url: string) => {
     const page = navigation.nativePage(url);
+    if (page === requestedNative.current) return false;
+    requestedNative.current = null;
     return page != null && (onNativePage?.(page) ?? false);
   };
 
@@ -386,7 +411,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   };
 
   const onMessage = (event: WebViewMessageEvent) => {
-    let data: { pf?: string; count?: number; index?: number; supported?: boolean };
+    let data: { pf?: string; count?: number; index?: number; supported?: boolean; name?: unknown; mime?: unknown; data?: unknown };
     try {
       data = JSON.parse(event.nativeEvent.data);
     } catch {
@@ -396,7 +421,27 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       onPageCommitted(event.nativeEvent.url);
     } else if (data?.pf === 'find') {
       setFindResult({ count: data.count ?? 0, index: data.index ?? -1, supported: data.supported !== false });
+    } else if (data?.pf === 'blob') {
+      onBlobDownload(event.nativeEvent.url, data);
+    } else if (data?.pf === 'status' && navigation.isSameOrigin(event.nativeEvent.url)) {
+      // next's badges changed (a chat read, a notification done): the tab bar's follow (useAppStatusSignal of next).
+      userStatus.changed();
     }
+  };
+
+  /** A file the page made itself (an export of next): offered as a download, only from a page of the server. */
+  const onBlobDownload = (pageUrl: string, message: { name?: unknown; mime?: unknown; data?: unknown }) => {
+    if (!navigation.isSameOrigin(pageUrl)) {
+      appLog.warn('web', `File of another site refused: ${LogSanitizer.url(pageUrl)}`);
+      return;
+    }
+    const file = blobFile(message);
+    if (file == null) {
+      appLog.warn('web', 'File of the page not taken (none or too large)');
+      Alert.alert(t('app.download.failed'));
+      return;
+    }
+    void offer(file, 'File of the page');
   };
 
   /** Also the client side navigations of next (pushState). */
@@ -410,7 +455,21 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     }
     setPullToRefresh(!navigation.isNextPage(url));
     if (!state.loading) serverPageLoadStart.current = null;
-    onStateChange?.({ canGoBack: state.canGoBack, canGoForward: state.canGoForward });
+    if (url !== handedOver.current) {
+      handedOver.current = null;
+      if (state.canGoBack && navigation.isSameOrigin(url) && handOver(url)) {
+        // A link of next to a page with a tab of its own: shown there, back to the page the user came from.
+        handedOver.current = url;
+        webView.current?.goBack();
+        return;
+      }
+    }
+    canGoBack.current = state.canGoBack;
+    onStateChange?.({
+      canGoBack: state.canGoBack,
+      canGoForward: state.canGoForward,
+      hasPage: shownUrl.current != null,
+    });
   };
 
   const onError = (event: WebViewErrorEvent) => {
@@ -436,16 +495,25 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         (url) => authController.webCookies.cookieHeader(url),
         platformHttp,
       ).load(nativeEvent.downloadUrl, nativeEvent.suggestedFilename);
-      if (walletAvailable && isWalletPass(download.mimeType, download.name)) {
-        // The pass of a business card ("Add to Wallet" of the page): the Wallet, not the share sheet.
-        appLog.info('web', `Downloaded ${download.bytes.length} bytes: Wallet`);
-        await showWalletPass(download.bytes);
-        return;
-      }
-      appLog.info('web', `Downloaded ${download.bytes.length} bytes: share sheet`);
-      await SharedFiles.share(download.name, download.bytes, download.mimeType);
+      await offer(download, 'Downloaded');
     } catch (e) {
       appLog.warn('web', `Download failed: ${String(e)}`);
+      Alert.alert(t('app.download.failed'));
+    }
+  };
+
+  /** A Wallet pass (of a business card, "Add to Wallet" of the page) into the Wallet, any other file to share. */
+  const offer = async (file: DownloadedFile, what: string) => {
+    try {
+      if (walletAvailable && isWalletPass(file.mimeType, file.name)) {
+        appLog.info('web', `${what}: ${file.bytes.length} bytes: Wallet`);
+        await showWalletPass(file.bytes);
+        return;
+      }
+      appLog.info('web', `${what}: ${file.bytes.length} bytes: share sheet`);
+      await SharedFiles.share(file.name, file.bytes, file.mimeType);
+    } catch (e) {
+      appLog.warn('web', `${what} not offered: ${String(e)}`);
       Alert.alert(e instanceof WalletException ? e.message : t('app.download.failed'));
     }
   };
@@ -466,6 +534,34 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     await open(path, true, false);
   };
 
+  // The hardware back of Android goes back in the pages of the tab shown.
+  useEffect(() => {
+    if (!active || Platform.OS !== 'android') return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (!canGoBack.current) return false;
+      webView.current?.goBack();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [active]);
+
+  // A theme chosen in the app (or loaded from the server): the page of the own server shown follows at once.
+  const { theme } = useUserStatus();
+  useEffect(() => {
+    const url = shownUrl.current;
+    if (url != null && navigation.isSameOrigin(url)) webView.current?.injectJavaScript(themeScript(theme));
+  }, [theme, navigation]);
+
+  // The search belongs to the tab shown: closed once another tab is shown.
+  const [shownActive, setShownActive] = useState(active);
+  if (shownActive !== active) {
+    setShownActive(active);
+    if (!active) setFinding(false);
+  }
+  useEffect(() => {
+    if (!active) webView.current?.injectJavaScript(findScript('', 'clear'));
+  }, [active]);
+
   const closeFind = () => {
     if (!finding) return;
     webView.current?.injectJavaScript(findScript('', 'clear'));
@@ -480,9 +576,16 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       if (shownUrl.current && navigation.isSameOrigin(shownUrl.current)) startServerPageLoad(shownUrl.current);
       webView.current?.reload();
     },
+    // iOS: the find navigator of WebKit (findInPage.ts marked wrong there), else the bar with the script.
     openFind: () => {
-      setFindResult(null);
-      setFinding(true);
+      const showBar = () => {
+        setFindResult(null);
+        setFinding(true);
+      };
+      if (Platform.OS !== 'ios') return showBar();
+      PfNative.presentFindNavigator()
+        .then((shown) => shown || showBar())
+        .catch(showBar);
     },
     share: () => {
       if (shownUrl.current) void Share.share({ url: shownUrl.current, message: shownUrl.current });
@@ -515,7 +618,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         // Marks the app for next (lib/app-mode.ts), which then e.g. hides its logout.
         applicationNameForUserAgent={`ProjectForgeApp/${appVersion}`}
-        injectedJavaScriptBeforeContentLoaded={COMMIT_SCRIPT}
+        injectedJavaScriptBeforeContentLoaded={COMMIT_SCRIPT + BLOB_SCRIPT}
         injectedJavaScriptBeforeContentLoadedForMainFrameOnly
         onMessage={onMessage}
         onNavigationStateChange={onNavigationStateChange}
@@ -545,7 +648,8 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         // The pages of next bring their own pull to refresh; iOS only (react-native-webview has none on Android).
         pullToRefreshEnabled={pullToRefresh}
         webviewDebuggingEnabled={__DEV__}
-        style={styles.fill}
+        // No white page before the first one is painted (dark theme).
+        style={[styles.fill, { backgroundColor: colors.surface }]}
       />
       {progress < 1 && <View style={[styles.progress, { width: `${Math.round(progress * 100)}%` }]} />}
       {finding && (

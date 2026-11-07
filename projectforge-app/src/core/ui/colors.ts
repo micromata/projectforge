@@ -34,6 +34,9 @@ export interface Colors {
   onPrimary: string;
   danger: string;
   warning: string;
+  /** The message of the administrators, as in next (the error roles of Material 3). */
+  alert: string;
+  onAlert: string;
   badge: string;
 }
 
@@ -47,6 +50,8 @@ const LIGHT: Colors = {
   onPrimary: '#ffffff',
   danger: '#c62828',
   warning: '#e65100',
+  alert: '#ba1a1a',
+  onAlert: '#ffffff',
   badge: '#d32f2f',
 };
 
@@ -60,6 +65,8 @@ const DARK: Colors = {
   onPrimary: '#0b1220',
   danger: '#ef5350',
   warning: '#ffb74d',
+  alert: '#ffb4ab',
+  onAlert: '#690005',
   badge: '#ef5350',
 };
 

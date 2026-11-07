@@ -276,7 +276,7 @@ class AppAuthService {
 
     companion object {
         /**
-         * The callback of the app (its url scheme, see projectforge-flutter).
+         * The callback of the app (its url scheme, see projectforge-app).
          */
         const val APP_REDIRECT_URL = "projectforge://auth"
 

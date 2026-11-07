@@ -22,19 +22,19 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs, useRouter } from 'expo-router';
-import { ComponentProps, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Tabs } from 'expo-router';
+import { ComponentProps, useEffect } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { appVersion } from '../../core/platform';
-import { authController } from '../../core/auth/authController';
 import { CompatibilityIssue } from '../../core/compat/compatibility';
 import { t } from '../../core/i18n/translations';
+import { useOtherServers } from '../../core/status/otherServers';
 import { chatEnabled, userStatus, useUserStatus } from '../../core/status/userStatus';
 import { severityColor, useColors } from '../../core/ui/colors';
-import { MenuItem, MenuSheet } from '../../core/ui/MenuSheet';
-import { CHAT_PATH, useWebTabStates, WebTab, webTabs } from '../web/webTabs';
+import { tabSheets, useTabSheet } from '../../core/ui/tabSheets';
+import { TIMESHEETS_TAB_ENABLED } from '../../core/web/nativePage';
+import { CHAT_PATH, useWebMenuOpen, WebTab, webTabs } from '../web/webTabs';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -45,6 +45,7 @@ export type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['ta
 export const TABS: Record<string, { icon: IconName; label: () => string; webTab?: WebTab }> = {
   cards: { icon: 'id-card-outline', label: () => t('menu.myBusinessCards') },
   addresses: { icon: 'people-outline', label: () => t('menu.addressList') },
+  timesheets: { icon: 'time-outline', label: () => t('timesheet.title.heading') },
   pages: { icon: 'globe-outline', label: () => t('app.web'), webTab: 'pages' },
   chat: { icon: 'chatbubbles-outline', label: () => t('chat.title'), webTab: 'chat' },
 };
@@ -56,58 +57,59 @@ export function compatibilityText(issue: CompatibilityIssue): string {
 }
 
 /**
- * The navigation of the app: slim, icons only (the label is their accessibility label), with the browser functions of
- * a web tab and the menu of the account at its end, so they are there on every tab (the pages bring their own header).
- * The chat tab is missing if the chat is switched off on the server; tapped again it leads back to its rooms.
+ * The navigation of the app: slim, icons only (the label is their accessibility label), with the bell and the "more"
+ * menu at its end (on a web tab with the browser functions first), so they are there on every tab (the pages bring
+ * their own header). Both open a sheet over the tabs ([tabSheets]), the bar stays below it; the button again or a tab
+ * closes it. The "more" button counts the open notifications of the other logins (their servers push too).
+ * The chat tab is missing if the chat is switched off on the server; tapped again it leads back to its rooms. The
+ * pages tab opens with its menu, tapped again it closes or opens it.
+ * [rail]: in landscape a column at the left side (as the Flutter app's navigation rail), the bell and the menu at its
+ * bottom. [onSize]: the size of the bar, the sheets leave it free.
  */
-export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: CompatibilityIssue | null }) {
+export function TabBar({
+  state,
+  navigateToTab,
+  issue,
+  rail = false,
+  onSize,
+}: TabBarProps & {
+  issue: CompatibilityIssue | null;
+  rail?: boolean;
+  onSize?: (size: { width: number; height: number }) => void;
+}) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const { status } = useUserStatus();
-  const webStates = useWebTabStates();
-  const [menu, setMenu] = useState<'browser' | 'more' | null>(null);
+  const webMenu = useWebMenuOpen();
+  const sheet = useTabSheet();
   const focused = state.routes[state.index]?.name;
-  const webTab = focused ? TABS[focused]?.webTab : undefined;
   const unread = status?.chatUnread ?? 0;
   const openNotifications = status?.notifications?.openCount ?? 0;
+  // The other logins' open notifications, at the menu with the server switch.
+  const otherOpen = useOtherServers().reduce((sum, it) => sum + it.openCount, 0);
 
-  const routes = state.routes.filter((route) => TABS[route.name] && (route.name !== 'chat' || chatEnabled(status)));
+  // The chat switched off on the server while it is shown: back to the business cards.
+  const chatOff = focused === 'chat' && status != null && !chatEnabled(status);
+  const cardsKey = state.routes.find((it) => it.name === 'cards')?.key;
+  useEffect(() => {
+    if (chatOff && cardsKey) navigateToTab(cardsKey);
+  }, [chatOff, cardsKey, navigateToTab]);
 
-  const browserItems = (): MenuItem[] => {
-    const handle = webTab ? webTabs.handle(webTab) : undefined;
-    const web = webTab ? webStates[webTab] : undefined;
-    return [
-      { key: 'back', label: t('back'), icon: 'arrow-back', disabled: !web?.canGoBack, onPress: () => handle?.goBack() },
-      { key: 'forward', label: t('app.web.forward'), icon: 'arrow-forward', disabled: !web?.canGoForward, onPress: () => handle?.goForward() },
-      { key: 'reload', label: t('app.web.reload'), icon: 'refresh', onPress: () => handle?.reload() },
-      { key: 'find', label: t('app.web.find'), icon: 'search', onPress: () => handle?.openFind() },
-      { key: 'share', label: t('app.web.share'), icon: 'share-outline', onPress: () => handle?.share() },
-      { key: 'browser', label: t('app.web.openInBrowser'), icon: 'open-outline', onPress: () => handle?.openInBrowser() },
-      { key: 'restart', label: t('app.web.restart'), icon: 'reload-circle-outline', onPress: () => handle?.restart() },
-    ];
-  };
-
-  const moreItems = (): MenuItem[] => [
-    { key: 'version', label: t('app.version', appVersion), info: true },
-    ...(issue ? [{ key: 'compatibility', label: compatibilityText(issue), icon: 'warning-outline' as IconName, info: true }] : []),
-    { key: 'servers', label: t('app.server.switch'), icon: 'swap-horizontal', onPress: () => router.push('/servers') },
-    { key: 'settings', label: t('settings'), icon: 'settings-outline', onPress: () => router.push('/settings') },
-    {
-      key: 'logout',
-      label: t('menu.logout'),
-      icon: 'log-out-outline',
-      destructive: true,
-      onPress: () =>
-        Alert.alert(t('menu.logout'), t('app.logout.question'), [
-          { text: t('cancel'), style: 'cancel' },
-          { text: t('ok'), style: 'destructive', onPress: () => void authController.logout() },
-        ]),
-    },
-  ];
+  const routes = state.routes.filter(
+    (route) =>
+      TABS[route.name] &&
+      (route.name !== 'chat' || chatEnabled(status)) &&
+      (route.name !== 'timesheets' || TIMESHEETS_TAB_ENABLED),
+  );
 
   return (
-    <View style={[styles.bar, { backgroundColor: colors.surface, borderColor: colors.border, paddingBottom: insets.bottom }]}>
+    <View
+      style={[
+        rail ? styles.rail : styles.bar,
+        { backgroundColor: colors.surface, borderColor: colors.border, paddingBottom: insets.bottom },
+      ]}
+      onLayout={(event) => onSize?.(event.nativeEvent.layout)}
+    >
       {routes.map((route) => {
         const tab = TABS[route.name];
         const active = route.name === focused;
@@ -119,16 +121,32 @@ export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: C
             accessibilityLabel={tab.label()}
             accessibilityState={{ selected: active }}
             onPress={() => {
+              // A sheet over the tabs closes, whichever tab is tapped.
+              tabSheets.close();
               if (active && route.name === 'chat') {
                 webTabs.open('chat', CHAT_PATH);
                 return;
               }
-              if (!active) navigateToTab(route.key);
-              // Leaving the chat: the badge at once, not after the next poll.
-              if (!active && focused === 'chat') void userStatus.refresh();
+              // The pages tab starts with its menu (the web pages' navigation is small on a phone); tapped again it
+              // closes the menu, and opens it again over the page.
+              if (route.name === 'pages') {
+                if (active) {
+                  webTabs.toggleMenu();
+                  return;
+                }
+                webTabs.setMenu(true);
+              }
+              if (active) return;
+              navigateToTab(route.key);
+              // The badges at once (e.g. leaving the chat), not after the next poll.
+              void userStatus.refresh();
             }}
           >
-            <Ionicons name={tab.icon} size={24} color={active ? colors.primary : colors.textMuted} />
+            <Ionicons
+              name={route.name === 'pages' && active && webMenu ? 'globe' : tab.icon}
+              size={24}
+              color={active ? colors.primary : colors.textMuted}
+            />
             {route.name === 'chat' && unread > 0 && (
               <View style={[styles.badge, { backgroundColor: colors.badge }]}>
                 <Text style={styles.badgeText}>{unread > 99 ? '99+' : unread}</Text>
@@ -138,20 +156,15 @@ export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: C
         );
       })}
       <View style={styles.spacer} />
-      {webTab && (
-        <Pressable style={styles.item} accessibilityLabel={t('app.menu.more')} onPress={() => setMenu('browser')}>
-          <Ionicons name="compass-outline" size={24} color={colors.textMuted} />
-        </Pressable>
-      )}
       <Pressable
         style={styles.item}
         accessibilityLabel={t('notification.center')}
-        onPress={() => router.push('/notifications')}
+        onPress={() => tabSheets.toggle('notifications')}
       >
         <Ionicons
           name={openNotifications > 0 ? 'notifications' : 'notifications-outline'}
           size={24}
-          color={colors.textMuted}
+          color={sheet === 'notifications' ? colors.primary : colors.textMuted}
         />
         {openNotifications > 0 && (
           <View
@@ -164,20 +177,25 @@ export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: C
           </View>
         )}
       </Pressable>
-      <Pressable style={styles.item} accessibilityLabel={t('app.menu.more')} onPress={() => setMenu('more')}>
-        <Ionicons name="ellipsis-horizontal-circle-outline" size={24} color={issue ? colors.danger : colors.textMuted} />
+      <Pressable style={styles.item} accessibilityLabel={t('app.menu.more')} onPress={() => tabSheets.toggle('more')}>
+        <Ionicons
+          name="ellipsis-horizontal-circle-outline"
+          size={24}
+          color={issue ? colors.danger : sheet === 'more' ? colors.primary : colors.textMuted}
+        />
+        {otherOpen > 0 && (
+          <View style={[styles.badge, { backgroundColor: colors.badge }]}>
+            <Text style={styles.badgeText}>{otherOpen > 99 ? '99+' : otherOpen}</Text>
+          </View>
+        )}
       </Pressable>
-      <MenuSheet
-        visible={menu != null}
-        items={menu === 'browser' ? browserItems() : menu === 'more' ? moreItems() : []}
-        onClose={() => setMenu(null)}
-      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   bar: { flexDirection: 'row', alignItems: 'center', borderTopWidth: StyleSheet.hairlineWidth, paddingHorizontal: 4 },
+  rail: { flexDirection: 'column', alignItems: 'center', borderRightWidth: StyleSheet.hairlineWidth, paddingTop: 4 },
   item: { height: 44, minWidth: 52, alignItems: 'center', justifyContent: 'center' },
   spacer: { flex: 1 },
   badge: {

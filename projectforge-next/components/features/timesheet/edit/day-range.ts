@@ -40,12 +40,20 @@ function shift(iso: string, minutes: number): string {
  * Keeping the length rather than the stop is what a user means by moving a sheet — they are correcting
  * when the work began, not shortening it. A sheet that had no valid length yet (no stop, or a stop
  * before its start) gets [DEFAULT_DURATION_MINUTES], which is also what an empty form starts from.
+ *
+ * With `keepStop` (a sheet opened with its end preset, e.g. from a calendar break whose end is the next
+ * sheet's start) the stop stays where it is, as long as the new start is still before it.
  */
 export function stopTimeForNewStart(
   startTime: string | null,
-  previous: { startTime: string | null; stopTime: string | null }
+  previous: { startTime: string | null; stopTime: string | null },
+  keepStop = false
 ): string | null {
   if (!startTime) return previous.stopTime;
+  if (keepStop && previous.stopTime) {
+    const gap = durationMinutesOf(startTime, previous.stopTime);
+    if (gap != null && gap > 0) return previous.stopTime;
+  }
   const held = durationMinutesOf(previous.startTime, previous.stopTime);
   const minutes = held != null && held > 0 ? held : DEFAULT_DURATION_MINUTES;
   return shift(startTime, minutes);

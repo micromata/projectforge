@@ -34,7 +34,7 @@ export interface RequestOptions {
 
 /**
  * The calls of the app to its ProjectForge server (`/rs`, authenticated by the app token), port of the Flutter
- * app's `lib/core/api/api_client.dart`:
+ * earlier Flutter app's api client:
  *
  * - Every request carries `Authorization: PFApp <token>`: no session, no cookies (no cookie jar at all, see
  *   [HTTP_DEFAULTS]), hence no CSRF token. Redirects aren't followed: the header mustn't go elsewhere.
@@ -68,6 +68,14 @@ export class ApiClient {
 
   post<T>(path: string, options?: RequestOptions): Promise<T> {
     return this.call<T>('POST', path, options);
+  }
+
+  put<T>(path: string, options?: RequestOptions): Promise<T> {
+    return this.call<T>('PUT', path, options);
+  }
+
+  delete<T>(path: string, options?: RequestOptions): Promise<T> {
+    return this.call<T>('DELETE', path, options);
   }
 
   /** The bytes of a file (a vCard, a Wallet pass), e.g. `download('/rs/myBusinessCards/vcf', { id })`. */
@@ -125,18 +133,31 @@ export class ApiClient {
     retried: boolean,
     accept = 'application/json',
   ): Promise<Response> {
-    const response = await this.fetch(method, path, options.body, accept);
     const describe = `${method} ${LogSanitizer.url(this.serverUrl + path)}${retried ? ' (retry)' : ''}`;
+    const start = Date.now();
+    let response: Response;
+    try {
+      response = await this.fetch(method, path, options.body, accept);
+    } catch (e) {
+      appLog.warn('api', `${describe} failed after ${Date.now() - start} ms: ${String(e)}`);
+      throw e;
+    }
+    const duration = `${Date.now() - start} ms`;
     if (response.ok) {
-      if (options.renewLogin !== false) appLog.debug('api', `${describe} → ${response.status}`);
+      if (options.renewLogin !== false) appLog.debug('api', `${describe} → ${response.status} (${duration})`);
       return response;
     }
     const proxyRefused = isProxyRefusal(response);
-    appLog.warn(
-      'api',
-      `${describe} → ${response.status} (content-type: ${response.headers.get('content-type') ?? '-'}` +
-        `${proxyRefused ? ', refused by the SSO proxy' : ''})`,
-    );
+    const location = response.headers.get('location');
+    const server = response.headers.get('server');
+    const details = [
+      `content-type: ${response.headers.get('content-type') ?? '-'}`,
+      location != null ? `location: ${LogSanitizer.url(location)}` : null,
+      server != null ? `server: ${server}` : null,
+      `proxy cookies sent: ${LogSanitizer.cookieNames(Object.keys(this.opts.proxyCookies()))}`,
+      proxyRefused ? 'refused by the SSO proxy' : null,
+    ].filter(Boolean);
+    appLog.warn('api', `${describe} → ${response.status} in ${duration} (${details.join(', ')})`);
     if (response.status === 401 && !proxyRefused) {
       appLog.warn('api', 'Token refused by the server: logged out');
       this.opts.onUnauthorized();

@@ -21,15 +21,13 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-/** A page of the server the app has a tab of its own for. */
-export type NativePage = 'chat' | 'businessCards' | 'notifications' | 'addresses' | 'timesheets';
+/**
+ * A page of the server the app has a tab of its own for, opened there instead (unless switched off in the settings).
+ * Not the time sheets: the booking of the app's tab is no counterpart of the web list, which stays a web page.
+ */
+export type NativePage = 'chat' | 'businessCards' | 'notifications' | 'addresses';
 
-export const NATIVE_PAGES: readonly NativePage[] = ['chat', 'businessCards', 'notifications', 'addresses', 'timesheets'];
+export const NATIVE_PAGES: readonly NativePage[] = ['chat', 'businessCards', 'notifications', 'addresses'];
 
-/** Whether the time sheet tab is offered; `false` hides it (tab, link of the web pages, setting). */
+/** Whether the time sheet tab is offered; `false` hides it. */
 export const TIMESHEETS_TAB_ENABLED = true;
-
-/** The pages with a native tab the settings can switch. */
-export const SWITCHABLE_NATIVE_PAGES: readonly NativePage[] = NATIVE_PAGES.filter(
-  (it) => it !== 'timesheets' || TIMESHEETS_TAB_ENABLED,
-);

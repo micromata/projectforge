@@ -24,10 +24,14 @@
 import { useRouter } from 'expo-router';
 
 import { ServerSwitchScreen } from '../features/home/ServerSwitchScreen';
+import { useTimesheets } from '../features/timesheets/timesheetsStore';
 import { useClose } from './_layout';
 
 export default function Servers() {
   const router = useRouter();
   const close = useClose();
-  return <ServerSwitchScreen onDone={close} onAdd={() => router.replace('/add-server')} />;
+  const timerRunning = useTimesheets().timer != null;
+  return (
+    <ServerSwitchScreen onDone={close} onAdd={() => router.replace('/add-server')} timerRunning={timerRunning} />
+  );
 }

@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-/** The login of the app at a server (the Flutter app's `lib/core/auth/session.dart`). */
+/** The login of the app at a server (the the earlier Flutter app's session). */
 export interface Session {
   serverUrl: string;
   token: string;

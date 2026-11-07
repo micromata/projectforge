@@ -43,6 +43,13 @@ export interface UserStatusResult {
   theme?: string | null;
   /** The version of the server and the oldest app version it works with. */
   systemData?: SystemData;
+  userData?: UserStatusUserData;
+}
+
+/** The settings of the user the app follows. @server org.projectforge.rest.UserStatusRest$UserData */
+export interface UserStatusUserData {
+  /** The first day of the week: Monday 1 … Sunday 7 (ISO 8601). */
+  isoFirstDayOfWeekValue?: number | null;
 }
 
 /** @server org.projectforge.business.notification.NotificationDao$Summary */
@@ -55,7 +62,15 @@ export interface NotificationSummary {
   latestId?: number | null;
 }
 
-/** For a server whose user status has no theme yet. @server org.projectforge.rest.UIThemeSettings */
+/**
+ * For a server whose user status has no theme yet, and the answer of storing one.
+ * @server org.projectforge.rest.UIThemeSettings
+ */
 export interface UIThemeSettings {
   theme?: string | null;
+}
+
+/** The theme chosen in the app (`light`, `dark` or `system`). @request org.projectforge.rest.UIThemeSettings */
+export interface UIThemeRequest {
+  theme: string;
 }

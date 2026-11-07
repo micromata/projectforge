@@ -12,8 +12,9 @@ import type { MenuBadge } from "@/lib/rs/types";
  * rendered on category headers as well as on leaves.
  *
  * Two shapes for two contexts (`variant`):
- * - `inline` (default): a right-aligned pill for the vertical dropdown panels, where a row has the
- *   width to carry it beside the label.
+ * - `inline` (default): a pill right behind the label (the caller's flex `gap` spaces it), not at the
+ *   right edge of the row: on a phone the panel can be wider than the screen, and a right-aligned
+ *   badge was out of sight.
  * - `corner`: a compact badge pinned to the item's top-right corner, poking above it the way Wicket's
  *   horizontal menu bar shows it. Absolutely positioned, so it adds no width and floats clear of a
  *   trailing dropdown caret — the caller must give the item a positioned ancestor (`relative`) and
@@ -37,7 +38,7 @@ export function MenuCounterBadge({
         "inline-flex shrink-0 items-center justify-center rounded-full bg-destructive text-white",
         variant === "corner"
           ? "absolute -top-1.5 -right-0.5 h-3.5 min-w-3.5 px-1 text-[9px] leading-none"
-          : "ml-auto h-5 min-w-5 px-1 text-xs"
+          : "h-5 min-w-5 px-1 text-xs"
       )}
     >
       {badge.counter}

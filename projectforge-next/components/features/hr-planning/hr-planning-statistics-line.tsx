@@ -5,6 +5,7 @@ import { useFormatContext } from "@/hooks/use-format";
 import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { HRPlanningListStatistics } from "./types";
+import { STATISTICS_LINE_CLASS } from "@/components/shared/statistics-line-class";
 
 /**
  * The sum of the planned hours of the list, above its table — the "total duration" the legacy list showed
@@ -25,10 +26,7 @@ export function HRPlanningStatisticsLine({
 
   return (
     <dl
-      className={cn(
-        "flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b bg-muted/40 px-4 py-1.5 text-[13px]",
-        isFetching && "opacity-60"
-      )}
+      className={cn(STATISTICS_LINE_CLASS, isFetching && "opacity-60")}
       aria-label={t("statistics")}
     >
       <div className="flex items-baseline gap-1.5 text-brand-teal">

@@ -21,11 +21,13 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+import { utf8 } from '@projectforge/shared/base64url';
 import type { AppAddressList } from '@projectforge/shared/rs/address';
 
 import type { ApiClient } from '../../core/api/apiClient';
 import { ApiException } from '../../core/api/apiException';
-import { AddressBook, addressBook, mergeAddressBook } from './address';
+import { AddressBook, addressBook, AppAddress, mergeAddressBook } from './address';
+import { vCardWithPhoto } from './vCard';
 
 /** The part of JsonCache the repository uses. */
 export interface BookCache {
@@ -38,6 +40,8 @@ export interface ImageFiles {
   /** The `file://` url of the stored image, null if there is none. */
   uri(name: string): string | null;
   write(name: string, bytes: Uint8Array): string;
+  /** The bytes of the stored image, null if there is none. */
+  bytes(name: string): Promise<Uint8Array | null>;
   names(): string[];
   delete(name: string): void;
 }
@@ -86,12 +90,15 @@ export class AddressesRepository {
     const list = await this.api.get<AppAddressList>(
       `${AddressesRepository.PATH}/appList?modifiedSince=${stored.timestamp}`,
     );
-    return mergeAddressBook(stored, list.timestamp, list.ids, list.addresses, list.favoriteIds ?? []);
+    // The server sends vCards now, the stored addresses have none: the changes alone wouldn't bring them.
+    if (list.withVCards && !stored.withVCards) return null;
+    const book = mergeAddressBook(stored, list.timestamp, list.ids, list.addresses, list.favoriteIds ?? []);
+    return book && { ...book, withVCards: list.withVCards === true };
   }
 
   private async loadAll(): Promise<AddressBook> {
     const list = await this.api.get<AppAddressList>(`${AddressesRepository.PATH}/appList`);
-    return addressBook(list.timestamp, list.addresses, list.favoriteIds ?? []);
+    return { ...addressBook(list.timestamp, list.addresses, list.favoriteIds ?? []), withVCards: list.withVCards === true };
   }
 
   /**
@@ -110,6 +117,19 @@ export class AddressesRepository {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * The vCard of [address] with its stored photo (the image itself if it is stored, else the thumbnail), also without
+   * network. A server before 9.2.6 doesn't send it: then its export (with the photo) is loaded.
+   */
+  async vCard(address: AppAddress): Promise<Uint8Array> {
+    if (address.vCard == null) return this.api.download(`${AddressesRepository.PATH}/exportVCard/${address.id}`);
+    const photo = address.hasImage
+      ? ((await this.images.bytes(imageName(address.id, address.lastUpdate, true))) ??
+        (await this.images.bytes(imageName(address.id, address.lastUpdate))))
+      : null;
+    return utf8(vCardWithPhoto(address.vCard, photo));
   }
 
   /** Deletes the images of removed addresses and older versions. */

@@ -13,6 +13,7 @@ import {
   TONE_CLASS,
   type LiquidityStatistics,
 } from "./liquidity-statistics";
+import { STATISTICS_LINE_CLASS } from "@/components/shared/statistics-line-class";
 
 /**
  * The statistics of the whole liquidity list above its table, the way the Wicket list shows them
@@ -39,7 +40,7 @@ export function LiquidityStatisticsLine({
   return (
     <dl
       className={cn(
-        "flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b bg-muted/40 px-4 py-1.5 text-[13px]",
+        STATISTICS_LINE_CLASS,
         isFetching && "opacity-60",
         // A base date in the past: the figures are historical, so the line warns like the Wicket box.
         statistics?.pastBaseDate && "bg-brand-pink/10"

@@ -46,7 +46,7 @@ export const JsonCache = {
     dir.create({ intermediates: true, idempotent: true });
     const file = new File(dir, `${name}.json`);
     file.create({ overwrite: true });
-    file.write(JSON.stringify(json));
+    file.writeSync(JSON.stringify(json));
   },
 
   delete(name: string): void {

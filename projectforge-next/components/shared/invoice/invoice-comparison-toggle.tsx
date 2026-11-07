@@ -4,6 +4,7 @@ import type { KeyboardEvent, ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { cn } from "@/lib/utils";
 
 /**
@@ -44,7 +45,8 @@ export function ComparisonCaret({
  * `role="button"` element with `Enter`/`Space` support rather than a native button.
  *
  * The comparison needs a bounded Rechnungsdatum range to have a period at all; without one (`!canCompare`)
- * the region is inert and its tooltip says why. With no `onToggle` at all (the mass-update summary has no
+ * the region is inert and its tooltip says why, on a phone by a tap (the native `title` it had before never
+ * showed there, so a tap seemed to do nothing). With no `onToggle` at all (the mass-update summary has no
  * toggle) the children are rendered as they are, with no interactivity.
  */
 export function ComparisonToggleRegion({
@@ -72,26 +74,31 @@ export function ComparisonToggleRegion({
   };
 
   return (
-    <div
-      role="button"
-      aria-expanded={expanded}
-      aria-label={label}
-      aria-disabled={!canCompare}
-      tabIndex={canCompare ? 0 : undefined}
-      onClick={canCompare ? toggle : undefined}
-      onKeyDown={canCompare ? onKeyDown : undefined}
-      title={
+    // Actionable when it can compare: the tooltip is a hover bonus then, a tap toggles.
+    <HintTooltip
+      text={
         canCompare
           ? label
           : t("fibu.rechnung.statistics.previousYearComparisonHint")
       }
-      className={cn(
-        canCompare
-          ? "cursor-pointer transition-colors hover:bg-muted/60"
-          : "cursor-default"
-      )}
+      openOnTap={!canCompare}
     >
-      {children}
-    </div>
+      <div
+        role="button"
+        aria-expanded={expanded}
+        aria-label={label}
+        aria-disabled={!canCompare}
+        tabIndex={canCompare ? 0 : undefined}
+        onClick={canCompare ? toggle : undefined}
+        onKeyDown={canCompare ? onKeyDown : undefined}
+        className={cn(
+          canCompare
+            ? "cursor-pointer transition-colors hover:bg-muted/60"
+            : "cursor-default"
+        )}
+      >
+        {children}
+      </div>
+    </HintTooltip>
   );
 }

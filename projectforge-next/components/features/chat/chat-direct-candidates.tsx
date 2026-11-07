@@ -62,7 +62,7 @@ export function ChatDirectCandidates({
               onClick={() => openDirect.mutate(user.id)}
             >
               <HugeiconsIcon icon={Message01Icon} data-icon="inline-start" />
-              {t("chat.direct.new")}
+              <span className="hidden sm:inline">{t("chat.direct.new")}</span>
             </Button>
             <Button
               type="button"
@@ -77,7 +77,7 @@ export function ChatDirectCandidates({
                 strokeWidth={2}
                 data-icon="inline-start"
               />
-              {t("chat.secret.new")}
+              <span className="hidden sm:inline">{t("chat.secret.new")}</span>
             </Button>
           </li>
         ))}

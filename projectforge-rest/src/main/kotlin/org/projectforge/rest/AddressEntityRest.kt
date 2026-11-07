@@ -304,6 +304,11 @@ class AddressEntityRest : AbstractDTOEntityRest<AddressDO, Address, AddressDao>(
         val writeAccess: Boolean,
         /** Epoch millis of the last change of the address or its image, the version of the image on the device. */
         val lastUpdate: Long,
+        /**
+         * The vCard of the address as the web export builds it, but without the photo (the app adds the one it has
+         * stored): the app shares the contact or adds it to the device's contacts, also without network.
+         */
+        val vCard: String?,
     )
 
     class AppPostalAddress(
@@ -334,6 +339,8 @@ class AddressEntityRest : AbstractDTOEntityRest<AddressDO, Address, AddressDao>(
         /** The ids of the favorites of the logged-in user, always all of them (a favorite mark isn't a change of the address). */
         val favoriteIds: List<Long>,
         val addresses: List<AppAddress>,
+        /** The addresses come with their vCards: the app loads its stored ones anew once, they lack them. */
+        val withVCards: Boolean = true,
     )
 
     /**
@@ -386,6 +393,7 @@ class AddressEntityRest : AbstractDTOEntityRest<AddressDO, Address, AddressDao>(
                 hasImage = AddressImageCache.instance.getImage(address.id) != null,
                 writeAccess = baseDao.hasUpdateAccess(user, address, address, throwException = false),
                 lastUpdate = versionOf(address),
+                vCard = baseDao.exportVCard(address, embedImage = false),
             )
         }
         val ids = list.map { it.id!! }
