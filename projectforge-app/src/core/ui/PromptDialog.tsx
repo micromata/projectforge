@@ -26,6 +26,7 @@ import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, Tex
 
 import { t } from '../i18n/translations';
 import { useColors } from './colors';
+import { MODAL_ORIENTATIONS } from './modalOrientations';
 
 /** Asks for one line of text (a name): [onDone] with the trimmed text, never with an empty one. */
 export function PromptDialog({
@@ -53,7 +54,13 @@ export function PromptDialog({
     else onCancel();
   };
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={() => close(false)}>
+    <Modal
+      supportedOrientations={MODAL_ORIENTATIONS}
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={() => close(false)}
+    >
       <KeyboardAvoidingView style={styles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={[styles.dialog, { backgroundColor: colors.background }]}>
           <Text style={[styles.title, { color: colors.text }]}>{title}</Text>

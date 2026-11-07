@@ -30,6 +30,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { i18n, t } from '../../core/i18n/translations';
 import { useColors } from '../../core/ui/colors';
+import { MODAL_ORIENTATIONS } from '../../core/ui/modalOrientations';
 
 export interface DateTimeRequest {
   mode: 'date' | 'time';
@@ -74,7 +75,13 @@ export function DateTimeSheet({ request, onClose }: { request: DateTimeRequest |
   const [value, setValue] = useState<{ for: DateTimeRequest; date: Date } | null>(null);
   const current = request == null ? null : value?.for === request ? value.date : floor5(request.value);
   return (
-    <Modal visible={request != null} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal
+      supportedOrientations={MODAL_ORIENTATIONS}
+      visible={request != null}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
       <Pressable style={styles.backdrop} onPress={onClose}>
         <View
           style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 8 }]}

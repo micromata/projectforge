@@ -27,6 +27,7 @@ import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from '
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useColors } from './colors';
+import { MODAL_ORIENTATIONS } from './modalOrientations';
 
 export interface MenuItem {
   key: string;
@@ -68,10 +69,26 @@ export function MenuSheet({
     action?.();
   };
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} onDismiss={runPending}>
+    <Modal
+      supportedOrientations={MODAL_ORIENTATIONS}
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+      onDismiss={runPending}
+    >
       <Pressable style={styles.backdrop} onPress={onClose}>
         <View
-          style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 8 }]}
+          // Left and right: in landscape the sheet would reach under the notch (the Dynamic Island).
+          style={[
+            styles.sheet,
+            {
+              backgroundColor: colors.surface,
+              paddingBottom: insets.bottom + 8,
+              paddingLeft: insets.left,
+              paddingRight: insets.right,
+            },
+          ]}
           onStartShouldSetResponder={() => true}
         >
           {title && <Text style={[styles.title, { color: colors.text, borderColor: colors.border }]}>{title}</Text>}

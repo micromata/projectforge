@@ -62,8 +62,15 @@ export function compatibilityText(issue: CompatibilityIssue): string {
  * menu at its end (on a web tab with the browser functions first), so they are there on every tab (the pages bring
  * their own header).
  * The chat tab is missing if the chat is switched off on the server; tapped again it leads back to its rooms.
+ * [rail]: in landscape a column at the left side (as the Flutter app's navigation rail), the bell and the menu at its
+ * bottom.
  */
-export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: CompatibilityIssue | null }) {
+export function TabBar({
+  state,
+  navigateToTab,
+  issue,
+  rail = false,
+}: TabBarProps & { issue: CompatibilityIssue | null; rail?: boolean }) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -132,7 +139,12 @@ export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: C
   ];
 
   return (
-    <View style={[styles.bar, { backgroundColor: colors.surface, borderColor: colors.border, paddingBottom: insets.bottom }]}>
+    <View
+      style={[
+        rail ? styles.rail : styles.bar,
+        { backgroundColor: colors.surface, borderColor: colors.border, paddingBottom: insets.bottom },
+      ]}
+    >
       {routes.map((route) => {
         const tab = TABS[route.name];
         const active = route.name === focused;
@@ -195,6 +207,7 @@ export function TabBar({ state, navigateToTab, issue }: TabBarProps & { issue: C
 
 const styles = StyleSheet.create({
   bar: { flexDirection: 'row', alignItems: 'center', borderTopWidth: StyleSheet.hairlineWidth, paddingHorizontal: 4 },
+  rail: { flexDirection: 'column', alignItems: 'center', borderRightWidth: StyleSheet.hairlineWidth, paddingTop: 4 },
   item: { height: 44, minWidth: 52, alignItems: 'center', justifyContent: 'center' },
   spacer: { flex: 1 },
   badge: {

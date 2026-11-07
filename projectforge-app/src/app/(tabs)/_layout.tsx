@@ -23,7 +23,7 @@
 
 import { Tabs, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Platform } from 'react-native';
+import { Platform, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { authController, useAuth } from '../../core/auth/authController';
@@ -55,6 +55,9 @@ export default function TabsLayout() {
   const issueKey = issue && `${auth.session?.serverUrl}#${issue.kind}#${issue.minVersion}`;
   const [confirmedIssue, setConfirmedIssue] = useState<string | null>(null);
   const router = useRouter();
+  // In landscape the tabs are a rail at the side, as in the Flutter app: the height is what the pages lack there.
+  const { width, height } = useWindowDimensions();
+  const rail = width > height;
 
   useEffect(() => webTabs.reset(), [auth.generation]);
 
@@ -91,8 +94,12 @@ export default function TabsLayout() {
       )}
       <Tabs
         key={auth.generation}
-        screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.background } }}
-        tabBar={(props) => <TabBar {...props} issue={issue} />}
+        screenOptions={{
+          headerShown: false,
+          sceneStyle: { backgroundColor: colors.background },
+          tabBarPosition: rail ? 'left' : 'bottom',
+        }}
+        tabBar={(props) => <TabBar {...props} issue={issue} rail={rail} />}
       >
         <Tabs.Screen name="cards" />
         <Tabs.Screen name="addresses" />

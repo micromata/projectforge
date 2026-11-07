@@ -30,6 +30,7 @@ import { errorText, t } from '../../core/i18n/translations';
 import { useColors } from '../../core/ui/colors';
 import { fullPath, TimesheetTemplate } from './timesheet';
 import { timesheets } from './timesheetsStore';
+import { MODAL_ORIENTATIONS } from '../../core/ui/modalOrientations';
 
 type Loaded = { status: 'loading' } | { status: 'error'; error: unknown } | { status: 'data'; list: TimesheetTemplate[] };
 
@@ -100,7 +101,14 @@ export function TemplateSheet({
     ]);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} onDismiss={runPending}>
+    <Modal
+      supportedOrientations={MODAL_ORIENTATIONS}
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+      onDismiss={runPending}
+    >
       <Pressable style={styles.backdrop} onPress={onClose}>
         <View
           style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 8 }]}
