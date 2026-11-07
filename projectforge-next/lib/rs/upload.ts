@@ -7,14 +7,14 @@
  * `XMLHttpRequest.upload.onprogress` is the only portable way — which is why the legacy frontend
  * used XHR here too (`SingleFileUploadWithProgress.tsx`).
  *
- * What is lost by leaving `rawRequest`: the transparent 2FA and CSRF-token retries. That is
- * acceptable for exactly this call — a retry would mean sending the whole file a second time, and
- * the token is fetched at app start, so a stale one means the session is gone and the reload after
- * re-login repeats the upload anyway. Everything else (cookie, CSRF header, `X-PF-Frontend`) is
- * mirrored below.
+ * What is lost by leaving `rawRequest`: the transparent 2FA and CSRF-token retries — a retry would
+ * mean sending the whole file a second time. The token expires after an hour (SessionCsrfService),
+ * so a fresh one is fetched before every upload instead; a stale one after that means the session is
+ * gone, and the reload after re-login repeats the upload anyway. Everything else (cookie, CSRF
+ * header, `X-PF-Frontend`) is mirrored below.
  */
 
-import { getCsrfToken } from "./client";
+import { fetchUserStatus, getCsrfToken } from "./client";
 
 export interface UploadProgress {
   /** Bytes sent so far. */
@@ -63,10 +63,21 @@ export class UploadError extends Error {
  * refusal with 200 and a TOAST, so the status is data for the caller rather than a reason to throw.
  * Only a failed transfer rejects.
  */
-export function uploadWithProgress(
+export async function uploadWithProgress(
   path: string,
   body: FormData,
-  { onProgress, signal }: UploadOptions = {}
+  options: UploadOptions = {}
+): Promise<UploadResponse> {
+  // Stores the token itself (see the file comment). A failure is left to the upload, which then
+  // answers with the status the caller knows how to report.
+  await fetchUserStatus(options.signal).catch(() => undefined);
+  return send(path, body, options);
+}
+
+function send(
+  path: string,
+  body: FormData,
+  { onProgress, signal }: UploadOptions
 ): Promise<UploadResponse> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {

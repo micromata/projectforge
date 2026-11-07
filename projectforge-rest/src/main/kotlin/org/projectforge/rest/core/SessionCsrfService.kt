@@ -40,7 +40,12 @@ import java.security.MessageDigest
 private val log = KotlinLogging.logger {}
 
 /**
- * Caches the csrf token per session id's of the clients (for up to 4 Hours). Every hour, expired csrf tokens will be removed.
+ * The csrf token of a session, stored in the session itself.
+ *
+ * A token lives at most [MAX_TOKEN_AGE_MILLIS]: an older one is replaced on its next use, so a leaked token is of
+ * use for a limited time only, even within a long session. A call with the replaced token is refused with
+ * `csrfTokenRequired` (see [RestCsrfProtection]), projectforge-next then fetches the new one and repeats the call.
+ * A new session (login, stay-logged-in restore, logout) always gets a new token.
  */
 @Service
 open class SessionCsrfService {
@@ -111,18 +116,36 @@ open class SessionCsrfService {
 
   private fun ensureAndGetToken(request: HttpServletRequest): String {
     val session = request.getSession(false) ?: throw IllegalStateException("No session found.")
-    var token = session.getAttribute(SESSION_ATTRIBUTE_CSRF_TOKEN) as String?
+    val now = System.currentTimeMillis()
+    val token = session.getAttribute(SESSION_ATTRIBUTE_CSRF_TOKEN) as String?
     if (token != null && token.length == TOKEN_LENGTH) {
-      return token
+      val created = session.getAttribute(SESSION_ATTRIBUTE_CSRF_TOKEN_CREATED) as? Long
+      if (created == null) {
+        // A token of a session older than the lifetime check: its age counts from now on.
+        session.setAttribute(SESSION_ATTRIBUTE_CSRF_TOKEN_CREATED, now)
+        return token
+      }
+      if (now - created < MAX_TOKEN_AGE_MILLIS) {
+        return token
+      }
+      log.debug { "Csrf token expired, creating a new one for session id '${RequestLog.getTruncatedSessionId(request)}'" }
+    } else {
+      log.debug { "No valid csrf token found in session, creating a new one for session id '${RequestLog.getTruncatedSessionId(request)}'" }
     }
-    token = NumberHelper.getSecureRandomAlphanumeric(TOKEN_LENGTH)
-    log.debug { "No valid csrf token found in AbstractSessionCache, creating a new one for session id '${RequestLog.getTruncatedSessionId(request)}'" }
-    session.setAttribute(SESSION_ATTRIBUTE_CSRF_TOKEN, token)
-    return token
+    val newToken = NumberHelper.getSecureRandomAlphanumeric(TOKEN_LENGTH)
+    session.setAttribute(SESSION_ATTRIBUTE_CSRF_TOKEN, newToken)
+    session.setAttribute(SESSION_ATTRIBUTE_CSRF_TOKEN_CREATED, now)
+    return newToken
   }
 
   companion object {
     private const val SESSION_ATTRIBUTE_CSRF_TOKEN = "SessionCsrfService:csrfToken"
+    private const val SESSION_ATTRIBUTE_CSRF_TOKEN_CREATED = "SessionCsrfService:csrfTokenCreated"
+
+    /**
+     * Lifetime of a token, see class comment.
+     */
+    const val MAX_TOKEN_AGE_MILLIS = 60 * 60 * 1000L
     const val TOKEN_LENGTH = 30
   }
 }

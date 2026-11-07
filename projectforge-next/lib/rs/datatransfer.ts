@@ -185,19 +185,27 @@ export function fetchDataTransferAudit(
   );
 }
 
-/**
- * The personal box of the given user (created if missing), remembered as the user's last choice.
- * Without a user it answers that last choice only, with no box resolved.
- */
-export function fetchPersonalBox(
-  userId?: number,
+/** The user chosen last time for a personal box, with no box resolved. */
+export function fetchLastPersonalBox(
   signal?: AbortSignal
 ): Promise<DataTransferPersonalBox> {
-  const query = userId != null ? `?userId=${userId}` : "";
   return request<DataTransferPersonalBox>(
-    `/rs/datatransferpersonalfiles/box${query}`,
+    `/rs/datatransferpersonalfiles/box`,
     { method: "GET" },
     signal
+  );
+}
+
+/**
+ * The personal box of the given user (created if missing), remembered as the user's last choice. POST,
+ * because both change state.
+ */
+export function selectPersonalBox(
+  userId: number
+): Promise<DataTransferPersonalBox> {
+  return request<DataTransferPersonalBox>(
+    `/rs/datatransferpersonalfiles/box?userId=${userId}`,
+    { method: "POST" }
   );
 }
 

@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Security: the CSRF token of a session is renewed after an hour at the latest; the task tree and the choice of a personal data transfer box are only changed by POST requests.",
+  "de": "Sicherheit: Das CSRF-Token einer Session wird spätestens nach einer Stunde erneuert; Aufgabenbaum und Auswahl einer persönlichen Datentransfer-Box ändern sich nur noch per POST."
+}
