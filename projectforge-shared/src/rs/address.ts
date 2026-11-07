@@ -36,6 +36,8 @@ export interface AppAddressList {
   ids: number[];
   favoriteIds?: number[];
   addresses: AppAddress[];
+  /** The addresses come with their vCards (missing from servers before 9.2.6). */
+  withVCards?: boolean;
 }
 
 /** @server org.projectforge.rest.AddressEntityRest$AppAddress */

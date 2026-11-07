@@ -46,7 +46,7 @@ const photoFiles: PhotoFiles = {
     const file = new File(photoDir(), name);
     if (file.exists) file.delete();
     file.create();
-    file.write(bytes);
+    file.writeSync(bytes);
     return file.uri;
   },
   delete(name) {

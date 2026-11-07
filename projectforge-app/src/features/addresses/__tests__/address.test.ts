@@ -154,12 +154,21 @@ describe('AddressesRepository', () => {
     await expect(refused.sync(stored)).rejects.toThrow('HTTP 500');
   });
 
-  it('loads everything once if the stored book is of an older form (without the vCards)', async () => {
-    const get = jest.fn().mockResolvedValue({ timestamp: 2, ids: [1], addresses: [address({ id: 1, vCard: 'BEGIN:VCARD' })] });
+  it('loads everything once when the server starts to send the vCards, else only the changes', async () => {
+    const list = { timestamp: 2, ids: [1], addresses: [address({ id: 1, vCard: 'BEGIN:VCARD' })], withVCards: true };
+    const get = jest.fn().mockResolvedValue(list);
     const repository = new AddressesRepository({ get, download: jest.fn() }, cache(), files());
     const book = await repository.sync(addressBook(1, [address({ id: 1 })]));
+    expect(book.withVCards).toBe(true);
     await repository.sync(book);
-    expect(get.mock.calls.map((it) => it[0])).toEqual(['/rs/address/appList', '/rs/address/appList?modifiedSince=2']);
+    expect(get.mock.calls.map((it) => it[0])).toEqual([
+      '/rs/address/appList?modifiedSince=1',
+      '/rs/address/appList',
+      '/rs/address/appList?modifiedSince=2',
+    ]);
+    const old = jest.fn().mockResolvedValue({ ...list, withVCards: undefined });
+    await new AddressesRepository({ get: old, download: jest.fn() }, cache(), files()).sync(addressBook(1, [address({ id: 1 })]));
+    expect(old.mock.calls.map((it) => it[0])).toEqual(['/rs/address/appList?modifiedSince=1']);
   });
 
   it('builds the vCard with the stored photo, or loads it from a server that sends none', async () => {

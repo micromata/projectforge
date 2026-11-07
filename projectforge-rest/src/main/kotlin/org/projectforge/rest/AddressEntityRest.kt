@@ -339,6 +339,8 @@ class AddressEntityRest : AbstractDTOEntityRest<AddressDO, Address, AddressDao>(
         /** The ids of the favorites of the logged-in user, always all of them (a favorite mark isn't a change of the address). */
         val favoriteIds: List<Long>,
         val addresses: List<AppAddress>,
+        /** The addresses come with their vCards: the app loads its stored ones anew once, they lack them. */
+        val withVCards: Boolean = true,
     )
 
     /**

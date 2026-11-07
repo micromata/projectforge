@@ -60,8 +60,6 @@ const isOffline = (error: unknown) => !(error instanceof ApiException) || error.
 export class AddressesRepository {
   private static readonly PATH = '/rs/address';
   private static readonly CACHE_NAME = 'addresses';
-  /** 2: with the vCards. A book stored before is loaded anew, the delta sync wouldn't deliver them. */
-  private static readonly FORMAT = 2;
 
   constructor(
     private readonly api: Pick<ApiClient, 'get' | 'download'>,
@@ -78,11 +76,7 @@ export class AddressesRepository {
   /** Brings [stored] up to date. Without a connection it stays as it is (marked as such); another failure is thrown. */
   async sync(stored: AddressBook | null): Promise<AddressBook> {
     try {
-      const current = stored?.format === AddressesRepository.FORMAT ? stored : null;
-      const book = {
-        ...((current == null ? null : await this.syncChanges(current)) ?? (await this.loadAll())),
-        format: AddressesRepository.FORMAT,
-      };
+      const book = (stored == null ? null : await this.syncChanges(stored)) ?? (await this.loadAll());
       this.cache.write(AddressesRepository.CACHE_NAME, { ...book, fromCache: undefined });
       this.deleteObsoleteImages(book);
       return book;
@@ -96,12 +90,15 @@ export class AddressesRepository {
     const list = await this.api.get<AppAddressList>(
       `${AddressesRepository.PATH}/appList?modifiedSince=${stored.timestamp}`,
     );
-    return mergeAddressBook(stored, list.timestamp, list.ids, list.addresses, list.favoriteIds ?? []);
+    // The server sends vCards now, the stored addresses have none: the changes alone wouldn't bring them.
+    if (list.withVCards && !stored.withVCards) return null;
+    const book = mergeAddressBook(stored, list.timestamp, list.ids, list.addresses, list.favoriteIds ?? []);
+    return book && { ...book, withVCards: list.withVCards === true };
   }
 
   private async loadAll(): Promise<AddressBook> {
     const list = await this.api.get<AppAddressList>(`${AddressesRepository.PATH}/appList`);
-    return addressBook(list.timestamp, list.addresses, list.favoriteIds ?? []);
+    return { ...addressBook(list.timestamp, list.addresses, list.favoriteIds ?? []), withVCards: list.withVCards === true };
   }
 
   /**

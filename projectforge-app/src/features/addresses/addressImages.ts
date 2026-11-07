@@ -38,7 +38,7 @@ export const addressImageFiles: ImageFiles = {
     const file = new File(dir(), name);
     if (file.exists) file.delete();
     file.create();
-    file.write(bytes);
+    file.writeSync(bytes);
     return file.uri;
   },
   async bytes(name) {

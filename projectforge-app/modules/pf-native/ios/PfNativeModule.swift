@@ -188,7 +188,7 @@ public class PfNativeModule: Module {
   /// NOTE without the entitlement for notes, seen with a PGP KEY and a large PHOTO): then it is read once more with
   /// only the properties it knows, and the photo is set on its own.
   private static func contact(of data: Data) throws -> CNContact {
-    var reason = "The vCard has no contact."
+    var reason = "The vCard (\(data.count) bytes) has no contact."
     do {
       if let contact = try CNContactVCardSerialization.contacts(with: data).first { return contact }
     } catch {
