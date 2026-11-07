@@ -23,7 +23,14 @@ export interface UploadProgress {
   total: number | null;
   /** 0-100, rounded; null while the total is unknown. */
   percent: number | null;
+  /** Smoothed upload speed in bytes per second, or null until two progress events allow a measurement. */
+  bytesPerSecond: number | null;
 }
+
+/** Progress events closer together than this are folded into the next one — their rate would be noise. */
+const MIN_SAMPLE_MILLIS = 250;
+/** Weight of the newest sample in the smoothed speed. */
+const SMOOTHING = 0.3;
 
 export interface UploadOptions {
   onProgress?: (progress: UploadProgress) => void;
@@ -80,12 +87,25 @@ export function uploadWithProgress(
     const done = () => signal?.removeEventListener("abort", onAbort);
 
     if (onProgress) {
+      let sample = { time: performance.now(), loaded: 0 };
+      let speed: number | null = null;
       xhr.upload.onprogress = (event) => {
+        const now = performance.now();
+        if (now - sample.time >= MIN_SAMPLE_MILLIS) {
+          const current =
+            ((event.loaded - sample.loaded) / (now - sample.time)) * 1000;
+          speed =
+            speed == null
+              ? current
+              : SMOOTHING * current + (1 - SMOOTHING) * speed;
+          sample = { time: now, loaded: event.loaded };
+        }
         const total = event.lengthComputable ? event.total : null;
         onProgress({
           loaded: event.loaded,
           total,
           percent: total ? Math.round((event.loaded / total) * 100) : null,
+          bytesPerSecond: speed,
         });
       };
     }

@@ -1,4 +1,5 @@
 import { rawRequest, RsError } from "./client";
+import { uploadWithProgress, type UploadOptions } from "./upload";
 import type { HistoryEntry } from "./history";
 import type {
   ChatRef,
@@ -167,15 +168,17 @@ export function fetchChatChanges(
 
 /**
  * Sends a message; with files as multipart (the part `message` as JSON, the parts `files`): the files are stored
- * in the data transfer together with the message, not before.
+ * in the data transfer together with the message, not before. Only then [options] apply: the progress of the
+ * transfer and its cancellation.
  */
-export function sendChatMessage(
+export async function sendChatMessage(
   id: number,
   html: string,
   threadRootId: number | null,
   files: File[] = [],
-  quotedMessageId: number | null = null
-) {
+  quotedMessageId: number | null = null,
+  options: UploadOptions = {}
+): Promise<ChatMessage> {
   const path = `${BASE}/conversation/${id}/messages`;
   const request = { html, threadRootId, quotedMessageId };
   if (files.length === 0) {
@@ -189,7 +192,18 @@ export function sendChatMessage(
     })
   );
   files.forEach((file) => body.append("files", file, file.name));
-  return chatRequest<ChatMessage>(path, { method: "POST", body });
+  const res = await uploadWithProgress(path, body, options);
+  if (res.status < 200 || res.status >= 300) {
+    const error = (() => {
+      try {
+        return JSON.parse(res.text) as { message?: string };
+      } catch {
+        return null;
+      }
+    })();
+    throw new ChatError(res.status, error?.message || `${res.status}: ${path}`);
+  }
+  return JSON.parse(res.text) as ChatMessage;
 }
 
 /** Changes the text of an own message, its files stay. */

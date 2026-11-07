@@ -35,11 +35,6 @@ export interface UseAttachmentUploadsOptions {
 
 let nextJobId = 0;
 
-/** Progress events closer together than this are folded into the next one — their rate would be noise. */
-const MIN_SAMPLE_MILLIS = 250;
-/** Weight of the newest sample in the smoothed speed. */
-const SMOOTHING = 0.3;
-
 /**
  * Uploads files in parallel and tracks each one's progress separately, as the legacy
  * `MultipleFileUploadArea` did: several files mean several bars, all filling at once.
@@ -86,8 +81,6 @@ export function useAttachmentUploads(
       const controller = new AbortController();
       controllers.current.set(job.id, controller);
       patch(job.id, { state: "sending", percent: 0, bytesPerSecond: null });
-      let sample = { time: performance.now(), loaded: 0 };
-      let speed: number | null = null;
       try {
         const result = await uploadAttachment(
           entity,
@@ -95,19 +88,8 @@ export function useAttachmentUploads(
           file,
           undefined,
           {
-            onProgress: ({ percent, loaded }) => {
-              const now = performance.now();
-              if (now - sample.time >= MIN_SAMPLE_MILLIS) {
-                const current =
-                  ((loaded - sample.loaded) / (now - sample.time)) * 1000;
-                speed =
-                  speed == null
-                    ? current
-                    : SMOOTHING * current + (1 - SMOOTHING) * speed;
-                sample = { time: now, loaded };
-              }
-              patch(job.id, { percent, bytesPerSecond: speed });
-            },
+            onProgress: ({ percent, bytesPerSecond }) =>
+              patch(job.id, { percent, bytesPerSecond }),
             signal: controller.signal,
           },
           base
