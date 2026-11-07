@@ -43,6 +43,13 @@ export interface UserStatusResult {
   theme?: string | null;
   /** The version of the server and the oldest app version it works with. */
   systemData?: SystemData;
+  userData?: UserStatusUserData;
+}
+
+/** The settings of the user the app follows. @server org.projectforge.rest.UserStatusRest$UserData */
+export interface UserStatusUserData {
+  /** The first day of the week: Monday 1 … Sunday 7 (ISO 8601). */
+  isoFirstDayOfWeekValue?: number | null;
 }
 
 /** @server org.projectforge.business.notification.NotificationDao$Summary */

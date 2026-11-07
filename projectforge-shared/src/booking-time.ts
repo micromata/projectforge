@@ -57,8 +57,13 @@ export function daysBetween(a: Date, b: Date): number {
 
 /** The Monday of the week of [t]. */
 export function mondayOf(t: Date): Date {
-  const weekday = (t.getDay() + 6) % 7; // Monday 0 … Sunday 6
-  return new Date(t.getFullYear(), t.getMonth(), t.getDate() - weekday);
+  return weekStartOf(t, 1);
+}
+
+/** The first day of the week of [t] at midnight, for weeks starting on [isoFirstDay] (Monday 1 … Sunday 7). */
+export function weekStartOf(t: Date, isoFirstDay = 1): Date {
+  const offset = (isoWeekday(t) - isoFirstDay + 7) % 7;
+  return new Date(t.getFullYear(), t.getMonth(), t.getDate() - offset);
 }
 
 /** Monday 1 … Sunday 7, as ISO 8601. */
