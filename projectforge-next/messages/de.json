@@ -146,5 +146,8 @@
     "title": "Ungespeicherte Änderungen",
     "confirm": "Verlassen",
     "stay": "Hier bleiben"
+  },
+  "businessCard": {
+    "photoUnavailable": "Foto kann nicht geladen werden"
   }
 }

@@ -23,6 +23,7 @@
 
 package org.projectforge.business.address.businesscard
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.birthdaybutler.BirthdayButlerConfiguration
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
@@ -36,6 +37,11 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Duration
 import java.util.UUID
 
 /**
@@ -48,6 +54,8 @@ import java.util.UUID
  *
  * Writes are serialized: the cards of a user are one preference, read, changed and written back.
  */
+private val log = KotlinLogging.logger {}
+
 @Service
 open class BusinessCardService {
     @Autowired
@@ -224,6 +232,38 @@ open class BusinessCardService {
     }
 
     /**
+     * Downloads the photo from the public url that the vCard (QR code) of the card contains, so the page shows what a
+     * scanning device gets: if the link doesn't deliver the image, the result is null. Only the user's own address, and
+     * the url is built here from the address, never taken from a request. The server downloads it because the page
+     * may not load images from other hosts (Content Security Policy).
+     */
+    open fun downloadPublicPhoto(addressId: Long): PublicPhoto? {
+        val card = BusinessCard().also { it.addressId = addressId }
+        val source = photoSource(card) ?: return null
+        if (contactImageUrl.baseUrl.isBlank()) {
+            return null
+        }
+        addressImageDao.findImage(source.id!!, checkAccess = false)?.takeIf { it.id != null } ?: return null
+        val url = contactImageUrl.url(addressImageDao.getOrCreatePublicToken(source.id!!))
+        return try {
+            val request = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(10)).GET().build()
+            val response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofByteArray())
+            val contentType = response.headers().firstValue("Content-Type").orElse("")
+            if (response.statusCode() != 200 || !contentType.startsWith("image/") || response.body().size > MAX_PHOTO_BYTES) {
+                log.info { "Public photo url of address ${source.id} answered status=${response.statusCode()}, type=$contentType." }
+                null
+            } else {
+                PublicPhoto(response.body(), contentType)
+            }
+        } catch (ex: Exception) {
+            log.info { "Public photo url of address ${source.id} can't be loaded: ${ex.message}" }
+            null
+        }
+    }
+
+    class PublicPhoto(val bytes: ByteArray, val contentType: String)
+
+    /**
      * The source address of the card, if its photo may be published: not deleted, readable for the logged-in user and
      * the user's own address. Own means one of the user's e-mail addresses is the address's (see
      * [AddressUserMatcher.emailMatches]); the name isn't enough: the user can change it (My account), and two
@@ -244,6 +284,9 @@ open class BusinessCardService {
     }
 
     companion object {
+        private const val MAX_PHOTO_BYTES = 5_000_000
+        private val HTTP_CLIENT: HttpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(5)).followRedirects(HttpClient.Redirect.NORMAL).build()
         const val PREF_AREA = "businessCard"
         const val PREF_NAME = "cards"
         const val MAX_CARDS_PER_USER = 20
