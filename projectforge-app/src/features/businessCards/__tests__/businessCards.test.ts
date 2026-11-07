@@ -24,7 +24,15 @@
 import type { BusinessCardsData } from '@projectforge/shared/rs/business-card';
 
 import { ApiException } from '../../../core/api/apiException';
-import { BusinessCardsRepository, CardsCache, displayName, isOffline, vCardFileName } from '../businessCards';
+import {
+  BusinessCardsRepository,
+  CardsCache,
+  displayName,
+  filledFields,
+  isOffline,
+  PhotoFiles,
+  vCardFileName,
+} from '../businessCards';
 
 const DATA: BusinessCardsData = {
   cards: [
@@ -47,9 +55,23 @@ function memoryCache(initial: Record<string, unknown> = {}): CardsCache & { entr
   };
 }
 
-function api(get: () => Promise<unknown>) {
-  const download = jest.fn(async () => new Uint8Array([1, 2, 3]));
+function api(get: () => Promise<unknown>, download = jest.fn(async (..._: unknown[]): Promise<Uint8Array> => new Uint8Array([1, 2, 3]))) {
   return { get: get as <T>() => Promise<T>, download };
+}
+
+function memoryPhotos(initial: string[] = []): PhotoFiles & { names: Set<string> } {
+  const names = new Set(initial);
+  return {
+    names,
+    uri: (name) => (names.has(name) ? `file:///photos/${name}` : null),
+    write: (name) => {
+      names.add(name);
+      return `file:///photos/${name}`;
+    },
+    delete: (name) => {
+      names.delete(name);
+    },
+  };
 }
 
 describe('BusinessCardsRepository', () => {
@@ -103,7 +125,44 @@ describe('BusinessCardsRepository', () => {
   });
 });
 
+describe('the photo of a card', () => {
+  const failing = (error: Error) => jest.fn(async (..._: unknown[]): Promise<Uint8Array> => Promise.reject(error));
+
+  it('is downloaded by the address id and stored', async () => {
+    const client = api(async () => DATA);
+    const photos = memoryPhotos();
+    expect(await new BusinessCardsRepository(client, memoryCache(), photos).photo(7, true)).toBe('file:///photos/7');
+    expect(client.download.mock.calls).toEqual([['/rs/myBusinessCards/photo', { addressId: '7' }]]);
+    expect(photos.names.has('7')).toBe(true);
+  });
+
+  it('is the stored one without network, and offline the server is not asked', async () => {
+    const unreachable = api(async () => DATA, failing(new TypeError('Network request failed')));
+    const stored = memoryPhotos(['7']);
+    expect(await new BusinessCardsRepository(unreachable, memoryCache(), stored).photo(7, true)).toBe('file:///photos/7');
+    const client = api(async () => DATA);
+    expect(await new BusinessCardsRepository(client, memoryCache(), memoryPhotos()).photo(7, false)).toBeNull();
+    expect(client.download).not.toHaveBeenCalled();
+  });
+
+  it('is gone if the server can not deliver it', async () => {
+    const photos = memoryPhotos(['7']);
+    const refusing = api(async () => DATA, failing(new ApiException('HTTP 404', 404)));
+    expect(await new BusinessCardsRepository(refusing, memoryCache(), photos).photo(7, true)).toBeNull();
+    expect(photos.names.has('7')).toBe(false);
+  });
+});
+
 describe('business card helpers', () => {
+  it('lists the filled fields in the order of the web version', () => {
+    const fields = filledFields({ lastName: 'Doe', firstName: 'Jane', email: ' ', birthday: '1990-05-01', id: 'a1' });
+    expect(fields.map((it) => [it.field, it.value])).toEqual([
+      ['firstName', 'Jane'],
+      ['lastName', 'Doe'],
+      ['birthday', '1990-05-01'],
+    ]);
+  });
+
   it('builds the display name of the given parts', () => {
     expect(displayName(DATA.cards[0].card)).toBe('Dr. Jane Doe');
     expect(displayName({ lastName: 'Doe' })).toBe('Doe');

@@ -41,6 +41,7 @@ import { errorText, t } from '../../core/i18n/translations';
 import { HeaderAction } from '../../core/ui/ScreenHeader';
 import { walletAvailable } from '../../core/wallet/walletPass';
 import { addToWallet, shareVCard } from './businessCardActions';
+import { BusinessCardContents } from './BusinessCardContents';
 import { displayName } from './businessCards';
 import { businessCards, useBusinessCards } from './businessCardsStore';
 
@@ -78,8 +79,8 @@ function useFullBrightness() {
 
 /**
  * The QR code of a card in full size, for scanning by somebody else, black on white also in the dark theme, with the
- * screen at full brightness. Works offline (the QR code is part of the cached list). Port of the Flutter app's
- * BusinessCardQrScreen.
+ * screen at full brightness, the fields it contains below for control. Works offline (the QR code is part of the cached
+ * list, the photo is stored). Port of the Flutter app's BusinessCardQrScreen.
  */
 export function BusinessCardQrScreen({ id, onClose }: { id: string; onClose: () => void }) {
   const state = useBusinessCards();
@@ -114,9 +115,12 @@ export function BusinessCardQrScreen({ id, onClose }: { id: string; onClose: () 
             {info.preview.qrCodeUrl ? (
               <Image source={{ uri: info.preview.qrCodeUrl }} style={{ width: size, height: size }} resizeMode="contain" />
             ) : null}
-            <View style={landscape ? styles.detailsLandscape : styles.details}>
+            <View style={landscape ? styles.detailsLandscape : [styles.details, { width: size }]}>
               <Text style={styles.name}>{displayName(card)}</Text>
               {card.organization ? <Text style={styles.organization}>{card.organization}</Text> : null}
+              <View style={styles.contents}>
+                <BusinessCardContents info={info} />
+              </View>
             </View>
           </View>
         )}
@@ -152,6 +156,7 @@ const styles = StyleSheet.create({
   detailsLandscape: { alignItems: 'flex-start', flexShrink: 1 },
   name: { color: '#000', fontSize: 22 },
   organization: { color: '#000000a0', fontSize: 16 },
+  contents: { alignSelf: 'stretch', marginTop: 16 },
   missing: { alignItems: 'center', gap: 16 },
   retry: { color: '#1976d2', fontSize: 16 },
 });

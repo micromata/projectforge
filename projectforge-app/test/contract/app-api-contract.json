@@ -57,6 +57,10 @@
         {
           "call": "GET /rs/myBusinessCards/pkpass",
           "controller": "org.projectforge.rest.businesscard.BusinessCardRest"
+        },
+        {
+          "call": "GET /rs/myBusinessCards/photo",
+          "controller": "org.projectforge.rest.businesscard.BusinessCardRest"
         }
       ]
     },

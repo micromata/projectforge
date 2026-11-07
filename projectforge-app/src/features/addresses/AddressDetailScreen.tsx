@@ -27,7 +27,8 @@ import { ComponentProps, ReactNode, useState } from 'react';
 import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { errorText, i18n, t } from '../../core/i18n/translations';
+import { formatIsoDay } from '../../core/i18n/dates';
+import { errorText, t } from '../../core/i18n/translations';
 import { appLog } from '../../core/log/appLog';
 import { MenuItem, MenuSheet } from '../../core/ui/MenuSheet';
 import { AppPostalAddress, displayName, emails, gradientOf, PhoneNumber, phones, postalLines } from './address';
@@ -68,14 +69,6 @@ function launchMap(postal: AppPostalAddress) {
 
 function open(url: string) {
   Linking.openURL(url).catch((e) => appLog.warn('addresses', `Not opened: ${String(e)}`));
-}
-
-/** `yyyy-MM-dd` in the format of the language. */
-function formatBirthday(iso: string): string {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
-  if (!match) return iso;
-  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-  return date.toLocaleDateString(i18n.locale, { dateStyle: 'medium' });
 }
 
 /**
@@ -203,7 +196,7 @@ export function AddressDetailScreen({
           )}
           {address.birthday ? (
             <Section>
-              <Row label={t('address.birthday')} value={formatBirthday(address.birthday)} />
+              <Row label={t('address.birthday')} value={formatIsoDay(address.birthday)} />
             </Section>
           ) : null}
           {address.comment?.trim() ? (

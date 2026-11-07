@@ -21,26 +21,51 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+import { File } from 'expo-file-system';
 import { useEffect, useSyncExternalStore } from 'react';
 
 import type { ApiClient } from '../../core/api/apiClient';
 import { authController } from '../../core/auth/authController';
 import { JsonCache } from '../../core/cache/jsonCache';
-import { BusinessCards, BusinessCardsRepository } from './businessCards';
+import { BusinessCards, BusinessCardsRepository, PhotoFiles } from './businessCards';
 
 export type BusinessCardsState =
   | { status: 'loading' }
   | { status: 'error'; error: unknown }
   | { status: 'data'; cards: BusinessCards };
 
+const photoDir = () => JsonCache.directory('businessCardPhotos');
+
+/** The photos of the cards in the cache (deleted with it on logout). */
+const photoFiles: PhotoFiles = {
+  uri(name) {
+    const file = new File(photoDir(), name);
+    return file.exists ? file.uri : null;
+  },
+  write(name, bytes) {
+    const file = new File(photoDir(), name);
+    if (file.exists) file.delete();
+    file.create();
+    file.write(bytes);
+    return file.uri;
+  },
+  delete(name) {
+    const file = new File(photoDir(), name);
+    if (file.exists) file.delete();
+  },
+};
+
 /**
  * The list of the own business cards (created and edited in the web version), one per login. The stored cards are
  * shown at once (also without network) and replaced by the ones of the server when it answers; if it doesn't, the
- * stored ones stay. Port of the Flutter app's BusinessCardsController.
+ * stored ones stay. The photos of the cards are loaded with them and stored as well. Port of the Flutter app's
+ * BusinessCardsController.
  */
 class BusinessCardsStore {
   private state: BusinessCardsState = { status: 'loading' };
   private api: ApiClient | null = null;
+  /** The uri of the photo by address id, null if there is none; missing while it is loaded. */
+  private photos = new Map<number, string | null>();
   private listeners = new Set<() => void>();
 
   getState = () => this.state;
@@ -52,10 +77,12 @@ class BusinessCardsStore {
     };
   };
 
+  photoOf = (addressId: number) => this.photos.get(addressId);
+
   /** The repository of the active login (null while logged out). */
   repository(): BusinessCardsRepository | null {
     const api = authController.api;
-    return api == null ? null : new BusinessCardsRepository(api, JsonCache);
+    return api == null ? null : new BusinessCardsRepository(api, JsonCache, photoFiles);
   }
 
   /** Loads the cards of the active login, once per login (the stored ones first). */
@@ -63,12 +90,13 @@ class BusinessCardsStore {
     const api = authController.api;
     if (api === this.api) return;
     this.api = api;
+    this.photos = new Map();
     this.set({ status: 'loading' });
     if (api != null) void this.start(api);
   }
 
   private async start(api: ApiClient) {
-    const repository = new BusinessCardsRepository(api, JsonCache);
+    const repository = new BusinessCardsRepository(api, JsonCache, photoFiles);
     const cached = await repository.loadCached().catch(() => null);
     if (this.api !== api) return;
     if (cached == null) {
@@ -76,13 +104,16 @@ class BusinessCardsStore {
       return;
     }
     this.set({ status: 'data', cards: cached });
+    void this.loadPhotos(api, repository, cached, false, false);
     // Silently: the stored cards stay if the server doesn't answer.
     void repository
       .load()
       .then((cards) => {
-        if (this.api === api) this.set({ status: 'data', cards });
+        if (this.api !== api) return;
+        this.set({ status: 'data', cards });
+        void this.loadPhotos(api, repository, cards, !cards.fromCache);
       })
-      .catch(() => undefined);
+      .catch(() => void this.loadPhotos(api, repository, cached, false));
   }
 
   /**
@@ -96,11 +127,38 @@ class BusinessCardsStore {
     const shown = this.state.status === 'data';
     try {
       const cards = await repository.load();
-      if (this.api === api) this.set({ status: 'data', cards });
+      if (this.api === api) {
+        this.set({ status: 'data', cards });
+        void this.loadPhotos(api, repository, cards, !cards.fromCache);
+      }
       return null;
     } catch (e) {
       if (!shown && this.api === api) this.set({ status: 'error', error: e });
       return e;
+    }
+  }
+
+  /**
+   * The photos of the [cards] that have one, from the server if [online], else the stored ones. Unless [final], a
+   * photo not stored stays missing (loading): the server is still asked.
+   */
+  private async loadPhotos(
+    api: ApiClient,
+    repository: BusinessCardsRepository,
+    cards: BusinessCards,
+    online: boolean,
+    final = true,
+  ) {
+    const ids = new Set<number>();
+    for (const { card, preview } of cards.data.cards) {
+      if (preview.withPhoto && card.addressId != null) ids.add(card.addressId);
+    }
+    for (const id of ids) {
+      const uri = await repository.photo(id, online).catch(() => null);
+      if (this.api !== api) return;
+      if (uri == null && !final) continue;
+      this.photos.set(id, uri);
+      this.listeners.forEach((it) => it());
     }
   }
 
@@ -111,6 +169,11 @@ class BusinessCardsStore {
 }
 
 export const businessCards = new BusinessCardsStore();
+
+/** The uri of the photo of the address [addressId] of a card: null if there is none, undefined while it is loaded. */
+export function useCardPhoto(addressId: number): string | null | undefined {
+  return useSyncExternalStore(businessCards.subscribe, () => businessCards.photoOf(addressId));
+}
 
 /** The cards of the active login, loaded on first use. */
 export function useBusinessCards(): BusinessCardsState {

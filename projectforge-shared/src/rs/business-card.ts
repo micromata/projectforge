@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-// The own business cards of the user (BusinessCardRest, GET /rs/myBusinessCards, /vcf, /pkpass). See src/rs/app-auth.ts
+// The own business cards of the user (BusinessCardRest, GET /rs/myBusinessCards, /vcf, /pkpass, /photo). See src/rs/app-auth.ts
 // for @server.
 
 /** The cards, created and edited in the web pages. @server org.projectforge.rest.businesscard.BusinessCardRest$InitData */
@@ -41,14 +41,39 @@ export interface BusinessCardInfo {
 export interface BusinessCardPreview {
   /** The QR code with the vCard as data url (`data:image/png;base64,…`). */
   qrCodeUrl: string;
+  /** The vCard links the photo of the address (missing from servers before 9.2.6). */
+  withPhoto?: boolean;
 }
 
 /** The fields of a card the app shows. @server org.projectforge.business.address.businesscard.BusinessCard */
 export interface BusinessCard {
   id?: string | null;
   cardName?: string | null;
+  /** The source address, of its photo. */
+  addressId?: number | null;
   title?: string | null;
   firstName?: string | null;
   lastName?: string | null;
   organization?: string | null;
+  division?: string | null;
+  positionText?: string | null;
+  email?: string | null;
+  businessPhone?: string | null;
+  mobilePhone?: string | null;
+  fax?: string | null;
+  website?: string | null;
+  street?: string | null;
+  zipCode?: string | null;
+  city?: string | null;
+  country?: string | null;
+  comment?: string | null;
+  privateEmail?: string | null;
+  privatePhone?: string | null;
+  privateMobilePhone?: string | null;
+  privateStreet?: string | null;
+  privateZipCode?: string | null;
+  privateCity?: string | null;
+  privateCountry?: string | null;
+  /** `yyyy-MM-dd`. */
+  birthday?: string | null;
 }
