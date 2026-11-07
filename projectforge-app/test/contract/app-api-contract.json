@@ -40,6 +40,10 @@
         {
           "call": "GET /rs/uiSettings/theme",
           "controller": "org.projectforge.rest.UISettingsRest"
+        },
+        {
+          "call": "POST /rs/uiSettings/theme",
+          "controller": "org.projectforge.rest.UISettingsRest"
         }
       ]
     },

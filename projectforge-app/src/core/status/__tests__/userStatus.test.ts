@@ -21,7 +21,6 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-
 // Port of the earlier Flutter app's user_status_controller_test and theme_controller_test.
 import type { UserStatusResult } from '@projectforge/shared/rs/user-status';
 
@@ -143,4 +142,26 @@ test('logged out the system decides', async () => {
   store.stop();
   expect(store.get().theme).toBe('system');
   expect(store.get().status).toBeNull();
+});
+
+test('a theme chosen in the app is shown at once and stored for the user', async () => {
+  const { client, requests } = api((request) =>
+    request.url.endsWith('/rs/uiSettings/theme') ? { body: { theme: 'dark' } } : { body: { theme: 'light' } },
+  );
+  const store = await started(client);
+  await store.chooseTheme('dark');
+  expect(store.get().theme).toBe('dark');
+  const post = requests.find((it) => it.url.endsWith('/rs/uiSettings/theme'));
+  expect(post?.init.method).toBe('POST');
+  expect(post?.body).toEqual({ theme: 'dark' });
+  expect(mockStored.get('theme')).toEqual({ theme: 'dark' });
+});
+
+test('a theme the server refused to store is taken back', async () => {
+  const { client } = api((request) =>
+    request.url.endsWith('/rs/uiSettings/theme') ? { status: 500 } : { body: { theme: 'light' } },
+  );
+  const store = await started(client);
+  await expect(store.chooseTheme('dark')).rejects.toBeDefined();
+  expect(store.get().theme).toBe('light');
 });

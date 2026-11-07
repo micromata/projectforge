@@ -23,7 +23,16 @@
 
 import type { Menus } from '@projectforge/shared/rs/menu';
 
-import { flattenMenuEntries, menuPath, MenuRow, menuRows, searchMenuEntries } from '../menuModel';
+import {
+  defaultTab,
+  flattenMenuEntries,
+  menuPath,
+  MenuRow,
+  menuRows,
+  MenuTab,
+  searchMenuEntries,
+  tabBadge,
+} from '../menuModel';
 import { webTabs } from '../webTabs';
 
 const labels = { mainMenu: 'Main menu', favorites: 'Favorites', myAccount: 'My account', recent: 'Recently used' };
@@ -107,32 +116,69 @@ describe('searchMenuEntries', () => {
 });
 
 describe('menuRows', () => {
-  const closed = { term: '', openGroups: new Set<string>(), accountOpen: false };
+  const closed = { term: '', openGroups: new Set<string>(), tab: 'favorites' as MenuTab };
 
-  test('the entries opened last, the favorites with their folders and the closed categories', () => {
-    expect(titles(menuRows(menus, labels, closed))).toEqual([
-      '[Recently used]',
-      'Calendar',
-      '[Favorites]',
-      'Addresses',
-      '[Reports]',
-      'Report',
-      '[Main menu]',
-      '[Common]',
-      '[Fibu]',
-    ]);
+  test('the favorites with their folders', () => {
+    expect(titles(menuRows(menus, labels, closed))).toEqual(['Addresses', '[Reports]', 'Report']);
   });
 
-  test('an open category shows its entries, the open account menu comes first', () => {
-    const rows = menuRows(menus, labels, { term: '', openGroups: new Set(['FIBU']), accountOpen: true });
-    expect(titles(rows).slice(0, 2)).toEqual(['[My account]', 'My account']);
-    expect(titles(rows).slice(-3)).toEqual(['[Fibu]', 'Kreditoren-Adressbuch', 'Buchungskonten']);
+  test('the entries opened last', () => {
+    expect(titles(menuRows(menus, labels, { ...closed, tab: 'recent' }))).toEqual(['Calendar']);
+  });
+
+  test('the closed categories of the main menu, an open one with its entries', () => {
+    expect(titles(menuRows(menus, labels, { ...closed, tab: 'main' }))).toEqual(['[Common]', '[Fibu]']);
+    const rows = menuRows(menus, labels, { ...closed, tab: 'main', openGroups: new Set(['FIBU']) });
+    expect(titles(rows)).toEqual(['[Common]', '[Fibu]', 'Kreditoren-Adressbuch', 'Buchungskonten']);
     expect(rows.find((it) => it.kind === 'group' && it.key === 'FIBU')).toMatchObject({ open: true, badgeCounter: 3 });
   });
 
-  test('without recent entries (an older server) the section is left out', () => {
+  test('the account menu below the user name, without the logout, and the theme', () => {
+    expect(titles(menuRows(menus, labels, { ...closed, tab: 'account' }))).toEqual([
+      '[Kai Example]',
+      'My account',
+      'theme',
+    ]);
+  });
+
+  test('a tab without entries (recent ones of an older server) says so', () => {
     const { recentMenu: _, ...older } = menus;
-    expect(titles(menuRows(older, labels, closed))[0]).toBe('[Favorites]');
+    expect(titles(menuRows(older, labels, { ...closed, tab: 'recent' }))).toEqual(['empty']);
+  });
+
+  test('searching shows the hits of all tabs, whichever is chosen', () => {
+    expect(titles(menuRows(menus, labels, { ...closed, tab: 'recent', term: 'my' }))).toEqual([
+      '[My account]',
+      'My account',
+      'searchData',
+    ]);
+  });
+
+  test('the first tab: the favorites, the main menu without any', () => {
+    expect(defaultTab(menus)).toBe('favorites');
+    expect(defaultTab({ ...menus, favoritesMenu: { menuItems: [] } })).toBe('main');
+  });
+
+  test('the badge of a tab sums its categories (main menu) or its entries, in folders too, each page once', () => {
+    expect(tabBadge(menus, 'main')).toBe(3);
+    const favorites: Menus = {
+      ...menus,
+      favoritesMenu: {
+        menuItems: [
+          { key: 'BUCHUNG', title: 'Buchungskonten', url: 'next/account', badge: { counter: 3 } },
+          {
+            key: 'folder',
+            title: 'Fibu',
+            subMenu: [
+              { key: 'ORDER', title: 'Orders', url: 'next/order', badge: { counter: 2 } },
+              { key: 'BUCHUNG2', title: 'Buchungskonten', url: 'next/account', badge: { counter: 3 } },
+            ],
+          },
+        ],
+      },
+    };
+    expect(tabBadge(favorites, 'favorites')).toBe(5);
+    expect(tabBadge(menus, 'recent')).toBe(0);
   });
 
   test('searching shows the hits by category and the search in all data', () => {

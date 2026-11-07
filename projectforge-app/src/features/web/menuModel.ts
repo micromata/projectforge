@@ -53,7 +53,14 @@ export type MenuRow =
   | { kind: 'group'; key: string; title: string; open: boolean; badgeCounter?: number }
   /** Searching all data (next's search page) for the term. */
   | { kind: 'searchData'; key: string; term: string }
-  | { kind: 'noMatch'; key: string };
+  | { kind: 'noMatch'; key: string }
+  /** A tab without entries. */
+  | { kind: 'empty'; key: string }
+  /** The choice of the theme (the web pages have it in the user menu). */
+  | { kind: 'theme'; key: string };
+
+/** The sections of the menu, one shown at a time. */
+export type MenuTab = 'favorites' | 'recent' | 'main' | 'account';
 
 /** A page to open, null for an item that is none: a folder, or the logout (a REST call, the app has its own). */
 function entryOf(item: MenuItem, category: string): MenuEntry | null {
@@ -140,15 +147,45 @@ export function groupMenuEntries(entries: MenuEntry[]): { category: string; entr
   return [...groups].map(([category, members]) => ({ category, entries: members }));
 }
 
+/** The tab shown first: the favorites, the main menu for a user without any. */
+export function defaultTab(menus: Menus): MenuTab {
+  return menus.favoritesMenu.menuItems.length > 0 ? 'favorites' : 'main';
+}
+
 /**
- * The rows of the menu: while searching the hits by category and the search in all data; otherwise the account menu
- * (if [accountOpen]), the entries opened last, the favorites (a folder as a sub heading) and the categories of the
- * main menu, those in [openGroups] with their entries.
+ * The badge of [tab]: the main menu sums the badges of its categories (each the sum of its entries, by the server); the
+ * other tabs sum those of their entries, in folders too, each page once.
+ */
+export function tabBadge(menus: Menus, tab: MenuTab): number {
+  if (tab === 'main')
+    return menus.mainMenu.menuItems.reduce((sum, it) => sum + (it.subMenu?.length ? (it.badge?.counter ?? 0) : 0), 0);
+  const items =
+    tab === 'favorites'
+      ? menus.favoritesMenu.menuItems
+      : tab === 'recent'
+        ? (menus.recentMenu?.menuItems ?? [])
+        : accountItems(menus);
+  const seen = new Set<string>();
+  const sum = (list: MenuItem[] | null | undefined): number =>
+    (list ?? []).reduce((total, item) => {
+      if (item.subMenu?.length) return total + sum(item.subMenu);
+      const entry = entryOf(item, '');
+      if (entry == null || seen.has(entry.url)) return total;
+      seen.add(entry.url);
+      return total + (entry.badgeCounter ?? 0);
+    }, 0);
+  return sum(items);
+}
+
+/**
+ * The rows of the menu: while searching the hits of all tabs by category and the search in all data; otherwise the
+ * rows of [tab]: the favorites (a folder as a sub heading), the entries opened last, the categories of the main menu
+ * (those in [openGroups] with their entries) or the account menu below the user's name.
  */
 export function menuRows(
   menus: Menus,
   labels: MenuLabels,
-  opts: { term: string; openGroups: ReadonlySet<string>; accountOpen: boolean },
+  opts: { term: string; openGroups: ReadonlySet<string>; tab: MenuTab },
 ): MenuRow[] {
   const rows: MenuRow[] = [];
   const term = opts.term.trim();
@@ -163,12 +200,11 @@ export function menuRows(
     return rows;
   }
   const section = (name: string, title: string, items: MenuItem[] | null | undefined) => {
-    const sectionRows: MenuRow[] = [];
     const seen = new Set<string>();
     const add = (list: MenuItem[] | null | undefined, category: string, indent: boolean) =>
       list?.forEach((item) => {
         if (item.subMenu?.length) {
-          sectionRows.push({
+          rows.push({
             kind: 'heading',
             key: `${name}-heading:${item.key ?? item.title}`,
             title: item.title ?? '',
@@ -180,34 +216,46 @@ export function menuRows(
         const entry = entryOf(item, category);
         if (entry == null || seen.has(entry.url)) return;
         seen.add(entry.url);
-        sectionRows.push({ kind: 'entry', key: `${name}:${entry.key}`, entry, indent });
+        rows.push({ kind: 'entry', key: `${name}:${entry.key}`, entry, indent });
       });
     add(items, title, false);
-    if (sectionRows.some((it) => it.kind === 'entry'))
-      rows.push({ kind: 'heading', key: `${name}-heading`, title }, ...sectionRows);
   };
-  if (opts.accountOpen) section('account', labels.myAccount, accountItems(menus));
-  section('recent', labels.recent, menus.recentMenu?.menuItems);
-  section('favorites', labels.favorites, menus.favoritesMenu.menuItems);
-  const categories = menus.mainMenu.menuItems.filter((it) => it.subMenu?.length);
-  if (categories.length > 0) rows.push({ kind: 'heading', key: 'main-heading', title: labels.mainMenu });
-  categories.forEach((category) => {
-    const id = category.key ?? category.title ?? '';
-    const open = opts.openGroups.has(id);
-    rows.push({
-      kind: 'group',
-      key: id,
-      title: category.title ?? '',
-      open,
-      badgeCounter: category.badge?.counter ?? undefined,
+  const withEmpty = (): MenuRow[] =>
+    rows.some((it) => it.kind === 'entry' || it.kind === 'group') ? rows : [{ kind: 'empty', key: 'empty' }];
+  if (opts.tab === 'favorites') {
+    section('favorites', labels.favorites, menus.favoritesMenu.menuItems);
+    return withEmpty();
+  }
+  if (opts.tab === 'recent') {
+    section('recent', labels.recent, menus.recentMenu?.menuItems);
+    return withEmpty();
+  }
+  if (opts.tab === 'account') {
+    const name = accountTitle(menus);
+    if (name) rows.push({ kind: 'heading', key: 'account-heading', title: name });
+    section('account', labels.myAccount, accountItems(menus));
+    rows.push({ kind: 'theme', key: 'theme' });
+    return rows;
+  }
+  menus.mainMenu.menuItems
+    .filter((it) => it.subMenu?.length)
+    .forEach((category) => {
+      const id = category.key ?? category.title ?? '';
+      const open = opts.openGroups.has(id);
+      rows.push({
+        kind: 'group',
+        key: id,
+        title: category.title ?? '',
+        open,
+        badgeCounter: category.badge?.counter ?? undefined,
+      });
+      if (!open) return;
+      flattenMenuEntries(
+        { mainMenu: { menuItems: [category] }, favoritesMenu: { menuItems: [] }, myAccountMenu: { menuItems: [] } },
+        labels,
+      ).forEach((entry) => rows.push({ kind: 'entry', key: `main:${id}:${entry.key}`, entry, indent: true }));
     });
-    if (!open) return;
-    flattenMenuEntries(
-      { mainMenu: { menuItems: [category] }, favoritesMenu: { menuItems: [] }, myAccountMenu: { menuItems: [] } },
-      labels,
-    ).forEach((entry) => rows.push({ kind: 'entry', key: `main:${id}:${entry.key}`, entry, indent: true }));
-  });
-  return rows;
+  return withEmpty();
 }
 
 /** The path the WebView opens for [url] of a menu entry: the server's urls have no leading slash. */

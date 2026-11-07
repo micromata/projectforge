@@ -26,6 +26,7 @@ import type { Menus } from '@projectforge/shared/rs/menu';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   BackHandler,
   FlatList,
   Pressable,
@@ -39,18 +40,32 @@ import {
 import type { ApiClient } from '../../core/api/apiClient';
 import { authController } from '../../core/auth/authController';
 import { errorText, t } from '../../core/i18n/translations';
+import { ThemeMode, userStatus, useUserStatus } from '../../core/status/userStatus';
 import { useColors } from '../../core/ui/colors';
 import { ErrorView } from '../../core/ui/ErrorView';
 import { KeyboardAvoidingFill } from '../../core/ui/KeyboardAvoidingFill';
 import { MenuRepository } from './menuRepository';
-import { accountTitle, MenuEntry, menuPath, MenuRow, menuRows } from './menuModel';
+import { defaultTab, MenuEntry, menuPath, MenuRow, menuRows, MenuTab, tabBadge } from './menuModel';
 
 /** The menus loaded last, shown at once the next time (and refreshed): per login, as they depend on the user. */
 let loaded: { api: ApiClient; menus: Menus } | null = null;
 
+/** The tab chosen last, shown again the next time the menu opens. */
+let chosenTab: MenuTab | null = null;
+const rememberTab = (tab: MenuTab) => {
+  chosenTab = tab;
+};
+
+const TABS: { tab: MenuTab; label: () => string }[] = [
+  { tab: 'favorites', label: () => t('favorites') },
+  { tab: 'recent', label: () => t('app.web.menu.recent') },
+  { tab: 'main', label: () => t('menu.main.title') },
+  { tab: 'account', label: () => t('menu.myAccount') },
+];
+
 /**
- * The menu of the pages tab, over its page: the user menu (at the right, as on the web pages), the entries opened
- * last, the favorites and the main menu, and a search in all of them. On a phone this is easier to reach than the small
+ * The menu of the pages tab, over its page: tabs for the favorites, the entries opened last, the main menu and the user
+ * menu (at the right on the web pages), and a search in all of them. On a phone this is easier to reach than the small
  * navigation of the web pages. [onOpen] gets the path (or url) of the chosen entry; [active]: the tab is shown (the
  * back button of Android closes the menu then).
  */
@@ -71,7 +86,12 @@ export function WebMenu({
   const [refreshing, setRefreshing] = useState(false);
   const [term, setTerm] = useState('');
   const [openGroups, setOpenGroups] = useState<ReadonlySet<string>>(new Set());
-  const [accountOpen, setAccountOpen] = useState(false);
+  const [tabChosen, setTabChosen] = useState<MenuTab | null>(chosenTab);
+  const tab = tabChosen ?? (menus ? defaultTab(menus) : 'favorites');
+  const choose = (next: MenuTab) => {
+    rememberTab(next);
+    setTabChosen(next);
+  };
 
   const load = useCallback((): Promise<void> => {
     if (api == null || repository == null) return Promise.resolve();
@@ -111,9 +131,9 @@ export function WebMenu({
               myAccount: t('menu.myAccount'),
               recent: t('menu.quickAccess.recent'),
             },
-            { term, openGroups, accountOpen },
+            { term, openGroups, tab },
           ),
-    [menus, term, openGroups, accountOpen],
+    [menus, term, openGroups, tab],
   );
 
   const open = (entry: MenuEntry) => {
@@ -134,26 +154,23 @@ export function WebMenu({
     setRefreshing(false);
   };
 
-  const name = menus ? accountTitle(menus) : undefined;
-
   return (
     <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingFill>
-        <View style={[styles.top, { borderColor: colors.border }]}>
-          {name != null && (
-            <Pressable
-              style={({ pressed }) => [styles.account, pressed && { backgroundColor: colors.surface }]}
-              accessibilityRole="button"
-              accessibilityState={{ expanded: accountOpen }}
-              onPress={() => setAccountOpen((it) => !it)}
-            >
-              <Ionicons name="person-circle-outline" size={24} color={colors.primary} />
-              <Text style={[styles.accountName, { color: colors.text }]} numberOfLines={1}>
-                {name}
-              </Text>
-              <Ionicons name={accountOpen ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textMuted} />
-            </Pressable>
-          )}
+        <View style={[styles.tabs, { borderColor: colors.border }]} accessibilityRole="tablist">
+          {TABS.map((it) => (
+            <TabButton
+              key={it.tab}
+              label={it.label()}
+              // While searching the hits come from all tabs: none is chosen.
+              selected={!term.trim() && it.tab === tab}
+              badgeCounter={menus ? tabBadge(menus, it.tab) : undefined}
+              onPress={() => {
+                setTerm('');
+                choose(it.tab);
+              }}
+            />
+          ))}
         </View>
         <View style={styles.fill}>
           {menus == null ? (
@@ -264,14 +281,87 @@ function Row({
       );
     case 'noMatch':
       return <Text style={[styles.noMatch, { color: colors.textMuted }]}>{t('app.web.menu.noMatch')}</Text>;
+    case 'empty':
+      return <Text style={[styles.noMatch, { color: colors.textMuted }]}>{t('app.web.menu.empty')}</Text>;
+    case 'theme':
+      return <ThemeRow />;
   }
 }
 
-function Badge({ counter }: { counter?: number }) {
+const THEMES: { theme: ThemeMode; label: () => string }[] = [
+  { theme: 'light', label: () => t('app.theme.light') },
+  { theme: 'dark', label: () => t('app.theme.dark') },
+  { theme: 'system', label: () => t('app.theme.system') },
+];
+
+/** Light, dark or as the system: stored for the user as the web pages do it (see UserStatusStore.chooseTheme). */
+function ThemeRow() {
+  const colors = useColors();
+  const { theme } = useUserStatus();
+  const choose = (next: ThemeMode) => userStatus.chooseTheme(next).catch((e: unknown) => Alert.alert(errorText(e)));
+  return (
+    <View style={[styles.row, styles.themeRow, { borderColor: colors.border }]}>
+      <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+        {t('app.theme')}
+      </Text>
+      <View style={[styles.segments, { borderColor: colors.border }]} accessibilityRole="radiogroup">
+        {THEMES.map((it) => {
+          const selected = it.theme === theme;
+          return (
+            <Pressable
+              key={it.theme}
+              style={[styles.segment, selected && { backgroundColor: colors.primary }]}
+              accessibilityRole="radio"
+              accessibilityState={{ selected }}
+              onPress={() => void choose(it.theme)}
+            >
+              <Text style={[styles.segmentText, { color: selected ? '#fff' : colors.text }]}>{it.label()}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function TabButton({
+  label,
+  selected,
+  badgeCounter,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  badgeCounter?: number;
+  onPress: () => void;
+}) {
+  const colors = useColors();
+  const color = selected ? colors.primary : colors.textMuted;
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.tab,
+        { borderColor: selected ? colors.primary : 'transparent' },
+        pressed && { backgroundColor: colors.surface },
+      ]}
+      accessibilityRole="tab"
+      accessibilityState={{ selected }}
+      accessibilityLabel={label}
+      onPress={onPress}
+    >
+      <Text style={[styles.tabLabel, { color }]} numberOfLines={1}>
+        {label}
+      </Text>
+      <Badge counter={badgeCounter} small />
+    </Pressable>
+  );
+}
+
+function Badge({ counter, small = false }: { counter?: number; small?: boolean }) {
   const colors = useColors();
   if (counter == null || counter <= 0) return null;
   return (
-    <View style={[styles.badge, { backgroundColor: colors.badge }]}>
+    <View style={[styles.badge, small && styles.smallBadge, { backgroundColor: colors.badge }]}>
       <Text style={styles.badgeText}>{counter > 99 ? '99+' : counter}</Text>
     </View>
   );
@@ -280,35 +370,30 @@ function Badge({ counter }: { counter?: number }) {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   loading: { marginTop: 32 },
-  top: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  account: {
+  tabs: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth },
+  tab: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    maxWidth: '80%',
-    height: 40,
-    paddingHorizontal: 8,
-    borderRadius: 20,
+    justifyContent: 'center',
+    gap: 4,
+    height: 36,
+    paddingHorizontal: 2,
+    borderBottomWidth: 2,
   },
-  accountName: { flexShrink: 1, fontSize: 15 },
+  tabLabel: { flexShrink: 1, fontSize: 13, fontWeight: '500' },
   heading: {
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 4,
+    paddingTop: 8,
+    paddingBottom: 2,
     fontSize: 13,
     fontWeight: '600',
     textTransform: 'uppercase',
   },
-  subHeading: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 2, fontSize: 13, fontWeight: '500' },
-  row: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16 },
-  indent: { paddingLeft: 32 },
-  title: { flex: 1, fontSize: 16 },
+  subHeading: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 0, fontSize: 12, fontWeight: '500' },
+  row: { minHeight: 30, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16 },
+  indent: { paddingLeft: 26 },
+  title: { flex: 1, fontSize: 15 },
   groupTitle: { fontWeight: '500' },
   noMatch: { paddingHorizontal: 16, paddingVertical: 12 },
   badge: {
@@ -319,6 +404,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  themeRow: { marginTop: 8, paddingTop: 6, borderTopWidth: StyleSheet.hairlineWidth },
+  segments: { flexDirection: 'row', borderWidth: StyleSheet.hairlineWidth, borderRadius: 8, overflow: 'hidden' },
+  segment: { paddingHorizontal: 10, paddingVertical: 5 },
+  segmentText: { fontSize: 13 },
+  smallBadge: { minWidth: 16, height: 16, borderRadius: 8, paddingHorizontal: 4 },
   badgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   searchRow: { paddingHorizontal: 12, paddingVertical: 6, borderTopWidth: StyleSheet.hairlineWidth },
   search: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 22, height: 40, paddingHorizontal: 12 },

@@ -41,11 +41,12 @@ import { appLog, LogSanitizer } from '../../core/log/appLog';
 import { useColors } from '../../core/ui/colors';
 import { ErrorView } from '../../core/ui/ErrorView';
 import { appVersion, platformHttp } from '../../core/platform';
-import { userStatus } from '../../core/status/userStatus';
+import { userStatus, useUserStatus } from '../../core/status/userStatus';
 import { parseUrl } from '../../core/url';
 import { showWalletPass, walletAvailable, WalletException } from '../../core/wallet/walletPass';
 import { FindBar, FindResult } from './FindBar';
 import { findScript } from './findInPage';
+import { themeScript } from './themeScript';
 import { BLOB_SCRIPT, blobFile, DownloadedFile, isWalletPass, WebDownload } from './webDownload';
 import { NativePage, WebNavigation } from './webNavigation';
 
@@ -543,6 +544,13 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     });
     return () => subscription.remove();
   }, [active]);
+
+  // A theme chosen in the app (or loaded from the server): the page of the own server shown follows at once.
+  const { theme } = useUserStatus();
+  useEffect(() => {
+    const url = shownUrl.current;
+    if (url != null && navigation.isSameOrigin(url)) webView.current?.injectJavaScript(themeScript(theme));
+  }, [theme, navigation]);
 
   // The search belongs to the tab shown: closed once another tab is shown.
   const [shownActive, setShownActive] = useState(active);

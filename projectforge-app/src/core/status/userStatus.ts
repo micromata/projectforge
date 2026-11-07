@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import type { UIThemeSettings, UserStatusResult } from '@projectforge/shared/rs/user-status';
+import type { UIThemeRequest, UIThemeSettings, UserStatusResult } from '@projectforge/shared/rs/user-status';
 import { useSyncExternalStore } from 'react';
 import { AppState, AppStateStatus, Appearance } from 'react-native';
 
@@ -116,6 +116,25 @@ export class UserStatusStore {
       this.emit();
     } catch (e) {
       appLog.debug('status', `User status not loaded: ${String(e)}`);
+    }
+  };
+
+  /**
+   * The user chose [theme] in the app: shown at once and stored for the user as the web pages store it (the same
+   * setting, so it follows them on other devices). A failure is thrown, the theme shown before is back then.
+   */
+  chooseTheme = async (theme: ThemeMode) => {
+    const api = this.api;
+    if (api == null) return;
+    const before = this.state.theme;
+    this.setTheme(theme, true);
+    try {
+      const body: UIThemeRequest = { theme };
+      const answer = await api.post<UIThemeSettings | undefined>('/rs/uiSettings/theme', { body });
+      if (this.api === api && answer?.theme) this.setTheme(parseTheme(answer.theme), true);
+    } catch (e) {
+      if (this.api === api) this.setTheme(before, true);
+      throw e;
     }
   };
 
