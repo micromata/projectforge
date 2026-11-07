@@ -37,8 +37,9 @@ const PAGE_PEEK = 44;
 /**
  * A sheet moved up over the page of a tab (the tab bar stays below it), the page dimmed above it: a tap there, pulling
  * the sheet down by its top ([children] gets the gesture) or the back button of Android while [active] closes it
- * ([onClose]). [open]: shown (moved in and out); [fit]: as high as its content (at most three quarters), else up to
- * just below the top. [closeLabel]: the accessibility label of the dimmed page.
+ * ([onClose]; the back button calls [onBack] instead if given, e.g. back from a page within the sheet). [open]: shown
+ * (moved in and out); [fit]: as high as its content, else the full height (both up to just below the top).
+ * [closeLabel]: the accessibility label of the dimmed page.
  */
 export function TabSheet({
   open,
@@ -46,6 +47,7 @@ export function TabSheet({
   fit = false,
   closeLabel,
   onClose,
+  onBack,
   children,
 }: {
   open: boolean;
@@ -53,6 +55,7 @@ export function TabSheet({
   fit?: boolean;
   closeLabel: string;
   onClose: () => void;
+  onBack?: () => void;
   children: (pull: SheetPull) => ReactNode;
 }) {
   const { height } = useWindowDimensions();
@@ -73,11 +76,11 @@ export function TabSheet({
   useEffect(() => {
     if (!open || !active) return;
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      onClose();
+      (onBack ?? onClose)();
       return true;
     });
     return () => subscription.remove();
-  }, [open, active, onClose]);
+  }, [open, active, onClose, onBack]);
 
   // Pulled down by its top (the lists scroll themselves): far or fast enough closes it, else back up.
   const pull = useMemo(
@@ -105,7 +108,11 @@ export function TabSheet({
       <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, { opacity: dim }]}>
         <Pressable style={styles.fill} accessibilityRole="button" accessibilityLabel={closeLabel} onPress={onClose} />
       </Animated.View>
-      <Animated.View style={[fit ? styles.fit : styles.full, { transform: [{ translateY: offset }] }]}>
+      {/* Fitted: at the bottom of the area of a full one, so it grows up to just below the top, then scrolls. */}
+      <Animated.View
+        style={[styles.full, fit && styles.fit, { transform: [{ translateY: offset }] }]}
+        pointerEvents="box-none"
+      >
         {children(pull)}
       </Animated.View>
     </View>
@@ -117,5 +124,5 @@ const styles = StyleSheet.create({
   clip: { overflow: 'hidden' },
   backdrop: { backgroundColor: '#000' },
   full: { position: 'absolute', top: PAGE_PEEK, left: 0, right: 0, bottom: 0 },
-  fit: { position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '75%' },
+  fit: { justifyContent: 'flex-end' },
 });

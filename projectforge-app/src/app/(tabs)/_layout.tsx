@@ -41,7 +41,9 @@ import { CompatibilityBanner } from '../../features/home/CompatibilityBanner';
 import { MoreMenu } from '../../features/home/MoreMenu';
 import { askToSwitch } from '../../features/home/switchServer';
 import { TabBar } from '../../features/home/TabBar';
+import { ServerSwitchSheet } from '../../features/home/ServerSwitchSheet';
 import { NotificationsSheet } from '../../features/notifications/NotificationsSheet';
+import { SettingsSheet } from '../../features/settings/SettingsSheet';
 import { timesheets } from '../../features/timesheets/timesheetsStore';
 import { webTabs } from '../../features/web/webTabs';
 
@@ -167,6 +169,8 @@ export default function TabsLayout() {
             onOtherServer={(session) => void askToSwitch(session, timesheets.getState().timer != null)}
           />
           <MoreMenu issue={issue} />
+          <ServerSwitchSheet timerRunning={() => timesheets.getState().timer != null} />
+          <SettingsSheet />
         </View>
       </View>
     </SafeAreaView>

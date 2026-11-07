@@ -32,7 +32,7 @@ import { t } from '../../core/i18n/translations';
 import { useOtherServers } from '../../core/status/otherServers';
 import { chatEnabled, userStatus, useUserStatus } from '../../core/status/userStatus';
 import { severityColor, useColors } from '../../core/ui/colors';
-import { tabSheets, useTabSheet } from '../../core/ui/tabSheets';
+import { buttonOf, tabSheets, useTabSheet } from '../../core/ui/tabSheets';
 import { TIMESHEETS_TAB_ENABLED } from '../../core/web/nativePage';
 import { CHAT_PATH, useWebMenuOpen, WebTab, webTabs } from '../web/webTabs';
 
@@ -59,8 +59,8 @@ export function compatibilityText(issue: CompatibilityIssue): string {
 /**
  * The navigation of the app: slim, icons only (the label is their accessibility label), with the bell and the "more"
  * menu at its end (on a web tab with the browser functions first), so they are there on every tab (the pages bring
- * their own header). Both open a sheet over the tabs ([tabSheets]), the bar stays below it; the button again or a tab
- * closes it. The "more" button counts the open notifications of the other logins (their servers push too).
+ * their own header). Both open a sheet over the tabs ([tabSheets]), the bar stays below it (also below the settings and
+ * the server switch of the menu); the button again or a tab closes it. The "more" button counts the open notifications of the other logins (their servers push too).
  * The chat tab is missing if the chat is switched off on the server; tapped again it leads back to its rooms. The
  * pages tab opens with its menu, tapped again it closes or opens it.
  * [rail]: in landscape a column at the left side (as the Flutter app's navigation rail), the bell and the menu at its
@@ -81,7 +81,7 @@ export function TabBar({
   const insets = useSafeAreaInsets();
   const { status } = useUserStatus();
   const webMenu = useWebMenuOpen();
-  const sheet = useTabSheet();
+  const sheet = buttonOf(useTabSheet());
   const focused = state.routes[state.index]?.name;
   const unread = status?.chatUnread ?? 0;
   const openNotifications = status?.notifications?.openCount ?? 0;

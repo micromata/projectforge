@@ -35,7 +35,7 @@ import { timerMayBeDiscarded } from './switchServer';
 /**
  * The stored logins at other servers to switch to without the browser, and the login at another server.
  *
- * @param timerRunning The timer of the time sheets runs: discarded by a switch, so the user is asked first.
+ * @param timerRunning Whether the timer of the time sheets runs: discarded by a switch, so the user is asked first.
  */
 export function ServerSwitchScreen({
   onDone,
@@ -44,7 +44,7 @@ export function ServerSwitchScreen({
 }: {
   onDone: () => void;
   onAdd: () => void;
-  timerRunning: boolean;
+  timerRunning: () => boolean;
 }) {
   const colors = useColors();
   const auth = useAuth();
@@ -69,7 +69,7 @@ export function ServerSwitchScreen({
             style={[styles.row, { borderColor: colors.border }]}
             onPress={async () => {
               if (!current) {
-                if (!(await timerMayBeDiscarded(timerRunning))) return;
+                if (!(await timerMayBeDiscarded(timerRunning()))) return;
                 await authController.switchTo(session);
               }
               onDone();
@@ -94,7 +94,7 @@ export function ServerSwitchScreen({
           </Pressable>
         );
       })}
-      <Pressable style={[styles.row, { borderColor: colors.border }]} onPress={async () => (await timerMayBeDiscarded(timerRunning)) && onAdd()}>
+      <Pressable style={[styles.row, { borderColor: colors.border }]} onPress={async () => (await timerMayBeDiscarded(timerRunning())) && onAdd()}>
         <Ionicons name="add" size={22} color={colors.primary} />
         <Text style={{ color: colors.primary, fontSize: 16 }}>{t('app.server.add')}</Text>
       </Pressable>
