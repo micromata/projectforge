@@ -1,5 +1,0 @@
-{
-  "type": "changed",
-  "en": "Notification rules: the rule types come from the modules and plugins that provide them. The rule types of a deactivated plugin (e.g. the CVE-Radar) aren't offered any more, and its rules wait until the plugin is active again.",
-  "de": "Benachrichtigungsregeln: Die Regeltypen kommen von den Modulen und Plugins, die sie bereitstellen. Die Regeltypen eines deaktivierten Plugins (z. B. des CVE-Radars) werden nicht mehr angeboten, und seine Regeln warten, bis das Plugin wieder aktiv ist."
-}
