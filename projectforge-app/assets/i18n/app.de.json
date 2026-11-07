@@ -68,6 +68,7 @@
   "app.timesheet.week.next": "Nächste Woche",
   "app.timesheet.weekTitle": "KW {0} · {1}",
   "app.timesheet.weekTotal": "Woche: {0} h",
+  "app.timesheet.pickDate": "Datum wählen",
   "app.timesheet.offline": "Keine Verbindung zum Server: die Buchungen nach dem letzten Stand.",
   "app.timesheet.empty": "Noch nichts gebucht.",
   "app.timesheet.emptyWeekend": "Wochenende – nichts gebucht.",

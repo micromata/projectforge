@@ -44,6 +44,7 @@ import { useColors } from '../../core/ui/colors';
 import { MenuSheet } from '../../core/ui/MenuSheet';
 import { snackbar } from '../../core/ui/snackbar';
 import { BookingForm } from './BookingForm';
+import { DateTimeRequest, DateTimeSheet, pickDateTime } from './DateTimeSheet';
 import { DayActions, DayList } from './DayList';
 import { monthYear } from './format';
 import { TimerBanner } from './TimerBanner';
@@ -82,6 +83,7 @@ export function TimesheetsScreen({
   const [hidden, setHidden] = useState<Set<number>>(new Set());
   const [panel, setPanel] = useState<{ start: BookingStart; key: number } | null>(null);
   const [menuOf, setMenuOf] = useState<Timesheet | null>(null);
+  const [picker, setPicker] = useState<DateTimeRequest | null>(null);
   const pager = useRef<FlatList<number>>(null);
 
   const monday = mondayOf(day);
@@ -208,22 +210,37 @@ export function TimesheetsScreen({
   const main = (
     <View style={styles.fill}>
       <View style={styles.titleRow}>
-        <View style={styles.fill}>
-          <Text style={[styles.title, { color: colors.text }]}>
-            {t('app.timesheet.weekTitle', weekOfYear(day), monthYear(day))}
-          </Text>
+        <Pressable
+          style={styles.fill}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('app.timesheet.pickDate')}
+          onPress={() =>
+            pickDateTime(
+              { mode: 'date', title: t('app.timesheet.pickDate'), value: day, rangeDays: RANGE_DAYS, onDone: select },
+              setPicker,
+            )
+          }
+        >
+          <View style={styles.titleLine}>
+            <Text style={[styles.title, { color: colors.text }]}>
+              {t('app.timesheet.weekTitle', weekOfYear(day), monthYear(day))}
+            </Text>
+            <Ionicons name="calendar-outline" size={16} color={colors.textMuted} />
+          </View>
           {week && (
             <Text style={{ color: colors.textMuted, fontSize: 12 }}>
               {t('app.timesheet.weekTotal', formatDuration(week.sheets.reduce((sum, it) => sum + durationOf(it), 0)))}
             </Text>
           )}
-        </View>
+        </Pressable>
         {!sameDay(day, today) && (
           <Pressable hitSlop={8} onPress={() => select(today)}>
             <Text style={{ color: colors.primary, fontWeight: '600' }}>{t('calendar.today')}</Text>
           </Pressable>
         )}
       </View>
+      <DateTimeSheet request={picker} onClose={() => setPicker(null)} />
       <WeekStrip week={week} monday={monday} day={day} today={today} onSelect={select} />
       {state.timer && (
         <TimerBanner timer={state.timer} onStop={stopTimer} onDiscard={() => timesheets.stopTimer()} />
@@ -362,6 +379,7 @@ const styles = StyleSheet.create({
   panel: { width: 440, borderLeftWidth: StyleSheet.hairlineWidth },
   panelHint: { padding: 32, textAlign: 'center', fontSize: 16 },
   titleRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8 },
+  titleLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   title: { fontSize: 16, fontWeight: '600' },
   fabs: { position: 'absolute', right: 16, bottom: 16, alignItems: 'flex-end', gap: 12 },
   fabSmall: {

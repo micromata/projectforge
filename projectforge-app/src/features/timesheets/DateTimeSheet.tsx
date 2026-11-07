@@ -37,15 +37,17 @@ export interface DateTimeRequest {
   title: string;
   value: Date;
   onDone: (value: Date) => void;
+  /** How many days back and ahead of today a date may be chosen (default: a year). */
+  rangeDays?: number;
 }
 
 /** A date at most a year back or ahead, as in the Flutter app. */
 const DATE_RANGE_DAYS = 365;
 
-function dateRange(): { minimumDate: Date; maximumDate: Date } {
+function dateRange(rangeDays = DATE_RANGE_DAYS): { minimumDate: Date; maximumDate: Date } {
   const today = new Date();
   const day = (offset: number) => new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
-  return { minimumDate: day(-DATE_RANGE_DAYS), maximumDate: day(DATE_RANGE_DAYS) };
+  return { minimumDate: day(-rangeDays), maximumDate: day(rangeDays) };
 }
 
 /**
@@ -61,7 +63,7 @@ export function pickDateTime(request: DateTimeRequest, showSheet: (request: Date
     value: request.mode === 'time' ? floor5(request.value) : request.value,
     mode: request.mode,
     is24Hour: getCalendars()[0]?.uses24hourClock ?? true,
-    ...(request.mode === 'date' ? dateRange() : {}),
+    ...(request.mode === 'date' ? dateRange(request.rangeDays) : {}),
     onChange: (event, date) => {
       if (event.type === 'set' && date) request.onDone(request.mode === 'time' ? floor5(date) : date);
     },
@@ -106,7 +108,7 @@ export function DateTimeSheet({ request, onClose }: { request: DateTimeRequest |
               display={request.mode === 'time' ? 'spinner' : 'inline'}
               minuteInterval={BOOKING_STEP_MINUTES}
               // The time as set on the device (12/24 hours), the date in the language of the app.
-              {...(request.mode === 'date' ? { locale: i18n.locale, ...dateRange() } : {})}
+              {...(request.mode === 'date' ? { locale: i18n.locale, ...dateRange(request.rangeDays) } : {})}
               onChange={(_, date) => date && setValue({ for: request, date })}
             />
           )}
