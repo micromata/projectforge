@@ -14,8 +14,10 @@ keeps growing: native screens would have to repeat every feature, and app and we
 next (SSE on the web session's cookie). Native is only what a page can't do:
 
 - **Badge:** the unread messages (`chatUnread` of `GET /rs/userStatus`) at the tab (`features/web/webTabs.ts`), loaded
-  every 60 s in the foreground, on resuming the app and on switching tabs. The app token has no session to keep
-  alive, `core/status/userStatus.ts` caches the count. The tab is missing if the chat is switched off (`disabledFeatures`
+  every 60 s in the foreground, on resuming the app and on switching tabs, and at once when next changes its own
+  badges (a chat read: `{"pf":"status"}` of `hooks/use-app-status-signal.ts`, no data; the app loads the status now
+  and 3 s later, when the server has resolved the chat's notifications on its own thread). The app token has no
+  session to keep alive, `core/status/userStatus.ts` caches the count. The tab is missing if the chat is switched off (`disabledFeatures`
   contains `CHAT`).
 - **System message:** the message of the administrators (`alertMessage` of `GET /rs/userStatus`, e.g. maintenance)
   is shown by `AlertBanner` (`features/home/`) above the native pages (the web tab shows it itself, the chat
@@ -284,7 +286,8 @@ app natively (`src/features/notifications/`): the bell in the navigation, on eve
 summary in `GET /rs/userStatus`), the list with the archive, "confirm" and "mark as done" as in the web, and "open",
 which shows the link in the chat or web tab (`webPathOfLink`: only paths of the own server). The list is loaded again
 when the summary (count, newest id) of the user status changes; the user status (`src/core/status/`) is polled every
-60 s in the foreground and refreshed by a push.
+60 s in the foreground and refreshed by a push (the bell takes the push's badge at once, the status is loaded now and
+3 s later) and by the status signal of next (see Badge above).
 
 In the background iOS suspends the app and no SSE connection survives, so only APNs can wake the user (Android with
 FCM follows).

@@ -91,6 +91,27 @@ test('offline the last status stays', async () => {
   expect(store.get().status?.chatUnread).toBe(2);
 });
 
+test('a push sets the bell at once and loads the status, again a moment later', async () => {
+  let openCount = 1;
+  const { client, requests } = api(() => ({ body: { theme: 'light', notifications: { openCount } } }));
+  const store = await started(client);
+  jest.useFakeTimers();
+  try {
+    const before = requests.length;
+    openCount = 2; // The first request is answered before the commit, the one a moment later has it.
+    store.pushed(3);
+    expect(store.get().status?.notifications?.openCount).toBe(3);
+    await jest.advanceTimersByTimeAsync(0);
+    expect(requests.length).toBe(before + 1);
+    openCount = 3;
+    await jest.advanceTimersByTimeAsync(3_000);
+    expect(requests.length).toBe(before + 2);
+    expect(store.get().status?.notifications?.openCount).toBe(3);
+  } finally {
+    jest.useRealTimers();
+  }
+});
+
 test('the theme of the web pages', () => {
   expect(parseTheme('dark')).toBe('dark');
   expect(parseTheme('light')).toBe('light');

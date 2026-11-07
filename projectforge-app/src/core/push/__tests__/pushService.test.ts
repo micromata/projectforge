@@ -1,7 +1,7 @@
 // The tests of the earlier Flutter app's push_service_test.
 import { ApiClient } from '../../api/apiClient';
 import { fakeHttp } from '../../../testing/fakeHttp';
-import { PushPlatform, PushService, PushTap } from '../pushService';
+import { PushPlatform, PushReceived, PushService, PushTap } from '../pushService';
 
 function setup({
   production = false,
@@ -28,7 +28,11 @@ function setup({
     onUnauthorized: () => {},
     onReauthenticate: async () => false,
   });
-  const listeners: { token?: (t: string) => void; tap?: (t: PushTap) => void; received?: () => void } = {};
+  const listeners: {
+    token?: (t: string) => void;
+    tap?: (t: PushTap) => void;
+    received?: (push: PushReceived) => void;
+  } = {};
   const none = { remove: () => {} };
   const platform: PushPlatform = {
     requestPermission: async () => granted,
@@ -41,14 +45,14 @@ function setup({
     environment: () => environment,
   };
   const links: string[] = [];
-  let received = 0;
+  const received: (number | null)[] = [];
   const push = new PushService(api, platform, {
     production,
     onLink: (link) => links.push(link),
-    onReceived: () => received++,
+    onReceived: (it) => received.push(it.badge),
   });
   const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
-  return { push, requests, listeners, links, received: () => received, flush };
+  return { push, requests, listeners, links, received, flush };
 }
 
 test('token goes to the server once, with the environment', async () => {
@@ -103,7 +107,7 @@ test('links of taps and of the start, the tap of the start only once', async () 
   expect(links).toEqual(['/chat/5']);
   listeners.tap!({ id: 'n1', link: '/chat/5' });
   listeners.tap!({ id: 'n2', link: '/timesheet' });
-  listeners.received!();
+  listeners.received!({ badge: 3 });
   expect(links).toEqual(['/chat/5', '/timesheet']);
-  expect(received()).toBe(1);
+  expect(received).toEqual([3]);
 });

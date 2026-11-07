@@ -75,7 +75,7 @@ export default function TabsLayout() {
         webTabs.open(chat ? 'chat' : 'pages', path);
         router.dismissTo(chat ? '/chat' : '/pages');
       },
-      onReceived: () => void userStatus.refresh(),
+      onReceived: (push) => userStatus.pushed(push.badge),
     });
     void service.start().catch(() => {});
     return () => service.stop();

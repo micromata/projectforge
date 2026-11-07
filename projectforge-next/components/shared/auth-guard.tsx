@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useAppStatusSignal } from "@/hooks/use-app-status-signal";
 import { useAuth } from "@/hooks/use-auth";
 import { Spinner } from "@/components/shared/spinner";
 
@@ -13,6 +14,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   // (which update pathname to "/login") don't re-run the effect and overwrite
   // the returnUrl with "/login".
   const initialPathname = useRef(pathname);
+  useAppStatusSignal();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

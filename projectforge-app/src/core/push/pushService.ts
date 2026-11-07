@@ -36,6 +36,11 @@ export interface PushTap {
   link: string;
 }
 
+/** A push arrived while the app is open: the number on the icon it carries (the server's open count), null without. */
+export interface PushReceived {
+  badge: number | null;
+}
+
 /** What the push service needs of the system (expoPush.ts), kept apart so it can be tested without it. */
 export interface PushPlatform {
   /** Asks for the permission to show pushes (the system asks once); true if they may be shown. */
@@ -49,7 +54,7 @@ export interface PushPlatform {
   /** The tap of a push that started the app (or the last one), null if there is none; forgotten once read. */
   takeLastTap(): Promise<PushTap | null>;
   /** A push arrived while the app is open. */
-  onReceived(listener: () => void): PushSubscription;
+  onReceived(listener: (push: PushReceived) => void): PushSubscription;
   /** The number on the icon of the app. */
   setBadge(count: number): Promise<unknown>;
   /** The APNs environment of the signing, null if unknown. */
@@ -78,7 +83,7 @@ export class PushService {
       /** A push was tapped: its link (empty if it has none). */
       onLink: (link: string) => void;
       /** A push arrived while the app is open. */
-      onReceived: () => void;
+      onReceived: (push: PushReceived) => void;
     },
   ) {}
 
@@ -87,7 +92,10 @@ export class PushService {
     this.stop();
     this.subscriptions = [
       this.platform.onTap(this.tapped),
-      this.platform.onReceived(() => this.options.onReceived()),
+      this.platform.onReceived((push) => {
+        appLog.debug('push', `Push received (badge ${push.badge ?? '-'})`);
+        this.options.onReceived(push);
+      }),
       this.platform.onToken((token) => void this.register(token)),
     ];
     const launch = await this.platform.takeLastTap();

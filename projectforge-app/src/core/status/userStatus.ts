@@ -43,6 +43,7 @@ export const parseTheme = (theme?: string | null): ThemeMode =>
   theme === 'light' || theme === 'dark' ? theme : 'system';
 
 const INTERVAL = 60_000;
+const RELOAD_DELAY = 3_000;
 const THEME_CACHE = 'theme';
 
 interface State {
@@ -63,6 +64,7 @@ export class UserStatusStore {
   private listeners = new Set<() => void>();
   private api: ApiClient | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
+  private reloadTimer: ReturnType<typeof setTimeout> | null = null;
   private appState: { remove(): void } | null = null;
 
   get = () => this.state;
@@ -88,6 +90,8 @@ export class UserStatusStore {
   /** Logged out or another login: nothing of the last one stays, the theme is the system's. */
   stop() {
     this.stopTimer();
+    if (this.reloadTimer) clearTimeout(this.reloadTimer);
+    this.reloadTimer = null;
     this.appState?.remove();
     this.appState = null;
     this.api = null;
@@ -113,6 +117,36 @@ export class UserStatusStore {
     } catch (e) {
       appLog.debug('status', `User status not loaded: ${String(e)}`);
     }
+  };
+
+  /**
+   * A push arrived while the app is open: the bell takes its count at once (the server's open count, [badge]), then
+   * the status is loaded ([changed]).
+   */
+  pushed = (badge: number | null) => {
+    const status = this.state.status;
+    if (badge != null && status?.notifications != null && status.notifications.openCount !== badge) {
+      this.state = {
+        ...this.state,
+        status: { ...status, notifications: { ...status.notifications, openCount: badge } },
+      };
+      this.emit();
+    }
+    this.changed();
+  };
+
+  /**
+   * The status changed on the server (a push, a web page read a chat or closed a notification): loaded now and again a
+   * moment later. A request answered just before a commit, or before the server resolved the notifications of a read
+   * chat (on its own thread), would keep the old count until the next poll.
+   */
+  changed = () => {
+    void this.refresh();
+    if (this.reloadTimer) clearTimeout(this.reloadTimer);
+    this.reloadTimer = setTimeout(() => {
+      this.reloadTimer = null;
+      void this.refresh();
+    }, RELOAD_DELAY);
   };
 
   /** A server whose user status has no theme yet: the endpoint of the web pages (`UISettingsRest`). */

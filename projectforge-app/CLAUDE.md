@@ -18,8 +18,8 @@ See [README.md](README.md) for setup, [AGENTS.md](AGENTS.md) for Expo (versioned
   `assets/i18n/generated.*.json`.
 - Security: the app token stays in the `SessionStore` (key chain/keystore), nothing personal in logs (`appLog`
   masks). The WebView: every navigation is decided by `WebNavigation` (`originWhitelist={['*']}` stays), no
-  JavaScript bridge beyond the commit and find messages and the files a page of the own server made itself
-  (`BLOB_SCRIPT`, to the share sheet only). Access is checked by the server; hiding a button protects nothing.
+  JavaScript bridge beyond the commit and find messages, the files a page of the own server made itself
+  (`BLOB_SCRIPT`, to the share sheet only) and next's status signal (no data, the user status is loaded again). Access is checked by the server; hiding a button protects nothing.
 - License header of ProjectForge on top of every source file.
 - Quality gates before reporting done: `bin/pfApp.sh check` (tsc for app and shared, eslint, jest). UI changes: try
   them in the simulator (`bin/pfApp.sh run <slot>`), or say that you couldn't.

@@ -64,7 +64,11 @@ export const expoPush: PushPlatform = {
     await Notifications.clearLastNotificationResponseAsync();
     return tapOf(response);
   },
-  onReceived: (listener) => Notifications.addNotificationReceivedListener(() => listener()),
+  onReceived: (listener) =>
+    Notifications.addNotificationReceivedListener((notification) => {
+      const badge = notification.request.content.badge;
+      listener({ badge: typeof badge === 'number' ? badge : null });
+    }),
   setBadge: (count) => Notifications.setBadgeCountAsync(count),
   environment: () => PfNative.apsEnvironment(),
 };

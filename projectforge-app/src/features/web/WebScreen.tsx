@@ -41,6 +41,7 @@ import { appLog, LogSanitizer } from '../../core/log/appLog';
 import { useColors } from '../../core/ui/colors';
 import { ErrorView } from '../../core/ui/ErrorView';
 import { appVersion, platformHttp } from '../../core/platform';
+import { userStatus } from '../../core/status/userStatus';
 import { parseUrl } from '../../core/url';
 import { showWalletPass, walletAvailable, WalletException } from '../../core/wallet/walletPass';
 import { FindBar, FindResult } from './FindBar';
@@ -108,7 +109,8 @@ const IOS_CANCELLED = -999;
  * The commit of a page (no `onPageCommitVisible` in react-native-webview) is told by a script at document start
  * (`injectedJavaScriptBeforeContentLoaded`), which posts `{pf: 'commit'}`; its url is the one of the native event,
  * not of the message. That bridge is open to every page, so a message is never more than this signal, the results
- * of the search and a file the page made itself (a blob, BLOB_SCRIPT), which only goes to the share sheet.
+ * of the search, a file the page made itself (a blob, BLOB_SCRIPT), which only goes to the share sheet, and the
+ * signal of next that its badges changed (`{pf: 'status'}`, no data: the user status is loaded again).
  */
 export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   { initialPath, active, onNativePage, onStateChange },
@@ -420,6 +422,9 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       setFindResult({ count: data.count ?? 0, index: data.index ?? -1, supported: data.supported !== false });
     } else if (data?.pf === 'blob') {
       onBlobDownload(event.nativeEvent.url, data);
+    } else if (data?.pf === 'status' && navigation.isSameOrigin(event.nativeEvent.url)) {
+      // next's badges changed (a chat read, a notification done): the tab bar's follow (useAppStatusSignal of next).
+      userStatus.changed();
     }
   };
 
