@@ -73,7 +73,12 @@ function launchMap(postal: AppPostalAddress) {
 /** Hands the vCard of [address] to [action] (the share sheet, the contacts); a failure is reported in an alert. */
 async function withVCard(address: AppAddress, action: (name: string, vCard: Uint8Array) => Promise<void>) {
   try {
-    await action(vCardFileName(address), await addresses.vCard(address));
+    const vCard = await addresses.vCard(address);
+    appLog.info(
+      'addresses',
+      `vCard of address ${address.id}: ${vCard.length} bytes, ${address.vCard == null ? 'from the server' : 'synced'}`,
+    );
+    await action(vCardFileName(address), vCard);
   } catch (e) {
     appLog.warn('addresses', `vCard not handed over: ${String(e)}`);
     Alert.alert(errorText(e));

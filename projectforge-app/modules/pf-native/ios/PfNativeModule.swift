@@ -202,12 +202,31 @@ public class PfNativeModule: Module {
     }
     guard let contact = try? CNContactVCardSerialization.contacts(with: Data(kept.joined(separator: "\r\n").utf8)).first
     else {
-      throw ContactException(reason)
+      throw ContactException("\(reason) \(Self.diagnose(lines))")
     }
     guard let photo else { return contact }
     let withPhoto = contact.mutableCopy() as! CNMutableContact
     withPhoto.imageData = photo
     return withPhoto
+  }
+
+  /// For the log: the size of the vCard, its properties and the ones without which iOS reads it (each left out on its
+  /// own); also written to the system log (`PfNative` in Console.app).
+  private static func diagnose(_ lines: [String]) -> String {
+    let names = lines.map { String($0.prefix { $0 != ":" && $0 != ";" }).uppercased() }
+    let distinct = names.reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
+    let parses = { (kept: [String]) -> Int in
+      (try? CNContactVCardSerialization.contacts(with: Data(kept.joined(separator: "\r\n").utf8)).count) ?? -1
+    }
+    let culprits = distinct.filter { name in
+      !["BEGIN", "END", "VERSION"].contains(name) && parses(zip(lines, names).filter { $0.1 != name }.map { $0.0 }) > 0
+    }
+    let minimal = parses(zip(lines, names).filter { ["BEGIN", "END", "VERSION", "N", "FN"].contains($0.1) }.map { $0.0 })
+    let text = "[\(lines.count) lines, \(lines.reduce(0) { $0 + $1.utf8.count }) bytes; properties: "
+      + "\(distinct.joined(separator: ",")); read without: \(culprits.isEmpty ? "none" : culprits.joined(separator: ","))"
+      + "; with N and FN only: \(minimal)]"
+    NSLog("PfNative addContact: %@", text)
+    return text
   }
 
   /// The lines of the vCard [text] with their folded continuations joined, and the bytes of its embedded PHOTO.
