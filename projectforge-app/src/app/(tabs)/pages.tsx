@@ -28,7 +28,6 @@ import { useIsFocused, useRouter } from 'expo-router';
 import { authController } from '../../core/auth/authController';
 import { appLog } from '../../core/log/appLog';
 import { appSettings, opensInApp } from '../../core/settings/appSettings';
-import { TIMESHEETS_TAB_ENABLED } from '../../core/web/nativePage';
 import { chatEnabled, userStatus } from '../../core/status/userStatus';
 import { WebMenu } from '../../features/web/WebMenu';
 import { WebScreen } from '../../features/web/WebScreen';
@@ -57,8 +56,8 @@ export default function PagesTab() {
       router.navigate('/chat');
       return true;
     }
-    if (page === 'businessCards' || page === 'addresses' || (page === 'timesheets' && TIMESHEETS_TAB_ENABLED)) {
-      router.navigate(page === 'businessCards' ? '/cards' : page === 'addresses' ? '/addresses' : '/timesheets');
+    if (page === 'businessCards' || page === 'addresses') {
+      router.navigate(page === 'businessCards' ? '/cards' : '/addresses');
       return true;
     }
     if (page === 'notifications') {

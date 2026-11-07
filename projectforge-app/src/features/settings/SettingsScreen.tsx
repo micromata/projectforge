@@ -26,7 +26,7 @@ import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-nat
 import { t } from '../../core/i18n/translations';
 import { appSettings, opensInApp, useAppSettings } from '../../core/settings/appSettings';
 import { useColors } from '../../core/ui/colors';
-import { NativePage, SWITCHABLE_NATIVE_PAGES } from '../../core/web/nativePage';
+import { NativePage, NATIVE_PAGES } from '../../core/web/nativePage';
 
 /** The label of the menu entry of the web pages that leads to [page]. */
 function pageLabel(page: NativePage): string {
@@ -39,8 +39,6 @@ function pageLabel(page: NativePage): string {
       return t('notification.center');
     case 'addresses':
       return t('menu.addressList');
-    case 'timesheets':
-      return t('timesheet.title.heading');
   }
 }
 
@@ -52,7 +50,7 @@ export function SettingsScreen({ onShowLog }: { onShowLog: () => void }) {
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.container}>
       <Text style={[styles.heading, { color: colors.text }]}>{t('app.settings.openInApp')}</Text>
       <Text style={[styles.info, { color: colors.textMuted }]}>{t('app.settings.openInApp.info')}</Text>
-      {SWITCHABLE_NATIVE_PAGES.map((page) => (
+      {NATIVE_PAGES.map((page) => (
         <View key={page} style={[styles.row, { borderColor: colors.border }]}>
           <Text style={[styles.label, { color: colors.text }]}>{pageLabel(page)}</Text>
           <Switch

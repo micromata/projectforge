@@ -137,7 +137,6 @@ export class WebNavigation {
     if (path === '/next/myBusinessCards' || path === '/next/myBusinessCards/') return 'businessCards';
     if (path === '/next/notifications' || path === '/next/notifications/') return 'notifications';
     if (path === '/next/address' || path === '/next/address/') return 'addresses';
-    if (path === '/next/timesheet' || path === '/next/timesheet/') return 'timesheets';
     return null;
   }
 

@@ -8,7 +8,7 @@
   "app.login.failed": "The login failed.",
   "app.login.info": "The login opens in the browser: there you enter your password and your second factor as usual.",
   "app.logout.question": "Log out the app? It can only be used again after a new login.",
-  "app.businessCard.createOnDesktop": "Create and edit business cards in the web version",
+  "app.businessCard.createOnDesktop": "Create and edit business cards",
   "app.businessCard.photoUnavailable": "Photo cannot be loaded",
   "app.offline": "No connection to the server: the cards as last loaded.",
   "app.proxy.refused": "The server can't be reached through its login gateway (SSO proxy). Please log in again; if that doesn't help, the gateway has to let the app through.",
