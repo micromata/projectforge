@@ -40,7 +40,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: IS_DEV ? 'ProjectForge Dev' : 'ProjectForge',
   slug: 'projectforge-app',
   ...(EXPO_OWNER && { owner: EXPO_OWNER }),
-  ...(EAS_PROJECT_ID && { extra: { ...config.extra, eas: { projectId: EAS_PROJECT_ID } } }),
+  ...(EAS_PROJECT_ID && {
+    extra: { ...config.extra, eas: { projectId: EAS_PROJECT_ID } },
+    // EAS Update (OTA): an update reaches only builds of the same native code (runtimeVersion).
+    updates: { url: `https://u.expo.dev/${EAS_PROJECT_ID}` },
+  }),
   // The callback of the browser login (AppAuthService of the server builds projectforge://auth).
   scheme: 'projectforge',
   // Higher than the Flutter app's last 1.0.1+5. The build numbers go on from there.
