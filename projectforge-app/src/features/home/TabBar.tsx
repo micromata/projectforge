@@ -35,7 +35,7 @@ import { chatEnabled, userStatus, useUserStatus } from '../../core/status/userSt
 import { severityColor, useColors } from '../../core/ui/colors';
 import { MenuItem, MenuSheet } from '../../core/ui/MenuSheet';
 import { TIMESHEETS_TAB_ENABLED } from '../../core/web/nativePage';
-import { CHAT_PATH, useWebTabStates, WebTab, webTabs } from '../web/webTabs';
+import { CHAT_PATH, useWebMenuOpen, useWebTabStates, WebTab, webTabs } from '../web/webTabs';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -61,7 +61,8 @@ export function compatibilityText(issue: CompatibilityIssue): string {
  * The navigation of the app: slim, icons only (the label is their accessibility label), with the bell and the "more"
  * menu at its end (on a web tab with the browser functions first), so they are there on every tab (the pages bring
  * their own header).
- * The chat tab is missing if the chat is switched off on the server; tapped again it leads back to its rooms.
+ * The chat tab is missing if the chat is switched off on the server; tapped again it leads back to its rooms. The
+ * pages tab opens with its menu, tapped again it closes or opens it.
  * [rail]: in landscape a column at the left side (as the Flutter app's navigation rail), the bell and the menu at its
  * bottom.
  */
@@ -76,6 +77,7 @@ export function TabBar({
   const router = useRouter();
   const { status } = useUserStatus();
   const webStates = useWebTabStates();
+  const webMenu = useWebMenuOpen();
   const [menu, setMenu] = useState(false);
   const focused = state.routes[state.index]?.name;
   const webTab = focused ? TABS[focused]?.webTab : undefined;
@@ -160,13 +162,26 @@ export function TabBar({
                 webTabs.open('chat', CHAT_PATH);
                 return;
               }
+              // The pages tab starts with its menu (the web pages' navigation is small on a phone); tapped again it
+              // closes the menu, and opens it again over the page.
+              if (route.name === 'pages') {
+                if (active) {
+                  webTabs.toggleMenu();
+                  return;
+                }
+                webTabs.setMenu(true);
+              }
               if (active) return;
               navigateToTab(route.key);
               // The badges at once (e.g. leaving the chat), not after the next poll.
               void userStatus.refresh();
             }}
           >
-            <Ionicons name={tab.icon} size={24} color={active ? colors.primary : colors.textMuted} />
+            <Ionicons
+              name={route.name === 'pages' && active && webMenu ? 'globe' : tab.icon}
+              size={24}
+              color={active ? colors.primary : colors.textMuted}
+            />
             {route.name === 'chat' && unread > 0 && (
               <View style={[styles.badge, { backgroundColor: colors.badge }]}>
                 <Text style={styles.badgeText}>{unread > 99 ? '99+' : unread}</Text>

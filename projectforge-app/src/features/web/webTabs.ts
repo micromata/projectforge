@@ -42,6 +42,8 @@ class WebTabs {
   /** A page asked for before the tab exists (it is created on first use): loaded by it as its start page. */
   private pending: Partial<Record<WebTab, string>> = {};
   private states: Record<WebTab, WebScreenState> = { pages: EMPTY, chat: EMPTY };
+  /** The menu of the pages tab is shown over its page: at the start, until an entry or a page is opened. */
+  private menu = true;
   private listeners = new Set<() => void>();
 
   register(tab: WebTab, handle: WebScreenHandle | null) {
@@ -53,8 +55,9 @@ class WebTabs {
     return this.handles[tab];
   }
 
-  /** Shows [path] in [tab], as soon as it exists. */
+  /** Shows [path] in [tab], as soon as it exists (the page, not the menu over it). */
   open(tab: WebTab, path: string) {
+    if (tab === 'pages') this.setMenu(false);
     const handle = this.handles[tab];
     if (handle) handle.open(path);
     else this.pending[tab] = path;
@@ -80,14 +83,27 @@ class WebTabs {
     this.listeners.forEach((it) => it());
   }
 
+  setMenu(open: boolean) {
+    if (this.menu === open) return;
+    this.menu = open;
+    this.listeners.forEach((it) => it());
+  }
+
+  toggleMenu() {
+    this.setMenu(!this.menu);
+  }
+
   reset() {
     this.handles = {};
     this.pending = {};
     this.states = { pages: EMPTY, chat: EMPTY };
+    this.menu = true;
     this.listeners.forEach((it) => it());
   }
 
   getStates = () => this.states;
+
+  getMenu = () => this.menu;
 
   subscribe = (listener: () => void) => {
     this.listeners.add(listener);
@@ -101,4 +117,9 @@ export const webTabs = new WebTabs();
 
 export function useWebTabStates(): Record<WebTab, WebScreenState> {
   return useSyncExternalStore(webTabs.subscribe, webTabs.getStates);
+}
+
+/** Whether the menu of the pages tab is shown over its page. */
+export function useWebMenuOpen(): boolean {
+  return useSyncExternalStore(webTabs.subscribe, webTabs.getMenu);
 }

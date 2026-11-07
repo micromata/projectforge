@@ -166,6 +166,19 @@
           "controller": "org.projectforge.rest.task.TaskServicesRest"
         }
       ]
+    },
+    {
+      "name": "Menu",
+      "endpoints": [
+        {
+          "call": "GET /rs/menu",
+          "controller": "org.projectforge.rest.MenuRest"
+        },
+        {
+          "call": "POST /rs/menu/recent",
+          "controller": "org.projectforge.rest.MenuRest"
+        }
+      ]
     }
   ]
 }

@@ -36,6 +36,7 @@
   "app.web.share": "Link teilen",
   "app.web.openInBrowser": "Im Browser öffnen",
   "app.web.offline": "Keine Verbindung zum Server.",
+  "app.web.menu.noMatch": "Kein Menüpunkt gefunden.",
   "app.settings.openInApp": "In der App öffnen",
   "app.settings.openInApp.info": "Diese Menüpunkte der Webseiten wechseln auf den Tab der App. Ausgeschaltet bleibt die Webversion, z. B. falls die App-Version mit dem Server nicht funktioniert.",
   "app.log.title": "Protokoll",
