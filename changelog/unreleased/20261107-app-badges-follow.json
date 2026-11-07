@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "App: the badges of the chat and the notifications follow at once: a push sets the bell's count when it arrives, and a chat read or a notification done in the pages removes them right away, no longer only with the next update a minute later.",
-  "de": "App: Die Zähler an Chat und Benachrichtigungen ziehen sofort nach: Eine Push-Nachricht setzt die Zahl an der Glocke beim Eintreffen, und ein gelesener Chat oder eine erledigte Benachrichtigung in den Seiten nimmt sie gleich weg, nicht erst mit der nächsten Aktualisierung eine Minute später."
-}

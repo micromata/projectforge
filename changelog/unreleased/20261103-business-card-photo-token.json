@@ -1,5 +1,0 @@
-{
-  "type": "changed",
-  "en": "Digital business cards: the photo is linked by a public url with a random token (no login, not guessable), also without a gateway; the url stays the same when the image is replaced or deleted, and can be revoked with \"Renew photo link\" on the card. The base url can be set with `projectforge.businessCard.photoBaseUrl`. Update the gateway together with the server; photo links of earlier QR codes stop working.",
-  "de": "Digitale Visitenkarten: Das Foto wird über eine öffentliche URL mit zufälligem Token verlinkt (ohne Anmeldung, nicht erratbar), auch ohne Gateway; die URL bleibt beim Ersetzen oder Löschen des Bildes gleich und lässt sich mit \"Foto-Link erneuern\" an der Karte widerrufen. Die Basis-URL lässt sich mit `projectforge.businessCard.photoBaseUrl` festlegen. Das Gateway zusammen mit dem Server aktualisieren; Foto-Links früherer QR-Codes funktionieren nicht mehr."
-}
