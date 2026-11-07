@@ -51,13 +51,14 @@ export function PageShell({ children }: PageShellProps) {
     // inner form column. `100dvh` tracks the visible viewport, so the bar stays anchored at the true
     // bottom and <main> keeps no extra overflow to scroll.
     // On a short viewport (a phone in landscape) the fixed rows would squeeze <main> to nothing and the
-    // content below them would be unreachable. <main> therefore has a floor (24rem, but never more than
-    // the viewport) and this box scrolls (`overflow-y-auto`) once rows + floor exceed the height: the rows
-    // scroll away, the content and its pinned action bar stay reachable. On a normal screen nothing
-    // overflows and nothing changes.
-    // On a narrow or low screen (`cramped`) <main> is the size container of the content panels: a
-    // chart panel is then exactly as tall as <main> (`100cqh`, see OrderStatisticsPage), so the header
-    // above it scrolls away with <main> and the panel gets the whole screen.
+    // content below them would be unreachable. <main> therefore has a floor (`min-h-96`) and this box
+    // scrolls (`overflow-y-auto`) once rows + floor exceed the height: the rows scroll away, the content
+    // and its pinned action bar stay reachable. On a normal screen nothing overflows and nothing changes.
+    // On a phone (`cramped`) the floor is lower, below the height left under the navigation: nested
+    // scrolling (this box, <main>, a table in it) doesn't hand a swipe on from one to the next on iOS, so
+    // the pages there have one scroller each (a list's header scrolls inside its table, see
+    // ListPageShell). <main> is the size container of the chart panels then: they are as tall as <main>
+    // (`100cqh`) and overflow, so <main> scrolls them as one column with their header.
     // Printed (`print:`), the page is only its content, as long as it is: no header, navigation or status
     // bar, and no box of the window's height clipping everything below the first page.
     <div className="relative flex h-dvh flex-col overflow-x-hidden overflow-y-auto print:block print:h-auto print:overflow-visible">
@@ -76,14 +77,8 @@ export function PageShell({ children }: PageShellProps) {
         )}
       </div>
       <main
-        className="flex min-h-[min(24rem,100dvh)] flex-1 flex-col overflow-auto cramped:[container-type:size] print:block print:overflow-visible"
-        onScroll={(event) => {
-          // A list on a phone collapses its header by its table's scroll (useListHeaderCollapse). <main>
-          // may overflow too there (phone landscape), and the collapse shrinks it back to the table: the
-          // clamped scrollTop of 0 would expand the header at once, and the table never stays scrolled.
-          if (useUIStore.getState().listHeaderHeight > 0) return;
-          collapse.onScroll(event);
-        }}
+        className="flex min-h-96 flex-1 flex-col overflow-auto cramped:min-h-48 cramped:[container-type:size] print:block print:overflow-visible"
+        onScroll={collapse.onScroll}
       >
         {children}
       </main>

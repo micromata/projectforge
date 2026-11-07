@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef } from "react";
+import { Fragment, useContext, useEffect, useRef } from "react";
 import {
   flexRender,
   type Row,
@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
 import { useElementWidth } from "@/hooks/use-element-width";
 import { DataTableFooterRow } from "./data-table-footer-row";
+import { DataTableHeadSlot } from "./data-table-head-slot";
 import { DataTablePagination } from "./data-table-pagination";
 import {
   DataTableRow,
@@ -276,6 +277,10 @@ export function DataTable<TData>({
   const containerRef = autoHeight ? scrollParentRef : scrollRef;
   const rows = table.getRowModel().rows;
   const virtual = virtualizeRows && !autoHeight;
+  // In the scroll area above the rows (see DataTableHeadSlot). Not in a virtualized table, whose row offsets count
+  // from the top of that area, nor in an autoHeight one, which has no area of its own: above the table there.
+  const headSlot = useContext(DataTableHeadSlot);
+  const headInScroll = !virtual && !autoHeight;
   // Entering the selection mode puts the keyboard on the table: the arrow keys are handled by the body
   // below, so without this they do nothing until a click happens to focus it — which is what made
   // "↑/↓ only work after I marked a row" the way the mode used to behave.
@@ -390,7 +395,8 @@ export function DataTable<TData>({
                   width: containerWidth > 0 ? containerWidth : undefined,
                 }}
               >
-                {detail}
+                {/* A table in the detail doesn't take this one's head slot again. */}
+                <DataTableHeadSlot value={null}>{detail}</DataTableHeadSlot>
               </div>
             </TableCell>
           </TableRow>
@@ -411,6 +417,7 @@ export function DataTable<TData>({
         className
       )}
     >
+      {!headInScroll && headSlot}
       {/* The overlay's positioning parent, and not the scroll container below it: `inset-0` there
           would be the whole scrolled content, so the spinner would sit at the top of the rows and
           scroll out of sight instead of staying where the user is looking. */}
@@ -444,6 +451,18 @@ export function DataTable<TData>({
             rememberScroll();
           }}
         >
+          {/* As wide as the visible part and sticky to its left edge: it scrolls up with the rows, but not
+              sideways with the columns. */}
+          {headInScroll && headSlot && (
+            <div
+              className="sticky left-0"
+              style={{
+                width: containerWidth > 0 ? containerWidth : undefined,
+              }}
+            >
+              {headSlot}
+            </div>
+          )}
           {/* table-fixed makes the colgroup widths authoritative — without it the
               browser sizes columns by content and header and body drift apart.
               Every width is explicit and the table is exactly as wide as their sum,

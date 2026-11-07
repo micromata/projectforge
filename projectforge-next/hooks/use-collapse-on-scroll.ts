@@ -28,15 +28,15 @@ interface ScrollMetrics {
  */
 export function nextCollapsed(
   { scrollTop, scrollHeight, clientHeight }: ScrollMetrics,
-  collapsed: boolean,
-  freed: number = LOGO_ROW_HEIGHT
+  collapsed: boolean
 ): boolean {
   if (collapsed) return scrollTop > EXPAND_AT;
-  // Collapsing frees the row's height ([freed]: on a phone a list's header goes with it), which *grows* this column and makes the browser clamp its
+  // Collapsing frees the row's height, which *grows* this column and makes the browser clamp its
   // scrollTop - a real scroll event carrying a smaller value. A column that overflows by barely more
   // than that height is clamped back above EXPAND_AT, so it would expand again immediately: one
   // visible jump, and the user's scroll lost. Such a column has nothing to gain here anyway.
-  if (scrollHeight - clientHeight <= freed + COLLAPSE_AT) return false;
+  if (scrollHeight - clientHeight <= LOGO_ROW_HEIGHT + COLLAPSE_AT)
+    return false;
   return scrollTop > COLLAPSE_AT;
 }
 
@@ -63,11 +63,7 @@ export function useCollapseOnScroll(enabled = true) {
       // getState() rather than a subscription: the current value is needed for the hysteresis, but
       // subscribing would re-render every scroll container on each flip for nothing.
       setLogoCollapsed(
-        nextCollapsed(
-          event.currentTarget,
-          useUIStore.getState().logoCollapsed,
-          Math.max(LOGO_ROW_HEIGHT, useUIStore.getState().listHeaderHeight)
-        )
+        nextCollapsed(event.currentTarget, useUIStore.getState().logoCollapsed)
       );
     },
     [enabled, setLogoCollapsed]
