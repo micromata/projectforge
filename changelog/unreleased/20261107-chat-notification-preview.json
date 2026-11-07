@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "The notifications of chat messages show the beginning of the message (in rooms with its author) instead of repeating their title, in the app and in the notification center of the web pages. Only for the recipient while they may read the conversation; mails and pushes keep their generic text.",
+  "de": "Benachrichtigungen zu Chat-Nachrichten zeigen den Anfang der Nachricht (in Räumen mit Verfasser) statt ihren Titel zu wiederholen, in der App und in der Benachrichtigungszentrale der Web-Seiten. Nur, solange die Unterhaltung lesbar ist; Mails und Push-Nachrichten behalten ihren allgemeinen Text."
+}
