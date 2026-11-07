@@ -207,6 +207,19 @@ findings of the own matching); the own findings came from a complete OSV import.
 **Decision: go.** Findings are as complete as the own matching, KEV and EPSS come with DT, the mapping back works via
 purl + version, and DT needs only PostgreSQL.
 
+Weighing of the decision:
+
+- **Detection:** parity, not a gain. On the production copy DT found no additional finding; its 3 additional findings
+  in the test installation came only from the incomplete own OSV import there.
+- **Benefit beyond detection:** importers and matching (NVD/OSV parsing, version ranges, CPE matching) are maintained
+  by the community instead of PF; KEV (CISA, ENISA) and EPSS for every CVE without own code; outdated components from
+  the repository metadata (in one instance of the production copy 511 of 706 components not on the latest
+  version); VEX export; policies (licences, versions).
+- **Cost:** another service to operate (DT and PostgreSQL), about 2–3k LOC integration, the mapping back via purl +
+  version; the saving is smaller than estimated, since the OSV import stays reduced to MAT-11 (D3).
+- **Basis of the go:** the maintenance saving and the additional functions. If detection alone counted, keeping the
+  own matching would be equivalent (the no-go branch of section 3: EPSS in the priority only).
+
 | # | Question | Result |
 |---|---|---|
 | 10 | Findings compared with the own matching | Production copy: all 141 pairs of instance and vulnerability of the own 144 findings found by DT, none missing, none additional (the 3 extra own findings are the same pairs in a second component, see 11). Test installation with an incomplete OSV import: 3 additional findings in DT, all from GitHub Advisories. A technology with neither purl nor CPE gets no finding (forced test case). |

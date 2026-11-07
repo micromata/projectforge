@@ -398,7 +398,9 @@ Results: migration plan, section 8.
 
 Recommended: the hybrid of section 7, introduced in stages, so the CVE-Radar keeps working throughout.
 
-1. **Spike** (section 10), decision based on its results.
+1. **Spike** (section 10), decision based on its results. Done: go. The detection is at parity with the own
+   matching, not better; the go rests on the maintenance saving and the additional functions (migration plan,
+   section 8).
 2. **Switch without parallel operation:** the comparison with the own matching is done once in the spike; DT becomes
    the only matching source and the parts of section 8 are retired by new Flyway migrations (the CVE-Radar ships since
    9.2.1). Plan: [PF-CVR_Dependency-Track_Migration.md](PF-CVR_Dependency-Track_Migration.md).
