@@ -25,6 +25,7 @@
 package org.projectforge.rest.notification
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import org.projectforge.framework.persistence.history.WithEditors
 import org.projectforge.business.fibu.EmployeeStatus
 import org.projectforge.business.notification.NotificationDelivery
 import org.projectforge.business.notification.NotificationDeliveryStep
@@ -32,7 +33,6 @@ import org.projectforge.business.notification.NotificationDisplay
 import org.projectforge.business.notification.NotificationParams
 import org.projectforge.business.notification.NotificationRecipients
 import org.projectforge.business.notification.NotificationRuleDO
-import org.projectforge.business.notification.NotificationRuleType
 import org.projectforge.business.notification.NotificationSchedule
 import org.projectforge.business.notification.NotificationSeverity
 import org.projectforge.framework.json.JsonUtils
@@ -45,7 +45,9 @@ import java.util.Date
 
 /**
  * A rule of the notification system for the hand-built next page: the JSON columns of [NotificationRuleDO]
- * (schedule, params and recipients flat, the delivery steps as a list), the group and user ids as references.
+ * (schedule and recipients flat, the delivery steps as a list), the group and user ids as references. The params of the
+ * rule type are a map by key, as their handler describes them ([org.projectforge.business.notification.NotificationRuleParam]);
+ * [NotificationRuleEntityRest] reads and checks them through the registry of the rule types.
  */
 class NotificationRule(
     id: Long? = null,
@@ -53,20 +55,15 @@ class NotificationRule(
     var name: String? = null,
     var description: String? = null,
     var active: Boolean = false,
-    var ruleType: NotificationRuleType? = null,
+    /** The key of the rule type. */
+    var ruleType: String? = null,
+    /** Read-only: the name of the rule type (its key, if no handler is registered for it). */
+    var ruleTypeLabel: String? = null,
     var scheduleMode: NotificationSchedule.Mode = NotificationSchedule.Mode.NONE,
     var scheduleDay: Int = 0,
     var scheduleDayOfWeek: DayOfWeek? = null,
-    var referredMonth: NotificationParams.ReferredMonth = NotificationParams.ReferredMonth.CURRENT,
-    var vacationExpiry: NotificationParams.VacationExpiry = NotificationParams.VacationExpiry.CARRY_OVER,
-    var daysBeforeExpiry: Int = 30,
-    var passwordMaxAgeDays: Int = 90,
-    var kost2MissingMonths: Int = 2,
-    var dueWorkingDays: Int = 2,
-    var cvrMinSeverity: String = "HIGH",
-    var cvrIncludePossible: Boolean = false,
-    var cvrIncludeUnscored: Boolean = true,
-    var cvrMaxAgeDays: Int = 30,
+    /** The values of the params of the rule type by key; an entity as `{id, displayName}`. */
+    var params: Map<String, Any?> = emptyMap(),
     var recipientGroups: List<Group> = emptyList(),
     var recipientUsers: List<User> = emptyList(),
     var allEmployees: Boolean = false,
@@ -87,7 +84,10 @@ class NotificationRule(
     var editableByGroups: List<Group> = emptyList(),
     /** Read-only: the last run by schedule. */
     var lastRun: Date? = null,
-) : BaseDTODisplayObject<NotificationRuleDO>(id = id, displayName = displayName), EntityAccessSupport {
+) : BaseDTODisplayObject<NotificationRuleDO>(id = id, displayName = displayName), EntityAccessSupport, WithEditors {
+    /** The names of everybody who created or changed the entry (list only, see HistoryEditorsService). */
+    override var editors: List<String>? = null
+
     /** The schedule as the rule stores it (the form edits its fields flat). */
     @get:JsonIgnore
     val schedule: NotificationSchedule
@@ -103,16 +103,7 @@ class NotificationRule(
         scheduleDay = schedule.day
         scheduleDayOfWeek = schedule.dayOfWeek
         val params = src.readParams()
-        referredMonth = params.referredMonth
-        vacationExpiry = params.vacationExpiry
-        daysBeforeExpiry = params.daysBeforeExpiry
-        passwordMaxAgeDays = params.passwordMaxAgeDays
-        kost2MissingMonths = params.kost2MissingMonths
-        dueWorkingDays = params.dueWorkingDays
-        cvrMinSeverity = params.cvrMinSeverity
-        cvrIncludePossible = params.cvrIncludePossible
-        cvrIncludeUnscored = params.cvrIncludeUnscored
-        cvrMaxAgeDays = params.cvrMaxAgeDays
+        this.params = params.values.toMap() // Typed and completed by the rest endpoint.
         linkMode = params.linkMode
         linkMenuItem = params.linkMenuItem
         val recipients = src.readRecipients()
@@ -129,12 +120,12 @@ class NotificationRule(
     override fun copyTo(dest: NotificationRuleDO) {
         super.copyTo(dest)
         dest.schedule = JsonUtils.toJson(schedule)
-        dest.params = JsonUtils.toJson(
+        // The values as posted: filtered to the params of the type and parsed by the rest endpoint.
+        dest.writeParams(
             NotificationParams(
-                referredMonth, vacationExpiry, daysBeforeExpiry, passwordMaxAgeDays, kost2MissingMonths, dueWorkingDays,
-                cvrMinSeverity = cvrMinSeverity, cvrIncludePossible = cvrIncludePossible,
-                cvrIncludeUnscored = cvrIncludeUnscored, cvrMaxAgeDays = cvrMaxAgeDays, linkMode = linkMode, linkMenuItem = linkMenuItem?.takeIf { linkMode == NotificationParams.LinkMode.MENU_ITEM && it.isNotBlank() },
-            )
+                linkMode = linkMode,
+                linkMenuItem = linkMenuItem?.takeIf { linkMode == NotificationParams.LinkMode.MENU_ITEM && it.isNotBlank() },
+            ).also { it.values.putAll(params) }
         )
         dest.recipients = JsonUtils.toJson(
             NotificationRecipients(

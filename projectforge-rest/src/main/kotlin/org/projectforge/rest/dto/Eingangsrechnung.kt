@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.framework.persistence.history.WithEditors
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.*
 import org.projectforge.framework.configuration.Configuration
@@ -58,7 +59,10 @@ class Eingangsrechnung(
   var konto: Konto? = null,
   var discountPercent: BigDecimal? = null,
   var discountMaturity: LocalDate? = null
-) : BaseDTO<EingangsrechnungDO>(), IRechnung {
+) : BaseDTO<EingangsrechnungDO>(), IRechnung, WithEditors {
+
+    /** The names of everybody who created or changed the entry (list only, see HistoryEditorsService). */
+    override var editors: List<String>? = null
   override var positionen: MutableList<EingangsrechnungsPosition>? = null
 
   var netSum: BigDecimal = BigDecimal.ZERO

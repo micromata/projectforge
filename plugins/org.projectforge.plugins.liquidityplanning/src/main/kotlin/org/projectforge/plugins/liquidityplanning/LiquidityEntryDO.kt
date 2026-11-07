@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.liquidityplanning
 
+import org.projectforge.framework.persistence.history.WithEditors
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
@@ -46,7 +47,13 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_LIQUI_ENTRY")
-open class LiquidityEntryDO : DefaultBaseDO() {
+open class LiquidityEntryDO : DefaultBaseDO(), WithEditors {
+
+    /** The names of everybody who created or changed the entry; set for the list only (see HistoryEditorsService). */
+    @get:Transient
+    @get:JsonProperty
+    override var editors: List<String>? = null
+
 
     @PropertyInfo(i18nKey = "plugins.liquidityplanning.entry.dateOfPayment")
     @get:Column(name = "date_of_payment")

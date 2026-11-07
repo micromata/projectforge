@@ -58,6 +58,7 @@ constructor(
         val newList = resultSet.resultSet.map {
             if (leanRows) createListRow(it) else transformFromDB(it, false)
         }
+        fillEditors(newList)
         val result = ResultSet(
             newList,
             resultSet,

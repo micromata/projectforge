@@ -1,3 +1,4 @@
+import type { RowWithEditors } from "@/components/shared/editors/editors-column";
 // Mirrors org.projectforge.rest.dto.Visitorbook and VisitorbookEntry (projectforge-rest). Keep field names in sync
 // with the Spring DTOs — lastDateOfVisit, latestArrived, latestDeparted and numberOfVisits are read-only, taken
 // from the latest visit; entries come with the form only.
@@ -52,6 +53,6 @@ export interface VisitorbookDetail {
   lastUpdate?: string | null;
 }
 
-export interface VisitorbookListRow extends VisitorbookDetail {
+export interface VisitorbookListRow extends VisitorbookDetail, RowWithEditors {
   id: number;
 }

@@ -1,3 +1,4 @@
+import { editorsColumn } from "@/components/shared/editors/editors-column";
 import { LEAVE_ACCOUNT_ENTRY_METADATA } from "@/lib/metadata/leave-account-entry.generated";
 import { VACATION_ACCOUNT_QUERY_KEY } from "@/lib/rs/vacation-account";
 import { definePage } from "@/lib/page-def/define-page";
@@ -54,6 +55,7 @@ export const LEAVE_ACCOUNT_ENTRY_PAGE = definePage<
     { name: "amount", size: 130 },
     { name: "description", size: 400, wrap: true },
     { name: "lastUpdate", size: 130, hiddenByDefault: true },
+    editorsColumn<LeaveAccountEntryListRow>(),
   ],
   edit: {
     schema: leaveAccountEntrySchema,

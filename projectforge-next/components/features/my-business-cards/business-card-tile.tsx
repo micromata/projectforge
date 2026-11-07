@@ -7,6 +7,7 @@ import {
   businessCardPassUrl,
   downloadBusinessCardVCard,
 } from "@/lib/rs/my-business-cards";
+import { BusinessCardContents } from "./business-card-contents";
 import { BusinessCardQrPreview } from "./business-card-qr-preview";
 import type { BusinessCardInfo } from "./types";
 
@@ -29,6 +30,10 @@ export function BusinessCardTile({
     <div className="flex w-72 flex-col gap-2 rounded-md border p-3">
       <div className="font-medium">{info.card.cardName}</div>
       <BusinessCardQrPreview preview={info.preview} />
+      <BusinessCardContents
+        card={info.card}
+        withPhoto={info.preview.withPhoto}
+      />
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" size="sm" onClick={onEdit}>
           {t("edit")}

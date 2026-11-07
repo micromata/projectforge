@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.framework.persistence.history.WithEditors
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractStatus
@@ -53,7 +54,10 @@ class Contract(id: Long? = null,
                override var attachmentsCounter: Int? = null,
                override var attachmentsSize: Long? = null,
                override var attachments: List<Attachment>? = null
-) : BaseDTO<ContractDO>(id), AttachmentsSupport {
+) : BaseDTO<ContractDO>(id), AttachmentsSupport, WithEditors {
+
+    /** The names of everybody who created or changed the entry (list only, see HistoryEditorsService). */
+    override var editors: List<String>? = null
     @get:JsonProperty
     val statusAsString: String?
         get() {

@@ -10,6 +10,7 @@ The documentation for users and administrators is on the website (`site/`, https
 | [HOWTO-TEST-GATEWAY.md](HOWTO-TEST-GATEWAY.md)        | Reference | Testing the gateway instance locally and on a server                                  |
 | [lanes-and-planes.md](lanes-and-planes.md)            | Reference | Lanes & Planes ExtAPI findings and checklist before the first real push               |
 | [history-n-plus-1.md](history-n-plus-1.md)            | Done      | History re-index removal, `pg_trgm` indexes, batched history loading; few open points |
+| [notification-rules.md](notification-rules.md)        | Reference | Adding a rule type of the notification system (handler, params, texts, tests)          |
 | [file-store.md](file-store.md)                        | Reference | File store (`projectforge-files`), start-up guard for the former JCR; few open points |
 | [major-upgrades.md](major-upgrades.md)                | Plan      | Spring Boot 4 / Hibernate 7 done; Jackson 3 and the remaining majors open             |
 | [kost2-reallocation.md](kost2-reallocation.md)        | Plan      | Retroactive Kost2 reallocation of accounting records; not started                     |
@@ -20,7 +21,6 @@ The documentation for users and administrators is on the website (`site/`, https
 | [flutter-client.md](flutter-client.md)                | Plan      | Mobile app (Flutter): app login via browser + PKCE, business cards done; timesheets, chat, push open |
 | [reviews/pr-391-mcp-server.md](reviews/pr-391-mcp-server.md) | Review | PR #391 remote MCP server: findings, open                                       |
 | [cve-radar-db-reset.md](cve-radar-db-reset.md)        | Temporary | CVE-Radar: drop the plugin tables, restore the imported CVEs; remove once released    |
-| [cve-radar-team-check-rescue/](cve-radar-team-check-rescue/README.md) | Temporary | CVE-Radar: restore the overwritten answers of a team check from the history; remove once done |
 | [requirements/](requirements/)                        | Plans     | Specifications: chat (in implementation), CVE radar (in implementation)               |
 | [website-screenshots/](website-screenshots/README.md) | Tooling   | Scripts that shoot the website screenshots                                            |
 | [misc/](misc/)                                        | Assets    | nginx example configuration, forecast probabilities fixture                           |

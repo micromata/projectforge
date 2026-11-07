@@ -24,6 +24,8 @@
 
 package org.projectforge.business.notification
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.business.fibu.EmployeeStatus
 import org.projectforge.common.i18n.I18nEnum
@@ -33,43 +35,19 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.util.Date
 
-/** The rule types, each evaluated by its [NotificationRuleHandler]. */
-enum class NotificationRuleType : I18nEnum {
-    /** Working days without time sheets in a month (e.g. reminders at the month end). */
-    TIMESHEETS_MISSING,
+/**
+ * Who the recipients of a rule type are, for the editor (the run decides by
+ * [NotificationRuleHandler.Evaluation.affectedAreRecipients]).
+ */
+enum class NotificationRecipientMode {
+    /** The configured recipients, maybe only those concerned ([NotificationRecipients.onlyAffected]). */
+    RECIPIENTS,
 
-    /** Vacation days left which will expire soon (carry-over from the previous year or the end of the year). */
-    VACATION_LEFT,
+    /** The users concerned found by the handler (e.g. the responsible teams), the configured recipients in copy. */
+    AFFECTED_AND_COPY,
 
-    /** Passwords not changed for more than a number of days. */
-    PASSWORD_NOT_CHANGED,
-
-    /** Time sheets without cost 2 unit in the last months (missing in the salary export). */
-    TIMESHEETS_WITHOUT_KOST2,
-
-    /** Time sheets booked by a grant an employee proposed, to be accepted by the project management. */
-    TIMESHEETS_TO_ACCEPT,
-
-    /** Unpaid creditor invoices due within some working days or overdue (to be paid in time). */
-    CREDITOR_INVOICES_DUE,
-
-    /**
-     * New findings of the CVE radar (plugin): the responsible teams of the affected systems, the configured recipients
-     * in copy, each one told only of the systems visible to them.
-     */
-    CVERADAR_FINDINGS,
-
-    /**
-     * Lists of libraries of the CVE radar (plugin) not updated for a number of days: the responsible teams of the
-     * systems, whose findings may be outdated, the configured recipients in copy.
-     */
-    CVERADAR_STALE_LISTS,
-
-    /** No condition: all recipients get the notification when it is triggered (by hand or by the schedule). */
-    MANUAL;
-
-    override val i18nKey: String
-        get() = "notification.ruleTypes.$name"
+    /** Only the users concerned found by the handler, the configured recipients aren't used. */
+    AFFECTED_ONLY,
 }
 
 enum class NotificationSeverity : I18nEnum {
@@ -234,41 +212,24 @@ class NotificationSchedule(
 }
 
 /**
- * The type specific settings of a rule, all optional (stored as JSON, so new settings need no new column).
+ * The settings of a rule (stored as JSON, so new settings need no new column): the link, and the values of the params
+ * of the rule type ([NotificationRuleHandler.params]) by key, flat beside them.
  */
 class NotificationParams(
-    /** [NotificationRuleType.TIMESHEETS_MISSING]: the month of the rule run or the one before. */
-    var referredMonth: ReferredMonth = ReferredMonth.CURRENT,
-    /** [NotificationRuleType.VACATION_LEFT]: which vacation days are about to expire. */
-    var vacationExpiry: VacationExpiry = VacationExpiry.CARRY_OVER,
-    /** [NotificationRuleType.VACATION_LEFT]: notify within these days before the expiry. */
-    var daysBeforeExpiry: Int = 30,
-    /** [NotificationRuleType.PASSWORD_NOT_CHANGED]: notify if the password is older than these days. */
-    var passwordMaxAgeDays: Int = 90,
-    /** [NotificationRuleType.TIMESHEETS_WITHOUT_KOST2]: the months looked at, the current month included. */
-    var kost2MissingMonths: Int = 2,
-    /**
-     * [NotificationRuleType.CREDITOR_INVOICES_DUE]: unpaid creditor invoices due within these working days (0: from the
-     * due date on), overdue ones included. Independent of the red marking of the list
-     * ([org.projectforge.business.fibu.RechnungCalculator.CREDITOR_OVERDUE_WORKING_DAYS]).
-     */
-    var dueWorkingDays: Int = 2,
-    /**
-     * [NotificationRuleType.CVERADAR_FINDINGS]: the lowest CVSS severity notified (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`);
-     * known exploited vulnerabilities (KEV) are notified regardless.
-     */
-    var cvrMinSeverity: String = "HIGH",
-    /** [NotificationRuleType.CVERADAR_FINDINGS]: also findings only possible (by name or without a version). */
-    var cvrIncludePossible: Boolean = false,
-    /** [NotificationRuleType.CVERADAR_FINDINGS]: also vulnerabilities not yet rated by the NVD (without a CVSS score). */
-    var cvrIncludeUnscored: Boolean = true,
-    /** [NotificationRuleType.CVERADAR_STALE_LISTS]: a list of libraries older than this many days is outdated. */
-    var cvrMaxAgeDays: Int = 30,
     /** All rule types: the link of the notifications ("Open" in the app). */
     var linkMode: LinkMode = LinkMode.DEFAULT,
-    /** [LinkMode.MENU_ITEM]: the id of the menu item (`MenuItemDefId`) linked to. */
+    /** [LinkMode.MENU_ITEM]: the id of the menu item (`MenuItemDef.id`, also of a plugin) linked to. */
     var linkMenuItem: String? = null,
 ) {
+    /** The values of the params of the rule type by key, read through [NotificationRuleParam]. */
+    @get:JsonAnyGetter
+    val values: MutableMap<String, Any?> = mutableMapOf()
+
+    @JsonAnySetter
+    fun setValue(key: String, value: Any?) {
+        values[key] = value
+    }
+
     enum class LinkMode {
         /** The page of the rule type, e.g. the time sheets (none for a manual rule). */
         DEFAULT,
@@ -280,19 +241,10 @@ class NotificationParams(
         MENU_ITEM,
     }
 
-    enum class ReferredMonth(val offset: Long) {
-        CURRENT(0),
-        PREVIOUS(-1);
-
-        fun of(date: LocalDate): YearMonth = YearMonth.from(date).plusMonths(offset)
-    }
-
-    enum class VacationExpiry {
-        /** The days carried over from the previous year, lost after the end of the vacation year. */
-        CARRY_OVER,
-
-        /** All days left at the end of the year. */
-        YEAR_END,
+    companion object {
+        /** Params with the given values of the params of the rule type, e.g. for a test. */
+        fun of(vararg values: Pair<String, Any?>): NotificationParams =
+            NotificationParams().also { it.values.putAll(values) }
     }
 }
 

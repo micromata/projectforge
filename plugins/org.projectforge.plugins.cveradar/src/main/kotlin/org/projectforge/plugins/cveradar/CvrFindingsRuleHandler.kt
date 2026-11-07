@@ -30,7 +30,8 @@ import org.projectforge.business.notification.NotificationLinks
 import org.projectforge.business.notification.NotificationRecipientResolver
 import org.projectforge.business.notification.NotificationRuleDO
 import org.projectforge.business.notification.NotificationRuleHandler
-import org.projectforge.business.notification.NotificationRuleType
+import org.projectforge.business.notification.NotificationRecipientMode
+import org.projectforge.business.notification.NotificationRuleParam
 import org.projectforge.business.notification.NotificationStatus
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -84,7 +85,23 @@ class CvrFindingsRuleHandler : NotificationRuleHandler {
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
-    override val ruleType = NotificationRuleType.CVERADAR_FINDINGS
+    override val ruleType = TYPE
+
+    override val isAvailable: Boolean
+        get() = access.isPluginActive()
+
+    override val order = 70
+
+    override val params = listOf(MIN_SEVERITY, INCLUDE_POSSIBLE, INCLUDE_UNSCORED)
+
+    override val recipientMode = NotificationRecipientMode.AFFECTED_AND_COPY
+
+    override val recipientsHintKey = "notification.params.cvrRecipientsInfo"
+
+    override val templateSubjectKey = "notification.template.findingsSubject"
+
+    override val templateTextKey = "notification.template.findingsText"
+
 
     override val variables = listOf(
         "cvrFindingCount",
@@ -207,7 +224,7 @@ class CvrFindingsRuleHandler : NotificationRuleHandler {
             "cvrMaxCvss" to (rows.mapNotNull { it.cvss }.maxOrNull()?.toPlainString() ?: "–"),
             "cvrVulnerabilityList" to list.joinToString("; ").ifEmpty { "–" },
             "cvrSystemList" to systems.joinToString("; ").ifEmpty { "–" },
-            "cvrMinSeverity" to rule.readParams().cvrMinSeverity,
+            "cvrMinSeverity" to MIN_SEVERITY.of(rule),
             // One vulnerability: its file; several: the list (of the affected ones by default).
             "cvrLink" to notificationLinks.absolute(single?.let { "$FILE_PATH/$it" } ?: LIST_PATH),
             // Always the list, naming no vulnerability: for a text without details.
@@ -218,20 +235,20 @@ class CvrFindingsRuleHandler : NotificationRuleHandler {
     /** The open findings of the last [WINDOW_DAYS] the rule notifies of, with their vulnerability. */
     private fun newFindings(rule: NotificationRuleDO, today: LocalDate): List<Pair<CvrFindingDO, CvrVulnerabilityDO>> {
         val params = rule.readParams()
-        val minLevel = SEVERITIES.indexOf(params.cvrMinSeverity).coerceAtLeast(1)
+        val minLevel = SEVERITIES.indexOf(MIN_SEVERITY.of(params)).coerceAtLeast(1)
         val since = Date.from(today.minusDays(WINDOW_DAYS).atStartOfDay(ZoneId.systemDefault()).toInstant())
         val findings = persistenceService.executeQuery(
             "select f from CvrFindingDO f where f.deleted = false and f.status = :status and f.created >= :since",
             CvrFindingDO::class.java,
             Pair("status", CvrFindingStatus.NEW),
             Pair("since", since),
-        ).filter { params.cvrIncludePossible || it.certainty == CvrFindingCertainty.AFFECTED }
+        ).filter { INCLUDE_POSSIBLE.of(params) || it.certainty == CvrFindingCertainty.AFFECTED }
         val vulnerabilities = byId(CvrVulnerabilityDO::class.java, findings.mapNotNull { it.vulnerabilityId })
         return findings.mapNotNull { finding ->
             val vulnerability = vulnerabilities[finding.vulnerabilityId]?.takeIf { !it.deleted } ?: return@mapNotNull null
             val level = SEVERITIES.indexOf(vulnerability.severity)
             val wanted = vulnerability.kevAdded != null ||
-                    (if (level < 0 || vulnerability.cvssScore == null) params.cvrIncludeUnscored else level >= minLevel)
+                    (if (level < 0 || vulnerability.cvssScore == null) INCLUDE_UNSCORED.of(params) else level >= minLevel)
             if (wanted) finding to vulnerability else null
         }
     }
@@ -269,6 +286,19 @@ class CvrFindingsRuleHandler : NotificationRuleHandler {
     }
 
     companion object {
+        const val TYPE = "CVERADAR_FINDINGS"
+
+        /** The lowest CVSS severity notified; known exploited vulnerabilities (KEV) are notified regardless. */
+        val MIN_SEVERITY = NotificationRuleParam.SelectParam(
+            "cvrMinSeverity", "HIGH", listOf("LOW", "MEDIUM", "HIGH", "CRITICAL"), translateOptions = false,
+        )
+
+        /** Also findings only possible (by name or without a version). */
+        val INCLUDE_POSSIBLE = NotificationRuleParam.BooleanParam("cvrIncludePossible", false)
+
+        /** Also vulnerabilities not yet rated by the NVD (without a CVSS score). */
+        val INCLUDE_UNSCORED = NotificationRuleParam.BooleanParam("cvrIncludeUnscored", true)
+
         /** The NVD severities, the lowest first; their index is the level. */
         private val SEVERITIES = listOf("NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL")
 

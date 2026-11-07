@@ -65,7 +65,8 @@ export function BusinessCardEditor({
     form.store,
     (s: unknown) => (s as { values: S.BusinessCardValues }).values
   );
-  const preview = useBusinessCardPreview(S.postedCard(values, fields.included));
+  const postedCard = S.postedCard(values, fields.included);
+  const preview = useBusinessCardPreview(postedCard);
   const takeover = useAddressTakeover(form, initial, values.addressId, (card) =>
     fields.set(S.initialIncluded(card, true))
   );
@@ -90,6 +91,7 @@ export function BusinessCardEditor({
           photoUrlAvailable={photoUrlAvailable}
           cardId={initial.id ?? null}
           preview={preview.data}
+          card={postedCard}
         />
       ),
     },

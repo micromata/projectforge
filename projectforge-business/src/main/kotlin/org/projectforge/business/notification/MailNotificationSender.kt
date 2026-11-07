@@ -24,6 +24,7 @@
 
 package org.projectforge.business.notification
 
+import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
@@ -36,6 +37,9 @@ import java.util.Date
 class MailNotificationSender : NotificationChannelSender {
     @Autowired
     private lateinit var sendMail: SendMail
+
+    @Autowired
+    private lateinit var notificationLinks: NotificationLinks
 
     override val channel = NotificationChannel.MAIL
 
@@ -59,7 +63,14 @@ class MailNotificationSender : NotificationChannelSender {
         val subject = notification.title ?: ""
         mail.subject = subject
         mail.contentType = Mail.CONTENTTYPE_HTML
-        val data = mutableMapOf<String, Any?>("body" to (notification.body ?: ""))
+        val body = notification.body ?: ""
+        val data = mutableMapOf<String, Any?>("body" to body)
+        // Rule handlers may embed their link in the body already (chat notifications don't).
+        val linkUrl = notification.link?.takeIf { it.isNotBlank() }?.let { notificationLinks.absolute(it) }
+        if (linkUrl != null && !body.contains(linkUrl)) {
+            data["linkUrl"] = linkUrl
+            data["linkText"] = I18nHelper.getLocalizedMessage(recipient, "notification.open")
+        }
         mail.content = sendMail.renderGroovyTemplate(mail, TEMPLATE, data, subject, recipient)
         return mail
     }

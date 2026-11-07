@@ -1,3 +1,4 @@
+import type { RowWithEditors } from "@/components/shared/editors/editors-column";
 // Mirrors org.projectforge.rest.dto.Eingangsrechnung and EingangsrechnungsPosition — the lean row of the
 // list ([CreditorInvoiceListRow], what `copyFrom4ListRow` fills) and the whole DTO of the edit form
 // ([CreditorInvoiceDetail], what `copyFromWithCollections` fills).
@@ -93,7 +94,7 @@ export interface CreditorInvoiceDetail {
 }
 
 /** One row of the incoming invoice list. */
-export interface CreditorInvoiceListRow extends ListRow {
+export interface CreditorInvoiceListRow extends ListRow, RowWithEditors {
   kreditor?: string;
   referenz?: string;
   betreff?: string;

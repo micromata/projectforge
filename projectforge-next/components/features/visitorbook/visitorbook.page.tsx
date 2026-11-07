@@ -1,3 +1,4 @@
+import { editorsColumn } from "@/components/shared/editors/editors-column";
 import { VISITORBOOK_METADATA } from "@/lib/metadata/visitorbook.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { VisitorbookCompanyField } from "./edit/visitorbook-company-field";
@@ -78,6 +79,7 @@ export const VISITORBOOK_PAGE = definePage<
     { name: "comment", size: 300, wrap: true },
     { name: "created", size: 130, hiddenByDefault: true },
     { name: "lastUpdate", size: 130, hiddenByDefault: true },
+    editorsColumn<VisitorbookListRow>(),
   ],
   edit: {
     schema: visitorbookSchema,

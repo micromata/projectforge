@@ -57,6 +57,8 @@ export function toFormValues(invoice: InvoiceDetail): InvoiceValues {
     customerVatId: invoice.customerVatId ?? null,
     customerLeitwegId: invoice.customerLeitwegId ?? null,
     customerEInvoiceEmail: invoice.customerEInvoiceEmail ?? null,
+    customerContactEmail: invoice.customerContactEmail ?? null,
+    sellerContactEmail: invoice.sellerContactEmail ?? null,
     sellerBankAccount: invoice.sellerBankAccount ?? null,
     periodOfPerformanceBegin: invoice.periodOfPerformanceBegin ?? null,
     periodOfPerformanceEnd: invoice.periodOfPerformanceEnd ?? null,

@@ -103,44 +103,7 @@ export const NOTIFICATION_RULE_METADATA = {
       dataType: "STRING",
       i18nKey: "notification.rule.ruleType",
       required: true,
-      enumValues: [
-        {
-          value: "TIMESHEETS_MISSING",
-          i18nKey: "notification.ruleTypes.TIMESHEETS_MISSING",
-        },
-        {
-          value: "VACATION_LEFT",
-          i18nKey: "notification.ruleTypes.VACATION_LEFT",
-        },
-        {
-          value: "PASSWORD_NOT_CHANGED",
-          i18nKey: "notification.ruleTypes.PASSWORD_NOT_CHANGED",
-        },
-        {
-          value: "TIMESHEETS_WITHOUT_KOST2",
-          i18nKey: "notification.ruleTypes.TIMESHEETS_WITHOUT_KOST2",
-        },
-        {
-          value: "TIMESHEETS_TO_ACCEPT",
-          i18nKey: "notification.ruleTypes.TIMESHEETS_TO_ACCEPT",
-        },
-        {
-          value: "CREDITOR_INVOICES_DUE",
-          i18nKey: "notification.ruleTypes.CREDITOR_INVOICES_DUE",
-        },
-        {
-          value: "CVERADAR_FINDINGS",
-          i18nKey: "notification.ruleTypes.CVERADAR_FINDINGS",
-        },
-        {
-          value: "CVERADAR_STALE_LISTS",
-          i18nKey: "notification.ruleTypes.CVERADAR_STALE_LISTS",
-        },
-        {
-          value: "MANUAL",
-          i18nKey: "notification.ruleTypes.MANUAL",
-        },
-      ],
+      maxLength: 50,
     },
     schedule: {
       dataType: "STRING",

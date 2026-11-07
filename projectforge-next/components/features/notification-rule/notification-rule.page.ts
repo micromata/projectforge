@@ -1,3 +1,4 @@
+import { editorsColumn } from "@/components/shared/editors/editors-column";
 import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { NOTIFICATION_RULE_METADATA } from "@/lib/metadata/notification-rule.generated";
 import { definePage } from "@/lib/page-def/define-page";
@@ -29,6 +30,7 @@ import { RuleActions } from "./rule-actions";
 import { RuleLogTab } from "./rule-log-tab";
 import { RuleParamsField } from "./rule-params-field";
 import { RuleTextField } from "./rule-text-field";
+import { RuleTypeField } from "./rule-type-field";
 import { RuleVariablesField } from "./rule-variables-field";
 import { ScheduleField } from "./schedule-field";
 import { SmsTextField } from "./sms-text-field";
@@ -57,7 +59,12 @@ export const NOTIFICATION_RULE_PAGE = definePage<
   listActions: NotificationRuleListActions,
   columns: [
     { name: "name", size: 260 },
-    { name: "ruleType", size: 200 },
+    {
+      id: "ruleType",
+      labelKey: "notification.rule.ruleType",
+      accessor: (row) => row.ruleTypeLabel,
+      size: 200,
+    },
     { name: "active", size: 90 },
     { name: "severity", size: 110 },
     { name: "display", size: 170 },
@@ -70,6 +77,7 @@ export const NOTIFICATION_RULE_PAGE = definePage<
     },
     { name: "description", size: 300 },
     { name: "lastUpdate", size: 130 },
+    editorsColumn<NotificationRuleListRow>(),
   ],
   // An inactive rule reads struck through (thin, grey), so it isn't taken for a running one — nor for a
   // deleted one, which keeps its own strike.
@@ -93,7 +101,7 @@ export const NOTIFICATION_RULE_PAGE = definePage<
         fields: [
           { name: "name", span: 3 },
           { name: "active" },
-          { name: "ruleType", span: 2 },
+          { custom: RuleTypeField, span: 2 },
           { custom: RuleParamsField, span: 2 },
           { custom: ScheduleField, span: 4 },
           { name: "description", span: 4, rows: 2 },

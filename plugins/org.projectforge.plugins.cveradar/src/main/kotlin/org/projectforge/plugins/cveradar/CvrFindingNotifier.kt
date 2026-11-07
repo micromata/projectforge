@@ -27,7 +27,6 @@ package org.projectforge.plugins.cveradar
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PreDestroy
 import org.projectforge.business.notification.NotificationRuleDao
-import org.projectforge.business.notification.NotificationRuleType
 import org.projectforge.business.notification.NotificationService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -70,7 +69,7 @@ class CvrFindingNotifier {
     fun runRules(): Int {
         var created = 0
         try {
-            notificationRuleDao.selectActive().filter { it.ruleType == NotificationRuleType.CVERADAR_FINDINGS }.forEach { rule ->
+            notificationRuleDao.selectActive().filter { it.ruleType == CvrFindingsRuleHandler.TYPE }.forEach { rule ->
                 created += notificationService.trigger(rule).created
             }
         } catch (ex: Exception) {

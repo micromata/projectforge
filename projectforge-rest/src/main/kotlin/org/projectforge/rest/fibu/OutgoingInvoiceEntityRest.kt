@@ -271,6 +271,8 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Spring.
         rechnung.datum = LocalDate.now()
         rechnung.status = RechnungStatus.GESTELLT
         rechnung.typ = RechnungTyp.RECHNUNG
+        // BT-43: the seller's contact email, configured once per installation; editable per invoice.
+        rechnung.sellerContactEmail = sellerConfig.defaultContactEmail()
         return rechnung
     }
 
@@ -288,6 +290,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Spring.
     override fun prepareClone(dto: Rechnung): Rechnung {
         val clone = prepareInvoiceClone(super.prepareClone(dto), LocalDate.now())
         fillEInvoiceFieldsFromAccount(clone, eInvoiceAccountOf(clone), sellerConfig.bankAccounts)
+        if (clone.sellerContactEmail.isNullOrBlank()) {
+            clone.sellerContactEmail = sellerConfig.defaultContactEmail()
+        }
         return clone
     }
 
@@ -1554,6 +1559,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Spring.
             fill(dto.customerVatId, account.vatId) { dto.customerVatId = it }
             fill(dto.customerLeitwegId, account.leitwegId) { dto.customerLeitwegId = it }
             fill(dto.customerEInvoiceEmail, account.eInvoiceEmail) { dto.customerEInvoiceEmail = it }
+            fill(dto.customerContactEmail, account.contactEmail) { dto.customerContactEmail = it }
             val bankAccountName = account.sellerBankAccountName
             if (!bankAccountName.isNullOrBlank()) {
                 val iban = bankAccounts.filter { it.name == bankAccountName }.singleOrNull()?.iban

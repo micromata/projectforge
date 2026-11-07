@@ -12,16 +12,31 @@ import { cn } from "@/lib/utils";
  * inline style would otherwise override the class that pins the header vertically,
  * and the pinned columns' headers would scroll away while the others stayed.
  */
+/**
+ * Which pinned columns lose their horizontal stick because they would fill a narrow viewport (see
+ * DataTable): the left ones go first, so the right ones (typically the actions) stay reachable for longer.
+ */
+export type PinningSuspension = "none" | "left" | "all";
+
+/** Whether the column is pinned and keeps its stick under [suspension]. */
+export function isStuck<TData>(
+  column: Column<TData, unknown>,
+  suspension: PinningSuspension = "none"
+): boolean {
+  const pinned = column.getIsPinned();
+  if (!pinned || suspension === "all") return false;
+  return !(suspension === "left" && pinned === "left");
+}
+
 export function pinnedStyle<TData>(
   column: Column<TData, unknown>,
   isHeader = false,
-  suspended = false
+  suspension: PinningSuspension = "none"
 ): React.CSSProperties {
   const pinned = column.getIsPinned();
-  // When suspended (the pinned columns would fill a narrow viewport, see DataTable) drop the horizontal
-  // stick entirely so every column flows and scrolls — the header keeps its vertical stick from its own
-  // class, exactly as an unpinned column does.
-  if (!pinned || suspended) return {};
+  // When suspended, drop the horizontal stick so the column flows and scrolls — the header keeps its
+  // vertical stick from its own class, exactly as an unpinned column does.
+  if (!isStuck(column, suspension)) return {};
   return {
     position: "sticky",
     left: pinned === "left" ? column.getStart("left") : undefined,
@@ -35,10 +50,10 @@ export function pinnedStyle<TData>(
 /** Marks the boundary between pinned and scrolling columns. */
 export function pinnedClass<TData>(
   column: Column<TData, unknown>,
-  suspended = false
+  suspension: PinningSuspension = "none"
 ): string | undefined {
   const pinned = column.getIsPinned();
-  if (!pinned || suspended) return undefined;
+  if (!isStuck(column, suspension)) return undefined;
   return cn(
     pinned === "left" && column.getIsLastColumn("left") && "border-r",
     pinned === "right" && column.getIsFirstColumn("right") && "border-l"
@@ -63,7 +78,7 @@ interface DataTableRowProps<TData> {
   /** Highlight class for the whole row, e.g. "row-red" (see globals.css). */
   className?: string;
   /** Drop the horizontal pinning stick (pinned columns would fill a narrow viewport — see DataTable). */
-  suspendPinning?: boolean;
+  suspendPinning?: PinningSuspension;
   /** Vertical lines between the columns (see DataTable). */
   columnLines?: boolean;
   /** Measures the rendered row for the row virtualizer, with its [virtualIndex] (see DataTable.virtualizeRows). */

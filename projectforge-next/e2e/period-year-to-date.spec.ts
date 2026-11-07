@@ -14,6 +14,7 @@ import {
   periodKindsOf,
   type PeriodKind,
 } from "../lib/date-period";
+import { firstOfMonth } from "../lib/date-period-math";
 import { todayOf } from "../lib/user-zone";
 import { kindName, pickKind, picker } from "./fixtures/period-kind";
 
@@ -67,7 +68,7 @@ test.describe("year to date", { tag: "@isolated" }, () => {
     await goto(page, "/book");
     await openPill(page, t, field.label!);
 
-    // A begin in the previous year, so "bis heute" is a stretch of months rather than the current month.
+    // A begin some months back, so "bis heute" is a stretch of months rather than the current month.
     const begin = startOfLastYear(context);
     await bound(page, format, field, "value").fill(format.date(begin));
     await pickKind(page, format, YEAR_TO_DATE);
@@ -210,9 +211,11 @@ function dateField(page: Page) {
 }
 
 /**
- * A begin in the previous year — the 1st of November, the fiscal year the case came from. Derived from
- * the account's own zone, because which year is "the previous" one depends on the day it is there.
+ * A begin some months back — the 1st of the month six months ago, so "bis heute" is a stretch of months
+ * rather than the current month, and always within the last twelve months: a begin further back would
+ * end the year on its own anniversary instead of today (see `YEAR_TO_DATE.endOf`). Derived from the
+ * account's own zone, because which day it is depends on it.
  */
 function startOfLastYear(context: UserFormat["context"]): string {
-  return `${Number(todayOf(context).slice(0, 4)) - 1}-11-01`;
+  return firstOfMonth(todayOf(context), -6);
 }

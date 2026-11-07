@@ -146,5 +146,8 @@
     "title": "Unsaved changes",
     "confirm": "Leave page",
     "stay": "Stay here"
+  },
+  "businessCard": {
+    "photoUnavailable": "Photo cannot be loaded"
   }
 }

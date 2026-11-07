@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FormAlert } from "@/components/shared/form-alert";
+import { EInvoiceFindings } from "@/components/shared/e-invoice-findings";
 import { SectionCard } from "@/components/shared/section-card";
 import { useFormatContext } from "@/hooks/use-format";
 import {
@@ -56,25 +56,7 @@ export function EInvoiceCheckResultView({
     <div className="flex flex-col gap-4" data-testid="e-invoice-check-result">
       <div className="flex flex-col gap-2">
         <p className="text-sm font-medium">{result.filename}</p>
-        {data.validationErrors.length === 0 ? (
-          <FormAlert tone="success">
-            {t("fibu.eInvoiceChecker.valid")}
-          </FormAlert>
-        ) : (
-          <FormAlert tone="error">
-            <p>{t("fibu.eInvoiceChecker.invalid")}</p>
-            <ul className="mt-1 list-disc pl-5">
-              {data.validationErrors.map((error, index) => (
-                <li key={index}>{error}</li>
-              ))}
-            </ul>
-          </FormAlert>
-        )}
-        {data.warnings.map((warning, index) => (
-          <FormAlert key={index} tone="warning">
-            {warning}
-          </FormAlert>
-        ))}
+        <EInvoiceFindings data={data} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

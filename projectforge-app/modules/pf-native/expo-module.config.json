@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["PfNativeModule"]
+  },
+  "android": {
+    "modules": ["org.projectforge.pfnative.PfNativeModule"]
+  }
+}

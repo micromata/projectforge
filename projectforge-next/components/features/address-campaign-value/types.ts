@@ -1,3 +1,4 @@
+import type { RowWithEditors } from "@/components/shared/editors/editors-column";
 // Mirrors org.projectforge.plugins.marketing.dto.AddressCampaignValue (marketing plugin). Keep field names in
 // sync with the Spring DTO.
 
@@ -6,7 +7,7 @@
  * `JsonInclude.Include.NON_NULL` (JacksonConfiguration), so an empty field is absent from the JSON
  * rather than null. `toFormValues` normalises that away.
  */
-export interface AddressCampaignValueDetail {
+export interface AddressCampaignValueDetail extends RowWithEditors {
   /**
    * null for a value that has not been saved yet. In the list, an address without a value in the
    * campaign comes with its negated address id as synthetic id (see isSyntheticRow).

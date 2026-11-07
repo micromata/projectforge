@@ -23,6 +23,8 @@
 
 package org.projectforge.business.orga
 
+import org.projectforge.framework.persistence.history.WithEditors
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.time.LocalDate
@@ -41,7 +43,13 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 @Table(name = "T_ORGA_POSTAUSGANG")
 @NamedQueries(
         NamedQuery(name = PostausgangDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from PostausgangDO"))
-open class PostausgangDO : DefaultBaseDO() {
+open class PostausgangDO : DefaultBaseDO(), WithEditors {
+
+    /** The names of everybody who created or changed the entry; set for the list only (see HistoryEditorsService). */
+    @get:Transient
+    @get:JsonProperty
+    override var editors: List<String>? = null
+
 
     @PropertyInfo(i18nKey = "date")
     @GenericField // was: @FullTextField(analyze = Analyze.NO)

@@ -31,6 +31,7 @@ export interface KontoDetail {
   vatId?: string | null;
   leitwegId?: string | null;
   eInvoiceEmail?: string | null;
+  contactEmail?: string | null;
   /** Name of one of the seller's configured bank accounts (`EInvoiceSellerConfig.bankAccounts`). */
   sellerBankAccountName?: string | null;
   created?: string | null;

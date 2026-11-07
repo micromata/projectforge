@@ -34,13 +34,22 @@ import java.time.LocalDate
  */
 @Service
 class ManualRuleHandler : NotificationRuleHandler {
-    override val ruleType = NotificationRuleType.MANUAL
+    override val ruleType = TYPE
+
+    override val order = 100
 
     override val variables = emptyList<String>()
+
+    /** Nothing resolves a banner of a rule without condition: its recipients must be able to mark it as done. */
+    override fun isManualDoneForced(display: NotificationDisplay?) = display == NotificationDisplay.BANNER
 
     override fun evaluate(rule: NotificationRuleDO, today: LocalDate): NotificationRuleHandler.Evaluation {
         return NotificationRuleHandler.Evaluation("run-${System.currentTimeMillis()}", emptyMap(), restrictsRecipients = false)
     }
 
     override fun variables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> = emptyMap()
+
+    companion object {
+        const val TYPE = "MANUAL"
+    }
 }

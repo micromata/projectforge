@@ -4,9 +4,10 @@ import { useTranslations } from "next-intl";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import { InputField } from "@/components/shared/form/input-field";
 import { BusinessCardAddressField } from "./business-card-address-field";
+import { BusinessCardContents } from "./business-card-contents";
 import { BusinessCardPhotoOption } from "./business-card-photo-option";
 import { BusinessCardQrPreview } from "./business-card-qr-preview";
-import type { BusinessCardPreview } from "./types";
+import type { BusinessCard, BusinessCardPreview } from "./types";
 
 /** The first section of the editor: name, source address and photo of the card beside its live QR code. */
 export function BusinessCardMainSection({
@@ -17,6 +18,7 @@ export function BusinessCardMainSection({
   photoUrlAvailable,
   cardId,
   preview,
+  card,
 }: {
   cardId: string | null;
   address: EntityRef | null;
@@ -25,6 +27,8 @@ export function BusinessCardMainSection({
   includePhoto: boolean;
   photoUrlAvailable: boolean;
   preview: BusinessCardPreview | undefined;
+  /** The card as it would be saved, to list what it contains. */
+  card: BusinessCard;
 }) {
   const t = useTranslations();
   return (
@@ -44,7 +48,13 @@ export function BusinessCardMainSection({
           cardId={cardId}
         />
       </div>
-      <BusinessCardQrPreview preview={preview} />
+      <div className="flex max-w-xs flex-col gap-3">
+        <BusinessCardQrPreview preview={preview} />
+        <BusinessCardContents
+          card={card}
+          withPhoto={preview?.withPhoto === true}
+        />
+      </div>
     </div>
   );
 }

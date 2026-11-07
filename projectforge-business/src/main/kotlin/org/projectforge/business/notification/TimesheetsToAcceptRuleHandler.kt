@@ -65,7 +65,10 @@ class TimesheetsToAcceptRuleHandler : NotificationRuleHandler {
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
-    override val ruleType = NotificationRuleType.TIMESHEETS_TO_ACCEPT
+    override val ruleType = TYPE
+
+    override val order = 50
+
 
     override val variables = listOf(
         "timesheetsToAcceptCount",
@@ -176,6 +179,8 @@ class TimesheetsToAcceptRuleHandler : NotificationRuleHandler {
     }
 
     companion object {
+        const val TYPE = "TIMESHEETS_TO_ACCEPT"
+
         /** The time sheet list with the filter "to accept" (see the time sheet list of projectforge-next). */
         const val LIST_PATH = "/timesheet?acceptancePending=true"
 

@@ -1,5 +1,5 @@
 # The mobile app (projectforge-flutter): analyzer and unit tests. Its generated i18n catalogs are checked by
-# GenerateFlutterI18nMessagesTest in the Gradle build.
+# GenerateAppI18nMessagesTest in the Gradle build. Replaced by app.yml (projectforge-app) at the cutover.
 on:
   push:
     branches: [ develop ]

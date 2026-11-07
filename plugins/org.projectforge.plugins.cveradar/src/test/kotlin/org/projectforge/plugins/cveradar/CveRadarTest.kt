@@ -320,6 +320,34 @@ class CveRadarTest : CveRadarTestBase() {
     }
 
     @Test
+    fun `in a released case the answer of each member is the own confirmation too`() {
+        val member = user("member4", null)
+        addToGroup(member, "cveradar-own-client")
+        logon(user("st10", CvrRole.SECURITY_TEAM))
+        val released = insertCase("released per member") { it.clientAdvisory = true }
+        val internal = insertCase("internal per member")
+        fun check(case: CvrCaseDO) = rest.createTeamCheck(
+            case.id!!, TeamCheckRequest(getGroupId("cveradar-own-client"), "Own client", perPerson = true),
+        ).teamChecks.single().id
+        val releasedCheck = check(released)
+        val internalCheck = check(internal)
+        fun confirmation(case: CvrCaseDO) =
+            deviceService.selectConfirmations(case.id!!).singleOrNull { it.userId == member.id }
+
+        logon(member)
+        rest.answerTeamCheck(releasedCheck, TeamCheckAnswerRequest(CvrTeamAnswer.FIXED, "updated"))
+        assertEquals(CvrClientAnswer.DONE, confirmation(released)?.answer)
+        assertEquals(CvrClientAnswer.DONE, rest.my().advisories.single { it.id == released.id }.myAnswer)
+        rest.answerTeamCheck(releasedCheck, TeamCheckAnswerRequest(CvrTeamAnswer.NOT_AFFECTED, "no such client"))
+        assertEquals(CvrClientAnswer.NOT_AFFECTED, confirmation(released)?.answer, "replaced, not a second answer")
+        rest.answerTeamCheck(releasedCheck, TeamCheckAnswerRequest(CvrTeamAnswer.IN_PROGRESS))
+        assertNull(confirmation(released), "in progress confirms nothing")
+
+        rest.answerTeamCheck(internalCheck, TeamCheckAnswerRequest(CvrTeamAnswer.FIXED))
+        assertNull(confirmation(internal), "not released: no confirmation")
+    }
+
+    @Test
     fun `not relevant closes like closed, with reason and with open items by the security officer only`() {
         val so = user("so2", CvrRole.SECURITY_OFFICER)
         logon(user("st6", CvrRole.SECURITY_TEAM))

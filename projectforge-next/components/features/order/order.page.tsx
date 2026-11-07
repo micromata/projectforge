@@ -1,3 +1,4 @@
+import { editorsColumn } from "@/components/shared/editors/editors-column";
 import { attachmentsColumn } from "@/components/shared/attachments/attachments-column";
 import { TERM_KIND_IDS } from "@/lib/date-period";
 import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
@@ -241,6 +242,7 @@ export const ORDER_PAGE = definePage<
     // on. Declared, unlike `created`, which every list offers hidden (see lib/page-def/audit-columns.ts):
     // the order book is the list where this is read, not an option of it.
     { name: "lastUpdate", size: 130 },
+    editorsColumn<OrderListRow>(),
   ],
   // The sums over the whole result set, above the table as the legacy list shows them. The cast is where
   // the untyped `ResultSet.statistics` becomes what `OrderEntityRest.OrderStatistics` sends — see

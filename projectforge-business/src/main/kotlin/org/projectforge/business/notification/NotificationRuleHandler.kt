@@ -28,8 +28,9 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate
 
 /**
- * Evaluates the rules of one [ruleType]: who is concerned (with the values of the variables per user), and
- * whether a pending notification is resolved. A Spring bean, found by [NotificationService] via its [ruleType].
+ * A rule type: describes it for the editor (name, [params], recipients, template) and evaluates its rules: who is
+ * concerned (with the values of the variables per user), and whether a pending notification is resolved. A Spring
+ * bean (also of a plugin), registered by its [ruleType] in [NotificationRuleRegistry]: the core knows no single type.
  */
 interface NotificationRuleHandler {
     /** The result of a rule run. */
@@ -44,7 +45,7 @@ interface NotificationRuleHandler {
          */
         val link: String? = null,
         /**
-         * False, if the rule has no condition ([NotificationRuleType.MANUAL]): all recipients are notified, regardless
+         * False, if the rule has no condition (a manual rule, [ManualRuleHandler]): all recipients are notified, regardless
          * of [NotificationRecipients.onlyAffected].
          */
         val restrictsRecipients: Boolean = true,
@@ -77,7 +78,58 @@ interface NotificationRuleHandler {
         }
     }
 
-    val ruleType: NotificationRuleType
+    /** The key of the type, stored in [NotificationRuleDO.ruleType] (at most 50 characters, unique). */
+    val ruleType: String
+
+    /** The name of the type. */
+    val i18nKey: String
+        get() = "notification.ruleTypes.$ruleType"
+
+    /**
+     * Is the type offered and run? E.g. not while its plugin is deactivated: its rules wait, the editor doesn't
+     * offer the type (its texts aren't loaded either).
+     */
+    val isAvailable: Boolean
+        get() = true
+
+    /** The position of the type in the selection of the editor. */
+    val order: Int
+        get() = 1000
+
+    /** The settings of the type, shown by the editor, checked by the service, read by the handler. */
+    val params: List<NotificationRuleParam<*>>
+        get() = emptyList()
+
+    /** Who the recipients are, for the editor (the run decides by [Evaluation.affectedAreRecipients]). */
+    val recipientMode: NotificationRecipientMode
+        get() = NotificationRecipientMode.RECIPIENTS
+
+    /** A hint of the editor on the recipients, e.g. who gets notified besides the configured ones. */
+    val recipientsHintKey: String?
+        get() = null
+
+    /** Recipients must be configured (nobody is concerned by the rule itself). */
+    val requiresRecipients: Boolean
+        get() = false
+
+    /**
+     * Subject and text of a new rule of the type (i18n keys; variables written as `[key]`, braces are ICU syntax),
+     * null for empty texts.
+     */
+    val templateSubjectKey: String?
+        get() = null
+
+    val templateTextKey: String?
+        get() = null
+
+    /**
+     * May the recipients always mark a notification of the rule as done, e.g. a banner nothing resolves (a rule
+     * without condition)?
+     */
+    fun isManualDoneForced(display: NotificationDisplay?): Boolean = false
+
+    /** Warnings after saving the rule (i18n keys), e.g. a precondition switched off in the configuration. */
+    fun warnings(rule: NotificationRuleDO): List<String> = emptyList()
 
     /** The keys of the type specific variables (`{{key}}`); the labels are `notification.variable.<key>`. */
     val variables: List<String>
@@ -96,6 +148,18 @@ interface NotificationRuleHandler {
      * (e.g. a list of two invoices): from synthetic data, without database access.
      */
     fun exampleVariables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> = emptyMap()
+
+    /**
+     * The display names of the entities referred to by the params of the rule by param name (e.g. `cvrCaseId` to the
+     * case), for the editor: the rest module doesn't know the entities of a plugin.
+     */
+    fun paramDisplayNames(rule: NotificationRuleDO): Map<String, String> = emptyMap()
+
+    /**
+     * The errors of the params of the rule by param name (i18n keys), e.g. a referred entity not found, for the
+     * validation of the editor: the rest module doesn't know the entities of a plugin.
+     */
+    fun paramErrors(rule: NotificationRuleDO): Map<String, String> = emptyMap()
 
     /** May the user be a recipient of the run at all (e.g. employed in the referred month)? */
     fun isRelevant(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Boolean = true

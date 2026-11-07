@@ -3,7 +3,8 @@ import type { NotificationRuleDetail } from "./types";
 
 /**
  * A field Spring left out of the JSON (`JsonInclude.Include.NON_NULL`) arrives as `undefined`; every
- * value is normalised here. The defaults are the DTO's (NotificationRule).
+ * value is normalised here. The defaults are the DTO's (NotificationRule), those of the params the
+ * rule type's.
  */
 export function toFormValues(
   rule: NotificationRuleDetail
@@ -17,16 +18,8 @@ export function toFormValues(
     scheduleMode: rule.scheduleMode ?? "NONE",
     scheduleDay: rule.scheduleDay ?? 0,
     scheduleDayOfWeek: rule.scheduleDayOfWeek ?? null,
-    referredMonth: rule.referredMonth ?? "CURRENT",
-    vacationExpiry: rule.vacationExpiry ?? "CARRY_OVER",
-    daysBeforeExpiry: rule.daysBeforeExpiry ?? 30,
-    passwordMaxAgeDays: rule.passwordMaxAgeDays ?? 90,
-    kost2MissingMonths: rule.kost2MissingMonths ?? 2,
-    dueWorkingDays: rule.dueWorkingDays ?? 2,
-    cvrMinSeverity: rule.cvrMinSeverity ?? "HIGH",
-    cvrIncludePossible: rule.cvrIncludePossible ?? false,
-    cvrIncludeUnscored: rule.cvrIncludeUnscored ?? true,
-    cvrMaxAgeDays: rule.cvrMaxAgeDays ?? 30,
+    // Completed by the backend (the defaults of the type); a new rule gets them with its type (RuleTypeField).
+    params: rule.params ?? {},
     recipientGroups: rule.recipientGroups ?? [],
     recipientUsers: rule.recipientUsers ?? [],
     allEmployees: rule.allEmployees ?? false,

@@ -72,6 +72,12 @@ export const RECHNUNG_METADATA = {
       required: false,
       maxLength: 255,
     },
+    customerContactEmail: {
+      dataType: "STRING",
+      i18nKey: "fibu.konto.contactEmail",
+      required: false,
+      maxLength: 255,
+    },
     customerContactPerson: {
       dataType: "STRING",
       i18nKey: "fibu.konto.contactPerson",
@@ -192,6 +198,12 @@ export const RECHNUNG_METADATA = {
       i18nKey: "fibu.rechnung.sellerBankAccount",
       required: false,
       maxLength: 34,
+    },
+    sellerContactEmail: {
+      dataType: "STRING",
+      i18nKey: "fibu.rechnung.sellerContactEmail",
+      required: false,
+      maxLength: 255,
     },
     status: {
       dataType: "STRING",

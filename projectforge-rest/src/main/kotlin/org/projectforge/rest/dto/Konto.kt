@@ -39,6 +39,7 @@ class Konto(
   var country: String? = null,
   var leitwegId: String? = null,
   var eInvoiceEmail: String? = null,
+  var contactEmail: String? = null,
   var contactPerson: String? = null,
   var contactDepartment: String? = null,
   var costCenter: String? = null,

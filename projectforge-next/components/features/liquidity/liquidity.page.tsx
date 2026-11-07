@@ -1,3 +1,4 @@
+import { editorsColumn } from "@/components/shared/editors/editors-column";
 import { LIQUIDITY_ENTRY_METADATA } from "@/lib/metadata/liquidity-entry.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { LiquidityListActions } from "./liquidity-list-actions";
@@ -86,6 +87,7 @@ export const LIQUIDITY_PAGE = definePage<
     { name: "comment", size: 280 },
     // Whether the paid status is derived after the date of payment; off by default, an occasional detail.
     { name: "autoSetPaid", size: 110, hiddenByDefault: true },
+    editorsColumn<LiquidityListRow>(),
   ],
   // Mirrors the Wicket list's row colours (`LiquidityEntryListPage`): an unpaid entry whose date of payment
   // is in the past (or missing) reads red (overdue), an unpaid future one blue.

@@ -7,7 +7,7 @@ import { EntityMultiAutocompleteField } from "@/components/shared/form/entity-mu
 import { EMPLOYEE_METADATA } from "@/lib/metadata/employee.generated";
 import { cn } from "@/lib/utils";
 import { fromMetadata } from "@/lib/validation/from-metadata";
-import { useRuleValue } from "./use-rule-value";
+import { useChosenRuleType } from "./use-rule-types";
 
 /**
  * The recipients of a rule (NotificationRecipients): groups, single users and employees by status,
@@ -19,8 +19,17 @@ const employee = fromMetadata(EMPLOYEE_METADATA);
 
 type FieldProps = { className?: string };
 
+/**
+ * A rule type notifying only those concerned (e.g. the members who haven't answered a team check) doesn't use the
+ * recipients given, so they aren't offered (the excluded statuses still apply).
+ */
+function useRecipientsUnused() {
+  return useChosenRuleType()?.recipientMode === "AFFECTED_ONLY";
+}
+
 export function RecipientGroupsField({ className }: FieldProps) {
   const t = useTranslations("notification.recipients");
+  if (useRecipientsUnused()) return null;
   return (
     <EntityMultiAutocompleteField
       name="recipientGroups"
@@ -34,6 +43,7 @@ export function RecipientGroupsField({ className }: FieldProps) {
 
 export function RecipientUsersField({ className }: FieldProps) {
   const t = useTranslations("notification.recipients");
+  if (useRecipientsUnused()) return null;
   return (
     <EntityMultiAutocompleteField
       name="recipientUsers"
@@ -47,6 +57,7 @@ export function RecipientUsersField({ className }: FieldProps) {
 
 export function AllEmployeesField({ className }: FieldProps) {
   const t = useTranslations("notification.recipients");
+  if (useRecipientsUnused()) return null;
   return (
     <CheckboxField
       name="allEmployees"
@@ -58,13 +69,13 @@ export function AllEmployeesField({ className }: FieldProps) {
 
 export function OnlyAffectedField({ className }: FieldProps) {
   const t = useTranslations("notification.recipients");
-  const tParams = useTranslations("notification.params");
-  const ruleType = useRuleValue("ruleType");
-  // The CVE radar always notifies the responsible teams, the recipients given are in copy.
-  if (ruleType === "CVERADAR_FINDINGS" || ruleType === "CVERADAR_STALE_LISTS") {
+  const ruleType = useChosenRuleType();
+  // The handler finds those concerned itself (the recipients given in copy, or not used at all): its hint
+  // instead of the checkbox.
+  if (ruleType && ruleType.recipientMode !== "RECIPIENTS") {
     return (
       <p className={cn("text-xs text-muted-foreground", className)}>
-        {tParams("cvrRecipientsInfo")}
+        {ruleType.recipientsHint}
       </p>
     );
   }
@@ -80,6 +91,7 @@ export function OnlyAffectedField({ className }: FieldProps) {
 
 export function EmployeeStatusField({ className }: FieldProps) {
   const t = useTranslations();
+  if (useRecipientsUnused()) return null;
   return (
     <CheckboxListField
       name="employeeStatus"

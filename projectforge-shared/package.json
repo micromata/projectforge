@@ -1,0 +1,16 @@
+{
+  "name": "@projectforge/shared",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TypeScript shared by the app (projectforge-app) and the web frontend (projectforge-next): the types of the /rs api, pure helpers. No React, no DOM, no React Native.",
+  "type": "module",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3"
+  }
+}

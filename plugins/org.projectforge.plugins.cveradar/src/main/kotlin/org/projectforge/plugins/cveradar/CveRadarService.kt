@@ -164,6 +164,9 @@ class CveRadarService {
         val text = comment?.trim()?.take(4000)?.takeIf { it.isNotEmpty() }
         if (check.perPerson) {
             teamCheckAnswerService.answer(check, user, answer, text, date)
+            if (case.clientAdvisory) {
+                syncConfirmation(case.id!!, user.id!!, answer, text)
+            }
             return check
         }
         check.answer = answer
@@ -172,6 +175,25 @@ class CveRadarService {
         check.answeredBy = PFUserDO().also { it.id = user.id }
         teamCheckDao.update(check, checkAccess = false)
         return check
+    }
+
+    /**
+     * In a case released to the clients a team check asking every member asks what the employee's own confirmation
+     * (CLS-04) asks, so the member's answer is the confirmation too: one answer per person, not two contradicting
+     * ones. Fixed confirms as done, not affected as not affected; in progress and risk accepted confirm nothing, so an
+     * earlier confirmation is withdrawn.
+     */
+    private fun syncConfirmation(caseId: Long, userId: Long, answer: CvrTeamAnswer, comment: String?) {
+        val clientAnswer = when (answer) {
+            CvrTeamAnswer.FIXED -> CvrClientAnswer.DONE
+            CvrTeamAnswer.NOT_AFFECTED -> CvrClientAnswer.NOT_AFFECTED
+            CvrTeamAnswer.IN_PROGRESS, CvrTeamAnswer.RISK_ACCEPTED -> null
+        }
+        if (clientAnswer == null) {
+            deviceService.withdrawConfirmation(caseId, userId)
+        } else {
+            deviceService.confirm(caseId, userId, clientAnswer, comment)
+        }
     }
 
     /**

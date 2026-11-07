@@ -1,3 +1,4 @@
+import type { RowWithEditors } from "@/components/shared/editors/editors-column";
 // Mirrors org.projectforge.rest.dto.LeaveAccountEntry (projectforge-rest). Keep field names in sync with the Spring
 // DTO — the employee is a reference ({id, displayName}); dateFormatted / amountFormatted are read-only.
 
@@ -27,6 +28,7 @@ export interface LeaveAccountEntryDetail {
 }
 
 /** Projection the list page renders — the same DTO, with the id the table keys rows by. */
-export interface LeaveAccountEntryListRow extends LeaveAccountEntryDetail {
+export interface LeaveAccountEntryListRow
+  extends LeaveAccountEntryDetail, RowWithEditors {
   id: number;
 }

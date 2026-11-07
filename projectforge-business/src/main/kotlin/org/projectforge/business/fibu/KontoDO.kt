@@ -99,6 +99,10 @@ open class KontoDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(name = "e_invoice_email", length = 255)
     open var eInvoiceEmail: String? = null
 
+    @PropertyInfo(i18nKey = "fibu.konto.contactEmail")
+    @get:Column(name = "contact_email", length = 255)
+    open var contactEmail: String? = null
+
     @PropertyInfo(i18nKey = "fibu.konto.contactPerson")
     @get:Column(name = "contact_person", length = 255)
     open var contactPerson: String? = null

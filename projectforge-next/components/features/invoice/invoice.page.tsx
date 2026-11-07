@@ -1,3 +1,4 @@
+import { editorsColumn } from "@/components/shared/editors/editors-column";
 import { attachmentsColumn } from "@/components/shared/attachments/attachments-column";
 import { TERM_KIND_IDS } from "@/lib/date-period";
 import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
@@ -224,6 +225,7 @@ export const INVOICE_PAGE = definePage<
       size: 150,
       tooltip: (row) => row.kost2Info,
     },
+    editorsColumn<InvoiceListRow>(),
   ],
   // Mirrors the legacy grid's `withGetRowClass` (first match wins): a cancelled invoice reads greyed and
   // struck through — done and off the books, never overdue or open — overdue and unpaid reads red, anything
@@ -417,8 +419,10 @@ export const INVOICE_PAGE = definePage<
             vatId: "customerVatId",
             leitwegId: "customerLeitwegId",
             eInvoiceEmail: "customerEInvoiceEmail",
+            contactEmail: "customerContactEmail",
           },
           sellerBankAccount: SellerBankAccountField,
+          sellerContactEmail: "sellerContactEmail",
           streetRows: 2,
         }),
         // Below those very fields: the invoice PDF, what is still missing for an e-invoice, and the three

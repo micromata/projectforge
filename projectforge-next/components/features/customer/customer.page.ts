@@ -1,3 +1,4 @@
+import { editorsColumn } from "@/components/shared/editors/editors-column";
 import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { KUNDE_METADATA } from "@/lib/metadata/kunde.generated";
 import { definePage } from "@/lib/page-def/define-page";
@@ -73,6 +74,7 @@ export const CUSTOMER_PAGE = definePage<
     // When the customer was created and last changed — the two the legacy list omits.
     { name: "created", size: 130 },
     { name: "lastUpdate", size: 130 },
+    editorsColumn<CustomerListRow>(),
   ],
   // A no longer active customer reads struck through (thin, grey), set apart from a deleted one — the same
   // statuses the selection boxes strike (CustomerPagesRest.isInactiveAutoCompleteEntry).
