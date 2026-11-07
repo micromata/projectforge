@@ -63,6 +63,16 @@ export interface PushTokenRequest {
   environment: 'SANDBOX' | 'PRODUCTION';
 }
 
+/** @server org.projectforge.rest.app.AppAuthRest$PushTokenResponse */
+export interface PushTokenResponse {
+  /**
+   * The pushes name the device (`device` beside `aps`): the app tells by it which login a push belongs to. Missing for
+   * an older server, which answers nothing: such a server is let push only while it is shown.
+   * @optionalRead
+   */
+  deviceTagged?: boolean;
+}
+
 /** @server org.projectforge.rest.app.AppAuthRest$WebSessionResponse */
 export interface WebSessionResponse {
   startUrl: string;

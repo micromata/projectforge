@@ -86,7 +86,7 @@ export function boundApiClient(
   });
 }
 
-const loginKey = (session: Session) => `${session.serverUrl}#${session.userId}`;
+export const loginKey = (session: Session) => `${session.serverUrl}#${session.userId}`;
 
 /** What the controller works with on the device, replaced in the tests. */
 export interface AuthDeps {
@@ -216,17 +216,29 @@ export class AuthController {
   async removeServer(serverUrl: string) {
     const stored = (await this.sessions()).find((it) => it.serverUrl === serverUrl);
     if (stored && stored.serverUrl !== this.state.session?.serverUrl) {
-      const client = boundApiClient(stored, {
-        http: this.deps.http,
-        current: () => stored,
-        onUnauthorized: () => undefined,
-        onReauthenticate: async () => false,
-      });
-      await withTimeout(client.post('/rs/appAuth/logout', { renewLogin: false }));
+      await withTimeout(this.clientFor(stored).post('/rs/appAuth/logout', { renewLogin: false }));
     }
     await this.deps.sessionStore.removeServer(serverUrl);
     this.emit();
   }
+
+  /**
+   * A client for a stored login that isn't the active one (its push token, its count of notifications): a refusal
+   * changes nothing here and never opens the browser.
+   */
+  clientFor = (session: Session): ApiClient =>
+    boundApiClient(session, {
+      http: this.deps.http,
+      current: () => session,
+      onUnauthorized: () => undefined,
+      onReauthenticate: async () => false,
+    });
+
+  /** The stored logins other than the active one. */
+  otherSessions = async (): Promise<Session[]> => {
+    const active = this.state.session;
+    return (await this.sessions()).filter((it) => active == null || loginKey(it) !== loginKey(active));
+  };
 
   /** A new login in the browser (second factor too old, SSO proxy refused); false if cancelled or failed. */
   reauthenticate = (): Promise<boolean> =>
@@ -313,13 +325,12 @@ export class AuthController {
   };
 
   /**
-   * Before another login becomes the active one; the current one stays stored. Its server stops pushing (only the
-   * server shown pushes), and its cache and shared files leave the device (not kept per server). The WebView keeps its
-   * data, which is per server anyway.
+   * Before another login becomes the active one; the current one stays stored. Its server keeps pushing if it names the
+   * device in its pushes (PushService decides, with the next login's start), and its cache and shared files leave the
+   * device (not kept per server). The WebView keeps its data, which is per server anyway.
    */
   private async leave() {
     if (this.state.status !== 'loggedIn') return;
-    await withTimeout(this.api?.post('/rs/appAuth/pushToken/remove', { renewLogin: false }));
     this.deps.cache.clearAll();
     this.deps.files.clearAll();
   }

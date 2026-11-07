@@ -31,6 +31,7 @@ import { appVersion } from '../../core/platform';
 import { authController } from '../../core/auth/authController';
 import { CompatibilityIssue } from '../../core/compat/compatibility';
 import { t } from '../../core/i18n/translations';
+import { useOtherServers } from '../../core/status/otherServers';
 import { chatEnabled, userStatus, useUserStatus } from '../../core/status/userStatus';
 import { severityColor, useColors } from '../../core/ui/colors';
 import { MenuItem, MenuSheet } from '../../core/ui/MenuSheet';
@@ -61,6 +62,7 @@ export function compatibilityText(issue: CompatibilityIssue): string {
  * The navigation of the app: slim, icons only (the label is their accessibility label), with the bell and the "more"
  * menu at its end (on a web tab with the browser functions first), so they are there on every tab (the pages bring
  * their own header).
+ * The "more" menu counts the open notifications of the other logins (their servers push too).
  * The chat tab is missing if the chat is switched off on the server; tapped again it leads back to its rooms. The
  * pages tab opens with its menu, tapped again it closes or opens it.
  * [rail]: in landscape a column at the left side (as the Flutter app's navigation rail), the bell and the menu at its
@@ -83,6 +85,8 @@ export function TabBar({
   const webTab = focused ? TABS[focused]?.webTab : undefined;
   const unread = status?.chatUnread ?? 0;
   const openNotifications = status?.notifications?.openCount ?? 0;
+  // The other logins' open notifications, at the menu with the server switch.
+  const otherOpen = useOtherServers().reduce((sum, it) => sum + it.openCount, 0);
 
   // The chat switched off on the server while it is shown: back to the business cards.
   const chatOff = focused === 'chat' && status != null && !chatEnabled(status);
@@ -125,7 +129,12 @@ export function TabBar({
     ...accountItems(),
     { key: 'version', label: t('app.version', appVersion), info: true },
     ...(issue ? [{ key: 'compatibility', label: compatibilityText(issue), icon: 'warning-outline' as IconName, info: true }] : []),
-    { key: 'servers', label: t('app.server.switch'), icon: 'swap-horizontal', onPress: () => router.push('/servers') },
+    {
+      key: 'servers',
+      label: otherOpen > 0 ? t('app.server.switch.notifications', otherOpen) : t('app.server.switch'),
+      icon: 'swap-horizontal',
+      onPress: () => router.push('/servers'),
+    },
     { key: 'settings', label: t('settings'), icon: 'settings-outline', onPress: () => router.push('/settings') },
     {
       key: 'logout',
@@ -214,6 +223,11 @@ export function TabBar({
       </Pressable>
       <Pressable style={styles.item} accessibilityLabel={t('app.menu.more')} onPress={() => setMenu(true)}>
         <Ionicons name="ellipsis-horizontal-circle-outline" size={24} color={issue ? colors.danger : colors.textMuted} />
+        {otherOpen > 0 && (
+          <View style={[styles.badge, { backgroundColor: colors.badge }]}>
+            <Text style={styles.badgeText}>{otherOpen > 99 ? '99+' : otherOpen}</Text>
+          </View>
+        )}
       </Pressable>
       <MenuSheet visible={menu} items={menu ? moreItems() : []} onClose={() => setMenu(false)} />
     </View>

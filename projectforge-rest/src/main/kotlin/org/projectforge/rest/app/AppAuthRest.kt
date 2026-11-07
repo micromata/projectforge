@@ -166,6 +166,14 @@ class AppAuthRest {
         val environment: String? = null,
     )
 
+    class PushTokenResponse(
+        /**
+         * The pushes name the device (`device` beside `aps`): the app, logged in at several servers, tells by it whose
+         * push it is, and lets a server not shown push only if it does (an older server answers nothing).
+         */
+        val deviceTagged: Boolean = true,
+    )
+
     /**
      * The app hands over its push token (APNs), so the server can wake it for a notification. The device is the one
      * of the app token of this request, nothing posted; a token already known on another device is moved here.
@@ -180,7 +188,7 @@ class AppAuthRest {
         }
         val device = ownDevice(request) ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Any>()
         appDeviceDao.setPushToken(ThreadLocalUserContext.loggedInUserId, device.id, token.lowercase(), environment)
-        return ResponseEntity.ok().build<Any>()
+        return ResponseEntity.ok(PushTokenResponse())
     }
 
     /**

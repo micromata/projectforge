@@ -26,10 +26,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { authController } from '../../core/auth/authController';
+import { Session } from '../../core/auth/session';
 import { errorText, i18n, t } from '../../core/i18n/translations';
+import { otherServers, useOtherServers } from '../../core/status/otherServers';
 import { userStatus, useUserStatus } from '../../core/status/userStatus';
 import { severityColor, useColors } from '../../core/ui/colors';
 import { ErrorView } from '../../core/ui/ErrorView';
+import { parseUrl } from '../../core/url';
 import { webPathOfLink } from '../../core/web/links';
 import {
   AppNotification,
@@ -52,8 +55,19 @@ const repository = () => (authController.api ? new NotificationsRepository(authC
  *
  * @param onOpenLink Shows the page of a link (a path of the server); the list is closed by it.
  */
-export function NotificationsScreen({ onOpenLink }: { onOpenLink: (path: string) => void }) {
+/**
+ * @param onOtherServer Another login with open notifications was chosen (its server pushes too): switch there.
+ */
+export function NotificationsScreen({
+  onOpenLink,
+  onOtherServer,
+}: {
+  onOpenLink: (path: string) => void;
+  onOtherServer?: (session: Session) => void;
+}) {
   const colors = useColors();
+  const others = useOtherServers().filter((it) => it.openCount > 0);
+  useEffect(() => void otherServers.refresh(), []);
   const summary = useUserStatus().status?.notifications;
   const summaryKey = `${summary?.openCount}/${summary?.latestId}`;
   const [open, setOpen] = useState<Loaded<AppNotification[]>>({ status: 'loading' });
@@ -143,6 +157,23 @@ export function NotificationsScreen({ onOpenLink }: { onOpenLink: (path: string)
           onDone={() => void act((repo) => repo.done(it.id))}
         />
       ))}
+      {others.map((it) => (
+        <Pressable
+          key={`${it.session.serverUrl}#${it.session.userId}`}
+          style={[styles.otherServer, { borderColor: colors.border }]}
+          onPress={() => onOtherServer?.(it.session)}
+        >
+          <Ionicons name="server-outline" size={20} color={severityColor(colors, it.maxSeverity) ?? colors.textMuted} />
+          <Text style={[styles.fill, { color: colors.text }]} numberOfLines={1}>
+            {t(
+              'app.server.notificationsAt',
+              parseUrl(it.session.serverUrl)?.host ?? it.session.serverUrl,
+              it.openCount,
+            )}
+          </Text>
+          <Ionicons name="swap-horizontal" size={20} color={colors.textMuted} />
+        </Pressable>
+      ))}
       <Pressable
         style={styles.archivedHeader}
         onPress={() => (archived == null ? void loadArchived() : setArchived(null))}
@@ -224,6 +255,14 @@ const styles = StyleSheet.create({
   date: { fontSize: 12 },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 4 },
   action: { paddingHorizontal: 10, paddingVertical: 8 },
+  otherServer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   archivedHeader: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 4 },
   archivedLoading: { padding: 16 },
   archivedEmpty: { padding: 16 },

@@ -306,6 +306,16 @@ FCM follows).
   the link, the notification id and the badge (count of the visible notifications), a sound only for IMPORTANT and
   URGENT. A Notification Service Extension for text on the lock screen isn't in the first version.
 - **Tap:** the link is opened in the chat or web tab, also when the push started the app (`launchLink`).
+- **Several servers:** all stored logins push, not only the one shown. The payload names the device (`device`, the
+  `AppDeviceDO` id = `Session.deviceId`) and the server (`server`, the host of `projectforge.domain`, also the banner's
+  `subtitle`); `pushTarget` (`core/push/pushService.ts`) tells the login by them (the ids are counted per server, the
+  host tells two logins with the same id apart). The token goes to every stored login on each start; a server
+  answering `pushToken` without `deviceTagged` (older) gets `pushToken/remove` while it isn't shown, its untagged push
+  would look like the active server's. A switch keeps the token at the server left (`authController.leave`); logout
+  and removing a server end it. A tap on another login's push asks to switch (`features/home/switchServer.ts`), then
+  opens the link there (`webTabs.afterReset`). The open notifications of the other logins (`core/status/otherServers.ts`,
+  loaded on start and resume, set by their pushes) are shown at the "more" menu, in the server list, below the
+  notification center and in the icon badge (the sum).
 - Real APNs delivery needs a physical device; sandbox and production differ, test via TestFlight.
 - Open: who sends for a self-hosted installation. The store app has one APNs key: for now the server sends itself with
   keys from its configuration (installations with the publisher's keys or an own build of the app); a push relay of the

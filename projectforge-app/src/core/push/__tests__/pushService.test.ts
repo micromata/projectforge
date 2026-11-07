@@ -1,7 +1,8 @@
 // The tests of the earlier Flutter app's push_service_test.
 import { ApiClient } from '../../api/apiClient';
 import { fakeHttp } from '../../../testing/fakeHttp';
-import { PushPlatform, PushReceived, PushService, PushTap } from '../pushService';
+import { Session } from '../../auth/session';
+import { PushPlatform, PushReceived, PushService, PushTap, pushTarget } from '../pushService';
 
 function setup({
   production = false,
@@ -9,25 +10,31 @@ function setup({
   environment = null,
   launch = null,
   granted = true,
+  others = [],
 }: {
   production?: boolean;
   offline?: boolean;
   environment?: 'SANDBOX' | 'PRODUCTION' | null;
   launch?: PushTap | null;
   granted?: boolean;
+  /** The other logins: their server and whether it names the device in its pushes. */
+  others?: { url: string; tagged: boolean }[];
 } = {}) {
-  const { http, requests } = fakeHttp(() => {
+  const { http, requests } = fakeHttp((request) => {
     if (offline) throw new TypeError('Network request failed');
-    return {};
+    const other = others.find((it) => request.url.startsWith(it.url));
+    return other?.tagged && request.url.endsWith('/pushToken') ? { body: { deviceTagged: true } } : {};
   });
-  const api = new ApiClient('https://pf.example.com', {
-    http,
-    appVersion: '1',
-    token: () => 't',
-    proxyCookies: () => ({}),
-    onUnauthorized: () => {},
-    onReauthenticate: async () => false,
-  });
+  const client = (url: string) =>
+    new ApiClient(url, {
+      http,
+      appVersion: '1',
+      token: () => 't',
+      proxyCookies: () => ({}),
+      onUnauthorized: () => {},
+      onReauthenticate: async () => false,
+    });
+  const api = client('https://pf.example.com');
   const listeners: {
     token?: (t: string) => void;
     tap?: (t: PushTap) => void;
@@ -48,8 +55,9 @@ function setup({
   const received: (number | null)[] = [];
   const push = new PushService(api, platform, {
     production,
-    onLink: (link) => links.push(link),
+    onTap: (tap) => links.push(tap.link),
     onReceived: (it) => received.push(it.badge),
+    others: async () => others.map((it) => client(it.url)),
   });
   const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
   return { push, requests, listeners, links, received, flush };
@@ -102,12 +110,59 @@ test('without the permission no token is sent', async () => {
 });
 
 test('links of taps and of the start, the tap of the start only once', async () => {
-  const { push, listeners, links, received } = setup({ launch: { id: 'n1', link: '/chat/5' } });
+  const tap = (id: string, link: string): PushTap => ({ id, link, device: null, server: null });
+  const { push, listeners, links, received } = setup({ launch: tap('n1', '/chat/5') });
   await push.start();
   expect(links).toEqual(['/chat/5']);
-  listeners.tap!({ id: 'n1', link: '/chat/5' });
-  listeners.tap!({ id: 'n2', link: '/timesheet' });
-  listeners.received!({ badge: 3 });
+  listeners.tap!(tap('n1', '/chat/5'));
+  listeners.tap!(tap('n2', '/timesheet'));
+  listeners.received!({ badge: 3, device: null, server: null });
   expect(links).toEqual(['/chat/5', '/timesheet']);
   expect(received).toEqual([3]);
+});
+
+test('the other logins get the token, a server not naming the device in its pushes has it removed again', async () => {
+  const { push, requests } = setup({
+    others: [
+      { url: 'https://new.example.com', tagged: true },
+      { url: 'https://old.example.com', tagged: false },
+    ],
+  });
+  await push.start();
+  expect(requests.map((it) => it.url).sort()).toEqual([
+    'https://new.example.com/rs/appAuth/pushToken',
+    'https://old.example.com/rs/appAuth/pushToken',
+    'https://old.example.com/rs/appAuth/pushToken/remove',
+    'https://pf.example.com/rs/appAuth/pushToken',
+  ]);
+});
+
+describe('pushTarget', () => {
+  const session = (serverUrl: string, deviceId: number, userId = 1): Session => ({
+    serverUrl,
+    token: 't',
+    userId,
+    deviceId,
+    proxyCookies: {},
+    appLoginPath: true,
+  });
+  const active = session('https://a.example.com', 3);
+  const other = session('https://b.example.com', 5);
+  const sameId = session('https://c.example.com', 3);
+  const sessions = [active, other, sameId];
+
+  it('is the other login of the device', () => {
+    expect(pushTarget({ device: 5, server: 'b.example.com' }, sessions, active)).toBe(other);
+  });
+
+  it('is the active one without device (an older server), for its own device or an unknown one', () => {
+    expect(pushTarget({ device: null, server: null }, sessions, active)).toBeNull();
+    expect(pushTarget({ device: 9, server: null }, sessions, active)).toBeNull();
+    expect(pushTarget({ device: 3, server: 'a.example.com' }, sessions, active)).toBeNull();
+  });
+
+  it('tells two logins with the same device id apart by the host', () => {
+    expect(pushTarget({ device: 3, server: 'c.example.com' }, sessions, active)).toBe(sameId);
+    expect(pushTarget({ device: 3, server: null }, sessions, active)).toBeNull();
+  });
 });

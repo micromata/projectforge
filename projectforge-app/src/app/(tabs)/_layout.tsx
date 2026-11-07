@@ -27,15 +27,19 @@ import { Platform, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { authController, useAuth } from '../../core/auth/authController';
+import { Session } from '../../core/auth/session';
 import { compatibilityIssue } from '../../core/compat/compatibility';
 import { appVersion } from '../../core/platform';
 import { expoPush } from '../../core/push/expoPush';
-import { PushService } from '../../core/push/pushService';
+import { PushService, pushTarget } from '../../core/push/pushService';
+import { otherServers, useOtherServers } from '../../core/status/otherServers';
 import { chatEnabled, userStatus, useUserStatus } from '../../core/status/userStatus';
 import { isChatPath, webPathOfLink } from '../../core/web/links';
 import { useColors } from '../../core/ui/colors';
 import { CompatibilityBanner } from '../../features/home/CompatibilityBanner';
+import { askToSwitch } from '../../features/home/switchServer';
 import { TabBar } from '../../features/home/TabBar';
+import { timesheets } from '../../features/timesheets/timesheetsStore';
 import { webTabs } from '../../features/web/webTabs';
 
 /**
@@ -59,33 +63,65 @@ export default function TabsLayout() {
   const { width, height } = useWindowDimensions();
   const rail = width > height;
 
-  useEffect(() => webTabs.reset(), [auth.generation]);
+  useEffect(() => webTabs.reset(auth.generation), [auth.generation]);
 
-  // Asks for the permission to show pushes, registers and hands the token to the server; a tapped push opens its
-  // link in the chat tab (a page of the chat) or in the pages.
+  // Asks for the permission to show pushes, registers and hands the token to the servers of all logins; a tapped push
+  // opens its link in the chat tab (a page of the chat) or in the pages, one of another server after asking to switch.
   useEffect(() => {
     const api = authController.api;
-    if (Platform.OS !== 'ios' || api == null) return;
-    const service = new PushService(api, expoPush, {
-      production: !__DEV__,
-      onLink: (link) => {
-        const path = webPathOfLink(link);
+    if (api == null) return;
+    otherServers.start({
+      sessions: authController.otherSessions,
+      clientFor: authController.clientFor,
+    });
+    if (Platform.OS !== 'ios') return () => otherServers.stop();
+    const openLink = (link: string, other: Session | null) => {
+      const path = webPathOfLink(link);
+      const chat = path != null && isChatPath(path) && chatEnabled(userStatus.get().status);
+      if (other == null) {
         if (path == null) return;
-        const chat = isChatPath(path) && chatEnabled(userStatus.get().status);
         webTabs.open(chat ? 'chat' : 'pages', path);
         router.dismissTo(chat ? '/chat' : '/pages');
-      },
-      onReceived: (push) => userStatus.pushed(push.badge),
+        return;
+      }
+      void askToSwitch(other, timesheets.getState().timer != null).then((switched) => {
+        if (!switched || path == null) return;
+        webTabs.afterReset(authController.getState().generation, () => {
+          webTabs.open(chat ? 'chat' : 'pages', path);
+          router.dismissTo(chat ? '/chat' : '/pages');
+        });
+      });
+    };
+    const service = new PushService(api, expoPush, {
+      production: !__DEV__,
+      others: async () => (await authController.otherSessions()).map(authController.clientFor),
+      onTap: (tap) =>
+        void authController
+          .sessions()
+          .then((sessions) => openLink(tap.link, pushTarget(tap, sessions, authController.getState().session))),
+      onReceived: (push) =>
+        void authController.sessions().then((sessions) => {
+          const other = pushTarget(push, sessions, authController.getState().session);
+          if (other) otherServers.pushed(other, push.badge);
+          else userStatus.pushed(push.badge);
+        }),
     });
     void service.start().catch(() => {});
-    return () => service.stop();
+    return () => {
+      service.stop();
+      otherServers.stop();
+    };
   }, [auth.generation, router]);
 
-  // The number on the icon follows the notifications.
+  // The number on the icon follows the notifications, of all logins.
   const openNotifications = status?.notifications?.openCount;
+  const others = useOtherServers();
+  const otherNotifications = others.reduce((sum, it) => sum + it.openCount, 0);
   useEffect(() => {
-    if (Platform.OS === 'ios' && openNotifications != null) expoPush.setBadge(openNotifications).catch(() => {});
-  }, [openNotifications]);
+    if (Platform.OS === 'ios' && openNotifications != null) {
+      expoPush.setBadge(openNotifications + otherNotifications).catch(() => {});
+    }
+  }, [openNotifications, otherNotifications]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'left', 'right']}>

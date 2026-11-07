@@ -25,10 +25,15 @@ import { useRouter } from 'expo-router';
 
 import { chatEnabled, userStatus } from '../core/status/userStatus';
 import { isChatPath } from '../core/web/links';
+import { askToSwitch } from '../features/home/switchServer';
 import { NotificationsScreen } from '../features/notifications/NotificationsScreen';
+import { timesheets } from '../features/timesheets/timesheetsStore';
 import { webTabs } from '../features/web/webTabs';
 
-/** The notifications, over the tabs; a link is shown in the chat tab (a page of the chat) or in the pages. */
+/**
+ * The notifications, over the tabs; a link is shown in the chat tab (a page of the chat) or in the pages. Another
+ * login's open notifications: after asking, switched there (the list stays open, now of that server).
+ */
 export default function Notifications() {
   const router = useRouter();
   return (
@@ -38,6 +43,7 @@ export default function Notifications() {
         webTabs.open(chat ? 'chat' : 'pages', path);
         router.dismissTo(chat ? '/chat' : '/pages');
       }}
+      onOtherServer={(session) => void askToSwitch(session, timesheets.getState().timer != null)}
     />
   );
 }

@@ -62,9 +62,12 @@ class ApnsPushSenderTest {
     @Test
     fun `payload has no content of the notification`() {
         val json = ObjectMapper().readTree(
-            ApnsPushSender.payload(PushMessage("Title", "Text", 3, true, "/chat/5", 42L)),
+            ApnsPushSender.payload(PushMessage("Title", "Text", 3, true, "/chat/5", 42L, "pf.example.org"), 7L),
         )
         Assertions.assertEquals("Title", json.path("aps").path("alert").path("title").asText())
+        Assertions.assertEquals("pf.example.org", json.path("aps").path("alert").path("subtitle").asText())
+        Assertions.assertEquals(7L, json.path("device").asLong())
+        Assertions.assertEquals("pf.example.org", json.path("server").asText())
         Assertions.assertEquals(3, json.path("aps").path("badge").asInt())
         Assertions.assertEquals("default", json.path("aps").path("sound").asText())
         Assertions.assertEquals("/chat/5", json.path("link").asText())
@@ -72,6 +75,8 @@ class ApnsPushSenderTest {
         val silent = ObjectMapper().readTree(ApnsPushSender.payload(PushMessage("T", "B", 0, false, null, null)))
         Assertions.assertTrue(silent.path("aps").path("sound").isMissingNode)
         Assertions.assertTrue(silent.path("link").isMissingNode)
+        Assertions.assertTrue(silent.path("aps").path("alert").path("subtitle").isMissingNode)
+        Assertions.assertTrue(silent.path("device").isMissingNode)
     }
 
     @Test

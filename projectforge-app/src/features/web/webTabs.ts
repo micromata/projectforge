@@ -44,6 +44,9 @@ class WebTabs {
   private states: Record<WebTab, WebScreenState> = { pages: EMPTY, chat: EMPTY };
   /** The menu of the pages tab is shown over its page: at the start, until an entry or a page is opened. */
   private menu = true;
+  /** The login generation of the last [reset], and what waits for a later one ([afterReset]). */
+  private resetGeneration = 0;
+  private waiting: { generation: number; run: () => void }[] = [];
   private listeners = new Set<() => void>();
 
   register(tab: WebTab, handle: WebScreenHandle | null) {
@@ -61,6 +64,15 @@ class WebTabs {
     const handle = this.handles[tab];
     if (handle) handle.open(path);
     else this.pending[tab] = path;
+  }
+
+  /**
+   * Runs [run] once the tabs of the login [generation] are reset (e.g. a page to show on the server switched to);
+   * at once if they are already.
+   */
+  afterReset(generation: number, run: () => void) {
+    if (generation <= this.resetGeneration) run();
+    else this.waiting.push({ generation, run });
   }
 
   /** The page asked for before the tab existed, taken once. */
@@ -93,12 +105,19 @@ class WebTabs {
     this.setMenu(!this.menu);
   }
 
-  reset() {
-    this.handles = {};
+  /**
+   * Another login ([generation]): nothing of the former one's pages stays. The handles stay, the tabs (re)register and
+   * unregister themselves (the new ones have done so already when this runs, in an effect of their parent).
+   */
+  reset(generation = this.resetGeneration + 1) {
     this.pending = {};
     this.states = { pages: EMPTY, chat: EMPTY };
     this.menu = true;
+    this.resetGeneration = generation;
     this.listeners.forEach((it) => it());
+    const due = this.waiting.filter((it) => it.generation <= generation);
+    this.waiting = this.waiting.filter((it) => it.generation > generation);
+    due.forEach((it) => it.run());
   }
 
   getStates = () => this.states;

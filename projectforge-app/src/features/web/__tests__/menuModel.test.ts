@@ -177,3 +177,17 @@ describe('the menu of the pages tab', () => {
     expect(webTabs.getMenu()).toBe(true);
   });
 });
+
+describe('a page for the login switched to', () => {
+  test('opened once its tabs are reset, at once if they are already', () => {
+    webTabs.reset(10);
+    const opened: string[] = [];
+    webTabs.afterReset(11, () => opened.push('later'));
+    webTabs.afterReset(10, () => opened.push('now'));
+    expect(opened).toEqual(['now']);
+    webTabs.reset(11);
+    expect(opened).toEqual(['now', 'later']);
+    webTabs.reset(12);
+    expect(opened).toEqual(['now', 'later']);
+  });
+});

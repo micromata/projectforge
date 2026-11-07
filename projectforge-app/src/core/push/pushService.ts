@@ -21,24 +21,54 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import type { PushTokenRequest } from '@projectforge/shared/rs/app-auth';
+import type { PushTokenRequest, PushTokenResponse } from '@projectforge/shared/rs/app-auth';
 
 import { ApiClient } from '../api/apiClient';
+import { Session } from '../auth/session';
 import { appLog } from '../log/appLog';
+import { parseUrl } from '../url';
 
 export interface PushSubscription {
   remove(): void;
 }
 
-/** A push as the app sees it: the id of its request and its link (empty if it has none). */
+/**
+ * A push as the app sees it: the id of its request, its link (empty if it has none) and the app device it was sent to
+ * (`Session.deviceId`, which tells the login; null from an older server).
+ */
 export interface PushTap {
   id: string;
   link: string;
+  device: number | null;
+  /** The host of the server (its configured domain), null from an older server. */
+  server: string | null;
 }
 
 /** A push arrived while the app is open: the number on the icon it carries (the server's open count), null without. */
 export interface PushReceived {
   badge: number | null;
+  device: number | null;
+  server: string | null;
+}
+
+/**
+ * The stored login a push belongs to if it isn't the active one, null for the active one (also for a push without
+ * device, of an older server, which pushes only while it is shown). The ids of the devices are counted per server: of
+ * two logins with the same id, the one at the push's host.
+ */
+export function pushTarget(
+  push: { device: number | null; server: string | null },
+  sessions: Session[],
+  active: Session | null,
+): Session | null {
+  if (push.device == null) return null;
+  let candidates = sessions.filter((it) => it.deviceId === push.device);
+  if (candidates.length > 1 && push.server) {
+    candidates = candidates.filter((it) => parseUrl(it.serverUrl)?.hostname === push.server);
+  }
+  if (candidates.length !== 1) return null;
+  const target = candidates[0];
+  return active && target.serverUrl === active.serverUrl && target.userId === active.userId ? null : target;
 }
 
 /** What the push service needs of the system (expoPush.ts), kept apart so it can be tested without it. */
@@ -66,6 +96,10 @@ export interface PushPlatform {
  * notification, only a generic one, its link and the count: the app loads the content itself. Port of the Flutter
  * app's PushService.
  *
+ * The other stored logins ([others]) get the token too: their servers push as well, naming the device, so a push is
+ * told apart by its login. A server that doesn't name it (older, `deviceTagged` missing) gets it removed again: its push
+ * would look like one of the server shown.
+ *
  * @param production Fallback if the signing is unknown: debug builds are signed for the sandbox of APNs, release builds
  * (TestFlight, store) for production. A token is valid for one of them only.
  */
@@ -80,10 +114,12 @@ export class PushService {
     private readonly platform: PushPlatform,
     private readonly options: {
       production: boolean;
-      /** A push was tapped: its link (empty if it has none). */
-      onLink: (link: string) => void;
+      /** A push was tapped. */
+      onTap: (tap: PushTap) => void;
       /** A push arrived while the app is open. */
       onReceived: (push: PushReceived) => void;
+      /** The clients of the stored logins other than the active one. */
+      others?: () => Promise<ApiClient[]>;
     },
   ) {}
 
@@ -93,7 +129,7 @@ export class PushService {
     this.subscriptions = [
       this.platform.onTap(this.tapped),
       this.platform.onReceived((push) => {
-        appLog.debug('push', `Push received (badge ${push.badge ?? '-'})`);
+        appLog.debug('push', `Push received (badge ${push.badge ?? '-'}, device ${push.device ?? '-'})`);
         this.options.onReceived(push);
       }),
       this.platform.onToken((token) => void this.register(token)),
@@ -116,7 +152,7 @@ export class PushService {
   private tapped = (tap: PushTap) => {
     if (tap.id === this.lastTap) return;
     this.lastTap = tap.id;
-    this.options.onLink(tap.link);
+    this.options.onTap(tap);
   };
 
   private async register(token: string) {
@@ -134,5 +170,35 @@ export class PushService {
       if (this.sentToken === token) this.sentToken = null;
       appLog.debug('push', `Push token not sent: ${String(e)}`);
     }
+    await this.registerOthers(body);
+  }
+
+  private async registerOthers(body: PushTokenRequest) {
+    let clients: ApiClient[];
+    try {
+      clients = (await this.options.others?.()) ?? [];
+    } catch (e) {
+      appLog.debug('push', `Other logins not read: ${String(e)}`);
+      return;
+    }
+    await Promise.all(
+      clients.map(async (client) => {
+        try {
+          const answer = await client.post<PushTokenResponse | undefined>('/rs/appAuth/pushToken', {
+            body,
+            renewLogin: false,
+          });
+          if (answer?.deviceTagged === true) {
+            appLog.debug('push', 'Push token sent to another server');
+          } else {
+            await client.post('/rs/appAuth/pushToken/remove', { renewLogin: false });
+            appLog.debug('push', 'Another server pushes without the device: push token removed there');
+          }
+        } catch (e) {
+          // Offline, logged out or refused: tried again with the next start.
+          appLog.debug('push', `Push token not sent to another server: ${String(e)}`);
+        }
+      }),
+    );
   }
 }

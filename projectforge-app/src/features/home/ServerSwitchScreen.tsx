@@ -23,23 +23,14 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { authController, useAuth } from '../../core/auth/authController';
 import { Session } from '../../core/auth/session';
 import { t } from '../../core/i18n/translations';
-import { useColors } from '../../core/ui/colors';
-
-/** True without a running timer, otherwise if the user agrees to discard it (the switch clears the data of the app). */
-function timerMayBeDiscarded(timerRunning: boolean): Promise<boolean> {
-  if (!timerRunning) return Promise.resolve(true);
-  return new Promise((resolve) =>
-    Alert.alert('', t('app.server.switch.timer'), [
-      { text: t('cancel'), style: 'cancel', onPress: () => resolve(false) },
-      { text: t('app.server.switch'), style: 'destructive', onPress: () => resolve(true) },
-    ]),
-  );
-}
+import { otherServers, useOtherServers } from '../../core/status/otherServers';
+import { severityColor, useColors } from '../../core/ui/colors';
+import { timerMayBeDiscarded } from './switchServer';
 
 /**
  * The stored logins at other servers to switch to without the browser, and the login at another server.
@@ -58,15 +49,20 @@ export function ServerSwitchScreen({
   const colors = useColors();
   const auth = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
+  const others = useOtherServers();
 
   useEffect(() => {
     void authController.sessions().then(setSessions);
   }, [auth.session]);
+  useEffect(() => void otherServers.refresh(), []);
 
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.container}>
       {sessions.map((session) => {
         const current = session.serverUrl === auth.session?.serverUrl;
+        const other = current
+          ? undefined
+          : others.find((it) => it.session.serverUrl === session.serverUrl && it.session.userId === session.userId);
         return (
           <Pressable
             key={session.serverUrl}
@@ -86,6 +82,15 @@ export function ServerSwitchScreen({
               </Text>
               <Text style={{ color: colors.textMuted, fontSize: 13 }}>{session.fullname ?? session.username ?? ''}</Text>
             </View>
+            {other != null && other.openCount > 0 && (
+              <View
+                style={[styles.badge, { backgroundColor: severityColor(colors, other.maxSeverity) ?? colors.badge }]}
+                accessibilityLabel={t('app.server.notifications', other.openCount)}
+              >
+                <Ionicons name="notifications" size={12} color="#fff" />
+                <Text style={styles.badgeText}>{other.openCount > 99 ? '99+' : other.openCount}</Text>
+              </View>
+            )}
           </Pressable>
         );
       })}
@@ -100,5 +105,7 @@ export function ServerSwitchScreen({
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   container: { padding: 16 },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 3, borderRadius: 10, paddingHorizontal: 7, height: 20 },
+  badgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth },
 });

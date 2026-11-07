@@ -37,14 +37,25 @@ Notifications.setNotificationHandler({
 });
 
 /**
- * The link of the server's push is beside `aps` in its payload (ApnsPushSender); expo-notifications hands it over in
- * the payload of the trigger only (its `data` is the payload's `body`).
+ * The link, the device and the server of the server's push are beside `aps` in its payload (ApnsPushSender);
+ * expo-notifications hands them over in the payload of the trigger only (its `data` is the payload's `body`).
  */
+function payloadOf(request: Notifications.NotificationRequest) {
+  const trigger = request.trigger as { type?: string; payload?: Record<string, unknown> } | null;
+  const value = (key: string) => trigger?.payload?.[key] ?? request.content.data?.[key];
+  const link = value('link');
+  const device = value('device');
+  const server = value('server');
+  return {
+    link: typeof link === 'string' ? link : '',
+    device: typeof device === 'number' ? device : null,
+    server: typeof server === 'string' ? server : null,
+  };
+}
+
 function tapOf(response: Notifications.NotificationResponse): PushTap {
   const { request } = response.notification;
-  const trigger = request.trigger as { type?: string; payload?: Record<string, unknown> } | null;
-  const link = trigger?.payload?.link ?? request.content.data?.link;
-  return { id: request.identifier, link: typeof link === 'string' ? link : '' };
+  return { id: request.identifier, ...payloadOf(request) };
 }
 
 /** The pushes of iOS by expo-notifications. */
@@ -66,8 +77,10 @@ export const expoPush: PushPlatform = {
   },
   onReceived: (listener) =>
     Notifications.addNotificationReceivedListener((notification) => {
-      const badge = notification.request.content.badge;
-      listener({ badge: typeof badge === 'number' ? badge : null });
+      const { request } = notification;
+      const { device, server } = payloadOf(request);
+      const badge = request.content.badge;
+      listener({ badge: typeof badge === 'number' ? badge : null, device, server });
     }),
   setBadge: (count) => Notifications.setBadgeCountAsync(count),
   environment: () => PfNative.apsEnvironment(),
